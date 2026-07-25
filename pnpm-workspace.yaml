@@ -1,0 +1,11 @@
+# Workspace globs for the Nexus hub. Anything not matched here is NOT part of the
+# pnpm/Turborepo workspace. The `_template` venture is intentionally excluded so
+# its scaffold packages aren't installed until copied into a real venture.
+packages:
+  - "ventures/*/apps/*"
+  - "ventures/*/services/*"
+  - "ventures/*/data-platform/*"
+  - "shared/packages/*"
+  - "internal-tools/*"
+  - "enablement/cli"
+  - "!ventures/_template/**"

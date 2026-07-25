@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Finance Planner — Accounts</title>
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><div class="logo">F</div><div class="name">Finance <span>Planner</span></div></div>
+    <div class="nav-label">Overview</div>
+    <a class="nav-item" href="dashboard.html"><span class="ic">📊</span> Dashboard</a>
+    <a class="nav-item" href="cashflow.html"><span class="ic">📈</span> Cash flow</a>
+    <a class="nav-item" href="advice.html"><span class="ic">💡</span> Advice</a>
+    <div class="nav-label">Money</div>
+    <a class="nav-item active" href="accounts.html"><span class="ic">🏦</span> Accounts</a>
+    <a class="nav-item" href="#"><span class="ic">🧾</span> Transactions</a>
+    <a class="nav-item" href="#"><span class="ic">🎛️</span> Scenarios</a>
+    <div class="spacer"></div>
+    <a class="nav-item" href="#"><span class="ic">⚙️</span> Settings</a>
+    <div class="userchip"><div class="avatar">A</div><div><div style="font-size:13.5px;font-weight:600">Aidan</div><div class="muted" style="font-size:12px">Plot 110 household</div></div></div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="page-title"><h1>Accounts</h1><p>Connected via open banking, plus manual pots. Last synced 2 min ago.</p></div>
+      <div class="actions"><button class="btn ghost">↻ Sync all</button><button class="btn primary">+ Connect a bank</button></div>
+    </div>
+
+    <!-- classification summary -->
+    <div class="grid cols-3" style="margin-bottom:16px">
+      <div class="card stat"><div class="label"><span class="dot" style="background:var(--accent)"></span> Spendable cash</div><div class="value">£5,344</div><div class="delta">Day-to-day money</div></div>
+      <div class="card stat"><div class="label"><span class="dot" style="background:var(--warn)"></span> Ring-fenced</div><div class="value">£55,000</div><div class="delta">Emergency fund + parental gift</div></div>
+      <div class="card stat"><div class="label"><span class="dot" style="background:var(--accent-2)"></span> ISAs</div><div class="value">£390,000</div><div class="delta">Cash ISA + stocks &amp; shares</div></div>
+    </div>
+
+    <!-- connected banks -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-head"><h3>Connected banks <span class="pill good" style="margin-left:8px">Open banking</span></h3><span class="badge-note">Read-only · consent expires in 82 days</span></div>
+
+      <div class="row"><div class="acct grow">
+        <div class="bank-logo" style="background:#1e88e5;color:#fff">B</div>
+        <div><div class="r-title">Barclays</div><div class="r-sub">Current · Savings — 2 accounts</div></div></div>
+        <div style="text-align:right"><div class="amount">£5,928</div><div class="r-sub"><span class="pill dim">1 spendable</span> <span class="pill warn">1 ring-fenced</span></div></div>
+      </div>
+      <div class="row"><div class="acct grow">
+        <div class="bank-logo" style="background:#ff3464;color:#fff">M</div>
+        <div><div class="r-title">Monzo</div><div class="r-sub">Current + savings pot</div></div></div>
+        <div style="text-align:right"><div class="amount">£245</div><div class="r-sub"><span class="pill dim">spendable</span></div></div>
+      </div>
+      <div class="row"><div class="acct grow">
+        <div class="bank-logo" style="background:#0a1d3b;color:#fff">R</div>
+        <div><div class="r-title">Revolut</div><div class="r-sub">Savings</div></div></div>
+        <div style="text-align:right"><div class="amount">£1,856</div><div class="r-sub"><span class="pill dim">spendable</span></div></div>
+      </div>
+      <div class="row"><div class="acct grow">
+        <div class="bank-logo" style="background:#00c2a8;color:#05121a">Z</div>
+        <div><div class="r-title">Zopa</div><div class="r-sub">Savings</div></div></div>
+        <div style="text-align:right"><div class="amount">£1,846</div><div class="r-sub"><span class="pill dim">spendable</span></div></div>
+      </div>
+    </div>
+
+    <!-- manual accounts -->
+    <div class="card">
+      <div class="card-head"><div><h3>Manual accounts</h3><div class="sub">Things banks can't see — added by you</div></div><button class="btn ghost">+ Add manual</button></div>
+
+      <div class="row"><div class="acct grow">
+        <div class="bank-logo" style="background:#f7931a;color:#fff">₿</div>
+        <div><div class="r-title">Coinbase</div><div class="r-sub">Crypto · counted as spendable</div></div></div>
+        <div class="amount">£1,219</div>
+      </div>
+      <div class="row"><div class="acct grow">
+        <div class="bank-logo" style="background:#2b6bb0;color:#fff">I</div>
+        <div><div class="r-title">Cash ISA</div><div class="r-sub">Funds the purchase</div></div></div>
+        <div class="amount">£311,000</div>
+      </div>
+      <div class="row"><div class="acct grow">
+        <div class="bank-logo" style="background:#38e1b0;color:#05121a">S</div>
+        <div><div class="r-title">Stocks &amp; shares ISA</div><div class="r-sub">Stays invested · reserve</div></div></div>
+        <div class="amount">£79,000</div>
+      </div>
+      <div class="row"><div class="acct grow">
+        <div class="bank-logo" style="background:#8a5cf6;color:#fff">G</div>
+        <div><div class="r-title">Parental gift</div><div class="r-sub">Held in Barclays · ring-fenced</div></div></div>
+        <div class="amount">£50,000</div>
+      </div>
+    </div>
+
+    <div class="disclaimer">Bank access is read-only and provided through an authorised open-banking provider. Tokens are encrypted at rest; Finance Planner never stores your bank password.</div>
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "name": "nexus-hub",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Nexus — a centralised incubator hub for building multiple ventures on shared foundations.",
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5.5.0"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "finance-planner-prototype",
+      "runtimeExecutable": "corepack",
+      "runtimeArgs": ["pnpm", "--filter", "finance-planner-prototype", "dev"],
+      "autoPort": true,
+      "port": 5199
+    }
+  ]
+}

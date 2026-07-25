@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Finance Planner — Cash flow</title>
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><div class="logo">F</div><div class="name">Finance <span>Planner</span></div></div>
+    <div class="nav-label">Overview</div>
+    <a class="nav-item" href="dashboard.html"><span class="ic">📊</span> Dashboard</a>
+    <a class="nav-item active" href="cashflow.html"><span class="ic">📈</span> Cash flow</a>
+    <a class="nav-item" href="advice.html"><span class="ic">💡</span> Advice</a>
+    <div class="nav-label">Money</div>
+    <a class="nav-item" href="accounts.html"><span class="ic">🏦</span> Accounts</a>
+    <a class="nav-item" href="#"><span class="ic">🧾</span> Transactions</a>
+    <a class="nav-item" href="#"><span class="ic">🎛️</span> Scenarios</a>
+    <div class="spacer"></div>
+    <a class="nav-item" href="#"><span class="ic">⚙️</span> Settings</a>
+    <div class="userchip"><div class="avatar">A</div><div><div style="font-size:13.5px;font-weight:600">Aidan</div><div class="muted" style="font-size:12px">Plot 110 household</div></div></div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="page-title"><h1>Cash-flow forecast</h1><p>Spending cash projected month by month · Aug 2026 – Jul 2027</p></div>
+      <div class="actions"><button class="btn ghost">🎛️ Scenario</button><button class="btn">Export</button></div>
+    </div>
+
+    <!-- headline stats -->
+    <div class="grid cols-4" style="margin-bottom:16px">
+      <div class="card stat"><div class="label">Lowest point</div><div class="value" style="color:var(--warn)">£4,581</div><div class="delta">Oct 2026</div></div>
+      <div class="card stat"><div class="label">Runway</div><div class="value">12+ mo</div><div class="delta up">Never hits zero in horizon</div></div>
+      <div class="card stat"><div class="label">Cash at 6 months</div><div class="value">£9,054</div><div class="delta">Jan 2027</div></div>
+      <div class="card stat"><div class="label">Cash at 12 months</div><div class="value">£12,500</div><div class="delta up">At buffer ceiling → sweeps to ISA</div></div>
+    </div>
+
+    <!-- big chart -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-head"><div><h3>Spending cash (closing balance)</h3><div class="sub">Ring-fenced funds and ISAs excluded — the purchase never touches this</div></div>
+        <div><span class="pill warn">Trough £4,581</span></div></div>
+      <div class="chart" style="height:280px">
+        <div class="bar-wrap"><div class="bar" style="height:50%"></div><div class="bar-x">Aug</div></div>
+        <div class="bar-wrap"><div class="bar" style="height:51%"></div><div class="bar-x">Sep</div></div>
+        <div class="bar-wrap"><div class="bar trough" style="height:37%"></div><div class="bar-x">Oct</div></div>
+        <div class="bar-wrap"><div class="bar" style="height:47%"></div><div class="bar-x">Nov</div></div>
+        <div class="bar-wrap"><div class="bar" style="height:62%"></div><div class="bar-x">Dec</div></div>
+        <div class="bar-wrap"><div class="bar" style="height:72%"></div><div class="bar-x">Jan</div></div>
+        <div class="bar-wrap"><div class="bar low" style="height:67%"></div><div class="bar-x">Feb</div></div>
+        <div class="bar-wrap"><div class="bar" style="height:78%"></div><div class="bar-x">Mar</div></div>
+        <div class="bar-wrap"><div class="bar" style="height:92%"></div><div class="bar-x">Apr</div></div>
+        <div class="bar-wrap"><div class="bar" style="height:100%"></div><div class="bar-x">May</div></div>
+        <div class="bar-wrap"><div class="bar" style="height:100%"></div><div class="bar-x">Jun</div></div>
+        <div class="bar-wrap"><div class="bar" style="height:100%"></div><div class="bar-x">Jul</div></div>
+      </div>
+      <div class="chart-legend">
+        <div class="legend-i"><span class="swatch" style="background:linear-gradient(180deg,var(--accent-2),#2b6bb0)"></span> Spending cash</div>
+        <div class="legend-i"><span class="swatch" style="background:linear-gradient(180deg,var(--warn),#d98b2b)"></span> One-off spend month</div>
+        <div class="legend-i"><span class="swatch" style="background:linear-gradient(180deg,var(--danger),#c94b4b)"></span> Lowest point</div>
+      </div>
+    </div>
+
+    <!-- monthly table -->
+    <div class="card">
+      <div class="card-head"><h3>Month-by-month</h3><span class="badge-note">Housing costs shown at your share</span></div>
+      <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:13.5px" class="mono">
+        <thead>
+          <tr style="color:var(--text-mut);text-align:right">
+            <th style="text-align:left;padding:10px 8px;font-weight:600">Month</th>
+            <th style="padding:10px 8px">Income</th>
+            <th style="padding:10px 8px">Housing</th>
+            <th style="padding:10px 8px">Living</th>
+            <th style="padding:10px 8px">One-offs</th>
+            <th style="padding:10px 8px">ISA</th>
+            <th style="padding:10px 8px">Net</th>
+            <th style="padding:10px 8px">Spending cash</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      </div>
+    </div>
+
+    <div class="disclaimer">Illustrative mockup — figures reproduced from the Excel Cashflow tab. Negative net months are covered by the running balance; the lowest point is the key runway metric.</div>
+  </main>
+</div>
+
+<script>
+  const rows = [
+    ["Aug-26","£3,979","£1,500","£750","£800","£0","+£929","£6,273",""],
+    ["Sep-26","£3,979","£1,500","£750","£1,650","£0","+£79","£6,352",""],
+    ["Oct-26","£3,979","£1,500","£750","£3,500","£0","−£1,771","£4,581","trough"],
+    ["Nov-26","£3,979","£1,500","£750","£400","£0","+£1,329","£5,910",""],
+    ["Dec-26","£3,979","£1,157","£750","£250","£0","+£1,822","£7,732","move"],
+    ["Jan-27","£3,979","£1,157","£750","£0","£750","+£1,322","£9,054",""],
+    ["Feb-27","£3,979","£1,157","£750","£2,000","£750","−£678","£8,376",""],
+    ["Mar-27","£3,979","£1,157","£750","£0","£750","+£1,322","£9,698",""],
+    ["Apr-27","£8,580","£1,157","£750","£2,500","£1,371","+£2,802","£12,500","bonus"],
+    ["May-27","£3,979","£1,157","£750","£0","£2,072","£0","£12,500",""],
+    ["Jun-27","£3,979","£1,157","£750","£0","£2,072","£0","£12,500",""],
+    ["Jul-27","£3,979","£1,157","£750","£0","£2,072","£0","£12,500",""],
+  ];
+  const tags = { trough:'<span class="pill warn" style="margin-left:8px">low</span>', move:'<span class="pill dim" style="margin-left:8px">move in</span>', bonus:'<span class="pill good" style="margin-left:8px">bonus</span>' };
+  document.getElementById('tbody').innerHTML = rows.map(r => {
+    const net = r[6].startsWith('−') ? 'color:var(--danger)' : (r[6]==='£0'?'color:var(--text-mut)':'color:var(--good)');
+    const hl = r[8]==='trough' ? 'background:rgba(255,107,107,.06)' : '';
+    return `<tr style="border-top:1px solid var(--border);text-align:right;${hl}">
+      <td style="text-align:left;padding:11px 8px;font-weight:600">${r[0]} ${tags[r[8]]||''}</td>
+      <td style="padding:11px 8px">${r[1]}</td><td style="padding:11px 8px">${r[2]}</td>
+      <td style="padding:11px 8px">${r[3]}</td><td style="padding:11px 8px">${r[4]}</td>
+      <td style="padding:11px 8px">${r[5]}</td><td style="padding:11px 8px;${net};font-weight:700">${r[6]}</td>
+      <td style="padding:11px 8px;font-weight:700">${r[7]}</td></tr>`;
+  }).join('');
+</script>
+</body>
+</html>
