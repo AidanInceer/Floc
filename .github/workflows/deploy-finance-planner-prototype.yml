@@ -1,0 +1,42 @@
+# Per-app deploy caller — finance-planner prototype.
+#
+# This is the pattern to copy for every new deployable app. The caller owns two
+# things and nothing else: WHICH paths trigger it, and WHICH Vercel project it
+# targets. All the actual deploy logic lives in the reusable workflow.
+name: Deploy · finance-planner prototype
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "ventures/finance-planner/apps/prototype/**"
+      - "shared/packages/**"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/deploy-finance-planner-prototype.yml"
+      - ".github/workflows/deploy-vercel.yml"
+  pull_request:
+    paths:
+      - "ventures/finance-planner/apps/prototype/**"
+      - "shared/packages/**"
+  workflow_dispatch:
+
+# Never let two deploys of the same app race. Preview runs on a superseded
+# commit are cancelled; production runs are queued, not cancelled.
+concurrency:
+  group: deploy-finance-planner-prototype-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  deploy:
+    # Skips cleanly until the Vercel project actually exists, so the repo is
+    # green from day one. Set the variable to switch it on.
+    if: ${{ vars.VERCEL_PROJECT_ID_FINANCE_PLANNER_PROTOTYPE != '' }}
+    uses: ./.github/workflows/deploy-vercel.yml
+    with:
+      app_name: finance-planner prototype
+      workspace: finance-planner-prototype
+      vercel_project_id: ${{ vars.VERCEL_PROJECT_ID_FINANCE_PLANNER_PROTOTYPE }}
+      environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
+    secrets:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
