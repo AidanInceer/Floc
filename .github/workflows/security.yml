@@ -23,6 +23,11 @@ jobs:
     name: Secret scan
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      # gitleaks enumerates a PR's commits to scope the scan; without this it
+      # 403s on pull_request runs.
+      pull-requests: read
     steps:
       - uses: actions/checkout@v4
         with:
@@ -35,21 +40,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_CONFIG: security-compliance/vulnerability-tooling/gitleaks.toml
 
-  dependencies:
-    name: Dependency review
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    if: github.event_name == 'pull_request'
-    permissions:
-      contents: read
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@v4
-      - name: Review new dependencies
-        uses: actions/dependency-review-action@v4
-        with:
-          fail-on-severity: high
-          comment-summary-in-pr: on-failure
+  # NOTE: actions/dependency-review-action is deliberately absent. It requires
+  # GitHub Advanced Security on private repositories, which this repo does not
+  # have — it fails hard rather than skipping. `pnpm audit` below covers the
+  # same ground for our purposes. Revisit if the repo goes public or buys GHAS.
 
   audit:
     name: Known vulnerabilities

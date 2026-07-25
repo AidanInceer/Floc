@@ -9,7 +9,7 @@ explanation and that directory is the implementation.
 | Workflow | Trigger | Job |
 |---|---|---|
 | `ci.yml` | every PR, push to `main` | lint · typecheck · test · build, **affected packages only** |
-| `security.yml` | every PR, push to `main`, weekly | secret scan, dependency review, vulnerability audit |
+| `security.yml` | every PR, push to `main`, weekly | secret scan (gitleaks), `pnpm audit` |
 | `deploy-vercel.yml` | called by other workflows | the one and only deploy implementation |
 | `deploy-<venture>-<app>.yml` | push/PR touching that app's paths | thin caller: paths in, project ID out |
 
@@ -76,6 +76,13 @@ Rotate `VERCEL_TOKEN` if it is ever printed in a log. Never commit either value
 from `main`; add required reviewers on the `production` environment when a
 venture starts carrying real user data, and the deploy job will pause for
 approval automatically — no workflow change needed.
+
+## Private-repo constraints
+
+`actions/dependency-review-action` needs GitHub Advanced Security on a private
+repo and fails — not skips — without it, so it is not in the pipeline.
+`pnpm audit` covers known vulnerabilities instead. The same applies to code
+scanning alerts. Revisit if the repo goes public.
 
 ## Not wired yet
 

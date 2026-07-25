@@ -61,9 +61,11 @@ jobs:
     timeout-minutes: 20
     # Ties into GitHub's environment protection rules — production can require
     # a manual approval before this job runs.
-    environment:
-      name: ${{ inputs.environment }}
-      url: ${{ steps.deploy.outputs.url }}
+    #
+    # No `url:` here: it is resolved at job level, where the `steps` context
+    # does not exist, and referencing it fails the workflow at startup. The
+    # deployed URL goes to the run summary and the PR comment instead.
+    environment: ${{ inputs.environment }}
     outputs:
       url: ${{ steps.deploy.outputs.url }}
     steps:
