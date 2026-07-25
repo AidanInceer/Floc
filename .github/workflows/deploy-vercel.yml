@@ -29,11 +29,15 @@ on:
         required: false
         default: preview
         type: string
+    # Declared optional on purpose. Marking them required makes GitHub reject
+    # the CALLER workflow at startup whenever the secrets aren't set yet, which
+    # would red the repo before Vercel is even wired up. The guard step below
+    # fails loudly at run time instead.
     secrets:
       VERCEL_TOKEN:
-        required: true
+        required: false
       VERCEL_ORG_ID:
-        required: true
+        required: false
     outputs:
       url:
         description: The deployed URL.
@@ -63,6 +67,16 @@ jobs:
     outputs:
       url: ${{ steps.deploy.outputs.url }}
     steps:
+      - name: Check deploy credentials are configured
+        run: |
+          missing=""
+          [ -z "${{ secrets.VERCEL_TOKEN }}" ] && missing="$missing VERCEL_TOKEN"
+          [ -z "${{ secrets.VERCEL_ORG_ID }}" ] && missing="$missing VERCEL_ORG_ID"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secret(s):$missing — see infra/ci-cd/README.md"
+            exit 1
+          fi
+
       - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
