@@ -51,14 +51,18 @@ permissions:
 env:
   TURBO_TELEMETRY_DISABLED: 1
   DO_NOT_TRACK: 1
-  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ inputs.vercel_project_id }}
 
 jobs:
   deploy:
     name: ${{ inputs.app_name }} → ${{ inputs.environment }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # These live at job level, not workflow level: the `secrets` context is not
+    # available in a workflow-level `env` block and referencing it there fails
+    # the run at startup.
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ inputs.vercel_project_id }}
     # Ties into GitHub's environment protection rules — production can require
     # a manual approval before this job runs.
     #
