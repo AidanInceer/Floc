@@ -32,8 +32,10 @@ builds.
 | `to-the-frontier` | Concept | Wireframe only — AI-literacy teaching app |
 | `carbon-ledger` | Concept | Wireframe only — AI-assisted carbon footprinting |
 | `shards-of-time` | Concept | Wireframe only — isometric tactics game UI |
+| `waypoint` | Pre-MVP | ADRs, four wireframe variants, working Vite prototype (`apps/prototype`) — group travel planner |
 
-Only `finance-planner` has installable code. The rest are design artefacts.
+Only `finance-planner` and `waypoint` have installable code. The rest are
+design artefacts.
 
 ## Commands
 
@@ -70,6 +72,9 @@ Conventions to match when adding or editing one:
 - Realistic content, never lorem. These are read as product proposals.
 - `wireframe/` sits outside the pnpm workspace globs on purpose — it is not a
   package and must not gain a `package.json`.
+- Style variants of the same wireframe live beside `index.html` as siblings
+  (`glossy.html`, `paper.html`, …), sharing structure and content so only the
+  visual language differs. See `ventures/waypoint/` and its ADR 0012.
 
 Mockups that belong to a venture with real code live in that venture's
 `docs/mockups/` instead (see `finance-planner`).
@@ -136,3 +141,13 @@ Mockups that belong to a venture with real code live in that venture's
 - Don't wire real credentials or live keys anywhere in the repo.
 - Flag anything touching auth, encryption, PII, or compliance rather than
   glossing over it.
+
+## Agent skills
+
+### Issue tracker
+
+Issues/specs live as markdown files under `.scratch/<feature-slug>/`. See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+Multi-context: root `CONTEXT-MAP.md` points to per-venture `CONTEXT.md` + `docs/adr/`. See `docs/agents/domain.md`.

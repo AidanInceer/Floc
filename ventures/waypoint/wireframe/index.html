@@ -1,0 +1,891 @@
+<title>Waypoint — wireframe</title>
+<style>
+  /* ─────────────────────────────────────────────────────────────
+     Waypoint — group holiday planner, wireframe
+     Light by default. Dark is opt-in via the toggle only.
+     Palette: sun-warmed sand ground, deep petrol ink, one marine
+     accent for "agreed", one apricot for "still open", one muted
+     rose reserved for "someone must act". Nothing else is coloured.
+     Type: a wide geometric face for display, system sans for body,
+     mono for anything measurable — dates, miles, money.
+     ───────────────────────────────────────────────────────────── */
+  :root {
+    --sand: #f7f3ec;
+    --surface: #ffffff;
+    --surface-2: #f1ebe1;
+    --surface-3: #e8e0d3;
+    --rule: #e2dacc;
+    --rule-strong: #c8bda9;
+    --ink: #17282d;
+    --ink-soft: #566a6e;
+    --ink-faint: #8b9698;
+    --marine: #0f6270;
+    --marine-soft: #dcebea;
+    --marine-deep: #0a4650;
+    --apricot: #c1712c;
+    --apricot-soft: #f9e9d7;
+    --rose: #a44f66;
+    --rose-soft: #f6e2e6;
+
+    --r-sm: 6px;
+    --r-md: 10px;
+    --r-lg: 16px;
+    --shadow-sm: 0 1px 2px rgba(23,40,45,.05);
+    --shadow: 0 1px 2px rgba(23,40,45,.04), 0 10px 30px -12px rgba(23,40,45,.18);
+    --shadow-lift: 0 2px 4px rgba(23,40,45,.05), 0 18px 40px -16px rgba(23,40,45,.28);
+
+    --display: "Avenir Next", Avenir, "Century Gothic", "Segoe UI", system-ui, sans-serif;
+    --body: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+    --mono: "Cascadia Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+  }
+  :root[data-theme="dark"] {
+    --sand: #12181a;
+    --surface: #192022;
+    --surface-2: #202829;
+    --surface-3: #2a3335;
+    --rule: #2b3436;
+    --rule-strong: #3f4b4d;
+    --ink: #eef1ec;
+    --ink-soft: #a9b5b4;
+    --ink-faint: #7b8788;
+    --marine: #58b3bf;
+    --marine-soft: #14302f;
+    --marine-deep: #8ad4dd;
+    --apricot: #dd9553;
+    --apricot-soft: #2e2117;
+    --rose: #d0778e;
+    --rose-soft: #2b1a1f;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.3);
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px -12px rgba(0,0,0,.6);
+    --shadow-lift: 0 2px 4px rgba(0,0,0,.3), 0 18px 40px -16px rgba(0,0,0,.7);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: auto; }
+  body { margin: 0; background: var(--sand); color: var(--ink); font-family: var(--body);
+    font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  h1, h2, h3 { margin: 0; font-family: var(--display); font-weight: 600; letter-spacing: -.02em; text-wrap: balance; }
+  p { margin: 0; }
+  button { font-family: inherit; }
+  .num { font-family: var(--mono); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+  .eyebrow { font-family: var(--mono); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--ink-faint); }
+  :focus-visible { outline: 2px solid var(--marine); outline-offset: 3px; border-radius: 3px; }
+
+  .shell { max-width: 1180px; margin: 0 auto; padding: 0 22px 96px; }
+
+  /* ── site header ───────────────────────────────────────────── */
+  .masthead { display: flex; align-items: center; gap: 14px; padding: 22px 0 16px; }
+  .mark { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-size: 19px;
+    font-weight: 600; letter-spacing: -.03em; }
+  .mark .pin { width: 20px; height: 20px; position: relative; flex: none; }
+  .mark .pin::before { content: ""; position: absolute; inset: 0; border-radius: 50% 50% 50% 3px;
+    background: var(--marine); transform: rotate(-45deg); }
+  .mark .pin::after { content: ""; position: absolute; inset: 6px 6px 8px 8px; border-radius: 50%; background: var(--surface); }
+  .stamp { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--ink-faint); border: 1px solid var(--rule); border-radius: 99px; padding: 3px 9px; }
+  .grow { flex: 1; }
+  .toggle { border: 1px solid var(--rule); background: var(--surface); color: var(--ink-soft);
+    border-radius: 99px; height: 32px; padding: 0 13px; font-size: 12px; cursor: pointer; }
+  .toggle:hover { border-color: var(--rule-strong); }
+
+  /* ── page switcher (prototype navigation) ──────────────────── */
+  .switcher { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; padding: 4px;
+    background: var(--surface-2); border: 1px solid var(--rule); border-radius: 99px; }
+  .switcher button { border: 0; background: transparent; color: var(--ink-soft); font-size: 12.5px;
+    padding: 6px 13px; border-radius: 99px; cursor: pointer; white-space: nowrap; }
+  .switcher button:hover { color: var(--ink); }
+  .switcher button[aria-current="page"] { background: var(--surface); color: var(--ink);
+    box-shadow: var(--shadow-sm); font-weight: 600; }
+
+  /* ── page transitions ──────────────────────────────────────── */
+  .page { display: none; }
+  .page.on { display: block; animation: rise .3s ease both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .page.on { animation: none; } * { transition: none !important; } }
+
+  /* ── app chrome (inside the product) ───────────────────────── */
+  .board { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r-lg);
+    box-shadow: var(--shadow); overflow: hidden; }
+  .appbar { display: flex; align-items: center; gap: 6px; padding: 0 16px; background: var(--surface-2);
+    border-bottom: 1px solid var(--rule); overflow-x: auto; }
+  .appbar button, .appbar .who-chip { border: 0; background: transparent; color: var(--ink-soft); font-size: 13px;
+    padding: 13px 10px; cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .appbar button:hover { color: var(--ink); }
+  .appbar button[aria-current="true"] { color: var(--ink); font-weight: 600; border-bottom-color: var(--marine); }
+  .appbar .trip-name { font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint); padding: 0 4px; }
+
+  /* ── SIGNATURE: the route spine ────────────────────────────
+     A trip is a line with stops on it. The same line is the app's
+     progress bar, its wayfinder and its status board: filled dot =
+     bed booked, hollow = still open, and the marker sits on today. */
+  .spine { padding: 18px 22px 16px; background:
+      linear-gradient(180deg, var(--surface) 0%, var(--surface) 60%, var(--surface-2) 100%);
+    border-bottom: 1px solid var(--rule); }
+  .spine .top { display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .spine h2 { font-size: 17px; }
+  .spine .meta { font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint); }
+  .track { position: relative; height: 46px; }
+  .track .line { position: absolute; left: 0; right: 0; top: 7px; height: 2px; background: var(--rule-strong); }
+  .track .line .done { display: block; position: absolute; left: 0; top: 0; height: 100%; background: var(--marine); }
+  .track .stop { position: absolute; top: 0; transform: translateX(-50%); text-align: center; width: 88px; }
+  .track .stop .bead { width: 12px; height: 12px; border-radius: 50%; background: var(--marine);
+    border: 2px solid var(--surface); margin: 1px auto 0; box-shadow: 0 0 0 1px var(--marine); }
+  .track .stop.open .bead { background: var(--surface); box-shadow: 0 0 0 1px var(--apricot); }
+  .track .stop.here .bead { width: 16px; height: 16px; margin-top: -1px; background: var(--marine);
+    box-shadow: 0 0 0 1px var(--marine), 0 0 0 6px var(--marine-soft); }
+  .track .stop .lab { font-size: 11.5px; color: var(--ink-soft); margin-top: 7px; line-height: 1.25; }
+  .track .stop.here .lab { color: var(--ink); font-weight: 600; }
+  .track .stop .n { font-family: var(--mono); font-size: 10px; color: var(--ink-faint); }
+  @media (max-width: 720px) { .track { display: none; } }
+
+  /* ── primitives ────────────────────────────────────────────── */
+  .btn { border: 1px solid var(--marine); background: var(--marine); color: #fff; border-radius: 99px;
+    padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; }
+  .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+  .btn.quiet { background: var(--surface); color: var(--ink-soft); border-color: var(--rule-strong); }
+  .btn.quiet:hover { color: var(--ink); border-color: var(--ink-faint); }
+  .btn.lg { padding: 12px 24px; font-size: 15px; }
+  .tag { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; border-radius: 99px;
+    padding: 3px 10px; border: 1px solid var(--rule-strong); color: var(--ink-soft); background: var(--surface); }
+  .tag.set { background: var(--marine-soft); color: var(--marine-deep); border-color: transparent; }
+  .tag.open { background: var(--apricot-soft); color: var(--apricot); border-color: transparent; }
+  .tag.act { background: var(--rose-soft); color: var(--rose); border-color: transparent; }
+  .card { border: 1px solid var(--rule); border-radius: var(--r-md); padding: 15px 16px; background: var(--surface); }
+  .card + .card { margin-top: 13px; }
+  .card h3 { font-size: 13.5px; letter-spacing: -.01em; }
+  .lede-sm { font-size: 12.5px; color: var(--ink-faint); margin-top: 3px; }
+  .row { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 7px 0;
+    font-size: 13px; color: var(--ink-soft); border-bottom: 1px solid var(--rule); }
+  .row:last-child { border-bottom: 0; }
+  .row b { color: var(--ink); font-weight: 600; }
+  .split { display: grid; grid-template-columns: minmax(0,1fr) 330px; }
+  .split > * { padding: 22px; min-width: 0; }
+  .split > * + * { border-left: 1px solid var(--rule); background: var(--surface-2); }
+  @media (max-width: 940px) { .split { grid-template-columns: 1fr; }
+    .split > * + * { border-left: 0; border-top: 1px solid var(--rule); } }
+  .sec-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+  .sec-head h2 { font-size: 18px; }
+
+  .who { width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center;
+    justify-content: center; font-family: var(--mono); font-size: 10px; font-weight: 700; color: #fff;
+    border: 2px solid var(--surface); flex: none; letter-spacing: 0; }
+  .who.sm { width: 20px; height: 20px; font-size: 9px; border-width: 0; }
+  .w-a { background: #0f6270; } .w-b { background: #a44f66; } .w-c { background: #c1712c; }
+  .w-d { background: #5b7a4c; } .w-e { background: #56517f; } .w-f { background: #7a6d59; }
+  .faces { display: flex; }
+  .faces .who + .who { margin-left: -9px; }
+
+  /* ── landing ───────────────────────────────────────────────── */
+  .hero { position: relative; overflow: hidden; padding: 74px 44px 60px;
+    background: linear-gradient(168deg, #fdfaf5 0%, #f6efe4 44%, #eae6da 100%); }
+  :root[data-theme="dark"] .hero { background: linear-gradient(168deg, #1d2528 0%, #1a2224 46%, #151b1d 100%); }
+  /* the horizon: a sun low over a coastline, drawn in one gradient pair */
+  .hero .sun { position: absolute; right: -60px; top: -70px; width: 380px; height: 380px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(193,113,44,.16) 0%, rgba(193,113,44,.05) 48%, transparent 70%); }
+  .hero .swell { position: absolute; left: 0; right: 0; bottom: 0; height: 120px;
+    background: radial-gradient(120% 100% at 50% 100%, var(--marine-soft) 0%, transparent 62%); opacity: .8; }
+  .hero > * { position: relative; }
+  .hero h1 { font-size: clamp(34px, 5.4vw, 58px); line-height: 1.02; letter-spacing: -.035em; max-width: 14ch; }
+  .hero h1 em { font-style: normal; color: var(--marine); }
+  .hero .lede { font-size: 17px; color: var(--ink-soft); max-width: 46ch; margin-top: 18px; }
+  .hero .cta { display: flex; align-items: center; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
+  .hero .fine { font-size: 12.5px; color: var(--ink-faint); }
+  .quote { display: flex; align-items: center; gap: 12px; margin-top: 34px; font-size: 13px; color: var(--ink-soft);
+    max-width: 54ch; }
+
+  /* the landing's own miniature spine — the promise, drawn */
+  .promise { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--rule);
+    background: var(--surface); }
+  .promise > div { padding: 22px 20px 24px; position: relative; }
+  .promise > div + div { border-left: 1px solid var(--rule); }
+  .promise .bead { width: 10px; height: 10px; border-radius: 50%; background: var(--marine); margin-bottom: 14px; position: relative; }
+  .promise .bead::after { content: ""; position: absolute; left: 10px; top: 4px; width: 100vw; height: 2px;
+    background: var(--rule); }
+  .promise > div:last-child .bead::after { display: none; }
+  .promise h3 { font-size: 15px; }
+  .promise p { font-size: 13px; color: var(--ink-faint); margin-top: 6px; }
+  @media (max-width: 880px) { .promise { grid-template-columns: 1fr 1fr; }
+    .promise > div:nth-child(3) { border-left: 0; } .promise > div:nth-child(n+3) { border-top: 1px solid var(--rule); }
+    .hero { padding: 48px 26px 44px; } }
+
+  /* ── trips ─────────────────────────────────────────────────── */
+  .trips { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .trip { padding: 20px; border-right: 1px solid var(--rule); text-align: left; background: transparent;
+    border-top: 0; border-bottom: 0; border-left: 0; cursor: pointer; transition: background .18s ease; width: 100%; }
+  .trip:hover { background: var(--surface-2); }
+  .trip:last-child { border-right: 0; }
+  .trip .sky { height: 96px; border-radius: var(--r-sm); margin-bottom: 14px; position: relative; overflow: hidden;
+    background: linear-gradient(180deg, #eef1e9 0%, #f7ecdd 62%, #efe2cf 100%); }
+  .trip .sky.b { background: linear-gradient(180deg, #e8f0ee 0%, #f3efe2 60%, #e9e3d3 100%); }
+  .trip .sky.c { background: linear-gradient(180deg, #f4ecec 0%, #f8efe2 58%, #ece4d5 100%); }
+  :root[data-theme="dark"] .trip .sky { background: linear-gradient(180deg, #232b2b 0%, #2a2721 62%, #23201b 100%); }
+  .trip .sky .horizon { position: absolute; left: 0; right: 0; bottom: 26px; height: 1px; background: var(--rule-strong); opacity: .7; }
+  .trip .sky .orb { position: absolute; right: 22px; bottom: 20px; width: 34px; height: 34px; border-radius: 50%;
+    background: rgba(193,113,44,.22); }
+  .trip .sky .ridge { position: absolute; left: 0; right: 0; bottom: 0; height: 30px;
+    background: var(--surface-3); clip-path: polygon(0 100%, 0 62%, 18% 34%, 34% 60%, 52% 20%, 70% 55%, 86% 38%, 100% 66%, 100% 100%); opacity: .8; }
+  .trip h3 { font-size: 17px; }
+  .trip .when { font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint); margin-top: 4px; }
+  .trip .strip { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+  .trip .bar { flex: 1; height: 4px; border-radius: 99px; background: var(--surface-3); overflow: hidden; }
+  .trip .bar i { display: block; height: 100%; background: var(--marine); }
+  .trip .todo { font-size: 12.5px; color: var(--ink-soft); margin-top: 11px; display: flex; gap: 9px; align-items: flex-start; }
+  .pip { width: 5px; height: 5px; border-radius: 50%; background: var(--apricot); margin-top: 7px; flex: none; }
+  .pip.sea { background: var(--marine); } .pip.rose { background: var(--rose); }
+  @media (max-width: 900px) { .trips { grid-template-columns: 1fr; }
+    .trip { border-right: 0; border-bottom: 1px solid var(--rule); } }
+
+  .feed { display: grid; grid-template-columns: minmax(0,1fr) 330px; border-top: 1px solid var(--rule); }
+  .feed > * { padding: 20px 22px; min-width: 0; }
+  .feed > * + * { border-left: 1px solid var(--rule); background: var(--surface-2); }
+  .act { display: flex; gap: 10px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--rule);
+    font-size: 13px; color: var(--ink-soft); }
+  .act:last-child { border-bottom: 0; }
+  .act b { color: var(--ink); font-weight: 600; }
+  .act .t { margin-left: auto; font-family: var(--mono); font-size: 10.5px; color: var(--ink-faint); white-space: nowrap; }
+  @media (max-width: 900px) { .feed { grid-template-columns: 1fr; }
+    .feed > * + * { border-left: 0; border-top: 1px solid var(--rule); } }
+
+  /* ── ideas ─────────────────────────────────────────────────── */
+  .idea { display: grid; grid-template-columns: minmax(0,1fr) 140px 108px; gap: 14px; align-items: center;
+    padding: 14px 0; border-bottom: 1px solid var(--rule); }
+  .idea:last-of-type { border-bottom: 0; }
+  .idea .name { font-family: var(--display); font-size: 15.5px; font-weight: 600; letter-spacing: -.015em; }
+  .idea .meta { font-size: 12px; color: var(--ink-faint); margin-top: 3px; }
+  .gauge { display: flex; align-items: center; gap: 8px; }
+  .gauge .t { flex: 1; height: 5px; border-radius: 99px; background: var(--surface-3); overflow: hidden; }
+  .gauge .t i { display: block; height: 100%; background: var(--marine); }
+  .gauge .t.cold i { background: var(--rule-strong); }
+  .gauge .n { font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint); }
+  .vote { display: flex; gap: 5px; }
+  .vote button { border: 1px solid var(--rule-strong); background: var(--surface); border-radius: var(--r-sm);
+    width: 30px; height: 28px; cursor: pointer; font-size: 12px; color: var(--ink-soft); }
+  .vote button:hover { border-color: var(--ink-faint); color: var(--ink); }
+  .vote button[aria-pressed="true"] { background: var(--marine); border-color: var(--marine); color: #fff; }
+  .vote button.no[aria-pressed="true"] { background: var(--rose); border-color: var(--rose); }
+  @media (max-width: 620px) { .idea { grid-template-columns: 1fr; gap: 8px; } }
+
+  .compose { display: flex; gap: 9px; align-items: center; margin-top: 16px; flex-wrap: wrap; }
+  .compose .field { flex: 1; min-width: 190px; border: 1px solid var(--rule-strong); border-radius: 99px;
+    padding: 9px 15px; font-size: 12.5px; color: var(--ink-faint); background: var(--surface); }
+
+  /* ── date poll ─────────────────────────────────────────────── */
+  .pollwrap { overflow-x: auto; margin-top: 12px; }
+  .poll { border-collapse: separate; border-spacing: 3px; min-width: 580px; width: 100%; }
+  .poll th { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--ink-faint); font-weight: 400; padding: 0 0 6px; text-align: center; }
+  .poll th:first-child { text-align: left; }
+  .poll td { padding: 0; }
+  .poll td:first-child { font-size: 13px; color: var(--ink-soft); padding-right: 10px; }
+  .poll td:first-child span { display: flex; align-items: center; gap: 8px; }
+  .cell { display: block; height: 26px; border-radius: var(--r-sm); background: var(--surface-3); }
+  .cell.yes { background: var(--marine); opacity: .82; }
+  .cell.maybe { background: var(--apricot); opacity: .38; }
+  .cell.no { background: var(--surface-3); border: 1px solid var(--rule-strong); }
+  .poll tfoot td { font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint); text-align: center; padding-top: 7px; }
+  .poll tfoot td.win { color: var(--marine); font-weight: 700; }
+  .key { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; font-size: 12px; color: var(--ink-faint); }
+  .key span { display: flex; align-items: center; gap: 7px; }
+  .chip { width: 12px; height: 12px; border-radius: 3px; flex: none; }
+
+  /* ── map ───────────────────────────────────────────────────── */
+  .mapgrid { display: grid; grid-template-columns: minmax(0,1fr) 340px; }
+  .canvas { position: relative; background:
+      linear-gradient(180deg, var(--surface-2) 0%, var(--surface) 100%); border-right: 1px solid var(--rule); }
+  .canvas svg { display: block; width: 100%; height: auto; }
+  .overlay { position: absolute; top: 16px; left: 16px; display: flex; gap: 7px; flex-wrap: wrap; }
+  .overlay .tag { background: rgba(255,255,255,.82); backdrop-filter: blur(6px); }
+  :root[data-theme="dark"] .overlay .tag { background: rgba(25,32,34,.82); }
+  .key.floating { position: absolute; left: 16px; bottom: 16px; flex-direction: column; gap: 7px;
+    background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r-md); padding: 11px 13px;
+    box-shadow: var(--shadow); margin: 0; }
+  .leg { width: 18px; height: 0; border-top: 2px solid var(--marine); flex: none; }
+  .leg.ferry { border-top-style: dashed; border-color: var(--apricot); }
+  .leg.foot { border-top-style: dotted; border-color: var(--rose); }
+  .stop-item { display: grid; grid-template-columns: 28px minmax(0,1fr); gap: 12px; padding: 15px 18px;
+    border-bottom: 1px solid var(--rule); }
+  .stop-item:last-child { border-bottom: 0; }
+  .stop-item .idx { width: 24px; height: 24px; border-radius: 50%; background: var(--marine); color: #fff;
+    font-family: var(--mono); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .stop-item.leg-row .idx { background: transparent; color: var(--ink-faint); border: 1px dashed var(--rule-strong); }
+  .stop-item.add .idx { background: transparent; color: var(--ink-faint); border: 1px dashed var(--rule-strong); }
+  .stop-item .name { font-family: var(--display); font-size: 14.5px; font-weight: 600; }
+  .stop-item .det { font-size: 12.5px; color: var(--ink-faint); margin-top: 3px; }
+  .stop-item .tags { display: flex; gap: 6px; margin-top: 9px; flex-wrap: wrap; }
+  @media (max-width: 940px) { .mapgrid { grid-template-columns: 1fr; }
+    .canvas { border-right: 0; border-bottom: 1px solid var(--rule); } }
+
+  /* ── days ──────────────────────────────────────────────────── */
+  .daybar { display: flex; background: var(--surface-2); border-bottom: 1px solid var(--rule); overflow-x: auto; }
+  .daybar button { border: 0; background: transparent; padding: 12px 16px; cursor: pointer; text-align: left;
+    border-right: 1px solid var(--rule); white-space: nowrap; color: var(--ink-faint); }
+  .daybar button b { display: block; font-family: var(--mono); font-size: 12px; color: var(--ink-soft); letter-spacing: -.02em; }
+  .daybar button span { font-size: 12px; }
+  .daybar button:hover { background: var(--surface-3); }
+  .daybar button[aria-current="true"] { background: var(--surface); color: var(--ink); }
+  .daybar button[aria-current="true"] b { color: var(--marine); }
+
+  .thread { position: relative; padding-left: 22px; margin-top: 18px; }
+  .thread::before { content: ""; position: absolute; left: 5px; top: 8px; bottom: 8px; width: 2px; background: var(--rule); }
+  .ev { position: relative; padding: 0 0 22px; }
+  .ev::before { content: ""; position: absolute; left: -22px; top: 6px; width: 12px; height: 12px; border-radius: 50%;
+    background: var(--surface); box-shadow: 0 0 0 2px var(--marine); }
+  .ev.maybe::before { box-shadow: 0 0 0 2px var(--rule-strong); }
+  .ev .time { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); letter-spacing: .04em; }
+  .ev .title { font-family: var(--display); font-size: 15.5px; font-weight: 600; margin-top: 2px; letter-spacing: -.015em; }
+  .ev .body { font-size: 13px; color: var(--ink-soft); margin-top: 4px; }
+  .ev .chips { display: flex; gap: 7px; margin-top: 10px; flex-wrap: wrap; align-items: center; }
+  .anno { border-bottom: 1px dashed var(--apricot); cursor: help; }
+
+  .note { border-left: 2px solid var(--apricot); background: var(--apricot-soft); border-radius: 0 var(--r-sm) var(--r-sm) 0;
+    padding: 10px 13px; margin-top: 11px; font-size: 12.5px; color: var(--ink-soft); }
+  .note .by { display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--ink-faint); margin-bottom: 5px; }
+  .note .who { width: 18px; height: 18px; font-size: 8.5px; border-width: 0; }
+  .note.reply { border-left-color: var(--marine); background: var(--marine-soft); margin-left: 22px; }
+
+  .ledger { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--rule); }
+  .ledger > div { padding: 18px 22px; }
+  .ledger > div + div { border-left: 1px solid var(--rule); }
+  .ledger .v { font-family: var(--mono); font-size: 24px; font-weight: 600; letter-spacing: -.04em; margin-top: 6px; }
+  @media (max-width: 740px) { .ledger { grid-template-columns: 1fr; }
+    .ledger > div + div { border-left: 0; border-top: 1px solid var(--rule); } }
+
+  .colophon { font-size: 12px; color: var(--ink-faint); margin-top: 30px; text-align: center; max-width: 74ch;
+    margin-left: auto; margin-right: auto; }
+</style>
+
+<div class="shell">
+  <header class="masthead">
+    <div class="mark"><span class="pin"></span> Waypoint</div>
+    <span class="stamp">Wireframe</span>
+    <span class="grow"></span>
+    <nav class="switcher" id="switcher" aria-label="Prototype pages">
+      <button data-goto="home" aria-current="page">Landing</button>
+      <button data-goto="trips">My trips</button>
+      <button data-goto="plan">Group</button>
+      <button data-goto="route">Route</button>
+      <button data-goto="days">Days</button>
+    </nav>
+    <button class="toggle" id="tt">Dark</button>
+  </header>
+
+  <!-- ══ LANDING ══════════════════════════════════════════════ -->
+  <main class="page on" id="page-home">
+    <div class="board">
+      <nav class="appbar">
+        <button aria-current="true">How it works</button>
+        <button>Examples</button>
+        <button>Pricing</button>
+        <span class="grow"></span>
+        <button data-goto="trips">Log in</button>
+      </nav>
+
+      <section class="hero">
+        <span class="sun"></span><span class="swell"></span>
+        <p class="eyebrow">For the group chat that has been “planning” since March</p>
+        <h1>Nine people. One thread. <em>Zero decisions.</em></h1>
+        <p class="lede">Waypoint takes the arguing off your phone and puts it on a line: float places, vote,
+          find the week that survives everyone's diaries, then watch the route, the beds and each day fill in.</p>
+        <div class="cta">
+          <button class="btn lg" data-goto="trips">Start a trip</button>
+          <button class="btn quiet lg">Join with a code</button>
+          <span class="fine">Free. Friends vote from a link — no account needed.</span>
+        </div>
+        <p class="quote">
+          <span class="faces"><i class="who w-a">SR</i><i class="who w-b">MK</i><i class="who w-c">JD</i><i class="who w-d">AP</i><i class="who w-f">+5</i></span>
+          “We booked in a week instead of arguing until August.” — the Cairngorms nine
+        </p>
+      </section>
+
+      <section class="promise">
+        <div><span class="bead"></span><h3>Float the places</h3>
+          <p>Anyone adds a destination with a rough price. Vote with a thumb, not a paragraph.</p></div>
+        <div><span class="bead"></span><h3>Find the week</h3>
+          <p>Everyone marks the dates they can't do. Waypoint shows the windows still standing.</p></div>
+        <div><span class="bead"></span><h3>Book it together</h3>
+          <p>Beds, flights and the hire car in one list, with who paid what beside them.</p></div>
+        <div><span class="bead"></span><h3>Follow the line</h3>
+          <p>A map of the route and a page per day the group writes on while you're away.</p></div>
+      </section>
+    </div>
+    <p class="colophon">Wireframe only — people, prices and routes are invented. Marine means agreed, apricot means still open,
+      rose means someone has to act. Everything else stays quiet.</p>
+  </main>
+
+  <!-- ══ MY TRIPS ═════════════════════════════════════════════ -->
+  <main class="page" id="page-trips">
+    <div class="board">
+      <nav class="appbar">
+        <button aria-current="true">Trips</button>
+        <button>People</button>
+        <button>Saved places</button>
+        <button>Money</button>
+        <span class="grow"></span>
+        <span class="who-chip"><i class="who sm w-a">SR</i></span>
+      </nav>
+
+      <div class="trips">
+        <button class="trip" data-goto="route">
+          <div class="sky"><span class="orb"></span><span class="horizon"></span><span class="ridge"></span></div>
+          <h3>North Coast 500</h3>
+          <div class="when">12–19 Sep 2026 · 6 going · van</div>
+          <div class="strip"><span class="tag set">Dates locked</span>
+            <span class="faces"><i class="who w-a">SR</i><i class="who w-b">MK</i><i class="who w-c">JD</i><i class="who w-d">AP</i></span></div>
+          <div class="strip"><span class="bar"><i style="width:72%"></i></span><span class="num" style="font-size:11.5px;color:var(--ink-faint)">72%</span></div>
+          <div class="todo"><span class="pip"></span>You owe Mira £148 for the Ullapool cottage</div>
+          <div class="todo"><span class="pip sea"></span>Day 4 has no dinner — 3 votes waiting</div>
+        </button>
+        <button class="trip" data-goto="plan">
+          <div class="sky b"><span class="orb"></span><span class="horizon"></span><span class="ridge"></span></div>
+          <h3>Puglia, someone's 30th</h3>
+          <div class="when">Late May 2027 · 9 interested</div>
+          <div class="strip"><span class="tag open">Date poll open</span>
+            <span class="faces"><i class="who w-e">TL</i><i class="who w-f">RG</i><i class="who w-b">MK</i><i class="who w-c">+6</i></span></div>
+          <div class="strip"><span class="bar"><i style="width:24%"></i></span><span class="num" style="font-size:11.5px;color:var(--ink-faint)">24%</span></div>
+          <div class="todo"><span class="pip rose"></span>Your dates aren't in — poll shuts Friday</div>
+          <div class="todo"><span class="pip sea"></span>4 new places since you last looked</div>
+        </button>
+        <button class="trip">
+          <div class="sky c"><span class="orb"></span><span class="horizon"></span><span class="ridge"></span></div>
+          <h3>Lisbon long weekend</h3>
+          <div class="when">6–9 Mar 2026 · 4 went</div>
+          <div class="strip"><span class="tag set">Booked</span>
+            <span class="faces"><i class="who w-a">SR</i><i class="who w-d">AP</i><i class="who w-e">TL</i></span></div>
+          <div class="strip"><span class="bar"><i style="width:100%"></i></span><span class="num" style="font-size:11.5px;color:var(--ink-faint)">100%</span></div>
+          <div class="todo"><span class="pip"></span>Settle up: £62 across 2 people</div>
+        </button>
+      </div>
+
+      <div class="feed">
+        <div>
+          <div class="sec-head"><h2>Since Tuesday</h2><span class="eyebrow">one feed, every trip</span></div>
+          <p class="lede-sm" style="margin-bottom:8px">A notification per decision, not per message.</p>
+          <div class="act"><b>Mira</b> booked the Ullapool cottage — £888 for 3 nights <span class="t">2h</span></div>
+          <div class="act"><b>Jon</b> added Applecross Pass to day 3 <span class="t">yest.</span></div>
+          <div class="act"><b>Tash</b> voted against Split — “done it twice” <span class="t">yest.</span></div>
+          <div class="act"><b>Alex</b> left a note on day 5: “ferry sells out, book Weds” <span class="t">2d</span></div>
+          <div class="act"><b>Rae</b> joined Puglia, someone's 30th <span class="t">3d</span></div>
+        </div>
+        <aside>
+          <div class="card">
+            <h3>Waiting on you</h3>
+            <div class="row"><span>Date poll — Puglia</span><b style="color:var(--rose)">Friday</b></div>
+            <div class="row"><span>Pay Mira for the cottage</span><b class="num">£148</b></div>
+            <div class="row"><span>Vote: day 4 dinner</span><b>3 options</b></div>
+            <button class="btn" style="margin-top:13px;width:100%">Clear all three</button>
+          </div>
+          <div class="card">
+            <h3>Start something</h3>
+            <p class="lede-sm" style="margin-bottom:11px">Reuse a shape rather than a blank page.</p>
+            <button class="btn quiet" style="width:100%">New trip</button>
+            <button class="btn quiet" style="width:100%;margin-top:8px">Copy “North Coast 500”</button>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <!-- ══ GROUP ════════════════════════════════════════════════ -->
+  <main class="page" id="page-plan">
+    <div class="board">
+      <nav class="appbar">
+        <button data-goto="trips">← Trips</button>
+        <button aria-current="true">Deciding</button>
+        <button data-goto="route">Route</button>
+        <button data-goto="days">Days</button>
+        <button>Bookings</button>
+        <button>Money</button>
+        <span class="grow"></span>
+        <span class="trip-name">Puglia · 9 people</span>
+      </nav>
+
+      <div class="split">
+        <div>
+          <div class="sec-head"><h2>Where are we going?</h2><span class="tag open">Voting closes Friday 6pm</span></div>
+          <p class="lede-sm" style="margin-bottom:8px">Ranked by net votes. A block is one click — cheap to say, cheap to hear.</p>
+
+          <div class="idea">
+            <div><div class="name">Puglia, self-drive</div>
+              <div class="meta">Tash · ≈£620pp with flights · 7 nights · masseria then coast</div></div>
+            <div class="gauge"><span class="t"><i style="width:89%"></i></span><span class="n">+8</span></div>
+            <div class="vote"><button aria-pressed="true" title="For">▲</button><button aria-pressed="false" title="Don't mind">–</button><button class="no" aria-pressed="false" title="Block">✕</button></div>
+          </div>
+          <div class="idea">
+            <div><div class="name">Slovenia — lakes and Ljubljana</div>
+              <div class="meta">Rae · ≈£540pp · 7 nights · blocked by Jon: “visa faff for Priya”</div></div>
+            <div class="gauge"><span class="t"><i style="width:62%"></i></span><span class="n">+5</span></div>
+            <div class="vote"><button aria-pressed="false">▲</button><button aria-pressed="true">–</button><button class="no" aria-pressed="false">✕</button></div>
+          </div>
+          <div class="idea">
+            <div><div class="name">Andalusia road trip</div>
+              <div class="meta">Sam · ≈£700pp · 8 nights · two people flagged the May heat</div></div>
+            <div class="gauge"><span class="t"><i style="width:44%"></i></span><span class="n">+3</span></div>
+            <div class="vote"><button aria-pressed="false">▲</button><button aria-pressed="false">–</button><button class="no" aria-pressed="false">✕</button></div>
+          </div>
+          <div class="idea">
+            <div><div class="name">Split and the islands</div>
+              <div class="meta">Mira · ≈£580pp · blocked twice — “done it twice”</div></div>
+            <div class="gauge"><span class="t cold"><i style="width:18%"></i></span><span class="n">−1</span></div>
+            <div class="vote"><button aria-pressed="false">▲</button><button aria-pressed="false">–</button><button class="no" aria-pressed="true">✕</button></div>
+          </div>
+
+          <div class="compose">
+            <span class="field">Add a place — paste a link and we'll pull the price and photos</span>
+            <button class="btn">Add place</button>
+          </div>
+
+          <div class="sec-head" style="margin-top:34px"><h2>When can everyone go?</h2><span class="eyebrow">6 of 9 answered</span></div>
+          <p class="lede-sm">Mark the weeks you can't do. The bar underneath counts who's left standing.</p>
+          <div class="pollwrap">
+            <table class="poll">
+              <thead><tr><th>Who</th><th>18–25 May</th><th>25 May–1 Jun</th><th>1–8 Jun</th><th>8–15 Jun</th><th>15–22 Jun</th></tr></thead>
+              <tbody>
+                <tr><td><span><i class="who sm w-a">SR</i>Sam</span></td><td><i class="cell yes"></i></td><td><i class="cell yes"></i></td><td><i class="cell maybe"></i></td><td><i class="cell no"></i></td><td><i class="cell no"></i></td></tr>
+                <tr><td><span><i class="who sm w-b">MK</i>Mira</span></td><td><i class="cell no"></i></td><td><i class="cell yes"></i></td><td><i class="cell yes"></i></td><td><i class="cell yes"></i></td><td><i class="cell maybe"></i></td></tr>
+                <tr><td><span><i class="who sm w-c">JD</i>Jon</span></td><td><i class="cell maybe"></i></td><td><i class="cell yes"></i></td><td><i class="cell yes"></i></td><td><i class="cell maybe"></i></td><td><i class="cell no"></i></td></tr>
+                <tr><td><span><i class="who sm w-d">AP</i>Alex</span></td><td><i class="cell yes"></i></td><td><i class="cell yes"></i></td><td><i class="cell no"></i></td><td><i class="cell yes"></i></td><td><i class="cell yes"></i></td></tr>
+                <tr><td><span><i class="who sm w-e">TL</i>Tash</span></td><td><i class="cell no"></i></td><td><i class="cell yes"></i></td><td><i class="cell maybe"></i></td><td><i class="cell yes"></i></td><td><i class="cell yes"></i></td></tr>
+                <tr><td><span><i class="who sm w-f">RG</i>Rae</span></td><td><i class="cell maybe"></i></td><td><i class="cell yes"></i></td><td><i class="cell yes"></i></td><td><i class="cell no"></i></td><td><i class="cell maybe"></i></td></tr>
+              </tbody>
+              <tfoot><tr><td style="font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase">Free</td>
+                <td>2 / 6</td><td class="win">6 / 6</td><td>3 / 6</td><td>3 / 6</td><td>2 / 6</td></tr></tfoot>
+            </table>
+          </div>
+          <div class="key">
+            <span><i class="chip" style="background:var(--marine);opacity:.82"></i>Free</span>
+            <span><i class="chip" style="background:var(--apricot);opacity:.38"></i>Could flex</span>
+            <span><i class="chip" style="background:var(--surface-3);border:1px solid var(--rule-strong)"></i>Can't</span>
+          </div>
+          <div class="compose">
+            <span class="field">Priya, Dan and Ida haven't answered</span>
+            <button class="btn quiet">Nudge them</button>
+            <button class="btn">Lock 25 May – 1 Jun</button>
+          </div>
+        </div>
+
+        <aside>
+          <div class="card">
+            <h3>Who's in</h3>
+            <p class="lede-sm" style="margin-bottom:9px">9 invited · 6 answered</p>
+            <div class="row"><span><i class="who sm w-a">SR</i> Sam R</span><b style="color:var(--marine)">In</b></div>
+            <div class="row"><span><i class="who sm w-b">MK</i> Mira K</span><b style="color:var(--marine)">In</b></div>
+            <div class="row"><span><i class="who sm w-c">JD</i> Jon D</span><b style="color:var(--marine)">In</b></div>
+            <div class="row"><span><i class="who sm w-e">TL</i> Tash L</span><b style="color:var(--apricot)">Probably</b></div>
+            <div class="row"><span><i class="who sm w-f">RG</i> Rae G</span><b style="color:var(--ink-faint)">No reply</b></div>
+            <button class="btn quiet" style="margin-top:12px;width:100%">Copy invite link</button>
+          </div>
+          <div class="card">
+            <h3>What people can spend</h3>
+            <p class="lede-sm" style="margin-bottom:9px">Given anonymously. Only the band is shown.</p>
+            <div class="row"><span>Comfortable ceiling</span><b class="num">£550–700pp</b></div>
+            <div class="row"><span>Two people said</span><b style="color:var(--apricot)">tight</b></div>
+            <div class="row"><span>Top place sits at</span><b class="num">£620pp</b></div>
+          </div>
+          <div class="card">
+            <h3>Agreed once</h3>
+            <p class="lede-sm" style="margin-bottom:9px">Shown on every screen so nobody relitigates it.</p>
+            <div class="row"><span>One van, we share the driving</span><span>✓</span></div>
+            <div class="row"><span>No flights before 8am</span><span>✓</span></div>
+            <div class="row"><span>Two nights minimum per stop</span><span>✓</span></div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <!-- ══ ROUTE ════════════════════════════════════════════════ -->
+  <main class="page" id="page-route">
+    <div class="board">
+      <nav class="appbar">
+        <button data-goto="trips">← Trips</button>
+        <button data-goto="plan">Deciding</button>
+        <button aria-current="true">Route</button>
+        <button data-goto="days">Days</button>
+        <button>Bookings</button>
+        <button>Money</button>
+        <span class="grow"></span>
+        <span class="trip-name">North Coast 500 · 12–19 Sep</span>
+      </nav>
+
+      <div class="spine">
+        <div class="top"><h2>North Coast 500</h2><span class="meta">8 nights · 812 miles · 6 people · one van</span>
+          <span class="grow"></span><span class="tag open">1 bed still open</span></div>
+        <div class="track">
+          <div class="line"><i class="done" style="width:43%"></i></div>
+          <div class="stop" style="left:6%"><div class="bead"></div><div class="lab">Inverness<div class="n">2 nights</div></div></div>
+          <div class="stop here" style="left:22%"><div class="bead"></div><div class="lab">Applecross<div class="n">1 night</div></div></div>
+          <div class="stop" style="left:38%"><div class="bead"></div><div class="lab">Ullapool<div class="n">3 nights</div></div></div>
+          <div class="stop open" style="left:54%"><div class="bead"></div><div class="lab">Durness<div class="n">no bed</div></div></div>
+          <div class="stop" style="left:70%"><div class="bead"></div><div class="lab">Thurso<div class="n">1 night</div></div></div>
+          <div class="stop" style="left:84%"><div class="bead"></div><div class="lab">Wick<div class="n">1 night</div></div></div>
+          <div class="stop" style="left:96%"><div class="bead"></div><div class="lab">Dornoch<div class="n">last night</div></div></div>
+        </div>
+      </div>
+
+      <div class="mapgrid">
+        <div class="canvas">
+          <svg viewBox="0 0 620 470" role="img" aria-label="Map of the North Coast 500 loop with seven stops, a ferry leg to Stornoway and a walked section near Thurso">
+            <path d="M120 40 C 60 90, 40 170, 70 240 C 95 300, 80 360, 130 410 C 200 460, 320 455, 400 420 C 470 390, 520 330, 520 260 C 520 180, 470 100, 390 60 C 310 22, 180 0, 120 40 Z"
+                  fill="var(--surface)" stroke="var(--rule-strong)" stroke-width="1.25"/>
+            <path d="M250 250 C 285 240, 320 262, 340 292 C 320 306, 275 300, 250 278 Z" fill="var(--marine-soft)" stroke="var(--rule)"/>
+            <path d="M170 150 C 200 142, 226 158, 236 178 C 214 190, 180 182, 168 166 Z" fill="var(--marine-soft)" stroke="var(--rule)"/>
+            <path d="M330 400 L 200 350 L 140 250 L 165 130 L 300 70 L 430 120 L 452 250 L 330 400"
+                  fill="none" stroke="var(--marine)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+            <path d="M140 250 C 100 230, 92 190, 120 165" fill="none" stroke="var(--apricot)" stroke-width="2" stroke-dasharray="7 6"/>
+            <path d="M300 70 C 330 52, 366 56, 386 78" fill="none" stroke="var(--rose)" stroke-width="2" stroke-dasharray="1 5" stroke-linecap="round"/>
+
+            <g font-size="11.5">
+              <g><circle cx="330" cy="400" r="11" fill="var(--marine)"/><text x="330" y="404" text-anchor="middle" fill="#fff" font-weight="700" font-size="10.5">1</text>
+                 <text x="346" y="398" fill="var(--ink)" font-weight="600">Inverness</text><text x="346" y="412" fill="var(--ink-faint)" font-size="10.5">pick up the van · 2 nights</text></g>
+              <g><circle cx="200" cy="350" r="11" fill="var(--marine)"/><text x="200" y="354" text-anchor="middle" fill="#fff" font-weight="700" font-size="10.5">2</text>
+                 <text x="150" y="378" fill="var(--ink)" font-weight="600">Applecross</text><text x="150" y="392" fill="var(--ink-faint)" font-size="10.5">bunkhouse · 1 night</text></g>
+              <g><circle cx="140" cy="250" r="11" fill="var(--marine)"/><text x="140" y="254" text-anchor="middle" fill="#fff" font-weight="700" font-size="10.5">3</text>
+                 <text x="32" y="244" fill="var(--ink)" font-weight="600">Ullapool</text><text x="32" y="258" fill="var(--ink-faint)" font-size="10.5">cottage · 3 nights</text></g>
+              <g><circle cx="120" cy="165" r="8" fill="var(--surface)" stroke="var(--apricot)" stroke-width="2"/>
+                 <text x="20" y="150" fill="var(--apricot)" font-weight="600">Stornoway</text><text x="20" y="164" fill="var(--ink-faint)" font-size="10.5">day trip by ferry</text></g>
+              <g><circle cx="165" cy="130" r="11" fill="var(--surface)" stroke="var(--apricot)" stroke-width="2.5"/><text x="165" y="134" text-anchor="middle" fill="var(--apricot)" font-weight="700" font-size="10.5">4</text>
+                 <text x="182" y="120" fill="var(--ink)" font-weight="600">Durness</text><text x="182" y="134" fill="var(--apricot)" font-size="10.5">no bed booked</text></g>
+              <g><circle cx="300" cy="70" r="11" fill="var(--marine)"/><text x="300" y="74" text-anchor="middle" fill="#fff" font-weight="700" font-size="10.5">5</text>
+                 <text x="254" y="46" fill="var(--ink)" font-weight="600">Thurso</text><text x="254" y="60" fill="var(--ink-faint)" font-size="10.5">hotel · 1 night</text></g>
+              <g><circle cx="430" cy="120" r="11" fill="var(--marine)"/><text x="430" y="124" text-anchor="middle" fill="#fff" font-weight="700" font-size="10.5">6</text>
+                 <text x="447" y="114" fill="var(--ink)" font-weight="600">Wick</text><text x="447" y="128" fill="var(--ink-faint)" font-size="10.5">inn · 1 night</text></g>
+              <g><circle cx="452" cy="250" r="11" fill="var(--marine)"/><text x="452" y="254" text-anchor="middle" fill="#fff" font-weight="700" font-size="10.5">7</text>
+                 <text x="469" y="246" fill="var(--ink)" font-weight="600">Dornoch</text><text x="469" y="260" fill="var(--ink-faint)" font-size="10.5">last night</text></g>
+              <g><circle cx="386" cy="78" r="7.5" fill="var(--rose-soft)" stroke="var(--rose)" stroke-width="1.5"/>
+                 <text x="386" y="82" text-anchor="middle" fill="var(--rose)" font-size="9" font-weight="700">2</text></g>
+            </g>
+          </svg>
+          <div class="overlay">
+            <span class="tag">812 miles · 21h driving</span>
+            <span class="tag">7 stops · 8 nights</span>
+          </div>
+          <div class="key floating">
+            <span><i class="leg"></i>Van, whole group</span>
+            <span><i class="leg ferry"></i>Ferry — nobody drives</span>
+            <span><i class="leg foot"></i>On foot</span>
+            <span><i class="chip" style="background:var(--rose-soft);border:1px solid var(--rose)"></i>Notes pinned here</span>
+          </div>
+        </div>
+
+        <aside>
+          <div class="stop-item"><span class="idx">1</span><div>
+            <div class="name">Inverness</div>
+            <div class="det">Fri 12 – Sun 14. Fly in, collect the nine-seater at 14:00.</div>
+            <div class="tags"><span class="tag set">Van booked</span><span class="tag set">Beds booked</span></div>
+          </div></div>
+          <div class="stop-item leg-row"><span class="idx">↓</span><div>
+            <div class="det">2h 40m · 84 miles · Bealach na Bà. Jon driving — Alex won't.</div>
+          </div></div>
+          <div class="stop-item"><span class="idx">2</span><div>
+            <div class="name">Applecross</div>
+            <div class="det">Sun 14. Bunkhouse, six beds across two rooms. Pub table held for 20:00.</div>
+            <div class="tags"><span class="tag set">Beds booked</span><span class="tag set">Dinner agreed</span></div>
+          </div></div>
+          <div class="stop-item leg-row"><span class="idx">↓</span><div>
+            <div class="det">2h 10m · 71 miles · coastal and slow. Allow for stopping.</div>
+          </div></div>
+          <div class="stop-item"><span class="idx">3</span><div>
+            <div class="name">Ullapool</div>
+            <div class="det">Mon 15 – Thu 18. Harbour cottage, £888 for three nights. Base for the ferry day.</div>
+            <div class="tags"><span class="tag set">Beds booked</span><span class="tag open">Ferry not booked</span></div>
+          </div></div>
+          <div class="stop-item leg-row"><span class="idx">↓</span><div>
+            <div class="det">1h 55m · 68 miles · nothing open en route. Take lunch.</div>
+          </div></div>
+          <div class="stop-item"><span class="idx">4</span><div>
+            <div class="name">Durness</div>
+            <div class="det">Thu 18. Two places shortlisted, nothing held. Mira is chasing.</div>
+            <div class="tags"><span class="tag act">Needs a bed</span></div>
+          </div></div>
+          <div class="stop-item add"><span class="idx">+</span><div>
+            <div class="name">Add a stop</div>
+            <div class="det">Drop a pin and every leg after it re-times itself.</div>
+          </div></div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <!-- ══ DAYS ═════════════════════════════════════════════════ -->
+  <main class="page" id="page-days">
+    <div class="board">
+      <nav class="appbar">
+        <button data-goto="trips">← Trips</button>
+        <button data-goto="plan">Deciding</button>
+        <button data-goto="route">Route</button>
+        <button aria-current="true">Days</button>
+        <button>Bookings</button>
+        <button>Money</button>
+        <span class="grow"></span>
+        <button>Offline pack</button>
+      </nav>
+
+      <div class="daybar" id="daybar">
+        <button><b>Fri 12</b><span>Arrive</span></button>
+        <button><b>Sat 13</b><span>Inverness</span></button>
+        <button><b>Sun 14</b><span>Applecross</span></button>
+        <button aria-current="true"><b>Mon 15</b><span>To Ullapool</span></button>
+        <button><b>Tue 16</b><span>Stornoway</span></button>
+        <button><b>Wed 17</b><span>Free day</span></button>
+        <button><b>Thu 18</b><span>Durness</span></button>
+        <button><b>Fri 19</b><span>Home</span></button>
+      </div>
+
+      <div class="split">
+        <div>
+          <div class="sec-head"><h2>Monday 15 September</h2><span class="tag">Applecross → Ullapool</span></div>
+          <p class="lede-sm">71 miles · sunrise 06:52, sunset 19:41 · rain from 16:00 · Jon driving</p>
+
+          <div class="thread">
+            <div class="ev">
+              <div class="time">08:00</div>
+              <div class="title">Breakfast at the bunkhouse</div>
+              <div class="body">Included. Checkout is 10:00 sharp — they clean between groups.</div>
+            </div>
+
+            <div class="ev">
+              <div class="time">10:15 · 1h 20m drive</div>
+              <div class="title">Applecross to Shieldaig</div>
+              <div class="body">The <span class="anno" title="Alex: single track with passing places — don't do it in the dark">coast road</span>, not the pass. Slower, better.</div>
+              <div class="chips"><span class="tag">Last cheap fuel before Ullapool</span></div>
+              <div class="note">
+                <div class="by"><i class="who w-d">AP</i> Alex · 2 days ago</div>
+                Did this in a van last year. The passing places are fine, but allow twenty minutes more than the sat nav says.
+              </div>
+              <div class="note reply">
+                <div class="by"><i class="who w-c">JD</i> Jon · replying</div>
+                Noted — I've pushed lunch to 12:30. Agreed by three others.
+              </div>
+            </div>
+
+            <div class="ev">
+              <div class="time">12:30</div>
+              <div class="title">Lunch at Shieldaig Bar</div>
+              <div class="body">Table for six under “Sam R”. Two vegetarians flagged on the booking.</div>
+              <div class="chips"><span class="tag set">Booked</span><span class="tag">≈£22pp</span></div>
+            </div>
+
+            <div class="ev maybe">
+              <div class="time">14:00 · optional</div>
+              <div class="title">Corrieshalloch Gorge, 45 minutes</div>
+              <div class="body">A split: whoever wants the walk does it, the rest carry on to the shops.</div>
+              <div class="chips"><span class="tag open">4 in · 2 out</span><button class="btn quiet">Count me in</button></div>
+              <div class="note">
+                <div class="by"><i class="who w-b">MK</i> Mira · yesterday</div>
+                If it's chucking it down let's skip this and get to the cottage — the fire takes an hour to get going.
+              </div>
+            </div>
+
+            <div class="ev">
+              <div class="time">16:00</div>
+              <div class="title">Check in — Harbour Cottage, Ullapool</div>
+              <div class="body">Key safe code is on the booking. Two doubles, two twins; Sam and Rae take the sofa bed on Wednesday.</div>
+              <div class="chips"><span class="tag set">£888 for 3 nights</span><span class="tag">£148pp</span></div>
+            </div>
+
+            <div class="ev maybe">
+              <div class="time">19:30</div>
+              <div class="title">Dinner — undecided</div>
+              <div class="body">Three on the table. Voting closes when we leave Shieldaig.</div>
+              <div class="chips">
+                <span class="tag open">The Arch Inn · 3</span>
+                <span class="tag">Seafood shack · 2</span>
+                <span class="tag">Cook at the cottage · 1</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="compose">
+            <span class="field">Write a note for the group, or @ someone</span>
+            <button class="btn">Post note</button>
+          </div>
+        </div>
+
+        <aside>
+          <div class="card">
+            <h3>Today</h3>
+            <div class="row"><span>Driving</span><b class="num">71 mi · 1h 55m</b></div>
+            <div class="row"><span>Spend, estimated</span><b class="num">£38pp</b></div>
+            <div class="row"><span>Weather</span><b>12°C, rain 16:00</b></div>
+            <div class="row"><span>Still to decide</span><b style="color:var(--apricot)">2</b></div>
+          </div>
+          <div class="card">
+            <h3>Who's doing what</h3>
+            <div class="row"><span><i class="who sm w-c">JD</i> Jon</span><span>Driving</span></div>
+            <div class="row"><span><i class="who sm w-a">SR</i> Sam</span><span>Lunch booking</span></div>
+            <div class="row"><span><i class="who sm w-b">MK</i> Mira</span><span>Cottage keys</span></div>
+            <div class="row"><span><i class="who sm w-d">AP</i> Alex</span><span>Food shop</span></div>
+          </div>
+          <div class="card">
+            <h3>Pinned to today</h3>
+            <p class="lede-sm" style="margin-bottom:9px">These show on the map too.</p>
+            <div class="note" style="margin-top:0">
+              <div class="by"><i class="who w-f">RG</i> Rae</div>
+              The Stornoway ferry sells out. Book Wednesday's crossing tonight.
+            </div>
+            <div class="note reply">
+              <div class="by"><i class="who w-a">SR</i> Sam</div>
+              On it — I need card details from everyone by 6pm.
+            </div>
+          </div>
+          <div class="card">
+            <h3>No signal from here</h3>
+            <p class="lede-sm" style="margin-bottom:11px">Half this route has none. The pack keeps the days, the map and the door codes on your phone.</p>
+            <button class="btn quiet" style="width:100%">Download days 1–8</button>
+          </div>
+        </aside>
+      </div>
+
+      <div class="ledger">
+        <div><div class="eyebrow">Booked so far</div><div class="v">£3,940</div><p class="lede-sm">of about £5,300 across six people</p></div>
+        <div><div class="eyebrow">Your balance</div><div class="v" style="color:var(--rose)">−£148</div><p class="lede-sm">You owe Mira for the cottage</p></div>
+        <div><div class="eyebrow">Next payment</div><div class="v">£312</div><p class="lede-sm">Ferry for six — Rae fronting it Wednesday</p></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  const root = document.documentElement;
+  const toggle = document.getElementById('tt');
+
+  // Light is the default. Dark is a deliberate choice, never inherited.
+  toggle.addEventListener('click', () => {
+    const dark = root.dataset.theme === 'dark';
+    root.dataset.theme = dark ? 'light' : 'dark';
+    toggle.textContent = dark ? 'Dark' : 'Light';
+  });
+
+  // Page routing. Buttons, not anchors — nothing jumps, nothing scrolls.
+  const pages = document.querySelectorAll('.page');
+  const switcher = document.getElementById('switcher');
+
+  function goto(name) {
+    pages.forEach(p => p.classList.toggle('on', p.id === 'page-' + name));
+    switcher.querySelectorAll('button').forEach(b =>
+      b.dataset.goto === name ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current'));
+    window.scrollTo({ top: 0 });
+  }
+
+  document.addEventListener('click', e => {
+    const nav = e.target.closest('[data-goto]');
+    if (nav) { goto(nav.dataset.goto); return; }
+
+    // In-page tabs stay put: swap the marker, keep the scroll position.
+    const tab = e.target.closest('.appbar button, .daybar button');
+    if (tab && !tab.dataset.goto) {
+      const bar = tab.closest('.appbar, .daybar');
+      bar.querySelectorAll('button').forEach(b => b.removeAttribute('aria-current'));
+      tab.setAttribute('aria-current', 'true');
+      return;
+    }
+
+    // Votes toggle within their row.
+    const v = e.target.closest('.vote button');
+    if (v) {
+      v.closest('.vote').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', 'false'));
+      v.setAttribute('aria-pressed', 'true');
+    }
+  });
+</script>

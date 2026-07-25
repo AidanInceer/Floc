@@ -1,0 +1,646 @@
+<title>Waypoint — island prototype</title>
+<style>
+  /* Variant: ISLAND — summer, sea and sun.
+     The bet: anticipation. The app should feel like the thing it plans.
+     Deep sea-green ink on a shell-white ground, water and coral accents,
+     generous curves, soft light. Colour is used in wide, calm areas
+     rather than scattered — one gradient sea, one coral, one sand.
+     Light by default. */
+  :root {
+    --shell: #f4f7f4;
+    --card: #ffffff;
+    --card-2: #eaf2f0;
+    --card-3: #dbe9e6;
+    --edge: #dae7e3;
+    --edge-2: #b9d0cb;
+    --ink: #10322f;
+    --ink-2: #45645f;
+    --ink-3: #7f9a95;
+    --sea: #0e8a86;
+    --sea-2: #d6efec;
+    --sea-3: #075f5f;
+    --lagoon: #2bb3ad;
+    --coral: #e26a4c;
+    --coral-2: #fde7e0;
+    --sun: #e3a53a;
+    --sun-2: #fdf0d8;
+    --palm: #3f7d4e;
+    --r: 14px;
+    --r-lg: 24px;
+    --r-pill: 999px;
+    --soft: 0 2px 6px rgba(16,50,47,.05), 0 16px 40px -18px rgba(16,50,47,.3);
+    --lift: 0 3px 10px rgba(16,50,47,.07), 0 26px 56px -22px rgba(16,50,47,.42);
+    --sans: "Avenir Next", Avenir, "Segoe UI", system-ui, -apple-system, Helvetica, Arial, sans-serif;
+    --mono: "Cascadia Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+  }
+  :root[data-theme="dark"] {
+    --shell: #081716; --card: #0f2321; --card-2: #143029; --card-3: #1b3a34; --edge: #1a3733; --edge-2: #2d554e;
+    --ink: #eaf5f1; --ink-2: #a8c6c0; --ink-3: #779b95; --sea: #43c9c0; --sea-2: #10322f; --sea-3: #86e2d8;
+    --lagoon: #5fdcd2; --coral: #f0876a; --coral-2: #35201a; --sun: #eeba5c; --sun-2: #33280f; --palm: #6cb37c;
+    --soft: 0 2px 6px rgba(0,0,0,.4), 0 16px 40px -18px rgba(0,0,0,.9);
+    --lift: 0 3px 10px rgba(0,0,0,.5), 0 26px 56px -22px rgba(0,0,0,1);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--shell); color: var(--ink); font-family: var(--sans);
+    font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  h1,h2,h3 { margin: 0; font-weight: 650; letter-spacing: -.028em; text-wrap: balance; }
+  p { margin: 0; }
+  button { font-family: inherit; }
+  .num { font-family: var(--mono); font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
+  .kicker { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--sea); font-weight: 600; }
+  :focus-visible { outline: 2px solid var(--sea); outline-offset: 3px; border-radius: 6px; }
+  .shell { max-width: 1160px; margin: 0 auto; padding: 0 20px 90px; }
+
+  .top { display: flex; align-items: center; gap: 14px; padding: 22px 0 16px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 700; letter-spacing: -.04em; }
+  .brand i { width: 24px; height: 24px; border-radius: 50%; flex: none;
+    background: radial-gradient(circle at 32% 30%, var(--sun) 0%, var(--coral) 55%, var(--sea) 100%); }
+  .grow { flex: 1; }
+  .pills { display: flex; gap: 4px; padding: 4px; background: var(--card); border: 1px solid var(--edge);
+    border-radius: var(--r-pill); box-shadow: var(--soft); flex-wrap: wrap; }
+  .pills button { border: 0; background: transparent; color: var(--ink-2); font-size: 13px; padding: 7px 15px;
+    border-radius: var(--r-pill); cursor: pointer; white-space: nowrap; }
+  .pills button:hover { color: var(--ink); }
+  .pills button[aria-current="page"] { background: var(--sea); color: #fff; font-weight: 600; }
+  .moon { border: 1px solid var(--edge); background: var(--card); color: var(--ink-2); border-radius: var(--r-pill);
+    height: 34px; padding: 0 15px; font-size: 12.5px; cursor: pointer; }
+
+  .page { display: none; } .page.on { display: block; animation: float .34s cubic-bezier(.2,.7,.3,1) both; }
+  @keyframes float { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .page.on { animation: none; } * { transition: none !important; } }
+
+  .board { background: var(--card); border: 1px solid var(--edge); border-radius: var(--r-lg);
+    box-shadow: var(--soft); overflow: hidden; }
+  .nav { display: flex; align-items: center; gap: 4px; padding: 10px 14px; background: var(--card-2);
+    border-bottom: 1px solid var(--edge); overflow-x: auto; }
+  .nav button { border: 0; background: transparent; color: var(--ink-2); font-size: 13px; padding: 7px 13px;
+    border-radius: var(--r-pill); cursor: pointer; white-space: nowrap; }
+  .nav button:hover { background: var(--card-3); color: var(--ink); }
+  .nav button[aria-current="true"] { background: var(--card); color: var(--ink); font-weight: 600; box-shadow: var(--soft); }
+  .nav .name { font-size: 12px; color: var(--ink-3); padding: 0 8px; }
+
+  .btn { border: 0; border-radius: var(--r-pill); padding: 10px 20px; font-size: 13.5px; font-weight: 650; cursor: pointer;
+    color: #fff; background: linear-gradient(135deg, var(--lagoon) 0%, var(--sea) 55%, var(--sea-3) 100%);
+    box-shadow: 0 6px 18px -8px rgba(14,138,134,.8); transition: transform .16s ease; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn.ghost { background: var(--card); color: var(--ink-2); box-shadow: inset 0 0 0 1px var(--edge-2); }
+  .btn.ghost:hover { color: var(--ink); }
+  .btn.lg { padding: 14px 26px; font-size: 15.5px; }
+  .tag { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; border-radius: var(--r-pill);
+    padding: 4px 12px; color: var(--ink-2); background: var(--card-2); }
+  .tag.go { background: var(--sea-2); color: var(--sea-3); }
+  .tag.wait { background: var(--sun-2); color: #a5701a; }
+  :root[data-theme="dark"] .tag.wait { color: var(--sun); }
+  .tag.act { background: var(--coral-2); color: var(--coral); }
+  .card { background: var(--card); border-radius: var(--r); padding: 16px 17px; box-shadow: var(--soft); }
+  .card + .card { margin-top: 14px; }
+  .card h3 { font-size: 14px; }
+  .sub { font-size: 12.5px; color: var(--ink-3); margin-top: 3px; }
+  .kv { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 0;
+    font-size: 13px; color: var(--ink-2); border-bottom: 1px solid var(--edge); }
+  .kv:last-child { border-bottom: 0; } .kv b { color: var(--ink); font-weight: 650; }
+  .split { display: grid; grid-template-columns: minmax(0,1fr) 330px; }
+  .split > * { padding: 24px; min-width: 0; }
+  .split > * + * { background: var(--card-2); }
+  @media (max-width: 940px) { .split { grid-template-columns: 1fr; } }
+  .head { display: flex; align-items: baseline; gap: 11px; flex-wrap: wrap; }
+  .head h2 { font-size: 20px; }
+
+  .who { width: 27px; height: 27px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; color: #fff; flex: none; border: 2px solid var(--card); }
+  .who.sm { width: 21px; height: 21px; font-size: 9px; border-width: 0; }
+  .c1 { background: linear-gradient(140deg,#2bb3ad,#0a6a68); } .c2 { background: linear-gradient(140deg,#f08a6a,#c04a2e); }
+  .c3 { background: linear-gradient(140deg,#eeb95c,#c2842a); } .c4 { background: linear-gradient(140deg,#63b573,#2f6b41); }
+  .c5 { background: linear-gradient(140deg,#8f8ede,#4f4d99); } .c6 { background: linear-gradient(140deg,#9fb0ad,#5f7370); }
+  .whos { display: flex; } .whos .who + .who { margin-left: -9px; }
+
+  /* hero — the sea */
+  .hero { position: relative; padding: 84px 44px 78px; overflow: hidden; color: #fff;
+    background: linear-gradient(178deg, #7ad0ea 0%, #3fb3bd 34%, #12857f 72%, #0a5f61 100%); }
+  :root[data-theme="dark"] .hero { background: linear-gradient(178deg, #123f4d 0%, #0f4a4b 40%, #0a3536 78%, #071f22 100%); }
+  .hero .sun { position: absolute; right: 8%; top: 44px; width: 130px; height: 130px; border-radius: 50%;
+    background: radial-gradient(circle, #ffe6ac 0%, #f6c46b 52%, rgba(246,196,107,0) 72%); }
+  .hero .water { position: absolute; left: 0; right: 0; bottom: 0; height: 130px; opacity: .5; }
+  .hero .water i { position: absolute; left: 0; right: 0; height: 2px; background: rgba(255,255,255,.55); border-radius: 2px; }
+  .hero > .in { position: relative; }
+  .hero .kicker { color: rgba(255,255,255,.8); }
+  .hero h1 { font-size: clamp(34px, 5.6vw, 60px); line-height: 1.02; letter-spacing: -.045em; max-width: 14ch; margin-top: 14px; }
+  .hero .lede { font-size: 17.5px; color: rgba(255,255,255,.9); max-width: 46ch; margin-top: 18px; }
+  .hero .cta { display: flex; gap: 12px; margin-top: 30px; flex-wrap: wrap; align-items: center; }
+  .hero .btn.ghost { background: rgba(255,255,255,.14); color: #fff; box-shadow: inset 0 0 0 1px rgba(255,255,255,.4); }
+  .hero .fine { font-size: 13px; color: rgba(255,255,255,.75); }
+  .hero .faces { display: flex; align-items: center; gap: 12px; margin-top: 32px; font-size: 13.5px; color: rgba(255,255,255,.85); }
+  .hero .who { border-color: rgba(255,255,255,.5); }
+  @media (max-width: 820px) { .hero { padding: 52px 22px 56px; } .hero .sun { width: 88px; height: 88px; right: 6%; } }
+
+  .steps { display: grid; grid-template-columns: repeat(4,1fr); gap: 0; }
+  .steps > div { padding: 26px 22px; }
+  .steps > div + div { border-left: 1px solid var(--edge); }
+  .steps .dot { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: var(--sea-3); background: var(--sea-2); margin-bottom: 13px; }
+  .steps h3 { font-size: 16px; }
+  .steps p { font-size: 13px; color: var(--ink-3); margin-top: 6px; }
+  @media (max-width: 880px) { .steps { grid-template-columns: 1fr 1fr; }
+    .steps > div:nth-child(3) { border-left: 0; } .steps > div:nth-child(n+3) { border-top: 1px solid var(--edge); } }
+
+  /* trips */
+  .three { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; padding: 22px; }
+  .trip { text-align: left; border: 0; background: var(--card); border-radius: var(--r); padding: 0; overflow: hidden;
+    cursor: pointer; box-shadow: var(--soft); transition: transform .18s ease, box-shadow .18s ease; }
+  .trip:hover { transform: translateY(-3px); box-shadow: var(--lift); }
+  .trip .scene { height: 108px; position: relative; overflow: hidden;
+    background: linear-gradient(178deg, #8fd8e8 0%, #46b6bd 46%, #17867f 100%); }
+  .trip .scene.b { background: linear-gradient(178deg, #ffd9a8 0%, #f0a172 48%, #d2694a 100%); }
+  .trip .scene.c { background: linear-gradient(178deg, #cfe3c4 0%, #7fbb95 46%, #3f7d6e 100%); }
+  .trip .scene .sun { position: absolute; right: 22px; top: 20px; width: 34px; height: 34px; border-radius: 50%;
+    background: rgba(255,240,205,.9); box-shadow: 0 0 26px rgba(255,232,170,.85); }
+  .trip .scene .hill { position: absolute; left: -10%; right: -10%; bottom: -16px; height: 62px; border-radius: 50% 50% 0 0;
+    background: rgba(255,255,255,.18); }
+  .trip .scene .hill.two { left: 30%; bottom: -26px; height: 72px; background: rgba(0,0,0,.10); }
+  .trip .body { padding: 16px 18px 18px; }
+  .trip h3 { font-size: 17px; }
+  .trip .when { font-size: 12.5px; color: var(--ink-3); margin-top: 3px; }
+  .trip .line { display: flex; align-items: center; gap: 10px; margin-top: 13px; }
+  .trip .meter { flex: 1; height: 6px; border-radius: var(--r-pill); background: var(--card-3); overflow: hidden; }
+  .trip .meter i { display: block; height: 100%; border-radius: var(--r-pill);
+    background: linear-gradient(90deg, var(--lagoon), var(--sea)); }
+  .trip .todo { font-size: 12.5px; color: var(--ink-2); margin-top: 10px; display: flex; gap: 9px; }
+  .trip .todo::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--sun); margin-top: 7px; flex: none; }
+  .trip .todo.b::before { background: var(--sea); } .trip .todo.c::before { background: var(--coral); }
+  @media (max-width: 900px) { .three { grid-template-columns: 1fr; } }
+
+  .wave { display: flex; gap: 10px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--edge);
+    font-size: 13px; color: var(--ink-2); }
+  .wave:last-child { border-bottom: 0; } .wave b { color: var(--ink); font-weight: 650; }
+  .wave .t { margin-left: auto; font-size: 11px; color: var(--ink-3); white-space: nowrap; }
+
+  /* spine */
+  .spine { padding: 22px 24px 18px; background: linear-gradient(180deg, var(--sea-2) 0%, var(--card) 100%); }
+  .spine .t { display: flex; align-items: baseline; gap: 11px; flex-wrap: wrap; margin-bottom: 18px; }
+  .spine h2 { font-size: 19px; }
+  .rail { position: relative; height: 48px; }
+  .rail .l { position: absolute; left: 0; right: 0; top: 8px; height: 4px; border-radius: 99px; background: var(--card-3); }
+  .rail .l i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--lagoon), var(--sea)); }
+  .rail .s { position: absolute; top: 0; transform: translateX(-50%); width: 86px; text-align: center; }
+  .rail .s .b { width: 14px; height: 14px; border-radius: 50%; background: var(--sea); margin: 3px auto 0;
+    border: 3px solid var(--card); box-shadow: 0 0 0 1px var(--sea); }
+  .rail .s.open .b { background: var(--card); box-shadow: 0 0 0 2px var(--sun); }
+  .rail .s.here .b { width: 18px; height: 18px; margin-top: 1px; box-shadow: 0 0 0 1px var(--sea), 0 0 0 7px var(--sea-2); }
+  .rail .s .n { font-size: 12px; color: var(--ink-2); margin-top: 8px; }
+  .rail .s.here .n { color: var(--ink); font-weight: 650; }
+  .rail .s .d { font-size: 10.5px; color: var(--ink-3); }
+  @media (max-width: 740px) { .rail { display: none; } }
+
+  /* ideas */
+  .idea { display: grid; grid-template-columns: minmax(0,1fr) 136px 104px; gap: 14px; align-items: center;
+    padding: 15px 16px; border-radius: var(--r); background: var(--card); box-shadow: var(--soft); margin-bottom: 11px; }
+  .idea .n { font-size: 16px; font-weight: 650; letter-spacing: -.025em; }
+  .idea .m { font-size: 12.5px; color: var(--ink-3); margin-top: 3px; }
+  .gauge { display: flex; align-items: center; gap: 9px; }
+  .gauge .t { flex: 1; height: 6px; border-radius: 99px; background: var(--card-3); overflow: hidden; }
+  .gauge .t i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--lagoon), var(--sea)); }
+  .gauge .t.cold i { background: var(--edge-2); }
+  .gauge .x { font-size: 12px; color: var(--ink-3); font-family: var(--mono); }
+  .vote { display: flex; gap: 6px; }
+  .vote button { border: 0; background: var(--card-2); border-radius: 50%; width: 32px; height: 32px; cursor: pointer;
+    font-size: 12px; color: var(--ink-2); }
+  .vote button:hover { background: var(--card-3); }
+  .vote button[aria-pressed="true"] { background: var(--sea); color: #fff; }
+  .vote button.no[aria-pressed="true"] { background: var(--coral); color: #fff; }
+  @media (max-width: 620px) { .idea { grid-template-columns: 1fr; } }
+  .compose { display: flex; gap: 10px; align-items: center; margin-top: 14px; flex-wrap: wrap; }
+  .compose .f { flex: 1; min-width: 190px; background: var(--card); border-radius: var(--r-pill); padding: 11px 18px;
+    font-size: 13px; color: var(--ink-3); box-shadow: inset 0 0 0 1px var(--edge); }
+
+  /* poll */
+  .pollwrap { overflow-x: auto; margin-top: 14px; }
+  table.poll { border-collapse: separate; border-spacing: 4px; min-width: 570px; width: 100%; }
+  table.poll th { font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3);
+    font-weight: 600; padding-bottom: 6px; text-align: center; }
+  table.poll th:first-child, table.poll td:first-child { text-align: left; }
+  table.poll td:first-child span { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); padding-right: 10px; }
+  .cell { display: block; height: 28px; border-radius: 9px; background: var(--card-3); }
+  .cell.y { background: linear-gradient(135deg, var(--lagoon), var(--sea)); }
+  .cell.m { background: var(--sun-2); box-shadow: inset 0 0 0 1.5px var(--sun); }
+  .cell.n { background: var(--card-3); }
+  table.poll tfoot td { font-size: 12px; color: var(--ink-3); text-align: center; padding-top: 8px; }
+  table.poll tfoot td.w { color: var(--sea); font-weight: 700; }
+  .key { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; font-size: 12px; color: var(--ink-3); }
+  .key span { display: flex; align-items: center; gap: 7px; }
+  .sw { width: 13px; height: 13px; border-radius: 5px; flex: none; }
+
+  /* map */
+  .mapgrid { display: grid; grid-template-columns: minmax(0,1fr) 336px; }
+  .canvas { position: relative; background: linear-gradient(180deg, #d9f0f2 0%, #eaf6f4 100%); }
+  :root[data-theme="dark"] .canvas { background: linear-gradient(180deg, #0d2c30 0%, #0f2321 100%); }
+  .canvas svg { display: block; width: 100%; height: auto; }
+  .over { position: absolute; top: 18px; left: 18px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .over .tag { background: var(--card); box-shadow: var(--soft); }
+  .key.float { position: absolute; left: 18px; bottom: 18px; flex-direction: column; gap: 8px; background: var(--card);
+    border-radius: var(--r); padding: 13px 15px; box-shadow: var(--lift); margin: 0; }
+  .leg { width: 18px; height: 0; border-top: 3px solid var(--sea); border-radius: 3px; flex: none; }
+  .leg.f { border-top-style: dashed; border-color: var(--sun); }
+  .leg.w { border-top-style: dotted; border-color: var(--coral); }
+  .st { display: grid; grid-template-columns: 30px minmax(0,1fr); gap: 13px; padding: 17px 20px; }
+  .st + .st { border-top: 1px solid var(--edge); }
+  .st .i { width: 27px; height: 27px; border-radius: 50%; background: linear-gradient(140deg, var(--lagoon), var(--sea));
+    color: #fff; font-size: 11.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .st.leg-row .i, .st.add .i { background: var(--card-2); color: var(--ink-3); }
+  .st .n { font-size: 15px; font-weight: 650; letter-spacing: -.025em; }
+  .st .d { font-size: 12.5px; color: var(--ink-3); margin-top: 3px; }
+  .st .tg { display: flex; gap: 7px; margin-top: 9px; flex-wrap: wrap; }
+  @media (max-width: 940px) { .mapgrid { grid-template-columns: 1fr; } }
+
+  /* days */
+  .days { display: flex; gap: 8px; padding: 14px 20px; overflow-x: auto; background: var(--card-2); }
+  .days button { border: 0; background: var(--card); border-radius: var(--r); padding: 10px 15px; cursor: pointer;
+    text-align: left; white-space: nowrap; color: var(--ink-3); box-shadow: var(--soft); }
+  .days button b { display: block; font-size: 12.5px; color: var(--ink-2); font-weight: 650; }
+  .days button span { font-size: 12px; }
+  .days button[aria-current="true"] { background: linear-gradient(135deg, var(--lagoon), var(--sea)); color: rgba(255,255,255,.85); }
+  .days button[aria-current="true"] b { color: #fff; }
+
+  .tl { position: relative; padding-left: 26px; margin-top: 20px; }
+  .tl::before { content: ""; position: absolute; left: 7px; top: 10px; bottom: 10px; width: 3px; border-radius: 3px;
+    background: linear-gradient(180deg, var(--sea-2), var(--card-3)); }
+  .ev { position: relative; padding-bottom: 22px; }
+  .ev::before { content: ""; position: absolute; left: -26px; top: 6px; width: 17px; height: 17px; border-radius: 50%;
+    background: var(--card); box-shadow: 0 0 0 3px var(--sea-2), inset 0 0 0 4px var(--sea); }
+  .ev.maybe::before { box-shadow: 0 0 0 3px var(--card-2), inset 0 0 0 2px var(--edge-2); }
+  .ev .h { font-size: 11.5px; color: var(--ink-3); font-family: var(--mono); letter-spacing: .02em; }
+  .ev .ti { font-size: 17px; font-weight: 650; letter-spacing: -.03em; margin-top: 2px; }
+  .ev .b { font-size: 13.5px; color: var(--ink-2); margin-top: 4px; }
+  .ev .c { display: flex; gap: 8px; margin-top: 11px; flex-wrap: wrap; align-items: center; }
+  .anno { border-bottom: 2px dotted var(--sun); cursor: help; }
+  .note { background: var(--card); border-radius: var(--r); padding: 12px 15px; margin-top: 12px; font-size: 13px;
+    color: var(--ink-2); box-shadow: var(--soft); border-left: 4px solid var(--sun); }
+  .note .by { display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--ink-3); margin-bottom: 5px; }
+  .note.re { border-left-color: var(--sea); margin-left: 24px; }
+
+  .ledger { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; padding: 22px;
+    background: var(--card-2); }
+  .ledger > div { background: var(--card); border-radius: var(--r); padding: 18px 20px; box-shadow: var(--soft); }
+  .ledger .v { font-family: var(--mono); font-size: 26px; font-weight: 650; letter-spacing: -.05em; margin: 7px 0 4px; }
+  @media (max-width: 740px) { .ledger { grid-template-columns: 1fr; } }
+  .foot { font-size: 12.5px; color: var(--ink-3); text-align: center; margin-top: 28px; }
+</style>
+
+<div class="shell">
+  <header class="top">
+    <div class="brand"><i></i> Waypoint</div>
+    <span class="grow"></span>
+    <nav class="pills" id="pills" aria-label="Prototype pages">
+      <button data-goto="home" aria-current="page">Landing</button>
+      <button data-goto="trips">My trips</button>
+      <button data-goto="plan">Group</button>
+      <button data-goto="route">Route</button>
+      <button data-goto="days">Days</button>
+    </nav>
+    <button class="moon" id="tt">Dusk</button>
+  </header>
+
+  <!-- landing -->
+  <main class="page on" id="page-home">
+    <div class="board">
+      <nav class="nav"><button aria-current="true">How it works</button><button>Trips people shared</button><button>Pricing</button>
+        <span class="grow"></span><button data-goto="trips">Sign in</button></nav>
+      <section class="hero">
+        <span class="sun"></span>
+        <span class="water"><i style="top:14px;left:6%;right:62%"></i><i style="top:38px;left:22%;right:38%"></i>
+          <i style="top:62px;left:4%;right:70%"></i><i style="top:86px;left:44%;right:14%"></i><i style="top:110px;left:14%;right:52%"></i></span>
+        <div class="in">
+          <span class="kicker">Six people · one week · finally booked</span>
+          <h1>The summer everyone actually agreed on.</h1>
+          <p class="lede">Pick the place together, find the week that works, watch the route draw itself —
+            then wake up each morning to a page that knows where you're going and who's driving.</p>
+          <div class="cta">
+            <button class="btn lg" data-goto="trips">Plan our trip</button>
+            <button class="btn ghost lg">Join with a code</button>
+            <span class="fine">Free. Everyone votes from a link.</span>
+          </div>
+          <p class="faces">
+            <span class="whos"><i class="who c1">SR</i><i class="who c2">MK</i><i class="who c3">JD</i><i class="who c4">AP</i><i class="who c6">+5</i></span>
+            “We booked in a week instead of arguing until August.”
+          </p>
+        </div>
+      </section>
+      <div class="steps">
+        <div><span class="dot">1</span><h3>Throw places in</h3><p>Anyone adds somewhere with a rough price. A thumb is a whole opinion.</p></div>
+        <div><span class="dot">2</span><h3>Find the week</h3><p>Mark what you can't do. The weeks still standing float to the top.</p></div>
+        <div><span class="dot">3</span><h3>Watch it take shape</h3><p>Stops, nights and beds become a line you can read at a glance.</p></div>
+        <div><span class="dot">4</span><h3>Wake up to today</h3><p>A page per day — weather, drives, who's cooking, what's still unpaid.</p></div>
+      </div>
+    </div>
+    <p class="foot">Prototype — variant 4 of 4. Same screens as the others; this one sells the feeling of going.</p>
+  </main>
+
+  <!-- trips -->
+  <main class="page" id="page-trips">
+    <div class="board">
+      <nav class="nav"><button aria-current="true">Trips</button><button>Friends</button><button>Saved places</button><button>Money</button>
+        <span class="grow"></span><span class="name">Sam R</span></nav>
+      <div class="three">
+        <button class="trip" data-goto="route">
+          <div class="scene"><span class="sun"></span><span class="hill"></span><span class="hill two"></span></div>
+          <div class="body">
+            <h3>North Coast 500</h3>
+            <div class="when">12–19 September · six of us · one van</div>
+            <div class="line"><span class="tag go">Dates locked</span>
+              <span class="whos"><i class="who c1">SR</i><i class="who c2">MK</i><i class="who c3">JD</i><i class="who c4">AP</i></span></div>
+            <div class="line"><span class="meter"><i style="width:72%"></i></span><span class="num" style="font-size:12px;color:var(--ink-3)">72%</span></div>
+            <div class="todo">You owe Mira £148 for the cottage</div>
+            <div class="todo b">Day 4 dinner — 3 votes waiting</div>
+          </div>
+        </button>
+        <button class="trip" data-goto="plan">
+          <div class="scene b"><span class="sun"></span><span class="hill"></span><span class="hill two"></span></div>
+          <div class="body">
+            <h3>Puglia, someone's 30th</h3>
+            <div class="when">Late May 2027 · nine interested</div>
+            <div class="line"><span class="tag wait">Date poll open</span>
+              <span class="whos"><i class="who c5">TL</i><i class="who c6">RG</i><i class="who c2">MK</i></span></div>
+            <div class="line"><span class="meter"><i style="width:24%"></i></span><span class="num" style="font-size:12px;color:var(--ink-3)">24%</span></div>
+            <div class="todo c">Your dates aren't in — poll shuts Friday</div>
+            <div class="todo b">4 new places since you looked</div>
+          </div>
+        </button>
+        <button class="trip">
+          <div class="scene c"><span class="sun"></span><span class="hill"></span><span class="hill two"></span></div>
+          <div class="body">
+            <h3>Lisbon long weekend</h3>
+            <div class="when">6–9 March · four of us · done</div>
+            <div class="line"><span class="tag go">Booked</span>
+              <span class="whos"><i class="who c1">SR</i><i class="who c4">AP</i><i class="who c5">TL</i></span></div>
+            <div class="line"><span class="meter"><i style="width:100%"></i></span><span class="num" style="font-size:12px;color:var(--ink-3)">100%</span></div>
+            <div class="todo">Settle up — £62 across two people</div>
+          </div>
+        </button>
+      </div>
+      <div class="split">
+        <div>
+          <div class="head"><h2>Since Tuesday</h2><span class="kicker">every trip, one feed</span></div>
+          <p class="sub" style="margin-bottom:8px">You get a note per decision, not per message.</p>
+          <div class="wave"><b>Mira</b> booked the Ullapool cottage — £888 for three nights<span class="t">2h</span></div>
+          <div class="wave"><b>Jon</b> added Applecross Pass to day three<span class="t">yest.</span></div>
+          <div class="wave"><b>Tash</b> voted against Split — “done it twice”<span class="t">yest.</span></div>
+          <div class="wave"><b>Alex</b> left a note on day five about the ferry<span class="t">2d</span></div>
+          <div class="wave"><b>Rae</b> joined Puglia, someone's 30th<span class="t">3d</span></div>
+        </div>
+        <aside>
+          <div class="card"><h3>Waiting on you</h3>
+            <div class="kv"><span>Puglia dates</span><b style="color:var(--coral)">Friday</b></div>
+            <div class="kv"><span>Pay Mira</span><b class="num">£148</b></div>
+            <div class="kv"><span>Day 4 dinner</span><b>3 options</b></div>
+            <button class="btn" style="margin-top:14px;width:100%">Clear all three</button></div>
+          <div class="card"><h3>Somewhere new</h3><p class="sub" style="margin-bottom:12px">Start fresh, or borrow a shape.</p>
+            <button class="btn ghost" style="width:100%">New trip</button>
+            <button class="btn ghost" style="width:100%;margin-top:8px">Copy the NC500</button></div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <!-- group -->
+  <main class="page" id="page-plan">
+    <div class="board">
+      <nav class="nav"><button data-goto="trips">← Trips</button><button aria-current="true">Deciding</button>
+        <button data-goto="route">Route</button><button data-goto="days">Days</button><button>Bookings</button><button>Money</button>
+        <span class="grow"></span><span class="name">Puglia · 9 people</span></nav>
+      <div class="split">
+        <div>
+          <div class="head"><h2>Where are we going?</h2><span class="tag wait">Voting shuts Friday 6pm</span></div>
+          <p class="sub" style="margin-bottom:14px">Ranked by net votes. Blocking is one tap — cheap to say, cheap to hear.</p>
+
+          <div class="idea"><div><div class="n">Puglia, self-drive</div><div class="m">Tash · about £620pp with flights · 7 nights · masseria then coast</div></div>
+            <div class="gauge"><span class="t"><i style="width:89%"></i></span><span class="x">+8</span></div>
+            <div class="vote"><button aria-pressed="true">▲</button><button aria-pressed="false">–</button><button class="no" aria-pressed="false">✕</button></div></div>
+          <div class="idea"><div><div class="n">Slovenia — lakes and Ljubljana</div><div class="m">Rae · about £540pp · blocked by Jon: visa timing for Priya</div></div>
+            <div class="gauge"><span class="t"><i style="width:62%"></i></span><span class="x">+5</span></div>
+            <div class="vote"><button aria-pressed="false">▲</button><button aria-pressed="true">–</button><button class="no" aria-pressed="false">✕</button></div></div>
+          <div class="idea"><div><div class="n">Andalusia road trip</div><div class="m">Sam · about £700pp · two people flagged the May heat</div></div>
+            <div class="gauge"><span class="t"><i style="width:44%"></i></span><span class="x">+3</span></div>
+            <div class="vote"><button aria-pressed="false">▲</button><button aria-pressed="false">–</button><button class="no" aria-pressed="false">✕</button></div></div>
+          <div class="idea"><div><div class="n">Split and the islands</div><div class="m">Mira · about £580pp · blocked twice — “done it twice”</div></div>
+            <div class="gauge"><span class="t cold"><i style="width:18%"></i></span><span class="x">−1</span></div>
+            <div class="vote"><button aria-pressed="false">▲</button><button aria-pressed="false">–</button><button class="no" aria-pressed="true">✕</button></div></div>
+
+          <div class="compose"><span class="f">Add a place — paste a link and we'll pull the price</span><button class="btn">Add place</button></div>
+
+          <div class="head" style="margin-top:32px"><h2>When can everyone go?</h2><span class="kicker">6 of 9 answered</span></div>
+          <p class="sub">Mark the weeks you can't do. The row underneath counts who's left.</p>
+          <div class="pollwrap"><table class="poll">
+            <thead><tr><th>Who</th><th>18–25 May</th><th>25 May–1 Jun</th><th>1–8 Jun</th><th>8–15 Jun</th><th>15–22 Jun</th></tr></thead>
+            <tbody>
+              <tr><td><span><i class="who sm c1">SR</i>Sam</span></td><td><i class="cell y"></i></td><td><i class="cell y"></i></td><td><i class="cell m"></i></td><td><i class="cell n"></i></td><td><i class="cell n"></i></td></tr>
+              <tr><td><span><i class="who sm c2">MK</i>Mira</span></td><td><i class="cell n"></i></td><td><i class="cell y"></i></td><td><i class="cell y"></i></td><td><i class="cell y"></i></td><td><i class="cell m"></i></td></tr>
+              <tr><td><span><i class="who sm c3">JD</i>Jon</span></td><td><i class="cell m"></i></td><td><i class="cell y"></i></td><td><i class="cell y"></i></td><td><i class="cell m"></i></td><td><i class="cell n"></i></td></tr>
+              <tr><td><span><i class="who sm c4">AP</i>Alex</span></td><td><i class="cell y"></i></td><td><i class="cell y"></i></td><td><i class="cell n"></i></td><td><i class="cell y"></i></td><td><i class="cell y"></i></td></tr>
+              <tr><td><span><i class="who sm c5">TL</i>Tash</span></td><td><i class="cell n"></i></td><td><i class="cell y"></i></td><td><i class="cell m"></i></td><td><i class="cell y"></i></td><td><i class="cell y"></i></td></tr>
+              <tr><td><span><i class="who sm c6">RG</i>Rae</span></td><td><i class="cell m"></i></td><td><i class="cell y"></i></td><td><i class="cell y"></i></td><td><i class="cell n"></i></td><td><i class="cell m"></i></td></tr>
+            </tbody>
+            <tfoot><tr><td class="kicker">Everyone free</td><td>2 / 6</td><td class="w">6 / 6</td><td>3 / 6</td><td>3 / 6</td><td>2 / 6</td></tr></tfoot>
+          </table></div>
+          <div class="key"><span><i class="sw" style="background:linear-gradient(135deg,var(--lagoon),var(--sea))"></i>Free</span>
+            <span><i class="sw" style="background:var(--sun-2);box-shadow:inset 0 0 0 1.5px var(--sun)"></i>Could flex</span>
+            <span><i class="sw" style="background:var(--card-3)"></i>Can't</span></div>
+          <div class="compose"><span class="f">Priya, Dan and Ida haven't answered</span>
+            <button class="btn ghost">Nudge them</button><button class="btn">Lock 25 May – 1 Jun</button></div>
+        </div>
+        <aside>
+          <div class="card"><h3>Who's in</h3><p class="sub" style="margin-bottom:9px">9 invited · 6 answered</p>
+            <div class="kv"><span><i class="who sm c1">SR</i> Sam R</span><b style="color:var(--sea)">In</b></div>
+            <div class="kv"><span><i class="who sm c2">MK</i> Mira K</span><b style="color:var(--sea)">In</b></div>
+            <div class="kv"><span><i class="who sm c3">JD</i> Jon D</span><b style="color:var(--sea)">In</b></div>
+            <div class="kv"><span><i class="who sm c5">TL</i> Tash L</span><b style="color:var(--sun)">Probably</b></div>
+            <div class="kv"><span><i class="who sm c6">RG</i> Rae G</span><b style="color:var(--ink-3)">No reply</b></div>
+            <button class="btn ghost" style="margin-top:13px;width:100%">Copy invite link</button></div>
+          <div class="card"><h3>What people can spend</h3><p class="sub" style="margin-bottom:9px">Given privately. Only the band shows.</p>
+            <div class="kv"><span>Comfortable ceiling</span><b class="num">£550–700pp</b></div>
+            <div class="kv"><span>Two people said</span><b style="color:var(--coral)">tight</b></div>
+            <div class="kv"><span>Front runner</span><b class="num">£620pp</b></div></div>
+          <div class="card"><h3>Agreed once</h3><p class="sub" style="margin-bottom:9px">Shown on every screen.</p>
+            <div class="kv"><span>One van, shared driving</span><span>✓</span></div>
+            <div class="kv"><span>No flights before 8am</span><span>✓</span></div>
+            <div class="kv"><span>Two nights minimum per stop</span><span>✓</span></div></div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <!-- route -->
+  <main class="page" id="page-route">
+    <div class="board">
+      <nav class="nav"><button data-goto="trips">← Trips</button><button data-goto="plan">Deciding</button>
+        <button aria-current="true">Route</button><button data-goto="days">Days</button><button>Bookings</button><button>Money</button>
+        <span class="grow"></span><span class="name">North Coast 500</span></nav>
+      <div class="spine">
+        <div class="t"><h2>North Coast 500</h2><span class="sub">8 nights · 812 miles · six of us · one van</span>
+          <span class="grow"></span><span class="tag wait">1 bed still open</span></div>
+        <div class="rail">
+          <div class="l"><i style="width:43%"></i></div>
+          <div class="s" style="left:6%"><div class="b"></div><div class="n">Inverness<div class="d">2 nights</div></div></div>
+          <div class="s here" style="left:22%"><div class="b"></div><div class="n">Applecross<div class="d">1 night</div></div></div>
+          <div class="s" style="left:38%"><div class="b"></div><div class="n">Ullapool<div class="d">3 nights</div></div></div>
+          <div class="s open" style="left:54%"><div class="b"></div><div class="n">Durness<div class="d">no bed</div></div></div>
+          <div class="s" style="left:70%"><div class="b"></div><div class="n">Thurso<div class="d">1 night</div></div></div>
+          <div class="s" style="left:84%"><div class="b"></div><div class="n">Wick<div class="d">1 night</div></div></div>
+          <div class="s" style="left:96%"><div class="b"></div><div class="n">Dornoch<div class="d">last night</div></div></div>
+        </div>
+      </div>
+      <div class="mapgrid">
+        <div class="canvas">
+          <svg viewBox="0 0 620 470" role="img" aria-label="Route map of the North Coast 500 with seven stops, a ferry leg and a walked section">
+            <path d="M120 40 C 60 90, 40 170, 70 240 C 95 300, 80 360, 130 410 C 200 460, 320 455, 400 420 C 470 390, 520 330, 520 260 C 520 180, 470 100, 390 60 C 310 22, 180 0, 120 40 Z"
+                  fill="var(--card)" stroke="var(--edge-2)" stroke-width="1.25"/>
+            <path d="M250 250 C 285 240, 320 262, 340 292 C 320 306, 275 300, 250 278 Z" fill="var(--sea-2)" stroke="var(--edge)"/>
+            <path d="M170 150 C 200 142, 226 158, 236 178 C 214 190, 180 182, 168 166 Z" fill="var(--sea-2)" stroke="var(--edge)"/>
+            <path d="M330 400 L 200 350 L 140 250 L 165 130 L 300 70 L 430 120 L 452 250 L 330 400"
+                  fill="none" stroke="var(--sea)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+            <path d="M140 250 C 100 230, 92 190, 120 165" fill="none" stroke="var(--sun)" stroke-width="2.5" stroke-dasharray="8 6"/>
+            <path d="M300 70 C 330 52, 366 56, 386 78" fill="none" stroke="var(--coral)" stroke-width="2.5" stroke-dasharray="1 6" stroke-linecap="round"/>
+            <g font-size="11.5">
+              <g><circle cx="330" cy="400" r="12" fill="var(--sea)"/><text x="330" y="404" text-anchor="middle" fill="#fff" font-weight="700" font-size="10.5">1</text>
+                <text x="348" y="398" fill="var(--ink)" font-weight="600">Inverness</text><text x="348" y="412" fill="var(--ink-3)" font-size="10.5">van from the airport · 2 nights</text></g>
+              <g><circle cx="200" cy="350" r="12" fill="var(--sea)"/><text x="200" y="354" text-anchor="middle" fill="#fff" font-weight="700" font-size="10.5">2</text>
+                <text x="150" y="378" fill="var(--ink)" font-weight="600">Applecross</text><text x="150" y="392" fill="var(--ink-3)" font-size="10.5">bunkhouse · 1 night</text></g>
+              <g><circle cx="140" cy="250" r="12" fill="var(--sea)"/><text x="140" y="254" text-anchor="middle" fill="#fff" font-weight="700" font-size="10.5">3</text>
+                <text x="32" y="244" fill="var(--ink)" font-weight="600">Ullapool</text><text x="32" y="258" fill="var(--ink-3)" font-size="10.5">cottage · 3 nights</text></g>
+              <g><circle cx="120" cy="165" r="8" fill="var(--card)" stroke="var(--sun)" stroke-width="2.5"/>
+                <text x="20" y="150" fill="var(--sun)" font-weight="600">Stornoway</text><text x="20" y="164" fill="var(--ink-3)" font-size="10.5">day trip by ferry</text></g>
+              <g><circle cx="165" cy="130" r="12" fill="var(--card)" stroke="var(--sun)" stroke-width="3"/><text x="165" y="134" text-anchor="middle" fill="var(--sun)" font-weight="700" font-size="10.5">4</text>
+                <text x="183" y="120" fill="var(--ink)" font-weight="600">Durness</text><text x="183" y="134" fill="var(--sun)" font-size="10.5">no bed booked</text></g>
+              <g><circle cx="300" cy="70" r="12" fill="var(--sea)"/><text x="300" y="74" text-anchor="middle" fill="#fff" font-weight="700" font-size="10.5">5</text>
+                <text x="254" y="46" fill="var(--ink)" font-weight="600">Thurso</text><text x="254" y="60" fill="var(--ink-3)" font-size="10.5">hotel · 1 night</text></g>
+              <g><circle cx="430" cy="120" r="12" fill="var(--sea)"/><text x="430" y="124" text-anchor="middle" fill="#fff" font-weight="700" font-size="10.5">6</text>
+                <text x="448" y="114" fill="var(--ink)" font-weight="600">Wick</text><text x="448" y="128" fill="var(--ink-3)" font-size="10.5">inn · 1 night</text></g>
+              <g><circle cx="452" cy="250" r="12" fill="var(--sea)"/><text x="452" y="254" text-anchor="middle" fill="#fff" font-weight="700" font-size="10.5">7</text>
+                <text x="470" y="246" fill="var(--ink)" font-weight="600">Dornoch</text><text x="470" y="260" fill="var(--ink-3)" font-size="10.5">last night</text></g>
+              <g><circle cx="386" cy="78" r="8" fill="var(--coral-2)" stroke="var(--coral)" stroke-width="2"/>
+                <text x="386" y="82" text-anchor="middle" fill="var(--coral)" font-size="9" font-weight="700">2</text></g>
+            </g>
+          </svg>
+          <div class="over"><span class="tag">812 miles · 21h driving</span><span class="tag">7 stops · 8 nights</span></div>
+          <div class="key float"><span><i class="leg"></i>The van, all six</span><span><i class="leg f"></i>Ferry — nobody drives</span>
+            <span><i class="leg w"></i>On foot</span><span><i class="sw" style="background:var(--coral-2);box-shadow:inset 0 0 0 1.5px var(--coral)"></i>Notes pinned here</span></div>
+        </div>
+        <aside>
+          <div class="st"><span class="i">1</span><div><div class="n">Inverness</div>
+            <div class="d">Fri 12 – Sun 14. Fly in, van at two from the airport desk.</div>
+            <div class="tg"><span class="tag go">Van booked</span><span class="tag go">Beds booked</span></div></div></div>
+          <div class="st leg-row"><span class="i">↓</span><div><div class="d">2h 40m · 84 miles · over the Bealach. Jon's driving, Alex won't.</div></div></div>
+          <div class="st"><span class="i">2</span><div><div class="n">Applecross</div>
+            <div class="d">Sun 14. Bunkhouse — six beds, two rooms. Pub table held for eight.</div>
+            <div class="tg"><span class="tag go">Beds booked</span><span class="tag go">Dinner agreed</span></div></div></div>
+          <div class="st leg-row"><span class="i">↓</span><div><div class="d">2h 10m · 71 miles · coastal and slow. Allow for stopping.</div></div></div>
+          <div class="st"><span class="i">3</span><div><div class="n">Ullapool</div>
+            <div class="d">Mon 15 – Thu 18. Cottage on the harbour, £888 for three nights.</div>
+            <div class="tg"><span class="tag go">Beds booked</span><span class="tag wait">Ferry not booked</span></div></div></div>
+          <div class="st leg-row"><span class="i">↓</span><div><div class="d">1h 55m · 68 miles · nothing open en route. Take lunch.</div></div></div>
+          <div class="st"><span class="i">4</span><div><div class="n">Durness</div>
+            <div class="d">Thu 18. Two places shortlisted, nothing held. Mira's chasing.</div>
+            <div class="tg"><span class="tag act">Needs a bed</span></div></div></div>
+          <div class="st add"><span class="i">+</span><div><div class="n">Add a stop</div>
+            <div class="d">Drop a pin — every leg after it re-times itself.</div></div></div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <!-- days -->
+  <main class="page" id="page-days">
+    <div class="board">
+      <nav class="nav"><button data-goto="trips">← Trips</button><button data-goto="plan">Deciding</button>
+        <button data-goto="route">Route</button><button aria-current="true">Days</button><button>Bookings</button><button>Money</button>
+        <span class="grow"></span><button>Offline pack</button></nav>
+      <div class="days">
+        <button><b>Fri 12</b><span>Arrive</span></button><button><b>Sat 13</b><span>Inverness</span></button>
+        <button><b>Sun 14</b><span>Applecross</span></button><button aria-current="true"><b>Mon 15</b><span>To Ullapool</span></button>
+        <button><b>Tue 16</b><span>Stornoway</span></button><button><b>Wed 17</b><span>Free day</span></button>
+        <button><b>Thu 18</b><span>Durness</span></button><button><b>Fri 19</b><span>Home</span></button>
+      </div>
+      <div class="split">
+        <div>
+          <div class="head"><h2>Monday 15 September</h2><span class="tag">Applecross → Ullapool</span></div>
+          <p class="sub">71 miles · sunrise 06:52, sunset 19:41 · rain from four · Jon driving</p>
+          <div class="tl">
+            <div class="ev"><div class="h">08:00</div><div class="ti">Breakfast at the bunkhouse</div>
+              <div class="b">Included. Checkout is ten sharp — they clean between groups.</div></div>
+            <div class="ev"><div class="h">10:15 · 1h 20m drive</div><div class="ti">Applecross to Shieldaig</div>
+              <div class="b">The <span class="anno" title="Alex: single track with passing places — not after dark">coast road</span>, not the pass. Slower, much better.</div>
+              <div class="c"><span class="tag">Last cheap fuel before Ullapool</span></div>
+              <div class="note"><div class="by"><i class="who sm c4">AP</i> Alex · 2 days ago</div>
+                Did this in a van last year — the passing places are fine, but allow twenty minutes more than the sat nav says.</div>
+              <div class="note re"><div class="by"><i class="who sm c3">JD</i> Jon · replying</div>
+                Noted, I've pushed lunch to half twelve.</div></div>
+            <div class="ev"><div class="h">12:30</div><div class="ti">Lunch at Shieldaig Bar</div>
+              <div class="b">Table for six under “Sam R”. Two vegetarians flagged on the booking.</div>
+              <div class="c"><span class="tag go">Booked</span><span class="tag">about £22pp</span></div></div>
+            <div class="ev maybe"><div class="h">14:00 · optional</div><div class="ti">Corrieshalloch Gorge, 45 minutes</div>
+              <div class="b">A split — whoever wants the walk does it, the rest carry on to the shops.</div>
+              <div class="c"><span class="tag wait">4 in · 2 out</span><button class="btn ghost">Count me in</button></div>
+              <div class="note"><div class="by"><i class="who sm c2">MK</i> Mira · yesterday</div>
+                If it's chucking it down let's skip this and get to the cottage — the fire takes an hour to get going.</div></div>
+            <div class="ev"><div class="h">16:00</div><div class="ti">Into Harbour Cottage, Ullapool</div>
+              <div class="b">Key safe code's on the booking. Two doubles, two twins; Sam and Rae take the sofa bed Wednesday.</div>
+              <div class="c"><span class="tag go">£888 · three nights</span><span class="tag">£148pp</span></div></div>
+            <div class="ev maybe"><div class="h">19:30</div><div class="ti">Dinner — undecided</div>
+              <div class="b">Three on the table. Voting closes when we leave Shieldaig.</div>
+              <div class="c"><span class="tag wait">The Arch Inn · 3</span><span class="tag">Seafood shack · 2</span><span class="tag">Cook at the cottage · 1</span></div></div>
+          </div>
+          <div class="compose"><span class="f">Write a note for the group, or @ someone</span><button class="btn">Post note</button></div>
+        </div>
+        <aside>
+          <div class="card"><h3>Today</h3>
+            <div class="kv"><span>Driving</span><b class="num">71 mi · 1h 55m</b></div>
+            <div class="kv"><span>Spend, estimated</span><b class="num">£38pp</b></div>
+            <div class="kv"><span>Weather</span><b>12°C, rain from 16:00</b></div>
+            <div class="kv"><span>Still to decide</span><b style="color:var(--sun)">2</b></div></div>
+          <div class="card"><h3>Who's doing what</h3>
+            <div class="kv"><span><i class="who sm c3">JD</i> Jon</span><span>Driving</span></div>
+            <div class="kv"><span><i class="who sm c1">SR</i> Sam</span><span>Lunch booking</span></div>
+            <div class="kv"><span><i class="who sm c2">MK</i> Mira</span><span>Cottage keys</span></div>
+            <div class="kv"><span><i class="who sm c4">AP</i> Alex</span><span>Food shop</span></div></div>
+          <div class="card"><h3>Pinned to today</h3><p class="sub" style="margin-bottom:10px">These show on the map too.</p>
+            <div class="note" style="margin-top:0"><div class="by"><i class="who sm c6">RG</i> Rae</div>
+              The Stornoway ferry sells out. Book Wednesday's crossing tonight.</div>
+            <div class="note re"><div class="by"><i class="who sm c1">SR</i> Sam</div>
+              On it — I need card details from everyone by six.</div></div>
+          <div class="card"><h3>No signal from here</h3><p class="sub" style="margin-bottom:12px">Half this route has none. The pack keeps the days, the map and the door codes on your phone.</p>
+            <button class="btn ghost" style="width:100%">Download days 1–8</button></div>
+        </aside>
+      </div>
+      <div class="ledger">
+        <div><span class="kicker">Booked so far</span><div class="v">£3,940</div><p class="sub">of about £5,300 across six people</p></div>
+        <div><span class="kicker">Your balance</span><div class="v" style="color:var(--coral)">−£148</div><p class="sub">You owe Mira for the cottage</p></div>
+        <div><span class="kicker">Next payment</span><div class="v">£312</div><p class="sub">Ferry for six — Rae's fronting it Wednesday</p></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  const root = document.documentElement, tt = document.getElementById('tt');
+  tt.addEventListener('click', () => {
+    const d = root.dataset.theme === 'dark';
+    root.dataset.theme = d ? 'light' : 'dark';
+    tt.textContent = d ? 'Dusk' : 'Noon';
+  });
+  const pages = document.querySelectorAll('.page'), pills = document.getElementById('pills');
+  function goto(n) {
+    pages.forEach(p => p.classList.toggle('on', p.id === 'page-' + n));
+    pills.querySelectorAll('button').forEach(b => b.dataset.goto === n
+      ? b.setAttribute('aria-current','page') : b.removeAttribute('aria-current'));
+    window.scrollTo({ top: 0 });
+  }
+  document.addEventListener('click', e => {
+    const nav = e.target.closest('[data-goto]'); if (nav) return goto(nav.dataset.goto);
+    const tab = e.target.closest('.nav button, .days button');
+    if (tab && !tab.dataset.goto) {
+      tab.closest('.nav, .days').querySelectorAll('button').forEach(b => b.removeAttribute('aria-current'));
+      return tab.setAttribute('aria-current','true');
+    }
+    const v = e.target.closest('.vote button');
+    if (v) { v.closest('.vote').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed','false'));
+      v.setAttribute('aria-pressed','true'); }
+  });
+</script>

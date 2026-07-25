@@ -44,3 +44,5 @@ coverage/
 
 # Claude Code — machine-local settings (launch.json IS shared)
 .claude/settings.local.json
+
+.scratch/
