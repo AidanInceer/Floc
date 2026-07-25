@@ -48,6 +48,11 @@ race.
    `prj_...` ID. Until that variable exists the workflow skips cleanly, so a
    half-wired app never reds the repo.
 
+Keep the caller's `permissions:` block. A reusable workflow can never hold more
+permission than the workflow that called it, and this repo's default
+`GITHUB_TOKEN` is read-only — omit the block and the run fails at *startup*,
+with no logs to explain why.
+
 The project ID is a variable, not a secret: it identifies a project and is inert
 without `VERCEL_TOKEN`. Treating identifiers as secrets makes the real secrets
 harder to see.
