@@ -1,0 +1,811 @@
+<title>Waypoint — homepage prototype B: the pinboard (embedded map)</title>
+
+<!--
+  Visual variant of homepage-pinboard.html — same structure and copy,
+  verbatim, per the sibling-variant convention (see hub CLAUDE.md,
+  "wireframes & mockups"). The only change is the hero's trip-summary
+  card: the plain-text "Route" row is replaced with a mock embedded map
+  panel, to answer "what would this look like with a real map provider
+  wired in" — ticket 11 (apps/web) says no Mapbox token degrades to
+  free-text place names, so the plain-text version stays the fallback,
+  not a worse alternative.
+
+  The map itself is drawn, not a live embed: an inline SVG street-map
+  texture (blocks, a coastline, a couple of parks) standing in for
+  Mapbox/Google Maps tiles, styled to sit inside the paper theme as a
+  bordered widget rather than a screenshot pasted on top of it. Pins and
+  the dashed route line are the same visual language as the page's own
+  route illustration below. No provider is named on the panel itself —
+  see the caption underneath.
+
+  Not wired into apps/web — an unadopted design artefact, same as
+  homepage-trail.html, homepage-margin.html, homepage-pinboard-atlas.html
+  and homepage-pinboard-trailmap.html.
+-->
+
+<style>
+  :root {
+    color-scheme: light;
+
+    --paper: #f3eee2;
+    --sheet: #fbf8f1;
+    --sheet-2: #f1ead9;
+    --sheet-3: #e7dfca;
+    --rule: #ded3ba;
+    --rule-2: #c4b795;
+
+    --line: #cfe0e6;
+    --margin-line: #dfb4ae;
+    --tape: rgb(214 196 150 / 0.55);
+
+    --ink: #23211c;
+    --ink-2: #57524a;
+    --ink-3: #8b8477;
+
+    --pen: #2a4d7a;
+    --pen-2: #dfe7f1;
+    --pencil: #6a6559;
+
+    --highlight: #f3dd7e;
+    --highlight-2: #fbf2cd;
+    --highlight-ink: #7a6414;
+    --red: #a03f36;
+    --red-2: #f6e3df;
+    --green: #4d6b3f;
+    --green-2: #e6ecdd;
+
+    --shadow-sm: 0 1px 1px rgb(35 33 28 / 0.05);
+    --shadow: 0 1px 1px rgb(35 33 28 / 0.05), 0 12px 26px -14px rgb(35 33 28 / 0.35);
+    --shadow-lift: 0 2px 3px rgb(35 33 28 / 0.07), 0 18px 34px -16px rgb(35 33 28 / 0.45);
+
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+    --hand: "Segoe Print", "Bradley Hand", "Comic Sans MS", "Segoe Script", cursive;
+    --type: "Courier New", "Cascadia Mono", Consolas, monospace;
+
+    --who-1: #dbe4f2; --who-1-ink: #2a4d7a;
+    --who-2: #f3dcdf; --who-2-ink: #8e4550;
+    --who-3: #f4e6c8; --who-3-ink: #7d5b18;
+    --who-4: #dfe9d6; --who-4-ink: #436035;
+    --who-5: #e4dff0; --who-5-ink: #574d75;
+    --who-6: #d7e7e6; --who-6-ink: #2f5c58;
+    --who-7: #f7e0cf; --who-7-ink: #8a5227;
+  }
+
+  * { box-sizing: border-box; min-width: 0; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 15.5px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 { font-family: var(--serif); font-weight: 600; letter-spacing: -0.01em; text-wrap: balance; margin: 0; }
+  p { margin: 0; }
+  a { color: var(--pen); }
+  :focus-visible { outline: 2px solid var(--pen); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+
+  /* ---- the sheet ------------------------------------------------------- */
+
+  .page { margin: 0 auto; width: 100%; max-width: 1152px; padding: 24px 16px 64px; }
+
+  .sheet {
+    position: relative; overflow: hidden;
+    border: 1px solid var(--rule); border-radius: 6px;
+    background: var(--sheet); box-shadow: var(--shadow);
+    padding: 28px 20px; padding-left: 38px;
+  }
+  .sheet::before {
+    content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+    background-image: repeating-linear-gradient(180deg, transparent 0 27px, var(--line) 27px 28px);
+    opacity: 0.5;
+  }
+  .sheet::after {
+    content: ""; position: absolute; left: 22px; top: 0; bottom: 0; width: 1px; z-index: 0;
+    background: var(--margin-line); opacity: 0.65; pointer-events: none;
+  }
+  .tape {
+    position: absolute; width: 92px; height: 22px; background: var(--tape);
+    top: -10px; left: 26px; z-index: 0; transform: rotate(-2.5deg);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.08); pointer-events: none;
+  }
+  .sheet-content { position: relative; z-index: 1; }
+
+  @media (min-width: 640px) {
+    .page { padding: 24px 24px 64px; }
+    .sheet { padding: 32px; padding-left: 76px; }
+    .sheet::after { left: 46px; }
+  }
+
+  /* ---- type ------------------------------------------------------------ */
+
+  .typed { font-family: var(--type); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+  .hand { font-family: var(--hand); }
+  .nums { font-family: var(--type); font-variant-numeric: tabular-nums; }
+  .hl { background-image: linear-gradient(180deg, transparent 62%, var(--highlight) 62% 92%, transparent 92%); }
+  .soft { color: var(--ink-2); }
+  .faint { color: var(--ink-3); }
+
+  /* ---- buttons --------------------------------------------------------- */
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    border: 1px solid; border-radius: 5px; padding: 6px 14px;
+    font-family: var(--type); font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.06em; text-decoration: none; cursor: pointer;
+    transition: background-color 0.15s, filter 0.15s;
+  }
+  .btn-primary { border-color: var(--pen); background: var(--pen); color: var(--sheet); }
+  .btn-primary:hover { filter: brightness(1.1); }
+  .btn-secondary { border-color: var(--rule-2); background: var(--sheet); color: var(--ink-2); }
+  .btn-secondary:hover { background: var(--sheet-2); }
+
+  /* ---- badges & cards -------------------------------------------------- */
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px; border: 1px solid transparent;
+    border-radius: 3px; padding: 1px 8px; font-family: var(--type);
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .badge-agreed { background: var(--green-2); color: var(--green); }
+  .badge-open { background: var(--highlight-2); color: var(--highlight-ink); }
+  .badge-action { background: var(--red-2); color: var(--red); }
+  .badge-marine { background: var(--pen-2); color: var(--pen); }
+  .badge-neutral { border-color: var(--rule-2); color: var(--ink-2); }
+
+  /* An ink stamp — only for something the group has actually decided. */
+  .stamp {
+    display: inline-block; transform: rotate(-3deg); border: 2px solid var(--green);
+    color: var(--green); border-radius: 3px; padding: 1px 10px; opacity: 0.85;
+    font-family: var(--type); font-size: 10.5px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.12em;
+  }
+
+  .card { border: 1px solid var(--rule); border-radius: 5px; background: var(--sheet-2); }
+  .card-raised { box-shadow: var(--shadow); }
+
+  /* ---- embedded map panel ----------------------------------------------- */
+
+  /*
+   * Stands in for a real Mapbox/Google Maps embed dropped into the app's own
+   * chrome: full-bleed tiles inside a bordered widget, our pins and route
+   * line drawn on top, provider furniture (zoom, attribution) in the
+   * corners so it reads as a live widget rather than a screenshot.
+   */
+  .map-panel {
+    position: relative; overflow: hidden;
+    border: 1px solid var(--rule-2); border-radius: 5px;
+    background: #dbe9e6; height: 168px;
+  }
+  .map-panel svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .map-zoom {
+    position: absolute; top: 8px; right: 8px; z-index: 2;
+    display: flex; flex-direction: column; overflow: hidden;
+    border: 1px solid rgb(35 33 28 / 0.15); border-radius: 4px;
+    background: rgb(251 248 241 / 0.92); box-shadow: var(--shadow-sm);
+  }
+  .map-zoom span {
+    display: flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; font-family: var(--type); font-size: 13px;
+    color: var(--ink-2);
+  }
+  .map-zoom span:first-child { border-bottom: 1px solid rgb(35 33 28 / 0.12); }
+  .map-attr {
+    position: absolute; bottom: 4px; right: 8px; z-index: 2;
+    font-family: var(--type); font-size: 8.5px; letter-spacing: 0.02em;
+    color: rgb(35 33 28 / 0.45);
+  }
+  .map-caption {
+    margin-top: 6px; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  }
+  .card-head {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+    gap: 8px; border-bottom: 1px dotted var(--rule-2); padding: 12px 16px;
+  }
+  .card-body { padding: 16px; display: grid; gap: 16px; }
+  .inset { border: 1px solid var(--rule); border-radius: 5px; background: var(--sheet); padding: 12px; }
+
+  /* ---- avatars --------------------------------------------------------- */
+
+  .who-row { display: flex; align-items: center; }
+  .who-row > * + * { margin-left: -8px; }
+  .who {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; border-radius: 999px; border: 1px solid var(--rule-2);
+    font-family: var(--type); font-size: 11px; font-weight: 600;
+  }
+  .who-1 { background: var(--who-1); color: var(--who-1-ink); }
+  .who-2 { background: var(--who-2); color: var(--who-2-ink); }
+  .who-3 { background: var(--who-3); color: var(--who-3-ink); }
+  .who-4 { background: var(--who-4); color: var(--who-4-ink); }
+  .who-5 { background: var(--who-5); color: var(--who-5-ink); }
+  .who-6 { background: var(--who-6); color: var(--who-6-ink); }
+  .who-7 { background: var(--who-7); color: var(--who-7-ink); }
+
+  /* ---- hero ------------------------------------------------------------ */
+
+  .hero { display: grid; gap: 40px; padding-top: 8px; }
+  @media (min-width: 1024px) { .hero { grid-template-columns: 1.05fr 1fr; align-items: center; padding-top: 24px; } }
+  .hero h1 {
+    margin-top: 10px; max-width: 16ch; font-size: clamp(2rem, 5vw, 3.25rem);
+    font-weight: 600; line-height: 1.05; letter-spacing: -0.025em;
+  }
+  .hero .lede { margin-top: 16px; max-width: 48ch; font-size: 17.5px; color: var(--ink-2); }
+  .hero .actions { margin-top: 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+  .scrawl { display: inline-block; margin-top: 24px; transform: rotate(-1deg); font-size: 15px; color: var(--pen); }
+
+  /* ---- section furniture ----------------------------------------------- */
+
+  .section { margin-top: 64px; }
+  .section-head { max-width: 62ch; }
+  .section-head h2 { margin-top: 6px; font-size: clamp(1.4rem, 3vw, 1.9rem); }
+  .section-head p { margin-top: 8px; color: var(--ink-2); }
+
+  /* ---- the route down the middle --------------------------------------- */
+
+  /*
+   * The journey as a route running down the page: a dashed line with a map pin
+   * at every stop, sticky notes hanging off it left and right. The line and the
+   * pins live in their own grid column, so a pin is always dead centre on the
+   * line whatever the note beside it does — nothing here depends on a measured
+   * height.
+   */
+  .route { margin-top: 36px; display: grid; gap: 0; }
+
+  .stop {
+    position: relative;
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    align-items: start;
+  }
+  @media (min-width: 860px) {
+    .stop { grid-template-columns: minmax(0, 1fr) 72px minmax(0, 1fr); }
+  }
+
+  /* The leg of dashed line + the pin at its head. */
+  .leg { position: relative; align-self: stretch; }
+  @media (min-width: 860px) { .leg { grid-column: 2; grid-row: 1; } }
+
+  .leg::before {
+    content: ""; position: absolute; top: 0; bottom: 0; left: 50%;
+    margin-left: -1px; border-left: 2px dashed var(--rule-2);
+  }
+  /* The route starts at the first pin and ends at the last: no dangling tail. */
+  .stop:first-child .leg::before { top: 26px; }
+  .stop:last-child .leg::before { bottom: auto; height: 26px; }
+
+  .pin {
+    position: absolute; top: 26px; left: 50%;
+    width: 18px; height: 18px; margin-left: -9px; margin-top: -9px;
+    border-radius: 999px; border: 1.5px solid var(--pen); background: var(--sheet);
+    z-index: 2;
+  }
+  .pin::after { content: ""; position: absolute; inset: 4.5px; border-radius: 999px; background: var(--pen); }
+
+  .stop > .note-wrap { padding-bottom: 28px; }
+  @media (min-width: 860px) {
+    .stop > .note-wrap { grid-row: 1; padding-bottom: 44px; }
+    .stop:nth-child(odd) > .note-wrap { grid-column: 1; }
+    .stop:nth-child(even) > .note-wrap { grid-column: 3; }
+  }
+
+  /*
+   * A sticky note. Deliberately not a Card: square corners, a lifted shadow, a
+   * tape tab and a slight rotation, so the journey reads as something stuck to
+   * the page rather than as more panels of the app.
+   */
+  .note {
+    position: relative;
+    background: var(--highlight-2);
+    border: 1px solid var(--rule); border-radius: 2px;
+    padding: 18px 18px 16px; box-shadow: var(--shadow-lift);
+  }
+  .note::before {
+    content: ""; position: absolute; top: -9px; left: 24px;
+    width: 64px; height: 18px; background: var(--tape);
+    transform: rotate(-2deg); box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+  }
+  .stop:nth-child(1) .note { transform: rotate(-0.7deg); }
+  .stop:nth-child(2) .note { transform: rotate(0.6deg); background: var(--pen-2); }
+  .stop:nth-child(3) .note { transform: rotate(-0.5deg); background: var(--who-3); }
+  .stop:nth-child(4) .note { transform: rotate(0.8deg); background: var(--who-6); }
+  .stop:nth-child(5) .note { transform: rotate(-0.9deg); background: var(--green-2); }
+  .stop:nth-child(6) .note { transform: rotate(0.5deg); background: var(--who-2); }
+
+  .note-step { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .note-step .n { font-family: var(--type); font-size: 10.5px; letter-spacing: 0.1em; color: var(--ink-3); }
+  .note h3 { margin-top: 6px; font-size: 1.15rem; }
+  .note > p { margin-top: 8px; font-size: 14.5px; color: var(--ink-2); }
+
+  /* The worked example inside a note — the app's own texture, on the note. */
+  .eg {
+    margin-top: 14px; border: 1px solid var(--rule-2); border-radius: 3px;
+    background: rgb(251 248 241 / 0.72); padding: 10px 12px;
+  }
+  .eg-row { display: flex; align-items: baseline; gap: 10px; padding: 3px 0; }
+  .eg-row + .eg-row { border-top: 1px dotted var(--rule-2); }
+  .eg-row .k { font-family: var(--type); font-size: 11.5px; color: var(--ink-3); min-width: 62px; }
+  .eg-row .v { font-size: 13.5px; }
+  .note .scribble { margin-top: 12px; display: inline-block; font-size: 13.5px; color: var(--pen); transform: rotate(-0.6deg); }
+
+  /* ---- the group chat problem ------------------------------------------ */
+
+  .versus { margin-top: 28px; display: grid; gap: 20px; }
+  @media (min-width: 800px) { .versus { grid-template-columns: 1fr 1fr; gap: 24px; } }
+
+  .chat { display: grid; gap: 8px; padding: 14px 16px; }
+  .msg { display: flex; gap: 8px; align-items: flex-start; }
+  .msg p { font-size: 13.5px; }
+  .msg .who { width: 22px; height: 22px; font-size: 9px; }
+
+  .after-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 0; }
+  .after-row + .after-row { border-top: 1px dotted var(--rule-2); }
+
+  /* ---- who it's for ---------------------------------------------------- */
+
+  .shapes { margin-top: 28px; display: grid; gap: 20px; }
+  @media (min-width: 800px) { .shapes { grid-template-columns: repeat(3, 1fr); } }
+  .shape h3 { font-size: 1.05rem; margin-top: 6px; }
+  .shape p { margin-top: 6px; font-size: 14px; color: var(--ink-2); }
+
+  /* ---- contact --------------------------------------------------------- */
+
+  .contact { margin-top: 64px; display: grid; gap: 28px; }
+  @media (min-width: 900px) { .contact { grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: start; } }
+
+  /* The feedback form as a slip torn off the bottom of the page. */
+  .slip {
+    position: relative; background: var(--sheet-2);
+    border: 1px solid var(--rule); border-radius: 3px;
+    padding: 20px; box-shadow: var(--shadow-lift); transform: rotate(-0.4deg);
+  }
+  .slip::before {
+    content: ""; position: absolute; top: -10px; right: 28px;
+    width: 74px; height: 20px; background: var(--tape);
+    transform: rotate(2deg); box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+  }
+
+  .field { display: block; }
+  .field > span.typed { display: block; margin-bottom: 4px; }
+  .input, .textarea, .select {
+    width: 100%; border: 1px solid var(--rule-2); border-radius: 5px;
+    background: var(--sheet); padding: 6px 10px;
+    font-family: var(--type); font-size: 14px; color: var(--ink);
+  }
+  .textarea { min-height: 92px; resize: vertical; }
+  .input::placeholder, .textarea::placeholder { color: var(--ink-3); }
+
+  .contact-lines { display: grid; gap: 12px; margin-top: 18px; }
+  .contact-line { display: flex; gap: 10px; align-items: baseline; }
+
+  .colophon {
+    margin-top: 48px; border-top: 1px solid var(--rule); padding-top: 20px;
+    display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between;
+  }
+  .colophon nav { display: flex; flex-wrap: wrap; gap: 16px; }
+</style>
+
+<div class="page">
+  <div class="sheet">
+    <span class="tape" aria-hidden="true"></span>
+    <div class="sheet-content">
+
+      <!-- ==================== HERO (verbatim from the live app) ========== -->
+      <section class="hero">
+        <div>
+          <p class="typed">A notebook nine people can write in at once</p>
+          <h1>Start the trip as <span class="hl">notes</span>. Finish it as a plan.</h1>
+          <p class="lede">
+            Everyone scribbles: a place, a price, the week they can't do, the pub
+            someone swears by. Waypoint keeps it all on one page and quietly
+            turns it into dates, a route and a bill everyone agrees on.
+          </p>
+          <div class="actions">
+            <a class="btn btn-primary" href="#">Open a new book</a>
+            <a class="btn btn-secondary" href="#">Read someone else's</a>
+          </div>
+          <p class="hand scrawl">— started 14 Feb, still arguing about Croatia</p>
+          <p class="faint" style="margin-top: 12px; font-size: 12px;">
+            Sign up with Google or an email and password. Free while it's in the making.
+          </p>
+        </div>
+
+        <div class="card card-raised">
+          <div class="card-head">
+            <div>
+              <h2 class="typed">Sicily, late September</h2>
+              <p class="faint" style="margin-top: 2px; font-size: 12px;">7 members · 12 Sep – 19 Sep</p>
+            </div>
+            <span class="badge badge-agreed">Route agreed</span>
+          </div>
+          <div class="card-body">
+            <div>
+              <p class="typed" style="margin-bottom: 8px;">Who's in</p>
+              <div class="who-row">
+                <span class="who who-1">PS</span>
+                <span class="who who-2">TO</span>
+                <span class="who who-3">ML</span>
+                <span class="who who-4">JW</span>
+                <span class="who who-5">RA</span>
+                <span class="who who-6">+2</span>
+              </div>
+            </div>
+            <div class="inset" style="padding: 10px;">
+              <p class="typed" style="margin-bottom: 8px;">Route</p>
+              <div class="map-panel">
+                <svg viewBox="0 0 400 168" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                  <rect x="0" y="0" width="400" height="168" fill="#dbe9e6" />
+                  <path d="M400,0 L400,168 L230,168 C 210,140 220,100 205,70 C 195,48 210,20 190,0 Z" fill="#ece4cf" />
+                  <path d="M0,0 L0,168 L120,168 C 140,150 130,120 150,95 C 165,76 150,40 175,0 Z" fill="#ece4cf" />
+                  <g stroke="#d8cca8" stroke-width="1.4" fill="none">
+                    <path d="M20,20 L110,35 L100,90 L30,80 Z" />
+                    <path d="M60,10 L60,150" />
+                    <path d="M20,55 L115,65" />
+                    <path d="M240,10 L260,60 L235,110 L260,160" />
+                    <path d="M300,30 L370,40" />
+                    <path d="M300,30 L290,100 L330,150" />
+                    <path d="M330,150 L390,140" />
+                  </g>
+                  <path d="M40,45 L45,50 L38,58 L32,52 Z" fill="#cfdec0" stroke="#bdd1a8" stroke-width="1" />
+                  <path d="M270,75 L300,68 L305,90 L275,96 Z" fill="#cfdec0" stroke="#bdd1a8" stroke-width="1" />
+                  <path d="M175,4 C 178,55 168,64 178,98 C 186,124 172,146 182,168"
+                        fill="none" stroke="var(--pen)" stroke-width="2" stroke-dasharray="1 7" stroke-linecap="round" opacity="0.85" />
+                </svg>
+                <span class="map-zoom" aria-hidden="true"><span>+</span><span>–</span></span>
+                <span class="map-attr">Map data — provider TBD</span>
+                <span class="pin" style="position:absolute; top:8px; left:172px; margin:0;"></span>
+                <span class="pin" style="position:absolute; top:66px; left:184px; margin:0;"></span>
+                <span class="pin" style="position:absolute; top:130px; left:194px; margin:0;"></span>
+              </div>
+              <div class="map-caption">
+                <p style="font-size: 13px;">Catania → Taormina → Syracuse → Catania</p>
+                <span class="badge badge-neutral">3 stops</span>
+              </div>
+            </div>
+            <div class="inset" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+              <div>
+                <p style="font-size: 14px; font-weight: 600;">Money</p>
+                <p class="faint" style="font-size: 12px;">Mei is owed £84 across 3 people</p>
+              </div>
+              <span class="badge badge-action">Needs settling</span>
+            </div>
+            <div class="inset" style="display:flex;align-items:center;gap:8px;">
+              <span class="who who-2" style="width:24px;height:24px;font-size:10px;">TO</span>
+              <p class="soft" style="font-size: 14px;">
+                <strong style="color: var(--ink); font-weight: 600;">Tom</strong>
+                nudged the group about picking a hotel in Taormina
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== THE ROUTE ================================== -->
+      <section class="section">
+        <div class="section-head">
+          <p class="typed">The whole journey, one page</p>
+          <h2>Six stops between “we should go somewhere” and “that's settled”.</h2>
+          <p>
+            Nothing here is a wizard. A stop opens when the group is ready for
+            it, and a trip that already knows where it's going skips straight to
+            the route.
+          </p>
+        </div>
+
+        <ol class="route" style="list-style: none; margin-top: 36px; padding: 0;">
+          <li class="stop">
+            <div class="leg" aria-hidden="true"><span class="pin"></span></div>
+            <div class="note-wrap">
+              <div class="note">
+                <div class="note-step">
+                  <span class="n">Stop 01</span>
+                  <span class="badge badge-marine">Ideas</span>
+                </div>
+                <h3>Everyone throws places in</h3>
+                <p>
+                  A link, a photo, a name someone half-remembers. Vote when it
+                  helps the group decide; ignore the votes when it doesn't.
+                </p>
+                <div class="eg">
+                  <div class="eg-row"><span class="k nums">4 votes</span><span class="v">Sicily — “hear me out”</span></div>
+                  <div class="eg-row"><span class="k nums">2 votes</span><span class="v">Puglia, if we can drive</span></div>
+                  <div class="eg-row"><span class="k nums">no votes</span><span class="v">That place Jonas saw once</span></div>
+                </div>
+                <span class="hand scribble">Ruth added 6 of these in one evening</span>
+              </div>
+            </div>
+          </li>
+
+          <li class="stop">
+            <div class="leg" aria-hidden="true"><span class="pin"></span></div>
+            <div class="note-wrap">
+              <div class="note">
+                <div class="note-step">
+                  <span class="n">Stop 02</span>
+                  <span class="badge badge-open">Dates</span>
+                </div>
+                <h3>The weeks people can't do</h3>
+                <p>
+                  Everyone shades in their bad weeks and the overlap surfaces
+                  itself. It never waits for a full house — five out of seven is
+                  usually the answer.
+                </p>
+                <div class="eg">
+                  <div class="eg-row"><span class="k nums">5 free</span><span class="v">12–19 Sep · the one everyone can do</span></div>
+                  <div class="eg-row"><span class="k nums">3 free</span><span class="v">26 Sep–3 Oct · Tom's away</span></div>
+                </div>
+                <span class="hand scribble">nobody had to ask twice</span>
+              </div>
+            </div>
+          </li>
+
+          <li class="stop">
+            <div class="leg" aria-hidden="true"><span class="pin"></span></div>
+            <div class="note-wrap">
+              <div class="note">
+                <div class="note-step">
+                  <span class="n">Stop 03</span>
+                  <span class="badge badge-marine">Route</span>
+                </div>
+                <h3>Put the stops in order</h3>
+                <p>
+                  Drag the favourites into a sequence and give each one its
+                  nights. Waypoint keeps the arithmetic honest so nobody plans
+                  four cities in three days.
+                </p>
+                <div class="eg">
+                  <div class="eg-row"><span class="k nums">2 nights</span><span class="v">Catania</span></div>
+                  <div class="eg-row"><span class="k nums">3 nights</span><span class="v">Taormina</span></div>
+                  <div class="eg-row"><span class="k nums">2 nights</span><span class="v">Syracuse</span></div>
+                </div>
+                <span class="hand scribble">7 nights, 7 accounted for</span>
+              </div>
+            </div>
+          </li>
+
+          <li class="stop">
+            <div class="leg" aria-hidden="true"><span class="pin"></span></div>
+            <div class="note-wrap">
+              <div class="note">
+                <div class="note-step">
+                  <span class="n">Stop 04</span>
+                  <span class="badge badge-agreed">Days</span>
+                </div>
+                <h3>The day-by-day fills itself in</h3>
+                <p>
+                  Each day gets the things worth doing, roughly in the order
+                  you'd do them. Half-empty days are fine — most of them should
+                  be.
+                </p>
+                <div class="eg">
+                  <div class="eg-row"><span class="k nums">09:30</span><span class="v">Market, then coffee at Bam Bar</span></div>
+                  <div class="eg-row"><span class="k nums">13:00</span><span class="v">Isola Bella — Jonas has the tickets</span></div>
+                  <div class="eg-row"><span class="k nums">20:00</span><span class="v">Dinner, table for 7</span></div>
+                </div>
+                <span class="hand scribble">the rest of Thursday is deliberately blank</span>
+              </div>
+            </div>
+          </li>
+
+          <li class="stop">
+            <div class="leg" aria-hidden="true"><span class="pin"></span></div>
+            <div class="note-wrap">
+              <div class="note">
+                <div class="note-step">
+                  <span class="n">Stop 05</span>
+                  <span class="badge badge-action">Money</span>
+                </div>
+                <h3>Who owes who, worked out once</h3>
+                <p>
+                  Log what you paid as you go, split it evenly or exactly. At the
+                  end it's one number each — a ledger, not a payment app.
+                </p>
+                <div class="eg">
+                  <div class="eg-row"><span class="k nums">£1,240</span><span class="v">spent, across 14 expenses</span></div>
+                  <div class="eg-row"><span class="k nums">£177</span><span class="v">each, near enough</span></div>
+                  <div class="eg-row"><span class="k nums">£84</span><span class="v">owed to Mei by 3 people</span></div>
+                </div>
+                <span class="hand scribble">settled on the Sunday, no spreadsheet</span>
+              </div>
+            </div>
+          </li>
+
+          <li class="stop">
+            <div class="leg" aria-hidden="true"><span class="pin"></span></div>
+            <div class="note-wrap">
+              <div class="note">
+                <div class="note-step">
+                  <span class="n">Stop 06</span>
+                  <span class="badge badge-neutral">After</span>
+                </div>
+                <h3>The book stays on the shelf</h3>
+                <p>
+                  The trip is archived, not deleted: the route, the photos of
+                  receipts and the arguments are all still there when the group
+                  plans the next one.
+                </p>
+                <div class="eg">
+                  <div class="eg-row"><span class="k nums">Sicily</span><span class="v">7 nights · settled</span></div>
+                  <div class="eg-row"><span class="k nums">Porto</span><span class="v">4 nights · settled</span></div>
+                </div>
+                <span class="hand scribble">“where was that bar in Ortigia?”</span>
+              </div>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <!-- ==================== THE GROUP CHAT PROBLEM ===================== -->
+      <section class="section">
+        <div class="section-head">
+          <p class="typed">Why bother at all</p>
+          <h2>A group chat is a terrible place to keep a decision.</h2>
+          <p>
+            It's a fine place to make one. The problem is finding it again three
+            weeks and 400 messages later.
+          </p>
+        </div>
+
+        <div class="versus">
+          <div class="card">
+            <div class="card-head">
+              <h3 class="typed">The chat, week three</h3>
+              <span class="badge badge-action">Nothing decided</span>
+            </div>
+            <div class="chat">
+              <div class="msg"><span class="who who-3">ML</span><p>so are we doing the 12th or not</p></div>
+              <div class="msg"><span class="who who-2">TO</span><p>I said earlier I can't do that week 😅</p></div>
+              <div class="msg"><span class="who who-5">RA</span><p>wait which hotel did we agree on</p></div>
+              <div class="msg"><span class="who who-1">PS</span><p>[link to a hotel, sent 11 days ago]</p></div>
+              <div class="msg"><span class="who who-4">JW</span><p>I paid the deposit btw, will work it out later</p></div>
+              <div class="msg"><span class="who who-6">SC</span><p>later never comes lol</p></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3 class="typed">The same trip, in the book</h3>
+              <span class="stamp">Agreed</span>
+            </div>
+            <div style="padding: 6px 16px 14px;">
+              <div class="after-row">
+                <div><p style="font-size:14px;font-weight:600;">Dates</p><p class="faint" style="font-size:12.5px;">12–19 Sep, five of seven free</p></div>
+                <span class="badge badge-agreed">Agreed</span>
+              </div>
+              <div class="after-row">
+                <div><p style="font-size:14px;font-weight:600;">Where we're staying</p><p class="faint" style="font-size:12.5px;">Taormina — 3 nights, Priya booked it</p></div>
+                <span class="badge badge-agreed">Agreed</span>
+              </div>
+              <div class="after-row">
+                <div><p style="font-size:14px;font-weight:600;">Jonas's deposit</p><p class="faint" style="font-size:12.5px;">£420, split 7 ways, logged the day he paid</p></div>
+                <span class="badge badge-marine">Logged</span>
+              </div>
+              <div class="after-row">
+                <div><p style="font-size:14px;font-weight:600;">Etna: walk or cable car</p><p class="faint" style="font-size:12.5px;">Two options, three votes so far</p></div>
+                <span class="badge badge-open">Still open</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== WHO IT'S FOR =============================== -->
+      <section class="section">
+        <div class="section-head">
+          <p class="typed">Who it's for</p>
+          <h2>Built for the group that can't get a straight answer out of itself.</h2>
+        </div>
+
+        <div class="shapes">
+          <div class="shape">
+            <span class="badge badge-marine">Six to nine people</span>
+            <h3>The friends who go every year</h3>
+            <p>
+              Too many to decide in a chat, not enough to want a project
+              manager. Last year's book tells you what it actually cost.
+            </p>
+          </div>
+          <div class="shape">
+            <span class="badge badge-open">Two households</span>
+            <h3>The families sharing a house</h3>
+            <p>
+              One place, one week, one bill — and a clean answer to who paid the
+              deposit and who's covering the food shop.
+            </p>
+          </div>
+          <div class="shape">
+            <span class="badge badge-neutral">A weekend</span>
+            <h3>The stag, hen or birthday</h3>
+            <p>
+              One person is organising it and quietly resenting it. Waypoint
+              spreads the writing without spreading the arguing.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== CONTACT & FEEDBACK ========================= -->
+      <section class="section contact" id="contact">
+        <div>
+          <p class="typed">Contact &amp; feedback</p>
+          <h2 style="margin-top: 6px; font-size: clamp(1.4rem, 3vw, 1.9rem);">
+            Tell us what your group actually needed.
+          </h2>
+          <p style="margin-top: 8px; color: var(--ink-2); max-width: 48ch;">
+            Waypoint is pre-launch and being shaped by the trips people are
+            planning right now. If something's missing, awkward or plain wrong,
+            say so — it's read by the person who builds it, and it changes what
+            gets built next.
+          </p>
+
+          <div class="contact-lines">
+            <div class="contact-line">
+              <span class="typed" style="min-width: 100px;">Email</span>
+              <a href="mailto:hello@waypoint.travel">hello@waypoint.travel</a>
+            </div>
+            <div class="contact-line">
+              <span class="typed" style="min-width: 100px;">Something broke</span>
+              <a href="#">Report it in 30 seconds</a>
+            </div>
+            <div class="contact-line">
+              <span class="typed" style="min-width: 100px;">What's next</span>
+              <a href="#">The open notebook of what's being built</a>
+            </div>
+          </div>
+
+          <p class="hand" style="margin-top: 20px; display: inline-block; transform: rotate(-1deg); color: var(--pen);">
+            — usually answered within a day
+          </p>
+        </div>
+
+        <form class="slip" onsubmit="return false;">
+          <p class="typed">Leave a note</p>
+          <div style="display: grid; gap: 12px; margin-top: 12px;">
+            <label class="field">
+              <span class="typed">Your name</span>
+              <input class="input" type="text" placeholder="Ruth Adeyemi" />
+            </label>
+            <label class="field">
+              <span class="typed">Email</span>
+              <input class="input" type="email" placeholder="ruth@example.com" />
+            </label>
+            <label class="field">
+              <span class="typed">What's this about</span>
+              <select class="select">
+                <option>Something we needed and couldn't find</option>
+                <option>Something that went wrong</option>
+                <option>How my group plans trips</option>
+                <option>Something else entirely</option>
+              </select>
+            </label>
+            <label class="field">
+              <span class="typed">Say more</span>
+              <textarea class="textarea" placeholder="We were seven people across three countries and the hardest part was…"></textarea>
+            </label>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+              <p class="faint" style="font-size: 12px;">No mailing list. One reply, from a person.</p>
+              <button class="btn btn-primary" type="submit">Send it</button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <div class="colophon">
+        <p class="faint" style="font-size: 13px;">Waypoint — a shared notebook for group trips.</p>
+        <nav>
+          <a class="typed" href="#" style="color: var(--pen);">Privacy</a>
+          <a class="typed" href="#" style="color: var(--pen);">Terms</a>
+          <a class="typed" href="#contact" style="color: var(--pen);">Contact</a>
+        </nav>
+      </div>
+
+    </div>
+  </div>
+</div>
