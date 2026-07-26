@@ -241,6 +241,16 @@ export const idea = sqliteTable(
       .references(() => user.id),
     /** Deliberately unstructured free text — no place or vibe columns. */
     note: text("note").notNull(),
+    /**
+     * Pinned to the top of the board (v0.2 ticket 09). Group state, not
+     * per-viewer: a note anyone pins is pinned for everyone, and pinning is
+     * the one thing that overrides the board's sort. A timestamp rather than a
+     * boolean so several pinned notes keep a stable order (oldest pin first).
+     *
+     * This is the *only* position the board persists — the tilt and the
+     * column a note lands in are derived decoration, never stored.
+     */
+    pinnedAt: integer("pinned_at", { mode: "timestamp" }),
     ...audit,
   },
   (t) => [index("idea_trip_idx").on(t.tripId)],

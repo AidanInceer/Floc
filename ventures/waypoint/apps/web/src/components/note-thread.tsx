@@ -32,7 +32,7 @@ export function NoteThread({
   viewerId,
   isAdmin,
   open,
-  placeholder = "Add a note…",
+  placeholder = "Add a comment…",
 }: {
   tripId: number;
   scope: NoteScope;
@@ -66,8 +66,16 @@ export function NoteThread({
           </div>
           {isAdmin || n.createdBy === viewerId ? (
             <form action={deleteNote.bind(null, tripId, n.id)}>
-              <ConfirmSubmit message="Delete this note?" variant="ghost">
-                ×
+              {/* A word, not a bare ×: the glyph rendered as an all-but-
+                  invisible dot at the end of the line, and the thread has room
+                  for a word now it opens in a panel rather than inside a note. */}
+              <ConfirmSubmit
+                message="Delete this comment?"
+                confirmLabel="Delete it"
+                variant="ghost"
+                className="!px-0 !py-0 !font-sans !text-xs !normal-case !tracking-normal !text-ink-faint whitespace-nowrap"
+              >
+                Delete
               </ConfirmSubmit>
             </form>
           ) : null}
@@ -84,7 +92,7 @@ export function NoteThread({
         />
         <div className="mt-2">
           <SubmitButton variant="secondary" pendingLabel="Posting…">
-            Add note
+            Add comment
           </SubmitButton>
         </div>
       </ActionForm>
@@ -95,10 +103,13 @@ export function NoteThread({
 
   return (
     <details className="mt-2">
-      <summary className="cursor-pointer text-xs text-ink-faint hover:text-ink-soft">
+      <summary className="cursor-pointer whitespace-nowrap text-xs text-ink-faint hover:text-ink-soft">
+        {/* "Comment", not "note" — the surface is a board of sticky notes now
+            (v0.2 ticket 09), and calling the thread notes too read as if the
+            note itself were being edited. The `note` table keeps its name. */}
         {notes.length === 0
-          ? "Add a note"
-          : `${notes.length} ${notes.length === 1 ? "note" : "notes"}`}
+          ? "Add a comment"
+          : `${notes.length} ${notes.length === 1 ? "comment" : "comments"}`}
       </summary>
       {body}
     </details>

@@ -73,6 +73,7 @@ export function Sheet({
   title,
   children,
   triggerVariant = "primary",
+  triggerClassName,
 }: {
   trigger: ReactNode;
   title: string;
@@ -83,6 +84,9 @@ export function Sheet({
    */
   children: ReactNode;
   triggerVariant?: "primary" | "secondary" | "ghost" | "danger";
+  /** Override the trigger's own styling — a sticky note has no room for a
+      full-size uppercase button. */
+  triggerClassName?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(false);
@@ -105,6 +109,7 @@ export function Sheet({
     <>
       <Button
         variant={triggerVariant}
+        className={triggerClassName}
         onClick={() => {
           ref.current?.showModal();
           setOpen(true);
@@ -146,30 +151,86 @@ export function Sheet({
   );
 }
 
-/** A form button that asks first — used for kick, delete, archive. */
+/**
+ * A form button that asks first — used for kick, delete, archive.
+ *
+ * Asks through a native `<dialog>`, not `window.confirm`. The confirm() version
+ * silently ate deletes: a browser that suppresses page dialogs (Chrome offers
+ * exactly that after a couple of them, and embedded/automated views default to
+ * it) returns false, which this treated as "the user said no" — the button then
+ * looked dead with nothing in the console to explain it. A dialog we render
+ * ourselves can't be suppressed, and it reads in the app's own voice.
+ */
 export function ConfirmSubmit({
   children,
   message,
+  confirmLabel = "Yes, do it",
   variant = "danger",
   pendingLabel,
+  className,
 }: {
   children: ReactNode;
   message: string;
+  /** The affirmative button's words. Say what happens, never "OK". */
+  confirmLabel?: string;
   variant?: "primary" | "secondary" | "ghost" | "danger";
   pendingLabel?: string;
+  /** Override the trigger's styling; the confirm dialog's own is fixed. */
+  className?: string;
 }) {
   const { pending } = useFormStatus();
+  const ref = useRef<HTMLDialogElement>(null);
+  const labelId = useId();
+
   return (
-    <Button
-      type="submit"
-      variant={variant}
-      disabled={pending}
-      onClick={(e) => {
-        if (!window.confirm(message)) e.preventDefault();
-      }}
-    >
-      {pending ? (pendingLabel ?? "Working…") : children}
-    </Button>
+    <>
+      <Button
+        type="button"
+        variant={variant}
+        disabled={pending}
+        className={className}
+        onClick={() => ref.current?.showModal()}
+      >
+        {pending ? (pendingLabel ?? "Working…") : children}
+      </Button>
+      <dialog
+        ref={ref}
+        aria-labelledby={labelId}
+        className="m-auto w-full max-w-sm bg-transparent p-0 backdrop:bg-black/40"
+        onClick={(e) => {
+          if (e.target === ref.current) ref.current?.close();
+        }}
+      >
+        <Card className="bg-sheet">
+          <div className="p-4">
+            <p id={labelId} className="text-sm">
+              {message}
+            </p>
+            <div className="mt-4 flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => ref.current?.close()}
+              >
+                Cancel
+              </Button>
+              {/*
+                A real submit button inside the form this dialog sits in, so
+                confirming submits the server action directly — no synthetic
+                re-dispatch, no requestSubmit() to go wrong.
+              */}
+              <Button
+                type="submit"
+                variant={variant}
+                onClick={() => ref.current?.close()}
+              >
+                {confirmLabel}
+              </Button>
+            </div>
+          </div>
+        </Card>
+      </dialog>
+    </>
   );
 }
 

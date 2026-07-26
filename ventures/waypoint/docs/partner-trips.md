@@ -1,12 +1,10 @@
 # Waypoint — partner trip listings
 
-Thinking, not a decision. Nothing here is committed or scheduled. The only code
-that exists is the **`/explore` mockup** (`apps/web/src/app/explore/`), which is
-deliberately inert: static data, illustrative operator names, no partner deal,
-no booking, no action wired to "start a trip from this".
-
-This document exists so the shape of a listing can be argued about before
-anything real is built.
+**Decided, 2026-07-26 ([v0.2 map, ticket 03](../../../.scratch/waypoint-v0.2/issues/03-explore-commercial-stance.md)):
+deferred, not rejected.** Explore ships v0.2 as **self-made/editorial listings
+only** — no partner deal, no fee, no operator relationship. Everything below
+remains the thinking for *if* partner listings are ever revisited as a later
+effort; none of it is scheduled.
 
 ## The idea
 

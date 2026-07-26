@@ -14,15 +14,7 @@ import type { VoteValue } from "@/db/schema";
 import { db } from "@/db";
 import { requireTripAccess } from "@/lib/access";
 import { getProfile } from "@/lib/profile";
-import {
-  Card,
-  CardHeader,
-  EmptyState,
-  Field,
-  Page,
-  PageHeader,
-  Stack,
-} from "@/components/ui";
+import { EmptyState, Page, PageHeader } from "@/components/ui";
 import { SubmitButton } from "@/components/client-ui";
 import { IdeaCard, type IdeaCardData } from "@/components/idea-card";
 import { postIdea } from "./actions";
@@ -50,6 +42,7 @@ export default async function IdeasPage({
       .select({
         id: idea.id,
         note: idea.note,
+        pinnedAt: idea.pinnedAt,
         createdAt: idea.createdAt,
         createdBy: idea.createdBy,
         authorName: user.name,
@@ -150,6 +143,7 @@ export default async function IdeasPage({
     authorAvatar: r.authorAvatar,
     authorTone: toneOf.get(r.createdBy),
     createdAt: r.createdAt,
+    pinnedAt: r.pinnedAt,
     votes: votesByIdea.get(r.id) ?? [],
     notes: notesByIdea.get(r.id) ?? [],
   }));
@@ -168,6 +162,15 @@ export default async function IdeasPage({
     });
   }
 
+  // Pinning is the one thing that overrides the sort (ticket 09): pinned notes
+  // lead the board, oldest pin first, and the rest keep whatever order the sort
+  // chose. They sit in the same wrapping flow as everything else rather than in
+  // a row of their own — the filled pin on the note is what marks them.
+  const pinned = ideas
+    .filter((i) => i.pinnedAt !== null)
+    .sort((a, b) => a.pinnedAt!.getTime() - b.pinnedAt!.getTime());
+  const unpinned = ideas.filter((i) => i.pinnedAt === null);
+
   const vibes = viewerProfile?.vibePreferences ?? [];
 
   return (
@@ -180,45 +183,76 @@ export default async function IdeasPage({
             <SortLink tripId={tripId} sort="new" active={sortMode === "new"}>
               Newest
             </SortLink>
+            {/* "Most keen", not "Most liked" — the vote's own words are
+                Keen / Don't mind / Rather not, and there is no "like". */}
             <SortLink tripId={tripId} sort="liked" active={sortMode === "liked"}>
-              Most liked
+              Most keen
             </SortLink>
           </div>
         }
       />
 
-      <Stack gap={6}>
-        <Card>
-          <CardHeader title="Post an idea" />
+      {/*
+        One board, laid out in reading order: a wrapping row of fixed-width
+        tiles that fills left-to-right, then wraps to the next row — including
+        back under the composer, which is just the first tile.
+
+        This replaced a CSS-multicol masonry. Multicol fills *column*-major, so
+        with the composer parked in its own left-hand column the space beneath
+        it stayed permanently empty and the notes read top-to-bottom rather than
+        across. Ragged column packing was the thing multicol was chosen for, but
+        reading order matters more on a board people scan.
+
+        Pinned notes are simply first in the sequence rather than living in a
+        separate row above — a row of their own broke the flow and pushed the
+        composer off the top-left corner.
+      */}
+      <ul className="flex flex-wrap items-start gap-5">
+        <li className="w-full rounded-sm border border-dashed border-rule-strong bg-sheet-2 p-4 sm:w-56">
           <form
             action={async (formData) => {
               "use server";
               await postIdea(tripId, formData);
             }}
-            className="flex flex-col gap-3 p-4"
+            className="flex flex-col gap-2"
           >
-            <Field label="What's the idea?" hint="Free text — a place, a route, a whole trip shape.">
-              <textarea
-                name="note"
-                required
-                maxLength={2000}
-                placeholder={
-                  vibes.length
-                    ? `e.g. "${vibes[0]}" somewhere with good trains`
-                    : "e.g. A week doing not much on a beach"
-                }
-                className="min-h-20 w-full rounded-sm border border-rule-strong bg-sheet px-2.5 py-1.5 text-sm text-ink placeholder:text-ink-faint"
-              />
-            </Field>
+            <span className="font-mono text-[11px] uppercase tracking-[0.07em] text-ink-faint">
+              Post an idea
+            </span>
+            <textarea
+              name="note"
+              required
+              rows={4}
+              maxLength={2000}
+              placeholder={
+                vibes.length
+                  ? `"${vibes[0]}" somewhere with good trains…`
+                  : "A place, a vibe, a whole trip shape…"
+              }
+              className="resize-none border-none bg-transparent p-0 font-hand text-base text-ink-soft placeholder:text-ink-faint focus:outline-none"
+            />
             <div>
-              <SubmitButton pendingLabel="Posting…">Post idea</SubmitButton>
+              <SubmitButton pendingLabel="Pinning…">Pin it to the board</SubmitButton>
             </div>
           </form>
-        </Card>
+        </li>
 
-        {ideas.length === 0 ? (
+        {[...pinned, ...unpinned].map((i) => (
+          <IdeaCard
+            key={i.id}
+            tripId={tripId}
+            idea={i}
+            viewerId={viewer.id}
+            isAdmin={isAdmin}
+            className="w-full sm:w-56"
+          />
+        ))}
+      </ul>
+
+      {ideas.length === 0 ? (
+        <div className="mt-6">
           <EmptyState
-            title="No ideas yet"
+            title="Nothing on the board yet"
             action={vibes.length === 0 ? (
               <a
                 href="/profile"
@@ -229,23 +263,11 @@ export default async function IdeasPage({
             ) : undefined}
           >
             {vibes.length > 0
-              ? `Based on what you like (${vibes.slice(0, 2).join(", ")}), maybe throw in something like "${vibes[0]} weekend somewhere new" — anything works, this is just a starting nudge.`
-              : "Nobody's suggested anything yet. Post whatever's in your head — a place, a vibe, a whole itinerary. Setting your vibe preferences on your profile gives you starting prompts here."}
+              ? `Based on what you like (${vibes.slice(0, 2).join(", ")}), maybe pin something like "${vibes[0]} weekend somewhere new" — anything works, this is just a starting nudge.`
+              : "Grab the blank note and pin whatever's in your head — a place, a vibe, a whole itinerary. Setting your vibe preferences on your profile gives you starting prompts here."}
           </EmptyState>
-        ) : (
-          <ul className="flex flex-col gap-3">
-            {ideas.map((i) => (
-              <IdeaCard
-                key={i.id}
-                tripId={tripId}
-                idea={i}
-                viewerId={viewer.id}
-                isAdmin={isAdmin}
-              />
-            ))}
-          </ul>
-        )}
-      </Stack>
+        </div>
+      ) : null}
     </Page>
   );
 }

@@ -77,6 +77,7 @@ erDiagram
         int trip_id FK "-> TRIP.id"
         string created_by FK "-> USER.id"
         text note
+        datetime pinned_at "nullable — pinned to the top of the board, group-wide"
     }
 
     IDEA_VOTE {
@@ -157,7 +158,7 @@ erDiagram
 | `user` | `friendship` | 1–M (×2) | one FK as requester, one as recipient |
 | `user` | `trip` | 1–M | `trip.created_by` |
 | `trip` ↔ `user` | M–M | via `trip_membership` (composite PK) |
-| `trip` | `idea` | 1–M | |
+| `trip` | `idea` | 1–M | `pinned_at` floats a note above the board's sort (v0.2 ticket 09) |
 | `idea` | `idea_vote` | 1–M | one vote per (idea, user) in practice, not DB-enforced |
 | `trip` | `availability` | 1–M | one row per (trip, user, date) |
 | `trip` | `day` | 1–M | |

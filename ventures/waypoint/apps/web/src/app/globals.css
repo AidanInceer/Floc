@@ -455,6 +455,73 @@
   }
 
   /*
+   * A note on the Ideas board (v0.2 ticket 09). The tilt is decoration
+   * *derived* from the idea's id — `--tilt` is set inline by the card — so it
+   * is stable for a given note across reloads and sort changes without any
+   * position ever being stored. Hovering straightens the note and lifts it
+   * clear of its neighbours, which is what makes a board of twenty feel
+   * handled rather than laid out.
+   */
+  .idea-note {
+    transform: rotate(var(--tilt, 0deg));
+    transition: transform 120ms ease, box-shadow 120ms ease;
+  }
+
+  /*
+   * The board note's tape tab, drawn as a background layer rather than as
+   * `.note-tape`'s absolutely-positioned ::before.
+   *
+   * Inside a CSS multicol board, Chromium repaints an absolutely-positioned
+   * descendant at the foot of every column that is shorter than the tallest
+   * one — the board grew a row of orphan tape strips along its bottom edge.
+   * Swapping the pseudo-element for a real child didn't help: the duplication
+   * is in the paint, not the markup. A background layer belongs to the note's
+   * own box and cannot be fragmented away from it.
+   *
+   * The cost is that the tape no longer overhangs the top edge, so the note
+   * carries extra top padding to sit it inside instead. On a tilted note the
+   * lost 2deg of tape rotation doesn't read.
+   */
+  .idea-note {
+    background-image: linear-gradient(
+      to right,
+      transparent 0 22px,
+      var(--tape) 22px 86px,
+      transparent 86px
+    );
+    background-repeat: no-repeat;
+    background-size: 100% 15px;
+    background-position: 0 0;
+  }
+
+  .idea-note:hover,
+  .idea-note:focus-within {
+    transform: rotate(0deg) scale(1.015);
+    box-shadow: var(--shadow-lift);
+    z-index: 2;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .idea-note {
+      transition: none;
+    }
+  }
+
+  /*
+   * The six paper washes a board note cycles through, keyed off the idea's id.
+   * Background only — deliberately *not* the `.who-*` classes, which also set
+   * an ink colour for an avatar chip and would tint the note's body text.
+   */
+  /* `background-color`, never the `background` shorthand — the shorthand
+     resets `background-image`, which is where the note's tape lives. */
+  .wash-0 { background-color: var(--highlight-2); }
+  .wash-1 { background-color: var(--pen-2); }
+  .wash-2 { background-color: var(--who-3); }
+  .wash-3 { background-color: var(--who-6); }
+  .wash-4 { background-color: var(--green-2); }
+  .wash-5 { background-color: var(--who-2); }
+
+  /*
    * One pastel per person, keyed off their name (`whoTone` in
    * components/ui.tsx). Eight is enough to tell a nine-person trip apart at a
    * glance without the row turning into a colour chart.

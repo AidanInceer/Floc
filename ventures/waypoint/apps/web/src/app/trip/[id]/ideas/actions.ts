@@ -74,6 +74,23 @@ export async function deleteIdea(tripId: number, ideaId: number) {
   revalidatePath(`/trip/${tripId}/ideas`);
 }
 
+/**
+ * Pin or unpin an idea (v0.2 ticket 09). Any member, not author-or-admin: a
+ * pin is "the group is looking at this one", which is exactly the sort of
+ * thing a member should be able to say. Group-wide state, last-write-wins
+ * like everything else (CLAUDE.md rule 7) — no per-viewer pinning.
+ */
+export async function setIdeaPinned(tripId: number, ideaId: number, pinned: boolean) {
+  await requireTripAccess(tripId);
+
+  await db
+    .update(idea)
+    .set({ pinnedAt: pinned ? new Date() : null, ...touch() })
+    .where(and(eq(idea.id, ideaId), eq(idea.tripId, tripId), isNull(idea.deletedAt)));
+
+  revalidatePath(`/trip/${tripId}/ideas`);
+}
+
 /** Upsert on the (ideaId, userId) unique index — one vote per person per idea. */
 export async function castVote(tripId: number, ideaId: number, value: VoteValue) {
   const access = await requireTripAccess(tripId);
