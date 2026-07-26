@@ -1,0 +1,470 @@
+@import "tailwindcss";
+
+/*
+ * Waypoint v1 visual language (ticket 11) — the PAPER direction.
+ *
+ * Winner: `wireframe/paper.html`. A shared travel journal: ruled sheets, a
+ * serif that reads like a book, a red margin down the gutter, tape holding
+ * things down, and an ink stamp for anything the group has decided. Colour is
+ * ink and highlighter, nothing more.
+ *
+ * The legibility rule that makes it work at ledger density — paper.html's own
+ * discipline, kept here:
+ *   - `--serif` for prose and headings.
+ *   - `--type` (mono, tabular) for every figure, label and date. All money.
+ *   - `--hand` for accents and marginalia ONLY. Never for data, never for
+ *     anything a user has to read carefully.
+ *
+ * LIGHT ONLY, deliberately. There is no dark palette and no `data-theme`
+ * switch: the whole metaphor is ink on paper, and a dark notebook is a
+ * different product. Don't reintroduce a dark block — see ticket 07.
+ *
+ * Borrowed from the runners-up:
+ *   - `transit` → the three-state status semantics (done / open / needs
+ *     action), applied identically on every tab.
+ *   - `index`   → the token discipline: no component ever holds a hex value.
+ */
+
+:root {
+  color-scheme: light;
+
+  --paper: #f3eee2;
+  --sheet: #fbf8f1;
+  --sheet-2: #f1ead9;
+  --sheet-3: #e7dfca;
+  --rule: #ded3ba;
+  --rule-2: #c4b795;
+
+  /* The ruled line and the red margin — texture, not content. */
+  --line: #cfe0e6;
+  --margin-line: #dfb4ae;
+  --tape: rgb(214 196 150 / 0.55);
+
+  --ink: #23211c;
+  --ink-2: #57524a;
+  --ink-3: #8b8477;
+
+  --pen: #2a4d7a; /* biro blue — decisions, links, primary actions */
+  --pen-2: #dfe7f1;
+  --pencil: #6a6559;
+
+  /* Status: highlighter for open, correction-red for needs-action, a green
+     stamp for done. Every state also carries a word — never colour alone. */
+  --highlight: #f3dd7e;
+  --highlight-2: #fbf2cd;
+  --highlight-ink: #7a6414; /* legible text on the highlighter wash */
+  --red: #a03f36;
+  --red-2: #f6e3df;
+  --green: #4d6b3f;
+  --green-2: #e6ecdd;
+
+  --shadow-sm: 0 1px 1px rgb(35 33 28 / 0.05);
+  --shadow: 0 1px 1px rgb(35 33 28 / 0.05), 0 12px 26px -14px rgb(35 33 28 / 0.35);
+  --shadow-lift: 0 2px 3px rgb(35 33 28 / 0.07), 0 18px 34px -16px rgb(35 33 28 / 0.45);
+
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia,
+    "Times New Roman", serif;
+  --hand: "Segoe Print", "Bradley Hand", "Comic Sans MS", "Segoe Script", cursive;
+  --type: "Courier New", "Cascadia Mono", Consolas, monospace;
+
+  /*
+   * People. paper.html gives every member their own coloured initial disc
+   * (`.p1`–`.p6`) rather than one accent for everyone — with nine people
+   * writing in the same notebook you have to be able to tell handwriting
+   * apart at a glance. Pastel washes, not saturated fills, so a row of
+   * avatars reads as pencil crayon on paper and the initials stay legible in
+   * their own darker ink. Assigned deterministically from the display name
+   * (see `whoTone` in components/ui.tsx), never from a database column.
+   */
+  --who-1: #dbe4f2;
+  --who-1-ink: #2a4d7a;
+  --who-2: #f3dcdf;
+  --who-2-ink: #8e4550;
+  --who-3: #f4e6c8;
+  --who-3-ink: #7d5b18;
+  --who-4: #dfe9d6;
+  --who-4-ink: #436035;
+  --who-5: #e4dff0;
+  --who-5-ink: #574d75;
+  --who-6: #d7e7e6;
+  --who-6-ink: #2f5c58;
+  --who-7: #f7e0cf;
+  --who-7-ink: #8a5227;
+  --who-8: #e3e0d5;
+  --who-8-ink: #5a5446;
+}
+
+/* Expose the tokens to Tailwind: bg-sheet, text-ink-soft, text-pen, … */
+@theme inline {
+  --color-paper: var(--paper);
+  --color-sheet: var(--sheet);
+  --color-sheet-2: var(--sheet-2);
+  --color-sheet-3: var(--sheet-3);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-2);
+  --color-line: var(--line);
+  --color-margin-line: var(--margin-line);
+
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-2);
+  --color-ink-faint: var(--ink-3);
+
+  --color-pen: var(--pen);
+  --color-pen-soft: var(--pen-2);
+  --color-pencil: var(--pencil);
+
+  --color-highlight: var(--highlight);
+  --color-highlight-soft: var(--highlight-2);
+  --color-highlight-ink: var(--highlight-ink);
+  --color-red: var(--red);
+  --color-red-soft: var(--red-2);
+  --color-green: var(--green);
+  --color-green-soft: var(--green-2);
+
+  /*
+   * Paper is cut, not moulded — but 2/3/4px read as sharp rather than as cut,
+   * so these were softened on request. Still well short of an app's rounding:
+   * a torn edge with a slight give, not a pill.
+   */
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --radius-lg: 6px;
+
+  --shadow-card: var(--shadow-sm);
+  --shadow-raised: var(--shadow);
+  --shadow-lifted: var(--shadow-lift);
+
+  --font-display: var(--serif);
+  --font-sans: var(--serif);
+  --font-mono: var(--type);
+  --font-hand: var(--hand);
+}
+
+@layer base {
+  * {
+    min-width: 0;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 15.5px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--serif);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  /* Every figure is typed, never handwritten — this is what keeps a money
+     column readable in a journal-styled app. */
+  .nums {
+    font-family: var(--type);
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--pen);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /*
+   * A sheet of ruled paper. The lines and the red margin are decoration —
+   * `pointer-events: none` and aria-hidden by construction, since they are
+   * pseudo-elements.
+   *
+   * The `z-index: 0` on all three decorations, paired with `.sheet-content`
+   * below, is load-bearing and not tidying. An absolutely-positioned
+   * pseudo-element is a *positioned* descendant, so by CSS paint order it
+   * lands above its container's in-flow children — including their
+   * backgrounds and their text. Left to the default, the ruled lines and the
+   * red margin therefore drew *on top of* every card, button and heading on
+   * the page instead of behind them.
+   */
+  .sheet-ruled::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image: repeating-linear-gradient(
+      180deg,
+      transparent 0 27px,
+      var(--line) 27px 28px
+    );
+    opacity: 0.5;
+  }
+
+  /* The page's actual content, lifted above the decoration. Paired with the
+     `z-index: 0` decorations above — see the note there. */
+  .sheet-content {
+    position: relative;
+    z-index: 1;
+  }
+
+  /*
+   * A strip that scrolls sideways without ever drawing a scrollbar — the trip
+   * tabs. Two reasons the bars have to go, not just be tolerated:
+   *
+   * 1. `overflow-x: auto` makes the *other* axis compute to `auto` too, so the
+   *    1px the raised inactive tabs sit below the strip was enough to summon a
+   *    vertical scrollbar, complete with arrows, at the end of the tab row.
+   * 2. A horizontal bar would draw straight across the seam where the tabs meet
+   *    the sheet, which is the one join the whole notebook effect rests on.
+   */
+  .scroll-x-bare {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scroll-x-bare::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* The red margin down the gutter, as on school paper. Only on surfaces wide
+     enough to have a gutter — see `.sheet-margin` usage in Card. */
+  .sheet-margin::after {
+    content: "";
+    position: absolute;
+    left: 46px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    z-index: 0;
+    background: var(--margin-line);
+    opacity: 0.65;
+    pointer-events: none;
+  }
+
+  /* Matches Tailwind's `sm:` breakpoint — Page's own padding switches at the
+     same width, in components/ui.tsx. */
+  @media (max-width: 639px) {
+    .sheet-margin::after {
+      left: 22px;
+    }
+  }
+
+  /*
+   * Tape holding a sheet to the page. A real element, not a pseudo-element —
+   * `.sheet-ruled::before` already owns this container's `::before` for the
+   * ruled lines, and `.sheet-margin::after` owns `::after` for the margin;
+   * a third pseudo-element on the same node isn't possible, so tape gets an
+   * actual `<span aria-hidden>` (see `Page` in components/ui.tsx).
+   */
+  .tape {
+    position: absolute;
+    width: 92px;
+    height: 22px;
+    background: var(--tape);
+    top: -10px;
+    left: 26px;
+    z-index: 0;
+    transform: rotate(-2.5deg);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+    pointer-events: none;
+  }
+
+  /* Anything typed rather than written: labels, counts, dates, section heads. */
+  .typed {
+    font-family: var(--type);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  /* Marginalia. Accent only — never data. */
+  .hand {
+    font-family: var(--hand);
+  }
+
+  /*
+   * A highlighter stroke through a word, per paper.html's `h1 u`. A gradient
+   * band rather than a background fill or an `::after` bar, so it sits *behind
+   * the glyphs*, follows the text if the line wraps, and needs no positioning
+   * — the two things a positioned bar gets wrong.
+   */
+  .hl {
+    text-decoration: none;
+    background-image: linear-gradient(
+      180deg,
+      transparent 62%,
+      var(--highlight) 62% 92%,
+      transparent 92%
+    );
+  }
+
+  /*
+   * The landing page's journey — a walking route down the page with a sticky
+   * note at every stop (docs/mockups/homepage-pinboard.html).
+   *
+   * Geometry, and why it's built this way: every leg of the route is drawn
+   * *per stop*, stretched to that stop's own height, rather than as one
+   * absolutely-positioned overlay measured in JS. A long note therefore can't
+   * push the line out of alignment. The curve is an SVG stretched with
+   * `preserveAspectRatio="none"`, which would normally squash the stroke and
+   * the dashes along with it — `vector-effect: non-scaling-stroke` on the path
+   * keeps both in screen units, so a tall stop gets a longer curve, not a
+   * fatter line. The pins are HTML, not SVG, for the same reason: a circle in
+   * a non-uniformly scaled viewBox draws as an ellipse.
+   *
+   * The two endpoints of every leg sit at x=50% and the bend happens in
+   * between, so consecutive legs join without a kink and a pin is always dead
+   * centre on the line.
+   */
+  .route {
+    position: relative;
+    display: grid;
+  }
+
+  .route-stop {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .route-leg {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 30px;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .route-leg svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Above the notes, unlike the line — a pin is a marker, and the route
+     passing *behind* a note is the whole effect. */
+  .route-pin {
+    position: absolute;
+    left: 15px;
+    z-index: 3;
+    width: 18px;
+    height: 18px;
+    margin-left: -9px;
+    margin-top: -9px;
+    border-radius: 999px;
+    border: 1.5px solid var(--pen);
+    background: var(--sheet);
+  }
+
+  .route-pin::after {
+    content: "";
+    position: absolute;
+    inset: 4.5px;
+    border-radius: 999px;
+    background: var(--pen);
+  }
+
+  .route-pin-start {
+    top: 0;
+  }
+
+  /* The route ends at the last pin: no dangling tail past the final note. */
+  .route-pin-end {
+    top: 100%;
+  }
+
+  .route-note-wrap {
+    position: relative;
+    z-index: 1;
+    padding-left: 30px;
+    padding-bottom: 20px;
+  }
+
+  .route-stop:last-child .route-note-wrap {
+    padding-bottom: 0;
+  }
+
+  /*
+   * Two columns from `md:` up. The notes are wider than their column and
+   * overhang the centre line, so consecutive stops read as a stagger — a
+   * brick course — rather than as two lists with a corridor of blank paper
+   * down the middle. The vertical gap is small for the same reason: stop 02
+   * sits alongside stop 01, not diagonally below it.
+   */
+  @media (min-width: 860px) {
+    .route-stop {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .route-leg {
+      inset: 0;
+      width: auto;
+    }
+
+    .route-pin {
+      left: 50%;
+    }
+
+    .route-note-wrap {
+      padding-left: 0;
+      padding-bottom: 22px;
+    }
+
+    .route-stop:nth-child(odd) .route-note-wrap {
+      grid-column: 1;
+      margin-right: -14%;
+    }
+
+    .route-stop:nth-child(even) .route-note-wrap {
+      grid-column: 2;
+      margin-left: -14%;
+    }
+  }
+
+  /*
+   * A sticky note. Deliberately *not* a `Card`: square-ish corners, a lifted
+   * shadow, a tape tab and a slight rotation, so the journey reads as
+   * something stuck to the page rather than as more panels of the app.
+   */
+  .note-tape::before {
+    content: "";
+    position: absolute;
+    top: -9px;
+    left: 24px;
+    width: 64px;
+    height: 18px;
+    background: var(--tape);
+    transform: rotate(-2deg);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+    pointer-events: none;
+  }
+
+  /*
+   * One pastel per person, keyed off their name (`whoTone` in
+   * components/ui.tsx). Eight is enough to tell a nine-person trip apart at a
+   * glance without the row turning into a colour chart.
+   */
+  .who-1 { background: var(--who-1); color: var(--who-1-ink); }
+  .who-2 { background: var(--who-2); color: var(--who-2-ink); }
+  .who-3 { background: var(--who-3); color: var(--who-3-ink); }
+  .who-4 { background: var(--who-4); color: var(--who-4-ink); }
+  .who-5 { background: var(--who-5); color: var(--who-5-ink); }
+  .who-6 { background: var(--who-6); color: var(--who-6-ink); }
+  .who-7 { background: var(--who-7); color: var(--who-7-ink); }
+  .who-8 { background: var(--who-8); color: var(--who-8-ink); }
+}

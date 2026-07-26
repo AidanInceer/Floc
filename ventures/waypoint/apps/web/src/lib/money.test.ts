@@ -1,0 +1,152 @@
+import { describe, expect, it } from "vitest";
+
+import {
+  computeBalances,
+  computeSplits,
+  formatMoney,
+  parseMoney,
+  suggestSettlements,
+} from "./money";
+
+const people = (...ids: string[]) => ids.map((userId) => ({ userId }));
+
+describe("formatMoney / parseMoney", () => {
+  it("round-trips through minor units", () => {
+    expect(parseMoney("12.34")).toBe(1234);
+    expect(parseMoney("£1,200")).toBe(120000);
+    expect(parseMoney("0.05")).toBe(5);
+    expect(formatMoney(1234, "GBP")).toBe("£12.34");
+    expect(formatMoney(120000, "EUR")).toBe("€1,200.00");
+    expect(formatMoney(-500, "USD")).toBe("−$5.00");
+  });
+
+  it("rejects anything that is not an exact amount", () => {
+    expect(() => parseMoney("12.345")).toThrow();
+    expect(() => parseMoney("twelve")).toThrow();
+  });
+});
+
+describe("computeSplits", () => {
+  it("splits evenly and hands out remainder pennies deterministically", () => {
+    const rows = computeSplits(1000, "even", people("a", "b", "c"));
+    expect(rows.map((r) => r.owedAmountMinor)).toEqual([334, 333, 333]);
+    expect(sum(rows)).toBe(1000);
+  });
+
+  it("always sums to the total for every even split of 1..200 across 1..7 people", () => {
+    for (let total = 1; total <= 200; total++) {
+      for (let n = 1; n <= 7; n++) {
+        const rows = computeSplits(
+          total,
+          "even",
+          people(...Array.from({ length: n }, (_, i) => `u${i}`)),
+        );
+        expect(sum(rows)).toBe(total);
+      }
+    }
+  });
+
+  it("accepts exact splits that sum, rejects those that do not", () => {
+    const rows = computeSplits(1000, "exact", [
+      { userId: "a", value: 600 },
+      { userId: "b", value: 400 },
+    ]);
+    expect(sum(rows)).toBe(1000);
+    expect(() =>
+      computeSplits(1000, "exact", [
+        { userId: "a", value: 600 },
+        { userId: "b", value: 300 },
+      ]),
+    ).toThrow(/must sum to the total/);
+  });
+
+  it("splits by percentage and requires 100", () => {
+    const rows = computeSplits(1001, "percentage", [
+      { userId: "a", value: 33.33 },
+      { userId: "b", value: 33.33 },
+      { userId: "c", value: 33.34 },
+    ]);
+    expect(sum(rows)).toBe(1001);
+    expect(() =>
+      computeSplits(100, "percentage", [
+        { userId: "a", value: 50 },
+        { userId: "b", value: 40 },
+      ]),
+    ).toThrow(/sum to 100/);
+  });
+
+  it("splits by shares", () => {
+    const rows = computeSplits(900, "shares", [
+      { userId: "a", value: 2 },
+      { userId: "b", value: 1 },
+    ]);
+    expect(rows).toEqual([
+      { userId: "a", owedAmountMinor: 600 },
+      { userId: "b", owedAmountMinor: 300 },
+    ]);
+  });
+
+  it("refuses an expense with no participants", () => {
+    expect(() => computeSplits(100, "even", [])).toThrow();
+  });
+});
+
+describe("computeBalances / suggestSettlements", () => {
+  it("nets out who owes whom, per currency", () => {
+    const balances = computeBalances([
+      {
+        paidBy: "a",
+        currency: "GBP",
+        amountMinor: 3000,
+        splits: [
+          { userId: "a", owedAmountMinor: 1000, settled: false },
+          { userId: "b", owedAmountMinor: 1000, settled: false },
+          { userId: "c", owedAmountMinor: 1000, settled: false },
+        ],
+      },
+      {
+        paidBy: "b",
+        currency: "GBP",
+        amountMinor: 600,
+        splits: [
+          { userId: "a", owedAmountMinor: 300, settled: false },
+          { userId: "b", owedAmountMinor: 300, settled: false },
+        ],
+      },
+    ]);
+
+    expect(balances.GBP).toEqual({ a: 1700, b: -700, c: -1000 });
+    expect(Object.values(balances.GBP).reduce((x, y) => x + y, 0)).toBe(0);
+    expect(balances.EUR).toEqual({});
+  });
+
+  it("ignores a split once it is marked settled", () => {
+    const balances = computeBalances([
+      {
+        paidBy: "a",
+        currency: "GBP",
+        amountMinor: 2000,
+        splits: [
+          { userId: "a", owedAmountMinor: 1000, settled: false },
+          { userId: "b", owedAmountMinor: 1000, settled: true },
+        ],
+      },
+    ]);
+    expect(balances.GBP).toEqual({});
+  });
+
+  it("suggests transfers that clear every balance", () => {
+    const book = { a: 1700, b: -700, c: -1000 };
+    const settlements = suggestSettlements(book);
+    const applied = { ...book };
+    for (const s of settlements) {
+      applied[s.from as keyof typeof applied] += s.amountMinor;
+      applied[s.to as keyof typeof applied] -= s.amountMinor;
+    }
+    expect(Object.values(applied)).toEqual([0, 0, 0]);
+  });
+});
+
+function sum(rows: { owedAmountMinor: number }[]) {
+  return rows.reduce((a, r) => a + r.owedAmountMinor, 0);
+}

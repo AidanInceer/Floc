@@ -9,6 +9,13 @@
       "port": 5199
     },
     {
+      "name": "waypoint-web",
+      "runtimeExecutable": "corepack",
+      "runtimeArgs": ["pnpm", "--filter", "waypoint-web", "dev"],
+      "autoPort": true,
+      "port": 3000
+    },
+    {
       "name": "waypoint-prototype",
       "runtimeExecutable": "corepack",
       "runtimeArgs": ["pnpm", "--filter", "waypoint-prototype", "dev"],

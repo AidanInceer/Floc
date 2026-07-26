@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["dom", "dom.iterable", "ES2022"],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    // `src/db/*` carry explicit .ts specifiers so the seed script can run under
+    // Node's native type stripping, which does no extension resolution.
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    // The superseded React 18 prototype hoists its own @types/react to the repo
+    // root, and TS walks every ancestor node_modules/@types by default — which
+    // pulls both majors in and makes ReactNode structurally incompatible with
+    // itself. Pin resolution to this package's own types.
+    "typeRoots": ["./node_modules/@types"],
+    "plugins": [{ "name": "next" }],
+    "paths": {
+      "@/*": ["./src/*"],
+      // Same reason as typeRoots above: the superseded React 18 prototype
+      // hoists @types/react to the repo root, and without this Next's type
+      // pass resolves `react` to those types — where `<form action>` is still
+      // string-only and every Server Action form fails to typecheck.
+      "react": ["./node_modules/@types/react"],
+      "react-dom": ["./node_modules/@types/react-dom"],
+      "react/*": ["./node_modules/@types/react/*"],
+      "react-dom/*": ["./node_modules/@types/react-dom/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
