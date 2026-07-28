@@ -87,3 +87,5 @@ Per-app Vercel project, never the whole monorepo (hub rule). Root directory
 `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` and — once provisioned — the Google
 and Resend keys. Maps need no key (Nominatim + OSM tiles). Turso and Resend both install through the Vercel
 Marketplace (tickets 02, 08).
+
+test commit for redeploy
