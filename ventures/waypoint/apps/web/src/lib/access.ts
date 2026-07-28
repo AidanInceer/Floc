@@ -7,7 +7,7 @@
  *  - Authenticated non-member → the *same* generic no-access response whether
  *    the trip id is real or fake, so ids cannot be enumerated.
  */
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
@@ -79,9 +79,12 @@ export const requireTripAccess = cache(async function requireTripAccess(
   const viewer = await requireUser(redirectTo);
   if (!Number.isInteger(id)) notFound();
 
-  // Membership and the trip row are independent lookups — the membership
-  // check still gates the response, it just no longer waits its turn.
-  const [membership, row] = await Promise.all([
+  // Membership, the trip row and the roster are three independent lookups, so
+  // all three go out at once. The membership check still gates the response —
+  // it just no longer makes the other two wait their turn, and the roster in
+  // particular was costing a third serial round trip on every trip request
+  // for data every trip page needs anyway.
+  const [membership, row, members] = await Promise.all([
     db
       .select({ role: tripMembership.role })
       .from(tripMembership)
@@ -98,6 +101,7 @@ export const requireTripAccess = cache(async function requireTripAccess(
       .from(trip)
       .where(and(eq(trip.id, id), isNull(trip.deletedAt)))
       .get(),
+    listMembers(id),
   ]);
 
   if (!membership) notFound();
@@ -113,15 +117,15 @@ export const requireTripAccess = cache(async function requireTripAccess(
       email: viewer.email,
       image: viewer.image ?? null,
     },
-    members: await listMembers(id),
+    members,
   };
 });
 
-export const listMembers = cache(async function listMembers(
-  tripId: number,
-): Promise<TripMember[]> {
-  const rows = await db
+/** The roster join, shared by the single-trip and multi-trip loaders. */
+function memberQuery() {
+  return db
     .select({
+      tripId: tripMembership.tripId,
       userId: tripMembership.userId,
       role: tripMembership.role,
       joinedAt: tripMembership.createdAt,
@@ -133,12 +137,13 @@ export const listMembers = cache(async function listMembers(
     })
     .from(tripMembership)
     .innerJoin(user, eq(user.id, tripMembership.userId))
-    .leftJoin(userProfile, eq(userProfile.userId, tripMembership.userId))
-    .where(
-      and(eq(tripMembership.tripId, tripId), isNull(tripMembership.deletedAt)),
-    )
-    .all();
+    .leftJoin(userProfile, eq(userProfile.userId, tripMembership.userId));
+}
 
+type MemberRow = Awaited<ReturnType<ReturnType<typeof memberQuery>["all"]>>[number];
+
+/** Sort + seat-colour assignment, shared by both loaders below. */
+function toRoster(rows: MemberRow[]): TripMember[] {
   return rows
     .map((r) => ({
       userId: r.userId,
@@ -159,6 +164,52 @@ export const listMembers = cache(async function listMembers(
     // Colour assigned after sorting, so it follows join order and a member's
     // pastel doesn't shift when somebody else joins later.
     .map((m, seat) => ({ ...m, tone: seatTone(seat) }));
+}
+
+export const listMembers = cache(async function listMembers(
+  tripId: number,
+): Promise<TripMember[]> {
+  const rows = await memberQuery()
+    .where(
+      and(eq(tripMembership.tripId, tripId), isNull(tripMembership.deletedAt)),
+    )
+    .all();
+
+  return toRoster(rows);
+});
+
+/**
+ * Rosters for several trips in one query.
+ *
+ * The trip-list pages draw an avatar row per card, and calling `listMembers`
+ * per card is an N+1 — parallel, but still one round trip per trip. Grouping
+ * in JS keeps the per-trip seat colours identical to the single-trip loader,
+ * because `toRoster` runs per trip either way.
+ */
+export const listMembersFor = cache(async function listMembersFor(
+  tripIds: number[],
+): Promise<Map<number, TripMember[]>> {
+  const byTrip = new Map<number, TripMember[]>();
+  if (tripIds.length === 0) return byTrip;
+
+  const rows = await memberQuery()
+    .where(
+      and(
+        inArray(tripMembership.tripId, tripIds),
+        isNull(tripMembership.deletedAt),
+      ),
+    )
+    .all();
+
+  const grouped = new Map<number, MemberRow[]>();
+  for (const r of rows) {
+    const list = grouped.get(r.tripId);
+    if (list) list.push(r);
+    else grouped.set(r.tripId, [r]);
+  }
+
+  for (const id of tripIds) byTrip.set(id, toRoster(grouped.get(id) ?? []));
+  return byTrip;
 });
 
 /**

@@ -9,10 +9,11 @@
  */
 import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
 
-import { idea, ideaVote, note, user, userProfile } from "@/db/schema";
+import { idea, ideaVote, user, userProfile } from "@/db/schema";
 import type { VoteValue } from "@/db/schema";
 import { db } from "@/db";
 import { requireTripAccess } from "@/lib/access";
+import { loadThreads } from "@/lib/notes-read";
 import { getProfile } from "@/lib/profile";
 import { EmptyState, Page, PageHeader } from "@/components/ui";
 import { SubmitButton } from "@/components/client-ui";
@@ -58,10 +59,15 @@ export default async function IdeasPage({
   ]);
 
   const ideaIds = ideaRows.map((r) => r.id);
-  // Votes and note threads both hang off the same idea ids, so they go out
+
+  // Authors and voters get the avatar colour they already have in this trip's
+  // roster, so one person is one colour across every tab (see `whoTone`).
+  const toneOf = new Map(members.map((m) => [m.userId, m.tone]));
+
+  // Votes and comment threads both hang off the same idea ids, so they go out
   // together and both stay scoped by `inArray` — an unscoped read here would
   // pull every vote and every note in the database.
-  const [voteRows, noteRows] = ideaIds.length
+  const [voteRows, notesByIdea] = ideaIds.length
     ? await Promise.all([
         db
           .select({
@@ -76,35 +82,17 @@ export default async function IdeasPage({
           .leftJoin(userProfile, eq(userProfile.userId, ideaVote.userId))
           .where(and(inArray(ideaVote.ideaId, ideaIds), isNull(ideaVote.deletedAt)))
           .all(),
-        db
-          .select({
-            id: note.id,
-            scopeId: note.scopeId,
-            body: note.body,
-            createdAt: note.createdAt,
-            createdBy: note.createdBy,
-            authorName: user.name,
-            authorAvatar: userProfile.avatarUrl,
-          })
-          .from(note)
-          .innerJoin(user, eq(user.id, note.createdBy))
-          .leftJoin(userProfile, eq(userProfile.userId, note.createdBy))
-          .where(
-            and(
-              eq(note.tripId, tripId),
-              eq(note.scope, "idea"),
-              inArray(note.scopeId, ideaIds),
-              isNull(note.deletedAt),
-            ),
-          )
-          .orderBy(asc(note.createdAt))
-          .all(),
+        // Replies and reactions made the thread read too complicated to
+        // assemble twice — Days runs the same helper (v0.2 ticket 06).
+        loadThreads({
+          tripId,
+          scope: "idea",
+          scopeIds: ideaIds,
+          viewerId: viewer.id,
+          toneOf,
+        }),
       ])
-    : [[], []];
-
-  // Authors and voters get the avatar colour they already have in this trip's
-  // roster, so one person is one colour across every tab (see `whoTone`).
-  const toneOf = new Map(members.map((m) => [m.userId, m.tone]));
+    : [[], new Map()];
 
   const votesByIdea = new Map<number, IdeaCardData["votes"]>();
   for (const v of voteRows) {
@@ -117,22 +105,6 @@ export default async function IdeasPage({
       tone: toneOf.get(v.userId),
     });
     votesByIdea.set(v.ideaId, list);
-  }
-
-  const notesByIdea = new Map<number, IdeaCardData["notes"]>();
-  for (const n of noteRows) {
-    if (n.scopeId === null) continue;
-    const list = notesByIdea.get(n.scopeId) ?? [];
-    list.push({
-      id: n.id,
-      body: n.body,
-      createdAt: n.createdAt,
-      createdBy: n.createdBy,
-      authorName: n.authorName,
-      authorAvatar: n.authorAvatar,
-      authorTone: toneOf.get(n.createdBy),
-    });
-    notesByIdea.set(n.scopeId, list);
   }
 
   let ideas: IdeaCardData[] = ideaRows.map((r) => ({

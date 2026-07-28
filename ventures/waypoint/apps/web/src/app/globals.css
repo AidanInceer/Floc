@@ -53,10 +53,22 @@
   --highlight: #f3dd7e;
   --highlight-2: #fbf2cd;
   --highlight-ink: #7a6414; /* legible text on the highlighter wash */
+  /* Two more highlighter pens, same saturation as the yellow, for the cover's
+     notes → plan contrast. Washes (`--red-2`/`--green-2`) are too pale to read
+     as a marker stroke behind text. */
+  --highlight-red: #efb3a8;
+  --highlight-green: #b9d8a2;
   --red: #a03f36;
   --red-2: #f6e3df;
   --green: #4d6b3f;
   --green-2: #e6ecdd;
+
+  /* One step darker than each wash, so a filled pill has an outline on cream
+     rather than a soft edge that dissolves into the sheet. Introduced for the
+     comment reactions (v0.2 ticket 06). */
+  --highlight-edge: #e4d194;
+  --red-edge: #e4c3bb;
+  --green-edge: #c6d4b5;
 
   --shadow-sm: 0 1px 1px rgb(35 33 28 / 0.05);
   --shadow: 0 1px 1px rgb(35 33 28 / 0.05), 0 12px 26px -14px rgb(35 33 28 / 0.35);
@@ -116,10 +128,13 @@
   --color-highlight: var(--highlight);
   --color-highlight-soft: var(--highlight-2);
   --color-highlight-ink: var(--highlight-ink);
+  --color-highlight-edge: var(--highlight-edge);
   --color-red: var(--red);
   --color-red-soft: var(--red-2);
+  --color-red-edge: var(--red-edge);
   --color-green: var(--green);
   --color-green-soft: var(--green-2);
+  --color-green-edge: var(--green-edge);
 
   /*
    * Paper is cut, not moulded — but 2/3/4px read as sharp rather than as cut,
@@ -302,15 +317,27 @@
    * band rather than a background fill or an `::after` bar, so it sits *behind
    * the glyphs*, follows the text if the line wraps, and needs no positioning
    * — the two things a positioned bar gets wrong.
+   *
+   * `--hl-stroke` is the pen colour, so a second highlighter is a one-line
+   * modifier rather than a duplicated gradient.
    */
   .hl {
+    --hl-stroke: var(--highlight);
     text-decoration: none;
     background-image: linear-gradient(
       180deg,
       transparent 62%,
-      var(--highlight) 62% 92%,
+      var(--hl-stroke) 62% 92%,
       transparent 92%
     );
+  }
+
+  .hl-red {
+    --hl-stroke: var(--highlight-red);
+  }
+
+  .hl-green {
+    --hl-stroke: var(--highlight-green);
   }
 
   /*
@@ -468,6 +495,31 @@
   }
 
   /*
+   * A panel held down with a strip of tape (v0.2 ticket 07) — the two halves
+   * of the Overview hero. Overview is the trip's landing surface and was a
+   * stack of identical bordered cards; the tape is what stops the first thing
+   * you see reading as a form. Decoration only, so it is a pseudo-element and
+   * carries no content.
+   *
+   * `--tape-x` places the strip: the left panel's sits left, the right one's
+   * sits right, so the pair doesn't read as one repeated card.
+   */
+  .tape-panel {
+    position: relative;
+  }
+  .tape-panel::before {
+    content: "";
+    position: absolute;
+    top: -8px;
+    left: var(--tape-x, 30px);
+    width: 74px;
+    height: 16px;
+    background: var(--tape);
+    transform: rotate(var(--tape-tilt, -2deg));
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+  }
+
+  /*
    * The board note's tape tab, drawn as a background layer rather than as
    * `.note-tape`'s absolutely-positioned ::before.
    *
@@ -534,4 +586,174 @@
   .who-6 { background: var(--who-6); color: var(--who-6-ink); }
   .who-7 { background: var(--who-7); color: var(--who-7-ink); }
   .who-8 { background: var(--who-8); color: var(--who-8-ink); }
+}
+
+@layer components {
+  /*
+   * The Route map (v0.2 ticket 08). Prototyped in docs/mockups/route-map.html,
+   * where three tile treatments were compared side by side over identical
+   * data; the paper-toned one below won.
+   *
+   * It is CSS over plain OpenStreetMap tiles, deliberately: a filter stack on
+   * the tile pane knocks the default OSM palette back to ink-on-cream, then a
+   * multiply-blended ruled wash and an inset vignette sit the result on the
+   * page's own paper. No second tile provider, no account, no extra request —
+   * and OSM's attribution control is left exactly as Leaflet draws it.
+   */
+  .route-map-frame {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--rule-2);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .route-map-canvas {
+    height: 300px;
+    width: 100%;
+    background: var(--sheet-2);
+  }
+
+  /* `.map-tiles` is the still-image equivalent of Leaflet's tile pane — see
+     components/static-map.tsx. Both get the same treatment so a Route map and
+     an Explore thumbnail are visibly the same kind of object. */
+  .route-map-frame .leaflet-tile-pane,
+  .route-map-frame .map-tiles {
+    filter: sepia(0.55) saturate(0.55) contrast(0.78) brightness(1.12)
+      hue-rotate(-8deg);
+  }
+
+  /* z-index 400+ puts these above Leaflet's own panes but below its controls
+     (attribution and zoom live at 800+), which must stay clickable. */
+  .route-map-wash {
+    position: absolute;
+    inset: 0;
+    z-index: 400;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(
+        to bottom,
+        transparent 0 27px,
+        var(--line) 27px 28px
+      ),
+      var(--paper);
+    mix-blend-mode: multiply;
+    opacity: 0.55;
+  }
+
+  .route-map-vignette {
+    position: absolute;
+    inset: 0;
+    z-index: 401;
+    pointer-events: none;
+    box-shadow:
+      inset 0 0 0 1px var(--rule),
+      inset 0 0 34px 12px var(--sheet);
+  }
+
+  /* The same vignette on a thumbnail-sized box would be almost all vignette. */
+  .route-map-vignette-sm {
+    box-shadow:
+      inset 0 0 0 1px var(--rule),
+      inset 0 0 14px 3px var(--sheet);
+  }
+
+}
+
+@layer components {
+  /*
+   * A luggage tag — the price on an Explore listing. The pointed left end and
+   * the punched hole are the whole shape, so both are drawn rather than
+   * bordered: `clip-path` cuts the notch, and the hole is a radial-gradient
+   * "hole" in the background rather than a child element, so it shows the
+   * page's paper through without needing to know the page's colour.
+   */
+  .price-tag {
+    position: relative;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    padding: 0.3rem 0.7rem 0.3rem 1.6rem;
+    background: var(--highlight-2);
+    border: 1px solid var(--highlight-edge);
+    border-radius: var(--radius-sm);
+    color: var(--highlight-ink);
+    clip-path: polygon(0 50%, 0.7rem 0, 100% 0, 100% 100%, 0.7rem 100%);
+    white-space: nowrap;
+    rotate: -1.5deg;
+  }
+
+  .price-tag::before {
+    content: "";
+    position: absolute;
+    left: 0.85rem;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    translate: 0 -50%;
+    border-radius: 50%;
+    background: var(--sheet);
+    box-shadow: inset 0 0 0 1px var(--highlight-edge);
+  }
+
+  .price-tag-amount {
+    font-size: 14px;
+    font-weight: 600;
+  }
+}
+
+/*
+ * Leaflet's own stylesheet is imported by components/route-map.tsx and is
+ * UNLAYERED, and an unlayered rule beats any layered one no matter the
+ * specificity — so these overrides must sit outside @layer too, or Leaflet
+ * wins and the pins lose their numbers. Everything here is scoped to
+ * `.route-map-frame`, so it can't leak onto any other map.
+ */
+/* Set here rather than as a Leaflet `color` option — Leaflet writes that out
+   as an SVG presentation attribute, where var() does not resolve. */
+.route-line {
+  stroke: var(--pen);
+  fill: none;
+  opacity: 0.85;
+}
+
+/* A numbered pin. The number is the point — it ties a pin to its card below,
+   so this must outrank Leaflet's `.leaflet-marker-icon { display: block }`. */
+.route-map-frame .route-pin {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1.5px solid var(--sheet);
+  background: var(--pen);
+  color: var(--sheet);
+  font-family: var(--type);
+  font-size: 12px;
+  line-height: 1;
+  box-shadow: var(--shadow-sm);
+}
+
+.route-map-frame .leaflet-container {
+  font-family: var(--type);
+  font-size: 10px;
+  background: var(--sheet-2);
+}
+
+.route-map-frame .leaflet-control-attribution {
+  background: rgb(251 248 241 / 0.85);
+  color: var(--ink-3);
+}
+
+.route-map-frame .leaflet-control-attribution a {
+  color: var(--pen);
+}
+
+/* Leaflet's zoom control is white-on-white against the cream page. */
+.route-map-frame .leaflet-bar a {
+  background: var(--sheet);
+  color: var(--ink-2);
+  border-bottom-color: var(--rule);
+}
+
+.route-map-frame .leaflet-bar a:hover {
+  background: var(--sheet-2);
 }

@@ -42,7 +42,7 @@ email, then join the trip via its invite link.
 |---|---|
 | `TURSO_DATABASE_URL` | Falls back to `file:./local.db`. Fine for dev, wrong for Vercel — the filesystem there is ephemeral. |
 | `GOOGLE_CLIENT_ID`/`SECRET` | The Google button is not rendered; email/password still works. |
-| `NEXT_PUBLIC_MAPBOX_TOKEN` | Place search returns nothing and the picker falls back to typing a place name. |
+| _(no maps key at all)_ | Geocoding is Nominatim and tiles are OpenStreetMap — free, no account, no key (v0.2 tickets 15/12). If Nominatim is unreachable or rate-limited, place search returns nothing and the picker falls back to typing a place name. |
 | `RESEND_API_KEY` | Outbound email is logged to the server console instead of sent — never silently dropped. |
 
 ## Layout
@@ -53,7 +53,8 @@ src/
     trip/[id]/            the five tabs — layout.tsx owns the header + tab bar
   components/             ui.tsx (server) + client-ui.tsx (client) primitives
   db/                     schema.ts (the whole ERD), index.ts, seed.ts
-  lib/                    access, auth, dates, money, unlocks, email, mapbox
+  lib/                    access, auth, dates, money, unlocks, email,
+                          geocoding (Nominatim), map (OSM tiles)
   middleware.ts           session gate; membership is decided in lib/access.ts
 ```
 
@@ -83,6 +84,6 @@ in v1.
 
 Per-app Vercel project, never the whole monorepo (hub rule). Root directory
 `ventures/waypoint/apps/web`. Set `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`,
-`BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` and — once provisioned — the Google,
-Mapbox and Resend keys. Turso and Resend both install through the Vercel
+`BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` and — once provisioned — the Google
+and Resend keys. Maps need no key (Nominatim + OSM tiles). Turso and Resend both install through the Vercel
 Marketplace (tickets 02, 08).

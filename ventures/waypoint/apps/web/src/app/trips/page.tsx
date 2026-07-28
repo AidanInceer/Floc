@@ -12,7 +12,7 @@ import { and, eq, inArray, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { idea, trip, tripMembership } from "@/db/schema";
-import { listMembers, requireUser } from "@/lib/access";
+import { listMembersFor, requireUser } from "@/lib/access";
 import { hasEnded } from "@/lib/dates";
 import { ButtonLink, EmptyState, Field, Input, Page, PageHeader, Stack } from "@/components/ui";
 import { Sheet, SubmitButton } from "@/components/client-ui";
@@ -57,17 +57,18 @@ export default async function TripsPage() {
     : [];
   const tripsWithIdeas = new Set(ideaRows.map((r) => r.tripId));
 
-  const cards: TripCardData[] = await Promise.all(
-    rows.map(async (r) => ({
-      id: r.id,
-      name: r.name,
-      startDate: r.startDate,
-      endDate: r.endDate,
-      role: r.role,
-      members: await listMembers(r.id),
-      needsYou: !hasEnded(r.endDate) && !tripsWithIdeas.has(r.id),
-    })),
-  );
+  // One roster query for every card, not one per card.
+  const membersByTrip = await listMembersFor(tripIds);
+
+  const cards: TripCardData[] = rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    startDate: r.startDate,
+    endDate: r.endDate,
+    role: r.role,
+    members: membersByTrip.get(r.id) ?? [],
+    needsYou: !hasEnded(r.endDate) && !tripsWithIdeas.has(r.id),
+  }));
 
   const ended = cards.filter((c) => hasEnded(c.endDate));
   const upcoming = cards.filter((c) => !hasEnded(c.endDate));

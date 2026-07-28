@@ -1,26 +1,49 @@
 /**
- * Trip dashboard (ticket 13) — the landing every member sees after login
- * (ticket 01 step 4). Trip name/dates/avatars already render in the trip
- * layout header, so this page starts below that.
+ * Trip dashboard (v1 ticket 13) — the landing every member sees after login.
+ * Trip name/dates/avatars already render in the trip layout header, so this
+ * page starts below that.
+ *
+ * Re-laid out by v0.2 ticket 07. What the page *says* is unchanged from
+ * ticket 13; the arrangement is not:
+ *
+ *   - A hero, split 65/35: where the planning is at, and who's doing it. The
+ *     "up to" sentence gets the page's largest type, with the trail drawing
+ *     the same answer spatially.
+ *   - Unresolved is tinted by one question only — is this mine to do? The old
+ *     version tinted money red and the other two amber, which encoded nothing.
+ *   - Chasing moved onto the person it's aimed at (see TripRoster), so the
+ *     Chase panel is gone: it and Unresolved were the same three checks read
+ *     two different ways, a screen apart.
+ *   - "Waiting on you" and "What's moved" were dropped on request. Nudges are
+ *     still delivered by email from `sendNudge`, so nothing goes unheard.
+ *   - Admin folds into a right-aligned "Trip settings" disclosure; it was a
+ *     permanent third of the width for four controls used once a trip.
  */
 import Link from "next/link";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
-import { availability, day, expense, expenseSplit, idea, ideaVote } from "@/db/schema";
+import {
+  availability,
+  day,
+  expense,
+  expenseSplit,
+  idea,
+  ideaVote,
+  type Currency,
+} from "@/db/schema";
 import { requireTripAccess } from "@/lib/access";
-import { computeBalances } from "@/lib/money";
+import { computeBalances, formatMoney } from "@/lib/money";
 import { formatDateRange, hasEnded } from "@/lib/dates";
 import {
   Avatar,
   Badge,
   ButtonLink,
-  Card,
-  CardHeader,
   EmptyState,
   Input,
   Page,
   Stack,
+  cx,
 } from "@/components/ui";
 import {
   ActionForm,
@@ -28,7 +51,8 @@ import {
   CopyLink,
   SubmitButton,
 } from "@/components/client-ui";
-import { NudgePanel } from "@/components/nudge-panel";
+import { TripRoster } from "@/components/trip-roster";
+import { TripTrail, type Station } from "@/components/trip-trail";
 import {
   deleteTripFromOverview,
   kickMember,
@@ -46,14 +70,13 @@ export default async function OverviewPage({
   const { trip, members, isAdmin, viewer } = access;
   const tripId = trip.id;
 
-
   /*
    * Overview reads from four tables to build the "unresolved" list, and none
    * of those reads depends on another — so they go out together. Done
    * sequentially this page was the slowest tab in the app by a wide margin,
    * paying a full round trip per section.
    */
-  const [ideas, availabilityRows, expenseRows, hasDays] = await Promise.all([
+  const [ideas, availabilityRows, expenseRows, dayRows] = await Promise.all([
     db
       .select({ id: idea.id })
       .from(idea)
@@ -76,14 +99,17 @@ export default async function OverviewPage({
       .from(expense)
       .where(and(eq(expense.tripId, tripId), isNull(expense.deletedAt)))
       .all(),
+    // Counted, not just probed: the trail says "3 days sketched", so a
+    // `.get()` for existence is no longer enough.
     db
-      .select({ id: day.id })
+      .select({ id: day.id, overnightPlaceId: day.overnightPlaceId })
       .from(day)
       .where(and(eq(day.tripId, tripId), isNull(day.deletedAt)))
-      .get(),
+      .all(),
   ]);
 
   const isBrandNew = ideas.length === 0;
+  const hasDays = dayRows.length > 0;
 
   // The two follow-up reads that genuinely need the ids above. Also parallel.
   const [votes, splitRows] = await Promise.all([
@@ -129,6 +155,7 @@ export default async function OverviewPage({
 
   // --- Unresolved: idea voting -------------------------------------------
   let votingUnresolved: typeof members = [];
+  let viewerHasVotedAll = true;
   if (ideas.length > 0) {
     const votedIdeasByUser = new Map<string, Set<number>>();
     for (const v of votes) {
@@ -139,13 +166,17 @@ export default async function OverviewPage({
     votingUnresolved = members.filter(
       (m) => (votedIdeasByUser.get(m.userId)?.size ?? 0) < ideas.length,
     );
+    viewerHasVotedAll = (votedIdeasByUser.get(viewer.id)?.size ?? 0) >= ideas.length;
   }
 
   // --- Unresolved: availability, only while dates are still unset --------
+  const datesUnset = !trip.startDate && !trip.endDate;
   let availabilityUnresolved: typeof members = [];
-  if (!trip.startDate && !trip.endDate) {
+  let viewerHasAvailability = true;
+  if (datesUnset) {
     const withAvailability = new Set(availabilityRows.map((r) => r.userId));
     availabilityUnresolved = members.filter((m) => !withAvailability.has(m.userId));
+    viewerHasAvailability = withAvailability.has(viewer.id);
   }
 
   // --- Unresolved: money still owed ---------------------------------------
@@ -174,8 +205,14 @@ export default async function OverviewPage({
       ),
     ),
   );
+  // The viewer's own position, per currency, so their row can say the actual
+  // number rather than "someone owes something".
+  const viewerPositions = (Object.entries(balances) as [Currency, Record<string, number>][])
+    .map(([currency, book]) => ({ currency, amount: book[viewer.id] ?? 0 }))
+    .filter((p) => p.amount !== 0);
+  const othersUnresolved = moneyUnresolved.filter((u) => u !== viewer.id);
 
-  // --- Where the trip is up to, derived, no lifecycle column (ticket 04) --
+  // --- Where the trip is up to, derived, no lifecycle column (rule 4) -----
   const stage = isBrandNew
     ? "Waiting for the first idea"
     : hasEnded(trip.endDate)
@@ -186,261 +223,422 @@ export default async function OverviewPage({
           : "Building the itinerary — dates still to confirm"
         : "Picking ideas and a route";
 
+  /*
+   * The trail. Every station is derived from the rows above; `now` marks the
+   * one place the group is actually working, and at most one station may hold
+   * it — two "you are here" markers make nonsense of a route. A tab that has
+   * fallen behind is `snag` instead, which is the same blue in a hollow ring.
+   */
+  const placeCount = new Set(
+    dayRows.map((d) => d.overnightPlaceId).filter((p): p is number => p !== null),
+  ).size;
+  const routeUnlocked = trip.routeUnlockedAt !== null;
+  const daysUnlocked = trip.daysUnlockedAt !== null;
+
+  const stations: Station[] = [
+    {
+      key: "ideas",
+      label: "Ideas",
+      caption: isBrandNew
+        ? "start here"
+        : `${ideas.length} posted${votingUnresolved.length ? "" : ", all voted"}`,
+      state: isBrandNew ? "now" : votingUnresolved.length ? "snag" : "done",
+    },
+    {
+      key: "dates",
+      label: "Dates",
+      // Not the range itself — it is already on the line above, and at three
+      // words it was the one caption that wrapped the trail on a phone.
+      caption: datesUnset ? "still open" : "agreed",
+      state: datesUnset ? (isBrandNew ? "ahead" : "snag") : "done",
+    },
+    {
+      key: "route",
+      label: "Route",
+      caption: !routeUnlocked
+        ? "locked"
+        : placeCount
+          ? `${placeCount} ${placeCount === 1 ? "place" : "places"}`
+          : "nothing yet",
+      state: !routeUnlocked ? "locked" : placeCount ? "done" : "ahead",
+    },
+    {
+      key: "days",
+      label: "Days",
+      caption: !daysUnlocked
+        ? "locked"
+        : hasDays
+          ? `${dayRows.length} sketched`
+          : "nothing yet",
+      // The only station that claims "now" — once Days is open, sketching the
+      // itinerary is what the group is doing, whatever else is outstanding.
+      state: !daysUnlocked ? "locked" : hasDays ? "now" : "ahead",
+    },
+    {
+      key: "money",
+      label: "Money",
+      caption: expenseRows.length
+        ? `${expenseRows.length} ${expenseRows.length === 1 ? "expense" : "expenses"}`
+        : "nothing yet",
+      state: expenseRows.length ? (moneyUnresolved.length ? "snag" : "done") : "ahead",
+    },
+  ];
+  // Ideas is where you are when there's nothing else open yet.
+  if (!stations.some((s) => s.state === "now")) stations[0].state = "now";
+
+  const inviteUrl = `${process.env.BETTER_AUTH_URL ?? "http://localhost:3000"}/invite/${trip.inviteToken}`;
+
   return (
     <Page wide flush>
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="flex flex-col gap-6 lg:col-span-2">
-          {isBrandNew ? (
-            <EmptyState
-              title="This trip is just a name so far"
-              action={
-                <ButtonLink href={`/trip/${tripId}/ideas`} variant="primary">
-                  Post the first idea
-                </ButtonLink>
-              }
-            >
-              Nothing's been suggested yet. Post where you fancy going, then
-              share the invite link below so the rest of the group can pile
-              in and vote.
-            </EmptyState>
-          ) : null}
+      {/* Split 65/35: "up to" is the hero, the roster only needs room for a
+          name and a bell. `items-start` lets the roster grow downward with the
+          group without stretching the left half to match. */}
+      <div className="grid gap-[18px] lg:grid-cols-[minmax(0,65fr)_minmax(0,35fr)] lg:items-start">
+        <section className="tape-panel rounded-md border border-rule-strong bg-sheet-2 p-5">
+          <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint">
+            Up to
+          </p>
+          <h1 className="mt-1 max-w-[28ch] text-2xl leading-tight font-semibold">
+            {stage}
+          </h1>
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-ink-soft">
+            <span>{trip.name}</span>
+            <span className="text-ink-faint">·</span>
+            {trip.startDate || trip.endDate ? (
+              <span>
+                {formatDateRange(trip.startDate, trip.endDate)}{" "}
+                <Link
+                  href={`/trip/${tripId}/dates`}
+                  className="text-pen underline underline-offset-2"
+                >
+                  change
+                </Link>
+              </span>
+            ) : (
+              // Deciding the dates is the Dates tab's whole job — a second pair
+              // of date inputs here would be a way to set them without ever
+              // seeing whether the group is free.
+              <span>
+                Dates not set{" "}
+                <Link
+                  href={`/trip/${tripId}/dates`}
+                  className="text-pen underline underline-offset-2"
+                >
+                  pick them
+                </Link>
+              </span>
+            )}
+          </div>
 
-          <Card>
-            <CardHeader title="At a glance" />
-            <div className="flex flex-col gap-4 p-4">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.06em] text-ink-soft">
-                  Name
-                </p>
-                {/* Renameable by anyone in the trip, not just an admin — see
-                    `renameTrip`. The header's <h1> stays read-only; the edit
-                    lives on the page rather than in the chrome. */}
-                <ActionForm action={renameTrip} className="mt-2">
-                  <input type="hidden" name="tripId" value={tripId} />
-                  <div className="flex flex-wrap items-end gap-2">
-                    <Input
-                      name="name"
-                      defaultValue={trip.name}
-                      maxLength={120}
-                      aria-label="Trip name"
-                      className="w-56"
-                    />
-                    <SubmitButton variant="secondary" pendingLabel="Saving…">
-                      Rename
-                    </SubmitButton>
-                  </div>
-                </ActionForm>
-              </div>
+          <TripTrail stations={stations} />
+        </section>
 
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.06em] text-ink-soft">
-                  Dates
-                </p>
-                {trip.startDate || trip.endDate ? (
-                  <p className="mt-1 text-sm text-ink">
-                    {formatDateRange(trip.startDate, trip.endDate)}{" "}
-                    <Link
-                      href={`/trip/${tripId}/dates`}
-                      className="text-pen underline underline-offset-2"
-                    >
-                      Change
-                    </Link>
-                  </p>
-                ) : (
-                  // Deciding the dates is the Dates tab's whole job — a second
-                  // pair of date inputs here would just be a way to set them
-                  // without ever seeing whether the group is free.
-                  <p className="mt-1 text-sm text-ink-soft">
-                    Not set yet.{" "}
-                    <Link
-                      href={`/trip/${tripId}/dates`}
-                      className="text-pen underline underline-offset-2"
-                    >
-                      Pick them on Dates
-                    </Link>
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.06em] text-ink-soft">
-                  Up to
-                </p>
-                <p className="mt-1 text-sm text-ink">{stage}</p>
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.06em] text-ink-soft">
-                  Who's in
-                </p>
-                <ul className="mt-2 flex flex-col gap-2">
-                  {members.map((m) => (
-                    <li key={m.userId} className="flex items-center gap-2 text-sm">
-                      <Avatar name={m.name} src={m.avatarUrl} size={24} tone={m.tone} />
-                      <span>{m.name}</span>
-                      {m.userId === viewer.id ? (
-                        <span className="text-ink-faint">(you)</span>
-                      ) : null}
-                      {m.role === "admin" ? <Badge tone="marine">Admin</Badge> : null}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </Card>
-
-          {!isBrandNew ? (
-            <Card>
-              <CardHeader
-                title="Unresolved"
-                hint="What the group's still waiting on — nobody's chasing you for it automatically."
-              />
-              <div className="p-4">
-                {votingUnresolved.length === 0 &&
-                availabilityUnresolved.length === 0 &&
-                moneyUnresolved.length === 0 ? (
-                  <p className="text-sm text-ink-soft">
-                    Nothing outstanding right now — everyone's caught up.
-                  </p>
-                ) : (
-                  <ul className="flex flex-col gap-2">
-                    {votingUnresolved.length > 0 ? (
-                      <li className="flex items-center justify-between gap-2 rounded-sm border border-rule px-3 py-2 text-sm">
-                        <span>
-                          <Badge tone="open">Ideas</Badge>{" "}
-                          {votingUnresolved.length === 1
-                            ? `${votingUnresolved[0].name} hasn't voted on every idea yet`
-                            : `${votingUnresolved.length} people haven't voted on every idea yet`}
-                        </span>
-                        <Link href={`/trip/${tripId}/ideas`} className="text-pen underline">
-                          Open Ideas
-                        </Link>
-                      </li>
-                    ) : null}
-                    {availabilityUnresolved.length > 0 ? (
-                      <li className="flex items-center justify-between gap-2 rounded-sm border border-rule px-3 py-2 text-sm">
-                        <span>
-                          <Badge tone="open">Dates</Badge>{" "}
-                          {availabilityUnresolved.length === 1
-                            ? `${availabilityUnresolved[0].name} hasn't shared their availability`
-                            : `${availabilityUnresolved.length} people haven't shared their availability`}
-                        </span>
-                        <Link href={`/trip/${tripId}/dates`} className="text-pen underline">
-                          Open Dates
-                        </Link>
-                      </li>
-                    ) : null}
-                    {moneyUnresolved.length > 0 ? (
-                      <li className="flex items-center justify-between gap-2 rounded-sm border border-rule px-3 py-2 text-sm">
-                        <span>
-                          <Badge tone="action">Money</Badge>{" "}
-                          {moneyUnresolved.length === 1
-                            ? "One person is still owed, or still owes"
-                            : `${moneyUnresolved.length} people are still owed, or still owe`}
-                        </span>
-                        <Link href={`/trip/${tripId}/money`} className="text-pen underline">
-                          Open Money
-                        </Link>
-                      </li>
-                    ) : null}
-                  </ul>
-                )}
-              </div>
-            </Card>
-          ) : null}
-
-          <NudgePanel tripId={tripId} viewerId={viewer.id} members={members} />
-        </div>
-
-        <div className="flex flex-col gap-6">
-          <Card>
-            <CardHeader title="Admin" hint="Invite, kick and delete — nothing else differs by role." />
-            <div className="flex flex-col gap-4 p-4">
-              {isAdmin ? (
-                <>
-                  <Stack gap={2}>
-                    <p className="text-xs font-semibold uppercase tracking-[0.06em] text-ink-soft">
-                      Invite
-                    </p>
-                    <CopyLink
-                      value={`${process.env.BETTER_AUTH_URL ?? "http://localhost:3000"}/invite/${trip.inviteToken}`}
-                    />
-                  </Stack>
-
-                  <Stack gap={2}>
-                    <p className="text-xs font-semibold uppercase tracking-[0.06em] text-ink-soft">
-                      Members
-                    </p>
-                    <ul className="flex flex-col gap-2">
-                      {members
-                        .filter((m) => m.userId !== viewer.id)
-                        .map((m) => (
-                          <li
-                            key={m.userId}
-                            className="flex items-center justify-between gap-2 rounded-sm border border-rule px-2.5 py-1.5"
-                          >
-                            <span className="flex items-center gap-2 text-sm">
-                              <Avatar
-                                name={m.name}
-                                src={m.avatarUrl}
-                                size={20}
-                                tone={m.tone}
-                              />
-                              {m.name}
-                            </span>
-                            <span className="flex gap-1">
-                              {m.role !== "admin" ? (
-                                <form action={promoteMember}>
-                                  <input type="hidden" name="tripId" value={tripId} />
-                                  <input type="hidden" name="userId" value={m.userId} />
-                                  <SubmitButton variant="ghost" pendingLabel="…">
-                                    Promote
-                                  </SubmitButton>
-                                </form>
-                              ) : null}
-                              <form action={kickMember}>
-                                <input type="hidden" name="tripId" value={tripId} />
-                                <input type="hidden" name="userId" value={m.userId} />
-                                <ConfirmSubmit
-                                  variant="danger"
-                                  message={`Remove ${m.name} from this trip?`}
-                                  pendingLabel="…"
-                                >
-                                  Kick
-                                </ConfirmSubmit>
-                              </form>
-                            </span>
-                          </li>
-                        ))}
-                    </ul>
-                  </Stack>
-
-                  <Stack gap={2} className="border-t border-rule pt-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.06em] text-ink-soft">
-                      Delete trip
-                    </p>
-                    <p className="text-xs text-ink-faint">
-                      Removes the trip for everyone. This can&rsquo;t be undone from here.
-                    </p>
-                    <form action={deleteTripFromOverview}>
-                      <input type="hidden" name="tripId" value={tripId} />
-                      <ConfirmSubmit
-                        variant="danger"
-                        message={`Delete "${trip.name}" for everyone? This can't be undone.`}
-                        pendingLabel="Deleting…"
-                      >
-                        Delete trip
-                      </ConfirmSubmit>
-                    </form>
-                  </Stack>
-                </>
-              ) : (
-                <p className="text-sm text-ink-soft">Only an admin can invite people.</p>
-              )}
-            </div>
-          </Card>
-        </div>
+        <TripRoster
+          tripId={tripId}
+          viewerId={viewer.id}
+          members={members}
+          isAdmin={isAdmin}
+          inviteUrl={isAdmin ? inviteUrl : undefined}
+        />
       </div>
+
+      {isBrandNew ? (
+        <div className="mt-6">
+          <EmptyState
+            title="This trip is just a name so far"
+            action={
+              <ButtonLink href={`/trip/${tripId}/ideas`} variant="primary">
+                Post the first idea
+              </ButtonLink>
+            }
+          >
+            Nothing&rsquo;s been suggested yet. Post where you fancy going, then
+            share the trip so the rest of the group can pile in and vote.
+          </EmptyState>
+        </div>
+      ) : (
+        <section className="mt-6">
+          <h2 className="text-[15px] font-semibold">Unresolved</h2>
+          <p className="mt-0.5 text-[12.5px] text-ink-faint">
+            Who still needs to do what — nobody&rsquo;s chasing them for it
+            automatically.
+          </p>
+
+          <div className="mt-3 flex flex-col gap-2">
+            {/*
+              Yours first, and the only tinted rows. Colour here answers one
+              question — is this mine to do? — in the same blue the trail uses
+              for "you are here". Red is reserved for destructive controls.
+            */}
+            {!viewerHasVotedAll ? (
+              <UnresolvedRow
+                mine
+                tab="Ideas"
+                href={`/trip/${tripId}/ideas`}
+                headline="Your turn — you haven't voted on every idea"
+                detail="Voting is optional, but an unvoted idea can't be ruled in or out."
+              />
+            ) : null}
+            {datesUnset && !viewerHasAvailability ? (
+              <UnresolvedRow
+                mine
+                tab="Dates"
+                href={`/trip/${tripId}/dates`}
+                headline="Your turn — you haven't shared your availability"
+                detail="Nothing can be locked in until most of you have."
+              />
+            ) : null}
+            {viewerPositions.map((p) => (
+              <UnresolvedRow
+                key={p.currency}
+                mine
+                tab="Money"
+                href={`/trip/${tripId}/money`}
+                headline={
+                  p.amount < 0
+                    ? `Your turn — you owe ${formatMoney(-p.amount, p.currency)}`
+                    : `You're owed ${formatMoney(p.amount, p.currency)}`
+                }
+                detail={
+                  p.amount < 0
+                    ? "Settling is done between you — the app only keeps the ledger."
+                    : "Nothing for you to do but chase, from the roster above."
+                }
+              />
+            ))}
+
+            {/* Theirs: untinted, and named by face. Chase from the roster. */}
+            {votingUnresolved.filter((m) => m.userId !== viewer.id).length > 0 ? (
+              <UnresolvedRow
+                tab="Ideas"
+                href={`/trip/${tripId}/ideas`}
+                headline={`Waiting on ${peopleCount(votingUnresolved.filter((m) => m.userId !== viewer.id).length)} to vote on every idea`}
+                people={votingUnresolved.filter((m) => m.userId !== viewer.id)}
+              />
+            ) : null}
+            {availabilityUnresolved.filter((m) => m.userId !== viewer.id).length > 0 ? (
+              <UnresolvedRow
+                tab="Dates"
+                href={`/trip/${tripId}/dates`}
+                headline={`Waiting on ${peopleCount(availabilityUnresolved.filter((m) => m.userId !== viewer.id).length)} to share availability`}
+                people={availabilityUnresolved.filter((m) => m.userId !== viewer.id)}
+              />
+            ) : null}
+            {othersUnresolved.length > 0 ? (
+              <UnresolvedRow
+                tab="Money"
+                href={`/trip/${tripId}/money`}
+                headline={`Waiting on ${peopleCount(othersUnresolved.length)} to settle up`}
+                people={members.filter((m) => othersUnresolved.includes(m.userId))}
+              />
+            ) : null}
+
+            {viewerHasVotedAll &&
+            viewerHasAvailability &&
+            viewerPositions.length === 0 &&
+            votingUnresolved.filter((m) => m.userId !== viewer.id).length === 0 &&
+            availabilityUnresolved.filter((m) => m.userId !== viewer.id).length === 0 &&
+            othersUnresolved.length === 0 ? (
+              <p className="text-sm text-ink-soft">
+                Nothing outstanding right now — everyone&rsquo;s caught up.
+              </p>
+            ) : null}
+          </div>
+        </section>
+      )}
+
+      {/* Right-aligned: the page's least-used control, pulled to the opposite
+          edge from every heading so it stops reading as the next section. */}
+      <details className="mt-6 border-t border-rule pt-3.5 text-right">
+        <summary className="inline-flex cursor-pointer items-center gap-1.5 text-sm text-pen marker:content-['']">
+          Trip settings
+        </summary>
+        <div className="mt-3.5 grid gap-4 text-left sm:grid-cols-2">
+          <div className="flex flex-col gap-1.5">
+            <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint">
+              Trip name
+            </span>
+            {/* Renameable by anyone in the trip, not just an admin — see
+                `renameTrip`. The header's <h1> stays read-only. */}
+            <ActionForm action={renameTrip}>
+              <input type="hidden" name="tripId" value={tripId} />
+              <div className="flex flex-wrap items-end gap-2">
+                <Input
+                  name="name"
+                  defaultValue={trip.name}
+                  maxLength={120}
+                  aria-label="Trip name"
+                  className="w-56"
+                />
+                <SubmitButton variant="secondary" pendingLabel="Saving…">
+                  Rename
+                </SubmitButton>
+              </div>
+            </ActionForm>
+          </div>
+
+          {isAdmin ? (
+            <>
+              <div className="flex flex-col gap-1.5">
+                <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint">
+                  Invite link
+                </span>
+                <div>
+                  <CopyLink value={inviteUrl} />
+                </div>
+                <span className="text-xs text-ink-faint">
+                  Anyone holding it can join.
+                </span>
+              </div>
+
+              {/* Hidden on a solo trip — a "Members" heading over an empty
+                  list is a shelf advertising that it's bare. */}
+              <Stack
+                gap={2}
+                className={cx(
+                  "sm:col-span-2",
+                  members.length === 1 && "hidden",
+                )}
+              >
+                <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint">
+                  Members
+                </span>
+                <ul className="flex flex-col gap-2">
+                  {members
+                    .filter((m) => m.userId !== viewer.id)
+                    .map((m) => (
+                      <li
+                        key={m.userId}
+                        className="flex items-center justify-between gap-2 rounded-sm border border-rule px-2.5 py-1.5"
+                      >
+                        <span className="flex items-center gap-2 text-sm">
+                          <Avatar
+                            name={m.name}
+                            src={m.avatarUrl}
+                            size={20}
+                            tone={m.tone}
+                          />
+                          {m.name}
+                          {m.role === "admin" ? <Badge tone="marine">Admin</Badge> : null}
+                        </span>
+                        <span className="flex gap-1">
+                          {m.role !== "admin" ? (
+                            <form action={promoteMember}>
+                              <input type="hidden" name="tripId" value={tripId} />
+                              <input type="hidden" name="userId" value={m.userId} />
+                              <SubmitButton variant="ghost" pendingLabel="…">
+                                Promote
+                              </SubmitButton>
+                            </form>
+                          ) : null}
+                          <form action={kickMember}>
+                            <input type="hidden" name="tripId" value={tripId} />
+                            <input type="hidden" name="userId" value={m.userId} />
+                            <ConfirmSubmit
+                              variant="danger"
+                              message={`Remove ${m.name} from this trip?`}
+                              confirmLabel="Remove them"
+                              pendingLabel="…"
+                            >
+                              Kick
+                            </ConfirmSubmit>
+                          </form>
+                        </span>
+                      </li>
+                    ))}
+                </ul>
+              </Stack>
+
+              <Stack gap={2} className="border-t border-rule pt-4 sm:col-span-2">
+                <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint">
+                  Delete trip
+                </span>
+                <p className="text-xs text-ink-faint">
+                  Removes the trip for everyone. This can&rsquo;t be undone from here.
+                </p>
+                <form action={deleteTripFromOverview}>
+                  <input type="hidden" name="tripId" value={tripId} />
+                  <ConfirmSubmit
+                    variant="danger"
+                    message={`Delete "${trip.name}" for everyone? This can't be undone.`}
+                    confirmLabel="Delete it"
+                    pendingLabel="Deleting…"
+                  >
+                    Delete trip
+                  </ConfirmSubmit>
+                </form>
+              </Stack>
+            </>
+          ) : (
+            <p className="text-sm text-ink-soft">
+              Inviting, promoting and removing people are admin-only.
+            </p>
+          )}
+        </div>
+      </details>
     </Page>
   );
+}
+
+function peopleCount(n: number) {
+  return n === 1 ? "1 person" : `${n} people`;
+}
+
+/**
+ * One outstanding thing. `mine` is the only state that takes a tint, and it
+ * takes the trail's blue: the tint answers "is this mine to do?" and nothing
+ * else. Both variants name the tab in a neutral badge and end in the same
+ * boxed control, because they do the same thing — open that tab.
+ */
+function UnresolvedRow({
+  mine,
+  tab,
+  href,
+  headline,
+  detail,
+  people,
+}: {
+  mine?: boolean;
+  tab: string;
+  href: string;
+  headline: string;
+  detail?: string;
+  people?: { userId: string; name: string; avatarUrl: string | null; tone?: string }[];
+}) {
+  return (
+    <div
+      className={cx(
+        "flex flex-wrap items-center gap-2.5 rounded-sm border border-rule border-l-[3px] px-3 py-2.5",
+        mine ? "border-l-pen bg-pen-soft" : "border-l-rule-strong bg-sheet",
+      )}
+    >
+      <div className="flex-1 basis-60 text-sm">
+        <Badge>{tab}</Badge>{" "}
+        {mine ? <strong>{headline}</strong> : headline}
+        <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[12.5px] text-ink-soft">
+          {people?.length ? (
+            <span className="flex">
+              {people.map((p, i) => (
+                <span key={p.userId} className={cx(i > 0 && "-ml-1.5")}>
+                  <Avatar name={p.name} src={p.avatarUrl} size={20} tone={p.tone} />
+                </span>
+              ))}
+            </span>
+          ) : null}
+          {people?.length ? formatNames(people.map((p) => p.name)) : detail}
+        </div>
+      </div>
+      <Link
+        href={href}
+        className="inline-flex items-center gap-1.5 rounded-sm border border-rule-strong bg-sheet-2 px-2.5 py-1 text-[12.5px] font-semibold whitespace-nowrap text-ink-soft hover:border-pen hover:text-pen"
+      >
+        Open {tab} <span aria-hidden="true" className="text-pen">&raquo;</span>
+      </Link>
+    </div>
+  );
+}
+
+function formatNames(names: string[]) {
+  if (names.length <= 2) return names.join(" and ");
+  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
 }

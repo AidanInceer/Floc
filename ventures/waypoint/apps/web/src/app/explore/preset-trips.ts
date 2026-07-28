@@ -24,6 +24,30 @@ export type PresetTrip = {
   summary: string;
   highlights: string[];
   bestMonths: string;
+  /**
+   * Where the map thumbnail is centred — the destination, not the country
+   * centroid, so the Highlands listing shows Torridon rather than Edinburgh.
+   * Hand-set alongside a zoom because the right frame is editorial: an island
+   * loop wants the whole island, a coast week wants the coast.
+   */
+  lat: number;
+  lng: number;
+  mapZoom: number;
+};
+
+/**
+ * One pastel per region, reused by the filter chips and by every listing's
+ * tag, so the two read as the same key. These are the same `who-*` tokens the
+ * avatars use — the palette is deliberately shared rather than a second one
+ * invented here. Colour never carries the meaning alone: the tag spells the
+ * region out beside the country.
+ */
+export const REGION_TONE: Record<Region, string> = {
+  Europe: "who-2",
+  Africa: "who-4",
+  Asia: "who-3",
+  Americas: "who-1",
+  Oceania: "who-6",
 };
 
 export const REGIONS = [
@@ -56,6 +80,9 @@ export const PRESET_TRIPS: PresetTrip[] = [
       "A day on Capri without the day-trip crowd",
     ],
     bestMonths: "May, June, September",
+    lat: 40.612,
+    lng: 14.526,
+    mapZoom: 9,
   },
   {
     id: "scottish-highlands-bothy",
@@ -76,6 +103,9 @@ export const PRESET_TRIPS: PresetTrip[] = [
       "A rest day in Plockton",
     ],
     bestMonths: "May, June, September",
+    lat: 57.5,
+    lng: -4.9,
+    mapZoom: 7,
   },
   {
     id: "morocco-atlas-sahara",
@@ -95,6 +125,9 @@ export const PRESET_TRIPS: PresetTrip[] = [
       "A night under canvas in the dunes",
     ],
     bestMonths: "March to May, October",
+    lat: 31.63,
+    lng: -7.99,
+    mapZoom: 7,
   },
   {
     id: "andalusia-road-trip",
@@ -114,6 +147,9 @@ export const PRESET_TRIPS: PresetTrip[] = [
       "Tapas crawl in Triana",
     ],
     bestMonths: "April, May, October",
+    lat: 37.3,
+    lng: -5.2,
+    mapZoom: 7,
   },
   {
     id: "japan-golden-route",
@@ -133,6 +169,9 @@ export const PRESET_TRIPS: PresetTrip[] = [
       "Nishiki market and Fushimi Inari at dawn",
     ],
     bestMonths: "March to May, October, November",
+    lat: 35.36,
+    lng: 137.0,
+    mapZoom: 6,
   },
   {
     id: "iceland-ring-road",
@@ -152,6 +191,9 @@ export const PRESET_TRIPS: PresetTrip[] = [
       "Snæfellsnes on the way back",
     ],
     bestMonths: "June to August",
+    lat: 64.9,
+    lng: -18.6,
+    mapZoom: 7,
   },
   {
     id: "portugal-surf-and-wine",
@@ -171,6 +213,9 @@ export const PRESET_TRIPS: PresetTrip[] = [
       "A long lunch in Time Out market",
     ],
     bestMonths: "May to September",
+    lat: 38.96,
+    lng: -9.42,
+    mapZoom: 8,
   },
   {
     id: "patagonia-w-trek",
@@ -190,6 +235,9 @@ export const PRESET_TRIPS: PresetTrip[] = [
       "French valley",
     ],
     bestMonths: "November to March",
+    lat: -50.94,
+    lng: -73.0,
+    mapZoom: 7,
   },
   {
     id: "vietnam-north-to-south",
@@ -209,6 +257,9 @@ export const PRESET_TRIPS: PresetTrip[] = [
       "Cooking class in Hội An",
     ],
     bestMonths: "February to April, October",
+    lat: 16.0,
+    lng: 107.0,
+    mapZoom: 5,
   },
   {
     id: "new-zealand-south-island",
@@ -228,5 +279,8 @@ export const PRESET_TRIPS: PresetTrip[] = [
       "Aoraki / Mount Cook stargazing",
     ],
     bestMonths: "November to March",
+    lat: -44.0,
+    lng: 170.0,
+    mapZoom: 6,
   },
 ];

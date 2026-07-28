@@ -1,0 +1,152 @@
+/**
+ * Server-side geocoding via Nominatim (v0.2 tickets 15/12). Replaces the
+ * Mapbox version: Mapbox's permanent geocoding has no free tier and needs a
+ * card, and Nominatim's usage policy explicitly permits storing results —
+ * which is the whole point of the `place` table.
+ *
+ * Two hard requirements from that policy, both enforced here:
+ *   - a real identifying User-Agent (agreed with the user, ticket 12)
+ *   - at most one request per second, absolute
+ *
+ * Never call this from the client: the rate limiter only means anything if
+ * every request funnels through one server-side queue.
+ */
+import { and, eq, isNull } from "drizzle-orm";
+
+import { db } from "@/db";
+import { place } from "@/db/schema";
+
+/**
+ * Nominatim requires an identifying UA with a contact address. Not a secret,
+ * not an env var — there is no key to leak (hub CLAUDE.md rule 3 is moot here,
+ * but nothing is going in the repo either way).
+ */
+const USER_AGENT = "Waypoint (aidaninceer0@gmail.com)";
+
+const NOMINATIM_SEARCH = "https://nominatim.openstreetmap.org/search";
+
+/** Nominatim's absolute cap: 1 request per second. */
+const MIN_INTERVAL_MS = 1000;
+
+export type PlaceSearchResult = {
+  /** Provider-scoped stable id, e.g. `osm:relation:65606`. */
+  providerId: string;
+  /** Short form — what gets stored and shown on the Route tab ("Porto"). */
+  name: string;
+  /** Nominatim's full display name, only for disambiguating in the dropdown. */
+  label: string;
+  lat: number;
+  lng: number;
+};
+
+/**
+ * Serialises every outgoing geocode into a single ≥1s-spaced queue. A chain of
+ * promises rather than a timer loop, so callers just await their turn.
+ */
+let queue: Promise<unknown> = Promise.resolve();
+let lastCall = 0;
+
+function throttle<T>(fn: () => Promise<T>): Promise<T> {
+  const run = queue.then(async () => {
+    const wait = MIN_INTERVAL_MS - (Date.now() - lastCall);
+    if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+    lastCall = Date.now();
+    return fn();
+  });
+  // Keep the chain alive even if this call rejects.
+  queue = run.catch(() => {});
+  return run;
+}
+
+type NominatimHit = {
+  osm_type?: string;
+  osm_id?: number;
+  place_id?: number;
+  name?: string;
+  display_name?: string;
+  lat?: string;
+  lon?: string;
+};
+
+/**
+ * Free-text place search. Unreachable, rate-limited or malformed → an empty
+ * list and one console warning, so the picker degrades to a typed place name
+ * (CLAUDE.md rule 11) rather than throwing.
+ */
+export async function searchPlaces(query: string): Promise<PlaceSearchResult[]> {
+  if (!query.trim()) return [];
+
+  const url = new URL(NOMINATIM_SEARCH);
+  url.searchParams.set("q", query);
+  url.searchParams.set("format", "jsonv2");
+  url.searchParams.set("limit", "5");
+  url.searchParams.set("addressdetails", "0");
+
+  let hits: NominatimHit[];
+  try {
+    const res = await throttle(() =>
+      fetch(url.toString(), {
+        headers: { "User-Agent": USER_AGENT, Accept: "application/json" },
+        signal: AbortSignal.timeout(5000),
+      }),
+    );
+    if (!res.ok) {
+      console.warn(`[geocoding] nominatim search failed: ${res.status}`);
+      return [];
+    }
+    hits = (await res.json()) as NominatimHit[];
+  } catch (err) {
+    console.warn(`[geocoding] nominatim unreachable — falling back to free text: ${String(err)}`);
+    return [];
+  }
+
+  if (!Array.isArray(hits)) return [];
+
+  return hits
+    .map((h) => {
+      const lat = Number(h.lat);
+      const lng = Number(h.lon);
+      const label = h.display_name ?? h.name ?? "";
+      // display_name is a full address chain; the Route tab wants "Porto".
+      const name = h.name || label.split(",")[0]?.trim() || "";
+      const providerId =
+        h.osm_type && h.osm_id !== undefined
+          ? `osm:${h.osm_type}:${h.osm_id}`
+          : h.place_id !== undefined
+            ? `nominatim:${h.place_id}`
+            : null;
+      if (!providerId || !name || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+      return { providerId, name, label: label || name, lat, lng };
+    })
+    .filter((r): r is PlaceSearchResult => r !== null);
+}
+
+/** Inserts a `place`, reusing an existing non-deleted row with the same providerId. */
+export async function upsertPlace(input: {
+  providerId: string | null;
+  name: string;
+  lat?: number | null;
+  lng?: number | null;
+}): Promise<number> {
+  if (input.providerId) {
+    const existing = await db
+      .select({ id: place.id })
+      .from(place)
+      .where(and(eq(place.providerId, input.providerId), isNull(place.deletedAt)))
+      .get();
+    if (existing) return existing.id;
+  }
+
+  const inserted = await db
+    .insert(place)
+    .values({
+      providerId: input.providerId,
+      name: input.name,
+      lat: input.lat ?? null,
+      lng: input.lng ?? null,
+    })
+    .returning({ id: place.id })
+    .get();
+
+  return inserted.id;
+}

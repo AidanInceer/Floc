@@ -166,7 +166,7 @@ async function main() {
   const [lisbon] = await db
     .insert(place)
     .values({
-      mapboxId: "dXJuOm1ieHBsYzpMaXNib24",
+      providerId: "osm:relation:5400890",
       name: "Lisbon, Portugal",
       lat: 38.7223,
       lng: -9.1393,
@@ -176,7 +176,7 @@ async function main() {
   const [lagos] = await db
     .insert(place)
     .values({
-      mapboxId: "dXJuOm1ieHBsYzpMYWdvcw",
+      providerId: "osm:relation:5978639",
       name: "Lagos, Portugal",
       lat: 37.1028,
       lng: -8.6742,

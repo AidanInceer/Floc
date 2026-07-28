@@ -12,6 +12,7 @@
  *   admin/member distinction beyond the invite/kick/delete list (ticket 01).
  */
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
@@ -21,7 +22,7 @@ import { requireTripAccess } from "@/lib/access";
 import { touch } from "@/lib/unlocks";
 import { computeSplits, formatMoney, parseMoney } from "@/lib/money";
 import type { SplitInput } from "@/lib/money";
-import { emails, sendEmail } from "@/lib/email";
+import { emails, sendEmails } from "@/lib/email";
 
 export type ActionState = { error?: string };
 
@@ -46,7 +47,15 @@ function readExpenseFields(formData: FormData) {
   return { description, currency, splitType, paidBy, dayId, notes };
 }
 
-/** Emails everyone in the split except whoever is at the keyboard right now. */
+/**
+ * Emails everyone in the split except whoever is at the keyboard right now.
+ *
+ * Addresses come from the roster `requireTripAccess` already loaded — the
+ * `user` table is only consulted for a participant who isn't on it (someone
+ * kicked since the expense was written, whose split rows survive by design).
+ * The sends go out through `sendEmails` so the whole batch shares one
+ * preference lookup.
+ */
 async function notifyParticipants(args: {
   tripId: number;
   tripName: string;
@@ -55,22 +64,27 @@ async function notifyParticipants(args: {
   description: string;
   currency: Currency;
   splits: { userId: string; owedAmountMinor: number }[];
+  members: { userId: string; email: string }[];
 }) {
   const others = args.splits.filter((s) => s.userId !== args.fromUserId);
   if (others.length === 0) return;
 
-  const rows = await db
-    .select({ id: user.id, email: user.email })
-    .from(user)
-    .where(inArray(user.id, others.map((s) => s.userId)))
-    .all();
-  const emailById = new Map(rows.map((r) => [r.id, r.email]));
+  const emailById = new Map(args.members.map((m) => [m.userId, m.email]));
+  const unknown = others.filter((s) => !emailById.has(s.userId));
+  if (unknown.length) {
+    const rows = await db
+      .select({ id: user.id, email: user.email })
+      .from(user)
+      .where(inArray(user.id, unknown.map((s) => s.userId)))
+      .all();
+    for (const r of rows) emailById.set(r.id, r.email);
+  }
 
-  await Promise.all(
-    others.map((s) => {
+  await sendEmails(
+    others.flatMap((s) => {
       const to = emailById.get(s.userId);
-      if (!to) return Promise.resolve();
-      return sendEmail(
+      if (!to) return [];
+      return [
         emails.expenseAdded({
           to,
           toUserId: s.userId,
@@ -80,7 +94,7 @@ async function notifyParticipants(args: {
           description: args.description,
           share: formatMoney(s.owedAmountMinor, args.currency),
         }),
-      );
+      ];
     }),
   );
 }
@@ -136,15 +150,21 @@ export async function addExpense(
     );
   });
 
-  await notifyParticipants({
-    tripId,
-    tripName: access.trip.name,
-    fromName: access.viewer.name,
-    fromUserId: access.viewer.id,
-    description,
-    currency,
-    splits,
-  });
+  // Mail is a side effect of the write, not part of it: `after()` lets the
+  // form come back as soon as the ledger is correct and runs the sends once
+  // the response has flushed.
+  after(() =>
+    notifyParticipants({
+      tripId,
+      tripName: access.trip.name,
+      fromName: access.viewer.name,
+      fromUserId: access.viewer.id,
+      description,
+      currency,
+      splits,
+      members: access.members,
+    }),
+  );
 
   revalidatePath(`/trip/${tripId}/money`);
   return {};
@@ -214,15 +234,18 @@ export async function updateExpense(
     );
   });
 
-  await notifyParticipants({
-    tripId,
-    tripName: access.trip.name,
-    fromName: access.viewer.name,
-    fromUserId: access.viewer.id,
-    description,
-    currency,
-    splits,
-  });
+  after(() =>
+    notifyParticipants({
+      tripId,
+      tripName: access.trip.name,
+      fromName: access.viewer.name,
+      fromUserId: access.viewer.id,
+      description,
+      currency,
+      splits,
+      members: access.members,
+    }),
+  );
 
   revalidatePath(`/trip/${tripId}/money`);
   return {};

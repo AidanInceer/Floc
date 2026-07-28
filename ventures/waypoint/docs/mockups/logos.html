@@ -1,0 +1,174 @@
+<title>Waypoint — logo & wordmark mockups</title>
+<style>
+  :root {
+    --paper: #f3eee2; --sheet: #fbf8f1; --sheet-3: #e7dfca;
+    --rule: #ded3ba; --rule-2: #c4b795;
+    --ink: #23211c; --ink-3: #8b8477;
+    --pen: #2a4d7a; --red: #a03f36;
+    --trail: #d9c9a8;
+  }
+  body { margin: 0; background: var(--paper); color: var(--ink);
+    font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; }
+  main { max-width: 1060px; margin: 0 auto; padding: 40px 24px 80px; }
+  h1 { font: 600 24px/1.2 Georgia, serif; margin: 0 0 4px; }
+  .sub { color: var(--ink-3); margin: 0 0 32px; }
+  h2 { font: 600 13px/1 ui-sans-serif, system-ui, sans-serif; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--ink-3); margin: 40px 0 14px;
+    border-bottom: 1px solid var(--rule); padding-bottom: 8px; }
+  .row { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .row-5 { display: grid; gap: 18px; grid-template-columns: repeat(5, 1fr); }
+  .card { background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px;
+    padding: 22px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .card.wide { align-items: flex-start; padding: 22px 24px; }
+  .cap { font-size: 12px; color: var(--ink-3); letter-spacing: .04em; text-align: center; }
+  .card svg { max-width: 100%; height: auto; }
+  .sizes { display: flex; align-items: flex-end; gap: 22px; flex-wrap: wrap; }
+</style>
+
+<main>
+  <h1>Waypoint — logo mockups</h1>
+  <p class="sub">Marks and wordmarks in the paper/biro palette. All static SVG, no external assets.</p>
+
+  <h2>Circle mark — variations on A</h2>
+  <!-- All share: solid biro ring · dashed S route · red dot -->
+  <div class="row-5">
+
+    <!-- A-1: original — dot at bottom, route curves lower-left to upper-right -->
+    <div class="card">
+      <svg viewBox="0 0 120 120" width="130" height="130" role="img" aria-label="Mark A-1">
+        <circle cx="60" cy="60" r="50" fill="none" stroke="var(--pen)" stroke-width="4"/>
+        <path d="M38 90 C 84 78, 24 60, 64 42 C 80 35, 82 28, 78 22"
+              fill="none" stroke="var(--pen)" stroke-width="4.5" stroke-linecap="round"
+              stroke-dasharray="0.1 11"/>
+        <circle cx="38" cy="90" r="7.5" fill="var(--red)"/>
+      </svg>
+      <span class="cap">A-1 — original<br>lower-left origin</span>
+    </div>
+
+    <!-- A-2: reversed — dot at top-right, route lower-right to upper-left -->
+    <div class="card">
+      <svg viewBox="0 0 120 120" width="130" height="130" role="img" aria-label="Mark A-2">
+        <circle cx="60" cy="60" r="50" fill="none" stroke="var(--pen)" stroke-width="4"/>
+        <path d="M82 90 C 36 78, 96 60, 56 42 C 40 35, 38 28, 42 22"
+              fill="none" stroke="var(--pen)" stroke-width="4.5" stroke-linecap="round"
+              stroke-dasharray="0.1 11"/>
+        <circle cx="42" cy="22" r="7.5" fill="var(--red)"/>
+      </svg>
+      <span class="cap">A-2 — reversed<br>upper-left destination</span>
+    </div>
+
+    <!-- A-3: centre dot, route passes through middle -->
+    <div class="card">
+      <svg viewBox="0 0 120 120" width="130" height="130" role="img" aria-label="Mark A-3">
+        <circle cx="60" cy="60" r="50" fill="none" stroke="var(--pen)" stroke-width="4"/>
+        <path d="M30 96 C 76 82, 16 62, 62 44 C 78 37, 90 28, 90 22"
+              fill="none" stroke="var(--pen)" stroke-width="4.5" stroke-linecap="round"
+              stroke-dasharray="0.1 11"/>
+        <circle cx="60" cy="62" r="8" fill="var(--red)"/>
+      </svg>
+      <span class="cap">A-3 — waypoint<br>at the midpoint</span>
+    </div>
+
+    <!-- A-4: fatter stroke, more pronounced S, dot + halo -->
+    <div class="card">
+      <svg viewBox="0 0 120 120" width="130" height="130" role="img" aria-label="Mark A-4">
+        <circle cx="60" cy="60" r="50" fill="none" stroke="var(--pen)" stroke-width="5"/>
+        <path d="M34 94 C 90 78, 18 58, 68 38 C 84 31, 88 22, 82 16"
+              fill="none" stroke="var(--pen)" stroke-width="5.5" stroke-linecap="round"
+              stroke-dasharray="0.1 12"/>
+        <circle cx="34" cy="94" r="9" fill="var(--red)"/>
+        <circle cx="34" cy="94" r="16" fill="none" stroke="var(--red)" stroke-width="1.5" opacity=".35"/>
+      </svg>
+      <span class="cap">A-4 — bolder weight<br>with halo</span>
+    </div>
+
+    <!-- A-5: two dots (start + end), slimmer ring -->
+    <div class="card">
+      <svg viewBox="0 0 120 120" width="130" height="130" role="img" aria-label="Mark A-5">
+        <circle cx="60" cy="60" r="50" fill="none" stroke="var(--pen)" stroke-width="3"/>
+        <path d="M40 92 C 86 80, 26 62, 66 44 C 82 37, 82 30, 78 26"
+              fill="none" stroke="var(--pen)" stroke-width="4" stroke-linecap="round"
+              stroke-dasharray="0.1 10"/>
+        <circle cx="40" cy="92" r="5" fill="none" stroke="var(--pen)" stroke-width="2.5"/>
+        <circle cx="78" cy="26" r="7" fill="var(--red)"/>
+      </svg>
+      <span class="cap">A-5 — open start<br>red destination</span>
+    </div>
+  </div>
+
+  <h2>Wordmark</h2>
+  <!-- W in Georgia serif · red dot over dotless-i · beige trail waves over then loops under -->
+
+  <!-- single preferred wordmark -->
+  <div class="card wide">
+    <svg viewBox="0 0 420 130" width="420" height="130" role="img" aria-label="Waypoint wordmark">
+      <!--
+        Trail: starts at top-left of W (x≈22, y≈30), waves across the top of the word,
+        then dips below the baseline in a gentle loop, sweeps back up to the red i-dot.
+        Merges option 2 (loop-under) + option 3 (wave-over).
+      -->
+      <path d="M22 30 C 52 8, 90 8, 130 22 C 166 36, 196 4, 224 50
+               C 252 96, 244 124, 278 122 C 310 120, 336 96, 350 72"
+            fill="none" stroke="var(--trail)" stroke-width="3.5"
+            stroke-linecap="round" stroke-dasharray="0.1 9"/>
+      <!-- W — normal Georgia, same size/style as the rest -->
+      <text x="16" y="98"
+            font-family="Georgia, 'Times New Roman', serif"
+            font-size="68" fill="var(--ink)">W</text>
+      <!-- aypoınt — dotless-i so we can place our own red dot -->
+      <text x="72 106 139 179 214 234 276" y="98"
+            font-family="Georgia, 'Times New Roman', serif"
+            font-size="68" fill="var(--ink)">aypoınt</text>
+      <!-- red dot above the ı — i starts ~x=214, width~20, centre≈224 -->
+      <circle cx="224" cy="50" r="6.5" fill="var(--red)"/>
+    </svg>
+    <span class="cap">W in Georgia serif · trail waves over then loops below · red dot replaces i-dot</span>
+  </div>
+
+  <h2>Lockup &amp; scale check</h2>
+  <div class="card wide">
+    <div class="sizes">
+      <!-- full lockup: mark A-1 + wordmark -->
+      <svg viewBox="0 0 560 130" width="500" height="116" role="img" aria-label="Full lockup">
+        <g transform="scale(0.88) translate(0 7)">
+          <circle cx="60" cy="60" r="50" fill="none" stroke="var(--pen)" stroke-width="4"/>
+          <path d="M38 90 C 84 78, 24 60, 64 42 C 80 35, 82 28, 78 22"
+                fill="none" stroke="var(--pen)" stroke-width="4.5" stroke-linecap="round"
+                stroke-dasharray="0.1 11"/>
+          <circle cx="38" cy="90" r="7.5" fill="var(--red)"/>
+        </g>
+        <g transform="translate(115 0) scale(0.82)">
+          <path d="M22 30 C 52 8, 82 8, 112 22 C 148 40, 180 6, 220 14
+                   C 246 20, 252 70, 240 108 C 232 128, 252 128, 276 110
+                   C 294 96, 290 72, 224 50"
+                fill="none" stroke="var(--trail)" stroke-width="3.5"
+                stroke-linecap="round" stroke-dasharray="0.1 9"/>
+          <text x="16" y="98"
+                font-family="Georgia, 'Times New Roman', serif"
+                font-size="68" fill="var(--ink)">W</text>
+          <text x="72 106 139 179 214 234 276" y="98"
+                font-family="Georgia, 'Times New Roman', serif"
+                font-size="68" fill="var(--ink)">aypoınt</text>
+          <circle cx="224" cy="50" r="6.5" fill="var(--red)"/>
+        </g>
+      </svg>
+      <!-- favicon 48px -->
+      <svg viewBox="0 0 120 120" width="48" height="48" role="img" aria-label="48px favicon">
+        <circle cx="60" cy="60" r="50" fill="none" stroke="var(--pen)" stroke-width="7"/>
+        <path d="M38 90 C 84 78, 24 60, 64 42 C 80 35, 82 28, 78 22"
+              fill="none" stroke="var(--pen)" stroke-width="8" stroke-linecap="round"
+              stroke-dasharray="0.1 16"/>
+        <circle cx="38" cy="90" r="11" fill="var(--red)"/>
+      </svg>
+      <!-- favicon 24px -->
+      <svg viewBox="0 0 120 120" width="24" height="24" role="img" aria-label="24px favicon">
+        <circle cx="60" cy="60" r="50" fill="none" stroke="var(--pen)" stroke-width="10"/>
+        <path d="M38 90 C 84 78, 24 60, 64 42 C 80 35, 82 28, 78 22"
+              fill="none" stroke="var(--pen)" stroke-width="11" stroke-linecap="round"
+              stroke-dasharray="0.1 22"/>
+        <circle cx="38" cy="90" r="14" fill="var(--red)"/>
+      </svg>
+    </div>
+    <span class="cap">Mark A-1 + wordmark at full size, then 48px and 24px favicon weights</span>
+  </div>
+</main>

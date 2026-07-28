@@ -1,6 +1,13 @@
 "use client";
 
-import { useActionState, useEffect, useId, useRef, useState } from "react";
+import {
+  useActionState,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import type { ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 
@@ -74,6 +81,8 @@ export function Sheet({
   children,
   triggerVariant = "primary",
   triggerClassName,
+  triggerLabel,
+  keepOpenOnSubmit,
 }: {
   trigger: ReactNode;
   title: string;
@@ -87,6 +96,18 @@ export function Sheet({
   /** Override the trigger's own styling — a sticky note has no room for a
       full-size uppercase button. */
   triggerClassName?: string;
+  /** Accessible name and tooltip for a trigger whose content is an icon
+      (the roster's nudge bell, v0.2 ticket 07). */
+  triggerLabel?: string;
+  /**
+   * Stay open after a form inside submits. For a sheet you submit *once* —
+   * add an event, edit one — closing is the right end to the interaction. A
+   * comment thread is the opposite: reacting, replying and posting are all
+   * things you do several of in a row, and closing the modal under someone
+   * who just tapped a heart loses their place in the conversation
+   * (v0.2 ticket 06).
+   */
+  keepOpenOnSubmit?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(false);
@@ -110,6 +131,8 @@ export function Sheet({
       <Button
         variant={triggerVariant}
         className={triggerClassName}
+        aria-label={triggerLabel}
+        title={triggerLabel}
         onClick={() => {
           ref.current?.showModal();
           setOpen(true);
@@ -141,8 +164,12 @@ export function Sheet({
             </button>
           </div>
           {/* Submitting anything inside dismisses the sheet — the server action
-              revalidates the page underneath it. */}
-          <div className="p-4" onSubmit={() => setTimeout(close, 0)}>
+              revalidates the page underneath it — unless the sheet is one you
+              stay in and keep working (see `keepOpenOnSubmit`). */}
+          <div
+            className="p-4"
+            onSubmit={keepOpenOnSubmit ? undefined : () => setTimeout(close, 0)}
+          >
             {open ? children : null}
           </div>
         </Card>
@@ -238,22 +265,145 @@ export function ConfirmSubmit({
 export function CopyLink({
   value,
   label = "Copy invite link",
+  variant = "secondary",
+  icon,
 }: {
   value: string;
   label?: string;
+  variant?: "primary" | "secondary" | "ghost" | "danger";
+  /** Leading glyph — the roster's "Share trip" reads as a share, not a copy
+      (v0.2 ticket 07), even though copying is what it does. */
+  icon?: ReactNode;
 }) {
   const [copied, setCopied] = useState(false);
   return (
     <Button
-      variant="secondary"
+      variant={variant}
       onClick={async () => {
         await navigator.clipboard.writeText(value);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       }}
     >
-      {copied ? "Copied" : label}
+      {copied ? "Copied" : (
+        <>
+          {icon}
+          {label}
+        </>
+      )}
     </Button>
+  );
+}
+
+/**
+ * A reorderable list of cards — the stops on Route, the days on Days.
+ *
+ * Drag is the *fast* way, never the only way: pointer drag has no keyboard
+ * equivalent and no story on a touchscreen worth relying on, so every row also
+ * carries plain move-up/move-down buttons. Both call the same server action.
+ *
+ * `onReorder` is a bound server action, so the reorder is a real write, not
+ * local state — the list re-renders from the database on the next paint. While
+ * it's in flight the whole list dims, because a half-applied itinerary that
+ * still accepted drags would let two moves race each other.
+ *
+ * The rows themselves are server-rendered and handed in as `items` — this
+ * component owns the dragging, not the content.
+ */
+export function DragList({
+  items,
+  onReorder,
+  label,
+}: {
+  items: { key: string; label: string; node: ReactNode }[];
+  onReorder: (from: number, to: number) => Promise<void>;
+  /** Names the thing being moved, e.g. "stop" — used in the button labels. */
+  label: string;
+}) {
+  const [dragging, setDragging] = useState<number | null>(null);
+  const [over, setOver] = useState<number | null>(null);
+  // `draggable` is armed by the grip, not set permanently: a permanently
+  // draggable card makes selecting the text inside it start a drag instead.
+  const [armed, setArmed] = useState<number | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  const move = (from: number, to: number) => {
+    setDragging(null);
+    setOver(null);
+    setArmed(null);
+    if (from === to || to < 0 || to >= items.length) return;
+    startTransition(async () => {
+      await onReorder(from, to);
+    });
+  };
+
+  return (
+    <div className={cx("flex flex-col gap-4", pending && "pointer-events-none opacity-60")}>
+      {items.map((item, i) => (
+        <div
+          key={item.key}
+          draggable={armed === i}
+          onDragStart={(e) => {
+            setDragging(i);
+            e.dataTransfer.effectAllowed = "move";
+            // Firefox won't start a drag without some payload set.
+            e.dataTransfer.setData("text/plain", item.key);
+          }}
+          onDragEnd={() => {
+            setDragging(null);
+            setOver(null);
+            setArmed(null);
+          }}
+          onDragOver={(e) => {
+            if (dragging === null) return;
+            e.preventDefault();
+            setOver(i);
+          }}
+          onDrop={(e) => {
+            if (dragging === null) return;
+            e.preventDefault();
+            move(dragging, i);
+          }}
+          className={cx(
+            "rounded-md transition-shadow",
+            dragging === i && "opacity-50",
+            over === i && dragging !== null && dragging !== i && "ring-2 ring-pen",
+          )}
+        >
+          <div className="mb-1 flex items-center gap-1">
+            <span
+              onMouseDown={() => setArmed(i)}
+              onMouseUp={() => setArmed(null)}
+              aria-hidden="true"
+              title={`Drag to move this ${label}`}
+              className="cursor-grab select-none px-1 font-mono text-sm leading-none text-ink-faint active:cursor-grabbing"
+            >
+              ⠿
+            </span>
+            <Button
+              variant="ghost"
+              disabled={i === 0}
+              aria-label={`Move ${item.label} earlier`}
+              onClick={() => move(i, i - 1)}
+            >
+              ↑
+            </Button>
+            <Button
+              variant="ghost"
+              disabled={i === items.length - 1}
+              aria-label={`Move ${item.label} later`}
+              onClick={() => move(i, i + 1)}
+            >
+              ↓
+            </Button>
+            <span className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-faint">
+              {i + 1} of {items.length}
+            </span>
+          </div>
+          {item.node}
+        </div>
+      ))}
+    </div>
   );
 }
 

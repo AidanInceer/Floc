@@ -1,0 +1,648 @@
+<title>Waypoint — a map at the top of Route (v0.2 ticket 08)</title>
+
+<!--
+  Prototype for v0.2 ticket 08, "A map at the top of Route".
+
+  UNLIKE every other mockup in this folder, this one MAKES EXTERNAL REQUESTS —
+  Leaflet from unpkg, map tiles from tile.openstreetmap.org. A map mockup that
+  fetched nothing would be a drawing of a map, and the ticket explicitly asks
+  for real tiles at real coordinates rather than a sketch. It is a throwaway
+  artefact: do not publish it as an Artifact, and do not treat the CDN tags as
+  a precedent for the other files here.
+
+  Tokens are copied verbatim from apps/web/src/app/globals.css. Light only.
+  Coordinates are real (Nominatim, the provider wired by ticket 12).
+-->
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+  :root {
+    color-scheme: light;
+
+    --paper: #f3eee2;
+    --sheet: #fbf8f1;
+    --sheet-2: #f1ead9;
+    --sheet-3: #e7dfca;
+    --rule: #ded3ba;
+    --rule-2: #c4b795;
+    --line: #cfe0e6;
+    --margin-line: #dfb4ae;
+    --tape: rgb(214 196 150 / 0.55);
+
+    --ink: #23211c;
+    --ink-2: #57524a;
+    --ink-3: #8b8477;
+
+    --pen: #2a4d7a;
+    --pen-2: #dfe7f1;
+    --pencil: #6a6559;
+
+    --highlight: #f3dd7e;
+    --highlight-2: #fbf2cd;
+    --highlight-ink: #7a6414;
+    --red: #a03f36;
+    --red-2: #f6e3df;
+    --green: #4d6b3f;
+    --green-2: #e6ecdd;
+
+    --shadow-sm: 0 1px 1px rgb(35 33 28 / 0.05);
+    --shadow: 0 1px 1px rgb(35 33 28 / 0.05), 0 12px 26px -14px rgb(35 33 28 / 0.35);
+
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+    --hand: "Segoe Print", "Bradley Hand", "Comic Sans MS", "Segoe Script", cursive;
+    --type: "Courier New", "Cascadia Mono", Consolas, monospace;
+  }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 16px;
+    line-height: 1.55;
+  }
+
+  .wrap { max-width: 68rem; margin: 0 auto; padding: 2rem 1.25rem 5rem; }
+
+  .doc-head { margin-bottom: 2rem; }
+  .doc-head h1 { font-size: 1.6rem; margin: 0 0 .35rem; }
+  .doc-head p { margin: 0; color: var(--ink-2); max-width: 46rem; }
+  .doc-head .stamp {
+    display: inline-block; font-family: var(--type); font-size: .7rem;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--red);
+    border: 1px solid var(--red); border-radius: 2px; padding: .15rem .45rem;
+    transform: rotate(-1.5deg); margin-bottom: .75rem;
+  }
+
+  section { margin-bottom: 3.5rem; }
+  .sec-head { display: flex; align-items: baseline; gap: .75rem; margin-bottom: .25rem; }
+  .sec-head h2 { font-size: 1.15rem; margin: 0; }
+  .sec-head .tag {
+    font-family: var(--type); font-size: .65rem; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--ink-3);
+  }
+  .sec-note { margin: 0 0 1rem; color: var(--ink-2); font-size: .92rem; max-width: 48rem; }
+  .sec-note b { color: var(--ink); }
+
+  /* The sheet — the app's Card, near enough for a mockup. */
+  .sheet {
+    background: var(--sheet); border: 1px solid var(--rule); border-radius: 3px;
+    box-shadow: var(--shadow); overflow: hidden;
+  }
+  .sheet-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+    padding: .7rem 1rem; border-bottom: 1px solid var(--rule); background: var(--sheet-2);
+  }
+  .sheet-head h3 { margin: 0; font-size: 1rem; }
+  .sheet-head .hint { font-family: var(--type); font-size: .72rem; color: var(--ink-3); }
+
+  /* ---- The map frame ------------------------------------------------ */
+  .mapframe { position: relative; }
+  .mapframe .map { height: 300px; width: 100%; background: var(--sheet-2); }
+
+  /* Variant B — muted. Desaturate and lift the tiles so the ink on top wins. */
+  .muted .leaflet-tile-pane { filter: grayscale(.85) contrast(.82) brightness(1.08); }
+
+  /* Variant C — paper-toned. Sepia pushes the greens/blues towards the sheet's
+     cream, then a multiply wash of --paper unifies whatever is left, and a
+     faint ruled overlay ties it to the notebook. */
+  .papery .leaflet-tile-pane {
+    filter: sepia(.55) saturate(.55) contrast(.78) brightness(1.12) hue-rotate(-8deg);
+  }
+  .papery .paper-wash {
+    position: absolute; inset: 0; z-index: 400; pointer-events: none;
+    background:
+      repeating-linear-gradient(to bottom, transparent 0 27px, rgb(207 224 230 / .35) 27px 28px),
+      var(--paper);
+    mix-blend-mode: multiply; opacity: .55;
+  }
+  /* A vignette so the tiles fade into the sheet instead of ending at a hard edge. */
+  .papery .vignette {
+    position: absolute; inset: 0; z-index: 401; pointer-events: none;
+    box-shadow: inset 0 0 0 1px var(--rule), inset 0 0 34px 12px var(--sheet);
+  }
+
+  /* ---- Pins ---------------------------------------------------------- */
+  .pin {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--sheet); border: 2px solid var(--pen); color: var(--pen);
+    font-family: var(--type); font-size: .78rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: var(--shadow-sm);
+  }
+  .pin.nights::after {
+    content: attr(data-nights); position: absolute; top: -7px; right: -9px;
+    background: var(--highlight); color: var(--highlight-ink);
+    border: 1px solid var(--rule-2); border-radius: 8px;
+    font-family: var(--type); font-size: .58rem; line-height: 1;
+    padding: .1rem .25rem;
+  }
+  .leaflet-container { font-family: var(--serif); background: var(--sheet-2); }
+  .leaflet-control-attribution {
+    background: rgb(251 248 241 / .82) !important; font-family: var(--type);
+    font-size: .62rem !important; color: var(--ink-3);
+  }
+  .leaflet-control-attribution a { color: var(--pen); }
+  .leaflet-tooltip {
+    background: var(--sheet); border: 1px solid var(--rule-2); color: var(--ink);
+    font-family: var(--serif); font-size: .8rem; box-shadow: var(--shadow-sm);
+  }
+  .leaflet-tooltip-top::before { border-top-color: var(--rule-2); }
+
+  /* ---- The stop list under the map ----------------------------------- */
+  .stops { list-style: none; margin: 0; padding: 0; }
+  .stops li {
+    display: flex; align-items: baseline; gap: .6rem;
+    padding: .55rem 1rem; border-top: 1px solid var(--rule);
+  }
+  .stops li:first-child { border-top: 0; }
+  .stops .n {
+    font-family: var(--type); font-size: .72rem; color: var(--pen);
+    border: 1px solid var(--pen-2); background: var(--pen-2);
+    border-radius: 2px; padding: 0 .3rem;
+  }
+  .stops .nm { font-weight: 600; }
+  .stops .dt { font-family: var(--type); font-size: .72rem; color: var(--ink-3); margin-left: auto; }
+  .stops .badge {
+    font-family: var(--type); font-size: .68rem; padding: .05rem .35rem;
+    border-radius: 2px; background: var(--sheet-3); color: var(--ink-2);
+    border: 1px solid var(--rule);
+  }
+  .stops .badge.warn { background: var(--highlight-2); color: var(--highlight-ink); border-color: var(--rule-2); }
+
+  .noticebar {
+    display: flex; gap: .5rem; align-items: baseline;
+    padding: .6rem 1rem; background: var(--highlight-2);
+    border-bottom: 1px solid var(--rule); font-size: .88rem; color: var(--highlight-ink);
+  }
+  .noticebar b { font-family: var(--type); font-size: .68rem; letter-spacing: .06em; text-transform: uppercase; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+  @media (max-width: 860px) { .grid2 { grid-template-columns: 1fr; } }
+
+  .btnrow { display: flex; gap: .5rem; margin-bottom: .75rem; }
+  .btn {
+    font-family: var(--type); font-size: .72rem; cursor: pointer;
+    background: var(--sheet); border: 1px solid var(--rule-2); border-radius: 2px;
+    padding: .3rem .6rem; color: var(--ink-2);
+  }
+  .btn[aria-pressed="true"] { background: var(--pen); border-color: var(--pen); color: var(--sheet); }
+
+  /* ---- Postage-stamp placeholder --------------------------------------
+     The scalloped edge is a clip-path, not a border and NOT a mask. The mask
+     version (four repeating radial-gradients, one per side, unioned with an
+     inset rectangle) could not be made to work: mask layers union and cannot
+     be clipped to a run, so each edge band ran the full width or height of the
+     box and refilled the corners as solid squares underneath whatever corner
+     shape was drawn on top. That is why the corners kept protruding.
+
+     The polygon is built in JS (buildStampEdges) so the geometry is explicit:
+     the inner rectangle is inset by --sc, each corner is a quarter arc of
+     radius --sc centred on that inner corner, and each edge is a run of
+     semicircular bites between the corners. Every point of the outline is
+     therefore at most --sc outside the inner rectangle — the corners protrude
+     exactly as far as the scallop tips do, at any size or aspect ratio. */
+  .stamprow { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 1.5rem; }
+
+  .stampbox { margin: 0; --sc: 10px; }
+  .stampbox.landscape .stamp-paper { width: 288px; height: 192px; }
+  .stampbox.portrait  .stamp-paper { width: 168px; height: 252px; }
+  .stampbox.square    .stamp-paper { width: 204px; height: 204px; }
+
+  .stampbox .stamp-paper {
+    background: #fff;
+    padding: 16px;
+    /* The drop-shadow has to be a filter, not a box-shadow — a box-shadow on a
+       clipped box still draws the un-clipped rectangle. */
+    filter: drop-shadow(0 1px 1px rgb(35 33 28 / .12)) drop-shadow(0 10px 18px rgb(35 33 28 / .22));
+    /* JS overwrites this with the real polygon; the inset rectangle is the
+       fallback if scripting is off, so the box is never a full-bleed square. */
+    clip-path: inset(var(--sc));
+  }
+
+  /* The well inside the white border — empty, so it says what goes there. */
+  .stamp-inner {
+    height: 100%; display: flex; flex-direction: column; gap: .15rem;
+    align-items: center; justify-content: center; text-align: center;
+    background: var(--sheet-2); border: 1px dashed var(--rule-2);
+    background-size: cover; background-position: center;
+  }
+  .stamp-mark { font-family: var(--hand); font-size: 1rem; color: var(--pencil); }
+  .stamp-sub {
+    font-family: var(--type); font-size: .62rem; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--ink-3);
+  }
+  .stamp-inner.filled { border-style: solid; border-color: var(--rule); position: relative; }
+  /* The franking mark on a used stamp — a soft ring over the corner of the picture. */
+  .stamp-cancel {
+    position: absolute; top: 8px; left: 8px;
+    font-family: var(--type); font-size: .6rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--red);
+    border: 1.5px solid var(--red); border-radius: 999px;
+    padding: .2rem .5rem; transform: rotate(-8deg); opacity: .8;
+    background: rgb(255 255 255 / .35);
+  }
+
+  .verdict {
+    border-left: 3px solid var(--pen); background: var(--sheet);
+    padding: .9rem 1.1rem; margin-top: 1rem;
+  }
+  .verdict h4 { margin: 0 0 .4rem; font-size: .95rem; }
+  .verdict ul { margin: 0; padding-left: 1.1rem; color: var(--ink-2); font-size: .92rem; }
+  .verdict li { margin-bottom: .3rem; }
+
+  .hand { font-family: var(--hand); color: var(--pencil); }
+</style>
+
+<div class="wrap">
+  <div class="doc-head">
+    <div class="stamp">Prototype · v0.2 ticket 08</div>
+    <h1>A map at the top of Route</h1>
+    <p>
+      Real OpenStreetMap tiles at real coordinates, through the Leaflet wiring
+      ticket 12 added. Three tile treatments, then the questions the ticket asks
+      about behaviour — what&rsquo;s drawn, what happens with one stop, no stops,
+      no coordinates, and two continents.
+    </p>
+  </div>
+
+  <!-- ============================================================== -->
+  <section>
+    <div class="sec-head"><h2>A — Plain OSM tiles</h2><span class="tag">the default</span></div>
+    <p class="sec-note">
+      No treatment at all: the tiles as OSM serves them. Included as the control,
+      not as a candidate &mdash; the motorway reds and the park greens are louder
+      than anything the app puts on the page, and the map stops looking like part
+      of the notebook the moment it loads.
+    </p>
+    <div class="sheet">
+      <div class="sheet-head"><h3>Portugal, nine nights</h3><span class="hint">5 stops · 12–21 Sep</span></div>
+      <div class="mapframe"><div class="map" id="mapA"></div></div>
+      <ul class="stops" id="stopsA"></ul>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <section>
+    <div class="sec-head"><h2>B — Muted tiles</h2><span class="tag">grayscale + contrast</span></div>
+    <p class="sec-note">
+      A CSS filter on the tile pane only &mdash; <b>no second tile provider, no
+      account, no extra request</b>. The map drops to a grey base so the blue pins
+      and the route line are the only saturated things on it. Costs nothing to
+      ship beyond three lines of CSS.
+    </p>
+    <div class="sheet">
+      <div class="sheet-head"><h3>Portugal, nine nights</h3><span class="hint">5 stops · 12–21 Sep</span></div>
+      <div class="mapframe muted"><div class="map" id="mapB"></div></div>
+      <ul class="stops" id="stopsB"></ul>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <section>
+    <div class="sec-head"><h2>C — Paper-toned</h2><span class="tag">recommended</span></div>
+    <p class="sec-note">
+      Same trick, tuned towards the sheet: sepia pulls the greens and blues into
+      the cream range, a multiply wash of <code>--paper</code> plus the ruled line
+      texture sits over the tiles, and an inset vignette fades the edges into the
+      card instead of ending on a hard rectangle. It reads as a map drawn on the
+      same paper as everything else.
+    </p>
+    <div class="btnrow">
+      <button class="btn" id="fixedBtn" aria-pressed="true">Fixed view</button>
+      <button class="btn" id="interactiveBtn" aria-pressed="false">Interactive</button>
+      <span class="hand" style="align-self:center">&larr; the other half of the question</span>
+    </div>
+    <div class="sheet">
+      <div class="sheet-head"><h3>Portugal, nine nights</h3><span class="hint">5 stops · 12–21 Sep</span></div>
+      <div class="mapframe papery">
+        <div class="map" id="mapC"></div>
+        <div class="paper-wash"></div>
+        <div class="vignette"></div>
+      </div>
+      <ul class="stops" id="stopsC"></ul>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <section>
+    <div class="sec-head"><h2>Edge cases</h2><span class="tag">all in treatment C</span></div>
+    <p class="sec-note">
+      The four states the Route tab will actually be in most of the time. Every
+      one of them has to render without a crash (CLAUDE.md rule 11).
+    </p>
+
+    <div class="grid2">
+      <div class="sheet">
+        <div class="sheet-head"><h3>One stop</h3><span class="hint">no line to draw</span></div>
+        <div class="mapframe papery">
+          <div class="map" style="height:220px" id="mapOne"></div>
+          <div class="paper-wash"></div><div class="vignette"></div>
+        </div>
+        <ul class="stops" id="stopsOne"></ul>
+      </div>
+
+      <div class="sheet">
+        <div class="sheet-head"><h3>No coordinates</h3><span class="hint">every place typed free-text</span></div>
+        <div class="noticebar"><b>No map</b><span>None of these stops has a location pinned. Re-pick a place from the search to put them on a map.</span></div>
+        <ul class="stops" id="stopsNone"></ul>
+      </div>
+
+      <div class="sheet">
+        <div class="sheet-head"><h3>Some coordinates</h3><span class="hint">the common mixed case</span></div>
+        <div class="mapframe papery">
+          <div class="map" style="height:220px" id="mapPartial"></div>
+          <div class="paper-wash"></div><div class="vignette"></div>
+        </div>
+        <div class="noticebar"><b>Partly mapped</b><span>Cousin&rsquo;s place isn&rsquo;t on the map &mdash; it was typed, not picked.</span></div>
+        <ul class="stops" id="stopsPartial"></ul>
+      </div>
+
+      <div class="sheet">
+        <div class="sheet-head"><h3>Two continents</h3><span class="hint">bounds, zoomed right out</span></div>
+        <div class="mapframe papery">
+          <div class="map" style="height:220px" id="mapFar"></div>
+          <div class="paper-wash"></div><div class="vignette"></div>
+        </div>
+        <ul class="stops" id="stopsFar"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <section>
+    <div class="sec-head"><h2>Placeholder image box</h2><span class="tag">postage-stamp edge</span></div>
+    <p class="sec-note">
+      A stamp-shaped empty frame, for wherever a picture hasn&rsquo;t been added
+      yet. The perforated edge is a <b>clip-path polygon</b> &mdash; semicircular
+      bites along each side, and a quarter-arc corner that sticks out exactly as
+      far as a bite&rsquo;s tip does, so the corners stay flush at any shape or
+      size &mdash; so the white shape is genuinely cut out and sits on the
+      cream page rather than being a white rectangle with a drawn border.
+      Landscape, portrait and square, plus one holding a photo.
+    </p>
+    <div class="stamprow">
+      <figure class="stampbox landscape">
+        <div class="stamp-paper">
+          <div class="stamp-inner">
+            <span class="stamp-mark">Add a photo</span>
+            <span class="stamp-sub">landscape · 3:2</span>
+          </div>
+        </div>
+      </figure>
+
+      <figure class="stampbox portrait">
+        <div class="stamp-paper">
+          <div class="stamp-inner">
+            <span class="stamp-mark">Add a photo</span>
+            <span class="stamp-sub">portrait · 2:3</span>
+          </div>
+        </div>
+      </figure>
+
+      <figure class="stampbox square">
+        <div class="stamp-paper">
+          <div class="stamp-inner">
+            <span class="stamp-mark">Add a photo</span>
+            <span class="stamp-sub">square</span>
+          </div>
+        </div>
+      </figure>
+
+      <figure class="stampbox landscape">
+        <div class="stamp-paper">
+          <!-- Filled state: same cut-out, a picture instead of the dashed well. -->
+          <div class="stamp-inner filled" style="background-image:url('https://tile.openstreetmap.org/6/30/24.png')">
+            <span class="stamp-cancel">Lisbon</span>
+          </div>
+        </div>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <section>
+    <div class="verdict">
+      <h4>What this prototype is arguing for</h4>
+      <ul>
+        <li><b>Treatment C</b>, the paper wash. B is the safe fallback if the sepia reads as muddy on other screens; A is not a candidate.</li>
+        <li><b>Fixed by default, no pan or zoom.</b> Route is a summary tab &mdash; the map answers &ldquo;roughly where, in what order&rdquo;, and a map you can lose your place in fights that. Toggle it above and compare.</li>
+        <li><b>Numbered pins in stop order, a dashed straight line between them.</b> No routing API: the line is a relationship, not a driving route, and dashing it says so. Nights ride as a small tab on the pin.</li>
+        <li><b>Bounds fitted to the pins</b> with padding, capped at zoom 12 so a single stop doesn&rsquo;t land on someone&rsquo;s street.</li>
+        <li><b>No coordinates, no map</b> &mdash; a one-line notice above the unchanged stop list, never an empty grey box.</li>
+        <li><b>Attribution stays visible</b> in every treatment (OSM tile policy). The filters never touch it.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script>
+  // Real coordinates, as the ticket asks. Nominatim, same provider as the app.
+  const PT = [
+    { n: "Lisbon",  lat: 38.7223, lng: -9.1393, nights: 3, dates: "12–15 Sep" },
+    { n: "Sintra",  lat: 38.8355, lng: -9.3522, nights: 1, dates: "15–16 Sep" },
+    { n: "Évora",   lat: 38.5714, lng: -7.9135, nights: 2, dates: "16–18 Sep" },
+    { n: "Lagos",   lat: 37.1028, lng: -8.6732, nights: 2, dates: "18–20 Sep" },
+    { n: "Porto",   lat: 41.1579, lng: -8.6291, nights: 1, dates: "20–21 Sep" },
+  ];
+
+  /**
+   * Builds the perforated-stamp outline as a clip-path polygon.
+   *
+   * THE RULE, and the reason this is JS rather than a mask: nothing on the
+   * outline may sit more than `sc` outside the inner rectangle (the box inset
+   * by `sc` on all four sides). The scallop tips reach exactly `sc`, and they
+   * are the outermost thing on the shape.
+   *
+   * The corners are CONCAVE — a quarter arc of radius `sc` swept around the
+   * box's outer corner, biting the corner off the same way the edge bites bite
+   * the edges. A convex corner arc (centred on the inner corner instead) also
+   * obeys the rule, but it runs tangent to both outer edges, so it meets the
+   * first bite in a long sharp cusp and reads as an ear sticking out of the
+   * corner. Biting the corner instead makes the perforation one continuous
+   * chain all the way round, and nothing at a corner reaches full extension.
+   *
+   * Each edge fits a whole number of bites into the run BETWEEN the corners,
+   * with the bite radius set to half the resulting pitch, so a bite is never
+   * clipped and never bleeds into a corner arc.
+   */
+  const ARC_STEPS = 8;
+
+  function buildStampEdges() {
+    document.querySelectorAll(".stamp-paper").forEach((el) => {
+      const sc = parseFloat(getComputedStyle(el).getPropertyValue("--sc")) || 10;
+      const w = el.offsetWidth;
+      const h = el.offsetHeight;
+      if (!w || !h) return;
+
+      const pts = [];
+      const push = (x, y) => pts.push(`${x.toFixed(2)}px ${y.toFixed(2)}px`);
+
+      // A corner arc of radius sc, swept around (cx, cy) from a0 to a1.
+      const corner = (cx, cy, a0, a1) => {
+        for (let i = 0; i <= ARC_STEPS; i++) {
+          const t = ((a0 + ((a1 - a0) * i) / ARC_STEPS) * Math.PI) / 180;
+          push(cx + sc * Math.cos(t), cy + sc * Math.sin(t));
+        }
+      };
+
+      // One run of bites along an edge. `at(d, out)` maps a distance along the
+      // run and an inward depth onto a point, so all four edges share this.
+      const edge = (run, at) => {
+        const n = Math.max(1, Math.round(run / (2 * sc)));
+        const pitch = run / n;
+        const r = pitch / 2;
+        for (let i = 0; i < n; i++) {
+          const mid = i * pitch + r;
+          for (let s = 0; s <= ARC_STEPS; s++) {
+            const t = (Math.PI * s) / ARC_STEPS; // 0 → π, a half-circle bite
+            at(mid - r * Math.cos(t), r * Math.sin(t));
+          }
+        }
+      };
+
+      const runH = w - 2 * sc;
+      const runV = h - 2 * sc;
+
+      corner(0, 0, 90, 0);                                       // top-left
+      edge(runH, (d, into) => push(sc + d, into));               // top
+      corner(w, 0, 180, 90);                                     // top-right
+      edge(runV, (d, into) => push(w - into, sc + d));           // right
+      corner(w, h, 270, 180);                                    // bottom-right
+      edge(runH, (d, into) => push(w - sc - d, h - into));       // bottom
+      corner(0, h, 360, 270);                                    // bottom-left
+      edge(runV, (d, into) => push(into, h - sc - d));           // left
+
+      el.style.clipPath = `polygon(${pts.join(",")})`;
+    });
+  }
+  window.addEventListener("resize", buildStampEdges);
+  buildStampEdges();
+
+  const TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+  const TILE_ATTRIBUTION =
+    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+
+  function pinIcon(i, nights) {
+    return L.divIcon({
+      className: "",
+      html: `<div class="pin${nights ? " nights" : ""}" data-nights="${nights ?? ""}" style="position:relative">${i}</div>`,
+      iconSize: [26, 26],
+      iconAnchor: [13, 13],
+    });
+  }
+
+  /** Draws a route map. `interactive:false` strips every handler — a diagram. */
+  function drawMap(el, stops, opts = {}) {
+    // Keep each stop's position in the FULL list: a pin must carry the same
+    // number as its row below, even when the stop before it has no coordinates.
+    const pinned = stops.map((s, i) => ({ ...s, no: i + 1 })).filter((s) => s.lat != null);
+    const map = L.map(el, {
+      zoomControl: !!opts.interactive,
+      dragging: !!opts.interactive,
+      scrollWheelZoom: false,          // never, even when interactive — it hijacks the page scroll
+      doubleClickZoom: !!opts.interactive,
+      touchZoom: !!opts.interactive,
+      boxZoom: !!opts.interactive,
+      keyboard: !!opts.interactive,
+      attributionControl: true,
+    });
+    L.tileLayer(TILE_URL, { attribution: TILE_ATTRIBUTION, maxZoom: 19 }).addTo(map);
+
+    if (pinned.length > 1) {
+      L.polyline(pinned.map((s) => [s.lat, s.lng]), {
+        color: "#2a4d7a", weight: 2, opacity: .75, dashArray: "6 7", lineCap: "round",
+      }).addTo(map);
+    }
+
+    pinned.forEach((s) => {
+      L.marker([s.lat, s.lng], { icon: pinIcon(s.no, s.nights), interactive: true })
+        .addTo(map)
+        .bindTooltip(`${s.n} · ${s.nights} night${s.nights === 1 ? "" : "s"}`, { direction: "top", offset: [0, -14] });
+    });
+
+    if (pinned.length === 0) return map;
+
+    // Re-fit rather than fit once: a container measured before layout settles
+    // (or after a window resize) gives Leaflet the wrong size and it zooms to
+    // the centroid instead of the route.
+    function fit() {
+      map.invalidateSize({ animate: false });
+      if (pinned.length === 1) {
+        map.setView([pinned[0].lat, pinned[0].lng], 9);
+      } else {
+        map.fitBounds(L.latLngBounds(pinned.map((s) => [s.lat, s.lng])), {
+          padding: [34, 34], maxZoom: 12, animate: false,
+        });
+      }
+    }
+    fit();
+    requestAnimationFrame(fit);
+    window.addEventListener("resize", fit);
+    return map;
+  }
+
+  function drawStops(el, stops) {
+    el.innerHTML = stops
+      .map((s, i) => `
+        <li>
+          <span class="n">${String(i + 1).padStart(2, "0")}</span>
+          <span class="nm">${s.n}</span>
+          <span class="badge${s.lat == null ? " warn" : ""}">${
+            s.lat == null ? "not on the map" : s.nights + " night" + (s.nights === 1 ? "" : "s")
+          }</span>
+          <span class="dt">${s.dates}</span>
+        </li>`)
+      .join("");
+  }
+
+  drawMap(document.getElementById("mapA"), PT);
+  drawMap(document.getElementById("mapB"), PT);
+  let mapC = drawMap(document.getElementById("mapC"), PT);
+  [["stopsA"], ["stopsB"], ["stopsC"]].forEach(([id]) => drawStops(document.getElementById(id), PT));
+
+  // Fixed vs interactive — rebuilt rather than toggled, so the difference is honest.
+  const fixedBtn = document.getElementById("fixedBtn");
+  const interactiveBtn = document.getElementById("interactiveBtn");
+  function setMode(interactive) {
+    fixedBtn.setAttribute("aria-pressed", String(!interactive));
+    interactiveBtn.setAttribute("aria-pressed", String(interactive));
+    mapC.remove();
+    const el = document.createElement("div");
+    el.className = "map";
+    el.id = "mapC";
+    const frame = document.querySelector(".papery");
+    frame.replaceChild(el, frame.querySelector(".map"));
+    mapC = drawMap(el, PT, { interactive });
+  }
+  fixedBtn.onclick = () => setMode(false);
+  interactiveBtn.onclick = () => setMode(true);
+
+  // --- Edge cases ---------------------------------------------------
+  const ONE = [{ n: "Lisbon", lat: 38.7223, lng: -9.1393, nights: 4, dates: "12–16 Sep" }];
+  const NONE = [
+    { n: "Mum's house", lat: null, lng: null, nights: 2, dates: "12–14 Sep" },
+    { n: "The cottage", lat: null, lng: null, nights: 3, dates: "14–17 Sep" },
+  ];
+  const PARTIAL = [
+    { n: "Lisbon", lat: 38.7223, lng: -9.1393, nights: 3, dates: "12–15 Sep" },
+    { n: "Cousin's place", lat: null, lng: null, nights: 2, dates: "15–17 Sep" },
+    { n: "Porto", lat: 41.1579, lng: -8.6291, nights: 2, dates: "17–19 Sep" },
+  ];
+  const FAR = [
+    { n: "Lisbon", lat: 38.7223, lng: -9.1393, nights: 2, dates: "12–14 Sep" },
+    { n: "Tokyo", lat: 35.6762, lng: 139.6503, nights: 5, dates: "14–19 Sep" },
+    { n: "Auckland", lat: -36.8485, lng: 174.7633, nights: 4, dates: "19–23 Sep" },
+  ];
+
+  drawMap(document.getElementById("mapOne"), ONE);
+  drawStops(document.getElementById("stopsOne"), ONE);
+  drawStops(document.getElementById("stopsNone"), NONE);
+  drawMap(document.getElementById("mapPartial"), PARTIAL);
+  drawStops(document.getElementById("stopsPartial"), PARTIAL);
+  drawMap(document.getElementById("mapFar"), FAR);
+  drawStops(document.getElementById("stopsFar"), FAR);
+
+</script>

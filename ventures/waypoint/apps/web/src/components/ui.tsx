@@ -121,15 +121,25 @@ export function CardHeader({
   title,
   hint,
   actions,
+  strong,
 }: {
   title: ReactNode;
   hint?: ReactNode;
   actions?: ReactNode;
+  /**
+   * Sets the title in the page's own voice rather than the small typed label —
+   * used where the heading names a real thing the reader is scanning for (a
+   * stop's place, a day's date), which the 11px uppercase `.typed` was too
+   * quiet to carry.
+   */
+  strong?: boolean;
 }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-dotted border-rule-strong px-4 py-3">
       <div>
-        <h2 className="typed">{title}</h2>
+        <h2 className={strong ? "text-[15px] font-bold text-ink" : "typed"}>
+          {title}
+        </h2>
         {hint ? <p className="mt-0.5 text-xs text-ink-faint">{hint}</p> : null}
       </div>
       {actions}

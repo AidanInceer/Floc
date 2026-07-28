@@ -16,9 +16,22 @@
  */
 import { and, asc, eq, isNull } from "drizzle-orm";
 
-import { addStop, removeStop, searchPlacesAction, setOvernightPlace } from "./actions";
-import { Sheet, SubmitButton, ConfirmSubmit } from "@/components/client-ui";
+import {
+  addStop,
+  removeStop,
+  reorderStops,
+  searchPlacesAction,
+  setOvernightPlace,
+  setStopDates,
+} from "./actions";
+import {
+  DragList,
+  Sheet,
+  SubmitButton,
+  ConfirmSubmit,
+} from "@/components/client-ui";
 import { PlacePicker } from "@/components/place-picker";
+import { RouteMap } from "@/components/route-map";
 import {
   Badge,
   Card,
@@ -45,6 +58,8 @@ async function loadDays(tripId: number) {
       date: day.date,
       overnightPlaceId: day.overnightPlaceId,
       placeName: place.name,
+      lat: place.lat,
+      lng: place.lng,
     })
     .from(day)
     .leftJoin(place, eq(place.id, day.overnightPlaceId))
@@ -82,6 +97,29 @@ export default async function RoutePage({
   );
   const hasRealStop = stops.some((s) => s.placeId !== null);
 
+  // Coordinates are looked up here rather than threaded through `deriveStops`,
+  // which stays pure and geography-free (ticket 15). A pin keeps its position
+  // in the FULL stop list so its number matches the card below it, and a stop
+  // whose place has no coordinates — typed free-text, or picked before ticket
+  // 12 wired the geocoder — is named in `missing` rather than dropped in
+  // silence (CLAUDE.md rule 11).
+  const coords = new Map(
+    days
+      .filter((d) => d.overnightPlaceId !== null && d.lat !== null && d.lng !== null)
+      .map((d) => [d.overnightPlaceId!, { lat: d.lat!, lng: d.lng! }]),
+  );
+  const pinned = [];
+  const missing: string[] = [];
+  for (const [i, stop] of stops.entries()) {
+    if (stop.placeId === null) continue;
+    const at = coords.get(stop.placeId);
+    if (at) {
+      pinned.push({ no: i + 1, name: stop.placeName ?? "Unnamed place", ...at });
+    } else {
+      missing.push(stop.placeName ?? "Unnamed place");
+    }
+  }
+
   const addStopForm = (
     <AddStopForm
       tripId={trip.id}
@@ -116,9 +154,26 @@ export default async function RoutePage({
         </EmptyState>
       ) : (
         <Stack gap={4}>
-          {stops.map((stop, i) => (
-            <Card key={stop.dayIds.join("-")}>
+          <RouteMap stops={pinned} missing={missing} />
+          <p className="text-xs text-ink-faint">
+            Drag a stop by its grip to change the order — the stops keep their
+            nights and take the dates that lands them on. What&rsquo;s planned
+            for each day travels with the stop; anything spent stays on the date
+            it was spent.
+          </p>
+          {/* Reordering is a real write, not a client-side sort — see
+              lib/itinerary.ts. The list is handed over server-rendered; the
+              client component only owns the dragging. */}
+          <DragList
+            label="stop"
+            onReorder={reorderStops.bind(null, trip.id)}
+            items={stops.map((stop, i) => ({
+              key: stop.dayIds.join("-"),
+              label: stop.placeName ?? "this stop",
+              node: (
+            <Card>
               <CardHeader
+                strong
                 title={
                   stop.placeId
                     ? stop.placeName ?? "Unnamed place"
@@ -142,21 +197,31 @@ export default async function RoutePage({
                   on the itinerary
                 </p>
                 <div className="flex gap-2">
+                  <Sheet trigger="Change dates" title="Change these dates" triggerVariant="secondary">
+                    <ChangeDatesForm
+                      tripId={trip.id}
+                      dayIds={stop.dayIds}
+                      startDate={stop.startDate}
+                      endDate={stop.endDate}
+                    />
+                  </Sheet>
                   <Sheet trigger="Change place" title="Change overnight place" triggerVariant="secondary">
                     <ChangePlaceForm tripId={trip.id} dayIds={stop.dayIds} />
                   </Sheet>
                   <form action={removeStop.bind(null, trip.id, stop.dayIds)}>
                     <ConfirmSubmit
-                      message="Clear the overnight place for these days? The days themselves stay on the itinerary."
+                      message="Remove this stop? The days themselves stay on the itinerary — they just lose their overnight place."
                       variant="ghost"
                     >
-                      Unset
+                      Remove stop
                     </ConfirmSubmit>
                   </form>
                 </div>
               </div>
             </Card>
-          ))}
+              ),
+            }))}
+          />
         </Stack>
       )}
     </Page>
@@ -195,7 +260,7 @@ function AddStopForm({
     const startDate = String(formData.get("startDate") ?? "");
     const endDate = String(formData.get("endDate") ?? "");
     const placeName = String(formData.get("placeName") ?? "");
-    const mapboxId = String(formData.get("placeMapboxId") ?? "") || null;
+    const providerId = String(formData.get("placeProviderId") ?? "") || null;
     const lat = formData.get("placeLat");
     const lng = formData.get("placeLng");
     if (!startDate || !endDate || !placeName) return;
@@ -203,7 +268,7 @@ function AddStopForm({
       startDate,
       endDate,
       placeName,
-      mapboxId,
+      providerId,
       lat: lat ? Number(lat) : null,
       lng: lng ? Number(lng) : null,
     });
@@ -227,17 +292,65 @@ function AddStopForm({
   );
 }
 
+/**
+ * Re-dates a stop in place. Re-dating IS how a stop moves — a stop is derived
+ * from consecutive days sharing an overnight place, so there are no stored
+ * rows to drag and no "order" field to edit (rule 3). The dates the stop
+ * currently covers are pre-filled, so nudging one night off the end is two
+ * clicks.
+ */
+function ChangeDatesForm({
+  tripId,
+  dayIds,
+  startDate,
+  endDate,
+}: {
+  tripId: number;
+  dayIds: number[];
+  startDate: string;
+  endDate: string;
+}) {
+  async function action(formData: FormData) {
+    "use server";
+    await setStopDates(tripId, dayIds, {
+      startDate: String(formData.get("startDate") ?? ""),
+      endDate: String(formData.get("endDate") ?? ""),
+    });
+  }
+
+  return (
+    <form action={action}>
+      <Stack gap={3}>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="From">
+            <Input type="date" name="startDate" defaultValue={startDate} required />
+          </Field>
+          <Field label="To">
+            <Input type="date" name="endDate" defaultValue={endDate} required />
+          </Field>
+        </div>
+        <p className="text-xs text-ink-faint">
+          Days outside the new dates keep their place on the itinerary, they
+          just stop belonging to this stop. Dates that already belong to the
+          stop either side will be taken over by this one.
+        </p>
+        <SubmitButton>Save dates</SubmitButton>
+      </Stack>
+    </form>
+  );
+}
+
 function ChangePlaceForm({ tripId, dayIds }: { tripId: number; dayIds: number[] }) {
   async function action(formData: FormData) {
     "use server";
     const placeName = String(formData.get("placeName") ?? "");
-    const mapboxId = String(formData.get("placeMapboxId") ?? "") || null;
+    const providerId = String(formData.get("placeProviderId") ?? "") || null;
     const lat = formData.get("placeLat");
     const lng = formData.get("placeLng");
     if (!placeName) return;
     await setOvernightPlace(tripId, dayIds, {
       placeName,
-      mapboxId,
+      providerId,
       lat: lat ? Number(lat) : null,
       lng: lng ? Number(lng) : null,
     });

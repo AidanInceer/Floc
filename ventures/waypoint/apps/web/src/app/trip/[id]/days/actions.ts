@@ -6,7 +6,7 @@
  * before any update; `touch()` just keeps `last_modified_at` current for
  * debugging.
  */
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
@@ -14,7 +14,8 @@ import { day, dayEvent } from "@/db/schema";
 import type { DayEventType, TransportType } from "@/db/schema";
 import { requireTripAccess } from "@/lib/access";
 import { addDays as addDaysToDate } from "@/lib/dates";
-import { searchPlaces, upsertPlace } from "@/lib/mapbox";
+import { moveItem, permuteDayContents } from "@/lib/itinerary";
+import { searchPlaces, upsertPlace } from "@/lib/geocoding";
 import { refreshUnlocks, touch } from "@/lib/unlocks";
 
 /** Server-action wrapper — see route/actions.ts's twin for why this exists. */
@@ -22,9 +23,9 @@ export async function searchPlacesAction(query: string) {
   return searchPlaces(query);
 }
 
-/** Resolves a free-text or Mapbox-picked place into a `place.id` for an event. */
+/** Resolves a free-text or geocoded place into a `place.id` for an event. */
 export async function resolveEventPlace(input: {
-  mapboxId: string | null;
+  providerId: string | null;
   name: string;
   lat: number | null;
   lng: number | null;
@@ -33,21 +34,63 @@ export async function resolveEventPlace(input: {
   return upsertPlace(input);
 }
 
+/**
+ * Drops a day into a different position in the itinerary.
+ *
+ * The dates don't move — the *plan* does. Day rows are keyed by (trip, date),
+ * so "swap Tuesday and Wednesday" means Wednesday's overnight place and events
+ * now happen on Tuesday's date and vice versa. Expenses stay on the date they
+ * were spent; see src/lib/itinerary.ts.
+ */
+export async function reorderDays(tripId: number, from: number, to: number) {
+  const access = await requireTripAccess(tripId);
+
+  const days = await db
+    .select({ id: day.id })
+    .from(day)
+    .where(and(eq(day.tripId, access.trip.id), isNull(day.deletedAt)))
+    .orderBy(asc(day.date))
+    .all();
+
+  await permuteDayContents(
+    access.trip.id,
+    moveItem(days.map((d) => d.id), from, to),
+  );
+
+  revalidatePath(`/trip/${access.trip.id}/days`);
+  revalidatePath(`/trip/${access.trip.id}/route`);
+}
+
 /** Extends the trip by appending N days after its current last day. */
 export async function addDays(tripId: number, afterDate: string, count: number) {
   const access = await requireTripAccess(tripId);
+  const dates: string[] = [];
   let cursor = afterDate;
   for (let i = 0; i < count; i++) {
     cursor = addDaysToDate(cursor, 1);
+    dates.push(cursor);
+  }
+
+  // One read for the whole span and one insert for whatever's missing, rather
+  // than a select-then-insert per day. The existence check is deliberately
+  // *not* filtered on `deletedAt`: a soft-deleted row still occupies the
+  // (trip, date) unique index, so skipping it is what keeps this idempotent.
+  if (dates.length) {
     const existing = await db
-      .select({ id: day.id })
+      .select({ date: day.date })
       .from(day)
-      .where(and(eq(day.tripId, access.trip.id), eq(day.date, cursor)))
-      .get();
-    if (!existing) {
-      await db.insert(day).values({ tripId: access.trip.id, date: cursor });
+      .where(and(eq(day.tripId, access.trip.id), inArray(day.date, dates)))
+      .all();
+
+    const covered = new Set(existing.map((d) => d.date));
+    const missing = dates.filter((d) => !covered.has(d));
+    if (missing.length) {
+      await db
+        .insert(day)
+        .values(missing.map((date) => ({ tripId: access.trip.id, date })));
     }
   }
+
   await refreshUnlocks(access.trip.id);
   revalidatePath(`/trip/${access.trip.id}/days`);
   revalidatePath(`/trip/${access.trip.id}/route`);

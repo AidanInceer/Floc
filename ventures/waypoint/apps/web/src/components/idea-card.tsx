@@ -74,6 +74,10 @@ export function IdeaCard({
   // Author or any admin may remove — not author-only, so a stale idea can't
   // get stuck if the poster's gone quiet (v1 ticket 14).
   const canDelete = isAdmin || idea.createdBy === viewerId;
+  const commentCount = idea.notes.reduce(
+    (n, run) => n + 1 + run.replies.length,
+    0,
+  );
   const viewerVote = idea.votes.find((v) => v.userId === viewerId)?.value ?? null;
   const counts: Record<VoteValue, number> = {
     up: idea.votes.filter((v) => v.value === "up").length,
@@ -172,15 +176,18 @@ export function IdeaCard({
         */}
         <Sheet
           trigger={
-            idea.notes.length === 0
+            /* Replies count too — the footer says how much conversation is in
+               there, and "2 comments" on a run of eight would undersell it. */
+            commentCount === 0
               ? "Add a comment"
-              : `${idea.notes.length} ${idea.notes.length === 1 ? "comment" : "comments"}`
+              : `${commentCount} ${commentCount === 1 ? "comment" : "comments"}`
           }
           triggerVariant="ghost"
           /* `!` throughout: these fight `buttonBase`'s own utilities, and in
              Tailwind v4 the stylesheet's order decides, not the class list's. */
           triggerClassName="!border-none !px-0 !py-0 !font-sans !text-xs !normal-case !tracking-normal !text-pen whitespace-nowrap"
           title={idea.note}
+          keepOpenOnSubmit
         >
           <NoteThread
             tripId={tripId}
@@ -189,8 +196,8 @@ export function IdeaCard({
             notes={idea.notes}
             viewerId={viewerId}
             isAdmin={isAdmin}
-            open
             placeholder="Why this one, or why not?"
+            invitation="A vote says how you feel about it. A comment says why — which is the bit that actually changes anyone's mind."
           />
         </Sheet>
         {canDelete ? (

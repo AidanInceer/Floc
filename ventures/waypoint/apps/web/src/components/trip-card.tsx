@@ -44,7 +44,7 @@ export function TripCard({
       <Link href={href} className="min-w-[220px] flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-display text-base font-semibold">{trip.name}</span>
-          {ended ? <Badge tone="neutral">Ended</Badge> : null}
+          {ended ? <Badge tone="action">Ended</Badge> : null}
           {countdown ? <Badge tone="marine">{countdown}</Badge> : null}
           {trip.needsYou ? <Badge tone="action">Needs you</Badge> : null}
         </div>

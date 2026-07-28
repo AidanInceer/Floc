@@ -59,6 +59,22 @@ export const auth = betterAuth({
   session: {
     expiresIn: 60 * 60 * 24 * 60, // 60 days
     updateAge: 60 * 60 * 24, // rolling: refreshed at most once a day
+    /*
+     * Every server render resolves the session before it can do anything else
+     * — it's the first serial database round trip of every page and every
+     * action. This caches the session in a signed cookie so that lookup only
+     * happens once a minute instead of once a request.
+     *
+     * The cost is that session *revocation* (signing out elsewhere, deleting
+     * the account) lags by up to `maxAge`. Sixty seconds is chosen to keep
+     * that window short; nothing else in the app is gated on it, because trip
+     * membership is read from the database on every request regardless — see
+     * `requireTripAccess` — so a kicked member still loses access instantly.
+     */
+    cookieCache: {
+      enabled: true,
+      maxAge: 60,
+    },
   },
   user: {
     deleteUser: {

@@ -8,7 +8,7 @@
  * With no RESEND_API_KEY the send is logged to the server console instead —
  * so the whole flow is exercisable before the account exists.
  */
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 
 import { db } from "@/db";
 import { userProfile } from "@/db/schema";
@@ -62,7 +62,11 @@ export async function sendEmail(email: OutboundEmail): Promise<boolean> {
     const allowed = await categoryAllowed(email.toUserId, email.category);
     if (!allowed) return false;
   }
+  return deliver(email);
+}
 
+/** The send itself, once the category gate has already been cleared. */
+async function deliver(email: OutboundEmail): Promise<boolean> {
   const html = renderShell(email);
   const from = process.env.EMAIL_FROM ?? "Waypoint <no-reply@waypoint.example>";
   const key = process.env.RESEND_API_KEY;
@@ -86,6 +90,42 @@ export async function sendEmail(email: OutboundEmail): Promise<boolean> {
     html,
   });
   return true;
+}
+
+/**
+ * Sends a batch of emails, resolving every recipient's category preference in
+ * one query instead of one per message.
+ *
+ * `sendEmail` reads `user_profile` itself, which is right for a single send but
+ * meant a six-person expense cost six extra round trips before a single mail
+ * left the building. Same rules, same defaults (missing profile → on,
+ * transactional → always).
+ */
+export async function sendEmails(batch: OutboundEmail[]): Promise<void> {
+  if (batch.length === 0) return;
+
+  const gated = batch.filter((e) => !e.transactional && e.toUserId);
+  const allowedByUser = new Map<string, typeof userProfile.$inferSelect>();
+
+  if (gated.length) {
+    const profiles = await db
+      .select()
+      .from(userProfile)
+      .where(inArray(userProfile.userId, [...new Set(gated.map((e) => e.toUserId!))]))
+      .all();
+    for (const p of profiles) allowedByUser.set(p.userId, p);
+  }
+
+  await Promise.all(
+    batch.map((email) => {
+      if (!email.transactional && email.toUserId) {
+        const profile = allowedByUser.get(email.toUserId);
+        if (profile && !profile[CATEGORY_COLUMN[email.category]]) return Promise.resolve(false);
+      }
+      // Preference already settled above, so the per-send lookup is skipped.
+      return deliver(email);
+    }),
+  );
 }
 
 /** One shell for every email; matches the app's sand/marine palette. */

@@ -210,6 +210,37 @@ server action's `{ error }` return without a page reload), `SubmitButton`
 sheet on mobile, centred panel on desktop), `ConfirmSubmit`, `CopyLink`,
 `Segmented`.
 
+## Maps and pictures
+
+Both arrived with v0.2 ticket 08 and are house treatments — don't invent a
+second of either.
+
+**A map is CSS over plain OpenStreetMap tiles.** A filter stack on the tile
+pane (`sepia saturate contrast brightness hue-rotate`) knocks OSM's cartoon
+palette back to ink-on-cream; a multiply-blended ruled wash and an inset
+vignette then sit it on the page's own paper. The whole look costs no second
+tile provider, no account and no extra request — which is the point, and what
+keeps ticket 15's "free for the MVP" decision intact. `RouteMap` (Leaflet,
+draggable and zoomable but with the **scroll wheel always off**, so a
+full-width map never traps the page scroll) and `StaticMap`
+(plain `<img>` tile mosaics, no library) share it. OSM's attribution must be
+visible wherever tiles are — Leaflet's own control counts; a page of still
+maps prints it once.
+
+**A picture is NOT framed as a postage stamp.** A perforated stamp frame was
+built for the Explore thumbnails and **rejected on sight, 2026-07-27** — don't
+propose it again. A picture sits in the same plain ruled frame the maps use.
+(The geometry, if it is ever wanted for something else: the outline has to be a
+JS-built `clip-path` polygon, because CSS mask layers union and cannot be
+clipped to a run, so a mask always refills the corners as solid squares. And
+the lift has to be `filter: drop-shadow`, never `box-shadow`, which on a
+clipped box still draws the un-clipped rectangle.)
+
+**A price is a luggage tag** (`.price-tag`) — notched left end, punched hole,
+a degree of tilt — not a line of prose. The tag carries the **figure only**;
+"from … each" was tried on it and read as clutter, so the qualification lives
+in the tag's `title` and its screen-reader label instead.
+
 ## The screen that carries the character
 
 `/trip/[id]/overview` — it holds the summary, the unresolved list and the

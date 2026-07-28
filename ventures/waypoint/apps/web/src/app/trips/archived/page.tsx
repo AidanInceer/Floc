@@ -9,7 +9,7 @@ import { and, eq, isNull, not } from "drizzle-orm";
 
 import { db } from "@/db";
 import { trip, tripMembership } from "@/db/schema";
-import { listMembers, requireUser } from "@/lib/access";
+import { listMembersFor, requireUser } from "@/lib/access";
 import { ButtonLink, EmptyState, Page, PageHeader } from "@/components/ui";
 import { ConfirmSubmit } from "@/components/client-ui";
 import { TripCard } from "@/components/trip-card";
@@ -39,21 +39,22 @@ export default async function ArchivedTripsPage() {
     )
     .all();
 
-  const cards = await Promise.all(
-    rows.map(async (r) => {
-        const members = await listMembers(r.id);
-        const admins = members.filter((m) => m.role === "admin");
-        const card: TripCardData = {
-          id: r.id,
-          name: r.name,
-          startDate: r.startDate,
-          endDate: r.endDate,
-          role: r.role,
-          members,
-        };
-        return { card, admins, isAdmin: r.role === "admin" };
-      }),
-  );
+  // One roster query for every card, not one per card.
+  const membersByTrip = await listMembersFor(rows.map((r) => r.id));
+
+  const cards = rows.map((r) => {
+    const members = membersByTrip.get(r.id) ?? [];
+    const admins = members.filter((m) => m.role === "admin");
+    const card: TripCardData = {
+      id: r.id,
+      name: r.name,
+      startDate: r.startDate,
+      endDate: r.endDate,
+      role: r.role,
+      members,
+    };
+    return { card, admins, isAdmin: r.role === "admin" };
+  });
 
   return (
     <Page>

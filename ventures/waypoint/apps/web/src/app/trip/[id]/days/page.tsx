@@ -22,11 +22,17 @@ import {
   deleteEvent,
   moveEvent,
   removeDay,
+  reorderDays,
   resolveEventPlace,
   searchPlacesAction,
   updateEvent,
 } from "./actions";
-import { ConfirmSubmit, Sheet, SubmitButton } from "@/components/client-ui";
+import {
+  ConfirmSubmit,
+  DragList,
+  Sheet,
+  SubmitButton,
+} from "@/components/client-ui";
 import { PlacePicker } from "@/components/place-picker";
 import {
   Badge,
@@ -45,9 +51,10 @@ import {
 } from "@/components/ui";
 import { NoteThread, type NoteRow } from "@/components/note-thread";
 import { db } from "@/db";
-import { day, dayEvent, note, place, user, userProfile } from "@/db/schema";
+import { day, dayEvent, place, user, userProfile } from "@/db/schema";
 import type { DayEventType, TransportType } from "@/db/schema";
 import { requireTripAccess } from "@/lib/access";
+import { loadThreads } from "@/lib/notes-read";
 import { formatDate } from "@/lib/dates";
 import { lockReason } from "@/lib/tabs";
 
@@ -94,42 +101,14 @@ async function loadDays(tripId: number) {
       .all(),
   ]);
 
-  // The threads need the event ids, so this is a third read rather than a
-  // third parallel one — scoped by `inArray`, and skipped entirely on a trip
-  // whose days are still empty.
-  const eventIds = events.map((e) => e.id);
-  const noteRows = eventIds.length
-    ? await db
-        .select({
-          id: note.id,
-          scopeId: note.scopeId,
-          body: note.body,
-          createdAt: note.createdAt,
-          createdBy: note.createdBy,
-          authorName: user.name,
-          authorAvatar: userProfile.avatarUrl,
-        })
-        .from(note)
-        .innerJoin(user, eq(user.id, note.createdBy))
-        .leftJoin(userProfile, eq(userProfile.userId, note.createdBy))
-        .where(
-          and(
-            eq(note.tripId, tripId),
-            eq(note.scope, "day_event"),
-            inArray(note.scopeId, eventIds),
-            isNull(note.deletedAt),
-          ),
-        )
-        .orderBy(asc(note.createdAt))
-        .all()
-    : [];
-
   return {
     days: days.map((d) => ({
       ...d,
       events: events.filter((e) => e.dayId === d.id),
     })),
-    noteRows,
+    // The threads need these, and reading them belongs to the caller now that
+    // it takes a viewer (v0.2 ticket 06 — reactions are per-person).
+    eventIds: events.map((e) => e.id),
   };
 }
 
@@ -151,18 +130,18 @@ export default async function DaysPage({
     );
   }
 
-  const { days, noteRows } = await loadDays(trip.id);
+  const { days, eventIds } = await loadDays(trip.id);
 
-  // Note authors keep the avatar colour they already have in this trip's
+  // Comment authors keep the avatar colour they already have in this trip's
   // roster, so one person is one colour across every tab.
   const toneOf = new Map(members.map((m) => [m.userId, m.tone]));
-  const notesByEvent = new Map<number, NoteRow[]>();
-  for (const n of noteRows) {
-    if (n.scopeId === null) continue;
-    const list = notesByEvent.get(n.scopeId) ?? [];
-    list.push({ ...n, authorTone: toneOf.get(n.createdBy) });
-    notesByEvent.set(n.scopeId, list);
-  }
+  const notesByEvent = await loadThreads({
+    tripId: trip.id,
+    scope: "day_event",
+    scopeIds: eventIds,
+    viewerId: viewer.id,
+    toneOf,
+  });
 
   return (
     <Page wide flush>
@@ -192,11 +171,23 @@ export default async function DaysPage({
         </EmptyState>
       ) : (
         <Stack gap={4}>
-          {days.map((d, i) => {
+          <p className="text-xs text-ink-faint">
+            Drag a day by its grip to move it — the dates stay put and the plan
+            moves between them, so swapping two days swaps what happens on them.
+            Anything spent stays on the date it was spent.
+          </p>
+          <DragList
+            label="day"
+            onReorder={reorderDays.bind(null, trip.id)}
+            items={days.map((d, i) => {
             const prevPlace = i > 0 ? days[i - 1].overnightPlaceName : null;
-            return (
-              <Card key={d.id}>
+            return {
+              key: String(d.id),
+              label: formatDate(d.date),
+              node: (
+              <Card>
                 <CardHeader
+                  strong
                   title={formatDate(d.date, { year: true })}
                   hint={d.overnightPlaceName ? `Sleeping in ${d.overnightPlaceName}` : "No overnight place set"}
                   actions={
@@ -247,8 +238,10 @@ export default async function DaysPage({
                   </div>
                 </div>
               </Card>
-            );
+              ),
+            };
           })}
+          />
         </Stack>
       )}
     </Page>
@@ -298,6 +291,8 @@ function EventRow({
   isAdmin: boolean;
 }) {
   const isTransport = event.type === "transport";
+  // Replies count too — the summary says how much conversation is in there.
+  const commentCount = notes.reduce((n, run) => n + 1 + run.replies.length, 0);
   const flightLink =
     isTransport && event.transportType === "flight"
       ? buildFlightSearchUrl({
@@ -333,9 +328,9 @@ function EventRow({
           ) : null}
         </span>
         <span className="flex shrink-0 items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-faint">
-          {notes.length > 0 ? (
+          {commentCount > 0 ? (
             <span>
-              {notes.length} {notes.length === 1 ? "note" : "notes"}
+              {commentCount} {commentCount === 1 ? "comment" : "comments"}
             </span>
           ) : null}
           {/* Rotates with the disclosure — the only affordance saying this opens. */}
@@ -395,8 +390,6 @@ function EventRow({
           </form>
         </div>
 
-        {/* Already inside a disclosure, so the thread renders open rather than
-            hiding a second click behind the first. */}
         <NoteThread
           tripId={tripId}
           scope="day_event"
@@ -404,8 +397,8 @@ function EventRow({
           notes={notes}
           viewerId={viewerId}
           isAdmin={isAdmin}
-          open
           placeholder="Anything the group should know about this?"
+          invitation="Anything the group should know before the day arrives — a booking reference, who's meeting where, the fact it shuts at four."
         />
       </div>
     </details>
@@ -440,12 +433,12 @@ function EventForm({
     const time = String(formData.get("time") ?? "") || null;
     const note = String(formData.get("note") ?? "") || null;
     const placeName = String(formData.get("placeName") ?? "");
-    const mapboxId = String(formData.get("placeMapboxId") ?? "") || null;
+    const providerId = String(formData.get("placeProviderId") ?? "") || null;
     const lat = formData.get("placeLat");
     const lng = formData.get("placeLng");
 
     const placeId = await resolveEventPlace({
-      mapboxId,
+      providerId,
       name: placeName,
       lat: lat ? Number(lat) : null,
       lng: lng ? Number(lng) : null,

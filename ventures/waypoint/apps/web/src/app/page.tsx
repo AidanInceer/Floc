@@ -372,8 +372,8 @@ export default async function LandingPage() {
         <div>
           <p className="typed">A notebook nine people can write in at once</p>
           <h1 className="mt-2.5 max-w-[16ch] font-display text-[clamp(2rem,5vw,3.25rem)] font-semibold leading-[1.05] tracking-[-0.025em]">
-            Start the trip as <span className="hl">notes</span>. Finish it as a
-            plan.
+            Start the trip as <span className="hl hl-red">notes</span>. Finish
+            it as a <span className="hl hl-green">plan</span>.
           </h1>
           <p className="mt-4 max-w-[48ch] text-[17.5px] text-ink-soft">
             Everyone scribbles: a place, a price, the week they can't do, the
@@ -383,7 +383,7 @@ export default async function LandingPage() {
           <div className="mt-6 flex flex-wrap items-center gap-3">
             {session?.user ? (
               <ButtonLink href="/trips" variant="primary">
-                Open your books
+                Plan your next trip
               </ButtonLink>
             ) : (
               <>

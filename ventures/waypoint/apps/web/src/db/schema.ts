@@ -299,18 +299,22 @@ export const availability = sqliteTable(
 /* Itinerary — day-first. A "stop" is derived, never stored.                   */
 /* -------------------------------------------------------------------------- */
 
-/** Persisted only via a Mapbox `permanent=true` geocode (ticket 09). */
+/**
+ * Geocoded places. Nominatim's usage policy permits storing results, which is
+ * why v0.2 ticket 15 moved here from Mapbox (whose free tier forbade it).
+ * `provider_id` is provider-scoped, e.g. `osm:relation:65606`.
+ */
 export const place = sqliteTable(
   "place",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
-    mapboxId: text("mapbox_id"),
+    providerId: text("provider_id"),
     name: text("name").notNull(),
     lat: real("lat"),
     lng: real("lng"),
     ...audit,
   },
-  (t) => [index("place_mapbox_idx").on(t.mapboxId)],
+  (t) => [index("place_provider_idx").on(t.providerId)],
 );
 
 export const day = sqliteTable(
@@ -447,10 +451,64 @@ export const note = sqliteTable(
     scope: text("scope", { enum: NOTE_SCOPES }).notNull(),
     /** Not a real FK — polymorphic, app-enforced. */
     scopeId: integer("scope_id"),
+    /**
+     * A reply's parent comment, null for a top-level one. **Exactly one level**
+     * (v0.2 ticket 06): replying to a reply attaches to the same parent, which
+     * `addNote` enforces by walking up before inserting. Unbounded nesting was
+     * rejected because Ideas renders its thread in a `max-w-lg` modal — the
+     * fourth level would be a few words a line.
+     */
+    parentId: integer("parent_id"),
     body: text("body").notNull(),
+    /**
+     * Set the first time the author rewrites their own comment, and shown as
+     * "edited" beside the timestamp (v0.2 ticket 06). Rule 7's last-write-wins
+     * makes the edit itself trivial — this column exists for the honesty
+     * problem, not the concurrency one: replies argue with what a comment said
+     * at the time, so a silently rewritten comment can make the run below it
+     * read as nonsense. `last_modified_at` can't do this job — it is for
+     * debugging only and moves for reasons the author never chose.
+     */
+    editedAt: integer("edited_at", { mode: "timestamp" }),
     ...audit,
   },
-  (t) => [index("note_scope_idx").on(t.tripId, t.scope, t.scopeId)],
+  (t) => [
+    index("note_scope_idx").on(t.tripId, t.scope, t.scopeId),
+    index("note_parent_idx").on(t.parentId),
+  ],
+);
+
+/**
+ * Three, fixed, in render order. Not an open emoji picker — three named things
+ * the group can say about a *comment*, which is a different question from an
+ * idea vote (that one is three-state and exclusive; these are independent, so
+ * a comment can be both hearted and agreed with).
+ */
+export const REACTION_KINDS = ["heart", "up", "down"] as const;
+export type ReactionKind = (typeof REACTION_KINDS)[number];
+
+export const noteReaction = sqliteTable(
+  "note_reaction",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    noteId: integer("note_id")
+      .notNull()
+      .references(() => note.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id),
+    kind: text("kind", { enum: REACTION_KINDS }).notNull(),
+    ...audit,
+  },
+  (t) => [
+    index("note_reaction_note_idx").on(t.noteId),
+    /**
+     * Un-reacting soft-deletes the row (rule 8), so re-reacting has to reuse
+     * it rather than insert a second — hence no unique index here. `react`
+     * upserts by hand instead.
+     */
+    index("note_reaction_one_idx").on(t.noteId, t.userId, t.kind),
+  ],
 );
 
 /* -------------------------------------------------------------------------- */

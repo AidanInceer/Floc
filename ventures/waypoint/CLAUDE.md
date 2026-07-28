@@ -53,9 +53,9 @@ treated as current.
 10. **No timezones.** Trip and day dates are date-only `YYYY-MM-DD` strings;
    event times are relative to the itinerary's location. Nothing is persisted
    with an offset, and there is no `timezone` column.
-11. **Degrade, don't crash, without credentials.** No Mapbox token → free-text
-    place names. No Resend key → email logged to the console. No Google
-    client → the button isn't rendered. Never a silent drop.
+11. **Degrade, don't crash, without credentials.** Nominatim unreachable or
+    rate-limited → free-text place names. No Resend key → email logged to the
+    console. No Google client → the button isn't rendered. Never a silent drop.
 
 ## Conventions in `apps/web`
 

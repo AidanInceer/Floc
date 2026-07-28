@@ -43,7 +43,7 @@ export default async function TripLayout({
                   {trip.name}
                 </h1>
                 {trip.archivedAt ? <Badge tone="neutral">Archived</Badge> : null}
-                {ended ? <Badge tone="neutral">Ended</Badge> : null}
+                {ended ? <Badge tone="action">Ended</Badge> : null}
                 {countdown ? <Badge tone="marine">{countdown}</Badge> : null}
                 {isAdmin ? <Badge tone="marine">Admin</Badge> : null}
               </div>

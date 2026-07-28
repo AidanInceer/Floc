@@ -6,23 +6,66 @@
  * their overnight place", not a separate "stop" entity (there isn't one).
  * Open to all members, not admin-only (ticket 01 step 7).
  */
-import { and, eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
 import { day } from "@/db/schema";
 import { requireTripAccess } from "@/lib/access";
 import { dateRange } from "@/lib/dates";
-import { searchPlaces, upsertPlace } from "@/lib/mapbox";
+import { searchPlaces, upsertPlace } from "@/lib/geocoding";
+import { moveItem, permuteDayContents } from "@/lib/itinerary";
+import { deriveStops } from "@/lib/stops";
 import { refreshUnlocks, touch } from "@/lib/unlocks";
 
 /**
- * Thin server-action wrapper so <PlacePicker> (client) can call Mapbox
+ * Thin server-action wrapper so <PlacePicker> (client) can call Nominatim
  * search without a client-side fetch to our own API — only "use server"
  * functions may cross the client/server prop boundary.
  */
 export async function searchPlacesAction(query: string) {
   return searchPlaces(query);
+}
+
+/**
+ * Points every date in `dates` at `placeId`, creating the day rows that don't
+ * exist yet.
+ *
+ * Batched deliberately: the obvious shape here is a per-date
+ * select-then-update/insert, but that is two serial round trips *per night* —
+ * a fortnight-long stop paid ~28 of them. Reading the whole span up front and
+ * writing it as one bulk update plus one bulk insert makes it three, whatever
+ * the span. Same-per-date semantics: an existing live row is re-pointed, a
+ * date with no live row is inserted (a soft-deleted row on that date still
+ * collides on `day_trip_date_idx`, exactly as before).
+ */
+async function writeSpan(tripId: number, dates: string[], placeId: number | null) {
+  if (dates.length === 0) return;
+
+  const existing = await db
+    .select({ id: day.id, date: day.date })
+    .from(day)
+    .where(
+      and(eq(day.tripId, tripId), inArray(day.date, dates), isNull(day.deletedAt)),
+    )
+    .all();
+
+  const covered = new Set(existing.map((d) => d.date));
+  const missing = dates.filter((d) => !covered.has(d));
+
+  await Promise.all([
+    existing.length
+      ? db
+          .update(day)
+          .set({ overnightPlaceId: placeId, ...touch() })
+          .where(inArray(day.id, existing.map((d) => d.id)))
+      : undefined,
+    missing.length
+      ? db
+          .insert(day)
+          .values(missing.map((date) => ({ tripId, date, overnightPlaceId: placeId })))
+      : undefined,
+  ]);
 }
 
 /**
@@ -36,41 +79,20 @@ export async function addStop(
     startDate: string;
     endDate: string;
     placeName: string;
-    mapboxId?: string | null;
+    providerId?: string | null;
     lat?: number | null;
     lng?: number | null;
   },
 ) {
   const access = await requireTripAccess(tripId);
   const placeId = await upsertPlace({
-    mapboxId: input.mapboxId ?? null,
+    providerId: input.providerId ?? null,
     name: input.placeName,
     lat: input.lat,
     lng: input.lng,
   });
 
-  for (const date of dateRange(input.startDate, input.endDate)) {
-    const existing = await db
-      .select({ id: day.id })
-      .from(day)
-      .where(
-        and(eq(day.tripId, access.trip.id), eq(day.date, date), isNull(day.deletedAt)),
-      )
-      .get();
-
-    if (existing) {
-      await db
-        .update(day)
-        .set({ overnightPlaceId: placeId, ...touch() })
-        .where(eq(day.id, existing.id));
-    } else {
-      await db.insert(day).values({
-        tripId: access.trip.id,
-        date,
-        overnightPlaceId: placeId,
-      });
-    }
-  }
+  await writeSpan(access.trip.id, dateRange(input.startDate, input.endDate), placeId);
 
   await refreshUnlocks(access.trip.id);
   revalidatePath(`/trip/${access.trip.id}/route`);
@@ -81,11 +103,11 @@ export async function addStop(
 export async function setOvernightPlace(
   tripId: number,
   dayIds: number[],
-  input: { placeName: string; mapboxId?: string | null; lat?: number | null; lng?: number | null },
+  input: { placeName: string; providerId?: string | null; lat?: number | null; lng?: number | null },
 ) {
   const access = await requireTripAccess(tripId);
   const placeId = await upsertPlace({
-    mapboxId: input.mapboxId ?? null,
+    providerId: input.providerId ?? null,
     name: input.placeName,
     lat: input.lat,
     lng: input.lng,
@@ -95,6 +117,91 @@ export async function setOvernightPlace(
     .update(day)
     .set({ overnightPlaceId: placeId, ...touch() })
     .where(and(eq(day.tripId, access.trip.id), inArray(day.id, dayIds)));
+
+  revalidatePath(`/trip/${access.trip.id}/route`);
+  revalidatePath(`/trip/${access.trip.id}/days`);
+}
+
+/**
+ * Moves a stop to a different date span, keeping its place.
+ *
+ * "Reordering" a stop is really re-dating it — a stop is derived from
+ * consecutive days sharing an overnight place (rule 3), so there is no stored
+ * row to drag. This clears the place off the days the stop used to cover and
+ * writes it onto the days the new span covers, creating any that don't exist.
+ * Days that appear in both spans are simply rewritten, so shrinking a stop by
+ * a night doesn't churn the days it keeps.
+ *
+ * Last-write-wins (rule 7): if the new span overlaps a *neighbouring* stop,
+ * this takes those days. That's the honest outcome of "these dates are now
+ * Lisbon" — the two stops merge into one on the next render.
+ */
+export async function setStopDates(
+  tripId: number,
+  dayIds: number[],
+  input: { startDate: string; endDate: string },
+) {
+  const access = await requireTripAccess(tripId);
+  if (!input.startDate || !input.endDate || input.endDate < input.startDate) return;
+
+  const current = await db
+    .select({ placeId: day.overnightPlaceId })
+    .from(day)
+    .where(and(eq(day.tripId, access.trip.id), inArray(day.id, dayIds)))
+    .get();
+  const placeId = current?.placeId ?? null;
+
+  await db
+    .update(day)
+    .set({ overnightPlaceId: null, ...touch() })
+    .where(and(eq(day.tripId, access.trip.id), inArray(day.id, dayIds)));
+
+  await writeSpan(access.trip.id, dateRange(input.startDate, input.endDate), placeId);
+
+  await refreshUnlocks(access.trip.id);
+  revalidatePath(`/trip/${access.trip.id}/route`);
+  revalidatePath(`/trip/${access.trip.id}/days`);
+}
+
+/**
+ * Drops a stop into a different position in the sequence.
+ *
+ * There is no stored row to drag (rule 3), so this permutes what happens on
+ * the trip's dates: the stops are re-laid over the same run of days in the new
+ * order, each keeping its own number of nights and taking whatever dates that
+ * lands it on. A two-night stop moved in front of a three-night one therefore
+ * changes both stops' dates — which is the point of moving it.
+ *
+ * Events travel with their stop; expenses stay on their date. See
+ * src/lib/itinerary.ts for why.
+ */
+export async function reorderStops(tripId: number, from: number, to: number) {
+  const access = await requireTripAccess(tripId);
+
+  const days = await db
+    .select({
+      dayId: day.id,
+      date: day.date,
+      overnightPlaceId: day.overnightPlaceId,
+    })
+    .from(day)
+    .where(and(eq(day.tripId, access.trip.id), isNull(day.deletedAt)))
+    .orderBy(asc(day.date))
+    .all();
+
+  const stops = deriveStops(
+    days.map((d) => ({
+      dayId: d.dayId,
+      date: d.date,
+      overnightPlaceId: d.overnightPlaceId,
+      overnightPlaceName: null,
+    })),
+  );
+
+  await permuteDayContents(
+    access.trip.id,
+    moveItem(stops, from, to).flatMap((s) => s.dayIds),
+  );
 
   revalidatePath(`/trip/${access.trip.id}/route`);
   revalidatePath(`/trip/${access.trip.id}/days`);

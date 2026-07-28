@@ -21,7 +21,8 @@ import {
   Stack,
   cx,
 } from "@/components/ui";
-import { PRESET_TRIPS, REGIONS } from "./preset-trips";
+import { StaticMap } from "@/components/static-map";
+import { PRESET_TRIPS, REGION_TONE, REGIONS } from "./preset-trips";
 import type { PresetTrip, Region } from "./preset-trips";
 
 function isRegion(value: string | undefined): value is Region {
@@ -56,6 +57,7 @@ export default async function ExplorePage({
           <FilterChip
             key={r}
             label={r}
+            tone={REGION_TONE[r]}
             href={`/explore?region=${encodeURIComponent(r)}`}
             active={active === r}
           />
@@ -80,18 +82,40 @@ export default async function ExplorePage({
         no partnership with any of them, and nothing on this page is paid
         placement.
       </p>
+      {/* OSM's tile policy requires the attribution be visible wherever tiles
+          are shown. There is no per-card control on a still map, so the page
+          prints it once — see components/static-map.tsx. */}
+      <p className="mt-2 text-xs text-ink-faint">
+        Maps &copy;{" "}
+        <a
+          className="text-pen underline underline-offset-2"
+          href="https://www.openstreetmap.org/copyright"
+        >
+          OpenStreetMap
+        </a>{" "}
+        contributors.
+      </p>
     </Page>
   );
 }
 
+/**
+ * A region filter. Each region owns a pastel (`REGION_TONE`) and every listing
+ * in that region wears the same one, so the chips read as a key to the tags
+ * below rather than as decoration. The selected chip is marked by a heavier
+ * border and `aria-current`, not by its colour changing — the colour has to
+ * keep meaning "this region" while it's active.
+ */
 function FilterChip({
   label,
   href,
   active,
+  tone,
 }: {
   label: string;
   href: string;
   active: boolean;
+  tone?: string;
 }) {
   return (
     <Link
@@ -99,9 +123,8 @@ function FilterChip({
       aria-current={active ? "page" : undefined}
       className={cx(
         "rounded-sm border px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.06em] transition-colors",
-        active
-          ? "border-pen bg-pen text-sheet"
-          : "border-rule-strong bg-sheet text-ink-soft hover:bg-sheet-2",
+        tone ?? "bg-sheet text-ink-soft",
+        active ? "border-pen shadow-card" : "border-rule-strong hover:opacity-80",
       )}
     >
       {label}
@@ -109,20 +132,64 @@ function FilterChip({
   );
 }
 
+/**
+ * A luggage tag rather than a line of prose — the price is the one figure a
+ * reader scans for, so it gets a shape of its own beside the action. The notch
+ * and the punched hole are drawn in CSS (`.price-tag` in globals.css).
+ *
+ * The tag carries the figure and nothing else: "from … each" was tried and
+ * read as clutter at this size. The qualification isn't lost — the tag's
+ * `title` and its screen-reader label both spell it out, and the page's own
+ * footer says nothing here is bookable.
+ */
+function PriceTag({ amount }: { amount: string }) {
+  const full = `From ${amount} each`;
+  return (
+    <span className="price-tag" title={full}>
+      <span className="sr-only">{full}</span>
+      <span aria-hidden className="nums price-tag-amount">
+        {amount}
+      </span>
+    </span>
+  );
+}
+
 function PresetCard({ preset }: { preset: PresetTrip }) {
   return (
     <Card as="li" className="flex flex-col">
-      <div className="border-b border-dotted border-rule-strong px-4 py-3">
+      {/* The picture is the destination itself, not stock photography — a
+          still OSM mosaic centred on where the trip actually goes. */}
+      <div className="px-3 pt-3">
+        <StaticMap
+          lat={preset.lat}
+          lng={preset.lng}
+          zoom={preset.mapZoom}
+          alt={`Map of ${preset.country} around ${preset.title}`}
+        />
+      </div>
+
+      <div className="border-b border-dotted border-rule-strong px-4 pb-3 pt-3">
         <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
           <Badge tone={preset.editorial ? "marine" : "neutral"}>
             {preset.operator}
           </Badge>
-          <Badge tone="neutral">{preset.country}</Badge>
+          {/* The colour says which region; the country name says which
+              country. Spelling the region out here too was redundant — but
+              the tag still carries a word, so colour is never the only
+              carrier of meaning (CLAUDE.md). */}
+          <span
+            title={preset.region}
+            className={cx(
+              "rounded-sm border border-rule-strong px-1.5 py-0.5 font-mono text-[11px] uppercase tracking-[0.06em]",
+              REGION_TONE[preset.region],
+            )}
+          >
+            {preset.country}
+          </span>
         </div>
         <h2 className="typed">{preset.title}</h2>
         <p className="mt-0.5 font-mono text-xs text-ink-faint">
-          {preset.nights} nights · {preset.groupSize} · from{" "}
-          {formatMoney(preset.priceFromMinor, preset.currency)} each
+          {preset.nights} nights · {preset.groupSize}
         </p>
       </div>
 
@@ -145,14 +212,17 @@ function PresetCard({ preset }: { preset: PresetTrip }) {
         {/* Goes to /trips, not to a copy action: nothing seeds a trip from a
             preset yet, and a button that pretends otherwise would be worse
             than an honest one. */}
-        <div className="mt-4">
+        <div className="mt-4 flex items-center justify-between gap-3">
           <ButtonLink
             href="/trips"
-            variant="secondary"
+            variant="primary"
             title="Preview only — starting a trip from a preset isn't built yet"
           >
-            Start a trip from this
+            Explore trip
           </ButtonLink>
+          <PriceTag
+            amount={formatMoney(preset.priceFromMinor, preset.currency)}
+          />
         </div>
       </div>
     </Card>

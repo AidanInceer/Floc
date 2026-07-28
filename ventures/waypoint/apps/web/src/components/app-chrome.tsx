@@ -8,6 +8,51 @@ import Link from "next/link";
 import { ButtonLink } from "@/components/ui";
 import { AccountMenu } from "@/components/account-menu";
 
+function WaypointWordmark() {
+  return (
+    <svg
+      viewBox="0 0 420 130"
+      width="122"
+      height="38"
+      role="img"
+      aria-hidden="true"
+    >
+      {/* beige dotted trail: waves over the word, passes through the i-dot, loops below, trails off */}
+      <path
+        d="M22 30 C 52 8, 90 8, 130 22 C 166 36, 196 4, 224 50
+           C 252 96, 244 124, 278 122 C 310 120, 336 96, 350 72"
+        fill="none"
+        stroke="#d9c9a8"
+        strokeWidth="3.5"
+        strokeLinecap="round"
+        strokeDasharray="0.1 9"
+      />
+      {/* W */}
+      <text
+        x="16"
+        y="98"
+        fontFamily="Georgia, 'Times New Roman', serif"
+        fontSize="68"
+        fill="#23211c"
+      >
+        W
+      </text>
+      {/* aypoınt — dotless-i so we can place the red dot */}
+      <text
+        x="72 106 139 179 214 234 276"
+        y="98"
+        fontFamily="Georgia, 'Times New Roman', serif"
+        fontSize="68"
+        fill="#23211c"
+      >
+        aypoınt
+      </text>
+      {/* red dot over the i */}
+      <circle cx="224" cy="50" r="6.5" fill="#a03f36" />
+    </svg>
+  );
+}
+
 /** Your own things, gathered at the thumb end of the bar. */
 const accountLinks = [
   { href: "/trips", label: "Trips" },
@@ -31,13 +76,8 @@ export function AppChrome({
         {/* Always the marketing page, signed in or not — the wordmark is the
             front cover of the book. "Explore" sits beside it because both are
             the world outside your own trips; "Trips" is over on the right. */}
-        <Link
-          href="/"
-          /* 1.2rem, not text-lg: the ask was exactly 20% up from the old 1rem
-             and the scale has no step there. */
-          className="font-display text-[1.2rem] font-semibold tracking-tight text-pen"
-        >
-          Waypoint
+        <Link href="/" aria-label="Waypoint home" className="flex items-center">
+          <WaypointWordmark />
         </Link>
 
         {user ? (
