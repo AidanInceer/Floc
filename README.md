@@ -27,7 +27,7 @@ One repo, two kinds of thing:
   internal tools, and enablement (templates, CLI, standards, onboarding).
 
 A venture should be able to focus on its product and lean on the hub for the
-undifferentiated heavy lifting.
+undifferentiated heavy lifting
 
 ## Layout
 
