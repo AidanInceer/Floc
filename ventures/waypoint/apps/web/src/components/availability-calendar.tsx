@@ -9,7 +9,9 @@
  *   fortnight is fourteen taps and fourteen round trips would make the whole
  *   thing feel broken.
  * - **Everyone** — the same grid, read-only, each day showing how many of the
- *   group are free. Shaded *and* numbered: colour is never the only signal.
+ *   group are free. Shaded by agreement (ticket 67): green when the whole group
+ *   is free, red when the day would leave somebody out, unshaded when nobody
+ *   has answered. Shaded *and* numbered: colour is never the only signal.
  *
  * Months render several at a time (a group picking "sometime in the spring"
  * shouldn't have to page one month at a time), with paging on top of that.
@@ -218,8 +220,9 @@ export function AvailabilityCalendar({
         </div>
       ) : (
         <p className="mt-5 border-t border-rule pt-4 text-xs text-ink-faint">
-          Each day shows how many of the {memberCount} of you are free. Nobody
-          is chased for this automatically.
+          Each day shows how many of the {memberCount} of you are free: green
+          when that&rsquo;s all of you, red when somebody would miss out, plain
+          when nobody has said yet. Nobody is chased for this automatically.
         </p>
       )}
     </div>
@@ -250,18 +253,27 @@ function DayCell({
   const dayNumber = Number(date.slice(8, 10));
 
   if (view === "everyone") {
-    // Four bands rather than a continuous ramp: with nine people a per-head
-    // opacity is indistinguishable step to step, and the number carries the
-    // detail anyway.
-    const share = memberCount > 0 ? tally / memberCount : 0;
+    /*
+     * Three states, not a ramp (ticket 67). It used to shade in four bands —
+     * everyone / most / some / nobody — and the two middle bands were the
+     * problem: a day half the group can't do and a day one person can't do
+     * looked meaningfully different when they aren't. Either the whole group is
+     * free or the day costs somebody, so:
+     *
+     *   everyone free  → green wash, the same "agreed" green as everywhere else
+     *   some free      → red wash, i.e. this one leaves people out
+     *   nobody yet     → the plain sheet, because no answer is not a bad answer
+     *
+     * The count under the number is what actually says *how many*, so the red
+     * is a prompt to look rather than the whole message (CLAUDE.md: status is
+     * never colour alone).
+     */
     const band =
       tally === 0
         ? "bg-sheet-2 text-ink-faint"
-        : share === 1
+        : tally === memberCount
           ? "bg-green-soft text-green"
-          : share >= 0.5
-            ? "bg-highlight-soft text-highlight-ink"
-            : "bg-pen-soft text-pen";
+          : "bg-red-soft text-red";
     return (
       <span
         role="gridcell"
