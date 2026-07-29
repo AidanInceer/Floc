@@ -40,25 +40,18 @@ import {
   Badge,
   ButtonLink,
   EmptyState,
-  Input,
   Page,
   Stack,
   cx,
 } from "@/components/ui";
 import {
-  ActionForm,
   ConfirmSubmit,
   CopyLink,
   SubmitButton,
 } from "@/components/client-ui";
 import { TripRoster } from "@/components/trip-roster";
 import { TripTrail, type Station } from "@/components/trip-trail";
-import {
-  deleteTripFromOverview,
-  kickMember,
-  promoteMember,
-  renameTrip,
-} from "./actions";
+import { deleteTripFromOverview, promoteMember } from "./actions";
 
 export default async function OverviewPage({
   params,
@@ -300,6 +293,8 @@ export default async function OverviewPage({
             {stage}
           </h1>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-ink-soft">
+            {/* Read-only here: renaming lives on the header name above the tabs
+                (ticket 37), so this is just context for the dates beside it. */}
             <span>{trip.name}</span>
             <span className="text-ink-faint">·</span>
             {trip.startDate || trip.endDate ? (
@@ -451,30 +446,9 @@ export default async function OverviewPage({
         <summary className="inline-flex cursor-pointer items-center gap-1.5 text-sm text-pen marker:content-['']">
           Trip settings
         </summary>
+        {/* No trip name field here any more — it moved into the hero, next to
+            the name itself (ticket 37). */}
         <div className="mt-3.5 grid gap-4 text-left sm:grid-cols-2">
-          <div className="flex flex-col gap-1.5">
-            <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint">
-              Trip name
-            </span>
-            {/* Renameable by anyone in the trip, not just an admin — see
-                `renameTrip`. The header's <h1> stays read-only. */}
-            <ActionForm action={renameTrip}>
-              <input type="hidden" name="tripId" value={tripId} />
-              <div className="flex flex-wrap items-end gap-2">
-                <Input
-                  name="name"
-                  defaultValue={trip.name}
-                  maxLength={120}
-                  aria-label="Trip name"
-                  className="w-56"
-                />
-                <SubmitButton variant="secondary" pendingLabel="Saving…">
-                  Rename
-                </SubmitButton>
-              </div>
-            </ActionForm>
-          </div>
-
           {isAdmin ? (
             <>
               <div className="flex flex-col gap-1.5">
@@ -498,8 +472,11 @@ export default async function OverviewPage({
                   members.length === 1 && "hidden",
                 )}
               >
+                {/* Promoting only. Kicking moved onto the roster's own rows
+                    (ticket 38), so this list is no longer a second member
+                    list with its own copy of every control. */}
                 <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint">
-                  Members
+                  Make someone an admin
                 </span>
                 <ul className="flex flex-col gap-2">
                   {members
@@ -529,18 +506,6 @@ export default async function OverviewPage({
                               </SubmitButton>
                             </form>
                           ) : null}
-                          <form action={kickMember}>
-                            <input type="hidden" name="tripId" value={tripId} />
-                            <input type="hidden" name="userId" value={m.userId} />
-                            <ConfirmSubmit
-                              variant="danger"
-                              message={`Remove ${m.name} from this trip?`}
-                              confirmLabel="Remove them"
-                              pendingLabel="…"
-                            >
-                              Kick
-                            </ConfirmSubmit>
-                          </form>
                         </span>
                       </li>
                     ))}

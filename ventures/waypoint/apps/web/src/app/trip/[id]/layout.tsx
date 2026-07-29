@@ -7,7 +7,9 @@
 import Link from "next/link";
 
 import { AvatarRow, Badge } from "@/components/ui";
+import { TripNameInline } from "@/components/trip-name-inline";
 import { TripTabs } from "@/components/trip-tabs";
+import { renameTrip } from "./overview/actions";
 import { requireTripAccess } from "@/lib/access";
 import { formatDateRange, hasEnded, countdownLabel } from "@/lib/dates";
 import { tabStates } from "@/lib/tabs";
@@ -39,9 +41,15 @@ export default async function TripLayout({
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="font-display text-xl font-semibold tracking-tight">
-                  {trip.name}
-                </h1>
+                {/* Renaming lives on the header name itself (ticket 37) — the
+                    name you want to fix is the one at the top of the page, and
+                    it's the same name on every tab. Not in Trip settings, and
+                    not repeated in the Overview hero. */}
+                <TripNameInline
+                  tripId={trip.id}
+                  name={trip.name}
+                  rename={renameTrip}
+                />
                 {trip.archivedAt ? <Badge tone="neutral">Archived</Badge> : null}
                 {ended ? <Badge tone="action">Ended</Badge> : null}
                 {countdown ? <Badge tone="marine">{countdown}</Badge> : null}
