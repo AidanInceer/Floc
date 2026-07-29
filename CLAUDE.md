@@ -100,7 +100,15 @@ Mockups that belong to a venture with real code live in that venture's
 - Package manager: **pnpm** (v9). Node >= 20. Build orchestration: **Turborepo**.
 - Default branch: **`main`**. Feature branches → PR; CI must pass before merge.
 - Commits: Conventional Commits, scoped where useful (`feat(nexus): …`,
-  `chore(infra): …`, `docs(enablement): …`).
+  `chore(infra): …`, `docs(enablement): …`). A commit that resolves a tracked
+  issue ends with `Closes <owner>/<repo>#<n>` — **fully qualified**, because
+  ventures track their issues in their own GitHub repo (e.g.
+  `AidanInceer/Waypoint`), so a bare `#12` points at the wrong tracker.
+- **Commit at the end of a session, not during it.** Once the work has been
+  reviewed and the go-ahead given — or the next session starts, which is the
+  same signal — commit the changes: one commit per ticket, never a single
+  catch-all. **Commit only; never push.** Pushing stays a separate, explicit
+  ask.
 - Workspaces are defined in **`pnpm-workspace.yaml` only** — new packages/apps
   must live under a globbed path to be picked up. Do not add an npm-style
   `"workspaces"` array to `package.json`; pnpm ignores it and the two silently
