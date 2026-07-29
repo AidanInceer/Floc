@@ -195,6 +195,7 @@ export function ConfirmSubmit({
   variant = "danger",
   pendingLabel,
   className,
+  label,
 }: {
   children: ReactNode;
   message: string;
@@ -204,6 +205,9 @@ export function ConfirmSubmit({
   pendingLabel?: string;
   /** Override the trigger's styling; the confirm dialog's own is fixed. */
   className?: string;
+  /** Accessible name and tooltip for a trigger whose content is an icon — the
+      roster's kick boot (ticket 38), same reason `Sheet` takes one. */
+  label?: string;
 }) {
   const { pending } = useFormStatus();
   const ref = useRef<HTMLDialogElement>(null);
@@ -216,6 +220,8 @@ export function ConfirmSubmit({
         variant={variant}
         disabled={pending}
         className={className}
+        aria-label={label}
+        title={label}
         onClick={() => ref.current?.showModal()}
       >
         {pending ? (pendingLabel ?? "Working…") : children}

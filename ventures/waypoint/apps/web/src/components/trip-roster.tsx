@@ -14,6 +14,7 @@
 import { Avatar, Badge } from "@/components/ui";
 import { Field, Select, Stack, Textarea } from "@/components/ui";
 import { CopyLink, Sheet, SubmitButton } from "@/components/client-ui";
+import { KickBoot } from "@/components/kick-boot";
 import { NUDGE_TABS } from "@/db/schema";
 import type { TripMember } from "@/lib/access";
 import { sendNudge } from "@/app/trip/[id]/overview/actions";
@@ -67,6 +68,14 @@ export function TripRoster({
               ) : null}
               {m.role === "admin" ? <Badge tone="marine">Admin</Badge> : null}
             </span>
+
+            {/* Kicking sits on the person too (ticket 38), beside the bell and
+                admin-only. Not on your own row: leaving a trip yourself isn't
+                a kick, and an admin booting themselves out of their own trip
+                is a foot-gun, not a feature. */}
+            {isAdmin && m.userId !== viewerId ? (
+              <KickBoot tripId={tripId} userId={m.userId} name={m.name} />
+            ) : null}
 
             {/* No bell on your own row — you can't chase yourself. */}
             {m.userId !== viewerId ? (
