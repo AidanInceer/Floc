@@ -100,7 +100,12 @@ export async function castVote(tripId: number, ideaId: number, value: VoteValue)
     .values({ ideaId, userId: access.viewer.id, value })
     .onConflictDoUpdate({
       target: [ideaVote.ideaId, ideaVote.userId],
-      set: { value, ...touch() },
+      // `deletedAt: null` is load-bearing, not tidiness. `clearVote` soft-deletes
+      // (rule 8) but `idea_vote_unique_idx` doesn't know about `deletedAt`, so the
+      // cleared row still blocks the insert — and without resetting the flag the
+      // upsert wrote a new value onto a row every read filters out. Voting,
+      // clearing, then voting again silently did nothing.
+      set: { value, deletedAt: null, ...touch() },
     });
 
   revalidatePath(`/trip/${tripId}/ideas`);
