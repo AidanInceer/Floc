@@ -533,11 +533,18 @@ export default async function LandingPage() {
           <div className="flex flex-col">
             <div className="mb-3">
               <p className="typed">Week three</p>
+              {/* Ticket 42: the old caption ("One page everyone agrees on" /
+                  "Same conversation, sorted into dates, a route and a bill")
+                  described the picture without saying what it's worth. What
+                  the panel is actually showing is a state against every
+                  decision — so the copy names that, and the answer to the
+                  question the group keeps re-asking in the chat. */}
               <h2 className="mt-1 text-[1.15rem] font-semibold">
-                One page everyone agrees on
+                One page that answers every question
               </h2>
               <p className="mt-1 text-sm text-ink-soft">
-                Same conversation, sorted into dates, a route and a bill.
+                Dates, route, money — each with where it stands written next to
+                it, so nobody scrolls back through the chat to find out.
               </p>
             </div>
 
