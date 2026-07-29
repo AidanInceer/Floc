@@ -4,8 +4,9 @@
  * A discussion thread — one component for every surface that has one (ideas
  * and day events today).
  *
- * Oldest-first, deliberately: a thread is an argument you follow from the
- * start, not a feed.
+ * Oldest-first by default, deliberately: a thread is an argument you follow
+ * from the start, not a feed. "Most liked" is opt-in per thread (ticket 35) and
+ * reorders the runs only — never the replies inside one.
  *
  * **The unit is the run** (v0.2 ticket 06): one top-level comment plus its
  * replies, separated from the next run by a dotted rule, the replies indented
@@ -16,7 +17,11 @@
  *
  * A client component, unusually for this codebase, because three things here
  * are genuinely stateful with no server round-trip worth making: whether a run
- * is collapsed, which reply composer is open, and nothing else. The server
+ * is collapsed, which reply composer is open, and how the runs are ordered.
+ * The order is local on purpose: Ideas puts a thread in a modal per note, so
+ * there can be a dozen on one screen, and a `?sort=` in the URL — the way the
+ * idea board itself does it — can only say one thing for all of them. The
+ * server
  * actions are imported directly, which is allowed and keeps the writes on the
  * server where they belong.
  */
@@ -35,7 +40,12 @@ import {
   react,
 } from "@/app/trip/[id]/notes-actions";
 import { REACTION_KINDS, type NoteScope, type ReactionKind } from "@/db/schema";
-import { commentTime, type NoteRow } from "@/lib/notes";
+import {
+  commentTime,
+  sortRuns,
+  type NoteRow,
+  type NoteSort,
+} from "@/lib/notes";
 
 export type { NoteRow };
 
@@ -438,6 +448,50 @@ function Run({
   );
 }
 
+/**
+ * Thread order, in the same mono-caps vocabulary as the run's "Hide" control —
+ * this is thread furniture, not one of the page's own sort tabs, and it sits
+ * inside a 230px note's modal where the board's filled-pen buttons would shout.
+ */
+function SortToggle({
+  value,
+  onSelect,
+}: {
+  value: NoteSort;
+  onSelect: (next: NoteSort) => void;
+}) {
+  const options: { value: NoteSort; label: string }[] = [
+    { value: "oldest", label: "Oldest" },
+    { value: "liked", label: "Most liked" },
+  ];
+  return (
+    <div
+      role="radiogroup"
+      aria-label="Sort comments"
+      className="mb-1 flex items-center justify-end gap-1"
+    >
+      {options.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          role="radio"
+          aria-checked={value === o.value}
+          onClick={() => onSelect(o.value)}
+          onMouseUp={blurOnPointer}
+          className={cx(
+            "rounded-sm px-1.5 py-0.5 font-mono text-[10.5px] tracking-[0.02em]",
+            value === o.value
+              ? "bg-sheet-3 font-bold text-ink"
+              : "text-ink-faint hover:bg-sheet-2 hover:text-pen",
+          )}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function NoteThread({
   tripId,
   scope,
@@ -458,6 +512,9 @@ export function NoteThread({
   placeholder?: string;
   invitation?: string;
 }) {
+  const [sort, setSort] = useState<NoteSort>("oldest");
+  const runs = sortRuns(notes, sort);
+
   return (
     <div className="mt-2">
       {notes.length === 0 ? (
@@ -472,7 +529,12 @@ export function NoteThread({
         </div>
       ) : (
         <div className="flex flex-col">
-          {notes.map((n) => (
+          {/* Nothing to sort with one run, and the control would read as a
+              claim that there's more conversation than there is. */}
+          {notes.length > 1 ? (
+            <SortToggle value={sort} onSelect={setSort} />
+          ) : null}
+          {runs.map((n) => (
             <Run
               key={n.id}
               tripId={tripId}

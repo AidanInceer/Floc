@@ -24,6 +24,42 @@ export type NoteRow = {
   replies: NoteRow[];
 };
 
+/** Thread order. Oldest-first is the default — see `sortRuns` (ticket 35). */
+export type NoteSort = "oldest" | "liked";
+
+/**
+ * How much the group liked a comment: hearts and agreements count for it,
+ * disagreements against. One number, because the sort needs an order and three
+ * separate tallies don't give one.
+ *
+ * A run is scored on its top-level comment alone, not its replies. A reply is
+ * an answer to the comment, often an argument with it, so counting the
+ * reactions it collected would let a disagreed-with comment ride up the thread
+ * on the strength of the people disagreeing.
+ */
+export function likeScore(note: NoteRow): number {
+  const { heart, up, down } = note.reactions;
+  return heart.count + up.count - down.count;
+}
+
+/**
+ * Order the runs of a thread. Replies are never reordered — inside a run the
+ * conversation only reads chronologically.
+ *
+ * `runs` arrives oldest-first from `loadThreads`, so "oldest" is the identity
+ * and "liked" falls back to that order on a tie — which means two unreacted
+ * comments keep the order they were written in rather than swapping about
+ * between renders.
+ */
+export function sortRuns(runs: NoteRow[], sort: NoteSort): NoteRow[] {
+  if (sort === "oldest") return runs;
+  return [...runs].sort(
+    (a, b) =>
+      likeScore(b) - likeScore(a) ||
+      a.createdAt.getTime() - b.createdAt.getTime(),
+  );
+}
+
 export function emptyReactions(): Reactions {
   return Object.fromEntries(
     REACTION_KINDS.map((k) => [k, { count: 0, mine: false }]),
