@@ -1,0 +1,563 @@
+<title>Waypoint — hero A: the notes settle</title>
+
+<!--
+  Hero exploration A — "the notes settle".
+
+  Answers the feedback that the homepage has no immediate USP: the hero is too
+  wordy and a visitor can't see what happens when they join. The headline stays
+  ("Start the trip as notes. Finish it as a plan."); the 40-word lede is cut to
+  one line, and the argument moves into the picture — loose post-its at the top
+  funnel down into one settled plan card. The canvas does the selling.
+
+  Styling is the live app's: tokens copied verbatim from
+  apps/web/src/app/globals.css. Light only, per the venture's ticket 07 — the
+  hub's wireframe convention asks for a dark block, and this venture explicitly
+  overrides it.
+
+  Two changes proposed here that are NOT yet in the app:
+    1. --note-* tokens: brighter post-it colours, added below the shipped ones.
+    2. --hand: the script faces are dropped for a print-hand stack, and .hand
+       gains a size/spacing rule. Adopting means editing globals.css:79 and the
+       .hand block at globals.css:311. See mockups/README.md.
+-->
+
+<style>
+  :root {
+    color-scheme: light;
+
+    --paper: #f3eee2;
+    --sheet: #fbf8f1;
+    --sheet-2: #f1ead9;
+    --sheet-3: #e7dfca;
+    --rule: #ded3ba;
+    --rule-2: #c4b795;
+
+    --line: #cfe0e6;
+    --margin-line: #dfb4ae;
+    --tape: rgb(214 196 150 / 0.55);
+
+    --ink: #23211c;
+    --ink-2: #57524a;
+    --ink-3: #8b8477;
+
+    --pen: #2a4d7a;
+    --pen-2: #dfe7f1;
+    --pencil: #6a6559;
+
+    --highlight: #f3dd7e;
+    --highlight-2: #fbf2cd;
+    --highlight-ink: #7a6414;
+    --highlight-red: #efb3a8;
+    --highlight-green: #b9d8a2;
+    --red: #a03f36;
+    --red-2: #f6e3df;
+    --green: #4d6b3f;
+    --green-2: #e6ecdd;
+
+    --shadow-sm: 0 1px 1px rgb(35 33 28 / 0.05);
+    --shadow: 0 1px 1px rgb(35 33 28 / 0.05), 0 12px 26px -14px rgb(35 33 28 / 0.35);
+    --shadow-lift: 0 2px 3px rgb(35 33 28 / 0.07), 0 18px 34px -16px rgb(35 33 28 / 0.45);
+
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+    /* PROPOSED. Was: "Segoe Print", "Bradley Hand", "Comic Sans MS", "Segoe
+       Script", cursive. The script faces are the mobile legibility problem —
+       "Segoe Script" is gone and the rounder print hands lead. */
+    --hand: "Bradley Hand", "Chalkboard SE", "Marker Felt", "Segoe Print", "Comic Sans MS", ui-rounded, cursive;
+    --type: "Courier New", "Cascadia Mono", Consolas, monospace;
+
+    --who-1: #dbe4f2; --who-1-ink: #2a4d7a;
+    --who-2: #f3dcdf; --who-2-ink: #8e4550;
+    --who-3: #f4e6c8; --who-3-ink: #7d5b18;
+    --who-4: #dfe9d6; --who-4-ink: #436035;
+    --who-5: #e4dff0; --who-5-ink: #574d75;
+    --who-6: #d7e7e6; --who-6-ink: #2f5c58;
+    --who-7: #f7e0cf; --who-7-ink: #8a5227;
+
+    /* PROPOSED. Post-it stock: brighter than the --who-* pencil-crayon washes,
+       still pale enough to take ink. Each has an edge one step darker for the
+       fold and the shadow line. */
+    --note-yellow: #f7d94f; --note-yellow-edge: #d9ba33;
+    --note-coral:  #f79a7d; --note-coral-edge:  #d97a5d;
+    --note-mint:   #8fd39a; --note-mint-edge:   #6cb47a;
+    --note-sky:    #7fc4e8; --note-sky-edge:    #5da3c9;
+    --note-lilac:  #c3a8e8; --note-lilac-edge:  #a288cb;
+  }
+
+  * { box-sizing: border-box; min-width: 0; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 15.5px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 { font-family: var(--serif); font-weight: 600; letter-spacing: -0.01em; text-wrap: balance; margin: 0; }
+  p { margin: 0; }
+  a { color: var(--pen); }
+  :focus-visible { outline: 2px solid var(--pen); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+
+  /* ---- the sheet ------------------------------------------------------- */
+
+  .page { margin: 0 auto; width: 100%; max-width: 1152px; padding: 24px 16px 64px; }
+
+  .sheet {
+    position: relative; overflow: hidden;
+    border: 1px solid var(--rule); border-radius: 6px;
+    background: var(--sheet); box-shadow: var(--shadow);
+    padding: 28px 20px; padding-left: 38px;
+  }
+  .sheet::before {
+    content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+    background-image: repeating-linear-gradient(180deg, transparent 0 27px, var(--line) 27px 28px);
+    opacity: 0.5;
+  }
+  .sheet::after {
+    content: ""; position: absolute; left: 22px; top: 0; bottom: 0; width: 1px; z-index: 0;
+    background: var(--margin-line); opacity: 0.65; pointer-events: none;
+  }
+  .tape {
+    position: absolute; width: 92px; height: 22px; background: var(--tape);
+    top: -10px; left: 26px; z-index: 0; transform: rotate(-2.5deg);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.08); pointer-events: none;
+  }
+  .sheet-content { position: relative; z-index: 1; }
+
+  @media (min-width: 640px) {
+    .page { padding: 24px 24px 64px; }
+    .sheet { padding: 32px; padding-left: 76px; }
+    .sheet::after { left: 46px; }
+  }
+
+  /* ---- type ------------------------------------------------------------ */
+
+  .typed { font-family: var(--type); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+
+  /*
+   * PROPOSED alongside the stack change. Handwriting sits smaller than serif at
+   * the same px, so it gets a little back, plus room to breathe between the
+   * glyphs — that and dropping the script faces is the mobile fix.
+   */
+  .hand { font-family: var(--hand); font-size: 1.06em; letter-spacing: 0.012em; line-height: 1.5; }
+  @media (max-width: 640px) {
+    .hand { font-size: 1.12em; letter-spacing: 0.02em; }
+    .scrawl { color: var(--ink-2); }
+  }
+
+  .nums { font-family: var(--type); font-variant-numeric: tabular-nums; }
+  .hl { background-image: linear-gradient(180deg, transparent 62%, var(--hl-stroke, var(--highlight)) 62% 92%, transparent 92%); }
+  .hl-red { --hl-stroke: var(--highlight-red); }
+  .hl-green { --hl-stroke: var(--highlight-green); }
+  .soft { color: var(--ink-2); }
+  .faint { color: var(--ink-3); }
+
+  /* ---- buttons --------------------------------------------------------- */
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    border: 1px solid; border-radius: 5px; padding: 8px 16px;
+    font-family: var(--type); font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.06em; text-decoration: none; cursor: pointer;
+    transition: background-color 0.15s, filter 0.15s;
+  }
+  .btn-primary { border-color: var(--pen); background: var(--pen); color: var(--sheet); }
+  .btn-primary:hover { filter: brightness(1.1); }
+  .btn-secondary { border-color: var(--rule-2); background: var(--sheet); color: var(--ink-2); }
+  .btn-secondary:hover { background: var(--sheet-2); }
+
+  /* ---- badges & cards -------------------------------------------------- */
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px; border: 1px solid transparent;
+    border-radius: 3px; padding: 1px 8px; font-family: var(--type);
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .badge-agreed { background: var(--green-2); color: var(--green); }
+  .badge-open { background: var(--highlight-2); color: var(--highlight-ink); }
+  .badge-action { background: var(--red-2); color: var(--red); }
+  .badge-marine { background: var(--pen-2); color: var(--pen); }
+  .badge-neutral { border-color: var(--rule-2); color: var(--ink-2); }
+
+  .stamp {
+    display: inline-block; transform: rotate(-3deg); border: 2px solid var(--green);
+    color: var(--green); border-radius: 3px; padding: 1px 10px; opacity: 0.85;
+    font-family: var(--type); font-size: 10.5px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.12em;
+  }
+
+  .card { border: 1px solid var(--rule); border-radius: 5px; background: var(--sheet-2); }
+  .card-raised { box-shadow: var(--shadow); }
+  .card-head {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+    gap: 8px; border-bottom: 1px dotted var(--rule-2); padding: 12px 16px;
+  }
+  .card-body { padding: 16px; display: grid; gap: 12px; }
+  .inset { border: 1px solid var(--rule); border-radius: 5px; background: var(--sheet); padding: 12px; }
+
+  /* ---- avatars --------------------------------------------------------- */
+
+  .who-row { display: flex; align-items: center; }
+  .who-row > * + * { margin-left: -8px; }
+  .who {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; border-radius: 999px; border: 1px solid var(--rule-2);
+    font-family: var(--type); font-size: 11px; font-weight: 600;
+  }
+  .who-1 { background: var(--who-1); color: var(--who-1-ink); }
+  .who-2 { background: var(--who-2); color: var(--who-2-ink); }
+  .who-3 { background: var(--who-3); color: var(--who-3-ink); }
+  .who-4 { background: var(--who-4); color: var(--who-4-ink); }
+  .who-5 { background: var(--who-5); color: var(--who-5-ink); }
+  .who-6 { background: var(--who-6); color: var(--who-6-ink); }
+  .who-7 { background: var(--who-7); color: var(--who-7-ink); }
+
+  /* ---- the post-it canvas ---------------------------------------------- */
+
+  /*
+   * Decoration, and only decoration: aria-hidden, pointer-events: none, and
+   * nothing load-bearing written on it. It fills the hero band and is masked to
+   * nothing over the last third, so the notes dissolve into the paper rather
+   * than stopping at an edge — the rest of the page stays cream.
+   */
+  .hero-band { position: relative; }
+  .postits {
+    position: absolute; inset: -28px -40px 0; width: calc(100% + 80px); height: 118%;
+    z-index: 0; pointer-events: none;
+    /*
+     * Deliberately faint. At full strength the notes competed with the H1 for
+     * the eye and the lede became hard to read — the canvas is here to stop the
+     * page being flat cream, not to be read. The scrawled notes that *are* meant
+     * to be read live in the foreground funnel instead.
+     */
+    opacity: 0.42;
+    -webkit-mask-image: linear-gradient(180deg, #000 0 52%, transparent 96%);
+    mask-image: linear-gradient(180deg, #000 0 52%, transparent 96%);
+  }
+  .postits text {
+    font-family: var(--hand); font-size: 15px; fill: var(--ink-2);
+  }
+  .pn-y rect { fill: var(--note-yellow); } .pn-y path { fill: var(--note-yellow-edge); }
+  .pn-c rect { fill: var(--note-coral); }  .pn-c path { fill: var(--note-coral-edge); }
+  .pn-m rect { fill: var(--note-mint); }   .pn-m path { fill: var(--note-mint-edge); }
+  .pn-s rect { fill: var(--note-sky); }    .pn-s path { fill: var(--note-sky-edge); }
+  .pn-l rect { fill: var(--note-lilac); }  .pn-l path { fill: var(--note-lilac-edge); }
+
+  /* ---- hero ------------------------------------------------------------ */
+
+  .hero { position: relative; z-index: 1; display: grid; gap: 40px; padding-top: 8px; }
+  @media (min-width: 1024px) { .hero { grid-template-columns: 1.05fr 1fr; align-items: center; padding-top: 24px; } }
+  .hero h1 {
+    margin-top: 10px; max-width: 16ch; font-size: clamp(2rem, 5vw, 3.25rem);
+    font-weight: 600; line-height: 1.05; letter-spacing: -0.025em;
+  }
+  /* One line, down from forty words. The picture on the right carries the rest. */
+  .hero .lede { margin-top: 16px; max-width: 34ch; font-size: 18.5px; color: var(--ink-2); }
+  .hero .actions { margin-top: 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+  .scrawl { display: inline-block; margin-top: 22px; transform: rotate(-1deg); font-size: 15px; color: var(--pen); }
+
+  /* ---- the funnel: loose notes converging on one plan ------------------- */
+
+  .funnel { position: relative; }
+  .loose { position: relative; height: 128px; margin-bottom: -6px; }
+  .loose .sticky {
+    position: absolute; width: 108px; padding: 12px 10px;
+    border-radius: 2px; box-shadow: var(--shadow-lift);
+    font-family: var(--hand); font-size: 14px; line-height: 1.35; color: var(--ink);
+  }
+  .loose .sticky::after {
+    content: ""; position: absolute; right: 0; bottom: 0;
+    border-width: 0 0 16px 16px; border-style: solid;
+  }
+  .s1 { left: 0;    top: 6px;  transform: rotate(-7deg);  background: var(--note-yellow); }
+  .s1::after { border-color: transparent transparent var(--note-yellow-edge) transparent; }
+  .s2 { left: 96px; top: 0;    transform: rotate(4deg);   background: var(--note-sky); }
+  .s2::after { border-color: transparent transparent var(--note-sky-edge) transparent; }
+  .s3 { left: 196px; top: 10px; transform: rotate(-3deg);  background: var(--note-coral); }
+  .s3::after { border-color: transparent transparent var(--note-coral-edge) transparent; }
+  .s4 { left: 52px; top: 62px; transform: rotate(6deg);   background: var(--note-mint); }
+  .s4::after { border-color: transparent transparent var(--note-mint-edge) transparent; }
+  .s5 { left: 158px; top: 68px; transform: rotate(-5deg);  background: var(--note-lilac); }
+  .s5::after { border-color: transparent transparent var(--note-lilac-edge) transparent; }
+
+  /* The funnel itself: two dashed rules closing in, and a word for what's
+     happening — the shape alone would be a diagram nobody can read. */
+  .becomes {
+    position: relative; display: flex; align-items: center; justify-content: center;
+    gap: 10px; margin: 18px 0 12px;
+  }
+  .becomes::before, .becomes::after {
+    content: ""; flex: 1; border-top: 2px dashed var(--rule-2);
+  }
+  .becomes span { font-family: var(--type); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
+
+  .plan-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .plan-row .k { font-family: var(--type); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+
+  /* ---- section furniture ----------------------------------------------- */
+
+  .section { margin-top: 64px; }
+  .section-head { max-width: 62ch; }
+  .section-head h2 { margin-top: 6px; font-size: clamp(1.4rem, 3vw, 1.9rem); }
+  .section-head p { margin-top: 8px; color: var(--ink-2); }
+
+  /* ---- the cut-down journey (context only, three stops) ----------------- */
+
+  .route { margin-top: 32px; display: grid; gap: 0; list-style: none; padding: 0; }
+  .stop { position: relative; display: grid; grid-template-columns: 40px minmax(0, 1fr); align-items: start; }
+  @media (min-width: 860px) { .stop { grid-template-columns: minmax(0, 1fr) 72px minmax(0, 1fr); } }
+  .leg { position: relative; align-self: stretch; }
+  @media (min-width: 860px) { .leg { grid-column: 2; grid-row: 1; } }
+  .leg::before { content: ""; position: absolute; top: 0; bottom: 0; left: 50%; margin-left: -1px; border-left: 2px dashed var(--rule-2); }
+  .stop:first-child .leg::before { top: 26px; }
+  .stop:last-child .leg::before { bottom: auto; height: 26px; }
+  .pin {
+    position: absolute; top: 26px; left: 50%; width: 18px; height: 18px;
+    margin-left: -9px; margin-top: -9px; border-radius: 999px;
+    border: 1.5px solid var(--pen); background: var(--sheet); z-index: 2;
+  }
+  .pin::after { content: ""; position: absolute; inset: 4.5px; border-radius: 999px; background: var(--pen); }
+  .note-wrap { padding-bottom: 28px; }
+  @media (min-width: 860px) {
+    .note-wrap { grid-row: 1; padding-bottom: 44px; }
+    .stop:nth-child(odd) > .note-wrap { grid-column: 1; }
+    .stop:nth-child(even) > .note-wrap { grid-column: 3; }
+  }
+  .note {
+    position: relative; background: var(--highlight-2);
+    border: 1px solid var(--rule); border-radius: 2px;
+    padding: 18px 18px 16px; box-shadow: var(--shadow-lift);
+  }
+  .note::before {
+    content: ""; position: absolute; top: -9px; left: 24px; width: 64px; height: 18px;
+    background: var(--tape); transform: rotate(-2deg); box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+  }
+  .stop:nth-child(1) .note { transform: rotate(-0.7deg); background: var(--highlight-2); }
+  .stop:nth-child(2) .note { transform: rotate(0.6deg); background: var(--pen-2); }
+  .stop:nth-child(3) .note { transform: rotate(-0.5deg); background: var(--green-2); }
+  .note-step { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .note-step .n { font-family: var(--type); font-size: 10.5px; letter-spacing: 0.1em; color: var(--ink-3); }
+  .note h3 { margin-top: 6px; font-size: 1.15rem; }
+  .note > p { margin-top: 8px; font-size: 14.5px; color: var(--ink-2); }
+  .scribble { margin-top: 12px; display: inline-block; font-size: 13.5px; color: var(--pen); transform: rotate(-0.6deg); }
+</style>
+
+<div class="page">
+  <div class="sheet">
+    <span class="tape" aria-hidden="true"></span>
+    <div class="sheet-content">
+
+      <!-- ==================== HERO: the notes settle ===================== -->
+      <div class="hero-band">
+        <svg class="postits" aria-hidden="true" viewBox="0 0 1200 560" preserveAspectRatio="xMidYMin slice">
+          <defs>
+            <filter id="pnShadow" x="-25%" y="-25%" width="160%" height="160%">
+              <feDropShadow dx="2" dy="5" stdDeviation="5" flood-color="#23211c" flood-opacity="0.22" />
+            </filter>
+          </defs>
+          <!--
+            Positions keep the notes in the margins and the corners, out of the
+            block the H1 and lede occupy (roughly x 60–560, y 40–320). Nothing
+            here is written on: background notes are shapes, and every word the
+            visitor needs is in the foreground.
+          -->
+          <g filter="url(#pnShadow)">
+            <g class="pn-y" transform="translate(-46 26) rotate(-9)">
+              <rect width="124" height="124" rx="2" />
+              <path d="M124 100 L100 124 L124 124 Z" />
+            </g>
+            <g class="pn-s" transform="translate(-58 208) rotate(6)">
+              <rect width="112" height="112" rx="2" />
+              <path d="M112 90 L90 112 L112 112 Z" />
+            </g>
+            <g class="pn-c" transform="translate(-30 380) rotate(4)">
+              <rect width="118" height="118" rx="2" />
+              <path d="M118 94 L94 118 L118 118 Z" />
+            </g>
+            <g class="pn-m" transform="translate(196 -74) rotate(-6)">
+              <rect width="104" height="104" rx="2" />
+              <path d="M104 84 L84 104 L104 104 Z" />
+            </g>
+            <g class="pn-l" transform="translate(414 -58) rotate(7)">
+              <rect width="116" height="116" rx="2" />
+              <path d="M116 92 L92 116 L116 116 Z" />
+            </g>
+            <g class="pn-y" transform="translate(1102 46) rotate(-5)">
+              <rect width="122" height="122" rx="2" />
+              <path d="M122 98 L98 122 L122 122 Z" />
+            </g>
+            <g class="pn-s" transform="translate(1128 236) rotate(3)">
+              <rect width="106" height="106" rx="2" />
+              <path d="M106 86 L86 106 L106 106 Z" />
+            </g>
+            <g class="pn-c" transform="translate(354 388) rotate(-4)">
+              <rect width="110" height="110" rx="2" />
+              <path d="M110 88 L88 110 L110 110 Z" />
+            </g>
+            <g class="pn-m" transform="translate(626 424) rotate(8)">
+              <rect width="112" height="112" rx="2" />
+              <path d="M112 90 L90 112 L112 112 Z" />
+            </g>
+            <g class="pn-l" transform="translate(120 424) rotate(-7)">
+              <rect width="100" height="100" rx="2" />
+              <path d="M100 80 L80 100 L100 100 Z" />
+            </g>
+          </g>
+        </svg>
+
+        <section class="hero">
+          <div>
+            <p class="typed">A notebook nine people can write in at once</p>
+            <h1>Start the trip as <span class="hl hl-red">notes</span>. Finish it as a <span class="hl hl-green">plan</span>.</h1>
+            <p class="lede">
+              Nine people scribbling turns into one week, one route and one
+              settled bill.
+            </p>
+            <div class="actions">
+              <a class="btn btn-primary" href="#">Open a new book</a>
+              <a class="btn btn-secondary" href="#">Read someone else's</a>
+            </div>
+            <p class="hand scrawl">— started 14 Feb, still arguing about Croatia</p>
+            <p class="faint" style="margin-top: 12px; font-size: 12px;">
+              Free while it's in the making. Google, or an email and password.
+            </p>
+          </div>
+
+          <!-- The argument, as a picture: loose notes above, one settled plan
+               below, and the word "becomes" between them so the funnel isn't a
+               diagram you have to decode. -->
+          <div class="funnel">
+            <div class="loose" aria-hidden="true">
+              <div class="sticky s1">Sicily — hear me out</div>
+              <div class="sticky s2">can't do the 12th</div>
+              <div class="sticky s3">£600 each, max</div>
+              <div class="sticky s4">Ruth can drive</div>
+              <div class="sticky s5">3 nights minimum</div>
+            </div>
+
+            <p class="becomes"><span>becomes</span></p>
+
+            <div class="card card-raised">
+              <div class="card-head">
+                <div>
+                  <h2 class="typed">Sicily, late September</h2>
+                  <p class="faint" style="margin-top: 2px; font-size: 12px;">7 members · 12 Sep – 19 Sep</p>
+                </div>
+                <span class="stamp">Agreed</span>
+              </div>
+              <div class="card-body">
+                <div class="inset plan-row">
+                  <span class="k">Dates</span>
+                  <span class="nums" style="font-size: 14px;">12–19 Sep · 5 of 7 free</span>
+                </div>
+                <div class="inset plan-row">
+                  <span class="k">Route</span>
+                  <span style="font-size: 14px;">Catania → Taormina → Syracuse</span>
+                </div>
+                <div class="inset plan-row">
+                  <span class="k">Each</span>
+                  <span class="nums" style="font-size: 14px;">£412 · Mei is owed £84</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                  <div class="who-row">
+                    <span class="who who-1">PS</span>
+                    <span class="who who-2">TO</span>
+                    <span class="who who-3">ML</span>
+                    <span class="who who-4">JW</span>
+                    <span class="who who-5">RA</span>
+                    <span class="who who-6">+2</span>
+                  </div>
+                  <span class="badge badge-agreed">Route agreed</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ==================== JOURNEY (cut down, for context) ============ -->
+      <section class="section">
+        <div class="section-head">
+          <p class="typed">The whole journey, one page</p>
+          <h2>Six stops between “we should go somewhere” and “that's settled”.</h2>
+          <p>
+            Nothing here is a wizard. A stop opens when the group is ready for
+            it, and a trip that already knows where it's going skips straight to
+            the route.
+          </p>
+        </div>
+
+        <ol class="route">
+          <li class="stop">
+            <div class="leg" aria-hidden="true"><span class="pin"></span></div>
+            <div class="note-wrap">
+              <div class="note">
+                <div class="note-step">
+                  <span class="n">Stop 01</span>
+                  <span class="badge badge-marine">Ideas</span>
+                </div>
+                <h3>Everyone throws places in</h3>
+                <p>
+                  A link, a photo, a name someone half-remembers. Vote when it
+                  helps the group decide; ignore the votes when it doesn't.
+                </p>
+                <span class="hand scribble">Ruth added 6 of these in one evening</span>
+              </div>
+            </div>
+          </li>
+
+          <li class="stop">
+            <div class="leg" aria-hidden="true"><span class="pin"></span></div>
+            <div class="note-wrap">
+              <div class="note">
+                <div class="note-step">
+                  <span class="n">Stop 02</span>
+                  <span class="badge badge-open">Dates</span>
+                </div>
+                <h3>The weeks people can't do</h3>
+                <p>
+                  Everyone shades in their bad weeks and the overlap surfaces
+                  itself. It never waits for a full house — five out of seven is
+                  usually the answer.
+                </p>
+                <span class="hand scribble">nobody had to ask twice</span>
+              </div>
+            </div>
+          </li>
+
+          <li class="stop">
+            <div class="leg" aria-hidden="true"><span class="pin"></span></div>
+            <div class="note-wrap">
+              <div class="note">
+                <div class="note-step">
+                  <span class="n">Stop 06</span>
+                  <span class="badge badge-agreed">Money</span>
+                </div>
+                <h3>Who owes who, once</h3>
+                <p>
+                  Log what you paid as you go. At the end it's one line each,
+                  not a spreadsheet nobody trusts — Waypoint keeps the ledger,
+                  you settle it between yourselves.
+                </p>
+                <span class="hand scribble">three transfers, done</span>
+              </div>
+            </div>
+          </li>
+        </ol>
+
+        <p class="faint" style="margin-top: 8px; font-size: 12.5px;">
+          Stops 03–05 — Route, Days and the shared bill — are in
+          <a href="homepage-pinboard.html">the adopted homepage</a>. This file
+          exists to show the hero in context, not to replace the page.
+        </p>
+      </section>
+
+    </div>
+  </div>
+</div>

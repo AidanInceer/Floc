@@ -6,7 +6,13 @@
  * the real design tokens. Needs no database read, so this page stays a
  * plain server component with zero queries.
  *
- * Everything below the hero follows `docs/mockups/homepage-pinboard.html`:
+ * The hero follows `docs/mockups/homepage-hero-b-beforeafter.html`, adopted
+ * after feedback that the page had no selling point that landed immediately.
+ * The headline is the part that worked and is unchanged; the 40-word lede is
+ * gone entirely, replaced by the same trip shown twice — loose notes on the
+ * left, the settled sheet on the right.
+ *
+ * Everything below the hero still follows `docs/mockups/homepage-pinboard.html`:
  * the six-stop journey as a route down the page with sticky notes either
  * side, the group-chat before/after, who it's for, and a contact block.
  */
@@ -20,18 +26,86 @@ import {
   Avatar,
   AvatarRow,
   Badge,
-  Button,
   ButtonLink,
   Card,
   CardHeader,
-  Field,
-  Input,
   Page,
-  Select,
   Stamp,
-  Textarea,
+  cx,
   type Tone,
 } from "@/components/ui";
+
+/* -------------------------------------------------------------------------- */
+/* The hero                                                                   */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The "before" panel — everything anyone said, still loose. Real scribbles,
+ * because this half of the argument only lands if it's familiar. Positions are
+ * percentages so six notes still fit the panel on a phone.
+ */
+const loose: { said: string; tone: string; at: string }[] = [
+  { said: "Sicily — hear me out", tone: "note-yellow", at: "left-[2%] top-[3%] -rotate-6" },
+  { said: "Puglia if we can drive", tone: "note-sky", at: "left-[38%] top-0 rotate-[5deg]" },
+  { said: "can't do w/c 12th", tone: "note-coral", at: "left-[10%] top-[32%] rotate-[3deg]" },
+  { said: "£600 each, max", tone: "note-mint", at: "left-[46%] top-[38%] -rotate-[7deg]" },
+  { said: "Ruth can drive", tone: "note-lilac", at: "left-[22%] top-[64%] -rotate-2" },
+  { said: "3 nights minimum?", tone: "note-yellow", at: "left-[52%] top-[72%] rotate-[6deg]" },
+];
+
+/**
+ * The post-it canvas beside the headline. Decoration and nothing else: no word
+ * on it is load-bearing, so it carries no text at all — every note a visitor
+ * needs to read is in the `fan` below. It renders as its own grid cell rather
+ * than as a layer behind the copy from `lg:` up; below that it sits behind the
+ * headline, faded, which is why the stock here is deliberately restricted.
+ *
+ * Full stock, coral and mint included — see `.hero-canvas` in globals.css for
+ * how the overlap with "notes"/"plan" is actually avoided (a breakpoint, not
+ * a colour restriction).
+ */
+function HeroCanvas() {
+  const notes = [
+    { tone: "var(--note-yellow)", edge: "var(--note-yellow-edge)", x: 18, y: 8, s: 126, r: -8 },
+    { tone: "var(--note-sky)", edge: "var(--note-sky-edge)", x: 176, y: 74, s: 112, r: 6 },
+    { tone: "var(--note-coral)", edge: "var(--note-coral-edge)", x: 318, y: 12, s: 118, r: 3 },
+    { tone: "var(--note-mint)", edge: "var(--note-mint-edge)", x: 120, y: 216, s: 106, r: -5 },
+    { tone: "var(--note-lilac)", edge: "var(--note-lilac-edge)", x: 302, y: 190, s: 114, r: 7 },
+    { tone: "var(--note-yellow)", edge: "var(--note-yellow-edge)", x: 0, y: 306, s: 104, r: 4 },
+  ];
+
+  return (
+    <div className="hero-canvas" aria-hidden="true">
+      <svg viewBox="0 0 440 400" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <filter id="hero-note-shadow" x="-25%" y="-25%" width="160%" height="160%">
+            <feDropShadow
+              dx="2"
+              dy="5"
+              stdDeviation="5"
+              floodColor="#23211c"
+              floodOpacity="0.22"
+            />
+          </filter>
+        </defs>
+        <g filter="url(#hero-note-shadow)">
+          {notes.map((n) => (
+            <g
+              key={`${n.x}-${n.y}`}
+              transform={`translate(${n.x} ${n.y}) rotate(${n.r})`}
+            >
+              <rect width={n.s} height={n.s} rx="2" fill={n.tone} />
+              <path
+                d={`M${n.s} ${n.s * 0.8} L${n.s * 0.8} ${n.s} L${n.s} ${n.s} Z`}
+                fill={n.edge}
+              />
+            </g>
+          ))}
+        </g>
+      </svg>
+    </div>
+  );
+}
 
 /* -------------------------------------------------------------------------- */
 /* The journey                                                                */
@@ -365,96 +439,160 @@ export default async function LandingPage() {
 
   return (
     <Page wide>
-      <section className="grid gap-10 pt-8 sm:pt-14 lg:grid-cols-[1.05fr_1fr] lg:items-center">
-        {/* The cover, verbatim from paper.html's own `.cover` — notebook
-            language throughout ("a new book", "someone else's") rather than
-            app language, and a handwritten scrawl to sign it off. */}
-        <div>
-          <p className="typed">A notebook nine people can write in at once</p>
-          <h1 className="mt-2.5 max-w-[16ch] font-display text-[clamp(2rem,5vw,3.25rem)] font-semibold leading-[1.05] tracking-[-0.025em]">
-            Start the trip as <span className="hl hl-red">notes</span>. Finish
-            it as a <span className="hl hl-green">plan</span>.
-          </h1>
-          <p className="mt-4 max-w-[48ch] text-[17.5px] text-ink-soft">
-            Everyone scribbles: a place, a price, the week they can't do, the
-            pub someone swears by. Waypoint keeps it all on one page and
-            quietly turns it into dates, a route and a bill everyone agrees on.
-          </p>
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            {session?.user ? (
-              <ButtonLink href="/trips" variant="primary">
-                Plan your next trip
-              </ButtonLink>
-            ) : (
-              <>
-                <ButtonLink href="/signup" variant="primary">
-                  Open a new book
-                </ButtonLink>
-                <ButtonLink href="/login" variant="secondary">
-                  Read someone else's
-                </ButtonLink>
-              </>
-            )}
-          </div>
-          <p className="hand mt-6 inline-block -rotate-1 text-[15px] text-pen">
-            — started 14 Feb, still arguing about Croatia
-          </p>
-          {!session?.user && enabledProviders.google ? (
-            <p className="mt-3 text-xs text-ink-faint">
-              Sign up with Google or an email and password.
+      <section className="relative pt-8 sm:pt-10">
+        {/* Below `sm:` the post-it canvas is an overlay pinned to the top of
+            the sheet, sitting *behind* the copy and faded out before it reaches
+            the headline. From `sm:` up — a single column is still narrow enough
+            there for a note to land right behind "notes"/"plan" otherwise — it
+            becomes a real grid cell to the right of the copy, so it can never
+            underlap the headline or the buttons again. See `.hero-canvas` in
+            globals.css. */}
+        {/* 23rem, not narrower: below it the two buttons (197px + 117px + the
+            gap) stop fitting on one line and the H1 breaks into five. */}
+        <div className="grid gap-8 sm:grid-cols-[minmax(0,23rem)_minmax(0,1fr)] sm:items-center">
+          <div className="relative z-10">
+            <p className="typed">Group trip planning, sorted</p>
+            <h1 className="mt-2.5 font-display text-[clamp(2rem,5.4vw,3.4rem)] font-semibold leading-[1.05] tracking-[-0.025em]">
+              Start the trip as <span className="hl hl-red">notes</span>. Finish
+              it as a <span className="hl hl-green">plan</span>.
+            </h1>
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              {session?.user ? (
+                <>
+                  <ButtonLink href="/trips" variant="primary">
+                    Get planning!
+                  </ButtonLink>
+                  <ButtonLink href="/explore" variant="secondary">
+                    Get inspired
+                  </ButtonLink>
+                </>
+              ) : (
+                <>
+                  <ButtonLink href="/signup" variant="primary">
+                    Get planning!
+                  </ButtonLink>
+                  {/* /explore is behind `requireUser`, so the label keeps its
+                      promise: sign in and you land on it, not on /trips. */}
+                  <ButtonLink href="/login?redirect=%2Fexplore" variant="secondary">
+                    Get inspired
+                  </ButtonLink>
+                </>
+              )}
+            </div>
+            <p className="hand mt-6 inline-block -rotate-1 text-[15px] text-pen">
+              — started 14 Feb, still arguing about Croatia
             </p>
-          ) : null}
+            {!session?.user && enabledProviders.google ? (
+              <p className="mt-3 text-xs text-ink-faint">
+                Sign up with Google or an email and password.
+              </p>
+            ) : null}
+          </div>
+
+          <HeroCanvas />
         </div>
 
-        {/* Static illustrative mock of the product's own overview tab —
-            hand-written sample data, not a live query (see file header). */}
-        <Card className="shadow-raised">
-          <CardHeader
-            title="Sicily, late September"
-            hint="7 members · 12 Sep – 19 Sep"
-            actions={<Badge tone="agreed">Route agreed</Badge>}
-          />
-          <div className="space-y-4 p-4">
-            <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.06em] text-ink-soft">
-                Who's in
-              </p>
-              <AvatarRow
-                people={[
-                  { name: "Priya Shah" },
-                  { name: "Tom Okafor" },
-                  { name: "Mei Lin" },
-                  { name: "Jonas Weber" },
-                  { name: "Ruth Adeyemi" },
-                  { name: "Sam Cole" },
-                  { name: "Ana Ferreira" },
-                ]}
-              />
-            </div>
-            <div className="rounded-md border border-rule bg-sheet-2 p-3">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.06em] text-ink-soft">
-                Route
-              </p>
-              <p className="text-sm text-ink">
-                Catania → Taormina → Syracuse → Catania
+        {/* The lede's job, done as a picture: the same trip twice. */}
+        <div className="mt-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_112px_minmax(0,1fr)] lg:items-stretch lg:gap-0">
+          <div className="flex flex-col">
+            <div className="mb-3">
+              <p className="typed">Week one</p>
+              <h2 className="mt-1 text-[1.15rem] font-semibold">
+                Everything anyone said
+              </h2>
+              <p className="mt-1 text-sm text-ink-soft">
+                Six people, four destinations, nobody sure what's still live.
               </p>
             </div>
-            <div className="flex items-center justify-between rounded-md border border-rule bg-sheet-2 p-3">
-              <div>
-                <p className="text-sm font-medium text-ink">Money</p>
-                <p className="text-xs text-ink-soft">Mei is owed £84 across 3 people</p>
-              </div>
-              <Badge tone="action">Needs settling</Badge>
-            </div>
-            <div className="flex items-center gap-2 rounded-md border border-rule bg-sheet-2 p-3">
-              <Avatar name="Tom Okafor" size={24} />
-              <p className="text-sm text-ink-soft">
-                <span className="font-medium text-ink">Tom</span> nudged the group
-                about picking a hotel in Taormina
-              </p>
+            <div className="fan grow" aria-hidden="true">
+              {loose.map((n) => (
+                <span key={n.said} className={cx("fan-note", n.tone, n.at)}>
+                  {n.said}
+                </span>
+              ))}
             </div>
           </div>
-        </Card>
+
+          {/* Just the label, no arrow. A drawn arrow has to point somewhere,
+              and the panels sit side by side on a desktop but stacked on a
+              phone — so whichever way it pointed it was wrong at one of the two
+              widths. The words carry the gap on their own. */}
+          <div className="hero-gap" aria-hidden="true">
+            <span className="hero-gap-label">a fortnight later</span>
+          </div>
+
+          <div className="flex flex-col">
+            <div className="mb-3">
+              <p className="typed">Week three</p>
+              <h2 className="mt-1 text-[1.15rem] font-semibold">
+                One page everyone agrees on
+              </h2>
+              <p className="mt-1 text-sm text-ink-soft">
+                Same conversation, sorted into dates, a route and a bill.
+              </p>
+            </div>
+
+            {/* Static illustrative mock of the product's own overview tab —
+                hand-written sample data, not a live query (see file header). */}
+            <Card className="grow shadow-raised">
+              <CardHeader
+                title="Sicily, late September"
+                hint="7 members · 12 Sep – 19 Sep"
+                actions={<Stamp>Agreed</Stamp>}
+              />
+              <div className="space-y-3 p-4">
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.06em] text-ink-soft">
+                    Who's in
+                  </p>
+                  <AvatarRow
+                    people={[
+                      { name: "Priya Shah" },
+                      { name: "Tom Okafor" },
+                      { name: "Mei Lin" },
+                      { name: "Jonas Weber" },
+                      { name: "Ruth Adeyemi" },
+                      { name: "Sam Cole" },
+                      { name: "Ana Ferreira" },
+                    ]}
+                  />
+                </div>
+                <div className="flex items-baseline justify-between gap-3 rounded-md border border-rule bg-sheet-2 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.06em] text-ink-soft">
+                    Dates
+                  </p>
+                  <p className="font-mono text-sm tabular-nums text-ink">
+                    12–19 Sep · 5 of 7 free
+                  </p>
+                </div>
+                <div className="rounded-md border border-rule bg-sheet-2 p-3">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.06em] text-ink-soft">
+                    Route
+                  </p>
+                  <p className="text-sm text-ink">
+                    Catania → Taormina → Syracuse → Catania
+                  </p>
+                </div>
+                <div className="flex items-center justify-between rounded-md border border-rule bg-sheet-2 p-3">
+                  <div>
+                    <p className="text-sm font-medium text-ink">Money</p>
+                    <p className="text-xs text-ink-soft">
+                      Mei is owed £84 across 3 people
+                    </p>
+                  </div>
+                  <Badge tone="action">Needs settling</Badge>
+                </div>
+                <div className="flex items-center gap-2 rounded-md border border-rule bg-sheet-2 p-3">
+                  <Avatar name="Tom Okafor" size={24} />
+                  <p className="text-sm text-ink-soft">
+                    <span className="font-medium text-ink">Tom</span> nudged the
+                    group about picking a hotel in Taormina
+                  </p>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
       </section>
 
       {/* ==================== THE JOURNEY ================================== */}
@@ -568,80 +706,39 @@ export default async function LandingPage() {
       ) : null}
 
       {/* ==================== CONTACT & FEEDBACK ========================== */}
-      <section
-        id="contact"
-        className="mt-16 grid gap-7 lg:grid-cols-[1.1fr_1fr] lg:items-start lg:gap-10"
-      >
-        <div>
-          <SectionHead
-            label="Contact & feedback"
-            title="Tell us what your group actually needed."
-          >
-            Waypoint is pre-launch and being shaped by the trips people are
-            planning right now. If something's missing, awkward or plain wrong,
-            say so — it's read by the person who builds it, and it changes what
-            gets built next.
-          </SectionHead>
+      {/* Ticket 01 (waypoint-v0.2) is closed as "not yet" — the torn-off
+          "Leave a note" form that used to sit here was disabled presentation
+          with no submit target, and it's gone until a backend exists for it.
+          Email is the only channel for now. */}
+      <section id="contact" className="mt-16 border-t border-rule pt-8">
+        <SectionHead
+          label="Contact & feedback"
+          title="Tell us what your group actually needed."
+        >
+          Waypoint is pre-launch and being shaped by the trips people are
+          planning right now. If something's missing, awkward or plain wrong,
+          say so — it's read by the person who builds it, and it changes what
+          gets built next.
+        </SectionHead>
 
-          <div className="mt-4 grid gap-3">
-            <div className="flex items-baseline gap-2.5">
-              <span className="typed min-w-[100px]">Email</span>
-              <a href="mailto:hello@waypoint.travel" className="text-pen">
-                hello@waypoint.travel
-              </a>
-            </div>
-            <div className="flex items-baseline gap-2.5">
-              <span className="typed min-w-[100px]">Something broke</span>
-              <a href="mailto:hello@waypoint.travel?subject=Something broke" className="text-pen">
-                Tell us what you were doing
-              </a>
-            </div>
+        <div className="mt-4 grid gap-3">
+          <div className="flex items-baseline gap-2.5">
+            <span className="typed min-w-[100px]">Email</span>
+            <a href="mailto:hello@waypoint.travel" className="text-pen">
+              hello@waypoint.travel
+            </a>
           </div>
-
-          <p className="hand mt-5 inline-block -rotate-1 text-pen">
-            — usually answered within a day
-          </p>
-        </div>
-
-        {/*
-          The feedback slip, as a torn-off form. Presentation only for now —
-          there is no submit target yet, so it doesn't post anywhere and the
-          button is disabled rather than silently doing nothing. Wire it to a
-          Server Action when the backend for it is designed.
-        */}
-        <div className="note-tape relative -rotate-[0.4deg] rounded-sm border border-rule bg-sheet-2 p-5 shadow-lifted">
-          <p className="typed">Leave a note</p>
-          <div className="mt-3 grid gap-3">
-            <Field label="Your name">
-              <Input type="text" placeholder="Ruth Adeyemi" disabled />
-            </Field>
-            <Field label="Email">
-              <Input type="email" placeholder="ruth@example.com" disabled />
-            </Field>
-            <Field label="What's this about">
-              <Select disabled defaultValue="missing">
-                <option value="missing">Something we needed and couldn't find</option>
-                <option value="wrong">Something that went wrong</option>
-                <option value="how">How my group plans trips</option>
-                <option value="other">Something else entirely</option>
-              </Select>
-            </Field>
-            <Field label="Say more">
-              <Textarea
-                disabled
-                placeholder="We were seven people across three countries and the hardest part was…"
-              />
-            </Field>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-xs text-ink-faint">
-                Not open yet — email us in the meantime.
-              </p>
-              <Button variant="primary" type="button" disabled>
-                Send it
-              </Button>
-            </div>
+          <div className="flex items-baseline gap-2.5">
+            <span className="typed min-w-[100px]">Something broke</span>
+            <a href="mailto:hello@waypoint.travel?subject=Something broke" className="text-pen">
+              Tell us what you were doing
+            </a>
           </div>
         </div>
+
+        <p className="hand mt-5 inline-block -rotate-1 text-pen">
+          — usually answered within a day
+        </p>
       </section>
     </Page>
   );

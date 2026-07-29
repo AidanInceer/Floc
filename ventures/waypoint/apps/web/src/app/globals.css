@@ -76,8 +76,33 @@
 
   --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia,
     "Times New Roman", serif;
-  --hand: "Segoe Print", "Bradley Hand", "Comic Sans MS", "Segoe Script", cursive;
+  /*
+   * Print hands, not script ones. The stack used to lead with "Segoe Print" and
+   * carry "Segoe Script", and the marginalia — "— started 14 Feb, still arguing
+   * about Croatia" — was unreadable at 15px on a phone. The rounder faces lead
+   * and the script one is gone; see the `.hand` sizing rule, which is the other
+   * half of the same fix.
+   */
+  --hand: "Bradley Hand", "Chalkboard SE", "Marker Felt", "Segoe Print",
+    "Comic Sans MS", ui-rounded, cursive;
   --type: "Courier New", "Cascadia Mono", Consolas, monospace;
+
+  /*
+   * Post-it stock, for the landing page's hero only. Brighter than the
+   * `--who-*` washes below on purpose: those are pencil crayon and belong to
+   * people, and reusing them for decoration would make a note look like a
+   * member. Each colour has an `-edge` one step darker for the turned corner.
+   */
+  --note-yellow: #f7d94f;
+  --note-yellow-edge: #d9ba33;
+  --note-coral: #f79a7d;
+  --note-coral-edge: #d97a5d;
+  --note-mint: #8fd39a;
+  --note-mint-edge: #6cb47a;
+  --note-sky: #7fc4e8;
+  --note-sky-edge: #5da3c9;
+  --note-lilac: #c3a8e8;
+  --note-lilac-edge: #a288cb;
 
   /*
    * People. paper.html gives every member their own coloured initial disc
@@ -307,9 +332,26 @@
     color: var(--ink-3);
   }
 
-  /* Marginalia. Accent only — never data. */
+  /*
+   * Marginalia. Accent only — never data.
+   *
+   * The size and tracking are the other half of the `--hand` stack change: a
+   * handwriting face sits visually smaller than the serif at the same px, and
+   * the glyphs need room between them to stay apart. Both rise again below the
+   * `sm:` breakpoint, which is where the mobile legibility complaint came from.
+   */
   .hand {
     font-family: var(--hand);
+    font-size: 1.06em;
+    letter-spacing: 0.012em;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 639px) {
+    .hand {
+      font-size: 1.12em;
+      letter-spacing: 0.02em;
+    }
   }
 
   /*
@@ -338,6 +380,173 @@
 
   .hl-green {
     --hl-stroke: var(--highlight-green);
+  }
+
+  /* ======================================================================
+   * The landing page's hero — the before/after cut
+   * (docs/mockups/homepage-hero-b-beforeafter.html).
+   *
+   * The headline runs across the top and the argument sits under it as one
+   * picture: the mess on the left, the same trip settled on the right, an arrow
+   * between them. There is no prose lede — the two panel captions are it.
+   * ==================================================================== */
+
+  /*
+   * The post-it canvas beside the headline.
+   *
+   * It is a GRID CELL, not an absolutely-positioned overlay behind the text,
+   * and that is the whole point: an overlay put coloured paper under the H1 and
+   * under the buttons, where it fought the highlighter strokes and made the
+   * headline hard to read. As its own cell it cannot reach the copy at any
+   * width.
+   *
+   * It starts at the top of the page and fades downwards at BOTH widths — on a
+   * phone it is ordered above the headline rather than dropped below the
+   * buttons, so the notes are the first thing on the page either way and the
+   * gradient always runs the same direction. It bleeds off the edges, which the
+   * sheet's `overflow: hidden` clips.
+   */
+  /*
+   * Below `sm:` this is an overlay, not a row of its own — reserving a band
+   * above the headline for a decoration pushed the whole page down. It's
+   * pinned to the right (the text is left-aligned and full-width below `sm:`,
+   * so there's nowhere else for it to stay clear of) and double-masked: a
+   * vertical fade so it dissolves before it reaches the "week one" copy, and a
+   * horizontal one so it never reaches the left edge, where the headline and
+   * the buttons sit. From `sm:` the layout goes two-column (see the grid in
+   * page.tsx) and the canvas switches to being a real cell in the right-hand
+   * column, so from there up it physically cannot reach the copy at any
+   * width, whatever colours it uses.
+   */
+  .hero-canvas {
+    position: absolute;
+    /* Negative inset cancels the sheet's own padding, so the notes start at
+       the very top edge rather than one gutter down. */
+    top: -1.75rem;
+    right: -1.25rem;
+    left: 38%;
+    height: 240px;
+    z-index: 0;
+    pointer-events: none;
+    -webkit-mask-image: linear-gradient(180deg, #000 0 22%, transparent 92%),
+      linear-gradient(90deg, transparent 0, #000 35%);
+    -webkit-mask-composite: source-in;
+    mask-image: linear-gradient(180deg, #000 0 22%, transparent 92%),
+      linear-gradient(90deg, transparent 0, #000 35%);
+    mask-composite: intersect;
+  }
+
+  .hero-canvas svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.55;
+  }
+
+  @media (min-width: 640px) {
+    .hero-canvas {
+      position: relative;
+      top: auto;
+      left: auto;
+      right: auto;
+      height: auto;
+      min-height: 260px;
+      align-self: stretch;
+      margin: -2rem -2rem -1rem 0;
+      /* Grid cell now — nothing left to keep the horizontal mask for. */
+      -webkit-mask-image: linear-gradient(180deg, #000 0 22%, transparent 92%);
+      mask-image: linear-gradient(180deg, #000 0 22%, transparent 92%);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .hero-canvas {
+      min-height: 340px;
+      margin-top: -3.5rem;
+    }
+  }
+
+  /* Note stock. `--note-edge` is set by the colour class, so the turned corner
+     is one declaration rather than one rule per colour. */
+  .note-yellow {
+    background: var(--note-yellow);
+    --note-edge: var(--note-yellow-edge);
+  }
+  .note-coral {
+    background: var(--note-coral);
+    --note-edge: var(--note-coral-edge);
+  }
+  .note-mint {
+    background: var(--note-mint);
+    --note-edge: var(--note-mint-edge);
+  }
+  .note-sky {
+    background: var(--note-sky);
+    --note-edge: var(--note-sky-edge);
+  }
+  .note-lilac {
+    background: var(--note-lilac);
+    --note-edge: var(--note-lilac-edge);
+  }
+
+  /* The "before" panel: everything anyone said, still loose. Dashed, and a
+     wash rather than a sheet, so it reads as a surface things are stuck to
+     rather than as another Card. */
+  .fan {
+    position: relative;
+    min-height: 330px;
+    border: 1px dashed var(--rule-2);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--sheet-3) 35%, transparent);
+  }
+
+  /*
+   * One loose note. Width is fluid so six of them still fit the panel on a
+   * phone; positions and tilts are set per note at the call site.
+   */
+  .fan-note {
+    position: absolute;
+    width: clamp(106px, 33%, 146px);
+    border-radius: 2px;
+    padding: 11px 10px;
+    font-family: var(--hand);
+    font-size: 14px;
+    line-height: 1.35;
+    color: var(--ink);
+    box-shadow: var(--shadow-lift);
+  }
+
+  .fan-note::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    border-style: solid;
+    border-width: 0 0 16px 16px;
+    border-color: transparent transparent var(--note-edge) transparent;
+  }
+
+  /*
+   * What sits between the two panels: the words, and nothing else. There was a
+   * drawn arrow here and it was removed — the panels are side by side on a
+   * desktop and stacked on a phone, so a single arrow points the wrong way at
+   * one of the two widths whichever direction it takes.
+   */
+  .hero-gap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+  }
+
+  .hero-gap .hero-gap-label {
+    font-family: var(--hand);
+    font-size: 14px;
+    line-height: 1.25;
+    text-align: center;
+    color: var(--pen);
+    transform: rotate(-4deg);
   }
 
   /*

@@ -41,6 +41,14 @@ Paper's own discipline, kept as a hard rule rather than a suggestion:
 This is what makes the metaphor survive a money ledger: amounts, dates and
 balances are always typed, never handwritten.
 
+`--hand` is a **print** hand, not a script one. The stack originally led with
+`"Segoe Print"` and carried `"Segoe Script"`, and the marginalia was unreadable
+at 15px on a phone — the rounder faces now lead and the script one is gone.
+`.hand` also carries its own size and tracking (`1.06em`, rising to `1.12em`
+below `sm:`), because a handwriting face sits visually smaller than the serif
+at the same px. The two go together: swapping the stack back without the sizing
+rule reintroduces half the problem.
+
 ## Light only
 
 There is **no dark mode**, and that's a decision rather than an omission: the
@@ -74,6 +82,11 @@ a hex value.
   as paper.html's own coloured initial discs. Assigned by roster position in
   `lib/who.ts` (see People below), so this is the one place a colour is
   picked per-person rather than per-meaning.
+- **Post-it stock** — `note-yellow` / `-coral` / `-mint` / `-sky` / `-lilac`,
+  each with a `-edge` one step darker for the turned corner. The landing
+  page's hero only. Brighter than the `who-*` pastels deliberately, and they
+  are **not** interchangeable with them: a `who-*` wash means a person, so
+  decorating with one would make a sticky note look like a member.
 - **Radii** — 3 / 5 / 6px. Paper is cut, not moulded, so these stay far below
   the previous direction's 6/10/16px — but the first pass at 2/3/4px read as
   *sharp* rather than as cut, so they were softened on request. `Card`,

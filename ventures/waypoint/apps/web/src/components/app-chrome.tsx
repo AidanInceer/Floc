@@ -62,8 +62,10 @@ const accountLinks = [
 /** Browsing, not your own data — so it sits with the wordmark, not the account. */
 const discoverLinks = [{ href: "/explore", label: "Explore" }];
 
+/* Nudged down a few pixels. Optically centred against the wordmark the links
+   read as floating above the bar's midline — the wordmark's weight sits low. */
 const navLinkClass =
-  "rounded-sm px-2 py-1 text-ink-soft hover:bg-sheet-2 hover:text-ink";
+  "translate-y-[3px] rounded-sm px-2 py-1 text-ink-soft hover:bg-sheet-2 hover:text-ink";
 
 export function AppChrome({
   user,
