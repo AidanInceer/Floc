@@ -17,6 +17,24 @@ export const CURRENCY_SYMBOLS: Record<Currency, string> = {
 /** All three v1 currencies have two decimal places. */
 const MINOR_PER_MAJOR = 100;
 
+/**
+ * Hard ceiling on any single amount: £1bn in minor units.
+ *
+ * Not cosmetic. An amount past `Number.MAX_SAFE_INTEGER` writes to SQLite
+ * happily, and then *every later read* throws
+ * `RangeError: Received integer which cannot be safely represented as a
+ * JavaScript number` — so one silly expense locks the whole group out of the
+ * trip, Overview included. Rejecting at the door is the only place that can't
+ * be bypassed (ticket 33).
+ */
+export const MAX_AMOUNT_MINOR = 100_000_000_000;
+
+function assertInRange(amountMinor: number): void {
+  if (!Number.isFinite(amountMinor) || Math.abs(amountMinor) > MAX_AMOUNT_MINOR) {
+    throw new Error("That amount is too large — keep it under a billion.");
+  }
+}
+
 export function formatMoney(amountMinor: number, currency: Currency): string {
   const negative = amountMinor < 0;
   const abs = Math.abs(amountMinor);
@@ -38,6 +56,7 @@ export function parseMoney(input: string): number {
   const [major, minor = ""] = cleaned.replace("-", "").split(".");
   const total =
     Number(major) * MINOR_PER_MAJOR + Number(minor.padEnd(2, "0") || 0);
+  assertInRange(total);
   return negative ? -total : total;
 }
 
@@ -68,6 +87,9 @@ export function computeSplits(
   if (!Number.isInteger(amountMinor)) {
     throw new Error("amountMinor must be an integer number of minor units");
   }
+  // Belt and braces: `parseMoney` is the usual door, but splits can be built
+  // from a raw number too, and an out-of-range total must never reach the DB.
+  assertInRange(amountMinor);
 
   switch (splitType) {
     case "even":

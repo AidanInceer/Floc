@@ -24,6 +24,18 @@ describe("formatMoney / parseMoney", () => {
     expect(() => parseMoney("12.345")).toThrow();
     expect(() => parseMoney("twelve")).toThrow();
   });
+
+  // Ticket 33: an amount past the safe-integer range used to write fine and
+  // then make every later read of the trip throw, locking the group out of
+  // Overview. It has to be refused at parse time.
+  it("refuses an amount too large to survive a round trip", () => {
+    expect(parseMoney("999999999.99")).toBe(99999999999);
+    expect(() => parseMoney("99999999999999999999")).toThrow(/too large/);
+    expect(() => parseMoney("-99999999999999999999")).toThrow(/too large/);
+    expect(() => computeSplits(1e15, "even", people("a", "b"))).toThrow(
+      /too large/,
+    );
+  });
 });
 
 describe("computeSplits", () => {
