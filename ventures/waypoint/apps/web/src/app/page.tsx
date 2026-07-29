@@ -13,8 +13,9 @@
  * left, the settled sheet on the right.
  *
  * Everything below the hero still follows `docs/mockups/homepage-pinboard.html`:
- * the six-stop journey as a route down the page with sticky notes either
- * side, the group-chat before/after, who it's for, and a contact block.
+ * who it's for, then the six-stop journey as a route down the page with sticky
+ * notes either side. The mockup's group-chat before/after is no longer here —
+ * see ticket 44 below.
  */
 import type { ReactNode } from "react";
 
@@ -386,41 +387,12 @@ function SectionHead({
   );
 }
 
-const chat: { name: string; said: string }[] = [
-  { name: "Mei Lin", said: "so are we doing the 12th or not" },
-  { name: "Tom Okafor", said: "I said earlier I can't do that week 😅" },
-  { name: "Ruth Adeyemi", said: "wait which hotel did we agree on" },
-  { name: "Priya Shah", said: "[link to a hotel, sent 11 days ago]" },
-  { name: "Jonas Weber", said: "I paid the deposit btw, will work it out later" },
-  { name: "Sam Cole", said: "later never comes lol" },
-];
-
-const settled: { what: string; detail: string; tone: Tone; state: string }[] = [
-  {
-    what: "Dates",
-    detail: "12–19 Sep, five of seven free",
-    tone: "agreed",
-    state: "Agreed",
-  },
-  {
-    what: "Where we're staying",
-    detail: "Taormina — 3 nights, Priya booked it",
-    tone: "agreed",
-    state: "Agreed",
-  },
-  {
-    what: "Jonas's deposit",
-    detail: "£420, split 7 ways, logged the day he paid",
-    tone: "marine",
-    state: "Logged",
-  },
-  {
-    what: "Etna: walk or cable car",
-    detail: "Two options, three votes so far",
-    tone: "open",
-    state: "Still open",
-  },
-];
+/*
+ * Ticket 44: the "A group chat is a terrible place to keep a decision" section
+ * is gone, along with the `chat`/`settled` sample data it rendered. The hero's
+ * before/after already makes the same argument in a picture, one screen up, and
+ * making it twice read as the page labouring the point.
+ */
 
 const shapes: { badge: string; tone: Tone; title: string; body: string }[] = [
   {
@@ -655,57 +627,6 @@ export default async function LandingPage() {
           ))}
         </ol>
       </section>
-
-      {/* ==================== THE GROUP CHAT PROBLEM ====================== */}
-      <section className="mt-16">
-        <SectionHead
-          label="Why bother at all"
-          title="A group chat is a terrible place to keep a decision."
-        >
-          It's a fine place to make one. The problem is finding it again three
-          weeks and 400 messages later.
-        </SectionHead>
-
-        <div className="mt-7 grid gap-5 md:grid-cols-2 md:gap-6">
-          <Card>
-            <CardHeader
-              title="The chat, week three"
-              actions={<Badge tone="action">Nothing decided</Badge>}
-            />
-            <div className="grid gap-2 px-4 py-3.5">
-              {chat.map((m) => (
-                <div key={m.said} className="flex items-start gap-2">
-                  <Avatar name={m.name} size={22} />
-                  <p className="text-[13.5px]">{m.said}</p>
-                </div>
-              ))}
-            </div>
-          </Card>
-
-          <Card>
-            <CardHeader
-              title="The same trip, in the book"
-              actions={<Stamp>Agreed</Stamp>}
-            />
-            <div className="px-4 pb-3.5 pt-1.5">
-              {settled.map((row) => (
-                <div
-                  key={row.what}
-                  className="flex items-center justify-between gap-3 py-2.5 [&+div]:border-t [&+div]:border-dotted [&+div]:border-rule-strong"
-                >
-                  <div>
-                    <p className="text-sm font-medium">{row.what}</p>
-                    <p className="text-[12.5px] text-ink-faint">{row.detail}</p>
-                  </div>
-                  <Badge tone={row.tone}>{row.state}</Badge>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </div>
-      </section>
-
-
 
       {!session?.user ? (
         <section className="mt-16 border-t border-rule pt-8 text-center">
