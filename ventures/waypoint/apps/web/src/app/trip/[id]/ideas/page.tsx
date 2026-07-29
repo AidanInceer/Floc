@@ -11,6 +11,7 @@ import { and, desc, eq, isNull } from "drizzle-orm";
 
 import { idea, ideaVote, user, userProfile } from "@/db/schema";
 import type { VoteValue } from "@/db/schema";
+import { voteScore } from "@/lib/votes";
 import { db } from "@/db";
 import { requireTripAccess } from "@/lib/access";
 import { loadThreads } from "@/lib/notes-read";
@@ -121,12 +122,10 @@ export default async function IdeasPage({
   // happened to tap, which reads as the group having judged it when really
   // nobody's looked yet.
   if (sortMode === "liked") {
-    ideas = [...ideas].sort((a, b) => {
-      const score = (i: IdeaCardData) =>
-        i.votes.filter((v) => v.value === "up").length -
-        i.votes.filter((v) => v.value === "down").length;
-      return score(b) - score(a);
-    });
+    // Three tiers, weighted in `voteScore` — a thumbs-up is a quiet yes and has
+    // to count for something, which it didn't when this was keen-minus-rather-not
+    // and a don't-mind was thrown away.
+    ideas = [...ideas].sort((a, b) => voteScore(b.votes) - voteScore(a.votes));
   }
 
   // Pinning is the one thing that overrides the sort (ticket 09): pinned notes
@@ -150,10 +149,12 @@ export default async function IdeasPage({
             <SortLink tripId={tripId} sort="new" active={sortMode === "new"}>
               Newest
             </SortLink>
-            {/* "Most keen", not "Most liked" — the vote's own words are
-                Keen / Don't mind / Rather not, and there is no "like". */}
+            {/* "Most liked" since ticket 36: the vote is a heart, a thumbs-up
+                and a thumbs-down now, so the board's sort says the same word
+                the comment threads' own sort does. All three tiers count —
+                see `voteScore`. */}
             <SortLink tripId={tripId} sort="liked" active={sortMode === "liked"}>
-              Most keen
+              Most liked
             </SortLink>
           </div>
         }

@@ -28,6 +28,7 @@
 import { useState } from "react";
 
 import { Avatar, Textarea, cx } from "@/components/ui";
+import { ReactionGlyph } from "@/components/reaction-glyph";
 import {
   ActionForm,
   ConfirmSubmit,
@@ -73,43 +74,6 @@ const REACTION_TONE: Record<ReactionKind, string> = {
  */
 function blurOnPointer(e: { currentTarget: HTMLElement }) {
   e.currentTarget.blur();
-}
-
-const HEART =
-  "M7 12.1C3.3 9.4 1.5 7.5 1.5 5.4A3.2 3.2 0 0 1 7 3.5a3.2 3.2 0 0 1 5.5 1.9c0 2.1-1.8 4-5.5 6.7Z";
-const THUMB = [
-  "M4.3 6.1 6.9 1.5a1.35 1.35 0 0 1 2 1.25V5.5h2.9a1.2 1.2 0 0 1 1.16 1.53l-1.1 3.85A1.5 1.5 0 0 1 10.4 12H4.3Z",
-  "M1.3 6.1h2.4V12H1.3Z",
-];
-
-function ReactionGlyph({ kind, mine }: { kind: ReactionKind; mine: boolean }) {
-  const paths = kind === "heart" ? [HEART] : THUMB;
-  return (
-    <svg
-      viewBox="0 0 14 14"
-      aria-hidden="true"
-      className="h-[13px] w-[13px] shrink-0"
-    >
-      {/* Thumbs down is thumbs up, turned over. On a `<g>`, not on the `<svg>`
-          itself — there the attribute is read as a CSS transform against the
-          element box and shunts the glyph out of the row. */}
-      <g transform={kind === "down" ? "rotate(180 7 7)" : undefined}>
-        {paths.map((d) => (
-          <path
-            key={d}
-            d={d}
-            /* Your own reaction fills in; other people's stay outlined. Same
-             move Ideas' vote control makes — and the count, not the colour,
-             is what carries the state (CLAUDE.md: never colour alone). */
-            fill={mine ? "currentColor" : "none"}
-            stroke="currentColor"
-            strokeWidth={mine ? 0 : 1.25}
-            strokeLinejoin="round"
-          />
-        ))}
-      </g>
-    </svg>
-  );
 }
 
 function Reactions({ tripId, note }: { tripId: number; note: NoteRow }) {
