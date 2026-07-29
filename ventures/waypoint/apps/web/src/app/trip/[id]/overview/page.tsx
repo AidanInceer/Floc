@@ -54,6 +54,7 @@ import { TripTrail, type Station } from "@/components/trip-trail";
 import {
   archiveTripFromOverview,
   deleteTripFromOverview,
+  leaveTrip,
   promoteMember,
 } from "./actions";
 
@@ -283,6 +284,25 @@ export default async function OverviewPage({
 
   const inviteUrl = `${process.env.BETTER_AUTH_URL ?? "http://localhost:3000"}/invite/${trip.inviteToken}`;
 
+  /*
+   * What leaving costs, worked out here so the dialog can say it before the
+   * click rather than after (ticket 65). The three cases are the ones
+   * `leaveTrip` actually branches on, and the heir is picked the same way —
+   * earliest to join — so the name in the warning is the name that gets it.
+   */
+  const others = members.filter((m) => m.userId !== viewer.id);
+  const heir =
+    others.length > 0 && isAdmin && !others.some((m) => m.role === "admin")
+      ? others.reduce((earliest, m) =>
+          m.joinedAt < earliest.joinedAt ? m : earliest,
+        )
+      : null;
+  const leaveWarning =
+    others.length === 0
+      ? `You're the only one in "${trip.name}", so leaving archives it. Nothing is deleted, but with nobody on the roster it can't be reopened from the app.`
+      : heir
+        ? `Leave "${trip.name}"? You're the only admin, so ${heir.name} becomes admin in your place.`
+        : `Leave "${trip.name}"? You'll need a new invite link to come back.`;
 
   return (
     <Page wide flush>
@@ -562,6 +582,29 @@ export default async function OverviewPage({
             </p>
           )}
 
+          {/* Leaving is not an admin power (ticket 65), so it sits outside the
+              admin block and every member sees it. The confirm copy carries
+              whichever consequence applies — see `leaveTrip`. */}
+          <Stack gap={2} className="border-t border-rule pt-4 sm:col-span-2">
+            <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint">
+              Leave trip
+            </span>
+            <p className="text-xs text-ink-faint">
+              You come off the roster. Anything you&rsquo;ve already posted, paid
+              or voted for stays where it is.
+            </p>
+            <form action={leaveTrip}>
+              <input type="hidden" name="tripId" value={tripId} />
+              <ConfirmSubmit
+                variant="secondary"
+                message={leaveWarning}
+                confirmLabel="Leave the trip"
+                pendingLabel="Leaving…"
+              >
+                Leave trip
+              </ConfirmSubmit>
+            </form>
+          </Stack>
         </div>
       </details>
     </Page>

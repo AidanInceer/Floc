@@ -41,8 +41,11 @@ treated as current.
    `requireTripAccess` — a non-member gets the same response as a nonexistent
    trip. Never hand-roll a membership check.
 6. **Admin powers are exactly four**: invite, kick, promote, delete (plus
-   archive/restore). Everything else a member can do too. Gate with
-   `assertAdmin`.
+   archive/restore). Everything else a member can do too — including **leaving**
+   (`leaveTrip`, ticket 65). Gate with `assertAdmin`. One exception to "roles
+   only change through `promoteMember`": when the last admin leaves, admin
+   passes automatically to the earliest-joined remaining member, and the last
+   member out archives the trip. Succession, not a fifth power.
 7. **Last-write-wins, everywhere.** No optimistic locking, no version checks,
    no check-and-reject write path. `last_modified_at` is for debugging only.
 8. **Soft-delete.** Every read filters `isNull(table.deletedAt)`.

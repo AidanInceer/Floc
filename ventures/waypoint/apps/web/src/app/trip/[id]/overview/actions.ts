@@ -149,6 +149,78 @@ export async function deleteTripFromOverview(formData: FormData) {
 }
 
 /**
+ * Leaving a trip (ticket 65). Open to every member including an admin: staying
+ * in a trip you've dropped out of isn't a permission, and kicking yourself
+ * isn't what the boot on the roster is for.
+ *
+ * Two consequences the caller has to warn about, both decided here rather than
+ * asked about in a second dialog:
+ *
+ *  - **Succession.** If the leaver is the last admin and other members remain,
+ *    admin passes automatically to whoever joined earliest. A picker was the
+ *    alternative and it buys nothing: the leaver is on their way out, so making
+ *    them nominate a successor is a question asked of the one person who no
+ *    longer has a stake in the answer. Earliest-joined is arbitrary but stable
+ *    and explicable, and any admin can promote someone else afterwards.
+ *  - **The last one out archives the trip.** A trip with no members can't be
+ *    reached by anybody, so leaving it merely un-listed would strand the rows.
+ *    Archived is the honest state for it, and it is NOT a delete — nothing is
+ *    soft-deleted here, so the trip is still there if a member is ever restored
+ *    to it. Nobody in the app can reopen it, though, which is why the confirm
+ *    copy says so out loud.
+ *
+ * Note this promotes without an admin acting, which is the one exception to
+ * "role changes come from `promoteMember`" — CLAUDE.md rule 6 keeps the *powers*
+ * at four; this is succession, not a fifth power.
+ */
+export async function leaveTrip(formData: FormData) {
+  const tripId = Number(formData.get("tripId"));
+
+  const access = await requireTripAccess(tripId);
+  const others = access.members.filter((m) => m.userId !== access.viewer.id);
+
+  await db
+    .update(tripMembership)
+    .set({ deletedAt: new Date(), ...touch() })
+    .where(
+      and(
+        eq(tripMembership.tripId, tripId),
+        eq(tripMembership.userId, access.viewer.id),
+        isNull(tripMembership.deletedAt),
+      ),
+    );
+
+  if (others.length === 0) {
+    // Already archived stays at its original date — an unlock never regresses
+    // and neither should this.
+    if (!access.trip.archivedAt) {
+      await db
+        .update(trip)
+        .set({ archivedAt: new Date(), ...touch() })
+        .where(eq(trip.id, tripId));
+    }
+  } else if (access.isAdmin && !others.some((m) => m.role === "admin")) {
+    const heir = others.reduce((earliest, m) =>
+      m.joinedAt < earliest.joinedAt ? m : earliest,
+    );
+    await db
+      .update(tripMembership)
+      .set({ role: "admin", ...touch() })
+      .where(
+        and(
+          eq(tripMembership.tripId, tripId),
+          eq(tripMembership.userId, heir.userId),
+          isNull(tripMembership.deletedAt),
+        ),
+      );
+  }
+
+  revalidatePath("/trips");
+  revalidatePath("/trips/archived");
+  redirect("/trips");
+}
+
+/**
  * Archiving from Trip settings (ticket 66). `archiveTrip` has existed in
  * trips/actions.ts since ticket 17 and was never wired to anything — which is
  * half of why deleting felt like the only way to get a finished trip off the
