@@ -57,17 +57,22 @@ The mockup's `PresetTrip` type is the straw man:
 Deliberately absent: availability, live pricing, star ratings, third-party
 reviews. All of them turn this into a booking product, which v1 is not.
 
-## How a listing would become a trip
+## How a listing becomes a trip
 
-The interesting half, and the half with no code:
+**Built, 2026-07-29 (ticket 39)** — `apps/web/src/app/explore/actions.ts`. The
+listings stay static; this is the only live action on the page.
 
-1. Group picks a preset → a new trip is created with the name pre-filled.
+1. Group picks a preset → a new trip is created with the name pre-filled, the
+   picker as admin, undated like any other new trip.
 2. The itinerary seeds the **idea board** — one idea per highlight, unvoted.
-   Ideas, not a fixed route: the group still decides.
-3. `bestMonths` seeds nothing automatically; it appears as a hint on the Dates
-   tab, where the group's own availability overlap is what actually decides.
-4. The preset is copied, not linked. Editing the trip never touches the listing,
-   and a listing being withdrawn never changes a trip already started.
+   Ideas, not a fixed route: the group still decides. A non-empty board is what
+   sticky-unlocks Route, so the new trip opens with Route already available.
+3. `bestMonths` seeds nothing. Not even a hint on the Dates tab yet — the dates
+   come from the group's own availability overlap, and the hint is a separate
+   piece of work nobody has asked for.
+4. The preset is copied, not linked. There is no listing id on the trip: editing
+   the trip never touches the listing, and a listing being withdrawn never
+   changes a trip already started.
 
 Point 4 matters: a trip is the group's notebook. Nothing outside the group may
 mutate it after the fact.

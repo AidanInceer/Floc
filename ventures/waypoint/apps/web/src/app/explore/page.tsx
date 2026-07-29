@@ -1,11 +1,14 @@
 /**
  * /explore — ready-made trip ideas to start from.
  *
- * Deliberately inert: a mockup with no backend, no partner integration and no
- * "copy this into a trip" action wired up. It exists to make the shape of a
- * partner listing arguable before anything is built — see
- * ventures/waypoint/docs/partner-trips.md, which also records the unresolved
- * tension with monetisation.md's rejection of paid placement.
+ * The listings are still static and still editorial: no backend, no partner
+ * integration, nothing bookable, and the unresolved tension with
+ * monetisation.md's rejection of paid placement is recorded in
+ * ventures/waypoint/docs/partner-trips.md rather than settled here.
+ *
+ * What is no longer inert is the one action worth having: "Start this trip"
+ * seeds a real trip from a listing (ticket 39). Copied, never linked — see
+ * `startTripFromPreset`.
  */
 import Link from "next/link";
 
@@ -13,7 +16,6 @@ import { requireUser } from "@/lib/access";
 import { formatMoney } from "@/lib/money";
 import {
   Badge,
-  ButtonLink,
   Card,
   EmptyState,
   Page,
@@ -21,7 +23,9 @@ import {
   Stack,
   cx,
 } from "@/components/ui";
+import { SubmitButton } from "@/components/client-ui";
 import { StaticMap } from "@/components/static-map";
+import { startTripFromPreset } from "./actions";
 import { PRESET_TRIPS, REGION_TONE, REGIONS } from "./preset-trips";
 import type { PresetTrip, Region } from "./preset-trips";
 
@@ -209,17 +213,16 @@ function PresetCard({ preset }: { preset: PresetTrip }) {
           <p className="text-xs text-ink-faint">Best months: {preset.bestMonths}</p>
         </Stack>
 
-        {/* Goes to /trips, not to a copy action: nothing seeds a trip from a
-            preset yet, and a button that pretends otherwise would be worse
-            than an honest one. */}
+        {/* Starts a real trip, seeded from this listing (ticket 39) — the
+            listings themselves stay static and unbookable, but the one action
+            that was worth wiring is the one that gets a group off a blank
+            page. See `startTripFromPreset` for what does and doesn't carry
+            across. */}
         <div className="mt-4 flex items-center justify-between gap-3">
-          <ButtonLink
-            href="/trips"
-            variant="primary"
-            title="Preview only — starting a trip from a preset isn't built yet"
-          >
-            Explore trip
-          </ButtonLink>
+          <form action={startTripFromPreset}>
+            <input type="hidden" name="presetId" value={preset.id} />
+            <SubmitButton pendingLabel="Starting…">Start this trip</SubmitButton>
+          </form>
           <PriceTag
             amount={formatMoney(preset.priceFromMinor, preset.currency)}
           />
