@@ -147,3 +147,27 @@ export async function deleteTripFromOverview(formData: FormData) {
 
   redirect("/trips");
 }
+
+/**
+ * Archiving from Trip settings (ticket 66). `archiveTrip` has existed in
+ * trips/actions.ts since ticket 17 and was never wired to anything — which is
+ * half of why deleting felt like the only way to get a finished trip off the
+ * list, and why it read as permanent. The reversible option now sits next to
+ * the irreversible one, in the same place, so the choice is visible at the
+ * moment it's made.
+ */
+export async function archiveTripFromOverview(formData: FormData) {
+  const tripId = Number(formData.get("tripId"));
+
+  const access = await requireTripAccess(tripId);
+  assertAdmin(access);
+
+  await db
+    .update(trip)
+    .set({ archivedAt: new Date(), ...touch() })
+    .where(eq(trip.id, tripId));
+
+  revalidatePath("/trips");
+  revalidatePath("/trips/archived");
+  redirect("/trips/archived");
+}

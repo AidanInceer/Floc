@@ -51,7 +51,11 @@ import {
 } from "@/components/client-ui";
 import { TripRoster } from "@/components/trip-roster";
 import { TripTrail, type Station } from "@/components/trip-trail";
-import { deleteTripFromOverview, promoteMember } from "./actions";
+import {
+  archiveTripFromOverview,
+  deleteTripFromOverview,
+  promoteMember,
+} from "./actions";
 
 export default async function OverviewPage({
   params,
@@ -278,6 +282,7 @@ export default async function OverviewPage({
   if (!stations.some((s) => s.state === "now")) stations[0].state = "now";
 
   const inviteUrl = `${process.env.BETTER_AUTH_URL ?? "http://localhost:3000"}/invite/${trip.inviteToken}`;
+
 
   return (
     <Page wide flush>
@@ -512,24 +517,43 @@ export default async function OverviewPage({
                 </ul>
               </Stack>
 
+              {/* Archive and delete sit together on purpose (ticket 66). The
+                  report was that deleting "actually deletes it instead of
+                  archiving" — it doesn't, it soft-deletes like everything else,
+                  but there's no way back to a deleted trip in the app, and
+                  archiving wasn't offered anywhere, so delete was the only way
+                  to get a finished trip off the list. The reversible option is
+                  named first and the copy for each says plainly what happens. */}
               <Stack gap={2} className="border-t border-rule pt-4 sm:col-span-2">
                 <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint">
-                  Delete trip
+                  Finished with this trip?
                 </span>
                 <p className="text-xs text-ink-faint">
-                  Removes the trip for everyone. This can&rsquo;t be undone from here.
+                  Archiving takes it off everyone&rsquo;s list and keeps it
+                  readable — any admin can bring it back from Archived. Deleting
+                  removes it for everyone and nobody can reopen it from the app.
                 </p>
-                <form action={deleteTripFromOverview}>
-                  <input type="hidden" name="tripId" value={tripId} />
-                  <ConfirmSubmit
-                    variant="danger"
-                    message={`Delete "${trip.name}" for everyone? This can't be undone.`}
-                    confirmLabel="Delete it"
-                    pendingLabel="Deleting…"
-                  >
-                    Delete trip
-                  </ConfirmSubmit>
-                </form>
+                <div className="flex flex-wrap gap-2">
+                  {trip.archivedAt ? null : (
+                    <form action={archiveTripFromOverview}>
+                      <input type="hidden" name="tripId" value={tripId} />
+                      <SubmitButton variant="secondary" pendingLabel="Archiving…">
+                        Archive trip
+                      </SubmitButton>
+                    </form>
+                  )}
+                  <form action={deleteTripFromOverview}>
+                    <input type="hidden" name="tripId" value={tripId} />
+                    <ConfirmSubmit
+                      variant="danger"
+                      message={`Delete "${trip.name}" for everyone? Nobody will be able to reopen it from the app — archive it instead if you might want it back.`}
+                      confirmLabel="Delete it"
+                      pendingLabel="Deleting…"
+                    >
+                      Delete trip
+                    </ConfirmSubmit>
+                  </form>
+                </div>
               </Stack>
             </>
           ) : (
@@ -537,6 +561,7 @@ export default async function OverviewPage({
               Inviting, promoting and removing people are admin-only.
             </p>
           )}
+
         </div>
       </details>
     </Page>
