@@ -86,6 +86,16 @@
   --hand: "Bradley Hand", "Chalkboard SE", "Marker Felt", "Segoe Print",
     "Comic Sans MS", ui-rounded, cursive;
   --type: "Courier New", "Cascadia Mono", Consolas, monospace;
+  /*
+   * Which face marginalia is written in (ticket 40). The print-hand stack was
+   * still unreadable on a phone — the faces above are hinted for a desktop
+   * screen and the fallback on Android is whatever `cursive` resolves to,
+   * which is usually a script. Below `sm:` this becomes the typewriter, in the
+   * same ink: a handwritten accent nobody can read is worth less than a typed
+   * one. Everything that uses `--hand` reads this instead, so the swap is in
+   * one place — `.hand`, `.fan-note`, `.hero-gap-label`.
+   */
+  --marginalia: var(--hand);
 
   /*
    * Post-it stock, for the landing page's hero only. Brighter than the
@@ -129,6 +139,18 @@
   --who-7-ink: #8a5227;
   --who-8: #e3e0d5;
   --who-8-ink: #5a5446;
+}
+
+/*
+ * Ticket 40's swap, deliberately unlayered. The `:root` block above is
+ * unlayered too, and an unlayered declaration wins over anything inside
+ * `@layer base` regardless of media query — so this override has to live out
+ * here or it never applies.
+ */
+@media (max-width: 639px) {
+  :root {
+    --marginalia: var(--type);
+  }
 }
 
 /* Expose the tokens to Tailwind: bg-sheet, text-ink-soft, text-pen, … */
@@ -177,7 +199,9 @@
   --font-display: var(--serif);
   --font-sans: var(--serif);
   --font-mono: var(--type);
-  --font-hand: var(--hand);
+  /* Reads `--marginalia`, not `--hand`, so the `font-hand` utility follows
+     ticket 40's mobile swap too — the ideas composer is typed into. */
+  --font-hand: var(--marginalia);
 }
 
 @layer base {
@@ -341,16 +365,21 @@
    * `sm:` breakpoint, which is where the mobile legibility complaint came from.
    */
   .hand {
-    font-family: var(--hand);
+    font-family: var(--marginalia);
     font-size: 1.06em;
     letter-spacing: 0.012em;
     line-height: 1.5;
   }
 
+  /*
+   * Ticket 40: the typewriter takes over below `sm:`, and the size and tracking
+   * come back down with it — a mono face already sits wide and even, so the
+   * compensation the hand needed makes it look stretched.
+   */
   @media (max-width: 639px) {
     .hand {
-      font-size: 1.12em;
-      letter-spacing: 0.02em;
+      font-size: 0.95em;
+      letter-spacing: 0.005em;
     }
   }
 
@@ -541,7 +570,7 @@
   }
 
   .hero-gap .hero-gap-label {
-    font-family: var(--hand);
+    font-family: var(--marginalia);
     font-size: 14px;
     line-height: 1.25;
     text-align: center;
