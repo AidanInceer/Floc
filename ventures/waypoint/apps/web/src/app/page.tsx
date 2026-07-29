@@ -451,11 +451,11 @@ export default async function LandingPage() {
             gap) stop fitting on one line and the H1 breaks into five. */}
         <div className="grid gap-8 sm:grid-cols-[minmax(0,23rem)_minmax(0,1fr)] sm:items-center">
           <div className="relative z-10">
-            <p className="typed">Group trip planning, sorted</p>
+            <p className="typed">Start the trip as notes. Finish it as a plan</p>
             <h1 className="mt-2.5 font-display text-[clamp(2rem,5.4vw,3.4rem)] font-semibold leading-[1.05] tracking-[-0.025em]">
-              Start the trip as <span className="hl hl-red">notes</span>. Finish
-              it as a <span className="hl hl-green">plan</span>.
+              <span className="hl hl-red">Group</span> trip planning, <span className="hl hl-green">sorted</span>.
             </h1>
+            
             <div className="mt-6 flex flex-wrap items-center gap-3">
               {session?.user ? (
                 <>
@@ -595,6 +595,23 @@ export default async function LandingPage() {
         </div>
       </section>
 
+      {/* ==================== WHO IT'S FOR ================================ */}
+      <section className="mt-16">
+        <SectionHead
+          label="Who it's for"
+          title="Built for the group that can't get a straight answer out of itself."
+        />
+        <div className="mt-7 grid gap-5 md:grid-cols-3">
+          {shapes.map((s) => (
+            <div key={s.title}>
+              <Badge tone={s.tone}>{s.badge}</Badge>
+              <h3 className="mt-1.5 text-[1.05rem]">{s.title}</h3>
+              <p className="mt-1.5 text-sm text-ink-soft">{s.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* ==================== THE JOURNEY ================================== */}
       <section className="mt-16">
         <SectionHead
@@ -672,22 +689,7 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* ==================== WHO IT'S FOR ================================ */}
-      <section className="mt-16">
-        <SectionHead
-          label="Who it's for"
-          title="Built for the group that can't get a straight answer out of itself."
-        />
-        <div className="mt-7 grid gap-5 md:grid-cols-3">
-          {shapes.map((s) => (
-            <div key={s.title}>
-              <Badge tone={s.tone}>{s.badge}</Badge>
-              <h3 className="mt-1.5 text-[1.05rem]">{s.title}</h3>
-              <p className="mt-1.5 text-sm text-ink-soft">{s.body}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+
 
       {!session?.user ? (
         <section className="mt-16 border-t border-rule pt-8 text-center">
@@ -710,7 +712,7 @@ export default async function LandingPage() {
           "Leave a note" form that used to sit here was disabled presentation
           with no submit target, and it's gone until a backend exists for it.
           Email is the only channel for now. */}
-      <section id="contact" className="mt-16 border-t border-rule pt-8">
+      {/* <section id="contact" className="mt-16 border-t border-rule pt-8">
         <SectionHead
           label="Contact & feedback"
           title="Tell us what your group actually needed."
@@ -739,7 +741,7 @@ export default async function LandingPage() {
         <p className="hand mt-5 inline-block -rotate-1 text-pen">
           — usually answered within a day
         </p>
-      </section>
+      </section> */}
     </Page>
   );
 }

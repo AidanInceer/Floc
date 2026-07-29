@@ -46,3 +46,6 @@ coverage/
 .claude/settings.local.json
 
 .scratch/
+
+human-*.md
+**/backlog/*
