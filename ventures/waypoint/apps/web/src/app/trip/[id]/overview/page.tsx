@@ -20,7 +20,7 @@
  *     permanent third of the width for four controls used once a trip.
  */
 import Link from "next/link";
-import { and, eq, inArray, isNull } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import {
@@ -71,12 +71,19 @@ export default async function OverviewPage({
   const tripId = trip.id;
 
   /*
-   * Overview reads from four tables to build the "unresolved" list, and none
-   * of those reads depends on another — so they go out together. Done
+   * Overview reads from six tables to build the "unresolved" list, and none of
+   * those reads depends on another — so they all go out together. Done
    * sequentially this page was the slowest tab in the app by a wide margin,
    * paying a full round trip per section.
+   *
+   * Votes and splits used to sit in a second wave, because they were scoped
+   * with `inArray(...)` over ids the first wave returned. They are scoped by
+   * joining back to `idea`/`expense` on `trip_id` instead, which is the same
+   * set of rows without the dependency — so the whole page is one round trip
+   * behind the access check rather than two.
    */
-  const [ideas, availabilityRows, expenseRows, dayRows] = await Promise.all([
+  const [ideas, availabilityRows, expenseRows, dayRows, votes, splitRows] =
+    await Promise.all([
     db
       .select({ id: idea.id })
       .from(idea)
@@ -106,52 +113,43 @@ export default async function OverviewPage({
       .from(day)
       .where(and(eq(day.tripId, tripId), isNull(day.deletedAt)))
       .all(),
+    // Scoped through `idea` rather than by a list of idea ids — an unscoped
+    // read would pull every vote row in the database and lean on a JS filter
+    // to hide them.
+    db
+      .select({ ideaId: ideaVote.ideaId, userId: ideaVote.userId })
+      .from(ideaVote)
+      .innerJoin(idea, eq(idea.id, ideaVote.ideaId))
+      .where(
+        and(
+          eq(idea.tripId, tripId),
+          isNull(idea.deletedAt),
+          isNull(ideaVote.deletedAt),
+        ),
+      )
+      .all(),
+    // Scoped through `expense`, for the same reason.
+    db
+      .select({
+        expenseId: expenseSplit.expenseId,
+        userId: expenseSplit.userId,
+        owedAmountMinor: expenseSplit.owedAmountMinor,
+        settledAt: expenseSplit.settledAt,
+      })
+      .from(expenseSplit)
+      .innerJoin(expense, eq(expense.id, expenseSplit.expenseId))
+      .where(
+        and(
+          eq(expense.tripId, tripId),
+          isNull(expense.deletedAt),
+          isNull(expenseSplit.deletedAt),
+        ),
+      )
+      .all(),
   ]);
 
   const isBrandNew = ideas.length === 0;
   const hasDays = dayRows.length > 0;
-
-  // The two follow-up reads that genuinely need the ids above. Also parallel.
-  const [votes, splitRows] = await Promise.all([
-    ideas.length
-      ? db
-          .select({ ideaId: ideaVote.ideaId, userId: ideaVote.userId })
-          .from(ideaVote)
-          // Scoped to this trip's ideas — an unscoped read would pull every
-          // vote row in the database and lean on a JS filter to hide them.
-          .where(
-            and(
-              inArray(
-                ideaVote.ideaId,
-                ideas.map((i) => i.id),
-              ),
-              isNull(ideaVote.deletedAt),
-            ),
-          )
-          .all()
-      : [],
-    expenseRows.length
-      ? db
-          .select({
-            expenseId: expenseSplit.expenseId,
-            userId: expenseSplit.userId,
-            owedAmountMinor: expenseSplit.owedAmountMinor,
-            settledAt: expenseSplit.settledAt,
-          })
-          .from(expenseSplit)
-          // Scoped to this trip's expenses, for the same reason.
-          .where(
-            and(
-              inArray(
-                expenseSplit.expenseId,
-                expenseRows.map((e) => e.id),
-              ),
-              isNull(expenseSplit.deletedAt),
-            ),
-          )
-          .all()
-      : [],
-  ]);
 
   // --- Unresolved: idea voting -------------------------------------------
   let votingUnresolved: typeof members = [];

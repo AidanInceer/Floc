@@ -106,9 +106,6 @@ async function loadDays(tripId: number) {
       ...d,
       events: events.filter((e) => e.dayId === d.id),
     })),
-    // The threads need these, and reading them belongs to the caller now that
-    // it takes a viewer (v0.2 ticket 06 — reactions are per-person).
-    eventIds: events.map((e) => e.id),
   };
 }
 
@@ -130,18 +127,21 @@ export default async function DaysPage({
     );
   }
 
-  const { days, eventIds } = await loadDays(trip.id);
-
   // Comment authors keep the avatar colour they already have in this trip's
   // roster, so one person is one colour across every tab.
   const toneOf = new Map(members.map((m) => [m.userId, m.tone]));
-  const notesByEvent = await loadThreads({
-    tripId: trip.id,
-    scope: "day_event",
-    scopeIds: eventIds,
-    viewerId: viewer.id,
-    toneOf,
-  });
+
+  // The threads scope themselves by trip, so they no longer wait on the event
+  // ids — the days and their comments are one round trip, not two.
+  const [{ days }, notesByEvent] = await Promise.all([
+    loadDays(trip.id),
+    loadThreads({
+      tripId: trip.id,
+      scope: "day_event",
+      viewerId: viewer.id,
+      toneOf,
+    }),
+  ]);
 
   return (
     <Page wide flush>

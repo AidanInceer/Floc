@@ -11,7 +11,7 @@
  * Threads are exactly one level deep, so this assembles the tree in two
  * passes and never recurses.
  */
-import { and, asc, eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { note, noteReaction, user, userProfile, type NoteScope } from "@/db/schema";
@@ -20,66 +20,69 @@ import { emptyReactions, type NoteRow, type Reactions } from "@/lib/notes";
 export async function loadThreads({
   tripId,
   scope,
-  scopeIds,
   viewerId,
   toneOf,
 }: {
   tripId: number;
   scope: NoteScope;
-  /** The ids on this page. Never read the scope unbounded. */
-  scopeIds: number[];
   viewerId: string;
   /** Trip roster tones, so one person is one colour across every tab. */
   toneOf: Map<string, string | undefined>;
 }): Promise<Map<number, NoteRow[]>> {
   const byScope = new Map<number, NoteRow[]>();
-  if (scopeIds.length === 0) return byScope;
 
-  const rows = await db
-    .select({
-      id: note.id,
-      scopeId: note.scopeId,
-      parentId: note.parentId,
-      body: note.body,
-      createdAt: note.createdAt,
-      editedAt: note.editedAt,
-      createdBy: note.createdBy,
-      authorName: user.name,
-      authorAvatar: userProfile.avatarUrl,
-    })
-    .from(note)
-    .innerJoin(user, eq(user.id, note.createdBy))
-    .leftJoin(userProfile, eq(userProfile.userId, note.createdBy))
-    .where(
-      and(
-        eq(note.tripId, tripId),
-        eq(note.scope, scope),
-        inArray(note.scopeId, scopeIds),
-        isNull(note.deletedAt),
-      ),
-    )
-    .orderBy(asc(note.createdAt))
-    .all();
+  /*
+   * Scoped by trip and scope, NOT by a list of ids the caller has just
+   * fetched. That list is what made this a *serial* read — Ideas and Days both
+   * had to wait for their own rows to come back before the threads could even
+   * be requested, which was the third round trip on the two busiest tabs.
+   * `(trip_id, scope)` is the same bound in practice: it is the leading pair of
+   * the `note_scope_idx` index, and a trip's notes for one scope are exactly
+   * the notes its page can display. The only extra rows are threads hanging
+   * off a soft-deleted idea or event, which the caller never looks up and
+   * drops on the floor.
+   *
+   * Both reads share that scope, so the reactions no longer wait on the note
+   * ids either — they join through `note` and re-apply it.
+   */
+  const scoped = and(
+    eq(note.tripId, tripId),
+    eq(note.scope, scope),
+    isNull(note.deletedAt),
+  );
+
+  const [rows, reactionRows] = await Promise.all([
+    db
+      .select({
+        id: note.id,
+        scopeId: note.scopeId,
+        parentId: note.parentId,
+        body: note.body,
+        createdAt: note.createdAt,
+        editedAt: note.editedAt,
+        createdBy: note.createdBy,
+        authorName: user.name,
+        authorAvatar: userProfile.avatarUrl,
+      })
+      .from(note)
+      .innerJoin(user, eq(user.id, note.createdBy))
+      .leftJoin(userProfile, eq(userProfile.userId, note.createdBy))
+      .where(scoped)
+      .orderBy(asc(note.createdAt))
+      .all(),
+    db
+      .select({
+        noteId: noteReaction.noteId,
+        userId: noteReaction.userId,
+        kind: noteReaction.kind,
+      })
+      .from(noteReaction)
+      .innerJoin(note, eq(note.id, noteReaction.noteId))
+      .where(and(scoped, isNull(noteReaction.deletedAt)))
+      .all(),
+  ]);
 
   if (rows.length === 0) return byScope;
-
-  const reactionRows = await db
-    .select({
-      noteId: noteReaction.noteId,
-      userId: noteReaction.userId,
-      kind: noteReaction.kind,
-    })
-    .from(noteReaction)
-    .where(
-      and(
-        inArray(
-          noteReaction.noteId,
-          rows.map((r) => r.id),
-        ),
-        isNull(noteReaction.deletedAt),
-      ),
-    )
-    .all();
 
   const reactionsByNote = new Map<number, Reactions>();
   for (const r of reactionRows) {

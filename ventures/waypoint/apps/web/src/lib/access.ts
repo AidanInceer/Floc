@@ -60,25 +60,21 @@ export type TripMember = {
 };
 
 /**
- * The only sanctioned way to load a trip in a page or action. Non-members get
- * `notFound()` — identical to a trip that does not exist.
+ * The trip read itself, keyed on exactly the two things it depends on: which
+ * trip, and who is asking.
  *
- * Wrapped in React's `cache()`, and that is not an optimisation detail to be
- * dropped later: *every* trip route calls this twice per navigation — once in
- * `trip/[id]/layout.tsx` for the header and tabs, once in the tab's own page
- * for its data — and without deduping that is three redundant round trips
- * (membership, trip row, member list) on each tab click. Safe to cache because
- * it is per-request and keyed on the same session `getSession` already
- * memoises.
+ * Keeping `redirectTo` OUT of this signature is the whole point. `cache()`
+ * keys on every argument, so while this lived on `requireTripAccess` — which
+ * takes the login-redirect path — the layout's call (`…/overview`) and the
+ * page's call (`…/days`) were different keys and deduped only on the Overview
+ * tab. Every other tab silently ran the membership and trip lookups twice per
+ * navigation. The redirect path is a property of the *caller*, not of the data,
+ * so it stays outside the memo.
  */
-export const requireTripAccess = cache(async function requireTripAccess(
-  tripId: number | string,
-  redirectTo?: string,
-): Promise<TripAccess> {
-  const id = Number(tripId);
-  const viewer = await requireUser(redirectTo);
-  if (!Number.isInteger(id)) notFound();
-
+const loadTripAccess = cache(async function loadTripAccess(
+  id: number,
+  viewerId: string,
+) {
   // Membership, the trip row and the roster are three independent lookups, so
   // all three go out at once. The membership check still gates the response —
   // it just no longer makes the other two wait their turn, and the roster in
@@ -91,7 +87,7 @@ export const requireTripAccess = cache(async function requireTripAccess(
       .where(
         and(
           eq(tripMembership.tripId, id),
-          eq(tripMembership.userId, viewer.id),
+          eq(tripMembership.userId, viewerId),
           isNull(tripMembership.deletedAt),
         ),
       )
@@ -103,6 +99,28 @@ export const requireTripAccess = cache(async function requireTripAccess(
       .get(),
     listMembers(id),
   ]);
+
+  return { membership, row, members };
+});
+
+/**
+ * The only sanctioned way to load a trip in a page or action. Non-members get
+ * `notFound()` — identical to a trip that does not exist.
+ *
+ * *Every* trip route resolves this twice per navigation — once in
+ * `trip/[id]/layout.tsx` for the header and tabs, once in the tab's own page
+ * for its data. The dedupe lives in `loadTripAccess` above; see the note there
+ * for why it cannot move back onto this function.
+ */
+export async function requireTripAccess(
+  tripId: number | string,
+  redirectTo?: string,
+): Promise<TripAccess> {
+  const id = Number(tripId);
+  const viewer = await requireUser(redirectTo);
+  if (!Number.isInteger(id)) notFound();
+
+  const { membership, row, members } = await loadTripAccess(id, viewer.id);
 
   if (!membership) notFound();
   if (!row) notFound();
@@ -119,7 +137,7 @@ export const requireTripAccess = cache(async function requireTripAccess(
     },
     members,
   };
-});
+}
 
 /** The roster join, shared by the single-trip and multi-trip loaders. */
 function memberQuery() {

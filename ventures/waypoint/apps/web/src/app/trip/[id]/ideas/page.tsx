@@ -7,7 +7,7 @@
  * tab now, because deciding *when* deserves a calendar rather than a table
  * bolted to the end of the idea board.
  */
-import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 
 import { idea, ideaVote, user, userProfile } from "@/db/schema";
 import type { VoteValue } from "@/db/schema";
@@ -36,9 +36,17 @@ export default async function IdeasPage({
   const tripId = trip.id;
   const sortMode: SortMode = sort === "liked" ? "liked" : "new";
 
-  // The ideas and the viewer's own profile are independent reads — issued
-  // together rather than one after another.
-  const [ideaRows, viewerProfile] = await Promise.all([
+  // Authors and voters get the avatar colour they already have in this trip's
+  // roster, so one person is one colour across every tab (see `whoTone`).
+  const toneOf = new Map(members.map((m) => [m.userId, m.tone]));
+
+  /*
+   * Every read this page needs, in one round trip. None of them depends on
+   * another any more: the votes are scoped by joining `idea` on `trip_id`
+   * rather than by an `inArray` over the idea ids, and `loadThreads` scopes
+   * itself the same way — so neither has to wait for the idea rows first.
+   */
+  const [ideaRows, viewerProfile, voteRows, notesByIdea] = await Promise.all([
     db
       .select({
         id: idea.id,
@@ -56,43 +64,30 @@ export default async function IdeasPage({
       .orderBy(desc(idea.createdAt))
       .all(),
     getProfile(viewer.id),
+    db
+      .select({
+        ideaId: ideaVote.ideaId,
+        userId: ideaVote.userId,
+        value: ideaVote.value,
+        name: user.name,
+        avatarUrl: userProfile.avatarUrl,
+      })
+      .from(ideaVote)
+      .innerJoin(idea, eq(idea.id, ideaVote.ideaId))
+      .innerJoin(user, eq(user.id, ideaVote.userId))
+      .leftJoin(userProfile, eq(userProfile.userId, ideaVote.userId))
+      .where(
+        and(
+          eq(idea.tripId, tripId),
+          isNull(idea.deletedAt),
+          isNull(ideaVote.deletedAt),
+        ),
+      )
+      .all(),
+    // Replies and reactions made the thread read too complicated to
+    // assemble twice — Days runs the same helper (v0.2 ticket 06).
+    loadThreads({ tripId, scope: "idea", viewerId: viewer.id, toneOf }),
   ]);
-
-  const ideaIds = ideaRows.map((r) => r.id);
-
-  // Authors and voters get the avatar colour they already have in this trip's
-  // roster, so one person is one colour across every tab (see `whoTone`).
-  const toneOf = new Map(members.map((m) => [m.userId, m.tone]));
-
-  // Votes and comment threads both hang off the same idea ids, so they go out
-  // together and both stay scoped by `inArray` — an unscoped read here would
-  // pull every vote and every note in the database.
-  const [voteRows, notesByIdea] = ideaIds.length
-    ? await Promise.all([
-        db
-          .select({
-            ideaId: ideaVote.ideaId,
-            userId: ideaVote.userId,
-            value: ideaVote.value,
-            name: user.name,
-            avatarUrl: userProfile.avatarUrl,
-          })
-          .from(ideaVote)
-          .innerJoin(user, eq(user.id, ideaVote.userId))
-          .leftJoin(userProfile, eq(userProfile.userId, ideaVote.userId))
-          .where(and(inArray(ideaVote.ideaId, ideaIds), isNull(ideaVote.deletedAt)))
-          .all(),
-        // Replies and reactions made the thread read too complicated to
-        // assemble twice — Days runs the same helper (v0.2 ticket 06).
-        loadThreads({
-          tripId,
-          scope: "idea",
-          scopeIds: ideaIds,
-          viewerId: viewer.id,
-          toneOf,
-        }),
-      ])
-    : [[], new Map()];
 
   const votesByIdea = new Map<number, IdeaCardData["votes"]>();
   for (const v of voteRows) {

@@ -47,7 +47,17 @@ export default async function MoneyPage({
   const access = await requireTripAccess(id, `/trip/${id}/money`);
   const tripId = access.trip.id;
 
-  const [expenses, days, viewerProfile] = await Promise.all([
+  /*
+   * The splits are scoped by joining back to `expense` on `trip_id` rather
+   * than by an `inArray` over ids the expense read returns, so they no longer
+   * cost a second serial round trip — the whole page is one trip behind the
+   * access check.
+   *
+   * The join also restores the soft-delete filter (CLAUDE.md rule 8): the old
+   * `inArray` read had no `isNull(deletedAt)` on `expense_split`, so a split
+   * belonging to a deleted expense could still be counted into the balances.
+   */
+  const [expenses, days, viewerProfile, splits] = await Promise.all([
     db
       .select()
       .from(expense)
@@ -61,16 +71,22 @@ export default async function MoneyPage({
       .orderBy(day.date)
       .all(),
     getProfile(access.viewer.id),
+    db
+      .select()
+      .from(expenseSplit)
+      .innerJoin(expense, eq(expense.id, expenseSplit.expenseId))
+      .where(
+        and(
+          eq(expense.tripId, tripId),
+          isNull(expense.deletedAt),
+          isNull(expenseSplit.deletedAt),
+        ),
+      )
+      .all()
+      // A join returns `{ expense_split, expense }` per row; the page only
+      // ever wanted the split.
+      .then((rows) => rows.map((r) => r.expense_split)),
   ]);
-
-  const expenseIds = expenses.map((e) => e.id);
-  const splits = expenseIds.length
-    ? await db
-        .select()
-        .from(expenseSplit)
-        .where(inArray(expenseSplit.expenseId, expenseIds))
-        .all()
-    : [];
 
   // Participants may include someone who has since left the trip, so names
   // come from a direct user lookup, not the current member list (ticket 04).

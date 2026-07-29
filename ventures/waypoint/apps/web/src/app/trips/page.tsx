@@ -45,20 +45,23 @@ export default async function TripsPage() {
 
   const tripIds = rows.map((r) => r.id);
 
-  // One cheap query for the "needs you" hint: an empty idea board is the one
-  // thing every fresh trip shares, and it's the cheapest signal to compute
-  // without per-trip N+1s (ticket 17 asks for "cheap", not "complete").
-  const ideaRows = tripIds.length
-    ? await db
-        .select({ tripId: idea.tripId })
-        .from(idea)
-        .where(and(inArray(idea.tripId, tripIds), isNull(idea.deletedAt)))
-        .all()
-    : [];
+  // The "needs you" hint and the rosters both depend on `tripIds` and on
+  // nothing else, so they go out together rather than one after the other.
+  //  - The idea probe is the cheapest signal a fresh trip has: an empty board
+  //    is the one thing every one of them shares (ticket 17 asks for "cheap",
+  //    not "complete").
+  //  - One roster query covers every card, not one per card.
+  const [ideaRows, membersByTrip] = await Promise.all([
+    tripIds.length
+      ? db
+          .select({ tripId: idea.tripId })
+          .from(idea)
+          .where(and(inArray(idea.tripId, tripIds), isNull(idea.deletedAt)))
+          .all()
+      : [],
+    listMembersFor(tripIds),
+  ]);
   const tripsWithIdeas = new Set(ideaRows.map((r) => r.tripId));
-
-  // One roster query for every card, not one per card.
-  const membersByTrip = await listMembersFor(tripIds);
 
   const cards: TripCardData[] = rows.map((r) => ({
     id: r.id,

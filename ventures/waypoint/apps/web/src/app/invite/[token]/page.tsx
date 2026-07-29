@@ -57,29 +57,36 @@ export default async function InvitePage({
     if (membership) redirect(`/trip/${found.id}/overview`);
   }
 
-  const [{ value: memberCount }] = await db
-    .select({ value: count() })
-    .from(tripMembership)
-    .where(
-      and(eq(tripMembership.tripId, found.id), isNull(tripMembership.deletedAt)),
-    );
-
-  const [{ value: ideaCount }] = await db
-    .select({ value: count() })
-    .from(idea)
-    .where(and(eq(idea.tripId, found.id), isNull(idea.deletedAt)));
-
-  const days = await db
-    .select({
-      date: day.date,
-      overnightPlaceId: day.overnightPlaceId,
-      placeName: place.name,
-    })
-    .from(day)
-    .leftJoin(place, eq(place.id, day.overnightPlaceId))
-    .where(and(eq(day.tripId, found.id), isNull(day.deletedAt)))
-    .orderBy(day.date)
-    .all();
+  // The three teaser reads depend only on `found.id`, so they go out together.
+  // This is the first page an invited stranger ever sees and it was paying
+  // three serial round trips to build one paragraph of counts.
+  const [[{ value: memberCount }], [{ value: ideaCount }], days] =
+    await Promise.all([
+      db
+        .select({ value: count() })
+        .from(tripMembership)
+        .where(
+          and(
+            eq(tripMembership.tripId, found.id),
+            isNull(tripMembership.deletedAt),
+          ),
+        ),
+      db
+        .select({ value: count() })
+        .from(idea)
+        .where(and(eq(idea.tripId, found.id), isNull(idea.deletedAt))),
+      db
+        .select({
+          date: day.date,
+          overnightPlaceId: day.overnightPlaceId,
+          placeName: place.name,
+        })
+        .from(day)
+        .leftJoin(place, eq(place.id, day.overnightPlaceId))
+        .where(and(eq(day.tripId, found.id), isNull(day.deletedAt)))
+        .orderBy(day.date)
+        .all(),
+    ]);
 
   // Consecutive days sharing an overnight place collapse into one "stop",
   // outline only — no times, notes or per-day detail (schema comment on `day`).
