@@ -41,16 +41,25 @@ import {
 
 /**
  * The "before" panel — everything anyone said, still loose. Real scribbles,
- * because this half of the argument only lands if it's familiar. Positions are
- * percentages so six notes still fit the panel on a phone.
+ * because this half of the argument only lands if it's familiar.
+ *
+ * Ticket 41: they were absolutely positioned at hand-picked percentages with
+ * text-driven heights, so they came out oblong and the bottom row hung outside
+ * the dashed panel at narrow widths. Squares in a two-column grid now — the
+ * cell is what bounds them, so nothing can escape the box.
+ *
+ * `mess` is the second half of the fix: a grid of six identical squares reads as
+ * a colour swatch, so each note takes its own size, tilt and nudge within its
+ * cell. Sizes stay in the 74–92% band and tilts under 8 degrees — past either
+ * the notes stop being readable, which was the whole point of moving them.
  */
-const loose: { said: string; tone: string; at: string }[] = [
-  { said: "Sicily — hear me out", tone: "note-yellow", at: "left-[2%] top-[3%] -rotate-6" },
-  { said: "Puglia if we can drive", tone: "note-sky", at: "left-[38%] top-0 rotate-[5deg]" },
-  { said: "can't do w/c 12th", tone: "note-coral", at: "left-[10%] top-[32%] rotate-[3deg]" },
-  { said: "£600 each, max", tone: "note-mint", at: "left-[46%] top-[38%] -rotate-[7deg]" },
-  { said: "Ruth can drive", tone: "note-lilac", at: "left-[22%] top-[64%] -rotate-2" },
-  { said: "3 nights minimum?", tone: "note-yellow", at: "left-[52%] top-[72%] rotate-[6deg]" },
+const loose: { said: string; tone: string; mess: string }[] = [
+  { said: "Sicily — hear me out", tone: "note-yellow", mess: "w-[88%] -rotate-[4.5deg] translate-x-[3px]" },
+  { said: "Puglia if we can drive", tone: "note-sky", mess: "w-[78%] rotate-[6deg] justify-self-end translate-y-[7px]" },
+  { said: "can't do w/c 12th", tone: "note-coral", mess: "w-[74%] rotate-[3deg] translate-x-[10px] -translate-y-[4px]" },
+  { said: "£600 each, max", tone: "note-mint", mess: "w-[86%] -rotate-[6.5deg] justify-self-end" },
+  { said: "Ruth can drive", tone: "note-lilac", mess: "w-[80%] -rotate-[2.5deg] translate-x-[14px] -translate-y-[6px]" },
+  { said: "3 nights minimum?", tone: "note-yellow", mess: "w-[92%] rotate-[7deg] justify-self-end translate-y-[4px]" },
 ];
 
 /**
@@ -506,8 +515,8 @@ export default async function LandingPage() {
             </div>
             <div className="fan grow" aria-hidden="true">
               {loose.map((n) => (
-                <span key={n.said} className={cx("fan-note", n.tone, n.at)}>
-                  {n.said}
+                <span key={n.said} className={cx("fan-note", n.tone, n.mess)}>
+                  <span className="fan-note-text">{n.said}</span>
                 </span>
               ))}
             </div>

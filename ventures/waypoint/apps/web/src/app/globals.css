@@ -522,28 +522,55 @@
   /* The "before" panel: everything anyone said, still loose. Dashed, and a
      wash rather than a sheet, so it reads as a surface things are stuck to
      rather than as another Card. */
+  /*
+   * Ticket 41: a two-column grid, not a positioned collage. The notes used to
+   * be absolutely positioned at hand-picked percentages, with heights set by
+   * their own text — so they were oblong, and the bottom row hung outside the
+   * dashed panel once the panel got short or the text wrapped. A grid sizes
+   * every note from the same cell, and the panel's padding is what the tilt
+   * rotates into, so nothing can escape it.
+   */
   .fan {
-    position: relative;
-    min-height: 330px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: center;
+    gap: 10px;
+    /* Roomier than the gap: the per-note nudges in `mess` (page.tsx) push up to
+       14px out of their cell, and this is the margin they push into. */
+    padding: 22px 24px;
     border: 1px dashed var(--rule-2);
     border-radius: var(--radius-sm);
     background: color-mix(in srgb, var(--sheet-3) 35%, transparent);
   }
 
   /*
-   * One loose note. Width is fluid so six of them still fit the panel on a
-   * phone; positions and tilts are set per note at the call site.
+   * One loose note — square, per ticket 41. `aspect-ratio` off the cell width
+   * keeps it square at every width without a fixed size, and the text is
+   * centred inside rather than filling from the top left, so a short note and
+   * a long one still read as the same object.
    */
   .fan-note {
-    position: absolute;
-    width: clamp(106px, 33%, 146px);
+    position: relative;
+    display: flex;
+    align-items: center;
+    aspect-ratio: 1;
+    /* Smaller than the cell, and each note picks its own width in `mess` —
+       full-width squares read as a colour chart rather than as paper. */
+    max-width: 148px;
     border-radius: 2px;
-    padding: 11px 10px;
-    font-family: var(--hand);
-    font-size: 14px;
-    line-height: 1.35;
+    font-family: var(--marginalia);
+    padding: 10px 9px;
+    font-size: 13px;
+    line-height: 1.3;
     color: var(--ink);
     box-shadow: var(--shadow-lift);
+    /* The turned corner is drawn over the bottom-right, so keep text off it. */
+    overflow: hidden;
+  }
+
+  .fan-note-text {
+    display: block;
+    padding-bottom: 6px;
   }
 
   .fan-note::after {
