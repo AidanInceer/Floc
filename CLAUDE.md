@@ -146,7 +146,7 @@ Mockups that belong to a venture with real code live in that venture's
 
 ### Issue tracker
 
-Issues/specs live as markdown files under `.scratch/<feature-slug>/`. See `docs/agents/issue-tracker.md`.
+Issues/PRDs live as GitHub issues (`gh` CLI). See `docs/agents/issue-tracker.md`.
 
 ### Domain docs
 
