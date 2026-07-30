@@ -44,8 +44,9 @@ import {
   PageHeader,
   Stack,
 } from "@/components/ui";
+import { TravelModeIcon } from "@/components/travel-mode-icon";
 import { db } from "@/db";
-import { day, place } from "@/db/schema";
+import { day, dayEvent, place, type TransportType } from "@/db/schema";
 import { requireTripAccess } from "@/lib/access";
 import { formatDate } from "@/lib/dates";
 import { deriveStops } from "@/lib/stops";
@@ -66,6 +67,38 @@ async function loadDays(tripId: number) {
     .where(and(eq(day.tripId, tripId), isNull(day.deletedAt)))
     .orderBy(asc(day.date))
     .all();
+}
+
+/**
+ * Transport events, by the day they sit on (ticket 78). The travel mode
+ * between two stops is not stored on the route — a stop isn't stored at all
+ * (rule 3) — so it is read back off the day events the group already writes on
+ * Days. Only the type is needed here; the event itself belongs to Days.
+ */
+async function loadTransportModes(tripId: number) {
+  const rows = await db
+    .select({ dayId: dayEvent.dayId, transportType: dayEvent.transportType })
+    .from(dayEvent)
+    .innerJoin(day, eq(day.id, dayEvent.dayId))
+    .where(
+      and(
+        eq(day.tripId, tripId),
+        eq(dayEvent.type, "transport"),
+        isNull(dayEvent.deletedAt),
+        isNull(day.deletedAt),
+      ),
+    )
+    .orderBy(asc(dayEvent.orderIndex))
+    .all();
+
+  const byDay = new Map<number, TransportType>();
+  for (const r of rows) {
+    // First transport event of the day wins — a day with a taxi to the ferry
+    // and then the ferry is one leg to the reader, and the earliest event is
+    // the one that starts it.
+    if (r.transportType && !byDay.has(r.dayId)) byDay.set(r.dayId, r.transportType);
+  }
+  return byDay;
 }
 
 export default async function RoutePage({
@@ -96,6 +129,18 @@ export default async function RoutePage({
     })),
   );
   const hasRealStop = stops.some((s) => s.placeId !== null);
+  const transportModes = await loadTransportModes(trip.id);
+
+  /**
+   * The mode for the leg arriving at stop `i` — the transport event on the
+   * FIRST day of that stop, and only that day (ticket 78). Falling back to the
+   * previous stop's last day was tried and dropped: on a one-night-per-stop
+   * route those are adjacent days, so the same train ended up labelling both
+   * the leg it belonged to and the next one. No event on the arrival day →
+   * nothing is shown, never a guess.
+   */
+  const legMode = (i: number): TransportType | null =>
+    i === 0 ? null : transportModes.get(stops[i].dayIds[0]) ?? null;
 
   // Coordinates are looked up here rather than threaded through `deriveStops`,
   // which stays pure and geography-free (ticket 15). A pin keeps its position
@@ -193,7 +238,11 @@ export default async function RoutePage({
                       {stop.nights} night{stop.nights === 1 ? "" : "s"}
                     </Badge>
                     {i > 0 ? (
-                      <TransportHint prevStop={stops[i - 1]} stop={stop} />
+                      <TransportHint
+                        prevStop={stops[i - 1]}
+                        stop={stop}
+                        mode={legMode(i)}
+                      />
                     ) : null}
                   </div>
                 }
@@ -235,20 +284,38 @@ export default async function RoutePage({
   );
 }
 
-/** Surfaces that a transport event should exist between two stops — a nudge, not a requirement. */
+/**
+ * Surfaces that a transport event should exist between two stops — a nudge,
+ * not a requirement. Once one does, the badge also carries how the group is
+ * getting there (ticket 78): the icon, plus the mode as a word, because a
+ * picture is never the only signal either.
+ */
 function TransportHint({
   prevStop,
   stop,
+  mode,
 }: {
   prevStop: { placeName: string | null };
   stop: { placeName: string | null };
+  /** null when no transport event on either side of the leg names one. */
+  mode: TransportType | null;
 }) {
   if (!prevStop.placeName || !stop.placeName || prevStop.placeName === stop.placeName) {
     return null;
   }
   return (
     <Badge tone="open">
-      {prevStop.placeName} → {stop.placeName}
+      <span className="inline-flex items-center gap-1.5">
+        {mode ? (
+          <>
+            <TravelModeIcon mode={mode} />
+            <span>{mode}</span>
+          </>
+        ) : null}
+        <span>
+          {prevStop.placeName} → {stop.placeName}
+        </span>
+      </span>
     </Badge>
   );
 }
