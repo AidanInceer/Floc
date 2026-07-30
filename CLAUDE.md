@@ -1,109 +1,63 @@
-# CLAUDE.md — Venture Hub
+# CLAUDE.md — Waypoint
 
-Instructions for Claude Code at the **hub** level. This repo is a centralised
-monorepo hosting multiple ventures on shared foundations. Each venture may add
-its own `CLAUDE.md` with venture-specific rules that take precedence *within
-that venture's folder* (e.g. [`ventures/finance-planner/CLAUDE.md`](ventures/finance-planner/CLAUDE.md)).
+Repo-level instructions for Claude Code. This repo hosts **Waypoint**, a
+group-travel planner. The venture's own
+[`ventures/waypoint/CLAUDE.md`](ventures/waypoint/CLAUDE.md) holds the product
+rules and takes precedence inside that folder — read it before touching app
+code. This file covers the repo plumbing around it.
 
 ## What this repo is
 
-A hub for building multiple companies/products without rebuilding plumbing each
-time. See [`README.md`](README.md) and [`docs/repo-structure.md`](docs/repo-structure.md).
+A pnpm + Turborepo monorepo for one venture. The real code is the Next.js app at
+[`ventures/waypoint/apps/web`](ventures/waypoint/apps/web/README.md) — App
+Router + Turso (libSQL) + Drizzle + Better Auth. Everything else in
+`ventures/waypoint/` is docs, wireframes, and the superseded Vite prototype.
 
-- **`ventures/<name>/`** — a company/product. Shape: `apps/`, `services/`,
-  `data-platform/` (+ optional `docs/`). Scaffolded from `ventures/_template/`.
-- **`shared/`** — packages, infra-modules, data-modules reused by ventures.
-- **`infra/`**, **`security-compliance/`**, **`internal-tools/`**,
-  **`enablement/`** — cross-cutting hub capabilities.
+The folder layout (`ventures/waypoint/…`) is a holdover from when this was a
+multi-venture hub. Waypoint is the only venture now; don't add others without
+being asked.
 
 ## Current phase
 
-**Scaffold / design canvas.** Most areas are documented placeholders. Do NOT
-build out a full system unless asked. When implementing, prefer a thin vertical
-slice inside one venture over broad horizontal stubs. Confirm scope before large
-builds.
-
-### Ventures that exist today
-
-| Venture | Status | What's real |
-|---|---|---|
-| `finance-planner` | Pre-MVP | Docs, mockups, working Vite prototype (`apps/prototype`) |
-| `meal-planner` | Concept | Wireframe only |
-| `to-the-frontier` | Concept | Wireframe only — AI-literacy teaching app |
-| `carbon-ledger` | Concept | Wireframe only — AI-assisted carbon footprinting |
-| `shards-of-time` | Concept | Wireframe only — isometric tactics game UI |
-| `waypoint` | Pre-MVP | ADRs, four wireframe variants, working Vite prototype (`apps/prototype`) — group travel planner |
-
-Only `finance-planner` and `waypoint` have installable code. The rest are
-design artefacts.
+**Pre-MVP.** Building a thin vertical slice, one ticket at a time. Prefer a
+narrow end-to-end change over broad stubs. Confirm scope before large builds.
 
 ## Commands
 
 ```bash
-pnpm install              # root; installs every workspace package
-pnpm dev                  # turbo run dev across workspaces
+pnpm install              # root; installs the workspace
+pnpm dev                  # turbo run dev
 pnpm build                # turbo run build
 pnpm typecheck            # turbo run typecheck
 pnpm lint                 # turbo run lint
 pnpm test                 # turbo run test
 ```
 
-Per-app work is faster scoped: `pnpm --filter finance-planner-prototype dev`.
+Per-app work is faster scoped: `pnpm --filter waypoint-web dev` (or `test`,
+`typecheck`, `lint`). Turbo tasks are declared in [`turbo.json`](turbo.json).
 
-Turbo tasks are declared in [`turbo.json`](turbo.json). A package with no such
-script is simply skipped — that's why root commands pass on a repo that is
-mostly documentation.
+## Golden rules
 
-## Wireframes &amp; mockups
-
-A concept venture starts as a single self-contained page at
-`ventures/<name>/wireframe/index.html`, before any app scaffold exists.
-
-Conventions to match when adding or editing one:
-
-- One file, no build step, no external requests — inline all CSS/JS. Opens
-  straight from disk and can be published as an Artifact unchanged.
-- No `<!doctype>`, `<html>`, `<head>` or `<body>` wrapper — start at `<title>`.
-- Theme-aware via CSS custom properties: define tokens on `:root`, redefine
-  under `@media (prefers-color-scheme: dark)`, then again under
-  `:root[data-theme="dark"]` / `[data-theme="light"]` so a toggle wins over the
-  media query. A deliberately single-theme design (e.g. a game screen) is a
-  valid exception — say so in the file.
-- Realistic content, never lorem. These are read as product proposals.
-- `wireframe/` sits outside the pnpm workspace globs on purpose — it is not a
-  package and must not gain a `package.json`.
-- Style variants of the same wireframe live beside `index.html` as siblings
-  (`glossy.html`, `paper.html`, …), sharing structure and content so only the
-  visual language differs. See `ventures/waypoint/` and its ADR 0012.
-
-Mockups that belong to a venture with real code live in that venture's
-`docs/mockups/` instead (see `finance-planner`).
-
-## Golden rules (hub-wide)
-
-1. **Know where code belongs.** Venture-specific code → `ventures/<name>/`.
-   Anything reused by 2+ ventures → `shared/` (packages/modules), not copy-paste.
-2. **Don't reach across ventures.** One venture must not import another
-   venture's internals. Share via `shared/` only.
+1. **Read the venture rules first.** [`ventures/waypoint/CLAUDE.md`](ventures/waypoint/CLAUDE.md)
+   carries the non-negotiables (money is never a float, day-first itinerary,
+   enumeration-proof trip access, light-only, …). They win inside the venture.
+2. **Read the ticket before changing behaviour.** Decisions live in
+   `ventures/waypoint/.scratch/waypoint-v1/` — `map.md` is the index, one file
+   per decision. The old ADRs were retired; don't treat them as current.
 3. **Security first.** No secrets, keys, or tokens in the repo. No logging of
-   PII/tokens. See [`security-compliance/`](security-compliance/).
-4. **Reuse before rebuild.** Check `shared/` and `enablement/templates/` before
-   writing new infra, CI, UI, or types.
-5. **Docs stay in sync.** A structural change updates the relevant README /
-   `docs/` page. New cross-cutting decision → an ADR (hub `docs/` or the
-   venture's `docs/adr/`).
-6. **Respect venture CLAUDE.md.** Inside a venture, its own `CLAUDE.md` rules
-   win (e.g. finance-planner: "money is never a float").
+   PII/tokens. Degrade without credentials, never crash.
+4. **Docs stay in sync.** A structural change updates the relevant README /
+   `docs/` page. The ERD and `apps/web/src/db/schema.ts` change together.
 
 ## Conventions
 
 - Package manager: **pnpm** (v9). Node >= 20. Build orchestration: **Turborepo**.
 - Default branch: **`main`**. Feature branches → PR; CI must pass before merge.
-- Commits: Conventional Commits, scoped where useful (`feat(nexus): …`,
-  `chore(infra): …`, `docs(enablement): …`). A commit that resolves a tracked
-  issue ends with `Closes <owner>/<repo>#<n>` — **fully qualified**, because
-  ventures track their issues in their own GitHub repo (e.g.
-  `AidanInceer/Waypoint`), so a bare `#12` points at the wrong tracker.
+- Commits: Conventional Commits, scoped where useful (`feat(waypoint): …`,
+  `fix(ci): …`). A commit that resolves a tracked issue ends with
+  `Closes <owner>/<repo>#<n>` — **fully qualified**, because issues are tracked
+  in the venture's own GitHub repo (`AidanInceer/Waypoint`), so a bare `#12`
+  points at the wrong tracker.
 - **Commit at the end of a session, not during it.** Once the work has been
   reviewed and the go-ahead given — or the next session starts, which is the
   same signal — commit the changes: one commit per ticket, never a single
@@ -116,36 +70,15 @@ Mockups that belong to a venture with real code live in that venture's
 
 ## Gotchas
 
-- **`_template` is excluded from the workspace** (`!ventures/_template/**`) so
-  its scaffold packages aren't installed. Copying it into a real venture is what
-  brings it into the workspace — rename the package first or the name collides.
+- **`ventures/waypoint/apps/prototype` is superseded** — the retired Vite /
+  localStorage cut. Prior art only; don't extend it.
 - **`wireframe/` directories are not packages.** Plain HTML, no install, no
-  build. See the wireframes section above.
-- **`finance-planner/apps/prototype` is throwaway** and says so in its own
-  `package.json` description. Its `build` runs `tsc --noEmit` first, so a type
-  error there fails the whole root build.
-- **`apps/web` folders are empty skeletons** (a README only). Don't assume a
-  Next.js app exists just because the path does.
-- **Deployment is per-app, not per-repo.** Each deployable app gets its own
-  workflow + Vercel project; CI must never deploy the whole monorepo at once.
-
-## Where things live
-
-| Need | Location |
-|---|---|
-| A new product/company | `ventures/<name>/` (copy `ventures/_template/`) |
-| Reusable UI / types / utils / API client | `shared/packages/` |
-| Reusable terraform/k8s | `shared/infra-modules/` · `infra/` for hub's own |
-| Data pipeline/warehouse templates | `shared/data-modules/` |
-| Policies-as-code, scanning, audit evidence | `security-compliance/` |
-| Internal docs site, admin, support tools | `internal-tools/` |
-| Scaffolding templates, CLI, standards, onboarding | `enablement/` |
-| Hub-level docs | `docs/` |
+  build — inline all CSS/JS, no `package.json`.
+- **Deployment is per-app.** Each deployable app gets its own workflow + Vercel
+  project; CI must never deploy the whole monorepo at once.
 
 ## Guardrails
 
-- When unsure whether something is venture-specific or shared, ask before
-  placing it — moving it later is costly.
 - Don't wire real credentials or live keys anywhere in the repo.
 - Flag anything touching auth, encryption, PII, or compliance rather than
   glossing over it.
