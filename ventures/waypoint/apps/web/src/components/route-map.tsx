@@ -31,6 +31,8 @@ export type RouteMapStop = {
   /** Position in the FULL stop list, 1-based — so a pin's number matches its card. */
   no: number;
   name: string;
+  /** Days the itinerary spends here — the yellow badge on the pin (ticket 69). */
+  days: number;
   lat: number;
   lng: number;
 };
@@ -85,16 +87,19 @@ export function RouteMap({
       }
 
       for (const s of stops) {
+        // Both values are numbers off `deriveStops`, never user text — the
+        // place name goes through Leaflet's `title`/`alt` options, which it
+        // sets as attributes rather than as markup.
         L.marker([s.lat, s.lng], {
           keyboard: false,
           icon: L.divIcon({
             className: "route-pin",
-            html: `<span>${s.no}</span>`,
+            html: `<span>${s.no}</span><b class="route-pin-days">${s.days}d</b>`,
             iconSize: [26, 26],
             iconAnchor: [13, 13],
           }),
-          title: `${s.no}. ${s.name}`,
-          alt: `Stop ${s.no}: ${s.name}`,
+          title: `${s.no}. ${s.name} — ${s.days} ${s.days === 1 ? "day" : "days"}`,
+          alt: `Stop ${s.no}: ${s.name}, ${s.days} ${s.days === 1 ? "day" : "days"}`,
         }).addTo(map);
       }
 
@@ -140,7 +145,9 @@ export function RouteMap({
       <figcaption className="mt-1.5 text-xs text-ink-faint">
         {stops.length === 1
           ? `One stop pinned: ${stops[0].name}.`
-          : `${stops.length} stops, pinned in order.`}
+          : `${stops.length} stops, pinned in order.`}{" "}
+        Each pin carries its number; the yellow badge is how many days the
+        itinerary spends there.
         {missing.length > 0
           ? ` Not on the map — no coordinates: ${missing.join(", ")}.`
           : ""}

@@ -114,7 +114,14 @@ export default async function RoutePage({
     if (stop.placeId === null) continue;
     const at = coords.get(stop.placeId);
     if (at) {
-      pinned.push({ no: i + 1, name: stop.placeName ?? "Unnamed place", ...at });
+      pinned.push({
+        no: i + 1,
+        name: stop.placeName ?? "Unnamed place",
+        // Days, not nights (ticket 69): the badge answers "how long are we
+        // here", and the card below it counts days too.
+        days: stop.dayIds.length,
+        ...at,
+      });
     } else {
       missing.push(stop.placeName ?? "Unnamed place");
     }

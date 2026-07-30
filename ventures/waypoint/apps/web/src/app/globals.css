@@ -982,18 +982,57 @@
   opacity: 0.85;
 }
 
-/* A numbered pin. The number is the point — it ties a pin to its card below,
-   so this must outrank Leaflet's `.leaflet-marker-icon { display: block }`. */
+/* A numbered pin, drawn hollow (ticket 69): a ring of pen with the number in
+   ink inside, not a solid disc with the number knocked out. Two reasons — a
+   filled disc at 26px lost the number against the map's dark features, and the
+   ring reads as a ring drawn on the paper rather than as a UI marker.
+
+   The fill is paper rather than `transparent`, because the tiles run straight
+   under the digit otherwise. It must also outrank Leaflet's
+   `.leaflet-marker-icon { display: block }`. */
 .route-map-frame .route-pin {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  border: 1.5px solid var(--sheet);
-  background: var(--pen);
-  color: var(--sheet);
+  border: 2px solid var(--pen);
+  background: var(--sheet);
+  color: var(--pen);
   font-family: var(--type);
   font-size: 12px;
+  font-weight: 600;
   line-height: 1;
+  box-shadow: var(--shadow-sm);
+  /* The day badge hangs off the corner. */
+  overflow: visible;
+}
+
+/* The landing page's route timeline uses `.route-pin` too, and its filled
+   centre dot is a bare `::after` — harmless while the map pin was solid pen,
+   but it paints straight over the number now the pin is hollow. Cancelled
+   here rather than renamed: both are pins on a route, and only the map's
+   needs to show anything inside it. */
+.route-map-frame .route-pin::after {
+  content: none;
+}
+
+/* How many days the itinerary spends at this stop — the highlighter yellow,
+   the same pen the app uses everywhere for "open"/marked-up. Sits on the pin's
+   top-right so a column of pins doesn't overlap its neighbour's number. */
+.route-map-frame .route-pin-days {
+  position: absolute;
+  top: -7px;
+  right: -9px;
+  min-width: 15px;
+  padding: 0 3px;
+  border: 1px solid var(--highlight-edge);
+  border-radius: 999px;
+  background: var(--highlight);
+  color: var(--highlight-ink);
+  font-family: var(--type);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 14px;
+  text-align: center;
   box-shadow: var(--shadow-sm);
 }
 
