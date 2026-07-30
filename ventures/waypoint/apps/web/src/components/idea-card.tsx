@@ -197,7 +197,6 @@ export function IdeaCard({
             viewerId={viewerId}
             isAdmin={isAdmin}
             placeholder="Why this one, or why not?"
-            invitation="A vote says how you feel about it. A comment says why — which is the bit that actually changes anyone's mind."
           />
         </Sheet>
         {canDelete ? (

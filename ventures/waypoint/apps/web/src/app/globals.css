@@ -69,6 +69,9 @@
   --highlight-edge: #e4d194;
   --red-edge: #e4c3bb;
   --green-edge: #c6d4b5;
+  /* The blue wash's edge, added so Days' transport cards outline like the
+     activity and food ones rather than dissolving into the sheet (ticket 73). */
+  --pen-edge: #bfd0e6;
 
   --shadow-sm: 0 1px 1px rgb(35 33 28 / 0.05);
   --shadow: 0 1px 1px rgb(35 33 28 / 0.05), 0 12px 26px -14px rgb(35 33 28 / 0.35);
@@ -170,6 +173,7 @@
 
   --color-pen: var(--pen);
   --color-pen-soft: var(--pen-2);
+  --color-pen-edge: var(--pen-edge);
   --color-pencil: var(--pencil);
 
   --color-highlight: var(--highlight);

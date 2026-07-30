@@ -14,6 +14,12 @@ import { day, dayEvent } from "@/db/schema";
 import type { DayEventType, TransportType } from "@/db/schema";
 import { requireTripAccess } from "@/lib/access";
 import { addDays as addDaysToDate } from "@/lib/dates";
+import {
+  insertAt,
+  orderEvents,
+  permuteEventSlots,
+  swapItems,
+} from "@/lib/event-order";
 import { moveItem, permuteDayContents } from "@/lib/itinerary";
 import { searchPlaces, upsertPlace } from "@/lib/geocoding";
 import { refreshUnlocks, touch } from "@/lib/unlocks";
@@ -118,9 +124,12 @@ export async function addEvent(
   dayId: number,
   input: {
     type: DayEventType;
+    title: string;
     placeId?: number | null;
     transportType?: TransportType | null;
     time?: string | null;
+    endTime?: string | null;
+    allDay?: boolean;
     note?: string | null;
   },
 ) {
@@ -135,9 +144,10 @@ export async function addEvent(
     dayId,
     orderIndex: count,
     type: input.type,
+    title: input.title.trim(),
     placeId: input.placeId ?? null,
     transportType: input.type === "transport" ? input.transportType ?? null : null,
-    time: input.time || null,
+    ...timing(input),
     note: input.note || null,
   });
 
@@ -149,9 +159,12 @@ export async function updateEvent(
   eventId: number,
   input: {
     type: DayEventType;
+    title: string;
     placeId?: number | null;
     transportType?: TransportType | null;
     time?: string | null;
+    endTime?: string | null;
+    allDay?: boolean;
     note?: string | null;
   },
 ) {
@@ -160,9 +173,10 @@ export async function updateEvent(
     .update(dayEvent)
     .set({
       type: input.type,
+      title: input.title.trim(),
       placeId: input.placeId ?? null,
       transportType: input.type === "transport" ? input.transportType ?? null : null,
-      time: input.time || null,
+      ...timing(input),
       note: input.note || null,
       ...touch(),
     })
@@ -179,31 +193,193 @@ export async function deleteEvent(tripId: number, eventId: number) {
   revalidatePath(`/trip/${access.trip.id}/days`);
 }
 
-/** Swaps `orderIndex` with the adjacent event in the given direction. */
+/**
+ * Reconciles the three time fields into a state that can't contradict itself,
+ * because the form can offer combinations the day can't hold.
+ *
+ * All-day wins outright: it means "no start time", so a start left in the box
+ * when the checkbox went on is stale, not a preference. An end that isn't
+ * strictly after the start is dropped rather than stored — `HH:MM` can't say
+ * "next morning" (rule 10: no timezones, no dates on an event), so an event
+ * running past midnight has no representation here at all. That gap is real
+ * and is on the Day-event planning epic, not papered over with a fake time.
+ */
+function timing(input: {
+  time?: string | null;
+  endTime?: string | null;
+  allDay?: boolean;
+}) {
+  if (input.allDay) return { time: null, endTime: null, allDay: true };
+  const time = input.time || null;
+  const endTime = input.endTime || null;
+  return {
+    time,
+    endTime: time && endTime && endTime > time ? endTime : null,
+    allDay: false,
+  };
+}
+
+/** A day's events in the order they're shown in — see `lib/event-order.ts`. */
+async function loadEventSlots(dayId: number) {
+  const rows = await db
+    .select({
+      id: dayEvent.id,
+      time: dayEvent.time,
+      endTime: dayEvent.endTime,
+      allDay: dayEvent.allDay,
+      orderIndex: dayEvent.orderIndex,
+    })
+    .from(dayEvent)
+    .where(and(eq(dayEvent.dayId, dayId), isNull(dayEvent.deletedAt)))
+    .all();
+  return orderEvents(rows);
+}
+
+/**
+ * Drops an event into a different position within its day.
+ *
+ * The times don't move — the *events* do, between the day's existing slots, so
+ * dragging the 14:00 above the 09:00 hands each the other's time. That's the
+ * same trade dragging a day makes with the trip's dates, and it's what lets a
+ * day be time-ordered and hand-arrangeable at once: a hand-picked order that
+ * fought the clock would be undone by the next time edit.
+ */
+export async function reorderEvents(
+  tripId: number,
+  dayId: number,
+  newOrder: number[],
+) {
+  const access = await requireTripAccess(tripId);
+
+  const writes = permuteEventSlots(await loadEventSlots(dayId), newOrder);
+  // Last-write-wins (ticket 12): two people dragging at once means the second
+  // drag lands on whatever the first left behind.
+  for (const w of writes) {
+    await db
+      .update(dayEvent)
+      .set({
+        time: w.time,
+        endTime: w.endTime,
+        allDay: w.allDay,
+        orderIndex: w.orderIndex,
+        ...touch(),
+      })
+      .where(eq(dayEvent.id, w.id));
+  }
+
+  revalidatePath(`/trip/${access.trip.id}/days`);
+}
+
+/**
+ * Dropping one event onto another: the two trade places, and with them their
+ * times. Nothing between them moves — see `swapItems`.
+ */
+export async function swapEvents(
+  tripId: number,
+  dayId: number,
+  aId: number,
+  bId: number,
+) {
+  await requireTripAccess(tripId);
+
+  const order = (await loadEventSlots(dayId)).map((e) => e.id);
+  const a = order.indexOf(aId);
+  const b = order.indexOf(bId);
+  if (a === -1 || b === -1) return;
+
+  await reorderEvents(tripId, dayId, swapItems(order, a, b));
+}
+
+/**
+ * Dropping an event into a gap — the one action behind both "put it here in
+ * this day" and "put it here in *that* day", because from the hand's point of
+ * view they're the same gesture and it would be strange for one to work and
+ * the other not.
+ *
+ * Within a day it's a permutation of the slots, so the run the event passed
+ * over shifts up or down one to close the space. Across days there's no
+ * permutation to make — the target list grows — so the event carries its own
+ * time over and the target day re-sorts around it. That's the honest option:
+ * the alternative is overwriting a time the group agreed with whichever one it
+ * happened to land next to.
+ */
+export async function insertEventAt(
+  tripId: number,
+  eventId: number,
+  fromDayId: number,
+  toDayId: number,
+  index: number,
+) {
+  const access = await requireTripAccess(tripId);
+
+  // Both days must be this trip's, or a drag would be a way to reach into
+  // another group's itinerary by id (rule 5).
+  const days = await db
+    .select({ id: day.id })
+    .from(day)
+    .where(and(eq(day.tripId, access.trip.id), isNull(day.deletedAt)))
+    .all();
+  const dayIds = new Set(days.map((d) => d.id));
+  if (!dayIds.has(fromDayId) || !dayIds.has(toDayId)) return;
+
+  if (fromDayId === toDayId) {
+    const order = (await loadEventSlots(toDayId)).map((e) => e.id);
+    if (!order.includes(eventId)) return;
+    await reorderEvents(tripId, toDayId, insertAt(order, eventId, index));
+    return;
+  }
+
+  const source = await loadEventSlots(fromDayId);
+  if (!source.some((e) => e.id === eventId)) return;
+
+  const target = insertAt(
+    (await loadEventSlots(toDayId)).map((e) => e.id),
+    eventId,
+    index,
+  );
+
+  // The move and the re-basing are one write each, in order: the event changes
+  // day first so the target's re-base sees it there. Last-write-wins as ever —
+  // no locking, no rejection (rule 7).
+  await db
+    .update(dayEvent)
+    .set({ dayId: toDayId, ...touch() })
+    .where(eq(dayEvent.id, eventId));
+
+  // `order_index` is a tie-break, so it only decides anything among the
+  // untimed — but re-basing the whole list keeps it dense and predictable.
+  for (const [i, id] of target.entries()) {
+    await db.update(dayEvent).set({ orderIndex: i }).where(eq(dayEvent.id, id));
+  }
+  for (const [i, e] of source.filter((e) => e.id !== eventId).entries()) {
+    await db.update(dayEvent).set({ orderIndex: i }).where(eq(dayEvent.id, e.id));
+  }
+
+  // The threads follow for free: `note` rows are scoped to the event id, which
+  // hasn't changed. Expenses don't follow — they're scoped to the date the
+  // money was spent on, not to the plan (see `permuteDayContents`).
+  revalidatePath(`/trip/${access.trip.id}/days`);
+}
+
+/**
+ * The ↑/↓ buttons, which are the keyboard's way in — a drag handle is
+ * mouse-only. One step is a permutation like any other, so it goes through
+ * `reorderEvents` rather than growing a second, subtly different reorder.
+ */
 export async function moveEvent(
   tripId: number,
   dayId: number,
   eventId: number,
   direction: "up" | "down",
 ) {
-  const access = await requireTripAccess(tripId);
+  // Gate before the read, not just inside `reorderEvents` — a non-member must
+  // not get so far as learning how many events a day has (rule 5).
+  await requireTripAccess(tripId);
 
-  const events = await db
-    .select({ id: dayEvent.id, orderIndex: dayEvent.orderIndex })
-    .from(dayEvent)
-    .where(and(eq(dayEvent.dayId, dayId), isNull(dayEvent.deletedAt)))
-    .orderBy(dayEvent.orderIndex)
-    .all();
+  const order = (await loadEventSlots(dayId)).map((e) => e.id);
+  const idx = order.indexOf(eventId);
+  const to = direction === "up" ? idx - 1 : idx + 1;
+  if (idx === -1 || to < 0 || to >= order.length) return;
 
-  const idx = events.findIndex((e) => e.id === eventId);
-  const swapIdx = direction === "up" ? idx - 1 : idx + 1;
-  if (idx === -1 || swapIdx < 0 || swapIdx >= events.length) return;
-
-  const a = events[idx];
-  const b = events[swapIdx];
-
-  await db.update(dayEvent).set({ orderIndex: b.orderIndex, ...touch() }).where(eq(dayEvent.id, a.id));
-  await db.update(dayEvent).set({ orderIndex: a.orderIndex, ...touch() }).where(eq(dayEvent.id, b.id));
-
-  revalidatePath(`/trip/${access.trip.id}/days`);
+  await reorderEvents(tripId, dayId, moveItem(order, idx, to));
 }

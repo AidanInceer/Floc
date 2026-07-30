@@ -464,8 +464,6 @@ export function NoteThread({
   viewerId,
   isAdmin,
   placeholder = "Add a comment…",
-  /** What the thread hangs off, in the empty state's second line. */
-  invitation = "A comment is where you say why — which is the bit that actually changes anyone's mind.",
 }: {
   tripId: number;
   scope: NoteScope;
@@ -474,24 +472,16 @@ export function NoteThread({
   viewerId: string;
   isAdmin: boolean;
   placeholder?: string;
-  invitation?: string;
 }) {
   const [sort, setSort] = useState<NoteSort>("oldest");
   const runs = sortRuns(notes, sort);
 
   return (
     <div className="mt-2">
-      {notes.length === 0 ? (
-        /* An invitation, not a prompt. The old empty state was the string
-           "Add a note", which is a label on a button pretending to be a
-           state — the same fix v1 tickets 13 and 14 made elsewhere. */
-        <div className="rounded-sm border border-dashed border-rule-strong bg-sheet-2 px-4 py-3.5">
-          <p className="text-sm">
-            Nobody&rsquo;s said anything about this yet.
-          </p>
-          <p className="mt-1 text-[13.5px] text-ink-soft">{invitation}</p>
-        </div>
-      ) : (
+      {/* No empty state at all (ticket 75). The composer below is already the
+          only thing to do on an empty thread; a dashed box explaining that
+          nobody has commented is fluff the placeholder covers. */}
+      {notes.length === 0 ? null : (
         <div className="flex flex-col">
           {/* Nothing to sort with one run, and the control would read as a
               claim that there's more conversation than there is. */}

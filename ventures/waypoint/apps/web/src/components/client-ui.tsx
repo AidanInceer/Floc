@@ -343,30 +343,57 @@ export function DragList({
     });
   };
 
+  const grip = (i: number) => (
+    <span
+      onMouseDown={() => setArmed(i)}
+      onMouseUp={() => setArmed(null)}
+      aria-hidden="true"
+      title={`Drag to move this ${label}`}
+      className="cursor-grab select-none px-1 font-mono text-sm leading-none text-ink-faint active:cursor-grabbing"
+    >
+      ⠿
+    </span>
+  );
+
   return (
-    <div className={cx("flex flex-col gap-4", pending && "pointer-events-none opacity-60")}>
+    <div
+      className={cx(
+        "flex flex-col gap-4",
+        pending && "pointer-events-none opacity-60",
+      )}
+    >
       {items.map((item, i) => (
         <div
           key={item.key}
           draggable={armed === i}
+          /*
+           * Every handler stops propagation, because these lists nest: a day's
+           * events are a DragList inside the days' DragList. Without it, one
+           * drop on an event bubbles to the day wrapper underneath it and
+           * reorders the *days* as well — the innermost list owns the gesture.
+           */
           onDragStart={(e) => {
+            e.stopPropagation();
             setDragging(i);
             e.dataTransfer.effectAllowed = "move";
             // Firefox won't start a drag without some payload set.
             e.dataTransfer.setData("text/plain", item.key);
           }}
-          onDragEnd={() => {
+          onDragEnd={(e) => {
+            e.stopPropagation();
             setDragging(null);
             setOver(null);
             setArmed(null);
           }}
           onDragOver={(e) => {
             if (dragging === null) return;
+            e.stopPropagation();
             e.preventDefault();
             setOver(i);
           }}
           onDrop={(e) => {
             if (dragging === null) return;
+            e.stopPropagation();
             e.preventDefault();
             move(dragging, i);
           }}
@@ -377,15 +404,7 @@ export function DragList({
           )}
         >
           <div className="mb-1 flex items-center gap-1">
-            <span
-              onMouseDown={() => setArmed(i)}
-              onMouseUp={() => setArmed(null)}
-              aria-hidden="true"
-              title={`Drag to move this ${label}`}
-              className="cursor-grab select-none px-1 font-mono text-sm leading-none text-ink-faint active:cursor-grabbing"
-            >
-              ⠿
-            </span>
+            {grip(i)}
             <Button
               variant="ghost"
               disabled={i === 0}

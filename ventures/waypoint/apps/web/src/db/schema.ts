@@ -378,10 +378,30 @@ export const dayEvent = sqliteTable(
       .references(() => day.id, { onDelete: "cascade" }),
     orderIndex: integer("order_index").notNull().default(0),
     type: text("type", { enum: DAY_EVENT_TYPES }).notNull(),
+    /**
+     * What the event actually is — "Ferry to Hvar", "Dinner at Konoba Menego"
+     * (ticket 74). Required by the form, nullable in the column because rows
+     * predating it only ever had a place and a note; readers fall back to the
+     * place name, then to the category's word.
+     */
+    title: text("title"),
     placeId: integer("place_id").references(() => place.id),
     transportType: text("transport_type", { enum: TRANSPORT_TYPES }),
-    /** HH:MM, relative to the itinerary's location — not any member's tz. */
+    /**
+     * HH:MM, relative to the itinerary's location — not any member's tz.
+     * Required unless `all_day` is set: an event the group can't say a time
+     * for is a decision they haven't made, and the day is a timeline. Stays
+     * nullable in the column because that is exactly what all-day means.
+     */
     time: text("time"),
+    /** HH:MM, optional — plenty of things start at a time and end when they end. */
+    endTime: text("end_time"),
+    /**
+     * "It's on that day, not at a time" — a festival pass, a check-out
+     * deadline nobody's fixed. The one way to have no start time.
+     */
+    allDay: integer("all_day", { mode: "boolean" }).notNull().default(false),
+    /** Secondary detail under the title — booking refs, who's meeting where. */
     note: text("note"),
     ...audit,
   },

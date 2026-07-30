@@ -25,40 +25,8 @@
 import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
-import { day, dayEvent, type DayEventType } from "@/db/schema";
+import { day, dayEvent } from "@/db/schema";
 import { touch } from "@/lib/unlocks";
-
-/**
- * How each event category reads on Days (ticket 68). One place, because the
- * badge, the row's tint and the picker's label all have to agree — three copies
- * of "food is the yellow one" is how they stop agreeing.
- *
- * Colour is never the only signal (CLAUDE.md): every row still carries its
- * category as a word in the badge. The tints are the existing highlighter
- * washes, one step apart, so a day reads as a sequence rather than a rainbow —
- * blue for movement (the pen, as everywhere else), green for a thing you're
- * doing, yellow for a thing you're eating.
- */
-export const EVENT_CATEGORIES: Record<
-  DayEventType,
-  { label: string; tone: "marine" | "agreed" | "open"; row: string }
-> = {
-  transport: {
-    label: "Transport",
-    tone: "marine",
-    row: "border-pen-soft bg-pen-soft/40",
-  },
-  activity: {
-    label: "Activity",
-    tone: "agreed",
-    row: "border-green-edge bg-green-soft/50",
-  },
-  food: {
-    label: "Food",
-    tone: "open",
-    row: "border-highlight-edge bg-highlight-soft/60",
-  },
-};
 
 /** Moves one item within an array, returning a new array. */
 export function moveItem<T>(items: T[], from: number, to: number): T[] {

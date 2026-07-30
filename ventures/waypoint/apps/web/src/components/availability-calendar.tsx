@@ -219,13 +219,31 @@ export function AvailabilityCalendar({
           </p>
         </div>
       ) : (
-        <p className="mt-5 border-t border-rule pt-4 text-xs text-ink-faint">
-          Each day shows how many of the {memberCount} of you are free: green
-          when that&rsquo;s all of you, red when somebody would miss out, plain
-          when nobody has said yet. Nobody is chased for this automatically.
-        </p>
+        /* A key, not a paragraph (ticket 76). The swatch carries the colour and
+           the label carries the meaning, so the reader matches rather than
+           reads — the first instance of the visual-over-text convention. */
+        <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-rule pt-4">
+          <LegendKey swatch="bg-green-soft border-green" label="All free" />
+          <LegendKey swatch="bg-red-soft border-red" label="Some missing" />
+          <LegendKey swatch="bg-sheet-2 border-rule" label="No answer yet" />
+          <p className="text-xs text-ink-faint">
+            {/* Not "how many of the {n} of you", which reads as nonsense on a
+                trip of one. */}
+            Numbers count how many are free, out of {memberCount}.
+          </p>
+        </div>
       )}
     </div>
+  );
+}
+
+/** One swatch-and-word pair in the Dates key (ticket 76). */
+function LegendKey({ swatch, label }: { swatch: string; label: string }) {
+  return (
+    <span className="flex items-center gap-1.5 text-xs text-ink-soft">
+      <span className={cx("size-3 rounded-sm border", swatch)} aria-hidden />
+      {label}
+    </span>
   );
 }
 

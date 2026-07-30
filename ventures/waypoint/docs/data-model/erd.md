@@ -125,12 +125,13 @@ erDiagram
     DAY_EVENT {
         int id PK
         int day_id FK "-> DAY.id"
-        int order_index
+        int order_index "tie-break only — time decides the order, untimed last"
         string type "activity | transport | food — the category Days colours by"
+        string title "what the event is — required by the form, nullable for pre-#74 rows"
         int place_id FK "-> PLACE.id, nullable"
-        string transport_type "flight|train|car|ferry|other, nullable"
+        string transport_type "flight|train|car|ferry|other, nullable — transport only"
         time time "nullable"
-        text note
+        text note "nullable — secondary detail under the title"
     }
 
     PLACE {
@@ -202,7 +203,7 @@ erDiagram
 | `idea` | `idea_vote` | 1–M | one vote per (idea, user) in practice, not DB-enforced |
 | `trip` | `availability` | 1–M | one row per (trip, user, date) |
 | `trip` | `day` | 1–M | |
-| `day` | `day_event` | 1–M | ordered by `order_index` |
+| `day` | `day_event` | 1–M | ordered by `time` (untimed last), `order_index` breaking ties |
 | `place` | `day` | 1–M | via `overnight_place_id`, nullable |
 | `place` | `day_event` | 1–M | via `place_id`, nullable |
 | `trip` | `expense` | 1–M | |

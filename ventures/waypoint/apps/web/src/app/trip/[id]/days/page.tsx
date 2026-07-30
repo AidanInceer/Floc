@@ -17,7 +17,8 @@
  * search deep link — ticket 10's floor is deep-links only, no live fares, no
  * Amadeus call.
  */
-import { and, asc, eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, eq, isNull } from "drizzle-orm";
+import type { ReactNode } from "react";
 
 import {
   addDays,
@@ -25,7 +26,9 @@ import {
   deleteEvent,
   moveEvent,
   removeDay,
+  insertEventAt,
   reorderDays,
+  swapEvents,
   resolveEventPlace,
   searchPlacesAction,
   updateEvent,
@@ -36,6 +39,9 @@ import {
   Sheet,
   SubmitButton,
 } from "@/components/client-ui";
+import { EventDragList } from "@/components/event-drag-list";
+import { EventTimeFields } from "@/components/event-time-fields";
+import { EventTypeFields } from "@/components/event-type-fields";
 import { PlacePicker } from "@/components/place-picker";
 import {
   Badge,
@@ -48,15 +54,15 @@ import {
   LockedNotice,
   Page,
   PageHeader,
-  Select,
   Stack,
   Textarea,
   cx,
 } from "@/components/ui";
-import { EVENT_CATEGORIES } from "@/lib/itinerary";
+import { EVENT_CATEGORIES } from "@/lib/event-categories";
+import { findOverlaps, orderEvents } from "@/lib/event-order";
 import { NoteThread, type NoteRow } from "@/components/note-thread";
 import { db } from "@/db";
-import { day, dayEvent, place, user, userProfile } from "@/db/schema";
+import { day, dayEvent, place } from "@/db/schema";
 import type { DayEventType, TransportType } from "@/db/schema";
 import { requireTripAccess } from "@/lib/access";
 import { loadThreads } from "@/lib/notes-read";
@@ -87,8 +93,11 @@ async function loadDays(tripId: number) {
         dayId: dayEvent.dayId,
         orderIndex: dayEvent.orderIndex,
         type: dayEvent.type,
+        title: dayEvent.title,
         transportType: dayEvent.transportType,
         time: dayEvent.time,
+        endTime: dayEvent.endTime,
+        allDay: dayEvent.allDay,
         note: dayEvent.note,
         placeName: place.name,
       })
@@ -102,14 +111,16 @@ async function loadDays(tripId: number) {
           isNull(dayEvent.deletedAt),
         ),
       )
-      .orderBy(asc(dayEvent.orderIndex))
       .all(),
   ]);
 
   return {
     days: days.map((d) => ({
       ...d,
-      events: events.filter((e) => e.dayId === d.id),
+      // A day reads as a timeline, so time decides the order and `order_index`
+      // only breaks ties — see lib/event-order.ts for why, and for what a drag
+      // does about it.
+      events: orderEvents(events.filter((e) => e.dayId === d.id)),
     })),
   };
 }
@@ -181,6 +192,15 @@ export default async function DaysPage({
             moves between them, so swapping two days swaps what happens on them.
             Anything spent stays on the date it was spent.
           </p>
+          <p className="text-xs text-ink-faint">
+            Events sit in time order, with all-day ones at the end. Drag one{" "}
+            <em>onto</em> another to swap the pair over — they trade times too —
+            or drop it <em>between</em> two to slot it in there. The same gaps
+            in another day are how an event moves day; it keeps its own time
+            when it does, so a 07:15 train is still at 07:15 on Thursday. Two
+            events may share a time — the day says so rather than stopping
+            you.
+          </p>
           {/* The key for the row colours (ticket 68). Each swatch carries its
               word, so the colours are a shortcut and never the only signal. */}
           <ul className="flex flex-wrap items-center gap-2">
@@ -201,6 +221,8 @@ export default async function DaysPage({
             onReorder={reorderDays.bind(null, trip.id)}
             items={days.map((d, i) => {
             const prevPlace = i > 0 ? days[i - 1].overnightPlaceName : null;
+            // Overlapping is allowed, so this is only ever a thing to show.
+            const clashing = findOverlaps(d.events);
             return {
               key: String(d.id),
               label: formatDate(d.date),
@@ -232,29 +254,46 @@ export default async function DaysPage({
                       </Sheet>
                     </div>
 
-                    {d.events.length === 0 ? (
-                      <p className="text-sm text-ink-faint">Nothing planned yet.</p>
-                    ) : (
-                      <ul className="space-y-2">
-                        {d.events.map((e, ei) => (
-                          <li key={e.id}>
-                            <EventRow
-                              tripId={trip.id}
-                              dayId={d.id}
-                              event={e}
-                              isFirst={ei === 0}
-                              isLast={ei === d.events.length - 1}
-                              originPlaceName={prevPlace}
-                              destinationPlaceName={d.overnightPlaceName}
-                              date={d.date}
-                              notes={notesByEvent.get(e.id) ?? []}
-                              viewerId={viewer.id}
-                              isAdmin={isAdmin}
-                            />
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                    {/* Grip on the left edge of the row, not in a strip above
+                        it: an event is one line tall, so a control bar per
+                        event would double the day's height and bury the
+                        sequence the page exists to show. The ↑/↓ pair lives
+                        inside the opened event instead. */}
+                    <EventDragList
+                      dayId={d.id}
+                      emptyLabel="Nothing planned yet."
+                      onSwap={swapEvents.bind(null, trip.id, d.id)}
+                      onInsert={async (eventId, fromDayId, index) => {
+                        "use server";
+                        await insertEventAt(
+                          trip.id,
+                          eventId,
+                          fromDayId,
+                          d.id,
+                          index,
+                        );
+                      }}
+                      items={d.events.map((e, ei) => ({
+                        id: e.id,
+                        label: e.title ?? e.placeName ?? EVENT_CATEGORIES[e.type].label,
+                        node: (
+                          <EventRow
+                            tripId={trip.id}
+                            dayId={d.id}
+                            event={e}
+                            isFirst={ei === 0}
+                            isLast={ei === d.events.length - 1}
+                            clashes={clashing.has(e.id)}
+                            originPlaceName={prevPlace}
+                            destinationPlaceName={d.overnightPlaceName}
+                            date={d.date}
+                            notes={notesByEvent.get(e.id) ?? []}
+                            viewerId={viewer.id}
+                            isAdmin={isAdmin}
+                          />
+                        ),
+                      }))}
+                    />
                   </div>
                 </div>
               </Card>
@@ -284,6 +323,7 @@ function EventRow({
   event,
   isFirst,
   isLast,
+  clashes,
   originPlaceName,
   destinationPlaceName,
   date,
@@ -296,13 +336,18 @@ function EventRow({
   event: {
     id: number;
     type: DayEventType;
+    title: string | null;
     transportType: TransportType | null;
     time: string | null;
+    endTime: string | null;
+    allDay: boolean;
     note: string | null;
     placeName: string | null;
   };
   isFirst: boolean;
   isLast: boolean;
+  /** Shares a slice of the clock with another event on the same day. */
+  clashes: boolean;
   originPlaceName: string | null;
   destinationPlaceName: string | null;
   date: string;
@@ -332,17 +377,23 @@ function EventRow({
           <Badge tone={category.tone}>
             {isTransport ? event.transportType ?? "transport" : category.label}
           </Badge>
-          {event.time ? (
-            <span className="nums text-sm text-ink-soft">{event.time}</span>
-          ) : null}
-          {event.placeName ? (
-            <span className="text-sm font-medium">{event.placeName}</span>
-          ) : null}
-          {event.note ? (
-            <span className="line-clamp-1 text-sm text-ink-soft">{event.note}</span>
+          {/* One column's worth of clock, so the times line up down the day
+              whether or not an event has an end. */}
+          <span className="nums text-sm text-ink-soft">
+            {event.allDay || !event.time ? "All day" : formatSpan(event)}
+          </span>
+          {/* The title leads (ticket 74). Rows written before the column
+              existed have none, so the place name stands in — and failing
+              that, the category's word, since a row must never be blank. */}
+          <span className="text-sm font-medium">
+            {event.title ?? event.placeName ?? category.label}
+          </span>
+          {event.title && event.placeName ? (
+            <span className="text-sm text-ink-soft">{event.placeName}</span>
           ) : null}
         </span>
         <span className="flex shrink-0 items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-faint">
+          {clashes ? <span title="Overlaps another event">Overlaps</span> : null}
           {commentCount > 0 ? (
             <span>
               {commentCount} {commentCount === 1 ? "comment" : "comments"}
@@ -356,13 +407,49 @@ function EventRow({
       </summary>
 
       <div className="space-y-3 border-t border-dotted border-rule-strong px-3 py-3">
-        {event.note ? (
-          <p className="text-sm">{event.note}</p>
-        ) : (
-          <p className="text-sm text-ink-faint">
-            No details yet — Edit adds them.
+        {/*
+         * Every fact gets a label. The panel used to be the bare note text and
+         * nothing else, which left you guessing which line was the event's name
+         * and which was somebody's aside — and the time and place, both already
+         * stored, weren't shown here at all. A field with no answer still shows
+         * its row, saying so: "no time set" is a thing the group needs to see,
+         * not an absence to hide.
+         */}
+        <dl className="grid grid-cols-[5.5rem_1fr] gap-x-3 gap-y-1.5">
+          <Detail label="Time">
+            {event.allDay || !event.time ? (
+              <span className="text-ink-faint">
+                All day — sits at the end of the day
+              </span>
+            ) : (
+              <span className="nums">
+                {formatSpan(event)}
+                {event.endTime ? null : " — no end time"}
+              </span>
+            )}
+          </Detail>
+          <Detail label="Place">
+            {event.placeName ?? <span className="text-ink-faint">Not set</span>}
+          </Detail>
+          <Detail label="Type">
+            {isTransport && event.transportType
+              ? `${category.label} — ${event.transportType}`
+              : category.label}
+          </Detail>
+          <Detail label="Notes">
+            {event.note ?? <span className="text-ink-faint">None yet</span>}
+          </Detail>
+        </dl>
+
+        {clashes ? (
+          /* A statement, not a warning: two people can be doing different
+             things at three o'clock, and a group planner that refused to let
+             them would be wrong more often than it was right. The word carries
+             it — no red, nothing to dismiss. */
+          <p className="text-sm text-ink-soft">
+            Overlaps another event on this day.
           </p>
-        )}
+        ) : null}
 
         {flightLink ? (
           <a
@@ -394,6 +481,11 @@ function EventRow({
               defaultType={event.type}
               defaultTransportType={event.transportType}
               defaultTime={event.time}
+              defaultEndTime={event.endTime}
+              /* Rows predating the flag have no start time, which is what
+                 all-day means — same rule the ordering uses. */
+              defaultAllDay={event.allDay || !event.time}
+              defaultTitle={event.title}
               defaultNote={event.note}
               defaultPlaceName={event.placeName}
             />
@@ -413,7 +505,6 @@ function EventRow({
           viewerId={viewerId}
           isAdmin={isAdmin}
           placeholder="Anything the group should know about this?"
-          invitation="Anything the group should know before the day arrives — a booking reference, who's meeting where, the fact it shuts at four."
         />
       </div>
     </details>
@@ -427,6 +518,9 @@ function EventForm({
   defaultType = "activity",
   defaultTransportType,
   defaultTime,
+  defaultEndTime,
+  defaultAllDay,
+  defaultTitle,
   defaultNote,
   defaultPlaceName,
 }: {
@@ -436,16 +530,25 @@ function EventForm({
   defaultType?: DayEventType;
   defaultTransportType?: TransportType | null;
   defaultTime?: string | null;
+  defaultEndTime?: string | null;
+  defaultAllDay?: boolean;
+  defaultTitle?: string | null;
   defaultNote?: string | null;
   defaultPlaceName?: string | null;
 }) {
   async function action(formData: FormData) {
     "use server";
     const type = String(formData.get("type") ?? "activity") as DayEventType;
+    const title = String(formData.get("title") ?? "").trim();
+    // The input is `required`, so an empty title only arrives from a client
+    // with validation off. Drop it rather than write a nameless event.
+    if (!title) return;
     const transportType = (String(formData.get("transportType") ?? "") || null) as
       | TransportType
       | null;
+    const allDay = formData.get("allDay") === "on";
     const time = String(formData.get("time") ?? "") || null;
+    const endTime = String(formData.get("endTime") ?? "") || null;
     const note = String(formData.get("note") ?? "") || null;
     const placeName = String(formData.get("placeName") ?? "");
     const providerId = String(formData.get("placeProviderId") ?? "") || null;
@@ -460,51 +563,77 @@ function EventForm({
     });
 
     if (eventId) {
-      await updateEvent(tripId, eventId, { type, placeId, transportType, time, note });
+      await updateEvent(tripId, eventId, { type, title, placeId, transportType, time, endTime, allDay, note });
     } else {
-      await addEvent(tripId, dayId, { type, placeId, transportType, time, note });
+      await addEvent(tripId, dayId, { type, title, placeId, transportType, time, endTime, allDay, note });
     }
   }
 
+  /*
+   * The name comes first (ticket 74). You know what you're adding before you
+   * know how to file it — "mini golf" is the thought, "activity" is the
+   * paperwork — and a required field at the top also makes the form's one
+   * mandatory answer the first thing you meet rather than something you scroll
+   * back up for. Then: type, how (transport only), place, time, notes.
+   *
+   * Place is optional because plenty of events don't have one worth pinning
+   * ("pack up and check out"), and Notes sits last and secondary so the name
+   * carries the meaning and the notes carry the detail.
+   */
   return (
     <form action={action}>
       <Stack gap={3}>
-        <Field label="Kind">
-          {/* Driven off EVENT_CATEGORIES so a new category can't be invented
-              here without a colour, or given one nothing offers (ticket 68). */}
-          <Select name="type" defaultValue={defaultType}>
-            {Object.entries(EVENT_CATEGORIES).map(([value, c]) => (
-              <option key={value} value={value}>
-                {c.label}
-              </option>
-            ))}
-          </Select>
+        <Field label="Event name">
+          <Input
+            name="title"
+            required
+            maxLength={120}
+            defaultValue={defaultTitle ?? ""}
+            placeholder="Mini golf"
+          />
         </Field>
-        <Field label="Transport type" hint="Only used when kind is Transport">
-          <Select name="transportType" defaultValue={defaultTransportType ?? ""}>
-            <option value="">—</option>
-            <option value="flight">Flight</option>
-            <option value="train">Train</option>
-            <option value="car">Car</option>
-            <option value="ferry">Ferry</option>
-            <option value="other">Other</option>
-          </Select>
-        </Field>
+        <EventTypeFields
+          defaultType={defaultType}
+          defaultTransportType={defaultTransportType}
+        />
         <PlacePicker
           name="place"
-          label="Place"
+          label="Place (optional)"
           defaultName={defaultPlaceName ?? ""}
           search={searchPlacesAction}
         />
-        <Field label="Time" hint="HH:MM, local to the itinerary — no timezone">
-          <Input type="time" name="time" defaultValue={defaultTime ?? ""} />
-        </Field>
-        <Field label="Note">
+        <EventTimeFields
+          defaultTime={defaultTime}
+          defaultEndTime={defaultEndTime}
+          defaultAllDay={defaultAllDay}
+        />
+        <Field
+          label="Notes"
+          hint="Optional — booking references, who's meeting where, the fact it shuts at four."
+        >
           <Textarea name="note" defaultValue={defaultNote ?? ""} rows={2} />
         </Field>
         <SubmitButton>{eventId ? "Save event" : "Add event"}</SubmitButton>
       </Stack>
     </form>
+  );
+}
+
+/** `09:00` or `09:00–11:30` — an en dash, because it's a range not a minus. */
+function formatSpan(event: { time: string | null; endTime: string | null }) {
+  if (!event.time) return "";
+  return event.endTime ? `${event.time}–${event.endTime}` : event.time;
+}
+
+/** One labelled fact in an opened event's panel. */
+function Detail({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <>
+      <dt className="font-mono text-[10.5px] uppercase leading-5 tracking-[0.06em] text-ink-faint">
+        {label}
+      </dt>
+      <dd className="text-sm">{children}</dd>
+    </>
   );
 }
 
