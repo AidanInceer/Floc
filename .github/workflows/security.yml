@@ -38,7 +38,12 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_CONFIG: security-compliance/vulnerability-tooling/gitleaks.toml
+          # No GITLEAKS_CONFIG: gitleaks runs its own ruleset. This used to
+          # point at security-compliance/vulnerability-tooling/gitleaks.toml,
+          # which went with the hub's security-compliance/ tree — since then
+          # gitleaks has aborted on the missing file before scanning a single
+          # commit, so the job was failing *and* checking nothing. Restore the
+          # pointer along with the file if that tree ever comes back.
 
   # NOTE: actions/dependency-review-action is deliberately absent. It requires
   # GitHub Advanced Security on private repositories, which this repo does not
