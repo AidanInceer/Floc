@@ -482,7 +482,7 @@ export default async function LandingPage() {
                 Everything anyone said
               </h2>
               <p className="mt-1 text-sm text-ink-soft">
-                Six people, four destinations, nobody sure what's still live.
+                Six people, four destinations, nobody sure what&rsquo;s still live.
               </p>
             </div>
             <div className="fan grow" aria-hidden="true">
@@ -531,7 +531,7 @@ export default async function LandingPage() {
               <div className="space-y-3 p-4">
                 <div>
                   <p className="mb-2 text-xs font-semibold uppercase tracking-[0.06em] text-ink-soft">
-                    Who's in
+                    Who&rsquo;s in
                   </p>
                   <AvatarRow
                     people={[
@@ -607,7 +607,7 @@ export default async function LandingPage() {
           title="Six stops between “we should go somewhere” and “that's settled”."
         >
           Nothing here is a wizard. A stop opens when the group is ready for it,
-          and a trip that already knows where it's going skips straight to the
+          and a trip that already knows where it&rsquo;s going skips straight to the
           route.
         </SectionHead>
 
@@ -634,7 +634,7 @@ export default async function LandingPage() {
             Got a link from a friend?
           </p>
           <p className="mt-1 text-sm text-ink-soft">
-            Open it and you'll see a preview of the trip before you sign up.
+            Open it and you&rsquo;ll see a preview of the trip before you sign up.
           </p>
           <div className="mt-4">
             <Link href="/signup" className="text-sm text-pen underline">

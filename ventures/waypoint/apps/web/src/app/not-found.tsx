@@ -13,7 +13,7 @@ export default function NotFound() {
           title="Nothing here"
           action={<ButtonLink href="/trips">Back to your trips</ButtonLink>}
         >
-          This trip either doesn't exist or isn't yours.
+          This trip either doesn&rsquo;t exist or isn&rsquo;t yours.
         </EmptyState>
       </div>
     </Page>

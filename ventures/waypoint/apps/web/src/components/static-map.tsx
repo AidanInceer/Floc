@@ -50,8 +50,9 @@ export function StaticMap({
         }}
       >
         {m.tiles.map((t) => (
-          // eslint-disable-next-line @next/next/no-img-element -- a third-party
-          // raster tile at a fixed 256px; next/image would proxy it for no gain.
+          // A third-party raster tile at a fixed 256px; next/image would proxy
+          // it for no gain.
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             key={t.key}
             src={t.url}

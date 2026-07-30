@@ -1,0 +1,32 @@
+/**
+ * ESLint flat config.
+ *
+ * `next lint` was the lint script until CI started failing on it: Next 15
+ * deprecated the command, and the deprecation path *prompts* — "How would you
+ * like to configure ESLint?" — which on a non-interactive runner is an
+ * immediate exit 1 with no rule ever evaluated. The fix is the migration Next
+ * points at: run the ESLint CLI directly against a flat config.
+ *
+ * `eslint-config-next` is still eslintrc-shaped, so it comes in through
+ * FlatCompat rather than being spread directly.
+ */
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+import { FlatCompat } from "@eslint/eslintrc";
+
+const compat = new FlatCompat({
+  baseDirectory: dirname(fileURLToPath(import.meta.url)),
+});
+
+export default [
+  {
+    ignores: [
+      ".next/**",
+      "node_modules/**",
+      "next-env.d.ts",
+      "drizzle/**",
+    ],
+  },
+  ...compat.extends("next/core-web-vitals", "next/typescript"),
+];

@@ -55,7 +55,7 @@ export default async function SettingsPage() {
           <div className="p-4">
             <Stack gap={3}>
               <p className="text-sm text-ink-soft">
-                There's no consent banner because there's nothing to consent to
+                There&rsquo;s no consent banner because there&rsquo;s nothing to consent to
                 yet — Waypoint sends no marketing email and runs no analytics.
                 The invite, nudge and money emails above are transactional
                 (or toggled off above), not consent-based.
@@ -65,7 +65,7 @@ export default async function SettingsPage() {
                 <a href="mailto:support@waypoint.example" className="text-pen underline">
                   support@waypoint.example
                 </a>{" "}
-                — there's no self-serve export in v1.
+                — there&rsquo;s no self-serve export in v1.
               </p>
             </Stack>
           </div>

@@ -21,6 +21,14 @@
   "pnpm": {
     "neverBuiltDependencies": [
       "esbuild"
-    ]
+    ],
+    "//": "Security gates are fixed, never weakened (security-compliance/CLAUDE.md), so advisories reached through a transitive dep are pinned forward here rather than muted in the audit step. Each entry is a `pnpm audit --audit-level=high` finding on the patched floor the advisory names.",
+    "overrides": {
+      "vitest": "^3.2.6",
+      "vite": "^6.4.3",
+      "sharp": "^0.35.0",
+      "postcss": "^8.5.18",
+      "brace-expansion": "^5.0.8"
+    }
   }
 }

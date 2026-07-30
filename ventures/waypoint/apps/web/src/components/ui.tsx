@@ -329,8 +329,9 @@ export function Avatar({
   const style = { width: size, height: size, fontSize: Math.round(size / 2.6) };
   if (src) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element -- avatars come from
-      // arbitrary provider hosts; the loader would need every one allow-listed.
+      // Avatars come from arbitrary provider hosts; next/image would need
+      // every one allow-listed.
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={src}
         alt={name}
