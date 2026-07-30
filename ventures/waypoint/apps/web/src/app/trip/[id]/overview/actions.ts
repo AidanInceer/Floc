@@ -14,6 +14,7 @@ import { db } from "@/db";
 import { nudge, trip, tripMembership, type NudgeTab } from "@/db/schema";
 import { assertAdmin, requireTripAccess } from "@/lib/access";
 import { emails, sendEmail } from "@/lib/email";
+import { parseTags } from "@/lib/tags";
 import { touch } from "@/lib/unlocks";
 
 export async function sendNudge(formData: FormData) {
@@ -114,6 +115,29 @@ export async function renameTrip(formData: FormData) {
 
   // "layout" — the name is in the trip header, which every tab renders.
   revalidatePath(`/trip/${tripId}`, "layout");
+  revalidatePath("/trips");
+}
+
+/**
+ * Trip tags (ticket 71). Open to any member for the same reason renaming is:
+ * a label the group puts on its own trip isn't one of admin's four powers.
+ * The field is one comma-separated line — `parseTags` owns normalisation, so
+ * this only decides where the tags are edited, not what a tag is.
+ *
+ * Empty clears them: a trip with no tags stores `[]`, never a half-state.
+ */
+export async function setTripTags(formData: FormData) {
+  const tripId = Number(formData.get("tripId"));
+  const tags = parseTags(String(formData.get("tags") ?? ""));
+
+  await requireTripAccess(tripId);
+
+  await db
+    .update(trip)
+    .set({ tags, ...touch() })
+    .where(eq(trip.id, tripId));
+
+  revalidatePath(`/trip/${tripId}/overview`);
   revalidatePath("/trips");
 }
 

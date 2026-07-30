@@ -1,0 +1,46 @@
+/**
+ * Trip tags (ticket 71) — free text, normalised here so the same label typed
+ * two ways in two trips is still one tag on the /trips filter.
+ *
+ * Pure, no DB access: `trip.tags` is a JSON column and every writer runs its
+ * input through `parseTags` first, so nothing unnormalised reaches the row.
+ */
+
+/** Comma-separated in the field, an array in the column. */
+export const TAG_SEPARATOR = ", ";
+
+/** Beyond this a trip card is a wall of pills, not a label. */
+export const MAX_TAGS = 8;
+export const MAX_TAG_LENGTH = 24;
+
+/**
+ * Lower-cases, trims, collapses inner whitespace, drops blanks and duplicates,
+ * and caps both the count and each tag's length. Order is what the author
+ * typed — first mention wins, so re-saving doesn't shuffle the pills.
+ */
+export function parseTags(input: string | null | undefined): string[] {
+  if (!input) return [];
+  const seen = new Set<string>();
+  for (const raw of input.split(",")) {
+    const tag = raw.trim().toLowerCase().replace(/\s+/g, " ").slice(0, MAX_TAG_LENGTH);
+    if (!tag) continue;
+    seen.add(tag);
+    if (seen.size >= MAX_TAGS) break;
+  }
+  return [...seen];
+}
+
+/** The column back into the text field. */
+export function formatTags(tags: string[] | null | undefined): string {
+  return (tags ?? []).join(TAG_SEPARATOR);
+}
+
+/**
+ * Guards the read side too: `tags` is JSON, so a hand-edited row (or one
+ * written before this column existed) can be anything at all. Rule 11 —
+ * degrade, don't crash.
+ */
+export function readTags(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((t): t is string => typeof t === "string" && t.length > 0);
+}

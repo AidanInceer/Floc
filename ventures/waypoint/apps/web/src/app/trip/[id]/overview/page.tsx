@@ -40,6 +40,8 @@ import {
   Badge,
   ButtonLink,
   EmptyState,
+  Field,
+  Input,
   Page,
   Stack,
   cx,
@@ -51,11 +53,13 @@ import {
 } from "@/components/client-ui";
 import { TripRoster } from "@/components/trip-roster";
 import { TripTrail, type Station } from "@/components/trip-trail";
+import { formatTags, readTags } from "@/lib/tags";
 import {
   archiveTripFromOverview,
   deleteTripFromOverview,
   leaveTrip,
   promoteMember,
+  setTripTags,
 } from "./actions";
 
 export default async function OverviewPage({
@@ -283,6 +287,7 @@ export default async function OverviewPage({
   if (!stations.some((s) => s.state === "now")) stations[0].state = "now";
 
   const inviteUrl = `${process.env.BETTER_AUTH_URL ?? "http://localhost:3000"}/invite/${trip.inviteToken}`;
+  const tags = readTags(trip.tags);
 
   /*
    * What leaving costs, worked out here so the dialog can say it before the
@@ -347,6 +352,19 @@ export default async function OverviewPage({
               </span>
             )}
           </div>
+
+          {/* The group's own labels (ticket 71). Read-only here — editing is
+              one field in Trip settings, beside the other things about the
+              trip rather than about its plan. */}
+          {tags.length > 0 ? (
+            <ul className="mt-2 flex flex-wrap gap-1">
+              {tags.map((tag) => (
+                <li key={tag}>
+                  <Badge tone="open">{tag}</Badge>
+                </li>
+              ))}
+            </ul>
+          ) : null}
 
           <TripTrail stations={stations} />
 
@@ -592,6 +610,33 @@ export default async function OverviewPage({
               Inviting, promoting and removing people are admin-only.
             </p>
           )}
+
+          {/* Tags are the group's own labels, so every member can edit them —
+              like renaming, and for the same reason (ticket 71). One line,
+              comma-separated: a chip editor would be a lot of client component
+              for something typed once a trip. */}
+          <Stack gap={2} className="border-t border-rule pt-4 sm:col-span-2">
+            <form action={setTripTags}>
+              <input type="hidden" name="tripId" value={tripId} />
+              <Stack gap={2}>
+                <Field
+                  label="Tags"
+                  hint="Comma-separated, up to eight — they show on the trip card and you can filter My trips by them."
+                >
+                  <Input
+                    name="tags"
+                    defaultValue={formatTags(tags)}
+                    placeholder="beach, long weekend, with kids"
+                  />
+                </Field>
+                <div>
+                  <SubmitButton variant="secondary" pendingLabel="Saving…">
+                    Save tags
+                  </SubmitButton>
+                </div>
+              </Stack>
+            </form>
+          </Stack>
 
           {/* Leaving is not an admin power (ticket 65), so it sits outside the
               admin block and every member sees it. The confirm copy carries

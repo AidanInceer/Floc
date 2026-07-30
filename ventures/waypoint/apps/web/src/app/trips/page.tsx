@@ -8,12 +8,12 @@
  * first, since a trip that just finished is more likely to still need a
  * settle-up than one from months ago.
  *
- * The chosen sort (ticket 70) is held in the URL, not in state and not in a
- * column. Three reasons: the page stays a server component with no client JS,
- * a chosen view is linkable, and a *persisted* preference would be a per-user
- * setting on a page most people open with one thing in mind — "where's the
- * Lisbon one" is a search, not a preference. Reload returns to the default
- * deliberately.
+ * Sorting and tag filtering (tickets 70, 71) are held in the URL, not in
+ * state and not in a column. Three reasons: the page stays a server component
+ * with no client JS, a chosen view is linkable, and a *persisted* preference
+ * would be a per-user setting on a page most people open with one thing in
+ * mind — "where's the Lisbon one" is a search, not a preference. Reload
+ * returns to the default deliberately.
  */
 import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 
@@ -21,7 +21,9 @@ import { db } from "@/db";
 import { day, idea, place, trip, tripMembership } from "@/db/schema";
 import { listMembersFor, requireUser } from "@/lib/access";
 import { hasEnded } from "@/lib/dates";
+import { readTags } from "@/lib/tags";
 import {
+  Badge,
   ButtonLink,
   EmptyState,
   Field,
@@ -29,6 +31,7 @@ import {
   Page,
   PageHeader,
   Stack,
+  cx,
 } from "@/components/ui";
 import { Sheet, SubmitButton } from "@/components/client-ui";
 import { TripCard } from "@/components/trip-card";
@@ -54,6 +57,7 @@ export default async function TripsPage({
 }) {
   const params = await searchParams;
   const sort = readSort(params.sort);
+  const activeTag = typeof params.tag === "string" ? params.tag : null;
 
   const viewer = await requireUser("/trips");
 
@@ -63,6 +67,7 @@ export default async function TripsPage({
       name: trip.name,
       startDate: trip.startDate,
       endDate: trip.endDate,
+      tags: trip.tags,
       role: tripMembership.role,
     })
     .from(tripMembership)
@@ -130,9 +135,17 @@ export default async function TripsPage({
     members: membersByTrip.get(r.id) ?? [],
     needsYou: !hasEnded(r.endDate) && !tripsWithIdeas.has(r.id),
     where: whereByTrip.get(r.id) ?? null,
+    tags: readTags(r.tags),
   }));
 
-  const sorted = sortCards(cards, sort);
+  // Every tag in play, for the filter row. Taken from the trips themselves,
+  // so a tag nobody uses any more stops being offered on its own.
+  const allTags = [...new Set(cards.flatMap((c) => c.tags ?? []))].sort();
+  const filtered = activeTag
+    ? cards.filter((c) => c.tags?.includes(activeTag))
+    : cards;
+
+  const sorted = sortCards(filtered, sort);
 
   return (
     <Page>
@@ -156,26 +169,63 @@ export default async function TripsPage({
         }
       />
 
-      {/* Only worth showing once there is more than one trip to order. */}
+      {/* Only worth showing once there is more than one trip to order, and the
+          tag row only once anyone has tagged anything. */}
       {cards.length > 1 ? (
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          <span className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-faint">
-            Sort
-          </span>
-          {(Object.keys(SORTS) as Sort[]).map((key) => (
-            <ButtonLink
-              key={key}
-              href={hrefFor({ sort: key })}
-              variant={key === sort ? "primary" : "secondary"}
-              aria-current={key === sort ? "true" : undefined}
-            >
-              {SORTS[key]}
-            </ButtonLink>
-          ))}
+        <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-faint">
+              Sort
+            </span>
+            {(Object.keys(SORTS) as Sort[]).map((key) => (
+              <ButtonLink
+                key={key}
+                href={hrefFor({ sort: key, tag: activeTag })}
+                variant={key === sort ? "primary" : "secondary"}
+                aria-current={key === sort ? "true" : undefined}
+              >
+                {SORTS[key]}
+              </ButtonLink>
+            ))}
+          </div>
+          {allTags.length > 0 ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-faint">
+                Tag
+              </span>
+              {allTags.map((tag) => (
+                <a
+                  key={tag}
+                  // Clicking the tag you're already on clears the filter —
+                  // the pill is the toggle, so there's no separate "all".
+                  href={hrefFor({ sort, tag: tag === activeTag ? null : tag })}
+                  aria-current={tag === activeTag ? "true" : undefined}
+                  className={cx(
+                    "rounded-sm",
+                    tag === activeTag ? "ring-1 ring-pen" : "opacity-80 hover:opacity-100",
+                  )}
+                >
+                  <Badge tone="open">{tag}</Badge>
+                </a>
+              ))}
+            </div>
+          ) : null}
         </div>
       ) : null}
 
-      {sorted.length === 0 ? (
+      {activeTag && sorted.length === 0 ? (
+        <EmptyState
+          title={`No trips tagged “${activeTag}”`}
+          action={
+            <ButtonLink href={hrefFor({ sort, tag: null })} variant="secondary">
+              Show every trip
+            </ButtonLink>
+          }
+        >
+          The tag is still on another trip somewhere, or it was just taken off
+          this one.
+        </EmptyState>
+      ) : sorted.length === 0 ? (
         <EmptyState
           title="No trips yet"
           action={
@@ -198,9 +248,13 @@ export default async function TripsPage({
   );
 }
 
-/** The view as a URL — the default sort is the bare path. */
-function hrefFor({ sort }: { sort: Sort }) {
-  return sort === "date" ? "/trips" : `/trips?sort=${sort}`;
+/** The view as a URL, so sort and tag survive each other's clicks. */
+function hrefFor({ sort, tag }: { sort: Sort; tag: string | null }) {
+  const query = new URLSearchParams();
+  if (sort !== "date") query.set("sort", sort);
+  if (tag) query.set("tag", tag);
+  const q = query.toString();
+  return q ? `/trips?${q}` : "/trips";
 }
 
 /**

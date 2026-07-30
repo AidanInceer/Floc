@@ -80,6 +80,7 @@ erDiagram
         string created_by FK "-> USER.id"
         string invite_token "unguessable, never the trip id"
         string cover_image_url "nullable"
+        json tags "nullable, free-text labels, normalised lower-case"
         datetime archived_at "nullable, admin-only"
         datetime route_unlocked_at "nullable, sticky — never regresses"
         datetime days_unlocked_at "nullable, sticky — never regresses"

@@ -10,6 +10,7 @@ import { and, eq, isNull, not } from "drizzle-orm";
 import { db } from "@/db";
 import { trip, tripMembership } from "@/db/schema";
 import { listMembersFor, requireUser } from "@/lib/access";
+import { readTags } from "@/lib/tags";
 import { ButtonLink, EmptyState, Page, PageHeader } from "@/components/ui";
 import { ConfirmSubmit } from "@/components/client-ui";
 import { TripCard } from "@/components/trip-card";
@@ -25,6 +26,7 @@ export default async function ArchivedTripsPage() {
       name: trip.name,
       startDate: trip.startDate,
       endDate: trip.endDate,
+      tags: trip.tags,
       role: tripMembership.role,
     })
     .from(tripMembership)
@@ -52,6 +54,7 @@ export default async function ArchivedTripsPage() {
       endDate: r.endDate,
       role: r.role,
       members,
+      tags: readTags(r.tags),
     };
     return { card, admins, isAdmin: r.role === "admin" };
   });

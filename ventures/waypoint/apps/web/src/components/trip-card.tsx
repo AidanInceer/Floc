@@ -28,6 +28,8 @@ export type TripCardData = {
    * by something it doesn't show is a list in an arbitrary order.
    */
   where?: string | null;
+  /** The group's own labels (ticket 71). */
+  tags?: string[];
 };
 
 export function TripCard({
@@ -58,6 +60,15 @@ export function TripCard({
           {formatDateRange(trip.startDate, trip.endDate)}
           {trip.where ? <> · {trip.where}</> : null}
         </p>
+        {trip.tags?.length ? (
+          <ul className="mt-1.5 flex flex-wrap gap-1">
+            {trip.tags.map((tag) => (
+              <li key={tag}>
+                <Badge tone="open">{tag}</Badge>
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </Link>
       <div className="flex items-center gap-3">
         <AvatarRow people={trip.members} size={24} />

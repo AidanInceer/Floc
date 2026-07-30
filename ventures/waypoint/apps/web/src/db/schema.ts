@@ -190,6 +190,16 @@ export const trip = sqliteTable(
     /** Unguessable share token — never the trip id (ticket 05). */
     inviteToken: text("invite_token").notNull().unique(),
     coverImageUrl: text("cover_image_url"),
+    /**
+     * Free-text labels the group puts on a trip — "beach", "stag", "hen do",
+     * "with kids" (ticket 71). Deliberately not a fixed set and not a join
+     * table: the vocabulary is a private joke per group, so a curated list
+     * would be wrong for everyone, and there is no cross-trip tag query to
+     * make a table pay for itself. Same JSON-column shape as
+     * `user_profile.vibe_preferences`, which settled the same argument.
+     * Normalised on write by src/lib/tags.ts — always lower-case and deduped.
+     */
+    tags: text("tags", { mode: "json" }).$type<string[] | null>(),
     /** Admin-only; an archived trip stays visible to every member. */
     archivedAt: integer("archived_at", { mode: "timestamp" }),
     /**
