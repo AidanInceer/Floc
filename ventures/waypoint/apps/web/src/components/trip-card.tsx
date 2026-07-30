@@ -22,6 +22,12 @@ export type TripCardData = {
   members: { name: string; avatarUrl?: string | null; tone?: string }[];
   /** Low-key hint that something on this trip wants the viewer's attention. */
   needsYou?: boolean;
+  /**
+   * First overnight place on the route, or null while nowhere is settled
+   * (ticket 70). Shown because /trips can be sorted by it, and a list sorted
+   * by something it doesn't show is a list in an arbitrary order.
+   */
+  where?: string | null;
 };
 
 export function TripCard({
@@ -50,6 +56,7 @@ export function TripCard({
         </div>
         <p className="mt-1 text-sm text-ink-soft">
           {formatDateRange(trip.startDate, trip.endDate)}
+          {trip.where ? <> · {trip.where}</> : null}
         </p>
       </Link>
       <div className="flex items-center gap-3">
