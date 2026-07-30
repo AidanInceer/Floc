@@ -9,10 +9,13 @@
  * annotate is "this ferry" or "that restaurant", so an event opens up to its own
  * details and thread.
  *
- * Activity vs transport are visually distinct: transport gets a directional
- * badge (transport type + time), an activity gets a plain marker. A flight
- * event additionally offers a Google Flights / Skyscanner search deep link —
- * ticket 10's floor is deep-links only, no live fares, no Amadeus call.
+ * Every event is one of three categories and each has its own colour (ticket
+ * 68): blue for transport, green for an activity, yellow for food. The
+ * vocabulary lives in `EVENT_CATEGORIES` so the badge, the row tint and the
+ * picker can't drift apart, and the badge always says the word — colour is
+ * never the only signal. A flight event additionally offers a Google Flights
+ * search deep link — ticket 10's floor is deep-links only, no live fares, no
+ * Amadeus call.
  */
 import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 
@@ -48,7 +51,9 @@ import {
   Select,
   Stack,
   Textarea,
+  cx,
 } from "@/components/ui";
+import { EVENT_CATEGORIES } from "@/lib/itinerary";
 import { NoteThread, type NoteRow } from "@/components/note-thread";
 import { db } from "@/db";
 import { day, dayEvent, place, user, userProfile } from "@/db/schema";
@@ -176,6 +181,21 @@ export default async function DaysPage({
             moves between them, so swapping two days swaps what happens on them.
             Anything spent stays on the date it was spent.
           </p>
+          {/* The key for the row colours (ticket 68). Each swatch carries its
+              word, so the colours are a shortcut and never the only signal. */}
+          <ul className="flex flex-wrap items-center gap-2">
+            {Object.entries(EVENT_CATEGORIES).map(([value, c]) => (
+              <li
+                key={value}
+                className={cx(
+                  "inline-flex items-center rounded-sm border px-2 py-0.5 font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-soft",
+                  c.row,
+                )}
+              >
+                {c.label}
+              </li>
+            ))}
+          </ul>
           <DragList
             label="day"
             onReorder={reorderDays.bind(null, trip.id)}
@@ -291,6 +311,7 @@ function EventRow({
   isAdmin: boolean;
 }) {
   const isTransport = event.type === "transport";
+  const category = EVENT_CATEGORIES[event.type];
   // Replies count too — the summary says how much conversation is in there.
   const commentCount = notes.reduce((n, run) => n + 1 + run.replies.length, 0);
   const flightLink =
@@ -303,20 +324,14 @@ function EventRow({
       : null;
 
   return (
-    <details
-      className={
-        isTransport
-          ? "group rounded-md border border-pen-soft bg-pen-soft/40"
-          : "group rounded-md border border-rule bg-sheet-2"
-      }
-    >
+    <details className={cx("group rounded-md border", category.row)}>
       <summary className="flex cursor-pointer list-none items-start justify-between gap-3 px-3 py-2">
         <span className="flex flex-1 flex-wrap items-center gap-2">
-          {isTransport ? (
-            <Badge tone="marine">{event.transportType ?? "transport"}</Badge>
-          ) : (
-            <Badge tone="neutral">Activity</Badge>
-          )}
+          {/* Transport names its own kind — "ferry" says more than "transport"
+              and is still the category's word. */}
+          <Badge tone={category.tone}>
+            {isTransport ? event.transportType ?? "transport" : category.label}
+          </Badge>
           {event.time ? (
             <span className="nums text-sm text-ink-soft">{event.time}</span>
           ) : null}
@@ -455,9 +470,14 @@ function EventForm({
     <form action={action}>
       <Stack gap={3}>
         <Field label="Kind">
+          {/* Driven off EVENT_CATEGORIES so a new category can't be invented
+              here without a colour, or given one nothing offers (ticket 68). */}
           <Select name="type" defaultValue={defaultType}>
-            <option value="activity">Activity</option>
-            <option value="transport">Transport</option>
+            {Object.entries(EVENT_CATEGORIES).map(([value, c]) => (
+              <option key={value} value={value}>
+                {c.label}
+              </option>
+            ))}
           </Select>
         </Field>
         <Field label="Transport type" hint="Only used when kind is Transport">

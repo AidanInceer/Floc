@@ -125,7 +125,7 @@ erDiagram
         int id PK
         int day_id FK "-> DAY.id"
         int order_index
-        string type "activity | transport"
+        string type "activity | transport | food — the category Days colours by"
         int place_id FK "-> PLACE.id, nullable"
         string transport_type "flight|train|car|ferry|other, nullable"
         time time "nullable"

@@ -338,7 +338,16 @@ export const day = sqliteTable(
   (t) => [uniqueIndex("day_trip_date_idx").on(t.tripId, t.date)],
 );
 
-export const DAY_EVENT_TYPES = ["activity", "transport"] as const;
+/**
+ * The event's category — what kind of thing it is, and the one field the Days
+ * page colours by (ticket 68). `food` joined the original pair because a day's
+ * events are overwhelmingly "where we're going", "how we're getting there" and
+ * "where we're eating", and a booked dinner read as an activity indistinguishable
+ * from a museum. Nothing else earned a colour: accommodation is the day's
+ * overnight place (a Route concern, not an event) and everything else is an
+ * activity with a note.
+ */
+export const DAY_EVENT_TYPES = ["activity", "transport", "food"] as const;
 export type DayEventType = (typeof DAY_EVENT_TYPES)[number];
 
 export const TRANSPORT_TYPES = [
