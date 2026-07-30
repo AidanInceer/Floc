@@ -31,12 +31,37 @@ import type { FormDay, FormMember } from "@/components/expense-form";
 import { BalanceSummary } from "@/components/balance-summary";
 import { addExpense, deleteExpense, toggleSettled, updateExpense } from "./actions";
 
+/**
+ * How a stored `split_type` reads back. The form no longer offers these as
+ * modes (ticket 85) — it writes `shares` when nobody was pinned and `exact`
+ * when somebody was — but every one of them exists on rows already written, so
+ * the list stays and the wording just stops promising a picker.
+ */
 const SPLIT_LABELS: Record<Expense["splitType"], string> = {
   even: "Split evenly",
-  exact: "Exact amounts",
+  exact: "Set amounts",
   percentage: "By percentage",
   shares: "By shares",
 };
+
+/**
+ * Reading the split back is now a question about the *numbers*, not the stored
+ * type: an even split is written as one share each, so "By shares" would be a
+ * needlessly technical way to say "everyone paid the same". Within a penny,
+ * because that's how the remainder is handed out.
+ */
+function splitLabel(
+  e: Expense,
+  splits: { owedAmountMinor: number }[],
+): string {
+  if (splits.length === 1) return "All on one person";
+  if (splits.length > 1 && (e.splitType === "shares" || e.splitType === "even")) {
+    const min = Math.min(...splits.map((s) => s.owedAmountMinor));
+    const max = Math.max(...splits.map((s) => s.owedAmountMinor));
+    if (max - min <= 1) return SPLIT_LABELS.even;
+  }
+  return SPLIT_LABELS[e.splitType];
+}
 
 export default async function MoneyPage({
   params,
@@ -151,7 +176,9 @@ export default async function MoneyPage({
   const homeCurrency: Currency = viewerProfile?.homeCurrency ?? "GBP";
 
   // Plain element, not a render prop: a function child cannot cross the
-  // server/client boundary, and Sheet dismisses itself on submit.
+  // server/client boundary. The sheets around it are `keepOpenOnSubmit` — a
+  // split the server refuses has to stay on screen with its reason — and
+  // `ExpenseForm` closes them itself once the save comes back clean.
   const addForm = (
     <ExpenseForm
       tripId={tripId}
@@ -169,7 +196,7 @@ export default async function MoneyPage({
         title="Money"
         subtitle="A shared ledger, not a payment rail — nothing here moves real money."
         actions={
-          <Sheet trigger="Add a cost" title="Add a cost">
+          <Sheet trigger="Add a cost" title="Add a cost" keepOpenOnSubmit>
             {addForm}
           </Sheet>
         }
@@ -179,7 +206,7 @@ export default async function MoneyPage({
         <EmptyState
           title="No costs logged yet"
           action={
-            <Sheet trigger="Add the first cost" title="Add a cost">
+            <Sheet trigger="Add the first cost" title="Add a cost" keepOpenOnSubmit>
               {addForm}
             </Sheet>
           }
@@ -208,7 +235,7 @@ export default async function MoneyPage({
                         <div>
                           <p className="font-medium">{e.description}</p>
                           <p className="mt-0.5 text-xs text-ink-soft">
-                            {name(e.paidBy)} paid · {SPLIT_LABELS[e.splitType]}
+                            {name(e.paidBy)} paid · {splitLabel(e, rowSplits)}
                             {d ? ` · ${formatDate(d.date)}` : ""}
                           </p>
                         </div>
@@ -266,7 +293,7 @@ export default async function MoneyPage({
                     ) : null}
 
                     <div className="mt-3 flex gap-2">
-                      <Sheet trigger="Edit" title="Edit cost" triggerVariant="ghost">
+                      <Sheet trigger="Edit" title="Edit cost" triggerVariant="ghost" keepOpenOnSubmit>
                         <ExpenseForm
                             tripId={tripId}
                             members={formMembers}

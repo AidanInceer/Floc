@@ -20,31 +20,54 @@ import { expense, expenseSplit, user } from "@/db/schema";
 import type { Currency, SplitType } from "@/db/schema";
 import { requireTripAccess } from "@/lib/access";
 import { touch } from "@/lib/unlocks";
-import { computeSplits, formatMoney, parseMoney } from "@/lib/money";
-import type { SplitInput } from "@/lib/money";
+import {
+  computeSplits,
+  formatMoney,
+  parseMoney,
+  resolveWeightedSplit,
+} from "@/lib/money";
+import type { SplitInput, WeightedInput } from "@/lib/money";
 import { emails, sendEmails } from "@/lib/email";
 
 export type ActionState = { error?: string };
 
-function parseParticipants(formData: FormData, splitType: SplitType): SplitInput[] {
+/**
+ * The form posts one model now (ticket 85): who's in, how many shares each,
+ * and a pinned amount for anyone whose number is fixed. `resolveWeightedSplit`
+ * turns that back into the stored `split_type` vocabulary, and `computeSplits`
+ * still does the arithmetic — so the split maths lives in one place, as before.
+ *
+ * Somebody excluded from the cost simply isn't in `participant`, which is what
+ * "tap them out" means on the wire: no row, not a zero row.
+ */
+function parseSplit(
+  formData: FormData,
+  amountMinor: number,
+): { splitType: SplitType; participants: SplitInput[] } {
   // (Return type spelled out so `SplitInput` is a used import, not just inferred.)
   const ids = formData.getAll("participant").map(String).filter(Boolean);
-  return ids.map((userId) => {
-    if (splitType === "even") return { userId };
-    const raw = formData.get(`value_${userId}`);
-    return { userId, value: raw ? Number(raw) : 0 };
+  const rows: WeightedInput[] = ids.map((userId) => {
+    const rawPin = String(formData.get(`pin_${userId}`) ?? "").trim();
+    const rawShares = String(formData.get(`shares_${userId}`) ?? "1").trim();
+    return {
+      userId,
+      shares: rawShares === "" ? 0 : Number(rawShares),
+      // An empty box is "not pinned" — 0.00 typed on purpose is a real pin of
+      // nothing, and the two have to stay tellable apart.
+      pinnedMinor: rawPin === "" ? null : parseMoney(rawPin),
+    };
   });
+  return resolveWeightedSplit(amountMinor, rows);
 }
 
 function readExpenseFields(formData: FormData) {
   const description = String(formData.get("description") ?? "").trim();
   const currency = String(formData.get("currency") ?? "") as Currency;
-  const splitType = String(formData.get("splitType") ?? "") as SplitType;
   const paidBy = String(formData.get("paidBy") ?? "");
   const dayIdRaw = formData.get("dayId");
   const dayId = dayIdRaw ? Number(dayIdRaw) : null;
   const notes = String(formData.get("notes") ?? "").trim() || null;
-  return { description, currency, splitType, paidBy, dayId, notes };
+  return { description, currency, paidBy, dayId, notes };
 }
 
 /**
@@ -105,7 +128,7 @@ export async function addExpense(
 ): Promise<ActionState> {
   const tripId = Number(formData.get("tripId"));
   const access = await requireTripAccess(tripId);
-  const { description, currency, splitType, paidBy, dayId, notes } =
+  const { description, currency, paidBy, dayId, notes } =
     readExpenseFields(formData);
 
   if (!description) return { error: "Give the cost a description." };
@@ -119,8 +142,11 @@ export async function addExpense(
   }
 
   let splits;
+  let splitType: SplitType;
   try {
-    splits = computeSplits(amountMinor, splitType, parseParticipants(formData, splitType));
+    const resolved = parseSplit(formData, amountMinor);
+    splitType = resolved.splitType;
+    splits = computeSplits(amountMinor, splitType, resolved.participants);
   } catch (err) {
     return { error: (err as Error).message };
   }
@@ -177,7 +203,7 @@ export async function updateExpense(
   const tripId = Number(formData.get("tripId"));
   const expenseId = Number(formData.get("expenseId"));
   const access = await requireTripAccess(tripId);
-  const { description, currency, splitType, paidBy, dayId, notes } =
+  const { description, currency, paidBy, dayId, notes } =
     readExpenseFields(formData);
 
   if (!description) return { error: "Give the cost a description." };
@@ -200,8 +226,11 @@ export async function updateExpense(
   }
 
   let splits;
+  let splitType: SplitType;
   try {
-    splits = computeSplits(amountMinor, splitType, parseParticipants(formData, splitType));
+    const resolved = parseSplit(formData, amountMinor);
+    splitType = resolved.splitType;
+    splits = computeSplits(amountMinor, splitType, resolved.participants);
   } catch (err) {
     return { error: (err as Error).message };
   }

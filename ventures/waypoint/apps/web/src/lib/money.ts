@@ -170,6 +170,97 @@ function distribute(
 }
 
 /* -------------------------------------------------------------------------- */
+/* One split model: shares, with pinned amounts (ticket 85)                    */
+/* -------------------------------------------------------------------------- */
+
+export type WeightedInput = {
+  userId: string;
+  /** How many shares of whatever is left this person carries. */
+  shares: number;
+  /** A fixed amount in minor units — "Ravi owes exactly £30" — or null. */
+  pinnedMinor: number | null;
+};
+
+/**
+ * The form asks one question now (ticket 85): everyone holds shares of the
+ * cost, and anyone can be *pinned* to a fixed amount instead. Even is everyone
+ * on one share; "exact amounts" is everyone pinned; percentages are shares that
+ * happen to add to a hundred. The four split types stop being modes you pick.
+ *
+ * They stay in the schema, because `expense.split_type` is written on rows that
+ * already exist and `expense_split` is a snapshot that is never recalculated
+ * (non-negotiable 2). So this resolves the one live model back into the stored
+ * vocabulary rather than adding to it:
+ *
+ *   nothing pinned → `shares`, values are the shares
+ *   anything pinned → `exact`, values are the amounts this works out
+ *
+ * Either way `computeSplits` does the actual arithmetic and the exact-sum
+ * invariant is checked in exactly one place.
+ */
+export function resolveWeightedSplit(
+  amountMinor: number,
+  rows: WeightedInput[],
+): { splitType: SplitType; participants: SplitInput[] } {
+  if (rows.length === 0) {
+    throw new Error("An expense needs at least one person in it.");
+  }
+  if (rows.some((r) => !Number.isFinite(r.shares) || r.shares < 0)) {
+    throw new Error("Shares can't be negative.");
+  }
+
+  const pinned = rows.filter((r) => r.pinnedMinor !== null);
+  if (pinned.length === 0) {
+    return {
+      splitType: "shares",
+      participants: rows.map((r) => ({ userId: r.userId, value: r.shares })),
+    };
+  }
+
+  const pinnedTotal = pinned.reduce((sum, r) => sum + (r.pinnedMinor ?? 0), 0);
+  const remainder = amountMinor - pinnedTotal;
+  if (remainder < 0) {
+    throw new Error(
+      `The pinned amounts already come to ${formatMinor(pinnedTotal)}, which is more than the total.`,
+    );
+  }
+
+  const unpinned = rows.filter((r) => r.pinnedMinor === null);
+  const shareTotal = unpinned.reduce((sum, r) => sum + r.shares, 0);
+  if (remainder > 0 && shareTotal === 0) {
+    // Nothing left holding shares, so there is nowhere for the rest to go —
+    // say so rather than quietly losing it.
+    throw new Error(
+      `${formatMinor(remainder)} is left over and nobody's on shares to absorb it.`,
+    );
+  }
+
+  const rest =
+    remainder > 0
+      ? new Map(
+          computeSplits(
+            remainder,
+            "shares",
+            unpinned.map((r) => ({ userId: r.userId, value: r.shares })),
+          ).map((s) => [s.userId, s.owedAmountMinor]),
+        )
+      : new Map<string, number>();
+
+  return {
+    splitType: "exact",
+    participants: rows.map((r) => ({
+      userId: r.userId,
+      value: r.pinnedMinor ?? rest.get(r.userId) ?? 0,
+    })),
+  };
+}
+
+/** Bare minor units as a decimal — currency-less, for error strings. */
+function formatMinor(amountMinor: number): string {
+  return (amountMinor / MINOR_PER_MAJOR).toFixed(2);
+}
+
+/* -------------------------------------------------------------------------- */
 /* Balances — derived at read time, never stored (ticket 04)                   */
 /* -------------------------------------------------------------------------- */
 

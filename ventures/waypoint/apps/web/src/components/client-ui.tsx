@@ -1,7 +1,9 @@
 "use client";
 
 import {
+  createContext,
   useActionState,
+  useContext,
   useEffect,
   useId,
   useRef,
@@ -12,6 +14,20 @@ import type { ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 
 import { Button, Card, ErrorText, cx } from "./ui";
+
+/**
+ * How a client component *inside* a sheet dismisses it.
+ *
+ * The sheet's children are rendered on the server, so a parent can't hand a
+ * close callback down as a prop — a function doesn't cross that boundary. A
+ * form that wants to close itself only on a *successful* submit (rather than
+ * on submit, which is what `keepOpenOnSubmit` turns off) reads it from here.
+ */
+const SheetCloseContext = createContext<(() => void) | null>(null);
+
+export function useSheetClose() {
+  return useContext(SheetCloseContext);
+}
 
 /**
  * A plain `<form action={…}>` requires an action returning void, which would
@@ -170,7 +186,9 @@ export function Sheet({
             className="p-4"
             onSubmit={keepOpenOnSubmit ? undefined : () => setTimeout(close, 0)}
           >
-            {open ? children : null}
+            <SheetCloseContext.Provider value={close}>
+              {open ? children : null}
+            </SheetCloseContext.Provider>
           </div>
         </Card>
       </dialog>

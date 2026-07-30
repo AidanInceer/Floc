@@ -151,13 +151,14 @@ conventions they share:
 ## Wayfinder prototypes
 
 Throwaway artefacts made to be reacted to and then dropped — not proposals, not
-adopted, and deliberately not production code. Each one is a single page
-showing three directions side by side.
+production code. Each one is a single page showing three directions side by
+side. Both have since been decided; the pages stay as the record of what the
+other two directions were and why they lost.
 
 | File | Ticket | What it asks |
 |---|---|---|
-| [`overview-hero-stage-abc.html`](overview-hero-stage-abc.html) | [#89](https://github.com/AidanInceer/Waypoint/issues/89) | Three ways to say where a trip is up to on the Overview hero, once "Up to" and "Ended — still editable if anything's unfinished" are admitted to be clutter. Each drawn mid-plan and ended. |
-| [`money-split-abc.html`](money-split-abc.html) | [#85](https://github.com/AidanInceer/Waypoint/issues/85) | Three directions for splitting money — the model underneath and the UI over it: even-by-default with exclusions, one shares model with self-balancing amounts, and an itemised receipt. |
+| [`overview-hero-stage-abc.html`](overview-hero-stage-abc.html) | [#89](https://github.com/AidanInceer/Waypoint/issues/89) | Three ways to say where a trip is up to on the Overview hero. **B shipped**: the trip's name is the headline, the stage is a badge beside it, the caveat is one plain line — and the duplicate name/dates/badges came off the layout header. |
+| [`money-split-abc.html`](money-split-abc.html) | [#85](https://github.com/AidanInceer/Waypoint/issues/85) | Three directions for splitting money, model and UI. **B shipped, with A's exclusion gesture**: one shares model with pinned amounts, and taking someone out of a cost is a tap rather than a zero. |
 
 ## Geometry note
 

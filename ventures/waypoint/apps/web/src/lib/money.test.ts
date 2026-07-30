@@ -5,6 +5,7 @@ import {
   computeSplits,
   formatMoney,
   parseMoney,
+  resolveWeightedSplit,
   suggestSettlements,
 } from "./money";
 
@@ -156,6 +157,80 @@ describe("computeBalances / suggestSettlements", () => {
       applied[s.to as keyof typeof applied] -= s.amountMinor;
     }
     expect(Object.values(applied)).toEqual([0, 0, 0]);
+  });
+});
+
+describe("resolveWeightedSplit (ticket 85)", () => {
+  const row = (userId: string, shares: number, pinnedMinor: number | null = null) => ({
+    userId,
+    shares,
+    pinnedMinor,
+  });
+
+  it("stays a shares split when nobody is pinned", () => {
+    const resolved = resolveWeightedSplit(8400, [row("a", 1), row("b", 1), row("c", 1)]);
+    expect(resolved.splitType).toBe("shares");
+    expect(resolved.participants).toEqual([
+      { userId: "a", value: 1 },
+      { userId: "b", value: 1 },
+      { userId: "c", value: 1 },
+    ]);
+  });
+
+  it("pins one person and spreads the rest by shares, summing exactly", () => {
+    const resolved = resolveWeightedSplit(8400, [
+      row("a", 1),
+      row("b", 1),
+      row("c", 0, 3000),
+    ]);
+    expect(resolved.splitType).toBe("exact");
+    expect(resolved.participants).toEqual([
+      { userId: "a", value: 2700 },
+      { userId: "b", value: 2700 },
+      { userId: "c", value: 3000 },
+    ]);
+    // The result still has to survive the one place the invariant is checked.
+    expect(sum(computeSplits(8400, "exact", resolved.participants))).toBe(8400);
+  });
+
+  it("hands the odd penny out deterministically", () => {
+    const resolved = resolveWeightedSplit(1000, [row("a", 1), row("b", 1), row("c", 1)]);
+    expect(sum(computeSplits(1000, "shares", resolved.participants))).toBe(1000);
+  });
+
+  it("treats everyone pinned as exact amounts", () => {
+    const resolved = resolveWeightedSplit(5000, [row("a", 0, 2000), row("b", 0, 3000)]);
+    expect(resolved.splitType).toBe("exact");
+    expect(sum(computeSplits(5000, "exact", resolved.participants))).toBe(5000);
+  });
+
+  it("refuses pins that overshoot the total", () => {
+    expect(() => resolveWeightedSplit(4000, [row("a", 1), row("b", 0, 5000)])).toThrow(
+      /more than the total/,
+    );
+  });
+
+  it("refuses a leftover with nobody on shares to absorb it", () => {
+    expect(() => resolveWeightedSplit(4000, [row("a", 0), row("b", 0, 1000)])).toThrow(
+      /nobody's on shares/,
+    );
+  });
+
+  it("gives an unpinned person with no shares nothing", () => {
+    const resolved = resolveWeightedSplit(3000, [
+      row("a", 1),
+      row("b", 0),
+      row("c", 0, 1000),
+    ]);
+    expect(resolved.participants).toEqual([
+      { userId: "a", value: 2000 },
+      { userId: "b", value: 0 },
+      { userId: "c", value: 1000 },
+    ]);
+  });
+
+  it("rejects negative shares", () => {
+    expect(() => resolveWeightedSplit(1000, [row("a", -1)])).toThrow(/negative/);
   });
 });
 
