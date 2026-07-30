@@ -6,10 +6,14 @@
  *
  * Three decisions worth knowing before editing this file:
  *
- * 1. Pan and zoom are on, but the scroll wheel is NOT. The map spans the page
- *    width, so a wheel zoom would trap the reader's scroll on the way down the
- *    Route tab. A fixed-view/interactive toggle was built and then dropped on
- *    request — one map, always draggable, is less to explain.
+ * 1. Pan, zoom and the scroll wheel are all on — but the wheel only after the
+ *    map has been clicked (ticket 77). The map spans the page width, so a
+ *    live wheel zoom would trap the reader's scroll on the way down the Route
+ *    tab; Leaflet has no guard of its own for that. Click activates the
+ *    wheel, moving the pointer off the map deactivates it again, so scrolling
+ *    past costs nothing and zooming costs one click. A fixed-view/interactive
+ *    toggle was built and then dropped on request — one map, always
+ *    draggable, is less to explain.
  * 2. The paper look is CSS over plain OSM tiles — a filter stack on the tile
  *    pane plus a multiply-blended ruled wash on top. No second tile provider,
  *    no account, no extra request. OSM's attribution control is untouched.
@@ -65,9 +69,18 @@ export function RouteMap({
 
       map = L.map(el, {
         attributionControl: true,
-        // The one interaction deliberately off — see the note at the top.
+        // Off until the map is clicked — see the note at the top.
         scrollWheelZoom: false,
       });
+
+      // Click to zoom with the wheel, leave to give the scroll back (ticket
+      // 77). `mouseout` fires on every pin and control the pointer crosses,
+      // so the disable hangs off the DOM container's `mouseleave`, which
+      // doesn't bubble and only fires on the way out of the frame.
+      const armWheel = () => map?.scrollWheelZoom.enable();
+      const disarmWheel = () => map?.scrollWheelZoom.disable();
+      map.on("click", armWheel);
+      el.addEventListener("mouseleave", disarmWheel);
 
       L.tileLayer(TILE_URL, {
         attribution: TILE_ATTRIBUTION,
@@ -123,7 +136,10 @@ export function RouteMap({
       fit();
       requestAnimationFrame(fit);
       window.addEventListener("resize", fit);
-      cleanup = () => window.removeEventListener("resize", fit);
+      cleanup = () => {
+        window.removeEventListener("resize", fit);
+        el.removeEventListener("mouseleave", disarmWheel);
+      };
     });
 
     return () => {
