@@ -1,14 +1,15 @@
 /**
  * Trip dashboard (v1 ticket 13) — the landing every member sees after login.
- * Trip name/dates/avatars already render in the trip layout header, so this
- * page starts below that.
+ * The layout header above the tabs carries the roster and nothing else, so the
+ * trip's own identity — name, state, dates — starts here (ticket 89).
  *
  * Re-laid out by v0.2 ticket 07. What the page *says* is unchanged from
  * ticket 13; the arrangement is not:
  *
  *   - A hero, split 65/35: where the planning is at, and who's doing it. The
- *     "up to" sentence gets the page's largest type, with the trail drawing
- *     the same answer spatially.
+ *     trip's name gets the page's largest type and the stage rides beside it
+ *     as a badge (ticket 89), with the trail drawing the same answer
+ *     spatially.
  *   - Unresolved is tinted by one question only — is this mine to do? The old
  *     version tinted money red and the other two amber, which encoded nothing.
  *   - Chasing moved onto the person it's aimed at (see TripRoster), so the
@@ -34,7 +35,7 @@ import {
 } from "@/db/schema";
 import { requireTripAccess } from "@/lib/access";
 import { computeBalances, formatMoney } from "@/lib/money";
-import { formatDateRange, hasEnded } from "@/lib/dates";
+import { countdownLabel, formatDateRange, hasEnded } from "@/lib/dates";
 import {
   Avatar,
   Badge,
@@ -50,6 +51,7 @@ import {
   Sheet,
   SubmitButton,
 } from "@/components/client-ui";
+import { TripNameInline } from "@/components/trip-name-inline";
 import { TripRoster } from "@/components/trip-roster";
 import { TripTrail, type Station } from "@/components/trip-trail";
 import { TagEditor } from "@/components/tag-editor";
@@ -59,6 +61,7 @@ import {
   deleteTripFromOverview,
   leaveTrip,
   promoteMember,
+  renameTrip,
   setTripTags,
 } from "./actions";
 
@@ -331,7 +334,7 @@ export default async function OverviewPage({
 
   return (
     <Page wide flush>
-      {/* Split 65/35: "up to" is the hero, the roster only needs room for a
+      {/* Split 65/35: the trip is the hero, the roster only needs room for a
           name and a bell. `items-start` lets the roster grow downward with the
           group without stretching the left half to match. */}
       <div className="grid gap-[18px] lg:grid-cols-[minmax(0,65fr)_minmax(0,35fr)] lg:items-start">

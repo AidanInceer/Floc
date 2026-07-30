@@ -1,15 +1,14 @@
 "use client";
 
 /**
- * The trip header's name, editable in place (ticket 37). Renders the trip's
- * <h1> in the persistent header above the tabs, so renaming is reachable from
- * every tab rather than from the Trip settings disclosure at the bottom of
- * Overview, three interactions from the name you were looking at.
+ * The trip's name, editable in place (ticket 37). It used to render in the
+ * persistent header above the tabs *and* read-only on the Overview hero, which
+ * printed the same name and dates twice a hand's width apart; ticket 89 kept
+ * one — this, on the hero, where it is now the headline. Renaming is still one
+ * click on the name itself rather than three into a settings disclosure.
  *
- * The name reads as a plain heading until you reach for Rename, so the header
- * doesn't turn into a form. The settings copy of the field is gone, and the
- * Overview hero shows the name without a second control — two ways to rename
- * the same trip is one too many.
+ * The name reads as a plain heading until you reach for Rename, so the hero
+ * doesn't turn into a form.
  *
  * Still open to any member, not just an admin — see `renameTrip`.
  */
@@ -56,7 +55,7 @@ export function TripNameInline({
   if (!editing) {
     return (
       <span className="inline-flex items-center gap-2">
-        <h1 className="font-display text-xl font-semibold tracking-tight">
+        <h1 className="font-display text-2xl font-semibold tracking-tight">
           {name}
         </h1>
         {/* A pencil on its own was too quiet to find — the control now carries
