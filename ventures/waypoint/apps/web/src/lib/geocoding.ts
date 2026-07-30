@@ -25,6 +25,19 @@ const USER_AGENT = "Waypoint (aidaninceer0@gmail.com)";
 
 const NOMINATIM_SEARCH = "https://nominatim.openstreetmap.org/search";
 
+/**
+ * The language results come back in (ticket 80). Left unset, Nominatim names a
+ * place in its own script — searching "Seoul, South Korea" returned 서울, which
+ * a reader can't check against what they typed. Sent explicitly rather than
+ * left to the request's IP or the query's script.
+ *
+ * The site is English-only and i18n is out of scope for v1, so this is a
+ * constant, not a setting — but it is named for the *site's* language rather
+ * than hardcoded at the call site, so adding a language later is a matter of
+ * passing one through here. Not a language switcher; a place to put one.
+ */
+const SITE_LANGUAGE = "en";
+
 /** Nominatim's absolute cap: 1 request per second. */
 const MIN_INTERVAL_MS = 1000;
 
@@ -81,12 +94,19 @@ export async function searchPlaces(query: string): Promise<PlaceSearchResult[]> 
   url.searchParams.set("format", "jsonv2");
   url.searchParams.set("limit", "5");
   url.searchParams.set("addressdetails", "0");
+  // Nominatim reads the browser's Accept-Language header when this parameter
+  // is absent — which here is the server's, i.e. nobody's. Explicit wins.
+  url.searchParams.set("accept-language", SITE_LANGUAGE);
 
   let hits: NominatimHit[];
   try {
     const res = await throttle(() =>
       fetch(url.toString(), {
-        headers: { "User-Agent": USER_AGENT, Accept: "application/json" },
+        headers: {
+          "User-Agent": USER_AGENT,
+          Accept: "application/json",
+          "Accept-Language": SITE_LANGUAGE,
+        },
         signal: AbortSignal.timeout(5000),
       }),
     );
