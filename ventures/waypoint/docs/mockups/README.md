@@ -148,6 +148,17 @@ conventions they share:
 - Every figure is typed, tabular and to the penny. Money is a ledger, never a
   payment rail.
 
+## Wayfinder prototypes
+
+Throwaway artefacts made to be reacted to and then dropped — not proposals, not
+adopted, and deliberately not production code. Each one is a single page
+showing three directions side by side.
+
+| File | Ticket | What it asks |
+|---|---|---|
+| [`overview-hero-stage-abc.html`](overview-hero-stage-abc.html) | [#89](https://github.com/AidanInceer/Waypoint/issues/89) | Three ways to say where a trip is up to on the Overview hero, once "Up to" and "Ended — still editable if anything's unfinished" are admitted to be clutter. Each drawn mid-plan and ended. |
+| [`money-split-abc.html`](money-split-abc.html) | [#85](https://github.com/AidanInceer/Waypoint/issues/85) | Three directions for splitting money — the model underneath and the UI over it: even-by-default with exclusions, one shares model with self-balancing amounts, and an itemised receipt. |
+
 ## Geometry note
 
 Every route is drawn per-stop (each stop owns its own leg of the dashed line

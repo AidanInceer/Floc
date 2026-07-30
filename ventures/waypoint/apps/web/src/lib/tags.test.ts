@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { MAX_TAGS, formatTags, parseTags, readTags } from "./tags";
+import {
+  DEFAULT_TAG_TONE,
+  MAX_TAGS,
+  formatTags,
+  parseTagRows,
+  parseTags,
+  readTagTones,
+  readTags,
+  tagTone,
+} from "./tags";
 
 describe("parseTags", () => {
   it("lower-cases, trims and drops blanks", () => {
@@ -39,5 +48,52 @@ describe("readTags", () => {
     expect(readTags(null)).toEqual([]);
     expect(readTags("beach")).toEqual([]);
     expect(readTags(["beach", 3, "", "stag"])).toEqual(["beach", "stag"]);
+  });
+});
+
+describe("tag colours (ticket 86)", () => {
+  it("survives a column holding anything at all", () => {
+    expect(readTagTones(null)).toEqual({});
+    expect(readTagTones(["beach"])).toEqual({});
+    expect(readTagTones({ beach: "green", stag: "marine" })).toEqual({
+      stag: "marine",
+    });
+  });
+
+  it("falls back to the default colour for an uncoloured tag", () => {
+    expect(tagTone({ stag: "marine" }, "stag")).toBe("marine");
+    expect(tagTone({}, "beach")).toBe(DEFAULT_TAG_TONE);
+  });
+
+  it("stores only non-default colours", () => {
+    expect(
+      parseTagRows([
+        { name: "Beach", tone: "marine" },
+        { name: "stag", tone: "open" },
+      ]),
+    ).toEqual({ tags: ["beach", "stag"], tagTones: { beach: "marine" } });
+  });
+
+  it("ignores a colour that isn't one of ours", () => {
+    expect(parseTagRows([{ name: "beach", tone: "chartreuse" }])).toEqual({
+      tags: ["beach"],
+      tagTones: {},
+    });
+  });
+
+  it("drops blank rows and duplicates, and caps the count", () => {
+    expect(
+      parseTagRows([
+        { name: "  ", tone: "open" },
+        { name: "beach", tone: "open" },
+        { name: "BEACH", tone: "action" },
+      ]).tags,
+    ).toEqual(["beach"]);
+
+    const many = Array.from({ length: MAX_TAGS + 3 }, (_, i) => ({
+      name: `t${i}`,
+      tone: "open",
+    }));
+    expect(parseTagRows(many).tags).toHaveLength(MAX_TAGS);
   });
 });

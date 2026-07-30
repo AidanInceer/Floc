@@ -27,7 +27,9 @@
 
 import { useState, useTransition, type ReactNode } from "react";
 
+import { useEventCategoryFilter } from "@/components/event-category-filter";
 import { cx } from "@/components/ui";
+import type { DayEventType } from "@/db/schema";
 
 const MIME = "application/x-waypoint-event";
 
@@ -39,6 +41,8 @@ export type EventDragItem = {
   id: number;
   /** Names the event in the drag handle's tooltip. */
   label: string;
+  /** What the category filter matches on (ticket 90). */
+  category: DayEventType;
   node: ReactNode;
 };
 
@@ -63,6 +67,12 @@ export function EventDragList({
   const [overRow, setOverRow] = useState<number | null>(null);
   const [overGap, setOverGap] = useState<number | null>(null);
   const [pending, startTransition] = useTransition();
+  const filter = useEventCategoryFilter();
+  // Filtered-out rows are hidden, not dropped: the drop indices this list hands
+  // to `onInsert` are positions in the day's real order, so removing rows from
+  // the array would land a dragged event in the wrong place (ticket 90).
+  const shows = (item: EventDragItem) => !filter || filter.has(item.category);
+  const anyVisible = items.some(shows);
 
   const clear = () => {
     active = null;
@@ -149,7 +159,7 @@ export function EventDragList({
       )}
       onDragEnd={clear}
     >
-      {items.length === 0 ? (
+      {items.length === 0 || !anyVisible ? (
         <div
           onDragOver={(e) => {
             if (!active) return;
@@ -172,7 +182,7 @@ export function EventDragList({
         <>
           {gap(0)}
           {items.map((item, i) => (
-            <div key={item.id}>
+            <div key={item.id} className={cx(!shows(item) && "hidden")}>
               <div
                 draggable={armed === item.id}
                 onDragStart={(e) => {

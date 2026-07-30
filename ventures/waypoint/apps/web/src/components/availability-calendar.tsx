@@ -213,10 +213,6 @@ export function AvailabilityCalendar({
               Discard
             </Button>
           ) : null}
-          <p className="text-xs text-ink-faint">
-            Click a day, or drag across a run of them. Nothing is shared until
-            you save.
-          </p>
         </div>
       ) : (
         /* A key, not a paragraph (ticket 76). The swatch carries the colour and

@@ -1,0 +1,1 @@
+ALTER TABLE `trip` ADD `tag_tones` text;

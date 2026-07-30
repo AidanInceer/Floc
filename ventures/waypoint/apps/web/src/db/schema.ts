@@ -200,6 +200,13 @@ export const trip = sqliteTable(
      * Normalised on write by src/lib/tags.ts — always lower-case and deduped.
      */
     tags: text("tags", { mode: "json" }).$type<string[] | null>(),
+    /**
+     * tag → `Badge` tone, so a group can colour its own labels (ticket 86).
+     * A sidecar map rather than widening `tags` into objects: the tag list is
+     * what /trips filters and sorts on, and it stays a plain string array.
+     * Sparse — only tags wearing a non-default colour appear.
+     */
+    tagTones: text("tag_tones", { mode: "json" }).$type<Record<string, string> | null>(),
     /** Admin-only; an archived trip stays visible to every member. */
     archivedAt: integer("archived_at", { mode: "timestamp" }),
     /**

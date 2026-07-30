@@ -40,8 +40,6 @@ import {
   Badge,
   ButtonLink,
   EmptyState,
-  Field,
-  Input,
   Page,
   Stack,
   cx,
@@ -49,11 +47,13 @@ import {
 import {
   ConfirmSubmit,
   CopyLink,
+  Sheet,
   SubmitButton,
 } from "@/components/client-ui";
 import { TripRoster } from "@/components/trip-roster";
 import { TripTrail, type Station } from "@/components/trip-trail";
-import { formatTags, readTags } from "@/lib/tags";
+import { TagEditor } from "@/components/tag-editor";
+import { readTagTones, readTags, tagTone, type TagTone } from "@/lib/tags";
 import {
   archiveTripFromOverview,
   deleteTripFromOverview,
@@ -212,16 +212,35 @@ export default async function OverviewPage({
     .filter((p) => p.amount !== 0);
   const othersUnresolved = moneyUnresolved.filter((u) => u !== viewer.id);
 
-  // --- Where the trip is up to, derived, no lifecycle column (rule 4) -----
-  const stage = isBrandNew
-    ? "Waiting for the first idea"
-    : hasEnded(trip.endDate)
-      ? "Ended — still editable if anything's unfinished"
+  /*
+   * Where the trip is up to, derived, no lifecycle column (rule 4).
+   *
+   * It used to be one sentence in the page's largest type under an "Up to"
+   * kicker, which meant the headline changed length every time the trip moved
+   * and the ended case read "Ended — still editable if anything's unfinished":
+   * a label and its caveat welded together and shouted. Ticket 89 splits them.
+   * The stage is now a *badge* — one or two words, the same vocabulary the
+   * rest of the app uses for state — and whatever else needs saying drops to a
+   * plain line underneath, at the size a reassurance deserves.
+   */
+  const ended = hasEnded(trip.endDate);
+  const countdown = ended ? null : countdownLabel(trip.startDate);
+  const stage: { label: string; tone: "neutral" | "marine" | "open" } = isBrandNew
+    ? { label: "Not started", tone: "open" }
+    : ended
+      ? { label: "Ended", tone: "neutral" }
+      : hasDays
+        ? { label: "Underway", tone: "marine" }
+        : { label: "Planning", tone: "marine" };
+  const stageNote = isBrandNew
+    ? "Nothing posted yet — the first idea is what gets a trip moving."
+    : ended
+      ? "Still open — nothing about a finished trip is read-only."
       : hasDays
         ? trip.startDate
-          ? "Itinerary underway"
-          : "Building the itinerary — dates still to confirm"
-        : "Picking ideas and a route";
+          ? "The itinerary is being sketched day by day."
+          : "The itinerary is being sketched — the dates still aren't agreed."
+        : "Picking ideas and a route.";
 
   /*
    * The trail. Every station is derived from the rows above; `now` marks the
@@ -288,6 +307,7 @@ export default async function OverviewPage({
 
   const inviteUrl = `${process.env.BETTER_AUTH_URL ?? "http://localhost:3000"}/invite/${trip.inviteToken}`;
   const tags = readTags(trip.tags);
+  const tagTones = readTagTones(trip.tagTones);
 
   /*
    * What leaving costs, worked out here so the dialog can say it before the
@@ -316,17 +336,19 @@ export default async function OverviewPage({
           group without stretching the left half to match. */}
       <div className="grid gap-[18px] lg:grid-cols-[minmax(0,65fr)_minmax(0,35fr)] lg:items-start">
         <section className="tape-panel rounded-md border border-rule-strong bg-sheet-2 p-5">
-          <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint">
-            Up to
-          </p>
-          <h1 className="mt-1 max-w-[28ch] text-2xl leading-tight font-semibold">
-            {stage}
-          </h1>
+          {/* The name is the headline (ticket 89): it's the one thing that
+              doesn't change shape as the trip moves, so the hero stops
+              re-flowing every time the stage does. Renaming comes with it from
+              the header above the tabs (ticket 37) — the name you want to fix
+              is still the one you click. */}
+          <div className="flex flex-wrap items-center gap-2">
+            <TripNameInline tripId={tripId} name={trip.name} rename={renameTrip} />
+            <Badge tone={stage.tone}>{stage.label}</Badge>
+            {trip.archivedAt ? <Badge tone="neutral">Archived</Badge> : null}
+            {countdown ? <Badge tone="marine">{countdown}</Badge> : null}
+          </div>
+          <p className="mt-1.5 text-sm text-ink-soft">{stageNote}</p>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-ink-soft">
-            {/* Read-only here: renaming lives on the header name above the tabs
-                (ticket 37), so this is just context for the dates beside it. */}
-            <span>{trip.name}</span>
-            <span className="text-ink-faint">·</span>
             {trip.startDate || trip.endDate ? (
               <span>
                 {formatDateRange(trip.startDate, trip.endDate)}{" "}
@@ -353,18 +375,24 @@ export default async function OverviewPage({
             )}
           </div>
 
-          {/* The group's own labels (ticket 71). Read-only here — editing is
-              one field in Trip settings, beside the other things about the
-              trip rather than about its plan. */}
-          {tags.length > 0 ? (
-            <ul className="mt-2 flex flex-wrap gap-1">
-              {tags.map((tag) => (
-                <li key={tag}>
-                  <Badge tone="open">{tag}</Badge>
-                </li>
-              ))}
-            </ul>
-          ) : null}
+          {/* The group's own labels (ticket 71), edited where they're read
+              (ticket 86): they used to display here and be edited three
+              scrolls down inside Trip settings, which is where you'd never
+              look for them. Any member, like renaming. */}
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            {tags.map((tag) => (
+              <Badge key={tag} tone={tagTone(tagTones, tag)}>
+                {tag}
+              </Badge>
+            ))}
+            <Sheet
+              trigger={tags.length > 0 ? "Edit tags" : "Add tags"}
+              title="Tags"
+              triggerVariant="ghost"
+            >
+              <TripTagsForm tripId={tripId} tags={tags} tagTones={tagTones} />
+            </Sheet>
+          </div>
 
           <TripTrail stations={stations} />
 
@@ -431,18 +459,11 @@ export default async function OverviewPage({
                 Post the first idea
               </ButtonLink>
             }
-          >
-            Nothing&rsquo;s been suggested yet. Post where you fancy going, then
-            share the trip so the rest of the group can pile in and vote.
-          </EmptyState>
+          />
         </div>
       ) : (
         <section className="mt-6">
           <h2 className="text-[15px] font-semibold">Unresolved</h2>
-          <p className="mt-0.5 text-[12.5px] text-ink-faint">
-            Who still needs to do what — nobody&rsquo;s chasing them for it
-            automatically.
-          </p>
 
           <div className="mt-3 flex flex-col gap-2">
             {/*
@@ -611,32 +632,10 @@ export default async function OverviewPage({
             </p>
           )}
 
-          {/* Tags are the group's own labels, so every member can edit them —
-              like renaming, and for the same reason (ticket 71). One line,
-              comma-separated: a chip editor would be a lot of client component
-              for something typed once a trip. */}
-          <Stack gap={2} className="border-t border-rule pt-4 sm:col-span-2">
-            <form action={setTripTags}>
-              <input type="hidden" name="tripId" value={tripId} />
-              <Stack gap={2}>
-                <Field
-                  label="Tags"
-                  hint="Comma-separated, up to eight — they show on the trip card and you can filter My trips by them."
-                >
-                  <Input
-                    name="tags"
-                    defaultValue={formatTags(tags)}
-                    placeholder="beach, long weekend, with kids"
-                  />
-                </Field>
-                <div>
-                  <SubmitButton variant="secondary" pendingLabel="Saving…">
-                    Save tags
-                  </SubmitButton>
-                </div>
-              </Stack>
-            </form>
-          </Stack>
+          {/* Tags used to be edited here. They moved up beside where they
+              display, on the hero (ticket 86) — same complaint as ticket 72's
+              archive and delete, and leaving a copy behind would be two places
+              to edit one label. */}
 
           {/* Leaving is not an admin power (ticket 65), so it sits outside the
               admin block and every member sees it. The confirm copy carries
@@ -664,6 +663,38 @@ export default async function OverviewPage({
         </div>
       </details>
     </Page>
+  );
+}
+
+/**
+ * Tags, their colours, and deleting one — all in the same rows (ticket 86).
+ * The editing itself lives in `TagEditor`, which owns the rows; this is just
+ * the form around it and the save.
+ */
+function TripTagsForm({
+  tripId,
+  tags,
+  tagTones,
+}: {
+  tripId: number;
+  tags: string[];
+  tagTones: Record<string, TagTone>;
+}) {
+  return (
+    <form action={setTripTags}>
+      <input type="hidden" name="tripId" value={tripId} />
+      <Stack gap={3}>
+        <TagEditor tags={tags} tones={tagTones} />
+        <p className="text-xs text-ink-faint">
+          Tags show on the trip card, and My trips can be filtered by them.
+        </p>
+        <div>
+          <SubmitButton variant="secondary" pendingLabel="Saving…">
+            Save tags
+          </SubmitButton>
+        </div>
+      </Stack>
+    </form>
   );
 }
 

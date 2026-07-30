@@ -30,6 +30,7 @@ import {
   SubmitButton,
   ConfirmSubmit,
 } from "@/components/client-ui";
+import { DateRangePicker } from "@/components/date-range-picker";
 import { PlacePicker } from "@/components/place-picker";
 import { RouteMap } from "@/components/route-map";
 import {
@@ -175,8 +176,8 @@ export default async function RoutePage({
   const addStopForm = (
     <AddStopForm
       tripId={trip.id}
-      defaultStart={trip.startDate ?? undefined}
-      defaultEnd={trip.endDate ?? undefined}
+      tripStart={trip.startDate}
+      tripEnd={trip.endDate}
     />
   );
 
@@ -200,19 +201,10 @@ export default async function RoutePage({
               {addStopForm}
             </Sheet>
           }
-        >
-          Pin down where you&rsquo;re sleeping first — everyone can add or
-          change a stop, no admin needed.
-        </EmptyState>
+        />
       ) : (
         <Stack gap={4}>
           <RouteMap stops={pinned} missing={missing} />
-          <p className="text-xs text-ink-faint">
-            Drag a stop by its grip to change the order — the stops keep their
-            nights and take the dates that lands them on. What&rsquo;s planned
-            for each day travels with the stop; anything spent stays on the date
-            it was spent.
-          </p>
           {/* Reordering is a real write, not a client-side sort — see
               lib/itinerary.ts. The list is handed over server-rendered; the
               client component only owns the dragging. */}
@@ -259,6 +251,8 @@ export default async function RoutePage({
                       dayIds={stop.dayIds}
                       startDate={stop.startDate}
                       endDate={stop.endDate}
+                      tripStart={trip.startDate}
+                      tripEnd={trip.endDate}
                     />
                   </Sheet>
                   <Sheet trigger="Change place" title="Change overnight place" triggerVariant="secondary">
@@ -320,14 +314,64 @@ function TransportHint({
   );
 }
 
+/**
+ * A stop's dates, for both forms on this page (ticket 87). The calendar is
+ * scoped to the trip's own window, so a stop can't be dated into a month the
+ * trip doesn't cover.
+ *
+ * When the trip has no dates the calendar has no window to draw, and rule 9
+ * says undated is a normal state, not an error — so this falls back to the two
+ * plain date inputs it replaced rather than blocking the form on "set the trip
+ * dates first". A group that knows it's in Lisbon before it knows which week
+ * can still say so.
+ */
+function StopDatesField({
+  tripStart,
+  tripEnd,
+  startDate,
+  endDate,
+}: {
+  tripStart: string | null;
+  tripEnd: string | null;
+  startDate?: string;
+  endDate?: string;
+}) {
+  if (!tripStart || !tripEnd) {
+    return (
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="From">
+          <Input type="date" name="startDate" defaultValue={startDate} required />
+        </Field>
+        <Field label="To">
+          <Input type="date" name="endDate" defaultValue={endDate} required />
+        </Field>
+      </div>
+    );
+  }
+
+  return (
+    <Field label="Dates">
+      <DateRangePicker
+        startName="startDate"
+        endName="endDate"
+        min={tripStart}
+        max={tripEnd}
+        defaultStart={startDate}
+        defaultEnd={endDate}
+      />
+    </Field>
+  );
+}
+
 function AddStopForm({
   tripId,
-  defaultStart,
-  defaultEnd,
+  tripStart,
+  tripEnd,
 }: {
   tripId: number;
-  defaultStart?: string;
-  defaultEnd?: string;
+  /** The trip's own window (rule 9: both null is a normal state). */
+  tripStart: string | null;
+  tripEnd: string | null;
 }) {
   async function action(formData: FormData) {
     "use server";
@@ -352,14 +396,12 @@ function AddStopForm({
     <form action={action}>
       <Stack gap={3}>
         <PlacePicker name="place" label="Place" search={searchPlacesAction} />
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="From">
-            <Input type="date" name="startDate" defaultValue={defaultStart} required />
-          </Field>
-          <Field label="To">
-            <Input type="date" name="endDate" defaultValue={defaultEnd} required />
-          </Field>
-        </div>
+        <StopDatesField
+          tripStart={tripStart}
+          tripEnd={tripEnd}
+          startDate={tripStart ?? undefined}
+          endDate={tripStart ?? undefined}
+        />
         <SubmitButton>Add stop</SubmitButton>
       </Stack>
     </form>
@@ -378,11 +420,15 @@ function ChangeDatesForm({
   dayIds,
   startDate,
   endDate,
+  tripStart,
+  tripEnd,
 }: {
   tripId: number;
   dayIds: number[];
   startDate: string;
   endDate: string;
+  tripStart: string | null;
+  tripEnd: string | null;
 }) {
   async function action(formData: FormData) {
     "use server";
@@ -395,18 +441,17 @@ function ChangeDatesForm({
   return (
     <form action={action}>
       <Stack gap={3}>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="From">
-            <Input type="date" name="startDate" defaultValue={startDate} required />
-          </Field>
-          <Field label="To">
-            <Input type="date" name="endDate" defaultValue={endDate} required />
-          </Field>
-        </div>
+        <StopDatesField
+          tripStart={tripStart}
+          tripEnd={tripEnd}
+          startDate={startDate}
+          endDate={endDate}
+        />
+        {/* Ticket 88: the walkthrough went; this line stays because it names a
+            consequence on OTHER stops that the form doesn't show. */}
         <p className="text-xs text-ink-faint">
-          Days outside the new dates keep their place on the itinerary, they
-          just stop belonging to this stop. Dates that already belong to the
-          stop either side will be taken over by this one.
+          Dates already covered by the stop either side are taken over by this
+          one.
         </p>
         <SubmitButton>Save dates</SubmitButton>
       </Stack>

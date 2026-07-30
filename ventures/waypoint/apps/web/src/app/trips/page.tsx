@@ -326,11 +326,6 @@ function CreateTripForm() {
             <Input type="date" name="endDate" />
           </Field>
         </div>
-        <p className="text-xs text-ink-faint">
-          No idea when yet? Leave the dates blank — everyone can mark what
-          they&rsquo;re free for on the trip&rsquo;s Dates tab and you can pick
-          from the overlap.
-        </p>
         <SubmitButton pendingLabel="Creating…">Create trip</SubmitButton>
       </Stack>
     </form>

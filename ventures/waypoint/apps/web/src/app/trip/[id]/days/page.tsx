@@ -39,6 +39,7 @@ import {
   Sheet,
   SubmitButton,
 } from "@/components/client-ui";
+import { EventCategoryFilter } from "@/components/event-category-filter";
 import { EventDragList } from "@/components/event-drag-list";
 import { EventTimeFields } from "@/components/event-time-fields";
 import { EventTypeFields } from "@/components/event-type-fields";
@@ -181,41 +182,13 @@ export default async function DaysPage({
               <SubmitButton>Add the first day</SubmitButton>
             </form>
           }
-        >
-          Once the trip has one day, everyone can start filling it in —
-          activities, how you&rsquo;re getting around, and notes on each.
-        </EmptyState>
+        />
       ) : (
         <Stack gap={4}>
-          <p className="text-xs text-ink-faint">
-            Drag a day by its grip to move it — the dates stay put and the plan
-            moves between them, so swapping two days swaps what happens on them.
-            Anything spent stays on the date it was spent.
-          </p>
-          <p className="text-xs text-ink-faint">
-            Events sit in time order, with all-day ones at the end. Drag one{" "}
-            <em>onto</em> another to swap the pair over — they trade times too —
-            or drop it <em>between</em> two to slot it in there. The same gaps
-            in another day are how an event moves day; it keeps its own time
-            when it does, so a 07:15 train is still at 07:15 on Thursday. Two
-            events may share a time — the day says so rather than stopping
-            you.
-          </p>
-          {/* The key for the row colours (ticket 68). Each swatch carries its
-              word, so the colours are a shortcut and never the only signal. */}
-          <ul className="flex flex-wrap items-center gap-2">
-            {Object.entries(EVENT_CATEGORIES).map(([value, c]) => (
-              <li
-                key={value}
-                className={cx(
-                  "inline-flex items-center rounded-sm border px-2 py-0.5 font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-soft",
-                  c.row,
-                )}
-              >
-                {c.label}
-              </li>
-            ))}
-          </ul>
+          {/* The key for the row colours (ticket 68), which is also the filter
+              (ticket 90) — each swatch carries its word, so the colours are a
+              shortcut and never the only signal. */}
+          <EventCategoryFilter>
           <DragList
             label="day"
             onReorder={reorderDays.bind(null, trip.id)}
@@ -276,6 +249,7 @@ export default async function DaysPage({
                       items={d.events.map((e, ei) => ({
                         id: e.id,
                         label: e.title ?? e.placeName ?? EVENT_CATEGORIES[e.type].label,
+                        category: e.type,
                         node: (
                           <EventRow
                             tripId={trip.id}
@@ -301,6 +275,7 @@ export default async function DaysPage({
             };
           })}
           />
+          </EventCategoryFilter>
         </Stack>
       )}
     </Page>

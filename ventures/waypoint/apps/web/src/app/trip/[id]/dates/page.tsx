@@ -91,18 +91,14 @@ export default async function DatesPage({
     <Page wide flush>
       <PageHeader
         title="Dates"
-        subtitle="Paint the days you could go. When the overlap looks good enough, someone sets the dates — you don't need everybody first."
+        subtitle="Mark the days you could go."
       />
 
       <Stack gap={6}>
         <Card>
           <CardHeader
             title={hasDates ? "The dates" : "No dates yet"}
-            hint={
-              hasDates
-                ? "Everything else on the trip hangs off these."
-                : "The trip works fine without them — the header just stays blank until you pick."
-            }
+            hint={hasDates ? "Everything else on the trip hangs off these." : undefined}
             actions={
               hasDates ? (
                 <form action={clearTripDates.bind(null, tripId)}>
@@ -162,12 +158,7 @@ export default async function DatesPage({
                 — {suggestion.free} of {members.length} free
                 {hasDates ? "" : ", pre-filled above"}.
               </p>
-            ) : (
-              <p className="text-xs text-ink-faint">
-                Nobody&rsquo;s marked anything yet, so there&rsquo;s nothing to
-                suggest — mark your own days below and the overlap builds up.
-              </p>
-            )}
+            ) : null}
           </div>
         </Card>
 
