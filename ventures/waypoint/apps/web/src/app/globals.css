@@ -877,10 +877,20 @@
     box-shadow: var(--shadow-sm);
   }
 
+  /* 450px, up from the original 300 (ticket 81) — at 300 a multi-country route
+     fitted to bounds left every pin in the middle third of the frame. The
+     narrow-viewport step keeps the map from eating a phone screen whole: the
+     stop cards under it have to stay visible without a scroll. */
   .route-map-canvas {
-    height: 300px;
+    height: 450px;
     width: 100%;
     background: var(--sheet-2);
+  }
+
+  @media (max-width: 640px) {
+    .route-map-canvas {
+      height: 340px;
+    }
   }
 
   /* `.map-tiles` is the still-image equivalent of Leaflet's tile pane — see
