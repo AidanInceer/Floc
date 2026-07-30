@@ -70,6 +70,43 @@ Ticket 04 lists invariants SQLite cannot enforce. Where each one lives:
 | A non-member cannot tell a real trip id from a fake one | `lib/access.ts` (`requireTripAccess` → `notFound()`), plus `app/not-found.tsx` |
 | Money is never a float | `lib/money.ts` — integer minor units throughout, `parseMoney` refuses anything else |
 
+## Changing the schema
+
+`src/db/schema.ts` and `drizzle/` move together. Edit the schema, then:
+
+```bash
+corepack pnpm --filter waypoint-web db:generate
+```
+
+Commit the generated `.sql` and the `meta/` update alongside the schema change.
+CI re-runs `db:generate` and fails the PR if it produces anything, so a schema
+change without its migration cannot merge — that is exactly how `trip.tags`
+once shipped to a database that had never heard of it, throwing
+`no such column: trip.tags` on every logged-in hit of `/trips`.
+
+Deployed environments apply migrations in Railway's **pre-deploy** command
+(`railway.json` at the repo root), which runs `scripts/migrate.mjs` before the
+new version takes traffic. A failed migration fails the deploy and leaves the
+previous version serving. That script uses `drizzle-orm`'s migrator rather than
+the `drizzle-kit` CLI on purpose: drizzle-kit is a devDependency and a
+production install may prune it.
+
+`db:push` stays a **local** convenience — it diffs and applies without writing
+a migration file, which is fine for a throwaway `local.db` and wrong for
+anything shared.
+
+To apply migrations by hand to an environment you have credentials for:
+
+```bash
+railway run --service waypoint-web node ventures/waypoint/apps/web/scripts/migrate.mjs
+```
+
+`scripts/baseline-migrations.mjs` is the one-off that stamped the existing
+production database as already at `0000_baseline` — it records a hash without
+running any SQL. It exists for the next environment that gets created from a
+database that predates the migrations folder, and must never be pointed at a
+migration that genuinely needs to run.
+
 ## Tests
 
 ```bash
@@ -82,10 +119,14 @@ in v1.
 
 ## Deployment
 
-Per-app Vercel project, never the whole monorepo (hub rule). Root directory
-`ventures/waypoint/apps/web`. Set `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`,
-`BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` and — once provisioned — the Google
-and Resend keys. Maps need no key (Nominatim + OSM tiles). Turso and Resend both install through the Vercel
-Marketplace (tickets 02, 08).
+Live on Railway (service `waypoint-web`, project `unique-healing`), building
+from `main` in this repo. Deploy behaviour is config-as-code in
+[`railway.json`](../../../../railway.json) at the repo root: `preDeployCommand`
+runs migrations, `startCommand` boots the app. Both override the dashboard
+settings, so change them there and not in the UI.
+
+Set `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `BETTER_AUTH_SECRET`,
+`BETTER_AUTH_URL` and — once provisioned — the Google and Resend keys. Maps
+need no key (Nominatim + OSM tiles).
 
 test commit for redeploy

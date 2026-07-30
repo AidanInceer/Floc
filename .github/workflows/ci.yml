@@ -67,6 +67,50 @@ jobs:
       - name: Build
         run: pnpm turbo run build --filter='${{ steps.filter.outputs.value }}'
 
+  # A schema change with no migration file is how waypoint's production
+  # database fell behind its code: `trip.tags` shipped, nothing ever altered
+  # the table, and every logged-in hit on /trips threw "no such column".
+  # `drizzle-kit generate` is deterministic against the committed snapshot, so
+  # re-running it here proves the migrations folder already describes
+  # schema.ts. A working tree that comes back dirty means the migration was
+  # never generated — fail, and name the command that fixes it.
+  #
+  # No database is touched: `generate` diffs schema.ts against
+  # drizzle/meta/*.json on disk and never opens a connection.
+  migrations:
+    name: Schema changes ship with a migration
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Regenerate migrations
+        run: pnpm --filter waypoint-web db:generate
+
+      # `git status --porcelain`, not `git diff`: a missing migration shows up
+      # as a brand new *untracked* .sql file, which `git diff` does not report
+      # at all. Checked by deliberately drifting the schema — `git diff` said
+      # clean while a 0001 file sat on disk.
+      - name: Fail if a migration is missing
+        run: |
+          drift=$(git status --porcelain -- ventures/waypoint/apps/web/drizzle)
+          if [ -n "$drift" ]; then
+            echo "::error::src/db/schema.ts changed without a migration. Run: pnpm --filter waypoint-web db:generate — then commit ventures/waypoint/apps/web/drizzle/."
+            echo "$drift"
+            exit 1
+          fi
+          echo "Migrations are in step with the schema."
+
   # Wireframes are plain HTML with no build step, so CI just proves they stay
   # self-contained — no external requests — which the Artifact CSP and our own
   # offline-first convention both require.
