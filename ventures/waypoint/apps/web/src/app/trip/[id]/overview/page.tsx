@@ -349,6 +349,50 @@ export default async function OverviewPage({
           </div>
 
           <TripTrail stations={stations} />
+
+          {/*
+            Delete and archive live here, not three clicks into the Trip
+            settings disclosure (ticket 72). Renaming already came out to the
+            header in ticket 37; this is the other half of the same complaint —
+            the two things you do *to a trip* were the only ones still filed
+            under a fold, and delete in particular read as missing.
+
+            Admin-gated (rule 6) and confirm-first, the same pattern as the
+            roster's boot (ticket 38). Deliberately at the foot of the hero and
+            in ghost/danger weight: reachable in one click, never the thing
+            your eye lands on first.
+          */}
+          {isAdmin ? (
+            <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-dotted border-rule-strong pt-3">
+              <span className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-faint">
+                This trip
+              </span>
+              {trip.archivedAt ? null : (
+                <form action={archiveTripFromOverview}>
+                  <input type="hidden" name="tripId" value={tripId} />
+                  <ConfirmSubmit
+                    variant="ghost"
+                    message={`Archive "${trip.name}"? It comes off everyone's list and stays readable — any admin can bring it back from Archived.`}
+                    confirmLabel="Archive it"
+                    pendingLabel="Archiving…"
+                  >
+                    Archive
+                  </ConfirmSubmit>
+                </form>
+              )}
+              <form action={deleteTripFromOverview}>
+                <input type="hidden" name="tripId" value={tripId} />
+                <ConfirmSubmit
+                  variant="danger"
+                  message={`Delete "${trip.name}" for everyone? Nobody will be able to reopen it from the app — archive it instead if you might want it back.`}
+                  confirmLabel="Delete it"
+                  pendingLabel="Deleting…"
+                >
+                  Delete
+                </ConfirmSubmit>
+              </form>
+            </div>
+          ) : null}
         </section>
 
         <TripRoster
@@ -537,44 +581,11 @@ export default async function OverviewPage({
                 </ul>
               </Stack>
 
-              {/* Archive and delete sit together on purpose (ticket 66). The
-                  report was that deleting "actually deletes it instead of
-                  archiving" — it doesn't, it soft-deletes like everything else,
-                  but there's no way back to a deleted trip in the app, and
-                  archiving wasn't offered anywhere, so delete was the only way
-                  to get a finished trip off the list. The reversible option is
-                  named first and the copy for each says plainly what happens. */}
-              <Stack gap={2} className="border-t border-rule pt-4 sm:col-span-2">
-                <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint">
-                  Finished with this trip?
-                </span>
-                <p className="text-xs text-ink-faint">
-                  Archiving takes it off everyone&rsquo;s list and keeps it
-                  readable — any admin can bring it back from Archived. Deleting
-                  removes it for everyone and nobody can reopen it from the app.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {trip.archivedAt ? null : (
-                    <form action={archiveTripFromOverview}>
-                      <input type="hidden" name="tripId" value={tripId} />
-                      <SubmitButton variant="secondary" pendingLabel="Archiving…">
-                        Archive trip
-                      </SubmitButton>
-                    </form>
-                  )}
-                  <form action={deleteTripFromOverview}>
-                    <input type="hidden" name="tripId" value={tripId} />
-                    <ConfirmSubmit
-                      variant="danger"
-                      message={`Delete "${trip.name}" for everyone? Nobody will be able to reopen it from the app — archive it instead if you might want it back.`}
-                      confirmLabel="Delete it"
-                      pendingLabel="Deleting…"
-                    >
-                      Delete trip
-                    </ConfirmSubmit>
-                  </form>
-                </div>
-              </Stack>
+              {/* Archiving and deleting used to sit here (ticket 66). They
+                  moved up into the hero in ticket 72 — the fold was the
+                  complaint, and leaving a second copy behind would be two ways
+                  to delete the same trip. Archived is still reached from
+                  /trips/archived, as it always was. */}
             </>
           ) : (
             <p className="text-sm text-ink-soft">
