@@ -158,16 +158,14 @@ export function RouteMap({
         <div aria-hidden className="route-map-wash" />
         <div aria-hidden className="route-map-vignette" />
       </div>
-      <figcaption className="mt-1.5 text-xs text-ink-faint">
-        {stops.length === 1
-          ? `One stop pinned: ${stops[0].name}.`
-          : `${stops.length} stops, pinned in order.`}{" "}
-        Each pin carries its number; the yellow badge is how many days the
-        itinerary spends there.
-        {missing.length > 0
-          ? ` Not on the map — no coordinates: ${missing.join(", ")}.`
-          : ""}
-      </figcaption>
+      {/* The caption that explained the numbered pins and the yellow day badge
+          is gone (ticket 79) — the drawing says it. What stays is the one
+          thing the map cannot show: the stops that aren't on it (rule 11). */}
+      {missing.length > 0 ? (
+        <figcaption className="mt-1.5 text-xs text-ink-faint">
+          Not on the map — no coordinates: {missing.join(", ")}.
+        </figcaption>
+      ) : null}
     </figure>
   );
 }
