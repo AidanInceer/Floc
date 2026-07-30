@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 
+// Redeploy touchpoint — see chore commit.
 const config: NextConfig = {
   reactStrictMode: true,
   // Better Auth + the libSQL driver both want the Node runtime, not Edge.
