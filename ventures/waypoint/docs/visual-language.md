@@ -265,8 +265,11 @@ palette back to ink-on-cream; a multiply-blended ruled wash and an inset
 vignette then sit it on the page's own paper. The whole look costs no second
 tile provider, no account and no extra request — which is the point, and what
 keeps ticket 15's "free for the MVP" decision intact. `RouteMap` (Leaflet,
-draggable and zoomable but with the **scroll wheel always off**, so a
-full-width map never traps the page scroll) and `StaticMap`
+draggable and zoomable, with the **scroll wheel off until the map is
+clicked** — so scrolling past a full-width map costs nothing and zooming costs
+one click. The click sticks for the life of the map: the pointer leaving
+suspends the wheel and coming back restores it, because needing a fresh click
+each time you glance away reads as the zoom having broken) and `StaticMap`
 (plain `<img>` tile mosaics, no library) share it. OSM's attribution must be
 visible wherever tiles are — Leaflet's own control counts; a page of still
 maps prints it once.

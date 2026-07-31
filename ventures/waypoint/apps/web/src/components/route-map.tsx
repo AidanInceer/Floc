@@ -77,9 +77,24 @@ export function RouteMap({
       // 77). `mouseout` fires on every pin and control the pointer crosses,
       // so the disable hangs off the DOM container's `mouseleave`, which
       // doesn't bubble and only fires on the way out of the frame.
-      const armWheel = () => map?.scrollWheelZoom.enable();
+      //
+      // The click is sticky for the life of the map (ticket 82): leaving and
+      // coming back re-arms the wheel rather than demanding another click.
+      // Requiring one per visit read as the zoom having broken — you look
+      // away, come back, and the wheel scrolls the page instead. What the
+      // click is really for is saying "I'm working in this map", and that
+      // doesn't stop being true when the pointer steps out of the frame.
+      let engaged = false;
+      const armWheel = () => {
+        engaged = true;
+        map?.scrollWheelZoom.enable();
+      };
+      const rearmWheel = () => {
+        if (engaged) map?.scrollWheelZoom.enable();
+      };
       const disarmWheel = () => map?.scrollWheelZoom.disable();
       map.on("click", armWheel);
+      el.addEventListener("mouseenter", rearmWheel);
       el.addEventListener("mouseleave", disarmWheel);
 
       L.tileLayer(TILE_URL, {
@@ -142,6 +157,7 @@ export function RouteMap({
       window.addEventListener("resize", fit);
       cleanup = () => {
         window.removeEventListener("resize", fit);
+        el.removeEventListener("mouseenter", rearmWheel);
         el.removeEventListener("mouseleave", disarmWheel);
       };
     });

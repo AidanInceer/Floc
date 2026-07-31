@@ -1059,12 +1059,15 @@
   letter-spacing: 0.02em;
 }
 
-/* Sits on the pin's top-right so a column of pins doesn't overlap its
-   neighbour's number. */
+/* Sits directly above the pin, centred. It hung off the top-right corner while
+   it read "2d"; spelled out as "2 days" it is wider than the pin itself, so
+   the corner anchor pushed it back across the number underneath (ticket 82).
+   Above and centred, it clears the ring at any width. */
 .route-map-frame .route-pin-days {
   position: absolute;
-  top: -8px;
-  right: -12px;
+  bottom: calc(100% + 3px);
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .route-map-frame .leaflet-container {
