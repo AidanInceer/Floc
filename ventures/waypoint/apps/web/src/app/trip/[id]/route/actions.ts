@@ -6,11 +6,11 @@
  * their overnight place", not a separate "stop" entity (there isn't one).
  * Open to all members, not admin-only (ticket 01 step 7).
  */
-import { and, asc, eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
-import { day } from "@/db/schema";
+import { day, dayEvent, type TransportType } from "@/db/schema";
 import { requireTripAccess } from "@/lib/access";
 import { dateRange } from "@/lib/dates";
 import { searchPlaces, upsertPlace } from "@/lib/geocoding";
@@ -222,3 +222,88 @@ export async function removeStop(tripId: number, dayIds: number[]) {
   revalidatePath(`/trip/${access.trip.id}/route`);
   revalidatePath(`/trip/${access.trip.id}/days`);
 }
+
+/**
+ * Sets how the group gets to a stop (ticket 82). The mode is not stored on the
+ * route — a stop isn't stored at all (rule 3) — so this writes the same
+ * `day_event` row Days owns: the first transport event on the arrival stop's
+ * first day, which is exactly the row the Route page reads the leg's mode back
+ * off.
+ *
+ * Two deliberate limits. An existing transport event is only re-typed — its
+ * title, time and note are the group's, written on Days, and a picker on
+ * another tab has no business rewriting them. And there is no "clear": setting
+ * a leg back to unplanned would mean deleting an event somebody wrote on Days,
+ * which is a destructive edit hiding inside a dropdown. Removing it stays a
+ * Days action.
+ */
+export async function setLegTransport(
+  tripId: number,
+  dayId: number,
+  mode: TransportType,
+) {
+  const access = await requireTripAccess(tripId);
+
+  // The day must belong to this trip — `dayId` arrives from the client.
+  const arrival = await db
+    .select({ id: day.id })
+    .from(day)
+    .where(
+      and(
+        eq(day.id, dayId),
+        eq(day.tripId, access.trip.id),
+        isNull(day.deletedAt),
+      ),
+    )
+    .get();
+  if (!arrival) return;
+
+  const existing = await db
+    .select({ id: dayEvent.id })
+    .from(dayEvent)
+    .where(
+      and(
+        eq(dayEvent.dayId, dayId),
+        eq(dayEvent.type, "transport"),
+        isNull(dayEvent.deletedAt),
+      ),
+    )
+    .orderBy(asc(dayEvent.orderIndex))
+    .all();
+
+  if (existing.length > 0) {
+    await db
+      .update(dayEvent)
+      .set({ transportType: mode, ...touch() })
+      .where(eq(dayEvent.id, existing[0].id));
+  } else {
+    const [{ count } = { count: 0 }] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(dayEvent)
+      .where(and(eq(dayEvent.dayId, dayId), isNull(dayEvent.deletedAt)));
+
+    await db.insert(dayEvent).values({
+      dayId,
+      orderIndex: count,
+      type: "transport",
+      title: TRANSPORT_TITLES[mode],
+      transportType: mode,
+      // No time: Route knows the leg happens, not when. All-day is what the
+      // itinerary already means by "on that day, not at a time" — the group
+      // fills the rest in on Days.
+      allDay: true,
+    });
+  }
+
+  revalidatePath(`/trip/${access.trip.id}/route`);
+  revalidatePath(`/trip/${access.trip.id}/days`);
+}
+
+/** The title a leg-created event lands on Days with — editable there. */
+const TRANSPORT_TITLES: Record<TransportType, string> = {
+  flight: "Flight to the next stop",
+  train: "Train to the next stop",
+  car: "Drive to the next stop",
+  ferry: "Ferry to the next stop",
+  other: "Travel to the next stop",
+};

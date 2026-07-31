@@ -223,6 +223,30 @@ server action's `{ error }` return without a page reload), `SubmitButton`
 sheet on mobile, centred panel on desktop), `ConfirmSubmit`, `CopyLink`,
 `Segmented`.
 
+Two client components sit outside those two files because they belong to one
+surface: `StopSpine` (Route's stop list) and `LegTransportPicker` (the travel
+mode on a leg), both from ticket 82.
+
+## Lists whose order is the point
+
+Route's stop list is drawn as a **spine**: the dates own a rail down the left,
+and order and direction are one inked line running top to bottom through
+numbered nodes (`components/stop-spine.tsx`). It replaced a stack of cards that
+answered "when" and "in what order" only in words — chosen by the user from
+three prototype directions on the real page, over boarding-pass stubs and a
+gantt of date bands.
+
+Two rules came out of it, and they generalise:
+
+- **The mark that draws the order is the mark you grab.** The numbered node is
+  the drag grip; a separate grip hovering above it reads as a second, competing
+  handle. `↑`/`↓` sit under the node as the keyboard path.
+- **A server-rendered row can't be handed a render prop.** A function child
+  doesn't cross the server/client boundary (same constraint as `Sheet`), so a
+  client list that needs to draw *around* server content takes the content as
+  plain nodes — `body`, `leg` — rather than calling back into it. `DragList`,
+  whose chrome sits above each item, stays the shape for everything else.
+
 ## Maps and pictures
 
 Both arrived with v0.2 ticket 08 and are house treatments — don't invent a

@@ -21,11 +21,11 @@ import {
   removeStop,
   reorderStops,
   searchPlacesAction,
+  setLegTransport,
   setOvernightPlace,
   setStopDates,
 } from "./actions";
 import {
-  DragList,
   Sheet,
   SubmitButton,
   ConfirmSubmit,
@@ -33,10 +33,9 @@ import {
 import { DateRangePicker } from "@/components/date-range-picker";
 import { PlacePicker } from "@/components/place-picker";
 import { RouteMap } from "@/components/route-map";
+import { StopSpine } from "@/components/stop-spine";
 import {
   Badge,
-  Card,
-  CardHeader,
   EmptyState,
   Field,
   Input,
@@ -45,11 +44,11 @@ import {
   PageHeader,
   Stack,
 } from "@/components/ui";
-import { TravelModeIcon } from "@/components/travel-mode-icon";
+import { LegTransportPicker } from "@/components/leg-transport-picker";
 import { db } from "@/db";
 import { day, dayEvent, place, type TransportType } from "@/db/schema";
 import { requireTripAccess } from "@/lib/access";
-import { formatDate } from "@/lib/dates";
+import { formatDate, fromIsoDate } from "@/lib/dates";
 import { deriveStops } from "@/lib/stops";
 import { lockReason } from "@/lib/tabs";
 
@@ -205,71 +204,72 @@ export default async function RoutePage({
       ) : (
         <Stack gap={4}>
           <RouteMap stops={pinned} missing={missing} />
-          {/* Reordering is a real write, not a client-side sort — see
-              lib/itinerary.ts. The list is handed over server-rendered; the
-              client component only owns the dragging. */}
-          <DragList
-            label="stop"
+          {/* The spine (ticket 82). Reordering is a real write, not a
+              client-side sort — see lib/itinerary.ts. Each stop's body is
+              handed over server-rendered; the client component owns only the
+              spine, the dragging and the move buttons. */}
+          <StopSpine
             onReorder={reorderStops.bind(null, trip.id)}
             items={stops.map((stop, i) => ({
               key: stop.dayIds.join("-"),
               label: stop.placeName ?? "this stop",
-              node: (
-            <Card>
-              <CardHeader
-                strong
-                title={
-                  stop.placeId
-                    ? stop.placeName ?? "Unnamed place"
-                    : "No overnight place set"
-                }
-                hint={`${formatDate(stop.startDate)} – ${formatDate(stop.endDate)}`}
-                actions={
-                  <div className="flex items-center gap-2">
+              dates: shortRange(stop.startDate, stop.endDate),
+              duration: `${stop.dayIds.length} day${stop.dayIds.length === 1 ? "" : "s"}`,
+              body: (
+                <>
+                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <p className="font-display text-lg font-semibold leading-none">
+                      {stop.placeId
+                        ? stop.placeName ?? "Unnamed place"
+                        : "No overnight place set"}
+                    </p>
                     <Badge tone="marine">
                       {stop.nights} night{stop.nights === 1 ? "" : "s"}
                     </Badge>
-                    {i > 0 ? (
-                      <TransportHint
-                        prevStop={stops[i - 1]}
-                        stop={stop}
-                        mode={legMode(i)}
-                      />
-                    ) : null}
                   </div>
-                }
-              />
-              <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
-                <p className="text-sm text-ink-soft">
-                  {stop.dayIds.length} day{stop.dayIds.length === 1 ? "" : "s"}{" "}
-                  on the itinerary
-                </p>
-                <div className="flex gap-2">
-                  <Sheet trigger="Change dates" title="Change these dates" triggerVariant="secondary">
-                    <ChangeDatesForm
-                      tripId={trip.id}
-                      dayIds={stop.dayIds}
-                      startDate={stop.startDate}
-                      endDate={stop.endDate}
-                      tripStart={trip.startDate}
-                      tripEnd={trip.endDate}
-                    />
-                  </Sheet>
-                  <Sheet trigger="Change place" title="Change overnight place" triggerVariant="secondary">
-                    <ChangePlaceForm tripId={trip.id} dayIds={stop.dayIds} />
-                  </Sheet>
-                  <form action={removeStop.bind(null, trip.id, stop.dayIds)}>
-                    <ConfirmSubmit
-                      message="Remove this stop? The days themselves stay on the itinerary — they just lose their overnight place."
-                      variant="ghost"
-                    >
-                      Remove stop
-                    </ConfirmSubmit>
-                  </form>
-                </div>
-              </div>
-            </Card>
+                  <p className="mt-1 text-sm text-ink-soft">
+                    {formatDate(stop.startDate)} – {formatDate(stop.endDate)}
+                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <Sheet trigger="Change dates" title="Change these dates" triggerVariant="secondary">
+                      <ChangeDatesForm
+                        tripId={trip.id}
+                        dayIds={stop.dayIds}
+                        startDate={stop.startDate}
+                        endDate={stop.endDate}
+                        tripStart={trip.startDate}
+                        tripEnd={trip.endDate}
+                      />
+                    </Sheet>
+                    <Sheet trigger="Change place" title="Change overnight place" triggerVariant="secondary">
+                      <ChangePlaceForm tripId={trip.id} dayIds={stop.dayIds} />
+                    </Sheet>
+                    <form action={removeStop.bind(null, trip.id, stop.dayIds)}>
+                      <ConfirmSubmit
+                        message="Remove this stop? The days themselves stay on the itinerary — they just lose their overnight place."
+                        variant="ghost"
+                      >
+                        Remove stop
+                      </ConfirmSubmit>
+                    </form>
+                  </div>
+                </>
               ),
+              // The leg to the NEXT stop: drawn between the two rows, and now
+              // settable here rather than only on Days (ticket 82). Its mode
+              // is the transport event on the next stop's first day, which is
+              // exactly the row `setLegTransport` writes.
+              leg:
+                i < stops.length - 1 ? (
+                  <LegTransportPicker
+                    mode={legMode(i + 1)}
+                    onSet={setLegTransport.bind(
+                      null,
+                      trip.id,
+                      stops[i + 1].dayIds[0],
+                    )}
+                  />
+                ) : undefined,
             }))}
           />
         </Stack>
@@ -279,39 +279,19 @@ export default async function RoutePage({
 }
 
 /**
- * Surfaces that a transport event should exist between two stops — a nudge,
- * not a requirement. Once one does, the badge also carries how the group is
- * getting there (ticket 78): the icon, plus the mode as a word, because a
- * picture is never the only signal either.
+ * "12–16 Jun" — the stop's dates as one short mark for the spine's left rail
+ * (ticket 82). `formatDate` is still what the row below it uses; this is the
+ * glanceable form, and the two ends share a month name when they can.
  */
-function TransportHint({
-  prevStop,
-  stop,
-  mode,
-}: {
-  prevStop: { placeName: string | null };
-  stop: { placeName: string | null };
-  /** null when no transport event on either side of the leg names one. */
-  mode: TransportType | null;
-}) {
-  if (!prevStop.placeName || !stop.placeName || prevStop.placeName === stop.placeName) {
-    return null;
-  }
-  return (
-    <Badge tone="open">
-      <span className="inline-flex items-center gap-1.5">
-        {mode ? (
-          <>
-            <TravelModeIcon mode={mode} />
-            <span>{mode}</span>
-          </>
-        ) : null}
-        <span>
-          {prevStop.placeName} → {stop.placeName}
-        </span>
-      </span>
-    </Badge>
-  );
+function shortRange(start: string, end: string) {
+  const a = fromIsoDate(start);
+  const b = fromIsoDate(end);
+  const day = (d: Date) => d.getUTCDate();
+  const mon = (d: Date) =>
+    d.toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" });
+  return mon(a) === mon(b)
+    ? `${day(a)}–${day(b)} ${mon(b)}`
+    : `${day(a)} ${mon(a)} – ${day(b)} ${mon(b)}`;
 }
 
 /**
