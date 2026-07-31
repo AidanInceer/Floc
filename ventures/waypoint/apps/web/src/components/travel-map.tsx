@@ -66,6 +66,8 @@ export function TravelMap({
 
   const host = useRef<HTMLDivElement>(null);
   const layers = useRef(new Map<string, import("leaflet").Path>());
+  /** Arms the wheel zoom — set once the map exists. See the note in the effect. */
+  const arm = useRef<() => void>(() => {});
   // The click handler is installed once per layer, so it reads the live states
   // through a ref rather than closing over a stale render's copy.
   const latest = useRef(local);
@@ -111,9 +113,7 @@ export function TravelMap({
 
       map = L.map(el, {
         attributionControl: false,
-        // A world map has one useful view and a lot of ways to get lost in it.
-        // Zoom is on for a closer look at Europe; the wheel is off so the page
-        // still scrolls past (the same reasoning as ticket 77 on Route).
+        // Off until the map is clicked — see the wheel note below.
         scrollWheelZoom: false,
         zoomControl: true,
         minZoom: 1,
@@ -121,6 +121,36 @@ export function TravelMap({
         worldCopyJump: false,
       });
       map.setView([25, 8], 1.4);
+
+      /*
+       * Wheel zoom, armed by a click — the same bargain the Route map struck
+       * (tickets 77 and 82). The map spans the card, so a live wheel would
+       * trap the reader's scroll on the way down the profile; Leaflet has no
+       * guard of its own for that. Clicking says "I'm working in this map",
+       * and that stays true when the pointer steps out of the frame, so
+       * leaving and coming back re-arms rather than demanding another click.
+       *
+       * One difference from Route: there, only the map fires `click`. Here a
+       * click usually lands on a country, and Leaflet doesn't bubble an
+       * interactive layer's click up to the map — so `paint` arms the wheel
+       * too. Otherwise the one click everybody makes first would be the one
+       * click that doesn't arm it.
+       */
+      let engaged = false;
+      const armWheel = () => {
+        engaged = true;
+        map?.scrollWheelZoom.enable();
+      };
+      const rearmWheel = () => {
+        if (engaged) map?.scrollWheelZoom.enable();
+      };
+      const disarmWheel = () => map?.scrollWheelZoom.disable();
+      arm.current = armWheel;
+      map.on("click", armWheel);
+      // `mouseout` fires on every shape the pointer crosses, so the disable
+      // hangs off the container's `mouseleave`, which doesn't bubble.
+      el.addEventListener("mouseenter", rearmWheel);
+      el.addEventListener("mouseleave", disarmWheel);
 
       L.geoJSON(geo, {
         // Every shape starts unpainted; the styling effect fills them in.
@@ -132,7 +162,10 @@ export function TravelMap({
           if (!code) return;
           registry.set(code, layer as import("leaflet").Path);
           layer.bindTooltip(countryName(code), { sticky: true });
-          layer.on("click", () => paint(code));
+          layer.on("click", () => {
+            arm.current();
+            paint(code);
+          });
         },
       }).addTo(map);
 
@@ -141,7 +174,11 @@ export function TravelMap({
       const fit = () => map?.invalidateSize({ animate: false });
       requestAnimationFrame(fit);
       window.addEventListener("resize", fit);
-      cleanupResize = () => window.removeEventListener("resize", fit);
+      cleanupResize = () => {
+        window.removeEventListener("resize", fit);
+        el.removeEventListener("mouseenter", rearmWheel);
+        el.removeEventListener("mouseleave", disarmWheel);
+      };
 
       restyle();
     })();
