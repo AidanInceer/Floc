@@ -1,0 +1,904 @@
+<title>Waypoint — homepage J: the travel document, annotated</title>
+
+<!--
+  Homepage J — "the travel document, annotated". A direct variant of
+  homepage-g-boardingpass.html: same four sections, same copy, same structure.
+  The one change is post-its — four of them, physically stuck onto the
+  documents rather than floating behind them, the way a person actually
+  annotates a folder of real paperwork: a reminder taped to the pass, a
+  question pinned to the luggage tags, a note flagging one coupon, a nudge by
+  the entry stamp.
+
+  This is deliberately not G's hero treatment reapplied (a post-it canvas
+  behind the copy, per the live homepage) — that language suits a flat hero.
+  Here the pass, tags and coupon book are already physical objects, so a
+  post-it sits *on* one of them, casts a small shadow, and is rotated a few
+  degrees off true. Every note carries a short handwritten line; none is
+  purely decorative colour the way the hero canvas is.
+
+  Tokens: G's set, plus the five --note-* pairs from the shipped page
+  (globals.css) — yellow/coral/mint/sky/lilac, each with a -edge one step
+  darker for the turned corner. Light only, per ticket 07.
+-->
+
+<style>
+  :root {
+    color-scheme: light;
+
+    --paper: #f3eee2;
+    --sheet: #fbf8f1;
+    --sheet-2: #f1ead9;
+    --sheet-3: #e7dfca;
+    --rule: #ded3ba;
+    --rule-2: #c4b795;
+    --line: #cfe0e6;
+    --margin-line: #dfb4ae;
+    --tape: rgb(214 196 150 / 0.55);
+
+    --ink: #23211c;
+    --ink-2: #57524a;
+    --ink-3: #8b8477;
+
+    --pen: #2a4d7a;
+    --pen-2: #dfe7f1;
+    --pen-edge: #bfd0e6;
+    --pencil: #6a6559;
+
+    --highlight: #f3dd7e;
+    --highlight-2: #fbf2cd;
+    --highlight-ink: #7a6414;
+    --highlight-edge: #e4d194;
+    --highlight-red: #efb3a8;
+    --highlight-green: #b9d8a2;
+    --red: #a03f36;
+    --red-2: #f6e3df;
+    --red-edge: #e4c3bb;
+    --green: #4d6b3f;
+    --green-2: #e6ecdd;
+    --green-edge: #c6d4b5;
+
+    --who-1: #dbe4f2; --who-1-ink: #2a4d7a;
+    --who-2: #f3dcdf; --who-2-ink: #8e4550;
+    --who-3: #f4e6c8; --who-3-ink: #7d5b18;
+    --who-4: #dfe9d6; --who-4-ink: #436035;
+    --who-5: #e4dff0; --who-5-ink: #574d75;
+    --who-6: #d7e7e6; --who-6-ink: #2f5c58;
+    --who-7: #f7e0cf; --who-7-ink: #8a5227;
+
+    --note-yellow: #f6e58d; --note-yellow-edge: #e2ce6e;
+    --note-coral: #f3b8a8; --note-coral-edge: #e09a86;
+    --note-mint: #b7ddc4; --note-mint-edge: #96c4a6;
+    --note-sky: #aecbe0; --note-sky-edge: #8fb2cb;
+    --note-lilac: #cdc0e4; --note-lilac-edge: #b3a1d1;
+
+    --shadow-sm: 0 1px 1px rgb(35 33 28 / 0.05);
+    --shadow: 0 1px 1px rgb(35 33 28 / 0.05), 0 12px 26px -14px rgb(35 33 28 / 0.35);
+    --shadow-lift: 0 2px 3px rgb(35 33 28 / 0.07), 0 18px 34px -16px rgb(35 33 28 / 0.45);
+    --shadow-note: 0 6px 14px -8px rgb(35 33 28 / 0.4);
+
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+    --hand: "Bradley Hand", "Chalkboard SE", "Marker Felt", "Segoe Print", "Comic Sans MS", ui-rounded, cursive;
+    --type: "Courier New", "Cascadia Mono", Consolas, monospace;
+    --marginalia: var(--hand);
+  }
+
+  @media (max-width: 639px) {
+    :root { --marginalia: var(--type); }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: var(--serif);
+    color: var(--ink);
+    background: var(--paper);
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0 31px,
+      color-mix(in srgb, var(--line) 55%, transparent) 31px 32px
+    );
+  }
+
+  /* ================================================================== nav */
+
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter: blur(6px);
+  }
+
+  .bar {
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    height: 3.5rem;
+    max-width: 72rem;
+    padding: 0 1.5rem;
+  }
+  .spacer { margin-left: auto; }
+
+  .navlink {
+    font-size: 0.875rem;
+    color: var(--ink-2);
+    text-decoration: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: 3px;
+  }
+  .navlink:hover { background: var(--sheet-2); color: var(--ink); }
+
+  .btn {
+    display: inline-block;
+    font-family: var(--serif);
+    font-size: 0.95rem;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    cursor: pointer;
+  }
+  .btn-primary { background: var(--pen); color: var(--sheet); box-shadow: var(--shadow); }
+  .btn-secondary { background: var(--sheet); color: var(--ink); border-color: var(--rule-2); }
+  .btn-ghost { color: var(--ink-2); }
+  .btn-ghost:hover { background: var(--sheet-2); }
+  .btn-lg { padding: 0.65rem 1.35rem; font-size: 1.02rem; }
+
+  /* ============================================================== shared */
+
+  .wrap { max-width: 72rem; margin: 0 auto; padding: 2.5rem 1.5rem 0; }
+
+  section { position: relative; }
+  section + section { margin-top: 5.5rem; }
+
+  .typed {
+    font-family: var(--type);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0;
+  }
+
+  h2 {
+    font-size: clamp(1.4rem, 3vw, 1.9rem);
+    font-weight: 600;
+    line-height: 1.15;
+    margin: 0.4rem 0 0;
+    max-width: 24ch;
+  }
+  .head-body { margin: 0.65rem 0 0; color: var(--ink-2); max-width: 62ch; }
+
+  .hl {
+    background-image: linear-gradient(var(--stroke), var(--stroke));
+    background-size: 100% 0.62em;
+    background-position: 0 78%;
+    background-repeat: no-repeat;
+    padding: 0 0.08em;
+  }
+  .hl-red { --stroke: var(--highlight-red); }
+  .hl-green { --stroke: var(--highlight-green); }
+
+  .stamp {
+    display: inline-block;
+    font-family: var(--type);
+    font-size: 0.78rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--green);
+    border: 2px solid var(--green);
+    border-radius: 4px;
+    padding: 0.3rem 0.7rem;
+    opacity: 0.85;
+  }
+
+  .marginalia {
+    display: inline-block;
+    font-family: var(--marginalia);
+    font-size: 15px;
+    color: var(--pen);
+    transform: rotate(-1deg);
+  }
+
+  /* ------------------------------------------------------------- post-its */
+  /* Stuck onto a document, not floating behind it: a small turned corner,
+     a drop shadow that reads as lifted paper, a rotation off true, and one
+     short handwritten line. Positioned relative to the section/card they
+     annotate so they scale with the layout instead of pinned to the
+     viewport. */
+
+  .postit {
+    position: absolute;
+    z-index: 5;
+    width: 128px;
+    padding: 0.85rem 0.85rem 1.1rem;
+    background: var(--note, var(--note-yellow));
+    box-shadow: var(--shadow-note);
+    font-family: var(--marginalia);
+    font-size: 14px;
+    line-height: 1.32;
+    color: var(--ink);
+    transform: rotate(var(--spin, -4deg));
+  }
+  /* The turned corner: a paper-coloured triangle peeling off one edge. */
+  .postit::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 0 16px 16px;
+    border-color: transparent transparent var(--paper) transparent;
+    filter: drop-shadow(-1px -1px 1px rgb(35 33 28 / 0.15));
+  }
+  .postit.note-coral { --note: var(--note-coral); }
+  .postit.note-mint { --note: var(--note-mint); }
+  .postit.note-sky { --note: var(--note-sky); }
+  .postit.note-lilac { --note: var(--note-lilac); }
+
+  .postit-pass {
+    top: -18px;
+    right: 34px;
+    --spin: 5deg;
+  }
+  .postit-tags {
+    top: -14px;
+    right: 4px;
+    --spin: -3deg;
+  }
+  .postit-book {
+    top: -16px;
+    left: 156px;
+    --spin: 4deg;
+    z-index: 6;
+  }
+  .postit-entry {
+    top: -22px;
+    left: 8px;
+    --spin: -6deg;
+  }
+
+  @media (max-width: 800px) {
+    .postit { width: 108px; font-size: 12.5px; padding: 0.7rem 0.7rem 0.9rem; }
+    .postit-pass { top: -14px; right: 12px; }
+    .postit-book { left: 12px; top: -14px; }
+  }
+
+  /* ============================================== 1. the pass (hero) ==== */
+
+  .pass {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    background: var(--sheet);
+    border: 1px solid var(--rule-2);
+    border-radius: 6px;
+    box-shadow: var(--shadow-lift);
+    transform: rotate(-0.7deg);
+  }
+
+  .pass::before {
+    content: "";
+    position: absolute;
+    top: -13px;
+    left: 42px;
+    width: 108px;
+    height: 26px;
+    background: var(--tape);
+    border-left: 1px solid rgb(35 33 28 / 0.06);
+    border-right: 1px solid rgb(35 33 28 / 0.06);
+    transform: rotate(-3.5deg);
+  }
+
+  .pass-body {
+    padding: 2.25rem 2.25rem 2rem;
+    border-left: 3px solid var(--margin-line);
+    border-radius: 6px 0 0 6px;
+  }
+
+  h1 {
+    font-size: clamp(2.05rem, 5.2vw, 3.35rem);
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .lede { margin: 1rem 0 0; font-size: 1.05rem; color: var(--ink-2); max-width: 34ch; }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.75rem; }
+
+  .fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.75rem;
+    margin-top: 2rem;
+    padding-top: 1.1rem;
+    border-top: 1px dashed var(--rule);
+  }
+  .field-k {
+    font-family: var(--type);
+    font-size: 0.66rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 0.25rem;
+  }
+  .field-v { font-family: var(--type); font-size: 0.95rem; margin: 0; color: var(--ink); }
+
+  .stub {
+    position: relative;
+    padding: 2.25rem 1.75rem 2rem;
+    background: var(--sheet-2);
+    border-left: 2px dashed var(--rule-2);
+    border-radius: 0 6px 6px 0;
+  }
+  .stub::before,
+  .stub::after {
+    content: "";
+    position: absolute;
+    left: -11px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--paper);
+    border: 1px solid var(--rule-2);
+  }
+  .stub::before { top: -12px; }
+  .stub::after { bottom: -12px; }
+
+  .stub h2 {
+    font-family: var(--type);
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 1rem;
+    max-width: none;
+  }
+
+  .row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .row:last-of-type { border-bottom: 0; }
+  .row-k { font-size: 0.9rem; color: var(--ink-2); }
+  .row-v { font-family: var(--type); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+
+  .tag {
+    font-family: var(--type);
+    font-size: 0.66rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    border: 1px solid;
+  }
+  .tag-open { background: var(--highlight-2); color: var(--highlight-ink); border-color: var(--highlight); }
+
+  .stub .stamp { margin-top: 1.4rem; transform: rotate(-6deg); }
+  .pass-body .marginalia { margin-top: 1.75rem; }
+
+  /* ========================================= 2. luggage tags (who) ====== */
+
+  .tags {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2.25rem;
+    margin-top: 3.5rem;
+  }
+
+  .luggage {
+    position: relative;
+    padding-top: 34px;
+  }
+  .luggage::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 46px;
+    width: 2px;
+    height: 34px;
+    background: var(--rule-2);
+    transform-origin: top center;
+    transform: rotate(var(--string, 6deg));
+  }
+
+  .luggage-card {
+    position: relative;
+    background: var(--sheet);
+    border: 1px solid var(--rule-2);
+    border-radius: 4px;
+    padding: 1.4rem 1.4rem 1.5rem 3.25rem;
+    box-shadow: var(--shadow);
+    transform: rotate(var(--tilt, -1deg));
+  }
+  .luggage-card::before {
+    content: "";
+    position: absolute;
+    top: 1.55rem;
+    left: 1.15rem;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--paper);
+    border: 2px solid var(--rule-2);
+  }
+  .luggage-card::after {
+    content: "";
+    position: absolute;
+    top: 0.7rem;
+    bottom: 0.7rem;
+    left: 2.35rem;
+    border-left: 1px dashed var(--rule);
+  }
+
+  .luggage-badge {
+    display: inline-block;
+    font-family: var(--type);
+    font-size: 0.64rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.14rem 0.45rem;
+    border-radius: 3px;
+    border: 1px solid;
+  }
+  .badge-marine { background: var(--pen-2); color: var(--pen); border-color: var(--pen-edge); }
+  .badge-open { background: var(--highlight-2); color: var(--highlight-ink); border-color: var(--highlight-edge); }
+  .badge-neutral { background: var(--sheet-2); color: var(--ink-2); border-color: var(--rule-2); }
+
+  .luggage-card h3 { font-size: 1.08rem; font-weight: 600; margin: 0.7rem 0 0; }
+  .luggage-card p.body { margin: 0.5rem 0 0; font-size: 0.92rem; color: var(--ink-2); }
+
+  /* ========================================= 3. the coupon book ========= */
+
+  .book {
+    position: relative;
+    margin-top: 3.5rem;
+    background: var(--sheet);
+    border: 1px solid var(--rule-2);
+    border-radius: 6px;
+    box-shadow: var(--shadow-lift);
+  }
+  .coupon:first-child .counterfoil { border-radius: 6px 0 0 0; }
+  .coupon:last-child .counterfoil { border-radius: 0 0 0 6px; }
+
+  .coupon {
+    position: relative;
+    display: grid;
+    grid-template-columns: 190px minmax(0, 1fr);
+  }
+  .coupon + .coupon { border-top: 2px dashed var(--rule-2); }
+  .coupon + .coupon::before,
+  .coupon + .coupon::after {
+    content: "";
+    position: absolute;
+    top: -12px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--paper);
+  }
+  .coupon + .coupon::before { left: -11px; }
+  .coupon + .coupon::after { right: -11px; }
+
+  .counterfoil {
+    padding: 1.6rem 1.25rem;
+    border-right: 2px dashed var(--rule-2);
+    background: var(--wash, var(--sheet-2));
+  }
+  .cf-step {
+    font-family: var(--type);
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0;
+  }
+  .cf-tab {
+    font-size: 1.45rem;
+    font-weight: 600;
+    margin: 0.3rem 0 0;
+    letter-spacing: -0.01em;
+  }
+  .cf-scribble {
+    margin: 1.1rem 0 0;
+    font-family: var(--marginalia);
+    font-size: 14px;
+    color: var(--ink-2);
+    transform: rotate(-1.5deg);
+    display: inline-block;
+  }
+
+  .coupon-body { padding: 1.6rem 1.75rem; }
+  .coupon-body h3 { font-size: 1.12rem; font-weight: 600; margin: 0; }
+  .coupon-body p.body { margin: 0.55rem 0 0; font-size: 0.94rem; color: var(--ink-2); max-width: 60ch; }
+
+  .eg { margin-top: 1.1rem; padding-top: 0.85rem; border-top: 1px solid var(--rule); }
+  .eg-row { display: flex; align-items: baseline; gap: 1rem; padding: 0.28rem 0; }
+  .eg-k {
+    font-family: var(--type);
+    font-size: 0.82rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--pen);
+    flex: none;
+    width: 6.5rem;
+    text-align: right;
+  }
+  .eg-v { font-size: 0.94rem; }
+
+  /* ========================================= 4. the entry stamp ========= */
+
+  .entry {
+    margin-top: 3rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 2.5rem;
+    align-items: center;
+  }
+
+  .impression {
+    position: relative;
+    justify-self: center;
+    text-align: center;
+    padding: 1.6rem 1.9rem;
+    border: 2px solid var(--pen);
+    outline: 2px solid var(--pen);
+    outline-offset: 5px;
+    border-radius: 8px;
+    color: var(--pen);
+    transform: rotate(-3.5deg);
+    opacity: 0.9;
+    max-width: 22rem;
+  }
+  .impression .top,
+  .impression .bottom {
+    font-family: var(--type);
+    font-size: 0.64rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    margin: 0;
+  }
+  .impression .mid { font-size: 1.15rem; font-weight: 600; margin: 0.45rem 0; }
+
+  .final { padding-left: 0.5rem; }
+  .final p.body { margin: 0.6rem 0 0; color: var(--ink-2); }
+
+  /* -------------------------------------------------------- the MRZ strip */
+
+  .mrz {
+    margin-top: 4.5rem;
+    border-top: 1px solid var(--rule-2);
+    background: var(--sheet-2);
+    padding: 0.9rem 1.5rem 1.4rem;
+    overflow-x: auto;
+  }
+  .mrz pre {
+    margin: 0 auto;
+    max-width: 72rem;
+    font-family: var(--type);
+    font-size: 0.72rem;
+    line-height: 1.7;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+    white-space: pre;
+  }
+
+  /* ---------------------------------------------------------- responsive */
+
+  @media (max-width: 900px) {
+    .tags { grid-template-columns: minmax(0, 1fr); gap: 1.75rem; }
+    .entry { grid-template-columns: minmax(0, 1fr); }
+    .coupon { grid-template-columns: minmax(0, 1fr); }
+    .counterfoil {
+      border-right: 0;
+      border-bottom: 2px dashed var(--rule-2);
+      display: flex;
+      align-items: baseline;
+      gap: 0.9rem;
+      padding: 1rem 1.25rem;
+    }
+    .cf-tab { font-size: 1.15rem; margin: 0; }
+    .cf-scribble { display: none; }
+  }
+
+  @media (max-width: 800px) {
+    .pass { grid-template-columns: minmax(0, 1fr); transform: none; }
+    .pass-body { padding: 1.75rem 1.5rem 1.5rem; }
+    .stub {
+      border-left: 0;
+      border-top: 2px dashed var(--rule-2);
+      border-radius: 0 0 6px 6px;
+      padding: 1.75rem 1.5rem;
+    }
+    .stub::before { top: -12px; left: -12px; }
+    .stub::after { bottom: auto; top: -12px; left: auto; right: -12px; }
+  }
+</style>
+
+<header>
+  <div class="bar">
+    <a href="#" aria-label="Waypoint home" style="display:flex;align-items:center">
+      <svg viewBox="0 0 420 130" width="122" height="38" role="img" aria-hidden="true">
+        <path
+          d="M22 30 C 52 8, 90 8, 130 22 C 166 36, 196 4, 224 50
+             C 252 96, 244 124, 278 122 C 310 120, 336 96, 350 72"
+          fill="none" stroke="#d9c9a8" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="0.1 9" />
+        <text x="16" y="98" font-family="Georgia, 'Times New Roman', serif" font-size="68" fill="#23211c">W</text>
+        <text x="72 106 139 179 214 234 276" y="98" font-family="Georgia, 'Times New Roman', serif" font-size="68" fill="#23211c">aypoınt</text>
+        <circle cx="224" cy="50" r="6.5" fill="#a03f36" />
+      </svg>
+    </a>
+    <a class="navlink" href="#">Explore</a>
+    <div class="spacer"></div>
+    <a class="btn btn-ghost" href="#">Log in</a>
+    <a class="btn btn-primary" href="#">Sign up</a>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ================================================= 1. THE PASS ===== -->
+  <section>
+    <p class="typed" style="margin-bottom:1.25rem">Start the trip as notes. Finish it as a plan</p>
+
+    <div class="pass">
+      <div class="postit postit-pass" aria-hidden="true">book flights before they go up!!</div>
+
+      <div class="pass-body">
+        <h1><span class="hl hl-red">Group</span> trip planning, <span class="hl hl-green">sorted</span>.</h1>
+        <p class="lede">
+          Everyone writes in the same book — the places, the free days, the
+          receipts — and Waypoint keeps the running answer.
+        </p>
+
+        <div class="cta-row">
+          <a class="btn btn-primary btn-lg" href="#">Get planning!</a>
+          <a class="btn btn-secondary btn-lg" href="#">Get inspired</a>
+        </div>
+
+        <div class="fields">
+          <div><p class="field-k">Party</p><p class="field-v">7 friends</p></div>
+          <div><p class="field-k">Decided in</p><p class="field-v">11 days</p></div>
+          <div><p class="field-k">Chat polls</p><p class="field-v">0</p></div>
+        </div>
+
+        <p class="marginalia">— started 14 Feb, still arguing about Croatia</p>
+      </div>
+
+      <aside class="stub">
+        <h2>Sicily · late Sept</h2>
+        <div class="row"><span class="row-k">Dates</span><span class="row-v">12–19 Sep</span></div>
+        <div class="row"><span class="row-k">Route</span><span class="row-v">3 stops · 7 nights</span></div>
+        <div class="row"><span class="row-k">Money</span><span class="row-v">£177 each</span></div>
+        <div class="row"><span class="row-k">Days</span><span class="tag tag-open">2 blank</span></div>
+        <span class="stamp">Agreed</span>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============================================ 2. LUGGAGE TAGS ====== -->
+  <section>
+    <p class="typed">Who it&rsquo;s for</p>
+    <h2>Built for the group that can&rsquo;t get a straight answer out of itself.</h2>
+    <div class="postit postit-tags note-sky" aria-hidden="true">which one are we??</div>
+
+    <div class="tags">
+      <div class="luggage" style="--string:7deg;--tilt:-1.2deg">
+        <div class="luggage-card">
+          <span class="luggage-badge badge-marine">Six to nine people</span>
+          <h3>The friends who go every year</h3>
+          <p class="body">
+            Too many to decide in a chat, not enough to want a project manager.
+            Last year&rsquo;s book tells you what it actually cost.
+          </p>
+        </div>
+      </div>
+
+      <div class="luggage" style="--string:-5deg;--tilt:0.9deg">
+        <div class="luggage-card">
+          <span class="luggage-badge badge-open">Two households</span>
+          <h3>The families sharing a house</h3>
+          <p class="body">
+            One place, one week, one bill — and a clean answer to who paid the
+            deposit and who&rsquo;s covering the food shop.
+          </p>
+        </div>
+      </div>
+
+      <div class="luggage" style="--string:4deg;--tilt:-0.6deg">
+        <div class="luggage-card">
+          <span class="luggage-badge badge-neutral">A weekend</span>
+          <h3>The stag, hen or birthday</h3>
+          <p class="body">
+            One person is organising it and quietly resenting it. Waypoint
+            spreads the writing without spreading the arguing.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ 3. THE COUPON BOOK === -->
+  <section>
+    <p class="typed">The whole journey, one page</p>
+    <h2>Six stops between &ldquo;we should go somewhere&rdquo; and &ldquo;that&rsquo;s settled&rdquo;.</h2>
+    <p class="head-body">
+      Nothing here is a wizard. A coupon opens when the group is ready for it,
+      and a trip that already knows where it&rsquo;s going tears straight through
+      to the route.
+    </p>
+
+    <div class="book">
+      <div class="postit postit-book note-coral" aria-hidden="true">Ruth: put Sicily first, obviously</div>
+
+      <article class="coupon">
+        <div class="counterfoil" style="--wash:var(--highlight-2)">
+          <p class="cf-step">Stop 01</p>
+          <p class="cf-tab">Ideas</p>
+          <p class="cf-scribble">Ruth added 6 of these in one evening</p>
+        </div>
+        <div class="coupon-body">
+          <h3>Nobody can settle on where to go</h3>
+          <p class="body">
+            Everyone adds the places they would go — a link, a photo, a name
+            someone half-remembers — and votes on each other&rsquo;s. The board
+            shows which ideas the group actually likes, so the choice isn&rsquo;t
+            whoever argued last.
+          </p>
+          <div class="eg">
+            <div class="eg-row"><span class="eg-k">4 votes</span><span class="eg-v">Sicily — &ldquo;hear me out&rdquo;</span></div>
+            <div class="eg-row"><span class="eg-k">2 votes</span><span class="eg-v">Puglia, if we can drive</span></div>
+            <div class="eg-row"><span class="eg-k">no votes</span><span class="eg-v">That place Jonas saw once</span></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="coupon">
+        <div class="counterfoil" style="--wash:var(--pen-2)">
+          <p class="cf-step">Stop 02</p>
+          <p class="cf-tab">Dates</p>
+          <p class="cf-scribble">nobody had to ask twice</p>
+        </div>
+        <div class="coupon-body">
+          <h3>Finding the one week everyone can do</h3>
+          <p class="body">
+            Each person shades in the days they&rsquo;re free. Waypoint overlaps all
+            of it and shows which runs of days work and who&rsquo;s missing from
+            each, so a date gets picked without another poll in the chat.
+          </p>
+          <div class="eg">
+            <div class="eg-row"><span class="eg-k">5 free</span><span class="eg-v">12–19 Sep · the one everyone can do</span></div>
+            <div class="eg-row"><span class="eg-k">3 free</span><span class="eg-v">26 Sep–3 Oct · Tom&rsquo;s away</span></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="coupon">
+        <div class="counterfoil" style="--wash:var(--sheet-3)">
+          <p class="cf-step">Stop 03</p>
+          <p class="cf-tab">Route</p>
+          <p class="cf-scribble">7 nights, 7 accounted for</p>
+        </div>
+        <div class="coupon-body">
+          <h3>Deciding the order, and the nights in each place</h3>
+          <p class="body">
+            Put the chosen places in the order you&rsquo;ll visit them and give each
+            one its nights. The nights are totalled against the length of the
+            trip, so a route that doesn&rsquo;t fit says so.
+          </p>
+          <div class="eg">
+            <div class="eg-row"><span class="eg-k">2 nights</span><span class="eg-v">Catania</span></div>
+            <div class="eg-row"><span class="eg-k">3 nights</span><span class="eg-v">Taormina</span></div>
+            <div class="eg-row"><span class="eg-k">2 nights</span><span class="eg-v">Syracuse</span></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="coupon">
+        <div class="counterfoil" style="--wash:var(--green-2)">
+          <p class="cf-step">Stop 04</p>
+          <p class="cf-tab">Days</p>
+          <p class="cf-scribble">the rest of Thursday is deliberately blank</p>
+        </div>
+        <div class="coupon-body">
+          <h3>Filling in what happens on each day</h3>
+          <p class="body">
+            Every day gets what&rsquo;s planned, roughly when, and who&rsquo;s holding
+            the tickets. Days left mostly empty stay that way — this is a plan,
+            not a schedule.
+          </p>
+          <div class="eg">
+            <div class="eg-row"><span class="eg-k">09:30</span><span class="eg-v">Market, then coffee at Bam Bar</span></div>
+            <div class="eg-row"><span class="eg-k">13:00</span><span class="eg-v">Isola Bella — Jonas has the tickets</span></div>
+            <div class="eg-row"><span class="eg-k">20:00</span><span class="eg-v">Dinner, table for 7</span></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="coupon">
+        <div class="counterfoil" style="--wash:var(--red-2)">
+          <p class="cf-step">Stop 05</p>
+          <p class="cf-tab">Money</p>
+          <p class="cf-scribble">settled on the Sunday, no spreadsheet</p>
+        </div>
+        <div class="coupon-body">
+          <h3>Working out who owes who</h3>
+          <p class="body">
+            Everyone logs what they paid and how it was split. Waypoint nets it
+            all off to one figure per person. It records the debt — no money
+            moves through Waypoint.
+          </p>
+          <div class="eg">
+            <div class="eg-row"><span class="eg-k">£1,240</span><span class="eg-v">spent, across 14 expenses</span></div>
+            <div class="eg-row"><span class="eg-k">£177</span><span class="eg-v">each, near enough</span></div>
+            <div class="eg-row"><span class="eg-k">£84</span><span class="eg-v">owed to Mei by 3 people</span></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="coupon">
+        <div class="counterfoil" style="--wash:var(--sheet-2)">
+          <p class="cf-step">Stop 06</p>
+          <p class="cf-tab">Memories</p>
+          <p class="cf-scribble">&ldquo;where was that bar in Ortigia?&rdquo;</p>
+        </div>
+        <div class="coupon-body">
+          <h3>Keeping the trip after it&rsquo;s over</h3>
+          <p class="body">
+            A finished trip is archived rather than deleted: the dates, the
+            route, the days and the final bill stay readable, so the next trip
+            starts from what actually happened.
+          </p>
+          <div class="eg">
+            <div class="eg-row"><span class="eg-k">Sicily</span><span class="eg-v">7 nights · settled</span></div>
+            <div class="eg-row"><span class="eg-k">Porto</span><span class="eg-v">4 nights · settled</span></div>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ============================================ 4. THE ENTRY STAMP === -->
+  <section>
+    <div class="postit postit-entry note-mint" aria-hidden="true">send this to the group chat</div>
+
+    <div class="entry">
+      <div class="impression">
+        <p class="top">Waypoint · admitted</p>
+        <p class="mid">Got a link from a friend?</p>
+        <p class="bottom">No account needed to look</p>
+      </div>
+
+      <div class="final">
+        <p class="typed">Before you sign anything</p>
+        <h2>Open the link and you&rsquo;ll see the trip first.</h2>
+        <p class="body">
+          A preview of where the group has got to — the dates, the route, what&rsquo;s
+          still open — before you make an account. Start your own the same way.
+        </p>
+        <div class="cta-row">
+          <a class="btn btn-primary btn-lg" href="#">Start your own trip</a>
+          <a class="btn btn-secondary btn-lg" href="#">Get inspired</a>
+        </div>
+        <p class="marginalia" style="margin-top:1.4rem">— usually decided before the flights go up</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- The machine-readable strip off the bottom of a passport. Decoration, and
+     the footer rule at the same time. -->
+<div class="mrz" aria-hidden="true">
+<pre>WPT&lt;GBR&lt;SICILY&lt;&lt;LATE&lt;SEPTEMBER&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;7PAX
+CATANIA&lt;2N&lt;TAORMINA&lt;3N&lt;SYRACUSE&lt;2N&lt;&lt;120919SEP&lt;&lt;GBP177EA&lt;&lt;&lt;&lt;&lt;&lt;AGREED&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;9</pre>
+</div>

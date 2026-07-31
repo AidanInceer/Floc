@@ -54,6 +54,63 @@ Each carries a cut-down three-stop version of the journey section below the
 hero, so the hero can be judged in context — they are not full replacement
 pages, and the copy claims nothing the product doesn't already do.
 
+### Round two — D, E, F, and the page that came out of them
+
+A later round, asked for once B had been live for a while: same notebook, less
+post-it. Three hero-only explorations — top bar plus hero, nothing below the
+fold, because the journey section wasn't what was in question. **The three
+hero files were not kept**; what they argued is recorded here because the
+choice between them is the part worth remembering:
+
+| Hero | What it argued | The object |
+|---|---|---|
+| D | The trip as a document you're holding | A travel pass tucked into the notebook: headline on the body, CTAs where the gate block goes, the trip's state on a real tear-off stub |
+| E | Before/after, but as one object | The notebook open at a two-page spread — the arguing written on the left page, the settled plan on the right, the fold *is* the fortnight |
+| F | Completeness, not transformation | A card index on a wire ring: one ruled index card per decision, tabs across the top, the Dates card face-up and answered |
+
+**D was picked**, and [`homepage-g-boardingpass.html`](homepage-g-boardingpass.html)
+is the full page built out of it — the file that survives the round. It keeps
+D's hero verbatim and carries the travel-document idea the whole way down, so
+the page reads as a wallet of documents for one trip:
+
+| Section | The object |
+|---|---|
+| Hero | The pass, unchanged from D |
+| Who it's for | The three group shapes as **luggage tags** on strings, punched and eyeletted, each hanging at its own angle |
+| The journey | The six stops as one **fold-out coupon book** — a perforated strip, each coupon with a counterfoil down the left carrying the stop number, the tab name and that tab's own wash. This replaces the live page's wandering dashed route: a route suits a pinboard, a strip you tear along suits a document |
+| Closing | The **entry stamp** — a customs impression for the invited-friend line, one last CTA beside it, and the passport MRZ strip doubling as the footer rule |
+
+### Round three — H and I
+
+Two more were tried once G had been seen: **H**, which pushed G's language
+further (the pass opened out, a split-flap state board, visa stamps for the
+group shapes, the six stops as a horizontal concertina), and **I**, the control
+group — flat surfaces, sans throughout, no texture or tilt or handwriting, the
+hero showing the product rather than a metaphor for it.
+
+Neither file was kept, and the reason I was dropped is worth writing down: it
+kept the palette token-for-token and still read as a different company. Its
+cost was the whole visual language — no `--hand`, no `--marginalia`, no
+`--serif` body face, and not one existing component (the sheet, the folder
+tabs, the trail) surviving inside it. Adopting it would have meant rewriting
+[`../visual-language.md`](../visual-language.md), not editing it.
+
+### J — G, annotated
+
+[`homepage-j-boardingpass-postits.html`](homepage-j-boardingpass-postits.html)
+is G with four post-its stuck **onto** the documents — a reminder taped to the
+pass, a question pinned to the luggage tags, a note flagging one coupon, a
+nudge by the entry stamp. Same four sections, same copy, same structure; the
+notes are the only change.
+
+Deliberately not the live hero's treatment (a post-it canvas *behind* the
+copy): that suits a flat hero, whereas the pass, tags and coupon book are
+already physical objects, so a note sits on one of them, casts a small shadow
+and is a few degrees off true. Every note carries a handwritten line — none is
+decorative colour.
+
+Unadopted, both G and J.
+
 ### Status: B is adopted
 
 **`homepage-hero-b-beforeafter.html` has shipped** as the hero of
