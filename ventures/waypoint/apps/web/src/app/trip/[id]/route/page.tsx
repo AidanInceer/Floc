@@ -235,7 +235,9 @@ export default async function RoutePage({
                       </Badge>
                     </div>
                     <p className="mt-1 text-sm text-ink-soft">
-                      {formatDate(stop.startDate)} – {formatDate(stop.endDate)}
+                      {stop.startDate === stop.endDate
+                        ? formatDate(stop.startDate)
+                        : `${formatDate(stop.startDate)} – ${formatDate(stop.endDate)}`}
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
@@ -290,7 +292,9 @@ export default async function RoutePage({
 /**
  * "12–16 Jun" — the stop's dates as one short mark for the spine's left rail
  * (ticket 82). `formatDate` is still what the row below it uses; this is the
- * glanceable form, and the two ends share a month name when they can.
+ * glanceable form, and it says as little as it can get away with: the two ends
+ * share a month name when they can, and a one-day stop is a single date, not
+ * "3–3 Jul" — a range whose ends are the same date is a date.
  */
 function shortRange(start: string, end: string) {
   const a = fromIsoDate(start);
@@ -298,6 +302,7 @@ function shortRange(start: string, end: string) {
   const day = (d: Date) => d.getUTCDate();
   const mon = (d: Date) =>
     d.toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" });
+  if (start === end) return `${day(a)} ${mon(a)}`;
   return mon(a) === mon(b)
     ? `${day(a)}–${day(b)} ${mon(b)}`
     : `${day(a)} ${mon(a)} – ${day(b)} ${mon(b)}`;
