@@ -241,6 +241,13 @@ Two rules came out of it, and they generalise:
 - **The mark that draws the order is the mark you grab.** The numbered node is
   the drag grip; a separate grip hovering above it reads as a second, competing
   handle. `↑`/`↓` sit under the node as the keyboard path.
+- **The spine column carries the spine and nothing else.** The move buttons
+  started in it and their paper cut the line at every stop; they sit with the
+  row's other controls now, out at the right edge. A row runs wide rather than
+  tall — what the stop *is* on the left, what you can do to it on the right.
+- **One fact, one drawing.** How long the group stays is a `.day-pill`
+  (highlighter yellow, mono) both on the map pin's corner and on the spine's
+  left rail, and it spells the word out — "2 days", never "2d".
 - **A server-rendered row can't be handed a render prop.** A function child
   doesn't cross the server/client boundary (same constraint as `Sheet`), so a
   client list that needs to draw *around* server content takes the content as

@@ -107,7 +107,11 @@ export function RouteMap({
           keyboard: false,
           icon: L.divIcon({
             className: "route-pin",
-            html: `<span>${s.no}</span><b class="route-pin-days">${s.days}d</b>`,
+            // "2 days", not "2d" (ticket 82): the rail beside the spine spells
+            // it out, and an abbreviation only the map used read as a code.
+            html: `<span>${s.no}</span><b class="day-pill route-pin-days">${s.days} ${
+              s.days === 1 ? "day" : "days"
+            }</b>`,
             iconSize: [26, 26],
             iconAnchor: [13, 13],
           }),

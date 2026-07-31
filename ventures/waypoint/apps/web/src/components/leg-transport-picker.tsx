@@ -51,43 +51,51 @@ export function LegTransportPicker({
     });
   };
 
-  if (open) {
-    return (
-      <span className="inline-flex flex-wrap items-center gap-1">
-        {TRANSPORT_TYPES.map((t) => (
-          <Button
-            key={t}
-            variant={t === mode ? "primary" : "secondary"}
-            onClick={() => set(t)}
-          >
-            {t}
-          </Button>
-        ))}
-        <Button variant="ghost" onClick={() => setOpen(false)}>
-          Cancel
-        </Button>
-      </span>
-    );
-  }
-
   return (
-    <button
-      type="button"
-      onClick={() => setOpen(true)}
-      disabled={pending}
-      // Colour is never the only signal, and neither is the icon: the mode is
-      // always spelled out beside it.
-      className="inline-flex items-center gap-1.5 rounded-sm border border-dashed border-rule-strong px-2 py-0.5 font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-soft hover:border-pen hover:text-pen disabled:opacity-50"
-    >
-      {mode ? (
-        <>
-          <TravelModeIcon mode={mode} />
-          <span>{mode}</span>
-          <span className="text-ink-faint">— change</span>
-        </>
-      ) : (
-        <span>Travel not planned — how?</span>
-      )}
-    </button>
+    // The options float over the page rather than expanding in place: five
+    // buttons appearing inline pushed the stop below them down the screen, so
+    // the row you were aiming at moved as you opened the picker. The trigger
+    // keeps its place and its size; only the panel is new.
+    <span className="relative inline-flex">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        disabled={pending}
+        aria-expanded={open}
+        // Colour is never the only signal, and neither is the icon: the mode is
+        // always spelled out beside it.
+        className="inline-flex items-center gap-1.5 rounded-sm border border-dashed border-rule-strong px-2 py-0.5 font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-soft hover:border-pen hover:text-pen disabled:opacity-50 aria-expanded:border-pen aria-expanded:text-pen"
+      >
+        {mode ? (
+          <>
+            <TravelModeIcon mode={mode} />
+            <span>{mode}</span>
+            <span className="text-ink-faint">— change</span>
+          </>
+        ) : (
+          <span>Travel not planned — how?</span>
+        )}
+      </button>
+
+      {open ? (
+        // `w-max`: an absolutely-positioned box is sized by its containing
+        // block, which here is the trigger — without it the five modes wrap
+        // into a column one word wide.
+        <span className="absolute left-0 top-full z-20 mt-1 flex w-max items-center gap-1 rounded-md border border-rule-strong bg-sheet p-1.5 shadow-md">
+          {TRANSPORT_TYPES.map((t) => (
+            <Button
+              key={t}
+              variant={t === mode ? "primary" : "secondary"}
+              onClick={() => set(t)}
+            >
+              {t}
+            </Button>
+          ))}
+          <Button variant="ghost" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+        </span>
+      ) : null}
+    </span>
   );
 }

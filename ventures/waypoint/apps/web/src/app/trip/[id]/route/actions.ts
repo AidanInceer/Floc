@@ -198,13 +198,99 @@ export async function reorderStops(tripId: number, from: number, to: number) {
     })),
   );
 
-  await permuteDayContents(
-    access.trip.id,
-    moveItem(stops, from, to).flatMap((s) => s.dayIds),
-  );
+  const legs = await loadLegEvents(stops);
+  const next = moveItem(stops, from, to);
+
+  await permuteDayContents(access.trip.id, next.flatMap((s) => s.dayIds));
+  await reanchorLegEvents(stops, next, days.map((d) => d.dayId), legs);
 
   revalidatePath(`/trip/${access.trip.id}/route`);
   revalidatePath(`/trip/${access.trip.id}/days`);
+}
+
+/**
+ * The travel between two stops belongs to the *pair*, not to either end
+ * (ticket 82). The event itself lives on the arrival stop's first day, so a
+ * plain permute carries it off with whichever stop it happened to be sitting
+ * on: swap Madrid and Lisbon and the car that joined them arrives at the top
+ * of the trip, where there is nothing before it to travel from — the leg looks
+ * as though it lost its mode.
+ *
+ * So a reorder records the legs first, then re-anchors them afterwards: any
+ * pair of stops still next to each other keeps its travel, on whichever of the
+ * two is now second. A pair pulled apart doesn't — its event stays with the
+ * stop it was on, which is the only other place it could honestly go.
+ *
+ * Nothing about this needs a column of its own. The mode is still exactly
+ * `day_event.transport_type`; what a reorder fixes up is which day the row
+ * hangs off, and a `leg` table would be the stored "stop" rule 3 rules out,
+ * one relationship further along.
+ */
+const pairKey = (a: number, b: number) =>
+  `${Math.min(a, b)}-${Math.max(a, b)}`;
+
+/** First transport event on each stop's first day, keyed by the pair it joins. */
+async function loadLegEvents(stops: { dayIds: number[] }[]) {
+  const arrivalDays = stops.slice(1).map((s) => s.dayIds[0]);
+  const legs = new Map<string, number>();
+  if (arrivalDays.length === 0) return legs;
+
+  const rows = await db
+    .select({ id: dayEvent.id, dayId: dayEvent.dayId })
+    .from(dayEvent)
+    .where(
+      and(
+        inArray(dayEvent.dayId, arrivalDays),
+        eq(dayEvent.type, "transport"),
+        isNull(dayEvent.deletedAt),
+      ),
+    )
+    .orderBy(asc(dayEvent.orderIndex))
+    .all();
+
+  const firstByDay = new Map<number, number>();
+  for (const r of rows) if (!firstByDay.has(r.dayId)) firstByDay.set(r.dayId, r.id);
+
+  for (const [i, stop] of stops.entries()) {
+    if (i === 0) continue;
+    const eventId = firstByDay.get(stop.dayIds[0]);
+    if (eventId) legs.set(pairKey(i - 1, i), eventId);
+  }
+  return legs;
+}
+
+/** Moves each surviving leg's event onto the day its arrival stop now starts on. */
+async function reanchorLegEvents(
+  stops: { dayIds: number[] }[],
+  next: { dayIds: number[] }[],
+  /** The trip's live day ids, in date order — dates don't move, contents do. */
+  dayIdsByDate: number[],
+  legs: Map<string, number>,
+) {
+  if (legs.size === 0) return;
+
+  const positionOf = new Map(stops.map((s, i) => [s, i]));
+  const writes: Promise<unknown>[] = [];
+  let offset = 0;
+
+  for (const [k, stop] of next.entries()) {
+    if (k > 0) {
+      const key = pairKey(positionOf.get(next[k - 1])!, positionOf.get(stop)!);
+      const eventId = legs.get(key);
+      const arrivalDayId = dayIdsByDate[offset];
+      if (eventId && arrivalDayId) {
+        writes.push(
+          db
+            .update(dayEvent)
+            .set({ dayId: arrivalDayId, ...touch() })
+            .where(eq(dayEvent.id, eventId)),
+        );
+      }
+    }
+    offset += stop.dayIds.length;
+  }
+
+  await Promise.all(writes);
 }
 
 /**

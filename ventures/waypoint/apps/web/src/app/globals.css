@@ -1030,14 +1030,16 @@
 }
 
 /* How many days the itinerary spends at this stop — the highlighter yellow,
-   the same pen the app uses everywhere for "open"/marked-up. Sits on the pin's
-   top-right so a column of pins doesn't overlap its neighbour's number. */
-.route-map-frame .route-pin-days {
-  position: absolute;
-  top: -7px;
-  right: -9px;
-  min-width: 15px;
-  padding: 0 3px;
+   the same pen the app uses everywhere for "open"/marked-up.
+
+   One pill, two places (ticket 82): the map pin's corner badge and the Route
+   spine's left rail say the same thing about the same stop, so they are the
+   same drawing. The base class carries the look; `.route-pin-days` only adds
+   the pin-corner positioning, and `.day-pill-lg` the reading size for the
+   rail, where there is room. */
+.day-pill {
+  display: inline-block;
+  padding: 0 5px;
   border: 1px solid var(--highlight-edge);
   border-radius: 999px;
   background: var(--highlight);
@@ -1047,7 +1049,22 @@
   font-weight: 700;
   line-height: 14px;
   text-align: center;
+  white-space: nowrap;
   box-shadow: var(--shadow-sm);
+}
+
+.day-pill-lg {
+  font-size: 10px;
+  line-height: 16px;
+  letter-spacing: 0.02em;
+}
+
+/* Sits on the pin's top-right so a column of pins doesn't overlap its
+   neighbour's number. */
+.route-map-frame .route-pin-days {
+  position: absolute;
+  top: -8px;
+  right: -12px;
 }
 
 .route-map-frame .leaflet-container {

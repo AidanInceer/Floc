@@ -95,59 +95,71 @@ export function StopSpine({
             move(dragging, i);
           }}
           className={cx(
-            "grid grid-cols-[5.5rem_3rem_1fr] items-stretch rounded-md transition-shadow sm:grid-cols-[7rem_3.25rem_1fr]",
+            "grid grid-cols-[5.5rem_2.75rem_1fr] items-stretch rounded-md transition-shadow sm:grid-cols-[7rem_3rem_1fr]",
             dragging === i && "opacity-50",
             over === i && dragging !== null && dragging !== i && "ring-2 ring-pen",
           )}
         >
           {/* The dates, in the display face: "when" was the question the old
-              card header buried in a hint line. */}
+              card header buried in a hint line. The day count wears the same
+              highlighter pill the map pin does — one stop, one drawing. */}
           <div className="pt-0.5 text-right">
             <p className="font-display text-[15px] font-semibold leading-tight">
               {item.dates}
             </p>
-            <p className="text-xs text-ink-soft">{item.duration}</p>
+            <p className="mt-0.5">
+              <span className="day-pill day-pill-lg">{item.duration}</span>
+            </p>
           </div>
 
-          {/* The spine. */}
-          <div className="relative flex flex-col items-center gap-1">
+          {/* The spine: node, then one unbroken line down to the next node.
+              Nothing else is allowed in this column — the move buttons started
+              here, and their paper cut the line in two at every stop, which is
+              the whole thing the drawing is for. They sit with the row's other
+              controls instead. */}
+          <div className="relative flex flex-col items-center">
+            {i < items.length - 1 ? (
+              <span
+                aria-hidden
+                className="absolute left-1/2 top-3.5 bottom-0 w-px -translate-x-1/2 bg-rule-strong"
+              />
+            ) : null}
             <span
               onMouseDown={() => setArmed(i)}
               onMouseUp={() => setArmed(null)}
               title={`Drag to move ${item.label}`}
-              className="z-10 flex h-7 w-7 shrink-0 cursor-grab items-center justify-center rounded-full border-2 border-pen bg-sheet font-mono text-[11px] text-pen select-none active:cursor-grabbing"
+              className="relative z-10 flex h-7 w-7 shrink-0 cursor-grab items-center justify-center rounded-full border-2 border-pen bg-sheet font-mono text-[11px] text-pen select-none active:cursor-grabbing"
             >
               {i + 1}
             </span>
-            <div className="z-10 flex flex-col bg-sheet">
-              <Button
-                variant="ghost"
-                className="px-1 py-0"
-                disabled={i === 0}
-                aria-label={`Move ${item.label} earlier`}
-                onClick={() => move(i, i - 1)}
-              >
-                ↑
-              </Button>
-              <Button
-                variant="ghost"
-                className="px-1 py-0"
-                disabled={i === items.length - 1}
-                aria-label={`Move ${item.label} later`}
-                onClick={() => move(i, i + 1)}
-              >
-                ↓
-              </Button>
-            </div>
-            {i < items.length - 1 ? (
-              <span aria-hidden className="-mt-1 w-px flex-1 bg-rule-strong" />
-            ) : null}
           </div>
 
-          <div className="pb-7 pl-1">
-            {item.body}
+          <div className="pb-5 pl-1">
+            <div className="flex items-start gap-1">
+              <div className="min-w-0 flex-1">{item.body}</div>
+              <div className="flex shrink-0 items-center">
+                <Button
+                  variant="ghost"
+                  className="px-1.5 py-0.5"
+                  disabled={i === 0}
+                  aria-label={`Move ${item.label} earlier`}
+                  onClick={() => move(i, i - 1)}
+                >
+                  ↑
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="px-1.5 py-0.5"
+                  disabled={i === items.length - 1}
+                  aria-label={`Move ${item.label} later`}
+                  onClick={() => move(i, i + 1)}
+                >
+                  ↓
+                </Button>
+              </div>
+            </div>
             {item.leg ? (
-              <div className="mt-4 flex items-center gap-2">
+              <div className="mt-2 flex items-center gap-2">
                 <span aria-hidden className="text-pen">
                   ↓
                 </span>
