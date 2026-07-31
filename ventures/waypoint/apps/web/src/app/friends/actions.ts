@@ -16,6 +16,35 @@ import { emails, sendEmail } from "@/lib/email";
 import { relationTo } from "@/lib/visibility";
 
 /**
+ * Opens (or re-opens) a pending request from `viewerId` to `targetId`.
+ *
+ * An upsert, not an insert: cancelling a request — or declining one, or
+ * removing a friend — soft-deletes the row, but `friendship_pair_idx` is
+ * unique on (user_id, friend_id) with no `deleted_at` in it, so a plain insert
+ * of the same pair a second time hits a UNIQUE constraint and throws. The
+ * soft-deleted row is the row we want back, so revive it in place.
+ */
+async function openPendingRequest(viewerId: string, targetId: string): Promise<void> {
+  await db
+    .insert(friendship)
+    .values({
+      userId: viewerId,
+      friendId: targetId,
+      status: "pending",
+      origin: "request",
+    })
+    .onConflictDoUpdate({
+      target: [friendship.userId, friendship.friendId],
+      set: {
+        status: "pending",
+        origin: "request",
+        deletedAt: null,
+        lastModifiedAt: new Date(),
+      },
+    });
+}
+
+/**
  * Sends a friend request by email. Deliberately silent on whether the email
  * is a registered account — same response either way — so this can't be used
  * to probe account existence (house rule: never leak whether an email is
@@ -57,12 +86,7 @@ export async function requestFriend(formData: FormData): Promise<{ error?: strin
     return {};
   }
 
-  await db.insert(friendship).values({
-    userId: viewer.id,
-    friendId: target.id,
-    status: "pending",
-    origin: "request",
-  });
+  await openPendingRequest(viewer.id, target.id);
 
   await sendEmail(
     emails.friendRequest({
@@ -115,12 +139,7 @@ export async function requestFriendById(formData: FormData): Promise<{ error?: s
   // the duplicate quietly, same as the by-email path.
   if (existing) return {};
 
-  await db.insert(friendship).values({
-    userId: viewer.id,
-    friendId: target.id,
-    status: "pending",
-    origin: "request",
-  });
+  await openPendingRequest(viewer.id, target.id);
 
   await sendEmail(
     emails.friendRequest({
