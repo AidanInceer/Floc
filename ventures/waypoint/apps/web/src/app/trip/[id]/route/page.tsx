@@ -46,6 +46,14 @@ import {
   Stack,
 } from "@/components/ui";
 import { TravelModeIcon } from "@/components/travel-mode-icon";
+// PROTOTYPE ONLY (ticket 82) — both of these leave main with the losing variants.
+import { PrototypeSwitcher } from "@/components/prototype-switcher";
+import {
+  PROTOTYPE_VARIANTS,
+  VariantA,
+  VariantB,
+  VariantC,
+} from "./prototype-variants";
 import { db } from "@/db";
 import { day, dayEvent, place, type TransportType } from "@/db/schema";
 import { requireTripAccess } from "@/lib/access";
@@ -104,10 +112,14 @@ async function loadTransportModes(tripId: number) {
 
 export default async function RoutePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  /** PROTOTYPE ONLY (ticket 82): `?variant=` picks a throwaway rendering. */
+  searchParams?: Promise<{ variant?: string }>;
 }) {
   const { id } = await params;
+  const variant = (await searchParams)?.variant ?? "A";
   const access = await requireTripAccess(id, `/trip/${id}/route`);
   const { trip } = access;
 
@@ -173,6 +185,46 @@ export default async function RoutePage({
     }
   }
 
+  /**
+   * PROTOTYPE ONLY (ticket 82): the per-stop controls, lifted out of the card
+   * so all three variants can place them wherever their layout wants. Same
+   * sheets, same server actions — only the surrounding drawing changes.
+   */
+  const stopControls = (stop: (typeof stops)[number]) => (
+    <>
+      <Sheet trigger="Change dates" title="Change these dates" triggerVariant="secondary">
+        <ChangeDatesForm
+          tripId={trip.id}
+          dayIds={stop.dayIds}
+          startDate={stop.startDate}
+          endDate={stop.endDate}
+          tripStart={trip.startDate}
+          tripEnd={trip.endDate}
+        />
+      </Sheet>
+      <Sheet trigger="Change place" title="Change overnight place" triggerVariant="secondary">
+        <ChangePlaceForm tripId={trip.id} dayIds={stop.dayIds} />
+      </Sheet>
+      <form action={removeStop.bind(null, trip.id, stop.dayIds)}>
+        <ConfirmSubmit
+          message="Remove this stop? The days themselves stay on the itinerary — they just lose their overnight place."
+          variant="ghost"
+        >
+          Remove stop
+        </ConfirmSubmit>
+      </form>
+    </>
+  );
+
+  const variantProps = {
+    stops,
+    legMode,
+    controls: stopControls,
+    map: <RouteMap stops={pinned} missing={missing} />,
+    tripStart: trip.startDate,
+    tripEnd: trip.endDate,
+  };
+
   const addStopForm = (
     <AddStopForm
       tripId={trip.id}
@@ -202,6 +254,12 @@ export default async function RoutePage({
             </Sheet>
           }
         />
+      ) : variant === "A" ? (
+        <VariantA {...variantProps} />
+      ) : variant === "B" ? (
+        <VariantB {...variantProps} />
+      ) : variant === "C" ? (
+        <VariantC {...variantProps} />
       ) : (
         <Stack gap={4}>
           <RouteMap stops={pinned} missing={missing} />
@@ -274,6 +332,8 @@ export default async function RoutePage({
           />
         </Stack>
       )}
+      {/* PROTOTYPE ONLY (ticket 82) — dev-only, leaves main with the variants. */}
+      <PrototypeSwitcher variants={PROTOTYPE_VARIANTS} current={variant} />
     </Page>
   );
 }
