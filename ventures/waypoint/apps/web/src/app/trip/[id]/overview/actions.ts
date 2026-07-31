@@ -58,9 +58,12 @@ export async function kickMember(formData: FormData) {
   assertAdmin(access);
 
   // Soft-delete the membership row — kicking never touches their user row.
+  // `map_prompt_at` parks one question on their travel map: this trip's
+  // countries stop being derived now, do they want to keep them (ticket 95)?
+  // Asked of *them*, later — an admin may not answer it on their behalf.
   await db
     .update(tripMembership)
-    .set({ deletedAt: new Date(), ...touch() })
+    .set({ deletedAt: new Date(), mapPromptAt: new Date(), ...touch() })
     .where(
       and(
         eq(tripMembership.tripId, tripId),
@@ -70,6 +73,7 @@ export async function kickMember(formData: FormData) {
     );
 
   revalidatePath(`/trip/${tripId}/overview`);
+  revalidatePath("/profile");
 }
 
 export async function promoteMember(formData: FormData) {
@@ -213,7 +217,9 @@ export async function leaveTrip(formData: FormData) {
 
   await db
     .update(tripMembership)
-    .set({ deletedAt: new Date(), ...touch() })
+    // Same question as a kick leaves behind, asked the same way — on the
+    // travel map rather than in a second dialog on the way out (ticket 95).
+    .set({ deletedAt: new Date(), mapPromptAt: new Date(), ...touch() })
     .where(
       and(
         eq(tripMembership.tripId, tripId),
@@ -249,6 +255,7 @@ export async function leaveTrip(formData: FormData) {
 
   revalidatePath("/trips");
   revalidatePath("/trips/archived");
+  revalidatePath("/profile");
   redirect("/trips");
 }
 

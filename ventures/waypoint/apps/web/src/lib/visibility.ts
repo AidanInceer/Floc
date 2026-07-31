@@ -26,7 +26,9 @@ import {
   userProfile,
 } from "@/db/schema";
 import { hasEnded } from "@/lib/dates";
+import { travelMapFor } from "@/lib/travel-map";
 import { readVibeTags } from "@/lib/vibe-tags";
+import type { TravelMap } from "@/lib/travel-map";
 import type { PastTripsShow, Visibility } from "@/db/schema";
 
 /**
@@ -152,6 +154,8 @@ export type PublicProfile = {
   /** Already filtered by the flags — a hidden attribute simply isn't here. */
   vibeTags: string[] | null;
   pastTrips: PastTrip[] | null;
+  /** The travel map (ticket 95) — `null` when its ring shuts the viewer out. */
+  travelMap: TravelMap | null;
 };
 
 /**
@@ -176,6 +180,7 @@ export async function requireProfileView(
       visibilityPicture: userProfile.visibilityPicture,
       visibilityVibeTags: userProfile.visibilityVibeTags,
       pastTripsShow: userProfile.pastTripsShow,
+      visibilityTravelMap: userProfile.visibilityTravelMap,
     })
     .from(user)
     .leftJoin(userProfile, eq(userProfile.userId, user.id))
@@ -190,6 +195,7 @@ export async function requireProfileView(
   const picture = row.visibilityPicture ?? "trip_members";
   const vibes = row.visibilityVibeTags ?? "trip_members";
   const pastTripsShow: PastTripsShow = row.pastTripsShow ?? "all";
+  const travelMap = row.visibilityTravelMap ?? "trip_members";
 
   return {
     userId: ownerId,
@@ -208,6 +214,11 @@ export async function requireProfileView(
       relation === "self" || !isPrivate
         ? await pastTripsFor(ownerId, pastTripsShow)
         : null,
+    // Only derived when it's going to be shown — it's three queries, and a
+    // hidden attribute should cost nothing.
+    travelMap: showsAttribute(relation, travelMap, isPrivate)
+      ? await travelMapFor(ownerId)
+      : null,
   };
 }
 

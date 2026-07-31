@@ -28,6 +28,7 @@ import {
   Stack,
 } from "@/components/ui";
 import { FriendButton } from "@/components/friend-button";
+import { TravelMap } from "@/components/travel-map";
 
 export default async function PublicProfilePage({
   params,
@@ -85,6 +86,18 @@ export default async function PublicProfilePage({
             </div>
           </div>
         </Card>
+
+        {profile.travelMap ? (
+          <Card>
+            <CardHeader
+              title="Where they've been"
+              hint="Countries only — from their trips, plus anything they've marked by hand."
+            />
+            <div className="p-4">
+              <TravelMap states={profile.travelMap.states} />
+            </div>
+          </Card>
+        ) : null}
 
         {profile.pastTrips ? (
           <Card>

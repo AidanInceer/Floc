@@ -159,6 +159,22 @@ export default async function SettingsPage() {
               </Field>
 
               <Field
+                label="Travel map"
+                hint="Where you've been and where you want to go. Countries only — never a city, and never a date."
+              >
+                <Select
+                  name="visibilityTravelMap"
+                  defaultValue={profile.visibilityTravelMap}
+                >
+                  {Object.entries(RING_LABELS).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+
+              <Field
                 label="Past trips"
                 hint="Ended trips only, and they're hidden entirely while your profile is private."
               >

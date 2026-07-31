@@ -529,12 +529,14 @@ function EventForm({
     const providerId = String(formData.get("placeProviderId") ?? "") || null;
     const lat = formData.get("placeLat");
     const lng = formData.get("placeLng");
+    const countryCode = String(formData.get("placeCountryCode") ?? "") || null;
 
     const placeId = await resolveEventPlace({
       providerId,
       name: placeName,
       lat: lat ? Number(lat) : null,
       lng: lng ? Number(lng) : null,
+      countryCode,
     });
 
     if (eventId) {

@@ -15,6 +15,7 @@ on every entity.
 ```mermaid
 erDiagram
     USER ||--o| USER_PROFILE : "has"
+    USER ||--o{ USER_COUNTRY_MARK : "paints (ticket 95)"
     USER ||--o{ FRIENDSHIP : "requests (user_id)"
     USER ||--o{ FRIENDSHIP : "receives (friend_id)"
     USER ||--o{ TRIP : "creates (created_by)"
@@ -64,11 +65,18 @@ erDiagram
         bool is_private "default false — hides every display attribute"
         string visibility_picture "private|friends|trip_members, default trip_members"
         string visibility_vibe_tags "private|friends|trip_members, default trip_members"
+        string visibility_travel_map "private|friends|trip_members, default trip_members"
         string past_trips_show "latest | all, default all"
         bool notify_invites "default true"
         bool notify_votes "default true"
         bool notify_money "default true"
         bool notify_nudges "default true"
+    }
+
+    USER_COUNTRY_MARK {
+        string user_id PK,FK "-> USER.id"
+        string country_code PK "ISO 3166-1 alpha-2, upper case"
+        string state "green | yellow | none — hand-painted only, never a trip"
     }
 
     FRIENDSHIP {
@@ -98,6 +106,7 @@ erDiagram
         int trip_id PK,FK "-> TRIP.id"
         string user_id PK,FK "-> USER.id"
         string role "admin | member"
+        datetime map_prompt_at "nullable — set on leave/kick, asks about the travel map"
     }
 
     IDEA {
@@ -148,6 +157,7 @@ erDiagram
         string name
         float lat "nullable — free-text places have none"
         float lng "nullable"
+        string country_code "nullable — ISO alpha-2 from Nominatim, ticket 95"
     }
 
     EXPENSE {
@@ -204,6 +214,7 @@ erDiagram
 | From | To | Cardinality | Notes |
 |---|---|---|---|
 | `user` | `user_profile` | 1–0..1 | optional, extends Better Auth's user |
+| `user` | `user_country_mark` | 1–M | one row per hand-painted country; trip marks are derived on read, never stored (ticket 95) |
 | `user` | `friendship` | 1–M (×2) | one FK as requester, one as recipient |
 | `user` | `trip` | 1–M | `trip.created_by` |
 | `trip` ↔ `user` | M–M | via `trip_membership` (composite PK) |

@@ -45,7 +45,12 @@ export function Page({
       className={cx(
         "mx-auto w-full px-4 pb-16 sm:px-6",
         flush ? "pt-0" : "pt-6",
-        wide ? "max-w-6xl" : "max-w-3xl",
+        // 4xl rather than 3xl for the standard sheet (ticket 95): Trips,
+        // Friends, Profile and Settings are one set of pages and were visibly
+        // narrower than everything reached from the same header, which read as
+        // the sheet changing size when you moved between them. `wide` is still
+        // the trip tabs and Explore, where the extra width is doing work.
+        wide ? "max-w-6xl" : "max-w-4xl",
       )}
     >
       <div

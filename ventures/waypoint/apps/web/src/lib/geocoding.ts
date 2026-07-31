@@ -15,6 +15,7 @@ import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { place } from "@/db/schema";
+import { readCountryCode } from "@/lib/countries";
 
 /**
  * Nominatim requires an identifying UA with a contact address. Not a secret,
@@ -50,6 +51,13 @@ export type PlaceSearchResult = {
   label: string;
   lat: number;
   lng: number;
+  /**
+   * ISO 3166-1 alpha-2, upper case, or null (ticket 95). Nominatim carries a
+   * country on every hit whatever its granularity, which is what lets the
+   * travel map treat "which country is this place in" as a stored fact rather
+   * than a geographic inference.
+   */
+  countryCode: string | null;
 };
 
 /**
@@ -79,6 +87,7 @@ type NominatimHit = {
   display_name?: string;
   lat?: string;
   lon?: string;
+  address?: { country_code?: string };
 };
 
 /**
@@ -93,7 +102,10 @@ export async function searchPlaces(query: string): Promise<PlaceSearchResult[]> 
   url.searchParams.set("q", query);
   url.searchParams.set("format", "jsonv2");
   url.searchParams.set("limit", "5");
-  url.searchParams.set("addressdetails", "0");
+  // On since ticket 95 — the one field we want out of it is `country_code`,
+  // which is what the travel map fills a shape from. It was off before, so the
+  // country came back and was thrown away.
+  url.searchParams.set("addressdetails", "1");
   // Nominatim reads the browser's Accept-Language header when this parameter
   // is absent — which here is the server's, i.e. nobody's. Explicit wins.
   url.searchParams.set("accept-language", SITE_LANGUAGE);
@@ -136,7 +148,10 @@ export async function searchPlaces(query: string): Promise<PlaceSearchResult[]> 
             ? `nominatim:${h.place_id}`
             : null;
       if (!providerId || !name || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-      return { providerId, name, label: label || name, lat, lng };
+      // Checked against the drawable vocabulary here rather than at write time,
+      // so a code the map has no shape for never reaches the column.
+      const countryCode = readCountryCode(h.address?.country_code);
+      return { providerId, name, label: label || name, lat, lng, countryCode };
     })
     .filter((r): r is PlaceSearchResult => r !== null);
 }
@@ -147,14 +162,29 @@ export async function upsertPlace(input: {
   name: string;
   lat?: number | null;
   lng?: number | null;
+  /** From the search result the picker chose — see `PlaceSearchResult`. */
+  countryCode?: string | null;
 }): Promise<number> {
+  const countryCode = readCountryCode(input.countryCode);
+
   if (input.providerId) {
     const existing = await db
-      .select({ id: place.id })
+      .select({ id: place.id, countryCode: place.countryCode })
       .from(place)
       .where(and(eq(place.providerId, input.providerId), isNull(place.deletedAt)))
       .get();
-    if (existing) return existing.id;
+    if (existing) {
+      // A row from before ticket 95 gets its country the next time anyone
+      // picks the same place — the closest thing to a backfill there is, and
+      // it costs nothing. An existing code is never overwritten.
+      if (countryCode && !existing.countryCode) {
+        await db
+          .update(place)
+          .set({ countryCode, lastModifiedAt: new Date() })
+          .where(eq(place.id, existing.id));
+      }
+      return existing.id;
+    }
   }
 
   const inserted = await db
@@ -164,6 +194,7 @@ export async function upsertPlace(input: {
       name: input.name,
       lat: input.lat ?? null,
       lng: input.lng ?? null,
+      countryCode,
     })
     .returning({ id: place.id })
     .get();

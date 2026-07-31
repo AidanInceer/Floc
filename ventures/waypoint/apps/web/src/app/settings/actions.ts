@@ -42,9 +42,15 @@ export async function updatePrivacy(formData: FormData): Promise<{ error?: strin
 
   const picture = ring("visibilityPicture");
   const vibeTags = ring("visibilityVibeTags");
+  const travelMap = ring("visibilityTravelMap");
   const show = String(formData.get("pastTripsShow") ?? "");
 
-  if (!picture || !vibeTags || !PAST_TRIPS_SHOW.includes(show as PastTripsShow)) {
+  if (
+    !picture ||
+    !vibeTags ||
+    !travelMap ||
+    !PAST_TRIPS_SHOW.includes(show as PastTripsShow)
+  ) {
     return { error: "That isn't one of the visibility options." };
   }
 
@@ -54,6 +60,7 @@ export async function updatePrivacy(formData: FormData): Promise<{ error?: strin
       isPrivate: formData.get("isPrivate") === "on",
       visibilityPicture: picture,
       visibilityVibeTags: vibeTags,
+      visibilityTravelMap: travelMap,
       pastTripsShow: show as PastTripsShow,
       lastModifiedAt: new Date(),
     })

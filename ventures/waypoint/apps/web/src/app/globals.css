@@ -213,6 +213,14 @@
     min-width: 0;
   }
 
+  /* Reserve the scrollbar's width on every page, scrolling or not (ticket 95).
+     Without it a short page (Trips, Friends) is laid out across the full
+     viewport and a long one (Profile) loses ~15px to the scrollbar, so the
+     sheet and its heading jump sideways as you move between them. */
+  html {
+    scrollbar-gutter: stable;
+  }
+
   body {
     background: var(--paper);
     color: var(--ink);
@@ -1120,4 +1128,101 @@
 
 .boot-swing {
   animation: boot-swing 450ms ease-in-out;
+}
+
+@layer components {
+  /*
+   * The travel map on a profile (ticket 95). Leaflet with no tile layer, so
+   * there is nothing under these shapes but the page's own paper — the frame
+   * matches the Route map's so the two read as the same kind of object, and
+   * the fills are the highlighter tokens rather than map colours.
+   */
+  .travel-map-frame {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--rule-2);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    background: var(--sheet);
+  }
+
+  .travel-map-canvas {
+    height: 380px;
+    width: 100%;
+  }
+
+  @media (max-width: 640px) {
+    .travel-map-canvas {
+      height: 280px;
+    }
+  }
+
+  /* Unpainted: an outline on paper. The stroke is the rule colour, so an empty
+     map reads as a drawing of the world rather than as a failed load. */
+  .country {
+    fill: var(--sheet-3);
+    fill-opacity: 1;
+    stroke: var(--rule-2);
+  }
+
+  .country-editable {
+    cursor: pointer;
+  }
+
+  .country-green {
+    fill: var(--highlight-green);
+    stroke: var(--green-edge);
+  }
+
+  .country-yellow {
+    fill: var(--highlight);
+    stroke: var(--highlight-edge);
+  }
+
+  .country-editable:hover {
+    stroke: var(--pen);
+    stroke-width: 1.4;
+  }
+
+  /* The key beside the map and the swatch in the country list — the same
+     square, so "that colour means been there" only has to be learnt once. */
+  .travel-key {
+    display: inline-block;
+    width: 0.75rem;
+    height: 0.75rem;
+    border: 1px solid var(--rule-2);
+    border-radius: 2px;
+    background: var(--sheet-2);
+  }
+
+  .travel-key-green {
+    background: var(--highlight-green);
+    border-color: var(--green-edge);
+  }
+
+  .travel-key-yellow {
+    background: var(--highlight);
+    border-color: var(--highlight-edge);
+  }
+}
+
+/*
+ * The two things Leaflet's own stylesheet has to be taken back from on the
+ * travel map (ticket 95). Unlayered on purpose: leaflet.css is unlayered too,
+ * and an unlayered rule beats anything in `@layer components` however specific
+ * — which is why the same two rules did nothing from inside the layer.
+ */
+.travel-map-frame .leaflet-container {
+  /* Leaflet paints its container #ddd for tiles that haven't loaded. There are
+     no tiles here, so that grey *is* the sea — and the sea is paper. */
+  background: var(--sheet);
+}
+
+.travel-map-frame .leaflet-interactive:focus {
+  /* The browser's focus ring on an SVG path draws an orange rectangle round
+     the country's bounding box — over Greenland that is a box the size of the
+     Arctic. Nothing is lost by dropping it: the shapes aren't in the tab order
+     (the country list underneath is the keyboard path), so this ring only ever
+     appeared under a mouse click. */
+  outline: none;
 }

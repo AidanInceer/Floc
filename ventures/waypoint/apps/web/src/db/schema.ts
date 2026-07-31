@@ -177,6 +177,14 @@ export const userProfile = sqliteTable("user_profile", {
     .notNull()
     .default("trip_members"),
   /**
+   * The travel map (ticket 95) — a display attribute like the picture and the
+   * vibe tags, so it gets a ring of its own rather than riding someone else's.
+   * Where you've been is a more revealing fact than a chip is.
+   */
+  visibilityTravelMap: text("visibility_travel_map", { enum: VISIBILITIES })
+    .notNull()
+    .default("trip_members"),
+  /**
    * Past trips ride `is_private` rather than carrying a ring of their own
    * (ticket 46) — this only truncates the list.
    */
@@ -202,6 +210,46 @@ export const userProfile = sqliteTable("user_profile", {
     .default(true),
   ...audit,
 });
+
+/**
+ * A country's state on the travel map (ticket 95). `none` is not the absence
+ * of a mark — it is the *rejection* of one: "no, I didn't go", said out loud,
+ * so a trip whose dates have passed stops claiming otherwise.
+ */
+export const COUNTRY_MARK_STATES = ["green", "yellow", "none"] as const;
+export type CountryMarkState = (typeof COUNTRY_MARK_STATES)[number];
+
+/**
+ * Hand-painted countries only (ticket 95).
+ *
+ * Trip marks are **derived on read** in src/lib/travel-map.ts and never stored:
+ * green is triggered by `hasEnded`, i.e. by *time passing*, which is not a
+ * write and so has no event to materialise on short of a cron job. Every row
+ * here is therefore manual by definition — no origin column — and manual wins
+ * over whatever the trips say, permanently.
+ *
+ * `country_code` is ISO 3166-1 alpha-2 upper case, from `lib/countries.ts`.
+ * The one table whose rows are *hard*-deleted rather than soft (the audit
+ * columns come along for consistency and `deleted_at` stays null): a row here
+ * means "I have said something about this country", and unpainting it means
+ * taking that back so the trips can speak again. A tombstone would be
+ * indistinguishable from the `none` state, which is a different thing entirely.
+ */
+export const userCountryMark = sqliteTable(
+  "user_country_mark",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    countryCode: text("country_code").notNull(),
+    state: text("state", { enum: COUNTRY_MARK_STATES }).notNull(),
+    ...audit,
+  },
+  (t) => [
+    primaryKey({ columns: [t.userId, t.countryCode] }),
+    index("user_country_mark_user_idx").on(t.userId),
+  ],
+);
 
 export const FRIENDSHIP_STATUSES = ["pending", "accepted"] as const;
 export type FriendshipStatus = (typeof FRIENDSHIP_STATUSES)[number];
@@ -294,6 +342,18 @@ export const tripMembership = sqliteTable(
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
     role: text("role", { enum: TRIP_ROLES }).notNull().default("member"),
+    /**
+     * Set when this membership ends by *removal* — leaving or being kicked
+     * (ticket 95). It parks one question on the member's travel map: this
+     * trip's countries are about to stop being derived, do you want to keep
+     * them? Cleared when they answer either way, and left null by an admin
+     * deleting or archiving the trip, which stays silent — nobody may answer
+     * that question on somebody else's behalf.
+     *
+     * No snapshot needed: the trip, its days and this row all still exist, so
+     * the countries can still be derived when the question is finally asked.
+     */
+    mapPromptAt: integer("map_prompt_at", { mode: "timestamp" }),
     ...audit,
   },
   (t) => [
@@ -389,6 +449,18 @@ export const place = sqliteTable(
     name: text("name").notNull(),
     lat: real("lat"),
     lng: real("lng"),
+    /**
+     * ISO 3166-1 alpha-2, upper case (ticket 95). Nominatim returns one for
+     * every hit whatever its granularity — a city, a station, a restaurant all
+     * carry a country — so the travel map reads this column rather than
+     * inferring a country from coordinates.
+     *
+     * Nullable, and deliberately not backfilled: rows created before this
+     * shipped have none, and a free-text place typed during a Nominatim outage
+     * never will. Those places just don't reach the map; hand-marking is the
+     * fix (rule 11 again — degrade, don't crash).
+     */
+    countryCode: text("country_code"),
     ...audit,
   },
   (t) => [index("place_provider_idx").on(t.providerId)],
@@ -660,3 +732,4 @@ export type ExpenseSplit = typeof expenseSplit.$inferSelect;
 export type Note = typeof note.$inferSelect;
 export type Nudge = typeof nudge.$inferSelect;
 export type Friendship = typeof friendship.$inferSelect;
+export type UserCountryMark = typeof userCountryMark.$inferSelect;

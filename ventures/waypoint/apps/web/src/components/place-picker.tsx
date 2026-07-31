@@ -15,11 +15,23 @@ import { useEffect, useRef, useState } from "react";
 
 import { Field, Input, cx } from "./ui";
 
+/** One Nominatim hit as the search action hands it over — `PlaceSearchResult`. */
+type PlaceHit = {
+  providerId: string;
+  name: string;
+  label: string;
+  lat: number;
+  lng: number;
+  countryCode: string | null;
+};
+
 export type PlacePickerResult = {
   providerId: string | null;
   name: string;
   lat: number | null;
   lng: number | null;
+  /** ISO alpha-2 from the chosen search hit — null for a typed name (ticket 95). */
+  countryCode: string | null;
 };
 
 export function PlacePicker({
@@ -32,19 +44,19 @@ export function PlacePicker({
   label?: string;
   name: string;
   defaultName?: string;
-  search: (query: string) => Promise<{ providerId: string; name: string; label: string; lat: number; lng: number }[]>;
+  search: (query: string) => Promise<PlaceHit[]>;
   onSelect?: (result: PlacePickerResult) => void;
 }) {
   const [query, setQuery] = useState(defaultName);
-  const [results, setResults] = useState<
-    { providerId: string; name: string; label: string; lat: number; lng: number }[]
-  >([]);
+  const [results, setResults] = useState<PlaceHit[]>([]);
   // Set when the last search came back empty — a hint, not a latch: typing
   // again clears it and searching resumes (a transient Nominatim failure must
   // not strand the field in free-text mode for the rest of the session).
   const [noMatch, setNoMatch] = useState(false);
   const [selected, setSelected] = useState<PlacePickerResult | null>(
-    defaultName ? { providerId: null, name: defaultName, lat: null, lng: null } : null,
+    defaultName
+      ? { providerId: null, name: defaultName, lat: null, lng: null, countryCode: null }
+      : null,
   );
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -66,11 +78,17 @@ export function PlacePicker({
     };
   }, [query, search]);
 
-  function choose(r: { providerId: string; name: string; label: string; lat: number; lng: number }) {
+  function choose(r: PlaceHit) {
     setQuery(r.name);
     setResults([]);
     setNoMatch(false);
-    const result: PlacePickerResult = { providerId: r.providerId, name: r.name, lat: r.lat, lng: r.lng };
+    const result: PlacePickerResult = {
+      providerId: r.providerId,
+      name: r.name,
+      lat: r.lat,
+      lng: r.lng,
+      countryCode: r.countryCode,
+    };
     setSelected(result);
     onSelect?.(result);
   }
@@ -83,7 +101,13 @@ export function PlacePicker({
           onChange={(e) => {
             setQuery(e.target.value);
             setNoMatch(false);
-            const result: PlacePickerResult = { providerId: null, name: e.target.value, lat: null, lng: null };
+            const result: PlacePickerResult = {
+              providerId: null,
+              name: e.target.value,
+              lat: null,
+              lng: null,
+              countryCode: null,
+            };
             setSelected(result);
             onSelect?.(result);
           }}
@@ -113,6 +137,11 @@ export function PlacePicker({
       <input type="hidden" name={`${name}ProviderId`} value={selected?.providerId ?? ""} />
       <input type="hidden" name={`${name}Lat`} value={selected?.lat ?? ""} />
       <input type="hidden" name={`${name}Lng`} value={selected?.lng ?? ""} />
+      <input
+        type="hidden"
+        name={`${name}CountryCode`}
+        value={selected?.countryCode ?? ""}
+      />
     </Field>
   );
 }

@@ -82,6 +82,7 @@ export async function addStop(
     providerId?: string | null;
     lat?: number | null;
     lng?: number | null;
+    countryCode?: string | null;
   },
 ) {
   const access = await requireTripAccess(tripId);
@@ -90,6 +91,7 @@ export async function addStop(
     name: input.placeName,
     lat: input.lat,
     lng: input.lng,
+    countryCode: input.countryCode,
   });
 
   await writeSpan(access.trip.id, dateRange(input.startDate, input.endDate), placeId);
@@ -103,7 +105,13 @@ export async function addStop(
 export async function setOvernightPlace(
   tripId: number,
   dayIds: number[],
-  input: { placeName: string; providerId?: string | null; lat?: number | null; lng?: number | null },
+  input: {
+    placeName: string;
+    providerId?: string | null;
+    lat?: number | null;
+    lng?: number | null;
+    countryCode?: string | null;
+  },
 ) {
   const access = await requireTripAccess(tripId);
   const placeId = await upsertPlace({
@@ -111,6 +119,7 @@ export async function setOvernightPlace(
     name: input.placeName,
     lat: input.lat,
     lng: input.lng,
+    countryCode: input.countryCode,
   });
 
   await db

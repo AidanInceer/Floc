@@ -32,7 +32,9 @@ export async function joinTrip(token: string) {
     .values({ tripId: found.id, userId: user.id, role: "member" })
     .onConflictDoUpdate({
       target: [tripMembership.tripId, tripMembership.userId],
-      set: { deletedAt: null, lastModifiedAt: new Date() },
+      // `map_prompt_at` clears with the rejoin: rejoining answers the "keep
+      // this trip's countries?" question by making it moot (ticket 95).
+      set: { deletedAt: null, mapPromptAt: null, lastModifiedAt: new Date() },
     });
 
   // Lazily creates a profile for anyone who joined via link before signup

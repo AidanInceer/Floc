@@ -375,6 +375,7 @@ function AddStopForm({
     const providerId = String(formData.get("placeProviderId") ?? "") || null;
     const lat = formData.get("placeLat");
     const lng = formData.get("placeLng");
+    const countryCode = String(formData.get("placeCountryCode") ?? "") || null;
     if (!startDate || !endDate || !placeName) return;
     await addStop(tripId, {
       startDate,
@@ -383,6 +384,7 @@ function AddStopForm({
       providerId,
       lat: lat ? Number(lat) : null,
       lng: lng ? Number(lng) : null,
+      countryCode,
     });
   }
 
@@ -460,12 +462,14 @@ function ChangePlaceForm({ tripId, dayIds }: { tripId: number; dayIds: number[] 
     const providerId = String(formData.get("placeProviderId") ?? "") || null;
     const lat = formData.get("placeLat");
     const lng = formData.get("placeLng");
+    const countryCode = String(formData.get("placeCountryCode") ?? "") || null;
     if (!placeName) return;
     await setOvernightPlace(tripId, dayIds, {
       placeName,
       providerId,
       lat: lat ? Number(lat) : null,
       lng: lng ? Number(lng) : null,
+      countryCode,
     });
   }
 

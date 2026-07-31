@@ -35,6 +35,7 @@ export async function resolveEventPlace(input: {
   name: string;
   lat: number | null;
   lng: number | null;
+  countryCode?: string | null;
 }) {
   if (!input.name.trim()) return null;
   return upsertPlace(input);
