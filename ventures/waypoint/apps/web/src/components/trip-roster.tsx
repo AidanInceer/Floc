@@ -13,6 +13,8 @@
  */
 import { Badge } from "@/components/ui";
 import { PersonLink } from "@/components/person-link";
+import { FriendButton } from "@/components/friend-button";
+import type { FriendState } from "@/lib/friends";
 import { Field, Select, Stack, Textarea } from "@/components/ui";
 import { CopyLink, Sheet, SubmitButton } from "@/components/client-ui";
 import { KickBoot } from "@/components/kick-boot";
@@ -33,6 +35,7 @@ export function TripRoster({
   members,
   isAdmin,
   inviteUrl,
+  friendStates,
 }: {
   tripId: number;
   viewerId: string;
@@ -40,6 +43,8 @@ export function TripRoster({
   isAdmin: boolean;
   /** Absent for a non-admin — inviting is one of the four admin powers. */
   inviteUrl?: string;
+  /** userId → where you stand with them (ticket 96), resolved in one query. */
+  friendStates: Map<string, FriendState>;
 }) {
   return (
     <section className="tape-panel rounded-md border border-rule-strong bg-sheet-2 p-5">
@@ -90,6 +95,18 @@ export function TripRoster({
                 ) : null}
               </span>
             </span>
+
+            {/* Someone you're planning a trip with is someone you can ask
+                (ticket 96) — the same control the profile page carries, cut
+                down to fit a row. Nothing on your own row. */}
+            {m.userId !== viewerId ? (
+              <FriendButton
+                userId={m.userId}
+                name={m.name}
+                state={friendStates.get(m.userId) ?? "none"}
+                compact
+              />
+            ) : null}
 
             {/* Kicking sits on the person too (ticket 38), beside the bell and
                 admin-only. Not on your own row: leaving a trip yourself isn't

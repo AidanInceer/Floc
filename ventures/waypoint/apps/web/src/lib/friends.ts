@@ -7,7 +7,7 @@
  * trips), idempotent (`onConflictDoNothing` against the canonical pair), and
  * good enough since nothing downstream depends on the exact moment it fires.
  */
-import { and, eq, inArray, isNull, lt, ne } from "drizzle-orm";
+import { and, eq, inArray, isNull, lt, ne, or } from "drizzle-orm";
 
 import { db } from "@/db";
 import { friendship, trip, tripMembership } from "@/db/schema";
@@ -67,6 +67,65 @@ export async function syncCompletedCoTripFriendships(userId: string): Promise<vo
       })
       .onConflictDoNothing();
   }
+}
+
+/**
+ * Where you stand with someone, from your side (ticket 96) — what the "add as
+ * friend" control on their profile and on a trip roster has to render.
+ *
+ * `friendship` is one row per requested direction, so "pending" means two
+ * different things depending on which end you're at: a request you sent and a
+ * request waiting on you are not the same button.
+ */
+export type FriendState = "none" | "friends" | "outgoing" | "incoming";
+
+/** Several people at once — a trip roster asks about every member. */
+export async function friendStatesFor(
+  viewerId: string,
+  otherIds: string[],
+): Promise<Map<string, FriendState>> {
+  const states = new Map<string, FriendState>(
+    otherIds.map((id) => [id, "none" as FriendState]),
+  );
+  if (otherIds.length === 0) return states;
+
+  const rows = await db
+    .select({
+      userId: friendship.userId,
+      friendId: friendship.friendId,
+      status: friendship.status,
+    })
+    .from(friendship)
+    .where(
+      and(
+        isNull(friendship.deletedAt),
+        or(eq(friendship.userId, viewerId), eq(friendship.friendId, viewerId)),
+      ),
+    )
+    .all();
+
+  for (const r of rows) {
+    const otherId = r.userId === viewerId ? r.friendId : r.userId;
+    if (!states.has(otherId)) continue;
+    states.set(
+      otherId,
+      r.status === "accepted"
+        ? "friends"
+        : r.userId === viewerId
+          ? "outgoing"
+          : "incoming",
+    );
+  }
+
+  return states;
+}
+
+export async function friendStateWith(
+  viewerId: string,
+  otherId: string,
+): Promise<FriendState> {
+  const states = await friendStatesFor(viewerId, [otherId]);
+  return states.get(otherId) ?? "none";
 }
 
 /**

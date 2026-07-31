@@ -53,6 +53,7 @@ import {
 } from "@/components/client-ui";
 import { TripNameInline } from "@/components/trip-name-inline";
 import { TripRoster } from "@/components/trip-roster";
+import { friendStatesFor } from "@/lib/friends";
 import { TripTrail, type Station } from "@/components/trip-trail";
 import { TagEditor } from "@/components/tag-editor";
 import { readTagTones, readTags, tagTone, type TagTone } from "@/lib/tags";
@@ -73,6 +74,13 @@ export default async function OverviewPage({
   const { id } = await params;
   const access = await requireTripAccess(id, `/trip/${id}/overview`);
   const { trip, members, isAdmin, viewer } = access;
+
+  // One query for the whole roster (ticket 96) — a per-row lookup would be an
+  // N+1 on a panel every trip renders.
+  const friendStates = await friendStatesFor(
+    viewer.id,
+    members.map((m) => m.userId),
+  );
   const tripId = trip.id;
 
   /*
@@ -450,6 +458,7 @@ export default async function OverviewPage({
           members={members}
           isAdmin={isAdmin}
           inviteUrl={isAdmin ? inviteUrl : undefined}
+          friendStates={friendStates}
         />
       </div>
 

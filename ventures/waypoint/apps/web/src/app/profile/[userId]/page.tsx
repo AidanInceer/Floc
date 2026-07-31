@@ -16,6 +16,7 @@ import { redirect } from "next/navigation";
 
 import { requireUser } from "@/lib/access";
 import { formatDateRange } from "@/lib/dates";
+import { friendStateWith } from "@/lib/friends";
 import { requireProfileView } from "@/lib/visibility";
 import {
   Avatar,
@@ -26,6 +27,7 @@ import {
   PageHeader,
   Stack,
 } from "@/components/ui";
+import { FriendButton } from "@/components/friend-button";
 
 export default async function PublicProfilePage({
   params,
@@ -39,6 +41,7 @@ export default async function PublicProfilePage({
   if (userId === viewer.id) redirect("/profile");
 
   const profile = await requireProfileView(userId, viewer.id);
+  const friendState = await friendStateWith(viewer.id, userId);
 
   return (
     <Page>
@@ -48,6 +51,13 @@ export default async function PublicProfilePage({
           profile.relation === "friend"
             ? "You're friends."
             : "You've shared a trip."
+        }
+        actions={
+          <FriendButton
+            userId={profile.userId}
+            name={profile.name}
+            state={friendState}
+          />
         }
       />
 

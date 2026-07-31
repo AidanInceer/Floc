@@ -13,6 +13,7 @@ import { db } from "@/db";
 import { friendship, user } from "@/db/schema";
 import { requireUser } from "@/lib/access";
 import { emails, sendEmail } from "@/lib/email";
+import { relationTo } from "@/lib/visibility";
 
 /**
  * Sends a friend request by email. Deliberately silent on whether the email
@@ -75,6 +76,65 @@ export async function requestFriend(formData: FormData): Promise<{ error?: strin
   return {};
 }
 
+/**
+ * Sends a friend request to someone you're already looking at — their profile,
+ * or their row on a trip you share (ticket 96). Same lifecycle as
+ * `requestFriend`; only the way you name them differs.
+ *
+ * The id is never trusted on its own. `relationTo` re-checks that the target
+ * is inside one of your rings, exactly as the profile page does — without it,
+ * this action would hand back "is this a real account?" for any id posted at
+ * it, which is the hole `/profile/<userId>` closed (ticket 46).
+ */
+export async function requestFriendById(formData: FormData): Promise<{ error?: string }> {
+  const viewer = await requireUser();
+  const targetId = String(formData.get("targetId") ?? "");
+  if (!targetId || targetId === viewer.id) return {};
+
+  const relation = await relationTo(viewer.id, targetId);
+  if (!relation || relation === "self") return {};
+
+  const target = await db.select().from(user).where(eq(user.id, targetId)).get();
+  if (!target) return {};
+
+  const existing = await db
+    .select()
+    .from(friendship)
+    .where(
+      and(
+        isNull(friendship.deletedAt),
+        or(
+          and(eq(friendship.userId, viewer.id), eq(friendship.friendId, target.id)),
+          and(eq(friendship.userId, target.id), eq(friendship.friendId, viewer.id)),
+        ),
+      ),
+    )
+    .get();
+
+  // Already friends, or a request already sitting in one direction — refuse
+  // the duplicate quietly, same as the by-email path.
+  if (existing) return {};
+
+  await db.insert(friendship).values({
+    userId: viewer.id,
+    friendId: target.id,
+    status: "pending",
+    origin: "request",
+  });
+
+  await sendEmail(
+    emails.friendRequest({
+      to: target.email,
+      toUserId: target.id,
+      fromName: viewer.name,
+    }),
+  );
+
+  revalidatePath("/friends");
+  revalidatePath(`/profile/${target.id}`);
+  return {};
+}
+
 export async function acceptFriend(formData: FormData): Promise<void> {
   const viewer = await requireUser();
   const requesterId = String(formData.get("requesterId") ?? "");
@@ -92,6 +152,7 @@ export async function acceptFriend(formData: FormData): Promise<void> {
     );
 
   revalidatePath("/friends");
+  revalidatePath(`/profile/${requesterId}`);
 }
 
 export async function declineFriend(formData: FormData): Promise<void> {
@@ -111,6 +172,7 @@ export async function declineFriend(formData: FormData): Promise<void> {
     );
 
   revalidatePath("/friends");
+  revalidatePath(`/profile/${requesterId}`);
 }
 
 export async function cancelRequest(formData: FormData): Promise<void> {
@@ -130,6 +192,7 @@ export async function cancelRequest(formData: FormData): Promise<void> {
     );
 
   revalidatePath("/friends");
+  revalidatePath(`/profile/${targetId}`);
 }
 
 /** Soft-delete either direction of an accepted friendship. */
@@ -152,4 +215,5 @@ export async function removeFriend(formData: FormData): Promise<void> {
     );
 
   revalidatePath("/friends");
+  revalidatePath(`/profile/${otherId}`);
 }
