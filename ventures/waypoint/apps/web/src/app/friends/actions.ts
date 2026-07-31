@@ -45,65 +45,10 @@ async function openPendingRequest(viewerId: string, targetId: string): Promise<v
 }
 
 /**
- * Sends a friend request by email. Deliberately silent on whether the email
- * is a registered account — same response either way — so this can't be used
- * to probe account existence (house rule: never leak whether an email is
- * registered).
- */
-export async function requestFriend(formData: FormData): Promise<{ error?: string }> {
-  const viewer = await requireUser();
-  const email = String(formData.get("email") ?? "").trim().toLowerCase();
-  if (!email) return { error: "Enter an email address." };
-
-  const target = await db.select().from(user).where(eq(user.email, email)).get();
-
-  if (!target) {
-    // Same outward result as a successful send — no account-existence leak.
-    return {};
-  }
-
-  if (target.id === viewer.id) {
-    return { error: "You can't friend yourself." };
-  }
-
-  const existing = await db
-    .select()
-    .from(friendship)
-    .where(
-      and(
-        isNull(friendship.deletedAt),
-        or(
-          and(eq(friendship.userId, viewer.id), eq(friendship.friendId, target.id)),
-          and(eq(friendship.userId, target.id), eq(friendship.friendId, viewer.id)),
-        ),
-      ),
-    )
-    .get();
-
-  if (existing) {
-    // Already friends, or a request already sitting in one direction —
-    // refuse the duplicate quietly rather than explaining which case it is.
-    return {};
-  }
-
-  await openPendingRequest(viewer.id, target.id);
-
-  await sendEmail(
-    emails.friendRequest({
-      to: target.email,
-      toUserId: target.id,
-      fromName: viewer.name,
-    }),
-  );
-
-  revalidatePath("/friends");
-  return {};
-}
-
-/**
  * Sends a friend request to someone you're already looking at — their profile,
- * or their row on a trip you share (ticket 96). Same lifecycle as
- * `requestFriend`; only the way you name them differs.
+ * or their row on a trip you share (ticket 96). This is the only way to open a
+ * request: you meet people by sharing a trip, not by typing an email address,
+ * so the old add-by-email form is gone.
  *
  * The id is never trusted on its own. `relationTo` re-checks that the target
  * is inside one of your rings, exactly as the profile page does — without it,
@@ -136,7 +81,7 @@ export async function requestFriendById(formData: FormData): Promise<{ error?: s
     .get();
 
   // Already friends, or a request already sitting in one direction — refuse
-  // the duplicate quietly, same as the by-email path.
+  // the duplicate quietly rather than explaining which case it is.
   if (existing) return {};
 
   await openPendingRequest(viewer.id, target.id);

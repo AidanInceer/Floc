@@ -1,12 +1,12 @@
 /**
- * Friends (ticket 18): accepted friends, incoming requests to act on,
- * outgoing requests still pending, and an add-by-email form — the form is
- * how a profile-bubble tap resolves when the two people don't already share
- * a trip (ticket 01 step 2).
+ * Friends (ticket 18): accepted friends, incoming requests to act on, and
+ * outgoing requests still pending. There's no add-a-friend form here — you
+ * meet people by sharing a trip, then send the request from their profile or
+ * their roster row.
  */
 import { and, eq, isNull, or } from "drizzle-orm";
 
-import { requestFriend, acceptFriend, declineFriend, cancelRequest, removeFriend } from "./actions";
+import { acceptFriend, declineFriend, cancelRequest, removeFriend } from "./actions";
 import { db } from "@/db";
 import { friendship, user, userProfile } from "@/db/schema";
 import { requireUser } from "@/lib/access";
@@ -18,13 +18,11 @@ import {
   Card,
   CardHeader,
   EmptyState,
-  Field,
-  Input,
   Page,
   PageHeader,
   Stack,
 } from "@/components/ui";
-import { ActionForm, SubmitButton } from "@/components/client-ui";
+import { SubmitButton } from "@/components/client-ui";
 import { PersonLink } from "@/components/person-link";
 
 type Person = { id: string; name: string; avatarUrl: string | null };
@@ -90,21 +88,6 @@ export default async function FriendsPage() {
         subtitle="People you've travelled with, or asked to travel with."
       />
       <Stack gap={6}>
-        <Card>
-          <CardHeader
-            title="Add a friend"
-            hint="Send a request by email — this is what a profile-bubble tap does when you don't already share a trip."
-          />
-          <div className="p-4">
-            <ActionForm action={requestFriend} className="flex flex-wrap items-end gap-3">
-              <Field label="Email" className="min-w-[220px] flex-1">
-                <Input type="email" name="email" placeholder="friend@example.com" required />
-              </Field>
-              <SubmitButton pendingLabel="Sending…">Send request</SubmitButton>
-            </ActionForm>
-          </div>
-        </Card>
-
         <Card>
           <CardHeader title="Requests" hint="Waiting on you, or waiting on them." />
           <div className="p-4">
