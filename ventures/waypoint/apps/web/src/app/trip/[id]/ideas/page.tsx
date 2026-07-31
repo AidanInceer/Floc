@@ -8,6 +8,7 @@
  * bolted to the end of the idea board.
  */
 import { and, desc, eq, isNull } from "drizzle-orm";
+import Link from "next/link";
 
 import { idea, ideaVote, user, userProfile } from "@/db/schema";
 import type { VoteValue } from "@/db/schema";
@@ -16,6 +17,7 @@ import { db } from "@/db";
 import { requireTripAccess } from "@/lib/access";
 import { loadThreads } from "@/lib/notes-read";
 import { getProfile } from "@/lib/profile";
+import { readVibeTags } from "@/lib/vibe-tags";
 import { EmptyState, Page, PageHeader } from "@/components/ui";
 import { SubmitButton } from "@/components/client-ui";
 import { IdeaCard, type IdeaCardData } from "@/components/idea-card";
@@ -137,7 +139,7 @@ export default async function IdeasPage({
     .sort((a, b) => a.pinnedAt!.getTime() - b.pinnedAt!.getTime());
   const unpinned = ideas.filter((i) => i.pinnedAt === null);
 
-  const vibes = viewerProfile?.vibePreferences ?? [];
+  const vibes = readVibeTags(viewerProfile?.vibeTags);
 
   return (
     <Page wide flush>
@@ -222,12 +224,12 @@ export default async function IdeasPage({
           <EmptyState
             title="Nothing on the board yet"
             action={vibes.length === 0 ? (
-              <a
+              <Link
                 href="/profile"
                 className="text-sm font-medium text-pen underline underline-offset-2"
               >
-                Set your vibe preferences
-              </a>
+                Pick your vibe tags
+              </Link>
             ) : undefined}
           >
             {vibes.length > 0

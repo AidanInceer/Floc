@@ -1,14 +1,35 @@
 /**
- * Settings (ticket 07): the four notification booleans only. No theme picker
- * (the app is light-only), no locale, no timezone, no consent-capture UI —
- * profile-ish fields (display name, avatar, home currency, vibe preferences)
- * live on /profile instead.
+ * Settings (ticket 07, extended by 46): the account half of the two faces —
+ * your email, who can see your profile, notifications, data handling and
+ * deleting the account. Anything you *curate* lives on /profile instead.
+ *
+ * Still no theme picker (the app is light-only), no locale, no timezone and no
+ * consent-capture UI.
  */
-import { updateNotifications, deleteAccount } from "./actions";
+import { eq } from "drizzle-orm";
+
+import {
+  deleteAccount,
+  unlinkAccount,
+  updateNotifications,
+  updatePrivacy,
+} from "./actions";
+import { db } from "@/db";
+import { account } from "@/db/schema";
+import type { Visibility } from "@/db/schema";
 import { requireUser } from "@/lib/access";
 import { ensureProfile } from "@/lib/profile";
-import { Card, CardHeader, Page, PageHeader, Stack } from "@/components/ui";
-import { ConfirmSubmit, SubmitButton } from "@/components/client-ui";
+import {
+  Card,
+  CardHeader,
+  Field,
+  Input,
+  Page,
+  PageHeader,
+  Select,
+  Stack,
+} from "@/components/ui";
+import { ActionForm, ConfirmSubmit, SubmitButton } from "@/components/client-ui";
 
 const NOTIFICATION_TOGGLES = [
   { name: "notifyInvites", label: "Trip invites" },
@@ -17,14 +38,149 @@ const NOTIFICATION_TOGGLES = [
   { name: "notifyNudges", label: "Nudges from other members" },
 ] as const;
 
+const PROVIDER_LABELS: Record<string, string> = {
+  google: "Google",
+  facebook: "Facebook",
+  credential: "Email & password",
+};
+
+/** Widest ring last, matching the nesting in lib/visibility.ts. */
+const RING_LABELS: Record<Visibility, string> = {
+  private: "Only me",
+  friends: "Friends",
+  trip_members: "Friends and people I've travelled with",
+};
+
 export default async function SettingsPage() {
   const viewer = await requireUser("/settings");
   const profile = await ensureProfile(viewer.id);
 
+  const linkedAccounts = await db
+    .select({ id: account.id, providerId: account.providerId })
+    .from(account)
+    .where(eq(account.userId, viewer.id))
+    .all();
+
   return (
     <Page>
-      <PageHeader title="Settings" subtitle="Email notifications." />
+      <PageHeader
+        title="Settings"
+        subtitle="Your account, your privacy, and what Waypoint emails you about."
+      />
       <Stack gap={6}>
+        <Card>
+          <CardHeader
+            title="Account"
+            hint="Your email comes from whichever provider signed you in, and can't be changed here."
+          />
+          <div className="p-4">
+            <Stack gap={4}>
+              <Field label="Email">
+                <Input value={viewer.email} disabled readOnly />
+              </Field>
+              <div>
+                <span className="typed mb-2 block">Sign-in methods</span>
+                <Stack gap={3}>
+                  {linkedAccounts.map((a) => (
+                    <div key={a.id} className="flex items-center justify-between gap-3">
+                      <span className="text-sm">
+                        {PROVIDER_LABELS[a.providerId] ?? a.providerId}
+                      </span>
+                      <ActionForm action={unlinkAccount}>
+                        <input type="hidden" name="accountId" value={a.id} />
+                        <SubmitButton
+                          variant="ghost"
+                          pendingLabel="Unlinking…"
+                          className={linkedAccounts.length <= 1 ? "opacity-50" : undefined}
+                        >
+                          Unlink
+                        </SubmitButton>
+                      </ActionForm>
+                    </div>
+                  ))}
+                </Stack>
+                <p className="mt-1 text-xs text-ink-faint">
+                  Unlinking your last remaining method is refused — you&rsquo;d lose access.
+                </p>
+              </div>
+            </Stack>
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader
+            title="Who can see your profile"
+            hint="Nobody outside these rings can reach your profile at all — a stranger following the link gets nothing, the same as a made-up address."
+          />
+          <ActionForm action={updatePrivacy} className="p-4">
+            <Stack gap={4}>
+              {/* The profile-wide override sits above the per-attribute rings,
+                  because when it's on they don't apply (ticket 46). */}
+              <label className="flex items-start gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  name="isPrivate"
+                  defaultChecked={profile.isPrivate}
+                  className="mt-0.5 size-4 rounded-sm border-rule-strong"
+                />
+                <span>
+                  Make my whole profile private
+                  <span className="block text-xs text-ink-faint">
+                    People can still click your face — they&rsquo;ll see your name and
+                    picture, and nothing else.
+                  </span>
+                </span>
+              </label>
+
+              <Field label="Profile picture">
+                <Select
+                  name="visibilityPicture"
+                  defaultValue={profile.visibilityPicture}
+                >
+                  {Object.entries(RING_LABELS).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+
+              <Field label="Vibe tags">
+                <Select
+                  name="visibilityVibeTags"
+                  defaultValue={profile.visibilityVibeTags}
+                >
+                  {Object.entries(RING_LABELS).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+
+              <Field
+                label="Past trips"
+                hint="Ended trips only, and they're hidden entirely while your profile is private."
+              >
+                <Select name="pastTripsShow" defaultValue={profile.pastTripsShow}>
+                  <option value="all">Show all of them</option>
+                  <option value="latest">Show my most recent one only</option>
+                </Select>
+              </Field>
+
+              <p className="text-xs text-ink-faint">
+                Dietary requirements have their own switch, on your profile — they
+                never appear on a profile page, only where a trip needs them.
+                Your home currency is always private.
+              </p>
+
+              <div>
+                <SubmitButton pendingLabel="Saving…">Save privacy</SubmitButton>
+              </div>
+            </Stack>
+          </ActionForm>
+        </Card>
+
         <Card>
           <CardHeader
             title="Email notifications"
@@ -51,7 +207,7 @@ export default async function SettingsPage() {
         </Card>
 
         <Card>
-          <CardHeader title="Privacy & data" />
+          <CardHeader title="Your data" />
           <div className="p-4">
             <Stack gap={3}>
               <p className="text-sm text-ink-soft">

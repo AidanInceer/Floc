@@ -1,37 +1,36 @@
 "use server";
 
 /**
- * Identity edits (ticket 06/18). Only our own copies on `user_profile` are
- * writable here — email is Better Auth's and stays read-only.
+ * Profile edits (tickets 06/18, reshaped by 46). Everything writable here is a
+ * *profile* field — who you are. The privacy flags that decide who sees them
+ * live on /settings, because privacy is configuration, not profile.
+ *
+ * Email is not here at all any more: it's Better Auth's, it can't change from
+ * this page, and a permanently-disabled field was the single thing making the
+ * profile read as a form.
  */
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
-import { CURRENCIES, account, userProfile } from "@/db/schema";
+import { CURRENCIES, userProfile } from "@/db/schema";
 import type { Currency } from "@/db/schema";
 import { requireUser } from "@/lib/access";
+import { MAX_DIETARY_NOTES, parseDietFlags } from "@/lib/dietary";
 import { ensureProfile } from "@/lib/profile";
+import { parseVibeTags } from "@/lib/vibe-tags";
 
-export async function updateProfile(formData: FormData): Promise<{ error?: string }> {
+export async function updateIdentity(formData: FormData): Promise<{ error?: string }> {
   const viewer = await requireUser();
   await ensureProfile(viewer.id);
 
   const displayName = String(formData.get("displayName") ?? "").trim();
   const avatarUrl = String(formData.get("avatarUrl") ?? "").trim();
   const homeCurrency = String(formData.get("homeCurrency") ?? "GBP") as Currency;
-  const vibeRaw = String(formData.get("vibePreferences") ?? "");
 
   if (!CURRENCIES.includes(homeCurrency)) {
     return { error: "Pick a currency Waypoint supports." };
   }
-
-  // One-per-line or comma-separated free text → JSON string[] (ticket 04:
-  // vibe_preferences is deliberately unstructured, not a tag taxonomy).
-  const vibePreferences = vibeRaw
-    .split(/[\n,]/)
-    .map((v) => v.trim())
-    .filter(Boolean);
 
   await db
     .update(userProfile)
@@ -39,7 +38,6 @@ export async function updateProfile(formData: FormData): Promise<{ error?: strin
       displayName: displayName || null,
       avatarUrl: avatarUrl || null,
       homeCurrency,
-      vibePreferences: vibePreferences.length ? vibePreferences : null,
       lastModifiedAt: new Date(),
     })
     .where(eq(userProfile.userId, viewer.id));
@@ -49,27 +47,52 @@ export async function updateProfile(formData: FormData): Promise<{ error?: strin
 }
 
 /**
- * Unlink a connected sign-in method. Refuses to remove your last remaining
- * credential (ticket 06) — otherwise the account would have no way back in.
+ * The chip picker posts one `vibeTag` value per selected chip. `parseVibeTags`
+ * re-checks every one against the seed list — the picker can only offer valid
+ * tags, but a hand-crafted POST must not be able to invent one (ticket 46).
  */
-export async function unlinkAccount(formData: FormData): Promise<{ error?: string }> {
+export async function updateVibeTags(formData: FormData): Promise<{ error?: string }> {
   const viewer = await requireUser();
-  const accountId = String(formData.get("accountId") ?? "");
+  await ensureProfile(viewer.id);
 
-  const linked = await db
-    .select()
-    .from(account)
-    .where(eq(account.userId, viewer.id))
-    .all();
+  const picked = parseVibeTags(formData.getAll("vibeTag").map(String));
 
-  if (linked.length <= 1) {
-    return { error: "You can't unlink your last sign-in method." };
-  }
+  await db
+    .update(userProfile)
+    .set({
+      vibeTags: picked.length ? picked : null,
+      lastModifiedAt: new Date(),
+    })
+    .where(eq(userProfile.userId, viewer.id));
 
-  const target = linked.find((a) => a.id === accountId);
-  if (!target) return { error: "That sign-in method isn't linked." };
+  revalidatePath("/profile");
+  return {};
+}
 
-  await db.delete(account).where(eq(account.id, accountId));
+/**
+ * Diet flags and the free-text allergies line. `shareDietary` is deliberately
+ * saved here rather than with the other privacy flags on /settings: it is the
+ * one switch that reads as part of the fact itself, and it covers the whole
+ * record at once — you cannot publish half a dietary record (ticket 46).
+ */
+export async function updateDietary(formData: FormData): Promise<{ error?: string }> {
+  const viewer = await requireUser();
+  await ensureProfile(viewer.id);
+
+  const flags = parseDietFlags(formData.getAll("dietFlag").map(String));
+  const notes = String(formData.get("dietaryNotes") ?? "")
+    .trim()
+    .slice(0, MAX_DIETARY_NOTES);
+
+  await db
+    .update(userProfile)
+    .set({
+      dietFlags: flags.length ? flags : null,
+      dietaryNotes: notes || null,
+      shareDietary: formData.get("shareDietary") === "on",
+      lastModifiedAt: new Date(),
+    })
+    .where(eq(userProfile.userId, viewer.id));
 
   revalidatePath("/profile");
   return {};

@@ -25,6 +25,7 @@ import {
   Stack,
 } from "@/components/ui";
 import { ActionForm, SubmitButton } from "@/components/client-ui";
+import { PersonLink } from "@/components/person-link";
 
 type Person = { id: string; name: string; avatarUrl: string | null };
 
@@ -167,7 +168,14 @@ export default async function FriendsPage() {
                 {acceptedPeople.map(({ person, metOn }) => (
                   <div key={person.id} className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
-                      <Avatar name={person.name} src={person.avatarUrl} />
+                      {/* Accepted friends only — a pending request doesn't put
+                          you in anyone's ring yet, so the link above would 404
+                          (ticket 46). */}
+                      <PersonLink
+                        userId={person.id}
+                        name={person.name}
+                        avatarUrl={person.avatarUrl}
+                      />
                       <div>
                         <p className="text-sm">{person.name}</p>
                         {/* Quiet distinction (ticket 18): auto-added friends get a

@@ -11,7 +11,8 @@
  * ticket 05), and the nudge itself is delivered by email in `sendNudge` — so
  * dropping the old "waiting on you" list doesn't leave nudges undeliverable.
  */
-import { Avatar, Badge } from "@/components/ui";
+import { Badge } from "@/components/ui";
+import { PersonLink } from "@/components/person-link";
 import { Field, Select, Stack, Textarea } from "@/components/ui";
 import { CopyLink, Sheet, SubmitButton } from "@/components/client-ui";
 import { KickBoot } from "@/components/kick-boot";
@@ -61,12 +62,33 @@ export function TripRoster({
             className="flex items-center gap-2 border-b border-dotted border-rule-strong py-1.5 last:border-b-0"
           >
             <span className="flex min-w-0 flex-1 items-center gap-2 text-sm">
-              <Avatar name={m.name} src={m.avatarUrl} size={26} tone={m.tone} />
-              <span className="truncate">{m.name}</span>
-              {m.userId === viewerId ? (
-                <span className="text-xs text-ink-faint">(you)</span>
-              ) : null}
-              {m.role === "admin" ? <Badge tone="marine">Admin</Badge> : null}
+              {/* Every face is a way into that person's profile (ticket 46) —
+                  sharing this trip puts you in their trip-members ring. */}
+              <PersonLink
+                userId={m.userId}
+                name={m.name}
+                avatarUrl={m.avatarUrl}
+                size={26}
+                tone={m.tone}
+                isYou={m.userId === viewerId}
+              />
+              <span className="min-w-0">
+                <span className="flex items-center gap-2">
+                  <span className="truncate">{m.name}</span>
+                  {m.userId === viewerId ? (
+                    <span className="text-xs text-ink-faint">(you)</span>
+                  ) : null}
+                  {m.role === "admin" ? <Badge tone="marine">Admin</Badge> : null}
+                </span>
+                {/* Dietary never shows on a profile page — it shows here, where
+                    a group picking somewhere to eat needs it (ticket 46), and
+                    only for people who chose to share it. */}
+                {m.dietary ? (
+                  <span className="block truncate text-xs text-ink-faint">
+                    {m.dietary}
+                  </span>
+                ) : null}
+              </span>
             </span>
 
             {/* Kicking sits on the person too (ticket 38), beside the bell and

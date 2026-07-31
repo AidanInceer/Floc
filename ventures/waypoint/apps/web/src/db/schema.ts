@@ -108,6 +108,21 @@ export type Currency = (typeof CURRENCIES)[number];
 export const SIGNUP_CHANNELS = ["whatsapp", "email", "link", "direct"] as const;
 export type SignupChannel = (typeof SIGNUP_CHANNELS)[number];
 
+/**
+ * The three visibility rings a *display* attribute can be set to (ticket 46),
+ * nested: `private` ⊂ `friends` ⊂ `trip_members`. There is deliberately no
+ * signed-in-stranger tier — someone in none of these rings gets a 404 on the
+ * profile entirely, the same enumeration-proof shape as trip access
+ * (non-negotiable 5). Ordered widest-last; `src/lib/visibility.ts` owns the
+ * comparison.
+ */
+export const VISIBILITIES = ["private", "friends", "trip_members"] as const;
+export type Visibility = (typeof VISIBILITIES)[number];
+
+/** How much of the past-trips list a profile shows (ticket 46). */
+export const PAST_TRIPS_SHOW = ["latest", "all"] as const;
+export type PastTripsShow = (typeof PAST_TRIPS_SHOW)[number];
+
 export const userProfile = sqliteTable("user_profile", {
   userId: text("user_id")
     .primaryKey()
@@ -118,11 +133,56 @@ export const userProfile = sqliteTable("user_profile", {
   homeCurrency: text("home_currency", { enum: CURRENCIES })
     .notNull()
     .default("GBP"),
-  /** Free-form JSON for v1, not structured tags (ticket 04). */
-  vibePreferences: text("vibe_preferences", { mode: "json" }).$type<
-    string[] | null
-  >(),
+  /**
+   * The vibe chips on your profile (ticket 46). Was `vibe_preferences`, free
+   * text — now **seed-only**, picked from `VIBE_TAGS` in src/lib/vibe-tags.ts.
+   * Free text was fragmenting the vocabulary ("slow travel" / "slow traveller"
+   * / "slow"), which the later matching features need whole. Custom tags are
+   * deferred, not refused. Still a JSON column, still normalised on write.
+   */
+  vibeTags: text("vibe_tags", { mode: "json" }).$type<string[] | null>(),
   signupChannel: text("signup_channel", { enum: SIGNUP_CHANNELS }),
+  /* ---------------------------------------------------------------------- */
+  /* Dietary — a *functional* attribute (ticket 46)                          */
+  /* ---------------------------------------------------------------------- */
+  /**
+   * Preset diet flags, from `DIET_FLAGS` in src/lib/dietary.ts. Never rendered
+   * on a profile page: dietary surfaces where it does work (a trip picking a
+   * restaurant), not where people browse each other.
+   */
+  dietFlags: text("diet_flags", { mode: "json" }).$type<string[] | null>(),
+  /** Free text — allergies and intolerances, which no preset list can cover. */
+  dietaryNotes: text("dietary_notes"),
+  /**
+   * One boolean for the *whole* dietary record (ticket 46). You cannot publish
+   * half of it — gluten-intolerant-and-vegan is one fact, not two. Off by
+   * default: dietary is private unless you say otherwise.
+   */
+  shareDietary: integer("share_dietary", { mode: "boolean" })
+    .notNull()
+    .default(false),
+  /* ---------------------------------------------------------------------- */
+  /* Visibility — the flags live here, but are edited on /settings           */
+  /* ---------------------------------------------------------------------- */
+  /**
+   * The profile-wide switch. When set, every display attribute is hidden and
+   * the public page falls back to the floor — display name and picture, which
+   * anyone inside a ring always sees.
+   */
+  isPrivate: integer("is_private", { mode: "boolean" }).notNull().default(false),
+  visibilityPicture: text("visibility_picture", { enum: VISIBILITIES })
+    .notNull()
+    .default("trip_members"),
+  visibilityVibeTags: text("visibility_vibe_tags", { enum: VISIBILITIES })
+    .notNull()
+    .default("trip_members"),
+  /**
+   * Past trips ride `is_private` rather than carrying a ring of their own
+   * (ticket 46) — this only truncates the list.
+   */
+  pastTripsShow: text("past_trips_show", { enum: PAST_TRIPS_SHOW })
+    .notNull()
+    .default("all"),
   /*
    * No `theme` column. Waypoint is light-only — the paper metaphor doesn't
    * have a dark mode, so there is nothing to store per account (ticket 07).
@@ -196,7 +256,7 @@ export const trip = sqliteTable(
      * table: the vocabulary is a private joke per group, so a curated list
      * would be wrong for everyone, and there is no cross-trip tag query to
      * make a table pay for itself. Same JSON-column shape as
-     * `user_profile.vibe_preferences`, which settled the same argument.
+     * `user_profile.vibe_tags`, which settled the same argument.
      * Normalised on write by src/lib/tags.ts — always lower-case and deduped.
      */
     tags: text("tags", { mode: "json" }).$type<string[] | null>(),

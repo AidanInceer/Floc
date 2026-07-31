@@ -15,6 +15,7 @@ import { cache } from "react";
 import { db } from "@/db";
 import { trip, tripMembership, user, userProfile } from "@/db/schema";
 import { auth } from "@/lib/auth";
+import { dietarySummary, readDietFlags } from "@/lib/dietary";
 import { seatTone } from "@/lib/who";
 import type { TripRole } from "@/db/schema";
 
@@ -57,6 +58,12 @@ export type TripMember = {
    * back to hashing the name — that's for people with no roster behind them.
    */
   tone: string;
+  /**
+   * Their dietary line, or null if they haven't shared it (ticket 46). Dietary
+   * is a *functional* attribute: it never appears on a profile page, it appears
+   * here, where a group deciding where to eat actually needs it.
+   */
+  dietary: string | null;
 };
 
 /**
@@ -152,6 +159,9 @@ function memberQuery() {
       image: user.image,
       displayName: userProfile.displayName,
       avatarUrl: userProfile.avatarUrl,
+      dietFlags: userProfile.dietFlags,
+      dietaryNotes: userProfile.dietaryNotes,
+      shareDietary: userProfile.shareDietary,
     })
     .from(tripMembership)
     .innerJoin(user, eq(user.id, tripMembership.userId))
@@ -170,6 +180,9 @@ function toRoster(rows: MemberRow[]): TripMember[] {
       email: r.email,
       avatarUrl: r.avatarUrl ?? r.image ?? null,
       joinedAt: r.joinedAt,
+      dietary: r.shareDietary
+        ? dietarySummary(readDietFlags(r.dietFlags), r.dietaryNotes)
+        : null,
     }))
     // Earliest-joined first — the order sole-admin promotion also uses
     // (ticket 06). Tie-broken on user id so a group seeded within the same

@@ -52,17 +52,28 @@ Per-app work is faster scoped: `pnpm --filter waypoint-web dev` (or `test`,
 ## Conventions
 
 - Package manager: **pnpm** (v9). Node >= 20. Build orchestration: **Turborepo**.
-- Default branch: **`main`**. Feature branches → PR; CI must pass before merge.
-- Commits: Conventional Commits, scoped where useful (`feat(waypoint): …`,
-  `fix(ci): …`). A commit that resolves a tracked issue ends with
-  `Closes <owner>/<repo>#<n>` — **fully qualified**, because issues are tracked
-  in the venture's own GitHub repo (`AidanInceer/Waypoint`), so a bare `#12`
-  points at the wrong tracker.
+- **Work lands on `main` directly.** No feature branches, no PRs — this is a
+  single-maintainer repo and the branch-and-review round trip bought nothing.
+  Commit on `main` and push there.
+- **Commit subject: `<version> #<issue>: <type>: <description>`** — e.g.
+  `0.4.0 #93: feat: split the profile into two faces`. All four parts, in that
+  order:
+  - **version** — the next version of the app the change lands in, and
+    `ventures/waypoint/apps/web/package.json` is bumped to match it in the same
+    commit. Default to a **minor** bump for a feature and a **patch** for a fix;
+    a major bump only ever happens when the maintainer says so. Never invent a
+    major bump.
+  - **issue** — the ticket the work closes, bare `#n` here because the subject
+    is read by a human. The *body* still ends with a fully-qualified
+    `Closes AidanInceer/Waypoint#<n>`, because issues live in the venture's own
+    GitHub repo and a bare `#93` in the body points GitHub at the wrong tracker.
+  - **type** — Conventional Commits' word: `feat`, `fix`, `docs`, `refactor`,
+    `chore`, `test`.
+  - **description** — sentence case, no full stop, says what changed.
 - **Commit at the end of a session, not during it.** Once the work has been
   reviewed and the go-ahead given — or the next session starts, which is the
   same signal — commit the changes: one commit per ticket, never a single
-  catch-all. **Commit only; never push.** Pushing stays a separate, explicit
-  ask.
+  catch-all.
 - Workspaces are defined in **`pnpm-workspace.yaml` only** — new packages/apps
   must live under a globbed path to be picked up. Do not add an npm-style
   `"workspaces"` array to `package.json`; pnpm ignores it and the two silently

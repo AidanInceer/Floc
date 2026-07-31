@@ -36,25 +36,26 @@ const PEOPLE = [
   {
     name: "Aidan Inceer",
     email: "aidan@example.com",
-    vibes: ["cities with good food", "long walks", "no 6am flights"],
+    /** Seed-only, from lib/vibe-tags.ts VIBE_TAGS (ticket 46). */
+    vibes: ["food and markets", "city breaks", "slow travel"],
     currency: "GBP" as const,
   },
   {
     name: "Priya Raman",
     email: "priya@example.com",
-    vibes: ["museums", "swimming", "one big splurge dinner"],
+    vibes: ["museums and galleries", "beaches", "worth splashing out"],
     currency: "GBP" as const,
   },
   {
     name: "Tom Whitfield",
     email: "tom@example.com",
-    vibes: ["hiking", "cheap beer", "anywhere with trains"],
+    vibes: ["hiking", "budget", "road trips"],
     currency: "EUR" as const,
   },
   {
     name: "Sofia Alves",
     email: "sofia@example.com",
-    vibes: ["beaches", "markets", "sleeping in"],
+    vibes: ["beaches", "food and markets", "late nights"],
     currency: "EUR" as const,
   },
 ];
@@ -84,7 +85,7 @@ async function main() {
         userId: id,
         displayName: person.name,
         homeCurrency: person.currency,
-        vibePreferences: person.vibes,
+        vibeTags: person.vibes,
         signupChannel: "direct",
       })
       .onConflictDoNothing();
