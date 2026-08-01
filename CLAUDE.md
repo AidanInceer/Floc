@@ -70,6 +70,26 @@ Per-app work is faster scoped: `pnpm --filter waypoint-web dev` (or `test`,
   - **type** — Conventional Commits' word: `feat`, `fix`, `docs`, `refactor`,
     `chore`, `test`.
   - **description** — sentence case, no full stop, says what changed.
+
+  The subject starts at the version digit and **nothing goes in front of it.**
+
+  On Windows this has gone wrong twice, both times the same way. A multi-line
+  message is passed to `git commit -m` with a PowerShell here-string, `@'` …
+  `'@` — and if the closing `'@` is indented, or the opening `@'` is not the
+  last thing on its line, PowerShell stops treating them as delimiters and the
+  bare `@` characters end up inside the message. Git then reads a first line of
+  `@`, folds it into the next line for display, and every tool downstream shows
+  the commit as `@`.
+
+  So: the `@'` and `'@` must each sit alone, `'@` at column 0. Then read the
+  subject back before moving on —
+
+  ```bash
+  git log -1 --format=%s
+  ```
+
+  which prints the subject by itself. It must begin with a digit. If it begins
+  with `@`, the here-string leaked and the message needs amending.
 - **Commit at the end of a session, not during it.** Once the work has been
   reviewed and the go-ahead given — or the next session starts, which is the
   same signal — commit the changes: one commit per ticket, never a single
