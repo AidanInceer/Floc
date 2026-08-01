@@ -1,12 +1,16 @@
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
 
+import { requireInProduction } from "../lib/env.ts";
 import * as schema from "./schema.ts";
 
 /**
  * Turso (libSQL) over HTTP — reachable from Vercel Functions with no raw TCP
  * (ticket 02). With no TURSO_DATABASE_URL set this falls back to a local file
- * database so the app runs before any account is provisioned.
+ * database so the app runs before any account is provisioned — outside
+ * production only. In production a missing URL is fatal at module load
+ * (ticket 112): silently serving an empty file database looks like total data
+ * loss to anyone hitting it.
  */
 // Naming the mistake directly: pulled into a client bundle, libSQL otherwise
 // fails with an opaque "URL_SCHEME_NOT_SUPPORTED" about the file: URL, a long
@@ -19,7 +23,7 @@ if (typeof window !== "undefined") {
 }
 
 const client = createClient({
-  url: process.env.TURSO_DATABASE_URL ?? "file:./local.db",
+  url: requireInProduction("TURSO_DATABASE_URL", "file:./local.db"),
   authToken: process.env.TURSO_AUTH_TOKEN,
 });
 

@@ -34,6 +34,7 @@ import {
   type Currency,
 } from "@/db/schema";
 import { requireTripAccess } from "@/lib/access";
+import { absoluteUrl } from "@/lib/email";
 import { computeBalances, formatMoney } from "@/lib/money";
 import { countdownLabel, formatDateRange, hasEnded } from "@/lib/dates";
 import {
@@ -316,7 +317,7 @@ export default async function OverviewPage({
   // Ideas is where you are when there's nothing else open yet.
   if (!stations.some((s) => s.state === "now")) stations[0].state = "now";
 
-  const inviteUrl = `${process.env.BETTER_AUTH_URL ?? "http://localhost:3000"}/invite/${trip.inviteToken}`;
+  const inviteUrl = absoluteUrl(`/invite/${trip.inviteToken}`);
   const tags = readTags(trip.tags);
   const tagTones = readTagTones(trip.tagTones);
 

@@ -11,6 +11,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
 import { db } from "@/db";
 import * as schema from "@/db/schema";
+import { requireInProduction } from "@/lib/env";
 
 const googleConfigured =
   !!process.env.GOOGLE_CLIENT_ID && !!process.env.GOOGLE_CLIENT_SECRET;
@@ -24,7 +25,10 @@ export const enabledProviders = {
 
 export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
-  secret: process.env.BETTER_AUTH_SECRET ?? "dev-only-secret-change-me",
+  // Ticket 112: fatal in production if unset. A session secret has no degraded
+  // mode — a deploy signing cookies with a value from the repo is an auth
+  // bypass, not a reduced feature set.
+  secret: requireInProduction("BETTER_AUTH_SECRET", "dev-only-secret-change-me"),
   database: drizzleAdapter(db, {
     provider: "sqlite",
     schema: {

@@ -12,6 +12,7 @@ import { eq, inArray } from "drizzle-orm";
 
 import { db } from "@/db";
 import { userProfile } from "@/db/schema";
+import { appUrl } from "@/lib/env";
 
 export type EmailCategory = "invites" | "votes" | "money" | "nudges";
 
@@ -35,12 +36,8 @@ export type OutboundEmail = {
   toUserId?: string;
 };
 
-function baseUrl() {
-  return process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
-}
-
 export function absoluteUrl(path: string) {
-  return new URL(path, baseUrl()).toString();
+  return new URL(path, appUrl()).toString();
 }
 
 async function categoryAllowed(
