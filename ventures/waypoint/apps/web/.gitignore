@@ -6,3 +6,6 @@ local.db
 local.db-*
 *.tsbuildinfo
 next-env.d.ts
+
+# Coverage reports (ticket 116) — generated, never committed
+/coverage
