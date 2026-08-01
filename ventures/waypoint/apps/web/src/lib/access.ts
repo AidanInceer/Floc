@@ -13,7 +13,17 @@ import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
 
 import { db } from "@/db";
-import { trip, tripMembership, user, userProfile } from "@/db/schema";
+import {
+  day,
+  dayEvent,
+  expense,
+  idea,
+  note,
+  trip,
+  tripMembership,
+  user,
+  userProfile,
+} from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { dietarySummary, readDietFlags } from "@/lib/dietary";
 import { seatTone } from "@/lib/who";
@@ -41,6 +51,29 @@ export type TripAccess = {
   isAdmin: boolean;
   viewer: { id: string; name: string; email: string; image: string | null };
   members: TripMember[];
+  /**
+   * Resolvers that can only produce rows belonging to *this* trip (ticket 106).
+   *
+   * `requireTripAccess` used to answer one question — "may this viewer touch
+   * trip 12?" — and then step aside. But almost every action operates on a
+   * *child* of the trip whose id arrives from the client, and binding that
+   * child back to the trip was left to the caller as an unwritten obligation
+   * across ~70 call sites. Six callers forgot, which is ticket 104.
+   *
+   * That made the interface shallow: the obligation it left behind was larger
+   * than the answer it gave. These resolvers move the join inside, so the
+   * unsafe form stops being expressible — an action that wants an event calls
+   * `access.event(id)` and there is no shorter way to get one.
+   *
+   * Each returns the full row, or `notFound()` — the same response as a row
+   * that does not exist, so child ids stay non-enumerable (rule 5). Each also
+   * filters `deletedAt` (rule 8).
+   */
+  day: (dayId: number) => Promise<typeof day.$inferSelect>;
+  event: (eventId: number) => Promise<typeof dayEvent.$inferSelect>;
+  idea: (ideaId: number) => Promise<typeof idea.$inferSelect>;
+  expense: (expenseId: number) => Promise<typeof expense.$inferSelect>;
+  note: (noteId: number) => Promise<typeof note.$inferSelect>;
 };
 
 export type TripMember = {
@@ -143,6 +176,106 @@ export async function requireTripAccess(
       image: viewer.image ?? null,
     },
     members,
+    ...scopedTo(id),
+  };
+}
+
+/**
+ * The resolvers on `TripAccess`, built for one trip id. See the doc on the type
+ * for why they exist at all.
+ *
+ * Each is memoised with `cache()`, keyed on the trip and the child id — several
+ * actions resolve the same row more than once (an update reads it, then the
+ * revalidation path wants its day), and per-request dedupe makes that free. The
+ * key discipline from `loadTripAccess` holds here too: nothing that belongs to
+ * the *caller* rather than to the data goes into the key.
+ *
+ * `day` and `idea` and `expense` and `note` reach `trip` by a direct column;
+ * `event` reaches it through its day, which is the whole shape of the bug
+ * ticket 104 fixed by hand.
+ */
+const resolveDay = cache(async (tripId: number, dayId: number) => {
+  const row = await db
+    .select()
+    .from(day)
+    .where(and(eq(day.id, dayId), eq(day.tripId, tripId), isNull(day.deletedAt)))
+    .get();
+  if (!row) notFound();
+  return row;
+});
+
+const resolveEvent = cache(async (tripId: number, eventId: number) => {
+  const row = await db
+    .select({ event: dayEvent })
+    .from(dayEvent)
+    .innerJoin(day, eq(day.id, dayEvent.dayId))
+    .where(
+      and(
+        eq(dayEvent.id, eventId),
+        eq(day.tripId, tripId),
+        isNull(dayEvent.deletedAt),
+        isNull(day.deletedAt),
+      ),
+    )
+    .get();
+  if (!row) notFound();
+  return row.event;
+});
+
+const resolveIdea = cache(async (tripId: number, ideaId: number) => {
+  const row = await db
+    .select()
+    .from(idea)
+    .where(
+      and(eq(idea.id, ideaId), eq(idea.tripId, tripId), isNull(idea.deletedAt)),
+    )
+    .get();
+  if (!row) notFound();
+  return row;
+});
+
+const resolveExpense = cache(async (tripId: number, expenseId: number) => {
+  const row = await db
+    .select()
+    .from(expense)
+    .where(
+      and(
+        eq(expense.id, expenseId),
+        eq(expense.tripId, tripId),
+        isNull(expense.deletedAt),
+      ),
+    )
+    .get();
+  if (!row) notFound();
+  return row;
+});
+
+/**
+ * `note` is polymorphic (`scope` + `scope_id`) but still carries its own
+ * `trip_id`, so it binds to the trip directly like the others. What this
+ * resolver deliberately does *not* check is that the note's `scope_id` points
+ * at something in the same trip — that's a second invariant, and it belongs to
+ * whoever writes the scope, not to whoever reads the note.
+ */
+const resolveNote = cache(async (tripId: number, noteId: number) => {
+  const row = await db
+    .select()
+    .from(note)
+    .where(
+      and(eq(note.id, noteId), eq(note.tripId, tripId), isNull(note.deletedAt)),
+    )
+    .get();
+  if (!row) notFound();
+  return row;
+});
+
+function scopedTo(tripId: number) {
+  return {
+    day: (dayId: number) => resolveDay(tripId, dayId),
+    event: (eventId: number) => resolveEvent(tripId, eventId),
+    idea: (ideaId: number) => resolveIdea(tripId, ideaId),
+    expense: (expenseId: number) => resolveExpense(tripId, expenseId),
+    note: (noteId: number) => resolveNote(tripId, noteId),
   };
 }
 
