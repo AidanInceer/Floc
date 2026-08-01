@@ -20,11 +20,11 @@ import {
   addStop,
   removeStop,
   reorderStops,
-  searchPlacesAction,
   setLegTransport,
   setOvernightPlace,
   setStopDates,
 } from "./actions";
+import { searchPlacesAction } from "../place-actions";
 import {
   Sheet,
   SubmitButton,

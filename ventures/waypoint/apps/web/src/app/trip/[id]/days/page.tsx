@@ -29,10 +29,9 @@ import {
   insertEventAt,
   reorderDays,
   swapEvents,
-  resolveEventPlace,
-  searchPlacesAction,
   updateEvent,
 } from "./actions";
+import { resolveEventPlace, searchPlacesAction } from "../place-actions";
 import {
   ConfirmSubmit,
   DragList,

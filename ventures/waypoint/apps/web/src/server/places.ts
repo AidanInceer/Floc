@@ -1,8 +1,12 @@
 /**
- * Server-side geocoding via Nominatim (v0.2 tickets 15/12). Replaces the
- * Mapbox version: Mapbox's permanent geocoding has no free tier and needs a
- * card, and Nominatim's usage policy explicitly permits storing results —
- * which is the whole point of the `place` table.
+ * Places: Nominatim geocoding and the `place` table (v0.2 tickets 15/12), and
+ * the one home for both — ticket 110 folded two duplicate search entry points
+ * into this module, whose only browser-facing surface is the pair of Server
+ * Actions in `app/trip/[id]/place-actions.ts`.
+ *
+ * Replaces the Mapbox version: Mapbox's permanent geocoding has no free tier
+ * and needs a card, and Nominatim's usage policy explicitly permits storing
+ * results — which is the whole point of the `place` table.
  *
  * Two hard requirements from that policy, both enforced here:
  *   - a real identifying User-Agent (agreed with the user, ticket 12)
@@ -65,6 +69,20 @@ export type PlaceSearchResult = {
 /**
  * Serialises every outgoing geocode into a single ≥1s-spaced queue. A chain of
  * promises rather than a timer loop, so callers just await their turn.
+ *
+ * **The limit, stated rather than assumed away (ticket 110):** `queue` and
+ * `lastCall` are per-process. One server, one queue, and the 1/s cap holds.
+ * Two serverless instances hold it *each* — two requests per second at
+ * Nominatim, which is over the policy. Ticket 110 folded the two duplicate
+ * entry points into one module so there is a single place for the fix; it did
+ * not make the fix, because at pre-MVP traffic there is one warm instance and a
+ * shared limiter costs a network hop per search.
+ *
+ * What to reach for when it stops being adequate, in order: a `place` lookup
+ * cache keyed on the normalised query (most searches here are repeats of the
+ * same handful of cities, and Nominatim's policy explicitly permits storing
+ * results — see the header), then a shared token bucket in the database. Both
+ * belong in this file; nothing outside it knows the throttle exists.
  */
 let queue: Promise<unknown> = Promise.resolve();
 let lastCall = 0;

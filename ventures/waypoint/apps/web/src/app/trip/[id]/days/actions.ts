@@ -12,7 +12,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { day, dayEvent } from "@/db/schema";
 import type { DayEventType, TransportType } from "@/db/schema";
-import { requireTripAccess, requireUser } from "@/server/access";
+import { requireTripAccess } from "@/server/access";
 import { addDays as addDaysToDate } from "@/lib/dates";
 import {
   insertAt,
@@ -21,35 +21,7 @@ import {
   swapItems,
 } from "@/lib/event-order";
 import { moveItem, permuteDayContents } from "@/server/itinerary";
-import { searchPlaces, upsertPlace } from "@/server/geocoding";
 import { refreshUnlocks, touch } from "@/server/unlocks";
-
-/**
- * Server-action wrapper — see route/actions.ts's twin for why this exists.
- *
- * Signed-in only (ticket 104). A `"use server"` export is a public endpoint;
- * without the gate this was an open geocoding proxy billed to our Nominatim
- * budget by anyone who could name the action.
- */
-export async function searchPlacesAction(query: string) {
-  await requireUser();
-  return searchPlaces(query);
-}
-
-/** Resolves a free-text or geocoded place into a `place.id` for an event. */
-export async function resolveEventPlace(input: {
-  providerId: string | null;
-  name: string;
-  lat: number | null;
-  lng: number | null;
-  countryCode?: string | null;
-}) {
-  // Gated for the same reason as the search above, and more sharply: this one
-  // *writes* `place` rows (ticket 104).
-  await requireUser();
-  if (!input.name.trim()) return null;
-  return upsertPlace(input);
-}
 
 /*
  * The trip joins that used to live here as local `requireDay` / `requireEvent`

@@ -27,10 +27,10 @@ import {
   deleteEvent,
   moveEvent,
   reorderEvents,
-  searchPlacesAction,
   swapEvents,
   updateEvent,
 } from "./actions";
+import { searchPlacesAction } from "../place-actions";
 
 let world: Scenario;
 
