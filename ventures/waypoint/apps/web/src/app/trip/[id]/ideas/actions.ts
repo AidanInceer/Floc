@@ -8,7 +8,7 @@
  * Availability lives in `../dates/actions.ts` now — it was here only because
  * the grid used to sit at the bottom of this page.
  */
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
@@ -57,19 +57,14 @@ export async function postIdea(tripId: number, formData: FormData) {
  */
 export async function deleteIdea(tripId: number, ideaId: number) {
   const access = await requireTripAccess(tripId);
-  const row = await db
-    .select({ createdBy: idea.createdBy })
-    .from(idea)
-    .where(and(eq(idea.id, ideaId), eq(idea.tripId, tripId), isNull(idea.deletedAt)))
-    .get();
-  if (!row) return;
+  const row = await access.idea(ideaId);
 
   if (row.createdBy !== access.viewer.id) assertAdmin(access);
 
   await db
     .update(idea)
     .set({ deletedAt: new Date(), ...touch() })
-    .where(eq(idea.id, ideaId));
+    .where(eq(idea.id, row.id));
 
   revalidatePath(`/trip/${tripId}/ideas`);
 }
@@ -81,12 +76,13 @@ export async function deleteIdea(tripId: number, ideaId: number) {
  * like everything else (CLAUDE.md rule 7) — no per-viewer pinning.
  */
 export async function setIdeaPinned(tripId: number, ideaId: number, pinned: boolean) {
-  await requireTripAccess(tripId);
+  const access = await requireTripAccess(tripId);
+  const row = await access.idea(ideaId);
 
   await db
     .update(idea)
     .set({ pinnedAt: pinned ? new Date() : null, ...touch() })
-    .where(and(eq(idea.id, ideaId), eq(idea.tripId, tripId), isNull(idea.deletedAt)));
+    .where(eq(idea.id, row.id));
 
   revalidatePath(`/trip/${tripId}/ideas`);
 }
@@ -94,10 +90,11 @@ export async function setIdeaPinned(tripId: number, ideaId: number, pinned: bool
 /** Upsert on the (ideaId, userId) unique index — one vote per person per idea. */
 export async function castVote(tripId: number, ideaId: number, value: VoteValue) {
   const access = await requireTripAccess(tripId);
+  const target = await access.idea(ideaId);
 
   await db
     .insert(ideaVote)
-    .values({ ideaId, userId: access.viewer.id, value })
+    .values({ ideaId: target.id, userId: access.viewer.id, value })
     .onConflictDoUpdate({
       target: [ideaVote.ideaId, ideaVote.userId],
       // `deletedAt: null` is load-bearing, not tidiness. `clearVote` soft-deletes
@@ -114,9 +111,12 @@ export async function castVote(tripId: number, ideaId: number, value: VoteValue)
 /** Abstaining is legitimate (ticket 14) — this lets someone undo a vote. */
 export async function clearVote(tripId: number, ideaId: number) {
   const access = await requireTripAccess(tripId);
+  const target = await access.idea(ideaId);
   await db
     .update(ideaVote)
     .set({ deletedAt: new Date(), ...touch() })
-    .where(and(eq(ideaVote.ideaId, ideaId), eq(ideaVote.userId, access.viewer.id)));
+    .where(
+      and(eq(ideaVote.ideaId, target.id), eq(ideaVote.userId, access.viewer.id)),
+    );
   revalidatePath(`/trip/${tripId}/ideas`);
 }

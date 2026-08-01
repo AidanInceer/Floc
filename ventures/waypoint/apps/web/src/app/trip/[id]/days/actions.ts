@@ -12,7 +12,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { day, dayEvent } from "@/db/schema";
 import type { DayEventType, TransportType } from "@/db/schema";
-import { requireTripAccess } from "@/lib/access";
+import { requireTripAccess, requireUser } from "@/lib/access";
 import { addDays as addDaysToDate } from "@/lib/dates";
 import {
   insertAt,
@@ -24,8 +24,15 @@ import { moveItem, permuteDayContents } from "@/lib/itinerary";
 import { searchPlaces, upsertPlace } from "@/lib/geocoding";
 import { refreshUnlocks, touch } from "@/lib/unlocks";
 
-/** Server-action wrapper — see route/actions.ts's twin for why this exists. */
+/**
+ * Server-action wrapper — see route/actions.ts's twin for why this exists.
+ *
+ * Signed-in only (ticket 104). A `"use server"` export is a public endpoint;
+ * without the gate this was an open geocoding proxy billed to our Nominatim
+ * budget by anyone who could name the action.
+ */
 export async function searchPlacesAction(query: string) {
+  await requireUser();
   return searchPlaces(query);
 }
 
@@ -37,9 +44,19 @@ export async function resolveEventPlace(input: {
   lng: number | null;
   countryCode?: string | null;
 }) {
+  // Gated for the same reason as the search above, and more sharply: this one
+  // *writes* `place` rows (ticket 104).
+  await requireUser();
   if (!input.name.trim()) return null;
   return upsertPlace(input);
 }
+
+/*
+ * The trip joins that used to live here as local `requireDay` / `requireEvent`
+ * helpers are now `access.day()` / `access.event()` on the scope object
+ * (ticket 106) — same guarantee, but no longer something each actions file has
+ * to remember to write for itself.
+ */
 
 /**
  * Drops a day into a different position in the itinerary.
@@ -106,10 +123,11 @@ export async function addDays(tripId: number, afterDate: string, count: number) 
 /** Soft-deletes a single day row (and its events cascade via FK on hard delete only — soft-delete is app-level, so events are left orphaned-but-hidden by the day's own deletedAt check in queries). */
 export async function removeDay(tripId: number, dayId: number) {
   const access = await requireTripAccess(tripId);
+  const target = await access.day(dayId);
   await db
     .update(day)
     .set({ deletedAt: new Date(), ...touch() })
-    .where(and(eq(day.id, dayId), eq(day.tripId, access.trip.id)));
+    .where(eq(day.id, target.id));
   revalidatePath(`/trip/${access.trip.id}/days`);
   revalidatePath(`/trip/${access.trip.id}/route`);
 }
@@ -135,14 +153,15 @@ export async function addEvent(
   },
 ) {
   const access = await requireTripAccess(tripId);
+  const target = await access.day(dayId);
 
   const [{ count } = { count: 0 }] = await db
     .select({ count: sql<number>`count(*)` })
     .from(dayEvent)
-    .where(and(eq(dayEvent.dayId, dayId), isNull(dayEvent.deletedAt)));
+    .where(and(eq(dayEvent.dayId, target.id), isNull(dayEvent.deletedAt)));
 
   await db.insert(dayEvent).values({
-    dayId,
+    dayId: target.id,
     orderIndex: count,
     type: input.type,
     title: input.title.trim(),
@@ -170,6 +189,7 @@ export async function updateEvent(
   },
 ) {
   const access = await requireTripAccess(tripId);
+  const target = await access.event(eventId);
   await db
     .update(dayEvent)
     .set({
@@ -181,16 +201,17 @@ export async function updateEvent(
       note: input.note || null,
       ...touch(),
     })
-    .where(eq(dayEvent.id, eventId));
+    .where(eq(dayEvent.id, target.id));
   revalidatePath(`/trip/${access.trip.id}/days`);
 }
 
 export async function deleteEvent(tripId: number, eventId: number) {
   const access = await requireTripAccess(tripId);
+  const target = await access.event(eventId);
   await db
     .update(dayEvent)
     .set({ deletedAt: new Date(), ...touch() })
-    .where(eq(dayEvent.id, eventId));
+    .where(eq(dayEvent.id, target.id));
   revalidatePath(`/trip/${access.trip.id}/days`);
 }
 
@@ -220,8 +241,17 @@ function timing(input: {
   };
 }
 
-/** A day's events in the order they're shown in — see `lib/event-order.ts`. */
-async function loadEventSlots(dayId: number) {
+/**
+ * A day's events in the order they're shown in — see `lib/event-order.ts`.
+ *
+ * Takes the trip as well as the day and joins through `day`, so a foreign
+ * `dayId` reads as an empty day rather than another group's itinerary (ticket
+ * 104). Every reorder below derives the ids it writes from this read, which is
+ * what makes scoping the *read* enough to scope the writes too — and
+ * `permuteEventSlots` refuses a `newOrder` that isn't a permutation of what
+ * came back, so a caller cannot smuggle a foreign id in through it either.
+ */
+async function loadEventSlots(tripId: number, dayId: number) {
   const rows = await db
     .select({
       id: dayEvent.id,
@@ -231,7 +261,15 @@ async function loadEventSlots(dayId: number) {
       orderIndex: dayEvent.orderIndex,
     })
     .from(dayEvent)
-    .where(and(eq(dayEvent.dayId, dayId), isNull(dayEvent.deletedAt)))
+    .innerJoin(day, eq(day.id, dayEvent.dayId))
+    .where(
+      and(
+        eq(dayEvent.dayId, dayId),
+        eq(day.tripId, tripId),
+        isNull(dayEvent.deletedAt),
+        isNull(day.deletedAt),
+      ),
+    )
     .all();
   return orderEvents(rows);
 }
@@ -252,7 +290,10 @@ export async function reorderEvents(
 ) {
   const access = await requireTripAccess(tripId);
 
-  const writes = permuteEventSlots(await loadEventSlots(dayId), newOrder);
+  const writes = permuteEventSlots(
+    await loadEventSlots(access.trip.id, dayId),
+    newOrder,
+  );
   // Last-write-wins (ticket 12): two people dragging at once means the second
   // drag lands on whatever the first left behind.
   for (const w of writes) {
@@ -281,9 +322,9 @@ export async function swapEvents(
   aId: number,
   bId: number,
 ) {
-  await requireTripAccess(tripId);
+  const access = await requireTripAccess(tripId);
 
-  const order = (await loadEventSlots(dayId)).map((e) => e.id);
+  const order = (await loadEventSlots(access.trip.id, dayId)).map((e) => e.id);
   const a = order.indexOf(aId);
   const b = order.indexOf(bId);
   if (a === -1 || b === -1) return;
@@ -324,17 +365,19 @@ export async function insertEventAt(
   if (!dayIds.has(fromDayId) || !dayIds.has(toDayId)) return;
 
   if (fromDayId === toDayId) {
-    const order = (await loadEventSlots(toDayId)).map((e) => e.id);
+    const order = (await loadEventSlots(access.trip.id, toDayId)).map(
+      (e) => e.id,
+    );
     if (!order.includes(eventId)) return;
     await reorderEvents(tripId, toDayId, insertAt(order, eventId, index));
     return;
   }
 
-  const source = await loadEventSlots(fromDayId);
+  const source = await loadEventSlots(access.trip.id, fromDayId);
   if (!source.some((e) => e.id === eventId)) return;
 
   const target = insertAt(
-    (await loadEventSlots(toDayId)).map((e) => e.id),
+    (await loadEventSlots(access.trip.id, toDayId)).map((e) => e.id),
     eventId,
     index,
   );
@@ -375,9 +418,9 @@ export async function moveEvent(
 ) {
   // Gate before the read, not just inside `reorderEvents` — a non-member must
   // not get so far as learning how many events a day has (rule 5).
-  await requireTripAccess(tripId);
+  const access = await requireTripAccess(tripId);
 
-  const order = (await loadEventSlots(dayId)).map((e) => e.id);
+  const order = (await loadEventSlots(access.trip.id, dayId)).map((e) => e.id);
   const idx = order.indexOf(eventId);
   const to = direction === "up" ? idx - 1 : idx + 1;
   if (idx === -1 || to < 0 || to >= order.length) return;

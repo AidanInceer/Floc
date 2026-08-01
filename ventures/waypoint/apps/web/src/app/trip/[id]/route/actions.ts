@@ -11,7 +11,7 @@ import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
 import { day, dayEvent, type TransportType } from "@/db/schema";
-import { requireTripAccess } from "@/lib/access";
+import { requireTripAccess, requireUser } from "@/lib/access";
 import { dateRange } from "@/lib/dates";
 import { searchPlaces, upsertPlace } from "@/lib/geocoding";
 import { moveItem, permuteDayContents } from "@/lib/itinerary";
@@ -22,8 +22,14 @@ import { refreshUnlocks, touch } from "@/lib/unlocks";
  * Thin server-action wrapper so <PlacePicker> (client) can call Nominatim
  * search without a client-side fetch to our own API — only "use server"
  * functions may cross the client/server prop boundary.
+ *
+ * Signed-in only (ticket 104) — a `"use server"` export is a public endpoint,
+ * and unGated this was an open geocoding proxy against our Nominatim budget.
+ * `requireUser` rather than `requireTripAccess`: the picker searches before a
+ * trip is in scope, and place rows are not trip-scoped data.
  */
 export async function searchPlacesAction(query: string) {
+  await requireUser();
   return searchPlaces(query);
 }
 
