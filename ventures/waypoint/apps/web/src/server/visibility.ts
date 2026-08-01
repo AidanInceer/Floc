@@ -12,6 +12,8 @@
  * a database; the loaders below are the only sanctioned way to read someone
  * else's profile.
  */
+import "server-only";
+
 import { and, eq, inArray, isNull, or } from "drizzle-orm";
 import { notFound } from "next/navigation";
 
@@ -26,7 +28,7 @@ import {
   userProfile,
 } from "@/db/schema";
 import { hasEnded } from "@/lib/dates";
-import { travelMapFor } from "@/lib/travel-map";
+import { travelMapFor } from "@/server/travel-map";
 import { readVibeTags } from "@/lib/vibe-tags";
 import type { TravelMap } from "@/lib/travel-map";
 import type { PastTripsShow, Visibility } from "@/db/schema";

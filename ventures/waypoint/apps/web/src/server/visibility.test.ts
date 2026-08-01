@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { canSee, showsAttribute } from "@/lib/visibility";
+import { canSee, showsAttribute } from "@/server/visibility";
 
 describe("canSee", () => {
   it("lets a stranger see nothing, whatever the flag", () => {

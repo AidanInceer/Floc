@@ -14,12 +14,12 @@
 import { Badge } from "@/components/ui";
 import { PersonLink } from "@/components/person-link";
 import { FriendButton } from "@/components/friend-button";
-import type { FriendState } from "@/lib/friends";
+import type { FriendState } from "@/server/friends";
 import { Field, Select, Stack, Textarea } from "@/components/ui";
 import { CopyLink, Sheet, SubmitButton } from "@/components/client-ui";
 import { KickBoot } from "@/components/kick-boot";
 import { NUDGE_TABS } from "@/db/schema";
-import type { TripMember } from "@/lib/access";
+import type { TripMember } from "@/server/access";
 import { sendNudge } from "@/app/trip/[id]/overview/actions";
 
 const TAB_LABELS: Record<string, string> = {

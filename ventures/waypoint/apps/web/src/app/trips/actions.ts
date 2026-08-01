@@ -11,9 +11,9 @@ import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
 import { trip, tripMembership } from "@/db/schema";
-import { assertAdmin, requireTripAccess, requireUser } from "@/lib/access";
-import { ensureProfile } from "@/lib/profile";
-import { touch } from "@/lib/unlocks";
+import { assertAdmin, requireTripAccess, requireUser } from "@/server/access";
+import { ensureProfile } from "@/server/profile";
+import { touch } from "@/server/unlocks";
 
 /**
  * Ticket 01 step 1: the smallest thing that exists at creation is a name,

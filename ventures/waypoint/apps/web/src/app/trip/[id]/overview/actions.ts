@@ -12,10 +12,10 @@ import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
 import { nudge, trip, tripMembership, type NudgeTab } from "@/db/schema";
-import { assertAdmin, requireTripAccess } from "@/lib/access";
-import { emails, sendEmail } from "@/lib/email";
+import { assertAdmin, requireTripAccess } from "@/server/access";
+import { emails, sendEmail } from "@/server/email";
 import { parseTagRows } from "@/lib/tags";
-import { touch } from "@/lib/unlocks";
+import { touch } from "@/server/unlocks";
 
 export async function sendNudge(formData: FormData) {
   const tripId = Number(formData.get("tripId"));

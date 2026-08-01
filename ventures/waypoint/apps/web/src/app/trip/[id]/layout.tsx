@@ -6,7 +6,7 @@
  */
 import { AvatarRow } from "@/components/ui";
 import { TripTabs } from "@/components/trip-tabs";
-import { requireTripAccess } from "@/lib/access";
+import { requireTripAccess } from "@/server/access";
 import { tabStates } from "@/lib/tabs";
 
 export default async function TripLayout({

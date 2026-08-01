@@ -18,7 +18,7 @@ import * as schema from "./schema.ts";
 // this module under plain Node, where that package throws.
 if (typeof window !== "undefined") {
   throw new Error(
-    "src/db must never reach the browser — a Client Component is importing it, directly or through a helper. Split the client-safe part out (see lib/tabs.ts vs lib/unlocks.ts).",
+    "src/db must never reach the browser — a Client Component is importing it, directly or through a helper. Put the helper in src/server/ (which is `server-only`, so this becomes a build error instead) and leave the client-safe part in src/lib/ — see lib/tabs.ts vs server/unlocks.ts.",
   );
 }
 

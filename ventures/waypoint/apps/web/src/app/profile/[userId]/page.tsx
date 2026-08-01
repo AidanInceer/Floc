@@ -14,10 +14,10 @@
  */
 import { redirect } from "next/navigation";
 
-import { requireUser } from "@/lib/access";
+import { requireUser } from "@/server/access";
 import { formatDateRange } from "@/lib/dates";
-import { friendStateWith } from "@/lib/friends";
-import { requireProfileView } from "@/lib/visibility";
+import { friendStateWith } from "@/server/friends";
+import { requireProfileView } from "@/server/visibility";
 import {
   Avatar,
   Badge,

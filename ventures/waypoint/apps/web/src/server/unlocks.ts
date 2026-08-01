@@ -18,8 +18,8 @@ import { db } from "@/db";
 import { day, idea, trip } from "@/db/schema";
 import type { Trip } from "@/db/schema";
 
-export { lockReason, tabStates } from "./tabs";
-export type { TabKey, TabState } from "./tabs";
+export { lockReason, tabStates } from "@/lib/tabs";
+export type { TabKey, TabState } from "@/lib/tabs";
 
 /**
  * Called after any write that could unlock a tab. Idempotent, and one-way:

@@ -23,9 +23,9 @@ import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
 import { idea, trip, tripMembership } from "@/db/schema";
-import { requireUser } from "@/lib/access";
-import { ensureProfile } from "@/lib/profile";
-import { refreshUnlocks } from "@/lib/unlocks";
+import { requireUser } from "@/server/access";
+import { ensureProfile } from "@/server/profile";
+import { refreshUnlocks } from "@/server/unlocks";
 import { PRESET_TRIPS } from "./preset-trips";
 
 export async function startTripFromPreset(formData: FormData): Promise<void> {

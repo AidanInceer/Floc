@@ -5,7 +5,7 @@ import Link from "next/link";
 
 import { AuthForm } from "@/components/auth-form";
 import { Card, Page, Stack } from "@/components/ui";
-import { enabledProviders } from "@/lib/auth";
+import { enabledProviders } from "@/server/auth";
 
 export default function LoginPage() {
   return (

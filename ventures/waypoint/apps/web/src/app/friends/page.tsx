@@ -9,8 +9,8 @@ import { and, eq, isNull, or } from "drizzle-orm";
 import { acceptFriend, declineFriend, cancelRequest, removeFriend } from "./actions";
 import { db } from "@/db";
 import { friendship, user, userProfile } from "@/db/schema";
-import { requireUser } from "@/lib/access";
-import { coTripNameFor, syncCompletedCoTripFriendships } from "@/lib/friends";
+import { requireUser } from "@/server/access";
+import { coTripNameFor, syncCompletedCoTripFriendships } from "@/server/friends";
 import {
   Avatar,
   Badge,

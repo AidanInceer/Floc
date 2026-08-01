@@ -7,6 +7,8 @@
  *  - Authenticated non-member → the *same* generic no-access response whether
  *    the trip id is real or fake, so ids cannot be enumerated.
  */
+import "server-only";
+
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
@@ -24,7 +26,7 @@ import {
   user,
   userProfile,
 } from "@/db/schema";
-import { auth } from "@/lib/auth";
+import { auth } from "@/server/auth";
 import { dietarySummary, readDietFlags } from "@/lib/dietary";
 import { seatTone } from "@/lib/who";
 import type { TripRole } from "@/db/schema";

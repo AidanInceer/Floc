@@ -65,8 +65,8 @@ import { NoteThread, type NoteRow } from "@/components/note-thread";
 import { db } from "@/db";
 import { day, dayEvent, place } from "@/db/schema";
 import type { DayEventType, TransportType } from "@/db/schema";
-import { requireTripAccess } from "@/lib/access";
-import { loadThreads } from "@/lib/notes-read";
+import { requireTripAccess } from "@/server/access";
+import { loadThreads } from "@/server/notes-read";
 import { formatDate } from "@/lib/dates";
 import { lockReason } from "@/lib/tabs";
 

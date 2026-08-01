@@ -15,11 +15,11 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { CURRENCIES, tripMembership, userCountryMark, userProfile } from "@/db/schema";
 import type { Currency } from "@/db/schema";
-import { requireUser } from "@/lib/access";
+import { requireUser } from "@/server/access";
 import { readCountryCode } from "@/lib/countries";
 import { MAX_DIETARY_NOTES, parseDietFlags } from "@/lib/dietary";
-import { ensureProfile } from "@/lib/profile";
-import { countriesForTrips } from "@/lib/travel-map";
+import { ensureProfile } from "@/server/profile";
+import { countriesForTrips } from "@/server/travel-map";
 import { parseVibeTags } from "@/lib/vibe-tags";
 
 export async function updateIdentity(formData: FormData): Promise<{ error?: string }> {

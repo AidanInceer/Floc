@@ -6,6 +6,8 @@
  * Auto-link only on a *verified* provider email matching an existing account.
  * Long rolling sessions, no re-authentication anywhere in v1.
  */
+import "server-only";
+
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 

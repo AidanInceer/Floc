@@ -19,9 +19,9 @@ import {
   userProfile,
 } from "@/db/schema";
 import type { PastTripsShow, Visibility } from "@/db/schema";
-import { requireUser } from "@/lib/access";
-import { auth } from "@/lib/auth";
-import { ensureProfile } from "@/lib/profile";
+import { requireUser } from "@/server/access";
+import { auth } from "@/server/auth";
+import { ensureProfile } from "@/server/profile";
 
 /**
  * Privacy lives here, not on /profile: it's configuration, not identity

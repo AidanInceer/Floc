@@ -22,11 +22,13 @@
  * Last-write-wins (rule 7): two people dragging at once means the second write
  * lands on whatever the first left behind. No locking, no rejection.
  */
+import "server-only";
+
 import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { day, dayEvent } from "@/db/schema";
-import { touch } from "@/lib/unlocks";
+import { touch } from "@/server/unlocks";
 
 /** Moves one item within an array, returning a new array. */
 export function moveItem<T>(items: T[], from: number, to: number): T[] {

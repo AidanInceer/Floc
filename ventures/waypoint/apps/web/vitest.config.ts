@@ -21,7 +21,7 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text-summary", "html", "lcov"],
-      include: ["src/lib/**/*.ts", "src/app/**/actions.ts"],
+      include: ["src/lib/**/*.ts", "src/server/**/*.ts", "src/app/**/actions.ts"],
       exclude: ["src/**/*.test.ts", "src/lib/auth-client.ts"],
       // Baseline measured at v0.8.0: statements/lines 30.76%, branches 87%,
       // functions 60.95%. Each threshold sits just below its measured value —

@@ -240,7 +240,7 @@ grouping consecutive `day` rows that share the same `overnight_place_id`.
 **Reordering** therefore writes no order column: there is none, on `day` or
 anywhere else. Dragging a stop or a day permutes what the day rows *hold* —
 `day.overnight_place_id` and the `day_event` rows' `day_id` — while the dates
-stay put (`src/lib/itinerary.ts`). Two consequences fall out of the FKs above:
+stay put (`src/server/itinerary.ts`). Two consequences fall out of the FKs above:
 `expense.day_id` points at a date, so money stays on the day it was spent; and
 `note` rows are scoped to `day_event.id`, which doesn't change, so a thread
 travels with its event for free.

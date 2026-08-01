@@ -12,7 +12,7 @@
  */
 import Link from "next/link";
 
-import { requireUser } from "@/lib/access";
+import { requireUser } from "@/server/access";
 import { formatMoney } from "@/lib/money";
 import {
   Badge,

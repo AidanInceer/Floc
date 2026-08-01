@@ -7,9 +7,9 @@ import Link from "next/link";
 
 import { AuthForm } from "@/components/auth-form";
 import { Card, Page, Stack } from "@/components/ui";
-import { enabledProviders } from "@/lib/auth";
-import { getSession } from "@/lib/access";
-import { ensureProfile } from "@/lib/profile";
+import { enabledProviders } from "@/server/auth";
+import { getSession } from "@/server/access";
+import { ensureProfile } from "@/server/profile";
 import type { SignupChannel } from "@/db/schema";
 
 const VIA_VALUES = ["whatsapp", "email", "link", "direct"] as const;

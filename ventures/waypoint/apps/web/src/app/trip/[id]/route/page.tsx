@@ -47,7 +47,7 @@ import {
 import { LegTransportPicker } from "@/components/leg-transport-picker";
 import { db } from "@/db";
 import { day, dayEvent, place, type TransportType } from "@/db/schema";
-import { requireTripAccess } from "@/lib/access";
+import { requireTripAccess } from "@/server/access";
 import { formatDate, fromIsoDate } from "@/lib/dates";
 import { deriveStops } from "@/lib/stops";
 import { lockReason } from "@/lib/tabs";

@@ -12,8 +12,8 @@ import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
 import { availability, trip } from "@/db/schema";
-import { requireTripAccess } from "@/lib/access";
-import { touch } from "@/lib/unlocks";
+import { requireTripAccess } from "@/server/access";
+import { touch } from "@/server/unlocks";
 
 /** Cheap sanity check — these come from a client component's local state. */
 function assertIsoDates(dates: string[]) {

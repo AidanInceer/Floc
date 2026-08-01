@@ -11,6 +11,8 @@
  * Never call this from the client: the rate limiter only means anything if
  * every request funnels through one server-side queue.
  */
+import "server-only";
+
 import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";

@@ -10,11 +10,11 @@ import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { day, expense, expenseSplit, user, userProfile } from "@/db/schema";
 import type { Currency, Expense, ExpenseSplit } from "@/db/schema";
-import { requireTripAccess } from "@/lib/access";
+import { requireTripAccess } from "@/server/access";
 import { formatDate } from "@/lib/dates";
 import { formatMoney } from "@/lib/money";
 import type { LedgerLine } from "@/lib/money";
-import { getProfile } from "@/lib/profile";
+import { getProfile } from "@/server/profile";
 import {
   Avatar,
   Badge,

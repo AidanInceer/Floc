@@ -2,6 +2,8 @@
  * `user_profile` is our extension of Better Auth's user table (ticket 06) —
  * created lazily so a user who signed up before a column existed still works.
  */
+import "server-only";
+
 import { eq } from "drizzle-orm";
 
 import { db } from "@/db";

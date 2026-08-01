@@ -13,9 +13,9 @@ import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
 import { idea, ideaVote } from "@/db/schema";
-import { requireTripAccess, assertAdmin } from "@/lib/access";
-import { emails, sendEmail } from "@/lib/email";
-import { refreshUnlocks, touch } from "@/lib/unlocks";
+import { requireTripAccess, assertAdmin } from "@/server/access";
+import { emails, sendEmail } from "@/server/email";
+import { refreshUnlocks, touch } from "@/server/unlocks";
 import type { VoteValue } from "@/db/schema";
 
 /**

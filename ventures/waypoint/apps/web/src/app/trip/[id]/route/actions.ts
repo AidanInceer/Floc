@@ -11,12 +11,12 @@ import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
 import { day, dayEvent, type TransportType } from "@/db/schema";
-import { requireTripAccess, requireUser } from "@/lib/access";
+import { requireTripAccess, requireUser } from "@/server/access";
 import { dateRange } from "@/lib/dates";
-import { searchPlaces, upsertPlace } from "@/lib/geocoding";
-import { moveItem, permuteDayContents } from "@/lib/itinerary";
+import { searchPlaces, upsertPlace } from "@/server/geocoding";
+import { moveItem, permuteDayContents } from "@/server/itinerary";
 import { deriveStops } from "@/lib/stops";
-import { refreshUnlocks, touch } from "@/lib/unlocks";
+import { refreshUnlocks, touch } from "@/server/unlocks";
 
 /**
  * Thin server-action wrapper so <PlacePicker> (client) can call Nominatim

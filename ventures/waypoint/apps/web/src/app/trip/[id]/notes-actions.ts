@@ -23,8 +23,8 @@ import {
   type NoteScope,
   type ReactionKind,
 } from "@/db/schema";
-import { assertAdmin, requireTripAccess } from "@/lib/access";
-import { touch } from "@/lib/unlocks";
+import { assertAdmin, requireTripAccess } from "@/server/access";
+import { touch } from "@/server/unlocks";
 
 /**
  * Which tab a scope is rendered on. Revalidating the layout alone left the tab

@@ -17,8 +17,8 @@ import {
 import { db } from "@/db";
 import { account } from "@/db/schema";
 import type { Visibility } from "@/db/schema";
-import { requireUser } from "@/lib/access";
-import { ensureProfile } from "@/lib/profile";
+import { requireUser } from "@/server/access";
+import { ensureProfile } from "@/server/profile";
 import {
   Card,
   CardHeader,

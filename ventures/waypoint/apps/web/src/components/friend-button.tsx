@@ -18,7 +18,7 @@ import {
 } from "@/app/friends/actions";
 import { Badge } from "@/components/ui";
 import { ActionForm, SubmitButton } from "@/components/client-ui";
-import type { FriendState } from "@/lib/friends";
+import type { FriendState } from "@/server/friends";
 
 export function FriendButton({
   userId,

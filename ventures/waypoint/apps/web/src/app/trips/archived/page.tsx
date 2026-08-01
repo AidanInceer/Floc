@@ -9,7 +9,7 @@ import { and, eq, isNull, not } from "drizzle-orm";
 
 import { db } from "@/db";
 import { trip, tripMembership } from "@/db/schema";
-import { listMembersFor, requireUser } from "@/lib/access";
+import { listMembersFor, requireUser } from "@/server/access";
 import { readTags } from "@/lib/tags";
 import { ButtonLink, EmptyState, Page, PageHeader } from "@/components/ui";
 import { ConfirmSubmit } from "@/components/client-ui";

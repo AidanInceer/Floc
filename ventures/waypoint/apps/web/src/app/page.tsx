@@ -21,8 +21,8 @@ import type { ReactNode } from "react";
 
 import Link from "next/link";
 
-import { getSession } from "@/lib/access";
-import { enabledProviders } from "@/lib/auth";
+import { getSession } from "@/server/access";
+import { enabledProviders } from "@/server/auth";
 import {
   Avatar,
   AvatarRow,

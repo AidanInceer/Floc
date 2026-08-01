@@ -16,14 +16,14 @@ import {
   updateIdentity,
   updateVibeTags,
 } from "./actions";
-import { requireUser } from "@/lib/access";
+import { requireUser } from "@/server/access";
 import { formatDateRange } from "@/lib/dates";
 import { DIET_FLAGS, MAX_DIETARY_NOTES, readDietFlags } from "@/lib/dietary";
-import { ensureProfile } from "@/lib/profile";
+import { ensureProfile } from "@/server/profile";
 import { readVibeTags } from "@/lib/vibe-tags";
 import { countryName } from "@/lib/countries";
-import { pendingMapPrompts, travelMapFor } from "@/lib/travel-map";
-import { pastTripsFor } from "@/lib/visibility";
+import { pendingMapPrompts, travelMapFor } from "@/server/travel-map";
+import { pastTripsFor } from "@/server/visibility";
 import {
   Avatar,
   Badge,

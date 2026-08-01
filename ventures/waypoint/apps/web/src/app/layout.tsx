@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { AppChrome } from "@/components/app-chrome";
-import { getSession } from "@/lib/access";
+import { getSession } from "@/server/access";
 
 import "./globals.css";
 

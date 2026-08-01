@@ -215,7 +215,7 @@ Server components in `components/ui.tsx`: `Page`, `PageHeader`, `Card`,
 `CardHeader`, `Stack`, `Rule`, `Button`, `ButtonLink`, `Badge`, `Stamp`,
 `EmptyState`, `LockedNotice`, `Avatar`, `AvatarRow`, `Field`, `Input`,
 `Textarea`, `Select`, `ErrorText`. Avatar colouring lives in `lib/who.ts`
-rather than beside `Avatar`, because `lib/access.ts` needs it too.
+rather than beside `Avatar`, because `server/access.ts` needs it too.
 
 Client components in `components/client-ui.tsx`: `ActionForm` (surfaces a
 server action's `{ error }` return without a page reload), `SubmitButton`

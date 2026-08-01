@@ -66,7 +66,7 @@ vi.mock("next/headers", () => ({
  */
 export const currentUser: { id: string | null } = { id: null };
 
-vi.mock("@/lib/auth", () => ({
+vi.mock("@/server/auth", () => ({
   enabledProviders: { google: false, facebook: false },
   auth: {
     api: {
@@ -91,7 +91,7 @@ vi.mock("@/lib/auth", () => ({
  * here — the catalogue has its own tests. Stubbed so a suite never depends on
  * `RESEND_API_KEY` and never prints a send to the test output.
  */
-vi.mock("@/lib/email", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/lib/email")>();
+vi.mock("@/server/email", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/server/email")>();
   return { ...actual, sendEmail: async () => {} };
 });

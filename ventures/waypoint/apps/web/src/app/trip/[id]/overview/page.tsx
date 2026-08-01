@@ -33,8 +33,8 @@ import {
   ideaVote,
   type Currency,
 } from "@/db/schema";
-import { requireTripAccess } from "@/lib/access";
-import { absoluteUrl } from "@/lib/email";
+import { requireTripAccess } from "@/server/access";
+import { absoluteUrl } from "@/server/email";
 import { computeBalances, formatMoney } from "@/lib/money";
 import { countdownLabel, formatDateRange, hasEnded } from "@/lib/dates";
 import {
@@ -54,7 +54,7 @@ import {
 } from "@/components/client-ui";
 import { TripNameInline } from "@/components/trip-name-inline";
 import { TripRoster } from "@/components/trip-roster";
-import { friendStatesFor } from "@/lib/friends";
+import { friendStatesFor } from "@/server/friends";
 import { TripTrail, type Station } from "@/components/trip-trail";
 import { TagEditor } from "@/components/tag-editor";
 import { readTagTones, readTags, tagTone, type TagTone } from "@/lib/tags";

@@ -11,6 +11,8 @@
  * Threads are exactly one level deep, so this assembles the tree in two
  * passes and never recurses.
  */
+import "server-only";
+
 import { and, asc, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";

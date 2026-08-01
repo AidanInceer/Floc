@@ -18,8 +18,8 @@ import { and, eq, inArray, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { expense, expenseSplit, user } from "@/db/schema";
 import type { Currency, SplitType } from "@/db/schema";
-import { requireTripAccess } from "@/lib/access";
-import { touch } from "@/lib/unlocks";
+import { requireTripAccess } from "@/server/access";
+import { touch } from "@/server/unlocks";
 import {
   computeSplits,
   formatMoney,
@@ -27,7 +27,7 @@ import {
   resolveWeightedSplit,
 } from "@/lib/money";
 import type { SplitInput, WeightedInput } from "@/lib/money";
-import { emails, sendEmails } from "@/lib/email";
+import { emails, sendEmails } from "@/server/email";
 
 export type ActionState = { error?: string };
 

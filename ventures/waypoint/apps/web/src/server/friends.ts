@@ -7,6 +7,8 @@
  * trips), idempotent (`onConflictDoNothing` against the canonical pair), and
  * good enough since nothing downstream depends on the exact moment it fires.
  */
+import "server-only";
+
 import { and, eq, inArray, isNull, lt, ne, or } from "drizzle-orm";
 
 import { db } from "@/db";

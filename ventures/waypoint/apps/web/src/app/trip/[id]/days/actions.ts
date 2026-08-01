@@ -12,7 +12,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { day, dayEvent } from "@/db/schema";
 import type { DayEventType, TransportType } from "@/db/schema";
-import { requireTripAccess, requireUser } from "@/lib/access";
+import { requireTripAccess, requireUser } from "@/server/access";
 import { addDays as addDaysToDate } from "@/lib/dates";
 import {
   insertAt,
@@ -20,9 +20,9 @@ import {
   permuteEventSlots,
   swapItems,
 } from "@/lib/event-order";
-import { moveItem, permuteDayContents } from "@/lib/itinerary";
-import { searchPlaces, upsertPlace } from "@/lib/geocoding";
-import { refreshUnlocks, touch } from "@/lib/unlocks";
+import { moveItem, permuteDayContents } from "@/server/itinerary";
+import { searchPlaces, upsertPlace } from "@/server/geocoding";
+import { refreshUnlocks, touch } from "@/server/unlocks";
 
 /**
  * Server-action wrapper — see route/actions.ts's twin for why this exists.

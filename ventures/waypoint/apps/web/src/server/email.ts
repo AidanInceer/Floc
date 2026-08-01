@@ -8,6 +8,8 @@
  * With no RESEND_API_KEY the send is logged to the server console instead —
  * so the whole flow is exercisable before the account exists.
  */
+import "server-only";
+
 import { eq, inArray } from "drizzle-orm";
 
 import { db } from "@/db";

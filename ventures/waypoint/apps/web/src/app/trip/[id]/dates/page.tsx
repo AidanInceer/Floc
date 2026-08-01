@@ -14,7 +14,7 @@ import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { availability } from "@/db/schema";
-import { requireTripAccess } from "@/lib/access";
+import { requireTripAccess } from "@/server/access";
 import { bestWindow, monthOf, thisMonth } from "@/lib/availability";
 import { formatDate, formatDateRange, nightsBetween } from "@/lib/dates";
 import {

@@ -11,9 +11,9 @@ import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
 import { friendship, user } from "@/db/schema";
-import { requireUser } from "@/lib/access";
-import { emails, sendEmail } from "@/lib/email";
-import { relationTo } from "@/lib/visibility";
+import { requireUser } from "@/server/access";
+import { emails, sendEmail } from "@/server/email";
+import { relationTo } from "@/server/visibility";
 
 /**
  * Opens (or re-opens) a pending request from `viewerId` to `targetId`.

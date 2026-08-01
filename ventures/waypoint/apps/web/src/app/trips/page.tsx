@@ -19,7 +19,7 @@ import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { day, idea, place, trip, tripMembership } from "@/db/schema";
-import { listMembersFor, requireUser } from "@/lib/access";
+import { listMembersFor, requireUser } from "@/server/access";
 import { hasEnded } from "@/lib/dates";
 import { readTags } from "@/lib/tags";
 import {

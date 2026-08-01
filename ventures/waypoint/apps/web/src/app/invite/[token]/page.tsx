@@ -12,7 +12,7 @@ import { notFound, redirect } from "next/navigation";
 
 import { db } from "@/db";
 import { day, idea, place, trip, tripMembership } from "@/db/schema";
-import { getSession } from "@/lib/access";
+import { getSession } from "@/server/access";
 import { formatDateRange } from "@/lib/dates";
 import {
   Badge,

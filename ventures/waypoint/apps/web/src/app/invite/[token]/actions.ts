@@ -10,8 +10,8 @@ import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
 import { trip, tripMembership } from "@/db/schema";
-import { requireUser } from "@/lib/access";
-import { ensureProfile } from "@/lib/profile";
+import { requireUser } from "@/server/access";
+import { ensureProfile } from "@/server/profile";
 
 export async function joinTrip(token: string) {
   const redirectTo = `/invite/${token}`;
