@@ -126,7 +126,14 @@ export async function softDeleteExpense(
   await db
     .update(expense)
     .set({ deletedAt: new Date(), ...touch() })
-    .where(and(eq(expense.id, expenseId), eq(expense.tripId, tripId)));
+    .where(
+      and(
+        eq(expense.id, expenseId),
+        eq(expense.tripId, tripId),
+        // A second delete is a no-op, not a re-stamp (ticket 115).
+        isNull(expense.deletedAt),
+      ),
+    );
 }
 
 /** One split row plus the expense context needed to decide who may settle it. */
@@ -156,7 +163,10 @@ export async function toggleSplitSettled(
   await db
     .update(expenseSplit)
     .set({ settledAt: settled ? new Date() : null, ...touch() })
-    .where(eq(expenseSplit.id, splitId));
+    // Filtered on the split's own `deletedAt` as well (ticket 115). The read
+    // above joins the expense, so a deleted *expense* was already covered; a
+    // split deleted on its own was not.
+    .where(and(eq(expenseSplit.id, splitId), isNull(expenseSplit.deletedAt)));
 }
 
 /**

@@ -16,6 +16,7 @@
  * on `user_profile` (ticket 06).
  */
 import { sql } from "drizzle-orm";
+import { CURRENCIES } from "@/lib/currency";
 import {
   index,
   integer,
@@ -101,9 +102,13 @@ export const verification = sqliteTable("verification", {
 /* Identity extensions (tickets 06, 07)                                       */
 /* -------------------------------------------------------------------------- */
 
-/** Currencies the v1 UI offers. A product decision, expected to grow. */
-export const CURRENCIES = ["GBP", "EUR", "USD"] as const;
-export type Currency = (typeof CURRENCIES)[number];
+/**
+ * Currencies the v1 UI offers, re-exported from `lib/currency.ts` where they
+ * now live (ticket 115) — the list has to be readable from the pure half, and
+ * every existing importer says `@/db/schema`.
+ */
+export { CURRENCIES } from "@/lib/currency";
+export type { Currency } from "@/lib/currency";
 
 export const SIGNUP_CHANNELS = ["whatsapp", "email", "link", "direct"] as const;
 export type SignupChannel = (typeof SIGNUP_CHANNELS)[number];
@@ -681,11 +686,21 @@ export const noteReaction = sqliteTable(
   (t) => [
     index("note_reaction_note_idx").on(t.noteId),
     /**
-     * Un-reacting soft-deletes the row (rule 8), so re-reacting has to reuse
-     * it rather than insert a second — hence no unique index here. `react`
-     * upserts by hand instead.
+     * One row per person per kind — **unique**, and deliberately without
+     * `deleted_at` in it (ticket 115).
+     *
+     * Un-reacting soft-deletes the row (rule 8), so re-reacting has to reuse it
+     * rather than insert a second. That was originally read as an argument
+     * against a unique index, and it is the opposite: because the dead row is
+     * the row we want back, uniqueness over the live-and-dead pair is exactly
+     * what makes the upsert land on it. Without it the toggle was a
+     * read-modify-write with nothing behind it, and two concurrent taps wrote
+     * two rows — after which one person's heart counted as two.
+     *
+     * `idea_vote_unique_idx` and `friendship_pair_idx` are the same shape for
+     * the same reason.
      */
-    index("note_reaction_one_idx").on(t.noteId, t.userId, t.kind),
+    uniqueIndex("note_reaction_one_idx").on(t.noteId, t.userId, t.kind),
   ],
 );
 

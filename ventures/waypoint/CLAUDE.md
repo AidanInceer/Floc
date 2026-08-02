@@ -48,7 +48,13 @@ treated as current.
    member out archives the trip. Succession, not a fifth power.
 7. **Last-write-wins, everywhere.** No optimistic locking, no version checks,
    no check-and-reject write path. `last_modified_at` is for debugging only.
-8. **Soft-delete.** Every read filters `isNull(table.deletedAt)`.
+8. **Soft-delete.** Every read *and every write* filters
+   `isNull(table.deletedAt)`. The rule used to say "every read", and that
+   phrasing is exactly what let a handful of updates through that would
+   resurrect a deleted row into a half-state from a stale id (ticket 115). The
+   two deliberate exceptions both say so where they are: `ensureDays`, because a
+   soft-deleted row still occupies the (trip, date) unique index, and
+   `joinByToken`, because reviving a kicked member's row is the point.
 9. **A trip may have no dates.** `start_date`/`end_date` are nullable and
    creating a trip without them is the normal path — the Dates tab is where the
    group decides, from `availability` overlap, and it never waits for a full

@@ -140,6 +140,36 @@ describe("settling", () => {
   });
 });
 
+/** Ticket 115 (M10) — writes filter soft-deletes too, not just reads. */
+describe("writes against deleted rows", () => {
+  it("will not settle a split that has been soft-deleted on its own", async () => {
+    const row = await seedExpense();
+    const [split] = await splitsOf(row.id);
+
+    await db
+      .update(schema.expenseSplit)
+      .set({ deletedAt: new Date() })
+      .where(eq(schema.expenseSplit.id, split.id));
+
+    await toggleSplitSettled(split.id, true);
+
+    const after = (await splitsOf(row.id)).find((s) => s.id === split.id);
+    expect(after?.settledAt).toBeNull();
+  });
+
+  it("does not re-stamp deletedAt on a second delete", async () => {
+    const row = await seedExpense();
+    await softDeleteExpense(world.ours.id, row.id);
+    const first = (await expensesOf(world.ours.id))[0].deletedAt;
+
+    await softDeleteExpense(world.ours.id, row.id);
+
+    expect((await expensesOf(world.ours.id))[0].deletedAt?.getTime()).toBe(
+      first?.getTime(),
+    );
+  });
+});
+
 describe("addressing the notification", () => {
   it("looks up participants who have left the roster, and shortcuts on none", async () => {
     expect(await emailsForUsers([])).toEqual([]);

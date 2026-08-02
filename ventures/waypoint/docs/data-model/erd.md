@@ -269,9 +269,15 @@ moves for reasons the author never chose.
 
 `note_reaction` is the three fixed reactions — heart, thumbs up, thumbs down —
 independent of each other, unlike `idea_vote`, which is three-state and
-exclusive. Soft-delete means un-reacting revives the same row rather than
-inserting a second, so there is **no unique index**; `react` upserts by hand and
-every read filters `deleted_at`.
+exclusive. Un-reacting soft-deletes the row and re-reacting revives it, so
+`note_reaction_one_idx` is **unique on (note_id, user_id, kind) and deliberately
+excludes `deleted_at`** — the dead row is the row the upsert wants to land on
+(ticket 115, migration `0005`). It was originally non-unique on the reasoning
+that reviving needs the row to survive, which is the same fact read backwards:
+without uniqueness the toggle was a read-modify-write over nothing, and two
+concurrent taps wrote two rows, after which one person's heart counted as two.
+`idea_vote_unique_idx` and `friendship_pair_idx` have the same shape for the
+same reason. Every read still filters `deleted_at`.
 
 `day` deliberately has **no `notes` column**. It had one; nobody could say what
 belonged in it, since the thing a group annotates is an event rather than a

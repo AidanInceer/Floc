@@ -157,6 +157,29 @@ describe("reacting", () => {
     expect((await reactions())[0].deletedAt).toBeNull();
   });
 
+  /**
+   * Ticket 115 (M7). Before the unique index this wrote two rows and the count
+   * then read as 2 from one person. The assertion is on the row count rather
+   * than on which way the toggle settled: under a race either answer is
+   * legitimate (rule 7), duplication never is.
+   */
+  it("cannot duplicate a row when two taps land together", async () => {
+    const row = await post("Worth a look");
+
+    await Promise.all([
+      toggleReaction(row.id, world.member, "heart"),
+      toggleReaction(row.id, world.member, "heart"),
+      toggleReaction(row.id, world.member, "heart"),
+    ]);
+
+    const rows = await db
+      .select()
+      .from(schema.noteReaction)
+      .where(eq(schema.noteReaction.noteId, row.id))
+      .all();
+    expect(rows).toHaveLength(1);
+  });
+
   it("keeps the three kinds independent of each other", async () => {
     const row = await post("Worth a look");
     await toggleReaction(row.id, world.member, "heart");

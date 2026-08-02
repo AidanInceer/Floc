@@ -239,7 +239,15 @@ export async function writeSpan(
   ]);
 }
 
-/** Re-points a known set of the trip's days at a place (or at nothing). */
+/**
+ * Re-points a known set of the trip's days at a place (or at nothing).
+ *
+ * Filters `deletedAt` like a read does (ticket 115). Rule 8 was written as
+ * "every *read* filters soft-deletes", and that phrasing is what let this
+ * through: without the filter, a stale `dayId` from a page rendered before
+ * somebody deleted the day would resurrect it as a half-state — a deleted day
+ * that has an overnight place.
+ */
 export async function setOvernightPlaceOn(
   tripId: number,
   dayIds: number[],
@@ -249,7 +257,9 @@ export async function setOvernightPlaceOn(
   await db
     .update(day)
     .set({ overnightPlaceId: placeId, ...touch() })
-    .where(and(eq(day.tripId, tripId), inArray(day.id, dayIds)));
+    .where(
+      and(eq(day.tripId, tripId), inArray(day.id, dayIds), isNull(day.deletedAt)),
+    );
 }
 
 /** The place a set of days currently points at — the stop's identity when re-dating it. */
@@ -261,7 +271,9 @@ export async function overnightPlaceOf(
   const row = await db
     .select({ placeId: day.overnightPlaceId })
     .from(day)
-    .where(and(eq(day.tripId, tripId), inArray(day.id, dayIds)))
+    .where(
+      and(eq(day.tripId, tripId), inArray(day.id, dayIds), isNull(day.deletedAt)),
+    )
     .get();
   return row?.placeId ?? null;
 }
@@ -271,7 +283,7 @@ export async function softDeleteDay(dayId: number): Promise<void> {
   await db
     .update(day)
     .set({ deletedAt: new Date(), ...touch() })
-    .where(eq(day.id, dayId));
+    .where(and(eq(day.id, dayId), isNull(day.deletedAt)));
 }
 
 /**
@@ -368,6 +380,7 @@ export async function insertEvent(dayId: number, input: EventFields): Promise<vo
     .values({ dayId, orderIndex: await eventCount(dayId), ...eventValues(input) });
 }
 
+/** Filters `deletedAt` so a stale id cannot edit a deleted event (ticket 115). */
 export async function updateEventFields(
   eventId: number,
   input: EventFields,
@@ -375,14 +388,19 @@ export async function updateEventFields(
   await db
     .update(dayEvent)
     .set({ ...eventValues(input), ...touch() })
-    .where(eq(dayEvent.id, eventId));
+    .where(and(eq(dayEvent.id, eventId), isNull(dayEvent.deletedAt)));
 }
 
+/**
+ * Filtered too, so a second delete is a no-op rather than a re-stamp — the
+ * `deleted_at` a row carries should be when it was deleted, not when somebody
+ * last pressed the button.
+ */
 export async function softDeleteEvent(eventId: number): Promise<void> {
   await db
     .update(dayEvent)
     .set({ deletedAt: new Date(), ...touch() })
-    .where(eq(dayEvent.id, eventId));
+    .where(and(eq(dayEvent.id, eventId), isNull(dayEvent.deletedAt)));
 }
 
 /** Applies the slot assignments `permuteEventSlots` worked out. */

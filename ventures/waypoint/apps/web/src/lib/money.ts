@@ -6,7 +6,8 @@
  * The exact-sum invariant is application code by design — the schema cannot
  * enforce it.
  */
-import type { Currency, SplitType } from "@/db/schema";
+import { CURRENCIES, type Currency } from "@/lib/currency";
+import type { SplitType } from "@/db/schema";
 
 export const CURRENCY_SYMBOLS: Record<Currency, string> = {
   GBP: "£",
@@ -275,7 +276,13 @@ export type LedgerLine = {
 export type Balances = Record<Currency, Record<string, number>>;
 
 export function computeBalances(lines: LedgerLine[]): Balances {
-  const balances: Balances = { GBP: {}, EUR: {}, USD: {} };
+  // Derived from CURRENCIES rather than written out (ticket 115). The literal
+  // that used to be here drifted the moment a fourth currency was added, and
+  // drifted into an `undefined` at runtime rather than a type error — in the
+  // money path, where non-negotiable 1 says nothing is computed by hand.
+  const balances = Object.fromEntries(
+    CURRENCIES.map((c) => [c, {} as Record<string, number>]),
+  ) as Balances;
 
   for (const line of lines) {
     const book = balances[line.currency];

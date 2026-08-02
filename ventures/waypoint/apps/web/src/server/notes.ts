@@ -121,7 +121,7 @@ export async function updateNoteBody(noteId: number, body: string): Promise<void
   await db
     .update(note)
     .set({ body: body.slice(0, NOTE_BODY_MAX), editedAt: new Date(), ...touch() })
-    .where(eq(note.id, noteId));
+    .where(and(eq(note.id, noteId), isNull(note.deletedAt)));
 }
 
 /**
@@ -134,7 +134,10 @@ export async function updateNoteBody(noteId: number, body: string): Promise<void
  */
 export async function softDeleteNoteAndReplies(noteId: number): Promise<void> {
   const deletedAt = new Date();
-  await db.update(note).set({ deletedAt, ...touch() }).where(eq(note.id, noteId));
+  await db
+    .update(note)
+    .set({ deletedAt, ...touch() })
+    .where(and(eq(note.id, noteId), isNull(note.deletedAt)));
   await db
     .update(note)
     .set({ deletedAt, ...touch() })
@@ -146,8 +149,16 @@ export async function softDeleteNoteAndReplies(noteId: number): Promise<void> {
  * design (ticket 06) — a comment can be both hearted and agreed with, and
  * policing thumbs-up-plus-thumbs-down costs more than the case is worth.
  *
- * Soft-delete (rule 8) means un-reacting has to revive the same row rather
- * than insert a second one, so this upserts by hand.
+ * Soft-delete (rule 8) means un-reacting has to revive the same row rather than
+ * insert a second one. This used to be a read-modify-write with a non-unique
+ * index behind it, so two taps landing together wrote *two* rows and one
+ * person's heart then counted as two (ticket 115). `note_reaction_one_idx` is
+ * unique now, which turns the same intent into an upsert that cannot duplicate.
+ *
+ * The read stays, because the toggle has to know which way to flip. Under a
+ * genuine race both readers may see the same state and write the same answer —
+ * that is last-write-wins (rule 7), and it settles on one row rather than two,
+ * which is the part that mattered.
  */
 export async function toggleReaction(
   noteId: number,
@@ -155,7 +166,7 @@ export async function toggleReaction(
   kind: ReactionKind,
 ): Promise<void> {
   const existing = await db
-    .select({ id: noteReaction.id, deletedAt: noteReaction.deletedAt })
+    .select({ deletedAt: noteReaction.deletedAt })
     .from(noteReaction)
     .where(
       and(
@@ -166,13 +177,13 @@ export async function toggleReaction(
     )
     .get();
 
-  if (!existing) {
-    await db.insert(noteReaction).values({ noteId, userId, kind });
-    return;
-  }
+  const deletedAt = existing?.deletedAt ? null : existing ? new Date() : null;
 
   await db
-    .update(noteReaction)
-    .set({ deletedAt: existing.deletedAt ? null : new Date(), ...touch() })
-    .where(eq(noteReaction.id, existing.id));
+    .insert(noteReaction)
+    .values({ noteId, userId, kind, deletedAt })
+    .onConflictDoUpdate({
+      target: [noteReaction.noteId, noteReaction.userId, noteReaction.kind],
+      set: { deletedAt, ...touch() },
+    });
 }

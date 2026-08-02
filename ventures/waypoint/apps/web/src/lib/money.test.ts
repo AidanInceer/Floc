@@ -8,6 +8,7 @@ import {
   resolveWeightedSplit,
   suggestSettlements,
 } from "./money";
+import { CURRENCIES } from "./currency";
 
 const people = (...ids: string[]) => ids.map((userId) => ({ userId }));
 
@@ -237,3 +238,34 @@ describe("resolveWeightedSplit (ticket 85)", () => {
 function sum(rows: { owedAmountMinor: number }[]) {
   return rows.reduce((a, r) => a + r.owedAmountMinor, 0);
 }
+
+/**
+ * Ticket 115 (S7). `computeBalances` used to seed itself from a literal
+ * `{ GBP: {}, EUR: {}, USD: {} }`. A fourth currency added to `CURRENCIES` and
+ * not added here produced an `undefined` at runtime rather than a type error —
+ * in the money path, where nothing is computed by hand (rule 1).
+ */
+describe("computeBalances seeds itself from CURRENCIES", () => {
+  it("has a book for every currency, with none left over", () => {
+    const balances = computeBalances([]);
+    expect(Object.keys(balances).sort()).toEqual([...CURRENCIES].sort());
+  });
+
+  it("finds a book for whichever currency a line is in", () => {
+    for (const currency of CURRENCIES) {
+      const balances = computeBalances([
+        {
+          paidBy: "a",
+          currency,
+          amountMinor: 1000,
+          splits: [
+            { userId: "a", owedAmountMinor: 500, settled: false },
+            { userId: "b", owedAmountMinor: 500, settled: false },
+          ],
+        },
+      ]);
+      expect(balances[currency].a).toBe(500);
+      expect(balances[currency].b).toBe(-500);
+    }
+  });
+});
