@@ -31,12 +31,12 @@ import {
   expenseSplit,
   idea,
   ideaVote,
-  type Currency,
 } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
 import { absoluteUrl } from "@/server/email";
-import { computeBalances, formatMoney } from "@/lib/money";
-import { countdownLabel, formatDateRange, hasEnded } from "@/lib/dates";
+import { formatMoney } from "@/lib/money";
+import { tripStateFor } from "@/lib/trip-state";
+import { formatDateRange } from "@/lib/dates";
 import {
   Avatar,
   Badge,
@@ -55,7 +55,7 @@ import {
 import { TripNameInline } from "@/components/trip-name-inline";
 import { TripRoster } from "@/components/trip-roster";
 import { friendStatesFor } from "@/server/friends";
-import { TripTrail, type Station } from "@/components/trip-trail";
+import { TripTrail } from "@/components/trip-trail";
 import { TagEditor } from "@/components/tag-editor";
 import { readTagTones, readTags, tagTone, type TagTone } from "@/lib/tags";
 import {
@@ -162,184 +162,44 @@ export default async function OverviewPage({
       .all(),
   ]);
 
-  const isBrandNew = ideas.length === 0;
-  const hasDays = dayRows.length > 0;
-
-  // --- Unresolved: idea voting -------------------------------------------
-  let votingUnresolved: typeof members = [];
-  let viewerHasVotedAll = true;
-  if (ideas.length > 0) {
-    const votedIdeasByUser = new Map<string, Set<number>>();
-    for (const v of votes) {
-      const set = votedIdeasByUser.get(v.userId) ?? new Set<number>();
-      set.add(v.ideaId);
-      votedIdeasByUser.set(v.userId, set);
-    }
-    votingUnresolved = members.filter(
-      (m) => (votedIdeasByUser.get(m.userId)?.size ?? 0) < ideas.length,
-    );
-    viewerHasVotedAll = (votedIdeasByUser.get(viewer.id)?.size ?? 0) >= ideas.length;
-  }
-
-  // --- Unresolved: availability, only while dates are still unset --------
-  const datesUnset = !trip.startDate && !trip.endDate;
-  let availabilityUnresolved: typeof members = [];
-  let viewerHasAvailability = true;
-  if (datesUnset) {
-    const withAvailability = new Set(availabilityRows.map((r) => r.userId));
-    availabilityUnresolved = members.filter((m) => !withAvailability.has(m.userId));
-    viewerHasAvailability = withAvailability.has(viewer.id);
-  }
-
-  // --- Unresolved: money still owed ---------------------------------------
-  const balances = computeBalances(
-    expenseRows.map((e) => ({
-      paidBy: e.paidBy,
-      currency: e.currency,
-      amountMinor: e.amountMinor,
-      splits: splitRows
-        .filter((s) => s.expenseId === e.id)
-        .map((s) => ({
-          userId: s.userId,
-          owedAmountMinor: s.owedAmountMinor,
-          settled: !!s.settledAt,
-        })),
-    })),
-  );
-  // People, not per-currency entries — otherwise a group owing in two
-  // currencies reads as twice as many outstanding things as it has.
-  const moneyUnresolved = Array.from(
-    new Set(
-      Object.values(balances).flatMap((book) =>
-        Object.entries(book)
-          .filter(([, amount]) => amount !== 0)
-          .map(([userId]) => userId),
-      ),
-    ),
-  );
-  // The viewer's own position, per currency, so their row can say the actual
-  // number rather than "someone owes something".
-  const viewerPositions = (Object.entries(balances) as [Currency, Record<string, number>][])
-    .map(([currency, book]) => ({ currency, amount: book[viewer.id] ?? 0 }))
-    .filter((p) => p.amount !== 0);
-  const othersUnresolved = moneyUnresolved.filter((u) => u !== viewer.id);
-
   /*
-   * Where the trip is up to, derived, no lifecycle column (rule 4).
-   *
-   * It used to be one sentence in the page's largest type under an "Up to"
-   * kicker, which meant the headline changed length every time the trip moved
-   * and the ended case read "Ended — still editable if anything's unfinished":
-   * a label and its caveat welded together and shouted. Ticket 89 splits them.
-   * The stage is now a *badge* — one or two words, the same vocabulary the
-   * rest of the app uses for state — and whatever else needs saying drops to a
-   * plain line underneath, at the size a reassurance deserves.
+   * Everything the page shows about *where the trip is up to* is derived here,
+   * in one pure call (ticket 109). It used to be ninety lines of the same
+   * thing inline, which is where the "who still has to vote, minus me" filter
+   * ended up being recomputed four separate times inside the JSX. The page
+   * renders; it no longer decides. What leaving costs comes back in the same
+   * call, so the dialog can say it before the click (ticket 65).
    */
-  const ended = hasEnded(trip.endDate);
-  const countdown = ended ? null : countdownLabel(trip.startDate);
-  const stage: { label: string; tone: "neutral" | "marine" | "open" } = isBrandNew
-    ? { label: "Not started", tone: "open" }
-    : ended
-      ? { label: "Ended", tone: "neutral" }
-      : hasDays
-        ? { label: "Underway", tone: "marine" }
-        : { label: "Planning", tone: "marine" };
-  const stageNote = isBrandNew
-    ? "Nothing posted yet — the first idea is what gets a trip moving."
-    : ended
-      ? "Still open — nothing about a finished trip is read-only."
-      : hasDays
-        ? trip.startDate
-          ? "The itinerary is being sketched day by day."
-          : "The itinerary is being sketched — the dates still aren't agreed."
-        : "Picking ideas and a route.";
+  const state = tripStateFor({
+    trip,
+    members,
+    viewerId: viewer.id,
+    viewerIsAdmin: isAdmin,
+    ideaIds: ideas.map((i) => i.id),
+    votes,
+    availabilityUserIds: availabilityRows.map((r) => r.userId),
+    days: dayRows,
+    expenses: expenseRows,
+    splits: splitRows,
+  });
 
-  /*
-   * The trail. Every station is derived from the rows above; `now` marks the
-   * one place the group is actually working, and at most one station may hold
-   * it — two "you are here" markers make nonsense of a route. A tab that has
-   * fallen behind is `snag` instead, which is the same blue in a hollow ring.
-   */
-  const placeCount = new Set(
-    dayRows.map((d) => d.overnightPlaceId).filter((p): p is number => p !== null),
-  ).size;
-  const routeUnlocked = trip.routeUnlockedAt !== null;
-  const daysUnlocked = trip.daysUnlockedAt !== null;
-
-  const stations: Station[] = [
-    {
-      key: "ideas",
-      label: "Ideas",
-      caption: isBrandNew
-        ? "start here"
-        : `${ideas.length} posted${votingUnresolved.length ? "" : ", all voted"}`,
-      state: isBrandNew ? "now" : votingUnresolved.length ? "snag" : "done",
-    },
-    {
-      key: "dates",
-      label: "Dates",
-      // Not the range itself — it is already on the line above, and at three
-      // words it was the one caption that wrapped the trail on a phone.
-      caption: datesUnset ? "still open" : "agreed",
-      state: datesUnset ? (isBrandNew ? "ahead" : "snag") : "done",
-    },
-    {
-      key: "route",
-      label: "Route",
-      caption: !routeUnlocked
-        ? "locked"
-        : placeCount
-          ? `${placeCount} ${placeCount === 1 ? "place" : "places"}`
-          : "nothing yet",
-      state: !routeUnlocked ? "locked" : placeCount ? "done" : "ahead",
-    },
-    {
-      key: "days",
-      label: "Days",
-      caption: !daysUnlocked
-        ? "locked"
-        : hasDays
-          ? `${dayRows.length} sketched`
-          : "nothing yet",
-      // The only station that claims "now" — once Days is open, sketching the
-      // itinerary is what the group is doing, whatever else is outstanding.
-      state: !daysUnlocked ? "locked" : hasDays ? "now" : "ahead",
-    },
-    {
-      key: "money",
-      label: "Money",
-      caption: expenseRows.length
-        ? `${expenseRows.length} ${expenseRows.length === 1 ? "expense" : "expenses"}`
-        : "nothing yet",
-      state: expenseRows.length ? (moneyUnresolved.length ? "snag" : "done") : "ahead",
-    },
-  ];
-  // Ideas is where you are when there's nothing else open yet.
-  if (!stations.some((s) => s.state === "now")) stations[0].state = "now";
+  const {
+    isBrandNew,
+    datesUnset,
+    countdown,
+    stage,
+    stageNote,
+    stations,
+    unresolved,
+  } = state;
+  const viewerHasVotedAll = state.viewer.hasVotedAll;
+  const viewerHasAvailability = state.viewer.hasAvailability;
+  const viewerPositions = state.viewer.positions;
+  const leaveWarning = state.leave.warning;
 
   const inviteUrl = absoluteUrl(`/invite/${trip.inviteToken}`);
   const tags = readTags(trip.tags);
   const tagTones = readTagTones(trip.tagTones);
-
-  /*
-   * What leaving costs, worked out here so the dialog can say it before the
-   * click rather than after (ticket 65). The three cases are the ones
-   * `leaveTrip` actually branches on, and the heir is picked the same way —
-   * earliest to join — so the name in the warning is the name that gets it.
-   */
-  const others = members.filter((m) => m.userId !== viewer.id);
-  const heir =
-    others.length > 0 && isAdmin && !others.some((m) => m.role === "admin")
-      ? others.reduce((earliest, m) =>
-          m.joinedAt < earliest.joinedAt ? m : earliest,
-        )
-      : null;
-  const leaveWarning =
-    others.length === 0
-      ? `You're the only one in "${trip.name}", so leaving archives it. Nothing is deleted, but with nobody on the roster it can't be reopened from the app.`
-      : heir
-        ? `Leave "${trip.name}"? You're the only admin, so ${heir.name} becomes admin in your place.`
-        : `Leave "${trip.name}"? You'll need a new invite link to come back.`;
 
   return (
     <Page wide flush>
@@ -522,37 +382,37 @@ export default async function OverviewPage({
             ))}
 
             {/* Theirs: untinted, and named by face. Chase from the roster. */}
-            {votingUnresolved.filter((m) => m.userId !== viewer.id).length > 0 ? (
+            {unresolved.votingOthers.length > 0 ? (
               <UnresolvedRow
                 tab="Ideas"
                 href={`/trip/${tripId}/ideas`}
-                headline={`Waiting on ${peopleCount(votingUnresolved.filter((m) => m.userId !== viewer.id).length)} to vote on every idea`}
-                people={votingUnresolved.filter((m) => m.userId !== viewer.id)}
+                headline={`Waiting on ${peopleCount(unresolved.votingOthers.length)} to vote on every idea`}
+                people={unresolved.votingOthers}
               />
             ) : null}
-            {availabilityUnresolved.filter((m) => m.userId !== viewer.id).length > 0 ? (
+            {unresolved.availabilityOthers.length > 0 ? (
               <UnresolvedRow
                 tab="Dates"
                 href={`/trip/${tripId}/dates`}
-                headline={`Waiting on ${peopleCount(availabilityUnresolved.filter((m) => m.userId !== viewer.id).length)} to share availability`}
-                people={availabilityUnresolved.filter((m) => m.userId !== viewer.id)}
+                headline={`Waiting on ${peopleCount(unresolved.availabilityOthers.length)} to share availability`}
+                people={unresolved.availabilityOthers}
               />
             ) : null}
-            {othersUnresolved.length > 0 ? (
+            {unresolved.moneyOthers.length > 0 ? (
               <UnresolvedRow
                 tab="Money"
                 href={`/trip/${tripId}/money`}
-                headline={`Waiting on ${peopleCount(othersUnresolved.length)} to settle up`}
-                people={members.filter((m) => othersUnresolved.includes(m.userId))}
+                headline={`Waiting on ${peopleCount(unresolved.moneyOthers.length)} to settle up`}
+                people={members.filter((m) => unresolved.moneyOthers.includes(m.userId))}
               />
             ) : null}
 
             {viewerHasVotedAll &&
             viewerHasAvailability &&
             viewerPositions.length === 0 &&
-            votingUnresolved.filter((m) => m.userId !== viewer.id).length === 0 &&
-            availabilityUnresolved.filter((m) => m.userId !== viewer.id).length === 0 &&
-            othersUnresolved.length === 0 ? (
+            unresolved.votingOthers.length === 0 &&
+            unresolved.availabilityOthers.length === 0 &&
+            unresolved.moneyOthers.length === 0 ? (
               <p className="text-sm text-ink-soft">
                 Nothing outstanding right now — everyone&rsquo;s caught up.
               </p>

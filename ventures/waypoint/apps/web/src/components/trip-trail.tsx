@@ -21,15 +21,16 @@ import { cx } from "@/components/ui";
  * at most one. `snag` — has data but something is still open. `ahead` — not
  * started, nothing wrong. `locked` — the tab isn't open yet.
  */
-export type StationState = "done" | "now" | "snag" | "ahead" | "locked";
+/*
+ * Both types are `lib/trip-state.ts`'s (ticket 109) and re-exported here for
+ * the component's own callers. The vocabulary belongs with the derivation that
+ * produces it, not with the drawing that renders it — and the caption, which
+ * must never be omitted because the fill is never the only cue, is decided
+ * there too.
+ */
+import type { StationState, TrailStation as Station } from "@/lib/trip-state";
 
-export type Station = {
-  key: string;
-  label: string;
-  /** The word under the dot. Never omit it — the fill is never the only cue. */
-  caption: string;
-  state: StationState;
-};
+export type { StationState, Station };
 
 /*
  * Three readings, and the fill is what tells them apart:

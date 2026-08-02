@@ -33,9 +33,8 @@ export default defineConfig({
       // Functions dipped once (60.95% → 60.18%) while the code got better
       // tested: splitting long action bodies into named aggregate functions
       // adds to the denominator faster than tests cover it. It was held at 60
-      // rather than cut to fit, and the aggregate suites added under tickets
-      // 114/115 have since carried it past — v0.10.3 measures 45.14%, 89.74%,
-      // 62.28%.
+      // rather than cut to fit, and the suites added under tickets 114/115/109
+      // have since carried it past — v0.11.0 measures 47.13%, 90.17%, 63.44%.
       //
       // The branches figure is high and the statements figure low for the same
       // reason: the covered modules are dense pure functions with a lot of
@@ -43,10 +42,10 @@ export default defineConfig({
       // all. Read statements as "how much of this is exercised" and branches as
       // "how thoroughly the exercised part is".
       thresholds: {
-        lines: 45,
-        functions: 62,
-        branches: 89,
-        statements: 45,
+        lines: 47,
+        functions: 63,
+        branches: 90,
+        statements: 47,
       },
     },
   },
