@@ -18,6 +18,7 @@ import { day, dayEvent, place, trip, tripMembership, userCountryMark } from "@/d
 import { readCountryCode } from "@/lib/countries";
 import { hasEnded } from "@/lib/dates";
 import { mergeMarks, strongest, type MapState, type TravelMap } from "@/lib/travel-map";
+import { bounded, LIMITS } from "@/server/limits";
 import type { CountryMarkState } from "@/db/schema";
 
 /**
@@ -32,14 +33,36 @@ export async function countriesForTrips(
   tripIds: number[],
 ): Promise<Record<string, MapState>> {
   const out: Record<string, MapState> = {};
-  if (tripIds.length === 0) return out;
+  for (const perTrip of (await countriesByTrip(tripIds)).values()) {
+    for (const [code, state] of Object.entries(perTrip)) {
+      out[code] = strongest(out[code], state);
+    }
+  }
+  return out;
+}
+
+/**
+ * The same read, kept split by trip (ticket 114).
+ *
+ * `pendingMapPrompts` used to call `countriesForTrips([id])` once per prompt
+ * row inside a `for` loop — an N+1 over HTTP for a question the same three
+ * queries could answer for every trip at once. Merging across trips is the
+ * cheap half and belongs to the caller that wants it merged.
+ */
+export async function countriesByTrip(
+  tripIds: number[],
+): Promise<Map<number, Record<string, MapState>>> {
+  const byTrip = new Map<number, Record<string, MapState>>();
+  if (tripIds.length === 0) return byTrip;
 
   const trips = await db
     .select({ id: trip.id, endDate: trip.endDate })
     .from(trip)
     .where(and(inArray(trip.id, tripIds), isNull(trip.deletedAt)))
+    .limit(LIMITS.tripsPerUser)
     .all();
-  if (trips.length === 0) return out;
+  if (trips.length === 0) return byTrip;
+  bounded(trips, "tripsPerUser", "travel map");
 
   const ids = trips.map((t) => t.id);
   // Undated is yellow, never green: `hasEnded(null)` is false, which is the
@@ -77,10 +100,13 @@ export async function countriesForTrips(
     const code = readCountryCode(row.countryCode);
     const state = code ? colour.get(row.tripId) : undefined;
     if (!code || !state) continue;
-    out[code] = strongest(out[code], state);
+
+    const perTrip = byTrip.get(row.tripId) ?? {};
+    perTrip[code] = strongest(perTrip[code], state);
+    byTrip.set(row.tripId, perTrip);
   }
 
-  return out;
+  return byTrip;
 }
 
 /** The trips whose itineraries currently speak for someone. */
@@ -140,10 +166,14 @@ export async function pendingMapPrompts(userId: string): Promise<MapPrompt[]> {
     .all();
   if (rows.length === 0) return [];
 
+  // One read for every parked trip, not one per trip (ticket 114).
+  const byTrip = await countriesByTrip(rows.map((r) => r.tripId));
+
   const out: MapPrompt[] = [];
   for (const row of rows) {
-    const countries = await countriesForTrips([row.tripId]);
-    const entries = Object.entries(countries).map(([code, state]) => ({ code, state }));
+    const entries = Object.entries(byTrip.get(row.tripId) ?? {}).map(
+      ([code, state]) => ({ code, state }),
+    );
     if (entries.length === 0) continue;
     out.push({ tripId: row.tripId, tripName: row.name, countries: entries });
   }

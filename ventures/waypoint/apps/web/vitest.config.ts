@@ -30,10 +30,12 @@ export default defineConfig({
       // below its measured value — raise them when coverage rises, never lower
       // them to make a run pass.
       //
-      // Functions is the one that went *down* (60.95% → 60.18%) while the code
-      // got better tested: splitting long action bodies into named aggregate
-      // functions adds to the denominator faster than tests cover it. It stays
-      // at 60 rather than being cut to fit.
+      // Functions dipped once (60.95% → 60.18%) while the code got better
+      // tested: splitting long action bodies into named aggregate functions
+      // adds to the denominator faster than tests cover it. It was held at 60
+      // rather than cut to fit, and the aggregate suites added under tickets
+      // 114/115 have since carried it past — v0.10.3 measures 45.14%, 89.74%,
+      // 62.28%.
       //
       // The branches figure is high and the statements figure low for the same
       // reason: the covered modules are dense pure functions with a lot of
@@ -41,10 +43,10 @@ export default defineConfig({
       // all. Read statements as "how much of this is exercised" and branches as
       // "how thoroughly the exercised part is".
       thresholds: {
-        lines: 39,
-        functions: 60,
+        lines: 45,
+        functions: 62,
         branches: 89,
-        statements: 39,
+        statements: 45,
       },
     },
   },

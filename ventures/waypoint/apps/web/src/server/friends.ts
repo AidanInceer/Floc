@@ -10,11 +10,13 @@
 import "server-only";
 
 import { and, eq, inArray, isNull, lt, ne, or } from "drizzle-orm";
+import { alias } from "drizzle-orm/sqlite-core";
 import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
 import { friendship, trip, tripMembership, user } from "@/db/schema";
 import { today } from "@/lib/dates";
+import { bounded, LIMITS } from "@/server/limits";
 
 /**
  * Finds every other member of a trip the user was in whose end date has
@@ -42,34 +44,76 @@ export async function syncCompletedCoTripFriendships(userId: string): Promise<vo
 
   const tripIds = completedTrips.map((t) => t.tripId);
 
+  // Scoped to the trips in hand (ticket 114). This used to select **every
+  // `trip_membership` row in the database** and filter by trip in JavaScript —
+  // the one query here that degraded with total user count rather than with the
+  // size of one trip, on every /friends load, over HTTP.
   const coMembers = await db
-    .select({ userId: tripMembership.userId, tripId: tripMembership.tripId })
+    .select({ userId: tripMembership.userId })
     .from(tripMembership)
     .where(
       and(
+        inArray(tripMembership.tripId, tripIds),
         isNull(tripMembership.deletedAt),
         ne(tripMembership.userId, userId),
       ),
     )
+    .limit(LIMITS.members * tripIds.length)
     .all();
 
-  const tripIdSet = new Set(tripIds);
   const otherUserIds = new Set(
-    coMembers.filter((m) => tripIdSet.has(m.tripId)).map((m) => m.userId),
+    bounded(coMembers, "members", `co-members of ${userId}'s past trips`).map(
+      (m) => m.userId,
+    ),
   );
+  if (otherUserIds.size === 0) return;
 
-  for (const otherId of otherUserIds) {
-    const [lo, hi] = userId < otherId ? [userId, otherId] : [otherId, userId];
-    await db
-      .insert(friendship)
-      .values({
-        userId: lo,
-        friendId: hi,
-        status: "accepted",
-        origin: "co_trip",
-      })
-      .onConflictDoNothing();
-  }
+  // One insert, not one per person. Canonical direction is lower userId first,
+  // matching the unique index, so we never race ourselves into a reversed row —
+  // and `onConflictDoNothing` still makes the whole statement idempotent.
+  await db
+    .insert(friendship)
+    .values(
+      [...otherUserIds].map((otherId) => {
+        const [lo, hi] = userId < otherId ? [userId, otherId] : [otherId, userId];
+        return {
+          userId: lo,
+          friendId: hi,
+          status: "accepted" as const,
+          origin: "co_trip" as const,
+        };
+      }),
+    )
+    .onConflictDoNothing();
+}
+
+/**
+ * The trips two people are both live members of, in one query (ticket 114).
+ *
+ * A self-join, where `sharesATrip` and `coTripNameFor` each did the same job in
+ * two round trips and an intersection in JavaScript. Both callers are on the
+ * public-profile path, which runs several of these.
+ */
+export async function sharedTripIds(a: string, b: string): Promise<number[]> {
+  const mine = alias(tripMembership, "mine");
+  const theirs = alias(tripMembership, "theirs");
+
+  const rows = await db
+    .select({ tripId: mine.tripId })
+    .from(mine)
+    .innerJoin(theirs, eq(theirs.tripId, mine.tripId))
+    .where(
+      and(
+        eq(mine.userId, a),
+        eq(theirs.userId, b),
+        isNull(mine.deletedAt),
+        isNull(theirs.deletedAt),
+      ),
+    )
+    .limit(LIMITS.tripsPerUser)
+    .all();
+
+  return bounded(rows, "tripsPerUser", `${a} ∩ ${b}`).map((r) => r.tripId);
 }
 
 /**
@@ -140,24 +184,14 @@ export async function coTripNameFor(
   userId: string,
   otherId: string,
 ): Promise<string | null> {
-  const mine = await db
-    .select({ tripId: tripMembership.tripId })
-    .from(tripMembership)
-    .where(and(eq(tripMembership.userId, userId), isNull(tripMembership.deletedAt)))
-    .all();
-  const theirs = await db
-    .select({ tripId: tripMembership.tripId })
-    .from(tripMembership)
-    .where(and(eq(tripMembership.userId, otherId), isNull(tripMembership.deletedAt)))
-    .all();
-  const mineSet = new Set(mine.map((m) => m.tripId));
-  const sharedTripIds = theirs.map((t) => t.tripId).filter((id) => mineSet.has(id));
-  if (sharedTripIds.length === 0) return null;
+  const ids = await sharedTripIds(userId, otherId);
+  if (ids.length === 0) return null;
 
   const shared = await db
     .select({ name: trip.name, endDate: trip.endDate })
     .from(trip)
-    .where(and(isNull(trip.deletedAt), inArray(trip.id, sharedTripIds)))
+    .where(and(isNull(trip.deletedAt), inArray(trip.id, ids)))
+    .limit(LIMITS.tripsPerUser)
     .all();
 
   const ended = shared

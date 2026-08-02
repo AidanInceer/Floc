@@ -26,7 +26,7 @@
  */
 import "server-only";
 
-import { and, eq, isNotNull, isNull, ne } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, isNull, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
@@ -356,39 +356,61 @@ export async function handOverAndLeaveAllTrips(userId: string): Promise<void> {
     .limit(LIMITS.tripsPerUser)
     .all();
 
-  for (const m of bounded(mine, "tripsPerUser", `user's trips`)) {
-    if (m.role !== "admin") continue;
+  const adminTripIds = bounded(mine, "tripsPerUser", "user's trips")
+    .filter((m) => m.role === "admin")
+    .map((m) => m.tripId);
 
-    const otherAdmin = await db
-      .select({ userId: tripMembership.userId })
+  if (adminTripIds.length > 0) {
+    // Everyone else on every trip they administer, in one read (ticket 114).
+    // This used to be two queries and a write *per trip*, serially, over HTTP.
+    const others = await db
+      .select({
+        tripId: tripMembership.tripId,
+        userId: tripMembership.userId,
+        role: tripMembership.role,
+        createdAt: tripMembership.createdAt,
+      })
       .from(tripMembership)
       .where(
         and(
-          eq(tripMembership.tripId, m.tripId),
-          eq(tripMembership.role, "admin"),
+          inArray(tripMembership.tripId, adminTripIds),
           ne(tripMembership.userId, userId),
           isNull(tripMembership.deletedAt),
         ),
       )
-      .get();
-    if (otherAdmin) continue; // not the sole admin — nothing to promote
+      .limit(LIMITS.members * adminTripIds.length)
+      .all();
 
-    const earliestOther = await db
-      .select({ userId: tripMembership.userId })
-      .from(tripMembership)
-      .where(
-        and(
-          eq(tripMembership.tripId, m.tripId),
-          ne(tripMembership.userId, userId),
-          isNull(tripMembership.deletedAt),
-        ),
-      )
-      .orderBy(tripMembership.createdAt)
-      .get();
+    const byTrip = new Map<number, typeof others>();
+    for (const row of bounded(others, "members", "trips being handed over")) {
+      byTrip.set(row.tripId, [...(byTrip.get(row.tripId) ?? []), row]);
+    }
 
-    if (earliestOther) await setMemberRoleAdmin(m.tripId, earliestOther.userId);
+    const promotions: Promise<unknown>[] = [];
+    for (const tripId of adminTripIds) {
+      const roster = byTrip.get(tripId) ?? [];
+      // Not the sole admin — nothing to hand over. No other members at all —
+      // the trip is left without an admin, an accepted v1 edge case (ticket 06).
+      if (roster.length === 0 || roster.some((m) => m.role === "admin")) continue;
+
+      const heir = roster.reduce((earliest, m) =>
+        m.createdAt < earliest.createdAt ? m : earliest,
+      );
+      promotions.push(setMemberRoleAdmin(tripId, heir.userId));
+    }
+    // Distinct trips, so the promotions cannot race each other.
+    await Promise.all(promotions);
   }
 
+  /*
+   * No `map_prompt_at` here, unlike `removeMembership` (ticket 114 flagged the
+   * divergence; this is the comment it asked for). That flag parks a question
+   * on somebody's travel map — "these countries stop being derived, keep them?"
+   * — to be answered later, by them. There is no later: the account is being
+   * deleted in the same request, and the profile that would ask is going with
+   * it. Setting it would leave an unanswerable question on a row nobody can
+   * reach.
+   */
   await db
     .update(tripMembership)
     .set({ deletedAt: new Date(), lastModifiedAt: new Date() })

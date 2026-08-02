@@ -41,8 +41,13 @@ export default async function PublicProfilePage({
   // Your own face goes to the page you can edit, not to a read-only copy of it.
   if (userId === viewer.id) redirect("/profile");
 
-  const profile = await requireProfileView(userId, viewer.id);
-  const friendState = await friendStateWith(viewer.id, userId);
+  // Independent of each other, so they go out together (ticket 114). The 404
+  // for a stranger still comes from `requireProfileView` — it throws, and the
+  // other promise is discarded with the render.
+  const [profile, friendState] = await Promise.all([
+    requireProfileView(userId, viewer.id),
+    friendStateWith(viewer.id, userId),
+  ]);
 
   return (
     <Page>

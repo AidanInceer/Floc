@@ -413,20 +413,27 @@ export async function applyEventSlots(
     orderIndex: number;
   }[],
 ): Promise<void> {
-  // Last-write-wins (rule 7): two people dragging at once means the second
-  // drag lands on whatever the first left behind.
-  for (const w of writes) {
-    await db
-      .update(dayEvent)
-      .set({
-        time: w.time,
-        endTime: w.endTime,
-        allDay: w.allDay,
-        orderIndex: w.orderIndex,
-        ...touch(),
-      })
-      .where(eq(dayEvent.id, w.id));
-  }
+  // Issued together, not awaited one at a time (ticket 114). `permuteEventSlots`
+  // hands back one write per event id and no id twice, so nothing here can race
+  // anything else here — where a `for await` cost one round trip per event, and
+  // a twelve-event day paid twelve of them on a single drag, over HTTP.
+  //
+  // Last-write-wins across *users* is unchanged (rule 7): two people dragging at
+  // once means the second drag lands on whatever the first left behind.
+  await Promise.all(
+    writes.map((w) =>
+      db
+        .update(dayEvent)
+        .set({
+          time: w.time,
+          endTime: w.endTime,
+          allDay: w.allDay,
+          orderIndex: w.orderIndex,
+          ...touch(),
+        })
+        .where(and(eq(dayEvent.id, w.id), isNull(dayEvent.deletedAt))),
+    ),
+  );
 }
 
 /** Moves an event to another day of the same trip. The caller checks both days. */
@@ -442,9 +449,17 @@ export async function moveEventToDay(eventId: number, toDayId: number): Promise<
  * tie-break among the untimed, but keeping it dense keeps it predictable.
  */
 export async function rebaseEventOrder(ids: number[]): Promise<void> {
-  for (const [i, id] of ids.entries()) {
-    await db.update(dayEvent).set({ orderIndex: i }).where(eq(dayEvent.id, id));
-  }
+  // One statement per id, all in flight at once — distinct rows, no ordering
+  // between them (ticket 114). `insertEventAt` calls this twice per cross-day
+  // drag, so it was the same 2N serial cost `permuteDayContents` already avoids.
+  await Promise.all(
+    ids.map((id, i) =>
+      db
+        .update(dayEvent)
+        .set({ orderIndex: i })
+        .where(and(eq(dayEvent.id, id), isNull(dayEvent.deletedAt))),
+    ),
+  );
 }
 
 /**

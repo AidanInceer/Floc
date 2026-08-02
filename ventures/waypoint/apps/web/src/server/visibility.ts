@@ -18,6 +18,8 @@ import { and, eq, inArray, isNull, or } from "drizzle-orm";
 import { notFound } from "next/navigation";
 
 import { db } from "@/db";
+import { sharedTripIds } from "@/server/friends";
+import { bounded, LIMITS } from "@/server/limits";
 import {
   day,
   friendship,
@@ -112,30 +114,9 @@ export async function relationTo(
   return null;
 }
 
+/** One join rather than two round trips and an intersection (ticket 114). */
 async function sharesATrip(a: string, b: string): Promise<boolean> {
-  const mine = await db
-    .select({ tripId: tripMembership.tripId })
-    .from(tripMembership)
-    .where(and(eq(tripMembership.userId, a), isNull(tripMembership.deletedAt)))
-    .all();
-  if (mine.length === 0) return false;
-
-  const shared = await db
-    .select({ tripId: tripMembership.tripId })
-    .from(tripMembership)
-    .where(
-      and(
-        eq(tripMembership.userId, b),
-        isNull(tripMembership.deletedAt),
-        inArray(
-          tripMembership.tripId,
-          mine.map((m) => m.tripId),
-        ),
-      ),
-    )
-    .get();
-
-  return Boolean(shared);
+  return (await sharedTripIds(a, b)).length > 0;
 }
 
 export type PastTrip = {
@@ -199,6 +180,23 @@ export async function requireProfileView(
   const pastTripsShow: PastTripsShow = row.pastTripsShow ?? "all";
   const travelMap = row.visibilityTravelMap ?? "trip_members";
 
+  /*
+   * The two expensive halves go out together (ticket 114) — they were awaited
+   * one after the other, and the travel map alone is three queries.
+   *
+   * Still *conditional*, though: the visibility check stays in front of each,
+   * because a hidden attribute should cost nothing, and speculatively loading
+   * both to flatten the chain would spend that cost on every viewer who isn't
+   * allowed to see them. Parallel-when-needed, not always-fetch.
+   */
+  const showPastTrips = relation === "self" || !isPrivate;
+  const showTravelMap = showsAttribute(relation, travelMap, isPrivate);
+
+  const [pastTrips, travelMapValue] = await Promise.all([
+    showPastTrips ? pastTripsFor(ownerId, pastTripsShow) : null,
+    showTravelMap ? travelMapFor(ownerId) : null,
+  ]);
+
   return {
     userId: ownerId,
     name: row.displayName ?? row.name,
@@ -212,15 +210,8 @@ export async function requireProfileView(
     vibeTags: showsAttribute(relation, vibes, isPrivate)
       ? readVibeTags(row.vibeTags)
       : null,
-    pastTrips:
-      relation === "self" || !isPrivate
-        ? await pastTripsFor(ownerId, pastTripsShow)
-        : null,
-    // Only derived when it's going to be shown — it's three queries, and a
-    // hidden attribute should cost nothing.
-    travelMap: showsAttribute(relation, travelMap, isPrivate)
-      ? await travelMapFor(ownerId)
-      : null,
+    pastTrips,
+    travelMap: travelMapValue,
   };
 }
 
@@ -250,9 +241,10 @@ export async function pastTripsFor(
         isNull(trip.deletedAt),
       ),
     )
+    .limit(LIMITS.tripsPerUser)
     .all();
 
-  const ended = rows
+  const ended = bounded(rows, "tripsPerUser", `profile of ${ownerId}`)
     .filter((t) => hasEnded(t.endDate))
     .sort((a, b) => (b.endDate ?? "").localeCompare(a.endDate ?? ""));
 
