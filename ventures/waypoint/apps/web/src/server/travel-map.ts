@@ -84,7 +84,7 @@ export async function countriesForTrips(
 }
 
 /** The trips whose itineraries currently speak for someone. */
-async function currentTripIds(userId: string): Promise<number[]> {
+export async function currentTripIds(userId: string): Promise<number[]> {
   const rows = await db
     .select({ tripId: tripMembership.tripId })
     .from(tripMembership)
@@ -158,4 +158,71 @@ export async function travelMapFor(userId: string): Promise<TravelMap> {
   ]);
   const derived = await countriesForTrips(tripIds);
   return mergeMarks(derived, manual);
+}
+
+/* ------------------------------------------------------ the hand marks */
+/*
+ * The `user_country_mark` writes (ticket 108). They are here rather than in
+ * `profile/actions.ts` for the reason at the top of `lib/travel-map.ts`: a hand
+ * mark wins over a derived one, permanently, and the three ways of saying so —
+ * paint, reject, take back — only make sense next to the derivation they
+ * override.
+ */
+
+/** Paint a country. Always written, even where a trip already says the same. */
+export async function setManualMark(
+  userId: string,
+  countryCode: string,
+  state: CountryMarkState,
+): Promise<void> {
+  await db
+    .insert(userCountryMark)
+    .values({ userId, countryCode, state })
+    .onConflictDoUpdate({
+      target: [userCountryMark.userId, userCountryMark.countryCode],
+      set: { state, lastModifiedAt: new Date() },
+    });
+}
+
+/** Take a hand mark back entirely, letting the trips speak again. */
+export async function clearManualMark(
+  userId: string,
+  countryCode: string,
+): Promise<void> {
+  await db
+    .delete(userCountryMark)
+    .where(
+      and(
+        eq(userCountryMark.userId, userId),
+        eq(userCountryMark.countryCode, countryCode),
+      ),
+    );
+}
+
+/** What the trips would say about one country with any hand mark ignored. */
+export async function derivedStateFor(
+  userId: string,
+  countryCode: string,
+): Promise<MapState | undefined> {
+  const derived = await countriesForTrips(await currentTripIds(userId));
+  return derived[countryCode];
+}
+
+/**
+ * Converts a leaving trip's countries into hand marks — the only place any
+ * conversion happens (ticket 95). Never overwrites something already said by
+ * hand, including a `none`, which is a decision about that country and not a
+ * gap to fill.
+ */
+export async function keepMarksFromTrip(
+  userId: string,
+  tripId: number,
+): Promise<void> {
+  const countries = await countriesForTrips([tripId]);
+  for (const [countryCode, state] of Object.entries(countries)) {
+    await db
+      .insert(userCountryMark)
+      .values({ userId, countryCode, state })
+      .onConflictDoNothing();
+  }
 }

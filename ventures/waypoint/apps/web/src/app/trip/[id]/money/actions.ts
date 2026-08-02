@@ -5,21 +5,26 @@
  *
  * - An expense write always rewrites `expense` + the whole `expense_split`
  *   set in one transaction — last-write-wins on the whole expense, never a
- *   partial-row merge (ticket 12).
+ *   partial-row merge (ticket 12). That transaction is `writeExpense` in
+ *   `server/money.ts` (ticket 108); there is no smaller write to reach for.
  * - `computeSplits` is the only place split maths happens; we just catch its
  *   errors and turn them into a form-friendly string.
  * - Any member may add, edit, or delete an expense — money has no
  *   admin/member distinction beyond the invite/kick/delete list (ticket 01).
  */
-import { revalidatePath } from "next/cache";
 import { after } from "next/server";
-import { and, eq, inArray, isNull } from "drizzle-orm";
 
-import { db } from "@/db";
-import { expense, expenseSplit, user } from "@/db/schema";
 import type { Currency, SplitType } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
-import { touch } from "@/server/unlocks";
+import {
+  emailsForUsers,
+  findLiveExpense,
+  findSettleableSplit,
+  revalidateMoney,
+  softDeleteExpense,
+  toggleSplitSettled,
+  writeExpense,
+} from "@/server/money";
 import {
   computeSplits,
   formatMoney,
@@ -95,11 +100,7 @@ async function notifyParticipants(args: {
   const emailById = new Map(args.members.map((m) => [m.userId, m.email]));
   const unknown = others.filter((s) => !emailById.has(s.userId));
   if (unknown.length) {
-    const rows = await db
-      .select({ id: user.id, email: user.email })
-      .from(user)
-      .where(inArray(user.id, unknown.map((s) => s.userId)))
-      .all();
+    const rows = await emailsForUsers(unknown.map((s) => s.userId));
     for (const r of rows) emailById.set(r.id, r.email);
   }
 
@@ -151,29 +152,11 @@ export async function addExpense(
     return { error: (err as Error).message };
   }
 
-  await db.transaction(async (tx) => {
-    const [row] = await tx
-      .insert(expense)
-      .values({
-        tripId,
-        dayId,
-        createdBy: access.viewer.id,
-        paidBy,
-        description,
-        amountMinor,
-        currency,
-        splitType,
-        notes,
-      })
-      .returning({ id: expense.id });
-
-    await tx.insert(expenseSplit).values(
-      splits.map((s) => ({
-        expenseId: row.id,
-        userId: s.userId,
-        owedAmountMinor: s.owedAmountMinor,
-      })),
-    );
+  await writeExpense({
+    tripId,
+    createdBy: access.viewer.id,
+    fields: { dayId, paidBy, description, amountMinor, currency, splitType, notes },
+    splits,
   });
 
   // Mail is a side effect of the write, not part of it: `after()` lets the
@@ -192,7 +175,7 @@ export async function addExpense(
     }),
   );
 
-  revalidatePath(`/trip/${tripId}/money`);
+  revalidateMoney(tripId);
   return {};
 }
 
@@ -209,13 +192,7 @@ export async function updateExpense(
   if (!description) return { error: "Give the cost a description." };
   if (!paidBy) return { error: "Say who paid." };
 
-  const existing = await db
-    .select({ id: expense.id })
-    .from(expense)
-    .where(
-      and(eq(expense.id, expenseId), eq(expense.tripId, tripId), isNull(expense.deletedAt)),
-    )
-    .get();
+  const existing = await findLiveExpense(tripId, expenseId);
   if (!existing) return { error: "That cost no longer exists." };
 
   let amountMinor: number;
@@ -235,32 +212,14 @@ export async function updateExpense(
     return { error: (err as Error).message };
   }
 
-  // Whole-expense last-write-wins: delete and reinsert the entire split set
-  // inside the same transaction as the expense update — never a partial-row
-  // merge (ticket 12).
-  await db.transaction(async (tx) => {
-    await tx
-      .update(expense)
-      .set({
-        dayId,
-        paidBy,
-        description,
-        amountMinor,
-        currency,
-        splitType,
-        notes,
-        ...touch(),
-      })
-      .where(eq(expense.id, expenseId));
-
-    await tx.delete(expenseSplit).where(eq(expenseSplit.expenseId, expenseId));
-    await tx.insert(expenseSplit).values(
-      splits.map((s) => ({
-        expenseId,
-        userId: s.userId,
-        owedAmountMinor: s.owedAmountMinor,
-      })),
-    );
+  // Whole-expense last-write-wins: the split set is replaced, not merged
+  // (ticket 12) — `writeExpense` is the one place that transaction exists.
+  await writeExpense({
+    tripId,
+    expenseId: existing.id,
+    createdBy: access.viewer.id,
+    fields: { dayId, paidBy, description, amountMinor, currency, splitType, notes },
+    splits,
   });
 
   after(() =>
@@ -276,7 +235,7 @@ export async function updateExpense(
     }),
   );
 
-  revalidatePath(`/trip/${tripId}/money`);
+  revalidateMoney(tripId);
   return {};
 }
 
@@ -285,14 +244,9 @@ export async function deleteExpense(formData: FormData): Promise<void> {
   const expenseId = Number(formData.get("expenseId"));
   await requireTripAccess(tripId);
 
-  // Soft-delete only the expense; its splits are filtered out at read time by
-  // joining on the expense's deletedAt (ticket 16), so they need no touching.
-  await db
-    .update(expense)
-    .set({ deletedAt: new Date(), ...touch() })
-    .where(and(eq(expense.id, expenseId), eq(expense.tripId, tripId)));
+  await softDeleteExpense(tripId, expenseId);
 
-  revalidatePath(`/trip/${tripId}/money`);
+  revalidateMoney(tripId);
 }
 
 export async function toggleSettled(formData: FormData): Promise<void> {
@@ -300,19 +254,7 @@ export async function toggleSettled(formData: FormData): Promise<void> {
   const splitId = Number(formData.get("splitId"));
   const access = await requireTripAccess(tripId);
 
-  const row = await db
-    .select({
-      id: expenseSplit.id,
-      userId: expenseSplit.userId,
-      settledAt: expenseSplit.settledAt,
-      paidBy: expense.paidBy,
-      expenseTripId: expense.tripId,
-    })
-    .from(expenseSplit)
-    .innerJoin(expense, eq(expense.id, expenseSplit.expenseId))
-    .where(and(eq(expenseSplit.id, splitId), isNull(expense.deletedAt)))
-    .get();
-
+  const row = await findSettleableSplit(splitId);
   if (!row || row.expenseTripId !== tripId) return;
 
   // A member may mark their OWN split settled; the person who paid may also
@@ -321,10 +263,7 @@ export async function toggleSettled(formData: FormData): Promise<void> {
   const allowed = row.userId === access.viewer.id || row.paidBy === access.viewer.id;
   if (!allowed) return;
 
-  await db
-    .update(expenseSplit)
-    .set({ settledAt: row.settledAt ? null : new Date(), ...touch() })
-    .where(eq(expenseSplit.id, splitId));
+  await toggleSplitSettled(splitId, !row.settledAt);
 
-  revalidatePath(`/trip/${tripId}/money`);
+  revalidateMoney(tripId);
 }

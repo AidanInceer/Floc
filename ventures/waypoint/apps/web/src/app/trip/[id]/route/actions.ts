@@ -5,59 +5,29 @@
  * rows Days uses — so every write here is really "create/edit day rows and
  * their overnight place", not a separate "stop" entity (there isn't one).
  * Open to all members, not admin-only (ticket 01 step 7).
+ *
+ * The SQL moved to `server/itinerary.ts` (ticket 108). What's left here is the
+ * Route tab's *meaning*: what a stop is, what moving one does to the dates, and
+ * how the travel between two stops survives a reorder.
  */
-import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
-
-import { db } from "@/db";
-import { day, dayEvent, type TransportType } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
 import { dateRange } from "@/lib/dates";
 import { upsertPlace } from "@/server/places";
-import { moveItem, permuteDayContents } from "@/server/itinerary";
+import {
+  firstTransportEvents,
+  listDays,
+  moveEventToDay,
+  moveItem,
+  overnightPlaceOf,
+  permuteDayContents,
+  revalidateItinerary,
+  setLegTransportOn,
+  setOvernightPlaceOn,
+  writeSpan,
+} from "@/server/itinerary";
 import { deriveStops } from "@/lib/stops";
-import { refreshUnlocks, touch } from "@/server/unlocks";
-
-/**
- * Points every date in `dates` at `placeId`, creating the day rows that don't
- * exist yet.
- *
- * Batched deliberately: the obvious shape here is a per-date
- * select-then-update/insert, but that is two serial round trips *per night* —
- * a fortnight-long stop paid ~28 of them. Reading the whole span up front and
- * writing it as one bulk update plus one bulk insert makes it three, whatever
- * the span. Same-per-date semantics: an existing live row is re-pointed, a
- * date with no live row is inserted (a soft-deleted row on that date still
- * collides on `day_trip_date_idx`, exactly as before).
- */
-async function writeSpan(tripId: number, dates: string[], placeId: number | null) {
-  if (dates.length === 0) return;
-
-  const existing = await db
-    .select({ id: day.id, date: day.date })
-    .from(day)
-    .where(
-      and(eq(day.tripId, tripId), inArray(day.date, dates), isNull(day.deletedAt)),
-    )
-    .all();
-
-  const covered = new Set(existing.map((d) => d.date));
-  const missing = dates.filter((d) => !covered.has(d));
-
-  await Promise.all([
-    existing.length
-      ? db
-          .update(day)
-          .set({ overnightPlaceId: placeId, ...touch() })
-          .where(inArray(day.id, existing.map((d) => d.id)))
-      : undefined,
-    missing.length
-      ? db
-          .insert(day)
-          .values(missing.map((date) => ({ tripId, date, overnightPlaceId: placeId })))
-      : undefined,
-  ]);
-}
+import { refreshUnlocks } from "@/server/unlocks";
+import type { TransportType } from "@/db/schema";
 
 /**
  * Adds a stop by creating (or re-pointing) `day` rows for a date span.
@@ -88,8 +58,7 @@ export async function addStop(
   await writeSpan(access.trip.id, dateRange(input.startDate, input.endDate), placeId);
 
   await refreshUnlocks(access.trip.id);
-  revalidatePath(`/trip/${access.trip.id}/route`);
-  revalidatePath(`/trip/${access.trip.id}/days`);
+  revalidateItinerary(access.trip.id);
 }
 
 /** Changes the overnight place for one or more existing day rows. */
@@ -113,13 +82,9 @@ export async function setOvernightPlace(
     countryCode: input.countryCode,
   });
 
-  await db
-    .update(day)
-    .set({ overnightPlaceId: placeId, ...touch() })
-    .where(and(eq(day.tripId, access.trip.id), inArray(day.id, dayIds)));
+  await setOvernightPlaceOn(access.trip.id, dayIds, placeId);
 
-  revalidatePath(`/trip/${access.trip.id}/route`);
-  revalidatePath(`/trip/${access.trip.id}/days`);
+  revalidateItinerary(access.trip.id);
 }
 
 /**
@@ -144,23 +109,13 @@ export async function setStopDates(
   const access = await requireTripAccess(tripId);
   if (!input.startDate || !input.endDate || input.endDate < input.startDate) return;
 
-  const current = await db
-    .select({ placeId: day.overnightPlaceId })
-    .from(day)
-    .where(and(eq(day.tripId, access.trip.id), inArray(day.id, dayIds)))
-    .get();
-  const placeId = current?.placeId ?? null;
+  const placeId = await overnightPlaceOf(access.trip.id, dayIds);
 
-  await db
-    .update(day)
-    .set({ overnightPlaceId: null, ...touch() })
-    .where(and(eq(day.tripId, access.trip.id), inArray(day.id, dayIds)));
-
+  await setOvernightPlaceOn(access.trip.id, dayIds, null);
   await writeSpan(access.trip.id, dateRange(input.startDate, input.endDate), placeId);
 
   await refreshUnlocks(access.trip.id);
-  revalidatePath(`/trip/${access.trip.id}/route`);
-  revalidatePath(`/trip/${access.trip.id}/days`);
+  revalidateItinerary(access.trip.id);
 }
 
 /**
@@ -173,25 +128,16 @@ export async function setStopDates(
  * changes both stops' dates — which is the point of moving it.
  *
  * Events travel with their stop; expenses stay on their date. See
- * src/lib/itinerary.ts for why.
+ * src/server/itinerary.ts for why.
  */
 export async function reorderStops(tripId: number, from: number, to: number) {
   const access = await requireTripAccess(tripId);
 
-  const days = await db
-    .select({
-      dayId: day.id,
-      date: day.date,
-      overnightPlaceId: day.overnightPlaceId,
-    })
-    .from(day)
-    .where(and(eq(day.tripId, access.trip.id), isNull(day.deletedAt)))
-    .orderBy(asc(day.date))
-    .all();
+  const days = await listDays(access.trip.id);
 
   const stops = deriveStops(
     days.map((d) => ({
-      dayId: d.dayId,
+      dayId: d.id,
       date: d.date,
       overnightPlaceId: d.overnightPlaceId,
       overnightPlaceName: null,
@@ -202,10 +148,9 @@ export async function reorderStops(tripId: number, from: number, to: number) {
   const next = moveItem(stops, from, to);
 
   await permuteDayContents(access.trip.id, next.flatMap((s) => s.dayIds));
-  await reanchorLegEvents(stops, next, days.map((d) => d.dayId), legs);
+  await reanchorLegEvents(stops, next, days.map((d) => d.id), legs);
 
-  revalidatePath(`/trip/${access.trip.id}/route`);
-  revalidatePath(`/trip/${access.trip.id}/days`);
+  revalidateItinerary(access.trip.id);
 }
 
 /**
@@ -231,25 +176,11 @@ const pairKey = (a: number, b: number) =>
 
 /** First transport event on each stop's first day, keyed by the pair it joins. */
 async function loadLegEvents(stops: { dayIds: number[] }[]) {
-  const arrivalDays = stops.slice(1).map((s) => s.dayIds[0]);
   const legs = new Map<string, number>();
-  if (arrivalDays.length === 0) return legs;
-
-  const rows = await db
-    .select({ id: dayEvent.id, dayId: dayEvent.dayId })
-    .from(dayEvent)
-    .where(
-      and(
-        inArray(dayEvent.dayId, arrivalDays),
-        eq(dayEvent.type, "transport"),
-        isNull(dayEvent.deletedAt),
-      ),
-    )
-    .orderBy(asc(dayEvent.orderIndex))
-    .all();
-
-  const firstByDay = new Map<number, number>();
-  for (const r of rows) if (!firstByDay.has(r.dayId)) firstByDay.set(r.dayId, r.id);
+  const firstByDay = await firstTransportEvents(
+    stops.slice(1).map((s) => s.dayIds[0]),
+  );
+  if (firstByDay.size === 0) return legs;
 
   for (const [i, stop] of stops.entries()) {
     if (i === 0) continue;
@@ -278,14 +209,7 @@ async function reanchorLegEvents(
       const key = pairKey(positionOf.get(next[k - 1])!, positionOf.get(stop)!);
       const eventId = legs.get(key);
       const arrivalDayId = dayIdsByDate[offset];
-      if (eventId && arrivalDayId) {
-        writes.push(
-          db
-            .update(dayEvent)
-            .set({ dayId: arrivalDayId, ...touch() })
-            .where(eq(dayEvent.id, eventId)),
-        );
-      }
+      if (eventId && arrivalDayId) writes.push(moveEventToDay(eventId, arrivalDayId));
     }
     offset += stop.dayIds.length;
   }
@@ -299,29 +223,15 @@ async function reanchorLegEvents(
  */
 export async function removeStop(tripId: number, dayIds: number[]) {
   const access = await requireTripAccess(tripId);
-
-  await db
-    .update(day)
-    .set({ overnightPlaceId: null, ...touch() })
-    .where(and(eq(day.tripId, access.trip.id), inArray(day.id, dayIds)));
-
-  revalidatePath(`/trip/${access.trip.id}/route`);
-  revalidatePath(`/trip/${access.trip.id}/days`);
+  await setOvernightPlaceOn(access.trip.id, dayIds, null);
+  revalidateItinerary(access.trip.id);
 }
 
 /**
  * Sets how the group gets to a stop (ticket 82). The mode is not stored on the
  * route — a stop isn't stored at all (rule 3) — so this writes the same
- * `day_event` row Days owns: the first transport event on the arrival stop's
- * first day, which is exactly the row the Route page reads the leg's mode back
- * off.
- *
- * Two deliberate limits. An existing transport event is only re-typed — its
- * title, time and note are the group's, written on Days, and a picker on
- * another tab has no business rewriting them. And there is no "clear": setting
- * a leg back to unplanned would mean deleting an event somebody wrote on Days,
- * which is a destructive edit hiding inside a dropdown. Removing it stays a
- * Days action.
+ * `day_event` row Days owns; `setLegTransportOn` holds the two deliberate
+ * limits on that (re-type only, and no "clear").
  */
 export async function setLegTransport(
   tripId: number,
@@ -329,67 +239,6 @@ export async function setLegTransport(
   mode: TransportType,
 ) {
   const access = await requireTripAccess(tripId);
-
-  // The day must belong to this trip — `dayId` arrives from the client.
-  const arrival = await db
-    .select({ id: day.id })
-    .from(day)
-    .where(
-      and(
-        eq(day.id, dayId),
-        eq(day.tripId, access.trip.id),
-        isNull(day.deletedAt),
-      ),
-    )
-    .get();
-  if (!arrival) return;
-
-  const existing = await db
-    .select({ id: dayEvent.id })
-    .from(dayEvent)
-    .where(
-      and(
-        eq(dayEvent.dayId, dayId),
-        eq(dayEvent.type, "transport"),
-        isNull(dayEvent.deletedAt),
-      ),
-    )
-    .orderBy(asc(dayEvent.orderIndex))
-    .all();
-
-  if (existing.length > 0) {
-    await db
-      .update(dayEvent)
-      .set({ transportType: mode, ...touch() })
-      .where(eq(dayEvent.id, existing[0].id));
-  } else {
-    const [{ count } = { count: 0 }] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(dayEvent)
-      .where(and(eq(dayEvent.dayId, dayId), isNull(dayEvent.deletedAt)));
-
-    await db.insert(dayEvent).values({
-      dayId,
-      orderIndex: count,
-      type: "transport",
-      title: TRANSPORT_TITLES[mode],
-      transportType: mode,
-      // No time: Route knows the leg happens, not when. All-day is what the
-      // itinerary already means by "on that day, not at a time" — the group
-      // fills the rest in on Days.
-      allDay: true,
-    });
-  }
-
-  revalidatePath(`/trip/${access.trip.id}/route`);
-  revalidatePath(`/trip/${access.trip.id}/days`);
+  await setLegTransportOn(access.trip.id, dayId, mode);
+  revalidateItinerary(access.trip.id);
 }
-
-/** The title a leg-created event lands on Days with — editable there. */
-const TRANSPORT_TITLES: Record<TransportType, string> = {
-  flight: "Flight to the next stop",
-  train: "Train to the next stop",
-  car: "Drive to the next stop",
-  ferry: "Ferry to the next stop",
-  other: "Travel to the next stop",
-};

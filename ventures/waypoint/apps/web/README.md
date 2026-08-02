@@ -49,7 +49,8 @@ email, then join the trip via its invite link.
 
 ```
 src/
-  app/                    routes; each folder's writes live in its actions.ts
+  app/                    routes; each folder's actions.ts decides who may do
+                          what — the SQL behind it is in server/
     trip/[id]/            the five tabs — layout.tsx owns the header + tab bar
   components/             ui.tsx (server) + client-ui.tsx (client) primitives
   db/                     schema.ts (the whole ERD), index.ts, seed.ts
@@ -57,9 +58,14 @@ src/
                           availability, tags — no db, no network, safe to
                           import from a Client Component
   server/                 everything that touches the database or the network,
-                          each file opening `import "server-only"`: access,
-                          auth, unlocks, email, friends, profile, visibility,
-                          itinerary, geocoding (Nominatim), travel-map loaders
+                          each file opening `import "server-only"`. Four of them
+                          are aggregates (ticket 108) owning one part of the
+                          domain end to end — itinerary (day + day_event),
+                          ideas, money (expense + splits), membership (trip +
+                          roster + availability) — plus notes, and the
+                          supporting access, auth, unlocks, email, friends,
+                          profile, visibility, places (Nominatim), travel-map.
+                          limits.ts holds every result-set ceiling
   middleware.ts           session gate; membership is decided in server/access.ts
 public/
   countries-110m.geojson  country outlines for the travel map — Natural Earth,
@@ -77,6 +83,10 @@ Ticket 04 lists invariants SQLite cannot enforce. Where each one lives:
 | Only an admin may invite, kick, promote, archive or delete | `server/access.ts` (`assertAdmin`) at the top of each admin action |
 | A non-member cannot tell a real trip id from a fake one | `server/access.ts` (`requireTripAccess` → `notFound()`), plus `app/not-found.tsx` |
 | Money is never a float | `lib/money.ts` — integer minor units throughout, `parseMoney` refuses anything else |
+| Every read filters soft-deletes | the `server/` aggregates — `isNull(deletedAt)` does not appear in `app/` at all |
+| No list query is unbounded | `server/limits.ts` (`LIMITS`, `bounded`) — at a ceiling the view truncates and the server says so; it never throws |
+| An expense and its splits are written whole, never merged | `server/money.ts` (`writeExpense`) — the only way to write either table |
+| A trip is never left without an admin when it needn't be | `server/membership.ts` (`leaveTripAs`, `handOverAndLeaveAllTrips`) |
 | A travel map mark from a trip is never stored | `server/travel-map.ts` — `user_country_mark` holds hand-painted rows only; trip marks are derived on read, because "been there" is triggered by time passing (ticket 95) |
 
 ## Changing the schema

@@ -64,6 +64,12 @@ treated as current.
 
 - Server Components by default. Mutations are Server Actions in the route
   folder's `actions.ts`. No client fetches to our own API.
+- **An `actions.ts` never imports `@/db`.** The SQL lives in the `server/`
+  aggregates — `itinerary`, `ideas`, `money`, `membership`, `notes` (ticket
+  108) — which own soft-delete filtering, the result-set ceilings in
+  `server/limits.ts`, and the `revalidatePath` set for their part of the
+  domain. An action decides who may do what and what it means; the aggregate
+  decides how it is stored. Add a rule to the aggregate, not to a caller.
 - Primitives come from `components/ui.tsx` (server) and
   `components/client-ui.tsx` (client). Don't add a second design system and
   don't reach for shadcn — the inventory is deliberately hand-rolled.

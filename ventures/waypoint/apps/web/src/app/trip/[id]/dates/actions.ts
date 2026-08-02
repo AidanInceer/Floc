@@ -6,14 +6,20 @@
  * Every write here is open to any member: choosing when to go is not one of
  * admin's four powers (non-negotiable 6), and requiring an admin to press the
  * button would just stall the decision the tab exists to unstick.
+ *
+ * The SQL is `server/membership.ts`'s (ticket 108) — availability is a fact
+ * about members, so it lives with the roster rather than in a module of its own.
  */
-import { and, eq, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-import { db } from "@/db";
-import { availability, trip } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
-import { touch } from "@/server/unlocks";
+import {
+  clearAvailabilityFor,
+  revalidateOverview,
+  revalidateTripHeader,
+  setAvailability,
+  setTripDateRange,
+} from "@/server/membership";
 
 /** Cheap sanity check — these come from a client component's local state. */
 function assertIsoDates(dates: string[]) {
@@ -22,14 +28,7 @@ function assertIsoDates(dates: string[]) {
   }
 }
 
-/**
- * Marks the viewer free (or not) on a batch of dates in one statement.
- *
- * Unmarking writes `available: false` rather than soft-deleting the row: the
- * unique index is on (trip, user, date) and ignores `deleted_at`, so a
- * soft-deleted row would block the person from ever marking that day again.
- * The tally treats `false` and "no row" the same, so nothing downstream cares.
- */
+/** Marks the viewer free (or not) on a batch of dates — see `setAvailability`. */
 export async function setAvailabilityDates(
   tripId: number,
   dates: string[],
@@ -39,23 +38,10 @@ export async function setAvailabilityDates(
   assertIsoDates(dates);
   const access = await requireTripAccess(tripId);
 
-  await db
-    .insert(availability)
-    .values(
-      dates.map((date) => ({
-        tripId,
-        userId: access.viewer.id,
-        date,
-        available: isAvailable,
-      })),
-    )
-    .onConflictDoUpdate({
-      target: [availability.tripId, availability.userId, availability.date],
-      set: { available: isAvailable, deletedAt: null, ...touch() },
-    });
+  await setAvailability(tripId, access.viewer.id, dates, isAvailable);
 
-  revalidatePath(`/trip/${tripId}/dates`);
-  revalidatePath(`/trip/${tripId}/overview`);
+  revalidateDates(tripId);
+  revalidateOverview(tripId);
 }
 
 /** One round trip for a whole editing session's worth of changes. */
@@ -84,23 +70,17 @@ export async function setTripDatesFromCalendar(formData: FormData) {
   }
 
   await requireTripAccess(tripId);
-  await db
-    .update(trip)
-    .set({ startDate, endDate, ...touch() })
-    .where(eq(trip.id, tripId));
+  await setTripDateRange(tripId, startDate, endDate);
 
-  revalidatePath(`/trip/${tripId}`, "layout");
+  revalidateTripHeader(tripId);
 }
 
 /** Back to undated — the trip stays entirely usable without dates. */
 export async function clearTripDates(tripId: number) {
   await requireTripAccess(tripId);
-  await db
-    .update(trip)
-    .set({ startDate: null, endDate: null, ...touch() })
-    .where(eq(trip.id, tripId));
+  await setTripDateRange(tripId, null, null);
 
-  revalidatePath(`/trip/${tripId}`, "layout");
+  revalidateTripHeader(tripId);
 }
 
 /**
@@ -109,16 +89,12 @@ export async function clearTripDates(tripId: number) {
  */
 export async function clearMyAvailability(tripId: number) {
   const access = await requireTripAccess(tripId);
-  await db
-    .update(availability)
-    .set({ available: false, ...touch() })
-    .where(
-      and(
-        eq(availability.tripId, tripId),
-        eq(availability.userId, access.viewer.id),
-        isNull(availability.deletedAt),
-      ),
-    );
+  await clearAvailabilityFor(tripId, access.viewer.id);
 
+  revalidateDates(tripId);
+}
+
+/** The grid itself. Kept local: no other tab renders it. */
+function revalidateDates(tripId: number) {
   revalidatePath(`/trip/${tripId}/dates`);
 }

@@ -3,25 +3,33 @@
 /**
  * Day/day_event mutations (ticket 15). Open to all members, not admin-only
  * (ticket 01 step 7). Blanket last-write-wins (ticket 12) — no version check
- * before any update; `touch()` just keeps `last_modified_at` current for
- * debugging.
+ * before any update.
+ *
+ * Every line of SQL that used to live here is now in `server/itinerary.ts`
+ * (ticket 108): this file decides *who may do what and what it means*, and the
+ * aggregate decides how it's stored, what's filtered, what's bounded and what's
+ * revalidated. Nothing here imports `@/db`.
  */
-import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
-
-import { db } from "@/db";
-import { day, dayEvent } from "@/db/schema";
-import type { DayEventType, TransportType } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
 import { addDays as addDaysToDate } from "@/lib/dates";
+import { insertAt, permuteEventSlots, swapItems } from "@/lib/event-order";
 import {
-  insertAt,
-  orderEvents,
-  permuteEventSlots,
-  swapItems,
-} from "@/lib/event-order";
-import { moveItem, permuteDayContents } from "@/server/itinerary";
-import { refreshUnlocks, touch } from "@/server/unlocks";
+  applyEventSlots,
+  ensureDays,
+  insertEvent,
+  listDayIds,
+  listEventSlots,
+  moveEventToDay,
+  moveItem,
+  permuteDayContents,
+  rebaseEventOrder,
+  revalidateItinerary,
+  softDeleteDay,
+  softDeleteEvent,
+  updateEventFields,
+  type EventFields,
+} from "@/server/itinerary";
+import { refreshUnlocks } from "@/server/unlocks";
 
 /*
  * The trip joins that used to live here as local `requireDay` / `requireEvent`
@@ -36,25 +44,15 @@ import { refreshUnlocks, touch } from "@/server/unlocks";
  * The dates don't move — the *plan* does. Day rows are keyed by (trip, date),
  * so "swap Tuesday and Wednesday" means Wednesday's overnight place and events
  * now happen on Tuesday's date and vice versa. Expenses stay on the date they
- * were spent; see src/lib/itinerary.ts.
+ * were spent; see src/server/itinerary.ts.
  */
 export async function reorderDays(tripId: number, from: number, to: number) {
   const access = await requireTripAccess(tripId);
 
-  const days = await db
-    .select({ id: day.id })
-    .from(day)
-    .where(and(eq(day.tripId, access.trip.id), isNull(day.deletedAt)))
-    .orderBy(asc(day.date))
-    .all();
+  const ids = await listDayIds(access.trip.id);
+  await permuteDayContents(access.trip.id, moveItem(ids, from, to));
 
-  await permuteDayContents(
-    access.trip.id,
-    moveItem(days.map((d) => d.id), from, to),
-  );
-
-  revalidatePath(`/trip/${access.trip.id}/days`);
-  revalidatePath(`/trip/${access.trip.id}/route`);
+  revalidateItinerary(access.trip.id);
 }
 
 /** Extends the trip by appending N days after its current last day. */
@@ -67,41 +65,18 @@ export async function addDays(tripId: number, afterDate: string, count: number) 
     dates.push(cursor);
   }
 
-  // One read for the whole span and one insert for whatever's missing, rather
-  // than a select-then-insert per day. The existence check is deliberately
-  // *not* filtered on `deletedAt`: a soft-deleted row still occupies the
-  // (trip, date) unique index, so skipping it is what keeps this idempotent.
-  if (dates.length) {
-    const existing = await db
-      .select({ date: day.date })
-      .from(day)
-      .where(and(eq(day.tripId, access.trip.id), inArray(day.date, dates)))
-      .all();
-
-    const covered = new Set(existing.map((d) => d.date));
-    const missing = dates.filter((d) => !covered.has(d));
-    if (missing.length) {
-      await db
-        .insert(day)
-        .values(missing.map((date) => ({ tripId: access.trip.id, date })));
-    }
-  }
+  await ensureDays(access.trip.id, dates);
 
   await refreshUnlocks(access.trip.id);
-  revalidatePath(`/trip/${access.trip.id}/days`);
-  revalidatePath(`/trip/${access.trip.id}/route`);
+  revalidateItinerary(access.trip.id);
 }
 
-/** Soft-deletes a single day row (and its events cascade via FK on hard delete only — soft-delete is app-level, so events are left orphaned-but-hidden by the day's own deletedAt check in queries). */
+/** Soft-deletes a single day row; its events go with it (hidden by the day's own filter). */
 export async function removeDay(tripId: number, dayId: number) {
   const access = await requireTripAccess(tripId);
   const target = await access.day(dayId);
-  await db
-    .update(day)
-    .set({ deletedAt: new Date(), ...touch() })
-    .where(eq(day.id, target.id));
-  revalidatePath(`/trip/${access.trip.id}/days`);
-  revalidatePath(`/trip/${access.trip.id}/route`);
+  await softDeleteDay(target.id);
+  revalidateItinerary(access.trip.id);
 }
 
 /*
@@ -110,140 +85,29 @@ export async function removeDay(tripId: number, dayId: number) {
  * and a `note`-table thread for the conversation about it.
  */
 
-export async function addEvent(
-  tripId: number,
-  dayId: number,
-  input: {
-    type: DayEventType;
-    title: string;
-    placeId?: number | null;
-    transportType?: TransportType | null;
-    time?: string | null;
-    endTime?: string | null;
-    allDay?: boolean;
-    note?: string | null;
-  },
-) {
+export async function addEvent(tripId: number, dayId: number, input: EventFields) {
   const access = await requireTripAccess(tripId);
   const target = await access.day(dayId);
-
-  const [{ count } = { count: 0 }] = await db
-    .select({ count: sql<number>`count(*)` })
-    .from(dayEvent)
-    .where(and(eq(dayEvent.dayId, target.id), isNull(dayEvent.deletedAt)));
-
-  await db.insert(dayEvent).values({
-    dayId: target.id,
-    orderIndex: count,
-    type: input.type,
-    title: input.title.trim(),
-    placeId: input.placeId ?? null,
-    transportType: input.type === "transport" ? input.transportType ?? null : null,
-    ...timing(input),
-    note: input.note || null,
-  });
-
-  revalidatePath(`/trip/${access.trip.id}/days`);
+  await insertEvent(target.id, input);
+  revalidateItinerary(access.trip.id);
 }
 
 export async function updateEvent(
   tripId: number,
   eventId: number,
-  input: {
-    type: DayEventType;
-    title: string;
-    placeId?: number | null;
-    transportType?: TransportType | null;
-    time?: string | null;
-    endTime?: string | null;
-    allDay?: boolean;
-    note?: string | null;
-  },
+  input: EventFields,
 ) {
   const access = await requireTripAccess(tripId);
   const target = await access.event(eventId);
-  await db
-    .update(dayEvent)
-    .set({
-      type: input.type,
-      title: input.title.trim(),
-      placeId: input.placeId ?? null,
-      transportType: input.type === "transport" ? input.transportType ?? null : null,
-      ...timing(input),
-      note: input.note || null,
-      ...touch(),
-    })
-    .where(eq(dayEvent.id, target.id));
-  revalidatePath(`/trip/${access.trip.id}/days`);
+  await updateEventFields(target.id, input);
+  revalidateItinerary(access.trip.id);
 }
 
 export async function deleteEvent(tripId: number, eventId: number) {
   const access = await requireTripAccess(tripId);
   const target = await access.event(eventId);
-  await db
-    .update(dayEvent)
-    .set({ deletedAt: new Date(), ...touch() })
-    .where(eq(dayEvent.id, target.id));
-  revalidatePath(`/trip/${access.trip.id}/days`);
-}
-
-/**
- * Reconciles the three time fields into a state that can't contradict itself,
- * because the form can offer combinations the day can't hold.
- *
- * All-day wins outright: it means "no start time", so a start left in the box
- * when the checkbox went on is stale, not a preference. An end that isn't
- * strictly after the start is dropped rather than stored — `HH:MM` can't say
- * "next morning" (rule 10: no timezones, no dates on an event), so an event
- * running past midnight has no representation here at all. That gap is real
- * and is on the Day-event planning epic, not papered over with a fake time.
- */
-function timing(input: {
-  time?: string | null;
-  endTime?: string | null;
-  allDay?: boolean;
-}) {
-  if (input.allDay) return { time: null, endTime: null, allDay: true };
-  const time = input.time || null;
-  const endTime = input.endTime || null;
-  return {
-    time,
-    endTime: time && endTime && endTime > time ? endTime : null,
-    allDay: false,
-  };
-}
-
-/**
- * A day's events in the order they're shown in — see `lib/event-order.ts`.
- *
- * Takes the trip as well as the day and joins through `day`, so a foreign
- * `dayId` reads as an empty day rather than another group's itinerary (ticket
- * 104). Every reorder below derives the ids it writes from this read, which is
- * what makes scoping the *read* enough to scope the writes too — and
- * `permuteEventSlots` refuses a `newOrder` that isn't a permutation of what
- * came back, so a caller cannot smuggle a foreign id in through it either.
- */
-async function loadEventSlots(tripId: number, dayId: number) {
-  const rows = await db
-    .select({
-      id: dayEvent.id,
-      time: dayEvent.time,
-      endTime: dayEvent.endTime,
-      allDay: dayEvent.allDay,
-      orderIndex: dayEvent.orderIndex,
-    })
-    .from(dayEvent)
-    .innerJoin(day, eq(day.id, dayEvent.dayId))
-    .where(
-      and(
-        eq(dayEvent.dayId, dayId),
-        eq(day.tripId, tripId),
-        isNull(dayEvent.deletedAt),
-        isNull(day.deletedAt),
-      ),
-    )
-    .all();
-  return orderEvents(rows);
+  await softDeleteEvent(target.id);
+  revalidateItinerary(access.trip.id);
 }
 
 /**
@@ -262,26 +126,11 @@ export async function reorderEvents(
 ) {
   const access = await requireTripAccess(tripId);
 
-  const writes = permuteEventSlots(
-    await loadEventSlots(access.trip.id, dayId),
-    newOrder,
+  await applyEventSlots(
+    permuteEventSlots(await listEventSlots(access.trip.id, dayId), newOrder),
   );
-  // Last-write-wins (ticket 12): two people dragging at once means the second
-  // drag lands on whatever the first left behind.
-  for (const w of writes) {
-    await db
-      .update(dayEvent)
-      .set({
-        time: w.time,
-        endTime: w.endTime,
-        allDay: w.allDay,
-        orderIndex: w.orderIndex,
-        ...touch(),
-      })
-      .where(eq(dayEvent.id, w.id));
-  }
 
-  revalidatePath(`/trip/${access.trip.id}/days`);
+  revalidateItinerary(access.trip.id);
 }
 
 /**
@@ -296,7 +145,7 @@ export async function swapEvents(
 ) {
   const access = await requireTripAccess(tripId);
 
-  const order = (await loadEventSlots(access.trip.id, dayId)).map((e) => e.id);
+  const order = (await listEventSlots(access.trip.id, dayId)).map((e) => e.id);
   const a = order.indexOf(aId);
   const b = order.indexOf(bId);
   if (a === -1 || b === -1) return;
@@ -328,28 +177,21 @@ export async function insertEventAt(
 
   // Both days must be this trip's, or a drag would be a way to reach into
   // another group's itinerary by id (rule 5).
-  const days = await db
-    .select({ id: day.id })
-    .from(day)
-    .where(and(eq(day.tripId, access.trip.id), isNull(day.deletedAt)))
-    .all();
-  const dayIds = new Set(days.map((d) => d.id));
+  const dayIds = new Set(await listDayIds(access.trip.id));
   if (!dayIds.has(fromDayId) || !dayIds.has(toDayId)) return;
 
   if (fromDayId === toDayId) {
-    const order = (await loadEventSlots(access.trip.id, toDayId)).map(
-      (e) => e.id,
-    );
+    const order = (await listEventSlots(access.trip.id, toDayId)).map((e) => e.id);
     if (!order.includes(eventId)) return;
     await reorderEvents(tripId, toDayId, insertAt(order, eventId, index));
     return;
   }
 
-  const source = await loadEventSlots(access.trip.id, fromDayId);
+  const source = await listEventSlots(access.trip.id, fromDayId);
   if (!source.some((e) => e.id === eventId)) return;
 
   const target = insertAt(
-    (await loadEventSlots(access.trip.id, toDayId)).map((e) => e.id),
+    (await listEventSlots(access.trip.id, toDayId)).map((e) => e.id),
     eventId,
     index,
   );
@@ -357,24 +199,14 @@ export async function insertEventAt(
   // The move and the re-basing are one write each, in order: the event changes
   // day first so the target's re-base sees it there. Last-write-wins as ever —
   // no locking, no rejection (rule 7).
-  await db
-    .update(dayEvent)
-    .set({ dayId: toDayId, ...touch() })
-    .where(eq(dayEvent.id, eventId));
-
-  // `order_index` is a tie-break, so it only decides anything among the
-  // untimed — but re-basing the whole list keeps it dense and predictable.
-  for (const [i, id] of target.entries()) {
-    await db.update(dayEvent).set({ orderIndex: i }).where(eq(dayEvent.id, id));
-  }
-  for (const [i, e] of source.filter((e) => e.id !== eventId).entries()) {
-    await db.update(dayEvent).set({ orderIndex: i }).where(eq(dayEvent.id, e.id));
-  }
+  await moveEventToDay(eventId, toDayId);
+  await rebaseEventOrder(target);
+  await rebaseEventOrder(source.filter((e) => e.id !== eventId).map((e) => e.id));
 
   // The threads follow for free: `note` rows are scoped to the event id, which
   // hasn't changed. Expenses don't follow — they're scoped to the date the
   // money was spent on, not to the plan (see `permuteDayContents`).
-  revalidatePath(`/trip/${access.trip.id}/days`);
+  revalidateItinerary(access.trip.id);
 }
 
 /**
@@ -392,7 +224,7 @@ export async function moveEvent(
   // not get so far as learning how many events a day has (rule 5).
   const access = await requireTripAccess(tripId);
 
-  const order = (await loadEventSlots(access.trip.id, dayId)).map((e) => e.id);
+  const order = (await listEventSlots(access.trip.id, dayId)).map((e) => e.id);
   const idx = order.indexOf(eventId);
   const to = direction === "up" ? idx - 1 : idx + 1;
   if (idx === -1 || to < 0 || to >= order.length) return;

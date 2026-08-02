@@ -10,9 +10,10 @@
 import "server-only";
 
 import { and, eq, inArray, isNull, lt, ne, or } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
-import { friendship, trip, tripMembership } from "@/db/schema";
+import { friendship, trip, tripMembership, user } from "@/db/schema";
 import { today } from "@/lib/dates";
 
 /**
@@ -164,4 +165,119 @@ export async function coTripNameFor(
     .sort((a, b) => (b.endDate ?? "").localeCompare(a.endDate ?? ""));
 
   return ended[0]?.name ?? shared[0]?.name ?? null;
+}
+
+/* ------------------------------------------------- the request lifecycle */
+/*
+ * The `friendship` writes behind `app/friends/actions.ts` (ticket 108). The
+ * rules they own, so the actions file states none of them twice:
+ *
+ * - **Soft-delete (rule 8)** on every match, so a cancelled request is never
+ *   accepted and a removed friendship is never revived by accident.
+ * - **The pair is unordered.** `friendship_pair_idx` stores one direction, so
+ *   "are these two connected" always has to look both ways — `eitherWay` below
+ *   is that, once.
+ * - **Revalidation.** A friendship shows on `/friends` and on the other
+ *   person's profile, always both.
+ */
+
+/** Both directions of a pair, live rows only. */
+function eitherWay(a: string, b: string) {
+  return and(
+    isNull(friendship.deletedAt),
+    or(
+      and(eq(friendship.userId, a), eq(friendship.friendId, b)),
+      and(eq(friendship.userId, b), eq(friendship.friendId, a)),
+    ),
+  );
+}
+
+export function revalidateFriendship(otherId: string): void {
+  revalidatePath("/friends");
+  revalidatePath(`/profile/${otherId}`);
+}
+
+/** The account behind an id, or undefined. Used to address the request email. */
+export async function findUserById(userId: string) {
+  return db
+    .select({ id: user.id, email: user.email })
+    .from(user)
+    .where(eq(user.id, userId))
+    .get();
+}
+
+/** Any live friendship between two people, in either direction. */
+export async function friendshipBetween(a: string, b: string) {
+  return db.select().from(friendship).where(eitherWay(a, b)).get();
+}
+
+/**
+ * Opens (or re-opens) a pending request from `viewerId` to `targetId`.
+ *
+ * An upsert, not an insert: cancelling a request — or declining one, or
+ * removing a friend — soft-deletes the row, but `friendship_pair_idx` is
+ * unique on (user_id, friend_id) with no `deleted_at` in it, so a plain insert
+ * of the same pair a second time hits a UNIQUE constraint and throws. The
+ * soft-deleted row is the row we want back, so revive it in place.
+ */
+export async function openPendingRequest(
+  viewerId: string,
+  targetId: string,
+): Promise<void> {
+  await db
+    .insert(friendship)
+    .values({
+      userId: viewerId,
+      friendId: targetId,
+      status: "pending",
+      origin: "request",
+    })
+    .onConflictDoUpdate({
+      target: [friendship.userId, friendship.friendId],
+      set: {
+        status: "pending",
+        origin: "request",
+        deletedAt: null,
+        lastModifiedAt: new Date(),
+      },
+    });
+}
+
+/** Matches the one pending row `requesterId` opened towards `addresseeId`. */
+function pendingRequest(requesterId: string, addresseeId: string) {
+  return and(
+    eq(friendship.userId, requesterId),
+    eq(friendship.friendId, addresseeId),
+    eq(friendship.status, "pending"),
+    isNull(friendship.deletedAt),
+  );
+}
+
+export async function acceptPendingRequest(
+  requesterId: string,
+  addresseeId: string,
+): Promise<void> {
+  await db
+    .update(friendship)
+    .set({ status: "accepted", lastModifiedAt: new Date() })
+    .where(pendingRequest(requesterId, addresseeId));
+}
+
+/** Declining and cancelling are the same write from the two opposite ends. */
+export async function dropPendingRequest(
+  requesterId: string,
+  addresseeId: string,
+): Promise<void> {
+  await db
+    .update(friendship)
+    .set({ deletedAt: new Date(), lastModifiedAt: new Date() })
+    .where(pendingRequest(requesterId, addresseeId));
+}
+
+/** Soft-deletes either direction of an accepted friendship. */
+export async function dropFriendship(a: string, b: string): Promise<void> {
+  await db
+    .update(friendship)
+    .set({ deletedAt: new Date(), lastModifiedAt: new Date() })
+    .where(and(eq(friendship.status, "accepted"), eitherWay(a, b)));
 }

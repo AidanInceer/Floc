@@ -3,17 +3,21 @@
 /**
  * Mutations for /trips and /trips/archived (ticket 17).
  * Everything trip-scoped goes through requireTripAccess + assertAdmin —
- * never a hand-rolled membership check (see src/lib/access.ts).
+ * never a hand-rolled membership check (see src/server/access.ts). The writes
+ * are `server/membership.ts`'s (ticket 108).
  */
-import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
-import { db } from "@/db";
-import { trip, tripMembership } from "@/db/schema";
 import { assertAdmin, requireTripAccess, requireUser } from "@/server/access";
+import {
+  createTripWithAdmin,
+  revalidateOverview,
+  revalidateTripLists,
+  setTripArchived,
+  softDeleteTrip,
+} from "@/server/membership";
 import { ensureProfile } from "@/server/profile";
-import { touch } from "@/server/unlocks";
 
 /**
  * Ticket 01 step 1: the smallest thing that exists at creation is a name,
@@ -30,26 +34,15 @@ export async function createTrip(formData: FormData): Promise<void> {
 
   await ensureProfile(viewer.id);
 
-  const [created] = await db
-    .insert(trip)
-    .values({
-      name,
-      startDate,
-      endDate,
-      createdBy: viewer.id,
-      // Never derived from the trip id — an unguessable share token (ticket 05).
-      inviteToken: crypto.randomUUID(),
-    })
-    .returning({ id: trip.id });
-
-  await db.insert(tripMembership).values({
-    tripId: created.id,
-    userId: viewer.id,
-    role: "admin",
+  const tripId = await createTripWithAdmin({
+    name,
+    startDate,
+    endDate,
+    createdBy: viewer.id,
   });
 
   revalidatePath("/trips");
-  redirect(`/trip/${created.id}/overview`);
+  redirect(`/trip/${tripId}/overview`);
 }
 
 /** Admin-only (ticket 01 step 7). Archived trips stay visible to every member. */
@@ -57,14 +50,10 @@ export async function archiveTrip(tripId: number): Promise<void> {
   const access = await requireTripAccess(tripId);
   assertAdmin(access);
 
-  await db
-    .update(trip)
-    .set({ archivedAt: new Date(), ...touch() })
-    .where(eq(trip.id, tripId));
+  await setTripArchived(tripId, true);
 
-  revalidatePath("/trips");
-  revalidatePath("/trips/archived");
-  revalidatePath(`/trip/${tripId}/overview`);
+  revalidateTripLists();
+  revalidateOverview(tripId);
 }
 
 /**
@@ -76,14 +65,10 @@ export async function restoreTrip(tripId: number): Promise<void> {
   const access = await requireTripAccess(tripId);
   assertAdmin(access);
 
-  await db
-    .update(trip)
-    .set({ archivedAt: null, ...touch() })
-    .where(eq(trip.id, tripId));
+  await setTripArchived(tripId, false);
 
-  revalidatePath("/trips");
-  revalidatePath("/trips/archived");
-  revalidatePath(`/trip/${tripId}/overview`);
+  revalidateTripLists();
+  revalidateOverview(tripId);
 }
 
 /** Admin-only, any stage, no undo — soft-delete per ticket 04's convention. */
@@ -91,12 +76,8 @@ export async function deleteTrip(tripId: number): Promise<void> {
   const access = await requireTripAccess(tripId);
   assertAdmin(access);
 
-  await db
-    .update(trip)
-    .set({ deletedAt: new Date(), ...touch() })
-    .where(eq(trip.id, tripId));
+  await softDeleteTrip(tripId);
 
-  revalidatePath("/trips");
-  revalidatePath("/trips/archived");
+  revalidateTripLists();
   redirect("/trips");
 }

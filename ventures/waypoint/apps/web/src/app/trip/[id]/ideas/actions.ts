@@ -2,20 +2,24 @@
 
 /**
  * Server actions for the ideas board (ticket 14).
- * Reads go through requireTripAccess; every write bumps last_modified_at via
- * touch() (ticket 12: blanket last-write-wins, no optimistic locking).
+ * Reads go through requireTripAccess; the SQL and the last-write-wins `touch()`
+ * are `server/ideas.ts`'s job (ticket 108), so nothing here imports `@/db`.
  *
  * Availability lives in `../dates/actions.ts` now — it was here only because
  * the grid used to sit at the bottom of this page.
  */
-import { and, eq } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
-
-import { db } from "@/db";
-import { idea, ideaVote } from "@/db/schema";
 import { requireTripAccess, assertAdmin } from "@/server/access";
 import { emails, sendEmail } from "@/server/email";
-import { refreshUnlocks, touch } from "@/server/unlocks";
+import {
+  castVote as writeVote,
+  clearVote as writeClearVote,
+  insertIdea,
+  revalidateIdeas,
+  revalidateIdeasAndTabs,
+  setIdeaPinnedAt,
+  softDeleteIdea,
+} from "@/server/ideas";
+import { refreshUnlocks } from "@/server/unlocks";
 import type { VoteValue } from "@/db/schema";
 
 /**
@@ -27,7 +31,7 @@ export async function postIdea(tripId: number, formData: FormData) {
   const note = String(formData.get("note") ?? "").trim();
   if (!note) throw new Error("An idea needs some words");
 
-  await db.insert(idea).values({ tripId, createdBy: access.viewer.id, note });
+  await insertIdea(tripId, access.viewer.id, note);
   await refreshUnlocks(tripId);
 
   const others = access.members.filter((m) => m.userId !== access.viewer.id);
@@ -46,8 +50,7 @@ export async function postIdea(tripId: number, formData: FormData) {
     ),
   );
 
-  revalidatePath(`/trip/${tripId}/ideas`);
-  revalidatePath(`/trip/${tripId}`, "layout");
+  revalidateIdeasAndTabs(tripId);
 }
 
 /**
@@ -61,12 +64,9 @@ export async function deleteIdea(tripId: number, ideaId: number) {
 
   if (row.createdBy !== access.viewer.id) assertAdmin(access);
 
-  await db
-    .update(idea)
-    .set({ deletedAt: new Date(), ...touch() })
-    .where(eq(idea.id, row.id));
+  await softDeleteIdea(row.id);
 
-  revalidatePath(`/trip/${tripId}/ideas`);
+  revalidateIdeas(tripId);
 }
 
 /**
@@ -79,44 +79,25 @@ export async function setIdeaPinned(tripId: number, ideaId: number, pinned: bool
   const access = await requireTripAccess(tripId);
   const row = await access.idea(ideaId);
 
-  await db
-    .update(idea)
-    .set({ pinnedAt: pinned ? new Date() : null, ...touch() })
-    .where(eq(idea.id, row.id));
+  await setIdeaPinnedAt(row.id, pinned);
 
-  revalidatePath(`/trip/${tripId}/ideas`);
+  revalidateIdeas(tripId);
 }
 
-/** Upsert on the (ideaId, userId) unique index — one vote per person per idea. */
+/** One vote per person per idea — the upsert lives in `server/ideas.ts`. */
 export async function castVote(tripId: number, ideaId: number, value: VoteValue) {
   const access = await requireTripAccess(tripId);
   const target = await access.idea(ideaId);
 
-  await db
-    .insert(ideaVote)
-    .values({ ideaId: target.id, userId: access.viewer.id, value })
-    .onConflictDoUpdate({
-      target: [ideaVote.ideaId, ideaVote.userId],
-      // `deletedAt: null` is load-bearing, not tidiness. `clearVote` soft-deletes
-      // (rule 8) but `idea_vote_unique_idx` doesn't know about `deletedAt`, so the
-      // cleared row still blocks the insert — and without resetting the flag the
-      // upsert wrote a new value onto a row every read filters out. Voting,
-      // clearing, then voting again silently did nothing.
-      set: { value, deletedAt: null, ...touch() },
-    });
+  await writeVote(target.id, access.viewer.id, value);
 
-  revalidatePath(`/trip/${tripId}/ideas`);
+  revalidateIdeas(tripId);
 }
 
 /** Abstaining is legitimate (ticket 14) — this lets someone undo a vote. */
 export async function clearVote(tripId: number, ideaId: number) {
   const access = await requireTripAccess(tripId);
   const target = await access.idea(ideaId);
-  await db
-    .update(ideaVote)
-    .set({ deletedAt: new Date(), ...touch() })
-    .where(
-      and(eq(ideaVote.ideaId, target.id), eq(ideaVote.userId, access.viewer.id)),
-    );
-  revalidatePath(`/trip/${tripId}/ideas`);
+  await writeClearVote(target.id, access.viewer.id);
+  revalidateIdeas(tripId);
 }

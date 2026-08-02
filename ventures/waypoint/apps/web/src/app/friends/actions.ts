@@ -5,44 +5,22 @@
  * row with status "pending"/"accepted" and origin "request" — the
  * profile-bubble-tap flow from ticket 01 step 2 resolves here whichever way
  * the two people met.
+ *
+ * The writes are `server/friends.ts`'s (ticket 108); this file decides who may
+ * open a request and what the other person is told.
  */
-import { and, eq, isNull, or } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
-
-import { db } from "@/db";
-import { friendship, user } from "@/db/schema";
 import { requireUser } from "@/server/access";
 import { emails, sendEmail } from "@/server/email";
+import {
+  acceptPendingRequest,
+  dropFriendship,
+  dropPendingRequest,
+  findUserById,
+  friendshipBetween,
+  openPendingRequest,
+  revalidateFriendship,
+} from "@/server/friends";
 import { relationTo } from "@/server/visibility";
-
-/**
- * Opens (or re-opens) a pending request from `viewerId` to `targetId`.
- *
- * An upsert, not an insert: cancelling a request — or declining one, or
- * removing a friend — soft-deletes the row, but `friendship_pair_idx` is
- * unique on (user_id, friend_id) with no `deleted_at` in it, so a plain insert
- * of the same pair a second time hits a UNIQUE constraint and throws. The
- * soft-deleted row is the row we want back, so revive it in place.
- */
-async function openPendingRequest(viewerId: string, targetId: string): Promise<void> {
-  await db
-    .insert(friendship)
-    .values({
-      userId: viewerId,
-      friendId: targetId,
-      status: "pending",
-      origin: "request",
-    })
-    .onConflictDoUpdate({
-      target: [friendship.userId, friendship.friendId],
-      set: {
-        status: "pending",
-        origin: "request",
-        deletedAt: null,
-        lastModifiedAt: new Date(),
-      },
-    });
-}
 
 /**
  * Sends a friend request to someone you're already looking at — their profile,
@@ -63,26 +41,12 @@ export async function requestFriendById(formData: FormData): Promise<{ error?: s
   const relation = await relationTo(viewer.id, targetId);
   if (!relation || relation === "self") return {};
 
-  const target = await db.select().from(user).where(eq(user.id, targetId)).get();
+  const target = await findUserById(targetId);
   if (!target) return {};
-
-  const existing = await db
-    .select()
-    .from(friendship)
-    .where(
-      and(
-        isNull(friendship.deletedAt),
-        or(
-          and(eq(friendship.userId, viewer.id), eq(friendship.friendId, target.id)),
-          and(eq(friendship.userId, target.id), eq(friendship.friendId, viewer.id)),
-        ),
-      ),
-    )
-    .get();
 
   // Already friends, or a request already sitting in one direction — refuse
   // the duplicate quietly rather than explaining which case it is.
-  if (existing) return {};
+  if (await friendshipBetween(viewer.id, target.id)) return {};
 
   await openPendingRequest(viewer.id, target.id);
 
@@ -94,8 +58,7 @@ export async function requestFriendById(formData: FormData): Promise<{ error?: s
     }),
   );
 
-  revalidatePath("/friends");
-  revalidatePath(`/profile/${target.id}`);
+  revalidateFriendship(target.id);
   return {};
 }
 
@@ -103,60 +66,28 @@ export async function acceptFriend(formData: FormData): Promise<void> {
   const viewer = await requireUser();
   const requesterId = String(formData.get("requesterId") ?? "");
 
-  await db
-    .update(friendship)
-    .set({ status: "accepted", lastModifiedAt: new Date() })
-    .where(
-      and(
-        eq(friendship.userId, requesterId),
-        eq(friendship.friendId, viewer.id),
-        eq(friendship.status, "pending"),
-        isNull(friendship.deletedAt),
-      ),
-    );
+  await acceptPendingRequest(requesterId, viewer.id);
 
-  revalidatePath("/friends");
-  revalidatePath(`/profile/${requesterId}`);
+  revalidateFriendship(requesterId);
 }
 
 export async function declineFriend(formData: FormData): Promise<void> {
   const viewer = await requireUser();
   const requesterId = String(formData.get("requesterId") ?? "");
 
-  await db
-    .update(friendship)
-    .set({ deletedAt: new Date(), lastModifiedAt: new Date() })
-    .where(
-      and(
-        eq(friendship.userId, requesterId),
-        eq(friendship.friendId, viewer.id),
-        eq(friendship.status, "pending"),
-        isNull(friendship.deletedAt),
-      ),
-    );
+  await dropPendingRequest(requesterId, viewer.id);
 
-  revalidatePath("/friends");
-  revalidatePath(`/profile/${requesterId}`);
+  revalidateFriendship(requesterId);
 }
 
 export async function cancelRequest(formData: FormData): Promise<void> {
   const viewer = await requireUser();
   const targetId = String(formData.get("targetId") ?? "");
 
-  await db
-    .update(friendship)
-    .set({ deletedAt: new Date(), lastModifiedAt: new Date() })
-    .where(
-      and(
-        eq(friendship.userId, viewer.id),
-        eq(friendship.friendId, targetId),
-        eq(friendship.status, "pending"),
-        isNull(friendship.deletedAt),
-      ),
-    );
+  // The same write as declining, from the other end of the pair.
+  await dropPendingRequest(viewer.id, targetId);
 
-  revalidatePath("/friends");
-  revalidatePath(`/profile/${targetId}`);
+  revalidateFriendship(targetId);
 }
 
 /** Soft-delete either direction of an accepted friendship. */
@@ -164,20 +95,7 @@ export async function removeFriend(formData: FormData): Promise<void> {
   const viewer = await requireUser();
   const otherId = String(formData.get("otherId") ?? "");
 
-  await db
-    .update(friendship)
-    .set({ deletedAt: new Date(), lastModifiedAt: new Date() })
-    .where(
-      and(
-        eq(friendship.status, "accepted"),
-        isNull(friendship.deletedAt),
-        or(
-          and(eq(friendship.userId, viewer.id), eq(friendship.friendId, otherId)),
-          and(eq(friendship.userId, otherId), eq(friendship.friendId, viewer.id)),
-        ),
-      ),
-    );
+  await dropFriendship(viewer.id, otherId);
 
-  revalidatePath("/friends");
-  revalidatePath(`/profile/${otherId}`);
+  revalidateFriendship(otherId);
 }

@@ -24,8 +24,16 @@ export default defineConfig({
       include: ["src/lib/**/*.ts", "src/server/**/*.ts", "src/app/**/actions.ts"],
       exclude: ["src/**/*.test.ts", "src/lib/auth-client.ts"],
       // Baseline measured at v0.8.0: statements/lines 30.76%, branches 87%,
-      // functions 60.95%. Each threshold sits just below its measured value —
-      // raise them when coverage rises, never lower them to make a run pass.
+      // functions 60.95%. Re-measured at v0.10.0 after ticket 108 pulled the
+      // SQL out of `app/**/actions.ts` into the `server/` aggregates, which are
+      // testable without a route: 40%, 89.61%, 60.18%. Each threshold sits just
+      // below its measured value — raise them when coverage rises, never lower
+      // them to make a run pass.
+      //
+      // Functions is the one that went *down* (60.95% → 60.18%) while the code
+      // got better tested: splitting long action bodies into named aggregate
+      // functions adds to the denominator faster than tests cover it. It stays
+      // at 60 rather than being cut to fit.
       //
       // The branches figure is high and the statements figure low for the same
       // reason: the covered modules are dense pure functions with a lot of
@@ -33,10 +41,10 @@ export default defineConfig({
       // all. Read statements as "how much of this is exercised" and branches as
       // "how thoroughly the exercised part is".
       thresholds: {
-        lines: 30,
+        lines: 39,
         functions: 60,
-        branches: 85,
-        statements: 30,
+        branches: 89,
+        statements: 39,
       },
     },
   },

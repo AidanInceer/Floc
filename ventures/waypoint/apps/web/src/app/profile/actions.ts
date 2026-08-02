@@ -8,18 +8,27 @@
  * Email is not here at all any more: it's Better Auth's, it can't change from
  * this page, and a permanently-disabled field was the single thing making the
  * profile read as a form.
+ *
+ * The writes are `server/profile.ts`'s and `server/travel-map.ts`'s
+ * (ticket 108). What stays here is validation and what each form means.
  */
-import { and, eq, isNotNull, isNull } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
-
-import { db } from "@/db";
-import { CURRENCIES, tripMembership, userCountryMark, userProfile } from "@/db/schema";
+import { CURRENCIES } from "@/db/schema";
 import type { Currency } from "@/db/schema";
 import { requireUser } from "@/server/access";
 import { readCountryCode } from "@/lib/countries";
 import { MAX_DIETARY_NOTES, parseDietFlags } from "@/lib/dietary";
-import { ensureProfile } from "@/server/profile";
-import { countriesForTrips } from "@/server/travel-map";
+import { clearMapPrompt, hasPendingMapPrompt } from "@/server/membership";
+import {
+  ensureProfile,
+  revalidateProfile,
+  updateProfileFields,
+} from "@/server/profile";
+import {
+  clearManualMark,
+  derivedStateFor,
+  keepMarksFromTrip,
+  setManualMark,
+} from "@/server/travel-map";
 import { parseVibeTags } from "@/lib/vibe-tags";
 
 export async function updateIdentity(formData: FormData): Promise<{ error?: string }> {
@@ -34,17 +43,13 @@ export async function updateIdentity(formData: FormData): Promise<{ error?: stri
     return { error: "Pick a currency Waypoint supports." };
   }
 
-  await db
-    .update(userProfile)
-    .set({
-      displayName: displayName || null,
-      avatarUrl: avatarUrl || null,
-      homeCurrency,
-      lastModifiedAt: new Date(),
-    })
-    .where(eq(userProfile.userId, viewer.id));
+  await updateProfileFields(viewer.id, {
+    displayName: displayName || null,
+    avatarUrl: avatarUrl || null,
+    homeCurrency,
+  });
 
-  revalidatePath("/profile");
+  revalidateProfile();
   return {};
 }
 
@@ -59,15 +64,9 @@ export async function updateVibeTags(formData: FormData): Promise<{ error?: stri
 
   const picked = parseVibeTags(formData.getAll("vibeTag").map(String));
 
-  await db
-    .update(userProfile)
-    .set({
-      vibeTags: picked.length ? picked : null,
-      lastModifiedAt: new Date(),
-    })
-    .where(eq(userProfile.userId, viewer.id));
+  await updateProfileFields(viewer.id, { vibeTags: picked.length ? picked : null });
 
-  revalidatePath("/profile");
+  revalidateProfile();
   return {};
 }
 
@@ -86,17 +85,13 @@ export async function updateDietary(formData: FormData): Promise<{ error?: strin
     .trim()
     .slice(0, MAX_DIETARY_NOTES);
 
-  await db
-    .update(userProfile)
-    .set({
-      dietFlags: flags.length ? flags : null,
-      dietaryNotes: notes || null,
-      shareDietary: formData.get("shareDietary") === "on",
-      lastModifiedAt: new Date(),
-    })
-    .where(eq(userProfile.userId, viewer.id));
+  await updateProfileFields(viewer.id, {
+    dietFlags: flags.length ? flags : null,
+    dietaryNotes: notes || null,
+    shareDietary: formData.get("shareDietary") === "on",
+  });
 
-  revalidatePath("/profile");
+  revalidateProfile();
   return {};
 }
 
@@ -129,50 +124,18 @@ export async function setCountryMark(
   if (!countryCode) return;
 
   if (next === "green" || next === "yellow") {
-    await db
-      .insert(userCountryMark)
-      .values({ userId: viewer.id, countryCode, state: next })
-      .onConflictDoUpdate({
-        target: [userCountryMark.userId, userCountryMark.countryCode],
-        set: { state: next, lastModifiedAt: new Date() },
-      });
-  } else {
+    await setManualMark(viewer.id, countryCode, next);
+  } else if (await derivedStateFor(viewer.id, countryCode)) {
     // What the trips would say with the hand mark gone — asked of the
     // derivation directly, since the merged view has the mark still in it.
-    const claimed = await derivedStateFor(viewer.id, countryCode);
-
-    if (claimed) {
-      await db
-        .insert(userCountryMark)
-        .values({ userId: viewer.id, countryCode, state: "none" })
-        .onConflictDoUpdate({
-          target: [userCountryMark.userId, userCountryMark.countryCode],
-          set: { state: "none", lastModifiedAt: new Date() },
-        });
-    } else {
-      await db
-        .delete(userCountryMark)
-        .where(
-          and(
-            eq(userCountryMark.userId, viewer.id),
-            eq(userCountryMark.countryCode, countryCode),
-          ),
-        );
-    }
+    // Something is still claiming this country, so blank means "no, I didn't
+    // go": a `none` row, not a deletion.
+    await setManualMark(viewer.id, countryCode, "none");
+  } else {
+    await clearManualMark(viewer.id, countryCode);
   }
 
-  revalidatePath("/profile");
-}
-
-/** Whether any of the viewer's current trips puts this country on their map. */
-async function derivedStateFor(userId: string, countryCode: string) {
-  const memberships = await db
-    .select({ tripId: tripMembership.tripId })
-    .from(tripMembership)
-    .where(and(eq(tripMembership.userId, userId), isNull(tripMembership.deletedAt)))
-    .all();
-  const derived = await countriesForTrips(memberships.map((m) => m.tripId));
-  return derived[countryCode];
+  revalidateProfile();
 }
 
 /**
@@ -189,37 +152,10 @@ export async function answerMapPrompt(
 ): Promise<void> {
   const viewer = await requireUser();
 
-  const pending = await db
-    .select({ tripId: tripMembership.tripId })
-    .from(tripMembership)
-    .where(
-      and(
-        eq(tripMembership.tripId, tripId),
-        eq(tripMembership.userId, viewer.id),
-        isNotNull(tripMembership.mapPromptAt),
-      ),
-    )
-    .get();
-  if (!pending) return;
+  if (!(await hasPendingMapPrompt(tripId, viewer.id))) return;
 
-  if (keep) {
-    const countries = await countriesForTrips([tripId]);
-    for (const [countryCode, state] of Object.entries(countries)) {
-      // Never overwrite something already said by hand — including a `none`,
-      // which is a decision about that country and not a gap to fill.
-      await db
-        .insert(userCountryMark)
-        .values({ userId: viewer.id, countryCode, state })
-        .onConflictDoNothing();
-    }
-  }
+  if (keep) await keepMarksFromTrip(viewer.id, tripId);
+  await clearMapPrompt(tripId, viewer.id);
 
-  await db
-    .update(tripMembership)
-    .set({ mapPromptAt: null, lastModifiedAt: new Date() })
-    .where(
-      and(eq(tripMembership.tripId, tripId), eq(tripMembership.userId, viewer.id)),
-    );
-
-  revalidatePath("/profile");
+  revalidateProfile();
 }

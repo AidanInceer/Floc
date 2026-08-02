@@ -8,6 +8,7 @@
  */
 import "server-only";
 
+import { eq } from "drizzle-orm";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
@@ -92,3 +93,18 @@ export const auth = betterAuth({
 });
 
 export type Session = typeof auth.$Infer.Session;
+
+/**
+ * The linked sign-in methods on one account, and the one way to remove one
+ * (ticket 108). Better Auth owns the `account` table, so these two sit beside
+ * its config rather than in a module of their own — but the *rule* that you
+ * cannot unlink your last credential is the caller's, because it is a message
+ * to a person, not a constraint on the row.
+ */
+export async function listLinkedAccounts(userId: string) {
+  return db.select().from(schema.account).where(eq(schema.account.userId, userId)).all();
+}
+
+export async function unlinkAccountById(accountId: string): Promise<void> {
+  await db.delete(schema.account).where(eq(schema.account.id, accountId));
+}

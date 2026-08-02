@@ -3,48 +3,24 @@
 /**
  * Discussion threads, shared by every surface that has one.
  *
- * These go through the polymorphic `note` table (scope + scope_id) rather than
- * a table per surface: a note on an idea and a note on a day event are the same
- * object with the same rules, and the alternative is `idea_comment`,
- * `day_event_comment`, … each with its own read, action and component. Nothing
- * here is scope-specific, which is the sign it was the right table.
- *
- * Not admin-gated: anyone in the trip can say something, and deleting follows
- * `deleteIdea`'s rule — your own, or any admin's, so a thread can't be held
- * hostage by someone who's gone quiet.
+ * The table's shape, the one-level rule, the body cap and the per-scope
+ * revalidation all live in `server/notes.ts` (ticket 108). What's left here is
+ * who may do what: not admin-gated, because anyone in the trip can say
+ * something, and deleting follows `deleteIdea`'s rule — your own, or any
+ * admin's, so a thread can't be held hostage by someone who's gone quiet.
  */
-import { and, eq, isNull } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
-
-import { db } from "@/db";
-import {
-  note,
-  noteReaction,
-  type NoteScope,
-  type ReactionKind,
-} from "@/db/schema";
 import { assertAdmin, requireTripAccess } from "@/server/access";
-import { touch } from "@/server/unlocks";
-
-/**
- * Which tab a scope is rendered on. Revalidating the layout alone left the tab
- * you were looking at showing the old thread until a manual reload — the client
- * router cache for that page isn't refreshed unless the revalidated path is the
- * page's own. So name it.
- */
-function pathFor(tripId: number, scope: NoteScope): string {
-  switch (scope) {
-    case "idea":
-      return `/trip/${tripId}/ideas`;
-    case "day_event":
-    case "day":
-      return `/trip/${tripId}/days`;
-    case "expense":
-      return `/trip/${tripId}/money`;
-    case "trip":
-      return `/trip/${tripId}/overview`;
-  }
-}
+import {
+  findNote,
+  insertNote,
+  resolveParent,
+  revalidateThread,
+  softDeleteNoteAndReplies,
+  toggleReaction,
+  updateNoteBody,
+  NOTE_BODY_MAX,
+} from "@/server/notes";
+import type { NoteScope, ReactionKind } from "@/db/schema";
 
 /**
  * Rewrite your own comment — for the typo you spot after posting.
@@ -66,29 +42,19 @@ export async function editNote(
   if (!body) return { error: "A comment can't be empty — delete it instead." };
 
   const access = await requireTripAccess(tripId);
-  const row = await db
-    .select({ createdBy: note.createdBy, scope: note.scope, body: note.body })
-    .from(note)
-    .where(
-      and(eq(note.id, noteId), eq(note.tripId, tripId), isNull(note.deletedAt)),
-    )
-    .get();
+  const row = await findNote(tripId, noteId);
   if (!row) return { error: "That comment has gone." };
   if (row.createdBy !== access.viewer.id) {
     return { error: "You can only edit your own comments." };
   }
 
-  const next = body.slice(0, 2000);
   // Reopening the editor and saving the same words shouldn't stamp "edited" on
   // a comment nobody changed.
-  if (next === row.body) return;
+  if (body.slice(0, NOTE_BODY_MAX) === row.body) return;
 
-  await db
-    .update(note)
-    .set({ body: next, editedAt: new Date(), ...touch() })
-    .where(eq(note.id, noteId));
+  await updateNoteBody(row.id, body);
 
-  revalidatePath(pathFor(tripId, row.scope));
+  revalidateThread(tripId, row.scope);
 }
 
 export async function addNote(
@@ -104,52 +70,27 @@ export async function addNote(
 
   const access = await requireTripAccess(tripId);
 
-  /**
-   * Threads are exactly one level deep (ticket 06). Replying to a reply
-   * attaches to that reply's own parent, so the shape can't drift however the
-   * UI evolves — and the parent is re-read here rather than trusted from the
-   * form, which is also what stops a crafted `replyTo` pointing at a comment
-   * in someone else's trip.
-   */
   let parentId: number | null = null;
   if (replyTo !== null) {
-    const target = await db
-      .select({ id: note.id, parentId: note.parentId })
-      .from(note)
-      .where(
-        and(
-          eq(note.id, replyTo),
-          eq(note.tripId, tripId),
-          eq(note.scope, scope),
-          eq(note.scopeId, scopeId),
-          isNull(note.deletedAt),
-        ),
-      )
-      .get();
-    if (!target) return { error: "That comment has gone." };
-    parentId = target.parentId ?? target.id;
+    // `undefined` means the target has gone; `null` means "top level".
+    const resolved = await resolveParent({ tripId, scope, scopeId, replyTo });
+    if (resolved === undefined) return { error: "That comment has gone." };
+    parentId = resolved;
   }
 
-  await db.insert(note).values({
+  await insertNote({
     tripId,
     createdBy: access.viewer.id,
     scope,
     scopeId,
     parentId,
-    body: body.slice(0, 2000),
+    body,
   });
 
-  revalidatePath(pathFor(tripId, scope));
+  revalidateThread(tripId, scope);
 }
 
-/**
- * Toggle one of the three reactions on a comment. Independent of each other by
- * design (ticket 06) — a comment can be both hearted and agreed with, and
- * policing thumbs-up-plus-thumbs-down costs more than the case is worth.
- *
- * Soft-delete (rule 8) means un-reacting has to revive the same row rather
- * than insert a second one, so this upserts by hand.
- */
+/** Toggle one of the three reactions on a comment. */
 export async function react(
   tripId: number,
   noteId: number,
@@ -157,70 +98,22 @@ export async function react(
 ) {
   const access = await requireTripAccess(tripId);
 
-  const target = await db
-    .select({ scope: note.scope })
-    .from(note)
-    .where(
-      and(eq(note.id, noteId), eq(note.tripId, tripId), isNull(note.deletedAt)),
-    )
-    .get();
+  const target = await findNote(tripId, noteId);
   if (!target) return;
 
-  const existing = await db
-    .select({ id: noteReaction.id, deletedAt: noteReaction.deletedAt })
-    .from(noteReaction)
-    .where(
-      and(
-        eq(noteReaction.noteId, noteId),
-        eq(noteReaction.userId, access.viewer.id),
-        eq(noteReaction.kind, kind),
-      ),
-    )
-    .get();
+  await toggleReaction(target.id, access.viewer.id, kind);
 
-  if (!existing) {
-    await db
-      .insert(noteReaction)
-      .values({ noteId, userId: access.viewer.id, kind });
-  } else {
-    await db
-      .update(noteReaction)
-      .set({ deletedAt: existing.deletedAt ? null : new Date(), ...touch() })
-      .where(eq(noteReaction.id, existing.id));
-  }
-
-  revalidatePath(pathFor(tripId, target.scope));
+  revalidateThread(tripId, target.scope);
 }
 
 export async function deleteNote(tripId: number, noteId: number) {
   const access = await requireTripAccess(tripId);
-  const row = await db
-    .select({ createdBy: note.createdBy, scope: note.scope })
-    .from(note)
-    .where(
-      and(eq(note.id, noteId), eq(note.tripId, tripId), isNull(note.deletedAt)),
-    )
-    .get();
+  const row = await findNote(tripId, noteId);
   if (!row) return;
 
   if (row.createdBy !== access.viewer.id) assertAdmin(access);
 
-  const deletedAt = new Date();
-  await db
-    .update(note)
-    .set({ deletedAt, ...touch() })
-    .where(eq(note.id, noteId));
+  await softDeleteNoteAndReplies(row.id);
 
-  /**
-   * A reply is only legible under the comment it answers, so deleting a
-   * top-level comment takes its replies with it rather than leaving them
-   * stranded as top-level comments answering nothing. One level deep means
-   * this needs no recursion. The confirm copy says so before it happens.
-   */
-  await db
-    .update(note)
-    .set({ deletedAt, ...touch() })
-    .where(and(eq(note.parentId, noteId), isNull(note.deletedAt)));
-
-  revalidatePath(pathFor(tripId, row.scope));
+  revalidateThread(tripId, row.scope);
 }

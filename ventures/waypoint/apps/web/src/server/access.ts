@@ -27,6 +27,7 @@ import {
   userProfile,
 } from "@/db/schema";
 import { auth } from "@/server/auth";
+import { bounded, LIMITS } from "@/server/limits";
 import { dietarySummary, readDietFlags } from "@/lib/dietary";
 import { seatTone } from "@/lib/who";
 import type { TripRole } from "@/db/schema";
@@ -339,9 +340,10 @@ export const listMembers = cache(async function listMembers(
     .where(
       and(eq(tripMembership.tripId, tripId), isNull(tripMembership.deletedAt)),
     )
+    .limit(LIMITS.members)
     .all();
 
-  return toRoster(rows);
+  return toRoster(bounded(rows, "members", `trip ${tripId}`));
 });
 
 /**
@@ -365,6 +367,9 @@ export const listMembersFor = cache(async function listMembersFor(
         isNull(tripMembership.deletedAt),
       ),
     )
+    // The ceiling is per trip, so the multi-trip read gets the product of it
+    // and the number of trips asked for (ticket 108).
+    .limit(LIMITS.members * tripIds.length)
     .all();
 
   const grouped = new Map<number, MemberRow[]>();

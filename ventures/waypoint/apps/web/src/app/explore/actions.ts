@@ -21,9 +21,9 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
-import { db } from "@/db";
-import { idea, trip, tripMembership } from "@/db/schema";
 import { requireUser } from "@/server/access";
+import { insertIdeas } from "@/server/ideas";
+import { createTripWithAdmin } from "@/server/membership";
 import { ensureProfile } from "@/server/profile";
 import { refreshUnlocks } from "@/server/unlocks";
 import { PRESET_TRIPS } from "./preset-trips";
@@ -39,37 +39,21 @@ export async function startTripFromPreset(formData: FormData): Promise<void> {
 
   await ensureProfile(viewer.id);
 
-  const [created] = await db
-    .insert(trip)
-    .values({
-      name: preset.title,
-      // Undated, like every other new trip — see the header comment.
-      createdBy: viewer.id,
-      inviteToken: crypto.randomUUID(),
-    })
-    .returning({ id: trip.id });
-
-  await db.insert(tripMembership).values({
-    tripId: created.id,
-    userId: viewer.id,
-    role: "admin",
+  const tripId = await createTripWithAdmin({
+    name: preset.title,
+    // Undated, like every other new trip — see the header comment.
+    startDate: null,
+    endDate: null,
+    createdBy: viewer.id,
   });
 
-  // One idea per highlight, in the listing's own order, all posted by whoever
-  // started the trip — there is no system author and an idea needs a face on
-  // it for the board to make sense.
-  await db.insert(idea).values(
-    preset.highlights.map((note) => ({
-      tripId: created.id,
-      createdBy: viewer.id,
-      note,
-    })),
-  );
+  // One idea per highlight, in the listing's own order.
+  await insertIdeas(tripId, viewer.id, preset.highlights);
 
   // The board is no longer empty, and a non-empty board is what sticky-unlocks
   // Route (ticket 04/13) — so the new trip opens with Route already available.
-  await refreshUnlocks(created.id);
+  await refreshUnlocks(tripId);
 
   revalidatePath("/trips");
-  redirect(`/trip/${created.id}/overview`);
+  redirect(`/trip/${tripId}/overview`);
 }

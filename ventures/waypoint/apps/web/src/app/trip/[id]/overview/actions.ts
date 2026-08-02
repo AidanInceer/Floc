@@ -1,21 +1,35 @@
 "use server";
 
 /**
- * Overview mutations (ticket 13). Admin-gated ones (kick, promote, delete)
+ * Overview mutations (ticket 13). The SQL and the revalidation sets are
+ * `server/membership.ts`'s (ticket 108); this file is the Overview tab's
+ * decisions about who may do what.
+ * Admin-gated ones (kick, promote, delete)
  * call `assertAdmin`; `setTripDates` and `sendNudge` are open to any member —
  * ticket 01 step 7: admin's only extra powers are invite, kick, delete
  * (+ promote).
  */
-import { and, eq, isNull } from "drizzle-orm";
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
 
-import { db } from "@/db";
-import { nudge, trip, tripMembership, type NudgeTab } from "@/db/schema";
+import { type NudgeTab } from "@/db/schema";
 import { assertAdmin, requireTripAccess } from "@/server/access";
 import { emails, sendEmail } from "@/server/email";
 import { parseTagRows } from "@/lib/tags";
-import { touch } from "@/server/unlocks";
+import {
+  insertNudge,
+  leaveTripAs,
+  removeMembership,
+  renameTrip as writeTripName,
+  revalidateOverview,
+  revalidateProfileTrips,
+  revalidateTripHeader,
+  revalidateTripLists,
+  setMemberRoleAdmin,
+  setTripArchived,
+  setTripDateRange,
+  setTripTagRows,
+  softDeleteTrip,
+} from "@/server/membership";
 
 export async function sendNudge(formData: FormData) {
   const tripId = Number(formData.get("tripId"));
@@ -27,7 +41,7 @@ export async function sendNudge(formData: FormData) {
   const recipient = access.members.find((m) => m.userId === toUserId);
   if (!recipient) throw new Error("Not a member of this trip");
 
-  await db.insert(nudge).values({
+  await insertNudge({
     tripId,
     fromUserId: access.viewer.id,
     toUserId,
@@ -47,7 +61,7 @@ export async function sendNudge(formData: FormData) {
     }),
   );
 
-  revalidatePath(`/trip/${tripId}/overview`);
+  revalidateOverview(tripId);
 }
 
 export async function kickMember(formData: FormData) {
@@ -57,23 +71,10 @@ export async function kickMember(formData: FormData) {
   const access = await requireTripAccess(tripId);
   assertAdmin(access);
 
-  // Soft-delete the membership row — kicking never touches their user row.
-  // `map_prompt_at` parks one question on their travel map: this trip's
-  // countries stop being derived now, do they want to keep them (ticket 95)?
-  // Asked of *them*, later — an admin may not answer it on their behalf.
-  await db
-    .update(tripMembership)
-    .set({ deletedAt: new Date(), mapPromptAt: new Date(), ...touch() })
-    .where(
-      and(
-        eq(tripMembership.tripId, tripId),
-        eq(tripMembership.userId, userId),
-        isNull(tripMembership.deletedAt),
-      ),
-    );
+  await removeMembership(tripId, userId);
 
-  revalidatePath(`/trip/${tripId}/overview`);
-  revalidatePath("/profile");
+  revalidateOverview(tripId);
+  revalidateProfileTrips();
 }
 
 export async function promoteMember(formData: FormData) {
@@ -83,18 +84,9 @@ export async function promoteMember(formData: FormData) {
   const access = await requireTripAccess(tripId);
   assertAdmin(access);
 
-  await db
-    .update(tripMembership)
-    .set({ role: "admin", ...touch() })
-    .where(
-      and(
-        eq(tripMembership.tripId, tripId),
-        eq(tripMembership.userId, userId),
-        isNull(tripMembership.deletedAt),
-      ),
-    );
+  await setMemberRoleAdmin(tripId, userId);
 
-  revalidatePath(`/trip/${tripId}/overview`);
+  revalidateOverview(tripId);
 }
 
 /**
@@ -112,14 +104,11 @@ export async function renameTrip(formData: FormData) {
 
   await requireTripAccess(tripId);
 
-  await db
-    .update(trip)
-    .set({ name, ...touch() })
-    .where(eq(trip.id, tripId));
+  await writeTripName(tripId, name);
 
-  // "layout" — the name is in the trip header, which every tab renders.
-  revalidatePath(`/trip/${tripId}`, "layout");
-  revalidatePath("/trips");
+  // The name is in the trip header, which every tab renders — and on the cards.
+  revalidateTripHeader(tripId);
+  revalidateTripLists();
 }
 
 /**
@@ -144,13 +133,10 @@ export async function setTripTags(formData: FormData) {
 
   await requireTripAccess(tripId);
 
-  await db
-    .update(trip)
-    .set({ tags, tagTones, ...touch() })
-    .where(eq(trip.id, tripId));
+  await setTripTagRows(tripId, tags, tagTones);
 
-  revalidatePath(`/trip/${tripId}/overview`);
-  revalidatePath("/trips");
+  revalidateOverview(tripId);
+  revalidateTripLists();
 }
 
 export async function setTripDates(formData: FormData) {
@@ -161,12 +147,9 @@ export async function setTripDates(formData: FormData) {
   // Any member may set dates — no lifecycle lock (ticket 04).
   await requireTripAccess(tripId);
 
-  await db
-    .update(trip)
-    .set({ startDate, endDate, ...touch() })
-    .where(eq(trip.id, tripId));
+  await setTripDateRange(tripId, startDate, endDate);
 
-  revalidatePath(`/trip/${tripId}/overview`);
+  revalidateOverview(tripId);
 }
 
 export async function deleteTripFromOverview(formData: FormData) {
@@ -175,11 +158,7 @@ export async function deleteTripFromOverview(formData: FormData) {
   const access = await requireTripAccess(tripId);
   assertAdmin(access);
 
-  // Soft-delete only — admin is the *only* role that can delete (ticket 01).
-  await db
-    .update(trip)
-    .set({ deletedAt: new Date(), ...touch() })
-    .where(eq(trip.id, tripId));
+  await softDeleteTrip(tripId);
 
   redirect("/trips");
 }
@@ -213,49 +192,17 @@ export async function leaveTrip(formData: FormData) {
   const tripId = Number(formData.get("tripId"));
 
   const access = await requireTripAccess(tripId);
-  const others = access.members.filter((m) => m.userId !== access.viewer.id);
 
-  await db
-    .update(tripMembership)
-    // Same question as a kick leaves behind, asked the same way — on the
-    // travel map rather than in a second dialog on the way out (ticket 95).
-    .set({ deletedAt: new Date(), mapPromptAt: new Date(), ...touch() })
-    .where(
-      and(
-        eq(tripMembership.tripId, tripId),
-        eq(tripMembership.userId, access.viewer.id),
-        isNull(tripMembership.deletedAt),
-      ),
-    );
+  await leaveTripAs({
+    tripId,
+    userId: access.viewer.id,
+    isAdmin: access.isAdmin,
+    archivedAt: access.trip.archivedAt,
+    others: access.members.filter((m) => m.userId !== access.viewer.id),
+  });
 
-  if (others.length === 0) {
-    // Already archived stays at its original date — an unlock never regresses
-    // and neither should this.
-    if (!access.trip.archivedAt) {
-      await db
-        .update(trip)
-        .set({ archivedAt: new Date(), ...touch() })
-        .where(eq(trip.id, tripId));
-    }
-  } else if (access.isAdmin && !others.some((m) => m.role === "admin")) {
-    const heir = others.reduce((earliest, m) =>
-      m.joinedAt < earliest.joinedAt ? m : earliest,
-    );
-    await db
-      .update(tripMembership)
-      .set({ role: "admin", ...touch() })
-      .where(
-        and(
-          eq(tripMembership.tripId, tripId),
-          eq(tripMembership.userId, heir.userId),
-          isNull(tripMembership.deletedAt),
-        ),
-      );
-  }
-
-  revalidatePath("/trips");
-  revalidatePath("/trips/archived");
-  revalidatePath("/profile");
+  revalidateTripLists();
+  revalidateProfileTrips();
   redirect("/trips");
 }
 
@@ -273,12 +220,8 @@ export async function archiveTripFromOverview(formData: FormData) {
   const access = await requireTripAccess(tripId);
   assertAdmin(access);
 
-  await db
-    .update(trip)
-    .set({ archivedAt: new Date(), ...touch() })
-    .where(eq(trip.id, tripId));
+  await setTripArchived(tripId, true);
 
-  revalidatePath("/trips");
-  revalidatePath("/trips/archived");
+  revalidateTripLists();
   redirect("/trips/archived");
 }

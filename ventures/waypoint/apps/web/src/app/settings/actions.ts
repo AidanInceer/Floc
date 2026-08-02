@@ -4,24 +4,25 @@
  * Settings mutations (ticket 07): the four notification booleans, the privacy
  * flags (ticket 46), unlinking a sign-in method, and account deletion
  * (ticket 06). No theme action — Waypoint is light-only.
+ *
+ * The writes belong to `server/profile.ts`, `server/membership.ts` and
+ * `server/auth.ts` (ticket 108); what stays here is the validation and the
+ * refusals, which are messages to a person rather than constraints on a row.
  */
-import { and, eq, isNull, ne } from "drizzle-orm";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { db } from "@/db";
-import {
-  PAST_TRIPS_SHOW,
-  VISIBILITIES,
-  account,
-  tripMembership,
-  userProfile,
-} from "@/db/schema";
+import { PAST_TRIPS_SHOW, VISIBILITIES } from "@/db/schema";
 import type { PastTripsShow, Visibility } from "@/db/schema";
 import { requireUser } from "@/server/access";
-import { auth } from "@/server/auth";
-import { ensureProfile } from "@/server/profile";
+import { auth, listLinkedAccounts, unlinkAccountById } from "@/server/auth";
+import { handOverAndLeaveAllTrips } from "@/server/membership";
+import {
+  ensureProfile,
+  revalidateProfile,
+  updateProfileFields,
+} from "@/server/profile";
 
 /**
  * Privacy lives here, not on /profile: it's configuration, not identity
@@ -54,20 +55,16 @@ export async function updatePrivacy(formData: FormData): Promise<{ error?: strin
     return { error: "That isn't one of the visibility options." };
   }
 
-  await db
-    .update(userProfile)
-    .set({
-      isPrivate: formData.get("isPrivate") === "on",
-      visibilityPicture: picture,
-      visibilityVibeTags: vibeTags,
-      visibilityTravelMap: travelMap,
-      pastTripsShow: show as PastTripsShow,
-      lastModifiedAt: new Date(),
-    })
-    .where(eq(userProfile.userId, viewer.id));
+  await updateProfileFields(viewer.id, {
+    isPrivate: formData.get("isPrivate") === "on",
+    visibilityPicture: picture,
+    visibilityVibeTags: vibeTags,
+    visibilityTravelMap: travelMap,
+    pastTripsShow: show as PastTripsShow,
+  });
 
   revalidatePath("/settings");
-  revalidatePath("/profile");
+  revalidateProfile();
   return {};
 }
 
@@ -79,11 +76,7 @@ export async function unlinkAccount(formData: FormData): Promise<{ error?: strin
   const viewer = await requireUser();
   const accountId = String(formData.get("accountId") ?? "");
 
-  const linked = await db
-    .select()
-    .from(account)
-    .where(eq(account.userId, viewer.id))
-    .all();
+  const linked = await listLinkedAccounts(viewer.id);
 
   if (linked.length <= 1) {
     return { error: "You can't unlink your last sign-in method." };
@@ -92,7 +85,7 @@ export async function unlinkAccount(formData: FormData): Promise<{ error?: strin
   const target = linked.find((a) => a.id === accountId);
   if (!target) return { error: "That sign-in method isn't linked." };
 
-  await db.delete(account).where(eq(account.id, accountId));
+  await unlinkAccountById(target.id);
 
   revalidatePath("/settings");
   return {};
@@ -101,16 +94,12 @@ export async function unlinkAccount(formData: FormData): Promise<{ error?: strin
 export async function updateNotifications(formData: FormData): Promise<void> {
   const viewer = await requireUser();
   await ensureProfile(viewer.id);
-  await db
-    .update(userProfile)
-    .set({
-      notifyInvites: formData.get("notifyInvites") === "on",
-      notifyVotes: formData.get("notifyVotes") === "on",
-      notifyMoney: formData.get("notifyMoney") === "on",
-      notifyNudges: formData.get("notifyNudges") === "on",
-      lastModifiedAt: new Date(),
-    })
-    .where(eq(userProfile.userId, viewer.id));
+  await updateProfileFields(viewer.id, {
+    notifyInvites: formData.get("notifyInvites") === "on",
+    notifyVotes: formData.get("notifyVotes") === "on",
+    notifyMoney: formData.get("notifyMoney") === "on",
+    notifyNudges: formData.get("notifyNudges") === "on",
+  });
 }
 
 /**
@@ -133,62 +122,7 @@ export async function updateNotifications(formData: FormData): Promise<void> {
 export async function deleteAccount(): Promise<void> {
   const viewer = await requireUser();
 
-  const myMemberships = await db
-    .select({ tripId: tripMembership.tripId, role: tripMembership.role })
-    .from(tripMembership)
-    .where(and(eq(tripMembership.userId, viewer.id), isNull(tripMembership.deletedAt)))
-    .all();
-
-  const myAdminTripIds = myMemberships.filter((m) => m.role === "admin").map((m) => m.tripId);
-
-  for (const tripId of myAdminTripIds) {
-    const otherAdmins = await db
-      .select({ userId: tripMembership.userId })
-      .from(tripMembership)
-      .where(
-        and(
-          eq(tripMembership.tripId, tripId),
-          eq(tripMembership.role, "admin"),
-          ne(tripMembership.userId, viewer.id),
-          isNull(tripMembership.deletedAt),
-        ),
-      )
-      .get();
-
-    if (otherAdmins) continue; // not the sole admin — nothing to promote
-
-    const earliestOther = await db
-      .select({ userId: tripMembership.userId })
-      .from(tripMembership)
-      .where(
-        and(
-          eq(tripMembership.tripId, tripId),
-          ne(tripMembership.userId, viewer.id),
-          isNull(tripMembership.deletedAt),
-        ),
-      )
-      .orderBy(tripMembership.createdAt)
-      .get();
-
-    if (earliestOther) {
-      await db
-        .update(tripMembership)
-        .set({ role: "admin", lastModifiedAt: new Date() })
-        .where(
-          and(
-            eq(tripMembership.tripId, tripId),
-            eq(tripMembership.userId, earliestOther.userId),
-          ),
-        );
-    }
-    // Else: no other members — the trip is left with no admin, an accepted
-    // v1 edge case (ticket 06).
-  }
-
-  await db
-    .update(tripMembership)
-    .set({ deletedAt: new Date(), lastModifiedAt: new Date() })
-    .where(eq(tripMembership.userId, viewer.id));
+  await handOverAndLeaveAllTrips(viewer.id);
 
   // Better Auth's own delete — cascades user/session/account rows. Soft in
   // effect for everything we own (above); this is the one hard delete, on
