@@ -612,6 +612,38 @@ export const expenseSplit = sqliteTable(
 /* Polymorphic notes — the discussion threads on ideas and day events         */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * A link the group has parked against the trip (ticket 103).
+ *
+ * Its own table rather than a `note` with a URL in it, because the two are
+ * different things: a note is something someone *said*, ordered by when they
+ * said it and answerable with a reply, and a link is a reference the group
+ * keeps — the villa listing, the ferry timetable, the shared spreadsheet. Put
+ * one in the thread and it is buried by the next fortnight of conversation,
+ * which is the problem the section exists to solve.
+ *
+ * Scoped to the trip and nothing finer. A link about one event belongs in that
+ * event's own notes, where the thing it is about is.
+ */
+export const tripLink = sqliteTable(
+  "trip_link",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    tripId: integer("trip_id")
+      .notNull()
+      .references(() => trip.id, { onDelete: "cascade" }),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => user.id),
+    /** `http`/`https` only, enforced at the door — never rendered unchecked. */
+    url: text("url").notNull(),
+    /** What to call it. Falls back to the host when nobody typed one. */
+    label: text("label"),
+    ...audit,
+  },
+  (t) => [index("trip_link_trip_idx").on(t.tripId)],
+);
+
 export const NOTE_SCOPES = [
   "trip",
   "day",

@@ -25,9 +25,9 @@ import {
 import {
   addEvent,
   deleteEvent,
-  moveEvent,
+  moveEventToAnotherDay,
   reorderEvents,
-  swapEvents,
+  rescheduleEvent,
   updateEvent,
 } from "./actions";
 import { searchPlacesAction } from "../place-actions";
@@ -118,22 +118,70 @@ describe("cross-trip itinerary writes", () => {
     expect(await timeOf(world.ours.lateEventId)).toBe("19:00");
   });
 
-  it("swapEvents and moveEvent cannot reach another trip's day", async () => {
-    await swapEvents(
-      world.theirs.id,
-      world.ours.dayId,
-      world.ours.eventId,
-      world.ours.lateEventId,
-    );
-    await moveEvent(
-      world.theirs.id,
-      world.ours.dayId,
-      world.ours.eventId,
-      "down",
+  it("rescheduleEvent cannot reach another trip's event", async () => {
+    // The calendar's drag (ticket 103) writes a time straight onto a row, so
+    // it has to bind *both* ends — the event and the day it lands on — back to
+    // the trip. Either one unbound is a way into another group's itinerary.
+    await expectNotFound(() =>
+      rescheduleEvent(
+        world.theirs.id,
+        world.ours.eventId,
+        world.ours.dayId,
+        "23:00",
+        "23:30",
+      ),
     );
 
     expect(await timeOf(world.ours.eventId)).toBe("09:00");
-    expect(await timeOf(world.ours.lateEventId)).toBe("19:00");
+  });
+
+  it("rescheduleEvent cannot drop one of its own events onto another trip's day", async () => {
+    signIn(world.member);
+    await expectNotFound(() =>
+      rescheduleEvent(
+        world.ours.id,
+        world.ours.eventId,
+        world.theirs.dayId,
+        "23:00",
+        "23:30",
+      ),
+    );
+
+    expect(await timeOf(world.ours.eventId)).toBe("09:00");
+  });
+
+  it("a member can reschedule an event of their own", async () => {
+    signIn(world.member);
+    await rescheduleEvent(
+      world.ours.id,
+      world.ours.eventId,
+      world.ours.dayId,
+      "14:15",
+      "15:45",
+    );
+
+    expect(await timeOf(world.ours.eventId)).toBe("14:15");
+  });
+
+  it("rescheduleEvent refuses a time that isn't a time", async () => {
+    // The action is reachable without the grid (ticket 113), so `HH:MM` is
+    // checked here and not only where the pointer snapped it.
+    signIn(world.member);
+    await rescheduleEvent(world.ours.id, world.ours.eventId, world.ours.dayId, "9am", null);
+
+    expect(await timeOf(world.ours.eventId)).toBe("09:00");
+  });
+
+  it("moveEventToAnotherDay cannot reach another trip's day", async () => {
+    await moveEventToAnotherDay(
+      world.theirs.id,
+      world.ours.eventId,
+      world.ours.dayId,
+      world.ours.dayId,
+    );
+
+    expect(await timeOf(world.ours.eventId)).toBe("09:00");
+    expect(await liveEvents(world.ours.dayId)).toHaveLength(2);
   });
 
   it("a member can still reorder its own day", async () => {

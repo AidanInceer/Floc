@@ -44,6 +44,8 @@ on every entity.</p>
     USER ||--o{ NOTE : &quot;creates (created_by)&quot;
     NOTE ||--o{ NOTE : &quot;replies (parent_id, one level)&quot;
     NOTE ||--o{ NOTE_REACTION : &quot;receives&quot;
+    TRIP ||--o{ TRIP_LINK : &quot;keeps (ticket 103)&quot;
+    USER ||--o{ TRIP_LINK : &quot;adds (created_by)&quot;
     USER ||--o{ NOTE_REACTION : &quot;reacts&quot;
     TRIP ||--o{ NUDGE : &quot;has&quot;
     USER ||--o{ NUDGE : &quot;sends (from_user_id)&quot;
@@ -196,6 +198,14 @@ on every entity.</p>
         int edited_at &quot;nullable — set when the author rewrites it&quot;
     }
 
+    TRIP_LINK {
+        int id PK
+        int trip_id FK &quot;-&gt; TRIP.id&quot;
+        string created_by FK &quot;-&gt; USER.id&quot;
+        string url &quot;http/https only, checked at the door&quot;
+        string label &quot;nullable — falls back to the host&quot;
+    }
+
     NOTE_REACTION {
         int id PK
         int note_id FK &quot;-&gt; NOTE.id&quot;
@@ -324,6 +334,12 @@ on every entity.</p>
 <td><code>parent_id</code> — a comment and its replies, one level only</td>
 </tr>
 <tr>
+<td><code>trip</code></td>
+<td><code>trip_link</code></td>
+<td>1–M</td>
+<td>the shelf beside the trip thread on Days</td>
+</tr>
+<tr>
 <td><code>note</code></td>
 <td><code>note_reaction</code></td>
 <td>1–M</td>
@@ -380,6 +396,14 @@ without uniqueness the toggle was a read-modify-write over nothing, and two
 concurrent taps wrote two rows, after which one person&#39;s heart counted as two.
 <code>idea_vote_unique_idx</code> and <code>friendship_pair_idx</code> have the same shape for the
 same reason. Every read still filters <code>deleted_at</code>.</p>
+<p><code>trip_link</code> is the <strong>link shelf</strong> (ticket 103) — the listings, timetables and
+documents a group keeps coming back to, beside the trip thread in the Days pane. Its
+own table rather than a <code>note</code> with a URL in it, because the two behave
+differently: a note is something someone said, ordered by when they said it and
+answerable with a reply, and a link is a reference that has to stay findable a
+fortnight later. <code>url</code> is <strong><code>http</code>/<code>https</code> only</strong>, normalised by
+<code>readWebUrl</code> before it is stored — the shelf renders <code>href</code>s another
+member typed, so a non-web scheme must never reach the row.</p>
 <p><code>day</code> deliberately has <strong>no <code>notes</code> column</strong>. It had one; nobody could say what
 belonged in it, since the thing a group annotates is an event rather than a
 whole day. Event details live on <code>day_event.note</code>, the conversation in <code>note</code>.</p>

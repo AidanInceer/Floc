@@ -101,21 +101,13 @@
   --marginalia: var(--hand);
 
   /*
-   * Post-it stock, for the landing page's hero only. Brighter than the
-   * `--who-*` washes below on purpose: those are pencil crayon and belong to
-   * people, and reusing them for decoration would make a note look like a
-   * member. Each colour has an `-edge` one step darker for the turned corner.
+   * The post-it stock (`--note-yellow` … `--note-lilac`, each with an `-edge`)
+   * lived here for the landing page's before/after hero. That hero is gone —
+   * the page is the travel document now (homepage-g-boardingpass.html) and
+   * every surface on it is paper, tape and ink — so the stock went with it.
+   * Nothing else ever used it: the `--who-*` washes below are pencil crayon
+   * and belong to people, and were never to be reused for decoration.
    */
-  --note-yellow: #f7d94f;
-  --note-yellow-edge: #d9ba33;
-  --note-coral: #f79a7d;
-  --note-coral-edge: #d97a5d;
-  --note-mint: #8fd39a;
-  --note-mint-edge: #6cb47a;
-  --note-sky: #7fc4e8;
-  --note-sky-edge: #5da3c9;
-  --note-lilac: #c3a8e8;
-  --note-lilac-edge: #a288cb;
 
   /*
    * People. paper.html gives every member their own coloured initial disc
@@ -424,338 +416,317 @@
   }
 
   /* ======================================================================
-   * The landing page's hero — the before/after cut
-   * (docs/mockups/homepage-hero-b-beforeafter.html).
+   * The landing page — "the travel document"
+   * (docs/mockups/homepage-g-boardingpass.html, hero D).
    *
-   * The headline runs across the top and the argument sits under it as one
-   * picture: the mess on the left, the same trip settled on the right, an arrow
-   * between them. There is no prose lede — the two panel captions are it.
+   * One idea carried the whole way down the page: the trip as a wallet of
+   * printed objects you're holding. A pass with a tear-off stub, luggage tags
+   * on strings, a fold-out coupon book, a customs stamp, and the passport MRZ
+   * strip as the footer rule. It replaces the before/after hero and the
+   * wandering dashed route, which were two languages on one page.
+   *
+   * The documents sit ON the page's own ruled sheet, so every surface is one
+   * step up from it: `--sheet-2` for a document body, `--sheet-3` for the part
+   * you'd tear off, and every punched hole is `--sheet` — the paper showing
+   * through the hole is the sheet the document is lying on, not `--paper`,
+   * which is what the mockup's full-bleed page used.
    * ==================================================================== */
 
-  /*
-   * The post-it canvas beside the headline.
-   *
-   * It is a GRID CELL, not an absolutely-positioned overlay behind the text,
-   * and that is the whole point: an overlay put coloured paper under the H1 and
-   * under the buttons, where it fought the highlighter strokes and made the
-   * headline hard to read. As its own cell it cannot reach the copy at any
-   * width.
-   *
-   * It starts at the top of the page and fades downwards at BOTH widths — on a
-   * phone it is ordered above the headline rather than dropped below the
-   * buttons, so the notes are the first thing on the page either way and the
-   * gradient always runs the same direction. It bleeds off the edges, which the
-   * sheet's `overflow: hidden` clips.
-   */
-  /*
-   * Below `sm:` this is an overlay, not a row of its own — reserving a band
-   * above the headline for a decoration pushed the whole page down. It's
-   * pinned to the right (the text is left-aligned and full-width below `sm:`,
-   * so there's nowhere else for it to stay clear of) and double-masked: a
-   * vertical fade so it dissolves before it reaches the "week one" copy, and a
-   * horizontal one so it never reaches the left edge, where the headline and
-   * the buttons sit. From `sm:` the layout goes two-column (see the grid in
-   * page.tsx) and the canvas switches to being a real cell in the right-hand
-   * column, so from there up it physically cannot reach the copy at any
-   * width, whatever colours it uses.
-   */
-  .hero-canvas {
-    position: absolute;
-    /* Negative inset cancels the sheet's own padding, so the notes start at
-       the very top edge rather than one gutter down. */
-    top: -1.75rem;
-    right: -1.25rem;
-    left: 38%;
-    height: 240px;
-    z-index: 0;
-    pointer-events: none;
-    -webkit-mask-image: linear-gradient(180deg, #000 0 22%, transparent 92%),
-      linear-gradient(90deg, transparent 0, #000 35%);
-    -webkit-mask-composite: source-in;
-    mask-image: linear-gradient(180deg, #000 0 22%, transparent 92%),
-      linear-gradient(90deg, transparent 0, #000 35%);
-    mask-composite: intersect;
-  }
+  /* ------------------------------------------------------------ the pass */
 
-  .hero-canvas svg {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0.55;
-  }
-
-  @media (min-width: 640px) {
-    .hero-canvas {
-      position: relative;
-      top: auto;
-      left: auto;
-      right: auto;
-      height: auto;
-      min-height: 260px;
-      align-self: stretch;
-      margin: -2rem -2rem -1rem 0;
-      /* Grid cell now — nothing left to keep the horizontal mask for. */
-      -webkit-mask-image: linear-gradient(180deg, #000 0 22%, transparent 92%);
-      mask-image: linear-gradient(180deg, #000 0 22%, transparent 92%);
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .hero-canvas {
-      min-height: 340px;
-      margin-top: -3.5rem;
-    }
-  }
-
-  /* Note stock. `--note-edge` is set by the colour class, so the turned corner
-     is one declaration rather than one rule per colour. */
-  .note-yellow {
-    background: var(--note-yellow);
-    --note-edge: var(--note-yellow-edge);
-  }
-  .note-coral {
-    background: var(--note-coral);
-    --note-edge: var(--note-coral-edge);
-  }
-  .note-mint {
-    background: var(--note-mint);
-    --note-edge: var(--note-mint-edge);
-  }
-  .note-sky {
-    background: var(--note-sky);
-    --note-edge: var(--note-sky-edge);
-  }
-  .note-lilac {
-    background: var(--note-lilac);
-    --note-edge: var(--note-lilac-edge);
-  }
-
-  /* The "before" panel: everything anyone said, still loose. Dashed, and a
-     wash rather than a sheet, so it reads as a surface things are stuck to
-     rather than as another Card. */
-  /*
-   * Ticket 41: a two-column grid, not a positioned collage. The notes used to
-   * be absolutely positioned at hand-picked percentages, with heights set by
-   * their own text — so they were oblong, and the bottom row hung outside the
-   * dashed panel once the panel got short or the text wrapped. A grid sizes
-   * every note from the same cell, and the panel's padding is what the tilt
-   * rotates into, so nothing can escape it.
-   */
-  .fan {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-content: center;
-    gap: 10px;
-    /* Roomier than the gap: the per-note nudges in `mess` (page.tsx) push up to
-       14px out of their cell, and this is the margin they push into. */
-    padding: 22px 24px;
-    border: 1px dashed var(--rule-2);
-    border-radius: var(--radius-sm);
-    background: color-mix(in srgb, var(--sheet-3) 35%, transparent);
-  }
-
-  /*
-   * One loose note — square, per ticket 41. `aspect-ratio` off the cell width
-   * keeps it square at every width without a fixed size, and the text is
-   * centred inside rather than filling from the top left, so a short note and
-   * a long one still read as the same object.
-   */
-  .fan-note {
+  .pass {
     position: relative;
-    display: flex;
-    align-items: center;
-    aspect-ratio: 1;
-    /* Smaller than the cell, and each note picks its own width in `mess` —
-       full-width squares read as a colour chart rather than as paper. */
-    max-width: 148px;
-    border-radius: 2px;
-    font-family: var(--marginalia);
-    padding: 10px 9px;
-    font-size: 13px;
-    line-height: 1.3;
-    color: var(--ink);
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    background: var(--sheet-2);
+    border: 1px solid var(--rule-2);
+    border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lift);
-    /* The turned corner is drawn over the bottom-right, so keep text off it. */
-    overflow: hidden;
+    transform: rotate(-0.7deg);
   }
 
-  .fan-note-text {
-    display: block;
-    padding-bottom: 6px;
-  }
-
-  .fan-note::after {
+  /* Taped down like everything else on the sheet. A real strip rather than
+     `.tape`, because that class is absolutely positioned against `Page`. */
+  .pass::before {
     content: "";
     position: absolute;
-    right: 0;
-    bottom: 0;
-    border-style: solid;
-    border-width: 0 0 16px 16px;
-    border-color: transparent transparent var(--note-edge) transparent;
-  }
-
-  /*
-   * What sits between the two panels: the words, and nothing else. There was a
-   * drawn arrow here and it was removed — the panels are side by side on a
-   * desktop and stacked on a phone, so a single arrow points the wrong way at
-   * one of the two widths whichever direction it takes.
-   */
-  .hero-gap {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px 8px;
-  }
-
-  .hero-gap .hero-gap-label {
-    font-family: var(--marginalia);
-    font-size: 14px;
-    line-height: 1.25;
-    text-align: center;
-    color: var(--pen);
-    transform: rotate(-4deg);
-  }
-
-  /*
-   * The landing page's journey — a walking route down the page with a sticky
-   * note at every stop (docs/mockups/homepage-pinboard.html).
-   *
-   * Geometry, and why it's built this way: every leg of the route is drawn
-   * *per stop*, stretched to that stop's own height, rather than as one
-   * absolutely-positioned overlay measured in JS. A long note therefore can't
-   * push the line out of alignment. The curve is an SVG stretched with
-   * `preserveAspectRatio="none"`, which would normally squash the stroke and
-   * the dashes along with it — `vector-effect: non-scaling-stroke` on the path
-   * keeps both in screen units, so a tall stop gets a longer curve, not a
-   * fatter line. The pins are HTML, not SVG, for the same reason: a circle in
-   * a non-uniformly scaled viewBox draws as an ellipse.
-   *
-   * The two endpoints of every leg sit at x=50% and the bend happens in
-   * between, so consecutive legs join without a kink and a pin is always dead
-   * centre on the line.
-   */
-  .route {
-    position: relative;
-    display: grid;
-  }
-
-  .route-stop {
-    position: relative;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .route-leg {
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: 30px;
-    z-index: 0;
+    top: -11px;
+    left: 42px;
+    width: 104px;
+    height: 24px;
+    background: var(--tape);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+    transform: rotate(-3.5deg);
     pointer-events: none;
   }
 
-  .route-leg svg {
-    display: block;
-    width: 100%;
-    height: 100%;
+  .pass-body {
+    padding: 2rem 2rem 1.75rem;
+    border-left: 3px solid var(--margin-line);
+    border-radius: var(--radius-lg) 0 0 var(--radius-lg);
   }
 
-  /* Above the notes, unlike the line — a pin is a marker, and the route
-     passing *behind* a note is the whole effect. */
-  .route-pin {
+  /* The tear-off stub: the trip's state, on the part of the document that
+     gets kept. Dashed seam, punched at both ends so the tear line really
+     breaks the edge rather than stopping at it. */
+  .pass-stub {
+    position: relative;
+    padding: 1.75rem 1.5rem;
+    background: var(--sheet-3);
+    border-left: 2px dashed var(--rule-2);
+    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+  }
+
+  .pass-stub::before,
+  .pass-stub::after {
+    content: "";
     position: absolute;
-    left: 15px;
-    z-index: 3;
-    width: 18px;
-    height: 18px;
-    margin-left: -9px;
-    margin-top: -9px;
-    border-radius: 999px;
-    border: 1.5px solid var(--pen);
+    left: -11px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--sheet);
+    border: 1px solid var(--rule-2);
+  }
+
+  .pass-stub::before {
+    top: -12px;
+  }
+
+  .pass-stub::after {
+    bottom: -12px;
+  }
+
+  @media (max-width: 800px) {
+    .pass {
+      grid-template-columns: minmax(0, 1fr);
+      transform: none;
+    }
+
+    .pass-body {
+      padding: 1.5rem 1.25rem 1.25rem;
+    }
+
+    .pass-stub {
+      border-left: 0;
+      border-top: 2px dashed var(--rule-2);
+      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    }
+
+    /* Both punches move to the seam's own ends, which are now the sides. */
+    .pass-stub::before {
+      top: -12px;
+      left: -12px;
+    }
+
+    .pass-stub::after {
+      top: -12px;
+      bottom: auto;
+      left: auto;
+      right: -12px;
+    }
+  }
+
+  /* A printed field on the document — the key typed small above its value,
+     as on a real pass. Used in the pass body's footer row. */
+  .doc-field-k {
+    font-family: var(--type);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .doc-field-v {
+    font-family: var(--type);
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+
+  /* ---------------------------------------------------- the luggage tags */
+
+  /*
+   * The string: one stroke up out of the eyelet to the rule above. A
+   * pseudo-element rather than an SVG — it is only ever a straight line at a
+   * slight angle, and `--string` lets each tag hang its own way.
+   */
+  .luggage {
+    position: relative;
+    padding-top: 34px;
+  }
+
+  .luggage::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 46px;
+    width: 2px;
+    height: 34px;
+    background: var(--rule-2);
+    transform-origin: top center;
+    transform: rotate(var(--string, 6deg));
+  }
+
+  .luggage-card {
+    position: relative;
+    background: var(--sheet-2);
+    border: 1px solid var(--rule-2);
+    border-radius: var(--radius-sm);
+    padding: 1.25rem 1.25rem 1.35rem 3.25rem;
+    box-shadow: var(--shadow);
+    transform: rotate(var(--tilt, -1deg));
+  }
+
+  /* The eyelet, and the reinforcing rule that runs down beside it. */
+  .luggage-card::before {
+    content: "";
+    position: absolute;
+    top: 1.4rem;
+    left: 1.15rem;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--sheet);
+    border: 2px solid var(--rule-2);
+  }
+
+  .luggage-card::after {
+    content: "";
+    position: absolute;
+    top: 0.7rem;
+    bottom: 0.7rem;
+    left: 2.35rem;
+    border-left: 1px dashed var(--rule);
+  }
+
+  /* ----------------------------------------------------- the coupon book */
+
+  /*
+   * The six stops as one fold-out strip of perforated coupons, each with a
+   * counterfoil down the left. Deliberately NOT `overflow: hidden`: the
+   * punches at every perforation sit half outside the book's own border,
+   * which is the point of them. The end coupons round their own corners
+   * instead.
+   */
+  .book {
+    background: var(--sheet-2);
+    border: 1px solid var(--rule-2);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lift);
+  }
+
+  .coupon {
+    position: relative;
+    display: grid;
+    grid-template-columns: 180px minmax(0, 1fr);
+  }
+
+  .coupon:first-child .counterfoil {
+    border-radius: var(--radius-lg) 0 0 0;
+  }
+
+  .coupon:last-child .counterfoil {
+    border-radius: 0 0 0 var(--radius-lg);
+  }
+
+  /* The perforation between two coupons, punched at both ends. */
+  .coupon + .coupon {
+    border-top: 2px dashed var(--rule-2);
+  }
+
+  .coupon + .coupon::before,
+  .coupon + .coupon::after {
+    content: "";
+    position: absolute;
+    top: -12px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
     background: var(--sheet);
   }
 
-  .route-pin::after {
-    content: "";
-    position: absolute;
-    inset: 4.5px;
-    border-radius: 999px;
-    background: var(--pen);
+  .coupon + .coupon::before {
+    left: -11px;
   }
 
-  .route-pin-start {
-    top: 0;
-  }
-
-  /* The route ends at the last pin: no dangling tail past the final note. */
-  .route-pin-end {
-    top: 100%;
-  }
-
-  .route-note-wrap {
-    position: relative;
-    z-index: 1;
-    padding-left: 30px;
-    padding-bottom: 20px;
-  }
-
-  .route-stop:last-child .route-note-wrap {
-    padding-bottom: 0;
+  .coupon + .coupon::after {
+    right: -11px;
   }
 
   /*
-   * Two columns from `md:` up. The notes are wider than their column and
-   * overhang the centre line, so consecutive stops read as a stagger — a
-   * brick course — rather than as two lists with a corridor of blank paper
-   * down the middle. The vertical gap is small for the same reason: stop 02
-   * sits alongside stop 01, not diagonally below it.
+   * The counterfoil — the half you'd keep. `--wash` is that tab's own tint,
+   * and it is the only place on this page where colour identifies a tab. The
+   * tab's name is always written next to it, so it is never colour alone.
    */
-  @media (min-width: 860px) {
-    .route-stop {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+  .counterfoil {
+    padding: 1.4rem 1.1rem;
+    border-right: 2px dashed var(--rule-2);
+    background: var(--wash, var(--sheet-3));
+  }
+
+  @media (max-width: 900px) {
+    .coupon {
+      grid-template-columns: minmax(0, 1fr);
     }
 
-    .route-leg {
-      inset: 0;
-      width: auto;
+    .counterfoil {
+      display: flex;
+      align-items: baseline;
+      gap: 0.9rem;
+      padding: 0.85rem 1.1rem;
+      border-right: 0;
+      border-bottom: 2px dashed var(--rule-2);
     }
 
-    .route-pin {
-      left: 50%;
+    .coupon:first-child .counterfoil {
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     }
 
-    .route-note-wrap {
-      padding-left: 0;
-      padding-bottom: 22px;
-    }
-
-    .route-stop:nth-child(odd) .route-note-wrap {
-      grid-column: 1;
-      margin-right: -14%;
-    }
-
-    .route-stop:nth-child(even) .route-note-wrap {
-      grid-column: 2;
-      margin-left: -14%;
+    .coupon:last-child .counterfoil {
+      border-radius: 0;
     }
   }
 
+  /* ----------------------------------------------------- the entry stamp */
+
+  /* The customs impression: a double ring, inked slightly off-square. The
+     second ring is an `outline`, so it needs no second element. */
+  .impression {
+    display: inline-block;
+    text-align: center;
+    padding: 1.4rem 1.7rem;
+    border: 2px solid var(--pen);
+    outline: 2px solid var(--pen);
+    outline-offset: 5px;
+    border-radius: var(--radius-lg);
+    color: var(--pen);
+    transform: rotate(-3.5deg);
+    opacity: 0.9;
+    max-width: 22rem;
+  }
+
   /*
-   * A sticky note. Deliberately *not* a `Card`: square-ish corners, a lifted
-   * shadow, a tape tab and a slight rotation, so the journey reads as
-   * something stuck to the page rather than as more panels of the app.
+   * The machine-readable strip off the bottom of a passport. Decoration, and
+   * the page's closing rule at the same time — `aria-hidden`, so the glyph
+   * soup is never read out. It scrolls sideways on a narrow screen rather
+   * than wrapping: an MRZ line that wraps stops looking like one.
    */
-  .note-tape::before {
-    content: "";
-    position: absolute;
-    top: -9px;
-    left: 24px;
-    width: 64px;
-    height: 18px;
-    background: var(--tape);
-    transform: rotate(-2deg);
-    box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
-    pointer-events: none;
+  .mrz {
+    border-top: 1px solid var(--rule-2);
+    background: var(--sheet-2);
+    padding: 0.8rem 1rem 1.1rem;
+    overflow-x: auto;
+  }
+
+  .mrz pre {
+    margin: 0;
+    font-family: var(--type);
+    font-size: 11px;
+    line-height: 1.7;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+    white-space: pre;
   }
 
   /*

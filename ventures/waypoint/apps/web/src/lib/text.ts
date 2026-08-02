@@ -41,6 +41,8 @@ export const TEXT_CAPS = {
   eventTitle: 200,
   /** A day event's own detail note. */
   eventNote: 2000,
+  /** What a trip link is called. A line, not a description. */
+  linkLabel: 120,
 } as const;
 
 export type TextCap = keyof typeof TEXT_CAPS;

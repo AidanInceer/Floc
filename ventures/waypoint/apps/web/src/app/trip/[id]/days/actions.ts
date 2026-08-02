@@ -14,7 +14,7 @@ import type { DayEventType, TransportType } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
 import { resolveEventPlace } from "../place-actions";
 import { addDays as addDaysToDate } from "@/lib/dates";
-import { insertAt, permuteEventSlots, swapItems } from "@/lib/event-order";
+import { insertAt, permuteEventSlots } from "@/lib/event-order";
 import {
   applyEventSlots,
   ensureDays,
@@ -23,6 +23,7 @@ import {
   listEventSlots,
   moveEventToDay,
   moveItem,
+  rescheduleEvent as moveEventTo,
   permuteDayContents,
   rebaseEventOrder,
   revalidateItinerary,
@@ -135,25 +136,14 @@ export async function reorderEvents(
   revalidateItinerary(access.trip.id);
 }
 
-/**
- * Dropping one event onto another: the two trade places, and with them their
- * times. Nothing between them moves — see `swapItems`.
+/*
+ * No `swapEvents` and no `moveEvent` any more (ticket 103). Both were list
+ * gestures — "trade these two rows and their times", "nudge this row up one" —
+ * and the calendar has neither rows nor a position to nudge between. What
+ * replaced them is `rescheduleEvent` above: on a grid you say *when*, and the
+ * order follows from the clock. `swapItems` and `permuteEventSlots` stay in
+ * `lib/event-order.ts`, still used by the within-a-day case of `insertEventAt`.
  */
-export async function swapEvents(
-  tripId: number,
-  dayId: number,
-  aId: number,
-  bId: number,
-) {
-  const access = await requireTripAccess(tripId);
-
-  const order = (await listEventSlots(access.trip.id, dayId)).map((e) => e.id);
-  const a = order.indexOf(aId);
-  const b = order.indexOf(bId);
-  if (a === -1 || b === -1) return;
-
-  await reorderEvents(access.trip.id, dayId, swapItems(order, a, b));
-}
 
 /**
  * Dropping an event into a gap — the one action behind both "put it here in
@@ -218,26 +208,71 @@ export async function insertEventAt(
 }
 
 /**
- * The ↑/↓ buttons, which are the keyboard's way in — a drag handle is
- * mouse-only. One step is a permutation like any other, so it goes through
- * `reorderEvents` rather than growing a second, subtly different reorder.
+ * Dragging an **all-day** event to another day (ticket 103).
+ *
+ * All-day is the one thing on the calendar with no time to drop, so it can't go
+ * through `rescheduleEvent` — that would have to invent a start time to write.
+ * A change of day carrying the times over untouched is exactly what
+ * `insertEventAt` already does, so this is that, appended to the target day's
+ * tail rather than dropped at a position: the all-day strip has no order to aim
+ * at.
  */
-export async function moveEvent(
+export async function moveEventToAnotherDay(
   tripId: number,
-  dayId: number,
   eventId: number,
-  direction: "up" | "down",
+  fromDayId: number,
+  toDayId: number,
 ) {
-  // Gate before the read, not just inside `reorderEvents` — a non-member must
-  // not get so far as learning how many events a day has (rule 5).
+  await insertEventAt(tripId, toDayId, eventId, fromDayId, Number.MAX_SAFE_INTEGER);
+}
+
+/**
+ * Dropping an event somewhere on the calendar grid (ticket 103).
+ *
+ * The one action behind every gesture that changes *when* an event is: dragged
+ * to another time, dragged to another day, resized by its bottom edge, or
+ * nudged with the arrow keys. They all come out as the same three facts — a
+ * day, a start and an end — so they are one entry point and not four.
+ *
+ * The times arrive from the client already snapped to the quarter hour
+ * (`lib/calendar.ts`), and are re-read here anyway: the action is reachable
+ * without the grid, and `HH:MM` is the only shape the column may hold.
+ */
+export async function rescheduleEvent(
+  tripId: number,
+  eventId: number,
+  toDayId: number,
+  time: string,
+  endTime: string | null,
+) {
   const access = await requireTripAccess(tripId);
 
-  const order = (await listEventSlots(access.trip.id, dayId)).map((e) => e.id);
-  const idx = order.indexOf(eventId);
-  const to = direction === "up" ? idx - 1 : idx + 1;
-  if (idx === -1 || to < 0 || to >= order.length) return;
+  // Both ends of the drag must be this trip's, or the gesture would be a way
+  // to reach into another group's itinerary by id (rule 5).
+  const target = await access.event(eventId);
+  const toDay = await access.day(toDayId);
 
-  await reorderEvents(access.trip.id, dayId, moveItem(order, idx, to));
+  const start = readClockTime(time);
+  if (!start) return;
+
+  await moveEventTo(target.id, toDay.id, start, readClockTime(endTime));
+
+  revalidateItinerary(access.trip.id);
+}
+
+/**
+ * `HH:MM` and nothing else — ticket 113's validate-at-the-door, applied to the
+ * one field a drag writes. `24:00` is accepted as an *end*: it is the grid's
+ * bottom edge, and `timing` in the aggregate is what refuses it as a start by
+ * dropping any end that isn't after its start.
+ */
+function readClockTime(value: string | null): string | null {
+  if (!value) return null;
+  const m = /^(\d{2}):(\d{2})$/.exec(value);
+  if (!m) return null;
+  const [h, min] = [Number(m[1]), Number(m[2])];
+  if (h > 24 || min > 59 || (h === 24 && min !== 0)) return null;
+  return value;
 }
 
 /**
@@ -248,13 +283,20 @@ export async function moveEvent(
  * covers both the add and the edit: the sheet is the same form either way and
  * `eventId` is what tells them apart, so a second near-identical action would
  * only be a second place to forget a field.
+ *
+ * The day and the event id ride in the form rather than being bound (ticket
+ * 103). On the calendar, *which* day and *which* event the dialog is editing
+ * are client state — the day you clicked, the block you opened — so binding
+ * them would mean the server pre-rendering one bound action per day per mode.
+ * Both are checked against the trip below exactly as a bound id would be.
  */
-export async function submitEvent(
-  tripId: number,
-  dayId: number,
-  eventId: number | null,
-  formData: FormData,
-) {
+export async function submitEvent(tripId: number, formData: FormData) {
+  const dayId = Number(formData.get("dayId"));
+  if (!Number.isInteger(dayId)) return;
+  const rawEventId = String(formData.get("eventId") ?? "");
+  const eventId = rawEventId ? Number(rawEventId) : null;
+  if (eventId !== null && !Number.isInteger(eventId)) return;
+
   const title = String(formData.get("title") ?? "").trim();
   // The input is `required`, so an empty title only arrives from a client with
   // validation off. Drop it rather than write a nameless event.

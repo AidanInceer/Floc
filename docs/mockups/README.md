@@ -13,7 +13,7 @@ package and nothing here gains a `package.json`.
 
 | File | What it is |
 |---|---|
-| [`homepage-pinboard.html`](homepage-pinboard.html) | **Adopted.** The journey as a vertical dashed route down the centre, six sticky notes alternating left and right, a pin per stop. This is what [`apps/web/src/app/page.tsx`](../../apps/web/src/app/page.tsx) follows. |
+| [`homepage-pinboard.html`](homepage-pinboard.html) | **Superseded.** The journey as a vertical dashed route down the centre, six sticky notes alternating left and right, a pin per stop. This is what the live page followed until G shipped (see *Status* below); its copy survives, its route doesn't. |
 | [`homepage-pinboard-atlas.html`](homepage-pinboard-atlas.html) | Same structure and copy, verbatim. Only the `.page` background differs: an inline SVG vintage nautical chart behind the sheet. |
 | [`homepage-pinboard-trailmap.html`](homepage-pinboard-trailmap.html) | Same again, with a hand-drawn explorer trail map behind the sheet. |
 | [`homepage-pinboard-map.html`](homepage-pinboard-map.html) | Same again, but the hero card's plain-text Route row becomes a mock embedded map — answering "what if a map provider were wired in". The plain-text version stays the fallback, per ticket 11. |
@@ -22,19 +22,21 @@ The three variants are unadopted artefacts. Two earlier siblings,
 `homepage-trail.html` and `homepage-margin.html`, are referenced by their
 headers but no longer exist on disk.
 
-### What the adopted page changed from its mockup
+### What the pinboard page changed from its mockup, while it was live
 
-- **The stops are staggered, not diagonal.** Each note is wider than its half
-  of the page and overhangs the centre, and the vertical gap between stops is
-  small — so stop 02 sits *alongside* stop 01 rather than in the next row down,
-  and neither side of the page is left blank.
-- **The route curves.** Each leg bulges towards the side of the row the note
-  *isn't* on, so the line walks out into the blank paper and back behind the
-  next note. It's an SVG per leg rather than a CSS border, for the reason in
-  the geometry note below; the pins stay HTML.
+- **The stops were staggered, not diagonal.** Each note was wider than its half
+  of the page and overhung the centre, and the vertical gap between stops was
+  small — so stop 02 sat *alongside* stop 01 rather than in the next row down,
+  and neither side of the page was left blank.
+- **The route curved.** Each leg bulged towards the side of the row the note
+  *wasn't* on, so the line walked out into the blank paper and back behind the
+  next note. An SVG per leg rather than a CSS border, for the reason in the
+  geometry note below; the pins stayed HTML.
 
-The "leave a note" form is rendered but disabled — there is no submit target
-yet. Wire it to a Server Action when its backend is designed.
+Both are gone from `page.tsx` with the coupon book (below); the `.route*`,
+`.fan*` and `.hero-canvas` rules went out of `globals.css` at the same time.
+The "leave a note" form was already disabled and had gone before that — there
+is still no submit target for it.
 
 ## Homepage — hero explorations
 
@@ -109,66 +111,66 @@ already physical objects, so a note sits on one of them, casts a small shadow
 and is a few degrees off true. Every note carries a handwritten line — none is
 decorative colour.
 
-Unadopted, both G and J.
+J is unadopted. G is not — see below.
 
-### Status: B is adopted
+### Status: G is adopted
 
-**`homepage-hero-b-beforeafter.html` has shipped** as the hero of
-[`apps/web/src/app/page.tsx`](../../apps/web/src/app/page.tsx). Everything
-below the hero is unchanged and still follows `homepage-pinboard.html`. Three
-deliberate departures from the mockup:
+**`homepage-g-boardingpass.html` has shipped** as the whole of
+[`apps/web/src/app/page.tsx`](../../apps/web/src/app/page.tsx), all four
+sections of it. It replaced two things at once: B's before/after hero and the
+pinboard's dashed route. The reason for taking both together is the reason G
+exists — the page was a hero made of post-its followed by marketing sections
+made of paper, and reading as two products. Every surface is now one object:
+the pass, the tags, the coupon book, the entry stamp.
 
-- **The post-it canvas is a grid cell, not a layer behind the copy.** As an
-  absolutely-positioned overlay it put coloured paper under the H1 and the
-  buttons, where it fought the red and green highlighter strokes and made the
-  headline hard to read. As its own column beside the headline it cannot reach
-  the copy at any width; on a phone it drops below the buttons rather than
-  behind them. It bleeds off the right edge only, which the sheet's
-  `overflow: hidden` clips.
-- **The connector points right, not down**, in the direction the argument
-  reads: a dashed run with a head, and the handwritten label above it.
-- **The copy changed.** The eyebrow is "Group trip planning, sorted"; the CTAs
-  are "Plan your next trip now" and "Get inspired". `/explore` sits behind
-  `requireUser`, so the signed-out secondary links to
-  `/login?redirect=%2Fexplore` — sign in and you land on the thing the button
-  promised.
+Deliberate departures from the mockup:
 
-`homepage-hero-a-scatter.html` and `homepage-hero-c-outcomes.html` remain
-unadopted artefacts.
+- **The documents sit on the app's own ruled sheet**, not on a full-bleed
+  page. So every surface moves one step up the paper scale — a document body
+  is `--sheet-2`, a stub or an untinted counterfoil is `--sheet-3`, and every
+  punched hole is `--sheet`, because what shows through a hole is the sheet the
+  document is lying on. The mockup punched to `--paper`, which is the page
+  *behind* the sheet here and would have read as a hole through both.
+- **The MRZ strip bleeds to the sheet's edges** rather than being a full-width
+  footer band, and its left inset cancels the red margin's gutter (`pl-[38px]`
+  / `sm:pl-[76px]` on `Page`) rather than the plain padding — they differ.
+- **The CTAs are wired.** `/explore` sits behind `requireUser`, so the
+  signed-out secondary links to `/login?redirect=%2Fexplore` — sign in and you
+  land on the thing the button promised. The entry-stamp section only renders
+  signed-out; a signed-in visitor gets a link back to their trips instead.
+- **Stop 06's counterfoil takes the neutral wash.** The counterfoil tint is
+  that tab's own colour, and there is no "After" tab in the six — so it
+  borrows nobody's. The tab's name is written on every counterfoil regardless,
+  so the colour is never carrying the meaning alone.
 
-### Two token changes that shipped with it
+`homepage-hero-a-scatter.html`, `homepage-hero-b-beforeafter.html` and
+`homepage-hero-c-outcomes.html` are all unadopted artefacts now.
 
-1. **Post-it stock.** Five new `--note-*` pairs (`--note-yellow`, `-coral`,
-   `-mint`, `-sky`, `-lilac`, each with a `-edge` one step darker for the
-   turned corner). Brighter than the `--who-*` pencil-crayon washes, which are
-   reserved for people and must not be reused for decoration.
+### The token change that shipped with it
 
-2. **A legible handwriting stack.** `--hand` used to lead with script faces,
-   and the marginalia — "— started 14 Feb, still arguing about Croatia" — was
-   unreadable at 15px on a phone. Now:
+**The post-it stock is gone.** The five `--note-*` pairs (`--note-yellow`,
+`-coral`, `-mint`, `-sky`, `-lilac`, each with a `-edge` for the turned corner)
+were added for B's hero and were only ever used there; the travel document has
+no post-its on it, so they came out of `globals.css` with the `.fan`,
+`.hero-canvas` and `.route*` rules. The rule they were introduced *under*
+still stands for anything that replaces them: the `--who-*` pencil-crayon
+washes are reserved for people and must not be reused for decoration.
 
-   ```css
-   --hand: "Bradley Hand", "Chalkboard SE", "Marker Felt", "Segoe Print",
-     "Comic Sans MS", ui-rounded, cursive;
-   ```
+The other change of B's round, **the legible handwriting stack**, stays — it
+was never about the hero. `--hand` used to lead with script faces and the
+marginalia was unreadable at 15px on a phone:
 
-   `"Segoe Script"` is gone and the rounder print hands lead. `.hand` carries
-   the other half of the fix — `font-size: 1.06em; letter-spacing: 0.012em;
-   line-height: 1.5`, rising to `1.12em` below `sm:` — because handwriting sits
-   visually smaller than the serif at the same px. The rule that `--hand` is
-   for accents and marginalia only, never for data, is unaffected.
+```css
+--hand: "Bradley Hand", "Chalkboard SE", "Marker Felt", "Segoe Print",
+  "Comic Sans MS", ui-rounded, cursive;
+```
 
-### The post-it canvas
-
-Hero band only; the rest of the page stays cream.
-
-One inline `<svg>`, `aria-hidden`, `pointer-events: none`, carrying **no text
-at all** — every word a visitor needs to read is in the foreground fan. The
-first pass scattered scrawled notes across the full width of the band at 85%
-opacity and it fought the headline; what shipped is a contained cell at 55%,
-faded out along its inner edge so it doesn't hard-stop against the copy.
-Variants A and C keep the overlay form at a much lower opacity, with the notes
-kept clear of the text block.
+`"Segoe Script"` is gone and the rounder print hands lead. `.hand` carries the
+other half of the fix — `font-size: 1.06em; letter-spacing: 0.012em;
+line-height: 1.5` — because handwriting sits visually smaller than the serif at
+the same px. The rule that `--hand` is for accents and marginalia only, never
+for data, is unaffected: on the live page it writes the pass's marginalia and
+each coupon's scribble, and nothing else.
 
 ## Phone app
 
@@ -219,15 +221,30 @@ other two directions were and why they lost.
 
 ## Days as a calendar
 
+Four directions for what the Days tab becomes if the day cards give way to
+something calendar-shaped. All four carry the same right-hand pane on purpose —
+the selected event (facts, its own note, its thread) and a trip-wide
+notes-and-links pad — so the comparison is about the calendar and nothing else.
+All four are interactive; none is wired to a Server Action.
+
 | File | What it asks |
 |---|---|
-| [`days-calendar.html`](days-calendar.html) | **Undecided.** What the Days tab becomes if the day cards give way to a Google-Calendar-style time grid: hour rows, events drawn at their time and as tall as they are long, a Day/Week switch, the ticket 90 category filter as chips, click-an-empty-slot to add at that time, overlaps splitting the column rather than being labelled, and a right pane in two faces — the selected event (facts, its note, its thread) and a trip-wide notes-and-links pad. Interactive: everything listed works in the page, nothing is wired to a Server Action. |
+| [`days-calendar-v2.html`](days-calendar-v2.html) | **Shipped** ([#103](https://github.com/AidanInceer/Waypoint/issues/103)) — A, second pass, and the source the live Days tab was built from. Everything below plus the three things A got wrong: a day column now has a floor and the week scrolls sideways under a pinned clock (handing over to Day view, with the reason said out loud, when even that stops working); adding snaps to the quarter hour with a chip naming it before you commit; and an event drags to another time *and another day* in one gesture, with its bottom edge as a resize handle. Keyboard equivalents throughout — ↑/↓ nudge 15 minutes, shift+←/→ move a day. |
+| [`days-calendar.html`](days-calendar.html) | A, first pass. The Google-Calendar shape: hour rows, events as tall as they are long, Day/Week switch, ticket 90's category filter as chips, click-a-slot to add, overlaps splitting the column rather than being labelled. Superseded by v2; kept as the record of what the first cut looked like. |
+| [`days-timeline.html`](days-timeline.html) | Turn it on its side — time left-to-right, one row per day, the whole trip on one screen with a zoom slider instead of a view switch. Travel days read well; short events go to slivers and overlaps make the rows uneven. |
+| [`days-agenda.html`](days-agenda.html) | Keep the list, add a time rail and — the point of it — draw the *gaps* as their own clickable rows ("4h 30m free — nothing planned between 14:00 and 16:00"). Duration becomes a number rather than a size. Week collapses each day to a line of pips. |
+| [`days-board.html`](days-board.html) | No clock at all: columns are morning / afternoon / evening and a time is an optional detail on a card, because a group planning three months out does not know the kayaks are at 15:30. Drag between cells. Timed travel days read worse here than anywhere else. |
 
-Three things it deliberately puts up for argument: where all-day and untimed
-events live (a strip above the grid here, sorted to the end of the day on the
-live page); whether overlaps should be drawn side by side at all; and whether
-the trip-wide notes pad earns its place, or becomes the box nobody could define
-that per-day notes already were.
+What the set put up for argument, and how the shipped page answered it. All-day
+and untimed events keep a **strip above the grid** — making a time mandatory
+would have meant inventing one for every row that hasn't got one. Overlaps
+**are** drawn side by side, in lanes derived from the times rather than from
+anything stored, and the word "Overlaps" is still on the block, because colour
+and geometry are never the only signal. A time is still **not required**. The
+trip-wide pad shipped as a **thread**, not a free-text box and not a link list:
+the `note` table already has a `trip` scope, and a thread is a thing people
+answer each other in, where the box nobody could define is exactly what per-day
+notes already were.
 
 ## Geometry note
 
@@ -237,7 +254,8 @@ rather than as a stretched SVG. Two failure modes that avoids: a long note
 pushing the line out of alignment, and a `viewBox` scaled to the container's
 width squashing the round pins into ellipses.
 
-The post-it canvas is the deliberate exception — it *is* one stretched SVG,
-because nothing in it has to align with anything in the content, and
-`preserveAspectRatio="xMidYMin slice"` keeps the notes square while the band
-resizes.
+This applied to the homepage's route until G replaced it, and still applies to
+the pinboard files and to any route drawn down a page. The coupon book needs
+none of it: a perforation is a border between two grid rows, and its punches
+are pseudo-elements on the row itself, so nothing has to be measured against
+anything.

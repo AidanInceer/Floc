@@ -30,7 +30,9 @@ export default async function TripLayout({
           must stay in step with `Page wide`, or the tabs stop lining up with
           the sheet they're attached to. */}
       <div className="bg-paper">
-        <div className="mx-auto w-full max-w-6xl px-4 pt-5 sm:px-6">
+        {/* Same width as `Page wide` and the header bar — see the note in
+          `components/ui.tsx`. */}
+      <div className="mx-auto w-full max-w-[84rem] px-4 pt-5 sm:px-6">
           {/* The trip's name, dates and state badges used to sit here as well
               as on the Overview hero, which said everything twice a hand's
               width apart (ticket 89). They live on the hero now — name first,

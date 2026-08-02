@@ -50,7 +50,14 @@ export function Page({
         // narrower than everything reached from the same header, which read as
         // the sheet changing size when you moved between them. `wide` is still
         // the trip tabs and Explore, where the extra width is doing work.
-        wide ? "max-w-6xl" : "max-w-4xl",
+        //
+        // `wide` grew from 6xl to 84rem for the Days calendar (ticket 103): a
+        // week of columns with a floor under each of them wants every pixel,
+        // and 6xl fit five before it began scrolling. The header bar and the
+        // folder tabs carry the same number — `app-chrome.tsx` and
+        // `trip/[id]/layout.tsx` — and all three must change together or the
+        // sheet's edges stop lining up with the tabs sitting on them.
+        wide ? "max-w-[84rem]" : "max-w-4xl",
       )}
     >
       <div

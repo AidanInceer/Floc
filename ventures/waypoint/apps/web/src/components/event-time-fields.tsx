@@ -24,10 +24,13 @@ export function EventTimeFields({
   defaultTime,
   defaultEndTime,
   defaultAllDay,
+  step,
 }: {
   defaultTime?: string | null;
   defaultEndTime?: string | null;
   defaultAllDay?: boolean;
+  /** Seconds. 900 matches the calendar's quarter-hour snap (ticket 103). */
+  step?: number;
 }) {
   const [allDay, setAllDay] = useState(defaultAllDay ?? false);
 
@@ -47,10 +50,21 @@ export function EventTimeFields({
       {allDay ? null : (
         <div className="grid grid-cols-2 gap-3">
           <Field label="Starts" hint="Local to the itinerary — no timezone">
-            <Input type="time" name="time" required defaultValue={defaultTime ?? ""} />
+            <Input
+              type="time"
+              name="time"
+              required
+              step={step}
+              defaultValue={defaultTime ?? ""}
+            />
           </Field>
           <Field label="Ends" hint="Optional">
-            <Input type="time" name="endTime" defaultValue={defaultEndTime ?? ""} />
+            <Input
+              type="time"
+              name="endTime"
+              step={step}
+              defaultValue={defaultEndTime ?? ""}
+            />
           </Field>
         </div>
       )}

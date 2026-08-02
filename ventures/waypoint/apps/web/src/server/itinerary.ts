@@ -544,7 +544,7 @@ export type EventFields = {
  * running past midnight has no representation here at all. That gap is real
  * and is on the Day-event planning epic, not papered over with a fake time.
  */
-function timing(input: EventFields) {
+function timing(input: Pick<EventFields, "time" | "endTime" | "allDay">) {
   if (input.allDay) return { time: null, endTime: null, allDay: true };
   const time = input.time || null;
   const endTime = input.endTime || null;
@@ -627,6 +627,38 @@ export async function applyEventSlots(
         .where(and(eq(dayEvent.id, w.id), isNull(dayEvent.deletedAt))),
     ),
   );
+}
+
+/**
+ * Drops an event at an exact time on an exact day — what a drag on the
+ * calendar means (ticket 103).
+ *
+ * This is a *different* gesture from `applyEventSlots`, and deliberately so.
+ * On a list there is no time axis, so a drag can only trade one position's
+ * slot for another's (see `lib/event-order.ts`). On a grid the axis is the
+ * whole point: the cursor is over 14:30, so the event starts at 14:30, and
+ * pretending otherwise would make the one thing the calendar is for behave
+ * like the list it replaced.
+ *
+ * `order_index` is left alone. It only ever broke ties among the untimed, and
+ * this event now has a time to be sorted by.
+ */
+export async function rescheduleEvent(
+  eventId: number,
+  toDayId: number,
+  time: string,
+  endTime: string | null,
+): Promise<void> {
+  await db
+    .update(dayEvent)
+    .set({
+      dayId: toDayId,
+      // Same reconciliation the form goes through: an end that isn't after the
+      // start isn't stored, because `HH:MM` has no way to say "next morning".
+      ...timing({ time, endTime, allDay: false }),
+      ...touch(),
+    })
+    .where(and(eq(dayEvent.id, eventId), isNull(dayEvent.deletedAt)));
 }
 
 /** Moves an event to another day of the same trip. The caller checks both days. */

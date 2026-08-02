@@ -353,8 +353,10 @@ Sunday is loose on purpose — leave it loose.</textarea>
   const TODAY = 2, NOW_MIN = 14 * 60 + 20;
 
   /* Below this the week is unreadable even scrolling, so the page hands over
-     to Day view rather than pretending. */
-  const WEEK_FLOOR = 720;
+     to Day view rather than pretending. Measured on the CALENDAR, not the
+     window: what matters is the room the grid actually got, and the side pane
+     (or, in the app, the layout around it) takes a bite out of that first. */
+  const WEEK_FLOOR = 560;
 
   let nextId = 100;
   const events = [
@@ -672,7 +674,7 @@ Sunday is loose on purpose — leave it loose.</textarea>
 
   let forcedDay = false;
   function fit() {
-    const tooNarrow = window.innerWidth < WEEK_FLOOR;
+    const tooNarrow = $(".cal").clientWidth < WEEK_FLOOR;
     const weekBtn = $("#view-week");
     weekBtn.disabled = tooNarrow;
     weekBtn.title = tooNarrow ? "The week needs a wider window" : "";
@@ -765,7 +767,9 @@ Sunday is loose on purpose — leave it loose.</textarea>
   }));
   $("#tab-event").addEventListener("click", () => pane("event"));
   $("#tab-notes").addEventListener("click", () => pane("notes"));
-  window.addEventListener("resize", fit);
+  /* Watching the element rather than the window catches the cases a resize
+     event never fires for — the pane opening, a container changing around it. */
+  new ResizeObserver(fit).observe($(".cal"));
 
   render(); showEvent(); fit();
   $("#yscroll").scrollTop = (8 - H0) * HOUR;

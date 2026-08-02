@@ -38,6 +38,8 @@ export const LIMITS = {
   members: 100,
   /** Trips one account can be on — the walk when that account is deleted. */
   tripsPerUser: 500,
+  /** Links parked against one trip. A shelf, not an archive. */
+  tripLinks: 200,
   /** Availability marks read for the Dates grid: members × days, capped. */
   availability: 20_000,
 } as const;

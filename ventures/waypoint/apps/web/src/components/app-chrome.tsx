@@ -74,7 +74,7 @@ export function AppChrome({
 }) {
   return (
     <header className="sticky top-0 z-20 border-b border-rule bg-paper/90 backdrop-blur">
-      <div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-4 px-4 sm:px-6">
+      <div className="mx-auto flex h-14 w-full max-w-[84rem] items-center gap-4 px-4 sm:px-6">
         {/* Always the marketing page, signed in or not — the wordmark is the
             front cover of the book. "Explore" sits beside it because both are
             the world outside your own trips; "Trips" is over on the right. */}
