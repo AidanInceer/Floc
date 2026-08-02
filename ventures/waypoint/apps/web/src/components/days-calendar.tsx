@@ -72,7 +72,7 @@ const HOUR_PX = 56;
 const GUTTER_PX = 58;
 
 /** A day column never gets thinner than this; the grid scrolls instead. */
-const COLUMN_MIN_PX = { week: 132, day: 240 } as const;
+const COLUMN_MIN_PX = { week: 120, day: 240 } as const;
 
 /**
  * Below this many pixels of *calendar* the week is unreadable even scrolling,
@@ -190,8 +190,9 @@ export function DaysCalendar({
   const [announcement, setAnnouncement] = useState("");
 
   /*
-   * A committed move is held locally until the server's answer comes back, so
-   * the block doesn't snap to where it was for the length of a round trip.
+   * A committed move is held locally until fresh server props confirm it, so
+   * the block doesn't snap back to stale props between the action resolving and
+   * the router applying the revalidated payload.
    * Last-write-wins (rule 7): what comes back is the truth, whoever else was
    * dragging at the same time.
    */
@@ -225,6 +226,24 @@ export function DaysCalendar({
   }, []);
 
   const say = useCallback((message: string) => setAnnouncement(message), []);
+
+  useEffect(() => {
+    setOptimistic((prev) => {
+      let next: Map<number, Landing> | null = null;
+      for (const [id, pending] of prev) {
+        const event = events.find((e) => e.id === id);
+        if (
+          event?.dayId === pending.dayId &&
+          event.time === pending.time &&
+          event.endTime === pending.endTime
+        ) {
+          next ??= new Map(prev);
+          next.delete(id);
+        }
+      }
+      return next ?? prev;
+    });
+  }, [events]);
 
   /* ---- what's on screen -------------------------------------------------- */
 
@@ -305,11 +324,6 @@ export function DaysCalendar({
       setOptimistic((prev) => new Map(prev).set(next.eventId, next));
       startTransition(async () => {
         await rescheduleEvent(next.eventId, next.dayId, next.time, next.endTime);
-        setOptimistic((prev) => {
-          const copy = new Map(prev);
-          copy.delete(next.eventId);
-          return copy;
-        });
       });
     },
     [rescheduleEvent],
@@ -723,30 +737,6 @@ export function DaysCalendar({
                   >
                     {day.dayOfMonth}
                   </p>
-                  {/* Which stop the day belongs to, and where in it. "Night 2
-                      of 3" is the bit a place name on its own can't say, and
-                      it's what tells a settled day from a travel one at a
-                      glance. A day in no stop says so in words — an empty line
-                      would read as a rendering fault. */}
-                  {day.outside ? (
-                    <span className="mt-0.5 block truncate text-[11px] text-ink-faint">
-                      Not on the trip
-                    </span>
-                  ) : day.stop ? (
-                    <span
-                      className="mt-0.5 inline-flex max-w-full items-center gap-1 truncate rounded-full border border-rule bg-sheet-2 px-1.5 py-px text-[11px] text-ink-soft"
-                      title={`${day.stop.label} — night ${day.stop.night} of ${day.stop.nights}`}
-                    >
-                      <span className="truncate">{day.stop.label}</span>
-                      <span className="nums shrink-0 text-ink-faint">
-                        {day.stop.night}/{day.stop.nights}
-                      </span>
-                    </span>
-                  ) : (
-                    <span className="mt-0.5 block truncate text-[11px] text-ink-faint">
-                      No overnight place
-                    </span>
-                  )}
                   {effectiveView === "day" ? (
                     <div className="mt-1 flex justify-center">
                       {removeDayControls[day.id]}
@@ -1161,19 +1151,19 @@ function DayColumn({
               // `pb-2.5` keeps the last line of text off the grip pill, and
               // `scroll-mt-32` keeps the block clear of the sticky head when
               // focusing it scrolls it into view (see `scrollPaddingTop`).
-              "absolute z-[2] scroll-mt-32 overflow-hidden rounded-md border border-l-4 px-1.5 pt-0.5 pb-2.5 text-left text-xs leading-tight shadow-card",
+              "absolute z-[2] flex scroll-mt-32 flex-col justify-start overflow-hidden rounded-md border border-l-4 px-1.5 pt-0.5 pb-2.5 text-left text-xs leading-tight shadow-card",
               EVENT_CATEGORIES[event.type].block,
               selected === id && "z-[4] outline-2 outline-ink",
               landing?.eventId === id && "opacity-70",
             )}
           >
-            <span className="nums block text-[10px] opacity-85">
-              {formatSpan(event)}
-              {span.open ? " · no end" : null}
-            </span>
             <span className="block font-semibold">
               {event.title}
               {event.hasNote ? <span aria-hidden> ✎</span> : null}
+            </span>
+            <span className="nums block text-[10px] opacity-85">
+              {formatSpan(event)}
+              {span.open ? " · no end" : null}
             </span>
             {!short && event.placeName ? (
               <span className="block opacity-80">{event.placeName}</span>
