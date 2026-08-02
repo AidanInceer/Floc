@@ -10,7 +10,8 @@ import {
 } from "./money";
 import { CURRENCIES } from "./currency";
 
-const people = (...ids: string[]) => ids.map((userId) => ({ userId }));
+/** An even split is one share each since ticket 85 — see `WritableSplitType`. */
+const people = (...ids: string[]) => ids.map((userId) => ({ userId, value: 1 }));
 
 describe("formatMoney / parseMoney", () => {
   it("round-trips through minor units", () => {
@@ -34,7 +35,7 @@ describe("formatMoney / parseMoney", () => {
     expect(parseMoney("999999999.99")).toBe(99999999999);
     expect(() => parseMoney("99999999999999999999")).toThrow(/too large/);
     expect(() => parseMoney("-99999999999999999999")).toThrow(/too large/);
-    expect(() => computeSplits(1e15, "even", people("a", "b"))).toThrow(
+    expect(() => computeSplits(1e15, "shares", people("a", "b"))).toThrow(
       /too large/,
     );
   });
@@ -42,7 +43,7 @@ describe("formatMoney / parseMoney", () => {
 
 describe("computeSplits", () => {
   it("splits evenly and hands out remainder pennies deterministically", () => {
-    const rows = computeSplits(1000, "even", people("a", "b", "c"));
+    const rows = computeSplits(1000, "shares", people("a", "b", "c"));
     expect(rows.map((r) => r.owedAmountMinor)).toEqual([334, 333, 333]);
     expect(sum(rows)).toBe(1000);
   });
@@ -52,7 +53,7 @@ describe("computeSplits", () => {
       for (let n = 1; n <= 7; n++) {
         const rows = computeSplits(
           total,
-          "even",
+          "shares",
           people(...Array.from({ length: n }, (_, i) => `u${i}`)),
         );
         expect(sum(rows)).toBe(total);
@@ -74,21 +75,6 @@ describe("computeSplits", () => {
     ).toThrow(/must sum to the total/);
   });
 
-  it("splits by percentage and requires 100", () => {
-    const rows = computeSplits(1001, "percentage", [
-      { userId: "a", value: 33.33 },
-      { userId: "b", value: 33.33 },
-      { userId: "c", value: 33.34 },
-    ]);
-    expect(sum(rows)).toBe(1001);
-    expect(() =>
-      computeSplits(100, "percentage", [
-        { userId: "a", value: 50 },
-        { userId: "b", value: 40 },
-      ]),
-    ).toThrow(/sum to 100/);
-  });
-
   it("splits by shares", () => {
     const rows = computeSplits(900, "shares", [
       { userId: "a", value: 2 },
@@ -101,7 +87,7 @@ describe("computeSplits", () => {
   });
 
   it("refuses an expense with no participants", () => {
-    expect(() => computeSplits(100, "even", [])).toThrow();
+    expect(() => computeSplits(100, "shares", [])).toThrow();
   });
 });
 

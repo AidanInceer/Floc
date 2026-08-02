@@ -30,6 +30,7 @@ import {
 } from "./schema.ts";
 // Relative, not the `@/` alias: this script runs under Node's own type
 // stripping (see the db:seed script), which does no path mapping.
+import type { WritableSplitType } from "../lib/money.ts";
 import { computeSplits } from "../lib/money.ts";
 
 const PEOPLE = [
@@ -286,8 +287,11 @@ async function main() {
     description: "Airbnb, three nights in Lisbon",
     amountMinor: 48000,
     currency: "GBP",
-    splitType: "even",
+    // An even split is one share each since ticket 85 — `even` is a value the
+    // schema still reads back but nothing writes any more (ticket 117, S12).
+    splitType: "shares",
     participants: members,
+    weights: members.map(() => 1),
   });
 
   await addExpense({
@@ -298,8 +302,11 @@ async function main() {
     description: "Train tickets, Lisbon → Lagos",
     amountMinor: 12400,
     currency: "EUR",
-    splitType: "even",
+    // An even split is one share each since ticket 85 — `even` is a value the
+    // schema still reads back but nothing writes any more (ticket 117, S12).
+    splitType: "shares",
     participants: members,
+    weights: members.map(() => 1),
   });
 
   await addExpense({
@@ -331,7 +338,7 @@ async function addExpense(args: {
   description: string;
   amountMinor: number;
   currency: "GBP" | "EUR" | "USD";
-  splitType: "even" | "exact" | "percentage" | "shares";
+  splitType: WritableSplitType;
   participants: string[];
   weights?: number[];
 }) {

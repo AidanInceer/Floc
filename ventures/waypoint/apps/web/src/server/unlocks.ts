@@ -8,7 +8,9 @@
  * one.
  *
  * Server-only: it touches the database. The tab shapes the client tab bar
- * needs live in `tabs.ts`, which is import-safe from the browser.
+ * needs live in `lib/tabs.ts`, which is import-safe from the browser — import
+ * them from there. This module used to re-export them, which added nothing and
+ * meant two import paths for one thing (ticket 117, S9).
  */
 import "server-only";
 
@@ -17,9 +19,6 @@ import { and, eq, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { day, idea, trip } from "@/db/schema";
 import type { Trip } from "@/db/schema";
-
-export { lockReason, tabStates } from "@/lib/tabs";
-export type { TabKey, TabState } from "@/lib/tabs";
 
 /**
  * Called after any write that could unlock a tab. Idempotent, and one-way:

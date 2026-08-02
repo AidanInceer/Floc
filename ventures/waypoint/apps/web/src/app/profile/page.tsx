@@ -10,7 +10,8 @@
  * thing, each saving on its own.
  */
 import {
-  answerMapPrompt,
+  dropPromptCountries,
+  keepPromptCountries,
   setCountryMark,
   updateDietary,
   updateIdentity,
@@ -40,17 +41,6 @@ import {
 import { ActionForm, SubmitButton } from "@/components/client-ui";
 import { TravelMap } from "@/components/travel-map";
 import { VibePicker } from "@/components/vibe-picker";
-
-/** Thin form wrappers — `answerMapPrompt` takes arguments, not a FormData. */
-async function keepPromptCountries(formData: FormData) {
-  "use server";
-  await answerMapPrompt(Number(formData.get("tripId")), true);
-}
-
-async function dropPromptCountries(formData: FormData) {
-  "use server";
-  await answerMapPrompt(Number(formData.get("tripId")), false);
-}
 
 export default async function ProfilePage() {
   const viewer = await requireUser("/profile");

@@ -10,7 +10,9 @@
  * aggregate decides how it's stored, what's filtered, what's bounded and what's
  * revalidated. Nothing here imports `@/db`.
  */
+import type { DayEventType, TransportType } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
+import { resolveEventPlace } from "../place-actions";
 import { addDays as addDaysToDate } from "@/lib/dates";
 import { insertAt, permuteEventSlots, swapItems } from "@/lib/event-order";
 import {
@@ -150,7 +152,7 @@ export async function swapEvents(
   const b = order.indexOf(bId);
   if (a === -1 || b === -1) return;
 
-  await reorderEvents(tripId, dayId, swapItems(order, a, b));
+  await reorderEvents(access.trip.id, dayId, swapItems(order, a, b));
 }
 
 /**
@@ -166,11 +168,17 @@ export async function swapEvents(
  * the alternative is overwriting a time the group agreed with whichever one it
  * happened to land next to.
  */
+/**
+ * Trip and destination day first, so Days can hand this to the drag list with
+ * `.bind(null, access.trip.id, dayId)` (ticket 117, S11). The old order forced an
+ * inline `"use server"` closure on the page, which captured the whole
+ * day-with-events object for the closure's lifetime.
+ */
 export async function insertEventAt(
   tripId: number,
+  toDayId: number,
   eventId: number,
   fromDayId: number,
-  toDayId: number,
   index: number,
 ) {
   const access = await requireTripAccess(tripId);
@@ -183,7 +191,7 @@ export async function insertEventAt(
   if (fromDayId === toDayId) {
     const order = (await listEventSlots(access.trip.id, toDayId)).map((e) => e.id);
     if (!order.includes(eventId)) return;
-    await reorderEvents(tripId, toDayId, insertAt(order, eventId, index));
+    await reorderEvents(access.trip.id, toDayId, insertAt(order, eventId, index));
     return;
   }
 
@@ -229,5 +237,52 @@ export async function moveEvent(
   const to = direction === "up" ? idx - 1 : idx + 1;
   if (idx === -1 || to < 0 || to >= order.length) return;
 
-  await reorderEvents(tripId, dayId, moveItem(order, idx, to));
+  await reorderEvents(access.trip.id, dayId, moveItem(order, idx, to));
+}
+
+/**
+ * What the add/edit event sheet posts (ticket 117, S11).
+ *
+ * This was an inline `"use server"` closure inside `days/page.tsx`, which is
+ * the one place the convention says a mutation must not be. One entry point
+ * covers both the add and the edit: the sheet is the same form either way and
+ * `eventId` is what tells them apart, so a second near-identical action would
+ * only be a second place to forget a field.
+ */
+export async function submitEvent(
+  tripId: number,
+  dayId: number,
+  eventId: number | null,
+  formData: FormData,
+) {
+  const title = String(formData.get("title") ?? "").trim();
+  // The input is `required`, so an empty title only arrives from a client with
+  // validation off. Drop it rather than write a nameless event.
+  if (!title) return;
+
+  const lat = formData.get("placeLat");
+  const lng = formData.get("placeLng");
+  const placeId = await resolveEventPlace({
+    providerId: String(formData.get("placeProviderId") ?? "") || null,
+    name: String(formData.get("placeName") ?? ""),
+    lat: lat ? Number(lat) : null,
+    lng: lng ? Number(lng) : null,
+    countryCode: String(formData.get("placeCountryCode") ?? "") || null,
+  });
+
+  const fields = {
+    type: String(formData.get("type") ?? "activity") as DayEventType,
+    title,
+    placeId,
+    transportType: (String(formData.get("transportType") ?? "") || null) as
+      | TransportType
+      | null,
+    time: String(formData.get("time") ?? "") || null,
+    endTime: String(formData.get("endTime") ?? "") || null,
+    allDay: formData.get("allDay") === "on",
+    note: String(formData.get("note") ?? "") || null,
+  };
+
+  if (eventId) await updateEvent(tripId, eventId, fields);
+  else await addEvent(tripId, dayId, fields);
 }

@@ -1,6 +1,6 @@
 /**
  * /signup — public (ticket 05, 19). Captures ?via= into signup_channel
- * (ticket 06) through an inline Server Action, run once the client-side
+ * (ticket 06) through a Server Action in `actions.ts`, run once the client-side
  * signUp() call succeeds and a session exists.
  */
 import Link from "next/link";
@@ -8,23 +8,9 @@ import Link from "next/link";
 import { AuthForm } from "@/components/auth-form";
 import { Card, Page, Stack } from "@/components/ui";
 import { enabledProviders } from "@/server/auth";
-import { getSession } from "@/server/access";
-import { ensureProfile } from "@/server/profile";
-import type { SignupChannel } from "@/db/schema";
-
-const VIA_VALUES = ["whatsapp", "email", "link", "direct"] as const;
+import { captureChannel } from "./actions";
 
 export default function SignupPage() {
-  async function captureChannel(via: string) {
-    "use server";
-    const session = await getSession();
-    if (!session?.user) return;
-    const channel = (VIA_VALUES as readonly string[]).includes(via)
-      ? (via as SignupChannel)
-      : "direct";
-    await ensureProfile(session.user.id, { signupChannel: channel });
-  }
-
   return (
     <Page>
       <Stack gap={6} className="mx-auto max-w-sm pt-12">

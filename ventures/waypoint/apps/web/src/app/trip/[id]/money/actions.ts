@@ -14,7 +14,7 @@
  */
 import { after } from "next/server";
 
-import type { Currency, SplitType } from "@/db/schema";
+import type { Currency } from "@/db/schema";
 import { capRequiredText, capText } from "@/lib/text";
 import { requireTripAccess } from "@/server/access";
 import {
@@ -26,6 +26,7 @@ import {
   toggleSplitSettled,
   writeExpense,
 } from "@/server/money";
+import type { WritableSplitType } from "@/lib/money";
 import {
   computeSplits,
   formatMoney,
@@ -49,7 +50,7 @@ export type ActionState = { error?: string };
 function parseSplit(
   formData: FormData,
   amountMinor: number,
-): { splitType: SplitType; participants: SplitInput[] } {
+): { splitType: WritableSplitType; participants: SplitInput[] } {
   // (Return type spelled out so `SplitInput` is a used import, not just inferred.)
   const ids = formData.getAll("participant").map(String).filter(Boolean);
   const rows: WeightedInput[] = ids.map((userId) => {
@@ -144,7 +145,7 @@ export async function addExpense(
   }
 
   let splits;
-  let splitType: SplitType;
+  let splitType: WritableSplitType;
   try {
     const resolved = parseSplit(formData, amountMinor);
     splitType = resolved.splitType;
@@ -154,7 +155,7 @@ export async function addExpense(
   }
 
   await writeExpense({
-    tripId,
+    tripId: access.trip.id,
     createdBy: access.viewer.id,
     fields: { dayId, paidBy, description, amountMinor, currency, splitType, notes },
     splits,
@@ -165,7 +166,7 @@ export async function addExpense(
   // the response has flushed.
   after(() =>
     notifyParticipants({
-      tripId,
+      tripId: access.trip.id,
       tripName: access.trip.name,
       fromName: access.viewer.name,
       fromUserId: access.viewer.id,
@@ -176,7 +177,7 @@ export async function addExpense(
     }),
   );
 
-  revalidateMoney(tripId);
+  revalidateMoney(access.trip.id);
   return {};
 }
 
@@ -193,7 +194,7 @@ export async function updateExpense(
   if (!description) return { error: "Give the cost a description." };
   if (!paidBy) return { error: "Say who paid." };
 
-  const existing = await findLiveExpense(tripId, expenseId);
+  const existing = await findLiveExpense(access.trip.id, expenseId);
   if (!existing) return { error: "That cost no longer exists." };
 
   let amountMinor: number;
@@ -204,7 +205,7 @@ export async function updateExpense(
   }
 
   let splits;
-  let splitType: SplitType;
+  let splitType: WritableSplitType;
   try {
     const resolved = parseSplit(formData, amountMinor);
     splitType = resolved.splitType;
@@ -216,7 +217,7 @@ export async function updateExpense(
   // Whole-expense last-write-wins: the split set is replaced, not merged
   // (ticket 12) — `writeExpense` is the one place that transaction exists.
   await writeExpense({
-    tripId,
+    tripId: access.trip.id,
     expenseId: existing.id,
     createdBy: access.viewer.id,
     fields: { dayId, paidBy, description, amountMinor, currency, splitType, notes },
@@ -225,7 +226,7 @@ export async function updateExpense(
 
   after(() =>
     notifyParticipants({
-      tripId,
+      tripId: access.trip.id,
       tripName: access.trip.name,
       fromName: access.viewer.name,
       fromUserId: access.viewer.id,
@@ -236,18 +237,18 @@ export async function updateExpense(
     }),
   );
 
-  revalidateMoney(tripId);
+  revalidateMoney(access.trip.id);
   return {};
 }
 
 export async function deleteExpense(formData: FormData): Promise<void> {
   const tripId = Number(formData.get("tripId"));
   const expenseId = Number(formData.get("expenseId"));
-  await requireTripAccess(tripId);
+  const access = await requireTripAccess(tripId);
 
-  await softDeleteExpense(tripId, expenseId);
+  await softDeleteExpense(access.trip.id, expenseId);
 
-  revalidateMoney(tripId);
+  revalidateMoney(access.trip.id);
 }
 
 export async function toggleSettled(formData: FormData): Promise<void> {
@@ -256,7 +257,7 @@ export async function toggleSettled(formData: FormData): Promise<void> {
   const access = await requireTripAccess(tripId);
 
   const row = await findSettleableSplit(splitId);
-  if (!row || row.expenseTripId !== tripId) return;
+  if (!row || row.expenseTripId !== access.trip.id) return;
 
   // A member may mark their OWN split settled; the person who paid may also
   // mark a split against them settled, since they're the one who'd know
@@ -266,5 +267,5 @@ export async function toggleSettled(formData: FormData): Promise<void> {
 
   await toggleSplitSettled(splitId, !row.settledAt);
 
-  revalidateMoney(tripId);
+  revalidateMoney(access.trip.id);
 }

@@ -10,10 +10,11 @@
  * (+ promote).
  */
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 
 import { type NudgeTab } from "@/db/schema";
 import { assertAdmin, requireTripAccess } from "@/server/access";
-import { emails, sendEmail } from "@/server/email";
+import { emails, sendEmails } from "@/server/email";
 import { parseTagRows } from "@/lib/tags";
 import { capText, TEXT_CAPS } from "@/lib/text";
 import {
@@ -26,9 +27,7 @@ import {
   revalidateTripHeader,
   revalidateTripLists,
   setMemberRoleAdmin,
-  setTripArchived,
   setTripTagRows,
-  softDeleteTrip,
 } from "@/server/membership";
 
 export async function sendNudge(formData: FormData) {
@@ -42,26 +41,30 @@ export async function sendNudge(formData: FormData) {
   if (!recipient) throw new Error("Not a member of this trip");
 
   await insertNudge({
-    tripId,
+    tripId: access.trip.id,
     fromUserId: access.viewer.id,
     toUserId,
     tab,
     message,
   });
 
-  await sendEmail(
-    emails.nudge({
-      to: recipient.email,
-      toUserId: recipient.userId,
-      tripId,
-      tripName: access.trip.name,
-      fromName: access.viewer.name,
-      tab,
-      message,
-    }),
+  // The nudge is recorded the moment it's stored; the mail rides out after the
+  // response (ticket 111), so nudging never waits on the provider.
+  after(() =>
+    sendEmails([
+      emails.nudge({
+        to: recipient.email,
+        toUserId: recipient.userId,
+        tripId: access.trip.id,
+        tripName: access.trip.name,
+        fromName: access.viewer.name,
+        tab,
+        message,
+      }),
+    ]),
   );
 
-  revalidateOverview(tripId);
+  revalidateOverview(access.trip.id);
 }
 
 export async function kickMember(formData: FormData) {
@@ -71,9 +74,9 @@ export async function kickMember(formData: FormData) {
   const access = await requireTripAccess(tripId);
   assertAdmin(access);
 
-  await removeMembership(tripId, userId);
+  await removeMembership(access.trip.id, userId);
 
-  revalidateOverview(tripId);
+  revalidateOverview(access.trip.id);
   revalidateProfileTrips();
 }
 
@@ -84,9 +87,9 @@ export async function promoteMember(formData: FormData) {
   const access = await requireTripAccess(tripId);
   assertAdmin(access);
 
-  await setMemberRoleAdmin(tripId, userId);
+  await setMemberRoleAdmin(access.trip.id, userId);
 
-  revalidateOverview(tripId);
+  revalidateOverview(access.trip.id);
 }
 
 /**
@@ -104,12 +107,12 @@ export async function renameTrip(formData: FormData) {
   // clipping it would be visibly wrong (ticket 113).
   if (name.length > TEXT_CAPS.tripName) return { error: "That name is too long." };
 
-  await requireTripAccess(tripId);
+  const access = await requireTripAccess(tripId);
 
-  await writeTripName(tripId, name);
+  await writeTripName(access.trip.id, name);
 
   // The name is in the trip header, which every tab renders — and on the cards.
-  revalidateTripHeader(tripId);
+  revalidateTripHeader(access.trip.id);
   revalidateTripLists();
 }
 
@@ -133,23 +136,12 @@ export async function setTripTags(formData: FormData) {
     names.map((name, i) => ({ name, tone: tones[i] ?? "" })),
   );
 
-  await requireTripAccess(tripId);
-
-  await setTripTagRows(tripId, tags, tagTones);
-
-  revalidateOverview(tripId);
-  revalidateTripLists();
-}
-
-export async function deleteTripFromOverview(formData: FormData) {
-  const tripId = Number(formData.get("tripId"));
-
   const access = await requireTripAccess(tripId);
-  assertAdmin(access);
 
-  await softDeleteTrip(tripId);
+  await setTripTagRows(access.trip.id, tags, tagTones);
 
-  redirect("/trips");
+  revalidateOverview(access.trip.id);
+  revalidateTripLists();
 }
 
 /**
@@ -183,7 +175,7 @@ export async function leaveTrip(formData: FormData) {
   const access = await requireTripAccess(tripId);
 
   await leaveTripAs({
-    tripId,
+    tripId: access.trip.id,
     userId: access.viewer.id,
     isAdmin: access.isAdmin,
     archivedAt: access.trip.archivedAt,
@@ -195,22 +187,3 @@ export async function leaveTrip(formData: FormData) {
   redirect("/trips");
 }
 
-/**
- * Archiving from Trip settings (ticket 66). `archiveTrip` has existed in
- * trips/actions.ts since ticket 17 and was never wired to anything — which is
- * half of why deleting felt like the only way to get a finished trip off the
- * list, and why it read as permanent. The reversible option now sits next to
- * the irreversible one, in the same place, so the choice is visible at the
- * moment it's made.
- */
-export async function archiveTripFromOverview(formData: FormData) {
-  const tripId = Number(formData.get("tripId"));
-
-  const access = await requireTripAccess(tripId);
-  assertAdmin(access);
-
-  await setTripArchived(tripId, true);
-
-  revalidateTripLists();
-  redirect("/trips/archived");
-}

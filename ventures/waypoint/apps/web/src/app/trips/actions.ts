@@ -53,15 +53,36 @@ export async function createTrip(formData: FormData): Promise<void> {
   redirect(`/trip/${tripId}/overview`);
 }
 
+/**
+ * The trip's whole lifecycle lives in this file (ticket 117) — archive,
+ * restore, delete — even though two of the three are reached from Trip
+ * settings on Overview rather than from a trip list.
+ *
+ * They used to exist twice: `archiveTrip`/`deleteTrip` here, wired to nothing,
+ * and `archiveTripFromOverview`/`deleteTripFromOverview` with identical bodies
+ * and a different `redirect`. Two exported Server Actions doing one job is two
+ * surfaces to keep admin-gated, and the copy that nothing called was the one
+ * that drifted. Where to land afterwards is the only thing that ever differed,
+ * so it is a form field.
+ */
+function redirectTo(formData: FormData, fallback: string): string {
+  const raw = String(formData.get("redirectTo") ?? "");
+  // Site-relative only: this comes off a form, and a form is reachable without
+  // the page around it (ticket 113). An off-site value is ignored, not obeyed.
+  return raw.startsWith("/") && !raw.startsWith("//") ? raw : fallback;
+}
+
 /** Admin-only (ticket 01 step 7). Archived trips stay visible to every member. */
-export async function archiveTrip(tripId: number): Promise<void> {
+export async function archiveTrip(formData: FormData): Promise<void> {
+  const tripId = Number(formData.get("tripId"));
   const access = await requireTripAccess(tripId);
   assertAdmin(access);
 
-  await setTripArchived(tripId, true);
+  await setTripArchived(access.trip.id, true);
 
   revalidateTripLists();
-  revalidateOverview(tripId);
+  revalidateOverview(access.trip.id);
+  redirect(redirectTo(formData, "/trips/archived"));
 }
 
 /**
@@ -73,19 +94,20 @@ export async function restoreTrip(tripId: number): Promise<void> {
   const access = await requireTripAccess(tripId);
   assertAdmin(access);
 
-  await setTripArchived(tripId, false);
+  await setTripArchived(access.trip.id, false);
 
   revalidateTripLists();
-  revalidateOverview(tripId);
+  revalidateOverview(access.trip.id);
 }
 
 /** Admin-only, any stage, no undo — soft-delete per ticket 04's convention. */
-export async function deleteTrip(tripId: number): Promise<void> {
+export async function deleteTrip(formData: FormData): Promise<void> {
+  const tripId = Number(formData.get("tripId"));
   const access = await requireTripAccess(tripId);
   assertAdmin(access);
 
-  await softDeleteTrip(tripId);
+  await softDeleteTrip(access.trip.id);
 
   revalidateTripLists();
-  redirect("/trips");
+  redirect(redirectTo(formData, "/trips"));
 }

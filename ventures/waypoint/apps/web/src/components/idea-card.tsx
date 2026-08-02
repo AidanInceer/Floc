@@ -108,10 +108,7 @@ export function IdeaCard({
         isn't an admin power (CLAUDE.md rule 6 keeps those to four).
       */}
       <form
-        action={async () => {
-          "use server";
-          await setIdeaPinned(tripId, idea.id, !pinned);
-        }}
+        action={setIdeaPinned.bind(null, tripId, idea.id, !pinned)}
         className="absolute right-1.5 top-5"
       >
         <button
@@ -201,10 +198,7 @@ export function IdeaCard({
         </Sheet>
         {canDelete ? (
           <form
-            action={async () => {
-              "use server";
-              await deleteIdea(tripId, idea.id);
-            }}
+            action={deleteIdea.bind(null, tripId, idea.id)}
           >
             <ConfirmSubmit
               message="Remove this idea for everyone? Its comments and votes go with it."

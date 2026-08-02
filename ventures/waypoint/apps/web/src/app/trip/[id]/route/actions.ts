@@ -248,3 +248,56 @@ export async function setLegTransport(
   await setLegTransportOn(access.trip.id, dayId, mode);
   revalidateItinerary(access.trip.id);
 }
+
+/* ------------------------------------------------- what the forms post */
+/*
+ * Route's three forms used to parse their own FormData inside an inline
+ * `"use server"` closure on the page, against the convention that a mutation
+ * lives in its route folder's `actions.ts` (ticket 117, S11). These are those
+ * closures, moved: the page binds the ids each one needs and the parsing lands
+ * here beside the rule it feeds.
+ */
+
+/** The place fields `<PlacePicker>` posts, in one shape. */
+function readPlaceFields(formData: FormData) {
+  const lat = formData.get("placeLat");
+  const lng = formData.get("placeLng");
+  return {
+    placeName: String(formData.get("placeName") ?? ""),
+    providerId: String(formData.get("placeProviderId") ?? "") || null,
+    lat: lat ? Number(lat) : null,
+    lng: lng ? Number(lng) : null,
+    countryCode: String(formData.get("placeCountryCode") ?? "") || null,
+  };
+}
+
+export async function submitNewStop(tripId: number, formData: FormData) {
+  const startDate = String(formData.get("startDate") ?? "");
+  const endDate = String(formData.get("endDate") ?? "");
+  const place = readPlaceFields(formData);
+  if (!startDate || !endDate || !place.placeName) return;
+
+  await addStop(tripId, { startDate, endDate, ...place });
+}
+
+export async function submitStopDates(
+  tripId: number,
+  dayIds: number[],
+  formData: FormData,
+) {
+  await setStopDates(tripId, dayIds, {
+    startDate: String(formData.get("startDate") ?? ""),
+    endDate: String(formData.get("endDate") ?? ""),
+  });
+}
+
+export async function submitStopPlace(
+  tripId: number,
+  dayIds: number[],
+  formData: FormData,
+) {
+  const place = readPlaceFields(formData);
+  if (!place.placeName) return;
+
+  await setOvernightPlace(tripId, dayIds, place);
+}

@@ -43,10 +43,10 @@ export async function setAvailabilityDates(
   assertIsoDates(dates);
   const access = await requireTripAccess(tripId);
 
-  await setAvailability(tripId, access.viewer.id, dates, isAvailable);
+  await setAvailability(access.trip.id, access.viewer.id, dates, isAvailable);
 
-  revalidateDates(tripId);
-  revalidateOverview(tripId);
+  revalidateDates(access.trip.id);
+  revalidateOverview(access.trip.id);
 }
 
 /** One round trip for a whole editing session's worth of changes. */
@@ -78,18 +78,18 @@ export async function setTripDatesFromCalendar(formData: FormData) {
     return { error: "The end date is before the start date." };
   }
 
-  await requireTripAccess(tripId);
-  await setTripDateRange(tripId, startDate, endDate);
+  const access = await requireTripAccess(tripId);
+  await setTripDateRange(access.trip.id, startDate, endDate);
 
-  revalidateTripHeader(tripId);
+  revalidateTripHeader(access.trip.id);
 }
 
 /** Back to undated — the trip stays entirely usable without dates. */
 export async function clearTripDates(tripId: number) {
-  await requireTripAccess(tripId);
-  await setTripDateRange(tripId, null, null);
+  const access = await requireTripAccess(tripId);
+  await setTripDateRange(access.trip.id, null, null);
 
-  revalidateTripHeader(tripId);
+  revalidateTripHeader(access.trip.id);
 }
 
 /**
@@ -98,9 +98,9 @@ export async function clearTripDates(tripId: number) {
  */
 export async function clearMyAvailability(tripId: number) {
   const access = await requireTripAccess(tripId);
-  await clearAvailabilityFor(tripId, access.viewer.id);
+  await clearAvailabilityFor(access.trip.id, access.viewer.id);
 
-  revalidateDates(tripId);
+  revalidateDates(access.trip.id);
 }
 
 /** The grid itself. Kept local: no other tab renders it. */

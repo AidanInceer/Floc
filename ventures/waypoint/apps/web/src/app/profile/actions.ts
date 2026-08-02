@@ -156,3 +156,17 @@ export async function answerMapPrompt(
 
   revalidateProfile();
 }
+
+/**
+ * The two buttons on the map prompt (ticket 117, S11). They were inline
+ * `"use server"` wrappers on the page, there only because `answerMapPrompt`
+ * takes arguments rather than a FormData — which is a reason to put the
+ * FormData-shaped entry point here, not to define a mutation in a page.
+ */
+export async function keepPromptCountries(formData: FormData): Promise<void> {
+  await answerMapPrompt(Number(formData.get("tripId")), true);
+}
+
+export async function dropPromptCountries(formData: FormData): Promise<void> {
+  await answerMapPrompt(Number(formData.get("tripId")), false);
+}

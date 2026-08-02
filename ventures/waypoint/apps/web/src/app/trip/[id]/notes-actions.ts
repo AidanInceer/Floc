@@ -42,7 +42,7 @@ export async function editNote(
   if (!body) return { error: "A comment can't be empty — delete it instead." };
 
   const access = await requireTripAccess(tripId);
-  const row = await findNote(tripId, noteId);
+  const row = await findNote(access.trip.id, noteId);
   if (!row) return { error: "That comment has gone." };
   if (row.createdBy !== access.viewer.id) {
     return { error: "You can only edit your own comments." };
@@ -54,7 +54,7 @@ export async function editNote(
 
   await updateNoteBody(row.id, body);
 
-  revalidateThread(tripId, row.scope);
+  revalidateThread(access.trip.id, row.scope);
 }
 
 export async function addNote(
@@ -73,13 +73,13 @@ export async function addNote(
   let parentId: number | null = null;
   if (replyTo !== null) {
     // `undefined` means the target has gone; `null` means "top level".
-    const resolved = await resolveParent({ tripId, scope, scopeId, replyTo });
+    const resolved = await resolveParent({ tripId: access.trip.id, scope, scopeId, replyTo });
     if (resolved === undefined) return { error: "That comment has gone." };
     parentId = resolved;
   }
 
   await insertNote({
-    tripId,
+    tripId: access.trip.id,
     createdBy: access.viewer.id,
     scope,
     scopeId,
@@ -87,7 +87,7 @@ export async function addNote(
     body,
   });
 
-  revalidateThread(tripId, scope);
+  revalidateThread(access.trip.id, scope);
 }
 
 /** Toggle one of the three reactions on a comment. */
@@ -98,22 +98,22 @@ export async function react(
 ) {
   const access = await requireTripAccess(tripId);
 
-  const target = await findNote(tripId, noteId);
+  const target = await findNote(access.trip.id, noteId);
   if (!target) return;
 
   await toggleReaction(target.id, access.viewer.id, kind);
 
-  revalidateThread(tripId, target.scope);
+  revalidateThread(access.trip.id, target.scope);
 }
 
 export async function deleteNote(tripId: number, noteId: number) {
   const access = await requireTripAccess(tripId);
-  const row = await findNote(tripId, noteId);
+  const row = await findNote(access.trip.id, noteId);
   if (!row) return;
 
   if (row.createdBy !== access.viewer.id) assertAdmin(access);
 
   await softDeleteNoteAndReplies(row.id);
 
-  revalidateThread(tripId, row.scope);
+  revalidateThread(access.trip.id, row.scope);
 }

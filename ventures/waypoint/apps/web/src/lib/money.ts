@@ -70,6 +70,22 @@ export type SplitInput = {
 export type SplitResult = { userId: string; owedAmountMinor: number };
 
 /**
+ * The split types the app can still *write* (ticket 117, S12).
+ *
+ * `expense.split_type` has four values and keeps them: `expense_split` rows are
+ * immutable snapshots (non-negotiable 2), so rows written as `even` or
+ * `percentage` before the shares model (ticket 85) exist and must keep reading
+ * back correctly — `splitLabel` on the Money tab still handles all four.
+ *
+ * What is gone is the ability to *produce* them. `resolveWeightedSplit` has
+ * emitted only these two since ticket 85, so `computeSplits` had two arms
+ * nothing could reach — and dead code in the money path is worse than dead code
+ * elsewhere, because it reads as a supported mode. Narrowing the type is what
+ * makes that structural rather than a comment.
+ */
+export type WritableSplitType = Extract<SplitType, "shares" | "exact">;
+
+/**
  * Turns a split type plus participant list into snapshot rows summing to
  * exactly `amountMinor`.
  *
@@ -79,7 +95,7 @@ export type SplitResult = { userId: string; owedAmountMinor: number };
  */
 export function computeSplits(
   amountMinor: number,
-  splitType: SplitType,
+  splitType: WritableSplitType,
   participants: SplitInput[],
 ): SplitResult[] {
   if (participants.length === 0) {
@@ -93,13 +109,6 @@ export function computeSplits(
   assertInRange(amountMinor);
 
   switch (splitType) {
-    case "even":
-      return distribute(
-        amountMinor,
-        participants.map(() => 1),
-        participants,
-      );
-
     case "exact": {
       const rows = participants.map((p) => ({
         userId: p.userId,
@@ -112,15 +121,6 @@ export function computeSplits(
         );
       }
       return rows;
-    }
-
-    case "percentage": {
-      const weights = participants.map((p) => p.value ?? 0);
-      const total = weights.reduce((a, b) => a + b, 0);
-      if (Math.abs(total - 100) > 0.001) {
-        throw new Error(`Percentages must sum to 100, got ${total}`);
-      }
-      return distribute(amountMinor, weights, participants);
     }
 
     case "shares": {
@@ -202,7 +202,7 @@ export type WeightedInput = {
 export function resolveWeightedSplit(
   amountMinor: number,
   rows: WeightedInput[],
-): { splitType: SplitType; participants: SplitInput[] } {
+): { splitType: WritableSplitType; participants: SplitInput[] } {
   if (rows.length === 0) {
     throw new Error("An expense needs at least one person in it.");
   }
