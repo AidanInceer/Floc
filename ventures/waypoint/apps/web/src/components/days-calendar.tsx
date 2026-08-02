@@ -74,6 +74,8 @@ const GUTTER_PX = 58;
 /** A day column never gets thinner than this; the grid scrolls instead. */
 const COLUMN_MIN_PX = { week: 120, day: 240 } as const;
 
+const OUTSIDE_DAY_CLASS = "bg-sheet-2/65";
+
 /**
  * Below this many pixels of *calendar* the week is unreadable even scrolling,
  * so the page hands over to a single day rather than pretending.
@@ -723,7 +725,7 @@ export function DaysCalendar({
                     "border-l border-rule px-2 py-1.5 text-center first:border-l-0",
                     // A day the trip doesn't cover is dimmed in the head as
                     // well as in the column, so the two read as one thing.
-                    day.outside && "bg-sheet-3 text-ink-faint",
+                    day.outside && `${OUTSIDE_DAY_CLASS} text-ink-faint`,
                     landing?.dayId === day.id && "bg-pen-soft",
                   )}
                 >
@@ -776,7 +778,7 @@ export function DaysCalendar({
                   }}
                   className={cx(
                     "grid min-h-8 content-start gap-1 border-l border-rule p-1 first:border-l-0",
-                    day.outside && "bg-sheet-3",
+                    day.outside && OUTSIDE_DAY_CLASS,
                     allDayOver === day.id && "bg-pen-soft",
                   )}
                 >
@@ -1032,7 +1034,7 @@ function DayColumn({
     return (
       <div
         aria-hidden
-        className="relative border-l border-rule bg-sheet-3 first:border-l-0"
+        className={`relative border-l border-rule ${OUTSIDE_DAY_CLASS} first:border-l-0`}
         style={{ height }}
       />
     );
