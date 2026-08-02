@@ -8,9 +8,11 @@
  * Availability lives in `../dates/actions.ts` now — it was here only because
  * the grid used to sit at the bottom of this page.
  */
+import { after } from "next/server";
+
 import { capRequiredText } from "@/lib/text";
 import { requireTripAccess, assertAdmin } from "@/server/access";
-import { emails, sendEmail } from "@/server/email";
+import { emails, sendEmails } from "@/server/email";
 import {
   castVote as writeVote,
   clearVote as writeClearVote,
@@ -32,17 +34,20 @@ export async function postIdea(tripId: number, formData: FormData) {
   const note = capRequiredText(formData.get("note"), "ideaNote");
   if (!note) throw new Error("An idea needs some words");
 
-  await insertIdea(tripId, access.viewer.id, note);
-  await refreshUnlocks(tripId);
+  await insertIdea(access.trip.id, access.viewer.id, note);
+  await refreshUnlocks(access.trip.id);
 
   const others = access.members.filter((m) => m.userId !== access.viewer.id);
-  await Promise.all(
-    others.map((m) =>
-      sendEmail(
+  // Mail is a side effect of the write, not part of it (ticket 111): `after()`
+  // returns the board as soon as the idea is stored and sends once the
+  // response has flushed, so a slow provider never slows the post.
+  after(() =>
+    sendEmails(
+      others.map((m) =>
         emails.ideaPosted({
           to: m.email,
           toUserId: m.userId,
-          tripId,
+          tripId: access.trip.id,
           tripName: access.trip.name,
           fromName: access.viewer.name,
           idea: note,
@@ -51,7 +56,7 @@ export async function postIdea(tripId: number, formData: FormData) {
     ),
   );
 
-  revalidateIdeasAndTabs(tripId);
+  revalidateIdeasAndTabs(access.trip.id);
 }
 
 /**
@@ -67,7 +72,7 @@ export async function deleteIdea(tripId: number, ideaId: number) {
 
   await softDeleteIdea(row.id);
 
-  revalidateIdeas(tripId);
+  revalidateIdeas(access.trip.id);
 }
 
 /**
@@ -82,7 +87,7 @@ export async function setIdeaPinned(tripId: number, ideaId: number, pinned: bool
 
   await setIdeaPinnedAt(row.id, pinned);
 
-  revalidateIdeas(tripId);
+  revalidateIdeas(access.trip.id);
 }
 
 /** One vote per person per idea — the upsert lives in `server/ideas.ts`. */
@@ -92,7 +97,7 @@ export async function castVote(tripId: number, ideaId: number, value: VoteValue)
 
   await writeVote(target.id, access.viewer.id, value);
 
-  revalidateIdeas(tripId);
+  revalidateIdeas(access.trip.id);
 }
 
 /** Abstaining is legitimate (ticket 14) — this lets someone undo a vote. */
@@ -100,5 +105,5 @@ export async function clearVote(tripId: number, ideaId: number) {
   const access = await requireTripAccess(tripId);
   const target = await access.idea(ideaId);
   await writeClearVote(target.id, access.viewer.id);
-  revalidateIdeas(tripId);
+  revalidateIdeas(access.trip.id);
 }

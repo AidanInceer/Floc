@@ -10,7 +10,7 @@
  */
 import "server-only";
 
-import { eq, inArray } from "drizzle-orm";
+import { inArray } from "drizzle-orm";
 
 import { db } from "@/db";
 import { userProfile } from "@/db/schema";
@@ -42,26 +42,18 @@ export function absoluteUrl(path: string) {
   return new URL(path, appUrl()).toString();
 }
 
-async function categoryAllowed(
-  userId: string | undefined,
-  category: EmailCategory,
-): Promise<boolean> {
-  if (!userId) return true;
-  const profile = await db
-    .select()
-    .from(userProfile)
-    .where(eq(userProfile.userId, userId))
-    .get();
-  if (!profile) return true; // default-on
-  return profile[CATEGORY_COLUMN[category]];
-}
+/**
+ * One Resend client for the process, not one per message (ticket 111).
+ *
+ * The import stays dynamic so a build without the key never pulls the SDK in,
+ * and the promise is memoised rather than the client so two concurrent sends
+ * can't race two constructions.
+ */
+let resendClient: Promise<import("resend").Resend> | null = null;
 
-export async function sendEmail(email: OutboundEmail): Promise<boolean> {
-  if (!email.transactional) {
-    const allowed = await categoryAllowed(email.toUserId, email.category);
-    if (!allowed) return false;
-  }
-  return deliver(email);
+function resend(key: string) {
+  resendClient ??= import("resend").then(({ Resend }) => new Resend(key));
+  return resendClient;
 }
 
 /** The send itself, once the category gate has already been cleared. */
@@ -72,17 +64,18 @@ async function deliver(email: OutboundEmail): Promise<boolean> {
 
   if (!key) {
     // Deliberate dev fallback: never silently drop mail without a trace.
+    // The address is masked — the log has to say *which* mailbox without
+    // putting a full address in the server log (ticket 111).
     console.info(
-      `[email:${email.category}] → ${email.to}: ${email.subject}\n${email.lines.join("\n")}${
+      `[email:${email.category}] → ${maskAddress(email.to)}: ${email.subject}\n${email.lines.join("\n")}${
         email.cta ? `\n${email.cta.label}: ${email.cta.url}` : ""
       }`,
     );
     return true;
   }
 
-  const { Resend } = await import("resend");
-  const resend = new Resend(key);
-  await resend.emails.send({
+  const client = await resend(key);
+  await client.emails.send({
     from,
     to: email.to,
     subject: email.subject,
@@ -92,12 +85,13 @@ async function deliver(email: OutboundEmail): Promise<boolean> {
 }
 
 /**
- * Sends a batch of emails, resolving every recipient's category preference in
- * one query instead of one per message.
+ * The one way out of the building (ticket 111).
  *
- * `sendEmail` reads `user_profile` itself, which is right for a single send but
- * meant a six-person expense cost six extra round trips before a single mail
- * left the building. Same rules, same defaults (missing profile → on,
+ * There were two entry points — `sendEmail` for one message, this for many —
+ * and the singular one read `user_profile` per message, so a six-person expense
+ * cost six round trips before a single mail left. One batched entry point does
+ * both jobs: a single send is a batch of one, and the preference lookup is
+ * always one query. Same rules, same defaults (missing profile → on,
  * transactional → always).
  */
 export async function sendEmails(batch: OutboundEmail[]): Promise<void> {
@@ -125,6 +119,16 @@ export async function sendEmails(batch: OutboundEmail[]): Promise<void> {
       return deliver(email);
     }),
   );
+}
+
+/** `ada@waypoint.example` → `a…a@waypoint.example`: enough to tell apart, not enough to be an address. */
+function maskAddress(to: string): string {
+  const at = to.lastIndexOf("@");
+  if (at <= 0) return "…";
+  const local = to.slice(0, at);
+  const domain = to.slice(at);
+  if (local.length <= 2) return `${local[0]}…${domain}`;
+  return `${local[0]}…${local[local.length - 1]}${domain}`;
 }
 
 /** One shell for every email; matches the app's sand/marine palette. */

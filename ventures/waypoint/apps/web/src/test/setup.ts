@@ -93,5 +93,5 @@ vi.mock("@/server/auth", () => ({
  */
 vi.mock("@/server/email", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/server/email")>();
-  return { ...actual, sendEmail: async () => {} };
+  return { ...actual, sendEmails: async () => {} };
 });

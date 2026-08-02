@@ -9,8 +9,10 @@
  * The writes are `server/friends.ts`'s (ticket 108); this file decides who may
  * open a request and what the other person is told.
  */
+import { after } from "next/server";
+
 import { requireUser } from "@/server/access";
-import { emails, sendEmail } from "@/server/email";
+import { emails, sendEmails } from "@/server/email";
 import {
   acceptPendingRequest,
   dropFriendship,
@@ -50,12 +52,16 @@ export async function requestFriendById(formData: FormData): Promise<{ error?: s
 
   await openPendingRequest(viewer.id, target.id);
 
-  await sendEmail(
-    emails.friendRequest({
-      to: target.email,
-      toUserId: target.id,
-      fromName: viewer.name,
-    }),
+  // The request exists once the row is written; telling them about it is a
+  // side effect and runs after the response (ticket 111).
+  after(() =>
+    sendEmails([
+      emails.friendRequest({
+        to: target.email,
+        toUserId: target.id,
+        fromName: viewer.name,
+      }),
+    ]),
   );
 
   revalidateFriendship(target.id);
