@@ -6,7 +6,11 @@
  * - **Soft-delete (rule 8)**, including on the vote upsert, where clearing the
  *   flag is load-bearing rather than tidy — see `castVote`.
  * - **The board's ceiling** is `LIMITS.ideas`, applied in `listIdeas` below.
- * - **The board's reads** (ticket 118) — see the note on the seam.
+ * - **Revalidation.** Posting an idea is what sticky-unlocks Route, so the
+ *   layout goes with the board; a vote or a pin doesn't move the tab bar and
+ *   takes the board alone. Two named revalidations rather than seven inline
+ *   pairs a caller has to get right.
+ * - **The board's reads** (ticket 118) — see the note on the seam below.
  *
  * ## Where the seam went (ticket 118)
  *
@@ -28,10 +32,6 @@
  * The one thing a page may no longer do is assemble a row shape from `@/db`
  * directly: an aggregate read hands back a shape, and the page maps it to
  * whatever the component wants.
- * - **Revalidation.** Posting an idea is what sticky-unlocks Route, so the
- *   layout goes with the board; a vote or a pin doesn't move the tab bar and
- *   takes the board alone. Two named revalidations rather than seven inline
- *   pairs a caller has to get right.
  */
 import "server-only";
 
