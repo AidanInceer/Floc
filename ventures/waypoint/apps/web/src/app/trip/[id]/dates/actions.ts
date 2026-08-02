@@ -12,6 +12,7 @@
  */
 import { revalidatePath } from "next/cache";
 
+import { isIsoDate, readIsoDate } from "@/lib/dates";
 import { requireTripAccess } from "@/server/access";
 import {
   clearAvailabilityFor,
@@ -21,10 +22,14 @@ import {
   setTripDateRange,
 } from "@/server/membership";
 
-/** Cheap sanity check — these come from a client component's local state. */
+/**
+ * These come from a client component's local state, so they are checked rather
+ * than trusted. `isIsoDate` also rejects a well-shaped impossible day like
+ * `2026-02-31`, which the old local regex here accepted (ticket 113).
+ */
 function assertIsoDates(dates: string[]) {
   for (const d of dates) {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) throw new Error(`Not a date: ${d}`);
+    if (!isIsoDate(d)) throw new Error(`Not a date: ${d}`);
   }
 }
 
@@ -61,10 +66,14 @@ export async function saveAvailability(
  */
 export async function setTripDatesFromCalendar(formData: FormData) {
   const tripId = Number(formData.get("tripId"));
-  const startDate = String(formData.get("startDate") ?? "").trim() || null;
-  const endDate = String(formData.get("endDate") ?? "").trim() || null;
+  const startDate = readIsoDate(formData.get("startDate"));
+  const endDate = readIsoDate(formData.get("endDate"));
 
+  // A malformed date and a missing one get the same message: both mean "the
+  // box doesn't hold a day", and the picker is what produces either.
   if (!startDate || !endDate) return { error: "Pick both a start and an end." };
+  // Only safe as a string compare *because* both are known `YYYY-MM-DD` by
+  // here — the old code did this on unvalidated input, where it meant nothing.
   if (startDate > endDate) {
     return { error: "The end date is before the start date." };
   }

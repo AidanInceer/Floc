@@ -5,7 +5,10 @@ import {
   dateRange,
   formatDateRange,
   hasEnded,
+  isIsoDate,
   nightsBetween,
+  readIsoDate,
+  readOptionalIsoDate,
   toIsoDate,
 } from "./dates";
 
@@ -55,5 +58,58 @@ describe("labels", () => {
     expect(hasEnded("2020-01-01")).toBe(true);
     expect(hasEnded("2999-01-01")).toBe(false);
     expect(hasEnded(null)).toBe(false);
+  });
+});
+
+/**
+ * Ticket 113. Until these existed nothing checked a date at the door, so
+ * `setTripDates` would happily store "soon" and every derivation downstream
+ * quietly produced nonsense a long way from the typo.
+ */
+describe("isIsoDate", () => {
+  it("accepts a real date-only string", () => {
+    expect(isIsoDate("2026-09-01")).toBe(true);
+    expect(isIsoDate("2024-02-29")).toBe(true); // a genuine leap day
+  });
+
+  it("rejects a well-shaped day that does not exist", () => {
+    // JavaScript rolls an impossible date forward, which the round trip catches.
+    expect(isIsoDate("2026-02-29")).toBe(false);
+    expect(isIsoDate("2026-02-31")).toBe(false);
+    expect(isIsoDate("2026-13-01")).toBe(false);
+    expect(isIsoDate("2026-00-10")).toBe(false);
+  });
+
+  it("rejects anything that is not the shape at all", () => {
+    for (const bad of ["soon", "", "2026-9-1", "01/09/2026", "2026-09-01T12:00:00Z"]) {
+      expect(isIsoDate(bad), bad).toBe(false);
+    }
+  });
+
+  it("rejects non-strings without throwing", () => {
+    expect(isIsoDate(null)).toBe(false);
+    expect(isIsoDate(undefined)).toBe(false);
+    expect(isIsoDate(20260901)).toBe(false);
+    expect(isIsoDate(new Date())).toBe(false);
+  });
+});
+
+describe("readIsoDate", () => {
+  it("hands back the date or null", () => {
+    expect(readIsoDate("2026-09-01")).toBe("2026-09-01");
+    expect(readIsoDate("soon")).toBeNull();
+  });
+});
+
+describe("readOptionalIsoDate", () => {
+  it("treats an empty box as undated, not as an error (rule 9)", () => {
+    expect(readOptionalIsoDate("")).toBeNull();
+    expect(readOptionalIsoDate("   ")).toBeNull();
+    expect(readOptionalIsoDate(null)).toBeNull();
+  });
+
+  it("distinguishes 'nothing typed' from 'that is not a day'", () => {
+    expect(readOptionalIsoDate("2026-09-01")).toBe("2026-09-01");
+    expect(readOptionalIsoDate("soon")).toBeUndefined();
   });
 });

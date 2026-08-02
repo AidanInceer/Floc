@@ -160,7 +160,7 @@ describe("reacting", () => {
   it("keeps the three kinds independent of each other", async () => {
     const row = await post("Worth a look");
     await toggleReaction(row.id, world.member, "heart");
-    await toggleReaction(row.id, world.member, "agree");
+    await toggleReaction(row.id, world.member, "up");
 
     const live = (
       await db
@@ -169,7 +169,7 @@ describe("reacting", () => {
         .where(eq(schema.noteReaction.noteId, row.id))
         .all()
     ).filter((r) => r.deletedAt === null);
-    expect(live.map((r) => r.kind).sort()).toEqual(["agree", "heart"]);
+    expect(live.map((r) => r.kind).sort()).toEqual(["heart", "up"]);
   });
 });
 

@@ -47,6 +47,7 @@ import { db } from "@/db";
 import { day, dayEvent } from "@/db/schema";
 import type { DayEventType, TransportType } from "@/db/schema";
 import { orderEvents } from "@/lib/event-order";
+import { capRequiredText, capText } from "@/lib/text";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/unlocks";
 
@@ -353,11 +354,11 @@ function timing(input: EventFields) {
 function eventValues(input: EventFields) {
   return {
     type: input.type,
-    title: input.title.trim(),
+    title: capRequiredText(input.title, "eventTitle"),
     placeId: input.placeId ?? null,
     transportType: input.type === "transport" ? input.transportType ?? null : null,
     ...timing(input),
-    note: input.note || null,
+    note: capText(input.note, "eventNote"),
   };
 }
 

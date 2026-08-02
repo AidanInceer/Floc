@@ -9,6 +9,8 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
+import { readOptionalIsoDate } from "@/lib/dates";
+import { capRequiredText } from "@/lib/text";
 import { assertAdmin, requireTripAccess, requireUser } from "@/server/access";
 import {
   createTripWithAdmin,
@@ -26,11 +28,17 @@ import { ensureProfile } from "@/server/profile";
  */
 export async function createTrip(formData: FormData): Promise<void> {
   const viewer = await requireUser("/trips");
-  const name = String(formData.get("name") ?? "").trim();
+  const name = capRequiredText(formData.get("name"), "tripName");
   if (!name) throw new Error("A trip needs a name");
 
-  const startDate = String(formData.get("startDate") ?? "").trim() || null;
-  const endDate = String(formData.get("endDate") ?? "").trim() || null;
+  // A trip may have no dates at all (rule 9), so an empty box is fine — but a
+  // box with something unparseable in it is not, and creating the trip undated
+  // would quietly discard what was typed (ticket 113).
+  const startDate = readOptionalIsoDate(formData.get("startDate"));
+  const endDate = readOptionalIsoDate(formData.get("endDate"));
+  if (startDate === undefined || endDate === undefined) {
+    throw new Error("Those dates aren't days");
+  }
 
   await ensureProfile(viewer.id);
 

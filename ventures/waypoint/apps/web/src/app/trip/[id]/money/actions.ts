@@ -15,6 +15,7 @@
 import { after } from "next/server";
 
 import type { Currency, SplitType } from "@/db/schema";
+import { capRequiredText, capText } from "@/lib/text";
 import { requireTripAccess } from "@/server/access";
 import {
   emailsForUsers,
@@ -66,12 +67,12 @@ function parseSplit(
 }
 
 function readExpenseFields(formData: FormData) {
-  const description = String(formData.get("description") ?? "").trim();
+  const description = capRequiredText(formData.get("description"), "expenseDescription");
   const currency = String(formData.get("currency") ?? "") as Currency;
   const paidBy = String(formData.get("paidBy") ?? "");
   const dayIdRaw = formData.get("dayId");
   const dayId = dayIdRaw ? Number(dayIdRaw) : null;
-  const notes = String(formData.get("notes") ?? "").trim() || null;
+  const notes = capText(formData.get("notes"), "expenseNotes");
   return { description, currency, paidBy, dayId, notes };
 }
 

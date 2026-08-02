@@ -30,10 +30,15 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { note, noteReaction } from "@/db/schema";
 import type { NoteScope, ReactionKind } from "@/db/schema";
+import { TEXT_CAPS } from "@/lib/text";
 import { touch } from "@/server/unlocks";
 
-/** Longer than anyone types in a comment box, short enough to bound the row. */
-export const NOTE_BODY_MAX = 2000;
+/**
+ * Longer than anyone types in a comment box, short enough to bound the row.
+ * Re-exported from `lib/text.ts` (ticket 113), which is where every other
+ * column's cap now lives — this one merely predates them.
+ */
+export const NOTE_BODY_MAX = TEXT_CAPS.noteBody;
 
 /**
  * Revalidates the tab a scope is rendered on.

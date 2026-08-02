@@ -15,6 +15,7 @@ import { type NudgeTab } from "@/db/schema";
 import { assertAdmin, requireTripAccess } from "@/server/access";
 import { emails, sendEmail } from "@/server/email";
 import { parseTagRows } from "@/lib/tags";
+import { capText, TEXT_CAPS } from "@/lib/text";
 import {
   insertNudge,
   leaveTripAs,
@@ -26,7 +27,6 @@ import {
   revalidateTripLists,
   setMemberRoleAdmin,
   setTripArchived,
-  setTripDateRange,
   setTripTagRows,
   softDeleteTrip,
 } from "@/server/membership";
@@ -35,7 +35,7 @@ export async function sendNudge(formData: FormData) {
   const tripId = Number(formData.get("tripId"));
   const toUserId = String(formData.get("toUserId"));
   const tab = String(formData.get("tab")) as NudgeTab;
-  const message = String(formData.get("message") ?? "").trim() || null;
+  const message = capText(formData.get("message"), "nudgeMessage");
 
   const access = await requireTripAccess(tripId);
   const recipient = access.members.find((m) => m.userId === toUserId);
@@ -90,7 +90,7 @@ export async function promoteMember(formData: FormData) {
 }
 
 /**
- * Renaming is open to any member, like `setTripDates`. It is deliberately not
+ * Renaming is open to any member. It is deliberately not
  * an admin power: the four (plus archive/restore) are fixed, and a trip called
  * "Trip" because whoever created it typed fast shouldn't need a promotion to
  * fix. Last-write-wins, like everything else — no locking.
@@ -100,7 +100,9 @@ export async function renameTrip(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
 
   if (!name) return { error: "A trip needs a name." };
-  if (name.length > 120) return { error: "That name is too long." };
+  // Rejected rather than truncated: a name is short enough that silently
+  // clipping it would be visibly wrong (ticket 113).
+  if (name.length > TEXT_CAPS.tripName) return { error: "That name is too long." };
 
   await requireTripAccess(tripId);
 
@@ -137,19 +139,6 @@ export async function setTripTags(formData: FormData) {
 
   revalidateOverview(tripId);
   revalidateTripLists();
-}
-
-export async function setTripDates(formData: FormData) {
-  const tripId = Number(formData.get("tripId"));
-  const startDate = String(formData.get("startDate") ?? "").trim() || null;
-  const endDate = String(formData.get("endDate") ?? "").trim() || null;
-
-  // Any member may set dates — no lifecycle lock (ticket 04).
-  await requireTripAccess(tripId);
-
-  await setTripDateRange(tripId, startDate, endDate);
-
-  revalidateOverview(tripId);
 }
 
 export async function deleteTripFromOverview(formData: FormData) {

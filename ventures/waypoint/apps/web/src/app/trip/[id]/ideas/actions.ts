@@ -8,6 +8,7 @@
  * Availability lives in `../dates/actions.ts` now — it was here only because
  * the grid used to sit at the bottom of this page.
  */
+import { capRequiredText } from "@/lib/text";
 import { requireTripAccess, assertAdmin } from "@/server/access";
 import { emails, sendEmail } from "@/server/email";
 import {
@@ -28,7 +29,7 @@ import type { VoteValue } from "@/db/schema";
  */
 export async function postIdea(tripId: number, formData: FormData) {
   const access = await requireTripAccess(tripId);
-  const note = String(formData.get("note") ?? "").trim();
+  const note = capRequiredText(formData.get("note"), "ideaNote");
   if (!note) throw new Error("An idea needs some words");
 
   await insertIdea(tripId, access.viewer.id, note);

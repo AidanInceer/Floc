@@ -64,6 +64,11 @@ treated as current.
 
 - Server Components by default. Mutations are Server Actions in the route
   folder's `actions.ts`. No client fetches to our own API.
+- **Validate at the door.** A date write goes through `isIsoDate` /
+  `readIsoDate` / `readOptionalIsoDate` (`lib/dates.ts`) and free text through
+  `capText` / `capRequiredText` (`lib/text.ts`) — ticket 113. A `maxlength` on
+  an input is a courtesy to whoever is typing; the action is reachable without
+  the form. Rejections come back as a form error, never an unhandled throw.
 - **An `actions.ts` never imports `@/db`.** The SQL lives in the `server/`
   aggregates — `itinerary`, `ideas`, `money`, `membership`, `notes` (ticket
   108) — which own soft-delete filtering, the result-set ceilings in

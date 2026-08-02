@@ -17,6 +17,7 @@ import type { Currency } from "@/db/schema";
 import { requireUser } from "@/server/access";
 import { readCountryCode } from "@/lib/countries";
 import { MAX_DIETARY_NOTES, parseDietFlags } from "@/lib/dietary";
+import { capText } from "@/lib/text";
 import { clearMapPrompt, hasPendingMapPrompt } from "@/server/membership";
 import {
   ensureProfile,
@@ -35,19 +36,15 @@ export async function updateIdentity(formData: FormData): Promise<{ error?: stri
   const viewer = await requireUser();
   await ensureProfile(viewer.id);
 
-  const displayName = String(formData.get("displayName") ?? "").trim();
-  const avatarUrl = String(formData.get("avatarUrl") ?? "").trim();
+  const displayName = capText(formData.get("displayName"), "displayName");
+  const avatarUrl = capText(formData.get("avatarUrl"), "avatarUrl");
   const homeCurrency = String(formData.get("homeCurrency") ?? "GBP") as Currency;
 
   if (!CURRENCIES.includes(homeCurrency)) {
     return { error: "Pick a currency Waypoint supports." };
   }
 
-  await updateProfileFields(viewer.id, {
-    displayName: displayName || null,
-    avatarUrl: avatarUrl || null,
-    homeCurrency,
-  });
+  await updateProfileFields(viewer.id, { displayName, avatarUrl, homeCurrency });
 
   revalidateProfile();
   return {};

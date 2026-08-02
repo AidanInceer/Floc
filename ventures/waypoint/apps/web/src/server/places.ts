@@ -20,6 +20,7 @@ import "server-only";
 import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
+import { capRequiredText } from "@/lib/text";
 import { place } from "@/db/schema";
 import { readCountryCode } from "@/lib/countries";
 
@@ -211,7 +212,10 @@ export async function upsertPlace(input: {
     .insert(place)
     .values({
       providerId: input.providerId,
-      name: input.name,
+      // Capped here rather than at each caller: a place name arrives from
+      // Nominatim *or* from a hand-typed fallback, and only one of those is
+      // ours (ticket 113).
+      name: capRequiredText(input.name, "placeName"),
       lat: input.lat ?? null,
       lng: input.lng ?? null,
       countryCode,

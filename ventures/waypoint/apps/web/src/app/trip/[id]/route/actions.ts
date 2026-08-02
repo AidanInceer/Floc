@@ -11,7 +11,7 @@
  * how the travel between two stops survives a reorder.
  */
 import { requireTripAccess } from "@/server/access";
-import { dateRange } from "@/lib/dates";
+import { dateRange, isIsoDate } from "@/lib/dates";
 import { upsertPlace } from "@/server/places";
 import {
   firstTransportEvents,
@@ -47,6 +47,11 @@ export async function addStop(
   },
 ) {
   const access = await requireTripAccess(tripId);
+  // `dateRange` walks day by day from the start, so a non-date start is not a
+  // wrong answer but an unbounded loop (ticket 113).
+  if (!isIsoDate(input.startDate) || !isIsoDate(input.endDate)) return;
+  if (input.endDate < input.startDate) return;
+
   const placeId = await upsertPlace({
     providerId: input.providerId ?? null,
     name: input.placeName,
@@ -107,7 +112,8 @@ export async function setStopDates(
   input: { startDate: string; endDate: string },
 ) {
   const access = await requireTripAccess(tripId);
-  if (!input.startDate || !input.endDate || input.endDate < input.startDate) return;
+  if (!isIsoDate(input.startDate) || !isIsoDate(input.endDate)) return;
+  if (input.endDate < input.startDate) return;
 
   const placeId = await overnightPlaceOf(access.trip.id, dayIds);
 

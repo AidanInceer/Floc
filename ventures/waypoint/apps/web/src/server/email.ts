@@ -133,7 +133,7 @@ function renderShell(email: OutboundEmail) {
     .map((l) => `<p style="margin:0 0 12px;line-height:1.55">${escape(l)}</p>`)
     .join("");
   const cta = email.cta
-    ? `<p style="margin:24px 0 0"><a href="${email.cta.url}" style="background:#0f6270;color:#f7f3ec;border-radius:6px;padding:10px 16px;text-decoration:none;font-weight:600">${escape(
+    ? `<p style="margin:24px 0 0"><a href="${escape(safeUrl(email.cta.url))}" style="background:#0f6270;color:#f7f3ec;border-radius:6px;padding:10px 16px;text-decoration:none;font-weight:600">${escape(
         email.cta.label,
       )}</a></p>`
     : "";
@@ -144,6 +144,31 @@ function renderShell(email: OutboundEmail) {
     <p style="margin:24px 0 0;font-size:12px;color:#8b9698">You can turn these emails off in Waypoint settings.</p>
   </div>
 </div>`;
+}
+
+/**
+ * The one interpolation in this file that wasn't escaped (ticket 113).
+ *
+ * Escaping alone would close the attribute-injection hole but not the other
+ * one: `href="javascript:…"` needs no quotes to break out of. Every CTA URL is
+ * app-constructed today, so neither is live — but a catalogue entry is one
+ * caller away from taking a URL from somewhere else, and outbound mail is
+ * exactly where you do not want to find that out.
+ *
+ * So the scheme is allow-listed, not sanitised: anything that isn't plainly
+ * http(s) or a site-relative path degrades to the app's own base URL rather
+ * than being rendered. A broken button in one email beats a live link in a
+ * thousand (rule 11).
+ */
+function safeUrl(url: string): string {
+  if (url.startsWith("/")) return url;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") return url;
+  } catch {
+    // Not a URL at all — fall through.
+  }
+  return "/";
 }
 
 function escape(s: string) {

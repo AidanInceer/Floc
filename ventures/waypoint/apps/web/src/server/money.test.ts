@@ -36,7 +36,7 @@ const fields = (over: Partial<ExpenseFields> = {}): ExpenseFields => ({
   description: "Ferry tickets",
   amountMinor: 3000,
   currency: "GBP",
-  splitType: "equal",
+  splitType: "even",
   notes: null,
   ...over,
 });
