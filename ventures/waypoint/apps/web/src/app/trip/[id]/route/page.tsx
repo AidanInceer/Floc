@@ -14,15 +14,14 @@
  * `revalidatePath` refreshes the list underneath; closing is a manual × for
  * v1.
  */
-import { and, asc, eq, isNull } from "drizzle-orm";
 
 import {
-  addStop,
+  submitNewStop,
+  submitStopDates,
+  submitStopPlace,
   removeStop,
   reorderStops,
   setLegTransport,
-  setOvernightPlace,
-  setStopDates,
 } from "./actions";
 import { searchPlacesAction } from "../place-actions";
 import {
@@ -45,61 +44,12 @@ import {
   Stack,
 } from "@/components/ui";
 import { LegTransportPicker } from "@/components/leg-transport-picker";
-import { db } from "@/db";
-import { day, dayEvent, place, type TransportType } from "@/db/schema";
+import { type TransportType } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
+import { listRouteDays, transportModesByDay } from "@/server/itinerary";
 import { formatDate, fromIsoDate } from "@/lib/dates";
 import { deriveStops } from "@/lib/stops";
 import { lockReason } from "@/lib/tabs";
-
-async function loadDays(tripId: number) {
-  return db
-    .select({
-      dayId: day.id,
-      date: day.date,
-      overnightPlaceId: day.overnightPlaceId,
-      placeName: place.name,
-      lat: place.lat,
-      lng: place.lng,
-    })
-    .from(day)
-    .leftJoin(place, eq(place.id, day.overnightPlaceId))
-    .where(and(eq(day.tripId, tripId), isNull(day.deletedAt)))
-    .orderBy(asc(day.date))
-    .all();
-}
-
-/**
- * Transport events, by the day they sit on (ticket 78). The travel mode
- * between two stops is not stored on the route — a stop isn't stored at all
- * (rule 3) — so it is read back off the day events the group already writes on
- * Days. Only the type is needed here; the event itself belongs to Days.
- */
-async function loadTransportModes(tripId: number) {
-  const rows = await db
-    .select({ dayId: dayEvent.dayId, transportType: dayEvent.transportType })
-    .from(dayEvent)
-    .innerJoin(day, eq(day.id, dayEvent.dayId))
-    .where(
-      and(
-        eq(day.tripId, tripId),
-        eq(dayEvent.type, "transport"),
-        isNull(dayEvent.deletedAt),
-        isNull(day.deletedAt),
-      ),
-    )
-    .orderBy(asc(dayEvent.orderIndex))
-    .all();
-
-  const byDay = new Map<number, TransportType>();
-  for (const r of rows) {
-    // First transport event of the day wins — a day with a taxi to the ferry
-    // and then the ferry is one leg to the reader, and the earliest event is
-    // the one that starts it.
-    if (r.transportType && !byDay.has(r.dayId)) byDay.set(r.dayId, r.transportType);
-  }
-  return byDay;
-}
 
 export default async function RoutePage({
   params,
@@ -119,7 +69,12 @@ export default async function RoutePage({
     );
   }
 
-  const days = await loadDays(trip.id);
+  // Independent of each other, so both go out together — the modes are read
+  // off the day events rather than stored on a route (rule 3).
+  const [days, transportModes] = await Promise.all([
+    listRouteDays(trip.id),
+    transportModesByDay(trip.id),
+  ]);
   const stops = deriveStops(
     days.map((d) => ({
       dayId: d.dayId,
@@ -129,7 +84,6 @@ export default async function RoutePage({
     })),
   );
   const hasRealStop = stops.some((s) => s.placeId !== null);
-  const transportModes = await loadTransportModes(trip.id);
 
   /**
    * The mode for the leg arriving at stop `i` — the transport event on the
@@ -367,29 +321,8 @@ function AddStopForm({
   tripStart: string | null;
   tripEnd: string | null;
 }) {
-  async function action(formData: FormData) {
-    "use server";
-    const startDate = String(formData.get("startDate") ?? "");
-    const endDate = String(formData.get("endDate") ?? "");
-    const placeName = String(formData.get("placeName") ?? "");
-    const providerId = String(formData.get("placeProviderId") ?? "") || null;
-    const lat = formData.get("placeLat");
-    const lng = formData.get("placeLng");
-    const countryCode = String(formData.get("placeCountryCode") ?? "") || null;
-    if (!startDate || !endDate || !placeName) return;
-    await addStop(tripId, {
-      startDate,
-      endDate,
-      placeName,
-      providerId,
-      lat: lat ? Number(lat) : null,
-      lng: lng ? Number(lng) : null,
-      countryCode,
-    });
-  }
-
   return (
-    <form action={action}>
+    <form action={submitNewStop.bind(null, tripId)}>
       <Stack gap={3}>
         <PlacePicker name="place" label="Place" search={searchPlacesAction} />
         <StopDatesField
@@ -426,16 +359,8 @@ function ChangeDatesForm({
   tripStart: string | null;
   tripEnd: string | null;
 }) {
-  async function action(formData: FormData) {
-    "use server";
-    await setStopDates(tripId, dayIds, {
-      startDate: String(formData.get("startDate") ?? ""),
-      endDate: String(formData.get("endDate") ?? ""),
-    });
-  }
-
   return (
-    <form action={action}>
+    <form action={submitStopDates.bind(null, tripId, dayIds)}>
       <Stack gap={3}>
         <StopDatesField
           tripStart={tripStart}
@@ -456,25 +381,8 @@ function ChangeDatesForm({
 }
 
 function ChangePlaceForm({ tripId, dayIds }: { tripId: number; dayIds: number[] }) {
-  async function action(formData: FormData) {
-    "use server";
-    const placeName = String(formData.get("placeName") ?? "");
-    const providerId = String(formData.get("placeProviderId") ?? "") || null;
-    const lat = formData.get("placeLat");
-    const lng = formData.get("placeLng");
-    const countryCode = String(formData.get("placeCountryCode") ?? "") || null;
-    if (!placeName) return;
-    await setOvernightPlace(tripId, dayIds, {
-      placeName,
-      providerId,
-      lat: lat ? Number(lat) : null,
-      lng: lng ? Number(lng) : null,
-      countryCode,
-    });
-  }
-
   return (
-    <form action={action}>
+    <form action={submitStopPlace.bind(null, tripId, dayIds)}>
       <Stack gap={3}>
         <PlacePicker name="place" label="New place" search={searchPlacesAction} />
         <SubmitButton>Save</SubmitButton>

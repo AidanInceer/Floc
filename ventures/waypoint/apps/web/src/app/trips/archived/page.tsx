@@ -5,59 +5,25 @@
  * a request/notify flow for something that can be solved by a WhatsApp
  * message.
  */
-import { and, eq, isNull, not } from "drizzle-orm";
-
-import { db } from "@/db";
-import { trip, tripMembership } from "@/db/schema";
-import { listMembersFor, requireUser } from "@/server/access";
-import { readTags } from "@/lib/tags";
+import { requireUser } from "@/server/access";
 import { ButtonLink, EmptyState, Page, PageHeader } from "@/components/ui";
 import { ConfirmSubmit } from "@/components/client-ui";
 import { TripCard } from "@/components/trip-card";
-import type { TripCardData } from "@/components/trip-card";
+import { loadTripCards } from "../cards";
 import { restoreTrip } from "../actions";
 
 export default async function ArchivedTripsPage() {
   const viewer = await requireUser("/trips/archived");
 
-  const rows = await db
-    .select({
-      id: trip.id,
-      name: trip.name,
-      startDate: trip.startDate,
-      endDate: trip.endDate,
-      tags: trip.tags,
-      role: tripMembership.role,
-    })
-    .from(tripMembership)
-    .innerJoin(trip, eq(trip.id, tripMembership.tripId))
-    .where(
-      and(
-        eq(tripMembership.userId, viewer.id),
-        isNull(tripMembership.deletedAt),
-        isNull(trip.deletedAt),
-        not(isNull(trip.archivedAt)),
-      ),
-    )
-    .all();
-
-  // One roster query for every card, not one per card.
-  const membersByTrip = await listMembersFor(rows.map((r) => r.id));
-
-  const cards = rows.map((r) => {
-    const members = membersByTrip.get(r.id) ?? [];
-    const admins = members.filter((m) => m.role === "admin");
-    const card: TripCardData = {
-      id: r.id,
-      name: r.name,
-      startDate: r.startDate,
-      endDate: r.endDate,
-      role: r.role,
-      members,
-      tags: readTags(r.tags),
-    };
-    return { card, admins, isAdmin: r.role === "admin" };
-  });
+  // Same load-and-build as /trips, one predicate apart (ticket 117).
+  const cards = (await loadTripCards(viewer.id, { archived: true })).map(
+    ({ card, members }) => ({
+      card,
+      // Who to ask, since restoring is admin-only.
+      admins: members.filter((m) => m.role === "admin"),
+      isAdmin: card.role === "admin",
+    }),
+  );
 
   return (
     <Page>

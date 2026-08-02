@@ -5,15 +5,13 @@
  * balances + settle-up suggestions derived at read time from `expense_split`
  * (ticket 04), and "mark as paid" as a ledger line only — v1 moves no money.
  */
-import { and, desc, eq, inArray, isNull } from "drizzle-orm";
-
-import { db } from "@/db";
-import { day, expense, expenseSplit, user, userProfile } from "@/db/schema";
 import type { Currency, Expense, ExpenseSplit } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
 import { formatDate } from "@/lib/dates";
 import { formatMoney } from "@/lib/money";
 import type { LedgerLine } from "@/lib/money";
+import { listDays } from "@/server/itinerary";
+import { listExpenses, listSplits, namesForUsers } from "@/server/money";
 import { getProfile } from "@/server/profile";
 import {
   Avatar,
@@ -73,44 +71,16 @@ export default async function MoneyPage({
   const tripId = access.trip.id;
 
   /*
-   * The splits are scoped by joining back to `expense` on `trip_id` rather
-   * than by an `inArray` over ids the expense read returns, so they no longer
-   * cost a second serial round trip — the whole page is one trip behind the
-   * access check.
-   *
-   * The join also restores the soft-delete filter (CLAUDE.md rule 8): the old
-   * `inArray` read had no `isNull(deletedAt)` on `expense_split`, so a split
-   * belonging to a deleted expense could still be counted into the balances.
+   * Four independent reads, one round trip. `listSplits` scopes itself by
+   * joining back to `expense` on `trip_id` rather than by an `inArray` over
+   * ids `listExpenses` returns, so it doesn't have to wait for them — see
+   * `server/money.ts`.
    */
   const [expenses, days, viewerProfile, splits] = await Promise.all([
-    db
-      .select()
-      .from(expense)
-      .where(and(eq(expense.tripId, tripId), isNull(expense.deletedAt)))
-      .orderBy(desc(expense.createdAt))
-      .all(),
-    db
-      .select({ id: day.id, date: day.date })
-      .from(day)
-      .where(and(eq(day.tripId, tripId), isNull(day.deletedAt)))
-      .orderBy(day.date)
-      .all(),
+    listExpenses(tripId),
+    listDays(tripId),
     getProfile(access.viewer.id),
-    db
-      .select()
-      .from(expenseSplit)
-      .innerJoin(expense, eq(expense.id, expenseSplit.expenseId))
-      .where(
-        and(
-          eq(expense.tripId, tripId),
-          isNull(expense.deletedAt),
-          isNull(expenseSplit.deletedAt),
-        ),
-      )
-      .all()
-      // A join returns `{ expense_split, expense }` per row; the page only
-      // ever wanted the split.
-      .then((rows) => rows.map((r) => r.expense_split)),
+    listSplits(tripId),
   ]);
 
   // Participants may include someone who has since left the trip, so names
@@ -120,22 +90,11 @@ export default async function MoneyPage({
   for (const s of splits) if (!knownIds.has(s.userId)) extraIds.add(s.userId);
   for (const e of expenses) if (!knownIds.has(e.paidBy)) extraIds.add(e.paidBy);
 
-  const extraUsers = extraIds.size
-    ? await db
-        .select({
-          id: user.id,
-          name: user.name,
-          displayName: userProfile.displayName,
-        })
-        .from(user)
-        .leftJoin(userProfile, eq(userProfile.userId, user.id))
-        .where(inArray(user.id, [...extraIds]))
-        .all()
-    : [];
+  const extraUsers = await namesForUsers([...extraIds]);
 
   const userNames: Record<string, string> = {};
   for (const m of access.members) userNames[m.userId] = m.name;
-  for (const u of extraUsers) userNames[u.id] = u.displayName ?? u.name;
+  for (const u of extraUsers) userNames[u.id] = u.name;
   const name = (userId: string) => userNames[userId] ?? "Former member";
 
   // Current members keep their roster colour; a former member falls through to

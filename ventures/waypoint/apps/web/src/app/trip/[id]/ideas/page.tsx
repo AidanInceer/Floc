@@ -7,13 +7,10 @@
  * tab now, because deciding *when* deserves a calendar rather than a table
  * bolted to the end of the idea board.
  */
-import { and, desc, eq, isNull } from "drizzle-orm";
 import Link from "next/link";
 
-import { idea, ideaVote, user, userProfile } from "@/db/schema";
-import type { VoteValue } from "@/db/schema";
 import { voteScore } from "@/lib/votes";
-import { db } from "@/db";
+import { listIdeas, listVotes } from "@/server/ideas";
 import { requireTripAccess } from "@/server/access";
 import { loadThreads } from "@/server/notes-read";
 import { getProfile } from "@/server/profile";
@@ -45,48 +42,14 @@ export default async function IdeasPage({
 
   /*
    * Every read this page needs, in one round trip. None of them depends on
-   * another any more: the votes are scoped by joining `idea` on `trip_id`
-   * rather than by an `inArray` over the idea ids, and `loadThreads` scopes
-   * itself the same way — so neither has to wait for the idea rows first.
+   * another: each aggregate read scopes itself by `trip_id` rather than by a
+   * list of ids another read has to return first (ticket 118 kept the fan-out
+   * here on the page for exactly that reason — see `server/ideas.ts`).
    */
   const [ideaRows, viewerProfile, voteRows, notesByIdea] = await Promise.all([
-    db
-      .select({
-        id: idea.id,
-        note: idea.note,
-        pinnedAt: idea.pinnedAt,
-        createdAt: idea.createdAt,
-        createdBy: idea.createdBy,
-        authorName: user.name,
-        authorAvatar: userProfile.avatarUrl,
-      })
-      .from(idea)
-      .innerJoin(user, eq(user.id, idea.createdBy))
-      .leftJoin(userProfile, eq(userProfile.userId, idea.createdBy))
-      .where(and(eq(idea.tripId, tripId), isNull(idea.deletedAt)))
-      .orderBy(desc(idea.createdAt))
-      .all(),
+    listIdeas(tripId),
     getProfile(viewer.id),
-    db
-      .select({
-        ideaId: ideaVote.ideaId,
-        userId: ideaVote.userId,
-        value: ideaVote.value,
-        name: user.name,
-        avatarUrl: userProfile.avatarUrl,
-      })
-      .from(ideaVote)
-      .innerJoin(idea, eq(idea.id, ideaVote.ideaId))
-      .innerJoin(user, eq(user.id, ideaVote.userId))
-      .leftJoin(userProfile, eq(userProfile.userId, ideaVote.userId))
-      .where(
-        and(
-          eq(idea.tripId, tripId),
-          isNull(idea.deletedAt),
-          isNull(ideaVote.deletedAt),
-        ),
-      )
-      .all(),
+    listVotes(tripId),
     // Replies and reactions made the thread read too complicated to
     // assemble twice — Days runs the same helper (v0.2 ticket 06).
     loadThreads({ tripId, scope: "idea", viewerId: viewer.id, toneOf }),
@@ -180,10 +143,7 @@ export default async function IdeasPage({
       <ul className="flex flex-wrap items-start gap-5">
         <li className="w-full rounded-sm border border-dashed border-rule-strong bg-sheet-2 p-4 sm:w-56">
           <form
-            action={async (formData) => {
-              "use server";
-              await postIdea(tripId, formData);
-            }}
+            action={postIdea.bind(null, tripId)}
             className="flex flex-col gap-2"
           >
             <span className="font-mono text-[11px] uppercase tracking-[0.07em] text-ink-faint">

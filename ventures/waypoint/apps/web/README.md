@@ -84,6 +84,7 @@ Ticket 04 lists invariants SQLite cannot enforce. Where each one lives:
 | A non-member cannot tell a real trip id from a fake one | `server/access.ts` (`requireTripAccess` → `notFound()`), plus `app/not-found.tsx` |
 | Money is never a float | `lib/money.ts` — integer minor units throughout, `parseMoney` refuses anything else |
 | Every read filters soft-deletes | the `server/` aggregates — `isNull(deletedAt)` does not appear in `app/` at all |
+| Every read is bounded | the aggregates, against `server/limits.ts`; no page or action reads the database directly (tickets 108, 118) |
 | A date column only ever holds `YYYY-MM-DD` | `lib/dates.ts` (`isIsoDate`, `readIsoDate`, `readOptionalIsoDate`) at every entry point that writes one (ticket 113) — the shape check alone isn't enough, so an impossible day like `2026-02-31` is rejected too |
 | User-supplied text has a server-side cap | `lib/text.ts` (`TEXT_CAPS`, `capText`) — an input's `maxlength` is a courtesy, not a limit |
 | No list query is unbounded | `server/limits.ts` (`LIMITS`, `bounded`) — at a ceiling the view truncates and the server says so; it never throws |

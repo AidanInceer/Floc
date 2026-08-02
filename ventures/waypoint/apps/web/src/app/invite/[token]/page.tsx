@@ -7,12 +7,16 @@
  * Never reveals member emails, expense amounts, or note bodies pre-auth —
  * those need membership, not just the link.
  */
-import { and, count, eq, isNull } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 
-import { db } from "@/db";
-import { day, idea, place, trip, tripMembership } from "@/db/schema";
 import { getSession } from "@/server/access";
+import { countIdeas } from "@/server/ideas";
+import { listRouteDays } from "@/server/itinerary";
+import {
+  countMembers,
+  findTripByInviteToken,
+  isLiveMember,
+} from "@/server/membership";
 import { formatDateRange } from "@/lib/dates";
 import {
   Badge,
@@ -32,61 +36,24 @@ export default async function InvitePage({
 }) {
   const { token } = await params;
 
-  const found = await db
-    .select()
-    .from(trip)
-    .where(and(eq(trip.inviteToken, token), isNull(trip.deletedAt)))
-    .get();
+  const found = await findTripByInviteToken(token);
   if (!found) notFound();
 
   const session = await getSession();
 
-  if (session?.user) {
-    const membership = await db
-      .select({ userId: tripMembership.userId })
-      .from(tripMembership)
-      .where(
-        and(
-          eq(tripMembership.tripId, found.id),
-          eq(tripMembership.userId, session.user.id),
-          isNull(tripMembership.deletedAt),
-        ),
-      )
-      .get();
-    // Already a member: the teaser has nothing left to offer them.
-    if (membership) redirect(`/trip/${found.id}/overview`);
+  // Already a member: the teaser has nothing left to offer them.
+  if (session?.user && (await isLiveMember(found.id, session.user.id))) {
+    redirect(`/trip/${found.id}/overview`);
   }
 
   // The three teaser reads depend only on `found.id`, so they go out together.
   // This is the first page an invited stranger ever sees and it was paying
   // three serial round trips to build one paragraph of counts.
-  const [[{ value: memberCount }], [{ value: ideaCount }], days] =
-    await Promise.all([
-      db
-        .select({ value: count() })
-        .from(tripMembership)
-        .where(
-          and(
-            eq(tripMembership.tripId, found.id),
-            isNull(tripMembership.deletedAt),
-          ),
-        ),
-      db
-        .select({ value: count() })
-        .from(idea)
-        .where(and(eq(idea.tripId, found.id), isNull(idea.deletedAt))),
-      db
-        .select({
-          date: day.date,
-          overnightPlaceId: day.overnightPlaceId,
-          placeName: place.name,
-        })
-        .from(day)
-        .leftJoin(place, eq(place.id, day.overnightPlaceId))
-        .where(and(eq(day.tripId, found.id), isNull(day.deletedAt)))
-        .orderBy(day.date)
-        .all(),
-    ]);
+  const [memberCount, ideaCount, days] = await Promise.all([
+    countMembers(found.id),
+    countIdeas(found.id),
+    listRouteDays(found.id),
+  ]);
 
   // Consecutive days sharing an overnight place collapse into one "stop",
   // outline only — no times, notes or per-day detail (schema comment on `day`).

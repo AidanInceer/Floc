@@ -6,19 +6,15 @@
  * Still no theme picker (the app is light-only), no locale, no timezone and no
  * consent-capture UI.
  */
-import { eq } from "drizzle-orm";
-
 import {
   deleteAccount,
   unlinkAccount,
   updateNotifications,
   updatePrivacy,
 } from "./actions";
-import { db } from "@/db";
-import { account } from "@/db/schema";
 import type { Visibility } from "@/db/schema";
 import { requireUser } from "@/server/access";
-import { ensureProfile } from "@/server/profile";
+import { ensureProfile, listLinkedAccounts } from "@/server/profile";
 import {
   Card,
   CardHeader,
@@ -53,13 +49,10 @@ const RING_LABELS: Record<Visibility, string> = {
 
 export default async function SettingsPage() {
   const viewer = await requireUser("/settings");
-  const profile = await ensureProfile(viewer.id);
-
-  const linkedAccounts = await db
-    .select({ id: account.id, providerId: account.providerId })
-    .from(account)
-    .where(eq(account.userId, viewer.id))
-    .all();
+  const [profile, linkedAccounts] = await Promise.all([
+    ensureProfile(viewer.id),
+    listLinkedAccounts(viewer.id),
+  ]);
 
   return (
     <Page>

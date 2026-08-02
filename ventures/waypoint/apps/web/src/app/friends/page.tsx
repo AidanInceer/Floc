@@ -4,13 +4,15 @@
  * meet people by sharing a trip, then send the request from their profile or
  * their roster row.
  */
-import { and, eq, isNull, or } from "drizzle-orm";
-
 import { acceptFriend, declineFriend, cancelRequest, removeFriend } from "./actions";
-import { db } from "@/db";
-import { friendship, user, userProfile } from "@/db/schema";
 import { requireUser } from "@/server/access";
-import { coTripNameFor, syncCompletedCoTripFriendships } from "@/server/friends";
+import {
+  coTripNameFor,
+  listFriendshipsFor,
+  peopleByIds,
+  syncCompletedCoTripFriendships,
+  type Person,
+} from "@/server/friends";
 import {
   Avatar,
   Badge,
@@ -25,21 +27,7 @@ import {
 import { SubmitButton } from "@/components/client-ui";
 import { PersonLink } from "@/components/person-link";
 
-type Person = { id: string; name: string; avatarUrl: string | null };
-
-async function personFor(userId: string): Promise<Person> {
-  const row = await db
-    .select({ name: user.name, image: user.image, displayName: userProfile.displayName, avatarUrl: userProfile.avatarUrl })
-    .from(user)
-    .leftJoin(userProfile, eq(userProfile.userId, user.id))
-    .where(eq(user.id, userId))
-    .get();
-  return {
-    id: userId,
-    name: row?.displayName ?? row?.name ?? "Someone",
-    avatarUrl: row?.avatarUrl ?? row?.image ?? null,
-  };
-}
+const UNKNOWN = (id: string): Person => ({ id, name: "Someone", avatarUrl: null });
 
 export default async function FriendsPage() {
   const viewer = await requireUser("/friends");
@@ -48,38 +36,39 @@ export default async function FriendsPage() {
   // into a friendship the next time either party loads this page.
   await syncCompletedCoTripFriendships(viewer.id);
 
-  const rows = await db
-    .select()
-    .from(friendship)
-    .where(
-      and(
-        isNull(friendship.deletedAt),
-        or(eq(friendship.userId, viewer.id), eq(friendship.friendId, viewer.id)),
-      ),
-    )
-    .all();
+  const rows = await listFriendshipsFor(viewer.id);
 
   const accepted = rows.filter((r) => r.status === "accepted");
   const incoming = rows.filter((r) => r.status === "pending" && r.friendId === viewer.id);
   const outgoing = rows.filter((r) => r.status === "pending" && r.userId === viewer.id);
 
+  const otherIdOf = (r: (typeof rows)[number]) =>
+    r.userId === viewer.id ? r.friendId : r.userId;
+
+  // Every face on the page in one query, rather than one per row — this was an
+  // await inside a `.map`, so a hundred friends was a hundred serial round
+  // trips (ticket 118).
+  const people = await peopleByIds(rows.map(otherIdOf));
+  const personFor = (id: string) => people.get(id) ?? UNKNOWN(id);
+
   const acceptedPeople = await Promise.all(
     accepted.map(async (r) => {
-      const otherId = r.userId === viewer.id ? r.friendId : r.userId;
-      const person = await personFor(otherId);
+      const otherId = otherIdOf(r);
       // Ticket 18: distinguish auto (co_trip) from manual (request) friends
       // quietly — a small caption, not a badge, naming the trip if we know it.
       const metOn = r.origin === "co_trip" ? await coTripNameFor(viewer.id, otherId) : null;
-      return { person, origin: r.origin, metOn };
+      return { person: personFor(otherId), origin: r.origin, metOn };
     }),
   );
 
-  const incomingPeople = await Promise.all(
-    incoming.map(async (r) => ({ requesterId: r.userId, person: await personFor(r.userId) })),
-  );
-  const outgoingPeople = await Promise.all(
-    outgoing.map(async (r) => ({ targetId: r.friendId, person: await personFor(r.friendId) })),
-  );
+  const incomingPeople = incoming.map((r) => ({
+    requesterId: r.userId,
+    person: personFor(r.userId),
+  }));
+  const outgoingPeople = outgoing.map((r) => ({
+    targetId: r.friendId,
+    person: personFor(r.friendId),
+  }));
 
   return (
     <Page>

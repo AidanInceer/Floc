@@ -10,11 +10,8 @@
  * Availability used to be a three-column table at the bottom of the Ideas tab
  * with a one-date-at-a-time `<input type="date">`; it moved here whole.
  */
-import { and, eq, isNull } from "drizzle-orm";
-
-import { db } from "@/db";
-import { availability } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
+import { listAvailability } from "@/server/membership";
 import { bestWindow, monthOf, thisMonth } from "@/lib/availability";
 import { formatDate, formatDateRange, nightsBetween } from "@/lib/dates";
 import {
@@ -53,15 +50,7 @@ export default async function DatesPage({
   const { trip, viewer, members } = access;
   const tripId = trip.id;
 
-  const rows = await db
-    .select({
-      userId: availability.userId,
-      date: availability.date,
-      available: availability.available,
-    })
-    .from(availability)
-    .where(and(eq(availability.tripId, tripId), isNull(availability.deletedAt)))
-    .all();
+  const rows = await listAvailability(tripId);
 
   const free = rows.filter((r) => r.available);
   const mine = free.filter((r) => r.userId === viewer.id).map((r) => r.date);

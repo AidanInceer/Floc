@@ -15,13 +15,9 @@
  * mind — "where's the Lisbon one" is a search, not a preference. Reload
  * returns to the default deliberately.
  */
-import { and, asc, eq, inArray, isNull } from "drizzle-orm";
-
-import { db } from "@/db";
-import { day, idea, place, trip, tripMembership } from "@/db/schema";
-import { listMembersFor, requireUser } from "@/server/access";
+import { requireUser } from "@/server/access";
+import { loadTripCards } from "./cards";
 import { hasEnded } from "@/lib/dates";
-import { readTags } from "@/lib/tags";
 import {
   Badge,
   ButtonLink,
@@ -61,82 +57,9 @@ export default async function TripsPage({
 
   const viewer = await requireUser("/trips");
 
-  const rows = await db
-    .select({
-      id: trip.id,
-      name: trip.name,
-      startDate: trip.startDate,
-      endDate: trip.endDate,
-      tags: trip.tags,
-      role: tripMembership.role,
-    })
-    .from(tripMembership)
-    .innerJoin(trip, eq(trip.id, tripMembership.tripId))
-    .where(
-      and(
-        eq(tripMembership.userId, viewer.id),
-        isNull(tripMembership.deletedAt),
-        isNull(trip.deletedAt),
-        isNull(trip.archivedAt),
-      ),
-    )
-    .all();
-
-  const tripIds = rows.map((r) => r.id);
-
-  // The "needs you" hint and the rosters both depend on `tripIds` and on
-  // nothing else, so they go out together rather than one after the other.
-  //  - The idea probe is the cheapest signal a fresh trip has: an empty board
-  //    is the one thing every one of them shares (ticket 17 asks for "cheap",
-  //    not "complete").
-  //  - One roster query covers every card, not one per card.
-  const [ideaRows, membersByTrip, placeRows] = await Promise.all([
-    tripIds.length
-      ? db
-          .select({ tripId: idea.tripId })
-          .from(idea)
-          .where(and(inArray(idea.tripId, tripIds), isNull(idea.deletedAt)))
-          .all()
-      : [],
-    listMembersFor(tripIds),
-    // Where a trip *is*, for the Place sort (ticket 70). A trip has no
-    // destination column — rule 3 keeps the itinerary day-first — so this is
-    // derived the same way Route derives its stops: the earliest day with an
-    // overnight place. Ordered by date here so the first row per trip wins.
-    tripIds.length
-      ? db
-          .select({ tripId: day.tripId, date: day.date, placeName: place.name })
-          .from(day)
-          .innerJoin(place, eq(place.id, day.overnightPlaceId))
-          .where(
-            and(
-              inArray(day.tripId, tripIds),
-              isNull(day.deletedAt),
-              isNull(place.deletedAt),
-            ),
-          )
-          .orderBy(asc(day.date))
-          .all()
-      : [],
-  ]);
-  const tripsWithIdeas = new Set(ideaRows.map((r) => r.tripId));
-
-  const whereByTrip = new Map<number, string>();
-  for (const r of placeRows) {
-    if (!whereByTrip.has(r.tripId)) whereByTrip.set(r.tripId, r.placeName);
-  }
-
-  const cards: TripCardData[] = rows.map((r) => ({
-    id: r.id,
-    name: r.name,
-    startDate: r.startDate,
-    endDate: r.endDate,
-    role: r.role,
-    members: membersByTrip.get(r.id) ?? [],
-    needsYou: !hasEnded(r.endDate) && !tripsWithIdeas.has(r.id),
-    where: whereByTrip.get(r.id) ?? null,
-    tags: readTags(r.tags),
-  }));
+  const cards = (await loadTripCards(viewer.id, { archived: false })).map(
+    (c) => c.card,
+  );
 
   // Every tag in play, for the filter row. Taken from the trips themselves,
   // so a tag nobody uses any more stops being offered on its own.

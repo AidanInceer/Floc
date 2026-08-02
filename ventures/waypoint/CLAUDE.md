@@ -75,12 +75,25 @@ treated as current.
   `capText` / `capRequiredText` (`lib/text.ts`) — ticket 113. A `maxlength` on
   an input is a courtesy to whoever is typing; the action is reachable without
   the form. Rejections come back as a form error, never an unhandled throw.
-- **An `actions.ts` never imports `@/db`.** The SQL lives in the `server/`
-  aggregates — `itinerary`, `ideas`, `money`, `membership`, `notes` (ticket
-  108) — which own soft-delete filtering, the result-set ceilings in
-  `server/limits.ts`, and the `revalidatePath` set for their part of the
-  domain. An action decides who may do what and what it means; the aggregate
-  decides how it is stored. Add a rule to the aggregate, not to a caller.
+- **Nothing in `app/` imports `@/db`.** Not an `actions.ts` (ticket 108) and
+  not a `page.tsx` (ticket 118). The SQL lives in the `server/` aggregates —
+  `itinerary`, `ideas`, `money`, `membership`, `notes` — which own soft-delete
+  filtering, the result-set ceilings in `server/limits.ts`, and the
+  `revalidatePath` set for their part of the domain. An action decides who may
+  do what and what it means; the aggregate decides how it is stored. Add a rule
+  to the aggregate, not to a caller.
+- **Reads are per aggregate, composed on the page.** A page still runs its own
+  `Promise.all` over several aggregate reads — the fan-out is deliberate and
+  the page is what knows which of its reads are independent. What a page must
+  not have is a `loadXTab()` in `server/` named after its only caller: an
+  aggregate read is a fact about the domain (`listIdeas`, `listSplits`), and
+  more than one surface should be able to want it. Every list read is bounded,
+  and each read scopes itself by `trip_id` rather than by ids another read has
+  to return first.
+- **A mutation lives in its route folder's `actions.ts`**, never as an inline
+  `"use server"` closure in a page or component (ticket 117). Where an action
+  needs ids the page holds, bind them (`postIdea.bind(null, tripId)`) — a
+  closure captures whatever else is in scope for its lifetime.
 - Primitives come from `components/ui.tsx` (server) and
   `components/client-ui.tsx` (client). Don't add a second design system and
   don't reach for shadcn — the inventory is deliberately hand-rolled.

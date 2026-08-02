@@ -26,12 +26,12 @@
  */
 import "server-only";
 
-import { and, eq, inArray, isNotNull, isNull, ne } from "drizzle-orm";
+import { and, count, eq, inArray, isNotNull, isNull, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
 import { availability, nudge, trip, tripMembership } from "@/db/schema";
-import type { NudgeTab } from "@/db/schema";
+import type { NudgeTab, TripRole } from "@/db/schema";
 import type { TagTone } from "@/lib/tags";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/unlocks";
@@ -57,6 +57,62 @@ export function revalidateProfileTrips(): void {
 }
 
 /* ---------------------------------------------------------------- the trip */
+
+export type TripListRow = {
+  id: number;
+  name: string;
+  startDate: string | null;
+  endDate: string | null;
+  tags: string[] | null;
+  role: TripRole;
+};
+
+/**
+ * The trips one account is on (ticket 118) — `/trips` and `/trips/archived` are
+ * the same read either side of one predicate, which is exactly why the
+ * predicate is a parameter here rather than a second query on a second page.
+ *
+ * Ceiling: `LIMITS.tripsPerUser`, the same number the account-deletion walk
+ * uses, because they are bounded by the same fact.
+ */
+export async function listTripsFor(
+  userId: string,
+  { archived }: { archived: boolean },
+): Promise<TripListRow[]> {
+  const rows = await db
+    .select({
+      id: trip.id,
+      name: trip.name,
+      startDate: trip.startDate,
+      endDate: trip.endDate,
+      tags: trip.tags,
+      role: tripMembership.role,
+    })
+    .from(tripMembership)
+    .innerJoin(trip, eq(trip.id, tripMembership.tripId))
+    .where(
+      and(
+        eq(tripMembership.userId, userId),
+        isNull(tripMembership.deletedAt),
+        isNull(trip.deletedAt),
+        archived ? isNotNull(trip.archivedAt) : isNull(trip.archivedAt),
+      ),
+    )
+    .limit(LIMITS.tripsPerUser)
+    .all();
+  return bounded(rows, "tripsPerUser", `user ${userId}`);
+}
+
+/** How many people are on a trip — the one roster fact the invite teaser may show. */
+export async function countMembers(tripId: number): Promise<number> {
+  const [row] = await db
+    .select({ value: count() })
+    .from(tripMembership)
+    .where(
+      and(eq(tripMembership.tripId, tripId), isNull(tripMembership.deletedAt)),
+    );
+  return row?.value ?? 0;
+}
 
 /**
  * Creates the trip and its first membership. Ticket 01 step 1: the smallest
@@ -134,14 +190,34 @@ export async function softDeleteTrip(tripId: number): Promise<void> {
 
 /* ---------------------------------------------------------- the invite link */
 
-export async function findTripByInviteToken(
-  token: string,
-): Promise<{ id: number } | undefined> {
+/**
+ * The trip behind an invite link — id for the join action, and the three
+ * fields the pre-auth teaser is allowed to show (ticket 118). Nothing about
+ * the roster, the money, or anyone's notes: those need membership, not a link.
+ */
+export async function findTripByInviteToken(token: string): Promise<
+  { id: number; name: string; startDate: string | null; endDate: string | null } | undefined
+> {
   return db
-    .select({ id: trip.id })
+    .select({
+      id: trip.id,
+      name: trip.name,
+      startDate: trip.startDate,
+      endDate: trip.endDate,
+    })
     .from(trip)
     .where(and(eq(trip.inviteToken, token), isNull(trip.deletedAt)))
     .get();
+}
+
+/** Whether someone is on the trip right now — the teaser's "you're already in" check. */
+export async function isLiveMember(tripId: number, userId: string): Promise<boolean> {
+  const row = await db
+    .select({ userId: tripMembership.userId })
+    .from(tripMembership)
+    .where(liveMembership(tripId, userId))
+    .get();
+  return !!row;
 }
 
 /**
@@ -261,6 +337,33 @@ export async function insertNudge(args: {
  * soft-deleted row would block the person from ever marking that day again.
  * The tally treats `false` and "no row" the same, so nothing downstream cares.
  */
+export type AvailabilityRow = {
+  userId: string;
+  date: string;
+  available: boolean;
+};
+
+/**
+ * Everyone's marks for the trip (ticket 118) — `LIMITS.availability` is
+ * members × days, capped, and this is where it takes effect.
+ *
+ * `false` rows come back too: Dates needs them to tell "said no" from "hasn't
+ * looked", and `bestWindow` is handed the lot.
+ */
+export async function listAvailability(tripId: number): Promise<AvailabilityRow[]> {
+  const rows = await db
+    .select({
+      userId: availability.userId,
+      date: availability.date,
+      available: availability.available,
+    })
+    .from(availability)
+    .where(and(eq(availability.tripId, tripId), isNull(availability.deletedAt)))
+    .limit(LIMITS.availability)
+    .all();
+  return bounded(rows, "availability", `trip ${tripId}`);
+}
+
 export async function setAvailability(
   tripId: number,
   userId: string,

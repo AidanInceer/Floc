@@ -21,18 +21,12 @@
  *     permanent third of the width for four controls used once a trip.
  */
 import Link from "next/link";
-import { and, eq, isNull } from "drizzle-orm";
 
-import { db } from "@/db";
-import {
-  availability,
-  day,
-  expense,
-  expenseSplit,
-  idea,
-  ideaVote,
-} from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
+import { listIdeaIds, listVotes } from "@/server/ideas";
+import { listDays } from "@/server/itinerary";
+import { listAvailability } from "@/server/membership";
+import { listExpenses, listSplits } from "@/server/money";
 import { absoluteUrl } from "@/server/email";
 import { formatMoney } from "@/lib/money";
 import { tripStateFor } from "@/lib/trip-state";
@@ -58,9 +52,8 @@ import { friendStatesFor } from "@/server/friends";
 import { TripTrail } from "@/components/trip-trail";
 import { TagEditor } from "@/components/tag-editor";
 import { readTagTones, readTags, tagTone, type TagTone } from "@/lib/tags";
+import { archiveTrip, deleteTrip } from "@/app/trips/actions";
 import {
-  archiveTripFromOverview,
-  deleteTripFromOverview,
   leaveTrip,
   promoteMember,
   renameTrip,
@@ -96,71 +89,19 @@ export default async function OverviewPage({
    * set of rows without the dependency — so the whole page is one round trip
    * behind the access check rather than two.
    */
-  const [ideas, availabilityRows, expenseRows, dayRows, votes, splitRows] =
+  const [ideaIds, availabilityRows, expenseRows, dayRows, votes, splitRows] =
     await Promise.all([
-    db
-      .select({ id: idea.id })
-      .from(idea)
-      .where(and(eq(idea.tripId, tripId), isNull(idea.deletedAt)))
-      .all(),
-    // Only used while the dates are unset, but it is one indexed read and
-    // fetching it unconditionally is cheaper than an extra serial round trip.
-    db
-      .select({ userId: availability.userId })
-      .from(availability)
-      .where(and(eq(availability.tripId, tripId), isNull(availability.deletedAt)))
-      .all(),
-    db
-      .select({
-        id: expense.id,
-        paidBy: expense.paidBy,
-        currency: expense.currency,
-        amountMinor: expense.amountMinor,
-      })
-      .from(expense)
-      .where(and(eq(expense.tripId, tripId), isNull(expense.deletedAt)))
-      .all(),
-    // Counted, not just probed: the trail says "3 days sketched", so a
-    // `.get()` for existence is no longer enough.
-    db
-      .select({ id: day.id, overnightPlaceId: day.overnightPlaceId })
-      .from(day)
-      .where(and(eq(day.tripId, tripId), isNull(day.deletedAt)))
-      .all(),
-    // Scoped through `idea` rather than by a list of idea ids — an unscoped
-    // read would pull every vote row in the database and lean on a JS filter
-    // to hide them.
-    db
-      .select({ ideaId: ideaVote.ideaId, userId: ideaVote.userId })
-      .from(ideaVote)
-      .innerJoin(idea, eq(idea.id, ideaVote.ideaId))
-      .where(
-        and(
-          eq(idea.tripId, tripId),
-          isNull(idea.deletedAt),
-          isNull(ideaVote.deletedAt),
-        ),
-      )
-      .all(),
-    // Scoped through `expense`, for the same reason.
-    db
-      .select({
-        expenseId: expenseSplit.expenseId,
-        userId: expenseSplit.userId,
-        owedAmountMinor: expenseSplit.owedAmountMinor,
-        settledAt: expenseSplit.settledAt,
-      })
-      .from(expenseSplit)
-      .innerJoin(expense, eq(expense.id, expenseSplit.expenseId))
-      .where(
-        and(
-          eq(expense.tripId, tripId),
-          isNull(expense.deletedAt),
-          isNull(expenseSplit.deletedAt),
-        ),
-      )
-      .all(),
-  ]);
+      listIdeaIds(tripId),
+      // Only used while the dates are unset, but it is one indexed read and
+      // fetching it unconditionally is cheaper than an extra serial round trip.
+      listAvailability(tripId),
+      listExpenses(tripId),
+      // Counted, not just probed: the trail says "3 days sketched", so a
+      // `.get()` for existence is no longer enough.
+      listDays(tripId),
+      listVotes(tripId),
+      listSplits(tripId),
+    ]);
 
   /*
    * Everything the page shows about *where the trip is up to* is derived here,
@@ -175,7 +116,7 @@ export default async function OverviewPage({
     members,
     viewerId: viewer.id,
     viewerIsAdmin: isAdmin,
-    ideaIds: ideas.map((i) => i.id),
+    ideaIds,
     votes,
     availabilityUserIds: availabilityRows.map((r) => r.userId),
     days: dayRows,
@@ -286,8 +227,11 @@ export default async function OverviewPage({
                 This trip
               </span>
               {trip.archivedAt ? null : (
-                <form action={archiveTripFromOverview}>
+                <form action={archiveTrip}>
+                  {/* One archive action for the whole app (ticket 117); where
+                      to land afterwards is the caller's, not a second copy's. */}
                   <input type="hidden" name="tripId" value={tripId} />
+                  <input type="hidden" name="redirectTo" value="/trips/archived" />
                   <ConfirmSubmit
                     variant="ghost"
                     message={`Archive "${trip.name}"? It comes off everyone's list and stays readable — any admin can bring it back from Archived.`}
@@ -298,8 +242,9 @@ export default async function OverviewPage({
                   </ConfirmSubmit>
                 </form>
               )}
-              <form action={deleteTripFromOverview}>
+              <form action={deleteTrip}>
                 <input type="hidden" name="tripId" value={tripId} />
+                <input type="hidden" name="redirectTo" value="/trips" />
                 <ConfirmSubmit
                   variant="danger"
                   message={`Delete "${trip.name}" for everyone? Nobody will be able to reopen it from the app — archive it instead if you might want it back.`}

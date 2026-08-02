@@ -44,7 +44,7 @@ import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
-import { day, dayEvent } from "@/db/schema";
+import { day, dayEvent, place } from "@/db/schema";
 import type { DayEventType, TransportType } from "@/db/schema";
 import { orderEvents } from "@/lib/event-order";
 import { capRequiredText, capText } from "@/lib/text";
@@ -93,6 +93,199 @@ export async function listDays(tripId: number): Promise<ItineraryDay[]> {
 /** Just the ids, in date order. */
 export async function listDayIds(tripId: number): Promise<number[]> {
   return (await listDays(tripId)).map((d) => d.id);
+}
+
+/* ---------------------------------------------- the reads the tabs render */
+/*
+ * Ticket 118 moved these off `days/page.tsx` and `route/page.tsx`. They are
+ * three reads rather than one `loadDaysTab()`, because Days, Route, Money and
+ * the invite teaser each want a different slice of the same itinerary and none
+ * of them is this module's caller-of-record. See `server/ideas.ts` for the
+ * seam and why the pages keep their own `Promise.all`.
+ */
+
+export type DayWithEvents = {
+  id: number;
+  date: string;
+  overnightPlaceId: number | null;
+  overnightPlaceName: string | null;
+  events: DayEventRow[];
+};
+
+export type DayEventRow = {
+  id: number;
+  dayId: number;
+  orderIndex: number;
+  type: DayEventType;
+  title: string | null;
+  transportType: TransportType | null;
+  time: string | null;
+  endTime: string | null;
+  allDay: boolean;
+  note: string | null;
+  placeName: string | null;
+};
+
+/**
+ * The whole itinerary, days in date order with their events already ordered
+ * and attached.
+ *
+ * Both reads are scoped to the trip and independent of each other, so they go
+ * out together. The events read joins back through `day` for that scope — it
+ * used to select every `day_event` row in the database and throw the other
+ * trips away in JS, which got slower with every trip added.
+ */
+export async function listDaysWithEvents(tripId: number): Promise<DayWithEvents[]> {
+  const [days, events] = await Promise.all([
+    db
+      .select({
+        id: day.id,
+        date: day.date,
+        overnightPlaceId: day.overnightPlaceId,
+        overnightPlaceName: place.name,
+      })
+      .from(day)
+      .leftJoin(place, eq(place.id, day.overnightPlaceId))
+      .where(and(eq(day.tripId, tripId), isNull(day.deletedAt)))
+      .orderBy(asc(day.date))
+      .limit(LIMITS.days)
+      .all(),
+    db
+      .select({
+        id: dayEvent.id,
+        dayId: dayEvent.dayId,
+        orderIndex: dayEvent.orderIndex,
+        type: dayEvent.type,
+        title: dayEvent.title,
+        transportType: dayEvent.transportType,
+        time: dayEvent.time,
+        endTime: dayEvent.endTime,
+        allDay: dayEvent.allDay,
+        note: dayEvent.note,
+        placeName: place.name,
+      })
+      .from(dayEvent)
+      .innerJoin(day, eq(day.id, dayEvent.dayId))
+      .leftJoin(place, eq(place.id, dayEvent.placeId))
+      .where(
+        and(
+          eq(day.tripId, tripId),
+          isNull(day.deletedAt),
+          isNull(dayEvent.deletedAt),
+        ),
+      )
+      .limit(LIMITS.days * LIMITS.eventsPerDay)
+      .all(),
+  ]);
+
+  return bounded(days, "days", `trip ${tripId}`).map((d) => ({
+    ...d,
+    // A day reads as a timeline, so time decides the order and `order_index`
+    // only breaks ties — see lib/event-order.ts for why, and for what a drag
+    // does about it.
+    events: orderEvents(events.filter((e) => e.dayId === d.id)),
+  }));
+}
+
+export type RouteDay = {
+  dayId: number;
+  date: string;
+  overnightPlaceId: number | null;
+  placeName: string | null;
+  lat: number | null;
+  lng: number | null;
+};
+
+/**
+ * Days with where they're slept, in date order — what a route is derived from
+ * (rule 3: a stop is never stored). Coordinates ride along so the map can pin
+ * the stops `deriveStops` groups, and the invite teaser reads the same rows for
+ * its names-only outline.
+ */
+export async function listRouteDays(tripId: number): Promise<RouteDay[]> {
+  const rows = await db
+    .select({
+      dayId: day.id,
+      date: day.date,
+      overnightPlaceId: day.overnightPlaceId,
+      placeName: place.name,
+      lat: place.lat,
+      lng: place.lng,
+    })
+    .from(day)
+    .leftJoin(place, eq(place.id, day.overnightPlaceId))
+    .where(and(eq(day.tripId, tripId), isNull(day.deletedAt)))
+    .orderBy(asc(day.date))
+    .limit(LIMITS.days)
+    .all();
+  return bounded(rows, "days", `trip ${tripId}`);
+}
+
+/**
+ * The travel mode of each day's first transport event, by day id (ticket 78).
+ *
+ * The mode between two stops isn't stored on the route — there is no route to
+ * store it on — so it is read back off the day events the group already writes
+ * on Days. First event of the day wins: a day with a taxi to the ferry and then
+ * the ferry is one leg to the reader, and the earliest event starts it.
+ */
+export async function transportModesByDay(
+  tripId: number,
+): Promise<Map<number, TransportType>> {
+  const rows = await db
+    .select({ dayId: dayEvent.dayId, transportType: dayEvent.transportType })
+    .from(dayEvent)
+    .innerJoin(day, eq(day.id, dayEvent.dayId))
+    .where(
+      and(
+        eq(day.tripId, tripId),
+        eq(dayEvent.type, "transport"),
+        isNull(dayEvent.deletedAt),
+        isNull(day.deletedAt),
+      ),
+    )
+    .orderBy(asc(dayEvent.orderIndex))
+    .limit(LIMITS.days * LIMITS.eventsPerDay)
+    .all();
+
+  const byDay = new Map<number, TransportType>();
+  for (const r of rows) {
+    if (r.transportType && !byDay.has(r.dayId)) byDay.set(r.dayId, r.transportType);
+  }
+  return byDay;
+}
+
+/**
+ * Where each of these trips *is*, for the Place sort on `/trips` (ticket 70).
+ *
+ * A trip has no destination column — rule 3 keeps the itinerary day-first — so
+ * it is derived the same way Route derives its stops: the earliest day with an
+ * overnight place. One query for the whole list, not one per card.
+ */
+export async function firstOvernightPlaceByTrip(
+  tripIds: number[],
+): Promise<Map<number, string>> {
+  const out = new Map<number, string>();
+  if (tripIds.length === 0) return out;
+
+  const rows = await db
+    .select({ tripId: day.tripId, date: day.date, placeName: place.name })
+    .from(day)
+    .innerJoin(place, eq(place.id, day.overnightPlaceId))
+    .where(
+      and(
+        inArray(day.tripId, tripIds),
+        isNull(day.deletedAt),
+        isNull(place.deletedAt),
+      ),
+    )
+    .orderBy(asc(day.date))
+    .limit(LIMITS.tripsPerUser * LIMITS.days)
+    .all();
+
+  // Ordered by date, so the first row seen for a trip is its earliest.
+  for (const r of rows) if (!out.has(r.tripId)) out.set(r.tripId, r.placeName);
+  return out;
 }
 
 /**

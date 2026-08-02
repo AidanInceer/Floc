@@ -14,7 +14,7 @@ import { alias } from "drizzle-orm/sqlite-core";
 import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
-import { friendship, trip, tripMembership, user } from "@/db/schema";
+import { friendship, trip, tripMembership, user, userProfile } from "@/db/schema";
 import { today } from "@/lib/dates";
 import { bounded, LIMITS } from "@/server/limits";
 
@@ -124,6 +124,78 @@ export async function sharedTripIds(a: string, b: string): Promise<number[]> {
  * different things depending on which end you're at: a request you sent and a
  * request waiting on you are not the same button.
  */
+export type FriendshipRow = {
+  userId: string;
+  friendId: string;
+  status: string;
+  origin: string;
+};
+
+/**
+ * Every live friendship the viewer is either end of (ticket 118) — accepted,
+ * requested, and requested-of, in one read. The page sorts them into its three
+ * lists; which end of a row you're at is what tells incoming from outgoing.
+ */
+export async function listFriendshipsFor(
+  viewerId: string,
+): Promise<FriendshipRow[]> {
+  const rows = await db
+    .select({
+      userId: friendship.userId,
+      friendId: friendship.friendId,
+      status: friendship.status,
+      origin: friendship.origin,
+    })
+    .from(friendship)
+    .where(
+      and(
+        isNull(friendship.deletedAt),
+        or(eq(friendship.userId, viewerId), eq(friendship.friendId, viewerId)),
+      ),
+    )
+    .limit(LIMITS.members * LIMITS.tripsPerUser)
+    .all();
+  return rows;
+}
+
+export type Person = { id: string; name: string; avatarUrl: string | null };
+
+/**
+ * Names and faces for a set of people (ticket 118).
+ *
+ * One query for the lot: this was a `personFor(id)` awaited per friendship row,
+ * so a hundred friends was a hundred serial round trips before the page could
+ * render a single face. Display name wins over the account name, and the
+ * profile picture over the provider's, exactly as `personFor` had it.
+ */
+export async function peopleByIds(ids: string[]): Promise<Map<string, Person>> {
+  const out = new Map<string, Person>();
+  if (ids.length === 0) return out;
+
+  const rows = await db
+    .select({
+      id: user.id,
+      name: user.name,
+      image: user.image,
+      displayName: userProfile.displayName,
+      avatarUrl: userProfile.avatarUrl,
+    })
+    .from(user)
+    .leftJoin(userProfile, eq(userProfile.userId, user.id))
+    .where(inArray(user.id, [...new Set(ids)]))
+    .limit(LIMITS.members * LIMITS.tripsPerUser)
+    .all();
+
+  for (const r of rows) {
+    out.set(r.id, {
+      id: r.id,
+      name: r.displayName ?? r.name ?? "Someone",
+      avatarUrl: r.avatarUrl ?? r.image ?? null,
+    });
+  }
+  return out;
+}
+
 export type FriendState = "none" | "friends" | "outgoing" | "incoming";
 
 /** Several people at once — a trip roster asks about every member. */

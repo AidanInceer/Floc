@@ -14,10 +14,10 @@
  * there being no smaller operation to reach for.
  *
  * Also owned here: soft-delete on every read (rule 8), the money tab's
- * revalidation, and the ceiling on the one list read that lives here. The
- * ledger's own read is still on `money/page.tsx` — `LIMITS.expenses` and
- * `LIMITS.expenseSplits` are written down for it and take effect when the page
- * reads move behind this module, which is this ticket's follow-up.
+ * revalidation, and the ceilings. `listExpenses` and `listSplits` (ticket 118)
+ * are where `LIMITS.expenses` and `LIMITS.expenseSplits` finally take effect;
+ * Money and Overview both read them, which is why they are two reads here and
+ * not one `loadMoneyTab()` on the page. See `server/ideas.ts` for the seam.
  *
  * The arithmetic is *not* here — it is `lib/money.ts`, which is pure and
  * tested. This module stores what that module computed and nothing else, so
@@ -26,17 +26,64 @@
  */
 import "server-only";
 
-import { and, eq, inArray, isNull } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
-import { expense, expenseSplit, user } from "@/db/schema";
-import type { Currency, SplitType } from "@/db/schema";
+import { expense, expenseSplit, user, userProfile } from "@/db/schema";
+import type { Currency, Expense, ExpenseSplit, SplitType } from "@/db/schema";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/unlocks";
 
 export function revalidateMoney(tripId: number): void {
   revalidatePath(`/trip/${tripId}/money`);
+}
+
+/**
+ * The trip's live ledger, newest first (ticket 118). Whole rows: Money renders
+ * every column and Overview reads four of them, and a second narrower query
+ * would buy a handful of bytes for a second query's worth of complexity.
+ */
+export async function listExpenses(tripId: number): Promise<Expense[]> {
+  const rows = await db
+    .select()
+    .from(expense)
+    .where(and(eq(expense.tripId, tripId), isNull(expense.deletedAt)))
+    .orderBy(desc(expense.createdAt))
+    .limit(LIMITS.expenses)
+    .all();
+  return bounded(rows, "expenses", `trip ${tripId}`);
+}
+
+/**
+ * Every live split on the trip's live expenses (ticket 118).
+ *
+ * Scoped by joining back to `expense` on `trip_id`, not by an `inArray` over
+ * ids `listExpenses` returns — so a caller fires both together. The join is
+ * also what restores rule 8 on the child rows: without it a split belonging to
+ * a deleted expense still counted into the balances.
+ */
+export async function listSplits(tripId: number): Promise<ExpenseSplit[]> {
+  const rows = await db
+    .select()
+    .from(expenseSplit)
+    .innerJoin(expense, eq(expense.id, expenseSplit.expenseId))
+    .where(
+      and(
+        eq(expense.tripId, tripId),
+        isNull(expense.deletedAt),
+        isNull(expenseSplit.deletedAt),
+      ),
+    )
+    .limit(LIMITS.expenseSplits)
+    .all();
+  // A join hands back `{ expense_split, expense }` per row; only the split is
+  // anyone's business out here.
+  return bounded(
+    rows.map((r) => r.expense_split),
+    "expenseSplits",
+    `trip ${tripId}`,
+  );
 }
 
 export type ExpenseFields = {
@@ -174,6 +221,32 @@ export async function toggleSplitSettled(
  * more — kicked or left since the expense was written, whose split rows survive
  * by design. Bounded by the split ceiling because the caller's list is.
  */
+/**
+ * Display names for split participants the roster can't name — the same
+ * former-member case as `emailsForUsers`, for the ledger rather than the mail
+ * (ticket 04, moved off the page by ticket 118).
+ */
+export async function namesForUsers(
+  userIds: string[],
+): Promise<{ id: string; name: string }[]> {
+  if (userIds.length === 0) return [];
+  const rows = await db
+    .select({
+      id: user.id,
+      name: user.name,
+      displayName: userProfile.displayName,
+    })
+    .from(user)
+    .leftJoin(userProfile, eq(userProfile.userId, user.id))
+    .where(inArray(user.id, userIds))
+    .limit(LIMITS.members)
+    .all();
+  return bounded(rows, "members", "expense participants").map((r) => ({
+    id: r.id,
+    name: r.displayName ?? r.name,
+  }));
+}
+
 export async function emailsForUsers(
   userIds: string[],
 ): Promise<{ id: string; email: string }[]> {

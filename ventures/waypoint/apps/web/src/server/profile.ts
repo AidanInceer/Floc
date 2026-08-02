@@ -8,8 +8,24 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
-import { userProfile } from "@/db/schema";
+import { account, userProfile } from "@/db/schema";
 import type { SignupChannel, UserProfile } from "@/db/schema";
+
+/**
+ * The sign-in methods on an account (ticket 118) — what Settings offers to
+ * unlink. Better Auth owns the `account` table; this is a read of it, never a
+ * write, because unlinking goes through the action's own guard against taking
+ * away the last one.
+ */
+export async function listLinkedAccounts(
+  userId: string,
+): Promise<{ id: string; providerId: string }[]> {
+  return db
+    .select({ id: account.id, providerId: account.providerId })
+    .from(account)
+    .where(eq(account.userId, userId))
+    .all();
+}
 
 export async function getProfile(
   userId: string,

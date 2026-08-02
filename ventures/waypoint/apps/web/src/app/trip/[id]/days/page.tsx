@@ -17,21 +17,19 @@
  * search deep link — ticket 10's floor is deep-links only, no live fares, no
  * Amadeus call.
  */
-import { and, asc, eq, isNull } from "drizzle-orm";
 import type { ReactNode } from "react";
 
 import {
   addDays,
-  addEvent,
+  submitEvent,
   deleteEvent,
   moveEvent,
   removeDay,
   insertEventAt,
   reorderDays,
   swapEvents,
-  updateEvent,
 } from "./actions";
-import { resolveEventPlace, searchPlacesAction } from "../place-actions";
+import { searchPlacesAction } from "../place-actions";
 import {
   ConfirmSubmit,
   DragList,
@@ -59,71 +57,14 @@ import {
   cx,
 } from "@/components/ui";
 import { EVENT_CATEGORIES } from "@/lib/event-categories";
-import { findOverlaps, orderEvents } from "@/lib/event-order";
+import { findOverlaps } from "@/lib/event-order";
 import { NoteThread, type NoteRow } from "@/components/note-thread";
-import { db } from "@/db";
-import { day, dayEvent, place } from "@/db/schema";
 import type { DayEventType, TransportType } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
+import { listDaysWithEvents } from "@/server/itinerary";
 import { loadThreads } from "@/server/notes-read";
 import { formatDate } from "@/lib/dates";
 import { lockReason } from "@/lib/tabs";
-
-async function loadDays(tripId: number) {
-  // Both reads are scoped to this trip and independent of each other, so they
-  // go out together. The events read joins back through `day` to get that
-  // scope — it used to select every `day_event` row in the database and throw
-  // the other trips away in JS, which got slower with every trip added.
-  const [days, events] = await Promise.all([
-    db
-      .select({
-        id: day.id,
-        date: day.date,
-        overnightPlaceId: day.overnightPlaceId,
-        overnightPlaceName: place.name,
-      })
-      .from(day)
-      .leftJoin(place, eq(place.id, day.overnightPlaceId))
-      .where(and(eq(day.tripId, tripId), isNull(day.deletedAt)))
-      .orderBy(asc(day.date))
-      .all(),
-    db
-      .select({
-        id: dayEvent.id,
-        dayId: dayEvent.dayId,
-        orderIndex: dayEvent.orderIndex,
-        type: dayEvent.type,
-        title: dayEvent.title,
-        transportType: dayEvent.transportType,
-        time: dayEvent.time,
-        endTime: dayEvent.endTime,
-        allDay: dayEvent.allDay,
-        note: dayEvent.note,
-        placeName: place.name,
-      })
-      .from(dayEvent)
-      .innerJoin(day, eq(day.id, dayEvent.dayId))
-      .leftJoin(place, eq(place.id, dayEvent.placeId))
-      .where(
-        and(
-          eq(day.tripId, tripId),
-          isNull(day.deletedAt),
-          isNull(dayEvent.deletedAt),
-        ),
-      )
-      .all(),
-  ]);
-
-  return {
-    days: days.map((d) => ({
-      ...d,
-      // A day reads as a timeline, so time decides the order and `order_index`
-      // only breaks ties — see lib/event-order.ts for why, and for what a drag
-      // does about it.
-      events: orderEvents(events.filter((e) => e.dayId === d.id)),
-    })),
-  };
-}
 
 export default async function DaysPage({
   params,
@@ -149,8 +90,8 @@ export default async function DaysPage({
 
   // The threads scope themselves by trip, so they no longer wait on the event
   // ids — the days and their comments are one round trip, not two.
-  const [{ days }, notesByEvent] = await Promise.all([
-    loadDays(trip.id),
+  const [days, notesByEvent] = await Promise.all([
+    listDaysWithEvents(trip.id),
     loadThreads({
       tripId: trip.id,
       scope: "day_event",
@@ -235,16 +176,7 @@ export default async function DaysPage({
                       dayId={d.id}
                       emptyLabel="Nothing planned yet."
                       onSwap={swapEvents.bind(null, trip.id, d.id)}
-                      onInsert={async (eventId, fromDayId, index) => {
-                        "use server";
-                        await insertEventAt(
-                          trip.id,
-                          eventId,
-                          fromDayId,
-                          d.id,
-                          index,
-                        );
-                      }}
+                      onInsert={insertEventAt.bind(null, trip.id, d.id)}
                       items={d.events.map((e, ei) => ({
                         id: e.id,
                         label: e.title ?? e.placeName ?? EVENT_CATEGORIES[e.type].label,
@@ -510,41 +442,6 @@ function EventForm({
   defaultNote?: string | null;
   defaultPlaceName?: string | null;
 }) {
-  async function action(formData: FormData) {
-    "use server";
-    const type = String(formData.get("type") ?? "activity") as DayEventType;
-    const title = String(formData.get("title") ?? "").trim();
-    // The input is `required`, so an empty title only arrives from a client
-    // with validation off. Drop it rather than write a nameless event.
-    if (!title) return;
-    const transportType = (String(formData.get("transportType") ?? "") || null) as
-      | TransportType
-      | null;
-    const allDay = formData.get("allDay") === "on";
-    const time = String(formData.get("time") ?? "") || null;
-    const endTime = String(formData.get("endTime") ?? "") || null;
-    const note = String(formData.get("note") ?? "") || null;
-    const placeName = String(formData.get("placeName") ?? "");
-    const providerId = String(formData.get("placeProviderId") ?? "") || null;
-    const lat = formData.get("placeLat");
-    const lng = formData.get("placeLng");
-    const countryCode = String(formData.get("placeCountryCode") ?? "") || null;
-
-    const placeId = await resolveEventPlace({
-      providerId,
-      name: placeName,
-      lat: lat ? Number(lat) : null,
-      lng: lng ? Number(lng) : null,
-      countryCode,
-    });
-
-    if (eventId) {
-      await updateEvent(tripId, eventId, { type, title, placeId, transportType, time, endTime, allDay, note });
-    } else {
-      await addEvent(tripId, dayId, { type, title, placeId, transportType, time, endTime, allDay, note });
-    }
-  }
-
   /*
    * The name comes first (ticket 74). You know what you're adding before you
    * know how to file it — "mini golf" is the thought, "activity" is the
@@ -557,7 +454,7 @@ function EventForm({
    * carries the meaning and the notes carry the detail.
    */
   return (
-    <form action={action}>
+    <form action={submitEvent.bind(null, tripId, dayId, eventId ?? null)}>
       <Stack gap={3}>
         <Field label="Event name">
           <Input
