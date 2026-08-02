@@ -12,9 +12,15 @@
  * not an exception to it.
  */
 
-/** True only for a real production build — the seed script runs with it unset. */
+/**
+ * True only for a real production runtime. `next build` runs with NODE_ENV set
+ * to production while collecting page data, but CI has no deployment secrets.
+ */
 function isProduction(): boolean {
-  return process.env.NODE_ENV === "production";
+  return (
+    process.env.NODE_ENV === "production" &&
+    process.env.NEXT_PHASE !== "phase-production-build"
+  );
 }
 
 /**

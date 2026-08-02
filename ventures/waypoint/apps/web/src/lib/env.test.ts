@@ -34,6 +34,13 @@ describe("requireInProduction", () => {
     expect(() => requireInProduction(NAME, "fallback")).toThrow(NAME);
   });
 
+  it("allows the dev fallback during Next production build", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("NEXT_PHASE", "phase-production-build");
+    vi.stubEnv(NAME, "");
+    expect(requireInProduction(NAME, "fallback")).toBe("fallback");
+  });
+
   it("never puts the fallback in the error message", () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv(NAME, "");
