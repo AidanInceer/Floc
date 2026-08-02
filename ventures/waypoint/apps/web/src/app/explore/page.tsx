@@ -4,7 +4,7 @@
  * The listings are still static and still editorial: no backend, no partner
  * integration, nothing bookable, and the unresolved tension with
  * monetisation.md's rejection of paid placement is recorded in
- * ventures/waypoint/docs/partner-trips.md rather than settled here.
+ * docs/partner-trips.html rather than settled here.
  *
  * What is no longer inert is the one action worth having: "Start this trip"
  * seeds a real trip from a listing (ticket 39). Copied, never linked — see

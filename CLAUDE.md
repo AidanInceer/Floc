@@ -47,7 +47,33 @@ Per-app work is faster scoped: `pnpm --filter waypoint-web dev` (or `test`,
 3. **Security first.** No secrets, keys, or tokens in the repo. No logging of
    PII/tokens. Degrade without credentials, never crash.
 4. **Docs stay in sync.** A structural change updates the relevant README /
-   `docs/` page. The ERD and `apps/web/src/db/schema.ts` change together.
+   `docs/` page. The ERD — [`docs/data-model/erd.html`](docs/data-model/erd.html)
+   — and `apps/web/src/db/schema.ts` change together.
+
+## The docs are HTML
+
+`docs/` is a **tiny local-only site, not Markdown.** Open
+[`docs/index.html`](docs/index.html) in a browser straight off disk — no server,
+no build step, no dependencies. HTML is the source of truth; there are no `.md`
+originals to regenerate from, so edit the page itself.
+
+- Every page is a flat shell: a `<link>` to `assets/docs.css`, `<nav id="sidebar">`,
+  `<main>`, and a `<script src>` to `assets/nav.js`. Two attributes on `<body>`
+  carry the wiring — `data-root` is the relative path back up to `docs/` (`.` at
+  the top, `..` one level down), `data-page` is the page's id.
+- **Adding a page means adding a line to the `TREE` array in
+  [`docs/assets/nav.js`](docs/assets/nav.js).** That array is the whole sidebar;
+  nothing generates it. A page not listed there is unreachable.
+- Diagrams stay as `<pre class="mermaid">`. A page with one loads two scripts,
+  in this order: the vendored `docs/assets/vendor/mermaid.min.js`, then
+  [`docs/assets/diagrams.js`](docs/assets/diagrams.js), which initialises
+  mermaid and wraps each rendered diagram in a pan/zoom/expand viewer (drag,
+  ctrl+wheel, double-click to expand, Esc to close). Mermaid is vendored
+  deliberately: the site must work offline, and `fetch`/ES modules are blocked
+  on the `file://` origin — anything new must load via plain `<script src>` for
+  the same reason.
+- `docs/mockups/` is **not** part of the site. Those wireframes are standalone
+  pages, linked out to and opened in their own tab; leave them as they are.
 
 ## Conventions
 
@@ -118,8 +144,8 @@ Per-app work is faster scoped: `pnpm --filter waypoint-web dev` (or `test`,
 
 ### Issue tracker
 
-Issues/PRDs live as GitHub issues (`gh` CLI). See `docs/agents/issue-tracker.md`.
+Issues/PRDs live as GitHub issues (`gh` CLI). See `docs/agents/issue-tracker.html`.
 
 ### Domain docs
 
-Multi-context: root `CONTEXT-MAP.md` points to per-venture `CONTEXT.md` + `docs/adr/`. See `docs/agents/domain.md`.
+Multi-context: root `CONTEXT-MAP.md` points to per-venture `CONTEXT.md` + `docs/adr/`. See `docs/agents/domain.html`.

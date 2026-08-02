@@ -1,0 +1,390 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ERD — Waypoint docs</title>
+<link rel="stylesheet" href="../assets/docs.css">
+<body data-root=".." data-page="erd">
+<nav id="sidebar" aria-label="Documentation"></nav>
+<main>
+<p class="crumb">Docs / Data model</p>
+<h1>Waypoint v1 — physical data model</h1>
+<p>Source of truth for the decisions is
+<a href="../../../../.scratch/waypoint-v1/issues/04-core-data-model-and-schema.md">Core data model and SQLite schema</a>.
+This diagram is documentation of that decision, not schema code — no
+migrations/DDL land until the whole <code>waypoint-v1</code> map is walked.</p>
+<p>Every table carries <code>id</code> (PK), <code>created_at</code>, <code>deleted_at</code>, <code>last_modified_at</code>
+— omitted from the entity blocks below to keep them readable; assume all four
+on every entity.</p>
+<p><code>user</code> / <code>account</code> / <code>session</code> are Better Auth&#39;s own tables, used unmodified
+— shown here only as the <code>user</code> anchor that our tables extend.</p>
+<pre class="mermaid">erDiagram
+    USER ||--o| USER_PROFILE : &quot;has&quot;
+    USER ||--o{ USER_COUNTRY_MARK : &quot;paints (ticket 95)&quot;
+    USER ||--o{ FRIENDSHIP : &quot;requests (user_id)&quot;
+    USER ||--o{ FRIENDSHIP : &quot;receives (friend_id)&quot;
+    USER ||--o{ TRIP : &quot;creates (created_by)&quot;
+    USER ||--o{ TRIP_MEMBERSHIP : &quot;belongs to&quot;
+    TRIP ||--o{ TRIP_MEMBERSHIP : &quot;has members&quot;
+    TRIP ||--o{ IDEA : &quot;has&quot;
+    USER ||--o{ IDEA : &quot;creates (created_by)&quot;
+    IDEA ||--o{ IDEA_VOTE : &quot;receives&quot;
+    USER ||--o{ IDEA_VOTE : &quot;casts&quot;
+    TRIP ||--o{ AVAILABILITY : &quot;has&quot;
+    USER ||--o{ AVAILABILITY : &quot;reports&quot;
+    TRIP ||--o{ DAY : &quot;has&quot;
+    DAY ||--o{ DAY_EVENT : &quot;has&quot;
+    PLACE ||--o{ DAY : &quot;is overnight place for (overnight_place_id)&quot;
+    PLACE ||--o{ DAY_EVENT : &quot;is location for (place_id)&quot;
+    TRIP ||--o{ EXPENSE : &quot;has&quot;
+    DAY ||--o{ EXPENSE : &quot;occurs on (day_id, nullable)&quot;
+    USER ||--o{ EXPENSE : &quot;creates (created_by)&quot;
+    EXPENSE ||--o{ EXPENSE_SPLIT : &quot;splits into&quot;
+    USER ||--o{ EXPENSE_SPLIT : &quot;owes&quot;
+    TRIP ||--o{ NOTE : &quot;has&quot;
+    USER ||--o{ NOTE : &quot;creates (created_by)&quot;
+    NOTE ||--o{ NOTE : &quot;replies (parent_id, one level)&quot;
+    NOTE ||--o{ NOTE_REACTION : &quot;receives&quot;
+    USER ||--o{ NOTE_REACTION : &quot;reacts&quot;
+    TRIP ||--o{ NUDGE : &quot;has&quot;
+    USER ||--o{ NUDGE : &quot;sends (from_user_id)&quot;
+    USER ||--o{ NUDGE : &quot;receives (to_user_id)&quot;
+
+    USER {
+        string id PK
+        string email
+        string name
+        string image
+    }
+
+    USER_PROFILE {
+        string user_id PK &quot;FK -&gt; USER.id&quot;
+        string display_name &quot;nullable — our editable copy, not mirrored live&quot;
+        string avatar_url &quot;nullable&quot;
+        string home_currency &quot;GBP | EUR | USD, default GBP&quot;
+        json vibe_tags &quot;seed-only, from VIBE_TAGS (ticket 46)&quot;
+        string signup_channel &quot;whatsapp|email|link|direct, nullable&quot;
+        json diet_flags &quot;preset diets, nullable&quot;
+        string dietary_notes &quot;allergies &amp; intolerances, nullable&quot;
+        bool share_dietary &quot;default false — covers the whole dietary record&quot;
+        bool is_private &quot;default false — hides every display attribute&quot;
+        string visibility_picture &quot;private|friends|trip_members, default trip_members&quot;
+        string visibility_vibe_tags &quot;private|friends|trip_members, default trip_members&quot;
+        string visibility_travel_map &quot;private|friends|trip_members, default trip_members&quot;
+        string past_trips_show &quot;latest | all, default all&quot;
+        bool notify_invites &quot;default true&quot;
+        bool notify_votes &quot;default true&quot;
+        bool notify_money &quot;default true&quot;
+        bool notify_nudges &quot;default true&quot;
+    }
+
+    USER_COUNTRY_MARK {
+        string user_id PK,FK &quot;-&gt; USER.id&quot;
+        string country_code PK &quot;ISO 3166-1 alpha-2, upper case&quot;
+        string state &quot;green | yellow | none — hand-painted only, never a trip&quot;
+    }
+
+    FRIENDSHIP {
+        int id PK
+        string user_id FK &quot;requester -&gt; USER.id&quot;
+        string friend_id FK &quot;recipient -&gt; USER.id&quot;
+        string status &quot;pending | accepted&quot;
+        string origin &quot;co_trip | request&quot;
+    }
+
+    TRIP {
+        int id PK
+        string name
+        date start_date &quot;nullable&quot;
+        date end_date &quot;nullable&quot;
+        string created_by FK &quot;-&gt; USER.id&quot;
+        string invite_token &quot;unguessable, never the trip id&quot;
+        string cover_image_url &quot;nullable&quot;
+        json tags &quot;nullable, free-text labels, normalised lower-case&quot;
+        json tag_tones &quot;nullable, tag -&gt; badge tone, sparse&quot;
+        datetime archived_at &quot;nullable, admin-only&quot;
+        datetime route_unlocked_at &quot;nullable, sticky — never regresses&quot;
+        datetime days_unlocked_at &quot;nullable, sticky — never regresses&quot;
+    }
+
+    TRIP_MEMBERSHIP {
+        int trip_id PK,FK &quot;-&gt; TRIP.id&quot;
+        string user_id PK,FK &quot;-&gt; USER.id&quot;
+        string role &quot;admin | member&quot;
+        datetime map_prompt_at &quot;nullable — set on leave/kick, asks about the travel map&quot;
+    }
+
+    IDEA {
+        int id PK
+        int trip_id FK &quot;-&gt; TRIP.id&quot;
+        string created_by FK &quot;-&gt; USER.id&quot;
+        text note
+        datetime pinned_at &quot;nullable — pinned to the top of the board, group-wide&quot;
+    }
+
+    IDEA_VOTE {
+        int id PK
+        int idea_id FK &quot;-&gt; IDEA.id&quot;
+        string user_id FK &quot;-&gt; USER.id&quot;
+        string value &quot;up | dont_mind | down&quot;
+    }
+
+    AVAILABILITY {
+        int id PK
+        int trip_id FK &quot;-&gt; TRIP.id&quot;
+        string user_id FK &quot;-&gt; USER.id&quot;
+        date date
+        bool available
+    }
+
+    DAY {
+        int id PK
+        int trip_id FK &quot;-&gt; TRIP.id&quot;
+        date date
+        int overnight_place_id FK &quot;-&gt; PLACE.id, nullable&quot;
+    }
+
+    DAY_EVENT {
+        int id PK
+        int day_id FK &quot;-&gt; DAY.id&quot;
+        int order_index &quot;tie-break only — time decides the order, untimed last&quot;
+        string type &quot;activity | transport | food — the category Days colours by&quot;
+        string title &quot;what the event is — required by the form, nullable for pre-#74 rows&quot;
+        int place_id FK &quot;-&gt; PLACE.id, nullable&quot;
+        string transport_type &quot;flight|train|car|ferry|other, nullable — transport only&quot;
+        time time &quot;nullable&quot;
+        text note &quot;nullable — secondary detail under the title&quot;
+    }
+
+    PLACE {
+        int id PK
+        string provider_id &quot;nullable — provider-scoped, e.g. osm:relation:65606&quot;
+        string name
+        float lat &quot;nullable — free-text places have none&quot;
+        float lng &quot;nullable&quot;
+        string country_code &quot;nullable — ISO alpha-2 from Nominatim, ticket 95&quot;
+    }
+
+    EXPENSE {
+        int id PK
+        int trip_id FK &quot;-&gt; TRIP.id&quot;
+        int day_id FK &quot;-&gt; DAY.id, nullable&quot;
+        string created_by FK &quot;-&gt; USER.id&quot;
+        string paid_by FK &quot;-&gt; USER.id — not always the person who typed it in&quot;
+        string description
+        int amount_minor
+        string currency &quot;EUR | USD | GBP&quot;
+        string split_type &quot;even|exact|percentage|shares&quot;
+        text notes
+    }
+
+    EXPENSE_SPLIT {
+        int id PK
+        int expense_id FK &quot;-&gt; EXPENSE.id&quot;
+        string user_id FK &quot;-&gt; USER.id&quot;
+        int owed_amount_minor &quot;snapshotted at creation&quot;
+        datetime settled_at &quot;nullable — a claim, v1 moves no money&quot;
+    }
+
+    NOTE {
+        int id PK
+        int trip_id FK &quot;-&gt; TRIP.id&quot;
+        string created_by FK &quot;-&gt; USER.id&quot;
+        string scope &quot;trip|day|day_event|idea|expense&quot;
+        int scope_id &quot;not a real FK — polymorphic, app-enforced&quot;
+        int parent_id &quot;-&gt; NOTE.id, nullable — a reply; exactly one level&quot;
+        text body
+        int edited_at &quot;nullable — set when the author rewrites it&quot;
+    }
+
+    NOTE_REACTION {
+        int id PK
+        int note_id FK &quot;-&gt; NOTE.id&quot;
+        string user_id FK &quot;-&gt; USER.id&quot;
+        string kind &quot;heart | up | down&quot;
+    }
+
+    NUDGE {
+        int id PK
+        int trip_id FK &quot;-&gt; TRIP.id&quot;
+        string from_user_id FK &quot;-&gt; USER.id&quot;
+        string to_user_id FK &quot;-&gt; USER.id&quot;
+        string tab &quot;ideas|dates|route|days|money — deep-linked in the email&quot;
+        text message &quot;nullable&quot;
+    }</pre>
+<h2>Relationship cardinalities (plain-English index)</h2>
+<table>
+<thead>
+<tr>
+<th>From</th>
+<th>To</th>
+<th>Cardinality</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>user</code></td>
+<td><code>user_profile</code></td>
+<td>1–0..1</td>
+<td>optional, extends Better Auth&#39;s user</td>
+</tr>
+<tr>
+<td><code>user</code></td>
+<td><code>user_country_mark</code></td>
+<td>1–M</td>
+<td>one row per hand-painted country; trip marks are derived on read, never stored (ticket 95)</td>
+</tr>
+<tr>
+<td><code>user</code></td>
+<td><code>friendship</code></td>
+<td>1–M (×2)</td>
+<td>one FK as requester, one as recipient</td>
+</tr>
+<tr>
+<td><code>user</code></td>
+<td><code>trip</code></td>
+<td>1–M</td>
+<td><code>trip.created_by</code></td>
+</tr>
+<tr>
+<td><code>trip</code> ↔ <code>user</code></td>
+<td>M–M</td>
+<td>via <code>trip_membership</code> (composite PK)</td>
+<td></td>
+</tr>
+<tr>
+<td><code>trip</code></td>
+<td><code>idea</code></td>
+<td>1–M</td>
+<td><code>pinned_at</code> floats a note above the board&#39;s sort (v0.2 ticket 09)</td>
+</tr>
+<tr>
+<td><code>idea</code></td>
+<td><code>idea_vote</code></td>
+<td>1–M</td>
+<td>one vote per (idea, user) in practice, not DB-enforced</td>
+</tr>
+<tr>
+<td><code>trip</code></td>
+<td><code>availability</code></td>
+<td>1–M</td>
+<td>one row per (trip, user, date)</td>
+</tr>
+<tr>
+<td><code>trip</code></td>
+<td><code>day</code></td>
+<td>1–M</td>
+<td></td>
+</tr>
+<tr>
+<td><code>day</code></td>
+<td><code>day_event</code></td>
+<td>1–M</td>
+<td>ordered by <code>time</code> (untimed last), <code>order_index</code> breaking ties</td>
+</tr>
+<tr>
+<td><code>place</code></td>
+<td><code>day</code></td>
+<td>1–M</td>
+<td>via <code>overnight_place_id</code>, nullable</td>
+</tr>
+<tr>
+<td><code>place</code></td>
+<td><code>day_event</code></td>
+<td>1–M</td>
+<td>via <code>place_id</code>, nullable</td>
+</tr>
+<tr>
+<td><code>trip</code></td>
+<td><code>expense</code></td>
+<td>1–M</td>
+<td></td>
+</tr>
+<tr>
+<td><code>day</code></td>
+<td><code>expense</code></td>
+<td>1–M</td>
+<td>nullable — an expense need not be day-scoped</td>
+</tr>
+<tr>
+<td><code>expense</code></td>
+<td><code>expense_split</code></td>
+<td>1–M</td>
+<td></td>
+</tr>
+<tr>
+<td><code>trip</code></td>
+<td><code>note</code></td>
+<td>1–M</td>
+<td><code>scope</code>/<code>scope_id</code> further narrows within the trip</td>
+</tr>
+<tr>
+<td><code>note</code></td>
+<td><code>note</code></td>
+<td>1–M</td>
+<td><code>parent_id</code> — a comment and its replies, one level only</td>
+</tr>
+<tr>
+<td><code>note</code></td>
+<td><code>note_reaction</code></td>
+<td>1–M</td>
+<td>at most one live row per (note, person, kind)</td>
+</tr>
+<tr>
+<td><code>trip</code></td>
+<td><code>nudge</code></td>
+<td>1–M</td>
+<td>peer-to-peer only, no automation</td>
+</tr>
+<tr>
+<td><code>user</code></td>
+<td><code>nudge</code></td>
+<td>1–M (×2)</td>
+<td><code>from_user_id</code> and <code>to_user_id</code></td>
+</tr>
+</tbody></table>
+<p>A <strong>&quot;stop&quot;</strong> (e.g. &quot;3 nights in Rome&quot;) is not a table — it&#39;s derived by
+grouping consecutive <code>day</code> rows that share the same <code>overnight_place_id</code>.</p>
+<p><strong>Reordering</strong> therefore writes no order column: there is none, on <code>day</code> or
+anywhere else. Dragging a stop or a day permutes what the day rows <em>hold</em> —
+<code>day.overnight_place_id</code> and the <code>day_event</code> rows&#39; <code>day_id</code> — while the dates
+stay put (<code>src/server/itinerary.ts</code>). Two consequences fall out of the FKs above:
+<code>expense.day_id</code> points at a date, so money stays on the day it was spent; and
+<code>note</code> rows are scoped to <code>day_event.id</code>, which doesn&#39;t change, so a thread
+travels with its event for free.</p>
+<p><code>note</code> is the <strong>discussion thread</strong> on anything that has one. In use today for
+<code>scope: &quot;idea&quot;</code> (why this one, or why not) and <code>scope: &quot;day_event&quot;</code> (whatever the
+group needs to know about that ferry), read scoped by <code>(trip_id, scope, scope_id)</code> off <code>note_scope_idx</code>. One table rather than <code>idea_comment</code> +
+<code>day_event_comment</code> + …: a note is the same object with the same author-or-admin
+delete rule wherever it hangs.</p>
+<p><code>note.parent_id</code> makes a <strong>reply</strong>, and threads are <strong>exactly one level deep</strong>
+(v0.2 ticket 06): <code>addNote</code> walks up before inserting, so replying to a reply
+attaches to that reply&#39;s own parent and the shape can&#39;t drift however the UI
+changes. Deleting a top-level comment soft-deletes its replies with it — a
+reply is only legible under the comment it answers. Unbounded nesting was
+rejected on render grounds: Ideas draws its thread in a <code>max-w-lg</code> modal, where
+a fourth level would be a few words a line.</p>
+<p><code>note.edited_at</code> marks a comment its <strong>author</strong> has rewritten, and the UI says
+&quot;edited&quot; beside the timestamp. Editing is deliberately <strong>not an admin power</strong>
+(rule 6 — admin powers are exactly four): an admin can delete a comment, which
+is unambiguous, but never put different words in someone&#39;s mouth under their own
+name. <code>last_modified_at</code> can&#39;t stand in for this — it is for debugging only and
+moves for reasons the author never chose.</p>
+<p><code>note_reaction</code> is the three fixed reactions — heart, thumbs up, thumbs down —
+independent of each other, unlike <code>idea_vote</code>, which is three-state and
+exclusive. Un-reacting soft-deletes the row and re-reacting revives it, so
+<code>note_reaction_one_idx</code> is <strong>unique on (note_id, user_id, kind) and deliberately
+excludes <code>deleted_at</code></strong> — the dead row is the row the upsert wants to land on
+(ticket 115, migration <code>0005</code>). It was originally non-unique on the reasoning
+that reviving needs the row to survive, which is the same fact read backwards:
+without uniqueness the toggle was a read-modify-write over nothing, and two
+concurrent taps wrote two rows, after which one person&#39;s heart counted as two.
+<code>idea_vote_unique_idx</code> and <code>friendship_pair_idx</code> have the same shape for the
+same reason. Every read still filters <code>deleted_at</code>.</p>
+<p><code>day</code> deliberately has <strong>no <code>notes</code> column</strong>. It had one; nobody could say what
+belonged in it, since the thing a group annotates is an event rather than a
+whole day. Event details live on <code>day_event.note</code>, the conversation in <code>note</code>.</p>
+</main>
+<script src="../assets/nav.js"></script>
+<script src="../assets/vendor/mermaid.min.js"></script>
+<script src="../assets/diagrams.js"></script>
+</body>

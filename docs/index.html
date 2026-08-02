@@ -1,0 +1,82 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Waypoint docs</title>
+<link rel="stylesheet" href="assets/docs.css">
+<body data-root="." data-page="index">
+<nav id="sidebar" aria-label="Documentation"></nav>
+<main>
+<p class="crumb">Docs</p>
+<h1>Waypoint documentation</h1>
+
+<p>Everything written down about Waypoint, the group-travel planner. This is a
+local-only site — plain HTML files opened straight off disk. No server, no build
+step, no dependencies. Browse with the sidebar; the filter box narrows it.</p>
+
+<h2>Start here</h2>
+<div class="cards">
+  <a class="card" href="architecture.html">
+    <b>Architecture</b>
+    <span>How the app is put together, request paths, and the shape of the stack.</span>
+  </a>
+  <a class="card" href="data-model/erd.html">
+    <b>Data model</b>
+    <span>The ERD. Changes here and <code>db/schema.ts</code> move together.</span>
+  </a>
+  <a class="card" href="visual-language.html">
+    <b>Visual language</b>
+    <span>Paper and biro. Type, colour, and the rules the mockups follow.</span>
+  </a>
+</div>
+
+<h2>Product thinking</h2>
+<div class="cards">
+  <a class="card" href="product-ideas.html">
+    <b>Product ideas</b>
+    <span>What the product could be, and the bets behind it.</span>
+  </a>
+  <a class="card" href="monetisation.html">
+    <b>Monetisation</b>
+    <span>The commercial stance and where money could come from.</span>
+  </a>
+  <a class="card" href="partner-trips.html">
+    <b>Partner trips</b>
+    <span>The partner-led trip concept.</span>
+  </a>
+  <a class="card" href="competitors/competitor-summary.html">
+    <b>Competitors</b>
+    <span>Wanderlog, TripIt, Splitwise, Polarsteps and friends — plus the summary.</span>
+  </a>
+  <a class="card" href="backlog/ideas.html">
+    <b>Backlog</b>
+    <span>Ideas, summary ideas, and the ticket list.</span>
+  </a>
+  <a class="card" href="research/map-embed-options.html">
+    <b>Research</b>
+    <span>Map embed options and the listings/legal groundwork.</span>
+  </a>
+</div>
+
+<h2>Mockups</h2>
+<p>The wireframes live in <code>docs/mockups/</code> as standalone pages — each one
+self-contained, inline CSS and SVG, no build. They are deliberately outside this
+site: the sidebar links straight at them and they open in their own tab. Start
+from the <a href="mockups/README.md">mockup index</a>.</p>
+
+<h2>Working notes</h2>
+<p>The <a href="agents/domain.html">domain docs</a> and
+<a href="agents/issue-tracker.html">issue tracker</a> pages describe the
+conventions agents follow. The most recent
+<a href="reviews/2026-08-01-codebase-review.html">codebase review</a> is the
+longest read here and the best snapshot of where the code actually stands.</p>
+
+<h2>Editing these docs</h2>
+<p>HTML is the source now — there are no Markdown originals to regenerate from.
+Edit the page directly. To add a page, copy the shell from any existing one
+(<code>data-root</code> is the relative path back up to <code>docs/</code>,
+<code>data-page</code> is the page id) and add a matching entry to the
+<code>TREE</code> array in <code>assets/nav.js</code>, which is the one place the
+sidebar is defined.</p>
+</main>
+<script src="assets/nav.js"></script>
+</body>

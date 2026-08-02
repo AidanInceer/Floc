@@ -3,7 +3,7 @@
 /**
  * Starting a trip from an Explore listing (ticket 39).
  *
- * The shape is the one docs/partner-trips.md set out: a new trip with the
+ * The shape is the one docs/partner-trips.html set out: a new trip with the
  * listing's title as its name, its highlights seeded onto the idea board as
  * unvoted ideas, and nothing else. Ideas rather than a route or a set of days,
  * because the group still decides — a preset is something to argue with, not an

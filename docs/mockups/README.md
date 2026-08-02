@@ -217,6 +217,18 @@ other two directions were and why they lost.
 | [`overview-hero-stage-abc.html`](overview-hero-stage-abc.html) | [#89](https://github.com/AidanInceer/Waypoint/issues/89) | Three ways to say where a trip is up to on the Overview hero. **B shipped**: the trip's name is the headline, the stage is a badge beside it, the caveat is one plain line — and the duplicate name/dates/badges came off the layout header. |
 | [`money-split-abc.html`](money-split-abc.html) | [#85](https://github.com/AidanInceer/Waypoint/issues/85) | Three directions for splitting money, model and UI. **B shipped, with A's exclusion gesture**: one shares model with pinned amounts, and taking someone out of a cost is a tap rather than a zero. |
 
+## Days as a calendar
+
+| File | What it asks |
+|---|---|
+| [`days-calendar.html`](days-calendar.html) | **Undecided.** What the Days tab becomes if the day cards give way to a Google-Calendar-style time grid: hour rows, events drawn at their time and as tall as they are long, a Day/Week switch, the ticket 90 category filter as chips, click-an-empty-slot to add at that time, overlaps splitting the column rather than being labelled, and a right pane in two faces — the selected event (facts, its note, its thread) and a trip-wide notes-and-links pad. Interactive: everything listed works in the page, nothing is wired to a Server Action. |
+
+Three things it deliberately puts up for argument: where all-day and untimed
+events live (a strip above the grid here, sorted to the end of the day on the
+live page); whether overlaps should be drawn side by side at all; and whether
+the trip-wide notes pad earns its place, or becomes the box nobody could define
+that per-day notes already were.
+
 ## Geometry note
 
 Every route is drawn per-stop (each stop owns its own leg of the dashed line

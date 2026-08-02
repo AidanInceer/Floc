@@ -52,14 +52,13 @@ undifferentiated heavy lifting
 └── docs/                        # hub-level documentation
 ```
 
-Full rationale and per-area breakdown: [`docs/repo-structure.md`](docs/repo-structure.md).
-
 ## Quick links
 
-- **How the repo is organised** → [`docs/repo-structure.md`](docs/repo-structure.md)
-- **Add a new venture** → [`docs/adding-a-venture.md`](docs/adding-a-venture.md)
-- **Which areas map to which teams/functions** → [`docs/areas-and-teams.md`](docs/areas-and-teams.md)
-- **The first venture** → [`ventures/finance-planner/README.md`](ventures/finance-planner/README.md)
+- **All documentation** → [`docs/index.html`](docs/index.html) — open it in a
+  browser straight off disk. The docs are a small local-only site now, not
+  Markdown files: plain HTML, a sidebar to browse with, no server and no build.
+- **Wireframes** → [`docs/mockups/`](docs/mockups/README.md)
+- **The venture** → [`ventures/waypoint/apps/web/README.md`](ventures/waypoint/apps/web/README.md)
 - **Agent instructions** → [`CLAUDE.md`](CLAUDE.md) (hub) · each venture may add its own
 
 ## Conventions

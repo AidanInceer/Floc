@@ -3,7 +3,7 @@
  *
  * Source of truth for these decisions:
  *   .scratch/waypoint-v1/issues/04-core-data-model-and-schema.md
- *   ventures/waypoint/docs/data-model/erd.md
+ *   docs/data-model/erd.html
  *
  * Conventions from ticket 04, applied to every application table:
  *   id, created_at, deleted_at (soft-delete), last_modified_at.

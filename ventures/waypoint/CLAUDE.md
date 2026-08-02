@@ -13,10 +13,10 @@ order, and who owes who afterwards. Pre-MVP.
 | The app | [`apps/web`](apps/web/README.md) | Real code. Next.js App Router + Turso (libSQL) + Drizzle + Better Auth. |
 | Old prototype | `apps/prototype` | **Superseded.** Vite/localStorage, the retired ADR-0010 cut. Prior art — don't extend it. |
 | Wireframe variants | `wireframe/*.html` | Design artefacts. `paper.html` is the one v1 follows. |
-| Schema of record | [`docs/data-model/erd.md`](docs/data-model/erd.md) | Mirrors `apps/web/src/db/schema.ts`. Change both together. |
-| Visual language | [`docs/visual-language.md`](docs/visual-language.md) | Tokens + component inventory. |
-| Homepage mockups | [`docs/mockups/`](docs/mockups/README.md) | The landing page's design artefacts. The live `/` follows `homepage-pinboard.html` below the hero and `homepage-hero-b-beforeafter.html` for the hero itself; everything else there is unadopted, including the two phone-app explorations. |
-| Where it could go | [`docs/monetisation.md`](docs/monetisation.md) · [`docs/product-ideas.md`](docs/product-ideas.md) · [`docs/partner-trips.md`](docs/partner-trips.md) | Thinking, not commitments. Nothing in any of them is scheduled. The one exception is `/explore`, whose listings are **static and editorial** — illustrative operator names, no partner deal, nothing bookable. Its one live action is "Start this trip", which copies a listing into a real trip (ticket 39, `app/explore/actions.ts`). Read `partner-trips.md` before adding anything else. |
+| Schema of record | [`docs/data-model/erd.html`](../../docs/data-model/erd.html) | Mirrors `apps/web/src/db/schema.ts`. Change both together. |
+| Visual language | [`docs/visual-language.html`](../../docs/visual-language.html) | Tokens + component inventory. |
+| Homepage mockups | [`docs/mockups/`](../../docs/mockups/README.md) | The landing page's design artefacts. The live `/` follows `homepage-pinboard.html` below the hero and `homepage-hero-b-beforeafter.html` for the hero itself; everything else there is unadopted, including the two phone-app explorations. |
+| Where it could go | [`docs/monetisation.html`](../../docs/monetisation.html) · [`docs/product-ideas.html`](../../docs/product-ideas.html) · [`docs/partner-trips.html`](../../docs/partner-trips.html) | Thinking, not commitments. Nothing in any of them is scheduled. The one exception is `/explore`, whose listings are **static and editorial** — illustrative operator names, no partner deal, nothing bookable. Its one live action is "Start this trip", which copies a listing into a real trip (ticket 39, `app/explore/actions.ts`). Read `partner-trips.html` before adding anything else. |
 
 The decisions behind all of it live in `.scratch/waypoint-v1/` — `map.md` is the
 index, one ticket file per decision. **Read the relevant ticket before changing

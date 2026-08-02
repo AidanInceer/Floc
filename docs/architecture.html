@@ -1,0 +1,158 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Architecture — Waypoint docs</title>
+<link rel="stylesheet" href="assets/docs.css">
+<body data-root="." data-page="architecture">
+<nav id="sidebar" aria-label="Documentation"></nav>
+<main>
+<p class="crumb">Docs</p>
+<h1>Architecture</h1>
+<p>System diagram for the Waypoint monorepo. The active app is
+<a href="../ventures/waypoint/apps/web"><code>ventures/waypoint/apps/web</code></a> — Next.js App
+Router + Drizzle over Turso (libSQL) + Better Auth. Everything else in the
+repo is plumbing, docs, or superseded prior art.</p>
+<pre class="mermaid">flowchart TB
+    subgraph Client["Browser"]
+        UI["Next.js App Router UI&lt;br/&gt;(app/trip, trips, explore, friends, profile, settings, login, signup, invite)"]
+    end
+
+    subgraph WebApp["ventures/waypoint/apps/web"]
+        Routes["App Router pages + layouts"]
+        API["Route handlers&lt;br/&gt;app/api/* (incl. app/api/auth/[...all])"]
+        Server["server/*&lt;br/&gt;itinerary, places, friends, profile,&lt;br/&gt;unlocks, notes-read, access, visibility, auth, email"]
+        Lib["lib/*&lt;br/&gt;pure helpers: money, dates, votes, tags,&lt;br/&gt;stops, availability, travel-map, dietary"]
+        Components["components/*"]
+        DB["db/*&lt;br/&gt;schema.ts, index.ts, seed.ts (Drizzle)"]
+        AuthClient["lib/auth-client.ts&lt;br/&gt;(Better Auth)"]
+    end
+
+    Turso[("Turso libSQL DB")]
+    BetterAuth["Better Auth service"]
+
+    UI --&gt; Routes
+    Routes --&gt; Components
+    Routes --&gt; API
+    Routes --&gt; AuthClient
+    API --&gt; Server
+    Server --&gt; DB
+    Server --&gt; Lib
+    Server --&gt; BetterAuth
+    DB --&gt; Turso
+    AuthClient --&gt; BetterAuth
+
+    subgraph Monorepo["Repo plumbing (pnpm + Turborepo)"]
+        Root["root: pnpm-workspace.yaml, turbo.json"]
+        Prototype["apps/prototype (superseded Vite/localStorage)"]
+        Docs["docs/, wireframes/ (static, no build)"]
+    end
+
+    Root -.orchestrates.-&gt; WebApp
+    Root -.legacy.-&gt; Prototype</pre>
+<h2>Notes</h2>
+<ul>
+<li><code>lib/</code> is pure logic (money, dates, tags, votes, availability…); <code>server/</code>
+is server-only logic that touches the DB or auth — split per
+commit <code>fd49d74</code> (<code>#107</code>).</li>
+<li><code>apps/prototype</code> is dead prior art, not wired to anything live — don&#39;t
+extend it.</li>
+<li><code>docs/</code>, <code>wireframe/</code> are static content, no build step.</li>
+</ul>
+<h2>Request flow</h2>
+<p>Server Components by default; mutations are Server Actions co-located in each
+route folder&#39;s <code>actions.ts</code>. There is <strong>no client-side fetch to our own API</strong> —
+<code>app/api/*</code> exists only for the Better Auth catch-all
+(<code>app/api/auth/[...all]</code>), not as a general JSON API.</p>
+<pre class="mermaid">sequenceDiagram
+    participant Browser
+    participant RSC as Server Component (app/trip/[id]/*)
+    participant Action as Server Action (actions.ts)
+    participant Access as server/access.ts&lt;br/&gt;requireTripAccess
+    participant Domain as server/* (itinerary, places, friends…)
+    participant Lib as lib/* (pure logic)
+    participant DB as db/* (Drizzle) → Turso
+
+    Browser-&gt;&gt;RSC: navigate to /trip/:id/:tab
+    RSC-&gt;&gt;Access: requireTripAccess(tripId, session)
+    Access-&gt;&gt;DB: membership check
+    DB--&gt;&gt;Access: member row or none
+    Access--&gt;&gt;RSC: trip context, or 404-equivalent
+    RSC-&gt;&gt;Domain: read (itinerary, notes, votes…)
+    Domain-&gt;&gt;DB: query (deletedAt IS NULL)
+    DB--&gt;&gt;Domain: rows
+    Domain--&gt;&gt;RSC: view data
+    RSC--&gt;&gt;Browser: rendered HTML
+
+    Browser-&gt;&gt;Action: form submit / button (Server Action)
+    Action-&gt;&gt;Access: requireTripAccess / assertAdmin
+    Action-&gt;&gt;Lib: parseMoney / computeSplits / validate
+    Action-&gt;&gt;DB: write (transaction where multi-row)
+    DB--&gt;&gt;Action: ok
+    Action--&gt;&gt;Browser: revalidate + re-render</pre>
+<p>Key point: <strong><code>requireTripAccess</code> is the only door into a trip.</strong> A non-member
+gets the same response as a request for a trip that doesn&#39;t exist —
+enumeration-proof by construction, never a hand-rolled membership <code>if</code>.</p>
+<h2>Auth flow</h2>
+<p>Better Auth owns sessions; <code>lib/auth-client.ts</code> is the browser-side handle,
+<code>server/auth.ts</code> the server-side one. No custom session table, no JWT rolled
+by hand.</p>
+<pre class="mermaid">flowchart LR
+    Login["/login, /signup"] --&gt; AuthClient["lib/auth-client.ts"]
+    AuthClient --&gt; Handler["app/api/auth/[...all]&lt;br/&gt;Better Auth route handler"]
+    Handler --&gt; AuthServer["server/auth.ts"]
+    AuthServer --&gt; DB[("Turso — user/session tables")]
+    RSC["Server Components / Actions"] --&gt; AuthServer
+    AuthServer --&gt;|session| Access["requireTripAccess / assertAdmin"]</pre>
+<h2>Data model shape</h2>
+<p>Mirrors <a href="data-model/erd.html"><code>docs/data-model/erd.html</code></a>
+in the venture — that file is the schema of record, kept in lockstep with
+<code>apps/web/src/db/schema.ts</code>. Shape, not full ERD:</p>
+<pre class="mermaid">erDiagram
+    TRIP ||--o{ TRIP_MEMBER : has
+    TRIP ||--o{ DAY : "has (day-first itinerary)"
+    DAY ||--o{ DAY_EVENT : has
+    TRIP ||--o{ EXPENSE : has
+    EXPENSE ||--o{ EXPENSE_SPLIT : "snapshots (never recalculated)"
+    TRIP ||--o{ NOTE : "polymorphic (scope + scope_id)"
+    TRIP_MEMBER ||--o{ AVAILABILITY : submits
+    TRIP ||--o{ VOTE : has</pre>
+<p>Notes that shape the schema, not just the diagram:</p>
+<ul>
+<li><strong>No <code>stop</code> table.</strong> A &quot;stop&quot; is derived by grouping consecutive <code>day</code> rows
+with the same <code>overnight_place_id</code> — itinerary storage is day-first.</li>
+<li><strong>No lifecycle enum.</strong> Trip state is derived from what data exists; the only
+persisted lifecycle bits are sticky unlock flags (<code>route_unlocked_at</code>,
+<code>days_unlocked_at</code>), which never regress.</li>
+<li><strong>Money is integer minor units, always</strong> — parsed/split/formatted only
+through <code>lib/money.ts</code>, never <code>parseFloat</code>. <code>expense_split</code> rows are
+write-once snapshots so a member leaving doesn&#39;t corrupt history.</li>
+<li><strong>Soft-delete everywhere</strong> — every read filters <code>deletedAt IS NULL</code>.</li>
+<li><strong>Last-write-wins</strong> — no optimistic locking, no version column;
+<code>last_modified_at</code> is debugging-only.</li>
+<li><strong>Discussion is one polymorphic <code>note</code> table</strong> (<code>scope</code> + <code>scope_id</code>), not a
+comment table per feature.</li>
+</ul>
+<h2>Deployment &amp; environments</h2>
+<ul>
+<li><strong>Hosting is per-app, not per-monorepo.</strong> <code>apps/web</code> gets its own Vercel
+project + CI workflow; CI must never deploy the whole monorepo at once.</li>
+<li><strong>Data store:</strong> Turso (libSQL), reached only through <code>db/index.ts</code>.</li>
+<li><strong>Auth:</strong> Better Auth, self-hosted inside the Next.js app (no external auth
+SaaS call at runtime beyond what Better Auth itself makes).</li>
+<li><strong>Degrade without credentials, never crash</strong> — the pattern repeats at every
+external integration boundary:<ul>
+<li>No Nominatim → fall back to free-text place names.</li>
+<li>No Resend key → email logged to console instead of sent.</li>
+<li>No Google client → the button that needs it isn&#39;t rendered.</li>
+</ul>
+</li>
+<li><strong>Light-only UI</strong>, no theme system — one less environment axis to support.</li>
+<li>Out of scope for v1 (so absent from this architecture on purpose): payment
+rails, POI/attraction data, flight booking, i18n, analytics, push
+notifications.</li>
+</ul>
+</main>
+<script src="assets/nav.js"></script>
+<script src="assets/vendor/mermaid.min.js"></script>
+<script src="assets/diagrams.js"></script>
+</body>

@@ -1,7 +1,7 @@
 /**
  * Static listings for the Explore mockup. There is no partner backend and no
  * partner deal — every operator name below is an illustrative placeholder for
- * what a real listing would look like. See ventures/waypoint/docs/partner-trips.md.
+ * what a real listing would look like. See docs/partner-trips.html.
  *
  * Money is minor units, like everywhere else (CLAUDE.md rule 1) — these are
  * formatted with `formatMoney`, never by hand.
