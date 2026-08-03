@@ -20,7 +20,7 @@
     "auth:generate": "better-auth generate"
   },
   "dependencies": {
-    "@libsql/client": "^0.14.0",
+    "@libsql/client": "^0.17.4",
     "better-auth": "^1.2.0",
     "drizzle-orm": "^0.45.2",
     "leaflet": "^1.9.4",
