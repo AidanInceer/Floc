@@ -227,7 +227,7 @@ export default async function SettingsPage() {
               </p>
               <p className="text-sm text-ink-soft">
                 Want a copy of your data? Email{" "}
-                <a href="mailto:support@waypoint.example" className="text-pen underline">
+                <a href="mailto:support@waypoint.example" className="text-pen underline underline-offset-2 transition-colors hover:bg-highlight-soft hover:text-pen-deep">
                   support@waypoint.example
                 </a>{" "}
                 — there&rsquo;s no self-serve export in v1.

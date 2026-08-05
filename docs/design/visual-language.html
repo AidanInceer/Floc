@@ -150,8 +150,16 @@ that&#39;s settled — rendered rotated and bordered like it was actually
 stamped. Reserved for genuinely decided states; everything else stays a
 <code>Badge</code>.</li>
 <li><strong>Buttons are biro, not chrome</strong>: mono, uppercase, tight tracking, a solid
-pen-blue fill for primary and an outline for everything else. <code>filter: brightness()</code> stands in for a hover-darken, since a pen has no separate
-&quot;hover ink&quot;.</li>
+pen-blue fill for primary and an outline for everything else. A pen has no
+separate &quot;hover ink&quot;, but the UI does need one: <code>filter: brightness()</code> used to
+stand in for a hover-darken and the shift it produced was too small to read
+as a state change at all, so there is now a <code>--pen-deep</code> token — the same
+biro pressed harder — and the primary&#39;s fill <em>and</em> its border both step to
+it. The secondary steps to <code>sheet-3</code> and pulls its border to the pen.
+<strong>Every interactive surface has a visible hover</strong>, and &quot;visible&quot; means
+without looking at the cursor: a card that navigates hovers as a whole card,
+a chip borrows the selected chip&#39;s border, a prose link takes a highlighter
+wash, and a cursor change on its own is never the whole affordance.</li>
 <li><strong>Trip tabs are folder tabs, actually attached to the sheet.</strong> They sit on
 the page background (<code>bg-paper</code>, not <code>bg-sheet</code>) so the active tab&#39;s <code>sheet</code>
 fill reads as &quot;this one&#39;s open&quot;, and three things make the join real rather

@@ -22,7 +22,7 @@ export default function LoginPage() {
         </Card>
         <p className="text-center text-sm text-ink-soft">
           New to Waypoint?{" "}
-          <Link href="/signup" className="text-pen underline">
+          <Link href="/signup" className="text-pen underline underline-offset-2 transition-colors hover:bg-highlight-soft hover:text-pen-deep">
             Create an account
           </Link>
         </p>

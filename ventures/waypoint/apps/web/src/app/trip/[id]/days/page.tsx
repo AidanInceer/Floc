@@ -449,7 +449,7 @@ function EventPanel({
           href={flightLink}
           target="_blank"
           rel="noreferrer"
-          className="inline-block text-sm font-medium text-pen underline underline-offset-2"
+          className="inline-block text-sm font-medium text-pen underline underline-offset-2 transition-colors hover:bg-highlight-soft hover:text-pen-deep"
         >
           Search flights →
         </a>

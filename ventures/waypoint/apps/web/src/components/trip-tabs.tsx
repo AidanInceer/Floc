@@ -92,7 +92,7 @@ export function TripTabs({
               tabClasses,
               active
                 ? "border-rule border-b-sheet bg-sheet font-semibold text-pen"
-                : "translate-y-px border-rule-strong bg-sheet-2 text-ink-soft hover:bg-sheet",
+                : "translate-y-px border-rule-strong bg-sheet-2 text-ink-soft hover:bg-sheet hover:text-ink",
             )}
           >
             {tab.label}

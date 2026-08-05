@@ -38,7 +38,7 @@ export function TripLinks({
                 href={link.url}
                 target="_blank"
                 rel="noreferrer"
-                className="min-w-0 flex-1 text-sm text-pen underline underline-offset-2"
+                className="min-w-0 flex-1 text-sm text-pen underline underline-offset-2 transition-colors hover:bg-highlight-soft hover:text-pen-deep"
               >
                 <span className="block truncate font-medium">{link.label}</span>
                 <span className="block truncate text-[11.5px] text-ink-faint no-underline">

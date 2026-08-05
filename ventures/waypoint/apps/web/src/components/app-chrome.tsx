@@ -78,7 +78,11 @@ export function AppChrome({
         {/* Always the marketing page, signed in or not — the wordmark is the
             front cover of the book. "Explore" sits beside it because both are
             the world outside your own trips; "Trips" is over on the right. */}
-        <Link href="/" aria-label="Waypoint home" className="flex items-center">
+        <Link
+          href="/"
+          aria-label="Waypoint home"
+          className="flex items-center transition-opacity hover:opacity-70"
+        >
           <WaypointWordmark />
         </Link>
 

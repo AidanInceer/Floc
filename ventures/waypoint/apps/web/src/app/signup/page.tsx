@@ -29,7 +29,7 @@ export default function SignupPage() {
         </Card>
         <p className="text-center text-sm text-ink-soft">
           Already have an account?{" "}
-          <Link href="/login" className="text-pen underline">
+          <Link href="/login" className="text-pen underline underline-offset-2 transition-colors hover:bg-highlight-soft hover:text-pen-deep">
             Sign in
           </Link>
         </p>

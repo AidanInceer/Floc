@@ -167,7 +167,7 @@ export default async function OverviewPage({
                 {formatDateRange(trip.startDate, trip.endDate)}{" "}
                 <Link
                   href={`/trip/${tripId}/dates`}
-                  className="text-pen underline underline-offset-2"
+                  className="text-pen underline underline-offset-2 transition-colors hover:bg-highlight-soft hover:text-pen-deep"
                 >
                   change
                 </Link>
@@ -180,7 +180,7 @@ export default async function OverviewPage({
                 Dates not set{" "}
                 <Link
                   href={`/trip/${tripId}/dates`}
-                  className="text-pen underline underline-offset-2"
+                  className="text-pen underline underline-offset-2 transition-colors hover:bg-highlight-soft hover:text-pen-deep"
                 >
                   pick them
                 </Link>
@@ -369,7 +369,7 @@ export default async function OverviewPage({
       {/* Right-aligned: the page's least-used control, pulled to the opposite
           edge from every heading so it stops reading as the next section. */}
       <details className="mt-6 border-t border-rule pt-3.5 text-right">
-        <summary className="inline-flex cursor-pointer items-center gap-1.5 text-sm text-pen marker:content-['']">
+        <summary className="inline-flex cursor-pointer items-center gap-1.5 rounded-sm px-1 text-sm text-pen transition-colors marker:content-[''] hover:bg-highlight-soft hover:text-pen-deep">
           Trip settings
         </summary>
         {/* No trip name field here any more — it moved into the hero, next to

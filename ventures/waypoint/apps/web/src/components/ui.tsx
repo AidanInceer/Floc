@@ -181,13 +181,23 @@ export function Stack({
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 
 // Biro, not a UI button: solid ink for the pen, an outline for everything
-// else. `brightness` stands in for a hover-darken since there's no separate
-// "deep" ink token — a real pen doesn't have a hover state either.
+// else.
+//
+// Ticket 120: every variant's hover has to read *without* looking at the
+// cursor. The primary used to be `brightness-110` over `--pen`, which on an
+// already-dark ink is a couple of L* points — invisible on the /explore
+// "Start this trip" CTA in particular. It now steps to `--pen-deep`, roughly
+// a fifth of the way further down the ink, and the outline follows the fill
+// so the whole shape changes rather than just its middle. The secondary was
+// sheet → sheet-2, two neighbouring creams; it now takes the next stock down
+// and pulls its border to the pen, which is also what makes a quiet
+// secondary read as clickable at all.
 const variants: Record<Variant, string> = {
-  primary: "border-pen bg-pen text-sheet hover:brightness-110",
-  secondary: "border-rule-strong bg-sheet text-ink-2 hover:bg-sheet-2",
-  ghost: "border-transparent bg-transparent text-pen hover:bg-pen-soft",
-  danger: "border-red/30 bg-red-soft text-red hover:bg-red/15",
+  primary: "border-pen bg-pen text-sheet hover:border-pen-deep hover:bg-pen-deep",
+  secondary:
+    "border-rule-strong bg-sheet text-ink-2 hover:border-pen hover:bg-sheet-3 hover:text-ink",
+  ghost: "border-transparent bg-transparent text-pen hover:bg-pen-soft hover:text-pen-deep",
+  danger: "border-red/30 bg-red-soft text-red hover:border-red/60 hover:bg-red/15",
 };
 
 const buttonBase =

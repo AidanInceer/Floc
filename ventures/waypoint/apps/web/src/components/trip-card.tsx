@@ -48,8 +48,19 @@ export function TripCard({
   const countdown = ended ? null : countdownLabel(trip.startDate);
 
   return (
-    <Card as="li" className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-      <Link href={href} className="min-w-[220px] flex-1">
+    // Ticket 120: the whole card navigates, not just the title block. The
+    // anchor stays wrapped around the text that names the destination — that's
+    // what a screen reader reads out — and grows to the card with a stretched
+    // `::after` overlay rather than by wrapping the avatars and the admin
+    // buttons, which would nest interactives inside a link.
+    <Card
+      as="li"
+      className="relative flex flex-wrap items-center justify-between gap-3 px-4 py-3 transition-colors hover:border-pen hover:bg-sheet"
+    >
+      <Link
+        href={href}
+        className="min-w-[220px] flex-1 after:absolute after:inset-0 after:content-['']"
+      >
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-display text-base font-semibold">{trip.name}</span>
           {ended ? <Badge tone="action">Ended</Badge> : null}
@@ -70,12 +81,19 @@ export function TripCard({
           </ul>
         ) : null}
       </Link>
-      <div className="flex items-center gap-3">
+      {/* Painted over the stretched overlay, so it has to hand its clicks
+          back: everything here is decoration except `actions`, which takes
+          them again. */}
+      <div className="pointer-events-none relative flex items-center gap-3">
         <AvatarRow people={trip.members} size={24} />
         <Badge tone={trip.role === "admin" ? "marine" : "neutral"}>
           {trip.role === "admin" ? "Admin" : "Member"}
         </Badge>
-        {actions}
+        {actions ? (
+          <div className="pointer-events-auto flex items-center gap-3">
+            {actions}
+          </div>
+        ) : null}
       </div>
     </Card>
   );

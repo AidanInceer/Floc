@@ -1078,7 +1078,9 @@ function DayColumn({
       <button
         type="button"
         aria-label={`Add an event on ${day.longLabel}`}
-        className="absolute inset-0 cursor-copy"
+        // A cursor alone isn't an affordance you can see without moving the
+        // mouse (ticket 120) — the empty column tints as well.
+        className="absolute inset-0 cursor-copy transition-colors hover:bg-sheet-2/60"
         onPointerMove={(ev) => {
           const rect = ev.currentTarget.getBoundingClientRect();
           setHover(clamp(snap(yToMinutes(ev.clientY - rect.top)), 0, 24 * 60));

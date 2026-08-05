@@ -92,7 +92,7 @@ export default async function ExplorePage({
       <p className="mt-2 text-xs text-ink-faint">
         Maps &copy;{" "}
         <a
-          className="text-pen underline underline-offset-2"
+          className="text-pen underline underline-offset-2 transition-colors hover:bg-highlight-soft hover:text-pen-deep"
           href="https://www.openstreetmap.org/copyright"
         >
           OpenStreetMap
@@ -128,7 +128,12 @@ function FilterChip({
       className={cx(
         "rounded-sm border px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.06em] transition-colors",
         tone ?? "bg-sheet text-ink-soft",
-        active ? "border-pen shadow-card" : "border-rule-strong hover:opacity-80",
+        // Ticket 120: an unselected chip used to hover by fading (`opacity-80`),
+        // which on a pastel wash is barely a change. It borrows the selected
+        // chip's pen border instead — the shape you're about to get.
+        active
+          ? "border-pen shadow-card"
+          : "border-rule-strong hover:border-pen hover:shadow-card",
       )}
     >
       {label}

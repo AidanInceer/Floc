@@ -227,7 +227,10 @@ export default async function MoneyPage({
                             <button
                               type="submit"
                               disabled={!canToggle}
-                              className="disabled:cursor-default"
+                              // Ticket 120: the badge is the whole control, so
+                              // the hover has to happen on the button around
+                              // it — it had none at all.
+                              className="rounded-sm transition-opacity hover:opacity-70 disabled:cursor-default disabled:hover:opacity-100"
                               title={
                                 canToggle
                                   ? settled

@@ -45,6 +45,11 @@
   --ink-3: #8b8477;
 
   --pen: #2a4d7a; /* biro blue — decisions, links, primary actions */
+  /* The same biro pressed harder — the hover ink for anything filled with
+     `--pen` (ticket 120). A `brightness()` filter used to stand in for this,
+     and the shift it produced was too small to read as a hover at all; a
+     token gives the state a real step and keeps components hex-free. */
+  --pen-deep: #16304f;
   --pen-2: #dfe7f1;
   --pencil: #6a6559;
 
@@ -164,6 +169,7 @@
   --color-ink-faint: var(--ink-3);
 
   --color-pen: var(--pen);
+  --color-pen-deep: var(--pen-deep);
   --color-pen-soft: var(--pen-2);
   --color-pen-edge: var(--pen-edge);
   --color-pencil: var(--pencil);
