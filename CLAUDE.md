@@ -1,151 +1,102 @@
 # CLAUDE.md — Waypoint
 
-Repo-level instructions for Claude Code. This repo hosts **Waypoint**, a
-group-travel planner. The venture's own
-[`ventures/waypoint/CLAUDE.md`](ventures/waypoint/CLAUDE.md) holds the product
-rules and takes precedence inside that folder — read it before touching app
-code. This file covers the repo plumbing around it.
-
-## What this repo is
-
-A pnpm + Turborepo monorepo for one venture. The real code is the Next.js app at
+Repo plumbing for **Waypoint**, a group-travel planner. A pnpm + Turborepo
+monorepo with one venture. The real code is the Next.js app at
 [`ventures/waypoint/apps/web`](ventures/waypoint/apps/web/README.md) — App
-Router + Turso (libSQL) + Drizzle + Better Auth. Everything else in
-`ventures/waypoint/` is docs, wireframes, and the superseded Vite prototype.
+Router + Turso (libSQL) + Drizzle + Better Auth.
 
-The folder layout (`ventures/waypoint/…`) is a holdover from when this was a
-multi-venture hub. Waypoint is the only venture now; don't add others without
-being asked.
+The venture's own [`ventures/waypoint/CLAUDE.md`](ventures/waypoint/CLAUDE.md)
+holds the product rules and **wins inside that folder — read it before touching
+app code.** Waypoint is the only venture; don't add others without being asked.
 
-## Current phase
+**Phase: pre-MVP.** Thin vertical slice, one ticket at a time. Prefer a narrow
+end-to-end change over broad stubs. Confirm scope before large builds.
 
-**Pre-MVP.** Building a thin vertical slice, one ticket at a time. Prefer a
-narrow end-to-end change over broad stubs. Confirm scope before large builds.
+## Key docs
+
+`docs/` is a tiny local-only HTML site — open
+[`docs/index.html`](docs/index.html) off disk (no server, no build). Start
+there. The four you'll reach for most:
+
+- **Design direction** — [`docs/design/approach.html`](docs/design/approach.html)
+- **Visual language** — [`docs/design/visual-language.html`](docs/design/visual-language.html)
+- **Architecture** — [`docs/architecture/architecture.html`](docs/architecture/architecture.html)
+- **Data model (ERD)** — [`docs/data-model/erd.html`](docs/data-model/erd.html)
 
 ## Commands
 
 ```bash
-pnpm install              # root; installs the workspace
-pnpm dev                  # turbo run dev
-pnpm build                # turbo run build
-pnpm typecheck            # turbo run typecheck
-pnpm lint                 # turbo run lint
-pnpm test                 # turbo run test
+pnpm install      # installs the workspace (root)
+pnpm dev          # turbo run dev   (build | typecheck | lint | test likewise)
 ```
 
-Per-app work is faster scoped: `pnpm --filter waypoint-web dev` (or `test`,
-`typecheck`, `lint`). Turbo tasks are declared in [`turbo.json`](turbo.json).
+Scope for speed: `pnpm --filter waypoint-web <task>`. Tasks live in
+[`turbo.json`](turbo.json).
 
 ## Golden rules
 
 1. **Read the venture rules first.** [`ventures/waypoint/CLAUDE.md`](ventures/waypoint/CLAUDE.md)
    carries the non-negotiables (money is never a float, day-first itinerary,
-   enumeration-proof trip access, light-only, …). They win inside the venture.
+   enumeration-proof trip access, light-only, …).
 2. **Read the ticket before changing behaviour.** Decisions live in
-   `ventures/waypoint/.scratch/waypoint-v1/` — `map.md` is the index, one file
-   per decision. The old ADRs were retired; don't treat them as current.
+   `ventures/waypoint/.scratch/waypoint-v1/`; `map.md` is the index, one file
+   per decision.
 3. **Security first.** No secrets, keys, or tokens in the repo. No logging of
-   PII/tokens. Degrade without credentials, never crash.
+   PII/tokens. Degrade without credentials, never crash. Flag anything touching
+   auth, encryption, PII, or compliance rather than glossing over it.
 4. **Docs stay in sync.** A structural change updates the relevant README /
-   `docs/` page. The ERD — [`docs/data-model/erd.html`](docs/data-model/erd.html)
-   — and `apps/web/src/db/schema.ts` change together.
+   `docs/` page. The ERD and `apps/web/src/db/schema.ts` change together.
 
 ## The docs are HTML
 
-`docs/` is a **tiny local-only site, not Markdown.** Open
-[`docs/index.html`](docs/index.html) in a browser straight off disk — no server,
-no build step, no dependencies. HTML is the source of truth; there are no `.md`
-originals to regenerate from, so edit the page itself.
+HTML is the source of truth — no `.md` originals, edit the page itself. Every
+page is a flat shell: `<link>` to `assets/docs.css`, `<nav id="sidebar">`,
+`<main>`, `<script src>` to `assets/nav.js`. Two `<body>` attributes wire it up:
+`data-root` (path back up to `docs/` — `.` at top, `..` one level down) and
+`data-page` (the page id).
 
-- Every page is a flat shell: a `<link>` to `assets/docs.css`, `<nav id="sidebar">`,
-  `<main>`, and a `<script src>` to `assets/nav.js`. Two attributes on `<body>`
-  carry the wiring — `data-root` is the relative path back up to `docs/` (`.` at
-  the top, `..` one level down), `data-page` is the page's id.
-- **Adding a page means adding a line to the `TREE` array in
+- **Every page except `index.html` lives in a topic folder** (`design/`,
+  `architecture/`, `data-model/`, …). Only `index.html` sits at the root.
+- **Adding a page = adding a line to the `TREE` array in
   [`docs/assets/nav.js`](docs/assets/nav.js).** That array is the whole sidebar;
-  nothing generates it. A page not listed there is unreachable.
-- Diagrams stay as `<pre class="mermaid">`. A page with one loads two scripts,
-  in this order: the vendored `docs/assets/vendor/mermaid.min.js`, then
-  [`docs/assets/diagrams.js`](docs/assets/diagrams.js), which initialises
-  mermaid and wraps each rendered diagram in a pan/zoom/expand viewer (drag,
-  ctrl+wheel, double-click to expand, Esc to close). Mermaid is vendored
-  deliberately: the site must work offline, and `fetch`/ES modules are blocked
-  on the `file://` origin — anything new must load via plain `<script src>` for
-  the same reason.
-- `docs/mockups/` is **not** part of the site. Those wireframes are standalone
-  pages, linked out to and opened in their own tab; leave them as they are.
+  a page not listed there is unreachable.
+- Diagrams are `<pre class="mermaid">`; such a page loads, in order, the vendored
+  `assets/vendor/mermaid.min.js` then [`assets/diagrams.js`](docs/assets/diagrams.js).
+  Load everything via plain `<script src>` — `fetch`/ES modules are blocked on
+  the `file://` origin, and the site must work offline.
+- `docs/mockups/` is **not** part of the site — standalone wireframes opened in
+  their own tab. Leave them as they are.
 
 ## Conventions
 
-- Package manager: **pnpm** (v9). Node >= 20. Build orchestration: **Turborepo**.
-- **Work lands on `main` directly.** No feature branches, no PRs — this is a
-  single-maintainer repo and the branch-and-review round trip bought nothing.
-  Commit on `main` and push there.
-- **Commit subject: `<version> #<issue>: <type>: <description>`** — e.g.
-  `0.4.0 #93: feat: split the profile into two faces`. All four parts, in that
-  order:
-  - **version** — the next version of the app the change lands in, and
-    `ventures/waypoint/apps/web/package.json` is bumped to match it in the same
-    commit. Default to a **minor** bump for a feature and a **patch** for a fix;
-    a major bump only ever happens when the maintainer says so. Never invent a
-    major bump.
-  - **issue** — the ticket the work closes, bare `#n` here because the subject
-    is read by a human. The *body* still ends with a fully-qualified
-    `Closes AidanInceer/Waypoint#<n>`, because issues live in the venture's own
-    GitHub repo and a bare `#93` in the body points GitHub at the wrong tracker.
-  - **type** — Conventional Commits' word: `feat`, `fix`, `docs`, `refactor`,
-    `chore`, `test`.
-  - **description** — sentence case, no full stop, says what changed.
-
-  The subject starts at the version digit and **nothing goes in front of it.**
-
-  On Windows this has gone wrong twice, both times the same way. A multi-line
-  message is passed to `git commit -m` with a PowerShell here-string, `@'` …
-  `'@` — and if the closing `'@` is indented, or the opening `@'` is not the
-  last thing on its line, PowerShell stops treating them as delimiters and the
-  bare `@` characters end up inside the message. Git then reads a first line of
-  `@`, folds it into the next line for display, and every tool downstream shows
-  the commit as `@`.
-
-  So: the `@'` and `'@` must each sit alone, `'@` at column 0. Then read the
-  subject back before moving on —
-
-  ```bash
-  git log -1 --format=%s
-  ```
-
-  which prints the subject by itself. It must begin with a digit. If it begins
-  with `@`, the here-string leaked and the message needs amending.
-- **Commit at the end of a session, not during it.** Once the work has been
-  reviewed and the go-ahead given — or the next session starts, which is the
-  same signal — commit the changes: one commit per ticket, never a single
+- **pnpm** (v9), Node >= 20, **Turborepo**. Workspaces are defined in
+  **`pnpm-workspace.yaml` only** — never add an npm-style `"workspaces"` array.
+- **Work lands on `main` directly.** No feature branches, no PRs. Commit at the
+  end of a session (or when the next one starts): one commit per ticket, never a
   catch-all.
-- Workspaces are defined in **`pnpm-workspace.yaml` only** — new packages/apps
-  must live under a globbed path to be picked up. Do not add an npm-style
-  `"workspaces"` array to `package.json`; pnpm ignores it and the two silently
-  drift apart.
+- **Commit subject: `<version> #<issue>: <type>: <description>`** — e.g.
+  `0.4.0 #93: feat: split the profile into two faces`. Nothing precedes the
+  version digit.
+  - **version** — next app version; bump
+    `ventures/waypoint/apps/web/package.json` to match in the same commit. Minor
+    for a feature, patch for a fix; major only when the maintainer says so.
+  - **issue** — bare `#n` in the subject; the body ends with a fully-qualified
+    `Closes AidanInceer/Waypoint#<n>` (issues live in the venture's own repo).
+  - **type** — `feat` | `fix` | `docs` | `refactor` | `chore` | `test`.
+  - **description** — sentence case, no full stop.
+- **Windows commit gotcha:** with a PowerShell here-string, `@'` must be last on
+  its line and `'@` alone at column 0 — otherwise the `@` leaks into the message.
+  Verify with `git log -1 --format=%s`; the subject must start with a digit, not `@`.
 
 ## Gotchas
 
-- **`ventures/waypoint/apps/prototype` is superseded** — the retired Vite /
-  localStorage cut. Prior art only; don't extend it.
-- **`wireframe/` directories are not packages.** Plain HTML, no install, no
-  build — inline all CSS/JS, no `package.json`.
+- **`wireframe/` directories are not packages** — plain HTML, no install, no
+  build, no `package.json`; inline all CSS/JS.
 - **Deployment is per-app.** Each deployable app gets its own workflow + Vercel
   project; CI must never deploy the whole monorepo at once.
 
-## Guardrails
-
-- Don't wire real credentials or live keys anywhere in the repo.
-- Flag anything touching auth, encryption, PII, or compliance rather than
-  glossing over it.
-
 ## Agent skills
 
-### Issue tracker
-
-Issues/PRDs live as GitHub issues (`gh` CLI). See `docs/agents/issue-tracker.html`.
-
-### Domain docs
-
-Multi-context: root `CONTEXT-MAP.md` points to per-venture `CONTEXT.md` + `docs/adr/`. See `docs/agents/domain.html`.
+Issues/PRDs live as GitHub issues (`gh` CLI). See
+[`docs/agents/issue-tracker.html`](docs/agents/issue-tracker.html) and
+[`docs/agents/domain.html`](docs/agents/domain.html).

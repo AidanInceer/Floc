@@ -13,7 +13,7 @@
 (function () {
   var TREE = [
     { id: 'index', label: 'Overview', href: 'index.html' },
-    { id: 'architecture', label: 'Architecture', href: 'architecture.html' },
+    { id: 'architecture', label: 'Architecture', href: 'architecture/architecture.html' },
     {
       label: 'Design',
       children: [
@@ -21,9 +21,9 @@
         { id: 'visual-language', label: 'Visual language', href: 'design/visual-language.html' }
       ]
     },
-    { id: 'monetisation', label: 'Monetisation', href: 'monetisation.html' },
-    { id: 'partner-trips', label: 'Partner trips', href: 'partner-trips.html' },
-    { id: 'product-ideas', label: 'Product ideas', href: 'product-ideas.html' },
+    { id: 'monetisation', label: 'Monetisation', href: 'monetisation/monetisation.html' },
+    { id: 'partner-trips', label: 'Partner trips', href: 'research/partner-trips.html' },
+    { id: 'product-ideas', label: 'Product ideas', href: 'backlog/product-ideas.html' },
     {
       label: 'Data model',
       children: [
