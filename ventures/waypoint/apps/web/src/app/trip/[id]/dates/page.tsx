@@ -19,19 +19,17 @@ import {
   Badge,
   Card,
   CardHeader,
-  Field,
-  Input,
   Page,
   PageHeader,
   Stack,
 } from "@/components/ui";
-import { ActionForm, ConfirmSubmit, SubmitButton } from "@/components/client-ui";
+import { ConfirmSubmit } from "@/components/client-ui";
 import { AvailabilityCalendar } from "@/components/availability-calendar";
 import {
   clearMyAvailability,
   clearTripDates,
   saveAvailability,
-  setTripDatesFromCalendar,
+  setTripDates,
 } from "./actions";
 
 /** Three months at a time — enough to see a season without endless paging. */
@@ -78,79 +76,44 @@ export default async function DatesPage({
 
   return (
     <Page wide flush>
+      {/*
+       * The dates are the page's headline, not a card of their own (ticket
+       * 128). There was a "The dates" panel above the calendar holding a range
+       * and a nights count; a whole bordered card to say eight words, directly
+       * above the calendar that sets them. The window belongs in the header
+       * with the title, where you read it without being asked to.
+       */}
       <PageHeader
         title="Dates"
-        subtitle="Mark the days you could go."
+        subtitle={
+          hasDates ? (
+            <>
+              <span className="nums text-base text-ink">
+                {formatDateRange(trip.startDate, trip.endDate)}
+              </span>{" "}
+              <span className="text-ink-faint">
+                ({nightsBetween(trip.startDate!, trip.endDate!)} nights)
+              </span>
+            </>
+          ) : (
+            "Not settled yet — mark the days you could go."
+          )
+        }
+        actions={
+          hasDates ? (
+            <form action={clearTripDates.bind(null, tripId)}>
+              <ConfirmSubmit
+                variant="ghost"
+                message="Clear the trip's dates? Days and events stay where they are."
+              >
+                Clear dates
+              </ConfirmSubmit>
+            </form>
+          ) : undefined
+        }
       />
 
       <Stack gap={6}>
-        <Card>
-          <CardHeader
-            title={hasDates ? "The dates" : "No dates yet"}
-            hint={hasDates ? "Everything else on the trip hangs off these." : undefined}
-            actions={
-              hasDates ? (
-                <form action={clearTripDates.bind(null, tripId)}>
-                  <ConfirmSubmit
-                    variant="ghost"
-                    message="Clear the trip's dates? Days and events stay where they are."
-                  >
-                    Clear dates
-                  </ConfirmSubmit>
-                </form>
-              ) : undefined
-            }
-          />
-          <div className="flex flex-col gap-4 p-4">
-            {hasDates ? (
-              <p className="text-sm">
-                <span className="nums">
-                  {formatDateRange(trip.startDate, trip.endDate)}
-                </span>{" "}
-                <span className="text-ink-faint">
-                  ({nightsBetween(trip.startDate!, trip.endDate!)} nights)
-                </span>
-              </p>
-            ) : null}
-
-            <ActionForm action={setTripDatesFromCalendar}>
-              <input type="hidden" name="tripId" value={tripId} />
-              <div className="flex flex-wrap items-end gap-2">
-                <Field label="Start" className="w-40">
-                  <Input
-                    type="date"
-                    name="startDate"
-                    defaultValue={trip.startDate ?? suggestion?.start ?? ""}
-                  />
-                </Field>
-                <Field label="End" className="w-40">
-                  <Input
-                    type="date"
-                    name="endDate"
-                    defaultValue={trip.endDate ?? suggestion?.end ?? ""}
-                  />
-                </Field>
-                <SubmitButton pendingLabel="Setting…">
-                  {hasDates ? "Change dates" : "Set the dates"}
-                </SubmitButton>
-              </div>
-            </ActionForm>
-
-            {suggestion ? (
-              <p className="text-xs text-ink-faint">
-                Best overlap so far:{" "}
-                <span className="nums text-ink-soft">
-                  {suggestion.start === suggestion.end
-                    ? formatDate(suggestion.start)
-                    : `${formatDate(suggestion.start)} – ${formatDate(suggestion.end)}`}
-                </span>{" "}
-                — {suggestion.free} of {members.length} free
-                {hasDates ? "" : ", pre-filled above"}.
-              </p>
-            ) : null}
-          </div>
-        </Card>
-
         <Card>
           <CardHeader
             title="Who can do when"
@@ -169,6 +132,17 @@ export default async function DatesPage({
             }
           />
           <div className="p-4">
+            {suggestion ? (
+              <p className="mb-3 text-xs text-ink-faint">
+                Best overlap so far:{" "}
+                <span className="nums text-ink-soft">
+                  {suggestion.start === suggestion.end
+                    ? formatDate(suggestion.start)
+                    : `${formatDate(suggestion.start)} – ${formatDate(suggestion.end)}`}
+                </span>{" "}
+                — {suggestion.free} of {members.length} free.
+              </p>
+            ) : null}
             <AvailabilityCalendar
               firstMonth={firstMonth}
               monthCount={MONTHS_SHOWN}
@@ -178,6 +152,7 @@ export default async function DatesPage({
               tripStart={trip.startDate}
               tripEnd={trip.endDate}
               save={saveAvailability.bind(null, tripId)}
+              saveDates={setTripDates.bind(null, tripId)}
             />
           </div>
         </Card>

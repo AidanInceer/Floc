@@ -12,6 +12,14 @@
  *   group are free. Shaded by agreement (ticket 67): green when the whole group
  *   is free, red when the day would leave somebody out, unshaded when nobody
  *   has answered. Shaded *and* numbered: colour is never the only signal.
+ * - **The dates** — the same grid again, used to commit the trip's own window:
+ *   first click the start, second the end, a third starts over. It arrived
+ *   here in ticket 128 from a pair of native `<input type="date">` boxes in the
+ *   card above, whose popover opened on the current month however far off the
+ *   trip was. Briefly it was a second grid stacked over this one, which is a
+ *   silly thing to do to a page: two near-identical calendars, and you had to
+ *   read them to find out which was which. One calendar, three things to look
+ *   at it for.
  *
  * Months render several at a time (a group picking "sometime in the spring"
  * shouldn't have to page one month at a time), with paging on top of that.
@@ -27,9 +35,9 @@ import {
   monthsFrom,
   type IsoMonth,
 } from "@/lib/availability";
-import { dateRange, today } from "@/lib/dates";
+import { dateRange, formatDate, today } from "@/lib/dates";
 
-type View = "mine" | "everyone";
+type View = "mine" | "everyone" | "dates";
 
 export function AvailabilityCalendar({
   firstMonth,
@@ -40,6 +48,7 @@ export function AvailabilityCalendar({
   tripStart,
   tripEnd,
   save,
+  saveDates,
 }: {
   firstMonth: IsoMonth;
   monthCount: number;
@@ -51,6 +60,8 @@ export function AvailabilityCalendar({
   tripStart: string | null;
   tripEnd: string | null;
   save: (add: string[], remove: string[]) => Promise<void>;
+  /** Commits the trip's window. Null on both ends clears it. */
+  saveDates: (start: string | null, end: string | null) => Promise<void>;
 }) {
   const [view, setView] = useState<View>("mine");
   const [month, setMonth] = useState(firstMonth);
@@ -73,6 +84,29 @@ export function AvailabilityCalendar({
     target: boolean;
     base: Record<string, boolean>;
   } | null>(null);
+
+  /**
+   * The trip's window as it is being picked, which starts as whatever is
+   * stored. `null` start means nothing is picked; a start with no end is a
+   * half-made range that shows as a single day and can't be committed as a
+   * pair by accident.
+   */
+  const [range, setRange] = useState<{ start: string | null; end: string | null }>(
+    { start: tripStart, end: tripEnd },
+  );
+  const rangeEnd = range.end ?? range.start;
+  const rangeChanged = range.start !== tripStart || rangeEnd !== tripEnd;
+
+  const pickRange = (date: string) => {
+    // A click before the current start means "actually, from here" — nobody
+    // means "end before start", which is why this grid needs no `min` to
+    // enforce the order the two native boxes couldn't.
+    setRange((r) =>
+      r.start === null || r.end !== null || date < r.start
+        ? { start: date, end: null }
+        : { ...r, end: date },
+    );
+  };
 
   const stored = new Set(mine);
   const isFree = (date: string) => edits[date] ?? stored.has(date);
@@ -137,6 +171,11 @@ export function AvailabilityCalendar({
       setEdits({});
     });
 
+  const onSaveDates = () =>
+    startTransition(async () => {
+      await saveDates(range.start, rangeEnd);
+    });
+
   const months = monthsFrom(month, monthCount);
   const now = today();
 
@@ -156,7 +195,7 @@ export function AvailabilityCalendar({
     >
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="inline-flex overflow-hidden rounded-md border border-rule-strong">
-          {(["mine", "everyone"] as const).map((v) => (
+          {(["mine", "everyone", "dates"] as const).map((v) => (
             <button
               key={v}
               type="button"
@@ -169,7 +208,7 @@ export function AvailabilityCalendar({
                   : "bg-sheet text-ink-soft hover:bg-sheet-2",
               )}
             >
-              {v === "mine" ? "Mine" : "Everyone"}
+              {v === "mine" ? "Mine" : v === "everyone" ? "Everyone" : "The dates"}
             </button>
           ))}
         </div>
@@ -230,8 +269,21 @@ export function AvailabilityCalendar({
                     inTrip={
                       !!tripStart && !!tripEnd && date >= tripStart && date <= tripEnd
                     }
-                    onStart={(e) => startPaint(date, e)}
-                    onToggle={() => setEdits({ ...edits, [date]: !isFree(date) })}
+                    inRange={
+                      view === "dates" &&
+                      range.start !== null &&
+                      !!rangeEnd &&
+                      date >= range.start &&
+                      date <= rangeEnd
+                    }
+                    onStart={(e) =>
+                      view === "dates" ? pickRange(date) : startPaint(date, e)
+                    }
+                    onToggle={() =>
+                      view === "dates"
+                        ? pickRange(date)
+                        : setEdits({ ...edits, [date]: !isFree(date) })
+                    }
                   />
                 ),
               )}
@@ -240,7 +292,35 @@ export function AvailabilityCalendar({
         ))}
       </div>
 
-      {view === "mine" ? (
+      {view === "dates" ? (
+        <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-rule pt-4">
+          <p className="text-sm text-ink-soft">
+            {range.start ? (
+              <span className="nums">
+                {formatDate(range.start)}
+                {rangeEnd !== range.start ? ` – ${formatDate(rangeEnd)}` : ""}
+              </span>
+            ) : (
+              "Pick the first day"
+            )}
+          </p>
+          <Button
+            variant="primary"
+            disabled={!range.start || !rangeChanged || pending}
+            onClick={onSaveDates}
+          >
+            {pending ? "Setting…" : tripStart ? "Change dates" : "Set the dates"}
+          </Button>
+          {rangeChanged ? (
+            <Button
+              variant="ghost"
+              onClick={() => setRange({ start: tripStart, end: tripEnd })}
+            >
+              Discard
+            </Button>
+          ) : null}
+        </div>
+      ) : view === "mine" ? (
         <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-rule pt-4">
           <Button
             variant="primary"
@@ -287,6 +367,7 @@ function DayCell({
   memberCount,
   past,
   inTrip,
+  inRange,
   onStart,
   onToggle,
 }: {
@@ -297,6 +378,8 @@ function DayCell({
   memberCount: number;
   past: boolean;
   inTrip: boolean;
+  /** Inside the window being picked, in the dates view. */
+  inRange: boolean;
   onStart: (e: React.PointerEvent) => void;
   onToggle: () => void;
 }) {
@@ -343,12 +426,26 @@ function DayCell({
     );
   }
 
+  /*
+   * Two things one cell can be showing (ticket 128). Painting your own
+   * availability, a day is on or off by itself and reads as a mark. Picking the
+   * trip's window, the same cell belongs to a *span*, so it takes the pen fill
+   * rather than the green one — the group's free days and the group's decision
+   * are different claims and mustn't look alike on the same grid.
+   */
+  const picking = view === "dates";
+  const marked = picking ? inRange : free;
+
   return (
     <button
       type="button"
       role="gridcell"
-      aria-pressed={free}
-      aria-label={`${date}${free ? " — you're free" : ""}`}
+      aria-pressed={marked}
+      aria-label={
+        picking
+          ? `${date}${inRange ? " — in the trip" : ""}`
+          : `${date}${free ? " — you're free" : ""}`
+      }
       // What the surface above hit-tests for on every move — the cell under
       // the pointer, which `pointerenter` is no help with on touch.
       data-date={date}
@@ -361,10 +458,14 @@ function DayCell({
       }}
       className={cx(
         "flex aspect-square items-center justify-center rounded-sm border font-mono text-[11px] leading-none transition-colors",
-        free
-          ? "border-green bg-green-soft font-semibold text-green"
+        marked
+          ? picking
+            ? "border-pen bg-pen-soft font-semibold text-pen"
+            : "border-green bg-green-soft font-semibold text-green"
           : "border-rule bg-sheet text-ink-soft hover:bg-sheet-2",
-        inTrip && !free && "border-pen",
+        // The stored window, as a reminder of what you're changing — but not
+        // over a cell already carrying the pick.
+        inTrip && !marked && "border-pen",
         past && "opacity-45",
       )}
     >

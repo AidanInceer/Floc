@@ -63,25 +63,30 @@ export async function saveAvailability(
  * Commits the group's dates. Deliberately available before everyone has
  * answered — the suggested window comes from whoever *has*, and someone
  * eventually has to just book it.
+ *
+ * Takes the pair as arguments rather than a `FormData` (ticket 128): the
+ * window is picked on the calendar now, not typed into two boxes, so what
+ * arrives is a client component's local state. Which means it is checked, not
+ * trusted — `isIsoDate` also rejects a well-shaped impossible day.
  */
-export async function setTripDatesFromCalendar(formData: FormData) {
-  const tripId = Number(formData.get("tripId"));
-  const startDate = readIsoDate(formData.get("startDate"));
-  const endDate = readIsoDate(formData.get("endDate"));
+export async function setTripDates(
+  tripId: number,
+  start: string | null,
+  end: string | null,
+) {
+  const startDate = readIsoDate(start);
+  const endDate = readIsoDate(end);
 
-  // A malformed date and a missing one get the same message: both mean "the
-  // box doesn't hold a day", and the picker is what produces either.
-  if (!startDate || !endDate) return { error: "Pick both a start and an end." };
+  if (!startDate || !endDate) throw new Error("Pick both a start and an end");
   // Only safe as a string compare *because* both are known `YYYY-MM-DD` by
   // here — the old code did this on unvalidated input, where it meant nothing.
-  if (startDate > endDate) {
-    return { error: "The end date is before the start date." };
-  }
+  if (startDate > endDate) throw new Error("The end date is before the start");
 
   const access = await requireTripAccess(tripId);
   await setTripDateRange(access.trip.id, startDate, endDate);
 
   revalidateTripHeader(access.trip.id);
+  revalidateDates(access.trip.id);
 }
 
 /** Back to undated — the trip stays entirely usable without dates. */

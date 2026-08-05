@@ -1,22 +1,31 @@
 "use client";
 
 /**
- * A start/end date pair picked off a month grid (ticket 87), for the Route
- * tab's stop forms. Two plain `<input type="date">` boxes made you type a stop
- * into a trip you were already looking at, and the native picker offered every
- * date there has ever been — including the ones outside the trip.
+ * The one way a date is picked anywhere in Waypoint (tickets 87, 128).
  *
- * The grid is the Dates tab's grid on purpose (`availability-calendar.tsx`):
- * same cell, same weekday header, same paging, so a stop's dates are chosen
- * the way the trip's dates were. It is a *range* picker rather than a paint
- * surface, so the interaction differs: first click sets the start, second sets
- * the end, a third starts over.
+ * It began as the Route tab's stop-dates field: two plain `<input type="date">`
+ * boxes made you type a stop into a trip you were already looking at, and the
+ * native picker offered every date there has ever been. Ticket 128 finished the
+ * job — the Dates tab set the trip's own window with the same two native boxes,
+ * whose popover opens on the current month however far off the trip is, puts no
+ * bound on the end, and looks like the browser rather than like the app. A trip
+ * starting in January 2027 was picked from a calendar sitting in August 2026.
  *
- * Days outside `min`/`max` render disabled rather than being dropped, so the
- * grid keeps its shape and a month at the edge of the trip doesn't reflow
- * (ticket 87). The real values travel in hidden inputs, so the surrounding
- * server action sees exactly the same `startDate`/`endDate` fields it did when
- * these were date inputs.
+ * So: one grid, no native popover left in the app. First click sets the start,
+ * second sets the end, a third starts over — the end can't precede the start
+ * because there is nowhere to say so, which is a stronger guarantee than a
+ * `min` attribute. The grid is the Dates tab's own grid (`availability-
+ * calendar.tsx`): same cell, same weekday header, same paging, so a stop's
+ * dates are chosen the way the trip's dates were.
+ *
+ * `min`/`max` are optional. Bounded, days outside render disabled rather than
+ * being dropped, so the grid keeps its shape and a month at the edge of the
+ * trip doesn't reflow (ticket 87). Unbounded — the trip's own dates, which
+ * answer to nothing — every day is takeable.
+ *
+ * The real values travel in hidden inputs, so a surrounding server action sees
+ * exactly the same `startDate`/`endDate` fields it did when these were date
+ * inputs.
  */
 import { useState } from "react";
 
@@ -28,6 +37,7 @@ import {
   monthGrid,
   monthOf,
   monthsFrom,
+  thisMonth,
 } from "@/lib/availability";
 import { formatDate } from "@/lib/dates";
 
@@ -38,22 +48,40 @@ export function DateRangePicker({
   max,
   defaultStart,
   defaultEnd,
+  openMonth,
   /** How many months to show at once. The trip window is usually one or two. */
   monthCount = 2,
+  /**
+   * Start closed, behind a summary line that opens it. For a field most people
+   * skip — the optional dates on the create-trip form — where a month grid
+   * sitting open is more surface than the question deserves.
+   */
+  collapsible = false,
 }: {
   startName: string;
   endName: string;
-  /** First selectable date — the trip's start. */
-  min: string;
-  /** Last selectable date — the trip's end. */
-  max: string;
+  /** First selectable date. Omit for no lower bound. */
+  min?: string;
+  /** Last selectable date. Omit for no upper bound. */
+  max?: string;
   defaultStart?: string;
   defaultEnd?: string;
+  /**
+   * Which month to open on when nothing is picked yet — the trip's own month,
+   * or the group's best overlap. Falls back to `min`, then to now. Never
+   * "today" when the caller knows better, which is the whole complaint that
+   * ticket 128 started from.
+   */
+  openMonth?: string;
   monthCount?: number;
+  collapsible?: boolean;
 }) {
   const [start, setStart] = useState<string | null>(defaultStart ?? null);
   const [end, setEnd] = useState<string | null>(defaultEnd ?? null);
-  const [month, setMonth] = useState(monthOf(defaultStart ?? min));
+  const [month, setMonth] = useState(
+    monthOf(defaultStart ?? openMonth ?? min ?? `${thisMonth()}-01`),
+  );
+  const [open, setOpen] = useState(!collapsible);
 
   const pick = (date: string) => {
     // Start-then-end, and a click before the current start becomes the new
@@ -72,6 +100,13 @@ export function DateRangePicker({
   // fields are always a valid pair — a half-made selection can't submit a blank
   // end.
   const endValue = end ?? start ?? "";
+  const summary = start
+    ? `${formatDate(start)}${endValue !== start ? ` – ${formatDate(endValue)}` : ""}`
+    : collapsible
+      // Closed and empty, this is the only thing standing in for the field, so
+      // it says what tapping it does rather than what to do once it's open.
+      ? "Add dates"
+      : "Pick a day";
 
   return (
     <div>
@@ -79,78 +114,89 @@ export function DateRangePicker({
       <input type="hidden" name={endName} value={endValue} />
 
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-ink-soft">
-          {start ? (
-            <span className="nums">
-              {formatDate(start)}
-              {endValue !== start ? ` – ${formatDate(endValue)}` : ""}
-            </span>
-          ) : (
-            "Pick a day"
-          )}
-        </p>
-        <div className="flex items-center gap-2">
-          {/* type="button" throughout: this picker lives inside a form, and a
-              bare <button> in one defaults to submit. */}
+        {collapsible ? (
           <Button
             type="button"
             variant="ghost"
-            aria-label="Earlier months"
-            onClick={() => setMonth(addMonths(month, -1))}
+            aria-expanded={open}
+            onClick={() => setOpen(!open)}
           >
-            ←
+            <span className={start ? "nums" : undefined}>{summary}</span>
           </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            aria-label="Later months"
-            onClick={() => setMonth(addMonths(month, 1))}
-          >
-            →
-          </Button>
-        </div>
+        ) : (
+          <p className="text-sm text-ink-soft">
+            <span className={start ? "nums" : undefined}>{summary}</span>
+          </p>
+        )}
+        {open ? (
+          <div className="flex items-center gap-2">
+            {/* type="button" throughout: this picker lives inside a form, and a
+                bare <button> in one defaults to submit. */}
+            <Button
+              type="button"
+              variant="ghost"
+              aria-label="Earlier months"
+              onClick={() => setMonth(addMonths(month, -1))}
+            >
+              ←
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              aria-label="Later months"
+              onClick={() => setMonth(addMonths(month, 1))}
+            >
+              →
+            </Button>
+          </div>
+        ) : null}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {months.map((m) => (
-          <div key={m}>
-            <p className="typed mb-2">{formatMonth(m)}</p>
-            <div
-              className="grid grid-cols-7 gap-px text-center"
-              role="grid"
-              aria-label={`${formatMonth(m)} dates`}
-            >
-              {WEEKDAY_LABELS.map((label, i) => (
-                <span
-                  key={i}
-                  aria-hidden
-                  className="pb-1 font-mono text-[10px] uppercase text-ink-faint"
-                >
-                  {label}
-                </span>
-              ))}
-              {monthGrid(m)
-                .flat()
-                .map((date, i) =>
-                  date === null ? (
-                    <span key={`pad-${i}`} />
-                  ) : (
-                    <DayCell
-                      key={date}
-                      date={date}
-                      outside={date < min || date > max}
-                      selected={
-                        start !== null && date >= start && date <= endValue
-                      }
-                      edge={date === start || date === endValue}
-                      onPick={() => pick(date)}
-                    />
-                  ),
-                )}
+      {open ? (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {months.map((m) => (
+            <div key={m}>
+              <p className="typed mb-2">{formatMonth(m)}</p>
+              <div
+                className="grid grid-cols-7 gap-px text-center"
+                role="grid"
+                aria-label={`${formatMonth(m)} dates`}
+              >
+                {WEEKDAY_LABELS.map((label, i) => (
+                  <span
+                    key={i}
+                    aria-hidden
+                    className="pb-1 font-mono text-[10px] uppercase text-ink-faint"
+                  >
+                    {label}
+                  </span>
+                ))}
+                {monthGrid(m)
+                  .flat()
+                  .map((date, i) =>
+                    date === null ? (
+                      <span key={`pad-${i}`} />
+                    ) : (
+                      <DayCell
+                        key={date}
+                        date={date}
+                        outside={
+                          (min !== undefined && date < min) ||
+                          (max !== undefined && date > max)
+                        }
+                        selected={
+                          start !== null && date >= start && date <= endValue
+                        }
+                        edge={date === start || date === endValue}
+                        onPick={() => pick(date)}
+                      />
+                    ),
+                  )}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

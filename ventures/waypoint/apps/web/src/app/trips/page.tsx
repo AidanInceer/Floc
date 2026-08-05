@@ -30,6 +30,7 @@ import {
   cx,
 } from "@/components/ui";
 import { Sheet, SubmitButton } from "@/components/client-ui";
+import { DateRangePicker } from "@/components/date-range-picker";
 import { TripCard } from "@/components/trip-card";
 import type { TripCardData } from "@/components/trip-card";
 import { createTrip } from "./actions";
@@ -240,15 +241,17 @@ function CreateTripForm() {
         </Field>
         {/* Genuinely optional, and usually left blank: the Dates tab is where
             the group works out when it can actually go. Only fill these in if
-            the dates are already a fact. */}
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Start date" hint="Optional">
-            <Input type="date" name="startDate" />
-          </Field>
-          <Field label="End date" hint="Optional">
-            <Input type="date" name="endDate" />
-          </Field>
-        </div>
+            the dates are already a fact — which is why the grid starts closed
+            (ticket 128) rather than putting a month of days in front of a
+            question most people skip. */}
+        <Field label="Dates" hint="Optional">
+          <DateRangePicker
+            startName="startDate"
+            endName="endDate"
+            monthCount={1}
+            collapsible
+          />
+        </Field>
         <SubmitButton pendingLabel="Creating…">Create trip</SubmitButton>
       </Stack>
     </form>

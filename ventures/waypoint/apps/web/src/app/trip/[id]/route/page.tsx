@@ -37,7 +37,6 @@ import {
   Badge,
   EmptyState,
   Field,
-  Input,
   Page,
   PageHeader,
   Stack,
@@ -256,11 +255,12 @@ function shortRange(start: string, end: string) {
  * scoped to the trip's own window, so a stop can't be dated into a month the
  * trip doesn't cover.
  *
- * When the trip has no dates the calendar has no window to draw, and rule 9
- * says undated is a normal state, not an error — so this falls back to the two
- * plain date inputs it replaced rather than blocking the form on "set the trip
- * dates first". A group that knows it's in Lisbon before it knows which week
- * can still say so.
+ * When the trip has no dates there is no window to bound the grid with, and
+ * rule 9 says undated is a normal state, not an error — so the picker runs
+ * unbounded rather than the form blocking on "set the trip dates first". A
+ * group that knows it's in Lisbon before it knows which week can still say so.
+ * It used to fall back to two native date inputs here; ticket 128 made the
+ * bounds optional, which left the fallback with nothing to do.
  */
 function StopDatesField({
   tripStart,
@@ -273,28 +273,16 @@ function StopDatesField({
   startDate?: string;
   endDate?: string;
 }) {
-  if (!tripStart || !tripEnd) {
-    return (
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="From">
-          <Input type="date" name="startDate" defaultValue={startDate} required />
-        </Field>
-        <Field label="To">
-          <Input type="date" name="endDate" defaultValue={endDate} required />
-        </Field>
-      </div>
-    );
-  }
-
   return (
     <Field label="Dates">
       <DateRangePicker
         startName="startDate"
         endName="endDate"
-        min={tripStart}
-        max={tripEnd}
+        min={tripStart ?? undefined}
+        max={tripEnd ?? undefined}
         defaultStart={startDate}
         defaultEnd={endDate}
+        openMonth={tripStart ?? undefined}
       />
     </Field>
   );
