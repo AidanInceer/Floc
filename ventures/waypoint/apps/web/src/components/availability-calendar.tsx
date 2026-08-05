@@ -179,6 +179,18 @@ export function AvailabilityCalendar({
   const months = monthsFrom(month, monthCount);
   const now = today();
 
+  /*
+   * One footer shape for all three views. They hold different things — a save
+   * button, a key, a range and its buttons — and letting each size itself
+   * moved the card's bottom edge every time you switched view, which made a
+   * switch between two views of the same grid look like a change of page.
+   * The `min-h` spells out what it is reserving — a button (2rem), this box's
+   * own top padding and its rule — so a row of keys takes the room a row of
+   * buttons takes and the bottom edge stays put.
+   */
+  const footer =
+    "mt-5 flex min-h-[calc(2rem+1rem+1px)] flex-wrap items-center gap-x-4 gap-y-2 border-t border-rule pt-4";
+
   return (
     <div
       ref={surface}
@@ -301,7 +313,7 @@ export function AvailabilityCalendar({
       </div>
 
       {view === "dates" ? (
-        <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-rule pt-4">
+        <div className={footer}>
           <p className="text-sm text-ink-soft">
             {range.start ? (
               <span className="nums">
@@ -336,7 +348,7 @@ export function AvailabilityCalendar({
           </div>
         </div>
       ) : view === "mine" ? (
-        <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-rule pt-4">
+        <div className={footer}>
           <Button
             variant="primary"
             disabled={changed.length === 0 || pending}
@@ -358,7 +370,7 @@ export function AvailabilityCalendar({
         /* A key, not a paragraph (ticket 76). The swatch carries the colour and
            the label carries the meaning, so the reader matches rather than
            reads — the first instance of the visual-over-text convention. */
-        <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-rule pt-4">
+        <div className={footer}>
           <LegendKey swatch="bg-green-soft border-green" label="All free" />
           <LegendKey swatch="bg-red-soft border-red" label="Some missing" />
           <LegendKey swatch="bg-sheet-2 border-rule" label="No answer yet" />
