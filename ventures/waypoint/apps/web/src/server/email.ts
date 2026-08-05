@@ -141,7 +141,12 @@ function renderShell(email: OutboundEmail) {
         email.cta.label,
       )}</a></p>`
     : "";
-  return `<div style="background:#f7f3ec;padding:24px;font-family:'Segoe UI',system-ui,sans-serif;color:#17282d">
+  // Ticket 121: this was the app's fourth typeface — a UI sans nothing else
+  // used. Mail can't have the tokens (no stylesheet, and `--serif`'s first
+  // choices aren't installed on a mail client), but Georgia is in that stack
+  // and ships everywhere, so a Waypoint email now arrives set in the book's
+  // own voice rather than in a system dialog's.
+  return `<div style="background:#f7f3ec;padding:24px;font-family:Georgia,'Times New Roman',serif;color:#17282d">
   <div style="max-width:520px;margin:0 auto;background:#fff;border:1px solid #e2dacc;border-radius:10px;padding:24px">
     <p style="margin:0 0 20px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:12px;color:#566a6e">Waypoint</p>
     ${body}${cta}

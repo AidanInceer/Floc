@@ -8,12 +8,26 @@
  * things down, and an ink stamp for anything the group has decided. Colour is
  * ink and highlighter, nothing more.
  *
- * The legibility rule that makes it work at ledger density — paper.html's own
- * discipline, kept here:
- *   - `--serif` for prose and headings.
+ * THREE FACES, AND NO MORE (ticket 121). The legibility rule that makes this
+ * work at ledger density is paper.html's own discipline, and it is also the
+ * cap: the app has exactly three typefaces, they are all declared here, and a
+ * fourth needs an argument, not a preference.
+ *
+ *   - `--serif` for prose and headings. The book.
  *   - `--type` (mono, tabular) for every figure, label and date. All money.
+ *     The typewriter — `.typed`, `.nums`, `font-mono`, every button and badge.
  *   - `--hand` for accents and marginalia ONLY. Never for data, never for
- *     anything a user has to read carefully.
+ *     anything a user has to read carefully. It is also the one face that
+ *     earns its place by being *someone's*, not the app's: the ideas composer
+ *     and the notes you write in it. Ticket 123 took it off the landing page
+ *     for exactly that reason — there it was the app doing an impression of a
+ *     person.
+ *
+ * The audit that set the cap found no fourth face in the app itself; the one
+ * stray was the notification email, which was set in a system UI sans and now
+ * takes Georgia out of the serif stack (server/email.ts). `--marginalia` is
+ * not a fourth face — it is which of these three `.hand` resolves to, and
+ * below `sm:` it is the typewriter (ticket 40).
  *
  * LIGHT ONLY, deliberately. There is no dark palette and no `data-theme`
  * switch: the whole metaphor is ink on paper, and a dark notebook is a
