@@ -12,6 +12,7 @@ import {
 } from "react";
 import type { ReactNode } from "react";
 import { useFormStatus } from "react-dom";
+import { usePathname } from "next/navigation";
 
 import { Button, Card, ErrorText, cx } from "./ui";
 
@@ -447,6 +448,152 @@ export function DragList({
         </div>
       ))}
     </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Overflow menu                                                              */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The class a control wears to look like a row in `Menu` (ticket 125).
+ *
+ * `!` throughout because most menu items are a `Button` — a `Sheet` trigger, a
+ * `ConfirmSubmit`, a `SubmitButton` — and `buttonBase`'s own utilities have to
+ * be beaten. In Tailwind v4 the stylesheet's order decides that, not the order
+ * of the class list.
+ */
+export const menuItemClass =
+  "!block !w-full !rounded-sm !border-none !px-2.5 !py-1.5 !text-left !font-sans !text-sm !normal-case !tracking-normal !text-ink-soft hover:!bg-sheet-2 hover:!text-ink";
+
+/** The same row, for the one verb you can't take back. */
+export const menuDangerItemClass =
+  "!block !w-full !rounded-sm !border-none !bg-transparent !px-2.5 !py-1.5 !text-left !font-sans !text-sm !normal-case !tracking-normal !text-ink-soft hover:!bg-red-soft hover:!text-red";
+
+/**
+ * A row's secondary verbs, behind one triple-dot (ticket 125).
+ *
+ * A card carrying Edit *and* Delete *and* a nudge bell spends its whole right
+ * edge on things you rarely do, and every one of them competes with what the
+ * row is actually for. One affordance shows; the verbs are revealed on demand.
+ *
+ * The panel does **not** close when something inside it is clicked, and that's
+ * deliberate: every destructive item here is a `ConfirmSubmit` and every edit
+ * is a `Sheet`, both of which open a native `<dialog>` rendered *inside* this
+ * subtree. Unmounting the panel on click would tear the dialog out mid-flight.
+ * So it closes on the three things that mean "I'm done": a pointer outside, an
+ * Escape, or a submit that has actually gone through. A dialog in the top layer
+ * is still a DOM descendant of the panel, so clicking one is never "outside".
+ *
+ * Not built on `Sheet` for the same reason `AccountMenu` wasn't: a sheet is a
+ * modal, which is the wrong weight for three words hanging off their trigger.
+ */
+export function Menu({
+  label,
+  children,
+  align = "right",
+  trigger,
+  triggerClassName,
+}: {
+  /** Accessible name — say whose or what's menu this is. */
+  label: string;
+  /** Plain nodes only; the same server/client rule `Sheet` documents. */
+  children: ReactNode;
+  align?: "left" | "right";
+  /** Defaults to the triple-dot. */
+  trigger?: ReactNode;
+  triggerClassName?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const menuId = useId();
+  const pathname = usePathname();
+
+  // Navigating away must not leave the panel hanging over the new page.
+  useEffect(() => setOpen(false), [pathname]);
+
+  useEffect(() => {
+    if (!open) return;
+    // Opening a menu puts you *in* it — otherwise the keyboard is still on the
+    // trigger and the first Tab leaves the panel it just opened.
+    panelRef.current?.querySelector<HTMLElement>("a, button")?.focus();
+
+    const onPointerDown = (e: PointerEvent) => {
+      if (!wrapRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
+  return (
+    <div ref={wrapRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-controls={menuId}
+        aria-label={label}
+        title={label}
+        data-open={open}
+        /* A caller with its own trigger shape (the account pill) replaces
+           these outright rather than fighting them with `!` — and styles the
+           open state off `data-open`, which is why it's on the element. */
+        className={
+          triggerClassName
+            ? cx("transition-colors", triggerClassName)
+            : cx(
+                "flex h-[26px] w-[26px] items-center justify-center rounded-full border transition-colors",
+                open
+                  ? "border-rule-strong bg-sheet-2 text-ink"
+                  : "border-transparent text-ink-faint hover:border-rule-strong hover:bg-sheet-2 hover:text-ink",
+              )
+        }
+      >
+        {trigger ?? <MoreIcon />}
+      </button>
+
+      {open ? (
+        <div
+          ref={panelRef}
+          id={menuId}
+          role="menu"
+          aria-label={label}
+          onSubmit={() => setTimeout(() => setOpen(false), 0)}
+          className={cx(
+            "absolute z-30 mt-1 w-48 rounded-md border border-rule-strong bg-sheet p-1 shadow-raised",
+            align === "right" ? "right-0" : "left-0",
+          )}
+        >
+          {children}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/** Three dots in a row — the one glyph that means "the rest of the verbs". */
+function MoreIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="16"
+      height="16"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <circle cx="5.5" cy="12" r="1.6" />
+      <circle cx="12" cy="12" r="1.6" />
+      <circle cx="18.5" cy="12" r="1.6" />
+    </svg>
   );
 }
 

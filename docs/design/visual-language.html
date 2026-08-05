@@ -243,7 +243,20 @@ rather than beside <code>Avatar</code>, because <code>server/access.ts</code> ne
 server action&#39;s <code>{ error }</code> return without a page reload), <code>SubmitButton</code>
 (pending state from <code>useFormStatus</code>), <code>Sheet</code> (a native <code>&lt;dialog&gt;</code> — bottom
 sheet on mobile, centred panel on desktop), <code>ConfirmSubmit</code>, <code>CopyLink</code>,
-<code>Segmented</code>.</p>
+<code>Segmented</code>, <code>Menu</code>.</p>
+<p><strong>One visible affordance per row.</strong> Where a row or a card had two or more
+verbs on it — edit and delete, nudge and promote and remove — they go behind a
+single triple-dot and are revealed on demand (ticket 125). A ledger is mostly
+read, and a line of buttons down its right edge competes with what the row is
+actually saying. Keep one action visible only where it plainly dominates: a
+standalone <em>Join</em> or <em>Start this trip</em> is not a candidate, and neither is a
+control that also displays state — a friend chip or a filled-in pin says
+something while sitting there, which a hidden menu item cannot.</p>
+<p><code>Menu</code> deliberately does <em>not</em> close when something inside it is clicked. Its
+items are <code>Sheet</code> and <code>ConfirmSubmit</code> triggers, each of which opens a native
+<code>&lt;dialog&gt;</code> rendered inside the panel&#39;s own subtree; unmounting on click would
+tear that dialog out mid-flight. It closes on a pointer outside it, an Escape,
+a route change, or a submit that has actually gone through.</p>
 <p>Two client components sit outside those two files because they belong to one
 surface: <code>StopSpine</code> (Route&#39;s stop list) and <code>LegTransportPicker</code> (the travel
 mode on a leg), both from ticket 82.</p>

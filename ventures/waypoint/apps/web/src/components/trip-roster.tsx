@@ -4,8 +4,9 @@
  * screen below an Unresolved list built from the same three checks.
  *
  * The roster owns chasing now, because chasing is a thing you do *to someone*:
- * every member gets a bell on their row, and Unresolved just says what is
- * outstanding. Neither says the other's half.
+ * every member's row carries it, and Unresolved just says what is outstanding.
+ * Neither says the other's half. Ticket 125 put nudging, promoting and
+ * removing behind one triple-dot per row rather than a line of icons.
  *
  * Nudging is still peer-to-peer with no deadlines and no escalation (v1
  * ticket 05), and the nudge itself is delivered by email in `sendNudge` — so
@@ -16,11 +17,22 @@ import { PersonLink } from "@/components/person-link";
 import { FriendButton } from "@/components/friend-button";
 import type { FriendState } from "@/server/friends";
 import { Field, Select, Stack, Textarea } from "@/components/ui";
-import { CopyLink, Sheet, SubmitButton } from "@/components/client-ui";
-import { KickBoot } from "@/components/kick-boot";
+import {
+  ConfirmSubmit,
+  CopyLink,
+  Menu,
+  Sheet,
+  SubmitButton,
+  menuDangerItemClass,
+  menuItemClass,
+} from "@/components/client-ui";
 import { NUDGE_TABS } from "@/db/schema";
 import type { TripMember } from "@/server/access";
-import { sendNudge } from "@/app/trip/[id]/overview/actions";
+import {
+  kickMember,
+  promoteMember,
+  sendNudge,
+} from "@/app/trip/[id]/overview/actions";
 
 const TAB_LABELS: Record<string, string> = {
   ideas: "Ideas",
@@ -108,51 +120,87 @@ export function TripRoster({
               />
             ) : null}
 
-            {/* Kicking sits on the person too (ticket 38), beside the bell and
-                admin-only. Not on your own row: leaving a trip yourself isn't
-                a kick, and an admin booting themselves out of their own trip
-                is a foot-gun, not a feature. */}
-            {isAdmin && m.userId !== viewerId ? (
-              <KickBoot tripId={tripId} userId={m.userId} name={m.name} />
-            ) : null}
+            {/*
+              Everything you do *to* someone lives behind one triple-dot
+              (ticket 125). The row used to end in a bell, a boot and — for an
+              admin — a Promote button a screen away in Trip settings, which is
+              three or four targets on a line whose actual job is to say who is
+              coming. Nudging is what most people came for, so it leads.
 
-            {/* No bell on your own row — you can't chase yourself. */}
+              Nothing on your own row: you can't chase yourself, leaving a trip
+              isn't a kick, and an admin booting themselves out of their own
+              trip is a foot-gun rather than a feature.
+            */}
             {m.userId !== viewerId ? (
-              <Sheet
-                trigger={<BellIcon />}
-                triggerVariant="ghost"
-                triggerLabel={`Nudge ${m.name}`}
-                triggerClassName="!h-[26px] !w-[26px] !rounded-full !border-transparent !px-0 !py-0 !text-ink-faint hover:!border-rule-strong hover:!bg-sheet hover:!text-pen"
-                title={`Nudge ${m.name}`}
-              >
-                {/* A real Server Action ref, so it survives the server→client
-                   boundary — a wrapping closure would not. */}
-                <form action={sendNudge}>
-                  <input type="hidden" name="tripId" value={tripId} />
-                  <input type="hidden" name="toUserId" value={m.userId} />
-                  <Stack gap={3}>
-                    <Field label="What's it about">
-                      <Select name="tab" defaultValue={NUDGE_TABS[0]}>
-                        {NUDGE_TABS.map((t) => (
-                          <option key={t} value={t}>
-                            {TAB_LABELS[t] ?? t}
-                          </option>
-                        ))}
-                      </Select>
-                    </Field>
-                    <Field label="Message (optional)">
-                      <Textarea
-                        name="message"
-                        placeholder={`e.g. "Can you vote on the ideas before the weekend?"`}
-                      />
-                    </Field>
-                    <SubmitButton pendingLabel="Sending…">Send nudge</SubmitButton>
-                  </Stack>
-                </form>
-              </Sheet>
+              <Menu label={`Actions for ${m.name}`}>
+                <Sheet
+                  trigger="Nudge"
+                  triggerVariant="ghost"
+                  triggerClassName={menuItemClass}
+                  title={`Nudge ${m.name}`}
+                >
+                  {/* A real Server Action ref, so it survives the server→client
+                     boundary — a wrapping closure would not. */}
+                  <form action={sendNudge}>
+                    <input type="hidden" name="tripId" value={tripId} />
+                    <input type="hidden" name="toUserId" value={m.userId} />
+                    <Stack gap={3}>
+                      <Field label="What's it about">
+                        <Select name="tab" defaultValue={NUDGE_TABS[0]}>
+                          {NUDGE_TABS.map((t) => (
+                            <option key={t} value={t}>
+                              {TAB_LABELS[t] ?? t}
+                            </option>
+                          ))}
+                        </Select>
+                      </Field>
+                      <Field label="Message (optional)">
+                        <Textarea
+                          name="message"
+                          placeholder={`e.g. "Can you vote on the ideas before the weekend?"`}
+                        />
+                      </Field>
+                      <SubmitButton pendingLabel="Sending…">Send nudge</SubmitButton>
+                    </Stack>
+                  </form>
+                </Sheet>
+
+                {/* Promote and kick are two of the four admin powers
+                    (CLAUDE.md rule 6); both stay gated server-side, and
+                    rendering them conditionally here is presentation. */}
+                {isAdmin && m.role !== "admin" ? (
+                  <form action={promoteMember}>
+                    <input type="hidden" name="tripId" value={tripId} />
+                    <input type="hidden" name="userId" value={m.userId} />
+                    <SubmitButton
+                      variant="ghost"
+                      pendingLabel="…"
+                      className={menuItemClass}
+                    >
+                      Make admin
+                    </SubmitButton>
+                  </form>
+                ) : null}
+
+                {isAdmin ? (
+                  <form action={kickMember}>
+                    <input type="hidden" name="tripId" value={tripId} />
+                    <input type="hidden" name="userId" value={m.userId} />
+                    <ConfirmSubmit
+                      variant="ghost"
+                      message={`Remove ${m.name} from this trip? Anything they've already posted stays on the board.`}
+                      confirmLabel="Remove them"
+                      pendingLabel="…"
+                      className={menuDangerItemClass}
+                    >
+                      Remove from trip
+                    </ConfirmSubmit>
+                  </form>
+                ) : null}
+              </Menu>
             ) : (
               // Keeps every name on the same left edge whether or not the row
-              // ends in a bell.
+              // ends in a menu.
               <span aria-hidden="true" className="h-[26px] w-[26px]" />
             )}
           </li>
@@ -185,25 +233,6 @@ function ShareIcon() {
       <circle cx="6" cy="12" r="3" />
       <circle cx="18" cy="19" r="3" />
       <path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4" />
-    </svg>
-  );
-}
-
-function BellIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="15"
-      height="15"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M18 8a6 6 0 1 0-12 0c0 6-2 7-2 7h16s-2-1-2-7" />
-      <path d="M10.3 20a2 2 0 0 0 3.4 0" />
     </svg>
   );
 }

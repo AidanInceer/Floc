@@ -53,12 +53,7 @@ import { TripTrail } from "@/components/trip-trail";
 import { TagEditor } from "@/components/tag-editor";
 import { readTagTones, readTags, tagTone, type TagTone } from "@/lib/tags";
 import { archiveTrip, deleteTrip } from "@/app/trips/actions";
-import {
-  leaveTrip,
-  promoteMember,
-  renameTrip,
-  setTripTags,
-} from "./actions";
+import { leaveTrip, renameTrip, setTripTags } from "./actions";
 
 export default async function OverviewPage({
   params,
@@ -389,54 +384,11 @@ export default async function OverviewPage({
                 </span>
               </div>
 
-              {/* Hidden on a solo trip — a "Members" heading over an empty
-                  list is a shelf advertising that it's bare. */}
-              <Stack
-                gap={2}
-                className={cx(
-                  "sm:col-span-2",
-                  members.length === 1 && "hidden",
-                )}
-              >
-                {/* Promoting only. Kicking moved onto the roster's own rows
-                    (ticket 38), so this list is no longer a second member
-                    list with its own copy of every control. */}
-                <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint">
-                  Make someone an admin
-                </span>
-                <ul className="flex flex-col gap-2">
-                  {members
-                    .filter((m) => m.userId !== viewer.id)
-                    .map((m) => (
-                      <li
-                        key={m.userId}
-                        className="flex items-center justify-between gap-2 rounded-sm border border-rule px-2.5 py-1.5"
-                      >
-                        <span className="flex items-center gap-2 text-sm">
-                          <Avatar
-                            name={m.name}
-                            src={m.avatarUrl}
-                            size={20}
-                            tone={m.tone}
-                          />
-                          {m.name}
-                          {m.role === "admin" ? <Badge tone="marine">Admin</Badge> : null}
-                        </span>
-                        <span className="flex gap-1">
-                          {m.role !== "admin" ? (
-                            <form action={promoteMember}>
-                              <input type="hidden" name="tripId" value={tripId} />
-                              <input type="hidden" name="userId" value={m.userId} />
-                              <SubmitButton variant="ghost" pendingLabel="…">
-                                Promote
-                              </SubmitButton>
-                            </form>
-                          ) : null}
-                        </span>
-                      </li>
-                    ))}
-                </ul>
-              </Stack>
+              {/* Promoting used to have its own member list down here — the
+                  last of a second roster that ticket 38 had already stripped
+                  kicking out of. Ticket 125 moved it onto the person too, into
+                  the roster row's own menu, so there is one list of members
+                  and one place to act on any of them. */}
 
               {/* Archiving and deleting used to sit here (ticket 66). They
                   moved up into the hero in ticket 72 — the fold was the

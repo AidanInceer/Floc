@@ -1095,32 +1095,6 @@
   background: var(--sheet-2);
 }
 
-/*
- * The roster's kick boot swings once when tapped (ticket 38) — the confirm
- * dialog is what actually removes anyone, so this only acknowledges the tap.
- * `transform-origin` comes from the icon's own `origin-bottom`, so the boot
- * pivots at the sole rather than about its middle. The base layer's
- * prefers-reduced-motion block flattens the duration for anyone who asked.
- */
-@keyframes boot-swing {
-  0% {
-    rotate: 0deg;
-  }
-  35% {
-    rotate: -14deg;
-  }
-  70% {
-    rotate: 20deg;
-  }
-  100% {
-    rotate: 0deg;
-  }
-}
-
-.boot-swing {
-  animation: boot-swing 450ms ease-in-out;
-}
-
 @layer components {
   /*
    * The travel map on a profile (ticket 95). Leaflet with no tile layer, so

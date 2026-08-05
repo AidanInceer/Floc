@@ -47,7 +47,14 @@ import {
   submitEvent,
 } from "./actions";
 import { searchPlacesAction } from "../place-actions";
-import { ConfirmSubmit, Sheet, SubmitButton } from "@/components/client-ui";
+import {
+  ConfirmSubmit,
+  Menu,
+  Sheet,
+  SubmitButton,
+  menuDangerItemClass,
+  menuItemClass,
+} from "@/components/client-ui";
 import {
   DaysCalendar,
   type CalendarDay,
@@ -60,7 +67,6 @@ import {
   LockedNotice,
   Page,
   PageHeader,
-  cx,
 } from "@/components/ui";
 import { EVENT_CATEGORIES } from "@/lib/event-categories";
 import { formatLength, formatSpan, spanOf } from "@/lib/calendar";
@@ -455,8 +461,15 @@ function EventPanel({
         </a>
       ) : null}
 
-      <div className={cx("flex flex-wrap items-center gap-1 border-t border-rule pt-2")}>
-        <Sheet trigger="Edit" title="Edit event" triggerVariant="ghost">
+      {/*
+        Edit and Delete were a pair under every event — the danger one shoved
+        to the far end to keep them apart, which is a way of managing two
+        buttons rather than a reason to have two. Ticket 125: one triple-dot,
+        both verbs inside it, and the pane's own content gets the space back.
+      */}
+      <div className="flex items-center justify-end border-t border-rule pt-2">
+        <Menu label={`Actions for ${event.title}`}>
+        <Sheet trigger="Edit" title="Edit event" triggerVariant="ghost" triggerClassName={menuItemClass}>
           <EventForm
             action={submitEvent.bind(null, tripId)}
             searchPlaces={searchPlacesAction}
@@ -476,12 +489,16 @@ function EventPanel({
             }}
           />
         </Sheet>
-        {/* Pushed to the far end and left in the `danger` wash, away from Edit:
-            the two sat side by side in matching ghost text, which is the wrong
-            shape for a pair where one is undoable and the other isn't. */}
-        <form className="ml-auto" action={deleteEvent.bind(null, tripId, event.id)}>
-          <ConfirmSubmit message="Delete this event?">Delete</ConfirmSubmit>
+        <form action={deleteEvent.bind(null, tripId, event.id)}>
+          <ConfirmSubmit
+            message="Delete this event?"
+            variant="ghost"
+            className={menuDangerItemClass}
+          >
+            Delete
+          </ConfirmSubmit>
         </form>
+        </Menu>
       </div>
 
       <NoteThread

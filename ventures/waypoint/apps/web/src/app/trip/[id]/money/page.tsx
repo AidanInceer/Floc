@@ -23,7 +23,13 @@ import {
   PageHeader,
   Stack,
 } from "@/components/ui";
-import { Sheet, ConfirmSubmit } from "@/components/client-ui";
+import {
+  ConfirmSubmit,
+  Menu,
+  Sheet,
+  menuDangerItemClass,
+  menuItemClass,
+} from "@/components/client-ui";
 import { ExpenseForm } from "@/components/expense-form";
 import type { FormDay, FormMember } from "@/components/expense-form";
 import { BalanceSummary } from "@/components/balance-summary";
@@ -186,6 +192,59 @@ export default async function MoneyPage({
                 const viewerSplit = rowSplits.find((s) => s.userId === access.viewer.id);
                 const d = e.dayId ? dayById.get(e.dayId) : null;
 
+                /*
+                  Edit and Delete used to sit under every cost as a pair of
+                  buttons — two verbs on every row of a ledger you mostly read.
+                  They're behind the row's triple-dot now (ticket 125). The
+                  settle badges below are the control this row is actually for,
+                  and they're what should catch the eye.
+                */
+                const rowMenu = (
+                  <Menu label={`Actions for ${e.description}`}>
+                    <Sheet
+                      trigger="Edit"
+                      title="Edit cost"
+                      triggerVariant="ghost"
+                      triggerClassName={menuItemClass}
+                      keepOpenOnSubmit
+                    >
+                      <ExpenseForm
+                        tripId={tripId}
+                        members={formMembers}
+                        days={formDays}
+                        homeCurrency={homeCurrency}
+                        viewerId={access.viewer.id}
+                        action={updateExpense}
+                        expense={{
+                          id: e.id,
+                          description: e.description,
+                          amountMinor: e.amountMinor,
+                          currency: e.currency,
+                          splitType: e.splitType,
+                          paidBy: e.paidBy,
+                          dayId: e.dayId,
+                          notes: e.notes,
+                          splits: rowSplits.map((s) => ({
+                            userId: s.userId,
+                            owedAmountMinor: s.owedAmountMinor,
+                          })),
+                        }}
+                      />
+                    </Sheet>
+                    <form action={deleteExpense}>
+                      <input type="hidden" name="tripId" value={tripId} />
+                      <input type="hidden" name="expenseId" value={e.id} />
+                      <ConfirmSubmit
+                        message={`Delete "${e.description}"?`}
+                        variant="ghost"
+                        className={menuDangerItemClass}
+                      >
+                        Delete
+                      </ConfirmSubmit>
+                    </form>
+                  </Menu>
+                );
+
                 return (
                   <div key={e.id} className="px-4 py-3">
                     <div className="flex flex-wrap items-start justify-between gap-3">
@@ -199,15 +258,18 @@ export default async function MoneyPage({
                           </p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="nums font-semibold">
-                          {formatMoney(e.amountMinor, e.currency)}
-                        </p>
-                        {viewerSplit ? (
-                          <p className="nums mt-0.5 text-xs text-ink-soft">
-                            Your share: {formatMoney(viewerSplit.owedAmountMinor, e.currency)}
+                      <div className="flex items-start gap-1.5">
+                        <div className="text-right">
+                          <p className="nums font-semibold">
+                            {formatMoney(e.amountMinor, e.currency)}
                           </p>
-                        ) : null}
+                          {viewerSplit ? (
+                            <p className="nums mt-0.5 text-xs text-ink-soft">
+                              Your share: {formatMoney(viewerSplit.owedAmountMinor, e.currency)}
+                            </p>
+                          ) : null}
+                        </div>
+                        {rowMenu}
                       </div>
                     </div>
 
@@ -254,39 +316,6 @@ export default async function MoneyPage({
                       <p className="mt-2 text-sm text-ink-soft">{e.notes}</p>
                     ) : null}
 
-                    <div className="mt-3 flex gap-2">
-                      <Sheet trigger="Edit" title="Edit cost" triggerVariant="ghost" keepOpenOnSubmit>
-                        <ExpenseForm
-                            tripId={tripId}
-                            members={formMembers}
-                            days={formDays}
-                            homeCurrency={homeCurrency}
-                            viewerId={access.viewer.id}
-                            action={updateExpense}
-                            expense={{
-                              id: e.id,
-                              description: e.description,
-                              amountMinor: e.amountMinor,
-                              currency: e.currency,
-                              splitType: e.splitType,
-                              paidBy: e.paidBy,
-                              dayId: e.dayId,
-                              notes: e.notes,
-                              splits: rowSplits.map((s) => ({
-                                userId: s.userId,
-                                owedAmountMinor: s.owedAmountMinor,
-                              })),
-                          }}
-                        />
-                      </Sheet>
-                      <form action={deleteExpense}>
-                        <input type="hidden" name="tripId" value={tripId} />
-                        <input type="hidden" name="expenseId" value={e.id} />
-                        <ConfirmSubmit message={`Delete "${e.description}"?`}>
-                          Delete
-                        </ConfirmSubmit>
-                      </form>
-                    </div>
                   </div>
                 );
               })}
