@@ -32,6 +32,23 @@ export type Stop = {
  * date ascending — this function does not sort, so callers own that decision
  * (and can pass a pre-filtered/sub-range slice if needed).
  */
+/**
+ * The stops that are actually somewhere (ticket 137).
+ *
+ * `deriveStops` groups every run of days, including the runs with no overnight
+ * place, because the runs are what a reorder permutes and their positions have
+ * to line up with the day rows underneath. What the Route tab *lists* is not
+ * the same thing: a run of undecided days is an absence of a stop, and drawing
+ * it as a numbered node called "No overnight place set" made adding one stop to
+ * a ten-day trip produce two — one you asked for and one you didn't, which then
+ * had a "Remove stop" button on a stop that doesn't exist. The undecided days
+ * are still on Days, where they read as days without a bed rather than as an
+ * extra leg of the journey.
+ */
+export function placedStops(stops: Stop[]): Stop[] {
+  return stops.filter((s) => s.placeId !== null);
+}
+
 export function deriveStops(days: StopDayInput[]): Stop[] {
   const stops: Stop[] = [];
 

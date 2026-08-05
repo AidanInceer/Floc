@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { deriveStops, type StopDayInput } from "./stops";
+import { deriveStops, placedStops, type StopDayInput } from "./stops";
 
 function day(
   dayId: number,
@@ -82,5 +82,28 @@ describe("deriveStops", () => {
     expect(stops[0].placeId).toBeNull();
     expect(stops[1].placeId).toBe(10);
     expect(stops[2].placeId).toBeNull();
+  });
+});
+
+describe("placedStops", () => {
+  it("drops the undecided runs, in order", () => {
+    const stops = deriveStops([
+      day(1, "2026-09-01", 10, "Barcelona"),
+      day(2, "2026-09-02", 10, "Barcelona"),
+      day(3, "2026-09-03", null, null),
+      day(4, "2026-09-04", 20, "Madrid"),
+    ]);
+    expect(placedStops(stops).map((s) => s.placeName)).toEqual([
+      "Barcelona",
+      "Madrid",
+    ]);
+  });
+
+  it("is empty when nothing has an overnight place", () => {
+    const stops = deriveStops([
+      day(1, "2026-09-01", null, null),
+      day(2, "2026-09-02", null, null),
+    ]);
+    expect(placedStops(stops)).toEqual([]);
   });
 });

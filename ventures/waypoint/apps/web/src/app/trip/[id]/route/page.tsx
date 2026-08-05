@@ -46,7 +46,7 @@ import { type TransportType } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
 import { listRouteDays, transportModesByDay } from "@/server/itinerary";
 import { formatDate, fromIsoDate } from "@/lib/dates";
-import { deriveStops } from "@/lib/stops";
+import { deriveStops, placedStops } from "@/lib/stops";
 
 export default async function RoutePage({
   params,
@@ -63,15 +63,21 @@ export default async function RoutePage({
     listRouteDays(trip.id),
     transportModesByDay(trip.id),
   ]);
-  const stops = deriveStops(
-    days.map((d) => ({
-      dayId: d.dayId,
-      date: d.date,
-      overnightPlaceId: d.overnightPlaceId,
-      overnightPlaceName: d.placeName,
-    })),
+  // Only the placed runs are stops here (ticket 137). A trip's undecided days
+  // are days without a bed, not a stop called "No overnight place set" — see
+  // `placedStops`. This is also what makes Route's numbering agree with the
+  // Days calendar's, which has always skipped them.
+  const stops = placedStops(
+    deriveStops(
+      days.map((d) => ({
+        dayId: d.dayId,
+        date: d.date,
+        overnightPlaceId: d.overnightPlaceId,
+        overnightPlaceName: d.placeName,
+      })),
+    ),
   );
-  const hasRealStop = stops.some((s) => s.placeId !== null);
+  const hasRealStop = stops.length > 0;
 
   /**
    * The mode for the leg arriving at stop `i` — the transport event on the
@@ -168,9 +174,7 @@ export default async function RoutePage({
                   <div>
                     <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                       <p className="font-display text-lg font-semibold leading-none">
-                        {stop.placeId
-                          ? stop.placeName ?? "Unnamed place"
-                          : "No overnight place set"}
+                        {stop.placeName ?? "Unnamed place"}
                       </p>
                       <Badge tone="marine">
                         {stop.nights} night{stop.nights === 1 ? "" : "s"}

@@ -147,8 +147,18 @@ export async function reorderStops(tripId: number, from: number, to: number) {
     })),
   );
 
+  // The spine only lists the placed stops (ticket 137), so its indices count
+  // those — but the permutation below has to cover every day row, undecided
+  // runs included, or `permuteDayContents` rejects it as a partial order.
+  // Translate the two positions back into the full list and leave the
+  // unplaced runs where they are.
+  const placed = stops.flatMap((s, i) => (s.placeId !== null ? [i] : []));
+  const fromIndex = placed[from];
+  const toIndex = placed[to];
+  if (fromIndex === undefined || toIndex === undefined) return;
+
   const legs = await loadLegEvents(stops);
-  const next = moveItem(stops, from, to);
+  const next = moveItem(stops, fromIndex, toIndex);
 
   await permuteDayContents(access.trip.id, next.flatMap((s) => s.dayIds));
   await reanchorLegEvents(stops, next, days.map((d) => d.id), legs);
