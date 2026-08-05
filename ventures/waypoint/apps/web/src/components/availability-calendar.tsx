@@ -35,7 +35,7 @@ import {
   monthsFrom,
   type IsoMonth,
 } from "@/lib/availability";
-import { dateRange, formatDate, today } from "@/lib/dates";
+import { dateRange, today } from "@/lib/dates";
 
 type View = "mine" | "everyone" | "dates";
 
@@ -209,8 +209,11 @@ export function AvailabilityCalendar({
       onPointerUp={() => setDrag(null)}
       onPointerCancel={() => setDrag(null)}
     >
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="inline-flex overflow-hidden rounded-md border border-rule-strong">
+      {/* One row at every width (ticket 134): wrapping put the two arrows on
+          a line of their own, hard left under the middle of the switch, which
+          read as a stray pair of controls belonging to nothing. */}
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <div className="inline-flex shrink-0 overflow-hidden rounded-md border border-rule-strong">
           {(["mine", "everyone", "dates"] as const).map((v) => (
             <button
               key={v}
@@ -218,7 +221,10 @@ export function AvailabilityCalendar({
               aria-pressed={view === v}
               onClick={() => setView(v)}
               className={cx(
-                "px-3 py-1 font-mono text-[11px] uppercase tracking-[0.06em] transition-colors",
+                // `whitespace-nowrap` and a tighter phone padding: the switch
+                // has to survive being squeezed next to the arrows rather
+                // than breaking "The dates" over two lines.
+                "whitespace-nowrap px-2 py-1 font-mono text-[11px] uppercase tracking-[0.06em] transition-colors sm:px-3",
                 view === v
                   ? "bg-pen text-sheet"
                   : "bg-sheet text-ink-soft hover:bg-sheet-2",
@@ -229,9 +235,12 @@ export function AvailabilityCalendar({
           ))}
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* The arrows give up the width, not the switch: a squeezed switch
+            clipped "The dates" to "The date" on a phone. */}
+        <div className="flex items-center gap-1">
           <Button
             variant="ghost"
+            className="!px-2"
             aria-label="Earlier months"
             onClick={() => setMonth(addMonths(month, -1))}
           >
@@ -239,6 +248,7 @@ export function AvailabilityCalendar({
           </Button>
           <Button
             variant="ghost"
+            className="!px-2"
             aria-label="Later months"
             onClick={() => setMonth(addMonths(month, 1))}
           >
@@ -338,16 +348,10 @@ export function AvailabilityCalendar({
 
       {view === "dates" ? (
         <div className={footer}>
-          <p className="text-sm text-ink-soft">
-            {range.start ? (
-              <span className="nums">
-                {formatDate(range.start)}
-                {rangeEnd !== range.start ? ` – ${formatDate(rangeEnd)}` : ""}
-              </span>
-            ) : (
-              "Pick the first day"
-            )}
-          </p>
+          {/* No line of text restating the pick (ticket 134). Empty it read
+              "Pick the first day", which is instructions; full it repeated
+              the run of green circles directly above it, and the committed
+              window is already the page's subtitle. */}
           <Button
             variant="primary"
             disabled={!range.start || !rangeChanged || pending}

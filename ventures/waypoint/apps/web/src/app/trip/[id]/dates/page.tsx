@@ -5,15 +5,17 @@
  * nullable, and creating one without them is the normal case), so this is the
  * surface that decides them: everyone paints the days they could do, the group
  * view shows where that overlaps, and one form commits a window. It does not
- * wait for a full house — see `bestWindow`.
+ * wait for a full house: the dates can be set with half the group still
+ * ignoring the thread, and who hasn't answered is a line of faces on the
+ * calendar's header rather than anything blocking.
  *
  * Availability used to be a three-column table at the bottom of the Ideas tab
  * with a one-date-at-a-time `<input type="date">`; it moved here whole.
  */
 import { requireTripAccess } from "@/server/access";
 import { listAvailability } from "@/server/membership";
-import { bestWindow, monthOf, thisMonth } from "@/lib/availability";
-import { formatDate, formatDateRange, nightsBetween } from "@/lib/dates";
+import { monthOf, thisMonth } from "@/lib/availability";
+import { formatDateRange, nightsBetween } from "@/lib/dates";
 import {
   AvatarRow,
   Card,
@@ -59,7 +61,6 @@ export default async function DatesPage({
   const tallies: Record<string, number> = {};
   for (const row of free) tallies[row.date] = (tallies[row.date] ?? 0) + 1;
 
-  const suggestion = bestWindow(rows);
   const answered = new Set(free.map((r) => r.userId));
   const waitingOn = members.filter((m) => !answered.has(m.userId));
 
@@ -181,17 +182,13 @@ export default async function DatesPage({
             }
           />
           <div className="p-4">
-            {suggestion ? (
-              <p className="mb-3 text-xs text-ink-faint">
-                Best overlap so far:{" "}
-                <span className="nums text-ink-soft">
-                  {suggestion.start === suggestion.end
-                    ? formatDate(suggestion.start)
-                    : `${formatDate(suggestion.start)} – ${formatDate(suggestion.end)}`}
-                </span>{" "}
-                — {suggestion.free} of {members.length} free.
-              </p>
-            ) : null}
+            {/*
+             * No "best overlap so far" line (ticket 134). It said in words
+             * what the grid under it draws: the run of green is the overlap,
+             * and reading a sentence to find out where to look is slower than
+             * looking. It also came and went with the first mark saved, which
+             * moved the whole card as you used it.
+             */}
             <AvailabilityCalendar
               firstMonth={firstMonth}
               monthCount={MONTHS_SHOWN}

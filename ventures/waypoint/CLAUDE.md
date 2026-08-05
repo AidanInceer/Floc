@@ -119,6 +119,15 @@ treated as current.
 - Copy is British English, sentence case, concrete. Realistic content, never
   lorem.
 - **No instructional copy.** Never write text that explains how to use the UI — fix the UI instead. "Scroll to explore", "click here to…" are always wrong.
+- **Show it, don't narrate it.** The same rule one step further (ticket 134): a
+  sentence that describes what a control or a graphic already shows is a bug in
+  the graphic. "Best overlap so far: Mon 10 Aug – Sun 30 Aug — 1 of 1 free"
+  above a calendar whose green run *is* that overlap, or "Pick the first day"
+  over a grid you obviously pick days on, both went. Before adding a line of
+  explanatory text, make the thing it would explain legible on its own; keep
+  the words only where they carry something the visual can't (a state's name, a
+  key's label — status is never colour alone). Copy that appears and disappears
+  with the data is doubly suspect: it also moves the layout under the reader.
 - **UI design discipline.** Before any visual or UX change, read `docs/design/approach.html` and `docs/design/visual-language.html`. Key rules: no scroll locking, no animations while the user is reading, no font proliferation (max three typefaces), every interactive surface has a visible hover state, whole-card clickability where a card navigates.
 - Comment a non-obvious decision with a one-line pointer to the ticket that
   drove it. That's the house style throughout `src/`.
