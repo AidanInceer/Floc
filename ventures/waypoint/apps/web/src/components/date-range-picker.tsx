@@ -158,7 +158,10 @@ export function DateRangePicker({
             <div key={m}>
               <p className="typed mb-2">{formatMonth(m)}</p>
               <div
-                className="grid grid-cols-7 gap-px text-center"
+                // The Dates tab's ruled-paper chrome, cell for cell (ticket
+                // 129) — one rule under each week, no box around a day, and
+                // the cells abutting so a range draws as one stroke.
+                className="grid grid-cols-7 border-t border-rule text-center"
                 role="grid"
                 aria-label={`${formatMonth(m)} dates`}
               >
@@ -175,7 +178,10 @@ export function DateRangePicker({
                   .flat()
                   .map((date, i) =>
                     date === null ? (
-                      <span key={`pad-${i}`} />
+                      // Padding cells carry the rule too, so a week's line
+                      // runs the full width instead of stopping short at the
+                      // month's ragged ends (ticket 129).
+                      <span key={`pad-${i}`} className="border-b border-rule" />
                     ) : (
                       <DayCell
                         key={date}
@@ -187,7 +193,8 @@ export function DateRangePicker({
                         selected={
                           start !== null && date >= start && date <= endValue
                         }
-                        edge={date === start || date === endValue}
+                        spanStart={date === start}
+                        spanEnd={date === endValue}
                         onPick={() => pick(date)}
                       />
                     ),
@@ -205,13 +212,16 @@ function DayCell({
   date,
   outside,
   selected,
-  edge,
+  spanStart,
+  spanEnd,
   onPick,
 }: {
   date: string;
   outside: boolean;
   selected: boolean;
-  edge: boolean;
+  /** The two ends of the range, which take the stroke's rounded caps. */
+  spanStart: boolean;
+  spanEnd: boolean;
   onPick: () => void;
 }) {
   const dayNumber = Number(date.slice(8, 10));
@@ -224,16 +234,28 @@ function DayCell({
       aria-label={`${date}${outside ? " — outside the trip" : ""}`}
       onClick={onPick}
       className={cx(
-        "flex aspect-square items-center justify-center rounded-sm border font-mono text-[11px] leading-none transition-colors",
+        "relative flex aspect-square items-center justify-center border-b border-rule font-mono text-[11px] leading-none transition-colors",
+        // A range is one decision, so it is drawn as one stroke across the
+        // days it covers rather than as a fill per day (ticket 129). The
+        // week's edge breaks it, which is what a calendar should do.
+        selected && "bg-pen-soft",
+        selected && spanStart && "rounded-l-full",
+        selected && spanEnd && "rounded-r-full",
+        // Out of bounds is faint, not boxed and greyed — the grid keeps its
+        // shape without a disabled day drawing the eye (ticket 87).
         outside
-          ? "cursor-not-allowed border-transparent bg-sheet-2 text-ink-faint opacity-45"
-          : selected
-            ? "border-green bg-green-soft text-green"
-            : "border-rule bg-sheet text-ink-soft hover:bg-sheet-2",
-        edge && "font-semibold",
+          ? "cursor-not-allowed text-ink-faint opacity-40"
+          : !selected && "hover:bg-sheet-2",
       )}
     >
-      {dayNumber}
+      <span
+        className={cx(
+          "flex h-[62%] w-[62%] items-center justify-center rounded-full",
+          selected ? "font-semibold text-pen" : "text-ink-soft",
+        )}
+      >
+        {dayNumber}
+      </span>
     </button>
   );
 }

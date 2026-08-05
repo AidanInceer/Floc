@@ -30,7 +30,6 @@ import {
   cx,
 } from "@/components/ui";
 import { Sheet, SubmitButton } from "@/components/client-ui";
-import { DateRangePicker } from "@/components/date-range-picker";
 import { TripCard } from "@/components/trip-card";
 import type { TripCardData } from "@/components/trip-card";
 import { createTrip } from "./actions";
@@ -236,22 +235,18 @@ function CreateTripForm() {
   return (
     <form action={createTrip}>
       <Stack gap={4}>
+        {/* No placeholder. A greyed "Milan long weekend" sitting in the box
+            reads as a value already there, and the one thing this form asks
+            for shouldn't need a second look to see it's empty (ticket 129). */}
         <Field label="Name">
-          <Input name="name" required placeholder="Milan long weekend" />
+          <Input name="name" required />
         </Field>
-        {/* Genuinely optional, and usually left blank: the Dates tab is where
-            the group works out when it can actually go. Only fill these in if
-            the dates are already a fact — which is why the grid starts closed
-            (ticket 128) rather than putting a month of days in front of a
-            question most people skip. */}
-        <Field label="Dates" hint="Optional">
-          <DateRangePicker
-            startName="startDate"
-            endName="endDate"
-            monthCount={1}
-            collapsible
-          />
-        </Field>
+        {/* Starting a trip asks one question: what to call it. The dates used
+            to be here as an optional pair — a field almost everyone skipped,
+            because the Dates tab is where the group actually works out when it
+            can go (rule 9: undated is the normal path, not a gap to fill).
+            `createTrip` still reads them, so a caller that has real dates can
+            pass them. */}
         <SubmitButton pendingLabel="Creating…">Create trip</SubmitButton>
       </Stack>
     </form>

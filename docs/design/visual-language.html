@@ -228,15 +228,27 @@ keeps the density undiluted; a component registry would have to be re-skinned
 anyway.</p>
 <p><code>AvailabilityCalendar</code> (client) is the one component with real interaction in
 it: a month grid you paint free days onto by clicking or dragging, with a
-<strong>Mine / Everyone</strong> switch onto the same grid as a counted heatmap. Two
-decisions worth keeping: nothing is written until you press save (one action per
-editing session, not one per day — painting a fortnight would otherwise be
-fourteen round trips), and a drag paints the whole span from its anchor rather
-than the cell under the pointer, because a fast drag doesn&#39;t fire
-<code>pointerenter</code> on every cell it crosses and leaves holes mid-week.</p>
+<strong>Mine / Everyone / The dates</strong> switch onto the same grid — a counted
+heatmap, and the trip&#39;s own window (ticket 128; there is exactly one calendar on
+the Dates tab, and no native date popover anywhere in the app).</p>
+<p>Decisions worth keeping. Nothing is written until you press save — one action
+per editing session, not one per day, since painting a fortnight would otherwise
+be fourteen round trips. A drag paints the whole span from its anchor rather than
+the cell under the pointer, because a fast drag leaves holes mid-week otherwise;
+the pointer is captured to the whole calendar and each move hit-tests for the
+cell underneath, because on touch an implicit capture means <code>pointerenter</code>
+never fires anywhere else at all (ticket 127).</p>
+<p><strong>Ruled paper, not a grid of boxes</strong> (ticket 129). One rule under each week
+and none between days; the day number sits on the line, today is circled in pen.
+The two kinds of mark are deliberately different shapes: a free day is a round
+green pen mark, because several free days are several separate marks, while a
+range — the trip&#39;s window, a stop&#39;s dates — is one continuous biro stroke with
+rounded caps across the days it covers, because a range is one decision. The
+week&#39;s edge breaks the stroke. <code>DateRangePicker</code> shares the chrome cell for
+cell.</p>
 <p>Server components in <code>components/ui.tsx</code>: <code>Page</code>, <code>PageHeader</code>, <code>Card</code>,
 <code>CardHeader</code>, <code>Stack</code>, <code>Rule</code>, <code>Button</code>, <code>ButtonLink</code>, <code>Badge</code>, <code>Stamp</code>,
-<code>EmptyState</code>, <code>LockedNotice</code>, <code>Avatar</code>, <code>AvatarRow</code>, <code>Field</code>, <code>Input</code>,
+<code>EmptyState</code>, <code>Avatar</code>, <code>AvatarRow</code>, <code>Field</code>, <code>Input</code>,
 <code>Textarea</code>, <code>Select</code>, <code>ErrorText</code>. Avatar colouring lives in <code>lib/who.ts</code>
 rather than beside <code>Avatar</code>, because <code>server/access.ts</code> needs it too.</p>
 <p>Client components in <code>components/client-ui.tsx</code>: <code>ActionForm</code> (surfaces a
