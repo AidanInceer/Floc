@@ -49,7 +49,7 @@ import type { DayEventType, TransportType } from "@/db/schema";
 import { orderEvents } from "@/lib/event-order";
 import { capRequiredText, capText } from "@/lib/text";
 import { bounded, LIMITS } from "@/server/limits";
-import { touch } from "@/server/unlocks";
+import { touch } from "@/server/audit";
 
 /** Moves one item within an array, returning a new array. */
 export function moveItem<T>(items: T[], from: number, to: number): T[] {

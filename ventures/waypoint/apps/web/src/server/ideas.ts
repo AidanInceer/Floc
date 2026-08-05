@@ -6,10 +6,11 @@
  * - **Soft-delete (rule 8)**, including on the vote upsert, where clearing the
  *   flag is load-bearing rather than tidy — see `castVote`.
  * - **The board's ceiling** is `LIMITS.ideas`, applied in `listIdeas` below.
- * - **Revalidation.** Posting an idea is what sticky-unlocks Route, so the
- *   layout goes with the board; a vote or a pin doesn't move the tab bar and
- *   takes the board alone. Two named revalidations rather than seven inline
- *   pairs a caller has to get right.
+ * - **Revalidation.** One named `revalidateIdeas` rather than inline
+ *   `revalidatePath` pairs a caller has to get right. There used to be a
+ *   second one that took the trip layout too, because a first idea unlocked
+ *   the Route tab and the tab bar had to be re-rendered to un-grey it; ticket
+ *   126 removed the unlocks, and with them the reason.
  * - **The board's reads** (ticket 118) — see the note on the seam below.
  *
  * ## Where the seam went (ticket 118)
@@ -42,21 +43,11 @@ import { db } from "@/db";
 import { idea, ideaVote, user, userProfile } from "@/db/schema";
 import type { VoteValue } from "@/db/schema";
 import { bounded, LIMITS } from "@/server/limits";
-import { touch } from "@/server/unlocks";
+import { touch } from "@/server/audit";
 
 /** The board alone — a vote, a pin, a delete. */
 export function revalidateIdeas(tripId: number): void {
   revalidatePath(`/trip/${tripId}/ideas`);
-}
-
-/**
- * The board *and* the tab bar. A first idea unlocks Route (ticket 04/13), and
- * the unlock is rendered by the trip layout, so a post that refreshed only the
- * board would leave the newly-unlocked tab greyed out until the next navigation.
- */
-export function revalidateIdeasAndTabs(tripId: number): void {
-  revalidateIdeas(tripId);
-  revalidatePath(`/trip/${tripId}`, "layout");
 }
 
 export type IdeaRow = {

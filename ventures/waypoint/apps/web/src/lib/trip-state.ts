@@ -22,7 +22,8 @@ import type { Currency } from "@/lib/currency";
 import { countdownLabel, hasEnded } from "@/lib/dates";
 
 /** What a station on the trail is doing. Rendered by `components/trip-trail`. */
-export type StationState = "done" | "now" | "snag" | "ahead" | "locked";
+// `locked` went with the tab unlocks (ticket 126): no station is ever shut.
+export type StationState = "done" | "now" | "snag" | "ahead";
 
 export type TrailStation = {
   key: "ideas" | "dates" | "route" | "days" | "money";
@@ -46,8 +47,6 @@ export type TripStateInput<M extends StateMember> = {
     name: string;
     startDate: string | null;
     endDate: string | null;
-    routeUnlockedAt: Date | null;
-    daysUnlockedAt: Date | null;
   };
   members: M[];
   viewerId: string;
@@ -201,8 +200,6 @@ export function tripStateFor<M extends StateMember>(
   const placeCount = new Set(
     days.map((d) => d.overnightPlaceId).filter((p): p is number => p !== null),
   ).size;
-  const routeUnlocked = trip.routeUnlockedAt !== null;
-  const daysUnlocked = trip.daysUnlockedAt !== null;
 
   const stations: TrailStation[] = [
     {
@@ -224,24 +221,19 @@ export function tripStateFor<M extends StateMember>(
     {
       key: "route",
       label: "Route",
-      caption: !routeUnlocked
-        ? "locked"
-        : placeCount
-          ? `${placeCount} ${placeCount === 1 ? "place" : "places"}`
-          : "nothing yet",
-      state: !routeUnlocked ? "locked" : placeCount ? "done" : "ahead",
+      caption: placeCount
+        ? `${placeCount} ${placeCount === 1 ? "place" : "places"}`
+        : "nothing yet",
+      state: placeCount ? "done" : "ahead",
     },
     {
       key: "days",
       label: "Days",
-      caption: !daysUnlocked
-        ? "locked"
-        : hasDays
-          ? `${days.length} sketched`
-          : "nothing yet",
-      // The only station that claims "now" — once Days is open, sketching the
-      // itinerary is what the group is doing, whatever else is outstanding.
-      state: !daysUnlocked ? "locked" : hasDays ? "now" : "ahead",
+      caption: hasDays ? `${days.length} sketched` : "nothing yet",
+      // The only station that claims "now" — once there are days, sketching
+      // the itinerary is what the group is doing, whatever else is
+      // outstanding.
+      state: hasDays ? "now" : "ahead",
     },
     {
       key: "money",

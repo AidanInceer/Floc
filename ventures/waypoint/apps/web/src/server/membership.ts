@@ -34,7 +34,7 @@ import { availability, nudge, trip, tripMembership } from "@/db/schema";
 import type { NudgeTab, TripRole } from "@/db/schema";
 import type { TagTone } from "@/lib/tags";
 import { bounded, LIMITS } from "@/server/limits";
-import { touch } from "@/server/unlocks";
+import { touch } from "@/server/audit";
 
 /** The trip name/tags live in the header, which every tab renders. */
 export function revalidateTripHeader(tripId: number): void {

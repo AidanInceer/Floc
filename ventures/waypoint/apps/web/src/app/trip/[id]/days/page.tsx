@@ -63,8 +63,8 @@ import {
 import { EventForm } from "@/components/event-form";
 import {
   Badge,
+  ButtonLink,
   EmptyState,
-  LockedNotice,
   Page,
   PageHeader,
 } from "@/components/ui";
@@ -77,7 +77,6 @@ import { loadThreads } from "@/server/notes-read";
 import { listTripLinks } from "@/server/trip-links";
 import { TripLinks } from "@/components/trip-links";
 import { addDays as addDaysToDate, fromIsoDate, today } from "@/lib/dates";
-import { lockReason } from "@/lib/tabs";
 
 export default async function DaysPage({
   params,
@@ -87,15 +86,6 @@ export default async function DaysPage({
   const { id } = await params;
   const access = await requireTripAccess(id, `/trip/${id}/days`);
   const { trip, viewer, isAdmin, members } = access;
-
-  if (!trip.daysUnlockedAt) {
-    return (
-      <Page wide flush>
-        <PageHeader title="Days" />
-        <LockedNotice reason={lockReason("days") ?? "Not open yet"} />
-      </Page>
-    );
-  }
 
   // Comment authors keep the avatar colour they already have in this trip's
   // roster, so one person is one colour across every tab.
@@ -112,24 +102,41 @@ export default async function DaysPage({
   ]);
 
   if (days.length === 0) {
+    /*
+     * Two empty states, not one (ticket 126). This page used to be unreachable
+     * until a day existed, so its only empty state could assume the trip had
+     * dates; now that it opens from day one, an undated trip lands here
+     * routinely. "Add the first day" seeds from `trip.startDate ?? today()`,
+     * which on a trip nobody has dated yet writes a day at *today* — a January
+     * trip picking up an August day it never asked for. So an undated trip is
+     * sent to Dates instead of offered the button (rule 9: undated is normal,
+     * never an error).
+     */
     return (
       <Page wide flush>
         <PageHeader title="Days" />
-        <EmptyState
-          title="No days yet"
-          action={
-            <form
-              action={addDays.bind(
-                null,
-                trip.id,
-                trip.startDate ?? today(),
-                1,
-              )}
-            >
-              <SubmitButton>Add the first day</SubmitButton>
-            </form>
-          }
-        />
+        {trip.startDate ? (
+          <EmptyState
+            title="No days yet"
+            action={
+              <form action={addDays.bind(null, trip.id, trip.startDate, 1)}>
+                <SubmitButton>Add the first day</SubmitButton>
+              </form>
+            }
+          />
+        ) : (
+          <EmptyState
+            title="No dates yet"
+            action={
+              <ButtonLink href={`/trip/${trip.id}/dates`}>
+                Pick the dates
+              </ButtonLink>
+            }
+          >
+            The itinerary hangs off the trip&rsquo;s dates, and they aren&rsquo;t
+            settled yet.
+          </EmptyState>
+        )}
       </Page>
     );
   }

@@ -32,7 +32,6 @@ import {
   updateEventFields,
   type EventFields,
 } from "@/server/itinerary";
-import { refreshUnlocks } from "@/server/unlocks";
 
 /*
  * The trip joins that used to live here as local `requireDay` / `requireEvent`
@@ -70,7 +69,6 @@ export async function addDays(tripId: number, afterDate: string, count: number) 
 
   await ensureDays(access.trip.id, dates);
 
-  await refreshUnlocks(access.trip.id);
   revalidateItinerary(access.trip.id);
 }
 

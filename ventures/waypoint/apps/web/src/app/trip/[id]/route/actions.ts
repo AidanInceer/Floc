@@ -26,7 +26,6 @@ import {
   writeSpan,
 } from "@/server/itinerary";
 import { deriveStops } from "@/lib/stops";
-import { refreshUnlocks } from "@/server/unlocks";
 import type { TransportType } from "@/db/schema";
 
 /**
@@ -62,7 +61,6 @@ export async function addStop(
 
   await writeSpan(access.trip.id, dateRange(input.startDate, input.endDate), placeId);
 
-  await refreshUnlocks(access.trip.id);
   revalidateItinerary(access.trip.id);
 }
 
@@ -120,7 +118,6 @@ export async function setStopDates(
   await setOvernightPlaceOn(access.trip.id, dayIds, null);
   await writeSpan(access.trip.id, dateRange(input.startDate, input.endDate), placeId);
 
-  await refreshUnlocks(access.trip.id);
   revalidateItinerary(access.trip.id);
 }
 

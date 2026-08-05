@@ -107,9 +107,6 @@ async function main() {
       endDate: end,
       createdBy: aidan,
       inviteToken: randomUUID(),
-      // Both tabs are already unlocked because ideas and days exist below.
-      routeUnlockedAt: new Date(),
-      daysUnlockedAt: new Date(),
     })
     .returning({ id: trip.id });
 

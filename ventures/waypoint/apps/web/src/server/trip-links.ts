@@ -25,7 +25,7 @@ import { db } from "@/db";
 import { tripLink, user } from "@/db/schema";
 import { capText } from "@/lib/text";
 import { bounded, LIMITS } from "@/server/limits";
-import { touch } from "@/server/unlocks";
+import { touch } from "@/server/audit";
 
 export type TripLinkRow = {
   id: number;

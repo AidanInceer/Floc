@@ -30,8 +30,6 @@ const base = (
     name: "Portugal, late summer",
     startDate: null,
     endDate: null,
-    routeUnlockedAt: null,
-    daysUnlockedAt: null,
   },
   members: [ada, mo],
   viewerId: "ada",
@@ -74,8 +72,6 @@ describe("the stage", () => {
           name: "Past trip",
           startDate: "2020-01-01",
           endDate: "2020-01-05",
-          routeUnlockedAt: null,
-          daysUnlockedAt: null,
         },
       }),
     );
@@ -137,8 +133,6 @@ describe("who still owes an answer", () => {
           name: "t",
           startDate: "2026-09-01",
           endDate: "2026-09-08",
-          routeUnlockedAt: null,
-          daysUnlockedAt: null,
         },
       }),
     );
@@ -207,8 +201,6 @@ describe("the trail", () => {
           name: "t",
           startDate: "2026-09-01",
           endDate: "2026-09-08",
-          routeUnlockedAt: new Date(),
-          daysUnlockedAt: new Date(),
         },
       }),
     ];
@@ -218,10 +210,13 @@ describe("the trail", () => {
     }
   });
 
-  it("locks Route and Days until their unlock timestamps are set", () => {
-    const locked = tripStateFor(base({ ideaIds: [1] })).stations;
-    expect(locked.find((s) => s.key === "route")?.state).toBe("locked");
-    expect(locked.find((s) => s.key === "days")?.state).toBe("locked");
+  // Ticket 126: these two used to read "locked" until an unlock timestamp was
+  // stamped. No station is ever shut now — an empty Route is "ahead", the same
+  // as any other station nobody has got to yet.
+  it("shows an empty Route and Days as ahead, never as shut", () => {
+    const stations = tripStateFor(base({ ideaIds: [1] })).stations;
+    expect(stations.find((s) => s.key === "route")?.state).toBe("ahead");
+    expect(stations.find((s) => s.key === "days")?.state).toBe("ahead");
   });
 
   it("counts distinct places on the route, not day rows", () => {
@@ -232,8 +227,6 @@ describe("the trail", () => {
           name: "t",
           startDate: null,
           endDate: null,
-          routeUnlockedAt: new Date(),
-          daysUnlockedAt: null,
         },
         days: [
           { id: 1, overnightPlaceId: 7 },

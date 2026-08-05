@@ -7,7 +7,7 @@
 import { AvatarRow } from "@/components/ui";
 import { TripTabs } from "@/components/trip-tabs";
 import { requireTripAccess } from "@/server/access";
-import { tabStates } from "@/lib/tabs";
+import { TABS } from "@/lib/tabs";
 
 export default async function TripLayout({
   children,
@@ -42,7 +42,7 @@ export default async function TripLayout({
             <AvatarRow people={members} />
           </div>
 
-          <TripTabs tripId={trip.id} tabs={tabStates(trip)} />
+          <TripTabs tripId={trip.id} tabs={TABS} />
         </div>
       </div>
       {children}

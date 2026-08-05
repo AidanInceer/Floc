@@ -50,6 +50,13 @@
       "when": 1785700630212,
       "tag": "0006_trip_links",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1785965605724,
+      "tag": "0007_drop_tab_unlocks",
+      "breakpoints": true
     }
   ]
 }

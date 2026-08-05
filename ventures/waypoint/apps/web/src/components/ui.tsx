@@ -326,15 +326,6 @@ export function EmptyState({
   );
 }
 
-export function LockedNotice({ reason }: { reason: string }) {
-  return (
-    <Card className="px-6 py-10 text-center">
-      <Stamp tone="open">Not open yet</Stamp>
-      <p className="mx-auto mt-2 max-w-sm text-sm text-ink-soft">{reason}</p>
-    </Card>
-  );
-}
-
 /* -------------------------------------------------------------------------- */
 /* People                                                                     */
 /* -------------------------------------------------------------------------- */

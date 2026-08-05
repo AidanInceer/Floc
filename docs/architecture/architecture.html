@@ -20,7 +20,7 @@ repo is plumbing, docs, or superseded prior art.</p>
     subgraph WebApp["ventures/waypoint/apps/web"]
         Routes["App Router pages + layouts"]
         API["Route handlers&lt;br/&gt;app/api/* (incl. app/api/auth/[...all])"]
-        Server["server/*&lt;br/&gt;itinerary, places, friends, profile,&lt;br/&gt;unlocks, notes-read, access, visibility, auth, email"]
+        Server["server/*&lt;br/&gt;itinerary, places, friends, profile,&lt;br/&gt;audit, notes-read, access, visibility, auth, email"]
         Lib["lib/*&lt;br/&gt;pure helpers: money, dates, votes, tags,&lt;br/&gt;stops, availability, travel-map, dietary"]
         Components["components/*"]
         DB["db/*&lt;br/&gt;schema.ts, index.ts, seed.ts (Drizzle)"]
@@ -121,8 +121,10 @@ in the venture — that file is the schema of record, kept in lockstep with
 <li><strong>No <code>stop</code> table.</strong> A &quot;stop&quot; is derived by grouping consecutive <code>day</code> rows
 with the same <code>overnight_place_id</code> — itinerary storage is day-first.</li>
 <li><strong>No lifecycle enum.</strong> Trip state is derived from what data exists; the only
-persisted lifecycle bits are sticky unlock flags (<code>route_unlocked_at</code>,
-<code>days_unlocked_at</code>), which never regress.</li>
+persisted lifecycle bits were the sticky tab-unlock flags
+(<code>route_unlocked_at</code>, <code>days_unlocked_at</code>) — dropped by ticket 126,
+which opened every tab, so there is now no persisted lifecycle state at
+all.</li>
 <li><strong>Money is integer minor units, always</strong> — parsed/split/formatted only
 through <code>lib/money.ts</code>, never <code>parseFloat</code>. <code>expense_split</code> rows are
 write-once snapshots so a member leaving doesn&#39;t corrupt history.</li>

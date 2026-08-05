@@ -19,7 +19,8 @@ import { cx } from "@/components/ui";
 /**
  * `done` — nothing outstanding. `now` — where the group is working; there is
  * at most one. `snag` — has data but something is still open. `ahead` — not
- * started, nothing wrong. `locked` — the tab isn't open yet.
+ * started, nothing wrong. There is no shut state: every tab is open from the
+ * first day of a trip (ticket 126).
  */
 /*
  * Both types are `lib/trip-state.ts`'s (ticket 109) and re-exported here for
@@ -38,7 +39,7 @@ export type { StationState, Station };
  *   filled blue    — done. Nothing outstanding here.
  *   hollow blue    — started, not settled (`snag`, and `now`, which adds a halo
  *                    to say the group is working here right now).
- *   beige, empty   — nothing yet (`ahead`), or not open yet (`locked`, dashed).
+ *   beige, empty   — nothing yet (`ahead`).
  *
  * `now` used to be a *filled* dot, which made "where we're working" and
  * "finished" the same shape — the one distinction the trail exists to draw.
@@ -49,14 +50,12 @@ const DOT: Record<StationState, string> = {
   now: "border-[3px] border-pen bg-sheet ring-4 ring-pen-soft",
   snag: "border-[3px] border-pen bg-sheet",
   ahead: "border-rule-strong bg-sheet-3",
-  locked: "border-dashed border-rule-strong bg-sheet-3",
 };
 
 const KEY: { dot: string; text: string }[] = [
   { dot: "border-pen bg-pen", text: "done" },
   { dot: "border-[3px] border-pen bg-sheet", text: "started" },
   { dot: "border-rule-strong bg-sheet-3", text: "nothing yet" },
-  { dot: "border-dashed border-rule-strong bg-sheet-3", text: "not open yet" },
 ];
 
 const LABEL: Record<StationState, string> = {
@@ -64,7 +63,6 @@ const LABEL: Record<StationState, string> = {
   now: "font-bold text-pen",
   snag: "text-pen",
   ahead: "text-ink-faint",
-  locked: "text-rule-strong",
 };
 
 const CAPTION: Record<StationState, string> = {
@@ -72,7 +70,6 @@ const CAPTION: Record<StationState, string> = {
   now: "text-ink-faint",
   snag: "font-bold text-pen",
   ahead: "text-ink-faint",
-  locked: "text-rule-strong",
 };
 
 export function TripTrail({ stations }: { stations: Station[] }) {

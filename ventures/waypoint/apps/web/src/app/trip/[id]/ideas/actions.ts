@@ -18,24 +18,17 @@ import {
   clearVote as writeClearVote,
   insertIdea,
   revalidateIdeas,
-  revalidateIdeasAndTabs,
   setIdeaPinnedAt,
   softDeleteIdea,
 } from "@/server/ideas";
-import { refreshUnlocks } from "@/server/unlocks";
 import type { VoteValue } from "@/db/schema";
 
-/**
- * Posting the first idea is what sticky-unlocks Route (ticket 04/13), so
- * every post calls refreshUnlocks — cheap no-op once already unlocked.
- */
 export async function postIdea(tripId: number, formData: FormData) {
   const access = await requireTripAccess(tripId);
   const note = capRequiredText(formData.get("note"), "ideaNote");
   if (!note) throw new Error("An idea needs some words");
 
   await insertIdea(access.trip.id, access.viewer.id, note);
-  await refreshUnlocks(access.trip.id);
 
   const others = access.members.filter((m) => m.userId !== access.viewer.id);
   // Mail is a side effect of the write, not part of it (ticket 111): `after()`
@@ -56,7 +49,7 @@ export async function postIdea(tripId: number, formData: FormData) {
     ),
   );
 
-  revalidateIdeasAndTabs(access.trip.id);
+  revalidateIdeas(access.trip.id);
 }
 
 /**

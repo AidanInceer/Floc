@@ -33,7 +33,7 @@ import { db } from "@/db";
 import { expense, expenseSplit, user, userProfile } from "@/db/schema";
 import type { Currency, Expense, ExpenseSplit, SplitType } from "@/db/schema";
 import { bounded, LIMITS } from "@/server/limits";
-import { touch } from "@/server/unlocks";
+import { touch } from "@/server/audit";
 
 export function revalidateMoney(tripId: number): void {
   revalidatePath(`/trip/${tripId}/money`);

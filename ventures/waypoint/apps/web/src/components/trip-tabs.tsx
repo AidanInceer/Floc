@@ -5,7 +5,7 @@ import { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 
 import { cx } from "@/components/ui";
-import { lockReason, type TabState } from "@/lib/tabs";
+import { type TabState } from "@/lib/tabs";
 
 /**
  * A tab click is a server round trip — every tab renders on the server and
@@ -37,9 +37,10 @@ function TabPending() {
  * - An inactive tab sits a pixel lower (paper.html's `top: 1px`) and keeps all
  *   four borders, so it reads as a divider still tucked behind the open page.
  *
- * A locked tab is rendered but not navigable, with the reason as its title —
- * so the shape of the trip is legible from day one rather than tabs appearing
- * out of nowhere. Unlocks are sticky, so a tab never goes back.
+ * Every tab is navigable from day one (ticket 126). Route and Days used to
+ * render as un-clickable stubs until a first idea or day existed; they now
+ * open onto their own empty states, which say the same thing and let you act
+ * on it.
  */
 export function TripTabs({
   tripId,
@@ -63,25 +64,6 @@ export function TripTabs({
         const active = pathname === href;
         const tabClasses =
           "shrink-0 rounded-t-[6px] border px-3.5 pb-2 pt-1.5 font-mono text-[11px] uppercase tracking-[0.06em] transition-colors";
-
-        if (tab.locked) {
-          return (
-            <span
-              key={tab.key}
-              title={lockReason(tab.key) ?? undefined}
-              aria-disabled="true"
-              className={cx(
-                tabClasses,
-                "translate-y-px cursor-not-allowed border-rule-strong bg-sheet-3 text-ink-faint",
-              )}
-            >
-              {tab.label}
-              <span aria-hidden className="ml-1">
-                ·
-              </span>
-            </span>
-          );
-        }
 
         return (
           <Link

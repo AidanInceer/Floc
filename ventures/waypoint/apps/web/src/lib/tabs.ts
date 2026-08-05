@@ -1,13 +1,16 @@
 /**
- * Tab identity and lock state (ticket 05's tab set, ticket 04's sticky
- * unlocks).
+ * Tab identity (ticket 05's tab set).
+ *
+ * Every tab is always open. Route and Days used to be gated behind sticky
+ * `route_unlocked_at` / `days_unlocked_at` flags — the one piece of persisted
+ * lifecycle state in v1 — and ticket 126 took them out: a tab that shows you
+ * its own empty state teaches the same thing a padlock did, without a column
+ * to keep honest or a page you're refused. Trip state is now derived from what
+ * data exists, with no lifecycle state persisted at all.
  *
  * Deliberately free of any database import: the trip tab bar is a client
- * component, so anything it needs must be safe to bundle for the browser. The
- * write side of unlocking lives in `unlocks.ts`, which is server-only.
+ * component, so anything it needs must be safe to bundle for the browser.
  */
-import type { Trip } from "@/db/schema";
-
 export type TabKey =
   | "overview"
   | "ideas"
@@ -16,34 +19,16 @@ export type TabKey =
   | "days"
   | "money";
 
-export type TabState = { key: TabKey; label: string; locked: boolean };
+export type TabState = { key: TabKey; label: string };
 
-/**
- * Money, Overview and Dates are never gated; Chase is a panel, not a tab.
- * Dates sits third, between the suggesting and the sequencing: you can't
- * usefully build a route until the group knows which week it's going, and a
- * trip is allowed to exist with no dates at all until then.
- */
-export function tabStates(
-  t: Pick<Trip, "routeUnlockedAt" | "daysUnlockedAt">,
-): TabState[] {
-  return [
-    { key: "overview", label: "Overview", locked: false },
-    { key: "ideas", label: "Ideas", locked: false },
-    { key: "dates", label: "Dates", locked: false },
-    { key: "route", label: "Route", locked: !t.routeUnlockedAt },
-    { key: "days", label: "Days", locked: !t.daysUnlockedAt },
-    { key: "money", label: "Money", locked: false },
-  ];
-}
-
-export function lockReason(key: TabKey): string | null {
-  switch (key) {
-    case "route":
-      return "Unlocks once someone posts an idea";
-    case "days":
-      return "Unlocks once the trip has a day or a stop";
-    default:
-      return null;
-  }
-}
+export const TABS: TabState[] = [
+  { key: "overview", label: "Overview" },
+  { key: "ideas", label: "Ideas" },
+  // Dates sits third, between the suggesting and the sequencing: you can't
+  // usefully build a route until the group knows which week it's going, and a
+  // trip is allowed to exist with no dates at all until then.
+  { key: "dates", label: "Dates" },
+  { key: "route", label: "Route" },
+  { key: "days", label: "Days" },
+  { key: "money", label: "Money" },
+];

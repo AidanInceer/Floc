@@ -35,9 +35,12 @@ treated as current.
 3. **The itinerary is day-first.** `day` and `day_event` are stored; a "stop"
    is *derived* by grouping consecutive days with the same
    `overnight_place_id`. Never add a `stop` table.
-4. **No lifecycle enum.** Trip state is derived from what data exists. The only
-   persisted lifecycle state is the sticky tab-unlock flags
-   (`route_unlocked_at`, `days_unlocked_at`), and an unlock never regresses.
+4. **No lifecycle state at all.** Trip state is derived entirely from what data
+   exists — no enum, no flag, no column. The sticky tab-unlock flags
+   (`route_unlocked_at`, `days_unlocked_at`) were the one exception until
+   ticket 126 dropped them: **every tab is open from the first day of a trip**,
+   and a tab with nothing in it shows its own empty state rather than a
+   padlock. Don't gate a tab, and don't persist a phase.
 5. **Enumeration-proof trip access.** Load a trip only through
    `requireTripAccess` — a non-member gets the same response as a nonexistent
    trip. Never hand-roll a membership check.

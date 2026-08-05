@@ -25,7 +25,6 @@ import { requireUser } from "@/server/access";
 import { insertIdeas } from "@/server/ideas";
 import { createTripWithAdmin } from "@/server/membership";
 import { ensureProfile } from "@/server/profile";
-import { refreshUnlocks } from "@/server/unlocks";
 import { PRESET_TRIPS } from "./preset-trips";
 
 export async function startTripFromPreset(formData: FormData): Promise<void> {
@@ -49,10 +48,6 @@ export async function startTripFromPreset(formData: FormData): Promise<void> {
 
   // One idea per highlight, in the listing's own order.
   await insertIdeas(tripId, viewer.id, preset.highlights);
-
-  // The board is no longer empty, and a non-empty board is what sticky-unlocks
-  // Route (ticket 04/13) — so the new trip opens with Route already available.
-  await refreshUnlocks(tripId);
 
   revalidatePath("/trips");
   redirect(`/trip/${tripId}/overview`);

@@ -1,5 +1,5 @@
 /**
- * Money tab (ticket 16). Never gated (ticket 04) — no locked state here.
+ * Money tab (ticket 16).
  *
  * Renders: the expense list (newest first, tabular figures), per-currency
  * balances + settle-up suggestions derived at read time from `expense_split`

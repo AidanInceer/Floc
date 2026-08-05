@@ -31,7 +31,7 @@ import { db } from "@/db";
 import { note, noteReaction } from "@/db/schema";
 import type { NoteScope, ReactionKind } from "@/db/schema";
 import { TEXT_CAPS } from "@/lib/text";
-import { touch } from "@/server/unlocks";
+import { touch } from "@/server/audit";
 
 /**
  * Longer than anyone types in a comment box, short enough to bound the row.

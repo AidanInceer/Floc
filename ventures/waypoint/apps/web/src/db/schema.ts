@@ -322,13 +322,13 @@ export const trip = sqliteTable(
     tagTones: text("tag_tones", { mode: "json" }).$type<Record<string, string> | null>(),
     /** Admin-only; an archived trip stays visible to every member. */
     archivedAt: integer("archived_at", { mode: "timestamp" }),
-    /**
-     * Sticky per-tab unlock flags — the *only* persisted lifecycle state
-     * (ticket 04). Once set they must never regress; that rule lives in
-     * application code (src/lib/unlocks.ts), not the schema.
+    /*
+     * No lifecycle columns. `route_unlocked_at` / `days_unlocked_at` lived
+     * here as sticky per-tab unlock flags — the only persisted lifecycle state
+     * v1 ever had — until ticket 126 opened every tab and dropped them. Trip
+     * state is derived from what data exists; don't reintroduce a flag or an
+     * enum for it.
      */
-    routeUnlockedAt: integer("route_unlocked_at", { mode: "timestamp" }),
-    daysUnlockedAt: integer("days_unlocked_at", { mode: "timestamp" }),
     ...audit,
   },
   (t) => [index("trip_created_by_idx").on(t.createdBy)],

@@ -1,7 +1,6 @@
 /**
- * Ideas tab (ticket 14): the idea board and its voting. Ideas is never locked —
- * unlike Route/Days, it's always open, and posting here is what unlocks
- * Route (src/lib/unlocks.ts).
+ * Ideas tab (ticket 14): the idea board and its voting. Always open — as,
+ * since ticket 126, every other tab is too.
  *
  * Availability used to live at the bottom of this page; it has its own Dates
  * tab now, because deciding *when* deserves a calendar rather than a table

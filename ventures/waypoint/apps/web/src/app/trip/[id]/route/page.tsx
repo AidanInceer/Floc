@@ -38,7 +38,6 @@ import {
   EmptyState,
   Field,
   Input,
-  LockedNotice,
   Page,
   PageHeader,
   Stack,
@@ -49,7 +48,6 @@ import { requireTripAccess } from "@/server/access";
 import { listRouteDays, transportModesByDay } from "@/server/itinerary";
 import { formatDate, fromIsoDate } from "@/lib/dates";
 import { deriveStops } from "@/lib/stops";
-import { lockReason } from "@/lib/tabs";
 
 export default async function RoutePage({
   params,
@@ -59,15 +57,6 @@ export default async function RoutePage({
   const { id } = await params;
   const access = await requireTripAccess(id, `/trip/${id}/route`);
   const { trip } = access;
-
-  if (!trip.routeUnlockedAt) {
-    return (
-      <Page wide flush>
-        <PageHeader title="Route" />
-        <LockedNotice reason={lockReason("route") ?? "Not open yet"} />
-      </Page>
-    );
-  }
 
   // Independent of each other, so both go out together — the modes are read
   // off the day events rather than stored on a route (rule 3).
