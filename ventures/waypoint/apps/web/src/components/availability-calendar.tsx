@@ -244,8 +244,11 @@ export function AvailabilityCalendar({
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {months.map((m) => (
-          <div key={m}>
+        {months.map((m, i) => (
+          // On a phone the extra months stacked into a column you had to
+          // scroll past rather than read; one month at a time is what fits,
+          // and the arrows still page through the rest (ticket 129).
+          <div key={m} className={cx(i > 0 && "hidden sm:block")}>
             <p className="typed mb-2">{formatMonth(m)}</p>
             <div
               // `touch-none` hands the whole gesture to us: without it the
@@ -293,8 +296,6 @@ export function AvailabilityCalendar({
                       date >= range.start &&
                       date <= rangeEnd
                     }
-                    spanStart={view === "dates" ? date === range.start : date === tripStart}
-                    spanEnd={view === "dates" ? date === rangeEnd : date === tripEnd}
                     isToday={date === now}
                     onStart={(e) =>
                       view === "dates" ? pickRange(date) : startPaint(date, e)
@@ -339,10 +340,14 @@ export function AvailabilityCalendar({
               Discard
             </Button>
           ) : null}
-          {/* The same key as the Everyone view, because this view now draws the
+          {/* The same key as the Everyone view, because this view draws the
               same marks — a colour that appears has to be readable where it
-              appears, not one tab away. */}
+              appears, not one tab away — plus the one mark only this view has.
+              With the per-day counts gone, the key is what carries the words
+              (CLAUDE.md: status is never colour alone); each cell also names
+              its tally in its `title` and its accessible label. */}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <LegendKey swatch="bg-green border-green" label="The trip" />
             <LegendKey swatch="bg-green-soft border-green" label="All free" />
             <LegendKey swatch="bg-red-soft border-red" label="Some missing" />
           </div>
@@ -374,11 +379,6 @@ export function AvailabilityCalendar({
           <LegendKey swatch="bg-green-soft border-green" label="All free" />
           <LegendKey swatch="bg-red-soft border-red" label="Some missing" />
           <LegendKey swatch="bg-sheet-2 border-rule" label="No answer yet" />
-          <p className="text-xs text-ink-faint">
-            {/* Not "how many of the {n} of you", which reads as nonsense on a
-                trip of one. */}
-            Numbers count how many are free, out of {memberCount}.
-          </p>
         </div>
       )}
     </div>
@@ -395,8 +395,6 @@ function DayCell({
   past,
   inTrip,
   inRange,
-  spanStart,
-  spanEnd,
   isToday,
   onStart,
   onToggle,
@@ -410,9 +408,6 @@ function DayCell({
   inTrip: boolean;
   /** Inside the window being picked, in the dates view. */
   inRange: boolean;
-  /** The two ends of whichever span this cell is part of — they take the caps. */
-  spanStart: boolean;
-  spanEnd: boolean;
   isToday: boolean;
   onStart: (e: React.PointerEvent) => void;
   onToggle: () => void;
@@ -428,35 +423,31 @@ function DayCell({
     "relative flex aspect-square flex-col items-center justify-center border-b border-rule font-mono text-[11px] leading-none";
 
   /*
-   * A span — the trip's window, picked or stored — is drawn as ONE stroke
-   * across the days it covers, capped at each end, rather than as a fill per
-   * day. That is the difference the page is trying to show: a range is a
-   * single decision, whereas the days you're free are a handful of separate
-   * marks, so those stay discrete (the round pen marks below). A week's edge
-   * breaks the stroke on its own, which is what a calendar should do.
+   * The focus ring belongs to the mark, not to the cell (ticket 129). The
+   * global `:focus-visible` outline is a square, and the cell is a square the
+   * full width of the column — so clicking a day (or shift-clicking, which is
+   * what made it obvious) drew a blue box around a round green mark. The
+   * button drops the outline and the circle takes a ring instead.
    */
-  const sweep = (on: boolean) =>
-    on &&
-    cx(
-      "bg-pen-soft",
-      spanStart && "rounded-l-full",
-      spanEnd && "rounded-r-full",
-    );
+  const focusRing =
+    "group-focus-visible:ring-2 group-focus-visible:ring-pen group-focus-visible:ring-offset-1 group-focus-visible:ring-offset-sheet";
 
   /*
    * Three states, not a ramp (ticket 67). It used to shade in four bands —
-     * everyone / most / some / nobody — and the two middle bands were the
-     * problem: a day half the group can't do and a day one person can't do
-     * looked meaningfully different when they aren't. Either the whole group is
-     * free or the day costs somebody, so:
-     *
-     *   everyone free  → green wash, the same "agreed" green as everywhere else
-     *   some free      → red wash, i.e. this one leaves people out
-     *   nobody yet     → the plain sheet, because no answer is not a bad answer
-     *
-   * The count under the number is what actually says *how many*, so the red
-   * is a prompt to look rather than the whole message (CLAUDE.md: status is
-   * never colour alone).
+   * everyone / most / some / nobody — and the two middle bands were the
+   * problem: a day half the group can't do and a day one person can't do
+   * looked meaningfully different when they aren't. Either the whole group is
+   * free or the day costs somebody, so:
+   *
+   *   everyone free  → green wash, the same "agreed" green as everywhere else
+   *   some free      → red wash, i.e. this one leaves people out
+   *   nobody yet     → the plain sheet, because no answer is not a bad answer
+   *
+   * Each day used to carry its tally as a small number under the mark. It sat
+   * on every answered day in the month and read as texture rather than as
+   * data (ticket 129) — the key below says what the two washes mean, and the
+   * exact count is on the cell's `title` and its accessible label for anyone
+   * who wants the number rather than the shape.
    */
   const groupMark =
     tally === 0
@@ -465,63 +456,37 @@ function DayCell({
         ? "bg-green-soft text-green"
         : "bg-red-soft text-red";
 
-  /** The tally, under the mark — the half of the answer that isn't colour. */
-  const count =
-    tally > 0 ? (
-      <span className="mt-0.5 text-[9px] text-ink-faint">{tally}</span>
-    ) : null;
-
-  /*
-   * The same fact, drawn thinner, for the dates view (ticket 129). That view
-   * carries the picked window as a filled stroke, so a filled disc under it as
-   * well gave every day two fills and a number — three things competing in a
-   * cell 30px wide, and the stroke, which is the thing you're placing, came
-   * off worst. Here the count alone carries the group's answer, in the colour
-   * the discs used, and the stroke is the only fill on the grid.
-   */
-  const tallyLine =
-    tally > 0 ? (
-      <span
-        className={cx(
-          "mt-0.5 text-[9px] font-semibold leading-none",
-          tally === memberCount ? "text-green" : "text-red",
-        )}
-      >
-        {tally}
-      </span>
-    ) : null;
-
   if (view === "everyone") {
     return (
       <span
         role="gridcell"
         title={`${date} — ${tally} of ${memberCount} free`}
-        className={cx(cell, sweep(inTrip), past && "opacity-45")}
+        className={cx(cell, past && "opacity-45")}
       >
         <span
           className={cx(
             "flex h-[70%] w-[70%] items-center justify-center rounded-full",
-            groupMark,
+            inTrip ? "bg-green font-semibold text-sheet" : groupMark,
           )}
         >
           {dayNumber}
         </span>
-        {count}
       </span>
     );
   }
 
   /*
    * Two things one cell can be showing (ticket 128). Painting your own
-   * availability, a day is on or off by itself and reads as a mark. Picking the
-   * trip's window, the same cell belongs to a *span*, so it takes the pen
-   * stroke rather than the green mark — the group's free days and the group's
-   * decision are different claims and mustn't look alike on the same grid.
+   * availability, a day is on or off by itself. Picking the trip's window, the
+   * cell shows the *group's* answer — the same washes the Everyone view
+   * draws — because choosing a week is a decision about who can make it, and
+   * the view that commits the dates shouldn't be the one that hides that.
    *
-   * While picking, the cell keeps showing the group's tally underneath the
-   * stroke. Choosing a week is a decision *about* who can make it, and the view
-   * that commits the dates was briefly the one view that hid the answer — you
-   * had to switch to Everyone, remember it, and switch back.
+   * A day that is in the window overrides the wash with the solid green: the
+   * decision outranks the thing it was decided from, and it's the same green,
+   * pressed harder. Marks stay discrete circles throughout — a range was
+   * briefly drawn as one continuous stroke, which made a window that wrapped
+   * to the next week look like two separate selections (ticket 129).
    */
   const picking = view === "dates";
   const marked = picking ? inRange : free;
@@ -549,18 +514,17 @@ function DayCell({
       }}
       className={cx(
         cell,
-        "transition-colors",
-        // Picking the window: one stroke across the span. Painting your own
-        // days: no cell fill at all, because the mark below carries it.
-        picking ? sweep(inRange) : sweep(inTrip),
+        "group transition-colors focus-visible:outline-none",
         past && "opacity-45",
-        !picking && "hover:bg-sheet-2",
       )}
     >
       <span
         className={cx(
           "flex h-[70%] w-[70%] items-center justify-center rounded-full transition-colors",
-          picking && (inRange ? "font-semibold text-pen" : "text-ink-soft"),
+          focusRing,
+          // Picking: the group's answer, with the chosen days pressed into
+          // the solid green over the top of it.
+          picking && (inRange ? "bg-green font-semibold text-sheet" : groupMark),
           // A free day is a pen mark on the page — round, filled, sitting on
           // the rule — not a filled-in box (ticket 129). Several of them read
           // as several marks, which is what they are.
@@ -572,7 +536,6 @@ function DayCell({
       >
         {dayNumber}
       </span>
-      {picking ? tallyLine : null}
     </button>
   );
 }

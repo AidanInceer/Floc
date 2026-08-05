@@ -154,8 +154,9 @@ export function DateRangePicker({
 
       {open ? (
         <div className="grid gap-4 sm:grid-cols-2">
-          {months.map((m) => (
-            <div key={m}>
+          {months.map((m, i) => (
+            // One month on a phone; the arrows page through the rest.
+            <div key={m} className={cx(i > 0 && "hidden sm:block")}>
               <p className="typed mb-2">{formatMonth(m)}</p>
               <div
                 // The Dates tab's ruled-paper chrome, cell for cell (ticket
@@ -193,8 +194,6 @@ export function DateRangePicker({
                         selected={
                           start !== null && date >= start && date <= endValue
                         }
-                        spanStart={date === start}
-                        spanEnd={date === endValue}
                         onPick={() => pick(date)}
                       />
                     ),
@@ -212,16 +211,11 @@ function DayCell({
   date,
   outside,
   selected,
-  spanStart,
-  spanEnd,
   onPick,
 }: {
   date: string;
   outside: boolean;
   selected: boolean;
-  /** The two ends of the range, which take the stroke's rounded caps. */
-  spanStart: boolean;
-  spanEnd: boolean;
   onPick: () => void;
 }) {
   const dayNumber = Number(date.slice(8, 10));
@@ -234,24 +228,23 @@ function DayCell({
       aria-label={`${date}${outside ? " — outside the trip" : ""}`}
       onClick={onPick}
       className={cx(
-        "relative flex aspect-square items-center justify-center border-b border-rule font-mono text-[11px] leading-none transition-colors",
-        // A range is one decision, so it is drawn as one stroke across the
-        // days it covers rather than as a fill per day (ticket 129). The
-        // week's edge breaks it, which is what a calendar should do.
-        selected && "bg-pen-soft",
-        selected && spanStart && "rounded-l-full",
-        selected && spanEnd && "rounded-r-full",
+        "group relative flex aspect-square items-center justify-center border-b border-rule font-mono text-[11px] leading-none transition-colors focus-visible:outline-none",
         // Out of bounds is faint, not boxed and greyed — the grid keeps its
         // shape without a disabled day drawing the eye (ticket 87).
-        outside
-          ? "cursor-not-allowed text-ink-faint opacity-40"
-          : !selected && "hover:bg-sheet-2",
+        outside ? "cursor-not-allowed opacity-40" : !selected && "hover:bg-sheet-2",
       )}
     >
       <span
         className={cx(
-          "flex h-[62%] w-[62%] items-center justify-center rounded-full",
-          selected ? "font-semibold text-pen" : "text-ink-soft",
+          "flex h-[70%] w-[70%] items-center justify-center rounded-full transition-colors",
+          // The ring goes on the mark: the cell is a full-width square, and a
+          // square outline around a round mark is what the global
+          // `:focus-visible` gave us (ticket 129).
+          "group-focus-visible:ring-2 group-focus-visible:ring-pen group-focus-visible:ring-offset-1 group-focus-visible:ring-offset-sheet",
+          // Discrete circles, the Dates tab's marks exactly (ticket 129). A
+          // range was briefly one continuous stroke, and a window that wrapped
+          // to the next week read as two separate selections.
+          selected ? "bg-green font-semibold text-sheet" : "text-ink-soft",
         )}
       >
         {dayNumber}
