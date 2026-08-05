@@ -15,8 +15,7 @@ import { listAvailability } from "@/server/membership";
 import { bestWindow, monthOf, thisMonth } from "@/lib/availability";
 import { formatDate, formatDateRange, nightsBetween } from "@/lib/dates";
 import {
-  Avatar,
-  Badge,
+  AvatarRow,
   Card,
   CardHeader,
   Page,
@@ -91,8 +90,15 @@ export default async function DatesPage({
         title="Dates"
         subtitle={
           hasDates ? (
+            /*
+             * Same 14px as the undated line, not a larger one (ticket 133).
+             * A `text-base` range made the header a couple of pixels taller
+             * than "Not settled yet…", so committing or clearing the dates
+             * nudged the whole page down — a layout shift as the answer to
+             * a click that was about the dates, not about the page.
+             */
             <>
-              <span className="nums text-base text-ink">
+              <span className="nums text-ink">
                 {formatDateRange(trip.startDate, trip.endDate)}
               </span>{" "}
               <span className="text-ink-faint">
@@ -103,39 +109,6 @@ export default async function DatesPage({
             "Not settled yet — mark the days you could go."
           )
         }
-        /*
-         * Both resets behind one triple-dot (ticket 125's pattern, applied
-         * here by ticket 132). "Clear dates" sat in this header and "Start
-         * again" in the calendar's, two ghost buttons a hand's width apart,
-         * each rarely wanted and each competing with the grid that is what
-         * the page is for. One affordance shows; the verbs are revealed on
-         * demand.
-         */
-        actions={
-          hasDates || mine.length > 0 ? (
-            <Menu label="Dates actions">
-              {/* No confirm dialog behind either of these. Opening a menu and
-                  picking a named verb is already deliberate, and neither loses
-                  anything you can't put back by marking the days again or
-                  setting the dates again — a modal to confirm that is a second
-                  click for nothing. */}
-              {hasDates ? (
-                <form action={clearTripDates.bind(null, tripId)}>
-                  <SubmitButton variant="ghost" className={menuDangerItemClass}>
-                    Clear the trip&rsquo;s dates
-                  </SubmitButton>
-                </form>
-              ) : null}
-              {mine.length > 0 ? (
-                <form action={clearMyAvailability.bind(null, tripId)}>
-                  <SubmitButton variant="ghost" className={menuDangerItemClass}>
-                    Clear the days I marked
-                  </SubmitButton>
-                </form>
-              ) : null}
-            </Menu>
-          ) : undefined
-        }
       />
 
       <Stack gap={6}>
@@ -143,6 +116,69 @@ export default async function DatesPage({
           <CardHeader
             title="Who can do when"
             hint="Your own days, or the whole group's overlap."
+            /*
+             * Everything that hangs off the calendar sits on the calendar's
+             * own header (ticket 133): who hasn't answered, then the menu.
+             *
+             * The waiting-on list used to be a second card below this one,
+             * which appeared and disappeared as people answered and moved
+             * the page under whoever was mid-decision. As a line of faces on
+             * a header that is always there, it can't push anything.
+             */
+            actions={
+              <div className="flex items-center gap-3">
+                {waitingOn.length > 0 ? (
+                  <div className="flex items-center gap-2">
+                    {/* `leading-none`, and faces the same 26px as the menu
+                        trigger beside them: the mono label carries its own
+                        line-height, which left the caps sitting a pixel or
+                        two above the middle of the row. */}
+                    <span className="typed leading-none text-ink-faint">
+                      Still to say
+                    </span>
+                    <AvatarRow
+                      people={waitingOn.map((m) => ({
+                        name: m.name,
+                        avatarUrl: m.avatarUrl,
+                        tone: m.tone,
+                      }))}
+                      size={26}
+                    />
+                  </div>
+                ) : null}
+                {/*
+                 * Always rendered, both verbs always listed — disabled when
+                 * there is nothing to undo rather than absent (ticket 133).
+                 * A control that comes and goes has to be hunted for; one
+                 * that is always in the same corner is somewhere you look.
+                 *
+                 * No confirm dialog behind either: opening a menu and picking
+                 * a named verb is already deliberate, and neither loses
+                 * anything you can't put back by marking the days again or
+                 * setting the dates again.
+                 */}
+                <Menu label="Dates actions">
+                  <form action={clearTripDates.bind(null, tripId)}>
+                    <SubmitButton
+                      variant="ghost"
+                      disabled={!hasDates}
+                      className={menuDangerItemClass}
+                    >
+                      Reset dates
+                    </SubmitButton>
+                  </form>
+                  <form action={clearMyAvailability.bind(null, tripId)}>
+                    <SubmitButton
+                      variant="ghost"
+                      disabled={mine.length === 0}
+                      className={menuDangerItemClass}
+                    >
+                      Clear availability
+                    </SubmitButton>
+                  </form>
+                </Menu>
+              </div>
+            }
           />
           <div className="p-4">
             {suggestion ? (
@@ -169,26 +205,6 @@ export default async function DatesPage({
             />
           </div>
         </Card>
-
-        {waitingOn.length > 0 ? (
-          <Card>
-            <CardHeader
-              title="Still to say"
-              hint="Not a blocker — the dates can be set without them."
-            />
-            <ul className="flex flex-col gap-2 p-4">
-              {waitingOn.map((m) => (
-                <li key={m.userId} className="flex items-center gap-2 text-sm">
-                  <Avatar name={m.name} src={m.avatarUrl} size={24} tone={m.tone} />
-                  <span>{m.name}</span>
-                  {m.userId === viewer.id ? (
-                    <Badge tone="action">That&rsquo;s you</Badge>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          </Card>
-        ) : null}
       </Stack>
     </Page>
   );

@@ -397,8 +397,14 @@ export function AvatarRow({
   const extra = people.length - shown.length;
   return (
     <div className="flex items-center">
+      {/* `inline-flex` on each face, not the default inline: an inline box
+          takes the line's leading with it, which sat every face a pixel below
+          whatever it was lined up against (ticket 133). */}
       {shown.map((p, i) => (
-        <span key={`${p.name}-${i}`} className={i > 0 ? "-ml-2" : undefined}>
+        <span
+          key={`${p.name}-${i}`}
+          className={cx("inline-flex", i > 0 && "-ml-2")}
+        >
           <Avatar name={p.name} src={p.avatarUrl} size={size} tone={p.tone} />
         </span>
       ))}

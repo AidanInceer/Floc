@@ -184,12 +184,16 @@ export function AvailabilityCalendar({
    * button, a key, a range and its buttons — and letting each size itself
    * moved the card's bottom edge every time you switched view, which made a
    * switch between two views of the same grid look like a change of page.
-   * The `min-h` spells out what it is reserving — a button (2rem), this box's
-   * own top padding and its rule — so a row of keys takes the room a row of
-   * buttons takes and the bottom edge stays put.
+   *
+   * It reserves *two* rows (ticket 133), not one. The dates view carries a
+   * range, two buttons and a three-word key, which wraps onto a second line at
+   * anything short of a wide desktop — so a one-row reservation held for Mine
+   * and Everyone and then jumped 24px on the third view. Two rows is what the
+   * busiest view needs, and the other two sit in the same box with air under
+   * them rather than moving the card's bottom edge.
    */
   const footer =
-    "mt-5 flex min-h-[calc(2rem+1rem+1px)] flex-wrap items-center gap-x-4 gap-y-2 border-t border-rule pt-4";
+    "mt-5 flex min-h-[calc(2rem+0.5rem+2rem+1rem+1px)] flex-wrap content-start items-center gap-x-4 gap-y-2 border-t border-rule pt-4";
 
   return (
     <div
@@ -351,14 +355,18 @@ export function AvailabilityCalendar({
           >
             {pending ? "Setting…" : tripStart ? "Change dates" : "Set the dates"}
           </Button>
-          {rangeChanged ? (
-            <Button
-              variant="ghost"
-              onClick={() => setRange({ start: tripStart, end: tripEnd })}
-            >
-              Discard
-            </Button>
-          ) : null}
+          {/* Always here, disabled when there is nothing to throw away
+              (ticket 133). Appearing and disappearing changed how much of
+              the footer was left for the key, which re-wrapped it onto a
+              second line — so committing the dates moved the card's bottom
+              edge by a row. */}
+          <Button
+            variant="ghost"
+            disabled={!rangeChanged}
+            onClick={() => setRange({ start: tripStart, end: tripEnd })}
+          >
+            Discard
+          </Button>
           {/* The same key as the Everyone view, because this view draws the
               same marks — a colour that appears has to be readable where it
               appears, not one tab away — plus the one mark only this view has.
@@ -384,11 +392,13 @@ export function AvailabilityCalendar({
                 ? "Nothing to save"
                 : `Save ${changed.length} ${changed.length === 1 ? "day" : "days"}`}
           </Button>
-          {changed.length > 0 ? (
-            <Button variant="ghost" onClick={() => setEdits({})}>
-              Discard
-            </Button>
-          ) : null}
+          <Button
+            variant="ghost"
+            disabled={changed.length === 0}
+            onClick={() => setEdits({})}
+          >
+            Discard
+          </Button>
         </div>
       ) : (
         /* A key, not a paragraph (ticket 76). The swatch carries the colour and

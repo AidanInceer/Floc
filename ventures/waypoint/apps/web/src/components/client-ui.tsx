@@ -69,18 +69,24 @@ export function SubmitButton({
   pendingLabel,
   variant = "primary",
   className,
+  disabled,
 }: {
   children: ReactNode;
   pendingLabel?: string;
   variant?: "primary" | "secondary" | "ghost" | "danger";
   className?: string;
+  /**
+   * For a verb that is always *shown* but not always *available* — a menu that
+   * keeps its shape whether or not there is anything to undo (ticket 133).
+   */
+  disabled?: boolean;
 }) {
   const { pending } = useFormStatus();
   return (
     <Button
       type="submit"
       variant={variant}
-      disabled={pending}
+      disabled={pending || disabled}
       className={className}
     >
       {pending ? (pendingLabel ?? "Saving…") : children}
