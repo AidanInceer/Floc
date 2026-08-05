@@ -16,7 +16,7 @@
  * Months render several at a time (a group picking "sometime in the spring"
  * shouldn't have to page one month at a time), with paging on top of that.
  */
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 
 import { Button, LegendKey, cx } from "@/components/ui";
 import {
@@ -55,6 +55,7 @@ export function AvailabilityCalendar({
   const [view, setView] = useState<View>("mine");
   const [month, setMonth] = useState(firstMonth);
   const [pending, startTransition] = useTransition();
+  const surface = useRef<HTMLDivElement>(null);
 
   // Local truth while editing: date → free?. Only dates the viewer has touched
   // appear here, so an untouched day always falls through to the server's copy
@@ -81,10 +82,42 @@ export function AvailabilityCalendar({
   const add = changed.filter(([, free]) => free).map(([date]) => date);
   const remove = changed.filter(([, free]) => !free).map(([date]) => date);
 
-  const startPaint = (date: string) => {
+  /**
+   * Where a drag begins, and the one piece of pointer plumbing this needs
+   * (ticket 127).
+   *
+   * A touch pointer is *implicitly captured* by whichever element took the
+   * `pointerdown` — so with the handlers on the cells, every subsequent event
+   * went back to the day the finger landed on and no other cell ever heard
+   * `pointerenter`. On a phone the drag painted exactly one day. Moving the
+   * capture up to the whole calendar fixes both halves at once: the moves keep
+   * arriving (at the surface, which hit-tests for the cell under the finger),
+   * and so does the `pointerup`, wherever the finger ends up — including off
+   * the grid entirely, which is what `onPointerLeave` used to be there to
+   * catch.
+   */
+  const startPaint = (date: string, e: React.PointerEvent) => {
+    // Claim the gesture before the browser reads it as a text selection or,
+    // on touch, as a scroll.
+    e.preventDefault();
+    try {
+      surface.current?.setPointerCapture(e.pointerId);
+    } catch {
+      // The pointer went away between the event and this line. Nothing to
+      // capture, and the drag is about to be cancelled anyway — never let it
+      // take the paint down with it.
+    }
     const target = !isFree(date);
     setDrag({ anchor: date, target, base: edits });
     setEdits({ ...edits, [date]: target });
+  };
+
+  /** The day under the pointer, wherever it is — `pointerenter` can't say. */
+  const dateUnder = (e: React.PointerEvent): string | null => {
+    const el = document
+      .elementFromPoint(e.clientX, e.clientY)
+      ?.closest<HTMLElement>("[data-date]");
+    return el?.dataset.date ?? null;
   };
 
   const extendPaint = (date: string) => {
@@ -109,10 +142,17 @@ export function AvailabilityCalendar({
 
   return (
     <div
-      // Painting ends wherever the pointer is released, including outside the
-      // grid — otherwise letting go over the page margin leaves it stuck on.
+      ref={surface}
+      // The drag lives here rather than on the cells — see `startPaint`. The
+      // pointer is captured to this element, so every move and the release all
+      // come here whatever they happen to be over.
+      onPointerMove={(e) => {
+        if (!drag) return;
+        const date = dateUnder(e);
+        if (date) extendPaint(date);
+      }}
       onPointerUp={() => setDrag(null)}
-      onPointerLeave={() => setDrag(null)}
+      onPointerCancel={() => setDrag(null)}
     >
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="inline-flex overflow-hidden rounded-md border border-rule-strong">
@@ -157,7 +197,12 @@ export function AvailabilityCalendar({
           <div key={m}>
             <p className="typed mb-2">{formatMonth(m)}</p>
             <div
-              className="grid grid-cols-7 gap-px text-center"
+              // `touch-none` hands the whole gesture to us: without it the
+              // browser claims a vertical drag as a page scroll, which is
+              // exactly the drag that crosses from one week's row to the next
+              // (ticket 127). A tap still toggles, and the page still scrolls
+              // from anywhere that isn't the grid.
+              className="grid touch-none grid-cols-7 gap-px text-center"
               role="grid"
               aria-label={`${formatMonth(m)} availability`}
             >
@@ -185,8 +230,8 @@ export function AvailabilityCalendar({
                     inTrip={
                       !!tripStart && !!tripEnd && date >= tripStart && date <= tripEnd
                     }
-                    onStart={() => startPaint(date)}
-                    onEnter={() => extendPaint(date)}
+                    onStart={(e) => startPaint(date, e)}
+                    onToggle={() => setEdits({ ...edits, [date]: !isFree(date) })}
                   />
                 ),
               )}
@@ -243,7 +288,7 @@ function DayCell({
   past,
   inTrip,
   onStart,
-  onEnter,
+  onToggle,
 }: {
   date: string;
   view: View;
@@ -252,8 +297,8 @@ function DayCell({
   memberCount: number;
   past: boolean;
   inTrip: boolean;
-  onStart: () => void;
-  onEnter: () => void;
+  onStart: (e: React.PointerEvent) => void;
+  onToggle: () => void;
 }) {
   const dayNumber = Number(date.slice(8, 10));
 
@@ -304,13 +349,16 @@ function DayCell({
       role="gridcell"
       aria-pressed={free}
       aria-label={`${date}${free ? " — you're free" : ""}`}
-      onPointerDown={(e) => {
-        // Claim the pointer so dragging across cells keeps firing enter events
-        // instead of the browser starting a text selection.
-        e.preventDefault();
-        onStart();
+      // What the surface above hit-tests for on every move — the cell under
+      // the pointer, which `pointerenter` is no help with on touch.
+      data-date={date}
+      onPointerDown={onStart}
+      // Enter and Space arrive as a click with no pointer behind it
+      // (`detail === 0`), which is the only way this cell is reachable from
+      // the keyboard — `pointerdown` never fires there.
+      onClick={(e) => {
+        if (e.detail === 0) onToggle();
       }}
-      onPointerEnter={onEnter}
       className={cx(
         "flex aspect-square items-center justify-center rounded-sm border font-mono text-[11px] leading-none transition-colors",
         free
