@@ -27,14 +27,30 @@
  * machine-readable line off the bottom of a passport, spelling out the sample
  * trip. Decoration, `aria-hidden`, and the page's closing rule at once.
  *
- * Copy is unchanged from the previous page except where a section head had to
- * name the new object. Every surface is a token — see the landing block in
- * globals.css for why the punched holes are `--sheet` and not `--paper`.
+ * Every surface is a token — see the landing block in globals.css for why the
+ * punched holes are `--sheet` and not `--paper`.
+ *
+ * TICKET 123 — what the page deliberately no longer has. Three treatments were
+ * stacked on one document and the page read as three designs:
+ *
+ *   - The typewriter eyebrow above the pass ("Start the trip as notes. Finish
+ *     it as a plan"). The `h1` under it says the same thing louder, so it was
+ *     a strapline introducing a strapline.
+ *   - The handwritten marginalia — "— started 14 Feb, still arguing about
+ *     Croatia", "— usually decided before the flights go up", and a scribble
+ *     on every coupon's counterfoil. A fourth voice, in a face nobody has to
+ *     read, commenting on copy that already carried itself.
+ *   - "Sign up with Google or an email and password", which described the
+ *     mechanics of the button beside it (venture CLAUDE.md: no instructional
+ *     copy — the sign-up page shows both routes).
+ *
+ * That leaves the document in two faces, the serif and the typewriter, which
+ * is what a printed pass is actually set in. `.hand` is untouched elsewhere —
+ * it is still the ideas composer's face; it just isn't a marketing device.
  */
 import type { CSSProperties, ReactNode } from "react";
 
 import { getSession } from "@/server/access";
-import { enabledProviders } from "@/server/auth";
 import { Badge, ButtonLink, Page, Stamp, type Tone } from "@/components/ui";
 
 /* -------------------------------------------------------------------------- */
@@ -85,7 +101,6 @@ type Stop = {
   body: string;
   /** The worked example on the coupon — the app's own texture, printed. */
   eg: { k: string; v: string }[];
-  scribble: string;
   /**
    * The counterfoil's tint — that tab's own wash, always a token and never a
    * hex (see the colour rule in CLAUDE.md). It's the only place colour
@@ -106,7 +121,6 @@ const stops: Stop[] = [
       { k: "2 votes", v: "Puglia, if we can drive" },
       { k: "no votes", v: "That place Jonas saw once" },
     ],
-    scribble: "Ruth added 6 of these in one evening",
     wash: "var(--highlight-2)",
   },
   {
@@ -118,7 +132,6 @@ const stops: Stop[] = [
       { k: "5 free", v: "12–19 Sep · the one everyone can do" },
       { k: "3 free", v: "26 Sep–3 Oct · Tom's away" },
     ],
-    scribble: "nobody had to ask twice",
     wash: "var(--pen-2)",
   },
   {
@@ -131,7 +144,6 @@ const stops: Stop[] = [
       { k: "3 nights", v: "Taormina" },
       { k: "2 nights", v: "Syracuse" },
     ],
-    scribble: "7 nights, 7 accounted for",
     wash: "var(--sheet-3)",
   },
   {
@@ -144,7 +156,6 @@ const stops: Stop[] = [
       { k: "13:00", v: "Isola Bella — Jonas has the tickets" },
       { k: "20:00", v: "Dinner, table for 7" },
     ],
-    scribble: "the rest of Thursday is deliberately blank",
     wash: "var(--green-2)",
   },
   {
@@ -157,7 +168,6 @@ const stops: Stop[] = [
       { k: "£177", v: "each, near enough" },
       { k: "£84", v: "owed to Mei by 3 people" },
     ],
-    scribble: "settled on the Sunday, no spreadsheet",
     wash: "var(--red-2)",
   },
   {
@@ -172,7 +182,6 @@ const stops: Stop[] = [
       { k: "Sicily", v: "7 nights · settled" },
       { k: "Porto", v: "4 nights · settled" },
     ],
-    scribble: "“where was that bar in Ortigia?”",
     wash: "var(--sheet-2)",
   },
 ];
@@ -187,13 +196,10 @@ function Coupon({ stop }: { stop: Stop }) {
         <p className="typed">{stop.step}</p>
         {/* 900px, not a `md:` — that's where `.counterfoil` turns from a
             column into a baseline-aligned row (globals.css), and the top
-            margin and the scribble both belong to the column form only. */}
+            margin belongs to the column form only. */}
         <p className="mt-1 text-[1.3rem] font-semibold leading-tight max-[900px]:mt-0 lg:text-[1.45rem]">
           {stop.tab}
         </p>
-        <span className="hand mt-4 inline-block -rotate-[1.5deg] text-[13.5px] text-ink-soft max-[900px]:hidden">
-          {stop.scribble}
-        </span>
       </div>
 
       <div className="p-5 sm:px-6">
@@ -257,8 +263,6 @@ export default async function LandingPage() {
     <Page wide>
       {/* ==================== 1. THE PASS ================================= */}
       <section className="pt-2 sm:pt-4">
-        <p className="typed mb-5">Start the trip as notes. Finish it as a plan</p>
-
         <div className="pass">
           <div className="pass-body">
             <h1 className="font-display text-[clamp(2rem,5.2vw,3.35rem)] font-semibold leading-[1.05] tracking-[-0.025em]">
@@ -311,14 +315,6 @@ export default async function LandingPage() {
               </div>
             </div>
 
-            <p className="hand mt-6 inline-block -rotate-1 text-[15px] text-pen">
-              — started 14 Feb, still arguing about Croatia
-            </p>
-            {!session?.user && enabledProviders.google ? (
-              <p className="mt-3 text-xs text-ink-faint">
-                Sign up with Google or an email and password.
-              </p>
-            ) : null}
           </div>
 
           {/* The tear-off stub: a static illustrative sample of the product's
@@ -433,9 +429,6 @@ export default async function LandingPage() {
                 </>
               )}
             </div>
-            <p className="hand mt-5 inline-block -rotate-1 text-[15px] text-pen">
-              — usually decided before the flights go up
-            </p>
           </div>
         </div>
       </section>
