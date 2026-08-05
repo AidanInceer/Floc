@@ -1,6 +1,13 @@
 # Workspace globs for the Nexus hub. Anything not matched here is NOT part of the
 # pnpm/Turborepo workspace. The `_template` venture is intentionally excluded so
 # its scaffold packages aren't installed until copied into a real venture.
+# The settings below are duplicated from the root package.json's `pnpm` field,
+# and both copies have to stay in step until `packageManager` moves off pnpm 9.
+# pnpm 9 — which is what CI installs, from `packageManager` — reads them from
+# package.json and knows nothing about them here. pnpm 10 does the opposite and
+# warns that the package.json field "is no longer read", which is how a bumped
+# override can look applied locally and silently not be in CI. Keeping both is
+# the only arrangement where every reader sees the same floors.
 packages:
   - "ventures/*/apps/*"
   - "ventures/*/services/*"
@@ -9,3 +16,26 @@ packages:
   - "internal-tools/*"
   - "enablement/cli"
   - "!ventures/_template/**"
+
+neverBuiltDependencies:
+  - esbuild
+
+# Security gates are fixed, never weakened (security-compliance/CLAUDE.md), so
+# an advisory reached through a transitive dep is pinned forward here rather
+# than muted in the audit step. Each entry is a `pnpm audit` finding, set to the
+# patched floor the advisory itself names.
+overrides:
+  vitest: ^3.2.6
+  vite: ^6.4.3
+  sharp: ^0.35.0
+  postcss: ^8.5.18
+  # GHSA-rgw5-rvv9-x895 — DoS via unbounded intermediate arrays, which bypasses
+  # the CVE-2026-14257 mitigation. Patched in 5.0.9; the floor sat at ^5.0.8 and
+  # the lockfile had resolved it to exactly 5.0.8, so the pin was one patch
+  # short of the advisory it was there to answer.
+  brace-expansion: ^5.0.9
+  glob>minimatch: ^10.0.1
+  # GHSA-67mh-4wv8-2f99 — any website can make the dev server answer its
+  # requests. Reached only through @esbuild-kit/*, which drizzle-kit still
+  # pulls in and which is itself deprecated; patched in 0.25.0.
+  esbuild: ^0.25.0
