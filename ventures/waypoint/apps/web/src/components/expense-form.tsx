@@ -224,7 +224,7 @@ export function ExpenseForm({
 
         <Field
           label="Split between"
-          hint="Everyone's in and on one share each. Tap someone out if the cost wasn't theirs, give someone more shares, or pin an exact amount and the rest spreads over whoever's left."
+          hint="Everyone's in, on one share each."
         >
           <Stack gap={2}>
             {members.map((m) => {

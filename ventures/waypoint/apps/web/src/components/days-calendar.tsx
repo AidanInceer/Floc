@@ -671,7 +671,7 @@ export function DaysCalendar({
           you — the alternative is a week view that quietly became a day. */}
       {tooNarrow ? (
         <p className="border-b border-highlight bg-highlight-soft px-3 py-1.5 text-xs text-ink-soft">
-          Narrow window — showing one day at a time. Widen to see the whole week.
+          Narrow window — one day at a time.
         </p>
       ) : null}
 
@@ -897,9 +897,7 @@ export function DaysCalendar({
             ) : selectedEvent ? (
               panels[selectedEvent.id]
             ) : (
-              <p className="text-sm text-ink-faint">
-                Pick an event to see its detail and what the group has said about it.
-              </p>
+              <p className="text-sm text-ink-faint">No event selected.</p>
             )}
           </div>
         </aside>

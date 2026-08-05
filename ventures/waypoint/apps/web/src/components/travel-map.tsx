@@ -30,7 +30,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import "leaflet/dist/leaflet.css";
 
 import { COUNTRIES, countryName } from "@/lib/countries";
-import { Input, cx } from "./ui";
+import { Input, LegendKey, cx } from "./ui";
 
 export type MapState = "green" | "yellow";
 /** What a click asks for — the displayed state, not the stored row. */
@@ -296,10 +296,19 @@ export function TravelMap({
               })
             )}
           </ul>
-          <p className="mt-1 text-xs text-ink-faint">
-            Click a country — on the map or in the list — to cycle it: want to
-            go, been there, then off again. Countries from your trips are filled
-            in for you, and anything you set by hand stays set.
+          {/* Ticket 122: this was a paragraph explaining that a country
+              cycles through three states when you click it. The three states
+              are a key now — the same swatch-and-word the availability
+              calendar uses — so the map is read rather than explained. The one
+              fact the UI can't show for itself is where the already-filled
+              countries came from, and that stays. */}
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5">
+            <LegendKey swatch="bg-green-soft border-green" label="Want to go" />
+            <LegendKey swatch="bg-highlight-soft border-highlight-edge" label="Been there" />
+            <LegendKey swatch="bg-sheet-2 border-rule" label="Not marked" />
+          </div>
+          <p className="mt-2 text-xs text-ink-faint">
+            Countries from your trips are filled in already.
           </p>
         </div>
       ) : marked.length > 0 ? (

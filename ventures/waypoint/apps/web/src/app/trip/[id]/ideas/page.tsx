@@ -186,15 +186,15 @@ export default async function IdeasPage({
             action={vibes.length === 0 ? (
               <Link
                 href="/profile"
-                className="text-sm font-medium text-pen underline underline-offset-2"
+                className="text-sm font-medium text-pen underline underline-offset-2 transition-colors hover:bg-highlight-soft hover:text-pen-deep"
               >
                 Pick your vibe tags
               </Link>
             ) : undefined}
           >
             {vibes.length > 0
-              ? `Based on what you like (${vibes.slice(0, 2).join(", ")}), maybe pin something like "${vibes[0]} weekend somewhere new" — anything works, this is just a starting nudge.`
-              : "Grab the blank note and pin whatever's in your head — a place, a vibe, a whole itinerary. Setting your vibe preferences on your profile gives you starting prompts here."}
+              ? `Something like "${vibes[0]} weekend somewhere new", going by what you like.`
+              : "A place, a vibe, or a whole itinerary — nothing pinned here is binding."}
           </EmptyState>
         </div>
       ) : null}

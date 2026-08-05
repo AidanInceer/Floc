@@ -18,7 +18,7 @@
  */
 import { useState, useTransition } from "react";
 
-import { Button, cx } from "@/components/ui";
+import { Button, LegendKey, cx } from "@/components/ui";
 import {
   WEEKDAY_LABELS,
   addMonths,
@@ -234,15 +234,6 @@ export function AvailabilityCalendar({
 }
 
 /** One swatch-and-word pair in the Dates key (ticket 76). */
-function LegendKey({ swatch, label }: { swatch: string; label: string }) {
-  return (
-    <span className="flex items-center gap-1.5 text-xs text-ink-soft">
-      <span className={cx("size-3 rounded-sm border", swatch)} aria-hidden />
-      {label}
-    </span>
-  );
-}
-
 function DayCell({
   date,
   view,

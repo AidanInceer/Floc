@@ -291,6 +291,21 @@ export function Stamp({
   );
 }
 
+/**
+ * A swatch and the word it means. Ticket 76 introduced it on the availability
+ * calendar as the visual-over-text convention — the reader matches rather than
+ * reads — and ticket 122 lifted it here when the travel map's "click a country
+ * to cycle it" paragraph was replaced by the same key.
+ */
+export function LegendKey({ swatch, label }: { swatch: string; label: string }) {
+  return (
+    <span className="flex items-center gap-1.5 text-xs text-ink-soft">
+      <span className={cx("size-3 rounded-sm border", swatch)} aria-hidden />
+      {label}
+    </span>
+  );
+}
+
 export function EmptyState({
   title,
   children,

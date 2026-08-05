@@ -79,7 +79,7 @@ export default async function ProfilePage() {
               </div>
             ) : (
               <p className="min-w-0 flex-1 text-sm text-ink-soft">
-                No vibe tags yet — pick a few below.
+                No vibe tags yet.
               </p>
             )}
           </div>
@@ -202,7 +202,7 @@ export default async function ProfilePage() {
         <Card>
           <CardHeader
             title="Vibe tags"
-            hint="Pick from the list — Waypoint keeps one shared vocabulary so these can be matched up later."
+            hint="One shared vocabulary, so these can be matched up across trips later."
           />
           <ActionForm action={updateVibeTags} className="p-4">
             <Stack gap={4}>
