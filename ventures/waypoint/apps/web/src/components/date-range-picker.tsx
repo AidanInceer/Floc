@@ -11,12 +11,14 @@
  * bound on the end, and looks like the browser rather than like the app. A trip
  * starting in January 2027 was picked from a calendar sitting in August 2026.
  *
- * So: one grid, no native popover left in the app. First click sets the start,
- * second sets the end, a third starts over — the end can't precede the start
- * because there is nowhere to say so, which is a stronger guarantee than a
- * `min` attribute. The grid is the Dates tab's own grid (`availability-
- * calendar.tsx`): same cell, same weekday header, same paging, so a stop's
- * dates are chosen the way the trip's dates were.
+ * So: one grid, no native popover left in the app. Press the start and drag to
+ * the end, or click the two ends in turn; a click on a finished window starts a
+ * new one, and while only the start is picked it wears a ring and the days
+ * under the pointer fill at half strength (ticket 135). The end can't precede
+ * the start because there is nowhere to say so, which is a stronger guarantee
+ * than a `min` attribute. The grid is the Dates tab's own grid (`availability-
+ * calendar.tsx`): same cell, same weekday header, same paging, same gesture, so
+ * a stop's dates are chosen the way the trip's dates were.
  *
  * `min`/`max` are optional. Bounded, days outside render disabled rather than
  * being dropped, so the grid keeps its shape and a month at the edge of the
@@ -27,7 +29,7 @@
  * exactly the same `startDate`/`endDate` fields it did when these were date
  * inputs.
  */
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { Button, cx } from "@/components/ui";
 import {
@@ -83,6 +85,24 @@ export function DateRangePicker({
   );
   const [open, setOpen] = useState(!collapsible);
 
+  /*
+   * The same gesture the Dates tab's grid takes (ticket 135), because it is
+   * the same grid: press the start and drag to the end, or click the two ends
+   * in turn. This one was click-only, so a drag across it was a browser text
+   * selection ending in a stray click — and a start with no end yet looked
+   * exactly like a picked single day, which is what made the third click read
+   * as an undo rather than a fresh start.
+   */
+  const surface = useRef<HTMLDivElement>(null);
+  const [drag, setDrag] = useState<string | null>(null);
+  const [hover, setHover] = useState<string | null>(null);
+
+  const outside = (date: string) =>
+    (min !== undefined && date < min) || (max !== undefined && date > max);
+
+  const halfMade = start !== null && end === null;
+  const previewTo = halfMade && !drag && hover && hover > start! ? hover : null;
+
   const pick = (date: string) => {
     // Start-then-end, and a click before the current start becomes the new
     // start rather than an invalid backwards range — nobody means "end before
@@ -93,6 +113,47 @@ export function DateRangePicker({
       return;
     }
     setEnd(date);
+  };
+
+  /** A press: picks what a click would, and arms a drag if it opened a window. */
+  const startPick = (date: string, e: React.PointerEvent) => {
+    // Claim the gesture, or the browser reads it as a text selection.
+    e.preventDefault();
+    try {
+      surface.current?.setPointerCapture(e.pointerId);
+    } catch {
+      // Pointer already gone. The pick below still stands.
+    }
+    if (!halfMade) setDrag(date);
+    setHover(null);
+    pick(date);
+  };
+
+  /** The day under the pointer — `pointerenter` never fires once captured. */
+  const dateUnder = (e: React.PointerEvent): string | null => {
+    const el = document
+      .elementFromPoint(e.clientX, e.clientY)
+      ?.closest<HTMLElement>("[data-date]");
+    const date = el?.dataset.date ?? null;
+    // A bounded picker's disabled days stay untakeable by drag too, rather
+    // than being swept up by a gesture that passed over them.
+    return date && !outside(date) ? date : null;
+  };
+
+  const extend = (date: string) => {
+    if (!drag) return;
+    // Recomputed from the anchor every move, so dragging back over yourself
+    // shrinks the window instead of leaving the far end where it was.
+    if (date === drag) {
+      setStart(drag);
+      setEnd(null);
+    } else if (date < drag) {
+      setStart(date);
+      setEnd(drag);
+    } else {
+      setStart(drag);
+      setEnd(date);
+    }
   };
 
   const months = monthsFrom(month, monthCount);
@@ -109,7 +170,23 @@ export function DateRangePicker({
       : "Pick a day";
 
   return (
-    <div>
+    <div
+      ref={surface}
+      // The drag lives on the wrapper, not the cells: a touch pointer is
+      // implicitly captured by whatever took the `pointerdown`, so cell
+      // handlers would only ever hear about the day the finger landed on.
+      onPointerMove={(e) => {
+        const date = dateUnder(e);
+        if (drag) {
+          if (date) extend(date);
+        } else if (open) {
+          setHover(date);
+        }
+      }}
+      onPointerLeave={() => setHover(null)}
+      onPointerUp={() => setDrag(null)}
+      onPointerCancel={() => setDrag(null)}
+    >
       <input type="hidden" name={startName} value={start ?? ""} />
       <input type="hidden" name={endName} value={endValue} />
 
@@ -162,7 +239,10 @@ export function DateRangePicker({
                 // The Dates tab's ruled-paper chrome, cell for cell (ticket
                 // 129) — one rule under each week, no box around a day, and
                 // the cells abutting so a range draws as one stroke.
-                className="grid grid-cols-7 border-t border-rule text-center"
+                // `touch-none` hands the gesture to us — otherwise the browser
+                // claims a vertical drag as a page scroll, which is exactly the
+                // drag that crosses from one week to the next.
+                className="grid touch-none grid-cols-7 border-t border-rule text-center"
                 role="grid"
                 aria-label={`${formatMonth(m)} dates`}
               >
@@ -187,13 +267,15 @@ export function DateRangePicker({
                       <DayCell
                         key={date}
                         date={date}
-                        outside={
-                          (min !== undefined && date < min) ||
-                          (max !== undefined && date > max)
-                        }
+                        outside={outside(date)}
                         selected={
                           start !== null && date >= start && date <= endValue
                         }
+                        pending={
+                          !!previewTo && date > start! && date <= previewTo
+                        }
+                        openEnd={halfMade && date === start}
+                        onStart={(e) => startPick(date, e)}
                         onPick={() => pick(date)}
                       />
                     ),
@@ -211,11 +293,19 @@ function DayCell({
   date,
   outside,
   selected,
+  pending,
+  openEnd,
+  onStart,
   onPick,
 }: {
   date: string;
   outside: boolean;
   selected: boolean;
+  /** Inside the span the pointer is currently proposing (ticket 135). */
+  pending: boolean;
+  /** The picked start of a window whose end hasn't been chosen yet. */
+  openEnd: boolean;
+  onStart: (e: React.PointerEvent) => void;
   onPick: () => void;
 }) {
   const dayNumber = Number(date.slice(8, 10));
@@ -225,8 +315,15 @@ function DayCell({
       role="gridcell"
       disabled={outside}
       aria-pressed={selected}
-      aria-label={`${date}${outside ? " — outside the trip" : ""}`}
-      onClick={onPick}
+      aria-label={`${date}${outside ? " — outside the trip" : ""}${openEnd ? " — start of the window" : ""}${pending ? " — in the window being picked" : ""}`}
+      data-date={date}
+      onPointerDown={onStart}
+      // Enter and Space arrive as a click with no pointer behind them
+      // (`detail === 0`) — the only way this cell is reachable by keyboard,
+      // since `pointerdown` never fires there.
+      onClick={(e) => {
+        if (e.detail === 0) onPick();
+      }}
       className={cx(
         "group relative flex aspect-square items-center justify-center border-b border-rule font-mono text-[11px] leading-none transition-colors focus-visible:outline-none",
         // Out of bounds is faint, not boxed and greyed — the grid keeps its
@@ -245,6 +342,13 @@ function DayCell({
           // range was briefly one continuous stroke, and a window that wrapped
           // to the next week read as two separate selections.
           selected ? "bg-green font-semibold text-sheet" : "text-ink-soft",
+          // The window you'd get if you clicked here: the picked mark at half
+          // strength, so the span is drawn before it is made (ticket 135).
+          pending && "bg-green/45 font-semibold text-sheet",
+          // A start with no end yet, ringed — a lone filled day was
+          // indistinguishable from a finished one-day pick.
+          openEnd &&
+            "ring-2 ring-pen ring-offset-1 ring-offset-sheet",
         )}
       >
         {dayNumber}
