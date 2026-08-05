@@ -14,7 +14,13 @@
   var TREE = [
     { id: 'index', label: 'Overview', href: 'index.html' },
     { id: 'architecture', label: 'Architecture', href: 'architecture.html' },
-    { id: 'visual-language', label: 'Visual language', href: 'visual-language.html' },
+    {
+      label: 'Design',
+      children: [
+        { id: 'design-approach', label: 'Design approach', href: 'design/approach.html' },
+        { id: 'visual-language', label: 'Visual language', href: 'design/visual-language.html' }
+      ]
+    },
     { id: 'monetisation', label: 'Monetisation', href: 'monetisation.html' },
     { id: 'partner-trips', label: 'Partner trips', href: 'partner-trips.html' },
     { id: 'product-ideas', label: 'Product ideas', href: 'product-ideas.html' },

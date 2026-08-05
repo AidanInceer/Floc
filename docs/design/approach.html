@@ -1,0 +1,233 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design approach — Waypoint docs</title>
+<link rel="stylesheet" href="../assets/docs.css">
+<body data-root=".." data-page="design-approach">
+<nav id="sidebar" aria-label="Documentation"></nav>
+<main>
+<p class="crumb">Docs · Design</p>
+<h1>Design approach</h1>
+<p>The higher-level design guide that sits <em>above</em> the
+<a href="visual-language.html">visual language</a>. Visual language owns the
+concrete house style — the paper-and-biro tokens, the components, the exact
+type stack. This page owns the reasoning applied <em>inside</em> that style:
+how a page earns clarity, hierarchy, trust and feel, and the recurring
+mistakes to avoid.</p>
+<p>Distilled from real design-review sessions (YC design reviews with design
+leads from Stripe, Cursor, Instacart, Webflow) and a UI-fundamentals primer —
+transcripts in <a href="inputs/">inputs/</a>. Two kinds of guidance are woven
+together: <strong>principles to apply</strong> and <strong>anti-patterns to
+avoid</strong>.</p>
+<p><strong>Precedence.</strong> Where a general principle here collides with a
+decision in the <a href="visual-language.html">visual language</a>, the house
+style wins — those collisions are called out inline (⚑). The most common ones:
+we are <strong>light-only</strong> (no dark mode), and we deliberately run a
+<strong>serif + monospace + hand</strong> type system rather than a single
+sans-serif.</p>
+
+<h2>The four questions</h2>
+<p>Almost every review failure was a page that made a visitor work to answer one
+of these. Answer them fast, above the fold, in this order of priority:</p>
+<ol>
+<li><strong>What is this?</strong> — plainly, in the user's words.</li>
+<li><strong>Is it for me?</strong> — who it's for, made obvious.</li>
+<li><strong>Does it work?</strong> — show the product; proof it does the job.</li>
+<li><strong>Is it credible?</strong> — social proof, last, not first.</li>
+</ol>
+
+<h2>Clarity &amp; messaging</h2>
+<p>The single most common failure across every review was <em>not knowing what
+the product does</em>. Optimise the words before anything else.</p>
+<ul>
+<li><strong>Say what it is literally.</strong> A clever headline is fine only if a
+plain sub-headline underneath states the actual thing and who it's for. If a
+headline can't stand alone, it's failing.</li>
+<li><strong>Use the user's own words.</strong> Ask real users to describe the
+product and lift their phrasing. Avoid invented internal vocabulary
+("progressive discovery") and abstract slogans ("instant sustainability with
+automated storytelling").</li>
+<li><strong>Don't define yourself by other products</strong> ("X for email", "the
+power of ChatGPT"). Own it and explain it.</li>
+<li><strong>Benefits and problems over features.</strong> "Generate custom API
+responses" is a feature; nobody cares until you frame the pain it removes.</li>
+<li><strong>Pass the headline-skim test.</strong> People scroll fast and read only
+headlines. Read <em>just</em> your headlines top to bottom — do they tell the
+whole story? Don't bury the message in body copy.</li>
+<li><strong>Don't emphasise the negative.</strong> Skimmers read bold and headline
+words; bolding "trial and error" or opening with "stop doing X" plants the
+wrong takeaway. ⚑ For us this reinforces sentence-case copy that says what
+happened ("Priya pays Tom £42.50"), not app-speak.</li>
+<li><strong>One name.</strong> Two names for one thing is pure friction.</li>
+<li><strong>Trust the scroll; unveil in layers.</strong> Don't cram every
+edge-case and CTA above the fold — peel the onion, one idea per scroll.</li>
+</ul>
+
+<h2>Visual hierarchy</h2>
+<p>Hierarchy is created by <strong>contrast</strong> — the gap between big and
+small, colour and neutral, top and bottom. A layout with no contrast reads like
+a spreadsheet.</p>
+<ul>
+<li><strong>Three levers: size, position, colour.</strong> The most important thing
+is largest, highest, and most distinct. Secondary detail (dates, labels) goes
+smaller and below.</li>
+<li><strong>One main call-to-action per scroll.</strong> Every screen should have a
+single clear priority; competing buttons and "join our Discord / GitHub / sign
+up / book a demo" all at once kills it. Make the primary action obvious and
+demote the rest to secondary links.</li>
+<li><strong>Every pixel should earn its place.</strong> Redundant lines, noise
+headings ("trusted by the best"), and decorative dividers add clutter without
+value — cut them.</li>
+<li><strong>Draw relationships, don't just label them.</strong> An icon + line from
+A → B beats the words "from A to B".</li>
+</ul>
+
+<h2>Layout, spacing &amp; grids</h2>
+<ul>
+<li><strong>Whitespace over grid dogma.</strong> Letting things breathe matters more
+than forcing everything onto a 12-column grid. Grids earn their keep on
+repeating/structured content (galleries, lists) and for responsive behaviour.</li>
+<li><strong>Group what belongs together.</strong> Proximity is hierarchy — tighter
+spacing between related items, more space between groups.</li>
+<li><strong>Consistent spacing scale.</strong> A 4-point base (everything a multiple)
+keeps rhythm consistent because values always halve cleanly. ⚑ Our radii
+(3/5/6px) and spacing already follow this restraint.</li>
+<li><strong>Design for small screens.</strong> Always check tablet and phone — many
+users arrive on mobile.</li>
+</ul>
+
+<h2>Typography</h2>
+<ul>
+<li><strong>Tighten large text.</strong> On big headings, pull letter-spacing to
+about −2/−3% and line-height to ~110–120%; loose display text reads amateur.</li>
+<li><strong>Limit sizes.</strong> ≤6 font sizes for a landing page (wide range);
+far fewer and smaller for dense/dashboard screens.</li>
+<li><strong>⚑ House exception:</strong> the general advice is "one sans-serif,
+everywhere". We deliberately run three faces with strict roles —
+<code>--serif</code> for prose/headings, <code>--type</code> (mono, tabular) for
+<strong>every</strong> figure/date/label and all money, <code>--hand</code> for
+marginalia only. See <a href="visual-language.html">visual language →
+legibility rule</a>. Don't collapse this to one font.</li>
+</ul>
+
+<h2>Colour</h2>
+<ul>
+<li><strong>Colour for purpose, not decoration.</strong> Use semantic colour that
+carries meaning: blue = trust/action, red = danger, yellow = warning, green =
+success. Let colour <em>signify</em>.</li>
+<li><strong>Start from one primary and ramp it</strong> (lighten for backgrounds,
+darken for text) rather than scattering hues.</li>
+<li><strong>⚑ House palette:</strong> ours is ink + highlighter + biro-blue
+(<code>pen</code>), with a fixed three-state status meaning
+(agreed / open / needs action) applied identically everywhere, and
+<strong>never colour alone</strong> — every status also carries a word. See
+<a href="visual-language.html">visual language → tokens</a>.</li>
+<li><strong>⚑ No dark mode.</strong> The general "designing in dark mode" guidance
+does not apply — the whole metaphor is ink on paper; a dark notebook is a
+different product. Light-only is a decision, not an omission.</li>
+</ul>
+
+<h2>Affordances &amp; signifiers</h2>
+<p>Good UI signifies how it works so you don't have to write instructions. A
+container groups related things; a highlighted item reads as selected; greyed
+text reads as inactive. Make interactive things <em>look</em> interactive.</p>
+<ul>
+<li>Give buttons a press state, nav items an active highlight, controls hover
+states, and unclear controls a tooltip. A <strong>mystery toggle with no
+tooltip</strong> is a reviewed anti-pattern — nobody knows what it does.</li>
+<li>Don't rely on the user guessing that something scrolls, plays, or is
+clickable — an unlabelled slider or a play target with no play button gets
+missed. If you must tell users to "scroll to explore", it isn't intuitive.</li>
+</ul>
+
+<h2>Feedback &amp; states</h2>
+<p>Every interaction needs a response. Design the states, not just the happy
+path.</p>
+<ul>
+<li><strong>Buttons:</strong> default, hover, active/pressed, disabled — plus a
+loading state where the action takes time.</li>
+<li><strong>Inputs:</strong> focus, error (red border + message), sometimes
+warning. ⚑ But don't yell too early — validate when the user is done, not on
+every keystroke or a trailing space (the Stripe email-validation fix).</li>
+<li><strong>Async:</strong> show real progress. Don't scatter spinners in empty
+states or loop unhelpful "thinking…" text; surface actual states/steps and
+focus attention. ⚑ Our tab loading already renders a blank ruled page under a
+pending tab.</li>
+</ul>
+
+<h2>Motion &amp; micro-interactions</h2>
+<ul>
+<li><strong>Never hijack the scroll.</strong> Unanimously hated across every
+reviewer. Don't take over the scroll to force a sequence.</li>
+<li><strong>Motion steals the eye — aim it deliberately.</strong> Animate the one
+thing you want noticed; movement while the user is reading, or a load-in
+animation that pulls focus off the headline, is a net negative.</li>
+<li><strong>Micro-interactions confirm actions</strong> (a "copied" chip sliding up).
+Practical first, playful second.</li>
+<li><strong>Avoid meaningless motion</strong> — blob backgrounds and fast auto-loops
+that say nothing about the product. ⚑ Our motion budget is colour transitions
+only, and nothing under <code>prefers-reduced-motion</code>.</li>
+</ul>
+
+<h2>Shadows &amp; depth</h2>
+<ul>
+<li><strong>Subtle wins.</strong> Most shadows are too strong — lower opacity, raise
+blur. Cards need very little; only floating content (popovers) needs more. If
+the shadow is the first thing you notice, it's wrong.</li>
+<li><strong>Massive drop shadows are an AI-slop tell</strong> (see below). ⚑ Our
+cards carry no shadow at all; the page's paper texture supplies depth.</li>
+</ul>
+
+<h2>Imagery, screenshots &amp; demos</h2>
+<ul>
+<li><strong>Show the product, but show it legibly.</strong> Screenshots that are too
+small or too far away convey nothing — zoom into the specific, meaningful
+part. Text-heavy screenshots (code, logs) fight the copy; abstract or shrink
+them.</li>
+<li><strong>A video thumbnail must add value unclicked</strong> — many won't press
+play. A video whose still is just a screenshot already shown adds nothing.</li>
+<li><strong>Prefer a live try over a hero reel</strong> (a text box, a few free
+actions) — and pick the demo carefully: a bigger demo that exposes flaws can
+unsell.</li>
+<li><strong>Handle people-photos with care.</strong> Don't doctor headshots
+intrusively; keep styles consistent; keep them current.</li>
+<li><strong>Overlays:</strong> a linear gradient (optionally a progressive blur)
+keeps an image readable under text far better than a flat full-screen scrim.</li>
+</ul>
+
+<h2>Avoiding the "vibe-coded" look</h2>
+<p>Reviewers spotted AI-generated sites instantly. The tells:</p>
+<ul>
+<li>Purple gradients, oversized shadows, generic default icon sets, weak
+typography — the styles AI reaches for by default.</li>
+<li>Details that "don't melt together": screenshots at different sizes, some
+shadowed some not, borders around borders, boxes inside boxes.</li>
+<li>No continuity — marketing page, app and pricing each looking like a
+different product.</li>
+<li>A generic, unreadable, or off-message logo; the company name nowhere
+findable.</li>
+</ul>
+<p>The fix is <strong>intentionality</strong>: a small, robust set of tokens and
+components, used consistently, with every choice made on purpose. That is
+exactly what the <a href="visual-language.html">visual language</a> exists to
+enforce — this is the case for taking it seriously.</p>
+
+<h2>The underlying discipline</h2>
+<p>Why any of this holds up over time (from Stripe's head of design):</p>
+<ul>
+<li><strong>The gravitational pull is to mediocrity.</strong> Quality is the sum of
+daily micro-decisions; details slip by default unless actively resisted.</li>
+<li><strong>Quality checklist, in order:</strong> functional → usable → craft &amp;
+beauty. Craft isn't optional; defects make people doubt the whole thing works,
+and small slips (typos, inconsistent casing) quietly erode trust — "if you
+missed that detail, what else did you miss?"</li>
+<li><strong>Regressions are inevitable.</strong> A perfect flow degrades where it
+meets newer features (redo the dining room and the kitchen looks shabby).
+Re-walk the whole journey, not just the new screen.</li>
+<li><strong>You can't judge it from inside.</strong> Get real users thinking aloud,
+continuously — and remember the problem is often the step <em>before</em> the
+page you're staring at.</li>
+</ul>
+</main>
+<script src="../assets/nav.js"></script>
+</body>

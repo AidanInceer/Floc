@@ -49,3 +49,6 @@ coverage/
 
 human-*.md
 **/backlog/*
+.agents/
+.claude/
+**/mockups/

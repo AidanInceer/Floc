@@ -95,7 +95,7 @@ kept the palette token-for-token and still read as a different company. Its
 cost was the whole visual language — no `--hand`, no `--marginalia`, no
 `--serif` body face, and not one existing component (the sheet, the folder
 tabs, the trail) surviving inside it. Adopting it would have meant rewriting
-[`../visual-language.md`](../visual-language.md), not editing it.
+[`../design/visual-language.html`](../design/visual-language.html), not editing it.
 
 ### J — G, annotated
 

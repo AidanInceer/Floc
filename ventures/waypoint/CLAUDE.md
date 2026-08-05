@@ -14,7 +14,8 @@ order, and who owes who afterwards. Pre-MVP.
 | Old prototype | `apps/prototype` | **Superseded.** Vite/localStorage, the retired ADR-0010 cut. Prior art — don't extend it. |
 | Wireframe variants | `wireframe/*.html` | Design artefacts. `paper.html` is the one v1 follows. |
 | Schema of record | [`docs/data-model/erd.html`](../../docs/data-model/erd.html) | Mirrors `apps/web/src/db/schema.ts`. Change both together. |
-| Visual language | [`docs/visual-language.html`](../../docs/visual-language.html) | Tokens + component inventory. |
+| Design approach | [`docs/design/approach.html`](../../docs/design/approach.html) | The higher-level design guide — clarity, hierarchy, trust, states, and the anti-patterns to avoid, distilled from expert design reviews (Rio Lu / Cursor, Katie Dill / Stripe, Zain Ali / Instacart, Vlad / Webflow) plus UI fundamentals. **Read before any UI/UX work.** Raw transcripts in `docs/design/inputs/`. |
+| Visual language | [`docs/design/visual-language.html`](../../docs/design/visual-language.html) | The concrete house style the approach serves: paper-and-biro tokens + component inventory. |
 | Homepage mockups | [`docs/mockups/`](../../docs/mockups/README.md) | The landing page's design artefacts. The live `/` follows `homepage-g-boardingpass.html` — "the travel document" — end to end: the pass, the luggage tags, the coupon book, the entry stamp. The pinboard route and the before/after hero it replaced are superseded, and everything else there is unadopted, including the two phone-app explorations. |
 | Where it could go | [`docs/monetisation.html`](../../docs/monetisation.html) · [`docs/product-ideas.html`](../../docs/product-ideas.html) · [`docs/partner-trips.html`](../../docs/partner-trips.html) | Thinking, not commitments. Nothing in any of them is scheduled. The one exception is `/explore`, whose listings are **static and editorial** — illustrative operator names, no partner deal, nothing bookable. Its one live action is "Start this trip", which copies a listing into a real trip (ticket 39, `app/explore/actions.ts`). Read `partner-trips.html` before adding anything else. |
 
@@ -114,6 +115,8 @@ treated as current.
   `trip/[id]/notes-actions.ts`. Don't add a per-surface comment table.
 - Copy is British English, sentence case, concrete. Realistic content, never
   lorem.
+- **No instructional copy.** Never write text that explains how to use the UI — fix the UI instead. "Scroll to explore", "click here to…" are always wrong.
+- **UI design discipline.** Before any visual or UX change, read `docs/design/approach.html` and `docs/design/visual-language.html`. Key rules: no scroll locking, no animations while the user is reading, no font proliferation (max three typefaces), every interactive surface has a visible hover state, whole-card clickability where a card navigates.
 - Comment a non-obvious decision with a one-line pointer to the ticket that
   drove it. That's the house style throughout `src/`.
 
