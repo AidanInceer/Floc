@@ -245,10 +245,29 @@ export function AvailabilityCalendar({
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {months.map((m, i) => (
-          // On a phone the extra months stacked into a column you had to
-          // scroll past rather than read; one month at a time is what fits,
-          // and the arrows still page through the rest (ticket 129).
-          <div key={m} className={cx(i > 0 && "hidden sm:block")}>
+          /*
+           * Never more than one row of months (ticket 132). The columns come
+           * from the width — one, then two, then three — and a month past what
+           * fits doesn't wrap onto a second row, it waits: a calendar you have
+           * to scroll down to finish reading isn't one you can compare across.
+           * The arrows page through whatever isn't showing, so nothing is out
+           * of reach.
+           */
+          <div
+            key={m}
+            // One class per slot, not stacked conditions: `sm:block` and
+            // `lg:block` on the same element both win at wide sizes, so the
+            // third month has to be `hidden lg:block` and nothing else.
+            className={
+              i === 0
+                ? undefined
+                : i === 1
+                  ? "hidden sm:block"
+                  : i === 2
+                    ? "hidden lg:block"
+                    : "hidden"
+            }
+          >
             <p className="typed mb-2">{formatMonth(m)}</p>
             <div
               // `touch-none` hands the whole gesture to us: without it the

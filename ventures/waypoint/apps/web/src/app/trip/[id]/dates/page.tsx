@@ -23,7 +23,11 @@ import {
   PageHeader,
   Stack,
 } from "@/components/ui";
-import { ConfirmSubmit } from "@/components/client-ui";
+import {
+  Menu,
+  SubmitButton,
+  menuDangerItemClass,
+} from "@/components/client-ui";
 import { AvailabilityCalendar } from "@/components/availability-calendar";
 import {
   clearMyAvailability,
@@ -99,16 +103,37 @@ export default async function DatesPage({
             "Not settled yet — mark the days you could go."
           )
         }
+        /*
+         * Both resets behind one triple-dot (ticket 125's pattern, applied
+         * here by ticket 132). "Clear dates" sat in this header and "Start
+         * again" in the calendar's, two ghost buttons a hand's width apart,
+         * each rarely wanted and each competing with the grid that is what
+         * the page is for. One affordance shows; the verbs are revealed on
+         * demand.
+         */
         actions={
-          hasDates ? (
-            <form action={clearTripDates.bind(null, tripId)}>
-              <ConfirmSubmit
-                variant="ghost"
-                message="Clear the trip's dates? Days and events stay where they are."
-              >
-                Clear dates
-              </ConfirmSubmit>
-            </form>
+          hasDates || mine.length > 0 ? (
+            <Menu label="Dates actions">
+              {/* No confirm dialog behind either of these. Opening a menu and
+                  picking a named verb is already deliberate, and neither loses
+                  anything you can't put back by marking the days again or
+                  setting the dates again — a modal to confirm that is a second
+                  click for nothing. */}
+              {hasDates ? (
+                <form action={clearTripDates.bind(null, tripId)}>
+                  <SubmitButton variant="ghost" className={menuDangerItemClass}>
+                    Clear the trip&rsquo;s dates
+                  </SubmitButton>
+                </form>
+              ) : null}
+              {mine.length > 0 ? (
+                <form action={clearMyAvailability.bind(null, tripId)}>
+                  <SubmitButton variant="ghost" className={menuDangerItemClass}>
+                    Clear the days I marked
+                  </SubmitButton>
+                </form>
+              ) : null}
+            </Menu>
           ) : undefined
         }
       />
@@ -118,18 +143,6 @@ export default async function DatesPage({
           <CardHeader
             title="Who can do when"
             hint="Your own days, or the whole group's overlap."
-            actions={
-              mine.length > 0 ? (
-                <form action={clearMyAvailability.bind(null, tripId)}>
-                  <ConfirmSubmit
-                    variant="ghost"
-                    message="Clear all the days you've marked? Nobody else's are touched."
-                  >
-                    Start again
-                  </ConfirmSubmit>
-                </form>
-              ) : undefined
-            }
           />
           <div className="p-4">
             {suggestion ? (
