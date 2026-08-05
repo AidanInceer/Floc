@@ -13,7 +13,12 @@
  *   is free, red when the day would leave somebody out, unshaded when nobody
  *   has answered. Shaded *and* numbered: colour is never the only signal.
  * - **The dates** — the same grid again, used to commit the trip's own window:
- *   first click the start, second the end, a third starts over. It arrived
+ *   press the start and drag to the end, or click the two ends in turn; a
+ *   click on a finished window starts a new one. While only the start is
+ *   picked it wears a ring and the days under the pointer fill at half
+ *   strength, so the span you are about to make is drawn before you make it
+ *   (ticket 135) — without that, the third click looked like it was undoing
+ *   the first two rather than beginning again. It arrived
  *   here in ticket 128 from a pair of native `<input type="date">` boxes in the
  *   card above, whose popover opened on the current month however far off the
  *   trip was. Briefly it was a second grid stacked over this one, which is a
@@ -97,6 +102,29 @@ export function AvailabilityCalendar({
   const rangeEnd = range.end ?? range.start;
   const rangeChanged = range.start !== tripStart || rangeEnd !== tripEnd;
 
+  /**
+   * Picking the window is a drag as well as two clicks (ticket 135). It was
+   * two clicks only, and the cell handler for this view never claimed the
+   * gesture the way `startPaint` does — so dragging across the grid was an
+   * ordinary browser text selection, and the `pointerup` at the end of it
+   * landed on whatever the cursor had reached, which was often the "later
+   * months" arrow. `anchor` is the day the press started on; the range is
+   * recomputed from it on every move, so dragging back past yourself shrinks
+   * the window instead of leaving a hole.
+   */
+  const [rangeDrag, setRangeDrag] = useState<string | null>(null);
+  /**
+   * The day the pointer is over while a start is picked but no end is — what
+   * draws the span you are about to make. Without it a half-made range looked
+   * exactly like a committed one-day trip, which is what made the second click
+   * feel like it was undoing the first.
+   */
+  const [hover, setHover] = useState<string | null>(null);
+
+  const halfMade = range.start !== null && range.end === null;
+  const previewTo =
+    halfMade && !rangeDrag && hover && hover > range.start! ? hover : null;
+
   const pickRange = (date: string) => {
     // A click before the current start means "actually, from here" — nobody
     // means "end before start", which is why this grid needs no `min` to
@@ -105,6 +133,38 @@ export function AvailabilityCalendar({
       r.start === null || r.end !== null || date < r.start
         ? { start: date, end: null }
         : { ...r, end: date },
+    );
+  };
+
+  /**
+   * A press in the dates view. It picks exactly what a click would — so
+   * releasing without moving still reads as click one, then click two — and
+   * additionally arms a drag, so a press that *does* move paints the window in
+   * one gesture. Only a press that starts a fresh window arms it: dragging off
+   * the second click of a pair would fight the click it is completing.
+   */
+  const startRangePick = (date: string, e: React.PointerEvent) => {
+    // Same claim `startPaint` makes, and for the same reason: unclaimed, this
+    // gesture is a text selection with a stray click at the end of it.
+    e.preventDefault();
+    try {
+      surface.current?.setPointerCapture(e.pointerId);
+    } catch {
+      // The pointer went away. Harmless — the pick below still stands.
+    }
+    if (!halfMade) setRangeDrag(date);
+    setHover(null);
+    pickRange(date);
+  };
+
+  const extendRange = (date: string) => {
+    if (!rangeDrag) return;
+    setRange(
+      date === rangeDrag
+        ? { start: rangeDrag, end: null }
+        : date < rangeDrag
+          ? { start: date, end: rangeDrag }
+          : { start: rangeDrag, end: date },
     );
   };
 
@@ -202,12 +262,26 @@ export function AvailabilityCalendar({
       // pointer is captured to this element, so every move and the release all
       // come here whatever they happen to be over.
       onPointerMove={(e) => {
-        if (!drag) return;
         const date = dateUnder(e);
-        if (date) extendPaint(date);
+        if (drag) {
+          if (date) extendPaint(date);
+        } else if (rangeDrag) {
+          if (date) extendRange(date);
+        } else if (view === "dates") {
+          // Not a drag — the trailing edge of the span the next click would
+          // make. `null` off the grid, so the preview stops following you.
+          setHover(date);
+        }
       }}
-      onPointerUp={() => setDrag(null)}
-      onPointerCancel={() => setDrag(null)}
+      onPointerLeave={() => setHover(null)}
+      onPointerUp={() => {
+        setDrag(null);
+        setRangeDrag(null);
+      }}
+      onPointerCancel={() => {
+        setDrag(null);
+        setRangeDrag(null);
+      }}
     >
       {/* One row at every width (ticket 134): wrapping put the two arrows on
           a line of their own, hard left under the middle of the switch, which
@@ -330,8 +404,17 @@ export function AvailabilityCalendar({
                       date <= rangeEnd
                     }
                     isToday={date === now}
+                    pending={
+                      view === "dates" &&
+                      !!previewTo &&
+                      date > range.start! &&
+                      date <= previewTo
+                    }
+                    openEnd={view === "dates" && halfMade && date === range.start}
                     onStart={(e) =>
-                      view === "dates" ? pickRange(date) : startPaint(date, e)
+                      view === "dates"
+                        ? startRangePick(date, e)
+                        : startPaint(date, e)
                     }
                     onToggle={() =>
                       view === "dates"
@@ -429,6 +512,8 @@ function DayCell({
   inTrip,
   inRange,
   isToday,
+  pending,
+  openEnd,
   onStart,
   onToggle,
 }: {
@@ -442,6 +527,10 @@ function DayCell({
   /** Inside the window being picked, in the dates view. */
   inRange: boolean;
   isToday: boolean;
+  /** Inside the span the pointer is currently proposing (ticket 135). */
+  pending?: boolean;
+  /** The picked start of a window whose end hasn't been chosen yet. */
+  openEnd?: boolean;
   onStart: (e: React.PointerEvent) => void;
   onToggle: () => void;
 }) {
@@ -531,7 +620,7 @@ function DayCell({
       aria-pressed={marked}
       aria-label={
         picking
-          ? `${date} — ${tally} of ${memberCount} free${inRange ? ", in the trip" : ""}`
+          ? `${date} — ${tally} of ${memberCount} free${inRange ? ", in the trip" : ""}${openEnd ? ", start of the window" : ""}${pending ? ", in the window being picked" : ""}`
           : `${date}${free ? " — you're free" : ""}`
       }
       title={picking ? `${date} — ${tally} of ${memberCount} free` : undefined}
@@ -558,6 +647,15 @@ function DayCell({
           // Picking: the group's answer, with the chosen days pressed into
           // the solid green over the top of it.
           picking && (inRange ? "bg-green font-semibold text-sheet" : groupMark),
+          // The window you'd get if you clicked here: the committed mark at
+          // half strength, so the span you are proposing reads as the same
+          // thing, not yet made (ticket 135).
+          picking && pending && "bg-green/45 font-semibold text-sheet",
+          // A start with no end yet. Ringed rather than merely filled — a
+          // lone solid day was indistinguishable from a committed one-day
+          // trip, which is what made the second click feel like it had
+          // cancelled the first.
+          picking && openEnd && "ring-2 ring-pen ring-offset-1 ring-offset-sheet",
           // A free day is a pen mark on the page — round, filled, sitting on
           // the rule — not a filled-in box (ticket 129). Several of them read
           // as several marks, which is what they are.
