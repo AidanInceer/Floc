@@ -25,7 +25,43 @@
 import { useState, useTransition } from "react";
 import type { ReactNode } from "react";
 
-import { Button, cx } from "./ui";
+import { cx } from "./ui";
+
+/**
+ * ↑/↓ wear the same 26px disc as the row's triple-dot — three controls in a
+ * row that hover three different ways read as three different kinds of thing.
+ * The glyph is set heavier than the body text: at regular weight the arrow is
+ * a hairline and disappears against ruled paper.
+ */
+function MoveButton({
+  label,
+  disabled,
+  onClick,
+  children,
+}: {
+  label: string;
+  disabled: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      title={label}
+      className={cx(
+        "flex h-[26px] w-[26px] items-center justify-center rounded-full border border-transparent text-[15px] font-bold leading-none transition-colors",
+        disabled
+          ? "cursor-not-allowed text-ink-faint/40"
+          : "text-ink-soft hover:border-rule-strong hover:bg-sheet-2 hover:text-ink",
+      )}
+    >
+      {children}
+    </button>
+  );
+}
 
 export type StopSpineItem = {
   key: string;
@@ -35,8 +71,15 @@ export type StopSpineItem = {
   dates: string;
   /** The line under it, e.g. "4 days". */
   duration: string;
-  /** Server-rendered: name, nights, the dates in full, the controls. */
+  /** Server-rendered: name, nights, the dates in full. */
   body: ReactNode;
+  /**
+   * The stop's own verbs, behind one triple-dot. They sit *after* the ↑/↓
+   * pair: reordering is the thing you do here, so it keeps the buttons, and
+   * three full-size buttons spread across the row's right edge (ticket 125's
+   * complaint) collapse to one affordance.
+   */
+  actions?: ReactNode;
   /** The leg to the NEXT stop — omitted on the last one. */
   leg?: ReactNode;
 };
@@ -67,7 +110,13 @@ export function StopSpine({
 
   return (
     <ol
-      className={cx("px-1", pending && "pointer-events-none opacity-60")}
+      /* Centred rather than edge-to-edge: with the verbs collapsed to one
+         triple-dot the row is narrow, and stretched across a desktop sheet it
+         left a lake of paper between the stop and its own controls. */
+      className={cx(
+        "mx-auto w-fit max-w-full px-1",
+        pending && "pointer-events-none opacity-60",
+      )}
     >
       {items.map((item, i) => (
         <li
@@ -95,7 +144,7 @@ export function StopSpine({
             move(dragging, i);
           }}
           className={cx(
-            "grid grid-cols-[5.5rem_2.75rem_1fr] items-stretch rounded-md transition-shadow sm:grid-cols-[7rem_3rem_1fr]",
+            "grid grid-cols-[4rem_2rem_1fr] items-stretch rounded-md transition-shadow sm:grid-cols-[7rem_3rem_1fr]",
             dragging === i && "opacity-50",
             over === i && dragging !== null && dragging !== i && "ring-2 ring-pen",
           )}
@@ -135,27 +184,28 @@ export function StopSpine({
           </div>
 
           <div className="pb-5 pl-1">
-            <div className="flex items-start gap-1">
-              <div className="min-w-0 flex-1">{item.body}</div>
-              <div className="flex shrink-0 items-center">
-                <Button
-                  variant="ghost"
-                  className="px-1.5 py-0.5"
+            {/* The controls sit right beside the stop, not out at the row's
+                far edge: pushed apart they read as belonging to the page
+                rather than to this stop, and the eye has to cross a lake of
+                paper to get to them. One row at every width. */}
+            <div className="flex items-center gap-1">
+              <div className="min-w-0">{item.body}</div>
+              <div className="flex shrink-0 items-center gap-0.5 pl-1">
+                <MoveButton
+                  label={`Move ${item.label} earlier`}
                   disabled={i === 0}
-                  aria-label={`Move ${item.label} earlier`}
                   onClick={() => move(i, i - 1)}
                 >
                   ↑
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="px-1.5 py-0.5"
+                </MoveButton>
+                <MoveButton
+                  label={`Move ${item.label} later`}
                   disabled={i === items.length - 1}
-                  aria-label={`Move ${item.label} later`}
                   onClick={() => move(i, i + 1)}
                 >
                   ↓
-                </Button>
+                </MoveButton>
+                {item.actions}
               </div>
             </div>
             {item.leg ? (

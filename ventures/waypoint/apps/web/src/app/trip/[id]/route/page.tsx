@@ -25,9 +25,12 @@ import {
 } from "./actions";
 import { searchPlacesAction } from "../place-actions";
 import {
+  Menu,
   Sheet,
   SubmitButton,
   ConfirmSubmit,
+  menuDangerItemClass,
+  menuItemClass,
 } from "@/components/client-ui";
 import { DateRangePicker } from "@/components/date-range-picker";
 import { PlacePicker } from "@/components/place-picker";
@@ -165,52 +168,77 @@ export default async function RoutePage({
               label: stop.placeName ?? "this stop",
               dates: shortRange(stop.startDate, stop.endDate),
               duration: `${stop.dayIds.length} day${stop.dayIds.length === 1 ? "" : "s"}`,
-              // The row runs wide rather than tall: what the stop *is* on the
-              // left, what you can do to it pushed out to the right edge, both
-              // on one line from `sm:` up. Stacked below that, where a phone
-              // has no width to give.
+              // The row is what the stop *is* — name, nights, dates. Its three
+              // verbs used to sit spread across the right edge as full-size
+              // buttons; they're behind the row's triple-dot now, the same
+              // shape every other row in the app uses (ticket 125).
               body: (
-                <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
-                  <div>
-                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                      <p className="font-display text-lg font-semibold leading-none">
-                        {stop.placeName ?? "Unnamed place"}
-                      </p>
+                <div>
+                  <div className="flex items-baseline gap-x-3">
+                    <p className="truncate font-display text-base font-semibold leading-none sm:text-lg">
+                      {stop.placeName ?? "Unnamed place"}
+                    </p>
+                    {/* Like the long dates below, the nights count is a
+                        desktop luxury: the rail's day pill already sizes the
+                        stop, and on a phone this badge is what wrapped the
+                        place name onto a second line. */}
+                    <span className="hidden sm:block">
                       <Badge tone="marine">
                         {stop.nights} night{stop.nights === 1 ? "" : "s"}
                       </Badge>
-                    </div>
-                    <p className="mt-1 text-sm text-ink-soft">
-                      {stop.startDate === stop.endDate
-                        ? formatDate(stop.startDate)
-                        : `${formatDate(stop.startDate)} – ${formatDate(stop.endDate)}`}
-                    </p>
+                    </span>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Sheet trigger="Change dates" title="Change these dates" triggerVariant="secondary">
-                      <ChangeDatesForm
-                        tripId={trip.id}
-                        dayIds={stop.dayIds}
-                        startDate={stop.startDate}
-                        endDate={stop.endDate}
-                        tripStart={trip.startDate}
-                        tripEnd={trip.endDate}
-                      />
-                    </Sheet>
-                    <Sheet trigger="Change place" title="Change overnight place" triggerVariant="secondary">
-                      <ChangePlaceForm tripId={trip.id} dayIds={stop.dayIds} />
-                    </Sheet>
-                    <form action={removeStop.bind(null, trip.id, stop.dayIds)}>
-                      {/* Destructive, so it wears the correction-red wash
-                          rather than hiding as a ghost link. */}
-                      <ConfirmSubmit
-                        message="Remove this stop? The days themselves stay on the itinerary — they just lose their overnight place."
-                      >
-                        Remove stop
-                      </ConfirmSubmit>
-                    </form>
-                  </div>
+                  {/* The dates in full, for the width that has room for them.
+                      A phone doesn't: the rail beside this already says
+                      "5–16 Aug", and repeating it in longhand is what pushed
+                      the row to three lines. */}
+                  <p className="mt-1 hidden text-sm text-ink-soft sm:block">
+                    {stop.startDate === stop.endDate
+                      ? formatDate(stop.startDate)
+                      : `${formatDate(stop.startDate)} – ${formatDate(stop.endDate)}`}
+                  </p>
                 </div>
+              ),
+              actions: (
+                <Menu
+                  label={`Actions for ${stop.placeName ?? "this stop"}`}
+                  /* The page sheet clips its overflow, so the last stop's
+                     panel would be cut off at the paper's edge. */
+                  drop={i === stops.length - 1 ? "up" : "down"}
+                >
+                  <Sheet
+                    trigger="Change dates"
+                    title="Change these dates"
+                    triggerVariant="ghost"
+                    triggerClassName={menuItemClass}
+                  >
+                    <ChangeDatesForm
+                      tripId={trip.id}
+                      dayIds={stop.dayIds}
+                      startDate={stop.startDate}
+                      endDate={stop.endDate}
+                      tripStart={trip.startDate}
+                      tripEnd={trip.endDate}
+                    />
+                  </Sheet>
+                  <Sheet
+                    trigger="Change place"
+                    title="Change overnight place"
+                    triggerVariant="ghost"
+                    triggerClassName={menuItemClass}
+                  >
+                    <ChangePlaceForm tripId={trip.id} dayIds={stop.dayIds} />
+                  </Sheet>
+                  <form action={removeStop.bind(null, trip.id, stop.dayIds)}>
+                    <ConfirmSubmit
+                      variant="ghost"
+                      className={menuDangerItemClass}
+                      message="Remove this stop? The days themselves stay on the itinerary — they just lose their overnight place."
+                    >
+                      Remove stop
+                    </ConfirmSubmit>
+                  </form>
+                </Menu>
               ),
               // The leg to the NEXT stop: drawn between the two rows, and now
               // settable here rather than only on Days (ticket 82). Its mode

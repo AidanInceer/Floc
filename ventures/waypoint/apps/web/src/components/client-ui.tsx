@@ -498,6 +498,7 @@ export function Menu({
   label,
   children,
   align = "right",
+  drop = "down",
   trigger,
   triggerClassName,
 }: {
@@ -506,6 +507,12 @@ export function Menu({
   /** Plain nodes only; the same server/client rule `Sheet` documents. */
   children: ReactNode;
   align?: "left" | "right";
+  /**
+   * Which way the panel hangs. The page sheet clips its overflow, so a menu on
+   * the last row of a list has to open upwards or it is cut off at the paper's
+   * edge.
+   */
+  drop?: "down" | "up";
   /** Defaults to the triple-dot. */
   trigger?: ReactNode;
   triggerClassName?: string;
@@ -575,8 +582,14 @@ export function Menu({
           aria-label={label}
           onSubmit={() => setTimeout(() => setOpen(false), 0)}
           className={cx(
-            "absolute z-30 mt-1 w-48 rounded-md border border-rule-strong bg-sheet p-1 shadow-raised",
+            /* Above Leaflet: the map's own panes climb into the hundreds, and
+               a stop's menu opening upward lands on top of the route map. */
+            /* Sized to its longest verb, not to a fixed 12rem: three short
+               labels in a fixed-width panel leave a stripe of empty paper
+               down the right. */
+            "absolute z-[1200] w-max min-w-[8rem] max-w-[14rem] rounded-md border border-rule-strong bg-sheet p-1 shadow-raised",
             align === "right" ? "right-0" : "left-0",
+            drop === "up" ? "bottom-full mb-1" : "mt-1",
           )}
         >
           {children}
