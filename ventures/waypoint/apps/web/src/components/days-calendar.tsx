@@ -187,7 +187,6 @@ export function DaysCalendar({
   const [hidden, setHidden] = useState<ReadonlySet<DayEventType>>(new Set());
   const [selected, setSelected] = useState<number | null>(null);
   const [tab, setTab] = useState<"event" | "notes">("event");
-  const [paneOpen, setPaneOpen] = useState(true);
   const [adding, setAdding] = useState<{ dayId: number; time: string } | null>(null);
   const [announcement, setAnnouncement] = useState("");
 
@@ -415,6 +414,7 @@ export function DaysCalendar({
     }
 
     commit(dropped);
+    keptSelection.current = true;
     setSelected(event.id);
     setTab("event");
     const day = days.find((d) => d.id === dropped.dayId);
@@ -473,12 +473,26 @@ export function DaysCalendar({
 
   /* ---- selection and adding -------------------------------------------------- */
 
+  /*
+   * The pane is the selection, not a switch of its own (ticket 138): picking an
+   * event is what opens it and clicking off the event is what closes it, so
+   * there is nothing to hide by hand. `keptSelection` is how the click that
+   * made the selection survives the deselect handler it bubbles into.
+   */
+  const keptSelection = useRef(false);
+
   const select = (id: number) => {
+    keptSelection.current = true;
     setSelected(id);
     setTab("event");
-    // Picking an event *is* the request to see its detail, so a collapsed pane
-    // comes back rather than swallowing the click.
-    setPaneOpen(true);
+  };
+
+  const onCalendarClick = () => {
+    if (keptSelection.current) {
+      keptSelection.current = false;
+      return;
+    }
+    setSelected(null);
   };
 
   const openAdd = (dayId: number, minutes: number) => {
@@ -654,17 +668,6 @@ export function DaysCalendar({
         >
           Add event
         </Button>
-        {/* The pane's switch lives with the other things that change what the
-            calendar looks like, at the end of the toolbar — not on the pane
-            itself, where it was only findable once you already had the pane. */}
-        <Button
-          variant="ghost"
-          onClick={() => setPaneOpen((open) => !open)}
-          aria-expanded={paneOpen}
-          title={paneOpen ? "Hide the pane — more days fit" : "Show the event and notes pane"}
-        >
-          {paneOpen ? "Hide pane ›" : "‹ Show pane"}
-        </Button>
       </div>
 
       {/* A one-line explanation whenever the layout has decided something for
@@ -676,21 +679,22 @@ export function DaysCalendar({
       ) : null}
 
       {/*
-       * The pane collapses to a rail (ticket 103). On the widest screen the
-       * detail is worth its 20rem, but the same 20rem is the difference between
-       * five day columns and seven — so whether it is open is the reader's
-       * call, not the layout's. Collapsed it leaves a labelled rail rather than
-       * nothing: a pane that vanishes without trace is a pane nobody finds
-       * again. Picking an event reopens it, because that is what the click
-       * meant.
+       * The pane's 20rem is the difference between five day columns and seven,
+       * so it is only there when it has something to say: an event is picked.
+       * Nothing is picked by default and clicking off the event puts the width
+       * back — the calendar is what the page is for.
        */}
       <div
         className={cx(
           "grid grid-cols-1",
-          paneOpen ? "lg:grid-cols-[minmax(0,1fr)_20rem]" : "lg:grid-cols-[minmax(0,1fr)_2.5rem]",
+          selectedEvent && "lg:grid-cols-[minmax(0,1fr)_20rem]",
         )}
       >
-        <div ref={calRef} className="min-w-0 border-b border-rule lg:border-r lg:border-b-0">
+        <div
+          ref={calRef}
+          onClick={onCalendarClick}
+          className="min-w-0 border-b border-rule lg:border-r lg:border-b-0"
+        >
           {/*
            * ONE scroll container for both axes, and that is load-bearing.
            * `position: sticky` resolves against the nearest scrolling
@@ -864,9 +868,10 @@ export function DaysCalendar({
           </div>
         </div>
 
-        {paneOpen ? (
+        {selectedEvent ? (
         <aside className="flex min-w-0 flex-col bg-sheet">
-          <div role="tablist" className="flex border-b border-rule bg-sheet-2">
+          <div className="flex border-b border-rule bg-sheet-2">
+          <div role="tablist" className="flex min-w-0 flex-1">
             {(
               [
                 ["event", "Event"],
@@ -890,15 +895,22 @@ export function DaysCalendar({
               </button>
             ))}
           </div>
+            {/* Clicking off the event closes the pane, but only once you know
+                that — the ✕ is the visible way out, where a panel's close
+                always is. */}
+            <button
+              type="button"
+              onClick={() => setSelected(null)}
+              aria-label="Close the event pane"
+              title="Close"
+              className="border-b-2 border-transparent px-3 py-2 text-sm text-ink-soft hover:text-ink"
+            >
+              ✕
+            </button>
+          </div>
 
           <div role="tabpanel" className="max-h-[70vh] overflow-y-auto p-3">
-            {tab === "notes" ? (
-              tripThread
-            ) : selectedEvent ? (
-              panels[selectedEvent.id]
-            ) : (
-              <p className="text-sm text-ink-faint">No event selected.</p>
-            )}
+            {tab === "notes" ? tripThread : panels[selectedEvent.id]}
           </div>
         </aside>
         ) : null}
