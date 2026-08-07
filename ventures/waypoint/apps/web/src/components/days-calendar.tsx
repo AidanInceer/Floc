@@ -17,9 +17,11 @@
  *    **calendar element**, not the window: the side pane, and the app's own
  *    chrome around it, take their bite out of the width first.
  *
- * 2. **Quarter hours.** Rules are painted at the hour, the half and the
- *    quarter, the pointer's exact position is what a new event starts at, and a
- *    chip follows the cursor naming that quarter before you commit.
+ * 2. **Minutes.** Rules are painted at the hour and nowhere else, the pointer's
+ *    exact position is what a new event starts at — to the minute, because a
+ *    10:50 train is not a 10:45 train — and a chip follows the cursor naming
+ *    that time before you commit. The keyboard is the coarse instrument: ↑/↓
+ *    nudge a quarter hour, since a held key has to cross a morning.
  *
  * 3. **Drag and drop.** One gesture moves an event to another time *and*
  *    another day, because "actually the kayaks are Friday" should not be an
@@ -56,10 +58,12 @@ import {
 
 import { EventForm, type PlaceSearch } from "@/components/event-form";
 import { PlacePicker, type PlacePickerResult } from "@/components/place-picker";
+import { Menu, menuItemClass } from "@/components/client-ui";
 import { Button, Field, Input, cx } from "@/components/ui";
 import type { DayEventType, TransportType } from "@/db/schema";
 import {
-  SNAP_MINUTES,
+  LAST_START_MINUTE,
+  NUDGE_MINUTES,
   clamp,
   formatSpan,
   gridWindow,
@@ -255,6 +259,8 @@ export function DaysCalendar({
   const [anchor, setAnchor] = useState(todayIndex);
   const [tooNarrow, setTooNarrow] = useState(false);
   const [hidden, setHidden] = useState<ReadonlySet<DayEventType>>(new Set());
+  const typeCount = Object.keys(EVENT_CATEGORIES).length;
+  const hiddenCount = hidden.size;
   const [selected, setSelected] = useState<number | null>(null);
   const [tab, setTab] = useState<"event" | "notes">("event");
   const [adding, setAdding] = useState<{ dayId: number; time: string } | null>(null);
@@ -508,7 +514,7 @@ export function DaysCalendar({
       ev.preventDefault();
       const moved = moveSpan(
         span,
-        span.start + (ev.key === "ArrowUp" ? -SNAP_MINUTES : SNAP_MINUTES),
+        span.start + (ev.key === "ArrowUp" ? -NUDGE_MINUTES : NUDGE_MINUTES),
       );
       commit({ eventId: event.id, dayId: event.dayId, ...moved });
       say(`${event.title} now ${formatSpan({ ...moved, allDay: false })}.`);
@@ -587,7 +593,7 @@ export function DaysCalendar({
   };
 
   const openAdd = (dayId: number, minutes: number) => {
-    setAdding({ dayId, time: toHhmm(clamp(snap(minutes), 0, 24 * 60 - SNAP_MINUTES)) });
+    setAdding({ dayId, time: toHhmm(clamp(snap(minutes), 0, LAST_START_MINUTE)) });
   };
 
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -884,10 +890,35 @@ export function DaysCalendar({
 
         <div className="flex-1" />
 
-        {/* The key for the block colours, which is also the filter (ticket 90).
-            Each swatch carries its word, so the colours are a shortcut and
-            never the only signal. */}
-        <div role="group" aria-label="Filter by type" className="flex flex-wrap gap-1">
+        {/*
+         * The key for the block colours, which is also the filter (ticket 90),
+         * behind one triple-dot. Three always-on swatches spent a third of the
+         * toolbar on a control most sessions never touch, and they pushed the
+         * date range and the day/week switch into a second line on anything
+         * narrower than a laptop.
+         *
+         * A filter you can't see is a trap, so a count rides beside the trigger
+         * whenever anything is hidden — the one state that has to be legible
+         * without opening it.
+         */}
+        {hiddenCount > 0 ? (
+          <span className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-soft">
+            {typeCount - hiddenCount} of {typeCount} shown
+          </span>
+        ) : null}
+        <Menu
+          label={
+            hiddenCount > 0
+              ? `Filter by type — ${typeCount - hiddenCount} of ${typeCount} shown`
+              : "Filter by type"
+          }
+          triggerClassName={cx(
+            "flex h-[26px] w-[26px] items-center justify-center rounded-full border",
+            hiddenCount > 0
+              ? "border-rule-strong bg-sheet text-ink"
+              : "border-transparent text-ink-faint hover:border-rule-strong hover:bg-sheet-2 hover:text-ink",
+          )}
+        >
           {(Object.keys(EVENT_CATEGORIES) as DayEventType[]).map((type) => {
             const category = EVENT_CATEGORIES[type];
             const on = !hidden.has(type);
@@ -895,7 +926,8 @@ export function DaysCalendar({
               <button
                 key={type}
                 type="button"
-                aria-pressed={on}
+                role="menuitemcheckbox"
+                aria-checked={on}
                 onClick={() =>
                   setHidden((prev) => {
                     const next = new Set(prev);
@@ -904,17 +936,17 @@ export function DaysCalendar({
                   })
                 }
                 className={cx(
-                  "inline-flex items-center gap-1.5 rounded-sm border px-2 py-0.5 font-mono text-[10.5px] uppercase tracking-[0.06em]",
-                  category.row,
-                  on ? "text-ink ring-1 ring-pen" : "text-ink-faint line-through",
+                  menuItemClass,
+                  "!flex !items-center !gap-2 !font-mono !text-[10.5px] !uppercase !tracking-[0.06em]",
+                  on ? "!text-ink" : "!text-ink-faint !line-through",
                 )}
               >
-                <span aria-hidden className={cx("size-2 rounded-sm", category.dot)} />
+                <span aria-hidden className={cx("size-2 shrink-0 rounded-sm", category.dot)} />
                 {category.label}
               </button>
             );
           })}
-        </div>
+        </Menu>
 
         <div className="flex overflow-hidden rounded-md border border-rule-strong">
           {(["day", "week"] as const).map((option) => (
@@ -1064,7 +1096,11 @@ export function DaysCalendar({
             <div
               ref={bandRowRef}
               style={rowStyle}
-              className="border-b border-rule bg-sheet"
+              /* `select-none`: a drag along the band is a gesture, and the
+                 browser's default reading of a pointer dragged across text is
+                 to select it — so shortening a stay left the place's name
+                 highlighted behind the bar. */
+              className="select-none border-b border-rule bg-sheet"
               onPointerMove={onBandPointerMove}
               onPointerUp={onBandPointerUp}
               onPointerCancel={onBandPointerUp}
@@ -1717,29 +1753,25 @@ function DayColumn({
       style={{ height }}
     >
       {/*
-       * The rules are painted, not built from elements: hour solid, half
-       * lighter, quarter lightest — so a quarter-hour target is visible before
-       * you aim at it, and a week costs three gradients rather than 500 divs.
+       * One rule an hour, painted rather than built from elements — a week
+       * costs a gradient instead of 500 divs.
        *
-       * The two sub-hour rules were knocked back hard from the first cut (28%
-       * and 50% of `--rule-2`): four horizontals an hour across seven columns,
-       * over a sheet that is already ruled behind them, read as hatching. They
-       * only have to be findable when you are aiming at one.
+       * The half and the quarter used to be painted too, faintly, so that a
+       * quarter-hour target was visible before you aimed at it. Both went with
+       * the quarter-hour snap: four horizontals an hour across seven columns,
+       * over a sheet that is already ruled behind them, read as hatching, and
+       * a grid that places to the minute has no quarter to aim at anyway.
        */}
       <div
         aria-hidden
         className="absolute inset-0"
         style={{
-          backgroundImage: [
-            `repeating-linear-gradient(to bottom, color-mix(in srgb, var(--rule-2) 12%, transparent) 0 1px, transparent 1px ${HOUR_PX / 4}px)`,
-            `repeating-linear-gradient(to bottom, color-mix(in srgb, var(--rule-2) 26%, transparent) 0 1px, transparent 1px ${HOUR_PX / 2}px)`,
-            `repeating-linear-gradient(to bottom, var(--rule) 0 1px, transparent 1px ${HOUR_PX}px)`,
-          ].join(","),
+          backgroundImage: `repeating-linear-gradient(to bottom, var(--rule) 0 1px, transparent 1px ${HOUR_PX}px)`,
         }}
       />
 
-      {/* A click anywhere empty is "add one here" — at the quarter hour the
-          cursor is actually on, not the hour it is nearest. Reached by keyboard
+      {/* A click anywhere empty is "add one here" — at the minute the cursor
+          is actually on, not the quarter hour it is nearest. Reached by keyboard
           it has no coordinates to read, so it opens at nine, which is where the
           toolbar's own Add event starts too. */}
       <button
@@ -1782,12 +1814,22 @@ function DayColumn({
         </div>
       ) : null}
 
+      {/* Now, on today's column only. A hairline with a blob on the left end:
+          the line says which minute, the blob says which end of it to read
+          from and keeps the mark findable where it crosses an empty hour. The
+          time itself is named for a screen reader, since a red line is a
+          colour on its own. */}
       {nowMinutes !== null ? (
         <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 z-10 border-t-2 border-red"
+          className="pointer-events-none absolute inset-x-0 z-10 border-t border-red"
           style={{ top: minutesToY(nowMinutes) }}
-        />
+        >
+          <span
+            aria-hidden
+            className="absolute left-0 top-0 size-[9px] -translate-x-[1px] -translate-y-1/2 rounded-full bg-red"
+          />
+          <span className="sr-only">Now — {toHhmm(nowMinutes)}</span>
+        </div>
       ) : null}
 
       {packed.map(({ id, start, end, lane, lanes }) => {

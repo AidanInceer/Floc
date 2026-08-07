@@ -13,8 +13,20 @@
  * subtracted.
  */
 
-/** The snap. Everything the calendar creates or moves lands on a quarter hour. */
-export const SNAP_MINUTES = 15;
+/**
+ * A nudge from the keyboard — ↑/↓ on a block — moves a quarter hour, because a
+ * key held down has to cross a morning in a reasonable number of repeats.
+ *
+ * The *pointer* is a different instrument: it lands on the whole minute it is
+ * actually over. The grid used to round every gesture to the nearest quarter,
+ * and the quarter-hour rules were painted so you could aim at one; both went
+ * when a 10:50 train turned into an 10:45 train (ticket 141 follow-up). A time
+ * that is a fact about the world is not the grid's to round.
+ */
+export const NUDGE_MINUTES = 15;
+
+/** The latest minute an event can *start*: 23:59, so a day still contains it. */
+export const LAST_START_MINUTE = 24 * 60 - 1;
 
 /** The shortest an event can be dragged down to. */
 export const MIN_EVENT_MINUTES = 15;
@@ -60,8 +72,8 @@ export function toHhmm(minutes: number): string {
   return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
 }
 
-/** Nearest quarter hour. */
-export function snap(minutes: number, step: number = SNAP_MINUTES): number {
+/** Nearest whole minute, or nearest `step` of them where something wants one. */
+export function snap(minutes: number, step: number = 1): number {
   return Math.round(minutes / step) * step;
 }
 
@@ -182,7 +194,7 @@ export function moveSpan(
 ): { time: string; endTime: string | null } {
   const length = span.end - span.start;
   if (span.open) {
-    return { time: toHhmm(clamp(snap(toStart), 0, 24 * 60 - SNAP_MINUTES)), endTime: null };
+    return { time: toHhmm(clamp(snap(toStart), 0, LAST_START_MINUTE)), endTime: null };
   }
   const start = clamp(snap(toStart), 0, 24 * 60 - length);
   return { time: toHhmm(start), endTime: toHhmm(start + length) };

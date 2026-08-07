@@ -88,14 +88,14 @@ export function EventForm({
           defaultName={defaults.placeName ?? ""}
           search={searchPlaces}
         />
-        {/* Quarter-hour steps, because that is the resolution the grid works
-            at (ticket 103) — an hours-only picker would be the odd one out and
-            would quietly round somebody's 10:45 ferry. */}
+        {/* Minute steps. The grid places to the minute, so the picker has to
+            reach every time the grid can hold — a quarter-hour picker quietly
+            rounded somebody's 10:50 train to 10:45. */}
         <EventTimeFields
           defaultTime={defaults.time}
           defaultEndTime={defaults.endTime}
           defaultAllDay={defaults.allDay}
-          step={900}
+          step={60}
         />
         <Field
           label="Notes"

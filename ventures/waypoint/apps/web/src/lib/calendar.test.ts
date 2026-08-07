@@ -54,11 +54,15 @@ describe("toHhmm", () => {
 });
 
 describe("snap", () => {
-  it("goes to the nearest quarter hour", () => {
+  it("goes to the nearest whole minute — a pixel is not a time", () => {
     expect(snap(0)).toBe(0);
-    expect(snap(7)).toBe(0);
-    expect(snap(8)).toBe(15);
-    expect(snap(614)).toBe(615);
+    expect(snap(614.4)).toBe(614);
+    expect(snap(614.6)).toBe(615);
+  });
+
+  it("takes a coarser step where something asks for one", () => {
+    expect(snap(7, 15)).toBe(0);
+    expect(snap(8, 15)).toBe(15);
   });
 });
 
@@ -163,10 +167,10 @@ describe("packLanes", () => {
 });
 
 describe("moveSpan", () => {
-  it("keeps the event's length and snaps to the quarter hour", () => {
+  it("keeps the event's length and lands on the minute dragged to", () => {
     expect(moveSpan({ start: 540, end: 660, open: false }, 607)).toEqual({
-      time: "10:00",
-      endTime: "12:00",
+      time: "10:07",
+      endTime: "12:07",
     });
   });
 
@@ -184,13 +188,17 @@ describe("moveSpan", () => {
       endTime: null,
     });
   });
+
+  it("holds an open-ended event's start inside the day, at 23:59", () => {
+    expect(moveSpan({ start: 540, end: 570, open: true }, 24 * 60).time).toBe("23:59");
+  });
 });
 
 describe("resizeSpan", () => {
   it("sets the end time from the dragged edge", () => {
     expect(resizeSpan({ start: 540, end: 600 }, 682)).toEqual({
       time: "09:00",
-      endTime: "11:15",
+      endTime: "11:22",
     });
   });
 
