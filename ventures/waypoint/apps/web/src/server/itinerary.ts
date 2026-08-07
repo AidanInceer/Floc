@@ -7,9 +7,11 @@
  * itself again:
  *
  * - **Soft-delete (rule 8).** `isNull(deletedAt)` appears here and nowhere in
- *   `app/`. The one deliberate exception is `appendDays`, whose existence check
- *   must *include* soft-deleted rows — they still occupy the (trip, date) unique
- *   index — and which says so at the call site.
+ *   `app/`. The two deliberate exceptions are both about the (trip, date) unique
+ *   index, which a soft-deleted row still occupies: `ensureDays`, whose
+ *   existence check must therefore *include* soft-deleted rows, and
+ *   `applyTripWindow`, which hard-deletes the days a shrinking window cuts so
+ *   the dates come back with them. Each says so where it is.
  * - **The ceilings.** `LIMITS.days` and `LIMITS.eventsPerDay`, applied on every
  *   list read; see `server/limits.ts` for what happens at one.
  * - **Revalidation.** A day row is on both tabs, so every itinerary write
@@ -40,13 +42,15 @@
  */
 import "server-only";
 
-import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, not, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
-import { day, dayEvent, place } from "@/db/schema";
+import { day, dayEvent, expense, place } from "@/db/schema";
 import type { DayEventType, TransportType } from "@/db/schema";
+import { dateRange } from "@/lib/dates";
 import { orderEvents } from "@/lib/event-order";
+import type { DayLoad } from "@/lib/trip-window";
 import { capRequiredText, capText } from "@/lib/text";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
@@ -93,6 +97,88 @@ export async function listDays(tripId: number): Promise<ItineraryDay[]> {
 /** Just the ids, in date order. */
 export async function listDayIds(tripId: number): Promise<number[]> {
   return (await listDays(tripId)).map((d) => d.id);
+}
+
+/**
+ * Every live day with how many events sit on it (ticket 140).
+ *
+ * The Dates tab prices a window the user is still dragging, so the whole load
+ * goes to the client once and the arithmetic happens there (`lib/trip-window.ts`)
+ * rather than a round trip per pointer move. Two counts per day, no event rows.
+ */
+export async function listDayLoads(tripId: number): Promise<DayLoad[]> {
+  const rows = await db
+    .select({
+      date: day.date,
+      events: sql<number>`count(${dayEvent.id})`,
+    })
+    .from(day)
+    .leftJoin(
+      dayEvent,
+      and(eq(dayEvent.dayId, day.id), isNull(dayEvent.deletedAt)),
+    )
+    .where(and(eq(day.tripId, tripId), isNull(day.deletedAt)))
+    .groupBy(day.id)
+    .orderBy(asc(day.date))
+    .limit(LIMITS.days)
+    .all();
+  return bounded(rows, "days", `trip ${tripId}`);
+}
+
+/**
+ * Makes the itinerary match the trip's window (ticket 140): a day per date in
+ * the window, and nothing outside it.
+ *
+ * An empty window (either end null, or reversed) removes every day — that is
+ * "Reset dates", not a special case. Both callers confirm the cost with the
+ * user first; rule 7 stands, because the question is a UI step before the write
+ * and never a check the write itself can fail.
+ *
+ * **The surplus is hard-deleted — the second exception to rule 8**, after
+ * `ensureDays` above and for the same reason: a soft-deleted row still occupies
+ * the `(trip, date)` unique index, so soft-deleting the days a shrink cuts
+ * would leave a hole that no later extend could ever fill. The trip would be
+ * permanently unable to use those dates again.
+ *
+ * The three writes are spelled out rather than left to `ON DELETE`: foreign-key
+ * enforcement is a connection pragma, and a rule this destructive should not
+ * depend on one being set. They also say what the cascade would only imply —
+ * the events go with their day, and the **expenses do not**. Money was spent on
+ * the day it was spent on, so an expense is detached and kept (`expense.day_id`
+ * is nullable for exactly this), matching what this module already promises
+ * about reordering.
+ */
+export async function applyTripWindow(
+  tripId: number,
+  start: string | null,
+  end: string | null,
+): Promise<void> {
+  const dates = dateRange(start, end);
+
+  // Unfiltered on `deletedAt` for the same reason the delete is hard: a
+  // soft-deleted row outside the window is still holding a date the trip may
+  // want back, so it goes too.
+  const surplus = await db
+    .select({ id: day.id })
+    .from(day)
+    .where(
+      and(
+        eq(day.tripId, tripId),
+        dates.length ? not(inArray(day.date, dates)) : undefined,
+      ),
+    )
+    .limit(LIMITS.days)
+    .all();
+
+  if (surplus.length) {
+    const ids = surplus.map((d) => d.id);
+    await db.update(expense).set({ dayId: null }).where(inArray(expense.dayId, ids));
+    await db.delete(dayEvent).where(inArray(dayEvent.dayId, ids));
+    await db.delete(day).where(inArray(day.id, ids));
+  }
+
+  await ensureDays(tripId, dates);
+  revalidateItinerary(tripId);
 }
 
 /* ---------------------------------------------- the reads the tabs render */

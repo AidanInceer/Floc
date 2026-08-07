@@ -10,8 +10,11 @@
  * aggregate decides how it's stored, what's filtered, what's bounded and what's
  * revalidated. Nothing here imports `@/db`.
  */
+import { revalidatePath } from "next/cache";
+
 import type { DayEventType, TransportType } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
+import { revalidateTripHeader, setTripDateRange } from "@/server/membership";
 import { resolveEventPlace } from "../place-actions";
 import { addDays as addDaysToDate } from "@/lib/dates";
 import { insertAt, permuteEventSlots } from "@/lib/event-order";
@@ -57,7 +60,18 @@ export async function reorderDays(tripId: number, from: number, to: number) {
   revalidateItinerary(access.trip.id);
 }
 
-/** Extends the trip by appending N days after its current last day. */
+/**
+ * Extends the trip by appending N days after its current last day.
+ *
+ * The window comes with them (ticket 140). The window is the itinerary's
+ * extent, so a day past `end_date` would be a day the next commit on the Dates
+ * tab offers to delete — the trip would be arguing with itself about how long
+ * it is. Appending a day *is* moving the end date; this is the same decision
+ * reached from the other tab, so it writes both.
+ *
+ * Nothing here confirms anything, because nothing is lost: extending only ever
+ * adds blank days.
+ */
 export async function addDays(tripId: number, afterDate: string, count: number) {
   const access = await requireTripAccess(tripId);
   const dates: string[] = [];
@@ -68,6 +82,16 @@ export async function addDays(tripId: number, afterDate: string, count: number) 
   }
 
   await ensureDays(access.trip.id, dates);
+
+  const { startDate, endDate } = access.trip;
+  const last = dates[dates.length - 1];
+  // Only ever outwards, and only for a trip that has a window at all — an
+  // undated trip is normal (rule 9) and appending a day is not what settles it.
+  if (startDate && endDate && last > endDate) {
+    await setTripDateRange(access.trip.id, startDate, last);
+    revalidateTripHeader(access.trip.id);
+    revalidatePath(`/trip/${access.trip.id}/dates`);
+  }
 
   revalidateItinerary(access.trip.id);
 }

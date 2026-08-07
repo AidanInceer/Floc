@@ -41,6 +41,11 @@ import {
   type IsoMonth,
 } from "@/lib/availability";
 import { dateRange, today } from "@/lib/dates";
+import {
+  windowCost,
+  windowCostLabel,
+  type DayLoad,
+} from "@/lib/trip-window";
 
 type View = "mine" | "everyone" | "dates";
 
@@ -52,6 +57,7 @@ export function AvailabilityCalendar({
   memberCount,
   tripStart,
   tripEnd,
+  dayLoads,
   save,
   saveDates,
 }: {
@@ -64,6 +70,8 @@ export function AvailabilityCalendar({
   memberCount: number;
   tripStart: string | null;
   tripEnd: string | null;
+  /** Every live day and how many events sit on it — what a shrink would cost. */
+  dayLoads: DayLoad[];
   save: (add: string[], remove: string[]) => Promise<void>;
   /** Commits the trip's window. Null on both ends clears it. */
   saveDates: (start: string | null, end: string | null) => Promise<void>;
@@ -234,7 +242,36 @@ export function AvailabilityCalendar({
   const onSaveDates = () =>
     startTransition(async () => {
       await saveDates(range.start, rangeEnd);
+      setArmedKey(null);
     });
+
+  /**
+   * What committing this window would destroy, and the two-click gate in front
+   * of it (ticket 140).
+   *
+   * The window is the itinerary's extent, so a date the new window drops takes
+   * its day and its events with it. That is priced here rather than on the
+   * server because the user is still dragging: `dayLoads` is the whole trip's
+   * load, sent once, and `windowCost` is pure — so the number is ready the
+   * instant the range moves, with no round trip behind it.
+   *
+   * `armedKey` is the window the user has been shown the price of. Any further
+   * drag makes a different window, whose key no longer matches, so the gate
+   * re-arms itself without a single reset call — a stale "remove 6 days" cannot
+   * be clicked through onto a window that would only remove one.
+   */
+  const cost = windowCost(dayLoads, range.start, rangeEnd);
+  const costLabel = windowCostLabel(cost);
+  const rangeKey = `${range.start}|${rangeEnd}`;
+  const [armedKey, setArmedKey] = useState<string | null>(null);
+  const armed = !!costLabel && armedKey === rangeKey;
+
+  // Nothing to lose commits on the first click: a first window, or one that
+  // only grows, has no cost to name and asking about it would be ceremony.
+  const onCommit = () => {
+    if (costLabel && !armed) setArmedKey(rangeKey);
+    else onSaveDates();
+  };
 
   const months = monthsFrom(month, monthCount);
   const now = today();
@@ -434,13 +471,25 @@ export function AvailabilityCalendar({
           {/* No line of text restating the pick (ticket 134). Empty it read
               "Pick the first day", which is instructions; full it repeated
               the run of green circles directly above it, and the committed
-              window is already the page's subtitle. */}
+              window is already the page's subtitle.
+
+              The cost of a shrink is the one thing this footer does say
+              (ticket 140), and it says it on the button that is about to do
+              it rather than in a dialog over the calendar: the days being cut
+              are drawn directly above, and reading the number while looking
+              at them is the whole point. Two clicks, not two surfaces. */}
           <Button
-            variant="primary"
+            variant={armed ? "danger" : "primary"}
             disabled={!range.start || !rangeChanged || pending}
-            onClick={onSaveDates}
+            onClick={onCommit}
           >
-            {pending ? "Setting…" : tripStart ? "Change dates" : "Set the dates"}
+            {pending
+              ? "Setting…"
+              : armed
+                ? costLabel
+                : tripStart
+                  ? "Change dates"
+                  : "Set the dates"}
           </Button>
           {/* Always here, disabled when there is nothing to throw away
               (ticket 133). Appearing and disappearing changed how much of

@@ -15,9 +15,11 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import {
+  applyTripWindow,
   ensureDays,
   firstTransportEvents,
   listDayIds,
+  listDayLoads,
   listDays,
   moveItem,
   overnightPlaceOf,
@@ -91,6 +93,92 @@ describe("ensureDays", () => {
   it("is a no-op on no dates", async () => {
     await ensureDays(world.ours.id, []);
     expect(await listDayIds(world.ours.id)).toEqual([world.ours.dayId]);
+  });
+});
+
+describe("listDayLoads", () => {
+  it("counts the live events on each live day", async () => {
+    await ensureDays(world.ours.id, ["2026-09-02"]);
+    await softDeleteEvent(world.ours.lateEventId);
+
+    expect(await listDayLoads(world.ours.id)).toEqual([
+      { date: "2026-09-01", events: 1 },
+      { date: "2026-09-02", events: 0 },
+    ]);
+  });
+});
+
+describe("applyTripWindow", () => {
+  it("creates a day per date and keeps what the old window shared", async () => {
+    // 1 Sep → 1–3 Sep. The seeded day and its events stay put; a day is
+    // addressed by its date, so nothing shifts.
+    await applyTripWindow(world.ours.id, "2026-09-01", "2026-09-03");
+
+    expect((await listDays(world.ours.id)).map((d) => d.date)).toEqual([
+      "2026-09-01",
+      "2026-09-02",
+      "2026-09-03",
+    ]);
+    expect(await eventRow(world.ours.eventId)).toBeDefined();
+  });
+
+  it("hard-deletes the days outside the window, with their events", async () => {
+    await applyTripWindow(world.ours.id, "2026-09-05", "2026-09-06");
+
+    // Hard, not soft (the second exception to rule 8): a soft-deleted row
+    // would keep holding 1 Sep on the unique index, so re-extending back over
+    // that date could never give the day again.
+    const rows = await db
+      .select()
+      .from(schema.day)
+      .where(eq(schema.day.tripId, world.ours.id))
+      .all();
+    expect(rows.map((d) => d.date)).toEqual(["2026-09-05", "2026-09-06"]);
+    expect(await eventRow(world.ours.eventId)).toBeUndefined();
+  });
+
+  it("gives a blank day back when the window extends over a removed date", async () => {
+    await applyTripWindow(world.ours.id, "2026-09-05", "2026-09-06");
+    await applyTripWindow(world.ours.id, "2026-09-01", "2026-09-06");
+
+    const days = await listDays(world.ours.id);
+    expect(days).toHaveLength(6);
+    // Blank: the plan does not come back with the date (ticket 83).
+    expect(await eventRow(world.ours.eventId)).toBeUndefined();
+  });
+
+  it("keeps an expense and detaches it from the day it was spent on", async () => {
+    const spend = await db
+      .insert(schema.expense)
+      .values({
+        tripId: world.ours.id,
+        dayId: world.ours.dayId,
+        paidBy: world.admin,
+        description: "Ferry",
+        amountMinor: 1200,
+        currency: "GBP",
+        splitType: "even" as const,
+        createdBy: world.admin,
+      })
+      .returning({ id: schema.expense.id })
+      .get();
+
+    await applyTripWindow(world.ours.id, "2026-09-05", "2026-09-06");
+
+    const after = await db
+      .select()
+      .from(schema.expense)
+      .where(eq(schema.expense.id, spend.id))
+      .get();
+    expect(after?.dayId).toBeNull();
+  });
+
+  it("empties the itinerary when the window is cleared", async () => {
+    await applyTripWindow(world.ours.id, null, null);
+
+    expect(await listDays(world.ours.id)).toEqual([]);
+    // And only this trip's — the other trip's day is untouched.
+    expect(await listDayIds(world.theirs.id)).toEqual([world.theirs.dayId]);
   });
 });
 

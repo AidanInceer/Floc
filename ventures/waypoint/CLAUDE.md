@@ -14,6 +14,7 @@ order, and who owes who afterwards. Pre-MVP.
 | Old prototype | `apps/prototype` | **Superseded.** Vite/localStorage, the retired ADR-0010 cut. Prior art — don't extend it. |
 | Wireframe variants | `wireframe/*.html` | Design artefacts. `paper.html` is the one v1 follows. |
 | Schema of record | [`docs/data-model/erd.html`](../../docs/data-model/erd.html) | Mirrors `apps/web/src/db/schema.ts`. Change both together. |
+| Vocabulary | [`docs/vocab.md`](docs/vocab.md) | The words this venture uses, and the words it does not. **Read before naming anything** — a term in copy, a column, an issue title. Copy says *user*; code says *member*. |
 | Design approach | [`docs/design/approach.html`](../../docs/design/approach.html) | The higher-level design guide — clarity, hierarchy, trust, states, and the anti-patterns to avoid, distilled from expert design reviews (Rio Lu / Cursor, Katie Dill / Stripe, Zain Ali / Instacart, Vlad / Webflow) plus UI fundamentals. **Read before any UI/UX work.** Raw transcripts in `docs/design/inputs/`. |
 | Visual language | [`docs/design/visual-language.html`](../../docs/design/visual-language.html) | The concrete house style the approach serves: paper-and-biro tokens + component inventory. |
 | Homepage mockups | [`docs/mockups/`](../../docs/mockups/README.md) | The landing page's design artefacts. The live `/` follows `homepage-g-boardingpass.html` — "the travel document" — end to end: the pass, the luggage tags, the coupon book, the entry stamp. The pinboard route and the before/after hero it replaced are superseded, and everything else there is unadopted, including the two phone-app explorations. |
@@ -56,9 +57,12 @@ treated as current.
    `isNull(table.deletedAt)`. The rule used to say "every read", and that
    phrasing is exactly what let a handful of updates through that would
    resurrect a deleted row into a half-state from a stale id (ticket 115). The
-   two deliberate exceptions both say so where they are: `ensureDays`, because a
-   soft-deleted row still occupies the (trip, date) unique index, and
-   `joinByToken`, because reviving a kicked member's row is the point.
+   three deliberate exceptions all say so where they are: `ensureDays`, because
+   a soft-deleted row still occupies the (trip, date) unique index;
+   `applyTripWindow`, which **hard-deletes** the days a shrinking window cuts for
+   that same reason — soft-deleting them would hold those dates for ever
+   (ticket 140); and `joinByToken`, because reviving a kicked member's row is
+   the point.
 9. **A trip may have no dates.** `start_date`/`end_date` are nullable and
    creating a trip without them is the normal path — the Dates tab is where the
    group decides, from `availability` overlap, and it never waits for a full

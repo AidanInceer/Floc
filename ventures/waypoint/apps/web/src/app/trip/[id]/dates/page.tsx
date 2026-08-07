@@ -14,8 +14,14 @@
  */
 import { requireTripAccess } from "@/server/access";
 import { listAvailability } from "@/server/membership";
+import { listDayLoads } from "@/server/itinerary";
 import { monthOf, thisMonth } from "@/lib/availability";
 import { formatDateRange, nightsBetween } from "@/lib/dates";
+import {
+  windowCost,
+  windowCostLabel,
+  windowCostNoun,
+} from "@/lib/trip-window";
 import {
   AvatarRow,
   Card,
@@ -25,6 +31,7 @@ import {
   Stack,
 } from "@/components/ui";
 import {
+  ConfirmSubmit,
   Menu,
   SubmitButton,
   menuDangerItemClass,
@@ -53,7 +60,10 @@ export default async function DatesPage({
   const { trip, viewer, members } = access;
   const tripId = trip.id;
 
-  const rows = await listAvailability(tripId);
+  const [rows, dayLoads] = await Promise.all([
+    listAvailability(tripId),
+    listDayLoads(tripId),
+  ]);
 
   const free = rows.filter((r) => r.available);
   const mine = free.filter((r) => r.userId === viewer.id).map((r) => r.date);
@@ -77,6 +87,12 @@ export default async function DatesPage({
           : thisMonth();
 
   const hasDates = !!trip.startDate && !!trip.endDate;
+
+  // What "Reset dates" would cost: an empty window keeps no day at all, so
+  // this is the whole itinerary (ticket 140). Null when there is nothing on it.
+  const resetCost = windowCost(dayLoads, null, null);
+  const resetNoun = windowCostNoun(resetCost);
+  const resetLabel = windowCostLabel(resetCost);
 
   return (
     <Page wide flush>
@@ -153,20 +169,39 @@ export default async function DatesPage({
                  * A control that comes and goes has to be hunted for; one
                  * that is always in the same corner is somewhere you look.
                  *
-                 * No confirm dialog behind either: opening a menu and picking
-                 * a named verb is already deliberate, and neither loses
-                 * anything you can't put back by marking the days again or
-                 * setting the dates again.
+                 * "Clear availability" has no confirm dialog: opening a menu
+                 * and picking a named verb is already deliberate, and you can
+                 * put your marks back by painting them again.
+                 *
+                 * "Reset dates" is the one that grew one (ticket 140). The
+                 * window is the itinerary's extent now, so resetting it takes
+                 * every day and every event with it — that is not something
+                 * you can put back by setting the dates again, and the dialog
+                 * names the number before it happens. It only appears when
+                 * there is something to lose: an undated trip, or a dated one
+                 * with a bare itinerary, still resets on one click.
                  */}
                 <Menu label="Dates actions">
                   <form action={clearTripDates.bind(null, tripId)}>
-                    <SubmitButton
-                      variant="ghost"
-                      disabled={!hasDates}
-                      className={menuDangerItemClass}
-                    >
-                      Reset dates
-                    </SubmitButton>
+                    {resetNoun ? (
+                      <ConfirmSubmit
+                        variant="ghost"
+                        className={menuDangerItemClass}
+                        message={`Resetting the dates removes the whole itinerary — ${resetNoun}. Ideas, costs and people stay.`}
+                        confirmLabel={resetLabel!}
+                        pendingLabel="Resetting…"
+                      >
+                        Reset dates
+                      </ConfirmSubmit>
+                    ) : (
+                      <SubmitButton
+                        variant="ghost"
+                        disabled={!hasDates}
+                        className={menuDangerItemClass}
+                      >
+                        Reset dates
+                      </SubmitButton>
+                    )}
                   </form>
                   <form action={clearMyAvailability.bind(null, tripId)}>
                     <SubmitButton
@@ -197,6 +232,7 @@ export default async function DatesPage({
               memberCount={members.length}
               tripStart={trip.startDate}
               tripEnd={trip.endDate}
+              dayLoads={dayLoads}
               save={saveAvailability.bind(null, tripId)}
               saveDates={setTripDates.bind(null, tripId)}
             />

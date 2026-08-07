@@ -9,11 +9,15 @@
  *
  * The SQL is `server/membership.ts`'s (ticket 108) — availability is a fact
  * about members, so it lives with the roster rather than in a module of its own.
+ * Committing a window also reaches into `server/itinerary.ts`, because the
+ * window decides which days exist (ticket 140) — two aggregates, one decision,
+ * which is the action's job to make and neither aggregate's to know about.
  */
 import { revalidatePath } from "next/cache";
 
 import { isIsoDate, readIsoDate } from "@/lib/dates";
 import { requireTripAccess } from "@/server/access";
+import { applyTripWindow } from "@/server/itinerary";
 import {
   clearAvailabilityFor,
   revalidateOverview,
@@ -84,17 +88,30 @@ export async function setTripDates(
 
   const access = await requireTripAccess(tripId);
   await setTripDateRange(access.trip.id, startDate, endDate);
+  // The window *is* the itinerary's extent (ticket 140), so the days follow it
+  // in the same action: a date in both windows keeps its events, a date only in
+  // the old one goes, a date only in the new one arrives blank. The calendar
+  // has already named what that costs and been clicked a second time.
+  await applyTripWindow(access.trip.id, startDate, endDate);
 
   revalidateTripHeader(access.trip.id);
   revalidateDates(access.trip.id);
 }
 
-/** Back to undated — the trip stays entirely usable without dates. */
+/**
+ * Back to undated — still a supported path (rule 9), and still not an error
+ * state. But no window means no extent, so the itinerary goes with it
+ * (ticket 140): the trip keeps its ideas, its money and its people, and the
+ * plan starts again when the group picks a window. The menu item behind this
+ * asks first, and names the days and events it is about to take.
+ */
 export async function clearTripDates(tripId: number) {
   const access = await requireTripAccess(tripId);
   await setTripDateRange(access.trip.id, null, null);
+  await applyTripWindow(access.trip.id, null, null);
 
   revalidateTripHeader(access.trip.id);
+  revalidateDates(access.trip.id);
 }
 
 /**
