@@ -647,10 +647,15 @@ export function DaysCalendar({
   const goNext = () => goTo(pages[pageIndex + 1]);
 
   /*
-   * The arrows leave rather than grey out at the ends of the trip. A disabled
-   * control still says "there is more that way, just not for you", which is the
-   * wrong thing to say about the first and last day of a trip — there is
-   * nothing that way at all, and the absence is the signal.
+   * The arrows grey out at the ends of the trip; they do not leave.
+   *
+   * They used to leave, on the argument that a disabled control says "there is
+   * more that way, just not for you". The cost of that is a toolbar that
+   * reshuffles itself as you page — the control you are aiming at moves under
+   * the cursor on the one click that reaches the end — and a first page where
+   * the only arrow present points the way you cannot see you could also go.
+   * A greyed arrow says "nothing that way" perfectly well, and says it in a
+   * fixed place.
    */
   const canPrev = pageIndex > 0;
   const canNext = pageIndex < pages.length - 1;
@@ -921,16 +926,29 @@ export function DaysCalendar({
         >
           Today
         </Button>
-        {canPrev ? (
-          <Button variant="ghost" onClick={goPrev} aria-label="Earlier days">
+        {/* A pair, always, and drawn as controls rather than as glyphs: the
+            arrow is the thing you reach for most on this page, and in ghost
+            weight at 11px it was the quietest mark in the toolbar. */}
+        <div className="flex gap-1">
+          <Button
+            onClick={goPrev}
+            disabled={!canPrev}
+            aria-label="Earlier days"
+            title={canPrev ? "Earlier days" : "The trip starts here"}
+            className="!px-2.5 text-[15px] leading-none"
+          >
             ‹
           </Button>
-        ) : null}
-        {canNext ? (
-          <Button variant="ghost" onClick={goNext} aria-label="Later days">
+          <Button
+            onClick={goNext}
+            disabled={!canNext}
+            aria-label="Later days"
+            title={canNext ? "Later days" : "The trip ends here"}
+            className="!px-2.5 text-[15px] leading-none"
+          >
             ›
           </Button>
-        ) : null}
+        </div>
         <p className="min-w-[11rem] text-sm font-semibold" aria-live="polite">
           {rangeLabel}
         </p>
@@ -1236,9 +1254,14 @@ export function DaysCalendar({
                       }}
                       className={cx(
                         "flex h-7 w-full items-center truncate rounded-sm border px-2 text-xs transition-colors",
+                        /* The pen's own wash, not the highlighter's. Yellow is
+                           the food category's colour one row down, and a bed is
+                           not a meal; blue is what this app uses for the thing
+                           that has been decided. `-edge` for the border or the
+                           bar dissolves into the sheet (ticket 73). */
                         run.preview
                           ? "justify-center border-dashed border-pen bg-pen-soft/60 text-pen"
-                          : "border-rule-strong bg-highlight-soft hover:bg-highlight",
+                          : "border-pen-edge bg-pen-soft text-pen hover:border-pen",
                         run.openStart && "rounded-l-none",
                         run.openEnd && "rounded-r-none",
                       )}
@@ -1286,7 +1309,7 @@ export function DaysCalendar({
                             >
                               <span
                                 className={cx(
-                                  "absolute top-1/2 h-[14px] w-[2px] -translate-y-1/2 rounded-full bg-pen opacity-45",
+                                  "absolute top-1/2 h-[14px] w-[2px] -translate-y-1/2 rounded-full bg-pen opacity-60",
                                   edge === "start" ? "left-[2px]" : "right-[2px]",
                                 )}
                               />
