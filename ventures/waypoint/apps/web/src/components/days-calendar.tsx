@@ -908,10 +908,25 @@ export function DaysCalendar({
 
   const selectedEvent = selected === null ? null : events.find((e) => e.id === selected);
 
+  /*
+   * How wide the calendar insists on being: the gutter plus a floor per column,
+   * and nothing else.
+   *
+   * It used to be `max-content` — on the rows and on the frame around them —
+   * which asks the *content* how wide the week should be. One all-day pill
+   * reading "Train to the next stop" was therefore enough to push a week that
+   * fits perfectly well into a horizontal scroll, on a screen with room to
+   * spare. Nothing inside a column may vote on the column's width; the pills
+   * and the bars all truncate, so a long name is a short label rather than a
+   * wider calendar. The scrollbar is now what it always claimed to be: the
+   * answer to a window too narrow for seven columns at their floor.
+   */
+  const frameMinWidth = GUTTER_PX + shownDays.length * COLUMN_MIN_PX[effectiveView];
+
   const rowStyle: CSSProperties = {
     display: "grid",
     gridTemplateColumns: `${GUTTER_PX}px repeat(${shownDays.length}, minmax(${COLUMN_MIN_PX[effectiveView]}px, 1fr))`,
-    minWidth: "max-content",
+    minWidth: frameMinWidth,
   };
 
   /* ---- render ------------------------------------------------------------------ */
@@ -1069,10 +1084,12 @@ export function DaysCalendar({
             {/* The shadow is what makes the pinned head read as a layer over
                 the grid rather than as part of it — without it, hours sliding
                 underneath look like a rendering fault. */}
-            {/* One intrinsic-width wrapper owns every calendar row. The head,
-                all-day band, and timed grid must share the same `1fr` space;
-                otherwise each `w-max` row resolves that space independently. */}
-            <div className="w-max min-w-full">
+            {/* One wrapper owns every calendar row. The head, the overnight
+                band, the all-day strip and the timed grid must share the same
+                `1fr` space; otherwise each row resolves that space on its own
+                and the columns stop lining up. Its width is the frame's floor,
+                not its content — see `frameMinWidth`. */}
+            <div className="w-full" style={{ minWidth: frameMinWidth }}>
             <div
               ref={headRef}
               className="sticky top-0 z-30 shadow-[0_2px_5px_rgb(0_0_0/0.07)]"
@@ -1087,18 +1104,23 @@ export function DaysCalendar({
                     // A day the trip doesn't cover is dimmed in the head as
                     // well as in the column, so the two read as one thing.
                     day.outside && `${OUTSIDE_DAY_CLASS} text-ink-faint`,
+                    // Today is the whole head, filled. It used to be a pill
+                    // drawn around the number, which made one column's date sit
+                    // at a different height from its neighbours' — a marker
+                    // that moves the thing it marks. The cell was already
+                    // there, and colouring it costs no geometry at all.
+                    day.isToday && "bg-pen text-sheet",
                     landing?.dayId === day.id && "bg-pen-soft",
                   )}
                 >
-                  <p className="typed">{day.weekday}</p>
-                  <p
-                    className={cx(
-                      "nums text-lg font-semibold",
-                      day.isToday &&
-                        "mx-auto inline-block min-w-[1.7em] rounded-full bg-pen px-1 text-sheet",
-                    )}
-                  >
+                  <p className={cx("typed", day.isToday && "text-sheet/75")}>
+                    {day.weekday}
+                  </p>
+                  <p className="nums text-lg font-semibold">
                     {day.dayOfMonth}
+                    {/* Colour is never the only signal (CLAUDE.md) — the word
+                        is here for anyone who can't see the fill. */}
+                    {day.isToday ? <span className="sr-only"> — today</span> : null}
                   </p>
                   {effectiveView === "day" ? (
                     <div className="mt-1 flex justify-center">
@@ -1637,9 +1659,14 @@ function OvernightDialog({
         {/* Top of the list, and only where there is something to clear: an
             undecided day is already the answer this would give. */}
         {span.placeId !== null ? (
-          <Button type="button" variant="ghost" onClick={onClear} className="w-full">
-            No overnight place
-          </Button>
+          <div>
+            {/* The toolbar's weight — Today, Add a day — rather than a ghost.
+                A tinted bar with no edge to it read as a heading for the field
+                below rather than as the thing you press. */}
+            <Button type="button" onClick={onClear}>
+              No overnight place
+            </Button>
+          </div>
         ) : null}
 
         <PlacePicker

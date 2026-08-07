@@ -59,8 +59,17 @@ export function PlacePicker({
       : null,
   );
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /*
+   * The name we were handed is an answer, not a question. Searching it on mount
+   * dropped a results list over whatever sits below the field the moment any
+   * edit form or dialog opened — and offered you, as a suggestion, the place
+   * you had already chosen. The first keystroke clears this and searching
+   * resumes as normal.
+   */
+  const untouched = useRef(Boolean(defaultName));
 
   useEffect(() => {
+    if (untouched.current) return;
     if (!query.trim()) {
       setResults([]);
       setNoMatch(false);
@@ -99,6 +108,7 @@ export function PlacePicker({
         <Input
           value={query}
           onChange={(e) => {
+            untouched.current = false;
             setQuery(e.target.value);
             setNoMatch(false);
             const result: PlacePickerResult = {

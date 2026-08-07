@@ -1,6 +1,6 @@
 {
   "name": "waypoint-web",
-  "version": "0.20.2",
+  "version": "0.20.3",
   "private": true,
   "description": "Waypoint v1 — group travel planner. Next.js App Router + Turso (libSQL) + Drizzle + Better Auth.",
   "type": "module",
