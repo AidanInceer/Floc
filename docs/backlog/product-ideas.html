@@ -1,0 +1,198 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Product ideas — Waypoint docs</title>
+<link rel="stylesheet" href="../assets/docs.css">
+<body data-root=".." data-page="product-ideas">
+<nav id="sidebar" aria-label="Documentation"></nav>
+<main>
+<p class="crumb">Docs</p>
+<h1>Waypoint — problems worth solving next</h1>
+<p>A backlog of <em>problems</em>, not a roadmap. Nothing here is committed. Several
+items sit outside the v1 scope boundary in <a href="../CLAUDE.md"><code>CLAUDE.md</code></a> and say
+so; the point of writing them down is to know what&#39;s being deferred and why,
+not to pre-build for it.</p>
+<p>Each entry is: the problem a real group has, what it might look like, and the
+honest catch.</p>
+<hr>
+<h2>1. Getting people to actually turn up</h2>
+<h3>The commitment moment</h3>
+<p><strong>Problem.</strong> The single hardest thing in group travel isn&#39;t picking a place —
+it&#39;s the gap between &quot;yeah I&#39;m keen&quot; and &quot;I&#39;ve booked my flight&quot;. Trips die in
+that gap, and the organiser carries the anxiety alone.</p>
+<p><strong>Shape.</strong> A per-member commitment state on the trip: <em>interested → in →
+booked</em>. Not a deadline, not a payment — a visible, self-declared answer to
+&quot;are you actually coming?&quot;. The overview says &quot;5 of 7 are in, 2 have booked&quot;.</p>
+<p><strong>Catch.</strong> It can turn social pressure into a UI feature, which is exactly the
+tone the product avoids. It works only if it stays self-declared and nobody
+gets chased automatically. Fits the existing &quot;nudges, not nagging&quot; rule.</p>
+<h3>The deposit problem</h3>
+<p><strong>Problem.</strong> Someone always fronts £400 for a house and then feels awkward
+asking. That awkwardness is the #1 reason organisers stop organising.</p>
+<p><strong>Shape.</strong> Flag an expense as &quot;fronted&quot; — it enters the ledger immediately,
+before the trip, with a clear &quot;3 of 7 have squared up&quot; state. No money moves;
+it&#39;s the <em>visibility</em> that does the work.</p>
+<p><strong>Catch.</strong> Almost free to build on the existing ledger. Genuinely high value.
+Probably the best value-to-effort item on this page.</p>
+<hr>
+<h2>2. The parts of a trip Waypoint currently ignores</h2>
+<h3>Who&#39;s arriving when</h3>
+<p><strong>Problem.</strong> Seven people from four cities on five different flights. Right now
+that lives in the chat, and someone always ends up alone at an airport.</p>
+<p><strong>Shape.</strong> An arrivals/departures board per trip: each member&#39;s inbound and
+outbound, times only, no booking integration. It immediately answers &quot;who can
+share the transfer?&quot; and &quot;when does the group actually start?&quot;.</p>
+<p><strong>Catch.</strong> Tempting to reach for flight APIs. Don&#39;t — free-text plus a time is
+90% of the value, consistent with the &quot;degrade, don&#39;t crash&quot; rule.</p>
+<h3>Where everyone is sleeping</h3>
+<p><strong>Problem.</strong> The route says &quot;Taormina, 3 nights&quot;. It doesn&#39;t say which house,
+whose name the booking is in, what the door code is, or which four people are
+in the annexe.</p>
+<p><strong>Shape.</strong> A booking/lodging record attached to a stop: name, address, who
+booked it, reference, and the room allocation. The one thing everyone opens on
+arrival day.</p>
+<p><strong>Catch.</strong> Room allocation is socially loaded (who shares with whom). Keep it
+a plain list someone edits, not an algorithm.</p>
+<h3>The packing and jobs list</h3>
+<p><strong>Problem.</strong> &quot;Who&#39;s bringing the speaker / the coolbox / the good knife?&quot; and
+&quot;who&#39;s booking the airport transfer?&quot; are the same problem: a shared checklist
+with a name against each line.</p>
+<p><strong>Shape.</strong> One list per trip, each item claimable by a member. Deliberately
+dumb.</p>
+<p><strong>Catch.</strong> Nearly free, and it&#39;s the kind of small feature that makes a product
+feel finished. Low risk of scope creep if it stays one flat list.</p>
+<hr>
+<h2>3. Making decisions less painful</h2>
+<h3>Options, not just ideas</h3>
+<p><strong>Problem.</strong> Voting works for &quot;where shall we go&quot;. It works badly for &quot;which of
+these three houses&quot;, where the real content is a price, a location and a
+tradeoff.</p>
+<p><strong>Shape.</strong> A comparison card: two to four options side by side with the
+attributes that matter (price per person, distance, sleeps), then a vote. The
+group&#39;s actual decision unit.</p>
+<p><strong>Catch.</strong> Attribute schemas get complicated fast. Keep it free-text rows the
+group defines itself.</p>
+<h3>Budget before booking</h3>
+<p><strong>Problem.</strong> Groups discover they can&#39;t afford the trip <em>after</em> someone has
+booked something. The money tab is retrospective — it tells you what you spent,
+never what you&#39;re about to.</p>
+<p><strong>Shape.</strong> A per-person target (&quot;about £600 each&quot;) set early, and an estimate
+that accumulates as stops and options are added: &quot;currently tracking at £710
+each&quot;. Nobody has to enter real numbers for it to be useful.</p>
+<p><strong>Catch.</strong> Estimates that drift from reality are worse than none. Needs to be
+visibly an estimate, in the same typed-figures discipline as the ledger.
+Probably the highest-value item in this section — money anxiety is the quiet
+reason people opt out of trips.</p>
+<h3>Quiet voices</h3>
+<p><strong>Problem.</strong> In a nine-person group, two people decide everything and one
+person hates the plan silently. That surfaces on day three of the trip.</p>
+<p><strong>Shape.</strong> Something very light — an anonymous &quot;does this work for everyone?&quot;
+temperature check on a decision, or simply showing who hasn&#39;t engaged with a
+stop yet (&quot;Ana hasn&#39;t opened Dates&quot;).</p>
+<p><strong>Catch.</strong> Easily creepy. &quot;Who hasn&#39;t engaged&quot; is surveillance if framed
+wrong. Anonymous sentiment is safer but weaker. Worth research before design.</p>
+<hr>
+<h2>4. During the trip</h2>
+<h3>The one-screen day</h3>
+<p><strong>Problem.</strong> Waypoint is currently a planning tool that goes quiet the moment
+the trip starts, which is when the group most needs a shared answer.</p>
+<p><strong>Shape.</strong> A &quot;today&quot; view: today&#39;s day-plan, tonight&#39;s accommodation with the
+address, who&#39;s arriving, and one tap to log an expense. Offline-readable.</p>
+<p><strong>Catch.</strong> This is what makes people open the app on holiday, which is what
+makes them remember it exists next year. Strategically important beyond its
+size.</p>
+<h3>Fast expense capture</h3>
+<p><strong>Problem.</strong> Nobody wants to fill in a form at a restaurant table. Expenses get
+logged from memory three days later, badly.</p>
+<p><strong>Shape.</strong> Amount, one tap for &quot;split evenly with everyone here&quot;, done. Photo
+of the receipt optional and attached later.</p>
+<p><strong>Catch.</strong> The existing money model already supports it; this is a UI problem,
+not a data-model one.</p>
+<h3>When the plan breaks</h3>
+<p><strong>Problem.</strong> The ferry is cancelled. The plan is now wrong, and seven people
+each learn that separately.</p>
+<p><strong>Shape.</strong> Mark a day event as changed, with a one-line reason. It&#39;s a note,
+not a notification system.</p>
+<p><strong>Catch.</strong> Push notifications are out of scope for v1 and this shouldn&#39;t become
+the reason to add them.</p>
+<hr>
+<h2>5. Between trips</h2>
+<h3>The archive as an asset</h3>
+<p><strong>Problem.</strong> &quot;Where was that bar in Ortigia?&quot; — the answer is in last year&#39;s
+book and nobody can find it.</p>
+<p><strong>Shape.</strong> Search across every trip you&#39;ve been on. Also: clone a past trip as
+the starting point for a new one.</p>
+<p><strong>Catch.</strong> Cheap to build, and it&#39;s the feature that makes long-term retention
+plausible — and the one people would plausibly pay to keep (see
+<a href="../monetisation/monetisation.html"><code>monetisation.md</code></a>, Bucket 3).</p>
+<h3>The group as a durable thing</h3>
+<p><strong>Problem.</strong> Trips are one-offs, but the <em>group</em> often isn&#39;t. Re-inviting the
+same seven people every year is pure friction.</p>
+<p><strong>Shape.</strong> A saved travel group — reuse the roster, and carry the settled
+balances forward so a debt from last year isn&#39;t quietly forgotten.</p>
+<p><strong>Catch.</strong> Cross-trip balances are a real data-model decision. Worth thinking
+about early even if it&#39;s built late, because it&#39;s much harder to retrofit.</p>
+<hr>
+<h2>What to <em>not</em> build</h2>
+<p>Stated plainly, because each of these will be suggested by someone:</p>
+<table>
+<thead>
+<tr>
+<th>Idea</th>
+<th>Why not</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>An AI itinerary generator</td>
+<td>The problem is never &quot;what could we do in Sicily&quot; — the internet is full of that. It&#39;s &quot;what will these seven people agree to&quot;. Generated plans have no social legitimacy: nobody feels bound by a suggestion they didn&#39;t argue about.</td>
+</tr>
+<tr>
+<td>Attractions / POI database, reviews</td>
+<td>Someone else&#39;s, always out of date, and it turns the notebook into a directory. Free-text place names plus a link out is enough.</td>
+</tr>
+<tr>
+<td>Flight and hotel booking</td>
+<td>Regulated, commission-driven, and it changes what the product is for. Search deep links only, paying nothing — the boundary already set in v1 scope.</td>
+</tr>
+<tr>
+<td>A chat/messaging surface</td>
+<td>The group already has a chat and won&#39;t move. Note threads on specific decisions are the right level; a general chat competes and loses.</td>
+</tr>
+<tr>
+<td>Live location sharing</td>
+<td>The phone already does it, and it&#39;s a privacy liability with no planning value.</td>
+</tr>
+<tr>
+<td>Gamification (streaks, badges, &quot;trip score&quot;)</td>
+<td>Wrong tone for a product whose entire pitch is a quiet, trustworthy document.</td>
+</tr>
+<tr>
+<td>Public trip sharing / social feed</td>
+<td>A different product wearing this one&#39;s clothes. It also changes the privacy model from &quot;nine people&quot; to &quot;the internet&quot;.</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>Rough shortlist</h2>
+<p>If forced to pick, in order — value against effort, and staying inside the
+current v1 shape:</p>
+<ol>
+<li><strong>The deposit / fronted-expense flag</strong> — near-free on the existing ledger,
+removes the organiser&#39;s biggest social friction.</li>
+<li><strong>The packing-and-jobs list</strong> — trivial, and it makes the product feel
+finished.</li>
+<li><strong>The one-screen &quot;today&quot; view</strong> — turns a planning tool into something used
+on the trip, which is what makes it remembered next year.</li>
+<li><strong>Budget-before-booking</strong> — addresses the quiet reason people drop out.</li>
+<li><strong>Who&#39;s arriving when</strong> — high value, no integrations needed.</li>
+<li><strong>Search across the archive</strong> — cheap, and it&#39;s the retention story.</li>
+</ol>
+<h2>See also</h2>
+<ul>
+<li><a href="../monetisation/monetisation.html"><code>monetisation.md</code></a> — how any of this could pay for itself.</li>
+<li><a href="../CLAUDE.md"><code>../CLAUDE.md</code></a> — the v1 non-negotiables and scope boundary.</li>
+<li><a href="mockups/"><code>mockups/</code></a> — the homepage prototypes; several of these ideas
+would change what the homepage should claim.</li>
+</ul>
+</main>
+<script src="../assets/nav.js"></script>
+</body>
