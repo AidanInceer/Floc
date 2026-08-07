@@ -17,8 +17,10 @@
  *     two different ways, a screen apart.
  *   - "Waiting on you" and "What's moved" were dropped on request. Nudges are
  *     still delivered by email from `sendNudge`, so nothing goes unheard.
- *   - Admin folds into a right-aligned "Trip settings" disclosure; it was a
- *     permanent third of the width for four controls used once a trip.
+ *   - Admin used to fold into a right-aligned "Trip settings" disclosure. That
+ *     is gone: leaving, archiving and deleting are one triple-dot in the trip
+ *     header (`components/trip-menu.tsx`), and the invite link is the roster's
+ *     Share trip button — the fold held nothing else.
  */
 import Link from "next/link";
 
@@ -31,29 +33,15 @@ import { absoluteUrl } from "@/server/email";
 import { formatMoney } from "@/lib/money";
 import { tripStateFor } from "@/lib/trip-state";
 import { formatDateRange } from "@/lib/dates";
-import {
-  Avatar,
-  Badge,
-  ButtonLink,
-  EmptyState,
-  Page,
-  Stack,
-  cx,
-} from "@/components/ui";
-import {
-  ConfirmSubmit,
-  CopyLink,
-  Sheet,
-  SubmitButton,
-} from "@/components/client-ui";
+import { Avatar, Badge, Page, Stack, cx } from "@/components/ui";
+import { Sheet, SubmitButton } from "@/components/client-ui";
 import { TripNameInline } from "@/components/trip-name-inline";
 import { TripRoster } from "@/components/trip-roster";
 import { friendStatesFor } from "@/server/friends";
 import { TripTrail } from "@/components/trip-trail";
 import { TagEditor } from "@/components/tag-editor";
 import { readTagTones, readTags, tagTone, type TagTone } from "@/lib/tags";
-import { archiveTrip, deleteTrip } from "@/app/trips/actions";
-import { leaveTrip, renameTrip, setTripTags } from "./actions";
+import { renameTrip, setTripTags } from "./actions";
 
 export default async function OverviewPage({
   params,
@@ -120,18 +108,15 @@ export default async function OverviewPage({
   });
 
   const {
-    isBrandNew,
     datesUnset,
     countdown,
     stage,
-    stageNote,
     stations,
     unresolved,
   } = state;
   const viewerHasVotedAll = state.viewer.hasVotedAll;
   const viewerHasAvailability = state.viewer.hasAvailability;
   const viewerPositions = state.viewer.positions;
-  const leaveWarning = state.leave.warning;
 
   const inviteUrl = absoluteUrl(`/invite/${trip.inviteToken}`);
   const tags = readTags(trip.tags);
@@ -155,7 +140,9 @@ export default async function OverviewPage({
             {trip.archivedAt ? <Badge tone="neutral">Archived</Badge> : null}
             {countdown ? <Badge tone="marine">{countdown}</Badge> : null}
           </div>
-          <p className="mt-1.5 text-sm text-ink-soft">{stageNote}</p>
+          {/* The stage note went with the empty state it echoed: the badge
+              beside the name and the trail below already say where the trip is
+              up to, in fewer words and in two places. */}
           <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-ink-soft">
             {trip.startDate || trip.endDate ? (
               <span>
@@ -187,16 +174,21 @@ export default async function OverviewPage({
               (ticket 86): they used to display here and be edited three
               scrolls down inside Trip settings, which is where you'd never
               look for them. Any member, like renaming. */}
-          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
             {tags.map((tag) => (
               <Badge key={tag} tone={tagTone(tagTones, tag)}>
                 {tag}
               </Badge>
             ))}
+            {/* A bordered button, not a ghost: on a hero of plain text a
+                control that only draws itself on hover isn't findable, and its
+                own padding was floating the label off the block's left edge.
+                The box edge is what lines up with the name and the dates. */}
             <Sheet
               trigger={tags.length > 0 ? "Edit tags" : "Add tags"}
               title="Tags"
-              triggerVariant="ghost"
+              triggerVariant="secondary"
+              triggerClassName="!px-2.5 !py-1"
             >
               <TripTagsForm tripId={tripId} tags={tags} tagTones={tagTones} />
             </Sheet>
@@ -204,53 +196,9 @@ export default async function OverviewPage({
 
           <TripTrail stations={stations} />
 
-          {/*
-            Delete and archive live here, not three clicks into the Trip
-            settings disclosure (ticket 72). Renaming already came out to the
-            header in ticket 37; this is the other half of the same complaint —
-            the two things you do *to a trip* were the only ones still filed
-            under a fold, and delete in particular read as missing.
-
-            Admin-gated (rule 6) and confirm-first, the same pattern as the
-            roster's boot (ticket 38). Deliberately at the foot of the hero and
-            in ghost/danger weight: reachable in one click, never the thing
-            your eye lands on first.
-          */}
-          {isAdmin ? (
-            <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-dotted border-rule-strong pt-3">
-              <span className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-faint">
-                This trip
-              </span>
-              {trip.archivedAt ? null : (
-                <form action={archiveTrip}>
-                  {/* One archive action for the whole app (ticket 117); where
-                      to land afterwards is the caller's, not a second copy's. */}
-                  <input type="hidden" name="tripId" value={tripId} />
-                  <input type="hidden" name="redirectTo" value="/trips/archived" />
-                  <ConfirmSubmit
-                    variant="ghost"
-                    message={`Archive "${trip.name}"? It comes off everyone's list and stays readable — any admin can bring it back from Archived.`}
-                    confirmLabel="Archive it"
-                    pendingLabel="Archiving…"
-                  >
-                    Archive
-                  </ConfirmSubmit>
-                </form>
-              )}
-              <form action={deleteTrip}>
-                <input type="hidden" name="tripId" value={tripId} />
-                <input type="hidden" name="redirectTo" value="/trips" />
-                <ConfirmSubmit
-                  variant="danger"
-                  message={`Delete "${trip.name}" for everyone? Nobody will be able to reopen it from the app — archive it instead if you might want it back.`}
-                  confirmLabel="Delete it"
-                  pendingLabel="Deleting…"
-                >
-                  Delete
-                </ConfirmSubmit>
-              </form>
-            </div>
-          ) : null}
+          {/* Archive and delete were a strip here (ticket 72), and leaving was
+              a fold at the foot of the page. All three moved into the header's
+              triple-dot — see `components/trip-menu.tsx`. */}
         </section>
 
         <TripRoster
@@ -263,19 +211,11 @@ export default async function OverviewPage({
         />
       </div>
 
-      {isBrandNew ? (
-        <div className="mt-6">
-          <EmptyState
-            title="This trip is just a name so far"
-            action={
-              <ButtonLink href={`/trip/${tripId}/ideas`} variant="primary">
-                Post the first idea
-              </ButtonLink>
-            }
-          />
-        </div>
-      ) : (
-        <section className="mt-6">
+      {/* "This trip is just a name so far" and its Post the first idea button
+          used to stand in for Unresolved on a brand-new trip. The hero already
+          says the same thing twice over — the stage badge, the stage note and
+          the trail all start at Ideas — so it was a third copy of it. */}
+      <section className="mt-6">
           <h2 className="text-[15px] font-semibold">Unresolved</h2>
 
           <div className="mt-3 flex flex-col gap-2">
@@ -359,79 +299,6 @@ export default async function OverviewPage({
             ) : null}
           </div>
         </section>
-      )}
-
-      {/* Right-aligned: the page's least-used control, pulled to the opposite
-          edge from every heading so it stops reading as the next section. */}
-      <details className="mt-6 border-t border-rule pt-3.5 text-right">
-        <summary className="inline-flex cursor-pointer items-center gap-1.5 rounded-sm px-1 text-sm text-pen transition-colors marker:content-[''] hover:bg-highlight-soft hover:text-pen-deep">
-          Trip settings
-        </summary>
-        {/* No trip name field here any more — it moved into the hero, next to
-            the name itself (ticket 37). */}
-        <div className="mt-3.5 grid gap-4 text-left sm:grid-cols-2">
-          {isAdmin ? (
-            <>
-              <div className="flex flex-col gap-1.5">
-                <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint">
-                  Invite link
-                </span>
-                <div>
-                  <CopyLink value={inviteUrl} />
-                </div>
-                <span className="text-xs text-ink-faint">
-                  Anyone holding it can join.
-                </span>
-              </div>
-
-              {/* Promoting used to have its own member list down here — the
-                  last of a second roster that ticket 38 had already stripped
-                  kicking out of. Ticket 125 moved it onto the person too, into
-                  the roster row's own menu, so there is one list of members
-                  and one place to act on any of them. */}
-
-              {/* Archiving and deleting used to sit here (ticket 66). They
-                  moved up into the hero in ticket 72 — the fold was the
-                  complaint, and leaving a second copy behind would be two ways
-                  to delete the same trip. Archived is still reached from
-                  /trips/archived, as it always was. */}
-            </>
-          ) : (
-            <p className="text-sm text-ink-soft">
-              Inviting, promoting and removing people are admin-only.
-            </p>
-          )}
-
-          {/* Tags used to be edited here. They moved up beside where they
-              display, on the hero (ticket 86) — same complaint as ticket 72's
-              archive and delete, and leaving a copy behind would be two places
-              to edit one label. */}
-
-          {/* Leaving is not an admin power (ticket 65), so it sits outside the
-              admin block and every member sees it. The confirm copy carries
-              whichever consequence applies — see `leaveTrip`. */}
-          <Stack gap={2} className="border-t border-rule pt-4 sm:col-span-2">
-            <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint">
-              Leave trip
-            </span>
-            <p className="text-xs text-ink-faint">
-              You come off the roster. Anything you&rsquo;ve already posted, paid
-              or voted for stays where it is.
-            </p>
-            <form action={leaveTrip}>
-              <input type="hidden" name="tripId" value={tripId} />
-              <ConfirmSubmit
-                variant="secondary"
-                message={leaveWarning}
-                confirmLabel="Leave the trip"
-                pendingLabel="Leaving…"
-              >
-                Leave trip
-              </ConfirmSubmit>
-            </form>
-          </Stack>
-        </div>
-      </details>
     </Page>
   );
 }

@@ -6,7 +6,9 @@
  */
 import { AvatarRow } from "@/components/ui";
 import { TripTabs } from "@/components/trip-tabs";
+import { TripMenu } from "@/components/trip-menu";
 import { requireTripAccess } from "@/server/access";
+import { leaveCostFor } from "@/lib/trip-state";
 import { TABS } from "@/lib/tabs";
 
 export default async function TripLayout({
@@ -18,7 +20,15 @@ export default async function TripLayout({
 }) {
   const { id } = await params;
   const access = await requireTripAccess(id, `/trip/${id}/overview`);
-  const { trip, members } = access;
+  const { trip, members, isAdmin, viewer } = access;
+
+  // Only the leave sentence, not the whole trip state — see `leaveCostFor`.
+  const { warning: leaveWarning } = leaveCostFor({
+    trip,
+    members,
+    viewerId: viewer.id,
+    viewerIsAdmin: isAdmin,
+  });
 
   return (
     <div>
@@ -38,8 +48,18 @@ export default async function TripLayout({
               width apart (ticket 89). They live on the hero now — name first,
               rename still inline on it (ticket 37) — and this row keeps only
               the roster, which is the one thing the hero doesn't repeat. */}
-          <div className="flex flex-wrap items-start justify-end gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-3">
             <AvatarRow people={members} />
+            {/* Archive, delete and leave used to be two separate blocks on the
+                Overview tab — one on the hero, one inside a "Trip settings"
+                fold. One menu, on every tab. */}
+            <TripMenu
+              tripId={trip.id}
+              tripName={trip.name}
+              isAdmin={isAdmin}
+              archived={Boolean(trip.archivedAt)}
+              leaveWarning={leaveWarning}
+            />
           </div>
 
           <TripTabs tripId={trip.id} tabs={TABS} />

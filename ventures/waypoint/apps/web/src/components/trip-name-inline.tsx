@@ -58,15 +58,17 @@ export function TripNameInline({
         <h1 className="font-display text-2xl font-semibold tracking-tight">
           {name}
         </h1>
-        {/* A pencil on its own was too quiet to find — the control now carries
-            the word as well as the icon, in pen rather than faint ink, and
-            matches the "change"/"pick them" links beside it on the same line. */}
+        {/* A pencil on its own was too quiet to find, and so was the ghost
+            button that replaced it — on a hero of plain text, a control that
+            only draws its box on hover doesn't read as a control at all. It
+            carries a border at rest now, in the small size the headline can
+            sit beside. */}
         <Button
           type="button"
-          variant="ghost"
+          variant="secondary"
           title="Rename trip"
           onClick={() => setEditing(true)}
-          className="!gap-1 !px-1.5 !py-0.5 !text-pen"
+          className="!gap-1 !px-2.5 !py-1 !text-pen"
         >
           <PencilIcon />
           Rename

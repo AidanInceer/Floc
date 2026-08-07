@@ -251,18 +251,12 @@ export function tripStateFor<M extends StateMember>(
 
   /* ------------------------------------------------------------- leaving */
 
-  const others = withoutViewer(members);
-  const heir =
-    others.length > 0 && input.viewerIsAdmin && !others.some((m) => m.role === "admin")
-      ? others.reduce((earliest, m) => (m.joinedAt < earliest.joinedAt ? m : earliest))
-      : null;
-
-  const warning =
-    others.length === 0
-      ? `You're the only one in "${trip.name}", so leaving archives it. Nothing is deleted, but with nobody on the roster it can't be reopened from the app.`
-      : heir
-        ? `Leave "${trip.name}"? You're the only admin, so ${heir.name} becomes admin in your place.`
-        : `Leave "${trip.name}"? You'll need a new invite link to come back.`;
+  const leave = leaveCostFor({
+    trip,
+    members,
+    viewerId,
+    viewerIsAdmin: input.viewerIsAdmin,
+  });
 
   return {
     isBrandNew,
@@ -286,6 +280,34 @@ export function tripStateFor<M extends StateMember>(
       hasAvailability: viewerHasAvailability,
       positions,
     },
-    leave: { heir, warning },
+    leave,
   };
+}
+
+/**
+ * What leaving costs (ticket 65), on its own so the trip menu in the header can
+ * ask for it without the six reads the rest of `tripStateFor` needs — the menu
+ * moved out of the Overview page and only ever wanted this sentence.
+ */
+export function leaveCostFor<M extends StateMember>(input: {
+  trip: { name: string };
+  members: M[];
+  viewerId: string;
+  viewerIsAdmin: boolean;
+}): { heir: M | null; warning: string } {
+  const { trip, members, viewerId, viewerIsAdmin } = input;
+  const others = members.filter((m) => m.userId !== viewerId);
+  const heir =
+    others.length > 0 && viewerIsAdmin && !others.some((m) => m.role === "admin")
+      ? others.reduce((earliest, m) => (m.joinedAt < earliest.joinedAt ? m : earliest))
+      : null;
+
+  const warning =
+    others.length === 0
+      ? `You're the only one in "${trip.name}", so leaving archives it. Nothing is deleted, but with nobody on the roster it can't be reopened from the app.`
+      : heir
+        ? `Leave "${trip.name}"? You're the only admin, so ${heir.name} becomes admin in your place.`
+        : `Leave "${trip.name}"? You'll need a new invite link to come back.`;
+
+  return { heir, warning };
 }

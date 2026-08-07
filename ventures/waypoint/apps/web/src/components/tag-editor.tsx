@@ -32,12 +32,17 @@ export function TagEditor({
   tags: string[];
   tones: Record<string, TagTone>;
 }) {
+  // A trip with no tags opens on one empty row, not on nothing: "Add tags"
+  // that hands you a panel whose only control is *Add a tag* is the same click
+  // twice.
   const [rows, setRows] = useState<Row[]>(() =>
-    tags.map((name, id) => ({ id, name, tone: tones[name] ?? DEFAULT_TAG_TONE })),
+    tags.length > 0
+      ? tags.map((name, id) => ({ id, name, tone: tones[name] ?? DEFAULT_TAG_TONE }))
+      : [{ id: 0, name: "", tone: DEFAULT_TAG_TONE }],
   );
   // Row keys have to outlive a delete — reusing the index would make React
   // reuse the deleted row's input for the one below it.
-  const [nextId, setNextId] = useState(tags.length);
+  const [nextId, setNextId] = useState(Math.max(tags.length, 1));
 
   const update = (id: number, patch: Partial<Row>) =>
     setRows((rs) => rs.map((r) => (r.id === id ? { ...r, ...patch } : r)));
@@ -49,10 +54,6 @@ export function TagEditor({
 
   return (
     <div className="flex flex-col gap-2">
-      {rows.length === 0 ? (
-        <p className="text-sm text-ink-soft">No tags on this trip yet.</p>
-      ) : null}
-
       {rows.map((row) => (
         // A grid, not a flex row: `Select` carries `w-full` from `fieldBase`,
         // which fights any flex-basis the row tries to give it.
@@ -103,7 +104,7 @@ export function TagEditor({
         <div>
           {/* type="button" or it submits the form it sits in — a bare
               <button> inside a form defaults to submit. */}
-          <Button type="button" variant="ghost" onClick={addRow}>
+          <Button type="button" variant="secondary" onClick={addRow}>
             Add a tag
           </Button>
         </div>
