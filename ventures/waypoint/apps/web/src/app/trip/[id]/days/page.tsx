@@ -1,9 +1,10 @@
 /**
- * Days page (ticket 15, re-imagined as a calendar by ticket 103). Route and
- * Days are TWO routes over ONE dataset: Route is the stop-level summary, Days
- * is this page — the day-level detail, one column per `day` row and its
- * `day_event` rows drawn against the clock. See src/app/trip/[id]/route/page.tsx
- * for the full two-page rationale.
+ * Days page (ticket 15, re-imagined as a calendar by ticket 103). Days is now
+ * the only route over the `day` + `day_event` dataset: Route was the
+ * stop-level summary of the same rows, and ticket 142 retired it — the map and
+ * the read-only stop list live at the foot of Overview
+ * (`components/trip-route.tsx`), and where the group sleeps is set here, on the
+ * overnight band above the clock (ticket 141).
  *
  * It used to be a stack of cards, one per day, each holding a list of collapsed
  * event rows. The list said what was happening and in what order and nothing

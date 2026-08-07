@@ -17,19 +17,16 @@ import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import {
   applyTripWindow,
   ensureDays,
-  firstTransportEvents,
   listDayIds,
   listDayLoads,
   listDays,
   moveItem,
-  overnightPlaceOf,
   rebaseEventOrder,
   revalidateItinerary,
   setOvernightPlaceOn,
   softDeleteDay,
   softDeleteEvent,
   updateEventFields,
-  writeSpan,
 } from "@/server/itinerary";
 
 let world: Scenario;
@@ -182,29 +179,14 @@ describe("applyTripWindow", () => {
   });
 });
 
-describe("writeSpan", () => {
-  it("re-points existing days and creates the missing ones in one span", async () => {
-    const placeId = await makePlace();
-    await writeSpan(
-      world.ours.id,
-      ["2026-09-01", "2026-09-02", "2026-09-03"],
-      placeId,
-    );
-
-    const days = await listDays(world.ours.id);
-    expect(days).toHaveLength(3);
-    expect(days.every((d) => d.overnightPlaceId === placeId)).toBe(true);
-  });
-});
-
 describe("the overnight place", () => {
   it("reads back what was written, and clears to null", async () => {
     const placeId = await makePlace();
     await setOvernightPlaceOn(world.ours.id, [world.ours.dayId], placeId);
-    expect(await overnightPlaceOf(world.ours.id, [world.ours.dayId])).toBe(placeId);
+    expect((await dayRow(world.ours.dayId))?.overnightPlaceId).toBe(placeId);
 
     await setOvernightPlaceOn(world.ours.id, [world.ours.dayId], null);
-    expect(await overnightPlaceOf(world.ours.id, [world.ours.dayId])).toBeNull();
+    expect((await dayRow(world.ours.dayId))?.overnightPlaceId).toBeNull();
   });
 
   it("will not write onto another trip's day", async () => {
@@ -260,28 +242,6 @@ describe("rebaseEventOrder", () => {
   });
 });
 
-describe("firstTransportEvents", () => {
-  it("returns nothing for no days, and the first transport event per day", async () => {
-    expect((await firstTransportEvents([])).size).toBe(0);
-    expect((await firstTransportEvents([world.ours.dayId])).size).toBe(0);
-
-    const ferry = await db
-      .insert(schema.dayEvent)
-      .values({
-        dayId: world.ours.dayId,
-        type: "transport",
-        title: "Ferry",
-        orderIndex: 5,
-      })
-      .returning({ id: schema.dayEvent.id })
-      .get();
-
-    expect((await firstTransportEvents([world.ours.dayId])).get(world.ours.dayId)).toBe(
-      ferry.id,
-    );
-  });
-});
-
 describe("moveItem", () => {
   it("moves within range and refuses anything else", () => {
     expect(moveItem([1, 2, 3], 0, 2)).toEqual([2, 3, 1]);
@@ -292,7 +252,7 @@ describe("moveItem", () => {
 });
 
 describe("revalidateItinerary", () => {
-  it("takes both tabs, because a day row is on both", () => {
+  it("takes Days and Overview, because a day row is drawn on both", () => {
     expect(() => revalidateItinerary(world.ours.id)).not.toThrow();
   });
 });

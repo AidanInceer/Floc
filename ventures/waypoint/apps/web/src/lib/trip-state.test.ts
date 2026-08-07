@@ -210,15 +210,16 @@ describe("the trail", () => {
     }
   });
 
-  // Ticket 126: these two used to read "locked" until an unlock timestamp was
-  // stamped. No station is ever shut now — an empty Route is "ahead", the same
+  // Ticket 126: Days used to read "locked" until an unlock timestamp was
+  // stamped. No station is ever shut now — an empty Days is "ahead", the same
   // as any other station nobody has got to yet.
-  it("shows an empty Route and Days as ahead, never as shut", () => {
+  it("shows an empty Days as ahead, never as shut", () => {
     const stations = tripStateFor(base({ ideaIds: [1] })).stations;
-    expect(stations.find((s) => s.key === "route")?.state).toBe("ahead");
     expect(stations.find((s) => s.key === "days")?.state).toBe("ahead");
   });
 
+  // Ticket 144: the Route station went with the tab, so the place count now
+  // rides on the Days caption — distinct places, not day rows.
   it("counts distinct places on the route, not day rows", () => {
     const state = tripStateFor(
       base({
@@ -235,7 +236,9 @@ describe("the trail", () => {
         ],
       }),
     );
-    expect(state.stations.find((s) => s.key === "route")?.caption).toBe("1 place");
+    expect(state.stations.find((s) => s.key === "days")?.caption).toBe(
+      "3 sketched · 1 place",
+    );
   });
 
   it("gives every station a caption — the fill is never the only cue", () => {

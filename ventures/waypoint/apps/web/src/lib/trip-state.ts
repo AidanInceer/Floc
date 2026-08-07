@@ -26,7 +26,7 @@ import { countdownLabel, hasEnded } from "@/lib/dates";
 export type StationState = "done" | "now" | "snag" | "ahead";
 
 export type TrailStation = {
-  key: "ideas" | "dates" | "route" | "days" | "money";
+  key: "ideas" | "dates" | "days" | "money";
   label: string;
   caption: string;
   state: StationState;
@@ -219,17 +219,18 @@ export function tripStateFor<M extends StateMember>(
       state: datesUnset ? (isBrandNew ? "ahead" : "snag") : "done",
     },
     {
-      key: "route",
-      label: "Route",
-      caption: placeCount
-        ? `${placeCount} ${placeCount === 1 ? "place" : "places"}`
-        : "nothing yet",
-      state: placeCount ? "done" : "ahead",
-    },
-    {
       key: "days",
       label: "Days",
-      caption: hasDays ? `${days.length} sketched` : "nothing yet",
+      // Days absorbed Route's station when Route retired as a tab (ticket
+      // 142): the trail draws the tabs, and a station for a page nobody can
+      // open is a signpost to nowhere. The caption still says where the group
+      // has got to with the beds, because that is the part of "route" the
+      // trail was ever reporting — the places come off the same day rows.
+      caption: hasDays
+        ? placeCount
+          ? `${days.length} sketched · ${placeCount} ${placeCount === 1 ? "place" : "places"}`
+          : `${days.length} sketched`
+        : "nothing yet",
       // The only station that claims "now" — once there are days, sketching
       // the itinerary is what the group is doing, whatever else is
       // outstanding.

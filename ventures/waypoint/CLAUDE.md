@@ -114,7 +114,9 @@ treated as current.
 - A trip member's avatar colour comes from their `TripMember.tone`. Pass it
   through to `Avatar`/`AvatarRow`; only people with no roster behind them fall
   back to the name hash.
-- The tab set is **Overview · Ideas · Dates · Route · Days · Money**. Every
+- The tab set is **Overview · Ideas · Dates · Days · Money** — Route retired
+  as a tab in ticket 142; the map and the read-only stop list sit at the foot
+  of Overview, and where the group sleeps is set on Days. Every
   `trip/[id]/*` page renders `<Page wide flush>` — that's what keeps the folder
   tabs attached to the sheet, and a page that forgets it visibly misaligns.
 - **Discussion threads go through the polymorphic `note` table** (`scope` +

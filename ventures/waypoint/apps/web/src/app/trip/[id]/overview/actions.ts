@@ -12,7 +12,7 @@
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 
-import { type NudgeTab } from "@/db/schema";
+import { NUDGE_TABS, type NudgeTab } from "@/db/schema";
 import { assertAdmin, requireTripAccess } from "@/server/access";
 import { emails, sendEmails } from "@/server/email";
 import { parseTagRows } from "@/lib/tags";
@@ -33,7 +33,13 @@ import {
 export async function sendNudge(formData: FormData) {
   const tripId = Number(formData.get("tripId"));
   const toUserId = String(formData.get("toUserId"));
-  const tab = String(formData.get("tab")) as NudgeTab;
+  // Checked rather than cast: the value arrives from a form, and a nudge whose
+  // tab isn't one of the five is a mail deep-linking to a page that 404s —
+  // which is exactly what a stale "route" would have been (ticket 144).
+  const posted = String(formData.get("tab"));
+  const tab = (NUDGE_TABS as readonly string[]).includes(posted)
+    ? (posted as NudgeTab)
+    : NUDGE_TABS[0];
   const message = capText(formData.get("message"), "nudgeMessage");
 
   const access = await requireTripAccess(tripId);

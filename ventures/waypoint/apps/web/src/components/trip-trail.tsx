@@ -1,5 +1,5 @@
 /**
- * The trail — the six tabs drawn as a route with a marker at where the trip
+ * The trail — the tabs drawn as a route with a marker at where the trip
  * actually is (v0.2 ticket 07). It is the hero's content, not decoration: it
  * says the same thing the "up to" sentence does, spatially.
  *

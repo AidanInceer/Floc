@@ -740,7 +740,7 @@ export const noteReaction = sqliteTable(
 /* Nudges — peer-to-peer, no automation (ticket 01 step 6)                     */
 /* -------------------------------------------------------------------------- */
 
-export const NUDGE_TABS = ["ideas", "dates", "route", "days", "money"] as const;
+export const NUDGE_TABS = ["ideas", "dates", "days", "money"] as const;
 export type NudgeTab = (typeof NUDGE_TABS)[number];
 
 export const nudge = sqliteTable(

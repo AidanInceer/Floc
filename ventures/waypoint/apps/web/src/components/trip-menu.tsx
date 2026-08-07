@@ -4,7 +4,7 @@
  * The same complaint as ticket 125's roster rows, one level up: leaving lived
  * at the foot of Overview inside a "Trip settings" fold, while archive and
  * delete sat in a strip on the hero — three verbs used once a trip, in two
- * places, on one tab out of six. They live here now, beside the roster and the
+ * places, on one tab out of five. They live here now, beside the roster and the
  * tabs, so they're reachable from any tab and never in the way.
  *
  * Sharing is not here: the roster's own Share trip button is the one place to

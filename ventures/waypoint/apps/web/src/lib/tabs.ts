@@ -11,24 +11,18 @@
  * Deliberately free of any database import: the trip tab bar is a client
  * component, so anything it needs must be safe to bundle for the browser.
  */
-export type TabKey =
-  | "overview"
-  | "ideas"
-  | "dates"
-  | "route"
-  | "days"
-  | "money";
+export type TabKey = "overview" | "ideas" | "dates" | "days" | "money";
 
 export type TabState = { key: TabKey; label: string };
 
 export const TABS: TabState[] = [
   { key: "overview", label: "Overview" },
   { key: "ideas", label: "Ideas" },
-  // Dates sits third, between the suggesting and the sequencing: you can't
-  // usefully build a route until the group knows which week it's going, and a
-  // trip is allowed to exist with no dates at all until then.
+  // Dates sits third, between the suggesting and the sketching: the trip's
+  // dates are the itinerary's extent (ticket 140), so there are no days to
+  // fill in until they're set — and a trip is allowed to exist with no dates
+  // at all until then.
   { key: "dates", label: "Dates" },
-  { key: "route", label: "Route" },
   { key: "days", label: "Days" },
   { key: "money", label: "Money" },
 ];

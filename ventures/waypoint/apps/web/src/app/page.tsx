@@ -18,7 +18,7 @@
  *   1. THE PASS          — the hero. Headline on the body, CTAs where the gate
  *                          block goes, the trip's state on a real tear-off stub.
  *   2. THE LUGGAGE TAGS  — who it's for, as three tags on strings.
- *   3. THE COUPON BOOK   — the six stops as one perforated fold-out strip, each
+ *   3. THE COUPON BOOK   — the five stops as one perforated fold-out strip, each
  *                          coupon with a counterfoil carrying the stop number
  *                          and the tab's name.
  *   4. THE ENTRY STAMP   — the closing CTA as the customs page.
@@ -136,30 +136,18 @@ const stops: Stop[] = [
   },
   {
     step: "Stop 03",
-    tab: "Route",
-    title: "Deciding the order, and the nights in each place",
-    body: "Put the chosen places in the order you'll visit them and give each one its nights. The nights are totalled against the length of the trip, so a route that doesn't fit says so.",
-    eg: [
-      { k: "2 nights", v: "Catania" },
-      { k: "3 nights", v: "Taormina" },
-      { k: "2 nights", v: "Syracuse" },
-    ],
-    wash: "var(--sheet-3)",
-  },
-  {
-    step: "Stop 04",
     tab: "Days",
-    title: "Filling in what happens on each day",
-    body: "Every day gets what's planned, roughly when, and who's holding the tickets. Days left mostly empty stay that way — this is a plan, not a schedule.",
+    title: "Where you sleep, and what happens each day",
+    body: "Say where the group is staying on each day — a run of days in one place is one stay, drawn as one bar — and fill in what's planned, roughly when, and who's holding the tickets. Days left mostly empty stay that way: this is a plan, not a schedule.",
     eg: [
+      { k: "3 nights", v: "Taormina, then 2 in Syracuse" },
       { k: "09:30", v: "Market, then coffee at Bam Bar" },
-      { k: "13:00", v: "Isola Bella — Jonas has the tickets" },
       { k: "20:00", v: "Dinner, table for 7" },
     ],
     wash: "var(--green-2)",
   },
   {
-    step: "Stop 05",
+    step: "Stop 04",
     tab: "Money",
     title: "Working out who owes who",
     body: "Everyone logs what they paid and how it was split. Waypoint nets it all off to one figure per person. It records the debt — no money moves through Waypoint.",
@@ -171,8 +159,8 @@ const stops: Stop[] = [
     wash: "var(--red-2)",
   },
   {
-    step: "Stop 06",
-    // Not a tab — there is no "After" tab in the six. It's what happens to a
+    step: "Stop 05",
+    // Not a tab — there is no "After" tab in the five. It's what happens to a
     // trip once it ends, so the counterfoil takes the neutral wash rather
     // than borrowing a tab's colour.
     tab: "After",
