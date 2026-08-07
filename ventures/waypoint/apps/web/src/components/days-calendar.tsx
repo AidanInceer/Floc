@@ -27,6 +27,13 @@
  *    equivalent (↑/↓ nudge 15 minutes, shift+←/→ move a day) and every outcome
  *    is announced in a live region — a drag must never be the only way.
  *
+ * 4. **The overnight band** (ticket 141). A row of its own between the dates and
+ *    the clock, where the group says where it is sleeping. One cell is one day,
+ *    because that is what the database stores — `day.overnight_place_id`, one
+ *    column. A run of days sharing a place draws as one bar with the name
+ *    written once, which is the *derived* stop (rule 3): nothing here merges
+ *    anything, `deriveStops` groups the days that already agree.
+ *
  * What this file does NOT own: the detail panel and the trip thread. Both are
  * rendered on the server and handed in as nodes, because both are full of
  * Server Actions — edit, delete, comment, react — and none of that has any
@@ -48,8 +55,10 @@ import {
 } from "react";
 
 import { EventForm, type PlaceSearch } from "@/components/event-form";
-import { Button, cx } from "@/components/ui";
+import { PlacePicker, type PlacePickerResult } from "@/components/place-picker";
+import { Button, Field, Input, cx } from "@/components/ui";
 import type { DayEventType, TransportType } from "@/db/schema";
+import { addDays as addDaysToDate } from "@/lib/dates";
 import {
   SNAP_MINUTES,
   clamp,
@@ -91,14 +100,16 @@ export type CalendarDay = {
   dayOfMonth: string;
   /** "Monday 12 May" — what the range label and every aria-label read. */
   longLabel: string;
+  /** What the band draws. Null is a real answer: nobody has decided yet. */
   overnightPlaceName: string | null;
+  /**
+   * The id behind that name. An extend sends it back rather than the name, so
+   * a stay keeps the one `place` row it was geocoded into — see
+   * `resolveOvernightPlace`.
+   */
+  overnightPlaceId: number | null;
   /** 0 = Monday. What makes the week view a calendar week and not seven days. */
   weekdayIndex: number;
-  /**
-   * The derived stop this day belongs to, or null if nobody has said where the
-   * group is sleeping. Derived on the server (rule 3) — never stored.
-   */
-  stop: { label: string; night: number; nights: number } | null;
   /**
    * A date drawn only to complete the Monday–Sunday frame — the trip does not
    * cover it. Shaded, and inert: nothing can be added to it or dropped on it,
@@ -122,6 +133,57 @@ export type CalendarEvent = {
   hasNote: boolean;
   commentCount: number;
 };
+
+/**
+ * What the band writes: a place this trip already points at, a fresh pick from
+ * the search, or nothing at all. Structural, not imported from the action — a
+ * client component that imports a `"use server"` module pulls it into the
+ * bundle graph for a type it only needs at compile time.
+ */
+export type OvernightPlace =
+  | { placeId: number }
+  | {
+      name: string;
+      providerId?: string | null;
+      lat?: number | null;
+      lng?: number | null;
+      countryCode?: string | null;
+    };
+
+/** A band gesture in progress. Dates, not day ids: the page can turn under it. */
+type BandDrag = {
+  /** "paint" starts on undecided days; "extend" starts on a run's end handle. */
+  mode: "paint" | "extend";
+  /** The end that stays put — the opposite handle, or where the paint began. */
+  anchorDate: string;
+  /** The day actually pressed, which is what a press-without-a-drag opens. */
+  pressedDate: string;
+  /** The run's place, carried through an extend so it needs no second pick. */
+  placeId: number | null;
+  placeName: string | null;
+  /** The run as it was before the drag — what a shrink has to clear. */
+  runStart: string;
+  runEnd: string;
+  startX: number;
+  moved: boolean;
+  /**
+   * Where the drag has got to. On the ref rather than read back off state at
+   * release: a quick drag can put its last move and its release in one task,
+   * and the handler would then be holding the render before the move.
+   */
+  span: BandSpan | null;
+};
+
+/** A span of days the band is showing as one place: dragging, or just written. */
+type BandSpan = {
+  start: string;
+  end: string;
+  placeId: number | null;
+  placeName: string | null;
+};
+
+/** How close to the calendar's edge a drag has to get before the page turns. */
+const EDGE_PX = 44;
 
 /** A drag in progress. Lives in a ref: it changes per pointer event. */
 type Drag = {
@@ -152,6 +214,7 @@ export function DaysCalendar({
   submitEvent,
   rescheduleEvent,
   moveEventToDay,
+  setOvernight,
   searchPlaces,
 }: {
   days: CalendarDay[];
@@ -173,6 +236,12 @@ export function DaysCalendar({
   ) => Promise<void>;
   /** An all-day event has no time to drop, so moving it is a change of day only. */
   moveEventToDay: (eventId: number, fromDayId: number, toDayId: number) => Promise<void>;
+  /** Where the group sleeps, for every day from `startDate` to `endDate`. */
+  setOvernight: (
+    startDate: string,
+    endDate: string,
+    place: OvernightPlace | null,
+  ) => Promise<void>;
   searchPlaces: PlaceSearch;
 }) {
   const hasToday = days.some((d) => d.isToday);
@@ -203,6 +272,8 @@ export function DaysCalendar({
 
   const calRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
+  /** The box that scrolls both ways — what a band drag measures its edges against. */
+  const scrollerRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<Drag | null>(null);
 
   /*
@@ -471,6 +542,25 @@ export function DaysCalendar({
   const [allDayDrag, setAllDayDrag] = useState<number | null>(null);
   const [allDayOver, setAllDayOver] = useState<number | null>(null);
 
+  /* ---- the overnight band ---------------------------------------------------- */
+
+  /*
+   * Three pieces of state, and they are different things.
+   *
+   * `bandSpan` is the drag itself — what the pointer is currently saying, drawn
+   * dashed and written to nothing. `pendingBand` is a write that has gone but
+   * whose props haven't come back yet, so the bar doesn't flicker back to the
+   * old answer in between (the same trade `optimistic` makes for events; rule 7
+   * still decides who wins). `banding` is the dialog: the span it opened on.
+   */
+  const bandRowRef = useRef<HTMLDivElement>(null);
+  const bandDragRef = useRef<BandDrag | null>(null);
+  const [bandSpan, setBandSpan] = useState<BandSpan | null>(null);
+  const [pendingBand, setPendingBand] = useState<BandSpan | null>(null);
+  const [banding, setBanding] = useState<BandSpan | null>(null);
+  /** -1 or 1 while a drag is held at an edge; the page turns on a timer. */
+  const [edgePage, setEdgePage] = useState<-1 | 0 | 1>(0);
+
   /* ---- selection and adding -------------------------------------------------- */
 
   /*
@@ -535,7 +625,9 @@ export function DaysCalendar({
     0,
     pages.findIndex((page) => page.some((d) => d.id === anchorDay?.id)),
   );
-  const shownDays = pages[pageIndex] ?? [];
+  // Memoised because the band's runs are derived from it: a fresh `[]` every
+  // render would rebuild them every render.
+  const shownDays = useMemo(() => pages[pageIndex] ?? [], [pages, pageIndex]);
 
   const goTo = (page: CalendarDay[] | undefined) => {
     if (page?.[0]) setAnchor(days.findIndex((d) => d.id === page[0].id));
@@ -562,6 +654,225 @@ export function DaysCalendar({
     labelled.length === 1
       ? labelled[0].longLabel
       : `${labelled[0]?.longLabel} – ${labelled[labelled.length - 1]?.longLabel}`;
+
+  /* ---- the overnight band's runs, gestures and writes ------------------------ */
+
+  const tripDays = useMemo(() => days.filter((d) => !d.outside), [days]);
+  const dateOfDay = useCallback(
+    (dayId: number) => days.find((d) => d.id === dayId)?.date ?? null,
+    [days],
+  );
+
+  /** The place a day shows *right now*, drag and pending write included. */
+  const bandOverlay = bandSpan ?? pendingBand;
+  const overlayIsDrag = bandSpan !== null;
+
+  /*
+   * The bars. A run of days sharing a place is one grid item spanning its
+   * columns, so the name is written once and the bar is genuinely continuous —
+   * seven cells each repeating "Barcelona" would draw one stop as seven.
+   *
+   * Undecided days are the opposite: each is its own cell, because each is its
+   * own target. They never join, or a click meant for Tuesday would land on a
+   * bar that owns half the week.
+   */
+  const bandRuns = useMemo(() => {
+    const placeOf = (day: CalendarDay) => {
+      if (
+        bandOverlay &&
+        !day.outside &&
+        day.date >= bandOverlay.start &&
+        day.date <= bandOverlay.end
+      ) {
+        return {
+          id: bandOverlay.placeId,
+          name: bandOverlay.placeName,
+          preview: overlayIsDrag,
+        };
+      }
+      return {
+        id: day.overnightPlaceId,
+        name: day.overnightPlaceName,
+        preview: false,
+      };
+    };
+
+    const runs: {
+      placeId: number | null;
+      placeName: string | null;
+      preview: boolean;
+      days: CalendarDay[];
+    }[] = [];
+
+    for (const day of shownDays) {
+      const place = placeOf(day);
+      // An undecided, un-previewed day is a cell of its own; everything else
+      // continues the run beside it when it agrees with it.
+      const joins = place.id !== null || place.preview;
+      const last = runs[runs.length - 1];
+      if (last && joins && last.placeId === place.id && last.preview === place.preview) {
+        last.days.push(day);
+        continue;
+      }
+      runs.push({
+        placeId: place.id,
+        placeName: place.name,
+        preview: place.preview,
+        days: [day],
+      });
+    }
+
+    // A run that carries on past the page's edge is squared off there and grows
+    // no handle: the day it would extend from isn't on screen to aim at.
+    return runs.map((run) => {
+      const before = days[days.indexOf(run.days[0]) - 1];
+      const after = days[days.indexOf(run.days[run.days.length - 1]) + 1];
+      const continuing = (neighbour: CalendarDay | undefined) =>
+        run.placeId !== null &&
+        !run.preview &&
+        neighbour !== undefined &&
+        neighbour.overnightPlaceId === run.placeId;
+      return {
+        ...run,
+        openStart: continuing(before),
+        openEnd: continuing(after),
+      };
+    });
+  }, [shownDays, days, bandOverlay, overlayIsDrag]);
+
+  /* A write is confirmed when the props say what the overlay was claiming. */
+  useEffect(() => {
+    setPendingBand((pending) => {
+      if (!pending) return pending;
+      const covered = days.filter(
+        (d) => !d.outside && d.date >= pending.start && d.date <= pending.end,
+      );
+      const landed =
+        covered.length > 0 && covered.every((d) => d.overnightPlaceId === pending.placeId);
+      return landed ? null : pending;
+    });
+  }, [days]);
+
+  /*
+   * A drag held at the edge turns the page and keeps going, because a stay of
+   * ten nights does not fit in a calendar week and "drag to Sunday, let go,
+   * page, find the handle, drag again" is four gestures for one decision.
+   */
+  useEffect(() => {
+    if (edgePage === 0) return;
+    const timer = setInterval(() => {
+      // A release the row never saw (the pointer left the window, the tab lost
+      // it) must not leave the calendar turning pages by itself.
+      if (!bandDragRef.current) return setEdgePage(0);
+      const target = pages[pageIndex + edgePage];
+      if (target?.[0]) setAnchor(days.findIndex((d) => d.id === target[0].id));
+    }, 550);
+    return () => clearInterval(timer);
+  }, [edgePage, pageIndex, pages, days]);
+
+  const commitBand = useCallback(
+    (span: BandSpan, place: OvernightPlace | null, cleared: [string, string][]) => {
+      /*
+       * The overlay can only stand in for an answer whose id is already known —
+       * a clear, or an extend of a run that has one. A place picked from the
+       * search has no row until the server makes it, so there is no id to hold
+       * the days against, and an overlay that can never match what comes back
+       * is one that never lifts. That write waits for its props like any other.
+       */
+      setPendingBand(
+        place === null
+          ? { ...span, placeId: null, placeName: null }
+          : "placeId" in place
+            ? { ...span, placeId: place.placeId }
+            : null,
+      );
+      startTransition(async () => {
+        // The days that fell out of a shrinking run go first: they are the same
+        // column, and writing the survivors first would leave the run briefly
+        // claiming days it has just lost.
+        for (const [from, to] of cleared) await setOvernight(from, to, null);
+        await setOvernight(span.start, span.end, place);
+      });
+    },
+    [setOvernight],
+  );
+
+  const openBandDialog = (span: BandSpan) => {
+    keptSelection.current = true;
+    setBanding(span);
+  };
+
+  const startBandDrag = (ev: ReactPointerEvent<HTMLElement>, drag: BandDrag) => {
+    if (ev.button !== 0) return;
+    bandDragRef.current = drag;
+    // Never inherit the last drag's edge: a page turning under a gesture that
+    // has only just started aims it at days nobody pointed at.
+    setEdgePage(0);
+    // Captured on the row, never on the cell: the page turns mid-drag and the
+    // cell you pressed is unmounted with it, taking the capture with it.
+    bandRowRef.current?.setPointerCapture(ev.pointerId);
+  };
+
+  const onBandPointerMove = (ev: ReactPointerEvent<HTMLElement>) => {
+    const drag = bandDragRef.current;
+    if (!drag) return;
+    // A few pixels of slop, so a press with an unsteady hand stays a press.
+    if (!drag.moved && Math.abs(ev.clientX - drag.startX) < 4) return;
+    drag.moved = true;
+
+    const hit = columnAt(ev.clientX);
+    const date = hit ? dateOfDay(hit.dayId) : null;
+    if (date) {
+      const [start, end] =
+        date < drag.anchorDate ? [date, drag.anchorDate] : [drag.anchorDate, date];
+      drag.span = { start, end, placeId: drag.placeId, placeName: drag.placeName };
+      setBandSpan(drag.span);
+    }
+
+    const box = scrollerRef.current?.getBoundingClientRect();
+    if (!box) return;
+    setEdgePage(
+      ev.clientX > box.right - EDGE_PX ? 1 : ev.clientX < box.left + EDGE_PX ? -1 : 0,
+    );
+  };
+
+  const onBandPointerUp = () => {
+    const drag = bandDragRef.current;
+    bandDragRef.current = null;
+    const span = drag?.span ?? null;
+    setBandSpan(null);
+    setEdgePage(0);
+    if (!drag) return;
+
+    // A press that never moved is a click, and a click is about the one day
+    // under it — the column is per day, so changing a neighbour nobody pointed
+    // at would be the surprise this band exists to avoid.
+    if (!drag.moved || !span) {
+      openBandDialog({
+        start: drag.pressedDate,
+        end: drag.pressedDate,
+        placeId: drag.placeId,
+        placeName: drag.placeName,
+      });
+      return;
+    }
+
+    // Painting undecided days has no place to write yet, so the release asks
+    // for one; nothing is written if the dialog is closed again.
+    if (drag.mode === "paint" || drag.placeId === null) {
+      openBandDialog(span);
+      return;
+    }
+
+    const cleared: [string, string][] = [];
+    if (drag.runStart < span.start) {
+      cleared.push([drag.runStart, addDaysToDate(span.start, -1)]);
+    }
+    if (drag.runEnd > span.end) cleared.push([addDaysToDate(span.end, 1), drag.runEnd]);
+
+    commitBand(span, { placeId: drag.placeId }, cleared);
+    say(`${drag.placeName ?? "Overnight place"} now ${describeSpan(days, span)}.`);
+  };
 
   const selectedEvent = selected === null ? null : events.find((e) => e.id === selected);
 
@@ -706,6 +1017,7 @@ export function DaysCalendar({
            * measured against the same scroll offset.
            */}
           <div
+            ref={scrollerRef}
             className="max-h-[70vh] overflow-auto"
             style={{ scrollPaddingTop: headHeight }}
           >
@@ -750,6 +1062,197 @@ export function DaysCalendar({
                   ) : null}
                 </div>
               ))}
+            </div>
+
+            {/*
+             * The overnight band (ticket 141) — where the group sleeps, on the
+             * surface that decides it.
+             *
+             * It sits under the dates and over the clock because that is what
+             * it is about: the day, not a time on it. The gestures are two, and
+             * they never overlap with the grid's own drag — this row is not the
+             * grid, so a press here always means a bed.
+             *
+             *   press a day       → the dialog, for that day
+             *   drag across days  → the dialog once, for the span
+             *   drag a bar's end  → the run grows or shrinks, written on release
+             *
+             * Every one of them has the dialog behind it, which is the keyboard
+             * and phone path: a drag is impossible with either.
+             */}
+            <div
+              ref={bandRowRef}
+              style={rowStyle}
+              className="border-b border-rule bg-sheet"
+              onPointerMove={onBandPointerMove}
+              onPointerUp={onBandPointerUp}
+              onPointerCancel={onBandPointerUp}
+            >
+              <div className="sticky left-0 z-20 border-r border-rule bg-sheet px-2 py-1.5 text-right">
+                <span className="typed">Overnight</span>
+              </div>
+
+              {bandRuns.map((run) => {
+                const first = run.days[0];
+                const last = run.days[run.days.length - 1];
+                const cell: CSSProperties = { gridColumn: `span ${run.days.length}` };
+
+                // A padding day has no `day` row to write to, so its band cell
+                // is scenery — the same silence the column below it keeps.
+                if (first.outside) {
+                  return (
+                    <div
+                      key={first.date}
+                      aria-hidden
+                      style={cell}
+                      className={cx("h-9 border-l border-rule", OUTSIDE_DAY_CLASS)}
+                    />
+                  );
+                }
+
+                const bounds = runBoundsAt(days, first.date, run.placeId);
+                const dragFrom = (
+                  ev: ReactPointerEvent<HTMLElement>,
+                  from: { anchorDate: string; pressedDate: string; whole: boolean },
+                ): BandDrag => ({
+                  mode: run.placeId === null ? "paint" : "extend",
+                  anchorDate: from.anchorDate,
+                  pressedDate: from.pressedDate,
+                  placeId: run.placeId,
+                  placeName: run.placeName,
+                  // Only a handle can shrink a run, so only a handle carries the
+                  // run's true extent; a press in the middle paints outward from
+                  // where it started and leaves the rest of the stay alone.
+                  runStart: from.whole ? bounds.start : from.pressedDate,
+                  runEnd: from.whole ? bounds.end : from.pressedDate,
+                  startX: ev.clientX,
+                  moved: false,
+                  span: null,
+                });
+
+                if (run.placeId === null && !run.preview) {
+                  return (
+                    <div
+                      key={first.date}
+                      style={cell}
+                      className="border-l border-rule p-1"
+                    >
+                      <button
+                        type="button"
+                        aria-label={`Overnight place for ${first.longLabel} — not set`}
+                        onPointerDown={(ev) =>
+                          startBandDrag(
+                            ev,
+                            dragFrom(ev, {
+                              anchorDate: first.date,
+                              pressedDate: first.date,
+                              whole: false,
+                            }),
+                          )
+                        }
+                        onClick={(ev) => {
+                          // Only the keyboard's click gets here: a pointer's
+                          // goes to the row, which holds the capture.
+                          if (ev.detail === 0) {
+                            openBandDialog({
+                              start: first.date,
+                              end: first.date,
+                              placeId: null,
+                              placeName: null,
+                            });
+                          }
+                        }}
+                        className="h-7 w-full rounded-sm border border-dashed border-rule transition-colors hover:border-rule-strong hover:bg-sheet-2"
+                      />
+                    </div>
+                  );
+                }
+
+                return (
+                  <div key={first.date} style={cell} className="relative border-l border-rule p-1">
+                    <button
+                      type="button"
+                      aria-label={
+                        run.placeName
+                          ? `${run.placeName}, ${describeSpan(days, { start: bounds.start, end: bounds.end })}`
+                          : `Overnight place for ${describeSpan(days, { start: first.date, end: last.date })}`
+                      }
+                      onPointerDown={(ev) => {
+                        const pressed = dateOfDay(columnAt(ev.clientX)?.dayId ?? -1);
+                        startBandDrag(
+                          ev,
+                          dragFrom(ev, {
+                            anchorDate: pressed ?? first.date,
+                            pressedDate: pressed ?? first.date,
+                            whole: false,
+                          }),
+                        );
+                      }}
+                      onClick={(ev) => {
+                        // The keyboard has no day under it, so it addresses the
+                        // run it has focus on — which is also what lets a
+                        // keyboard do what the handles do.
+                        if (ev.detail === 0) {
+                          openBandDialog({
+                            start: first.date,
+                            end: last.date,
+                            placeId: run.placeId,
+                            placeName: run.placeName,
+                          });
+                        }
+                      }}
+                      className={cx(
+                        "flex h-7 w-full items-center truncate rounded-sm border px-2 text-xs transition-colors",
+                        run.preview
+                          ? "justify-center border-dashed border-pen bg-pen-soft/60 text-pen"
+                          : "border-rule-strong bg-highlight-soft hover:bg-highlight",
+                        run.openStart && "rounded-l-none",
+                        run.openEnd && "rounded-r-none",
+                      )}
+                    >
+                      {run.placeName}
+                    </button>
+
+                    {/* The ends are grabbable, both of them: a stay has two
+                        edges, and a bar with one live end teaches nothing about
+                        why. Hidden from the reader with a keyboard, who has the
+                        dialog's own last-day field instead. */}
+                    {!run.preview && run.placeId !== null
+                      ? (
+                          [
+                            // The anchor is the run's *true* far end, which may
+                            // be on another page — a handle must not silently
+                            // crop the half of the stay you can't see.
+                            ["start", !run.openStart, bounds.end, "left-0.5"],
+                            ["end", !run.openEnd, bounds.start, "right-0.5"],
+                          ] as const
+                        )
+                          .filter(([, live]) => live)
+                          .map(([edge, , anchorDate, side]) => (
+                            <span
+                              key={edge}
+                              aria-hidden
+                              onPointerDown={(ev) => {
+                                ev.stopPropagation();
+                                startBandDrag(
+                                  ev,
+                                  dragFrom(ev, {
+                                    anchorDate,
+                                    pressedDate: edge === "start" ? first.date : last.date,
+                                    whole: true,
+                                  }),
+                                );
+                              }}
+                              className={cx(
+                                "absolute inset-y-1.5 w-1.5 cursor-ew-resize rounded-full bg-pen/50 hover:bg-pen",
+                                side,
+                              )}
+                            />
+                          ))
+                      : null}
+                  </div>
+                );
+              })}
             </div>
 
             {/* The all-day band. Things that happen *on* a day rather than at a
@@ -964,8 +1467,163 @@ export function DaysCalendar({
           </>
         ) : null}
       </dialog>
+
+      {banding ? (
+        <OvernightDialog
+          span={banding}
+          days={tripDays}
+          searchPlaces={searchPlaces}
+          onClose={() => setBanding(null)}
+          onSave={(end, place) => {
+            const span = { ...banding, end };
+            setBanding(null);
+            commitBand(span, place, []);
+            say(
+              `${"name" in place ? place.name : (banding.placeName ?? "Overnight place")} now ` +
+                `${describeSpan(days, span)}.`,
+            );
+          }}
+          onClear={() => {
+            setBanding(null);
+            commitBand({ ...banding, placeId: null, placeName: null }, null, []);
+            say(`No overnight place for ${describeSpan(days, banding)}.`);
+          }}
+        />
+      ) : null}
     </div>
   );
+}
+
+/**
+ * Where the group sleeps, for a span of days (ticket 141).
+ *
+ * The dialog is not the drag's fallback — it is the whole gesture for anyone
+ * who cannot drag. `PlacePicker` is the same search Route and the event form
+ * use (ticket 110), and the last-day field is what lets one keystroke do what a
+ * drag across a fortnight does.
+ */
+function OvernightDialog({
+  span,
+  days,
+  searchPlaces,
+  onClose,
+  onSave,
+  onClear,
+}: {
+  span: BandSpan;
+  /** The trip's real days — the last of them is as far as a stay can reach. */
+  days: CalendarDay[];
+  searchPlaces: PlaceSearch;
+  onClose: () => void;
+  onSave: (end: string, place: OvernightPlace) => void;
+  onClear: () => void;
+}) {
+  const ref = useRef<HTMLDialogElement>(null);
+  const [pick, setPick] = useState<PlacePickerResult | null>(null);
+  const [end, setEnd] = useState(span.end);
+
+  useEffect(() => {
+    if (!ref.current?.open) ref.current?.showModal();
+  }, []);
+
+  const save = () => {
+    // An untouched picker means the span keeps the place it already had — the
+    // id, not the name, so the stay keeps its pin (see `resolveOvernightPlace`).
+    const place: OvernightPlace | null = pick?.name.trim()
+      ? {
+          name: pick.name,
+          providerId: pick.providerId,
+          lat: pick.lat,
+          lng: pick.lng,
+          countryCode: pick.countryCode,
+        }
+      : span.placeId !== null
+        ? { placeId: span.placeId }
+        : null;
+    if (!place) return;
+    onSave(end < span.start ? span.start : end, place);
+  };
+
+  return (
+    <dialog
+      ref={ref}
+      onClose={onClose}
+      onClick={(ev) => {
+        if (ev.target === ref.current) onClose();
+      }}
+      className="m-auto w-full max-w-md rounded-md border border-rule bg-sheet p-0 text-ink backdrop:bg-black/40"
+    >
+      <div className="flex items-center justify-between border-b border-dotted border-rule-strong px-4 py-3">
+        <h2 className="font-display text-base font-semibold">
+          Overnight — {describeSpan(days, span)}
+        </h2>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="rounded-sm px-2 text-lg leading-none text-ink-faint hover:text-ink"
+        >
+          ×
+        </button>
+      </div>
+
+      <div className="space-y-3 p-4">
+        {/* Top of the list, and only where there is something to clear: an
+            undecided day is already the answer this would give. */}
+        {span.placeId !== null ? (
+          <Button type="button" variant="ghost" onClick={onClear} className="w-full">
+            No overnight place
+          </Button>
+        ) : null}
+
+        <PlacePicker
+          name="overnight"
+          label="Place"
+          defaultName={span.placeName ?? ""}
+          search={searchPlaces}
+          onSelect={setPick}
+        />
+
+        <Field label="Last day">
+          <Input
+            type="date"
+            value={end}
+            min={span.start}
+            max={days[days.length - 1]?.date}
+            onChange={(ev) => setEnd(ev.target.value)}
+          />
+        </Field>
+
+        <div className="flex justify-end">
+          <Button type="button" variant="primary" onClick={save}>
+            Save
+          </Button>
+        </div>
+      </div>
+    </dialog>
+  );
+}
+
+/** "Monday 12 May", or both ends of a run. */
+function describeSpan(days: CalendarDay[], span: { start: string; end: string }) {
+  const label = (date: string) => days.find((d) => d.date === date)?.longLabel ?? date;
+  return span.start === span.end
+    ? label(span.start)
+    : `${label(span.start)} – ${label(span.end)}`;
+}
+
+/**
+ * How far the run under `date` actually reaches — across the page's edges,
+ * which is where the calendar's own view of it stops.
+ */
+function runBoundsAt(days: CalendarDay[], date: string, placeId: number | null) {
+  const at = days.findIndex((d) => d.date === date);
+  if (at < 0 || placeId === null) return { start: date, end: date };
+  let start = at;
+  let end = at;
+  while (start > 0 && days[start - 1].overnightPlaceId === placeId) start--;
+  while (end < days.length - 1 && days[end + 1].overnightPlaceId === placeId) end++;
+  return { start: days[start].date, end: days[end].date };
 }
 
 /**

@@ -308,6 +308,28 @@ export async function listRouteDays(tripId: number): Promise<RouteDay[]> {
 }
 
 /**
+ * The places this trip's days already point at, by id and name (ticket 141).
+ *
+ * For the one case a geocoded id can't cover: Nominatim is down, so the band
+ * writes a typed name, and `upsertPlace` — which dedupes on the provider id a
+ * typed name hasn't got — would mint a fresh row every time. Two rows called
+ * "Barcelona" are two stops on the Route, side by side, for a group that said
+ * the same word twice. Reusing the trip's own row keeps the run one run.
+ */
+export async function listOvernightPlaces(
+  tripId: number,
+): Promise<{ id: number; name: string }[]> {
+  const rows = await db
+    .selectDistinct({ id: place.id, name: place.name })
+    .from(day)
+    .innerJoin(place, eq(place.id, day.overnightPlaceId))
+    .where(and(eq(day.tripId, tripId), isNull(day.deletedAt), isNull(place.deletedAt)))
+    .limit(LIMITS.days)
+    .all();
+  return bounded(rows, "days", `trip ${tripId} overnight places`);
+}
+
+/**
  * The travel mode of each day's first transport event, by day id (ticket 78).
  *
  * The mode between two stops isn't stored on the route — there is no route to

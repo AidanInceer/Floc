@@ -28,9 +28,11 @@ import {
   moveEventToAnotherDay,
   reorderEvents,
   rescheduleEvent,
+  setDayOvernight,
   updateEvent,
 } from "./actions";
 import { searchPlacesAction } from "../place-actions";
+import { deriveStops, placedStops } from "@/lib/stops";
 
 let world: Scenario;
 
@@ -220,6 +222,149 @@ describe("cross-trip itinerary writes", () => {
         title: "Nope",
       }),
     );
+  });
+});
+
+/**
+ * The overnight band (ticket 141).
+ *
+ * Every test here writes days and reads *stops* back through `deriveStops`,
+ * because that is the claim the band rests on: the runs are derived, so nothing
+ * has to merge them. A test that only asserted the column would pass just as
+ * happily if painting two adjacent days produced two one-night stops, which is
+ * exactly the failure the ticket asked to rule out.
+ */
+describe("the overnight band", () => {
+  /** Sunday to Wednesday, so a run has room to grow, shrink and be split. */
+  const DATES = ["2026-09-01", "2026-09-02", "2026-09-03", "2026-09-04"];
+
+  beforeEach(async () => {
+    signIn(world.admin);
+    // The scenario seeds one day; the rest are blank days on the same trip.
+    await db
+      .insert(schema.day)
+      .values(DATES.slice(1).map((date) => ({ tripId: world.ours.id, date })));
+  });
+
+  /** The trip's days as `deriveStops` wants them, in date order. */
+  const stopsOfTrip = async () => {
+    const rows = await db
+      .select({
+        dayId: schema.day.id,
+        date: schema.day.date,
+        overnightPlaceId: schema.day.overnightPlaceId,
+        overnightPlaceName: schema.place.name,
+      })
+      .from(schema.day)
+      .leftJoin(schema.place, eq(schema.place.id, schema.day.overnightPlaceId))
+      .where(and(eq(schema.day.tripId, world.ours.id), isNull(schema.day.deletedAt)))
+      .orderBy(schema.day.date)
+      .all();
+    return deriveStops(rows);
+  };
+
+  const placed = async () => placedStops(await stopsOfTrip());
+
+  it("paints a span in one write", async () => {
+    await setDayOvernight(world.ours.id, DATES[0], DATES[2], { name: "Barcelona" });
+
+    expect(await placed()).toMatchObject([
+      { placeName: "Barcelona", startDate: DATES[0], endDate: DATES[2] },
+    ]);
+  });
+
+  it("two adjacent days painted separately are one stop", async () => {
+    // The ticket's own question. Nothing merges these — `deriveStops` groups
+    // consecutive days that already agree, and the second write resolves to the
+    // place row the first one made.
+    await setDayOvernight(world.ours.id, DATES[0], DATES[0], { name: "Barcelona" });
+    await setDayOvernight(world.ours.id, DATES[1], DATES[1], { name: "Barcelona" });
+
+    const stops = await placed();
+    expect(stops).toHaveLength(1);
+    expect(stops[0]).toMatchObject({ startDate: DATES[0], endDate: DATES[1], nights: 2 });
+  });
+
+  it("clearing a day in the middle splits the stop in two", async () => {
+    await setDayOvernight(world.ours.id, DATES[0], DATES[2], { name: "Barcelona" });
+    await setDayOvernight(world.ours.id, DATES[1], DATES[1], null);
+
+    expect(await placed()).toMatchObject([
+      { placeName: "Barcelona", startDate: DATES[0], endDate: DATES[0] },
+      { placeName: "Barcelona", startDate: DATES[2], endDate: DATES[2] },
+    ]);
+    // The day itself is untouched: an undecided day is a day, not a deletion,
+    // so it is still a run of its own between the two halves.
+    expect(await stopsOfTrip()).toHaveLength(4);
+  });
+
+  it("a span painted across a different place overwrites it", async () => {
+    await setDayOvernight(world.ours.id, DATES[3], DATES[3], { name: "Madrid" });
+    await setDayOvernight(world.ours.id, DATES[0], DATES[3], { name: "Barcelona" });
+
+    expect(await placed()).toMatchObject([
+      { placeName: "Barcelona", startDate: DATES[0], endDate: DATES[3] },
+    ]);
+  });
+
+  it("extending by place id keeps the row the stay was geocoded into", async () => {
+    await setDayOvernight(world.ours.id, DATES[0], DATES[0], {
+      name: "Barcelona",
+      providerId: "osm:1",
+      lat: 41.38,
+      lng: 2.17,
+    });
+    const [first] = await placed();
+
+    await setDayOvernight(world.ours.id, DATES[0], DATES[2], { placeId: first.placeId! });
+
+    const stops = await placed();
+    expect(stops).toHaveLength(1);
+    // Same row, so the pin survives the extend — a re-geocode by name would
+    // have made a second, coordinate-less "Barcelona".
+    expect(stops[0].placeId).toBe(first.placeId);
+    const rows = await db.select({ id: schema.place.id }).from(schema.place).all();
+    expect(rows).toHaveLength(1);
+  });
+
+  it("refuses a place id this trip's days don't already use", async () => {
+    // The id comes from the client, so an id belonging to another group's
+    // itinerary must not be reachable by number (rule 5).
+    const other = await db
+      .insert(schema.place)
+      .values({ name: "Theirs", providerId: "osm:9" })
+      .returning({ id: schema.place.id })
+      .get();
+
+    await setDayOvernight(world.ours.id, DATES[0], DATES[1], { placeId: other.id });
+
+    expect(await placed()).toHaveLength(0);
+  });
+
+  it("sets the days a span covers and creates none", async () => {
+    // Since ticket 140 the trip's dates own which days exist, so a span that
+    // runs off the end writes what it covers and stops there.
+    await setDayOvernight(world.ours.id, DATES[2], "2026-09-30", { name: "Barcelona" });
+
+    expect(await placed()).toMatchObject([
+      { startDate: DATES[2], endDate: DATES[3] },
+    ]);
+    expect(await stopsOfTrip()).toHaveLength(2);
+  });
+
+  it("refuses a span that isn't a pair of dates", async () => {
+    await setDayOvernight(world.ours.id, "the third", DATES[1], { name: "Barcelona" });
+    await setDayOvernight(world.ours.id, DATES[2], DATES[0], { name: "Barcelona" });
+
+    expect(await placed()).toHaveLength(0);
+  });
+
+  it("refuses a day belonging to another trip", async () => {
+    signIn(world.outsider);
+    await expectNotFound(() =>
+      setDayOvernight(world.ours.id, DATES[0], DATES[1], { name: "Planted" }),
+    );
+    expect(await placed()).toHaveLength(0);
   });
 });
 

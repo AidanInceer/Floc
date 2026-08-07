@@ -16,24 +16,30 @@ import type { DayEventType, TransportType } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
 import { revalidateTripHeader, setTripDateRange } from "@/server/membership";
 import { resolveEventPlace } from "../place-actions";
-import { addDays as addDaysToDate } from "@/lib/dates";
+import { upsertPlace } from "@/server/places";
+import { addDays as addDaysToDate, isIsoDate } from "@/lib/dates";
+import { capText } from "@/lib/text";
 import { insertAt, permuteEventSlots } from "@/lib/event-order";
 import {
   applyEventSlots,
   ensureDays,
   insertEvent,
   listDayIds,
+  listDays,
   listEventSlots,
+  listOvernightPlaces,
   moveEventToDay,
   moveItem,
   rescheduleEvent as moveEventTo,
   permuteDayContents,
   rebaseEventOrder,
   revalidateItinerary,
+  setOvernightPlaceOn,
   softDeleteDay,
   softDeleteEvent,
   updateEventFields,
   type EventFields,
+  type ItineraryDay,
 } from "@/server/itinerary";
 
 /*
@@ -102,6 +108,102 @@ export async function removeDay(tripId: number, dayId: number) {
   const target = await access.day(dayId);
   await softDeleteDay(target.id);
   revalidateItinerary(access.trip.id);
+}
+
+/**
+ * Where the group sleeps, for a run of days (ticket 141).
+ *
+ * Days is the surface that decides this now, and the decision is per *day*:
+ * one column, `day.overnight_place_id`, on every day in the span. A stop is
+ * still derived and never stored (rule 3) — painting Monday and Tuesday
+ * separately with the same place yields one two-day stop because `deriveStops`
+ * groups the runs, not because anything here merges them.
+ *
+ * `setOvernightPlaceOn` rather than `writeSpan`, deliberately: `writeSpan`
+ * creates the day rows it can't find, and since ticket 140 the trip's dates own
+ * which days exist. A span that runs off the end of the trip sets the days it
+ * covers and stops there, rather than growing the itinerary sideways.
+ */
+export type OvernightPlaceInput =
+  /** A place this trip's itinerary already points at — an extend keeps its pin. */
+  | { placeId: number }
+  /** A fresh pick from the search, or a name typed when the provider is down. */
+  | {
+      name: string;
+      providerId?: string | null;
+      lat?: number | null;
+      lng?: number | null;
+      countryCode?: string | null;
+    };
+
+export async function setDayOvernight(
+  tripId: number,
+  startDate: string,
+  endDate: string,
+  place: OvernightPlaceInput | null,
+) {
+  const access = await requireTripAccess(tripId);
+  // The span arrives from a drag, and a drag is not the only way to call this
+  // (ticket 113): anything that isn't a date is refused rather than compared.
+  if (!isIsoDate(startDate) || !isIsoDate(endDate)) return;
+  if (endDate < startDate) return;
+
+  const days = await listDays(access.trip.id);
+  const targets = days.filter((d) => d.date >= startDate && d.date <= endDate);
+  if (targets.length === 0) return;
+
+  const placeId =
+    place === null ? null : await resolveOvernightPlace(access.trip.id, days, place);
+  // A place that resolved to nothing is not a clear — it is a write with no
+  // answer in it, and clearing the span would be the opposite of what was asked.
+  if (place !== null && placeId === null) return;
+
+  await setOvernightPlaceOn(
+    access.trip.id,
+    targets.map((d) => d.id),
+    placeId,
+  );
+
+  revalidateItinerary(access.trip.id);
+}
+
+/**
+ * The place id a span should point at.
+ *
+ * Extending a run sends the id it already has, not its name: re-geocoding the
+ * name would mint a second `place` row with no coordinates on it, and the map
+ * would lose the pin for half the stay. An id from the client only counts if
+ * this trip's own days already use it — otherwise it is a way to read another
+ * group's place row by number (rule 5).
+ */
+async function resolveOvernightPlace(
+  tripId: number,
+  days: ItineraryDay[],
+  place: OvernightPlaceInput,
+): Promise<number | null> {
+  if ("placeId" in place) {
+    return days.some((d) => d.overnightPlaceId === place.placeId) ? place.placeId : null;
+  }
+  const name = capText(place.name, "placeName");
+  if (!name) return null;
+
+  // A name typed because the provider was unreachable (rule 11) has no id to
+  // dedupe on, so `upsertPlace` would give the same word a new row each time —
+  // and two rows are two stops. The trip's own places are checked first.
+  if (!place.providerId) {
+    const known = (await listOvernightPlaces(tripId)).find(
+      (p) => p.name.toLowerCase() === name.toLowerCase(),
+    );
+    if (known) return known.id;
+  }
+
+  return upsertPlace({
+    providerId: place.providerId ?? null,
+    name,
+    lat: place.lat ?? null,
+    lng: place.lng ?? null,
+    countryCode: place.countryCode ?? null,
+  });
 }
 
 /*

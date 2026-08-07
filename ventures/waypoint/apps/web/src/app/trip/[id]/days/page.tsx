@@ -44,6 +44,7 @@ import {
   moveEventToAnotherDay,
   removeDay,
   rescheduleEvent,
+  setDayOvernight,
   submitEvent,
 } from "./actions";
 import { searchPlacesAction } from "../place-actions";
@@ -142,7 +143,6 @@ export default async function DaysPage({
   }
 
   const now = today();
-  const stops = stopsFor(days);
 
   const calendarDays: CalendarDay[] = days.map((d) => ({
     id: d.id,
@@ -151,11 +151,11 @@ export default async function DaysPage({
     dayOfMonth: partOf(d.date, { day: "numeric" }),
     longLabel: partOf(d.date, { weekday: "long", day: "numeric", month: "long" }),
     overnightPlaceName: d.overnightPlaceName,
+    overnightPlaceId: d.overnightPlaceId,
     // Monday-first, because the calendar's weeks are. `getUTCDay` is Sunday-0
     // and has to be rotated; UTC for the same reason every other read here is
     // (rule 10).
     weekdayIndex: (fromIsoDate(d.date).getUTCDay() + 6) % 7,
-    stop: stops.get(d.id) ?? null,
     outside: false,
     isToday: d.date === now,
   }));
@@ -251,6 +251,7 @@ export default async function DaysPage({
         submitEvent={submitEvent.bind(null, trip.id)}
         rescheduleEvent={rescheduleEvent.bind(null, trip.id)}
         moveEventToDay={moveEventToAnotherDay.bind(null, trip.id)}
+        setOvernight={setDayOvernight.bind(null, trip.id)}
         searchPlaces={searchPlacesAction}
         tripThread={
           <>
@@ -295,8 +296,8 @@ function frameWeeks(days: CalendarDay[]): CalendarDay[] {
     dayOfMonth: partOf(date, { day: "numeric" }),
     longLabel: partOf(date, { weekday: "long", day: "numeric", month: "long" }),
     overnightPlaceName: null,
+    overnightPlaceId: null,
     weekdayIndex: (fromIsoDate(date).getUTCDay() + 6) % 7,
-    stop: null,
     outside: true,
     isToday: false,
   });
@@ -315,47 +316,13 @@ function frameWeeks(days: CalendarDay[]): CalendarDay[] {
   return [...before, ...days, ...after];
 }
 
-/**
- * Which stop each day belongs to (rule 3).
- *
- * A stop is not stored and never will be: it is a *run of consecutive days
- * sharing an overnight place*, derived here the same way Route derives it. The
- * calendar needs it because a column head that only says "Sleeping in Lisbon"
- * can't tell you whether tonight is the first of three or the last — which is
- * the difference between a travel day and a settled one, and the thing you are
- * actually looking for when you scan across a week.
- *
- * A day with no overnight place is in no stop. That is a real state, not a gap
- * to paper over: the group hasn't decided where they're sleeping.
+/*
+ * No `stopsFor` here any more (ticket 141). It handed every day a "Stop 2 ·
+ * Lisbon, night 1 of 3" label that nothing had rendered since the calendar
+ * landed — and the band draws the same fact better, as a bar whose width *is*
+ * the length of the stay. The derivation itself is unchanged and still lives in
+ * `lib/stops.ts`, where Route reads it.
  */
-function stopsFor(
-  days: { id: number; overnightPlaceId: number | null; overnightPlaceName: string | null }[],
-) {
-  const byDay = new Map<number, { label: string; night: number; nights: number }>();
-  let index = 0;
-
-  for (let i = 0; i < days.length; i++) {
-    const placeId = days[i].overnightPlaceId;
-    if (placeId === null) continue;
-    // Only the start of a run opens a stop; the rest of the run is consumed
-    // here so the counter matches Route's numbering.
-    if (i > 0 && days[i - 1].overnightPlaceId === placeId) continue;
-
-    index++;
-    let end = i;
-    while (end + 1 < days.length && days[end + 1].overnightPlaceId === placeId) end++;
-    const nights = end - i + 1;
-    for (let j = i; j <= end; j++) {
-      byDay.set(days[j].id, {
-        label: `Stop ${index} · ${days[j].overnightPlaceName ?? "Unnamed place"}`,
-        night: j - i + 1,
-        nights,
-      });
-    }
-  }
-
-  return byDay;
-}
 
 /**
  * One date, formatted for a column head. `timeZone: "UTC"` throughout, because
