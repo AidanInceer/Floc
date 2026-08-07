@@ -58,7 +58,6 @@ import { EventForm, type PlaceSearch } from "@/components/event-form";
 import { PlacePicker, type PlacePickerResult } from "@/components/place-picker";
 import { Button, Field, Input, cx } from "@/components/ui";
 import type { DayEventType, TransportType } from "@/db/schema";
-import { addDays as addDaysToDate } from "@/lib/dates";
 import {
   SNAP_MINUTES,
   clamp,
@@ -73,6 +72,12 @@ import {
   toMinutes,
 } from "@/lib/calendar";
 import { EVENT_CATEGORIES } from "@/lib/event-categories";
+import {
+  bandRuns as runsOfBand,
+  runBoundsAt,
+  uncoveredBy,
+  type BandSpan,
+} from "@/lib/overnight-band";
 
 /** Pixels per hour. Tall enough that a 15-minute block is still a target. */
 const HOUR_PX = 56;
@@ -176,21 +181,6 @@ type BandDrag = {
    * and the handler would then be holding the render before the move.
    */
   span: BandSpan | null;
-};
-
-/** A span of days the band is showing as one place: dragging, or just written. */
-type BandSpan = {
-  start: string;
-  end: string;
-  placeId: number | null;
-  placeName: string | null;
-  /**
-   * The days this span has taken *off* a run — what a shrink uncovers. They
-   * have to be part of the picture: a handle dragged in off Friday that leaves
-   * Friday drawn as it was reads as a split into two stays, which is the
-   * opposite of what the gesture is doing.
-   */
-  uncovered?: [string, string][];
 };
 
 /** How close to the calendar's edge a drag has to get before the page turns. */
@@ -683,87 +673,11 @@ export function DaysCalendar({
   const bandOverlay = bandSpan ?? pendingBand;
   const overlayIsDrag = bandSpan !== null;
 
-  /*
-   * The bars. A run of days sharing a place is one grid item spanning its
-   * columns, so the name is written once and the bar is genuinely continuous —
-   * seven cells each repeating "Barcelona" would draw one stop as seven.
-   *
-   * Undecided days are the opposite: each is its own cell, because each is its
-   * own target. They never join, or a click meant for Tuesday would land on a
-   * bar that owns half the week.
-   */
-  const bandRuns = useMemo(() => {
-    const placeOf = (day: CalendarDay) => {
-      if (
-        bandOverlay &&
-        !day.outside &&
-        day.date >= bandOverlay.start &&
-        day.date <= bandOverlay.end
-      ) {
-        return {
-          id: bandOverlay.placeId,
-          name: bandOverlay.placeName,
-          preview: overlayIsDrag,
-        };
-      }
-      // A day the drag has pulled off its run reads as undecided from the first
-      // pixel, because that is what letting go would make it.
-      if (
-        bandOverlay?.uncovered?.some(
-          ([from, to]) => !day.outside && day.date >= from && day.date <= to,
-        )
-      ) {
-        return { id: null, name: null, preview: false };
-      }
-      return {
-        id: day.overnightPlaceId,
-        name: day.overnightPlaceName,
-        preview: false,
-      };
-    };
-
-    const runs: {
-      placeId: number | null;
-      placeName: string | null;
-      preview: boolean;
-      days: CalendarDay[];
-    }[] = [];
-
-    for (const day of shownDays) {
-      const place = placeOf(day);
-      // An undecided, un-previewed day is a cell of its own; everything else
-      // continues the run beside it when it agrees with it.
-      const joins = place.id !== null || place.preview;
-      const last = runs[runs.length - 1];
-      if (last && joins && last.placeId === place.id && last.preview === place.preview) {
-        last.days.push(day);
-        continue;
-      }
-      runs.push({
-        placeId: place.id,
-        placeName: place.name,
-        preview: place.preview,
-        days: [day],
-      });
-    }
-
-    // A run that carries on past the page's edge is squared off there and grows
-    // no handle: the day it would extend from isn't on screen to aim at.
-    return runs.map((run) => {
-      const before = days[days.indexOf(run.days[0]) - 1];
-      const after = days[days.indexOf(run.days[run.days.length - 1]) + 1];
-      const continuing = (neighbour: CalendarDay | undefined) =>
-        run.placeId !== null &&
-        !run.preview &&
-        neighbour !== undefined &&
-        neighbour.overnightPlaceId === run.placeId;
-      return {
-        ...run,
-        openStart: continuing(before),
-        openEnd: continuing(after),
-      };
-    });
-  }, [shownDays, days, bandOverlay, overlayIsDrag]);
+  /* The bars — the grouping itself lives in `lib/overnight-band.ts`. */
+  const bandRuns = useMemo(
+    () => runsOfBand(shownDays, days, bandOverlay, overlayIsDrag),
+    [shownDays, days, bandOverlay, overlayIsDrag],
+  );
 
   /* A write is confirmed when the props say what the overlay was claiming. */
   useEffect(() => {
@@ -1235,7 +1149,13 @@ export function DaysCalendar({
                             });
                           }
                         }}
-                        className="h-7 w-full rounded-sm border border-dashed border-rule transition-colors hover:border-rule-strong hover:bg-sheet-2"
+                        /* `block`, not the default inline-block: an inline
+                           button sits on a line box, and the line's descender
+                           space made an empty day 7px taller than a day with a
+                           bar on it. The band then grew and shrank as a drag
+                           uncovered days — the row twitching under the gesture
+                           that was meant to be reading it. */
+                        className="block h-7 w-full rounded-sm border border-dashed border-rule transition-colors hover:border-rule-strong hover:bg-sheet-2"
                       />
                     </div>
                   );
@@ -1697,43 +1617,12 @@ function OvernightDialog({
   );
 }
 
-/**
- * The days a drag has pulled off the run it started on — the shrink's other
- * half. A handle drag says two things at once: these days take the place, and
- * those ones lose it.
- */
-function uncoveredBy(
-  drag: BandDrag,
-  span: { start: string; end: string },
-): [string, string][] {
-  const ranges: [string, string][] = [];
-  if (drag.runStart < span.start) {
-    ranges.push([drag.runStart, addDaysToDate(span.start, -1)]);
-  }
-  if (drag.runEnd > span.end) ranges.push([addDaysToDate(span.end, 1), drag.runEnd]);
-  return ranges;
-}
-
 /** "Monday 12 May", or both ends of a run. */
 function describeSpan(days: CalendarDay[], span: { start: string; end: string }) {
   const label = (date: string) => days.find((d) => d.date === date)?.longLabel ?? date;
   return span.start === span.end
     ? label(span.start)
     : `${label(span.start)} – ${label(span.end)}`;
-}
-
-/**
- * How far the run under `date` actually reaches — across the page's edges,
- * which is where the calendar's own view of it stops.
- */
-function runBoundsAt(days: CalendarDay[], date: string, placeId: number | null) {
-  const at = days.findIndex((d) => d.date === date);
-  if (at < 0 || placeId === null) return { start: date, end: date };
-  let start = at;
-  let end = at;
-  while (start > 0 && days[start - 1].overnightPlaceId === placeId) start--;
-  while (end < days.length - 1 && days[end + 1].overnightPlaceId === placeId) end++;
-  return { start: days[start].date, end: days[end].date };
 }
 
 /**
