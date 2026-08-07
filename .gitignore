@@ -42,13 +42,14 @@ coverage/
 # Personal source data (keep private financial workbooks out of git)
 *.xlsx
 
-# Claude Code — machine-local settings (launch.json IS shared)
+# Claude Code — only machine-local files ignored; skills + launch.json are shared
 .claude/settings.local.json
+.claude/plugins/
 
 .scratch/
 
 human-*.md
 **/backlog/*
+!**/backlog/*.html
 .agents/
-.claude/
 **/mockups/

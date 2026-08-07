@@ -1,0 +1,369 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Backlog — Waypoint docs</title>
+<link rel="stylesheet" href="../assets/docs.css">
+<body data-root=".." data-page="backlog">
+<nav id="sidebar" aria-label="Documentation"></nav>
+<main>
+<p class="crumb">Docs / Backlog</p>
+<h1>Waypoint — backlog</h1>
+<p>A single surface covering near-term bugs and polish, plus the longer-horizon ideas backlog. Nothing here is committed. Items outside the v1 scope boundary say so explicitly.</p>
+
+<hr>
+
+<h2>Near-term — bugs &amp; polish</h2>
+<p>Short-term fixes and UX polish that should ship soon. Items here are not GitHub issues yet unless annotated.</p>
+<ul>
+<li>Comments sorted by date and/or most liked.</li>
+<li>Convert the Keen / Don't mind / Rather not voting icons to heart, thumbs-up, thumbs-down — consistent with the comment reactions.</li>
+<li>Idea comment loading spinner pending indefinitely.</li>
+<li>Bug: if a money figure is too large the website crashes and the overview page becomes inaccessible.</li>
+<li>Add an inline edit for trip name on the overview (top-left, next to the name) — not just via trip settings.</li>
+<li>Admin "kick member" option on the overview — small boot icon with a slight rotation animation on click.</li>
+<li>Cursive font on the homepage is unreadable on mobile web; change to the typewriter-style font in the same colour.</li>
+<li>Homepage "One page everyone agrees on" section doesn't show the USP clearly; currently too bland.</li>
+<li>Post-it notes in the Week 1 section should be full squares and must not clip outside their bounds.</li>
+<li>Journey section (six steps): rewrite labels to be explainers ("Struggling to come up with an idea?") rather than sales copy ("everyone throws places").</li>
+<li>"The group chat is a terrible place to keep a decision" section — revisit copy and layout.</li>
+<li>Ability to start a trip directly from an explore-page listing.</li>
+</ul>
+
+<hr>
+
+<h2>🆓 Free track — core planning</h2>
+<p>Ordered highest value-to-effort first. Items 1–8 turn a planning tool into something a group actually uses on the trip.</p>
+<table>
+<thead>
+<tr>
+<th align="center">#</th>
+<th>Idea</th>
+<th>The problem it solves</th>
+<th align="center">Effort</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">1</td>
+<td><strong>Fronted / deposit expense flag</strong></td>
+<td>Someone fronts £400 for the house and feels awkward chasing. Flag it "fronted" → enters the ledger immediately with a "3 of 7 squared up" state. Best value-to-effort on the page.</td>
+<td align="center">▁ tiny</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td><strong>Packing &amp; jobs list</strong></td>
+<td>"Who's bringing the speaker / booking the transfer?" One flat list per trip, each line claimable by a member. Makes the product feel finished.</td>
+<td align="center">▁ tiny</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td><strong>Fast expense capture</strong></td>
+<td>Nobody fills a form at the table. Amount → one tap "split with everyone here" → done. Receipt photo optional, attached later. Pure UI on the existing money model.</td>
+<td align="center">▁ tiny</td>
+</tr>
+<tr>
+<td align="center">4</td>
+<td><strong>One-screen "today" view</strong></td>
+<td>The app goes quiet the moment the trip starts. A "today" screen: day-plan, tonight's address, who's arriving, one tap to log spend. Offline-readable. Strategically the retention hook.</td>
+<td align="center">▂ small</td>
+</tr>
+<tr>
+<td align="center">5</td>
+<td><strong>Budget before booking</strong></td>
+<td>Groups discover they can't afford it <em>after</em> booking. A per-person target ("~£600 each") + a running estimate as stops are added. Visibly an estimate.</td>
+<td align="center">▂ small</td>
+</tr>
+<tr>
+<td align="center">6</td>
+<td><strong>Who's arriving when</strong></td>
+<td>Seven people, five flights, all in the chat. An arrivals/departures board — times only, free-text, no flight API. Answers "who shares the transfer?".</td>
+<td align="center">▂ small</td>
+</tr>
+<tr>
+<td align="center">7</td>
+<td><strong>Where everyone's sleeping</strong></td>
+<td>The route says "Taormina, 3 nights" but not which house, whose name, what door code, who's in the annexe. A lodging record on a stop + a plain room-allocation list.</td>
+<td align="center">▂ small</td>
+</tr>
+<tr>
+<td align="center">8</td>
+<td><strong>When the plan breaks</strong></td>
+<td>The ferry's cancelled and seven people learn separately. Mark a day event "changed" with a one-line reason. A note, not a notification system.</td>
+<td align="center">▁ tiny</td>
+</tr>
+<tr>
+<td align="center">9</td>
+<td><strong>Options, not just ideas</strong></td>
+<td>Voting fails for "which of these three houses". A comparison card: 2–4 options side by side (price pp, distance, sleeps) → vote. Free-text rows the group defines.</td>
+<td align="center">▃ medium</td>
+</tr>
+<tr>
+<td align="center">10</td>
+<td><strong>Commitment state</strong></td>
+<td>The gap between "yeah I'm keen" and "I've booked" is where trips die. Per-member <em>interested → in → booked</em>, self-declared. Overview: "5 of 7 in, 2 booked".</td>
+<td align="center">▂ small</td>
+</tr>
+<tr>
+<td align="center">11</td>
+<td><strong>Search across the archive</strong></td>
+<td>"Where was that bar in Ortigia?" is buried in last year's trip. Search across every trip you've been on. Cheap; the long-term retention story.</td>
+<td align="center">▂ small</td>
+</tr>
+<tr>
+<td align="center">12</td>
+<td><strong>Clone / blueprint a past trip</strong></td>
+<td>Start a new trip from a past one (or a friend's), then customise. Pairs with the archive search above and with <code>/explore</code>.</td>
+<td align="center">▂ small</td>
+</tr>
+<tr>
+<td align="center">13</td>
+<td><strong>Durable travel group</strong></td>
+<td>The trip is a one-off; the <em>group</em> isn't. Save the roster and carry settled balances forward so last year's debt isn't forgotten. Cross-trip balances are a real data-model call — decide early.</td>
+<td align="center">▃ medium</td>
+</tr>
+<tr>
+<td align="center">14</td>
+<td><strong>Quiet voices</strong></td>
+<td>Two people decide everything; one hates the plan silently until day three. A light anonymous "does this work for everyone?" check. Easily creepy — research before design.</td>
+<td align="center">▃ medium</td>
+</tr>
+<tr>
+<td align="center">15</td>
+<td><strong>Profile page + world map</strong></td>
+<td>A proper profile: a world map of countries visited (green) and want-to-visit (yellow), shareable with friends.</td>
+<td align="center">▃ medium</td>
+</tr>
+<tr>
+<td align="center">16</td>
+<td><strong>Profile picture</strong></td>
+<td>Straightforward avatar upload.</td>
+<td align="center">▁ tiny</td>
+</tr>
+<tr>
+<td align="center">17</td>
+<td><strong>Interests / vibe tags — actually used</strong></td>
+<td>The vibe-preference and interest/category tags exist but do nothing. Wire them into pre-creating trips with friends.</td>
+<td align="center">▂ small</td>
+</tr>
+<tr>
+<td align="center">18</td>
+<td><strong>Dietary requirements</strong></td>
+<td>Per-member dietary flags, surfaced where the group books food.</td>
+<td align="center">▁ tiny</td>
+</tr>
+<tr>
+<td align="center">19</td>
+<td><strong>Parent / carer role</strong></td>
+<td>A member who can add children to the trip, distinct from member/admin.</td>
+<td align="center">▂ small</td>
+</tr>
+<tr>
+<td align="center">20</td>
+<td><strong>Reminders (non-nagging)</strong></td>
+<td>A light reminder system to aid planning without feeling like chasing. Fits "nudges, not nagging".</td>
+<td align="center">▂ small</td>
+</tr>
+<tr>
+<td align="center">21</td>
+<td><strong>Basic weather</strong></td>
+<td>Near-term forecast on the trip. (AI weather-aware <em>planning</em> is the paid version — item P6.)</td>
+<td align="center">▂ small</td>
+</tr>
+</tbody>
+</table>
+
+<hr>
+
+<h2>💳 Paid track — AI, automation &amp; premium</h2>
+<p>Bigger bets and the tier that justifies a subscription. Ordered by "magic per unit effort".</p>
+<table>
+<thead>
+<tr>
+<th align="center">#</th>
+<th>Idea</th>
+<th>What it does</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">P1</td>
+<td><strong>Import booking confirmations from email</strong></td>
+<td>Parse flight/hotel/car confirmations from the inbox and auto-fill the trip. The strongest "this feels like magic" automation; feeds arrivals, lodging &amp; budget for free.</td>
+<td>Privacy-heavy — scoped, explicit consent.</td>
+</tr>
+<tr>
+<td align="center">P2</td>
+<td><strong>Visa &amp; passport checks</strong></td>
+<td>From nationality + destination, tell each member whether they need a visa, link the source, and flag passport expiry. Free self-declared checklist in the free tier; automatic lookup is paid.</td>
+<td>Data must be current or it's a liability.</td>
+</tr>
+<tr>
+<td align="center">P3</td>
+<td><strong>AI packing recommendations</strong></td>
+<td>Given destination, dates &amp; travel style, generate a packing list and de-duplicate across the group (one speaker, not seven). Builds on the free packing list.</td>
+<td></td>
+</tr>
+<tr>
+<td align="center">P4</td>
+<td><strong>AI trip summaries</strong></td>
+<td>A readable summary of the plan / a trip recap. Low-risk, high-delight entry AI feature.</td>
+<td></td>
+</tr>
+<tr>
+<td align="center">P5</td>
+<td><strong>Flight tracking + live delay alerts</strong></td>
+<td>Track booked flights, notify on delays/cancellations, optionally nudge an itinerary reshuffle.</td>
+<td>Needs push — out of v1 scope.</td>
+</tr>
+<tr>
+<td align="center">P6</td>
+<td><strong>AI weather-aware planning</strong></td>
+<td>Flag when a planned clear-sky activity hits a cloudy/wet day and suggest reordering.</td>
+<td></td>
+</tr>
+<tr>
+<td align="center">P7</td>
+<td><strong>AI conflict resolution</strong></td>
+<td>"Find a compromise everyone will like" across the group's stated preferences.</td>
+<td>Must augment the group's decision, not replace its legitimacy.</td>
+</tr>
+<tr>
+<td align="center">P8</td>
+<td><strong>AI schedule rebuilding</strong></td>
+<td>Auto-rebuild the day plan when something breaks (delay, closure).</td>
+<td>Pairs with P5.</td>
+</tr>
+<tr>
+<td align="center">P9</td>
+<td><strong>AI suggestions — destinations / restaurants / activities</strong></td>
+<td>Recommendations seeded by the group's tags and budget.</td>
+<td>See flag C1 on generated-itinerary legitimacy.</td>
+</tr>
+<tr>
+<td align="center">P10</td>
+<td><strong>AI budget optimisation</strong></td>
+<td>Suggest where to trim to hit the per-person target from free item 5.</td>
+<td></td>
+</tr>
+<tr>
+<td align="center">P11</td>
+<td><strong>Advanced voting</strong></td>
+<td>Ranked-choice, preference weighting, scenario comparison, alternative-itinerary generation, budget simulations.</td>
+<td>Premium layer over the free comparison card (item 9).</td>
+</tr>
+<tr>
+<td align="center">P12</td>
+<td><strong>Premium maps</strong></td>
+<td>Offline maps, custom pins, collaborative route editing, walking routes.</td>
+<td></td>
+</tr>
+<tr>
+<td align="center">P13</td>
+<td><strong>Automatic syncing</strong></td>
+<td>Calendar sync of the itinerary; auto-categorise expenses.</td>
+<td></td>
+</tr>
+<tr>
+<td align="center">P14</td>
+<td><strong>Premium travel tools</strong></td>
+<td>Currency tracking, airport terminal &amp; lounge info, check-in reminders, local transport suggestions, busy-period/holiday flags.</td>
+<td>Grab-bag; cherry-pick, don't build wholesale.</td>
+</tr>
+<tr>
+<td align="center">P15</td>
+<td><strong>Driver's licence checks</strong></td>
+<td>Like the visa check — whether your licence is valid to drive at the destination.</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+
+<hr>
+
+<h2>⚑ Contested — decide before building</h2>
+<p>Ideas that collide with the boundary set in <a href="../CLAUDE.md"><code>CLAUDE.md</code></a> or elsewhere. Ranked nowhere on purpose — pick a side first.</p>
+<table>
+<thead>
+<tr>
+<th align="center">#</th>
+<th>Idea</th>
+<th>Why it's flagged</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">C1</td>
+<td><strong>AI travel agent / AI itinerary generation</strong></td>
+<td>Generated plans have no social legitimacy — the hard problem is what seven people will agree to, not what's possible in Sicily. Keep AI as an assistant to the group's decision (P6–P10), not an itinerary vending machine.</td>
+</tr>
+<tr>
+<td align="center">C2</td>
+<td><strong>Photo journal / Polarsteps-style social sharing</strong></td>
+<td>Flips the privacy model from "nine people" to "the internet". A private post-trip photo book is a possible middle path; the public feed is not.</td>
+</tr>
+<tr>
+<td align="center">C3</td>
+<td><strong>Shared live location</strong></td>
+<td>The phone already does it, no planning value, privacy liability.</td>
+</tr>
+<tr>
+<td align="center">C4</td>
+<td><strong>Flight &amp; hotel booking in-app</strong></td>
+<td>Out of v1 scope — regulated and commission-driven. Search deep links only.</td>
+</tr>
+</tbody>
+</table>
+
+<hr>
+
+<h2>What to <em>not</em> build</h2>
+<table>
+<thead>
+<tr>
+<th>Idea</th>
+<th>Why not</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>An AI itinerary generator</td>
+<td>The problem is never "what could we do in Sicily" — the internet is full of that. It's "what will these seven people agree to". Generated plans have no social legitimacy.</td>
+</tr>
+<tr>
+<td>Attractions / POI database, reviews</td>
+<td>Someone else's, always out of date. Free-text place names plus a link out is enough.</td>
+</tr>
+<tr>
+<td>Flight and hotel booking</td>
+<td>Regulated, commission-driven, and it changes what the product is for. Search deep links only.</td>
+</tr>
+<tr>
+<td>A chat/messaging surface</td>
+<td>The group already has a chat and won't move. Note threads on specific decisions are the right level.</td>
+</tr>
+<tr>
+<td>Live location sharing</td>
+<td>The phone already does it, and it's a privacy liability with no planning value.</td>
+</tr>
+<tr>
+<td>Gamification (streaks, badges, "trip score")</td>
+<td>Wrong tone for a product whose entire pitch is a quiet, trustworthy document.</td>
+</tr>
+<tr>
+<td>Public trip sharing / social feed</td>
+<td>A different product wearing this one's clothes. Changes the privacy model from "nine people" to "the internet".</td>
+</tr>
+</tbody>
+</table>
+
+<hr>
+
+<h2>See also</h2>
+<ul>
+<li><a href="../monetisation/monetisation.html"><code>monetisation.html</code></a> — how the paid track could pay for itself.</li>
+<li><a href="../CLAUDE.md"><code>CLAUDE.md</code></a> — v1 non-negotiables and scope boundary.</li>
+</ul>
+</main>
+<script src="../assets/nav.js"></script>
+</body>

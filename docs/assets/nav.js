@@ -23,21 +23,13 @@
     },
     { id: 'monetisation', label: 'Monetisation', href: 'monetisation/monetisation.html' },
     { id: 'partner-trips', label: 'Partner trips', href: 'research/partner-trips.html' },
-    { id: 'product-ideas', label: 'Product ideas', href: 'backlog/product-ideas.html' },
     {
       label: 'Data model',
       children: [
         { id: 'erd', label: 'ERD', href: 'data-model/erd.html' }
       ]
     },
-    {
-      label: 'Backlog',
-      children: [
-        { id: 'ideas', label: 'Ideas', href: 'backlog/ideas.html' },
-        { id: 'summary-ideas', label: 'Summary ideas', href: 'backlog/summary-ideas.html' },
-        { id: 'tickets', label: 'Tickets', href: 'backlog/tickets.html' }
-      ]
-    },
+    { id: 'backlog', label: 'Backlog', href: 'backlog/backlog.html' },
     {
       label: 'Competitors',
       children: [

@@ -100,3 +100,13 @@ page is a flat shell: `<link>` to `assets/docs.css`, `<nav id="sidebar">`,
 Issues/PRDs live as GitHub issues (`gh` CLI). See
 [`docs/agents/issue-tracker.html`](docs/agents/issue-tracker.html) and
 [`docs/agents/domain.html`](docs/agents/domain.html).
+
+**Docs/backlog pipeline** (`.claude/skills/`):
+
+- `/docs-ingest [file]` — full pipeline: refine raw notes → review gate → apply to HTML + issues → archive.
+- `/docs-refine [file]` — analysis only; writes a structured refined doc for review. No HTML writes.
+- `/docs-apply [file]` — applies an approved refined doc to `docs/` HTML and GitHub issues.
+- `/backlog-refine` — groom `docs/backlog/backlog.html` and sync to GitHub issues (add, reprioritise, drop).
+- `/to-tickets` — slice a feature into tracer-bullet GitHub issues in `AidanInceer/Waypoint`.
+
+Raw notes go in `docs/input/raw/`; refined docs in `docs/input/refined/`; both are archived after apply.
