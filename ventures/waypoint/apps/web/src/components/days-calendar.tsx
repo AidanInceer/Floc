@@ -1304,8 +1304,15 @@ export function DaysCalendar({
                 making a time mandatory, which would mean inventing one for
                 every row that hasn't got one. */}
             <div style={rowStyle} className="border-b border-rule bg-sheet-2">
-              <div className="sticky left-0 z-20 border-r border-rule bg-sheet-2 px-2 py-1.5 text-right">
-                <span className="typed">All day</span>
+              {/* The band's label, not `.typed`: at the typed size "All day"
+                  wrapped to two lines in a gutter measured for `00:00`, and
+                  the strip was two lines tall before anything was in it. Same
+                  mark as Overnight above it — one word each, one line each,
+                  and the row's height then belongs to its contents. */}
+              <div className="sticky left-0 z-20 flex items-center justify-end border-r border-rule bg-sheet-2 px-1.5 py-1.5">
+                <span className="whitespace-nowrap font-mono text-[9px] uppercase tracking-[0.02em] text-ink-faint">
+                  All day
+                </span>
               </div>
               {shownDays.map((day) => (
                 <div
