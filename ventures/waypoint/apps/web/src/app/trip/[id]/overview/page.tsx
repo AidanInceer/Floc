@@ -26,7 +26,7 @@ import Link from "next/link";
 
 import { requireTripAccess } from "@/server/access";
 import { listIdeaIds, listVotes } from "@/server/ideas";
-import { listDays } from "@/server/itinerary";
+import { listDays, listRouteDays, transportModesByDay } from "@/server/itinerary";
 import { listAvailability } from "@/server/membership";
 import { listExpenses, listSplits } from "@/server/money";
 import { absoluteUrl } from "@/server/email";
@@ -38,6 +38,7 @@ import { Sheet, SubmitButton } from "@/components/client-ui";
 import { TripNameInline } from "@/components/trip-name-inline";
 import { TripRoster } from "@/components/trip-roster";
 import { friendStatesFor } from "@/server/friends";
+import { TripRoute } from "@/components/trip-route";
 import { TripTrail } from "@/components/trip-trail";
 import { TagEditor } from "@/components/tag-editor";
 import { readTagTones, readTags, tagTone, type TagTone } from "@/lib/tags";
@@ -72,8 +73,16 @@ export default async function OverviewPage({
    * set of rows without the dependency — so the whole page is one round trip
    * behind the access check rather than two.
    */
-  const [ideaIds, availabilityRows, expenseRows, dayRows, votes, splitRows] =
-    await Promise.all([
+  const [
+    ideaIds,
+    availabilityRows,
+    expenseRows,
+    dayRows,
+    votes,
+    splitRows,
+    routeDays,
+    transportModes,
+  ] = await Promise.all([
       listIdeaIds(tripId),
       // Only used while the dates are unset, but it is one indexed read and
       // fetching it unconditionally is cheaper than an extra serial round trip.
@@ -84,6 +93,11 @@ export default async function OverviewPage({
       listDays(tripId),
       listVotes(tripId),
       listSplits(tripId),
+      // The route moved here when the Route tab retired (ticket 142). It is a
+      // second pass over `day` — the places and their coordinates, which
+      // `listDays` doesn't carry — plus the travel modes off `day_event`.
+      listRouteDays(tripId),
+      transportModesByDay(tripId),
     ]);
 
   /*
@@ -299,6 +313,11 @@ export default async function OverviewPage({
             ) : null}
           </div>
         </section>
+
+      {/* Below Unresolved on purpose: Overview answers "what's outstanding"
+          first and draws the plan second. `TripRoute` renders nothing at all
+          when no day has an overnight place yet. */}
+      <TripRoute days={routeDays} transportModes={transportModes} />
     </Page>
   );
 }
