@@ -489,9 +489,10 @@ export function DaysCalendar({
     }
 
     commit(dropped);
+    // A drag moves the event and nothing else (ticket 141): it must not open
+    // the pane, which is what a plain click is for. `keptSelection` still goes
+    // up, so the release's click doesn't clear a selection made before it.
     keptSelection.current = true;
-    setSelected(event.id);
-    setTab("event");
     const day = days.find((d) => d.id === dropped.dayId);
     say(
       `${event.title} moved to ${day?.longLabel ?? "another day"}, ` +
