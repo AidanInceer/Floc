@@ -77,8 +77,12 @@ import { EVENT_CATEGORIES } from "@/lib/event-categories";
 /** Pixels per hour. Tall enough that a 15-minute block is still a target. */
 const HOUR_PX = 56;
 
-/** The clock column, wide enough for `00:00` in the mono face. */
-const GUTTER_PX = 58;
+/**
+ * The clock column, wide enough for `00:00` in the mono face — and, since
+ * ticket 141, for the band's own label beside it, which is the longest word any
+ * row puts there.
+ */
+const GUTTER_PX = 66;
 
 /** A day column never gets thinner than this; the grid scrolls instead. */
 const COLUMN_MIN_PX = { week: 120, day: 240 } as const;
@@ -180,6 +184,13 @@ type BandSpan = {
   end: string;
   placeId: number | null;
   placeName: string | null;
+  /**
+   * The days this span has taken *off* a run — what a shrink uncovers. They
+   * have to be part of the picture: a handle dragged in off Friday that leaves
+   * Friday drawn as it was reads as a split into two stays, which is the
+   * opposite of what the gesture is doing.
+   */
+  uncovered?: [string, string][];
 };
 
 /** How close to the calendar's edge a drag has to get before the page turns. */
@@ -690,6 +701,15 @@ export function DaysCalendar({
           preview: overlayIsDrag,
         };
       }
+      // A day the drag has pulled off its run reads as undecided from the first
+      // pixel, because that is what letting go would make it.
+      if (
+        bandOverlay?.uncovered?.some(
+          ([from, to]) => !day.outside && day.date >= from && day.date <= to,
+        )
+      ) {
+        return { id: null, name: null, preview: false };
+      }
       return {
         id: day.overnightPlaceId,
         name: day.overnightPlaceName,
@@ -747,8 +767,15 @@ export function DaysCalendar({
       const covered = days.filter(
         (d) => !d.outside && d.date >= pending.start && d.date <= pending.end,
       );
+      const emptied = days.filter(
+        (d) =>
+          !d.outside &&
+          pending.uncovered?.some(([from, to]) => d.date >= from && d.date <= to),
+      );
       const landed =
-        covered.length > 0 && covered.every((d) => d.overnightPlaceId === pending.placeId);
+        covered.length > 0 &&
+        covered.every((d) => d.overnightPlaceId === pending.placeId) &&
+        emptied.every((d) => d.overnightPlaceId === null);
       return landed ? null : pending;
     });
   }, [days]);
@@ -781,9 +808,9 @@ export function DaysCalendar({
        */
       setPendingBand(
         place === null
-          ? { ...span, placeId: null, placeName: null }
+          ? { ...span, placeId: null, placeName: null, uncovered: cleared }
           : "placeId" in place
-            ? { ...span, placeId: place.placeId }
+            ? { ...span, placeId: place.placeId, uncovered: cleared }
             : null,
       );
       startTransition(async () => {
@@ -825,7 +852,13 @@ export function DaysCalendar({
     if (date) {
       const [start, end] =
         date < drag.anchorDate ? [date, drag.anchorDate] : [drag.anchorDate, date];
-      drag.span = { start, end, placeId: drag.placeId, placeName: drag.placeName };
+      drag.span = {
+        start,
+        end,
+        placeId: drag.placeId,
+        placeName: drag.placeName,
+        uncovered: uncoveredBy(drag, { start, end }),
+      };
       setBandSpan(drag.span);
     }
 
@@ -864,13 +897,7 @@ export function DaysCalendar({
       return;
     }
 
-    const cleared: [string, string][] = [];
-    if (drag.runStart < span.start) {
-      cleared.push([drag.runStart, addDaysToDate(span.start, -1)]);
-    }
-    if (drag.runEnd > span.end) cleared.push([addDaysToDate(span.end, 1), drag.runEnd]);
-
-    commitBand(span, { placeId: drag.placeId }, cleared);
+    commitBand(span, { placeId: drag.placeId }, span.uncovered ?? []);
     say(`${drag.placeName ?? "Overnight place"} now ${describeSpan(days, span)}.`);
   };
 
@@ -1088,8 +1115,14 @@ export function DaysCalendar({
               onPointerUp={onBandPointerUp}
               onPointerCancel={onBandPointerUp}
             >
-              <div className="sticky left-0 z-20 border-r border-rule bg-sheet px-2 py-1.5 text-right">
-                <span className="typed">Overnight</span>
+              {/* Not `.typed`: at 11px with 0.08em of tracking the word is
+                  wider than the clock column it shares, and it ran under the
+                  rule. Same mono face, two steps down, tracking eased — the
+                  gutter is sized for `00:00`, not for nine letters. */}
+              <div className="sticky left-0 z-20 flex items-center justify-end border-r border-rule bg-sheet px-1.5 py-1.5">
+                <span className="font-mono text-[9px] uppercase tracking-[0.02em] text-ink-faint">
+                  Overnight
+                </span>
               </div>
 
               {bandRuns.map((run) => {
@@ -1216,7 +1249,13 @@ export function DaysCalendar({
                     {/* The ends are grabbable, both of them: a stay has two
                         edges, and a bar with one live end teaches nothing about
                         why. Hidden from the reader with a keyboard, who has the
-                        dialog's own last-day field instead. */}
+                        dialog's own last-day field instead.
+
+                        Drawn as the event block's grip pill, turned on its
+                        side: a thin bar inside a wider hit strip, so the target
+                        stays a target while the mark stays quiet. In the pen's
+                        blue rather than the bar's own ink — a handle is a
+                        control, and the yellow made it read as more stay. */}
                     {!run.preview && run.placeId !== null
                       ? (
                           [
@@ -1243,11 +1282,15 @@ export function DaysCalendar({
                                   }),
                                 );
                               }}
-                              className={cx(
-                                "absolute inset-y-1.5 w-1.5 cursor-ew-resize rounded-full bg-pen/50 hover:bg-pen",
-                                side,
-                              )}
-                            />
+                              className={cx("absolute inset-y-1 w-2 cursor-ew-resize", side)}
+                            >
+                              <span
+                                className={cx(
+                                  "absolute top-1/2 h-[14px] w-[2px] -translate-y-1/2 rounded-full bg-pen opacity-45",
+                                  edge === "start" ? "left-[2px]" : "right-[2px]",
+                                )}
+                              />
+                            </span>
                           ))
                       : null}
                   </div>
@@ -1602,6 +1645,23 @@ function OvernightDialog({
       </div>
     </dialog>
   );
+}
+
+/**
+ * The days a drag has pulled off the run it started on — the shrink's other
+ * half. A handle drag says two things at once: these days take the place, and
+ * those ones lose it.
+ */
+function uncoveredBy(
+  drag: BandDrag,
+  span: { start: string; end: string },
+): [string, string][] {
+  const ranges: [string, string][] = [];
+  if (drag.runStart < span.start) {
+    ranges.push([drag.runStart, addDaysToDate(span.start, -1)]);
+  }
+  if (drag.runEnd > span.end) ranges.push([addDaysToDate(span.end, 1), drag.runEnd]);
+  return ranges;
 }
 
 /** "Monday 12 May", or both ends of a run. */
