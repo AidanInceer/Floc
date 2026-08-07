@@ -214,7 +214,6 @@ export function DaysCalendar({
   events,
   panels,
   tripThread,
-  dayActions,
   removeDayControls,
   submitEvent,
   rescheduleEvent,
@@ -228,8 +227,6 @@ export function DaysCalendar({
   panels: Record<number, ReactNode>;
   /** The trip-wide thread, for the pane's second tab. */
   tripThread: ReactNode;
-  /** "Add a day" — server-rendered, because it is a form. */
-  dayActions: ReactNode;
   /** "Remove day", one per day id, shown in Day view where there is room. */
   removeDayControls: Record<number, ReactNode>;
   submitEvent: (formData: FormData) => Promise<void>;
@@ -971,20 +968,6 @@ export function DaysCalendar({
           ))}
         </div>
 
-        {dayActions}
-        <Button
-          variant="primary"
-          onClick={() =>
-            openAdd(
-              // The first day of the page the trip is actually on — never one
-              // of the padding columns, which have no row to write to.
-              (labelled[0] ?? days.find((d) => !d.outside) ?? days[0]).id,
-              9 * 60,
-            )
-          }
-        >
-          Add event
-        </Button>
       </div>
 
       {/* A one-line explanation whenever the layout has decided something for
@@ -1623,7 +1606,8 @@ function OvernightDialog({
             undecided day is already the answer this would give. */}
         {span.placeId !== null ? (
           <div>
-            {/* The toolbar's weight — Today, Add a day — rather than a ghost.
+            {/* The toolbar's weight — Today, the paging arrows — rather than
+                a ghost.
                 A tinted bar with no edge to it read as a heading for the field
                 below rather than as the thing you press. */}
             <Button type="button" onClick={onClear}>
@@ -1779,8 +1763,8 @@ function DayColumn({
 
       {/* A click anywhere empty is "add one here" — at the minute the cursor
           is actually on, not the quarter hour it is nearest. Reached by keyboard
-          it has no coordinates to read, so it opens at nine, which is where the
-          toolbar's own Add event starts too. */}
+          it has no coordinates to read, so it opens at nine — a column is the
+          only way in, so it has to answer to a keyboard as well as a pointer. */}
       <button
         type="button"
         aria-label={`Add an event on ${day.longLabel}`}

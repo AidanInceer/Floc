@@ -243,11 +243,6 @@ export default async function DaysPage({
         events={calendarEvents}
         panels={panels}
         removeDayControls={removeDayControls}
-        dayActions={
-          <form action={addDays.bind(null, trip.id, days[days.length - 1].date, 1)}>
-            <SubmitButton variant="secondary">Add a day</SubmitButton>
-          </form>
-        }
         submitEvent={submitEvent.bind(null, trip.id)}
         rescheduleEvent={rescheduleEvent.bind(null, trip.id)}
         moveEventToDay={moveEventToAnotherDay.bind(null, trip.id)}
