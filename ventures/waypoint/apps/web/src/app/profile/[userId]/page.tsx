@@ -28,6 +28,7 @@ import {
   Stack,
 } from "@/components/ui";
 import { FriendButton } from "@/components/friend-button";
+import { PersonLink } from "@/components/person-link";
 import { TravelMap } from "@/components/travel-map";
 
 export default async function PublicProfilePage({
@@ -125,6 +126,52 @@ export default async function PublicProfilePage({
                         {formatDateRange(t.startDate, t.endDate)}
                         {t.place ? ` · ${t.place}` : ""}
                       </span>
+                    </div>
+                  ))}
+                </Stack>
+              )}
+            </div>
+          </Card>
+        ) : null}
+
+        {/* Friends-of-friends (ticket 145). Absent, not empty, when the ring
+            shuts the viewer out — a card saying "hidden" would answer the
+            question the ring exists to refuse. */}
+        {profile.friends ? (
+          <Card>
+            <CardHeader title="Their friends" />
+            <div className="p-4">
+              {profile.friends.length === 0 ? (
+                <p className="text-sm text-ink-soft">Nobody to show yet.</p>
+              ) : (
+                <Stack gap={3}>
+                  {profile.friends.map((f) => (
+                    <div
+                      key={f.id}
+                      className="flex items-center justify-between gap-3"
+                    >
+                      <div className="flex items-center gap-2">
+                        {/* A link only where it lands somewhere: anyone the
+                            viewer isn't friends with yet may well be outside
+                            every ring, and that profile 404s (ticket 46). */}
+                        {f.state === "friends" ? (
+                          <PersonLink
+                            userId={f.id}
+                            name={f.name}
+                            avatarUrl={f.avatarUrl}
+                          />
+                        ) : (
+                          <Avatar name={f.name} src={f.avatarUrl} />
+                        )}
+                        <span className="text-sm">{f.name}</span>
+                      </div>
+                      <FriendButton
+                        userId={f.id}
+                        name={f.name}
+                        state={f.state}
+                        viaId={profile.userId}
+                        compact
+                      />
                     </div>
                   ))}
                 </Stack>

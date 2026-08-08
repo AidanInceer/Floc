@@ -64,6 +64,13 @@
       "when": 1786144181555,
       "tag": "0008_trip_invites",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1786178397250,
+      "tag": "0009_friends_visibility",
+      "breakpoints": true
     }
   ]
 }

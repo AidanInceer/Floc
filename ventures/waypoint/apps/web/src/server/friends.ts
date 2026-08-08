@@ -9,7 +9,7 @@
  */
 import "server-only";
 
-import { and, eq, inArray, isNull, lt, ne, or } from "drizzle-orm";
+import { and, count, eq, inArray, isNull, lt, ne, or } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { revalidatePath } from "next/cache";
 
@@ -215,6 +215,67 @@ export async function listFriendsFor(viewerId: string): Promise<Person[]> {
   return [...people.values()].sort((a, b) =>
     a.name.localeCompare(b.name, "en-GB", { sensitivity: "base" }),
   );
+}
+
+/**
+ * The ids of everyone `ownerId` is accepted friends with (ticket 145).
+ *
+ * Ids only, and no visibility judgement: who may *see* this list is
+ * `server/visibility.ts`'s call, and mixing the two here is how a read grows a
+ * second, quieter permission model beside the real one.
+ */
+export async function acceptedFriendIdsOf(ownerId: string): Promise<string[]> {
+  const rows = await listFriendshipsFor(ownerId);
+  return rows
+    .filter((r) => r.status === "accepted")
+    .map((r) => (r.userId === ownerId ? r.friendId : r.userId));
+}
+
+/**
+ * Whether `targetId` is reachable from `viewerId` through `viaId` — the
+ * friend-of-a-friend chain, re-derived (ticket 145).
+ *
+ * The discovery surface is somebody else's friends list, so the permission to
+ * ask has to be the same shape: the viewer is friends with the middle person,
+ * and the target is friends with the middle person. Whether the viewer was
+ * *allowed to see* that list is a visibility question and is checked separately
+ * — this is the half that lives with the friendship rows.
+ */
+export async function friendOfFriend(
+  viewerId: string,
+  viaId: string,
+  targetId: string,
+): Promise<boolean> {
+  if (viaId === viewerId || viaId === targetId) return false;
+
+  const [toVia, viaToTarget] = await Promise.all([
+    friendshipBetween(viewerId, viaId),
+    friendshipBetween(viaId, targetId),
+  ]);
+
+  return toVia?.status === "accepted" && viaToTarget?.status === "accepted";
+}
+
+/**
+ * How many friend requests are sitting on this account (ticket 145) — the
+ * count the chrome badges the Friends link with, so a request is visible on
+ * the next page load rather than only in an email.
+ */
+export async function countIncomingFriendRequests(
+  viewerId: string,
+): Promise<number> {
+  const row = await db
+    .select({ n: count() })
+    .from(friendship)
+    .where(
+      and(
+        isNull(friendship.deletedAt),
+        eq(friendship.status, "pending"),
+        eq(friendship.friendId, viewerId),
+      ),
+    )
+    .get();
+  return row?.n ?? 0;
 }
 
 export type FriendState = "none" | "friends" | "outgoing" | "incoming";

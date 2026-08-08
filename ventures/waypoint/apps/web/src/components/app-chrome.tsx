@@ -68,15 +68,16 @@ const navLinkClass =
   "translate-y-[3px] rounded-sm px-2 py-1 text-ink-soft hover:bg-sheet-2 hover:text-ink";
 
 /**
- * How many trip invites are waiting (ticket 146), beside the link that answers
- * them. A count and not a dot: "2" says how much is behind the link, which a
- * dot never does, and the number is also what the screen reader reads out.
+ * How much is waiting behind a link — trip invites (ticket 146) and friend
+ * requests (ticket 145). A count and not a dot: "2" says how much is behind the
+ * link, which a dot never does, and the number is also what the screen reader
+ * reads out.
  */
-function InviteCount({ count }: { count: number }) {
+function WaitingCount({ count, label }: { count: number; label: string }) {
   return (
     <span
       className="ml-1 inline-flex min-w-[17px] items-center justify-center rounded-full bg-pen px-1 text-[10.5px] font-semibold leading-[17px] text-paper"
-      aria-label={`${count} trip ${count === 1 ? "invitation" : "invitations"} waiting`}
+      aria-label={`${count} ${label} waiting`}
     >
       {count}
     </span>
@@ -86,11 +87,25 @@ function InviteCount({ count }: { count: number }) {
 export function AppChrome({
   user,
   inviteCount = 0,
+  friendRequestCount = 0,
 }: {
   user: { id: string; name: string; image: string | null } | null;
   /** Open trip invites for this account — badges the Trips link. */
   inviteCount?: number;
+  /** Friend requests waiting on this account — badges the Friends link. */
+  friendRequestCount?: number;
 }) {
+  const waiting: Record<string, { count: number; label: string }> = {
+    "/trips": {
+      count: inviteCount,
+      label: `trip ${inviteCount === 1 ? "invitation" : "invitations"}`,
+    },
+    "/friends": {
+      count: friendRequestCount,
+      label: `friend ${friendRequestCount === 1 ? "request" : "requests"}`,
+    },
+  };
+
   return (
     <header className="sticky top-0 z-20 border-b border-rule bg-paper/90 backdrop-blur">
       <div className="mx-auto flex h-14 w-full max-w-[84rem] items-center gap-4 px-4 sm:px-6">
@@ -123,8 +138,11 @@ export function AppChrome({
                 {accountLinks.map((l) => (
                   <Link key={l.href} href={l.href} className={navLinkClass}>
                     {l.label}
-                    {l.href === "/trips" && inviteCount > 0 ? (
-                      <InviteCount count={inviteCount} />
+                    {waiting[l.href]?.count ? (
+                      <WaitingCount
+                        count={waiting[l.href].count}
+                        label={waiting[l.href].label}
+                      />
                     ) : null}
                   </Link>
                 ))}

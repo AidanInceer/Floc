@@ -18,7 +18,12 @@ import { and, eq, inArray, isNull, or } from "drizzle-orm";
 import { notFound } from "next/navigation";
 
 import { db } from "@/db";
-import { sharedTripIds } from "@/server/friends";
+import {
+  acceptedFriendIdsOf,
+  friendStatesFor,
+  sharedTripIds,
+  type FriendState,
+} from "@/server/friends";
 import { bounded, LIMITS } from "@/server/limits";
 import {
   day,
@@ -128,6 +133,15 @@ export type PastTrip = {
   place: string | null;
 };
 
+/** One row of someone's friends list, as the viewer is allowed to see it. */
+export type ProfileFriend = {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+  /** Where the viewer stands with them — what the row's control renders. */
+  state: FriendState;
+};
+
 export type PublicProfile = {
   userId: string;
   name: string;
@@ -139,6 +153,11 @@ export type PublicProfile = {
   pastTrips: PastTrip[] | null;
   /** The travel map (ticket 95) — `null` when its ring shuts the viewer out. */
   travelMap: TravelMap | null;
+  /**
+   * Their friends (ticket 145) — `null` when the ring shuts the viewer out,
+   * empty when it doesn't and there's nobody left to show.
+   */
+  friends: ProfileFriend[] | null;
 };
 
 /**
@@ -164,6 +183,7 @@ export async function requireProfileView(
       visibilityVibeTags: userProfile.visibilityVibeTags,
       pastTripsShow: userProfile.pastTripsShow,
       visibilityTravelMap: userProfile.visibilityTravelMap,
+      visibilityFriends: userProfile.visibilityFriends,
     })
     .from(user)
     .leftJoin(userProfile, eq(userProfile.userId, user.id))
@@ -179,6 +199,8 @@ export async function requireProfileView(
   const vibes = row.visibilityVibeTags ?? "trip_members";
   const pastTripsShow: PastTripsShow = row.pastTripsShow ?? "all";
   const travelMap = row.visibilityTravelMap ?? "trip_members";
+  // One ring tighter by default than the rest — see the column's comment.
+  const friendsRing = row.visibilityFriends ?? "friends";
 
   /*
    * The two expensive halves go out together (ticket 114) — they were awaited
@@ -191,10 +213,12 @@ export async function requireProfileView(
    */
   const showPastTrips = relation === "self" || !isPrivate;
   const showTravelMap = showsAttribute(relation, travelMap, isPrivate);
+  const showFriends = showsAttribute(relation, friendsRing, isPrivate);
 
-  const [pastTrips, travelMapValue] = await Promise.all([
+  const [pastTrips, travelMapValue, friends] = await Promise.all([
     showPastTrips ? pastTripsFor(ownerId, pastTripsShow) : null,
     showTravelMap ? travelMapFor(ownerId) : null,
+    showFriends ? friendsOnProfile(ownerId, viewerId) : null,
   ]);
 
   return {
@@ -212,7 +236,108 @@ export async function requireProfileView(
       : null,
     pastTrips,
     travelMap: travelMapValue,
+    friends,
   };
+}
+
+/**
+ * Whether `viewerId` is inside the ring `ownerId` set on their friends list
+ * (ticket 145) — the same question `requireProfileView` answers on its way to
+ * rendering the list, asked on its own by the action that trusts it.
+ *
+ * Kept as a separate read rather than a flag threaded through the page: the
+ * request arrives as its own round trip with nothing but form fields, so it
+ * has to re-derive this from the database or not know it at all.
+ */
+export async function canSeeFriendsOf(
+  ownerId: string,
+  viewerId: string,
+): Promise<boolean> {
+  const [relation, row] = await Promise.all([
+    relationTo(viewerId, ownerId),
+    db
+      .select({
+        isPrivate: userProfile.isPrivate,
+        visibilityFriends: userProfile.visibilityFriends,
+      })
+      .from(userProfile)
+      .where(eq(userProfile.userId, ownerId))
+      .get(),
+  ]);
+
+  return showsAttribute(
+    relation,
+    row?.visibilityFriends ?? "friends",
+    row?.isPrivate ?? false,
+  );
+}
+
+/**
+ * The owner's friends, as this viewer may see them (ticket 145).
+ *
+ * Two exclusions, and both are the point rather than tidiness:
+ *
+ * - **The viewer.** You are not a discovery result on your own screen.
+ * - **Anyone whose own profile is private.** A friends list is the one
+ *   attribute that publishes *third parties* — people who never chose to appear
+ *   on this page. The profile-wide switch is the closest thing they have to a
+ *   say in it, so it's honoured here even though the list belongs to somebody
+ *   else. It's the same instinct that keeps a trip roster off a profile at all.
+ *
+ * The list is names and faces only. It does not say how the owner knows any of
+ * them, and it carries no route into their trips.
+ */
+async function friendsOnProfile(
+  ownerId: string,
+  viewerId: string,
+): Promise<ProfileFriend[]> {
+  const ids = (await acceptedFriendIdsOf(ownerId)).filter((id) => id !== viewerId);
+  if (ids.length === 0) return [];
+
+  const rows = await db
+    .select({
+      id: user.id,
+      name: user.name,
+      image: user.image,
+      displayName: userProfile.displayName,
+      avatarUrl: userProfile.avatarUrl,
+      isPrivate: userProfile.isPrivate,
+      visibilityPicture: userProfile.visibilityPicture,
+    })
+    .from(user)
+    .leftJoin(userProfile, eq(userProfile.userId, user.id))
+    .where(inArray(user.id, ids))
+    .limit(LIMITS.members * LIMITS.tripsPerUser)
+    .all();
+
+  const states = await friendStatesFor(viewerId, ids);
+
+  return rows
+    .filter((r) => !r.isPrivate)
+    .map((r) => {
+      const state = states.get(r.id) ?? "none";
+      return {
+        id: r.id,
+        name: r.displayName ?? r.name ?? "Someone",
+        /*
+         * Their own picture ring still applies, and it's read against the
+         * *viewer's* standing with them, not the owner's — being listed on a
+         * friend's page must not be a wider audience than their own profile
+         * grants. Anyone the viewer isn't already friends with is scored at the
+         * widest ring, which is the weakest claim we can make without another
+         * `relationTo` per row. A picture that doesn't clear it falls back to
+         * initials, as everywhere else.
+         */
+        avatarUrl: canSee(
+          state === "friends" ? "friend" : "co_traveller",
+          r.visibilityPicture ?? "trip_members",
+        )
+          ? (r.avatarUrl ?? r.image ?? null)
+          : null,
+        state,
+      };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name, "en-GB", { sensitivity: "base" }));
 }
 
 /**

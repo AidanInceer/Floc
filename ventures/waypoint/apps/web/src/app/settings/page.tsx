@@ -168,6 +168,22 @@ export default async function SettingsPage() {
               </Field>
 
               <Field
+                label="Your friends list"
+                hint="The only thing here that names other people, so it starts tighter than the rest. Anyone who's made their own profile private stays off it whatever you choose."
+              >
+                <Select
+                  name="visibilityFriends"
+                  defaultValue={profile.visibilityFriends}
+                >
+                  {Object.entries(RING_LABELS).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+
+              <Field
                 label="Past trips"
                 hint="Ended trips only, and they're hidden entirely while your profile is private."
               >

@@ -1,6 +1,6 @@
 {
   "name": "waypoint-web",
-  "version": "0.25.0",
+  "version": "0.26.0",
   "private": true,
   "description": "Waypoint v1 — group travel planner. Next.js App Router + Turso (libSQL) + Drizzle + Better Auth.",
   "type": "module",
@@ -16,7 +16,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:seed": "node --experimental-strip-types --env-file=.env src/db/seed.ts",
+    "db:seed": "node --experimental-strip-types --import ./scripts/alias-loader-register.mjs --env-file=.env src/db/seed.ts",
     "auth:generate": "better-auth generate"
   },
   "dependencies": {

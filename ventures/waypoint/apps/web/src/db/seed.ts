@@ -19,6 +19,7 @@ import {
   dayEvent,
   expense,
   expenseSplit,
+  friendship,
   idea,
   ideaVote,
   note,
@@ -61,39 +62,132 @@ const PEOPLE = [
   },
 ];
 
-async function main() {
-  const userIds: string[] = [];
+/**
+ * People who are on nobody's trip — they exist only as somebody's friend
+ * (ticket 145), which is the whole point: friends-of-friends discovery has
+ * nothing to show unless the network reaches past the roster. Reachable from a
+ * trip member's profile, and from nowhere else.
+ */
+const FRIENDS_OF_FRIENDS = [
+  {
+    name: "Nadia Haddad",
+    email: "nadia@example.com",
+    vibes: ["hiking", "wild swimming", "slow travel"],
+    currency: "EUR" as const,
+    /** Whose friend they are, by index into PEOPLE. */
+    friendOf: 1,
+  },
+  {
+    name: "Callum Reid",
+    email: "callum@example.com",
+    vibes: ["road trips", "budget", "live music"],
+    currency: "GBP" as const,
+    friendOf: 2,
+  },
+  {
+    name: "Mei Tanaka",
+    email: "mei@example.com",
+    vibes: ["museums and galleries", "city breaks", "food and markets"],
+    currency: "GBP" as const,
+    friendOf: 3,
+  },
+  {
+    name: "Jonas Berg",
+    email: "jonas@example.com",
+    vibes: ["skiing and snow", "worth splashing out", "late nights"],
+    currency: "EUR" as const,
+    friendOf: 1,
+  },
+];
 
-  for (const person of PEOPLE) {
-    const existing = await db
-      .select()
-      .from(user)
-      .where(eq(user.email, person.email))
-      .get();
+/**
+ * Every seeded profile is deliberately open — the widest ring on every
+ * attribute and the profile-wide switch off. A private-by-default seed makes
+ * the discovery surfaces look broken when they're working exactly as set.
+ */
+const PUBLIC_RINGS = {
+  isPrivate: false,
+  visibilityPicture: "trip_members",
+  visibilityVibeTags: "trip_members",
+  visibilityTravelMap: "trip_members",
+  visibilityFriends: "trip_members",
+  pastTripsShow: "all",
+} as const;
 
-    const id = existing?.id ?? randomUUID();
-    if (!existing) {
-      await db.insert(user).values({
-        id,
-        name: person.name,
-        email: person.email,
-        emailVerified: true,
-      });
-    }
-    await db
-      .insert(userProfile)
-      .values({
-        userId: id,
-        displayName: person.name,
-        homeCurrency: person.currency,
-        vibeTags: person.vibes,
-        signupChannel: "direct",
-      })
-      .onConflictDoNothing();
-    userIds.push(id);
+/**
+ * Finds or makes the account, then writes the profile — **upserting**, not
+ * skipping. A seed that leaves an existing profile alone can never roll a newly
+ * added column forward, which is how re-seeding stops changing anything.
+ */
+async function upsertPerson(person: {
+  name: string;
+  email: string;
+  vibes: string[];
+  currency: (typeof PEOPLE)[number]["currency"];
+}): Promise<string> {
+  const existing = await db
+    .select()
+    .from(user)
+    .where(eq(user.email, person.email))
+    .get();
+
+  const id = existing?.id ?? randomUUID();
+  if (!existing) {
+    await db.insert(user).values({
+      id,
+      name: person.name,
+      email: person.email,
+      emailVerified: true,
+    });
   }
 
+  const fields = {
+    displayName: person.name,
+    homeCurrency: person.currency,
+    vibeTags: person.vibes,
+    signupChannel: "direct" as const,
+    ...PUBLIC_RINGS,
+  };
+
+  await db
+    .insert(userProfile)
+    .values({ userId: id, ...fields })
+    .onConflictDoUpdate({ target: userProfile.userId, set: fields });
+
+  return id;
+}
+
+/** One accepted friendship, in the canonical lower-id-first direction. */
+async function makeFriends(a: string, b: string): Promise<void> {
+  const [lo, hi] = a < b ? [a, b] : [b, a];
+  await db
+    .insert(friendship)
+    .values({ userId: lo, friendId: hi, status: "accepted", origin: "request" })
+    .onConflictDoUpdate({
+      target: [friendship.userId, friendship.friendId],
+      set: { status: "accepted", deletedAt: null },
+    });
+}
+
+async function main() {
+  const userIds: string[] = [];
+  for (const person of PEOPLE) userIds.push(await upsertPerson(person));
+
   const [aidan, priya, tom, sofia] = userIds;
+
+  // The four travellers all know each other — they're planning a trip together.
+  for (let i = 0; i < userIds.length; i++) {
+    for (let j = i + 1; j < userIds.length; j++) {
+      await makeFriends(userIds[i], userIds[j]);
+    }
+  }
+
+  // …and each of them knows somebody the others don't, which is what makes a
+  // friend's profile worth opening (ticket 145).
+  for (const person of FRIENDS_OF_FRIENDS) {
+    const id = await upsertPerson(person);
+    await makeFriends(userIds[person.friendOf], id);
+  }
 
   // Dates chosen relative to today so the trip is always upcoming.
   const start = isoIn(38);

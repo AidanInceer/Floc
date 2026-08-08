@@ -190,6 +190,15 @@ export const userProfile = sqliteTable("user_profile", {
     .notNull()
     .default("trip_members"),
   /**
+   * Who may see your friends list (ticket 145) — the surface friends-of-friends
+   * discovery runs on. **Defaults to `friends`, one ring tighter than the other
+   * display attributes**, because this is the only attribute that names third
+   * parties: widening it publishes people who set nothing themselves.
+   */
+  visibilityFriends: text("visibility_friends", { enum: VISIBILITIES })
+    .notNull()
+    .default("friends"),
+  /**
    * Past trips ride `is_private` rather than carrying a ring of their own
    * (ticket 46) — this only truncates the list.
    */

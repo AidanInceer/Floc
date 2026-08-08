@@ -25,11 +25,17 @@ export function FriendButton({
   name,
   state,
   compact,
+  viaId,
 }: {
   userId: string;
   name: string;
   state: FriendState;
   compact?: boolean;
+  /**
+   * Whose friends list this row was found on (ticket 145). Only the "add"
+   * branch carries it, and only as a claim — the action re-derives the chain.
+   */
+  viaId?: string;
 }) {
   if (state === "friends") {
     // Nothing to do here — removing a friend stays on /friends, where you can
@@ -74,6 +80,7 @@ export function FriendButton({
     // hand back a readable error rather than just redirecting.
     <ActionForm action={requestFriendById}>
       <input type="hidden" name="targetId" value={userId} />
+      {viaId ? <input type="hidden" name="viaId" value={viaId} /> : null}
       <SubmitButton variant="secondary" pendingLabel="Sending…">
         {compact ? "Add" : "Add as friend"}
       </SubmitButton>

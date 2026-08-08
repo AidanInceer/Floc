@@ -1,0 +1,1 @@
+ALTER TABLE `user_profile` ADD `visibility_friends` text DEFAULT 'friends' NOT NULL;

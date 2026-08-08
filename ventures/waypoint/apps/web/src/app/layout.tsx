@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { AppChrome } from "@/components/app-chrome";
 import { getSession } from "@/server/access";
+import { countIncomingFriendRequests } from "@/server/friends";
 import { countPendingInvitesFor } from "@/server/membership";
 
 import "./globals.css";
@@ -19,12 +20,16 @@ export default async function RootLayout({
 }) {
   const session = await getSession();
 
-  // The badge on Trips (ticket 146): an invite is the one thing that can arrive
-  // while you're elsewhere in the app, so it has to be visible from anywhere.
-  // A count, not the invites themselves — the answering happens on /trips.
-  const inviteCount = session?.user
-    ? await countPendingInvitesFor(session.user.id)
-    : 0;
+  // The badges on Trips (ticket 146) and Friends (ticket 145): an invite and a
+  // friend request are the two things that arrive while you're elsewhere in the
+  // app, so both have to be visible from anywhere. Counts, not the things
+  // themselves — the answering happens on the page behind each link.
+  const [inviteCount, friendRequestCount] = session?.user
+    ? await Promise.all([
+        countPendingInvitesFor(session.user.id),
+        countIncomingFriendRequests(session.user.id),
+      ])
+    : [0, 0];
 
   // No `data-theme` and no theme lookup: Waypoint is light-only by design
   // (ticket 07 — ink on paper, and a dark notebook is a different product).
@@ -42,6 +47,7 @@ export default async function RootLayout({
               : null
           }
           inviteCount={inviteCount}
+          friendRequestCount={friendRequestCount}
         />
         <main>{children}</main>
       </body>

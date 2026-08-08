@@ -44,12 +44,14 @@ export async function updatePrivacy(formData: FormData): Promise<{ error?: strin
   const picture = ring("visibilityPicture");
   const vibeTags = ring("visibilityVibeTags");
   const travelMap = ring("visibilityTravelMap");
+  const friends = ring("visibilityFriends");
   const show = String(formData.get("pastTripsShow") ?? "");
 
   if (
     !picture ||
     !vibeTags ||
     !travelMap ||
+    !friends ||
     !PAST_TRIPS_SHOW.includes(show as PastTripsShow)
   ) {
     return { error: "That isn't one of the visibility options." };
@@ -60,6 +62,7 @@ export async function updatePrivacy(formData: FormData): Promise<{ error?: strin
     visibilityPicture: picture,
     visibilityVibeTags: vibeTags,
     visibilityTravelMap: travelMap,
+    visibilityFriends: friends,
     pastTripsShow: show as PastTripsShow,
   });
 

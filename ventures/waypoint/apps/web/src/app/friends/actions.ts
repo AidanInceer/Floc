@@ -18,11 +18,12 @@ import {
   dropFriendship,
   dropPendingRequest,
   findUserById,
+  friendOfFriend,
   friendshipBetween,
   openPendingRequest,
   revalidateFriendship,
 } from "@/server/friends";
-import { relationTo } from "@/server/visibility";
+import { canSeeFriendsOf, relationTo } from "@/server/visibility";
 
 /**
  * Sends a friend request to someone you're already looking at — their profile,
@@ -40,8 +41,24 @@ export async function requestFriendById(formData: FormData): Promise<{ error?: s
   const targetId = String(formData.get("targetId") ?? "");
   if (!targetId || targetId === viewer.id) return {};
 
+  /*
+   * The second way in (ticket 145): somebody you met on a friend's friends
+   * list, who is in none of your rings and whose profile still 404s for you.
+   *
+   * `viaId` is the page you found them on, and it buys nothing on its own —
+   * the whole chain is re-derived here. Both halves have to be *accepted*
+   * friendships, and the middle person has to have been showing you their
+   * list in the first place, which is the check that keeps this from becoming
+   * "post any two ids and learn whether they know each other".
+   */
+  const viaId = String(formData.get("viaId") ?? "");
+  const viaChain = viaId
+    ? (await friendOfFriend(viewer.id, viaId, targetId)) &&
+      (await canSeeFriendsOf(viaId, viewer.id))
+    : false;
+
   const relation = await relationTo(viewer.id, targetId);
-  if (!relation || relation === "self") return {};
+  if ((!relation || relation === "self") && !viaChain) return {};
 
   const target = await findUserById(targetId);
   if (!target) return {};
@@ -65,6 +82,9 @@ export async function requestFriendById(formData: FormData): Promise<{ error?: s
   );
 
   revalidateFriendship(target.id);
+  // The button that sent this is on the middle person's page, not the
+  // target's, so that's the one that has to redraw.
+  if (viaChain) revalidateFriendship(viaId);
   return {};
 }
 
