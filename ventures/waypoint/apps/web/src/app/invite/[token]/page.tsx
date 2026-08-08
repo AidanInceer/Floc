@@ -7,6 +7,7 @@
  * Never reveals member emails, expense amounts, or note bodies pre-auth —
  * those need membership, not just the link.
  */
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
 import { getSession } from "@/server/access";
@@ -14,9 +15,11 @@ import { countIdeas } from "@/server/ideas";
 import { listRouteDays } from "@/server/itinerary";
 import {
   countMembers,
+  findPendingInvite,
   findTripByInviteToken,
   isLiveMember,
 } from "@/server/membership";
+import { peopleByIds } from "@/server/friends";
 import { formatDateRange } from "@/lib/dates";
 import {
   Badge,
@@ -28,6 +31,41 @@ import {
 } from "@/components/ui";
 import { SubmitButton } from "@/components/client-ui";
 import { joinTrip } from "./actions";
+
+/**
+ * The link names the trip (ticket 147).
+ *
+ * The URL itself stays opaque — the token is the only thing standing between a
+ * stranger and the teaser, so putting the trip's name in the path would leak it
+ * to every proxy and history the link passes through. The *page* carries the
+ * context instead, and this is the half of it that survives being pasted into
+ * a chat: the tab title and the link preview.
+ *
+ * A missing trip gets the generic title, not a 404 shout — `notFound()` below
+ * is what answers a dead token, and metadata shouldn't answer it first.
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ token: string }>;
+}): Promise<Metadata> {
+  const { token } = await params;
+  const found = await findTripByInviteToken(token);
+  if (!found) return { title: "Waypoint" };
+
+  const title = `You've been invited to join “${found.name}”`;
+  const description = found.hostName
+    ? `${found.hostName} is planning ${found.name} on Waypoint.`
+    : `${found.name} is being planned on Waypoint.`;
+
+  return {
+    title,
+    description,
+    openGraph: { title, description },
+    // A trip invite is for the group, not for a search index.
+    robots: { index: false, follow: false },
+  };
+}
 
 export default async function InvitePage({
   params,
@@ -63,6 +101,24 @@ export default async function InvitePage({
     if (stops[stops.length - 1] !== label) stops.push(label);
   }
 
+  /*
+   * Who is doing the inviting (ticket 147). Two different people can be the
+   * honest answer, so the page prefers the specific one:
+   *
+   *  - Somebody signed in who was asked onto this trip **by name** (ticket 146)
+   *    has a real inviter, and naming them is what makes the link recognisable.
+   *  - Everyone else is holding a link that anybody could have forwarded, so
+   *    the most we can truthfully say is who started the trip. Claiming they
+   *    sent *this* link would be a guess.
+   */
+  const namedInvite = session?.user
+    ? await findPendingInvite(found.id, session.user.id)
+    : undefined;
+  const inviterName = namedInvite
+    ? ((await peopleByIds([namedInvite.fromUserId])).get(namedInvite.fromUserId)
+        ?.name ?? null)
+    : null;
+
   const redirectTo = `/invite/${token}`;
 
   return (
@@ -70,13 +126,17 @@ export default async function InvitePage({
       <div className="mx-auto max-w-lg pt-10">
         <Card>
           <CardHeader
-            title="You're invited"
+            title={inviterName ? `${inviterName} invited you` : "You're invited"}
             hint="Waypoint — plan a trip with the group"
           />
           <Stack gap={4} className="p-5">
             <div>
+              {/* The trip's name is the headline — the whole point of ticket
+                  147 is that this page, not the opaque URL, is what says what
+                  you're being asked to join. */}
               <h1 className="font-display text-2xl font-semibold">{found.name}</h1>
               <p className="mt-1 text-sm text-ink-soft">
+                {found.hostName ? `Started by ${found.hostName} — ` : null}
                 {memberCount} {memberCount === 1 ? "person" : "people"} already in
               </p>
             </div>

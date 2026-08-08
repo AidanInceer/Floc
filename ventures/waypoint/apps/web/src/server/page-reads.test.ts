@@ -324,13 +324,16 @@ describe("the trip lists and the invite teaser", () => {
     expect(await countMembers(world.ours.id)).toBe(1);
   });
 
-  it("resolves an invite token to the three fields the teaser may show", async () => {
+  it("resolves an invite token to the fields the teaser may show", async () => {
     const found = await findTripByInviteToken("token-ours");
+    // The host's name joined on in ticket 147 — the link has to say who is
+    // planning the trip. Their name only: no email, no id.
     expect(found).toEqual({
       id: world.ours.id,
       name: "Ours",
       startDate: null,
       endDate: null,
+      hostName: "Ada",
     });
     expect(await findTripByInviteToken("token-nope")).toBeUndefined();
   });
