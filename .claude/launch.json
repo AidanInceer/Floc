@@ -16,6 +16,12 @@
       "port": 3000
     },
     {
+      "name": "docs",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "docs", "-p", "4000", "--no-clipboard"],
+      "port": 4000
+    },
+    {
       "name": "waypoint-prototype",
       "runtimeExecutable": "corepack",
       "runtimeArgs": ["pnpm", "--filter", "waypoint-prototype", "dev"],
