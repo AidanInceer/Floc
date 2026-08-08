@@ -12,10 +12,12 @@
  * ticket 05), and the nudge itself is delivered by email in `sendNudge` — so
  * dropping the old "waiting on you" list doesn't leave nudges undeliverable.
  */
-import { Badge } from "@/components/ui";
+import { Avatar, Badge } from "@/components/ui";
 import { PersonLink } from "@/components/person-link";
 import { FriendButton } from "@/components/friend-button";
-import type { FriendState } from "@/server/friends";
+import { FriendPicker } from "@/components/friend-picker";
+import type { FriendState, Person } from "@/server/friends";
+import type { PendingInvitee } from "@/server/membership";
 import { Field, Select, Stack, Textarea } from "@/components/ui";
 import {
   ConfirmSubmit,
@@ -29,6 +31,7 @@ import {
 import { NUDGE_TABS } from "@/db/schema";
 import type { TripMember } from "@/server/access";
 import {
+  inviteFriends,
   kickMember,
   promoteMember,
   sendNudge,
@@ -48,6 +51,8 @@ export function TripRoster({
   isAdmin,
   inviteUrl,
   friendStates,
+  pendingInvitees,
+  friends,
 }: {
   tripId: number;
   viewerId: string;
@@ -57,6 +62,10 @@ export function TripRoster({
   inviteUrl?: string;
   /** userId → where you stand with them (ticket 96), resolved in one query. */
   friendStates: Map<string, FriendState>;
+  /** Asked by name and yet to answer (ticket 146). Shown to every member. */
+  pendingInvitees: PendingInvitee[];
+  /** The viewer's friends, for the picker. Empty for a non-admin. */
+  friends: Person[];
 }) {
   return (
     <section className="tape-panel rounded-md border border-rule-strong bg-sheet-2 p-5">
@@ -68,7 +77,32 @@ export function TripRoster({
           that shouldn't be read off a shared screen. The button copies it.
         */}
         {inviteUrl ? (
-          <CopyLink value={inviteUrl} label="Share trip" variant="primary" icon={<ShareIcon />} />
+          <span className="flex items-center gap-2">
+            {/* Named invites first (ticket 146): asking a friend you already
+                have is one tap, and the link is the fallback for everyone
+                else. Both are the same admin power (rule 6). */}
+            <Sheet
+              trigger="Invite friends"
+              title="Invite friends"
+              triggerVariant="secondary"
+            >
+              <form action={inviteFriends}>
+                <input type="hidden" name="tripId" value={tripId} />
+                <Stack gap={3}>
+                  <FriendPicker
+                    friends={friends}
+                    excludeIds={[
+                      ...members.map((m) => m.userId),
+                      ...pendingInvitees.map((p) => p.userId),
+                    ]}
+                    emptyNote="Everyone you're friends with is already on this trip, or has been asked."
+                  />
+                  <SubmitButton pendingLabel="Inviting…">Send invites</SubmitButton>
+                </Stack>
+              </form>
+            </Sheet>
+            <CopyLink value={inviteUrl} label="Share trip" variant="primary" icon={<ShareIcon />} />
+          </span>
         ) : null}
       </div>
 
@@ -205,9 +239,29 @@ export function TripRoster({
             )}
           </li>
         ))}
+        {/* Asked, not answered (ticket 146). In the same list rather than a
+            panel of its own — "who's going" is one question, and an invite out
+            is part of the answer. Muted and captioned, never a face in the
+            count: nobody here is on the trip yet, and the word carries the
+            state rather than the grey doing it alone. */}
+        {pendingInvitees.map((p) => (
+          <li
+            key={p.userId}
+            className="flex items-center gap-2 border-b border-dotted border-rule-strong py-1.5 last:border-b-0"
+          >
+            <span className="flex min-w-0 flex-1 items-center gap-2 text-sm text-ink-soft">
+              <span className="opacity-60">
+                <Avatar name={p.name} src={p.avatarUrl} size={26} />
+              </span>
+              <span className="min-w-0 truncate">{p.name}</span>
+              <Badge tone="neutral">Invited</Badge>
+            </span>
+            <span aria-hidden="true" className="h-[26px] w-[26px]" />
+          </li>
+        ))}
       </ul>
 
-      {isAdmin && members.length === 1 ? (
+      {isAdmin && members.length === 1 && pendingInvitees.length === 0 ? (
         <p className="mt-3 text-xs text-ink-faint">
           Just you so far — share the trip to get the others in.
         </p>

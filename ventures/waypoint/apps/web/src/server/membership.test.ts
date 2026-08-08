@@ -15,8 +15,15 @@ import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import {
   clearAvailabilityFor,
   clearMapPrompt,
+  countMembers,
+  countPendingInvitesFor,
   createTripWithAdmin,
+  findPendingInvite,
   findTripByInviteToken,
+  inviteToTrip,
+  listPendingInvitees,
+  listPendingInvitesFor,
+  settleInvite,
   handOverAndLeaveAllTrips,
   hasPendingMapPrompt,
   joinByToken,
@@ -260,5 +267,132 @@ describe("availability", () => {
   it("is a no-op on an empty batch", async () => {
     await setAvailability(world.ours.id, world.member, [], true);
     expect(await db.select().from(schema.availability).all()).toHaveLength(0);
+  });
+});
+
+/**
+ * Named invites (ticket 146). The properties here are the ones that would
+ * break quietly: an invite must not be a membership, re-inviting must land on
+ * the row a decline left behind, and an invite to a trip nobody can open must
+ * not go on asking for an answer.
+ */
+describe("named invites", () => {
+  const invitesFor = (tripId: number) =>
+    db
+      .select()
+      .from(schema.tripInvite)
+      .where(eq(schema.tripInvite.tripId, tripId))
+      .all();
+
+  it("opens one pending invite per friend and grants nothing", async () => {
+    const n = await inviteToTrip({
+      tripId: world.ours.id,
+      fromUserId: world.admin,
+      toUserIds: [world.outsider],
+    });
+
+    expect(n).toBe(1);
+    expect((await invitesFor(world.ours.id)).map((i) => i.status)).toEqual([
+      "pending",
+    ]);
+    // The whole point: being invited is not being in.
+    expect(await membership(world.ours.id, world.outsider)).toBeUndefined();
+    expect(await countMembers(world.ours.id)).toBe(2);
+  });
+
+  it("skips people already on the roster, and yourself", async () => {
+    const n = await inviteToTrip({
+      tripId: world.ours.id,
+      fromUserId: world.admin,
+      toUserIds: [world.admin, world.member, world.outsider, world.outsider],
+    });
+
+    expect(n).toBe(1);
+    expect(await invitesFor(world.ours.id)).toHaveLength(1);
+  });
+
+  it("re-invites onto the declined row rather than a second one", async () => {
+    await inviteToTrip({
+      tripId: world.ours.id,
+      fromUserId: world.admin,
+      toUserIds: [world.outsider],
+    });
+    await settleInvite(world.ours.id, world.outsider, "declined");
+    expect(await listPendingInvitesFor(world.outsider)).toEqual([]);
+
+    // A different member asking this time — the invite says who asked *now*.
+    await inviteToTrip({
+      tripId: world.ours.id,
+      fromUserId: world.member,
+      toUserIds: [world.outsider],
+    });
+
+    const rows = await invitesFor(world.ours.id);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].status).toBe("pending");
+    expect(rows[0].fromUserId).toBe(world.member);
+  });
+
+  it("names the trip and whoever asked, and counts what's waiting", async () => {
+    await inviteToTrip({
+      tripId: world.ours.id,
+      fromUserId: world.admin,
+      toUserIds: [world.outsider],
+    });
+
+    const [invite] = await listPendingInvitesFor(world.outsider);
+    expect(invite.tripName).toBe("Ours");
+    expect(invite.fromName).toBe("Ada");
+    expect(await countPendingInvitesFor(world.outsider)).toBe(1);
+
+    expect((await listPendingInvitees(world.ours.id)).map((p) => p.name)).toEqual([
+      "Ozz",
+    ]);
+  });
+
+  it("stops asking once the trip is archived or deleted", async () => {
+    await inviteToTrip({
+      tripId: world.ours.id,
+      fromUserId: world.admin,
+      toUserIds: [world.outsider],
+    });
+
+    await setTripArchived(world.ours.id, true);
+    expect(await listPendingInvitesFor(world.outsider)).toEqual([]);
+    expect(await countPendingInvitesFor(world.outsider)).toBe(0);
+
+    await setTripArchived(world.ours.id, false);
+    expect(await countPendingInvitesFor(world.outsider)).toBe(1);
+
+    await softDeleteTrip(world.ours.id);
+    expect(await countPendingInvitesFor(world.outsider)).toBe(0);
+  });
+
+  it("closes the invite when it's answered, either way", async () => {
+    await inviteToTrip({
+      tripId: world.ours.id,
+      fromUserId: world.admin,
+      toUserIds: [world.outsider],
+    });
+
+    expect(await findPendingInvite(world.ours.id, world.outsider)).toBeDefined();
+
+    await joinByToken(world.ours.id, world.outsider);
+    await settleInvite(world.ours.id, world.outsider, "accepted");
+
+    expect(await findPendingInvite(world.ours.id, world.outsider)).toBeUndefined();
+    expect(await listPendingInvitees(world.ours.id)).toEqual([]);
+    expect(await membership(world.ours.id, world.outsider)).toBeDefined();
+  });
+
+  it("is a no-op with nobody to invite", async () => {
+    expect(
+      await inviteToTrip({
+        tripId: world.ours.id,
+        fromUserId: world.admin,
+        toUserIds: [],
+      }),
+    ).toBe(0);
+    expect(await invitesFor(world.ours.id)).toHaveLength(0);
   });
 });

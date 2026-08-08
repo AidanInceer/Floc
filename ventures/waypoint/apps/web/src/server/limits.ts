@@ -40,6 +40,8 @@ export const LIMITS = {
   tripsPerUser: 500,
   /** Links parked against one trip. A shelf, not an archive. */
   tripLinks: 200,
+  /** Open invites one account is sitting on, and invites out on one trip. */
+  invites: 200,
   /** Availability marks read for the Dates grid: members × days, capped. */
   availability: 20_000,
 } as const;

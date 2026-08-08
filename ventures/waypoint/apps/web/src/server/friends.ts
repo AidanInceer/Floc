@@ -196,6 +196,27 @@ export async function peopleByIds(ids: string[]): Promise<Map<string, Person>> {
   return out;
 }
 
+/**
+ * Your accepted friends, names and faces, alphabetical (ticket 146) — what the
+ * friend picker on trip creation and on the roster offers.
+ *
+ * Accepted only. A pending request is not a relationship yet, and a picker that
+ * offered somebody who hasn't agreed to know you would make a trip invite the
+ * way round a friend request.
+ */
+export async function listFriendsFor(viewerId: string): Promise<Person[]> {
+  const rows = await listFriendshipsFor(viewerId);
+  const accepted = rows.filter((r) => r.status === "accepted");
+  const otherIds = accepted.map((r) =>
+    r.userId === viewerId ? r.friendId : r.userId,
+  );
+
+  const people = await peopleByIds(otherIds);
+  return [...people.values()].sort((a, b) =>
+    a.name.localeCompare(b.name, "en-GB", { sensitivity: "base" }),
+  );
+}
+
 export type FriendState = "none" | "friends" | "outgoing" | "incoming";
 
 /** Several people at once — a trip roster asks about every member. */

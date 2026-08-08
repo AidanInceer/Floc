@@ -25,6 +25,9 @@ on every entity.</p>
     USER ||--o{ TRIP : &quot;creates (created_by)&quot;
     USER ||--o{ TRIP_MEMBERSHIP : &quot;belongs to&quot;
     TRIP ||--o{ TRIP_MEMBERSHIP : &quot;has members&quot;
+    TRIP ||--o{ TRIP_INVITE : &quot;asks (ticket 146)&quot;
+    USER ||--o{ TRIP_INVITE : &quot;sends (from_user_id)&quot;
+    USER ||--o{ TRIP_INVITE : &quot;receives (to_user_id)&quot;
     TRIP ||--o{ IDEA : &quot;has&quot;
     USER ||--o{ IDEA : &quot;creates (created_by)&quot;
     IDEA ||--o{ IDEA_VOTE : &quot;receives&quot;
@@ -111,6 +114,14 @@ on every entity.</p>
         string user_id PK,FK &quot;-&gt; USER.id&quot;
         string role &quot;admin | member&quot;
         datetime map_prompt_at &quot;nullable — set on leave/kick, asks about the travel map&quot;
+    }
+
+    TRIP_INVITE {
+        int id PK
+        int trip_id FK &quot;-&gt; TRIP.id&quot;
+        string from_user_id FK &quot;-&gt; USER.id — who asked&quot;
+        string to_user_id FK &quot;-&gt; USER.id — the friend asked&quot;
+        string status &quot;pending | accepted | declined&quot;
     }
 
     IDEA {
@@ -345,6 +356,18 @@ on every entity.</p>
 </tr>
 <tr>
 <td><code>trip</code></td>
+<td><code>trip_invite</code></td>
+<td>1–M</td>
+<td>one live row per (trip, invitee) — grants nothing until accepted</td>
+</tr>
+<tr>
+<td><code>user</code></td>
+<td><code>trip_invite</code></td>
+<td>1–M (×2)</td>
+<td><code>from_user_id</code> and <code>to_user_id</code></td>
+</tr>
+<tr>
+<td><code>trip</code></td>
 <td><code>nudge</code></td>
 <td>1–M</td>
 <td>peer-to-peer only, no automation</td>
@@ -402,6 +425,18 @@ answerable with a reply, and a link is a reference that has to stay findable a
 fortnight later. <code>url</code> is <strong><code>http</code>/<code>https</code> only</strong>, normalised by
 <code>readWebUrl</code> before it is stored — the shelf renders <code>href</code>s another
 member typed, so a non-web scheme must never reach the row.</p>
+<p><code>trip_invite</code> is a <strong>named invite</strong> (ticket 146) — one person asked one friend
+onto one trip, answered in-app on the invitee&#39;s next load. Deliberately not a
+<code>trip_membership</code> row with a status column: membership is what every trip read
+tests, and teaching those queries to say &quot;a member, but only the accepted kind&quot;
+is how rule 5&#39;s enumeration-proofing springs a leak. A pending invite grants
+nothing at all; accepting it writes the membership, and that write is the only
+thing that changes what anyone can see. <code>trip_invite_pair_idx</code> is
+<strong>unique on (trip_id, to_user_id) and excludes <code>deleted_at</code></strong>, the same shape
+as <code>friendship_pair_idx</code> and for the same reason — declining leaves the row
+behind, so re-inviting has to land on it rather than insert a second. The
+anonymous share link (<code>trip.invite_token</code>) is unchanged and untracked: whoever
+holds it joins, and nothing here records that they were sent it.</p>
 <p><code>day</code> deliberately has <strong>no <code>notes</code> column</strong>. It had one; nobody could say what
 belonged in it, since the thing a group annotates is an event rather than a
 whole day. Event details live on <code>day_event.note</code>, the conversation in <code>note</code>.</p>

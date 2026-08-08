@@ -14,12 +14,18 @@ import { capRequiredText } from "@/lib/text";
 import { assertAdmin, requireTripAccess, requireUser } from "@/server/access";
 import {
   createTripWithAdmin,
+  findPendingInvite,
+  inviteToTrip,
+  joinByToken,
+  revalidateInvites,
   revalidateOverview,
   revalidateTripLists,
   setTripArchived,
+  settleInvite,
   softDeleteTrip,
 } from "@/server/membership";
 import { ensureProfile } from "@/server/profile";
+import { LIMITS } from "@/server/limits";
 
 /**
  * Ticket 01 step 1: the smallest thing that exists at creation is a name,
@@ -49,8 +55,73 @@ export async function createTrip(formData: FormData): Promise<void> {
     createdBy: viewer.id,
   });
 
+  // Asking the friends you already know is part of starting the trip, not a
+  // second errand afterwards (ticket 146). Still optional: an empty picker
+  // creates exactly what it always did. `inviteToTrip` decides who is really
+  // invitable — this only passes on what was ticked, which is why nothing here
+  // trusts the ids beyond their shape.
+  const friendIds = readFriendIds(formData);
+  if (friendIds.length > 0) {
+    await inviteToTrip({ tripId, fromUserId: viewer.id, toUserIds: friendIds });
+  }
+
   revalidatePath("/trips");
   redirect(`/trip/${tripId}/overview`);
+}
+
+/**
+ * The ticked boxes, capped at the roster ceiling. A checkbox list posts one
+ * `friendIds` value per tick and nothing at all when none are ticked, and the
+ * form is reachable without the page around it (ticket 113) — so this reads
+ * defensively rather than assuming the picker generated it.
+ */
+function readFriendIds(formData: FormData): string[] {
+  return [
+    ...new Set(
+      formData
+        .getAll("friendIds")
+        .map((v) => String(v))
+        .filter((v) => v.length > 0 && v.length <= 64),
+    ),
+  ].slice(0, LIMITS.members);
+}
+
+/* --------------------------------------------------------- named invites */
+
+/**
+ * Accepting a named invite (ticket 146) — the only place besides the share
+ * link that writes a membership, and it goes through the same upsert for the
+ * same reason: the invitee may be somebody this trip kicked before.
+ *
+ * Gated on the invite itself, not on a token: without a live pending row this
+ * does nothing at all, so a guessed trip id buys no membership (rule 5).
+ */
+export async function acceptTripInvite(formData: FormData): Promise<void> {
+  const tripId = Number(formData.get("tripId"));
+  const viewer = await requireUser("/trips");
+  if (!Number.isInteger(tripId)) return;
+
+  const invite = await findPendingInvite(tripId, viewer.id);
+  if (!invite) return;
+
+  await joinByToken(tripId, viewer.id);
+  await settleInvite(tripId, viewer.id, "accepted");
+  await ensureProfile(viewer.id);
+
+  revalidateInvites();
+  revalidateTripLists();
+  revalidateOverview(tripId);
+  redirect(`/trip/${tripId}/overview`);
+}
+
+/** Declining. Closes the invite and joins nothing — an admin may ask again. */
+export async function declineTripInvite(formData: FormData): Promise<void> {
+  const tripId = Number(formData.get("tripId"));
+  const viewer = await requireUser("/trips");
+  if (!Number.isInteger(tripId)) return;
+
+  await settleInvite(tripId, viewer.id, "declined");
+  revalidateInvites();
 }
 
 /**

@@ -17,9 +17,12 @@ import { assertAdmin, requireTripAccess } from "@/server/access";
 import { emails, sendEmails } from "@/server/email";
 import { parseTagRows } from "@/lib/tags";
 import { capText, TEXT_CAPS } from "@/lib/text";
+import { LIMITS } from "@/server/limits";
 import {
   insertNudge,
+  inviteToTrip,
   leaveTripAs,
+  revalidateInvites,
   removeMembership,
   renameTrip as writeTripName,
   revalidateOverview,
@@ -71,6 +74,44 @@ export async function sendNudge(formData: FormData) {
   );
 
   revalidateOverview(access.trip.id);
+}
+
+/**
+ * Asking friends onto the trip by name (ticket 146).
+ *
+ * Admin-gated, because inviting is one of the four (rule 6) — the share link
+ * is admin-only for the same reason, and this is the same power with a name on
+ * it. Nobody is added: `inviteToTrip` opens a pending row per person, and the
+ * roster only grows when they accept on their own /trips.
+ *
+ * No email. The invite is delivered in-app on the invitee's next load, which is
+ * what ticket 146 asks for; push is explicitly out of scope, and the existing
+ * `emails.invite` addresses a mailbox rather than an account.
+ */
+export async function inviteFriends(formData: FormData) {
+  const tripId = Number(formData.get("tripId"));
+  const friendIds = [
+    ...new Set(
+      formData
+        .getAll("friendIds")
+        .map(String)
+        .filter((v) => v.length > 0 && v.length <= 64),
+    ),
+  ].slice(0, LIMITS.members);
+
+  const access = await requireTripAccess(tripId);
+  assertAdmin(access);
+
+  if (friendIds.length === 0) return;
+
+  await inviteToTrip({
+    tripId: access.trip.id,
+    fromUserId: access.viewer.id,
+    toUserIds: friendIds,
+  });
+
+  revalidateOverview(access.trip.id);
+  revalidateInvites();
 }
 
 export async function kickMember(formData: FormData) {

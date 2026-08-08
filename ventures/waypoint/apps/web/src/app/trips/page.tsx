@@ -16,11 +16,16 @@
  * returns to the default deliberately.
  */
 import { requireUser } from "@/server/access";
+import { listFriendsFor, type Person } from "@/server/friends";
+import { listPendingInvitesFor, type PendingInvite } from "@/server/membership";
 import { loadTripCards } from "./cards";
-import { hasEnded } from "@/lib/dates";
+import { formatDateRange, hasEnded } from "@/lib/dates";
 import {
+  Avatar,
   Badge,
   ButtonLink,
+  Card,
+  CardHeader,
   EmptyState,
   Field,
   Input,
@@ -30,9 +35,10 @@ import {
   cx,
 } from "@/components/ui";
 import { Sheet, SubmitButton } from "@/components/client-ui";
+import { FriendPicker } from "@/components/friend-picker";
 import { TripCard } from "@/components/trip-card";
 import type { TripCardData } from "@/components/trip-card";
-import { createTrip } from "./actions";
+import { acceptTripInvite, createTrip, declineTripInvite } from "./actions";
 
 /** The orders offered, in the order the control offers them. */
 const SORTS = {
@@ -57,9 +63,16 @@ export default async function TripsPage({
 
   const viewer = await requireUser("/trips");
 
-  const cards = (await loadTripCards(viewer.id, { archived: false })).map(
-    (c) => c.card,
-  );
+  // Three independent reads — the cards, what's waiting on you, and who you
+  // could ask onto a new one — so they go out together (the fan-out is the
+  // page's to compose).
+  const [cardRows, invites, friends] = await Promise.all([
+    loadTripCards(viewer.id, { archived: false }),
+    listPendingInvitesFor(viewer.id),
+    listFriendsFor(viewer.id),
+  ]);
+
+  const cards = cardRows.map((c) => c.card);
 
   // Every tag in play, for the filter row. Taken from the trips themselves,
   // so a tag nobody uses any more stops being offered on its own.
@@ -86,11 +99,20 @@ export default async function TripsPage({
              * ceremony for something this small.
              */}
             <Sheet trigger="New trip" title="Start a trip">
-              <CreateTripForm />
+              <CreateTripForm friends={friends} />
             </Sheet>
           </>
         }
       />
+
+      {/* The in-app half of ticket 146, and the whole of it — push is out of
+          scope for v1. It sits above the trips because it is the only thing on
+          this page waiting on an answer, and it disappears once answered. */}
+      {invites.length > 0 ? (
+        <div className="mb-5">
+          <InviteList invites={invites} />
+        </div>
+      ) : null}
 
       {/* Only worth showing once there is more than one trip to order, and the
           tag row only once anyone has tagged anything. */}
@@ -153,7 +175,7 @@ export default async function TripsPage({
           title="No trips yet"
           action={
             <Sheet trigger="Start your first trip" title="Start a trip">
-              <CreateTripForm />
+              <CreateTripForm friends={friends} />
             </Sheet>
           }
         >
@@ -168,6 +190,59 @@ export default async function TripsPage({
         </ul>
       )}
     </Page>
+  );
+}
+
+/**
+ * Invites waiting on you (ticket 146). Named on both ends — who asked, and
+ * which trip — because an invite that says neither is indistinguishable from
+ * an ad. Joining lands you on the trip; declining just closes the row.
+ */
+function InviteList({ invites }: { invites: PendingInvite[] }) {
+  return (
+    <Card>
+      <CardHeader
+        title={invites.length === 1 ? "An invitation" : "Invitations"}
+        hint="Waiting on you."
+      />
+      <Stack gap={3} className="p-4">
+        {invites.map((invite) => (
+          <div
+            key={invite.tripId}
+            className="flex flex-wrap items-center justify-between gap-3"
+          >
+            <div className="flex min-w-0 items-center gap-2.5">
+              <Avatar name={invite.fromName} src={invite.fromAvatarUrl} />
+              <div className="min-w-0">
+                <p className="text-sm">
+                  <strong>{invite.fromName}</strong> invited you to{" "}
+                  <strong>{invite.tripName}</strong>
+                </p>
+                {invite.startDate || invite.endDate ? (
+                  <p className="text-xs text-ink-faint">
+                    {formatDateRange(invite.startDate, invite.endDate)}
+                  </p>
+                ) : null}
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <form action={acceptTripInvite}>
+                <input type="hidden" name="tripId" value={invite.tripId} />
+                <SubmitButton variant="primary" pendingLabel="Joining…">
+                  Join
+                </SubmitButton>
+              </form>
+              <form action={declineTripInvite}>
+                <input type="hidden" name="tripId" value={invite.tripId} />
+                <SubmitButton variant="ghost" pendingLabel="Declining…">
+                  Decline
+                </SubmitButton>
+              </form>
+            </div>
+          </div>
+        ))}
+      </Stack>
+    </Card>
   );
 }
 
@@ -231,7 +306,7 @@ function sortCards(cards: TripCardData[], sort: Sort): TripCardData[] {
  * close handler needed (and none is possible: a function prop can't cross
  * the server/client boundary from here, only the "use server" action can).
  */
-function CreateTripForm() {
+function CreateTripForm({ friends }: { friends: Person[] }) {
   return (
     <form action={createTrip}>
       <Stack gap={4}>
@@ -240,6 +315,15 @@ function CreateTripForm() {
             for shouldn't need a second look to see it's empty (ticket 129). */}
         <Field label="Name">
           <Input name="name" required />
+        </Field>
+        {/* Optional, and second — the trip still exists on a name alone
+            (ticket 01 step 1). Nobody is added by this: they are asked, and
+            they answer on their own /trips (ticket 146). */}
+        <Field label="Ask your friends along">
+          <FriendPicker
+            friends={friends}
+            emptyNote="No friends yet — share the trip link once it exists."
+          />
         </Field>
         {/* Starting a trip asks one question: what to call it. The dates used
             to be here as an optional pair — a field almost everyone skipped,

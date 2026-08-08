@@ -27,7 +27,7 @@ import Link from "next/link";
 import { requireTripAccess } from "@/server/access";
 import { listIdeaIds, listVotes } from "@/server/ideas";
 import { listDays, listRouteDays, transportModesByDay } from "@/server/itinerary";
-import { listAvailability } from "@/server/membership";
+import { listAvailability, listPendingInvitees } from "@/server/membership";
 import { listExpenses, listSplits } from "@/server/money";
 import { absoluteUrl } from "@/server/email";
 import { formatMoney } from "@/lib/money";
@@ -37,7 +37,7 @@ import { Avatar, Badge, Page, Stack, cx } from "@/components/ui";
 import { Sheet, SubmitButton } from "@/components/client-ui";
 import { TripNameInline } from "@/components/trip-name-inline";
 import { TripRoster } from "@/components/trip-roster";
-import { friendStatesFor } from "@/server/friends";
+import { friendStatesFor, listFriendsFor } from "@/server/friends";
 import { TripRoute } from "@/components/trip-route";
 import { TripTrail } from "@/components/trip-trail";
 import { TagEditor } from "@/components/tag-editor";
@@ -54,11 +54,18 @@ export default async function OverviewPage({
   const { trip, members, isAdmin, viewer } = access;
 
   // One query for the whole roster (ticket 96) — a per-row lookup would be an
-  // N+1 on a panel every trip renders.
-  const friendStates = await friendStatesFor(
-    viewer.id,
-    members.map((m) => m.userId),
-  );
+  // N+1 on a panel every trip renders. The two invite reads join it: who has
+  // been asked and hasn't answered, and who you could ask (ticket 146).
+  const [friendStates, pendingInvitees, friends] = await Promise.all([
+    friendStatesFor(
+      viewer.id,
+      members.map((m) => m.userId),
+    ),
+    listPendingInvitees(trip.id),
+    // Only an admin can invite (rule 6), so a member's roster doesn't pay for
+    // a friends read it has nothing to render.
+    isAdmin ? listFriendsFor(viewer.id) : Promise.resolve([]),
+  ]);
   const tripId = trip.id;
 
   /*
@@ -222,6 +229,8 @@ export default async function OverviewPage({
           isAdmin={isAdmin}
           inviteUrl={isAdmin ? inviteUrl : undefined}
           friendStates={friendStates}
+          pendingInvitees={pendingInvitees}
+          friends={friends}
         />
       </div>
 

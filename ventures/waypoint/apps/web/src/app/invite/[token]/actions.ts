@@ -10,7 +10,9 @@ import { requireUser } from "@/server/access";
 import {
   findTripByInviteToken,
   joinByToken,
+  revalidateInvites,
   revalidateOverview,
+  settleInvite,
 } from "@/server/membership";
 import { ensureProfile } from "@/server/profile";
 
@@ -28,6 +30,12 @@ export async function joinTrip(token: string) {
   // fully wired one up (belt-and-braces; signup already calls this too).
   await ensureProfile(user.id);
 
+  // Somebody who was also asked by name (ticket 146) has now answered — a
+  // pending invite left behind would keep badging the chrome for a trip they
+  // are already on. A no-op for everyone else.
+  await settleInvite(found.id, user.id, "accepted");
+
+  revalidateInvites();
   revalidateOverview(found.id);
   redirect(`/trip/${found.id}/overview`);
 }

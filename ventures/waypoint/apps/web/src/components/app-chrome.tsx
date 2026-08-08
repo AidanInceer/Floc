@@ -67,10 +67,29 @@ const discoverLinks = [{ href: "/explore", label: "Explore" }];
 const navLinkClass =
   "translate-y-[3px] rounded-sm px-2 py-1 text-ink-soft hover:bg-sheet-2 hover:text-ink";
 
+/**
+ * How many trip invites are waiting (ticket 146), beside the link that answers
+ * them. A count and not a dot: "2" says how much is behind the link, which a
+ * dot never does, and the number is also what the screen reader reads out.
+ */
+function InviteCount({ count }: { count: number }) {
+  return (
+    <span
+      className="ml-1 inline-flex min-w-[17px] items-center justify-center rounded-full bg-pen px-1 text-[10.5px] font-semibold leading-[17px] text-paper"
+      aria-label={`${count} trip ${count === 1 ? "invitation" : "invitations"} waiting`}
+    >
+      {count}
+    </span>
+  );
+}
+
 export function AppChrome({
   user,
+  inviteCount = 0,
 }: {
   user: { id: string; name: string; image: string | null } | null;
+  /** Open trip invites for this account — badges the Trips link. */
+  inviteCount?: number;
 }) {
   return (
     <header className="sticky top-0 z-20 border-b border-rule bg-paper/90 backdrop-blur">
@@ -104,6 +123,9 @@ export function AppChrome({
                 {accountLinks.map((l) => (
                   <Link key={l.href} href={l.href} className={navLinkClass}>
                     {l.label}
+                    {l.href === "/trips" && inviteCount > 0 ? (
+                      <InviteCount count={inviteCount} />
+                    ) : null}
                   </Link>
                 ))}
               </nav>

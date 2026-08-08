@@ -46,6 +46,7 @@ const TABLES = [
   schema.nudge,
   schema.userCountryMark,
   schema.friendship,
+  schema.tripInvite,
   schema.tripMembership,
   schema.trip,
   schema.place,

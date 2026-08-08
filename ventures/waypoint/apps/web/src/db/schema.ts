@@ -367,6 +367,48 @@ export const tripMembership = sqliteTable(
   ],
 );
 
+/**
+ * A named invite: one person asked one friend onto one trip (ticket 146).
+ *
+ * Deliberately *not* a `trip_membership` row with a status column. Membership
+ * is what every trip read tests — a pending invitee is not a member, and
+ * teaching ~40 queries to say "member, but only the accepted kind" is exactly
+ * how rule 5's enumeration-proofing springs a leak. A pending invite grants
+ * nothing; accepting it writes the membership, and that write is the only thing
+ * that changes what anyone can see.
+ *
+ * Unique on (trip, invitee) with no `deleted_at` in it — same shape, and same
+ * reason, as `friendship_pair_idx`: declining leaves the row behind, and
+ * re-inviting has to land on that row rather than insert a second.
+ */
+export const TRIP_INVITE_STATUSES = ["pending", "accepted", "declined"] as const;
+export type TripInviteStatus = (typeof TRIP_INVITE_STATUSES)[number];
+
+export const tripInvite = sqliteTable(
+  "trip_invite",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    tripId: integer("trip_id")
+      .notNull()
+      .references(() => trip.id, { onDelete: "cascade" }),
+    /** Who asked. Named on the invite so it isn't a summons from nowhere. */
+    fromUserId: text("from_user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    toUserId: text("to_user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    status: text("status", { enum: TRIP_INVITE_STATUSES })
+      .notNull()
+      .default("pending"),
+    ...audit,
+  },
+  (t) => [
+    uniqueIndex("trip_invite_pair_idx").on(t.tripId, t.toUserId),
+    index("trip_invite_to_idx").on(t.toUserId, t.status),
+  ],
+);
+
 /* -------------------------------------------------------------------------- */
 /* Ideas, voting, availability                                                */
 /* -------------------------------------------------------------------------- */
@@ -768,6 +810,7 @@ export type User = typeof user.$inferSelect;
 export type UserProfile = typeof userProfile.$inferSelect;
 export type Trip = typeof trip.$inferSelect;
 export type TripMembership = typeof tripMembership.$inferSelect;
+export type TripInvite = typeof tripInvite.$inferSelect;
 export type Idea = typeof idea.$inferSelect;
 export type IdeaVote = typeof ideaVote.$inferSelect;
 export type Availability = typeof availability.$inferSelect;

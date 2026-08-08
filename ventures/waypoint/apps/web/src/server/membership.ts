@@ -30,7 +30,15 @@ import { and, count, eq, inArray, isNotNull, isNull, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
-import { availability, nudge, trip, tripMembership } from "@/db/schema";
+import {
+  availability,
+  nudge,
+  trip,
+  tripInvite,
+  tripMembership,
+  user,
+  userProfile,
+} from "@/db/schema";
 import type { NudgeTab, TripRole } from "@/db/schema";
 import type { TagTone } from "@/lib/tags";
 import { bounded, LIMITS } from "@/server/limits";
@@ -191,23 +199,49 @@ export async function softDeleteTrip(tripId: number): Promise<void> {
 /* ---------------------------------------------------------- the invite link */
 
 /**
- * The trip behind an invite link — id for the join action, and the three
- * fields the pre-auth teaser is allowed to show (ticket 118). Nothing about
- * the roster, the money, or anyone's notes: those need membership, not a link.
+ * The trip behind an invite link — id for the join action, and the fields the
+ * pre-auth teaser is allowed to show (ticket 118). Nothing about the roster,
+ * the money, or anyone's notes: those need membership, not a link.
+ *
+ * The host's name joined on in ticket 147: an invite that names neither the
+ * trip nor a person is a bare URL asking for a signup. Their *name* only — not
+ * their email, not their id — which is the same thing the roster shows anyone
+ * who follows the link through.
  */
-export async function findTripByInviteToken(token: string): Promise<
-  { id: number; name: string; startDate: string | null; endDate: string | null } | undefined
-> {
-  return db
+export type InviteTrip = {
+  id: number;
+  name: string;
+  startDate: string | null;
+  endDate: string | null;
+  hostName: string | null;
+};
+
+export async function findTripByInviteToken(
+  token: string,
+): Promise<InviteTrip | undefined> {
+  const row = await db
     .select({
       id: trip.id,
       name: trip.name,
       startDate: trip.startDate,
       endDate: trip.endDate,
+      hostName: user.name,
+      hostDisplayName: userProfile.displayName,
     })
     .from(trip)
+    .leftJoin(user, eq(user.id, trip.createdBy))
+    .leftJoin(userProfile, eq(userProfile.userId, trip.createdBy))
     .where(and(eq(trip.inviteToken, token), isNull(trip.deletedAt)))
     .get();
+
+  if (!row) return undefined;
+  return {
+    id: row.id,
+    name: row.name,
+    startDate: row.startDate,
+    endDate: row.endDate,
+    hostName: row.hostDisplayName ?? row.hostName ?? null,
+  };
 }
 
 /** Whether someone is on the trip right now — the teaser's "you're already in" check. */
@@ -236,6 +270,262 @@ export async function joinByToken(tripId: number, userId: string): Promise<void>
       // this trip's countries?" question by making it moot (ticket 95).
       set: { deletedAt: null, mapPromptAt: null, lastModifiedAt: new Date() },
     });
+}
+
+/* ------------------------------------------------------- the named invite */
+/*
+ * The other half of ticket 146. The link half above is anonymous by design —
+ * whoever holds the token joins — and this one is the opposite: a named person
+ * asked a named friend, and the invitee gets to say no.
+ *
+ * The rules this aggregate owns, so no caller states them twice:
+ *
+ * - **An invite is not a membership.** Nothing here writes `trip_membership`
+ *   except `acceptInvite`, which goes through `joinByToken`'s upsert for the
+ *   same reason it exists: a previously kicked member has a soft-deleted row.
+ * - **Upsert, never insert.** `trip_invite_pair_idx` ignores `deleted_at`, so
+ *   re-inviting somebody who declined has to land on the row they declined.
+ * - **You cannot invite a member.** Callers filter the roster out of the
+ *   picker; `inviteToTrip` filters it again, because the form is reachable
+ *   without the page around it (ticket 113).
+ */
+
+/** One open invite, as the invitee's own /trips banner needs to render it. */
+export type PendingInvite = {
+  tripId: number;
+  tripName: string;
+  startDate: string | null;
+  endDate: string | null;
+  fromUserId: string;
+  fromName: string;
+  fromAvatarUrl: string | null;
+  invitedAt: Date;
+};
+
+/**
+ * Opens (or re-opens) a pending invite per friend, in one statement.
+ *
+ * Anyone already on the roster is dropped rather than rejected: inviting three
+ * friends where one is already in is a normal mistake, not an error worth
+ * failing the other two over.
+ */
+export async function inviteToTrip(args: {
+  tripId: number;
+  fromUserId: string;
+  toUserIds: string[];
+}): Promise<number> {
+  const { tripId, fromUserId } = args;
+
+  const wanted = [...new Set(args.toUserIds)].filter((id) => id !== fromUserId);
+  if (wanted.length === 0) return 0;
+
+  const alreadyIn = await db
+    .select({ userId: tripMembership.userId })
+    .from(tripMembership)
+    .where(
+      and(
+        eq(tripMembership.tripId, tripId),
+        inArray(tripMembership.userId, wanted),
+        isNull(tripMembership.deletedAt),
+      ),
+    )
+    .all();
+
+  const members = new Set(alreadyIn.map((m) => m.userId));
+  const toInvite = wanted.filter((id) => !members.has(id));
+  if (toInvite.length === 0) return 0;
+
+  await db
+    .insert(tripInvite)
+    .values(
+      toInvite.map((toUserId) => ({
+        tripId,
+        fromUserId,
+        toUserId,
+        status: "pending" as const,
+      })),
+    )
+    .onConflictDoUpdate({
+      target: [tripInvite.tripId, tripInvite.toUserId],
+      set: {
+        fromUserId,
+        status: "pending",
+        deletedAt: null,
+        lastModifiedAt: new Date(),
+      },
+    });
+
+  return toInvite.length;
+}
+
+/**
+ * Everything waiting on one account (ticket 146) — the in-app notification, in
+ * one query rather than a trip lookup per invite. Archived and soft-deleted
+ * trips are filtered out here: an invite to a trip nobody can open any more is
+ * not something to make somebody decide about.
+ */
+export async function listPendingInvitesFor(
+  userId: string,
+): Promise<PendingInvite[]> {
+  const rows = await db
+    .select({
+      tripId: trip.id,
+      tripName: trip.name,
+      startDate: trip.startDate,
+      endDate: trip.endDate,
+      fromUserId: tripInvite.fromUserId,
+      invitedAt: tripInvite.createdAt,
+      fromName: user.name,
+      fromImage: user.image,
+      fromDisplayName: userProfile.displayName,
+      fromAvatarUrl: userProfile.avatarUrl,
+    })
+    .from(tripInvite)
+    .innerJoin(trip, eq(trip.id, tripInvite.tripId))
+    .innerJoin(user, eq(user.id, tripInvite.fromUserId))
+    .leftJoin(userProfile, eq(userProfile.userId, tripInvite.fromUserId))
+    .where(
+      and(
+        eq(tripInvite.toUserId, userId),
+        eq(tripInvite.status, "pending"),
+        isNull(tripInvite.deletedAt),
+        isNull(trip.deletedAt),
+        isNull(trip.archivedAt),
+      ),
+    )
+    .limit(LIMITS.invites)
+    .all();
+
+  return bounded(rows, "invites", `invites for ${userId}`).map((r) => ({
+    tripId: r.tripId,
+    tripName: r.tripName,
+    startDate: r.startDate,
+    endDate: r.endDate,
+    fromUserId: r.fromUserId,
+    fromName: r.fromDisplayName ?? r.fromName,
+    fromAvatarUrl: r.fromAvatarUrl ?? r.fromImage ?? null,
+    invitedAt: r.invitedAt,
+  }));
+}
+
+/**
+ * Who has been asked onto this trip and hasn't answered — the pending rows
+ * under the roster, and what keeps the friend picker from offering the same
+ * person twice.
+ */
+export type PendingInvitee = {
+  userId: string;
+  name: string;
+  avatarUrl: string | null;
+};
+
+export async function listPendingInvitees(
+  tripId: number,
+): Promise<PendingInvitee[]> {
+  const rows = await db
+    .select({
+      userId: tripInvite.toUserId,
+      name: user.name,
+      image: user.image,
+      displayName: userProfile.displayName,
+      avatarUrl: userProfile.avatarUrl,
+    })
+    .from(tripInvite)
+    .innerJoin(user, eq(user.id, tripInvite.toUserId))
+    .leftJoin(userProfile, eq(userProfile.userId, tripInvite.toUserId))
+    .where(
+      and(
+        eq(tripInvite.tripId, tripId),
+        eq(tripInvite.status, "pending"),
+        isNull(tripInvite.deletedAt),
+      ),
+    )
+    .limit(LIMITS.invites)
+    .all();
+
+  return bounded(rows, "invites", `trip ${tripId}`).map((r) => ({
+    userId: r.userId,
+    name: r.displayName ?? r.name,
+    avatarUrl: r.avatarUrl ?? r.image ?? null,
+  }));
+}
+
+/**
+ * Just the number, for the badge on the chrome's Trips link. Its own count
+ * query rather than `listPendingInvitesFor(...).length` — the root layout runs
+ * this on every page in the app, and it has no use for the trips or the faces.
+ */
+export async function countPendingInvitesFor(userId: string): Promise<number> {
+  const [row] = await db
+    .select({ value: count() })
+    .from(tripInvite)
+    .innerJoin(trip, eq(trip.id, tripInvite.tripId))
+    .where(
+      and(
+        eq(tripInvite.toUserId, userId),
+        eq(tripInvite.status, "pending"),
+        isNull(tripInvite.deletedAt),
+        isNull(trip.deletedAt),
+        isNull(trip.archivedAt),
+      ),
+    );
+  return row?.value ?? 0;
+}
+
+/** The one open invite this person holds for this trip, if any. */
+export async function findPendingInvite(tripId: number, userId: string) {
+  return db
+    .select({
+      tripId: tripInvite.tripId,
+      fromUserId: tripInvite.fromUserId,
+    })
+    .from(tripInvite)
+    .where(
+      and(
+        eq(tripInvite.tripId, tripId),
+        eq(tripInvite.toUserId, userId),
+        eq(tripInvite.status, "pending"),
+        isNull(tripInvite.deletedAt),
+      ),
+    )
+    .get();
+}
+
+/**
+ * Closes an open invite either way.
+ *
+ * `accepted` is also written by the link path: somebody who was invited by name
+ * and then joined through the shared URL has answered the invite, and leaving
+ * it pending would keep nagging them about a trip they are already on.
+ */
+export async function settleInvite(
+  tripId: number,
+  userId: string,
+  status: "accepted" | "declined",
+): Promise<void> {
+  await db
+    .update(tripInvite)
+    .set({ status, ...touch() })
+    .where(
+      and(
+        eq(tripInvite.tripId, tripId),
+        eq(tripInvite.toUserId, userId),
+        eq(tripInvite.status, "pending"),
+        isNull(tripInvite.deletedAt),
+      ),
+    );
+}
+
+/**
+ * An open invite is a thing waiting on you, so it shows on /trips.
+ *
+ * Nothing for the chrome's badge: `AppChrome` sits in the root layout, which
+ * reads the session off `headers()` and is therefore never cached in the first
+ * place. A `revalidatePath("/", "layout")` here would throw away every page's
+ * cache to refresh a number that was already being recomputed.
+ */
+export function revalidateInvites(): void {
+  revalidatePath("/trips");
 }
 
 /* ------------------------------------------------------------- the roster */

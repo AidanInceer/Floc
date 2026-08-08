@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { AppChrome } from "@/components/app-chrome";
 import { getSession } from "@/server/access";
+import { countPendingInvitesFor } from "@/server/membership";
 
 import "./globals.css";
 
@@ -18,6 +19,13 @@ export default async function RootLayout({
 }) {
   const session = await getSession();
 
+  // The badge on Trips (ticket 146): an invite is the one thing that can arrive
+  // while you're elsewhere in the app, so it has to be visible from anywhere.
+  // A count, not the invites themselves — the answering happens on /trips.
+  const inviteCount = session?.user
+    ? await countPendingInvitesFor(session.user.id)
+    : 0;
+
   // No `data-theme` and no theme lookup: Waypoint is light-only by design
   // (ticket 07 — ink on paper, and a dark notebook is a different product).
   return (
@@ -33,6 +41,7 @@ export default async function RootLayout({
                 }
               : null
           }
+          inviteCount={inviteCount}
         />
         <main>{children}</main>
       </body>
