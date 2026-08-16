@@ -1,0 +1,276 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proto 148 · Dates A — Weather in the calendar cell</title>
+<!--
+  PROTOTYPE — throwaway. Answers: can the forecast live inside the availability
+  calendar's own cells, within the honest horizon, without fighting the green?
+
+  Question being settled:
+    Does weather-in-cell compete with the availability marks, or complement them?
+
+  Variant A: A small condition glyph + high temp sits under the day number, but
+  ONLY on days inside the 14-day honest horizon. Beyond it, cells are unchanged
+  — the absence IS the honesty. The green wash/solid green vocabulary is
+  untouched; weather is a third, quieter layer.
+-->
+<style>
+:root {
+  --paper: #f3eee2; --sheet: #fbf8f1; --sheet-2: #f1ead9; --sheet-3: #e7dfca;
+  --rule: #ded3ba; --rule-2: #c4b795; --line: #cfe0e6; --margin-line: #dfb4ae;
+  --tape: rgb(214 196 150 / 0.55);
+  --ink: #23211c; --ink-2: #57524a; --ink-3: #8b8477;
+  --pen: #2a4d7a; --pen-deep: #16304f; --pen-2: #dfe7f1; --pen-edge: #bfd0e6;
+  --highlight: #f3dd7e; --highlight-2: #fbf2cd; --highlight-ink: #7a6414; --highlight-edge: #e4d194;
+  --highlight-green: #b9d8a2;
+  --red: #a03f36; --red-2: #f6e3df; --red-edge: #e4c3bb;
+  --green: #4d6b3f; --green-2: #e6ecdd; --green-edge: #c6d4b5;
+  --serif: "Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  --type: "Courier New","Cascadia Mono",Consolas,monospace;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scrollbar-gutter: stable; }
+body { background: var(--paper); color: var(--ink); font-family: var(--serif); font-size: 15.5px; line-height: 1.6; -webkit-font-smoothing: antialiased; padding-bottom: 60px; }
+h1,h2,h3 { font-family: var(--serif); font-weight: 600; letter-spacing: -0.01em; }
+.wrap { max-width: 900px; margin: 0 auto; padding: 0 16px; }
+.app-nav { background: var(--paper); border-bottom: 1px solid var(--rule); padding: 14px 0 0; }
+.app-nav-inner { display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; }
+.app-wordmark { font-family: var(--type); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
+.avatar-row { display: flex; gap: 4px; }
+.avatar { display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-family: var(--type); font-weight: 700; border: 1px solid var(--rule); }
+.tabs { display: flex; gap: 2px; }
+.tab { font-family: var(--type); font-size: 11px; letter-spacing: 0.07em; text-transform: uppercase; padding: 7px 14px 6px; border: 1px solid var(--rule-2); border-bottom: none; border-radius: 6px 6px 0 0; background: var(--paper); color: var(--ink-3); position: relative; top: 1px; cursor: default; }
+.tab.active { background: var(--sheet); color: var(--ink); top: 0; font-weight: 600; }
+.sheet { background: var(--sheet); border: 1px solid var(--rule-2); border-top: none; border-radius: 0 6px 6px 6px; padding: 28px 24px; position: relative; overflow: hidden; min-height: 560px; }
+.sheet::before { content: ""; position: absolute; inset: 0; pointer-events: none; background-image: repeating-linear-gradient(180deg,transparent 0 27px,var(--line) 27px 28px); opacity: 0.45; z-index: 0; }
+.sheet::after { content: ""; position: absolute; left: 46px; top: 0; bottom: 0; width: 1px; background: var(--margin-line); opacity: 0.6; pointer-events: none; z-index: 0; }
+.sheet-content { position: relative; z-index: 1; }
+.tape-strip { position: absolute; width: 90px; height: 20px; background: var(--tape); top: -9px; left: 28px; z-index: 2; transform: rotate(-2.5deg); box-shadow: 0 1px 2px rgb(0 0 0 / 0.08); pointer-events: none; }
+.card { background: var(--sheet-2); border: 1px solid var(--rule-2); border-radius: 5px; }
+.card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--rule); flex-wrap: wrap; }
+.badge { font-family: var(--type); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; border: 1px solid; border-radius: 3px; padding: 2px 6px; display: inline-block; white-space: nowrap; line-height: 1.5; }
+.badge-n { background: var(--sheet-3); border-color: var(--rule-2); color: var(--ink-2); }
+.typed { font-family: var(--type); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.proto-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--ink); color: #fbf8f1; font-family: var(--type); font-size: 11px; letter-spacing: 0.05em; padding: 10px 20px; display: flex; align-items: center; gap: 14px; z-index: 999; }
+.proto-tag { background: var(--pen); color: #fff; padding: 2px 8px; border-radius: 3px; white-space: nowrap; font-weight: 700; }
+.proto-q { color: rgb(251 248 241 / 0.65); }
+
+/* ── Segmented switch ────────────────────────────────────────────────────── */
+.segmented { display: inline-flex; border: 1px solid var(--rule-2); border-radius: 4px; overflow: hidden; }
+.segmented span {
+  font-family: var(--type); font-size: 10px; letter-spacing: 0.07em; text-transform: uppercase;
+  padding: 5px 11px; background: var(--sheet); color: var(--ink-3); cursor: default;
+  border-right: 1px solid var(--rule);
+}
+.segmented span:last-child { border-right: none; }
+.segmented span.on { background: var(--pen); color: #fff; font-weight: 600; }
+
+/* ── Calendar: ruled paper, not a grid of boxes ─────────────────────────── */
+.cal-month { margin-bottom: 22px; }
+.cal-month-name {
+  font-family: var(--type); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink-2); margin-bottom: 8px; padding-left: 2px;
+}
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+.cal-dow {
+  font-family: var(--type); font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase;
+  color: var(--ink-3); text-align: center; padding-bottom: 6px;
+}
+/* One rule under each week, none between days */
+.cal-cell {
+  aspect-ratio: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  border-bottom: 1px solid var(--rule);
+  position: relative;
+  cursor: default;
+}
+.cal-cell.empty { border-bottom: 1px solid var(--rule); }
+
+/* The mark: a discrete circle, never a continuous stroke */
+.cal-mark {
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  font-family: var(--type); font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  position: relative;
+  line-height: 1;
+}
+/* Soft wash — a day the group is free */
+.cal-mark.free { background: var(--green-2); }
+/* Solid green — a day in the trip. Overrides the wash: the decision outranks
+   what it was decided from. */
+.cal-mark.trip { background: var(--green); color: #fbf8f1; font-weight: 600; }
+/* Today, circled in pen */
+.cal-mark.today { box-shadow: inset 0 0 0 1.5px var(--pen); }
+.cal-cell.out .cal-mark { color: var(--ink-3); opacity: 0.4; }
+
+/* ★ VARIANT A: the weather layer inside the cell, under the day number */
+.cal-wx {
+  display: flex; align-items: center; gap: 2px;
+  margin-top: 2px;
+  line-height: 1;
+  height: 13px;
+}
+.cal-wx .wx-glyph { font-size: 10px; line-height: 1; }
+.cal-wx .wx-temp {
+  font-family: var(--type); font-size: 9px; color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+/* Beyond the honest horizon the row is simply absent — the gap IS the honesty */
+.cal-wx.beyond { visibility: hidden; }
+
+/* Key */
+.cal-key { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--rule); }
+.key-item { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-2); }
+.key-swatch { width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--rule-2); display: inline-block; }
+.key-swatch.free { background: var(--green-2); border-color: var(--green-edge); }
+.key-swatch.trip { background: var(--green); border-color: var(--green); }
+.key-swatch.today { background: var(--sheet); box-shadow: inset 0 0 0 1.5px var(--pen); border-color: transparent; }
+
+.horizon-note {
+  font-family: var(--type); font-size: 10px; color: var(--ink-3);
+  letter-spacing: 0.04em; margin-top: 10px;
+}
+</style>
+
+<div class="app-nav">
+  <div class="wrap">
+    <div class="app-nav-inner">
+      <span class="app-wordmark">Waypoint</span>
+      <div class="avatar-row">
+        <span class="avatar" style="width:26px;height:26px;font-size:10px;background:#dbe4f2;color:#2a4d7a;">AI</span>
+        <span class="avatar" style="width:26px;height:26px;font-size:10px;background:#f3dcdf;color:#8e4550;">PT</span>
+        <span class="avatar" style="width:26px;height:26px;font-size:10px;background:#dfe9d6;color:#436035;">TK</span>
+        <span class="avatar" style="width:26px;height:26px;font-size:10px;background:#e4dff0;color:#574d75;">ZM</span>
+      </div>
+    </div>
+    <div class="tabs">
+      <span class="tab">Overview</span>
+      <span class="tab">Ideas</span>
+      <span class="tab active">Dates</span>
+      <span class="tab">Days</span>
+      <span class="tab">Money</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="sheet">
+    <span aria-hidden="true" class="tape-strip"></span>
+    <div class="sheet-content">
+
+      <!-- PageHeader -->
+      <div style="margin-bottom:20px;">
+        <h1 style="font-size:24px;letter-spacing:-0.02em;">Dates</h1>
+        <p style="font-size:14px;color:var(--ink-2);margin-top:2px;">
+          <span style="font-family:var(--type);color:var(--ink);">Mon 11 Aug – Sun 17 Aug</span>
+          <span style="color:var(--ink-3);">(6 nights)</span>
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div style="font-size:15px;font-weight:600;">Who can do when</div>
+            <div style="font-size:12.5px;color:var(--ink-2);">Your own days, or the whole group's overlap.</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="typed" style="line-height:1;">Still to say</span>
+              <span class="avatar" style="width:26px;height:26px;font-size:10px;background:#dfe9d6;color:#436035;">TK</span>
+            </div>
+            <span class="typed" style="border:1px solid var(--rule-2);border-radius:3px;padding:4px 8px;line-height:1;">⋯</span>
+          </div>
+        </div>
+
+        <div style="padding:16px;">
+          <!-- The Mine / Everyone / The dates switch -->
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+            <div class="segmented">
+              <span>Mine</span>
+              <span class="on">Everyone</span>
+              <span>The dates</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="typed" style="border:1px solid var(--rule-2);border-radius:3px;padding:3px 8px;line-height:1.4;">‹</span>
+              <span class="typed" style="border:1px solid var(--rule-2);border-radius:3px;padding:3px 8px;line-height:1.4;">›</span>
+            </div>
+          </div>
+
+          <!-- ── AUGUST ─────────────────────────────────────────────────── -->
+          <div class="cal-month">
+            <div class="cal-month-name">August 2026</div>
+            <div class="cal-grid">
+              <div class="cal-dow">Mo</div><div class="cal-dow">Tu</div><div class="cal-dow">We</div>
+              <div class="cal-dow">Th</div><div class="cal-dow">Fr</div><div class="cal-dow">Sa</div><div class="cal-dow">Su</div>
+
+              <!-- Week 1: 27 Jul – 2 Aug. Today = Fri 31 Jul (horizon starts here) -->
+              <div class="cal-cell out"><span class="cal-mark">27</span><span class="cal-wx beyond"></span></div>
+              <div class="cal-cell out"><span class="cal-mark">28</span><span class="cal-wx beyond"></span></div>
+              <div class="cal-cell out"><span class="cal-mark">29</span><span class="cal-wx beyond"></span></div>
+              <div class="cal-cell out"><span class="cal-mark">30</span><span class="cal-wx beyond"></span></div>
+              <div class="cal-cell out"><span class="cal-mark today">31</span><span class="cal-wx"><span class="wx-glyph">☀️</span><span class="wx-temp">28°</span></span></div>
+              <div class="cal-cell"><span class="cal-mark">1</span><span class="cal-wx"><span class="wx-glyph">☀️</span><span class="wx-temp">29°</span></span></div>
+              <div class="cal-cell"><span class="cal-mark free">2</span><span class="cal-wx"><span class="wx-glyph">⛅</span><span class="wx-temp">26°</span></span></div>
+
+              <!-- Week 2: 3–9 Aug -->
+              <div class="cal-cell"><span class="cal-mark free">3</span><span class="cal-wx"><span class="wx-glyph">🌧️</span><span class="wx-temp">22°</span></span></div>
+              <div class="cal-cell"><span class="cal-mark free">4</span><span class="cal-wx"><span class="wx-glyph">⛅</span><span class="wx-temp">25°</span></span></div>
+              <div class="cal-cell"><span class="cal-mark free">5</span><span class="cal-wx"><span class="wx-glyph">☀️</span><span class="wx-temp">30°</span></span></div>
+              <div class="cal-cell"><span class="cal-mark free">6</span><span class="cal-wx"><span class="wx-glyph">☀️</span><span class="wx-temp">31°</span></span></div>
+              <div class="cal-cell"><span class="cal-mark free">7</span><span class="cal-wx"><span class="wx-glyph">🌤️</span><span class="wx-temp">30°</span></span></div>
+              <div class="cal-cell"><span class="cal-mark free">8</span><span class="cal-wx"><span class="wx-glyph">☀️</span><span class="wx-temp">32°</span></span></div>
+              <div class="cal-cell"><span class="cal-mark free">9</span><span class="cal-wx"><span class="wx-glyph">☀️</span><span class="wx-temp">32°</span></span></div>
+
+              <!-- Week 3: 10–16 Aug. Trip = 11–17. Horizon ends Thu 13 Aug (14 days out) -->
+              <div class="cal-cell"><span class="cal-mark free">10</span><span class="cal-wx"><span class="wx-glyph">☀️</span><span class="wx-temp">31°</span></span></div>
+              <div class="cal-cell"><span class="cal-mark trip">11</span><span class="cal-wx"><span class="wx-glyph">☀️</span><span class="wx-temp">31°</span></span></div>
+              <div class="cal-cell"><span class="cal-mark trip">12</span><span class="cal-wx"><span class="wx-glyph">☀️</span><span class="wx-temp">33°</span></span></div>
+              <div class="cal-cell"><span class="cal-mark trip">13</span><span class="cal-wx"><span class="wx-glyph">🌤️</span><span class="wx-temp">30°</span></span></div>
+              <!-- Beyond the horizon: no forecast at all, rather than a fabricated one -->
+              <div class="cal-cell"><span class="cal-mark trip">14</span><span class="cal-wx beyond"></span></div>
+              <div class="cal-cell"><span class="cal-mark trip">15</span><span class="cal-wx beyond"></span></div>
+              <div class="cal-cell"><span class="cal-mark trip">16</span><span class="cal-wx beyond"></span></div>
+
+              <!-- Week 4: 17–23 Aug -->
+              <div class="cal-cell"><span class="cal-mark trip">17</span><span class="cal-wx beyond"></span></div>
+              <div class="cal-cell"><span class="cal-mark free">18</span><span class="cal-wx beyond"></span></div>
+              <div class="cal-cell"><span class="cal-mark free">19</span><span class="cal-wx beyond"></span></div>
+              <div class="cal-cell"><span class="cal-mark">20</span><span class="cal-wx beyond"></span></div>
+              <div class="cal-cell"><span class="cal-mark">21</span><span class="cal-wx beyond"></span></div>
+              <div class="cal-cell"><span class="cal-mark">22</span><span class="cal-wx beyond"></span></div>
+              <div class="cal-cell"><span class="cal-mark">23</span><span class="cal-wx beyond"></span></div>
+
+              <!-- Week 5: 24–30 Aug -->
+              <div class="cal-cell"><span class="cal-mark">24</span><span class="cal-wx beyond"></span></div>
+              <div class="cal-cell"><span class="cal-mark">25</span><span class="cal-wx beyond"></span></div>
+              <div class="cal-cell"><span class="cal-mark">26</span><span class="cal-wx beyond"></span></div>
+              <div class="cal-cell"><span class="cal-mark">27</span><span class="cal-wx beyond"></span></div>
+              <div class="cal-cell"><span class="cal-mark">28</span><span class="cal-wx beyond"></span></div>
+              <div class="cal-cell"><span class="cal-mark">29</span><span class="cal-wx beyond"></span></div>
+              <div class="cal-cell"><span class="cal-mark">30</span><span class="cal-wx beyond"></span></div>
+            </div>
+          </div>
+
+          <!-- Key -->
+          <div class="cal-key">
+            <span class="key-item"><span class="key-swatch free"></span>Free</span>
+            <span class="key-item"><span class="key-swatch trip"></span>In the trip</span>
+            <span class="key-item"><span class="key-swatch today"></span>Today</span>
+            <span class="key-item"><span style="font-size:12px;">☀️ 31°</span>&nbsp;Forecast</span>
+          </div>
+          <p class="horizon-note">Forecast runs 14 days out — Open-Meteo, Lisbon.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="proto-bar" aria-hidden="true">
+  <span class="proto-tag">Dates · A</span>
+  <span>Forecast glyph + temp inside each calendar cell, horizon-clipped</span>
+  <span class="proto-q">Question: Does weather-in-cell compete with the green availability marks? Is the silent gap past day 14 read as honest, or as broken?</span>
+</div>

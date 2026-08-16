@@ -330,6 +330,52 @@ clipped box still draws the un-clipped rectangle.)</p>
 a degree of tilt — not a line of prose. The tag carries the <strong>figure only</strong>;
 &quot;from … each&quot; was tried on it and read as clutter, so the qualification lives
 in the tag&#39;s <code>title</code> and its screen-reader label instead.</p>
+<h2>Iconography</h2>
+<p><strong>Every icon is drawn, in the app&#39;s own biro. No emoji, anywhere.</strong>
+An emoji is someone else&#39;s artwork: it arrives full-colour and rounded from
+whatever font the reader&#39;s OS happens to ship, it renders differently on
+Windows, macOS, Android and iOS, and it cannot take the ink of the thing it
+sits in. Three glossy pictograms in a row are the fastest way to make a ruled
+paper sheet look like a chat app. The rule came out of the ticket 148 weather
+prototypes, where a row of forecast emoji was the only thing on the page that
+didn&#39;t read as drawn.</p>
+<p>The house treatment is the one
+<a href="../../ventures/waypoint/apps/web/src/components/travel-mode-icon.tsx"><code>TravelModeIcon</code></a>
+and
+<a href="../../ventures/waypoint/apps/web/src/components/reaction-glyph.tsx"><code>ReactionGlyph</code></a>
+already share — those two are the reference, and a third glyph set copies them
+rather than inventing a scale:</p>
+<ul>
+<li><strong>A 14&times;14 <code>viewBox</code></strong>, rendered at about
+<code>13px</code>, with <code>fill=&quot;none&quot;</code> and
+<code>strokeWidth</code> around <code>1.15</code>–<code>1.25</code>, round caps
+and joins. The small box is deliberate: these glyphs sit <em>on a line of
+text</em> beside the mono labels, and a 24-box drawn at the same stroke reads
+noticeably heavier next to them. A glyph that needs to be bigger scales the
+stroke with it rather than keeping <code>1.15</code> at double the size.</li>
+<li><strong><code>stroke=&quot;currentColor&quot;</code>, always.</strong> That is
+what lets one glyph be ink in a row, <code>pen</code> in a link and
+<code>highlight-ink</code> on a wash without a second copy of the file. An icon
+that hardcodes its colour is the same mistake as a component holding a hex.
+Where a filled state is meaningful, fill with <code>currentColor</code> too —
+<code>ReactionGlyph</code> fills yours and outlines everyone else&#39;s.</li>
+<li><strong>Paths in a plain module, no <code>&quot;use client&quot;</code></strong>
+— a component that renders nothing but paths composes into a server or a
+client parent. Never an icon font: no network request, no FOIT, and the set
+stays countable.</li>
+<li><strong>No icon carries meaning alone</strong> — the same rule as colour. A
+condition glyph sits next to its word (&quot;Light rain&quot;), or the word is in
+the row&#39;s accessible label; the decorative copy is <code>aria-hidden</code>.
+<code>TravelModeIcon</code> takes this to its conclusion and draws
+<strong>nothing at all</strong> for <code>other</code>, because a picture for
+&quot;none of the four fit&quot; would be a guess.</li>
+<li><strong>Don&#39;t reach for a general-purpose icon set.</strong> Feather,
+Lucide, Heroicons and friends are all drawn to sit in a sans-serif product UI;
+dropping one in is the &quot;generic default icon set&quot; tell the
+<a href="approach.html">design approach</a> names outright. Draw the handful
+this app needs.</li>
+</ul>
+
 <h2>The screen that carries the character</h2>
 <p><code>/trip/[id]/overview</code> — it holds the summary, the unresolved list and the
 nudge panel at once, so it is where the journal tone, the ruled sheet and the

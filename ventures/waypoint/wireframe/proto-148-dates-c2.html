@@ -1,0 +1,545 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proto 148 · Dates C2 — Hourly as one drawn temperature curve</title>
+<!--
+  PROTOTYPE — throwaway. Dates C plus the hourly expansion. Same drawer
+  mechanics as C1, different thing inside it.
+
+  The change being prototyped:
+    Clicking a day in weather mode opens a row *inside the calendar*, directly
+    under the week that day sits in, holding that day's hourly forecast.
+
+  C2 — the hourly is ONE DRAWING: the day's temperature as a curve running left
+  to right, with the condition glyphs sitting on the line where they change and
+  rain drawn as bars along the foot. Where C1 gives you seven numbers to
+  compare yourself, this gives you the shape of the day directly — when it
+  warms up, when it peaks, when the rain arrives — which is the actual question
+  behind "what's Friday like".
+
+  This follows the house rule the Route spine came from: a list whose *shape*
+  is the point should be drawn, not tabulated ("one fact, one drawing").
+  The trade-off to judge against C1: a curve is worse at "exactly how warm at
+  3pm" and better at "what does the day do". Exact figures live on each point's
+  title/label rather than on the page.
+
+  Mechanics worth keeping either way:
+    - The drawer is a real grid item spanning all seven columns, inserted after
+      its own week's cells. That is what keeps it under the right week without
+      any positioning maths.
+    - Only one day is open at a time. Two open drawers push the month around
+      and you lose the shape the grid exists to show.
+    - The open day's disc takes a solid pen ring, so the drawer always has a
+      visible owner.
+    - A day past the horizon is not clickable at all — there is nothing to
+      open, and a drawer that opens onto "no data" is a worse answer than a
+      day that doesn't respond.
+
+  Icons are drawn line-art — no emoji.
+-->
+<style>
+:root {
+  --paper: #f3eee2; --sheet: #fbf8f1; --sheet-2: #f1ead9; --sheet-3: #e7dfca;
+  --rule: #ded3ba; --rule-2: #c4b795; --line: #cfe0e6; --margin-line: #dfb4ae;
+  --tape: rgb(214 196 150 / 0.55);
+  --ink: #23211c; --ink-2: #57524a; --ink-3: #8b8477;
+  --pen: #2a4d7a; --pen-deep: #16304f; --pen-2: #dfe7f1; --pen-edge: #bfd0e6;
+  --highlight: #f3dd7e; --highlight-2: #fbf2cd; --highlight-ink: #7a6414; --highlight-edge: #e4d194;
+  --red: #a03f36; --red-2: #f6e3df; --red-edge: #e4c3bb;
+  --green: #4d6b3f; --green-2: #e6ecdd; --green-edge: #c6d4b5;
+  --serif: "Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  --type: "Courier New","Cascadia Mono",Consolas,monospace;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scrollbar-gutter: stable; }
+body { background: var(--paper); color: var(--ink); font-family: var(--serif); font-size: 15.5px; line-height: 1.6; -webkit-font-smoothing: antialiased; padding-bottom: 64px; }
+h1,h2,h3 { font-family: var(--serif); font-weight: 600; letter-spacing: -0.01em; }
+.wrap { max-width: 900px; margin: 0 auto; padding: 0 16px; }
+.app-nav { background: var(--paper); border-bottom: 1px solid var(--rule); padding: 14px 0 0; }
+.app-nav-inner { display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; }
+.app-wordmark { font-family: var(--type); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
+.avatar-row { display: flex; gap: 4px; }
+.avatar { display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-family: var(--type); font-weight: 700; border: 1px solid var(--rule); }
+.tabs { display: flex; gap: 2px; }
+.tab { font-family: var(--type); font-size: 11px; letter-spacing: 0.07em; text-transform: uppercase; padding: 7px 14px 6px; border: 1px solid var(--rule-2); border-bottom: none; border-radius: 6px 6px 0 0; background: var(--paper); color: var(--ink-3); position: relative; top: 1px; cursor: default; }
+.tab.active { background: var(--sheet); color: var(--ink); top: 0; font-weight: 600; }
+.sheet { background: var(--sheet); border: 1px solid var(--rule-2); border-top: none; border-radius: 0 6px 6px 6px; padding: 28px 24px; position: relative; overflow: hidden; min-height: 640px; }
+.sheet::before { content: ""; position: absolute; inset: 0; pointer-events: none; background-image: repeating-linear-gradient(180deg,transparent 0 27px,var(--line) 27px 28px); opacity: 0.45; z-index: 0; }
+.sheet::after { content: ""; position: absolute; left: 46px; top: 0; bottom: 0; width: 1px; background: var(--margin-line); opacity: 0.6; pointer-events: none; z-index: 0; }
+.sheet-content { position: relative; z-index: 1; }
+.tape-strip { position: absolute; width: 90px; height: 20px; background: var(--tape); top: -9px; left: 28px; z-index: 2; transform: rotate(-2.5deg); box-shadow: 0 1px 2px rgb(0 0 0 / 0.08); pointer-events: none; }
+.card { background: var(--sheet-2); border: 1px solid var(--rule-2); border-radius: 5px; }
+.card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--rule); flex-wrap: wrap; }
+.typed { font-family: var(--type); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.proto-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--ink); color: #fbf8f1; font-family: var(--type); font-size: 11px; letter-spacing: 0.05em; padding: 10px 20px; display: flex; align-items: center; gap: 14px; z-index: 999; }
+.proto-tag { background: var(--pen); color: #fff; padding: 2px 8px; border-radius: 3px; white-space: nowrap; font-weight: 700; }
+.proto-q { color: rgb(251 248 241 / 0.65); }
+
+.ico { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; display: block; }
+
+.segmented { display: inline-flex; border: 1px solid var(--rule-2); border-radius: 4px; overflow: hidden; }
+.segmented button { font-family: var(--type); font-size: 10px; letter-spacing: 0.07em; text-transform: uppercase; padding: 5px 11px; background: var(--sheet); color: var(--ink-3); cursor: pointer; border: none; border-right: 1px solid var(--rule); transition: background-color 120ms ease, color 120ms ease; }
+.segmented button:last-child { border-right: none; }
+.segmented button:hover { background: var(--sheet-3); color: var(--ink); }
+.segmented button.on { background: var(--pen); color: #fff; font-weight: 600; }
+.segmented button.on:hover { background: var(--pen-deep); }
+
+/* ── Calendar ────────────────────────────────────────────────────────────── */
+.cal-month-name { font-family: var(--type); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 8px; padding-left: 2px; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+.cal-dow { font-family: var(--type); font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-3); text-align: center; padding-bottom: 6px; }
+.cal-cell { aspect-ratio: 1; display: grid; place-items: center; border-bottom: 1px solid var(--rule); position: relative; }
+
+.cal-corner { position: absolute; top: 3px; left: 5px; font-family: var(--type); font-size: 9px; color: var(--ink-3); font-variant-numeric: tabular-nums; line-height: 1; opacity: 0; transition: opacity 120ms ease; }
+body[data-view="weather"] .cal-corner { opacity: 1; }
+
+.cal-mark { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; font-family: var(--type); font-size: 12.5px; font-variant-numeric: tabular-nums; color: var(--ink); line-height: 1; transition: background-color 120ms ease, box-shadow 120ms ease; }
+.cal-mark.today { box-shadow: inset 0 0 0 1.5px var(--pen); }
+.cal-cell.out .cal-mark { color: var(--ink-3); opacity: 0.4; }
+
+body[data-view="everyone"] .cal-mark.free, body[data-view="mine"] .cal-mark.mine { background: var(--green-2); }
+body[data-view="everyone"] .cal-mark.trip, body[data-view="mine"] .cal-mark.trip, body[data-view="window"] .cal-mark.trip { background: var(--green); color: #fbf8f1; font-weight: 600; }
+
+.cal-num { display: block; }
+.cal-wx { display: none; color: var(--ink-2); }
+body[data-view="weather"] .cal-num { display: none; }
+body[data-view="weather"] .cal-wx { display: block; }
+
+body[data-view="weather"] .cal-mark { width: 34px; height: 34px; }
+body[data-view="weather"] .cal-mark[data-wx="sun"]   { background: var(--highlight-2); }
+body[data-view="weather"] .cal-mark[data-wx="part"]  { background: var(--sheet-3); }
+body[data-view="weather"] .cal-mark[data-wx="cloud"] { background: #e6e6e0; }
+body[data-view="weather"] .cal-mark[data-wx="rain"]  { background: #d9e6ef; }
+body[data-view="weather"] .cal-mark[data-wx="rain"] .cal-wx { color: var(--pen); }
+body[data-view="weather"] .cal-mark.trip { box-shadow: inset 0 0 0 1.5px var(--pen); }
+
+body[data-view="weather"] .cal-cell.beyond .cal-mark { background: transparent; box-shadow: inset 0 0 0 1px var(--rule-2); opacity: 0.55; }
+body[data-view="weather"] .cal-cell.beyond .cal-wx { visibility: hidden; }
+body[data-view="weather"] .cal-cell.beyond .cal-mark.trip { box-shadow: inset 0 0 0 1.5px var(--pen); opacity: 1; }
+
+/* ★ A day you can open. Only in weather mode, only inside the horizon.
+   Every interactive surface has a visible hover — the disc lifts to a pen
+   ring, which is also what it wears once open, so the hover previews the
+   state rather than inventing a third look. */
+body[data-view="weather"] .cal-cell:not(.beyond):not(.out) { cursor: pointer; }
+body[data-view="weather"] .cal-cell:not(.beyond):not(.out):hover .cal-mark { box-shadow: inset 0 0 0 1.5px var(--pen); }
+body[data-view="weather"] .cal-cell.open .cal-mark { box-shadow: inset 0 0 0 2.5px var(--pen); }
+.cal-cell:focus-visible { outline: 2px solid var(--pen); outline-offset: -2px; }
+
+/* ── ★ The hourly drawer: a real grid item across all seven columns ─────── */
+.hour-drawer {
+  grid-column: 1 / -1;
+  display: none;
+  border-bottom: 1px solid var(--rule);
+  background: var(--sheet-2);
+  border-left: 3px solid var(--pen);
+}
+.hour-drawer.open { display: block; }
+
+.hd-head {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 9px 12px 7px;
+  border-bottom: 1px solid var(--rule);
+}
+.hd-date { font-family: var(--type); font-size: 12px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.hd-cond { font-size: 13.5px; color: var(--ink-2); }
+.hd-range { margin-left: auto; font-family: var(--type); font-size: 12px; font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.hd-close {
+  border: 1px solid var(--rule-2); border-radius: 3px; background: var(--sheet);
+  color: var(--ink-3); cursor: pointer; padding: 3px 7px; line-height: 1;
+  display: grid; place-items: center;
+  transition: color 120ms ease, border-color 120ms ease;
+}
+.hd-close:hover { color: var(--pen); border-color: var(--pen); }
+
+/* ★ C2: the hourly as one drawing — the day's temperature curve. */
+.hd-chart { padding: 6px 12px 10px; }
+/* `height: auto` with the viewBox's own ratio, NOT a fixed height with
+   `preserveAspectRatio="none"`. Non-uniform scaling squashed every figure and
+   hour label horizontally — on a mono face, whose even width is the whole
+   reason it carries the numbers, that reads as a rendering fault. */
+.hd-svg { display: block; width: 100%; height: auto; }
+
+/* The curve is the biro. Round joins so it reads as drawn rather than
+   plotted, and no area fill under it — a filled area would be a second
+   surface on a page whose whole vocabulary is line and wash. */
+.curve {
+  fill: none; stroke: var(--pen); stroke-width: 2;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+/* A point per reading, hollow like the route pins — same drawing language. */
+.pt { fill: var(--sheet-2); stroke: var(--pen); stroke-width: 1.6; }
+.pt-label {
+  font-family: var(--type); font-size: 10px; fill: var(--ink);
+  text-anchor: middle;
+}
+.hr-label {
+  font-family: var(--type); font-size: 9px; fill: var(--ink-3);
+  text-anchor: middle; letter-spacing: 0.04em;
+}
+/* Rain along the foot, as bars off the baseline. Height is the chance, and
+   the figure is on the bar's own title — a percentage printed under every
+   bar would out-shout the curve. */
+/* 0.3 on cream read as plain grey rather than as a wash of the biro — the
+   bars have to be recognisably the same ink as the curve above them. */
+.rain-bar { fill: var(--pen); opacity: 0.42; }
+.rain-base { stroke: var(--rule); stroke-width: 1; }
+/* The glyph rides on the curve, and only where the condition CHANGES —
+   drawing all seven put a row of icons across the line and hid its shape. */
+.curve-glyph { color: var(--ink-2); }
+.curve-glyph.wet { color: var(--pen); }
+
+.hd-legend {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  padding: 0 12px 9px;
+  font-size: 12px; color: var(--ink-2);
+}
+.hd-legend .k { display: inline-flex; align-items: center; gap: 6px; }
+.hd-legend .k-line { width: 16px; height: 2px; background: var(--pen); border-radius: 1px; display: inline-block; }
+.hd-legend .k-rain { width: 12px; height: 10px; background: var(--pen); opacity: 0.42; border-radius: 1px; display: inline-block; }
+
+.readout { display: none; align-items: center; gap: 14px; margin-top: 14px; padding: 10px 12px; border: 1px solid var(--rule); border-radius: 5px; background: var(--sheet); min-height: 52px; }
+body[data-view="weather"] .readout { display: flex; }
+.ro-ico { color: var(--ink-2); flex-shrink: 0; }
+.ro-date { font-family: var(--type); font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ro-cond { font-size: 14.5px; color: var(--ink); }
+.ro-temps { margin-left: auto; display: inline-flex; align-items: baseline; gap: 10px; font-family: var(--type); font-variant-numeric: tabular-nums; }
+.ro-hi { font-size: 16px; color: var(--ink); }
+.ro-lo { font-size: 12px; color: var(--ink-3); }
+.ro-empty { font-size: 14px; color: var(--ink-3); }
+
+.cal-key { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--rule); }
+.key-set { display: none; flex-wrap: wrap; gap: 16px; align-items: center; }
+body[data-view="weather"] .key-weather { display: flex; }
+body:not([data-view="weather"]) .key-avail { display: flex; }
+.key-item { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-2); }
+.key-swatch { width: 15px; height: 15px; border-radius: 50%; border: 1px solid var(--rule-2); display: inline-block; }
+.key-swatch.free { background: var(--green-2); border-color: var(--green-edge); }
+.key-swatch.trip { background: var(--green); border-color: var(--green); }
+.key-swatch.today { background: var(--sheet); box-shadow: inset 0 0 0 1.5px var(--pen); border-color: transparent; }
+.key-swatch.wx-sun { background: var(--highlight-2); border-color: var(--highlight-edge); }
+.key-swatch.wx-rain { background: #d9e6ef; border-color: #b8cfe0; }
+.key-swatch.wx-trip { background: var(--sheet-2); box-shadow: inset 0 0 0 1.5px var(--pen); border-color: transparent; }
+.key-swatch.wx-none { background: var(--sheet); border-style: dashed; }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+  <symbol id="wx-sun" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="4.4"/>
+    <path d="M12 2.8v2.3M12 18.9v2.3M2.8 12h2.3M18.9 12h2.3M5.5 5.5l1.6 1.6M16.9 16.9l1.6 1.6M18.5 5.5l-1.6 1.6M7.1 16.9l-1.6 1.6"/>
+  </symbol>
+  <symbol id="wx-part" viewBox="0 0 24 24">
+    <circle cx="8.8" cy="8.2" r="3.1"/>
+    <path d="M8.8 2.6v1.6M3.2 8.2h1.6M4.8 4.2l1.1 1.1M12.8 4.2l-1.1 1.1"/>
+    <path d="M10.4 20h7.4a3 3 0 0 0 .2-6 4.3 4.3 0 0 0-8.1-1 3.1 3.1 0 0 0 .5 7z"/>
+  </symbol>
+  <symbol id="wx-cloud" viewBox="0 0 24 24">
+    <path d="M7.4 18.4h9.3a3.6 3.6 0 0 0 .3-7.2 5.2 5.2 0 0 0-9.9-1.2 3.7 3.7 0 0 0 .3 8.4z"/>
+  </symbol>
+  <symbol id="wx-rain" viewBox="0 0 24 24">
+    <path d="M7.4 15.6h9.3a3.6 3.6 0 0 0 .3-7.2 5.2 5.2 0 0 0-9.9-1.2 3.7 3.7 0 0 0 .3 8.4z"/>
+    <path d="M8.6 18.4l-1 2.6M12.4 18.4l-1 2.6M16.2 18.4l-1 2.6"/>
+  </symbol>
+  <symbol id="ico-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+</defs></svg>
+
+<body data-view="weather">
+
+<div class="app-nav">
+  <div class="wrap">
+    <div class="app-nav-inner">
+      <span class="app-wordmark">Waypoint</span>
+      <div class="avatar-row">
+        <span class="avatar" style="width:26px;height:26px;font-size:10px;background:#dbe4f2;color:#2a4d7a;">AI</span>
+        <span class="avatar" style="width:26px;height:26px;font-size:10px;background:#f3dcdf;color:#8e4550;">PT</span>
+        <span class="avatar" style="width:26px;height:26px;font-size:10px;background:#dfe9d6;color:#436035;">TK</span>
+        <span class="avatar" style="width:26px;height:26px;font-size:10px;background:#e4dff0;color:#574d75;">ZM</span>
+      </div>
+    </div>
+    <div class="tabs">
+      <span class="tab">Overview</span>
+      <span class="tab">Ideas</span>
+      <span class="tab active">Dates</span>
+      <span class="tab">Days</span>
+      <span class="tab">Money</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="sheet">
+    <span aria-hidden="true" class="tape-strip"></span>
+    <div class="sheet-content">
+
+      <div style="margin-bottom:20px;">
+        <h1 style="font-size:24px;letter-spacing:-0.02em;">Dates</h1>
+        <p style="font-size:14px;color:var(--ink-2);margin-top:2px;">
+          <span style="font-family:var(--type);color:var(--ink);">Mon 11 Aug – Sun 17 Aug</span>
+          <span style="color:var(--ink-3);">(6 nights)</span>
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div style="font-size:15px;font-weight:600;">Who can do when</div>
+            <div style="font-size:12.5px;color:var(--ink-2);">Your own days, or the whole group's overlap.</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="typed" style="line-height:1;">Still to say</span>
+              <span class="avatar" style="width:26px;height:26px;font-size:10px;background:#dfe9d6;color:#436035;">TK</span>
+            </div>
+            <span class="typed" style="border:1px solid var(--rule-2);border-radius:3px;padding:4px 8px;line-height:1;">⋯</span>
+          </div>
+        </div>
+
+        <div style="padding:16px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+            <div class="segmented" id="viewSwitch">
+              <button data-set="mine">Mine</button>
+              <button data-set="everyone">Everyone</button>
+              <button data-set="window">The dates</button>
+              <button data-set="weather" class="on">Weather</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="typed" style="border:1px solid var(--rule-2);border-radius:3px;padding:3px 8px;line-height:1.4;">‹</span>
+              <span class="typed" style="border:1px solid var(--rule-2);border-radius:3px;padding:3px 8px;line-height:1.4;">›</span>
+            </div>
+          </div>
+
+          <div class="cal-month-name">August 2026</div>
+          <div class="cal-grid" id="grid">
+            <div class="cal-dow">Mo</div><div class="cal-dow">Tu</div><div class="cal-dow">We</div>
+            <div class="cal-dow">Th</div><div class="cal-dow">Fr</div><div class="cal-dow">Sa</div><div class="cal-dow">Su</div>
+
+            <!-- Week 1 -->
+            <div class="cal-cell out beyond"><span class="cal-corner">27</span><span class="cal-mark"><span class="cal-num">27</span><span class="cal-wx"></span></span></div>
+            <div class="cal-cell out beyond"><span class="cal-corner">28</span><span class="cal-mark"><span class="cal-num">28</span><span class="cal-wx"></span></span></div>
+            <div class="cal-cell out beyond"><span class="cal-corner">29</span><span class="cal-mark"><span class="cal-num">29</span><span class="cal-wx"></span></span></div>
+            <div class="cal-cell out beyond"><span class="cal-corner">30</span><span class="cal-mark"><span class="cal-num">30</span><span class="cal-wx"></span></span></div>
+            <div class="cal-cell out" data-d="Fri 31 Jul" data-c="Clear" data-hi="28" data-lo="18"><span class="cal-corner">31</span><span class="cal-mark today" data-wx="sun"><span class="cal-num">31</span><span class="cal-wx"><svg class="ico" width="20" height="20"><use href="#wx-sun"/></svg></span></span></div>
+            <div class="cal-cell" tabindex="0" data-d="Sat 1 Aug" data-c="Clear" data-hi="29" data-lo="18" data-h="06|sun|20,09|sun|24,12|sun|28,15|sun|29,18|part|26,21|part|22,00|cloud|19"><span class="cal-corner">1</span><span class="cal-mark" data-wx="sun"><span class="cal-num">1</span><span class="cal-wx"><svg class="ico" width="20" height="20"><use href="#wx-sun"/></svg></span></span></div>
+            <div class="cal-cell" tabindex="0" data-d="Sun 2 Aug" data-c="Mostly sunny" data-hi="26" data-lo="17" data-h="06|cloud|18,09|part|21,12|part|25,15|sun|26,18|part|24,21|cloud|21,00|cloud|18"><span class="cal-corner">2</span><span class="cal-mark free" data-wx="part"><span class="cal-num">2</span><span class="cal-wx"><svg class="ico" width="20" height="20"><use href="#wx-part"/></svg></span></span></div>
+            <div class="hour-drawer" data-week="1"></div>
+
+            <!-- Week 2 -->
+            <div class="cal-cell" tabindex="0" data-d="Mon 3 Aug" data-c="Light rain" data-hi="22" data-lo="15" data-h="06|rain|16|65,09|rain|18|80,12|rain|21|70,15|cloud|22|30,18|rain|20|75,21|rain|17|60,00|cloud|15|20"><span class="cal-corner">3</span><span class="cal-mark free" data-wx="rain"><span class="cal-num">3</span><span class="cal-wx"><svg class="ico" width="20" height="20"><use href="#wx-rain"/></svg></span></span></div>
+            <div class="cal-cell" tabindex="0" data-d="Tue 4 Aug" data-c="Mostly sunny" data-hi="25" data-lo="16" data-h="06|cloud|17,09|part|20,12|sun|24,15|sun|25,18|part|23,21|cloud|20,00|cloud|17"><span class="cal-corner">4</span><span class="cal-mark free mine" data-wx="part"><span class="cal-num">4</span><span class="cal-wx"><svg class="ico" width="20" height="20"><use href="#wx-part"/></svg></span></span></div>
+            <div class="cal-cell" tabindex="0" data-d="Wed 5 Aug" data-c="Clear" data-hi="30" data-lo="18" data-h="06|sun|19,09|sun|23,12|sun|28,15|sun|30,18|sun|27,21|part|23,00|cloud|19"><span class="cal-corner">5</span><span class="cal-mark free mine" data-wx="sun"><span class="cal-num">5</span><span class="cal-wx"><svg class="ico" width="20" height="20"><use href="#wx-sun"/></svg></span></span></div>
+            <div class="cal-cell" tabindex="0" data-d="Thu 6 Aug" data-c="Clear" data-hi="31" data-lo="19" data-h="06|sun|20,09|sun|24,12|sun|29,15|sun|31,18|sun|28,21|part|24,00|cloud|20"><span class="cal-corner">6</span><span class="cal-mark free mine" data-wx="sun"><span class="cal-num">6</span><span class="cal-wx"><svg class="ico" width="20" height="20"><use href="#wx-sun"/></svg></span></span></div>
+            <div class="cal-cell" tabindex="0" data-d="Fri 7 Aug" data-c="Cloudy" data-hi="27" data-lo="18" data-h="06|cloud|19|25,09|cloud|21|20,12|cloud|25|15,15|cloud|27|15,18|cloud|25|20,21|cloud|22|25,00|cloud|19|20"><span class="cal-corner">7</span><span class="cal-mark free mine" data-wx="cloud"><span class="cal-num">7</span><span class="cal-wx"><svg class="ico" width="20" height="20"><use href="#wx-cloud"/></svg></span></span></div>
+            <div class="cal-cell" tabindex="0" data-d="Sat 8 Aug" data-c="Clear" data-hi="32" data-lo="20" data-h="06|sun|21,09|sun|25,12|sun|30,15|sun|32,18|sun|29,21|part|25,00|cloud|21"><span class="cal-corner">8</span><span class="cal-mark free mine" data-wx="sun"><span class="cal-num">8</span><span class="cal-wx"><svg class="ico" width="20" height="20"><use href="#wx-sun"/></svg></span></span></div>
+            <div class="cal-cell" tabindex="0" data-d="Sun 9 Aug" data-c="Clear" data-hi="32" data-lo="20" data-h="06|sun|21,09|sun|25,12|sun|30,15|sun|32,18|sun|29,21|part|25,00|cloud|21"><span class="cal-corner">9</span><span class="cal-mark free mine" data-wx="sun"><span class="cal-num">9</span><span class="cal-wx"><svg class="ico" width="20" height="20"><use href="#wx-sun"/></svg></span></span></div>
+            <div class="hour-drawer" data-week="2"></div>
+
+            <!-- Week 3 — horizon ends Thu 13 Aug -->
+            <div class="cal-cell" tabindex="0" data-d="Mon 10 Aug" data-c="Clear" data-hi="31" data-lo="19" data-h="06|sun|20,09|sun|24,12|sun|29,15|sun|31,18|sun|28,21|part|24,00|cloud|20"><span class="cal-corner">10</span><span class="cal-mark free mine" data-wx="sun"><span class="cal-num">10</span><span class="cal-wx"><svg class="ico" width="20" height="20"><use href="#wx-sun"/></svg></span></span></div>
+            <div class="cal-cell" tabindex="0" data-d="Tue 11 Aug" data-c="Clear" data-hi="31" data-lo="19" data-h="06|sun|20,09|sun|24,12|sun|29,15|sun|31,18|sun|28,21|part|24,00|cloud|20"><span class="cal-corner">11</span><span class="cal-mark trip mine" data-wx="sun"><span class="cal-num">11</span><span class="cal-wx"><svg class="ico" width="20" height="20"><use href="#wx-sun"/></svg></span></span></div>
+            <div class="cal-cell" tabindex="0" data-d="Wed 12 Aug" data-c="Clear" data-hi="33" data-lo="20" data-h="06|sun|21,09|sun|26,12|sun|31,15|sun|33,18|sun|30,21|part|26,00|cloud|21"><span class="cal-corner">12</span><span class="cal-mark trip mine" data-wx="sun"><span class="cal-num">12</span><span class="cal-wx"><svg class="ico" width="20" height="20"><use href="#wx-sun"/></svg></span></span></div>
+            <div class="cal-cell" tabindex="0" data-d="Thu 13 Aug" data-c="Mostly sunny" data-hi="30" data-lo="18" data-h="06|part|19|10,09|sun|23|5,12|sun|28|0,15|part|30|10,18|part|27|15,21|cloud|23|20,00|cloud|19|15"><span class="cal-corner">13</span><span class="cal-mark trip mine" data-wx="part"><span class="cal-num">13</span><span class="cal-wx"><svg class="ico" width="20" height="20"><use href="#wx-part"/></svg></span></span></div>
+            <div class="cal-cell beyond" data-d="Fri 14 Aug"><span class="cal-corner">14</span><span class="cal-mark trip mine"><span class="cal-num">14</span><span class="cal-wx"></span></span></div>
+            <div class="cal-cell beyond" data-d="Sat 15 Aug"><span class="cal-corner">15</span><span class="cal-mark trip mine"><span class="cal-num">15</span><span class="cal-wx"></span></span></div>
+            <div class="cal-cell beyond" data-d="Sun 16 Aug"><span class="cal-corner">16</span><span class="cal-mark trip mine"><span class="cal-num">16</span><span class="cal-wx"></span></span></div>
+            <div class="hour-drawer" data-week="3"></div>
+
+            <!-- Week 4 -->
+            <div class="cal-cell beyond" data-d="Mon 17 Aug"><span class="cal-corner">17</span><span class="cal-mark trip mine"><span class="cal-num">17</span><span class="cal-wx"></span></span></div>
+            <div class="cal-cell beyond" data-d="Tue 18 Aug"><span class="cal-corner">18</span><span class="cal-mark free"><span class="cal-num">18</span><span class="cal-wx"></span></span></div>
+            <div class="cal-cell beyond" data-d="Wed 19 Aug"><span class="cal-corner">19</span><span class="cal-mark free"><span class="cal-num">19</span><span class="cal-wx"></span></span></div>
+            <div class="cal-cell beyond" data-d="Thu 20 Aug"><span class="cal-corner">20</span><span class="cal-mark"><span class="cal-num">20</span><span class="cal-wx"></span></span></div>
+            <div class="cal-cell beyond" data-d="Fri 21 Aug"><span class="cal-corner">21</span><span class="cal-mark"><span class="cal-num">21</span><span class="cal-wx"></span></span></div>
+            <div class="cal-cell beyond" data-d="Sat 22 Aug"><span class="cal-corner">22</span><span class="cal-mark"><span class="cal-num">22</span><span class="cal-wx"></span></span></div>
+            <div class="cal-cell beyond" data-d="Sun 23 Aug"><span class="cal-corner">23</span><span class="cal-mark"><span class="cal-num">23</span><span class="cal-wx"></span></span></div>
+            <div class="hour-drawer" data-week="4"></div>
+
+            <!-- Week 5 -->
+            <div class="cal-cell beyond" data-d="Mon 24 Aug"><span class="cal-corner">24</span><span class="cal-mark"><span class="cal-num">24</span><span class="cal-wx"></span></span></div>
+            <div class="cal-cell beyond" data-d="Tue 25 Aug"><span class="cal-corner">25</span><span class="cal-mark"><span class="cal-num">25</span><span class="cal-wx"></span></span></div>
+            <div class="cal-cell beyond" data-d="Wed 26 Aug"><span class="cal-corner">26</span><span class="cal-mark"><span class="cal-num">26</span><span class="cal-wx"></span></span></div>
+            <div class="cal-cell beyond" data-d="Thu 27 Aug"><span class="cal-corner">27</span><span class="cal-mark"><span class="cal-num">27</span><span class="cal-wx"></span></span></div>
+            <div class="cal-cell beyond" data-d="Fri 28 Aug"><span class="cal-corner">28</span><span class="cal-mark"><span class="cal-num">28</span><span class="cal-wx"></span></span></div>
+            <div class="cal-cell beyond" data-d="Sat 29 Aug"><span class="cal-corner">29</span><span class="cal-mark"><span class="cal-num">29</span><span class="cal-wx"></span></span></div>
+            <div class="cal-cell beyond" data-d="Sun 30 Aug"><span class="cal-corner">30</span><span class="cal-mark"><span class="cal-num">30</span><span class="cal-wx"></span></span></div>
+            <div class="hour-drawer" data-week="5"></div>
+          </div>
+
+          <div class="readout" id="readout">
+            <span class="ro-ico" id="roIco"><svg class="ico" width="26" height="26"><use href="#wx-sun"/></svg></span>
+            <span class="ro-date" id="roDate">Tue 11 Aug</span>
+            <span class="ro-cond" id="roCond">Clear</span>
+            <span class="ro-temps" id="roTemps"><span class="ro-hi">31°</span><span class="ro-lo">19°</span></span>
+          </div>
+
+          <div class="cal-key">
+            <div class="key-set key-avail">
+              <span class="key-item"><span class="key-swatch free"></span>Free</span>
+              <span class="key-item"><span class="key-swatch trip"></span>In the trip</span>
+              <span class="key-item"><span class="key-swatch today"></span>Today</span>
+            </div>
+            <div class="key-set key-weather">
+              <span class="key-item"><span class="key-swatch wx-sun"></span>Sun</span>
+              <span class="key-item"><span class="key-swatch" style="background:#e6e6e0;"></span>Cloud</span>
+              <span class="key-item"><span class="key-swatch wx-rain"></span>Rain</span>
+              <span class="key-item"><span class="key-swatch wx-trip"></span>In the trip</span>
+              <span class="key-item"><span class="key-swatch wx-none"></span>Beyond the forecast</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="proto-bar" aria-hidden="true">
+  <span class="proto-tag">Dates · C2</span>
+  <span>Click any day inside the horizon — hourly opens as one temperature curve</span>
+  <span class="proto-q">Question: Does the shape of the day beat seven numbers? Is losing exact per-hour figures to a title acceptable?</span>
+</div>
+
+<script>
+(function () {
+  var COND = { sun: 'Clear', part: 'Mostly sunny', cloud: 'Cloudy', rain: 'Light rain' };
+  var grid = document.getElementById('grid');
+  var cells = Array.prototype.slice.call(grid.querySelectorAll('.cal-cell'));
+  var drawers = Array.prototype.slice.call(grid.querySelectorAll('.hour-drawer'));
+
+  // Which drawer belongs to a cell: the first one that appears after it.
+  function drawerFor(cell) {
+    var all = Array.prototype.slice.call(grid.children);
+    var i = all.indexOf(cell);
+    for (var j = i + 1; j < all.length; j++) {
+      if (all[j].classList.contains('hour-drawer')) return all[j];
+    }
+    return null;
+  }
+
+  function closeAll() {
+    drawers.forEach(function (d) { d.classList.remove('open'); d.innerHTML = ''; });
+    cells.forEach(function (c) { c.classList.remove('open'); });
+  }
+
+  /**
+   * The drawer's contents: one SVG of the day's temperature.
+   *
+   * Laid out in a fixed 700×132 viewBox and scaled by CSS, so the geometry is
+   * plain arithmetic and the drawing still fits any column width.
+   */
+  function render(cell) {
+    var hours = (cell.dataset.h || '').split(',').filter(Boolean).map(function (h) {
+      var p = h.split('|');
+      return { hr: p[0], wx: p[1], t: +p[2], pop: p[3] ? +p[3] : 0 };
+    });
+
+    var W = 700, H = 132;
+    var padL = 26, padR = 26, top = 34, base = 96; // base = the curve's floor
+    var temps = hours.map(function (h) { return h.t; });
+    var lo = Math.min.apply(null, temps), hi = Math.max.apply(null, temps);
+    var span = Math.max(hi - lo, 1);
+    var x = function (i) { return padL + i * ((W - padL - padR) / (hours.length - 1)); };
+    var y = function (t) { return top + (1 - (t - lo) / span) * (base - top); };
+
+    var line = hours.map(function (h, i) { return (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(h.t).toFixed(1); }).join(' ');
+
+    var svg = '<svg class="hd-svg" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Hourly temperature for ' + cell.dataset.d + '">';
+
+    // Rain bars first, so the curve draws over them.
+    svg += '<line class="rain-base" x1="' + padL + '" y1="' + (H - 18) + '" x2="' + (W - padR) + '" y2="' + (H - 18) + '"/>';
+    hours.forEach(function (h, i) {
+      if (!h.pop) return;
+      var bh = 3 + (h.pop / 100) * 15;
+      svg += '<rect class="rain-bar" x="' + (x(i) - 13) + '" y="' + (H - 18 - bh) + '" width="26" height="' + bh + '" rx="1.5">' +
+             '<title>' + h.hr + ':00 — ' + h.pop + '% chance of rain</title></rect>';
+    });
+
+    svg += '<path class="curve" d="' + line + '"/>';
+
+    hours.forEach(function (h, i) {
+      svg += '<circle class="pt" cx="' + x(i).toFixed(1) + '" cy="' + y(h.t).toFixed(1) + '" r="3.4">' +
+             '<title>' + h.hr + ':00 — ' + h.t + '°' + (h.pop ? ', ' + h.pop + '% chance of rain' : '') + '</title></circle>';
+      svg += '<text class="pt-label" x="' + x(i).toFixed(1) + '" y="' + (y(h.t) - 9).toFixed(1) + '">' + h.t + '°</text>';
+      svg += '<text class="hr-label" x="' + x(i).toFixed(1) + '" y="' + (H - 4) + '">' + h.hr + ':00</text>';
+    });
+    svg += '</svg>';
+
+    // The glyphs ride above the curve, only where the condition changes.
+    var marks = '';
+    hours.forEach(function (h, i) {
+      if (i > 0 && hours[i - 1].wx === h.wx) return;
+      var left = (x(i) / W) * 100;
+      marks += '<span class="curve-glyph' + (h.wx === 'rain' ? ' wet' : '') + '" style="position:absolute;left:' + left.toFixed(2) + '%;top:0;transform:translateX(-50%);">' +
+        '<svg class="ico" width="17" height="17"><use href="#wx-' + h.wx + '"/></svg></span>';
+    });
+
+    return '<div class="hd-head">' +
+      '<span class="hd-date">' + cell.dataset.d + '</span>' +
+      '<span class="hd-cond">' + cell.dataset.c + '</span>' +
+      '<span class="hd-range">' + cell.dataset.hi + '° / ' + cell.dataset.lo + '°</span>' +
+      '<button class="hd-close" aria-label="Close hourly forecast">' +
+        '<svg class="ico" width="13" height="13"><use href="#ico-x"/></svg></button>' +
+      '</div>' +
+      '<div class="hd-chart"><div style="position:relative;">' + marks + svg + '</div></div>' +
+      '<div class="hd-legend">' +
+        '<span class="k"><span class="k-line"></span>Temperature</span>' +
+        '<span class="k"><span class="k-rain"></span>Chance of rain</span>' +
+      '</div>';
+  }
+
+  grid.addEventListener('click', function (e) {
+    if (e.target.closest('.hd-close')) { closeAll(); return; }
+    if (e.target.closest('.hour-drawer')) return;
+    var cell = e.target.closest('.cal-cell');
+    if (!cell) return;
+    if (document.body.dataset.view !== 'weather') return;
+    if (cell.classList.contains('beyond') || !cell.dataset.h) return;
+
+    var wasOpen = cell.classList.contains('open');
+    closeAll();
+    if (wasOpen) return;
+    var d = drawerFor(cell);
+    if (!d) return;
+    d.innerHTML = render(cell);
+    d.classList.add('open');
+    cell.classList.add('open');
+  });
+
+  grid.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    var cell = e.target.closest('.cal-cell');
+    if (!cell) return;
+    e.preventDefault();
+    cell.click();
+  });
+
+  document.getElementById('viewSwitch').addEventListener('click', function (e) {
+    var btn = e.target.closest('button');
+    if (!btn) return;
+    this.querySelectorAll('button').forEach(function (b) { b.classList.remove('on'); });
+    btn.classList.add('on');
+    document.body.dataset.view = btn.dataset.set;
+    // A drawer only means anything in weather mode.
+    if (btn.dataset.set !== 'weather') closeAll();
+  });
+
+  var ro = {
+    date: document.getElementById('roDate'), cond: document.getElementById('roCond'),
+    temps: document.getElementById('roTemps'), ico: document.getElementById('roIco')
+  };
+  grid.addEventListener('mouseover', function (e) {
+    var cell = e.target.closest('.cal-cell');
+    if (!cell || document.body.dataset.view !== 'weather') return;
+    ro.date.textContent = cell.dataset.d || '';
+    if (cell.classList.contains('beyond')) {
+      ro.cond.textContent = 'Beyond the forecast';
+      ro.cond.className = 'ro-empty';
+      ro.temps.innerHTML = ''; ro.ico.innerHTML = '';
+    } else {
+      ro.cond.textContent = cell.dataset.c || '';
+      ro.cond.className = 'ro-cond';
+      ro.temps.innerHTML = '<span class="ro-hi">' + cell.dataset.hi + '°</span><span class="ro-lo">' + cell.dataset.lo + '°</span>';
+      ro.ico.innerHTML = '<svg class="ico" width="26" height="26"><use href="#wx-' + cell.querySelector('.cal-mark').dataset.wx + '"/></svg>';
+    }
+  });
+})();
+</script>

@@ -1,0 +1,514 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proto 148 · Overview A — Compact forecast strip</title>
+<!--
+  PROTOTYPE — throwaway. Answers: does a compact horizontal strip between
+  the hero and Unresolved give weather the right weight on Overview?
+
+  Question being settled:
+    Where does forecast render on Overview, and at what density?
+
+  Variant A: A scrollable row of day-chips sits between the trip hero and the
+  Unresolved list. Low footprint; glanceable; doesn't interrupt the main flow.
+-->
+<style>
+/* ── Waypoint tokens ─────────────────────────────────────────────────────── */
+:root {
+  --paper: #f3eee2;
+  --sheet: #fbf8f1;
+  --sheet-2: #f1ead9;
+  --sheet-3: #e7dfca;
+  --rule: #ded3ba;
+  --rule-2: #c4b795;
+  --line: #cfe0e6;
+  --margin-line: #dfb4ae;
+  --tape: rgb(214 196 150 / 0.55);
+  --ink: #23211c;
+  --ink-2: #57524a;
+  --ink-3: #8b8477;
+  --pen: #2a4d7a;
+  --pen-deep: #16304f;
+  --pen-2: #dfe7f1;
+  --pen-edge: #bfd0e6;
+  --highlight: #f3dd7e;
+  --highlight-2: #fbf2cd;
+  --highlight-ink: #7a6414;
+  --highlight-edge: #e4d194;
+  --red: #a03f36;
+  --red-2: #f6e3df;
+  --red-edge: #e4c3bb;
+  --green: #4d6b3f;
+  --green-2: #e6ecdd;
+  --green-edge: #c6d4b5;
+  --serif: "Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  --type: "Courier New","Cascadia Mono",Consolas,monospace;
+}
+
+/* ── Reset + base ────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scrollbar-gutter: stable; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 15.5px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  padding-bottom: 60px;
+}
+h1,h2,h3 { font-family: var(--serif); font-weight: 600; letter-spacing: -0.01em; }
+a { color: inherit; }
+
+/* ── Layout ──────────────────────────────────────────────────────────────── */
+.wrap { max-width: 900px; margin: 0 auto; padding: 0 16px; }
+
+/* ── App chrome / nav ────────────────────────────────────────────────────── */
+.app-nav {
+  background: var(--paper);
+  border-bottom: 1px solid var(--rule);
+  padding: 14px 0 0;
+  margin-bottom: 0;
+}
+.app-nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+}
+.app-wordmark {
+  font-family: var(--type);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.avatar-row { display: flex; gap: 4px; align-items: center; }
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-family: var(--type);
+  font-weight: 700;
+  border: 1px solid var(--rule);
+}
+
+/* ── Folder tabs ─────────────────────────────────────────────────────────── */
+.tabs { display: flex; gap: 2px; }
+.tab {
+  font-family: var(--type);
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 7px 14px 6px;
+  border: 1px solid var(--rule-2);
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  background: var(--paper);
+  color: var(--ink-3);
+  text-decoration: none;
+  position: relative;
+  top: 1px;
+  cursor: default;
+}
+.tab.active {
+  background: var(--sheet);
+  color: var(--ink);
+  top: 0;
+  font-weight: 600;
+}
+
+/* ── Sheet (ruled paper page) ────────────────────────────────────────────── */
+.sheet {
+  background: var(--sheet);
+  border: 1px solid var(--rule-2);
+  border-top: none;
+  border-radius: 0 6px 6px 6px;
+  padding: 28px 24px;
+  position: relative;
+  overflow: hidden;
+  min-height: 500px;
+}
+.sheet::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(180deg,transparent 0 27px,var(--line) 27px 28px);
+  opacity: 0.45;
+  z-index: 0;
+}
+.sheet::after {
+  content: "";
+  position: absolute;
+  left: 46px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--margin-line);
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: 0;
+}
+.sheet-content { position: relative; z-index: 1; }
+.tape-strip {
+  position: absolute;
+  width: 90px;
+  height: 20px;
+  background: var(--tape);
+  top: -9px;
+  left: 28px;
+  z-index: 2;
+  transform: rotate(-2.5deg);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+  pointer-events: none;
+}
+
+/* ── Card ────────────────────────────────────────────────────────────────── */
+.card {
+  background: var(--sheet-2);
+  border: 1px solid var(--rule-2);
+  border-radius: 5px;
+  position: relative;
+}
+.card-tape {
+  position: absolute;
+  height: 15px;
+  width: 72px;
+  background: var(--tape);
+  top: -7px;
+  left: 20px;
+  transform: rotate(-2deg);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.07);
+  pointer-events: none;
+}
+
+/* ── Badge ───────────────────────────────────────────────────────────────── */
+.badge {
+  font-family: var(--type);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid;
+  border-radius: 3px;
+  padding: 2px 6px;
+  display: inline-block;
+  white-space: nowrap;
+  line-height: 1.5;
+}
+.badge-n  { background: var(--sheet-3);      border-color: var(--rule-2);          color: var(--ink-2); }
+.badge-m  { background: var(--pen-2);        border-color: var(--pen-edge);        color: var(--pen); }
+.badge-o  { background: var(--highlight-2);  border-color: var(--highlight-edge);  color: var(--highlight-ink); }
+.badge-g  { background: var(--green-2);      border-color: var(--green-edge);      color: var(--green); }
+
+/* ── Typed label ─────────────────────────────────────────────────────────── */
+.typed {
+  font-family: var(--type);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* ── Trip trail ──────────────────────────────────────────────────────────── */
+.trail { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
+.trail-bar { flex: 1; height: 2px; background: var(--rule-2); border-radius: 1px; position: relative; overflow: hidden; }
+.trail-fill { position: absolute; inset: 0; border-radius: 1px; }
+
+/* ── Unresolved rows ─────────────────────────────────────────────────────── */
+.unresolved-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--rule);
+  border-left-width: 3px;
+  border-radius: 3px;
+  padding: 10px 12px;
+}
+.unresolved-row.mine  { border-left-color: var(--pen);       background: var(--pen-2); }
+.unresolved-row.other { border-left-color: var(--rule-2);    background: var(--sheet); }
+.unresolved-text { flex: 1; min-width: 220px; font-size: 14px; line-height: 1.4; }
+.unresolved-detail { font-size: 12.5px; color: var(--ink-2); margin-top: 3px; }
+.open-tab-link {
+  font-family: var(--type);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid var(--rule-2);
+  border-radius: 3px;
+  padding: 5px 10px;
+  background: var(--sheet-2);
+  color: var(--ink-2);
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: default;
+}
+
+/* ── Forecast strip (VARIANT-SPECIFIC) ───────────────────────────────────── */
+.forecast-strip {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.forecast-strip::-webkit-scrollbar { display: none; }
+
+.forecast-chip {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  background: var(--sheet-2);
+  border: 1px solid var(--rule);
+  border-radius: 5px;
+  padding: 8px 10px 6px;
+  min-width: 64px;
+  text-align: center;
+}
+.forecast-chip .f-day {
+  font-family: var(--type);
+  font-size: 9px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  line-height: 1;
+}
+.forecast-chip .f-date {
+  font-family: var(--type);
+  font-size: 11px;
+  color: var(--ink-2);
+  line-height: 1.3;
+}
+.forecast-chip .f-icon { font-size: 20px; line-height: 1; margin: 4px 0 2px; }
+.forecast-chip .f-hi { font-family: var(--type); font-size: 12px; color: var(--ink); line-height: 1; }
+.forecast-chip .f-lo { font-family: var(--type); font-size: 10px; color: var(--ink-3); line-height: 1; }
+
+.forecast-chip.rain {
+  background: #eef4f8;
+  border-color: #c5d9e8;
+}
+
+.forecast-source {
+  font-family: var(--type);
+  font-size: 10px;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+  margin-top: 6px;
+}
+
+/* ── Proto annotation bar ────────────────────────────────────────────────── */
+.proto-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--ink);
+  color: #fbf8f1;
+  font-family: var(--type);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  z-index: 999;
+}
+.proto-tag {
+  background: var(--pen);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 3px;
+  white-space: nowrap;
+  font-weight: 700;
+}
+.proto-q { color: rgb(251 248 241 / 0.65); }
+</style>
+
+<!-- ── App chrome ─────────────────────────────────────────────────────────── -->
+<div class="app-nav">
+  <div class="wrap">
+    <div class="app-nav-inner">
+      <span class="app-wordmark">Waypoint</span>
+      <div class="avatar-row">
+        <span class="avatar" style="width:26px;height:26px;font-size:10px;background:#dbe4f2;color:#2a4d7a;">AI</span>
+        <span class="avatar" style="width:26px;height:26px;font-size:10px;background:#f3dcdf;color:#8e4550;">PT</span>
+        <span class="avatar" style="width:26px;height:26px;font-size:10px;background:#dfe9d6;color:#436035;">TK</span>
+        <span class="avatar" style="width:26px;height:26px;font-size:10px;background:#e4dff0;color:#574d75;">ZM</span>
+      </div>
+    </div>
+    <div class="tabs">
+      <span class="tab active">Overview</span>
+      <span class="tab">Ideas</span>
+      <span class="tab">Dates</span>
+      <span class="tab">Days</span>
+      <span class="tab">Money</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── Page ───────────────────────────────────────────────────────────────── -->
+<div class="wrap">
+  <div class="sheet">
+    <span aria-hidden="true" class="tape-strip"></span>
+    <div class="sheet-content">
+
+      <!-- Hero: 65/35 -->
+      <div style="display:grid;grid-template-columns:minmax(0,65fr) minmax(0,35fr);gap:18px;align-items:start;">
+
+        <!-- Trip identity -->
+        <div class="card" style="padding:20px;">
+          <span aria-hidden="true" class="card-tape"></span>
+          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;">
+            <h1 style="font-size:22px;letter-spacing:-0.02em;">Lisbon &amp; Porto</h1>
+            <span class="badge badge-o">Planning</span>
+            <span class="badge badge-m">13 days away</span>
+          </div>
+          <div style="margin-top:8px;font-size:14px;color:var(--ink-2);">
+            <span style="font-family:var(--type);">Mon 11 Aug – Sun 17 Aug</span>
+            <span style="color:var(--pen);text-decoration:underline;margin-left:6px;font-size:13px;cursor:default;">change</span>
+          </div>
+          <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">
+            <span class="badge badge-g">sun &amp; food</span>
+            <span class="badge badge-g">first trip</span>
+          </div>
+          <!-- Trail -->
+          <div class="trail">
+            <span class="typed">Ideas</span>
+            <span class="trail-bar"><span class="trail-fill" style="width:80%;background:var(--green);"></span></span>
+            <span class="typed">Dates</span>
+            <span class="trail-bar"><span class="trail-fill" style="width:100%;background:var(--green);"></span></span>
+            <span class="typed">Days</span>
+            <span class="trail-bar"><span class="trail-fill" style="width:25%;background:var(--pen);"></span></span>
+            <span class="typed">Money</span>
+          </div>
+        </div>
+
+        <!-- Roster -->
+        <div class="card" style="padding:16px;">
+          <div class="typed" style="margin-bottom:10px;">4 people</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;align-items:center;gap:8px;font-size:14px;">
+              <span class="avatar" style="width:28px;height:28px;font-size:11px;background:#dbe4f2;color:#2a4d7a;">AI</span>
+              Aidan Inceer
+              <span class="badge badge-n" style="margin-left:auto;">Admin</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:14px;">
+              <span class="avatar" style="width:28px;height:28px;font-size:11px;background:#f3dcdf;color:#8e4550;">PT</span>
+              Priya Thomas
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:14px;">
+              <span class="avatar" style="width:28px;height:28px;font-size:11px;background:#dfe9d6;color:#436035;">TK</span>
+              Tom Kirk
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:14px;">
+              <span class="avatar" style="width:28px;height:28px;font-size:11px;background:#e4dff0;color:#574d75;">ZM</span>
+              Zara Malik
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ★ FORECAST STRIP — between hero and Unresolved -->
+      <section style="margin-top:22px;">
+        <div class="forecast-strip">
+          <div class="forecast-chip">
+            <span class="f-day">Mon</span>
+            <span class="f-date">11 Aug</span>
+            <span class="f-icon">☀️</span>
+            <span class="f-hi">31°</span>
+            <span class="f-lo">19°</span>
+          </div>
+          <div class="forecast-chip">
+            <span class="f-day">Tue</span>
+            <span class="f-date">12 Aug</span>
+            <span class="f-icon">☀️</span>
+            <span class="f-hi">33°</span>
+            <span class="f-lo">20°</span>
+          </div>
+          <div class="forecast-chip">
+            <span class="f-day">Wed</span>
+            <span class="f-date">13 Aug</span>
+            <span class="f-icon">🌤️</span>
+            <span class="f-hi">30°</span>
+            <span class="f-lo">18°</span>
+          </div>
+          <div class="forecast-chip">
+            <span class="f-day">Thu</span>
+            <span class="f-date">14 Aug</span>
+            <span class="f-icon">⛅</span>
+            <span class="f-hi">27°</span>
+            <span class="f-lo">17°</span>
+          </div>
+          <div class="forecast-chip rain">
+            <span class="f-day">Fri</span>
+            <span class="f-date">15 Aug</span>
+            <span class="f-icon">🌧️</span>
+            <span class="f-hi">24°</span>
+            <span class="f-lo">16°</span>
+          </div>
+          <div class="forecast-chip">
+            <span class="f-day">Sat</span>
+            <span class="f-date">16 Aug</span>
+            <span class="f-icon">⛅</span>
+            <span class="f-hi">26°</span>
+            <span class="f-lo">17°</span>
+          </div>
+          <div class="forecast-chip">
+            <span class="f-day">Sun</span>
+            <span class="f-date">17 Aug</span>
+            <span class="f-icon">☀️</span>
+            <span class="f-hi">29°</span>
+            <span class="f-lo">19°</span>
+          </div>
+        </div>
+        <p class="forecast-source">Open-Meteo · Lisbon · updated hourly · 7 days shown</p>
+      </section>
+
+      <!-- Unresolved -->
+      <section style="margin-top:24px;">
+        <h2 style="font-size:15px;font-weight:600;margin-bottom:12px;">Unresolved</h2>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div class="unresolved-row mine">
+            <div class="unresolved-text">
+              <span class="badge badge-n">Ideas</span>&nbsp;
+              <strong>Your turn — you haven't voted on every idea</strong>
+              <div class="unresolved-detail">Voting is optional, but an unvoted idea can't be ruled in or out.</div>
+            </div>
+            <span class="open-tab-link">Open Ideas »</span>
+          </div>
+          <div class="unresolved-row other">
+            <div class="unresolved-text">
+              <span class="badge badge-n">Dates</span>&nbsp;
+              Waiting on 1 person to share availability
+              <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
+                <span class="avatar" style="width:20px;height:20px;font-size:9px;background:#dfe9d6;color:#436035;">TK</span>
+                <span class="unresolved-detail">Tom Kirk</span>
+              </div>
+            </div>
+            <span class="open-tab-link">Open Dates »</span>
+          </div>
+          <div class="unresolved-row other">
+            <div class="unresolved-text">
+              <span class="badge badge-n">Money</span>&nbsp;
+              Waiting on 1 person to settle up
+              <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
+                <span class="avatar" style="width:20px;height:20px;font-size:9px;background:#f3dcdf;color:#8e4550;">PT</span>
+                <span class="unresolved-detail">Priya Thomas</span>
+              </div>
+            </div>
+            <span class="open-tab-link">Open Money »</span>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /sheet-content -->
+  </div><!-- /sheet -->
+</div><!-- /wrap -->
+
+<div class="proto-bar" aria-hidden="true">
+  <span class="proto-tag">Overview · A</span>
+  <span>Compact strip between hero and Unresolved</span>
+  <span class="proto-q">Question: Does a 7-chip horizontal strip earn its place, or is it visual noise before the actual priorities?</span>
+</div>

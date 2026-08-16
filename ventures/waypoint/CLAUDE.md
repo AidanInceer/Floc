@@ -109,6 +109,13 @@ treated as current.
   `border-rule`, `text-pen`, the agreed/open/action trio). Never a hex
   literal in a component.
 - Status is never colour alone — every state also carries a word.
+- **Every icon is drawn, and there are no emoji anywhere.** Copy the scale
+  `components/travel-mode-icon.tsx` and `components/reaction-glyph.tsx` share:
+  a 14×14 `viewBox` rendered ~13px, `fill="none"`, `strokeWidth` ~1.15–1.25,
+  `stroke="currentColor"`, round caps and joins, paths in a module with no
+  `"use client"`. No icon font and no general-purpose set (Lucide, Feather,
+  Heroicons) — they're drawn for a sans-serif product UI and read as stock.
+  Like colour, an icon never carries meaning alone.
 - **Light only.** No dark palette, no `data-theme`, no theme setting, no
   `theme` column. Don't add a `prefers-color-scheme` block — see ticket 07.
 - A trip member's avatar colour comes from their `TripMember.tone`. Pass it
