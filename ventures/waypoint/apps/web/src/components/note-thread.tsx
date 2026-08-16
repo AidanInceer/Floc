@@ -1,30 +1,12 @@
 "use client";
 
-/**
- * A discussion thread — one component for every surface that has one (ideas
- * and day events today).
- *
- * Oldest-first by default, deliberately: a thread is an argument you follow
- * from the start, not a feed. "Most liked" is opt-in per thread (ticket 35) and
- * reorders the runs only — never the replies inside one.
- *
- * **The unit is the run** (v0.2 ticket 06): one top-level comment plus its
- * replies, separated from the next run by a dotted rule, the replies indented
- * once behind a solid one. Replies are **exactly one level deep** — replying
- * to a reply attaches to the same parent and names who it answers in the body
- * instead. Unbounded nesting was rejected because Ideas renders this in a
- * `max-w-lg` modal, where the fourth level would be a few words a line.
- *
- * A client component, unusually for this codebase, because three things here
- * are genuinely stateful with no server round-trip worth making: whether a run
- * is collapsed, which reply composer is open, and how the runs are ordered.
- * The order is local on purpose: Ideas puts a thread in a modal per note, so
- * there can be a dozen on one screen, and a `?sort=` in the URL — the way the
- * idea board itself does it — can only say one thing for all of them. The
- * server
- * actions are imported directly, which is allowed and keeps the writes on the
- * server where they belong.
- */
+// Discussion thread, shared by every surface that has one. Oldest-first by
+// default; "most liked" is opt-in per thread (ticket 35), reordering runs only.
+// Unit is the run (v0.2 ticket 06): replies are exactly one level deep — a
+// reply-to-a-reply attaches to the same parent and names who it answers in the
+// body, since Ideas renders this in a max-w-lg modal.
+// Client component because collapse/composer/sort state is local per thread —
+// a dozen threads can be open on one screen, so a single ?sort= can't serve them.
 import { useState } from "react";
 
 import { Avatar, Textarea, cx } from "@/components/ui";
@@ -50,28 +32,21 @@ import {
 
 export type { NoteRow };
 
-/** Render order is fixed: heart, thumbs up, thumbs down. */
 const REACTION_LABEL: Record<ReactionKind, string> = {
   heart: "Love this",
   up: "Agree",
   down: "Disagree",
 };
 
-/** Wash, edge and ink for each — the palette's own tints, not new colours. */
 const REACTION_TONE: Record<ReactionKind, string> = {
   heart: "bg-red-soft border-red-edge text-red",
   up: "bg-green-soft border-green-edge text-green",
   down: "bg-highlight-soft border-highlight-edge text-highlight-ink",
 };
 
-/**
- * Hidden-until-hover controls are also revealed by `focus-within`, so keyboard
- * users can reach them. But a mouse click leaves focus *on* the button, which
- * kept a whole comment's controls lit up while you carried on using the rest of
- * the page — you had to click elsewhere to put it away. Dropping focus on
- * pointer release only affects the mouse: keyboard activation fires `click`
- * without a `mouseup`, so tabbing still reveals everything.
- */
+// Blurs on pointer release so a clicked button doesn't keep its comment's
+// hover controls lit up. Keyboard activation fires click without mouseup, so
+// tabbing still reveals everything via focus-within.
 function blurOnPointer(e: { currentTarget: HTMLElement }) {
   e.currentTarget.blur();
 }
@@ -94,14 +69,11 @@ function Reactions({ tripId, note }: { tripId: number; note: NoteRow }) {
               }
               title={REACTION_LABEL[kind]}
               className={cx(
-                /* Fixed height, not padding-derived: gaining a count adds a
-                   text node taller than the 13px glyph, which grew the row and
-                   nudged the rule below the comment down as you reacted. */
+                // Fixed height, not padding-derived — a count text node is
+                // taller than the 13px glyph and would grow the row otherwise.
                 "inline-flex h-[21px] items-center gap-1 rounded-full border px-1.5 font-mono text-[10.5px] leading-none tracking-[0.02em] transition-colors",
-                /* A reaction someone has left is state, so it stays on screen.
-                   An empty one is an affordance, so it waits for a hover —
-                   otherwise you could not see what a comment had collected
-                   without hovering every comment in the thread. */
+                // A left reaction is state, so it stays visible; an empty one
+                // is an affordance, so it waits for hover.
                 count
                   ? REACTION_TONE[kind]
                   : "border-transparent text-ink-faint opacity-0 group-hover/cm:opacity-100 group-focus-within/cm:opacity-100 hover:bg-sheet-2 [@media(hover:none)]:opacity-100",
@@ -110,8 +82,6 @@ function Reactions({ tripId, note }: { tripId: number; note: NoteRow }) {
             >
               <ReactionGlyph kind={kind} mine={mine} />
               {count ? <span>{count}</span> : null}
-              {/* See `blurOnPointer` — without this the row you just reacted
-                  on stays lit up while you use the rest of the page. */}
             </button>
           </form>
         );
@@ -134,10 +104,8 @@ function Comment({
   viewerId: string;
   isAdmin: boolean;
   onReply: () => void;
-  /** Deleting a top-level comment takes its replies with it — say so first. */
-  hasReplies: boolean;
-  /** Smaller avatar and body inside a run. */
-  reply?: boolean;
+  hasReplies: boolean; // deleting a top-level comment takes replies with it
+  reply?: boolean; // smaller avatar/body inside a run
 }) {
   const mine = note.createdBy === viewerId;
   const canDelete = isAdmin || mine;
@@ -154,16 +122,14 @@ function Comment({
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-x-2 text-[13px] leading-tight">
           <span className="font-semibold">{note.authorName}</span>
-          {/* The label is computed from the clock, so server and client can
-              land a minute apart on a comment posted seconds ago. */}
+          {/* suppressHydrationWarning: label is computed from the clock, server
+              and client can land a minute apart. */}
           <span
             suppressHydrationWarning
             className="font-mono text-[10.5px] tracking-[0.02em] text-ink-faint"
           >
             {commentTime(note.createdAt)}
           </span>
-          {/* Said out loud, because the replies underneath are arguing with
-              whatever this comment said at the time. */}
           {note.editedAt ? (
             <span className="font-mono text-[10.5px] tracking-[0.02em] text-ink-faint">
               edited
@@ -214,10 +180,6 @@ function Comment({
 
         <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[12.5px] text-ink-faint">
           <Reactions tripId={tripId} note={note} />
-          {/* The word controls get their own, wider gap. The reactions are
-              glyph-sized and read as one cluster at 6px; words at that spacing
-              ran together. `ml-1` keeps the step in from the reactions the
-              same as it was. */}
           <div className="ml-1 flex flex-wrap items-center gap-2.5">
             <button
               type="button"
@@ -226,8 +188,6 @@ function Comment({
             >
               Reply
             </button>
-            {/* Your own words only — an admin can delete a comment but never
-              rewrite one in someone else's name (rule 6). */}
             {mine && !editing ? (
               <button
                 type="button"
@@ -247,10 +207,8 @@ function Comment({
                   }
                   confirmLabel="Delete it"
                   variant="ghost"
-                  /* `hover:!bg-transparent`: the ghost variant washes its
-                   background pen-soft on hover, which is right for a standalone
-                   ghost button but read as a stray blue block next to Reply and
-                   Edit, which only change colour. Same hover as those two. */
+                  // hover:!bg-transparent: ghost's default hover wash read as a
+                  // stray block next to Reply/Edit, which only change colour.
                 className="!px-0 !py-0 !font-sans !text-[12.5px] !normal-case !tracking-normal !text-ink-faint opacity-0 group-hover/cm:opacity-100 group-focus-within/cm:opacity-100 hover:!bg-transparent hover:!text-pen [@media(hover:none)]:opacity-100"
                 >
                   Delete
@@ -329,8 +287,6 @@ function Run({
   isAdmin: boolean;
 }) {
   const [replying, setReplying] = useState(false);
-  /** Replies show by default — collapsing is for getting a long run out of
-      the way, not for hiding the conversation until you ask for it. */
   const [collapsed, setCollapsed] = useState(false);
   const count = note.replies.length;
 
@@ -369,12 +325,8 @@ function Run({
       </div>
 
       {count > 0 && !collapsed ? (
-        /* The rule down the left is what makes a reply read as *attached*
-           rather than as a top-level comment that happens to sit further
-           right. Dashed and 1px, matching the dotted run separator it meets —
-           at 2px solid it read as a different kind of line — and stopped short
-           of that separator by the bottom margin, because the two touching at
-           a corner looked like a broken table border. */
+        // Dashed 1px rule: 2px solid read as a different kind of line, and
+        // touching the dotted run separator looked like a broken table border.
         <div className="mb-2.5 ml-[35px] border-l border-dashed border-rule-strong pl-3.5">
           {note.replies.map((r) => (
             <Comment
@@ -392,8 +344,7 @@ function Run({
       ) : null}
 
       {replying ? (
-        /* Same weight and dash as the replies' rule — it sits in the same
-           column, so a second line style there read as a second structure. */
+        // Same weight/dash as the replies' rule since it sits in the same column.
         <div className="mt-1 mb-2 ml-[35px] border-l border-dashed border-pen-soft pt-1 pl-3.5">
           <Composer
             tripId={tripId}
@@ -412,11 +363,8 @@ function Run({
   );
 }
 
-/**
- * Thread order, in the same mono-caps vocabulary as the run's "Hide" control —
- * this is thread furniture, not one of the page's own sort tabs, and it sits
- * inside a 230px note's modal where the board's filled-pen buttons would shout.
- */
+// Thread furniture, not one of the page's sort tabs — the board's filled-pen
+// buttons would shout inside a 230px note's modal.
 function SortToggle({
   value,
   onSelect,
@@ -478,13 +426,10 @@ export function NoteThread({
 
   return (
     <div className="mt-2">
-      {/* No empty state at all (ticket 75). The composer below is already the
-          only thing to do on an empty thread; a dashed box explaining that
-          nobody has commented is fluff the placeholder covers. */}
+      {/* No empty state (ticket 75) — the composer below is the only thing to
+          do on an empty thread. */}
       {notes.length === 0 ? null : (
         <div className="flex flex-col">
-          {/* Nothing to sort with one run, and the control would read as a
-              claim that there's more conversation than there is. */}
           {notes.length > 1 ? (
             <SortToggle value={sort} onSelect={setSort} />
           ) : null}
@@ -502,9 +447,6 @@ export function NoteThread({
         </div>
       )}
 
-      {/* Fenced off by a solid rule so it doesn't read as a reply to the last
-          run. Primary on an empty thread, where writing the first comment is
-          the only thing to do on the screen. */}
       <div
         className={cx("mt-3", notes.length > 0 && "border-t border-rule pt-3")}
       >

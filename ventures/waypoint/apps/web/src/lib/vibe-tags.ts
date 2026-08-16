@@ -1,25 +1,12 @@
 /**
- * Vibe tags (ticket 46) — the chips on your profile, picked like interests on
- * a dating profile.
- *
- * **Seed-only.** Unlike trip tags (ticket 71), whose vocabulary is a private
- * joke per group and so is deliberately free text, these are one shared
- * vocabulary across every account: later matching features compare one
- * person's tags with another's, and free text would give them "slow travel",
- * "slow traveller" and "slow" to reconcile. Custom tags are deferred, not
- * refused — when they land, this list stays as the suggestions.
- *
- * Pure, no DB access: `user_profile.vibe_tags` is a JSON column and every
- * writer runs its input through `parseVibeTags` first.
+ * Vibe tags (ticket 46) — profile chips, picked like dating-app interests.
+ * Seed-only, unlike free-text trip tags (ticket 71): future matching compares
+ * tags across accounts, and free text would give "slow travel"/"slow
+ * traveller"/"slow" to reconcile. Custom tags are deferred, not refused.
  */
 import { normaliseTag } from "@/lib/tags";
 
-/**
- * The pickable set. Lower-case because that's how tags are stored; the UI
- * capitalises nothing — a chip reads as a label, not a heading. Ordered
- * roughly pace → company → interests, which is how the picker groups on screen
- * without needing a group per row.
- */
+/** Lower-case, as stored. Ordered pace → company → interests for the picker's on-screen grouping. */
 export const VIBE_TAGS = [
   "slow travel",
   "packed itinerary",
@@ -55,11 +42,7 @@ export const VIBE_TAGS = [
 /** Beyond this the chip row is a wall, not a summary. */
 export const MAX_VIBE_TAGS = 10;
 
-/**
- * Form input → the column. Seed-only is enforced *here*, not just in the UI:
- * the picker posts checkbox values, and a hand-crafted POST must not be able to
- * invent a tag the vocabulary doesn't have.
- */
+/** Form input → the column. Seed-only enforced here too, not just in the UI — a hand-crafted POST must not invent a tag. */
 export function parseVibeTags(input: (string | null | undefined)[]): string[] {
   const allowed = new Set<string>(VIBE_TAGS);
   const out: string[] = [];
@@ -73,11 +56,7 @@ export function parseVibeTags(input: (string | null | undefined)[]): string[] {
   return out;
 }
 
-/**
- * The column back into a list. Same degrade-don't-crash contract as
- * `readTags` (rule 11), plus the seed filter — a tag retired from `VIBE_TAGS`
- * simply stops rendering rather than leaving a chip nothing can explain.
- */
+/** Same degrade-don't-crash contract as `readTags` (rule 11), plus the seed filter — a retired tag just stops rendering. */
 export function readVibeTags(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   const allowed = new Set<string>(VIBE_TAGS);

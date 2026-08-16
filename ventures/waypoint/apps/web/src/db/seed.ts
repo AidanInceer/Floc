@@ -29,8 +29,7 @@ import {
   user,
   userProfile,
 } from "./schema.ts";
-// Relative, not the `@/` alias: this script runs under Node's own type
-// stripping (see the db:seed script), which does no path mapping.
+// Relative, not `@/` — this runs under Node's type stripping, which does no path mapping.
 import type { WritableSplitType } from "../lib/money.ts";
 import { computeSplits } from "../lib/money.ts";
 
@@ -38,7 +37,6 @@ const PEOPLE = [
   {
     name: "Aidan Inceer",
     email: "aidan@example.com",
-    /** Seed-only, from lib/vibe-tags.ts VIBE_TAGS (ticket 46). */
     vibes: ["food and markets", "city breaks", "slow travel"],
     currency: "GBP" as const,
   },
@@ -62,20 +60,14 @@ const PEOPLE = [
   },
 ];
 
-/**
- * People who are on nobody's trip — they exist only as somebody's friend
- * (ticket 145), which is the whole point: friends-of-friends discovery has
- * nothing to show unless the network reaches past the roster. Reachable from a
- * trip member's profile, and from nowhere else.
- */
+/** On nobody's trip, only somebody's friend (ticket 145) — gives friends-of-friends discovery something past the roster. */
 const FRIENDS_OF_FRIENDS = [
   {
     name: "Nadia Haddad",
     email: "nadia@example.com",
     vibes: ["hiking", "wild swimming", "slow travel"],
     currency: "EUR" as const,
-    /** Whose friend they are, by index into PEOPLE. */
-    friendOf: 1,
+    friendOf: 1, // index into PEOPLE
   },
   {
     name: "Callum Reid",
@@ -100,11 +92,7 @@ const FRIENDS_OF_FRIENDS = [
   },
 ];
 
-/**
- * Every seeded profile is deliberately open — the widest ring on every
- * attribute and the profile-wide switch off. A private-by-default seed makes
- * the discovery surfaces look broken when they're working exactly as set.
- */
+// Deliberately open — a private-by-default seed makes discovery surfaces look broken.
 const PUBLIC_RINGS = {
   isPrivate: false,
   visibilityPicture: "trip_members",
@@ -114,11 +102,7 @@ const PUBLIC_RINGS = {
   pastTripsShow: "all",
 } as const;
 
-/**
- * Finds or makes the account, then writes the profile — **upserting**, not
- * skipping. A seed that leaves an existing profile alone can never roll a newly
- * added column forward, which is how re-seeding stops changing anything.
- */
+// Upserts the profile rather than skipping — otherwise re-seeding never rolls a new column forward.
 async function upsertPerson(person: {
   name: string;
   email: string;
@@ -157,7 +141,7 @@ async function upsertPerson(person: {
   return id;
 }
 
-/** One accepted friendship, in the canonical lower-id-first direction. */
+// Canonical lower-id-first direction.
 async function makeFriends(a: string, b: string): Promise<void> {
   const [lo, hi] = a < b ? [a, b] : [b, a];
   await db
@@ -175,21 +159,20 @@ async function main() {
 
   const [aidan, priya, tom, sofia] = userIds;
 
-  // The four travellers all know each other — they're planning a trip together.
+  // All four travellers know each other.
   for (let i = 0; i < userIds.length; i++) {
     for (let j = i + 1; j < userIds.length; j++) {
       await makeFriends(userIds[i], userIds[j]);
     }
   }
 
-  // …and each of them knows somebody the others don't, which is what makes a
-  // friend's profile worth opening (ticket 145).
+  // …and each knows somebody the others don't (ticket 145).
   for (const person of FRIENDS_OF_FRIENDS) {
     const id = await upsertPerson(person);
     await makeFriends(userIds[person.friendOf], id);
   }
 
-  // Dates chosen relative to today so the trip is always upcoming.
+  // Relative to today so the trip is always upcoming.
   const start = isoIn(38);
   const end = isoIn(45);
 
@@ -234,7 +217,7 @@ async function main() {
     ])
     .returning({ id: idea.id });
 
-  // Voting is optional and never forced — Sofia has deliberately not voted.
+  // Sofia has deliberately not voted — voting is optional.
   await db.insert(ideaVote).values([
     { ideaId: ideas[0].id, userId: aidan, value: "up" },
     { ideaId: ideas[0].id, userId: priya, value: "up" },
@@ -250,7 +233,7 @@ async function main() {
         tripId,
         userId,
         date: isoIn(38 + offset),
-        // Tom can't make the first two days — a real overlap gap to render.
+        // Tom can't make the first two days — a real gap to render.
         available: !(i === 2 && offset < 2),
       })),
     );
@@ -276,7 +259,7 @@ async function main() {
     })
     .returning({ id: place.id });
 
-  // Three nights Lisbon then four in Lagos — two derived "stops", never stored.
+  // Three nights Lisbon then four in Lagos — derived "stops", never stored.
   const dayRows = await db
     .insert(day)
     .values(
@@ -335,8 +318,6 @@ async function main() {
     ])
     .returning({ id: dayEvent.id });
 
-  // Threads, so the seeded trip shows what an argument in progress looks like
-  // rather than an empty board with vote tallies and nothing said.
   await db.insert(note).values([
     {
       tripId,
@@ -378,8 +359,7 @@ async function main() {
     description: "Airbnb, three nights in Lisbon",
     amountMinor: 48000,
     currency: "GBP",
-    // An even split is one share each since ticket 85 — `even` is a value the
-    // schema still reads back but nothing writes any more (ticket 117, S12).
+    // `even` is schema-legacy; one share each since ticket 85 (ticket 117, S12).
     splitType: "shares",
     participants: members,
     weights: members.map(() => 1),
@@ -393,8 +373,7 @@ async function main() {
     description: "Train tickets, Lisbon → Lagos",
     amountMinor: 12400,
     currency: "EUR",
-    // An even split is one share each since ticket 85 — `even` is a value the
-    // schema still reads back but nothing writes any more (ticket 117, S12).
+    // `even` is schema-legacy; one share each since ticket 85 (ticket 117, S12).
     splitType: "shares",
     participants: members,
     weights: members.map(() => 1),

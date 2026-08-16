@@ -1,19 +1,14 @@
-/**
- * Static listings for the Explore mockup. There is no partner backend and no
- * partner deal — every operator name below is an illustrative placeholder for
- * what a real listing would look like. See docs/partner-trips.html.
- *
- * Money is minor units, like everywhere else (CLAUDE.md rule 1) — these are
- * formatted with `formatMoney`, never by hand.
- */
+// Static listings for the Explore mockup. No partner backend or deal —
+// operator names are illustrative placeholders. See docs/partner-trips.html.
+// Money is minor units (rule 1); format with `formatMoney`, never by hand.
 import type { Currency } from "@/db/schema";
 
 export type PresetTrip = {
   id: string;
   title: string;
-  /** Who the itinerary comes from. Illustrative only — nothing is a partner. */
+  /** Illustrative only — nothing is a partner. */
   operator: string;
-  /** True for the ones Waypoint would write itself rather than sell space for. */
+  /** True for listings Waypoint would write itself rather than sell space for. */
   editorial?: boolean;
   region: Region;
   country: string;
@@ -24,24 +19,14 @@ export type PresetTrip = {
   summary: string;
   highlights: string[];
   bestMonths: string;
-  /**
-   * Where the map thumbnail is centred — the destination, not the country
-   * centroid, so the Highlands listing shows Torridon rather than Edinburgh.
-   * Hand-set alongside a zoom because the right frame is editorial: an island
-   * loop wants the whole island, a coast week wants the coast.
-   */
+  /** Map thumbnail centre — the destination, not the country centroid. */
   lat: number;
   lng: number;
   mapZoom: number;
 };
 
-/**
- * One pastel per region, reused by the filter chips and by every listing's
- * tag, so the two read as the same key. These are the same `who-*` tokens the
- * avatars use — the palette is deliberately shared rather than a second one
- * invented here. Colour never carries the meaning alone: the tag spells the
- * region out beside the country.
- */
+// One pastel per region, reused by filter chips and listing tags. Shares the
+// `who-*` tokens the avatars use rather than a second palette.
 export const REGION_TONE: Record<Region, string> = {
   Europe: "who-2",
   Africa: "who-4",

@@ -1,11 +1,7 @@
 /**
- * Friendship reconciliation (tickets 01/18).
- *
- * v1 has no cron (ticket 01 step 6: no automation anywhere), so the
- * "co-trip completes → friends" rule cannot fire on a timer. Instead it's
- * reconciled lazily every time the friends page loads: cheap (one user's
- * trips), idempotent (`onConflictDoNothing` against the canonical pair), and
- * good enough since nothing downstream depends on the exact moment it fires.
+ * Friendship reconciliation (tickets 01/18). No cron in v1, so "co-trip
+ * completes → friends" is reconciled lazily on friends-page load: cheap,
+ * idempotent (`onConflictDoNothing`), exact timing doesn't matter.
  */
 import "server-only";
 
@@ -18,13 +14,7 @@ import { friendship, trip, tripMembership, user, userProfile } from "@/db/schema
 import { today } from "@/lib/dates";
 import { bounded, LIMITS } from "@/server/limits";
 
-/**
- * Finds every other member of a trip the user was in whose end date has
- * passed, and inserts an "accepted"/"co_trip" friendship row for each pair
- * that isn't already friends (in either direction). Canonical direction is
- * lower userId first, matching the unique index on (user_id, friend_id) —
- * so we never race ourselves into a duplicate reversed row.
- */
+/** Canonical direction is lower userId first, matching the unique index — never a duplicate reversed row. */
 export async function syncCompletedCoTripFriendships(userId: string): Promise<void> {
   const completedTrips = await db
     .select({ tripId: trip.id })
@@ -44,10 +34,8 @@ export async function syncCompletedCoTripFriendships(userId: string): Promise<vo
 
   const tripIds = completedTrips.map((t) => t.tripId);
 
-  // Scoped to the trips in hand (ticket 114). This used to select **every
-  // `trip_membership` row in the database** and filter by trip in JavaScript —
-  // the one query here that degraded with total user count rather than with the
-  // size of one trip, on every /friends load, over HTTP.
+  // Scoped to the trips in hand — used to select every trip_membership row and
+  // filter in JS, degrading with total user count on every /friends load (ticket 114).
   const coMembers = await db
     .select({ userId: tripMembership.userId })
     .from(tripMembership)
@@ -68,9 +56,7 @@ export async function syncCompletedCoTripFriendships(userId: string): Promise<vo
   );
   if (otherUserIds.size === 0) return;
 
-  // One insert, not one per person. Canonical direction is lower userId first,
-  // matching the unique index, so we never race ourselves into a reversed row —
-  // and `onConflictDoNothing` still makes the whole statement idempotent.
+  // One insert, not one per person; onConflictDoNothing keeps it idempotent.
   await db
     .insert(friendship)
     .values(
@@ -87,13 +73,7 @@ export async function syncCompletedCoTripFriendships(userId: string): Promise<vo
     .onConflictDoNothing();
 }
 
-/**
- * The trips two people are both live members of, in one query (ticket 114).
- *
- * A self-join, where `sharesATrip` and `coTripNameFor` each did the same job in
- * two round trips and an intersection in JavaScript. Both callers are on the
- * public-profile path, which runs several of these.
- */
+/** Self-join, one query — replaced two round trips + a JS intersection (ticket 114). */
 export async function sharedTripIds(a: string, b: string): Promise<number[]> {
   const mine = alias(tripMembership, "mine");
   const theirs = alias(tripMembership, "theirs");
@@ -116,14 +96,7 @@ export async function sharedTripIds(a: string, b: string): Promise<number[]> {
   return bounded(rows, "tripsPerUser", `${a} ∩ ${b}`).map((r) => r.tripId);
 }
 
-/**
- * Where you stand with someone, from your side (ticket 96) — what the "add as
- * friend" control on their profile and on a trip roster has to render.
- *
- * `friendship` is one row per requested direction, so "pending" means two
- * different things depending on which end you're at: a request you sent and a
- * request waiting on you are not the same button.
- */
+/** One row per requested direction, so "pending" means different things per end — a sent request and one waiting on you are not the same button (ticket 96). */
 export type FriendshipRow = {
   userId: string;
   friendId: string;
@@ -131,11 +104,7 @@ export type FriendshipRow = {
   origin: string;
 };
 
-/**
- * Every live friendship the viewer is either end of (ticket 118) — accepted,
- * requested, and requested-of, in one read. The page sorts them into its three
- * lists; which end of a row you're at is what tells incoming from outgoing.
- */
+/** Every live friendship the viewer is either end of, one read — which end you're at tells incoming from outgoing (ticket 118). */
 export async function listFriendshipsFor(
   viewerId: string,
 ): Promise<FriendshipRow[]> {
@@ -160,14 +129,7 @@ export async function listFriendshipsFor(
 
 export type Person = { id: string; name: string; avatarUrl: string | null };
 
-/**
- * Names and faces for a set of people (ticket 118).
- *
- * One query for the lot: this was a `personFor(id)` awaited per friendship row,
- * so a hundred friends was a hundred serial round trips before the page could
- * render a single face. Display name wins over the account name, and the
- * profile picture over the provider's, exactly as `personFor` had it.
- */
+/** One query for the lot — was a `personFor(id)` per row, a hundred friends meant a hundred round trips (ticket 118). */
 export async function peopleByIds(ids: string[]): Promise<Map<string, Person>> {
   const out = new Map<string, Person>();
   if (ids.length === 0) return out;
@@ -196,14 +158,7 @@ export async function peopleByIds(ids: string[]): Promise<Map<string, Person>> {
   return out;
 }
 
-/**
- * Your accepted friends, names and faces, alphabetical (ticket 146) — what the
- * friend picker on trip creation and on the roster offers.
- *
- * Accepted only. A pending request is not a relationship yet, and a picker that
- * offered somebody who hasn't agreed to know you would make a trip invite the
- * way round a friend request.
- */
+/** Accepted only — offering someone who hasn't agreed to know you would make a trip invite a backdoor friend request (ticket 146). */
 export async function listFriendsFor(viewerId: string): Promise<Person[]> {
   const rows = await listFriendshipsFor(viewerId);
   const accepted = rows.filter((r) => r.status === "accepted");
@@ -217,13 +172,7 @@ export async function listFriendsFor(viewerId: string): Promise<Person[]> {
   );
 }
 
-/**
- * The ids of everyone `ownerId` is accepted friends with (ticket 145).
- *
- * Ids only, and no visibility judgement: who may *see* this list is
- * `server/visibility.ts`'s call, and mixing the two here is how a read grows a
- * second, quieter permission model beside the real one.
- */
+/** Ids only, no visibility judgement — that's `server/visibility.ts`'s call; mixing them grows a second, quieter permission model (ticket 145). */
 export async function acceptedFriendIdsOf(ownerId: string): Promise<string[]> {
   const rows = await listFriendshipsFor(ownerId);
   return rows
@@ -232,14 +181,9 @@ export async function acceptedFriendIdsOf(ownerId: string): Promise<string[]> {
 }
 
 /**
- * Whether `targetId` is reachable from `viewerId` through `viaId` — the
- * friend-of-a-friend chain, re-derived (ticket 145).
- *
- * The discovery surface is somebody else's friends list, so the permission to
- * ask has to be the same shape: the viewer is friends with the middle person,
- * and the target is friends with the middle person. Whether the viewer was
- * *allowed to see* that list is a visibility question and is checked separately
- * — this is the half that lives with the friendship rows.
+ * Friend-of-a-friend chain, re-derived (ticket 145): viewer and target both
+ * friends of `viaId`. Whether the viewer was allowed to see that list is a
+ * separate visibility check, not this function's job.
  */
 export async function friendOfFriend(
   viewerId: string,
@@ -256,11 +200,7 @@ export async function friendOfFriend(
   return toVia?.status === "accepted" && viaToTarget?.status === "accepted";
 }
 
-/**
- * How many friend requests are sitting on this account (ticket 145) — the
- * count the chrome badges the Friends link with, so a request is visible on
- * the next page load rather than only in an email.
- */
+/** Badges the chrome's Friends link, so a request is visible on next load, not just in an email (ticket 145). */
 export async function countIncomingFriendRequests(
   viewerId: string,
 ): Promise<number> {
@@ -329,11 +269,7 @@ export async function friendStateWith(
   return states.get(otherId) ?? "none";
 }
 
-/**
- * The most-recently-ended trip shared with `otherId`, for the quiet
- * "met on <trip name>" line (ticket 18) — not a loud badge, just a hint that
- * distinguishes an auto-added friend from a manually-requested one.
- */
+/** For the quiet "met on <trip name>" line, distinguishing an auto-added friend from a requested one (ticket 18). */
 export async function coTripNameFor(
   userId: string,
   otherId: string,
@@ -357,16 +293,10 @@ export async function coTripNameFor(
 
 /* ------------------------------------------------- the request lifecycle */
 /*
- * The `friendship` writes behind `app/friends/actions.ts` (ticket 108). The
- * rules they own, so the actions file states none of them twice:
- *
- * - **Soft-delete (rule 8)** on every match, so a cancelled request is never
- *   accepted and a removed friendship is never revived by accident.
- * - **The pair is unordered.** `friendship_pair_idx` stores one direction, so
- *   "are these two connected" always has to look both ways — `eitherWay` below
- *   is that, once.
- * - **Revalidation.** A friendship shows on `/friends` and on the other
- *   person's profile, always both.
+ * `friendship` writes behind `app/friends/actions.ts` (ticket 108). Rules
+ * owned here: soft-delete on every match; pair is unordered (`eitherWay`
+ * covers both directions since the index stores one); revalidate both
+ * /friends and the other person's profile.
  */
 
 /** Both directions of a pair, live rows only. */
@@ -385,7 +315,7 @@ export function revalidateFriendship(otherId: string): void {
   revalidatePath(`/profile/${otherId}`);
 }
 
-/** The account behind an id, or undefined. Used to address the request email. */
+/** Used to address the request email. */
 export async function findUserById(userId: string) {
   return db
     .select({ id: user.id, email: user.email })
@@ -399,15 +329,7 @@ export async function friendshipBetween(a: string, b: string) {
   return db.select().from(friendship).where(eitherWay(a, b)).get();
 }
 
-/**
- * Opens (or re-opens) a pending request from `viewerId` to `targetId`.
- *
- * An upsert, not an insert: cancelling a request — or declining one, or
- * removing a friend — soft-deletes the row, but `friendship_pair_idx` is
- * unique on (user_id, friend_id) with no `deleted_at` in it, so a plain insert
- * of the same pair a second time hits a UNIQUE constraint and throws. The
- * soft-deleted row is the row we want back, so revive it in place.
- */
+/** Upsert not insert — `friendship_pair_idx` ignores `deletedAt`, so a plain insert of a soft-deleted pair hits the UNIQUE constraint; revive in place instead. */
 export async function openPendingRequest(
   viewerId: string,
   targetId: string,

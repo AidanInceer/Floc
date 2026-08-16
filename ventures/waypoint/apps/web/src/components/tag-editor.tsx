@@ -1,17 +1,8 @@
 "use client";
 
-/**
- * The trip's tags, one row each: the name you type, the colour beside it, and
- * a delete on the end (ticket 86). It replaced a comma-separated line plus a
- * separate list of colour pickers — that made you count commas to work out
- * which pill you were recolouring, and there was nowhere to delete a single
- * tag.
- *
- * Rows are the whole model: the form posts a `tag`/`tone` pair per row
- * and `parseTagRows` normalises the lot, so renaming a tag keeps its colour and
- * removing a row removes the tag. Client-side because rows come and go; the
- * save is still the page's server action.
- */
+// Trip tags, one row each: name, colour, delete (ticket 86). Form posts a
+// tag/tone pair per row; parseTagRows normalises. Client-side because rows
+// come and go; save is still the page's server action.
 import { useState } from "react";
 
 import { Button, Select, cx } from "@/components/ui";
@@ -32,16 +23,14 @@ export function TagEditor({
   tags: string[];
   tones: Record<string, TagTone>;
 }) {
-  // A trip with no tags opens on one empty row, not on nothing: "Add tags"
-  // that hands you a panel whose only control is *Add a tag* is the same click
-  // twice.
+  // Opens on one empty row, not nothing — avoids a panel whose only control
+  // is "Add a tag".
   const [rows, setRows] = useState<Row[]>(() =>
     tags.length > 0
       ? tags.map((name, id) => ({ id, name, tone: tones[name] ?? DEFAULT_TAG_TONE }))
       : [{ id: 0, name: "", tone: DEFAULT_TAG_TONE }],
   );
-  // Row keys have to outlive a delete — reusing the index would make React
-  // reuse the deleted row's input for the one below it.
+  // Ids must outlive a delete, or React reuses the deleted row's input.
   const [nextId, setNextId] = useState(Math.max(tags.length, 1));
 
   const update = (id: number, patch: Partial<Row>) =>
@@ -55,8 +44,7 @@ export function TagEditor({
   return (
     <div className="flex flex-col gap-2">
       {rows.map((row) => (
-        // A grid, not a flex row: `Select` carries `w-full` from `fieldBase`,
-        // which fights any flex-basis the row tries to give it.
+        // Grid not flex: Select carries w-full from fieldBase, fighting flex-basis.
         <div
           key={row.id}
           className="grid grid-cols-[minmax(0,1fr)_7rem_2rem] items-center gap-2"
@@ -71,8 +59,6 @@ export function TagEditor({
             className={cx(
               "w-full rounded-md border border-rule-strong px-2.5 py-1.5 font-mono text-sm",
               "focus:border-pen focus:outline-none",
-              // The field wears the colour it's picked, so the choice is
-              // legible without a preview pill duplicating the row.
               TAG_SWATCH[row.tone],
             )}
           />
@@ -102,8 +88,7 @@ export function TagEditor({
 
       {rows.length < MAX_TAGS ? (
         <div>
-          {/* type="button" or it submits the form it sits in — a bare
-              <button> inside a form defaults to submit. */}
+          {/* type="button" — a bare <button> in a form defaults to submit. */}
           <Button type="button" variant="secondary" onClick={addRow}>
             Add a tag
           </Button>
@@ -117,7 +102,6 @@ export function TagEditor({
   );
 }
 
-/** The `Badge` tone washes, on a form field rather than a pill. */
 const TAG_SWATCH: Record<TagTone, string> = {
   open: "bg-highlight-soft text-highlight-ink",
   agreed: "bg-green-soft text-green",

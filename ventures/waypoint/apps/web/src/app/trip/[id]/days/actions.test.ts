@@ -1,14 +1,10 @@
 /**
  * Cross-trip itinerary writes (tickets 104, 105).
  *
- * Every test here posts *our* trip id — which the attacker legitimately
- * belongs to — alongside *their* child id. `requireTripAccess` passes; the
- * question is whether the action binds the child back to the trip. Six of them
- * did not.
- *
- * These fail if the trip join is removed from `requireDay` / `requireEvent` /
- * `loadEventSlots`, which is the property that matters — the point is not that
- * the code is correct today but that it cannot quietly stop being.
+ * Each test posts *our* trip id (which the attacker legitimately belongs to)
+ * alongside *their* child id — `requireTripAccess` passes, so the question is
+ * whether the action binds the child back to the trip. These fail if the trip
+ * join is ever removed from `requireDay` / `requireEvent` / `loadEventSlots`.
  */
 import { and, eq, isNull } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
@@ -41,8 +37,7 @@ beforeAll(migrateTestDb);
 beforeEach(async () => {
   await resetDb();
   world = await seedScenario();
-  // The outsider is a real, signed-in user with a trip of their own. They are
-  // attacking through their own membership, not through a missing session.
+  // Attacking through a real membership, not a missing session.
   signIn(world.outsider);
 });
 
@@ -108,22 +103,17 @@ describe("cross-trip itinerary writes", () => {
   });
 
   it("reorderEvents cannot reach another trip's day", async () => {
-    // No `notFound()` here by design: the day reads as empty, and
-    // `permuteEventSlots` refuses a `newOrder` that isn't a permutation of what
-    // came back. A silent no-op is the right shape for a drag.
+    // No `notFound()` by design: the day reads as empty and `permuteEventSlots`
+    // refuses a non-permutation — a silent no-op, which is right for a drag.
     const flipped = [world.ours.lateEventId, world.ours.eventId];
     await reorderEvents(world.theirs.id, world.ours.dayId, flipped);
 
-    // A drag trades slots, so a successful attack would put 19:00 on the
-    // morning event. Times unchanged is the assertion.
     expect(await timeOf(world.ours.eventId)).toBe("09:00");
     expect(await timeOf(world.ours.lateEventId)).toBe("19:00");
   });
 
   it("rescheduleEvent cannot reach another trip's event", async () => {
-    // The calendar's drag (ticket 103) writes a time straight onto a row, so
-    // it has to bind *both* ends — the event and the day it lands on — back to
-    // the trip. Either one unbound is a way into another group's itinerary.
+    // Must bind both ends — event and destination day — back to the trip.
     await expectNotFound(() =>
       rescheduleEvent(
         world.theirs.id,
@@ -166,8 +156,7 @@ describe("cross-trip itinerary writes", () => {
   });
 
   it("rescheduleEvent refuses a time that isn't a time", async () => {
-    // The action is reachable without the grid (ticket 113), so `HH:MM` is
-    // checked here and not only where the pointer snapped it.
+    // Reachable without the grid (ticket 113), so `HH:MM` is checked here too.
     signIn(world.member);
     await rescheduleEvent(world.ours.id, world.ours.eventId, world.ours.dayId, "9am", null);
 
@@ -187,8 +176,6 @@ describe("cross-trip itinerary writes", () => {
   });
 
   it("a member can still reorder its own day", async () => {
-    // The other half of the property: the join must refuse the outsider
-    // without also breaking the drag for the people the trip belongs to.
     signIn(world.member);
     await reorderEvents(world.ours.id, world.ours.dayId, [
       world.ours.lateEventId,
@@ -226,13 +213,9 @@ describe("cross-trip itinerary writes", () => {
 });
 
 /**
- * The overnight band (ticket 141).
- *
- * Every test here writes days and reads *stops* back through `deriveStops`,
- * because that is the claim the band rests on: the runs are derived, so nothing
- * has to merge them. A test that only asserted the column would pass just as
- * happily if painting two adjacent days produced two one-night stops, which is
- * exactly the failure the ticket asked to rule out.
+ * The overnight band (ticket 141). Tests write days and read *stops* back
+ * through `deriveStops` — a column-only assertion would pass even if painting
+ * two adjacent days produced two one-night stops.
  */
 describe("the overnight band", () => {
   /** Sunday to Wednesday, so a run has room to grow, shrink and be split. */
@@ -274,9 +257,7 @@ describe("the overnight band", () => {
   });
 
   it("two adjacent days painted separately are one stop", async () => {
-    // The ticket's own question. Nothing merges these — `deriveStops` groups
-    // consecutive days that already agree, and the second write resolves to the
-    // place row the first one made.
+    // Nothing merges these — `deriveStops` groups agreeing consecutive days.
     await setDayOvernight(world.ours.id, DATES[0], DATES[0], { name: "Barcelona" });
     await setDayOvernight(world.ours.id, DATES[1], DATES[1], { name: "Barcelona" });
 

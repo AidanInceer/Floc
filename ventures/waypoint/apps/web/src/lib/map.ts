@@ -1,13 +1,9 @@
 /**
  * Tile source for every map in the app (v0.2 tickets 15/12). Raw OpenStreetMap
- * tiles — free, no account, no key — rendered with Leaflet.
- *
- * The attribution string is not decoration: OSM's tile usage policy requires
- * it be visible wherever tiles are shown. Any map component must render
- * `TILE_ATTRIBUTION` (Leaflet's own attribution control counts).
- *
- * That policy is a hobby-scale allowance — fine at v0.2 traffic, revisit
- * self-hosted or paid tiles if it grows (noted for ticket 10's roadmap).
+ * tiles, rendered with Leaflet. OSM's usage policy requires
+ * `TILE_ATTRIBUTION` be visible wherever tiles are shown (Leaflet's own
+ * attribution control counts) — it's a hobby-scale allowance, revisit
+ * self-hosted/paid tiles if traffic grows (ticket 10's roadmap).
  * https://operations.osmfoundation.org/policies/tiles/
  */
 export const TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
@@ -22,14 +18,10 @@ export const MAX_ZOOM = 19;
 export const TILE_SIZE = 256;
 
 /**
- * A tile mosaic centred on a point — how a *static* map is drawn without a
- * static-image API (OSM has none, and Leaflet on an inert page would be a lot
- * of JavaScript for a picture). Returns the tiles to render and the offset to
- * shift them by so the point lands in the centre of whatever box clips them.
- *
- * The grid is 2×2 deliberately: four requests per image is the smallest mosaic
- * that still covers a wide box once centred, which matters when a page shows
- * ten of them (OSM's tile policy is a hobby-scale allowance — see above).
+ * A tile mosaic centred on a point — how a static map is drawn without a
+ * static-image API (OSM has none). Returns the tiles to render and the offset
+ * to shift them by so the point lands centred. 2×2 is the smallest mosaic
+ * that still covers a wide box once centred — matters when a page shows ten.
  */
 export function tileMosaic(lat: number, lng: number, zoom: number) {
   const n = 2 ** zoom;
@@ -46,7 +38,7 @@ export function tileMosaic(lat: number, lng: number, zoom: number) {
     for (let dx = 0; dx < 2; dx++) {
       const x = ((x0 + dx) % n + n) % n; // wrap at the antimeridian
       const y = y0 + dy;
-      if (y < 0 || y >= n) continue; // past the poles there is no tile
+      if (y < 0 || y >= n) continue; // no tile past the poles
       tiles.push({
         key: `${x}-${y}`,
         url: TILE_URL.replace("{z}", String(zoom))

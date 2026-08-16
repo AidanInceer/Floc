@@ -1,14 +1,7 @@
 "use server";
 
-/**
- * Settings mutations (ticket 07): the four notification booleans, the privacy
- * flags (ticket 46), unlinking a sign-in method, and account deletion
- * (ticket 06). No theme action — Waypoint is light-only.
- *
- * The writes belong to `server/profile.ts`, `server/membership.ts` and
- * `server/auth.ts` (ticket 108); what stays here is the validation and the
- * refusals, which are messages to a person rather than constraints on a row.
- */
+// Settings mutations: notification booleans, privacy flags, unlinking a
+// sign-in method, account deletion. No theme action — Waypoint is light-only.
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -24,14 +17,9 @@ import {
   updateProfileFields,
 } from "@/server/profile";
 
-/**
- * Privacy lives here, not on /profile: it's configuration, not identity
- * (ticket 46). One three-state ring per *display* attribute, plus the
- * profile-wide switch that overrides the lot.
- *
- * There is no email flag — email is never rendered on a profile at all, by
- * anyone, so there is nothing to toggle.
- */
+// Privacy lives here, not on /profile — configuration, not identity. One
+// three-state ring per display attribute, plus a profile-wide override
+// switch. No email flag: email is never rendered on a profile at all.
 export async function updatePrivacy(formData: FormData): Promise<{ error?: string }> {
   const viewer = await requireUser();
   await ensureProfile(viewer.id);
@@ -71,10 +59,8 @@ export async function updatePrivacy(formData: FormData): Promise<{ error?: strin
   return {};
 }
 
-/**
- * Unlink a connected sign-in method. Refuses to remove your last remaining
- * credential (ticket 06) — otherwise the account would have no way back in.
- */
+// Refuses to remove your last remaining sign-in method — otherwise the
+// account would have no way back in.
 export async function unlinkAccount(formData: FormData): Promise<{ error?: string }> {
   const viewer = await requireUser();
   const accountId = String(formData.get("accountId") ?? "");
@@ -105,31 +91,18 @@ export async function updateNotifications(formData: FormData): Promise<void> {
   });
 }
 
-/**
- * Delete account (ticket 06). Order matters:
- *  1. Auto-promote the earliest-joined remaining member of any trip where
- *     the viewer is the *sole* admin, so the trip isn't left admin-less
- *     when it doesn't have to be.
- *  2. Soft-delete the viewer's own trip memberships.
- *  3. Call Better Auth's delete, which cascades the `user`/`session`/
- *     `account` rows.
- *
- * Deliberately left untouched: ideas, notes, votes, day_events (stay
- * attributed to the "deleted user" placeholder — see components/
- * deleted-user.tsx) and expense_split rows (stay, frozen, a deleted user's
- * balance still shows as owed by "deleted user" and is settled manually).
- * Nothing here rewrites `created_by`/`paid_by` — the placeholder is a
- * *display* choice (falling back when the joined user row is gone), not a
- * data rewrite.
- */
+// Order: 1) auto-promote the earliest-joined remaining member of any trip
+// where the viewer is sole admin, so it isn't left admin-less; 2) soft-delete
+// the viewer's memberships; 3) Better Auth's delete cascades user/session/
+// account rows (the one hard delete here, on Better Auth's tables only).
+// Ideas, notes, votes, day_events and expense_split rows are left untouched
+// and stay attributed to the "deleted user" placeholder (a display fallback,
+// not a rewrite of created_by/paid_by) — see components/deleted-user.tsx.
 export async function deleteAccount(): Promise<void> {
   const viewer = await requireUser();
 
   await handOverAndLeaveAllTrips(viewer.id);
 
-  // Better Auth's own delete — cascades user/session/account rows. Soft in
-  // effect for everything we own (above); this is the one hard delete, on
-  // Better Auth's tables only.
   await auth.api.deleteUser({ headers: await headers(), body: {} });
 
   redirect("/login");

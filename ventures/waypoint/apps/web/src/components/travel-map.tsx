@@ -1,30 +1,17 @@
 "use client";
 
-/**
- * The travel map on a profile (ticket 95) — countries you've been to in pastel
- * green, countries you want to go to in pastel yellow.
- *
- * Three things worth knowing before editing this file:
- *
- * 1. **Leaflet with no tile layer.** The Route map is pins on raster tiles;
- *    this one is filled shapes, and a basemap would fight the fills for
- *    attention. The polygons come from `public/countries-110m.geojson` (Natural
- *    Earth, public domain) and are drawn straight onto the page's own paper —
- *    no tile host, so nothing here can fail because a tile server is down, and
- *    no attribution control to keep.
- * 2. **Colour is a class, never an option.** Leaflet writes `color`/`fillColor`
- *    out as SVG presentation attributes, where `var(--highlight-green)` does
- *    not resolve — same trap as the Route map's polyline. Every fill is a
- *    className and the tokens live in globals.css.
- * 3. **A handful of countries are Points, not Polygons.** 1:110m has no shape
- *    at all for Singapore, Malta, Monaco and ~60 others; they arrive as a dot
- *    and are drawn as a small circle. See scripts/build-countries.mjs.
- *
- * Clicking cycles what you *see* — blank → yellow → green → blank — and the
- * server works out what that means for the stored row, because "blank" over a
- * country one of your trips is claiming is a rejection (a `none` row) rather
- * than a deletion. See app/profile/actions.ts.
- */
+// Travel map on a profile (ticket 95) — visited countries in pastel green,
+// want-to-go in pastel yellow.
+//
+// - No tile layer: filled shapes from public/countries-110m.geojson (Natural
+//   Earth) drawn straight onto the page's own paper, no tile host dependency.
+// - Fill is a className, never a Leaflet option — `color`/`fillColor` as SVG
+//   presentation attributes don't resolve CSS vars.
+// - A handful of countries (Singapore, Malta, Monaco, ~60 more) are Points at
+//   1:110m and drawn as small circles — see scripts/build-countries.mjs.
+// - Clicking cycles the displayed state (blank → yellow → green → blank); the
+//   server maps "blank" over a trip-claimed country to a `none` row rather
+//   than a delete — see app/profile/actions.ts.
 import { useEffect, useRef, useState, useTransition } from "react";
 
 import "leaflet/dist/leaflet.css";
@@ -58,18 +45,15 @@ export function TravelMap({
   /** Server action. Required when `editable`. */
   setMark?: (code: string, next: NextState) => Promise<void>;
 }) {
-  // Optimistic: the fill flips on click and the action catches up. A failed
-  // write is corrected by the revalidate, which resets `states`.
+  // Optimistic; a failed write is corrected by the revalidate resetting `states`.
   const [local, setLocal] = useState(states);
   const [filter, setFilter] = useState("");
   const [, startTransition] = useTransition();
 
   const host = useRef<HTMLDivElement>(null);
   const layers = useRef(new Map<string, import("leaflet").Path>());
-  /** Arms the wheel zoom — set once the map exists. See the note in the effect. */
   const arm = useRef<() => void>(() => {});
-  // The click handler is installed once per layer, so it reads the live states
-  // through a ref rather than closing over a stale render's copy.
+  // Click handler installed once per layer, so it reads live state via ref.
   const latest = useRef(local);
   latest.current = local;
 
@@ -122,20 +106,10 @@ export function TravelMap({
       });
       map.setView([25, 8], 1.4);
 
-      /*
-       * Wheel zoom, armed by a click — the same bargain the Route map struck
-       * (tickets 77 and 82). The map spans the card, so a live wheel would
-       * trap the reader's scroll on the way down the profile; Leaflet has no
-       * guard of its own for that. Clicking says "I'm working in this map",
-       * and that stays true when the pointer steps out of the frame, so
-       * leaving and coming back re-arms rather than demanding another click.
-       *
-       * One difference from Route: there, only the map fires `click`. Here a
-       * click usually lands on a country, and Leaflet doesn't bubble an
-       * interactive layer's click up to the map — so `paint` arms the wheel
-       * too. Otherwise the one click everybody makes first would be the one
-       * click that doesn't arm it.
-       */
+      // Wheel zoom armed by a click, same as the Route map (tickets 77, 82) —
+      // prevents a live wheel trapping page scroll. Leaflet doesn't bubble a
+      // country layer's click to the map, so `paint` also arms the wheel;
+      // otherwise the first click (usually on a country) wouldn't arm it.
       let engaged = false;
       const armWheel = () => {
         engaged = true;
@@ -189,18 +163,13 @@ export function TravelMap({
       registry.clear();
       map?.remove();
     };
-    // Built once. `paint` and `restyle` read live values through refs/state
-    // setters, so nothing here goes stale.
+    // Built once; paint/restyle read live values through refs, so nothing goes stale.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /**
-   * Straight onto the element's class list, not through `setStyle`: Leaflet
-   * applies `options.className` when it first creates the path and never again,
-   * so restyling through it silently does nothing. The two state classes are
-   * toggled rather than the class attribute rewritten, because Leaflet keeps
-   * its own classes (`leaflet-interactive`) on the same element.
-   */
+  // Straight onto classList, not setStyle: Leaflet applies options.className
+  // once at creation and never again. Toggle, don't overwrite — Leaflet keeps
+  // its own classes (leaflet-interactive) on the same element.
   function restyle() {
     for (const [code, layer] of layers.current) {
       const el = layer.getElement();
@@ -248,9 +217,7 @@ export function TravelMap({
 
       {editable ? (
         <div className="mt-4">
-          {/* The map is the toy; this is the accessible path. "Click a 3px
-              island" is not a serious way to mark Singapore, Malta or anything
-              at all on a phone. */}
+          {/* Accessible path — "click a 3px island" doesn't work for tiny countries or on a phone. */}
           <Input
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
@@ -296,12 +263,6 @@ export function TravelMap({
               })
             )}
           </ul>
-          {/* Ticket 122: this was a paragraph explaining that a country
-              cycles through three states when you click it. The three states
-              are a key now — the same swatch-and-word the availability
-              calendar uses — so the map is read rather than explained. The one
-              fact the UI can't show for itself is where the already-filled
-              countries came from, and that stays. */}
           <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5">
             <LegendKey swatch="bg-green-soft border-green" label="Want to go" />
             <LegendKey swatch="bg-highlight-soft border-highlight-edge" label="Been there" />
@@ -312,8 +273,7 @@ export function TravelMap({
           </p>
         </div>
       ) : marked.length > 0 ? (
-        // Read-only: the shapes carry it, but a list names them for anyone the
-        // drawing doesn't work for.
+        // Read-only fallback list for anyone the drawing doesn't work for.
         <p className="mt-3 text-sm text-ink-soft">
           {marked
             .filter((c) => local[c.code] === "green")

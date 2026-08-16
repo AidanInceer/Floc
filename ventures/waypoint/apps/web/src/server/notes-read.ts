@@ -1,15 +1,10 @@
 /**
- * Reading discussion threads — shared by every surface that has one.
- *
- * Both callers (Ideas and Days) were running the same join by hand and then
- * grouping it by hand, which is how the two drifted apart once replies and
- * reactions arrived. One reader, two callers (v0.2 ticket 06).
- *
- * Server only. The shape and the timestamp formatting live in `lib/notes.ts`,
- * which the Client Component imports.
- *
- * Threads are exactly one level deep, so this assembles the tree in two
- * passes and never recurses.
+ * Reading discussion threads — shared by every surface that has one. Ideas and
+ * Days used to run and group the same join by hand, which is how they drifted
+ * apart once replies and reactions arrived; one reader, two callers now
+ * (ticket 06). Shape/formatting for the Client Component lives in
+ * `lib/notes.ts`. Threads are one level deep, so this assembles the tree in
+ * two passes and never recurses.
  */
 import "server-only";
 
@@ -33,20 +28,12 @@ export async function loadThreads({
 }): Promise<Map<number, NoteRow[]>> {
   const byScope = new Map<number, NoteRow[]>();
 
-  /*
-   * Scoped by trip and scope, NOT by a list of ids the caller has just
-   * fetched. That list is what made this a *serial* read — Ideas and Days both
-   * had to wait for their own rows to come back before the threads could even
-   * be requested, which was the third round trip on the two busiest tabs.
-   * `(trip_id, scope)` is the same bound in practice: it is the leading pair of
-   * the `note_scope_idx` index, and a trip's notes for one scope are exactly
-   * the notes its page can display. The only extra rows are threads hanging
-   * off a soft-deleted idea or event, which the caller never looks up and
-   * drops on the floor.
-   *
-   * Both reads share that scope, so the reactions no longer wait on the note
-   * ids either — they join through `note` and re-apply it.
-   */
+  // Scoped by (trip_id, scope), not a list of ids the caller just fetched —
+  // that made this a serial read, the third round trip on the busiest tabs.
+  // (trip_id, scope) leads the note_scope_idx index and matches what a page
+  // can display; extra rows from a soft-deleted idea/event are just dropped.
+  // Reactions join through `note` and reuse the same scope, so they don't
+  // wait on note ids either.
   const scoped = and(
     eq(note.tripId, tripId),
     eq(note.scope, scope),
@@ -110,15 +97,9 @@ export async function loadThreads({
     });
   }
 
-  /**
-   * A run's position is its *parent's* time, not its latest reply's: a thread
-   * is an argument you follow from the start, so a two-week-old comment that
-   * picked up a reply this morning stays where it was rather than jumping the
-   * queue and reordering the thread under you between visits.
-   *
-   * Both passes walk `rows`, which is already oldest-first, so both the runs
-   * and the replies inside them come out in order without a second sort.
-   */
+  // A run's position is its parent's time, not its latest reply's — a
+  // two-week-old comment with a fresh reply shouldn't jump the queue. Both
+  // passes walk `rows`, already oldest-first, so no second sort is needed.
   for (const r of rows) {
     if (r.parentId === null) continue;
     nodes.get(r.parentId)?.replies.push(nodes.get(r.id)!);

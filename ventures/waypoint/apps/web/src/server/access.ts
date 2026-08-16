@@ -1,11 +1,7 @@
 /**
- * Session and trip-membership gating (ticket 05).
- *
- * Two rules that must not drift:
- *  - Unauthenticated hit on any trip route → redirect to /login?redirect=...
- *    revealing nothing about the trip.
- *  - Authenticated non-member → the *same* generic no-access response whether
- *    the trip id is real or fake, so ids cannot be enumerated.
+ * Session and trip-membership gating (ticket 05). Unauthenticated → redirect
+ * to login, revealing nothing. Authenticated non-member → same generic
+ * response whether the trip id is real or fake, so ids can't be enumerated.
  */
 import "server-only";
 
@@ -36,7 +32,6 @@ export const getSession = cache(async () => {
   return auth.api.getSession({ headers: await headers() });
 });
 
-/** Current user or a redirect to login carrying where they were headed. */
 export async function requireUser(redirectTo?: string) {
   const session = await getSession();
   if (!session?.user) {
@@ -56,20 +51,10 @@ export type TripAccess = {
   members: TripMember[];
   /**
    * Resolvers that can only produce rows belonging to *this* trip (ticket 106).
-   *
-   * `requireTripAccess` used to answer one question — "may this viewer touch
-   * trip 12?" — and then step aside. But almost every action operates on a
-   * *child* of the trip whose id arrives from the client, and binding that
-   * child back to the trip was left to the caller as an unwritten obligation
-   * across ~70 call sites. Six callers forgot, which is ticket 104.
-   *
-   * That made the interface shallow: the obligation it left behind was larger
-   * than the answer it gave. These resolvers move the join inside, so the
-   * unsafe form stops being expressible — an action that wants an event calls
-   * `access.event(id)` and there is no shorter way to get one.
-   *
-   * Each returns the full row, or `notFound()` — the same response as a row
-   * that does not exist, so child ids stay non-enumerable (rule 5). Each also
+   * Binding a child id back to its trip used to be an unwritten obligation on
+   * ~70 call sites; six forgot (ticket 104). These move the join inside so the
+   * unsafe form isn't expressible. Each returns the row or `notFound()` — same
+   * response as nonexistent, keeping child ids non-enumerable (rule 5) — and
    * filters `deletedAt` (rule 8).
    */
   day: (dayId: number) => Promise<typeof day.$inferSelect>;
@@ -86,43 +71,24 @@ export type TripMember = {
   email: string;
   avatarUrl: string | null;
   joinedAt: Date;
-  /**
-   * The member's avatar colour, as a `who-*` class (ticket 11). Assigned here,
-   * from their position in this trip's roster, so no two members of a trip
-   * share a pastel and each keeps the same one on every tab. Anything drawing
-   * a member's avatar should pass this through rather than let `Avatar` fall
-   * back to hashing the name — that's for people with no roster behind them.
-   */
+  /** Roster-position colour (ticket 11) — pass through rather than letting `Avatar` hash the name. */
   tone: string;
-  /**
-   * Their dietary line, or null if they haven't shared it (ticket 46). Dietary
-   * is a *functional* attribute: it never appears on a profile page, it appears
-   * here, where a group deciding where to eat actually needs it.
-   */
+  /** Never on a profile page — a functional attribute a group picking where to eat needs (ticket 46). */
   dietary: string | null;
 };
 
 /**
- * The trip read itself, keyed on exactly the two things it depends on: which
- * trip, and who is asking.
- *
- * Keeping `redirectTo` OUT of this signature is the whole point. `cache()`
- * keys on every argument, so while this lived on `requireTripAccess` — which
- * takes the login-redirect path — the layout's call (`…/overview`) and the
- * page's call (`…/days`) were different keys and deduped only on the Overview
- * tab. Every other tab silently ran the membership and trip lookups twice per
- * navigation. The redirect path is a property of the *caller*, not of the data,
- * so it stays outside the memo.
+ * Keyed only on trip + viewer. `redirectTo` deliberately excluded: `cache()`
+ * keys on every argument, so with it on `requireTripAccess`, layout and page
+ * calls were different keys and every non-Overview tab ran the lookups twice
+ * per navigation. Redirect path is the caller's property, not the data's.
  */
 const loadTripAccess = cache(async function loadTripAccess(
   id: number,
   viewerId: string,
 ) {
-  // Membership, the trip row and the roster are three independent lookups, so
-  // all three go out at once. The membership check still gates the response —
-  // it just no longer makes the other two wait their turn, and the roster in
-  // particular was costing a third serial round trip on every trip request
-  // for data every trip page needs anyway.
+  // Three independent lookups run together; the membership check still gates
+  // the response, it just no longer makes the other two wait their turn.
   const [membership, row, members] = await Promise.all([
     db
       .select({ role: tripMembership.role })
@@ -148,12 +114,8 @@ const loadTripAccess = cache(async function loadTripAccess(
 
 /**
  * The only sanctioned way to load a trip in a page or action. Non-members get
- * `notFound()` — identical to a trip that does not exist.
- *
- * *Every* trip route resolves this twice per navigation — once in
- * `trip/[id]/layout.tsx` for the header and tabs, once in the tab's own page
- * for its data. The dedupe lives in `loadTripAccess` above; see the note there
- * for why it cannot move back onto this function.
+ * `notFound()`, identical to a trip that does not exist. Resolved twice per
+ * navigation (layout + page); dedupe lives in `loadTripAccess` above.
  */
 export async function requireTripAccess(
   tripId: number | string,
@@ -184,18 +146,10 @@ export async function requireTripAccess(
 }
 
 /**
- * The resolvers on `TripAccess`, built for one trip id. See the doc on the type
- * for why they exist at all.
- *
- * Each is memoised with `cache()`, keyed on the trip and the child id — several
- * actions resolve the same row more than once (an update reads it, then the
- * revalidation path wants its day), and per-request dedupe makes that free. The
- * key discipline from `loadTripAccess` holds here too: nothing that belongs to
- * the *caller* rather than to the data goes into the key.
- *
- * `day` and `idea` and `expense` and `note` reach `trip` by a direct column;
- * `event` reaches it through its day, which is the whole shape of the bug
- * ticket 104 fixed by hand.
+ * The resolvers on `TripAccess`, built for one trip id — see the type's doc.
+ * Each is memoised with `cache()`, keyed on trip + child id, since several
+ * actions resolve the same row more than once. `event` reaches `trip` through
+ * its day rather than a direct column — the shape ticket 104 fixed by hand.
  */
 const resolveDay = cache(async (tripId: number, dayId: number) => {
   const row = await db
@@ -253,13 +207,7 @@ const resolveExpense = cache(async (tripId: number, expenseId: number) => {
   return row;
 });
 
-/**
- * `note` is polymorphic (`scope` + `scope_id`) but still carries its own
- * `trip_id`, so it binds to the trip directly like the others. What this
- * resolver deliberately does *not* check is that the note's `scope_id` points
- * at something in the same trip — that's a second invariant, and it belongs to
- * whoever writes the scope, not to whoever reads the note.
- */
+/** Deliberately doesn't check that `scope_id` points into the same trip — that invariant belongs to whoever writes the scope. */
 const resolveNote = cache(async (tripId: number, noteId: number) => {
   const row = await db
     .select()
@@ -320,16 +268,13 @@ function toRoster(rows: MemberRow[]): TripMember[] {
         ? dietarySummary(readDietFlags(r.dietFlags), r.dietaryNotes)
         : null,
     }))
-    // Earliest-joined first — the order sole-admin promotion also uses
-    // (ticket 06). Tie-broken on user id so a group seeded within the same
-    // second still renders in a stable order.
+    // Earliest-joined first, same order sole-admin promotion uses (ticket 06).
     .sort(
       (a, b) =>
         a.joinedAt.getTime() - b.joinedAt.getTime() ||
         a.userId.localeCompare(b.userId),
     )
-    // Colour assigned after sorting, so it follows join order and a member's
-    // pastel doesn't shift when somebody else joins later.
+    // After sorting, so a member's pastel doesn't shift when someone else joins.
     .map((m, seat) => ({ ...m, tone: seatTone(seat) }));
 }
 
@@ -346,14 +291,7 @@ export const listMembers = cache(async function listMembers(
   return toRoster(bounded(rows, "members", `trip ${tripId}`));
 });
 
-/**
- * Rosters for several trips in one query.
- *
- * The trip-list pages draw an avatar row per card, and calling `listMembers`
- * per card is an N+1 — parallel, but still one round trip per trip. Grouping
- * in JS keeps the per-trip seat colours identical to the single-trip loader,
- * because `toRoster` runs per trip either way.
- */
+/** One query, not an N+1 per trip card — grouping in JS keeps seat colours identical to the single-trip loader. */
 export const listMembersFor = cache(async function listMembersFor(
   tripIds: number[],
 ): Promise<Map<number, TripMember[]>> {
@@ -367,9 +305,7 @@ export const listMembersFor = cache(async function listMembersFor(
         isNull(tripMembership.deletedAt),
       ),
     )
-    // The ceiling is per trip, so the multi-trip read gets the product of it
-    // and the number of trips asked for (ticket 108).
-    .limit(LIMITS.members * tripIds.length)
+    .limit(LIMITS.members * tripIds.length) // ceiling is per trip (ticket 108)
     .all();
 
   const grouped = new Map<number, MemberRow[]>();
@@ -383,10 +319,7 @@ export const listMembersFor = cache(async function listMembersFor(
   return byTrip;
 });
 
-/**
- * Admin-only powers (ticket 01 step 7): invite, kick, promote, archive/restore
- * and delete. Nothing else differs between admin and member.
- */
+/** Admin-only powers (ticket 01 step 7): invite, kick, promote, archive/restore, delete. */
 export function assertAdmin(access: TripAccess): void {
   if (!access.isAdmin) {
     throw new Error("Only a trip admin can do that");

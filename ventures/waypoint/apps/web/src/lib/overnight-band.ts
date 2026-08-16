@@ -1,14 +1,8 @@
 /**
- * The overnight band's arithmetic (ticket 141), with no React around it.
- *
- * The band draws one cell per day, because that is what the database stores —
- * `day.overnight_place_id`, one column per day. What the reader sees as a
- * *stay* is a run of consecutive days that already agree, which is the derived
- * stop of rule 3: nothing here merges anything, and there is no stop to store.
- *
- * It lives in `lib/` rather than in the calendar because the grouping is the
- * part that is easy to get wrong and cheap to test — a run that comes back one
- * day short, or split in two where the days agree, is a lie about the trip.
+ * Overnight band arithmetic (ticket 141), no React. A "stay" is a run of
+ * consecutive days sharing `overnight_place_id` — derived, per rule 3, never
+ * stored. Kept in `lib/` and tested separately: a run one day short, or split
+ * where the days agree, is a lie about the trip.
  */
 import { addDays } from "@/lib/dates";
 
@@ -27,12 +21,7 @@ export type BandSpan = {
   end: string;
   placeId: number | null;
   placeName: string | null;
-  /**
-   * The days this span has taken *off* a run — what a shrink uncovers. They
-   * have to be part of the picture: a handle dragged in off Friday that leaves
-   * Friday drawn as it was reads as a split into two stays, which is the
-   * opposite of what the gesture is doing.
-   */
+  /** Days this span has taken off a run — what a shrink drag uncovers. */
   uncovered?: [string, string][];
 };
 
@@ -48,17 +37,9 @@ export type BandRun<D extends BandDay> = {
 };
 
 /**
- * The bars for one page of the calendar.
- *
- * A run of days sharing a place is one item spanning its columns, so the name
- * is written once and the bar is genuinely continuous — seven cells each
- * repeating "Barcelona" would draw one stop as seven.
- *
- * Undecided days are the opposite: each is its own cell, because each is its
- * own target. They never join, or a click meant for Tuesday would land on a bar
- * that owns half the week.
- *
- * The runs always partition `shownDays` exactly, which is what lets the caller
+ * The bars for one page of the calendar. Runs of days sharing a place merge
+ * into one spanning bar; undecided days stay separate cells (each its own
+ * click target). Runs always partition `shownDays` exactly, so the caller can
  * lay them out as `span N` grid items in a single row.
  */
 export function bandRuns<D extends BandDay>(
@@ -73,8 +54,7 @@ export function bandRuns<D extends BandDay>(
     if (overlay && !day.outside && day.date >= overlay.start && day.date <= overlay.end) {
       return { id: overlay.placeId, name: overlay.placeName, preview: overlayIsDrag };
     }
-    // A day the drag has pulled off its run reads as undecided from the first
-    // pixel, because that is what letting go would make it.
+    // A day pulled off its run reads as undecided immediately — what letting go would make it.
     if (
       overlay?.uncovered?.some(
         ([from, to]) => !day.outside && day.date >= from && day.date <= to,
@@ -88,8 +68,6 @@ export function bandRuns<D extends BandDay>(
   const runs: BandRun<D>[] = [];
   for (const day of shownDays) {
     const place = placeOf(day);
-    // An undecided, un-previewed day is a cell of its own; everything else
-    // continues the run beside it when it agrees with it.
     const joins = place.id !== null || place.preview;
     const last = runs[runs.length - 1];
     if (last && joins && last.placeId === place.id && last.preview === place.preview) {
@@ -106,8 +84,7 @@ export function bandRuns<D extends BandDay>(
     });
   }
 
-  // A run that carries on past the page's edge is squared off there and grows
-  // no handle: the day it would extend from isn't on screen to aim at.
+  // A run past the page's edge is squared off there with no handle — no day onscreen to aim at.
   for (const run of runs) {
     const before = days[days.indexOf(run.days[0]) - 1];
     const after = days[days.indexOf(run.days[run.days.length - 1]) + 1];
@@ -122,11 +99,7 @@ export function bandRuns<D extends BandDay>(
   return runs;
 }
 
-/**
- * The days a drag has pulled off the run it started on — the shrink's other
- * half. A handle drag says two things at once: these days take the place, and
- * those ones lose it.
- */
+/** The days a drag has pulled off the run it started on — the shrink's other half. */
 export function uncoveredBy(
   /** The run as it stood before the drag. */
   run: { runStart: string; runEnd: string },
@@ -138,10 +111,7 @@ export function uncoveredBy(
   return ranges;
 }
 
-/**
- * How far the run under `date` actually reaches — across the page's edges,
- * which is where the calendar's own view of it stops.
- */
+/** How far the run under `date` actually reaches, across the page's edges. */
 export function runBoundsAt(
   days: readonly BandDay[],
   date: string,

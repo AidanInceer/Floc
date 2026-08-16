@@ -1,13 +1,6 @@
 "use server";
 
-/**
- * Server actions for the ideas board (ticket 14).
- * Reads go through requireTripAccess; the SQL and the last-write-wins `touch()`
- * are `server/ideas.ts`'s job (ticket 108), so nothing here imports `@/db`.
- *
- * Availability lives in `../dates/actions.ts` now — it was here only because
- * the grid used to sit at the bottom of this page.
- */
+// Server actions for the ideas board (ticket 14).
 import { after } from "next/server";
 
 import { capRequiredText } from "@/lib/text";
@@ -31,9 +24,7 @@ export async function postIdea(tripId: number, formData: FormData) {
   await insertIdea(access.trip.id, access.viewer.id, note);
 
   const others = access.members.filter((m) => m.userId !== access.viewer.id);
-  // Mail is a side effect of the write, not part of it (ticket 111): `after()`
-  // returns the board as soon as the idea is stored and sends once the
-  // response has flushed, so a slow provider never slows the post.
+  // Mail isn't part of the write; after() sends once the response flushes (ticket 111).
   after(() =>
     sendEmails(
       others.map((m) =>
@@ -52,11 +43,8 @@ export async function postIdea(tripId: number, formData: FormData) {
   revalidateIdeas(access.trip.id);
 }
 
-/**
- * Soft-delete only, author or any admin (ticket 14) — deliberately not
- * author-only, so a stale/off-topic idea can't get stuck if the poster has
- * gone quiet. No hard delete anywhere: idea threads are a shared record.
- */
+// Author or any admin (ticket 14), not author-only, so a stale idea can't
+// get stuck if the poster's gone quiet. Soft-delete only.
 export async function deleteIdea(tripId: number, ideaId: number) {
   const access = await requireTripAccess(tripId);
   const row = await access.idea(ideaId);
@@ -68,12 +56,8 @@ export async function deleteIdea(tripId: number, ideaId: number) {
   revalidateIdeas(access.trip.id);
 }
 
-/**
- * Pin or unpin an idea (v0.2 ticket 09). Any member, not author-or-admin: a
- * pin is "the group is looking at this one", which is exactly the sort of
- * thing a member should be able to say. Group-wide state, last-write-wins
- * like everything else (CLAUDE.md rule 7) — no per-viewer pinning.
- */
+// Any member, not author-or-admin (v0.2 ticket 09) — group-wide state,
+// last-write-wins (rule 7), no per-viewer pinning.
 export async function setIdeaPinned(tripId: number, ideaId: number, pinned: boolean) {
   const access = await requireTripAccess(tripId);
   const row = await access.idea(ideaId);
@@ -83,7 +67,6 @@ export async function setIdeaPinned(tripId: number, ideaId: number, pinned: bool
   revalidateIdeas(access.trip.id);
 }
 
-/** One vote per person per idea — the upsert lives in `server/ideas.ts`. */
 export async function castVote(tripId: number, ideaId: number, value: VoteValue) {
   const access = await requireTripAccess(tripId);
   const target = await access.idea(ideaId);
@@ -93,7 +76,6 @@ export async function castVote(tripId: number, ideaId: number, value: VoteValue)
   revalidateIdeas(access.trip.id);
 }
 
-/** Abstaining is legitimate (ticket 14) — this lets someone undo a vote. */
 export async function clearVote(tripId: number, ideaId: number) {
   const access = await requireTripAccess(tripId);
   const target = await access.idea(ideaId);

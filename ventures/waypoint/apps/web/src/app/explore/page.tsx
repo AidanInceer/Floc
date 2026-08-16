@@ -1,14 +1,8 @@
 /**
- * /explore — ready-made trip ideas to start from.
- *
- * The listings are still static and still editorial: no backend, no partner
- * integration, nothing bookable, and the unresolved tension with
- * monetisation.md's rejection of paid placement is recorded in
- * docs/partner-trips.html rather than settled here.
- *
- * What is no longer inert is the one action worth having: "Start this trip"
- * seeds a real trip from a listing (ticket 39). Copied, never linked — see
- * `startTripFromPreset`.
+ * /explore — ready-made trip ideas to start from. Listings are static and
+ * editorial: no backend, no partner integration, nothing bookable (see
+ * docs/partner-trips.html). "Start this trip" seeds a real trip from a
+ * listing — see `startTripFromPreset`.
  */
 import Link from "next/link";
 
@@ -40,8 +34,6 @@ export default async function ExplorePage({
 }) {
   await requireUser("/explore");
 
-  // Filtering is a plain link + searchParams rather than client state: the list
-  // is static, so there's nothing here worth shipping JavaScript for.
   const { region } = await searchParams;
   const active = isRegion(region) ? region : null;
   const shown = active
@@ -86,9 +78,7 @@ export default async function ExplorePage({
         no partnership with any of them, and nothing on this page is paid
         placement.
       </p>
-      {/* OSM's tile policy requires the attribution be visible wherever tiles
-          are shown. There is no per-card control on a still map, so the page
-          prints it once — see components/static-map.tsx. */}
+      {/* OSM's tile policy requires this attribution visible; printed once for the page. */}
       <p className="mt-2 text-xs text-ink-faint">
         Maps &copy;{" "}
         <a
@@ -103,13 +93,8 @@ export default async function ExplorePage({
   );
 }
 
-/**
- * A region filter. Each region owns a pastel (`REGION_TONE`) and every listing
- * in that region wears the same one, so the chips read as a key to the tags
- * below rather than as decoration. The selected chip is marked by a heavier
- * border and `aria-current`, not by its colour changing — the colour has to
- * keep meaning "this region" while it's active.
- */
+// Selected chip is marked by a heavier border + aria-current, not colour —
+// colour has to keep meaning "this region" while active.
 function FilterChip({
   label,
   href,
@@ -128,9 +113,6 @@ function FilterChip({
       className={cx(
         "rounded-sm border px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.06em] transition-colors",
         tone ?? "bg-sheet text-ink-soft",
-        // Ticket 120: an unselected chip used to hover by fading (`opacity-80`),
-        // which on a pastel wash is barely a change. It borrows the selected
-        // chip's pen border instead — the shape you're about to get.
         active
           ? "border-pen shadow-card"
           : "border-rule-strong hover:border-pen hover:shadow-card",
@@ -141,16 +123,8 @@ function FilterChip({
   );
 }
 
-/**
- * A luggage tag rather than a line of prose — the price is the one figure a
- * reader scans for, so it gets a shape of its own beside the action. The notch
- * and the punched hole are drawn in CSS (`.price-tag` in globals.css).
- *
- * The tag carries the figure and nothing else: "from … each" was tried and
- * read as clutter at this size. The qualification isn't lost — the tag's
- * `title` and its screen-reader label both spell it out, and the page's own
- * footer says nothing here is bookable.
- */
+// Tag carries only the figure — "from … each" read as clutter at this size.
+// The qualification survives in `title` and the sr-only label instead.
 function PriceTag({ amount }: { amount: string }) {
   const full = `From ${amount} each`;
   return (
@@ -166,8 +140,7 @@ function PriceTag({ amount }: { amount: string }) {
 function PresetCard({ preset }: { preset: PresetTrip }) {
   return (
     <Card as="li" className="flex flex-col">
-      {/* The picture is the destination itself, not stock photography — a
-          still OSM mosaic centred on where the trip actually goes. */}
+      {/* The picture is the destination itself — a still OSM mosaic, not stock photography. */}
       <div className="px-3 pt-3">
         <StaticMap
           lat={preset.lat}
@@ -182,10 +155,7 @@ function PresetCard({ preset }: { preset: PresetTrip }) {
           <Badge tone={preset.editorial ? "marine" : "neutral"}>
             {preset.operator}
           </Badge>
-          {/* The colour says which region; the country name says which
-              country. Spelling the region out here too was redundant — but
-              the tag still carries a word, so colour is never the only
-              carrier of meaning (CLAUDE.md). */}
+          {/* Colour = region, name = country; colour never carries meaning alone. */}
           <span
             title={preset.region}
             className={cx(
@@ -218,11 +188,6 @@ function PresetCard({ preset }: { preset: PresetTrip }) {
           <p className="text-xs text-ink-faint">Best months: {preset.bestMonths}</p>
         </Stack>
 
-        {/* Starts a real trip, seeded from this listing (ticket 39) — the
-            listings themselves stay static and unbookable, but the one action
-            that was worth wiring is the one that gets a group off a blank
-            page. See `startTripFromPreset` for what does and doesn't carry
-            across. */}
         <div className="mt-4 flex items-center justify-between gap-3">
           <form action={startTripFromPreset}>
             <input type="hidden" name="presetId" value={preset.id} />

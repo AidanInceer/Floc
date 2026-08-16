@@ -1,11 +1,8 @@
 /**
- * The membership aggregate's rules (ticket 108).
- *
- * These test the aggregate directly rather than through an action, because the
- * rules they check are the module's and not any one tab's: succession, the
- * revive-on-rejoin, and the soft-delete filter that keeps a departed member's
- * dead row out of every other write. Each one is a property the module exists
- * to hold, so each fails if the rule is moved back into a caller.
+ * The membership aggregate's rules (ticket 108) — tested against the
+ * aggregate directly, not through an action, since succession, revive-on-
+ * rejoin, and the soft-delete filter are the module's own properties and
+ * should fail if moved back into a caller.
  */
 import { and, eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
@@ -72,8 +69,7 @@ describe("creating a trip", () => {
 
     const row = await tripRow(id);
     expect(row?.name).toBe("Faroes");
-    // A random UUID, never derived from the trip id (ticket 05).
-    expect(row?.inviteToken).toMatch(
+    expect(row?.inviteToken).toMatch( // random UUID, never derived from the trip id (ticket 05)
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
     );
     expect((await membership(id, world.admin))?.role).toBe("admin");
@@ -136,8 +132,7 @@ describe("the invite link", () => {
 
     const row = await membership(world.ours.id, world.member);
     expect(row?.deletedAt).toBeNull();
-    // Rejoining answers the travel-map question by making it moot (ticket 95).
-    expect(row?.mapPromptAt).toBeNull();
+    expect(row?.mapPromptAt).toBeNull(); // rejoining makes the travel-map question moot (ticket 95)
   });
 });
 
@@ -171,8 +166,7 @@ describe("leaving", () => {
 
     expect((await membership(world.ours.id, world.admin))?.deletedAt).not.toBeNull();
     expect((await membership(world.ours.id, world.member))?.role).toBe("admin");
-    // Succession, not archiving — somebody is still on the trip.
-    expect((await tripRow(world.ours.id))?.archivedAt).toBeNull();
+    expect((await tripRow(world.ours.id))?.archivedAt).toBeNull(); // succession, not archiving
   });
 
   it("archives the trip when the last member goes, without deleting it", async () => {
@@ -228,8 +222,7 @@ describe("deleting an account", () => {
 
     expect((await membership(world.ours.id, world.admin))?.deletedAt).not.toBeNull();
     expect((await membership(world.ours.id, world.member))?.role).toBe("admin");
-    // The trip itself is untouched — its rows stay, attributed to a placeholder.
-    expect((await tripRow(world.ours.id))?.deletedAt).toBeNull();
+    expect((await tripRow(world.ours.id))?.deletedAt).toBeNull(); // trip untouched, rows stay attributed to a placeholder
     expect((await tripRow(world.ours.id))?.archivedAt).toBeNull();
   });
 });
@@ -253,8 +246,7 @@ describe("availability", () => {
 
     expect((await marks()).map((m) => m.available)).toEqual([true, true]);
 
-    // Unmarking writes `false` rather than soft-deleting: the unique index
-    // ignores `deleted_at`, so a dead row would bar that date for good.
+    // Unmarking writes false rather than soft-deleting: the unique index ignores deleted_at, so a dead row would bar the date for good.
     await setAvailability(world.ours.id, world.member, dates, false);
     expect(await marks()).toHaveLength(2);
     expect((await marks()).every((m) => m.available === false)).toBe(true);
@@ -271,10 +263,9 @@ describe("availability", () => {
 });
 
 /**
- * Named invites (ticket 146). The properties here are the ones that would
- * break quietly: an invite must not be a membership, re-inviting must land on
- * the row a decline left behind, and an invite to a trip nobody can open must
- * not go on asking for an answer.
+ * Named invites (ticket 146): an invite must not be a membership, re-inviting
+ * must land on the row a decline left behind, and an invite to a trip nobody
+ * can open must stop asking for an answer.
  */
 describe("named invites", () => {
   const invitesFor = (tripId: number) =>
@@ -295,8 +286,7 @@ describe("named invites", () => {
     expect((await invitesFor(world.ours.id)).map((i) => i.status)).toEqual([
       "pending",
     ]);
-    // The whole point: being invited is not being in.
-    expect(await membership(world.ours.id, world.outsider)).toBeUndefined();
+    expect(await membership(world.ours.id, world.outsider)).toBeUndefined(); // being invited is not being in
     expect(await countMembers(world.ours.id)).toBe(2);
   });
 
@@ -320,7 +310,7 @@ describe("named invites", () => {
     await settleInvite(world.ours.id, world.outsider, "declined");
     expect(await listPendingInvitesFor(world.outsider)).toEqual([]);
 
-    // A different member asking this time — the invite says who asked *now*.
+    // Different member asking this time — invite records who asked now.
     await inviteToTrip({
       tripId: world.ours.id,
       fromUserId: world.member,

@@ -1,21 +1,12 @@
-/**
- * A still map of one place — the picture at the top of an Explore listing
- * (v0.2 ticket 08).
- *
- * It was briefly framed as a perforated postage stamp; that treatment was
- * tried and REJECTED (2026-07-27) — don't bring it back. The picture sits in
- * the same plain ruled frame the Route map uses.
- *
- * It is a mosaic of raw OpenStreetMap tiles in plain `<img>` tags, not a
- * Leaflet map: there is nothing to pan or zoom on an inert listing, and a map
- * library per card would be a lot of JavaScript for a picture. The paper wash
- * and filter stack are the same treatment the Route map uses, so the two read
- * as one visual language.
- *
- * OSM's tile policy requires the attribution be visible wherever tiles are
- * shown. There is no per-card control here, so the caller must print it once
- * for the page — `/explore` does, under the listings.
- */
+// Still map of one place, at the top of an Explore listing (v0.2 ticket 08).
+// A postage-stamp treatment was tried and REJECTED (2026-07-27) — don't revive it.
+//
+// Raw OSM tile mosaic in plain <img> tags, not Leaflet — nothing to pan/zoom
+// on an inert listing, and a map library per card is too much JS for a picture.
+// Shares the Route map's paper wash/filter treatment.
+//
+// OSM's attribution requirement isn't met per-card here — the caller must
+// print it once for the page (/explore does, under the listings).
 import { TILE_SIZE, tileMosaic } from "@/lib/map";
 
 export function StaticMap({

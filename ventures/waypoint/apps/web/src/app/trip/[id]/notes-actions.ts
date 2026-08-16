@@ -1,14 +1,8 @@
 "use server";
 
-/**
- * Discussion threads, shared by every surface that has one.
- *
- * The table's shape, the one-level rule, the body cap and the per-scope
- * revalidation all live in `server/notes.ts` (ticket 108). What's left here is
- * who may do what: not admin-gated, because anyone in the trip can say
- * something, and deleting follows `deleteIdea`'s rule — your own, or any
- * admin's, so a thread can't be held hostage by someone who's gone quiet.
- */
+// Discussion threads, shared by every surface that has one (server/notes.ts
+// owns the table shape, ticket 108). Not admin-gated to post; delete follows
+// deleteIdea's rule — own or any admin's.
 import { assertAdmin, requireTripAccess } from "@/server/access";
 import {
   findNote,
@@ -22,17 +16,8 @@ import {
 } from "@/server/notes";
 import type { NoteScope, ReactionKind } from "@/db/schema";
 
-/**
- * Rewrite your own comment — for the typo you spot after posting.
- *
- * **Author only, and deliberately not an admin power.** Admin powers are
- * exactly four (rule 6) and this isn't one of them: an admin can *delete* a
- * comment, which is unambiguous, but putting different words in someone's
- * mouth under their own name is a different act entirely.
- *
- * Rule 7's last-write-wins means two people editing can't happen anyway — only
- * the author can, and there is one of them.
- */
+// Author only, deliberately not an admin power (rule 6) — an admin can delete
+// a comment, but putting different words in someone's mouth is a different act.
 export async function editNote(
   tripId: number,
   noteId: number,
@@ -48,8 +33,7 @@ export async function editNote(
     return { error: "You can only edit your own comments." };
   }
 
-  // Reopening the editor and saving the same words shouldn't stamp "edited" on
-  // a comment nobody changed.
+  // Don't stamp "edited" on a save that didn't change anything.
   if (body.slice(0, NOTE_BODY_MAX) === row.body) return;
 
   await updateNoteBody(row.id, body);
@@ -61,8 +45,7 @@ export async function addNote(
   tripId: number,
   scope: NoteScope,
   scopeId: number,
-  /** The comment being replied to, or null for a new top-level comment. */
-  replyTo: number | null,
+  replyTo: number | null, // null = new top-level comment
   formData: FormData,
 ) {
   const body = String(formData.get("body") ?? "").trim();
@@ -72,7 +55,7 @@ export async function addNote(
 
   let parentId: number | null = null;
   if (replyTo !== null) {
-    // `undefined` means the target has gone; `null` means "top level".
+    // undefined = target has gone; null = top level.
     const resolved = await resolveParent({ tripId: access.trip.id, scope, scopeId, replyTo });
     if (resolved === undefined) return { error: "That comment has gone." };
     parentId = resolved;
@@ -90,7 +73,6 @@ export async function addNote(
   revalidateThread(access.trip.id, scope);
 }
 
-/** Toggle one of the three reactions on a comment. */
 export async function react(
   tripId: number,
   noteId: number,

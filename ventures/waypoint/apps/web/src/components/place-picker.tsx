@@ -1,21 +1,11 @@
 "use client";
 
-/**
- * Place search input (v1 ticket 09; provider swapped by v0.2 tickets 15/12).
- * Search runs through a server action passed in as a prop — no client-side
- * fetch to our own API. Falls back to a plain free-text name field when
- * Nominatim returns nothing (no match, unreachable, or rate-limited), so the
- * app degrades instead of breaking (CLAUDE.md rule 11).
- *
- * Debounced at 600ms: Nominatim's policy caps us at one request a second and
- * the server queue enforces it, so firing per keystroke would only build a
- * backlog the user is already past.
- */
+// Place search input (v1 ticket 09). Falls back to free-text when Nominatim
+// returns nothing (rule 11). Debounced 600ms — Nominatim caps at 1 req/s.
 import { useEffect, useRef, useState } from "react";
 
 import { Field, Input, cx } from "./ui";
 
-/** One Nominatim hit as the search action hands it over — `PlaceSearchResult`. */
 type PlaceHit = {
   providerId: string;
   name: string;
@@ -30,8 +20,7 @@ export type PlacePickerResult = {
   name: string;
   lat: number | null;
   lng: number | null;
-  /** ISO alpha-2 from the chosen search hit — null for a typed name (ticket 95). */
-  countryCode: string | null;
+  countryCode: string | null; // null for a typed name (ticket 95)
 };
 
 export function PlacePicker({
@@ -49,9 +38,8 @@ export function PlacePicker({
 }) {
   const [query, setQuery] = useState(defaultName);
   const [results, setResults] = useState<PlaceHit[]>([]);
-  // Set when the last search came back empty — a hint, not a latch: typing
-  // again clears it and searching resumes (a transient Nominatim failure must
-  // not strand the field in free-text mode for the rest of the session).
+  // Hint, not a latch — typing again clears it, so a transient failure
+  // doesn't strand the field in free-text mode.
   const [noMatch, setNoMatch] = useState(false);
   const [selected, setSelected] = useState<PlacePickerResult | null>(
     defaultName
@@ -59,13 +47,8 @@ export function PlacePicker({
       : null,
   );
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  /*
-   * The name we were handed is an answer, not a question. Searching it on mount
-   * dropped a results list over whatever sits below the field the moment any
-   * edit form or dialog opened — and offered you, as a suggestion, the place
-   * you had already chosen. The first keystroke clears this and searching
-   * resumes as normal.
-   */
+  // The default name is an answer, not a question — searching it on mount
+  // would suggest the place already chosen. Cleared on first keystroke.
   const untouched = useRef(Boolean(defaultName));
 
   useEffect(() => {
@@ -79,7 +62,6 @@ export function PlacePicker({
     timer.current = setTimeout(async () => {
       const found = await search(query);
       setResults(found);
-      // Nothing back → the typed name stands on its own rather than a dead end.
       setNoMatch(found.length === 0);
     }, 600);
     return () => {

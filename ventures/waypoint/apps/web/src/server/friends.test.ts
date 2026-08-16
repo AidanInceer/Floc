@@ -1,13 +1,8 @@
 /**
- * The two friendship reads that changed shape in ticket 114, checked against a
- * seeded multi-trip database rather than by inspection — which is what that
- * ticket asks for, because the H3 fix moves a filter from JavaScript into the
- * `where` clause and the whole point is that the answer stays identical.
- *
- * `theirs` exists in the seed precisely so "every membership row in the
- * database" and "the membership rows of my trips" can give different answers.
- * The old code selected the former; if the new `inArray` were wrong in either
- * direction, the outsider would show up here or the member would not.
+ * Reads that changed shape in ticket 114, checked against a seeded multi-trip
+ * db, not by inspection — the fix moves a filter from JS into `where` and the
+ * point is the answer stays identical. `theirs` in the seed is what lets an
+ * outsider show up if the new `inArray` is wrong.
  */
 import { and, eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
@@ -31,6 +26,7 @@ beforeEach(async () => {
 });
 
 /** Both seeded trips are undated; a co-trip friendship needs an ended one. */
+
 async function endTrip(tripId: number, endDate = "2020-01-01") {
   await db
     .update(schema.trip)
@@ -43,7 +39,7 @@ const friendships = () => db.select().from(schema.friendship).all();
 describe("syncCompletedCoTripFriendships", () => {
   it("friends the people you actually travelled with, and nobody else", async () => {
     await endTrip(world.ours.id);
-    await endTrip(world.theirs.id); // ended too, but not the admin's trip
+    await endTrip(world.theirs.id); // not the admin's trip
 
     await syncCompletedCoTripFriendships(world.admin);
 
@@ -51,11 +47,9 @@ describe("syncCompletedCoTripFriendships", () => {
     expect(rows).toHaveLength(1);
     expect(rows[0].origin).toBe("co_trip");
     expect(rows[0].status).toBe("accepted");
-    // Canonical direction is lower userId first, matching the unique index.
     expect([rows[0].userId, rows[0].friendId].sort()).toEqual(
       [world.admin, world.member].sort(),
     );
-    // The outsider is in the database, on an ended trip, and is not a friend.
     expect(
       rows.some((r) => r.userId === world.outsider || r.friendId === world.outsider),
     ).toBe(false);
@@ -78,8 +72,7 @@ describe("syncCompletedCoTripFriendships", () => {
     await syncCompletedCoTripFriendships(world.admin);
     expect(await friendships()).toHaveLength(1);
 
-    // Soft-deleted rows still hold the unique pair, so the re-run must not
-    // insert a second one — nor quietly undo the removal.
+    // Re-run must not insert a second row nor quietly undo the removal.
     await db
       .update(schema.friendship)
       .set({ deletedAt: new Date() })
@@ -137,11 +130,8 @@ describe("sharedTripIds", () => {
 });
 
 /**
- * Friends-of-friends discovery (ticket 145).
- *
- * The interesting party is `stranger`: friends with Ada, in none of Mo's rings,
- * and so someone whose profile Mo cannot open at all. Everything below is about
- * what Mo may nonetheless learn and do from Ada's page.
+ * Friends-of-friends discovery (ticket 145). `stranger` is friends with Ada,
+ * in none of Mo's rings — a profile Mo can't open directly.
  */
 describe("friends of friends", () => {
   /** Ada's friend, and nobody else's. */
@@ -174,8 +164,7 @@ describe("friends of friends", () => {
     (await requireProfileView(world.admin, viewerId)).friends;
 
   it("keeps the list inside the ring the owner set", async () => {
-    // Mo shares a trip with Ada but isn't a friend, and the column defaults one
-    // ring tighter than the rest — so the list simply isn't there.
+    // Mo shares a trip with Ada but isn't a friend; default ring is one tighter.
     expect(await listFor(world.member)).toBeNull();
 
     await befriend(world.admin, world.member);
@@ -193,7 +182,7 @@ describe("friends of friends", () => {
   it("leaves out the viewer, and anyone who went private", async () => {
     await befriend(world.admin, world.member);
 
-    // Mo is on Ada's list too, and shouldn't be offered themselves.
+    // Mo shouldn't be offered themselves.
     expect((await listFor(world.member))?.map((f) => f.id)).toEqual([stranger]);
 
     await db
@@ -207,8 +196,7 @@ describe("friends of friends", () => {
     await befriend(world.member, stranger, "pending");
 
     const rows = await listFor(world.member);
-    // Mo asked first, so this is Mo's own request still out — not an invitation
-    // to ask again.
+    // Mo asked first, so this is Mo's own request still out.
     expect(rows?.[0]?.state).toBe(
       world.member < stranger ? "outgoing" : "incoming",
     );
@@ -218,13 +206,12 @@ describe("friends of friends", () => {
     await befriend(world.admin, world.member);
     expect(await friendOfFriend(world.member, world.admin, stranger)).toBe(true);
 
-    // A request Ada never answered is not a link in the chain.
+    // An unanswered request isn't a link in the chain.
     await befriend(world.admin, stranger, "pending");
     expect(await friendOfFriend(world.member, world.admin, stranger)).toBe(false);
   });
 
   it("refuses a chain through someone the viewer isn't friends with", async () => {
-    // Mo shares a trip with Ada, which is not the same thing.
     expect(await friendOfFriend(world.member, world.admin, stranger)).toBe(false);
   });
 

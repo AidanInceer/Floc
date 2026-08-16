@@ -1,13 +1,9 @@
 /**
- * The itinerary aggregate's reads and day writes.
- *
- * Two things are being pinned here. The soft-delete filters ticket 115 added to
- * the *writes* — rule 8 used to say "every read", and a stale id from a page
- * rendered before a delete would otherwise resurrect the row into a half-state.
- * And the batched writes of ticket 114, where a permutation now goes out in one
- * round of statements rather than one per event: the assertion is on the
- * outcome, because "did it go out in parallel" is not a property a test can see
- * and "did it land correctly" is the one that would break if it were wrong.
+ * The itinerary aggregate's reads and day writes. Pins two things: the
+ * soft-delete filters ticket 115 added to writes (rule 8 used to say "every
+ * read", letting a stale id resurrect a deleted row into a half-state), and
+ * the batched writes of ticket 114 — asserted on outcome, since "did it land
+ * correctly" is the property that breaks if parallelism is wrong.
  */
 import { and, eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
@@ -73,8 +69,7 @@ describe("reading the itinerary", () => {
 
 describe("ensureDays", () => {
   it("is idempotent, including over a soft-deleted date", async () => {
-    // A soft-deleted row still occupies the (trip, date) unique index, so
-    // skipping it is what keeps a re-run from throwing.
+    // Soft-deleted row still occupies the (trip, date) unique index; skipping it keeps a re-run from throwing.
     await softDeleteDay(world.ours.dayId);
     await ensureDays(world.ours.id, ["2026-09-01"]);
     await ensureDays(world.ours.id, ["2026-09-01"]);
@@ -107,8 +102,7 @@ describe("listDayLoads", () => {
 
 describe("applyTripWindow", () => {
   it("creates a day per date and keeps what the old window shared", async () => {
-    // 1 Sep → 1–3 Sep. The seeded day and its events stay put; a day is
-    // addressed by its date, so nothing shifts.
+    // 1 Sep → 1-3 Sep: a day is addressed by its date, so the seeded day/events stay put.
     await applyTripWindow(world.ours.id, "2026-09-01", "2026-09-03");
 
     expect((await listDays(world.ours.id)).map((d) => d.date)).toEqual([
@@ -122,9 +116,7 @@ describe("applyTripWindow", () => {
   it("hard-deletes the days outside the window, with their events", async () => {
     await applyTripWindow(world.ours.id, "2026-09-05", "2026-09-06");
 
-    // Hard, not soft (the second exception to rule 8): a soft-deleted row
-    // would keep holding 1 Sep on the unique index, so re-extending back over
-    // that date could never give the day again.
+    // Hard, not soft (2nd exception to rule 8) — a soft-deleted row would hold 1 Sep forever on the unique index.
     const rows = await db
       .select()
       .from(schema.day)
@@ -140,8 +132,7 @@ describe("applyTripWindow", () => {
 
     const days = await listDays(world.ours.id);
     expect(days).toHaveLength(6);
-    // Blank: the plan does not come back with the date (ticket 83).
-    expect(await eventRow(world.ours.eventId)).toBeUndefined();
+    expect(await eventRow(world.ours.eventId)).toBeUndefined(); // blank: the plan doesn't come back with the date (ticket 83)
   });
 
   it("keeps an expense and detaches it from the day it was spent on", async () => {
@@ -174,8 +165,7 @@ describe("applyTripWindow", () => {
     await applyTripWindow(world.ours.id, null, null);
 
     expect(await listDays(world.ours.id)).toEqual([]);
-    // And only this trip's — the other trip's day is untouched.
-    expect(await listDayIds(world.theirs.id)).toEqual([world.theirs.dayId]);
+    expect(await listDayIds(world.theirs.id)).toEqual([world.theirs.dayId]); // other trip's day untouched
   });
 });
 
@@ -195,8 +185,7 @@ describe("the overnight place", () => {
     expect((await dayRow(world.theirs.dayId))?.overnightPlaceId).toBeNull();
   });
 
-  /** Ticket 115: writes filter soft-deletes too, not just reads. */
-  it("will not resurrect a deleted day from a stale id", async () => {
+  it("will not resurrect a deleted day from a stale id", async () => { // ticket 115: writes filter soft-deletes too
     const placeId = await makePlace();
     await softDeleteDay(world.ours.dayId);
 
@@ -257,7 +246,6 @@ describe("revalidateItinerary", () => {
   });
 });
 
-/** Guards the scoping the whole aggregate leans on. */
 describe("trip scoping", () => {
   it("never lets one trip's read see another's rows", async () => {
     const ours = await listDayIds(world.ours.id);

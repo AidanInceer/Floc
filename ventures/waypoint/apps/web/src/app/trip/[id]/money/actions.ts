@@ -1,17 +1,8 @@
 "use server";
 
-/**
- * Money mutations (ticket 16, building on the rules in ticket 04/12).
- *
- * - An expense write always rewrites `expense` + the whole `expense_split`
- *   set in one transaction — last-write-wins on the whole expense, never a
- *   partial-row merge (ticket 12). That transaction is `writeExpense` in
- *   `server/money.ts` (ticket 108); there is no smaller write to reach for.
- * - `computeSplits` is the only place split maths happens; we just catch its
- *   errors and turn them into a form-friendly string.
- * - Any member may add, edit, or delete an expense — money has no
- *   admin/member distinction beyond the invite/kick/delete list (ticket 01).
- */
+// An expense write always rewrites expense + the whole expense_split set in
+// one transaction (writeExpense, server/money.ts) — last-write-wins, never a
+// partial-row merge (ticket 12). Any member may add/edit/delete (ticket 01).
 import { after } from "next/server";
 
 import type { Currency } from "@/db/schema";
@@ -38,20 +29,13 @@ import { emails, sendEmails } from "@/server/email";
 
 export type ActionState = { error?: string };
 
-/**
- * The form posts one model now (ticket 85): who's in, how many shares each,
- * and a pinned amount for anyone whose number is fixed. `resolveWeightedSplit`
- * turns that back into the stored `split_type` vocabulary, and `computeSplits`
- * still does the arithmetic — so the split maths lives in one place, as before.
- *
- * Somebody excluded from the cost simply isn't in `participant`, which is what
- * "tap them out" means on the wire: no row, not a zero row.
- */
+// Form posts shares + optional pin per participant (ticket 85);
+// resolveWeightedSplit maps that to the stored split_type. Excluded people
+// simply aren't in `participant` — no row, not a zero row.
 function parseSplit(
   formData: FormData,
   amountMinor: number,
 ): { splitType: WritableSplitType; participants: SplitInput[] } {
-  // (Return type spelled out so `SplitInput` is a used import, not just inferred.)
   const ids = formData.getAll("participant").map(String).filter(Boolean);
   const rows: WeightedInput[] = ids.map((userId) => {
     const rawPin = String(formData.get(`pin_${userId}`) ?? "").trim();
@@ -59,8 +43,7 @@ function parseSplit(
     return {
       userId,
       shares: rawShares === "" ? 0 : Number(rawShares),
-      // An empty box is "not pinned" — 0.00 typed on purpose is a real pin of
-      // nothing, and the two have to stay tellable apart.
+      // Empty box = not pinned; a typed 0.00 is a real pin of nothing.
       pinnedMinor: rawPin === "" ? null : parseMoney(rawPin),
     };
   });
@@ -77,15 +60,9 @@ function readExpenseFields(formData: FormData) {
   return { description, currency, paidBy, dayId, notes };
 }
 
-/**
- * Emails everyone in the split except whoever is at the keyboard right now.
- *
- * Addresses come from the roster `requireTripAccess` already loaded — the
- * `user` table is only consulted for a participant who isn't on it (someone
- * kicked since the expense was written, whose split rows survive by design).
- * The sends go out through `sendEmails` so the whole batch shares one
- * preference lookup.
- */
+// Emails everyone in the split except the actor. Addresses come from the
+// already-loaded roster; `user` is queried only for a participant kicked
+// since the expense was written, whose split rows survive by design.
 async function notifyParticipants(args: {
   tripId: number;
   tripName: string;
@@ -161,9 +138,7 @@ export async function addExpense(
     splits,
   });
 
-  // Mail is a side effect of the write, not part of it: `after()` lets the
-  // form come back as soon as the ledger is correct and runs the sends once
-  // the response has flushed.
+  // Mail isn't part of the write; after() runs it once the response flushes.
   after(() =>
     notifyParticipants({
       tripId: access.trip.id,
@@ -214,8 +189,7 @@ export async function updateExpense(
     return { error: (err as Error).message };
   }
 
-  // Whole-expense last-write-wins: the split set is replaced, not merged
-  // (ticket 12) — `writeExpense` is the one place that transaction exists.
+  // Whole-expense last-write-wins: split set replaced, not merged (ticket 12).
   await writeExpense({
     tripId: access.trip.id,
     expenseId: existing.id,
@@ -259,9 +233,8 @@ export async function toggleSettled(formData: FormData): Promise<void> {
   const row = await findSettleableSplit(splitId);
   if (!row || row.expenseTripId !== access.trip.id) return;
 
-  // A member may mark their OWN split settled; the person who paid may also
-  // mark a split against them settled, since they're the one who'd know
-  // whether the money actually changed hands off-app (ticket 16).
+  // Owner of the split, or whoever paid (they'd know if it changed hands
+  // off-app), may mark it settled (ticket 16).
   const allowed = row.userId === access.viewer.id || row.paidBy === access.viewer.id;
   if (!allowed) return;
 

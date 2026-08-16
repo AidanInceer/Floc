@@ -1,17 +1,8 @@
 "use server";
 
-/**
- * Profile edits (tickets 06/18, reshaped by 46). Everything writable here is a
- * *profile* field — who you are. The privacy flags that decide who sees them
- * live on /settings, because privacy is configuration, not profile.
- *
- * Email is not here at all any more: it's Better Auth's, it can't change from
- * this page, and a permanently-disabled field was the single thing making the
- * profile read as a form.
- *
- * The writes are `server/profile.ts`'s and `server/travel-map.ts`'s
- * (ticket 108). What stays here is validation and what each form means.
- */
+// Profile edits — who you are. Privacy flags for who sees them live on
+// /settings instead. Email isn't here: it's Better Auth's and can't change
+// from this page.
 import { CURRENCIES } from "@/db/schema";
 import type { Currency } from "@/db/schema";
 import { requireUser } from "@/server/access";
@@ -50,11 +41,8 @@ export async function updateIdentity(formData: FormData): Promise<{ error?: stri
   return {};
 }
 
-/**
- * The chip picker posts one `vibeTag` value per selected chip. `parseVibeTags`
- * re-checks every one against the seed list — the picker can only offer valid
- * tags, but a hand-crafted POST must not be able to invent one (ticket 46).
- */
+// `parseVibeTags` re-checks every value against the seed list — a
+// hand-crafted POST must not be able to invent a tag.
 export async function updateVibeTags(formData: FormData): Promise<{ error?: string }> {
   const viewer = await requireUser();
   await ensureProfile(viewer.id);
@@ -67,12 +55,9 @@ export async function updateVibeTags(formData: FormData): Promise<{ error?: stri
   return {};
 }
 
-/**
- * Diet flags and the free-text allergies line. `shareDietary` is deliberately
- * saved here rather than with the other privacy flags on /settings: it is the
- * one switch that reads as part of the fact itself, and it covers the whole
- * record at once — you cannot publish half a dietary record (ticket 46).
- */
+// `shareDietary` is saved here, not with the other privacy flags on
+// /settings — it reads as part of the fact itself and covers the whole
+// record at once; you can't publish half a dietary record.
 export async function updateDietary(formData: FormData): Promise<{ error?: string }> {
   const viewer = await requireUser();
   await ensureProfile(viewer.id);
@@ -92,26 +77,12 @@ export async function updateDietary(formData: FormData): Promise<{ error?: strin
   return {};
 }
 
-/* -------------------------------------------------------------------------- */
-/* The travel map (ticket 95)                                                 */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Paint one country. The client sends the state it wants *shown* — blank,
- * yellow or green — and the translation into a stored row happens here,
- * because "blank" means two different things:
- *
- *  - over a country nothing else is claiming, it's a deletion: you took the
- *    mark back and the trips are free to speak again.
- *  - over a country one of your trips *is* claiming, it's a rejection. A `none`
- *    row is how you say "no, I didn't go" — the trip was cancelled after its
- *    dates passed, you dropped out, you never went. Without it the app keeps
- *    asserting something false about you on a page other people read.
- *
- * Green and yellow are always written, even where a trip already says the same
- * thing: that is what makes a mark permanent, and a hand mark is never demoted
- * by a trip afterwards.
- */
+// The client sends the state it wants *shown* — blank, yellow or green.
+// "Blank" means two different things: over a country nothing else claims,
+// it's a deletion; over one a trip *is* claiming, it's a rejection (a `none`
+// row saying "no, I didn't go" — without it the app keeps asserting
+// something false). Green/yellow are always written even if a trip already
+// agrees, so a hand mark is never demoted by a trip afterwards.
 export async function setCountryMark(
   code: string,
   next: "green" | "yellow" | "blank",
@@ -123,10 +94,7 @@ export async function setCountryMark(
   if (next === "green" || next === "yellow") {
     await setManualMark(viewer.id, countryCode, next);
   } else if (await derivedStateFor(viewer.id, countryCode)) {
-    // What the trips would say with the hand mark gone — asked of the
-    // derivation directly, since the merged view has the mark still in it.
-    // Something is still claiming this country, so blank means "no, I didn't
-    // go": a `none` row, not a deletion.
+    // Something still claims this country, so blank means "no, I didn't go".
     await setManualMark(viewer.id, countryCode, "none");
   } else {
     await clearManualMark(viewer.id, countryCode);
@@ -135,14 +103,9 @@ export async function setCountryMark(
   revalidateProfile();
 }
 
-/**
- * Answer the question a trip leaves behind when you're no longer on it
- * (ticket 95). Its countries are about to stop being derived — keeping them
- * converts them to hand marks, which is the only place any conversion happens.
- *
- * Declining is not a `none` row: nothing was claiming those countries any more,
- * so there is nothing to reject. It just clears the question.
- */
+// Answers the question a trip leaves behind when you're no longer on it.
+// Keeping converts its countries to hand marks (the only place that
+// conversion happens); declining just clears the question, no `none` row.
 export async function answerMapPrompt(
   tripId: number,
   keep: boolean,
@@ -157,12 +120,8 @@ export async function answerMapPrompt(
   revalidateProfile();
 }
 
-/**
- * The two buttons on the map prompt (ticket 117, S11). They were inline
- * `"use server"` wrappers on the page, there only because `answerMapPrompt`
- * takes arguments rather than a FormData — which is a reason to put the
- * FormData-shaped entry point here, not to define a mutation in a page.
- */
+// FormData-shaped wrappers for the two map-prompt buttons — `answerMapPrompt`
+// takes plain arguments, not a FormData.
 export async function keepPromptCountries(formData: FormData): Promise<void> {
   await answerMapPrompt(Number(formData.get("tripId")), true);
 }

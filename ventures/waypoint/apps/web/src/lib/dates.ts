@@ -25,17 +25,10 @@ export function fromIsoDate(date: IsoDate): Date {
 }
 
 /**
- * Whether a string really is a date-only `YYYY-MM-DD` (ticket 113).
- *
- * The shape check is not enough on its own: `2026-02-31` matches the pattern
- * and is not a day. So the string is round-tripped through `Date` and compared
- * back — JavaScript rolls an impossible date forward, so a value that survives
- * the round trip is a real one.
- *
- * Non-negotiable 10 assumes date-only strings everywhere, and until this
- * existed nothing enforced it at the door: `setTripDates` would store "soon",
- * after which `hasEnded` returned nonsense, `dateRange` produced garbage, and
- * the travel map mis-coloured — all silently, none of it near the typo.
+ * Whether a string really is a date-only `YYYY-MM-DD` (ticket 113). The shape
+ * check alone isn't enough — `2026-02-31` matches and isn't a day — so the
+ * value is round-tripped through `Date` and compared back; JS rolls an
+ * impossible date forward, so only a real one survives the round trip.
  */
 export function isIsoDate(value: unknown): value is IsoDate {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
@@ -49,10 +42,9 @@ export function readIsoDate(value: unknown): IsoDate | null {
 }
 
 /**
- * Reads an optional date field: an empty box is *not* an error, because a trip
- * with no dates is the normal path (non-negotiable 9). `undefined` means "there
- * was something there and it wasn't a date", which the caller must tell apart
- * from `null`.
+ * An empty box is not an error — a trip with no dates is normal (rule 9).
+ * `undefined` means "something was there and it wasn't a date"; the caller
+ * must tell that apart from `null`.
  */
 export function readOptionalIsoDate(value: unknown): IsoDate | null | undefined {
   const raw = String(value ?? "").trim();

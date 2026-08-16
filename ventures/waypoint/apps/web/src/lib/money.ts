@@ -1,10 +1,6 @@
 /**
- * Money is never a float. Every amount is an integer count of minor units
- * (pence/cents), and every split is snapshotted at creation.
- *
- * Source: .scratch/waypoint-v1/issues/04-core-data-model-and-schema.md
- * The exact-sum invariant is application code by design — the schema cannot
- * enforce it.
+ * Money is never a float; every amount is an integer minor-unit count.
+ * Exact-sum invariant is enforced here, not in the schema (issue 04).
  */
 import { CURRENCIES, type Currency } from "@/lib/currency";
 import type { SplitType } from "@/db/schema";
@@ -18,16 +14,7 @@ export const CURRENCY_SYMBOLS: Record<Currency, string> = {
 /** All three v1 currencies have two decimal places. */
 const MINOR_PER_MAJOR = 100;
 
-/**
- * Hard ceiling on any single amount: £1bn in minor units.
- *
- * Not cosmetic. An amount past `Number.MAX_SAFE_INTEGER` writes to SQLite
- * happily, and then *every later read* throws
- * `RangeError: Received integer which cannot be safely represented as a
- * JavaScript number` — so one silly expense locks the whole group out of the
- * trip, Overview included. Rejecting at the door is the only place that can't
- * be bypassed (ticket 33).
- */
+/** Ceiling of £1bn in minor units — past MAX_SAFE_INTEGER, every later read throws and locks the trip out (ticket 33). */
 export const MAX_AMOUNT_MINOR = 100_000_000_000;
 
 function assertInRange(amountMinor: number): void {
@@ -70,29 +57,13 @@ export type SplitInput = {
 export type SplitResult = { userId: string; owedAmountMinor: number };
 
 /**
- * The split types the app can still *write* (ticket 117, S12).
- *
- * `expense.split_type` has four values and keeps them: `expense_split` rows are
- * immutable snapshots (non-negotiable 2), so rows written as `even` or
- * `percentage` before the shares model (ticket 85) exist and must keep reading
- * back correctly — `splitLabel` on the Money tab still handles all four.
- *
- * What is gone is the ability to *produce* them. `resolveWeightedSplit` has
- * emitted only these two since ticket 85, so `computeSplits` had two arms
- * nothing could reach — and dead code in the money path is worse than dead code
- * elsewhere, because it reads as a supported mode. Narrowing the type is what
- * makes that structural rather than a comment.
+ * Split types still *writable* (ticket 117, S12). `even`/`percentage` remain
+ * readable (immutable snapshots, non-negotiable 2) but only these two are
+ * produced since the shares model (ticket 85).
  */
 export type WritableSplitType = Extract<SplitType, "shares" | "exact">;
 
-/**
- * Turns a split type plus participant list into snapshot rows summing to
- * exactly `amountMinor`.
- *
- * Remainder pennies are handed out one each to the earliest participants,
- * deterministically — so the sum invariant holds and nobody is silently
- * short-changed by rounding.
- */
+/** Split type + participants → snapshot rows summing to exactly `amountMinor`. */
 export function computeSplits(
   amountMinor: number,
   splitType: WritableSplitType,
@@ -104,8 +75,6 @@ export function computeSplits(
   if (!Number.isInteger(amountMinor)) {
     throw new Error("amountMinor must be an integer number of minor units");
   }
-  // Belt and braces: `parseMoney` is the usual door, but splits can be built
-  // from a raw number too, and an out-of-range total must never reach the DB.
   assertInRange(amountMinor);
 
   switch (splitType) {
@@ -170,35 +139,15 @@ function distribute(
   }));
 }
 
-/* -------------------------------------------------------------------------- */
-/* One split model: shares, with pinned amounts (ticket 85)                    */
-/* -------------------------------------------------------------------------- */
-
 export type WeightedInput = {
   userId: string;
-  /** How many shares of whatever is left this person carries. */
+  /** Shares of whatever is left this person carries. */
   shares: number;
-  /** A fixed amount in minor units — "Ravi owes exactly £30" — or null. */
+  /** Fixed amount in minor units — "Ravi owes exactly £30" — or null. */
   pinnedMinor: number | null;
 };
 
-/**
- * The form asks one question now (ticket 85): everyone holds shares of the
- * cost, and anyone can be *pinned* to a fixed amount instead. Even is everyone
- * on one share; "exact amounts" is everyone pinned; percentages are shares that
- * happen to add to a hundred. The four split types stop being modes you pick.
- *
- * They stay in the schema, because `expense.split_type` is written on rows that
- * already exist and `expense_split` is a snapshot that is never recalculated
- * (non-negotiable 2). So this resolves the one live model back into the stored
- * vocabulary rather than adding to it:
- *
- *   nothing pinned → `shares`, values are the shares
- *   anything pinned → `exact`, values are the amounts this works out
- *
- * Either way `computeSplits` does the actual arithmetic and the exact-sum
- * invariant is checked in exactly one place.
- */
+/** Shares + optional pins (ticket 85) → stored vocabulary: nothing pinned → `shares`, anything pinned → `exact`. */
 export function resolveWeightedSplit(
   amountMinor: number,
   rows: WeightedInput[],
@@ -229,8 +178,6 @@ export function resolveWeightedSplit(
   const unpinned = rows.filter((r) => r.pinnedMinor === null);
   const shareTotal = unpinned.reduce((sum, r) => sum + r.shares, 0);
   if (remainder > 0 && shareTotal === 0) {
-    // Nothing left holding shares, so there is nowhere for the rest to go —
-    // say so rather than quietly losing it.
     throw new Error(
       `${formatMinor(remainder)} is left over and nobody's on shares to absorb it.`,
     );
@@ -261,10 +208,7 @@ function formatMinor(amountMinor: number): string {
   return (amountMinor / MINOR_PER_MAJOR).toFixed(2);
 }
 
-/* -------------------------------------------------------------------------- */
-/* Balances — derived at read time, never stored (ticket 04)                   */
-/* -------------------------------------------------------------------------- */
-
+// Balances — derived at read time, never stored (ticket 04).
 export type LedgerLine = {
   paidBy: string;
   currency: Currency;
@@ -276,10 +220,7 @@ export type LedgerLine = {
 export type Balances = Record<Currency, Record<string, number>>;
 
 export function computeBalances(lines: LedgerLine[]): Balances {
-  // Derived from CURRENCIES rather than written out (ticket 115). The literal
-  // that used to be here drifted the moment a fourth currency was added, and
-  // drifted into an `undefined` at runtime rather than a type error — in the
-  // money path, where non-negotiable 1 says nothing is computed by hand.
+  // Derived from CURRENCIES, not a literal — drifted silently to undefined on a 4th currency before (ticket 115).
   const balances = Object.fromEntries(
     CURRENCIES.map((c) => [c, {} as Record<string, number>]),
   ) as Balances;
@@ -287,9 +228,7 @@ export function computeBalances(lines: LedgerLine[]): Balances {
   for (const line of lines) {
     const book = balances[line.currency];
     for (const split of line.splits) {
-      // A settled split is a claim that the debt was paid off-app, so it
-      // stops affecting the outstanding position.
-      if (split.settled) continue;
+      if (split.settled) continue; // paid off-app; stops affecting the outstanding position
       if (split.userId === line.paidBy) continue;
       book[split.userId] = (book[split.userId] ?? 0) - split.owedAmountMinor;
       book[line.paidBy] = (book[line.paidBy] ?? 0) + split.owedAmountMinor;

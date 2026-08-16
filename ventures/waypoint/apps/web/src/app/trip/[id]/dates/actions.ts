@@ -1,18 +1,8 @@
 "use server";
 
-/**
- * Dates tab mutations — availability, and turning it into the trip's dates.
- *
- * Every write here is open to any member: choosing when to go is not one of
- * admin's four powers (non-negotiable 6), and requiring an admin to press the
- * button would just stall the decision the tab exists to unstick.
- *
- * The SQL is `server/membership.ts`'s (ticket 108) — availability is a fact
- * about members, so it lives with the roster rather than in a module of its own.
- * Committing a window also reaches into `server/itinerary.ts`, because the
- * window decides which days exist (ticket 140) — two aggregates, one decision,
- * which is the action's job to make and neither aggregate's to know about.
- */
+// Open to any member, not just admin — choosing when to go isn't one of
+// admin's four powers (rule 6). Committing a window also updates
+// server/itinerary.ts since the window decides which days exist (ticket 140).
 import { revalidatePath } from "next/cache";
 
 import { isIsoDate, readIsoDate } from "@/lib/dates";
@@ -26,18 +16,14 @@ import {
   setTripDateRange,
 } from "@/server/membership";
 
-/**
- * These come from a client component's local state, so they are checked rather
- * than trusted. `isIsoDate` also rejects a well-shaped impossible day like
- * `2026-02-31`, which the old local regex here accepted (ticket 113).
- */
+// Client-provided, so checked not trusted; isIsoDate rejects impossible
+// well-shaped dates like 2026-02-31 (ticket 113).
 function assertIsoDates(dates: string[]) {
   for (const d of dates) {
     if (!isIsoDate(d)) throw new Error(`Not a date: ${d}`);
   }
 }
 
-/** Marks the viewer free (or not) on a batch of dates — see `setAvailability`. */
 export async function setAvailabilityDates(
   tripId: number,
   dates: string[],
@@ -53,7 +39,6 @@ export async function setAvailabilityDates(
   revalidateOverview(access.trip.id);
 }
 
-/** One round trip for a whole editing session's worth of changes. */
 export async function saveAvailability(
   tripId: number,
   add: string[],
@@ -63,16 +48,9 @@ export async function saveAvailability(
   await setAvailabilityDates(tripId, remove, false);
 }
 
-/**
- * Commits the group's dates. Deliberately available before everyone has
- * answered — the suggested window comes from whoever *has*, and someone
- * eventually has to just book it.
- *
- * Takes the pair as arguments rather than a `FormData` (ticket 128): the
- * window is picked on the calendar now, not typed into two boxes, so what
- * arrives is a client component's local state. Which means it is checked, not
- * trusted — `isIsoDate` also rejects a well-shaped impossible day.
- */
+// Deliberately available before everyone has answered — someone has to just
+// book it. Takes the pair as args rather than FormData (ticket 128): the
+// window comes from calendar-picked client state, so it's checked not trusted.
 export async function setTripDates(
   tripId: number,
   start: string | null,
@@ -82,29 +60,21 @@ export async function setTripDates(
   const endDate = readIsoDate(end);
 
   if (!startDate || !endDate) throw new Error("Pick both a start and an end");
-  // Only safe as a string compare *because* both are known `YYYY-MM-DD` by
-  // here — the old code did this on unvalidated input, where it meant nothing.
+  // Safe as a string compare only because both are known YYYY-MM-DD by here.
   if (startDate > endDate) throw new Error("The end date is before the start");
 
   const access = await requireTripAccess(tripId);
   await setTripDateRange(access.trip.id, startDate, endDate);
-  // The window *is* the itinerary's extent (ticket 140), so the days follow it
-  // in the same action: a date in both windows keeps its events, a date only in
-  // the old one goes, a date only in the new one arrives blank. The calendar
-  // has already named what that costs and been clicked a second time.
+  // Window is the itinerary's extent (ticket 140): days in both windows keep
+  // their events, days only in the old one go, days only in the new arrive blank.
   await applyTripWindow(access.trip.id, startDate, endDate);
 
   revalidateTripHeader(access.trip.id);
   revalidateDates(access.trip.id);
 }
 
-/**
- * Back to undated — still a supported path (rule 9), and still not an error
- * state. But no window means no extent, so the itinerary goes with it
- * (ticket 140): the trip keeps its ideas, its money and its people, and the
- * plan starts again when the group picks a window. The menu item behind this
- * asks first, and names the days and events it is about to take.
- */
+// Back to undated — supported (rule 9), not an error state. No window means
+// no extent, so the itinerary goes with it (ticket 140); ideas/money/people stay.
 export async function clearTripDates(tripId: number) {
   const access = await requireTripAccess(tripId);
   await setTripDateRange(access.trip.id, null, null);
@@ -114,10 +84,7 @@ export async function clearTripDates(tripId: number) {
   revalidateDates(access.trip.id);
 }
 
-/**
- * Drops the viewer's own marks. Used by "Start again" — clearing is a
- * per-person action, never a way to wipe what the rest of the group said.
- */
+// "Start again" — per-person only, never wipes what the rest of the group said.
 export async function clearMyAvailability(tripId: number) {
   const access = await requireTripAccess(tripId);
   await clearAvailabilityFor(access.trip.id, access.viewer.id);
@@ -125,7 +92,6 @@ export async function clearMyAvailability(tripId: number) {
   revalidateDates(access.trip.id);
 }
 
-/** The grid itself. Kept local: no other tab renders it. */
 function revalidateDates(tripId: number) {
   revalidatePath(`/trip/${tripId}/dates`);
 }

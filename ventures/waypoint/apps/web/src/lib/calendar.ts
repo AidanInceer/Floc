@@ -1,28 +1,12 @@
 /**
- * The arithmetic behind the Days calendar (ticket 103).
+ * Pure geometry for the Days time grid (ticket 103): minutes on a clock,
+ * block placement, overlap lanes. No DOM, no React.
  *
- * Days used to be a list of cards and is now a time grid — hours down, days
- * across — prototyped in `docs/mockups/days-calendar-v2.html`. Everything in
- * here is the pure part of that: minutes on a clock, where a block sits, and
- * which blocks have to share a column. No DOM, no React, so the rules are
- * testable on their own and the component is only geometry and gestures.
- *
- * Times are `HH:MM` strings local to the itinerary and nothing else (rule 10:
- * no timezones, no offsets, no `Date`). Minutes-since-midnight is the working
- * unit, because a grid position is a subtraction and string times can't be
- * subtracted.
+ * Times are `HH:MM` local to the itinerary, never a `Date` (rule 10:
+ * no timezones). Minutes-since-midnight is the working unit.
  */
 
-/**
- * A nudge from the keyboard — ↑/↓ on a block — moves a quarter hour, because a
- * key held down has to cross a morning in a reasonable number of repeats.
- *
- * The *pointer* is a different instrument: it lands on the whole minute it is
- * actually over. The grid used to round every gesture to the nearest quarter,
- * and the quarter-hour rules were painted so you could aim at one; both went
- * when a 10:50 train turned into an 10:45 train (ticket 141 follow-up). A time
- * that is a fact about the world is not the grid's to round.
- */
+/** Keyboard nudge; pointer drags snap to the actual minute instead (ticket 141 follow-up). */
 export const NUDGE_MINUTES = 15;
 
 /** The latest minute an event can *start*: 23:59, so a day still contains it. */
@@ -31,23 +15,10 @@ export const LAST_START_MINUTE = 24 * 60 - 1;
 /** The shortest an event can be dragged down to. */
 export const MIN_EVENT_MINUTES = 15;
 
-/**
- * How tall an event with a start but no end is drawn. It is a *point in time*,
- * not a span — `findOverlaps` already treats it as one — so this is a reading
- * size, never a stored end. The block says "no end time" and draws its bottom
- * edge dashed, and dragging that edge is what turns the guess into a fact.
- */
+/** Reading size for an open-ended event; never a stored end. */
 export const OPEN_ENDED_MINUTES = 30;
 
-/**
- * The window the grid draws by default: the whole day, midnight to midnight.
- *
- * It started at six — a normal waking day, widened by the data when something
- * fell outside it — and the window moving under you turned out to be worse than
- * the scrolling it saved: the same hour sat at a different height on Tuesday
- * than on Monday, and adding an early ferry re-laid the entire grid. A fixed
- * midnight-to-midnight day is one geometry for every day of every trip.
- */
+/** Fixed midnight-to-midnight grid — a widening window re-laid every day's geometry. */
 export const DEFAULT_START_HOUR = 0;
 export const DEFAULT_END_HOUR = 24;
 
@@ -62,11 +33,7 @@ export function toMinutes(time: string | null | undefined): number | null {
   return h * 60 + min;
 }
 
-/**
- * Minutes → `HH:MM`. 24:00 is deliberately reachable, because it is the
- * grid's bottom edge and an event can end there; it is never a *start*, which
- * is what `clampStart` is for.
- */
+/** Minutes → `HH:MM`. 24:00 is reachable as an end (grid's bottom edge), never as a start. */
 export function toHhmm(minutes: number): string {
   const m = Math.max(0, Math.min(24 * 60, Math.round(minutes)));
   return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
@@ -89,13 +56,7 @@ export type TimedLike = {
   allDay: boolean;
 };
 
-/**
- * Where an event sits on the clock, in minutes — or null if it doesn't sit on
- * the clock at all (all day, or a legacy row with no start time, which is the
- * same thing; see `lib/event-order.ts`).
- *
- * `open` says the end is drawn rather than known.
- */
+/** Minute span on the clock, or null for all-day/no-start (see `lib/event-order.ts`). `open` = end is drawn, not known. */
 export function spanOf(
   event: TimedLike,
 ): { start: number; end: number; open: boolean } | null {
@@ -109,15 +70,7 @@ export function spanOf(
   return { start, end, open: false };
 }
 
-/**
- * The hours the grid has to draw.
- *
- * Six to midnight covers a normal day, and the window is only ever *widened*
- * from there — an 04:40 airport run must not be a row you can't see, and a
- * calendar that silently omits an event is worse than a list that shows it in
- * the wrong place. Rounded out to whole hours so the gutter stays a clean
- * column of o'clocks.
- */
+/** Hours the grid draws: default window only ever widens, never omits an event. */
 export function gridWindow(events: TimedLike[]): { startHour: number; endHour: number } {
   let startHour = DEFAULT_START_HOUR;
   let endHour = DEFAULT_END_HOUR;
@@ -134,16 +87,9 @@ export type Block = { id: number; start: number; end: number };
 export type PackedBlock = Block & { lane: number; lanes: number };
 
 /**
- * Side-by-side placement for events that share a slice of the clock — the
- * "swim lane" reading the grilling asked for, derived from the times rather
- * than from a stored lane. Two people doing different things at three o'clock
- * is allowed (see `findOverlaps`), so this never refuses an overlap; it only
- * decides how to draw one.
- *
- * An event takes the first lane nothing it collides with is using, and a *run*
- * of mutually-overlapping events shares its width. The run matters: without
- * it, one three-way pile-up at noon would narrow every event in the day to a
- * third, including the ones alone on the clock at nine.
+ * Swim-lane placement for overlapping events, derived from times not a stored
+ * lane. A *run* of mutually-overlapping events shares its width, so one
+ * pile-up at noon doesn't narrow events alone on the clock at nine.
  */
 export function packLanes(blocks: Block[]): PackedBlock[] {
   const sorted = blocks
@@ -162,7 +108,6 @@ export function packLanes(blocks: Block[]): PackedBlock[] {
   };
 
   for (const block of sorted) {
-    // Nothing in the run is still running, so it can't widen any further.
     if (run.length > 0 && block.start >= runEnd) {
       flush();
       runEnd = -1;
@@ -180,14 +125,7 @@ export function packLanes(blocks: Block[]): PackedBlock[] {
   return out;
 }
 
-/**
- * Where a drag or a nudge actually puts an event.
- *
- * The length is preserved and the whole block is kept inside the day — pushed
- * back off the bottom edge rather than truncated, because a drag past midnight
- * means "as late as it goes", not "make it shorter". An open-ended event has no
- * length to preserve, so only its start moves and its end stays unwritten.
- */
+/** Drag/nudge result: length preserved, pushed back off the bottom edge rather than truncated. Open-ended events only move their start. */
 export function moveSpan(
   span: { start: number; end: number; open: boolean },
   toStart: number,
@@ -200,11 +138,7 @@ export function moveSpan(
   return { time: toHhmm(start), endTime: toHhmm(start + length) };
 }
 
-/**
- * Dragging the bottom edge. An open-ended event gains an end time by being
- * resized — that is the point of the handle — and nothing can be dragged
- * shorter than a quarter of an hour.
- */
+/** Dragging the bottom edge; resizing is how an open-ended event gains an end time. */
 export function resizeSpan(
   span: { start: number; end: number },
   toEnd: number,

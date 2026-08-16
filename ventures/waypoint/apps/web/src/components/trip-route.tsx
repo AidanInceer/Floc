@@ -1,31 +1,11 @@
-/**
- * The route, drawn on Overview (ticket 142).
- *
- * Route was a tab until ticket 83 gave Days the overnight place: once the
- * calendar owns where the group sleeps, this has nothing left to edit and
- * becomes a drawing of what Days already says. So it moved here — and moved
- * *whole*: the map keeps its treatment (hollow numbered pins with day-count
- * pills, ticket 69; click-to-arm scroll zoom, ticket 77; the figcaption that
- * names only stops with no coordinates, ticket 79).
- *
- * Three things this deliberately is not:
- *
- * 1. **It is not editable, and there is no reorder gesture.** The order is
- *    whatever the calendar says; swapping two stops means repainting them on
- *    Days. That cost was accepted in ticket 83. The stop spine (tickets 82,
- *    92) was both the drawing of the order and the thing you dragged — without
- *    the drag, the list beside the map is the drawing alone.
- * 2. **It is at the foot of the page**, below Unresolved, prototyped against
- *    two alternatives (a band under the hero, and the map as a full-bleed
- *    hero). Overview is a "what's outstanding" dashboard first and a reference
- *    drawing second, and this is the one placement that leaves the hero
- *    (ticket 89) and the page's shape alone.
- * 3. **It renders nothing at all when no day has an overnight place** — which
- *    is every undated trip, since the itinerary begins when the dates do
- *    (ticket 83). Not an empty state and never a lock (rules 4 and 9): the
- *    hero one screen up already says the dates aren't set, and a second
- *    notice here would be the same absence announced twice.
- */
+// Route, drawn on Overview (ticket 142) — moved here whole from its own tab
+// once ticket 83 gave Days the overnight place, leaving nothing left to edit.
+//
+// Deliberately not: editable/reorderable (order comes from the calendar,
+// ticket 83); a hero element (sits at the foot of the page, below Unresolved,
+// per ticket 89); rendered at all when no day has an overnight place (every
+// undated trip — not an empty state or a lock, rules 4/9, the hero already
+// says dates aren't set).
 import type { TransportType } from "@/db/schema";
 import type { RouteDay } from "@/server/itinerary";
 import { formatDate } from "@/lib/dates";
@@ -55,13 +35,8 @@ export function TripRoute({
   );
   if (stops.length === 0) return null;
 
-  /**
-   * Coordinates are looked up here rather than inside `deriveStops`, which
-   * stays pure and geography-free. A pin keeps its position in the full stop
-   * list so its number matches the row beside it, and a stop whose place has
-   * no coordinates is named in `missing` rather than dropped in silence
-   * (rule 11).
-   */
+  // Looked up here, not in deriveStops, which stays pure/geography-free. A
+  // missing-coordinate stop is named in `missing` rather than dropped silently (rule 11).
   const coords = new Map(
     days
       .filter((d) => d.overnightPlaceId !== null && d.lat !== null && d.lng !== null)
@@ -75,9 +50,7 @@ export function TripRoute({
       pinned.push({
         no: i + 1,
         name: stop.placeName ?? "Unnamed place",
-        // Days, not nights (ticket 69): the pill answers "how long are we
-        // here", and the row beside it counts days too.
-        days: stop.dayIds.length,
+        days: stop.dayIds.length, // days, not nights (ticket 69)
         ...at,
       });
     } else {
@@ -85,13 +58,8 @@ export function TripRoute({
     }
   }
 
-  /**
-   * The mode for the leg arriving at stop `i` — the transport event on the
-   * FIRST day of that stop, and only that day (ticket 78). The previous stop's
-   * last day was tried and dropped: on a one-night-per-stop route those are
-   * adjacent days, so the same train labelled two legs. No event on the
-   * arrival day → nothing is drawn, never a guess.
-   */
+  // Mode for the leg arriving at stop `i`: the event on its FIRST day only
+  // (ticket 78) — using the previous stop's last day double-labelled adjacent legs.
   const legMode = (i: number): TransportType | null =>
     transportModes.get(stops[i].dayIds[0]) ?? null;
 
@@ -105,12 +73,9 @@ export function TripRoute({
         <ol className="rounded-md border border-rule-strong bg-sheet-2 p-3">
           {stops.map((stop, i) => (
             <li key={stop.dayIds.join("-")}>
-              {/* The leg sits above the stop it arrives at, so a mode always
-                  reads as "how we got here" and never as "how we leave". */}
               {i > 0 ? <Leg mode={legMode(i)} /> : null}
               <div className="flex items-start gap-2.5 py-1.5">
-                {/* The same ring of pen as the map's pins, at the same number:
-                    the row and the pin are one stop drawn twice. */}
+                {/* Same ring/number as the map's pins — row and pin are one stop drawn twice. */}
                 <span
                   aria-hidden="true"
                   className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border-2 border-pen font-mono text-[10px] font-bold text-pen-deep"
@@ -137,12 +102,8 @@ export function TripRoute({
   );
 }
 
-/**
- * The line between two stops. It draws itself whether or not the mode is
- * known — the gap between two places is a fact of the itinerary, and only the
- * label is missing — and the mode is always spelled out beside its glyph,
- * because `other` has no drawing at all (ticket 78).
- */
+// Draws even without a known mode — the gap is a fact of the itinerary. Mode
+// is always spelled out beside its glyph since `other` has no icon (ticket 78).
 function Leg({ mode }: { mode: TransportType | null }) {
   return (
     <div className="flex items-center gap-1.5 pl-2.5 text-ink-soft">

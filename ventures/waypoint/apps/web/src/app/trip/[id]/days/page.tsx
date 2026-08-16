@@ -1,41 +1,21 @@
 /**
- * Days page (ticket 15, re-imagined as a calendar by ticket 103). Days is now
- * the only route over the `day` + `day_event` dataset: Route was the
- * stop-level summary of the same rows, and ticket 142 retired it — the map and
- * the read-only stop list live at the foot of Overview
- * (`components/trip-route.tsx`), and where the group sleeps is set here, on the
- * overnight band above the clock (ticket 141).
+ * Days page (ticket 15, re-imagined as a calendar by ticket 103). The only
+ * route over the `day` + `day_event` dataset — Route was retired by ticket
+ * 142, its map/stop-list now at the foot of Overview, and the overnight place
+ * is set here on the band above the clock (ticket 141).
  *
- * It used to be a stack of cards, one per day, each holding a list of collapsed
- * event rows. The list said what was happening and in what order and nothing
- * about *shape* — you couldn't see that Tuesday had a four-hour hole in it, or
- * that two things were booked at three o'clock, without reading every row's
- * times and doing the arithmetic yourself. A time grid is the same data with
- * the arithmetic done: gaps are gaps, overlaps sit side by side in their own
- * lanes, and putting something somewhere is a drag rather than a form.
+ * `components/days-calendar.tsx` is a Client Component owning geometry and
+ * gestures; this stays a Server Component owning every Server Action — the
+ * detail panel, trip-wide thread, adding/removing a day — passed over as
+ * pre-rendered nodes so mutations stay on the server.
  *
- * The division of labour with `components/days-calendar.tsx` is deliberate.
- * That file is a Client Component and owns geometry and gestures — where a
- * block sits, what a drag means, when the week stops fitting. This one stays a
- * Server Component and owns everything with a Server Action behind it: the
- * detail panel with its edit, delete and thread, the trip-wide thread, adding
- * and removing a day. Those go over as pre-rendered nodes, one panel per event,
- * which is what keeps the mutations on the server where the rest of the app
- * keeps them.
+ * Notes hang off *events*, not days (a free-text per-day box had no clear use);
+ * the trip-wide thread in the pane's other tab covers what's about the trip
+ * rather than any one event.
  *
- * Notes still hang off *events*, not days. There used to be a free-text box per
- * day and nobody could say what belonged in it; the thing a group actually
- * wants to annotate is "this ferry" or "that restaurant". What the calendar
- * adds is a second, trip-wide thread in the pane's other tab — the place for
- * the things that are about the trip rather than about any one event, which
- * previously had nowhere to go but the group chat.
- *
- * Every event is one of three categories and each has its own colour (ticket
- * 68): blue for transport, green for an activity, yellow for food. The
- * vocabulary lives in `EVENT_CATEGORIES` so the badge, the block's tint and the
- * filter chip can't drift apart, and the word is always there too — colour is
- * never the only signal. A flight event additionally offers a Google Flights
- * search deep link — ticket 10's floor is deep-links only, no live fares.
+ * Each event category has its own colour (ticket 68) via `EVENT_CATEGORIES`,
+ * with the word always present too — colour is never the only signal. A
+ * flight event offers a Google Flights deep link only (ticket 10).
  */
 import type { ReactNode } from "react";
 
@@ -89,13 +69,11 @@ export default async function DaysPage({
   const access = await requireTripAccess(id, `/trip/${id}/days`);
   const { trip, viewer, isAdmin, members } = access;
 
-  // Comment authors keep the avatar colour they already have in this trip's
-  // roster, so one person is one colour across every tab.
+  // One person, one colour across every tab.
   const toneOf = new Map(members.map((m) => [m.userId, m.tone]));
 
-  // Three independent reads, so they go out together. The threads scope
-  // themselves by trip rather than by the event ids, so none of them waits on
-  // another (ticket 118).
+  // Independent reads that go out together — threads scope by trip rather
+  // than by event ids, so none waits on another (ticket 118).
   const [days, notesByEvent, tripNotes, tripLinks] = await Promise.all([
     listDaysWithEvents(trip.id),
     loadThreads({ tripId: trip.id, scope: "day_event", viewerId: viewer.id, toneOf }),
@@ -104,16 +82,10 @@ export default async function DaysPage({
   ]);
 
   if (days.length === 0) {
-    /*
-     * Two empty states, not one (ticket 126). This page used to be unreachable
-     * until a day existed, so its only empty state could assume the trip had
-     * dates; now that it opens from day one, an undated trip lands here
-     * routinely. "Add the first day" seeds from `trip.startDate ?? today()`,
-     * which on a trip nobody has dated yet writes a day at *today* — a January
-     * trip picking up an August day it never asked for. So an undated trip is
-     * sent to Dates instead of offered the button (rule 9: undated is normal,
-     * never an error).
-     */
+    // Two empty states (ticket 126): an undated trip is sent to Dates rather
+    // than offered "Add the first day", which would otherwise seed from
+    // `today()` — a January trip picking up an August day it never asked for
+    // (rule 9: undated is normal, never an error).
     return (
       <Page wide flush>
         <PageHeader title="Days" />
@@ -161,19 +133,8 @@ export default async function DaysPage({
     isToday: d.date === now,
   }));
 
-  /*
-   * Pad the ends out to whole Monday–Sunday weeks (ticket 103).
-   *
-   * A week view that starts on the trip's first day is not a week — the
-   * columns say Wed–Tue and you have to read the dates twice to place
-   * yourself. So the frame is always the calendar week, and the days the trip
-   * doesn't cover are drawn in it, shaded and inert: they say "the trip isn't
-   * on then", which is information, where a missing column says nothing.
-   *
-   * Negative ids because they are not `day` rows and never will be — nothing
-   * can be dropped on one, no event can belong to one, and a negative id can't
-   * collide with a real one if either ever leaks into a lookup.
-   */
+  // Pad the ends out to whole Monday–Sunday weeks (ticket 103) — a week
+  // starting on the trip's first day would read as Wed–Tue.
   const framedDays = frameWeeks(calendarDays);
 
   const calendarEvents: CalendarEvent[] = [];
@@ -275,12 +236,10 @@ export default async function DaysPage({
 }
 
 /**
- * Pads a run of trip days out to whole Monday–Sunday weeks.
- *
- * The padding days are real dates — they have to be, or the numbers in the
- * heads would jump — and they carry `outside: true`, which is the calendar's
- * instruction to draw them shaded and refuse everything: no add, no drop, no
- * blocks. Their ids are negative and mean nothing beyond "not a row".
+ * Pads a run of trip days out to whole Monday–Sunday weeks. Padding days carry
+ * real dates (or the head numbers would jump) and `outside: true`, the
+ * calendar's instruction to draw them shaded and refuse everything. Negative
+ * ids mean nothing beyond "not a row".
  */
 function frameWeeks(days: CalendarDay[]): CalendarDay[] {
   if (days.length === 0) return days;
@@ -312,33 +271,17 @@ function frameWeeks(days: CalendarDay[]): CalendarDay[] {
   return [...before, ...days, ...after];
 }
 
-/*
- * No `stopsFor` here any more (ticket 141). It handed every day a "Stop 2 ·
- * Lisbon, night 1 of 3" label that nothing had rendered since the calendar
- * landed — and the band draws the same fact better, as a bar whose width *is*
- * the length of the stay. The derivation itself is unchanged and still lives in
- * `lib/stops.ts`, where Route reads it.
- */
-
-/**
- * One date, formatted for a column head. `timeZone: "UTC"` throughout, because
- * a day is a date-only `YYYY-MM-DD` string and nothing else (rule 10) — read in
- * local time, a date west of Greenwich renders as the day before.
- */
+/** One date, formatted for a column head. UTC throughout (rule 10) — read in
+ * local time, a date west of Greenwich renders as the day before. */
 function partOf(date: string, opts: Intl.DateTimeFormatOptions) {
   return fromIsoDate(date).toLocaleDateString("en-GB", { ...opts, timeZone: "UTC" });
 }
 
 /**
  * The selected event's detail panel — every fact, the controls, and the thread.
- *
- * Rendered here rather than in the calendar, one per event, because all four
- * things it can do are Server Actions. It used to be the body of a `<details>`
- * on each row; the panel is the same content in a place where only one is open
- * at a time, which is what the side pane was for.
- *
- * A field with no answer still shows its row, saying so: "no time set" is a
- * thing the group needs to see, not an absence to hide.
+ * Rendered here rather than in the calendar since all four actions are Server
+ * Actions. A field with no answer still shows its row, saying so: "no time
+ * set" is a thing the group needs to see, not an absence to hide.
  */
 function EventPanel({
   tripId,
@@ -381,13 +324,6 @@ function EventPanel({
         <Badge tone={category.tone}>
           {isTransport ? (event.transportType ?? "transport") : category.label}
         </Badge>
-        {/*
-          No "overlaps another event" word any more (ticket 103). On the list it
-          was the only way to know; on the grid the two blocks are drawn side by
-          side in their own lanes, which says it better and says it where you
-          are looking. Overlapping was never a fault to report — two people can
-          be doing different things at three o'clock.
-        */}
       </div>
 
       <h3 className="font-display text-base font-semibold">
@@ -431,12 +367,7 @@ function EventPanel({
         </a>
       ) : null}
 
-      {/*
-        Edit and Delete were a pair under every event — the danger one shoved
-        to the far end to keep them apart, which is a way of managing two
-        buttons rather than a reason to have two. Ticket 125: one triple-dot,
-        both verbs inside it, and the pane's own content gets the space back.
-      */}
+      {/* One triple-dot for both verbs (ticket 125), rather than two buttons. */}
       <div className="flex items-center justify-end border-t border-rule pt-2">
         <Menu label={`Actions for ${event.title}`}>
         <Sheet trigger="Edit" title="Edit event" triggerVariant="ghost" triggerClassName={menuItemClass}>

@@ -7,15 +7,9 @@ import { usePathname } from "next/navigation";
 import { cx } from "@/components/ui";
 import { type TabState } from "@/lib/tabs";
 
-/**
- * A tab click is a server round trip — every tab renders on the server and
- * reads the database, so there is always some wait. Without a pending state
- * the tab you clicked stays visually inert until the new page swaps in, which
- * reads as the click not having landed and invites a second click.
- *
- * `useLinkStatus` only reports for the `Link` it is rendered inside, so this
- * lives in its own child component.
- */
+// Tab clicks are a server round trip, so a pending state is needed or a
+// click reads as not having landed. useLinkStatus only reports for the Link
+// it's rendered inside, hence the separate child component.
 function TabPending() {
   const { pending } = useLinkStatus();
   return (
@@ -25,23 +19,12 @@ function TabPending() {
   );
 }
 
-/**
- * Folder tabs, per paper.html's `.tabs button` — and genuinely attached to the
- * sheet, not floating above it. The mechanics, all three of which are needed:
- *
- * - This nav sits in a container matching `Page`'s width and padding, and the
- *   trip pages render `<Page wide flush>` so there's no gap to cross.
- * - `-mb-px` pulls the strip down onto the sheet's 1px top border, and the
- *   active tab drops its own bottom border, so the two shapes share an opening
- *   instead of stacking two lines.
- * - An inactive tab sits a pixel lower (paper.html's `top: 1px`) and keeps all
- *   four borders, so it reads as a divider still tucked behind the open page.
- *
- * Every tab is navigable from day one (ticket 126). Route and Days used to
- * render as un-clickable stubs until a first idea or day existed; they now
- * open onto their own empty states, which say the same thing and let you act
- * on it.
- */
+// Folder tabs (paper.html's `.tabs button`), genuinely attached to the sheet:
+// matches Page's width/padding, `-mb-px` pulls the strip onto the sheet's top
+// border with the active tab dropping its own bottom border to share the
+// opening, and an inactive tab sits a pixel lower with all four borders.
+//
+// Every tab is navigable from day one (ticket 126) — no un-clickable stubs.
 export function TripTabs({
   tripId,
   tabs,

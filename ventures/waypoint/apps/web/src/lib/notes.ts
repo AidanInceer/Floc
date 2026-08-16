@@ -28,14 +28,10 @@ export type NoteRow = {
 export type NoteSort = "oldest" | "liked";
 
 /**
- * How much the group liked a comment: hearts and agreements count for it,
- * disagreements against. One number, because the sort needs an order and three
- * separate tallies don't give one.
- *
- * A run is scored on its top-level comment alone, not its replies. A reply is
- * an answer to the comment, often an argument with it, so counting the
- * reactions it collected would let a disagreed-with comment ride up the thread
- * on the strength of the people disagreeing.
+ * Hearts and agreements count for it, disagreements against — one number so
+ * the sort has an order. Scored on the top-level comment alone: counting
+ * reply reactions would let a disagreed-with comment ride up on the strength
+ * of the people disagreeing with it.
  */
 export function likeScore(note: NoteRow): number {
   const { heart, up, down } = note.reactions;
@@ -43,13 +39,9 @@ export function likeScore(note: NoteRow): number {
 }
 
 /**
- * Order the runs of a thread. Replies are never reordered — inside a run the
- * conversation only reads chronologically.
- *
- * `runs` arrives oldest-first from `loadThreads`, so "oldest" is the identity
- * and "liked" falls back to that order on a tie — which means two unreacted
- * comments keep the order they were written in rather than swapping about
- * between renders.
+ * Order the runs of a thread. Replies are never reordered. `runs` arrives
+ * oldest-first from `loadThreads`, so "liked" falls back to that order on a
+ * tie — two unreacted comments don't swap about between renders.
  */
 export function sortRuns(runs: NoteRow[], sort: NoteSort): NoteRow[] {
   if (sort === "oldest") return runs;
@@ -67,11 +59,9 @@ export function emptyReactions(): Reactions {
 }
 
 /**
- * Relative under a day, then day-and-time. The old stamp was day-granular, so
- * a thread that moved three times on Tuesday read as three identical "12 Sep"s
- * (ticket 06). Rendered on the server, so it is accurate as of the last
- * revalidation rather than to the second — which is the right precision for a
- * conversation between five friends.
+ * Relative under a day, then day-and-time (ticket 06 — the old day-granular
+ * stamp read three same-day comments as identical "12 Sep"s). Rendered
+ * server-side, accurate as of last revalidation, not to the second.
  */
 export function commentTime(at: Date, now = new Date()): string {
   const mins = Math.floor((now.getTime() - at.getTime()) / 60000);

@@ -18,17 +18,9 @@ export type TripCardData = {
   startDate: IsoDate | null;
   endDate: IsoDate | null;
   role: TripRole;
-  /** `tone` is each member's roster avatar colour — see `TripMember.tone`. */
   members: { name: string; avatarUrl?: string | null; tone?: string }[];
-  /** Low-key hint that something on this trip wants the viewer's attention. */
   needsYou?: boolean;
-  /**
-   * First overnight place on the route, or null while nowhere is settled
-   * (ticket 70). Shown because /trips can be sorted by it, and a list sorted
-   * by something it doesn't show is a list in an arbitrary order.
-   */
-  where?: string | null;
-  /** The group's own labels (ticket 71). */
+  where?: string | null; // first overnight place, or null if unsettled (ticket 70)
   tags?: string[];
 };
 
@@ -42,17 +34,12 @@ export function TripCard({
   actions?: ReactNode;
 }) {
   const ended = hasEnded(trip.endDate);
-  // Countdown is only meaningful for a trip that hasn't ended yet — an ended
-  // trip keeps its "Ended" label and nothing else (ticket 01 step 8: label,
-  // not a lock, so no urgency chrome needed for something already over).
   const countdown = ended ? null : countdownLabel(trip.startDate);
 
   return (
-    // Ticket 120: the whole card navigates, not just the title block. The
-    // anchor stays wrapped around the text that names the destination — that's
-    // what a screen reader reads out — and grows to the card with a stretched
-    // `::after` overlay rather than by wrapping the avatars and the admin
-    // buttons, which would nest interactives inside a link.
+    // Ticket 120: whole card navigates via a stretched ::after overlay on the
+    // anchor, rather than wrapping avatars/admin buttons, which would nest
+    // interactives inside a link.
     <Card
       as="li"
       className="relative flex flex-wrap items-center justify-between gap-3 px-4 py-3 transition-colors hover:border-pen hover:bg-sheet"
@@ -81,9 +68,7 @@ export function TripCard({
           </ul>
         ) : null}
       </Link>
-      {/* Painted over the stretched overlay, so it has to hand its clicks
-          back: everything here is decoration except `actions`, which takes
-          them again. */}
+      {/* pointer-events-none hands clicks back to the overlay; actions re-enables. */}
       <div className="pointer-events-none relative flex items-center gap-3">
         <AvatarRow people={trip.members} size={24} />
         <Badge tone={trip.role === "admin" ? "marine" : "neutral"}>

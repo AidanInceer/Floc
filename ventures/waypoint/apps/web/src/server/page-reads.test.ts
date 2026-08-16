@@ -1,17 +1,8 @@
 /**
- * The reads ticket 118 moved off the pages.
- *
- * These were nine `page.tsx` files assembling their own joins, with no test
- * between them and the database. Moving them into the aggregates is only worth
- * something if the joins came across intact, and the two ways a hand-written
- * join goes quietly wrong are exactly the two non-negotiables it can't state
- * for itself: **rule 5** (a read scoped by `trip_id` must never return another
- * trip's rows) and **rule 8** (a soft-deleted row is gone from every read).
- *
- * So each read here is asked the same two questions, against a scenario that
- * always has a second trip with a disjoint member. A read that returned the
- * right rows for our trip and also some of theirs would pass a smoke test and
- * fail these.
+ * The reads ticket 118 moved off nine `page.tsx` files and into the
+ * aggregates. Each is checked against a scenario with a second, disjoint
+ * trip, for the two ways a hand-written join goes quietly wrong: rule 5 (no
+ * cross-trip leakage) and rule 8 (soft-deleted rows stay gone).
  */
 import { eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
@@ -59,7 +50,6 @@ async function makePlace(name: string, lat?: number, lng?: number) {
   return row.id;
 }
 
-/** An expense on `tripId` with one split per user, summing to the total. */
 async function makeExpense(
   tripId: number,
   paidBy: string,
@@ -96,8 +86,7 @@ describe("the ideas board's reads", () => {
     const ideas = await listIdeas(world.ours.id);
 
     expect(ideas.map((i) => i.id)).toEqual([world.ours.ideaId]);
-    // The author join is the point of doing this in the aggregate.
-    expect(ideas[0].authorName).toBe("Ada");
+    expect(ideas[0].authorName).toBe("Ada"); // the author join is the point of the aggregate
     expect(await listIdeaIds(world.theirs.id)).toEqual([world.theirs.ideaId]);
   });
 
@@ -122,9 +111,7 @@ describe("the ideas board's reads", () => {
     const votes = await listVotes(world.ours.id);
     expect(votes).toHaveLength(1);
     expect(votes[0].ideaId).toBe(world.ours.ideaId);
-    // The voter's face rides along: a voter may since have left the trip, so
-    // the roster can't answer this.
-    expect(votes[0].name).toBe("Ada");
+    expect(votes[0].name).toBe("Ada"); // voter may have since left the trip, so the roster can't answer this
   });
 
   it("drops a cleared vote, and a vote on a deleted idea", async () => {
@@ -163,8 +150,7 @@ describe("the itinerary's reads", () => {
     const days = await listDaysWithEvents(world.ours.id);
 
     expect(days).toHaveLength(1);
-    // Seeded 09:00 and 19:00 — time decides the order, not `order_index`.
-    expect(days[0].events.map((e) => e.time)).toEqual(["09:00", "19:00"]);
+    expect(days[0].events.map((e) => e.time)).toEqual(["09:00", "19:00"]); // time decides order, not order_index
     expect(days[0].events.every((e) => e.dayId === world.ours.dayId)).toBe(true);
   });
 
@@ -237,7 +223,7 @@ describe("the itinerary's reads", () => {
       .where(eq(schema.day.id, world.ours.dayId));
     await db.insert(schema.day).values({
       tripId: world.ours.id,
-      date: "2026-08-30", // earlier than the seeded day
+      date: "2026-08-30", // earlier than seeded
       overnightPlaceId: lisbon,
     });
 
@@ -275,11 +261,9 @@ describe("the money tab's reads", () => {
     let splits = await listSplits(world.ours.id);
     expect(splits).toHaveLength(2);
     expect(splits.every((s) => s.expenseId === ours)).toBe(true);
-    // Snapshot rows still sum to the total they were written from (rule 2).
-    expect(splits.reduce((a, s) => a + s.owedAmountMinor, 0)).toBe(1000);
+    expect(splits.reduce((a, s) => a + s.owedAmountMinor, 0)).toBe(1000); // snapshot rows sum to the original total (rule 2)
 
-    // The bug the join closed: an `inArray` read with no soft-delete filter on
-    // the child let a deleted expense's splits count into the balances.
+    // Bug the join closed: an unfiltered inArray read let a deleted expense's splits count into balances.
     await db
       .update(schema.expense)
       .set({ deletedAt: new Date() })
@@ -320,14 +304,12 @@ describe("the trip lists and the invite teaser", () => {
       .where(eq(schema.tripMembership.userId, world.member));
 
     expect(await listTripsFor(world.member, { archived: false })).toEqual([]);
-    // And the roster count drops with them.
-    expect(await countMembers(world.ours.id)).toBe(1);
+    expect(await countMembers(world.ours.id)).toBe(1); // roster count drops with them
   });
 
   it("resolves an invite token to the fields the teaser may show", async () => {
     const found = await findTripByInviteToken("token-ours");
-    // The host's name joined on in ticket 147 — the link has to say who is
-    // planning the trip. Their name only: no email, no id.
+    // Host name joined on in ticket 147, no email/id, so the link says who's planning it.
     expect(found).toEqual({
       id: world.ours.id,
       name: "Ours",
@@ -392,8 +374,7 @@ describe("the friends page's reads", () => {
 
     const rows = await listFriendshipsFor(world.admin);
     expect(rows).toHaveLength(2);
-    // Which end you're at is what tells incoming from outgoing.
-    expect(rows.filter((r) => r.friendId === world.admin)).toHaveLength(1);
+    expect(rows.filter((r) => r.friendId === world.admin)).toHaveLength(1); // which end you're at tells incoming from outgoing
     expect(await listFriendshipsFor(world.member)).toHaveLength(1);
   });
 

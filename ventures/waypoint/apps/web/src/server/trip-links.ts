@@ -1,20 +1,13 @@
 /**
- * The trip links aggregate (ticket 103) — the shelf beside the trip thread.
+ * The trip links aggregate (ticket 103) — the shelf beside the trip thread. A
+ * link is a reference the group keeps and comes back to (villa listing, ferry
+ * timetable), not a chronological note that gets buried by the next
+ * fortnight's conversation — hence its own table, no `scope` column, no
+ * threading.
  *
- * A link is not a note. A note is something someone said, ordered by when they
- * said it; a link is a reference the group keeps and comes back to — the villa
- * listing, the ferry timetable, the shared spreadsheet. Posted into the thread
- * it is buried by the next fortnight of conversation, which is the whole reason
- * this exists. So: its own table, its own read, no `scope` column, no threading.
- *
- * The rules it owns:
- *
- * - **`http`/`https` only**, checked here as well as at the door. A stored
- *   `javascript:` URL is a stored script, and the one place that must not be
- *   trusted is the one that renders an `href` somebody else typed.
- * - **Soft-delete (rule 8)** on the read and on the update.
- * - **The label cap**, and the fallback to the host when there is no label.
- * - **A ceiling**, like every other list read.
+ * Owns: `http`/`https`-only enforcement (a stored `javascript:` URL is a
+ * stored script, and this renders an `href` someone else typed); soft-delete;
+ * the label cap and host fallback; the list ceiling.
  */
 import "server-only";
 
@@ -35,19 +28,11 @@ export type TripLinkRow = {
   authorName: string;
 };
 
-/**
- * `http`/`https` and nothing else, and a URL the platform can actually parse.
- *
- * Returns the normalised string rather than a boolean so there is one answer to
- * "is this a link" and "what do we store" — two functions would eventually
- * disagree, and the one that disagreed would be the one writing the row.
- */
+/** Returns the normalised string, not a boolean, so "is this a link" and "what do we store" can't disagree. */
 export function readWebUrl(value: unknown): string | null {
   const raw = String(value ?? "").trim();
   if (!raw) return null;
-  // A bare "booking.com/..." is what people paste; assume the safe scheme
-  // rather than rejecting it, since the alternative is a dead link they can't
-  // see the fault in.
+  // Bare "booking.com/..." is what people paste; assume https rather than reject it.
   const candidate = /^[a-z][a-z0-9+.-]*:/i.test(raw) ? raw : `https://${raw}`;
   let url: URL;
   try {
@@ -84,9 +69,7 @@ export async function listTripLinks(tripId: number): Promise<TripLinkRow[]> {
     .from(tripLink)
     .innerJoin(user, eq(user.id, tripLink.createdBy))
     .where(and(eq(tripLink.tripId, tripId), isNull(tripLink.deletedAt)))
-    // Oldest first: a link list is a shelf, not a feed, and things staying
-    // where they were put is what makes one findable twice.
-    .orderBy(asc(tripLink.id))
+    .orderBy(asc(tripLink.id)) // oldest first: a shelf, not a feed
     .limit(LIMITS.tripLinks)
     .all();
 

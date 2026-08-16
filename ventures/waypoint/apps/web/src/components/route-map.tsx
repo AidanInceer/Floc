@@ -1,30 +1,16 @@
 "use client";
 
-/**
- * The map at the top of Route (v0.2 ticket 08, prototyped in
- * docs/mockups/route-map.html — treatment C, "paper-toned", won).
- *
- * Three decisions worth knowing before editing this file:
- *
- * 1. Pan, zoom and the scroll wheel are all on — but the wheel only after the
- *    map has been clicked (ticket 77). The map spans the page width, so a
- *    live wheel zoom would trap the reader's scroll on the way down the Route
- *    tab; Leaflet has no guard of its own for that. Click activates the
- *    wheel, moving the pointer off the map deactivates it again, so scrolling
- *    past costs nothing and zooming costs one click. A fixed-view/interactive
- *    toggle was built and then dropped on request — one map, always
- *    draggable, is less to explain.
- * 2. The paper look is CSS over plain OSM tiles — a filter stack on the tile
- *    pane plus a multiply-blended ruled wash on top. No second tile provider,
- *    no account, no extra request. OSM's attribution control is untouched.
- * 3. Leaflet is loaded lazily inside an effect. It touches `window` at import
- *    time, so a static import would break the server render.
- *
- * Degradation (CLAUDE.md rule 11): a stop whose place has no coordinates is
- * simply not pinned, and the page says how many were left off. Nothing here
- * throws, and the caller renders nothing at all when no stop has coordinates.
- */
-
+// Map at the top of Route (v0.2 ticket 08, docs/mockups/route-map.html
+// treatment C won).
+//
+// - Wheel zoom only arms after a click (ticket 77) — the map spans page width
+//   so a live wheel would trap page scroll; Leaflet has no guard for that.
+// - Paper look is a CSS filter stack + ruled wash over plain OSM tiles, no
+//   second tile provider. Attribution control untouched.
+// - Leaflet loaded lazily in an effect — it touches `window` at import time.
+//
+// Degradation (CLAUDE.md rule 11): a stop with no coordinates is simply not
+// pinned; the page reports how many were left off.
 import { useEffect, useRef } from "react";
 
 import "leaflet/dist/leaflet.css";
@@ -73,17 +59,10 @@ export function RouteMap({
         scrollWheelZoom: false,
       });
 
-      // Click to zoom with the wheel, leave to give the scroll back (ticket
-      // 77). `mouseout` fires on every pin and control the pointer crosses,
-      // so the disable hangs off the DOM container's `mouseleave`, which
-      // doesn't bubble and only fires on the way out of the frame.
-      //
-      // The click is sticky for the life of the map (ticket 82): leaving and
-      // coming back re-arms the wheel rather than demanding another click.
-      // Requiring one per visit read as the zoom having broken — you look
-      // away, come back, and the wheel scrolls the page instead. What the
-      // click is really for is saying "I'm working in this map", and that
-      // doesn't stop being true when the pointer steps out of the frame.
+      // mouseout fires on every pin crossed, so disable hangs off the
+      // container's mouseleave instead (doesn't bubble). Arming is sticky for
+      // the map's life (ticket 82) — leaving and returning re-arms rather
+      // than demanding another click.
       let engaged = false;
       const armWheel = () => {
         engaged = true;
@@ -105,8 +84,7 @@ export function RouteMap({
       const pts = stops.map((s) => [s.lat, s.lng] as [number, number]);
 
       if (pts.length > 1) {
-        // The colour is a class, not an option: Leaflet writes `color` out as
-        // an SVG presentation attribute, where `var(--pen)` does not resolve.
+        // className, not a colour option — var(--pen) doesn't resolve as an SVG attribute.
         L.polyline(pts, {
           className: "route-line",
           weight: 2,
@@ -115,15 +93,11 @@ export function RouteMap({
       }
 
       for (const s of stops) {
-        // Both values are numbers off `deriveStops`, never user text — the
-        // place name goes through Leaflet's `title`/`alt` options, which it
-        // sets as attributes rather than as markup.
         L.marker([s.lat, s.lng], {
           keyboard: false,
           icon: L.divIcon({
             className: "route-pin",
-            // "2 days", not "2d" (ticket 82): the rail beside the spine spells
-            // it out, and an abbreviation only the map used read as a code.
+            // "2 days", not "2d" (ticket 82) — an abbreviation only the map used read as a code.
             html: `<span>${s.no}</span><b class="day-pill route-pin-days">${s.days} ${
               s.days === 1 ? "day" : "days"
             }</b>`,
@@ -135,9 +109,8 @@ export function RouteMap({
         }).addTo(map);
       }
 
-      // Leaflet measures the container at init; inside a flex/grid page it is
-      // often still zero then, and fitBounds would land on the centroid at
-      // max zoom. Re-fit once the browser has laid out, and on every resize.
+      // Container often measures zero at init inside a flex/grid page; re-fit
+      // once laid out and on resize, or fitBounds lands on the centroid at max zoom.
       const fit = () => {
         if (!map) return;
         map.invalidateSize({ animate: false });

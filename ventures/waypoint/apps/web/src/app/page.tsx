@@ -1,63 +1,14 @@
 /**
- * `/` — marketing landing (ticket 05, 19). Public.
- *
- * Ticket 19's data-source question: neither real trips nor seeded database
- * rows — a static, hand-written sample of the product's own UI, built from
- * the real design tokens. Needs no database read, so this page stays a
- * plain server component with zero queries.
- *
- * The page follows `docs/mockups/homepage-g-boardingpass.html` end to end —
- * "the travel document". It replaces the before/after hero
- * (`homepage-hero-b-beforeafter.html`) and the wandering dashed route
- * (`homepage-pinboard.html`), which were two visual languages stacked on one
- * page: a hero made of post-its, then marketing sections made of paper.
- *
- * The one idea, carried the whole way down: the trip as a wallet of printed
- * objects you're holding.
- *
- *   1. THE PASS          — the hero. Headline on the body, CTAs where the gate
- *                          block goes, the trip's state on a real tear-off stub.
- *   2. THE LUGGAGE TAGS  — who it's for, as three tags on strings.
- *   3. THE COUPON BOOK   — the five stops as one perforated fold-out strip, each
- *                          coupon with a counterfoil carrying the stop number
- *                          and the tab's name.
- *   4. THE ENTRY STAMP   — the closing CTA as the customs page.
- *
- * The MRZ strip at the foot is the one flourish that isn't load-bearing: the
- * machine-readable line off the bottom of a passport, spelling out the sample
- * trip. Decoration, `aria-hidden`, and the page's closing rule at once.
- *
- * Every surface is a token — see the landing block in globals.css for why the
- * punched holes are `--sheet` and not `--paper`.
- *
- * TICKET 123 — what the page deliberately no longer has. Three treatments were
- * stacked on one document and the page read as three designs:
- *
- *   - The typewriter eyebrow above the pass ("Start the trip as notes. Finish
- *     it as a plan"). The `h1` under it says the same thing louder, so it was
- *     a strapline introducing a strapline.
- *   - The handwritten marginalia — "— started 14 Feb, still arguing about
- *     Croatia", "— usually decided before the flights go up", and a scribble
- *     on every coupon's counterfoil. A fourth voice, in a face nobody has to
- *     read, commenting on copy that already carried itself.
- *   - "Sign up with Google or an email and password", which described the
- *     mechanics of the button beside it (venture CLAUDE.md: no instructional
- *     copy — the sign-up page shows both routes).
- *
- * That leaves the document in two faces, the serif and the typewriter, which
- * is what a printed pass is actually set in. `.hand` is untouched elsewhere —
- * it is still the ideas composer's face; it just isn't a marketing device.
+ * `/` — marketing landing (ticket 05, 19). Public, static — illustrative
+ * sample UI, not a database read. Follows
+ * `docs/mockups/homepage-g-boardingpass.html`.
  */
 import type { CSSProperties, ReactNode } from "react";
 
 import { getSession } from "@/server/access";
 import { Badge, ButtonLink, Page, Stamp, type Tone } from "@/components/ui";
 
-/* -------------------------------------------------------------------------- */
-/* 2. The luggage tags                                                        */
-/* -------------------------------------------------------------------------- */
-
-/** `--string` is the angle the tag hangs at, `--tilt` how it settled. */
+/** `--string` = hang angle, `--tilt` = settled tilt. */
 type Shape = {
   badge: string;
   tone: Tone;
@@ -90,23 +41,13 @@ const shapes: Shape[] = [
   },
 ];
 
-/* -------------------------------------------------------------------------- */
-/* 3. The coupon book                                                         */
-/* -------------------------------------------------------------------------- */
-
 type Stop = {
   step: string;
   tab: string;
   title: string;
   body: string;
-  /** The worked example on the coupon — the app's own texture, printed. */
   eg: { k: string; v: string }[];
-  /**
-   * The counterfoil's tint — that tab's own wash, always a token and never a
-   * hex (see the colour rule in CLAUDE.md). It's the only place colour
-   * identifies a tab on this page, and the tab's name is written next to it,
-   * so nothing here is colour alone.
-   */
+  /** Counterfoil tint, always a token (colour rule, CLAUDE.md). */
   wash: string;
 };
 
@@ -160,9 +101,7 @@ const stops: Stop[] = [
   },
   {
     step: "Stop 05",
-    // Not a tab — there is no "After" tab in the five. It's what happens to a
-    // trip once it ends, so the counterfoil takes the neutral wash rather
-    // than borrowing a tab's colour.
+    // Not a real tab — neutral wash, not a borrowed tab colour.
     tab: "After",
     title: "Keeping the trip after it's over",
     body: "A finished trip is archived rather than deleted: the dates, the route, the days and the final bill stay readable, so the next trip starts from what actually happened.",
@@ -182,9 +121,7 @@ function Coupon({ stop }: { stop: Stop }) {
         style={{ "--wash": stop.wash } as CSSProperties}
       >
         <p className="typed">{stop.step}</p>
-        {/* 900px, not a `md:` — that's where `.counterfoil` turns from a
-            column into a baseline-aligned row (globals.css), and the top
-            margin belongs to the column form only. */}
+        {/* 900px matches `.counterfoil`'s breakpoint (globals.css); mt-0 only in the row form. */}
         <p className="mt-1 text-[1.3rem] font-semibold leading-tight max-[900px]:mt-0 lg:text-[1.45rem]">
           {stop.tab}
         </p>
@@ -210,8 +147,6 @@ function Coupon({ stop }: { stop: Stop }) {
   );
 }
 
-/* -------------------------------------------------------------------------- */
-
 function SectionHead({
   label,
   title,
@@ -230,11 +165,6 @@ function SectionHead({
   );
 }
 
-/**
- * One printed row on the pass's stub: what it is, and where it stands.
- * `.doc-field-*` is the typed key/value pair; a stub row is the wider
- * baseline-aligned version of it, so the two read as the same printing.
- */
 function StubRow({ k, children }: { k: string; children: ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-3 border-b border-rule py-2 last:border-b-0">
@@ -249,7 +179,6 @@ export default async function LandingPage() {
 
   return (
     <Page wide>
-      {/* ==================== 1. THE PASS ================================= */}
       <section className="pt-2 sm:pt-4">
         <div className="pass">
           <div className="pass-body">
@@ -277,8 +206,7 @@ export default async function LandingPage() {
                   <ButtonLink href="/signup" variant="primary">
                     Get planning!
                   </ButtonLink>
-                  {/* /explore is behind `requireUser`, so the label keeps its
-                      promise: sign in and you land on it, not on /trips. */}
+                  {/* /explore is behind requireUser — sign-in redirects there, not /trips. */}
                   <ButtonLink href="/login?redirect=%2Fexplore" variant="secondary">
                     Get inspired
                   </ButtonLink>
@@ -286,8 +214,6 @@ export default async function LandingPage() {
               )}
             </div>
 
-            {/* The printed fields along the foot of a pass. Typed, never
-                handwritten — they're figures. */}
             <div className="mt-8 flex flex-wrap gap-7 border-t border-dashed border-rule pt-4">
               <div>
                 <p className="doc-field-k">Party</p>
@@ -305,8 +231,7 @@ export default async function LandingPage() {
 
           </div>
 
-          {/* The tear-off stub: a static illustrative sample of the product's
-              own overview, not a live query (see the file header). */}
+          {/* Illustrative sample, not a live query. */}
           <aside className="pass-stub">
             <h2 className="typed mb-3">Sicily · late Sept</h2>
             <StubRow k="Dates">
@@ -328,7 +253,6 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* ==================== 2. THE LUGGAGE TAGS ========================= */}
       <section className="mt-16">
         <SectionHead
           label="Who it's for"
@@ -347,7 +271,6 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* ==================== 3. THE COUPON BOOK ========================== */}
       <section className="mt-16">
         <SectionHead
           label="The whole journey, one page"
@@ -365,11 +288,7 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* ==================== 4. THE ENTRY STAMP ========================== */}
-      {/* Rendered signed in or out. The old page hid its closing block from
-          members, which left the document with no last page — and the line it
-          carries is true either way: an invite link shows the trip before it
-          asks for anything. Only the buttons change. */}
+      {/* Signed in or out, an invite link shows the trip before asking for anything — only the buttons change. */}
       <section className="mt-16">
         <div className="grid items-center gap-9 md:grid-cols-2">
           <div className="justify-self-center">
@@ -421,12 +340,7 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* The machine-readable strip off the bottom of a passport. Decoration
-          and the page's closing rule at once — see `.mrz` in globals.css. */}
-      {/* Bled to the sheet's own edges, so it reads as the foot of the page
-          rather than as one more panel on it. The left inset cancels the red
-          margin's gutter (`pl-[38px]` / `sm:pl-[76px]` in `Page`), not the
-          plain horizontal padding — they differ. */}
+      {/* Decorative MRZ strip (`.mrz`, globals.css); left inset cancels `Page`'s red-margin gutter, not plain padding. */}
       <div
         className="mrz mt-14 -mb-7 -ml-[38px] -mr-5 sm:-mb-8 sm:-ml-[76px] sm:-mr-8"
         aria-hidden="true"

@@ -1,37 +1,20 @@
 "use client";
 
 /**
- * The Dates tab's calendar. Two views over the same grid:
+ * The Dates tab's calendar — four views over one grid:
  *
- * - **Mine** — a month calendar you paint your own free days onto. Click a day
- *   to toggle it, or drag across several. Nothing is written until you save:
- *   one server action per editing session, not one per day, because painting a
- *   fortnight is fourteen taps and fourteen round trips would make the whole
- *   thing feel broken.
- * - **Everyone** — the same grid, read-only, each day showing how many of the
- *   group are free. Shaded by agreement (ticket 67): green when the whole group
- *   is free, red when the day would leave somebody out, unshaded when nobody
- *   has answered. Shaded *and* numbered: colour is never the only signal.
- * - **The dates** — the same grid again, used to commit the trip's own window:
- *   press the start and drag to the end, or click the two ends in turn; a
- *   click on a finished window starts a new one. While only the start is
- *   picked it wears a ring and the days under the pointer fill at half
- *   strength, so the span you are about to make is drawn before you make it
- *   (ticket 135) — without that, the third click looked like it was undoing
- *   the first two rather than beginning again. It arrived
- *   here in ticket 128 from a pair of native `<input type="date">` boxes in the
- *   card above, whose popover opened on the current month however far off the
- *   trip was. Briefly it was a second grid stacked over this one, which is a
- *   silly thing to do to a page: two near-identical calendars, and you had to
- *   read them to find out which was which. One calendar, three things to look
- *   at it for.
- *
- * Months render several at a time (a group picking "sometime in the spring"
- * shouldn't have to page one month at a time), with paging on top of that.
+ * - **Mine** — paint your own free days (click or drag). Nothing writes until
+ *   save: one action per session, not one round trip per day.
+ * - **Everyone** — read-only, shaded by agreement (ticket 67): green all-free,
+ *   red leaves someone out, unshaded nobody answered. Shaded *and* numbered.
+ * - **The dates** — commit the trip's window: press-drag the ends, or click the
+ *   two in turn; a half-made range previews before you make it (ticket 135).
+ * - **Weather** — see below (ticket 148).
  */
-import { useRef, useState, useTransition } from "react";
+import { Fragment, useRef, useState, useTransition } from "react";
 
 import { Button, LegendKey, cx } from "@/components/ui";
+import { WeatherGlyph } from "@/components/weather-glyph";
 import {
   WEEKDAY_LABELS,
   addMonths,
@@ -40,14 +23,16 @@ import {
   monthsFrom,
   type IsoMonth,
 } from "@/lib/availability";
-import { dateRange, today } from "@/lib/dates";
+import { dateRange, formatDate, today, type IsoDate } from "@/lib/dates";
+import type { WeatherCondition } from "@/lib/weather";
 import {
   windowCost,
   windowCostLabel,
   type DayLoad,
 } from "@/lib/trip-window";
+import type { DailyForecast, HourlyPoint, TripForecast } from "@/server/weather";
 
-type View = "mine" | "everyone" | "dates";
+type View = "mine" | "everyone" | "dates" | "weather";
 
 export function AvailabilityCalendar({
   firstMonth,
@@ -58,75 +43,68 @@ export function AvailabilityCalendar({
   tripStart,
   tripEnd,
   dayLoads,
+  weather,
   save,
   saveDates,
 }: {
   firstMonth: IsoMonth;
   monthCount: number;
-  /** The viewer's own free dates, as stored. */
-  mine: string[];
-  /** date → how many members are free. Includes the viewer. */
-  tallies: Record<string, number>;
+  mine: string[]; // viewer's own free dates, as stored
+  tallies: Record<string, number>; // date → members free (incl. viewer)
   memberCount: number;
   tripStart: string | null;
   tripEnd: string | null;
-  /** Every live day and how many events sit on it — what a shrink would cost. */
-  dayLoads: DayLoad[];
+  dayLoads: DayLoad[]; // every live day + its event count — what a shrink costs
+  weather: TripForecast | null; // null → Weather mode not offered (ticket 148)
   save: (add: string[], remove: string[]) => Promise<void>;
-  /** Commits the trip's window. Null on both ends clears it. */
-  saveDates: (start: string | null, end: string | null) => Promise<void>;
+  saveDates: (start: string | null, end: string | null) => Promise<void>; // null/null clears
 }) {
   const [view, setView] = useState<View>("mine");
   const [month, setMonth] = useState(firstMonth);
   const [pending, startTransition] = useTransition();
   const surface = useRef<HTMLDivElement>(null);
 
-  // Local truth while editing: date → free?. Only dates the viewer has touched
-  // appear here, so an untouched day always falls through to the server's copy
-  // and a concurrent edit by someone else isn't silently reverted.
+  const hasWeather = weather !== null;
+  // Only the trip's own days carry weather (ticket 148): keep the days inside
+  // `[tripStart, tripEnd]` so the reading follows the window if the dates move.
+  const byDate: Record<IsoDate, DailyForecast> = {};
+  if (weather && tripStart && tripEnd)
+    for (const d of weather.days)
+      if (d.date >= tripStart && d.date <= tripEnd) byDate[d.date] = d;
+  // One open hourly drawer at a time — two push the month around.
+  const [expandedDate, setExpandedDate] = useState<IsoDate | null>(null);
+
+  const changeView = (v: View) => {
+    setView(v);
+    if (v !== "weather") setExpandedDate(null);
+  };
+  const toggleExpand = (date: IsoDate) =>
+    setExpandedDate((cur) => (cur === date ? null : date));
+
+  // Local edits while painting: only touched dates appear, so untouched days
+  // fall through to the server's copy and a concurrent edit isn't reverted.
   const [edits, setEdits] = useState<Record<string, boolean>>({});
-  /**
-   * A drag paints the whole span from where it started to wherever the pointer
-   * is now, recomputed from `base` on every move — not just the cell under the
-   * pointer. A fast drag doesn't fire `pointerenter` on every cell it crosses,
-   * so painting cell-by-cell leaves holes in the middle of a selected week;
-   * recomputing the span also means dragging back over yourself un-paints.
-   */
+  // The drag recomputes the whole span from `base` each move, not cell-by-cell:
+  // a fast drag skips `pointerenter` on cells and would leave holes.
   const [drag, setDrag] = useState<{
     anchor: string;
     target: boolean;
     base: Record<string, boolean>;
   } | null>(null);
 
-  /**
-   * The trip's window as it is being picked, which starts as whatever is
-   * stored. `null` start means nothing is picked; a start with no end is a
-   * half-made range that shows as a single day and can't be committed as a
-   * pair by accident.
-   */
+  // The window being picked (starts from stored). Null start = nothing picked;
+  // start with no end = half-made, can't be committed as a pair by accident.
   const [range, setRange] = useState<{ start: string | null; end: string | null }>(
     { start: tripStart, end: tripEnd },
   );
   const rangeEnd = range.end ?? range.start;
   const rangeChanged = range.start !== tripStart || rangeEnd !== tripEnd;
 
-  /**
-   * Picking the window is a drag as well as two clicks (ticket 135). It was
-   * two clicks only, and the cell handler for this view never claimed the
-   * gesture the way `startPaint` does — so dragging across the grid was an
-   * ordinary browser text selection, and the `pointerup` at the end of it
-   * landed on whatever the cursor had reached, which was often the "later
-   * months" arrow. `anchor` is the day the press started on; the range is
-   * recomputed from it on every move, so dragging back past yourself shrinks
-   * the window instead of leaving a hole.
-   */
+  // Window picking is a drag too, not just two clicks (ticket 135): holds the
+  // press day, range recomputed from it each move so dragging back shrinks.
   const [rangeDrag, setRangeDrag] = useState<string | null>(null);
-  /**
-   * The day the pointer is over while a start is picked but no end is — what
-   * draws the span you are about to make. Without it a half-made range looked
-   * exactly like a committed one-day trip, which is what made the second click
-   * feel like it was undoing the first.
-   */
+  // Day under the pointer while a start is picked but no end — draws the span
+  // you're about to make (else a half-made range looks like a one-day trip).
   const [hover, setHover] = useState<string | null>(null);
 
   const halfMade = range.start !== null && range.end === null;
@@ -134,9 +112,8 @@ export function AvailabilityCalendar({
     halfMade && !rangeDrag && hover && hover > range.start! ? hover : null;
 
   const pickRange = (date: string) => {
-    // A click before the current start means "actually, from here" — nobody
-    // means "end before start", which is why this grid needs no `min` to
-    // enforce the order the two native boxes couldn't.
+    // A click before the start means "from here instead" — nobody means "end
+    // before start", so no `min` needed.
     setRange((r) =>
       r.start === null || r.end !== null || date < r.start
         ? { start: date, end: null }
@@ -144,21 +121,15 @@ export function AvailabilityCalendar({
     );
   };
 
-  /**
-   * A press in the dates view. It picks exactly what a click would — so
-   * releasing without moving still reads as click one, then click two — and
-   * additionally arms a drag, so a press that *does* move paints the window in
-   * one gesture. Only a press that starts a fresh window arms it: dragging off
-   * the second click of a pair would fight the click it is completing.
-   */
+  // A press picks what a click would (so a still release reads as click one/two)
+  // and arms a drag — but only when starting a fresh window, else it would fight
+  // the click completing a pair.
   const startRangePick = (date: string, e: React.PointerEvent) => {
-    // Same claim `startPaint` makes, and for the same reason: unclaimed, this
-    // gesture is a text selection with a stray click at the end of it.
-    e.preventDefault();
+    e.preventDefault(); // else the gesture is a text selection (see startPaint)
     try {
       surface.current?.setPointerCapture(e.pointerId);
     } catch {
-      // The pointer went away. Harmless — the pick below still stands.
+      // Pointer gone — harmless, the pick still stands.
     }
     if (!halfMade) setRangeDrag(date);
     setHover(null);
@@ -184,37 +155,23 @@ export function AvailabilityCalendar({
   const add = changed.filter(([, free]) => free).map(([date]) => date);
   const remove = changed.filter(([, free]) => !free).map(([date]) => date);
 
-  /**
-   * Where a drag begins, and the one piece of pointer plumbing this needs
-   * (ticket 127).
-   *
-   * A touch pointer is *implicitly captured* by whichever element took the
-   * `pointerdown` — so with the handlers on the cells, every subsequent event
-   * went back to the day the finger landed on and no other cell ever heard
-   * `pointerenter`. On a phone the drag painted exactly one day. Moving the
-   * capture up to the whole calendar fixes both halves at once: the moves keep
-   * arriving (at the surface, which hit-tests for the cell under the finger),
-   * and so does the `pointerup`, wherever the finger ends up — including off
-   * the grid entirely, which is what `onPointerLeave` used to be there to
-   * catch.
-   */
+  // Capture is on the surface, not the cells (ticket 127): a touch pointer is
+  // implicitly captured by the cell that took `pointerdown`, so on a phone no
+  // other cell heard `pointerenter` and a drag painted one day. Capturing the
+  // surface keeps moves and the release arriving wherever the finger ends up.
   const startPaint = (date: string, e: React.PointerEvent) => {
-    // Claim the gesture before the browser reads it as a text selection or,
-    // on touch, as a scroll.
-    e.preventDefault();
+    e.preventDefault(); // else read as text selection, or a scroll on touch
     try {
       surface.current?.setPointerCapture(e.pointerId);
     } catch {
-      // The pointer went away between the event and this line. Nothing to
-      // capture, and the drag is about to be cancelled anyway — never let it
-      // take the paint down with it.
+      // Pointer gone — the drag is about to cancel; don't take the paint with it.
     }
     const target = !isFree(date);
     setDrag({ anchor: date, target, base: edits });
     setEdits({ ...edits, [date]: target });
   };
 
-  /** The day under the pointer, wherever it is — `pointerenter` can't say. */
+  // Hit-test for the cell under the pointer — `pointerenter` can't say (see startPaint).
   const dateUnder = (e: React.PointerEvent): string | null => {
     const el = document
       .elementFromPoint(e.clientX, e.clientY)
@@ -245,29 +202,18 @@ export function AvailabilityCalendar({
       setArmedKey(null);
     });
 
-  /**
-   * What committing this window would destroy, and the two-click gate in front
-   * of it (ticket 140).
-   *
-   * The window is the itinerary's extent, so a date the new window drops takes
-   * its day and its events with it. That is priced here rather than on the
-   * server because the user is still dragging: `dayLoads` is the whole trip's
-   * load, sent once, and `windowCost` is pure — so the number is ready the
-   * instant the range moves, with no round trip behind it.
-   *
-   * `armedKey` is the window the user has been shown the price of. Any further
-   * drag makes a different window, whose key no longer matches, so the gate
-   * re-arms itself without a single reset call — a stale "remove 6 days" cannot
-   * be clicked through onto a window that would only remove one.
-   */
+  // Cost of committing this window + its two-click gate (ticket 140). Priced
+  // client-side (`windowCost` is pure over the once-sent `dayLoads`) so it's
+  // ready as the range moves. `armedKey` is the window the user was shown the
+  // price of; any further drag changes the key and re-arms, so a stale
+  // "remove 6 days" can't be clicked through onto a smaller window.
   const cost = windowCost(dayLoads, range.start, rangeEnd);
   const costLabel = windowCostLabel(cost);
   const rangeKey = `${range.start}|${rangeEnd}`;
   const [armedKey, setArmedKey] = useState<string | null>(null);
   const armed = !!costLabel && armedKey === rangeKey;
 
-  // Nothing to lose commits on the first click: a first window, or one that
-  // only grows, has no cost to name and asking about it would be ceremony.
+  // A first or only-growing window has no cost, so it commits on one click.
   const onCommit = () => {
     if (costLabel && !armed) setArmedKey(rangeKey);
     else onSaveDates();
@@ -276,28 +222,16 @@ export function AvailabilityCalendar({
   const months = monthsFrom(month, monthCount);
   const now = today();
 
-  /*
-   * One footer shape for all three views. They hold different things — a save
-   * button, a key, a range and its buttons — and letting each size itself
-   * moved the card's bottom edge every time you switched view, which made a
-   * switch between two views of the same grid look like a change of page.
-   *
-   * It reserves *two* rows (ticket 133), not one. The dates view carries a
-   * range, two buttons and a three-word key, which wraps onto a second line at
-   * anything short of a wide desktop — so a one-row reservation held for Mine
-   * and Everyone and then jumped 24px on the third view. Two rows is what the
-   * busiest view needs, and the other two sit in the same box with air under
-   * them rather than moving the card's bottom edge.
-   */
+  // One fixed footer shape for every view, else switching views moved the card's
+  // bottom edge. Reserves two rows (ticket 133): the dates view's range + buttons
+  // + key wrap to a second line below a wide desktop.
   const footer =
     "mt-5 flex min-h-[calc(2rem+0.5rem+2rem+1rem+1px)] flex-wrap content-start items-center gap-x-4 gap-y-2 border-t border-rule pt-4";
 
   return (
     <div
       ref={surface}
-      // The drag lives here rather than on the cells — see `startPaint`. The
-      // pointer is captured to this element, so every move and the release all
-      // come here whatever they happen to be over.
+      // Drag handlers live here, not on cells (see startPaint).
       onPointerMove={(e) => {
         const date = dateUnder(e);
         if (drag) {
@@ -305,9 +239,16 @@ export function AvailabilityCalendar({
         } else if (rangeDrag) {
           if (date) extendRange(date);
         } else if (view === "dates") {
-          // Not a drag — the trailing edge of the span the next click would
-          // make. `null` off the grid, so the preview stops following you.
-          setHover(date);
+          setHover(date); // trailing edge of the span the next click would make
+        } else if (view === "weather") {
+          // The day the reading line reports; only the trip's own days answer.
+          const inWindow =
+            !!date &&
+            !!tripStart &&
+            !!tripEnd &&
+            date >= tripStart &&
+            date <= tripEnd;
+          setHover(inWindow ? date : null);
         }
       }}
       onPointerLeave={() => setHover(null)}
@@ -320,34 +261,40 @@ export function AvailabilityCalendar({
         setRangeDrag(null);
       }}
     >
-      {/* One row at every width (ticket 134): wrapping put the two arrows on
-          a line of their own, hard left under the middle of the switch, which
-          read as a stray pair of controls belonging to nothing. */}
+      {/* One row at every width (ticket 134): a wrap stranded the arrows on
+          their own line. */}
       <div className="mb-4 flex items-center justify-between gap-2">
         <div className="inline-flex shrink-0 overflow-hidden rounded-md border border-rule-strong">
-          {(["mine", "everyone", "dates"] as const).map((v) => (
+          {(hasWeather
+            ? (["mine", "everyone", "dates", "weather"] as const)
+            : (["mine", "everyone", "dates"] as const)
+          ).map((v) => (
             <button
               key={v}
               type="button"
               aria-pressed={view === v}
-              onClick={() => setView(v)}
+              onClick={() => changeView(v)}
               className={cx(
-                // `whitespace-nowrap` and a tighter phone padding: the switch
-                // has to survive being squeezed next to the arrows rather
-                // than breaking "The dates" over two lines.
+                // `whitespace-nowrap`: survive being squeezed next to the arrows
+                // rather than breaking "The dates" over two lines.
                 "whitespace-nowrap px-2 py-1 font-mono text-[11px] uppercase tracking-[0.06em] transition-colors sm:px-3",
                 view === v
                   ? "bg-pen text-sheet"
                   : "bg-sheet text-ink-soft hover:bg-sheet-2",
               )}
             >
-              {v === "mine" ? "Mine" : v === "everyone" ? "Everyone" : "The dates"}
+              {v === "mine"
+                ? "Mine"
+                : v === "everyone"
+                  ? "Everyone"
+                  : v === "dates"
+                    ? "The dates"
+                    : "Weather"}
             </button>
           ))}
         </div>
 
-        {/* The arrows give up the width, not the switch: a squeezed switch
-            clipped "The dates" to "The date" on a phone. */}
+        {/* Arrows give up width, not the switch — a squeeze clipped "The dates". */}
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
@@ -368,43 +315,14 @@ export function AvailabilityCalendar({
         </div>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {months.map((m, i) => (
-          /*
-           * Never more than one row of months (ticket 132). The columns come
-           * from the width — one, then two, then three — and a month past what
-           * fits doesn't wrap onto a second row, it waits: a calendar you have
-           * to scroll down to finish reading isn't one you can compare across.
-           * The arrows page through whatever isn't showing, so nothing is out
-           * of reach.
-           */
-          <div
-            key={m}
-            // One class per slot, not stacked conditions: `sm:block` and
-            // `lg:block` on the same element both win at wide sizes, so the
-            // third month has to be `hidden lg:block` and nothing else.
-            className={
-              i === 0
-                ? undefined
-                : i === 1
-                  ? "hidden sm:block"
-                  : i === 2
-                    ? "hidden lg:block"
-                    : "hidden"
-            }
-          >
+      <div>
+        {months.map((m) => (
+          <div key={m}>
             <p className="typed mb-2">{formatMonth(m)}</p>
             <div
-              // `touch-none` hands the whole gesture to us: without it the
-              // browser claims a vertical drag as a page scroll, which is
-              // exactly the drag that crosses from one week's row to the next
-              // (ticket 127). A tap still toggles, and the page still scrolls
-              // from anywhere that isn't the grid.
-              // Ruled paper, not a grid of boxes (ticket 129). One rule under
-              // each week and none between the days, so the month reads as
-              // lines on a page — and the cells abut, which is what lets a
-              // picked range draw as one continuous stroke rather than seven
-              // separate fills.
+              // `touch-none`: else the browser claims a week-to-week vertical
+              // drag as a page scroll (ticket 127). Ruled paper, not boxes — one
+              // rule under each week, cells abut (ticket 129).
               className="grid touch-none grid-cols-7 border-t border-rule text-center"
               role="grid"
               aria-label={`${formatMonth(m)} availability`}
@@ -418,49 +336,80 @@ export function AvailabilityCalendar({
                   {label}
                 </span>
               ))}
-              {monthGrid(m).flat().map((date, i) =>
-                date === null ? (
-                  <span key={`pad-${i}`} className="border-b border-rule" />
-                ) : (
-                  <DayCell
-                    key={date}
-                    date={date}
-                    view={view}
-                    free={isFree(date)}
-                    tally={tallies[date] ?? 0}
-                    memberCount={memberCount}
-                    past={date < now}
-                    inTrip={
-                      !!tripStart && !!tripEnd && date >= tripStart && date <= tripEnd
-                    }
-                    inRange={
-                      view === "dates" &&
-                      range.start !== null &&
-                      !!rangeEnd &&
-                      date >= range.start &&
-                      date <= rangeEnd
-                    }
-                    isToday={date === now}
-                    pending={
-                      view === "dates" &&
-                      !!previewTo &&
-                      date > range.start! &&
-                      date <= previewTo
-                    }
-                    openEnd={view === "dates" && halfMade && date === range.start}
-                    onStart={(e) =>
-                      view === "dates"
-                        ? startRangePick(date, e)
-                        : startPaint(date, e)
-                    }
-                    onToggle={() =>
-                      view === "dates"
-                        ? pickRange(date)
-                        : setEdits({ ...edits, [date]: !isFree(date) })
-                    }
-                  />
-                ),
-              )}
+              {/* By week, not flattened (ticket 148): the hourly drawer is a
+                  `col-span-7` row after the week holding the open day. The
+                  Fragment keeps the seven cells as direct grid children. */}
+              {monthGrid(m).map((week, wi) => (
+                <Fragment key={`w-${wi}`}>
+                  {week.map((date, di) =>
+                    date === null ? (
+                      <span
+                        key={`pad-${wi}-${di}`}
+                        className="border-b border-rule"
+                      />
+                    ) : (
+                      <DayCell
+                        key={date}
+                        date={date}
+                        view={view}
+                        free={isFree(date)}
+                        tally={tallies[date] ?? 0}
+                        memberCount={memberCount}
+                        past={date < now}
+                        inTrip={
+                          !!tripStart &&
+                          !!tripEnd &&
+                          date >= tripStart &&
+                          date <= tripEnd
+                        }
+                        inRange={
+                          view === "dates" &&
+                          range.start !== null &&
+                          !!rangeEnd &&
+                          date >= range.start &&
+                          date <= rangeEnd
+                        }
+                        isToday={date === now}
+                        pending={
+                          view === "dates" &&
+                          !!previewTo &&
+                          date > range.start! &&
+                          date <= previewTo
+                        }
+                        openEnd={view === "dates" && halfMade && date === range.start}
+                        weather={byDate[date]}
+                        weatherOpen={expandedDate === date}
+                        onStart={(e) =>
+                          view === "dates"
+                            ? startRangePick(date, e)
+                            : view === "weather"
+                              ? undefined
+                              : startPaint(date, e)
+                        }
+                        onToggle={() =>
+                          view === "dates"
+                            ? pickRange(date)
+                            : view === "weather"
+                              ? toggleExpand(date)
+                              : setEdits({ ...edits, [date]: !isFree(date) })
+                        }
+                      />
+                    ),
+                  )}
+                  {view === "weather" &&
+                  expandedDate &&
+                  week.includes(expandedDate) ? (
+                    <div className="col-span-7 border-b border-l-2 border-rule border-l-pen bg-sheet-2">
+                      <HourlyCurve
+                        date={expandedDate}
+                        day={byDate[expandedDate]}
+                        points={weather?.hourly[expandedDate] ?? []}
+                        onClose={() => setExpandedDate(null)}
+                      />
+                    </div>
+                  ) : null}
+                </Fragment>
+              ))}
             </div>
           </div>
         ))}
@@ -468,16 +417,9 @@ export function AvailabilityCalendar({
 
       {view === "dates" ? (
         <div className={footer}>
-          {/* No line of text restating the pick (ticket 134). Empty it read
-              "Pick the first day", which is instructions; full it repeated
-              the run of green circles directly above it, and the committed
-              window is already the page's subtitle.
-
-              The cost of a shrink is the one thing this footer does say
-              (ticket 140), and it says it on the button that is about to do
-              it rather than in a dialog over the calendar: the days being cut
-              are drawn directly above, and reading the number while looking
-              at them is the whole point. Two clicks, not two surfaces. */}
+          {/* No text restating the pick (ticket 134). The shrink cost is the one
+              thing said, and on the button doing it, not a dialog — the days
+              being cut are drawn directly above (ticket 140). */}
           <Button
             variant={armed ? "danger" : "primary"}
             disabled={!range.start || !rangeChanged || pending}
@@ -491,11 +433,8 @@ export function AvailabilityCalendar({
                   ? "Change dates"
                   : "Set the dates"}
           </Button>
-          {/* Always here, disabled when there is nothing to throw away
-              (ticket 133). Appearing and disappearing changed how much of
-              the footer was left for the key, which re-wrapped it onto a
-              second line — so committing the dates moved the card's bottom
-              edge by a row. */}
+          {/* Always here, disabled when nothing to discard (ticket 133) —
+              appearing/disappearing re-wrapped the key and moved the card edge. */}
           <Button
             variant="ghost"
             disabled={!rangeChanged}
@@ -503,12 +442,8 @@ export function AvailabilityCalendar({
           >
             Discard
           </Button>
-          {/* The same key as the Everyone view, because this view draws the
-              same marks — a colour that appears has to be readable where it
-              appears, not one tab away — plus the one mark only this view has.
-              With the per-day counts gone, the key is what carries the words
-              (CLAUDE.md: status is never colour alone); each cell also names
-              its tally in its `title` and its accessible label. */}
+          {/* Same key as Everyone (this view draws the same marks) plus the one
+              only it has — status is never colour alone. */}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <LegendKey swatch="bg-green border-green" label="The trip" />
             <LegendKey swatch="bg-green-soft border-green" label="All free" />
@@ -536,21 +471,39 @@ export function AvailabilityCalendar({
             Discard
           </Button>
         </div>
-      ) : (
-        /* A key, not a paragraph (ticket 76). The swatch carries the colour and
-           the label carries the meaning, so the reader matches rather than
-           reads — the first instance of the visual-over-text convention. */
+      ) : view === "everyone" ? (
+        /* A key, not a paragraph (ticket 76): swatch matches, not reads. */
         <div className={footer}>
           <LegendKey swatch="bg-green-soft border-green" label="All free" />
           <LegendKey swatch="bg-red-soft border-red" label="Some missing" />
           <LegendKey swatch="bg-sheet-2 border-rule" label="No answer yet" />
         </div>
-      )}
+      ) : weather ? (
+        /* Weather (ticket 148): a reading line following the hovered day, plus
+           the key, in the same reserved footer. */
+        <div className={footer}>
+          <WeatherReadout
+            hover={hover}
+            byDate={byDate}
+            placeName={weather.placeName}
+            horizonEnd={weather.horizonEnd}
+          />
+          <div className="flex w-full flex-wrap items-center gap-x-4 gap-y-2">
+            <LegendKey swatch="bg-highlight-soft border-highlight" label="Sun" />
+            <LegendKey swatch="bg-sheet-3 border-rule-strong" label="Cloud" />
+            <LegendKey swatch="bg-pen-soft border-pen-edge" label="Rain" />
+            <LegendKey swatch="bg-green border-green" label="In the trip" />
+            <LegendKey
+              swatch="border-dashed bg-sheet border-rule-strong"
+              label="Beyond the forecast"
+            />
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
 
-/** One swatch-and-word pair in the Dates key (ticket 76). */
 function DayCell({
   date,
   view,
@@ -563,6 +516,8 @@ function DayCell({
   isToday,
   pending,
   openEnd,
+  weather,
+  weatherOpen,
   onStart,
   onToggle,
 }: {
@@ -573,59 +528,119 @@ function DayCell({
   memberCount: number;
   past: boolean;
   inTrip: boolean;
-  /** Inside the window being picked, in the dates view. */
-  inRange: boolean;
+  inRange: boolean; // inside the window being picked (dates view)
   isToday: boolean;
-  /** Inside the span the pointer is currently proposing (ticket 135). */
-  pending?: boolean;
-  /** The picked start of a window whose end hasn't been chosen yet. */
-  openEnd?: boolean;
+  pending?: boolean; // inside the span the pointer proposes (ticket 135)
+  openEnd?: boolean; // picked start with no end yet
+  weather?: DailyForecast; // undefined past the horizon
+  weatherOpen?: boolean;
   onStart: (e: React.PointerEvent) => void;
   onToggle: () => void;
 }) {
   const dayNumber = Number(date.slice(8, 10));
 
-  /*
-   * The chrome every cell shares (ticket 129): one rule under the week, no
-   * box around the day. A month is lines on a page, and the marks are what
-   * sits on them.
-   */
+  // Shared cell chrome: one rule under the week, no box around the day (ticket 129).
   const cell =
     "relative flex aspect-square flex-col items-center justify-center border-b border-rule font-mono text-[11px] leading-none";
 
-  /*
-   * The focus ring belongs to the mark, not to the cell (ticket 129). The
-   * global `:focus-visible` outline is a square, and the cell is a square the
-   * full width of the column — so clicking a day (or shift-clicking, which is
-   * what made it obvious) drew a blue box around a round green mark. The
-   * button drops the outline and the circle takes a ring instead.
-   */
+  // Focus ring on the mark, not the cell (ticket 129): the square cell outline
+  // drew a blue box around the round mark.
   const focusRing =
     "group-focus-visible:ring-2 group-focus-visible:ring-pen group-focus-visible:ring-offset-1 group-focus-visible:ring-offset-sheet";
 
-  /*
-   * Three states, not a ramp (ticket 67). It used to shade in four bands —
-   * everyone / most / some / nobody — and the two middle bands were the
-   * problem: a day half the group can't do and a day one person can't do
-   * looked meaningfully different when they aren't. Either the whole group is
-   * free or the day costs somebody, so:
-   *
-   *   everyone free  → green wash, the same "agreed" green as everywhere else
-   *   some free      → red wash, i.e. this one leaves people out
-   *   nobody yet     → the plain sheet, because no answer is not a bad answer
-   *
-   * Each day used to carry its tally as a small number under the mark. It sat
-   * on every answered day in the month and read as texture rather than as
-   * data (ticket 129) — the key below says what the two washes mean, and the
-   * exact count is on the cell's `title` and its accessible label for anyone
-   * who wants the number rather than the shape.
-   */
+  // Three states, not a ramp (ticket 67): either the whole group is free (green)
+  // or the day costs somebody (red); no answer yet is the plain sheet, not a bad
+  // answer. Exact count rides on `title`/aria, not a number under the mark.
   const groupMark =
     tally === 0
       ? "text-ink-faint"
       : tally === memberCount
         ? "bg-green-soft text-green"
         : "bg-red-soft text-red";
+
+  // Weather (ticket 148): the disc is the condition, day number in the corner,
+  // so a run of sun reads as a shape. Inside the horizon a day opens its hourly
+  // drawer; past it, a non-interactive dashed ring (no drawer onto no data).
+  if (view === "weather") {
+    const corner = (
+      <span
+        aria-hidden
+        className="absolute left-1 top-0.5 font-mono text-[9px] leading-none text-ink-faint"
+      >
+        {dayNumber}
+      </span>
+    );
+    const discBase =
+      "flex h-[70%] w-[70%] items-center justify-center rounded-full transition-colors";
+    const windowRing = inTrip || isToday ? "ring-1 ring-pen" : "";
+
+    // Outside the window: no weather at all, not even a dashed ring (ticket 148).
+    if (!inTrip) {
+      return (
+        <span
+          role="gridcell"
+          data-date={date}
+          className={cx(cell, "opacity-40")}
+        >
+          {corner}
+        </span>
+      );
+    }
+
+    if (!weather) {
+      return (
+        <span
+          role="gridcell"
+          data-date={date}
+          title={`${date} — beyond the forecast`}
+          className={cx(cell, past && "opacity-45")}
+        >
+          {corner}
+          <span
+            aria-hidden
+            className={cx(
+              discBase,
+              "border border-dashed border-rule-strong",
+              windowRing,
+            )}
+          />
+        </span>
+      );
+    }
+
+    return (
+      <button
+        type="button"
+        role="gridcell"
+        data-date={date}
+        aria-expanded={weatherOpen}
+        aria-label={`${date} — ${weather.label}, high ${weather.hi}°, low ${weather.lo}°`}
+        title={`${date} — ${weather.label}, ${weather.hi}° / ${weather.lo}°`}
+        onClick={onToggle}
+        className={cx(
+          cell,
+          "group transition-colors focus-visible:outline-none",
+          past && "opacity-45",
+        )}
+      >
+        {corner}
+        <span
+          className={cx(
+            discBase,
+            focusRing,
+            DISC_TINT[weather.condition],
+            weather.condition === "rain" ? "text-pen" : "text-ink-soft",
+            windowRing,
+            // Hover previews the open day's pen ring, so it reads without the cursor.
+            "group-hover:ring-2 group-hover:ring-pen",
+            weatherOpen && "ring-2 ring-pen",
+          )}
+        >
+          <WeatherGlyph condition={weather.condition} size={20} />
+        </span>
+      </button>
+    );
+  }
 
   if (view === "everyone") {
     return (
@@ -646,19 +661,9 @@ function DayCell({
     );
   }
 
-  /*
-   * Two things one cell can be showing (ticket 128). Painting your own
-   * availability, a day is on or off by itself. Picking the trip's window, the
-   * cell shows the *group's* answer — the same washes the Everyone view
-   * draws — because choosing a week is a decision about who can make it, and
-   * the view that commits the dates shouldn't be the one that hides that.
-   *
-   * A day that is in the window overrides the wash with the solid green: the
-   * decision outranks the thing it was decided from, and it's the same green,
-   * pressed harder. Marks stay discrete circles throughout — a range was
-   * briefly drawn as one continuous stroke, which made a window that wrapped
-   * to the next week look like two separate selections (ticket 129).
-   */
+  // Two things one cell shows (ticket 128): painting availability it's on/off;
+  // picking the window it shows the group's washes, since choosing a week is a
+  // decision about who can make it. An in-window day overrides with solid green.
   const picking = view === "dates";
   const marked = picking ? inRange : free;
 
@@ -673,13 +678,10 @@ function DayCell({
           : `${date}${free ? " — you're free" : ""}`
       }
       title={picking ? `${date} — ${tally} of ${memberCount} free` : undefined}
-      // What the surface above hit-tests for on every move — the cell under
-      // the pointer, which `pointerenter` is no help with on touch.
-      data-date={date}
+      data-date={date} // what the surface hit-tests each move (see startPaint)
       onPointerDown={onStart}
-      // Enter and Space arrive as a click with no pointer behind it
-      // (`detail === 0`), which is the only way this cell is reachable from
-      // the keyboard — `pointerdown` never fires there.
+      // Keyboard Enter/Space arrive as a click with `detail === 0` and no
+      // `pointerdown` — the only way this cell is reachable from the keyboard.
       onClick={(e) => {
         if (e.detail === 0) onToggle();
       }}
@@ -693,29 +695,249 @@ function DayCell({
         className={cx(
           "flex h-[70%] w-[70%] items-center justify-center rounded-full transition-colors",
           focusRing,
-          // Picking: the group's answer, with the chosen days pressed into
-          // the solid green over the top of it.
+          // Picking: the group's answer, chosen days pressed into solid green.
           picking && (inRange ? "bg-green font-semibold text-sheet" : groupMark),
-          // The window you'd get if you clicked here: the committed mark at
-          // half strength, so the span you are proposing reads as the same
-          // thing, not yet made (ticket 135).
+          // The span you'd get by clicking here: solid green at half strength (ticket 135).
           picking && pending && "bg-green/45 font-semibold text-sheet",
-          // A start with no end yet. Ringed rather than merely filled — a
-          // lone solid day was indistinguishable from a committed one-day
-          // trip, which is what made the second click feel like it had
-          // cancelled the first.
+          // Start with no end: ringed, else a lone solid day read as a one-day trip.
           picking && openEnd && "ring-2 ring-pen ring-offset-1 ring-offset-sheet",
-          // A free day is a pen mark on the page — round, filled, sitting on
-          // the rule — not a filled-in box (ticket 129). Several of them read
-          // as several marks, which is what they are.
+          // A free day is a pen mark, not a filled box (ticket 129).
           !picking && free && "bg-green-soft font-semibold text-green ring-1 ring-green",
           !picking && !free && "text-ink-soft",
-          // Today is circled, the way you'd circle it.
-          isToday && !free && !inRange && "ring-1 ring-pen",
+          isToday && !free && !inRange && "ring-1 ring-pen", // today circled
+
         )}
       >
         {dayNumber}
       </span>
     </button>
+  );
+}
+
+// Disc wash per condition (ticket 148): sun is the highlighter, rain the biro
+// wash; part/cloud share the neutral sheet, told apart by glyph and word.
+const DISC_TINT: Record<WeatherCondition, string> = {
+  sun: "bg-highlight-soft",
+  part: "bg-sheet-3",
+  cloud: "bg-sheet-3",
+  rain: "bg-pen-soft",
+};
+
+// Reading line under the weather calendar: temperatures for the hovered day; at
+// rest it names the place and horizon, so the row is never empty.
+function WeatherReadout({
+  hover,
+  byDate,
+  placeName,
+  horizonEnd,
+}: {
+  hover: string | null;
+  byDate: Record<IsoDate, DailyForecast>;
+  placeName: string;
+  horizonEnd: IsoDate;
+}) {
+  const wx = hover ? byDate[hover] : undefined;
+
+  if (hover && wx) {
+    return (
+      <div className="flex w-full items-center gap-3">
+        <span className={cx(wx.condition === "rain" ? "text-pen" : "text-ink-soft")}>
+          <WeatherGlyph condition={wx.condition} size={22} />
+        </span>
+        <span className="nums text-[12px] text-ink-soft">{formatDate(hover)}</span>
+        <span className="text-sm text-ink">{wx.label}</span>
+        <span className="nums ml-auto whitespace-nowrap">
+          <span className="text-[15px] text-ink">{wx.hi}°</span>{" "}
+          <span className="text-[12px] text-ink-faint">{wx.lo}°</span>
+        </span>
+      </div>
+    );
+  }
+
+  if (hover) {
+    return (
+      <div className="flex w-full items-center gap-3">
+        <span className="nums text-[12px] text-ink-soft">{formatDate(hover)}</span>
+        <span className="text-sm text-ink-faint">Beyond the forecast</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex w-full items-center">
+      <span className="typed">
+        {placeName} · to {formatDate(horizonEnd)}
+      </span>
+    </div>
+  );
+}
+
+// Hourly forecast for one day (ticket 148, prototype C2): a temperature curve,
+// not a table — the shape is the point. Exact figures ride on each `title`.
+// Fixed 700×132 viewBox scaled by width, ratio kept, so geometry is arithmetic.
+function HourlyCurve({
+  date,
+  day,
+  points,
+  onClose,
+}: {
+  date: IsoDate;
+  day?: DailyForecast;
+  points: HourlyPoint[];
+  onClose: () => void;
+}) {
+  const W = 700;
+  const H = 132;
+  const padL = 26;
+  const padR = 26;
+  const top = 34;
+  const base = 96;
+  const rainY = H - 18;
+
+  const temps = points.map((p) => p.temp);
+  const lo = temps.length ? Math.min(...temps) : 0;
+  const hi = temps.length ? Math.max(...temps) : 1;
+  const span = Math.max(hi - lo, 1);
+  const x = (i: number) =>
+    points.length > 1
+      ? padL + i * ((W - padL - padR) / (points.length - 1))
+      : W / 2;
+  const y = (t: number) => top + (1 - (t - lo) / span) * (base - top);
+  const line = points
+    .map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)} ${y(p.temp).toFixed(1)}`)
+    .join(" ");
+
+  return (
+    <div className="px-3 py-2.5">
+      <div className="mb-1.5 flex items-center gap-2.5">
+        <span className="nums text-[12px] text-ink">{formatDate(date)}</span>
+        {day ? <span className="text-[13px] text-ink-soft">{day.label}</span> : null}
+        {day ? (
+          <span className="nums ml-auto text-[12px] text-ink-soft">
+            {day.hi}° / {day.lo}°
+          </span>
+        ) : (
+          <span className="ml-auto" />
+        )}
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close hourly forecast"
+          className="grid place-items-center rounded-sm border border-rule-strong p-1 text-ink-faint transition-colors hover:border-pen hover:text-pen"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="12"
+            height="12"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.7}
+            strokeLinecap="round"
+            aria-hidden
+          >
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+      </div>
+
+      {points.length > 1 ? (
+        <div className="relative">
+          {/* Glyphs only where the condition changes — all eight hid the curve. */}
+          {points.map((p, i) =>
+            i > 0 && points[i - 1].condition === p.condition ? null : (
+              <span
+                key={`g-${p.hour}`}
+                className={cx(
+                  "absolute top-0 -translate-x-1/2",
+                  p.condition === "rain" ? "text-pen" : "text-ink-soft",
+                )}
+                style={{ left: `${(x(i) / W) * 100}%` }}
+              >
+                <WeatherGlyph condition={p.condition} size={17} />
+              </span>
+            ),
+          )}
+          <svg
+            viewBox={`0 0 ${W} ${H}`}
+            className="block h-auto w-full"
+            role="img"
+            aria-label={`Hourly temperature for ${formatDate(date)}`}
+          >
+            <line
+              x1={padL}
+              y1={rainY}
+              x2={W - padR}
+              y2={rainY}
+              className="stroke-rule"
+              strokeWidth={1}
+            />
+            {points.map((p, i) =>
+              p.pop > 0 ? (
+                <rect
+                  key={`r-${p.hour}`}
+                  x={x(i) - 13}
+                  y={rainY - (3 + (p.pop / 100) * 15)}
+                  width={26}
+                  height={3 + (p.pop / 100) * 15}
+                  rx={1.5}
+                  className="fill-pen opacity-40"
+                >
+                  <title>{`${p.hour} — ${p.pop}% chance of rain`}</title>
+                </rect>
+              ) : null,
+            )}
+            <path
+              d={line}
+              className="fill-none stroke-pen"
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            {points.map((p, i) => (
+              <g key={`p-${p.hour}`}>
+                <circle
+                  cx={x(i)}
+                  cy={y(p.temp)}
+                  r={3.4}
+                  className="fill-sheet-2 stroke-pen"
+                  strokeWidth={1.6}
+                >
+                  <title>{`${p.hour} — ${p.temp}°${p.pop > 0 ? `, ${p.pop}% rain` : ""}`}</title>
+                </circle>
+                <text
+                  x={x(i)}
+                  y={y(p.temp) - 9}
+                  textAnchor="middle"
+                  className="fill-ink font-mono"
+                  fontSize={10}
+                >
+                  {p.temp}°
+                </text>
+                <text
+                  x={x(i)}
+                  y={H - 4}
+                  textAnchor="middle"
+                  className="fill-ink-faint font-mono"
+                  fontSize={9}
+                >
+                  {p.hour}
+                </text>
+              </g>
+            ))}
+          </svg>
+        </div>
+      ) : null}
+
+      <div className="mt-1 flex items-center gap-4 text-[11px] text-ink-soft">
+        <span className="inline-flex items-center gap-1.5">
+          <span aria-hidden className="h-0.5 w-4 rounded bg-pen" />
+          Temperature
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span aria-hidden className="h-2.5 w-3 rounded-sm bg-pen opacity-40" />
+          Chance of rain
+        </span>
+      </div>
+    </div>
   );
 }

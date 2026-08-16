@@ -1,16 +1,8 @@
 /**
- * "Who's going" — the right half of the Overview hero (v0.2 ticket 07).
- * Replaces the Chase panel, which was two columns of nudge targets sitting a
- * screen below an Unresolved list built from the same three checks.
- *
- * The roster owns chasing now, because chasing is a thing you do *to someone*:
- * every member's row carries it, and Unresolved just says what is outstanding.
- * Neither says the other's half. Ticket 125 put nudging, promoting and
- * removing behind one triple-dot per row rather than a line of icons.
- *
- * Nudging is still peer-to-peer with no deadlines and no escalation (v1
- * ticket 05), and the nudge itself is delivered by email in `sendNudge` — so
- * dropping the old "waiting on you" list doesn't leave nudges undeliverable.
+ * "Who's going" — right half of the Overview hero (v0.2 ticket 07). Replaces
+ * the old Chase panel; the roster owns chasing now since it's done *to
+ * someone*, and ticket 125 put nudge/promote/remove behind one triple-dot per
+ * row. Nudging stays peer-to-peer, no deadlines, delivered by email in `sendNudge`.
  */
 import { Avatar, Badge } from "@/components/ui";
 import { PersonLink } from "@/components/person-link";
@@ -71,16 +63,10 @@ export function TripRoster({
     <section className="tape-panel rounded-md border border-rule-strong bg-sheet-2 p-5">
       <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-rule-strong pb-2">
         <h2 className="text-[15px] font-semibold">Who&rsquo;s going</h2>
-        {/*
-          The invite URL never appears on the page — a link sitting in the open
-          reads as something you have to deal with, and it's the one string
-          that shouldn't be read off a shared screen. The button copies it.
-        */}
+        {/* Invite URL never appears on the page — the button copies it instead. */}
         {inviteUrl ? (
           <span className="flex items-center gap-2">
-            {/* Named invites first (ticket 146): asking a friend you already
-                have is one tap, and the link is the fallback for everyone
-                else. Both are the same admin power (rule 6). */}
+            {/* Named invites first (ticket 146), link as fallback; both the same admin power (rule 6). */}
             <Sheet
               trigger="Invite friends"
               title="Invite friends"
@@ -113,8 +99,7 @@ export function TripRoster({
             className="flex items-center gap-2 border-b border-dotted border-rule-strong py-1.5 last:border-b-0"
           >
             <span className="flex min-w-0 flex-1 items-center gap-2 text-sm">
-              {/* Every face is a way into that person's profile (ticket 46) —
-                  sharing this trip puts you in their trip-members ring. */}
+              {/* Every face links to that person's profile (ticket 46). */}
               <PersonLink
                 userId={m.userId}
                 name={m.name}
@@ -131,9 +116,7 @@ export function TripRoster({
                   ) : null}
                   {m.role === "admin" ? <Badge tone="marine">Admin</Badge> : null}
                 </span>
-                {/* Dietary never shows on a profile page — it shows here, where
-                    a group picking somewhere to eat needs it (ticket 46), and
-                    only for people who chose to share it. */}
+                {/* Dietary never shows on a profile page, only here (ticket 46). */}
                 {m.dietary ? (
                   <span className="block truncate text-xs text-ink-faint">
                     {m.dietary}
@@ -142,9 +125,7 @@ export function TripRoster({
               </span>
             </span>
 
-            {/* Someone you're planning a trip with is someone you can ask
-                (ticket 96) — the same control the profile page carries, cut
-                down to fit a row. Nothing on your own row. */}
+            {/* Same control as the profile page, cut down to fit a row (ticket 96). */}
             {m.userId !== viewerId ? (
               <FriendButton
                 userId={m.userId}
@@ -154,17 +135,8 @@ export function TripRoster({
               />
             ) : null}
 
-            {/*
-              Everything you do *to* someone lives behind one triple-dot
-              (ticket 125). The row used to end in a bell, a boot and — for an
-              admin — a Promote button a screen away in Trip settings, which is
-              three or four targets on a line whose actual job is to say who is
-              coming. Nudging is what most people came for, so it leads.
-
-              Nothing on your own row: you can't chase yourself, leaving a trip
-              isn't a kick, and an admin booting themselves out of their own
-              trip is a foot-gun rather than a feature.
-            */}
+            {/* Everything done *to* someone behind one triple-dot (ticket 125).
+                Nothing on your own row — can't chase yourself, and self-kick is a foot-gun. */}
             {m.userId !== viewerId ? (
               <Menu label={`Actions for ${m.name}`}>
                 <Sheet
@@ -173,8 +145,7 @@ export function TripRoster({
                   triggerClassName={menuItemClass}
                   title={`Nudge ${m.name}`}
                 >
-                  {/* A real Server Action ref, so it survives the server→client
-                     boundary — a wrapping closure would not. */}
+                  {/* Real Server Action ref — a wrapping closure wouldn't survive the boundary. */}
                   <form action={sendNudge}>
                     <input type="hidden" name="tripId" value={tripId} />
                     <input type="hidden" name="toUserId" value={m.userId} />
@@ -199,9 +170,7 @@ export function TripRoster({
                   </form>
                 </Sheet>
 
-                {/* Promote and kick are two of the four admin powers
-                    (CLAUDE.md rule 6); both stay gated server-side, and
-                    rendering them conditionally here is presentation. */}
+                {/* Gated server-side; this is presentation only (rule 6). */}
                 {isAdmin && m.role !== "admin" ? (
                   <form action={promoteMember}>
                     <input type="hidden" name="tripId" value={tripId} />
@@ -239,11 +208,7 @@ export function TripRoster({
             )}
           </li>
         ))}
-        {/* Asked, not answered (ticket 146). In the same list rather than a
-            panel of its own — "who's going" is one question, and an invite out
-            is part of the answer. Muted and captioned, never a face in the
-            count: nobody here is on the trip yet, and the word carries the
-            state rather than the grey doing it alone. */}
+        {/* Asked, not answered (ticket 146) — same list, not a separate panel. */}
         {pendingInvitees.map((p) => (
           <li
             key={p.userId}

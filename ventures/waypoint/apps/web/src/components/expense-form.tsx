@@ -1,27 +1,11 @@
 "use client";
 
-/**
- * The add/edit expense form (ticket 16, re-modelled by ticket 85).
- *
- * There used to be a split-type picker — even / exact / percentage / shares —
- * answered on every single expense before you could say who was in it. There
- * is one model now: everyone in the cost holds **shares** of it, and anyone
- * whose number is fixed can be **pinned** to an amount instead, with the rest
- * spreading over whoever is still on shares. Even is everyone on one share;
- * "exact amounts" is everyone pinned. Nothing is unrepresentable that was
- * representable before, and the common case asks nothing.
- *
- * Excluding someone is a tap, not a sum: the row toggles out and stops being a
- * participant entirely (that's ticket 85's direction A, kept). Setting a person
- * to zero was the old way to do it and read as "owes nothing" rather than
- * "wasn't there".
- *
- * The amounts down the right are a live readout only — `resolveWeightedSplit`
- * plus `computeSplits` on the server are the source of truth, and their error
- * strings are shown verbatim on failure. The arithmetic here deliberately
- * mirrors theirs, remainder pennies included, so the preview doesn't disagree
- * with what gets saved.
- */
+// Add/edit expense form (ticket 16, re-modelled by ticket 85). One model:
+// everyone holds shares of the cost, anyone can be pinned to a fixed amount
+// instead, the rest spread over remaining shares. Excluding someone removes
+// them as a participant entirely (direction A) rather than pinning to zero.
+// The readout mirrors resolveWeightedSplit + computeSplits (remainder pennies
+// included) so it doesn't disagree with what the server actually saves.
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 
 import type { ActionState } from "@/app/trip/[id]/money/actions";
@@ -55,7 +39,6 @@ export type ExistingExpense = {
   splits: { userId: string; owedAmountMinor: number }[];
 };
 
-/** One person's row: in or out, how many shares, and a pin if they have one. */
 type Row = { shares: number; pin: string };
 
 export function ExpenseForm({
@@ -79,17 +62,14 @@ export function ExpenseForm({
 }) {
   const [state, formAction] = useActionState<ActionState, FormData>(action, {});
   const submitted = useRef(false);
-  // The sheet around this form is told to stay open on submit, so that a
-  // refused split ("the pinned amounts come to more than the total") is still
-  // on screen to read. Closing it is this form's job, once the save lands.
+  // Sheet stays open on submit so a refused split is still readable; this form
+  // closes it once the save lands.
   const sheetClose = useSheetClose();
   const done = onDone ?? sheetClose ?? undefined;
 
-  // Close the sheet once a submission comes *back* with no error. Keyed on the
-  // state object changing identity, not on its contents: `onDone` is a fresh
-  // closure from the sheet on every render, so a contents-only check re-fired
-  // this effect mid-submission and slammed the sheet shut while the action was
-  // still running — losing the error it was about to report.
+  // Keyed on state identity not contents: onDone is a fresh closure every
+  // render, so a contents-only check re-fired this mid-submission and closed
+  // the sheet before the error came back.
   const seen = useRef(state);
   useEffect(() => {
     if (state === seen.current) return;
@@ -107,12 +87,8 @@ export function ExpenseForm({
     new Set(expense ? expense.splits.map((s) => s.userId) : members.map((m) => m.userId)),
   );
 
-  /*
-   * Reopening an expense that predates the one model: an even or shares split
-   * comes back as shares, and anything the old picker could express only as
-   * fixed numbers — exact amounts, percentages of a total — comes back pinned.
-   * Editing then works the same way for old rows as for new ones.
-   */
+  // Pre-one-model expenses: even/shares comes back as shares, exact/percentage
+  // comes back pinned.
   const [rows, setRows] = useState<Record<string, Row>>(() => {
     const pinned = expense?.splitType === "exact" || expense?.splitType === "percentage";
     const initial: Record<string, Row> = {};
@@ -149,7 +125,6 @@ export function ExpenseForm({
 
   const preview = useMemo(
     () => previewSplit(amountMinor, participants.map((p) => ({ userId: p.userId, ...row(p.userId) }))),
-    // `rows`/`checked` are what `row`/`participants` are derived from.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [amountMinor, rows, checked, members],
   );
@@ -239,8 +214,6 @@ export function ExpenseForm({
                     isIn ? "border-rule-strong bg-sheet" : "border-dashed border-rule",
                   )}
                 >
-                  {/* In or out is the first thing on the row, and says which it
-                      is in a word — not by colour, and not by a zero in a box. */}
                   <Button
                     type="button"
                     variant="ghost"
@@ -316,9 +289,7 @@ export function ExpenseForm({
           </Stack>
         </Field>
 
-        {/* One line saying whether the money is all accounted for. It's the
-            same question the server asks; getting it wrong here is a nudge,
-            not a block — the action is what refuses. */}
+        {/* Nudge only — the action, not this readout, is what refuses. */}
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-dotted border-rule-strong pt-2 text-sm text-ink-soft">
           <span>
             {participants.length === 0
@@ -357,11 +328,8 @@ export function ExpenseForm({
   );
 }
 
-/**
- * What each person ends up owing, for the readout only. Mirrors
- * `resolveWeightedSplit` + `computeSplits`: pins come off the top, the rest
- * spreads by shares, and the odd penny goes to the largest fractional parts.
- */
+// Readout only, mirrors resolveWeightedSplit + computeSplits: pins come off
+// the top, the rest spreads by shares, odd penny to the largest fractions.
 function previewSplit(
   amountMinor: number,
   rows: { userId: string; shares: number; pin: string }[],
@@ -369,8 +337,7 @@ function previewSplit(
   amounts: Record<string, number>;
   allocated: number;
   leftover: number;
-  /** Set only when this is the plain even case, so the readout can say it. */
-  evenEach: number | null;
+  evenEach: number | null; // set only in the plain even case
 } {
   const amounts: Record<string, number> = {};
   if (rows.length === 0) return { amounts, allocated: 0, leftover: amountMinor, evenEach: null };

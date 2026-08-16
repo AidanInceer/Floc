@@ -1,11 +1,7 @@
 /**
  * /invite/[token] — pre-auth teaser (ticket 01 step 2, ticket 05, ticket 19).
- *
- * How much shows scales with trip progress:
- *   bare shell (name + member count) → dates if set → idea count →
- *   route outline if days exist.
- * Never reveals member emails, expense amounts, or note bodies pre-auth —
- * those need membership, not just the link.
+ * Shows scale with trip progress; never reveals member emails, expense
+ * amounts, or note bodies pre-auth — those need membership, not just the link.
  */
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
@@ -33,16 +29,10 @@ import { SubmitButton } from "@/components/client-ui";
 import { joinTrip } from "./actions";
 
 /**
- * The link names the trip (ticket 147).
- *
- * The URL itself stays opaque — the token is the only thing standing between a
- * stranger and the teaser, so putting the trip's name in the path would leak it
- * to every proxy and history the link passes through. The *page* carries the
- * context instead, and this is the half of it that survives being pasted into
- * a chat: the tab title and the link preview.
- *
- * A missing trip gets the generic title, not a 404 shout — `notFound()` below
- * is what answers a dead token, and metadata shouldn't answer it first.
+ * The link names the trip (ticket 147). URL stays opaque — putting the name in
+ * the path would leak it to every proxy/history the link passes through — so
+ * the page carries it instead, in the tab title and link preview. A missing
+ * trip gets the generic title; `notFound()` below is what answers a dead token.
  */
 export async function generateMetadata({
   params,
@@ -62,8 +52,7 @@ export async function generateMetadata({
     title,
     description,
     openGraph: { title, description },
-    // A trip invite is for the group, not for a search index.
-    robots: { index: false, follow: false },
+    robots: { index: false, follow: false }, // for the group, not a search index
   };
 }
 
@@ -79,38 +68,28 @@ export default async function InvitePage({
 
   const session = await getSession();
 
-  // Already a member: the teaser has nothing left to offer them.
+  // Already a member: nothing left to offer them.
   if (session?.user && (await isLiveMember(found.id, session.user.id))) {
     redirect(`/trip/${found.id}/overview`);
   }
 
-  // The three teaser reads depend only on `found.id`, so they go out together.
-  // This is the first page an invited stranger ever sees and it was paying
-  // three serial round trips to build one paragraph of counts.
+  // Three independent reads, was three serial round trips for one paragraph.
   const [memberCount, ideaCount, days] = await Promise.all([
     countMembers(found.id),
     countIdeas(found.id),
     listRouteDays(found.id),
   ]);
 
-  // Consecutive days sharing an overnight place collapse into one "stop",
-  // outline only — no times, notes or per-day detail (schema comment on `day`).
+  // Consecutive days sharing an overnight place collapse into one "stop".
   const stops: string[] = [];
   for (const d of days) {
     const label = d.placeName ?? "Unset stop";
     if (stops[stops.length - 1] !== label) stops.push(label);
   }
 
-  /*
-   * Who is doing the inviting (ticket 147). Two different people can be the
-   * honest answer, so the page prefers the specific one:
-   *
-   *  - Somebody signed in who was asked onto this trip **by name** (ticket 146)
-   *    has a real inviter, and naming them is what makes the link recognisable.
-   *  - Everyone else is holding a link that anybody could have forwarded, so
-   *    the most we can truthfully say is who started the trip. Claiming they
-   *    sent *this* link would be a guess.
-   */
+  // Who's inviting (ticket 147): a named invite (ticket 146) has a real
+  // inviter; anyone else holds a forwardable link, so naming a specific
+  // sender would be a guess — the trip's starter is the most we can say.
   const namedInvite = session?.user
     ? await findPendingInvite(found.id, session.user.id)
     : undefined;
@@ -131,9 +110,6 @@ export default async function InvitePage({
           />
           <Stack gap={4} className="p-5">
             <div>
-              {/* The trip's name is the headline — the whole point of ticket
-                  147 is that this page, not the opaque URL, is what says what
-                  you're being asked to join. */}
               <h1 className="font-display text-2xl font-semibold">{found.name}</h1>
               <p className="mt-1 text-sm text-ink-soft">
                 {found.hostName ? `Started by ${found.hostName} — ` : null}

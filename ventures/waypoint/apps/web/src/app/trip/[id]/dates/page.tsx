@@ -1,20 +1,12 @@
 /**
- * Dates tab — where a trip stops being "sometime in the spring".
- *
- * A trip is allowed to exist with no dates at all (`trip.start_date` is
- * nullable, and creating one without them is the normal case), so this is the
- * surface that decides them: everyone paints the days they could do, the group
- * view shows where that overlaps, and one form commits a window. It does not
- * wait for a full house: the dates can be set with half the group still
- * ignoring the thread, and who hasn't answered is a line of faces on the
- * calendar's header rather than anything blocking.
- *
- * Availability used to be a three-column table at the bottom of the Ideas tab
- * with a one-date-at-a-time `<input type="date">`; it moved here whole.
+ * Dates tab — the surface that decides a trip's window (undated is the normal
+ * start, rule 9): everyone paints days they could do, the group view shows the
+ * overlap, one form commits. Never waits for a full house.
  */
 import { requireTripAccess } from "@/server/access";
 import { listAvailability } from "@/server/membership";
 import { listDayLoads } from "@/server/itinerary";
+import { getTripForecast } from "@/server/weather";
 import { monthOf, thisMonth } from "@/lib/availability";
 import { formatDateRange, nightsBetween } from "@/lib/dates";
 import {
@@ -44,8 +36,7 @@ import {
   setTripDates,
 } from "./actions";
 
-/** Three months at a time — enough to see a season without endless paging. */
-const MONTHS_SHOWN = 3;
+const MONTHS_SHOWN = 1; // one month, arrows page the rest
 
 export default async function DatesPage({
   params,
@@ -60,9 +51,11 @@ export default async function DatesPage({
   const { trip, viewer, members } = access;
   const tripId = trip.id;
 
-  const [rows, dayLoads] = await Promise.all([
+  const [rows, dayLoads, forecast] = await Promise.all([
     listAvailability(tripId),
     listDayLoads(tripId),
+    // Null → the calendar offers no Weather mode (ticket 148).
+    getTripForecast(tripId),
   ]);
 
   const free = rows.filter((r) => r.available);
@@ -74,9 +67,8 @@ export default async function DatesPage({
   const answered = new Set(free.map((r) => r.userId));
   const waitingOn = members.filter((m) => !answered.has(m.userId));
 
-  // Open on the trip's own month once it has one, otherwise on the earliest
-  // month anybody has marked, otherwise on now. `?from=` overrides all three
-  // so paging is linkable.
+  // Trip's month, else earliest marked month, else now. `?from=` overrides so
+  // paging is linkable.
   const firstMonth =
     from && /^\d{4}-\d{2}$/.test(from)
       ? from
@@ -88,32 +80,21 @@ export default async function DatesPage({
 
   const hasDates = !!trip.startDate && !!trip.endDate;
 
-  // What "Reset dates" would cost: an empty window keeps no day at all, so
-  // this is the whole itinerary (ticket 140). Null when there is nothing on it.
+  // "Reset dates" cost: an empty window keeps no day, so this is the whole
+  // itinerary (ticket 140). Null when there's nothing on it.
   const resetCost = windowCost(dayLoads, null, null);
   const resetNoun = windowCostNoun(resetCost);
   const resetLabel = windowCostLabel(resetCost);
 
   return (
     <Page wide flush>
-      {/*
-       * The dates are the page's headline, not a card of their own (ticket
-       * 128). There was a "The dates" panel above the calendar holding a range
-       * and a nights count; a whole bordered card to say eight words, directly
-       * above the calendar that sets them. The window belongs in the header
-       * with the title, where you read it without being asked to.
-       */}
+      {/* The window is the page headline, not a card of its own (ticket 128). */}
       <PageHeader
         title="Dates"
         subtitle={
           hasDates ? (
-            /*
-             * Same 14px as the undated line, not a larger one (ticket 133).
-             * A `text-base` range made the header a couple of pixels taller
-             * than "Not settled yet…", so committing or clearing the dates
-             * nudged the whole page down — a layout shift as the answer to
-             * a click that was about the dates, not about the page.
-             */
+            // Same 14px as the undated line: a larger range shifted the whole
+            // page down on commit/clear (ticket 133).
             <>
               <span className="nums text-ink">
                 {formatDateRange(trip.startDate, trip.endDate)}
@@ -133,23 +114,14 @@ export default async function DatesPage({
           <CardHeader
             title="Who can do when"
             hint="Your own days, or the whole group's overlap."
-            /*
-             * Everything that hangs off the calendar sits on the calendar's
-             * own header (ticket 133): who hasn't answered, then the menu.
-             *
-             * The waiting-on list used to be a second card below this one,
-             * which appeared and disappeared as people answered and moved
-             * the page under whoever was mid-decision. As a line of faces on
-             * a header that is always there, it can't push anything.
-             */
+            // Who's-still-to-answer + menu live on the always-present header, so
+            // answering can't push the page around (ticket 133).
             actions={
               <div className="flex items-center gap-3">
                 {waitingOn.length > 0 ? (
                   <div className="flex items-center gap-2">
-                    {/* `leading-none`, and faces the same 26px as the menu
-                        trigger beside them: the mono label carries its own
-                        line-height, which left the caps sitting a pixel or
-                        two above the middle of the row. */}
+                    {/* `leading-none`: the mono label's own line-height sat the
+                        caps above the row's middle. */}
                     <span className="typed leading-none text-ink-faint">
                       Still to say
                     </span>
@@ -164,22 +136,14 @@ export default async function DatesPage({
                   </div>
                 ) : null}
                 {/*
-                 * Always rendered, both verbs always listed — disabled when
-                 * there is nothing to undo rather than absent (ticket 133).
-                 * A control that comes and goes has to be hunted for; one
-                 * that is always in the same corner is somewhere you look.
+                 * Both verbs always listed, disabled rather than absent, so
+                 * they're where you look (ticket 133).
                  *
-                 * "Clear availability" has no confirm dialog: opening a menu
-                 * and picking a named verb is already deliberate, and you can
-                 * put your marks back by painting them again.
-                 *
-                 * "Reset dates" is the one that grew one (ticket 140). The
-                 * window is the itinerary's extent now, so resetting it takes
-                 * every day and every event with it — that is not something
-                 * you can put back by setting the dates again, and the dialog
-                 * names the number before it happens. It only appears when
-                 * there is something to lose: an undated trip, or a dated one
-                 * with a bare itinerary, still resets on one click.
+                 * "Reset dates" confirms because the window is the itinerary's
+                 * extent — resetting takes every day and event with it, which
+                 * setting the dates again can't undo (ticket 140). The dialog
+                 * only appears when there's something to lose. "Clear
+                 * availability" doesn't: marks paint straight back.
                  */}
                 <Menu label="Dates actions">
                   <form action={clearTripDates.bind(null, tripId)}>
@@ -217,13 +181,8 @@ export default async function DatesPage({
             }
           />
           <div className="p-4">
-            {/*
-             * No "best overlap so far" line (ticket 134). It said in words
-             * what the grid under it draws: the run of green is the overlap,
-             * and reading a sentence to find out where to look is slower than
-             * looking. It also came and went with the first mark saved, which
-             * moved the whole card as you used it.
-             */}
+            {/* No "best overlap so far" line — the green run is the overlap
+                (ticket 134, show-don't-narrate). */}
             <AvailabilityCalendar
               firstMonth={firstMonth}
               monthCount={MONTHS_SHOWN}
@@ -233,6 +192,7 @@ export default async function DatesPage({
               tripStart={trip.startDate}
               tripEnd={trip.endDate}
               dayLoads={dayLoads}
+              weather={forecast}
               save={saveAvailability.bind(null, tripId)}
               saveDates={setTripDates.bind(null, tripId)}
             />

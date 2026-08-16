@@ -1,28 +1,7 @@
 /**
- * The membership aggregate — the trip row and who is on it (ticket 108):
- * `trip`, `trip_membership`, `availability` and `nudge`.
- *
- * These are one aggregate rather than four because the interesting writes span
- * them. Leaving a trip soft-deletes a membership, may promote a successor, and
- * may archive the trip — three tables, one decision, and it must not be
- * possible to do two of the three. Creating a trip is a row plus its first
- * admin. Availability is here for the same reason the Dates tab exists: it is
- * the group's answer to "when can you come", which is a fact about members.
- *
- * The rules it owns:
- *
- * - **Soft-delete (rule 8).** Every membership write filters
- *   `isNull(deletedAt)` so a kicked member's dead row is never revived by a
- *   promote — except `joinByToken`, which revives it *deliberately* and says so.
- * - **`LIMITS.members`** on the roster read, which lives in `server/access.ts`
- *   because `requireTripAccess` loads it as part of the scope object.
- * - **Revalidation.** The three sets — the trip header (which is in the layout,
- *   so every tab), the trip lists, and the overview — are named functions here
- *   rather than the twenty-odd loose `revalidatePath` calls they replace.
- * - **Succession (rule 6).** `leaveTripAs` is the only place a role changes
- *   without an admin acting, and it is one function so the "last admin out
- *   promotes the earliest joiner, last member out archives" pair can't come
- *   apart.
+ * `trip` + `trip_membership` + `availability` + `nudge` as one aggregate
+ * (ticket 108) — leaving spans three tables and must not be split.
+ * Soft-delete filtered everywhere except `joinByToken`, which revives deliberately.
  */
 import "server-only";
 
@@ -64,8 +43,6 @@ export function revalidateProfileTrips(): void {
   revalidatePath("/profile");
 }
 
-/* ---------------------------------------------------------------- the trip */
-
 export type TripListRow = {
   id: number;
   name: string;
@@ -75,14 +52,7 @@ export type TripListRow = {
   role: TripRole;
 };
 
-/**
- * The trips one account is on (ticket 118) — `/trips` and `/trips/archived` are
- * the same read either side of one predicate, which is exactly why the
- * predicate is a parameter here rather than a second query on a second page.
- *
- * Ceiling: `LIMITS.tripsPerUser`, the same number the account-deletion walk
- * uses, because they are bounded by the same fact.
- */
+/** `archived` is a param so /trips and /trips/archived share one query (ticket 118). */
 export async function listTripsFor(
   userId: string,
   { archived }: { archived: boolean },
@@ -111,7 +81,7 @@ export async function listTripsFor(
   return bounded(rows, "tripsPerUser", `user ${userId}`);
 }
 
-/** How many people are on a trip — the one roster fact the invite teaser may show. */
+/** Roster count — the one fact the invite teaser may show. */
 export async function countMembers(tripId: number): Promise<number> {
   const [row] = await db
     .select({ value: count() })
@@ -122,11 +92,7 @@ export async function countMembers(tripId: number): Promise<number> {
   return row?.value ?? 0;
 }
 
-/**
- * Creates the trip and its first membership. Ticket 01 step 1: the smallest
- * thing that exists at creation is a name, the creator as admin, and an empty
- * idea board — nothing else.
- */
+/** Smallest thing that exists at creation (ticket 01). */
 export async function createTripWithAdmin(input: {
   name: string;
   startDate: string | null;
@@ -140,8 +106,7 @@ export async function createTripWithAdmin(input: {
       startDate: input.startDate,
       endDate: input.endDate,
       createdBy: input.createdBy,
-      // Never derived from the trip id — an unguessable share token (ticket 05).
-      inviteToken: crypto.randomUUID(),
+      inviteToken: crypto.randomUUID(), // unguessable, never derived from id (ticket 05)
     })
     .returning({ id: trip.id });
 
@@ -196,18 +161,7 @@ export async function softDeleteTrip(tripId: number): Promise<void> {
     .where(eq(trip.id, tripId));
 }
 
-/* ---------------------------------------------------------- the invite link */
-
-/**
- * The trip behind an invite link — id for the join action, and the fields the
- * pre-auth teaser is allowed to show (ticket 118). Nothing about the roster,
- * the money, or anyone's notes: those need membership, not a link.
- *
- * The host's name joined on in ticket 147: an invite that names neither the
- * trip nor a person is a bare URL asking for a signup. Their *name* only — not
- * their email, not their id — which is the same thing the roster shows anyone
- * who follows the link through.
- */
+/** Pre-auth teaser fields only (ticket 118) — no roster/money/notes; host name only, not email/id (ticket 147). */
 export type InviteTrip = {
   id: number;
   name: string;
@@ -244,7 +198,7 @@ export async function findTripByInviteToken(
   };
 }
 
-/** Whether someone is on the trip right now — the teaser's "you're already in" check. */
+/** The teaser's "you're already in" check. */
 export async function isLiveMember(tripId: number, userId: string): Promise<boolean> {
   const row = await db
     .select({ userId: tripMembership.userId })
@@ -254,40 +208,25 @@ export async function isLiveMember(tripId: number, userId: string): Promise<bool
   return !!row;
 }
 
-/**
- * Joins by link. The composite key means a previously kicked member already has
- * a row, just soft-deleted — so this must **revive** it rather than no-op, or a
- * kick would permanently bar someone the group has since re-invited. This is
- * the one membership write that deliberately reaches past `deletedAt`.
- */
+/** Must revive a soft-deleted row rather than no-op, or a kick would permanently bar a re-invited member — the one write that deliberately reaches past `deletedAt`. */
 export async function joinByToken(tripId: number, userId: string): Promise<void> {
   await db
     .insert(tripMembership)
     .values({ tripId, userId, role: "member" })
     .onConflictDoUpdate({
       target: [tripMembership.tripId, tripMembership.userId],
-      // `map_prompt_at` clears with the rejoin: rejoining answers the "keep
-      // this trip's countries?" question by making it moot (ticket 95).
+      // mapPromptAt clears: rejoining moots the "keep these countries?" question (ticket 95)
       set: { deletedAt: null, mapPromptAt: null, lastModifiedAt: new Date() },
     });
 }
 
 /* ------------------------------------------------------- the named invite */
 /*
- * The other half of ticket 146. The link half above is anonymous by design —
- * whoever holds the token joins — and this one is the opposite: a named person
- * asked a named friend, and the invitee gets to say no.
- *
- * The rules this aggregate owns, so no caller states them twice:
- *
- * - **An invite is not a membership.** Nothing here writes `trip_membership`
- *   except `acceptInvite`, which goes through `joinByToken`'s upsert for the
- *   same reason it exists: a previously kicked member has a soft-deleted row.
- * - **Upsert, never insert.** `trip_invite_pair_idx` ignores `deleted_at`, so
- *   re-inviting somebody who declined has to land on the row they declined.
- * - **You cannot invite a member.** Callers filter the roster out of the
- *   picker; `inviteToTrip` filters it again, because the form is reachable
- *   without the page around it (ticket 113).
+ * Other half of ticket 146 — a named ask, not the anonymous link above.
+ * Rules owned here: an invite is not a membership (only accept writes
+ * trip_membership, via joinByToken's upsert); upsert never insert, since
+ * `trip_invite_pair_idx` ignores deleted_at; `inviteToTrip` re-filters the
+ * roster because the form is reachable without its page (ticket 113).
  */
 
 /** One open invite, as the invitee's own /trips banner needs to render it. */
@@ -302,13 +241,7 @@ export type PendingInvite = {
   invitedAt: Date;
 };
 
-/**
- * Opens (or re-opens) a pending invite per friend, in one statement.
- *
- * Anyone already on the roster is dropped rather than rejected: inviting three
- * friends where one is already in is a normal mistake, not an error worth
- * failing the other two over.
- */
+/** Already-on-roster ids are dropped, not rejected — a normal mistake, not worth failing the others over. */
 export async function inviteToTrip(args: {
   tripId: number;
   fromUserId: string;
@@ -358,12 +291,7 @@ export async function inviteToTrip(args: {
   return toInvite.length;
 }
 
-/**
- * Everything waiting on one account (ticket 146) — the in-app notification, in
- * one query rather than a trip lookup per invite. Archived and soft-deleted
- * trips are filtered out here: an invite to a trip nobody can open any more is
- * not something to make somebody decide about.
- */
+/** Archived/soft-deleted trips filtered out — no deciding on an invite to a trip nobody can open (ticket 146). */
 export async function listPendingInvitesFor(
   userId: string,
 ): Promise<PendingInvite[]> {
@@ -408,11 +336,7 @@ export async function listPendingInvitesFor(
   }));
 }
 
-/**
- * Who has been asked onto this trip and hasn't answered — the pending rows
- * under the roster, and what keeps the friend picker from offering the same
- * person twice.
- */
+/** Keeps the friend picker from offering the same person twice. */
 export type PendingInvitee = {
   userId: string;
   name: string;
@@ -450,11 +374,7 @@ export async function listPendingInvitees(
   }));
 }
 
-/**
- * Just the number, for the badge on the chrome's Trips link. Its own count
- * query rather than `listPendingInvitesFor(...).length` — the root layout runs
- * this on every page in the app, and it has no use for the trips or the faces.
- */
+/** Own count query, not `listPendingInvitesFor(...).length` — root layout runs this every page. */
 export async function countPendingInvitesFor(userId: string): Promise<number> {
   const [row] = await db
     .select({ value: count() })
@@ -491,13 +411,7 @@ export async function findPendingInvite(tripId: number, userId: string) {
     .get();
 }
 
-/**
- * Closes an open invite either way.
- *
- * `accepted` is also written by the link path: somebody who was invited by name
- * and then joined through the shared URL has answered the invite, and leaving
- * it pending would keep nagging them about a trip they are already on.
- */
+/** `accepted` also written by the link path — joining via URL answers a name invite too, else it'd keep nagging. */
 export async function settleInvite(
   tripId: number,
   userId: string,
@@ -516,14 +430,7 @@ export async function settleInvite(
     );
 }
 
-/**
- * An open invite is a thing waiting on you, so it shows on /trips.
- *
- * Nothing for the chrome's badge: `AppChrome` sits in the root layout, which
- * reads the session off `headers()` and is therefore never cached in the first
- * place. A `revalidatePath("/", "layout")` here would throw away every page's
- * cache to refresh a number that was already being recomputed.
- */
+/** Not the chrome badge — `AppChrome` reads `headers()` and is never cached, so a layout revalidate here would just waste every page's cache. */
 export function revalidateInvites(): void {
   revalidatePath("/trips");
 }
@@ -539,14 +446,7 @@ function liveMembership(tripId: number, userId: string) {
   );
 }
 
-/**
- * Removes someone from the roster — a kick, or their own exit.
- *
- * Never touches their user row. `map_prompt_at` parks one question on their
- * travel map: this trip's countries stop being derived now, do they want to
- * keep them (ticket 95)? Asked of *them*, later — nobody may answer it on
- * their behalf, which is why leaving and being kicked leave the same mark.
- */
+/** `mapPromptAt` parks the "keep these countries?" question for later (ticket 95) — leaving and being kicked leave the same mark since only they can answer it. */
 export async function removeMembership(
   tripId: number,
   userId: string,
@@ -568,18 +468,9 @@ export async function setMemberRoleAdmin(
 }
 
 /**
- * Leaving (ticket 65), with both consequences applied together so they cannot
- * come apart:
- *
- *  - **Succession.** If the leaver is the last admin and others remain, admin
- *    passes to whoever joined earliest. Arbitrary but stable and explicable,
- *    and any admin can promote someone else afterwards. Rule 6 keeps the
- *    *powers* at four; this is succession, not a fifth power.
- *  - **The last one out archives the trip.** A trip with no members can't be
- *    reached by anybody, so leaving it merely un-listed would strand the rows.
- *    It is NOT a delete — nothing is soft-deleted here, so the trip is still
- *    there if a member is ever restored to it. Already-archived keeps its
- *    original date: an archive, like an unlock, never regresses.
+ * Leaving (ticket 65) — succession and archiving applied together so they can't come apart.
+ * Last admin leaving with others remaining: admin passes to earliest-joined (succession, not
+ * a fifth power — rule 6). Last member out archives, never deletes, the trip.
  */
 export async function leaveTripAs(args: {
   tripId: number;
@@ -619,27 +510,14 @@ export async function insertNudge(args: {
 
 /* -------------------------------------------------------- the availability */
 
-/**
- * Marks one person free (or not) on a batch of dates in one statement.
- *
- * Unmarking writes `available: false` rather than soft-deleting the row: the
- * unique index is on (trip, user, date) and ignores `deleted_at`, so a
- * soft-deleted row would block the person from ever marking that day again.
- * The tally treats `false` and "no row" the same, so nothing downstream cares.
- */
+/** Unmarking writes `available: false` rather than soft-deleting — the unique index ignores `deletedAt`, so a soft-deleted row would block re-marking that day. */
 export type AvailabilityRow = {
   userId: string;
   date: string;
   available: boolean;
 };
 
-/**
- * Everyone's marks for the trip (ticket 118) — `LIMITS.availability` is
- * members × days, capped, and this is where it takes effect.
- *
- * `false` rows come back too: Dates needs them to tell "said no" from "hasn't
- * looked", and `bestWindow` is handed the lot.
- */
+/** `false` rows come back too — Dates needs them to tell "said no" from "hasn't looked" (ticket 118). */
 export async function listAvailability(tripId: number): Promise<AvailabilityRow[]> {
   const rows = await db
     .select({
@@ -708,11 +586,7 @@ export async function hasPendingMapPrompt(
   return row !== undefined;
 }
 
-/**
- * Clears the question. Deliberately not filtered on `deletedAt`: the row this
- * targets belongs to somebody who has *left* the trip, so it is soft-deleted by
- * definition — which is exactly why `removeMembership` set the flag.
- */
+/** Deliberately not filtered on `deletedAt` — the target row belongs to someone who's already left. */
 export async function clearMapPrompt(
   tripId: number,
   userId: string,
@@ -728,18 +602,10 @@ export async function clearMapPrompt(
 /* ------------------------------------------------- leaving every trip at once */
 
 /**
- * The roster half of deleting an account (ticket 06): hand each trip over
- * where it can be handed over, then drop every membership.
- *
- * Same succession rule as `leaveTripAs`, and here for the same reason — the
- * promote and the departure must not come apart. The difference is only that
- * this walks every trip at once and does *not* archive an emptied one: the
- * account is going, but the trip's other rows (ideas, expenses, notes) stay
- * attributed to a "deleted user" placeholder, and archiving on their behalf
- * would be a decision nobody made.
- *
- * A trip whose only member was the leaver is left with no admin. That is an
- * accepted v1 edge case, written down here rather than papered over.
+ * Roster half of account deletion (ticket 06) — same succession rule as `leaveTripAs`,
+ * but walks every trip at once and does not archive an emptied one (other rows stay
+ * attributed to a placeholder; archiving on the account's behalf is nobody's decision).
+ * A trip left with no admin is an accepted v1 edge case.
  */
 export async function handOverAndLeaveAllTrips(userId: string): Promise<void> {
   const mine = await db
@@ -754,8 +620,7 @@ export async function handOverAndLeaveAllTrips(userId: string): Promise<void> {
     .map((m) => m.tripId);
 
   if (adminTripIds.length > 0) {
-    // Everyone else on every trip they administer, in one read (ticket 114).
-    // This used to be two queries and a write *per trip*, serially, over HTTP.
+    // One read for every trip administered, not a query+write per trip (ticket 114).
     const others = await db
       .select({
         tripId: tripMembership.tripId,
@@ -782,8 +647,6 @@ export async function handOverAndLeaveAllTrips(userId: string): Promise<void> {
     const promotions: Promise<unknown>[] = [];
     for (const tripId of adminTripIds) {
       const roster = byTrip.get(tripId) ?? [];
-      // Not the sole admin — nothing to hand over. No other members at all —
-      // the trip is left without an admin, an accepted v1 edge case (ticket 06).
       if (roster.length === 0 || roster.some((m) => m.role === "admin")) continue;
 
       const heir = roster.reduce((earliest, m) =>
@@ -791,19 +654,11 @@ export async function handOverAndLeaveAllTrips(userId: string): Promise<void> {
       );
       promotions.push(setMemberRoleAdmin(tripId, heir.userId));
     }
-    // Distinct trips, so the promotions cannot race each other.
-    await Promise.all(promotions);
+    await Promise.all(promotions); // distinct trips, cannot race each other
   }
 
-  /*
-   * No `map_prompt_at` here, unlike `removeMembership` (ticket 114 flagged the
-   * divergence; this is the comment it asked for). That flag parks a question
-   * on somebody's travel map — "these countries stop being derived, keep them?"
-   * — to be answered later, by them. There is no later: the account is being
-   * deleted in the same request, and the profile that would ask is going with
-   * it. Setting it would leave an unanswerable question on a row nobody can
-   * reach.
-   */
+  // No mapPromptAt here unlike removeMembership: there's no later to answer it in —
+  // the account and its profile are both going in this same request (ticket 114).
   await db
     .update(tripMembership)
     .set({ deletedAt: new Date(), lastModifiedAt: new Date() })

@@ -1,12 +1,8 @@
 /**
  * Transactional email (ticket 08: Resend) and the v1 catalogue (ticket 20).
- *
  * Categories map 1:1 onto the four `user_profile.notify_*` booleans (ticket
- * 07). Genuinely transactional mail (an invite the recipient asked for by
- * tapping a link) always sends; everything else is suppressible.
- *
- * With no RESEND_API_KEY the send is logged to the server console instead —
- * so the whole flow is exercisable before the account exists.
+ * 07); transactional mail always sends, everything else is suppressible.
+ * With no RESEND_API_KEY the send is logged to the server console (rule 11).
  */
 import "server-only";
 
@@ -43,11 +39,9 @@ export function absoluteUrl(path: string) {
 }
 
 /**
- * One Resend client for the process, not one per message (ticket 111).
- *
- * The import stays dynamic so a build without the key never pulls the SDK in,
- * and the promise is memoised rather than the client so two concurrent sends
- * can't race two constructions.
+ * One Resend client for the process, not one per message (ticket 111). Import
+ * stays dynamic so a keyless build never pulls the SDK in; the promise (not
+ * the client) is memoised so concurrent sends can't race two constructions.
  */
 let resendClient: Promise<import("resend").Resend> | null = null;
 
@@ -63,9 +57,7 @@ async function deliver(email: OutboundEmail): Promise<boolean> {
   const key = process.env.RESEND_API_KEY;
 
   if (!key) {
-    // Deliberate dev fallback: never silently drop mail without a trace.
-    // The address is masked — the log has to say *which* mailbox without
-    // putting a full address in the server log (ticket 111).
+    // Dev fallback (rule 11); address is masked so no full address hits the server log (ticket 111).
     console.info(
       `[email:${email.category}] → ${maskAddress(email.to)}: ${email.subject}\n${email.lines.join("\n")}${
         email.cta ? `\n${email.cta.label}: ${email.cta.url}` : ""
@@ -85,14 +77,11 @@ async function deliver(email: OutboundEmail): Promise<boolean> {
 }
 
 /**
- * The one way out of the building (ticket 111).
- *
- * There were two entry points — `sendEmail` for one message, this for many —
- * and the singular one read `user_profile` per message, so a six-person expense
- * cost six round trips before a single mail left. One batched entry point does
- * both jobs: a single send is a batch of one, and the preference lookup is
- * always one query. Same rules, same defaults (missing profile → on,
- * transactional → always).
+ * The one send entry point (ticket 111) — used to be a singular `sendEmail`
+ * plus this, and the singular one read `user_profile` per message, costing six
+ * round trips on a six-person expense. Now a single send is just a batch of
+ * one, and the preference lookup is always one query. Defaults: missing
+ * profile → on, transactional → always sends.
  */
 export async function sendEmails(batch: OutboundEmail[]): Promise<void> {
   if (batch.length === 0) return;
@@ -115,7 +104,6 @@ export async function sendEmails(batch: OutboundEmail[]): Promise<void> {
         const profile = allowedByUser.get(email.toUserId);
         if (profile && !profile[CATEGORY_COLUMN[email.category]]) return Promise.resolve(false);
       }
-      // Preference already settled above, so the per-send lookup is skipped.
       return deliver(email);
     }),
   );
@@ -141,11 +129,9 @@ function renderShell(email: OutboundEmail) {
         email.cta.label,
       )}</a></p>`
     : "";
-  // Ticket 121: this was the app's fourth typeface — a UI sans nothing else
-  // used. Mail can't have the tokens (no stylesheet, and `--serif`'s first
-  // choices aren't installed on a mail client), but Georgia is in that stack
-  // and ships everywhere, so a Waypoint email now arrives set in the book's
-  // own voice rather than in a system dialog's.
+  // Georgia, not the design tokens (ticket 121) — mail has no stylesheet and
+  // `--serif`'s first choices aren't installed on mail clients; Georgia ships
+  // everywhere and matches the app's voice closer than a system dialog font.
   return `<div style="background:#f7f3ec;padding:24px;font-family:Georgia,'Times New Roman',serif;color:#17282d">
   <div style="max-width:520px;margin:0 auto;background:#fff;border:1px solid #e2dacc;border-radius:10px;padding:24px">
     <p style="margin:0 0 20px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:12px;color:#566a6e">Waypoint</p>
@@ -156,18 +142,11 @@ function renderShell(email: OutboundEmail) {
 }
 
 /**
- * The one interpolation in this file that wasn't escaped (ticket 113).
- *
- * Escaping alone would close the attribute-injection hole but not the other
- * one: `href="javascript:…"` needs no quotes to break out of. Every CTA URL is
- * app-constructed today, so neither is live — but a catalogue entry is one
- * caller away from taking a URL from somewhere else, and outbound mail is
- * exactly where you do not want to find that out.
- *
- * So the scheme is allow-listed, not sanitised: anything that isn't plainly
- * http(s) or a site-relative path degrades to the app's own base URL rather
- * than being rendered. A broken button in one email beats a live link in a
- * thousand (rule 11).
+ * The one un-escaped interpolation (ticket 113) — escaping alone wouldn't stop
+ * `href="javascript:…"`, which needs no quotes to break out. Every CTA URL is
+ * app-constructed today, but a catalogue entry is one caller away from an
+ * external URL, so the scheme is allow-listed: anything not plainly http(s) or
+ * site-relative degrades to the base URL instead of rendering (rule 11).
  */
 function safeUrl(url: string): string {
   if (url.startsWith("/")) return url;
@@ -175,7 +154,7 @@ function safeUrl(url: string): string {
     const parsed = new URL(url);
     if (parsed.protocol === "http:" || parsed.protocol === "https:") return url;
   } catch {
-    // Not a URL at all — fall through.
+    // not a URL at all
   }
   return "/";
 }
@@ -194,10 +173,7 @@ function escape(s: string) {
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* The catalogue (ticket 20) — five emails, all instant, no digests in v1      */
-/* -------------------------------------------------------------------------- */
-
+// The catalogue (ticket 20) — five emails, all instant, no digests in v1.
 export const emails = {
   /** Trigger: an admin shares the trip link to a named email address. */
   invite: (args: {

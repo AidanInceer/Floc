@@ -1,13 +1,9 @@
 "use server";
 
 /**
- * Friend request lifecycle (ticket 18). Requests are a single `friendship`
- * row with status "pending"/"accepted" and origin "request" — the
- * profile-bubble-tap flow from ticket 01 step 2 resolves here whichever way
- * the two people met.
- *
- * The writes are `server/friends.ts`'s (ticket 108); this file decides who may
- * open a request and what the other person is told.
+ * Friend request lifecycle (ticket 18). Writes live in `server/friends.ts`
+ * (ticket 108); this file decides who may open a request and what the other
+ * person is told.
  */
 import { after } from "next/server";
 
@@ -26,31 +22,20 @@ import {
 import { canSeeFriendsOf, relationTo } from "@/server/visibility";
 
 /**
- * Sends a friend request to someone you're already looking at — their profile,
- * or their row on a trip you share (ticket 96). This is the only way to open a
- * request: you meet people by sharing a trip, not by typing an email address,
- * so the old add-by-email form is gone.
- *
- * The id is never trusted on its own. `relationTo` re-checks that the target
- * is inside one of your rings, exactly as the profile page does — without it,
- * this action would hand back "is this a real account?" for any id posted at
- * it, which is the hole `/profile/<userId>` closed (ticket 46).
+ * The only way to open a request (ticket 96) — no add-by-email form. The id
+ * is never trusted alone: `relationTo` re-checks the target is inside one of
+ * your rings, or this becomes "is this a real account?" for any posted id
+ * (the hole `/profile/<userId>` closed, ticket 46).
  */
 export async function requestFriendById(formData: FormData): Promise<{ error?: string }> {
   const viewer = await requireUser();
   const targetId = String(formData.get("targetId") ?? "");
   if (!targetId || targetId === viewer.id) return {};
 
-  /*
-   * The second way in (ticket 145): somebody you met on a friend's friends
-   * list, who is in none of your rings and whose profile still 404s for you.
-   *
-   * `viaId` is the page you found them on, and it buys nothing on its own —
-   * the whole chain is re-derived here. Both halves have to be *accepted*
-   * friendships, and the middle person has to have been showing you their
-   * list in the first place, which is the check that keeps this from becoming
-   * "post any two ids and learn whether they know each other".
-   */
+  // Second way in (ticket 145): someone met via a friend's friends list, in
+  // none of your rings. `viaId` buys nothing alone — re-derived here, both
+  // halves accepted friendships, and the middle person must have been
+  // showing the list, else this becomes "post two ids, learn if they know each other".
   const viaId = String(formData.get("viaId") ?? "");
   const viaChain = viaId
     ? (await friendOfFriend(viewer.id, viaId, targetId)) &&
@@ -63,14 +48,12 @@ export async function requestFriendById(formData: FormData): Promise<{ error?: s
   const target = await findUserById(targetId);
   if (!target) return {};
 
-  // Already friends, or a request already sitting in one direction — refuse
-  // the duplicate quietly rather than explaining which case it is.
+  // Already friends, or a request already sitting one way — refuse quietly.
   if (await friendshipBetween(viewer.id, target.id)) return {};
 
   await openPendingRequest(viewer.id, target.id);
 
-  // The request exists once the row is written; telling them about it is a
-  // side effect and runs after the response (ticket 111).
+  // Notifying is a side effect, runs after the response (ticket 111).
   after(() =>
     sendEmails([
       emails.friendRequest({
@@ -82,8 +65,7 @@ export async function requestFriendById(formData: FormData): Promise<{ error?: s
   );
 
   revalidateFriendship(target.id);
-  // The button that sent this is on the middle person's page, not the
-  // target's, so that's the one that has to redraw.
+  // The button lives on the middle person's page, so that's what redraws.
   if (viaChain) revalidateFriendship(viaId);
   return {};
 }
@@ -110,13 +92,12 @@ export async function cancelRequest(formData: FormData): Promise<void> {
   const viewer = await requireUser();
   const targetId = String(formData.get("targetId") ?? "");
 
-  // The same write as declining, from the other end of the pair.
+  // Same write as declining, from the other end of the pair.
   await dropPendingRequest(viewer.id, targetId);
 
   revalidateFriendship(targetId);
 }
 
-/** Soft-delete either direction of an accepted friendship. */
 export async function removeFriend(formData: FormData): Promise<void> {
   const viewer = await requireUser();
   const otherId = String(formData.get("otherId") ?? "");

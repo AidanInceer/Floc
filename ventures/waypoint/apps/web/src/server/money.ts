@@ -1,28 +1,15 @@
 /**
- * The money aggregate — `expense` and `expense_split` (ticket 108).
+ * `expense` + `expense_split` (ticket 108). Splits are snapshots (rule 2):
+ * written once from the split type, never recalculated, so they survive a
+ * member leaving — `writeExpense` is the only write path, rewriting the
+ * expense and its whole split set in one transaction; no smaller "update
+ * splits" export exists to bypass that.
  *
- * The one rule worth the module on its own: **`expense_split` rows are
- * snapshots** (non-negotiable 2). They are written once from the split type and
- * never recalculated, so they survive the member they belong to leaving the
- * trip — and an edit therefore rewrites the expense *and its whole split set*
- * in a single transaction, never a partial-row merge. Before this module that
- * sequence was typed out twice, in `addExpense` and `updateExpense`, and there
- * was nothing stopping a third caller writing a split on its own.
+ * Also owns soft-delete on every read, the money tab's revalidation, and the
+ * `LIMITS.expenses`/`expenseSplits` ceilings.
  *
- * `writeExpense` below is the only way in. There is deliberately no exported
- * "update the splits" or "insert a split": the snapshot rule is enforced by
- * there being no smaller operation to reach for.
- *
- * Also owned here: soft-delete on every read (rule 8), the money tab's
- * revalidation, and the ceilings. `listExpenses` and `listSplits` (ticket 118)
- * are where `LIMITS.expenses` and `LIMITS.expenseSplits` finally take effect;
- * Money and Overview both read them, which is why they are two reads here and
- * not one `loadMoneyTab()` on the page. See `server/ideas.ts` for the seam.
- *
- * The arithmetic is *not* here — it is `lib/money.ts`, which is pure and
- * tested. This module stores what that module computed and nothing else, so
- * non-negotiable 1 (money is never a float) has exactly one home either side of
- * the seam: `computeSplits` decides the numbers, integer minor units carry them.
+ * Arithmetic lives in `lib/money.ts` (pure, tested) — this module only stores
+ * what that computed, keeping rule 1 (money is never a float) to one seam.
  */
 import "server-only";
 
@@ -39,11 +26,7 @@ export function revalidateMoney(tripId: number): void {
   revalidatePath(`/trip/${tripId}/money`);
 }
 
-/**
- * The trip's live ledger, newest first (ticket 118). Whole rows: Money renders
- * every column and Overview reads four of them, and a second narrower query
- * would buy a handful of bytes for a second query's worth of complexity.
- */
+/** The trip's live ledger, newest first (ticket 118). Whole rows — Money and Overview both read columns from it. */
 export async function listExpenses(tripId: number): Promise<Expense[]> {
   const rows = await db
     .select()
@@ -56,12 +39,10 @@ export async function listExpenses(tripId: number): Promise<Expense[]> {
 }
 
 /**
- * Every live split on the trip's live expenses (ticket 118).
- *
- * Scoped by joining back to `expense` on `trip_id`, not by an `inArray` over
- * ids `listExpenses` returns — so a caller fires both together. The join is
- * also what restores rule 8 on the child rows: without it a split belonging to
- * a deleted expense still counted into the balances.
+ * Every live split on the trip's live expenses (ticket 118). Scoped by joining
+ * back to `expense` on `trip_id` rather than an `inArray` over `listExpenses`'
+ * ids, which also restores rule 8 on the child rows — a split under a deleted
+ * expense used to still count into the balances.
  */
 export async function listSplits(tripId: number): Promise<ExpenseSplit[]> {
   const rows = await db
@@ -77,8 +58,6 @@ export async function listSplits(tripId: number): Promise<ExpenseSplit[]> {
     )
     .limit(LIMITS.expenseSplits)
     .all();
-  // A join hands back `{ expense_split, expense }` per row; only the split is
-  // anyone's business out here.
   return bounded(
     rows.map((r) => r.expense_split),
     "expenseSplits",
@@ -99,13 +78,10 @@ export type ExpenseFields = {
 export type SplitRow = { userId: string; owedAmountMinor: number };
 
 /**
- * Writes an expense and its complete split set in one transaction.
- *
- * Pass `expenseId` to replace an existing expense, or omit it to create one.
- * Either way the split set is written whole — on an update the old rows are
- * deleted and the new ones inserted inside the same transaction, which is what
- * "last-write-wins on the whole expense" (rule 7) means for a parent with
- * children. A split has no independent life; it is part of the expense's value.
+ * Writes an expense and its complete split set in one transaction. Pass
+ * `expenseId` to replace, or omit to create. On update, old split rows are
+ * deleted and new ones inserted in the same transaction — rule 7
+ * (last-write-wins) applied to a parent with children.
  */
 export async function writeExpense(args: {
   tripId: number;
@@ -161,11 +137,7 @@ export async function findLiveExpense(
     .get();
 }
 
-/**
- * Soft-deletes an expense. Its splits are left exactly as they are: reads join
- * through the expense, so the parent's `deletedAt` hides them (ticket 16), and
- * rewriting the children would be editing a snapshot.
- */
+/** Soft-deletes an expense; splits are left as-is — the parent's `deletedAt` hides them on read (ticket 16), and rewriting a snapshot isn't allowed. */
 export async function softDeleteExpense(
   tripId: number,
   expenseId: number,
@@ -177,8 +149,7 @@ export async function softDeleteExpense(
       and(
         eq(expense.id, expenseId),
         eq(expense.tripId, tripId),
-        // A second delete is a no-op, not a re-stamp (ticket 115).
-        isNull(expense.deletedAt),
+        isNull(expense.deletedAt), // second delete is a no-op, not a re-stamp (ticket 115)
       ),
     );
 }
@@ -199,10 +170,7 @@ export async function findSettleableSplit(splitId: number) {
     .get();
 }
 
-/**
- * Flips a split's settled flag. Settling is not a snapshot edit — the owed
- * amount is untouched; this only records that the money changed hands offline.
- */
+/** Flips a split's settled flag — not a snapshot edit, the owed amount stays untouched; this only records money changing hands offline. */
 export async function toggleSplitSettled(
   splitId: number,
   settled: boolean,
@@ -210,22 +178,12 @@ export async function toggleSplitSettled(
   await db
     .update(expenseSplit)
     .set({ settledAt: settled ? new Date() : null, ...touch() })
-    // Filtered on the split's own `deletedAt` as well (ticket 115). The read
-    // above joins the expense, so a deleted *expense* was already covered; a
-    // split deleted on its own was not.
+    // Also filtered on the split's own deletedAt (ticket 115) — the read above
+    // only covers a deleted expense, not a split deleted on its own.
     .where(and(eq(expenseSplit.id, splitId), isNull(expenseSplit.deletedAt)));
 }
 
-/**
- * Email addresses for split participants who aren't on the trip's roster any
- * more — kicked or left since the expense was written, whose split rows survive
- * by design. Bounded by the split ceiling because the caller's list is.
- */
-/**
- * Display names for split participants the roster can't name — the same
- * former-member case as `emailsForUsers`, for the ledger rather than the mail
- * (ticket 04, moved off the page by ticket 118).
- */
+/** Display names for split participants the roster can't name — a former member whose split rows survive by design (ticket 04, moved off the page by ticket 118). */
 export async function namesForUsers(
   userIds: string[],
 ): Promise<{ id: string; name: string }[]> {
@@ -247,6 +205,7 @@ export async function namesForUsers(
   }));
 }
 
+/** Same former-member case as `namesForUsers`, for the mail rather than the ledger. */
 export async function emailsForUsers(
   userIds: string[],
 ): Promise<{ id: string; email: string }[]> {

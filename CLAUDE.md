@@ -1,112 +1,70 @@
 # CLAUDE.md — Waypoint
 
-Repo plumbing for **Waypoint**, a group-travel planner. A pnpm + Turborepo
-monorepo with one venture. The real code is the Next.js app at
-[`ventures/waypoint/apps/web`](ventures/waypoint/apps/web/README.md) — App
-Router + Turso (libSQL) + Drizzle + Better Auth.
+pnpm + Turborepo monorepo, one venture: **Waypoint** (group-travel planner).
+Real code is [`ventures/waypoint/apps/web`](ventures/waypoint/apps/web/README.md)
+— Next.js App Router + Turso (libSQL) + Drizzle + Better Auth.
 
-The venture's own [`ventures/waypoint/CLAUDE.md`](ventures/waypoint/CLAUDE.md)
-holds the product rules and **wins inside that folder — read it before touching
-app code.** Waypoint is the only venture; don't add others without being asked.
+[`ventures/waypoint/CLAUDE.md`](ventures/waypoint/CLAUDE.md) has the product
+rules and wins inside that folder — **read it before touching app code.**
+Waypoint is the only venture; don't add others unasked. Phase: pre-MVP — narrow
+end-to-end slices, one ticket at a time; confirm scope before large builds.
 
-**Phase: pre-MVP.** Thin vertical slice, one ticket at a time. Prefer a narrow
-end-to-end change over broad stubs. Confirm scope before large builds.
+## Structure
 
-## Key docs
+| Where | What |
+|---|---|
+| `ventures/waypoint/apps/web/` | The app. See its own CLAUDE.md. |
+| `ventures/waypoint/apps/prototype/` | Superseded — don't extend. |
+| `docs/` | Local-only HTML site, no build/server. Open `docs/index.html` off disk. |
+| `ventures/waypoint/.scratch/waypoint-v1/` | One file per ticket/decision; `map.md` is the index. Read before changing behaviour. |
 
-`docs/` is a tiny local-only HTML site — open
-[`docs/index.html`](docs/index.html) off disk (no server, no build). Start
-there. The four you'll reach for most:
-
-- **Design direction** — [`docs/design/approach.html`](docs/design/approach.html)
-- **Visual language** — [`docs/design/visual-language.html`](docs/design/visual-language.html)
-- **Architecture** — [`docs/architecture/architecture.html`](docs/architecture/architecture.html)
-- **Data model (ERD)** — [`docs/data-model/erd.html`](docs/data-model/erd.html)
+Key docs: [design approach](docs/design/approach.html) ·
+[visual language](docs/design/visual-language.html) ·
+[architecture](docs/architecture/architecture.html) ·
+[ERD](docs/data-model/erd.html).
 
 ## Commands
 
 ```bash
-pnpm install      # installs the workspace (root)
-pnpm dev          # turbo run dev   (build | typecheck | lint | test likewise)
+pnpm install                        # root
+pnpm dev                            # turbo run dev (build|typecheck|lint|test likewise)
+pnpm --filter waypoint-web <task>   # scope to the app
 ```
 
-Scope for speed: `pnpm --filter waypoint-web <task>`. Tasks live in
-[`turbo.json`](turbo.json).
+## Key decisions
 
-## Golden rules
+- **Docs are HTML, not markdown** — edit the page itself. Every page: `<link>`
+  to `assets/docs.css`, `<nav id="sidebar">`, `<script src>` to `assets/nav.js`
+  (plain `<script src>` only — `fetch`/ES modules are blocked on `file://`).
+  A new page needs a line in [`docs/assets/nav.js`](docs/assets/nav.js)'s
+  `TREE` array or it's unreachable. `docs/mockups/` is standalone, not part of
+  the site.
+- **No feature branches.** Work lands on `main` directly; one commit per
+  ticket, made at session end.
+- **Commit subject:** `<version> #<issue>: <type>: <description>` — e.g.
+  `0.4.0 #93: feat: split the profile into two faces`. Version bumps
+  `apps/web/package.json` in the same commit (minor=feature, patch=fix). Body
+  ends `Closes AidanInceer/Waypoint#<n>`. Types: `feat|fix|docs|refactor|chore|test`.
+- **Deployment is per-app** — its own workflow + Vercel project; never deploy
+  the whole monorepo at once.
 
-1. **Read the venture rules first.** [`ventures/waypoint/CLAUDE.md`](ventures/waypoint/CLAUDE.md)
-   carries the non-negotiables (money is never a float, day-first itinerary,
-   enumeration-proof trip access, light-only, …).
-2. **Read the ticket before changing behaviour.** Decisions live in
-   `ventures/waypoint/.scratch/waypoint-v1/`; `map.md` is the index, one file
-   per decision.
-3. **Security first.** No secrets, keys, or tokens in the repo. No logging of
-   PII/tokens. Degrade without credentials, never crash. Flag anything touching
-   auth, encryption, PII, or compliance rather than glossing over it.
-4. **Docs stay in sync.** A structural change updates the relevant README /
-   `docs/` page. The ERD and `apps/web/src/db/schema.ts` change together.
+## Common agent pitfalls here
 
-## The docs are HTML
+- Editing a `.md` doc source that doesn't exist — the HTML *is* the doc, edit it directly.
+- Adding a page to `docs/` without adding it to `nav.js`'s `TREE` — it silently becomes unreachable.
+- Using `fetch`/ES modules in a docs page — breaks on `file://`, use `<script src>`.
+- Treating `wireframe/` folders as packages — they're plain inline HTML/CSS/JS, no `package.json`.
+- An npm-style `"workspaces"` array — workspaces are defined in `pnpm-workspace.yaml` only.
+- A PowerShell commit here-string where `@'`/`'@` aren't alone on their lines — the `@` leaks into the commit subject. Verify with `git log -1 --format=%s`.
+- Skipping the venture's own CLAUDE.md — it holds the actual non-negotiables (money-as-float, day-first itinerary, enumeration-proof access, etc.), not this file.
 
-HTML is the source of truth — no `.md` originals, edit the page itself. Every
-page is a flat shell: `<link>` to `assets/docs.css`, `<nav id="sidebar">`,
-`<main>`, `<script src>` to `assets/nav.js`. Two `<body>` attributes wire it up:
-`data-root` (path back up to `docs/` — `.` at top, `..` one level down) and
-`data-page` (the page id).
+## Security
 
-- **Every page except `index.html` lives in a topic folder** (`design/`,
-  `architecture/`, `data-model/`, …). Only `index.html` sits at the root.
-- **Adding a page = adding a line to the `TREE` array in
-  [`docs/assets/nav.js`](docs/assets/nav.js).** That array is the whole sidebar;
-  a page not listed there is unreachable.
-- Diagrams are `<pre class="mermaid">`; such a page loads, in order, the vendored
-  `assets/vendor/mermaid.min.js` then [`assets/diagrams.js`](docs/assets/diagrams.js).
-  Load everything via plain `<script src>` — `fetch`/ES modules are blocked on
-  the `file://` origin, and the site must work offline.
-- `docs/mockups/` is **not** part of the site — standalone wireframes opened in
-  their own tab. Leave them as they are.
-
-## Conventions
-
-- **pnpm** (v9), Node >= 20, **Turborepo**. Workspaces are defined in
-  **`pnpm-workspace.yaml` only** — never add an npm-style `"workspaces"` array.
-- **Work lands on `main` directly.** No feature branches, no PRs. Commit at the
-  end of a session (or when the next one starts): one commit per ticket, never a
-  catch-all.
-- **Commit subject: `<version> #<issue>: <type>: <description>`** — e.g.
-  `0.4.0 #93: feat: split the profile into two faces`. Nothing precedes the
-  version digit.
-  - **version** — next app version; bump
-    `ventures/waypoint/apps/web/package.json` to match in the same commit. Minor
-    for a feature, patch for a fix; major only when the maintainer says so.
-  - **issue** — bare `#n` in the subject; the body ends with a fully-qualified
-    `Closes AidanInceer/Waypoint#<n>` (issues live in the venture's own repo).
-  - **type** — `feat` | `fix` | `docs` | `refactor` | `chore` | `test`.
-  - **description** — sentence case, no full stop.
-- **Windows commit gotcha:** with a PowerShell here-string, `@'` must be last on
-  its line and `'@` alone at column 0 — otherwise the `@` leaks into the message.
-  Verify with `git log -1 --format=%s`; the subject must start with a digit, not `@`.
-
-## Gotchas
-
-- **`wireframe/` directories are not packages** — plain HTML, no install, no
-  build, no `package.json`; inline all CSS/JS.
-- **Deployment is per-app.** Each deployable app gets its own workflow + Vercel
-  project; CI must never deploy the whole monorepo at once.
+No secrets/keys/tokens in the repo, no logging PII/tokens, degrade without
+credentials rather than crash. Flag anything touching auth, encryption, PII,
+or compliance rather than glossing over it.
 
 ## Agent skills
 
-Issues/PRDs live as GitHub issues (`gh` CLI). See
-[`docs/agents/issue-tracker.html`](docs/agents/issue-tracker.html) and
-[`docs/agents/domain.html`](docs/agents/domain.html).
-
-**Docs/backlog pipeline** (`.claude/skills/`):
-
-- `/docs-ingest [file]` — full pipeline: refine raw notes → review gate → apply to HTML + issues → archive.
-- `/docs-refine [file]` — analysis only; writes a structured refined doc for review. No HTML writes.
-- `/docs-apply [file]` — applies an approved refined doc to `docs/` HTML and GitHub issues.
-- `/backlog-refine` — groom `docs/backlog/backlog.html` and sync to GitHub issues (add, reprioritise, drop).
-- `/to-tickets` — slice a feature into tracer-bullet GitHub issues in `AidanInceer/Waypoint`.
-
-Raw notes go in `docs/input/raw/`; refined docs in `docs/input/refined/`; both are archived after apply.
+Issues/PRDs live as GitHub issues (`gh` CLI) — see
+[issue-tracker](docs/agents/issue-tracker.html) / [domain](docs/agents/domain.html).

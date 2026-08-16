@@ -16,26 +16,15 @@ import { usePathname } from "next/navigation";
 
 import { Button, Card, ErrorText, cx } from "./ui";
 
-/**
- * How a client component *inside* a sheet dismisses it.
- *
- * The sheet's children are rendered on the server, so a parent can't hand a
- * close callback down as a prop — a function doesn't cross that boundary. A
- * form that wants to close itself only on a *successful* submit (rather than
- * on submit, which is what `keepOpenOnSubmit` turns off) reads it from here.
- */
+// Server-rendered children can't take a close callback as a prop — a form
+// that wants to close only on successful submit reads it from here instead.
 const SheetCloseContext = createContext<(() => void) | null>(null);
 
 export function useSheetClose() {
   return useContext(SheetCloseContext);
 }
 
-/**
- * A plain `<form action={…}>` requires an action returning void, which would
- * mean throwing away the readable error our actions return. This wraps
- * `useActionState` so a server action can hand back `{ error }` and have it
- * rendered under the form.
- */
+// Wraps useActionState so a server action's { error } renders under the form.
 export function ActionForm({
   action,
   children,
@@ -75,10 +64,7 @@ export function SubmitButton({
   pendingLabel?: string;
   variant?: "primary" | "secondary" | "ghost" | "danger";
   className?: string;
-  /**
-   * For a verb that is always *shown* but not always *available* — a menu that
-   * keeps its shape whether or not there is anything to undo (ticket 133).
-   */
+  /** Verb stays shown but not always available (ticket 133). */
   disabled?: boolean;
 }) {
   const { pending } = useFormStatus();
@@ -94,10 +80,7 @@ export function SubmitButton({
   );
 }
 
-/**
- * A native <dialog> sheet: bottom sheet on mobile, centred panel on desktop,
- * per ticket 05's "same shape both sizes, only the chrome differs".
- */
+// Native <dialog>: bottom sheet on mobile, centred panel on desktop (ticket 05).
 export function Sheet({
   trigger,
   title,
@@ -109,27 +92,17 @@ export function Sheet({
 }: {
   trigger: ReactNode;
   title: string;
-  /**
-   * Plain nodes only — never a render prop. A function child cannot cross the
-   * server/client boundary, and every caller here is a Server Component. The
-   * sheet closes itself when a form inside it submits instead.
-   */
+  /** Plain nodes only — a function child can't cross the server/client
+      boundary, and every caller here is a Server Component. */
   children: ReactNode;
   triggerVariant?: "primary" | "secondary" | "ghost" | "danger";
   /** Override the trigger's own styling — a sticky note has no room for a
       full-size uppercase button. */
   triggerClassName?: string;
-  /** Accessible name and tooltip for a trigger whose content is an icon
-      (the roster's nudge bell, v0.2 ticket 07). */
+  /** Accessible name/tooltip for an icon-only trigger (v0.2 ticket 07). */
   triggerLabel?: string;
-  /**
-   * Stay open after a form inside submits. For a sheet you submit *once* —
-   * add an event, edit one — closing is the right end to the interaction. A
-   * comment thread is the opposite: reacting, replying and posting are all
-   * things you do several of in a row, and closing the modal under someone
-   * who just tapped a heart loses their place in the conversation
-   * (v0.2 ticket 06).
-   */
+  /** Stay open after a submit — for repeat actions like reacting/replying
+      rather than a one-shot add/edit (v0.2 ticket 06). */
   keepOpenOnSubmit?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -186,9 +159,7 @@ export function Sheet({
               ×
             </button>
           </div>
-          {/* Submitting anything inside dismisses the sheet — the server action
-              revalidates the page underneath it — unless the sheet is one you
-              stay in and keep working (see `keepOpenOnSubmit`). */}
+          {/* Submit dismisses the sheet unless keepOpenOnSubmit. */}
           <div
             className="p-4"
             onSubmit={keepOpenOnSubmit ? undefined : () => setTimeout(close, 0)}
@@ -203,16 +174,8 @@ export function Sheet({
   );
 }
 
-/**
- * A form button that asks first — used for kick, delete, archive.
- *
- * Asks through a native `<dialog>`, not `window.confirm`. The confirm() version
- * silently ate deletes: a browser that suppresses page dialogs (Chrome offers
- * exactly that after a couple of them, and embedded/automated views default to
- * it) returns false, which this treated as "the user said no" — the button then
- * looked dead with nothing in the console to explain it. A dialog we render
- * ourselves can't be suppressed, and it reads in the app's own voice.
- */
+// Asks first via a native <dialog>, not window.confirm — a browser that
+// suppresses confirm() returns false silently, reading as a dead button.
 export function ConfirmSubmit({
   children,
   message,
@@ -224,14 +187,12 @@ export function ConfirmSubmit({
 }: {
   children: ReactNode;
   message: string;
-  /** The affirmative button's words. Say what happens, never "OK". */
+  /** Say what happens, never "OK". */
   confirmLabel?: string;
   variant?: "primary" | "secondary" | "ghost" | "danger";
   pendingLabel?: string;
-  /** Override the trigger's styling; the confirm dialog's own is fixed. */
   className?: string;
-  /** Accessible name and tooltip for a trigger whose content is an icon — the
-      roster's kick boot (ticket 38), same reason `Sheet` takes one. */
+  /** Accessible name/tooltip for an icon-only trigger (ticket 38). */
   label?: string;
 }) {
   const { pending } = useFormStatus();
@@ -272,11 +233,7 @@ export function ConfirmSubmit({
               >
                 Cancel
               </Button>
-              {/*
-                A real submit button inside the form this dialog sits in, so
-                confirming submits the server action directly — no synthetic
-                re-dispatch, no requestSubmit() to go wrong.
-              */}
+              {/* Real submit inside the form — submits the action directly. */}
               <Button
                 type="submit"
                 variant={variant}
@@ -302,8 +259,6 @@ export function CopyLink({
   value: string;
   label?: string;
   variant?: "primary" | "secondary" | "ghost" | "danger";
-  /** Leading glyph — the roster's "Share trip" reads as a share, not a copy
-      (v0.2 ticket 07), even though copying is what it does. */
   icon?: ReactNode;
 }) {
   const [copied, setCopied] = useState(false);
@@ -326,21 +281,8 @@ export function CopyLink({
   );
 }
 
-/**
- * A reorderable list of cards — the stops on Route, the days on Days.
- *
- * Drag is the *fast* way, never the only way: pointer drag has no keyboard
- * equivalent and no story on a touchscreen worth relying on, so every row also
- * carries plain move-up/move-down buttons. Both call the same server action.
- *
- * `onReorder` is a bound server action, so the reorder is a real write, not
- * local state — the list re-renders from the database on the next paint. While
- * it's in flight the whole list dims, because a half-applied itinerary that
- * still accepted drags would let two moves race each other.
- *
- * The rows themselves are server-rendered and handed in as `items` — this
- * component owns the dragging, not the content.
- */
+// Drag is never the only way in — no keyboard/touch equivalent — so every
+// row also has move-up/down buttons. Dims mid-reorder so moves can't race.
 export function DragList({
   items,
   onReorder,
@@ -353,8 +295,7 @@ export function DragList({
 }) {
   const [dragging, setDragging] = useState<number | null>(null);
   const [over, setOver] = useState<number | null>(null);
-  // `draggable` is armed by the grip, not set permanently: a permanently
-  // draggable card makes selecting the text inside it start a drag instead.
+  // Armed by the grip, not permanent — else selecting text in the card starts a drag.
   const [armed, setArmed] = useState<number | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -391,12 +332,7 @@ export function DragList({
         <div
           key={item.key}
           draggable={armed === i}
-          /*
-           * Every handler stops propagation, because these lists nest: a day's
-           * events are a DragList inside the days' DragList. Without it, one
-           * drop on an event bubbles to the day wrapper underneath it and
-           * reorders the *days* as well — the innermost list owns the gesture.
-           */
+          // stopPropagation throughout: lists nest, else a drop bubbles up and reorders the parent list too.
           onDragStart={(e) => {
             e.stopPropagation();
             setDragging(i);
@@ -457,18 +393,8 @@ export function DragList({
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* Overflow menu                                                              */
-/* -------------------------------------------------------------------------- */
-
-/**
- * The class a control wears to look like a row in `Menu` (ticket 125).
- *
- * `!` throughout because most menu items are a `Button` — a `Sheet` trigger, a
- * `ConfirmSubmit`, a `SubmitButton` — and `buttonBase`'s own utilities have to
- * be beaten. In Tailwind v4 the stylesheet's order decides that, not the order
- * of the class list.
- */
+// Row styling for `Menu` (ticket 125). `!` throughout to beat buttonBase —
+// Tailwind v4 specificity is stylesheet order, not class-list order.
 export const menuItemClass =
   "!block !w-full !rounded-sm !border-none !px-2.5 !py-1.5 !text-left !font-sans !text-sm !normal-case !tracking-normal !text-ink-soft hover:!bg-sheet-2 hover:!text-ink";
 
@@ -476,24 +402,10 @@ export const menuItemClass =
 export const menuDangerItemClass =
   "!block !w-full !rounded-sm !border-none !bg-transparent !px-2.5 !py-1.5 !text-left !font-sans !text-sm !normal-case !tracking-normal !text-ink-soft hover:!bg-red-soft hover:!text-red";
 
-/**
- * A row's secondary verbs, behind one triple-dot (ticket 125).
- *
- * A card carrying Edit *and* Delete *and* a nudge bell spends its whole right
- * edge on things you rarely do, and every one of them competes with what the
- * row is actually for. One affordance shows; the verbs are revealed on demand.
- *
- * The panel does **not** close when something inside it is clicked, and that's
- * deliberate: every destructive item here is a `ConfirmSubmit` and every edit
- * is a `Sheet`, both of which open a native `<dialog>` rendered *inside* this
- * subtree. Unmounting the panel on click would tear the dialog out mid-flight.
- * So it closes on the three things that mean "I'm done": a pointer outside, an
- * Escape, or a submit that has actually gone through. A dialog in the top layer
- * is still a DOM descendant of the panel, so clicking one is never "outside".
- *
- * Not built on `Sheet` for the same reason `AccountMenu` wasn't: a sheet is a
- * modal, which is the wrong weight for three words hanging off their trigger.
- */
+// Secondary verbs behind one triple-dot (ticket 125). Does NOT close on an
+// inside click — menu items open native <dialog>s (ConfirmSubmit, Sheet) in
+// this subtree, and unmounting would tear one out mid-flight. Closes only on
+// an outside pointer, Escape, or a submit that went through.
 export function Menu({
   label,
   children,
@@ -504,14 +416,11 @@ export function Menu({
 }: {
   /** Accessible name — say whose or what's menu this is. */
   label: string;
-  /** Plain nodes only; the same server/client rule `Sheet` documents. */
+  /** Plain nodes only; same server/client rule as `Sheet`. */
   children: ReactNode;
   align?: "left" | "right";
-  /**
-   * Which way the panel hangs. The page sheet clips its overflow, so a menu on
-   * the last row of a list has to open upwards or it is cut off at the paper's
-   * edge.
-   */
+  /** The page sheet clips overflow, so a menu on the list's last row must
+      open upwards or it's cut off at the paper's edge. */
   drop?: "down" | "up";
   /** Defaults to the triple-dot. */
   trigger?: ReactNode;
@@ -523,13 +432,11 @@ export function Menu({
   const menuId = useId();
   const pathname = usePathname();
 
-  // Navigating away must not leave the panel hanging over the new page.
   useEffect(() => setOpen(false), [pathname]);
 
   useEffect(() => {
     if (!open) return;
-    // Opening a menu puts you *in* it — otherwise the keyboard is still on the
-    // trigger and the first Tab leaves the panel it just opened.
+    // Otherwise the keyboard stays on the trigger and the first Tab leaves the panel.
     panelRef.current?.querySelector<HTMLElement>("a, button")?.focus();
 
     const onPointerDown = (e: PointerEvent) => {
@@ -557,9 +464,7 @@ export function Menu({
         aria-label={label}
         title={label}
         data-open={open}
-        /* A caller with its own trigger shape (the account pill) replaces
-           these outright rather than fighting them with `!` — and styles the
-           open state off `data-open`, which is why it's on the element. */
+        // A caller with its own trigger (account pill) replaces these outright and styles off data-open.
         className={
           triggerClassName
             ? cx("transition-colors", triggerClassName)
@@ -582,11 +487,7 @@ export function Menu({
           aria-label={label}
           onSubmit={() => setTimeout(() => setOpen(false), 0)}
           className={cx(
-            /* Above Leaflet: the map's own panes climb into the hundreds, and
-               a stop's menu opening upward lands on top of the route map. */
-            /* Sized to its longest verb, not to a fixed 12rem: three short
-               labels in a fixed-width panel leave a stripe of empty paper
-               down the right. */
+            // z-[1200]: above Leaflet's panes. w-max: sized to its longest verb, not a fixed width.
             "absolute z-[1200] w-max min-w-[8rem] max-w-[14rem] rounded-md border border-rule-strong bg-sheet p-1 shadow-raised",
             align === "right" ? "right-0" : "left-0",
             drop === "up" ? "bottom-full mb-1" : "mt-1",

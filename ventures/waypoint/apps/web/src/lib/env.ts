@@ -1,15 +1,11 @@
 /**
- * Environment variables that have no honest degraded mode (ticket 112).
- *
- * Non-negotiable 11 — degrade, don't crash — is about *optional third-party*
- * credentials: Nominatim, Resend, Google. Each of those has a real fallback
- * (free-text place names, console-logged email, no Google button). A session
- * signing secret and the primary datastore have none: a production deploy
- * missing `BETTER_AUTH_SECRET` would boot happily and sign every session cookie
- * with a constant that lives in this repo, and one missing
- * `TURSO_DATABASE_URL` would serve an empty ephemeral file database that reads
- * as total data loss. Failing loudly is the correct reading of rule 11 here,
- * not an exception to it.
+ * Environment variables that have no honest degraded mode (ticket 112). Rule
+ * 11 (degrade, don't crash) covers optional third-party credentials
+ * (Nominatim, Resend, Google), which have real fallbacks. A session secret
+ * and the primary datastore don't: missing `BETTER_AUTH_SECRET` would sign
+ * cookies with a constant from this repo, and missing `TURSO_DATABASE_URL`
+ * would serve an empty ephemeral db as silent data loss. Failing loudly here
+ * is the correct reading of rule 11, not an exception to it.
  */
 
 /**
@@ -24,12 +20,9 @@ function isProduction(): boolean {
 }
 
 /**
- * The variable's value, or `devFallback` outside production. In production a
- * missing or blank value throws at *module load*, so the deploy fails rather
- * than the first user.
- *
- * The message names the variable and never the value — nothing here may end up
- * in a log line carrying a secret.
+ * The variable's value, or `devFallback` outside production. Missing/blank in
+ * production throws at module load, so the deploy fails rather than the first
+ * user. Error message names the variable, never the value.
  */
 export function requireInProduction(name: string, devFallback: string): string {
   const value = process.env[name];
@@ -45,13 +38,10 @@ export function requireInProduction(name: string, devFallback: string): string {
 }
 
 /**
- * The app's own origin. Not a secret, but the same shape of problem: a
- * production deploy without `BETTER_AUTH_URL` sends OAuth callbacks and
- * *emailed invite links* to `localhost`, which fails silently in the recipient's
- * inbox rather than at deploy time.
- *
- * A function, not a module constant, so importing this module never throws for
- * a caller that only wants `requireInProduction`.
+ * The app's own origin. Not a secret, but same shape of problem: missing
+ * `BETTER_AUTH_URL` would send OAuth callbacks and invite links to
+ * `localhost` silently. A function, not a constant, so importing this module
+ * never throws for a caller that only wants `requireInProduction`.
  */
 export function appUrl(): string {
   return requireInProduction("BETTER_AUTH_URL", "http://localhost:3000");

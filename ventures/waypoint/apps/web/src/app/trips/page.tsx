@@ -1,19 +1,7 @@
 /**
- * /trips — post-login home (ticket 05). Lists every non-archived trip the
- * viewer is a member of.
- *
- * Default sort (ticket 17): upcoming/undated trips first, ascending by start
- * date (undated trips sort after dated ones within that group — there's
- * nothing to put them ahead of); ended trips after, most-recently-ended
- * first, since a trip that just finished is more likely to still need a
- * settle-up than one from months ago.
- *
- * Sorting and tag filtering (tickets 70, 71) are held in the URL, not in
- * state and not in a column. Three reasons: the page stays a server component
- * with no client JS, a chosen view is linkable, and a *persisted* preference
- * would be a per-user setting on a page most people open with one thing in
- * mind — "where's the Lisbon one" is a search, not a preference. Reload
- * returns to the default deliberately.
+ * /trips — post-login home (ticket 05). Non-archived trips the viewer is a
+ * member of. Sort/tag (tickets 70, 71) live in the URL, not state, so the
+ * page stays a server component and a view is linkable.
  */
 import { requireUser } from "@/server/access";
 import { listFriendsFor, type Person } from "@/server/friends";
@@ -40,7 +28,6 @@ import { TripCard } from "@/components/trip-card";
 import type { TripCardData } from "@/components/trip-card";
 import { acceptTripInvite, createTrip, declineTripInvite } from "./actions";
 
-/** The orders offered, in the order the control offers them. */
 const SORTS = {
   date: "Date",
   place: "Place",
@@ -63,9 +50,6 @@ export default async function TripsPage({
 
   const viewer = await requireUser("/trips");
 
-  // Three independent reads — the cards, what's waiting on you, and who you
-  // could ask onto a new one — so they go out together (the fan-out is the
-  // page's to compose).
   const [cardRows, invites, friends] = await Promise.all([
     loadTripCards(viewer.id, { archived: false }),
     listPendingInvitesFor(viewer.id),
@@ -74,8 +58,6 @@ export default async function TripsPage({
 
   const cards = cardRows.map((c) => c.card);
 
-  // Every tag in play, for the filter row. Taken from the trips themselves,
-  // so a tag nobody uses any more stops being offered on its own.
   const allTags = [...new Set(cards.flatMap((c) => c.tags ?? []))].sort();
   const filtered = activeTag
     ? cards.filter((c) => c.tags?.includes(activeTag))
@@ -93,11 +75,6 @@ export default async function TripsPage({
             <ButtonLink href="/trips/archived" variant="ghost">
               Archived
             </ButtonLink>
-            {/*
-             * Modal, not a full page (ticket 17): creating a trip is just a
-             * name (ticket 01 step 1) — a full page would overstate the
-             * ceremony for something this small.
-             */}
             <Sheet trigger="New trip" title="Start a trip">
               <CreateTripForm friends={friends} />
             </Sheet>
@@ -105,17 +82,12 @@ export default async function TripsPage({
         }
       />
 
-      {/* The in-app half of ticket 146, and the whole of it — push is out of
-          scope for v1. It sits above the trips because it is the only thing on
-          this page waiting on an answer, and it disappears once answered. */}
       {invites.length > 0 ? (
         <div className="mb-5">
           <InviteList invites={invites} />
         </div>
       ) : null}
 
-      {/* Only worth showing once there is more than one trip to order, and the
-          tag row only once anyone has tagged anything. */}
       {cards.length > 1 ? (
         <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2">
           <div className="flex flex-wrap items-center gap-2">
@@ -141,8 +113,7 @@ export default async function TripsPage({
               {allTags.map((tag) => (
                 <a
                   key={tag}
-                  // Clicking the tag you're already on clears the filter —
-                  // the pill is the toggle, so there's no separate "all".
+                  // Clicking the active tag clears it — the pill is the toggle.
                   href={hrefFor({ sort, tag: tag === activeTag ? null : tag })}
                   aria-current={tag === activeTag ? "true" : undefined}
                   className={cx(
@@ -193,11 +164,6 @@ export default async function TripsPage({
   );
 }
 
-/**
- * Invites waiting on you (ticket 146). Named on both ends — who asked, and
- * which trip — because an invite that says neither is indistinguishable from
- * an ad. Joining lands you on the trip; declining just closes the row.
- */
 function InviteList({ invites }: { invites: PendingInvite[] }) {
   return (
     <Card>
@@ -246,7 +212,6 @@ function InviteList({ invites }: { invites: PendingInvite[] }) {
   );
 }
 
-/** The view as a URL, so sort and tag survive each other's clicks. */
 function hrefFor({ sort, tag }: { sort: Sort; tag: string | null }) {
   const query = new URLSearchParams();
   if (sort !== "date") query.set("sort", sort);
@@ -255,16 +220,7 @@ function hrefFor({ sort, tag }: { sort: Sort; tag: string | null }) {
   return q ? `/trips?${q}` : "/trips";
 }
 
-/**
- * The three orders (ticket 70).
- *
- * `date` is ticket 17's original and stays the default — it is the only one
- * that splits the list in two, because "when" is the question a trip list is
- * usually being asked. `place` and `name` are flat A–Z: once you're looking
- * for the Lisbon one, whether it has ended is beside the point. A trip with
- * nowhere settled yet sorts last under `place` rather than first, so the
- * blanks don't hold the top of the list.
- */
+/** `date` (default) is the only order that splits ended/upcoming; others are flat A-Z. */
 function sortCards(cards: TripCardData[], sort: Sort): TripCardData[] {
   const byName = (a: TripCardData, b: TripCardData) =>
     a.name.localeCompare(b.name, "en-GB", { sensitivity: "base" });
@@ -300,37 +256,21 @@ function sortCards(cards: TripCardData[], sort: Sort): TripCardData[] {
   return [...upcoming, ...ended];
 }
 
-/**
- * Plain server-rendered form. `createTrip` redirects on success, which
- * navigates the whole page and takes the dialog with it — no client-side
- * close handler needed (and none is possible: a function prop can't cross
- * the server/client boundary from here, only the "use server" action can).
- */
 function CreateTripForm({ friends }: { friends: Person[] }) {
   return (
     <form action={createTrip}>
       <Stack gap={4}>
-        {/* No placeholder. A greyed "Milan long weekend" sitting in the box
-            reads as a value already there, and the one thing this form asks
-            for shouldn't need a second look to see it's empty (ticket 129). */}
         <Field label="Name">
           <Input name="name" required />
         </Field>
-        {/* Optional, and second — the trip still exists on a name alone
-            (ticket 01 step 1). Nobody is added by this: they are asked, and
-            they answer on their own /trips (ticket 146). */}
+        {/* Optional — invites, doesn't add members. */}
         <Field label="Ask your friends along">
           <FriendPicker
             friends={friends}
             emptyNote="No friends yet — share the trip link once it exists."
           />
         </Field>
-        {/* Starting a trip asks one question: what to call it. The dates used
-            to be here as an optional pair — a field almost everyone skipped,
-            because the Dates tab is where the group actually works out when it
-            can go (rule 9: undated is the normal path, not a gap to fill).
-            `createTrip` still reads them, so a caller that has real dates can
-            pass them. */}
+        {/* No date fields — rule 9: undated is the normal path. */}
         <SubmitButton pendingLabel="Creating…">Create trip</SubmitButton>
       </Stack>
     </form>

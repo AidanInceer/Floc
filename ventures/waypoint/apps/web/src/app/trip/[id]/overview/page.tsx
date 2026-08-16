@@ -1,26 +1,8 @@
 /**
- * Trip dashboard (v1 ticket 13) — the landing every member sees after login.
- * The layout header above the tabs carries the roster and nothing else, so the
- * trip's own identity — name, state, dates — starts here (ticket 89).
- *
- * Re-laid out by v0.2 ticket 07. What the page *says* is unchanged from
- * ticket 13; the arrangement is not:
- *
- *   - A hero, split 65/35: where the planning is at, and who's doing it. The
- *     trip's name gets the page's largest type and the stage rides beside it
- *     as a badge (ticket 89), with the trail drawing the same answer
- *     spatially.
- *   - Unresolved is tinted by one question only — is this mine to do? The old
- *     version tinted money red and the other two amber, which encoded nothing.
- *   - Chasing moved onto the person it's aimed at (see TripRoster), so the
- *     Chase panel is gone: it and Unresolved were the same three checks read
- *     two different ways, a screen apart.
- *   - "Waiting on you" and "What's moved" were dropped on request. Nudges are
- *     still delivered by email from `sendNudge`, so nothing goes unheard.
- *   - Admin used to fold into a right-aligned "Trip settings" disclosure. That
- *     is gone: leaving, archiving and deleting are one triple-dot in the trip
- *     header (`components/trip-menu.tsx`), and the invite link is the roster's
- *     Share trip button — the fold held nothing else.
+ * Trip dashboard (ticket 13) — the landing every member sees. The trip's own
+ * identity starts here since the layout header only carries the roster (ticket
+ * 89). Hero split 65/35 (where planning is at | who's doing it); Unresolved is
+ * tinted by one question only — is this mine to do? (ticket 07).
  */
 import Link from "next/link";
 
@@ -39,6 +21,8 @@ import { TripNameInline } from "@/components/trip-name-inline";
 import { TripRoster } from "@/components/trip-roster";
 import { friendStatesFor, listFriendsFor } from "@/server/friends";
 import { TripRoute } from "@/components/trip-route";
+import { TripForecast } from "@/components/trip-forecast";
+import { getTripForecast } from "@/server/weather";
 import { TripTrail } from "@/components/trip-trail";
 import { TagEditor } from "@/components/tag-editor";
 import { readTagTones, readTags, tagTone, type TagTone } from "@/lib/tags";
@@ -53,33 +37,21 @@ export default async function OverviewPage({
   const access = await requireTripAccess(id, `/trip/${id}/overview`);
   const { trip, members, isAdmin, viewer } = access;
 
-  // One query for the whole roster (ticket 96) — a per-row lookup would be an
-  // N+1 on a panel every trip renders. The two invite reads join it: who has
-  // been asked and hasn't answered, and who you could ask (ticket 146).
+  // One roster query, not a per-row N+1 (ticket 96). Friends read is admin-only
+  // — a member can't invite (rule 6), so it has nothing to render (ticket 146).
   const [friendStates, pendingInvitees, friends] = await Promise.all([
     friendStatesFor(
       viewer.id,
       members.map((m) => m.userId),
     ),
     listPendingInvitees(trip.id),
-    // Only an admin can invite (rule 6), so a member's roster doesn't pay for
-    // a friends read it has nothing to render.
     isAdmin ? listFriendsFor(viewer.id) : Promise.resolve([]),
   ]);
   const tripId = trip.id;
 
-  /*
-   * Overview reads from six tables to build the "unresolved" list, and none of
-   * those reads depends on another — so they all go out together. Done
-   * sequentially this page was the slowest tab in the app by a wide margin,
-   * paying a full round trip per section.
-   *
-   * Votes and splits used to sit in a second wave, because they were scoped
-   * with `inArray(...)` over ids the first wave returned. They are scoped by
-   * joining back to `idea`/`expense` on `trip_id` instead, which is the same
-   * set of rows without the dependency — so the whole page is one round trip
-   * behind the access check rather than two.
-   */
+  // All independent, so one round trip behind the access check. Votes/splits
+  // scope by joining on `trip_id` rather than ids a first wave returns, which
+  // is what keeps them out of a second wave.
   const [
     ideaIds,
     availabilityRows,
@@ -89,32 +61,26 @@ export default async function OverviewPage({
     splitRows,
     routeDays,
     transportModes,
+    forecast,
   ] = await Promise.all([
       listIdeaIds(tripId),
-      // Only used while the dates are unset, but it is one indexed read and
-      // fetching it unconditionally is cheaper than an extra serial round trip.
+      // Unconditional: one indexed read is cheaper than a serial round trip when
+      // the dates are unset.
       listAvailability(tripId),
       listExpenses(tripId),
-      // Counted, not just probed: the trail says "3 days sketched", so a
-      // `.get()` for existence is no longer enough.
       listDays(tripId),
       listVotes(tripId),
       listSplits(tripId),
-      // The route moved here when the Route tab retired (ticket 142). It is a
-      // second pass over `day` — the places and their coordinates, which
-      // `listDays` doesn't carry — plus the travel modes off `day_event`.
+      // Route moved here when its tab retired (ticket 142): places + coordinates
+      // `listDays` doesn't carry, plus travel modes off `day_event`.
       listRouteDays(tripId),
       transportModesByDay(tripId),
+      getTripForecast(tripId), // null → forecast register renders nothing (ticket 148)
     ]);
 
-  /*
-   * Everything the page shows about *where the trip is up to* is derived here,
-   * in one pure call (ticket 109). It used to be ninety lines of the same
-   * thing inline, which is where the "who still has to vote, minus me" filter
-   * ended up being recomputed four separate times inside the JSX. The page
-   * renders; it no longer decides. What leaving costs comes back in the same
-   * call, so the dialog can say it before the click (ticket 65).
-   */
+  // All "where the trip is up to" is derived in one pure call (ticket 109); the
+  // page renders, it no longer decides. Leaving cost rides along for the dialog
+  // (ticket 65).
   const state = tripStateFor({
     trip,
     members,
@@ -145,25 +111,17 @@ export default async function OverviewPage({
 
   return (
     <Page wide flush>
-      {/* Split 65/35: the trip is the hero, the roster only needs room for a
-          name and a bell. `items-start` lets the roster grow downward with the
-          group without stretching the left half to match. */}
+      {/* `items-start` lets the roster grow down without stretching the hero. */}
       <div className="grid gap-[18px] lg:grid-cols-[minmax(0,65fr)_minmax(0,35fr)] lg:items-start">
         <section className="tape-panel rounded-md border border-rule-strong bg-sheet-2 p-5">
-          {/* The name is the headline (ticket 89): it's the one thing that
-              doesn't change shape as the trip moves, so the hero stops
-              re-flowing every time the stage does. Renaming comes with it from
-              the header above the tabs (ticket 37) — the name you want to fix
-              is still the one you click. */}
+          {/* The name is the headline (ticket 89): the one thing that keeps its
+              shape as the trip moves, so the hero stops re-flowing. */}
           <div className="flex flex-wrap items-center gap-2">
             <TripNameInline tripId={tripId} name={trip.name} rename={renameTrip} />
             <Badge tone={stage.tone}>{stage.label}</Badge>
             {trip.archivedAt ? <Badge tone="neutral">Archived</Badge> : null}
             {countdown ? <Badge tone="marine">{countdown}</Badge> : null}
           </div>
-          {/* The stage note went with the empty state it echoed: the badge
-              beside the name and the trail below already say where the trip is
-              up to, in fewer words and in two places. */}
           <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-ink-soft">
             {trip.startDate || trip.endDate ? (
               <span>
@@ -176,9 +134,8 @@ export default async function OverviewPage({
                 </Link>
               </span>
             ) : (
-              // Deciding the dates is the Dates tab's whole job — a second pair
-              // of date inputs here would be a way to set them without ever
-              // seeing whether the group is free.
+              // No date inputs here — deciding dates is the Dates tab's job,
+              // where you see the group's availability first.
               <span>
                 Dates not set{" "}
                 <Link
@@ -191,20 +148,15 @@ export default async function OverviewPage({
             )}
           </div>
 
-          {/* The group's own labels (ticket 71), edited where they're read
-              (ticket 86): they used to display here and be edited three
-              scrolls down inside Trip settings, which is where you'd never
-              look for them. Any member, like renaming. */}
+          {/* Group labels, edited where they're read (ticket 71, 86). Any member. */}
           <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
             {tags.map((tag) => (
               <Badge key={tag} tone={tagTone(tagTones, tag)}>
                 {tag}
               </Badge>
             ))}
-            {/* A bordered button, not a ghost: on a hero of plain text a
-                control that only draws itself on hover isn't findable, and its
-                own padding was floating the label off the block's left edge.
-                The box edge is what lines up with the name and the dates. */}
+            {/* Bordered, not ghost: a hover-only control isn't findable on a
+                hero of plain text, and the box edge aligns with name and dates. */}
             <Sheet
               trigger={tags.length > 0 ? "Edit tags" : "Add tags"}
               title="Tags"
@@ -216,10 +168,6 @@ export default async function OverviewPage({
           </div>
 
           <TripTrail stations={stations} />
-
-          {/* Archive and delete were a strip here (ticket 72), and leaving was
-              a fold at the foot of the page. All three moved into the header's
-              triple-dot — see `components/trip-menu.tsx`. */}
         </section>
 
         <TripRoster
@@ -234,19 +182,12 @@ export default async function OverviewPage({
         />
       </div>
 
-      {/* "This trip is just a name so far" and its Post the first idea button
-          used to stand in for Unresolved on a brand-new trip. The hero already
-          says the same thing twice over — the stage badge, the stage note and
-          the trail all start at Ideas — so it was a third copy of it. */}
       <section className="mt-6">
           <h2 className="text-[15px] font-semibold">Unresolved</h2>
 
           <div className="mt-3 flex flex-col gap-2">
-            {/*
-              Yours first, and the only tinted rows. Colour here answers one
-              question — is this mine to do? — in the same blue the trail uses
-              for "you are here". Red is reserved for destructive controls.
-            */}
+            {/* Yours first, and the only tinted rows — the trail's blue answers
+                "is this mine to do?". Red is reserved for destructive controls. */}
             {!viewerHasVotedAll ? (
               <UnresolvedRow
                 mine
@@ -284,7 +225,7 @@ export default async function OverviewPage({
               />
             ))}
 
-            {/* Theirs: untinted, and named by face. Chase from the roster. */}
+            {/* Theirs: untinted, named by face. */}
             {unresolved.votingOthers.length > 0 ? (
               <UnresolvedRow
                 tab="Ideas"
@@ -323,19 +264,22 @@ export default async function OverviewPage({
           </div>
         </section>
 
-      {/* Below Unresolved on purpose: Overview answers "what's outstanding"
-          first and draws the plan second. `TripRoute` renders nothing at all
-          when no day has an overnight place yet. */}
+      {/* Plan below Unresolved: outstanding first, plan second. Renders nothing
+          until a day has an overnight place. */}
       <TripRoute days={routeDays} transportModes={transportModes} />
+
+      {/* Last on the page (ticket 148): the map says where, the register what
+          it'll be like there. */}
+      <TripForecast
+        forecast={forecast}
+        tripStart={trip.startDate}
+        tripEnd={trip.endDate}
+      />
     </Page>
   );
 }
 
-/**
- * Tags, their colours, and deleting one — all in the same rows (ticket 86).
- * The editing itself lives in `TagEditor`, which owns the rows; this is just
- * the form around it and the save.
- */
+// The form around `TagEditor` (which owns the rows) and its save (ticket 86).
 function TripTagsForm({
   tripId,
   tags,
@@ -367,12 +311,7 @@ function peopleCount(n: number) {
   return n === 1 ? "1 person" : `${n} people`;
 }
 
-/**
- * One outstanding thing. `mine` is the only state that takes a tint, and it
- * takes the trail's blue: the tint answers "is this mine to do?" and nothing
- * else. Both variants name the tab in a neutral badge and end in the same
- * boxed control, because they do the same thing — open that tab.
- */
+// One outstanding thing. `mine` is the only tinted state (trail's blue).
 function UnresolvedRow({
   mine,
   tab,

@@ -1,25 +1,15 @@
 /**
- * The ceilings on how much of anything one trip can hold (ticket 108).
+ * Ceilings on how much of anything one trip can hold (ticket 108) — added
+ * after a review found 58 `.all()` calls and zero `.limit()`.
  *
- * The review found 58 `.all()` calls and zero `.limit()`: nothing bounded a
- * result set, so an unusually busy trip degraded silently — slower and slower
- * pages, no line anywhere that says where "busy" stops being supported. A
- * number nobody wrote down is still a limit; it just isn't one anybody can see.
+ * Behaviour at the ceiling is truncate-and-say-so, not throw or paginate (rule
+ * 11: degrade, don't crash); every one of these lists renders whole today, so
+ * paginating means designing the paged view first. Truncation is loud on the
+ * server (`reportCeiling`) and silent in the UI — nobody hits these by
+ * accident.
  *
- * **The decided behaviour at the ceiling is truncate-and-say-so**, not throw and
- * not paginate. Rule 11 is degrade, don't crash: a group whose itinerary somehow
- * ran past a year should still see their trip, and refusing to load it would be
- * the worst of the three. Paginating is the right answer eventually and the
- * wrong one now — every one of these lists is rendered whole (a calendar, a
- * board, a ledger), so paging them means designing the paged view first.
- *
- * Truncation is deliberately loud on the server (`reportCeiling`) and quiet in
- * the UI. Nobody hits these numbers by accident, and a banner about a limit
- * nobody has met would be noise on every page that renders one of these lists.
- *
- * Raising one is a one-line change here. Lowering one is not — a trip already
- * over the new number would lose rows from view, so treat these as a ratchet
- * in the same spirit as the coverage thresholds.
+ * Raising a limit is a one-line change; lowering one is a ratchet — a trip
+ * already over the new number would lose rows from view.
  */
 import "server-only";
 
@@ -48,23 +38,14 @@ export const LIMITS = {
 
 export type LimitKey = keyof typeof LIMITS;
 
-/**
- * Called when a read came back exactly at its ceiling — which is the only
- * signal we get, since the database has no more to tell us than "here are N".
- * Deliberately just a named log: no PII, no ids beyond the trip's own, and
- * nothing that changes what the caller returns.
- */
+/** Called when a read landed exactly on its ceiling. No PII, no ids beyond the trip's own — just a named log. */
 export function reportCeiling(what: LimitKey, scope: string): void {
   console.warn(
     `[waypoint] ceiling reached: ${what} at ${LIMITS[what]} for ${scope} — the view is truncated (see server/limits.ts)`,
   );
 }
 
-/**
- * Wraps a bounded read: pass the rows back untouched, and report if the count
- * landed on the ceiling. Every list read in `server/` goes through this so that
- * "did we bound this query?" is answerable by grep rather than by review.
- */
+/** Wraps a bounded read so "did we bound this query?" is answerable by grep. */
 export function bounded<T>(rows: T[], what: LimitKey, scope: string): T[] {
   if (rows.length >= LIMITS[what]) reportCeiling(what, scope);
   return rows;

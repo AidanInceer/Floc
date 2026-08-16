@@ -1,13 +1,8 @@
 /**
- * The travel map's loaders (ticket 95) — the queries behind
- * `lib/travel-map.ts`, which holds the shape and the merge rules and is the
- * half a Client Component may import. Read that file first: the decision that
- * trip marks are *derived on read and never stored* is written down there, and
- * it is what every query here exists to serve.
- *
- * Ideas are deliberately excluded — an idea is a suggestion *in contention*,
- * and "Bali (rejected)" quietly painting your want-to-visit map is a wrong
- * claim about you. Route and Days are where a place stops being a suggestion.
+ * The travel map's loaders (ticket 95) — queries behind `lib/travel-map.ts`,
+ * which holds the shape/merge rules and the "derived on read, never stored"
+ * decision. Ideas are deliberately excluded: an idea is a suggestion in
+ * contention, and "Bali (rejected)" painting the map would misrepresent it.
  */
 import "server-only";
 
@@ -23,11 +18,8 @@ import type { CountryMarkState } from "@/db/schema";
 
 /**
  * The countries a set of trips puts on the map, and in what colour. Split out
- * from `travelMapFor` because the leave/kick prompt asks the same question
- * about exactly one trip.
- *
- * Archived trips count: archiving is filing, not forgetting. Soft-deleted ones
- * don't, like everywhere else (non-negotiable 8).
+ * from `travelMapFor` since the leave/kick prompt asks the same question about
+ * one trip. Archived trips count (filing, not forgetting); soft-deleted ones don't (rule 8).
  */
 export async function countriesForTrips(
   tripIds: number[],
@@ -42,12 +34,9 @@ export async function countriesForTrips(
 }
 
 /**
- * The same read, kept split by trip (ticket 114).
- *
- * `pendingMapPrompts` used to call `countriesForTrips([id])` once per prompt
- * row inside a `for` loop — an N+1 over HTTP for a question the same three
- * queries could answer for every trip at once. Merging across trips is the
- * cheap half and belongs to the caller that wants it merged.
+ * The same read, kept split by trip (ticket 114) — `pendingMapPrompts` used to
+ * call `countriesForTrips([id])` once per row in a loop (N+1); merging across
+ * trips is cheap and belongs to the caller that wants it merged.
  */
 export async function countriesByTrip(
   tripIds: number[],
@@ -65,8 +54,7 @@ export async function countriesByTrip(
   bounded(trips, "tripsPerUser", "travel map");
 
   const ids = trips.map((t) => t.id);
-  // Undated is yellow, never green: `hasEnded(null)` is false, which is the
-  // right answer under non-negotiable 9 — no dates is normal, not finished.
+  // Undated is yellow, never green: hasEnded(null) is false (rule 9 — no dates isn't finished).
   const colour = new Map<number, MapState>(
     trips.map((t) => [t.id, hasEnded(t.endDate) ? "green" : "yellow"]),
   );
@@ -95,8 +83,7 @@ export async function countriesByTrip(
   ]);
 
   for (const row of [...overnights, ...events]) {
-    // A place geocoded before ticket 95, or typed free-hand during a Nominatim
-    // outage, has no country — it simply doesn't reach the map (rule 11).
+    // No country (pre-ticket-95 place, or typed during a Nominatim outage) → doesn't reach the map (rule 11).
     const code = readCountryCode(row.countryCode);
     const state = code ? colour.get(row.tripId) : undefined;
     if (!code || !state) continue;
@@ -139,17 +126,14 @@ export async function manualMarksFor(
 export type MapPrompt = {
   tripId: number;
   tripName: string;
-  /** What would be kept — named, because "3 countries" is not an answerable question. */
+  /** Named, not counted — "3 countries" isn't an answerable question. */
   countries: { code: string; state: MapState }[];
 };
 
 /**
- * The questions left parked by trips this person is no longer on (ticket 95).
- *
- * A trip whose countries are all unknown — no geocoded places, or none from
- * before `place.country_code` existed — asks nothing, because there is nothing
- * to keep. Its flag stays set and invisible rather than being cleared behind
- * the member's back.
+ * Questions left parked by trips this person is no longer on (ticket 95). A
+ * trip with no known countries asks nothing — its flag stays set and
+ * invisible rather than being cleared behind the member's back.
  */
 export async function pendingMapPrompts(userId: string): Promise<MapPrompt[]> {
   const rows = await db
@@ -166,8 +150,7 @@ export async function pendingMapPrompts(userId: string): Promise<MapPrompt[]> {
     .all();
   if (rows.length === 0) return [];
 
-  // One read for every parked trip, not one per trip (ticket 114).
-  const byTrip = await countriesByTrip(rows.map((r) => r.tripId));
+  const byTrip = await countriesByTrip(rows.map((r) => r.tripId)); // one read, not one per trip (ticket 114)
 
   const out: MapPrompt[] = [];
   for (const row of rows) {
@@ -190,14 +173,9 @@ export async function travelMapFor(userId: string): Promise<TravelMap> {
   return mergeMarks(derived, manual);
 }
 
-/* ------------------------------------------------------ the hand marks */
-/*
- * The `user_country_mark` writes (ticket 108). They are here rather than in
- * `profile/actions.ts` for the reason at the top of `lib/travel-map.ts`: a hand
- * mark wins over a derived one, permanently, and the three ways of saying so —
- * paint, reject, take back — only make sense next to the derivation they
- * override.
- */
+// `user_country_mark` writes (ticket 108) — kept here rather than
+// `profile/actions.ts` since a hand mark permanently overrides a derived one,
+// and paint/reject/take-back only make sense beside the derivation.
 
 /** Paint a country. Always written, even where a trip already says the same. */
 export async function setManualMark(
@@ -238,12 +216,7 @@ export async function derivedStateFor(
   return derived[countryCode];
 }
 
-/**
- * Converts a leaving trip's countries into hand marks — the only place any
- * conversion happens (ticket 95). Never overwrites something already said by
- * hand, including a `none`, which is a decision about that country and not a
- * gap to fill.
- */
+/** Converts a leaving trip's countries into hand marks (ticket 95). Never overwrites an existing hand mark, including a `none` — that's a decision, not a gap. */
 export async function keepMarksFromTrip(
   userId: string,
   tripId: number,

@@ -1,50 +1,20 @@
-/**
- * The trail — the tabs drawn as a route with a marker at where the trip
- * actually is (v0.2 ticket 07). It is the hero's content, not decoration: it
- * says the same thing the "up to" sentence does, spatially.
- *
- * Every station's state is derived from what data exists — there is no
- * lifecycle column and this must never become one (CLAUDE.md rule 4).
- *
- * One hue, blue, doing one job: how far along you are. A filled dot is
- * finished, a hollow blue one is under way, a beige one is untouched — and the
- * key underneath says so, because a fill nobody can decode is decoration. "You
- * are here" is a halo on top of the hollow dot, never a second colour: an amber
- * marker made the trail read as an error state, and there is nothing for a
- * second hue here to mean. Every station carries a word regardless, so nothing
- * rests on the fill alone.
- */
+// The trail — tabs drawn as a route with a marker at where the trip actually
+// is (v0.2 ticket 07). Every station's state is derived from what data exists
+// — no lifecycle column, and this must never become one (CLAUDE.md rule 4).
+//
+// One hue (blue) doing one job: filled = finished, hollow = under way, beige
+// = untouched, with a key underneath since a fill nobody can decode is
+// decoration. "You are here" is a halo on the hollow dot, never a second
+// colour — every station also carries a word, so nothing rests on fill alone.
 import { cx } from "@/components/ui";
 
-/**
- * `done` — nothing outstanding. `now` — where the group is working; there is
- * at most one. `snag` — has data but something is still open. `ahead` — not
- * started, nothing wrong. There is no shut state: every tab is open from the
- * first day of a trip (ticket 126).
- */
-/*
- * Both types are `lib/trip-state.ts`'s (ticket 109) and re-exported here for
- * the component's own callers. The vocabulary belongs with the derivation that
- * produces it, not with the drawing that renders it — and the caption, which
- * must never be omitted because the fill is never the only cue, is decided
- * there too.
- */
+// `done`/`now`/`snag`/`ahead` — types live in lib/trip-state.ts (ticket 109),
+// re-exported here; no shut state since every tab is open from day one (ticket 126).
 import type { StationState, TrailStation as Station } from "@/lib/trip-state";
 
 export type { StationState, Station };
 
-/*
- * Three readings, and the fill is what tells them apart:
- *
- *   filled blue    — done. Nothing outstanding here.
- *   hollow blue    — started, not settled (`snag`, and `now`, which adds a halo
- *                    to say the group is working here right now).
- *   beige, empty   — nothing yet (`ahead`).
- *
- * `now` used to be a *filled* dot, which made "where we're working" and
- * "finished" the same shape — the one distinction the trail exists to draw.
- * The caption under every dot still says the same thing in words.
- */
+// `now` was a filled dot until it collided visually with `done`.
 const DOT: Record<StationState, string> = {
   done: "border-pen bg-pen",
   now: "border-[3px] border-pen bg-sheet ring-4 ring-pen-soft",
@@ -77,8 +47,7 @@ export function TripTrail({ stations }: { stations: Station[] }) {
     <nav className="mt-5" aria-label="Where the planning is at">
       <ol className="flex items-start">
         {stations.map((s, i) => {
-          // The connector belongs to the station on its right and is drawn
-          // solid once the ground behind it is covered.
+          // Connector belongs to the station on its right, solid once behind it is covered.
           const prev = stations[i - 1];
           const covered = prev && (prev.state === "done" || prev.state === "now");
           return (
@@ -108,9 +77,7 @@ export function TripTrail({ stations }: { stations: Station[] }) {
         })}
       </ol>
 
-      {/* The key is the point of this change: the fills had meanings and no way
-          to learn them. Marked aria-hidden — the captions already say each
-          station's state in words, so this is a legend for the eye only. */}
+      {/* aria-hidden: captions already say each station's state in words. */}
       <ul
         aria-hidden="true"
         className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1 text-[10.5px] text-ink-faint"

@@ -1,38 +1,8 @@
 /**
- * The ideas aggregate — `idea` and `idea_vote` (ticket 108).
- *
- * The rules it owns, so no `actions.ts` writes them again:
- *
- * - **Soft-delete (rule 8)**, including on the vote upsert, where clearing the
- *   flag is load-bearing rather than tidy — see `castVote`.
- * - **The board's ceiling** is `LIMITS.ideas`, applied in `listIdeas` below.
- * - **Revalidation.** One named `revalidateIdeas` rather than inline
- *   `revalidatePath` pairs a caller has to get right. There used to be a
- *   second one that took the trip layout too, because a first idea unlocked
- *   the Route tab and the tab bar had to be re-rendered to un-grey it; ticket
- *   126 removed the unlocks, and with them the reason.
- * - **The board's reads** (ticket 118) — see the note on the seam below.
- *
- * ## Where the seam went (ticket 118)
- *
- * Ticket 108 moved the writes here and left the page reads on the pages. The
- * choice for the reads was between a loader per page and a read per aggregate,
- * and the reads are **per aggregate, composed on the page**:
- *
- * - A `loadIdeaBoard()` returning exactly the four things `ideas/page.tsx`
- *   wants is a module named after its only caller — shallow by construction,
- *   the trap ticket 108 called out, one layer up. `listVotes` is not: Overview
- *   reads it too, for a different question.
- * - The pages' `Promise.all` was deliberate — the reads were flattened once
- *   already so none waits on another — and it is the *page* that knows which
- *   of its reads are independent. Hiding them behind one loader either keeps
- *   that knowledge (and buries it) or loses it. So the page keeps the fan-out
- *   and the aggregate keeps the SQL, the joins, the soft-delete filter and the
- *   ceiling. No page is one round trip slower than it was.
- *
- * The one thing a page may no longer do is assemble a row shape from `@/db`
- * directly: an aggregate read hands back a shape, and the page maps it to
- * whatever the component wants.
+ * The ideas aggregate — `idea` and `idea_vote` (ticket 108). Owns soft-delete
+ * (rule 8, see `castVote`), the board's ceiling (`LIMITS.ideas`), and reads
+ * composed per aggregate rather than a per-page loader (ticket 118) — more
+ * than one page wants `listVotes`, for different questions.
  */
 import "server-only";
 
@@ -45,7 +15,7 @@ import type { VoteValue } from "@/db/schema";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
 
-/** The board alone — a vote, a pin, a delete. */
+/** Board only — the layout-wide revalidate ticket 126 dropped with the tab unlocks. */
 export function revalidateIdeas(tripId: number): void {
   revalidatePath(`/trip/${tripId}/ideas`);
 }
@@ -60,13 +30,7 @@ export type IdeaRow = {
   authorAvatar: string | null;
 };
 
-/**
- * The board, newest first, with each idea's author already on it (ticket 118).
- *
- * The author join is here rather than on the page because "an idea has a face
- * on it" is a fact about ideas, not about the board's layout — Overview asks
- * the same read a different question and gets the same rows.
- */
+/** The board, newest first, with each idea's author joined in (ticket 118) — a fact about ideas, not the page. */
 export async function listIdeas(tripId: number): Promise<IdeaRow[]> {
   const rows = await db
     .select({
@@ -88,11 +52,7 @@ export async function listIdeas(tripId: number): Promise<IdeaRow[]> {
   return bounded(rows, "ideas", `trip ${tripId}`);
 }
 
-/**
- * Just the ids, for a caller that only wants to know what there is to vote on
- * — Overview's "who still hasn't voted" (ticket 109) needs no note and no
- * author, and a board of 500 is 500 rows it would otherwise read to count.
- */
+/** Ids only, for Overview's "who hasn't voted" (ticket 109) — skips reading note/author for a full board. */
 export async function listIdeaIds(tripId: number): Promise<number[]> {
   const rows = await db
     .select({ id: idea.id })
@@ -112,12 +72,7 @@ export async function countIdeas(tripId: number): Promise<number> {
   return row?.value ?? 0;
 }
 
-/**
- * Which of these trips have anybody's idea on them (ticket 118) — the "needs
- * you" probe on `/trips`, one query for the whole list rather than one per
- * card. Deliberately a set-membership answer and not a count: the question is
- * "has this board been started", and ticket 17 asked for cheap, not complete.
- */
+/** "Needs you" probe on `/trips` (ticket 118) — set membership, not a count; cheap over complete (ticket 17). */
 export async function tripIdsWithIdeas(tripIds: number[]): Promise<Set<number>> {
   if (tripIds.length === 0) return new Set();
   const rows = await db
@@ -138,18 +93,11 @@ export type IdeaVoteRow = {
 };
 
 /**
- * Every live vote on the trip's live ideas (ticket 118).
- *
- * Scoped by joining `idea` on `trip_id` rather than by an `inArray` over ids
- * the board read returns — that is what lets a caller fire this alongside
- * `listIdeas` instead of after it.
- *
- * The voter's name and picture ride along because a vote is shown as a face on
- * the board, and a voter may since have left the trip, so the roster can't
- * answer it. Overview only wants the (idea, person) pairs and ignores the rest;
- * two near-identical queries would be the worse trade.
- *
- * Ceiling: `ideas` × `members`, i.e. one vote each on a full board.
+ * Every live vote on the trip's live ideas (ticket 118). Scoped by joining
+ * `idea` on `trip_id`, not by ids from the board read, so this can run
+ * alongside `listIdeas` instead of after it. Name/avatar ride along because a
+ * voter may since have left the trip, so the roster can't fill them in.
+ * Ceiling: `ideas` × `members`.
  */
 export async function listVotes(tripId: number): Promise<IdeaVoteRow[]> {
   const rows = await db
@@ -184,12 +132,7 @@ export async function insertIdea(
   await insertIdeas(tripId, createdBy, [note]);
 }
 
-/**
- * Several ideas at once, in the given order. Explore's "start this trip" seeds
- * a preset's highlights this way — all posted by whoever started the trip,
- * because there is no system author and an idea needs a face on it for the
- * board to make sense (ticket 39).
- */
+/** Bulk insert, given order — Explore's "start this trip" seed (ticket 39); all posted by the starter since there's no system author. */
 export async function insertIdeas(
   tripId: number,
   createdBy: string,
@@ -206,10 +149,7 @@ export async function softDeleteIdea(ideaId: number): Promise<void> {
     .where(eq(idea.id, ideaId));
 }
 
-/**
- * Pin or unpin. Group-wide state, last-write-wins like everything else (rule 7)
- * — there is no per-viewer pinning.
- */
+/** Pin or unpin — group-wide, last-write-wins (rule 7), no per-viewer state. */
 export async function setIdeaPinnedAt(ideaId: number, pinned: boolean): Promise<void> {
   await db
     .update(idea)
@@ -228,16 +168,14 @@ export async function castVote(
     .values({ ideaId, userId, value })
     .onConflictDoUpdate({
       target: [ideaVote.ideaId, ideaVote.userId],
-      // `deletedAt: null` is load-bearing, not tidiness. `clearVote` soft-deletes
-      // (rule 8) but `idea_vote_unique_idx` doesn't know about `deletedAt`, so the
-      // cleared row still blocks the insert — and without resetting the flag the
-      // upsert wrote a new value onto a row every read filters out. Voting,
-      // clearing, then voting again silently did nothing.
+      // deletedAt: null is load-bearing: the unique index doesn't know about
+      // soft-delete, so a cleared row blocks re-insert and, unreset, silently
+      // eats a re-vote after clear.
       set: { value, deletedAt: null, ...touch() },
     });
 }
 
-/** Abstaining is legitimate (ticket 14) — this is how someone undoes a vote. */
+/** Undo a vote — abstaining is legitimate (ticket 14). */
 export async function clearVote(ideaId: number, userId: string): Promise<void> {
   await db
     .update(ideaVote)

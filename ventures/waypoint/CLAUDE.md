@@ -1,153 +1,62 @@
 # CLAUDE.md — Waypoint
 
-Venture-level rules. These win inside `ventures/waypoint/`; the hub's
-[`CLAUDE.md`](../../CLAUDE.md) still applies to everything they don't cover.
+Venture-level rules. Win inside `ventures/waypoint/`; the hub's
+[`CLAUDE.md`](../../CLAUDE.md) applies to everything not covered here.
 
-## What Waypoint is
+## What it is
 
-A group-travel planner: a handful of friends deciding where to go, when, in what
-order, and who owes who afterwards. Pre-MVP.
+Group-travel planner: friends deciding where/when/order, and who owes who.
+Pre-MVP. Stack: **Next.js App Router + Turso (libSQL) + Drizzle + Better Auth**
+(`apps/web`). `apps/prototype` is superseded — don't extend it.
 
-| Thing | Where | Status |
-|---|---|---|
-| The app | [`apps/web`](apps/web/README.md) | Real code. Next.js App Router + Turso (libSQL) + Drizzle + Better Auth. |
-| Old prototype | `apps/prototype` | **Superseded.** Vite/localStorage, the retired ADR-0010 cut. Prior art — don't extend it. |
-| Wireframe variants | `wireframe/*.html` | Design artefacts. `paper.html` is the one v1 follows. |
-| Schema of record | [`docs/data-model/erd.html`](../../docs/data-model/erd.html) | Mirrors `apps/web/src/db/schema.ts`. Change both together. |
-| Vocabulary | [`docs/vocab.md`](docs/vocab.md) | The words this venture uses, and the words it does not. **Read before naming anything** — a term in copy, a column, an issue title. Copy says *user*; code says *member*. |
-| Design approach | [`docs/design/approach.html`](../../docs/design/approach.html) | The higher-level design guide — clarity, hierarchy, trust, states, and the anti-patterns to avoid, distilled from expert design reviews (Rio Lu / Cursor, Katie Dill / Stripe, Zain Ali / Instacart, Vlad / Webflow) plus UI fundamentals. **Read before any UI/UX work.** Raw transcripts in `docs/design/inputs/`. |
-| Visual language | [`docs/design/visual-language.html`](../../docs/design/visual-language.html) | The concrete house style the approach serves: paper-and-biro tokens + component inventory. |
-| Homepage mockups | [`docs/mockups/`](../../docs/mockups/README.md) | The landing page's design artefacts. The live `/` follows `homepage-g-boardingpass.html` — "the travel document" — end to end: the pass, the luggage tags, the coupon book, the entry stamp. The pinboard route and the before/after hero it replaced are superseded, and everything else there is unadopted, including the two phone-app explorations. |
-| Where it could go | [`docs/monetisation/monetisation.html`](../../docs/monetisation/monetisation.html) · [`docs/backlog/backlog.html`](../../docs/backlog/backlog.html) · [`docs/research/partner-trips.html`](../../docs/research/partner-trips.html) | Thinking, not commitments. Nothing in any of them is scheduled. The one exception is `/explore`, whose listings are **static and editorial** — illustrative operator names, no partner deal, nothing bookable. Its one live action is "Start this trip", which copies a listing into a real trip (ticket 39, `app/explore/actions.ts`). Read `partner-trips.html` before adding anything else. |
+## Structure
 
-The decisions behind all of it live in `.scratch/waypoint-v1/` — `map.md` is the
-index, one ticket file per decision. **Read the relevant ticket before changing
-behaviour**; the 13 original ADRs were retired (git `95266e3`) and must not be
-treated as current.
+| Where | What |
+|---|---|
+| `apps/web/src/app/` | Routes. Server Components + Server Actions (`actions.ts` per folder). |
+| `apps/web/src/server/` | Query aggregates (`itinerary`, `ideas`, `money`, `membership`, `notes`, …) — owns all SQL, soft-delete filtering, `revalidatePath`. |
+| `apps/web/src/lib/` | Pure helpers (money, dates, calendar math) — no I/O. |
+| `apps/web/src/components/` | `ui.tsx`/`client-ui.tsx` are the hand-rolled design system; don't add shadcn or a second one. |
+| `apps/web/src/db/schema.ts` | Schema of record. Mirrors [`docs/data-model/erd.html`](../../docs/data-model/erd.html) — change both together. |
+| `docs/` | Local HTML site (`docs/index.html`), no build. Design approach, visual language, vocab, backlog. |
+| `.scratch/waypoint-v1/` | One file per ticket/decision (`map.md` is the index). Read the relevant ticket before changing behaviour. |
 
 ## Non-negotiables
 
-1. **Money is never a float.** Integer minor units everywhere. Amounts are
-   parsed with `parseMoney`, split with `computeSplits`, formatted with
-   `formatMoney` — never by hand, never with `parseFloat`.
-2. **`expense_split` rows are snapshots.** Written once from the split type,
-   never recalculated, so they survive a member leaving. An expense edit
-   rewrites the expense and all its splits in one transaction.
-3. **The itinerary is day-first.** `day` and `day_event` are stored; a "stop"
-   is *derived* by grouping consecutive days with the same
-   `overnight_place_id`. Never add a `stop` table.
-4. **No lifecycle state at all.** Trip state is derived entirely from what data
-   exists — no enum, no flag, no column. The sticky tab-unlock flags
-   (`route_unlocked_at`, `days_unlocked_at`) were the one exception until
-   ticket 126 dropped them: **every tab is open from the first day of a trip**,
-   and a tab with nothing in it shows its own empty state rather than a
-   padlock. Don't gate a tab, and don't persist a phase.
-5. **Enumeration-proof trip access.** Load a trip only through
-   `requireTripAccess` — a non-member gets the same response as a nonexistent
-   trip. Never hand-roll a membership check.
-6. **Admin powers are exactly four**: invite, kick, promote, delete (plus
-   archive/restore). Everything else a member can do too — including **leaving**
-   (`leaveTrip`, ticket 65). Gate with `assertAdmin`. One exception to "roles
-   only change through `promoteMember`": when the last admin leaves, admin
-   passes automatically to the earliest-joined remaining member, and the last
-   member out archives the trip. Succession, not a fifth power.
-7. **Last-write-wins, everywhere.** No optimistic locking, no version checks,
-   no check-and-reject write path. `last_modified_at` is for debugging only.
-8. **Soft-delete.** Every read *and every write* filters
-   `isNull(table.deletedAt)`. The rule used to say "every read", and that
-   phrasing is exactly what let a handful of updates through that would
-   resurrect a deleted row into a half-state from a stale id (ticket 115). The
-   three deliberate exceptions all say so where they are: `ensureDays`, because
-   a soft-deleted row still occupies the (trip, date) unique index;
-   `applyTripWindow`, which **hard-deletes** the days a shrinking window cuts for
-   that same reason — soft-deleting them would hold those dates for ever
-   (ticket 140); and `joinByToken`, because reviving a kicked member's row is
-   the point.
-9. **A trip may have no dates.** `start_date`/`end_date` are nullable and
-   creating a trip without them is the normal path — the Dates tab is where the
-   group decides, from `availability` overlap, and it never waits for a full
-   house. Nothing may treat undated as an error state.
-10. **No timezones.** Trip and day dates are date-only `YYYY-MM-DD` strings;
-   event times are relative to the itinerary's location. Nothing is persisted
-   with an offset, and there is no `timezone` column.
-11. **Degrade, don't crash, without credentials.** Nominatim unreachable or
-    rate-limited → free-text place names. No Resend key → email logged to the
-    console. No Google client → the button isn't rendered. Never a silent drop.
+1. **Money is never a float.** Integer minor units; `parseMoney`/`computeSplits`/`formatMoney` only.
+2. **`expense_split` rows are snapshots**, never recalculated — an edit rewrites expense + splits in one transaction.
+3. **Itinerary is day-first.** `day`/`day_event` are stored; a "stop" is derived by grouping consecutive days sharing `overnight_place_id`. Never add a `stop` table.
+4. **No lifecycle state.** Trip state derives entirely from data present — no enum/flag/column, no tab gating.
+5. **Enumeration-proof access.** Load a trip only via `requireTripAccess` — non-member = nonexistent trip, same response.
+6. **Admin powers are exactly four**: invite, kick, promote, delete/archive. Everything else (incl. leaving) any member can do. Gate with `assertAdmin`.
+7. **Last-write-wins.** No optimistic locking, no version checks. `last_modified_at` is debug-only.
+8. **Soft-delete everywhere** — every read *and write* filters `isNull(table.deletedAt)`. Three deliberate hard-delete/revive exceptions exist (`ensureDays`, `applyTripWindow`, `joinByToken`) — see code comments there.
+9. **A trip may have no dates.** Nullable `start_date`/`end_date`; undated is never an error state.
+10. **No timezones.** Dates are `YYYY-MM-DD` strings; event times are local to the itinerary. Never persist an offset.
+11. **Degrade, don't crash, without credentials.** Missing provider (Nominatim/Resend/Google) → visibly reduced feature, never a throw.
 
-## Conventions in `apps/web`
+## Conventions
 
-- Server Components by default. Mutations are Server Actions in the route
-  folder's `actions.ts`. No client fetches to our own API.
-- **Validate at the door.** A date write goes through `isIsoDate` /
-  `readIsoDate` / `readOptionalIsoDate` (`lib/dates.ts`) and free text through
-  `capText` / `capRequiredText` (`lib/text.ts`) — ticket 113. A `maxlength` on
-  an input is a courtesy to whoever is typing; the action is reachable without
-  the form. Rejections come back as a form error, never an unhandled throw.
-- **Nothing in `app/` imports `@/db`.** Not an `actions.ts` (ticket 108) and
-  not a `page.tsx` (ticket 118). The SQL lives in the `server/` aggregates —
-  `itinerary`, `ideas`, `money`, `membership`, `notes` — which own soft-delete
-  filtering, the result-set ceilings in `server/limits.ts`, and the
-  `revalidatePath` set for their part of the domain. An action decides who may
-  do what and what it means; the aggregate decides how it is stored. Add a rule
-  to the aggregate, not to a caller.
-- **Reads are per aggregate, composed on the page.** A page still runs its own
-  `Promise.all` over several aggregate reads — the fan-out is deliberate and
-  the page is what knows which of its reads are independent. What a page must
-  not have is a `loadXTab()` in `server/` named after its only caller: an
-  aggregate read is a fact about the domain (`listIdeas`, `listSplits`), and
-  more than one surface should be able to want it. Every list read is bounded,
-  and each read scopes itself by `trip_id` rather than by ids another read has
-  to return first.
-- **A mutation lives in its route folder's `actions.ts`**, never as an inline
-  `"use server"` closure in a page or component (ticket 117). Where an action
-  needs ids the page holds, bind them (`postIdea.bind(null, tripId)`) — a
-  closure captures whatever else is in scope for its lifetime.
-- Primitives come from `components/ui.tsx` (server) and
-  `components/client-ui.tsx` (client). Don't add a second design system and
-  don't reach for shadcn — the inventory is deliberately hand-rolled.
-- Colours come from the tokens only (`bg-sheet`, `text-ink-soft`,
-  `border-rule`, `text-pen`, the agreed/open/action trio). Never a hex
-  literal in a component.
-- Status is never colour alone — every state also carries a word.
-- **Every icon is drawn, and there are no emoji anywhere.** Copy the scale
-  `components/travel-mode-icon.tsx` and `components/reaction-glyph.tsx` share:
-  a 14×14 `viewBox` rendered ~13px, `fill="none"`, `strokeWidth` ~1.15–1.25,
-  `stroke="currentColor"`, round caps and joins, paths in a module with no
-  `"use client"`. No icon font and no general-purpose set (Lucide, Feather,
-  Heroicons) — they're drawn for a sans-serif product UI and read as stock.
-  Like colour, an icon never carries meaning alone.
-- **Light only.** No dark palette, no `data-theme`, no theme setting, no
-  `theme` column. Don't add a `prefers-color-scheme` block — see ticket 07.
-- A trip member's avatar colour comes from their `TripMember.tone`. Pass it
-  through to `Avatar`/`AvatarRow`; only people with no roster behind them fall
-  back to the name hash.
-- The tab set is **Overview · Ideas · Dates · Days · Money** — Route retired
-  as a tab in ticket 142; the map and the read-only stop list sit at the foot
-  of Overview, and where the group sleeps is set on Days. Every
-  `trip/[id]/*` page renders `<Page wide flush>` — that's what keeps the folder
-  tabs attached to the sheet, and a page that forgets it visibly misaligns.
-- **Discussion threads go through the polymorphic `note` table** (`scope` +
-  `scope_id`), rendered by `components/note-thread.tsx` and written by
-  `trip/[id]/notes-actions.ts`. Don't add a per-surface comment table.
-- Copy is British English, sentence case, concrete. Realistic content, never
-  lorem.
-- **No instructional copy.** Never write text that explains how to use the UI — fix the UI instead. "Scroll to explore", "click here to…" are always wrong.
-- **Show it, don't narrate it.** The same rule one step further (ticket 134): a
-  sentence that describes what a control or a graphic already shows is a bug in
-  the graphic. "Best overlap so far: Mon 10 Aug – Sun 30 Aug — 1 of 1 free"
-  above a calendar whose green run *is* that overlap, or "Pick the first day"
-  over a grid you obviously pick days on, both went. Before adding a line of
-  explanatory text, make the thing it would explain legible on its own; keep
-  the words only where they carry something the visual can't (a state's name, a
-  key's label — status is never colour alone). Copy that appears and disappears
-  with the data is doubly suspect: it also moves the layout under the reader.
-- **UI design discipline.** Before any visual or UX change, read `docs/design/approach.html` and `docs/design/visual-language.html`. Key rules: no scroll locking, no animations while the user is reading, no font proliferation (max three typefaces), every interactive surface has a visible hover state, whole-card clickability where a card navigates.
-- Comment a non-obvious decision with a one-line pointer to the ticket that
-  drove it. That's the house style throughout `src/`.
+- Server Components by default; mutations are Server Actions in the route's `actions.ts` — never inline `"use server"` closures.
+- **Nothing in `app/` imports `@/db`** — SQL lives only in `server/` aggregates.
+- Validate at the door: dates via `lib/dates.ts`, free text via `lib/text.ts`. Rejections are form errors, never unhandled throws.
+- Colours/icons come from tokens only — no hex literals, no icon fonts/Lucide/etc. Status is never colour (or icon) alone.
+- Light only — no dark palette, no `theme` column.
+- **No instructional copy** ("click here…") and **show it, don't narrate it** — if a control already shows a state, don't also write a sentence describing it.
+- British English, sentence case, real content (never lorem).
+- Read `docs/design/approach.html` + `visual-language.html` before UI/UX work.
+- **Comments: be ruthless.** Only *why* + a ticket pointer, or a genuine gotcha — never *what* the code does. One line beats a block.
+
+## Common agent pitfalls here
+
+- Adding a `stop` or lifecycle-state table/column — both are explicitly derived, not stored (rules 3–4).
+- Treating "no dates" or "no forecast/location" as an error path — these are normal, silent states (rules 9, 11).
+- Writing a page-specific `loadXTab()` in `server/` instead of a reusable aggregate read.
+- Forgetting `isNull(deletedAt)` on a new write, or copying one of the three hard-delete exceptions without re-reading why they're exceptions.
+- Hand-rolling a trip membership check instead of `requireTripAccess`.
+- Reaching for shadcn/Lucide/a hex colour instead of the existing token + hand-rolled component set.
 
 ## Out of scope for v1
 
-Payments (the money model is a ledger, not a payment rail), attractions/POI
-data and third-party reviews, flight *booking* (search deep links only), i18n,
-analytics, consent UI, marketing email, and any push notification. Don't
-pre-build infrastructure for them.
+Payments, attractions/POI data & reviews, flight *booking* (deep links only),
+i18n, analytics, consent UI, marketing email, push notifications.

@@ -1,46 +1,9 @@
 "use client";
 
 /**
- * Days as a calendar (ticket 103) — hours down, days across, events as blocks
- * you can put where you mean.
- *
- * The design is `docs/mockups/days-calendar-v2.html`, the second pass on the
- * option that was picked; the comment at the top of that file records what each
- * decision was weighed against. The three things it exists to get right, and
- * how they land here:
- *
- * 1. **Narrow widths.** A day column has a floor and the grid scrolls sideways
- *    under a pinned hour gutter, so seven days never turn to slivers. Below the
- *    width where even a scrolling week is nonsense the page drops to Day view
- *    on its own, disables Week with the reason on it, and says so in a notice —
- *    rather than silently doing something bad. The decision is measured on the
- *    **calendar element**, not the window: the side pane, and the app's own
- *    chrome around it, take their bite out of the width first.
- *
- * 2. **Minutes.** Rules are painted at the hour and nowhere else, the pointer's
- *    exact position is what a new event starts at — to the minute, because a
- *    10:50 train is not a 10:45 train — and a chip follows the cursor naming
- *    that time before you commit. The keyboard is the coarse instrument: ↑/↓
- *    nudge a quarter hour, since a held key has to cross a morning.
- *
- * 3. **Drag and drop.** One gesture moves an event to another time *and*
- *    another day, because "actually the kayaks are Friday" should not be an
- *    edit form. The bottom edge resizes. Every gesture has a keyboard
- *    equivalent (↑/↓ nudge 15 minutes, shift+←/→ move a day) and every outcome
- *    is announced in a live region — a drag must never be the only way.
- *
- * 4. **The overnight band** (ticket 141). A row of its own between the dates and
- *    the clock, where the group says where it is sleeping. One cell is one day,
- *    because that is what the database stores — `day.overnight_place_id`, one
- *    column. A run of days sharing a place draws as one bar with the name
- *    written once, which is the *derived* stop (rule 3): nothing here merges
- *    anything, `deriveStops` groups the days that already agree.
- *
- * What this file does NOT own: the detail panel and the trip thread. Both are
- * rendered on the server and handed in as nodes, because both are full of
- * Server Actions — edit, delete, comment, react — and none of that has any
- * business being re-implemented on the client. This is geometry and gestures;
- * `days/page.tsx` is the content.
+ * Days as a calendar (ticket 103) — hours down, days across, events as blocks.
+ * Owns geometry/gestures only; `days/page.tsx` owns the content (detail panel,
+ * trip thread) as server-rendered nodes, since those are full of Server Actions.
  */
 
 import {
@@ -86,11 +49,7 @@ import {
 /** Pixels per hour. Tall enough that a 15-minute block is still a target. */
 const HOUR_PX = 56;
 
-/**
- * The clock column, wide enough for `00:00` in the mono face — and, since
- * ticket 141, for the band's own label beside it, which is the longest word any
- * row puts there.
- */
+/** Wide enough for `00:00`, and for the band's own label (ticket 141). */
 const GUTTER_PX = 66;
 
 /** A day column never gets thinner than this; the grid scrolls instead. */
@@ -98,36 +57,22 @@ const COLUMN_MIN_PX = { week: 120, day: 240 } as const;
 
 const OUTSIDE_DAY_CLASS = "bg-sheet-2/65";
 
-/**
- * Below this many pixels of *calendar* the week is unreadable even scrolling,
- * so the page hands over to a single day rather than pretending.
- */
+/** Below this width the week is unreadable even scrolling; falls back to Day. */
 const WEEK_FLOOR_PX = 560;
 
 export type CalendarDay = {
   id: number;
   date: string;
-  /** "Mon" — the column head's first line. */
   weekday: string;
-  /** "12" — the column head's big number. */
   dayOfMonth: string;
-  /** "Monday 12 May" — what the range label and every aria-label read. */
   longLabel: string;
-  /** What the band draws. Null is a real answer: nobody has decided yet. */
+  /** Null is a real answer: nobody has decided yet. */
   overnightPlaceName: string | null;
-  /**
-   * The id behind that name. An extend sends it back rather than the name, so
-   * a stay keeps the one `place` row it was geocoded into — see
-   * `resolveOvernightPlace`.
-   */
+  /** Sent back on extend, so a stay keeps its geocoded `place` row. */
   overnightPlaceId: number | null;
-  /** 0 = Monday. What makes the week view a calendar week and not seven days. */
+  /** 0 = Monday. */
   weekdayIndex: number;
-  /**
-   * A date drawn only to complete the Monday–Sunday frame — the trip does not
-   * cover it. Shaded, and inert: nothing can be added to it or dropped on it,
-   * because there is no `day` row behind it to write to.
-   */
+  /** Padding for the Monday–Sunday frame; no `day` row behind it. */
   outside: boolean;
   isToday: boolean;
 };
@@ -137,7 +82,7 @@ export type CalendarEvent = {
   dayId: number;
   type: DayEventType;
   transportType: TransportType | null;
-  /** Already fallen back to the place name, then the category's word. */
+  /** Falls back to place name, then category word — never blank. */
   title: string;
   placeName: string | null;
   time: string | null;
@@ -147,12 +92,7 @@ export type CalendarEvent = {
   commentCount: number;
 };
 
-/**
- * What the band writes: a place this trip already points at, a fresh pick from
- * the search, or nothing at all. Structural, not imported from the action — a
- * client component that imports a `"use server"` module pulls it into the
- * bundle graph for a type it only needs at compile time.
- */
+/** Structural, not imported from the action — avoids pulling `"use server"` into the client bundle. */
 export type OvernightPlace =
   | { placeId: number }
   | {
@@ -167,34 +107,29 @@ export type OvernightPlace =
 type BandDrag = {
   /** "paint" starts on undecided days; "extend" starts on a run's end handle. */
   mode: "paint" | "extend";
-  /** The end that stays put — the opposite handle, or where the paint began. */
+  /** The end that stays put. */
   anchorDate: string;
-  /** The day actually pressed, which is what a press-without-a-drag opens. */
+  /** What a press-without-a-drag opens. */
   pressedDate: string;
-  /** The run's place, carried through an extend so it needs no second pick. */
   placeId: number | null;
   placeName: string | null;
-  /** The run as it was before the drag — what a shrink has to clear. */
+  /** The run before the drag — what a shrink has to clear. */
   runStart: string;
   runEnd: string;
   startX: number;
   moved: boolean;
-  /**
-   * Where the drag has got to. On the ref rather than read back off state at
-   * release: a quick drag can put its last move and its release in one task,
-   * and the handler would then be holding the render before the move.
-   */
+  /** On the ref, not state: a fast drag can land its last move and release in one task. */
   span: BandSpan | null;
 };
 
 /** How close to the calendar's edge a drag has to get before the page turns. */
 const EDGE_PX = 44;
 
-/** A drag in progress. Lives in a ref: it changes per pointer event. */
+/** Lives in a ref: changes per pointer event. */
 type Drag = {
   eventId: number;
   mode: "move" | "resize";
-  /** How far into the block you took hold, so it doesn't jump under the cursor. */
+  /** So the block doesn't jump under the cursor. */
   grabOffset: number;
   startX: number;
   startY: number;
@@ -223,11 +158,9 @@ export function DaysCalendar({
 }: {
   days: CalendarDay[];
   events: CalendarEvent[];
-  /** One server-rendered detail panel per event id — facts, edit, delete, thread. */
+  /** Server-rendered detail panel per event id. */
   panels: Record<number, ReactNode>;
-  /** The trip-wide thread, for the pane's second tab. */
   tripThread: ReactNode;
-  /** "Remove day", one per day id, shown in Day view where there is room. */
   removeDayControls: Record<number, ReactNode>;
   submitEvent: (formData: FormData) => Promise<void>;
   rescheduleEvent: (
@@ -236,9 +169,8 @@ export function DaysCalendar({
     time: string,
     endTime: string | null,
   ) => Promise<void>;
-  /** An all-day event has no time to drop, so moving it is a change of day only. */
+  /** All-day has no time to drop, so this is a change of day only. */
   moveEventToDay: (eventId: number, fromDayId: number, toDayId: number) => Promise<void>;
-  /** Where the group sleeps, for every day from `startDate` to `endDate`. */
   setOvernight: (
     startDate: string,
     endDate: string,
@@ -263,33 +195,21 @@ export function DaysCalendar({
   const [adding, setAdding] = useState<{ dayId: number; time: string } | null>(null);
   const [announcement, setAnnouncement] = useState("");
 
-  /*
-   * A committed move is held locally until fresh server props confirm it, so
-   * the block doesn't snap back to stale props between the action resolving and
-   * the router applying the revalidated payload.
-   * Last-write-wins (rule 7): what comes back is the truth, whoever else was
-   * dragging at the same time.
-   */
+  // Held locally until fresh server props confirm it, so the block doesn't
+  // snap back to stale props while the action is in flight (rule 7).
   const [optimistic, setOptimistic] = useState<Map<number, Landing>>(new Map());
   const [landing, setLanding] = useState<Landing | null>(null);
   const [, startTransition] = useTransition();
 
   const calRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
-  /** The box that scrolls both ways — what a band drag measures its edges against. */
+  /** What a band drag measures its edges against. */
   const scrollerRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<Drag | null>(null);
 
-  /*
-   * How tall the pinned day heads and all-day strip are, measured rather than
-   * guessed — the strip grows with whatever is in it.
-   *
-   * This exists because clicking a block focuses it, and the browser then
-   * scrolls it into view aligned to the top of the scroll box, which is *under*
-   * the sticky head: the event you just picked disappeared behind the all-day
-   * strip. `scroll-padding-top` on the scroller is the fix — it tells that
-   * scroll where the usable top of the box actually is.
-   */
+  // Measured, not guessed — the strip grows with its contents. Feeds
+  // `scroll-padding-top` so focusing a block doesn't scroll it under the
+  // sticky head (the browser aligns focus-scroll to the box's raw top).
   const headRef = useRef<HTMLDivElement>(null);
   const [headHeight, setHeadHeight] = useState(0);
   useEffect(() => {
@@ -321,15 +241,9 @@ export function DaysCalendar({
     });
   }, [events]);
 
-  /* ---- what's on screen -------------------------------------------------- */
-
-  /*
-   * A drag is previewed on the block itself while it stays in its own column —
-   * moving and resizing live, so there is nothing to reconcile on drop. It is
-   * deliberately NOT previewed that way across columns: React would unmount the
-   * node to re-parent it, and the pointer capture the drag depends on would go
-   * with it. A cross-day drag shows a drop line in the target column instead.
-   */
+  // A same-column drag previews live on the block itself. Cross-column isn't:
+  // re-parenting would unmount the node and drop the pointer capture the drag
+  // depends on. Shows a drop line in the target column instead.
   const shown = useMemo(() => {
     const live = events.map((event) => {
       const pending = optimistic.get(event.id);
@@ -356,12 +270,8 @@ export function DaysCalendar({
     [minuteFloor],
   );
 
-  /* ---- narrow widths ------------------------------------------------------ */
-
-  /*
-   * Watching the element rather than the window catches the cases a resize
-   * event never fires for — the pane opening, a container changing around it.
-   */
+  // Watches the element, not the window — catches cases a resize event never
+  // fires for, like the pane opening.
   useEffect(() => {
     const node = calRef.current;
     if (!node || typeof ResizeObserver === "undefined") return;
@@ -375,13 +285,8 @@ export function DaysCalendar({
   /** Week is unavailable, not silently different — the button says why. */
   const effectiveView = tooNarrow ? "day" : view;
 
-  /* ---- the now line ------------------------------------------------------- */
-
-  /*
-   * Read after mount, never during render: the server has no clock the client
-   * agrees with to the minute, and a time rendered on both sides is a
-   * hydration mismatch waiting for the turn of an hour.
-   */
+  // Read after mount, never during render: a time rendered on both sides is a
+  // hydration mismatch waiting for the turn of an hour.
   const [nowMinutes, setNowMinutes] = useState<number | null>(null);
   useEffect(() => {
     const read = () => {
@@ -393,8 +298,6 @@ export function DaysCalendar({
     return () => clearInterval(timer);
   }, []);
 
-  /* ---- committing ---------------------------------------------------------- */
-
   const commit = useCallback(
     (next: Landing) => {
       setOptimistic((prev) => new Map(prev).set(next.eventId, next));
@@ -404,8 +307,6 @@ export function DaysCalendar({
     },
     [rescheduleEvent],
   );
-
-  /* ---- drag ---------------------------------------------------------------- */
 
   /** Which day column the pointer is over. Horizontal position decides it. */
   const columnAt = (x: number) => {
@@ -536,28 +437,15 @@ export function DaysCalendar({
     }
   };
 
-  /* ---- all-day pills -------------------------------------------------------- */
-
-  /*
-   * An all-day event has no time to drop, so its drag is a change of day and
-   * nothing else — which is exactly what `insertEventAt` already does, times
-   * carried over untouched. It goes through that rather than through
-   * `rescheduleEvent`, which would have to invent a start time to write.
-   */
+  // An all-day event has no time to drop, so its drag goes through
+  // `insertEventAt` (a day change, times untouched) rather than `rescheduleEvent`.
   const [allDayDrag, setAllDayDrag] = useState<number | null>(null);
   const [allDayOver, setAllDayOver] = useState<number | null>(null);
 
-  /* ---- the overnight band ---------------------------------------------------- */
-
-  /*
-   * Three pieces of state, and they are different things.
-   *
-   * `bandSpan` is the drag itself — what the pointer is currently saying, drawn
-   * dashed and written to nothing. `pendingBand` is a write that has gone but
-   * whose props haven't come back yet, so the bar doesn't flicker back to the
-   * old answer in between (the same trade `optimistic` makes for events; rule 7
-   * still decides who wins). `banding` is the dialog: the span it opened on.
-   */
+  // `bandSpan` is the drag in progress, drawn dashed and written to nothing.
+  // `pendingBand` is a write that's gone but whose props haven't come back yet,
+  // so the bar doesn't flicker to the old answer in between (rule 7).
+  // `banding` is the dialog: the span it opened on.
   const bandRowRef = useRef<HTMLDivElement>(null);
   const bandDragRef = useRef<BandDrag | null>(null);
   const [bandSpan, setBandSpan] = useState<BandSpan | null>(null);
@@ -566,14 +454,9 @@ export function DaysCalendar({
   /** -1 or 1 while a drag is held at an edge; the page turns on a timer. */
   const [edgePage, setEdgePage] = useState<-1 | 0 | 1>(0);
 
-  /* ---- selection and adding -------------------------------------------------- */
-
-  /*
-   * The pane is the selection, not a switch of its own (ticket 138): picking an
-   * event is what opens it and clicking off the event is what closes it, so
-   * there is nothing to hide by hand. `keptSelection` is how the click that
-   * made the selection survives the deselect handler it bubbles into.
-   */
+  // The pane is the selection, not a switch of its own (ticket 138).
+  // `keptSelection` is how the click that made the selection survives the
+  // deselect handler it bubbles into.
   const keptSelection = useRef(false);
 
   const select = (id: number) => {
@@ -602,16 +485,9 @@ export function DaysCalendar({
     if (!adding && dialog.open) dialog.close();
   }, [adding]);
 
-  /* ---- paging ----------------------------------------------------------------- */
-
-  /*
-   * A week is a *calendar* week, Monday to Sunday — not seven days counted from
-   * wherever the trip happens to start. Paging by seven from day one meant the
-   * columns said Wed–Tue, and a row of dates that doesn't line up with the week
-   * everyone else is using is a row you have to read twice. The first and last
-   * pages of a trip are therefore short: a trip starting on a Wednesday opens
-   * on a five-column week, which is the truth about that week.
-   */
+  // A week is a *calendar* week, Monday to Sunday — not seven days counted from
+  // wherever the trip starts, or the columns would say Wed–Tue. The first and
+  // last pages of a trip are therefore short.
   const pages = useMemo(() => {
     // Day view never lands on a padding day: there is nothing there to show.
     if (effectiveView === "day") return days.filter((d) => !d.outside).map((d) => [d]);
@@ -640,32 +516,17 @@ export function DaysCalendar({
   const goPrev = () => goTo(pages[pageIndex - 1]);
   const goNext = () => goTo(pages[pageIndex + 1]);
 
-  /*
-   * The arrows grey out at the ends of the trip; they do not leave.
-   *
-   * They used to leave, on the argument that a disabled control says "there is
-   * more that way, just not for you". The cost of that is a toolbar that
-   * reshuffles itself as you page — the control you are aiming at moves under
-   * the cursor on the one click that reaches the end — and a first page where
-   * the only arrow present points the way you cannot see you could also go.
-   * A greyed arrow says "nothing that way" perfectly well, and says it in a
-   * fixed place.
-   */
+  // The arrows grey out at the ends of the trip rather than disappearing —
+  // a control that leaves reshuffles the toolbar under the cursor mid-page.
   const canPrev = pageIndex > 0;
   const canNext = pageIndex < pages.length - 1;
 
-  /*
-   * The label names the *trip's* range on this page, not the frame's. A week
-   * padded out to Monday would otherwise announce dates the trip has nothing
-   * on, which is the opposite of what a heading is for.
-   */
+  // The trip's range on this page, not the padded frame's.
   const labelled = shownDays.filter((d) => !d.outside);
   const rangeLabel =
     labelled.length === 1
       ? labelled[0].longLabel
       : `${labelled[0]?.longLabel} – ${labelled[labelled.length - 1]?.longLabel}`;
-
-  /* ---- the overnight band's runs, gestures and writes ------------------------ */
 
   const tripDays = useMemo(() => days.filter((d) => !d.outside), [days]);
   const dateOfDay = useCallback(
@@ -703,11 +564,8 @@ export function DaysCalendar({
     });
   }, [days]);
 
-  /*
-   * A drag held at the edge turns the page and keeps going, because a stay of
-   * ten nights does not fit in a calendar week and "drag to Sunday, let go,
-   * page, find the handle, drag again" is four gestures for one decision.
-   */
+  // A drag held at the edge turns the page and keeps going — a stay of ten
+  // nights doesn't fit in a calendar week.
   useEffect(() => {
     if (edgePage === 0) return;
     const timer = setInterval(() => {
@@ -826,19 +684,8 @@ export function DaysCalendar({
 
   const selectedEvent = selected === null ? null : events.find((e) => e.id === selected);
 
-  /*
-   * How wide the calendar insists on being: the gutter plus a floor per column,
-   * and nothing else.
-   *
-   * It used to be `max-content` — on the rows and on the frame around them —
-   * which asks the *content* how wide the week should be. One all-day pill
-   * reading "Train to the next stop" was therefore enough to push a week that
-   * fits perfectly well into a horizontal scroll, on a screen with room to
-   * spare. Nothing inside a column may vote on the column's width; the pills
-   * and the bars all truncate, so a long name is a short label rather than a
-   * wider calendar. The scrollbar is now what it always claimed to be: the
-   * answer to a window too narrow for seven columns at their floor.
-   */
+  // Gutter plus a floor per column — not `max-content`, which let one long
+  // all-day pill's content vote on the column's width instead of truncating.
   const frameMinWidth = GUTTER_PX + shownDays.length * COLUMN_MIN_PX[effectiveView];
 
   const rowStyle: CSSProperties = {
@@ -846,8 +693,6 @@ export function DaysCalendar({
     gridTemplateColumns: `${GUTTER_PX}px repeat(${shownDays.length}, minmax(${COLUMN_MIN_PX[effectiveView]}px, 1fr))`,
     minWidth: frameMinWidth,
   };
-
-  /* ---- render ------------------------------------------------------------------ */
 
   return (
     <div className="rounded-md border border-rule bg-sheet">
@@ -859,9 +704,6 @@ export function DaysCalendar({
         >
           Today
         </Button>
-        {/* A pair, always, and drawn as controls rather than as glyphs: the
-            arrow is the thing you reach for most on this page, and in ghost
-            weight at 11px it was the quietest mark in the toolbar. */}
         <div className="flex gap-1">
           <Button
             onClick={goPrev}
@@ -888,17 +730,9 @@ export function DaysCalendar({
 
         <div className="flex-1" />
 
-        {/*
-         * The key for the block colours, which is also the filter (ticket 90),
-         * behind one triple-dot. Three always-on swatches spent a third of the
-         * toolbar on a control most sessions never touch, and they pushed the
-         * date range and the day/week switch into a second line on anything
-         * narrower than a laptop.
-         *
-         * A filter you can't see is a trap, so a count rides beside the trigger
-         * whenever anything is hidden — the one state that has to be legible
-         * without opening it.
-         */}
+        {/* The block-colour key doubles as the filter (ticket 90), behind one
+            triple-dot rather than three always-on swatches. A count rides
+            beside the trigger whenever anything is hidden. */}
         {hiddenCount > 0 ? (
           <span className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-soft">
             {typeCount - hiddenCount} of {typeCount} shown
@@ -971,20 +805,14 @@ export function DaysCalendar({
 
       </div>
 
-      {/* A one-line explanation whenever the layout has decided something for
-          you — the alternative is a week view that quietly became a day. */}
       {tooNarrow ? (
         <p className="border-b border-highlight bg-highlight-soft px-3 py-1.5 text-xs text-ink-soft">
           Narrow window — one day at a time.
         </p>
       ) : null}
 
-      {/*
-       * The pane's 20rem is the difference between five day columns and seven,
-       * so it is only there when it has something to say: an event is picked.
-       * Nothing is picked by default and clicking off the event puts the width
-       * back — the calendar is what the page is for.
-       */}
+      {/* The pane's 20rem only appears once an event is picked — the calendar
+          is what the page is for otherwise. */}
       <div
         className={cx(
           "grid grid-cols-1",
@@ -996,29 +824,17 @@ export function DaysCalendar({
           onClick={onCalendarClick}
           className="min-w-0 border-b border-rule lg:border-r lg:border-b-0"
         >
-          {/*
-           * ONE scroll container for both axes, and that is load-bearing.
-           * `position: sticky` resolves against the nearest scrolling
-           * ancestor, so a horizontal scroller wrapped around a separate
-           * vertical one leaves the hour gutter sticking to a box that never
-           * moves sideways — the clock scrolls away with the days, which is the
-           * one thing pinning it was for. One box scrolls both ways: the day
-           * heads stick to the top, the gutter sticks to the left, and both are
-           * measured against the same scroll offset.
-           */}
+          {/* ONE scroll container for both axes — load-bearing. `position:
+              sticky` resolves against the nearest scrolling ancestor, so
+              separate horizontal/vertical scrollers would leave the gutter
+              pinned to a box that never moves sideways. */}
           <div
             ref={scrollerRef}
             className="max-h-[70vh] overflow-auto"
             style={{ scrollPaddingTop: headHeight }}
           >
-            {/* The shadow is what makes the pinned head read as a layer over
-                the grid rather than as part of it — without it, hours sliding
-                underneath look like a rendering fault. */}
-            {/* One wrapper owns every calendar row. The head, the overnight
-                band, the all-day strip and the timed grid must share the same
-                `1fr` space; otherwise each row resolves that space on its own
-                and the columns stop lining up. Its width is the frame's floor,
-                not its content — see `frameMinWidth`. */}
+            {/* One wrapper owns every calendar row so the head, band, all-day
+                strip and grid share the same `1fr` space and stay aligned. */}
             <div className="w-full" style={{ minWidth: frameMinWidth }}>
             <div
               ref={headRef}
@@ -1034,11 +850,8 @@ export function DaysCalendar({
                     // A day the trip doesn't cover is dimmed in the head as
                     // well as in the column, so the two read as one thing.
                     day.outside && `${OUTSIDE_DAY_CLASS} text-ink-faint`,
-                    // Today is the whole head, filled. It used to be a pill
-                    // drawn around the number, which made one column's date sit
-                    // at a different height from its neighbours' — a marker
-                    // that moves the thing it marks. The cell was already
-                    // there, and colouring it costs no geometry at all.
+                    // Today is the whole head, filled — a pill around just the
+                    // number moved that column's date to a different height.
                     day.isToday && "bg-pen text-sheet",
                     landing?.dayId === day.id && "bg-pen-soft",
                   )}
@@ -1061,38 +874,21 @@ export function DaysCalendar({
               ))}
             </div>
 
-            {/*
-             * The overnight band (ticket 141) — where the group sleeps, on the
-             * surface that decides it.
-             *
-             * It sits under the dates and over the clock because that is what
-             * it is about: the day, not a time on it. The gestures are two, and
-             * they never overlap with the grid's own drag — this row is not the
-             * grid, so a press here always means a bed.
-             *
-             *   press a day       → the dialog, for that day
-             *   drag across days  → the dialog once, for the span
-             *   drag a bar's end  → the run grows or shrinks, written on release
-             *
-             * Every one of them has the dialog behind it, which is the keyboard
-             * and phone path: a drag is impossible with either.
-             */}
+            {/* The overnight band (ticket 141): press a day for the dialog,
+                drag across days for the dialog on that span, drag a bar's end
+                to grow/shrink the run on release. All three fall back to the
+                dialog for keyboard/phone. */}
             <div
               ref={bandRowRef}
               style={rowStyle}
-              /* `select-none`: a drag along the band is a gesture, and the
-                 browser's default reading of a pointer dragged across text is
-                 to select it — so shortening a stay left the place's name
-                 highlighted behind the bar. */
+              // `select-none`: without it, dragging along the band selects text.
               className="select-none border-b border-rule bg-sheet"
               onPointerMove={onBandPointerMove}
               onPointerUp={onBandPointerUp}
               onPointerCancel={onBandPointerUp}
             >
-              {/* Not `.typed`: at 11px with 0.08em of tracking the word is
-                  wider than the clock column it shares, and it ran under the
-                  rule. Same mono face, two steps down, tracking eased — the
-                  gutter is sized for `00:00`, not for nine letters. */}
+              {/* Not `.typed`: at 11px it ran under the rule, wider than the
+                  clock column it shares. Same mono face, sized for "00:00". */}
               <div className="sticky left-0 z-20 flex items-center justify-end border-r border-rule bg-sheet px-1.5 py-1.5">
                 <span className="font-mono text-[9px] uppercase tracking-[0.02em] text-ink-faint">
                   Overnight
@@ -1169,12 +965,8 @@ export function DaysCalendar({
                             });
                           }
                         }}
-                        /* `block`, not the default inline-block: an inline
-                           button sits on a line box, and the line's descender
-                           space made an empty day 7px taller than a day with a
-                           bar on it. The band then grew and shrank as a drag
-                           uncovered days — the row twitching under the gesture
-                           that was meant to be reading it. */
+                        // `block`, not default inline-block: the line's descender
+                        // space made an empty day 7px taller than one with a bar.
                         className="block h-7 w-full rounded-sm border border-dashed border-rule transition-colors hover:border-rule-strong hover:bg-sheet-2"
                       />
                     </div>
@@ -1216,11 +1008,8 @@ export function DaysCalendar({
                       }}
                       className={cx(
                         "flex h-7 w-full items-center truncate rounded-sm border px-2 text-xs transition-colors",
-                        /* The pen's own wash, not the highlighter's. Yellow is
-                           the food category's colour one row down, and a bed is
-                           not a meal; blue is what this app uses for the thing
-                           that has been decided. `-edge` for the border or the
-                           bar dissolves into the sheet (ticket 73). */
+                        // Pen blue, not highlighter yellow — yellow is the food
+                        // category's colour. `-edge` dissolves into the sheet (ticket 73).
                         run.preview
                           ? "justify-center border-dashed border-pen bg-pen-soft/60 text-pen"
                           : "border-pen-edge bg-pen-soft text-pen hover:border-pen",
@@ -1231,16 +1020,9 @@ export function DaysCalendar({
                       {run.placeName}
                     </button>
 
-                    {/* The ends are grabbable, both of them: a stay has two
-                        edges, and a bar with one live end teaches nothing about
-                        why. Hidden from the reader with a keyboard, who has the
-                        dialog's own last-day field instead.
-
-                        Drawn as the event block's grip pill, turned on its
-                        side: a thin bar inside a wider hit strip, so the target
-                        stays a target while the mark stays quiet. In the pen's
-                        blue rather than the bar's own ink — a handle is a
-                        control, and the yellow made it read as more stay. */}
+                    {/* Both ends grabbable — a bar with one live end teaches
+                        nothing about why. Hidden from keyboard users, who have
+                        the dialog's last-day field instead. */}
                     {!run.preview && run.placeId !== null
                       ? (
                           [
@@ -1283,16 +1065,11 @@ export function DaysCalendar({
               })}
             </div>
 
-            {/* The all-day band. Things that happen *on* a day rather than at a
-                time keep their own strip above the clock — the alternative was
-                making a time mandatory, which would mean inventing one for
-                every row that hasn't got one. */}
+            {/* Things that happen *on* a day rather than at a time keep their
+                own strip above the clock, rather than inventing a time. */}
             <div style={rowStyle} className="border-b border-rule bg-sheet-2">
-              {/* The band's label, not `.typed`: at the typed size "All day"
-                  wrapped to two lines in a gutter measured for `00:00`, and
-                  the strip was two lines tall before anything was in it. Same
-                  mark as Overnight above it — one word each, one line each,
-                  and the row's height then belongs to its contents. */}
+              {/* Not `.typed`: "All day" wrapped to two lines in a gutter sized
+                  for "00:00" at that size. */}
               <div className="sticky left-0 z-20 flex items-center justify-end border-r border-rule bg-sheet-2 px-1.5 py-1.5">
                 <span className="whitespace-nowrap font-mono text-[9px] uppercase tracking-[0.02em] text-ink-faint">
                   All day
@@ -1354,14 +1131,10 @@ export function DaysCalendar({
             </div>
             </div>
 
-            {/* An hour's label is centred *on* its line, so half of the first
-                one sits above the top of the grid and half of the last below
-                it — which is why the first hour read as hidden behind the
-                all-day strip. The row is inset by half a label so both ends
-                have somewhere to be. It has to be on the row, not on a column:
-                every block is positioned inside a column, so anything that
-                moved one and not the others would move the clock away from the
-                times. */}
+            {/* An hour's label centres *on* its line, so the row is inset by
+                half a label — otherwise the first hour reads as hidden behind
+                the all-day strip. On the row, not a column, so the clock stays
+                aligned with the times regardless of per-column changes. */}
             <div style={rowStyle} ref={gridRef} className="mt-2.5 mb-2.5">
               <div
                 className="sticky left-0 z-20 border-r border-rule bg-sheet"
@@ -1371,9 +1144,8 @@ export function DaysCalendar({
                   {Array.from({ length: endHour - startHour + 1 }, (_, i) => (
                     <span
                       key={i}
-                      /* Not `.typed`: at 11px with 0.08em of tracking the clock
-                         was the smallest text on a page it is meant to be read
-                         off. Same mono face, two sizes up, tracking eased. */
+                      // Not `.typed`: at 11px the clock was the smallest text
+                      // on a page it's meant to be read off.
                       className="nums absolute right-2 -translate-y-1/2 text-[13px] tracking-[0.02em] text-ink-soft"
                       style={{ top: i * HOUR_PX }}
                     >
@@ -1529,14 +1301,8 @@ export function DaysCalendar({
   );
 }
 
-/**
- * Where the group sleeps, for a span of days (ticket 141).
- *
- * The dialog is not the drag's fallback — it is the whole gesture for anyone
- * who cannot drag. `PlacePicker` is the same search Route and the event form
- * use (ticket 110), and the last-day field is what lets one keystroke do what a
- * drag across a fortnight does.
- */
+/** Where the group sleeps, for a span of days (ticket 141) — the whole gesture
+ * for anyone who can't drag; the last-day field does a fortnight in one keystroke. */
 function OvernightDialog({
   span,
   days,
@@ -1603,14 +1369,9 @@ function OvernightDialog({
       </div>
 
       <div className="space-y-3 p-4">
-        {/* Top of the list, and only where there is something to clear: an
-            undecided day is already the answer this would give. */}
+        {/* Only shown where there's something to clear. */}
         {span.placeId !== null ? (
           <div>
-            {/* The toolbar's weight — Today, the paging arrows — rather than
-                a ghost.
-                A tinted bar with no edge to it read as a heading for the field
-                below rather than as the thing you press. */}
             <Button type="button" onClick={onClear}>
               No overnight place
             </Button>
@@ -1692,17 +1453,10 @@ function DayColumn({
 }) {
   const [hover, setHover] = useState<number | null>(null);
 
-  /*
-   * Packing decides *where* a block goes; it deliberately does not decide the
-   * order they are rendered in. `packLanes` returns them sorted by start, and
-   * rendering in that order meant that dragging one event past another's start
-   * re-sorted the list, which made React re-insert the keyed node — and Chrome
-   * drops pointer capture on an element that is taken out of the document and
-   * put back. The drag went dead exactly at the moment two events crossed,
-   * which is precisely when you are most likely to be dragging one. Rendering
-   * in a fixed order by id, and letting `top`/`left` do all the moving, means
-   * the node the pointer is captured on never moves in the tree at all.
-   */
+  // Packing decides *where* a block goes, not render order — rendering in
+  // `packLanes`' start-sorted order re-sorted the keyed nodes on drag, and
+  // Chrome drops pointer capture on a node taken out of the tree and put back.
+  // Fixed order by id, with `top`/`left` doing the moving, avoids that.
   const byId = new Map(events.map((e) => [e.id, e]));
   const laneOf = new Map(
     packLanes(
@@ -1714,17 +1468,12 @@ function DayColumn({
   );
   const packed = [...laneOf.values()].sort((a, b) => a.id - b.id);
 
-  /* The block for a cross-day drag stays in its own column (see the note in
-     `shown`), so the target column shows where it would land instead. */
+  // The block for a cross-day drag stays in its own column (see `shown`), so
+  // the target column shows where it would land instead.
   const incoming =
     landing && landing.dayId === day.id && !byId.has(landing.eventId) ? landing : null;
 
-  /*
-   * A day the trip doesn't cover is a shaded, empty column and nothing else.
-   * It carries no `data-day-column`, which is what `columnAt` scans, so a drag
-   * cannot land on it — the guard is the absence of the hook rather than a
-   * check somebody has to remember to write.
-   */
+  // No `data-day-column` — what `columnAt` scans — so a drag can't land here.
   if (day.outside) {
     return (
       <div
@@ -1744,16 +1493,8 @@ function DayColumn({
       )}
       style={{ height }}
     >
-      {/*
-       * One rule an hour, painted rather than built from elements — a week
-       * costs a gradient instead of 500 divs.
-       *
-       * The half and the quarter used to be painted too, faintly, so that a
-       * quarter-hour target was visible before you aimed at it. Both went with
-       * the quarter-hour snap: four horizontals an hour across seven columns,
-       * over a sheet that is already ruled behind them, read as hatching, and
-       * a grid that places to the minute has no quarter to aim at anyway.
-       */}
+      {/* One rule an hour, painted rather than built from elements — a week
+          costs a gradient instead of 500 divs. */}
       <div
         aria-hidden
         className="absolute inset-0"
@@ -1762,10 +1503,8 @@ function DayColumn({
         }}
       />
 
-      {/* A click anywhere empty is "add one here" — at the minute the cursor
-          is actually on, not the quarter hour it is nearest. Reached by keyboard
-          it has no coordinates to read, so it opens at nine — a column is the
-          only way in, so it has to answer to a keyboard as well as a pointer. */}
+      {/* A click anywhere empty adds at that minute; keyboard has no
+          coordinates to read, so it opens at nine. */}
       <button
         type="button"
         aria-label={`Add an event on ${day.longLabel}`}
@@ -1806,11 +1545,9 @@ function DayColumn({
         </div>
       ) : null}
 
-      {/* Now, on today's column only. A hairline with a blob on the left end:
-          the line says which minute, the blob says which end of it to read
-          from and keeps the mark findable where it crosses an empty hour. The
-          time itself is named for a screen reader, since a red line is a
-          colour on its own. */}
+      {/* The blob marks which end of the line to read from and stays findable
+          where the line crosses an empty hour. Time named for screen readers
+          — colour is never the only signal. */}
       {nowMinutes !== null ? (
         <div
           className="pointer-events-none absolute inset-x-0 z-10 border-t border-red"
@@ -1879,15 +1616,9 @@ function DayColumn({
               </span>
             ) : null}
 
-            {/* The bottom edge resizes. A span rather than a second button,
-                because a button inside a button is not valid markup — the
-                keyboard's way to the same thing is ↑/↓ on the block.
-
-                The short bar drawn inside it is the mockup's grip pill, and it
-                is not decoration: without it the handle is an invisible strip
-                of pixels, and an affordance nobody can see is one only the
-                people who already knew about it will use. `currentColor` at
-                low opacity means it inherits each category's ink for free. */}
+            {/* Resize handle: a span, not a button — a button inside a button
+                isn't valid markup. Keyboard equivalent is ↑/↓ on the block.
+                The grip pill isn't decoration; without it the strip is invisible. */}
             <span
               aria-hidden
               onPointerDown={(ev) => {

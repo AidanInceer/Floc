@@ -1,11 +1,5 @@
-/**
- * The hand-rolled component inventory the page list needs (ticket 11).
- * No shadcn/ui: v1 needs ~12 primitives, and owning them keeps the visual
- * language (a shared paper travel journal — ruled sheets, a red margin,
- * ink stamps for anything decided) undiluted.
- *
- * Everything here is a server component unless it says "use client".
- */
+// Hand-rolled component inventory (ticket 11) — no shadcn/ui, keeps the
+// paper-journal visual language undiluted. Server components unless "use client".
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 
@@ -15,16 +9,8 @@ export function cx(...parts: (string | false | null | undefined)[]) {
   return parts.filter(Boolean).join(" ");
 }
 
-/* -------------------------------------------------------------------------- */
-/* Layout                                                                     */
-/* -------------------------------------------------------------------------- */
-
-/**
- * The page itself is a sheet of ruled paper — in paper.html this is the one
- * `.sheet.ruled` per screen, tape and all. Individual `Card`s inside it are
- * plain note-cards, not more paper; the ruled lines and the red margin only
- * happen once, at this outer level, or the metaphor turns to noise.
- */
+// The page is a sheet of ruled paper (paper.html's `.sheet.ruled`) — ruling
+// and the red margin happen once, at this outer level; Cards stay plain.
 export function Page({
   children,
   wide,
@@ -32,12 +18,7 @@ export function Page({
 }: {
   children: ReactNode;
   wide?: boolean;
-  /**
-   * Drops the gap above the sheet so a tab strip rendered immediately before it
-   * can sit *on* its top edge — the notebook-divider effect. Every
-   * `trip/[id]/*` page passes this (with `wide`, so the sheet's edges line up
-   * with the tabs); nothing else should.
-   */
+  /** Drops the gap above the sheet so a tab strip sits *on* its top edge. Only `trip/[id]/*` pages pass this. */
   flush?: boolean;
 }) {
   return (
@@ -45,40 +26,24 @@ export function Page({
       className={cx(
         "mx-auto w-full px-4 pb-16 sm:px-6",
         flush ? "pt-0" : "pt-6",
-        // 4xl rather than 3xl for the standard sheet (ticket 95): Trips,
-        // Friends, Profile and Settings are one set of pages and were visibly
-        // narrower than everything reached from the same header, which read as
-        // the sheet changing size when you moved between them. `wide` is still
-        // the trip tabs and Explore, where the extra width is doing work.
-        //
-        // `wide` grew from 6xl to 84rem for the Days calendar (ticket 103): a
-        // week of columns with a floor under each of them wants every pixel,
-        // and 6xl fit five before it began scrolling. The header bar and the
-        // folder tabs carry the same number — `app-chrome.tsx` and
-        // `trip/[id]/layout.tsx` — and all three must change together or the
-        // sheet's edges stop lining up with the tabs sitting on them.
+        // 84rem width (ticket 103) is shared with app-chrome.tsx and
+        // trip/[id]/layout.tsx — change all three together or edges misalign.
         wide ? "max-w-[84rem]" : "max-w-4xl",
       )}
     >
       <div
         className={cx(
           "sheet-ruled sheet-margin relative overflow-hidden rounded-lg border border-rule bg-sheet shadow-raised",
-          // Flush against the tabs above: the active tab covers this corner, so
-          // rounding it would leave a notch between the two.
+          // Active tab covers this corner when flush; rounding would notch it.
           flush && "rounded-t-none",
           "px-5 py-7 sm:px-8 sm:py-8",
-          // The red margin sits at 22px on mobile, 46px from sm: up (see the
-          // matching breakpoint in globals.css) — content must clear it.
+          // Must clear the red margin (22px mobile / 46px sm:, see globals.css).
           "pl-[38px] sm:pl-[76px]",
         )}
       >
-        {/* No tape on a flush page: it hangs over the sheet's top edge, which
-            is where the folder tabs now are. A sheet bound into the notebook
-            doesn't need taping down anyway. */}
+        {/* No tape on flush: the folder tabs now cover that edge. */}
         {flush ? null : <span aria-hidden className="tape" />}
-        {/* Content sits above the ruled lines and the margin, which are
-            absolutely-positioned pseudo-elements and would otherwise paint
-            over it — see the z-index note in globals.css. */}
+        {/* Above the ruled lines/margin pseudo-elements — see z-index note in globals.css. */}
         <div className="sheet-content">{children}</div>
       </div>
     </div>
@@ -107,12 +72,7 @@ export function PageHeader({
   );
 }
 
-/**
- * A note-card — one item pinned to the sheet. Flatter than the page itself:
- * a plain border, no ruled lines, no shadow. Paper's ruling only happens
- * once per screen (see `Page`); a card with its own lines too would read as
- * clutter rather than as more of the same journal.
- */
+// Flatter than Page on purpose — ruling happens once per screen, not per card.
 export function Card({
   children,
   className,
@@ -138,12 +98,7 @@ export function CardHeader({
   title: ReactNode;
   hint?: ReactNode;
   actions?: ReactNode;
-  /**
-   * Sets the title in the page's own voice rather than the small typed label —
-   * used where the heading names a real thing the reader is scanning for (a
-   * stop's place, a day's date), which the 11px uppercase `.typed` was too
-   * quiet to carry.
-   */
+  /** Full-voice title instead of the quiet uppercase `.typed` label — for headings naming a real thing (a place, a date). */
   strong?: boolean;
 }) {
   return (
@@ -174,24 +129,11 @@ export function Stack({
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* Buttons                                                                    */
-/* -------------------------------------------------------------------------- */
-
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 
-// Biro, not a UI button: solid ink for the pen, an outline for everything
-// else.
-//
-// Ticket 120: every variant's hover has to read *without* looking at the
-// cursor. The primary used to be `brightness-110` over `--pen`, which on an
-// already-dark ink is a couple of L* points — invisible on the /explore
-// "Start this trip" CTA in particular. It now steps to `--pen-deep`, roughly
-// a fifth of the way further down the ink, and the outline follows the fill
-// so the whole shape changes rather than just its middle. The secondary was
-// sheet → sheet-2, two neighbouring creams; it now takes the next stock down
-// and pulls its border to the pen, which is also what makes a quiet
-// secondary read as clickable at all.
+// Hover must read without the cursor visible (ticket 120): primary steps to
+// --pen-deep (brightness-110 was too subtle on dark ink); secondary jumps a
+// full stock down, not a neighbouring one, so it reads as clickable at all.
 const variants: Record<Variant, string> = {
   primary: "border-pen bg-pen text-sheet hover:border-pen-deep hover:bg-pen-deep",
   secondary:
@@ -226,16 +168,10 @@ export function ButtonLink({
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* Status                                                                     */
-/* -------------------------------------------------------------------------- */
-
 /** The three-state semantics used identically across every tab. */
 export type Tone = "agreed" | "open" | "action" | "neutral" | "marine";
 
-// paper.html's `.mark` — a highlighter-and-correction-pen vocabulary, not a
-// generic coloured pill. "open" is a highlighter wash (needs the darker
-// highlight-ink text to stay legible on yellow), "action" is correction red.
+// paper.html's `.mark` — highlighter/correction-pen vocabulary, not generic pills.
 const tones: Record<Tone, string> = {
   agreed: "border-transparent bg-green-soft text-green",
   open: "border-transparent bg-highlight-soft text-highlight-ink",
@@ -266,12 +202,8 @@ export function Badge({
   );
 }
 
-/**
- * An ink stamp — for a state the group has actually *decided*, not just a
- * status label. Used sparingly: a trip that's ended, a split that's settled.
- * Everything else stays a `Badge`. Rotated slightly, like it was stamped by
- * hand and not quite square.
- */
+// For a state actually *decided* (trip ended, split settled) — everything
+// else stays a Badge. Rotated slightly, like stamped by hand.
 export function Stamp({
   tone = "done",
   children,
@@ -291,12 +223,8 @@ export function Stamp({
   );
 }
 
-/**
- * A swatch and the word it means. Ticket 76 introduced it on the availability
- * calendar as the visual-over-text convention — the reader matches rather than
- * reads — and ticket 122 lifted it here when the travel map's "click a country
- * to cycle it" paragraph was replaced by the same key.
- */
+// Swatch + word — the visual-over-text convention from the availability
+// calendar (ticket 76), lifted here for the travel map's key (ticket 122).
 export function LegendKey({ swatch, label }: { swatch: string; label: string }) {
   return (
     <span className="flex items-center gap-1.5 text-xs text-ink-soft">
@@ -326,10 +254,6 @@ export function EmptyState({
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* People                                                                     */
-/* -------------------------------------------------------------------------- */
-
 function initials(name: string) {
   return name
     .trim()
@@ -350,15 +274,13 @@ export function Avatar({
   src?: string | null;
   size?: number;
   title?: string;
-  /** A `who-*` class. Pass a trip member's own `tone` so they keep one colour
-      everywhere in that trip; omit it to fall back to the name hash. */
+  /** A `who-*` class — pass a member's own tone to keep it consistent trip-wide; omit to fall back to the name hash. */
   tone?: string;
 }) {
   const style = { width: size, height: size, fontSize: Math.round(size / 2.6) };
   if (src) {
     return (
-      // Avatars come from arbitrary provider hosts; next/image would need
-      // every one allow-listed.
+      // Arbitrary provider hosts — next/image would need every one allow-listed.
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={src}
@@ -397,9 +319,7 @@ export function AvatarRow({
   const extra = people.length - shown.length;
   return (
     <div className="flex items-center">
-      {/* `inline-flex` on each face, not the default inline: an inline box
-          takes the line's leading with it, which sat every face a pixel below
-          whatever it was lined up against (ticket 133). */}
+      {/* inline-flex, not default inline — avoids a 1px leading offset (ticket 133). */}
       {shown.map((p, i) => (
         <span
           key={`${p.name}-${i}`}
@@ -418,10 +338,6 @@ export function AvatarRow({
     </div>
   );
 }
-
-/* -------------------------------------------------------------------------- */
-/* Forms                                                                      */
-/* -------------------------------------------------------------------------- */
 
 const fieldBase =
   "w-full rounded-md border border-rule-strong bg-sheet px-2.5 py-1.5 font-mono text-sm text-ink placeholder:text-ink-faint";

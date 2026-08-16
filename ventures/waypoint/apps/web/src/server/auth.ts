@@ -66,18 +66,11 @@ export const auth = betterAuth({
   session: {
     expiresIn: 60 * 60 * 24 * 60, // 60 days
     updateAge: 60 * 60 * 24, // rolling: refreshed at most once a day
-    /*
-     * Every server render resolves the session before it can do anything else
-     * — it's the first serial database round trip of every page and every
-     * action. This caches the session in a signed cookie so that lookup only
-     * happens once a minute instead of once a request.
-     *
-     * The cost is that session *revocation* (signing out elsewhere, deleting
-     * the account) lags by up to `maxAge`. Sixty seconds is chosen to keep
-     * that window short; nothing else in the app is gated on it, because trip
-     * membership is read from the database on every request regardless — see
-     * `requireTripAccess` — so a kicked member still loses access instantly.
-     */
+    // Caches the session in a signed cookie so the lookup happens once a
+    // minute instead of once a request. Costs revocation lag up to `maxAge`;
+    // 60s keeps that short, and trip membership is still read fresh from the
+    // database on every request (see `requireTripAccess`), so a kicked member
+    // loses access instantly regardless.
     cookieCache: {
       enabled: true,
       maxAge: 60,
@@ -95,11 +88,10 @@ export const auth = betterAuth({
 export type Session = typeof auth.$Infer.Session;
 
 /**
- * The linked sign-in methods on one account, and the one way to remove one
- * (ticket 108). Better Auth owns the `account` table, so these two sit beside
- * its config rather than in a module of their own — but the *rule* that you
- * cannot unlink your last credential is the caller's, because it is a message
- * to a person, not a constraint on the row.
+ * Linked sign-in methods on an account, and the one way to remove one (ticket
+ * 108). Better Auth owns `account`, so these sit beside its config; the rule
+ * that you can't unlink your last credential belongs to the caller instead —
+ * it's a message to a person, not a constraint on the row.
  */
 export async function listLinkedAccounts(userId: string) {
   return db.select().from(schema.account).where(eq(schema.account.userId, userId)).all();

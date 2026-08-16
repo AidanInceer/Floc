@@ -82,11 +82,7 @@ export type Tally = {
   freeUserIds: string[];
 };
 
-/**
- * Only `available: true` rows count. A `false` row is an explicit "not this
- * day" and reads the same as never having answered for the purpose of picking
- * a window — the difference matters for chasing people, not for the maths.
- */
+/** Only `available: true` rows count — a `false` row reads the same as unanswered for the maths. */
 export function tally(rows: AvailabilityRow[]): Map<IsoDate, Tally> {
   const out = new Map<IsoDate, Tally>();
   for (const row of rows) {
@@ -103,18 +99,11 @@ export function tally(rows: AvailabilityRow[]): Map<IsoDate, Tally> {
 export type Window = { start: IsoDate; end: IsoDate; free: number };
 
 /**
- * The window to suggest as the trip's dates.
- *
- * Deliberately does **not** wait for everyone: the whole point of the tab is
- * that a group can commit while two people are still ignoring the thread. So
- * this walks the thresholds downwards — first look for a run of days *everyone*
- * marked, then all-but-one, and so on — and takes the longest run at the
- * highest threshold that reaches `minLength`. Ties go to the earlier window,
- * because a group that can't choose between two equal weeks will take the
- * sooner one.
- *
- * Returns null when nobody has marked anything at all; a single marked day
- * comes back as a one-day window rather than nothing.
+ * The window to suggest as the trip's dates. Deliberately doesn't wait for
+ * everyone: walks thresholds downwards (everyone marked, then all-but-one,
+ * ...) and takes the longest run at the highest threshold reaching
+ * `minLength`. Ties go to the earlier window. Null only when nobody has
+ * marked anything.
  */
 export function bestWindow(
   rows: AvailabilityRow[],

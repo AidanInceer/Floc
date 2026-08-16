@@ -1,26 +1,14 @@
 /**
- * The notes aggregate's write half — `note` and `note_reaction` (ticket 108).
- * The read half is `server/notes-read.ts`, which assembles whole threads for a
- * page; the two are one aggregate split by direction, not by table.
+ * `note` + `note_reaction` write half (ticket 108); reads are in
+ * `server/notes-read.ts` — one aggregate split by direction, not by table.
  *
- * Discussion threads go through the polymorphic `note` table (scope +
- * scope_id) rather than a table per surface: a note on an idea and a note on a
- * day event are the same object with the same rules, and the alternative is
- * `idea_comment`, `day_event_comment`, … each with its own read, action and
- * component. Nothing in here is scope-specific, which is the sign it was the
- * right table.
+ * Threads go through the polymorphic `note` table (scope + scope_id) rather
+ * than a table per surface, since a note on an idea and one on a day event are
+ * the same object with the same rules.
  *
- * The rules it owns:
- *
- * - **Soft-delete (rule 8)** on every read, and the reaction toggle, where
- *   un-reacting must revive the same row rather than insert a second one.
- * - **One level deep** (ticket 06): a reply attaches to its target's parent, and
- *   deleting a parent takes its replies. `resolveParent` and
- *   `softDeleteNoteAndReplies` are the two halves of that, and being here means
- *   no caller can implement half of it.
- * - **The body cap**, `NOTE_BODY_MAX`.
- * - **Revalidation**, including which tab a scope is rendered on — see
- *   `revalidateThread`.
+ * Owns: soft-delete (rule 8) including the reaction toggle's revive-not-insert
+ * behaviour; one-level-deep threading (ticket 06, split across `resolveParent`
+ * and `softDeleteNoteAndReplies`); the body cap; and per-scope revalidation.
  */
 import "server-only";
 
@@ -33,20 +21,10 @@ import type { NoteScope, ReactionKind } from "@/db/schema";
 import { TEXT_CAPS } from "@/lib/text";
 import { touch } from "@/server/audit";
 
-/**
- * Longer than anyone types in a comment box, short enough to bound the row.
- * Re-exported from `lib/text.ts` (ticket 113), which is where every other
- * column's cap now lives — this one merely predates them.
- */
+/** Re-exported from `lib/text.ts` (ticket 113) — predates the others' move there. */
 export const NOTE_BODY_MAX = TEXT_CAPS.noteBody;
 
-/**
- * Revalidates the tab a scope is rendered on.
- *
- * Revalidating the layout alone left the tab you were looking at showing the
- * old thread until a manual reload — the client router cache for that page
- * isn't refreshed unless the revalidated path is the page's own. So name it.
- */
+/** Revalidates the tab a scope is rendered on — the layout path alone doesn't refresh the page's own router cache. */
 export function revalidateThread(tripId: number, scope: NoteScope): void {
   revalidatePath(pathFor(tripId, scope));
 }
@@ -75,13 +53,11 @@ export async function findNote(tripId: number, noteId: number) {
 }
 
 /**
- * The parent a reply should attach to. Threads are exactly one level deep
- * (ticket 06), so replying to a reply attaches to that reply's own parent — and
- * the target is re-read here rather than trusted from the form, which is also
- * what stops a crafted `replyTo` pointing at a comment in someone else's trip.
- *
- * Returns `undefined` when the target has gone, which the caller must tell
- * apart from `null` ("attach at the top level").
+ * The parent a reply should attach to. Threads are one level deep (ticket 06),
+ * so replying to a reply attaches to that reply's own parent. Target is
+ * re-read here rather than trusted from the form, which also stops a crafted
+ * `replyTo` pointing at another trip's comment. `undefined` means the target
+ * has gone — distinct from `null` ("attach at the top level").
  */
 export async function resolveParent(args: {
   tripId: number;
@@ -124,14 +100,7 @@ export async function updateNoteBody(noteId: number, body: string): Promise<void
     .where(and(eq(note.id, noteId), isNull(note.deletedAt)));
 }
 
-/**
- * Soft-deletes a comment and, in the same stamp, its replies.
- *
- * A reply is only legible under the comment it answers, so deleting a
- * top-level comment takes its replies with it rather than leaving them
- * stranded as top-level comments answering nothing. One level deep means this
- * needs no recursion. The confirm copy says so before it happens.
- */
+/** Soft-deletes a comment and its replies in the same stamp — one level deep means no recursion, and a reply left orphaned answers nothing. */
 export async function softDeleteNoteAndReplies(noteId: number): Promise<void> {
   const deletedAt = new Date();
   await db
@@ -145,20 +114,15 @@ export async function softDeleteNoteAndReplies(noteId: number): Promise<void> {
 }
 
 /**
- * Toggles one of the three reactions. They are independent of each other by
- * design (ticket 06) — a comment can be both hearted and agreed with, and
- * policing thumbs-up-plus-thumbs-down costs more than the case is worth.
+ * Toggles one of the three reactions — independent of each other by design
+ * (ticket 06), a comment can be both hearted and agreed with.
  *
- * Soft-delete (rule 8) means un-reacting has to revive the same row rather than
- * insert a second one. This used to be a read-modify-write with a non-unique
- * index behind it, so two taps landing together wrote *two* rows and one
- * person's heart then counted as two (ticket 115). `note_reaction_one_idx` is
- * unique now, which turns the same intent into an upsert that cannot duplicate.
- *
- * The read stays, because the toggle has to know which way to flip. Under a
- * genuine race both readers may see the same state and write the same answer —
- * that is last-write-wins (rule 7), and it settles on one row rather than two,
- * which is the part that mattered.
+ * Soft-delete (rule 8) means un-reacting revives the same row rather than
+ * inserting a second one. Used to be a read-modify-write with a non-unique
+ * index behind it, so two taps landing together double-counted one person's
+ * heart (ticket 115); `note_reaction_one_idx` is unique now, turning this into
+ * an upsert that can't duplicate. The read stays only to decide which way to
+ * flip — a genuine race just settles last-write-wins (rule 7) on one row.
  */
 export async function toggleReaction(
   noteId: number,

@@ -11,12 +11,7 @@ import { db } from "@/db";
 import { account, userProfile } from "@/db/schema";
 import type { SignupChannel, UserProfile } from "@/db/schema";
 
-/**
- * The sign-in methods on an account (ticket 118) — what Settings offers to
- * unlink. Better Auth owns the `account` table; this is a read of it, never a
- * write, because unlinking goes through the action's own guard against taking
- * away the last one.
- */
+/** Sign-in methods on an account (ticket 118), for Settings to offer unlinking. Read-only — unlinking goes through the action's own last-credential guard. */
 export async function listLinkedAccounts(
   userId: string,
 ): Promise<{ id: string; providerId: string }[]> {
@@ -56,14 +51,10 @@ export function revalidateProfile(): void {
 }
 
 /**
- * Writes a patch of profile fields (ticket 108). One function rather than one
- * per section: the three forms on /profile write disjoint columns of the same
- * row, and the only rule they share — stamp `last_modified_at` — belongs here
- * rather than in each of them.
- *
- * Which fields are *valid* is not decided here. `parseDietFlags`,
- * `parseVibeTags` and the currency check are pure and live in `lib/`, and the
- * action calls them before this ever sees a value.
+ * Writes a patch of profile fields (ticket 108) — one function rather than one
+ * per form section, since the shared `last_modified_at` stamp is the only rule
+ * they share. Validation (`parseDietFlags`, `parseVibeTags`, currency) is pure
+ * and lives in `lib/`; the action calls it before this ever sees a value.
  */
 export async function updateProfileFields(
   userId: string,
