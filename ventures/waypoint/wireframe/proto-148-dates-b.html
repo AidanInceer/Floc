@@ -1,6 +1,3 @@
-<!doctype html>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Proto 148 · Dates B — Forecast as a fourth calendar view</title>
 <!--
   PROTOTYPE — throwaway. Answers: should the forecast be a MODE on the existing
@@ -162,7 +159,7 @@ body:not([data-view="weather"]) .key-avail { display: flex; }
 body:not([data-view="weather"]) .horizon-note { visibility: hidden; }
 </style>
 
-<body data-view="everyone">
+<script>document.body.dataset.view = "everyone";</script>
 
 <div class="app-nav">
   <div class="wrap">
