@@ -41,6 +41,7 @@ Pre-MVP. Stack: **Next.js App Router + Turso (libSQL) + Drizzle + Better Auth**
 - **Nothing in `app/` imports `@/db`** — SQL lives only in `server/` aggregates.
 - Validate at the door: dates via `lib/dates.ts`, free text via `lib/text.ts`. Rejections are form errors, never unhandled throws.
 - Colours/icons come from tokens only — no hex literals, no icon fonts/Lucide/etc. Status is never colour (or icon) alone.
+- **No emoji anywhere in the app** (#148). Every icon is drawn line-art in the app'''s own biro — an emoji is someone else'''s artwork and can'''t take the ink of what it sits in. Scale: 14×14 `viewBox` at ~13px, `fill="none"`, `strokeWidth` 1.15–1.25, `stroke="currentColor"` (see `TravelModeIcon`, `ReactionGlyph`, `WeatherGlyph`).
 - Light only — no dark palette, no `theme` column.
 - **No instructional copy** ("click here…") and **show it, don't narrate it** — if a control already shows a state, don't also write a sentence describing it.
 - British English, sentence case, real content (never lorem).
