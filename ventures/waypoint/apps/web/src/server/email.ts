@@ -34,6 +34,14 @@ export type OutboundEmail = {
   toUserId?: string;
 };
 
+/**
+ * Whether mail actually leaves the building. False means sends only log, so
+ * anything gated on receiving an email must not gate at all (rule 11, #149).
+ */
+export function emailConfigured(): boolean {
+  return !!process.env.RESEND_API_KEY;
+}
+
 export function absoluteUrl(path: string) {
   return new URL(path, appUrl()).toString();
 }
@@ -175,6 +183,20 @@ function escape(s: string) {
 
 // The catalogue (ticket 20) — five emails, all instant, no digests in v1.
 export const emails = {
+  /** Trigger: a password sign-up (ticket 149). Google sign-ups never see this. */
+  verifyEmail: (args: { to: string; url: string }): OutboundEmail => ({
+    to: args.to,
+    subject: "Confirm your email for Waypoint",
+    lines: [
+      "Confirm this address to start joining trips on Waypoint.",
+      "The link works once and expires within the hour.",
+    ],
+    cta: { label: "Confirm email", url: args.url },
+    category: "invites",
+    // Asked-for and one-shot: always sends, never gated by a preference.
+    transactional: true,
+  }),
+
   /** Trigger: an admin shares the trip link to a named email address. */
   invite: (args: {
     to: string;

@@ -43,9 +43,23 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
-    // No email verification gate in v1: nothing in the product is gated on it,
-    // and the invite flow needs the fewest possible steps (ticket 01).
+    // Ticket 149: sign-in is *not* blocked on verification — only joining a
+    // trip is (see `requireVerifiedToJoin`). So a fresh password account can
+    // sign in and set itself up; it just can't land in someone else's trip
+    // until it has proven it owns the inbox.
     requireEmailVerification: false,
+  },
+  emailVerification: {
+    // Ticket 149: the mail goes out at signup. A Google sign-up never reaches
+    // here — Google reports the address already verified.
+    sendOnSignUp: true,
+    // Single-use by construction (Better Auth consumes the token on success)
+    // and time-boxed so a leaked link stops working. 1 hour.
+    expiresIn: 60 * 60,
+    async sendVerificationEmail({ user, url }) {
+      const { sendEmails, emails } = await import("@/server/email");
+      await sendEmails([emails.verifyEmail({ to: user.email, url })]);
+    },
   },
   socialProviders: googleConfigured
     ? {

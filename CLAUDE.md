@@ -45,8 +45,9 @@ pnpm --filter waypoint-web <task>   # scope to the app
   `0.4.0 #93: feat: split the profile into two faces`. Version bumps
   `apps/web/package.json` in the same commit (minor=feature, patch=fix). Body
   ends `Closes AidanInceer/Waypoint#<n>`. Types: `feat|fix|docs|refactor|chore|test`.
-- **Deployment is per-app** — its own workflow + Vercel project; never deploy
-  the whole monorepo at once.
+- **Deployment is Railway**, driven by `railway.json` at the repo root: it runs
+  the migration script, then starts `waypoint-web`. A push to `main` deploys.
+  Env vars live in Railway's own Variables tab, never in the repo.
 
 ## Common agent pitfalls here
 

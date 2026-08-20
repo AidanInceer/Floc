@@ -15,6 +15,7 @@ import {
   findTripByInviteToken,
   isLiveMember,
 } from "@/server/membership";
+import { emailConfigured } from "@/server/email";
 import { peopleByIds } from "@/server/friends";
 import { formatDateRange } from "@/lib/dates";
 import {
@@ -26,7 +27,7 @@ import {
   Stack,
 } from "@/components/ui";
 import { SubmitButton } from "@/components/client-ui";
-import { joinTrip } from "./actions";
+import { joinTrip, resendVerification } from "./actions";
 
 /**
  * The link names the trip (ticket 147). URL stays opaque — putting the name in
@@ -58,10 +59,13 @@ export async function generateMetadata({
 
 export default async function InvitePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ token: string }>;
+  searchParams: Promise<{ verify?: string }>;
 }) {
   const { token } = await params;
+  const { verify } = await searchParams;
 
   const found = await findTripByInviteToken(token);
   if (!found) notFound();
@@ -146,6 +150,20 @@ export default async function InvitePage({
               >
                 Join this trip
               </ButtonLink>
+            ) : !session.user.emailVerified && emailConfigured() ? (
+              // The friendly face of the gate `joinTrip` enforces (#149).
+              <Stack gap={2}>
+                <p className="text-sm text-ink-soft">
+                  {verify === "sent"
+                    ? `We've sent a confirmation link to ${session.user.email}. Open it, then come back to join.`
+                    : `Confirm your email first — we sent a link to ${session.user.email} when you signed up.`}
+                </p>
+                <form action={resendVerification.bind(null, token)}>
+                  <SubmitButton variant="secondary" pendingLabel="Sending…">
+                    Resend confirmation
+                  </SubmitButton>
+                </form>
+              </Stack>
             ) : (
               <form action={joinTrip.bind(null, token)}>
                 <SubmitButton pendingLabel="Joining…">Join this trip</SubmitButton>
