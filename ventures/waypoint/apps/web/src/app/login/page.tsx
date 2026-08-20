@@ -6,6 +6,7 @@ import Link from "next/link";
 import { AuthForm } from "@/components/auth-form";
 import { Card, Page, Stack } from "@/components/ui";
 import { enabledProviders } from "@/server/auth";
+import { emailConfigured } from "@/server/email";
 
 export default function LoginPage() {
   return (
@@ -18,7 +19,11 @@ export default function LoginPage() {
           </p>
         </div>
         <Card className="p-5">
-          <AuthForm mode="login" googleEnabled={enabledProviders.google} />
+          <AuthForm
+            mode="login"
+            googleEnabled={enabledProviders.google}
+            resetEnabled={emailConfigured()}
+          />
         </Card>
         <p className="text-center text-sm text-ink-soft">
           New to Waypoint?{" "}

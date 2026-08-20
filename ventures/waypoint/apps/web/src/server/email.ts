@@ -32,6 +32,8 @@ export type OutboundEmail = {
   transactional?: boolean;
   /** Recipient's user id — needed to read their preference. */
   toUserId?: string;
+  /** CTA carries a credential; keep it out of production logs (#149). */
+  sensitive?: boolean;
 };
 
 /**
@@ -66,9 +68,13 @@ async function deliver(email: OutboundEmail): Promise<boolean> {
 
   if (!key) {
     // Dev fallback (rule 11); address is masked so no full address hits the server log (ticket 111).
+    // A sensitive CTA is a bearer credential: printed in development, where the
+    // log is the only way to follow the link, never in production (#149).
+    const showCta =
+      email.cta && (!email.sensitive || process.env.NODE_ENV !== "production");
     console.info(
       `[email:${email.category}] → ${maskAddress(email.to)}: ${email.subject}\n${email.lines.join("\n")}${
-        email.cta ? `\n${email.cta.label}: ${email.cta.url}` : ""
+        showCta ? `\n${email.cta!.label}: ${email.cta!.url}` : ""
       }`,
     );
     return true;
@@ -195,6 +201,21 @@ export const emails = {
     category: "invites",
     // Asked-for and one-shot: always sends, never gated by a preference.
     transactional: true,
+    sensitive: true,
+  }),
+
+  /** Trigger: someone asks to reset a forgotten password (#149). */
+  resetPassword: (args: { to: string; url: string }): OutboundEmail => ({
+    to: args.to,
+    subject: "Reset your Waypoint password",
+    lines: [
+      "Someone asked to reset the password on this address.",
+      "The link works once and expires within the hour. If this wasn't you, ignore it — nothing has changed.",
+    ],
+    cta: { label: "Choose a new password", url: args.url },
+    category: "invites",
+    transactional: true,
+    sensitive: true,
   }),
 
   /** Trigger: an admin shares the trip link to a named email address. */

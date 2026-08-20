@@ -48,6 +48,13 @@ export const auth = betterAuth({
     // sign in and set itself up; it just can't land in someone else's trip
     // until it has proven it owns the inbox.
     requireEmailVerification: false,
+    // Single-use by construction (Better Auth consumes the token) and short,
+    // since it is a bearer credential for the account.
+    resetPasswordTokenExpiresIn: 60 * 60,
+    async sendResetPassword({ user, url }) {
+      const { sendEmails, emails } = await import("@/server/email");
+      await sendEmails([emails.resetPassword({ to: user.email, url })]);
+    },
   },
   emailVerification: {
     // Ticket 149: the mail goes out at signup. A Google sign-up never reaches

@@ -5,6 +5,7 @@
  * email/password — matches ticket 06's primary path (Google + email at
  * launch, Facebook is a fast-follow so it never renders here).
  */
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
@@ -18,10 +19,13 @@ const VIA_VALUES = ["whatsapp", "email", "link", "direct"] as const;
 export function AuthForm({
   mode,
   googleEnabled,
+  resetEnabled,
   captureChannel,
 }: {
   mode: "login" | "signup";
   googleEnabled: boolean;
+  /** Reset needs mail; without it the link would lead nowhere (rule 11). */
+  resetEnabled?: boolean;
   /** Server Action, signup only: writes signup_channel once (ticket 06). */
   captureChannel?: (via: string) => Promise<void>;
 }) {
@@ -32,6 +36,8 @@ export function AuthForm({
   const via = (VIA_VALUES as readonly string[]).includes(viaParam ?? "")
     ? (viaParam as (typeof VIA_VALUES)[number])
     : null;
+
+  const justReset = params.get("reset") === "1";
 
   const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -52,7 +58,7 @@ export function AuthForm({
       provider: "google",
       callbackURL: redirectTo,
     });
-    if (err) setError(err.message ?? "Could not sign in with Google.");
+    if (err) setError(mapGoogleError(err.code, err.message));
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -84,7 +90,7 @@ export function AuthForm({
     } else {
       const { error: err } = await signIn.email({ email, password });
       if (err) {
-        setError(mapAuthError(err.message));
+        setError(mapSignInError(err.message, googleEnabled));
         return;
       }
     }
@@ -93,6 +99,11 @@ export function AuthForm({
 
   return (
     <Stack gap={4}>
+      {justReset ? (
+        <p className="text-sm text-ink-soft">
+          Your password is set. Sign in with it.
+        </p>
+      ) : null}
       {showGoogle ? (
         <>
           <GoogleButton
@@ -138,6 +149,14 @@ export function AuthForm({
               onChange={(e) => setPassword(e.target.value)}
             />
           </Field>
+          {mode === "login" && resetEnabled ? (
+            <Link
+              href="/forgot-password"
+              className="-mt-1 self-start text-xs text-ink-soft underline underline-offset-2 hover:text-pen"
+            >
+              Forgotten your password?
+            </Link>
+          ) : null}
           <ErrorText>{error}</ErrorText>
           <SubmitButton className="w-full">
             {mode === "signup" ? "Create account" : "Sign in"}
@@ -190,11 +209,34 @@ function GoogleG() {
   );
 }
 
-/** Surfaces Better Auth's own messages, with ticket 06's collision case named. */
+/** Sign-up: the collision case named (ticket 06). */
 function mapAuthError(message?: string): string {
   if (!message) return "Something went wrong. Try again.";
   if (/already exists|already registered/i.test(message)) {
-    return "An account with this email already exists — sign in the way you originally signed up.";
+    return "An account with this email already exists — sign in instead.";
   }
   return message;
+}
+
+/**
+ * Sign-in (#149). A wrong password and an account that only has Google look
+ * identical from here, and must stay that way — naming which it was would let
+ * anyone test whether an address is registered. So the hint covers both
+ * without confirming either.
+ */
+function mapSignInError(message: string | undefined, googleEnabled: boolean): string {
+  if (message && !/invalid|incorrect|not found|password/i.test(message)) {
+    return message;
+  }
+  return googleEnabled
+    ? "That email and password don't match. If you signed up with Google, use the Google button above."
+    : "That email and password don't match.";
+}
+
+/** The linking refusals, which otherwise surface as raw codes (#149). */
+function mapGoogleError(code?: string, message?: string): string {
+  if (code === "ACCOUNT_NOT_LINKED" || /not linked/i.test(message ?? "")) {
+    return "This email already has an account here. Sign in with your password, then link Google from your account settings.";
+  }
+  return message ?? "Could not sign in with Google.";
 }
