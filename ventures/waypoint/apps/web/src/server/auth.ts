@@ -75,6 +75,11 @@ export const auth = betterAuth({
       // Safe only because Google reports verified emails; an unverified-email
       // collision is refused and the user is told to sign in as they first did.
       trustedProviders: ["google"],
+      // Defaults to true, which would require the *existing* password account
+      // to be verified first. With no mail provider that can never happen, so
+      // it locked people out of their own account (#149). Google has already
+      // proven the address; asking our side to prove it twice adds nothing.
+      requireLocalEmailVerified: false,
     },
   },
   session: {
