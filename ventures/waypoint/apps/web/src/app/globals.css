@@ -1,37 +1,27 @@
 @import "tailwindcss";
 
 /*
- * Waypoint v1 visual language (ticket 11) — the PAPER direction.
+ * Waypoint v1 visual language — the WHITE-AND-PASTEL direction (ticket 187).
+ * White surfaces on a soft canvas, four domain pastels, and one blue that means
+ * "yours to do". Replaced the paper-and-biro notebook look; docs/design/ is the
+ * yardstick.
  *
- * Winner: `wireframe/paper.html`. A shared travel journal: ruled sheets, a
- * serif that reads like a book, a red margin down the gutter, tape holding
- * things down, and an ink stamp for anything the group has decided. Colour is
- * ink and highlighter, nothing more.
+ * THREE FACES, AND NO MORE (ticket 189, keeping ticket 121's cap). Loaded and
+ * self-hosted via next/font (app/layout.tsx); a fourth needs an argument, not a
+ * preference.
  *
- * THREE FACES, AND NO MORE (ticket 121). The legibility rule that makes this
- * work at ledger density is paper.html's own discipline, and it is also the
- * cap: the app has exactly three typefaces, they are all declared here, and a
- * fourth needs an argument, not a preference.
+ *   - `--display` (Bricolage Grotesque) for headings and figures. The character.
+ *   - `--sans` (Instrument Sans) for running text and controls. The book.
+ *   - `--type` (DM Mono, tabular) for every figure, date, time and small
+ *     uppercase label. All money. `.typed`, `.nums`, `font-mono`.
  *
- *   - `--serif` for prose and headings. The book.
- *   - `--type` (mono, tabular) for every figure, label and date. All money.
- *     The typewriter — `.typed`, `.nums`, `font-mono`, every button and badge.
- *   - `--hand` for accents and marginalia ONLY. Never for data, never for
- *     anything a user has to read carefully. It is also the one face that
- *     earns its place by being *someone's*, not the app's: the ideas composer
- *     and the notes you write in it. Ticket 123 took it off the landing page
- *     for exactly that reason — there it was the app doing an impression of a
- *     person.
- *
- * The audit that set the cap found no fourth face in the app itself; the one
- * stray was the notification email, which was set in a system UI sans and now
- * takes Georgia out of the serif stack (server/email.ts). `--marginalia` is
- * not a fourth face — it is which of these three `.hand` resolves to, and
- * below `sm:` it is the typewriter (ticket 40).
+ * The handwriting face is retired — it belonged to the notebook. The
+ * notification email still sets its own serif stack inline (server/email.ts):
+ * next/font can't reach a mail client, so it stays a separate surface.
  *
  * LIGHT ONLY, deliberately. There is no dark palette and no `data-theme`
- * switch: the whole metaphor is ink on paper, and a dark notebook is a
- * different product. Don't reintroduce a dark block — see ticket 07.
+ * switch: one good light theme beats two half themes. Don't reintroduce a dark
+ * block — see ticket 07/187.
  *
  * Borrowed from the runners-up:
  *   - `transit` → the three-state status semantics (done / open / needs
@@ -115,28 +105,24 @@
   --shadow: 0 1px 2px rgb(20 20 26 / 0.05), 0 6px 14px -12px rgb(20 20 26 / 0.3);
   --shadow-lift: 0 2px 4px rgb(20 20 26 / 0.06), 0 14px 28px -16px rgb(20 20 26 / 0.35);
 
-  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia,
-    "Times New Roman", serif;
   /*
-   * Print hands, not script ones. The stack used to lead with "Segoe Print" and
-   * carry "Segoe Script", and the marginalia — "— started 14 Feb, still arguing
-   * about Croatia" — was unreadable at 15px on a phone. The rounder faces lead
-   * and the script one is gone; see the `.hand` sizing rule, which is the other
-   * half of the same fix.
+   * The three faces of the white-and-pastel direction (ticket 189), loaded and
+   * self-hosted via next/font (see app/layout.tsx). The `-face` variables carry
+   * the next/font family; the fallback stack behind each one covers the moment
+   * before it swaps in.
+   *   - `--display` (Bricolage Grotesque) — headings and figures. The character.
+   *   - `--sans`    (Instrument Sans)      — running text and controls. The book.
+   *   - `--type`    (DM Mono, tabular)     — every date, time, amount and small
+   *     uppercase label. `.typed`, `.nums`, `font-mono`.
+   * The handwriting face is retired: it belonged to the notebook and has no role
+   * in the new look.
    */
-  --hand: "Bradley Hand", "Chalkboard SE", "Marker Felt", "Segoe Print",
-    "Comic Sans MS", ui-rounded, cursive;
-  --type: "Courier New", "Cascadia Mono", Consolas, monospace;
-  /*
-   * Which face marginalia is written in (ticket 40). The print-hand stack was
-   * still unreadable on a phone — the faces above are hinted for a desktop
-   * screen and the fallback on Android is whatever `cursive` resolves to,
-   * which is usually a script. Below `sm:` this becomes the typewriter, in the
-   * same ink: a handwritten accent nobody can read is worth less than a typed
-   * one. Everything that uses `--hand` reads this instead, so the swap is in
-   * one place — `.hand`, `.fan-note`, `.hero-gap-label`.
-   */
-  --marginalia: var(--hand);
+  --display: var(--font-display-face), "Bricolage Grotesque", "Trebuchet MS",
+    system-ui, sans-serif;
+  --sans: var(--font-body-face), "Instrument Sans", system-ui, -apple-system,
+    "Segoe UI", Roboto, sans-serif;
+  --type: var(--font-data-face), "DM Mono", "Cascadia Mono", Consolas,
+    "Courier New", monospace;
 
   /*
    * The post-it stock (`--note-yellow` … `--note-lilac`, each with an `-edge`)
@@ -180,18 +166,6 @@
   --who-7-ink: #7a5a2b;
   --who-8: #e9e7e2;
   --who-8-ink: #5a564d;
-}
-
-/*
- * Ticket 40's swap, deliberately unlayered. The `:root` block above is
- * unlayered too, and an unlayered declaration wins over anything inside
- * `@layer base` regardless of media query — so this override has to live out
- * here or it never applies.
- */
-@media (max-width: 639px) {
-  :root {
-    --marginalia: var(--type);
-  }
 }
 
 /* Expose the tokens to Tailwind: bg-sheet, text-ink-soft, text-pen, … */
@@ -249,12 +223,9 @@
   --shadow-raised: var(--shadow);
   --shadow-lifted: var(--shadow-lift);
 
-  --font-display: var(--serif);
-  --font-sans: var(--serif);
+  --font-display: var(--display);
+  --font-sans: var(--sans);
   --font-mono: var(--type);
-  /* Reads `--marginalia`, not `--hand`, so the `font-hand` utility follows
-     ticket 40's mobile swap too — the ideas composer is typed into. */
-  --font-hand: var(--marginalia);
 }
 
 @layer base {
@@ -273,18 +244,35 @@
   body {
     background: var(--paper);
     color: var(--ink);
-    font-family: var(--serif);
-    font-size: 15.5px;
-    line-height: 1.6;
+    font-family: var(--sans);
+    font-size: var(--text-base);
+    line-height: 1.55;
     -webkit-font-smoothing: antialiased;
+  }
+
+  /*
+   * One type scale for the whole app (ticket 189), so headings across pages
+   * agree rather than each page inventing its own sizes. A ~1.2 step; the app
+   * uses these tokens (`text-[var(--text-lg)]`, etc.) instead of ad-hoc px.
+   */
+  :root {
+    --text-xs: 11px;
+    --text-sm: 13px;
+    --text-base: 15px;
+    --text-md: 17px;
+    --text-lg: 20px;
+    --text-xl: 25px;
+    --text-2xl: 31px;
+    --text-3xl: 39px;
   }
 
   h1,
   h2,
   h3 {
-    font-family: var(--serif);
+    font-family: var(--display);
     font-weight: 600;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.015em;
+    line-height: 1.15;
     text-wrap: balance;
   }
 
@@ -415,33 +403,6 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--ink-3);
-  }
-
-  /*
-   * Marginalia. Accent only — never data.
-   *
-   * The size and tracking are the other half of the `--hand` stack change: a
-   * handwriting face sits visually smaller than the serif at the same px, and
-   * the glyphs need room between them to stay apart. Both rise again below the
-   * `sm:` breakpoint, which is where the mobile legibility complaint came from.
-   */
-  .hand {
-    font-family: var(--marginalia);
-    font-size: 1.06em;
-    letter-spacing: 0.012em;
-    line-height: 1.5;
-  }
-
-  /*
-   * Ticket 40: the typewriter takes over below `sm:`, and the size and tracking
-   * come back down with it — a mono face already sits wide and even, so the
-   * compensation the hand needed makes it look stretched.
-   */
-  @media (max-width: 639px) {
-    .hand {
-      font-size: 0.95em;
-      letter-spacing: 0.005em;
-    }
   }
 
   /*

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Bricolage_Grotesque, DM_Mono, Instrument_Sans } from "next/font/google";
 
 import { AppChrome } from "@/components/app-chrome";
 import { getSession } from "@/server/access";
@@ -6,6 +7,28 @@ import { countIncomingFriendRequests } from "@/server/friends";
 import { countPendingInvitesFor } from "@/server/membership";
 
 import "./globals.css";
+
+// The three faces of the white-and-pastel direction (ticket 189): a characterful
+// display face for headings and figures, a plain body face for running text and
+// controls, and a mono for dates, times, amounts and small uppercase labels.
+// Self-hosted through next/font — no flash of the wrong face. The handwriting
+// face is retired; it belonged to the notebook look.
+const display = Bricolage_Grotesque({
+  subsets: ["latin"],
+  variable: "--font-display-face",
+  weight: ["500", "600", "700"],
+});
+
+const body = Instrument_Sans({
+  subsets: ["latin"],
+  variable: "--font-body-face",
+});
+
+const mono = DM_Mono({
+  subsets: ["latin"],
+  variable: "--font-data-face",
+  weight: ["400", "500"],
+});
 
 export const metadata: Metadata = {
   title: "Waypoint — plan a trip with the group",
@@ -34,7 +57,10 @@ export default async function RootLayout({
   // No `data-theme` and no theme lookup: Waypoint is light-only by design
   // (ticket 07 — ink on paper, and a dark notebook is a different product).
   return (
-    <html lang="en">
+    <html
+      lang="en"
+      className={`${display.variable} ${body.variable} ${mono.variable}`}
+    >
       <body className="min-h-dvh">
         <AppChrome
           user={

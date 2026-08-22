@@ -116,7 +116,7 @@ export default async function IdeasPage({
                   ? `"${vibes[0]}" somewhere with good trains…`
                   : "A place, a vibe, a whole trip shape…"
               }
-              className="resize-none border-none bg-transparent p-0 font-hand text-base text-ink-soft placeholder:text-ink-faint focus:outline-none"
+              className="resize-none border-none bg-transparent p-0 text-base text-ink-soft placeholder:text-ink-faint focus:outline-none"
             />
             <div>
               <SubmitButton pendingLabel="Pinning…">Pin it to the board</SubmitButton>
