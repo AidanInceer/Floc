@@ -57,7 +57,7 @@ export function TagEditor({
             aria-label="Tag"
             onChange={(e) => update(row.id, { name: e.target.value })}
             className={cx(
-              "w-full rounded-md border border-rule-strong px-2.5 py-1.5 font-mono text-sm",
+              "w-full rounded-md border border-rule px-2.5 py-1.5 font-mono text-sm",
               "focus:border-pen focus:outline-none",
               TAG_SWATCH[row.tone],
             )}
@@ -79,7 +79,7 @@ export function TagEditor({
             aria-label={`Delete ${row.name || "this tag"}`}
             title="Delete"
             onClick={() => setRows((rs) => rs.filter((r) => r.id !== row.id))}
-            className="rounded-md border border-rule-strong py-1.5 text-sm text-ink-soft hover:border-red hover:text-red"
+            className="rounded-md border border-rule py-1.5 text-sm text-ink-soft hover:border-red hover:text-red"
           >
             ×
           </button>

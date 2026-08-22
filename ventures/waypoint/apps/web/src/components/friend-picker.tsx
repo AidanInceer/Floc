@@ -32,11 +32,11 @@ export function FriendPicker({
   }
 
   return (
-    <ul className="max-h-64 overflow-y-auto rounded-sm border border-rule">
+    <ul className="flex max-h-64 flex-col gap-1 overflow-y-auto">
       {offered.map((f) => (
-        <li key={f.id} className="border-b border-dotted border-rule last:border-b-0">
+        <li key={f.id}>
           {/* The whole row is the target, not the 16px box on its left. */}
-          <label className="flex cursor-pointer items-center gap-2.5 px-3 py-2 text-sm transition-colors hover:bg-sheet-2">
+          <label className="flex cursor-pointer items-center gap-2.5 rounded-md bg-sheet-2 px-3 py-2 text-sm transition-colors hover:bg-sheet-3">
             <input
               type="checkbox"
               name="friendIds"

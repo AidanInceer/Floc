@@ -38,10 +38,10 @@ export function VibePicker({ selected }: { selected: string[] }) {
               disabled={!on && full}
               onClick={() => toggle(tag)}
               className={cx(
-                "rounded-sm border px-2 py-0.5 font-mono text-[10.5px] uppercase tracking-[0.06em] transition-colors",
+                "rounded-full border px-2.5 py-1 font-mono text-[10.5px] uppercase tracking-[0.06em] transition-colors",
                 on
-                  ? "border-transparent bg-pen text-sheet"
-                  : "border-rule-strong text-ink-soft hover:bg-sheet-2",
+                  ? "border-transparent bg-pen text-paper"
+                  : "border-rule text-ink-soft hover:bg-sheet-2",
                 !on && full && "opacity-40 hover:bg-transparent",
               )}
             >

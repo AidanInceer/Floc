@@ -1,8 +1,8 @@
 /**
- * Friends (ticket 18): accepted friends, incoming requests to act on, and
- * outgoing requests still pending. There's no add-a-friend form here — you
- * meet people by sharing a trip, then send the request from their profile or
- * their roster row.
+ * Friends (ticket 18; redesigned 201): accepted friends, incoming requests to
+ * act on, and outgoing requests still pending. There's no add-a-friend form
+ * here — you meet people by sharing a trip, then send the request from their
+ * profile or their roster row.
  */
 import { acceptFriend, declineFriend, cancelRequest, removeFriend } from "./actions";
 import { requireUser } from "@/server/access";
@@ -13,17 +13,8 @@ import {
   syncCompletedCoTripFriendships,
   type Person,
 } from "@/server/friends";
-import {
-  Avatar,
-  Badge,
-  Button,
-  Card,
-  CardHeader,
-  EmptyState,
-  Page,
-  PageHeader,
-  Stack,
-} from "@/components/ui";
+import { AccountPage, Panel, PersonRow } from "@/components/account-ui";
+import { Avatar, Badge, Button, EmptyState } from "@/components/ui";
 import { SubmitButton } from "@/components/client-ui";
 import { PersonLink } from "@/components/person-link";
 
@@ -71,105 +62,113 @@ export default async function FriendsPage() {
   }));
 
   return (
-    <Page>
-      <PageHeader
-        title="Friends"
-        subtitle="People you've travelled with, or asked to travel with."
-      />
-      <Stack gap={6}>
-        <Card>
-          <CardHeader title="Requests" hint="Waiting on you, or waiting on them." />
-          <div className="p-4">
-            {incomingPeople.length === 0 && outgoingPeople.length === 0 ? (
-              <p className="text-sm text-ink-soft">No open requests.</p>
-            ) : (
-              <Stack gap={3}>
-                {incomingPeople.map(({ requesterId, person }) => (
-                  <div key={requesterId} className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                      <Avatar name={person.name} src={person.avatarUrl} />
-                      <span className="text-sm">{person.name}</span>
-                      <Badge tone="open">wants to be friends</Badge>
-                    </div>
-                    <div className="flex gap-2">
-                      <form action={acceptFriend}>
-                        <input type="hidden" name="requesterId" value={requesterId} />
-                        <SubmitButton variant="primary" pendingLabel="Accepting…">
-                          Accept
-                        </SubmitButton>
-                      </form>
-                      <form action={declineFriend}>
-                        <input type="hidden" name="requesterId" value={requesterId} />
-                        <SubmitButton variant="ghost" pendingLabel="Declining…">
-                          Decline
-                        </SubmitButton>
-                      </form>
-                    </div>
-                  </div>
-                ))}
-                {outgoingPeople.map(({ targetId, person }) => (
-                  <div key={targetId} className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                      <Avatar name={person.name} src={person.avatarUrl} />
-                      <span className="text-sm">{person.name}</span>
-                      <Badge tone="neutral">requested — pending</Badge>
-                    </div>
-                    <form action={cancelRequest}>
-                      <input type="hidden" name="targetId" value={targetId} />
-                      <SubmitButton variant="ghost" pendingLabel="Cancelling…">
-                        Cancel
-                      </SubmitButton>
-                    </form>
-                  </div>
-                ))}
-              </Stack>
-            )}
-          </div>
-        </Card>
+    <AccountPage
+      eyebrow="Your people"
+      title="Friends"
+      blurb="People you've travelled with, or asked to travel with."
+    >
+      {/* Requests come first, and the incoming ones are blue: they're the only
+          thing on the page waiting on you. */}
+      <Panel
+        title="Requests"
+        hint="Waiting on you, or waiting on them."
+        className={incomingPeople.length > 0 ? "bg-pen-soft text-pen-deep" : undefined}
+      >
+        {incomingPeople.length === 0 && outgoingPeople.length === 0 ? (
+          <p className="text-sm text-ink-soft">No open requests.</p>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {incomingPeople.map(({ requesterId, person }) => (
+              <PersonRow key={requesterId} className="bg-sheet">
+                <div className="flex min-w-0 items-center gap-2">
+                  <Avatar name={person.name} src={person.avatarUrl} />
+                  <span className="min-w-0 truncate text-sm text-ink">
+                    {person.name}
+                  </span>
+                  <Badge tone="open">wants to be friends</Badge>
+                </div>
+                <div className="flex gap-2">
+                  <form action={acceptFriend}>
+                    <input type="hidden" name="requesterId" value={requesterId} />
+                    <SubmitButton variant="primary" pendingLabel="Accepting…">
+                      Accept
+                    </SubmitButton>
+                  </form>
+                  <form action={declineFriend}>
+                    <input type="hidden" name="requesterId" value={requesterId} />
+                    <SubmitButton variant="secondary" pendingLabel="Declining…">
+                      Decline
+                    </SubmitButton>
+                  </form>
+                </div>
+              </PersonRow>
+            ))}
+            {outgoingPeople.map(({ targetId, person }) => (
+              <PersonRow key={targetId} className="bg-sheet">
+                <div className="flex min-w-0 items-center gap-2">
+                  <Avatar name={person.name} src={person.avatarUrl} />
+                  <span className="min-w-0 truncate text-sm text-ink">
+                    {person.name}
+                  </span>
+                  <Badge tone="neutral">requested — pending</Badge>
+                </div>
+                <form action={cancelRequest}>
+                  <input type="hidden" name="targetId" value={targetId} />
+                  <SubmitButton variant="secondary" pendingLabel="Cancelling…">
+                    Cancel
+                  </SubmitButton>
+                </form>
+              </PersonRow>
+            ))}
+          </ul>
+        )}
+      </Panel>
 
-        <Card>
-          <CardHeader title="Your friends" />
-          <div className="p-4">
-            {acceptedPeople.length === 0 ? (
-              <EmptyState title="No friends yet">
-                Friends appear here once a trip you shared has ended, or once someone
-                accepts your request.
-              </EmptyState>
-            ) : (
-              <Stack gap={3}>
-                {acceptedPeople.map(({ person, metOn }) => (
-                  <div key={person.id} className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                      {/* Accepted friends only — a pending request doesn't put
-                          you in anyone's ring yet, so the link above would 404
-                          (ticket 46). */}
-                      <PersonLink
-                        userId={person.id}
-                        name={person.name}
-                        avatarUrl={person.avatarUrl}
-                      />
-                      <div>
-                        <p className="text-sm">{person.name}</p>
-                        {/* Quiet distinction (ticket 18): auto-added friends get a
-                            caption, not a loud badge, naming the trip if known. */}
-                        {metOn ? (
-                          <p className="text-xs text-ink-faint">Met on {metOn}</p>
-                        ) : null}
-                      </div>
-                    </div>
-                    <form action={removeFriend}>
-                      <input type="hidden" name="otherId" value={person.id} />
-                      <Button variant="ghost" type="submit">
-                        Remove
-                      </Button>
-                    </form>
+      <Panel
+        title="Your friends"
+        aside={
+          acceptedPeople.length > 0 ? (
+            <Badge tone="neutral">{acceptedPeople.length}</Badge>
+          ) : null
+        }
+      >
+        {acceptedPeople.length === 0 ? (
+          <EmptyState title="No friends yet">
+            Friends appear here once a trip you shared has ended, or once someone
+            accepts your request.
+          </EmptyState>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {acceptedPeople.map(({ person, metOn }) => (
+              <PersonRow key={person.id}>
+                <div className="flex min-w-0 items-center gap-2">
+                  {/* Accepted friends only — a pending request doesn't put you
+                      in anyone's ring yet, so the link would 404 (ticket 46). */}
+                  <PersonLink
+                    userId={person.id}
+                    name={person.name}
+                    avatarUrl={person.avatarUrl}
+                  />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm">{person.name}</p>
+                    {/* Quiet distinction (ticket 18): auto-added friends get a
+                        caption, not a loud badge, naming the trip if known. */}
+                    {metOn ? (
+                      <p className="text-xs text-ink-faint">Met on {metOn}</p>
+                    ) : null}
                   </div>
-                ))}
-              </Stack>
-            )}
-          </div>
-        </Card>
-      </Stack>
-    </Page>
+                </div>
+                <form action={removeFriend}>
+                  <input type="hidden" name="otherId" value={person.id} />
+                  <Button variant="ghost" type="submit">
+                    Remove
+                  </Button>
+                </form>
+              </PersonRow>
+            ))}
+          </ul>
+        )}
+      </Panel>
+    </AccountPage>
   );
 }
