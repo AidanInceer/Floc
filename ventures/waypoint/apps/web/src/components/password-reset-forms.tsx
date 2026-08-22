@@ -46,7 +46,7 @@ export function RequestResetForm() {
 
   if (sent) {
     return (
-      <p className="text-sm text-ink-soft">
+      <p className="rounded-md bg-mint px-3 py-2 text-sm text-mint-ink">
         If that address has an account, a reset link is on its way. It expires
         within the hour.
       </p>
@@ -60,13 +60,14 @@ export function RequestResetForm() {
           <Input
             type="email"
             required
+            name="email"
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
         </Field>
         <ErrorText>{error}</ErrorText>
-        <Button type="submit" disabled={busy} className="w-full">
+        <Button type="submit" variant="primary" disabled={busy} className="w-full">
           {busy ? "Sending…" : "Send reset link"}
         </Button>
       </Stack>
@@ -89,7 +90,8 @@ export function NewPasswordForm() {
     return (
       <Stack gap={3}>
         <p className="text-sm text-ink-soft">
-          That link has expired or has already been used.
+          That link has expired or has already been used. Reset links last an
+          hour and work once.
         </p>
         <Link
           href="/forgot-password"
@@ -129,6 +131,7 @@ export function NewPasswordForm() {
           <Input
             type="password"
             required
+            name="password"
             minLength={8}
             autoComplete="new-password"
             value={password}
@@ -136,7 +139,7 @@ export function NewPasswordForm() {
           />
         </Field>
         <ErrorText>{error}</ErrorText>
-        <Button type="submit" disabled={busy} className="w-full">
+        <Button type="submit" variant="primary" disabled={busy} className="w-full">
           {busy ? "Saving…" : "Set new password"}
         </Button>
       </Stack>

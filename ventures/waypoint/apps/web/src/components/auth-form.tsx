@@ -11,8 +11,7 @@ import { useState, type FormEvent } from "react";
 
 import { signIn, signUp } from "@/lib/auth-client";
 import { isValidEmail, passwordWeakness } from "@/lib/credentials";
-import { ErrorText, Field, Input, Stack } from "@/components/ui";
-import { SubmitButton } from "@/components/client-ui";
+import { Button, ErrorText, Field, Input, Stack } from "@/components/ui";
 
 const VIA_VALUES = ["whatsapp", "email", "link", "direct"] as const;
 
@@ -40,6 +39,10 @@ export function AuthForm({
   const justReset = params.get("reset") === "1";
 
   const [error, setError] = useState<string | null>(null);
+  // The form submits through Better Auth's browser client, not a form action,
+  // so `useFormStatus` never sees it — pending is tracked here instead, and it
+  // is what stops a second submission (ticket 200).
+  const [busy, setBusy] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -49,20 +52,26 @@ export function AuthForm({
   const showGoogle = googleEnabled || process.env.NODE_ENV !== "production";
 
   async function handleGoogle() {
+    if (busy) return;
     setError(null);
     if (!googleEnabled) {
       setError("Google sign-in isn't set up yet — add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.");
       return;
     }
+    setBusy(true);
     const { error: err } = await signIn.social({
       provider: "google",
       callbackURL: redirectTo,
     });
-    if (err) setError(mapGoogleError(err.code, err.message));
+    if (err) {
+      setBusy(false);
+      setError(mapGoogleError(err.code, err.message));
+    }
   }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (busy) return;
     setError(null);
 
     if (!isValidEmail(email)) {
@@ -78,9 +87,11 @@ export function AuthForm({
       }
     }
 
+    setBusy(true);
     if (mode === "signup") {
       const { error: err } = await signUp.email({ name, email, password });
       if (err) {
+        setBusy(false);
         setError(mapAuthError(err.message));
         return;
       }
@@ -90,6 +101,7 @@ export function AuthForm({
     } else {
       const { error: err } = await signIn.email({ email, password });
       if (err) {
+        setBusy(false);
         setError(mapSignInError(err.message, googleEnabled));
         return;
       }
@@ -100,7 +112,7 @@ export function AuthForm({
   return (
     <Stack gap={4}>
       {justReset ? (
-        <p className="text-sm text-ink-soft">
+        <p className="rounded-md bg-mint px-3 py-2 text-sm text-mint-ink">
           Your password is set. Sign in with it.
         </p>
       ) : null}
@@ -108,9 +120,10 @@ export function AuthForm({
         <>
           <GoogleButton
             onClick={handleGoogle}
+            disabled={busy}
             label={mode === "signup" ? "Sign up with Google" : "Sign in with Google"}
           />
-          <div className="flex items-center gap-3 text-xs text-ink-faint">
+          <div className="typed flex items-center gap-3 text-ink-faint">
             <span className="h-px flex-1 bg-rule" />
             or with email
             <span className="h-px flex-1 bg-rule" />
@@ -124,6 +137,7 @@ export function AuthForm({
             <Field label="Name">
               <Input
                 required
+                name="name"
                 autoComplete="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -134,6 +148,7 @@ export function AuthForm({
             <Input
               type="email"
               required
+              name="email"
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -143,6 +158,7 @@ export function AuthForm({
             <Input
               type="password"
               required
+              name="password"
               minLength={8}
               autoComplete={mode === "signup" ? "new-password" : "current-password"}
               value={password}
@@ -158,9 +174,20 @@ export function AuthForm({
             </Link>
           ) : null}
           <ErrorText>{error}</ErrorText>
-          <SubmitButton className="w-full">
-            {mode === "signup" ? "Create account" : "Sign in"}
-          </SubmitButton>
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={busy}
+            className="w-full"
+          >
+            {busy
+              ? mode === "signup"
+                ? "Creating…"
+                : "Signing in…"
+              : mode === "signup"
+                ? "Create account"
+                : "Sign in"}
+          </Button>
         </Stack>
       </form>
     </Stack>
@@ -172,12 +199,21 @@ export function AuthForm({
  * white face with a grey rule, per Google's branding guidelines. Kept in this
  * file because it's the only place a provider button renders.
  */
-function GoogleButton({ onClick, label }: { onClick: () => void; label: string }) {
+function GoogleButton({
+  onClick,
+  label,
+  disabled,
+}: {
+  onClick: () => void;
+  label: string;
+  disabled?: boolean;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center justify-center gap-3 rounded-md border border-[#747775] bg-white px-4 py-2.5 text-sm font-medium text-[#1f1f1f] transition-colors hover:bg-[#f7f8f8] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f6270]"
+      disabled={disabled}
+      className="lift flex w-full items-center justify-center gap-3 rounded-full border border-[#747775] bg-white px-4 py-2.5 text-sm font-medium text-[#1f1f1f] disabled:pointer-events-none disabled:opacity-50"
     >
       <GoogleG />
       {label}

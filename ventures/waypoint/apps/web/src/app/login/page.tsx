@@ -1,37 +1,33 @@
 /**
- * /login — public (ticket 05, 19).
+ * /login — public (ticket 05, 19; redesigned 200).
  */
 import Link from "next/link";
 
 import { AuthForm } from "@/components/auth-form";
-import { Card, Page, Stack } from "@/components/ui";
+import { AuthShell, authLinkClass } from "@/components/auth-shell";
 import { enabledProviders } from "@/server/auth";
 import { emailConfigured } from "@/server/email";
 
 export default function LoginPage() {
   return (
-    <Page>
-      <Stack gap={6} className="mx-auto max-w-sm pt-12">
-        <div className="text-center">
-          <h1 className="font-display text-2xl font-semibold">Sign in</h1>
-          <p className="mt-1 text-sm text-ink-soft">
-            Back to the trip you&rsquo;re planning.
-          </p>
-        </div>
-        <Card className="p-5">
-          <AuthForm
-            mode="login"
-            googleEnabled={enabledProviders.google}
-            resetEnabled={emailConfigured()}
-          />
-        </Card>
-        <p className="text-center text-sm text-ink-soft">
+    <AuthShell
+      eyebrow="Welcome back"
+      title="Sign in"
+      blurb="Back to the trip you're planning."
+      footer={
+        <>
           New to Waypoint?{" "}
-          <Link href="/signup" className="text-pen underline underline-offset-2 transition-colors hover:bg-highlight-soft hover:text-pen-deep">
+          <Link href="/signup" className={authLinkClass}>
             Create an account
           </Link>
-        </p>
-      </Stack>
-    </Page>
+        </>
+      }
+    >
+      <AuthForm
+        mode="login"
+        googleEnabled={enabledProviders.google}
+        resetEnabled={emailConfigured()}
+      />
+    </AuthShell>
   );
 }
