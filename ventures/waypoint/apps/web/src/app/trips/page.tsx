@@ -218,7 +218,7 @@ function NewTripTile({ friends, first }: { friends: Person[]; first?: boolean })
         bareTrigger
         trigger={
           <span className="block text-left">
-            <span className="typed opacity-70">
+            <span className="typed text-current">
               {first ? "No trips yet" : "One more"}
             </span>
             <span className="mt-1 block font-display text-2xl font-semibold tracking-tight text-ink">
@@ -241,7 +241,7 @@ function NewTripTile({ friends, first }: { friends: Person[]; first?: boolean })
 function InviteList({ invites }: { invites: PendingInvite[] }) {
   return (
     <section className="mt-8 rounded-lg bg-butter p-6 text-butter-ink">
-      <p className="typed opacity-70">
+      <p className="typed text-current">
         {invites.length === 1 ? "An invitation" : "Invitations"} · waiting on you
       </p>
       <Stack gap={3} className="mt-4">

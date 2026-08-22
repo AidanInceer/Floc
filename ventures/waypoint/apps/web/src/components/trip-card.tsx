@@ -10,7 +10,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { AvatarRow, cx } from "@/components/ui";
+import { AvatarRow, PASTEL_SKINS, cx } from "@/components/ui";
 import { countdownLabel, formatDateRange, hasEnded } from "@/lib/dates";
 import type { IsoDate } from "@/lib/dates";
 import type { TripRole } from "@/db/schema";
@@ -28,14 +28,7 @@ export type TripCardData = {
 };
 
 // No pastel carries meaning here — a trip isn't a domain — so the rotation is
-// by id, which keeps a card the same colour every visit.
-const PASTELS = [
-  "bg-peri text-peri-ink",
-  "bg-mint text-mint-ink",
-  "bg-butter text-butter-ink",
-  "bg-blush text-blush-ink",
-] as const;
-
+// `PASTEL_SKINS` by id, which keeps a card the same colour every visit.
 export function TripCard({
   trip,
   href,
@@ -56,7 +49,7 @@ export function TripCard({
     ? "bg-sheet text-ink-soft shadow-[inset_0_0_0_1.5px_var(--rule)]"
     : wanted
       ? "bg-pen-soft text-pen-deep shadow-[inset_0_0_0_2px_var(--pen)]"
-      : PASTELS[trip.id % PASTELS.length];
+      : PASTEL_SKINS[trip.id % PASTEL_SKINS.length];
 
   // The eyebrow says what state the trip is in — never a sentence repeating
   // what the card already shows.
@@ -79,7 +72,7 @@ export function TripCard({
       )}
     >
       <Link href={href} className="after:absolute after:inset-0 after:content-['']">
-        <p className="typed opacity-70">{eyebrow}</p>
+        <p className="typed text-current">{eyebrow}</p>
         <h3 className={cx("mt-1 text-2xl", past && "text-ink-soft")}>
           {trip.name}
         </h3>

@@ -44,7 +44,7 @@ repo is plumbing, docs, or superseded prior art.</p>
     subgraph Monorepo["Repo plumbing (pnpm + Turborepo)"]
         Root["root: pnpm-workspace.yaml, turbo.json"]
         Prototype["apps/prototype (superseded Vite/localStorage)"]
-        Docs["docs/, wireframes/ (static, no build)"]
+        Docs["docs/ (static, no build)"]
     end
 
     Root -.orchestrates.-&gt; WebApp
@@ -56,7 +56,7 @@ is server-only logic that touches the DB or auth — split per
 commit <code>fd49d74</code> (<code>#107</code>).</li>
 <li><code>apps/prototype</code> is dead prior art, not wired to anything live — don&#39;t
 extend it.</li>
-<li><code>docs/</code>, <code>wireframe/</code> are static content, no build step.</li>
+<li><code>docs/</code> is static content, no build step.</li>
 </ul>
 <h2>Request flow</h2>
 <p>Server Components by default; mutations are Server Actions co-located in each

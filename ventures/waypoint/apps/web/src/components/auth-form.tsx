@@ -213,6 +213,9 @@ function GoogleButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
+      // Google's own hexes, and the one place a literal is allowed past the
+      // token rule (ticket 206): the button and the mark are prescribed by
+      // Google's branding guidelines and are not ours to repaint.
       className="lift flex w-full items-center justify-center gap-3 rounded-full border border-[#747775] bg-white px-4 py-2.5 text-sm font-medium text-[#1f1f1f] disabled:pointer-events-none disabled:opacity-50"
     >
       <GoogleG />

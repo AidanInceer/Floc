@@ -10,7 +10,7 @@
  */
 import { requireUser } from "@/server/access";
 import { formatMoney } from "@/lib/money";
-import { ButtonLink, cx } from "@/components/ui";
+import { ButtonLink, PASTEL_SKINS, cx } from "@/components/ui";
 import { SubmitButton } from "@/components/client-ui";
 import { TravelModeIcon } from "@/components/travel-mode-icon";
 import { startTripFromPreset } from "./actions";
@@ -22,14 +22,8 @@ function isRegion(value: string | undefined): value is Region {
 }
 
 // A destination isn't a domain, so no pastel here carries meaning — the
-// rotation is by position, which keeps a listing the same colour every visit.
-const PASTELS = [
-  "bg-butter text-butter-ink",
-  "bg-peri text-peri-ink",
-  "bg-mint text-mint-ink",
-  "bg-blush text-blush-ink",
-] as const;
-
+// rotation is `PASTEL_SKINS` by position, which keeps a listing the same colour
+// every visit.
 export default async function ExplorePage({
   searchParams,
 }: {
@@ -82,7 +76,7 @@ export default async function ExplorePage({
           <PresetCard
             key={t.id}
             preset={t}
-            skin={PASTELS[PRESET_TRIPS.indexOf(t) % PASTELS.length]}
+            skin={PASTEL_SKINS[PRESET_TRIPS.indexOf(t) % PASTEL_SKINS.length]}
           />
         ))}
         <BlankTile empty={shown.length === 0} region={active} />
@@ -129,7 +123,7 @@ function PresetCard({ preset, skin }: { preset: PresetTrip; skin: string }) {
       )}
     >
       <div>
-        <p className="typed opacity-60">
+        <p className="typed">
           {preset.nights} nights · {bases === 1 ? "one base" : `${bases} bases`}{" "}
           · {preset.region}
         </p>
@@ -192,7 +186,7 @@ function BlankTile({ empty, region }: { empty: boolean; region: Region | null })
   return (
     <li className="lift flex min-h-[19rem] flex-col gap-4 rounded-lg bg-pen-soft p-6 text-pen-deep">
       <div>
-        <p className="typed opacity-60">
+        <p className="typed">
           {empty ? `Nothing in ${region} yet` : "Start from nothing"}
         </p>
         <h2 className="mt-1.5 text-2xl">Your own</h2>

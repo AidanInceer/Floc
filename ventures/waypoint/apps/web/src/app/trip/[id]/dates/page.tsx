@@ -161,7 +161,7 @@ export default async function DatesPage({
         <section className="rounded-lg bg-peri p-6 text-peri-ink">
           <div className="flex flex-wrap items-baseline justify-between gap-3">
             <h2 className="text-xl">Who can do when</h2>
-            <span className="typed opacity-70">
+            <span className="typed text-current">
               {mine.length === 0
                 ? "Paint your own days"
                 : `${mine.length} ${mine.length === 1 ? "day" : "days"} marked by you`}

@@ -1,17 +1,45 @@
 /**
- * Trip Overview (ticket 13; redesigned 195) — the landing every member sees.
+ * Trip Overview (ticket 13; redesigned 195, re-ranked 207/208) — the landing
+ * every member sees.
  *
- * Two parts: the day track across the top (what the trip *is*), then tiles
- * sized by how much they matter (what the trip *needs*). Only the viewer's own
- * outstanding work is blue — everything else is a domain pastel, so "mine to
- * do" never has to compete with "someone else's" for the same colour.
+ * TWO COLUMNS (wireframe A, ticket 209). The split is trip vs group:
+ *
+ *   - The wide left column is the TRIP: where you're going.
+ *   - The narrow right rail is the GROUP: who's going, what's been spent, how
+ *     many ideas, who the trip is waiting on. Every one of these grows
+ *     downward, which is why the rail is where they belong — the roster used
+ *     to be a full-width panel holding one row of avatars and a lot of air.
+ *   - The week runs full width under both, because a day track wants length.
+ *
+ * On a narrow screen the rail simply falls in under the left column; nothing
+ * is repositioned by media query beyond the columns collapsing.
+ *
+ * Removed rather than reordered: the "biggest gap" panel. It narrated the
+ * state of the plan back at you ("The plan holds together") without ever being
+ * the thing you came for — and every gap it could name is already named by the
+ * header ("Dates not set · pick them"), by Needs you, or by Waiting on others.
+ *
+ * Weather is off this page too — it lives on Dates, where it decides something.
+ *
+ * Also GONE: the "Needs you" panel (ticket 209). A to-do list narrated back at
+ * you ("One thing, then you're clear") is not what a member opens a trip page
+ * for, and every item on it was a link to a tab that is already in the tab bar
+ * — voting to Ideas, availability to Dates, a balance to Money. The one thing
+ * it said that nothing else does — who the group is still waiting on — is its
+ * own panel in the rail.
+ *
+ * Every panel carries ONE heading, no eyebrow above it (`SectionHead`).
  */
 import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { requireTripAccess } from "@/server/access";
 import { listIdeaIds, listVotes } from "@/server/ideas";
-import { listDays, listRouteDays, transportModesByDay } from "@/server/itinerary";
+import {
+  listDays,
+  listRouteDays,
+  transportModesByDay,
+} from "@/server/itinerary";
 import { listAvailability, listPendingInvitees } from "@/server/membership";
 import { listExpenses, listSplits } from "@/server/money";
 import { absoluteUrl } from "@/server/email";
@@ -19,14 +47,13 @@ import { formatMoney } from "@/lib/money";
 import type { Currency } from "@/lib/currency";
 import { tripStateFor } from "@/lib/trip-state";
 import { formatDateRange } from "@/lib/dates";
-import { Avatar, Badge, ButtonLink, Stack, cx } from "@/components/ui";
+import { Avatar, Badge, Stack, cx } from "@/components/ui";
 import { Sheet, SubmitButton } from "@/components/client-ui";
 import { TripNameInline } from "@/components/trip-name-inline";
 import { TripRoster } from "@/components/trip-roster";
 import { friendStatesFor, listFriendsFor } from "@/server/friends";
 import { TripRoute } from "@/components/trip-route";
 import { TripDayTrack } from "@/components/trip-day-track";
-import { getTripForecast } from "@/server/weather";
 import { TagEditor } from "@/components/tag-editor";
 import { readTagTones, readTags, tagTone, type TagTone } from "@/lib/tags";
 import { renameTrip, setTripTags } from "./actions";
@@ -64,7 +91,6 @@ export default async function OverviewPage({
     splitRows,
     routeDays,
     transportModes,
-    forecast,
   ] = await Promise.all([
     listIdeaIds(tripId),
     // Unconditional: one indexed read is cheaper than a serial round trip when
@@ -78,7 +104,6 @@ export default async function OverviewPage({
     // `listDays` doesn't carry, plus travel modes off `day_event`.
     listRouteDays(tripId),
     transportModesByDay(tripId),
-    getTripForecast(tripId), // null → the track carries no weather (ticket 148)
   ]);
 
   // All "where the trip is up to" is derived in one pure call (ticket 109); the
@@ -98,39 +123,12 @@ export default async function OverviewPage({
   });
 
   const { datesUnset, countdown, stage, unresolved } = state;
-  const viewerHasVotedAll = state.viewer.hasVotedAll;
-  const viewerHasAvailability = state.viewer.hasAvailability;
-  const viewerPositions = state.viewer.positions;
-
-  const unvoted = ideaIds.length - votes.filter((v) => v.userId === viewer.id).length;
+  const unvoted =
+    ideaIds.length - votes.filter((v) => v.userId === viewer.id).length;
   const spend = spendByCurrency(expenseRows);
   const inviteUrl = absoluteUrl(`/invite/${trip.inviteToken}`);
   const tags = readTags(trip.tags);
   const tagTones = readTagTones(trip.tagTones);
-
-  const yours: { key: string; href: string; label: string; amount?: string }[] = [];
-  if (!viewerHasVotedAll) {
-    yours.push({
-      key: "ideas",
-      href: `/trip/${tripId}/ideas`,
-      label: unvoted === 1 ? "Vote on the last idea" : `Vote on ${unvoted} ideas`,
-    });
-  }
-  if (datesUnset && !viewerHasAvailability) {
-    yours.push({
-      key: "dates",
-      href: `/trip/${tripId}/dates`,
-      label: "Say which days you could go",
-    });
-  }
-  for (const p of viewerPositions) {
-    yours.push({
-      key: `money-${p.currency}`,
-      href: `/trip/${tripId}/money`,
-      label: p.amount < 0 ? "Settle what you owe" : "You're owed",
-      amount: formatMoney(Math.abs(p.amount), p.currency),
-    });
-  }
 
   const waiting = [
     ...unresolved.votingOthers.map((m) => ({
@@ -165,7 +163,11 @@ export default async function OverviewPage({
           {/* The name is the headline (ticket 89): the one thing that keeps its
               shape as the trip moves, so the hero stops re-flowing. */}
           <div className="flex flex-wrap items-center gap-2">
-            <TripNameInline tripId={tripId} name={trip.name} rename={renameTrip} />
+            <TripNameInline
+              tripId={tripId}
+              name={trip.name}
+              rename={renameTrip}
+            />
             <Badge tone={stage.tone}>{stage.label}</Badge>
             {trip.archivedAt ? <Badge tone="neutral">Archived</Badge> : null}
             {countdown ? <Badge tone="marine">{countdown}</Badge> : null}
@@ -199,150 +201,132 @@ export default async function OverviewPage({
         </div>
       </header>
 
+      <div className="mt-6 grid gap-4 lg:grid-cols-3">
+        {/* The trip. */}
+        <div className="flex flex-col gap-4 lg:col-span-2">
+          {/* Renders nothing until a day has an overnight place — an undated
+              trip has no route to draw, and the header already says so. */}
+          <TripRoute days={routeDays} transportModes={transportModes} />
+        </div>
+
+        {/* The group. Narrow on purpose: every panel in here is a list or a
+            single figure, and both read better tall than wide. */}
+        <div className="flex flex-col gap-4">
+          <TripRoster
+            tripId={tripId}
+            viewerId={viewer.id}
+            members={members}
+            isAdmin={isAdmin}
+            inviteUrl={isAdmin ? inviteUrl : undefined}
+            friendStates={friendStates}
+            pendingInvitees={pendingInvitees}
+            friends={friends}
+          />
+          {/* Present, but visibly not the viewer's problem: white, not blue. */}
+          <Tile skin={PANEL}>
+            <SectionHead title="Still outstanding" />
+            {waiting.length === 0 ? (
+              <p className="mt-2 text-sm text-ink-soft">
+                Nobody owes the group anything right now.
+              </p>
+            ) : (
+              <ul className="mt-3 flex flex-wrap gap-2">
+                {waiting.map((w) => (
+                  <li key={`${w.userId}-${w.what}`}>
+                    <Link
+                      href={w.href}
+                      className="flex items-center gap-2 rounded-full bg-sheet-2 py-1 pl-1 pr-4 text-sm transition-colors hover:bg-sheet-3"
+                    >
+                      <Avatar name={w.name} src={w.avatarUrl} size={26} />
+                      <span className="truncate">
+                        {w.name} &mdash; {w.what}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Tile>
+          <TileLink href={`/trip/${tripId}/money`} skin="bg-mint text-mint-ink">
+            <span className="font-display text-lg">Spending</span>
+            <p className="mt-1 font-display text-3xl font-semibold tracking-tight">
+              {spend ? formatMoney(spend.total, spend.currency) : "—"}
+            </p>
+            <p className="mt-2 text-sm opacity-80">
+              {expenseRows.length === 0
+                ? "Nothing logged yet"
+                : `${expenseRows.length} ${expenseRows.length === 1 ? "expense" : "expenses"}${
+                    spend && spend.otherCurrencies > 0
+                      ? `, plus ${spend.otherCurrencies} in other currencies`
+                      : ""
+                  }`}
+            </p>
+          </TileLink>
+          <TileLink
+            href={`/trip/${tripId}/ideas`}
+            skin="bg-butter text-butter-ink"
+          >
+            <span className="font-display text-lg">Ideas</span>
+            <p className="mt-1 font-display text-3xl font-semibold tracking-tight">
+              {ideaIds.length}
+            </p>
+            <p className="mt-2 text-sm opacity-80">
+              {ideaIds.length === 0
+                ? "The first one gets a trip moving"
+                : unvoted > 0
+                  ? `${unvoted} you haven't voted on`
+                  : "You've voted on all of them"}
+            </p>
+          </TileLink>
+        </div>
+      </div>
+
+      {/* The week, last: it is the detail behind everything above, and the
+          Days tab is where it is actually edited. */}
       <TripDayTrack
         tripId={tripId}
         days={routeDays}
         transportModes={transportModes}
-        forecast={forecast}
       />
-
-      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {/* Blue, and the only blue on the page — this is the viewer's own list. */}
-        <Tile span={2} skin="bg-pen-soft text-pen-deep" >
-          <span className="typed opacity-70">Needs you</span>
-          <h2 className="mt-1.5 text-xl">
-            {yours.length === 0
-              ? "Nothing on you"
-              : yours.length === 1
-                ? "One thing, then you're clear"
-                : `${yours.length} things, then you're clear`}
-          </h2>
-          {yours.length === 0 ? (
-            <p className="mt-2 text-sm opacity-80">
-              You&rsquo;ve voted, said when you can go, and you&rsquo;re square
-              on money.
-            </p>
-          ) : (
-            <ul className="mt-4 flex flex-col gap-2">
-              {yours.map((y) => (
-                <li key={y.key}>
-                  <Link
-                    href={y.href}
-                    className="flex items-center gap-3 rounded-md bg-sheet/70 px-4 py-3 text-sm font-semibold transition-colors hover:bg-sheet"
-                  >
-                    <span className="min-w-0 flex-1 truncate">{y.label}</span>
-                    {y.amount ? <span className="nums">{y.amount}</span> : null}
-                    <span aria-hidden="true">&rarr;</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Tile>
-
-        <TileLink href={`/trip/${tripId}/money`} skin="bg-mint text-mint-ink">
-          <span className="typed opacity-60">Spent so far</span>
-          <p className="mt-1.5 font-display text-4xl font-semibold tracking-tight">
-            {spend ? formatMoney(spend.total, spend.currency) : "—"}
-          </p>
-          <p className="mt-2 text-sm opacity-80">
-            {expenseRows.length === 0
-              ? "Nothing logged yet"
-              : `${expenseRows.length} ${expenseRows.length === 1 ? "expense" : "expenses"}${
-                  spend && spend.otherCurrencies > 0
-                    ? `, plus ${spend.otherCurrencies} in other currencies`
-                    : ""
-                }`}
-          </p>
-        </TileLink>
-
-        <TileLink href={`/trip/${tripId}/ideas`} skin="bg-butter text-butter-ink">
-          <span className="typed opacity-60">Ideas</span>
-          <p className="mt-1.5 font-display text-4xl font-semibold tracking-tight">
-            {ideaIds.length}
-          </p>
-          <p className="mt-2 text-sm opacity-80">
-            {ideaIds.length === 0
-              ? "The first one gets a trip moving"
-              : unvoted > 0
-                ? `${unvoted} you haven't voted on`
-                : "You've voted on all of them"}
-          </p>
-        </TileLink>
-
-        {/* Present, but visibly not the viewer's problem: pastel, not blue. */}
-        <Tile span={2} skin="bg-sheet">
-          <span className="typed">Waiting on others</span>
-          {waiting.length === 0 ? (
-            <p className="mt-3 text-sm text-ink-soft">
-              Nobody owes the group anything right now.
-            </p>
-          ) : (
-            <ul className="mt-3 flex flex-wrap gap-2">
-              {waiting.map((w) => (
-                <li key={`${w.userId}-${w.what}`}>
-                  <Link
-                    href={w.href}
-                    className="flex items-center gap-2 rounded-full bg-sheet-2 py-1 pl-1 pr-4 text-sm transition-colors hover:bg-sheet-3"
-                  >
-                    <Avatar name={w.name} src={w.avatarUrl} size={26} />
-                    <span className="truncate">
-                      {w.name} &mdash; {w.what}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Tile>
-
-        {/* The biggest hole in the plan, with the control that fills it. */}
-        <Tile span={2} skin="bg-sheet">
-          <Gap
-            tripId={tripId}
-            datesUnset={datesUnset}
-            hasIdeas={ideaIds.length > 0}
-            unplacedDays={routeDays.filter((d) => d.overnightPlaceId === null).length}
-            hasDays={routeDays.length > 0}
-          />
-        </Tile>
-      </div>
-
-      <TripRoster
-        tripId={tripId}
-        viewerId={viewer.id}
-        members={members}
-        isAdmin={isAdmin}
-        inviteUrl={isAdmin ? inviteUrl : undefined}
-        friendStates={friendStates}
-        pendingInvitees={pendingInvitees}
-        friends={friends}
-      />
-
-      {/* Renders nothing until a day has an overnight place. */}
-      <TripRoute days={routeDays} transportModes={transportModes} />
     </div>
   );
 }
 
+/**
+ * Rank 3: a white panel with a hairline. The hairline is what makes a white
+ * surface a panel at all — white on the near-white canvas has no edge of its
+ * own, which is why the old bare `bg-sheet` sections read as loose text.
+ */
+const PANEL = "bg-sheet ring-1 ring-rule";
+
 function Tile({
-  span,
   skin,
+  tight,
   children,
 }: {
-  span?: 2;
   skin: string;
+  /** Rail padding — for a panel in the narrow right column. */
+  tight?: boolean;
   children: ReactNode;
 }) {
   return (
-    <section
-      className={cx("rounded-lg p-6", skin, span === 2 && "sm:col-span-2")}
-    >
+    <section className={cx("rounded-lg", tight ? "p-5" : "p-6", skin)}>
       {children}
     </section>
   );
 }
 
+/**
+ * ONE heading per panel (ticket 209). It used to be a typed eyebrow over a
+ * display title — "The group" above "Who's going" — which is the same fact
+ * printed twice. A panel gets one name; the drawing under it says the rest.
+ */
+function SectionHead({ title }: { title: string }) {
+  return <h2 className="font-display text-lg">{title}</h2>;
+}
+
+// A rail figure — one number and a line about it. Tighter than a `Tile`:
+// these sit in the narrow column and shouldn't out-weigh the roster above them.
 function TileLink({
   href,
   skin,
@@ -353,78 +337,9 @@ function TileLink({
   children: ReactNode;
 }) {
   return (
-    <Link href={href} className={cx("lift block rounded-lg p-6", skin)}>
+    <Link href={href} className={cx("lift block rounded-lg p-5", skin)}>
       {children}
     </Link>
-  );
-}
-
-/**
- * One hole, never a list of them — a page that names five gaps names none. The
- * order is the order a trip actually gets stuck in.
- */
-function Gap({
-  tripId,
-  datesUnset,
-  hasIdeas,
-  hasDays,
-  unplacedDays,
-}: {
-  tripId: number;
-  datesUnset: boolean;
-  hasIdeas: boolean;
-  hasDays: boolean;
-  unplacedDays: number;
-}) {
-  const gap = !hasIdeas
-    ? {
-        title: "Nobody has suggested anywhere yet",
-        detail: "An idea is the thing the group can argue with.",
-        href: `/trip/${tripId}/ideas`,
-        cta: "Post an idea",
-      }
-    : datesUnset
-      ? {
-          title: "The dates aren't settled",
-          detail: "Everyone paints the days they could go, and a window falls out.",
-          href: `/trip/${tripId}/dates`,
-          cta: "Open Dates",
-        }
-      : !hasDays
-        ? {
-            title: "The week is still blank",
-            detail: "Sketch the days and the route draws itself.",
-            href: `/trip/${tripId}/days`,
-            cta: "Open Days",
-          }
-        : unplacedDays > 0
-          ? {
-              title:
-                unplacedDays === 1
-                  ? "One night has nowhere to sleep"
-                  : `${unplacedDays} nights have nowhere to sleep`,
-              detail: "A day without an overnight place is a gap in the track above.",
-              href: `/trip/${tripId}/days`,
-              cta: "Fill them in",
-            }
-          : {
-              title: "The plan holds together",
-              detail: "Every day has somewhere to sleep and the dates are set.",
-              href: `/trip/${tripId}/days`,
-              cta: "Open Days",
-            };
-
-  return (
-    <div className="flex flex-wrap items-center gap-4">
-      <div className="min-w-[14rem] flex-1">
-        <span className="typed">The biggest gap</span>
-        <h2 className="mt-1.5 text-lg">{gap.title}</h2>
-        <p className="mt-1.5 text-sm text-ink-soft">{gap.detail}</p>
-      </div>
-      <ButtonLink href={gap.href} variant="primary">
-        {gap.cta}
-      </ButtonLink>
-    </div>
   );
 }
 

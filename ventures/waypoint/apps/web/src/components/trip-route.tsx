@@ -39,7 +39,9 @@ export function TripRoute({
   // missing-coordinate stop is named in `missing` rather than dropped silently (rule 11).
   const coords = new Map(
     days
-      .filter((d) => d.overnightPlaceId !== null && d.lat !== null && d.lng !== null)
+      .filter(
+        (d) => d.overnightPlaceId !== null && d.lat !== null && d.lng !== null,
+      )
       .map((d) => [d.overnightPlaceId!, { lat: d.lat!, lng: d.lng! }]),
   );
   const pinned = [];
@@ -64,20 +66,29 @@ export function TripRoute({
     transportModes.get(stops[i].dayIds[0]) ?? null;
 
   return (
-    <section className="mt-4 rounded-lg bg-blush p-6 text-blush-ink">
-      <h2 className="text-xl">Where you&rsquo;re going</h2>
-      {/* The list wants far less width than the map and gets it. */}
-      <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,65fr)_minmax(0,35fr)] lg:items-start">
+    // White panel (ticket 207). The map is the one element on Overview with
+    // real colour of its own; a blush fill behind it clashed with the tiles,
+    // so the box the map sits in is now the same white as every other panel.
+    <section className="rounded-lg bg-sheet p-6 ring-1 ring-rule">
+      {/* One heading, not an eyebrow over a title saying the same thing. */}
+      <h2 className="font-display text-lg">The route</h2>
+      {/* The list wants far less width than the map and gets it — but only
+          once there is width to give. This panel sits in Overview's left
+          column (ticket 209), so the split waits for `xl`; below that the list
+          sits under the map rather than squeezing it. */}
+      <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,66fr)_minmax(0,34fr)] xl:items-start">
         <RouteMap stops={pinned} missing={missing} />
-        <ol className="rounded-md bg-sheet/70 p-3">
+        <ol className="rounded-md bg-sheet-2 p-3 text-ink">
           {stops.map((stop, i) => (
             <li key={stop.dayIds.join("-")}>
               {i > 0 ? <Leg mode={legMode(i)} /> : null}
               <div className="flex items-start gap-2.5 py-1.5">
                 {/* Same ring/number as the map's pins — row and pin are one stop drawn twice. */}
+                {/* The ring keeps the map's pin colour; the place name is
+                    plain ink, like every other name in the app. */}
                 <span
                   aria-hidden="true"
-                  className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border-2 border-current font-mono text-[10px] font-bold"
+                  className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border-2 border-pen font-mono text-[10px] font-bold text-pen"
                 >
                   {i + 1}
                 </span>
@@ -85,11 +96,12 @@ export function TripRoute({
                   <p className="truncate font-display text-[15px] font-semibold leading-tight">
                     {stop.placeName ?? "Unnamed place"}
                   </p>
-                  <p className="mt-0.5 font-mono text-[11px] opacity-70">
+                  <p className="mt-0.5 font-mono text-[11px] text-ink-soft">
                     {stop.startDate === stop.endDate
                       ? formatDate(stop.startDate)
                       : `${formatDate(stop.startDate)} – ${formatDate(stop.endDate)}`}{" "}
-                    · {stop.dayIds.length} day{stop.dayIds.length === 1 ? "" : "s"}
+                    · {stop.dayIds.length} day
+                    {stop.dayIds.length === 1 ? "" : "s"}
                   </p>
                 </div>
               </div>
@@ -106,7 +118,10 @@ export function TripRoute({
 function Leg({ mode }: { mode: TransportType | null }) {
   return (
     <div className="flex items-center gap-1.5 pl-2.5 opacity-75">
-      <span aria-hidden="true" className="h-4 w-0.5 shrink-0 bg-current opacity-40" />
+      <span
+        aria-hidden="true"
+        className="h-4 w-0.5 shrink-0 bg-current opacity-40"
+      />
       {mode ? (
         <span className="inline-flex items-center gap-1 font-mono text-[10.5px] uppercase tracking-[0.06em]">
           <TravelModeIcon mode={mode} />

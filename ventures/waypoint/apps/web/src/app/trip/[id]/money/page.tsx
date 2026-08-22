@@ -174,7 +174,7 @@ export default async function MoneyPage({
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {/* The page's only blue: the viewer's own position is theirs to act on. */}
             <section className="rounded-lg bg-pen-soft p-6 text-pen-deep sm:col-span-2">
-              <p className="typed opacity-70">Where you stand</p>
+              <p className="typed text-current">Where you stand</p>
               <YourPosition
                 active={active}
                 balances={balances}
@@ -184,7 +184,7 @@ export default async function MoneyPage({
             </section>
 
             <section className="rounded-lg bg-mint p-6 text-mint-ink">
-              <p className="typed opacity-70">Spent so far</p>
+              <p className="typed text-current">Spent so far</p>
               <p className="nums mt-3 text-3xl font-semibold">
                 {spentPer.length === 0
                   ? "—"
@@ -457,7 +457,7 @@ function BalanceBook({
     <section className="rounded-lg bg-mint p-6 text-mint-ink">
       <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-ink/10 pb-3">
         <h2 className="text-xl">Where everyone stands</h2>
-        <span className="typed opacity-70">{currency}</span>
+        <span className="typed text-current">{currency}</span>
       </div>
 
       <ul className="mt-3 flex flex-col gap-1.5">
@@ -490,7 +490,7 @@ function BalanceBook({
 
       {settlements.length > 0 ? (
         <div className="mt-4 border-t border-ink/10 pt-3">
-          <p className="typed opacity-70">Suggested settle-up</p>
+          <p className="typed text-current">Suggested settle-up</p>
           <ul className="mt-2 flex flex-col gap-1.5">
             {settlements.map((s, i) => (
               <li key={i} className="text-sm opacity-90">

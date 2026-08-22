@@ -794,7 +794,7 @@ export function DaysCalendar({
               className={cx(
                 "px-3 py-1 font-mono text-[11px] uppercase tracking-[0.06em] transition-colors disabled:opacity-50",
                 effectiveView === option
-                  ? "bg-pen text-paper"
+                  ? "bg-pen text-sheet"
                   : "bg-sheet text-ink-soft hover:bg-sheet-2",
               )}
             >
@@ -838,7 +838,7 @@ export function DaysCalendar({
             <div className="w-full" style={{ minWidth: frameMinWidth }}>
             <div
               ref={headRef}
-              className="sticky top-0 z-30 shadow-[0_2px_5px_rgb(0_0_0/0.07)]"
+              className="sticky top-0 z-30 shadow-raised"
             >
             <div style={rowStyle} className="border-b border-rule bg-sheet">
               <div className="sticky left-0 z-20 border-r border-rule bg-sheet" />
@@ -852,11 +852,11 @@ export function DaysCalendar({
                     day.outside && `${OUTSIDE_DAY_CLASS} text-ink-faint`,
                     // Today is the whole head, filled — a pill around just the
                     // number moved that column's date to a different height.
-                    day.isToday && "bg-pen text-paper",
+                    day.isToday && "bg-pen text-sheet",
                     landing?.dayId === day.id && "bg-pen-soft",
                   )}
                 >
-                  <p className={cx("typed", day.isToday && "text-paper/75")}>
+                  <p className={cx("typed", day.isToday && "text-sheet/80")}>
                     {day.weekday}
                   </p>
                   <p className="nums text-lg font-semibold">
@@ -1526,7 +1526,7 @@ function DayColumn({
       {hover !== null && !landing ? (
         <span
           aria-hidden
-          className="nums pointer-events-none absolute left-1 z-10 -translate-y-1/2 rounded-full bg-pen px-1.5 text-[10px] text-paper"
+          className="nums pointer-events-none absolute left-1 z-10 -translate-y-1/2 rounded-full bg-pen px-1.5 text-[10px] text-sheet"
           style={{ top: minutesToY(hover) }}
         >
           + {toHhmm(hover)}
@@ -1539,7 +1539,7 @@ function DayColumn({
           className="pointer-events-none absolute inset-x-0 z-10 border-t-2 border-dashed border-pen"
           style={{ top: minutesToY(toMinutes(incoming.time) ?? 0) }}
         >
-          <span className="nums ml-1 rounded-full bg-pen px-1.5 text-[10px] text-paper">
+          <span className="nums ml-1 rounded-full bg-pen px-1.5 text-[10px] text-sheet">
             {formatSpan({ ...incoming, allDay: false })}
           </span>
         </div>

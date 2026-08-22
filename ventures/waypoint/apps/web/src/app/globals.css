@@ -27,97 +27,110 @@
  *   - `transit` → the three-state status semantics (done / open / needs
  *     action), applied identically on every tab.
  *   - `index`   → the token discipline: no component ever holds a hex value.
+ *
+ * Trimmed back to what the redesign actually uses (ticket 206): the ruled
+ * sheet, the red margin, the tape, the boarding-pass landing page, the tilted
+ * ideas board and the post-it washes are gone, along with their tokens.
  */
 
 :root {
   color-scheme: light;
 
   /*
-   * The white-and-pastel palette (ticket 188). Token NAMES are kept where the
-   * job survives the repaint — `--sheet` is still "a surface", `--pen` is still
-   * "the primary-action ink" — so call sites are not renamed twice, here and
-   * again during the page work. The names still read paper-era; collapsing and
-   * renaming them (`--pen`/`--color-pen`, dead texture tokens) is ticket 206.
-   * The visual language docs are the yardstick — see docs/design/.
+   * The white-and-pastel palette. ONE HEX PER MEANING (ticket 206): a colour is
+   * declared once, in the "Four pastels" block below, and every other name that
+   * means the same thing is a `var()` alias of it — never a second copy of the
+   * digits. Aliases are kept where the *job* differs (status vs domain vs
+   * person), because a call site should read for its own reason.
+   *
+   * The paper-era tokens are gone with the paper-era CSS: the ruled `--line`,
+   * the red `--margin-line`, the `--tape` strip, the post-it stock, and
+   * `--pencil` (a byte-for-byte copy of `--ink-2`).
+   *
+   * LIGHT ONLY, deliberately. There is no dark palette and no `data-theme`
+   * switch: one good light theme beats two half themes.
    */
 
   /* Ground and surfaces. Canvas is the page; white is every surface. */
-  --paper: #efeeea; /* canvas — the ground the app sits on */
+  --paper: #f7f6f3; /* the ground the app sits on — barely-there warm off-white */
   --sheet: #ffffff; /* white — every surface */
-  --sheet-2: #f7f6f3; /* a surface one step off white, for nested panels */
-  --sheet-3: #efeeea; /* canvas again — a recess in a white surface */
+  --sheet-2: #f5f4f0; /* a surface one step off white, for nested panels */
+  --sheet-3: #eeece7; /* a recess in a white surface — deeper than the canvas */
   --rule: #e6e4de; /* hairline */
   --rule-2: #d8d5cd; /* a stronger hairline */
 
-  /* Was ruled lines and a red margin. Now near-invisible neutral hairlines —
-     the paper texture is repainted out crudely here; the primitives lose the
-     ruled sheet outright in ticket 190. */
-  --line: #ecebe7;
-  --margin-line: #e6e4de;
-  --tape: rgb(230 228 222 / 0.6);
-
-  --ink: #14141a;
-  --ink-2: #63636f;
-  --ink-3: #9b9ba5;
+  /*
+   * Ink. Three steps, and all three clear WCAG AA (4.5:1) on every surface
+   * they are used on (ticket 204). `--ink-3` was #9b9ba5, which read 2.75:1 on
+   * white — it set `.typed`, an 11px uppercase label, so the smallest text in
+   * the app was also the palest. Darkened until it passes; the ramp still
+   * steps, it just no longer steps off the edge.
+   */
+  --ink: #14141a; /* 18.4:1 on white */
+  --ink-2: #63636f; /* 5.9:1 on white, 4.6:1 on the palest pastel */
+  --ink-3: #6f6f7b; /* 5.0:1 on white, 4.6:1 on the canvas */
 
   /* Blue means "yours to do" and nothing else — actions, links, your own rows.
-     `--pen` keeps its job (the primary-action ink) so nothing is renamed yet. */
+     `--pen` clears AA on white and on the canvas only (4.9 / 4.5); blue TEXT on
+     a pastel must use `--pen-deep`, which clears it everywhere (ticket 204). */
   --pen: #4e68d8;
-  --pen-deep: #2b3b85; /* the pressed-harder hover ink for anything blue-filled */
+  --pen-deep: #2b3b85; /* the pressed-harder hover ink, and blue text on pastel */
   --pen-2: #e7ebfa; /* the soft tint blue sits on */
-  --pencil: #63636f;
 
   /* Four pastels, one per domain (wash / ink): peri = dates, mint = money,
-     butter = ideas and people, blush = route and places. Layouts do not carry
-     these per-domain yet — that is the page work (tickets 192+) — but the
-     tokens exist so those tickets reach for a name, never a hex. */
+     butter = ideas and people, blush = route and places. THE ONLY PLACE THESE
+     SIX-DIGIT VALUES APPEAR — everything below aliases them. */
   --peri: #dfe3ff;
-  --peri-ink: #33409b;
+  --peri-ink: #33409b; /* 7.1:1 on peri */
   --mint: #dcefe4;
-  --mint-ink: #1b6b4c;
+  --mint-ink: #1b6b4c; /* 5.4:1 on mint */
   --butter: #fbeac8;
-  --butter-ink: #8a6412;
+  --butter-ink: #8a6412; /* 4.5:1 on butter */
   --blush: #faddd6;
-  --blush-ink: #a34a31;
-
-  /* Status keeps its three-state job but is repainted onto the domain pastels:
-     butter for open/marked, blush for needs-action, mint for done. Every state
-     still carries a word too — never colour alone. */
-  --highlight: #fbeac8;
-  --highlight-2: #fdf4e1;
-  --highlight-ink: #8a6412;
-  --highlight-red: #faddd6;
-  --highlight-green: #dcefe4;
-  --red: #a34a31;
-  --red-2: #faddd6;
-  --green: #1b6b4c;
-  --green-2: #dcefe4;
+  --blush-ink: #a34a31; /* 4.6:1 on blush */
 
   /* One step darker than each wash, so a filled pill outlines on white rather
      than dissolving into it. */
-  --highlight-edge: #efd9ae;
-  --red-edge: #f0c7bc;
-  --green-edge: #c3e3d2;
-  --pen-edge: #c6d0f2;
+  --peri-edge: #c6d0f2;
+  --mint-edge: #c3e3d2;
+  --butter-edge: #efd9ae;
+  --blush-edge: #f0c7bc;
 
-  /* Quiet motion (ticket 187/190): a tiny lift on a soft shadow, nothing heavy.
-     One easing curve for every interactive move — see the `.lift` utility. */
+  /*
+   * Status — the three-state semantics (done / open / needs action) applied
+   * identically on every tab. A separate NAME, never a separate hex: status
+   * borrows the domain pastels. Every state carries a word too, so nothing is
+   * told by colour alone (ticket 204).
+   */
+  --highlight: var(--butter); /* open / marked up */
+  --highlight-2: #fdf4e1; /* the one paler butter — its own value, used alone */
+  --highlight-ink: var(--butter-ink);
+  --highlight-edge: var(--butter-edge);
+  --red: var(--blush-ink); /* needs action */
+  --red-2: var(--blush);
+  --red-edge: var(--blush-edge);
+  --green: var(--mint-ink); /* done */
+  --green-2: var(--mint);
+  --green-edge: var(--mint-edge);
+  --pen-edge: var(--peri-edge);
+
+  /* Quiet motion: a tiny lift on a soft shadow, nothing heavy. One easing curve
+     for every interactive move — see the `.lift` utility, and the
+     prefers-reduced-motion block that removes the movement but not the
+     feedback. */
   --ease: cubic-bezier(0.2, 0.85, 0.3, 1);
   --shadow-sm: 0 1px 2px rgb(20 20 26 / 0.05);
   --shadow: 0 1px 2px rgb(20 20 26 / 0.05), 0 6px 14px -12px rgb(20 20 26 / 0.3);
   --shadow-lift: 0 2px 4px rgb(20 20 26 / 0.06), 0 14px 28px -16px rgb(20 20 26 / 0.35);
 
   /*
-   * The three faces of the white-and-pastel direction (ticket 189), loaded and
-   * self-hosted via next/font (see app/layout.tsx). The `-face` variables carry
-   * the next/font family; the fallback stack behind each one covers the moment
-   * before it swaps in.
+   * The three faces (ticket 189), loaded and self-hosted via next/font (see
+   * app/layout.tsx). The `-face` variables carry the next/font family; the
+   * fallback stack behind each covers the moment before it swaps in.
    *   - `--display` (Bricolage Grotesque) — headings and figures. The character.
    *   - `--sans`    (Instrument Sans)      — running text and controls. The book.
    *   - `--type`    (DM Mono, tabular)     — every date, time, amount and small
    *     uppercase label. `.typed`, `.nums`, `font-mono`.
-   * The handwriting face is retired: it belonged to the notebook and has no role
-   * in the new look.
    */
   --display: var(--font-display-face), "Bricolage Grotesque", "Trebuchet MS",
     system-ui, sans-serif;
@@ -127,47 +140,28 @@
     "Courier New", monospace;
 
   /*
-   * The post-it stock (`--note-yellow` … `--note-lilac`, each with an `-edge`)
-   * lived here for the landing page's before/after hero. That hero is gone —
-   * the page is the travel document now (homepage-g-boardingpass.html) and
-   * every surface on it is paper, tape and ink — so the stock went with it.
-   * Nothing else ever used it: the `--who-*` washes below are pencil crayon
-   * and belong to people, and were never to be reused for decoration.
+   * People. Eight seats, assigned deterministically from the display name
+   * (`whoTone` in lib/who.ts), never from a database column — with nine people
+   * on one trip you have to tell rows apart at a glance. The first five are the
+   * domain pastels under a person's name; only 6–8 need values of their own,
+   * because the palette runs out before the seats do. Every pair clears AA.
    */
-
-  /*
-   * People. paper.html gives every member their own coloured initial disc
-   * (`.p1`–`.p6`) rather than one accent for everyone — with nine people
-   * writing in the same notebook you have to be able to tell handwriting
-   * apart at a glance. Pastel washes, not saturated fills, so a row of
-   * avatars reads as pencil crayon on paper and the initials stay legible in
-   * their own darker ink. Assigned deterministically from the display name
-   * (see `whoTone` in components/ui.tsx), never from a database column.
-   */
-  /*
-   * People. The direction puts members in the butter domain with a per-seat
-   * tint, but the exact tinting mechanism is deferred to the roster page work
-   * (ticket 199). For now the eight seats are repainted onto the new palette
-   * so a nine-person trip still tells apart at a glance and nothing reads
-   * paper-era — assigned deterministically from the name (`whoTone` in
-   * components/ui.tsx), never from a column.
-   */
-  --who-1: #dfe3ff;
-  --who-1-ink: #33409b;
-  --who-2: #faddd6;
-  --who-2-ink: #a34a31;
-  --who-3: #fbeac8;
-  --who-3-ink: #8a6412;
-  --who-4: #dcefe4;
-  --who-4-ink: #1b6b4c;
-  --who-5: #e7ebfa;
-  --who-5-ink: #2b3b85;
+  --who-1: var(--peri);
+  --who-1-ink: var(--peri-ink);
+  --who-2: var(--blush);
+  --who-2-ink: var(--blush-ink);
+  --who-3: var(--butter);
+  --who-3-ink: var(--butter-ink);
+  --who-4: var(--mint);
+  --who-4-ink: var(--mint-ink);
+  --who-5: var(--pen-2);
+  --who-5-ink: var(--pen-deep);
   --who-6: #e4ecec;
-  --who-6-ink: #3d5c5a;
+  --who-6-ink: #3d5c5a; /* 6.1:1 */
   --who-7: #f3e7da;
-  --who-7-ink: #7a5a2b;
+  --who-7-ink: #7a5a2b; /* 5.2:1 */
   --who-8: #e9e7e2;
-  --who-8-ink: #5a564d;
+  --who-8-ink: #5a564d; /* 5.9:1 */
 }
 
 /* Expose the tokens to Tailwind: bg-sheet, text-ink-soft, text-pen, … */
@@ -178,8 +172,6 @@
   --color-sheet-3: var(--sheet-3);
   --color-rule: var(--rule);
   --color-rule-strong: var(--rule-2);
-  --color-line: var(--line);
-  --color-margin-line: var(--margin-line);
 
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-2);
@@ -189,17 +181,20 @@
   --color-pen-deep: var(--pen-deep);
   --color-pen-soft: var(--pen-2);
   --color-pen-edge: var(--pen-edge);
-  --color-pencil: var(--pencil);
 
   /* The four domain pastels: bg-peri/text-peri-ink, mint, butter, blush. */
   --color-peri: var(--peri);
   --color-peri-ink: var(--peri-ink);
+  --color-peri-edge: var(--peri-edge);
   --color-mint: var(--mint);
   --color-mint-ink: var(--mint-ink);
+  --color-mint-edge: var(--mint-edge);
   --color-butter: var(--butter);
   --color-butter-ink: var(--butter-ink);
+  --color-butter-edge: var(--butter-edge);
   --color-blush: var(--blush);
   --color-blush-ink: var(--blush-ink);
+  --color-blush-edge: var(--blush-edge);
 
   --color-highlight: var(--highlight);
   --color-highlight-soft: var(--highlight-2);
@@ -325,39 +320,6 @@
 }
 
 @layer components {
-  /*
-   * A sheet of ruled paper. The lines and the red margin are decoration —
-   * `pointer-events: none` and aria-hidden by construction, since they are
-   * pseudo-elements.
-   *
-   * The `z-index: 0` on all three decorations, paired with `.sheet-content`
-   * below, is load-bearing and not tidying. An absolutely-positioned
-   * pseudo-element is a *positioned* descendant, so by CSS paint order it
-   * lands above its container's in-flow children — including their
-   * backgrounds and their text. Left to the default, the ruled lines and the
-   * red margin therefore drew *on top of* every card, button and heading on
-   * the page instead of behind them.
-   */
-  .sheet-ruled::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background-image: repeating-linear-gradient(
-      180deg,
-      transparent 0 27px,
-      var(--line) 27px 28px
-    );
-    opacity: 0.5;
-  }
-
-  /* The page's actual content, lifted above the decoration. Paired with the
-     `z-index: 0` decorations above — see the note there. */
-  .sheet-content {
-    position: relative;
-    z-index: 1;
-  }
 
   /*
    * A strip that scrolls sideways without ever drawing a scrollbar — the trip
@@ -377,49 +339,6 @@
 
   .scroll-x-bare::-webkit-scrollbar {
     display: none;
-  }
-
-  /* The red margin down the gutter, as on school paper. Only on surfaces wide
-     enough to have a gutter — see `.sheet-margin` usage in Card. */
-  .sheet-margin::after {
-    content: "";
-    position: absolute;
-    left: 46px;
-    top: 0;
-    bottom: 0;
-    width: 1px;
-    z-index: 0;
-    background: var(--margin-line);
-    opacity: 0.65;
-    pointer-events: none;
-  }
-
-  /* Matches Tailwind's `sm:` breakpoint — Page's own padding switches at the
-     same width, in components/ui.tsx. */
-  @media (max-width: 639px) {
-    .sheet-margin::after {
-      left: 22px;
-    }
-  }
-
-  /*
-   * Tape holding a sheet to the page. A real element, not a pseudo-element —
-   * `.sheet-ruled::before` already owns this container's `::before` for the
-   * ruled lines, and `.sheet-margin::after` owns `::after` for the margin;
-   * a third pseudo-element on the same node isn't possible, so tape gets an
-   * actual `<span aria-hidden>` (see `Page` in components/ui.tsx).
-   */
-  .tape {
-    position: absolute;
-    width: 92px;
-    height: 22px;
-    background: var(--tape);
-    top: -10px;
-    left: 26px;
-    z-index: 0;
-    transform: rotate(-2.5deg);
-    box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
-    pointer-events: none;
   }
 
   /* Anything typed rather than written: labels, counts, dates, section heads. */
@@ -452,418 +371,12 @@
   }
 
   .hl-red {
-    --hl-stroke: var(--highlight-red);
+    --hl-stroke: var(--red-2);
   }
 
   .hl-green {
-    --hl-stroke: var(--highlight-green);
+    --hl-stroke: var(--green-2);
   }
-
-  /* ======================================================================
-   * The landing page — "the travel document"
-   * (docs/mockups/homepage-g-boardingpass.html, hero D).
-   *
-   * One idea carried the whole way down the page: the trip as a wallet of
-   * printed objects you're holding. A pass with a tear-off stub, luggage tags
-   * on strings, a fold-out coupon book, a customs stamp, and the passport MRZ
-   * strip as the footer rule. It replaces the before/after hero and the
-   * wandering dashed route, which were two languages on one page.
-   *
-   * The documents sit ON the page's own ruled sheet, so every surface is one
-   * step up from it: `--sheet-2` for a document body, `--sheet-3` for the part
-   * you'd tear off, and every punched hole is `--sheet` — the paper showing
-   * through the hole is the sheet the document is lying on, not `--paper`,
-   * which is what the mockup's full-bleed page used.
-   * ==================================================================== */
-
-  /* ------------------------------------------------------------ the pass */
-
-  .pass {
-    position: relative;
-    display: grid;
-    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
-    background: var(--sheet-2);
-    border: 1px solid var(--rule-2);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lift);
-    transform: rotate(-0.7deg);
-  }
-
-  /* Taped down like everything else on the sheet. A real strip rather than
-     `.tape`, because that class is absolutely positioned against `Page`. */
-  .pass::before {
-    content: "";
-    position: absolute;
-    top: -11px;
-    left: 42px;
-    width: 104px;
-    height: 24px;
-    background: var(--tape);
-    box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
-    transform: rotate(-3.5deg);
-    pointer-events: none;
-  }
-
-  .pass-body {
-    padding: 2rem 2rem 1.75rem;
-    border-left: 3px solid var(--margin-line);
-    border-radius: var(--radius-lg) 0 0 var(--radius-lg);
-  }
-
-  /* The tear-off stub: the trip's state, on the part of the document that
-     gets kept. Dashed seam, punched at both ends so the tear line really
-     breaks the edge rather than stopping at it. */
-  .pass-stub {
-    position: relative;
-    padding: 1.75rem 1.5rem;
-    background: var(--sheet-3);
-    border-left: 2px dashed var(--rule-2);
-    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
-  }
-
-  .pass-stub::before,
-  .pass-stub::after {
-    content: "";
-    position: absolute;
-    left: -11px;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: var(--sheet);
-    border: 1px solid var(--rule-2);
-  }
-
-  .pass-stub::before {
-    top: -12px;
-  }
-
-  .pass-stub::after {
-    bottom: -12px;
-  }
-
-  @media (max-width: 800px) {
-    .pass {
-      grid-template-columns: minmax(0, 1fr);
-      transform: none;
-    }
-
-    .pass-body {
-      padding: 1.5rem 1.25rem 1.25rem;
-    }
-
-    .pass-stub {
-      border-left: 0;
-      border-top: 2px dashed var(--rule-2);
-      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-    }
-
-    /* Both punches move to the seam's own ends, which are now the sides. */
-    .pass-stub::before {
-      top: -12px;
-      left: -12px;
-    }
-
-    .pass-stub::after {
-      top: -12px;
-      bottom: auto;
-      left: auto;
-      right: -12px;
-    }
-  }
-
-  /* A printed field on the document — the key typed small above its value,
-     as on a real pass. Used in the pass body's footer row. */
-  .doc-field-k {
-    font-family: var(--type);
-    font-size: 10px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-  }
-
-  .doc-field-v {
-    font-family: var(--type);
-    font-size: 14px;
-    font-variant-numeric: tabular-nums;
-    color: var(--ink);
-  }
-
-  /* ---------------------------------------------------- the luggage tags */
-
-  /*
-   * The string: one stroke up out of the eyelet to the rule above. A
-   * pseudo-element rather than an SVG — it is only ever a straight line at a
-   * slight angle, and `--string` lets each tag hang its own way.
-   */
-  .luggage {
-    position: relative;
-    padding-top: 34px;
-  }
-
-  .luggage::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 46px;
-    width: 2px;
-    height: 34px;
-    background: var(--rule-2);
-    transform-origin: top center;
-    transform: rotate(var(--string, 6deg));
-  }
-
-  .luggage-card {
-    position: relative;
-    background: var(--sheet-2);
-    border: 1px solid var(--rule-2);
-    border-radius: var(--radius-sm);
-    padding: 1.25rem 1.25rem 1.35rem 3.25rem;
-    box-shadow: var(--shadow);
-    transform: rotate(var(--tilt, -1deg));
-  }
-
-  /* The eyelet, and the reinforcing rule that runs down beside it. */
-  .luggage-card::before {
-    content: "";
-    position: absolute;
-    top: 1.4rem;
-    left: 1.15rem;
-    width: 15px;
-    height: 15px;
-    border-radius: 50%;
-    background: var(--sheet);
-    border: 2px solid var(--rule-2);
-  }
-
-  .luggage-card::after {
-    content: "";
-    position: absolute;
-    top: 0.7rem;
-    bottom: 0.7rem;
-    left: 2.35rem;
-    border-left: 1px dashed var(--rule);
-  }
-
-  /* ----------------------------------------------------- the coupon book */
-
-  /*
-   * The six stops as one fold-out strip of perforated coupons, each with a
-   * counterfoil down the left. Deliberately NOT `overflow: hidden`: the
-   * punches at every perforation sit half outside the book's own border,
-   * which is the point of them. The end coupons round their own corners
-   * instead.
-   */
-  .book {
-    background: var(--sheet-2);
-    border: 1px solid var(--rule-2);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lift);
-  }
-
-  .coupon {
-    position: relative;
-    display: grid;
-    grid-template-columns: 180px minmax(0, 1fr);
-  }
-
-  .coupon:first-child .counterfoil {
-    border-radius: var(--radius-lg) 0 0 0;
-  }
-
-  .coupon:last-child .counterfoil {
-    border-radius: 0 0 0 var(--radius-lg);
-  }
-
-  /* The perforation between two coupons, punched at both ends. */
-  .coupon + .coupon {
-    border-top: 2px dashed var(--rule-2);
-  }
-
-  .coupon + .coupon::before,
-  .coupon + .coupon::after {
-    content: "";
-    position: absolute;
-    top: -12px;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: var(--sheet);
-  }
-
-  .coupon + .coupon::before {
-    left: -11px;
-  }
-
-  .coupon + .coupon::after {
-    right: -11px;
-  }
-
-  /*
-   * The counterfoil — the half you'd keep. `--wash` is that tab's own tint,
-   * and it is the only place on this page where colour identifies a tab. The
-   * tab's name is always written next to it, so it is never colour alone.
-   */
-  .counterfoil {
-    padding: 1.4rem 1.1rem;
-    border-right: 2px dashed var(--rule-2);
-    background: var(--wash, var(--sheet-3));
-  }
-
-  @media (max-width: 900px) {
-    .coupon {
-      grid-template-columns: minmax(0, 1fr);
-    }
-
-    .counterfoil {
-      display: flex;
-      align-items: baseline;
-      gap: 0.9rem;
-      padding: 0.85rem 1.1rem;
-      border-right: 0;
-      border-bottom: 2px dashed var(--rule-2);
-    }
-
-    .coupon:first-child .counterfoil {
-      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    }
-
-    .coupon:last-child .counterfoil {
-      border-radius: 0;
-    }
-  }
-
-  /* ----------------------------------------------------- the entry stamp */
-
-  /* The customs impression: a double ring, inked slightly off-square. The
-     second ring is an `outline`, so it needs no second element. */
-  .impression {
-    display: inline-block;
-    text-align: center;
-    padding: 1.4rem 1.7rem;
-    border: 2px solid var(--pen);
-    outline: 2px solid var(--pen);
-    outline-offset: 5px;
-    border-radius: var(--radius-lg);
-    color: var(--pen);
-    transform: rotate(-3.5deg);
-    opacity: 0.9;
-    max-width: 22rem;
-  }
-
-  /*
-   * The machine-readable strip off the bottom of a passport. Decoration, and
-   * the page's closing rule at the same time — `aria-hidden`, so the glyph
-   * soup is never read out. It scrolls sideways on a narrow screen rather
-   * than wrapping: an MRZ line that wraps stops looking like one.
-   */
-  .mrz {
-    border-top: 1px solid var(--rule-2);
-    background: var(--sheet-2);
-    padding: 0.8rem 1rem 1.1rem;
-    overflow-x: auto;
-  }
-
-  .mrz pre {
-    margin: 0;
-    font-family: var(--type);
-    font-size: 11px;
-    line-height: 1.7;
-    letter-spacing: 0.08em;
-    color: var(--ink-3);
-    white-space: pre;
-  }
-
-  /*
-   * A note on the Ideas board (v0.2 ticket 09). The tilt is decoration
-   * *derived* from the idea's id — `--tilt` is set inline by the card — so it
-   * is stable for a given note across reloads and sort changes without any
-   * position ever being stored. Hovering straightens the note and lifts it
-   * clear of its neighbours, which is what makes a board of twenty feel
-   * handled rather than laid out.
-   */
-  .idea-note {
-    transform: rotate(var(--tilt, 0deg));
-    transition: transform 120ms ease, box-shadow 120ms ease;
-  }
-
-  /*
-   * A panel held down with a strip of tape (v0.2 ticket 07) — the two halves
-   * of the Overview hero. Overview is the trip's landing surface and was a
-   * stack of identical bordered cards; the tape is what stops the first thing
-   * you see reading as a form. Decoration only, so it is a pseudo-element and
-   * carries no content.
-   *
-   * `--tape-x` places the strip: the left panel's sits left, the right one's
-   * sits right, so the pair doesn't read as one repeated card.
-   */
-  .tape-panel {
-    position: relative;
-  }
-  .tape-panel::before {
-    content: "";
-    position: absolute;
-    top: -8px;
-    left: var(--tape-x, 30px);
-    width: 74px;
-    height: 16px;
-    background: var(--tape);
-    transform: rotate(var(--tape-tilt, -2deg));
-    box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
-  }
-
-  /*
-   * The board note's tape tab, drawn as a background layer rather than as
-   * `.note-tape`'s absolutely-positioned ::before.
-   *
-   * Inside a CSS multicol board, Chromium repaints an absolutely-positioned
-   * descendant at the foot of every column that is shorter than the tallest
-   * one — the board grew a row of orphan tape strips along its bottom edge.
-   * Swapping the pseudo-element for a real child didn't help: the duplication
-   * is in the paint, not the markup. A background layer belongs to the note's
-   * own box and cannot be fragmented away from it.
-   *
-   * The cost is that the tape no longer overhangs the top edge, so the note
-   * carries extra top padding to sit it inside instead. On a tilted note the
-   * lost 2deg of tape rotation doesn't read.
-   */
-  .idea-note {
-    background-image: linear-gradient(
-      to right,
-      transparent 0 22px,
-      var(--tape) 22px 86px,
-      transparent 86px
-    );
-    background-repeat: no-repeat;
-    background-size: 100% 15px;
-    background-position: 0 0;
-  }
-
-  .idea-note:hover,
-  .idea-note:focus-within {
-    transform: rotate(0deg) scale(1.015);
-    box-shadow: var(--shadow-lift);
-    z-index: 2;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .idea-note {
-      transition: none;
-    }
-  }
-
-  /*
-   * The six paper washes a board note cycles through, keyed off the idea's id.
-   * Background only — deliberately *not* the `.who-*` classes, which also set
-   * an ink colour for an avatar chip and would tint the note's body text.
-   */
-  /* `background-color`, never the `background` shorthand — the shorthand
-     resets `background-image`, which is where the note's tape lives. */
-  .wash-0 { background-color: var(--highlight-2); }
-  .wash-1 { background-color: var(--pen-2); }
-  .wash-2 { background-color: var(--who-3); }
-  .wash-3 { background-color: var(--who-6); }
-  .wash-4 { background-color: var(--green-2); }
-  .wash-5 { background-color: var(--who-2); }
 
   /*
    * One pastel per person, keyed off their name (`whoTone` in
@@ -882,22 +395,22 @@
 
 @layer components {
   /*
-   * The Route map (v0.2 ticket 08). Prototyped in docs/mockups/route-map.html,
-   * where three tile treatments were compared side by side over identical
-   * data; the paper-toned one below won.
+   * The Route map (ticket 08; repainted for the white-and-pastel language,
+   * ticket 207). Was ink-on-cream: a sepia filter plus a ruled paper wash,
+   * which belonged to the retired notebook look and fought every white panel
+   * around it.
    *
-   * It is CSS over plain OpenStreetMap tiles, deliberately: a filter stack on
-   * the tile pane knocks the default OSM palette back to ink-on-cream, then a
-   * multiply-blended ruled wash and an inset vignette sit the result on the
-   * page's own paper. No second tile provider, no account, no extra request —
-   * and OSM's attribution control is left exactly as Leaflet draws it.
+   * Now the tiles are only desaturated and lightened until they read as a
+   * quiet grey-green ground the pastel pins can sit on. No ruled lines, no
+   * sepia, no second tile provider — still plain OpenStreetMap, still
+   * Leaflet's own attribution control.
    */
   .route-map-frame {
     position: relative;
     overflow: hidden;
-    border: 1px solid var(--rule-2);
+    border: 1px solid var(--rule);
     border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
+    background: var(--sheet);
   }
 
   /* 450px, up from the original 300 (ticket 81) — at 300 a multi-country route
@@ -921,28 +434,26 @@
      an Explore thumbnail are visibly the same kind of object. */
   .route-map-frame .leaflet-tile-pane,
   .route-map-frame .map-tiles {
-    filter: sepia(0.55) saturate(0.55) contrast(0.78) brightness(1.12)
-      hue-rotate(-8deg);
+    filter: saturate(0.42) brightness(1.06) contrast(0.9);
   }
 
   /* z-index 400+ puts these above Leaflet's own panes but below its controls
-     (attribution and zoom live at 800+), which must stay clickable. */
+     (attribution and zoom live at 800+), which must stay clickable.
+
+     One flat wash of the page's own canvas colour, multiplied over the tiles.
+     It ties the map to the panel it sits in without printing anything on it. */
   .route-map-wash {
     position: absolute;
     inset: 0;
     z-index: 400;
     pointer-events: none;
-    background:
-      repeating-linear-gradient(
-        to bottom,
-        transparent 0 27px,
-        var(--line) 27px 28px
-      ),
-      var(--paper);
+    background: var(--sheet-2);
     mix-blend-mode: multiply;
-    opacity: 0.55;
+    opacity: 0.5;
   }
 
+  /* A hairline inside the frame, and the faintest lift of white at the edges
+     so pins near the border still separate from the tiles. */
   .route-map-vignette {
     position: absolute;
     inset: 0;
@@ -950,14 +461,14 @@
     pointer-events: none;
     box-shadow:
       inset 0 0 0 1px var(--rule),
-      inset 0 0 34px 12px var(--sheet);
+      inset 0 0 26px 6px rgb(255 255 255 / 0.5);
   }
 
   /* The same vignette on a thumbnail-sized box would be almost all vignette. */
   .route-map-vignette-sm {
     box-shadow:
       inset 0 0 0 1px var(--rule),
-      inset 0 0 14px 3px var(--sheet);
+      inset 0 0 12px 2px rgb(255 255 255 / 0.45);
   }
 
 }
@@ -1058,8 +569,7 @@
    One pill, two places (ticket 82): the map pin's corner badge and the Route
    spine's left rail say the same thing about the same stop, so they are the
    same drawing. The base class carries the look; `.route-pin-days` only adds
-   the pin-corner positioning, and `.day-pill-lg` the reading size for the
-   rail, where there is room. */
+   the pin-corner positioning. */
 .day-pill {
   display: inline-block;
   padding: 0 5px;
@@ -1068,18 +578,14 @@
   background: var(--highlight);
   color: var(--highlight-ink);
   font-family: var(--type);
-  font-size: 9px;
+  /* Was 9px, which is below the size the rest of the app will go to and the
+     smallest thing on any screen (ticket 204). 10px matches `.typed`'s floor. */
+  font-size: 10px;
   font-weight: 700;
-  line-height: 14px;
+  line-height: 15px;
   text-align: center;
   white-space: nowrap;
   box-shadow: var(--shadow-sm);
-}
-
-.day-pill-lg {
-  font-size: 10px;
-  line-height: 16px;
-  letter-spacing: 0.02em;
 }
 
 /* Sits directly above the pin, centred. It hung off the top-right corner while
@@ -1159,7 +665,7 @@
   }
 
   .country-green {
-    fill: var(--highlight-green);
+    fill: var(--green-2);
     stroke: var(--green-edge);
   }
 
@@ -1185,7 +691,7 @@
   }
 
   .travel-key-green {
-    background: var(--highlight-green);
+    background: var(--green-2);
     border-color: var(--green-edge);
   }
 

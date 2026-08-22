@@ -37,7 +37,7 @@ export function VibePicker({ selected }: { selected: string[] }) {
               className={cx(
                 "rounded-full border px-2.5 py-1 font-mono text-[10.5px] uppercase tracking-[0.06em] transition-colors",
                 on
-                  ? "border-transparent bg-pen text-paper"
+                  ? "border-transparent bg-pen text-sheet"
                   : "border-rule text-ink-soft hover:bg-sheet-2",
               )}
             >

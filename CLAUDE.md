@@ -54,7 +54,6 @@ pnpm --filter waypoint-web <task>   # scope to the app
 - Editing a `.md` doc source that doesn't exist — the HTML *is* the doc, edit it directly.
 - Adding a page to `docs/` without adding it to `nav.js`'s `TREE` — it silently becomes unreachable.
 - Using `fetch`/ES modules in a docs page — breaks on `file://`, use `<script src>`.
-- Treating `wireframe/` folders as packages — they're plain inline HTML/CSS/JS, no `package.json`.
 - An npm-style `"workspaces"` array — workspaces are defined in `pnpm-workspace.yaml` only.
 - A PowerShell commit here-string where `@'`/`'@` aren't alone on their lines — the `@` leaks into the commit subject. Verify with `git log -1 --format=%s`.
 - Skipping the venture's own CLAUDE.md — it holds the actual non-negotiables (money-as-float, day-first itinerary, enumeration-proof access, etc.), not this file.

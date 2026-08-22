@@ -40,11 +40,17 @@ Pre-MVP. Stack: **Next.js App Router + Turso (libSQL) + Drizzle + Better Auth**
 - Server Components by default; mutations are Server Actions in the route's `actions.ts` — never inline `"use server"` closures.
 - **Nothing in `app/` imports `@/db`** — SQL lives only in `server/` aggregates.
 - Validate at the door: dates via `lib/dates.ts`, free text via `lib/text.ts`. Rejections are form errors, never unhandled throws.
-- **Visual direction: white ground + pastels + one blue** (#187). Canvas `#EFEEEA`, white surfaces, hairlines; four pastels one-per-domain (peri/dates, mint/money, butter/ideas & people, blush/route); **blue `#4E68D8` means "yours to do" and nothing else** (actions, links, your own rows). Soft-toy geometry (large radii, pill controls); pill-box nav everywhere, account right-aligned; quiet motion (1.5–2px hover lift, `.22s`, `cubic-bezier(.2,.85,.3,1)`). Type: Bricolage Grotesque (display) + Instrument Sans (body) + DM Mono (data — all money/dates). This replaced the paper-and-biro look; docs are the yardstick, see `docs/design/`.
+- **Visual direction: white ground + pastels + one blue** (#187). Canvas `#F7F6F3` (a barely-there off-white — the hairline on a panel carries its edge, not the ground), white surfaces, hairlines; four pastels one-per-domain (peri/dates, mint/money, butter/ideas & people, blush/route); **blue `#4E68D8` means "yours to do" and nothing else** (actions, links, your own rows). Soft-toy geometry (large radii, pill controls); pill-box nav everywhere, account right-aligned; quiet motion (1.5–2px hover lift, `.22s`, `cubic-bezier(.2,.85,.3,1)`). Type: Bricolage Grotesque (display) + Instrument Sans (body) + DM Mono (data — all money/dates). This replaced the paper-and-biro look; docs are the yardstick, see `docs/design/`.
 - Colours/icons come from tokens only — no hex literals, no icon fonts/Lucide/etc. Status is never colour (or icon) alone — always a word too.
 - **No emoji anywhere in the app** (#148). Every icon is drawn line-art in the app'''s own hand — an emoji is someone else'''s artwork and can'''t take the ink of what it sits in. Scale: 14×14 `viewBox` at ~13px, `fill="none"`, `strokeWidth` 1.15–1.25, `stroke="currentColor"` (see `TravelModeIcon`, `ReactionGlyph`, `WeatherGlyph`).
 - Light only — no dark palette, no `theme` column.
-- **No instructional copy** ("click here…") and **show it, don't narrate it** — if a control already shows a state, don't also write a sentence describing it.
+- **If the drawing is clear, say nothing** (#209). Text exists to carry what the layout cannot. When a reader can work something out from the arrangement, colour, grouping or position on the page, adding words for it is noise — cut them. In practice this bans, on sight:
+  - **A heading above a heading.** One name per panel. "The group" over "Who's going" is one fact printed twice; pick the shorter and delete the other.
+  - **Captions that decode the design** — "Colour is where you sleep", "Numbered pins match the cards below". If the encoding needs a key, fix the encoding.
+  - **Narration of state a control already shows** — a filled toggle plus "this is on"; a disabled button plus "you can't do this yet".
+  - **Instructional copy** ("click here…", "use the tabs above").
+  - **A link that repeats the nav** — "open Days" beside cards that already link to Days.
+  The exceptions are the things a drawing genuinely cannot say: what is *missing* (rule 11's "not on the map — no coordinates: …"), and status, which is never colour alone.
 - British English, sentence case, real content (never lorem).
 - Read `docs/design/approach.html` + `visual-language.html` before UI/UX work.
 - **Comments: be ruthless.** Only *why* + a ticket pointer, or a genuine gotcha — never *what* the code does. One line beats a block.

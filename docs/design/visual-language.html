@@ -31,19 +31,64 @@ why it changed.</p>
 <p>Every colour is a token in <code>globals.css</code> on <code>:root</code>, re-exported
 through <code>@theme inline</code> as Tailwind utilities. No component ever holds a hex
 value — that rule survives the redesign unchanged.</p>
+<p><strong>One hex per meaning</strong> (#206). A colour is written out once, in the
+pastel block, and every other name for it is a <code>var()</code> alias — the status
+names (<code>highlight</code>, <code>red</code>, <code>green</code>) and the eight
+person seats are aliases of the four domain pastels, not second copies of the
+digits. A name is kept where the <em>job</em> differs, so a call site reads for its
+own reason; the value behind it is never duplicated. The two places a literal is
+allowed past this rule are the notification email, which has no stylesheet for
+<code>var()</code> to resolve against, and Google&rsquo;s sign-in button, whose
+colours are prescribed by Google and are not ours to repaint.</p>
+<p>The paper-era tokens are gone with the paper-era CSS: the ruled line, the red
+margin, the tape strip, the post-it stock and <code>pencil</code> (a byte-for-byte
+copy of <code>ink-2</code>). The page is one white panel on the canvas now, with even
+padding on both sides — the asymmetric left padding existed only to clear the red
+margin.</p>
 
 <h3>Ground and ink</h3>
 <table>
 <thead><tr><th>Token</th><th>Hex</th><th>Role</th></tr></thead>
 <tbody>
-<tr><td><code>canvas</code></td><td><code>#EFEEEA</code></td><td>the ground the whole app sits on</td></tr>
+<tr><td><code>canvas</code></td><td><code>#F7F6F3</code></td><td>the ground the whole app sits on &mdash; a barely-there off-white, since a panel&rsquo;s hairline carries its edge (#209)</td></tr>
 <tr><td><code>white</code></td><td><code>#FFFFFF</code></td><td>every surface / card</td></tr>
 <tr><td><code>hair</code></td><td><code>#E6E4DE</code></td><td>hairlines between surfaces</td></tr>
 <tr><td><code>ink</code></td><td><code>#14141A</code></td><td>primary text</td></tr>
 <tr><td><code>ink-2</code></td><td><code>#63636F</code></td><td>secondary text</td></tr>
-<tr><td><code>ink-3</code></td><td><code>#9B9BA5</code></td><td>faint text / placeholders</td></tr>
+<tr><td><code>ink-3</code></td><td><code>#6F6F7B</code></td><td>faint text / placeholders</td></tr>
 </tbody></table>
 <p>Three ink levels, no more — the same discipline as before, new values.</p>
+<p><strong><code>ink-3</code> was <code>#9B9BA5</code> and failed</strong> (#204). It read
+2.8:1 on white, and it is the colour of <code>.typed</code> — the 11px uppercase
+label — so the smallest text in the app was also the palest. Darkened to
+<code>#6F6F7B</code>: 5.0:1 on white, 4.6:1 on the canvas. The ramp still steps;
+it no longer steps off the edge.</p>
+
+<h3>Contrast — the rule the pale palette needs</h3>
+<p><strong>Every text-and-surface pair in the product clears WCAG AA (4.5:1) at the
+size it is used.</strong> A pale palette is exactly the palette that fails quietly,
+so this is checked as a number, not by eye (#204).</p>
+<p>Three rules come out of that audit and are load-bearing:</p>
+<ul>
+<li><strong>Blue text on a pastel must be <code>blue-deep</code>, never
+<code>blue</code>.</strong> <code>#4E68D8</code> clears AA on white (4.9:1) and on the
+canvas (4.5:1) and on nothing else — it is 3.8:1 on blush. <code>blue-deep</code>
+clears it everywhere.</li>
+<li><strong>Opacity is not a colour.</strong> Fading ink to 70% to make a label
+quieter takes a passing pair to a failing one, and on a pastel panel it fades the
+<em>grey</em> over the pastel rather than the panel&rsquo;s own ink. Use a darker
+token, or <code>text-current</code> to take the panel&rsquo;s ink at full strength.
+The one exception is a genuinely disabled control, which WCAG exempts.</li>
+<li><strong>Nothing is told by colour alone.</strong> Money in and money out lean on
+mint and blush, which sit close to a red/green convention — so every balance
+also carries its word (&ldquo;Owed back&rdquo;, &ldquo;Owes&rdquo;,
+&ldquo;Square&rdquo;), every map key carries its label, and every calendar cell
+carries an <code>aria-label</code> saying what it is.</li>
+</ul>
+<p>Focus is one ring everywhere: a 2px <code>blue</code> outline at 2px offset, set
+once on <code>:focus-visible</code>. It clears 3:1 against every surface in the
+palette. A component may move where the ring is drawn — the availability
+calendar draws it on the inner disc — but nothing removes it.</p>
 
 <h3>The blue — &ldquo;yours to do&rdquo;</h3>
 <table>
@@ -231,6 +276,10 @@ rejected).</p>
 <p>Hand-rolled, not shadcn/ui — owning the dozen primitives keeps the density
 undiluted. The set is unchanged by the redesign; the primitives are
 <em>reshaped</em> (radii, pills, hover), not replaced.</p>
+<p>Where a pastel is <em>decoration</em> rather than meaning — a trip card, an
+Explore listing, a bed on the day track — the rotation is one shared array,
+<code>PASTEL_SKINS</code> in <code>components/ui.tsx</code>. Three pages each kept
+their own copy of the same four strings in three different orders until #207.</p>
 <p>Server components in <code>components/ui.tsx</code>: <code>Page</code>,
 <code>PageHeader</code>, <code>Card</code>, <code>CardHeader</code>, <code>Stack</code>,
 <code>Rule</code>, <code>Button</code>, <code>ButtonLink</code>, <code>Badge</code>,
@@ -246,6 +295,22 @@ undiluted. The set is unchanged by the redesign; the primitives are
 and the forecast at once, so it is where the pastel-per-domain system, the pill
 chrome and the three-state status semantics have to work hardest together. The
 rest of the app is derived from it.</p>
+<p><strong>Its layout is two columns, and the split is trip vs group</strong> (#209,
+settled against grey-box wireframes A/B/C and recorded here now the prototypes
+are gone, #208). The wide left column is the <em>trip</em>: where you are going.
+The narrow right rail is the <em>group</em>: who is going, what has been spent,
+how many ideas, who the trip is waiting on. Everything in the rail grows
+downward, which is what makes a rail the right shape for it — the roster used to
+be a full-width panel holding one row of avatars and a lot of air. The week runs
+full width beneath both, because a day track wants length. On a narrow screen the
+rail falls in under the left column and nothing else moves.</p>
+<p>Two panels were <strong>removed rather than reordered</strong>, and the reasoning
+generalises: a panel that narrates the state of the plan back at you
+(&ldquo;The plan holds together&rdquo;, &ldquo;One thing, then you&rsquo;re
+clear&rdquo;) is never what someone opened the page for, and every item on such a
+panel is a link to a tab that is already in the tab bar. Say the gap in the
+header, and put the one thing nothing else says — who the group is still waiting
+on — in its own panel.</p>
 </main>
 <script src="../assets/nav.js"></script>
 </body>

@@ -60,12 +60,16 @@ export function TripRoster({
   friends: Person[];
 }) {
   return (
-    <section className="mt-4 rounded-lg bg-butter p-6 text-butter-ink">
-      <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-ink/10 pb-3">
-        <h2 className="text-xl">Who&rsquo;s going</h2>
+    // A RAIL PANEL (ticket 209). It lives in Overview's narrow right column
+    // now, so everything inside stacks: the title over its buttons, one member
+    // per row. The old full-width two-column version was a panel of air on a
+    // trip with three people — the list grows downward here instead.
+    <section className="rounded-lg bg-sheet p-5 ring-1 ring-rule">
+      <div className="border-b border-rule pb-3">
+        <h2 className="font-display text-lg">The group</h2>
         {/* Invite URL never appears on the page — the button copies it instead. */}
         {inviteUrl ? (
-          <span className="flex items-center gap-2">
+          <span className="mt-3 flex flex-wrap items-center gap-2">
             {/* Named invites first (ticket 146), link as fallback; both the same admin power (rule 6). */}
             <Sheet
               trigger="Invite friends"
@@ -83,20 +87,27 @@ export function TripRoster({
                     ]}
                     emptyNote="Everyone you're friends with is already on this trip, or has been asked."
                   />
-                  <SubmitButton pendingLabel="Inviting…">Send invites</SubmitButton>
+                  <SubmitButton pendingLabel="Inviting…">
+                    Send invites
+                  </SubmitButton>
                 </Stack>
               </form>
             </Sheet>
-            <CopyLink value={inviteUrl} label="Share trip" variant="primary" icon={<ShareIcon />} />
+            <CopyLink
+              value={inviteUrl}
+              label="Share trip"
+              variant="primary"
+              icon={<ShareIcon />}
+            />
           </span>
         ) : null}
       </div>
 
-      <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+      <ul className="mt-3 flex flex-col gap-1.5">
         {members.map((m) => (
           <li
             key={m.userId}
-            className="flex items-center gap-2 rounded-md bg-sheet/70 px-3 py-2"
+            className="flex items-center gap-2 rounded-md bg-sheet-2 px-2.5 py-1.5"
           >
             <span className="flex min-w-0 flex-1 items-center gap-2 text-sm">
               {/* Every face links to that person's profile (ticket 46). */}
@@ -109,12 +120,14 @@ export function TripRoster({
                 isYou={m.userId === viewerId}
               />
               <span className="min-w-0">
-                <span className="flex items-center gap-2">
+                <span className="flex flex-wrap items-center gap-2">
                   <span className="truncate">{m.name}</span>
                   {m.userId === viewerId ? (
                     <span className="text-xs opacity-60">(you)</span>
                   ) : null}
-                  {m.role === "admin" ? <Badge tone="marine">Admin</Badge> : null}
+                  {m.role === "admin" ? (
+                    <Badge tone="marine">Admin</Badge>
+                  ) : null}
                 </span>
                 {/* Dietary never shows on a profile page, only here (ticket 46). */}
                 {m.dietary ? (
@@ -165,7 +178,9 @@ export function TripRoster({
                           placeholder={`e.g. "Can you vote on the ideas before the weekend?"`}
                         />
                       </Field>
-                      <SubmitButton pendingLabel="Sending…">Send nudge</SubmitButton>
+                      <SubmitButton pendingLabel="Sending…">
+                        Send nudge
+                      </SubmitButton>
                     </Stack>
                   </form>
                 </Sheet>
@@ -212,7 +227,7 @@ export function TripRoster({
         {pendingInvitees.map((p) => (
           <li
             key={p.userId}
-            className="flex items-center gap-2 rounded-md bg-sheet/70 px-3 py-2"
+            className="flex items-center gap-2 rounded-md bg-sheet-2 px-2.5 py-1.5"
           >
             <span className="flex min-w-0 flex-1 items-center gap-2 text-sm opacity-75">
               <span className="opacity-60">
@@ -227,7 +242,7 @@ export function TripRoster({
       </ul>
 
       {isAdmin && members.length === 1 && pendingInvitees.length === 0 ? (
-        <p className="mt-3 text-xs opacity-70">
+        <p className="mt-3 text-xs text-ink-faint">
           Just you so far — share the trip to get the others in.
         </p>
       ) : null}

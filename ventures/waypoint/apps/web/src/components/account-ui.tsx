@@ -122,7 +122,7 @@ export function PillChoice<T extends string>({
               defaultChecked={o.value === value}
               className="peer sr-only"
             />
-            <span className="lift block rounded-full border border-rule bg-sheet-2 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-soft peer-checked:border-pen peer-checked:bg-pen peer-checked:text-paper peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-pen">
+            <span className="lift block rounded-full border border-rule bg-sheet-2 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-soft peer-checked:border-pen peer-checked:bg-pen peer-checked:text-sheet peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-pen">
               {o.label}
             </span>
           </label>

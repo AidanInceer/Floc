@@ -246,7 +246,7 @@ export default async function LandingPage() {
               href={start}
               className={cx("lift block rounded-lg p-7", stop.skin)}
             >
-              <p className="typed opacity-70">{stop.step}</p>
+              <p className="typed text-current">{stop.step}</p>
               <p className="mt-1 font-display text-2xl font-semibold tracking-tight">
                 {stop.tab}
               </p>

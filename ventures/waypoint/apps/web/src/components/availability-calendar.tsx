@@ -582,7 +582,7 @@ function DayCell({
         <span
           role="gridcell"
           data-date={date}
-          className={cx(cell, "opacity-40")}
+          className={cx(cell, "opacity-70")}
         >
           {corner}
         </span>
@@ -595,7 +595,7 @@ function DayCell({
           role="gridcell"
           data-date={date}
           title={`${date} — beyond the forecast`}
-          className={cx(cell, past && "opacity-45")}
+          className={cx(cell, past && "opacity-70")}
         >
           {corner}
           <span
@@ -622,7 +622,7 @@ function DayCell({
         className={cx(
           cell,
           "group transition-colors focus-visible:outline-none",
-          past && "opacity-45",
+          past && "opacity-70",
         )}
       >
         {corner}
@@ -649,7 +649,7 @@ function DayCell({
       <span
         role="gridcell"
         title={`${date} — ${tally} of ${memberCount} free`}
-        className={cx(cell, past && "opacity-45")}
+        className={cx(cell, past && "opacity-70")}
       >
         <span
           className={cx(
@@ -673,7 +673,10 @@ function DayCell({
     <button
       type="button"
       role="gridcell"
-      aria-pressed={marked}
+      // `aria-selected`, not `aria-pressed`: a gridcell doesn't support the
+      // toggle-button state, so a screen reader was told nothing about whether
+      // the day was on (ticket 204). The visible label says it too.
+      aria-selected={marked}
       aria-label={
         picking
           ? `${date} — ${tally} of ${memberCount} free${inRange ? ", in the trip" : ""}${openEnd ? ", start of the window" : ""}${pending ? ", in the window being picked" : ""}`
@@ -690,7 +693,7 @@ function DayCell({
       className={cx(
         cell,
         "group transition-colors focus-visible:outline-none",
-        past && "opacity-45",
+        past && "opacity-70",
       )}
     >
       <span
@@ -933,7 +936,7 @@ function HourlyCurve({
 
       <div className="mt-1 flex items-center gap-4 text-[11px] text-ink-soft">
         <span className="inline-flex items-center gap-1.5">
-          <span aria-hidden className="h-0.5 w-4 rounded bg-pen" />
+          <span aria-hidden className="h-0.5 w-4 rounded-full bg-pen" />
           Temperature
         </span>
         <span className="inline-flex items-center gap-1.5">

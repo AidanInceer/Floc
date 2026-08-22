@@ -126,7 +126,7 @@ export default async function IdeasPage({
           className="flex flex-wrap items-end gap-4"
         >
           <label className="min-w-[18rem] flex-1">
-            <span className="typed opacity-70">Post an idea</span>
+            <span className="typed text-current">Post an idea</span>
             <textarea
               name="note"
               required
@@ -137,7 +137,7 @@ export default async function IdeasPage({
                   ? `"${vibes[0]}" somewhere with good trains…`
                   : "A place, a vibe, a whole trip shape…"
               }
-              className="mt-2 w-full resize-none rounded-md bg-sheet/70 px-4 py-3 text-base placeholder:opacity-60 focus:outline-none"
+              className="mt-2 w-full resize-none rounded-md border border-rule bg-sheet px-4 py-3 text-base placeholder:text-ink-faint focus-visible:border-pen"
             />
           </label>
           <SubmitButton pendingLabel="Pinning…">Pin it to the board</SubmitButton>

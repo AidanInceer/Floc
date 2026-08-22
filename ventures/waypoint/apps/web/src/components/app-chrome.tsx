@@ -29,7 +29,7 @@ function WaypointWordmark() {
 function WaitingCount({ count, label }: { count: number; label: string }) {
   return (
     <span
-      className="ml-1.5 inline-flex min-w-[17px] items-center justify-center rounded-full bg-pen px-1 text-[10.5px] font-semibold leading-[17px] text-paper"
+      className="ml-1.5 inline-flex min-w-[17px] items-center justify-center rounded-full bg-pen px-1 text-[10.5px] font-semibold leading-[17px] text-sheet"
       aria-label={`${count} ${label} waiting`}
     >
       {count}
@@ -75,7 +75,7 @@ export function AppChrome({
   ];
 
   return (
-    <header className="sticky top-0 z-20 border-b border-rule bg-paper/90 backdrop-blur">
+    <header className="sticky top-0 z-20 border-b border-rule bg-sheet/90 backdrop-blur">
       {/* Three columns so the nav is centred and the account stays hard right
           whether or not the middle is filled. */}
       <div className="mx-auto grid h-14 w-full max-w-[84rem] grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 sm:px-6">

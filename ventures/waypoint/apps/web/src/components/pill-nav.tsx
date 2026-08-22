@@ -32,6 +32,11 @@ function PillPending() {
  * track holds the pills; the current page is an ink-filled pill, the rest lift
  * to white on hover. The track scrolls sideways rather than wrapping when the
  * pills outgrow the width.
+ *
+ * The track is `--sheet-3`, not `--sheet-2` (ticket 209): against the lifted
+ * off-white canvas, sheet-2 was invisible and the group read as loose pills.
+ * It is also `w-fit` — a full-width track ran to the right edge of the page
+ * with nothing in it.
  */
 export function PillNav({
   label,
@@ -51,7 +56,7 @@ export function PillNav({
     <nav
       aria-label={label}
       className={cx(
-        "scroll-x-bare flex items-center gap-1 rounded-full bg-sheet-2 p-1",
+        "scroll-x-bare flex w-fit max-w-full items-center gap-1 rounded-full bg-sheet-3 p-1",
         className,
       )}
     >
@@ -66,7 +71,7 @@ export function PillNav({
             className={cx(
               "shrink-0 rounded-full px-4 py-1.5 text-sm font-medium",
               active
-                ? "bg-ink text-paper"
+                ? "bg-ink text-sheet"
                 : "lift text-ink-soft hover:bg-sheet hover:text-ink",
             )}
           >

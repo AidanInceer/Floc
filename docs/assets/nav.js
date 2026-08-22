@@ -60,32 +60,6 @@
         { id: 'agents-domain', label: 'Domain docs', href: 'agents/domain.html' },
         { id: 'agents-issue-tracker', label: 'Issue tracker', href: 'agents/issue-tracker.html' }
       ]
-    },
-    {
-      // Standalone wireframes. Deliberately untouched by the docs site —
-      // each is a self-contained page, opened in its own tab.
-      label: 'Mockups',
-      children: [
-        { id: 'mockups-index', label: 'Mockup index', href: 'mockups/README.md', external: true },
-        { label: 'Homepage — hero A (scatter)', href: 'mockups/homepage-hero-a-scatter.html', external: true },
-        { label: 'Homepage — hero B (before/after)', href: 'mockups/homepage-hero-b-beforeafter.html', external: true },
-        { label: 'Homepage — hero C (outcomes)', href: 'mockups/homepage-hero-c-outcomes.html', external: true },
-        { label: 'Homepage — boarding pass', href: 'mockups/homepage-g-boardingpass.html', external: true },
-        { label: 'Homepage — boarding pass + post-its', href: 'mockups/homepage-j-boardingpass-postits.html', external: true },
-        { label: 'Homepage — pinboard', href: 'mockups/homepage-pinboard.html', external: true },
-        { label: 'Homepage — pinboard atlas', href: 'mockups/homepage-pinboard-atlas.html', external: true },
-        { label: 'Homepage — pinboard map', href: 'mockups/homepage-pinboard-map.html', external: true },
-        { label: 'Homepage — pinboard trailmap', href: 'mockups/homepage-pinboard-trailmap.html', external: true },
-        { label: 'Overview — layout', href: 'mockups/overview-layout.html', external: true },
-        { label: 'Overview — hero stage A/B/C', href: 'mockups/overview-hero-stage-abc.html', external: true },
-        { label: 'App — phone home', href: 'mockups/app-phone-home.html', external: true },
-        { label: 'App — phone overview', href: 'mockups/app-phone-overview.html', external: true },
-        { label: 'Ideas pinboard', href: 'mockups/ideas-pinboard.html', external: true },
-        { label: 'Comment threads', href: 'mockups/comment-threads.html', external: true },
-        { label: 'Money split A/B/C', href: 'mockups/money-split-abc.html', external: true },
-        { label: 'Route map', href: 'mockups/route-map.html', external: true },
-        { label: 'Logos & wordmarks', href: 'mockups/logos.html', external: true }
-      ]
     }
   ];
 

@@ -133,24 +133,34 @@ function maskAddress(to: string): string {
   return `${local[0]}…${local[local.length - 1]}${domain}`;
 }
 
-/** One shell for every email; matches the app's sand/marine palette. */
+/**
+ * One shell for every email. Repainted onto the white-and-pastel palette
+ * (ticket 207) — it still carried the retired sand-and-teal notebook colours,
+ * so a notification looked like a different product to the page it linked to.
+ *
+ * The hexes are written out here on purpose and are the one exception to "no
+ * hex outside the tokens" (ticket 206): a mail client has no stylesheet, so
+ * `var()` never resolves. They are copies of the tokens in globals.css —
+ * `--paper`, `--sheet`, `--rule`, `--ink`, `--ink-2`, `--pen`. Change them
+ * together.
+ */
 function renderShell(email: OutboundEmail) {
   const body = email.lines
     .map((l) => `<p style="margin:0 0 12px;line-height:1.55">${escape(l)}</p>`)
     .join("");
   const cta = email.cta
-    ? `<p style="margin:24px 0 0"><a href="${escape(safeUrl(email.cta.url))}" style="background:#0f6270;color:#f7f3ec;border-radius:6px;padding:10px 16px;text-decoration:none;font-weight:600">${escape(
+    ? `<p style="margin:24px 0 0"><a href="${escape(safeUrl(email.cta.url))}" style="background:#4e68d8;color:#ffffff;border-radius:999px;padding:10px 16px;text-decoration:none;font-weight:600">${escape(
         email.cta.label,
       )}</a></p>`
     : "";
-  // Georgia, not the design tokens (ticket 121) — mail has no stylesheet and
-  // `--serif`'s first choices aren't installed on mail clients; Georgia ships
-  // everywhere and matches the app's voice closer than a system dialog font.
-  return `<div style="background:#f7f3ec;padding:24px;font-family:Georgia,'Times New Roman',serif;color:#17282d">
-  <div style="max-width:520px;margin:0 auto;background:#fff;border:1px solid #e2dacc;border-radius:10px;padding:24px">
-    <p style="margin:0 0 20px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:12px;color:#566a6e">Waypoint</p>
+  // A system sans, not the design faces — next/font can't reach a mail client,
+  // and the app's own stack is a webfont with a system fallback anyway. The
+  // retired Georgia belonged to the notebook's serif voice (ticket 121).
+  return `<div style="background:#f7f6f3;padding:24px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#14141a">
+  <div style="max-width:520px;margin:0 auto;background:#ffffff;border:1px solid #e6e4de;border-radius:16px;padding:24px">
+    <p style="margin:0 0 20px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:12px;color:#63636f">Waypoint</p>
     ${body}${cta}
-    <p style="margin:24px 0 0;font-size:12px;color:#8b9698">You can turn these emails off in Waypoint settings.</p>
+    <p style="margin:24px 0 0;font-size:12px;color:#63636f">You can turn these emails off in Waypoint settings.</p>
   </div>
 </div>`;
 }

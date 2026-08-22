@@ -58,7 +58,7 @@ export function TagEditor({
             onChange={(e) => update(row.id, { name: e.target.value })}
             className={cx(
               "w-full rounded-md border border-rule px-2.5 py-1.5 font-mono text-sm",
-              "focus:border-pen focus:outline-none",
+              "focus-visible:border-pen",
               TAG_SWATCH[row.tone],
             )}
           />

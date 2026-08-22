@@ -1,16 +1,33 @@
 // Hand-rolled component inventory (ticket 11) — no shadcn/ui, keeps the
-// paper-journal visual language undiluted. Server components unless "use client".
+// white-and-pastel visual language undiluted. Server components unless "use client".
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 
 import { whoTone } from "@/lib/who";
 
+/**
+ * The four domain pastels as a rotation, for the places where a pastel is
+ * DECORATION rather than meaning — a trip card, an Explore listing, a bed on
+ * the day track. Three pages each kept their own copy of these four strings in
+ * three different orders (ticket 207); one array means a colour cycle looks the
+ * same wherever it appears. Where a pastel does carry meaning — money is mint,
+ * dates are peri — write the pair out at the call site instead.
+ */
+export const PASTEL_SKINS = [
+  "bg-peri text-peri-ink",
+  "bg-mint text-mint-ink",
+  "bg-butter text-butter-ink",
+  "bg-blush text-blush-ink",
+] as const;
+
 export function cx(...parts: (string | false | null | undefined)[]) {
   return parts.filter(Boolean).join(" ");
 }
 
-// The page is a sheet of ruled paper (paper.html's `.sheet.ruled`) — ruling
-// and the red margin happen once, at this outer level; Cards stay plain.
+// The page is one white panel on the canvas. It was a sheet of ruled paper with
+// a red margin and a strip of tape; the ruling, the margin and the tape went
+// with the paper look (ticket 206), and with them the asymmetric left padding
+// that existed only to clear the margin. Padding is even on both sides now.
 export function Page({
   children,
   wide,
@@ -35,16 +52,11 @@ export function Page({
     >
       <div
         className={cx(
-          "sheet-ruled sheet-margin relative overflow-hidden rounded-lg border border-rule bg-sheet shadow-raised",
+          "relative overflow-hidden rounded-lg border border-rule bg-sheet shadow-raised",
           "px-5 py-7 sm:px-8 sm:py-8",
-          // Must clear the red margin (22px mobile / 46px sm:, see globals.css).
-          "pl-[38px] sm:pl-[76px]",
         )}
       >
-        {/* No tape on flush: the folder tabs now cover that edge. */}
-        {flush ? null : <span aria-hidden className="tape" />}
-        {/* Above the ruled lines/margin pseudo-elements — see z-index note in globals.css. */}
-        <div className="sheet-content">{children}</div>
+        {children}
       </div>
     </div>
   );
@@ -179,7 +191,9 @@ const tones: Record<Tone, string> = {
   open: "border-transparent bg-highlight-soft text-highlight-ink",
   action: "border-transparent bg-red-soft text-red",
   neutral: "border-rule-strong text-ink-soft",
-  marine: "border-transparent bg-pen-soft text-pen",
+  // The deep blue, not `--pen`: pen on the soft blue tint is 4.1:1, and a Badge
+  // is 10.5px (ticket 204). pen-deep on the same tint is 8.5:1.
+  marine: "border-transparent bg-pen-soft text-pen-deep",
 };
 
 export function Badge({
@@ -204,8 +218,10 @@ export function Badge({
   );
 }
 
-// For a state actually *decided* (trip ended, split settled) — everything
-// else stays a Badge. Rotated slightly, like stamped by hand.
+// For a state actually *decided* (trip ended, split settled) — everything else
+// stays a Badge. The hand-stamped tilt and the 85% opacity went with the paper
+// look: the opacity was quietly costing the ink ~15% of its contrast, which is
+// exactly the failure ticket 204 went looking for.
 export function Stamp({
   tone = "done",
   children,
@@ -216,7 +232,7 @@ export function Stamp({
   return (
     <span
       className={cx(
-        "inline-block -rotate-3 rounded-sm border-2 px-2.5 py-0.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.12em] opacity-85",
+        "inline-block rounded-sm border-2 px-2.5 py-0.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.12em]",
         tone === "done" ? "border-green text-green" : "border-red text-red",
       )}
     >

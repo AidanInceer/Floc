@@ -155,7 +155,7 @@ export default async function InvitePage({
 
       <div className="mt-10 grid gap-4 sm:grid-cols-2">
         <section className="rounded-lg bg-peri p-6 text-peri-ink">
-          <p className="typed opacity-70">When</p>
+          <p className="typed text-current">When</p>
           <p className="mt-3 text-2xl font-semibold">
             {dated ? formatDateRange(found.startDate, found.endDate) : "Not settled yet"}
           </p>
@@ -167,7 +167,7 @@ export default async function InvitePage({
         </section>
 
         <section className="rounded-lg bg-blush p-6 text-blush-ink">
-          <p className="typed opacity-70">Where</p>
+          <p className="typed text-current">Where</p>
           {stops.length > 0 ? (
             <>
               <p className="mt-3 text-2xl font-semibold">{stops.join(" → ")}</p>
@@ -187,7 +187,7 @@ export default async function InvitePage({
         </section>
 
         <section className="rounded-lg bg-butter p-6 text-butter-ink">
-          <p className="typed opacity-70">Ideas on the board</p>
+          <p className="typed text-current">Ideas on the board</p>
           <p className="nums mt-3 text-2xl font-semibold">{ideaCount}</p>
           <p className="mt-2 text-sm opacity-75">
             {ideaCount === 0
