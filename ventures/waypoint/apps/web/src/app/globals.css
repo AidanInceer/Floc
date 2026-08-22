@@ -100,7 +100,9 @@
   --green-edge: #c3e3d2;
   --pen-edge: #c6d0f2;
 
-  /* Quiet motion (ticket 187): a tiny lift on a soft shadow, nothing heavy. */
+  /* Quiet motion (ticket 187/190): a tiny lift on a soft shadow, nothing heavy.
+     One easing curve for every interactive move — see the `.lift` utility. */
+  --ease: cubic-bezier(0.2, 0.85, 0.3, 1);
   --shadow-sm: 0 1px 2px rgb(20 20 26 / 0.05);
   --shadow: 0 1px 2px rgb(20 20 26 / 0.05), 0 6px 14px -12px rgb(20 20 26 / 0.3);
   --shadow-lift: 0 2px 4px rgb(20 20 26 / 0.06), 0 14px 28px -16px rgb(20 20 26 / 0.35);
@@ -211,13 +213,15 @@
   --color-green-edge: var(--green-edge);
 
   /*
-   * Paper is cut, not moulded — but 2/3/4px read as sharp rather than as cut,
-   * so these were softened on request. Still well short of an app's rounding:
-   * a torn edge with a slight give, not a pill.
+   * Soft-toy geometry (ticket 190): generous radii on every surface, and a true
+   * pill (`--radius-pill`) for buttons, badges and segmented controls. `rounded-
+   * sm/md/lg/full` in the components read straight from these tokens, so the
+   * whole set reshapes here.
    */
-  --radius-sm: 3px;
-  --radius-md: 5px;
-  --radius-lg: 6px;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
 
   --shadow-card: var(--shadow-sm);
   --shadow-raised: var(--shadow);
@@ -288,12 +292,34 @@
     outline-offset: 2px;
   }
 
+  /*
+   * The one interactive move, shared by every control and card (ticket 190):
+   * a 1.5px lift on a soft shadow, on the single `--ease` curve. Colour moves
+   * ride the same transition, so a hover never double-animates.
+   */
+  .lift {
+    transition:
+      transform 0.22s var(--ease),
+      box-shadow 0.22s var(--ease),
+      background-color 0.22s var(--ease),
+      border-color 0.22s var(--ease),
+      color 0.22s var(--ease);
+  }
+  .lift:hover {
+    transform: translateY(-1.5px);
+    box-shadow: var(--shadow-raised);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
     *::after {
       animation-duration: 0.01ms !important;
       transition-duration: 0.01ms !important;
+    }
+    /* Remove the movement, keep the feedback (ticket 190). */
+    .lift:hover {
+      transform: none;
     }
   }
 }

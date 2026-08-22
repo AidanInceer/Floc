@@ -533,7 +533,7 @@ export function Segmented<T extends string>({
     <div
       role="radiogroup"
       aria-label={name}
-      className="inline-flex overflow-hidden rounded-sm border border-rule-strong"
+      className="inline-flex overflow-hidden rounded-full border border-rule-strong"
     >
       {options.map((o) => (
         <button

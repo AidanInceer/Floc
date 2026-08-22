@@ -142,8 +142,10 @@ const variants: Record<Variant, string> = {
   danger: "border-red/30 bg-red-soft text-red hover:border-red/60 hover:bg-red/15",
 };
 
+// Pill controls with the shared hover lift (ticket 190). `.lift` owns the
+// transition, so no `transition-colors` here — the colour move rides it too.
 const buttonBase =
-  "inline-flex items-center justify-center gap-2 rounded-md border px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-[0.06em] transition-colors disabled:pointer-events-none disabled:opacity-50";
+  "lift inline-flex items-center justify-center gap-2 rounded-full border px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.06em] disabled:pointer-events-none disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none";
 
 export function Button({
   variant = "secondary",
@@ -192,7 +194,7 @@ export function Badge({
   return (
     <span
       className={cx(
-        "inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 font-mono text-[10.5px] uppercase tracking-[0.06em]",
+        "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 font-mono text-[10.5px] uppercase tracking-[0.06em]",
         tones[tone],
         className,
       )}
