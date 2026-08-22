@@ -1,8 +1,13 @@
-// One idea, as a sticky note on the board (v0.2 ticket 09). Server component;
-// voting is delegated to the client-only IdeaVotes.
+/**
+ * One idea on the board (v0.2 ticket 09; redesigned 196). The sticky-note wash
+ * and tilt went with the paper look — a card the viewer hasn't voted on is
+ * outlined in blue instead, because "yours to do" is the one thing the board
+ * has to say at a glance. Server component; voting is the client-only IdeaVotes.
+ */
 import { Avatar, cx } from "@/components/ui";
 import { ConfirmSubmit, Sheet } from "@/components/client-ui";
 import { IdeaVotes } from "@/components/idea-votes";
+import { ReactionGlyph, type GlyphKind } from "@/components/reaction-glyph";
 import { NoteThread, type NoteRow } from "@/components/note-thread";
 import type { VoteValue } from "@/db/schema";
 import {
@@ -33,10 +38,11 @@ export type IdeaCardData = {
   notes: NoteRow[];
 };
 
-// Wash and tilt are derived from the idea's id, never stored — a note keeps
-// its look across reloads/sorts without any persisted layout state (ticket 09).
-const WASHES = ["wash-0", "wash-1", "wash-2", "wash-3", "wash-4", "wash-5"] as const;
-const TILTS = ["-1.4deg", "1deg", "-0.6deg", "1.6deg", "-1.1deg", "0.7deg"] as const;
+const VOTE_GLYPH: Record<VoteValue, { glyph: GlyphKind; label: string }> = {
+  up: { glyph: "heart", label: "Keen" },
+  dont_mind: { glyph: "up", label: "Don't mind" },
+  down: { glyph: "down", label: "Rather not" },
+};
 
 export function IdeaCard({
   tripId,
@@ -64,63 +70,68 @@ export function IdeaCard({
     dont_mind: idea.votes.filter((v) => v.value === "dont_mind").length,
     down: idea.votes.filter((v) => v.value === "down").length,
   };
-  const slot = idea.id % 6;
   const pinned = idea.pinnedAt !== null;
 
   return (
     <li
-      // Pinned notes get no tilt (reads as clutter in their own row). Set via
-      // --tilt not rotate-0 since .idea-note owns transform via the cascade.
-      style={{ "--tilt": pinned ? "0deg" : TILTS[slot] } as React.CSSProperties}
       className={cx(
-        // pt-7 clears the tape, a background layer on .idea-note.
-        "idea-note relative break-inside-avoid rounded-sm border border-rule p-4 pt-7 shadow-lifted",
-        WASHES[slot],
+        "lift flex flex-col rounded-lg bg-sheet p-5",
+        // The board's only blue: nobody else's vote is the viewer's problem.
+        viewerVote === null
+          ? "shadow-[inset_0_0_0_2px_var(--pen)]"
+          // Nothing anyone wants stays on the board, quietened — a group
+          // changes its mind (ticket 196).
+          : idea.votes.length === 0
+            ? "opacity-75"
+            : "shadow-[inset_0_0_0_1.5px_var(--rule)]",
         className,
       )}
     >
-      {/* Any member may pin — not an admin power (rule 6). */}
-      <form
-        action={setIdeaPinned.bind(null, tripId, idea.id, !pinned)}
-        className="absolute right-1.5 top-5"
-      >
-        <button
-          type="submit"
-          aria-pressed={pinned}
-          title={pinned ? "Pinned to the top — unpin" : "Pin to the top"}
-          className={cx(
-            "flex h-6 w-6 items-center justify-center rounded-full border border-transparent transition-colors hover:border-rule-strong hover:bg-sheet/80",
-            pinned ? "text-pen" : "text-ink-faint hover:text-ink",
-          )}
-        >
-          <PinIcon filled={pinned} />
-          <span className="sr-only">
-            {pinned ? "Pinned to the top — unpin" : "Pin to the top"}
-          </span>
-        </button>
-      </form>
+      <div className="flex items-start justify-between gap-2">
+        <span className="typed">
+          {viewerVote === null ? "Your turn" : pinned ? "Pinned" : " "}
+        </span>
+        {/* Any member may pin — not an admin power (rule 6). */}
+        <form action={setIdeaPinned.bind(null, tripId, idea.id, !pinned)}>
+          <button
+            type="submit"
+            aria-pressed={pinned}
+            className={cx(
+              "flex h-6 w-6 items-center justify-center rounded-full transition-colors hover:bg-sheet-2",
+              pinned ? "text-pen" : "text-ink-faint hover:text-ink",
+            )}
+          >
+            <PinIcon filled={pinned} />
+            <span className="sr-only">
+              {pinned ? "Pinned to the top — unpin" : "Pin to the top"}
+            </span>
+          </button>
+        </form>
+      </div>
 
-      <p className="pr-7 text-sm">{idea.note}</p>
+      <p className="mt-1 text-sm break-words">{linkify(idea.note)}</p>
 
-      {/* Name dropped in favour of the coloured avatar; kept for screen readers/hover. */}
       <div
-        className="mt-2.5 flex items-center gap-1.5 text-xs text-ink-faint"
+        className="mt-3 flex items-center gap-1.5 text-xs text-ink-faint"
         title={idea.authorName}
       >
         <Avatar
           name={idea.authorName}
           src={idea.authorAvatar}
-          size={18}
+          size={20}
           tone={idea.authorTone}
         />
-        <span className="sr-only">{idea.authorName}, </span>
-        {idea.createdAt.toLocaleDateString("en-GB", {
-          day: "numeric",
-          month: "short",
-        })}
+        <span className="truncate">{idea.authorName}</span>
+        <span className="nums">
+          ·{" "}
+          {idea.createdAt.toLocaleDateString("en-GB", {
+            day: "numeric",
+            month: "short",
+          })}
+        </span>
       </div>
 
-      <div className="mt-3">
+      <div className="mt-4">
         <IdeaVotes
           tripId={tripId}
           ideaId={idea.id}
@@ -131,9 +142,37 @@ export function IdeaCard({
         />
       </div>
 
-      <div className="mt-2.5 flex items-center justify-between gap-2 border-t border-dotted border-rule pt-2">
-        {/* Modal, not inline expansion — a 230px note gave ~4 words a line,
-            and expanding it shoved every note below into a different column. */}
+      {/* Who voted which way, without opening anything (ticket 196). */}
+      {idea.votes.length > 0 ? (
+        <ul className="mt-2.5 flex flex-wrap gap-x-3 gap-y-1.5">
+          {(Object.keys(VOTE_GLYPH) as VoteValue[])
+            .filter((v) => idea.votes.some((row) => row.value === v))
+            .map((v) => (
+              <li key={v} className="flex items-center gap-1.5 text-ink-soft">
+                <ReactionGlyph kind={VOTE_GLYPH[v].glyph} mine={false} size={13} />
+                <span className="sr-only">{VOTE_GLYPH[v].label}:</span>
+                <span className="flex">
+                  {idea.votes
+                    .filter((row) => row.value === v)
+                    .map((row, i) => (
+                      <span key={row.userId} className={cx(i > 0 && "-ml-1.5")}>
+                        <Avatar
+                          name={row.name}
+                          src={row.avatarUrl}
+                          size={18}
+                          tone={row.tone}
+                        />
+                      </span>
+                    ))}
+                </span>
+              </li>
+            ))}
+        </ul>
+      ) : null}
+
+      <div className="mt-auto flex items-center justify-between gap-2 border-t border-rule pt-3">
+        {/* Modal, not inline expansion — a narrow card gave ~4 words a line,
+            and expanding it shoved every card below into a different row. */}
         <Sheet
           trigger={
             // Replies count too, so an 8-comment run doesn't undersell itself.
@@ -159,9 +198,7 @@ export function IdeaCard({
           />
         </Sheet>
         {canDelete ? (
-          <form
-            action={deleteIdea.bind(null, tripId, idea.id)}
-          >
+          <form action={deleteIdea.bind(null, tripId, idea.id)}>
             <ConfirmSubmit
               message="Remove this idea for everyone? Its comments and votes go with it."
               confirmLabel="Remove it"
@@ -174,6 +211,31 @@ export function IdeaCard({
         ) : null}
       </div>
     </li>
+  );
+}
+
+/**
+ * An idea is free text, so a link arrives inside it rather than in a field of
+ * its own (ticket 196). `rel` is belt and braces — the href is another member's
+ * typing, not the app's.
+ */
+const URL_PATTERN = /(https?:\/\/[^\s<]+)/g;
+
+function linkify(note: string) {
+  return note.split(URL_PATTERN).map((part, i) =>
+    i % 2 === 1 ? (
+      <a
+        key={i}
+        href={part}
+        target="_blank"
+        rel="noreferrer noopener nofollow"
+        className="text-pen underline underline-offset-2 hover:text-pen-deep"
+      >
+        {part.replace(/^https?:\/\//, "")}
+      </a>
+    ) : (
+      part
+    ),
   );
 }
 

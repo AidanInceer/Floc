@@ -14,18 +14,18 @@ import type { VoteValue } from "@/db/schema";
 // Stored enum values are untouched (up/dont_mind/down); glyph mapping lives
 // here instead of renaming the column, which would mean migrating every row.
 const OPTIONS: { value: VoteValue; glyph: GlyphKind; label: string; mine: string }[] = [
-  { value: "up", glyph: "heart", label: "Keen", mine: "border-red-edge bg-red-soft text-red" },
+  { value: "up", glyph: "heart", label: "Keen", mine: "bg-blush text-blush-ink" },
   {
     value: "dont_mind",
     glyph: "up",
     label: "Don't mind",
-    mine: "border-green-edge bg-green-soft text-green",
+    mine: "bg-mint text-mint-ink",
   },
   {
     value: "down",
     glyph: "down",
     label: "Rather not",
-    mine: "border-highlight-edge bg-highlight-soft text-highlight-ink",
+    mine: "bg-butter text-butter-ink",
   },
 ];
 
@@ -76,10 +76,8 @@ export function IdeaVotes({
             }
             className={cx(
               // Fixed height so a chip doesn't grow as its count hits two digits.
-              "inline-flex h-[22px] min-w-0 shrink items-center gap-1 rounded-full border px-2 font-mono text-[10.5px] leading-none tracking-[0.02em] transition-colors",
-              mine
-                ? o.mine
-                : "border-rule-strong bg-sheet/70 text-ink-soft hover:border-ink-faint hover:bg-sheet",
+              "inline-flex h-[26px] min-w-0 shrink items-center gap-1.5 rounded-full px-2.5 font-mono text-[10.5px] leading-none tracking-[0.02em] transition-colors",
+              mine ? o.mine : "bg-sheet-2 text-ink-soft hover:bg-sheet-3",
             )}
           >
             <ReactionGlyph kind={o.glyph} mine={mine} size={14} />
