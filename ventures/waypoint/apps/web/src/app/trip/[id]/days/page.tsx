@@ -47,8 +47,6 @@ import {
   Badge,
   ButtonLink,
   EmptyState,
-  Page,
-  PageHeader,
 } from "@/components/ui";
 import { EVENT_CATEGORIES } from "@/lib/event-categories";
 import { formatLength, formatSpan, spanOf } from "@/lib/calendar";
@@ -87,8 +85,11 @@ export default async function DaysPage({
     // `today()` — a January trip picking up an August day it never asked for
     // (rule 9: undated is normal, never an error).
     return (
-      <Page wide flush>
-        <PageHeader title="Days" />
+      <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
+        <header>
+          <h1 className="text-[clamp(1.9rem,4vw,2.8rem)]">Days</h1>
+        </header>
+        <div className="mt-8">
         {trip.startDate ? (
           <EmptyState
             title="No days yet"
@@ -113,7 +114,8 @@ export default async function DaysPage({
             settled yet.
           </EmptyState>
         )}
-      </Page>
+        </div>
+      </div>
     );
   }
 
@@ -199,9 +201,18 @@ export default async function DaysPage({
   );
 
   return (
-    <Page wide flush>
-      <PageHeader title="Days" />
+    <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
+      <header className="flex flex-wrap items-end justify-between gap-6">
+        <div>
+          <h1 className="text-[clamp(1.9rem,4vw,2.8rem)]">Days</h1>
+          <p className="mt-3 max-w-[64ch] text-md text-ink-soft">
+            The itinerary against a real clock — where the group sleeps along
+            the top, and everything planned in the hours below it.
+          </p>
+        </div>
+      </header>
 
+      <div className="mt-8">
       <DaysCalendar
         days={framedDays}
         events={calendarEvents}
@@ -233,7 +244,8 @@ export default async function DaysPage({
           </>
         }
       />
-    </Page>
+      </div>
+    </div>
   );
 }
 

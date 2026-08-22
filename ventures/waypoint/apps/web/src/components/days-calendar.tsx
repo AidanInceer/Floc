@@ -695,8 +695,8 @@ export function DaysCalendar({
   };
 
   return (
-    <div className="rounded-md border border-rule bg-sheet">
-      <div className="flex flex-wrap items-center gap-2 border-b border-rule bg-sheet-2 px-3 py-2">
+    <div className="overflow-hidden rounded-lg bg-sheet">
+      <div className="flex flex-wrap items-center gap-2 border-b border-rule bg-sheet-2 px-3 py-2.5">
         <Button
           onClick={() => setAnchor(todayIndex)}
           disabled={!hasToday}
@@ -780,7 +780,7 @@ export function DaysCalendar({
           })}
         </Menu>
 
-        <div className="flex overflow-hidden rounded-md border border-rule-strong">
+        <div className="inline-flex overflow-hidden rounded-full border border-rule-strong">
           {(["day", "week"] as const).map((option) => (
             <button
               key={option}
@@ -792,10 +792,10 @@ export function DaysCalendar({
               }
               onClick={() => setView(option)}
               className={cx(
-                "px-3 py-1 font-mono text-[11px] uppercase tracking-[0.06em] disabled:opacity-50",
+                "px-3 py-1 font-mono text-[11px] uppercase tracking-[0.06em] transition-colors disabled:opacity-50",
                 effectiveView === option
-                  ? "bg-pen font-bold text-sheet"
-                  : "bg-sheet text-ink-soft hover:bg-sheet-3",
+                  ? "bg-pen text-paper"
+                  : "bg-sheet text-ink-soft hover:bg-sheet-2",
               )}
             >
               {option === "day" ? "Day" : "Week"}
@@ -852,11 +852,11 @@ export function DaysCalendar({
                     day.outside && `${OUTSIDE_DAY_CLASS} text-ink-faint`,
                     // Today is the whole head, filled — a pill around just the
                     // number moved that column's date to a different height.
-                    day.isToday && "bg-pen text-sheet",
+                    day.isToday && "bg-pen text-paper",
                     landing?.dayId === day.id && "bg-pen-soft",
                   )}
                 >
-                  <p className={cx("typed", day.isToday && "text-sheet/75")}>
+                  <p className={cx("typed", day.isToday && "text-paper/75")}>
                     {day.weekday}
                   </p>
                   <p className="nums text-lg font-semibold">
@@ -967,7 +967,7 @@ export function DaysCalendar({
                         }}
                         // `block`, not default inline-block: the line's descender
                         // space made an empty day 7px taller than one with a bar.
-                        className="block h-7 w-full rounded-sm border border-dashed border-rule transition-colors hover:border-rule-strong hover:bg-sheet-2"
+                        className="block h-7 w-full rounded-full border border-dashed border-rule transition-colors hover:border-pen hover:bg-pen-soft"
                       />
                     </div>
                   );
@@ -1007,11 +1007,11 @@ export function DaysCalendar({
                         }
                       }}
                       className={cx(
-                        "flex h-7 w-full items-center truncate rounded-sm border px-2 text-xs transition-colors",
+                        "flex h-7 w-full items-center truncate rounded-full border px-2 text-xs transition-colors",
                         // Pen blue, not highlighter yellow — yellow is the food
                         // category's colour. `-edge` dissolves into the sheet (ticket 73).
                         run.preview
-                          ? "justify-center border-dashed border-pen bg-pen-soft/60 text-pen"
+                          ? "justify-center border-dashed border-pen bg-pen-soft text-pen-deep"
                           : "border-pen-edge bg-pen-soft text-pen hover:border-pen",
                         run.openStart && "rounded-l-none",
                         run.openEnd && "rounded-r-none",
@@ -1117,7 +1117,7 @@ export function DaysCalendar({
                         aria-pressed={selected === event.id}
                         aria-label={`${event.title}, all day, ${day.longLabel}`}
                         className={cx(
-                          "truncate rounded-sm border border-l-4 px-1.5 py-0.5 text-left text-xs",
+                          "truncate rounded-md border border-l-4 px-1.5 py-0.5 text-left text-xs",
                           EVENT_CATEGORIES[event.type].block,
                           selected === event.id && "outline-2 outline-ink",
                         )}
@@ -1238,11 +1238,11 @@ export function DaysCalendar({
         onClick={(ev) => {
           if (ev.target === dialogRef.current) setAdding(null);
         }}
-        className="m-auto w-full max-w-lg rounded-md border border-rule bg-sheet p-0 text-ink backdrop:bg-black/40"
+        className="m-auto w-full max-w-lg rounded-lg bg-sheet p-0 text-ink shadow-card backdrop:bg-black/30"
       >
         {adding ? (
           <>
-            <div className="flex items-center justify-between border-b border-dotted border-rule-strong px-4 py-3">
+            <div className="flex items-center justify-between border-b border-rule px-4 py-3">
               <h2 className="font-display text-base font-semibold">
                 Add an event — {days.find((d) => d.id === adding.dayId)?.longLabel},{" "}
                 {adding.time}
@@ -1352,9 +1352,9 @@ function OvernightDialog({
       onClick={(ev) => {
         if (ev.target === ref.current) onClose();
       }}
-      className="m-auto w-full max-w-md rounded-md border border-rule bg-sheet p-0 text-ink backdrop:bg-black/40"
+      className="m-auto w-full max-w-md rounded-lg bg-sheet p-0 text-ink shadow-card backdrop:bg-black/30"
     >
-      <div className="flex items-center justify-between border-b border-dotted border-rule-strong px-4 py-3">
+      <div className="flex items-center justify-between border-b border-rule px-4 py-3">
         <h2 className="font-display text-base font-semibold">
           Overnight — {describeSpan(days, span)}
         </h2>
@@ -1526,7 +1526,7 @@ function DayColumn({
       {hover !== null && !landing ? (
         <span
           aria-hidden
-          className="nums pointer-events-none absolute left-1 z-10 -translate-y-1/2 rounded-full bg-pen px-1.5 text-[10px] text-sheet"
+          className="nums pointer-events-none absolute left-1 z-10 -translate-y-1/2 rounded-full bg-pen px-1.5 text-[10px] text-paper"
           style={{ top: minutesToY(hover) }}
         >
           + {toHhmm(hover)}
@@ -1539,7 +1539,7 @@ function DayColumn({
           className="pointer-events-none absolute inset-x-0 z-10 border-t-2 border-dashed border-pen"
           style={{ top: minutesToY(toMinutes(incoming.time) ?? 0) }}
         >
-          <span className="nums ml-1 rounded-full bg-pen px-1.5 text-[10px] text-sheet">
+          <span className="nums ml-1 rounded-full bg-pen px-1.5 text-[10px] text-paper">
             {formatSpan({ ...incoming, allDay: false })}
           </span>
         </div>

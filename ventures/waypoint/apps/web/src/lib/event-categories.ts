@@ -22,24 +22,24 @@ export const EVENT_CATEGORIES: Record<
   transport: {
     label: "Transport",
     tone: "marine",
-    // `-edge` not `-soft`, so blue outlines like green/yellow instead of dissolving into the sheet (ticket 73).
-    row: "border-pen-edge bg-pen-soft/40",
-    block: "border-pen-edge border-l-pen bg-pen-soft text-pen",
-    dot: "bg-pen",
+    // Blush is the route domain, and getting somewhere is the route (ticket
+    // 203). It used to be blue; blue now means "yours to do" and nothing else.
+    row: "border-blush bg-blush/40",
+    block: "border-blush border-l-blush-ink bg-blush text-blush-ink",
+    dot: "bg-blush-ink",
   },
   activity: {
     label: "Activity",
     tone: "agreed",
-    row: "border-green-edge bg-green-soft/50",
-    block: "border-green-edge border-l-green bg-green-soft text-green",
-    dot: "bg-green",
+    row: "border-peri bg-peri/40",
+    block: "border-peri border-l-peri-ink bg-peri text-peri-ink",
+    dot: "bg-peri-ink",
   },
   food: {
     label: "Food",
     tone: "open",
-    row: "border-highlight-edge bg-highlight-soft/60",
-    block:
-      "border-highlight-edge border-l-highlight bg-highlight-soft text-highlight-ink",
-    dot: "bg-highlight",
+    row: "border-butter bg-butter/50",
+    block: "border-butter border-l-butter-ink bg-butter text-butter-ink",
+    dot: "bg-butter-ink",
   },
 };
