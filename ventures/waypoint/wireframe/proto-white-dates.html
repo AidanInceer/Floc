@@ -1,0 +1,408 @@
+<title>Dates W4 — Who can do when</title>
+<!--
+  Waypoint Dates tab in the W4 style. Copy is the live page's: the "Dates"
+  header, "Not settled yet - mark the days you could go.", the "Who can do
+  when" card with its hint, "Still to say", and the two menu verbs. The runs
+  panel is labelled in the home page's own words. Throwaway.
+
+  Density pass: wider gutters, roomier cells, one idea per band.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --white:#ffffff; --canvas:#EFEEEA; --off:#F7F6F3; --hair:#E6E4DE;
+  --ink:#14141A; --ink-2:#63636F; --ink-3:#9B9BA5;
+  --blue:#4E68D8; --blue-soft:#E7EBFA; --blue-deep:#2B3B85;
+  --peri:#DFE3FF; --peri-ink:#33409B;
+  --mint:#DCEFE4; --mint-ink:#1B6B4C;
+  --butter:#FBEAC8; --butter-ink:#8A6412;
+  --blush:#FADDD6; --blush-ink:#A34A31;
+  --display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --body:"Instrument Sans","Segoe UI",system-ui,sans-serif;
+  --mono:"DM Mono","Cascadia Mono",ui-monospace,monospace;
+  --ease:cubic-bezier(.2,.85,.3,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--canvas);color:var(--ink);font-family:var(--body);font-size:15.5px;line-height:1.6;-webkit-font-smoothing:antialiased;padding:32px 24px 110px}
+h1,h2,h3{font-family:var(--display);font-weight:600;letter-spacing:-.03em;line-height:1.08;text-wrap:balance}
+a{color:inherit;text-decoration:none}
+svg{display:block}
+:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+
+.stage{display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap;max-width:1500px;margin:0 auto}
+.col-desk{flex:1 1 820px;min-width:0}
+.col-phone{flex:0 0 auto}
+.stage-label{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px}
+.screen{background:var(--white);border-radius:30px;padding:34px 38px 40px;box-shadow:0 1px 2px rgb(20 20 26/.05),0 24px 48px -32px rgb(20 20 26/.3)}
+.phone-shell{width:352px;border:9px solid var(--ink);border-radius:44px;background:var(--white);height:840px;overflow:auto;padding:20px 0 30px;scrollbar-width:none}
+.phone-shell::-webkit-scrollbar{display:none}
+.pad{padding:0 16px}
+
+/* chrome */
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:34px}
+.mark{font-family:var(--display);font-weight:800;font-size:17px;letter-spacing:-.04em}
+.mark span{color:var(--blue)}
+.navpills{display:flex;gap:6px;background:var(--off);padding:5px;border-radius:999px}
+.navpills a{font-size:13px;font-weight:500;color:var(--ink-2);padding:7px 16px;border-radius:999px;transition:background .18s,color .18s}
+.navpills a.on{background:var(--ink);color:var(--white)}
+.navpills a:hover:not(.on){background:var(--white)}
+.tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3)}
+.pill{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:6px 14px;font-size:12.5px;font-weight:600;background:var(--off);color:var(--ink-2)}
+.pill-blue{background:var(--blue-soft);color:var(--blue-deep)}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:12px 22px;font-size:14px;font-weight:600;background:var(--blue);color:var(--white);transition:transform .22s var(--ease),background .2s}
+.btn:hover{transform:translateY(-1px);background:var(--blue-deep)}
+.btn-ghost{background:var(--off);color:var(--ink)}
+.btn-ghost:hover{background:var(--hair);transform:translateY(-1px)}
+.btn-sm{padding:8px 16px;font-size:13px}
+.quiet{font-size:13.5px;font-weight:500;color:var(--ink-2);transition:color .2s}
+.quiet:hover{color:var(--ink)}
+
+/* page head — the live page's title and subtitle */
+.head{margin-bottom:34px}
+.head .crumb{font-family:var(--mono);font-size:12px;color:var(--ink-3);margin-bottom:10px}
+.head h1{font-size:clamp(32px,4.2vw,48px)}
+.head .sub{margin-top:14px;font-size:16.5px;color:var(--ink-2)}
+
+/* card */
+.card{background:var(--off);border-radius:26px;padding:28px}
+.card+.card{margin-top:20px}
+.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:26px}
+.card-head h2{font-size:21px}
+.card-head .hint{font-size:14px;color:var(--ink-2);margin-top:6px}
+.card-head .right{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.still{display:flex;align-items:center;gap:10px}
+.faces{display:flex;align-items:center}
+.face{width:30px;height:30px;border-radius:999px;display:grid;place-items:center;font-family:var(--mono);font-size:10.5px;font-weight:500;box-shadow:0 0 0 3px var(--off);transition:transform .22s var(--ease)}
+.face+.face{margin-left:-9px}
+.faces:hover .face{transform:translateY(-1px)}
+.f1{background:var(--peri);color:var(--peri-ink)}
+.f2{background:var(--blush);color:var(--blush-ink)}
+.f3{background:var(--mint);color:var(--mint-ink)}
+.f4{background:var(--butter);color:var(--butter-ink)}
+.menu{width:34px;height:34px;border-radius:999px;background:var(--white);display:grid;place-items:center;color:var(--ink-2);transition:transform .22s var(--ease)}
+.menu:hover{transform:translateY(-1px);color:var(--ink)}
+
+/* view toggle */
+.modes{display:inline-flex;gap:4px;background:var(--white);padding:5px;border-radius:999px;margin-bottom:24px}
+.modes a{font-size:13px;font-weight:600;color:var(--ink-2);padding:8px 18px;border-radius:999px;transition:background .18s,color .18s}
+.modes a.on{background:var(--blue-soft);color:var(--blue-deep)}
+
+/* calendar */
+.cal-cols{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:34px;align-items:start}
+.month{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.month .m{font-family:var(--display);font-size:19px;font-weight:600;letter-spacing:-.02em}
+.arrows{display:flex;gap:8px}
+.arrows span{width:34px;height:34px;border-radius:999px;background:var(--white);display:grid;place-items:center;color:var(--ink-2);transition:transform .22s var(--ease)}
+.arrows span:hover{transform:translateY(-1px);color:var(--ink)}
+.dow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin-bottom:8px}
+.dow span{text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--ink-3)}
+.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.cell{aspect-ratio:1;border-radius:15px;background:var(--white);display:grid;place-items:center;font-family:var(--mono);font-size:14px;color:var(--ink-2);transition:transform .22s var(--ease),background .2s}
+.cell:hover{transform:translateY(-1.5px)}
+.cell.empty{background:transparent}
+.cell.free{background:var(--blue-soft);color:var(--blue-deep);font-weight:500}
+.cell.past{color:var(--ink-3);background:transparent;box-shadow:inset 0 0 0 1.5px var(--hair)}
+.cell.pick{box-shadow:inset 0 0 0 2px var(--mint-ink)}
+.legend{display:flex;gap:22px;flex-wrap:wrap;margin-top:24px;font-size:13px;color:var(--ink-2);align-items:center}
+.swatch{width:17px;height:17px;border-radius:7px;display:inline-block;vertical-align:-4px;margin-right:8px}
+.tools{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px;padding-top:22px;border-top:1px solid var(--hair);align-items:center}
+
+/* runs that work */
+.runs-head{margin-bottom:20px}
+.runs-head h3{font-size:19px}
+.runs-head p{font-size:14px;color:var(--ink-2);margin-top:6px}
+.win{background:var(--white);border-radius:20px;padding:20px 22px;transition:transform .22s var(--ease),box-shadow .22s var(--ease)}
+.win+.win{margin-top:12px}
+.win:hover{transform:translateY(-1.5px);box-shadow:0 6px 14px -12px rgb(20 20 26/.3)}
+.win.best{background:var(--mint);color:var(--mint-ink)}
+.win .r{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.win .range{font-family:var(--display);font-size:22px;font-weight:600;letter-spacing:-.03em}
+.win .nights{font-family:var(--mono);font-size:12px;opacity:.72}
+.win .row2{display:flex;align-items:center;gap:12px;margin-top:16px;flex-wrap:wrap}
+.win .mini{display:flex}
+.win .mini .face{width:28px;height:28px;font-size:10px;box-shadow:0 0 0 2px var(--white)}
+.win .mini .face+.face{margin-left:-8px}
+.win.best .mini .face{box-shadow:0 0 0 2px var(--mint)}
+.win .miss{font-size:13.5px;opacity:.8}
+.win .act{margin-left:auto}
+.runs-foot{margin-top:24px;padding-top:20px;border-top:1px solid var(--hair);font-size:14px;color:var(--ink-2)}
+
+/* commit band */
+.band{margin-top:20px;background:var(--blue-soft);color:var(--blue-deep);border-radius:26px;padding:30px 32px;display:flex;align-items:center;gap:28px;flex-wrap:wrap}
+.band .txt{flex:1;min-width:260px}
+.band h3{font-size:20px}
+.band p{font-size:14.5px;opacity:.82;margin-top:8px;max-width:52ch}
+
+.ico{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ico-s{width:15px;height:15px;stroke-width:1.7}
+
+/* phone */
+.phone .topbar{margin-bottom:20px}
+.phone .navpills{width:100%;overflow:auto;scrollbar-width:none;margin-bottom:22px}
+.phone .navpills a{padding:7px 13px;font-size:12px}
+.phone .head{margin-bottom:24px}
+.phone .head h1{font-size:32px}
+.phone .head .sub{font-size:15px}
+.phone .card{padding:20px;border-radius:22px}
+.phone .card-head{margin-bottom:20px;gap:16px}
+.phone .cal-cols{grid-template-columns:1fr;gap:28px}
+.phone .cell{border-radius:12px;font-size:12.5px}
+.phone .grid,.phone .dow{gap:6px}
+.phone .win{padding:16px 18px;border-radius:18px}
+.phone .win .range{font-size:19px}
+.phone .band{padding:22px;border-radius:22px;gap:18px}
+
+.note{max-width:1500px;margin:40px auto 0;font-family:var(--mono);font-size:12px;color:var(--ink-2);background:var(--white);border-radius:20px;padding:18px 22px;display:flex;gap:16px;flex-wrap:wrap;align-items:baseline}
+.note b{font-family:var(--body);font-weight:600;color:var(--ink);background:#FFE8A3;padding:2px 9px;border-radius:999px}
+.note span{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:1000px){.cal-cols{grid-template-columns:1fr;gap:30px}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h13M13 6.5 18.5 12 13 17.5"/></symbol>
+<symbol id="i-left" viewBox="0 0 24 24"><path d="M14.5 5.5 8 12l6.5 6.5"/></symbol>
+<symbol id="i-right" viewBox="0 0 24 24"><path d="M9.5 5.5 16 12l-6.5 6.5"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M4 12.5 9.5 18 20 6.5"/></symbol>
+<symbol id="i-dots" viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="18" cy="12" r="1.4"/></symbol>
+</defs></svg>
+
+<div class="stage">
+
+  <!-- ── Desktop ─────────────────────────────────────────────────────────── -->
+  <div class="col-desk">
+    <div class="stage-label">Desktop &middot; 1280</div>
+    <div class="screen">
+
+      <div class="topbar">
+        <div class="mark">way<span>.</span>point</div>
+        <nav class="navpills">
+          <a href="#">Overview</a><a href="#">Ideas</a><a href="#" class="on">Dates</a><a href="#">Days</a><a href="#">Money</a>
+        </nav>
+        <span class="pill">Aidan</span>
+      </div>
+
+      <div class="head">
+        <div class="crumb">Sicily with the usual lot</div>
+        <h1>Dates</h1>
+        <p class="sub">Not settled yet &mdash; mark the days you could go.</p>
+      </div>
+
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2>Who can do when</h2>
+            <p class="hint">Your own days, or the whole group&rsquo;s overlap.</p>
+          </div>
+          <div class="right">
+            <div class="still">
+              <span class="tag">Still to say</span>
+              <div class="faces"><span class="face f3">TK</span></div>
+            </div>
+            <span class="menu"><svg class="ico ico-s"><use href="#i-dots"/></svg></span>
+          </div>
+        </div>
+
+        <div class="modes">
+          <a href="#" class="on">Your days</a>
+          <a href="#">Everyone&rsquo;s overlap</a>
+        </div>
+
+        <div class="cal-cols">
+          <div>
+            <div class="month">
+              <span class="m">September 2026</span>
+              <span class="arrows">
+                <span><svg class="ico ico-s"><use href="#i-left"/></svg></span>
+                <span><svg class="ico ico-s"><use href="#i-right"/></svg></span>
+              </span>
+            </div>
+
+            <div class="dow"><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span><span>SUN</span></div>
+            <div class="grid">
+              <div class="cell empty"></div>
+              <div class="cell past">1</div><div class="cell past">2</div><div class="cell past">3</div>
+              <div class="cell">4</div><div class="cell">5</div><div class="cell">6</div>
+
+              <div class="cell">7</div><div class="cell">8</div><div class="cell">9</div>
+              <div class="cell free">10</div><div class="cell free">11</div>
+              <div class="cell free pick">12</div><div class="cell free pick">13</div>
+
+              <div class="cell free pick">14</div><div class="cell free pick">15</div><div class="cell free pick">16</div>
+              <div class="cell free pick">17</div><div class="cell free pick">18</div><div class="cell free pick">19</div>
+              <div class="cell free">20</div>
+
+              <div class="cell">21</div><div class="cell">22</div><div class="cell">23</div><div class="cell">24</div><div class="cell">25</div>
+              <div class="cell free">26</div><div class="cell free">27</div>
+
+              <div class="cell free">28</div><div class="cell free">29</div><div class="cell free">30</div>
+            </div>
+
+            <div class="legend">
+              <span><i class="swatch" style="background:var(--blue-soft)"></i>You could go</span>
+              <span><i class="swatch" style="background:var(--white);box-shadow:inset 0 0 0 2px var(--mint-ink)"></i>Everyone could</span>
+              <span><i class="swatch" style="background:transparent;box-shadow:inset 0 0 0 1.5px var(--hair)"></i>Gone</span>
+            </div>
+
+            <div class="tools">
+              <a href="#" class="btn">Save my days <svg class="ico ico-s"><use href="#i-check"/></svg></a>
+              <a href="#" class="quiet">Clear availability</a>
+              <span class="tag" style="margin-left:auto">Drag to paint a run</span>
+            </div>
+          </div>
+
+          <div>
+            <div class="runs-head">
+              <h3>Which runs of days work</h3>
+              <p>And who&rsquo;s missing from each.</p>
+            </div>
+
+            <article class="win best">
+              <div class="r">
+                <span class="range">12 &ndash; 19 Sep</span>
+                <span class="nights">7 nights</span>
+              </div>
+              <div class="row2">
+                <span class="mini"><span class="face f1">AI</span><span class="face f2">PT</span><span class="face f3">TK</span><span class="face f4">ZM</span></span>
+                <span class="miss">The one everyone can do</span>
+              </div>
+            </article>
+
+            <article class="win">
+              <div class="r">
+                <span class="range">26 Sep &ndash; 3 Oct</span>
+                <span class="nights">7 nights</span>
+              </div>
+              <div class="row2">
+                <span class="mini"><span class="face f1">AI</span><span class="face f2">PT</span><span class="face f4">ZM</span></span>
+                <span class="miss">Tom&rsquo;s away</span>
+              </div>
+            </article>
+
+            <div class="runs-foot">
+              Tom hasn&rsquo;t marked his days. The runs will move when he does.
+              <div style="margin-top:14px"><a href="#" class="btn btn-ghost btn-sm">Nudge Tom</a></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="band">
+        <div class="txt">
+          <h3>Picking a window fills the Days tab</h3>
+          <p>One card per day, ready to fill in. Change the dates later and the days come with you &mdash; only days that fall outside the new window are lost.</p>
+        </div>
+        <a href="#" class="btn">Set 12 &ndash; 19 Sep <svg class="ico ico-s"><use href="#i-arrow"/></svg></a>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- ── Phone ───────────────────────────────────────────────────────────── -->
+  <div class="col-phone">
+    <div class="stage-label">Phone &middot; 390</div>
+    <div class="phone-shell phone">
+      <div class="pad">
+
+        <div class="topbar">
+          <div class="mark" style="font-size:15px">way<span>.</span>point</div>
+          <span class="face f1">AI</span>
+        </div>
+        <nav class="navpills">
+          <a href="#">Overview</a><a href="#">Ideas</a><a href="#" class="on">Dates</a><a href="#">Days</a><a href="#">Money</a>
+        </nav>
+
+        <div class="head">
+          <div class="crumb">Sicily with the usual lot</div>
+          <h1>Dates</h1>
+          <p class="sub">Not settled yet &mdash; mark the days you could go.</p>
+        </div>
+
+        <section class="card">
+          <div class="card-head">
+            <div>
+              <h2>Who can do when</h2>
+              <p class="hint">Your own days, or the whole group&rsquo;s overlap.</p>
+            </div>
+            <div class="right">
+              <div class="still">
+                <span class="tag">Still to say</span>
+                <div class="faces"><span class="face f3">TK</span></div>
+              </div>
+              <span class="menu"><svg class="ico ico-s"><use href="#i-dots"/></svg></span>
+            </div>
+          </div>
+
+          <div class="modes">
+            <a href="#" class="on">Your days</a>
+            <a href="#">Overlap</a>
+          </div>
+
+          <div class="month">
+            <span class="m">September 2026</span>
+            <span class="arrows">
+              <span><svg class="ico ico-s"><use href="#i-left"/></svg></span>
+              <span><svg class="ico ico-s"><use href="#i-right"/></svg></span>
+            </span>
+          </div>
+          <div class="dow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+          <div class="grid">
+            <div class="cell empty"></div>
+            <div class="cell past">1</div><div class="cell past">2</div><div class="cell past">3</div>
+            <div class="cell">4</div><div class="cell">5</div><div class="cell">6</div>
+            <div class="cell">7</div><div class="cell">8</div><div class="cell">9</div>
+            <div class="cell free">10</div><div class="cell free">11</div><div class="cell free pick">12</div><div class="cell free pick">13</div>
+            <div class="cell free pick">14</div><div class="cell free pick">15</div><div class="cell free pick">16</div>
+            <div class="cell free pick">17</div><div class="cell free pick">18</div><div class="cell free pick">19</div><div class="cell free">20</div>
+            <div class="cell">21</div><div class="cell">22</div><div class="cell">23</div><div class="cell">24</div><div class="cell">25</div>
+            <div class="cell free">26</div><div class="cell free">27</div>
+            <div class="cell free">28</div><div class="cell free">29</div><div class="cell free">30</div>
+          </div>
+          <div class="tools">
+            <a href="#" class="btn">Save my days <svg class="ico ico-s"><use href="#i-check"/></svg></a>
+            <a href="#" class="quiet">Clear availability</a>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="runs-head">
+            <h3>Which runs of days work</h3>
+            <p>And who&rsquo;s missing from each.</p>
+          </div>
+          <article class="win best">
+            <div class="r"><span class="range">12 &ndash; 19 Sep</span><span class="nights">7 nights</span></div>
+            <div class="row2">
+              <span class="mini"><span class="face f1">AI</span><span class="face f2">PT</span><span class="face f3">TK</span><span class="face f4">ZM</span></span>
+              <span class="miss">The one everyone can do</span>
+            </div>
+          </article>
+          <article class="win">
+            <div class="r"><span class="range">26 Sep &ndash; 3 Oct</span><span class="nights">7 nights</span></div>
+            <div class="row2">
+              <span class="mini"><span class="face f1">AI</span><span class="face f2">PT</span><span class="face f4">ZM</span></span>
+              <span class="miss">Tom&rsquo;s away</span>
+            </div>
+          </article>
+          <div class="runs-foot">Tom hasn&rsquo;t marked his days. The runs will move when he does.</div>
+        </section>
+
+        <section class="band">
+          <div class="txt">
+            <h3>Picking a window fills the Days tab</h3>
+            <p>Change the dates later and the days come with you.</p>
+          </div>
+          <a href="#" class="btn">Set 12 &ndash; 19 Sep <svg class="ico ico-s"><use href="#i-arrow"/></svg></a>
+        </section>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="note">
+  <b>Dates &middot; W4 style</b>
+  <span>Live page copy: the header line, &ldquo;Who can do when&rdquo; and its hint, &ldquo;Still to say&rdquo;, and both menu verbs.</span>
+  <span>Open question: the runs panel is new &mdash; the live page only draws the overlap. Is naming the runs a promise the data can keep?</span>
+</div>

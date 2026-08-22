@@ -2,31 +2,40 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "finance-planner-prototype",
-      "runtimeExecutable": "corepack",
-      "runtimeArgs": ["pnpm", "--filter", "finance-planner-prototype", "dev"],
-      "autoPort": true,
-      "port": 5199
-    },
-    {
       "name": "waypoint-web",
       "runtimeExecutable": "corepack",
-      "runtimeArgs": ["pnpm", "--filter", "waypoint-web", "dev"],
+      "runtimeArgs": [
+        "pnpm",
+        "--filter",
+        "waypoint-web",
+        "dev"
+      ],
       "autoPort": true,
       "port": 3000
     },
     {
       "name": "docs",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", "docs", "-p", "4000", "--no-clipboard"],
+      "runtimeArgs": [
+        "serve",
+        "docs",
+        "-p",
+        "4000",
+        "--no-clipboard"
+      ],
       "port": 4000
     },
     {
-      "name": "waypoint-prototype",
-      "runtimeExecutable": "corepack",
-      "runtimeArgs": ["pnpm", "--filter", "waypoint-prototype", "dev"],
-      "autoPort": true,
-      "port": 5210
+      "name": "wireframes",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "serve",
+        "ventures/waypoint/wireframe/prototypes",
+        "-p",
+        "4100",
+        "--no-clipboard"
+      ],
+      "port": 4100
     }
   ]
 }

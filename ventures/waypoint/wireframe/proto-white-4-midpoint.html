@@ -1,0 +1,415 @@
+<title>Overview W4 — Track and tiles</title>
+<!--
+  PROTOTYPE 4 - the midpoint of W1 (bento tiles) and W3 (day track), with the
+  blue toned down and hover motion pulled back. Off the Waypoint house style on
+  purpose. Desktop and phone side by side. Throwaway.
+
+  W4: the day track keeps the top - it is the trip, and gaps in it are the
+  plan's holes. Everything else drops into a bento of pastel tiles sized by how
+  much it matters. Soft blue marks the two things that are yours to do; it is a
+  tint now, not a slab, so it sits with the pastels rather than shouting over
+  them.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --white:#ffffff; --canvas:#EFEEEA; --off:#F7F6F3; --hair:#E6E4DE;
+  --ink:#14141A; --ink-2:#63636F; --ink-3:#9B9BA5;
+  --blue:#4E68D8; --blue-soft:#E7EBFA; --blue-deep:#2B3B85;
+  --peri:#DFE3FF; --peri-ink:#33409B;
+  --mint:#DCEFE4; --mint-ink:#1B6B4C;
+  --butter:#FBEAC8; --butter-ink:#8A6412;
+  --blush:#FADDD6; --blush-ink:#A34A31;
+  --display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --body:"Instrument Sans","Segoe UI",system-ui,sans-serif;
+  --mono:"DM Mono","Cascadia Mono",ui-monospace,monospace;
+  --ease:cubic-bezier(.2,.85,.3,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--canvas);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased;padding:28px 24px 96px}
+h1,h2,h3{font-family:var(--display);font-weight:600;letter-spacing:-.03em;line-height:1.02;text-wrap:balance}
+svg{display:block}
+:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+
+/* stage */
+.stage{display:flex;gap:36px;align-items:flex-start;flex-wrap:wrap;max-width:1420px;margin:0 auto}
+.col-desk{flex:1 1 780px;min-width:0}
+.col-phone{flex:0 0 auto}
+.stage-label{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px}
+.screen{background:var(--white);border-radius:26px;padding:24px;box-shadow:0 1px 2px rgb(20 20 26/.05),0 24px 48px -32px rgb(20 20 26/.3)}
+.phone-shell{width:352px;border:9px solid var(--ink);border-radius:44px;background:var(--white);height:780px;overflow:auto;padding:18px 0 26px;scrollbar-width:none}
+.phone-shell::-webkit-scrollbar{display:none}
+.pad{padding:0 14px}
+
+/* chrome */
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px}
+.mark{font-family:var(--display);font-weight:800;font-size:17px;letter-spacing:-.04em}
+.mark span{color:var(--blue)}
+.navpills{display:flex;gap:6px;background:var(--off);padding:4px;border-radius:999px}
+.navpills a{font-size:13px;font-weight:500;color:var(--ink-2);text-decoration:none;padding:6px 14px;border-radius:999px;transition:background .18s,color .18s}
+.navpills a.on{background:var(--ink);color:var(--white)}
+.navpills a:hover:not(.on){background:var(--white)}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:600;background:var(--off);color:var(--ink-2)}
+.pill-blue{background:var(--blue-soft);color:var(--blue-deep)}
+.tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3)}
+
+/* hero */
+.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:18px}
+.hero h1{font-size:clamp(36px,4.8vw,56px)}
+.hero .dates{font-family:var(--mono);font-size:13px;color:var(--ink-2);margin-top:10px}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.faces{display:flex;align-items:center}
+.face{width:36px;height:36px;border-radius:999px;display:grid;place-items:center;font-family:var(--mono);font-size:11px;font-weight:500;box-shadow:0 0 0 3px var(--white);transition:transform .22s var(--ease)}
+.face+.face{margin-left:-11px}
+.faces:hover .face{transform:translateY(-1px)}
+.f1{background:var(--peri);color:var(--peri-ink)}
+.f2{background:var(--blush);color:var(--blush-ink)}
+.f3{background:var(--mint);color:var(--mint-ink)}
+.f4{background:var(--butter);color:var(--butter-ink)}
+.add{width:36px;height:36px;border-radius:999px;display:grid;place-items:center;margin-left:-11px;background:var(--white);box-shadow:0 0 0 1.5px var(--hair),0 0 0 3px var(--white);color:var(--ink-2)}
+
+/* ── track band (from W3) ── */
+.track-wrap{background:var(--off);border-radius:20px;padding:16px;margin-bottom:12px}
+.track-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:0 4px 12px}
+.track{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scroll-snap-type:x mandatory;scrollbar-width:none}
+.track::-webkit-scrollbar{display:none}
+.day{flex:1 0 112px;scroll-snap-align:start;background:var(--white);border-radius:16px;padding:12px 12px 13px;display:flex;flex-direction:column;gap:8px;min-height:152px;transition:transform .22s var(--ease),box-shadow .22s var(--ease)}
+.day:hover{transform:translateY(-2px);box-shadow:0 6px 14px -12px rgb(20 20 26/.3)}
+.day .d{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--ink-3)}
+.day .place{font-family:var(--display);font-size:18px;font-weight:600;letter-spacing:-.025em}
+.day .wxrow{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:12px;color:var(--ink-2);margin-top:auto}
+.day.lisbon{background:var(--peri);color:var(--peri-ink)}
+.day.porto{background:var(--blush);color:var(--blush-ink)}
+.day.lisbon .d,.day.lisbon .wxrow,.day.porto .d,.day.porto .wxrow{color:inherit;opacity:.7}
+.day.travel{background:var(--white);box-shadow:inset 0 0 0 2px var(--peri)}
+.day.wet .wxrow{background:rgb(255 255 255/.75);border-radius:999px;padding:2px 9px;margin-left:-3px;opacity:1}
+.day .flag{display:inline-flex;align-items:center;gap:5px;background:rgb(255 255 255/.6);border-radius:999px;padding:3px 9px;font-size:11.5px;font-weight:600;align-self:flex-start}
+.day.today{flex:0 0 92px;background:var(--blue-soft);color:var(--blue-deep);justify-content:space-between}
+.day.today .d{color:var(--blue-deep);opacity:.6}
+.day.today .num{font-family:var(--display);font-size:36px;font-weight:600;letter-spacing:-.045em;line-height:.9}
+.day.today .cap{font-size:12.5px;opacity:.75}
+
+/* ── bento (from W1) ── */
+.bento{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.tile{border-radius:20px;padding:18px;background:var(--off);transition:transform .22s var(--ease),box-shadow .22s var(--ease)}
+.tile:hover{transform:translateY(-1.5px);box-shadow:0 6px 14px -12px rgb(20 20 26/.3)}
+.t-2{grid-column:span 2}
+.t-4{grid-column:span 4}
+
+.now{background:var(--blue-soft);color:var(--blue-deep);display:flex;flex-direction:column;gap:12px}
+.now .tag{color:var(--blue-deep);opacity:.55}
+.now h2{font-size:21px}
+.now .row{display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:14px;background:rgb(255 255 255/.72);transition:background .2s,transform .22s var(--ease)}
+.now .row:hover{background:var(--white);transform:translateX(2px)}
+.now .row b{font-weight:600;font-size:14.5px;flex:1}
+.now .row .amount{font-family:var(--display);font-size:21px;font-weight:600;letter-spacing:-.03em}
+.now .row .go{width:26px;height:26px;border-radius:999px;background:var(--blue);color:var(--white);display:grid;place-items:center;flex:none}
+
+.money{background:var(--mint);color:var(--mint-ink)}
+.money .big{font-family:var(--display);font-size:36px;font-weight:600;letter-spacing:-.04em;margin-top:6px}
+.money .sub{font-size:12.5px;opacity:.75;margin-top:2px}
+.bar{height:8px;border-radius:999px;background:rgb(27 107 76/.16);margin-top:14px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:999px;background:var(--mint-ink);width:83%}
+
+.ideas{background:var(--blush);color:var(--blush-ink)}
+.ideas .big{font-family:var(--display);font-size:36px;font-weight:600;letter-spacing:-.04em;margin-top:6px}
+.ideas .sub{font-size:12.5px;opacity:.75;margin-top:2px}
+.dots{display:flex;gap:4px;margin-top:14px}
+.dots i{flex:1;height:8px;border-radius:999px;background:rgb(163 74 49/.2)}
+.dots i.done{background:var(--blush-ink)}
+
+.wait{background:var(--butter);color:var(--butter-ink)}
+.wait-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.wait-chip{display:flex;align-items:center;gap:8px;background:rgb(255 255 255/.62);border-radius:999px;padding:5px 13px 5px 5px;font-size:13px;font-weight:500;transition:transform .22s var(--ease),background .2s}
+.wait-chip:hover{transform:translateY(-1px);background:var(--white)}
+.wait-chip .face{width:26px;height:26px;font-size:10px;box-shadow:none;margin:0}
+
+.next{background:var(--white);box-shadow:inset 0 0 0 1.5px var(--hair);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.next .txt{flex:1;min-width:180px}
+.next h3{font-size:17px}
+.next .sub{font-size:13px;color:var(--ink-2);margin-top:3px}
+.btn{display:inline-flex;align-items:center;gap:8px;text-decoration:none;border-radius:999px;padding:10px 18px;font-size:13.5px;font-weight:600;background:var(--blue);color:var(--white);transition:transform .22s var(--ease),background .2s}
+.btn:hover{transform:translateY(-1px);background:var(--blue-deep)}
+.btn-ghost{background:var(--off);color:var(--ink)}
+.btn-ghost:hover{background:var(--hair)}
+
+.ico{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ico-s{width:14px;height:14px;stroke-width:1.7}
+
+/* phone */
+.phone .hero{display:block;margin-bottom:14px}
+.phone .hero h1{font-size:33px}
+.phone .faces{margin-top:14px}
+.phone .navpills{width:100%;overflow:auto;scrollbar-width:none;margin-bottom:16px}
+.phone .navpills a{padding:6px 11px;font-size:12px}
+.phone .track-wrap{border-radius:0;padding:14px 0;margin-bottom:12px}
+.phone .track{padding:0 14px 2px}
+.phone .track-head{padding:0 18px 10px}
+.phone .day{flex:0 0 118px;min-height:146px}
+.phone .day.today{flex:0 0 92px}
+.phone .bento{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.phone .tile{padding:14px;border-radius:17px}
+.phone .t-2,.phone .t-4{grid-column:span 2}
+.phone .now h2{font-size:18px}
+.phone .money .big,.phone .ideas .big{font-size:28px}
+.phone .topbar{margin-bottom:14px}
+
+.note{max-width:1420px;margin:34px auto 0;font-family:var(--mono);font-size:12px;color:var(--ink-2);background:var(--white);border-radius:18px;padding:16px 18px;display:flex;gap:14px;flex-wrap:wrap;align-items:baseline}
+.note b{font-family:var(--body);font-weight:600;color:var(--ink);background:#FFE8A3;padding:2px 8px;border-radius:999px}
+.note span{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:900px){.bento{grid-template-columns:repeat(2,minmax(0,1fr))}.t-4{grid-column:span 2}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.4"/><path d="M12 2v2.2M12 19.8V22M2 12h2.2M19.8 12H22M4.9 4.9l1.6 1.6M17.5 17.5l1.6 1.6M19.1 4.9l-1.6 1.6M6.5 17.5l-1.6 1.6"/></symbol>
+<symbol id="i-part" viewBox="0 0 24 24"><circle cx="8.5" cy="8" r="3.2"/><path d="M8.5 2.2v1.6M2.7 8h1.6M4.4 3.9l1.1 1.1"/><path d="M9.5 20h8.6a3.9 3.9 0 0 0 .3-7.8 5.4 5.4 0 0 0-10.2 1 3.4 3.4 0 0 0 1.3 6.8Z"/></symbol>
+<symbol id="i-rain" viewBox="0 0 24 24"><path d="M7 15.5h9.8a3.9 3.9 0 0 0 .3-7.8 5.5 5.5 0 0 0-10.4 1A3.5 3.5 0 0 0 7 15.5Z"/><path d="M8.6 18.4l-.9 2.8M12.4 18.4l-.9 2.8M16.2 18.4l-.9 2.8"/></symbol>
+<symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h13M13 6.5 18.5 12 13 17.5"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 6v12M6 12h12"/></symbol>
+<symbol id="i-plane" viewBox="0 0 24 24"><path d="M3 13.5 21 5l-4 8.5 1.5 6-3-1.5-3 3-1-4.5Z"/></symbol>
+<symbol id="i-train" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="14" rx="4"/><path d="M5 11h14M8 21l2-4M16 21l-2-4"/></symbol>
+<symbol id="i-vote" viewBox="0 0 24 24"><path d="M4 11.5 9 16.5 20 5.5"/><path d="M4 19h16"/></symbol>
+<symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.4"/><path d="M12 7.4v9.2M14.4 9.6a2.6 2.6 0 0 0-2.4-1.3c-1.4 0-2.5.8-2.5 2s1.1 1.7 2.5 2 2.5.8 2.5 2-1.1 2-2.5 2a2.7 2.7 0 0 1-2.5-1.4"/></symbol>
+</defs></svg>
+
+<div class="stage">
+
+  <!-- ── Desktop ─────────────────────────────────────────────────────────── -->
+  <div class="col-desk">
+    <div class="stage-label">Desktop &middot; 1280</div>
+    <div class="screen">
+
+      <div class="topbar">
+        <div class="mark">way<span>.</span>point</div>
+        <nav class="navpills">
+          <a href="#" class="on">Overview</a><a href="#">Ideas</a><a href="#">Dates</a><a href="#">Days</a><a href="#">Money</a>
+        </nav>
+        <span class="pill">Aidan</span>
+      </div>
+
+      <div class="hero">
+        <div>
+          <h1>Lisbon &amp; Porto</h1>
+          <div class="dates">11 &ndash; 17 Aug 2026 &middot; 6 nights</div>
+          <div class="tags">
+            <span class="pill pill-blue">13 days away</span>
+            <span class="pill">sun &amp; food</span>
+            <span class="pill">first trip</span>
+          </div>
+        </div>
+        <div class="faces">
+          <span class="face f1">AI</span><span class="face f2">PT</span><span class="face f3">TK</span><span class="face f4">ZM</span>
+          <span class="add"><svg class="ico ico-s"><use href="#i-plus"/></svg></span>
+        </div>
+      </div>
+
+      <div class="track-wrap">
+        <div class="track-head">
+          <span class="tag">The week</span>
+          <span class="tag">Colour is where you sleep</span>
+        </div>
+        <div class="track">
+          <div class="day today">
+            <span class="d">TODAY</span>
+            <div><div class="num">13</div><div class="cap">days to go</div></div>
+          </div>
+          <div class="day lisbon">
+            <span class="d">MON 11</span><span class="place">Lisbon</span>
+            <span class="flag"><svg class="ico ico-s"><use href="#i-plane"/></svg> land 09:40</span>
+            <span class="wxrow"><svg class="ico ico-s"><use href="#i-sun"/></svg> 31&deg; / 19&deg;</span>
+          </div>
+          <div class="day lisbon">
+            <span class="d">TUE 12</span><span class="place">Lisbon</span>
+            <span class="wxrow"><svg class="ico ico-s"><use href="#i-sun"/></svg> 33&deg; / 20&deg;</span>
+          </div>
+          <div class="day lisbon">
+            <span class="d">WED 13</span><span class="place">Lisbon</span>
+            <span class="wxrow"><svg class="ico ico-s"><use href="#i-part"/></svg> 30&deg; / 18&deg;</span>
+          </div>
+          <div class="day travel">
+            <span class="d">THU 14</span><span class="place" style="font-size:15px">Lisbon<br>&rarr; Porto</span>
+            <span class="flag" style="background:var(--peri);color:var(--peri-ink)"><svg class="ico ico-s"><use href="#i-train"/></svg> not booked</span>
+            <span class="wxrow"><svg class="ico ico-s"><use href="#i-part"/></svg> 27&deg; / 17&deg;</span>
+          </div>
+          <div class="day porto wet">
+            <span class="d">FRI 15</span><span class="place">Porto</span>
+            <span class="wxrow"><svg class="ico ico-s"><use href="#i-rain"/></svg> 24&deg; / 16&deg;</span>
+          </div>
+          <div class="day porto">
+            <span class="d">SAT 16</span><span class="place">Porto</span>
+            <span class="wxrow"><svg class="ico ico-s"><use href="#i-part"/></svg> 26&deg; / 17&deg;</span>
+          </div>
+          <div class="day porto">
+            <span class="d">SUN 17</span><span class="place">Home</span>
+            <span class="flag"><svg class="ico ico-s"><use href="#i-plane"/></svg> 18:25</span>
+            <span class="wxrow"><svg class="ico ico-s"><use href="#i-sun"/></svg> 29&deg; / 19&deg;</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bento">
+
+        <section class="tile now t-2">
+          <div>
+            <span class="tag">Needs you</span>
+            <h2 style="margin-top:6px">Two things, then you&rsquo;re clear</h2>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div class="row">
+              <span class="go" style="background:var(--white);color:var(--blue)"><svg class="ico ico-s"><use href="#i-vote"/></svg></span>
+              <b>Vote on the last 2 ideas</b>
+              <span class="go"><svg class="ico ico-s"><use href="#i-arrow"/></svg></span>
+            </div>
+            <div class="row">
+              <span class="go" style="background:var(--white);color:var(--blue)"><svg class="ico ico-s"><use href="#i-coin"/></svg></span>
+              <b>Pay Tom for the Lisbon flat</b>
+              <span class="amount">&pound;42.50</span>
+              <span class="go"><svg class="ico ico-s"><use href="#i-arrow"/></svg></span>
+            </div>
+          </div>
+        </section>
+
+        <section class="tile money">
+          <span class="tag" style="color:inherit;opacity:.6">Spent so far</span>
+          <div class="big">&pound;680</div>
+          <div class="sub">&pound;118 still owed to the pot</div>
+          <div class="bar"><i></i></div>
+        </section>
+
+        <section class="tile ideas">
+          <span class="tag" style="color:inherit;opacity:.6">Ideas</span>
+          <div class="big">6</div>
+          <div class="sub">shortlisted &middot; 2 unvoted</div>
+          <div class="dots"><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i></i><i></i></div>
+        </section>
+
+        <section class="tile wait t-2">
+          <span class="tag" style="color:inherit;opacity:.6">Waiting on</span>
+          <div class="wait-list">
+            <span class="wait-chip"><span class="face f3">TK</span> Tom &mdash; his dates</span>
+            <span class="wait-chip"><span class="face f2">PT</span> Priya &mdash; settle up</span>
+            <span class="wait-chip"><span class="face f4">ZM</span> Zara &mdash; settle up</span>
+            <span class="wait-chip" style="background:rgb(255 255 255/.35)">Nudge all three</span>
+          </div>
+        </section>
+
+        <section class="tile next t-2">
+          <div class="txt">
+            <h3>The Porto train isn&rsquo;t booked</h3>
+            <div class="sub">Thursday is the only day nobody has claimed.</div>
+          </div>
+          <a href="#" class="btn">Pick a departure <svg class="ico ico-s"><use href="#i-arrow"/></svg></a>
+          <a href="#" class="btn btn-ghost">Trip settings</a>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Phone ───────────────────────────────────────────────────────────── -->
+  <div class="col-phone">
+    <div class="stage-label">Phone &middot; 390 &middot; track swipes</div>
+    <div class="phone-shell phone">
+
+      <div class="pad">
+        <div class="topbar">
+          <div class="mark" style="font-size:15px">way<span>.</span>point</div>
+          <span class="face f1">AI</span>
+        </div>
+        <nav class="navpills">
+          <a href="#" class="on">Overview</a><a href="#">Ideas</a><a href="#">Dates</a><a href="#">Days</a><a href="#">Money</a>
+        </nav>
+        <div class="hero">
+          <div>
+            <h1>Lisbon<br>&amp; Porto</h1>
+            <div class="dates">11 &ndash; 17 Aug &middot; 6 nights</div>
+            <div class="tags"><span class="pill pill-blue">13 days away</span><span class="pill">sun &amp; food</span></div>
+          </div>
+          <div class="faces">
+            <span class="face f1">AI</span><span class="face f2">PT</span><span class="face f3">TK</span><span class="face f4">ZM</span>
+            <span class="add"><svg class="ico ico-s"><use href="#i-plus"/></svg></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="track-wrap">
+        <div class="track-head"><span class="tag">The week</span><span class="tag">swipe &rarr;</span></div>
+        <div class="track">
+          <div class="day today"><span class="d">TODAY</span><div><div class="num">13</div><div class="cap">days to go</div></div></div>
+          <div class="day lisbon">
+            <span class="d">MON 11</span><span class="place">Lisbon</span>
+            <span class="flag"><svg class="ico ico-s"><use href="#i-plane"/></svg> land 09:40</span>
+            <span class="wxrow"><svg class="ico ico-s"><use href="#i-sun"/></svg> 31&deg;</span>
+          </div>
+          <div class="day lisbon"><span class="d">TUE 12</span><span class="place">Lisbon</span><span class="wxrow"><svg class="ico ico-s"><use href="#i-sun"/></svg> 33&deg;</span></div>
+          <div class="day travel">
+            <span class="d">THU 14</span><span class="place" style="font-size:14px">Lisbon<br>&rarr; Porto</span>
+            <span class="flag" style="background:var(--peri);color:var(--peri-ink)"><svg class="ico ico-s"><use href="#i-train"/></svg> not booked</span>
+          </div>
+          <div class="day porto wet"><span class="d">FRI 15</span><span class="place">Porto</span><span class="wxrow"><svg class="ico ico-s"><use href="#i-rain"/></svg> 24&deg;</span></div>
+        </div>
+      </div>
+
+      <div class="pad">
+        <div class="bento">
+          <section class="tile now t-2">
+            <span class="tag">Needs you</span>
+            <div style="display:flex;flex-direction:column;gap:7px;margin-top:10px">
+              <div class="row">
+                <span class="go" style="background:var(--white);color:var(--blue)"><svg class="ico ico-s"><use href="#i-vote"/></svg></span>
+                <b>Vote on 2 ideas</b>
+                <span class="go"><svg class="ico ico-s"><use href="#i-arrow"/></svg></span>
+              </div>
+              <div class="row">
+                <span class="go" style="background:var(--white);color:var(--blue)"><svg class="ico ico-s"><use href="#i-coin"/></svg></span>
+                <b>Pay Tom</b>
+                <span class="amount">&pound;42.50</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="tile money">
+            <span class="tag" style="color:inherit;opacity:.6">Spent</span>
+            <div class="big">&pound;680</div>
+            <div class="sub">&pound;118 owed</div>
+            <div class="bar"><i></i></div>
+          </section>
+
+          <section class="tile ideas">
+            <span class="tag" style="color:inherit;opacity:.6">Ideas</span>
+            <div class="big">6</div>
+            <div class="sub">2 unvoted</div>
+            <div class="dots"><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i></i><i></i></div>
+          </section>
+
+          <section class="tile wait t-2">
+            <span class="tag" style="color:inherit;opacity:.6">Waiting on</span>
+            <div class="wait-list">
+              <span class="wait-chip"><span class="face f3">TK</span> Tom &mdash; his dates</span>
+              <span class="wait-chip"><span class="face f2">PT</span> Priya &mdash; settle up</span>
+            </div>
+          </section>
+
+          <section class="tile next t-2">
+            <div class="txt">
+              <h3>The Porto train isn&rsquo;t booked</h3>
+              <div class="sub">Thursday is unclaimed.</div>
+            </div>
+            <a href="#" class="btn">Pick a departure <svg class="ico ico-s"><use href="#i-arrow"/></svg></a>
+          </section>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<div class="note">
+  <b>W4 &middot; Track and tiles</b>
+  <span>W3&rsquo;s day track on top, W1&rsquo;s bento underneath. Blue is a tint, not a slab; hover lifts 1.5&ndash;2px with a soft shadow.</span>
+  <span>Open question: the track and the tiles both answer &ldquo;how&rsquo;s it going&rdquo; &mdash; does the page need both, or does the track make the ideas and money tiles redundant?</span>
+</div>
