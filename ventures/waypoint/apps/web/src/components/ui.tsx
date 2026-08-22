@@ -245,13 +245,15 @@ export function EmptyState({
   children?: ReactNode;
   action?: ReactNode;
 }) {
+  // An invitation, not a report (ticket 202): the action is the point of the
+  // block, so it gets room rather than sitting as a footnote under the copy.
   return (
-    <div className="rounded-md border border-dashed border-rule-strong px-6 py-10 text-center">
-      <p className="font-display text-base font-semibold">{title}</p>
+    <div className="rounded-lg bg-sheet-2 px-6 py-12 text-center">
+      <p className="font-display text-lg font-semibold">{title}</p>
       {children ? (
-        <p className="mx-auto mt-1 max-w-sm text-sm text-ink-soft">{children}</p>
+        <p className="mx-auto mt-2 max-w-[46ch] text-sm text-ink-soft">{children}</p>
       ) : null}
-      {action ? <div className="mt-4 flex justify-center">{action}</div> : null}
+      {action ? <div className="mt-6 flex justify-center">{action}</div> : null}
     </div>
   );
 }

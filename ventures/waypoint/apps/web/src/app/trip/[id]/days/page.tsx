@@ -94,15 +94,17 @@ export default async function DaysPage({
             title="No days yet"
             action={
               <form action={addDays.bind(null, trip.id, trip.startDate, 1)}>
-                <SubmitButton>Add the first day</SubmitButton>
+                <SubmitButton variant="primary">Add the first day</SubmitButton>
               </form>
             }
-          />
+          >
+            The itinerary starts the moment there&rsquo;s a day to hang it on.
+          </EmptyState>
         ) : (
           <EmptyState
             title="No dates yet"
             action={
-              <ButtonLink href={`/trip/${trip.id}/dates`}>
+              <ButtonLink variant="primary" href={`/trip/${trip.id}/dates`}>
                 Pick the dates
               </ButtonLink>
             }

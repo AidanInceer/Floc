@@ -10,26 +10,30 @@
  *  - It gives Next.js a prefetchable boundary for these dynamic routes, so a
  *    hovered tab has something ready before it is clicked.
  *
- * Ruled lines rather than the usual grey skeleton bars: an empty page of the
- * notebook is the honest thing to show while the entry is being written.
+ * It holds the shape every tab arrives in (ticket 202) — a heading, a row of
+ * tiles, then a body — so the page settles into the skeleton instead of
+ * jumping past it.
  */
-import { Page } from "@/components/ui";
-
 export default function TripTabLoading() {
   return (
-    <Page wide flush>
-      <div aria-busy="true" aria-live="polite" className="py-2">
-        <span className="typed">Turning the page…</span>
-        <div className="mt-6 space-y-7" aria-hidden>
-          {[26, 20, 23, 14, 18].map((width, i) => (
-            <div
-              key={i}
-              className="h-3 rounded-sm bg-sheet-3 opacity-70"
-              style={{ width: `${width}ch` }}
-            />
+    <div
+      aria-busy="true"
+      aria-live="polite"
+      className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6"
+    >
+      <span className="typed">Loading…</span>
+      <div className="mt-4 flex flex-col gap-4" aria-hidden>
+        <div className="h-9 w-[18ch] rounded-md bg-sheet-3 opacity-70" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="h-28 rounded-lg bg-sheet opacity-80" />
           ))}
         </div>
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,58fr)_minmax(0,42fr)]">
+          <div className="h-64 rounded-lg bg-sheet opacity-80" />
+          <div className="h-64 rounded-lg bg-sheet opacity-80" />
+        </div>
       </div>
-    </Page>
+    </div>
   );
 }
