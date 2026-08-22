@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   addMonths,
   bestWindow,
+  candidateRuns,
   daysInMonth,
   monthGrid,
   monthsFrom,
@@ -157,5 +158,30 @@ describe("bestWindow", () => {
       end: "2026-09-13",
       free: 1,
     });
+  });
+});
+
+describe("candidate runs", () => {
+  // a and b overlap on the 10th–12th; c can only manage the 12th–14th.
+  const rows: AvailabilityRow[] = [
+    ...free("a", "2026-09-10", "2026-09-11", "2026-09-12"),
+    ...free("b", "2026-09-10", "2026-09-11", "2026-09-12"),
+    ...free("c", "2026-09-12", "2026-09-13", "2026-09-14"),
+  ];
+
+  it("names who each run loses", () => {
+    const runs = candidateRuns(rows, ["a", "b", "c"]);
+    const best = runs[0];
+    expect(best).toMatchObject({ start: "2026-09-10", end: "2026-09-12" });
+    expect(best.going.sort()).toEqual(["a", "b"]);
+    expect(best.missing).toEqual(["c"]);
+  });
+
+  it("counts nights, not days, so a three-day run is two nights", () => {
+    expect(candidateRuns(rows, ["a", "b", "c"])[0].nights).toBe(2);
+  });
+
+  it("has nothing to offer before anyone has answered", () => {
+    expect(candidateRuns([], ["a", "b"])).toEqual([]);
   });
 });

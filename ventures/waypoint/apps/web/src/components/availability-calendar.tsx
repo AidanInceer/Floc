@@ -264,7 +264,7 @@ export function AvailabilityCalendar({
       {/* One row at every width (ticket 134): a wrap stranded the arrows on
           their own line. */}
       <div className="mb-4 flex items-center justify-between gap-2">
-        <div className="inline-flex shrink-0 overflow-hidden rounded-md border border-rule-strong">
+        <div className="inline-flex shrink-0 gap-1 rounded-full bg-sheet/60 p-1">
           {(hasWeather
             ? (["mine", "everyone", "dates", "weather"] as const)
             : (["mine", "everyone", "dates"] as const)
@@ -277,10 +277,10 @@ export function AvailabilityCalendar({
               className={cx(
                 // `whitespace-nowrap`: survive being squeezed next to the arrows
                 // rather than breaking "The dates" over two lines.
-                "whitespace-nowrap px-2 py-1 font-mono text-[11px] uppercase tracking-[0.06em] transition-colors sm:px-3",
+                "whitespace-nowrap rounded-full px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.06em] transition-colors sm:px-3",
                 view === v
                   ? "bg-pen text-sheet"
-                  : "bg-sheet text-ink-soft hover:bg-sheet-2",
+                  : "text-ink-soft hover:bg-sheet",
               )}
             >
               {v === "mine"
@@ -470,6 +470,8 @@ export function AvailabilityCalendar({
           >
             Discard
           </Button>
+          {/* Status is never colour alone — the mark gets a word too. */}
+          <LegendKey swatch="bg-pen-soft border-pen" label="Days you can do" />
         </div>
       ) : view === "everyone" ? (
         /* A key, not a paragraph (ticket 76): swatch matches, not reads. */
@@ -541,7 +543,7 @@ function DayCell({
 
   // Shared cell chrome: one rule under the week, no box around the day (ticket 129).
   const cell =
-    "relative flex aspect-square flex-col items-center justify-center border-b border-rule font-mono text-[11px] leading-none";
+    "relative flex aspect-square flex-col items-center justify-center border-b border-ink/10 font-mono text-[11px] leading-none";
 
   // Focus ring on the mark, not the cell (ticket 129): the square cell outline
   // drew a blue box around the round mark.
@@ -701,8 +703,9 @@ function DayCell({
           picking && pending && "bg-green/45 font-semibold text-sheet",
           // Start with no end: ringed, else a lone solid day read as a one-day trip.
           picking && openEnd && "ring-2 ring-pen ring-offset-1 ring-offset-sheet",
-          // A free day is a pen mark, not a filled box (ticket 129).
-          !picking && free && "bg-green-soft font-semibold text-green ring-1 ring-green",
+          // Blue, because a day you marked is your own answer (ticket 197) —
+          // green is reserved for the run the whole group can do.
+          !picking && free && "bg-pen-soft font-semibold text-pen-deep ring-1 ring-pen",
           !picking && !free && "text-ink-soft",
           isToday && !free && !inRange && "ring-1 ring-pen", // today circled
 
