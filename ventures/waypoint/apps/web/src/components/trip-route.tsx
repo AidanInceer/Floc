@@ -64,13 +64,12 @@ export function TripRoute({
     transportModes.get(stops[i].dayIds[0]) ?? null;
 
   return (
-    <section className="mt-6">
-      <h2 className="text-[15px] font-semibold">Where you&rsquo;re going</h2>
-      {/* Same 65/35 split as the hero, so the page has one column rule rather
-          than two. The list wants far less width than the map and gets it. */}
-      <div className="mt-3 grid gap-4 lg:grid-cols-[minmax(0,65fr)_minmax(0,35fr)] lg:items-start">
+    <section className="mt-4 rounded-lg bg-blush p-6 text-blush-ink">
+      <h2 className="text-xl">Where you&rsquo;re going</h2>
+      {/* The list wants far less width than the map and gets it. */}
+      <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,65fr)_minmax(0,35fr)] lg:items-start">
         <RouteMap stops={pinned} missing={missing} />
-        <ol className="rounded-md border border-rule-strong bg-sheet-2 p-3">
+        <ol className="rounded-md bg-sheet/70 p-3">
           {stops.map((stop, i) => (
             <li key={stop.dayIds.join("-")}>
               {i > 0 ? <Leg mode={legMode(i)} /> : null}
@@ -78,7 +77,7 @@ export function TripRoute({
                 {/* Same ring/number as the map's pins — row and pin are one stop drawn twice. */}
                 <span
                   aria-hidden="true"
-                  className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border-2 border-pen font-mono text-[10px] font-bold text-pen-deep"
+                  className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border-2 border-current font-mono text-[10px] font-bold"
                 >
                   {i + 1}
                 </span>
@@ -86,7 +85,7 @@ export function TripRoute({
                   <p className="truncate font-display text-[15px] font-semibold leading-tight">
                     {stop.placeName ?? "Unnamed place"}
                   </p>
-                  <p className="mt-0.5 font-mono text-[11px] text-ink-faint">
+                  <p className="mt-0.5 font-mono text-[11px] opacity-70">
                     {stop.startDate === stop.endDate
                       ? formatDate(stop.startDate)
                       : `${formatDate(stop.startDate)} – ${formatDate(stop.endDate)}`}{" "}
@@ -106,8 +105,8 @@ export function TripRoute({
 // is always spelled out beside its glyph since `other` has no icon (ticket 78).
 function Leg({ mode }: { mode: TransportType | null }) {
   return (
-    <div className="flex items-center gap-1.5 pl-2.5 text-ink-soft">
-      <span aria-hidden="true" className="h-4 w-0.5 shrink-0 bg-rule-strong" />
+    <div className="flex items-center gap-1.5 pl-2.5 opacity-75">
+      <span aria-hidden="true" className="h-4 w-0.5 shrink-0 bg-current opacity-40" />
       {mode ? (
         <span className="inline-flex items-center gap-1 font-mono text-[10.5px] uppercase tracking-[0.06em]">
           <TravelModeIcon mode={mode} />

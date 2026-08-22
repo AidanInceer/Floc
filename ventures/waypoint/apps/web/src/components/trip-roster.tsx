@@ -60,9 +60,9 @@ export function TripRoster({
   friends: Person[];
 }) {
   return (
-    <section className="tape-panel rounded-md border border-rule-strong bg-sheet-2 p-5">
-      <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-rule-strong pb-2">
-        <h2 className="text-[15px] font-semibold">Who&rsquo;s going</h2>
+    <section className="mt-4 rounded-lg bg-butter p-6 text-butter-ink">
+      <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-ink/10 pb-3">
+        <h2 className="text-xl">Who&rsquo;s going</h2>
         {/* Invite URL never appears on the page — the button copies it instead. */}
         {inviteUrl ? (
           <span className="flex items-center gap-2">
@@ -92,11 +92,11 @@ export function TripRoster({
         ) : null}
       </div>
 
-      <ul className="mt-1">
+      <ul className="mt-3 grid gap-2 sm:grid-cols-2">
         {members.map((m) => (
           <li
             key={m.userId}
-            className="flex items-center gap-2 border-b border-dotted border-rule-strong py-1.5 last:border-b-0"
+            className="flex items-center gap-2 rounded-md bg-sheet/70 px-3 py-2"
           >
             <span className="flex min-w-0 flex-1 items-center gap-2 text-sm">
               {/* Every face links to that person's profile (ticket 46). */}
@@ -112,7 +112,7 @@ export function TripRoster({
                 <span className="flex items-center gap-2">
                   <span className="truncate">{m.name}</span>
                   {m.userId === viewerId ? (
-                    <span className="text-xs text-ink-faint">(you)</span>
+                    <span className="text-xs opacity-60">(you)</span>
                   ) : null}
                   {m.role === "admin" ? <Badge tone="marine">Admin</Badge> : null}
                 </span>
@@ -212,9 +212,9 @@ export function TripRoster({
         {pendingInvitees.map((p) => (
           <li
             key={p.userId}
-            className="flex items-center gap-2 border-b border-dotted border-rule-strong py-1.5 last:border-b-0"
+            className="flex items-center gap-2 rounded-md bg-sheet/70 px-3 py-2"
           >
-            <span className="flex min-w-0 flex-1 items-center gap-2 text-sm text-ink-soft">
+            <span className="flex min-w-0 flex-1 items-center gap-2 text-sm opacity-75">
               <span className="opacity-60">
                 <Avatar name={p.name} src={p.avatarUrl} size={26} />
               </span>
@@ -227,7 +227,7 @@ export function TripRoster({
       </ul>
 
       {isAdmin && members.length === 1 && pendingInvitees.length === 0 ? (
-        <p className="mt-3 text-xs text-ink-faint">
+        <p className="mt-3 text-xs opacity-70">
           Just you so far — share the trip to get the others in.
         </p>
       ) : null}
