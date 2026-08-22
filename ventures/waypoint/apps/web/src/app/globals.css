@@ -42,59 +42,78 @@
 :root {
   color-scheme: light;
 
-  --paper: #f3eee2;
-  --sheet: #fbf8f1;
-  --sheet-2: #f1ead9;
-  --sheet-3: #e7dfca;
-  --rule: #ded3ba;
-  --rule-2: #c4b795;
+  /*
+   * The white-and-pastel palette (ticket 188). Token NAMES are kept where the
+   * job survives the repaint — `--sheet` is still "a surface", `--pen` is still
+   * "the primary-action ink" — so call sites are not renamed twice, here and
+   * again during the page work. The names still read paper-era; collapsing and
+   * renaming them (`--pen`/`--color-pen`, dead texture tokens) is ticket 206.
+   * The visual language docs are the yardstick — see docs/design/.
+   */
 
-  /* The ruled line and the red margin — texture, not content. */
-  --line: #cfe0e6;
-  --margin-line: #dfb4ae;
-  --tape: rgb(214 196 150 / 0.55);
+  /* Ground and surfaces. Canvas is the page; white is every surface. */
+  --paper: #efeeea; /* canvas — the ground the app sits on */
+  --sheet: #ffffff; /* white — every surface */
+  --sheet-2: #f7f6f3; /* a surface one step off white, for nested panels */
+  --sheet-3: #efeeea; /* canvas again — a recess in a white surface */
+  --rule: #e6e4de; /* hairline */
+  --rule-2: #d8d5cd; /* a stronger hairline */
 
-  --ink: #23211c;
-  --ink-2: #57524a;
-  --ink-3: #8b8477;
+  /* Was ruled lines and a red margin. Now near-invisible neutral hairlines —
+     the paper texture is repainted out crudely here; the primitives lose the
+     ruled sheet outright in ticket 190. */
+  --line: #ecebe7;
+  --margin-line: #e6e4de;
+  --tape: rgb(230 228 222 / 0.6);
 
-  --pen: #2a4d7a; /* biro blue — decisions, links, primary actions */
-  /* The same biro pressed harder — the hover ink for anything filled with
-     `--pen` (ticket 120). A `brightness()` filter used to stand in for this,
-     and the shift it produced was too small to read as a hover at all; a
-     token gives the state a real step and keeps components hex-free. */
-  --pen-deep: #16304f;
-  --pen-2: #dfe7f1;
-  --pencil: #6a6559;
+  --ink: #14141a;
+  --ink-2: #63636f;
+  --ink-3: #9b9ba5;
 
-  /* Status: highlighter for open, correction-red for needs-action, a green
-     stamp for done. Every state also carries a word — never colour alone. */
-  --highlight: #f3dd7e;
-  --highlight-2: #fbf2cd;
-  --highlight-ink: #7a6414; /* legible text on the highlighter wash */
-  /* Two more highlighter pens, same saturation as the yellow, for the cover's
-     notes → plan contrast. Washes (`--red-2`/`--green-2`) are too pale to read
-     as a marker stroke behind text. */
-  --highlight-red: #efb3a8;
-  --highlight-green: #b9d8a2;
-  --red: #a03f36;
-  --red-2: #f6e3df;
-  --green: #4d6b3f;
-  --green-2: #e6ecdd;
+  /* Blue means "yours to do" and nothing else — actions, links, your own rows.
+     `--pen` keeps its job (the primary-action ink) so nothing is renamed yet. */
+  --pen: #4e68d8;
+  --pen-deep: #2b3b85; /* the pressed-harder hover ink for anything blue-filled */
+  --pen-2: #e7ebfa; /* the soft tint blue sits on */
+  --pencil: #63636f;
 
-  /* One step darker than each wash, so a filled pill has an outline on cream
-     rather than a soft edge that dissolves into the sheet. Introduced for the
-     comment reactions (v0.2 ticket 06). */
-  --highlight-edge: #e4d194;
-  --red-edge: #e4c3bb;
-  --green-edge: #c6d4b5;
-  /* The blue wash's edge, added so Days' transport cards outline like the
-     activity and food ones rather than dissolving into the sheet (ticket 73). */
-  --pen-edge: #bfd0e6;
+  /* Four pastels, one per domain (wash / ink): peri = dates, mint = money,
+     butter = ideas and people, blush = route and places. Layouts do not carry
+     these per-domain yet — that is the page work (tickets 192+) — but the
+     tokens exist so those tickets reach for a name, never a hex. */
+  --peri: #dfe3ff;
+  --peri-ink: #33409b;
+  --mint: #dcefe4;
+  --mint-ink: #1b6b4c;
+  --butter: #fbeac8;
+  --butter-ink: #8a6412;
+  --blush: #faddd6;
+  --blush-ink: #a34a31;
 
-  --shadow-sm: 0 1px 1px rgb(35 33 28 / 0.05);
-  --shadow: 0 1px 1px rgb(35 33 28 / 0.05), 0 12px 26px -14px rgb(35 33 28 / 0.35);
-  --shadow-lift: 0 2px 3px rgb(35 33 28 / 0.07), 0 18px 34px -16px rgb(35 33 28 / 0.45);
+  /* Status keeps its three-state job but is repainted onto the domain pastels:
+     butter for open/marked, blush for needs-action, mint for done. Every state
+     still carries a word too — never colour alone. */
+  --highlight: #fbeac8;
+  --highlight-2: #fdf4e1;
+  --highlight-ink: #8a6412;
+  --highlight-red: #faddd6;
+  --highlight-green: #dcefe4;
+  --red: #a34a31;
+  --red-2: #faddd6;
+  --green: #1b6b4c;
+  --green-2: #dcefe4;
+
+  /* One step darker than each wash, so a filled pill outlines on white rather
+     than dissolving into it. */
+  --highlight-edge: #efd9ae;
+  --red-edge: #f0c7bc;
+  --green-edge: #c3e3d2;
+  --pen-edge: #c6d0f2;
+
+  /* Quiet motion (ticket 187): a tiny lift on a soft shadow, nothing heavy. */
+  --shadow-sm: 0 1px 2px rgb(20 20 26 / 0.05);
+  --shadow: 0 1px 2px rgb(20 20 26 / 0.05), 0 6px 14px -12px rgb(20 20 26 / 0.3);
+  --shadow-lift: 0 2px 4px rgb(20 20 26 / 0.06), 0 14px 28px -16px rgb(20 20 26 / 0.35);
 
   --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia,
     "Times New Roman", serif;
@@ -137,22 +156,30 @@
    * their own darker ink. Assigned deterministically from the display name
    * (see `whoTone` in components/ui.tsx), never from a database column.
    */
-  --who-1: #dbe4f2;
-  --who-1-ink: #2a4d7a;
-  --who-2: #f3dcdf;
-  --who-2-ink: #8e4550;
-  --who-3: #f4e6c8;
-  --who-3-ink: #7d5b18;
-  --who-4: #dfe9d6;
-  --who-4-ink: #436035;
-  --who-5: #e4dff0;
-  --who-5-ink: #574d75;
-  --who-6: #d7e7e6;
-  --who-6-ink: #2f5c58;
-  --who-7: #f7e0cf;
-  --who-7-ink: #8a5227;
-  --who-8: #e3e0d5;
-  --who-8-ink: #5a5446;
+  /*
+   * People. The direction puts members in the butter domain with a per-seat
+   * tint, but the exact tinting mechanism is deferred to the roster page work
+   * (ticket 199). For now the eight seats are repainted onto the new palette
+   * so a nine-person trip still tells apart at a glance and nothing reads
+   * paper-era — assigned deterministically from the name (`whoTone` in
+   * components/ui.tsx), never from a column.
+   */
+  --who-1: #dfe3ff;
+  --who-1-ink: #33409b;
+  --who-2: #faddd6;
+  --who-2-ink: #a34a31;
+  --who-3: #fbeac8;
+  --who-3-ink: #8a6412;
+  --who-4: #dcefe4;
+  --who-4-ink: #1b6b4c;
+  --who-5: #e7ebfa;
+  --who-5-ink: #2b3b85;
+  --who-6: #e4ecec;
+  --who-6-ink: #3d5c5a;
+  --who-7: #f3e7da;
+  --who-7-ink: #7a5a2b;
+  --who-8: #e9e7e2;
+  --who-8-ink: #5a564d;
 }
 
 /*
@@ -187,6 +214,16 @@
   --color-pen-soft: var(--pen-2);
   --color-pen-edge: var(--pen-edge);
   --color-pencil: var(--pencil);
+
+  /* The four domain pastels: bg-peri/text-peri-ink, mint, butter, blush. */
+  --color-peri: var(--peri);
+  --color-peri-ink: var(--peri-ink);
+  --color-mint: var(--mint);
+  --color-mint-ink: var(--mint-ink);
+  --color-butter: var(--butter);
+  --color-butter-ink: var(--butter-ink);
+  --color-blush: var(--blush);
+  --color-blush-ink: var(--blush-ink);
 
   --color-highlight: var(--highlight);
   --color-highlight-soft: var(--highlight-2);
@@ -1076,7 +1113,7 @@
 }
 
 .route-map-frame .leaflet-control-attribution {
-  background: rgb(251 248 241 / 0.85);
+  background: rgb(255 255 255 / 0.85);
   color: var(--ink-3);
 }
 
