@@ -210,8 +210,10 @@ export function ExpenseForm({
                 <div
                   key={m.userId}
                   className={cx(
-                    "flex flex-wrap items-center gap-2 rounded-sm border px-2 py-1.5",
-                    isIn ? "border-rule-strong bg-sheet" : "border-dashed border-rule",
+                    "flex flex-wrap items-center gap-2 rounded-md px-2.5 py-2",
+                    isIn
+                      ? "bg-sheet-2"
+                      : "border border-dashed border-rule",
                   )}
                 >
                   <Button
@@ -290,7 +292,7 @@ export function ExpenseForm({
         </Field>
 
         {/* Nudge only — the action, not this readout, is what refuses. */}
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-dotted border-rule-strong pt-2 text-sm text-ink-soft">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-rule pt-3 text-sm text-ink-soft">
           <span>
             {participants.length === 0
               ? "Nobody's in this cost yet."
