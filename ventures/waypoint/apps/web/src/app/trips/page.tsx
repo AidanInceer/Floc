@@ -1,8 +1,13 @@
 /**
- * /trips — post-login home (ticket 05). Non-archived trips the viewer is a
- * member of. Sort/tag (tickets 70, 71) live in the URL, not state, so the
- * page stays a server component and a view is linkable.
+ * /trips — post-login home (ticket 05; reskinned 193). Non-archived trips the
+ * viewer is a member of. Sort/tag (tickets 70, 71) live in the URL, not state,
+ * so the page stays a server component and a view is linkable.
+ *
+ * Ticket 193: trips waiting on you are split off the top of the grid, whatever
+ * the sort — the sort orders each half, it doesn't decide who blocks whom.
  */
+import type { ReactNode } from "react";
+
 import { requireUser } from "@/server/access";
 import { listFriendsFor, type Person } from "@/server/friends";
 import { listPendingInvitesFor, type PendingInvite } from "@/server/membership";
@@ -10,17 +15,10 @@ import { loadTripCards } from "./cards";
 import { formatDateRange, hasEnded } from "@/lib/dates";
 import {
   Avatar,
-  Badge,
   ButtonLink,
-  Card,
-  CardHeader,
-  EmptyState,
   Field,
   Input,
-  Page,
-  PageHeader,
   Stack,
-  cx,
 } from "@/components/ui";
 import { Sheet, SubmitButton } from "@/components/client-ui";
 import { FriendPicker } from "@/components/friend-picker";
@@ -64,36 +62,34 @@ export default async function TripsPage({
     : cards;
 
   const sorted = sortCards(filtered, sort);
+  const wanted = sorted.filter((c) => c.needsYou);
+  const rest = sorted.filter((c) => !c.needsYou);
 
   return (
-    <Page>
-      <PageHeader
-        title="My trips"
-        subtitle="Every trip you're part of, in one place."
-        actions={
-          <>
-            <ButtonLink href="/trips/archived" variant="ghost">
-              Archived
-            </ButtonLink>
-            <Sheet trigger="New trip" title="Start a trip">
-              <CreateTripForm friends={friends} />
-            </Sheet>
-          </>
-        }
-      />
-
-      {invites.length > 0 ? (
-        <div className="mb-5">
-          <InviteList invites={invites} />
+    <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
+      <header className="flex flex-wrap items-end justify-between gap-6">
+        <div>
+          <h1 className="text-[clamp(1.9rem,4vw,2.8rem)]">My trips</h1>
+          <p className="mt-3 text-md text-ink-soft">
+            Every trip you&rsquo;re part of, in one place.
+          </p>
         </div>
-      ) : null}
+        <div className="flex flex-wrap items-center gap-3">
+          <ButtonLink href="/trips/archived" variant="ghost">
+            Archived
+          </ButtonLink>
+          <Sheet trigger="New trip" title="Start a trip">
+            <CreateTripForm friends={friends} />
+          </Sheet>
+        </div>
+      </header>
+
+      {invites.length > 0 ? <InviteList invites={invites} /> : null}
 
       {cards.length > 1 ? (
-        <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+        <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-faint">
-              Sort
-            </span>
+            <span className="typed">Sort</span>
             {(Object.keys(SORTS) as Sort[]).map((key) => (
               <ButtonLink
                 key={key}
@@ -107,22 +103,17 @@ export default async function TripsPage({
           </div>
           {allTags.length > 0 ? (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-faint">
-                Tag
-              </span>
+              <span className="typed">Tag</span>
               {allTags.map((tag) => (
-                <a
+                <ButtonLink
                   key={tag}
                   // Clicking the active tag clears it — the pill is the toggle.
                   href={hrefFor({ sort, tag: tag === activeTag ? null : tag })}
                   aria-current={tag === activeTag ? "true" : undefined}
-                  className={cx(
-                    "rounded-sm",
-                    tag === activeTag ? "ring-1 ring-pen" : "opacity-80 hover:opacity-100",
-                  )}
+                  variant={tag === activeTag ? "primary" : "secondary"}
                 >
-                  <Badge tone="open">{tag}</Badge>
-                </a>
+                  {tag}
+                </ButtonLink>
               ))}
             </div>
           ) : null}
@@ -130,52 +121,134 @@ export default async function TripsPage({
       ) : null}
 
       {activeTag && sorted.length === 0 ? (
-        <EmptyState
+        <Nothing
           title={`No trips tagged “${activeTag}”`}
+          body="The tag is still on another trip somewhere, or it was just taken off this one."
           action={
-            <ButtonLink href={hrefFor({ sort, tag: null })} variant="secondary">
+            <ButtonLink href={hrefFor({ sort, tag: null })} variant="primary">
               Show every trip
             </ButtonLink>
           }
-        >
-          The tag is still on another trip somewhere, or it was just taken off
-          this one.
-        </EmptyState>
+        />
       ) : sorted.length === 0 ? (
-        <EmptyState
-          title="No trips yet"
-          action={
-            <Sheet trigger="Start your first trip" title="Start a trip">
-              <CreateTripForm friends={friends} />
-            </Sheet>
-          }
-        >
-          Start one with just a name — you can decide dates and destinations
-          with the group once it exists.
-        </EmptyState>
-      ) : (
-        <ul className="flex flex-col gap-3">
-          {sorted.map((t) => (
-            <TripCard key={t.id} trip={t} href={`/trip/${t.id}/overview`} />
-          ))}
+        <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <NewTripTile friends={friends} first />
         </ul>
+      ) : (
+        <>
+          {wanted.length > 0 ? (
+            <>
+              <SectionLabel
+                left="Waiting on you"
+                right={
+                  wanted.length === 1
+                    ? "One trip can’t move without you"
+                    : `${wanted.length} trips can’t move without you`
+                }
+              />
+              <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {wanted.map((t) => (
+                  <TripCard key={t.id} trip={t} href={`/trip/${t.id}/overview`} />
+                ))}
+              </ul>
+            </>
+          ) : null}
+
+          <SectionLabel
+            left={wanted.length > 0 ? "Everything else" : "Your trips"}
+            right={wanted.length > 0 ? "Nothing outstanding" : undefined}
+          />
+          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {rest.map((t) => (
+              <TripCard key={t.id} trip={t} href={`/trip/${t.id}/overview`} />
+            ))}
+            <NewTripTile friends={friends} />
+          </ul>
+        </>
       )}
-    </Page>
+
+      <section className="mt-8 flex flex-wrap items-center gap-6 rounded-lg bg-pen-soft px-8 py-7 text-pen-deep">
+        <div className="min-w-[16rem] flex-1">
+          <h2 className="text-xl">Nowhere in mind yet?</h2>
+          <p className="mt-2 max-w-[54ch] text-sm opacity-80">
+            Explore has itineraries someone has already thought through, so the
+            group has something to argue with.
+          </p>
+        </div>
+        <ButtonLink href="/explore" variant="primary">
+          Get inspired
+        </ButtonLink>
+      </section>
+    </div>
+  );
+}
+
+function SectionLabel({ left, right }: { left: string; right?: string }) {
+  return (
+    <div className="mb-4 mt-10 flex flex-wrap items-baseline justify-between gap-4">
+      <span className="typed">{left}</span>
+      {right ? <span className="typed">{right}</span> : null}
+    </div>
+  );
+}
+
+function Nothing({
+  title,
+  body,
+  action,
+}: {
+  title: string;
+  body: string;
+  action: ReactNode;
+}) {
+  return (
+    <div className="mt-8 rounded-lg bg-sheet px-6 py-14 text-center">
+      <h2 className="text-xl">{title}</h2>
+      <p className="mx-auto mt-2 max-w-[46ch] text-sm text-ink-soft">{body}</p>
+      <div className="mt-6 flex justify-center">{action}</div>
+    </div>
+  );
+}
+
+/** The last tile in the grid is the way to add another one. */
+function NewTripTile({ friends, first }: { friends: Person[]; first?: boolean }) {
+  return (
+    <li className="contents">
+      <Sheet
+        bareTrigger
+        trigger={
+          <span className="block text-left">
+            <span className="typed opacity-70">
+              {first ? "No trips yet" : "One more"}
+            </span>
+            <span className="mt-1 block font-display text-2xl font-semibold tracking-tight text-ink">
+              Start a trip
+            </span>
+            <span className="mt-2 block max-w-[32ch] text-sm text-ink-soft">
+              Name it, then ask your friends along. Dates can wait.
+            </span>
+          </span>
+        }
+        title="Start a trip"
+        triggerClassName="lift flex min-h-[15rem] w-full flex-col justify-center rounded-lg bg-sheet p-6 text-left shadow-[inset_0_0_0_2px_var(--rule)] hover:shadow-[inset_0_0_0_2px_var(--pen)]"
+      >
+        <CreateTripForm friends={friends} />
+      </Sheet>
+    </li>
   );
 }
 
 function InviteList({ invites }: { invites: PendingInvite[] }) {
   return (
-    <Card>
-      <CardHeader
-        title={invites.length === 1 ? "An invitation" : "Invitations"}
-        hint="Waiting on you."
-      />
-      <Stack gap={3} className="p-4">
+    <section className="mt-8 rounded-lg bg-butter p-6 text-butter-ink">
+      <p className="typed opacity-70">
+        {invites.length === 1 ? "An invitation" : "Invitations"} · waiting on you
+      </p>
+      <Stack gap={3} className="mt-4">
         {invites.map((invite) => (
           <div
             key={invite.tripId}
-            className="flex flex-wrap items-center justify-between gap-3"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-sheet/70 px-4 py-3"
           >
             <div className="flex min-w-0 items-center gap-2.5">
               <Avatar name={invite.fromName} src={invite.fromAvatarUrl} />
@@ -185,7 +258,7 @@ function InviteList({ invites }: { invites: PendingInvite[] }) {
                   <strong>{invite.tripName}</strong>
                 </p>
                 {invite.startDate || invite.endDate ? (
-                  <p className="text-xs text-ink-faint">
+                  <p className="nums text-xs opacity-75">
                     {formatDateRange(invite.startDate, invite.endDate)}
                   </p>
                 ) : null}
@@ -208,7 +281,7 @@ function InviteList({ invites }: { invites: PendingInvite[] }) {
           </div>
         ))}
       </Stack>
-    </Card>
+    </section>
   );
 }
 

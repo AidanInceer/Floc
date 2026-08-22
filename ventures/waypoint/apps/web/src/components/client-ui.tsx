@@ -89,6 +89,7 @@ export function Sheet({
   triggerClassName,
   triggerLabel,
   keepOpenOnSubmit,
+  bareTrigger,
 }: {
   trigger: ReactNode;
   title: string;
@@ -104,6 +105,9 @@ export function Sheet({
   /** Stay open after a submit — for repeat actions like reacting/replying
       rather than a one-shot add/edit (v0.2 ticket 06). */
   keepOpenOnSubmit?: boolean;
+  /** Skip the pill-button chrome entirely — for a trigger that *is* a surface,
+      like the "start a trip" tile in the /trips grid (ticket 193). */
+  bareTrigger?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(false);
@@ -124,18 +128,33 @@ export function Sheet({
 
   return (
     <>
-      <Button
-        variant={triggerVariant}
-        className={triggerClassName}
-        aria-label={triggerLabel}
-        title={triggerLabel}
-        onClick={() => {
-          ref.current?.showModal();
-          setOpen(true);
-        }}
-      >
-        {trigger}
-      </Button>
+      {bareTrigger ? (
+        <button
+          type="button"
+          className={triggerClassName}
+          aria-label={triggerLabel}
+          title={triggerLabel}
+          onClick={() => {
+            ref.current?.showModal();
+            setOpen(true);
+          }}
+        >
+          {trigger}
+        </button>
+      ) : (
+        <Button
+          variant={triggerVariant}
+          className={triggerClassName}
+          aria-label={triggerLabel}
+          title={triggerLabel}
+          onClick={() => {
+            ref.current?.showModal();
+            setOpen(true);
+          }}
+        >
+          {trigger}
+        </Button>
+      )}
       <dialog
         ref={ref}
         aria-labelledby={labelId}
