@@ -2,7 +2,7 @@
   "name": "nexus-hub",
   "version": "0.0.0",
   "private": true,
-  "description": "Nexus — a centralised incubator hub for building multiple ventures on shared foundations.",
+  "description": "Nexus \u00e2\u20ac\u201d a centralised incubator hub for building multiple ventures on shared foundations.",
   "packageManager": "pnpm@9.0.0",
   "engines": {
     "node": ">=20"
@@ -12,7 +12,8 @@
     "build": "turbo run build",
     "lint": "turbo run lint",
     "test": "turbo run test",
-    "typecheck": "turbo run typecheck"
+    "typecheck": "turbo run typecheck",
+    "verify": "bash scripts/verify.sh"
   },
   "devDependencies": {
     "turbo": "^2.0.0",

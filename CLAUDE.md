@@ -29,7 +29,24 @@ Key docs: [design approach](docs/design/approach.html) ·
 pnpm install                        # root
 pnpm dev                            # turbo run dev (build|typecheck|lint|test likewise)
 pnpm --filter waypoint-web <task>   # scope to the app
+pnpm verify                         # everything CI runs, run locally
 ```
+
+`pnpm verify` ([`scripts/verify.sh`](scripts/verify.sh)) mirrors all five CI
+jobs — lint/typecheck/test/build, migration drift, wireframe self-containment,
+`pnpm audit`, and gitleaks (skipped when not installed). **Change a job in
+`.github/workflows/` and change it there in the same commit** — a local gate
+that has drifted from CI is worse than none, because it buys false confidence.
+
+It also runs as a **pre-push** hook, so a push is gated on the same checks CI
+is about to run. Hooks live in the committed `.githooks/`, not `.git/hooks/`,
+which is not versioned — so each clone needs this once:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+`git push --no-verify` is the escape hatch.
 
 ## Key decisions
 
