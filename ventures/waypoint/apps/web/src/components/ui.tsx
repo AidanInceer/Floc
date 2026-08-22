@@ -25,7 +25,9 @@ export function Page({
     <div
       className={cx(
         "mx-auto w-full px-4 pb-16 sm:px-6",
-        flush ? "pt-0" : "pt-6",
+        // Trip pages (flush) sit under the floating pill tabs (ticket 191);
+        // a small gap, not the folder-tab attachment the old chrome needed.
+        flush ? "pt-3" : "pt-6",
         // 84rem width (ticket 103) is shared with app-chrome.tsx and
         // trip/[id]/layout.tsx — change all three together or edges misalign.
         wide ? "max-w-[84rem]" : "max-w-4xl",
@@ -34,8 +36,6 @@ export function Page({
       <div
         className={cx(
           "sheet-ruled sheet-margin relative overflow-hidden rounded-lg border border-rule bg-sheet shadow-raised",
-          // Active tab covers this corner when flush; rounding would notch it.
-          flush && "rounded-t-none",
           "px-5 py-7 sm:px-8 sm:py-8",
           // Must clear the red margin (22px mobile / 46px sm:, see globals.css).
           "pl-[38px] sm:pl-[76px]",
