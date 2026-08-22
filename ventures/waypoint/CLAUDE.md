@@ -40,8 +40,9 @@ Pre-MVP. Stack: **Next.js App Router + Turso (libSQL) + Drizzle + Better Auth**
 - Server Components by default; mutations are Server Actions in the route's `actions.ts` — never inline `"use server"` closures.
 - **Nothing in `app/` imports `@/db`** — SQL lives only in `server/` aggregates.
 - Validate at the door: dates via `lib/dates.ts`, free text via `lib/text.ts`. Rejections are form errors, never unhandled throws.
-- Colours/icons come from tokens only — no hex literals, no icon fonts/Lucide/etc. Status is never colour (or icon) alone.
-- **No emoji anywhere in the app** (#148). Every icon is drawn line-art in the app'''s own biro — an emoji is someone else'''s artwork and can'''t take the ink of what it sits in. Scale: 14×14 `viewBox` at ~13px, `fill="none"`, `strokeWidth` 1.15–1.25, `stroke="currentColor"` (see `TravelModeIcon`, `ReactionGlyph`, `WeatherGlyph`).
+- **Visual direction: white ground + pastels + one blue** (#187). Canvas `#EFEEEA`, white surfaces, hairlines; four pastels one-per-domain (peri/dates, mint/money, butter/ideas & people, blush/route); **blue `#4E68D8` means "yours to do" and nothing else** (actions, links, your own rows). Soft-toy geometry (large radii, pill controls); pill-box nav everywhere, account right-aligned; quiet motion (1.5–2px hover lift, `.22s`, `cubic-bezier(.2,.85,.3,1)`). Type: Bricolage Grotesque (display) + Instrument Sans (body) + DM Mono (data — all money/dates). This replaced the paper-and-biro look; docs are the yardstick, see `docs/design/`.
+- Colours/icons come from tokens only — no hex literals, no icon fonts/Lucide/etc. Status is never colour (or icon) alone — always a word too.
+- **No emoji anywhere in the app** (#148). Every icon is drawn line-art in the app'''s own hand — an emoji is someone else'''s artwork and can'''t take the ink of what it sits in. Scale: 14×14 `viewBox` at ~13px, `fill="none"`, `strokeWidth` 1.15–1.25, `stroke="currentColor"` (see `TravelModeIcon`, `ReactionGlyph`, `WeatherGlyph`).
 - Light only — no dark palette, no `theme` column.
 - **No instructional copy** ("click here…") and **show it, don't narrate it** — if a control already shows a state, don't also write a sentence describing it.
 - British English, sentence case, real content (never lorem).

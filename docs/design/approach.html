@@ -10,7 +10,7 @@
 <h1>Design approach</h1>
 <p>The higher-level design guide that sits <em>above</em> the
 <a href="visual-language.html">visual language</a>. Visual language owns the
-concrete house style — the paper-and-biro tokens, the components, the exact
+concrete house style — the white-and-pastel tokens, the components, the exact
 type stack. This page owns the reasoning applied <em>inside</em> that style:
 how a page earns clarity, hierarchy, trust and feel, and the recurring
 mistakes to avoid.</p>
@@ -23,8 +23,8 @@ avoid</strong>.</p>
 decision in the <a href="visual-language.html">visual language</a>, the house
 style wins — those collisions are called out inline (⚑). The most common ones:
 we are <strong>light-only</strong> (no dark mode), and we deliberately run a
-<strong>serif + monospace + hand</strong> type system rather than a single
-sans-serif.</p>
+<strong>display + body + mono</strong> three-face type system rather than a
+single sans-serif.</p>
 
 <h2>The four questions</h2>
 <p>Almost every review failure was a page that made a visitor work to answer one
@@ -57,7 +57,7 @@ whole story? Don't bury the message in body copy.</li>
 <li><strong>Don't emphasise the negative.</strong> Skimmers read bold and headline
 words; bolding "trial and error" or opening with "stop doing X" plants the
 wrong takeaway. ⚑ For us this reinforces sentence-case copy that says what
-happened ("Priya pays Tom £42.50"), not app-speak.</li>
+happened ("Priya pays Tom &pound;42.50"), not app-speak.</li>
 <li><strong>One name.</strong> Two names for one thing is pure friction.</li>
 <li><strong>Trust the scroll; unveil in layers.</strong> Don't cram every
 edge-case and CTA above the fold — peel the onion, one idea per scroll.</li>
@@ -103,11 +103,13 @@ about −2/−3% and line-height to ~110–120%; loose display text reads amateu
 <li><strong>Limit sizes.</strong> ≤6 font sizes for a landing page (wide range);
 far fewer and smaller for dense/dashboard screens.</li>
 <li><strong>⚑ House exception:</strong> the general advice is "one sans-serif,
-everywhere". We deliberately run three faces with strict roles —
-<code>--serif</code> for prose/headings, <code>--type</code> (mono, tabular) for
-<strong>every</strong> figure/date/label and all money, <code>--hand</code> for
-marginalia only. See <a href="visual-language.html">visual language →
-legibility rule</a>. Don't collapse this to one font.</li>
+everywhere". We deliberately run three faces with strict roles — a
+<strong>display</strong> face (Bricolage Grotesque) for headings, a plain
+<strong>body</strong> sans (Instrument Sans) for prose and controls, and a
+<strong>mono</strong> face (DM Mono, tabular) for <strong>every</strong>
+figure/date/label and all money. See <a href="visual-language.html">visual
+language → typography</a>. Don't collapse this to one font, and never set money
+or dates in the display face.</li>
 </ul>
 
 <h2>Colour</h2>
@@ -117,14 +119,17 @@ carries meaning: blue = trust/action, red = danger, yellow = warning, green =
 success. Let colour <em>signify</em>.</li>
 <li><strong>Start from one primary and ramp it</strong> (lighten for backgrounds,
 darken for text) rather than scattering hues.</li>
-<li><strong>⚑ House palette:</strong> ours is ink + highlighter + biro-blue
-(<code>pen</code>), with a fixed three-state status meaning
-(agreed / open / needs action) applied identically everywhere, and
+<li><strong>⚑ House palette:</strong> a white ground on a soft canvas, four
+pastels one-per-domain (peri/dates, mint/money, butter/ideas &amp; people,
+blush/route), and <strong>one blue that means "yours to do"</strong> — actions,
+links, your own rows. Blue signifies exactly that one thing; spending it on
+decoration breaks the "waiting on you" signal. A fixed three-state status
+meaning (agreed / open / needs action) applies identically everywhere, and
 <strong>never colour alone</strong> — every status also carries a word. See
-<a href="visual-language.html">visual language → tokens</a>.</li>
+<a href="visual-language.html">visual language → colour</a>.</li>
 <li><strong>⚑ No dark mode.</strong> The general "designing in dark mode" guidance
-does not apply — the whole metaphor is ink on paper; a dark notebook is a
-different product. Light-only is a decision, not an omission.</li>
+does not apply — one well-made light theme beats two half-made ones for a
+pre-MVP tool. Light-only is a decision, not an omission.</li>
 </ul>
 
 <h2>Affordances &amp; signifiers</h2>
@@ -151,8 +156,8 @@ warning. ⚑ But don't yell too early — validate when the user is done, not on
 every keystroke or a trailing space (the Stripe email-validation fix).</li>
 <li><strong>Async:</strong> show real progress. Don't scatter spinners in empty
 states or loop unhelpful "thinking…" text; surface actual states/steps and
-focus attention. ⚑ Our tab loading already renders a blank ruled page under a
-pending tab.</li>
+focus attention. ⚑ Our tab loading already renders a blank placeholder page
+under a pending tab.</li>
 </ul>
 
 <h2>Motion &amp; micro-interactions</h2>
@@ -165,8 +170,10 @@ animation that pulls focus off the headline, is a net negative.</li>
 <li><strong>Micro-interactions confirm actions</strong> (a "copied" chip sliding up).
 Practical first, playful second.</li>
 <li><strong>Avoid meaningless motion</strong> — blob backgrounds and fast auto-loops
-that say nothing about the product. ⚑ Our motion budget is colour transitions
-only, and nothing under <code>prefers-reduced-motion</code>.</li>
+that say nothing about the product. ⚑ Our motion budget is a 1.5&ndash;2px hover
+lift on <code>cubic-bezier(.2,.85,.3,1)</code> over <code>.22s</code> plus colour
+transitions — nothing more, and nothing at all under
+<code>prefers-reduced-motion</code>.</li>
 </ul>
 
 <h2>Shadows &amp; depth</h2>
@@ -175,7 +182,9 @@ only, and nothing under <code>prefers-reduced-motion</code>.</li>
 blur. Cards need very little; only floating content (popovers) needs more. If
 the shadow is the first thing you notice, it's wrong.</li>
 <li><strong>Massive drop shadows are an AI-slop tell</strong> (see below). ⚑ Our
-cards carry no shadow at all; the page's paper texture supplies depth.</li>
+one shadow is deliberately tiny — <code>0 6px 14px -12px rgb(20 20 26 / .3)</code>,
+a hover lift of 1.5&ndash;2px and nothing more. Depth comes from the white
+surface sitting on the canvas, not from elevation.</li>
 </ul>
 
 <h2>Imagery, screenshots &amp; demos</h2>

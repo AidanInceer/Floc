@@ -8,379 +8,245 @@
 <main>
 <p class="crumb">Docs</p>
 <h1>Waypoint v1 — visual language</h1>
-<p>Resolves <a href="../../ventures/waypoint/.scratch/waypoint-v1/issues/11-visual-language-for-v1.md">ticket 11</a>.
-The living version of this is the code: tokens in
+<p>The house style. Waypoint is a <strong>white page with soft pastels and one
+blue that means &ldquo;this is yours to do&rdquo;</strong>. Playful but calm; a planning
+tool, not a chat app. The living version of this is the code: tokens in
 <a href="../../ventures/waypoint/apps/web/src/app/globals.css"><code>ventures/waypoint/apps/web/src/app/globals.css</code></a>, components in
 <a href="../../ventures/waypoint/apps/web/src/components/ui.tsx"><code>ventures/waypoint/apps/web/src/components/ui.tsx</code></a>.</p>
 <p class="crumb">See also the higher-level <a href="approach.html">design approach</a> — the
 principles this token/component layer serves.</p>
-<h2>The winner, and what it borrows</h2>
-<p><strong><code>wireframe/paper.html</code></strong> wins — a shared travel journal: ruled sheets, a
-serif that reads like a book, a red margin down the gutter, tape holding
-things down, and an ink stamp for anything the group has actually decided.
-Colour is ink and highlighter, nothing more. (An earlier pass on this ticket
-picked <code>index.html</code>&#39;s sand/marine direction instead; revisited on request —
-<code>paper.html</code> reads as <em>a shared document</em> even more directly, and its own
-mono-figures discipline solves the legibility concern that ruled the first
-pass out.)</p>
-<p>Borrowed from the runners-up:</p>
+
+<h2>The direction, in one paragraph</h2>
+<p>A white surface floats on a soft off-white canvas, separated by the faintest
+hairline. Corners are large and rounded — &ldquo;soft toy geometry&rdquo;. Each area of the
+app carries its own pastel so you know where you are without reading the tab. A
+single blue is reserved for one meaning: <strong>something that is yours to
+act on</strong> — a button, your own row in a ledger, a trip waiting on you.
+Motion is quiet: a small lift on hover and nothing more. This replaced an
+earlier paper-and-biro notebook look; see the
+<a href="../../ventures/waypoint/.scratch/waypoint-v1/">decision note</a> for
+why it changed.</p>
+
+<h2>Colour</h2>
+<p>Every colour is a token in <code>globals.css</code> on <code>:root</code>, re-exported
+through <code>@theme inline</code> as Tailwind utilities. No component ever holds a hex
+value — that rule survives the redesign unchanged.</p>
+
+<h3>Ground and ink</h3>
 <table>
-<thead>
-<tr>
-<th>From</th>
-<th>What</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>transit</code></td>
-<td>The three-state status semantics — <strong>agreed / open / needs action</strong> — applied identically on every tab instead of each page inventing its own colour meaning.</td>
-</tr>
-<tr>
-<td><code>index</code></td>
-<td>The token discipline: every colour, radius and shadow is a CSS variable: no component holds a hex value.</td>
-</tr>
+<thead><tr><th>Token</th><th>Hex</th><th>Role</th></tr></thead>
+<tbody>
+<tr><td><code>canvas</code></td><td><code>#EFEEEA</code></td><td>the ground the whole app sits on</td></tr>
+<tr><td><code>white</code></td><td><code>#FFFFFF</code></td><td>every surface / card</td></tr>
+<tr><td><code>hair</code></td><td><code>#E6E4DE</code></td><td>hairlines between surfaces</td></tr>
+<tr><td><code>ink</code></td><td><code>#14141A</code></td><td>primary text</td></tr>
+<tr><td><code>ink-2</code></td><td><code>#63636F</code></td><td>secondary text</td></tr>
+<tr><td><code>ink-3</code></td><td><code>#9B9BA5</code></td><td>faint text / placeholders</td></tr>
 </tbody></table>
-<p>Rejected, with reasons: <strong><code>island</code></strong> and <strong><code>glossy</code></strong> (both read as
-consumer-social — wrong tone for a planning tool), <strong><code>atlas</code></strong> and <strong><code>dusk</code></strong>
-(the ruled-paper metaphor is distinctive enough on its own; layering another
-variant&#39;s texture on top would dilute it).</p>
-<h2>The legibility rule</h2>
-<p>Paper&#39;s own discipline, kept as a hard rule rather than a suggestion:</p>
+<p>Three ink levels, no more — the same discipline as before, new values.</p>
+
+<h3>The blue — &ldquo;yours to do&rdquo;</h3>
+<table>
+<thead><tr><th>Token</th><th>Hex</th><th>Role</th></tr></thead>
+<tbody>
+<tr><td><code>blue</code></td><td><code>#4E68D8</code></td><td>actions, links, your own rows</td></tr>
+<tr><td><code>blue-soft</code></td><td><code>#E7EBFA</code></td><td>the tint those sit on</td></tr>
+<tr><td><code>blue-deep</code></td><td><code>#2B3B85</code></td><td>ink on the tint</td></tr>
+</tbody></table>
+<p><strong>Blue has exactly one meaning: this is yours to act on.</strong> A primary
+button, a link, your own row in the money ledger, a trip that is blocked on you.
+Do not spend blue on decoration — the moment blue means two things, it means
+nothing, and the &ldquo;waiting on you&rdquo; signal is lost. This is the direct
+descendant of the old biro-blue accent rule, tightened.</p>
+
+<h3>Four pastels, one per domain</h3>
+<p>Each area of the app owns a pastel, with a darker ink pair for text on it. The
+colour tells you which part of Waypoint you are in before you read a word.</p>
+<table>
+<thead><tr><th>Token</th><th>Wash</th><th>Ink</th><th>Domain</th></tr></thead>
+<tbody>
+<tr><td><code>peri</code></td><td><code>#DFE3FF</code></td><td><code>#33409B</code></td><td>dates</td></tr>
+<tr><td><code>mint</code></td><td><code>#DCEFE4</code></td><td><code>#1B6B4C</code></td><td>money</td></tr>
+<tr><td><code>butter</code></td><td><code>#FBEAC8</code></td><td><code>#8A6412</code></td><td>ideas and people</td></tr>
+<tr><td><code>blush</code></td><td><code>#FADDD6</code></td><td><code>#A34A31</code></td><td>route and places</td></tr>
+</tbody></table>
+<p>Keep the pastels vivid enough to read as chosen, not washed out to grey — a
+bland pastel reads as unfinished. But they stay <em>quiet next to the blue</em>:
+pastels are where-you-are, blue is what-to-do, and the blue must always win the
+eye. <strong>Peri and blue are deliberately close</strong> — peri is a dates
+wash, blue is an action; never put a peri surface and a blue button so close
+that the wash reads as a disabled button.</p>
+<p><strong>People live in the butter domain.</strong> Ideas and the people who vote
+on them share one colour. Within a single roster you still have to tell members
+apart at a glance, so a member's avatar carries a per-seat tint <em>within</em>
+butter rather than eight unrelated pastels — the exact tinting is settled in the
+roster/overview page ticket, not prescribed here. Colour is a recognition aid
+and never the only way to tell two people apart; the initials and the
+<code>title</code> still do that.</p>
+
+<h3>Status is never colour alone</h3>
+<p>A three-state meaning — <strong>agreed / open / needs action</strong> — applied
+identically on every tab, exactly as before. Every status also carries a word
+and, where useful, a drawn glyph. &ldquo;Needs action&rdquo; is the blue
+&ldquo;yours to do&rdquo; state. The mint-in / blush-out pairing on the money tab is
+the one at real risk of reading as colour-only — it must always be labelled.
+
+<h2>Typography</h2>
+<p>Three faces, strict roles — the cap of three survives, the faces change. All
+declared in <code>:root</code>; a fourth needs an argument, not a preference.</p>
 <ul>
-<li><code>--serif</code> for prose and headings.</li>
-<li><code>--type</code> (a monospace, tabular-figures) for <strong>every</strong> figure, date and
-label — the <code>.nums</code>/<code>font-mono</code> classes. All money.</li>
-<li><code>--hand</code> for accents and marginalia only. Never for data, never for
-anything a user has to read carefully.</li>
+<li><strong>Display</strong> — <em>Bricolage Grotesque</em>. A characterful
+grotesque for headings and short display lines. Used with restraint: tighten
+tracking (about &minus;2 to &minus;4%) and line-height (~110%) on large sizes.</li>
+<li><strong>Body</strong> — <em>Instrument Sans</em>. A plain, legible sans for
+prose, controls and everything a user reads carefully.</li>
+<li><strong>Mono</strong> — <em>DM Mono</em>, tabular figures. <strong>Every</strong>
+figure, date, time and short label — all money, all balances. This is what keeps
+columns of numbers lining up and a ledger legible.</li>
 </ul>
-<p>This is what makes the metaphor survive a money ledger: amounts, dates and
-balances are always typed, never handwritten.</p>
-<p><strong>Those three are also the cap.</strong> The app has exactly three typefaces, all
-declared in the <code>:root</code> block of <code>globals.css</code>, and a fourth needs an argument
-rather than a preference. <code>--marginalia</code> is not a fourth face — it is which of
-the three <code>.hand</code> resolves to, and below <code>sm:</code> it is the typewriter. The audit
-that set the cap found one stray outside the app: the notification email was
-set in a system UI sans, and now takes Georgia out of the serif stack.</p>
-<p>The corollary is that a face has to be doing work. <code>--hand</code> is someone&#39;s
-handwriting — the ideas composer, the notes people write. It came off the
-landing page for exactly that reason: there it was the app doing an
-impression of a person.</p>
-<p><code>--hand</code> is a <strong>print</strong> hand, not a script one. The stack originally led with
-<code>&quot;Segoe Print&quot;</code> and carried <code>&quot;Segoe Script&quot;</code>, and the marginalia was unreadable
-at 15px on a phone — the rounder faces now lead and the script one is gone.
-<code>.hand</code> also carries its own size and tracking (<code>1.06em</code>, rising to <code>1.12em</code>
-below <code>sm:</code>), because a handwriting face sits visually smaller than the serif
-at the same px. The two go together: swapping the stack back without the sizing
-rule reintroduces half the problem.</p>
+<p>The legibility rule that survives from the old system, restated: money, dates
+and balances are <strong>always</strong> the mono face, never the display face.
+The display face carries personality in headings; it never carries data.</p>
+
+<h2>Shape and motion</h2>
+<h3>Soft toy geometry</h3>
+<p>Large radii and pill-shaped controls. Where the old paper look was &ldquo;cut,
+not moulded&rdquo; (radii 3&ndash;6px), the new look is the opposite: generously
+rounded surfaces, and interactive controls (buttons, nav, chips) are full pills.
+Exact radius steps are set in tokens in the components ticket; the rule is
+&ldquo;soft and rounded, consistently&rdquo;.</p>
+<h3>Motion is deliberately quiet</h3>
+<table>
+<thead><tr><th>Property</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td>hover lift</td><td><code>translateY</code> of 1.5&ndash;2px, never more</td></tr>
+<tr><td>shadow</td><td><code>0 6px 14px -12px rgb(20 20 26 / .3)</code></td></tr>
+<tr><td>easing</td><td><code>cubic-bezier(.2, .85, .3, 1)</code></td></tr>
+<tr><td>duration</td><td><code>.22s</code></td></tr>
+</tbody></table>
+<p>One shared <code>--ease</code> and <code>--dur</code> token; every interactive
+surface still has a <strong>visible</strong> hover (a whole card lifts, a chip
+takes a border, a link takes the blue) — a cursor change alone is never the whole
+affordance. Nothing animates under <code>prefers-reduced-motion</code>.</p>
+
+<h2>Navigation and chrome</h2>
+<p><strong>Pill-box navigation, everywhere.</strong> The primary nav is a row of
+pills; the active one is filled. The wordmark sits left, the account controls
+(explore, your name/avatar) are <strong>right-aligned</strong>. Same chrome on
+every page so the app never feels like it switches products between tabs — the
+continuity point the <a href="approach.html">design approach</a> insists on.</p>
+
 <h2>Light only</h2>
-<p>There is <strong>no dark mode</strong>, and that&#39;s a decision rather than an omission: the
-whole metaphor is ink on paper, and a dark notebook is a different product.
-So there is no dark palette in <code>globals.css</code>, no <code>data-theme</code> attribute, no
-theme picker on <code>/settings</code> and no <code>theme</code> column on <code>user_profile</code>. A dark OS
-preference is ignored. Don&#39;t reintroduce any of it without reopening ticket 07.</p>
-<h2>Tokens</h2>
-<p>Colour, radii, shadow and type tokens are defined once in <code>globals.css</code>, on
-<code>:root</code>. <code>@theme inline</code> re-exports them as Tailwind utilities (<code>bg-sheet</code>,
-<code>text-ink-soft</code>, <code>border-rule</code>, <code>text-pen</code>, …) so no component ever hardcodes
-a hex value.</p>
-<ul>
-<li><strong>Surfaces</strong> — <code>paper</code> (page background), <code>sheet</code>/<code>sheet-2</code>/<code>sheet-3</code> (the
-page-as-journal-entry and its nested/hover states), separated by
-<code>rule</code>/<code>rule-2</code> hairlines. Cards do not nest inside cards; a rule does the
-job of a second card.</li>
-<li><strong>Ink</strong> — <code>ink</code>, <code>ink-2</code> (soft), <code>ink-3</code> (faint). Three levels, no more.</li>
-<li><strong>Accent</strong> — <code>pen</code> (biro blue) for anything actionable, navigational, or a
-link — paper.html&#39;s own name for it, kept.</li>
-<li><strong>Status</strong> — <code>green</code>/agreed, <code>highlight</code>/open (a highlighter wash — pairs
-with <code>highlight-ink</code> for text, since raw ink is too dark to read on
-yellow), <code>red</code>/action. Each has a <code>-soft</code> background pair. Never colour
-alone: every status also carries a word.</li>
-<li><strong>Texture</strong> — <code>line</code> (the faint ruled line), <code>margin-line</code> (the red
-margin), <code>tape</code>. Decorative only, <code>aria-hidden</code>, never load-bearing for
-content.</li>
-<li><strong>People</strong> — <code>who-1</code>…<code>who-8</code> plus an ink pair each: one pastel per member,
-as paper.html&#39;s own coloured initial discs. Assigned by roster position in
-<code>lib/who.ts</code> (see People below), so this is the one place a colour is
-picked per-person rather than per-meaning.</li>
-<li><strong>Post-it stock</strong> — <code>note-yellow</code> / <code>-coral</code> / <code>-mint</code> / <code>-sky</code> / <code>-lilac</code>
-and their <code>-edge</code> pairs are <strong>gone</strong>. They existed for the landing page&#39;s
-before/after hero, which has been replaced by the travel-document page
-(<code>docs/mockups/homepage-g-boardingpass.html</code>) — every surface there is
-paper, tape and ink, so nothing used them any more. The rule that killed
-them stands for anything that replaces them: a <code>who-*</code> wash means a
-person, so decorating with one would make a note look like a member.</li>
-<li><strong>Radii</strong> — 3 / 5 / 6px. Paper is cut, not moulded, so these stay far below
-the previous direction&#39;s 6/10/16px — but the first pass at 2/3/4px read as
-<em>sharp</em> rather than as cut, so they were softened on request. <code>Card</code>,
-buttons and form fields sit on <code>md</code> (5px), the sheet and the folder tabs on
-<code>lg</code> (6px, matching paper.html&#39;s own <code>4px 4px 0 0</code> tabs at the new scale),
-and <code>Badge</code> on <code>sm</code>.</li>
-<li><strong>Motion</strong> — colour transitions only, and nothing at all under
-<code>prefers-reduced-motion</code>.</li>
-</ul>
-<h2>Density and tone</h2>
-<p>A planning tool that should feel like a shared notebook, not a social feed
-and not a spreadsheet either. Concretely: tabular monospace figures, a red
-margin and ruled lines on every page (once, at the page level — see
-Mechanics below), restrained elevation, sentence-case copy that says what
-happened (&quot;Priya pays Tom £42.50&quot;) rather than app-speak, and empty states
-that read as an invitation rather than an error.</p>
-<h2>Mechanics</h2>
-<p>The paper metaphor is mechanics, not just a palette swap — this is what
-actually carries the direction:</p>
-<ul>
-<li><strong>The page is the sheet.</strong> <code>Page</code> in <code>components/ui.tsx</code> wraps every
-screen&#39;s content in one ruled-paper container: <code>.sheet-ruled</code> (a repeating
-horizontal-line background), <code>.sheet-margin</code> (the red gutter line, at
-22px on mobile / 46px from <code>sm:</code> up — content padding clears it on both),
-and a decorative <code>.tape</code> strip in the top-left corner. This happens <strong>once
-per screen</strong>, not per card — ruled lines on every nested card would read
-as clutter, not more of the same journal.</li>
-<li><strong>Ruled lines, margin, and tape needed three different DOM hooks.</strong> All
-three are decorative overlays on the same container; <code>::before</code> and
-<code>::after</code> are the only two pseudo-elements a single element gets, so tape
-is a real <code>&lt;span aria-hidden&gt;</code> rather than a third pseudo-element — three
-classes all targeting <code>::before</code> on one node silently clobber each other
-(whichever is last in the stylesheet wins outright), which is exactly the
-bug this surfaced on first render.</li>
-<li><strong>The decoration is explicitly pushed <em>under</em> the content.</strong> An
-absolutely-positioned pseudo-element is a positioned descendant, so by CSS
-paint order it lands above its container&#39;s ordinary children — which meant
-the ruled lines and the red margin drew <em>over</em> every card, button and
-heading. All three decorations carry <code>z-index: 0</code> and <code>Page</code> wraps its
-children in <code>.sheet-content</code> (<code>position: relative; z-index: 1</code>). Both
-halves are needed; dropping either brings the lines back to the front.</li>
-<li><strong><code>Card</code> is a plain note-card</strong>, not more paper: a border and <code>sheet-2</code>
-fill, no ruled lines, no shadow. The page supplies the texture; cards
-supply structure.</li>
-<li><strong><code>Badge</code> is paper.html&#39;s <code>.mark</code></strong> — mono, uppercase, bordered, a soft
-tone fill per status. <strong><code>Stamp</code></strong> is new: for a state the group has
-<em>decided</em>, not just a status — a trip that&#39;s ended, an expense split
-that&#39;s settled — rendered rotated and bordered like it was actually
-stamped. Reserved for genuinely decided states; everything else stays a
-<code>Badge</code>.</li>
-<li><strong>Buttons are biro, not chrome</strong>: mono, uppercase, tight tracking, a solid
-pen-blue fill for primary and an outline for everything else. A pen has no
-separate &quot;hover ink&quot;, but the UI does need one: <code>filter: brightness()</code> used to
-stand in for a hover-darken and the shift it produced was too small to read
-as a state change at all, so there is now a <code>--pen-deep</code> token — the same
-biro pressed harder — and the primary&#39;s fill <em>and</em> its border both step to
-it. The secondary steps to <code>sheet-3</code> and pulls its border to the pen.
-<strong>Every interactive surface has a visible hover</strong>, and &quot;visible&quot; means
-without looking at the cursor: a card that navigates hovers as a whole card,
-a chip borrows the selected chip&#39;s border, a prose link takes a highlighter
-wash, and a cursor change on its own is never the whole affordance.</li>
-<li><strong>Trip tabs are folder tabs, actually attached to the sheet.</strong> They sit on
-the page background (<code>bg-paper</code>, not <code>bg-sheet</code>) so the active tab&#39;s <code>sheet</code>
-fill reads as &quot;this one&#39;s open&quot;, and three things make the join real rather
-than implied: the nav&#39;s <code>-mb-0.5</code> drops it onto the sheet&#39;s top border, the
-active tab&#39;s bottom border is painted <code>sheet</code> so the two shapes share an
-opening instead of stacking two lines, and an inactive tab sits a pixel
-lower (paper.html&#39;s <code>top: 1px</code>) so it reads as still tucked behind. <code>Page</code>
-takes a <code>flush</code> prop for this — <code>pt-0</code>, a square top edge, and no tape,
-since tape would hang over exactly where the tabs are. <strong>Every
-<code>trip/[id]/*</code> page must pass <code>wide flush</code></strong>: the tabs are only aligned
-because the nav&#39;s container matches <code>Page wide</code>&#39;s width and padding, so a
-narrow tab page would visibly miss.<ul>
-<li>The strip scrolls sideways via <code>.scroll-x-bare</code>, which hides the
-scrollbars outright. Not cosmetic: <code>overflow-x: auto</code> forces the <em>other</em>
-axis to <code>auto</code> too, and the 1px the raised inactive tabs sit below the
-strip was enough to summon a vertical scrollbar with arrows at the end of
-the tab row.</li>
-<li>Each tab carries a <code>useLinkStatus</code> pending ellipsis, and
-<code>trip/[id]/loading.tsx</code> shows a blank ruled page underneath while the
-tab&#39;s own content loads — every tab is a server render over the database,
-so there is always some wait to account for.</li>
-</ul>
-</li>
-<li><strong>A thread is a disclosure, not a feed.</strong> <code>NoteThread</code> is one component for
-every surface with a discussion (ideas, day events), oldest-first, collapsed
-behind a summary that carries the count (&quot;3 notes&quot;) — twenty ideas with every
-thread expanded is unreadable. It renders <code>open</code> where you&#39;ve already clicked
-into something, which is how the Days tab uses it.</li>
-<li><strong>A day event opens up.</strong> Collapsed it&#39;s one line, because the <em>sequence</em> is
-what you read at a glance; open it holds its note, its flight deep link, its
-thread and its controls. Those controls have to live in the panel rather than
-the summary row — a button inside a <code>&lt;summary&gt;</code> toggles the disclosure as
-well as firing, so every one of them would have collapsed the thing it acted
-on.</li>
-</ul>
-<h2>People</h2>
-<p>Everyone gets <strong>their own pastel disc</strong>, not one shared accent — with nine
-people writing in the same notebook you have to tell handwriting apart at a
-glance. Eight washes (<code>--who-1</code>…<code>--who-8</code>), each with a darker ink pair so the
-initials stay legible.</p>
-<p>Two ways the colour is picked, in <code>lib/who.ts</code>:</p>
-<ul>
-<li><strong><code>seatTone</code>, by roster position</strong> — the normal case. <code>listMembers</code> stamps
-every <code>TripMember</code> with a <code>tone</code> as it loads them, so within one trip nobody
-shares a colour and a member looks the same on every tab. Anything drawing a
-member&#39;s avatar passes <code>tone</code> through.</li>
-<li><strong><code>whoTone</code>, by hashed display name</strong> — the fallback where there is no
-roster: the signed-in user in the app chrome, a friend, the landing mock, a
-former member on an old expense. Occasional clashes are accepted; colour is
-a recognition aid and never the only way to tell two people apart (the
-initials and the <code>title</code> still do that).</li>
-</ul>
-<h2>Component inventory</h2>
-<p>Hand-rolled, not shadcn/ui. v1 needs about a dozen primitives, and owning them
-keeps the density undiluted; a component registry would have to be re-skinned
-anyway.</p>
-<p><code>AvailabilityCalendar</code> (client) is the one component with real interaction in
-it: a month grid you paint free days onto by clicking or dragging, with a
-<strong>Mine / Everyone / The dates</strong> switch onto the same grid — a counted
-heatmap, and the trip&#39;s own window (ticket 128; there is exactly one calendar on
-the Dates tab, and no native date popover anywhere in the app).</p>
-<p>Decisions worth keeping. Nothing is written until you press save — one action
-per editing session, not one per day, since painting a fortnight would otherwise
-be fourteen round trips. A drag paints the whole span from its anchor rather than
-the cell under the pointer, because a fast drag leaves holes mid-week otherwise;
-the pointer is captured to the whole calendar and each move hit-tests for the
-cell underneath, because on touch an implicit capture means <code>pointerenter</code>
-never fires anywhere else at all (ticket 127).</p>
-<p><strong>Ruled paper, not a grid of boxes</strong> (ticket 129). One rule under each week
-and none between days; the day number sits on the line, today is circled in pen.
-Every mark is a discrete circle — a range was briefly drawn as one continuous
-stroke, and a window wrapping to the next week then read as two separate
-selections. The green is the whole vocabulary: a soft wash for a day the group
-is free, the solid green for a day in the trip, which overrides the wash beneath
-it because the decision outranks what it was decided from. A per-day count under
-each mark was tried and removed as texture; the key carries the words, and the
-exact tally is on each cell&#39;s <code>title</code> and accessible label. Below
-<code>sm:</code> only the first month renders and the arrows page through the rest.
-The focus ring goes on the mark, never on the cell, which is a full-width square.
-<code>DateRangePicker</code> shares all of it cell for cell.</p>
-<p>Server components in <code>components/ui.tsx</code>: <code>Page</code>, <code>PageHeader</code>, <code>Card</code>,
-<code>CardHeader</code>, <code>Stack</code>, <code>Rule</code>, <code>Button</code>, <code>ButtonLink</code>, <code>Badge</code>, <code>Stamp</code>,
-<code>EmptyState</code>, <code>Avatar</code>, <code>AvatarRow</code>, <code>Field</code>, <code>Input</code>,
-<code>Textarea</code>, <code>Select</code>, <code>ErrorText</code>. Avatar colouring lives in <code>lib/who.ts</code>
-rather than beside <code>Avatar</code>, because <code>server/access.ts</code> needs it too.</p>
-<p>Client components in <code>components/client-ui.tsx</code>: <code>ActionForm</code> (surfaces a
-server action&#39;s <code>{ error }</code> return without a page reload), <code>SubmitButton</code>
-(pending state from <code>useFormStatus</code>), <code>Sheet</code> (a native <code>&lt;dialog&gt;</code> — bottom
-sheet on mobile, centred panel on desktop), <code>ConfirmSubmit</code>, <code>CopyLink</code>,
-<code>Segmented</code>, <code>Menu</code>.</p>
-<p><strong>One visible affordance per row.</strong> Where a row or a card had two or more
-verbs on it — edit and delete, nudge and promote and remove — they go behind a
-single triple-dot and are revealed on demand (ticket 125). A ledger is mostly
-read, and a line of buttons down its right edge competes with what the row is
-actually saying. Keep one action visible only where it plainly dominates: a
-standalone <em>Join</em> or <em>Start this trip</em> is not a candidate, and neither is a
-control that also displays state — a friend chip or a filled-in pin says
-something while sitting there, which a hidden menu item cannot.</p>
-<p><code>Menu</code> deliberately does <em>not</em> close when something inside it is clicked. Its
-items are <code>Sheet</code> and <code>ConfirmSubmit</code> triggers, each of which opens a native
-<code>&lt;dialog&gt;</code> rendered inside the panel&#39;s own subtree; unmounting on click would
-tear that dialog out mid-flight. It closes on a pointer outside it, an Escape,
-a route change, or a submit that has actually gone through.</p>
-<p>Two client components sit outside those two files because they belong to one
-surface: <code>StopSpine</code> (Route&#39;s stop list) and <code>LegTransportPicker</code> (the travel
-mode on a leg), both from ticket 82.</p>
-<h2>Lists whose order is the point</h2>
-<p>Route&#39;s stop list is drawn as a <strong>spine</strong>: the dates own a rail down the left,
-and order and direction are one inked line running top to bottom through
-numbered nodes (<code>components/stop-spine.tsx</code>). It replaced a stack of cards that
-answered &quot;when&quot; and &quot;in what order&quot; only in words — chosen by the user from
-three prototype directions on the real page, over boarding-pass stubs and a
-gantt of date bands.</p>
-<p>Two rules came out of it, and they generalise:</p>
-<ul>
-<li><strong>The mark that draws the order is the mark you grab.</strong> The numbered node is
-the drag grip; a separate grip hovering above it reads as a second, competing
-handle. <code>↑</code>/<code>↓</code> sit under the node as the keyboard path.</li>
-<li><strong>The spine column carries the spine and nothing else.</strong> The move buttons
-started in it and their paper cut the line at every stop; they sit with the
-row&#39;s other controls now, out at the right edge. A row runs wide rather than
-tall — what the stop <em>is</em> on the left, what you can do to it on the right.</li>
-<li><strong>One fact, one drawing.</strong> How long the group stays is a <code>.day-pill</code>
-(highlighter yellow, mono) both on the map pin&#39;s corner and on the spine&#39;s
-left rail, and it spells the word out — &quot;2 days&quot;, never &quot;2d&quot;.</li>
-<li><strong>A server-rendered row can&#39;t be handed a render prop.</strong> A function child
-doesn&#39;t cross the server/client boundary (same constraint as <code>Sheet</code>), so a
-client list that needs to draw <em>around</em> server content takes the content as
-plain nodes — <code>body</code>, <code>leg</code> — rather than calling back into it. <code>DragList</code>,
-whose chrome sits above each item, stays the shape for everything else.</li>
-</ul>
-<h2>Maps and pictures</h2>
-<p>Both arrived with v0.2 ticket 08 and are house treatments — don&#39;t invent a
-second of either.</p>
-<p><strong>A map is CSS over plain OpenStreetMap tiles.</strong> A filter stack on the tile
-pane (<code>sepia saturate contrast brightness hue-rotate</code>) knocks OSM&#39;s cartoon
-palette back to ink-on-cream; a multiply-blended ruled wash and an inset
-vignette then sit it on the page&#39;s own paper. The whole look costs no second
-tile provider, no account and no extra request — which is the point, and what
-keeps ticket 15&#39;s &quot;free for the MVP&quot; decision intact. <code>RouteMap</code> (Leaflet,
-draggable and zoomable, with the <strong>scroll wheel off until the map is
-clicked</strong> — so scrolling past a full-width map costs nothing and zooming costs
-one click. The click sticks for the life of the map: the pointer leaving
-suspends the wheel and coming back restores it, because needing a fresh click
-each time you glance away reads as the zoom having broken) and <code>StaticMap</code>
-(plain <code>&lt;img&gt;</code> tile mosaics, no library) share it. OSM&#39;s attribution must be
-visible wherever tiles are — Leaflet&#39;s own control counts; a page of still
-maps prints it once.</p>
-<p><strong>A picture is NOT framed as a postage stamp.</strong> A perforated stamp frame was
-built for the Explore thumbnails and <strong>rejected on sight, 2026-07-27</strong> — don&#39;t
-propose it again. A picture sits in the same plain ruled frame the maps use.
-(The geometry, if it is ever wanted for something else: the outline has to be a
-JS-built <code>clip-path</code> polygon, because CSS mask layers union and cannot be
-clipped to a run, so a mask always refills the corners as solid squares. And
-the lift has to be <code>filter: drop-shadow</code>, never <code>box-shadow</code>, which on a
-clipped box still draws the un-clipped rectangle.)</p>
-<p><strong>A price is a luggage tag</strong> (<code>.price-tag</code>) — notched left end, punched hole,
-a degree of tilt — not a line of prose. The tag carries the <strong>figure only</strong>;
-&quot;from … each&quot; was tried on it and read as clutter, so the qualification lives
-in the tag&#39;s <code>title</code> and its screen-reader label instead.</p>
-<h2>Iconography</h2>
-<p><strong>Every icon is drawn, in the app&#39;s own biro. No emoji, anywhere.</strong>
-An emoji is someone else&#39;s artwork: it arrives full-colour and rounded from
-whatever font the reader&#39;s OS happens to ship, it renders differently on
-Windows, macOS, Android and iOS, and it cannot take the ink of the thing it
-sits in. Three glossy pictograms in a row are the fastest way to make a ruled
-paper sheet look like a chat app. The rule came out of the ticket 148 weather
-prototypes, where a row of forecast emoji was the only thing on the page that
-didn&#39;t read as drawn.</p>
-<p>The house treatment is the one
-<a href="../../ventures/waypoint/apps/web/src/components/travel-mode-icon.tsx"><code>TravelModeIcon</code></a>
-and
+<p>There is <strong>no dark mode</strong>, and it stays a decision rather than an
+omission. No dark palette in <code>globals.css</code>, no <code>data-theme</code>
+attribute, no theme picker on <code>/settings</code>, no <code>theme</code> column
+on <code>user_profile</code>. A dark OS preference is ignored. (The reasoning is no
+longer &ldquo;a dark notebook is a different product&rdquo; — it is simply that
+one well-made light theme beats two half-made ones for a pre-MVP tool. Don't
+reintroduce dark without a ticket.)</p>
+
+<h2>Iconography — unchanged</h2>
+<p><strong>Every icon is drawn line-art, in the app's own hand. No emoji,
+anywhere.</strong> This rule is not affected by the redesign and is restated in
+full because it is load-bearing. An emoji is someone else's artwork: full-colour,
+rounded, different on every OS, and it cannot take the ink of the thing it sits
+in. Three glossy pictograms in a row are the fastest way to make the app look
+like a chat app.</p>
+<p>The house treatment, shared by
+<a href="../../ventures/waypoint/apps/web/src/components/travel-mode-icon.tsx"><code>TravelModeIcon</code></a>,
 <a href="../../ventures/waypoint/apps/web/src/components/reaction-glyph.tsx"><code>ReactionGlyph</code></a>
-already share — those two are the reference, and a third glyph set copies them
-rather than inventing a scale:</p>
+and any new glyph set:</p>
 <ul>
-<li><strong>A 14&times;14 <code>viewBox</code></strong>, rendered at about
-<code>13px</code>, with <code>fill=&quot;none&quot;</code> and
-<code>strokeWidth</code> around <code>1.15</code>–<code>1.25</code>, round caps
-and joins. The small box is deliberate: these glyphs sit <em>on a line of
-text</em> beside the mono labels, and a 24-box drawn at the same stroke reads
-noticeably heavier next to them. A glyph that needs to be bigger scales the
-stroke with it rather than keeping <code>1.15</code> at double the size.</li>
-<li><strong><code>stroke=&quot;currentColor&quot;</code>, always.</strong> That is
-what lets one glyph be ink in a row, <code>pen</code> in a link and
-<code>highlight-ink</code> on a wash without a second copy of the file. An icon
-that hardcodes its colour is the same mistake as a component holding a hex.
-Where a filled state is meaningful, fill with <code>currentColor</code> too —
-<code>ReactionGlyph</code> fills yours and outlines everyone else&#39;s.</li>
-<li><strong>Paths in a plain module, no <code>&quot;use client&quot;</code></strong>
-— a component that renders nothing but paths composes into a server or a
-client parent. Never an icon font: no network request, no FOIT, and the set
-stays countable.</li>
-<li><strong>No icon carries meaning alone</strong> — the same rule as colour. A
-condition glyph sits next to its word (&quot;Light rain&quot;), or the word is in
-the row&#39;s accessible label; the decorative copy is <code>aria-hidden</code>.
-<code>TravelModeIcon</code> takes this to its conclusion and draws
-<strong>nothing at all</strong> for <code>other</code>, because a picture for
-&quot;none of the four fit&quot; would be a guess.</li>
-<li><strong>Don&#39;t reach for a general-purpose icon set.</strong> Feather,
-Lucide, Heroicons and friends are all drawn to sit in a sans-serif product UI;
-dropping one in is the &quot;generic default icon set&quot; tell the
-<a href="approach.html">design approach</a> names outright. Draw the handful
-this app needs.</li>
+<li><strong>A 14&times;14 <code>viewBox</code></strong>, rendered at about 13px,
+<code>fill="none"</code>, <code>strokeWidth</code> ~<code>1.15</code>&ndash;<code>1.25</code>,
+round caps and joins. A glyph that needs to be bigger scales its stroke with it.</li>
+<li><strong><code>stroke="currentColor"</code>, always</strong> — one glyph can be
+ink in a row, blue in a link, or a domain ink on a wash without a second copy of
+the file. A hardcoded icon colour is the same mistake as a hardcoded hex.</li>
+<li><strong>Paths in a plain module, no <code>"use client"</code></strong> — composes
+into a server or client parent. Never an icon font, never Feather / Lucide /
+Heroicons — those are drawn for a sans-serif product UI and read as the
+&ldquo;generic default icon set&rdquo; tell.</li>
+<li><strong>No icon carries meaning alone</strong> — it sits beside its word, or
+the word is in the row's accessible label; the decorative copy is
+<code>aria-hidden</code>.</li>
 </ul>
 
+<h2>Behavioural rules that survive the reskin</h2>
+<p>These are direction-independent — they were true on paper and stay true on
+white. They travel with the components, not the palette.</p>
+<ul>
+<li><strong>One visible action per row.</strong> Where a row had two or more verbs,
+they go behind a single triple-dot menu, revealed on demand. A ledger is mostly
+read; a line of buttons down its right edge competes with what the row says. Keep
+one action visible only where it plainly dominates (a standalone <em>Join</em>).</li>
+<li><strong>A thread is a disclosure, not a feed.</strong> Discussions (ideas, day
+events) are collapsed behind a summary carrying the count (&ldquo;3 notes&rdquo;),
+oldest-first; expanded only where you've clicked in.</li>
+<li><strong>A day event opens up.</strong> Collapsed it is one line — the sequence
+is what you read at a glance; open it holds its note, deep link, thread and
+controls. Controls live in the open panel, never in the summary row (a button
+inside a <code>&lt;summary&gt;</code> toggles the disclosure as it fires).</li>
+<li><strong>Lists whose order is the point are drawn as a line, not a stack.</strong>
+Route's stops run down one spine through numbered nodes; the node that draws the
+order is the node you grab; <code>↑</code>/<code>↓</code> are the keyboard path.</li>
+<li><strong>Nothing is written until you press save</strong> on the availability
+calendar — one action per editing session, not one per day.</li>
+</ul>
+
+<h2>The dates calendar</h2>
+<p><code>AvailabilityCalendar</code> (client) keeps its interaction model — a month
+grid you paint free days onto by click or drag, with a <strong>Mine / Everyone /
+The dates</strong> switch onto the same grid, a counted heatmap, and the trip's
+own window. The interaction decisions carry over unchanged (drag paints the whole
+span from its anchor; pointer captured to the whole calendar so touch works;
+below <code>sm:</code> only the first month renders and arrows page the rest; the
+focus ring is on the mark, not the cell). What changes is only the skin: peri is
+the dates domain, so the wash and marks are drawn in peri and blue rather than the
+old highlighter green. The exact marks are set in the dates page ticket.</p>
+
+<h2>The Days calendar is a real calendar</h2>
+<p>Days is a <strong>working calendar</strong>, not a styled list: a week view with
+a real time grid (an hour gutter, events positioned by their start and end), a
+month view, prev/next paging, click an empty slot to add, and an event detail
+panel. It must still respect the domain rules: <strong>day-first, never a stop
+table</strong> (rule 3); an <strong>undated trip has no calendar</strong> and needs
+its own empty state (rule 9); <strong>no timezones</strong>, dates are
+<code>YYYY-MM-DD</code> and times are local (rule 10). Whether the month view earns
+its place for a one-week trip is an open question to settle in that ticket, not a
+foregone conclusion.</p>
+
+<h2>Maps and pictures</h2>
+<p>A map stays a house treatment over plain OpenStreetMap tiles — one filtered map
+look, not a second tile provider (keeps the &ldquo;free for the MVP&rdquo;
+decision intact), and OSM attribution stays visible wherever tiles are. The old
+filter knocked OSM back to <em>ink-on-cream</em> to sit on paper; on the white
+ground it is re-tuned to sit on canvas and carry a domain tint where it belongs
+(blush, for route and places). The exact filter stack is set when the route/map
+surface is reskinned. A picture sits in the same plain rounded frame — never a
+novelty frame (the perforated-stamp frame was rejected on sight and stays
+rejected).</p>
+
+<h2>Component inventory</h2>
+<p>Hand-rolled, not shadcn/ui — owning the dozen primitives keeps the density
+undiluted. The set is unchanged by the redesign; the primitives are
+<em>reshaped</em> (radii, pills, hover), not replaced.</p>
+<p>Server components in <code>components/ui.tsx</code>: <code>Page</code>,
+<code>PageHeader</code>, <code>Card</code>, <code>CardHeader</code>, <code>Stack</code>,
+<code>Rule</code>, <code>Button</code>, <code>ButtonLink</code>, <code>Badge</code>,
+<code>Stamp</code>, <code>EmptyState</code>, <code>Avatar</code>, <code>AvatarRow</code>,
+<code>Field</code>, <code>Input</code>, <code>Textarea</code>, <code>Select</code>,
+<code>ErrorText</code>. Client components in <code>components/client-ui.tsx</code>:
+<code>ActionForm</code>, <code>SubmitButton</code>, <code>Sheet</code>,
+<code>ConfirmSubmit</code>, <code>CopyLink</code>, <code>Segmented</code>,
+<code>Menu</code>. Avatar colouring lives in <code>lib/who.ts</code>.</p>
+
 <h2>The screen that carries the character</h2>
-<p><code>/trip/[id]/overview</code> — it holds the summary, the unresolved list and the
-nudge panel at once, so it is where the journal tone, the ruled sheet and the
-three-state status semantics have to work hardest. The rest of the app is
-derived from it.</p>
+<p><code>/trip/[id]/overview</code> — it holds the day track, the roster, the route
+and the forecast at once, so it is where the pastel-per-domain system, the pill
+chrome and the three-state status semantics have to work hardest together. The
+rest of the app is derived from it.</p>
 </main>
 <script src="../assets/nav.js"></script>
 </body>
+</html>
