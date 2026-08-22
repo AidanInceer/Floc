@@ -89,3 +89,46 @@ export function PersonRow({
     </li>
   );
 }
+
+/**
+ * A one-of-N choice as a row of pills instead of a dropdown (ticket 201
+ * follow-up). Every option is on screen, so the rings can be compared rather
+ * than opened one at a time — and it stays plain radio inputs, so the form
+ * posts exactly what a `<select>` did and it works without JavaScript.
+ */
+export function PillChoice<T extends string>({
+  name,
+  label,
+  hint,
+  value,
+  options,
+}: {
+  name: string;
+  label: string;
+  hint?: ReactNode;
+  value: T;
+  options: { value: T; label: string }[];
+}) {
+  return (
+    <fieldset className="min-w-0">
+      <legend className="typed mb-2">{label}</legend>
+      <div className="flex flex-wrap gap-2">
+        {options.map((o) => (
+          <label key={o.value} className="cursor-pointer">
+            <input
+              type="radio"
+              name={name}
+              value={o.value}
+              defaultChecked={o.value === value}
+              className="peer sr-only"
+            />
+            <span className="lift block rounded-full border border-rule bg-sheet-2 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-soft peer-checked:border-pen peer-checked:bg-pen peer-checked:text-paper peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-pen">
+              {o.label}
+            </span>
+          </label>
+        ))}
+      </div>
+      {hint ? <p className="mt-2 text-xs text-ink-faint">{hint}</p> : null}
+    </fieldset>
+  );
+}

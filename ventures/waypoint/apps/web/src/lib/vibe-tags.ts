@@ -6,41 +6,21 @@
  */
 import { normaliseTag } from "@/lib/tags";
 
-/** Lower-case, as stored. Ordered pace → company → interests for the picker's on-screen grouping. */
+/**
+ * Lower-case, as stored. Cut back to five (ticket 201 follow-up): the wall of
+ * thirty read as a survey, and matching across accounts is worth more on a few
+ * tags everybody actually picks than on a long tail nobody does.
+ */
 export const VIBE_TAGS = [
-  "slow travel",
-  "packed itinerary",
-  "spontaneous",
-  "planned to the hour",
   "early starts",
   "late nights",
-  "budget",
-  "worth splashing out",
   "city breaks",
   "beaches",
-  "mountains",
   "road trips",
-  "islands",
-  "camping",
-  "hiking",
-  "skiing",
-  "diving",
-  "festivals",
-  "nightlife",
-  "food and markets",
-  "wine and breweries",
-  "museums and galleries",
-  "history and ruins",
-  "wildlife",
-  "photography",
-  "big groups",
-  "small groups",
-  "family friendly",
-  "solo-ish",
 ] as const;
 
-/** Beyond this the chip row is a wall, not a summary. */
-export const MAX_VIBE_TAGS = 10;
+/** The whole vocabulary — nothing to ration while the list is this short. */
+export const MAX_VIBE_TAGS = 5;
 
 /** Form input → the column. Seed-only enforced here too, not just in the UI — a hand-crafted POST must not invent a tag. */
 export function parseVibeTags(input: (string | null | undefined)[]): string[] {

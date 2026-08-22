@@ -17,7 +17,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import "leaflet/dist/leaflet.css";
 
 import { COUNTRIES, countryName } from "@/lib/countries";
-import { Input, LegendKey, cx } from "./ui";
+import { Input, cx } from "./ui";
 
 export type MapState = "green" | "yellow";
 /** What a click asks for — the displayed state, not the stored row. */
@@ -186,10 +186,12 @@ export function TravelMap({
   const visited = Object.values(local).filter((s) => s === "green").length;
   const wantToGo = Object.values(local).filter((s) => s === "yellow").length;
 
+  // Results only while you're typing: the full list was 200 rows of scroll
+  // sitting under the map for the sake of the handful you'd ever click.
   const needle = filter.trim().toLowerCase();
   const listed = needle
     ? COUNTRIES.filter((c) => c.name.toLowerCase().includes(needle))
-    : COUNTRIES;
+    : [];
 
   const marked = COUNTRIES.filter((c) => local[c.code]);
 
@@ -225,7 +227,8 @@ export function TravelMap({
             aria-label="Find a country"
             autoComplete="off"
           />
-          <ul className="mt-2 max-h-64 overflow-y-auto rounded-sm border border-rule">
+          {needle ? (
+          <ul className="mt-2 max-h-64 overflow-y-auto rounded-md bg-sheet-2">
             {listed.length === 0 ? (
               <li className="px-2.5 py-2 text-sm text-ink-soft">
                 No country by that name.
@@ -239,7 +242,7 @@ export function TravelMap({
                       type="button"
                       onClick={() => paint(c.code)}
                       aria-pressed={Boolean(state)}
-                      className="flex w-full items-center gap-2 px-2.5 py-1.5 text-left text-sm hover:bg-sheet-2"
+                      className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm hover:bg-sheet-3"
                     >
                       <span
                         aria-hidden
@@ -263,11 +266,7 @@ export function TravelMap({
               })
             )}
           </ul>
-          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5">
-            <LegendKey swatch="bg-green-soft border-green" label="Want to go" />
-            <LegendKey swatch="bg-highlight-soft border-highlight-edge" label="Been there" />
-            <LegendKey swatch="bg-sheet-2 border-rule" label="Not marked" />
-          </div>
+          ) : null}
           <p className="mt-2 text-xs text-ink-faint">
             Countries from your trips are filled in already.
           </p>

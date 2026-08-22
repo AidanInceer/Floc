@@ -15,8 +15,8 @@ import {
 import type { Visibility } from "@/db/schema";
 import { requireUser } from "@/server/access";
 import { ensureProfile, listLinkedAccounts } from "@/server/profile";
-import { AccountPage, Panel, PersonRow } from "@/components/account-ui";
-import { Field, Input, Select, Stack } from "@/components/ui";
+import { AccountPage, PillChoice, Panel, PersonRow } from "@/components/account-ui";
+import { Field, Input, Stack } from "@/components/ui";
 import { ActionForm, ConfirmSubmit, SubmitButton } from "@/components/client-ui";
 
 const NOTIFICATION_TOGGLES = [
@@ -38,6 +38,11 @@ const RING_LABELS: Record<Visibility, string> = {
   friends: "Friends",
   trip_members: "Friends and people I've travelled with",
 };
+
+/** The same three pills under every attribute, in the same order each time. */
+const RING_OPTIONS = (
+  Object.entries(RING_LABELS) as [Visibility, string][]
+).map(([value, label]) => ({ value, label }));
 
 export default async function SettingsPage() {
   const viewer = await requireUser("/settings");
@@ -112,75 +117,46 @@ export default async function SettingsPage() {
               </span>
             </label>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Profile picture">
-                <Select
-                  name="visibilityPicture"
-                  defaultValue={profile.visibilityPicture}
-                >
-                  {Object.entries(RING_LABELS).map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
+            <PillChoice
+              name="visibilityPicture"
+              label="Profile picture"
+              value={profile.visibilityPicture}
+              options={RING_OPTIONS}
+            />
 
-              <Field label="Vibe tags">
-                <Select
-                  name="visibilityVibeTags"
-                  defaultValue={profile.visibilityVibeTags}
-                >
-                  {Object.entries(RING_LABELS).map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-            </div>
+            <PillChoice
+              name="visibilityVibeTags"
+              label="Vibe tags"
+              value={profile.visibilityVibeTags}
+              options={RING_OPTIONS}
+            />
 
-            <Field
+            <PillChoice
+              name="visibilityTravelMap"
               label="Travel map"
               hint="Where you've been and where you want to go. Countries only — never a city, and never a date."
-            >
-              <Select
-                name="visibilityTravelMap"
-                defaultValue={profile.visibilityTravelMap}
-              >
-                {Object.entries(RING_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </Select>
-            </Field>
+              value={profile.visibilityTravelMap}
+              options={RING_OPTIONS}
+            />
 
-            <Field
+            <PillChoice
+              name="visibilityFriends"
               label="Your friends list"
               hint="The only thing here that names other people, so it starts tighter than the rest. Anyone who's made their own profile private stays off it whatever you choose."
-            >
-              <Select
-                name="visibilityFriends"
-                defaultValue={profile.visibilityFriends}
-              >
-                {Object.entries(RING_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </Select>
-            </Field>
+              value={profile.visibilityFriends}
+              options={RING_OPTIONS}
+            />
 
-            <Field
+            <PillChoice
+              name="pastTripsShow"
               label="Past trips"
               hint="Ended trips only, and they're hidden entirely while your profile is private."
-            >
-              <Select name="pastTripsShow" defaultValue={profile.pastTripsShow}>
-                <option value="all">Show all of them</option>
-                <option value="latest">Show my most recent one only</option>
-              </Select>
-            </Field>
+              value={profile.pastTripsShow}
+              options={[
+                { value: "all", label: "All of them" },
+                { value: "latest", label: "My most recent one only" },
+              ]}
+            />
 
             <p className="text-xs text-ink-faint">
               Dietary requirements have their own switch, on your profile — they

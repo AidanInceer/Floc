@@ -13,16 +13,15 @@
 import { useState } from "react";
 
 import { cx } from "@/components/ui";
-import { MAX_VIBE_TAGS, VIBE_TAGS } from "@/lib/vibe-tags";
+import { VIBE_TAGS } from "@/lib/vibe-tags";
 
 export function VibePicker({ selected }: { selected: string[] }) {
   const [picked, setPicked] = useState<string[]>(selected);
-  const full = picked.length >= MAX_VIBE_TAGS;
 
+  // No cap to enforce any more: the vocabulary is five tags, so picking all of
+  // them is a legitimate answer rather than the wall the limit existed to stop.
   const toggle = (tag: string) =>
-    setPicked((p) =>
-      p.includes(tag) ? p.filter((t) => t !== tag) : full ? p : [...p, tag],
-    );
+    setPicked((p) => (p.includes(tag) ? p.filter((t) => t !== tag) : [...p, tag]));
 
   return (
     <div className="flex flex-col gap-2">
@@ -34,15 +33,12 @@ export function VibePicker({ selected }: { selected: string[] }) {
               key={tag}
               type="button"
               aria-pressed={on}
-              // A chip you can't add reads as unavailable rather than broken.
-              disabled={!on && full}
               onClick={() => toggle(tag)}
               className={cx(
                 "rounded-full border px-2.5 py-1 font-mono text-[10.5px] uppercase tracking-[0.06em] transition-colors",
                 on
                   ? "border-transparent bg-pen text-paper"
                   : "border-rule text-ink-soft hover:bg-sheet-2",
-                !on && full && "opacity-40 hover:bg-transparent",
               )}
             >
               {tag}
@@ -56,8 +52,7 @@ export function VibePicker({ selected }: { selected: string[] }) {
       ))}
 
       <p className="text-xs text-ink-faint">
-        {picked.length} of {MAX_VIBE_TAGS} picked
-        {full ? " — the limit. Unpick one to swap." : "."}
+        {picked.length === 0 ? "None picked." : `${picked.length} picked.`}
       </p>
     </div>
   );
