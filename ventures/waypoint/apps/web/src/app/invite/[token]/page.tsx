@@ -1,10 +1,15 @@
 /**
- * /invite/[token] — pre-auth teaser (ticket 01 step 2, ticket 05, ticket 19).
- * Shows scale with trip progress; never reveals member emails, expense
- * amounts, or note bodies pre-auth — those need membership, not just the link.
+ * /invite/[token] — pre-auth teaser (ticket 01 step 2, ticket 05, ticket 19;
+ * redesigned 199). The trip first, the sign-up second: someone should be able
+ * to decide whether they're interested before being asked for anything.
+ *
+ * What stays behind the join action is anything that belongs to the people
+ * already in — their names and faces, what has been spent, what's been said.
+ * The link is forwardable, so everyone it reaches would otherwise get that for
+ * free. It's drawn as "join to see", not as a wall.
  */
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 
 import { getSession } from "@/server/access";
 import { countIdeas } from "@/server/ideas";
@@ -18,22 +23,14 @@ import {
 import { emailConfigured } from "@/server/email";
 import { peopleByIds } from "@/server/friends";
 import { formatDateRange } from "@/lib/dates";
-import {
-  Badge,
-  ButtonLink,
-  Card,
-  CardHeader,
-  Page,
-  Stack,
-} from "@/components/ui";
+import { ButtonLink } from "@/components/ui";
 import { SubmitButton } from "@/components/client-ui";
 import { joinTrip, resendVerification } from "./actions";
 
 /**
  * The link names the trip (ticket 147). URL stays opaque — putting the name in
  * the path would leak it to every proxy/history the link passes through — so
- * the page carries it instead, in the tab title and link preview. A missing
- * trip gets the generic title; `notFound()` below is what answers a dead token.
+ * the page carries it instead, in the tab title and link preview.
  */
 export async function generateMetadata({
   params,
@@ -68,7 +65,11 @@ export default async function InvitePage({
   const { verify } = await searchParams;
 
   const found = await findTripByInviteToken(token);
-  if (!found) notFound();
+  // A dead token gets its own answer rather than the generic not-found: the
+  // token is a random UUID, so saying "this link no longer works" reveals
+  // nothing an attacker could enumerate, and a stranger holding a stale link
+  // deserves to know which of the two problems they have.
+  if (!found) return <DeadLink />;
 
   const session = await getSession();
 
@@ -103,75 +104,147 @@ export default async function InvitePage({
     : null;
 
   const redirectTo = `/invite/${token}`;
+  const dated = found.startDate || found.endDate;
+
+  // The same action twice — once at the top for anyone already sold, once at
+  // the foot for anyone who read the whole thing.
+  const join = !session?.user ? (
+    <ButtonLink
+      variant="primary"
+      href={`/signup?redirect=${encodeURIComponent(redirectTo)}&via=link`}
+    >
+      Join this trip
+    </ButtonLink>
+  ) : !session.user.emailVerified && emailConfigured() ? (
+    // The friendly face of the gate `joinTrip` enforces (#149).
+    <div className="flex flex-col items-start gap-2">
+      <p className="text-sm text-ink-soft">
+        {verify === "sent"
+          ? `We've sent a confirmation link to ${session.user.email}. Open it, then come back to join.`
+          : `Confirm your email first — we sent a link to ${session.user.email} when you signed up.`}
+      </p>
+      <form action={resendVerification.bind(null, token)}>
+        <SubmitButton variant="secondary" pendingLabel="Sending…">
+          Resend confirmation
+        </SubmitButton>
+      </form>
+    </div>
+  ) : (
+    <form action={joinTrip.bind(null, token)}>
+      <SubmitButton pendingLabel="Joining…">Join this trip</SubmitButton>
+    </form>
+  );
 
   return (
-    <Page>
-      <div className="mx-auto max-w-lg pt-10">
-        <Card>
-          <CardHeader
-            title={inviterName ? `${inviterName} invited you` : "You're invited"}
-            hint="Waypoint — plan a trip with the group"
-          />
-          <Stack gap={4} className="p-5">
-            <div>
-              <h1 className="font-display text-2xl font-semibold">{found.name}</h1>
-              <p className="mt-1 text-sm text-ink-soft">
-                {found.hostName ? `Started by ${found.hostName} — ` : null}
-                {memberCount} {memberCount === 1 ? "person" : "people"} already in
+    <div className="mx-auto w-full max-w-[62rem] px-4 pb-20 pt-10 sm:px-6">
+      <header>
+        <p className="typed">
+          {inviterName
+            ? `${inviterName} invited you`
+            : found.hostName
+              ? `${found.hostName} is planning this`
+              : "You're invited"}
+        </p>
+        <h1 className="mt-3 text-[clamp(2.1rem,5vw,3.4rem)]">{found.name}</h1>
+        <p className="mt-3 max-w-[60ch] text-md text-ink-soft">
+          {memberCount} {memberCount === 1 ? "person is" : "people are"} already
+          planning this on Waypoint. Have a look before you decide.
+        </p>
+        <div className="mt-6">{join}</div>
+      </header>
+
+      <div className="mt-10 grid gap-4 sm:grid-cols-2">
+        <section className="rounded-lg bg-peri p-6 text-peri-ink">
+          <p className="typed opacity-70">When</p>
+          <p className="mt-3 text-2xl font-semibold">
+            {dated ? formatDateRange(found.startDate, found.endDate) : "Not settled yet"}
+          </p>
+          <p className="mt-2 text-sm opacity-75">
+            {dated
+              ? "The window the group has agreed on."
+              : "The group is still working out which days everyone can do."}
+          </p>
+        </section>
+
+        <section className="rounded-lg bg-blush p-6 text-blush-ink">
+          <p className="typed opacity-70">Where</p>
+          {stops.length > 0 ? (
+            <>
+              <p className="mt-3 text-2xl font-semibold">{stops.join(" → ")}</p>
+              <p className="mt-2 text-sm opacity-75">
+                {days.length} {days.length === 1 ? "day" : "days"} across{" "}
+                {stops.length} {stops.length === 1 ? "stop" : "stops"}.
               </p>
-            </div>
-
-            {found.startDate || found.endDate ? (
-              <p className="text-sm text-ink">
-                {formatDateRange(found.startDate, found.endDate)}
+            </>
+          ) : (
+            <>
+              <p className="mt-3 text-2xl font-semibold">Nowhere yet</p>
+              <p className="mt-2 text-sm opacity-75">
+                No route has been laid out — an early enough moment to shape it.
               </p>
-            ) : null}
+            </>
+          )}
+        </section>
 
-            {ideaCount > 0 ? (
-              <p className="text-sm text-ink">
-                <Badge tone="open">{ideaCount} idea{ideaCount === 1 ? "" : "s"}</Badge>{" "}
-                on the board so far
-              </p>
-            ) : null}
+        <section className="rounded-lg bg-butter p-6 text-butter-ink">
+          <p className="typed opacity-70">Ideas on the board</p>
+          <p className="nums mt-3 text-2xl font-semibold">{ideaCount}</p>
+          <p className="mt-2 text-sm opacity-75">
+            {ideaCount === 0
+              ? "Nobody has suggested anywhere yet."
+              : "Places someone has put forward. Nothing is binding."}
+          </p>
+        </section>
 
-            {stops.length > 0 ? (
-              <div>
-                <p className="mb-1 text-xs font-semibold uppercase tracking-[0.06em] text-ink-soft">
-                  Route so far
-                </p>
-                <p className="text-sm text-ink">{stops.join(" → ")}</p>
-              </div>
-            ) : null}
-
-            {!session?.user ? (
-              <ButtonLink
-                variant="primary"
-                href={`/signup?redirect=${encodeURIComponent(redirectTo)}&via=link`}
-              >
-                Join this trip
-              </ButtonLink>
-            ) : !session.user.emailVerified && emailConfigured() ? (
-              // The friendly face of the gate `joinTrip` enforces (#149).
-              <Stack gap={2}>
-                <p className="text-sm text-ink-soft">
-                  {verify === "sent"
-                    ? `We've sent a confirmation link to ${session.user.email}. Open it, then come back to join.`
-                    : `Confirm your email first — we sent a link to ${session.user.email} when you signed up.`}
-                </p>
-                <form action={resendVerification.bind(null, token)}>
-                  <SubmitButton variant="secondary" pendingLabel="Sending…">
-                    Resend confirmation
-                  </SubmitButton>
-                </form>
-              </Stack>
-            ) : (
-              <form action={joinTrip.bind(null, token)}>
-                <SubmitButton pendingLabel="Joining…">Join this trip</SubmitButton>
-              </form>
-            )}
-          </Stack>
-        </Card>
+        {/* Not a paywall — it's other people's information, and it opens the
+            moment you're one of them. */}
+        <section className="relative overflow-hidden rounded-lg bg-sheet p-6">
+          <div aria-hidden className="select-none blur-[5px] opacity-45">
+            <p className="typed">Who is going, and what it has cost</p>
+            <p className="mt-3 text-2xl font-semibold">
+              {memberCount} {memberCount === 1 ? "person" : "people"}
+            </p>
+            <p className="mt-2 text-sm">
+              Names, faces, the running total and everything the group has said.
+            </p>
+          </div>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-center">
+            <p className="text-sm font-medium">Join to see</p>
+            <p className="max-w-[34ch] text-xs text-ink-soft">
+              Who is going and what has been spent belong to the people in the
+              trip.
+            </p>
+          </div>
+        </section>
       </div>
-    </Page>
+
+      <div className="mt-10 flex flex-wrap items-center gap-4">
+        {join}
+        <p className="text-sm text-ink-soft">
+          Joining puts you in the group. You can leave at any time.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/** A link that has been revoked, or belongs to a trip that no longer exists. */
+function DeadLink() {
+  return (
+    <div className="mx-auto w-full max-w-[42rem] px-4 pb-20 pt-16 text-center sm:px-6">
+      <h1 className="text-[clamp(1.9rem,4vw,2.8rem)]">This link no longer works</h1>
+      <p className="mx-auto mt-4 max-w-[48ch] text-md text-ink-soft">
+        The trip may have been deleted, or the invite link replaced. Ask whoever
+        sent it for a fresh one — a new link takes them a moment to make.
+      </p>
+      <div className="mt-8 flex flex-wrap justify-center gap-3">
+        <ButtonLink variant="primary" href="/">
+          What Waypoint is
+        </ButtonLink>
+        <ButtonLink variant="secondary" href="/trips">
+          Your own trips
+        </ButtonLink>
+      </div>
+    </div>
   );
 }
