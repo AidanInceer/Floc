@@ -97,7 +97,7 @@ export async function updateNotifications(formData: FormData): Promise<void> {
 // account rows (the one hard delete here, on Better Auth's tables only).
 // Ideas, notes, votes, day_events and expense_split rows are left untouched
 // and stay attributed to the "deleted user" placeholder (a display fallback,
-// not a rewrite of created_by/paid_by) — see components/deleted-user.tsx.
+// not a rewrite of created_by/paid_by).
 export async function deleteAccount(): Promise<void> {
   const viewer = await requireUser();
 

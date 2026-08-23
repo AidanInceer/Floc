@@ -118,7 +118,7 @@ export type PastTrip = {
   place: string | null;
 };
 
-export type ProfileFriend = {
+type ProfileFriend = {
   id: string;
   name: string;
   avatarUrl: string | null;

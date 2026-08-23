@@ -278,7 +278,7 @@ function toRoster(rows: MemberRow[]): TripMember[] {
     .map((m, seat) => ({ ...m, tone: seatTone(seat) }));
 }
 
-export const listMembers = cache(async function listMembers(
+const listMembers = cache(async function listMembers(
   tripId: number,
 ): Promise<TripMember[]> {
   const rows = await memberQuery()

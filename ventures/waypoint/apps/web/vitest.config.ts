@@ -23,29 +23,19 @@ export default defineConfig({
       reporter: ["text-summary", "html", "lcov"],
       include: ["src/lib/**/*.ts", "src/server/**/*.ts", "src/app/**/actions.ts"],
       exclude: ["src/**/*.test.ts", "src/lib/auth-client.ts"],
-      // Baseline measured at v0.8.0: statements/lines 30.76%, branches 87%,
-      // functions 60.95%. Re-measured at v0.10.0 after ticket 108 pulled the
-      // SQL out of `app/**/actions.ts` into the `server/` aggregates, which are
-      // testable without a route: 40%, 89.61%, 60.18%. Each threshold sits just
-      // below its measured value — raise them when coverage rises, never lower
-      // them to make a run pass.
+      // A ratchet: each threshold sits just under the measured figure, so
+      // coverage can only go up. Raise them when it rises; never lower one to
+      // make a run pass. Re-baselined at v0.47.0 (measured 67.99 / 80.00 /
+      // 90.78 / 67.99) — the first release where the thresholds actually ran.
       //
-      // Functions dipped once (60.95% → 60.18%) while the code got better
-      // tested: splitting long action bodies into named aggregate functions
-      // adds to the denominator faster than tests cover it. It was held at 60
-      // rather than cut to fit, and the suites added under tickets 114/115/109
-      // have since carried it past — v0.11.0 measures 47.13%, 90.17%, 63.44%.
-      //
-      // The branches figure is high and the statements figure low for the same
-      // reason: the covered modules are dense pure functions with a lot of
-      // conditionals, while whole untested modules contribute no branches at
-      // all. Read statements as "how much of this is exercised" and branches as
-      // "how thoroughly the exercised part is".
+      // Statements read as "how much of this is exercised", branches as "how
+      // thoroughly the exercised part is" — which is why one is low and the
+      // other high over the same code.
       thresholds: {
-        lines: 47,
-        functions: 63,
+        lines: 67,
+        functions: 79,
         branches: 90,
-        statements: 47,
+        statements: 67,
       },
     },
   },

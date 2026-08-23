@@ -7,17 +7,17 @@ import { computeBalances } from "@/lib/money";
 import type { Currency } from "@/lib/currency";
 import { countdownLabel, hasEnded } from "@/lib/dates";
 
-/** What a station on the trail is doing. Rendered by `components/trip-trail`. No `locked` — every tab is open (ticket 126). */
-export type StationState = "done" | "now" | "snag" | "ahead";
+/** What a station on the trail is doing. No `locked` — every tab is open (ticket 126). */
+type StationState = "done" | "now" | "snag" | "ahead";
 
-export type TrailStation = {
+type TrailStation = {
   key: "ideas" | "dates" | "days" | "money";
   label: string;
   caption: string;
   state: StationState;
 };
 
-export type StageTone = "neutral" | "marine" | "open";
+type StageTone = "neutral" | "marine" | "open";
 
 export type StateMember = {
   userId: string;

@@ -8,7 +8,6 @@ import {
   useId,
   useRef,
   useState,
-  useTransition,
 } from "react";
 import type { ReactNode } from "react";
 import { useFormStatus } from "react-dom";
@@ -300,118 +299,6 @@ export function CopyLink({
   );
 }
 
-// Drag is never the only way in — no keyboard/touch equivalent — so every
-// row also has move-up/down buttons. Dims mid-reorder so moves can't race.
-export function DragList({
-  items,
-  onReorder,
-  label,
-}: {
-  items: { key: string; label: string; node: ReactNode }[];
-  onReorder: (from: number, to: number) => Promise<void>;
-  /** Names the thing being moved, e.g. "stop" — used in the button labels. */
-  label: string;
-}) {
-  const [dragging, setDragging] = useState<number | null>(null);
-  const [over, setOver] = useState<number | null>(null);
-  // Armed by the grip, not permanent — else selecting text in the card starts a drag.
-  const [armed, setArmed] = useState<number | null>(null);
-  const [pending, startTransition] = useTransition();
-
-  const move = (from: number, to: number) => {
-    setDragging(null);
-    setOver(null);
-    setArmed(null);
-    if (from === to || to < 0 || to >= items.length) return;
-    startTransition(async () => {
-      await onReorder(from, to);
-    });
-  };
-
-  const grip = (i: number) => (
-    <span
-      onMouseDown={() => setArmed(i)}
-      onMouseUp={() => setArmed(null)}
-      aria-hidden="true"
-      title={`Drag to move this ${label}`}
-      className="cursor-grab select-none px-1 font-mono text-sm leading-none text-ink-faint active:cursor-grabbing"
-    >
-      ⠿
-    </span>
-  );
-
-  return (
-    <div
-      className={cx(
-        "flex flex-col gap-4",
-        pending && "pointer-events-none opacity-60",
-      )}
-    >
-      {items.map((item, i) => (
-        <div
-          key={item.key}
-          draggable={armed === i}
-          // stopPropagation throughout: lists nest, else a drop bubbles up and reorders the parent list too.
-          onDragStart={(e) => {
-            e.stopPropagation();
-            setDragging(i);
-            e.dataTransfer.effectAllowed = "move";
-            // Firefox won't start a drag without some payload set.
-            e.dataTransfer.setData("text/plain", item.key);
-          }}
-          onDragEnd={(e) => {
-            e.stopPropagation();
-            setDragging(null);
-            setOver(null);
-            setArmed(null);
-          }}
-          onDragOver={(e) => {
-            if (dragging === null) return;
-            e.stopPropagation();
-            e.preventDefault();
-            setOver(i);
-          }}
-          onDrop={(e) => {
-            if (dragging === null) return;
-            e.stopPropagation();
-            e.preventDefault();
-            move(dragging, i);
-          }}
-          className={cx(
-            "rounded-md transition-shadow",
-            dragging === i && "opacity-50",
-            over === i && dragging !== null && dragging !== i && "ring-2 ring-pen",
-          )}
-        >
-          <div className="mb-1 flex items-center gap-1">
-            {grip(i)}
-            <Button
-              variant="ghost"
-              disabled={i === 0}
-              aria-label={`Move ${item.label} earlier`}
-              onClick={() => move(i, i - 1)}
-            >
-              ↑
-            </Button>
-            <Button
-              variant="ghost"
-              disabled={i === items.length - 1}
-              aria-label={`Move ${item.label} later`}
-              onClick={() => move(i, i + 1)}
-            >
-              ↓
-            </Button>
-            <span className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-faint">
-              {i + 1} of {items.length}
-            </span>
-          </div>
-          {item.node}
-        </div>
-      ))}
-    </div>
-  );
-}
-
 // Row styling for `Menu` (ticket 125). `!` throughout to beat buttonBase —
 // Tailwind v4 specificity is stylesheet order, not class-list order.
 export const menuItemClass =
@@ -533,44 +420,5 @@ function MoreIcon() {
       <circle cx="12" cy="12" r="1.6" />
       <circle cx="18.5" cy="12" r="1.6" />
     </svg>
-  );
-}
-
-/** Toggle group used for votes and availability. */
-export function Segmented<T extends string>({
-  name,
-  value,
-  options,
-  onSelect,
-}: {
-  name: string;
-  value: T | null;
-  options: { value: T; label: string; tone?: "agreed" | "open" | "action" }[];
-  onSelect: (value: T) => void;
-}) {
-  return (
-    <div
-      role="radiogroup"
-      aria-label={name}
-      className="inline-flex overflow-hidden rounded-full border border-rule-strong"
-    >
-      {options.map((o) => (
-        <button
-          key={o.value}
-          type="button"
-          role="radio"
-          aria-checked={value === o.value}
-          onClick={() => onSelect(o.value)}
-          className={cx(
-            "px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.06em] transition-colors",
-            value === o.value
-              ? "bg-pen text-sheet"
-              : "bg-sheet text-ink-soft hover:bg-sheet-2",
-          )}
-        >
-          {o.label}
-        </button>
-      ))}
-    </div>
   );
 }

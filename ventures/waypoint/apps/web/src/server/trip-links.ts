@@ -45,7 +45,7 @@ export function readWebUrl(value: unknown): string | null {
 }
 
 /** Longer than any real link is worth keeping, short enough to bound the row. */
-export const LINK_URL_MAX = 2000;
+const LINK_URL_MAX = 2000;
 
 /** What to show when nobody typed a label: the host, which is the useful half. */
 export function labelFor(url: string, label: string | null): string {

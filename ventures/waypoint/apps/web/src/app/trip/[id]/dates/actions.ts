@@ -24,7 +24,7 @@ function assertIsoDates(dates: string[]) {
   }
 }
 
-export async function setAvailabilityDates(
+async function setAvailabilityDates(
   tripId: number,
   dates: string[],
   isAvailable: boolean,

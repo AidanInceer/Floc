@@ -8,7 +8,7 @@ import type { Currency, TransportType } from "@/db/schema";
  * move between — rather than by a photograph. `base` nights always sum to
  * `nights`; a `hop` is the move in between and carries no nights of its own.
  */
-export type PresetLeg =
+type PresetLeg =
   | { kind: "base"; place: string; nights: number }
   | { kind: "hop"; place: string; mode: TransportType; detail: string };
 

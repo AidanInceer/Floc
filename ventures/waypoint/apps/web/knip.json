@@ -1,0 +1,8 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "scripts/*.mjs"
+  ],
+  "ignoreDependencies": ["server-only", "@tailwindcss/postcss", "tailwindcss", "eslint-config-next"],
+  "ignoreBinaries": ["better-auth"]
+}

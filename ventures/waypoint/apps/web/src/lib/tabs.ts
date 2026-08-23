@@ -11,7 +11,7 @@
  * Deliberately free of any database import: the trip tab bar is a client
  * component, so anything it needs must be safe to bundle for the browser.
  */
-export type TabKey = "overview" | "ideas" | "dates" | "days" | "money";
+type TabKey = "overview" | "ideas" | "dates" | "days" | "money";
 
 export type TabState = { key: TabKey; label: string };
 

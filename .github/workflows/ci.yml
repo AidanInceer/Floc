@@ -67,6 +67,12 @@ jobs:
       - name: Build
         run: pnpm turbo run build --filter='${{ steps.filter.outputs.value }}'
 
+      # Fitness functions (#212): layering, dead code, the globals.css token
+      # rules, WCAG contrast, and the bundle budget. After the build, because
+      # the bundle budget measures what the build produced.
+      - name: Fitness
+        run: pnpm turbo run fitness --filter='${{ steps.filter.outputs.value }}'
+
   # A schema change with no migration file is how waypoint's production
   # database fell behind its code: `trip.tags` shipped, nothing ever altered
   # the table, and every logged-in hit on /trips threw "no such column".

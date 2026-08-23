@@ -429,11 +429,8 @@
     }
   }
 
-  /* `.map-tiles` is the still-image equivalent of Leaflet's tile pane — see
-     components/static-map.tsx. Both get the same treatment so a Route map and
-     an Explore thumbnail are visibly the same kind of object. */
-  .route-map-frame .leaflet-tile-pane,
-  .route-map-frame .map-tiles {
+  /* Desaturated so a Route map reads as part of the panel it sits in. */
+  .route-map-frame .leaflet-tile-pane {
     filter: saturate(0.42) brightness(1.06) contrast(0.9);
   }
 
@@ -462,56 +459,6 @@
     box-shadow:
       inset 0 0 0 1px var(--rule),
       inset 0 0 26px 6px rgb(255 255 255 / 0.5);
-  }
-
-  /* The same vignette on a thumbnail-sized box would be almost all vignette. */
-  .route-map-vignette-sm {
-    box-shadow:
-      inset 0 0 0 1px var(--rule),
-      inset 0 0 12px 2px rgb(255 255 255 / 0.45);
-  }
-
-}
-
-@layer components {
-  /*
-   * A luggage tag — the price on an Explore listing. The pointed left end and
-   * the punched hole are the whole shape, so both are drawn rather than
-   * bordered: `clip-path` cuts the notch, and the hole is a radial-gradient
-   * "hole" in the background rather than a child element, so it shows the
-   * page's paper through without needing to know the page's colour.
-   */
-  .price-tag {
-    position: relative;
-    display: inline-flex;
-    align-items: baseline;
-    gap: 0.3rem;
-    padding: 0.3rem 0.7rem 0.3rem 1.6rem;
-    background: var(--highlight-2);
-    border: 1px solid var(--highlight-edge);
-    border-radius: var(--radius-sm);
-    color: var(--highlight-ink);
-    clip-path: polygon(0 50%, 0.7rem 0, 100% 0, 100% 100%, 0.7rem 100%);
-    white-space: nowrap;
-    rotate: -1.5deg;
-  }
-
-  .price-tag::before {
-    content: "";
-    position: absolute;
-    left: 0.85rem;
-    top: 50%;
-    width: 6px;
-    height: 6px;
-    translate: 0 -50%;
-    border-radius: 50%;
-    background: var(--sheet);
-    box-shadow: inset 0 0 0 1px var(--highlight-edge);
-  }
-
-  .price-tag-amount {
-    font-size: 14px;
-    font-weight: 600;
   }
 }
 

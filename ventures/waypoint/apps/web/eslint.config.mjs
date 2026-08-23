@@ -31,6 +31,79 @@ const config = [
     ],
   },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+
+  // Size ceilings (#212). A file that can't be named after one thing, or a
+  // function too long to hold in your head, is the shape drift takes — nothing
+  // was watching when days-calendar.tsx reached 1,642 lines.
+  {
+    files: ["src/**/*.ts", "src/**/*.tsx"],
+    rules: {
+      "max-lines": [
+        "warn",
+        { max: 600, skipBlankLines: true, skipComments: true },
+      ],
+      "max-lines-per-function": [
+        "warn",
+        { max: 120, skipBlankLines: true, skipComments: true, IIFEs: true },
+      ],
+      complexity: ["warn", 15],
+    },
+  },
+
+  // A route's page or layout is mostly markup, and markup is not logic — a
+  // long JSX return says the screen has a lot on it, not that the function is
+  // doing too much. Complexity still applies: real branching there is real.
+  {
+    files: ["src/app/**/page.tsx", "src/app/**/layout.tsx"],
+    rules: { "max-lines-per-function": "off" },
+  },
+
+  // Dated allowlist — each entry is a visible decision with a date on it,
+  // which is the point: an exception someone chose beats invisible drift.
+  // Delete a line when its file comes back under the ceiling; splitting the
+  // file is always the better option than adding one.
+  {
+    // 2026-08-23: all pre-date the ceiling (#212).
+    files: [
+      "src/components/auth-form.tsx",
+      "src/components/availability-calendar.tsx",
+      "src/components/days-calendar.tsx",
+      "src/components/expense-form.tsx",
+      "src/components/idea-card.tsx",
+      "src/components/note-thread.tsx",
+      "src/components/place-picker.tsx",
+      "src/components/travel-map.tsx",
+      "src/components/trip-roster.tsx",
+      "src/db/seed.ts",
+      "src/lib/trip-state.ts",
+      "src/server/visibility.ts",
+      "src/server/weather.ts",
+      "src/app/invite/**/page.tsx",
+      "src/app/trip/**/page.tsx",
+      "src/app/trip/**/actions.ts",
+    ],
+    rules: { "max-lines-per-function": "off", complexity: "off" },
+  },
+
+  // 2026-08-23: the two calendars are over the file ceiling as well —
+  // 1,365 and 812 lines of code. Both are the obvious next split.
+  {
+    files: [
+      "src/components/days-calendar.tsx",
+      "src/components/availability-calendar.tsx",
+    ],
+    rules: { "max-lines": "off" },
+  },
+
+  // Tests are long by nature — a table of cases is not complexity.
+  {
+    files: ["src/**/*.test.ts", "src/test/**"],
+    rules: {
+      "max-lines": "off",
+      "max-lines-per-function": "off",
+      complexity: "off",
+    },
+  },
 ];
 
 export default config;

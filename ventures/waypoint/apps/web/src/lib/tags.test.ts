@@ -97,3 +97,10 @@ describe("tag colours (ticket 86)", () => {
     expect(parseTagRows(many).tags).toHaveLength(MAX_TAGS);
   });
 });
+
+describe("formatTags", () => {
+  it("reads an absent tag list as no tags at all", () => {
+    expect(formatTags(null)).toBe("");
+    expect(formatTags(undefined)).toBe("");
+  });
+});

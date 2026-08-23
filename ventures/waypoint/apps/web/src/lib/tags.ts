@@ -7,7 +7,7 @@
  */
 
 /** Comma-separated in the field, an array in the column. */
-export const TAG_SEPARATOR = ", ";
+const TAG_SEPARATOR = ", ";
 
 /** Beyond this a trip card is a wall of pills, not a label. */
 export const MAX_TAGS = 8;

@@ -24,9 +24,7 @@ import {
   listEventSlots,
   listOvernightPlaces,
   moveEventToDay,
-  moveItem,
   rescheduleEvent as moveEventTo,
-  permuteDayContents,
   rebaseEventOrder,
   revalidateItinerary,
   setOvernightPlaceOn,
@@ -36,23 +34,6 @@ import {
   type EventFields,
   type ItineraryDay,
 } from "@/server/itinerary";
-
-/**
- * Drops a day into a different position in the itinerary.
- *
- * The dates don't move — the *plan* does. Day rows are keyed by (trip, date),
- * so "swap Tuesday and Wednesday" means Wednesday's overnight place and events
- * now happen on Tuesday's date and vice versa. Expenses stay on the date they
- * were spent; see src/server/itinerary.ts.
- */
-export async function reorderDays(tripId: number, from: number, to: number) {
-  const access = await requireTripAccess(tripId);
-
-  const ids = await listDayIds(access.trip.id);
-  await permuteDayContents(access.trip.id, moveItem(ids, from, to));
-
-  revalidateItinerary(access.trip.id);
-}
 
 /**
  * Extends the trip by appending N days after its current last day.
@@ -240,7 +221,7 @@ export async function reorderEvents(
  * Trip and destination day come first, so Days can `.bind(null, access.trip.id,
  * dayId)` (ticket 117, S11).
  */
-export async function insertEventAt(
+async function insertEventAt(
   tripId: number,
   toDayId: number,
   eventId: number,

@@ -55,6 +55,50 @@ Pre-MVP. Stack: **Next.js App Router + Turso (libSQL) + Drizzle + Better Auth**
 - Read `docs/design/approach.html` + `visual-language.html` before UI/UX work.
 - **Comments: be ruthless.** Only *why* + a ticket pointer, or a genuine gotcha — never *what* the code does. One line beats a block.
 
+## Code standards
+
+Design principles, stated for this codebase rather than in the abstract.
+
+- **Single responsibility** — the practical test: can the file be named after
+  one thing? If the name needs an “and”, it is two files.
+- **Dependency inversion at the seams.** `lib/` is pure and knows nothing of
+  `server/`, `app/` or `components/`; `components/` take data, never fetch it;
+  only `server/` opens the database. Type-only imports across a seam are fine
+  — they vanish at build time. `pnpm deps:check` enforces this.
+- **YAGNI.** No abstraction, option or config knob without a second call site
+  that needs it today. Pre-MVP with one venture, speculative generality is the
+  expensive mistake.
+- **Composability over configuration.** A component taking eight optional props
+  to cover four cases should be several components. `PASTEL_SKINS` is the shape
+  to copy: one shared thing, composed at the call site.
+
+Hard numbers, because a rule without one is a preference:
+
+| Rule | Limit |
+|---|---|
+| File length | 600 lines (blank/comment lines not counted) |
+| Function length | 120 lines — a page’s JSX return is exempt, markup is not logic |
+| Cyclomatic complexity | 15 per function |
+| Component props | past ~6, split the component |
+
+`eslint` enforces all but the last. Files that predate the ceilings sit on a
+**dated allowlist** in `eslint.config.mjs` — the point is that each exception is
+a visible decision with a date on it. Delete a line when its file comes back
+under; splitting the file is always the better move than adding one.
+
+**Performance defaults**, so it is not decided case by case: Server Components
+unless the file needs the client; no client-side fetch where a server read will
+do; no heavyweight import behind a rarely-taken branch; every list that can
+grow unbounded is paged or capped (`LIMITS`). `pnpm check:bundle` holds the
+shared First Load JS under its budget.
+
+**Comments: see the convention above — be ruthless.** The house style drifted
+into paragraph-length blocks narrating what the code already says, restating
+the change just made, or recording history that belongs in the commit message
+and `.scratch/`. A comment earns its place only by saying **why**, and only
+when the why is not obvious. Delete rather than update a comment that only
+restates its code.
+
 ## Common agent pitfalls here
 
 - Adding a `stop` or lifecycle-state table/column — both are explicitly derived, not stored (rules 3–4).

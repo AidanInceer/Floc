@@ -21,7 +21,7 @@ import type { CountryMarkState } from "@/db/schema";
  * from `travelMapFor` since the leave/kick prompt asks the same question about
  * one trip. Archived trips count (filing, not forgetting); soft-deleted ones don't (rule 8).
  */
-export async function countriesForTrips(
+async function countriesForTrips(
   tripIds: number[],
 ): Promise<Record<string, MapState>> {
   const out: Record<string, MapState> = {};
@@ -38,7 +38,7 @@ export async function countriesForTrips(
  * call `countriesForTrips([id])` once per row in a loop (N+1); merging across
  * trips is cheap and belongs to the caller that wants it merged.
  */
-export async function countriesByTrip(
+async function countriesByTrip(
   tripIds: number[],
 ): Promise<Map<number, Record<string, MapState>>> {
   const byTrip = new Map<number, Record<string, MapState>>();
@@ -97,7 +97,7 @@ export async function countriesByTrip(
 }
 
 /** The trips whose itineraries currently speak for someone. */
-export async function currentTripIds(userId: string): Promise<number[]> {
+async function currentTripIds(userId: string): Promise<number[]> {
   const rows = await db
     .select({ tripId: tripMembership.tripId })
     .from(tripMembership)
@@ -106,7 +106,7 @@ export async function currentTripIds(userId: string): Promise<number[]> {
   return rows.map((r) => r.tripId);
 }
 
-export async function manualMarksFor(
+async function manualMarksFor(
   userId: string,
 ): Promise<Record<string, CountryMarkState>> {
   const rows = await db

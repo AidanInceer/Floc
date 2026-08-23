@@ -111,8 +111,6 @@ export const auth = betterAuth({
   },
 });
 
-export type Session = typeof auth.$Infer.Session;
-
 /**
  * Linked sign-in methods on an account, and the one way to remove one (ticket
  * 108). Better Auth owns `account`, so these sit beside its config; the rule

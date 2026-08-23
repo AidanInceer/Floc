@@ -17,7 +17,7 @@ import {
   setIdeaPinned,
 } from "@/app/trip/[id]/ideas/actions";
 
-export type IdeaVoteRow = {
+type IdeaVoteRow = {
   userId: string;
   name: string;
   avatarUrl: string | null;

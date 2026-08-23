@@ -12,7 +12,7 @@ import { db } from "@/db";
 import { userProfile } from "@/db/schema";
 import { appUrl } from "@/lib/env";
 
-export type EmailCategory = "invites" | "votes" | "money" | "nudges";
+type EmailCategory = "invites" | "votes" | "money" | "nudges";
 
 const CATEGORY_COLUMN = {
   invites: "notifyInvites",

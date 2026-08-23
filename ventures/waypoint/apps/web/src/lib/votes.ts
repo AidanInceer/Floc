@@ -6,7 +6,7 @@
  */
 import type { VoteValue } from "@/db/schema";
 
-export const VOTE_WEIGHT: Record<VoteValue, number> = {
+const VOTE_WEIGHT: Record<VoteValue, number> = {
   up: 2,
   dont_mind: 1,
   down: -2,

@@ -235,3 +235,19 @@ describe("formatLength", () => {
     expect(formatLength(45)).toBe("45m");
   });
 });
+
+describe("packLanes at the edges", () => {
+  it("packs nothing into nothing", () => {
+    expect(packLanes([])).toEqual([]);
+  });
+
+  it("orders a shared start by the longer block, then by id", () => {
+    const packed = packLanes([
+      { id: 2, start: 540, end: 600 },
+      { id: 1, start: 540, end: 600 },
+      { id: 3, start: 540, end: 720 },
+    ]);
+    expect(packed.map((b) => b.id)).toEqual([3, 1, 2]);
+    expect(packed.every((b) => b.lanes === 3)).toBe(true);
+  });
+});

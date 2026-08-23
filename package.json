@@ -13,6 +13,7 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
+    "fitness": "turbo run fitness",
     "verify": "bash scripts/verify.sh"
   },
   "devDependencies": {

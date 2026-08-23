@@ -20,7 +20,7 @@ export const VIBE_TAGS = [
 ] as const;
 
 /** The whole vocabulary — nothing to ration while the list is this short. */
-export const MAX_VIBE_TAGS = 5;
+const MAX_VIBE_TAGS = 5;
 
 /** Form input → the column. Seed-only enforced here too, not just in the UI — a hand-crafted POST must not invent a tag. */
 export function parseVibeTags(input: (string | null | undefined)[]): string[] {

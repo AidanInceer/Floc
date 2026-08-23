@@ -24,66 +24,6 @@ export function cx(...parts: (string | false | null | undefined)[]) {
   return parts.filter(Boolean).join(" ");
 }
 
-// The page is one white panel on the canvas. It was a sheet of ruled paper with
-// a red margin and a strip of tape; the ruling, the margin and the tape went
-// with the paper look (ticket 206), and with them the asymmetric left padding
-// that existed only to clear the margin. Padding is even on both sides now.
-export function Page({
-  children,
-  wide,
-  flush,
-}: {
-  children: ReactNode;
-  wide?: boolean;
-  /** Drops the gap above the sheet so a tab strip sits *on* its top edge. Only `trip/[id]/*` pages pass this. */
-  flush?: boolean;
-}) {
-  return (
-    <div
-      className={cx(
-        "mx-auto w-full px-4 pb-16 sm:px-6",
-        // Trip pages (flush) sit under the floating pill tabs (ticket 191);
-        // a small gap, not the folder-tab attachment the old chrome needed.
-        flush ? "pt-3" : "pt-6",
-        // 84rem width (ticket 103) is shared with app-chrome.tsx and
-        // trip/[id]/layout.tsx — change all three together or edges misalign.
-        wide ? "max-w-[84rem]" : "max-w-4xl",
-      )}
-    >
-      <div
-        className={cx(
-          "relative overflow-hidden rounded-lg border border-rule bg-sheet shadow-raised",
-          "px-5 py-7 sm:px-8 sm:py-8",
-        )}
-      >
-        {children}
-      </div>
-    </div>
-  );
-}
-
-export function PageHeader({
-  title,
-  subtitle,
-  actions,
-}: {
-  title: ReactNode;
-  subtitle?: ReactNode;
-  actions?: ReactNode;
-}) {
-  return (
-    <header className="mb-6 flex flex-wrap items-end justify-between gap-3 border-b border-rule pb-4">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-        {subtitle ? (
-          <p className="mt-1 text-sm text-ink-soft">{subtitle}</p>
-        ) : null}
-      </div>
-      {actions ? <div className="flex gap-2">{actions}</div> : null}
-    </header>
-  );
-}
-
 // Flatter than Page on purpose — ruling happens once per screen, not per card.
 export function Card({
   children,
@@ -98,31 +38,6 @@ export function Card({
     <As className={cx("rounded-md border border-rule bg-sheet-2", className)}>
       {children}
     </As>
-  );
-}
-
-export function CardHeader({
-  title,
-  hint,
-  actions,
-  strong,
-}: {
-  title: ReactNode;
-  hint?: ReactNode;
-  actions?: ReactNode;
-  /** Full-voice title instead of the quiet uppercase `.typed` label — for headings naming a real thing (a place, a date). */
-  strong?: boolean;
-}) {
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-dotted border-rule-strong px-4 py-3">
-      <div>
-        <h2 className={strong ? "text-[15px] font-bold text-ink" : "typed"}>
-          {title}
-        </h2>
-        {hint ? <p className="mt-0.5 text-xs text-ink-faint">{hint}</p> : null}
-      </div>
-      {actions}
-    </div>
   );
 }
 
@@ -211,29 +126,6 @@ export function Badge({
         "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 font-mono text-[10.5px] uppercase tracking-[0.06em]",
         tones[tone],
         className,
-      )}
-    >
-      {children}
-    </span>
-  );
-}
-
-// For a state actually *decided* (trip ended, split settled) — everything else
-// stays a Badge. The hand-stamped tilt and the 85% opacity went with the paper
-// look: the opacity was quietly costing the ink ~15% of its contrast, which is
-// exactly the failure ticket 204 went looking for.
-export function Stamp({
-  tone = "done",
-  children,
-}: {
-  tone?: "done" | "open";
-  children: ReactNode;
-}) {
-  return (
-    <span
-      className={cx(
-        "inline-block rounded-sm border-2 px-2.5 py-0.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.12em]",
-        tone === "done" ? "border-green text-green" : "border-red text-red",
       )}
     >
       {children}
@@ -399,8 +291,4 @@ export function Select({ className, ...props }: ComponentProps<"select">) {
 export function ErrorText({ children }: { children?: ReactNode }) {
   if (!children) return null;
   return <p className="text-sm text-red">{children}</p>;
-}
-
-export function Rule() {
-  return <hr className="border-dotted border-rule-strong" />;
 }

@@ -185,3 +185,46 @@ describe("candidate runs", () => {
     expect(candidateRuns([], ["a", "b"])).toEqual([]);
   });
 });
+
+describe("the awkward halves of the availability helpers", () => {
+  it("counts a person once per day however many rows they have", () => {
+    const counts = tally([
+      ...free("a", "2026-09-01"),
+      ...free("a", "2026-09-01"),
+      ...free("b", "2026-09-01"),
+    ]);
+    expect(counts.get("2026-09-01")).toEqual({ free: 2, freeUserIds: ["a", "b"] });
+  });
+
+  it("falls back to the best-attended single day when no run is long enough", () => {
+    const rows = [
+      ...free("a", "2026-09-01", "2026-09-05"),
+      ...free("b", "2026-09-05"),
+    ];
+    expect(bestWindow(rows, 2)).toEqual({
+      start: "2026-09-05",
+      end: "2026-09-05",
+      free: 2,
+    });
+  });
+
+  it("drops runs shorter than minNights and caps the list at limit", () => {
+    const rows = [
+      ...free("a", "2026-09-01", "2026-09-02", "2026-09-03", "2026-09-04"),
+      ...free("b", "2026-09-01", "2026-09-02", "2026-09-03"),
+      ...free("c", "2026-09-01", "2026-09-02"),
+    ];
+    expect(candidateRuns(rows, ["a", "b", "c"], { minNights: 4 })).toEqual([]);
+    expect(candidateRuns(rows, ["a", "b", "c"], { limit: 1 })).toHaveLength(1);
+  });
+
+  it("names who is missing from a run", () => {
+    const rows = [
+      ...free("a", "2026-09-01", "2026-09-02"),
+      ...free("b", "2026-09-01", "2026-09-02"),
+    ];
+    const [run] = candidateRuns(rows, ["a", "b", "c"]);
+    expect(run.going).toEqual(["a", "b"]);
+    expect(run.missing).toEqual(["c"]);
+  });
+});

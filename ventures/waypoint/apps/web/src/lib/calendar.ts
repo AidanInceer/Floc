@@ -13,14 +13,14 @@ export const NUDGE_MINUTES = 15;
 export const LAST_START_MINUTE = 24 * 60 - 1;
 
 /** The shortest an event can be dragged down to. */
-export const MIN_EVENT_MINUTES = 15;
+const MIN_EVENT_MINUTES = 15;
 
 /** Reading size for an open-ended event; never a stored end. */
-export const OPEN_ENDED_MINUTES = 30;
+const OPEN_ENDED_MINUTES = 30;
 
 /** Fixed midnight-to-midnight grid — a widening window re-laid every day's geometry. */
-export const DEFAULT_START_HOUR = 0;
-export const DEFAULT_END_HOUR = 24;
+const DEFAULT_START_HOUR = 0;
+const DEFAULT_END_HOUR = 24;
 
 /** `HH:MM` → minutes since midnight. Null for anything that isn't a time. */
 export function toMinutes(time: string | null | undefined): number | null {

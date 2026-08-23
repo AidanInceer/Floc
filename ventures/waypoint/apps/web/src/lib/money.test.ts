@@ -255,3 +255,46 @@ describe("computeBalances seeds itself from CURRENCIES", () => {
     }
   });
 });
+
+describe("the awkward halves of the money helpers", () => {
+  it("carries a minus sign through format and parse", () => {
+    expect(formatMoney(-1234, "GBP")).toBe("−£12.34");
+    expect(parseMoney("-12")).toBe(-1200);
+    expect(parseMoney("-0.5")).toBe(-50);
+  });
+
+  it("refuses an amount that is not whole minor units", () => {
+    expect(() => computeSplits(10.5, "shares", people("a"))).toThrow(/integer/);
+  });
+
+  it("refuses shares that are negative or all zero", () => {
+    expect(() =>
+      computeSplits(1000, "shares", [{ userId: "a", value: -1 }]),
+    ).toThrow(/non-negative/);
+    expect(() =>
+      computeSplits(1000, "shares", [{ userId: "a", value: 0 }]),
+    ).toThrow(/non-negative/);
+  });
+
+  it("splits a refund — a negative total — and still sums exactly", () => {
+    const rows = computeSplits(-1000, "shares", people("a", "b", "c"));
+    expect(rows.reduce((a, r) => a + r.owedAmountMinor, 0)).toBe(-1000);
+    expect(rows.every((r) => r.owedAmountMinor < 0)).toBe(true);
+  });
+
+  it("treats a missing exact value as nothing owed", () => {
+    expect(
+      computeSplits(1000, "exact", [
+        { userId: "a", value: 1000 },
+        { userId: "b" },
+      ]),
+    ).toEqual([
+      { userId: "a", owedAmountMinor: 1000 },
+      { userId: "b", owedAmountMinor: 0 },
+    ]);
+  });
+
+  it("refuses an expense with nobody in it", () => {
+    expect(() => resolveWeightedSplit(1000, [])).toThrow(/at least one/);
+  });
+});

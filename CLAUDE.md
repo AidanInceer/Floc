@@ -29,12 +29,15 @@ Key docs: [design approach](docs/design/approach.html) ·
 pnpm install                        # root
 pnpm dev                            # turbo run dev (build|typecheck|lint|test likewise)
 pnpm --filter waypoint-web <task>   # scope to the app
+pnpm fitness                        # layers, dead code, tokens, contrast, bundle
 pnpm verify                         # everything CI runs, run locally
 ```
 
-`pnpm verify` ([`scripts/verify.sh`](scripts/verify.sh)) mirrors all five CI
-jobs — lint/typecheck/test/build, migration drift, wireframe self-containment,
-`pnpm audit`, and gitleaks (skipped when not installed). **Change a job in
+`pnpm verify` ([`scripts/verify.sh`](scripts/verify.sh)) mirrors every CI job —
+lint/typecheck/test/build, the fitness functions (layering, dead code, the
+`globals.css` token rules, WCAG contrast, the bundle budget), migration drift,
+wireframe self-containment, `pnpm audit`, and gitleaks (skipped when not
+installed). **Change a job in
 `.github/workflows/` and change it there in the same commit** — a local gate
 that has drifted from CI is worse than none, because it buys false confidence.
 
@@ -47,6 +50,16 @@ git config core.hooksPath .githooks
 ```
 
 `git push --no-verify` is the escape hatch.
+
+**Before pushing, review the diff with a subagent** (Opus 5, low effort) over
+what is about to go out, and fix what it finds first. This repo has no pull
+requests — the commit is the unit of work and there is no review surface
+between it and `main` — so the review happens here or not at all. It is cheap,
+and it is good at what the mechanical checks cannot see: edge cases, security,
+and consistency with the patterns already in the codebase. The written
+standards in [`ventures/waypoint/CLAUDE.md`](ventures/waypoint/CLAUDE.md) are
+what make it worth doing — a review against stated rules beats one against the
+reviewer’s own taste.
 
 ## Key decisions
 

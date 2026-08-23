@@ -9,7 +9,7 @@
  * Keys are ISO 3166-1 alpha-2, upper case, which is what `place.country_code`
  * stores (Nominatim returns them lower case; the writer upper-cases).
  */
-export const COUNTRY_NAMES: Record<string, string> = {
+const COUNTRY_NAMES: Record<string, string> = {
   AF: "Afghanistan",
   AX: "Åland",
   AL: "Albania",

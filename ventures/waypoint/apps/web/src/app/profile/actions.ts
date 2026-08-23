@@ -106,7 +106,7 @@ export async function setCountryMark(
 // Answers the question a trip leaves behind when you're no longer on it.
 // Keeping converts its countries to hand marks (the only place that
 // conversion happens); declining just clears the question, no `none` row.
-export async function answerMapPrompt(
+async function answerMapPrompt(
   tripId: number,
   keep: boolean,
 ): Promise<void> {

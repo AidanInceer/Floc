@@ -3,12 +3,16 @@ import { describe, expect, it } from "vitest";
 import {
   addDays,
   dateRange,
+  countdownLabel,
+  daysUntil,
+  formatDate,
   formatDateRange,
   hasEnded,
   isIsoDate,
   nightsBetween,
   readIsoDate,
   readOptionalIsoDate,
+  today,
   toIsoDate,
 } from "./dates";
 
@@ -111,5 +115,36 @@ describe("readOptionalIsoDate", () => {
   it("distinguishes 'nothing typed' from 'that is not a day'", () => {
     expect(readOptionalIsoDate("2026-09-01")).toBe("2026-09-01");
     expect(readOptionalIsoDate("soon")).toBeUndefined();
+  });
+});
+
+describe("the awkward halves of the date helpers", () => {
+  it("shows an em dash for no date, and drops the weekday on request", () => {
+    // Month abbreviations come from ICU, which spells September "Sep" or
+    // "Sept" depending on the runtime — match the shape, not the spelling.
+    expect(formatDate(null)).toBe("—");
+    expect(formatDate("2026-09-01")).toMatch(/^Tue 1 Sept?$/);
+    expect(formatDate("2026-09-01", { weekday: false })).toMatch(/^1 Sept?$/);
+    expect(formatDate("2026-09-01", { year: true })).toMatch(/^Tue,? 1 Sept? 2026$/);
+  });
+
+  it("writes a full range with the year on the far end only", () => {
+    expect(formatDateRange("2026-09-01", "2026-09-05")).toMatch(
+      /^Tue 1 Sept? – 5 Sept? 2026$/,
+    );
+  });
+
+  it("counts the days to a date, and nothing to no date", () => {
+    expect(daysUntil(null)).toBeNull();
+    expect(daysUntil(today())).toBe(0);
+    expect(daysUntil(addDays(today(), 3))).toBe(3);
+  });
+
+  it("names the countdown only while it is still ahead", () => {
+    expect(countdownLabel(null)).toBeNull();
+    expect(countdownLabel(addDays(today(), 4))).toBe("in 4 days");
+    expect(countdownLabel(addDays(today(), 1))).toBe("tomorrow");
+    expect(countdownLabel(today())).toBe("today");
+    expect(countdownLabel(addDays(today(), -1))).toBeNull();
   });
 });

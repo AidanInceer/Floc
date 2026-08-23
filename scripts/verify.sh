@@ -7,6 +7,7 @@
 # drifted from CI is worse than no local gate, because it buys false confidence.
 #
 #   ci.yml       verify      → lint · typecheck · test · build   (via turbo)
+#   ci.yml       fitness     → layers · dead code · tokens · contrast · bundle
 #   ci.yml       migrations  → schema changes ship with a migration
 #   ci.yml       wireframes  → wireframes stay self-contained
 #   security.yml audit       → pnpm audit --audit-level=high
@@ -52,6 +53,19 @@ for task in lint typecheck test build; do
     tail -30 "/tmp/verify-$task.log"
   fi
 done
+
+# --------------------------------------------------- ci.yml :: fitness
+
+# The structural checks (#212): layering, dead code, the globals.css token
+# rules, WCAG contrast on every token pair, and the bundle budget. Needs the
+# build above, which the turbo task depends on.
+step "Architecture · dead code · tokens · contrast · bundle"
+if pnpm fitness >/tmp/verify-fitness.log 2>&1; then
+  ok "the codebase is not getting worse"
+else
+  bad "a fitness check failed"
+  tail -40 /tmp/verify-fitness.log
+fi
 
 # ----------------------------------------------- ci.yml :: migrations
 

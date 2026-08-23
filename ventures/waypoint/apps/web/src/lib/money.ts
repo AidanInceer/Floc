@@ -15,7 +15,7 @@ export const CURRENCY_SYMBOLS: Record<Currency, string> = {
 const MINOR_PER_MAJOR = 100;
 
 /** Ceiling of £1bn in minor units — past MAX_SAFE_INTEGER, every later read throws and locks the trip out (ticket 33). */
-export const MAX_AMOUNT_MINOR = 100_000_000_000;
+const MAX_AMOUNT_MINOR = 100_000_000_000;
 
 function assertInRange(amountMinor: number): void {
   if (!Number.isFinite(amountMinor) || Math.abs(amountMinor) > MAX_AMOUNT_MINOR) {
