@@ -4,15 +4,16 @@
  * docs/partner-trips.html). "Start this trip" seeds a real trip from a
  * listing — see `startTripFromPreset`.
  *
- * Ticket 194: a listing sells its *shape* — bases, nights, the hops between —
- * not a photograph. The page carries no imagery at all, so the map thumbnail
- * went; `lat`/`lng` stay on the data for whatever wants them next.
+ * Ticket 194 sold a listing by its *shape*. Ticket 213 splits that in two: the
+ * first three of the shown set are full-width highlight rows that plot their
+ * bases on a real map (`RouteMap`), alternating side to side; the rest fall to
+ * compact tiles whose base chain still carries the shape without a map.
  */
 import { requireUser } from "@/server/access";
 import { formatMoney } from "@/lib/money";
 import { ButtonLink, PASTEL_SKINS, cx } from "@/components/ui";
 import { SubmitButton } from "@/components/client-ui";
-import { TravelModeIcon } from "@/components/travel-mode-icon";
+import { RouteMap } from "@/components/route-map";
 import { startTripFromPreset } from "./actions";
 import { PRESET_TRIPS, REGIONS } from "./preset-trips";
 import type { PresetTrip, Region } from "./preset-trips";
@@ -24,6 +25,16 @@ function isRegion(value: string | undefined): value is Region {
 // A destination isn't a domain, so no pastel here carries meaning — the
 // rotation is `PASTEL_SKINS` by position, which keeps a listing the same colour
 // every visit.
+function skinFor(t: PresetTrip): string {
+  return PASTEL_SKINS[PRESET_TRIPS.indexOf(t) % PASTEL_SKINS.length];
+}
+
+/** First sentence of the summary — the rest is detail the group finds later. */
+function hook(summary: string): string {
+  const end = summary.indexOf(". ");
+  return end === -1 ? summary : summary.slice(0, end + 1);
+}
+
 export default async function ExplorePage({
   searchParams,
 }: {
@@ -36,9 +47,11 @@ export default async function ExplorePage({
   const shown = active
     ? PRESET_TRIPS.filter((t) => t.region === active)
     : PRESET_TRIPS;
+  const highlighted = shown.slice(0, 3);
+  const rest = shown.slice(3);
 
   return (
-    <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
+    <div className="mx-auto w-full max-w-[76rem] px-4 pb-20 pt-6 sm:px-6">
       <header>
         <h1 className="text-[clamp(1.9rem,4vw,2.8rem)]">Explore</h1>
       </header>
@@ -67,13 +80,22 @@ export default async function ExplorePage({
         ))}
       </nav>
 
-      <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {shown.map((t) => (
-          <PresetCard
-            key={t.id}
-            preset={t}
-            skin={PASTEL_SKINS[PRESET_TRIPS.indexOf(t) % PASTEL_SKINS.length]}
-          />
+      {highlighted.length > 0 && (
+        <ul className="mt-8 flex flex-col gap-4">
+          {highlighted.map((t, i) => (
+            <HighlightRow key={t.id} preset={t} skin={skinFor(t)} flip={i % 2 === 1} />
+          ))}
+        </ul>
+      )}
+
+      <ul
+        className={cx(
+          "grid gap-4 sm:grid-cols-2 lg:grid-cols-3",
+          highlighted.length > 0 ? "mt-4" : "mt-8",
+        )}
+      >
+        {rest.map((t) => (
+          <PresetTile key={t.id} preset={t} skin={skinFor(t)} />
         ))}
         <BlankTile empty={shown.length === 0} region={active} />
       </ul>
@@ -88,84 +110,100 @@ export default async function ExplorePage({
   );
 }
 
-/** The bed a base is measured in — 14×14 line art, like the rest (#148). */
-function StayIcon() {
-  return (
-    <svg
-      viewBox="0 0 14 14"
-      aria-hidden="true"
-      className="shrink-0"
-      style={{ width: 13, height: 13 }}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.15}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M1.5 10.5V3.5M1.5 7.5h11v3M12.5 10.5v-3" />
-      <circle cx="4.2" cy="5.6" r="1.2" />
-      <path d="M6.4 7.5v-1.1a.9.9 0 0 1 .9-.9h4a1.2 1.2 0 0 1 1.2 1.2v.8" />
-    </svg>
-  );
+/** The bases of a listing as `RouteMap` stops — pin number matches base order. */
+function baseStops(preset: PresetTrip) {
+  let no = 0;
+  return preset.legs
+    .filter((l) => l.kind === "base")
+    .map((l) => ({
+      no: ++no,
+      name: l.place,
+      days: l.nights,
+      lat: l.lat,
+      lng: l.lng,
+    }));
 }
 
-function PresetCard({ preset, skin }: { preset: PresetTrip; skin: string }) {
-  const bases = preset.legs.filter((l) => l.kind === "base").length;
+function HighlightRow({
+  preset,
+  skin,
+  flip,
+}: {
+  preset: PresetTrip;
+  skin: string;
+  flip: boolean;
+}) {
   return (
     <li
       className={cx(
-        "lift flex min-h-[19rem] flex-col gap-4 rounded-lg p-6",
+        "lift flex flex-col gap-6 rounded-lg p-6 sm:p-7 md:flex-row md:items-stretch md:gap-8",
+        flip && "md:flex-row-reverse",
         skin,
       )}
     >
-      <div>
+      <div className="md:w-[46%]">
+        <RouteMap stops={baseStops(preset)} missing={[]} fill />
+      </div>
+      <div className="flex min-w-0 flex-col md:w-[54%]">
         <p className="typed">
-          {preset.nights} nights · {bases === 1 ? "one base" : `${bases} bases`}{" "}
-          · {preset.region}
+          {preset.region} · {preset.nights} nights
         </p>
-        <h2 className="mt-1.5 text-2xl">{preset.title}</h2>
+        <h2 className="mt-1.5 text-[clamp(1.5rem,2.5vw,2rem)] leading-tight">
+          {preset.title}
+        </h2>
         <p className="nums mt-1.5 text-xs opacity-70">
           {preset.country} · {preset.groupSize} · {preset.operator}
         </p>
+        <p className="mt-3 text-sm opacity-85">{hook(preset.summary)}</p>
+        <div className="mt-auto flex flex-wrap items-center gap-3 border-t border-ink/10 pt-4">
+          <span className="nums text-sm">
+            {formatMoney(preset.priceFromMinor, preset.currency)} each, roughly
+          </span>
+          <form action={startTripFromPreset} className="ml-auto">
+            <input type="hidden" name="presetId" value={preset.id} />
+            <SubmitButton variant="primary" pendingLabel="Starting…">
+              Start this trip
+            </SubmitButton>
+          </form>
+        </div>
+      </div>
+    </li>
+  );
+}
+
+function PresetTile({ preset, skin }: { preset: PresetTrip; skin: string }) {
+  const bases = preset.legs.filter((l) => l.kind === "base");
+  return (
+    <li className={cx("lift flex flex-col gap-5 rounded-lg p-6", skin)}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="typed">{preset.region}</p>
+          <h2 className="mt-1 text-2xl leading-tight">{preset.title}</h2>
+        </div>
+        <span className="nums shrink-0 rounded-full bg-sheet/60 px-2.5 py-1 text-xs">
+          {preset.nights} nights
+        </span>
       </div>
 
-      <p className="text-sm opacity-85">{preset.summary}</p>
-
-      {/* The shape of the trip, in order — this is the picture (ticket 194). */}
-      <ul className="mt-auto flex flex-col gap-1.5">
-        {preset.legs.map((leg, i) => (
-          <li
-            key={`${leg.kind}-${leg.place}-${i}`}
-            className={cx(
-              "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm",
-              leg.kind === "base" ? "bg-sheet/65" : "bg-sheet/30",
-            )}
-          >
-            {leg.kind === "base" ? (
-              <StayIcon />
-            ) : (
-              <TravelModeIcon mode={leg.mode} />
-            )}
-            <span className="min-w-0 truncate">{leg.place}</span>
-            <span className="nums ml-auto shrink-0 text-xs opacity-70">
-              {leg.kind === "base"
-                ? leg.nights === 1
-                  ? "1 night"
-                  : `${leg.nights} nights`
-                : leg.detail}
-            </span>
-          </li>
+      {/* The shape, in one line — bases only, hops are the arrows. */}
+      <p className="nums flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm opacity-80">
+        {bases.map((b, i) => (
+          <span key={`${b.place}-${i}`} className="flex items-center gap-1.5">
+            {i > 0 && <span className="opacity-40">→</span>}
+            {b.place}
+          </span>
         ))}
-      </ul>
+      </p>
 
-      <div className="flex flex-wrap items-center gap-3 border-t border-ink/10 pt-4">
-        <span className="nums text-xs opacity-75">
-          {formatMoney(preset.priceFromMinor, preset.currency)} each, roughly
+      <div className="mt-auto flex items-center justify-between gap-3 border-t border-ink/10 pt-4">
+        <span className="nums text-sm">
+          {formatMoney(preset.priceFromMinor, preset.currency)}
+          <span className="text-xs opacity-70"> pp</span>
         </span>
-        <form action={startTripFromPreset} className="ml-auto">
+        <form action={startTripFromPreset}>
           <input type="hidden" name="presetId" value={preset.id} />
           <SubmitButton variant="primary" pendingLabel="Starting…">
-            Start this trip
+            Start
           </SubmitButton>
         </form>
       </div>
@@ -180,7 +218,7 @@ function PresetCard({ preset, skin }: { preset: PresetTrip; skin: string }) {
  */
 function BlankTile({ empty, region }: { empty: boolean; region: Region | null }) {
   return (
-    <li className="lift flex min-h-[19rem] flex-col gap-4 rounded-lg bg-pen-soft p-6 text-pen-deep">
+    <li className="lift flex min-h-[13rem] flex-col gap-4 rounded-lg bg-pen-soft p-6 text-pen-deep">
       <div>
         <p className="typed">
           {empty ? `Nothing in ${region} yet` : "Start from nothing"}
