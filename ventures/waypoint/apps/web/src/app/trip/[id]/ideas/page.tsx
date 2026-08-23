@@ -13,7 +13,8 @@ import { getProfile } from "@/server/profile";
 import { readVibeTags } from "@/lib/vibe-tags";
 import { ButtonLink } from "@/components/ui";
 import { SubmitButton } from "@/components/client-ui";
-import { IdeaCard, type IdeaCardData } from "@/components/idea-card";
+import type { IdeaCardData } from "@/components/idea-data";
+import { IdeasBoard } from "@/components/ideas-board";
 import { postIdea } from "./actions";
 
 type SortMode = "new" | "liked";
@@ -130,7 +131,9 @@ export default async function IdeasPage({
               className="w-full rounded-md border border-rule-strong bg-sheet px-4 py-2.5 text-sm placeholder:text-ink-faint focus-visible:border-pen"
             />
           </label>
-          <SubmitButton pendingLabel="Pinning…">Pin it to the board</SubmitButton>
+          <SubmitButton pendingLabel="Pinning…">
+            Pin it to the board
+          </SubmitButton>
         </form>
       </section>
 
@@ -157,7 +160,7 @@ export default async function IdeasPage({
 
       {inOrder.length > 0 ? (
         <div className="mt-8">
-          <Board
+          <IdeasBoard
             ideas={inOrder}
             tripId={tripId}
             viewerId={viewer.id}
@@ -168,30 +171,3 @@ export default async function IdeasPage({
     </div>
   );
 }
-
-function Board({
-  ideas,
-  tripId,
-  viewerId,
-  isAdmin,
-}: {
-  ideas: IdeaCardData[];
-  tripId: number;
-  viewerId: string;
-  isAdmin: boolean;
-}) {
-  return (
-    <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {ideas.map((i) => (
-        <IdeaCard
-          key={i.id}
-          tripId={tripId}
-          idea={i}
-          viewerId={viewerId}
-          isAdmin={isAdmin}
-        />
-      ))}
-    </ul>
-  );
-}
-

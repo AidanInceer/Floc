@@ -46,7 +46,10 @@ export function IdeaVotes({
       role="radiogroup"
       aria-label="Your vote"
       aria-busy={pending}
-      className={cx("flex flex-nowrap gap-1.5 text-center", pending && "opacity-60")}
+      className={cx(
+        "flex flex-nowrap gap-1.5 text-center",
+        pending && "opacity-60",
+      )}
     >
       {OPTIONS.map((o) => {
         const mine = value === o.value;
@@ -62,7 +65,9 @@ export function IdeaVotes({
                 ? `${o.label} — ${count}, your vote. Select again to clear it`
                 : `${o.label} — ${count}`
             }
-            title={mine ? `${o.label} — your vote, select again to clear` : o.label}
+            title={
+              mine ? `${o.label} — your vote, select again to clear` : o.label
+            }
             onClick={() =>
               startTransition(async () => {
                 if (mine) await clearVote(tripId, ideaId);
@@ -71,11 +76,13 @@ export function IdeaVotes({
             }
             className={cx(
               // Fixed height so a chip doesn't grow as its count hits two digits.
-              "inline-flex h-[26px] min-w-0 shrink items-center gap-1.5 rounded-full px-2.5 font-mono text-[10.5px] leading-none tracking-[0.02em] transition-colors",
+              // 24px is the floor, not a look: below it these three sit close
+              // enough on touch to mis-tap between them (WCAG 2.5.8).
+              "inline-flex h-6 min-w-0 shrink items-center gap-1 rounded-full px-2 font-mono text-[10px] leading-none tracking-[0.02em] transition-colors",
               mine ? MINE : "bg-sheet-2 text-ink-soft hover:bg-sheet-3",
             )}
           >
-            <ReactionGlyph kind={o.glyph} mine={mine} size={14} />
+            <ReactionGlyph kind={o.glyph} mine={mine} size={11} />
             <span className="nums">{count}</span>
           </button>
         );
