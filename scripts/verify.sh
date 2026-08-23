@@ -38,6 +38,19 @@ ok()   { printf '%s  ✓%s %s\n' "$GREEN" "$OFF" "$1"; }
 bad()  { printf '%s  ✗%s %s\n' "$RED" "$OFF" "$1"; fail=1; FAILED+=("$1"); }
 skip() { printf '%s  ~%s %s\n' "$YELLOW" "$OFF" "$1"; }
 
+# ------------------------------------------------------- node version
+
+# A local Node newer than CI hides failures that only CI sees: 0.47.0 went red
+# because dependency-cruiser needs >=22 and the runner was on 20.
+step "Node is at least the version CI runs"
+node_major=$(node -p "process.versions.node.split('.')[0]")
+ci_major=$(grep -m1 -oE 'node-version: [0-9]+' .github/workflows/ci.yml | grep -oE '[0-9]+')
+if [ "$node_major" -lt "$ci_major" ]; then
+  bad "node $node_major is older than CI's $ci_major"
+else
+  ok "node $node_major, CI runs $ci_major"
+fi
+
 # --------------------------------------------------- ci.yml :: verify
 
 # Turbo fans this out across the workspace exactly as CI does. CI additionally

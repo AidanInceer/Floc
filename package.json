@@ -5,7 +5,7 @@
   "description": "Nexus \u00e2\u20ac\u201d a centralised incubator hub for building multiple ventures on shared foundations.",
   "packageManager": "pnpm@9.0.0",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
     "dev": "turbo run dev",
