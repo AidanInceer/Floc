@@ -1,0 +1,1 @@
+ALTER TABLE `trip` ADD `color_key` text;

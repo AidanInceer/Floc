@@ -14,6 +14,7 @@ import { firstOvernightPlaceByTrip } from "@/server/itinerary";
 import { listTripsFor } from "@/server/membership";
 import { hasEnded } from "@/lib/dates";
 import { readTags } from "@/lib/tags";
+import { readTripColor } from "@/lib/trip-color";
 import type { TripCardData } from "@/components/trip-card";
 
 // Card plus the roster it was built from — Archived names the admins to ask
@@ -52,6 +53,7 @@ export async function loadTripCards(
           : !hasEnded(r.endDate) && !tripsWithIdeas.has(r.id),
         where: whereByTrip.get(r.id) ?? null,
         tags: readTags(r.tags),
+        color: readTripColor(r.colorKey),
       },
     };
   });

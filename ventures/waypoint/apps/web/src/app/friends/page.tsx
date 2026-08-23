@@ -65,7 +65,6 @@ export default async function FriendsPage() {
     <AccountPage
       eyebrow="Your people"
       title="Friends"
-      blurb="People you've travelled with, or asked to travel with."
     >
       {/* Requests come first, and the incoming ones are blue: they're the only
           thing on the page waiting on you. */}

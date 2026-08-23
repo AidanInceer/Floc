@@ -6,6 +6,8 @@
 // per ticket 89); rendered at all when no day has an overnight place (every
 // undated trip — not an empty state or a lock, rules 4/9, the hero already
 // says dates aren't set).
+import { ButtonLink } from "@/components/ui";
+
 import type { TransportType } from "@/db/schema";
 import type { RouteDay } from "@/server/itinerary";
 import { formatDate } from "@/lib/dates";
@@ -14,9 +16,11 @@ import { RouteMap } from "@/components/route-map";
 import { TravelModeIcon } from "@/components/travel-mode-icon";
 
 export function TripRoute({
+  tripId,
   days,
   transportModes,
 }: {
+  tripId: number;
   days: RouteDay[];
   /** Each day's travel mode, by day id — read off `day_event` (rule 3). */
   transportModes: Map<number, TransportType>;
@@ -33,7 +37,28 @@ export function TripRoute({
       })),
     ),
   );
-  if (stops.length === 0) return null;
+  // Nothing placed yet (a new or undated trip). The panel stays — an empty
+  // left column read as a broken layout — and says the one thing a drawing
+  // can't (what's missing) plus where to fix it (rule 11).
+  if (stops.length === 0) {
+    return (
+      <section className="flex flex-1 flex-col rounded-lg bg-sheet p-6 ring-1 ring-rule">
+        <h2 className="font-display text-lg">The route</h2>
+        <div className="mt-4 flex flex-1 flex-col items-center justify-center rounded-md bg-sheet-2 p-8 text-center">
+          <p className="text-sm text-ink-soft">
+            No stops yet — the map fills in as the group decides where to stay.
+          </p>
+          <ButtonLink
+            href={`/trip/${tripId}/days`}
+            variant="primary"
+            className="mt-4"
+          >
+            Plan the days
+          </ButtonLink>
+        </div>
+      </section>
+    );
+  }
 
   // Looked up here, not in deriveStops, which stays pure/geography-free. A
   // missing-coordinate stop is named in `missing` rather than dropped silently (rule 11).
@@ -69,16 +94,16 @@ export function TripRoute({
     // White panel (ticket 207). The map is the one element on Overview with
     // real colour of its own; a blush fill behind it clashed with the tiles,
     // so the box the map sits in is now the same white as every other panel.
-    <section className="rounded-lg bg-sheet p-6 ring-1 ring-rule">
+    <section className="flex flex-1 flex-col rounded-lg bg-sheet p-6 ring-1 ring-rule">
       {/* One heading, not an eyebrow over a title saying the same thing. */}
       <h2 className="font-display text-lg">The route</h2>
       {/* The list wants far less width than the map and gets it — but only
           once there is width to give. This panel sits in Overview's left
           column (ticket 209), so the split waits for `xl`; below that the list
           sits under the map rather than squeezing it. */}
-      <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,66fr)_minmax(0,34fr)] xl:items-start">
-        <RouteMap stops={pinned} missing={missing} />
-        <ol className="rounded-md bg-sheet-2 p-3 text-ink">
+      <div className="mt-4 grid flex-1 gap-4 xl:grid-cols-[minmax(0,66fr)_minmax(0,34fr)] xl:items-stretch">
+        <RouteMap stops={pinned} missing={missing} fill />
+        <ol className="self-start rounded-md bg-sheet-2 p-3 text-ink">
           {stops.map((stop, i) => (
             <li key={stop.dayIds.join("-")}>
               {i > 0 ? <Leg mode={legMode(i)} /> : null}

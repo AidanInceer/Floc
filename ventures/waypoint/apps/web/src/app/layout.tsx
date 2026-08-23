@@ -5,6 +5,7 @@ import { AppChrome } from "@/components/app-chrome";
 import { getSession } from "@/server/access";
 import { countIncomingFriendRequests } from "@/server/friends";
 import { countPendingInvitesFor } from "@/server/membership";
+import { getProfile } from "@/server/profile";
 
 import "./globals.css";
 
@@ -47,12 +48,24 @@ export default async function RootLayout({
   // friend request are the two things that arrive while you're elsewhere in the
   // app, so both have to be visible from anywhere. Counts, not the things
   // themselves — the answering happens on the page behind each link.
-  const [inviteCount, friendRequestCount] = session?.user
+  const [inviteCount, friendRequestCount, profile] = session?.user
     ? await Promise.all([
         countPendingInvitesFor(session.user.id),
         countIncomingFriendRequests(session.user.id),
+        getProfile(session.user.id),
       ])
-    : [0, 0];
+    : [0, 0, undefined];
+
+  // The header must key the avatar off the same identity a roster does
+  // (`displayName ?? name`), so the viewer is the same initials and colour
+  // everywhere (whoTone).
+  const chromeUser = session?.user
+    ? {
+        id: session.user.id,
+        name: profile?.displayName ?? session.user.name,
+        image: profile?.avatarUrl ?? session.user.image ?? null,
+      }
+    : null;
 
   // No `data-theme` and no theme lookup: Waypoint is light-only by design
   // (ticket 07 — ink on paper, and a dark notebook is a different product).
@@ -63,15 +76,7 @@ export default async function RootLayout({
     >
       <body className="min-h-dvh">
         <AppChrome
-          user={
-            session?.user
-              ? {
-                  id: session.user.id,
-                  name: session.user.name,
-                  image: session.user.image ?? null,
-                }
-              : null
-          }
+          user={chromeUser}
           inviteCount={inviteCount}
           friendRequestCount={friendRequestCount}
         />

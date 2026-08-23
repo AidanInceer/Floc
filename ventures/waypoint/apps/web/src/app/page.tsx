@@ -5,120 +5,32 @@
  * page and the product teach one colour language.
  */
 import type { ReactNode } from "react";
-import Link from "next/link";
 
 import { getSession } from "@/server/access";
 import { ButtonLink, cx } from "@/components/ui";
-
-type Stop = {
-  step: string;
-  tab: string;
-  title: string;
-  body: string;
-  eg: { k: string; v: string }[];
-  /** Card surface + ink, both tokens — the pastel this tab owns in the product. */
-  skin: string;
-};
-
-// Ideas=butter, Dates=peri, Days=blush (route), Money=mint (CLAUDE.md domain
-// map). "After" isn't a tab, so it stays neutral rather than borrow blue.
-const stops: Stop[] = [
-  {
-    step: "Stop 01",
-    tab: "Ideas",
-    title: "Nobody can settle on where to go",
-    body: "Everyone adds the places they would go — a link, a photo, a name someone half-remembers — and votes on each other's. The board shows which ideas the group actually likes, so the choice isn't whoever argued last.",
-    eg: [
-      { k: "4 votes", v: "Sicily — “hear me out”" },
-      { k: "2 votes", v: "Puglia, if we can drive" },
-      { k: "no votes", v: "That place Jonas saw once" },
-    ],
-    skin: "bg-butter text-butter-ink",
-  },
-  {
-    step: "Stop 02",
-    tab: "Dates",
-    title: "Finding the one week everyone can do",
-    body: "Each person shades in the days they're free. Waypoint overlaps all of it and shows which runs of days work and who's missing from each, so a date gets picked without another poll in the chat.",
-    eg: [
-      { k: "5 free", v: "12–19 Sep · the one everyone can do" },
-      { k: "3 free", v: "26 Sep–3 Oct · Tom's away" },
-    ],
-    skin: "bg-peri text-peri-ink",
-  },
-  {
-    step: "Stop 03",
-    tab: "Days",
-    title: "Where you sleep, and what happens each day",
-    body: "Say where the group is staying on each day — a run of days in one place is one stay, drawn as one bar — and fill in what's planned, roughly when, and who's holding the tickets. Days left mostly empty stay that way: this is a plan, not a schedule.",
-    eg: [
-      { k: "3 nights", v: "Taormina, then 2 in Syracuse" },
-      { k: "09:30", v: "Market, then coffee at Bam Bar" },
-      { k: "20:00", v: "Dinner, table for 7" },
-    ],
-    skin: "bg-blush text-blush-ink",
-  },
-  {
-    step: "Stop 04",
-    tab: "Money",
-    title: "Working out who owes who",
-    body: "Everyone logs what they paid and how it was split. Waypoint nets it all off to one figure per person. It records the debt — no money moves through Waypoint.",
-    eg: [
-      { k: "£1,240", v: "spent, across 14 expenses" },
-      { k: "£177", v: "each, near enough" },
-      { k: "£84", v: "owed to Mei by 3 people" },
-    ],
-    skin: "bg-mint text-mint-ink",
-  },
-  {
-    step: "Stop 05",
-    tab: "After",
-    title: "Keeping the trip after it's over",
-    body: "A finished trip is archived rather than deleted: the dates, the route, the days and the final bill stay readable, so the next trip starts from what actually happened.",
-    eg: [
-      { k: "Sicily", v: "7 nights · settled" },
-      { k: "Porto", v: "4 nights · settled" },
-    ],
-    skin: "bg-sheet-2 text-ink",
-  },
-];
-
-type Shape = { badge: string; title: string; body: string; skin: string };
-
-const shapes: Shape[] = [
-  {
-    badge: "Six to nine people",
-    title: "The friends who go every year",
-    body: "Too many to decide in a chat, not enough to want a project manager. Last year's book tells you what it actually cost.",
-    skin: "bg-peri text-peri-ink",
-  },
-  {
-    badge: "Two households",
-    title: "The families sharing a house",
-    body: "One place, one week, one bill — and a clean answer to who paid the deposit and who's covering the food shop.",
-    skin: "bg-mint text-mint-ink",
-  },
-  {
-    badge: "A weekend",
-    title: "The stag, hen or birthday",
-    body: "One person is organising it and quietly resenting it. Waypoint spreads the writing without spreading the arguing.",
-    skin: "bg-butter text-butter-ink",
-  },
-];
+import { RouteMap } from "@/components/route-map";
+import {
+  Glyph,
+  Stars,
+  reviews,
+  features,
+  rail,
+  sampleStops,
+  proPerks,
+} from "./landing-content";
 
 function SectionHead({
-  label,
   title,
   children,
 }: {
-  label: string;
   title: string;
   children?: ReactNode;
 }) {
+  // One heading per section (CLAUDE.md #209) — a single title, no small label
+  // stacked above it. The optional line below is body copy, not a second head.
   return (
     <div className="max-w-[54ch]">
-      <p className="typed">{label}</p>
-      <h2 className="mt-2 text-[clamp(1.7rem,3.5vw,2.5rem)]">{title}</h2>
+      <h2 className="text-[clamp(1.7rem,3.5vw,2.5rem)]">{title}</h2>
       {children ? (
         <p className="mt-4 text-md text-ink-soft">{children}</p>
       ) : null}
@@ -148,12 +60,12 @@ export default async function LandingPage() {
       <section className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.82fr)] lg:gap-16">
         <div>
           <h1 className="font-display text-[clamp(2.4rem,5.4vw,4rem)] font-semibold leading-[1.04] tracking-[-0.03em]">
-            <span className="hl hl-red">Group</span> trip planning,{" "}
-            <span className="hl hl-green">sorted</span>.
+            <span className="hl hl-loose hl-red">Group</span> trip planning,{" "}
+            <span className="hl hl-loose hl-green">sorted</span>.
           </h1>
           <p className="mt-6 max-w-[36ch] text-md text-ink-soft">
-            Everyone writes in the same book — the places, the free days, the
-            receipts — and Waypoint keeps the running answer.
+            Less faff, fewer group chats. Everything for the trip in one
+            place, kept in sync.
           </p>
 
           {/* One call to action above the fold (ticket 192); the secondary
@@ -163,27 +75,20 @@ export default async function LandingPage() {
               Get planning!
             </ButtonLink>
           </div>
-
-          <div className="mt-12 flex flex-wrap gap-11 border-t border-rule pt-6">
-            {[
-              { k: "Party", v: "7 friends" },
-              { k: "Decided in", v: "11 days" },
-              { k: "Chat polls", v: "0" },
-            ].map((s) => (
-              <div key={s.k}>
-                <p className="typed">{s.k}</p>
-                <p className="mt-1.5 font-display text-xl font-semibold tracking-tight">
-                  {s.v}
-                </p>
-              </div>
-            ))}
-          </div>
         </div>
 
-        {/* Illustrative sample, not a live query — the shape of a settled plan. */}
+        {/* Illustrative sample, not a live query — one settled trip, so the
+            hero shows the thing the page is selling rather than a mood board. */}
         <aside className="lift rounded-lg bg-peri p-6 text-peri-ink sm:p-7">
-          <h2 className="text-lg">Sicily</h2>
+          <p className="typed text-current">One trip, one page</p>
+          <div className="mt-3 flex items-baseline justify-between gap-4">
+            <h2 className="text-xl">Sicily</h2>
+            <span className="inline-flex items-center rounded-full bg-mint px-3 py-1 font-display text-xs font-semibold text-mint-ink">
+              Agreed
+            </span>
+          </div>
           <p className="font-mono text-xs opacity-70">late Sept</p>
+
           <div className="mt-5 flex flex-col gap-2.5">
             <StubRow k="Dates">
               <span className="nums text-sm">12–19 Sep</span>
@@ -196,81 +101,173 @@ export default async function LandingPage() {
             </StubRow>
             <StubRow k="Days">
               <span className="inline-flex items-center rounded-full bg-sheet/70 px-3 py-0.5 text-xs font-semibold">
-                2 blank
+                2 still blank
               </span>
             </StubRow>
           </div>
-          <span className="mt-6 inline-flex items-center rounded-full bg-mint px-4 py-2 font-display text-sm font-semibold text-mint-ink">
-            Agreed
-          </span>
+
+          <p className="mt-5 text-sm opacity-80">
+            Everything the group has agreed, in one place.
+          </p>
         </aside>
       </section>
 
-      {/* ── who it's for ─────────────────────────────────────────────── */}
+      {/* ── what people say (artificial) ─────────────────────────────── */}
       <section className="mt-24">
-        <SectionHead
-          label="Who it's for"
-          title="Built for the group that can't get a straight answer out of itself."
-        />
-        <div className="mt-10 grid gap-5 md:grid-cols-3">
-          {shapes.map((s) => (
+        <SectionHead title="What people say" />
+        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {reviews.map((r) => (
+            <figure key={r.name} className={cx("lift rounded-lg p-6", r.skin)}>
+              <Stars />
+              <blockquote className="mt-4 text-sm opacity-90">
+                “{r.body}”
+              </blockquote>
+              <figcaption className="mt-5">
+                <p className="font-display text-md font-semibold tracking-tight">
+                  {r.name}
+                </p>
+                <p className="mt-0.5 font-mono text-xs opacity-70">{r.role}</p>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </section>
+
+      {/* ── feature summary ──────────────────────────────────────────── */}
+      <section className="mt-24">
+        <SectionHead title="Everything in one place" />
+        <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {features.map((f) => (
             <article
-              key={s.title}
-              className={cx("lift rounded-lg p-6", s.skin)}
+              key={f.title}
+              className="lift rounded-lg border border-rule bg-sheet p-6"
             >
-              <span className="inline-flex items-center rounded-full bg-sheet/70 px-3.5 py-1.5 text-xs font-semibold">
-                {s.badge}
+              <span className="inline-flex size-9 items-center justify-center rounded-md bg-sheet-2 text-ink">
+                <Glyph name={f.icon} className="size-[18px]" />
               </span>
-              <h3 className="mt-4 text-lg">{s.title}</h3>
-              <p className="mt-3 text-sm opacity-85">{s.body}</p>
+              <h3 className="mt-4 text-md">{f.title}</h3>
+              <p className="mt-2 text-sm text-ink-soft">{f.body}</p>
             </article>
           ))}
         </div>
       </section>
 
-      {/* ── the stops ────────────────────────────────────────────────── */}
+      {/* ── the sample map ───────────────────────────────────────────── */}
       <section className="mt-24">
-        <SectionHead
-          label="The whole journey, one page"
-          title="Six stops between “we should go somewhere” and “that's settled”."
-        >
-          Nothing here is a wizard. A coupon opens when the group is ready for
-          it, and a trip that already knows where it&rsquo;s going tears straight
-          through to the route.
+        <SectionHead title="See the route">
+          The same map that sits at the top of a trip. Numbered pins match the
+          order; the yellow badge is how many nights you spend there.
         </SectionHead>
 
-        <div className="mt-10 grid gap-5 md:grid-cols-2">
-          {stops.map((stop) => (
-            <Link
-              key={stop.step}
-              href={start}
-              className={cx("lift block rounded-lg p-7", stop.skin)}
+        {/* Icon rail, scrolled sideways — the domains, the way the trip tabs
+            read across the top of a trip. */}
+        <div className="scroll-x-bare mt-8 -mx-1 flex justify-center gap-1 px-1">
+          {rail.map((r) => (
+            <span
+              key={r.label}
+              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-sheet-3 px-4 py-2 text-sm font-medium text-ink-soft"
             >
-              <p className="typed text-current">{stop.step}</p>
-              <p className="mt-1 font-display text-2xl font-semibold tracking-tight">
-                {stop.tab}
-              </p>
-              <h3 className="mt-4 text-lg">{stop.title}</h3>
-              <p className="mt-3 max-w-[46ch] text-sm opacity-85">{stop.body}</p>
-              <div className="mt-5 flex flex-col gap-2">
-                {stop.eg.map((row) => (
-                  <div
-                    key={row.k + row.v}
-                    className="flex items-baseline gap-3.5 rounded-md bg-sheet/60 px-3.5 py-2 text-sm"
-                  >
-                    <span className="nums min-w-[74px] flex-none text-xs opacity-75">
-                      {row.k}
-                    </span>
-                    <span>{row.v}</span>
-                  </div>
-                ))}
-              </div>
-            </Link>
+              <Glyph name={r.icon} />
+              {r.label}
+            </span>
           ))}
+        </div>
+
+        <div className="mt-6">
+          <RouteMap stops={sampleStops} missing={[]} />
         </div>
       </section>
 
-      {/* ── invite band ──────────────────────────────────────────────── */}
+      {/* ── Pro tier (blueprint) ─────────────────────────────────────── */}
+      <section className="mt-24">
+        <div className="overflow-hidden rounded-lg bg-pen-soft p-8 text-pen-deep sm:p-10">
+          <div className="max-w-[54ch]">
+            <span className="inline-flex items-center rounded-full bg-sheet/70 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em]">
+              Coming soon · Pro
+            </span>
+            <h2 className="mt-4 text-[clamp(1.6rem,3.2vw,2.3rem)]">
+              The full trip, for the ones who travel a lot.
+            </h2>
+            <p className="mt-4 text-md opacity-80">
+              Waypoint stays free for planning together. Pro adds the extras
+              worth paying for once the trip is booked.
+            </p>
+          </div>
+
+          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+            {proPerks.map((p) => (
+              <article
+                key={p.title}
+                className="rounded-md bg-sheet/70 p-5 text-ink"
+              >
+                <h3 className="text-md">{p.title}</h3>
+                <p className="mt-2 text-sm text-ink-soft">{p.body}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── explore CTA ──────────────────────────────────────────────── */}
+      <section className="mt-24 grid items-center gap-10 md:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)]">
+        <div>
+          <h2 className="text-[clamp(1.5rem,3vw,2.1rem)]">
+            Borrow a trip someone has already worked out.
+          </h2>
+          <p className="mt-4 text-ink-soft">
+            Explore is a shelf of finished routes — real stops, real nights,
+            real costs. Find one you like and start your own from it.
+          </p>
+          <div className="mt-6">
+            <ButtonLink href={inspire} variant="primary">
+              Explore trips
+            </ButtonLink>
+          </div>
+        </div>
+        <div className="lift rounded-lg bg-blush p-6 text-blush-ink">
+          <p className="typed text-current">On the shelf</p>
+          <div className="mt-4 flex flex-col gap-2.5">
+            {[
+              { k: "Sicily", v: "7 nights · 4 stops" },
+              { k: "Porto", v: "4 nights · 2 stops" },
+              { k: "Andalucía", v: "9 nights · 5 stops" },
+            ].map((t) => (
+              <div
+                key={t.k}
+                className="flex items-baseline justify-between gap-4 rounded-md bg-sheet/60 px-4 py-3 text-sm"
+              >
+                <span className="font-display font-semibold tracking-tight">
+                  {t.k}
+                </span>
+                <span className="nums text-xs opacity-75">{t.v}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── get the app (doesn't exist yet) ──────────────────────────── */}
+      <section className="mt-24">
+        <div className="flex flex-col items-center gap-6 rounded-lg border border-rule bg-sheet px-8 py-12 text-center">
+          <span className="inline-flex size-12 items-center justify-center rounded-lg bg-sheet-2 text-ink">
+            <Glyph name="app" className="size-6" />
+          </span>
+          <div className="max-w-[46ch]">
+            <h2 className="text-[clamp(1.5rem,3vw,2.1rem)]">
+              The app is coming — the plan in your pocket.
+            </h2>
+            <p className="mt-4 text-ink-soft">
+              Everything the group has agreed, offline and on your phone. Plan
+              on the web today; take it with you soon.
+            </p>
+          </div>
+          <span className="inline-flex items-center rounded-full bg-sheet-2 px-4 py-2 font-mono text-xs uppercase tracking-[0.14em] text-ink-soft">
+            Notify me — coming soon
+          </span>
+        </div>
+      </section>
+
+      {/* ── invite band (closing) ────────────────────────────────────── */}
       <section className="mt-24 grid items-center gap-12 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)] lg:gap-16">
         <div className="rounded-lg bg-pen-soft px-8 py-10 text-center text-pen-deep">
           <p className="font-mono text-[10px] uppercase tracking-[0.22em] opacity-70">
@@ -285,8 +282,7 @@ export default async function LandingPage() {
         </div>
 
         <div>
-          <p className="typed">Before you sign anything</p>
-          <h2 className="mt-2 text-[clamp(1.5rem,3vw,2.1rem)]">
+          <h2 className="text-[clamp(1.5rem,3vw,2.1rem)]">
             Open the link and you&rsquo;ll see the trip first.
           </h2>
           <p className="mt-4 text-ink-soft">

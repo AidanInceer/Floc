@@ -13,6 +13,7 @@ import {
   revalidateIdeas,
   setIdeaPinnedAt,
   softDeleteIdea,
+  updateIdeaNote,
 } from "@/server/ideas";
 import type { VoteValue } from "@/db/schema";
 
@@ -52,6 +53,21 @@ export async function deleteIdea(tripId: number, ideaId: number) {
   if (row.createdBy !== access.viewer.id) assertAdmin(access);
 
   await softDeleteIdea(row.id);
+
+  revalidateIdeas(access.trip.id);
+}
+
+// Edit the text — author or any admin, same rule as delete (ticket 14).
+export async function editIdea(tripId: number, ideaId: number, formData: FormData) {
+  const access = await requireTripAccess(tripId);
+  const row = await access.idea(ideaId);
+
+  if (row.createdBy !== access.viewer.id) assertAdmin(access);
+
+  const note = capRequiredText(formData.get("note"), "ideaNote");
+  if (!note) throw new Error("An idea needs some words");
+
+  await updateIdeaNote(row.id, note);
 
   revalidateIdeas(access.trip.id);
 }

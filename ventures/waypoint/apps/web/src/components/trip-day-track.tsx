@@ -18,7 +18,7 @@ import type { TransportType } from "@/db/schema";
 import type { RouteDay } from "@/server/itinerary";
 import { formatDate } from "@/lib/dates";
 import { TravelModeIcon } from "@/components/travel-mode-icon";
-import { PASTEL_SKINS, cx } from "@/components/ui";
+import { ButtonLink, PASTEL_SKINS, cx } from "@/components/ui";
 
 // Colour here means "the same bed", not a domain — so the rotation is
 // `PASTEL_SKINS` by the order places first appear, and the track's own caption
@@ -32,7 +32,31 @@ export function TripDayTrack({
   days: RouteDay[];
   transportModes: Map<number, TransportType>;
 }) {
-  if (days.length === 0) return null;
+  // No days at all — an undated trip. The strip stays rather than leaving a
+  // void under the columns; it names what's missing and links to the fix (rule
+  // 11), where the dates are actually set.
+  if (days.length === 0) {
+    return (
+      <section
+        className="mt-4 rounded-lg bg-sheet p-4 ring-1 ring-rule"
+        aria-label="The trip, day by day"
+      >
+        <h2 className="px-2 pb-3 font-display text-lg">The trip</h2>
+        <div className="flex flex-col items-center rounded-md bg-sheet-2 p-8 text-center">
+          <p className="text-sm text-ink-soft">
+            No days yet — set the dates and the week fills in here.
+          </p>
+          <ButtonLink
+            href={`/trip/${tripId}/dates`}
+            variant="primary"
+            className="mt-4"
+          >
+            Pick the dates
+          </ButtonLink>
+        </div>
+      </section>
+    );
+  }
 
   const skins = new Map<number, string>();
   for (const d of days) {
@@ -69,9 +93,11 @@ export function TripDayTrack({
                 <span className="nums text-[11px] uppercase tracking-[0.08em] opacity-60">
                   {formatDate(d.date)}
                 </span>
-                <span className="font-display text-lg leading-tight font-semibold tracking-tight text-ink">
-                  {d.placeName ?? "Not decided"}
-                </span>
+                {d.placeName ? (
+                  <span className="font-display text-lg leading-tight font-semibold tracking-tight text-ink">
+                    {d.placeName}
+                  </span>
+                ) : null}
                 {mode ? (
                   <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-sheet/70 px-2 py-0.5 text-[11px] font-semibold">
                     <TravelModeIcon mode={mode} />

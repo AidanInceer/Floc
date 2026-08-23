@@ -7,6 +7,8 @@ import { revalidatePath } from "next/cache";
 
 import { readOptionalIsoDate } from "@/lib/dates";
 import { capRequiredText } from "@/lib/text";
+import { isTripColor } from "@/lib/trip-color";
+import { renameTrip as validateAndRenameTrip } from "@/app/trip/[id]/overview/actions";
 import { assertAdmin, requireTripAccess, requireUser } from "@/server/access";
 import {
   createTripWithAdmin,
@@ -15,8 +17,10 @@ import {
   joinByToken,
   revalidateInvites,
   revalidateOverview,
+  revalidateTripHeader,
   revalidateTripLists,
   setTripArchived,
+  setTripColor as writeTripColor,
   settleInvite,
   softDeleteTrip,
 } from "@/server/membership";
@@ -110,6 +114,31 @@ function redirectTo(formData: FormData, fallback: string): string {
   const raw = String(formData.get("redirectTo") ?? "");
   // Site-relative only — an off-site value is ignored, not obeyed.
   return raw.startsWith("/") && !raw.startsWith("//") ? raw : fallback;
+}
+
+// The card menu renames from a plain form with no inline error surface, so it
+// needs a void action. The name field is client-guarded (required + maxLength);
+// a rejected name simply doesn't write. The Overview hero uses the
+// error-returning `renameTrip` directly, through its inline editor.
+export async function renameTripFromMenu(formData: FormData): Promise<void> {
+  await validateAndRenameTrip(formData);
+}
+
+// The trip's pastel (ticket 213). Cosmetic, so open to any member like rename
+// and tags (rule 6) — not one of the four admin powers. An unknown value clears
+// it back to the id-rotation default rather than throwing (rule 11).
+export async function setTripColor(formData: FormData): Promise<void> {
+  const tripId = Number(formData.get("tripId"));
+  const raw = String(formData.get("color") ?? "");
+  const color = isTripColor(raw) ? raw : null;
+
+  const access = await requireTripAccess(tripId);
+
+  await writeTripColor(access.trip.id, color);
+
+  revalidateTripLists();
+  revalidateTripHeader(access.trip.id);
+  revalidateOverview(access.trip.id);
 }
 
 // Admin-only. Archived trips stay visible to every member.

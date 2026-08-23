@@ -47,7 +47,7 @@ import { formatMoney } from "@/lib/money";
 import type { Currency } from "@/lib/currency";
 import { tripStateFor } from "@/lib/trip-state";
 import { formatDateRange } from "@/lib/dates";
-import { Avatar, Badge, Stack, cx } from "@/components/ui";
+import { Avatar, Badge, ButtonLink, PASTEL_BY_KEY, PASTEL_SKINS, Stack, cx } from "@/components/ui";
 import { Sheet, SubmitButton } from "@/components/client-ui";
 import { TripNameInline } from "@/components/trip-name-inline";
 import { TripRoster } from "@/components/trip-roster";
@@ -55,7 +55,8 @@ import { friendStatesFor, listFriendsFor } from "@/server/friends";
 import { TripRoute } from "@/components/trip-route";
 import { TripDayTrack } from "@/components/trip-day-track";
 import { TagEditor } from "@/components/tag-editor";
-import { readTagTones, readTags, tagTone, type TagTone } from "@/lib/tags";
+import { readTags } from "@/lib/tags";
+import { readTripColor } from "@/lib/trip-color";
 import { renameTrip, setTripTags } from "./actions";
 
 export default async function OverviewPage({
@@ -122,13 +123,18 @@ export default async function OverviewPage({
     splits: splitRows,
   });
 
-  const { datesUnset, countdown, stage, unresolved } = state;
+  const { datesUnset, unresolved } = state;
   const unvoted =
     ideaIds.length - votes.filter((v) => v.userId === viewer.id).length;
   const spend = spendByCurrency(expenseRows);
   const inviteUrl = absoluteUrl(`/invite/${trip.inviteToken}`);
   const tags = readTags(trip.tags);
-  const tagTones = readTagTones(trip.tagTones);
+  // Tags wear the trip's one colour now (ticket 213): the chosen pastel, or the
+  // same id-rotation the card falls back to when nothing is picked.
+  const tripColor = readTripColor(trip.colorKey);
+  const tagSkin = tripColor
+    ? PASTEL_BY_KEY[tripColor]
+    : PASTEL_SKINS[trip.id % PASTEL_SKINS.length];
 
   const waiting = [
     ...unresolved.votingOthers.map((m) => ({
@@ -160,42 +166,51 @@ export default async function OverviewPage({
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
       <header className="flex flex-wrap items-end justify-between gap-6">
         <div>
-          {/* The name is the headline (ticket 89): the one thing that keeps its
-              shape as the trip moves, so the hero stops re-flowing. */}
-          <div className="flex flex-wrap items-center gap-2">
+          {/* The name is the headline (ticket 89), with the dates on the same
+              line — one hero row, not two (ticket 213). */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
             <TripNameInline
               tripId={tripId}
               name={trip.name}
               rename={renameTrip}
             />
-            <Badge tone={stage.tone}>{stage.label}</Badge>
             {trip.archivedAt ? <Badge tone="neutral">Archived</Badge> : null}
-            {countdown ? <Badge tone="marine">{countdown}</Badge> : null}
+            <p className="nums inline-flex items-center gap-1.5 text-sm text-ink-soft">
+              {formatDateRange(trip.startDate, trip.endDate)}
+              {/* No date inputs here — deciding dates is the Dates tab's job,
+                  where you see the group's availability first. */}
+              <ButtonLink
+                href={`/trip/${tripId}/dates`}
+                variant="secondary"
+                aria-label={datesUnset ? "Pick dates" : "Change dates"}
+                title={datesUnset ? "Pick dates" : "Change dates"}
+                className="!px-2 !py-1"
+              >
+                <PencilIcon />
+              </ButtonLink>
+            </p>
           </div>
-          <p className="nums mt-3 text-sm text-ink-soft">
-            {formatDateRange(trip.startDate, trip.endDate)}{" "}
-            {/* No date inputs here — deciding dates is the Dates tab's job,
-                where you see the group's availability first. */}
-            <Link
-              href={`/trip/${tripId}/dates`}
-              className="text-pen underline underline-offset-2 hover:text-pen-deep"
-            >
-              {datesUnset ? "pick them" : "change"}
-            </Link>
-          </p>
           {/* Group labels, edited where they're read (ticket 71, 86). Any member. */}
           <div className="mt-3 flex flex-wrap items-center gap-1.5">
             {tags.map((tag) => (
-              <Badge key={tag} tone={tagTone(tagTones, tag)}>
+              <span
+                key={tag}
+                className={cx(
+                  "rounded-full px-3 py-1 text-xs font-semibold",
+                  tagSkin,
+                )}
+              >
                 {tag}
-              </Badge>
+              </span>
             ))}
             <Sheet
-              trigger={tags.length > 0 ? "Edit tags" : "Add tags"}
+              trigger={<TagIcon />}
+              triggerLabel={tags.length > 0 ? "Edit tags" : "Add tags"}
               title="Tags"
               triggerVariant="secondary"
+              triggerClassName="!px-2 !py-1"
             >
-              <TripTagsForm tripId={tripId} tags={tags} tagTones={tagTones} />
+              <TripTagsForm tripId={tripId} tags={tags} />
             </Sheet>
           </div>
         </div>
@@ -206,7 +221,11 @@ export default async function OverviewPage({
         <div className="flex flex-col gap-4 lg:col-span-2">
           {/* Renders nothing until a day has an overnight place — an undated
               trip has no route to draw, and the header already says so. */}
-          <TripRoute days={routeDays} transportModes={transportModes} />
+          <TripRoute
+            tripId={tripId}
+            days={routeDays}
+            transportModes={transportModes}
+          />
         </div>
 
         {/* The group. Narrow on purpose: every panel in here is a list or a
@@ -365,21 +384,55 @@ function spendByCurrency(
   return { currency, total: book.total, otherCurrencies: books.size - 1 };
 }
 
-// The form around `TagEditor` (which owns the rows) and its save (ticket 86).
-function TripTagsForm({
-  tripId,
-  tags,
-  tagTones,
-}: {
-  tripId: number;
-  tags: string[];
-  tagTones: Record<string, TagTone>;
-}) {
+// The dates' edit affordance (ticket 213) — a pencil linking to the Dates tab,
+// matching the rename pencil on the name beside it.
+function PencilIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="13"
+      height="13"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M4 20h4L20 8l-4-4L4 16v4Z" />
+      <path d="M14.5 5.5 18.5 9.5" />
+    </svg>
+  );
+}
+
+// The tag control's icon-only trigger (ticket 213) — a luggage-tag outline in
+// the app's own line-art. Accessible name lives on the Sheet's triggerLabel.
+function TagIcon() {
+  return (
+    <svg
+      viewBox="0 0 14 14"
+      width="14"
+      height="14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M7.2 1.8H11a1.2 1.2 0 0 1 1.2 1.2v3.8a1.2 1.2 0 0 1-.35.85l-4.8 4.8a1.2 1.2 0 0 1-1.7 0L2 8.65a1.2 1.2 0 0 1 0-1.7l4.8-4.8a1.2 1.2 0 0 1 .4-.35Z" />
+      <circle cx="9.4" cy="4.6" r="0.9" />
+    </svg>
+  );
+}
+
+// The form around `TagEditor` (which owns the rows) and its save (ticket 71).
+function TripTagsForm({ tripId, tags }: { tripId: number; tags: string[] }) {
   return (
     <form action={setTripTags}>
       <input type="hidden" name="tripId" value={tripId} />
       <Stack gap={3}>
-        <TagEditor tags={tags} tones={tagTones} />
+        <TagEditor tags={tags} />
         <p className="text-xs text-ink-faint">
           Tags show on the trip card, and My trips can be filtered by them.
         </p>

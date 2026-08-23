@@ -30,8 +30,9 @@ import {
   setAvailability,
   setMemberRoleAdmin,
   setTripArchived,
+  setTripColor,
   setTripDateRange,
-  setTripTagRows,
+  setTripTags,
   softDeleteTrip,
 } from "@/server/membership";
 
@@ -105,11 +106,16 @@ describe("the trip row", () => {
     expect((await tripRow(world.ours.id))?.archivedAt).toBeNull();
   });
 
-  it("stores tags and their tones together", async () => {
-    await setTripTagRows(world.ours.id, ["beach"], { beach: "agreed" });
+  it("stores tags, and a chosen colour, on the trip", async () => {
+    await setTripTags(world.ours.id, ["beach"]);
+    await setTripColor(world.ours.id, "mint");
     const row = await tripRow(world.ours.id);
     expect(row?.tags).toEqual(["beach"]);
-    expect(row?.tagTones).toEqual({ beach: "agreed" });
+    expect(row?.colorKey).toBe("mint");
+
+    // Null clears it back to the id-rotation default.
+    await setTripColor(world.ours.id, null);
+    expect((await tripRow(world.ours.id))?.colorKey).toBeNull();
   });
 
   it("deletes softly, and the invite token stops resolving", async () => {

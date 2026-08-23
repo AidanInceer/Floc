@@ -19,7 +19,6 @@ import {
   userProfile,
 } from "@/db/schema";
 import type { NudgeTab, TripRole } from "@/db/schema";
-import type { TagTone } from "@/lib/tags";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
 
@@ -49,6 +48,7 @@ export type TripListRow = {
   startDate: string | null;
   endDate: string | null;
   tags: string[] | null;
+  colorKey: string | null;
   role: TripRole;
 };
 
@@ -64,6 +64,7 @@ export async function listTripsFor(
       startDate: trip.startDate,
       endDate: trip.endDate,
       tags: trip.tags,
+      colorKey: trip.colorKey,
       role: tripMembership.role,
     })
     .from(tripMembership)
@@ -123,12 +124,19 @@ export async function renameTrip(tripId: number, name: string): Promise<void> {
   await db.update(trip).set({ name, ...touch() }).where(eq(trip.id, tripId));
 }
 
-export async function setTripTagRows(
+export async function setTripTags(
   tripId: number,
   tags: string[],
-  tagTones: Record<string, TagTone>,
 ): Promise<void> {
-  await db.update(trip).set({ tags, tagTones, ...touch() }).where(eq(trip.id, tripId));
+  await db.update(trip).set({ tags, ...touch() }).where(and(eq(trip.id, tripId), isNull(trip.deletedAt)));
+}
+
+/** Chosen pastel (ticket 213); null clears it back to the id-rotation default. */
+export async function setTripColor(
+  tripId: number,
+  colorKey: string | null,
+): Promise<void> {
+  await db.update(trip).set({ colorKey, ...touch() }).where(eq(trip.id, tripId));
 }
 
 /** Rule 9: both nullable, and clearing them back to undated is a normal move. */

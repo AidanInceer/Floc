@@ -8,7 +8,7 @@ import { after } from "next/server";
 import { NUDGE_TABS, type NudgeTab } from "@/db/schema";
 import { assertAdmin, requireTripAccess } from "@/server/access";
 import { emails, sendEmails } from "@/server/email";
-import { parseTagRows } from "@/lib/tags";
+import { parseTagNames } from "@/lib/tags";
 import { capText, TEXT_CAPS } from "@/lib/text";
 import { LIMITS } from "@/server/limits";
 import {
@@ -23,7 +23,7 @@ import {
   revalidateTripHeader,
   revalidateTripLists,
   setMemberRoleAdmin,
-  setTripTagRows,
+  setTripTags as writeTripTags,
 } from "@/server/membership";
 
 export async function sendNudge(formData: FormData) {
@@ -136,20 +136,16 @@ export async function renameTrip(formData: FormData) {
   revalidateTripLists();
 }
 
-// Trip tags (ticket 71), open to any member like renaming. `parseTagRows` owns
-// normalisation/caps. Empty clears to `[]`, never a half-state. Colour rides
-// along per row (ticket 86) — clearing a tag's name is how it's deleted.
+// Trip tags (ticket 71), open to any member like renaming. `parseTagNames` owns
+// normalisation/caps. Empty clears to `[]`, never a half-state. Colour is the
+// trip's, not the tag's (ticket 213) — clearing a tag's name is how it's deleted.
 export async function setTripTags(formData: FormData) {
   const tripId = Number(formData.get("tripId"));
-  const names = formData.getAll("tag").map(String);
-  const tones = formData.getAll("tone").map(String);
-  const { tags, tagTones } = parseTagRows(
-    names.map((name, i) => ({ name, tone: tones[i] ?? "" })),
-  );
+  const tags = parseTagNames(formData.getAll("tag").map(String));
 
   const access = await requireTripAccess(tripId);
 
-  await setTripTagRows(access.trip.id, tags, tagTones);
+  await writeTripTags(access.trip.id, tags);
 
   revalidateOverview(access.trip.id);
   revalidateTripLists();

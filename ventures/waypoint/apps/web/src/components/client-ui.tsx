@@ -360,7 +360,7 @@ export function Menu({
   }, [open]);
 
   return (
-    <div ref={wrapRef} className="relative">
+    <div ref={wrapRef} className={cx("relative", open && "z-[1200]")}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -394,7 +394,7 @@ export function Menu({
           onSubmit={() => setTimeout(() => setOpen(false), 0)}
           className={cx(
             // z-[1200]: above Leaflet's panes. w-max: sized to its longest verb, not a fixed width.
-            "absolute z-[1200] w-max min-w-[8rem] max-w-[14rem] rounded-md border border-rule-strong bg-sheet p-1 shadow-raised",
+            "absolute z-[1200] w-max min-w-[5rem] max-w-[14rem] rounded-md border border-rule-strong bg-sheet p-1 shadow-raised",
             align === "right" ? "right-0" : "left-0",
             drop === "up" ? "bottom-full mb-1" : "mt-1",
           )}

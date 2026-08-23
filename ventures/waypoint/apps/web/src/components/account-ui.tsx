@@ -14,7 +14,7 @@ export function AccountPage({
   actions,
   children,
 }: {
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   blurb?: ReactNode;
   actions?: ReactNode;
@@ -24,7 +24,7 @@ export function AccountPage({
     <div className="mx-auto w-full max-w-[54rem] px-4 pb-20 pt-6 sm:px-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
-          <p className="typed">{eyebrow}</p>
+          {eyebrow ? <p className="typed">{eyebrow}</p> : null}
           <h1 className="mt-2 text-[clamp(1.8rem,4vw,2.5rem)]">{title}</h1>
           {blurb ? (
             <p className="mt-2 max-w-[60ch] text-sm text-ink-soft">{blurb}</p>

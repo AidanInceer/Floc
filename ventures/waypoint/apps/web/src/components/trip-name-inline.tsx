@@ -58,20 +58,17 @@ export function TripNameInline({
         <h1 className="font-display text-2xl font-semibold tracking-tight">
           {name}
         </h1>
-        {/* A pencil on its own was too quiet to find, and so was the ghost
-            button that replaced it — on a hero of plain text, a control that
-            only draws its box on hover doesn't read as a control at all. It
-            carries a border at rest now, in the small size the headline can
-            sit beside. */}
+        {/* Icon-only (ticket 213): the pencil carries a bordered box at rest so
+            it still reads as a control on a hero of plain text. */}
         <Button
           type="button"
           variant="secondary"
           title="Rename trip"
+          aria-label="Rename trip"
           onClick={() => setEditing(true)}
-          className="!gap-1 !px-2.5 !py-1 !text-pen"
+          className="!px-2 !py-1"
         >
           <PencilIcon />
-          Rename
         </Button>
       </span>
     );

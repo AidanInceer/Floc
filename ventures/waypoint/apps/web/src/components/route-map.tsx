@@ -35,10 +35,14 @@ const FIT_MAX_ZOOM = 12;
 export function RouteMap({
   stops,
   missing,
+  fill,
 }: {
   stops: RouteMapStop[];
   /** Stops with no coordinates — named so the omission is never silent. */
   missing: string[];
+  /** Grow to fill the parent's height instead of the fixed 450px — lets a
+      short-trip map use the panel's spare space rather than leaving a void. */
+  fill?: boolean;
 }) {
   const host = useRef<HTMLDivElement>(null);
 
@@ -145,9 +149,15 @@ export function RouteMap({
   if (stops.length === 0) return null;
 
   return (
-    <figure className="route-map">
-      <div className="route-map-frame">
-        <div ref={host} className="route-map-canvas" />
+    <figure className={fill ? "route-map flex h-full flex-col" : "route-map"}>
+      <div className={fill ? "route-map-frame flex-1" : "route-map-frame"}>
+        <div
+          ref={host}
+          className="route-map-canvas"
+          // Fill mode: take the flexed frame's height, with a floor so a short
+          // panel never collapses the map. Fixed 450px otherwise (globals.css).
+          style={fill ? { height: "100%", minHeight: 340 } : undefined}
+        />
         <div aria-hidden className="route-map-wash" />
         <div aria-hidden className="route-map-vignette" />
       </div>

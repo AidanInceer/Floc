@@ -205,10 +205,6 @@ export default async function DaysPage({
       <header className="flex flex-wrap items-end justify-between gap-6">
         <div>
           <h1 className="text-[clamp(1.9rem,4vw,2.8rem)]">Days</h1>
-          <p className="mt-3 max-w-[64ch] text-md text-ink-soft">
-            The itinerary against a real clock — where the group sleeps along
-            the top, and everything planned in the hours below it.
-          </p>
         </div>
       </header>
 

@@ -41,10 +41,6 @@ export default async function ExplorePage({
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
       <header>
         <h1 className="text-[clamp(1.9rem,4vw,2.8rem)]">Explore</h1>
-        <p className="mt-3 max-w-[64ch] text-md text-ink-soft">
-          Trip ideas to start from — itineraries someone has already thought
-          through, so the group has something to argue with.
-        </p>
       </header>
 
       <nav

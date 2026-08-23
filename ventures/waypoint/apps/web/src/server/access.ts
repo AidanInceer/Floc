@@ -25,7 +25,7 @@ import {
 import { auth } from "@/server/auth";
 import { bounded, LIMITS } from "@/server/limits";
 import { dietarySummary, readDietFlags } from "@/lib/dietary";
-import { seatTone } from "@/lib/who";
+import { whoTone } from "@/lib/who";
 import type { TripRole } from "@/db/schema";
 
 export const getSession = cache(async () => {
@@ -274,8 +274,10 @@ function toRoster(rows: MemberRow[]): TripMember[] {
         a.joinedAt.getTime() - b.joinedAt.getTime() ||
         a.userId.localeCompare(b.userId),
     )
-    // After sorting, so a member's pastel doesn't shift when someone else joins.
-    .map((m, seat) => ({ ...m, tone: seatTone(seat) }));
+    // Colour by identity, not seat, so a person is the same colour everywhere
+    // — every roster and the account header (whoTone). Occasional within-trip
+    // clashes are acceptable: colour is never the only way people are told apart.
+    .map((m) => ({ ...m, tone: whoTone(m.name) }));
 }
 
 const listMembers = cache(async function listMembers(

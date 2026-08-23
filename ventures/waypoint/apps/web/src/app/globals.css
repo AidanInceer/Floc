@@ -52,7 +52,7 @@
    */
 
   /* Ground and surfaces. Canvas is the page; white is every surface. */
-  --paper: #f7f6f3; /* the ground the app sits on — barely-there warm off-white */
+  --paper: #fafafa; /* the ground the app sits on — near-white neutral */
   --sheet: #ffffff; /* white — every surface */
   --sheet-2: #f5f4f0; /* a surface one step off white, for nested panels */
   --sheet-3: #eeece7; /* a recess in a white surface — deeper than the canvas */
@@ -303,6 +303,10 @@
   .lift:hover {
     transform: translateY(-1.5px);
     box-shadow: var(--shadow-raised);
+    /* The hover transform makes a stacking context; without a raised z-index a
+       later sibling card would paint over this card's open ... menu. */
+    position: relative;
+    z-index: 10;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -364,18 +368,36 @@
     text-decoration: none;
     background-image: linear-gradient(
       180deg,
-      transparent 62%,
-      var(--hl-stroke) 62% 92%,
-      transparent 92%
+      transparent 18%,
+      var(--hl-stroke) 18% 97%,
+      transparent 97%
     );
   }
 
   .hl-red {
-    --hl-stroke: var(--red-2);
+    --hl-stroke: var(--red-edge);
   }
 
   .hl-green {
-    --hl-stroke: var(--green-2);
+    --hl-stroke: var(--green-edge);
+  }
+
+  /*
+   * A looser highlighter — a low, thin swipe rather than a solid band behind
+   * the whole word. Sits near the baseline and leaves the glyphs mostly clear,
+   * so the hero reads as a quick pen stroke, not a filled block.
+   */
+  .hl-loose {
+    background-repeat: no-repeat;
+    background-position: 0 92%;
+    background-size: 100% 34%;
+    background-image: linear-gradient(
+      180deg,
+      transparent 0%,
+      var(--hl-stroke) 22%,
+      var(--hl-stroke) 78%,
+      transparent 100%
+    );
   }
 
   /*

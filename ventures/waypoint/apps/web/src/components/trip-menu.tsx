@@ -11,6 +11,8 @@
  * hand out an invite, and a second copy would be two ways to do it.
  */
 import { ConfirmSubmit, Menu, menuDangerItemClass, menuItemClass } from "@/components/client-ui";
+import { TripColorPicker } from "@/components/trip-color-picker";
+import type { TripColor } from "@/lib/trip-color";
 import { archiveTrip, deleteTrip } from "@/app/trips/actions";
 import { leaveTrip } from "@/app/trip/[id]/overview/actions";
 
@@ -20,17 +22,22 @@ export function TripMenu({
   isAdmin,
   archived,
   leaveWarning,
+  color,
 }: {
   tripId: number;
   tripName: string;
   isAdmin: boolean;
   archived: boolean;
   leaveWarning: string;
+  color: TripColor | null;
 }) {
   return (
     <Menu label="Trip actions">
-      {/* Leaving is not an admin power (rule 6), so it leads and every member
-          sees it. The confirm copy carries whichever consequence applies. */}
+      {/* The trip's colour — any member, same as rename and tags (ticket 213). */}
+      <TripColorPicker tripId={tripId} current={color} />
+
+      {/* Leaving is not an admin power (rule 6), so every member sees it. The
+          confirm copy carries whichever consequence applies. */}
       <form action={leaveTrip}>
         <input type="hidden" name="tripId" value={tripId} />
         <ConfirmSubmit

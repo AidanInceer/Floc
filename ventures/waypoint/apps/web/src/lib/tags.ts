@@ -50,68 +50,19 @@ export function readTags(value: unknown): string[] {
   return value.filter((t): t is string => typeof t === "string" && t.length > 0);
 }
 
-// Tag colour (ticket 86)
-
 /**
- * A tag's colour is a `Badge` tone, not a new colour system — the five tones
- * are the only palette a pill can wear. Named for what the colour looks like,
- * since a tag's meaning is the group's, not ours ("beach" is not "agreed").
- * Per-trip, not per-account: the vocabulary is a private joke per group
- * (ticket 71), so a shared palette would let one group's "beach" recolour
- * another's.
+ * A tag save from the row editor: one name per row. Colour is no longer
+ * per-tag — the whole trip wears one chosen pastel (ticket 213), so a tag is
+ * just its text. A blank row deletes a tag; normalisation drops dupes and caps
+ * the count.
  */
-export const TAG_TONES = {
-  open: "Yellow",
-  agreed: "Green",
-  marine: "Blue",
-  action: "Red",
-  neutral: "Plain",
-} as const;
-
-export type TagTone = keyof typeof TAG_TONES;
-
-/** What an uncoloured tag wears — the pill colour tags had before ticket 86. */
-export const DEFAULT_TAG_TONE: TagTone = "open";
-
-function isTagTone(value: unknown): value is TagTone {
-  return typeof value === "string" && value in TAG_TONES;
-}
-
-/** tag → tone, read off the JSON column. Same degrade-don't-crash contract as `readTags`. */
-export function readTagTones(value: unknown): Record<string, TagTone> {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
-  const out: Record<string, TagTone> = {};
-  for (const [tag, tone] of Object.entries(value as Record<string, unknown>)) {
-    if (isTagTone(tone)) out[tag] = tone;
-  }
-  return out;
-}
-
-export function tagTone(
-  tones: Record<string, TagTone>,
-  tag: string,
-): TagTone {
-  return tones[tag] ?? DEFAULT_TAG_TONE;
-}
-
-/**
- * A tag save from the row editor (ticket 86): name + colour per row, deleted
- * together so nothing has to re-associate a colour after an edit. A blank row
- * deletes a tag; the default colour isn't stored.
- */
-export function parseTagRows(
-  rows: { name: string; tone: string }[],
-): { tags: string[]; tagTones: Record<string, TagTone> } {
+export function parseTagNames(names: string[]): string[] {
   const tags: string[] = [];
-  const tagTones: Record<string, TagTone> = {};
-  for (const row of rows) {
-    const tag = normaliseTag(row.name);
+  for (const name of names) {
+    const tag = normaliseTag(name);
     if (!tag || tags.includes(tag)) continue;
     tags.push(tag);
-    if (isTagTone(row.tone) && row.tone !== DEFAULT_TAG_TONE) {
-      tagTones[tag] = row.tone;
-    }
     if (tags.length >= MAX_TAGS) break;
   }
-  return { tags, tagTones };
+  return tags;
 }

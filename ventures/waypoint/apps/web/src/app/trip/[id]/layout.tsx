@@ -11,6 +11,7 @@ import { TripTabs } from "@/components/trip-tabs";
 import { TripMenu } from "@/components/trip-menu";
 import { requireTripAccess } from "@/server/access";
 import { leaveCostFor } from "@/lib/trip-state";
+import { readTripColor } from "@/lib/trip-color";
 import { TABS } from "@/lib/tabs";
 
 export default async function TripLayout({
@@ -59,6 +60,7 @@ export default async function TripLayout({
               isAdmin={isAdmin}
               archived={Boolean(trip.archivedAt)}
               leaveWarning={leaveWarning}
+              color={readTripColor(trip.colorKey)}
             />
           </div>
         </div>

@@ -222,8 +222,8 @@ export const trip = sqliteTable(
     coverImageUrl: text("cover_image_url"),
     /** Free-text, not a fixed set (ticket 71) — per-group private joke, normalised by src/lib/tags.ts. */
     tags: text("tags", { mode: "json" }).$type<string[] | null>(),
-    /** tag → Badge tone (ticket 86). Sidecar, not widened into `tags`, which /trips filters/sorts on. */
-    tagTones: text("tag_tones", { mode: "json" }).$type<Record<string, string> | null>(),
+    /** Chosen pastel (ticket 213); null = the id-rotation default. Tags inherit it, so per-tag tones went. */
+    colorKey: text("color_key"),
     archivedAt: integer("archived_at", { mode: "timestamp" }),
     // No lifecycle flag — trip state is derived from what data exists (ticket 126).
     ...audit,

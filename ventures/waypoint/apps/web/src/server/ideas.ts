@@ -146,7 +146,15 @@ export async function softDeleteIdea(ideaId: number): Promise<void> {
   await db
     .update(idea)
     .set({ deletedAt: new Date(), ...touch() })
-    .where(eq(idea.id, ideaId));
+    .where(and(eq(idea.id, ideaId), isNull(idea.deletedAt)));
+}
+
+/** Edit an idea's text — author or admin, last-write-wins (rule 7). */
+export async function updateIdeaNote(ideaId: number, note: string): Promise<void> {
+  await db
+    .update(idea)
+    .set({ note, ...touch() })
+    .where(and(eq(idea.id, ideaId), isNull(idea.deletedAt)));
 }
 
 /** Pin or unpin — group-wide, last-write-wins (rule 7), no per-viewer state. */

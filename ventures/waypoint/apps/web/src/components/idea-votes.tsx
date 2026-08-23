@@ -13,21 +13,16 @@ import type { VoteValue } from "@/db/schema";
 
 // Stored enum values are untouched (up/dont_mind/down); glyph mapping lives
 // here instead of renaming the column, which would mean migrating every row.
-const OPTIONS: { value: VoteValue; glyph: GlyphKind; label: string; mine: string }[] = [
-  { value: "up", glyph: "heart", label: "Keen", mine: "bg-blush text-blush-ink" },
-  {
-    value: "dont_mind",
-    glyph: "up",
-    label: "Don't mind",
-    mine: "bg-mint text-mint-ink",
-  },
-  {
-    value: "down",
-    glyph: "down",
-    label: "Rather not",
-    mine: "bg-butter text-butter-ink",
-  },
+const OPTIONS: { value: VoteValue; glyph: GlyphKind; label: string }[] = [
+  { value: "up", glyph: "heart", label: "Keen" },
+  { value: "dont_mind", glyph: "up", label: "Don't mind" },
+  { value: "down", glyph: "down", label: "Rather not" },
 ];
+
+// Greyscale, not pastel: a pastel fill was lost against the pastel idea card
+// (ticket 196 refresh). Unreacted is a neutral chip; the viewer's own vote
+// fills to dark ink, which reads on any card colour.
+const MINE = "bg-ink text-sheet";
 
 export function IdeaVotes({
   tripId,
@@ -77,7 +72,7 @@ export function IdeaVotes({
             className={cx(
               // Fixed height so a chip doesn't grow as its count hits two digits.
               "inline-flex h-[26px] min-w-0 shrink items-center gap-1.5 rounded-full px-2.5 font-mono text-[10.5px] leading-none tracking-[0.02em] transition-colors",
-              mine ? o.mine : "bg-sheet-2 text-ink-soft hover:bg-sheet-3",
+              mine ? MINE : "bg-sheet-2 text-ink-soft hover:bg-sheet-3",
             )}
           >
             <ReactionGlyph kind={o.glyph} mine={mine} size={14} />

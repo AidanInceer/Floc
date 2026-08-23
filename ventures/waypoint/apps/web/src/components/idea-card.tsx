@@ -4,16 +4,23 @@
  * outlined in blue instead, because "yours to do" is the one thing the board
  * has to say at a glance. Server component; voting is the client-only IdeaVotes.
  */
-import { Avatar, cx } from "@/components/ui";
-import { ConfirmSubmit, Sheet } from "@/components/client-ui";
+import { Avatar, Field, PASTEL_SKINS, Stack, Textarea, cx } from "@/components/ui";
+import {
+  ConfirmSubmit,
+  Menu,
+  Sheet,
+  SubmitButton,
+  menuDangerItemClass,
+  menuItemClass,
+} from "@/components/client-ui";
 import { IdeaVotes } from "@/components/idea-votes";
-import { ReactionGlyph, type GlyphKind } from "@/components/reaction-glyph";
 import { NoteThread, type NoteRow } from "@/components/note-thread";
 import type { VoteValue } from "@/db/schema";
 import {
   castVote,
   clearVote,
   deleteIdea,
+  editIdea,
   setIdeaPinned,
 } from "@/app/trip/[id]/ideas/actions";
 
@@ -36,12 +43,6 @@ export type IdeaCardData = {
   pinnedAt: Date | null; // group-wide (ticket 09)
   votes: IdeaVoteRow[];
   notes: NoteRow[];
-};
-
-const VOTE_GLYPH: Record<VoteValue, { glyph: GlyphKind; label: string }> = {
-  up: { glyph: "heart", label: "Keen" },
-  dont_mind: { glyph: "up", label: "Don't mind" },
-  down: { glyph: "down", label: "Rather not" },
 };
 
 export function IdeaCard({
@@ -75,22 +76,19 @@ export function IdeaCard({
   return (
     <li
       className={cx(
-        "lift flex flex-col rounded-lg bg-sheet p-5",
-        // The board's only blue: nobody else's vote is the viewer's problem.
-        viewerVote === null
-          ? "shadow-[inset_0_0_0_2px_var(--pen)]"
-          // Nothing anyone wants stays on the board, quietened — a group
-          // changes its mind (ticket 196).
-          : idea.votes.length === 0
-            ? "opacity-75"
-            : "shadow-[inset_0_0_0_1.5px_var(--rule)]",
+        "lift flex flex-col rounded-lg p-5",
+        // Pastel by id — a card keeps its colour every visit, pinned or not.
+        PASTEL_SKINS[idea.id % PASTEL_SKINS.length],
+        // Pinned is marked by a ring, not a recolour (ticket 196 refresh). The
+        // ring is currentColor — which the pastel skin sets to its own `-ink` —
+        // so the outline matches the card's colour rather than fighting it.
+        pinned && "shadow-[inset_0_0_0_2px_currentColor]",
+        // No `opacity` quieting for zero-vote cards: opacity forms a stacking
+        // context that painted over an open "…" menu from the card above it.
         className,
       )}
     >
-      <div className="flex items-start justify-between gap-2">
-        <span className="typed">
-          {viewerVote === null ? "Your turn" : pinned ? "Pinned" : " "}
-        </span>
+      <div className="flex items-start justify-end gap-2">
         {/* Any member may pin — not an admin power (rule 6). */}
         <form action={setIdeaPinned.bind(null, tripId, idea.id, !pinned)}>
           <button
@@ -142,35 +140,7 @@ export function IdeaCard({
         />
       </div>
 
-      {/* Who voted which way, without opening anything (ticket 196). */}
-      {idea.votes.length > 0 ? (
-        <ul className="mt-2.5 flex flex-wrap gap-x-3 gap-y-1.5">
-          {(Object.keys(VOTE_GLYPH) as VoteValue[])
-            .filter((v) => idea.votes.some((row) => row.value === v))
-            .map((v) => (
-              <li key={v} className="flex items-center gap-1.5 text-ink-soft">
-                <ReactionGlyph kind={VOTE_GLYPH[v].glyph} mine={false} size={13} />
-                <span className="sr-only">{VOTE_GLYPH[v].label}:</span>
-                <span className="flex">
-                  {idea.votes
-                    .filter((row) => row.value === v)
-                    .map((row, i) => (
-                      <span key={row.userId} className={cx(i > 0 && "-ml-1.5")}>
-                        <Avatar
-                          name={row.name}
-                          src={row.avatarUrl}
-                          size={18}
-                          tone={row.tone}
-                        />
-                      </span>
-                    ))}
-                </span>
-              </li>
-            ))}
-        </ul>
-      ) : null}
-
-      <div className="mt-auto flex items-center justify-between gap-2 border-t border-rule pt-3">
+      <div className="mt-auto flex items-center justify-between gap-2 pt-3">
         {/* Modal, not inline expansion — a narrow card gave ~4 words a line,
             and expanding it shoved every card below into a different row. */}
         <Sheet
@@ -197,17 +167,43 @@ export function IdeaCard({
             placeholder="Why this one, or why not?"
           />
         </Sheet>
+        {/* Edit and Remove behind one triple-dot (ticket 125 pattern). Both open
+            a native <dialog> inside the menu, which is why Menu doesn't close on
+            an inside click. */}
         {canDelete ? (
-          <form action={deleteIdea.bind(null, tripId, idea.id)}>
-            <ConfirmSubmit
-              message="Remove this idea for everyone? Its comments and votes go with it."
-              confirmLabel="Remove it"
-              variant="ghost"
-              className="!border-none !px-0 !py-0 !font-sans !text-xs !normal-case !tracking-normal !text-ink-faint whitespace-nowrap"
+          <Menu label="Idea actions">
+            <Sheet
+              trigger="Edit"
+              bareTrigger
+              triggerClassName={menuItemClass}
+              title="Edit idea"
             >
-              Remove
-            </ConfirmSubmit>
-          </form>
+              <form action={editIdea.bind(null, tripId, idea.id)}>
+                <Stack gap={3}>
+                  <Field label="Idea">
+                    <Textarea
+                      name="note"
+                      required
+                      rows={3}
+                      maxLength={2000}
+                      defaultValue={idea.note}
+                    />
+                  </Field>
+                  <SubmitButton pendingLabel="Saving…">Save</SubmitButton>
+                </Stack>
+              </form>
+            </Sheet>
+            <form action={deleteIdea.bind(null, tripId, idea.id)}>
+              <ConfirmSubmit
+                message="Remove this idea for everyone? Its comments and votes go with it."
+                confirmLabel="Remove it"
+                variant="ghost"
+                className={menuDangerItemClass}
+              >
+                Remove
+              </ConfirmSubmit>
+            </form>
+          </Menu>
         ) : null}
       </div>
     </li>

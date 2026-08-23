@@ -31,9 +31,10 @@ export function AccountMenu({
       triggerClassName="inline-flex items-center gap-2 rounded-full border border-rule-strong bg-sheet py-1 pl-1 pr-2.5 hover:bg-sheet-2 data-[open=true]:bg-sheet-2"
       trigger={
         <>
-          {/* Ticket 149: provider photos hotlink-blocked (Google needs a
-              no-referrer request); initials only until avatars are hosted. */}
-          <Avatar name={user.name} size={26} />
+          {/* Same avatar as the rosters (ticket 149): the profile photo when
+              there is one — Avatar sends no referrer so Google serves it — else
+              the initials fallback, keyed off the same name so it matches. */}
+          <Avatar name={user.name} src={user.image} size={26} />
           <span className="hidden text-sm text-ink-soft sm:inline">
             {firstName}
           </span>

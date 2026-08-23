@@ -9,7 +9,6 @@
  * underneath, one panel per thing, each saving on its own — so the page reads
  * as a profile and not as a settings form.
  */
-import Link from "next/link";
 
 import {
   dropPromptCountries,
@@ -54,16 +53,14 @@ export default async function ProfilePage() {
 
   return (
     <AccountPage
-      eyebrow="Only you see this page"
       title="Your profile"
-      blurb="Who you are across every trip — not per-trip. Who can see each part of it is set in settings."
     >
       {/* The face someone lands on when they click you, shown as they'd see
           it — the page's one moment of the visitor's view. */}
       <Panel className="bg-butter text-butter-ink">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
           <Avatar name={name} src={profile.avatarUrl ?? viewer.image} size={64} />
-          <p className="min-w-0 font-display text-2xl font-semibold">{name}</p>
+          <p className="min-w-0 font-display text-2xl font-semibold text-ink">{name}</p>
           {vibeTags.length ? (
             <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
               {vibeTags.map((t) => (
@@ -76,19 +73,9 @@ export default async function ProfilePage() {
             <p className="min-w-0 flex-1 text-sm opacity-75">No vibe tags yet.</p>
           )}
         </div>
-        <p className="mt-4 text-sm opacity-80">
-          This is your public face.{" "}
-          <Link href="/settings" className="underline underline-offset-2">
-            Who can see it
-          </Link>
-          .
-        </p>
       </Panel>
 
-      <Panel
-        title="Trips you've been on"
-        hint="Nothing appears until a trip ends. Trips still being planned never show on a profile."
-      >
+      <Panel title="Trips you've been on">
         {pastTrips.length === 0 ? (
           <p className="text-sm text-ink-soft">Nothing here yet.</p>
         ) : (
@@ -147,10 +134,7 @@ export default async function ProfilePage() {
         </Panel>
       ))}
 
-      <Panel
-        title="Travel map"
-        hint="Countries you've been to and countries you want to go to. Your trips fill it in as they go; anything you set by hand stays set."
-      >
+      <Panel title="Travel map">
         <TravelMap states={travelMap.states} editable setMark={setCountryMark} />
       </Panel>
 

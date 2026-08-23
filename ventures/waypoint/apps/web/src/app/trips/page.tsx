@@ -1,12 +1,12 @@
 /**
  * /trips — post-login home (ticket 05; reskinned 193). Non-archived trips the
- * viewer is a member of. Sort/tag (tickets 70, 71) live in the URL, not state,
+ * viewer is a member of. Sort (ticket 70) lives in the URL, not state,
  * so the page stays a server component and a view is linkable.
  *
  * Ticket 193: trips waiting on you are split off the top of the grid, whatever
  * the sort — the sort orders each half, it doesn't decide who blocks whom.
  */
-import type { ReactNode } from "react";
+import Link from "next/link";
 
 import { requireUser } from "@/server/access";
 import { listFriendsFor, type Person } from "@/server/friends";
@@ -19,6 +19,7 @@ import {
   Field,
   Input,
   Stack,
+  cx,
 } from "@/components/ui";
 import { Sheet, SubmitButton } from "@/components/client-ui";
 import { FriendPicker } from "@/components/friend-picker";
@@ -44,7 +45,8 @@ export default async function TripsPage({
 }) {
   const params = await searchParams;
   const sort = readSort(params.sort);
-  const activeTag = typeof params.tag === "string" ? params.tag : null;
+  const view = params.view === "list" ? "list" : "grid";
+  const tag = typeof params.tag === "string" ? params.tag.trim().toLowerCase() : "";
 
   const viewer = await requireUser("/trips");
 
@@ -55,24 +57,16 @@ export default async function TripsPage({
   ]);
 
   const cards = cardRows.map((c) => c.card);
-
-  const allTags = [...new Set(cards.flatMap((c) => c.tags ?? []))].sort();
-  const filtered = activeTag
-    ? cards.filter((c) => c.tags?.includes(activeTag))
-    : cards;
-
-  const sorted = sortCards(filtered, sort);
-  const wanted = sorted.filter((c) => c.needsYou);
-  const rest = sorted.filter((c) => !c.needsYou);
+  const sorted = sortCards(
+    tag ? cards.filter((card) => card.tags?.some((value) => value.toLowerCase() === tag)) : cards,
+    sort,
+  );
 
   return (
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
       <header className="flex flex-wrap items-end justify-between gap-6">
         <div>
           <h1 className="text-[clamp(1.9rem,4vw,2.8rem)]">My trips</h1>
-          <p className="mt-3 text-md text-ink-soft">
-            Every trip you&rsquo;re part of, in one place.
-          </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <ButtonLink href="/trips/archived" variant="ghost">
@@ -89,11 +83,11 @@ export default async function TripsPage({
       {cards.length > 1 ? (
         <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="typed">Sort</span>
+            <SortIcon />
             {(Object.keys(SORTS) as Sort[]).map((key) => (
               <ButtonLink
                 key={key}
-                href={hrefFor({ sort: key, tag: activeTag })}
+                href={hrefFor({ sort: key, view, tag })}
                 variant={key === sort ? "primary" : "secondary"}
                 aria-current={key === sort ? "true" : undefined}
               >
@@ -101,111 +95,33 @@ export default async function TripsPage({
               </ButtonLink>
             ))}
           </div>
-          {allTags.length > 0 ? (
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="typed">Tag</span>
-              {allTags.map((tag) => (
-                <ButtonLink
-                  key={tag}
-                  // Clicking the active tag clears it — the pill is the toggle.
-                  href={hrefFor({ sort, tag: tag === activeTag ? null : tag })}
-                  aria-current={tag === activeTag ? "true" : undefined}
-                  variant={tag === activeTag ? "primary" : "secondary"}
-                >
-                  {tag}
-                </ButtonLink>
-              ))}
-            </div>
-          ) : null}
+          <ViewToggle sort={sort} view={view} tag={tag} />
         </div>
       ) : null}
 
-      {activeTag && sorted.length === 0 ? (
-        <Nothing
-          title={`No trips tagged “${activeTag}”`}
-          body="The tag is still on another trip somewhere, or it was just taken off this one."
-          action={
-            <ButtonLink href={hrefFor({ sort, tag: null })} variant="primary">
-              Show every trip
-            </ButtonLink>
-          }
-        />
-      ) : sorted.length === 0 ? (
+      {sorted.length === 0 ? (
         <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <NewTripTile friends={friends} first />
         </ul>
       ) : (
-        <>
-          {wanted.length > 0 ? (
-            <>
-              <SectionLabel
-                left="Waiting on you"
-                right={
-                  wanted.length === 1
-                    ? "One trip can’t move without you"
-                    : `${wanted.length} trips can’t move without you`
-                }
-              />
-              <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {wanted.map((t) => (
-                  <TripCard key={t.id} trip={t} href={`/trip/${t.id}/overview`} />
-                ))}
-              </ul>
-            </>
-          ) : null}
-
-          <SectionLabel
-            left={wanted.length > 0 ? "Everything else" : "Your trips"}
-            right={wanted.length > 0 ? "Nothing outstanding" : undefined}
-          />
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {rest.map((t) => (
-              <TripCard key={t.id} trip={t} href={`/trip/${t.id}/overview`} />
-            ))}
-            <NewTripTile friends={friends} />
-          </ul>
-        </>
+        <ul
+          className={cx(
+            "mt-8",
+            view === "list"
+              ? "flex flex-col gap-3"
+              : "grid gap-4 sm:grid-cols-2 lg:grid-cols-3",
+          )}
+        >
+          {sorted.map((t) => (
+            <TripCard
+              key={t.id}
+              trip={t}
+              href={`/trip/${t.id}/overview`}
+              layout={view}
+            />
+          ))}
+        </ul>
       )}
-
-      <section className="mt-8 flex flex-wrap items-center gap-6 rounded-lg bg-pen-soft px-8 py-7 text-pen-deep">
-        <div className="min-w-[16rem] flex-1">
-          <h2 className="text-xl">Nowhere in mind yet?</h2>
-          <p className="mt-2 max-w-[54ch] text-sm opacity-80">
-            Explore has itineraries someone has already thought through, so the
-            group has something to argue with.
-          </p>
-        </div>
-        <ButtonLink href="/explore" variant="primary">
-          Get inspired
-        </ButtonLink>
-      </section>
-    </div>
-  );
-}
-
-function SectionLabel({ left, right }: { left: string; right?: string }) {
-  return (
-    <div className="mb-4 mt-10 flex flex-wrap items-baseline justify-between gap-4">
-      <span className="typed">{left}</span>
-      {right ? <span className="typed">{right}</span> : null}
-    </div>
-  );
-}
-
-function Nothing({
-  title,
-  body,
-  action,
-}: {
-  title: string;
-  body: string;
-  action: ReactNode;
-}) {
-  return (
-    <div className="mt-8 rounded-lg bg-sheet px-6 py-14 text-center">
-      <h2 className="text-xl">{title}</h2>
-      <p className="mx-auto mt-2 max-w-[46ch] text-sm text-ink-soft">{body}</p>
-      <div className="mt-6 flex justify-center">{action}</div>
     </div>
   );
 }
@@ -285,12 +201,107 @@ function InviteList({ invites }: { invites: PendingInvite[] }) {
   );
 }
 
-function hrefFor({ sort, tag }: { sort: Sort; tag: string | null }) {
+function hrefFor({
+  sort,
+  view,
+  tag,
+}: {
+  sort: Sort;
+  view?: "grid" | "list";
+  tag?: string;
+}) {
   const query = new URLSearchParams();
   if (sort !== "date") query.set("sort", sort);
+  if (view === "list") query.set("view", view);
   if (tag) query.set("tag", tag);
   const q = query.toString();
   return q ? `/trips?${q}` : "/trips";
+}
+
+// The label for the sort row, drawn rather than spelled (three descending
+// bars). Named for anything reading the outline; the pills beside it say which.
+function SortIcon() {
+  return (
+    <svg
+      viewBox="0 0 14 14"
+      width="14"
+      height="14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      className="text-ink-soft"
+      role="img"
+      aria-label="Sort"
+    >
+      <path d="M2 3.5h9M2 7h6M2 10.5h3" />
+    </svg>
+  );
+}
+
+// Grid/list switch, right-aligned on the controls row. Two icon links (the
+// current one filled), in the app's own line-art — no icon font (CLAUDE.md).
+function ViewToggle({
+  sort,
+  view,
+  tag,
+}: {
+  sort: Sort;
+  view: "grid" | "list";
+  tag: string;
+}) {
+  const opts = [
+    {
+      key: "grid" as const,
+      label: "Grid view",
+      icon: (
+        <svg viewBox="0 0 14 14" width="14" height="14" fill="currentColor" aria-hidden>
+          <rect x="1" y="1" width="5" height="5" rx="1.2" />
+          <rect x="8" y="1" width="5" height="5" rx="1.2" />
+          <rect x="1" y="8" width="5" height="5" rx="1.2" />
+          <rect x="8" y="8" width="5" height="5" rx="1.2" />
+        </svg>
+      ),
+    },
+    {
+      key: "list" as const,
+      label: "List view",
+      icon: (
+        <svg
+          viewBox="0 0 14 14"
+          width="14"
+          height="14"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.6}
+          strokeLinecap="round"
+          aria-hidden
+        >
+          <path d="M2 3.5h10M2 7h10M2 10.5h10" />
+        </svg>
+      ),
+    },
+  ];
+  return (
+    <div className="ml-auto flex items-center gap-1 rounded-full bg-sheet-3 p-1">
+      {opts.map((o) => (
+        <Link
+          key={o.key}
+          href={hrefFor({ sort, view: o.key, tag })}
+          aria-label={o.label}
+          aria-current={o.key === view ? "true" : undefined}
+          className={cx(
+            "flex size-8 items-center justify-center rounded-full transition-colors",
+            o.key === view
+              ? "bg-ink text-sheet"
+              : "text-ink-soft hover:bg-sheet hover:text-ink",
+          )}
+        >
+          {o.icon}
+        </Link>
+      ))}
+    </div>
+  );
 }
 
 /** `date` (default) is the only order that splits ended/upcoming; others are flat A-Z. */

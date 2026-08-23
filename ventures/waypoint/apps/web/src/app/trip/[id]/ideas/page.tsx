@@ -82,11 +82,6 @@ export default async function IdeasPage({
     ...ideas.filter((i) => i.pinnedAt === null),
   ];
 
-  // The one split the sort never touches: an unvoted idea is the viewer's turn.
-  const votedBy = (i: IdeaCardData) => i.votes.some((v) => v.userId === viewer.id);
-  const yours = inOrder.filter((i) => !votedBy(i));
-  const rest = inOrder.filter(votedBy);
-
   const vibes = readVibeTags(viewerProfile?.vibeTags);
 
   return (
@@ -94,10 +89,6 @@ export default async function IdeasPage({
       <header className="flex flex-wrap items-end justify-between gap-6">
         <div>
           <h1 className="text-[clamp(1.9rem,4vw,2.8rem)]">Ideas</h1>
-          <p className="mt-3 max-w-[64ch] text-md text-ink-soft">
-            Anywhere the group might go. Anyone can suggest, and nothing pinned
-            here is binding.
-          </p>
         </div>
         {ideas.length > 1 ? (
           <div className="flex flex-wrap items-center gap-2">
@@ -120,24 +111,23 @@ export default async function IdeasPage({
         ) : null}
       </header>
 
-      <section className="mt-8 rounded-lg bg-butter p-6 text-butter-ink">
+      <section className="mt-8">
         <form
           action={postIdea.bind(null, tripId)}
-          className="flex flex-wrap items-end gap-4"
+          className="flex flex-wrap items-center gap-3"
         >
           <label className="min-w-[18rem] flex-1">
-            <span className="typed text-current">Post an idea</span>
-            <textarea
+            <span className="sr-only">Post an idea</span>
+            <input
               name="note"
               required
-              rows={2}
               maxLength={2000}
               placeholder={
                 vibes.length
                   ? `"${vibes[0]}" somewhere with good trains…`
-                  : "A place, a vibe, a whole trip shape…"
+                  : "Post an idea — a place, a vibe, a whole trip shape…"
               }
-              className="mt-2 w-full resize-none rounded-md border border-rule bg-sheet px-4 py-3 text-base placeholder:text-ink-faint focus-visible:border-pen"
+              className="w-full rounded-md border border-rule-strong bg-sheet px-4 py-2.5 text-sm placeholder:text-ink-faint focus-visible:border-pen"
             />
           </label>
           <SubmitButton pendingLabel="Pinning…">Pin it to the board</SubmitButton>
@@ -165,38 +155,15 @@ export default async function IdeasPage({
         </div>
       ) : null}
 
-      {yours.length > 0 ? (
-        <>
-          <SectionLabel
-            left="Your turn"
-            right={
-              yours.length === 1
-                ? "One idea you haven’t voted on"
-                : `${yours.length} ideas you haven’t voted on`
-            }
-          />
+      {inOrder.length > 0 ? (
+        <div className="mt-8">
           <Board
-            ideas={yours}
+            ideas={inOrder}
             tripId={tripId}
             viewerId={viewer.id}
             isAdmin={isAdmin}
           />
-        </>
-      ) : null}
-
-      {rest.length > 0 ? (
-        <>
-          <SectionLabel
-            left={yours.length > 0 ? "Already voted" : "The board"}
-            right={yours.length > 0 ? undefined : "You’ve voted on all of them"}
-          />
-          <Board
-            ideas={rest}
-            tripId={tripId}
-            viewerId={viewer.id}
-            isAdmin={isAdmin}
-          />
-        </>
+        </div>
       ) : null}
     </div>
   );
@@ -228,11 +195,3 @@ function Board({
   );
 }
 
-function SectionLabel({ left, right }: { left: string; right?: string }) {
-  return (
-    <div className="mb-4 mt-10 flex flex-wrap items-baseline justify-between gap-4">
-      <span className="typed">{left}</span>
-      {right ? <span className="typed">{right}</span> : null}
-    </div>
-  );
-}

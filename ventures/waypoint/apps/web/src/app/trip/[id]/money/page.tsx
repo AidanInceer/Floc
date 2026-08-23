@@ -147,9 +147,6 @@ export default async function MoneyPage({
       <header className="flex flex-wrap items-end justify-between gap-6">
         <div>
           <h1 className="text-[clamp(1.9rem,4vw,2.8rem)]">Money</h1>
-          <p className="mt-3 max-w-[64ch] text-md text-ink-soft">
-            A shared ledger, not a payment rail — nothing here moves real money.
-          </p>
         </div>
         <Sheet trigger="Add a cost" title="Add a cost" keepOpenOnSubmit>
           {addForm}

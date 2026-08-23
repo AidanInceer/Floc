@@ -1,0 +1,1 @@
+ALTER TABLE `trip` DROP COLUMN `tag_tones`;

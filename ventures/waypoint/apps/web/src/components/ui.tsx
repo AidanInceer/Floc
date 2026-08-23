@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 
 import { whoTone } from "@/lib/who";
+import type { TripColor } from "@/lib/trip-color";
 
 /**
  * The four domain pastels as a rotation, for the places where a pastel is
@@ -13,12 +14,16 @@ import { whoTone } from "@/lib/who";
  * same wherever it appears. Where a pastel does carry meaning — money is mint,
  * dates are peri — write the pair out at the call site instead.
  */
-export const PASTEL_SKINS = [
-  "bg-peri text-peri-ink",
-  "bg-mint text-mint-ink",
-  "bg-butter text-butter-ink",
-  "bg-blush text-blush-ink",
-] as const;
+// Keyed by the colour name so a *chosen* trip colour (ticket 213) maps to its
+// skin, while the values in order are still the decorative rotation below.
+export const PASTEL_BY_KEY = {
+  peri: "bg-peri text-peri-ink",
+  mint: "bg-mint text-mint-ink",
+  butter: "bg-butter text-butter-ink",
+  blush: "bg-blush text-blush-ink",
+} as const satisfies Record<TripColor, string>;
+
+export const PASTEL_SKINS = Object.values(PASTEL_BY_KEY);
 
 export function cx(...parts: (string | false | null | undefined)[]) {
   return parts.filter(Boolean).join(" ");
@@ -199,6 +204,10 @@ export function Avatar({
         alt={name}
         title={title ?? name}
         style={style}
+        // Google (and most provider CDNs) 403 a hotlinked avatar unless the
+        // request carries no referrer (ticket 149) — so send none, everywhere
+        // an avatar renders, header included.
+        referrerPolicy="no-referrer"
         className="shrink-0 rounded-full border border-rule-strong object-cover"
       />
     );
