@@ -13,8 +13,9 @@
 #   security.yml audit       → pnpm audit --audit-level=high
 #   security.yml secrets     → gitleaks (skipped when not installed)
 #
-# Run it by hand any time:   pnpm verify
-# It also runs from .githooks/pre-push — see that file for how it is wired.
+# Run it by hand:   pnpm verify
+# Nothing runs it for you — the pre-push hook was removed deliberately. CI is
+# the gate that blocks; this is the way to hear about it before pushing.
 #
 # Not `set -e`: every check runs even after one fails, so a single run tells
 # you everything that is wrong rather than only the first thing.

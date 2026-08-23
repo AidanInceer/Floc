@@ -41,15 +41,11 @@ installed). **Change a job in
 `.github/workflows/` and change it there in the same commit** — a local gate
 that has drifted from CI is worse than none, because it buys false confidence.
 
-It also runs as a **pre-push** hook, so a push is gated on the same checks CI
-is about to run. Hooks live in the committed `.githooks/`, not `.git/hooks/`,
-which is not versioned — so each clone needs this once:
-
-```bash
-git config core.hooksPath .githooks
-```
-
-`git push --no-verify` is the escape hatch.
+**Nothing runs it for you.** There is no pre-push hook — run `pnpm verify` by
+hand before a push you care about. CI still runs every one of these jobs and is
+the gate that actually blocks, so the cost of skipping it locally is finding out
+after the push rather than before. That matters here because `main` deploys:
+a red push is a broken deploy until CI catches it.
 
 **Before pushing, review the diff with a subagent** (Opus 5, low effort) over
 what is about to go out, and fix what it finds first. This repo has no pull
