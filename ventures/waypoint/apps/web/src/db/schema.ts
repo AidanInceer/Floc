@@ -267,6 +267,13 @@ export const tripMembership = sqliteTable(
      * `user_profile.pack_tier`, so a choice on one trip is not a new default.
      */
     packTier: text("pack_tier", { enum: PACK_TIERS }),
+    /**
+     * When the generator last filled this bag (ticket 221). The guard against
+     * auto-filling a bag somebody deliberately emptied: "the list is empty" and
+     * "the list has never been made" are different states, and only this column
+     * tells them apart.
+     */
+    packGeneratedAt: integer("pack_generated_at", { mode: "timestamp" }),
     ...audit,
   },
   (t) => [

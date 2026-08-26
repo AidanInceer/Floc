@@ -4,10 +4,12 @@
 // personal one (ticket 220). Every line is resolved through
 // `access.packingLine`, which refuses another member's personal line the same
 // way it refuses a nonexistent id.
-import { parsePackTier, parseQuantityStep } from "@/lib/packing";
+import { parsePackTier, parseQuantityStep, resolvePackTier } from "@/lib/packing";
 import { capRequiredText } from "@/lib/text";
 import { requireTripAccess } from "@/server/access";
-import { setPackTier } from "@/server/membership";
+import { ensureProfile } from "@/server/profile";
+import { getPackTier, setPackTier } from "@/server/membership";
+import { fillPersonalBag, packingPlanFor } from "@/server/packing-generator";
 import {
   claimPackingLine,
   insertPackingLine,
@@ -124,6 +126,31 @@ export async function setTripPackTier(tripId: number, formData: FormData) {
   if (!tier) throw new Error("That isn't a packing style");
 
   await setPackTier(access.trip.id, access.viewer.id, tier);
+
+  revalidatePacking(access.trip.id);
+}
+
+/**
+ * Fill the bag from the trip's length, weather and tier (ticket 221). Always an
+ * explicit press, and always additive — pressing it after a tier or date change
+ * tops the list up rather than replacing it, so nothing you've edited is at
+ * risk. The tier is re-resolved here rather than trusted from the form: the
+ * page that rendered the button may be a stale tab.
+ */
+export async function fillMyPackingList(tripId: number) {
+  const access = await requireTripAccess(tripId);
+
+  const [perTrip, profile] = await Promise.all([
+    getPackTier(access.trip.id, access.viewer.id),
+    ensureProfile(access.viewer.id),
+  ]);
+
+  await fillPersonalBag({
+    tripId: access.trip.id,
+    ownerId: access.viewer.id,
+    tier: resolvePackTier(perTrip, profile.packTier),
+    plan: await packingPlanFor(access.trip),
+  });
 
   revalidatePacking(access.trip.id);
 }

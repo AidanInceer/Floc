@@ -24,6 +24,7 @@ import {
 import { getPackTier } from "@/server/membership";
 import {
   addPackingLine,
+  fillMyPackingList,
   addPersonalPackingLine,
   removePackingLine,
   setPackingClaim,
@@ -185,5 +186,24 @@ describe("the trip's packing tier", () => {
       setTripPackTier(world.ours.id, form({ packTier: "featherweight" })),
     ).rejects.toThrow();
     expect(await getPackTier(world.ours.id, world.admin)).toBeNull();
+  });
+});
+
+describe("suggesting what to pack", () => {
+  it("fills the presser's own bag, following the trip's tier", async () => {
+    signIn(world.admin);
+    await setTripPackTier(world.ours.id, form({ packTier: "light" }));
+
+    await fillMyPackingList(world.ours.id);
+
+    const mine = await listPersonalPackingLines(world.ours.id, world.admin);
+    expect(mine.length).toBeGreaterThan(0);
+    expect(await listPersonalPackingLines(world.ours.id, world.member)).toEqual([]);
+  });
+
+  it("refuses a trip you're not on (rule 5)", async () => {
+    signIn(world.outsider);
+    await expectNotFound(() => fillMyPackingList(world.ours.id));
+    expect(await listPersonalPackingLines(world.ours.id, world.outsider)).toEqual([]);
   });
 });

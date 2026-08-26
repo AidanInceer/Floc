@@ -6,12 +6,17 @@
 import { requireTripAccess } from "@/server/access";
 import { getPackTier } from "@/server/membership";
 import {
+  autoFillPersonalBag,
+  packingPlanFor,
+} from "@/server/packing-generator";
+import {
   listPackingClaims,
   listPackingLines,
   listPersonalPackingLines,
 } from "@/server/packing";
 import { ensureProfile } from "@/server/profile";
 import { PACK_TIERS, PACK_TIER_LABELS, resolvePackTier } from "@/lib/packing";
+import Link from "next/link";
 import { cx, EmptyState } from "@/components/ui";
 import { pillOff, pillOn, pillShape } from "@/components/account-ui";
 import { SubmitButton } from "@/components/client-ui";
@@ -27,6 +32,7 @@ import {
   setPersonalPackingPacked,
   stepPersonalPackingQuantity,
   setTripPackTier,
+  fillMyPackingList,
 } from "./actions";
 
 export default async function PackingPage({
@@ -38,15 +44,32 @@ export default async function PackingPage({
   const access = await requireTripAccess(id, `/trip/${id}/packing`);
   const tripId = access.trip.id;
 
-  const [lines, claims, mine, perTripTier, profile] = await Promise.all([
+  const [lines, claims, perTripTier, profile, plan] = await Promise.all([
     listPackingLines(tripId),
     listPackingClaims(tripId),
-    listPersonalPackingLines(tripId, access.viewer.id),
     getPackTier(tripId, access.viewer.id),
     ensureProfile(access.viewer.id),
+    packingPlanFor(access.trip),
   ]);
 
   const tier = resolvePackTier(perTripTier, profile.packTier);
+
+  // Seeded here rather than behind a button because that's what the profile
+  // setting asks for (ticket 221). Safe on every render: the fill claims a
+  // one-shot flag on the membership in the same transaction as the insert, so a
+  // bag is only ever auto-filled once — emptying yours does not invite it back.
+  // A prefetch can't trigger it either: the tab renders behind `loading.tsx`,
+  // which is as far as Next prefetches a dynamic segment.
+  if (profile.packAutoGenerate) {
+    await autoFillPersonalBag({
+      tripId,
+      ownerId: access.viewer.id,
+      tier,
+      plan,
+    });
+  }
+
+  const mine = await listPersonalPackingLines(tripId, access.viewer.id);
 
   // One person, one avatar colour across every tab.
   const toneOf = new Map(access.members.map((m) => [m.userId, m.tone]));
@@ -140,6 +163,38 @@ export default async function PackingPage({
             </button>
           ))}
         </form>
+
+        {/* The generator's own row: what it couldn't know, then the one button
+            that acts on what it could. Additive, so the label promises a top-up
+            rather than a rebuild — pressing it never costs you an edit. */}
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <form action={fillMyPackingList.bind(null, tripId)}>
+            <SubmitButton variant="ghost" pendingLabel="Working it out…">
+              Suggest what to pack
+            </SubmitButton>
+          </form>
+
+          {plan.gap === "no-dates" ? (
+            <p className="text-sm text-ink-soft">
+              <Link href={`/trip/${tripId}/dates`} className="underline">
+                Set your dates
+              </Link>{" "}
+              for a list that knows how long you&rsquo;re away.
+            </p>
+          ) : plan.gap === "no-place" ? (
+            <p className="text-sm text-ink-soft">
+              <Link href={`/trip/${tripId}/days`} className="underline">
+                Add where you&rsquo;re staying
+              </Link>{" "}
+              and the list can pack for the weather too.
+            </p>
+          ) : plan.gap === "no-forecast" ? (
+            <p className="text-sm text-ink-soft">
+              No forecast this far out, so the list doesn&rsquo;t guess at the
+              weather.
+            </p>
+          ) : null}
+        </div>
 
         <form
           action={addPersonalPackingLine.bind(null, tripId)}

@@ -125,6 +125,7 @@ on every entity.</p>
         string role &quot;admin | member&quot;
         datetime map_prompt_at &quot;nullable — set on leave/kick, asks about the travel map&quot;
         string pack_tier &quot;light | balanced | comfort, nullable — null falls through to the profile default&quot;
+        datetime pack_generated_at &quot;nullable — null is &#39;never auto-filled&#39;; stops the generator refilling an emptied bag (ticket 221)&quot;
     }
 
     TRIP_INVITE {
