@@ -1,13 +1,21 @@
 "use server";
 
-// Server actions for the shared packing list (ticket 219).
+// Server actions for the packing tab — the shared list (ticket 219) and the
+// personal one (ticket 220). Every line is resolved through
+// `access.packingLine`, which refuses another member's personal line the same
+// way it refuses a nonexistent id.
+import { parsePackTier, parseQuantityStep } from "@/lib/packing";
 import { capRequiredText } from "@/lib/text";
 import { requireTripAccess } from "@/server/access";
+import { setPackTier } from "@/server/membership";
 import {
   claimPackingLine,
   insertPackingLine,
+  insertPersonalPackingLine,
   revalidatePacking,
   setClaimPacked,
+  setPersonalPacked,
+  stepPersonalQuantity,
   softDeletePackingLine,
   unclaimPackingLine,
 } from "@/server/packing";
@@ -22,8 +30,9 @@ export async function addPackingLine(tripId: number, formData: FormData) {
   revalidatePacking(access.trip.id);
 }
 
-// Any member, not author-or-admin: the shared list is the group's, and a line
-// nobody wants shouldn't outlive whoever typed it.
+// Both lists, with the resolver drawing the line: a shared line is anyone's to
+// drop (the list is the group's, and one nobody wants shouldn't outlive
+// whoever typed it), while a personal one only ever resolves for its owner.
 export async function removePackingLine(tripId: number, lineId: number) {
   const access = await requireTripAccess(tripId);
   const line = await access.packingLine(lineId);
@@ -60,6 +69,61 @@ export async function setPackingPacked(
   const line = await access.packingLine(lineId);
 
   await setClaimPacked(line.id, access.viewer.id, packed);
+
+  revalidatePacking(access.trip.id);
+}
+
+export async function addPersonalPackingLine(tripId: number, formData: FormData) {
+  const access = await requireTripAccess(tripId);
+  const label = capRequiredText(formData.get("label"), "packingLabel");
+  if (!label) throw new Error("A thing to pack needs a name");
+
+  await insertPersonalPackingLine(access.trip.id, access.viewer.id, label);
+
+  revalidatePacking(access.trip.id);
+}
+
+// The resolver has already refused anything that isn't shared or yours, and
+// the write is scoped to (line, viewer) on top — a shared line can't pick up a
+// personal tick even if one were somehow reached.
+export async function setPersonalPackingPacked(
+  tripId: number,
+  lineId: number,
+  packed: boolean,
+) {
+  const access = await requireTripAccess(tripId);
+  const line = await access.packingLine(lineId);
+
+  await setPersonalPacked(line.id, access.viewer.id, packed);
+
+  revalidatePacking(access.trip.id);
+}
+
+// A step, not a number: the row offers plus and minus, so the only two values
+// worth accepting are the two it can send. The clamp lives in the SQL.
+export async function stepPersonalPackingQuantity(
+  tripId: number,
+  lineId: number,
+  formData: FormData,
+) {
+  const access = await requireTripAccess(tripId);
+  const line = await access.packingLine(lineId);
+  const delta = parseQuantityStep(formData.get("step"));
+  if (!delta) throw new Error("That isn't a quantity step");
+
+  await stepPersonalQuantity(line.id, access.viewer.id, delta);
+
+  revalidatePacking(access.trip.id);
+}
+
+// This trip only. Writing the membership rather than the profile is the whole
+// point: Light for one weekend must not become your default everywhere.
+export async function setTripPackTier(tripId: number, formData: FormData) {
+  const access = await requireTripAccess(tripId);
+  const tier = parsePackTier(formData.get("packTier"));
+  if (!tier) throw new Error("That isn't a packing style");
+
+  await setPackTier(access.trip.id, access.viewer.id, tier);
 
   revalidatePacking(access.trip.id);
 }

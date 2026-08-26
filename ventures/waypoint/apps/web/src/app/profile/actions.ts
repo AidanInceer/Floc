@@ -9,6 +9,7 @@ import { requireUser } from "@/server/access";
 import { readCountryCode } from "@/lib/countries";
 import { MAX_DIETARY_NOTES, parseDietFlags } from "@/lib/dietary";
 import { capText } from "@/lib/text";
+import { parsePackTier } from "@/lib/packing";
 import { clearMapPrompt, hasPendingMapPrompt } from "@/server/membership";
 import {
   ensureProfile,
@@ -71,6 +72,24 @@ export async function updateDietary(formData: FormData): Promise<{ error?: strin
     dietFlags: flags.length ? flags : null,
     dietaryNotes: notes || null,
     shareDietary: formData.get("shareDietary") === "on",
+  });
+
+  revalidateProfile();
+  return {};
+}
+
+// Packing defaults, not packing *choices*: a trip with its own tier ignores
+// these, so editing here never disturbs a trip you've already set (ticket 220).
+export async function updatePacking(formData: FormData): Promise<{ error?: string }> {
+  const viewer = await requireUser();
+  await ensureProfile(viewer.id);
+
+  const packTier = parsePackTier(formData.get("packTier"));
+  if (!packTier) return { error: "Pick a packing style." };
+
+  await updateProfileFields(viewer.id, {
+    packTier,
+    packAutoGenerate: formData.get("packAutoGenerate") === "on",
   });
 
   revalidateProfile();

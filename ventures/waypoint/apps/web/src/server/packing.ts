@@ -6,11 +6,12 @@
  */
 import "server-only";
 
-import { and, asc, eq, isNull } from "drizzle-orm";
+import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
 import { packingClaim, packingLine, user, userProfile } from "@/db/schema";
+import { MAX_PACK_QUANTITY, MIN_PACK_QUANTITY } from "@/lib/packing";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
 
@@ -32,7 +33,11 @@ export type PackingClaimRow = {
   avatarUrl: string | null;
 };
 
-/** The shared list, oldest first — a packing list is a checklist, not a feed. */
+/**
+ * The shared list, oldest first — a packing list is a checklist, not a feed.
+ * `owner_id is null` is what makes it shared: personal lines live in the same
+ * table and must never leak into the group's view (ticket 220).
+ */
 export async function listPackingLines(
   tripId: number,
 ): Promise<PackingLine[]> {
@@ -43,11 +48,53 @@ export async function listPackingLines(
       createdAt: packingLine.createdAt,
     })
     .from(packingLine)
-    .where(and(eq(packingLine.tripId, tripId), isNull(packingLine.deletedAt)))
+    .where(
+      and(
+        eq(packingLine.tripId, tripId),
+        isNull(packingLine.ownerId),
+        isNull(packingLine.deletedAt),
+      ),
+    )
     .orderBy(asc(packingLine.createdAt), asc(packingLine.id))
     .limit(LIMITS.packingLines)
     .all();
   return bounded(rows, "packingLines", `trip ${tripId}`);
+}
+
+export type PersonalPackingLine = PackingLine & {
+  packedAt: Date | null;
+  quantity: number;
+};
+
+/**
+ * One person's own bag on one trip. Scoped by owner in the query rather than
+ * filtered after, so reading somebody else's list isn't expressible here
+ * (ticket 220).
+ */
+export async function listPersonalPackingLines(
+  tripId: number,
+  ownerId: string,
+): Promise<PersonalPackingLine[]> {
+  const rows = await db
+    .select({
+      id: packingLine.id,
+      label: packingLine.label,
+      createdAt: packingLine.createdAt,
+      packedAt: packingLine.packedAt,
+      quantity: packingLine.quantity,
+    })
+    .from(packingLine)
+    .where(
+      and(
+        eq(packingLine.tripId, tripId),
+        eq(packingLine.ownerId, ownerId),
+        isNull(packingLine.deletedAt),
+      ),
+    )
+    .orderBy(asc(packingLine.createdAt), asc(packingLine.id))
+    .limit(LIMITS.packingLines)
+    .all();
+  return bounded(rows, "packingLines", `trip ${tripId} personal`);
 }
 
 /** Name and avatar ride along: a claimer may since have left the trip, so the roster can't fill them in. */
@@ -83,6 +130,65 @@ export async function insertPackingLine(
   label: string,
 ): Promise<void> {
   await db.insert(packingLine).values({ tripId, createdBy, label });
+}
+
+/** The same table, with an owner — author and owner are the same person by construction. */
+export async function insertPersonalPackingLine(
+  tripId: number,
+  ownerId: string,
+  label: string,
+): Promise<void> {
+  await db
+    .insert(packingLine)
+    .values({ tripId, createdBy: ownerId, ownerId, label });
+}
+
+/**
+ * Nudge a line's count by one. The arithmetic and the clamp happen in SQL
+ * rather than read-modify-write in the action: two quick clicks are one plus
+ * each, and a round trip through JS would let the slower one overwrite the
+ * faster with a stale number.
+ */
+export async function stepPersonalQuantity(
+  lineId: number,
+  ownerId: string,
+  delta: 1 | -1,
+): Promise<void> {
+  await db
+    .update(packingLine)
+    .set({
+      quantity: sql`max(${MIN_PACK_QUANTITY}, min(${MAX_PACK_QUANTITY}, ${packingLine.quantity} + ${delta}))`,
+      ...touch(),
+    })
+    .where(
+      and(
+        eq(packingLine.id, lineId),
+        eq(packingLine.ownerId, ownerId),
+        isNull(packingLine.deletedAt),
+      ),
+    );
+}
+
+/**
+ * Tick or untick a line on your own bag. Scoped to (line, owner) so ticking
+ * somebody else's is not expressible, and — because a shared line's owner is
+ * null — so is a shared line picking up a personal tick nothing would read.
+ */
+export async function setPersonalPacked(
+  lineId: number,
+  ownerId: string,
+  packed: boolean,
+): Promise<void> {
+  await db
+    .update(packingLine)
+    .set({ packedAt: packed ? new Date() : null, ...touch() })
+    .where(
+      and(
+        eq(packingLine.id, lineId),
+        eq(packingLine.ownerId, ownerId),
+        isNull(packingLine.deletedAt),
+      ),
+    );
 }
 
 export async function softDeletePackingLine(lineId: number): Promise<void> {

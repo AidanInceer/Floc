@@ -48,7 +48,9 @@ chunks: the app then throws `Cannot find module './vendor-chunks/...'` or
 `Cannot read properties of undefined (reading 'call')` on every route, and the
 only cure is deleting `.next` — which an agent is not permitted to do, so it
 lands on the user. Order is always: **stop the dev server → build/verify →
-start it again.** Never leave a preview running across a verify.
+start it again.** Never leave a preview running across a verify. Check with
+`preview_list`, not `ps` — a preview-managed `next dev` does not appear in a
+process listing, so "ps found nothing" is not evidence that it is down.
 
 **Nothing runs it for you.** There is no pre-push hook — run `pnpm verify` by
 hand before a push you care about. CI still runs every one of these jobs and is

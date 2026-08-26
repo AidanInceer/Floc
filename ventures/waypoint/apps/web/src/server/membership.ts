@@ -19,6 +19,7 @@ import {
   userProfile,
 } from "@/db/schema";
 import type { NudgeTab, TripRole } from "@/db/schema";
+import type { PackTier } from "@/lib/packing";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
 
@@ -462,6 +463,34 @@ export async function removeMembership(
   await db
     .update(tripMembership)
     .set({ deletedAt: new Date(), mapPromptAt: new Date(), ...touch() })
+    .where(liveMembership(tripId, userId));
+}
+
+/**
+ * Your packing tier on one trip (ticket 220). Lives on the membership because
+ * it is a fact about *you on this trip*, not about the trip; null means you
+ * have never chosen here and the profile default applies.
+ */
+export async function getPackTier(
+  tripId: number,
+  userId: string,
+): Promise<PackTier | null> {
+  const row = await db
+    .select({ packTier: tripMembership.packTier })
+    .from(tripMembership)
+    .where(liveMembership(tripId, userId))
+    .get();
+  return row?.packTier ?? null;
+}
+
+export async function setPackTier(
+  tripId: number,
+  userId: string,
+  tier: PackTier,
+): Promise<void> {
+  await db
+    .update(tripMembership)
+    .set({ packTier: tier, ...touch() })
     .where(liveMembership(tripId, userId));
 }
 

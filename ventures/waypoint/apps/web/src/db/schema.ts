@@ -10,6 +10,7 @@
 import { sql } from "drizzle-orm";
 import { CURRENCIES } from "@/lib/currency";
 import { DEFAULT_CATEGORY, EXPENSE_CATEGORIES } from "@/lib/expense-category";
+import { PACK_TIERS } from "@/lib/packing";
 import {
   index,
   integer,
@@ -139,6 +140,15 @@ export const userProfile = sqliteTable("user_profile", {
   pastTripsShow: text("past_trips_show", { enum: PAST_TRIPS_SHOW })
     .notNull()
     .default("all"),
+  /** Default packing style, used by any trip where you haven't chosen one (ticket 220). */
+  packTier: text("pack_tier", { enum: PACK_TIERS }).notNull().default("balanced"),
+  /**
+   * Whether opening a trip's Packing tab fills your personal list for you, or
+   * waits to be asked. Read here, acted on by the generator in slice 3.
+   */
+  packAutoGenerate: integer("pack_auto_generate", { mode: "boolean" })
+    .notNull()
+    .default(true),
   // No theme column — light-only (ticket 07).
   notifyInvites: integer("notify_invites", { mode: "boolean" })
     .notNull()
@@ -251,6 +261,12 @@ export const tripMembership = sqliteTable(
      * once answered. No snapshot needed — trip/days/row all still exist.
      */
     mapPromptAt: integer("map_prompt_at", { mode: "timestamp" }),
+    /**
+     * How much you're packing for *this* trip (ticket 220). Nullable on
+     * purpose: null is "never chosen here" and falls through to
+     * `user_profile.pack_tier`, so a choice on one trip is not a new default.
+     */
+    packTier: text("pack_tier", { enum: PACK_TIERS }),
     ...audit,
   },
   (t) => [
@@ -341,9 +357,14 @@ export const ideaVote = sqliteTable(
 );
 
 /**
- * The trip's shared packing list (ticket 219, parent 154) — the group gear,
- * one row per thing to pack. Personal lists land in the next slice as a
- * nullable owner on this same table; nothing here is per-viewer yet.
+ * A thing to pack (ticket 219, extended by 220). One table, two lists: a null
+ * `owner_id` is the trip's shared gear, a set one is that person's own bag and
+ * is never read for anybody else.
+ *
+ * `packed_at` here is the *personal* tick and is meaningless on a shared line —
+ * a shared line is packed when every claim on it is, which `packing_claim`
+ * answers. The two are genuinely different questions: a personal line has no
+ * claimers to ask, so it has to carry its own.
  */
 export const packingLine = sqliteTable(
   "packing_line",
@@ -355,10 +376,23 @@ export const packingLine = sqliteTable(
     createdBy: text("created_by")
       .notNull()
       .references(() => user.id),
+    /**
+     * Null = the shared list. Set = one member's personal list. No cascade, to
+     * match `created_by`: deleting an account leaves content behind rather than
+     * rewriting history, and an orphaned bag is unreadable anyway.
+     */
+    ownerId: text("owner_id").references(() => user.id),
     label: text("label").notNull(),
+    /** How many, never below 1 — the row says "5 — t-shirt" rather than repeating itself. */
+    quantity: integer("quantity").notNull().default(1),
+    /** Personal lines only — see the note above. */
+    packedAt: integer("packed_at", { mode: "timestamp" }),
     ...audit,
   },
-  (t) => [index("packing_line_trip_idx").on(t.tripId)],
+  (t) => [
+    index("packing_line_trip_idx").on(t.tripId),
+    index("packing_line_owner_idx").on(t.tripId, t.ownerId),
+  ],
 );
 
 /**

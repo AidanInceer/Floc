@@ -15,16 +15,32 @@ import {
   signIn,
   type Scenario,
 } from "@/test/db";
-import { insertPackingLine, listPackingLines } from "@/server/packing";
+import {
+  insertPackingLine,
+  insertPersonalPackingLine,
+  listPackingLines,
+  listPersonalPackingLines,
+} from "@/server/packing";
+import { getPackTier } from "@/server/membership";
 import {
   addPackingLine,
+  addPersonalPackingLine,
   removePackingLine,
   setPackingClaim,
   setPackingPacked,
+  setPersonalPackingPacked,
+  setTripPackTier,
+  stepPersonalPackingQuantity,
 } from "./actions";
 
 let world: Scenario;
 let ourLineId: number;
+
+const form = (fields: Record<string, string>): FormData => {
+  const fd = new FormData();
+  for (const [k, v] of Object.entries(fields)) fd.set(k, v);
+  return fd;
+};
 
 beforeAll(migrateTestDb);
 beforeEach(async () => {
@@ -97,5 +113,77 @@ describe("within a trip", () => {
     form.set("label", "   ");
     await expect(addPackingLine(world.ours.id, form)).rejects.toThrow();
     expect(await listPackingLines(world.ours.id)).toHaveLength(1);
+  });
+});
+
+describe("the personal list", () => {
+  async function mine(owner: string) {
+    return listPersonalPackingLines(world.ours.id, owner);
+  }
+
+  it("adds, ticks and removes a line of your own", async () => {
+    signIn(world.admin);
+
+    await addPersonalPackingLine(world.ours.id, form({ label: "Boots" }));
+    const [line] = await mine(world.admin);
+    expect(line.label).toBe("Boots");
+
+    await setPersonalPackingPacked(world.ours.id, line.id, true);
+    expect((await mine(world.admin))[0].packedAt).not.toBeNull();
+
+    await removePackingLine(world.ours.id, line.id);
+    expect(await mine(world.admin)).toHaveLength(0);
+  });
+
+  it("steps the count, and rejects a step it never offered", async () => {
+    signIn(world.admin);
+    await addPersonalPackingLine(world.ours.id, form({ label: "T-shirt" }));
+    const [line] = await mine(world.admin);
+
+    await stepPersonalPackingQuantity(world.ours.id, line.id, form({ step: "1" }));
+    expect((await mine(world.admin))[0].quantity).toBe(2);
+
+    await expect(
+      stepPersonalPackingQuantity(world.ours.id, line.id, form({ step: "40" })),
+    ).rejects.toThrow();
+    expect((await mine(world.admin))[0].quantity).toBe(2);
+  });
+
+  // Rule 5 again, one table deeper: same trip, so membership passes — it is
+  // the owner scope that has to refuse, and refuse as a missing id.
+  it("refuses another member's line as though it did not exist", async () => {
+    await insertPersonalPackingLine(world.ours.id, world.member, "Their meds");
+    const [theirs] = await listPersonalPackingLines(world.ours.id, world.member);
+
+    signIn(world.admin);
+    await expectNotFound(() => setPersonalPackingPacked(world.ours.id, theirs.id, true));
+    await expectNotFound(() => removePackingLine(world.ours.id, theirs.id));
+    await expectNotFound(() =>
+      stepPersonalPackingQuantity(world.ours.id, theirs.id, form({ step: "1" })),
+    );
+
+    const still = await listPersonalPackingLines(world.ours.id, world.member);
+    expect(still).toHaveLength(1);
+    expect(still[0].packedAt).toBeNull();
+  });
+});
+
+describe("the trip's packing tier", () => {
+  it("saves the choice on this trip and nowhere else", async () => {
+    signIn(world.admin);
+    expect(await getPackTier(world.ours.id, world.admin)).toBeNull();
+
+    await setTripPackTier(world.ours.id, form({ packTier: "light" }));
+
+    expect(await getPackTier(world.ours.id, world.admin)).toBe("light");
+    expect(await getPackTier(world.ours.id, world.member)).toBeNull();
+  });
+
+  it("refuses a tier that isn't one of the three", async () => {
+    signIn(world.admin);
+    await expect(
+      setTripPackTier(world.ours.id, form({ packTier: "featherweight" })),
+    ).rejects.toThrow();
+    expect(await getPackTier(world.ours.id, world.admin)).toBeNull();
   });
 });

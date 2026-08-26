@@ -16,6 +16,7 @@ import {
   setCountryMark,
   updateDietary,
   updateIdentity,
+  updatePacking,
   updateVibeTags,
 } from "./actions";
 import { requireUser } from "@/server/access";
@@ -23,10 +24,11 @@ import { formatDateRange } from "@/lib/dates";
 import { DIET_FLAGS, MAX_DIETARY_NOTES, readDietFlags } from "@/lib/dietary";
 import { ensureProfile } from "@/server/profile";
 import { readVibeTags } from "@/lib/vibe-tags";
+import { PACK_TIERS, PACK_TIER_LABELS } from "@/lib/packing";
 import { countryName } from "@/lib/countries";
 import { pendingMapPrompts, travelMapFor } from "@/server/travel-map";
 import { pastTripsFor } from "@/server/visibility";
-import { AccountPage, Panel } from "@/components/account-ui";
+import { AccountPage, Panel, PillChoice } from "@/components/account-ui";
 import {
   Avatar,
   Badge,
@@ -187,6 +189,45 @@ export default async function ProfilePage() {
             <div>
               <SubmitButton variant="primary" pendingLabel="Saving…">
                 Save vibe tags
+              </SubmitButton>
+            </div>
+          </Stack>
+        </ActionForm>
+      </Panel>
+
+      <Panel
+        title="Packing"
+        hint="Where a new trip starts. Choosing a different style on one trip stays on that trip."
+      >
+        <ActionForm action={updatePacking}>
+          <Stack gap={4}>
+            <PillChoice
+              name="packTier"
+              label="How much you pack"
+              hint="Scales how many of each thing a generated list suggests — never what kinds of thing."
+              value={profile.packTier}
+              options={PACK_TIERS.map((t) => ({
+                value: t,
+                label: PACK_TIER_LABELS[t],
+              }))}
+            />
+            <label className="flex items-start gap-2 text-sm">
+              <input
+                type="checkbox"
+                name="packAutoGenerate"
+                defaultChecked={profile.packAutoGenerate}
+                className="mt-0.5 size-4 rounded-sm border-rule-strong"
+              />
+              <span>
+                Fill my bag in when I open a trip&rsquo;s packing
+                <span className="block text-xs text-ink-faint">
+                  Off means the list stays empty until you ask for one.
+                </span>
+              </span>
+            </label>
+            <div>
+              <SubmitButton variant="primary" pendingLabel="Saving…">
+                Save packing
               </SubmitButton>
             </div>
           </Stack>

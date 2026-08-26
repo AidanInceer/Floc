@@ -34,6 +34,7 @@ on every entity.</p>
     USER ||--o{ IDEA_VOTE : &quot;casts&quot;
     TRIP ||--o{ PACKING_LINE : &quot;has (ticket 219)&quot;
     USER ||--o{ PACKING_LINE : &quot;adds (created_by)&quot;
+    USER ||--o{ PACKING_LINE : &quot;owns, when personal (owner_id, ticket 220)&quot;
     PACKING_LINE ||--o{ PACKING_CLAIM : &quot;is claimed by&quot;
     USER ||--o{ PACKING_CLAIM : &quot;claims&quot;
     TRIP ||--o{ AVAILABILITY : &quot;has&quot;
@@ -87,6 +88,8 @@ on every entity.</p>
         bool notify_votes &quot;default true&quot;
         bool notify_money &quot;default true&quot;
         bool notify_nudges &quot;default true&quot;
+        string pack_tier &quot;light | balanced | comfort, default balanced — the fallback for trips that haven't chosen&quot;
+        bool pack_auto_generate &quot;default true — fill the personal list on first open, or wait to be asked&quot;
     }
 
     USER_COUNTRY_MARK {
@@ -121,6 +124,7 @@ on every entity.</p>
         string user_id PK,FK &quot;-&gt; USER.id&quot;
         string role &quot;admin | member&quot;
         datetime map_prompt_at &quot;nullable — set on leave/kick, asks about the travel map&quot;
+        string pack_tier &quot;light | balanced | comfort, nullable — null falls through to the profile default&quot;
     }
 
     TRIP_INVITE {
@@ -158,7 +162,10 @@ on every entity.</p>
         int id PK
         int trip_id FK &quot;-&gt; TRIP.id&quot;
         string created_by FK &quot;-&gt; USER.id&quot;
+        string owner_id FK &quot;-&gt; USER.id, nullable — null is the shared list, set is that person's bag&quot;
         string label &quot;the thing to pack&quot;
+        int quantity &quot;how many, default 1, never below 1&quot;
+        datetime packed_at &quot;nullable, personal lines only — a shared line asks PACKING_CLAIM instead&quot;
     }
 
     PACKING_CLAIM {
@@ -318,13 +325,19 @@ on every entity.</p>
 <td><code>trip</code></td>
 <td><code>packing_line</code></td>
 <td>1–M</td>
-<td>the shared list; a personal list is a later slice of ticket 154</td>
+<td>both lists: <code>owner_id</code> null is the trip's shared gear, set is one member's own bag</td>
 </tr>
 <tr>
 <td><code>packing_line</code></td>
 <td><code>packing_claim</code></td>
 <td>1–M</td>
 <td>many claimers per line, unique on (line, user); only the claimer sets <code>packed_at</code></td>
+</tr>
+<tr>
+<td><code>user</code></td>
+<td><code>packing_line</code></td>
+<td>1–M</td>
+<td>via <code>owner_id</code> — a personal list, read for nobody but its owner</td>
 </tr>
 <tr>
 <td><code>trip</code></td>

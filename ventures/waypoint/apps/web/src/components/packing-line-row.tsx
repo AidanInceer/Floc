@@ -1,5 +1,12 @@
 import { AvatarRow, Badge, cx } from "@/components/ui";
 import { ConfirmSubmit, SubmitButton } from "@/components/client-ui";
+import {
+  CheckGlyph,
+  CrossGlyph,
+  squareButton,
+  tickBoxBase,
+  tickBoxClass,
+} from "@/components/packing-glyphs";
 import { packingStatus, packingStatusLabel } from "@/lib/packing";
 import type { PackingStatus } from "@/lib/packing";
 
@@ -16,49 +23,6 @@ const TONE_BY_STATUS: Record<PackingStatus, "agreed" | "marine" | "open"> = {
   claimed: "marine",
   unclaimed: "open",
 };
-
-// `!` throughout to beat buttonBase's pill padding — Tailwind v4 specificity is
-// stylesheet order, not class-list order (same trick as `menuItemClass`).
-// No lift, either: these two re-render under the cursor the moment they're
-// clicked, and the hover transform replaying on the fresh element reads as the
-// button bouncing (ticket 219). Colour still moves.
-const squareButton =
-  "!size-7 !shrink-0 !p-0 !transition-colors hover:!translate-y-0 hover:!shadow-none";
-
-function CheckGlyph() {
-  return (
-    <svg
-      width={13}
-      height={13}
-      viewBox="0 0 14 14"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.25}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M2.5 7.5 5.5 10.5 11.5 3.5" />
-    </svg>
-  );
-}
-
-function CrossGlyph() {
-  return (
-    <svg
-      width={13}
-      height={13}
-      viewBox="0 0 14 14"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.25}
-      strokeLinecap="round"
-      aria-hidden
-    >
-      <path d="M3.5 3.5 10.5 10.5M10.5 3.5 3.5 10.5" />
-    </svg>
-  );
-}
 
 /**
  * One thing on the shared list (ticket 219). Reads as a checklist: the tick box
@@ -112,12 +76,7 @@ export function PackingLineRow({
           <button
             type="submit"
             aria-label={mine.packedAt ? `Unpack ${label}` : `Mark ${label} packed`}
-            className={cx(
-              "inline-flex size-7 shrink-0 items-center justify-center rounded-full border",
-              mine.packedAt
-                ? "border-green/40 bg-green-soft text-green"
-                : "border-rule-strong bg-sheet text-ink-faint/60 hover:text-ink-soft",
-            )}
+            className={cx(tickBoxBase, tickBoxClass(mine.packedAt !== null))}
           >
             <CheckGlyph />
           </button>

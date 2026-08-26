@@ -11,10 +11,14 @@ import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import {
   claimPackingLine,
   insertPackingLine,
+  insertPersonalPackingLine,
   listPackingClaims,
   listPackingLines,
+  listPersonalPackingLines,
   setClaimPacked,
+  setPersonalPacked,
   softDeletePackingLine,
+  stepPersonalQuantity,
   unclaimPackingLine,
 } from "@/server/packing";
 
@@ -115,5 +119,87 @@ describe("claims", () => {
       )
       .get();
     expect(row?.packedAt).toBeNull();
+  });
+});
+
+describe("the personal list", () => {
+  async function addMine(owner: string, label: string) {
+    await insertPersonalPackingLine(world.ours.id, owner, label);
+    const mine = await listPersonalPackingLines(world.ours.id, owner);
+    return mine[mine.length - 1].id;
+  }
+
+  it("stays out of the shared list, and out of everyone else's", async () => {
+    await addMine(world.admin, "My passport");
+    expect(await listPackingLines(world.ours.id)).toHaveLength(0);
+    expect(await listPersonalPackingLines(world.ours.id, world.member)).toHaveLength(0);
+    expect(await listPersonalPackingLines(world.ours.id, world.admin)).toHaveLength(1);
+  });
+
+  it("keeps a shared line out of the personal list", async () => {
+    await insertPackingLine(world.ours.id, world.admin, "Speaker");
+    expect(await listPersonalPackingLines(world.ours.id, world.admin)).toHaveLength(0);
+  });
+
+  it("ticks and unticks only the owner's own line", async () => {
+    const id = await addMine(world.admin, "Boots");
+
+    await setPersonalPacked(id, world.member, true);
+    expect((await listPersonalPackingLines(world.ours.id, world.admin))[0].packedAt).toBeNull();
+
+    await setPersonalPacked(id, world.admin, true);
+    expect((await listPersonalPackingLines(world.ours.id, world.admin))[0].packedAt).not.toBeNull();
+
+    await setPersonalPacked(id, world.admin, false);
+    expect((await listPersonalPackingLines(world.ours.id, world.admin))[0].packedAt).toBeNull();
+  });
+
+  it("drops a removed line from the read, and won't tick it back", async () => {
+    const id = await addMine(world.admin, "Towel");
+    await softDeletePackingLine(id);
+
+    await setPersonalPacked(id, world.admin, true);
+    expect(await listPersonalPackingLines(world.ours.id, world.admin)).toHaveLength(0);
+  });
+});
+
+describe("a line's quantity", () => {
+  async function addMine(label: string) {
+    await insertPersonalPackingLine(world.ours.id, world.admin, label);
+    const mine = await listPersonalPackingLines(world.ours.id, world.admin);
+    return mine[mine.length - 1].id;
+  }
+
+  const qty = async () =>
+    (await listPersonalPackingLines(world.ours.id, world.admin))[0].quantity;
+
+  it("starts at one and steps both ways", async () => {
+    const id = await addMine("T-shirt");
+    expect(await qty()).toBe(1);
+
+    await stepPersonalQuantity(id, world.admin, 1);
+    await stepPersonalQuantity(id, world.admin, 1);
+    expect(await qty()).toBe(3);
+
+    await stepPersonalQuantity(id, world.admin, -1);
+    expect(await qty()).toBe(2);
+  });
+
+  it("never falls below one — zero of a thing is a removal", async () => {
+    const id = await addMine("Toothbrush");
+    await stepPersonalQuantity(id, world.admin, -1);
+    await stepPersonalQuantity(id, world.admin, -1);
+    expect(await qty()).toBe(1);
+  });
+
+  it("won't step somebody else's line, or a removed one", async () => {
+    const id = await addMine("Socks");
+
+    await stepPersonalQuantity(id, world.member, 1);
+    expect(await qty()).toBe(1);
+
+    await softDeletePackingLine(id);
+    await stepPersonalQuantity(id, world.admin, 1);
+    expect(await listPersonalPackingLines(world.ours.id, world.admin)).toHaveLength(0);
   });
 });

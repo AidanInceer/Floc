@@ -96,6 +96,16 @@ export function PersonRow({
  * than opened one at a time — and it stays plain radio inputs, so the form
  * posts exactly what a `<select>` did and it works without JavaScript.
  */
+/**
+ * The pill's shape and its two states, split out because the trip's packing
+ * tier is the same pillbox built from submit buttons — no radio to hang
+ * `peer-checked:` on, so it needs the classes rather than the component.
+ */
+export const pillShape =
+  "lift block rounded-full border px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.06em]";
+export const pillOn = "border-pen bg-pen text-sheet";
+export const pillOff = "border-rule bg-sheet-2 text-ink-soft";
+
 export function PillChoice<T extends string>({
   name,
   label,
@@ -122,7 +132,13 @@ export function PillChoice<T extends string>({
               defaultChecked={o.value === value}
               className="peer sr-only"
             />
-            <span className="lift block rounded-full border border-rule bg-sheet-2 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-soft peer-checked:border-pen peer-checked:bg-pen peer-checked:text-sheet peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-pen">
+            <span
+              className={cx(
+                pillShape,
+                pillOff,
+                "peer-checked:border-pen peer-checked:bg-pen peer-checked:text-sheet peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-pen",
+              )}
+            >
               {o.label}
             </span>
           </label>

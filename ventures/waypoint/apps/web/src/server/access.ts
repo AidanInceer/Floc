@@ -5,7 +5,7 @@
  */
 import "server-only";
 
-import { and, eq, inArray, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull, or } from "drizzle-orm";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
@@ -143,7 +143,7 @@ export async function requireTripAccess(
       image: viewer.image ?? null,
     },
     members,
-    ...scopedTo(id),
+    ...scopedTo(id, viewer.id),
   };
 }
 
@@ -193,21 +193,33 @@ const resolveIdea = cache(async (tripId: number, ideaId: number) => {
   return row;
 });
 
-const resolvePackingLine = cache(async (tripId: number, lineId: number) => {
-  const row = await db
-    .select()
-    .from(packingLine)
-    .where(
-      and(
-        eq(packingLine.id, lineId),
-        eq(packingLine.tripId, tripId),
-        isNull(packingLine.deletedAt),
-      ),
-    )
-    .get();
-  if (!row) notFound();
-  return row;
-});
+/**
+ * Also scoped by owner (ticket 220): one table holds the shared list and every
+ * member's personal one, so trip membership alone is no longer enough. A line
+ * is reachable when it's shared (`owner_id is null`) or the viewer's own —
+ * somebody else's bag answers exactly as a nonexistent id does (rule 5).
+ */
+const resolvePackingLine = cache(
+  async (tripId: number, viewerId: string, lineId: number) => {
+    const row = await db
+      .select()
+      .from(packingLine)
+      .where(
+        and(
+          eq(packingLine.id, lineId),
+          eq(packingLine.tripId, tripId),
+          or(
+            isNull(packingLine.ownerId),
+            eq(packingLine.ownerId, viewerId),
+          ),
+          isNull(packingLine.deletedAt),
+        ),
+      )
+      .get();
+    if (!row) notFound();
+    return row;
+  },
+);
 
 const resolveExpense = cache(async (tripId: number, expenseId: number) => {
   const row = await db
@@ -238,14 +250,14 @@ const resolveNote = cache(async (tripId: number, noteId: number) => {
   return row;
 });
 
-function scopedTo(tripId: number) {
+function scopedTo(tripId: number, viewerId: string) {
   return {
     day: (dayId: number) => resolveDay(tripId, dayId),
     event: (eventId: number) => resolveEvent(tripId, eventId),
     idea: (ideaId: number) => resolveIdea(tripId, ideaId),
     expense: (expenseId: number) => resolveExpense(tripId, expenseId),
     note: (noteId: number) => resolveNote(tripId, noteId),
-    packingLine: (lineId: number) => resolvePackingLine(tripId, lineId),
+    packingLine: (lineId: number) => resolvePackingLine(tripId, viewerId, lineId),
   };
 }
 
