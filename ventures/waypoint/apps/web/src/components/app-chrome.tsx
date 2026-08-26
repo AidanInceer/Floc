@@ -78,26 +78,25 @@ export function AppChrome({
     <header className="sticky top-0 z-20 border-b border-rule bg-sheet/90 backdrop-blur">
       {/* Three columns so the nav is centred and the account stays hard right
           whether or not the middle is filled. */}
-      <div className="mx-auto flex h-14 w-full max-w-[84rem] items-center gap-2 px-4 sm:grid sm:grid-cols-[1fr_minmax(0,auto)_1fr] sm:gap-4 sm:px-6">
+      {/* Flex, not a three-column grid: an `auto` grid track refuses to shrink
+          below its max-content, so at phone widths the pills grew past their
+          column and sat over the wordmark. Here the ends are content-sized and
+          unshrinkable, and the middle takes what is left — the track scrolls
+          inside it rather than pushing anything off the row. */}
+      <div className="mx-auto flex h-14 w-full max-w-[84rem] items-center gap-2 px-4 sm:gap-4 sm:px-6">
         <Link
           href="/"
           aria-label="Waypoint home"
-          className="flex shrink-0 items-center justify-self-start transition-opacity hover:opacity-70"
+          className="flex shrink-0 items-center transition-opacity hover:opacity-70"
         >
           <WaypointWordmark />
         </Link>
 
-        {user ? (
-          <PillNav
-            label="Your surfaces"
-            items={navItems}
-            className="min-w-0 justify-self-center"
-          />
-        ) : (
-          <span />
-        )}
+        <div className="flex min-w-0 flex-1 justify-center">
+          {user ? <PillNav label="Your surfaces" items={navItems} /> : null}
+        </div>
 
-        <div className="flex shrink-0 items-center justify-self-end gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           {user ? (
             <AccountMenu user={user} />
           ) : (

@@ -102,7 +102,7 @@ export function PillNav({
       ref={navRef}
       aria-label={label}
       className={cx(
-        "scroll-x-bare relative flex w-fit max-w-full items-center gap-1 rounded-full bg-sheet-3 p-1",
+        "scroll-x-bare relative flex w-fit max-w-full items-center gap-0.5 rounded-full bg-sheet-3 p-0.5 sm:gap-1 sm:p-1",
         className,
       )}
     >
@@ -127,7 +127,7 @@ export function PillNav({
             href={item.href}
             aria-current={active ? "page" : undefined}
             className={cx(
-              "relative z-10 shrink-0 rounded-full px-3 py-1.5 text-sm font-medium transition-colors sm:px-4",
+              "relative z-10 shrink-0 rounded-full px-1.5 py-1.5 text-[13px] font-medium transition-colors sm:px-4 sm:text-sm",
               active
                 ? "text-sheet"
                 : "text-ink-soft hover:bg-sheet hover:text-ink",

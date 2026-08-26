@@ -46,10 +46,9 @@ export default async function TripLayout({
         {/* Narrow: one flex row, the track scrolling under a pinned right
             cluster. Wide: three columns, so the pills centre on the PAGE and
             not on the space the avatars leave over. */}
-        <div className="mx-auto flex w-full max-w-[84rem] flex-col gap-3 px-4 py-4 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-3 sm:px-6">
-          <span className="hidden sm:block" />
+        <div className="mx-auto flex w-full max-w-[84rem] items-center gap-1 px-4 py-4 sm:gap-3 sm:px-6">
           <TripTabs tripId={trip.id} tabs={TABS} />
-          <div className="order-first flex shrink-0 items-center gap-2 self-end sm:order-none sm:self-auto sm:justify-self-end">
+          <div className="flex shrink-0 items-center gap-2">
             <AvatarRow people={members} />
             {/* Archive, delete and leave used to be two separate blocks on the
                 Overview tab — one on the hero, one inside a "Trip settings"

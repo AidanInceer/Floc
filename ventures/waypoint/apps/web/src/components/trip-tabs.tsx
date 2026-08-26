@@ -12,13 +12,16 @@ export function TripTabs({
   tabs: TabState[];
 }) {
   return (
-    <PillNav
-      label="Trip sections"
-      className="min-w-0 max-w-full sm:justify-self-center"
-      items={tabs.map((tab) => ({
-        href: `/trip/${tripId}/${tab.key}`,
-        label: tab.label,
-      }))}
-    />
+    // The wrapper stretches so the tabs centre in the row; the track itself
+    // stays content-width inside it and scrolls when the row runs out.
+    <div className="flex min-w-0 flex-1 justify-center">
+      <PillNav
+        label="Trip sections"
+        items={tabs.map((tab) => ({
+          href: `/trip/${tripId}/${tab.key}`,
+          label: tab.label,
+        }))}
+      />
+    </div>
   );
 }
