@@ -49,7 +49,7 @@ export default async function TripLayout({
         <div className="mx-auto flex w-full max-w-[84rem] flex-col gap-3 px-4 py-4 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-3 sm:px-6">
           <span className="hidden sm:block" />
           <TripTabs tripId={trip.id} tabs={TABS} />
-          <div className="flex shrink-0 items-center gap-2 self-end sm:self-auto sm:justify-self-end">
+          <div className="order-first flex shrink-0 items-center gap-2 self-end sm:order-none sm:self-auto sm:justify-self-end">
             <AvatarRow people={members} />
             {/* Archive, delete and leave used to be two separate blocks on the
                 Overview tab — one on the hero, one inside a "Trip settings"

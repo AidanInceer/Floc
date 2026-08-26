@@ -78,7 +78,7 @@ export function AppChrome({
     <header className="sticky top-0 z-20 border-b border-rule bg-sheet/90 backdrop-blur">
       {/* Three columns so the nav is centred and the account stays hard right
           whether or not the middle is filled. */}
-      <div className="mx-auto grid h-14 w-full max-w-[84rem] grid-cols-[1fr_minmax(0,auto)_1fr] items-center gap-4 px-4 sm:px-6">
+      <div className="mx-auto flex h-14 w-full max-w-[84rem] items-center gap-2 px-4 sm:grid sm:grid-cols-[1fr_minmax(0,auto)_1fr] sm:gap-4 sm:px-6">
         <Link
           href="/"
           aria-label="Waypoint home"

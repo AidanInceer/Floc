@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 
 import { cx } from "@/components/ui";
 
@@ -57,7 +64,7 @@ export function PillNav({
         pathname === item.href || pathname.startsWith(`${item.href}/`),
     )?.href ?? null;
 
-  useIsoLayoutEffect(() => {
+  const measure = useCallback(() => {
     const nav = navRef.current;
     const pill = activeHref ? pillRefs.current[activeHref] : null;
     if (!nav || !pill) {
@@ -74,7 +81,21 @@ export function PillNav({
       left: pillRect.left - navRect.left + nav.scrollLeft,
       width: pillRect.width,
     });
-  }, [activeHref, items]);
+  }, [activeHref]);
+
+  useIsoLayoutEffect(measure, [measure, items]);
+
+  // The pill positions shift whenever the bar reflows — the trip header goes
+  // from a stacked mobile row to a centred desktop grid, the pills wrap, a font
+  // loads late. A one-shot measure left the ink pill stranded under the wrong
+  // tab after any width change (prod bug); re-measure on every nav resize.
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(nav);
+    return () => observer.disconnect();
+  }, [measure]);
 
   return (
     <nav
