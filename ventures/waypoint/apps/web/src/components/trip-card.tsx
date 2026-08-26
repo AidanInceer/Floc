@@ -72,7 +72,12 @@ export function TripCard({
         href={href}
         className={cx(
           "after:absolute after:inset-0 after:content-['']",
-          list && "flex min-w-0 flex-1 flex-wrap items-center gap-x-6 gap-y-1",
+          // Narrow: a fixed stack — name, then dates and place, then tags.
+          // Wrapping decided the order by title length, so "Japan - 2026" and
+          // "Ski trip" laid their dates and tags out differently. Only once
+          // there is room to flow do they sit on one line.
+          list &&
+            "flex min-w-0 flex-1 flex-col items-start gap-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6",
         )}
       >
         <CardBody trip={trip} eyebrow={eyebrow} past={past} list={list} />
@@ -139,13 +144,29 @@ function CardBody({
           {trip.name}
         </h3>
       </span>
-      <p className={cx("nums text-xs opacity-75", !list && "mt-1.5")}>
-        {formatDateRange(trip.startDate, trip.endDate)}
-        {trip.where && !list ? <> · {trip.where}</> : null}
-      </p>
-      {trip.where && list ? <p className="text-xs opacity-75">{trip.where}</p> : null}
+      {/* `sm:contents` dissolves this wrapper once the row flows, so dates and
+          place go back to being their own columns. Stacked, they read as one
+          meta line instead of two. */}
+      <span
+        className={cx(
+          list && "flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 sm:contents",
+        )}
+      >
+        <p className={cx("nums text-xs opacity-75", !list && "mt-1.5")}>
+          {formatDateRange(trip.startDate, trip.endDate)}
+          {trip.where && !list ? <> · {trip.where}</> : null}
+        </p>
+        {trip.where && list ? (
+          <>
+            <span aria-hidden className="text-xs opacity-50 sm:hidden">
+              ·
+            </span>
+            <p className="text-xs opacity-75">{trip.where}</p>
+          </>
+        ) : null}
+      </span>
       {trip.tags?.length ? (
-        <ul className={cx("flex flex-wrap gap-1.5", list ? "ml-auto" : "mt-3")}>
+        <ul className={cx("flex flex-wrap gap-1.5", list ? "sm:ml-auto" : "mt-3")}>
           {trip.tags.map((tag) => (
             <li
               key={tag}
