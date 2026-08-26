@@ -9,6 +9,7 @@
  */
 import { sql } from "drizzle-orm";
 import { CURRENCIES } from "@/lib/currency";
+import { DEFAULT_CATEGORY, EXPENSE_CATEGORIES } from "@/lib/expense-category";
 import {
   index,
   integer,
@@ -461,6 +462,10 @@ export const expense = sqliteTable(
     amountMinor: integer("amount_minor").notNull(),
     currency: text("currency", { enum: CURRENCIES }).notNull(),
     splitType: text("split_type", { enum: SPLIT_TYPES }).notNull(),
+    /** Fixed set from `EXPENSE_CATEGORIES` (src/lib/expense-category.ts) — filing only; the icon derives from it. */
+    category: text("category", { enum: EXPENSE_CATEGORIES })
+      .notNull()
+      .default(DEFAULT_CATEGORY),
     notes: text("notes"),
     ...audit,
   },
@@ -483,11 +488,41 @@ export const expenseSplit = sqliteTable(
       .notNull()
       .references(() => user.id),
     owedAmountMinor: integer("owed_amount_minor").notNull(),
-    /** Ledger only — v1 moves no money; settle-up is a claim. */
-    settledAt: integer("settled_at", { mode: "timestamp" }),
     ...audit,
   },
   (t) => [index("expense_split_expense_idx").on(t.expenseId)],
+);
+
+/**
+ * A single real-world payment from one member to another, recorded after money
+ * moved off-app (cash, ticket: money overhaul). Its own thing, not a flag on a
+ * split: settle-up is one transfer netted across many bills, and it never maps
+ * to one owed row. An immutable fact — reverted only by soft-delete, which
+ * makes the balance recompute as if it never happened. Balances are still
+ * derived at read time (non-negotiable, rule 04): expenses − settlements, per
+ * currency.
+ */
+export const settlement = sqliteTable(
+  "settlement",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    tripId: integer("trip_id")
+      .notNull()
+      .references(() => trip.id, { onDelete: "cascade" }),
+    fromUserId: text("from_user_id")
+      .notNull()
+      .references(() => user.id),
+    toUserId: text("to_user_id")
+      .notNull()
+      .references(() => user.id),
+    amountMinor: integer("amount_minor").notNull(),
+    currency: text("currency", { enum: CURRENCIES }).notNull(),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => user.id),
+    ...audit,
+  },
+  (t) => [index("settlement_trip_idx").on(t.tripId)],
 );
 
 /* -------------------------------------------------------------------------- */
@@ -634,6 +669,7 @@ export type DayEvent = typeof dayEvent.$inferSelect;
 export type Place = typeof place.$inferSelect;
 export type Expense = typeof expense.$inferSelect;
 export type ExpenseSplit = typeof expenseSplit.$inferSelect;
+export type Settlement = typeof settlement.$inferSelect;
 export type Note = typeof note.$inferSelect;
 export type Nudge = typeof nudge.$inferSelect;
 export type Friendship = typeof friendship.$inferSelect;

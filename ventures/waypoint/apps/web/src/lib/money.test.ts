@@ -4,6 +4,8 @@ import {
   computeBalances,
   computeSplits,
   formatMoney,
+  formatTicker,
+  isAllSettled,
   parseMoney,
   resolveWeightedSplit,
   suggestSettlements,
@@ -20,6 +22,9 @@ describe("formatMoney / parseMoney", () => {
     expect(parseMoney("0.05")).toBe(5);
     expect(formatMoney(1234, "GBP")).toBe("£12.34");
     expect(formatMoney(120000, "EUR")).toBe("€1,200.00");
+    // Ticker form for the convert control: ISO code, not a symbol.
+    expect(formatTicker(1234, "GBP")).toBe("GBP 12.34");
+    expect(formatTicker(560000, "USD")).toBe("USD 5,600.00");
     expect(formatMoney(-500, "USD")).toBe("−$5.00");
   });
 
@@ -99,9 +104,9 @@ describe("computeBalances / suggestSettlements", () => {
         currency: "GBP",
         amountMinor: 3000,
         splits: [
-          { userId: "a", owedAmountMinor: 1000, settled: false },
-          { userId: "b", owedAmountMinor: 1000, settled: false },
-          { userId: "c", owedAmountMinor: 1000, settled: false },
+          { userId: "a", owedAmountMinor: 1000 },
+          { userId: "b", owedAmountMinor: 1000 },
+          { userId: "c", owedAmountMinor: 1000 },
         ],
       },
       {
@@ -109,8 +114,8 @@ describe("computeBalances / suggestSettlements", () => {
         currency: "GBP",
         amountMinor: 600,
         splits: [
-          { userId: "a", owedAmountMinor: 300, settled: false },
-          { userId: "b", owedAmountMinor: 300, settled: false },
+          { userId: "a", owedAmountMinor: 300 },
+          { userId: "b", owedAmountMinor: 300 },
         ],
       },
     ]);
@@ -120,19 +125,43 @@ describe("computeBalances / suggestSettlements", () => {
     expect(balances.EUR).toEqual({});
   });
 
-  it("ignores a split once it is marked settled", () => {
-    const balances = computeBalances([
-      {
-        paidBy: "a",
-        currency: "GBP",
-        amountMinor: 2000,
-        splits: [
-          { userId: "a", owedAmountMinor: 1000, settled: false },
-          { userId: "b", owedAmountMinor: 1000, settled: true },
-        ],
-      },
-    ]);
-    expect(balances.GBP).toEqual({});
+  it("a settlement nets off the debt it pays", () => {
+    const balances = computeBalances(
+      [
+        {
+          paidBy: "a",
+          currency: "GBP",
+          amountMinor: 2000,
+          splits: [
+            { userId: "a", owedAmountMinor: 1000 },
+            { userId: "b", owedAmountMinor: 1000 },
+          ],
+        },
+      ],
+      [{ from: "b", to: "a", currency: "GBP", amountMinor: 1000 }],
+    );
+    expect(balances.GBP).toEqual({ a: 0, b: 0 });
+    expect(isAllSettled(balances)).toBe(true);
+  });
+
+  it("overpays into a reverse balance when the underlying expense shrinks", () => {
+    // b paid a £10, then the £10 debt turned out to be £6: a now owes b £4.
+    const balances = computeBalances(
+      [
+        {
+          paidBy: "a",
+          currency: "GBP",
+          amountMinor: 1200,
+          splits: [
+            { userId: "a", owedAmountMinor: 600 },
+            { userId: "b", owedAmountMinor: 600 },
+          ],
+        },
+      ],
+      [{ from: "b", to: "a", currency: "GBP", amountMinor: 1000 }],
+    );
+    expect(balances.GBP).toEqual({ a: -400, b: 400 });
+    expect(isAllSettled(balances)).toBe(false);
   });
 
   it("suggests transfers that clear every balance", () => {
@@ -245,8 +274,8 @@ describe("computeBalances seeds itself from CURRENCIES", () => {
           currency,
           amountMinor: 1000,
           splits: [
-            { userId: "a", owedAmountMinor: 500, settled: false },
-            { userId: "b", owedAmountMinor: 500, settled: false },
+            { userId: "a", owedAmountMinor: 500 },
+            { userId: "b", owedAmountMinor: 500 },
           ],
         },
       ]);

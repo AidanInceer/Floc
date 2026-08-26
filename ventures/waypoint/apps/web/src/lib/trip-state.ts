@@ -44,7 +44,12 @@ export type TripStateInput<M extends StateMember> = {
     expenseId: number;
     userId: string;
     owedAmountMinor: number;
-    settledAt: Date | null;
+  }[];
+  settlements: {
+    fromUserId: string;
+    toUserId: string;
+    currency: Currency;
+    amountMinor: number;
   }[];
 };
 
@@ -121,8 +126,13 @@ export function tripStateFor<M extends StateMember>(
       splits: (splitsByExpense.get(e.id) ?? []).map((s) => ({
         userId: s.userId,
         owedAmountMinor: s.owedAmountMinor,
-        settled: !!s.settledAt,
       })),
+    })),
+    input.settlements.map((s) => ({
+      from: s.fromUserId,
+      to: s.toUserId,
+      currency: s.currency,
+      amountMinor: s.amountMinor,
     })),
   );
 

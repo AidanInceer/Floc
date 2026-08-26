@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
@@ -420,5 +421,87 @@ function MoreIcon() {
       <circle cx="12" cy="12" r="1.6" />
       <circle cx="18.5" cy="12" r="1.6" />
     </svg>
+  );
+}
+
+const useIsoLayoutEffect =
+  typeof window === "undefined" ? useEffect : useLayoutEffect;
+
+/**
+ * A controlled sibling of `PillNav` for a form choice rather than navigation
+ * (money overhaul): same recessed `--sheet-3` track and single sliding ink
+ * indicator, but it toggles a value instead of following the route. One shared
+ * pill language across the app — nav and in-form segmented controls alike.
+ */
+export function PillToggle<T extends string>({
+  label,
+  value,
+  options,
+  onChange,
+  className,
+}: {
+  label: string;
+  value: T;
+  options: { value: T; label: string }[];
+  onChange: (value: T) => void;
+  className?: string;
+}) {
+  const navRef = useRef<HTMLDivElement>(null);
+  const pillRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const [indicator, setIndicator] = useState<{ left: number; width: number } | null>(
+    null,
+  );
+
+  useIsoLayoutEffect(() => {
+    const nav = navRef.current;
+    const pill = pillRefs.current[value];
+    if (!nav || !pill) return;
+    const navRect = nav.getBoundingClientRect();
+    const pillRect = pill.getBoundingClientRect();
+    setIndicator({
+      left: pillRect.left - navRect.left + nav.scrollLeft,
+      width: pillRect.width,
+    });
+  }, [value, options]);
+
+  return (
+    <div
+      ref={navRef}
+      role="tablist"
+      aria-label={label}
+      className={cx(
+        "relative flex w-full items-center gap-1 rounded-full bg-sheet-3 p-1",
+        className,
+      )}
+    >
+      {indicator ? (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute left-0 top-1 bottom-1 rounded-full bg-ink transition-[transform,width] duration-200 ease-[cubic-bezier(0.2,0.85,0.3,1)] motion-reduce:transition-none"
+          style={{ width: indicator.width, transform: `translateX(${indicator.left}px)` }}
+        />
+      ) : null}
+      {options.map((opt) => {
+        const active = opt.value === value;
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            ref={(el) => {
+              pillRefs.current[opt.value] = el;
+            }}
+            onClick={() => onChange(opt.value)}
+            className={cx(
+              "relative z-10 flex-1 rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
+              active ? "text-sheet" : "text-ink-soft hover:text-ink",
+            )}
+          >
+            {opt.label}
+          </button>
+        );
+      })}
+    </div>
   );
 }

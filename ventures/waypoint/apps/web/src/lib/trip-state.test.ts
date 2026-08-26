@@ -40,6 +40,7 @@ const base = (
   days: [],
   expenses: [],
   splits: [],
+  settlements: [],
   ...over,
 });
 
@@ -147,8 +148,8 @@ describe("money outstanding", () => {
       { id: 1, paidBy: "ada", currency: "GBP" as const, amountMinor: 1000 },
     ],
     splits: [
-      { expenseId: 1, userId: "ada", owedAmountMinor: 500, settledAt: null },
-      { expenseId: 1, userId: "mo", owedAmountMinor: 500, settledAt: null },
+      { expenseId: 1, userId: "ada", owedAmountMinor: 500 },
+      { expenseId: 1, userId: "mo", owedAmountMinor: 500 },
     ],
   };
 
@@ -161,8 +162,8 @@ describe("money outstanding", () => {
         ],
         splits: [
           ...owed.splits,
-          { expenseId: 2, userId: "ada", owedAmountMinor: 500, settledAt: null },
-          { expenseId: 2, userId: "mo", owedAmountMinor: 500, settledAt: null },
+          { expenseId: 2, userId: "ada", owedAmountMinor: 500 },
+          { expenseId: 2, userId: "mo", owedAmountMinor: 500 },
         ],
       }),
     );
@@ -176,11 +177,19 @@ describe("money outstanding", () => {
     expect(state.viewer.positions).toEqual([{ currency: "GBP", amount: 500 }]);
   });
 
-  it("goes quiet once every split is settled", () => {
+  it("goes quiet once a settlement clears the debt", () => {
     const state = tripStateFor(
       base({
         expenses: owed.expenses,
-        splits: owed.splits.map((s) => ({ ...s, settledAt: new Date() })),
+        splits: owed.splits,
+        settlements: [
+          {
+            fromUserId: "mo",
+            toUserId: "ada",
+            currency: "GBP" as const,
+            amountMinor: 500,
+          },
+        ],
       }),
     );
     expect(state.unresolved.money).toEqual([]);

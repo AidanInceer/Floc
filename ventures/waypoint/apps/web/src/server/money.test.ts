@@ -14,11 +14,13 @@ import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import {
   emailsForUsers,
   findLiveExpense,
-  findSettleableSplit,
+  findLiveSettlement,
+  listSettlements,
   revalidateMoney,
   softDeleteExpense,
-  toggleSplitSettled,
+  softDeleteSettlement,
   writeExpense,
+  writeSettlement,
   type ExpenseFields,
 } from "@/server/money";
 
@@ -37,6 +39,7 @@ const fields = (over: Partial<ExpenseFields> = {}): ExpenseFields => ({
   amountMinor: 3000,
   currency: "GBP",
   splitType: "even",
+  category: "other",
   notes: null,
   ...over,
 });
@@ -110,53 +113,48 @@ describe("finding an expense", () => {
     expect(await findLiveExpense(world.ours.id, row.id)).toBeUndefined();
     // The splits are snapshots — hidden by the parent's `deletedAt`, not rewritten.
     expect(await splitsOf(row.id)).toHaveLength(2);
-    // And the split is no longer settleable, because the read joins the expense.
-    const [split] = await splitsOf(row.id);
-    expect(await findSettleableSplit(split.id)).toBeUndefined();
   });
 });
 
-describe("settling", () => {
-  it("flips the flag both ways without touching the owed amount", async () => {
-    const row = await seedExpense();
-    const [split] = await splitsOf(row.id);
+describe("settlements", () => {
+  const settle = () =>
+    writeSettlement({
+      tripId: world.ours.id,
+      createdBy: world.member,
+      fromUserId: world.member,
+      toUserId: world.admin,
+      amountMinor: 1500,
+      currency: "GBP",
+    });
 
-    await toggleSplitSettled(split.id, true);
-    let after = (await splitsOf(row.id)).find((s) => s.id === split.id);
-    expect(after?.settledAt).not.toBeNull();
-    expect(after?.owedAmountMinor).toBe(split.owedAmountMinor);
-
-    await toggleSplitSettled(split.id, false);
-    after = (await splitsOf(row.id)).find((s) => s.id === split.id);
-    expect(after?.settledAt).toBeNull();
+  it("records a transfer and lists it live", async () => {
+    await settle();
+    const rows = await listSettlements(world.ours.id);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].fromUserId).toBe(world.member);
+    expect(rows[0].toUserId).toBe(world.admin);
+    expect(rows[0].amountMinor).toBe(1500);
   });
 
-  it("hands back the expense context needed to decide who may settle", async () => {
-    const row = await seedExpense();
-    const [split] = await splitsOf(row.id);
-    const found = await findSettleableSplit(split.id);
-    expect(found?.paidBy).toBe(world.admin);
-    expect(found?.expenseTripId).toBe(world.ours.id);
+  it("reverts by soft-delete — the row drops off the live list", async () => {
+    await settle();
+    const [row] = await listSettlements(world.ours.id);
+
+    await softDeleteSettlement(world.ours.id, row.id);
+
+    expect(await listSettlements(world.ours.id)).toHaveLength(0);
+    expect(await findLiveSettlement(world.ours.id, row.id)).toBeUndefined();
+  });
+
+  it("will not find or delete one belonging to another trip", async () => {
+    await settle();
+    const [row] = await listSettlements(world.ours.id);
+    expect(await findLiveSettlement(world.theirs.id, row.id)).toBeUndefined();
   });
 });
 
 /** Ticket 115 (M10) — writes filter soft-deletes too, not just reads. */
 describe("writes against deleted rows", () => {
-  it("will not settle a split that has been soft-deleted on its own", async () => {
-    const row = await seedExpense();
-    const [split] = await splitsOf(row.id);
-
-    await db
-      .update(schema.expenseSplit)
-      .set({ deletedAt: new Date() })
-      .where(eq(schema.expenseSplit.id, split.id));
-
-    await toggleSplitSettled(split.id, true);
-
-    const after = (await splitsOf(row.id)).find((s) => s.id === split.id);
-    expect(after?.settledAt).toBeNull();
-  });
-
   it("does not re-stamp deletedAt on a second delete", async () => {
     const row = await seedExpense();
     await softDeleteExpense(world.ours.id, row.id);

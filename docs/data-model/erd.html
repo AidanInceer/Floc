@@ -43,6 +43,8 @@ on every entity.</p>
     USER ||--o{ EXPENSE : &quot;creates (created_by)&quot;
     EXPENSE ||--o{ EXPENSE_SPLIT : &quot;splits into&quot;
     USER ||--o{ EXPENSE_SPLIT : &quot;owes&quot;
+    TRIP ||--o{ SETTLEMENT : &quot;records&quot;
+    USER ||--o{ SETTLEMENT : &quot;pays / receives&quot;
     TRIP ||--o{ NOTE : &quot;has&quot;
     USER ||--o{ NOTE : &quot;creates (created_by)&quot;
     NOTE ||--o{ NOTE : &quot;replies (parent_id, one level)&quot;
@@ -186,6 +188,7 @@ on every entity.</p>
         int amount_minor
         string currency &quot;EUR | USD | GBP&quot;
         string split_type &quot;even|exact|percentage|shares&quot;
+        string category &quot;fixed set — filing only, the icon derives from it&quot;
         text notes
     }
 
@@ -194,7 +197,17 @@ on every entity.</p>
         int expense_id FK &quot;-&gt; EXPENSE.id&quot;
         string user_id FK &quot;-&gt; USER.id&quot;
         int owed_amount_minor &quot;snapshotted at creation&quot;
-        datetime settled_at &quot;nullable — a claim, v1 moves no money&quot;
+    }
+
+    SETTLEMENT {
+        int id PK
+        int trip_id FK &quot;-&gt; TRIP.id&quot;
+        string from_user_id FK &quot;-&gt; USER.id — who paid&quot;
+        string to_user_id FK &quot;-&gt; USER.id — who received&quot;
+        int amount_minor
+        string currency &quot;EUR | USD | GBP&quot;
+        string created_by FK &quot;-&gt; USER.id&quot;
+        datetime deleted_at &quot;nullable — soft-delete is the revert&quot;
     }
 
     NOTE {
@@ -389,6 +402,16 @@ stay put (<code>src/server/itinerary.ts</code>). Two consequences fall out of th
 <code>expense.day_id</code> points at a date, so money stays on the day it was spent; and
 <code>note</code> rows are scoped to <code>day_event.id</code>, which doesn&#39;t change, so a thread
 travels with its event for free.</p>
+<p><strong>Balances are never stored.</strong> A member&#39;s position is derived at read time,
+per currency, as the sum of what they&#39;re owed on <code>expense_split</code> rows minus the
+<code>settlement</code> rows they&#39;ve since paid or received (<code>src/lib/money.ts</code>,
+<code>computeBalances</code>). An <code>expense</code> is what a bill implies about who owes who; a
+<code>settlement</code> is real money that has since moved off-app (cash), recorded as an
+immutable fact. Reverting either — a mistaken settle-up, a wrong expense — is a
+soft-delete, and the balance recomputes as if the row never existed. Deleting an
+expense under a settlement can tip a balance negative: an honest overpayment,
+not an error. When every currency&#39;s balances net to zero the whole trip reads as
+settled.</p>
 <p><code>note</code> is the <strong>discussion thread</strong> on anything that has one. In use today for
 <code>scope: &quot;idea&quot;</code> (why this one, or why not) and <code>scope: &quot;day_event&quot;</code> (whatever the
 group needs to know about that ferry), read scoped by <code>(trip_id, scope, scope_id)</code> off <code>note_scope_idx</code>. One table rather than <code>idea_comment</code> +

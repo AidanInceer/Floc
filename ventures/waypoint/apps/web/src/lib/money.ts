@@ -17,6 +17,9 @@ const MINOR_PER_MAJOR = 100;
 /** Ceiling of £1bn in minor units — past MAX_SAFE_INTEGER, every later read throws and locks the trip out (ticket 33). */
 const MAX_AMOUNT_MINOR = 100_000_000_000;
 
+/** A single expense (or a pinned share) can't exceed £1,000,000 — a friendly cap well under the arithmetic ceiling. */
+export const MAX_EXPENSE_MINOR = 1_000_000 * MINOR_PER_MAJOR;
+
 function assertInRange(amountMinor: number): void {
   if (!Number.isFinite(amountMinor) || Math.abs(amountMinor) > MAX_AMOUNT_MINOR) {
     throw new Error("That amount is too large — keep it under a billion.");
@@ -31,6 +34,16 @@ export function formatMoney(amountMinor: number, currency: Currency): string {
   const body = `${CURRENCY_SYMBOLS[currency]}${major.toLocaleString("en-GB")}.${String(
     minor,
   ).padStart(2, "0")}`;
+  return negative ? `−${body}` : body;
+}
+
+/** ISO-ticker form — "GBP 12.34", "JPY 5600.00" — for the convert control, where the code, not a symbol, is the point. */
+export function formatTicker(amountMinor: number, currency: Currency): string {
+  const negative = amountMinor < 0;
+  const abs = Math.abs(amountMinor);
+  const major = Math.floor(abs / MINOR_PER_MAJOR);
+  const minor = abs % MINOR_PER_MAJOR;
+  const body = `${currency} ${major.toLocaleString("en-GB")}.${String(minor).padStart(2, "0")}`;
   return negative ? `−${body}` : body;
 }
 
@@ -208,18 +221,35 @@ function formatMinor(amountMinor: number): string {
   return (amountMinor / MINOR_PER_MAJOR).toFixed(2);
 }
 
-// Balances — derived at read time, never stored (ticket 04).
+// Balances — derived at read time, never stored (ticket 04). An expense is
+// what a bill implies about who owes who; a settlement is real money that has
+// since moved. The net of the two is the live position, and either can be
+// soft-deleted to undo it (money overhaul).
 export type LedgerLine = {
   paidBy: string;
   currency: Currency;
   amountMinor: number;
-  splits: { userId: string; owedAmountMinor: number; settled: boolean }[];
+  splits: { userId: string; owedAmountMinor: number }[];
 };
 
-/** Per-currency net position for each member: positive = owed money back. */
+/** A recorded transfer that has already happened off-app. */
+export type LedgerSettlement = {
+  from: string;
+  to: string;
+  currency: Currency;
+  amountMinor: number;
+};
+
+/**
+ * Per-currency net position for each member: positive = owed money back,
+ * negative = owes (or, after an underlying expense is deleted, has *overpaid*).
+ */
 export type Balances = Record<Currency, Record<string, number>>;
 
-export function computeBalances(lines: LedgerLine[]): Balances {
+export function computeBalances(
+  lines: LedgerLine[],
+  settlements: LedgerSettlement[] = [],
+): Balances {
   // Derived from CURRENCIES, not a literal — drifted silently to undefined on a 4th currency before (ticket 115).
   const balances = Object.fromEntries(
     CURRENCIES.map((c) => [c, {} as Record<string, number>]),
@@ -228,14 +258,27 @@ export function computeBalances(lines: LedgerLine[]): Balances {
   for (const line of lines) {
     const book = balances[line.currency];
     for (const split of line.splits) {
-      if (split.settled) continue; // paid off-app; stops affecting the outstanding position
       if (split.userId === line.paidBy) continue;
       book[split.userId] = (book[split.userId] ?? 0) - split.owedAmountMinor;
       book[line.paidBy] = (book[line.paidBy] ?? 0) + split.owedAmountMinor;
     }
   }
 
+  // A paid B: B's debt drops (B moves up), A is owed that much less (A down).
+  for (const s of settlements) {
+    const book = balances[s.currency];
+    book[s.from] = (book[s.from] ?? 0) + s.amountMinor;
+    book[s.to] = (book[s.to] ?? 0) - s.amountMinor;
+  }
+
   return balances;
+}
+
+/** True when nobody owes anybody, in any currency — the "trip settled up" state. */
+export function isAllSettled(balances: Balances): boolean {
+  return CURRENCIES.every((c) =>
+    Object.values(balances[c]).every((amount) => amount === 0),
+  );
 }
 
 export type Settlement = { from: string; to: string; amountMinor: number };

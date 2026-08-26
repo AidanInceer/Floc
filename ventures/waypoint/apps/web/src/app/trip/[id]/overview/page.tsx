@@ -41,7 +41,7 @@ import {
   transportModesByDay,
 } from "@/server/itinerary";
 import { listAvailability, listPendingInvitees } from "@/server/membership";
-import { listExpenses, listSplits } from "@/server/money";
+import { listExpenses, listSettlements, listSplits } from "@/server/money";
 import { absoluteUrl } from "@/server/email";
 import { formatMoney } from "@/lib/money";
 import type { Currency } from "@/lib/currency";
@@ -90,6 +90,7 @@ export default async function OverviewPage({
     dayRows,
     votes,
     splitRows,
+    settlementRows,
     routeDays,
     transportModes,
   ] = await Promise.all([
@@ -101,6 +102,7 @@ export default async function OverviewPage({
     listDays(tripId),
     listVotes(tripId),
     listSplits(tripId),
+    listSettlements(tripId),
     // Route moved here when its tab retired (ticket 142): places + coordinates
     // `listDays` doesn't carry, plus travel modes off `day_event`.
     listRouteDays(tripId),
@@ -121,6 +123,7 @@ export default async function OverviewPage({
     days: dayRows,
     expenses: expenseRows,
     splits: splitRows,
+    settlements: settlementRows,
   });
 
   const { datesUnset, unresolved } = state;

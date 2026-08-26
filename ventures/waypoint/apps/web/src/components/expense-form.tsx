@@ -9,8 +9,15 @@
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 
 import type { ActionState } from "@/app/trip/[id]/money/actions";
-import { CURRENCY_SYMBOLS, formatMoney } from "@/lib/money";
+import { CURRENCY_SYMBOLS, formatMoney, MAX_EXPENSE_MINOR } from "@/lib/money";
 import type { Currency, SplitType } from "@/db/schema";
+import {
+  CATEGORY_LABELS,
+  DEFAULT_CATEGORY,
+  EXPENSE_CATEGORIES,
+} from "@/lib/expense-category";
+import type { ExpenseCategory } from "@/lib/expense-category";
+import { CategoryIcon } from "@/components/category-icon";
 import {
   Badge,
   Button,
@@ -22,7 +29,7 @@ import {
   Textarea,
   cx,
 } from "@/components/ui";
-import { SubmitButton, useSheetClose } from "@/components/client-ui";
+import { PillToggle, SubmitButton, useSheetClose } from "@/components/client-ui";
 
 export type FormMember = { userId: string; name: string };
 export type FormDay = { id: number; date: string; label: string };
@@ -33,6 +40,7 @@ export type ExistingExpense = {
   amountMinor: number;
   currency: Currency;
   splitType: SplitType;
+  category: ExpenseCategory;
   paidBy: string;
   dayId: number | null;
   notes: string | null;
@@ -40,6 +48,12 @@ export type ExistingExpense = {
 };
 
 type Row = { shares: number; pin: string };
+type SplitMode = "equally" | "exact" | "shares";
+const SPLIT_MODES: { key: SplitMode; label: string }[] = [
+  { key: "equally", label: "Equally" },
+  { key: "exact", label: "Exact" },
+  { key: "shares", label: "Shares" },
+];
 
 export function ExpenseForm({
   tripId,
@@ -83,6 +97,15 @@ export function ExpenseForm({
   const [currency, setCurrency] = useState<Currency>(
     expense?.currency ?? homeCurrency,
   );
+  const [category, setCategory] = useState<ExpenseCategory>(
+    expense?.category ?? DEFAULT_CATEGORY,
+  );
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [mode, setMode] = useState<SplitMode>(
+    expense?.splitType === "exact" || expense?.splitType === "percentage"
+      ? "exact"
+      : "equally",
+  );
   const [checked, setChecked] = useState<Set<string>>(
     new Set(expense ? expense.splits.map((s) => s.userId) : members.map((m) => m.userId)),
   );
@@ -104,7 +127,10 @@ export function ExpenseForm({
 
   const amountMinor = useMemo(() => {
     const n = Number(amount.replace(/[£€$,\s]/g, ""));
-    return Number.isFinite(n) ? Math.round(n * 100) : 0;
+    if (!Number.isFinite(n)) return 0;
+    // Clamp so a pasted 20-digit number can't blow up the readout; the action
+    // is still the gate that refuses it.
+    return Math.max(0, Math.min(Math.round(n * 100), MAX_EXPENSE_MINOR));
   }, [amount]);
 
   const participants = members.filter((m) => checked.has(m.userId));
@@ -123,10 +149,19 @@ export function ExpenseForm({
     setRows((prev) => ({ ...prev, [userId]: { ...row(userId), ...patch } }));
   }
 
+  // What each row contributes depends on the mode: exact uses the pin, shares
+  // uses the stepper, equally is one share each with no pins.
+  const rowFor = (userId: string): { userId: string; shares: number; pin: string } => {
+    const r = row(userId);
+    if (mode === "exact") return { userId, shares: 1, pin: r.pin };
+    if (mode === "shares") return { userId, shares: r.shares, pin: "" };
+    return { userId, shares: 1, pin: "" };
+  };
+
   const preview = useMemo(
-    () => previewSplit(amountMinor, participants.map((p) => ({ userId: p.userId, ...row(p.userId) }))),
+    () => previewSplit(amountMinor, participants.map((p) => rowFor(p.userId))),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [amountMinor, rows, checked, members],
+    [amountMinor, rows, checked, members, mode],
   );
 
   return (
@@ -139,55 +174,121 @@ export function ExpenseForm({
       <input type="hidden" name="tripId" value={tripId} />
       {expense ? <input type="hidden" name="expenseId" value={expense.id} /> : null}
 
-      <Stack gap={4}>
-        <Field label="Description">
-          <Input
-            name="description"
-            defaultValue={expense?.description}
-            placeholder="Airbnb deposit, taxi to the airport…"
-            required
-          />
-        </Field>
+      <input type="hidden" name="category" value={category} />
 
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Amount">
+      <Stack gap={3}>
+        <Field label="Description">
+          <div className="flex items-stretch gap-2">
+            <div className="relative flex-none">
+              <button
+                type="button"
+                onClick={() => setPickerOpen((o) => !o)}
+                aria-label={`Category: ${CATEGORY_LABELS[category]}`}
+                aria-expanded={pickerOpen}
+                title={`Category: ${CATEGORY_LABELS[category]}`}
+                className="flex h-full w-10 items-center justify-center rounded-md border border-pen-edge bg-pen-soft text-pen transition-colors hover:text-pen-deep"
+              >
+                <CategoryIcon category={category} />
+              </button>
+              {pickerOpen ? (
+                <>
+                  <div
+                    className="fixed inset-0 z-20"
+                    onClick={() => setPickerOpen(false)}
+                    aria-hidden
+                  />
+                  <div
+                    aria-label="Choose a category"
+                    className="absolute left-0 top-full z-30 mt-1 grid w-max grid-cols-4 gap-1.5 rounded-md border border-rule bg-sheet p-2 shadow-lg"
+                  >
+                    {EXPENSE_CATEGORIES.map((c) => {
+                      const on = c === category;
+                      return (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => {
+                            setCategory(c);
+                            setPickerOpen(false);
+                          }}
+                          aria-pressed={on}
+                          title={CATEGORY_LABELS[c]}
+                          className={cx(
+                            "flex h-9 w-9 items-center justify-center rounded-md border transition-colors",
+                            on
+                              ? "border-pen-edge bg-pen-soft text-pen-deep"
+                              : "border-rule bg-sheet-2 text-ink-soft hover:text-ink",
+                          )}
+                        >
+                          <CategoryIcon category={c} />
+                          <span className="sr-only">{CATEGORY_LABELS[c]}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              ) : null}
+            </div>
             <Input
-              name="amount"
-              inputMode="decimal"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0.00"
+              name="description"
+              defaultValue={expense?.description}
+              placeholder="Expense description"
+              className="flex-1"
               required
             />
-          </Field>
-          <Field label="Currency">
-            <Select
-              name="currency"
-              value={currency}
-              onChange={(e) => setCurrency(e.target.value as Currency)}
-            >
-              {Object.keys(CURRENCY_SYMBOLS).map((c) => (
-                <option key={c} value={c}>
-                  {c} ({CURRENCY_SYMBOLS[c as Currency]})
-                </option>
-              ))}
-            </Select>
-          </Field>
-        </div>
+          </div>
+        </Field>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Paid by">
-            <Select name="paidBy" defaultValue={expense?.paidBy ?? viewerId}>
-              {members.map((m) => (
-                <option key={m.userId} value={m.userId}>
-                  {m.name}
-                </option>
-              ))}
-            </Select>
+        <div className="grid grid-cols-3 gap-3">
+          <Field label="Amount" className="col-span-2">
+            {/* Currency rides inside the amount as a compact ticker, not a
+                second full-width control (mockup). */}
+            <div className="flex items-stretch overflow-hidden rounded-md border border-rule-strong bg-sheet focus-within:border-pen">
+              <div className="relative flex items-center border-r border-rule bg-sheet-2 pl-2.5 pr-1 font-mono text-sm text-ink-soft">
+                {currency}
+                <select
+                  name="currency"
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value as Currency)}
+                  aria-label="Currency"
+                  className="absolute inset-0 cursor-pointer opacity-0"
+                >
+                  {Object.keys(CURRENCY_SYMBOLS).map((c) => (
+                    <option key={c} value={c}>
+                      {c} ({CURRENCY_SYMBOLS[c as Currency]})
+                    </option>
+                  ))}
+                </select>
+                <svg
+                  width={11}
+                  height={11}
+                  viewBox="0 0 14 14"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.4}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="ml-1 text-ink-faint"
+                  aria-hidden
+                >
+                  <path d="M3.5 5.2L7 8.7l3.5-3.5" />
+                </svg>
+              </div>
+              <input
+                name="amount"
+                inputMode="decimal"
+                value={amount}
+                onChange={(e) => setAmount(sanitizeAmount(e.target.value))}
+                placeholder="0.00"
+                maxLength={12}
+                required
+                className="w-full min-w-0 bg-sheet px-2.5 py-1.5 text-right font-mono text-sm text-ink placeholder:text-ink-faint focus:outline-none"
+              />
+            </div>
           </Field>
-          <Field label="Which day (optional)">
-            <Select name="dayId" defaultValue={expense?.dayId ?? ""}>
-              <option value="">Not tied to a day</option>
+          <Field label="Which day">
+            <Select name="dayId" defaultValue={expense?.dayId ?? days[0]?.id ?? ""}>
+              <option value="">—</option>
               {days.map((d) => (
                 <option key={d.id} value={d.id}>
                   {d.label}
@@ -197,97 +298,139 @@ export function ExpenseForm({
           </Field>
         </div>
 
-        <Field
-          label="Split between"
-          hint="Everyone's in, on one share each."
-        >
-          <Stack gap={2}>
-            {members.map((m) => {
-              const isIn = checked.has(m.userId);
-              const r = row(m.userId);
-              const isPinned = r.pin.trim() !== "";
-              return (
-                <div
-                  key={m.userId}
-                  className={cx(
-                    "flex flex-wrap items-center gap-2 rounded-md px-2.5 py-2",
-                    isIn
-                      ? "bg-sheet-2"
-                      : "border border-dashed border-rule",
-                  )}
-                >
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    aria-pressed={isIn}
-                    onClick={() => toggle(m.userId)}
-                    className="!gap-1 !px-1.5 !py-0.5"
-                    title={isIn ? `Take ${m.name} out of this cost` : `Put ${m.name} in`}
-                  >
-                    <span aria-hidden>{isIn ? "✓" : "+"}</span>
-                    {isIn ? "In" : "Out"}
-                  </Button>
-                  <span
-                    className={cx(
-                      "flex-1 text-sm",
-                      isIn ? undefined : "text-ink-faint line-through",
-                    )}
-                  >
-                    {m.name}
-                  </span>
+        <Field label="Paid by">
+          <Select name="paidBy" defaultValue={expense?.paidBy ?? viewerId}>
+            {members.map((m) => (
+              <option key={m.userId} value={m.userId}>
+                {m.name}
+              </option>
+            ))}
+          </Select>
+        </Field>
 
-                  {isIn ? (
-                    <>
-                      {isPinned ? (
-                        <Badge tone="marine">Pinned</Badge>
-                      ) : (
-                        <span className="flex items-center gap-1">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            className="!px-1.5 !py-0.5"
-                            aria-label={`Fewer shares for ${m.name}`}
-                            onClick={() =>
-                              setRow(m.userId, { shares: Math.max(0, r.shares - 1) })
-                            }
-                          >
-                            −
-                          </Button>
-                          <span className="nums w-14 text-center text-xs text-ink-soft">
-                            {r.shares} {r.shares === 1 ? "share" : "shares"}
-                          </span>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            className="!px-1.5 !py-0.5"
-                            aria-label={`More shares for ${m.name}`}
-                            onClick={() => setRow(m.userId, { shares: r.shares + 1 })}
-                          >
-                            +
-                          </Button>
-                        </span>
+        <Field label="Split between">
+          <Stack gap={3}>
+            <PillToggle
+              label="How to split"
+              value={mode}
+              onChange={setMode}
+              options={SPLIT_MODES.map((sm) => ({ value: sm.key, label: sm.label }))}
+            />
+
+            <div className="flex flex-col">
+              {members.map((m) => {
+                const isIn = checked.has(m.userId);
+                const r = row(m.userId);
+                return (
+                  <div
+                    key={m.userId}
+                    // Fixed height so switching mode (stepper vs input vs text,
+                    // each a different height) doesn't resize the modal.
+                    className="flex h-11 items-center gap-2.5 border-b border-rule last:border-b-0"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => toggle(m.userId)}
+                      aria-pressed={isIn}
+                      title={isIn ? `Take ${m.name} out` : `Put ${m.name} in`}
+                      className={cx(
+                        "flex h-[18px] w-[18px] flex-none items-center justify-center rounded-[5px] border transition-colors",
+                        isIn
+                          ? "border-pen bg-pen text-white"
+                          : "border-rule-strong bg-sheet",
                       )}
-                      <Input
-                        name={`pin_${m.userId}`}
-                        value={r.pin}
-                        onChange={(e) => setRow(m.userId, { pin: e.target.value })}
-                        placeholder="pin £"
-                        aria-label={`Pin an exact amount for ${m.name}`}
-                        className="!w-24"
-                        inputMode="decimal"
-                      />
-                      <span className="nums w-20 text-right text-sm">
-                        {formatMoney(preview.amounts[m.userId] ?? 0, currency)}
-                      </span>
-                      <input type="hidden" name="participant" value={m.userId} />
-                      <input type="hidden" name={`shares_${m.userId}`} value={r.shares} />
-                    </>
-                  ) : (
-                    <span className="text-xs text-ink-faint">Not in this cost</span>
-                  )}
-                </div>
-              );
-            })}
+                    >
+                      {isIn ? (
+                        <svg
+                          width={11}
+                          height={11}
+                          viewBox="0 0 14 14"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={1.6}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden
+                        >
+                          <path d="M3 7.3l2.6 2.6L11 4.4" />
+                        </svg>
+                      ) : null}
+                    </button>
+                    <span
+                      className={cx(
+                        "flex-1 truncate text-sm",
+                        isIn ? undefined : "text-ink-faint",
+                      )}
+                    >
+                      {m.name}
+                    </span>
+
+                    {isIn ? (
+                      <>
+                        {mode === "shares" ? (
+                          <span className="flex items-center overflow-hidden rounded-md border border-rule-strong">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setRow(m.userId, { shares: Math.max(0, r.shares - 1) })
+                              }
+                              aria-label={`Fewer shares for ${m.name}`}
+                              className="flex h-7 w-7 items-center justify-center bg-sheet-2 text-ink-soft hover:text-ink"
+                            >
+                              −
+                            </button>
+                            <span className="nums w-7 text-center text-sm">{r.shares}</span>
+                            <button
+                              type="button"
+                              onClick={() => setRow(m.userId, { shares: r.shares + 1 })}
+                              aria-label={`More shares for ${m.name}`}
+                              className="flex h-7 w-7 items-center justify-center bg-sheet-2 text-ink-soft hover:text-ink"
+                            >
+                              +
+                            </button>
+                          </span>
+                        ) : null}
+
+                        {mode === "exact" ? (
+                          <Input
+                            name={`pin_${m.userId}`}
+                            value={r.pin}
+                            onChange={(e) =>
+                              setRow(m.userId, { pin: sanitizeAmount(e.target.value) })
+                            }
+                            placeholder="0.00"
+                            aria-label={`Amount for ${m.name}`}
+                            className="!w-20 text-right"
+                            inputMode="decimal"
+                            maxLength={12}
+                          />
+                        ) : (
+                          <span
+                            // Box mirrors the exact-mode Input (border, px-2.5,
+                            // py-1.5) so the digits don't shift between modes.
+                            className="nums w-20 border border-transparent px-2.5 py-1.5 text-right text-sm text-ink-soft"
+                          >
+                            {formatMoney(preview.amounts[m.userId] ?? 0, currency)}
+                          </span>
+                        )}
+
+                        <input type="hidden" name="participant" value={m.userId} />
+                        <input
+                          type="hidden"
+                          name={`shares_${m.userId}`}
+                          value={mode === "shares" ? r.shares : 1}
+                        />
+                        {mode !== "exact" ? (
+                          <input type="hidden" name={`pin_${m.userId}`} value="" />
+                        ) : null}
+                      </>
+                    ) : (
+                      <span className="text-xs text-ink-faint">Not in</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </Stack>
         </Field>
 
@@ -295,7 +438,7 @@ export function ExpenseForm({
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-rule pt-3 text-sm text-ink-soft">
           <span>
             {participants.length === 0
-              ? "Nobody's in this cost yet."
+              ? "Nobody's in this expense yet."
               : preview.evenEach !== null
                 ? `${formatMoney(preview.evenEach, currency)} each · ${participants.length} of ${members.length} in`
                 : `${formatMoney(preview.allocated, currency)} of ${formatMoney(amountMinor, currency)} allocated`}
@@ -309,8 +452,13 @@ export function ExpenseForm({
           ) : null}
         </div>
 
-        <Field label="Notes (optional)">
-          <Textarea name="notes" defaultValue={expense?.notes ?? ""} />
+        <Field label="Notes">
+          <Textarea
+            name="notes"
+            defaultValue={expense?.notes ?? ""}
+            rows={2}
+            className="!min-h-0"
+          />
         </Field>
 
         <ErrorText>{state.error}</ErrorText>
@@ -322,7 +470,7 @@ export function ExpenseForm({
             </Button>
           ) : null}
           <SubmitButton pendingLabel="Saving…">
-            {expense ? "Save changes" : "Add cost"}
+            {expense ? "Save changes" : "Add expense"}
           </SubmitButton>
         </div>
       </Stack>
@@ -332,6 +480,14 @@ export function ExpenseForm({
 
 // Readout only, mirrors resolveWeightedSplit + computeSplits: pins come off
 // the top, the rest spreads by shares, odd penny to the largest fractions.
+// Keeps a money box to digits and a single decimal point — no minus sign, no
+// letters. The server still validates; this just stops nonsense being typed.
+function sanitizeAmount(raw: string): string {
+  const cleaned = raw.replace(/[^\d.]/g, "");
+  const [whole, ...rest] = cleaned.split(".");
+  return rest.length ? `${whole}.${rest.join("").slice(0, 2)}` : whole;
+}
+
 function previewSplit(
   amountMinor: number,
   rows: { userId: string; shares: number; pin: string }[],

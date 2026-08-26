@@ -85,6 +85,13 @@
       "when": 1787507891028,
       "tag": "0011_drop_tag_tones",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1787693428951,
+      "tag": "0012_slimy_gorgon",
+      "breakpoints": true
     }
   ]
 }

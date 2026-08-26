@@ -17,8 +17,15 @@ import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
-import { expense, expenseSplit, user, userProfile } from "@/db/schema";
-import type { Currency, Expense, ExpenseSplit, SplitType } from "@/db/schema";
+import { expense, expenseSplit, settlement, user, userProfile } from "@/db/schema";
+import type {
+  Currency,
+  Expense,
+  ExpenseSplit,
+  Settlement,
+  SplitType,
+} from "@/db/schema";
+import type { ExpenseCategory } from "@/lib/expense-category";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
 
@@ -72,6 +79,7 @@ export type ExpenseFields = {
   amountMinor: number;
   currency: Currency;
   splitType: SplitType;
+  category: ExpenseCategory;
   notes: string | null;
 };
 
@@ -154,33 +162,67 @@ export async function softDeleteExpense(
     );
 }
 
-/** One split row plus the expense context needed to decide who may settle it. */
-export async function findSettleableSplit(splitId: number) {
+/** The trip's live settlements, newest first (money overhaul). */
+export async function listSettlements(tripId: number): Promise<Settlement[]> {
+  const rows = await db
+    .select()
+    .from(settlement)
+    .where(and(eq(settlement.tripId, tripId), isNull(settlement.deletedAt)))
+    .orderBy(desc(settlement.createdAt))
+    .limit(LIMITS.expenses)
+    .all();
+  return bounded(rows, "expenses", `trip ${tripId} settlements`);
+}
+
+/** Records one transfer that has already happened off-app. Append-only — never edited, reverted by soft-delete. */
+export async function writeSettlement(args: {
+  tripId: number;
+  createdBy: string;
+  fromUserId: string;
+  toUserId: string;
+  amountMinor: number;
+  currency: Currency;
+}): Promise<void> {
+  await db.insert(settlement).values(args);
+}
+
+/** Confirms a settlement is this trip's and still live, before reverting it. */
+export async function findLiveSettlement(
+  tripId: number,
+  settlementId: number,
+): Promise<{ id: number; fromUserId: string; toUserId: string } | undefined> {
   return db
     .select({
-      id: expenseSplit.id,
-      userId: expenseSplit.userId,
-      settledAt: expenseSplit.settledAt,
-      paidBy: expense.paidBy,
-      expenseTripId: expense.tripId,
+      id: settlement.id,
+      fromUserId: settlement.fromUserId,
+      toUserId: settlement.toUserId,
     })
-    .from(expenseSplit)
-    .innerJoin(expense, eq(expense.id, expenseSplit.expenseId))
-    .where(and(eq(expenseSplit.id, splitId), isNull(expense.deletedAt)))
+    .from(settlement)
+    .where(
+      and(
+        eq(settlement.id, settlementId),
+        eq(settlement.tripId, tripId),
+        isNull(settlement.deletedAt),
+      ),
+    )
     .get();
 }
 
-/** Flips a split's settled flag — not a snapshot edit, the owed amount stays untouched; this only records money changing hands offline. */
-export async function toggleSplitSettled(
-  splitId: number,
-  settled: boolean,
+/** Soft-deletes a settlement — the revert; the balance recomputes as if the money never moved. */
+export async function softDeleteSettlement(
+  tripId: number,
+  settlementId: number,
 ): Promise<void> {
   await db
-    .update(expenseSplit)
-    .set({ settledAt: settled ? new Date() : null, ...touch() })
-    // Also filtered on the split's own deletedAt (ticket 115) — the read above
-    // only covers a deleted expense, not a split deleted on its own.
-    .where(and(eq(expenseSplit.id, splitId), isNull(expenseSplit.deletedAt)));
+    .update(settlement)
+    .set({ deletedAt: new Date(), ...touch() })
+    .where(
+      and(
+        eq(settlement.id, settlementId),
+        eq(settlement.tripId, tripId),
+        isNull(settlement.deletedAt),
+      ),
+    );
 }
 
 /** Display names for split participants the roster can't name — a former member whose split rows survive by design (ticket 04, moved off the page by ticket 118). */
