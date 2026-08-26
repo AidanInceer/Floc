@@ -106,7 +106,7 @@ export function PillNav({
             href={item.href}
             aria-current={active ? "page" : undefined}
             className={cx(
-              "relative z-10 shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
+              "relative z-10 shrink-0 rounded-full px-3 py-1.5 text-sm font-medium transition-colors sm:px-4",
               active
                 ? "text-sheet"
                 : "text-ink-soft hover:bg-sheet hover:text-ink",

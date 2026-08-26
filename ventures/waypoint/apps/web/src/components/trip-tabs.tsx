@@ -14,7 +14,7 @@ export function TripTabs({
   return (
     <PillNav
       label="Trip sections"
-      className="min-w-0 flex-1 sm:flex-none sm:justify-self-center"
+      className="min-w-0 max-w-full sm:justify-self-center"
       items={tabs.map((tab) => ({
         href: `/trip/${tripId}/${tab.key}`,
         label: tab.label,
