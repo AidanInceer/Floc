@@ -41,6 +41,15 @@ installed). **Change a job in
 `.github/workflows/` and change it there in the same commit** — a local gate
 that has drifted from CI is worse than none, because it buys false confidence.
 
+**Stop the dev server before anything that builds.** `pnpm verify`, `pnpm
+build` and `pnpm fitness` all write `apps/web/.next`, which the running dev
+server owns. Build over a live `next dev` and the two shred each other's
+chunks: the app then throws `Cannot find module './vendor-chunks/...'` or
+`Cannot read properties of undefined (reading 'call')` on every route, and the
+only cure is deleting `.next` — which an agent is not permitted to do, so it
+lands on the user. Order is always: **stop the dev server → build/verify →
+start it again.** Never leave a preview running across a verify.
+
 **Nothing runs it for you.** There is no pre-push hook — run `pnpm verify` by
 hand before a push you care about. CI still runs every one of these jobs and is
 the gate that actually blocks, so the cost of skipping it locally is finding out
@@ -82,6 +91,7 @@ reviewer’s own taste.
 - Using `fetch`/ES modules in a docs page — breaks on `file://`, use `<script src>`.
 - An npm-style `"workspaces"` array — workspaces are defined in `pnpm-workspace.yaml` only.
 - A PowerShell commit here-string where `@'`/`'@` aren't alone on their lines — the `@` leaks into the commit subject. Verify with `git log -1 --format=%s`.
+- Running `pnpm verify`/`pnpm build` with the dev server still up — see the rule above; it corrupts `.next` and the user has to delete it by hand.
 - Skipping the venture's own CLAUDE.md — it holds the actual non-negotiables (money-as-float, day-first itinerary, enumeration-proof access, etc.), not this file.
 
 ## Security

@@ -57,6 +57,7 @@ export function PillNav({
     left: number;
     width: number;
   } | null>(null);
+  const [edges, setEdges] = useState({ start: false, end: false });
 
   const activeHref =
     items.find(
@@ -83,7 +84,24 @@ export function PillNav({
     });
   }, [activeHref]);
 
+  /**
+   * A scrolling track with no visible scrollbar looks like a track that fits
+   * (ticket 219 added a sixth trip tab, so it stops fitting on a phone). Fade
+   * whichever end still has pills behind it — the one affordance that says
+   * "there's more this way" without printing an instruction (ticket 209).
+   */
+  const measureEdges = useCallback(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    const slack = nav.scrollWidth - nav.clientWidth;
+    setEdges({
+      start: nav.scrollLeft > 1,
+      end: slack > 1 && nav.scrollLeft < slack - 1,
+    });
+  }, []);
+
   useIsoLayoutEffect(measure, [measure, items]);
+  useIsoLayoutEffect(measureEdges, [measureEdges, items]);
 
   // The pill positions shift whenever the bar reflows — the trip header goes
   // from a stacked mobile row to a centred desktop grid, the pills wrap, a font
@@ -92,15 +110,22 @@ export function PillNav({
   useEffect(() => {
     const nav = navRef.current;
     if (!nav || typeof ResizeObserver === "undefined") return;
-    const observer = new ResizeObserver(measure);
+    const observer = new ResizeObserver(() => {
+      measure();
+      measureEdges();
+    });
     observer.observe(nav);
     return () => observer.disconnect();
-  }, [measure]);
+  }, [measure, measureEdges]);
+
+  const fade = edgeMask(edges);
 
   return (
     <nav
       ref={navRef}
       aria-label={label}
+      onScroll={measureEdges}
+      style={fade ? { maskImage: fade, WebkitMaskImage: fade } : undefined}
       className={cx(
         "scroll-x-bare relative flex w-fit max-w-full items-center gap-0.5 rounded-full bg-sheet-3 p-0.5 sm:gap-1 sm:p-1",
         className,
@@ -140,4 +165,18 @@ export function PillNav({
       })}
     </nav>
   );
+}
+
+const FADE = "1.75rem";
+
+// `black`/`transparent` here are mask *channels*, not paint — a mask reads only
+// the alpha, so no token exists or belongs. Nothing on screen takes this colour.
+
+function edgeMask({ start, end }: { start: boolean; end: boolean }): string | null {
+  if (!start && !end) return null;
+  const stops = [
+    start ? `transparent 0, black ${FADE}` : "black 0",
+    end ? `black calc(100% - ${FADE}), transparent 100%` : "black 100%",
+  ];
+  return `linear-gradient(to right, ${stops.join(", ")})`;
 }

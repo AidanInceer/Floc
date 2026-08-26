@@ -11,7 +11,13 @@
  * Deliberately free of any database import: the trip tab bar is a client
  * component, so anything it needs must be safe to bundle for the browser.
  */
-type TabKey = "overview" | "ideas" | "dates" | "days" | "money";
+type TabKey =
+  | "overview"
+  | "ideas"
+  | "dates"
+  | "days"
+  | "money"
+  | "packing";
 
 export type TabState = { key: TabKey; label: string };
 
@@ -25,4 +31,6 @@ export const TABS: TabState[] = [
   { key: "dates", label: "Dates" },
   { key: "days", label: "Days" },
   { key: "money", label: "Money" },
+  // Last: packing is the thing you do once the trip is settled (ticket 219).
+  { key: "packing", label: "Packing" },
 ];

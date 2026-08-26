@@ -200,6 +200,7 @@ export function ConfirmSubmit({
   message,
   confirmLabel = "Yes, do it",
   variant = "danger",
+  confirmVariant,
   pendingLabel,
   className,
   label,
@@ -209,6 +210,8 @@ export function ConfirmSubmit({
   /** Say what happens, never "OK". */
   confirmLabel?: string;
   variant?: "primary" | "secondary" | "ghost" | "danger";
+  /** The panel's own verb, when the trigger is quieter than what it does — an icon-only X still confirms in red. */
+  confirmVariant?: "primary" | "secondary" | "ghost" | "danger";
   pendingLabel?: string;
   className?: string;
   /** Accessible name/tooltip for an icon-only trigger (ticket 38). */
@@ -234,35 +237,38 @@ export function ConfirmSubmit({
       <dialog
         ref={ref}
         aria-labelledby={labelId}
-        className="m-auto w-full max-w-sm bg-transparent p-0 backdrop:bg-black/40"
+        className="m-auto w-full max-w-md bg-transparent p-0 backdrop:bg-ink/30"
         onClick={(e) => {
           if (e.target === ref.current) ref.current?.close();
         }}
       >
-        <Card className="bg-sheet">
-          <div className="p-4">
-            <p id={labelId} className="text-sm">
-              {message}
-            </p>
-            <div className="mt-4 flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => ref.current?.close()}
-              >
-                Cancel
-              </Button>
-              {/* Real submit inside the form — submits the action directly. */}
-              <Button
-                type="submit"
-                variant={variant}
-                onClick={() => ref.current?.close()}
-              >
-                {confirmLabel}
-              </Button>
-            </div>
+        {/* The question is the panel's one heading (ticket 209) — a "Are you
+            sure?" title over it would print the same fact twice. */}
+        <div className="rounded-xl border border-rule bg-sheet p-6 shadow-lifted">
+          <p
+            id={labelId}
+            className="font-display text-lg font-semibold leading-snug"
+          >
+            {message}
+          </p>
+          <div className="mt-6 flex flex-wrap justify-end gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => ref.current?.close()}
+            >
+              Cancel
+            </Button>
+            {/* Real submit inside the form — submits the action directly. */}
+            <Button
+              type="submit"
+              variant={confirmVariant ?? variant}
+              onClick={() => ref.current?.close()}
+            >
+              {confirmLabel}
+            </Button>
           </div>
-        </Card>
+        </div>
       </dialog>
     </>
   );

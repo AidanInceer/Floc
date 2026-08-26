@@ -340,6 +340,50 @@ export const ideaVote = sqliteTable(
   (t) => [uniqueIndex("idea_vote_unique_idx").on(t.ideaId, t.userId)],
 );
 
+/**
+ * The trip's shared packing list (ticket 219, parent 154) — the group gear,
+ * one row per thing to pack. Personal lists land in the next slice as a
+ * nullable owner on this same table; nothing here is per-viewer yet.
+ */
+export const packingLine = sqliteTable(
+  "packing_line",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    tripId: integer("trip_id")
+      .notNull()
+      .references(() => trip.id, { onDelete: "cascade" }),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => user.id),
+    label: text("label").notNull(),
+    ...audit,
+  },
+  (t) => [index("packing_line_trip_idx").on(t.tripId)],
+);
+
+/**
+ * "I'll bring that." Many people may claim one line, and only the claimer
+ * ticks their own `packed_at` — which is why packed is a column here and not
+ * a flag on the line: the line is packed when every live claim on it is.
+ */
+export const packingClaim = sqliteTable(
+  "packing_claim",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    packingLineId: integer("packing_line_id")
+      .notNull()
+      .references(() => packingLine.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    packedAt: integer("packed_at", { mode: "timestamp" }),
+    ...audit,
+  },
+  (t) => [
+    uniqueIndex("packing_claim_unique_idx").on(t.packingLineId, t.userId),
+  ],
+);
+
 export const availability = sqliteTable(
   "availability",
   {

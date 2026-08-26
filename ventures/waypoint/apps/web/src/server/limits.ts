@@ -24,6 +24,8 @@ export const LIMITS = {
   expenses: 2000,
   /** Split rows read back for one trip's balances. */
   expenseSplits: 10_000,
+  /** Things on one trip's shared packing list. */
+  packingLines: 500,
   /** People on one trip, and so also the size of the roster every page loads. */
   members: 100,
   /** Trips one account can be on — the walk when that account is deleted. */

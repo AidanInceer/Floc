@@ -17,6 +17,7 @@ import {
   expense,
   idea,
   note,
+  packingLine,
   trip,
   tripMembership,
   user,
@@ -62,6 +63,7 @@ export type TripAccess = {
   idea: (ideaId: number) => Promise<typeof idea.$inferSelect>;
   expense: (expenseId: number) => Promise<typeof expense.$inferSelect>;
   note: (noteId: number) => Promise<typeof note.$inferSelect>;
+  packingLine: (lineId: number) => Promise<typeof packingLine.$inferSelect>;
 };
 
 export type TripMember = {
@@ -191,6 +193,22 @@ const resolveIdea = cache(async (tripId: number, ideaId: number) => {
   return row;
 });
 
+const resolvePackingLine = cache(async (tripId: number, lineId: number) => {
+  const row = await db
+    .select()
+    .from(packingLine)
+    .where(
+      and(
+        eq(packingLine.id, lineId),
+        eq(packingLine.tripId, tripId),
+        isNull(packingLine.deletedAt),
+      ),
+    )
+    .get();
+  if (!row) notFound();
+  return row;
+});
+
 const resolveExpense = cache(async (tripId: number, expenseId: number) => {
   const row = await db
     .select()
@@ -227,6 +245,7 @@ function scopedTo(tripId: number) {
     idea: (ideaId: number) => resolveIdea(tripId, ideaId),
     expense: (expenseId: number) => resolveExpense(tripId, expenseId),
     note: (noteId: number) => resolveNote(tripId, noteId),
+    packingLine: (lineId: number) => resolvePackingLine(tripId, lineId),
   };
 }
 
