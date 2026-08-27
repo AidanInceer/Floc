@@ -13,7 +13,7 @@
  */
 type TabKey =
   | "overview"
-  | "ideas"
+  | "notes"
   | "dates"
   | "days"
   | "money"
@@ -21,9 +21,22 @@ type TabKey =
 
 export type TabState = { key: TabKey; label: string };
 
+/**
+ * What a stored `nudge.tab` value is called on screen. The stored keys predate
+ * the Ideas → Notes rename (ticket 238) and `route` predates that tab retiring,
+ * so the key is not the label and a migration would buy nothing.
+ */
+export const TAB_LABELS: Record<string, string> = {
+  ideas: "Notes",
+  route: "Route",
+  dates: "Dates",
+  days: "Days",
+  money: "Money",
+};
+
 export const TABS: TabState[] = [
   { key: "overview", label: "Overview" },
-  { key: "ideas", label: "Ideas" },
+  { key: "notes", label: "Notes" },
   // Dates sits third, between the suggesting and the sketching: the trip's
   // dates are the itinerary's extent (ticket 140), so there are no days to
   // fill in until they're set — and a trip is allowed to exist with no dates

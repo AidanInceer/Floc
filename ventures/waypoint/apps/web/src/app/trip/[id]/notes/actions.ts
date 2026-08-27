@@ -1,9 +1,9 @@
 "use server";
 
-// Server actions for the ideas board (ticket 14).
+// Server actions for the Notes doc (ticket 238) and the idea board inside it (ticket 14).
 import { after } from "next/server";
 
-import { capRequiredText } from "@/lib/text";
+import { capRequiredText, TEXT_CAPS } from "@/lib/text";
 import { requireTripAccess, assertAdmin } from "@/server/access";
 import { emails, sendEmails } from "@/server/email";
 import {
@@ -15,7 +15,19 @@ import {
   softDeleteIdea,
   updateIdeaNote,
 } from "@/server/ideas";
+import { saveNoteDoc } from "@/server/note-doc";
 import type { VoteValue } from "@/db/schema";
+
+/**
+ * Replace the whole document. No revalidate: the editor already holds what it
+ * just sent, and re-rendering the page under it would fight the caret.
+ */
+export async function saveNotes(tripId: number, body: string) {
+  const access = await requireTripAccess(tripId);
+  if (body.length > TEXT_CAPS.noteDoc) throw new Error("That document is too long");
+
+  await saveNoteDoc(access.trip.id, access.viewer.id, body);
+}
 
 export async function postIdea(tripId: number, formData: FormData) {
   const access = await requireTripAccess(tripId);

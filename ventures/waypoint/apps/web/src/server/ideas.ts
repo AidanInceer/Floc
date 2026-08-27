@@ -15,9 +15,9 @@ import type { VoteValue } from "@/db/schema";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
 
-/** Board only — the layout-wide revalidate ticket 126 dropped with the tab unlocks. */
+/** The board lives inside the Notes doc (ticket 238), so that is the page to refresh. */
 export function revalidateIdeas(tripId: number): void {
-  revalidatePath(`/trip/${tripId}/ideas`);
+  revalidatePath(`/trip/${tripId}/notes`);
 }
 
 export type IdeaRow = {

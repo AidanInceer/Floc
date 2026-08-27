@@ -13,6 +13,7 @@ import type { PendingInvitee } from "@/server/membership";
 import { Field, Select, Stack, Textarea } from "@/components/ui";
 import { ConfirmSubmit, CopyLink, Menu, Sheet, SubmitButton } from "@/components/client-ui";
 import { NUDGE_TABS } from "@/db/schema";
+import { TAB_LABELS } from "@/lib/tabs";
 import type { TripMember } from "@/server/access";
 import {
   inviteFriends,
@@ -20,13 +21,6 @@ import {
   promoteMember,
   sendNudge,
 } from "@/app/trip/[id]/overview/actions";
-
-const TAB_LABELS: Record<string, string> = {
-  ideas: "Ideas",
-  route: "Route",
-  days: "Days",
-  money: "Money",
-};
 
 export function TripRoster({
   tripId,

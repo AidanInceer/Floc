@@ -1,6 +1,6 @@
 {
   "name": "waypoint-web",
-  "version": "0.59.1",
+  "version": "0.60.0",
   "private": true,
   "description": "Waypoint v1 — group travel planner. Next.js App Router + Turso (libSQL) + Drizzle + Better Auth.",
   "type": "module",
@@ -25,6 +25,9 @@
     "auth:generate": "better-auth generate"
   },
   "dependencies": {
+    "@blocknote/ariakit": "^0.54.0",
+    "@blocknote/core": "^0.54.0",
+    "@blocknote/react": "^0.54.0",
     "@libsql/client": "^0.14.0",
     "better-auth": "^1.2.0",
     "drizzle-orm": "^0.45.2",

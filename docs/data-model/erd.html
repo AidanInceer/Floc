@@ -435,6 +435,12 @@ on every entity.</p>
 <td>the shelf beside the trip thread on Days</td>
 </tr>
 <tr>
+<td><code>trip</code></td>
+<td><code>trip_note_doc</code></td>
+<td>1–1</td>
+<td>the Notes tab&#39;s document — one row per trip, unique on <code>trip_id</code></td>
+</tr>
+<tr>
 <td><code>note</code></td>
 <td><code>note_reaction</code></td>
 <td>1–M</td>
@@ -521,6 +527,14 @@ answerable with a reply, and a link is a reference that has to stay findable a
 fortnight later. <code>url</code> is <strong><code>http</code>/<code>https</code> only</strong>, normalised by
 <code>readWebUrl</code> before it is stored — the shelf renders <code>href</code>s another
 member typed, so a non-web scheme must never reach the row.</p>
+<p><code>trip_note_doc</code> is the <strong>Notes document</strong> (ticket 238) — the free-form page
+that replaced the Ideas tab. One row per trip, holding the whole document as a
+single JSON blob of editor blocks, never parsed server-side. Whole-doc rather
+than a row per block because the editor already owns block order and nesting,
+so a table of blocks would mean keeping two orderings honest for a read nobody
+makes. Saves are last-write-wins (rule 7): two people typing at once is a known
+gap, not a solved one. The voting board is one block inside the document and
+still reads <code>idea</code>/<code>idea_vote</code> — those tables are untouched.</p>
 <p><code>trip_invite</code> is a <strong>named invite</strong> (ticket 146) — one person asked one friend
 onto one trip, answered in-app on the invitee&#39;s next load. Deliberately not a
 <code>trip_membership</code> row with a status column: membership is what every trip read

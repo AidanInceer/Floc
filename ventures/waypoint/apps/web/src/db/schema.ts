@@ -343,6 +343,30 @@ export const idea = sqliteTable(
   (t) => [index("idea_trip_idx").on(t.tripId)],
 );
 
+/**
+ * The trip's Notes doc (ticket 238) — one row per trip, the whole document as
+ * one JSON blob of BlockNote blocks. Whole-doc, not a row per block: the
+ * editor owns block order and nesting, so splitting them out would mean
+ * keeping two orderings honest for no read we make. Last-write-wins (rule 7).
+ */
+export const tripNoteDoc = sqliteTable(
+  "trip_note_doc",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    tripId: integer("trip_id")
+      .notNull()
+      .references(() => trip.id, { onDelete: "cascade" }),
+    /** Whoever saved last — the doc is the group's, so there is no author. */
+    updatedBy: text("updated_by")
+      .notNull()
+      .references(() => user.id),
+    /** BlockNote's `Block[]`, `JSON.stringify`d. Never parsed server-side. */
+    body: text("body").notNull(),
+    ...audit,
+  },
+  (t) => [uniqueIndex("trip_note_doc_trip_idx").on(t.tripId)],
+);
+
 export const VOTE_VALUES = ["up", "dont_mind", "down"] as const;
 export type VoteValue = (typeof VOTE_VALUES)[number];
 

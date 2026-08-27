@@ -20,8 +20,8 @@ const SRC = fileURLToPath(new URL("../src", import.meta.url));
  */
 const HEX_ALLOWED = [/google/i, /leaflet/i];
 
-/** Classes a third-party library puts on the DOM — Leaflet's, not ours. */
-const CLASS_ALLOWED = [/^leaflet-/];
+/** Classes a third-party library puts on the DOM — Leaflet's and BlockNote's, not ours. */
+const CLASS_ALLOWED = [/^leaflet-/, /^bn-/];
 
 const css = readCss();
 const { start, end } = rootBlock(css);

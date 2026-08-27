@@ -15,6 +15,7 @@ import { Avatar, Field, Select, Stack, Textarea, menuDangerItemClass } from "@/c
 import { ConfirmSubmit, Menu, Sheet, SubmitButton } from "@/components/client-ui";
 import { AvailabilityCalendar } from "@/components/availability-calendar";
 import { NUDGE_TABS } from "@/db/schema";
+import { TAB_LABELS } from "@/lib/tabs";
 import { sendNudge } from "@/app/trip/[id]/overview/actions";
 import type { TripMember } from "@/server/access";
 import {
@@ -25,13 +26,6 @@ import {
 } from "./actions";
 
 const MONTHS_SHOWN = 1; // one month, arrows page the rest
-
-const TAB_LABELS: Record<string, string> = {
-  ideas: "Ideas",
-  route: "Route",
-  days: "Days",
-  money: "Money",
-};
 
 export default async function DatesPage({
   params,

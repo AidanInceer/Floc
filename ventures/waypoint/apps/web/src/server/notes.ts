@@ -32,7 +32,7 @@ export function revalidateThread(tripId: number, scope: NoteScope): void {
 function pathFor(tripId: number, scope: NoteScope): string {
   switch (scope) {
     case "idea":
-      return `/trip/${tripId}/ideas`;
+      return `/trip/${tripId}/notes`;
     case "day_event":
     case "day":
       return `/trip/${tripId}/days`;

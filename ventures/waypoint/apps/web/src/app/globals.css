@@ -752,3 +752,101 @@
      appeared under a mouse click. */
   outline: none;
 }
+
+/*
+ * BlockNote's palette and type, taken back to the house tokens (ticket 238).
+ * Unlayered for the same reason as Leaflet above: the library's stylesheet is
+ * unlayered, so a rule inside `@layer components` would lose to it.
+ */
+.bn-root {
+  --bn-colors-editor-text: var(--ink);
+  --bn-colors-editor-background: var(--sheet);
+  --bn-colors-menu-text: var(--ink);
+  --bn-colors-menu-background: var(--sheet);
+  --bn-colors-tooltip-text: var(--ink);
+  --bn-colors-tooltip-background: var(--sheet-2);
+  --bn-colors-hovered-text: var(--ink);
+  --bn-colors-hovered-background: var(--sheet-2);
+  --bn-colors-selected-text: var(--pen-deep);
+  --bn-colors-selected-background: var(--pen-2);
+  --bn-colors-disabled-text: var(--ink-3);
+  --bn-colors-disabled-background: var(--sheet-2);
+  --bn-colors-border: var(--rule);
+  --bn-colors-side-menu: var(--ink-3);
+  --bn-border-radius-small: 6px;
+  --bn-border-radius-medium: 10px;
+  --bn-border-radius-large: 14px;
+}
+
+.bn-root .bn-default-styles {
+  /* The library ships Inter; the app writes in Instrument Sans. */
+  font-family: var(--sans);
+  font-size: 15px;
+}
+
+.bn-root .bn-editor {
+  /* The doc already sits inside a padded sheet — 54px of its own doubles it. */
+  padding-inline: 0;
+  /* Opens as a page with room on it, not a one-line box. */
+  min-height: 26rem;
+}
+
+.bn-root .bn-ak-menu-item[aria-selected="true"] {
+  /* Ariakit paints its own blue on the highlighted row. Blue means "yours to
+     do" here and there is only one of it. */
+  background: var(--pen);
+  color: var(--sheet);
+}
+
+/*
+ * The selection toolbar, shrunk. The library ships 40px buttons in a box that
+ * scrolls, so a dozen of them put a scrollbar on each edge of the bubble.
+ * Nothing here needs to scroll once the buttons are the size of the text.
+ */
+.bn-root .bn-ak-toolbar {
+  overflow: visible;
+  gap: 1px;
+  padding: 3px;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lift);
+}
+
+.bn-root .bn-ak-toolbar .bn-ak-button {
+  height: 1.75rem;
+  min-width: 1.75rem;
+  border-radius: 8px;
+  padding-inline: 0.4rem;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+  box-shadow: none;
+}
+
+.bn-root .bn-ak-toolbar .bn-ak-button svg {
+  width: 15px;
+  height: 15px;
+}
+
+/*
+ * A block of ours embedded in the document — the ideas board (ticket 238).
+ *
+ * Two things the editor does to its own prose have to be undone inside it.
+ * The first is the reset that flattens margin and padding on every `p` and
+ * `li`: unlayered, so it beats Tailwind whatever the specificity, and it was
+ * stripping the cards back to their text. `revert-layer` hands the value back
+ * to the layer underneath, which is where the utilities live.
+ */
+.bn-root .bn-default-styles [data-app-block] :is(p, li, h1, h2, h3, h4, h5, h6) {
+  font-size: revert-layer;
+  margin: revert-layer;
+  padding: revert-layer;
+  min-width: revert-layer !important;
+}
+
+/* The second is the blue wash ProseMirror lays over a selected node. On a
+   paragraph it reads as "selected"; over a board of pastel cards it reads as
+   broken. */
+.bn-block-content.ProseMirror-selectednode > [data-app-block]:after,
+.ProseMirror-selectednode > .bn-block-content > [data-app-block]:after {
+  content: none;
+}

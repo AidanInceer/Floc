@@ -8,7 +8,7 @@ import { Avatar } from "@/components/ui";
 import { IdeaVotes } from "@/components/idea-votes";
 import type { IdeaCardData } from "@/components/idea-data";
 import type { VoteValue } from "@/db/schema";
-import { castVote, clearVote } from "@/app/trip/[id]/ideas/actions";
+import { castVote, clearVote } from "@/app/trip/[id]/notes/actions";
 
 export function IdeaByline({ idea }: { idea: IdeaCardData }) {
   return (
@@ -23,13 +23,6 @@ export function IdeaByline({ idea }: { idea: IdeaCardData }) {
         tone={idea.authorTone}
       />
       <span className="truncate">{idea.authorName}</span>
-      <span className="nums">
-        ·{" "}
-        {idea.createdAt.toLocaleDateString("en-GB", {
-          day: "numeric",
-          month: "short",
-        })}
-      </span>
     </div>
   );
 }

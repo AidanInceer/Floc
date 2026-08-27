@@ -18,7 +18,7 @@ import {
   deleteIdea,
   editIdea,
   setIdeaPinned,
-} from "@/app/trip/[id]/ideas/actions";
+} from "@/app/trip/[id]/notes/actions";
 
 export function IdeaCard({
   tripId,
@@ -58,14 +58,19 @@ export function IdeaCard({
         open && "outline outline-2 outline-offset-2 outline-current",
       )}
     >
-      <div className="flex items-start justify-end gap-2">
+      {/* The idea and its pin share the top line: the pin on a line of its own
+          pushed the words down and left them looking like a caption. */}
+      <div className="flex items-start gap-3">
+        <p className="min-w-0 flex-1 text-[0.95rem] leading-snug break-words">
+          {linkify(idea.note)}
+        </p>
         {/* Any member may pin — not an admin power (rule 6). */}
         <form action={setIdeaPinned.bind(null, tripId, idea.id, !pinned)}>
           <button
             type="submit"
             aria-pressed={pinned}
             className={cx(
-              "flex h-6 w-6 items-center justify-center rounded-full transition-colors hover:bg-sheet-2",
+              "-mr-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-sheet-2",
               pinned ? "text-pen" : "text-ink-faint hover:text-ink",
             )}
           >
@@ -77,8 +82,6 @@ export function IdeaCard({
         </form>
       </div>
 
-      <p className="mt-1 text-sm break-words">{linkify(idea.note)}</p>
-
       <div className="mt-3">
         <IdeaByline idea={idea} />
       </div>
@@ -87,7 +90,7 @@ export function IdeaCard({
         <IdeaVoteBar tripId={tripId} idea={idea} viewerId={viewerId} />
       </div>
 
-      <div className="mt-auto flex items-center justify-between gap-2 pt-3">
+      <div className="mt-auto flex items-center justify-between gap-2 pt-4">
         <button
           type="button"
           onClick={onToggle}

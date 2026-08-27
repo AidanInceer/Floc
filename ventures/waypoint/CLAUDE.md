@@ -16,7 +16,7 @@ Pre-MVP. Stack: **Next.js App Router + Turso (libSQL) + Drizzle + Better Auth**
 | `apps/web/src/app/` | Routes. Server Components + Server Actions (`actions.ts` per folder). |
 | `apps/web/src/server/` | Query aggregates (`itinerary`, `ideas`, `money`, `membership`, `notes`, …) — owns all SQL, soft-delete filtering, `revalidatePath`. |
 | `apps/web/src/lib/` | Pure helpers (money, dates, calendar math) — no I/O. |
-| `apps/web/src/components/` | `ui.tsx`/`client-ui.tsx` are the hand-rolled design system; don't add shadcn or a second one. |
+| `apps/web/src/components/` | `ui.tsx`/`client-ui.tsx` are the house design system — reach for it first. |
 | `apps/web/src/db/schema.ts` | Schema of record. Mirrors [`docs/data-model/erd.html`](../../docs/data-model/erd.html) — change both together. |
 | `docs/` | Local HTML site (`docs/index.html`), no build. Design approach, visual language, vocab, backlog. |
 | `.scratch/waypoint-v1/` | One file per ticket/decision (`map.md` is the index). Read the relevant ticket before changing behaviour. |
@@ -41,7 +41,11 @@ Pre-MVP. Stack: **Next.js App Router + Turso (libSQL) + Drizzle + Better Auth**
 - **Nothing in `app/` imports `@/db`** — SQL lives only in `server/` aggregates.
 - Validate at the door: dates via `lib/dates.ts`, free text via `lib/text.ts`. Rejections are form errors, never unhandled throws.
 - **Visual direction: white ground + pastels + one blue** (#187). Canvas `#F7F6F3` (a barely-there off-white — the hairline on a panel carries its edge, not the ground), white surfaces, hairlines; four pastels one-per-domain (peri/dates, mint/money, butter/ideas & people, blush/route); **blue `#4E68D8` means "yours to do" and nothing else** (actions, links, your own rows). Soft-toy geometry (large radii, pill controls); pill-box nav everywhere, account right-aligned; quiet motion (1.5–2px hover lift, `.22s`, `cubic-bezier(.2,.85,.3,1)`). Type: Bricolage Grotesque (display) + Instrument Sans (body) + DM Mono (data — all money/dates). This replaced the paper-and-biro look; docs are the yardstick, see `docs/design/`.
-- Colours/icons come from tokens only — no hex literals, no icon fonts/Lucide/etc. Status is never colour (or icon) alone — always a word too.
+- Colours come from tokens only — no hex literals. Status is never colour (or icon) alone — always a word too.
+- **An outside UI library is allowed** where hand-rolling it is not worth the
+  months — BlockNote runs the Notes editor (#238). The bar is high, and the
+  price is the same either way: it takes the tokens, the type and the no-emoji
+  rule, or it doesn't ship. Prefer the house components for anything ordinary.
 - **No emoji anywhere in the app** (#148). Every icon is drawn line-art in the app'''s own hand — an emoji is someone else'''s artwork and can'''t take the ink of what it sits in. Scale: 14×14 `viewBox` at ~13px, `fill="none"`, `strokeWidth` 1.15–1.25, `stroke="currentColor"` (see `TravelModeIcon`, `ReactionGlyph`, `WeatherGlyph`).
 - Light only — no dark palette, no `theme` column.
 - **If the drawing is clear, say nothing** (#209). Text exists to carry what the layout cannot. When a reader can work something out from the arrangement, colour, grouping or position on the page, adding words for it is noise — cut them. In practice this bans, on sight:
@@ -106,7 +110,7 @@ restates its code.
 - Writing a page-specific `loadXTab()` in `server/` instead of a reusable aggregate read.
 - Forgetting `isNull(deletedAt)` on a new write, or copying one of the three hard-delete exceptions without re-reading why they're exceptions.
 - Hand-rolling a trip membership check instead of `requireTripAccess`.
-- Reaching for shadcn/Lucide/a hex colour instead of the existing token + hand-rolled component set.
+- Reaching for a hex colour instead of the token set.
 
 ## Out of scope for v1
 

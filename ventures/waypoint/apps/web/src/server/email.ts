@@ -11,6 +11,7 @@ import { inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { userProfile } from "@/db/schema";
 import { appUrl } from "@/lib/env";
+import { TAB_LABELS } from "@/lib/tabs";
 
 type EmailCategory = "invites" | "votes" | "money" | "nudges";
 
@@ -262,10 +263,12 @@ export const emails = {
     subject: `${args.fromName} nudged you about ${args.tripName}`,
     lines: [
       `${args.fromName} is waiting on you for ${args.tripName}.`,
-      args.message?.trim() ? `“${args.message.trim()}”` : `It's the ${args.tab} tab.`,
+      args.message?.trim()
+        ? `“${args.message.trim()}”`
+        : `It's the ${TAB_LABELS[args.tab] ?? args.tab} tab.`,
     ],
     cta: {
-      label: `Open ${args.tab}`,
+      label: `Open ${TAB_LABELS[args.tab] ?? args.tab}`,
       url: absoluteUrl(`/trip/${args.tripId}/${args.tab}`),
     },
     category: "nudges",
@@ -286,7 +289,7 @@ export const emails = {
     lines: [`${args.fromName} suggested: “${args.idea}”`, "Say what you think."],
     cta: {
       label: "Vote on it",
-      url: absoluteUrl(`/trip/${args.tripId}/ideas`),
+      url: absoluteUrl(`/trip/${args.tripId}/notes`),
     },
     category: "votes",
   }),

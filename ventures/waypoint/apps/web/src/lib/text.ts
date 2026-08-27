@@ -12,6 +12,8 @@ export const TEXT_CAPS = {
   tripName: 120,
   ideaNote: 2000,
   noteBody: 2000,
+  /** The whole Notes doc as JSON (ticket 238). Rejected, never truncated — half a JSON blob is not a document. */
+  noteDoc: 400_000,
   expenseDescription: 200,
   expenseNotes: 2000,
   nudgeMessage: 500,

@@ -145,7 +145,7 @@ export default async function OverviewPage({
       name: m.name,
       avatarUrl: m.avatarUrl,
       what: "their vote",
-      href: `/trip/${tripId}/ideas`,
+      href: `/trip/${tripId}/notes`,
     })),
     ...unresolved.availabilityOthers.map((m) => ({
       userId: m.userId,
@@ -285,7 +285,7 @@ export default async function OverviewPage({
             </p>
           </TileLink>
           <TileLink
-            href={`/trip/${tripId}/ideas`}
+            href={`/trip/${tripId}/notes`}
             skin="bg-butter text-butter-ink"
           >
             <span className="font-display text-lg">Ideas</span>

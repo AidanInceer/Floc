@@ -95,6 +95,15 @@ const config = [
     rules: { "max-lines": "off" },
   },
 
+  // 2026-08-27: the schema of record crossed 600 lines adding `trip_note_doc`
+  // (#238). Not split, deliberately — one file mirroring one ERD is the
+  // property that keeps the two honest, and splitting it buys a line count at
+  // the cost of the thing the rule is protecting.
+  {
+    files: ["src/db/schema.ts"],
+    rules: { "max-lines": "off" },
+  },
+
   // Tests are long by nature — a table of cases is not complexity.
   {
     files: ["src/**/*.test.ts", "src/test/**"],
