@@ -805,12 +805,6 @@ export function DaysCalendar({
 
       </div>
 
-      {tooNarrow ? (
-        <p className="border-b border-highlight bg-highlight-soft px-3 py-1.5 text-xs text-ink-soft">
-          Narrow window — one day at a time.
-        </p>
-      ) : null}
-
       {/* The pane's 20rem only appears once an event is picked — the calendar
           is what the page is for otherwise. */}
       <div

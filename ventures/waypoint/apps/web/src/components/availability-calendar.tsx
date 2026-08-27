@@ -295,22 +295,22 @@ export function AvailabilityCalendar({
         </div>
 
         {/* Arrows give up width, not the switch — a squeeze clipped "The dates". */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           <Button
-            variant="ghost"
-            className="!px-2"
+            variant="secondary"
+            className="!px-2.5"
             aria-label="Earlier months"
             onClick={() => setMonth(addMonths(month, -1))}
           >
-            ←
+            <MonthArrow direction="back" />
           </Button>
           <Button
-            variant="ghost"
-            className="!px-2"
+            variant="secondary"
+            className="!px-2.5"
             aria-label="Later months"
             onClick={() => setMonth(addMonths(month, 1))}
           >
-            →
+            <MonthArrow direction="forward" />
           </Button>
         </div>
       </div>
@@ -503,6 +503,24 @@ export function AvailabilityCalendar({
         </div>
       ) : null}
     </div>
+  );
+}
+
+function MonthArrow({ direction }: { direction: "back" | "forward" }) {
+  return (
+    <svg
+      width={13}
+      height={13}
+      viewBox="0 0 14 14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d={direction === "back" ? "M8.5 3 4.5 7l4 4" : "M5.5 3l4 4-4 4"} />
+    </svg>
   );
 }
 

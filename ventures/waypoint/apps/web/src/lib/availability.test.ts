@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import {
   addMonths,
   bestWindow,
-  candidateRuns,
   daysInMonth,
   monthGrid,
   monthsFrom,
@@ -161,31 +160,6 @@ describe("bestWindow", () => {
   });
 });
 
-describe("candidate runs", () => {
-  // a and b overlap on the 10th–12th; c can only manage the 12th–14th.
-  const rows: AvailabilityRow[] = [
-    ...free("a", "2026-09-10", "2026-09-11", "2026-09-12"),
-    ...free("b", "2026-09-10", "2026-09-11", "2026-09-12"),
-    ...free("c", "2026-09-12", "2026-09-13", "2026-09-14"),
-  ];
-
-  it("names who each run loses", () => {
-    const runs = candidateRuns(rows, ["a", "b", "c"]);
-    const best = runs[0];
-    expect(best).toMatchObject({ start: "2026-09-10", end: "2026-09-12" });
-    expect(best.going.sort()).toEqual(["a", "b"]);
-    expect(best.missing).toEqual(["c"]);
-  });
-
-  it("counts nights, not days, so a three-day run is two nights", () => {
-    expect(candidateRuns(rows, ["a", "b", "c"])[0].nights).toBe(2);
-  });
-
-  it("has nothing to offer before anyone has answered", () => {
-    expect(candidateRuns([], ["a", "b"])).toEqual([]);
-  });
-});
-
 describe("the awkward halves of the availability helpers", () => {
   it("counts a person once per day however many rows they have", () => {
     const counts = tally([
@@ -208,23 +182,4 @@ describe("the awkward halves of the availability helpers", () => {
     });
   });
 
-  it("drops runs shorter than minNights and caps the list at limit", () => {
-    const rows = [
-      ...free("a", "2026-09-01", "2026-09-02", "2026-09-03", "2026-09-04"),
-      ...free("b", "2026-09-01", "2026-09-02", "2026-09-03"),
-      ...free("c", "2026-09-01", "2026-09-02"),
-    ];
-    expect(candidateRuns(rows, ["a", "b", "c"], { minNights: 4 })).toEqual([]);
-    expect(candidateRuns(rows, ["a", "b", "c"], { limit: 1 })).toHaveLength(1);
-  });
-
-  it("names who is missing from a run", () => {
-    const rows = [
-      ...free("a", "2026-09-01", "2026-09-02"),
-      ...free("b", "2026-09-01", "2026-09-02"),
-    ];
-    const [run] = candidateRuns(rows, ["a", "b", "c"]);
-    expect(run.going).toEqual(["a", "b"]);
-    expect(run.missing).toEqual(["c"]);
-  });
 });

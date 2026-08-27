@@ -366,41 +366,8 @@ function EventPanel({
         </a>
       ) : null}
 
-      {/* One triple-dot for both verbs (ticket 125), rather than two buttons. */}
-      <div className="flex items-center justify-end border-t border-rule pt-2">
-        <Menu label={`Actions for ${event.title}`}>
-        <Sheet trigger="Edit" title="Edit event" triggerVariant="ghost" triggerClassName={menuItemClass}>
-          <EventForm
-            action={submitEvent.bind(null, tripId)}
-            searchPlaces={searchPlacesAction}
-            defaults={{
-              dayId,
-              eventId: event.id,
-              type: event.type,
-              transportType: event.transportType,
-              time: event.time,
-              endTime: event.endTime,
-              /* Rows predating the flag have no start time, which is what
-                 all-day means — same rule the ordering uses. */
-              allDay: event.allDay || !event.time,
-              title: event.title,
-              note: event.note,
-              placeName: event.placeName,
-            }}
-          />
-        </Sheet>
-        <form action={deleteEvent.bind(null, tripId, event.id)}>
-          <ConfirmSubmit
-            message="Delete this event?"
-            variant="ghost"
-            className={menuDangerItemClass}
-          >
-            Delete
-          </ConfirmSubmit>
-        </form>
-        </Menu>
-      </div>
-
+      {/* One triple-dot for both verbs (ticket 125), sharing the thread's
+          header row with the sort toggle (ticket 233). */}
       <NoteThread
         tripId={tripId}
         scope="day_event"
@@ -409,6 +376,39 @@ function EventPanel({
         viewerId={viewerId}
         isAdmin={isAdmin}
         placeholder="Anything the group should know about this?"
+        toolbar={
+          <Menu label={`Actions for ${event.title}`}>
+            <Sheet trigger="Edit" title="Edit event" triggerVariant="ghost" triggerClassName={menuItemClass}>
+              <EventForm
+                action={submitEvent.bind(null, tripId)}
+                searchPlaces={searchPlacesAction}
+                defaults={{
+                  dayId,
+                  eventId: event.id,
+                  type: event.type,
+                  transportType: event.transportType,
+                  time: event.time,
+                  endTime: event.endTime,
+                  /* Rows predating the flag have no start time, which is what
+                     all-day means — same rule the ordering uses. */
+                  allDay: event.allDay || !event.time,
+                  title: event.title,
+                  note: event.note,
+                  placeName: event.placeName,
+                }}
+              />
+            </Sheet>
+            <form action={deleteEvent.bind(null, tripId, event.id)}>
+              <ConfirmSubmit
+                message="Delete this event?"
+                variant="ghost"
+                className={menuDangerItemClass}
+              >
+                Delete
+              </ConfirmSubmit>
+            </form>
+          </Menu>
+        }
       />
     </div>
   );

@@ -7,7 +7,7 @@
 // body, since Ideas renders this in a max-w-lg modal.
 // Client component because collapse/composer/sort state is local per thread —
 // a dozen threads can be open on one screen, so a single ?sort= can't serve them.
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
 import { Avatar, Textarea, cx } from "@/components/ui";
 import { ReactionGlyph } from "@/components/reaction-glyph";
@@ -380,7 +380,7 @@ function SortToggle({
     <div
       role="radiogroup"
       aria-label="Sort comments"
-      className="mb-1 flex items-center justify-end gap-1"
+      className="flex items-center gap-1"
     >
       {options.map((o) => (
         <button
@@ -412,6 +412,7 @@ export function NoteThread({
   viewerId,
   isAdmin,
   placeholder = "Add a comment…",
+  toolbar,
 }: {
   tripId: number;
   scope: NoteScope;
@@ -420,19 +421,29 @@ export function NoteThread({
   viewerId: string;
   isAdmin: boolean;
   placeholder?: string;
+  /** The owning card's own controls, so they share the thread's header row
+      rather than stacking above it (ticket 233). */
+  toolbar?: ReactNode;
 }) {
   const [sort, setSort] = useState<NoteSort>("oldest");
   const runs = sortRuns(notes, sort);
 
   return (
     <div className="mt-2">
+      {toolbar || notes.length > 1 ? (
+        <div className="mb-1 flex items-center gap-2 border-t border-rule pt-2">
+          <div className="min-w-0 flex-1">
+            {notes.length > 1 ? (
+              <SortToggle value={sort} onSelect={setSort} />
+            ) : null}
+          </div>
+          {toolbar}
+        </div>
+      ) : null}
       {/* No empty state (ticket 75) — the composer below is the only thing to
           do on an empty thread. */}
       {notes.length === 0 ? null : (
         <div className="flex flex-col">
-          {notes.length > 1 ? (
-            <SortToggle value={sort} onSelect={setSort} />
-          ) : null}
           {runs.map((n) => (
             <Run
               key={n.id}
