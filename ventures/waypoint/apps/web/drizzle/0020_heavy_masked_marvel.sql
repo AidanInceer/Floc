@@ -1,0 +1,1 @@
+ALTER TABLE `document` ADD `category` text DEFAULT 'other' NOT NULL;

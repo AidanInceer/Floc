@@ -10,6 +10,7 @@
 import { sql } from "drizzle-orm";
 import { CURRENCIES } from "@/lib/currency";
 import { DEFAULT_CATEGORY, EXPENSE_CATEGORIES } from "@/lib/expense-category";
+import { DOC_CATEGORIES } from "@/lib/documents";
 import { PACK_CATEGORIES, PACK_TIERS } from "@/lib/packing";
 import {
   index,
@@ -490,6 +491,10 @@ export const document = sqliteTable(
     /** From the allow-list in `lib/documents.ts`; echoed by the serve route. */
     mimeType: text("mime_type").notNull(),
     sizeBytes: integer("size_bytes").notNull(),
+    /** Which heading it files under. Changeable after upload — filing is a habit, not a fact. */
+    category: text("category", { enum: DOC_CATEGORIES })
+      .notNull()
+      .default("other"),
     ...audit,
   },
   (t) => [

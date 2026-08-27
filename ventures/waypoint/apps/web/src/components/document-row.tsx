@@ -1,9 +1,15 @@
 /**
- * One document, as a row (ticket 239). Presentational only — no actions, no
- * fetching — so the Overview block (client) and the Files page (server) render
- * the identical thing.
+ * One document, as a row (ticket 239). Presentational only — no fetching — so
+ * the Overview block (client) and the Files page (server) render the same
+ * thing. Anything that acts on the row arrives as `children`.
  */
-import { formatBytes, kindLabel } from "@/lib/documents";
+import {
+  DOC_CATEGORY_LABELS,
+  DOC_CATEGORY_SKINS,
+  formatBytes,
+  kindLabel,
+} from "@/lib/documents";
+import type { DocCategory } from "@/lib/documents";
 import { cx } from "@/components/ui";
 
 export type DocumentRowData = {
@@ -11,6 +17,7 @@ export type DocumentRowData = {
   name: string;
   mimeType: string;
   sizeBytes: number;
+  category: DocCategory;
   uploadedBy: string;
   uploaderName: string;
   ownerId: string | null;
@@ -31,39 +38,58 @@ function KindChip({ mimeType }: { mimeType: string }) {
   );
 }
 
+/** The filing, as a chip. Static here; the Files page wraps it in its menu. */
+export function CategoryChip({ category }: { category: DocCategory }) {
+  return (
+    <span
+      className={cx(
+        "inline-flex shrink-0 rounded-full px-2.5 py-0.5 font-mono text-[10.5px] uppercase tracking-[0.05em]",
+        DOC_CATEGORY_SKINS[category],
+      )}
+    >
+      {DOC_CATEGORY_LABELS[category]}
+    </span>
+  );
+}
+
 export function DocumentRow({
   tripId,
   doc,
   mine,
+  filing,
   children,
 }: {
   tripId: number;
   doc: DocumentRowData;
   /** Uploaded by the viewer — the byline says "You" rather than their name. */
   mine: boolean;
-  /** The remove control, where the page has one to give. */
+  /** The re-file control. Absent on Overview, where the row is a preview. */
+  filing?: React.ReactNode;
+  /** Anything else that acts on the row — removal, on the Files page. */
   children?: React.ReactNode;
 }) {
+  // Two lines on a phone, one on a desk. Left to `flex-wrap`, the last control
+  // is the one that drops — every row grew a line holding nothing but "Remove".
   return (
-    <div className="flex items-center gap-3 border-b border-rule-soft py-2.5 last:border-b-0">
-      <KindChip mimeType={doc.mimeType} />
-      <a
-        href={`/trip/${tripId}/files/${doc.id}/raw`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="min-w-0 flex-1 truncate text-sm font-semibold text-pen hover:underline"
-      >
-        {doc.name}
-      </a>
-      {doc.ownerId ? (
-        <span className="shrink-0 rounded-full bg-butter px-2 py-0.5 text-xs text-butter-ink">
-          private
+    <li className="flex flex-col gap-1.5 px-4 py-2.5 sm:flex-row sm:items-center sm:gap-3">
+      <div className="flex min-w-0 items-center gap-3 sm:flex-1">
+        <KindChip mimeType={doc.mimeType} />
+        <a
+          href={`/trip/${tripId}/files/${doc.id}/raw`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="min-w-0 flex-1 truncate text-sm font-semibold text-pen hover:underline"
+        >
+          {doc.name}
+        </a>
+      </div>
+      <div className="flex items-center gap-3 pl-14 sm:pl-0">
+        {filing ?? <CategoryChip category={doc.category} />}
+        <span className="nums shrink-0 text-xs text-ink-soft">
+          {mine ? "You" : doc.uploaderName} &middot; {formatBytes(doc.sizeBytes)}
         </span>
-      ) : null}
-      <span className="nums shrink-0 text-xs text-ink-soft">
-        {mine ? "You" : doc.uploaderName} &middot; {formatBytes(doc.sizeBytes)}
-      </span>
-      {children}
-    </div>
+        {children}
+      </div>
+    </li>
   );
 }

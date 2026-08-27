@@ -14,6 +14,7 @@ import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
 import { document, user, userProfile } from "@/db/schema";
+import type { DocCategory } from "@/lib/documents";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
 
@@ -27,6 +28,7 @@ export type TripDocument = {
   name: string;
   mimeType: string;
   sizeBytes: number;
+  category: DocCategory;
   createdAt: Date;
   uploadedBy: string;
   uploaderName: string;
@@ -45,6 +47,7 @@ export async function listDocuments(
       name: document.name,
       mimeType: document.mimeType,
       sizeBytes: document.sizeBytes,
+      category: document.category,
       createdAt: document.createdAt,
       uploadedBy: document.uploadedBy,
       userName: user.name,
@@ -70,6 +73,7 @@ export async function listDocuments(
     name: r.name,
     mimeType: r.mimeType,
     sizeBytes: r.sizeBytes,
+    category: r.category,
     createdAt: r.createdAt,
     uploadedBy: r.uploadedBy,
     uploaderName: r.displayName ?? r.userName,
@@ -101,6 +105,7 @@ export async function insertDocument(input: {
   storageKey: string;
   mimeType: string;
   sizeBytes: number;
+  category: DocCategory;
 }): Promise<void> {
   await db.insert(document).values(input).run();
 }
@@ -109,6 +114,22 @@ export async function softDeleteDocument(documentId: number): Promise<void> {
   await db
     .update(document)
     .set({ deletedAt: new Date(), ...touch() })
+    .where(and(eq(document.id, documentId), isNull(document.deletedAt)))
+    .run();
+}
+
+/**
+ * Re-file a document. Any member who can see the row may move it: filing is
+ * housekeeping, not authorship, and the resolver has already refused anything
+ * that is not this trip's or is somebody else's private file.
+ */
+export async function setDocumentCategory(
+  documentId: number,
+  category: DocCategory,
+): Promise<void> {
+  await db
+    .update(document)
+    .set({ category, ...touch() })
     .where(and(eq(document.id, documentId), isNull(document.deletedAt)))
     .run();
 }

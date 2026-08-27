@@ -3,12 +3,18 @@
 // Upload and removal for trip documents (ticket 239). The file is written to
 // disk first and the row second: an orphaned file is invisible, whereas a row
 // pointing at nothing is a broken link on the page.
-import { allowedType, cleanFileName, rejectUpload } from "@/lib/documents";
+import {
+  allowedType,
+  cleanFileName,
+  parseDocCategory,
+  rejectUpload,
+} from "@/lib/documents";
 import { requireTripAccess } from "@/server/access";
 import {
   countDocuments,
   insertDocument,
   revalidateDocuments,
+  setDocumentCategory,
   softDeleteDocument,
 } from "@/server/documents";
 import { LIMITS } from "@/server/limits";
@@ -57,6 +63,7 @@ export async function uploadDocument(
       storageKey,
       mimeType: type.mimeType,
       sizeBytes: file.size,
+      category: parseDocCategory(formData.get("category")),
     });
   } catch (err) {
     await dropDocument(storageKey);
@@ -79,6 +86,24 @@ export async function removeDocument(tripId: number, documentId: number) {
 
   await softDeleteDocument(doc.id);
   await dropDocument(doc.storageKey);
+
+  revalidateDocuments(access.trip.id);
+}
+
+/**
+ * Move a file to another heading. Any member who can see it may — the
+ * resolver has already refused another trip's file and another member's
+ * private one, and nothing is lost by re-filing.
+ */
+export async function setCategory(
+  tripId: number,
+  documentId: number,
+  formData: FormData,
+) {
+  const access = await requireTripAccess(tripId);
+  const doc = await access.document(documentId);
+
+  await setDocumentCategory(doc.id, parseDocCategory(formData.get("category")));
 
   revalidateDocuments(access.trip.id);
 }

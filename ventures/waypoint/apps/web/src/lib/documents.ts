@@ -23,6 +23,54 @@ const ALLOWED: Record<string, { ext: string; kind: DocumentKind }> = {
 
 export type DocumentKind = "pdf" | "image";
 
+/**
+ * What a file is filed under (ticket 239). Five buckets, because a booking
+ * is one of a small number of things and a free-text folder name is a
+ * taxonomy nobody maintains. `other` is the bucket, not a failure.
+ */
+export const DOC_CATEGORIES = [
+  "travel",
+  "stay",
+  "tickets",
+  "admin",
+  "other",
+] as const;
+
+export type DocCategory = (typeof DOC_CATEGORIES)[number];
+
+export const DOC_CATEGORY_LABELS: Record<DocCategory, string> = {
+  travel: "Travel",
+  stay: "Stay",
+  tickets: "Tickets",
+  admin: "Admin",
+  other: "Other",
+};
+
+/** One pastel per bucket, the same one-per-domain rule the rest of the app follows. */
+export const DOC_CATEGORY_SKINS: Record<DocCategory, string> = {
+  travel: "bg-blush text-blush-ink",
+  stay: "bg-peri text-peri-ink",
+  tickets: "bg-butter text-butter-ink",
+  admin: "bg-mint text-mint-ink",
+  other: "bg-sheet-3 text-ink-soft",
+};
+
+/** Anything off the list falls to `other` — filing is not data worth refusing a file over. */
+export function parseDocCategory(value: unknown): DocCategory {
+  const s = String(value ?? "");
+  return (DOC_CATEGORIES as readonly string[]).includes(s)
+    ? (s as DocCategory)
+    : "other";
+}
+
+/** "all" is a real answer, not a missing one (rule 11). */
+export function parseCategoryFilter(value: unknown): DocCategory | "all" {
+  const s = String(value ?? "");
+  return (DOC_CATEGORIES as readonly string[]).includes(s)
+    ? (s as DocCategory)
+    : "all";
+}
+
 export type AllowedType = { mimeType: string; ext: string; kind: DocumentKind };
 
 /** The `accept` attribute, so the file picker and the server agree. */
@@ -33,7 +81,7 @@ export function allowedType(mimeType: unknown): AllowedType | null {
   return found ? { mimeType: String(mimeType).toLowerCase(), ...found } : null;
 }
 
-export function documentKind(mimeType: string): DocumentKind {
+function documentKind(mimeType: string): DocumentKind {
   return allowedType(mimeType)?.kind ?? "pdf";
 }
 

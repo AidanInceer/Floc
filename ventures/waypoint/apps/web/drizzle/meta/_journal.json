@@ -141,6 +141,13 @@
       "when": 1787866576438,
       "tag": "0019_dizzy_tyger_tiger",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "6",
+      "when": 1787869417162,
+      "tag": "0020_heavy_masked_marvel",
+      "breakpoints": true
     }
   ]
 }

@@ -59,7 +59,7 @@ export function DocumentsBlock({
             : "Nothing of your own here yet."}
         </p>
       ) : (
-        <div className="mt-3">
+        <ul className="mt-3 divide-y divide-rule-soft">
           {shown.slice(0, PREVIEW).map((doc) => (
             <DocumentRow
               key={doc.id}
@@ -68,7 +68,7 @@ export function DocumentsBlock({
               mine={doc.uploadedBy === viewerId}
             />
           ))}
-        </div>
+        </ul>
       )}
 
       {docs.length > 0 ? (

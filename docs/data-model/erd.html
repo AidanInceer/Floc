@@ -551,7 +551,11 @@ them goes through <code>requireTripAccess</code> and the owner-scoped
 <code>access.document</code> resolver first. The key is generated rather than derived from
 the file&#39;s name: a key the uploader chooses is a key the uploader can aim at
 another trip&#39;s file. Deleting is soft (rule 8) and is the uploader&#39;s alone —
-deliberately stricter than a shared packing line, which any member may drop.</p>
+deliberately stricter than a shared packing line, which any member may drop.
+<code>category</code> is one of five buckets (travel / stay / tickets / admin /
+other), defaulted rather than required and changeable from the row afterwards:
+filing is a habit, not a fact, and an unknown value falls to <code>other</code>
+rather than refusing the file.</p>
 <p><code>trip_invite</code> is a <strong>named invite</strong> (ticket 146) — one person asked one friend
 onto one trip, answered in-app on the invitee&#39;s next load. Deliberately not a
 <code>trip_membership</code> row with a status column: membership is what every trip read

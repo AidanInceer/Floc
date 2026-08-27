@@ -18,7 +18,7 @@ import {
 } from "@/test/db";
 import { requireTripAccess } from "@/server/access";
 import { listDocuments } from "@/server/documents";
-import { removeDocument, uploadDocument } from "./actions";
+import { removeDocument, setCategory, uploadDocument } from "./actions";
 
 let world: Scenario;
 const previousDir = process.env.WAYPOINT_FILES_DIR;
@@ -40,10 +40,15 @@ beforeEach(async () => {
   signIn(world.member);
 });
 
-function form(scope: "shared" | "private", name = "booking.pdf") {
+function form(
+  scope: "shared" | "private",
+  name = "booking.pdf",
+  category = "travel",
+) {
   const data = new FormData();
   data.set("file", new File([new Uint8Array([1, 2, 3])], name, { type: "application/pdf" }));
   data.set("scope", scope);
+  data.set("category", category);
   return data;
 }
 
@@ -112,5 +117,46 @@ describe("access.document", () => {
     signIn(world.admin);
     const access = await requireTripAccess(world.ours.id);
     await expectNotFound(() => access.document(doc.id));
+  });
+});
+
+describe("setCategory", () => {
+  it("re-files a shared document for anyone on the trip", async () => {
+    await uploadDocument(world.ours.id, form("shared"));
+    const [doc] = await listDocuments(world.ours.id, world.member);
+    expect(doc.category).toBe("travel");
+
+    // Somebody else on the trip moves it — filing is housekeeping, not authorship.
+    signIn(world.admin);
+    const move = new FormData();
+    move.set("category", "stay");
+    await setCategory(world.ours.id, doc.id, move);
+
+    expect((await listDocuments(world.ours.id, world.admin))[0].category).toBe(
+      "stay",
+    );
+  });
+
+  it("files an unknown heading under other rather than refusing", async () => {
+    await uploadDocument(world.ours.id, form("shared"));
+    const [doc] = await listDocuments(world.ours.id, world.member);
+
+    const move = new FormData();
+    move.set("category", "not-a-heading");
+    await setCategory(world.ours.id, doc.id, move);
+
+    expect((await listDocuments(world.ours.id, world.member))[0].category).toBe(
+      "other",
+    );
+  });
+
+  it("refuses another member's private file", async () => {
+    await uploadDocument(world.ours.id, form("private"));
+    const [doc] = await listDocuments(world.ours.id, world.member);
+
+    signIn(world.admin);
+    const move = new FormData();
+    move.set("category", "stay");
+    await expectNotFound(() => setCategory(world.ours.id, doc.id, move));
   });
 });
