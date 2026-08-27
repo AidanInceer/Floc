@@ -14,14 +14,8 @@ import { candidateRuns, monthOf, thisMonth } from "@/lib/availability";
 import type { CandidateRun } from "@/lib/availability";
 import { formatDate, formatDateRange, nightsBetween } from "@/lib/dates";
 import { windowCost, windowCostLabel, windowCostNoun } from "@/lib/trip-window";
-import { Avatar, Badge, Field, Select, Stack, Textarea, cx } from "@/components/ui";
-import {
-  ConfirmSubmit,
-  Menu,
-  Sheet,
-  SubmitButton,
-  menuDangerItemClass,
-} from "@/components/client-ui";
+import { Avatar, Badge, Field, Select, Stack, Textarea, cx, menuDangerItemClass } from "@/components/ui";
+import { ConfirmSubmit, Menu, Sheet, SubmitButton } from "@/components/client-ui";
 import { AvailabilityCalendar } from "@/components/availability-calendar";
 import { NUDGE_TABS } from "@/db/schema";
 import { sendNudge } from "@/app/trip/[id]/overview/actions";

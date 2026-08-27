@@ -301,3 +301,17 @@ export function ErrorText({ children }: { children?: ReactNode }) {
   if (!children) return null;
   return <p className="text-sm text-red">{children}</p>;
 }
+
+/*
+ * Row styling for `Menu` (ticket 125). Lives here, not beside `Menu` itself:
+ * a Server Component importing a const from a `"use client"` module gets a
+ * client reference rather than the string, and silently renders a stringified
+ * function into `class`. `!` throughout to beat buttonBase — Tailwind v4
+ * specificity is stylesheet order, not class-list order.
+ */
+export const menuItemClass =
+  "!block !w-full !rounded-sm !border-none !px-2.5 !py-1.5 !text-left !font-sans !text-sm !normal-case !tracking-normal !text-ink-soft hover:!bg-sheet-2 hover:!text-ink";
+
+/** The same row, for the one verb you can't take back. */
+export const menuDangerItemClass =
+  "!block !w-full !rounded-sm !border-none !bg-transparent !px-2.5 !py-1.5 !text-left !font-sans !text-sm !normal-case !tracking-normal !text-ink-soft hover:!bg-red-soft hover:!text-red";

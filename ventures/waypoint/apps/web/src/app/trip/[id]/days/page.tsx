@@ -29,25 +29,14 @@ import {
   submitEvent,
 } from "./actions";
 import { searchPlacesAction } from "../place-actions";
-import {
-  ConfirmSubmit,
-  Menu,
-  Sheet,
-  SubmitButton,
-  menuDangerItemClass,
-  menuItemClass,
-} from "@/components/client-ui";
+import { ConfirmSubmit, Menu, Sheet, SubmitButton } from "@/components/client-ui";
 import {
   DaysCalendar,
   type CalendarDay,
   type CalendarEvent,
 } from "@/components/days-calendar";
 import { EventForm } from "@/components/event-form";
-import {
-  Badge,
-  ButtonLink,
-  EmptyState,
-} from "@/components/ui";
+import { Badge, ButtonLink, EmptyState, menuDangerItemClass, menuItemClass } from "@/components/ui";
 import { EVENT_CATEGORIES } from "@/lib/event-categories";
 import { formatLength, formatSpan, spanOf } from "@/lib/calendar";
 import { NoteThread, type NoteRow } from "@/components/note-thread";

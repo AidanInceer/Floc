@@ -21,8 +21,8 @@ import {
 
 import { EventForm, type PlaceSearch } from "@/components/event-form";
 import { PlacePicker, type PlacePickerResult } from "@/components/place-picker";
-import { Menu, menuItemClass } from "@/components/client-ui";
-import { Button, Field, Input, cx } from "@/components/ui";
+import { Menu } from "@/components/client-ui";
+import { Button, Field, Input, cx, menuItemClass } from "@/components/ui";
 import type { DayEventType, TransportType } from "@/db/schema";
 import {
   LAST_START_MINUTE,

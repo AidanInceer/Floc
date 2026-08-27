@@ -9,41 +9,25 @@
  */
 import Link from "next/link";
 
-import { cx } from "@/components/ui";
-import { ConfirmSubmit } from "@/components/client-ui";
-import { pillOff, pillOn, pillShape } from "@/components/account-ui";
+import { cx, menuItemClass } from "@/components/ui";
+import { ConfirmSubmit, Menu } from "@/components/client-ui";
 import {
   PACK_CATEGORIES,
   PACK_CATEGORY_LABELS,
   PACK_SORT_LABELS,
 } from "@/lib/packing";
+import { FilterGlyph, SortGlyph } from "@/components/packing-glyphs";
 import type { PackCategory, PackSort } from "@/lib/packing";
 
-/** Every pill on this page is a link, so the shape comes from `account-ui` and only the element changes. */
-function Pill({
-  href,
-  on,
-  children,
-}: {
-  href: string;
-  on: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <Link
-      href={href}
-      aria-current={on ? "true" : undefined}
-      className={cx(
-        pillShape,
-        on ? pillOn : pillOff,
-        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pen",
-      )}
-    >
-      {children}
-    </Link>
-  );
-}
-
+/**
+ * Both controls are one icon that opens a menu, the same shape the Days
+ * calendar's type filter uses: a list has one thing to say and these only
+ * change how you look at it, so they sit quiet on the right until asked.
+ *
+ * The trigger fills in when it is holding a non-default, and the value is
+ * printed beside it — a control that is silently doing something is how you
+ * lose a row you thought you had deleted.
+ */
 export function PackingListFilters({
   hrefFor,
   sort,
@@ -58,52 +42,168 @@ export function PackingListFilters({
   sorts: readonly PackSort[];
 }) {
   return (
-    <div className="mt-3 flex flex-col gap-2">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint">
-          Sort
-        </span>
+    <div className="ml-auto flex items-center gap-2">
+      <MenuLabel>{sort === "category" ? null : PACK_SORT_LABELS[sort]}</MenuLabel>
+      <IconMenu
+        label={`Sort — ${PACK_SORT_LABELS[sort].toLowerCase()}`}
+        glyph={<SortGlyph />}
+        on={sort !== "category"}
+      >
         {sorts.map((s) => (
-          <Pill key={s} href={hrefFor({ sort: s })} on={s === sort}>
-            {PACK_SORT_LABELS[s]}
-          </Pill>
+          <MenuChoice
+            key={s}
+            href={hrefFor({ sort: s })}
+            on={s === sort}
+            label={PACK_SORT_LABELS[s]}
+          />
         ))}
-      </div>
+      </IconMenu>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint">
-          Show
-        </span>
-        <Pill href={hrefFor({ category: "all" })} on={category === "all"}>
-          All
-        </Pill>
+      <MenuLabel>
+        {category === "all" ? null : PACK_CATEGORY_LABELS[category]}
+      </MenuLabel>
+      <IconMenu
+        label={
+          category === "all"
+            ? "Show — everything"
+            : `Show — ${PACK_CATEGORY_LABELS[category].toLowerCase()} only`
+        }
+        glyph={<FilterGlyph />}
+        on={category !== "all"}
+      >
+        <MenuChoice
+          href={hrefFor({ category: "all" })}
+          on={category === "all"}
+          label="Everything"
+        />
         {PACK_CATEGORIES.map((c) => (
-          <Pill key={c} href={hrefFor({ category: c })} on={c === category}>
-            {PACK_CATEGORY_LABELS[c]}
-          </Pill>
+          <MenuChoice
+            key={c}
+            href={hrefFor({ category: c })}
+            on={c === category}
+            label={PACK_CATEGORY_LABELS[c]}
+          />
         ))}
-      </div>
+      </IconMenu>
     </div>
   );
 }
 
+function MenuLabel({ children }: { children: React.ReactNode }) {
+  if (!children) return null;
+  return (
+    <span className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-soft">
+      {children}
+    </span>
+  );
+}
+
+/** The Days calendar's filter trigger, to the pixel — one shape for "a view control". */
+function IconMenu({
+  label,
+  glyph,
+  on,
+  children,
+}: {
+  label: string;
+  glyph: React.ReactNode;
+  on: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <Menu
+      label={label}
+      trigger={glyph}
+      triggerClassName={cx(
+        "flex h-[26px] w-[26px] items-center justify-center rounded-full border",
+        on
+          ? "border-rule-strong bg-sheet text-ink"
+          : "border-transparent text-ink-faint hover:border-rule-strong hover:bg-sheet-2 hover:text-ink",
+      )}
+    >
+      {children}
+    </Menu>
+  );
+}
+
+/** One row of either menu. A link, so the view survives a reload and the back button undoes it. */
+function MenuChoice({
+  href,
+  on,
+  label,
+}: {
+  href: string;
+  on: boolean;
+  label: string;
+}) {
+  return (
+    <Link
+      href={href}
+      role="menuitemradio"
+      aria-checked={on}
+      className={cx(
+        menuItemClass,
+        "!font-mono !text-[10.5px] !uppercase !tracking-[0.06em]",
+        on && "!bg-sheet-2 !text-ink",
+      )}
+    >
+      {label}
+    </Link>
+  );
+}
+
 /**
- * Remove-what's-ticked and clear-the-lot. Both confirm first: one is
- * undoable only by retyping the rows, the other by retyping all of them.
+ * Clearing, in two steps rather than one (ticket 229). The tick boxes used to
+ * sit on every row all the time with two verbs under them, and nothing said the
+ * two were connected. Now the list reads clean until you press "Pick rows",
+ * which is also what puts the boxes on screen — the mode and the thing it does
+ * arrive together.
  */
 export function PackingBulkBar({
   formId,
+  selecting,
+  selectHref,
+  doneHref,
   removeSelected,
   reset,
   resetMessage,
 }: {
   formId: string;
+  /** Whether the tick boxes are on screen — the URL says so, not client state. */
+  selecting: boolean;
+  selectHref: string;
+  doneHref: string;
   removeSelected: (formData: FormData) => Promise<void>;
   reset: () => Promise<void>;
   resetMessage: string;
 }) {
+  if (!selecting) {
+    return (
+      <div className="flex flex-wrap items-center gap-2">
+        <Link href={selectHref} className={cx(bulkVerb, "text-pen")}>
+          Pick rows to remove
+        </Link>
+        <form action={reset}>
+          <ConfirmSubmit
+            variant="ghost"
+            confirmVariant="danger"
+            label="Clear the whole list"
+            message={resetMessage}
+            confirmLabel="Clear it"
+            className="!px-3 !text-red hover:!bg-red-soft hover:!text-red"
+          >
+            Clear list
+          </ConfirmSubmit>
+        </form>
+      </div>
+    );
+  }
+
   return (
-    <div className="mt-3 flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="text-sm text-ink-soft">
+        Tick the rows you want gone.
+      </span>
       <form id={formId} action={removeSelected}>
         <ConfirmSubmit
           variant="ghost"
@@ -111,27 +211,20 @@ export function PackingBulkBar({
           label="Remove the ticked lines"
           message="Remove every line you've ticked?"
           confirmLabel="Remove them"
-          className="!px-3"
+          className="!px-3 !text-red hover:!bg-red-soft hover:!text-red"
         >
           Remove ticked
         </ConfirmSubmit>
       </form>
-
-      <form action={reset}>
-        <ConfirmSubmit
-          variant="ghost"
-          confirmVariant="danger"
-          label="Clear the whole list"
-          message={resetMessage}
-          confirmLabel="Clear it"
-          className="!px-3 !text-red"
-        >
-          Clear list
-        </ConfirmSubmit>
-      </form>
+      <Link href={doneHref} className={cx(bulkVerb, "text-ink-soft")}>
+        Done
+      </Link>
     </div>
   );
 }
+
+const bulkVerb =
+  "rounded-full px-3 py-1.5 font-mono text-[10.5px] uppercase tracking-[0.06em] hover:bg-sheet";
 
 /** The category picker beside an add box — the one place a hand-typed row gets filed. */
 export function CategorySelect({ defaultValue }: { defaultValue?: PackCategory }) {

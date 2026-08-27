@@ -52,8 +52,8 @@ export function PackingLineRow({
   tripId: number;
   lineId: number;
   label: string;
-  /** The bulk-remove form this row's select box belongs to (ticket 229). */
-  selectFormId: string;
+  /** The bulk-remove form this row's select box belongs to, or null when not selecting (ticket 229). */
+  selectFormId: string | null;
   claimants: PackingClaimant[];
   viewerId: string;
   setClaim: (tripId: number, lineId: number, claimed: boolean) => Promise<void>;

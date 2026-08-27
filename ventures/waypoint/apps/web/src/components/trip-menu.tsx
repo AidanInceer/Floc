@@ -10,7 +10,8 @@
  * Sharing is not here: the roster's own Share trip button is the one place to
  * hand out an invite, and a second copy would be two ways to do it.
  */
-import { ConfirmSubmit, Menu, menuDangerItemClass, menuItemClass } from "@/components/client-ui";
+import { ConfirmSubmit, Menu } from "@/components/client-ui";
+import { menuDangerItemClass, menuItemClass } from "@/components/ui";
 import { TripColorPicker } from "@/components/trip-color-picker";
 import type { TripColor } from "@/lib/trip-color";
 import { archiveTrip, deleteTrip } from "@/app/trips/actions";

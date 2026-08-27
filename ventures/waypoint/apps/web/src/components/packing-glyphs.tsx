@@ -101,10 +101,12 @@ export function SelectLineBox({
   lineId,
   label,
 }: {
-  formId: string;
+  /** Null while the list is in its normal reading mode — no box at all. */
+  formId: string | null;
   lineId: number;
   label: string;
 }) {
+  if (!formId) return null;
   return (
     <input
       type="checkbox"
@@ -114,5 +116,61 @@ export function SelectLineBox({
       aria-label={`Select ${label}`}
       className="size-4 shrink-0 accent-pen"
     />
+  );
+}
+
+/** Bars shortening down the stack — the same "ordered" mark the trips page uses. */
+export function SortGlyph() {
+  return (
+    <svg
+      width={13}
+      height={13}
+      viewBox="0 0 14 14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.25}
+      strokeLinecap="round"
+      aria-hidden
+    >
+      <path d="M2.5 3.5h9M2.5 7h6M2.5 10.5h3" />
+    </svg>
+  );
+}
+
+/** A funnel — empty when nothing is filtered out. */
+export function FilterGlyph() {
+  return (
+    <svg
+      width={13}
+      height={13}
+      viewBox="0 0 14 14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.25}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M2.2 3h9.6L8.2 7.3v4L5.8 12V7.3z" />
+    </svg>
+  );
+}
+
+/** The twisty on a collapsible section — points right when shut, down when open. */
+export function DisclosureGlyph() {
+  return (
+    <svg
+      width={13}
+      height={13}
+      viewBox="0 0 14 14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.25}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M5.2 3.2 L9.2 7 L5.2 10.8" />
+    </svg>
   );
 }

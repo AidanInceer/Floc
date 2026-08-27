@@ -9,15 +9,8 @@
  */
 "use client";
 
-import { Field, PASTEL_SKINS, Stack, Textarea, cx } from "@/components/ui";
-import {
-  ConfirmSubmit,
-  Menu,
-  Sheet,
-  SubmitButton,
-  menuDangerItemClass,
-  menuItemClass,
-} from "@/components/client-ui";
+import { Field, PASTEL_SKINS, Stack, Textarea, cx, menuDangerItemClass, menuItemClass } from "@/components/ui";
+import { ConfirmSubmit, Menu, Sheet, SubmitButton } from "@/components/client-ui";
 import { IdeaByline, IdeaVoteBar } from "@/components/idea-byline";
 import { linkify } from "@/components/linkify";
 import type { IdeaCardData } from "@/components/idea-data";

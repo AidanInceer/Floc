@@ -14,8 +14,8 @@
  */
 import Link from "next/link";
 
-import { Avatar } from "@/components/ui";
-import { Menu, menuItemClass } from "@/components/client-ui";
+import { Avatar, menuItemClass } from "@/components/ui";
+import { Menu } from "@/components/client-ui";
 import { SignOutButton } from "@/components/sign-out-button";
 
 export function AccountMenu({

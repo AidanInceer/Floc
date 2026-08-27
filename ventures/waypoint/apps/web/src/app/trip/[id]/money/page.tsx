@@ -25,14 +25,8 @@ import {
 } from "@/server/money";
 import { getProfile } from "@/server/profile";
 import { getHomeRates } from "@/server/fx";
-import { Avatar, cx } from "@/components/ui";
-import {
-  ConfirmSubmit,
-  Menu,
-  Sheet,
-  menuDangerItemClass,
-  menuItemClass,
-} from "@/components/client-ui";
+import { Avatar, cx, menuDangerItemClass, menuItemClass } from "@/components/ui";
+import { ConfirmSubmit, Menu, Sheet } from "@/components/client-ui";
 import { CategoryIcon } from "@/components/category-icon";
 import { ConvertAmount, SettleUpForm } from "@/components/money-client";
 import { ExpenseForm } from "@/components/expense-form";

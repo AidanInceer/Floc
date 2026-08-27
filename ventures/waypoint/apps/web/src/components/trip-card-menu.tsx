@@ -4,15 +4,8 @@
  * delete stay admin-only (rule 6). Leaving is not here — that lives on the trip
  * header's menu, next to the roster.
  */
-import {
-  ConfirmSubmit,
-  Menu,
-  Sheet,
-  SubmitButton,
-  menuDangerItemClass,
-  menuItemClass,
-} from "@/components/client-ui";
-import { Field, Input, Stack } from "@/components/ui";
+import { ConfirmSubmit, Menu, Sheet, SubmitButton } from "@/components/client-ui";
+import { Field, Input, Stack, menuDangerItemClass, menuItemClass } from "@/components/ui";
 import { TripColorPicker } from "@/components/trip-color-picker";
 import { TEXT_CAPS } from "@/lib/text";
 import type { TripColor } from "@/lib/trip-color";

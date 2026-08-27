@@ -34,8 +34,8 @@ export function PersonalPackingRow({
   tripId: number;
   lineId: number;
   label: string;
-  /** The bulk-remove form this row's select box belongs to (ticket 229). */
-  selectFormId: string;
+  /** The bulk-remove form this row's select box belongs to, or null when not selecting (ticket 229). */
+  selectFormId: string | null;
   quantity: number;
   packedAt: Date | null;
   setPacked: (tripId: number, lineId: number, packed: boolean) => Promise<void>;

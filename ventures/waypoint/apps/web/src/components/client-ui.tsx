@@ -12,7 +12,7 @@ import {
 } from "react";
 import type { ReactNode } from "react";
 import { useFormStatus } from "react-dom";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 import { Button, Card, ErrorText, cx } from "./ui";
 
@@ -306,15 +306,6 @@ export function CopyLink({
   );
 }
 
-// Row styling for `Menu` (ticket 125). `!` throughout to beat buttonBase —
-// Tailwind v4 specificity is stylesheet order, not class-list order.
-export const menuItemClass =
-  "!block !w-full !rounded-sm !border-none !px-2.5 !py-1.5 !text-left !font-sans !text-sm !normal-case !tracking-normal !text-ink-soft hover:!bg-sheet-2 hover:!text-ink";
-
-/** The same row, for the one verb you can't take back. */
-export const menuDangerItemClass =
-  "!block !w-full !rounded-sm !border-none !bg-transparent !px-2.5 !py-1.5 !text-left !font-sans !text-sm !normal-case !tracking-normal !text-ink-soft hover:!bg-red-soft hover:!text-red";
-
 // Secondary verbs behind one triple-dot (ticket 125). Does NOT close on an
 // inside click — menu items open native <dialog>s (ConfirmSubmit, Sheet) in
 // this subtree, and unmounting would tear one out mid-flight. Closes only on
@@ -344,8 +335,12 @@ export function Menu({
   const panelRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
   const pathname = usePathname();
+  // The query too, not just the path: a menu item that only changes a sort or
+  // filter param would otherwise navigate and leave the panel sitting open
+  // over the list it just re-ordered.
+  const query = useSearchParams().toString();
 
-  useEffect(() => setOpen(false), [pathname]);
+  useEffect(() => setOpen(false), [pathname, query]);
 
   useEffect(() => {
     if (!open) return;
