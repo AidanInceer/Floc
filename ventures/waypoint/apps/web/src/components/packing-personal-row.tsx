@@ -1,4 +1,9 @@
+"use client";
+
+import { useOptimistic } from "react";
+
 import { Badge, cx } from "@/components/ui";
+import { clampPackQuantity } from "@/lib/packing";
 import { ConfirmSubmit } from "@/components/client-ui";
 import {
   CheckGlyph,
@@ -8,13 +13,19 @@ import {
   tickBoxBase,
   tickBoxClass,
 } from "@/components/packing-glyphs";
-import { PackingQuantity } from "@/components/packing-quantity";
+import { PackingStepper } from "@/components/packing-quantity";
 
 /**
  * One thing in your own bag (ticket 220). A separate component from
  * `PackingLineRow` rather than a mode of it: nobody claims your socks, so the
  * claim verb, the avatars and the three-way status all go, and what is left is
  * a plain checklist row with a count on it.
+ *
+ * A Client Component so the tick and the removal land under the finger. Every
+ * write here revalidates the whole tab — both lists, the roster, the forecast —
+ * and a row that sits inert until all of that returns reads as a dead control.
+ * The optimistic value is overwritten by the server's, so a refused write
+ * corrects itself rather than sticking.
  */
 export function PersonalPackingRow({
   tripId,
@@ -38,13 +49,29 @@ export function PersonalPackingRow({
   step: (tripId: number, lineId: number, formData: FormData) => Promise<void>;
   remove: (tripId: number, lineId: number) => Promise<void>;
 }) {
-  const packed = packedAt !== null;
+  const [packed, showPacked] = useOptimistic(packedAt !== null);
+  // A reducer, not a set value: two clicks before the first render commits both
+  // close over the same count, so setting one would show a single step where the
+  // SQL has applied two.
+  const [shown, stepShown] = useOptimistic(quantity, (n: number, delta: number) =>
+    clampPackQuantity(n + delta),
+  );
+  const [gone, showGone] = useOptimistic<boolean, void>(false, () => true);
+
+  // The row goes before the delete lands, and the re-render that lands drops it
+  // for real. Nothing to fade: a confirmed removal is already deliberate.
+  if (gone) return null;
 
   return (
     <li className="flex min-h-12 items-center gap-2 px-3 py-2 sm:gap-3 sm:px-4">
       <SelectLineBox formId={selectFormId} lineId={lineId} label={label} />
 
-      <form action={setPacked.bind(null, tripId, lineId, !packed)}>
+      <form
+        action={async () => {
+          showPacked(!packed);
+          await setPacked(tripId, lineId, !packed);
+        }}
+      >
         <button
           type="submit"
           aria-label={packed ? `Unpack ${label}` : `Mark ${label} packed`}
@@ -54,12 +81,15 @@ export function PersonalPackingRow({
         </button>
       </form>
 
-      <PackingQuantity
-        quantity={quantity}
-        label={label}
-        packed={packed}
-        step={step.bind(null, tripId, lineId)}
-      />
+      {/* The count sits ahead of the label and shows even at one, so a row
+          never changes shape as you step it. */}
+      <span
+        className={cx("min-w-0 flex-1 truncate text-sm", packed && "text-ink-soft")}
+      >
+        <span className="font-mono tabular-nums text-ink-faint">{shown}</span>
+        <span className="text-ink-faint">{" — "}</span>
+        {label}
+      </span>
 
       <Badge
         tone={packed ? "agreed" : "open"}
@@ -68,7 +98,19 @@ export function PersonalPackingRow({
         {packed ? "Packed" : "Not packed"}
       </Badge>
 
-      <form action={remove.bind(null, tripId, lineId)}>
+      <PackingStepper
+        shown={shown}
+        label={label}
+        onStep={stepShown}
+        step={step.bind(null, tripId, lineId)}
+      />
+
+      <form
+        action={async () => {
+          showGone();
+          await remove(tripId, lineId);
+        }}
+      >
         <ConfirmSubmit
           variant="ghost"
           confirmVariant="danger"

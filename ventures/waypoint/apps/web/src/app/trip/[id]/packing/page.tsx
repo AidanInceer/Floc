@@ -4,7 +4,7 @@
  * top-to-bottom on a phone as on a desk.
  */
 import { requireTripAccess } from "@/server/access";
-import { getPackTier } from "@/server/membership";
+import { getPackSettings } from "@/server/membership";
 import {
   autoFillPersonalBag,
   packingPlanFor,
@@ -113,16 +113,17 @@ export default async function PackingPage({
   const access = await requireTripAccess(id, `/trip/${id}/packing`);
   const tripId = access.trip.id;
 
-  const [lines, claims, perTripTier, profile, plan, kits] = await Promise.all([
+  const [lines, claims, packSettings, profile, plan, kits, bag] = await Promise.all([
     listPackingLines(tripId),
     listPackingClaims(tripId),
-    getPackTier(tripId, access.viewer.id),
+    getPackSettings(tripId, access.viewer.id),
     ensureProfile(access.viewer.id),
     packingPlanFor(access.trip),
     listPackingKits(access.viewer.id),
+    listPersonalPackingLines(tripId, access.viewer.id),
   ]);
 
-  const tier = resolvePackTier(perTripTier, profile.packTier);
+  const tier = resolvePackTier(packSettings.tier, profile.packTier);
 
   const path = `/trip/${tripId}/packing`;
   const sharedView: View = {
@@ -150,26 +151,41 @@ export default async function PackingPage({
   const sharedHref = hrefBuilder(path, "shared", sharedView, keep("bag", bagView));
 
   // Seeded here rather than behind a button because that's what the profile
-  // setting asks for (ticket 221). Safe on every render: the fill claims a
-  // one-shot flag on the membership in the same transaction as the insert, so a
-  // bag is only ever auto-filled once — emptying yours does not invite it back.
-  // A prefetch can't trigger it either: the tab renders behind `loading.tsx`,
+  // setting asks for (ticket 221). The flag is the fill's own one-shot mark,
+  // claimed in the same transaction as the insert, so emptying your bag does not
+  // invite it back; reading it here rather than letting the fill no-op keeps a
+  // write transaction off the critical path of every press (ticket 231). A
+  // prefetch can't trigger it either: the tab renders behind `loading.tsx`,
   // which is as far as Next prefetches a dynamic segment.
-  if (profile.packAutoGenerate) {
+  let mine = bag;
+  if (profile.packAutoGenerate && packSettings.generatedAt === null) {
     await autoFillPersonalBag({
       tripId,
       ownerId: access.viewer.id,
       tier,
       plan,
     });
+    // Re-read whether or not this call added anything: losing the write lock to
+    // the request that filled the bag also reports zero, and rendering `bag`
+    // then shows an empty bag next to a full one.
+    mine = await listPersonalPackingLines(tripId, access.viewer.id);
   }
 
-  const mine = await listPersonalPackingLines(tripId, access.viewer.id);
   const bagGroups = viewPackingLines(mine, bagView);
   const bagHref = hrefBuilder(path, "bag", bagView, keep("shared", sharedView));
 
   // One person, one avatar colour across every tab.
   const toneOf = new Map(access.members.map((m) => [m.userId, m.tone]));
+
+  // What a claim of the viewer's own looks like, so a row can draw one before
+  // the server confirms it. The avatar comes off the profile, not the roster:
+  // that is where `listPackingClaims` reads it, and drawing the other one makes
+  // the pill flip from photo to initials the moment the server answers.
+  const viewerClaimant = {
+    name: access.viewer.name,
+    avatarUrl: profile.avatarUrl,
+    tone: toneOf.get(access.viewer.id),
+  };
 
   const claimsByLine = new Map<number, PackingClaimant[]>();
   for (const c of claims) {
@@ -340,6 +356,7 @@ export default async function PackingPage({
                     selectFormId={sharedView.select ? "shared-bulk" : null}
                     claimants={claimsByLine.get(line.id) ?? []}
                     viewerId={access.viewer.id}
+                    viewer={viewerClaimant}
                     setClaim={setPackingClaim}
                     setPacked={setPackingPacked}
                     remove={removePackingLine}

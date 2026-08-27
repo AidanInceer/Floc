@@ -467,6 +467,27 @@ export async function removeMembership(
 }
 
 /**
+ * Both packing facts the tab needs off the membership row, in one read: the
+ * tier, and whether the generator has ever run. Together because the page asks
+ * for both, and asking twice is a second round trip to Turso for a row already
+ * in hand.
+ */
+export async function getPackSettings(
+  tripId: number,
+  userId: string,
+): Promise<{ tier: PackTier | null; generatedAt: Date | null }> {
+  const row = await db
+    .select({
+      packTier: tripMembership.packTier,
+      packGeneratedAt: tripMembership.packGeneratedAt,
+    })
+    .from(tripMembership)
+    .where(liveMembership(tripId, userId))
+    .get();
+  return { tier: row?.packTier ?? null, generatedAt: row?.packGeneratedAt ?? null };
+}
+
+/**
  * Your packing tier on one trip (ticket 220). Lives on the membership because
  * it is a fact about *you on this trip*, not about the trip; null means you
  * have never chosen here and the profile default applies.
@@ -475,12 +496,7 @@ export async function getPackTier(
   tripId: number,
   userId: string,
 ): Promise<PackTier | null> {
-  const row = await db
-    .select({ packTier: tripMembership.packTier })
-    .from(tripMembership)
-    .where(liveMembership(tripId, userId))
-    .get();
-  return row?.packTier ?? null;
+  return (await getPackSettings(tripId, userId)).tier;
 }
 
 export async function setPackTier(

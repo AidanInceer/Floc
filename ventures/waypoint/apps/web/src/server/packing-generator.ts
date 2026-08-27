@@ -111,8 +111,8 @@ export async function fillPersonalBag(args: FillArgs): Promise<number> {
  *
  * Safe to call on every render of the tab — it writes at most once per bag.
  */
-export async function autoFillPersonalBag(args: FillArgs): Promise<void> {
-  await fill(args, { onlyIfNever: true });
+export async function autoFillPersonalBag(args: FillArgs): Promise<number> {
+  return fill(args, { onlyIfNever: true });
 }
 
 /**

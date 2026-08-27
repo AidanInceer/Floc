@@ -15,6 +15,7 @@ import {
   softDeletePackingLine,
   stepPersonalQuantity,
 } from "@/server/packing";
+import { getPackSettings } from "@/server/membership";
 import {
   autoFillPersonalBag,
   fillPersonalBag,
@@ -157,6 +158,21 @@ describe("the automatic fill happens once, ever", () => {
       tier: "balanced",
       plan: await packingPlanFor((await tripRow())!),
     });
+
+  // The page skips the call entirely once this is set, so the flag has to be
+  // readable from outside the fill or the tab pays for a write transaction on
+  // every render (ticket 231).
+  it("reports through the membership whether it has run", async () => {
+    expect(
+      (await getPackSettings(world.ours.id, world.admin)).generatedAt,
+    ).toBeNull();
+
+    await auto();
+
+    expect(
+      (await getPackSettings(world.ours.id, world.admin)).generatedAt,
+    ).toBeInstanceOf(Date);
+  });
 
   it("fills on the first open and never again", async () => {
     await auto();
