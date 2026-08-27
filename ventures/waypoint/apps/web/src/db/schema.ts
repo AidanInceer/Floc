@@ -461,6 +461,44 @@ export const packingClaim = sqliteTable(
 );
 
 /**
+ * A file parked against a trip (ticket 239) — a booking, a ticket, a visa scan.
+ *
+ * Mirrors `packing_line`'s split: `owner_id` null = shared with the whole trip,
+ * set = one member's private file, never read for anyone else. The bytes live
+ * on disk under `storage_key`; this row is the only thing that knows which
+ * trip they belong to, so every read of them goes through the access check.
+ */
+export const document = sqliteTable(
+  "document",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    tripId: integer("trip_id")
+      .notNull()
+      .references(() => trip.id, { onDelete: "cascade" }),
+    uploadedBy: text("uploaded_by")
+      .notNull()
+      .references(() => user.id),
+    /** Null = shared. Set = private to that member — see the note above. */
+    ownerId: text("owner_id").references(() => user.id),
+    /** What it is called on screen. The file's own name, cleaned, never a path. */
+    name: text("name").notNull(),
+    /**
+     * Opaque on-disk filename. Generated, never derived from `name`: a key the
+     * uploader can choose is a key the uploader can aim at another trip's file.
+     */
+    storageKey: text("storage_key").notNull(),
+    /** From the allow-list in `lib/documents.ts`; echoed by the serve route. */
+    mimeType: text("mime_type").notNull(),
+    sizeBytes: integer("size_bytes").notNull(),
+    ...audit,
+  },
+  (t) => [
+    index("document_trip_idx").on(t.tripId),
+    index("document_owner_idx").on(t.tripId, t.ownerId),
+  ],
+);
+
+/**
  * A saved packing list of your own (ticket 230) — "photography kit", "gym
  * stuff". Yours, not a trip's: it has no `trip_id`, and it is copied into a
  * trip's bag rather than linked to one, so editing the kit later never rewrites

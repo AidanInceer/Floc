@@ -5,11 +5,14 @@
  * TWO COLUMNS (wireframe A, ticket 209). The split is trip vs group:
  *
  *   - The wide left column is the TRIP: where you're going.
- *   - The narrow right rail is the GROUP: who's going, what's been spent, how
- *     many ideas, who the trip is waiting on. Every one of these grows
+ *   - The narrow right rail is the GROUP: who's going, what's been spent, who
+ *     the trip is waiting on. Every one of these grows
  *     downward, which is why the rail is where they belong — the roster used
  *     to be a full-width panel holding one row of avatars and a lot of air.
- *   - The week runs full width under both, because a day track wants length.
+ *   - Documents (ticket 239) and the week run full width under both, because a
+ *     file list and a day track both want length. The Ideas count tile that
+ *     used to sit in the rail went with them: a number you could not act on,
+ *     beside a tab that already carries it.
  *
  * On a narrow screen the rail simply falls in under the left column; nothing
  * is repositioned by media query beyond the columns collapsing.
@@ -34,6 +37,8 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { requireTripAccess } from "@/server/access";
+import { listDocuments } from "@/server/documents";
+import { documentsEnabled } from "@/server/document-store";
 import { listIdeaIds, listVotes } from "@/server/ideas";
 import {
   listDays,
@@ -54,6 +59,7 @@ import { TripRoster } from "@/components/trip-roster";
 import { friendStatesFor, listFriendsFor } from "@/server/friends";
 import { TripRoute } from "@/components/trip-route";
 import { TripDayTrack } from "@/components/trip-day-track";
+import { DocumentsBlock } from "@/components/documents-block";
 import { TagEditor } from "@/components/tag-editor";
 import { readTags } from "@/lib/tags";
 import { readTripColor } from "@/lib/trip-color";
@@ -93,6 +99,7 @@ export default async function OverviewPage({
     settlementRows,
     routeDays,
     transportModes,
+    docs,
   ] = await Promise.all([
     listIdeaIds(tripId),
     // Unconditional: one indexed read is cheaper than a serial round trip when
@@ -107,6 +114,10 @@ export default async function OverviewPage({
     // `listDays` doesn't carry, plus travel modes off `day_event`.
     listRouteDays(tripId),
     transportModesByDay(tripId),
+    // Rule 11: no storage volume, no Documents block — and no query for it.
+    documentsEnabled()
+      ? listDocuments(tripId, viewer.id)
+      : Promise.resolve([]),
   ]);
 
   // All "where the trip is up to" is derived in one pure call (ticket 109); the
@@ -127,8 +138,6 @@ export default async function OverviewPage({
   });
 
   const { datesUnset, unresolved } = state;
-  const unvoted =
-    ideaIds.length - votes.filter((v) => v.userId === viewer.id).length;
   const spend = spendByCurrency(expenseRows);
   const inviteUrl = absoluteUrl(`/invite/${trip.inviteToken}`);
   const tags = readTags(trip.tags);
@@ -284,24 +293,14 @@ export default async function OverviewPage({
                   }`}
             </p>
           </TileLink>
-          <TileLink
-            href={`/trip/${tripId}/notes`}
-            skin="bg-butter text-butter-ink"
-          >
-            <span className="font-display text-lg">Ideas</span>
-            <p className="mt-1 font-display text-3xl font-semibold tracking-tight">
-              {ideaIds.length}
-            </p>
-            <p className="mt-2 text-sm opacity-80">
-              {ideaIds.length === 0
-                ? "The first one gets a trip moving"
-                : unvoted > 0
-                  ? `${unvoted} you haven't voted on`
-                  : "You've voted on all of them"}
-            </p>
-          </TileLink>
         </div>
       </div>
+
+      {/* The group's paperwork (ticket 239) — bookings and tickets, full width
+          because a file list wants length, not a rail. */}
+      {documentsEnabled() ? (
+        <DocumentsBlock tripId={tripId} docs={docs} viewerId={viewer.id} />
+      ) : null}
 
       {/* The week, last: it is the detail behind everything above, and the
           Days tab is where it is actually edited. */}

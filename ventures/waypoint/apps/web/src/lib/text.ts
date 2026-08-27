@@ -24,6 +24,8 @@ export const TEXT_CAPS = {
   eventNote: 2000,
   linkLabel: 120,
   packingLabel: 200,
+  /** A file's own name (ticket 239) — it rides in a response header twice. */
+  documentName: 200,
   packingKitName: 80,
 } as const;
 

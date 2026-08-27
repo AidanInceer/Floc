@@ -495,7 +495,7 @@ export function PillToggle<T extends string>({
             }}
             onClick={() => onChange(opt.value)}
             className={cx(
-              "relative z-10 flex-1 rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
+              "relative z-10 flex-1 whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
               active ? "text-sheet" : "text-ink-soft hover:text-ink",
             )}
           >

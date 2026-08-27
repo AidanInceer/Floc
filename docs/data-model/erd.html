@@ -441,6 +441,12 @@ on every entity.</p>
 <td>the Notes tab&#39;s document — one row per trip, unique on <code>trip_id</code></td>
 </tr>
 <tr>
+<td><code>trip</code></td>
+<td><code>document</code></td>
+<td>1&ndash;M</td>
+<td>files parked against the trip; <code>owner_id</code> null = shared, set = private</td>
+</tr>
+<tr>
 <td><code>note</code></td>
 <td><code>note_reaction</code></td>
 <td>1–M</td>
@@ -535,6 +541,17 @@ so a table of blocks would mean keeping two orderings honest for a read nobody
 makes. Saves are last-write-wins (rule 7): two people typing at once is a known
 gap, not a solved one. The voting board is one block inside the document and
 still reads <code>idea</code>/<code>idea_vote</code> — those tables are untouched.</p>
+<p><code>document</code> is a <strong>trip file</strong> (ticket 239) — a booking, a ticket, a visa
+scan. It mirrors <code>packing_line</code>&#39;s split rather than inventing a second one:
+<code>owner_id</code> null means shared with every member, and set means private to that
+one person and never read for anyone else. The bytes are not in the database —
+they sit on a storage volume under an opaque generated <code>storage_key</code>, and this
+row is the only thing that knows which trip they belong to, so every read of
+them goes through <code>requireTripAccess</code> and the owner-scoped
+<code>access.document</code> resolver first. The key is generated rather than derived from
+the file&#39;s name: a key the uploader chooses is a key the uploader can aim at
+another trip&#39;s file. Deleting is soft (rule 8) and is the uploader&#39;s alone —
+deliberately stricter than a shared packing line, which any member may drop.</p>
 <p><code>trip_invite</code> is a <strong>named invite</strong> (ticket 146) — one person asked one friend
 onto one trip, answered in-app on the invitee&#39;s next load. Deliberately not a
 <code>trip_membership</code> row with a status column: membership is what every trip read

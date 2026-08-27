@@ -14,6 +14,7 @@ import { db } from "@/db";
 import {
   day,
   dayEvent,
+  document,
   expense,
   idea,
   note,
@@ -64,6 +65,7 @@ export type TripAccess = {
   expense: (expenseId: number) => Promise<typeof expense.$inferSelect>;
   note: (noteId: number) => Promise<typeof note.$inferSelect>;
   packingLine: (lineId: number) => Promise<typeof packingLine.$inferSelect>;
+  document: (documentId: number) => Promise<typeof document.$inferSelect>;
 };
 
 export type TripMember = {
@@ -221,6 +223,30 @@ const resolvePackingLine = cache(
   },
 );
 
+/**
+ * Same owner scoping as a packing line, and it is the whole of the privacy
+ * guarantee: the serve route resolves the row through here before it reads a
+ * byte, so another member's private file 404s exactly as a fake id does.
+ */
+const resolveDocument = cache(
+  async (tripId: number, viewerId: string, documentId: number) => {
+    const row = await db
+      .select()
+      .from(document)
+      .where(
+        and(
+          eq(document.id, documentId),
+          eq(document.tripId, tripId),
+          or(isNull(document.ownerId), eq(document.ownerId, viewerId)),
+          isNull(document.deletedAt),
+        ),
+      )
+      .get();
+    if (!row) notFound();
+    return row;
+  },
+);
+
 const resolveExpense = cache(async (tripId: number, expenseId: number) => {
   const row = await db
     .select()
@@ -258,6 +284,8 @@ function scopedTo(tripId: number, viewerId: string) {
     expense: (expenseId: number) => resolveExpense(tripId, expenseId),
     note: (noteId: number) => resolveNote(tripId, noteId),
     packingLine: (lineId: number) => resolvePackingLine(tripId, viewerId, lineId),
+    document: (documentId: number) =>
+      resolveDocument(tripId, viewerId, documentId),
   };
 }
 

@@ -9,3 +9,6 @@ next-env.d.ts
 
 # Coverage reports (ticket 116) — generated, never committed
 /coverage
+
+# Local uploads volume (ticket 239) — never in the repo.
+.uploads/
