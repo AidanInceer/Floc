@@ -70,11 +70,10 @@ export default async function FriendsPage() {
           thing on the page waiting on you. */}
       <Panel
         title="Requests"
-        hint="Waiting on you, or waiting on them."
         className={incomingPeople.length > 0 ? "bg-pen-soft text-pen-deep" : undefined}
       >
         {incomingPeople.length === 0 && outgoingPeople.length === 0 ? (
-          <p className="text-sm text-ink-soft">No open requests.</p>
+          <EmptyState title="No requests yet" />
         ) : (
           <ul className="flex flex-col gap-2">
             {incomingPeople.map(({ requesterId, person }) => (
@@ -132,10 +131,7 @@ export default async function FriendsPage() {
         }
       >
         {acceptedPeople.length === 0 ? (
-          <EmptyState title="No friends yet">
-            Friends appear here once a trip you shared has ended, or once someone
-            accepts your request.
-          </EmptyState>
+          <EmptyState title="No friends yet" />
         ) : (
           <ul className="flex flex-col gap-2">
             {acceptedPeople.map(({ person, metOn }) => (
