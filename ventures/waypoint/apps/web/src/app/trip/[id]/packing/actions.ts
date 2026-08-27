@@ -4,9 +4,15 @@
 // personal one (ticket 220). Every line is resolved through
 // `access.packingLine`, which refuses another member's personal line the same
 // way it refuses a nonexistent id.
-import { parsePackTier, parseQuantityStep, resolvePackTier } from "@/lib/packing";
+import {
+  parsePackCategory,
+  parsePackTier,
+  parseQuantityStep,
+  resolvePackTier,
+} from "@/lib/packing";
 import { capRequiredText } from "@/lib/text";
 import { requireTripAccess } from "@/server/access";
+import { LIMITS } from "@/server/limits";
 import { ensureProfile } from "@/server/profile";
 import { getPackTier, setPackTier } from "@/server/membership";
 import { fillPersonalBag, packingPlanFor } from "@/server/packing-generator";
@@ -19,6 +25,8 @@ import {
   setPersonalPacked,
   stepPersonalQuantity,
   softDeletePackingLine,
+  softDeletePackingLines,
+  softDeleteWholeList,
   unclaimPackingLine,
 } from "@/server/packing";
 
@@ -27,7 +35,12 @@ export async function addPackingLine(tripId: number, formData: FormData) {
   const label = capRequiredText(formData.get("label"), "packingLabel");
   if (!label) throw new Error("A thing to pack needs a name");
 
-  await insertPackingLine(access.trip.id, access.viewer.id, label);
+  await insertPackingLine(
+    access.trip.id,
+    access.viewer.id,
+    label,
+    parsePackCategory(formData.get("category")),
+  );
 
   revalidatePacking(access.trip.id);
 }
@@ -80,7 +93,12 @@ export async function addPersonalPackingLine(tripId: number, formData: FormData)
   const label = capRequiredText(formData.get("label"), "packingLabel");
   if (!label) throw new Error("A thing to pack needs a name");
 
-  await insertPersonalPackingLine(access.trip.id, access.viewer.id, label);
+  await insertPersonalPackingLine(
+    access.trip.id,
+    access.viewer.id,
+    label,
+    parsePackCategory(formData.get("category")),
+  );
 
   revalidatePacking(access.trip.id);
 }
@@ -151,6 +169,50 @@ export async function fillMyPackingList(tripId: number) {
     tier: resolvePackTier(perTrip, profile.packTier),
     plan: await packingPlanFor(access.trip),
   });
+
+  revalidatePacking(access.trip.id);
+}
+
+/**
+ * Remove everything ticked, in one press (ticket 229). Every id is still
+ * resolved through `access.packingLine` one at a time — the bulk shape is a
+ * convenience for the person, never a way round the per-line check, so a set
+ * containing somebody else's personal line is refused whole rather than
+ * quietly filtered down to the allowed part.
+ */
+export async function removePackingLines(tripId: number, formData: FormData) {
+  const access = await requireTripAccess(tripId);
+
+  // Capped like every read of this table: the tick boxes can only ever offer
+  // what a list holds, so anything past that came from a hand-made POST and is
+  // a request to open one round-trip per id.
+  const ids = formData
+    .getAll("lineId")
+    .map((v) => Number(v))
+    .filter((n) => Number.isInteger(n) && n > 0)
+    .slice(0, LIMITS.packingLines);
+  if (ids.length === 0) return;
+
+  const lines = await Promise.all(ids.map((id) => access.packingLine(id)));
+
+  await softDeletePackingLines(lines.map((l) => l.id));
+
+  revalidatePacking(access.trip.id);
+}
+
+/**
+ * Wipe a whole list. `mine` picks which one, and it is the only input — the
+ * scope is decided here and applied in the SQL, so "clear my bag" can never be
+ * spelled as "clear someone else's". The shared list is the group's, so anyone
+ * on the trip may reset it, exactly as anyone may remove a single line from it.
+ */
+export async function resetPackingList(
+  tripId: number,
+  mine: boolean,
+) {
+  const access = await requireTripAccess(tripId);
+
+  await softDeleteWholeList(access.trip.id, mine ? access.viewer.id : null);
 
   revalidatePacking(access.trip.id);
 }

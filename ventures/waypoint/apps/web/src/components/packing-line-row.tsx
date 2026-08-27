@@ -3,6 +3,7 @@ import { ConfirmSubmit, SubmitButton } from "@/components/client-ui";
 import {
   CheckGlyph,
   CrossGlyph,
+  SelectLineBox,
   squareButton,
   tickBoxBase,
   tickBoxClass,
@@ -41,6 +42,7 @@ export function PackingLineRow({
   tripId,
   lineId,
   label,
+  selectFormId,
   claimants,
   viewerId,
   setClaim,
@@ -50,6 +52,8 @@ export function PackingLineRow({
   tripId: number;
   lineId: number;
   label: string;
+  /** The bulk-remove form this row's select box belongs to (ticket 229). */
+  selectFormId: string;
   claimants: PackingClaimant[];
   viewerId: string;
   setClaim: (tripId: number, lineId: number, claimed: boolean) => Promise<void>;
@@ -66,6 +70,8 @@ export function PackingLineRow({
 
   return (
     <li className="flex min-h-12 items-center gap-2 px-3 py-2 sm:gap-3 sm:px-4">
+      <SelectLineBox formId={selectFormId} lineId={lineId} label={label} />
+
       {mine ? (
         <form action={setPacked.bind(null, tripId, lineId, !mine.packedAt)}>
           {/* Deliberately not `Button`/`SubmitButton`: both carry `lift`, whose

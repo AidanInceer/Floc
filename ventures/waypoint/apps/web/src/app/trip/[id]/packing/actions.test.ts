@@ -25,6 +25,8 @@ import { getPackTier } from "@/server/membership";
 import {
   addPackingLine,
   fillMyPackingList,
+  removePackingLines,
+  resetPackingList,
   addPersonalPackingLine,
   removePackingLine,
   setPackingClaim,
@@ -47,7 +49,7 @@ beforeAll(migrateTestDb);
 beforeEach(async () => {
   await resetDb();
   world = await seedScenario();
-  await insertPackingLine(world.ours.id, world.admin, "Sun cream");
+  await insertPackingLine(world.ours.id, world.admin, "Sun cream", "toiletries");
   ourLineId = (await listPackingLines(world.ours.id))[0].id;
 });
 
@@ -153,7 +155,7 @@ describe("the personal list", () => {
   // Rule 5 again, one table deeper: same trip, so membership passes — it is
   // the owner scope that has to refuse, and refuse as a missing id.
   it("refuses another member's line as though it did not exist", async () => {
-    await insertPersonalPackingLine(world.ours.id, world.member, "Their meds");
+    await insertPersonalPackingLine(world.ours.id, world.member, "Their meds", "toiletries");
     const [theirs] = await listPersonalPackingLines(world.ours.id, world.member);
 
     signIn(world.admin);
@@ -205,5 +207,119 @@ describe("suggesting what to pack", () => {
     signIn(world.outsider);
     await expectNotFound(() => fillMyPackingList(world.ours.id));
     expect(await listPersonalPackingLines(world.ours.id, world.outsider)).toEqual([]);
+  });
+});
+
+describe("clearing lines in bulk", () => {
+  /** The ids the form would carry, as `getAll("lineId")` delivers them. */
+  const ticked = (...ids: number[]) => {
+    const fd = new FormData();
+    for (const id of ids) fd.append("lineId", String(id));
+    return fd;
+  };
+
+  const liveLabels = async (owner: string | null) =>
+    owner === null
+      ? (await listPackingLines(world.ours.id)).map((l) => l.label)
+      : (await listPersonalPackingLines(world.ours.id, owner)).map((l) => l.label);
+
+  async function addMine(label: string) {
+    await insertPersonalPackingLine(world.ours.id, world.admin, label, "other");
+    const mine = await listPersonalPackingLines(world.ours.id, world.admin);
+    return mine[mine.length - 1].id;
+  }
+
+  it("removes only the lines that were ticked", async () => {
+    signIn(world.admin);
+    const keep = await addMine("Keep me");
+    const drop = await addMine("Drop me");
+
+    await removePackingLines(world.ours.id, ticked(drop));
+
+    expect(await liveLabels(world.admin)).toEqual(["Keep me"]);
+    expect(keep).toBeDefined();
+  });
+
+  it("does nothing at all when nothing was ticked", async () => {
+    signIn(world.admin);
+    await addMine("Keep me");
+
+    await removePackingLines(world.ours.id, ticked());
+
+    expect(await liveLabels(world.admin)).toEqual(["Keep me"]);
+  });
+
+  /*
+   * The bulk shape is a convenience, never a way round the per-line check: one
+   * bad id refuses the whole set rather than quietly removing the allowed part,
+   * so a hand-made POST can't use a legitimate id as cover for someone else's.
+   */
+  it("refuses the whole set if any line isn't the presser's to touch (rule 5)", async () => {
+    signIn(world.member);
+    await insertPersonalPackingLine(world.ours.id, world.admin, "Their meds", "other");
+    const [theirs] = await listPersonalPackingLines(world.ours.id, world.admin);
+
+    await expectNotFound(() =>
+      removePackingLines(world.ours.id, ticked(ourLineId, theirs.id)),
+    );
+
+    expect(await liveLabels(null)).toContain("Sun cream");
+    expect(await liveLabels(world.admin)).toEqual(["Their meds"]);
+  });
+
+  it("refuses a trip you're not on (rule 5)", async () => {
+    signIn(world.outsider);
+    await expectNotFound(() => removePackingLines(world.ours.id, ticked(ourLineId)));
+    expect(await liveLabels(null)).toContain("Sun cream");
+  });
+
+  // A hand-made POST is the only way to send more ids than the list can hold,
+  // and each one costs a round trip — so the set is capped like every read is.
+  it("ignores ids past what a list could hold, and ids that are not ids", async () => {
+    signIn(world.admin);
+    const drop = await addMine("Drop me");
+    const flood = Array.from({ length: 600 }, (_, i) => i + 10_000);
+
+    await expectNotFound(() => removePackingLines(world.ours.id, ticked(...flood)));
+
+    await removePackingLines(world.ours.id, ticked(0, -1, drop));
+    expect(await liveLabels(world.admin)).toEqual([]);
+  });
+});
+
+describe("clearing a whole list", () => {
+  it("wipes your bag and leaves the shared list standing", async () => {
+    signIn(world.admin);
+    await insertPersonalPackingLine(world.ours.id, world.admin, "My socks", "clothes");
+
+    await resetPackingList(world.ours.id, true);
+
+    expect(await listPersonalPackingLines(world.ours.id, world.admin)).toEqual([]);
+    expect(await listPackingLines(world.ours.id)).toHaveLength(1);
+  });
+
+  it("wipes the shared list and leaves every bag alone", async () => {
+    signIn(world.admin);
+    await insertPersonalPackingLine(world.ours.id, world.admin, "My socks", "clothes");
+
+    await resetPackingList(world.ours.id, false);
+
+    expect(await listPackingLines(world.ours.id)).toEqual([]);
+    expect(await listPersonalPackingLines(world.ours.id, world.admin)).toHaveLength(1);
+  });
+
+  it("never reaches another member's bag", async () => {
+    await insertPersonalPackingLine(world.ours.id, world.member, "Their meds", "other");
+
+    signIn(world.admin);
+    await resetPackingList(world.ours.id, true);
+
+    expect(await listPersonalPackingLines(world.ours.id, world.member)).toHaveLength(1);
+  });
+
+  it("refuses a trip you're not on (rule 5)", async () => {
+    signIn(world.outsider);
+    await expectNotFound(() => resetPackingList(world.ours.id, false));
+    expect(await listPackingLines(world.ours.id)).toHaveLength(1);
   });
 });

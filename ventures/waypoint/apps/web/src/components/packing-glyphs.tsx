@@ -89,3 +89,30 @@ export function PlusGlyph() {
     </svg>
   );
 }
+
+/**
+ * The select box on a row (ticket 229). A real checkbox, associated to the bulk
+ * form by id rather than nesting inside it — a row already carries its own
+ * forms, and HTML has no nested forms. `accent-pen` keeps it on the one blue
+ * instead of the browser's.
+ */
+export function SelectLineBox({
+  formId,
+  lineId,
+  label,
+}: {
+  formId: string;
+  lineId: number;
+  label: string;
+}) {
+  return (
+    <input
+      type="checkbox"
+      form={formId}
+      name="lineId"
+      value={lineId}
+      aria-label={`Select ${label}`}
+      className="size-4 shrink-0 accent-pen"
+    />
+  );
+}

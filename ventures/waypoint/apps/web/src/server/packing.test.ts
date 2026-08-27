@@ -31,7 +31,7 @@ beforeEach(async () => {
 });
 
 async function addLine(label: string) {
-  await insertPackingLine(world.ours.id, world.admin, label);
+  await insertPackingLine(world.ours.id, world.admin, label, "other");
   const lines = await listPackingLines(world.ours.id);
   return lines[lines.length - 1].id;
 }
@@ -124,7 +124,7 @@ describe("claims", () => {
 
 describe("the personal list", () => {
   async function addMine(owner: string, label: string) {
-    await insertPersonalPackingLine(world.ours.id, owner, label);
+    await insertPersonalPackingLine(world.ours.id, owner, label, "other");
     const mine = await listPersonalPackingLines(world.ours.id, owner);
     return mine[mine.length - 1].id;
   }
@@ -137,7 +137,7 @@ describe("the personal list", () => {
   });
 
   it("keeps a shared line out of the personal list", async () => {
-    await insertPackingLine(world.ours.id, world.admin, "Speaker");
+    await insertPackingLine(world.ours.id, world.admin, "Speaker", "other");
     expect(await listPersonalPackingLines(world.ours.id, world.admin)).toHaveLength(0);
   });
 
@@ -165,7 +165,7 @@ describe("the personal list", () => {
 
 describe("a line's quantity", () => {
   async function addMine(label: string) {
-    await insertPersonalPackingLine(world.ours.id, world.admin, label);
+    await insertPersonalPackingLine(world.ours.id, world.admin, label, "other");
     const mine = await listPersonalPackingLines(world.ours.id, world.admin);
     return mine[mine.length - 1].id;
   }

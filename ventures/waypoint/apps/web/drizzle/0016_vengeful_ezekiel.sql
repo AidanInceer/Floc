@@ -1,0 +1,1 @@
+ALTER TABLE `packing_line` ADD `category` text DEFAULT 'other' NOT NULL;

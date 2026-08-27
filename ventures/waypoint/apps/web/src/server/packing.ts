@@ -6,12 +6,13 @@
  */
 import "server-only";
 
-import { and, asc, eq, isNull, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
 import { packingClaim, packingLine, user, userProfile } from "@/db/schema";
 import { MAX_PACK_QUANTITY, MIN_PACK_QUANTITY } from "@/lib/packing";
+import type { PackCategory } from "@/lib/packing";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
 
@@ -22,6 +23,7 @@ export function revalidatePacking(tripId: number): void {
 export type PackingLine = {
   id: number;
   label: string;
+  category: PackCategory;
   createdAt: Date;
 };
 
@@ -45,6 +47,7 @@ export async function listPackingLines(
     .select({
       id: packingLine.id,
       label: packingLine.label,
+      category: packingLine.category,
       createdAt: packingLine.createdAt,
     })
     .from(packingLine)
@@ -79,6 +82,7 @@ export async function listPersonalPackingLines(
     .select({
       id: packingLine.id,
       label: packingLine.label,
+      category: packingLine.category,
       createdAt: packingLine.createdAt,
       packedAt: packingLine.packedAt,
       quantity: packingLine.quantity,
@@ -128,8 +132,9 @@ export async function insertPackingLine(
   tripId: number,
   createdBy: string,
   label: string,
+  category: PackCategory,
 ): Promise<void> {
-  await db.insert(packingLine).values({ tripId, createdBy, label });
+  await db.insert(packingLine).values({ tripId, createdBy, label, category });
 }
 
 /** The same table, with an owner — author and owner are the same person by construction. */
@@ -137,10 +142,11 @@ export async function insertPersonalPackingLine(
   tripId: number,
   ownerId: string,
   label: string,
+  category: PackCategory,
 ): Promise<void> {
   await db
     .insert(packingLine)
-    .values({ tripId, createdBy: ownerId, ownerId, label });
+    .values({ tripId, createdBy: ownerId, ownerId, label, category });
 }
 
 /**
@@ -189,6 +195,39 @@ export async function setPersonalPacked(
         isNull(packingLine.deletedAt),
       ),
     );
+}
+
+/**
+ * Clear a whole list at once (ticket 229) — the shared one when `ownerId` is
+ * null, one person's bag when it isn't. Scoped by owner in the statement rather
+ * than by resolving ids first: "wipe my bag" must not be expressible as "wipe
+ * someone else's", whatever ids reach it.
+ */
+export async function softDeleteWholeList(
+  tripId: number,
+  ownerId: string | null,
+): Promise<void> {
+  await db
+    .update(packingLine)
+    .set({ deletedAt: new Date(), ...touch() })
+    .where(
+      and(
+        eq(packingLine.tripId, tripId),
+        ownerId === null
+          ? isNull(packingLine.ownerId)
+          : eq(packingLine.ownerId, ownerId),
+        isNull(packingLine.deletedAt),
+      ),
+    );
+}
+
+/** Several at once, from a tick-and-remove (ticket 229). The caller has already resolved every id through `access.packingLine`. */
+export async function softDeletePackingLines(lineIds: number[]): Promise<void> {
+  if (lineIds.length === 0) return;
+  await db
+    .update(packingLine)
+    .set({ deletedAt: new Date(), ...touch() })
+    .where(and(inArray(packingLine.id, lineIds), isNull(packingLine.deletedAt)));
 }
 
 export async function softDeletePackingLine(lineId: number): Promise<void> {

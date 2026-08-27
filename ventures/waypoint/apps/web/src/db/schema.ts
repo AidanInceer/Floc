@@ -10,7 +10,7 @@
 import { sql } from "drizzle-orm";
 import { CURRENCIES } from "@/lib/currency";
 import { DEFAULT_CATEGORY, EXPENSE_CATEGORIES } from "@/lib/expense-category";
-import { PACK_TIERS } from "@/lib/packing";
+import { PACK_CATEGORIES, PACK_TIERS } from "@/lib/packing";
 import {
   index,
   integer,
@@ -390,6 +390,10 @@ export const packingLine = sqliteTable(
      */
     ownerId: text("owner_id").references(() => user.id),
     label: text("label").notNull(),
+    /** Which heading it files under (ticket 229). `other` is the bucket for anything typed by hand. */
+    category: text("category", { enum: PACK_CATEGORIES })
+      .notNull()
+      .default("other"),
     /** How many, never below 1 — the row says "5 — t-shirt" rather than repeating itself. */
     quantity: integer("quantity").notNull().default(1),
     /** Personal lines only — see the note above. */

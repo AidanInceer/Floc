@@ -93,3 +93,120 @@ export function parseQuantityStep(value: unknown): 1 | -1 | null {
   if (s === "-1") return -1;
   return null;
 }
+
+/**
+ * What kind of thing it is (ticket 229). A fixed set, not free text: the point
+ * is that two people's lists group the same way, and the generator has to be
+ * able to file what it writes without inventing headings.
+ *
+ * Ordered the way a bag gets packed and the way the page renders them, with
+ * `other` last because it's the bucket for anything typed by hand.
+ */
+export const PACK_CATEGORIES = [
+  "essentials",
+  "clothes",
+  "toiletries",
+  "accessories",
+  "other",
+] as const;
+export type PackCategory = (typeof PACK_CATEGORIES)[number];
+
+export const PACK_CATEGORY_LABELS: Record<PackCategory, string> = {
+  essentials: "Essentials",
+  clothes: "Clothes",
+  toiletries: "Toiletries",
+  accessories: "Accessories",
+  other: "Other",
+};
+
+/** Anything off the list falls to `other` rather than failing — a category is filing, not data worth rejecting a row over. */
+export function parsePackCategory(value: unknown): PackCategory {
+  const s = String(value ?? "");
+  return (PACK_CATEGORIES as readonly string[]).includes(s)
+    ? (s as PackCategory)
+    : "other";
+}
+
+/** "all" is a real answer, not a missing one — an unknown filter shows everything rather than nothing (rule 11). */
+export function parseCategoryFilter(value: unknown): PackCategory | "all" {
+  const s = String(value ?? "");
+  return (PACK_CATEGORIES as readonly string[]).includes(s)
+    ? (s as PackCategory)
+    : "all";
+}
+
+
+/**
+ * How a packing list is ordered (ticket 229). `category` is the default and is
+ * the only one that groups — the other two are flat, because a heading over a
+ * list sorted by something else is two orderings fighting.
+ *
+ * `quantity` is offered on a personal bag only: a shared line has no count on
+ * screen, so ordering by one would be sorting by something invisible.
+ */
+export const PACK_SORTS = ["category", "name", "quantity"] as const;
+export type PackSort = (typeof PACK_SORTS)[number];
+
+export const PACK_SORT_LABELS: Record<PackSort, string> = {
+  category: "Category",
+  name: "Name",
+  quantity: "Most",
+};
+
+/** Falls back to `category` rather than failing — a bad sort in a URL is a shrug, not an error (rule 11). */
+export function parsePackSort(value: unknown, allowed: readonly PackSort[]): PackSort {
+  const s = String(value ?? "");
+  return (allowed as readonly string[]).includes(s) ? (s as PackSort) : "category";
+}
+
+/**
+ * The list in the chosen order. Name is a locale compare so "Trousers" files
+ * next to "trousers"; quantity is most-first, since the reason to ask is to see
+ * what you're carrying most of, and ties fall back to the name so the order is
+ * stable between renders rather than however the rows arrived.
+ */
+export function sortPackingLines<T extends { label: string; quantity?: number }>(
+  lines: T[],
+  sort: PackSort,
+): T[] {
+  const byName = (a: T, b: T) =>
+    a.label.localeCompare(b.label, undefined, { sensitivity: "base" });
+
+  if (sort === "name") return [...lines].sort(byName);
+  if (sort === "quantity") {
+    return [...lines].sort(
+      (a, b) => (b.quantity ?? 1) - (a.quantity ?? 1) || byName(a, b),
+    );
+  }
+  return lines;
+}
+
+/**
+ * One list, filtered and ordered, ready to render (ticket 229).
+ *
+ * A `category` of null on a chunk means "no heading" — sorting by name or
+ * quantity produces one flat list, because a category heading over rows ordered
+ * by something else is two orderings arguing in public. Sorting by category is
+ * the grouping; there is no separate switch for it.
+ *
+ * Empty categories are dropped, so a heading never sits over nothing.
+ */
+export function viewPackingLines<T extends { label: string; category: PackCategory; quantity?: number }>(
+  lines: T[],
+  view: { sort: PackSort; category: PackCategory | "all" },
+): { category: PackCategory | null; lines: T[] }[] {
+  const kept =
+    view.category === "all"
+      ? lines
+      : lines.filter((l) => l.category === view.category);
+
+  if (view.sort !== "category") {
+    const sorted = sortPackingLines(kept, view.sort);
+    return sorted.length > 0 ? [{ category: null, lines: sorted }] : [];
+  }
+
+  return PACK_CATEGORIES.map((category) => ({
+    category,
+    lines: kept.filter((l) => l.category === category),
+  })).filter((g) => g.lines.length > 0);
+}

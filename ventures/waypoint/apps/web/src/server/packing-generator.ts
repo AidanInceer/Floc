@@ -191,6 +191,7 @@ async function fillInTransaction(
         createdBy: ownerId,
         ownerId,
         label: item.label,
+        category: item.category,
         quantity: item.quantity,
       })),
     );

@@ -10,6 +10,7 @@
  */
 import type { PackTier } from "@/lib/packing";
 import { clampPackQuantity, MAX_PACK_QUANTITY } from "@/lib/packing";
+import type { PackCategory } from "@/lib/packing";
 import type { WeatherCondition } from "@/lib/weather";
 
 /**
@@ -26,7 +27,11 @@ export type PackContext = {
   tier: PackTier;
 };
 
-export type PackSuggestion = { label: string; quantity: number };
+export type PackSuggestion = {
+  label: string;
+  quantity: number;
+  category: PackCategory;
+};
 
 /**
  * Weather thresholds in °C. Deliberately generous: a suggestion that shows up
@@ -45,6 +50,8 @@ const TIER_SCALE: Record<PackTier, number> = {
 
 type Item = {
   label: string;
+  /** The heading it files under (ticket 229). */
+  category: PackCategory;
   /** One per this many nights, rounded up. Omitted = a fixed `base`. */
   perNights?: number;
   /** Flat count, before any spare. */
@@ -73,31 +80,35 @@ type Item = {
  * deletable row beats a silently missing passport.
  */
 const CATALOGUE: Item[] = [
-  { label: "underwear", perNights: 1, spare: 1, cap: 14 },
-  { label: "socks", perNights: 1, spare: 1, cap: 14 },
-  { label: "t-shirt", perNights: 1, cap: 10 },
-  { label: "trousers", perNights: 3, cap: 4 },
-  { label: "shorts", perNights: 3, cap: 4, needs: (c) => c.hot },
-  { label: "jumper", base: 1, needs: (c) => !c.hot || c.cold },
-  { label: "warm coat", base: 1, needs: (c) => c.cold },
-  { label: "rain jacket", base: 1, needs: (c) => c.wet },
-  { label: "swimwear", base: 1, needs: (c) => c.hot },
-  { label: "sleepwear", base: 1 },
-  { label: "spare shoes", base: 1 },
+  { label: "underwear", category: "clothes", perNights: 1, spare: 1, cap: 14 },
+  { label: "socks", category: "clothes", perNights: 1, spare: 1, cap: 14 },
+  { label: "t-shirt", category: "clothes", perNights: 1, cap: 10 },
+  { label: "trousers", category: "clothes", perNights: 3, cap: 4 },
+  { label: "shorts", category: "clothes", perNights: 3, cap: 4, needs: (c) => c.hot },
+  { label: "jumper", category: "clothes", base: 1, needs: (c) => !c.hot || c.cold },
+  { label: "warm coat", category: "clothes", base: 1, needs: (c) => c.cold },
+  { label: "rain jacket", category: "clothes", base: 1, needs: (c) => c.wet },
+  { label: "swimwear", category: "clothes", base: 1, needs: (c) => c.hot },
+  { label: "sleepwear", category: "clothes", base: 1 },
+  { label: "spare shoes", category: "clothes", base: 1 },
 
-  { label: "toothbrush", base: 1 },
-  { label: "toothpaste", base: 1 },
-  { label: "shampoo", base: 1 },
-  { label: "deodorant", base: 1 },
-  { label: "any medication", base: 1 },
-  { label: "sun cream", base: 1, needs: (c) => c.hot },
-  { label: "sunglasses", base: 1, needs: (c) => c.hot },
+  { label: "toothbrush", category: "toiletries", base: 1 },
+  { label: "toothpaste", category: "toiletries", base: 1 },
+  { label: "shampoo", category: "toiletries", base: 1 },
+  { label: "deodorant", category: "toiletries", base: 1 },
+  { label: "any medication", category: "toiletries", base: 1 },
+  { label: "sun cream", category: "toiletries", base: 1, needs: (c) => c.hot },
 
-  { label: "passport", base: 1 },
-  { label: "wallet and cards", base: 1 },
-  { label: "phone charger", base: 1 },
-  { label: "travel adapter", base: 1 },
-  { label: "water bottle", base: 1 },
+  { label: "passport", category: "essentials", base: 1 },
+  { label: "wallet and cards", category: "essentials", base: 1 },
+  { label: "phone", category: "essentials", base: 1 },
+  { label: "phone charger", category: "essentials", base: 1 },
+  { label: "keys", category: "essentials", base: 1 },
+  { label: "travel adapter", category: "essentials", base: 1 },
+
+  { label: "sunglasses", category: "accessories", base: 1, needs: (c) => c.hot },
+  { label: "water bottle", category: "accessories", base: 1 },
+  { label: "day bag", category: "accessories", base: 1 },
 ];
 
 /** No forecast means no opinion, not a guess — every weather item sits out. */
@@ -135,7 +146,11 @@ export function generatePackingList(ctx: PackContext): PackSuggestion[] {
     // The tier scales what the trip's length asked for; a flat `base` is a
     // count of one thing, and half a toothbrush is not a lighter bag.
     if (!item.perNights) {
-      out.push({ label: item.label, quantity: clampPackQuantity(item.base ?? 1) });
+      out.push({
+        label: item.label,
+        category: item.category,
+        quantity: clampPackQuantity(item.base ?? 1),
+      });
       continue;
     }
 
@@ -145,7 +160,11 @@ export function generatePackingList(ctx: PackContext): PackSuggestion[] {
       Math.ceil((nights / item.perNights) * scale) + (item.spare ?? 0);
     const cap = Math.ceil((item.cap ?? MAX_PACK_QUANTITY) * scale);
 
-    out.push({ label: item.label, quantity: clampPackQuantity(Math.min(wanted, cap)) });
+    out.push({
+      label: item.label,
+      category: item.category,
+      quantity: clampPackQuantity(Math.min(wanted, cap)),
+    });
   }
   return out;
 }

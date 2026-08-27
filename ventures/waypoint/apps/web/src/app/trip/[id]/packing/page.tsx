@@ -15,8 +15,24 @@ import {
   listPersonalPackingLines,
 } from "@/server/packing";
 import { ensureProfile } from "@/server/profile";
-import { PACK_TIERS, PACK_TIER_LABELS, resolvePackTier } from "@/lib/packing";
+import {
+  PACK_CATEGORY_LABELS,
+  PACK_SORTS,
+  PACK_TIERS,
+  PACK_TIER_LABELS,
+  parseCategoryFilter,
+  parsePackSort,
+  resolvePackTier,
+  viewPackingLines,
+} from "@/lib/packing";
+import type { PackCategory, PackSort } from "@/lib/packing";
+import {
+  CategorySelect,
+  PackingBulkBar,
+  PackingListFilters,
+} from "@/components/packing-controls";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { cx, EmptyState } from "@/components/ui";
 import { pillOff, pillOn, pillShape } from "@/components/account-ui";
 import { SubmitButton } from "@/components/client-ui";
@@ -33,14 +49,45 @@ import {
   stepPersonalPackingQuantity,
   setTripPackTier,
   fillMyPackingList,
+  removePackingLines,
+  resetPackingList,
 } from "./actions";
+
+/** The shared list shows no count, so ordering by one would sort by something invisible. */
+const SHARED_SORTS: readonly PackSort[] = ["category", "name"];
+
+type View = { sort: PackSort; category: PackCategory | "all" };
+
+/**
+ * One control changes, the rest stay put — a filter and a sort that reset each
+ * other are two controls fighting. Both lists' views live in one query string,
+ * prefixed, so ordering your bag never reorders the group's.
+ */
+function hrefBuilder(
+  path: string,
+  prefix: "shared" | "bag",
+  mine: View,
+  other: Record<string, string>,
+) {
+  return (patch: { sort?: PackSort; category?: PackCategory | "all" }) => {
+    const next = new URLSearchParams(other);
+    const sort = patch.sort ?? mine.sort;
+    const category = patch.category ?? mine.category;
+    if (sort !== "category") next.set(`${prefix}Sort`, sort);
+    if (category !== "all") next.set(`${prefix}Cat`, category);
+    const query = next.toString();
+    return query ? `${path}?${query}` : path;
+  };
+}
 
 export default async function PackingPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { id } = await params;
+  const [{ id }, query] = await Promise.all([params, searchParams]);
   const access = await requireTripAccess(id, `/trip/${id}/packing`);
   const tripId = access.trip.id;
 
@@ -53,6 +100,27 @@ export default async function PackingPage({
   ]);
 
   const tier = resolvePackTier(perTripTier, profile.packTier);
+
+  const path = `/trip/${tripId}/packing`;
+  const sharedView: View = {
+    sort: parsePackSort(query.sharedSort, SHARED_SORTS),
+    category: parseCategoryFilter(query.sharedCat),
+  };
+  const bagView: View = {
+    sort: parsePackSort(query.bagSort, PACK_SORTS),
+    category: parseCategoryFilter(query.bagCat),
+  };
+  // Each list keeps the other's controls in the query string, so ordering your
+  // bag never quietly reorders the group's.
+  const keep = (prefix: "shared" | "bag", view: View) =>
+    Object.fromEntries(
+      [
+        view.sort !== "category" ? [`${prefix}Sort`, view.sort] : null,
+        view.category !== "all" ? [`${prefix}Cat`, view.category] : null,
+      ].filter((e): e is [string, string] => e !== null),
+    );
+
+  const sharedGroups = viewPackingLines(lines, sharedView);
 
   // Seeded here rather than behind a button because that's what the profile
   // setting asks for (ticket 221). Safe on every render: the fill claims a
@@ -70,6 +138,7 @@ export default async function PackingPage({
   }
 
   const mine = await listPersonalPackingLines(tripId, access.viewer.id);
+  const bagGroups = viewPackingLines(mine, bagView);
 
   // One person, one avatar colour across every tab.
   const toneOf = new Map(access.members.map((m) => [m.userId, m.tone]));
@@ -108,31 +177,61 @@ export default async function PackingPage({
               className="w-full rounded-md border border-rule-strong bg-sheet px-4 py-2.5 text-sm placeholder:text-ink-faint focus-visible:border-pen"
             />
           </label>
+          <CategorySelect />
           <SubmitButton pendingLabel="Adding…">Add to the list</SubmitButton>
         </form>
 
-        <div className="mt-4">
+        {lines.length > 0 ? (
+          <>
+            <PackingListFilters
+              hrefFor={hrefBuilder(path, "shared", sharedView, keep("bag", bagView))}
+              sort={sharedView.sort}
+              category={sharedView.category}
+              sorts={SHARED_SORTS}
+            />
+            {/* Gated on what's on screen, not on what the list holds: a bar
+                offering to clear rows a filter is hiding is one press from
+                losing something you can't see. */}
+            {sharedGroups.length > 0 ? (
+              <PackingBulkBar
+                formId="shared-bulk"
+                removeSelected={removePackingLines.bind(null, tripId)}
+                reset={resetPackingList.bind(null, tripId, false)}
+                resetMessage="Clear the whole shared list for everyone — including anything a filter is hiding?"
+              />
+            ) : null}
+          </>
+        ) : null}
+
+        <div className="mt-4 space-y-6">
           {lines.length === 0 ? (
             <EmptyState title="No shared packing yet.">
               The gear one of you brings for everyone — a speaker, a kettle, the
               first-aid kit.
             </EmptyState>
+          ) : sharedGroups.length === 0 ? (
+            <EmptyState title="Nothing in that category.">
+              The shared list has lines, just none filed here.
+            </EmptyState>
           ) : (
-            <ul className="divide-y divide-rule overflow-hidden rounded-lg border border-rule bg-sheet">
-              {lines.map((line) => (
-                <PackingLineRow
-                  key={line.id}
-                  tripId={tripId}
-                  lineId={line.id}
-                  label={line.label}
-                  claimants={claimsByLine.get(line.id) ?? []}
-                  viewerId={access.viewer.id}
-                  setClaim={setPackingClaim}
-                  setPacked={setPackingPacked}
-                  remove={removePackingLine}
-                />
-              ))}
-            </ul>
+            sharedGroups.map((group) => (
+              <ListGroup key={group.category ?? "flat"} category={group.category}>
+                {group.lines.map((line) => (
+                  <PackingLineRow
+                    key={line.id}
+                    tripId={tripId}
+                    lineId={line.id}
+                    label={line.label}
+                    selectFormId="shared-bulk"
+                    claimants={claimsByLine.get(line.id) ?? []}
+                    viewerId={access.viewer.id}
+                    setClaim={setPackingClaim}
+                    setPacked={setPackingPacked}
+                    remove={removePackingLine}
+                  />
+                ))}
+              </ListGroup>
+            ))
           )}
         </div>
       </section>
@@ -210,33 +309,82 @@ export default async function PackingPage({
               className="w-full rounded-md border border-rule-strong bg-sheet px-4 py-2.5 text-sm placeholder:text-ink-faint focus-visible:border-pen"
             />
           </label>
+          <CategorySelect />
           <SubmitButton pendingLabel="Adding…">Add to my bag</SubmitButton>
         </form>
 
-        <div className="mt-4">
+        {mine.length > 0 ? (
+          <>
+            <PackingListFilters
+              hrefFor={hrefBuilder(path, "bag", bagView, keep("shared", sharedView))}
+              sort={bagView.sort}
+              category={bagView.category}
+              sorts={PACK_SORTS}
+            />
+            {bagGroups.length > 0 ? (
+              <PackingBulkBar
+                formId="bag-bulk"
+                removeSelected={removePackingLines.bind(null, tripId)}
+                reset={resetPackingList.bind(null, tripId, true)}
+                resetMessage="Clear your whole bag, including anything a filter is hiding? The shared list stays."
+              />
+            ) : null}
+          </>
+        ) : null}
+
+        <div className="mt-4 space-y-6">
           {mine.length === 0 ? (
             <EmptyState title="Your bag’s empty.">
               Only you can see this list.
             </EmptyState>
+          ) : bagGroups.length === 0 ? (
+            <EmptyState title="Nothing in that category.">
+              Your bag has lines, just none filed here.
+            </EmptyState>
           ) : (
-            <ul className="divide-y divide-rule overflow-hidden rounded-lg border border-rule bg-sheet">
-              {mine.map((line) => (
-                <PersonalPackingRow
-                  key={line.id}
-                  tripId={tripId}
-                  lineId={line.id}
-                  label={line.label}
-                  quantity={line.quantity}
-                  packedAt={line.packedAt}
-                  setPacked={setPersonalPackingPacked}
-                  step={stepPersonalPackingQuantity}
-                  remove={removePackingLine}
-                />
-              ))}
-            </ul>
+            bagGroups.map((group) => (
+              <ListGroup key={group.category ?? "flat"} category={group.category}>
+                {group.lines.map((line) => (
+                  <PersonalPackingRow
+                    key={line.id}
+                    tripId={tripId}
+                    lineId={line.id}
+                    label={line.label}
+                    selectFormId="bag-bulk"
+                    quantity={line.quantity}
+                    packedAt={line.packedAt}
+                    setPacked={setPersonalPackingPacked}
+                    step={stepPersonalPackingQuantity}
+                    remove={removePackingLine}
+                  />
+                ))}
+              </ListGroup>
+            ))
           )}
         </div>
       </section>
+    </div>
+  );
+}
+
+/** A category heading over its own list. No heading when the list is flat — see `viewPackingLines`. */
+function ListGroup({
+  category,
+  children,
+}: {
+  category: PackCategory | null;
+  children: ReactNode;
+}) {
+  return (
+    <div>
+      {category ? (
+        <h3 className="mb-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint">
+          {PACK_CATEGORY_LABELS[category]}
+        </h3>
+      ) : null}
+      <ul className="divide-y divide-rule overflow-hidden rounded-lg border border-rule bg-sheet">
+        {children}
+      </ul>
     </div>
   );
 }

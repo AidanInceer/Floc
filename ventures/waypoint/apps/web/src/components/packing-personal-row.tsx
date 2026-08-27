@@ -8,6 +8,7 @@ import {
   CrossGlyph,
   MinusGlyph,
   PlusGlyph,
+  SelectLineBox,
   squareButton,
   tickBoxBase,
   tickBoxClass,
@@ -23,6 +24,7 @@ export function PersonalPackingRow({
   tripId,
   lineId,
   label,
+  selectFormId,
   quantity,
   packedAt,
   setPacked,
@@ -32,6 +34,8 @@ export function PersonalPackingRow({
   tripId: number;
   lineId: number;
   label: string;
+  /** The bulk-remove form this row's select box belongs to (ticket 229). */
+  selectFormId: string;
   quantity: number;
   packedAt: Date | null;
   setPacked: (tripId: number, lineId: number, packed: boolean) => Promise<void>;
@@ -42,6 +46,8 @@ export function PersonalPackingRow({
 
   return (
     <li className="flex min-h-12 items-center gap-2 px-3 py-2 sm:gap-3 sm:px-4">
+      <SelectLineBox formId={selectFormId} lineId={lineId} label={label} />
+
       <form action={setPacked.bind(null, tripId, lineId, !packed)}>
         <button
           type="submit"

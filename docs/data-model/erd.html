@@ -166,6 +166,7 @@ on every entity.</p>
         string owner_id FK &quot;-&gt; USER.id, nullable — null is the shared list, set is that person's bag&quot;
         string label &quot;the thing to pack&quot;
         int quantity &quot;how many, default 1, never below 1&quot;
+        string category &quot;essentials | clothes | toiletries | accessories | other, default other (ticket 229)&quot;
         datetime packed_at &quot;nullable, personal lines only — a shared line asks PACKING_CLAIM instead&quot;
     }
 
