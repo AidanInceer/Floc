@@ -10,7 +10,7 @@
 import Link from "next/link";
 
 import { cx, menuItemClass } from "@/components/ui";
-import { ConfirmSubmit, Menu } from "@/components/client-ui";
+import { ConfirmSubmit, Menu, SubmitButton } from "@/components/client-ui";
 import {
   PACK_CATEGORIES,
   PACK_CATEGORY_LABELS,
@@ -243,5 +243,48 @@ export function CategorySelect({ defaultValue }: { defaultValue?: PackCategory }
         ))}
       </select>
     </label>
+  );
+}
+
+/**
+ * Copy one of your saved lists into this bag (ticket 230). A menu rather than
+ * a row of buttons: it is one press you make at the start of a trip and then
+ * never again, so it sits closed until asked. The last item is the way to make
+ * one, which is also the whole empty state.
+ */
+export function PackingKitMenu({
+  kits,
+  apply,
+}: {
+  kits: { id: number; name: string; itemCount: number }[];
+  apply: (kitId: number) => Promise<void>;
+}) {
+  return (
+    <Menu
+      label="Add a saved list"
+      trigger={<>Saved lists</>}
+      triggerClassName="shrink-0 rounded-full border border-rule-strong bg-sheet px-3 py-2.5 text-sm hover:bg-sheet-2 data-[open=true]:bg-sheet-2"
+    >
+      {kits.map((kit) => (
+        <form key={kit.id} action={apply.bind(null, kit.id)}>
+          <SubmitButton
+            variant="ghost"
+            pendingLabel="Adding…"
+            className={cx(menuItemClass, "w-full !justify-start")}
+          >
+            {kit.name}
+            <span className="ml-2 font-mono text-[10.5px] tabular-nums text-ink-faint">
+              {kit.itemCount}
+            </span>
+          </SubmitButton>
+        </form>
+      ))}
+      {kits.length > 0 ? (
+        <div className="my-1 border-t border-dotted border-rule-strong" />
+      ) : null}
+      <Link role="menuitem" href="/packing-lists" className={menuItemClass}>
+        {kits.length > 0 ? "Manage your lists" : "Make your first list"}
+      </Link>
+    </Menu>
   );
 }

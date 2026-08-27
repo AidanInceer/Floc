@@ -1,18 +1,14 @@
-import type { ReactNode } from "react";
-
 import { Badge, cx } from "@/components/ui";
 import { ConfirmSubmit } from "@/components/client-ui";
-import { MAX_PACK_QUANTITY, MIN_PACK_QUANTITY } from "@/lib/packing";
 import {
   CheckGlyph,
   CrossGlyph,
-  MinusGlyph,
-  PlusGlyph,
   SelectLineBox,
   squareButton,
   tickBoxBase,
   tickBoxClass,
 } from "@/components/packing-glyphs";
+import { PackingQuantity } from "@/components/packing-quantity";
 
 /**
  * One thing in your own bag (ticket 220). A separate component from
@@ -58,37 +54,12 @@ export function PersonalPackingRow({
         </button>
       </form>
 
-      {/* The count sits ahead of the label and shows even at one, so a row
-          never changes shape as you step it. */}
-      <span
-        className={cx("min-w-0 flex-1 truncate text-sm", packed && "text-ink-soft")}
-      >
-        <span className="font-mono tabular-nums text-ink-faint">
-          {quantity}
-        </span>
-        <span className="text-ink-faint">{" — "}</span>
-        {label}
-      </span>
-
-      <form
-        action={step.bind(null, tripId, lineId)}
-        className="flex shrink-0 items-center gap-0.5"
-      >
-        <StepButton
-          value="-1"
-          label={`One fewer ${label}`}
-          disabled={quantity <= MIN_PACK_QUANTITY}
-        >
-          <MinusGlyph />
-        </StepButton>
-        <StepButton
-          value="1"
-          label={`One more ${label}`}
-          disabled={quantity >= MAX_PACK_QUANTITY}
-        >
-          <PlusGlyph />
-        </StepButton>
-      </form>
+      <PackingQuantity
+        quantity={quantity}
+        label={label}
+        packed={packed}
+        step={step.bind(null, tripId, lineId)}
+      />
 
       <Badge
         tone={packed ? "agreed" : "open"}
@@ -113,34 +84,5 @@ export function PersonalPackingRow({
         </ConfirmSubmit>
       </form>
     </li>
-  );
-}
-
-/** Both step buttons submit the same form, so the value rides on the button. */
-function StepButton({
-  value,
-  label,
-  disabled,
-  children,
-}: {
-  value: string;
-  label: string;
-  disabled: boolean;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      type="submit"
-      name="step"
-      value={value}
-      disabled={disabled}
-      aria-label={label}
-      className={cx(
-        tickBoxBase,
-        "border-transparent text-ink-faint transition-colors hover:bg-sheet-2 hover:text-ink disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-ink-faint",
-      )}
-    >
-      {children}
-    </button>
   );
 }

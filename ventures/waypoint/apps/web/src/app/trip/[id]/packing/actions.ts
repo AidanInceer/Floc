@@ -16,6 +16,7 @@ import { LIMITS } from "@/server/limits";
 import { ensureProfile } from "@/server/profile";
 import { getPackTier, setPackTier } from "@/server/membership";
 import { fillPersonalBag, packingPlanFor } from "@/server/packing-generator";
+import { applyPackingKitToBag } from "@/server/packing-kits";
 import {
   claimPackingLine,
   insertPackingLine,
@@ -213,6 +214,24 @@ export async function resetPackingList(
   const access = await requireTripAccess(tripId);
 
   await softDeleteWholeList(access.trip.id, mine ? access.viewer.id : null);
+
+  revalidatePacking(access.trip.id);
+}
+
+/**
+ * Copy one of your saved lists into your bag on this trip (ticket 230).
+ * Additive and idempotent — a label already in the bag is left as it is, so
+ * pressing it twice never doubles a row you had already tuned. The kit is
+ * resolved by owner, so another account's list is not addressable here.
+ */
+export async function applyPackingKit(tripId: number, kitId: number) {
+  const access = await requireTripAccess(tripId);
+
+  await applyPackingKitToBag({
+    tripId: access.trip.id,
+    ownerId: access.viewer.id,
+    kitId,
+  });
 
   revalidatePacking(access.trip.id);
 }

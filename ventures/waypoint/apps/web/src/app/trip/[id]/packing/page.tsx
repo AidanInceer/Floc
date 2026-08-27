@@ -14,6 +14,7 @@ import {
   listPackingLines,
   listPersonalPackingLines,
 } from "@/server/packing";
+import { listPackingKits } from "@/server/packing-kits";
 import { ensureProfile } from "@/server/profile";
 import {
   PACK_SORTS,
@@ -29,6 +30,7 @@ import type { PackCategory, PackSort } from "@/lib/packing";
 import {
   CategorySelect,
   PackingBulkBar,
+  PackingKitMenu,
   PackingListFilters,
 } from "@/components/packing-controls";
 import {
@@ -59,6 +61,7 @@ import {
   fillMyPackingList,
   removePackingLines,
   resetPackingList,
+  applyPackingKit,
 } from "./actions";
 
 /** The shared list shows no count, so ordering by one would sort by something invisible. */
@@ -110,12 +113,13 @@ export default async function PackingPage({
   const access = await requireTripAccess(id, `/trip/${id}/packing`);
   const tripId = access.trip.id;
 
-  const [lines, claims, perTripTier, profile, plan] = await Promise.all([
+  const [lines, claims, perTripTier, profile, plan, kits] = await Promise.all([
     listPackingLines(tripId),
     listPackingClaims(tripId),
     getPackTier(tripId, access.viewer.id),
     ensureProfile(access.viewer.id),
     packingPlanFor(access.trip),
+    listPackingKits(access.viewer.id),
   ]);
 
   const tier = resolvePackTier(perTripTier, profile.packTier);
@@ -322,8 +326,8 @@ export default async function PackingPage({
           ) : (
             sharedGroups.map((group) => (
               <PackingGroup
-                key={group.category ?? "flat"}
-                category={group.category}
+                key={group.key}
+                heading={group.heading}
                 count={group.lines.length}
                 pinned={sharedView.select}
               >
@@ -365,14 +369,21 @@ export default async function PackingPage({
             </>
           }
           tools={
-            <form
-              action={addPersonalPackingLine.bind(null, tripId)}
-              className="flex min-w-0 flex-1 flex-wrap items-center gap-3"
-            >
-              {addBox("Add something to your bag")}
-              <CategorySelect />
-              <SubmitButton pendingLabel="Adding…">Add to my bag</SubmitButton>
-            </form>
+            <>
+              <form
+                action={addPersonalPackingLine.bind(null, tripId)}
+                className="flex min-w-0 flex-1 flex-wrap items-center gap-3"
+              >
+                {addBox("Add something to your bag")}
+                <CategorySelect />
+                <SubmitButton pendingLabel="Adding…">Add to my bag</SubmitButton>
+              </form>
+
+              <PackingKitMenu
+                kits={kits}
+                apply={applyPackingKit.bind(null, tripId)}
+              />
+            </>
           }
           footer={
             bagGroups.length > 0 ? (
@@ -399,8 +410,8 @@ export default async function PackingPage({
           ) : (
             bagGroups.map((group) => (
               <PackingGroup
-                key={group.category ?? "flat"}
-                category={group.category}
+                key={group.key}
+                heading={group.heading}
                 count={group.lines.length}
                 pinned={bagView.select}
               >

@@ -22,6 +22,7 @@ export const TEXT_CAPS = {
   eventNote: 2000,
   linkLabel: 120,
   packingLabel: 200,
+  packingKitName: 80,
 } as const;
 
 export type TextCap = keyof typeof TEXT_CAPS;

@@ -67,6 +67,8 @@ export async function listPackingLines(
 export type PersonalPackingLine = PackingLine & {
   packedAt: Date | null;
   quantity: number;
+  /** The saved list it came from, if any (ticket 230) — it heads its own group. */
+  kitName: string | null;
 };
 
 /**
@@ -86,6 +88,7 @@ export async function listPersonalPackingLines(
       createdAt: packingLine.createdAt,
       packedAt: packingLine.packedAt,
       quantity: packingLine.quantity,
+      kitName: packingLine.kitName,
     })
     .from(packingLine)
     .where(

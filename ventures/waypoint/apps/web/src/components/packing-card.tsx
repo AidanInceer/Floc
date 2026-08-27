@@ -14,8 +14,6 @@
  */
 import { cx } from "@/components/ui";
 import { DisclosureGlyph } from "@/components/packing-glyphs";
-import { PACK_CATEGORY_LABELS } from "@/lib/packing";
-import type { PackCategory } from "@/lib/packing";
 
 const summaryBase =
   "flex cursor-pointer list-none items-center gap-x-4 gap-y-2 [&::-webkit-details-marker]:hidden";
@@ -84,17 +82,17 @@ export function PackingCount({
 }
 
 /**
- * A category's rows. The heading is a tinted strip rather than floating text,
+ * One heading's rows. The heading is a tinted strip rather than floating text,
  * which is what makes the grouping visible now the list is one continuous
- * surface. Null category means the list is flat — see `viewPackingLines`.
+ * surface. Null means the list is flat — see `viewPackingLines`.
  */
 export function PackingGroup({
-  category,
+  heading,
   count,
   pinned,
   children,
 }: {
-  category: PackCategory | null;
+  heading: string | null;
   count: number;
   /**
    * Held open, because a folded group keeps its rows in the DOM and their tick
@@ -104,11 +102,11 @@ export function PackingGroup({
   pinned: boolean;
   children: React.ReactNode;
 }) {
-  if (!category) return <ul className="divide-y divide-rule">{children}</ul>;
+  if (!heading) return <ul className="divide-y divide-rule">{children}</ul>;
 
-  const heading = (
+  const title = (
     <>
-      <span>{PACK_CATEGORY_LABELS[category]}</span>
+      <span>{heading}</span>
       <span className="tabular-nums">{count}</span>
     </>
   );
@@ -117,7 +115,7 @@ export function PackingGroup({
     return (
       <div>
         <h3 className={cx(headingStrip, "flex items-center gap-4 pl-4")}>
-          {heading}
+          {title}
         </h3>
         <ul className="divide-y divide-rule">{children}</ul>
       </div>
@@ -130,7 +128,7 @@ export function PackingGroup({
         <span className="shrink-0 transition-transform group-open/group:rotate-90">
           <DisclosureGlyph />
         </span>
-        {heading}
+        {title}
       </summary>
       <ul className="divide-y divide-rule">{children}</ul>
     </details>

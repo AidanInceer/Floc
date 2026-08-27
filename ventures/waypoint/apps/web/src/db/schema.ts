@@ -396,6 +396,13 @@ export const packingLine = sqliteTable(
       .default("other"),
     /** How many, never below 1 — the row says "5 — t-shirt" rather than repeating itself. */
     quantity: integer("quantity").notNull().default(1),
+    /**
+     * The saved list this row was copied from, by name (ticket 230). The name,
+     * not a foreign key: the copy is a snapshot, so renaming or deleting the
+     * kit must not rewrite or orphan a bag you have already packed. Null is an
+     * ordinary row, filed under its category.
+     */
+    kitName: text("kit_name"),
     /** Personal lines only — see the note above. */
     packedAt: integer("packed_at", { mode: "timestamp" }),
     ...audit,
@@ -427,6 +434,46 @@ export const packingClaim = sqliteTable(
   (t) => [
     uniqueIndex("packing_claim_unique_idx").on(t.packingLineId, t.userId),
   ],
+);
+
+/**
+ * A saved packing list of your own (ticket 230) — "photography kit", "gym
+ * stuff". Yours, not a trip's: it has no `trip_id`, and it is copied into a
+ * trip's bag rather than linked to one, so editing the kit later never rewrites
+ * a bag you have already tidied.
+ *
+ * Called a kit here because "packing list" already means the trip's list; the
+ * UI says "saved list", which is what a person calls it.
+ */
+export const packingKit = sqliteTable(
+  "packing_kit",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    ownerId: text("owner_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    ...audit,
+  },
+  (t) => [index("packing_kit_owner_idx").on(t.ownerId)],
+);
+
+/** One thing in a saved list. Same three fields a real packing row carries, so applying one is a straight copy. */
+export const packingKitItem = sqliteTable(
+  "packing_kit_item",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    packingKitId: integer("packing_kit_id")
+      .notNull()
+      .references(() => packingKit.id, { onDelete: "cascade" }),
+    label: text("label").notNull(),
+    category: text("category", { enum: PACK_CATEGORIES })
+      .notNull()
+      .default("other"),
+    quantity: integer("quantity").notNull().default(1),
+    ...audit,
+  },
+  (t) => [index("packing_kit_item_kit_idx").on(t.packingKitId)],
 );
 
 export const availability = sqliteTable(

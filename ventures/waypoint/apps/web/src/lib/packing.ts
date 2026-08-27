@@ -184,17 +184,36 @@ export function sortPackingLines<T extends { label: string; quantity?: number }>
 /**
  * One list, filtered and ordered, ready to render (ticket 229).
  *
- * A `category` of null on a chunk means "no heading" — sorting by name or
+ * A `heading` of null on a chunk means "no heading" — sorting by name or
  * quantity produces one flat list, because a category heading over rows ordered
  * by something else is two orderings arguing in public. Sorting by category is
  * the grouping; there is no separate switch for it.
  *
- * Empty categories are dropped, so a heading never sits over nothing.
+ * A row copied in from a saved list heads its own group under that list's name
+ * (ticket 230), after the fixed categories: you added "Photography" as a lump,
+ * so it stays a lump you can find, rather than being scattered across four
+ * headings the moment it lands.
+ *
+ * Empty groups are dropped, so a heading never sits over nothing.
  */
-export function viewPackingLines<T extends { label: string; category: PackCategory; quantity?: number }>(
+export type PackingLineGroup<T> = {
+  /** Stable across renders — the category name, or `kit:<name>` for a saved list. */
+  key: string;
+  heading: string | null;
+  lines: T[];
+};
+
+export function viewPackingLines<
+  T extends {
+    label: string;
+    category: PackCategory;
+    quantity?: number;
+    kitName?: string | null;
+  },
+>(
   lines: T[],
   view: { sort: PackSort; category: PackCategory | "all" },
-): { category: PackCategory | null; lines: T[] }[] {
+): PackingLineGroup<T>[] {
   const kept =
     view.category === "all"
       ? lines
@@ -202,11 +221,29 @@ export function viewPackingLines<T extends { label: string; category: PackCatego
 
   if (view.sort !== "category") {
     const sorted = sortPackingLines(kept, view.sort);
-    return sorted.length > 0 ? [{ category: null, lines: sorted }] : [];
+    return sorted.length > 0 ? [{ key: "flat", heading: null, lines: sorted }] : [];
   }
 
-  return PACK_CATEGORIES.map((category) => ({
-    category,
-    lines: kept.filter((l) => l.category === category),
-  })).filter((g) => g.lines.length > 0);
+  const byCategory: PackingLineGroup<T>[] = PACK_CATEGORIES.map((category) => ({
+    key: category,
+    heading: PACK_CATEGORY_LABELS[category],
+    lines: kept.filter((l) => !l.kitName && l.category === category),
+  }));
+
+  const kits = new Map<string, T[]>();
+  for (const l of kept) {
+    if (!l.kitName) continue;
+    const group = kits.get(l.kitName) ?? [];
+    group.push(l);
+    kits.set(l.kitName, group);
+  }
+
+  return [
+    ...byCategory,
+    ...[...kits].map(([name, group]) => ({
+      key: `kit:${name}`,
+      heading: name,
+      lines: group,
+    })),
+  ].filter((g) => g.lines.length > 0);
 }

@@ -26,6 +26,10 @@ export const LIMITS = {
   expenseSplits: 10_000,
   /** Things on one trip's shared packing list. */
   packingLines: 500,
+  /** Saved packing lists one account can keep. A shelf of kits, not an archive. */
+  packingKits: 50,
+  /** Things in one saved list. */
+  packingKitItems: 200,
   /** People on one trip, and so also the size of the roster every page loads. */
   members: 100,
   /** Trips one account can be on — the walk when that account is deleted. */

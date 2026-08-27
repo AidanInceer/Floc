@@ -167,6 +167,7 @@ on every entity.</p>
         string label &quot;the thing to pack&quot;
         int quantity &quot;how many, default 1, never below 1&quot;
         string category &quot;essentials | clothes | toiletries | accessories | other, default other (ticket 229)&quot;
+        string kit_name &quot;nullable — the saved list this row was copied from, by name; heads its own group (ticket 230)&quot;
         datetime packed_at &quot;nullable, personal lines only — a shared line asks PACKING_CLAIM instead&quot;
     }
 
@@ -175,6 +176,20 @@ on every entity.</p>
         int packing_line_id FK &quot;-&gt; PACKING_LINE.id&quot;
         string user_id FK &quot;-&gt; USER.id&quot;
         datetime packed_at &quot;nullable — ticked by the claimer alone; the line is packed when every live claim is&quot;
+    }
+
+    PACKING_KIT {
+        int id PK
+        string owner_id FK &quot;-&gt; USER.id&quot;
+        string name &quot;a saved list of your own — no trip, reusable (ticket 230)&quot;
+    }
+
+    PACKING_KIT_ITEM {
+        int id PK
+        int packing_kit_id FK &quot;-&gt; PACKING_KIT.id&quot;
+        string label
+        int quantity &quot;default 1&quot;
+        string category &quot;same set as PACKING_LINE&quot;
     }
 
     DAY {
@@ -340,6 +355,18 @@ on every entity.</p>
 <td><code>packing_line</code></td>
 <td>1–M</td>
 <td>via <code>owner_id</code> — a personal list, read for nobody but its owner</td>
+</tr>
+<tr>
+<td><code>user</code></td>
+<td><code>packing_kit</code></td>
+<td>1–M</td>
+<td>saved lists, not tied to any trip — copied into a bag, never linked (ticket 230)</td>
+</tr>
+<tr>
+<td><code>packing_kit</code></td>
+<td><code>packing_kit_item</code></td>
+<td>1–M</td>
+<td>the same three fields a <code>packing_line</code> carries, so applying one is a straight copy</td>
 </tr>
 <tr>
 <td><code>trip</code></td>

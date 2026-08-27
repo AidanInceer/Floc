@@ -50,6 +50,9 @@ export function AccountMenu({
       <Link role="menuitem" href="/settings" className={menuItemClass}>
         Settings
       </Link>
+      <Link role="menuitem" href="/packing-lists" className={menuItemClass}>
+        Saved lists
+      </Link>
       <div className="my-1 border-t border-dotted border-rule-strong" />
       <SignOutButton role="menuitem" className={menuItemClass} />
     </Menu>

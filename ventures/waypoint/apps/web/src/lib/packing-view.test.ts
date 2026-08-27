@@ -75,11 +75,11 @@ describe("sorting", () => {
 describe("the rendered view", () => {
   it("groups under headings in a fixed order, and drops empty ones", () => {
     const view = viewPackingLines(bag, { sort: "category", category: "all" });
-    expect(view.map((g) => g.category)).toEqual([
-      "essentials",
-      "clothes",
-      "toiletries",
-      "accessories",
+    expect(view.map((g) => g.heading)).toEqual([
+      "Essentials",
+      "Clothes",
+      "Toiletries",
+      "Accessories",
     ]);
     expect(labels(view[1].lines)).toEqual(["socks", "t-shirt"]);
   });
@@ -87,7 +87,7 @@ describe("the rendered view", () => {
   it("goes flat and headingless once you sort by something else", () => {
     const view = viewPackingLines(bag, { sort: "name", category: "all" });
     expect(view).toHaveLength(1);
-    expect(view[0].category).toBeNull();
+    expect(view[0].heading).toBeNull();
     expect(labels(view[0].lines)).toEqual([
       "passport",
       "shampoo",
@@ -116,5 +116,20 @@ describe("the rendered view", () => {
     const before = labels(bag);
     viewPackingLines(bag, { sort: "name", category: "all" });
     expect(labels(bag)).toEqual(before);
+  });
+
+  it("gives a saved list its own heading, after the fixed categories", () => {
+    const view = viewPackingLines(
+      [
+        ...bag,
+        { ...line("tripod", "accessories"), kitName: "Photography" },
+        { ...line("ND filter", "other"), kitName: "Photography" },
+      ],
+      { sort: "category", category: "all" },
+    );
+    expect(view.at(-1)?.heading).toBe("Photography");
+    expect(labels(view.at(-1)!.lines)).toEqual(["tripod", "ND filter"]);
+    // and it hasn't leaked into the heading it would otherwise have filed under
+    expect(labels(view[3].lines)).toEqual(["water bottle"]);
   });
 });
