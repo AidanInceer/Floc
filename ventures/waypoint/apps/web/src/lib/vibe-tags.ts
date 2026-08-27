@@ -7,9 +7,10 @@
 import { normaliseTag } from "@/lib/tags";
 
 /**
- * Lower-case, as stored. Cut back to five (ticket 201 follow-up): the wall of
- * thirty read as a survey, and matching across accounts is worth more on a few
- * tags everybody actually picks than on a long tail nobody does.
+ * Lower-case, as stored. Cut from thirty to five (ticket 201 follow-up)
+ * because the wall read as a survey, then back up to ten (ticket 236) — five
+ * was too few to say anything about a person, and matching across accounts
+ * still works while the list is short enough to read at a glance.
  */
 export const VIBE_TAGS = [
   "early starts",
@@ -17,10 +18,12 @@ export const VIBE_TAGS = [
   "city breaks",
   "beaches",
   "road trips",
+  "hiking",
+  "food first",
+  "museums",
+  "festivals",
+  "slow mornings",
 ] as const;
-
-/** The whole vocabulary — nothing to ration while the list is this short. */
-const MAX_VIBE_TAGS = 5;
 
 /** Form input → the column. Seed-only enforced here too, not just in the UI — a hand-crafted POST must not invent a tag. */
 export function parseVibeTags(input: (string | null | undefined)[]): string[] {
@@ -31,7 +34,6 @@ export function parseVibeTags(input: (string | null | undefined)[]): string[] {
     const tag = normaliseTag(raw);
     if (!allowed.has(tag) || out.includes(tag)) continue;
     out.push(tag);
-    if (out.length >= MAX_VIBE_TAGS) break;
   }
   return out;
 }

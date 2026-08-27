@@ -9,10 +9,14 @@
  * there is no name to edit and no colour to choose. Client-side because the
  * chips toggle; the save is still the page's server action, and the selection
  * posts as one hidden `vibeTag` input per chosen chip.
+ *
+ * A chip's pastel is decoration, not meaning (ticket 236) — it comes from the
+ * position in the vocabulary, so a tag keeps the same colour everywhere and
+ * the row doesn't read as one long stripe of blue.
  */
 import { useState } from "react";
 
-import { cx } from "@/components/ui";
+import { PASTEL_SKINS, cx } from "@/components/ui";
 import { VIBE_TAGS } from "@/lib/vibe-tags";
 
 export function VibePicker({ selected }: { selected: string[] }) {
@@ -26,7 +30,7 @@ export function VibePicker({ selected }: { selected: string[] }) {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap gap-1.5">
-        {VIBE_TAGS.map((tag) => {
+        {VIBE_TAGS.map((tag, i) => {
           const on = picked.includes(tag);
           return (
             <button
@@ -35,10 +39,10 @@ export function VibePicker({ selected }: { selected: string[] }) {
               aria-pressed={on}
               onClick={() => toggle(tag)}
               className={cx(
-                "rounded-full border px-2.5 py-1 font-mono text-[10.5px] uppercase tracking-[0.06em] transition-colors",
+                "rounded-full border px-3 py-1.5 text-sm font-medium transition-colors",
                 on
-                  ? "border-transparent bg-pen text-sheet"
-                  : "border-rule text-ink-soft hover:bg-sheet-2",
+                  ? cx("border-transparent", PASTEL_SKINS[i % PASTEL_SKINS.length])
+                  : "border-rule text-ink-soft hover:bg-sheet-2 hover:text-ink",
               )}
             >
               {tag}

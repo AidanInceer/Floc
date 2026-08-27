@@ -45,9 +45,14 @@ export async function ensureProfile(
   return created;
 }
 
-/** Every profile edit lands on the same page. */
+/**
+ * Both faces of an edit: most of what you change about yourself is now
+ * submitted from /settings but read back on /profile (ticket 236), and the
+ * client Router Cache holds each `?section=` URL separately.
+ */
 export function revalidateProfile(): void {
   revalidatePath("/profile");
+  revalidatePath("/settings");
 }
 
 /**

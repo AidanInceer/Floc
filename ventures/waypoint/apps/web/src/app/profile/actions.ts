@@ -30,13 +30,25 @@ export async function updateIdentity(formData: FormData): Promise<{ error?: stri
 
   const displayName = capText(formData.get("displayName"), "displayName");
   const avatarUrl = capText(formData.get("avatarUrl"), "avatarUrl");
-  const homeCurrency = String(formData.get("homeCurrency") ?? "GBP") as Currency;
 
+  await updateProfileFields(viewer.id, { displayName, avatarUrl });
+
+  revalidateProfile();
+  return {};
+}
+
+// Its own action since 236 gave it its own row — saving it alongside the name
+// would blank whichever of the two the open editor didn't carry.
+export async function updateCurrency(formData: FormData): Promise<{ error?: string }> {
+  const viewer = await requireUser();
+  await ensureProfile(viewer.id);
+
+  const homeCurrency = String(formData.get("homeCurrency") ?? "GBP") as Currency;
   if (!CURRENCIES.includes(homeCurrency)) {
     return { error: "Pick a currency Waypoint supports." };
   }
 
-  await updateProfileFields(viewer.id, { displayName, avatarUrl, homeCurrency });
+  await updateProfileFields(viewer.id, { homeCurrency });
 
   revalidateProfile();
   return {};

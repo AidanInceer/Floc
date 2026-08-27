@@ -267,9 +267,6 @@ export function TravelMap({
             )}
           </ul>
           ) : null}
-          <p className="mt-2 text-xs text-ink-faint">
-            Countries from your trips are filled in already.
-          </p>
         </div>
       ) : marked.length > 0 ? (
         // Read-only fallback list for anyone the drawing doesn't work for.

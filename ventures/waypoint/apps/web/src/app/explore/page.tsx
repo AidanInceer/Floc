@@ -58,7 +58,7 @@ export default async function ExplorePage({
 
       <nav
         aria-label="Filter by region"
-        className="mt-8 flex flex-wrap items-center gap-2"
+        className="mt-8 flex flex-wrap items-center justify-center gap-2"
       >
         <span className="typed mr-1">Region</span>
         <ButtonLink

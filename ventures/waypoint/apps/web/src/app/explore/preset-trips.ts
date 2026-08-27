@@ -76,7 +76,7 @@ export const PRESET_TRIPS: PresetTrip[] = [
   },
   {
     id: "scottish-highlands-bothy",
-    title: "Highlands bothy week",
+    title: "Highlands walking week",
     operator: "Waypoint editorial",
     editorial: true,
     region: "Europe",
