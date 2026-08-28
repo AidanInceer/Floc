@@ -82,6 +82,12 @@ reviewer’s own taste.
   `0.4.0 #93: feat: split the profile into two faces`. Version bumps
   `apps/web/package.json` in the same commit (minor=feature, patch=fix). Body
   ends `Closes AidanInceer/Waypoint#<n>`. Types: `feat|fix|docs|refactor|chore|test`.
+  Work with no ticket behind it — a tweak asked for mid-session, a drive-by fix
+  — uses the literal `#no-ticket` in that slot and drops the `Closes` line:
+  `0.62.2 #no-ticket: fix: use the colourful OSM map style`. **Don't invent a
+  number, and don't borrow the last commit's** — a wrong `Closes` shuts someone
+  else's issue. Don't open an issue just to have one to cite either; ask only if
+  the work looks big enough to deserve tracking.
 - **Deployment is Railway**, driven by `railway.json` at the repo root: it runs
   the migration script, then starts `waypoint-web`. A push to `main` deploys.
   Env vars live in Railway's own Variables tab, never in the repo.
