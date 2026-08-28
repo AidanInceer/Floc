@@ -1,14 +1,15 @@
 "use client";
 
 /**
- * The upload control (ticket 239) — a sheet holding a file picker and the one
- * decision that matters: shared with the trip, or yours alone. It defaults to
- * whichever list you were looking at when you pressed it.
+ * The upload control (ticket 239) — a sheet holding a file picker and the two
+ * decisions that go with it: who sees it, and what it files under. Both sit on
+ * one line beside the verb, because each is a single small control and stacking
+ * them left the sheet mostly empty.
  *
  * The native `<input type="file">` is hidden rather than styled: it renders as
- * "Choose file · No file chosen" and then keeps that label after a pick, which
- * reads as if nothing happened. The zone below is the control, and it says what
- * you actually chose.
+ * "Choose file · No file chosen" and keeps that label after a pick, which reads
+ * as if nothing happened. The zone below is the control, and it says what you
+ * actually chose.
  */
 import { useRef, useState } from "react";
 
@@ -20,7 +21,7 @@ import {
   segmentOn,
   segmentShape,
 } from "@/components/packing-card";
-import { Select, Stack, cx } from "@/components/ui";
+import { Select, cx } from "@/components/ui";
 import {
   DOCUMENT_ACCEPT,
   DOC_CATEGORIES,
@@ -41,18 +42,21 @@ export function DocumentUpload({
   return (
     <Sheet trigger="Upload" title="Add a file" triggerClassName={className}>
       <ActionForm action={uploadDocument.bind(null, tripId)}>
-        <Stack gap={4}>
-          <FilePicker />
+        <FilePicker />
+        <div className="mt-4 flex flex-wrap items-end gap-x-5 gap-y-3">
           <ScopeChoice initial={scope} />
           <CategoryChoice />
-          <div>
+          <div className="ml-auto">
             <SubmitButton pendingLabel="Uploading…">Upload</SubmitButton>
           </div>
-        </Stack>
+        </div>
       </ActionForm>
     </Sheet>
   );
 }
+
+const LABEL =
+  "block font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-soft";
 
 function FilePicker() {
   const input = useRef<HTMLInputElement>(null);
@@ -79,11 +83,16 @@ function FilePicker() {
       {/* No `required`: the control is hidden, so the browser would block the
           submit and anchor its validation bubble to a 1px box — the button
           just reads as dead. `uploadDocument` answers "Pick a file first". */}
+      {/* Out of the tab order: `sr-only` hides it but keeps it focusable, so
+          the keyboard gained a stop with no name and no visible ring. The
+          button below is the control, and `click()` still reaches this. */}
       <input
         ref={input}
         type="file"
         name="file"
         accept={DOCUMENT_ACCEPT}
+        tabIndex={-1}
+        aria-hidden
         className="sr-only"
         onChange={(e) => setPicked(e.target.files?.[0] ?? null)}
       />
@@ -101,13 +110,25 @@ function FilePicker() {
           accept(e.dataTransfer.files);
         }}
         className={cx(
-          "flex w-full items-center gap-3 rounded-lg border border-dashed px-4 py-4 text-left transition-colors",
-          over ? "border-pen bg-pen-soft" : "border-rule-strong hover:bg-sheet-2",
+          "flex w-full items-center gap-3 rounded-lg border px-4 py-4 text-left",
+          "transition-[background-color,border-color,transform] duration-[.22s] ease-[cubic-bezier(.2,.85,.3,1)]",
+          // Pressing it opens the OS picker, which takes a moment — without a
+          // pressed state the click reads as having missed.
+          "active:scale-[0.995] active:bg-pen-soft",
+          "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pen",
+          // One ternary, not a dashed base with a solid override: two utilities
+          // from the same group are decided by stylesheet order, not class-list
+          // order, so the override would not reliably win (see `menuItemClass`).
+          // Dashed means empty, and the border is the only part of the zone
+          // that says so at a glance.
+          over || picked
+            ? "border-solid border-pen bg-pen-soft"
+            : "border-dashed border-rule-strong hover:border-pen hover:bg-sheet-2",
         )}
       >
         {picked ? (
           <>
-            <span className="shrink-0 rounded-full bg-sheet-3 px-2 py-0.5 text-xs font-semibold">
+            <span className="shrink-0 rounded-full bg-sheet px-2 py-0.5 text-xs font-semibold">
               {kindLabel(picked.type)}
             </span>
             <span className="min-w-0 flex-1">
@@ -123,7 +144,7 @@ function FilePicker() {
         ) : (
           <span className="flex-1">
             <span className="block text-sm font-semibold text-pen">
-              Choose a file
+              {over ? "Drop it here" : "Choose a file"}
             </span>
             <span className="block text-xs text-ink-soft">
               PDF or image, up to 10 MB
@@ -144,9 +165,7 @@ function ScopeChoice({ initial }: { initial: "shared" | "private" }) {
 
   return (
     <fieldset>
-      <legend className="mb-2 font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-soft">
-        Who can see it
-      </legend>
+      <legend className={cx(LABEL, "mb-1.5")}>Who can see it</legend>
       <SegmentedField>
         {(
           [
@@ -154,7 +173,14 @@ function ScopeChoice({ initial }: { initial: "shared" | "private" }) {
             ["private", "Just you"],
           ] as const
         ).map(([value, label]) => (
-          <label key={value} className={cx(segmentShape, "cursor-pointer", scope === value ? segmentOn : segmentOff)}>
+          <label
+            key={value}
+            className={cx(
+              segmentShape,
+              "cursor-pointer",
+              scope === value ? segmentOn : segmentOff,
+            )}
+          >
             <input
               type="radio"
               name="scope"
@@ -175,10 +201,8 @@ function ScopeChoice({ initial }: { initial: "shared" | "private" }) {
 function CategoryChoice() {
   return (
     <label className="block">
-      <span className="mb-2 block font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-soft">
-        File under
-      </span>
-      <Select name="category" defaultValue="other">
+      <span className={cx(LABEL, "mb-1.5")}>File under</span>
+      <Select name="category" defaultValue="other" className="!w-auto">
         {DOC_CATEGORIES.map((c) => (
           <option key={c} value={c}>
             {DOC_CATEGORY_LABELS[c]}
