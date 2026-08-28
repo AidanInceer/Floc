@@ -101,7 +101,9 @@ export function IdeasBlockBody() {
             className="w-full rounded-md border border-rule-strong bg-sheet px-4 py-2.5 text-sm placeholder:text-ink-faint focus-visible:border-pen"
           />
         </label>
-        <SubmitButton pendingLabel="Pinning…">Pin it to the board</SubmitButton>
+        <SubmitButton pendingLabel="Pinning…" className="w-full sm:w-auto">
+          Pin it to the board
+        </SubmitButton>
       </form>
 
       {inOrder.length === 0 ? (

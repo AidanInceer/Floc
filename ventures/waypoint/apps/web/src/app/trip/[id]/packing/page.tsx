@@ -206,7 +206,7 @@ export default async function PackingPage({
   const bagPacked = mine.filter((l) => l.packedAt !== null).length;
 
   const addBox = (label: string) => (
-    <label className="min-w-[14rem] flex-1">
+    <label className="min-w-0 flex-1">
       <span className="sr-only">{label}</span>
       <input
         name="label"
@@ -226,8 +226,8 @@ export default async function PackingPage({
           (ticket 229): the tier is how much you like to take, and the button is
           the only thing that reads it. Side by side, that link is visible. */}
       <section className="mt-6 rounded-xl border border-rule bg-sheet px-4 py-4">
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
-          <h2 className="typed !mb-0">How you pack</h2>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-3 sm:gap-x-4">
+          <h2 className="typed !mb-0 w-full sm:w-auto">How you pack</h2>
 
           {/* Each segment is its own submit — picking a tier is the whole
               interaction, so there is nothing left for a Save button. */}
@@ -254,9 +254,12 @@ export default async function PackingPage({
 
           {/* Additive, so the label promises a top-up rather than a rebuild —
               pressing it never costs you an edit. */}
-          <form action={fillMyPackingList.bind(null, tripId)} className="ml-auto">
-            <SubmitButton pendingLabel="Working it out…">
-              Fill my bag at this level
+          <form
+            action={fillMyPackingList.bind(null, tripId)}
+            className="ml-auto shrink-0"
+          >
+            <SubmitButton pendingLabel="Working it out…" className="!px-3 sm:!px-5">
+              Pack my bag
             </SubmitButton>
           </form>
         </div>
@@ -306,11 +309,14 @@ export default async function PackingPage({
           tools={
             <form
               action={addPackingLine.bind(null, tripId)}
-              className="flex min-w-0 flex-1 flex-wrap items-center gap-3"
+              className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3"
             >
               {addBox("Add something to pack")}
               <CategorySelect />
-              <SubmitButton pendingLabel="Adding…">Add to the list</SubmitButton>
+              <SubmitButton pendingLabel="Adding…" className="shrink-0">
+                <span className="sm:hidden">Add</span>
+                <span className="hidden sm:inline">Add to the list</span>
+              </SubmitButton>
             </form>
           }
           footer={
@@ -375,6 +381,11 @@ export default async function PackingPage({
               <h2 className="typed !mb-0">Your bag</h2>
               <PackingCount total={mine.length} packed={bagPacked} />
 
+              <PackingKitMenu
+                kits={kits}
+                apply={applyPackingKit.bind(null, tripId)}
+              />
+
               {mine.length > 0 ? (
                 <PackingListFilters
                   hrefFor={bagHref}
@@ -389,17 +400,15 @@ export default async function PackingPage({
             <>
               <form
                 action={addPersonalPackingLine.bind(null, tripId)}
-                className="flex min-w-0 flex-1 flex-wrap items-center gap-3"
+                className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3"
               >
                 {addBox("Add something to your bag")}
                 <CategorySelect />
-                <SubmitButton pendingLabel="Adding…">Add to my bag</SubmitButton>
+                <SubmitButton pendingLabel="Adding…" className="shrink-0">
+                  <span className="sm:hidden">Add</span>
+                  <span className="hidden sm:inline">Add to my bag</span>
+                </SubmitButton>
               </form>
-
-              <PackingKitMenu
-                kits={kits}
-                apply={applyPackingKit.bind(null, tripId)}
-              />
             </>
           }
           footer={

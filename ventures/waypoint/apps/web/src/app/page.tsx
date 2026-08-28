@@ -160,8 +160,10 @@ export default async function LandingPage() {
         </SectionHead>
 
         {/* Icon rail, scrolled sideways — the domains, the way the trip tabs
-            read across the top of a trip. */}
-        <div className="scroll-x-bare mt-8 -mx-1 flex justify-center gap-1 px-1">
+            read across the top of a trip. The edges fade where it overflows:
+            a hard cut read as a clipped row rather than a scrollable one, and
+            `justify-center` on an overflowing track hides its own start. */}
+        <div className="scroll-x-bare mt-8 -mx-1 flex justify-start gap-1 px-1 [mask-image:linear-gradient(to_right,#000_calc(100%-3rem),transparent)] md:justify-center md:[mask-image:none]">
           {rail.map((r) => (
             <span
               key={r.label}

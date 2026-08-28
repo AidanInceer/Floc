@@ -724,7 +724,10 @@ export function DaysCalendar({
             ›
           </Button>
         </div>
-        <p className="min-w-[11rem] text-sm font-semibold" aria-live="polite">
+        {/* Announced, not drawn: the column heads below already say which day
+            you are on, so printing it again cost a row and said nothing. It
+            stays live so the arrows still report where they landed. */}
+        <p className="sr-only" aria-live="polite">
           {rangeLabel}
         </p>
 

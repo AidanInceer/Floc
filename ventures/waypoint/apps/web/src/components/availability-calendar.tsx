@@ -264,7 +264,7 @@ export function AvailabilityCalendar({
       {/* One row at every width (ticket 134): a wrap stranded the arrows on
           their own line. */}
       <div className="mb-4 flex items-center justify-between gap-2">
-        <div className="inline-flex shrink-0 gap-1 rounded-full bg-sheet/60 p-1">
+        <div className="scroll-x-bare flex min-w-0 flex-1 gap-1 rounded-full bg-sheet/60 p-1 sm:flex-none">
           {(hasWeather
             ? (["mine", "everyone", "dates", "weather"] as const)
             : (["mine", "everyone", "dates"] as const)
@@ -277,7 +277,7 @@ export function AvailabilityCalendar({
               className={cx(
                 // `whitespace-nowrap`: survive being squeezed next to the arrows
                 // rather than breaking "The dates" over two lines.
-                "whitespace-nowrap rounded-full px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.06em] transition-colors sm:px-3",
+                "shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.06em] transition-colors sm:px-3",
                 view === v
                   ? "bg-pen text-sheet"
                   : "text-ink-soft hover:bg-sheet",
@@ -295,7 +295,7 @@ export function AvailabilityCalendar({
         </div>
 
         {/* Arrows give up width, not the switch — a squeeze clipped "The dates". */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex shrink-0 items-center gap-1.5">
           <Button
             variant="secondary"
             className="!px-2.5"

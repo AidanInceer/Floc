@@ -159,9 +159,16 @@ function HighlightRow({
           <span className="nums text-sm">
             {formatMoney(preset.priceFromMinor, preset.currency)} each, roughly
           </span>
-          <form action={startTripFromPreset} className="ml-auto">
+          <form
+            action={startTripFromPreset}
+            className="w-full sm:ml-auto sm:w-auto"
+          >
             <input type="hidden" name="presetId" value={preset.id} />
-            <SubmitButton variant="primary" pendingLabel="Starting…">
+            <SubmitButton
+              variant="primary"
+              pendingLabel="Starting…"
+              className="w-full sm:w-auto"
+            >
               Start this trip
             </SubmitButton>
           </form>

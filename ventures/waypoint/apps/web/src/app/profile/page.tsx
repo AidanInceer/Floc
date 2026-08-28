@@ -57,7 +57,7 @@ export default async function ProfilePage() {
             </p>
           </div>
           {vibeTags.length ? (
-            <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
+            <div className="flex w-full min-w-0 flex-none flex-wrap gap-1.5 sm:w-auto sm:flex-1">
               {vibeTags.map((t) => (
                 <Badge key={t} tone="marine">
                   {t}

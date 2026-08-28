@@ -63,7 +63,7 @@ export function PersonalPackingRow({
   if (gone) return null;
 
   return (
-    <li className="flex min-h-12 items-center gap-2 px-3 py-2 sm:gap-3 sm:px-4">
+    <li className="flex min-h-12 items-center gap-1.5 px-3 py-2 sm:gap-3 sm:px-4">
       <SelectLineBox formId={selectFormId} lineId={lineId} label={label} />
 
       <form
@@ -91,12 +91,11 @@ export function PersonalPackingRow({
         {label}
       </span>
 
-      <Badge
-        tone={packed ? "agreed" : "open"}
-        className="shrink-0 whitespace-nowrap"
-      >
-        {packed ? "Packed" : "Not packed"}
-      </Badge>
+      <span className="hidden shrink-0 sm:block">
+        <Badge tone={packed ? "agreed" : "open"} className="whitespace-nowrap">
+          {packed ? "Packed" : "Not packed"}
+        </Badge>
+      </span>
 
       <PackingStepper
         shown={shown}

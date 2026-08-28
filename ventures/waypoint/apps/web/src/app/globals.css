@@ -429,6 +429,7 @@
    */
   .route-map-frame {
     position: relative;
+    isolation: isolate;
     overflow: hidden;
     border: 1px solid var(--rule);
     border-radius: var(--radius-md);

@@ -411,7 +411,7 @@ function SectionRail({ current }: { current: SectionId }) {
   return (
     <nav
       aria-label="Settings sections"
-      className="flex flex-row flex-wrap items-center gap-1 rounded-[1.3125rem] bg-sheet-3 p-1 sm:flex-col sm:items-stretch"
+      className="scroll-x-bare flex flex-row items-center gap-1 rounded-full bg-sheet-3 p-1 sm:flex-col sm:items-stretch sm:overflow-visible sm:rounded-[1.3125rem]"
     >
       {SECTIONS.map((s) => {
         const active = s.id === current;
@@ -422,7 +422,7 @@ function SectionRail({ current }: { current: SectionId }) {
             href={`/settings?section=${s.id}`}
             aria-current={active ? "page" : undefined}
             className={cx(
-              "rounded-full px-4 py-1.5 text-sm font-medium transition-colors sm:text-left",
+              "shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-colors sm:text-left",
               active && danger
                 ? "bg-red text-sheet"
                 : active

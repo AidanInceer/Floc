@@ -189,10 +189,10 @@ export function PillChoice<T extends string>({
         <div
           role="radiogroup"
           aria-labelledby={labelId}
-          className="flex max-w-full flex-wrap items-center gap-1 rounded-full bg-sheet-3 p-1"
+          className="flex w-full flex-col gap-1 rounded-xl bg-sheet-3 p-1 sm:w-auto sm:flex-row sm:items-center sm:rounded-full"
         >
           {options.map((o) => (
-            <label key={o.value} className="min-w-0">
+            <label key={o.value} className="block min-w-0">
               <input
                 type="radio"
                 name={name}

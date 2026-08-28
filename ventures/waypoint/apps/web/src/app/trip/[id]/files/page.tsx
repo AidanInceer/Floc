@@ -72,22 +72,26 @@ export default async function FilesPage({
         </p>
       ) : (
         <>
-          <div className="mt-5 flex flex-wrap items-center gap-2 rounded-full border border-rule bg-sheet px-3 py-2.5">
-            <FilterPill href={href("all")} on={category === "all"}>
-              All
-            </FilterPill>
-            {DOC_CATEGORIES.map((c) => {
-              const n = docs.filter((d) => d.category === c).length;
-              // A heading nothing is filed under is a control that does
-              // nothing — it appears when something lands there.
-              if (n === 0 && category !== c) return null;
-              return (
-                <FilterPill key={c} href={href(c)} on={category === c}>
-                  {DOC_CATEGORY_LABELS[c]} &middot; {n}
-                </FilterPill>
-              );
-            })}
-            <span className="ml-auto">
+          {/* The pills scroll rather than wrap: wrapping dropped Upload onto a
+              second line at phone width, where it read as a stray button. */}
+          <div className="mt-5 flex items-center gap-2 rounded-full border border-rule bg-sheet px-3 py-2.5">
+            <div className="scroll-x-bare flex min-w-0 flex-1 items-center gap-2">
+              <FilterPill href={href("all")} on={category === "all"}>
+                All
+              </FilterPill>
+              {DOC_CATEGORIES.map((c) => {
+                const n = docs.filter((d) => d.category === c).length;
+                // A heading nothing is filed under is a control that does
+                // nothing — it appears when something lands there.
+                if (n === 0 && category !== c) return null;
+                return (
+                  <FilterPill key={c} href={href(c)} on={category === c}>
+                    {DOC_CATEGORY_LABELS[c]} &middot; {n}
+                  </FilterPill>
+                );
+              })}
+            </div>
+            <span className="shrink-0">
               <DocumentUpload tripId={tripId} scope="shared" />
             </span>
           </div>
@@ -207,7 +211,7 @@ function FilterPill({
     <Link
       href={href}
       className={cx(
-        "rounded-full px-3.5 py-1.5 text-sm transition-colors",
+        "shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm transition-colors",
         on
           ? "bg-ink text-sheet"
           : "border border-rule text-ink-soft hover:text-ink",

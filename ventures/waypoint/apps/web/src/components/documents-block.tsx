@@ -35,9 +35,9 @@ export function DocumentsBlock({
 
   return (
     <section className="mt-4 rounded-lg bg-sheet p-6 ring-1 ring-rule">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <h2 className="font-display text-lg">Documents</h2>
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <h2 className="font-display text-lg">Documents</h2>
+        <div className="flex w-full items-center gap-3 sm:w-auto">
           <PillToggle
             label="Which files"
             value={scope}
@@ -48,8 +48,10 @@ export function DocumentsBlock({
               { value: "private", label: `Yours · ${mine.length}` },
             ]}
           />
+          <span className="ml-auto shrink-0">
+            <DocumentUpload tripId={tripId} scope={scope} />
+          </span>
         </div>
-        <DocumentUpload tripId={tripId} scope={scope} />
       </div>
 
       {shown.length === 0 ? (

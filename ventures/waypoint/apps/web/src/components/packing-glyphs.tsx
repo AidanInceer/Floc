@@ -10,7 +10,7 @@
 // clicked, and the hover transform replaying on the fresh element reads as the
 // button bouncing (ticket 219). Colour still moves.
 export const squareButton =
-  "!size-7 !shrink-0 !p-0 !transition-colors hover:!translate-y-0 hover:!shadow-none";
+  "!size-6 !shrink-0 !p-0 !transition-colors hover:!translate-y-0 hover:!shadow-none sm:!size-7";
 
 /** The tick box, styled by whether it's ticked. A plain button, deliberately — see `PackingLineRow`. */
 export const tickBoxClass = (packed: boolean): string =>
@@ -19,7 +19,7 @@ export const tickBoxClass = (packed: boolean): string =>
     : "border-rule-strong bg-sheet text-ink-faint/60 hover:text-ink-soft";
 
 export const tickBoxBase =
-  "inline-flex size-7 shrink-0 items-center justify-center rounded-full border";
+  "inline-flex size-6 shrink-0 items-center justify-center rounded-full border sm:size-7";
 
 export function CheckGlyph() {
   return (
