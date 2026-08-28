@@ -63,6 +63,10 @@ export function RouteMap({
         scrollWheelZoom: false,
       });
 
+      // Leaflet's own "Leaflet" prefix is not a licence condition (BSD-2, the
+      // notice lives in the source). MapTiler's and OSM's attribution below is.
+      map.attributionControl.setPrefix(false);
+
       // mouseout fires on every pin crossed, so disable hangs off the
       // container's mouseleave instead (doesn't bubble). Arming is sticky for
       // the map's life (ticket 82) — leaving and returning re-arms rather

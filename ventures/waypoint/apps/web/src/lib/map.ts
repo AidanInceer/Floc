@@ -1,24 +1,35 @@
 /**
- * Tile source for the Route map (v0.2 tickets 15/12; MapTiler added for
- * English labels). Two providers, chosen at build time by whether a MapTiler
- * key is present:
+ * Tile source for the Route map (v0.2 tickets 15/12). Two providers, chosen at
+ * build time by whether a MapTiler key is present:
  *
- * - With `NEXT_PUBLIC_MAPTILER_KEY`: MapTiler Streets, `language=en`, so place
- *   names read in English everywhere rather than the local script (Japanese in
- *   Japan, etc.). The key is public by design — MapTiler keys are restricted by
- *   HTTP referrer in their dashboard, not kept secret — so `NEXT_PUBLIC_` is
- *   correct.
+ * - With `NEXT_PUBLIC_MAPTILER_KEY`: MapTiler's `openstreetmap` style, the
+ *   classic colourful OSM look. The key is public by design — MapTiler keys are
+ *   restricted by HTTP referrer in their dashboard, not kept secret — so
+ *   `NEXT_PUBLIC_` is correct.
  * - Without a key (dev, or unconfigured deploy): raw OpenStreetMap tiles, the
- *   original source. Labels stay local, but the map still works — rule 11,
- *   degrade don't crash.
+ *   original source. The map still works — rule 11, degrade don't crash.
  *
- * Whichever renders, its attribution must stay visible (Leaflet's own control
- * counts). OSM policy: https://operations.osmfoundation.org/policies/tiles/
+ * These are raster tiles, and raster is the deliberate choice. MapTiler does
+ * publish this style as vector (`style.json`), which would stay sharp between
+ * zoom levels and prefer `name:en` labels — but rendering it needs MapLibre GL
+ * inside Leaflet, and that was tried and reverted: the layer mounted and the
+ * style, sprite and tiles.json all fetched 200, yet no vector tile (`.pbf`)
+ * was ever requested and the canvas stayed blank. Don't retry without solving
+ * that first.
+ *
+ * `language=en` is not sent because this raster style ignores it: the labels
+ * are already painted into the JPEG in local script (Japanese in Japan, Greek
+ * in Greece). Verified — the tile is byte-identical with and without it.
+ *
+ * Whichever renders, its attribution must stay visible. MapTiler's terms and
+ * OSM's ODbL both require it; Leaflet's own "Leaflet" prefix does not, and is
+ * switched off in route-map.tsx.
+ * OSM policy: https://operations.osmfoundation.org/policies/tiles/
  */
 const MAPTILER_KEY = process.env.NEXT_PUBLIC_MAPTILER_KEY;
 
 export const TILE_URL = MAPTILER_KEY
-  ? `https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${MAPTILER_KEY}&language=en`
+  ? `https://api.maptiler.com/maps/openstreetmap/{z}/{x}/{y}.jpg?key=${MAPTILER_KEY}`
   : "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 
 export const TILE_ATTRIBUTION = MAPTILER_KEY
