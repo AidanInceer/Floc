@@ -53,3 +53,5 @@ human-*.md
 !**/backlog/*.html
 .agents/
 **/mockups/
+# Private docs — stack accounts, credential inventories. Never committed.
+docs/private/
