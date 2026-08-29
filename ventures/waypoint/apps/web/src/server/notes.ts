@@ -8,12 +8,11 @@
  *
  * Owns: soft-delete (rule 8) including the reaction toggle's revive-not-insert
  * behaviour; one-level-deep threading (ticket 06, split across `resolveParent`
- * and `softDeleteNoteAndReplies`); the body cap; and per-scope revalidation.
+ * and `softDeleteNoteAndReplies`); and the body cap.
  */
 import "server-only";
 
 import { and, eq, isNull } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
 import { note, noteReaction } from "@/db/schema";
@@ -23,25 +22,6 @@ import { touch } from "@/server/audit";
 
 /** Re-exported from `lib/text.ts` (ticket 113) — predates the others' move there. */
 export const NOTE_BODY_MAX = TEXT_CAPS.noteBody;
-
-/** Revalidates the tab a scope is rendered on — the layout path alone doesn't refresh the page's own router cache. */
-export function revalidateThread(tripId: number, scope: NoteScope): void {
-  revalidatePath(pathFor(tripId, scope));
-}
-
-function pathFor(tripId: number, scope: NoteScope): string {
-  switch (scope) {
-    case "idea":
-      return `/trip/${tripId}/notes`;
-    case "day_event":
-    case "day":
-      return `/trip/${tripId}/days`;
-    case "expense":
-      return `/trip/${tripId}/money`;
-    case "trip":
-      return `/trip/${tripId}/overview`;
-  }
-}
 
 /** One live note of this trip's. Scoped by trip, so a foreign id reads as gone. */
 export async function findNote(tripId: number, noteId: number) {

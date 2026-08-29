@@ -17,9 +17,9 @@ import {
   friendOfFriend,
   friendshipBetween,
   openPendingRequest,
-  revalidateFriendship,
 } from "@/server/friends";
 import { canSeeFriendsOf, relationTo } from "@/server/visibility";
+import { refresh } from "@/server/freshness";
 
 /**
  * The only way to open a request (ticket 96) — no add-by-email form. The id
@@ -64,9 +64,9 @@ export async function requestFriendById(formData: FormData): Promise<{ error?: s
     ]),
   );
 
-  revalidateFriendship(target.id);
+  refresh({ kind: "friendship", otherId: target.id });
   // The button lives on the middle person's page, so that's what redraws.
-  if (viaChain) revalidateFriendship(viaId);
+  if (viaChain) refresh({ kind: "friendship", otherId: viaId });
   return {};
 }
 
@@ -76,7 +76,7 @@ export async function acceptFriend(formData: FormData): Promise<void> {
 
   await acceptPendingRequest(requesterId, viewer.id);
 
-  revalidateFriendship(requesterId);
+  refresh({ kind: "friendship", otherId: requesterId });
 }
 
 export async function declineFriend(formData: FormData): Promise<void> {
@@ -85,7 +85,7 @@ export async function declineFriend(formData: FormData): Promise<void> {
 
   await dropPendingRequest(requesterId, viewer.id);
 
-  revalidateFriendship(requesterId);
+  refresh({ kind: "friendship", otherId: requesterId });
 }
 
 export async function cancelRequest(formData: FormData): Promise<void> {
@@ -95,7 +95,7 @@ export async function cancelRequest(formData: FormData): Promise<void> {
   // Same write as declining, from the other end of the pair.
   await dropPendingRequest(viewer.id, targetId);
 
-  revalidateFriendship(targetId);
+  refresh({ kind: "friendship", otherId: targetId });
 }
 
 export async function removeFriend(formData: FormData): Promise<void> {
@@ -104,5 +104,5 @@ export async function removeFriend(formData: FormData): Promise<void> {
 
   await dropFriendship(viewer.id, otherId);
 
-  revalidateFriendship(otherId);
+  refresh({ kind: "friendship", otherId });
 }

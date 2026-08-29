@@ -12,17 +12,18 @@
 import "server-only";
 
 import { and, asc, eq, inArray, isNull, not, sql } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
 import { day, dayEvent, expense, place } from "@/db/schema";
 import type { DayEventType, TransportType } from "@/db/schema";
-import { dateRange } from "@/lib/dates";
+import { addDays as addDaysToDate, dateRange } from "@/lib/dates";
 import { orderEvents } from "@/lib/event-order";
 import type { DayLoad } from "@/lib/trip-window";
 import { capRequiredText, capText } from "@/lib/text";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
+import { refresh } from "@/server/freshness";
+import { setTripDateRange } from "@/server/membership";
 
 export function moveItem<T>(items: T[], from: number, to: number): T[] {
   if (from === to || from < 0 || to < 0 || from >= items.length || to >= items.length) {
@@ -32,12 +33,6 @@ export function moveItem<T>(items: T[], from: number, to: number): T[] {
   const [moved] = next.splice(from, 1);
   next.splice(to, 0, moved);
   return next;
-}
-
-/** Days and Overview both draw off these rows (ticket 142); refresh both or neither. */
-export function revalidateItinerary(tripId: number): void {
-  revalidatePath(`/trip/${tripId}/days`);
-  revalidatePath(`/trip/${tripId}/overview`);
 }
 
 export type ItineraryDay = {
@@ -127,7 +122,7 @@ export async function applyTripWindow(
   }
 
   await ensureDays(tripId, dates);
-  revalidateItinerary(tripId);
+  refresh({ kind: "itinerary", tripId });
 }
 
 /* ---------------------------------------------- the reads the tabs render */
@@ -541,3 +536,34 @@ export async function rebaseEventOrder(ids: number[]): Promise<void> {
   );
 }
 
+/**
+ * Appends `count` days after `afterDate`, moving the trip's end date out with
+ * them (ticket 140) — a day past `end_date` is one the Dates tab would next
+ * offer to delete, so the two are one write, not two.
+ *
+ * Only outwards, and only for a trip that already has a window: an undated
+ * trip is normal (rule 9) and appending a day doesn't settle it.
+ */
+export async function extendTripDays(
+  trip: { id: number; startDate: string | null; endDate: string | null },
+  afterDate: string,
+  count: number,
+): Promise<void> {
+  const dates: string[] = [];
+  let cursor = afterDate;
+  for (let i = 0; i < count; i++) {
+    cursor = addDaysToDate(cursor, 1);
+    dates.push(cursor);
+  }
+  if (dates.length === 0) return;
+
+  await ensureDays(trip.id, dates);
+
+  const last = dates[dates.length - 1];
+  const movesTheWindow = Boolean(trip.startDate && trip.endDate && last > trip.endDate);
+  if (movesTheWindow) {
+    await setTripDateRange(trip.id, trip.startDate, last);
+  }
+
+  refresh({ kind: movesTheWindow ? "tripWindow" : "itinerary", tripId: trip.id });
+}

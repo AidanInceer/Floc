@@ -16,7 +16,6 @@ import {
   findLiveExpense,
   findLiveSettlement,
   listSettlements,
-  revalidateMoney,
   softDeleteExpense,
   softDeleteSettlement,
   writeExpense,
@@ -174,11 +173,5 @@ describe("addressing the notification", () => {
     const rows = await emailsForUsers([world.member]);
     expect(rows).toHaveLength(1);
     expect(rows[0].id).toBe(world.member);
-  });
-});
-
-describe("revalidation", () => {
-  it("is a named call rather than a path each caller retypes", () => {
-    expect(() => revalidateMoney(world.ours.id)).not.toThrow();
   });
 });

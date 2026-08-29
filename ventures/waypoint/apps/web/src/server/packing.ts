@@ -1,13 +1,12 @@
 /**
  * The packing aggregate — `packing_line` and `packing_claim` (ticket 219).
- * Owns the SQL, soft-delete (rule 8) and the tab's revalidate. Claims are read
+ * Owns the SQL and soft-delete (rule 8). Claims are read
  * for the whole trip in one query, scoped by joining the line, so the two reads
  * can run together rather than one after the other.
  */
 import "server-only";
 
 import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
 import { packingClaim, packingLine, user, userProfile } from "@/db/schema";
@@ -15,10 +14,6 @@ import { MAX_PACK_QUANTITY, MIN_PACK_QUANTITY } from "@/lib/packing";
 import type { PackCategory } from "@/lib/packing";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
-
-export function revalidatePacking(tripId: number): void {
-  revalidatePath(`/trip/${tripId}/packing`);
-}
 
 export type PackingLine = {
   id: number;

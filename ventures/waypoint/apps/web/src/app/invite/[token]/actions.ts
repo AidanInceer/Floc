@@ -13,11 +13,10 @@ import { emailConfigured } from "@/server/email";
 import {
   findTripByInviteToken,
   joinByToken,
-  revalidateInvites,
-  revalidateOverview,
   settleInvite,
 } from "@/server/membership";
 import { ensureProfile } from "@/server/profile";
+import { refresh } from "@/server/freshness";
 
 export async function joinTrip(token: string) {
   const redirectTo = `/invite/${token}`;
@@ -45,8 +44,10 @@ export async function joinTrip(token: string) {
   // are already on. A no-op for everyone else.
   await settleInvite(found.id, user.id, "accepted");
 
-  revalidateInvites();
-  revalidateOverview(found.id);
+  refresh(
+    { kind: "invites" },
+    { kind: "tripOverview", tripId: found.id },
+  );
   redirect(`/trip/${found.id}/overview`);
 }
 

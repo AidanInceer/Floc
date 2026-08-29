@@ -5,19 +5,16 @@
  * (ticket 01 step 7). Last-write-wins (ticket 12) — no version check.
  * SQL lives in `server/itinerary.ts` (ticket 108); nothing here imports `@/db`.
  */
-import { revalidatePath } from "next/cache";
-
 import type { DayEventType, TransportType } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
-import { revalidateTripHeader, setTripDateRange } from "@/server/membership";
 import { resolveEventPlace } from "../place-actions";
 import { upsertPlace } from "@/server/places";
-import { addDays as addDaysToDate, isIsoDate } from "@/lib/dates";
+import { isIsoDate } from "@/lib/dates";
 import { capText } from "@/lib/text";
 import { insertAt, permuteEventSlots } from "@/lib/event-order";
 import {
   applyEventSlots,
-  ensureDays,
+  extendTripDays,
   insertEvent,
   listDayIds,
   listDays,
@@ -26,7 +23,6 @@ import {
   moveEventToDay,
   rescheduleEvent as moveEventTo,
   rebaseEventOrder,
-  revalidateItinerary,
   setOvernightPlaceOn,
   softDeleteDay,
   softDeleteEvent,
@@ -34,36 +30,11 @@ import {
   type EventFields,
   type ItineraryDay,
 } from "@/server/itinerary";
+import { refresh } from "@/server/freshness";
 
-/**
- * Extends the trip by appending N days after its current last day.
- *
- * The window comes with them (ticket 140): a day past `end_date` would be one
- * the Dates tab next offers to delete. Appending a day *is* moving the end
- * date, so this writes both. Nothing here confirms — extending only adds days.
- */
 export async function addDays(tripId: number, afterDate: string, count: number) {
   const access = await requireTripAccess(tripId);
-  const dates: string[] = [];
-  let cursor = afterDate;
-  for (let i = 0; i < count; i++) {
-    cursor = addDaysToDate(cursor, 1);
-    dates.push(cursor);
-  }
-
-  await ensureDays(access.trip.id, dates);
-
-  const { startDate, endDate } = access.trip;
-  const last = dates[dates.length - 1];
-  // Only outwards, and only for a trip with a window already — an undated
-  // trip is normal (rule 9) and appending a day doesn't settle it.
-  if (startDate && endDate && last > endDate) {
-    await setTripDateRange(access.trip.id, startDate, last);
-    revalidateTripHeader(access.trip.id);
-    revalidatePath(`/trip/${access.trip.id}/dates`);
-  }
-
-  revalidateItinerary(access.trip.id);
+  await extendTripDays(access.trip, afterDate, count);
 }
 
 /** Soft-deletes a single day row; its events go with it (hidden by the day's own filter). */
@@ -71,7 +42,7 @@ export async function removeDay(tripId: number, dayId: number) {
   const access = await requireTripAccess(tripId);
   const target = await access.day(dayId);
   await softDeleteDay(target.id);
-  revalidateItinerary(access.trip.id);
+  refresh({ kind: "itinerary", tripId: access.trip.id });
 }
 
 /**
@@ -123,7 +94,7 @@ export async function setDayOvernight(
     placeId,
   );
 
-  revalidateItinerary(access.trip.id);
+  refresh({ kind: "itinerary", tripId: access.trip.id });
 }
 
 /**
@@ -165,7 +136,7 @@ export async function addEvent(tripId: number, dayId: number, input: EventFields
   const access = await requireTripAccess(tripId);
   const target = await access.day(dayId);
   await insertEvent(target.id, input);
-  revalidateItinerary(access.trip.id);
+  refresh({ kind: "itinerary", tripId: access.trip.id });
 }
 
 export async function updateEvent(
@@ -176,14 +147,14 @@ export async function updateEvent(
   const access = await requireTripAccess(tripId);
   const target = await access.event(eventId);
   await updateEventFields(target.id, input);
-  revalidateItinerary(access.trip.id);
+  refresh({ kind: "itinerary", tripId: access.trip.id });
 }
 
 export async function deleteEvent(tripId: number, eventId: number) {
   const access = await requireTripAccess(tripId);
   const target = await access.event(eventId);
   await softDeleteEvent(target.id);
-  revalidateItinerary(access.trip.id);
+  refresh({ kind: "itinerary", tripId: access.trip.id });
 }
 
 /**
@@ -204,7 +175,7 @@ export async function reorderEvents(
     permuteEventSlots(await listEventSlots(access.trip.id, dayId), newOrder),
   );
 
-  revalidateItinerary(access.trip.id);
+  refresh({ kind: "itinerary", tripId: access.trip.id });
 }
 
 /**
@@ -257,7 +228,7 @@ async function insertEventAt(
   await rebaseEventOrder(target);
   await rebaseEventOrder(source.filter((e) => e.id !== eventId).map((e) => e.id));
 
-  revalidateItinerary(access.trip.id);
+  refresh({ kind: "itinerary", tripId: access.trip.id });
 }
 
 /**
@@ -299,7 +270,7 @@ export async function rescheduleEvent(
 
   await moveEventTo(target.id, toDay.id, start, readClockTime(endTime));
 
-  revalidateItinerary(access.trip.id);
+  refresh({ kind: "itinerary", tripId: access.trip.id });
 }
 
 /**

@@ -7,7 +7,6 @@
 import "server-only";
 
 import { and, asc, count, eq, isNull, sql } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
 import { packingKit, packingKitItem, packingLine } from "@/db/schema";
@@ -20,10 +19,6 @@ import {
 } from "@/lib/packing";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
-
-export function revalidatePackingKits(): void {
-  revalidatePath("/packing-lists");
-}
 
 export type PackingKitSummary = { id: number; name: string; itemCount: number };
 type PackingKitItem = KitItem & { id: number };

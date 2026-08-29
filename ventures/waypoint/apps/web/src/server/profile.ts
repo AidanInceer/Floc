@@ -5,7 +5,6 @@
 import "server-only";
 
 import { eq } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
 import { account, userProfile } from "@/db/schema";
@@ -43,16 +42,6 @@ export async function ensureProfile(
   const created = await getProfile(userId);
   if (!created) throw new Error("Could not create the user profile");
   return created;
-}
-
-/**
- * Both faces of an edit: most of what you change about yourself is now
- * submitted from /settings but read back on /profile (ticket 236), and the
- * client Router Cache holds each `?section=` URL separately.
- */
-export function revalidateProfile(): void {
-  revalidatePath("/profile");
-  revalidatePath("/settings");
 }
 
 /**

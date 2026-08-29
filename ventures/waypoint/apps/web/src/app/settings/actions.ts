@@ -3,7 +3,6 @@
 // Settings mutations: notification booleans, privacy flags, unlinking a
 // sign-in method, account deletion. No theme action — Waypoint is light-only.
 import { headers } from "next/headers";
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { PAST_TRIPS_SHOW, VISIBILITIES } from "@/db/schema";
@@ -13,9 +12,9 @@ import { auth, listLinkedAccounts, unlinkAccountById } from "@/server/auth";
 import { handOverAndLeaveAllTrips } from "@/server/membership";
 import {
   ensureProfile,
-  revalidateProfile,
   updateProfileFields,
 } from "@/server/profile";
+import { refresh } from "@/server/freshness";
 
 // Privacy lives here, not on /profile — configuration, not identity. One
 // three-state ring per display attribute, plus a profile-wide override
@@ -54,8 +53,7 @@ export async function updatePrivacy(formData: FormData): Promise<{ error?: strin
     pastTripsShow: show as PastTripsShow,
   });
 
-  revalidatePath("/settings");
-  revalidateProfile();
+  refresh({ kind: "profile" });
   return {};
 }
 
@@ -76,7 +74,7 @@ export async function unlinkAccount(formData: FormData): Promise<{ error?: strin
 
   await unlinkAccountById(target.id);
 
-  revalidatePath("/settings");
+  refresh({ kind: "accountSettings" });
   return {};
 }
 

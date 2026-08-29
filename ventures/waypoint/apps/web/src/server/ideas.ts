@@ -7,18 +7,12 @@
 import "server-only";
 
 import { and, count, desc, eq, inArray, isNull } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
 import { idea, ideaVote, user, userProfile } from "@/db/schema";
 import type { VoteValue } from "@/db/schema";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
-
-/** The board lives inside the Notes doc (ticket 238), so that is the page to refresh. */
-export function revalidateIdeas(tripId: number): void {
-  revalidatePath(`/trip/${tripId}/notes`);
-}
 
 export type IdeaRow = {
   id: number;

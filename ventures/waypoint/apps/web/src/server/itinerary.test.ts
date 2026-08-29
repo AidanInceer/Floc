@@ -12,13 +12,13 @@ import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import {
   applyTripWindow,
+  extendTripDays,
   ensureDays,
   listDayIds,
   listDayLoads,
   listDays,
   moveItem,
   rebaseEventOrder,
-  revalidateItinerary,
   setOvernightPlaceOn,
   softDeleteDay,
   softDeleteEvent,
@@ -240,9 +240,57 @@ describe("moveItem", () => {
   });
 });
 
-describe("revalidateItinerary", () => {
-  it("takes Days and Overview, because a day row is drawn on both", () => {
-    expect(() => revalidateItinerary(world.ours.id)).not.toThrow();
+describe("extendTripDays", () => {
+  async function windowOf(tripId: number) {
+    return db
+      .select({ startDate: schema.trip.startDate, endDate: schema.trip.endDate })
+      .from(schema.trip)
+      .where(eq(schema.trip.id, tripId))
+      .get();
+  }
+
+  it("appends the days and moves the end date out with them", async () => {
+    const trip = { id: world.ours.id, startDate: "2026-09-01", endDate: "2026-09-01" };
+    await db
+      .update(schema.trip)
+      .set({ startDate: trip.startDate, endDate: trip.endDate })
+      .where(eq(schema.trip.id, trip.id));
+
+    await extendTripDays(trip, "2026-09-01", 2);
+
+    expect((await listDays(trip.id)).map((d) => d.date)).toEqual([
+      "2026-09-01",
+      "2026-09-02",
+      "2026-09-03",
+    ]);
+    expect(await windowOf(trip.id)).toEqual({
+      startDate: "2026-09-01",
+      endDate: "2026-09-03",
+    });
+  });
+
+  it("leaves an undated trip undated — appending a day does not settle it", async () => {
+    const trip = { id: world.ours.id, startDate: null, endDate: null };
+
+    await extendTripDays(trip, "2026-09-01", 1);
+
+    expect((await listDays(trip.id)).map((d) => d.date)).toContain("2026-09-02");
+    expect(await windowOf(trip.id)).toEqual({ startDate: null, endDate: null });
+  });
+
+  it("never pulls the end date inwards", async () => {
+    const trip = { id: world.ours.id, startDate: "2026-09-01", endDate: "2026-09-20" };
+    await db
+      .update(schema.trip)
+      .set({ startDate: trip.startDate, endDate: trip.endDate })
+      .where(eq(schema.trip.id, trip.id));
+
+    await extendTripDays(trip, "2026-09-01", 1);
+
+    expect(await windowOf(trip.id)).toEqual({
+      startDate: "2026-09-01",
+      endDate: "2026-09-20",
+    });
   });
 });
 

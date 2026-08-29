@@ -3,18 +3,15 @@
 // Open to any member, not just admin — choosing when to go isn't one of
 // admin's four powers (rule 6). Committing a window also updates
 // server/itinerary.ts since the window decides which days exist (ticket 140).
-import { revalidatePath } from "next/cache";
-
 import { isIsoDate, readIsoDate } from "@/lib/dates";
 import { requireTripAccess } from "@/server/access";
 import { applyTripWindow } from "@/server/itinerary";
 import {
   clearAvailabilityFor,
-  revalidateOverview,
-  revalidateTripHeader,
   setAvailability,
   setTripDateRange,
 } from "@/server/membership";
+import { refresh } from "@/server/freshness";
 
 // Client-provided, so checked not trusted; isIsoDate rejects impossible
 // well-shaped dates like 2026-02-31 (ticket 113).
@@ -35,8 +32,10 @@ async function setAvailabilityDates(
 
   await setAvailability(access.trip.id, access.viewer.id, dates, isAvailable);
 
-  revalidateDates(access.trip.id);
-  revalidateOverview(access.trip.id);
+  refresh(
+    { kind: "tripDates", tripId: access.trip.id },
+    { kind: "tripOverview", tripId: access.trip.id },
+  );
 }
 
 export async function saveAvailability(
@@ -69,8 +68,9 @@ export async function setTripDates(
   // their events, days only in the old one go, days only in the new arrive blank.
   await applyTripWindow(access.trip.id, startDate, endDate);
 
-  revalidateTripHeader(access.trip.id);
-  revalidateDates(access.trip.id);
+  // The window is the itinerary's extent (ticket 140), so one fact carries
+  // the dates tab, the header and the days it just added or dropped.
+  refresh({ kind: "tripWindow", tripId: access.trip.id });
 }
 
 // Back to undated — supported (rule 9), not an error state. No window means
@@ -80,8 +80,9 @@ export async function clearTripDates(tripId: number) {
   await setTripDateRange(access.trip.id, null, null);
   await applyTripWindow(access.trip.id, null, null);
 
-  revalidateTripHeader(access.trip.id);
-  revalidateDates(access.trip.id);
+  // The window is the itinerary's extent (ticket 140), so one fact carries
+  // the dates tab, the header and the days it just added or dropped.
+  refresh({ kind: "tripWindow", tripId: access.trip.id });
 }
 
 // "Start again" — per-person only, never wipes what the rest of the group said.
@@ -89,9 +90,5 @@ export async function clearMyAvailability(tripId: number) {
   const access = await requireTripAccess(tripId);
   await clearAvailabilityFor(access.trip.id, access.viewer.id);
 
-  revalidateDates(access.trip.id);
-}
-
-function revalidateDates(tripId: number) {
-  revalidatePath(`/trip/${tripId}/dates`);
+  refresh({ kind: "tripDates", tripId: access.trip.id });
 }

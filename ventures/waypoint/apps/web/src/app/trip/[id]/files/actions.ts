@@ -13,7 +13,6 @@ import { requireTripAccess } from "@/server/access";
 import {
   countDocuments,
   insertDocument,
-  revalidateDocuments,
   setDocumentCategory,
   softDeleteDocument,
 } from "@/server/documents";
@@ -23,6 +22,7 @@ import {
   dropDocument,
   putDocument,
 } from "@/server/document-store";
+import { refresh } from "@/server/freshness";
 
 /** Refusals come back as form errors, never throws (the validation convention). */
 export async function uploadDocument(
@@ -70,7 +70,7 @@ export async function uploadDocument(
     throw err;
   }
 
-  revalidateDocuments(access.trip.id);
+  refresh({ kind: "documents", tripId: access.trip.id });
 }
 
 /**
@@ -87,7 +87,7 @@ export async function removeDocument(tripId: number, documentId: number) {
   await softDeleteDocument(doc.id);
   await dropDocument(doc.storageKey);
 
-  revalidateDocuments(access.trip.id);
+  refresh({ kind: "documents", tripId: access.trip.id });
 }
 
 /**
@@ -105,5 +105,5 @@ export async function setCategory(
 
   await setDocumentCategory(doc.id, parseDocCategory(formData.get("category")));
 
-  revalidateDocuments(access.trip.id);
+  refresh({ kind: "documents", tripId: access.trip.id });
 }

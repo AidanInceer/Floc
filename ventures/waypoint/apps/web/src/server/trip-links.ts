@@ -12,7 +12,6 @@
 import "server-only";
 
 import { and, asc, eq, isNull } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
 import { tripLink, user } from "@/db/schema";
@@ -115,7 +114,3 @@ export async function findTripLink(tripId: number, linkId: number) {
     .get();
 }
 
-/** Links live in the pane on Days, so that is the page to refresh. */
-export function revalidateTripLinks(tripId: number): void {
-  revalidatePath(`/trip/${tripId}/days`);
-}

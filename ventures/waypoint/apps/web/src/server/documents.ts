@@ -1,6 +1,6 @@
 /**
  * The documents aggregate (ticket 239) — `document` rows, their soft-delete
- * (rule 8) and the revalidate for the two places they render.
+ * (rule 8).
  *
  * One read serves both lists: shared rows and the viewer's own private rows
  * come back together, scoped in the query rather than filtered after, so
@@ -10,18 +10,12 @@
 import "server-only";
 
 import { and, count, desc, eq, isNull, or } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
 import { document, user, userProfile } from "@/db/schema";
 import type { DocCategory } from "@/lib/documents";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
-
-export function revalidateDocuments(tripId: number): void {
-  revalidatePath(`/trip/${tripId}/files`);
-  revalidatePath(`/trip/${tripId}/overview`);
-}
 
 export type TripDocument = {
   id: number;

@@ -17,11 +17,11 @@ import {
   insertPackingKit,
   insertPackingKitItem,
   renamePackingKit,
-  revalidatePackingKits,
   softDeletePackingKit,
   softDeletePackingKitItem,
   stepPackingKitItemQuantity,
 } from "@/server/packing-kits";
+import { refresh } from "@/server/freshness";
 
 export async function createPackingKit(formData: FormData) {
   const viewer = await requireUser("/packing-lists");
@@ -30,7 +30,7 @@ export async function createPackingKit(formData: FormData) {
 
   const id = await insertPackingKit(viewer.id, name);
 
-  revalidatePackingKits();
+  refresh({ kind: "packingKits" });
   // Straight into the new list, because a list with no things in it is not
   // what you came to make.
   if (id !== null) redirect(`/packing-lists#kit-${id}`);
@@ -43,7 +43,7 @@ export async function renameKit(kitId: number, formData: FormData) {
 
   await renamePackingKit(kitId, viewer.id, name);
 
-  revalidatePackingKits();
+  refresh({ kind: "packingKits" });
 }
 
 export async function deleteKit(kitId: number) {
@@ -51,7 +51,7 @@ export async function deleteKit(kitId: number) {
 
   await softDeletePackingKit(kitId, viewer.id);
 
-  revalidatePackingKits();
+  refresh({ kind: "packingKits" });
 }
 
 export async function addKitItem(kitId: number, formData: FormData) {
@@ -67,7 +67,7 @@ export async function addKitItem(kitId: number, formData: FormData) {
     clampPackQuantity(Number(formData.get("quantity") ?? 1)),
   );
 
-  revalidatePackingKits();
+  refresh({ kind: "packingKits" });
 }
 
 export async function removeKitItem(itemId: number) {
@@ -75,7 +75,7 @@ export async function removeKitItem(itemId: number) {
 
   await softDeletePackingKitItem(itemId, viewer.id);
 
-  revalidatePackingKits();
+  refresh({ kind: "packingKits" });
 }
 
 export async function stepKitItemQuantity(itemId: number, formData: FormData) {
@@ -85,5 +85,5 @@ export async function stepKitItemQuantity(itemId: number, formData: FormData) {
 
   await stepPackingKitItemQuantity(itemId, viewer.id, delta);
 
-  revalidatePackingKits();
+  refresh({ kind: "packingKits" });
 }

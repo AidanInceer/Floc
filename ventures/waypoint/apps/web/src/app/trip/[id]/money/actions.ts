@@ -18,7 +18,6 @@ import {
   emailsForUsers,
   findLiveExpense,
   findLiveSettlement,
-  revalidateMoney,
   softDeleteExpense,
   softDeleteSettlement,
   writeExpense,
@@ -34,6 +33,7 @@ import {
 } from "@/lib/money";
 import type { SplitInput, WeightedInput } from "@/lib/money";
 import { emails, sendEmails } from "@/server/email";
+import { refresh } from "@/server/freshness";
 
 export type ActionState = { error?: string };
 
@@ -180,7 +180,7 @@ export async function addExpense(
     }),
   );
 
-  revalidateMoney(access.trip.id);
+  refresh({ kind: "money", tripId: access.trip.id });
   return {};
 }
 
@@ -239,7 +239,7 @@ export async function updateExpense(
     }),
   );
 
-  revalidateMoney(access.trip.id);
+  refresh({ kind: "money", tripId: access.trip.id });
   return {};
 }
 
@@ -250,7 +250,7 @@ export async function deleteExpense(formData: FormData): Promise<void> {
 
   await softDeleteExpense(access.trip.id, expenseId);
 
-  revalidateMoney(access.trip.id);
+  refresh({ kind: "money", tripId: access.trip.id });
 }
 
 // Records a settlement pre-filled from a simplified transfer, amount/person
@@ -297,7 +297,7 @@ export async function recordSettlement(
     currency,
   });
 
-  revalidateMoney(access.trip.id);
+  refresh({ kind: "money", tripId: access.trip.id });
   return {};
 }
 
@@ -313,5 +313,5 @@ export async function deleteSettlement(formData: FormData): Promise<void> {
 
   await softDeleteSettlement(access.trip.id, settlementId);
 
-  revalidateMoney(access.trip.id);
+  refresh({ kind: "money", tripId: access.trip.id });
 }

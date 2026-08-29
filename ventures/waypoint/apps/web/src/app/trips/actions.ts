@@ -3,7 +3,6 @@
 // Mutations for /trips and /trips/archived. Trip-scoped calls go through
 // requireTripAccess + assertAdmin — never a hand-rolled membership check.
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
 
 import { readOptionalIsoDate } from "@/lib/dates";
 import { capRequiredText } from "@/lib/text";
@@ -15,10 +14,6 @@ import {
   findPendingInvite,
   inviteToTrip,
   joinByToken,
-  revalidateInvites,
-  revalidateOverview,
-  revalidateTripHeader,
-  revalidateTripLists,
   setTripArchived,
   setTripColor as writeTripColor,
   settleInvite,
@@ -26,6 +21,7 @@ import {
 } from "@/server/membership";
 import { ensureProfile } from "@/server/profile";
 import { LIMITS } from "@/server/limits";
+import { refresh } from "@/server/freshness";
 
 // Smallest thing at creation: a name, the creator as admin, an empty idea
 // board. Dates are optional and never guessed at.
@@ -58,7 +54,7 @@ export async function createTrip(formData: FormData): Promise<void> {
     await inviteToTrip({ tripId, fromUserId: viewer.id, toUserIds: friendIds });
   }
 
-  revalidatePath("/trips");
+  refresh({ kind: "tripList" });
   redirect(`/trip/${tripId}/overview`);
 }
 
@@ -92,9 +88,11 @@ export async function acceptTripInvite(formData: FormData): Promise<void> {
   await settleInvite(tripId, viewer.id, "accepted");
   await ensureProfile(viewer.id);
 
-  revalidateInvites();
-  revalidateTripLists();
-  revalidateOverview(tripId);
+  refresh(
+    { kind: "invites" },
+    { kind: "tripList" },
+    { kind: "tripOverview", tripId },
+  );
   redirect(`/trip/${tripId}/overview`);
 }
 
@@ -105,7 +103,7 @@ export async function declineTripInvite(formData: FormData): Promise<void> {
   if (!Number.isInteger(tripId)) return;
 
   await settleInvite(tripId, viewer.id, "declined");
-  revalidateInvites();
+  refresh({ kind: "invites" });
 }
 
 // Where to land afterwards is a form field, not a second copy of these
@@ -136,9 +134,11 @@ export async function setTripColor(formData: FormData): Promise<void> {
 
   await writeTripColor(access.trip.id, color);
 
-  revalidateTripLists();
-  revalidateTripHeader(access.trip.id);
-  revalidateOverview(access.trip.id);
+  refresh(
+    { kind: "tripList" },
+    { kind: "tripHeader", tripId: access.trip.id },
+    { kind: "tripOverview", tripId: access.trip.id },
+  );
 }
 
 // Admin-only. Archived trips stay visible to every member.
@@ -149,8 +149,10 @@ export async function archiveTrip(formData: FormData): Promise<void> {
 
   await setTripArchived(access.trip.id, true);
 
-  revalidateTripLists();
-  revalidateOverview(access.trip.id);
+  refresh(
+    { kind: "tripList" },
+    { kind: "tripOverview", tripId: access.trip.id },
+  );
   redirect(redirectTo(formData, "/trips/archived"));
 }
 
@@ -162,8 +164,10 @@ export async function restoreTrip(tripId: number): Promise<void> {
 
   await setTripArchived(access.trip.id, false);
 
-  revalidateTripLists();
-  revalidateOverview(access.trip.id);
+  refresh(
+    { kind: "tripList" },
+    { kind: "tripOverview", tripId: access.trip.id },
+  );
 }
 
 // Admin-only, any stage, no undo — soft-delete.
@@ -174,6 +178,6 @@ export async function deleteTrip(formData: FormData): Promise<void> {
 
   await softDeleteTrip(access.trip.id);
 
-  revalidateTripLists();
+  refresh({ kind: "tripList" });
   redirect(redirectTo(formData, "/trips"));
 }

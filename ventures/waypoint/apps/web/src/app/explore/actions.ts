@@ -9,12 +9,12 @@
  * group's own availability overlap (rule 9).
  */
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
 
 import { requireUser } from "@/server/access";
 import { insertIdeas } from "@/server/ideas";
 import { createTripWithAdmin } from "@/server/membership";
 import { ensureProfile } from "@/server/profile";
+import { refresh } from "@/server/freshness";
 import { PRESET_TRIPS } from "./preset-trips";
 
 export async function startTripFromPreset(formData: FormData): Promise<void> {
@@ -35,6 +35,6 @@ export async function startTripFromPreset(formData: FormData): Promise<void> {
 
   await insertIdeas(tripId, viewer.id, preset.highlights);
 
-  revalidatePath("/trips");
+  refresh({ kind: "tripList" });
   redirect(`/trip/${tripId}/overview`);
 }

@@ -15,7 +15,6 @@ import {
   insertNote,
   NOTE_BODY_MAX,
   resolveParent,
-  revalidateThread,
   softDeleteNoteAndReplies,
   toggleReaction,
   updateNoteBody,
@@ -193,13 +192,5 @@ describe("reacting", () => {
         .all()
     ).filter((r) => r.deletedAt === null);
     expect(live.map((r) => r.kind).sort()).toEqual(["heart", "up"]);
-  });
-});
-
-describe("revalidation", () => {
-  it("names a path for every scope", () => {
-    for (const scope of ["idea", "day", "day_event", "expense", "trip"] as const) {
-      expect(() => revalidateThread(world.ours.id, scope)).not.toThrow();
-    }
   });
 });

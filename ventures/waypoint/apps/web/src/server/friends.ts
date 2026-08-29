@@ -7,8 +7,6 @@ import "server-only";
 
 import { and, count, eq, inArray, isNull, lt, ne, or } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
-import { revalidatePath } from "next/cache";
-
 import { db } from "@/db";
 import { friendship, trip, tripMembership, user, userProfile } from "@/db/schema";
 import { today } from "@/lib/dates";
@@ -295,8 +293,7 @@ export async function coTripNameFor(
 /*
  * `friendship` writes behind `app/friends/actions.ts` (ticket 108). Rules
  * owned here: soft-delete on every match; pair is unordered (`eitherWay`
- * covers both directions since the index stores one); revalidate both
- * /friends and the other person's profile.
+ * covers both directions since the index stores one).
  */
 
 /** Both directions of a pair, live rows only. */
@@ -308,11 +305,6 @@ function eitherWay(a: string, b: string) {
       and(eq(friendship.userId, b), eq(friendship.friendId, a)),
     ),
   );
-}
-
-export function revalidateFriendship(otherId: string): void {
-  revalidatePath("/friends");
-  revalidatePath(`/profile/${otherId}`);
 }
 
 /** Used to address the request email. */

@@ -21,7 +21,6 @@ import {
   claimPackingLine,
   insertPackingLine,
   insertPersonalPackingLine,
-  revalidatePacking,
   setClaimPacked,
   setPersonalPacked,
   stepPersonalQuantity,
@@ -30,6 +29,7 @@ import {
   softDeleteWholeList,
   unclaimPackingLine,
 } from "@/server/packing";
+import { refresh } from "@/server/freshness";
 
 export async function addPackingLine(tripId: number, formData: FormData) {
   const access = await requireTripAccess(tripId);
@@ -43,7 +43,7 @@ export async function addPackingLine(tripId: number, formData: FormData) {
     parsePackCategory(formData.get("category")),
   );
 
-  revalidatePacking(access.trip.id);
+  refresh({ kind: "packing", tripId: access.trip.id });
 }
 
 // Both lists, with the resolver drawing the line: a shared line is anyone's to
@@ -55,7 +55,7 @@ export async function removePackingLine(tripId: number, lineId: number) {
 
   await softDeletePackingLine(line.id);
 
-  revalidatePacking(access.trip.id);
+  refresh({ kind: "packing", tripId: access.trip.id });
 }
 
 // Claiming is open by design: anyone may claim any line, and several people
@@ -71,7 +71,7 @@ export async function setPackingClaim(
   if (claimed) await claimPackingLine(line.id, access.viewer.id);
   else await unclaimPackingLine(line.id, access.viewer.id);
 
-  revalidatePacking(access.trip.id);
+  refresh({ kind: "packing", tripId: access.trip.id });
 }
 
 // Only your own claim. The write is scoped to (line, viewer), so ticking
@@ -86,7 +86,7 @@ export async function setPackingPacked(
 
   await setClaimPacked(line.id, access.viewer.id, packed);
 
-  revalidatePacking(access.trip.id);
+  refresh({ kind: "packing", tripId: access.trip.id });
 }
 
 export async function addPersonalPackingLine(tripId: number, formData: FormData) {
@@ -101,7 +101,7 @@ export async function addPersonalPackingLine(tripId: number, formData: FormData)
     parsePackCategory(formData.get("category")),
   );
 
-  revalidatePacking(access.trip.id);
+  refresh({ kind: "packing", tripId: access.trip.id });
 }
 
 // The resolver has already refused anything that isn't shared or yours, and
@@ -117,7 +117,7 @@ export async function setPersonalPackingPacked(
 
   await setPersonalPacked(line.id, access.viewer.id, packed);
 
-  revalidatePacking(access.trip.id);
+  refresh({ kind: "packing", tripId: access.trip.id });
 }
 
 // A step, not a number: the row offers plus and minus, so the only two values
@@ -134,7 +134,7 @@ export async function stepPersonalPackingQuantity(
 
   await stepPersonalQuantity(line.id, access.viewer.id, delta);
 
-  revalidatePacking(access.trip.id);
+  refresh({ kind: "packing", tripId: access.trip.id });
 }
 
 // This trip only. Writing the membership rather than the profile is the whole
@@ -146,7 +146,7 @@ export async function setTripPackTier(tripId: number, formData: FormData) {
 
   await setPackTier(access.trip.id, access.viewer.id, tier);
 
-  revalidatePacking(access.trip.id);
+  refresh({ kind: "packing", tripId: access.trip.id });
 }
 
 /**
@@ -171,7 +171,7 @@ export async function fillMyPackingList(tripId: number) {
     plan: await packingPlanFor(access.trip),
   });
 
-  revalidatePacking(access.trip.id);
+  refresh({ kind: "packing", tripId: access.trip.id });
 }
 
 /**
@@ -198,7 +198,7 @@ export async function removePackingLines(tripId: number, formData: FormData) {
 
   await softDeletePackingLines(lines.map((l) => l.id));
 
-  revalidatePacking(access.trip.id);
+  refresh({ kind: "packing", tripId: access.trip.id });
 }
 
 /**
@@ -215,7 +215,7 @@ export async function resetPackingList(
 
   await softDeleteWholeList(access.trip.id, mine ? access.viewer.id : null);
 
-  revalidatePacking(access.trip.id);
+  refresh({ kind: "packing", tripId: access.trip.id });
 }
 
 /**
@@ -233,5 +233,5 @@ export async function applyPackingKit(tripId: number, kitId: number) {
     kitId,
   });
 
-  revalidatePacking(access.trip.id);
+  refresh({ kind: "packing", tripId: access.trip.id });
 }

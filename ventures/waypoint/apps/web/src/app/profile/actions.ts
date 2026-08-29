@@ -13,7 +13,6 @@ import { parsePackTier } from "@/lib/packing";
 import { clearMapPrompt, hasPendingMapPrompt } from "@/server/membership";
 import {
   ensureProfile,
-  revalidateProfile,
   updateProfileFields,
 } from "@/server/profile";
 import {
@@ -23,6 +22,7 @@ import {
   setManualMark,
 } from "@/server/travel-map";
 import { parseVibeTags } from "@/lib/vibe-tags";
+import { refresh } from "@/server/freshness";
 
 export async function updateIdentity(formData: FormData): Promise<{ error?: string }> {
   const viewer = await requireUser();
@@ -33,7 +33,7 @@ export async function updateIdentity(formData: FormData): Promise<{ error?: stri
 
   await updateProfileFields(viewer.id, { displayName, avatarUrl });
 
-  revalidateProfile();
+  refresh({ kind: "profile" });
   return {};
 }
 
@@ -50,7 +50,7 @@ export async function updateCurrency(formData: FormData): Promise<{ error?: stri
 
   await updateProfileFields(viewer.id, { homeCurrency });
 
-  revalidateProfile();
+  refresh({ kind: "profile" });
   return {};
 }
 
@@ -64,7 +64,7 @@ export async function updateVibeTags(formData: FormData): Promise<{ error?: stri
 
   await updateProfileFields(viewer.id, { vibeTags: picked.length ? picked : null });
 
-  revalidateProfile();
+  refresh({ kind: "profile" });
   return {};
 }
 
@@ -86,7 +86,7 @@ export async function updateDietary(formData: FormData): Promise<{ error?: strin
     shareDietary: formData.get("shareDietary") === "on",
   });
 
-  revalidateProfile();
+  refresh({ kind: "profile" });
   return {};
 }
 
@@ -104,7 +104,7 @@ export async function updatePacking(formData: FormData): Promise<{ error?: strin
     packAutoGenerate: formData.get("packAutoGenerate") === "on",
   });
 
-  revalidateProfile();
+  refresh({ kind: "profile" });
   return {};
 }
 
@@ -131,7 +131,7 @@ export async function setCountryMark(
     await clearManualMark(viewer.id, countryCode);
   }
 
-  revalidateProfile();
+  refresh({ kind: "profile" });
 }
 
 // Answers the question a trip leaves behind when you're no longer on it.
@@ -148,7 +148,7 @@ async function answerMapPrompt(
   if (keep) await keepMarksFromTrip(viewer.id, tripId);
   await clearMapPrompt(tripId, viewer.id);
 
-  revalidateProfile();
+  refresh({ kind: "profile" });
 }
 
 // FormData-shaped wrappers for the two map-prompt buttons — `answerMapPrompt`

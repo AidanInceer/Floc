@@ -6,7 +6,6 @@
 import "server-only";
 
 import { and, count, eq, inArray, isNotNull, isNull, ne } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
 import {
@@ -22,26 +21,6 @@ import type { NudgeTab, TripRole } from "@/db/schema";
 import type { PackTier } from "@/lib/packing";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
-
-/** The trip name/tags live in the header, which every tab renders. */
-export function revalidateTripHeader(tripId: number): void {
-  revalidatePath(`/trip/${tripId}`, "layout");
-}
-
-export function revalidateOverview(tripId: number): void {
-  revalidatePath(`/trip/${tripId}/overview`);
-}
-
-/** Both trip lists — archiving moves a trip from one to the other. */
-export function revalidateTripLists(): void {
-  revalidatePath("/trips");
-  revalidatePath("/trips/archived");
-}
-
-/** The profile page lists the trips someone is on, so a roster change touches it. */
-export function revalidateProfileTrips(): void {
-  revalidatePath("/profile");
-}
 
 export type TripListRow = {
   id: number;
@@ -437,11 +416,6 @@ export async function settleInvite(
         isNull(tripInvite.deletedAt),
       ),
     );
-}
-
-/** Not the chrome badge — `AppChrome` reads `headers()` and is never cached, so a layout revalidate here would just waste every page's cache. */
-export function revalidateInvites(): void {
-  revalidatePath("/trips");
 }
 
 /* ------------------------------------------------------------- the roster */

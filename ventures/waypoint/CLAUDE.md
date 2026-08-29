@@ -14,7 +14,8 @@ Pre-MVP. Stack: **Next.js App Router + Turso (libSQL) + Drizzle + Better Auth**
 | Where | What |
 |---|---|
 | `apps/web/src/app/` | Routes. Server Components + Server Actions (`actions.ts` per folder). |
-| `apps/web/src/server/` | Query aggregates (`itinerary`, `ideas`, `money`, `membership`, `notes`, …) — owns all SQL, soft-delete filtering, `revalidatePath`. |
+| `apps/web/src/server/` | Query aggregates (`itinerary`, `ideas`, `money`, `membership`, `notes`, …) — owns all SQL and soft-delete filtering. |
+| `apps/web/src/server/freshness.ts` | Fact → pages that go stale (#241). The only importer of `next/cache`; everything else calls `refresh`. |
 | `apps/web/src/lib/` | Pure helpers (money, dates, calendar math) — no I/O. |
 | `apps/web/src/components/` | `ui.tsx`/`client-ui.tsx` are the house design system — reach for it first. |
 | `apps/web/src/db/schema.ts` | Schema of record. Mirrors [`docs/data-model/erd.html`](../../docs/data-model/erd.html) — change both together. |

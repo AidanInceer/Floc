@@ -15,9 +15,9 @@ import {
   findTripLink,
   insertTripLink,
   readWebUrl,
-  revalidateTripLinks,
   softDeleteTripLink,
 } from "@/server/trip-links";
+import { refresh } from "@/server/freshness";
 
 export async function addTripLink(tripId: number, formData: FormData) {
   const access = await requireTripAccess(tripId);
@@ -35,7 +35,7 @@ export async function addTripLink(tripId: number, formData: FormData) {
     label: String(formData.get("label") ?? ""),
   });
 
-  revalidateTripLinks(access.trip.id);
+  refresh({ kind: "tripLinks", tripId: access.trip.id });
 }
 
 export async function removeTripLink(tripId: number, linkId: number) {
@@ -48,5 +48,5 @@ export async function removeTripLink(tripId: number, linkId: number) {
   if (target.createdBy !== access.viewer.id) assertAdmin(access);
 
   await softDeleteTripLink(target.id);
-  revalidateTripLinks(access.trip.id);
+  refresh({ kind: "tripLinks", tripId: access.trip.id });
 }

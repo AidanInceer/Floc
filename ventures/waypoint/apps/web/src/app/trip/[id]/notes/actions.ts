@@ -10,13 +10,13 @@ import {
   castVote as writeVote,
   clearVote as writeClearVote,
   insertIdea,
-  revalidateIdeas,
   setIdeaPinnedAt,
   softDeleteIdea,
   updateIdeaNote,
 } from "@/server/ideas";
 import { saveNoteDoc } from "@/server/note-doc";
 import type { VoteValue } from "@/db/schema";
+import { refresh } from "@/server/freshness";
 
 /**
  * Replace the whole document. No revalidate: the editor already holds what it
@@ -53,7 +53,7 @@ export async function postIdea(tripId: number, formData: FormData) {
     ),
   );
 
-  revalidateIdeas(access.trip.id);
+  refresh({ kind: "ideas", tripId: access.trip.id });
 }
 
 // Author or any admin (ticket 14), not author-only, so a stale idea can't
@@ -66,7 +66,7 @@ export async function deleteIdea(tripId: number, ideaId: number) {
 
   await softDeleteIdea(row.id);
 
-  revalidateIdeas(access.trip.id);
+  refresh({ kind: "ideas", tripId: access.trip.id });
 }
 
 // Edit the text — author or any admin, same rule as delete (ticket 14).
@@ -81,7 +81,7 @@ export async function editIdea(tripId: number, ideaId: number, formData: FormDat
 
   await updateIdeaNote(row.id, note);
 
-  revalidateIdeas(access.trip.id);
+  refresh({ kind: "ideas", tripId: access.trip.id });
 }
 
 // Any member, not author-or-admin (v0.2 ticket 09) — group-wide state,
@@ -92,7 +92,7 @@ export async function setIdeaPinned(tripId: number, ideaId: number, pinned: bool
 
   await setIdeaPinnedAt(row.id, pinned);
 
-  revalidateIdeas(access.trip.id);
+  refresh({ kind: "ideas", tripId: access.trip.id });
 }
 
 export async function castVote(tripId: number, ideaId: number, value: VoteValue) {
@@ -101,12 +101,12 @@ export async function castVote(tripId: number, ideaId: number, value: VoteValue)
 
   await writeVote(target.id, access.viewer.id, value);
 
-  revalidateIdeas(access.trip.id);
+  refresh({ kind: "ideas", tripId: access.trip.id });
 }
 
 export async function clearVote(tripId: number, ideaId: number) {
   const access = await requireTripAccess(tripId);
   const target = await access.idea(ideaId);
   await writeClearVote(target.id, access.viewer.id);
-  revalidateIdeas(access.trip.id);
+  refresh({ kind: "ideas", tripId: access.trip.id });
 }

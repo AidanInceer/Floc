@@ -8,13 +8,13 @@ import {
   findNote,
   insertNote,
   resolveParent,
-  revalidateThread,
   softDeleteNoteAndReplies,
   toggleReaction,
   updateNoteBody,
   NOTE_BODY_MAX,
 } from "@/server/notes";
 import type { NoteScope, ReactionKind } from "@/db/schema";
+import { refresh } from "@/server/freshness";
 
 // Author only, deliberately not an admin power (rule 6) — an admin can delete
 // a comment, but putting different words in someone's mouth is a different act.
@@ -38,7 +38,7 @@ export async function editNote(
 
   await updateNoteBody(row.id, body);
 
-  revalidateThread(access.trip.id, row.scope);
+  refresh({ kind: "thread", tripId: access.trip.id, scope: row.scope });
 }
 
 export async function addNote(
@@ -70,7 +70,7 @@ export async function addNote(
     body,
   });
 
-  revalidateThread(access.trip.id, scope);
+  refresh({ kind: "thread", tripId: access.trip.id, scope });
 }
 
 export async function react(
@@ -85,7 +85,7 @@ export async function react(
 
   await toggleReaction(target.id, access.viewer.id, kind);
 
-  revalidateThread(access.trip.id, target.scope);
+  refresh({ kind: "thread", tripId: access.trip.id, scope: target.scope });
 }
 
 export async function deleteNote(tripId: number, noteId: number) {
@@ -97,5 +97,5 @@ export async function deleteNote(tripId: number, noteId: number) {
 
   await softDeleteNoteAndReplies(row.id);
 
-  revalidateThread(access.trip.id, row.scope);
+  refresh({ kind: "thread", tripId: access.trip.id, scope: row.scope });
 }

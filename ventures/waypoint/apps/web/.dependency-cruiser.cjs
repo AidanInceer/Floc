@@ -39,6 +39,19 @@ module.exports = {
       from: { path: "^src/(app|components)/", pathNot: "\.test\.ts$" },
       to: { path: "^src/db/index\.ts$" },
     },
+    {
+      name: "freshness-owns-the-cache",
+      severity: "error",
+      comment:
+        "src/server/freshness.ts is the only place that maps a changed fact " +
+        "to the pages it makes stale (ticket 241). A revalidatePath call " +
+        "anywhere else re-scatters that knowledge, and the next page added " +
+        "over shared data goes stale with nothing to catch it. Announce the " +
+        "fact with `refresh` instead. src/test/ is exempt — setup.ts mocks " +
+        "the module so a write in a test never reaches Next's cache.",
+      from: { pathNot: "^src/(server/freshness\.ts|test/)" },
+      to: { path: "node_modules/next/cache\.js$" },
+    },
   ],
   options: {
     doNotFollow: { path: "node_modules" },

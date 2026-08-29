@@ -5,8 +5,8 @@
  * expense and its whole split set in one transaction; no smaller "update
  * splits" export exists to bypass that.
  *
- * Also owns soft-delete on every read, the money tab's revalidation, and the
- * `LIMITS.expenses`/`expenseSplits` ceilings.
+ * Also owns soft-delete on every read and the `LIMITS.expenses` /
+ * `expenseSplits` ceilings.
  *
  * Arithmetic lives in `lib/money.ts` (pure, tested) — this module only stores
  * what that computed, keeping rule 1 (money is never a float) to one seam.
@@ -14,7 +14,6 @@
 import "server-only";
 
 import { and, desc, eq, inArray, isNull } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
 import { expense, expenseSplit, settlement, user, userProfile } from "@/db/schema";
@@ -28,10 +27,6 @@ import type {
 import type { ExpenseCategory } from "@/lib/expense-category";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
-
-export function revalidateMoney(tripId: number): void {
-  revalidatePath(`/trip/${tripId}/money`);
-}
 
 /** The trip's live ledger, newest first (ticket 118). Whole rows — Money and Overview both read columns from it. */
 export async function listExpenses(tripId: number): Promise<Expense[]> {

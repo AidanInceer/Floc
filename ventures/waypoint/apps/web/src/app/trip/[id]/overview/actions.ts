@@ -15,16 +15,12 @@ import {
   insertNudge,
   inviteToTrip,
   leaveTripAs,
-  revalidateInvites,
   removeMembership,
   renameTrip as writeTripName,
-  revalidateOverview,
-  revalidateProfileTrips,
-  revalidateTripHeader,
-  revalidateTripLists,
   setMemberRoleAdmin,
   setTripTags as writeTripTags,
 } from "@/server/membership";
+import { refresh } from "@/server/freshness";
 
 export async function sendNudge(formData: FormData) {
   const tripId = Number(formData.get("tripId"));
@@ -63,7 +59,7 @@ export async function sendNudge(formData: FormData) {
     ]),
   );
 
-  revalidateOverview(access.trip.id);
+  refresh({ kind: "tripOverview", tripId: access.trip.id });
 }
 
 // Invite by name (ticket 146). Admin-gated like the share link (rule 6);
@@ -90,8 +86,10 @@ export async function inviteFriends(formData: FormData) {
     toUserIds: friendIds,
   });
 
-  revalidateOverview(access.trip.id);
-  revalidateInvites();
+  refresh(
+    { kind: "tripOverview", tripId: access.trip.id },
+    { kind: "invites" },
+  );
 }
 
 export async function kickMember(formData: FormData) {
@@ -103,8 +101,10 @@ export async function kickMember(formData: FormData) {
 
   await removeMembership(access.trip.id, userId);
 
-  revalidateOverview(access.trip.id);
-  revalidateProfileTrips();
+  refresh(
+    { kind: "tripOverview", tripId: access.trip.id },
+    { kind: "profileTrips" },
+  );
 }
 
 export async function promoteMember(formData: FormData) {
@@ -116,7 +116,7 @@ export async function promoteMember(formData: FormData) {
 
   await setMemberRoleAdmin(access.trip.id, userId);
 
-  revalidateOverview(access.trip.id);
+  refresh({ kind: "tripOverview", tripId: access.trip.id });
 }
 
 // Open to any member deliberately — not one of the four admin powers (rule 6).
@@ -132,8 +132,10 @@ export async function renameTrip(formData: FormData) {
 
   await writeTripName(access.trip.id, name);
 
-  revalidateTripHeader(access.trip.id);
-  revalidateTripLists();
+  refresh(
+    { kind: "tripHeader", tripId: access.trip.id },
+    { kind: "tripList" },
+  );
 }
 
 // Trip tags (ticket 71), open to any member like renaming. `parseTagNames` owns
@@ -147,8 +149,10 @@ export async function setTripTags(formData: FormData) {
 
   await writeTripTags(access.trip.id, tags);
 
-  revalidateOverview(access.trip.id);
-  revalidateTripLists();
+  refresh(
+    { kind: "tripOverview", tripId: access.trip.id },
+    { kind: "tripList" },
+  );
 }
 
 // Leaving (ticket 65), open to every member incl. admin. Two side effects
@@ -168,8 +172,10 @@ export async function leaveTrip(formData: FormData) {
     others: access.members.filter((m) => m.userId !== access.viewer.id),
   });
 
-  revalidateTripLists();
-  revalidateProfileTrips();
+  refresh(
+    { kind: "tripList" },
+    { kind: "profileTrips" },
+  );
   redirect("/trips");
 }
 
