@@ -42,7 +42,6 @@ export function CalendarToolbar({
   hidden,
   setHidden,
   effectiveView,
-  tooNarrow,
   setView,
 }: {
   hasToday: boolean;
@@ -55,7 +54,6 @@ export function CalendarToolbar({
   hidden: ReadonlySet<DayEventType>;
   setHidden: (update: (prev: ReadonlySet<DayEventType>) => ReadonlySet<DayEventType>) => void;
   effectiveView: "day" | "week";
-  tooNarrow: boolean;
   setView: (view: "day" | "week") => void;
 }) {
   const typeCount = Object.keys(EVENT_CATEGORIES).length;
@@ -109,8 +107,6 @@ export function CalendarToolbar({
             key={option}
             type="button"
             aria-pressed={effectiveView === option}
-            disabled={option === "week" && tooNarrow}
-            title={option === "week" && tooNarrow ? "The week needs a wider window" : undefined}
             onClick={() => setView(option)}
             className={cx(
               "px-3 py-1 font-mono text-[11px] uppercase tracking-[0.06em] transition-colors disabled:opacity-50",

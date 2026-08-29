@@ -17,9 +17,6 @@ export const COLUMN_MIN_PX = { week: 120, day: 240 } as const;
 
 export const OUTSIDE_DAY_CLASS = "bg-sheet-2/65";
 
-/** Below this width the week is unreadable even scrolling; falls back to Day. */
-export const WEEK_FLOOR_PX = 560;
-
 /** How close to the calendar's edge a drag has to get before the page turns. */
 export const EDGE_PX = 44;
 

@@ -35,7 +35,6 @@ import {
   EDGE_PX,
   GUTTER_PX,
   HOUR_PX,
-  WEEK_FLOOR_PX,
   describeSpan,
   type BandDrag,
   type CalendarDay,
@@ -122,7 +121,6 @@ export function DaysCalendar({
 
   const [view, setView] = useState<"day" | "week">("week");
   const [anchor, setAnchor] = useState(todayIndex);
-  const [tooNarrow, setTooNarrow] = useState(false);
   const [hidden, setHidden] = useState<ReadonlySet<DayEventType>>(new Set());
   const [selected, setSelected] = useState<number | null>(null);
   const [tab, setTab] = useState<"event" | "notes">("event");
@@ -135,7 +133,6 @@ export function DaysCalendar({
   const [landing, setLanding] = useState<Landing | null>(null);
   const [, startTransition] = useTransition();
 
-  const calRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   /** What a band drag measures its edges against. */
   const scrollerRef = useRef<HTMLDivElement>(null);
@@ -204,20 +201,9 @@ export function DaysCalendar({
     [minuteFloor],
   );
 
-  // Watches the element, not the window — catches cases a resize event never
-  // fires for, like the pane opening.
-  useEffect(() => {
-    const node = calRef.current;
-    if (!node || typeof ResizeObserver === "undefined") return;
-    const observer = new ResizeObserver(() => {
-      setTooNarrow(node.clientWidth > 0 && node.clientWidth < WEEK_FLOOR_PX);
-    });
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
-
-  /** Week is unavailable, not silently different — the button says why. */
-  const effectiveView = tooNarrow ? "day" : view;
+  // Week stays offered at every width (mobile included): a narrow screen scrolls
+  // the seven columns sideways rather than being dropped to Day for you.
+  const effectiveView = view;
 
   // Read after mount, never during render: a time rendered on both sides is a
   // hydration mismatch waiting for the turn of an hour.
@@ -613,7 +599,6 @@ export function DaysCalendar({
         hidden={hidden}
         setHidden={setHidden}
         effectiveView={effectiveView}
-        tooNarrow={tooNarrow}
         setView={setView}
       />
 
@@ -626,7 +611,6 @@ export function DaysCalendar({
         )}
       >
         <div
-          ref={calRef}
           onClick={onCalendarClick}
           className="min-w-0 border-b border-rule lg:border-r lg:border-b-0"
         >
