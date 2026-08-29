@@ -936,9 +936,13 @@
  * Unlayered for the same reason as Leaflet above: the library's stylesheet is
  * unlayered, so a rule inside `@layer components` would lose to it.
  */
-.bn-root {
+.bn-root.bn-root {
+  /* Doubled up on purpose: BlockNote defines these same variables under
+     `[data-color-scheme]`, which outranks a single class. The theme is ours,
+     not the library's, so the selector has to outrank it back. */
   --bn-colors-editor-text: var(--ink);
-  --bn-colors-editor-background: var(--sheet);
+  /* The doc has no ground of its own — the sheet it sits on is the ground. */
+  --bn-colors-editor-background: transparent;
   --bn-colors-menu-text: var(--ink);
   --bn-colors-menu-background: var(--sheet);
   --bn-colors-tooltip-text: var(--ink);

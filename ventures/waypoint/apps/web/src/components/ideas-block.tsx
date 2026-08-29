@@ -59,7 +59,7 @@ export function IdeasBlockBody() {
   return (
     <div
       data-app-block=""
-      className="w-full rounded-2xl border border-butter-edge bg-butter/25 px-5 py-5"
+      className="w-full rounded-2xl border border-butter-edge bg-butter px-5 py-5"
     >
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <p className="typed">Ideas board</p>

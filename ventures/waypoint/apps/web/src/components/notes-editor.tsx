@@ -127,7 +127,9 @@ export function NotesEditor({
     <IdeasBlockProvider value={board}>
       <BlockNoteView
         editor={editor}
-        theme="light"
+        // No `theme` prop: the palette is set in globals.css off the house
+        // tokens, so it follows `data-theme` with nothing to hydrate. Naming a
+        // theme here would only pin the few styles the tokens do not cover.
         slashMenu={false}
         onChange={queueSave}
       >
