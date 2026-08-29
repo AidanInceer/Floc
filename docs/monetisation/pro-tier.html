@@ -90,7 +90,7 @@ subscriptions — the awkward money conversation Waypoint exists to remove.</li>
 is not lost revenue; it is the only funnel there is. Extraction is a problem
 for a product with demand.</p>
 <p>The guard against changing minds is structural, not documentary: the decision
-lives in <strong>one function</strong>, <code>canUseProFeature()</code> in
+lives in <strong>one function</strong>, <code>canUseFeature()</code> in
 <code>server/entitlements.ts</code>. Seat caps, ratios, or personal-only Pro all become a
 policy edit inside that function rather than a refactor.</p>
 
@@ -142,10 +142,85 @@ cancels.</p>
 <strong>verified</strong> (otherwise anyone can POST themselves a subscription), and every
 write is <strong>idempotent</strong> (Stripe retries, and a retry must be harmless).</p>
 
+<h3>Comped access — Pro without paying</h3>
+<p>Nobody is paying yet, and friends need to test Pro surfaces. The rule:
+<strong>there is exactly one way to be Pro — a row in the <code>subscription</code>
+table.</strong> A <code>source</code> column records why it exists:
+<code>stripe</code> for a payment, <code>comp</code> for one granted by hand.
+Expiry reuses the same column Stripe writes; blank means forever.</p>
+<p>The gate never reads <code>source</code>. It asks whether a live row exists, so a
+comped tester and a paying customer run identical code. Granting Pro is adding a
+row in <code>pnpm db:studio</code> — no code, no deploy, and it works on the
+deployed site as readily as locally.</p>
+<p>Three alternatives were rejected, all for the same underlying reason — each
+creates a <em>second</em> way to be Pro, which the gate must then remember to
+check and which must later be removed:</p>
+<ul>
+<li><strong>A global <code>PRO_FOR_EVERYONE</code> switch.</strong> If everyone is Pro,
+nobody ever sees a lock, so the paywall being built here is never actually
+exercised. Worse in production: a switch that silently makes paying pointless,
+while nothing in the app looks wrong.</li>
+<li><strong>An email allowlist in env.</strong> Per-person, but adding a tester means a
+Railway variable and a redeploy, it cannot expire, and it puts a list of
+friends&#39; addresses in configuration.</li>
+<li><strong>A dev-only override.</strong> Its one real use is surviving a wiped
+<code>local.db</code>; a comped row in <code>db:seed</code> covers that with no new
+code path.</li>
+</ul>
+<p>Operational note: a trip is Pro if <em>any</em> member is Pro, so an account
+comped for testing makes every trip it joins Pro. Testing a lock needs a second,
+un-comped account.</p>
+
+<h3>Which features are Pro</h3>
+<p>A single map, the only place the answer lives:</p>
+<pre><code>export const PLANS = [&quot;free&quot;, &quot;pro&quot;] as const;
+export type Plan = (typeof PLANS)[number];
+
+export const FEATURE_PLAN = {
+  &quot;dates.weather&quot;:        { plan: &quot;pro&quot;, scope: &quot;trip&quot; },
+  &quot;packing.autoGenerate&quot;: { plan: &quot;pro&quot;, scope: &quot;trip&quot; },
+  &quot;notes.multiPage&quot;:      { plan: &quot;pro&quot;, scope: &quot;trip&quot; },
+} as const satisfies Record&lt;string, { plan: Plan; scope: Scope }&gt;;</code></pre>
+<ul>
+<li><strong><code>Plan</code>, not <code>Tier</code>.</strong> <code>PACK_TIERS</code> already
+means light/balanced/comfort in <code>lib/packing.ts</code>. Two unrelated
+&quot;tiers&quot; in one codebase is a bug waiting to be read wrong.</li>
+<li><strong>Dotted keys, so granularity sits below the page.</strong> The Dates section
+stays free while <code>dates.weather</code> is Pro. Gating is per capability, not
+per tab.</li>
+<li><strong><code>scope</code> is typed, not conventional.</strong> A <code>&quot;trip&quot;</code>
+feature will not compile without a trip id — the app has genuinely
+user-scoped surfaces too (saved packing lists), so the distinction is real
+rather than anticipated.</li>
+<li><strong>Adding <code>&quot;pro-plus&quot;</code> is one word.</strong> Every call site keeps
+compiling; only the comparison inside the gate changes.</li>
+<li><strong>A key exists only once something gates on it.</strong> Pre-wiring likely
+candidates as <code>&quot;free&quot;</code> was rejected: a gate call that can never
+answer &quot;no&quot; is code with no behaviour, untestable and dead by
+<code>knip</code>&#39;s reading. Gating a new feature later is one map line plus one
+call — it was never a rebuild.</li>
+</ul>
+<p>In code, this map is the whole configuration switch. Making the itinerary Pro
+is editing one word, not revisiting the feature.</p>
+
 <h3>The gate</h3>
-<p>One function, one file. <code>canUseProFeature(tripId)</code> asks: does any
-non-deleted member of this trip hold a subscription row whose status is active
-or trialing, with <code>currentPeriodEnd</code> in the future?</p>
+<p>One file, <code>server/entitlements.ts</code>, mirroring the naming already in
+<code>server/access.ts</code>:</p>
+<ul>
+<li><code>canUseFeature(...)</code> returns a boolean — for deciding whether to draw
+the lock.</li>
+<li><code>assertFeature(...)</code> throws — for the write path, exactly as
+<code>assertAdmin</code> does.</li>
+</ul>
+<p>It asks: does any non-deleted member of this trip hold a subscription row whose
+status is active or trialing, with the period end in the future?</p>
+<p><strong>Deliberately separate from <code>requireTripAccess</code>.</strong> That function
+already loads the member list, so folding the check into its query would cost
+nothing. Rejected anyway: it welds billing into the layer every page depends on,
+which is the creep <code>depcruise</code> exists to catch, and it would make a
+billing bug break page loads rather than one lock. Entitlements get their own
+<code>cache()</code>d call, so only pages with a Pro surface pay for it and read
+paths stay clear of billing entirely.</p>
 <p><strong>Enforced on the server.</strong> The client never decides. Hiding a tab is
 presentation; the weather read refusing is the gate.</p>
 
