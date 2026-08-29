@@ -121,6 +121,19 @@
   --shadow: 0 1px 2px rgb(20 20 26 / 0.05), 0 6px 14px -12px rgb(20 20 26 / 0.3);
   --shadow-lift: 0 2px 4px rgb(20 20 26 / 0.06), 0 14px 28px -16px rgb(20 20 26 / 0.35);
 
+  /*
+   * Pro. The one paid thing on the site, and the only block that
+   * leaves the blue-and-pastel language: warm parchment and gold here, cut to
+   * black and gold in dark. Gold is the constant, the ground is not — a
+   * near-black slab on a white page glared (it read as a hole, not a card).
+   */
+  --pro: #fbf3e2;
+  --pro-2: #fffcf5;
+  --pro-edge: #ecdcb5;
+  --pro-ink: #3a2d0f;
+  --pro-ink-2: #6b5726;
+  --pro-gold: #8a6412;
+
   /* The lift of white inside the map frame, so pins near the border still
      separate from the tiles. A token because dark cannot afford the glare. */
   --vignette: rgb(255 255 255 / 0.5);
@@ -233,6 +246,15 @@
   --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 14px -12px rgb(0 0 0 / 0.9);
   --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.5), 0 14px 28px -16px rgb(0 0 0 / 0.95);
 
+  /* Pro inverts here: the same block, cut from black rather than parchment.
+     Gold rises to carry text on it. */
+  --pro: #17171d;
+  --pro-2: #23232c;
+  --pro-edge: #3b3b46;
+  --pro-ink: #f6f2e8;
+  --pro-ink-2: #b6b0a2;
+  --pro-gold: #e7bd63;
+
   /* The white lift at the map's edge would be a glare here. */
   --vignette: rgb(255 255 255 / 0.05);
 }
@@ -268,6 +290,14 @@
   --color-blush: var(--blush);
   --color-blush-ink: var(--blush-ink);
   --color-blush-edge: var(--blush-edge);
+
+  /* Pro's own ground: bg-pro, text-pro-gold, …. */
+  --color-pro: var(--pro);
+  --color-pro-2: var(--pro-2);
+  --color-pro-edge: var(--pro-edge);
+  --color-pro-ink: var(--pro-ink);
+  --color-pro-ink-soft: var(--pro-ink-2);
+  --color-pro-gold: var(--pro-gold);
 
   --color-highlight: var(--highlight);
   --color-highlight-soft: var(--highlight-2);
@@ -382,6 +412,44 @@
     z-index: 10;
   }
 
+  /*
+   * The review wall drifts right-to-left for ever: the list is
+   * rendered twice and the track slides exactly half its width, so the seam
+   * never shows. Hover pauses it, and the mask fades both edges so cards
+   * arrive and leave rather than being cut off.
+   */
+  .marquee {
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 5%,
+      black 95%,
+      transparent
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 5%,
+      black 95%,
+      transparent
+    );
+  }
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: marquee-drift 70s linear infinite;
+  }
+  .marquee:hover .marquee-track,
+  .marquee:focus-within .marquee-track {
+    animation-play-state: paused;
+  }
+  @keyframes marquee-drift {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -392,6 +460,13 @@
     /* Remove the movement, keep the feedback (ticket 190). */
     .lift:hover {
       transform: none;
+    }
+    /* The drift becomes a hand-scrolled row rather than a frozen one. */
+    .marquee-track {
+      animation: none;
+    }
+    .marquee {
+      overflow-x: auto;
     }
   }
 }

@@ -14,8 +14,8 @@ import {
   Stars,
   reviews,
   features,
-  rail,
   sampleStops,
+  proLead,
   proPerks,
 } from "./landing-content";
 
@@ -115,21 +115,37 @@ export default async function LandingPage() {
       {/* ── what people say (artificial) ─────────────────────────────── */}
       <section className="mt-24">
         <SectionHead title="What people say" />
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {reviews.map((r) => (
-            <figure key={r.name} className={cx("lift rounded-lg p-6", r.skin)}>
-              <Stars />
-              <blockquote className="mt-4 text-sm opacity-90">
-                “{r.body}”
-              </blockquote>
-              <figcaption className="mt-5">
-                <p className="font-display text-md font-semibold tracking-tight">
-                  {r.name}
-                </p>
-                <p className="mt-0.5 font-mono text-xs opacity-70">{r.role}</p>
-              </figcaption>
-            </figure>
-          ))}
+
+        {/* Pulled out to the page gutter on purpose — the cards should run off
+            the edge rather than stop dead at the column. */}
+        <div className="marquee -mx-4 mt-10 sm:-mx-6">
+          <div className="marquee-track py-2">
+            {[0, 1].map((pass) =>
+              reviews.map((r) => (
+                <figure
+                  key={`${pass}-${r.name}`}
+                  aria-hidden={pass === 1}
+                  className={cx(
+                    "lift mr-5 w-[19rem] shrink-0 rounded-lg p-6",
+                    r.skin,
+                  )}
+                >
+                  <Stars rating={r.rating} />
+                  <blockquote className="mt-4 text-sm opacity-90">
+                    “{r.body}”
+                  </blockquote>
+                  <figcaption className="mt-5">
+                    <p className="font-display text-md font-semibold tracking-tight">
+                      {r.name}
+                    </p>
+                    <p className="mt-0.5 font-mono text-xs opacity-70">
+                      {r.role}
+                    </p>
+                  </figcaption>
+                </figure>
+              )),
+            )}
+          </div>
         </div>
       </section>
 
@@ -142,11 +158,13 @@ export default async function LandingPage() {
               key={f.title}
               className="lift rounded-lg border border-rule bg-sheet p-6"
             >
-              <span className="inline-flex size-9 items-center justify-center rounded-md bg-sheet-2 text-ink">
-                <Glyph name={f.icon} className="size-[18px]" />
-              </span>
-              <h3 className="mt-4 text-md">{f.title}</h3>
-              <p className="mt-2 text-sm text-ink-soft">{f.body}</p>
+              <div className="flex items-center gap-3">
+                <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-md bg-sheet-2 text-ink">
+                  <Glyph name={f.icon} className="size-[18px]" />
+                </span>
+                <h3 className="text-md">{f.title}</h3>
+              </div>
+              <p className="mt-4 text-sm text-ink-soft">{f.body}</p>
             </article>
           ))}
         </div>
@@ -159,54 +177,8 @@ export default async function LandingPage() {
           order; the yellow badge is how many nights you spend there.
         </SectionHead>
 
-        {/* Icon rail, scrolled sideways — the domains, the way the trip tabs
-            read across the top of a trip. The edges fade where it overflows:
-            a hard cut read as a clipped row rather than a scrollable one, and
-            `justify-center` on an overflowing track hides its own start. */}
-        <div className="scroll-x-bare mt-8 -mx-1 flex justify-start gap-1 px-1 [mask-image:linear-gradient(to_right,#000_calc(100%-3rem),transparent)] md:justify-center md:[mask-image:none]">
-          {rail.map((r) => (
-            <span
-              key={r.label}
-              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-sheet-3 px-4 py-2 text-sm font-medium text-ink-soft"
-            >
-              <Glyph name={r.icon} />
-              {r.label}
-            </span>
-          ))}
-        </div>
-
-        <div className="mt-6">
+        <div className="mt-8">
           <RouteMap stops={sampleStops} missing={[]} />
-        </div>
-      </section>
-
-      {/* ── Pro tier (blueprint) ─────────────────────────────────────── */}
-      <section className="mt-24">
-        <div className="overflow-hidden rounded-lg bg-pen-soft p-8 text-pen-deep sm:p-10">
-          <div className="max-w-[54ch]">
-            <span className="inline-flex items-center rounded-full bg-sheet/70 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em]">
-              Coming soon · Pro
-            </span>
-            <h2 className="mt-4 text-[clamp(1.6rem,3.2vw,2.3rem)]">
-              The full trip, for the ones who travel a lot.
-            </h2>
-            <p className="mt-4 text-md opacity-80">
-              Waypoint stays free for planning together. Pro adds the extras
-              worth paying for once the trip is booked.
-            </p>
-          </div>
-
-          <div className="mt-8 grid gap-4 sm:grid-cols-2">
-            {proPerks.map((p) => (
-              <article
-                key={p.title}
-                className="rounded-md bg-sheet/70 p-5 text-ink"
-              >
-                <h3 className="text-md">{p.title}</h3>
-                <p className="mt-2 text-sm text-ink-soft">{p.body}</p>
-              </article>
-            ))}
-          </div>
         </div>
       </section>
 
@@ -259,13 +231,79 @@ export default async function LandingPage() {
               The app is coming — the plan in your pocket.
             </h2>
             <p className="mt-4 text-ink-soft">
-              Everything the group has agreed, offline and on your phone. Plan
-              on the web today; take it with you soon.
+              Everything the group has agreed, offline and on your phone. iOS
+              and Android both. Plan on the web today; take it with you soon.
             </p>
           </div>
-          <span className="inline-flex items-center rounded-full bg-sheet-2 px-4 py-2 font-mono text-xs uppercase tracking-[0.14em] text-ink-soft">
-            Notify me — coming soon
-          </span>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            {["iOS", "Android"].map((os) => (
+              <span
+                key={os}
+                className="inline-flex items-center rounded-full bg-sheet-2 px-4 py-2 font-mono text-xs uppercase tracking-[0.14em] text-ink-soft"
+              >
+                {os} — coming soon
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Pro tier (blueprint) ─────────────────────────────────────── */}
+      {/* The one paid thing on the page, so it is the one block that refuses
+          the pale palette: parchment and gold in light, black and gold in
+          dark. The button is a blueprint — it goes nowhere yet. */}
+      <section className="mt-24">
+        <div className="overflow-hidden rounded-lg bg-pro p-8 text-pro-ink sm:p-12">
+          {/* The button shares the pill's row at every width, so it stays
+              top-right on a phone without squeezing the heading beside it. */}
+          <div className="flex items-center justify-between gap-4">
+            <span className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-pro-gold px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-pro-gold">
+              <Glyph name="star" />
+              Coming soon · Pro
+            </span>
+
+            {/* Blueprint — goes nowhere yet. */}
+            <button
+              type="button"
+              disabled
+              className="lift shrink-0 whitespace-nowrap rounded-md bg-pro-gold px-3 py-2 font-display text-xs font-semibold tracking-tight text-pro sm:px-6 sm:py-3 sm:text-md"
+            >
+              Upgrade now
+            </button>
+          </div>
+
+          <h2 className="mt-6 max-w-[46ch] text-[clamp(1.6rem,3.2vw,2.3rem)]">
+            The full trip, for the ones who travel a lot.
+          </h2>
+
+          {/* The headline perk stands alone above the grid — it is the reason
+              the tier exists, not one of eight equals. */}
+          <div className="mt-12 flex flex-col items-center text-center">
+            <span className="inline-flex size-11 items-center justify-center rounded-md bg-pro-gold text-pro">
+              <Glyph name={proLead.icon} className="size-[22px]" />
+            </span>
+            <h3 className="mt-4 text-xl text-pro-ink">{proLead.title}</h3>
+            <p className="mt-3 max-w-[52ch] text-md text-pro-ink-soft">
+              {proLead.body}
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {proPerks.map((p) => (
+              <article
+                key={p.title}
+                className="rounded-md border border-pro-edge bg-pro-2 p-4"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="shrink-0 text-pro-gold">
+                    <Glyph name={p.icon} className="size-[18px]" />
+                  </span>
+                  <h3 className="text-sm text-pro-ink">{p.title}</h3>
+                </div>
+                <p className="mt-2 text-sm text-pro-ink-soft">{p.body}</p>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 

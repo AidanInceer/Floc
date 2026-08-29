@@ -30,6 +30,15 @@ const PAIRS = [
   ["pen-deep", "mint", AA_TEXT, "blue text on mint"],
   ["pen-deep", "butter", AA_TEXT, "blue text on butter"],
   ["pen-deep", "blush", AA_TEXT, "blue text on blush"],
+  // Pro's own ground — it flips ground per theme, so it is checked
+  // like any other surface rather than trusted for being deliberate.
+  ["pro-ink", "pro", AA_TEXT, "text on the Pro ground"],
+  ["pro-ink-2", "pro", AA_TEXT, "secondary text on the Pro ground"],
+  ["pro-gold", "pro", AA_TEXT, "gold text on the Pro ground"],
+  ["pro-ink", "pro-2", AA_TEXT, "text on a Pro card"],
+  ["pro-ink-2", "pro-2", AA_TEXT, "secondary text on a Pro card"],
+  ["pro-gold", "pro-2", AA_TEXT, "gold text on a Pro card"],
+  ["pro", "pro-gold", AA_TEXT, "dark ink on the gold button"],
   // Hairlines are decorative separation, not a control boundary, so AA's 3:1
   // does not apply — but a hairline nobody can see is still a bug.
   ["rule", "sheet", 1.05, "a hairline on a surface"],
@@ -38,6 +47,7 @@ const PAIRS = [
   ["mint-edge", "mint", 1.1, "a pastel's own edge"],
   ["butter-edge", "butter", 1.1, "a pastel's own edge"],
   ["blush-edge", "blush", 1.1, "a pastel's own edge"],
+  ["pro-edge", "pro-2", 1.1, "a hairline on a Pro card"],
 ];
 
 /**

@@ -16,7 +16,7 @@ import { ThemeSwitch } from "@/components/theme-switch";
 // logo — it can't sit on the white ground.
 function WaypointWordmark() {
   return (
-    <span className="font-display text-[22px] font-semibold leading-none tracking-tight text-ink">
+    <span className="font-display text-[15px] font-semibold leading-none tracking-tight text-ink sm:text-[22px]">
       way<span className="text-pen">.</span>point
     </span>
   );
@@ -84,7 +84,7 @@ export function AppChrome({
           column and sat over the wordmark. Here the ends are content-sized and
           unshrinkable, and the middle takes what is left — the track scrolls
           inside it rather than pushing anything off the row. */}
-      <div className="mx-auto flex h-14 w-full max-w-[84rem] items-center gap-2 px-4 sm:gap-4 sm:px-6">
+      <div className="mx-auto flex h-14 w-full max-w-[84rem] items-center gap-1.5 px-2 sm:gap-4 sm:px-6">
         <Link
           href="/"
           aria-label="Waypoint home"
@@ -99,7 +99,7 @@ export function AppChrome({
 
         {/* The theme switch sits with the account controls, signed in or out —
             the same control in the same place either way (ticket 240). */}
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <ThemeSwitch />
           {user ? (
             <AccountMenu user={user} />

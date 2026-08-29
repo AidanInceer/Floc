@@ -41,7 +41,7 @@ export function ThemeSwitch() {
           aria-label={option === "light" ? "Light" : "Dark"}
           aria-pressed={theme === null ? undefined : theme === option}
           onClick={() => choose(option)}
-          className="theme-choice lift flex h-7 w-7 items-center justify-center rounded-full text-ink-soft hover:text-ink"
+          className="theme-choice lift flex h-8 w-7 items-center justify-center rounded-full sm:w-8 text-ink-soft hover:text-ink"
         >
           {option === "light" ? <SunriseIcon /> : <MoonIcon />}
         </button>

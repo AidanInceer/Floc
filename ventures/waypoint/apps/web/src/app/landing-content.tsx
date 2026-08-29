@@ -16,7 +16,124 @@ export type GlyphName =
   | "people"
   | "book"
   | "star"
-  | "app";
+  | "app"
+  | "packing"
+  | "notes"
+  | "files"
+  | "flight"
+  | "offline"
+  | "inbox"
+  | "pin"
+  | "nav"
+  | "compass"
+  | "alert";
+
+const PATHS: Record<GlyphName, ReactNode> = {
+  ideas: (
+    <>
+      <path d="M7 1.6a4 4 0 0 1 2.4 7.2c-.5.4-.7.7-.7 1.3v.4H5.3v-.4c0-.6-.2-.9-.7-1.3A4 4 0 0 1 7 1.6Z" />
+      <path d="M5.6 12.4h2.8M6 13.4h2" />
+    </>
+  ),
+  dates: (
+    <>
+      <rect x="1.8" y="2.8" width="10.4" height="9.4" rx="1.6" />
+      <path d="M1.8 5.4h10.4M4.4 1.6v2.4M9.6 1.6v2.4" />
+    </>
+  ),
+  days: (
+    <>
+      <path d="M7 12.6S2.4 8.8 2.4 5.6a4.6 4.6 0 0 1 9.2 0C11.6 8.8 7 12.6 7 12.6Z" />
+      <circle cx="7" cy="5.5" r="1.5" />
+    </>
+  ),
+  money: (
+    <>
+      <circle cx="7" cy="7" r="5.2" />
+      <path d="M8.6 5.2c-.4-.6-1-.9-1.7-.9-1 0-1.7.5-1.7 1.3 0 1.9 3.6.9 3.6 2.9 0 .8-.8 1.4-1.9 1.4-.8 0-1.5-.3-1.9-1M7 3.4v7.2" />
+    </>
+  ),
+  people: (
+    <>
+      <circle cx="5.2" cy="5" r="2" />
+      <path d="M1.8 11.4c0-1.9 1.5-3 3.4-3s3.4 1.1 3.4 3" />
+      <path d="M9.4 3.3a2 2 0 0 1 0 3.9M9.8 8.6c1.5.2 2.6 1.2 2.6 2.8" />
+    </>
+  ),
+  book: (
+    <>
+      <path d="M7 3.4C6 2.6 4.6 2.3 2.6 2.4c-.5 0-.8.3-.8.8v6.9c0 .5.4.8.9.7 1.7-.1 3 .2 4.3 1 1.3-.8 2.6-1.1 4.3-1 .5 0 .9-.2.9-.7V3.2c0-.5-.3-.8-.8-.8-2-.1-3.4.2-4.4 1Z" />
+      <path d="M7 3.4v7.4" />
+    </>
+  ),
+  star: (
+    <path d="M7 1.8l1.5 3.4 3.7.3-2.8 2.4.9 3.6L7 9.9 3.7 11.5l.9-3.6L1.8 5.5l3.7-.3Z" />
+  ),
+  app: (
+    <>
+      <rect x="3.4" y="1.6" width="7.2" height="10.8" rx="1.6" />
+      <path d="M5.8 10.6h2.4" />
+    </>
+  ),
+  packing: (
+    <>
+      <rect x="1.8" y="4.4" width="10.4" height="7.8" rx="1.4" />
+      <path d="M5 4.4V3.2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1.2M7 6.8v3" />
+    </>
+  ),
+  notes: (
+    <>
+      <path d="M3.2 1.8h5l2.6 2.6v7.8H3.2Z" />
+      <path d="M8 1.8v2.8h2.8M5 7.4h4M5 9.4h2.6" />
+    </>
+  ),
+  files: (
+    <>
+      <path d="M1.8 4.2v6.4a1.2 1.2 0 0 0 1.2 1.2h8a1.2 1.2 0 0 0 1.2-1.2V5.4a1.2 1.2 0 0 0-1.2-1.2H6.9L5.7 2.6H3a1.2 1.2 0 0 0-1.2 1.2Z" />
+    </>
+  ),
+  flight: (
+    <>
+      <path d="M12.4 2.4 6.2 8.6M12.4 2.4l-4 9.8-2.2-3.6-3.6-2.2Z" />
+    </>
+  ),
+  offline: (
+    <>
+      <path d="M7 2.2v6M4.6 6l2.4 2.4L9.4 6" />
+      <path d="M2.2 9.6v1.4a1 1 0 0 0 1 1h7.6a1 1 0 0 0 1-1V9.6" />
+    </>
+  ),
+  inbox: (
+    <>
+      <path d="M1.8 8.2 3.4 3a1 1 0 0 1 1-.7h5.2a1 1 0 0 1 1 .7l1.6 5.2" />
+      <path d="M1.8 8.2h3l.7 1.4h3l.7-1.4h3v2.4a1.2 1.2 0 0 1-1.2 1.2H3a1.2 1.2 0 0 1-1.2-1.2Z" />
+    </>
+  ),
+  nav: (
+    <>
+      <circle cx="7" cy="7" r="5.2" />
+      <path d="M7 4.1 9.3 9.9 7 8.7 4.7 9.9Z" />
+    </>
+  ),
+  compass: (
+    <>
+      <circle cx="7" cy="7" r="5.2" />
+      <path d="M9.3 4.7 8.1 8.1 4.7 9.3 5.9 5.9Z" />
+    </>
+  ),
+  alert: (
+    <>
+      <path d="M7 2.1 12.5 11.6H1.5Z" />
+      <path d="M7 5.9v2.4M7 10.1v.1" />
+    </>
+  ),
+  pin: (
+    <>
+      <path d="M7 12.4S2.8 8.6 2.8 5.8a4.2 4.2 0 0 1 8.4 0c0 2.8-4.2 6.6-4.2 6.6Z" />
+      <circle cx="7" cy="5.7" r="1.4" />
+    </>
+  ),
+};
 
 export function Glyph({
   name,
@@ -25,54 +142,6 @@ export function Glyph({
   name: GlyphName;
   className?: string;
 }) {
-  const paths: Record<GlyphName, ReactNode> = {
-    ideas: (
-      <>
-        <path d="M7 1.6a4 4 0 0 1 2.4 7.2c-.5.4-.7.7-.7 1.3v.4H5.3v-.4c0-.6-.2-.9-.7-1.3A4 4 0 0 1 7 1.6Z" />
-        <path d="M5.6 12.4h2.8M6 13.4h2" />
-      </>
-    ),
-    dates: (
-      <>
-        <rect x="1.8" y="2.8" width="10.4" height="9.4" rx="1.6" />
-        <path d="M1.8 5.4h10.4M4.4 1.6v2.4M9.6 1.6v2.4" />
-      </>
-    ),
-    days: (
-      <>
-        <path d="M7 12.6S2.4 8.8 2.4 5.6a4.6 4.6 0 0 1 9.2 0C11.6 8.8 7 12.6 7 12.6Z" />
-        <circle cx="7" cy="5.5" r="1.5" />
-      </>
-    ),
-    money: (
-      <>
-        <circle cx="7" cy="7" r="5.2" />
-        <path d="M8.6 5.2c-.4-.6-1-.9-1.7-.9-1 0-1.7.5-1.7 1.3 0 1.9 3.6.9 3.6 2.9 0 .8-.8 1.4-1.9 1.4-.8 0-1.5-.3-1.9-1M7 3.4v7.2" />
-      </>
-    ),
-    people: (
-      <>
-        <circle cx="5.2" cy="5" r="2" />
-        <path d="M1.8 11.4c0-1.9 1.5-3 3.4-3s3.4 1.1 3.4 3" />
-        <path d="M9.4 3.3a2 2 0 0 1 0 3.9M9.8 8.6c1.5.2 2.6 1.2 2.6 2.8" />
-      </>
-    ),
-    book: (
-      <>
-        <path d="M7 3.4C6 2.6 4.6 2.3 2.6 2.4c-.5 0-.8.3-.8.8v6.9c0 .5.4.8.9.7 1.7-.1 3 .2 4.3 1 1.3-.8 2.6-1.1 4.3-1 .5 0 .9-.2.9-.7V3.2c0-.5-.3-.8-.8-.8-2-.1-3.4.2-4.4 1Z" />
-        <path d="M7 3.4v7.4" />
-      </>
-    ),
-    star: (
-      <path d="M7 1.8l1.5 3.4 3.7.3-2.8 2.4.9 3.6L7 9.9 3.7 11.5l.9-3.6L1.8 5.5l3.7-.3Z" />
-    ),
-    app: (
-      <>
-        <rect x="3.4" y="1.6" width="7.2" height="10.8" rx="1.6" />
-        <path d="M5.8 10.6h2.4" />
-      </>
-    ),
-  };
   return (
     <svg
       viewBox="0 0 14 14"
@@ -86,52 +155,128 @@ export function Glyph({
       aria-hidden
       className={className}
     >
-      {paths[name]}
+      {PATHS[name]}
     </svg>
   );
 }
 
-// Five drawn stars with the count also written — status is never colour or
-// icon alone (CLAUDE.md).
-export function Stars() {
+// The star mark, drawn twice: an outline for the empty part and a solid for
+// the filled part. Kept out of `Glyph` because it needs both fills.
+const STAR_D =
+  "M7 1.8l1.5 3.4 3.7.3-2.8 2.4.9 3.6L7 9.9 3.7 11.5l.9-3.6L1.8 5.5l3.7-.3Z";
+
+function Star({ solid }: { solid?: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 14 14"
+      width="14"
+      height="14"
+      fill={solid ? "currentColor" : "none"}
+      stroke="currentColor"
+      strokeWidth={1.2}
+      strokeLinejoin="round"
+      aria-hidden
+      className="block"
+    >
+      <path d={STAR_D} />
+    </svg>
+  );
+}
+
+// Five drawn stars with the score also written — status is never colour or
+// icon alone (CLAUDE.md). Halves are the solid star clipped to its left half
+// by an overflow-hidden wrapper, which avoids an SVG gradient id repeated
+// once per card.
+export function Stars({ rating }: { rating: number }) {
   return (
     <span className="inline-flex items-center gap-2">
       <span aria-hidden className="inline-flex gap-0.5 text-butter-ink">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Glyph key={i} name="star" />
-        ))}
+        {Array.from({ length: 5 }).map((_, i) => {
+          const fill = Math.min(1, Math.max(0, rating - i));
+          return (
+            <span key={i} className="relative block size-[14px]">
+              <Star />
+              {fill > 0 && (
+                <span
+                  className="absolute inset-y-0 left-0 overflow-hidden"
+                  style={{ width: `${fill * 100}%` }}
+                >
+                  <Star solid />
+                </span>
+              )}
+            </span>
+          );
+        })}
       </span>
-      <span className="sr-only">Rated 5 out of 5</span>
+      <span className="sr-only">Rated {rating} out of 5</span>
     </span>
   );
 }
 
 // ── social proof (artificial) ─────────────────────────────────────────────
-export type Review = { name: string; role: string; body: string; skin: string };
+export type Review = {
+  name: string;
+  role: string;
+  body: string;
+  rating: number;
+  skin: string;
+};
 
 export const reviews: Review[] = [
   {
     name: "Priya & the Sicily lot",
     role: "8 friends · yearly trip",
     body: "We argued about dates for three years running. This time it took a week — everyone shaded their days and the answer was just there.",
+    rating: 5,
     skin: "bg-peri text-peri-ink",
   },
   {
     name: "Tom H.",
     role: "Stag weekend, Porto",
     body: "I was the one organising and quietly hating it. The money side alone was worth it — one number each, no spreadsheet.",
+    rating: 4,
     skin: "bg-mint text-mint-ink",
   },
   {
     name: "The Okafor–Bright houses",
     role: "Two families, one villa",
     body: "Who paid the deposit, who's covering food — sorted without a single awkward chat. We kept the book for next year.",
+    rating: 4.5,
     skin: "bg-butter text-butter-ink",
   },
   {
     name: "Mei L.",
     role: "6 friends · road trip",
     body: "The voting board stopped the loudest person deciding for everyone. We actually went where the group wanted.",
+    rating: 5,
+    skin: "bg-blush text-blush-ink",
+  },
+  {
+    name: "Danny & Ruth",
+    role: "Honeymoon, 3 weeks",
+    body: "Two of us, and still worth it. The route map is what sold us — we could see the drive between each place before we booked anything.",
+    rating: 4.5,
+    skin: "bg-peri text-peri-ink",
+  },
+  {
+    name: "The Thursday hikers",
+    role: "11 walkers · Snowdonia",
+    body: "Packing lists split shared and personal, so we turned up with one stove instead of four. Small thing, saved a lot of grumbling.",
+    rating: 5,
+    skin: "bg-mint text-mint-ink",
+  },
+  {
+    name: "Sofia R.",
+    role: "Interrailing, 5 friends",
+    body: "The notes page held every ferry quirk and door code. Would like offline on the phone — that is the one bit we missed on the road.",
+    rating: 4,
+    skin: "bg-butter text-butter-ink",
+  },
+  {
+    name: "The Ellis reunion",
+    role: "14 cousins · one house",
+    body: "Fourteen people agreed a week without a single group-chat argument. I did not think that was possible.",
+    rating: 5,
     skin: "bg-blush text-blush-ink",
   },
 ];
@@ -148,7 +293,7 @@ export const features: Feature[] = [
   {
     icon: "dates",
     title: "Find the week that works",
-    body: "Shade in free days, and Waypoint overlaps them into the weeks the whole group can do.",
+    body: "Everyone shades their free days; the weeks that work for all show through.",
   },
   {
     icon: "days",
@@ -158,12 +303,27 @@ export const features: Feature[] = [
   {
     icon: "money",
     title: "Settle who owes who",
-    body: "Log what you paid and how it split. One net figure per person. No money moves through Waypoint.",
+    body: "Log what you paid and how it splits. One net figure each — no money moves through Waypoint.",
   },
   {
     icon: "people",
     title: "Everyone plans together",
     body: "One page the whole group edits, kept in sync. No forwarded screenshots, no lost threads.",
+  },
+  {
+    icon: "packing",
+    title: "Pack without the list chat",
+    body: "Shared and personal lists side by side — the tent gets brought once, the socks are your problem.",
+  },
+  {
+    icon: "notes",
+    title: "Write anything down",
+    body: "The door code, the ferry quirk, the plan B — written once, read by everyone.",
+  },
+  {
+    icon: "files",
+    title: "Keep the paperwork together",
+    body: "Bookings, tickets and passes filed against the trip, not buried in someone's inbox.",
   },
   {
     icon: "book",
@@ -172,17 +332,7 @@ export const features: Feature[] = [
   },
 ];
 
-// ── the scrollable rail + sample map (sc3) ────────────────────────────────
-// The icon strip above the map, scrolled sideways rather than wrapped.
-export const rail: { icon: GlyphName; label: string }[] = [
-  { icon: "ideas", label: "Ideas" },
-  { icon: "dates", label: "Dates" },
-  { icon: "days", label: "Days" },
-  { icon: "money", label: "Money" },
-  { icon: "people", label: "People" },
-  { icon: "book", label: "After" },
-];
-
+// ── the sample map (sc3) ─────────────────────────────────────────────────
 // Illustrative sample, not a live query — a settled Sicily route so the map
 // shows the thing the page is selling. Drag and zoom are live (RouteMap).
 export const sampleStops = [
@@ -193,21 +343,54 @@ export const sampleStops = [
 ];
 
 // ── Pro tier (sc4) — blueprint, artificial for now ────────────────────────
-export const proPerks: { title: string; body: string }[] = [
+export type Perk = { icon: GlyphName; title: string; body: string };
+
+// The headline perk, sold on its own above the grid.
+export const proLead: Perk = {
+  icon: "flight",
+  title: "A travel agent in your pocket",
+  body: "AI trip planning that does the legwork: sorts the bookings, suggests what to do, and reorganises the days when something is delayed.",
+};
+
+export const proPerks: Perk[] = [
   {
-    title: "Live flight status",
-    body: "Every flight in the trip watched, delays pushed to the group before the airport screen catches up.",
+    icon: "nav",
+    title: "Live day view",
+    body: "Today on a map: what is next, and the way there.",
   },
   {
+    icon: "compass",
+    title: "Places worth going",
+    body: "Picked for your stop, not a top-ten list.",
+  },
+  {
+    icon: "alert",
+    title: "Delays, handled",
+    body: "A late flight reshuffles the day for you to accept.",
+  },
+  {
+    icon: "inbox",
+    title: "Bookings in and out",
+    body: "Confirmations file themselves into the right day.",
+  },
+  {
+    icon: "packing",
+    title: "Packing that reads the trip",
+    body: "Lists built from the forecast and what is on.",
+  },
+  {
+    icon: "notes",
+    title: "Notes, many pages",
+    body: "A page per city, per plan, per running joke.",
+  },
+  {
+    icon: "files",
+    title: "Room for every document",
+    body: "Far more storage for tickets, passes and scans.",
+  },
+  {
+    icon: "offline",
     title: "Offline access",
-    body: "The whole plan downloaded to the phone, so the map and money still work with no signal.",
-  },
-  {
-    title: "Reservation inbox",
-    body: "Forward a booking email and Waypoint files the flight, hotel or table into the right day.",
-  },
-  {
-    title: "Export to Maps",
-    body: "Push every stop to Google Maps in one tap, kept up to date as the plan changes.",
+    body: "The whole plan on the phone, no signal needed.",
   },
 ];
