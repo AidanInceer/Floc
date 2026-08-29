@@ -1,5 +1,6 @@
 /**
- * Shared reader for the `:root` token block in src/app/globals.css.
+ * Shared reader for the token blocks in src/app/globals.css — light, and
+ * dark's overlay on top of it (ticket 240).
  * Aliases (`--red: var(--blush-ink)`) resolve to the hex they point at.
  */
 import { readFileSync } from "node:fs";
@@ -13,18 +14,34 @@ export function readCss() {
   return readFileSync(CSS_PATH, "utf8");
 }
 
-export function rootBlock(css) {
-  const start = css.indexOf(":root {");
+export const LIGHT = ":root {";
+export const DARK = ':root[data-theme="dark"] {';
+
+export function rootBlock(css, selector = LIGHT) {
+  const start = css.indexOf(selector);
   const end = css.indexOf("\n}", start);
   return { start, end, text: css.slice(start, end) };
 }
 
-export function readTokens(css = readCss()) {
+function declarations(css, selector) {
   const raw = new Map();
-  for (const [, name, value] of rootBlock(css).text.matchAll(
+  for (const [, name, value] of rootBlock(css, selector).text.matchAll(
     /^\s*--([\w-]+):\s*([^;]+);/gm,
   )) {
     raw.set(name, value.trim());
+  }
+  return raw;
+}
+
+/**
+ * Every token as a hex, for one theme. Dark restates only the values that
+ * change, so it is read as an overlay on light — exactly how the cascade sees
+ * it, and the reason an alias needs no dark counterpart.
+ */
+export function readTokens(css = readCss(), theme = "light") {
+  const raw = declarations(css, LIGHT);
+  if (theme === "dark") {
+    for (const [name, value] of declarations(css, DARK)) raw.set(name, value);
   }
 
   const resolve = (name, seen = new Set()) => {

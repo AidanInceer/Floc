@@ -9,6 +9,7 @@ import Link from "next/link";
 import { ButtonLink } from "@/components/ui";
 import { PillNav, type PillNavItem } from "@/components/pill-nav";
 import { AccountMenu } from "@/components/account-menu";
+import { ThemeSwitch } from "@/components/theme-switch";
 
 // The typographic wordmark: the display face, lowercase, with the one blue dot
 // that carries through the product as "yours". Replaces the paper-era serif
@@ -96,7 +97,10 @@ export function AppChrome({
           {user ? <PillNav label="Your surfaces" items={navItems} /> : null}
         </div>
 
+        {/* The theme switch sits with the account controls, signed in or out —
+            the same control in the same place either way (ticket 240). */}
         <div className="flex shrink-0 items-center gap-2">
+          <ThemeSwitch />
           {user ? (
             <AccountMenu user={user} />
           ) : (

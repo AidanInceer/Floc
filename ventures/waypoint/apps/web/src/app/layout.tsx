@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Bricolage_Grotesque, DM_Mono, Instrument_Sans } from "next/font/google";
 
 import { AppChrome } from "@/components/app-chrome";
+import { THEME_BOOTSTRAP } from "@/lib/theme";
 import { getSession } from "@/server/access";
 import { countIncomingFriendRequests } from "@/server/friends";
 import { countPendingInvitesFor } from "@/server/membership";
@@ -67,13 +68,18 @@ export default async function RootLayout({
       }
     : null;
 
-  // No `data-theme` and no theme lookup: Waypoint is light-only by design
-  // (ticket 07 — ink on paper, and a dark notebook is a different product).
+  // `data-theme` is written by the bootstrap script below, before paint and
+  // therefore after this markup is serialised — hence suppressHydrationWarning
+  // on the one element it touches (ticket 240).
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${display.variable} ${body.variable} ${mono.variable}`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
+      </head>
       <body className="min-h-dvh">
         <AppChrome
           user={chromeUser}

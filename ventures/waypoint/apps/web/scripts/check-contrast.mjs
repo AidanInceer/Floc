@@ -1,5 +1,6 @@
 /**
- * Every ink/surface pair the app actually paints, asserted against WCAG AA.
+ * Every ink/surface pair the app actually paints, asserted against WCAG AA in
+ * both themes.
  *
  * The pale palette's failure mode is a *design* bug no compiler can see:
  * `--ink-3` sat at 2.75:1 through an entire redesign (#204). This is the only
@@ -39,27 +40,38 @@ const PAIRS = [
   ["blush-edge", "blush", 1.1, "a pastel's own edge"],
 ];
 
-const tokens = readTokens();
-
-// Every `--who-N` / `--who-N-ink` pair, however many there turn out to be.
-for (const name of tokens.keys()) {
-  const n = name.match(/^who-(\d+)$/);
-  if (n) PAIRS.push([`who-${n[1]}-ink`, name, AA_TEXT, `ink on ${name}`]);
-}
-
+/**
+ * Every ink/surface pair, in every theme (ticket 240). A dark palette that
+ * nothing checks is the same design bug as #204, just at the other end of the
+ * ramp — the floors do not move because the ground did.
+ */
 const failures = [];
-for (const [ink, surface, floor, what] of PAIRS) {
-  const a = tokens.get(ink);
-  const b = tokens.get(surface);
-  if (!a || !b) {
-    failures.push(`--${ink} on --${surface}: token missing or not a hex`);
-    continue;
+let checked = 0;
+
+for (const theme of ["light", "dark"]) {
+  const tokens = readTokens(undefined, theme);
+  const pairs = [...PAIRS];
+
+  // Every `--who-N` / `--who-N-ink` pair, however many there turn out to be.
+  for (const name of tokens.keys()) {
+    const n = name.match(/^who-(\d+)$/);
+    if (n) pairs.push([`who-${n[1]}-ink`, name, AA_TEXT, `ink on ${name}`]);
   }
-  const ratio = contrast(a, b);
-  if (ratio < floor) {
-    failures.push(
-      `--${ink} on --${surface} is ${ratio.toFixed(2)}:1, needs ${floor}:1 — ${what}`,
-    );
+
+  for (const [ink, surface, floor, what] of pairs) {
+    const a = tokens.get(ink);
+    const b = tokens.get(surface);
+    checked += 1;
+    if (!a || !b) {
+      failures.push(`${theme}: --${ink} on --${surface}: token missing or not a hex`);
+      continue;
+    }
+    const ratio = contrast(a, b);
+    if (ratio < floor) {
+      failures.push(
+        `${theme}: --${ink} on --${surface} is ${ratio.toFixed(2)}:1, needs ${floor}:1 — ${what}`,
+      );
+    }
   }
 }
 
@@ -68,4 +80,4 @@ if (failures.length) {
   for (const f of failures) console.error(`  ${f}`);
   process.exit(1);
 }
-console.log(`Contrast: ${PAIRS.length} token pairs clear their floor.`);
+console.log(`Contrast: ${checked} token pairs clear their floor, light and dark.`);

@@ -181,14 +181,25 @@ pills; the active one is filled. The wordmark sits left, the account controls
 every page so the app never feels like it switches products between tabs — the
 continuity point the <a href="approach.html">design approach</a> insists on.</p>
 
-<h2>Light only</h2>
-<p>There is <strong>no dark mode</strong>, and it stays a decision rather than an
-omission. No dark palette in <code>globals.css</code>, no <code>data-theme</code>
-attribute, no theme picker on <code>/settings</code>, no <code>theme</code> column
-on <code>user_profile</code>. A dark OS preference is ignored. (The reasoning is no
-longer &ldquo;a dark notebook is a different product&rdquo; — it is simply that
-one well-made light theme beats two half-made ones for a pre-MVP tool. Don't
-reintroduce dark without a ticket.)</p>
+<h2>Two themes, one set of names</h2>
+<p>Light is the palette above. <strong>Dark restates the same token names with
+new values</strong> in a <code>:root[data-theme="dark"]</code> block in
+<code>globals.css</code> — it does not add names, and every alias follows on its
+own because an alias is a <code>var()</code>. The four pastels swap roles: the
+wash goes deep, the ink goes light.</p>
+<p><strong>No component knows which theme is on.</strong> There is no
+<code>dark:</code> variant anywhere in the app, and there must not be — if a
+component needs one, the token is wrong. Contrast is asserted for
+<em>both</em> palettes by <code>scripts/check-contrast.mjs</code>; the floors do
+not move because the ground did.</p>
+<p>The switch is a two-segment pill (sunrise / moon) in the header, beside the
+account controls, signed in or out. Your browser's setting is the default; an
+explicit choice is kept in <code>localStorage</code> and wins. It is applied to
+<code>&lt;html&gt;</code> before first paint, so a dark reload never flashes
+light — which is also why there is no <code>theme</code> column on
+<code>user_profile</code>: the choice belongs to the device, and a server
+round-trip would put the flash back. There is no third &ldquo;system&rdquo;
+position; two states, with the OS as the default before you choose.</p>
 
 <h2>Iconography — unchanged</h2>
 <p><strong>Every icon is drawn line-art, in the app's own hand. No emoji,

@@ -1,8 +1,8 @@
 /**
  * The two rules #206 established by hand, now enforced.
  *
- * 1. One hex per meaning — colour lives in the `:root` token block and nowhere
- *    else, or a palette change silently misses call sites.
+ * 1. One hex per meaning — colour lives in the `:root` token blocks (light and
+ *    dark) and nowhere else, or a palette change silently misses call sites.
  * 2. No class that nothing references — 0.46.0 deleted ~500 lines of CSS
  *    styling nothing, all of it invisible to tsc and eslint.
  */
@@ -10,7 +10,7 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { CSS_PATH, readCss, rootBlock } from "./tokens.mjs";
+import { CSS_PATH, DARK, readCss, rootBlock } from "./tokens.mjs";
 
 const SRC = fileURLToPath(new URL("../src", import.meta.url));
 
@@ -25,13 +25,17 @@ const CLASS_ALLOWED = [/^leaflet-/, /^bn-/];
 
 const css = readCss();
 const { start, end } = rootBlock(css);
+const dark = rootBlock(css, DARK);
 const failures = [];
+
+const inATokenBlock = (offset) =>
+  (offset > start && offset < end) || (offset > dark.start && offset < dark.end);
 
 // ---------------------------------------------------------------- 1. hexes
 
 css.split("\n").forEach((line, i) => {
   const offset = css.split("\n").slice(0, i).join("\n").length;
-  if (offset > start && offset < end) return;
+  if (inATokenBlock(offset)) return;
   if (!/#[0-9a-f]{3,8}\b/i.test(line)) return;
   if (/^\s*(\*|\/\*|\/\/)/.test(line)) return;
   if (HEX_ALLOWED.some((r) => r.test(line))) return;

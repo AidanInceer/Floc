@@ -47,7 +47,10 @@ Pre-MVP. Stack: **Next.js App Router + Turso (libSQL) + Drizzle + Better Auth**
   price is the same either way: it takes the tokens, the type and the no-emoji
   rule, or it doesn't ship. Prefer the house components for anything ordinary.
 - **No emoji anywhere in the app** (#148). Every icon is drawn line-art in the app'''s own hand — an emoji is someone else'''s artwork and can'''t take the ink of what it sits in. Scale: 14×14 `viewBox` at ~13px, `fill="none"`, `strokeWidth` 1.15–1.25, `stroke="currentColor"` (see `TravelModeIcon`, `ReactionGlyph`, `WeatherGlyph`).
-- Light only — no dark palette, no `theme` column.
+- **Light and dark, same token names** (#240). Dark restates the base values in
+  `:root[data-theme="dark"]`; aliases follow on their own. **No `dark:` variant
+  anywhere** — if a component needs one, the token is wrong. The choice lives in
+  `localStorage`, never a `theme` column. Contrast is checked for both.
 - **If the drawing is clear, say nothing** (#209). Text exists to carry what the layout cannot. When a reader can work something out from the arrangement, colour, grouping or position on the page, adding words for it is noise — cut them. In practice this bans, on sight:
   - **A heading above a heading.** One name per panel or section. "The group" over "Who's going" is one fact printed twice; pick the shorter and delete the other. This bans the section-head pattern of a small `.typed` kicker label stacked over an `<h2>` title (e.g. "What groups say" over a full-sentence heading) — a section gets **one** heading, not a label and a title. A supporting `text-ink-soft` paragraph under the heading is body copy, not a second heading, and is fine.
   - **Captions that decode the design** — "Colour is where you sleep", "Numbered pins match the cards below". If the encoding needs a key, fix the encoding.

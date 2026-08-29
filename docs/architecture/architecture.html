@@ -148,7 +148,9 @@ external integration boundary:<ul>
 <li>No Google client → the button that needs it isn&#39;t rendered.</li>
 </ul>
 </li>
-<li><strong>Light-only UI</strong>, no theme system — one less environment axis to support.</li>
+<li><strong>Light and dark</strong>, as one CSS token set switched by a
+<code>data-theme</code> attribute on <code>&lt;html&gt;</code>. No server state,
+no <code>theme</code> column, no rendering path of its own.</li>
 <li>Out of scope for v1 (so absent from this architecture on purpose): payment
 rails, POI/attraction data, flight booking, i18n, analytics, push
 notifications.</li>
