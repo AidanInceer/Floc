@@ -27,16 +27,16 @@ pnpm fitness                        # layers, dead code, tokens, contrast, bundl
 pnpm verify                         # everything CI runs, locally
 ```
 
-`pnpm verify` ([`scripts/verify.sh`](scripts/verify.sh)) mirrors every CI job — lint/typecheck/test/build, fitness (layering, dead code, `globals.css` tokens, WCAG contrast, bundle budget), migration drift, wireframe self-containment, `pnpm audit`, gitleaks (skipped if absent). Change a `.github/workflows/` job → change verify.sh same commit; drifted local gate = false confidence.
+`pnpm verify` ([`scripts/verify.sh`](scripts/verify.sh)) mirrors every CI job — lint/typecheck/test/build, fitness (layering, dead code, `globals.css` tokens, WCAG contrast, bundle budget), migration drift, wireframe self-containment, `pnpm audit`, gitleaks (skipped if absent). Change a `.github/workflows/` **check** job → change verify.sh same commit; drifted local gate = false confidence. `sync-develop.yml` is the exception: it runs no check, so it moves alone.
 
 **Stop dev server before anything that builds.** `verify`/`build`/`fitness` all write `apps/web/.next`, owned by `next dev`. Build over live dev → shredded chunks → `Cannot find module './vendor-chunks/...'` on every route; only cure is deleting `.next`, which an agent can't do → lands on user. Order: **stop dev → build/verify → restart.** Check with `preview_list`, not `ps` (preview-managed `next dev` doesn't show in process list).
 
-**No pre-push hook.** Run `pnpm verify` by hand. `main` deploys, so a red push = broken deploy till CI catches it.
+**No pre-push hook.** Run `pnpm verify` by hand before **every** push, `develop` included. A red `develop` means the next batch to `main` carries several tickets' breakage at once and you debug all of them together — keeping `develop` green is the only reason it is safe to merge.
 
 ## Key decisions
 
 - **Docs = HTML, not markdown** — edit the page. Every page: `<link>` `assets/docs.css`, `<nav id="sidebar">`, `<script src>` `assets/nav.js` (plain `<script src>` only — `fetch`/ES modules blocked on `file://`). New page needs a line in [`docs/assets/nav.js`](docs/assets/nav.js) `TREE` or it's unreachable. `docs/mockups/` standalone.
-- **No feature branches.** Land on `main`; one commit per ticket at session end.
+- **Branching.** Two long-lived branches, no feature branches. Work lands on `develop`, one commit per ticket, `pnpm verify` green **before every push**. `develop` reaches `main` in batches via PR, merged as a **merge commit** — never squash, never rebase; squashing flattens the one-commit-per-ticket history. `main` deploys, so it is only ever a merge commit or a hotfix. Hotfix = commit straight to `main`; [`sync-develop.yml`](.github/workflows/sync-develop.yml) merges `main` back into `develop` on every push to `main`, so nothing has to be resynced by hand. Never commit a feature to `main` directly. No branch protection — the hotfix path stays open.
 - **Commit subject:** `<version> #<issue>: <type>: <description>` — e.g. `0.4.0 #93: feat: split the profile`. Version bumps `apps/web/package.json` same commit (minor=feat, patch=fix). Body ends `Closes AidanInceer/Waypoint#<n>`. Types: `feat|fix|docs|refactor|chore|test`. No-ticket work → literal `#no-ticket`, drop `Closes`. Never invent/borrow a number (wrong `Closes` shuts someone's issue). Don't open an issue just to cite one.
 - **Deploy = Railway** via `railway.json` at root: runs migration, starts `waypoint-web`. Push to `main` deploys. Env vars in Railway Variables tab, never repo.
 

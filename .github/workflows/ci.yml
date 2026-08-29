@@ -1,4 +1,4 @@
-# Hub CI — runs for every PR and every push to main.
+# Hub CI — runs for every PR and every push to `main` or `develop`.
 #
 # Only workspace packages affected by the change are built, via Turborepo's
 # `--filter=...[<base>]`. A docs-only or wireframe-only change therefore costs
@@ -7,7 +7,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
   workflow_dispatch:
 

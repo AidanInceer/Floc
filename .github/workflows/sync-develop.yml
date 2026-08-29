@@ -1,0 +1,53 @@
+# Keeps `develop` in step with `main` (see CLAUDE.md → Branching).
+#
+# Work lands on `develop`, then reaches `main` as a merge commit via PR. That
+# merge commit — and any hotfix committed straight to `main` — exists only on
+# `main`, so `develop` falls behind and the next PR shows phantom conflicts.
+# This merges `main` back into `develop` on every push to `main`, so the resync
+# is never a step anyone has to remember.
+#
+# Not a check job: it runs nothing `pnpm verify` runs, so verify.sh is untouched
+# by changes here. That exception is the reason this file may move alone.
+name: Sync develop
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: sync-develop
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    name: Merge main into develop
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: develop
+          # A merge needs both branches' history, not a shallow tip.
+          fetch-depth: 0
+
+      - name: Merge main into develop
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          # Already contains main (the usual case, right after a PR merge):
+          # nothing to do, and merging would make an empty commit.
+          if git merge-base --is-ancestor origin/main HEAD; then
+            echo "develop already contains main — nothing to sync."
+            exit 0
+          fi
+          if ! git merge --no-edit origin/main; then
+            git merge --abort
+            echo "::error::main and develop conflict — resolve by hand: git checkout develop && git merge main"
+            exit 1
+          fi
+          git push origin develop
