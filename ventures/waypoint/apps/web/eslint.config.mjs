@@ -85,16 +85,6 @@ const config = [
     rules: { "max-lines-per-function": "off", complexity: "off" },
   },
 
-  // 2026-08-23: the two calendars are over the file ceiling as well —
-  // 1,365 and 812 lines of code. Both are the obvious next split.
-  {
-    files: [
-      "src/components/days-calendar.tsx",
-      "src/components/availability-calendar.tsx",
-    ],
-    rules: { "max-lines": "off" },
-  },
-
   // 2026-08-27: the schema of record crossed 600 lines adding `trip_note_doc`
   // (#238). Not split, deliberately — one file mirroring one ERD is the
   // property that keeps the two honest, and splitting it buys a line count at

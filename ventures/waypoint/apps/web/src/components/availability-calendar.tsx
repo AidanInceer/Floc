@@ -13,8 +13,9 @@
  */
 import { Fragment, useRef, useState, useTransition } from "react";
 
+import { DayCell, type View } from "@/components/availability-day-cell";
+import { HourlyCurve, WeatherReadout } from "@/components/availability-weather";
 import { Button, LegendKey, cx } from "@/components/ui";
-import { WeatherGlyph } from "@/components/weather-glyph";
 import {
   WEEKDAY_LABELS,
   addMonths,
@@ -23,16 +24,18 @@ import {
   monthsFrom,
   type IsoMonth,
 } from "@/lib/availability";
-import { dateRange, formatDate, today, type IsoDate } from "@/lib/dates";
-import type { WeatherCondition } from "@/lib/weather";
+import {
+  advanceRangePick,
+  paintRange,
+  pickedRange,
+} from "@/lib/calendar-gestures";
+import { dateRange, today, type IsoDate } from "@/lib/dates";
 import {
   windowCost,
   windowCostLabel,
   type DayLoad,
 } from "@/lib/trip-window";
-import type { DailyForecast, HourlyPoint, TripForecast } from "@/server/weather";
-
-type View = "mine" | "everyone" | "dates" | "weather";
+import type { DailyForecast, TripForecast } from "@/server/weather";
 
 export function AvailabilityCalendar({
   firstMonth,
@@ -111,15 +114,7 @@ export function AvailabilityCalendar({
   const previewTo =
     halfMade && !rangeDrag && hover && hover > range.start! ? hover : null;
 
-  const pickRange = (date: string) => {
-    // A click before the start means "from here instead" — nobody means "end
-    // before start", so no `min` needed.
-    setRange((r) =>
-      r.start === null || r.end !== null || date < r.start
-        ? { start: date, end: null }
-        : { ...r, end: date },
-    );
-  };
+  const pickRange = (date: string) => setRange((r) => advanceRangePick(r, date));
 
   // A press picks what a click would (so a still release reads as click one/two)
   // and arms a drag — but only when starting a fresh window, else it would fight
@@ -138,13 +133,7 @@ export function AvailabilityCalendar({
 
   const extendRange = (date: string) => {
     if (!rangeDrag) return;
-    setRange(
-      date === rangeDrag
-        ? { start: rangeDrag, end: null }
-        : date < rangeDrag
-          ? { start: date, end: rangeDrag }
-          : { start: rangeDrag, end: date },
-    );
+    setRange(pickedRange(rangeDrag, date));
   };
 
   const stored = new Set(mine);
@@ -181,13 +170,7 @@ export function AvailabilityCalendar({
 
   const extendPaint = (date: string) => {
     if (!drag) return;
-    const span = dateRange(
-      drag.anchor <= date ? drag.anchor : date,
-      drag.anchor <= date ? date : drag.anchor,
-    );
-    const next = { ...drag.base };
-    for (const d of span) next[d] = drag.target;
-    setEdits(next);
+    setEdits(paintRange(drag.base, drag.anchor, date, drag.target, dateRange));
   };
 
   const onSave = () =>
@@ -521,447 +504,5 @@ function MonthArrow({ direction }: { direction: "back" | "forward" }) {
     >
       <path d={direction === "back" ? "M8.5 3 4.5 7l4 4" : "M5.5 3l4 4-4 4"} />
     </svg>
-  );
-}
-
-function DayCell({
-  date,
-  view,
-  free,
-  tally,
-  memberCount,
-  past,
-  inTrip,
-  inRange,
-  isToday,
-  pending,
-  openEnd,
-  weather,
-  weatherOpen,
-  onStart,
-  onToggle,
-}: {
-  date: string;
-  view: View;
-  free: boolean;
-  tally: number;
-  memberCount: number;
-  past: boolean;
-  inTrip: boolean;
-  inRange: boolean; // inside the window being picked (dates view)
-  isToday: boolean;
-  pending?: boolean; // inside the span the pointer proposes (ticket 135)
-  openEnd?: boolean; // picked start with no end yet
-  weather?: DailyForecast; // undefined past the horizon
-  weatherOpen?: boolean;
-  onStart: (e: React.PointerEvent) => void;
-  onToggle: () => void;
-}) {
-  const dayNumber = Number(date.slice(8, 10));
-
-  // Shared cell chrome: one rule under the week, no box around the day (ticket 129).
-  const cell =
-    "relative flex aspect-square flex-col items-center justify-center border-b border-ink/10 font-mono text-[11px] leading-none";
-
-  // Focus ring on the mark, not the cell (ticket 129): the square cell outline
-  // drew a blue box around the round mark.
-  const focusRing =
-    "group-focus-visible:ring-2 group-focus-visible:ring-pen group-focus-visible:ring-offset-1 group-focus-visible:ring-offset-sheet";
-
-  // Three states, not a ramp (ticket 67): either the whole group is free (green)
-  // or the day costs somebody (red); no answer yet is the plain sheet, not a bad
-  // answer. Exact count rides on `title`/aria, not a number under the mark.
-  const groupMark =
-    tally === 0
-      ? "text-ink-faint"
-      : tally === memberCount
-        ? "bg-green-soft text-green"
-        : "bg-red-soft text-red";
-
-  // Weather (ticket 148): the disc is the condition, day number in the corner,
-  // so a run of sun reads as a shape. Inside the horizon a day opens its hourly
-  // drawer; past it, a non-interactive dashed ring (no drawer onto no data).
-  if (view === "weather") {
-    const corner = (
-      <span
-        aria-hidden
-        className="absolute left-1 top-0.5 font-mono text-[9px] leading-none text-ink-faint"
-      >
-        {dayNumber}
-      </span>
-    );
-    const discBase =
-      "flex h-[70%] w-[70%] items-center justify-center rounded-full transition-colors";
-    const windowRing = inTrip || isToday ? "ring-1 ring-pen" : "";
-
-    // Outside the window: no weather at all, not even a dashed ring (ticket 148).
-    if (!inTrip) {
-      return (
-        <span
-          role="gridcell"
-          data-date={date}
-          className={cx(cell, "opacity-70")}
-        >
-          {corner}
-        </span>
-      );
-    }
-
-    if (!weather) {
-      return (
-        <span
-          role="gridcell"
-          data-date={date}
-          title={`${date} — beyond the forecast`}
-          className={cx(cell, past && "opacity-70")}
-        >
-          {corner}
-          <span
-            aria-hidden
-            className={cx(
-              discBase,
-              "border border-dashed border-rule-strong",
-              windowRing,
-            )}
-          />
-        </span>
-      );
-    }
-
-    return (
-      <button
-        type="button"
-        role="gridcell"
-        data-date={date}
-        aria-expanded={weatherOpen}
-        aria-label={`${date} — ${weather.label}, high ${weather.hi}°, low ${weather.lo}°`}
-        title={`${date} — ${weather.label}, ${weather.hi}° / ${weather.lo}°`}
-        onClick={onToggle}
-        className={cx(
-          cell,
-          "group transition-colors focus-visible:outline-none",
-          past && "opacity-70",
-        )}
-      >
-        {corner}
-        <span
-          className={cx(
-            discBase,
-            focusRing,
-            DISC_TINT[weather.condition],
-            weather.condition === "rain" ? "text-pen" : "text-ink-soft",
-            windowRing,
-            // Hover previews the open day's pen ring, so it reads without the cursor.
-            "group-hover:ring-2 group-hover:ring-pen",
-            weatherOpen && "ring-2 ring-pen",
-          )}
-        >
-          <WeatherGlyph condition={weather.condition} size={20} />
-        </span>
-      </button>
-    );
-  }
-
-  if (view === "everyone") {
-    return (
-      <span
-        role="gridcell"
-        title={`${date} — ${tally} of ${memberCount} free`}
-        className={cx(cell, past && "opacity-70")}
-      >
-        <span
-          className={cx(
-            "flex h-[70%] w-[70%] items-center justify-center rounded-full",
-            inTrip ? "bg-green font-semibold text-sheet" : groupMark,
-          )}
-        >
-          {dayNumber}
-        </span>
-      </span>
-    );
-  }
-
-  // Two things one cell shows (ticket 128): painting availability it's on/off;
-  // picking the window it shows the group's washes, since choosing a week is a
-  // decision about who can make it. An in-window day overrides with solid green.
-  const picking = view === "dates";
-  const marked = picking ? inRange : free;
-
-  return (
-    <button
-      type="button"
-      role="gridcell"
-      // `aria-selected`, not `aria-pressed`: a gridcell doesn't support the
-      // toggle-button state, so a screen reader was told nothing about whether
-      // the day was on (ticket 204). The visible label says it too.
-      aria-selected={marked}
-      aria-label={
-        picking
-          ? `${date} — ${tally} of ${memberCount} free${inRange ? ", in the trip" : ""}${openEnd ? ", start of the window" : ""}${pending ? ", in the window being picked" : ""}`
-          : `${date}${free ? " — you're free" : ""}`
-      }
-      title={picking ? `${date} — ${tally} of ${memberCount} free` : undefined}
-      data-date={date} // what the surface hit-tests each move (see startPaint)
-      onPointerDown={onStart}
-      // Keyboard Enter/Space arrive as a click with `detail === 0` and no
-      // `pointerdown` — the only way this cell is reachable from the keyboard.
-      onClick={(e) => {
-        if (e.detail === 0) onToggle();
-      }}
-      className={cx(
-        cell,
-        "group transition-colors focus-visible:outline-none",
-        past && "opacity-70",
-      )}
-    >
-      <span
-        className={cx(
-          "flex h-[70%] w-[70%] items-center justify-center rounded-full transition-colors",
-          focusRing,
-          // Picking: the group's answer, chosen days pressed into solid green.
-          picking && (inRange ? "bg-green font-semibold text-sheet" : groupMark),
-          // The span you'd get by clicking here: solid green at half strength (ticket 135).
-          picking && pending && "bg-green/45 font-semibold text-sheet",
-          // Start with no end: ringed, else a lone solid day read as a one-day trip.
-          picking && openEnd && "ring-2 ring-pen ring-offset-1 ring-offset-sheet",
-          // Blue, because a day you marked is your own answer (ticket 197) —
-          // green is reserved for the run the whole group can do.
-          !picking && free && "bg-pen-soft font-semibold text-pen-deep ring-1 ring-pen",
-          !picking && !free && "text-ink-soft",
-          isToday && !free && !inRange && "ring-1 ring-pen", // today circled
-
-        )}
-      >
-        {dayNumber}
-      </span>
-    </button>
-  );
-}
-
-// Disc wash per condition (ticket 148): sun is the highlighter, rain the biro
-// wash; part/cloud share the neutral sheet, told apart by glyph and word.
-const DISC_TINT: Record<WeatherCondition, string> = {
-  sun: "bg-highlight-soft",
-  part: "bg-sheet-3",
-  cloud: "bg-sheet-3",
-  rain: "bg-pen-soft",
-};
-
-// Reading line under the weather calendar: temperatures for the hovered day; at
-// rest it names the place and horizon, so the row is never empty.
-function WeatherReadout({
-  hover,
-  byDate,
-  placeName,
-  horizonEnd,
-}: {
-  hover: string | null;
-  byDate: Record<IsoDate, DailyForecast>;
-  placeName: string;
-  horizonEnd: IsoDate;
-}) {
-  const wx = hover ? byDate[hover] : undefined;
-
-  if (hover && wx) {
-    return (
-      <div className="flex w-full items-center gap-3">
-        <span className={cx(wx.condition === "rain" ? "text-pen" : "text-ink-soft")}>
-          <WeatherGlyph condition={wx.condition} size={22} />
-        </span>
-        <span className="nums text-[12px] text-ink-soft">{formatDate(hover)}</span>
-        <span className="text-sm text-ink">{wx.label}</span>
-        <span className="nums ml-auto whitespace-nowrap">
-          <span className="text-[15px] text-ink">{wx.hi}°</span>{" "}
-          <span className="text-[12px] text-ink-faint">{wx.lo}°</span>
-        </span>
-      </div>
-    );
-  }
-
-  if (hover) {
-    return (
-      <div className="flex w-full items-center gap-3">
-        <span className="nums text-[12px] text-ink-soft">{formatDate(hover)}</span>
-        <span className="text-sm text-ink-faint">Beyond the forecast</span>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex w-full items-center">
-      <span className="typed">
-        {placeName} · to {formatDate(horizonEnd)}
-      </span>
-    </div>
-  );
-}
-
-// Hourly forecast for one day (ticket 148, prototype C2): a temperature curve,
-// not a table — the shape is the point. Exact figures ride on each `title`.
-// Fixed 700×132 viewBox scaled by width, ratio kept, so geometry is arithmetic.
-function HourlyCurve({
-  date,
-  day,
-  points,
-  onClose,
-}: {
-  date: IsoDate;
-  day?: DailyForecast;
-  points: HourlyPoint[];
-  onClose: () => void;
-}) {
-  const W = 700;
-  const H = 132;
-  const padL = 26;
-  const padR = 26;
-  const top = 34;
-  const base = 96;
-  const rainY = H - 18;
-
-  const temps = points.map((p) => p.temp);
-  const lo = temps.length ? Math.min(...temps) : 0;
-  const hi = temps.length ? Math.max(...temps) : 1;
-  const span = Math.max(hi - lo, 1);
-  const x = (i: number) =>
-    points.length > 1
-      ? padL + i * ((W - padL - padR) / (points.length - 1))
-      : W / 2;
-  const y = (t: number) => top + (1 - (t - lo) / span) * (base - top);
-  const line = points
-    .map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)} ${y(p.temp).toFixed(1)}`)
-    .join(" ");
-
-  return (
-    <div className="px-3 py-2.5">
-      <div className="mb-1.5 flex items-center gap-2.5">
-        <span className="nums text-[12px] text-ink">{formatDate(date)}</span>
-        {day ? <span className="text-[13px] text-ink-soft">{day.label}</span> : null}
-        {day ? (
-          <span className="nums ml-auto text-[12px] text-ink-soft">
-            {day.hi}° / {day.lo}°
-          </span>
-        ) : (
-          <span className="ml-auto" />
-        )}
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close hourly forecast"
-          className="grid place-items-center rounded-sm border border-rule-strong p-1 text-ink-faint transition-colors hover:border-pen hover:text-pen"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            width="12"
-            height="12"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.7}
-            strokeLinecap="round"
-            aria-hidden
-          >
-            <path d="M6 6l12 12M18 6L6 18" />
-          </svg>
-        </button>
-      </div>
-
-      {points.length > 1 ? (
-        <div className="relative">
-          {/* Glyphs only where the condition changes — all eight hid the curve. */}
-          {points.map((p, i) =>
-            i > 0 && points[i - 1].condition === p.condition ? null : (
-              <span
-                key={`g-${p.hour}`}
-                className={cx(
-                  "absolute top-0 -translate-x-1/2",
-                  p.condition === "rain" ? "text-pen" : "text-ink-soft",
-                )}
-                style={{ left: `${(x(i) / W) * 100}%` }}
-              >
-                <WeatherGlyph condition={p.condition} size={17} />
-              </span>
-            ),
-          )}
-          <svg
-            viewBox={`0 0 ${W} ${H}`}
-            className="block h-auto w-full"
-            role="img"
-            aria-label={`Hourly temperature for ${formatDate(date)}`}
-          >
-            <line
-              x1={padL}
-              y1={rainY}
-              x2={W - padR}
-              y2={rainY}
-              className="stroke-rule"
-              strokeWidth={1}
-            />
-            {points.map((p, i) =>
-              p.pop > 0 ? (
-                <rect
-                  key={`r-${p.hour}`}
-                  x={x(i) - 13}
-                  y={rainY - (3 + (p.pop / 100) * 15)}
-                  width={26}
-                  height={3 + (p.pop / 100) * 15}
-                  rx={1.5}
-                  className="fill-pen opacity-40"
-                >
-                  <title>{`${p.hour} — ${p.pop}% chance of rain`}</title>
-                </rect>
-              ) : null,
-            )}
-            <path
-              d={line}
-              className="fill-none stroke-pen"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            {points.map((p, i) => (
-              <g key={`p-${p.hour}`}>
-                <circle
-                  cx={x(i)}
-                  cy={y(p.temp)}
-                  r={3.4}
-                  className="fill-sheet-2 stroke-pen"
-                  strokeWidth={1.6}
-                >
-                  <title>{`${p.hour} — ${p.temp}°${p.pop > 0 ? `, ${p.pop}% rain` : ""}`}</title>
-                </circle>
-                <text
-                  x={x(i)}
-                  y={y(p.temp) - 9}
-                  textAnchor="middle"
-                  className="fill-ink font-mono"
-                  fontSize={10}
-                >
-                  {p.temp}°
-                </text>
-                <text
-                  x={x(i)}
-                  y={H - 4}
-                  textAnchor="middle"
-                  className="fill-ink-faint font-mono"
-                  fontSize={9}
-                >
-                  {p.hour}
-                </text>
-              </g>
-            ))}
-          </svg>
-        </div>
-      ) : null}
-
-      <div className="mt-1 flex items-center gap-4 text-[11px] text-ink-soft">
-        <span className="inline-flex items-center gap-1.5">
-          <span aria-hidden className="h-0.5 w-4 rounded-full bg-pen" />
-          Temperature
-        </span>
-        <span className="inline-flex items-center gap-1.5">
-          <span aria-hidden className="h-2.5 w-3 rounded-sm bg-pen opacity-40" />
-          Chance of rain
-        </span>
-      </div>
-    </div>
   );
 }
