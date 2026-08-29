@@ -9,16 +9,13 @@ import { capRequiredText } from "@/lib/text";
 import { isTripColor } from "@/lib/trip-color";
 import { renameTrip as validateAndRenameTrip } from "@/app/trip/[id]/overview/actions";
 import { assertAdmin, requireTripAccess, requireUser } from "@/server/access";
+import { acceptInvite, declineInvite, inviteToTrip } from "@/server/invites";
 import {
   createTripWithAdmin,
-  findPendingInvite,
-  inviteToTrip,
-  joinByToken,
   setTripArchived,
-  setTripColor as writeTripColor,
-  settleInvite,
   softDeleteTrip,
-} from "@/server/membership";
+  updateTrip,
+} from "@/server/trips";
 import { ensureProfile } from "@/server/profile";
 import { LIMITS } from "@/server/limits";
 import { refresh } from "@/server/freshness";
@@ -72,38 +69,25 @@ function readFriendIds(formData: FormData): string[] {
   ].slice(0, LIMITS.members);
 }
 
-// Accepting a named invite — the only other place besides the share link
-// that writes a membership; same upsert since the invitee may have been
-// kicked before. Gated on a live pending row, so a guessed trip id buys no
-// membership (rule 5).
+// Accepting a named invite. `acceptInvite` is gated on a live pending row, so
+// a guessed trip id buys no membership (rule 5) — a false answer means there
+// was nothing here to accept, and we stay put.
 export async function acceptTripInvite(formData: FormData): Promise<void> {
   const tripId = Number(formData.get("tripId"));
   const viewer = await requireUser("/trips");
   if (!Number.isInteger(tripId)) return;
 
-  const invite = await findPendingInvite(tripId, viewer.id);
-  if (!invite) return;
+  if (!(await acceptInvite(tripId, viewer.id))) return;
 
-  await joinByToken(tripId, viewer.id);
-  await settleInvite(tripId, viewer.id, "accepted");
-  await ensureProfile(viewer.id);
-
-  refresh(
-    { kind: "invites" },
-    { kind: "tripList" },
-    { kind: "tripOverview", tripId },
-  );
   redirect(`/trip/${tripId}/overview`);
 }
 
-// Closes the invite, joins nothing — an admin may ask again.
 export async function declineTripInvite(formData: FormData): Promise<void> {
   const tripId = Number(formData.get("tripId"));
   const viewer = await requireUser("/trips");
   if (!Number.isInteger(tripId)) return;
 
-  await settleInvite(tripId, viewer.id, "declined");
-  refresh({ kind: "invites" });
+  await declineInvite(tripId, viewer.id);
 }
 
 // Where to land afterwards is a form field, not a second copy of these
@@ -132,7 +116,7 @@ export async function setTripColor(formData: FormData): Promise<void> {
 
   const access = await requireTripAccess(tripId);
 
-  await writeTripColor(access.trip.id, color);
+  await updateTrip(access.trip.id, { colorKey: color });
 
   refresh(
     { kind: "tripList" },

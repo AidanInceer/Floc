@@ -10,7 +10,7 @@ import { readCountryCode } from "@/lib/countries";
 import { MAX_DIETARY_NOTES, parseDietFlags } from "@/lib/dietary";
 import { capText } from "@/lib/text";
 import { parsePackTier } from "@/lib/packing";
-import { clearMapPrompt, hasPendingMapPrompt } from "@/server/membership";
+import { clearMapPrompt, hasPendingMapPrompt } from "@/server/roster";
 import {
   ensureProfile,
   updateProfileFields,

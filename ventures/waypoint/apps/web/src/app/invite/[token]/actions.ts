@@ -10,13 +10,7 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/server/auth";
 import { requireUser } from "@/server/access";
 import { emailConfigured } from "@/server/email";
-import {
-  findTripByInviteToken,
-  joinByToken,
-  settleInvite,
-} from "@/server/membership";
-import { ensureProfile } from "@/server/profile";
-import { refresh } from "@/server/freshness";
+import { findTripByInviteToken, joinWithLink } from "@/server/invites";
 
 export async function joinTrip(token: string) {
   const redirectTo = `/invite/${token}`;
@@ -32,22 +26,11 @@ export async function joinTrip(token: string) {
     redirect(`/invite/${token}?verify=1`);
   }
 
-  // Reviving a kicked member's soft-deleted row is deliberate — see `joinByToken`.
-  await joinByToken(found.id, user.id);
+  // Joining means more than a membership row — reviving a kicked member's row,
+  // a lazy profile, and answering any invite they also hold by name. `joinWithLink`
+  // owns that sequence for both doors.
+  await joinWithLink(found.id, user.id);
 
-  // Lazily creates a profile for anyone who joined via link before signup
-  // fully wired one up (belt-and-braces; signup already calls this too).
-  await ensureProfile(user.id);
-
-  // Somebody who was also asked by name (ticket 146) has now answered — a
-  // pending invite left behind would keep badging the chrome for a trip they
-  // are already on. A no-op for everyone else.
-  await settleInvite(found.id, user.id, "accepted");
-
-  refresh(
-    { kind: "invites" },
-    { kind: "tripOverview", tripId: found.id },
-  );
   redirect(`/trip/${found.id}/overview`);
 }
 

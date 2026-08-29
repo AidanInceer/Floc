@@ -1,5 +1,6 @@
 /**
- * The packing aggregate — `packing_line` and `packing_claim` (ticket 219).
+ * The packing aggregate — `packing_line`, `packing_claim`, and your per-trip
+ * packing settings off the membership row (ticket 219, ticket 242).
  * Owns the SQL and soft-delete (rule 8). Claims are read
  * for the whole trip in one query, scoped by joining the line, so the two reads
  * can run together rather than one after the other.
@@ -9,11 +10,12 @@ import "server-only";
 import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
 
 import { db } from "@/db";
-import { packingClaim, packingLine, user, userProfile } from "@/db/schema";
+import { packingClaim, packingLine, tripMembership, user, userProfile } from "@/db/schema";
 import { MAX_PACK_QUANTITY, MIN_PACK_QUANTITY } from "@/lib/packing";
-import type { PackCategory } from "@/lib/packing";
+import type { PackCategory, PackTier } from "@/lib/packing";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
+import { liveMembership } from "@/server/roster";
 
 export type PackingLine = {
   id: number;
@@ -286,4 +288,46 @@ export async function setClaimPacked(
         isNull(packingClaim.deletedAt),
       ),
     );
+}
+
+/* --------------------------------------- your packing settings on this trip */
+/*
+ * Both live on the `trip_membership` row because they are facts about *you on
+ * this trip*, not about the trip (ticket 220) — but they are packing's rules,
+ * not the roster's, so they read that row from here (ticket 242).
+ */
+
+/** Both in one read: the page asks for both, and asking twice is a second round trip to Turso for a row already in hand. */
+export async function getPackSettings(
+  tripId: number,
+  userId: string,
+): Promise<{ tier: PackTier | null; generatedAt: Date | null }> {
+  const row = await db
+    .select({
+      packTier: tripMembership.packTier,
+      packGeneratedAt: tripMembership.packGeneratedAt,
+    })
+    .from(tripMembership)
+    .where(liveMembership(tripId, userId))
+    .get();
+  return { tier: row?.packTier ?? null, generatedAt: row?.packGeneratedAt ?? null };
+}
+
+/** Null means you have never chosen here, and the profile default applies. */
+export async function getPackTier(
+  tripId: number,
+  userId: string,
+): Promise<PackTier | null> {
+  return (await getPackSettings(tripId, userId)).tier;
+}
+
+export async function setPackTier(
+  tripId: number,
+  userId: string,
+  tier: PackTier,
+): Promise<void> {
+  await db
+    .update(tripMembership)
+    .set({ packTier: tier, ...touch() })
+    .where(liveMembership(tripId, userId));
 }

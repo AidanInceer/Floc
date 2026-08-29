@@ -9,7 +9,7 @@ import { PAST_TRIPS_SHOW, VISIBILITIES } from "@/db/schema";
 import type { PastTripsShow, Visibility } from "@/db/schema";
 import { requireUser } from "@/server/access";
 import { auth, listLinkedAccounts, unlinkAccountById } from "@/server/auth";
-import { handOverAndLeaveAllTrips } from "@/server/membership";
+import { handOverAndLeaveAllTrips } from "@/server/roster";
 import {
   ensureProfile,
   updateProfileFields,

@@ -10,7 +10,7 @@ import Link from "next/link";
 
 import { requireUser } from "@/server/access";
 import { listFriendsFor, type Person } from "@/server/friends";
-import { listPendingInvitesFor, type PendingInvite } from "@/server/membership";
+import { listPendingInvitesFor, type PendingInvite } from "@/server/invites";
 import { loadTripCards } from "./cards";
 import { formatDateRange, hasEnded } from "@/lib/dates";
 import {

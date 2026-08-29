@@ -11,7 +11,7 @@ import "server-only";
 import { listMembersFor, type TripMember } from "@/server/access";
 import { tripIdsWithIdeas } from "@/server/ideas";
 import { firstOvernightPlaceByTrip } from "@/server/itinerary";
-import { listTripsFor } from "@/server/membership";
+import { listTripsFor } from "@/server/trips";
 import { hasEnded } from "@/lib/dates";
 import { readTags } from "@/lib/tags";
 import { readTripColor } from "@/lib/trip-color";

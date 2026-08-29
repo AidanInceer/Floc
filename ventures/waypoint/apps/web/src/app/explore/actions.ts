@@ -12,7 +12,7 @@ import { redirect } from "next/navigation";
 
 import { requireUser } from "@/server/access";
 import { insertIdeas } from "@/server/ideas";
-import { createTripWithAdmin } from "@/server/membership";
+import { createTripWithAdmin } from "@/server/trips";
 import { ensureProfile } from "@/server/profile";
 import { refresh } from "@/server/freshness";
 import { PRESET_TRIPS } from "./preset-trips";

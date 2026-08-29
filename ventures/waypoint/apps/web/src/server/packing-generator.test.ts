@@ -15,7 +15,7 @@ import {
   softDeletePackingLine,
   stepPersonalQuantity,
 } from "@/server/packing";
-import { getPackSettings } from "@/server/membership";
+import { getPackSettings } from "@/server/packing";
 import {
   autoFillPersonalBag,
   fillPersonalBag,

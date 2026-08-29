@@ -6,11 +6,8 @@
 import { isIsoDate, readIsoDate } from "@/lib/dates";
 import { requireTripAccess } from "@/server/access";
 import { applyTripWindow } from "@/server/itinerary";
-import {
-  clearAvailabilityFor,
-  setAvailability,
-  setTripDateRange,
-} from "@/server/membership";
+import { clearAvailabilityFor, setAvailability } from "@/server/availability";
+import { updateTrip } from "@/server/trips";
 import { refresh } from "@/server/freshness";
 
 // Client-provided, so checked not trusted; isIsoDate rejects impossible
@@ -63,7 +60,7 @@ export async function setTripDates(
   if (startDate > endDate) throw new Error("The end date is before the start");
 
   const access = await requireTripAccess(tripId);
-  await setTripDateRange(access.trip.id, startDate, endDate);
+  await updateTrip(access.trip.id, { startDate, endDate });
   // Window is the itinerary's extent (ticket 140): days in both windows keep
   // their events, days only in the old one go, days only in the new arrive blank.
   await applyTripWindow(access.trip.id, startDate, endDate);
@@ -77,7 +74,7 @@ export async function setTripDates(
 // no extent, so the itinerary goes with it (ticket 140); ideas/money/people stay.
 export async function clearTripDates(tripId: number) {
   const access = await requireTripAccess(tripId);
-  await setTripDateRange(access.trip.id, null, null);
+  await updateTrip(access.trip.id, { startDate: null, endDate: null });
   await applyTripWindow(access.trip.id, null, null);
 
   // The window is the itinerary's extent (ticket 140), so one fact carries

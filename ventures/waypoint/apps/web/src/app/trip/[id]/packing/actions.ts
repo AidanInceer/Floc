@@ -14,7 +14,7 @@ import { capRequiredText } from "@/lib/text";
 import { requireTripAccess } from "@/server/access";
 import { LIMITS } from "@/server/limits";
 import { ensureProfile } from "@/server/profile";
-import { getPackTier, setPackTier } from "@/server/membership";
+import { getPackTier, setPackTier } from "@/server/packing";
 import { fillPersonalBag, packingPlanFor } from "@/server/packing-generator";
 import { applyPackingKitToBag } from "@/server/packing-kits";
 import {

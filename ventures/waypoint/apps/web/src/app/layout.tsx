@@ -5,7 +5,7 @@ import { AppChrome } from "@/components/app-chrome";
 import { THEME_BOOTSTRAP } from "@/lib/theme";
 import { getSession } from "@/server/access";
 import { countIncomingFriendRequests } from "@/server/friends";
-import { countPendingInvitesFor } from "@/server/membership";
+import { countPendingInvitesFor } from "@/server/invites";
 import { getProfile } from "@/server/profile";
 
 import "./globals.css";

@@ -4,7 +4,7 @@
  * top-to-bottom on a phone as on a desk.
  */
 import { requireTripAccess } from "@/server/access";
-import { getPackSettings } from "@/server/membership";
+import { getPackSettings } from "@/server/packing";
 import {
   autoFillPersonalBag,
   packingPlanFor,

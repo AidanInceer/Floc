@@ -12,7 +12,7 @@
  */
 import { ImageResponse } from "next/og";
 
-import { findTripByInviteToken } from "@/server/membership";
+import { findTripByInviteToken } from "@/server/invites";
 import { formatDateRange } from "@/lib/dates";
 
 export const runtime = "nodejs";

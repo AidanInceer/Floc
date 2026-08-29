@@ -5,7 +5,7 @@
  * error (rule 9).
  */
 import { requireTripAccess } from "@/server/access";
-import { listAvailability } from "@/server/membership";
+import { listAvailability } from "@/server/availability";
 import { listDayLoads } from "@/server/itinerary";
 import { getTripForecast } from "@/server/weather";
 import { monthOf, thisMonth } from "@/lib/availability";

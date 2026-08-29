@@ -1,7 +1,8 @@
 "use server";
 
-// Overview tab's who-may-do-what (ticket 13); SQL lives in server/membership.ts
-// (ticket 108). Admin powers stay invite/kick/delete/promote (ticket 01 step 7).
+// Overview tab's who-may-do-what (ticket 13); the SQL lives in server/roster.ts,
+// server/invites.ts and server/trips.ts (ticket 242). Admin powers stay
+// invite/kick/delete/promote (ticket 01 step 7).
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 
@@ -11,15 +12,14 @@ import { emails, sendEmails } from "@/server/email";
 import { parseTagNames } from "@/lib/tags";
 import { capText, TEXT_CAPS } from "@/lib/text";
 import { LIMITS } from "@/server/limits";
+import { inviteToTrip } from "@/server/invites";
 import {
   insertNudge,
-  inviteToTrip,
   leaveTripAs,
   removeMembership,
-  renameTrip as writeTripName,
   setMemberRoleAdmin,
-  setTripTags as writeTripTags,
-} from "@/server/membership";
+} from "@/server/roster";
+import { updateTrip } from "@/server/trips";
 import { refresh } from "@/server/freshness";
 
 export async function sendNudge(formData: FormData) {
@@ -130,7 +130,7 @@ export async function renameTrip(formData: FormData) {
 
   const access = await requireTripAccess(tripId);
 
-  await writeTripName(access.trip.id, name);
+  await updateTrip(access.trip.id, { name });
 
   refresh(
     { kind: "tripHeader", tripId: access.trip.id },
@@ -147,7 +147,7 @@ export async function setTripTags(formData: FormData) {
 
   const access = await requireTripAccess(tripId);
 
-  await writeTripTags(access.trip.id, tags);
+  await updateTrip(access.trip.id, { tags });
 
   refresh(
     { kind: "tripOverview", tripId: access.trip.id },

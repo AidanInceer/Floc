@@ -23,7 +23,7 @@ import { capRequiredText, capText } from "@/lib/text";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
 import { refresh } from "@/server/freshness";
-import { setTripDateRange } from "@/server/membership";
+import { updateTrip } from "@/server/trips";
 
 export function moveItem<T>(items: T[], from: number, to: number): T[] {
   if (from === to || from < 0 || to < 0 || from >= items.length || to >= items.length) {
@@ -562,7 +562,7 @@ export async function extendTripDays(
   const last = dates[dates.length - 1];
   const movesTheWindow = Boolean(trip.startDate && trip.endDate && last > trip.endDate);
   if (movesTheWindow) {
-    await setTripDateRange(trip.id, trip.startDate, last);
+    await updateTrip(trip.id, { startDate: trip.startDate, endDate: last });
   }
 
   refresh({ kind: movesTheWindow ? "tripWindow" : "itinerary", tripId: trip.id });

@@ -45,7 +45,8 @@ import {
   listRouteDays,
   transportModesByDay,
 } from "@/server/itinerary";
-import { listAvailability, listPendingInvitees } from "@/server/membership";
+import { listAvailability } from "@/server/availability";
+import { listPendingInvitees } from "@/server/invites";
 import { listExpenses, listSettlements, listSplits } from "@/server/money";
 import { absoluteUrl } from "@/server/email";
 import { formatMoney } from "@/lib/money";

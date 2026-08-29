@@ -14,7 +14,7 @@ Pre-MVP. Stack: **Next.js App Router + Turso (libSQL) + Drizzle + Better Auth**
 | Where | What |
 |---|---|
 | `apps/web/src/app/` | Routes. Server Components + Server Actions (`actions.ts` per folder). |
-| `apps/web/src/server/` | Query aggregates (`itinerary`, `ideas`, `money`, `membership`, `notes`, …) — owns all SQL and soft-delete filtering. |
+| `apps/web/src/server/` | Query aggregates (`itinerary`, `ideas`, `money`, `trips`, `roster`, `invites`, `availability`, `notes`, …) — owns all SQL and soft-delete filtering. One file per concept: if its name needs an "and", split it (#242). |
 | `apps/web/src/server/freshness.ts` | Fact → pages that go stale (#241). The only importer of `next/cache`; everything else calls `refresh`. |
 | `apps/web/src/lib/` | Pure helpers (money, dates, calendar math) — no I/O. |
 | `apps/web/src/components/` | `ui.tsx`/`client-ui.tsx` are the house design system — reach for it first. |
@@ -31,7 +31,7 @@ Pre-MVP. Stack: **Next.js App Router + Turso (libSQL) + Drizzle + Better Auth**
 5. **Enumeration-proof access.** Load a trip only via `requireTripAccess` — non-member = nonexistent trip, same response.
 6. **Admin powers are exactly four**: invite, kick, promote, delete/archive. Everything else (incl. leaving) any member can do. Gate with `assertAdmin`.
 7. **Last-write-wins.** No optimistic locking, no version checks. `last_modified_at` is debug-only.
-8. **Soft-delete everywhere** — every read *and write* filters `isNull(table.deletedAt)`. Three deliberate hard-delete/revive exceptions exist (`ensureDays`, `applyTripWindow`, `joinByToken`) — see code comments there.
+8. **Soft-delete everywhere** — every read *and write* filters `isNull(table.deletedAt)`. Three deliberate hard-delete/revive exceptions exist (`ensureDays`, `applyTripWindow`, `addMember`) — see code comments there.
 9. **A trip may have no dates.** Nullable `start_date`/`end_date`; undated is never an error state.
 10. **No timezones.** Dates are `YYYY-MM-DD` strings; event times are local to the itinerary. Never persist an offset.
 11. **Degrade, don't crash, without credentials.** Missing provider (Nominatim/Resend/Google) → visibly reduced feature, never a throw.
