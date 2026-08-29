@@ -1,0 +1,190 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pro tier — Waypoint docs</title>
+<link rel="stylesheet" href="../assets/docs.css">
+<body data-root=".." data-page="pro-tier">
+<nav id="sidebar" aria-label="Documentation"></nav>
+<main>
+<p class="crumb">Docs</p>
+<h1>Waypoint Pro — the decided shape</h1>
+<p>Unlike <a href="monetisation.html">the monetisation page</a>, which is options,
+this page is <strong>decisions</strong>. It records what Pro is, who it belongs to, and
+how the gate works, together with the reasoning — so a future revisit argues
+with the argument rather than rediscovering it.</p>
+<p>The honest framing: <strong>no revenue is expected for a long time.</strong> Nothing is
+advertised and nobody is being asked to buy. The point of building this now is
+that the plumbing exists, is understood, and is shaped so the commercial
+questions stay open.</p>
+
+<h2>Legal position (UK)</h2>
+<ul>
+<li><strong>No limited company is needed.</strong> Trading as a sole trader is lawful from
+the first sale. Register for HMRC Self Assessment once trading income passes
+<strong>£1,000</strong> in a tax year.</li>
+<li><strong>VAT</strong> is irrelevant below the <strong>£90,000</strong> UK threshold.</li>
+<li><strong>EU VAT has no threshold.</strong> A digital subscription sold to an EU consumer
+triggers VAT from the first euro, meaning VAT OSS registration. This is the
+single biggest piece of overhead available to avoid, and the reason sales are
+<strong>GB-only</strong> (see below).</li>
+<li>Before a real payment is taken, the site must publish: terms, a privacy
+policy, a cancellation/refund policy covering the <strong>14-day right to cancel
+digital purchases</strong> (waivable if the buyer consents to immediate access),
+and a contact address. Taking money without these is the actual exposure —
+not the trading.</li>
+</ul>
+<p>Consequence: going live is <em>not</em> a code change. It is a ticket whose content
+is legal pages, Stripe account activation, and one environment variable.</p>
+
+<h2>Payment platform</h2>
+<p><strong>Stripe, restricted to GB.</strong> Checkout is created with an allowed-countries
+list of <code>GB</code> alone.</p>
+<table>
+<thead><tr><th>Option</th><th>Fee</th><th>Who is the seller</th><th>EU VAT</th></tr></thead>
+<tbody>
+<tr><td><strong>Stripe (chosen)</strong></td><td>1.5% + 20p UK cards</td><td>Waypoint</td><td>Avoided by not selling to the EU</td></tr>
+<tr><td>Paddle / Lemon Squeezy</td><td>~5% + 50c</td><td>Them (merchant of record)</td><td>Theirs to file</td></tr>
+<tr><td>Shopify</td><td>£25/mo + fees</td><td>Waypoint</td><td>Waypoint&#39;s</td></tr>
+</tbody>
+</table>
+<p>Shopify is a storefront for physical goods and was never the right tool. A
+merchant of record is the right answer <em>eventually</em> — group travel is
+international and GB-only is a real ceiling — but &quot;eventually&quot; means after
+revenue exists. Swapping is cheap while entitlement is one function and one
+table. Stripe wins now on fees, on test-mode quality, and on being the best
+surface to learn the mechanics on.</p>
+
+<h2>Pricing</h2>
+<ul>
+<li><strong>£3.99/month</strong> or <strong>£29.99/year</strong>.</li>
+<li><strong>No free trial.</strong> A trial is a conversion lever and there is nothing to
+convert. Adding one later is a Stripe setting plus <code>trialing</code> in the status
+check.</li>
+</ul>
+<p>An earlier £20/year was rejected: against £3.99/month it is 58% off, so nobody
+would ever choose monthly, and it teaches buyers the monthly price is fiction.
+£29.99 is a discount a buyer recognises as real. If £20 is wanted, it should
+run as a launch offer <em>with an end date</em> — same money, no permanent anchor.</p>
+<p><strong>Rule:</strong> prices live in Stripe as Price objects; the app stores only Price
+IDs, in environment variables. No amount is ever hardcoded, so a price change
+is a dashboard action rather than a deploy.</p>
+
+<h2>Who owns Pro</h2>
+<p><strong>A trip is Pro if any of its members is Pro. Uncapped.</strong></p>
+<p>The alternative considered was a seat ratio — one Pro member covers four
+people, a fifth member requires a second payer. Analogues exist (Spotify Family,
+Nintendo Switch Online, Costco member-plus-guest), but every one of them sells
+<em>a fixed number of seats to one buyer</em>. The ratio inverts that: the group must
+contain enough independent payers or the trip degrades. Rejected for three
+reasons:</p>
+<ol>
+<li>It is <strong>charging per trip member wearing a disguise</strong> — already on the
+rejected list on <a href="monetisation.html">the monetisation page</a>, because it
+punishes the ninth invite, which is exactly the behaviour the product needs.</li>
+<li>It <strong>flickers</strong>. Trip capability would depend on a live count of other
+people&#39;s billing, so a lapsed card silently removes features mid-trip.</li>
+<li>It is <strong>socially unenforceable</strong>. It asks friends to police each other&#39;s
+subscriptions — the awkward money conversation Waypoint exists to remove.</li>
+</ol>
+<p>At zero users, a nine-person trip where eight people see Pro working for free
+is not lost revenue; it is the only funnel there is. Extraction is a problem
+for a product with demand.</p>
+<p>The guard against changing minds is structural, not documentary: the decision
+lives in <strong>one function</strong>, <code>canUseProFeature()</code> in
+<code>server/entitlements.ts</code>. Seat caps, ratios, or personal-only Pro all become a
+policy edit inside that function rather than a refactor.</p>
+
+<h2>What Pro gates</h2>
+<p>Deliberately a small, boring set. The purpose of the first cut is to prove the
+pipe, not to make Pro attractive.</p>
+<ul>
+<li><strong>Weather</strong> — built (<code>server/weather.ts</code>).</li>
+<li><strong>The automatic packing planner</strong> — built (<code>server/packing-generator.ts</code>).</li>
+<li><strong>Multiple notes pages</strong> — not built. Today <code>server/note-doc.ts</code> is one row,
+one blob, per trip. A later ticket.</li>
+</ul>
+<p>The organiser features from <a href="monetisation.html">the monetisation page</a>
+(templates, rosters, cross-trip money) remain the strongest long-term bet, but
+building a Pro feature and the billing that gates it at the same time is two
+hard things at once. They arrive later as additions to a tier that already
+exists.</p>
+
+<h3>How a lock looks</h3>
+<p><strong>Visible, honest, inert.</strong> The surface stays where it is and states plainly
+that it is a Pro feature. No blurred sample, no fake forecast, no nag. Blurred
+placeholder data is a small lie told to a friend group who will screenshot it
+at each other, and this product&#39;s only asset is being believed.</p>
+
+<h3>What happens when a subscription lapses</h3>
+<p><strong>Read-only. Never hidden, never deleted.</strong> A generated packing list and any
+Pro-created content stay visible forever; what stops is the <em>action</em> —
+regenerating, adding another page, refreshing the forecast.</p>
+<p>This is the one rule that protects the core promise: content vanishing
+mid-trip because someone&#39;s card expired would end the product&#39;s claim to be a
+notebook the group can trust.</p>
+<p>It also simplifies the architecture sharply: <strong>the gate is only ever consulted
+on writes and refreshes, never on reads.</strong> Most read paths never touch billing
+at all.</p>
+
+<h2>Architecture</h2>
+<h3>Where the truth lives</h3>
+<p>A local <code>subscription</code> table in Turso, written by <strong>Stripe webhooks</strong>
+(<code>checkout.session.completed</code>, <code>customer.subscription.updated</code>,
+<code>customer.subscription.deleted</code>). Roughly: <code>userId</code>,
+<code>stripeCustomerId</code>, <code>stripeSubscriptionId</code>, <code>status</code>, <code>currentPeriodEnd</code>,
+<code>cancelAtPeriodEnd</code>.</p>
+<p>Querying Stripe per request was rejected: it puts a network call on every page
+load and makes Waypoint unavailable whenever Stripe is. A plain
+<code>user.isPro</code> boolean was rejected because it cannot express &quot;cancelled, but
+paid up until 14 November&quot; — which is what actually happens when someone
+cancels.</p>
+<p>Two non-negotiables that come with webhooks: the signature is
+<strong>verified</strong> (otherwise anyone can POST themselves a subscription), and every
+write is <strong>idempotent</strong> (Stripe retries, and a retry must be harmless).</p>
+
+<h3>The gate</h3>
+<p>One function, one file. <code>canUseProFeature(tripId)</code> asks: does any
+non-deleted member of this trip hold a subscription row whose status is active
+or trialing, with <code>currentPeriodEnd</code> in the future?</p>
+<p><strong>Enforced on the server.</strong> The client never decides. Hiding a tab is
+presentation; the weather read refusing is the gate.</p>
+
+<h3>Hand-rolled, not the Better Auth plugin</h3>
+<p><code>@better-auth/stripe</code> would generate the checkout, portal, webhook and table
+in fewer lines. Rejected on repo-specific grounds:</p>
+<ul>
+<li><code>pnpm verify</code> runs a <strong>migration-drift check</strong>; a plugin owning tables
+outside <code>schema.ts</code> is a fight with that check rather than with Stripe.</li>
+<li><code>depcruise</code> and <code>knip</code> police layering, and injected routes and schema sit
+badly with both.</li>
+<li>Understanding the plumbing is an explicit goal here, and the plugin&#39;s whole
+value is hiding it.</li>
+</ul>
+<p>Cost: roughly 200 lines and an extra afternoon.</p>
+
+<h2>Keys and environments</h2>
+<p><strong>Test keys everywhere, including production, until the legal pages exist.</strong>
+The Buy button works, the webhook fires, no money moves. <code>develop</code> is always
+test. Going live is a one-variable change in Railway, gated on its own ticket.</p>
+
+<h2>Open questions</h2>
+<ul>
+<li>GB-only is a real ceiling for a product about international travel. What
+volume justifies moving to a merchant of record?</li>
+<li>Weather and the packing planner shipped free. Gating them now costs nothing
+because there are no users — but it sets the precedent that a shipped
+feature can move behind the paywall. Is that a precedent worth setting?</li>
+<li>Uncapped trip inheritance means one payer can serve an arbitrarily large
+group. What actual usage pattern would make that worth revisiting?</li>
+</ul>
+
+<h2>See also</h2>
+<ul>
+<li><a href="monetisation.html"><code>monetisation.html</code></a> — the options this page chose from,
+and the rejected list it must not quietly cross.</li>
+<li><a href="../architecture/architecture.html"><code>architecture.html</code></a> — where the
+entitlement layer sits.</li>
+</ul>
+</main>
+<script src="../assets/nav.js"></script>
+</body>

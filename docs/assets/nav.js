@@ -21,7 +21,13 @@
         { id: 'visual-language', label: 'Visual language', href: 'design/visual-language.html' }
       ]
     },
-    { id: 'monetisation', label: 'Monetisation', href: 'monetisation/monetisation.html' },
+    {
+      label: 'Monetisation',
+      children: [
+        { id: 'monetisation', label: 'How this makes money', href: 'monetisation/monetisation.html' },
+        { id: 'pro-tier', label: 'Pro tier', href: 'monetisation/pro-tier.html' }
+      ]
+    },
     { id: 'partner-trips', label: 'Partner trips', href: 'research/partner-trips.html' },
     {
       label: 'Data model',
