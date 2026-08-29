@@ -38,6 +38,7 @@ const TABLES = [
   schema.friendship,
   schema.tripInvite,
   schema.tripMembership,
+  schema.subscription,
   schema.trip,
   schema.place,
   schema.userProfile,

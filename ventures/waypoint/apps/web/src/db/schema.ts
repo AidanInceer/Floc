@@ -12,6 +12,7 @@ import { CURRENCIES } from "@/lib/currency";
 import { DEFAULT_CATEGORY, EXPENSE_CATEGORIES } from "@/lib/expense-category";
 import { DOC_CATEGORIES } from "@/lib/documents";
 import { PACK_CATEGORIES, PACK_TIERS } from "@/lib/packing";
+import { PLANS } from "@/lib/plans";
 import {
   index,
   integer,
@@ -859,6 +860,69 @@ export const nudge = sqliteTable(
   (t) => [index("nudge_trip_to_idx").on(t.tripId, t.toUserId)],
 );
 
+/* -------------------------------------------------------------------------- */
+/* Billing — the local record of who is Pro (ticket 246)                       */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Stripe's own vocabulary, stored verbatim so the webhook never has to
+ * interpret. Only `active` and `trialing` are live — see LIVE_STATUSES.
+ */
+export const SUBSCRIPTION_STATUSES = [
+  "active",
+  "trialing",
+  "past_due",
+  "unpaid",
+  "paused",
+  "canceled",
+  "incomplete",
+  "incomplete_expired",
+] as const;
+export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUSES)[number];
+
+/** How the row came to exist. The gate never reads this (ticket 246). */
+export const SUBSCRIPTION_SOURCES = ["stripe", "comp"] as const;
+export type SubscriptionSource = (typeof SUBSCRIPTION_SOURCES)[number];
+
+/**
+ * One row per Stripe subscription, and one per comped tester. Written by the
+ * webhook, never by a page. A plain `isPro` boolean was rejected: it cannot
+ * say "cancelled, but paid up until the 14th", which is exactly what
+ * cancelling does.
+ */
+export const subscription = sqliteTable(
+  "subscription",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    plan: text("plan", { enum: PLANS }).notNull().default("pro"),
+    status: text("status", { enum: SUBSCRIPTION_STATUSES }).notNull(),
+    source: text("source", { enum: SUBSCRIPTION_SOURCES })
+      .notNull()
+      .default("stripe"),
+    stripeCustomerId: text("stripe_customer_id"),
+    stripeSubscriptionId: text("stripe_subscription_id"),
+    /** Paid up to here. Null means no end — a comp, which never lapses. */
+    currentPeriodEnd: integer("current_period_end", { mode: "timestamp" }),
+    cancelAtPeriodEnd: integer("cancel_at_period_end", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    ...audit,
+  },
+  (t) => [
+    index("subscription_user_idx").on(t.userId),
+    /**
+     * Makes a repeated webhook an upsert rather than a second row (ticket
+     * 246). Stripe retries on any non-2xx, so duplicate delivery is normal
+     * traffic, not an edge case. Deliberately without `deleted_at`, same
+     * reason as `note_reaction_one_idx`.
+     */
+    uniqueIndex("subscription_stripe_idx").on(t.stripeSubscriptionId),
+  ],
+);
+
 export type User = typeof user.$inferSelect;
 export type UserProfile = typeof userProfile.$inferSelect;
 export type Trip = typeof trip.$inferSelect;
@@ -877,3 +941,4 @@ export type Note = typeof note.$inferSelect;
 export type Nudge = typeof nudge.$inferSelect;
 export type Friendship = typeof friendship.$inferSelect;
 export type UserCountryMark = typeof userCountryMark.$inferSelect;
+export type Subscription = typeof subscription.$inferSelect;

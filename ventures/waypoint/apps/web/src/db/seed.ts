@@ -24,6 +24,7 @@ import {
   ideaVote,
   note,
   place,
+  subscription,
   trip,
   tripMembership,
   user,
@@ -158,6 +159,15 @@ async function main() {
   for (const person of PEOPLE) userIds.push(await upsertPerson(person));
 
   const [aidan, priya, tom, sofia] = userIds;
+
+  /**
+   * Pro on a wiped database (ticket 246). A comped row, exactly the shape a
+   * tester gets by hand in Drizzle Studio — no dev-only bypass, so local
+   * development runs the same gate production does. Null period end = forever.
+   */
+  await db
+    .insert(subscription)
+    .values({ userId: aidan, status: "active", source: "comp" });
 
   // All four travellers know each other.
   for (let i = 0; i < userIds.length; i++) {
