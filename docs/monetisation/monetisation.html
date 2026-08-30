@@ -1,13 +1,13 @@
 <!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Monetisation — Waypoint docs</title>
+<title>Monetisation — Floc docs</title>
 <link rel="stylesheet" href="../assets/docs.css">
 <body data-root=".." data-page="monetisation">
 <nav id="sidebar" aria-label="Documentation"></nav>
 <main>
 <p class="crumb">Docs</p>
-<h1>Waypoint — how this could make money</h1>
+<h1>Floc — how this could make money</h1>
 <p>High-level thinking: the options, and the ones ruled out. Nothing here is a
 commitment — this exists so that when v1 lands there&#39;s a considered starting
 point rather than a panic.</p>
@@ -16,7 +16,7 @@ point rather than a panic.</p>
 belongs to, and how the gate works. This page stays as the wider map, and above
 all as the <a href="#rejected">rejected list</a> that slice must not quietly cross.</p>
 <h2>The constraint that shapes everything</h2>
-<p>Waypoint&#39;s whole pitch is <em>a shared notebook the group trusts</em>. That trust is
+<p>Floc&#39;s whole pitch is <em>a shared notebook the group trusts</em>. That trust is
 the asset, and most travel-industry revenue models spend it:</p>
 <ul>
 <li><strong>Booking commission</strong> means the recommendation is bought. The moment a hotel
@@ -39,26 +39,10 @@ year&quot;.</p>
 <p>That splits the options into three honest buckets.</p>
 <hr>
 <h2>Bucket 1 — Charge at the moment of peak value</h2>
-<p>The end of the trip, when the book is full and the group is nostalgic. This is
-the strongest instinct, because the willingness to pay is real and the thing
-being sold isn&#39;t a feature the group needed to plan the trip.</p>
-<h3>The printed book</h3>
-<p>The whole metaphor is already a notebook. At the end of a trip, Waypoint holds
-the route, the day-by-day, who was there, the photos attached to expenses and
-the arguments in the note threads. Turning that into an actual printed object
-— a small hardback, £25–40, one per person who wants one — is a product that
-sells itself at exactly the point the group is feeling warmest about it.</p>
-<ul>
-<li><strong>Why it works</strong>: nobody has to pay to plan; the paying moment is a keepsake,
-not a paywall. Print-on-demand means no inventory.</li>
-<li><strong>Margin</strong>: real but thin (print + shipping). A 7-person trip where 3 order
-is ~£100 revenue, maybe £45 gross.</li>
-<li><strong>Risk</strong>: it&#39;s a physical-goods business bolted onto software — returns,
-shipping, customer service. Test with a PDF export first (£4?) and see if
-anyone even wants the artefact before touching a printer.</li>
-<li><strong>Cheapest test</strong>: a &quot;download the book&quot; button that produces a nicely typeset
-PDF. Count clicks before building anything.</li>
-</ul>
+<p>Not while deciding, but while travelling — the willingness to pay is real and
+the thing being sold isn&#39;t a feature the group needed to plan the trip. The
+end-of-trip keepsake that used to sit here is now on the
+<a href="#rejected">rejected list</a>.</p>
 <h3>The offline/travel pack</h3>
 <p>A paid one-off (£3–5 per trip, bought by anyone, unlocks for the group) that
 bundles the things that matter <em>while you&#39;re away</em> rather than while you&#39;re
@@ -70,24 +54,6 @@ deciding, not travelling.</p>
 <h2>Bucket 2 — Charge the groups that aren&#39;t the core case</h2>
 <p>The core case (six to nine friends, one or two trips a year) stays free. Some
 groups look like the core case but use the product ten times harder.</p>
-<h3>Organiser plans (the strongest recurring-revenue candidate)</h3>
-<p>People who run trips <em>repeatedly for other people</em>: stag/hen organisers, walking
-and cycling clubs, university societies, small tour operators, wedding parties,
-sports teams on tour. They plan 5–20 trips a year, with rotating casts, and the
-admin is the whole job.</p>
-<p>What they&#39;d pay for (~£8–15/month, or £60–120/year):</p>
-<ul>
-<li>Trip templates — clone last year&#39;s Peak District weekend, keep the route,
-swap the people.</li>
-<li>A roster: people who travel with you repeatedly, without re-inviting them.</li>
-<li>Cross-trip money: one person who owes across three trips, one number.</li>
-<li>Collecting <em>commitments</em> (not payments) — &quot;who&#39;s actually in, by Friday&quot;.</li>
-<li>Their own branding on the shared/exported book.</li>
-</ul>
-<p><strong>Why this is the best bet</strong>: the willingness to pay is genuinely higher (it&#39;s
-a job, not a holiday), the feature set is additive rather than restrictive, and
-none of it makes the free product worse. It also has an obvious pipeline —
-organisers are already visible in the free product by usage pattern.</p>
 <h3>Very large groups</h3>
 <p>A 40-person trip is a different product with different problems (sub-groups,
 who&#39;s in which house, coach seats). Charging above some member threshold is
@@ -157,6 +123,14 @@ long-term users, which is a small slice. Treat it as a supplement.</p>
 <td>Punishes exactly the behaviour the product needs (inviting the ninth person).</td>
 </tr>
 <tr>
+<td>The printed book / paid PDF export</td>
+<td>A physical-goods business bolted onto software — print, shipping, returns, customer service — for a thin margin on a once-a-year moment. The keepsake is the product&#39;s emotional payoff; charging for it taxes the one thing groups come back for.</td>
+</tr>
+<tr>
+<td>Organiser plans (templates, rosters, cross-trip money, own branding)</td>
+<td>Was the strongest recurring-revenue candidate on paper, but it is a second product with a second audience — people running trips <em>for</em> others, not with them. Building it means splitting focus before the core case has demand. If it returns, it returns as its own thing, not as a Pro tier.</td>
+</tr>
+<tr>
 <td>Paywalling the money tab</td>
 <td>It&#39;s the most-loved feature and the one with the clearest alternative (a spreadsheet). Charging for it loses users, not converts them.</td>
 </tr>
@@ -171,21 +145,15 @@ slice is shaped so none of the options above become impossible.</p>
 <li><strong>v1 → free, no billing code at all.</strong> Learn what groups actually do. The
 only thing worth doing now is not building anything that would make the
 options above impossible.</li>
-<li><strong>Instrument the paying moments.</strong> After a trip settles, offer the PDF
-export. Count who wants it. That is the cheapest possible read on Bucket 1.</li>
-<li><strong>Find the organisers.</strong> They&#39;ll be obvious: same account, many trips,
-rotating members. Talk to twenty of them before designing a plan.</li>
-<li><strong>Ship one thing, priced simply.</strong> Most likely the organiser plan (recurring,
-defensible, additive). The printed book second, if the PDF numbers justify
-the operational weight.</li>
+<li><strong>Instrument the paying moments.</strong> Watch what groups reach for while they
+are actually away — that is the cheapest possible read on Bucket 1.</li>
+<li><strong>Ship one thing, priced simply.</strong> Most likely the travel pack (one-off,
+per trip, additive) or the archive.</li>
 <li><strong>Never</strong> revisit the rejected list to close a revenue gap. The gap is a
 signal about the product, not about the pricing.</li>
 </ol>
 <h2>Open questions</h2>
 <ul>
-<li>Does the &quot;end of trip&quot; moment produce enough intent to buy, or does the group
-simply disperse? (Testable with the PDF, cheaply.)</li>
-<li>Are organisers a big enough population to be a business, or a nice niche?</li>
 <li>Is per-trip one-off pricing (a &quot;travel pack&quot;) more natural than subscription
 for a product used in bursts? Probably — but it caps revenue hard.</li>
 <li>What&#39;s the minimum storage cost per archived trip? That number decides

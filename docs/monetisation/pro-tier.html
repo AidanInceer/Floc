@@ -1,13 +1,13 @@
 <!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pro tier — Waypoint docs</title>
+<title>Pro tier — Floc docs</title>
 <link rel="stylesheet" href="../assets/docs.css">
 <body data-root=".." data-page="pro-tier">
 <nav id="sidebar" aria-label="Documentation"></nav>
 <main>
 <p class="crumb">Docs</p>
-<h1>Waypoint Pro — the decided shape</h1>
+<h1>Floc Pro — the decided shape</h1>
 <p>Unlike <a href="monetisation.html">the monetisation page</a>, which is options,
 this page is <strong>decisions</strong>. It records what Pro is, who it belongs to, and
 how the gate works, together with the reasoning — so a future revisit argues
@@ -42,9 +42,9 @@ list of <code>GB</code> alone.</p>
 <table>
 <thead><tr><th>Option</th><th>Fee</th><th>Who is the seller</th><th>EU VAT</th></tr></thead>
 <tbody>
-<tr><td><strong>Stripe (chosen)</strong></td><td>1.5% + 20p UK cards</td><td>Waypoint</td><td>Avoided by not selling to the EU</td></tr>
+<tr><td><strong>Stripe (chosen)</strong></td><td>1.5% + 20p UK cards</td><td>Floc</td><td>Avoided by not selling to the EU</td></tr>
 <tr><td>Paddle / Lemon Squeezy</td><td>~5% + 50c</td><td>Them (merchant of record)</td><td>Theirs to file</td></tr>
-<tr><td>Shopify</td><td>£25/mo + fees</td><td>Waypoint</td><td>Waypoint&#39;s</td></tr>
+<tr><td>Shopify</td><td>£25/mo + fees</td><td>Floc</td><td>Floc&#39;s</td></tr>
 </tbody>
 </table>
 <p>Shopify is a storefront for physical goods and was never the right tool. A
@@ -84,7 +84,7 @@ punishes the ninth invite, which is exactly the behaviour the product needs.</li
 <li>It <strong>flickers</strong>. Trip capability would depend on a live count of other
 people&#39;s billing, so a lapsed card silently removes features mid-trip.</li>
 <li>It is <strong>socially unenforceable</strong>. It asks friends to police each other&#39;s
-subscriptions — the awkward money conversation Waypoint exists to remove.</li>
+subscriptions — the awkward money conversation Floc exists to remove.</li>
 </ol>
 <p>At zero users, a nine-person trip where eight people see Pro working for free
 is not lost revenue; it is the only funnel there is. Extraction is a problem
@@ -103,11 +103,12 @@ pipe, not to make Pro attractive.</p>
 <li><strong>Multiple notes pages</strong> — not built. Today <code>server/note-doc.ts</code> is one row,
 one blob, per trip. A later ticket.</li>
 </ul>
-<p>The organiser features from <a href="monetisation.html">the monetisation page</a>
-(templates, rosters, cross-trip money) remain the strongest long-term bet, but
-building a Pro feature and the billing that gates it at the same time is two
-hard things at once. They arrive later as additions to a tier that already
-exists.</p>
+<p>The organiser features once pencilled in here — templates, rosters, cross-trip
+money — are now on the monetisation page&#39;s
+<a href="monetisation.html#rejected">rejected list</a>: a second product for a
+second audience, not a deeper Pro. Whatever joins Pro next arrives as an
+addition to a tier that already exists, never as a feature and its gate built
+at the same time.</p>
 
 <h3>How a lock looks</h3>
 <p><strong>Visible, honest, inert.</strong> The surface stays where it is and states plainly
@@ -134,7 +135,7 @@ at all.</p>
 <code>stripeCustomerId</code>, <code>stripeSubscriptionId</code>, <code>status</code>, <code>currentPeriodEnd</code>,
 <code>cancelAtPeriodEnd</code>.</p>
 <p>Querying Stripe per request was rejected: it puts a network call on every page
-load and makes Waypoint unavailable whenever Stripe is. A plain
+load and makes Floc unavailable whenever Stripe is. A plain
 <code>user.isPro</code> boolean was rejected because it cannot express &quot;cancelled, but
 paid up until 14 November&quot; — which is what actually happens when someone
 cancels.</p>

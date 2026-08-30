@@ -2,12 +2,12 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "waypoint-web",
+      "name": "floc-web",
       "runtimeExecutable": "corepack",
       "runtimeArgs": [
         "pnpm",
         "--filter",
-        "waypoint-web",
+        "floc-web",
         "dev"
       ],
       "autoPort": true,

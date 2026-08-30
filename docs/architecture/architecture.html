@@ -1,15 +1,15 @@
 <!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Architecture — Waypoint docs</title>
+<title>Architecture — Floc docs</title>
 <link rel="stylesheet" href="../assets/docs.css">
 <body data-root=".." data-page="architecture">
 <nav id="sidebar" aria-label="Documentation"></nav>
 <main>
 <p class="crumb">Docs</p>
 <h1>Architecture</h1>
-<p>System diagram for the Waypoint monorepo. The active app is
-<a href="../ventures/waypoint/apps/web"><code>ventures/waypoint/apps/web</code></a> — Next.js App
+<p>System diagram for the Floc monorepo. The active app is
+<a href="../floc/apps/web"><code>floc/apps/web</code></a> — Next.js App
 Router + Drizzle over Turso (libSQL) + Better Auth. Everything else in the
 repo is plumbing, docs, or superseded prior art.</p>
 <pre class="mermaid">flowchart TB
@@ -17,7 +17,7 @@ repo is plumbing, docs, or superseded prior art.</p>
         UI["Next.js App Router UI&lt;br/&gt;(app/trip, trips, explore, friends, profile, settings, login, signup, invite)"]
     end
 
-    subgraph WebApp["ventures/waypoint/apps/web"]
+    subgraph WebApp["floc/apps/web"]
         Routes["App Router pages + layouts"]
         API["Route handlers&lt;br/&gt;app/api/* (incl. app/api/auth/[...all])"]
         Server["server/*&lt;br/&gt;itinerary, places, friends, profile,&lt;br/&gt;audit, notes-read, access, visibility, auth, email"]

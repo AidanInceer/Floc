@@ -1,4 +1,4 @@
-/* Waypoint docs — sidebar renderer.
+/* Floc docs — sidebar renderer.
  *
  * There is no build step. This file IS the doc index: adding a page means
  * adding a line to TREE below. Every doc page loads it with a plain
@@ -104,7 +104,7 @@
     '<path d="M38 90 C 84 78, 24 60, 64 42 C 80 35, 82 28, 78 22" fill="none" ' +
     'stroke="var(--pen)" stroke-width="7" stroke-linecap="round" stroke-dasharray="0.1 15"/>' +
     '<circle cx="38" cy="90" r="11" fill="var(--red)"/></svg>' +
-    '<span class="brand-text"><b>Waypoint</b><span>Documentation</span></span>';
+    '<span class="brand-text"><b>Floc</b><span>Documentation</span></span>';
   host.appendChild(brand);
 
   var filter = document.createElement('input');

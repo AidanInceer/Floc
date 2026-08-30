@@ -1,0 +1,1084 @@
+@import "tailwindcss";
+
+/*
+ * Floc v1 visual language — the WHITE-AND-PASTEL direction (ticket 187).
+ * White surfaces on a soft canvas, four domain pastels, and one blue that means
+ * "yours to do". Replaced the paper-and-biro notebook look; docs/design/ is the
+ * yardstick.
+ *
+ * THREE FACES, AND NO MORE (ticket 189, keeping ticket 121's cap). Loaded and
+ * self-hosted via next/font (app/layout.tsx); a fourth needs an argument, not a
+ * preference.
+ *
+ *   - `--display` (Bricolage Grotesque) for headings and figures. The character.
+ *   - `--sans` (Instrument Sans) for running text and controls. The book.
+ *   - `--type` (DM Mono, tabular) for every figure, date, time and small
+ *     uppercase label. All money. `.typed`, `.nums`, `font-mono`.
+ *
+ * The handwriting face is retired — it belonged to the notebook. The
+ * notification email still sets its own serif stack inline (server/email.ts):
+ * next/font can't reach a mail client, so it stays a separate surface.
+ *
+ * TWO THEMES, ONE SET OF NAMES (ticket 240, overturning the light-only call in
+ * 07/187). Light is the palette below; dark restates the same token names with
+ * new values in the `:root[data-theme="dark"]` block after it. A component
+ * never knows which is on — no `dark:` variant exists anywhere in the app.
+ *
+ * Borrowed from the runners-up:
+ *   - `transit` → the three-state status semantics (done / open / needs
+ *     action), applied identically on every tab.
+ *   - `index`   → the token discipline: no component ever holds a hex value.
+ *
+ * Trimmed back to what the redesign actually uses (ticket 206): the ruled
+ * sheet, the red margin, the tape, the boarding-pass landing page, the tilted
+ * ideas board and the post-it washes are gone, along with their tokens.
+ */
+
+:root {
+  color-scheme: light;
+
+  /*
+   * The white-and-pastel palette. ONE HEX PER MEANING (ticket 206): a colour is
+   * declared once, in the "Four pastels" block below, and every other name that
+   * means the same thing is a `var()` alias of it — never a second copy of the
+   * digits. Aliases are kept where the *job* differs (status vs domain vs
+   * person), because a call site should read for its own reason.
+   *
+   * The paper-era tokens are gone with the paper-era CSS: the ruled `--line`,
+   * the red `--margin-line`, the `--tape` strip, the post-it stock, and
+   * `--pencil` (a byte-for-byte copy of `--ink-2`).
+   */
+
+  /* Ground and surfaces. Canvas is the page; white is every surface. */
+  --paper: #fafafa; /* the ground the app sits on — near-white neutral */
+  --sheet: #ffffff; /* white — every surface */
+  --sheet-2: #f5f4f0; /* a surface one step off white, for nested panels */
+  --sheet-3: #eeece7; /* a recess in a white surface — deeper than the canvas */
+  --rule: #e6e4de; /* hairline */
+  --rule-2: #d8d5cd; /* a stronger hairline */
+
+  /*
+   * Ink. Three steps, and all three clear WCAG AA (4.5:1) on every surface
+   * they are used on (ticket 204). `--ink-3` was #9b9ba5, which read 2.75:1 on
+   * white — it set `.typed`, an 11px uppercase label, so the smallest text in
+   * the app was also the palest. Darkened until it passes; the ramp still
+   * steps, it just no longer steps off the edge.
+   */
+  --ink: #14141a; /* 18.4:1 on white */
+  --ink-2: #63636f; /* 5.9:1 on white, 4.6:1 on the palest pastel */
+  --ink-3: #6f6f7b; /* 5.0:1 on white, 4.6:1 on the canvas */
+
+  /* Blue means "yours to do" and nothing else — actions, links, your own rows.
+     `--pen` clears AA on white and on the canvas only (4.9 / 4.5); blue TEXT on
+     a pastel must use `--pen-deep`, which clears it everywhere (ticket 204). */
+  --pen: #4e68d8;
+  --pen-deep: #2b3b85; /* the pressed-harder hover ink, and blue text on pastel */
+  --pen-2: #e7ebfa; /* the soft tint blue sits on */
+
+  /* Four pastels, one per domain (wash / ink): peri = dates, mint = money,
+     butter = ideas and people, blush = route and places. THE ONLY PLACE THESE
+     SIX-DIGIT VALUES APPEAR — everything below aliases them. */
+  --peri: #dfe3ff;
+  --peri-ink: #33409b; /* 7.1:1 on peri */
+  --mint: #dcefe4;
+  --mint-ink: #1b6b4c; /* 5.4:1 on mint */
+  --butter: #fbeac8;
+  --butter-ink: #8a6412; /* 4.5:1 on butter */
+  --blush: #faddd6;
+  --blush-ink: #a34a31; /* 4.6:1 on blush */
+
+  /* One step darker than each wash, so a filled pill outlines on white rather
+     than dissolving into it. */
+  --peri-edge: #c6d0f2;
+  --mint-edge: #c3e3d2;
+  --butter-edge: #efd9ae;
+  --blush-edge: #f0c7bc;
+
+  /*
+   * Status — the three-state semantics (done / open / needs action) applied
+   * identically on every tab. A separate NAME, never a separate hex: status
+   * borrows the domain pastels. Every state carries a word too, so nothing is
+   * told by colour alone (ticket 204).
+   */
+  --highlight: var(--butter); /* open / marked up */
+  --highlight-2: #fdf4e1; /* the one paler butter — its own value, used alone */
+  --highlight-ink: var(--butter-ink);
+  --highlight-edge: var(--butter-edge);
+  --red: var(--blush-ink); /* needs action */
+  --red-2: var(--blush);
+  --red-edge: var(--blush-edge);
+  --green: var(--mint-ink); /* done */
+  --green-2: var(--mint);
+  --green-edge: var(--mint-edge);
+  --pen-edge: var(--peri-edge);
+
+  /* Quiet motion: a tiny lift on a soft shadow, nothing heavy. One easing curve
+     for every interactive move — see the `.lift` utility, and the
+     prefers-reduced-motion block that removes the movement but not the
+     feedback. */
+  --ease: cubic-bezier(0.2, 0.85, 0.3, 1);
+  --shadow-sm: 0 1px 2px rgb(20 20 26 / 0.05);
+  --shadow: 0 1px 2px rgb(20 20 26 / 0.05), 0 6px 14px -12px rgb(20 20 26 / 0.3);
+  --shadow-lift: 0 2px 4px rgb(20 20 26 / 0.06), 0 14px 28px -16px rgb(20 20 26 / 0.35);
+
+  /*
+   * Pro. The one paid thing on the site, and the only block that
+   * leaves the blue-and-pastel language: warm parchment and gold here, cut to
+   * black and gold in dark. Gold is the constant, the ground is not — a
+   * near-black slab on a white page glared (it read as a hole, not a card).
+   */
+  --pro: #fbf3e2;
+  --pro-2: #fffcf5;
+  --pro-edge: #ecdcb5;
+  --pro-ink: #3a2d0f;
+  --pro-ink-2: #6b5726;
+  --pro-gold: #8a6412;
+
+  /* The lift of white inside the map frame, so pins near the border still
+     separate from the tiles. A token because dark cannot afford the glare. */
+  --vignette: rgb(255 255 255 / 0.5);
+
+  /*
+   * The three faces (ticket 189), loaded and self-hosted via next/font (see
+   * app/layout.tsx). The `-face` variables carry the next/font family; the
+   * fallback stack behind each covers the moment before it swaps in.
+   *   - `--display` (Bricolage Grotesque) — headings and figures. The character.
+   *   - `--sans`    (Instrument Sans)      — running text and controls. The book.
+   *   - `--type`    (DM Mono, tabular)     — every date, time, amount and small
+   *     uppercase label. `.typed`, `.nums`, `font-mono`.
+   */
+  --display: var(--font-display-face), "Bricolage Grotesque", "Trebuchet MS",
+    system-ui, sans-serif;
+  --sans: var(--font-body-face), "Instrument Sans", system-ui, -apple-system,
+    "Segoe UI", Roboto, sans-serif;
+  --type: var(--font-data-face), "DM Mono", "Cascadia Mono", Consolas,
+    "Courier New", monospace;
+
+  /*
+   * People. Eight seats, assigned deterministically from the display name
+   * (`whoTone` in lib/who.ts), never from a database column — with nine people
+   * on one trip you have to tell rows apart at a glance. The first five are the
+   * domain pastels under a person's name; only 6–8 need values of their own,
+   * because the palette runs out before the seats do. Every pair clears AA.
+   */
+  --who-1: var(--peri);
+  --who-1-ink: var(--peri-ink);
+  --who-2: var(--blush);
+  --who-2-ink: var(--blush-ink);
+  --who-3: var(--butter);
+  --who-3-ink: var(--butter-ink);
+  --who-4: var(--mint);
+  --who-4-ink: var(--mint-ink);
+  --who-5: var(--pen-2);
+  --who-5-ink: var(--pen-deep);
+  --who-6: #e4ecec;
+  --who-6-ink: #3d5c5a; /* 6.1:1 */
+  --who-7: #f3e7da;
+  --who-7-ink: #7a5a2b; /* 5.2:1 */
+  --who-8: #e9e7e2;
+  --who-8-ink: #5a564d; /* 5.9:1 */
+}
+
+/*
+ * The dark palette (ticket 240). Same names, new values — a colour change and
+ * nothing else, so no component gains a `dark:` variant. If one needs one, the
+ * token is wrong.
+ *
+ * Only the base values are restated: every alias in `:root` above is a
+ * `var()`, so it follows on its own.
+ *
+ * `data-theme` is always written explicitly by the pre-paint script in
+ * app/layout.tsx (it resolves `prefers-color-scheme` itself), which is why
+ * there is no second copy of this block behind a media query.
+ */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Ground and surfaces. The canvas is the deepest; a surface lifts off it. */
+  --paper: #242430;
+  --sheet: #2e2e3d;
+  --sheet-2: #353546;
+  --sheet-3: #3d3d50;
+  --rule: #424255;
+  --rule-2: #535366;
+
+  /* Ink, inverted. Never pure white: #ffffff on a near-black ground haloes. */
+  --ink: #ececf2;
+  --ink-2: #a4a4b3;
+  --ink-3: #9797a4;
+
+  /* Blue still means "yours to do". Lifted until it carries text on a dark
+     surface; `--pen-deep` is now the *lighter* of the two, because on a dark
+     ground "pressed harder" reads as brighter, not darker. */
+  --pen: #8ea0ff;
+  --pen-deep: #b6c1ff;
+  --pen-2: #232a4c;
+
+  /* The four pastels swap roles: the wash goes deep, the ink goes light. */
+  --peri: #272f5f;
+  --peri-ink: #b9c3ff;
+  --mint: #16382b;
+  --mint-ink: #8fd9b6;
+  --butter: #3d3114;
+  --butter-ink: #f0cd85;
+  --blush: #41241d;
+  --blush-ink: #f3ab95;
+
+  /* One step lighter than each wash here — an edge separates by lifting. */
+  --peri-edge: #3a4680;
+  --mint-edge: #245442;
+  --butter-edge: #5c4a20;
+  --blush-edge: #5f372c;
+
+  --highlight-2: #2a2210;
+
+  /* Seats 6-8, the three with no domain pastel behind them. */
+  --who-6: #1e3434;
+  --who-6-ink: #97c4c1;
+  --who-7: #3a2e20;
+  --who-7-ink: #dcbe94;
+  --who-8: #2b2a26;
+  --who-8-ink: #c3bfb4;
+
+  /* A shadow on a dark ground has to be near-black and harder, or the lift
+     under a card is invisible. */
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 14px -12px rgb(0 0 0 / 0.9);
+  --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.5), 0 14px 28px -16px rgb(0 0 0 / 0.95);
+
+  /* Pro inverts here: the same block, cut from black rather than parchment.
+     Gold rises to carry text on it. */
+  --pro: #17171d;
+  --pro-2: #23232c;
+  --pro-edge: #3b3b46;
+  --pro-ink: #f6f2e8;
+  --pro-ink-2: #b6b0a2;
+  --pro-gold: #e7bd63;
+
+  /* The white lift at the map's edge would be a glare here. */
+  --vignette: rgb(255 255 255 / 0.05);
+}
+
+/* Expose the tokens to Tailwind: bg-sheet, text-ink-soft, text-pen, … */
+@theme inline {
+  --color-paper: var(--paper);
+  --color-sheet: var(--sheet);
+  --color-sheet-2: var(--sheet-2);
+  --color-sheet-3: var(--sheet-3);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-2);
+
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-2);
+  --color-ink-faint: var(--ink-3);
+
+  --color-pen: var(--pen);
+  --color-pen-deep: var(--pen-deep);
+  --color-pen-soft: var(--pen-2);
+  --color-pen-edge: var(--pen-edge);
+
+  /* The four domain pastels: bg-peri/text-peri-ink, mint, butter, blush. */
+  --color-peri: var(--peri);
+  --color-peri-ink: var(--peri-ink);
+  --color-peri-edge: var(--peri-edge);
+  --color-mint: var(--mint);
+  --color-mint-ink: var(--mint-ink);
+  --color-mint-edge: var(--mint-edge);
+  --color-butter: var(--butter);
+  --color-butter-ink: var(--butter-ink);
+  --color-butter-edge: var(--butter-edge);
+  --color-blush: var(--blush);
+  --color-blush-ink: var(--blush-ink);
+  --color-blush-edge: var(--blush-edge);
+
+  /* Pro's own ground: bg-pro, text-pro-gold, …. */
+  --color-pro: var(--pro);
+  --color-pro-2: var(--pro-2);
+  --color-pro-edge: var(--pro-edge);
+  --color-pro-ink: var(--pro-ink);
+  --color-pro-ink-soft: var(--pro-ink-2);
+  --color-pro-gold: var(--pro-gold);
+
+  --color-highlight: var(--highlight);
+  --color-highlight-soft: var(--highlight-2);
+  --color-highlight-ink: var(--highlight-ink);
+  --color-highlight-edge: var(--highlight-edge);
+  --color-red: var(--red);
+  --color-red-soft: var(--red-2);
+  --color-red-edge: var(--red-edge);
+  --color-green: var(--green);
+  --color-green-soft: var(--green-2);
+  --color-green-edge: var(--green-edge);
+
+  /*
+   * Soft-toy geometry (ticket 190): generous radii on every surface, and a true
+   * pill (`--radius-pill`) for buttons, badges and segmented controls. `rounded-
+   * sm/md/lg/full` in the components read straight from these tokens, so the
+   * whole set reshapes here.
+   */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+
+  --shadow-card: var(--shadow-sm);
+  --shadow-raised: var(--shadow);
+  --shadow-lifted: var(--shadow-lift);
+
+  --font-display: var(--display);
+  --font-sans: var(--sans);
+  --font-mono: var(--type);
+}
+
+@layer base {
+  * {
+    min-width: 0;
+  }
+
+  /* Reserve the scrollbar's width on every page, scrolling or not (ticket 95).
+     Without it a short page (Trips, Friends) is laid out across the full
+     viewport and a long one (Profile) loses ~15px to the scrollbar, so the
+     sheet and its heading jump sideways as you move between them. */
+  html {
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: var(--text-base);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /*
+   * One type scale for the whole app (ticket 189), so headings across pages
+   * agree rather than each page inventing its own sizes. A ~1.2 step; the app
+   * uses these tokens (`text-[var(--text-lg)]`, etc.) instead of ad-hoc px.
+   */
+  :root {
+    --text-xs: 11px;
+    --text-sm: 13px;
+    --text-base: 15px;
+    --text-md: 17px;
+    --text-lg: 20px;
+    --text-xl: 25px;
+    --text-2xl: 31px;
+    --text-3xl: 39px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--display);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.15;
+    text-wrap: balance;
+  }
+
+  /* Every figure is typed, never handwritten — this is what keeps a money
+     column readable in a journal-styled app. */
+  .nums {
+    font-family: var(--type);
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--pen);
+    outline-offset: 2px;
+  }
+
+  /*
+   * The one interactive move, shared by every control and card (ticket 190):
+   * a 1.5px lift on a soft shadow, on the single `--ease` curve. Colour moves
+   * ride the same transition, so a hover never double-animates.
+   */
+  .lift {
+    transition:
+      transform 0.22s var(--ease),
+      box-shadow 0.22s var(--ease),
+      background-color 0.22s var(--ease),
+      border-color 0.22s var(--ease),
+      color 0.22s var(--ease);
+  }
+  .lift:hover {
+    transform: translateY(-1.5px);
+    box-shadow: var(--shadow-raised);
+    /* The hover transform makes a stacking context; without a raised z-index a
+       later sibling card would paint over this card's open ... menu. */
+    position: relative;
+    z-index: 10;
+  }
+
+  /*
+   * The review wall drifts right-to-left for ever: the list is
+   * rendered twice and the track slides exactly half its width, so the seam
+   * never shows. Hover pauses it, and the mask fades both edges so cards
+   * arrive and leave rather than being cut off.
+   */
+  .marquee {
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 5%,
+      black 95%,
+      transparent
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 5%,
+      black 95%,
+      transparent
+    );
+  }
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: marquee-drift 70s linear infinite;
+  }
+  .marquee:hover .marquee-track,
+  .marquee:focus-within .marquee-track {
+    animation-play-state: paused;
+  }
+  @keyframes marquee-drift {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  /*
+   * The hero's hover confetti (`ConfettiWord`). The overlay never takes the
+   * pointer, or the burst would re-fire on every piece that crossed the cursor.
+   */
+  .confetti {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: visible;
+  }
+  .confetti i {
+    position: absolute;
+    top: 12%;
+    display: block;
+    opacity: 0;
+    animation: confetti-throw 0.9s cubic-bezier(0.15, 0.75, 0.35, 1) forwards;
+  }
+  /* Up and out, then let it fall — one keyframe, no physics. */
+  @keyframes confetti-throw {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0) rotate(0deg) scale(0.4);
+    }
+    12% {
+      opacity: 1;
+    }
+    55% {
+      transform: translate(calc(var(--dx) * 0.8), var(--dy))
+        rotate(calc(var(--rot) * 0.6)) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(var(--dx), calc(var(--dy) * -0.35))
+        rotate(var(--rot)) scale(0.9);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+    /* Remove the movement, keep the feedback (ticket 190). */
+    .lift:hover {
+      transform: none;
+    }
+    /* The drift becomes a hand-scrolled row rather than a frozen one. */
+    .marquee-track {
+      animation: none;
+    }
+    .marquee {
+      overflow-x: auto;
+    }
+  }
+}
+
+@layer components {
+
+  /*
+   * A strip that scrolls sideways without ever drawing a scrollbar — the trip
+   * tabs. Two reasons the bars have to go, not just be tolerated:
+   *
+   * 1. `overflow-x: auto` makes the *other* axis compute to `auto` too, so the
+   *    1px the raised inactive tabs sit below the strip was enough to summon a
+   *    vertical scrollbar, complete with arrows, at the end of the tab row.
+   * 2. A horizontal bar would draw straight across the seam where the tabs meet
+   *    the sheet, which is the one join the whole notebook effect rests on.
+   */
+  .scroll-x-bare {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scroll-x-bare::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Anything typed rather than written: labels, counts, dates, section heads. */
+  .typed {
+    font-family: var(--type);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  /*
+   * A highlighter stroke through a word, per paper.html's `h1 u`. A gradient
+   * band rather than a background fill or an `::after` bar, so it sits *behind
+   * the glyphs*, follows the text if the line wraps, and needs no positioning
+   * — the two things a positioned bar gets wrong.
+   *
+   * `--hl-stroke` is the pen colour, so a second highlighter is a one-line
+   * modifier rather than a duplicated gradient.
+   */
+  .hl {
+    --hl-stroke: var(--highlight);
+    text-decoration: none;
+    background-image: linear-gradient(
+      180deg,
+      transparent 18%,
+      var(--hl-stroke) 18% 97%,
+      transparent 97%
+    );
+  }
+
+  .hl-green {
+    --hl-stroke: var(--green-edge);
+  }
+
+  /*
+   * A looser highlighter — a low, thin swipe rather than a solid band behind
+   * the whole word. Sits near the baseline and leaves the glyphs mostly clear,
+   * so the hero reads as a quick pen stroke, not a filled block.
+   */
+  .hl-loose {
+    background-repeat: no-repeat;
+    background-position: 0 92%;
+    background-size: 100% 34%;
+    background-image: linear-gradient(
+      180deg,
+      transparent 0%,
+      var(--hl-stroke) 22%,
+      var(--hl-stroke) 78%,
+      transparent 100%
+    );
+  }
+
+  /*
+   * One pastel per person, keyed off their name (`whoTone` in
+   * components/ui.tsx). Eight is enough to tell a nine-person trip apart at a
+   * glance without the row turning into a colour chart.
+   */
+  .who-1 { background: var(--who-1); color: var(--who-1-ink); }
+  .who-2 { background: var(--who-2); color: var(--who-2-ink); }
+  .who-3 { background: var(--who-3); color: var(--who-3-ink); }
+  .who-4 { background: var(--who-4); color: var(--who-4-ink); }
+  .who-5 { background: var(--who-5); color: var(--who-5-ink); }
+  .who-6 { background: var(--who-6); color: var(--who-6-ink); }
+  .who-7 { background: var(--who-7); color: var(--who-7-ink); }
+  .who-8 { background: var(--who-8); color: var(--who-8-ink); }
+
+  /*
+   * The lit segment of the theme switch (ticket 240). Keyed off `<html>`'s own
+   * attribute rather than a React class, so the correct half is lit in the
+   * first painted frame — the switch is the one control that must be right
+   * before hydration, because it is the thing that says which theme you are in.
+   *
+   * Ink fill on a sheet-3 track, matching PillNav's current-page pill: the
+   * switch sits in the account menu now, and a white-on-white segment did not
+   * read as chosen there.
+   */
+  .theme-choice {
+    color: var(--ink-soft);
+  }
+
+  .theme-choice:hover {
+    color: var(--ink);
+  }
+
+  :root[data-theme="light"] .theme-choice[data-choice="light"],
+  :root[data-theme="dark"] .theme-choice[data-choice="dark"],
+  :root[data-theme="light"] .theme-choice[data-choice="light"]:hover,
+  :root[data-theme="dark"] .theme-choice[data-choice="dark"]:hover {
+    color: var(--sheet);
+  }
+
+  /* The fill slides rather than reappears; dark is the second segment. */
+  :root[data-theme="dark"] .theme-indicator {
+    transform: translateX(100%);
+  }
+}
+
+@layer components {
+  /*
+   * The Route map (ticket 08; repainted for the white-and-pastel language,
+   * ticket 207). Was ink-on-cream: a sepia filter plus a ruled paper wash,
+   * which belonged to the retired notebook look and fought every white panel
+   * around it.
+   *
+   * Now the tiles are only desaturated and lightened until they read as a
+   * quiet grey-green ground the pastel pins can sit on. No ruled lines, no
+   * sepia, no second tile provider — still plain OpenStreetMap, still
+   * Leaflet's own attribution control.
+   */
+  .route-map-frame {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    background: var(--sheet);
+  }
+
+  /* 450px, up from the original 300 (ticket 81) — at 300 a multi-country route
+     fitted to bounds left every pin in the middle third of the frame. The
+     narrow-viewport step keeps the map from eating a phone screen whole: the
+     stop cards under it have to stay visible without a scroll. */
+  .route-map-canvas {
+    height: 450px;
+    width: 100%;
+    background: var(--sheet-2);
+  }
+
+  @media (max-width: 640px) {
+    .route-map-canvas {
+      height: 340px;
+    }
+  }
+
+  /* Desaturated so a Route map reads as part of the panel it sits in. */
+  .route-map-frame .leaflet-tile-pane {
+    filter: saturate(0.42) brightness(1.06) contrast(0.9);
+  }
+
+  /* z-index 400+ puts these above Leaflet's own panes but below its controls
+     (attribution and zoom live at 800+), which must stay clickable.
+
+     One flat wash of the page's own canvas colour, multiplied over the tiles.
+     It ties the map to the panel it sits in without printing anything on it. */
+  .route-map-wash {
+    position: absolute;
+    inset: 0;
+    z-index: 400;
+    pointer-events: none;
+    background: var(--sheet-2);
+    mix-blend-mode: multiply;
+    opacity: 0.5;
+  }
+
+  /* A hairline inside the frame, and the faintest lift of white at the edges
+     so pins near the border still separate from the tiles. */
+  .route-map-vignette {
+    position: absolute;
+    inset: 0;
+    z-index: 401;
+    pointer-events: none;
+    box-shadow:
+      inset 0 0 0 1px var(--rule),
+      inset 0 0 26px 6px var(--vignette);
+  }
+}
+
+:root[data-theme="dark"] .route-map-frame .leaflet-tile-pane {
+  /* OpenStreetMap ships one artwork and it is a light one, so dark has to be
+     made rather than chosen: invert, then turn the hues back the right way. */
+  filter: invert(0.85) hue-rotate(180deg) saturate(1) brightness(2.4)
+    contrast(0.7);
+}
+
+:root[data-theme="dark"] .route-map-frame .route-map-wash {
+  /* Multiply over an already-dark tile crushes it to black, and the wash is
+     what took the place names down with it. */
+  mix-blend-mode: normal;
+  opacity: 0.1;
+}
+
+/*
+ * Leaflet's own stylesheet is imported by components/route-map.tsx and is
+ * UNLAYERED, and an unlayered rule beats any layered one no matter the
+ * specificity — so these overrides must sit outside @layer too, or Leaflet
+ * wins and the pins lose their numbers. Everything here is scoped to
+ * `.route-map-frame`, so it can't leak onto any other map.
+ */
+/* Set here rather than as a Leaflet `color` option — Leaflet writes that out
+   as an SVG presentation attribute, where var() does not resolve. */
+.route-line {
+  stroke: var(--pen);
+  fill: none;
+  opacity: 0.85;
+}
+
+/* A numbered pin, drawn hollow (ticket 69): a ring of pen with the number in
+   ink inside, not a solid disc with the number knocked out. Two reasons — a
+   filled disc at 26px lost the number against the map's dark features, and the
+   ring reads as a ring drawn on the paper rather than as a UI marker.
+
+   The fill is paper rather than `transparent`, because the tiles run straight
+   under the digit otherwise. It must also outrank Leaflet's
+   `.leaflet-marker-icon { display: block }`. */
+.route-map-frame .route-pin {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 2px solid var(--pen);
+  background: var(--sheet);
+  color: var(--pen);
+  font-family: var(--type);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  box-shadow: var(--shadow-sm);
+  /* The day badge hangs off the corner. */
+  overflow: visible;
+}
+
+/* The landing page's route timeline uses `.route-pin` too, and its filled
+   centre dot is a bare `::after` — harmless while the map pin was solid pen,
+   but it paints straight over the number now the pin is hollow. Cancelled
+   here rather than renamed: both are pins on a route, and only the map's
+   needs to show anything inside it. */
+.route-map-frame .route-pin::after {
+  content: none;
+}
+
+/* How many days the itinerary spends at this stop — the highlighter yellow,
+   the same pen the app uses everywhere for "open"/marked-up.
+
+   One pill, two places (ticket 82): the map pin's corner badge and the Route
+   spine's left rail say the same thing about the same stop, so they are the
+   same drawing. The base class carries the look; `.route-pin-days` only adds
+   the pin-corner positioning. */
+.day-pill {
+  display: inline-block;
+  padding: 0 5px;
+  border: 1px solid var(--highlight-edge);
+  border-radius: 999px;
+  background: var(--highlight);
+  color: var(--highlight-ink);
+  font-family: var(--type);
+  /* Was 9px, which is below the size the rest of the app will go to and the
+     smallest thing on any screen (ticket 204). 10px matches `.typed`'s floor. */
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 15px;
+  text-align: center;
+  white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Sits directly above the pin, centred. It hung off the top-right corner while
+   it read "2d"; spelled out as "2 days" it is wider than the pin itself, so
+   the corner anchor pushed it back across the number underneath (ticket 82).
+   Above and centred, it clears the ring at any width. */
+.route-map-frame .route-pin-days {
+  position: absolute;
+  bottom: calc(100% + 3px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.route-map-frame .leaflet-container {
+  font-family: var(--type);
+  font-size: 10px;
+  background: var(--sheet-2);
+}
+
+/* `.leaflet-container` is in the selector to outrank Leaflet's own rule for
+   this control, which is equally specific and loads after globals.css. */
+.route-map-frame .leaflet-container .leaflet-control-attribution {
+  background: var(--sheet);
+  color: var(--ink-3);
+}
+
+.route-map-frame .leaflet-control-attribution a {
+  color: var(--pen);
+}
+
+/* Leaflet's zoom control is white-on-white against the cream page. */
+.route-map-frame .leaflet-bar a {
+  background: var(--sheet);
+  color: var(--ink-2);
+  border-bottom-color: var(--rule);
+}
+
+.route-map-frame .leaflet-bar a:hover {
+  background: var(--sheet-2);
+}
+
+@layer components {
+  /*
+   * A `SettingRow` fold (ticket 236). `:open` and Tailwind's `group-open`
+   * don't reach far enough back, so the two open-state changes live here:
+   * the chevron turns down, and the row's value gives way to the editor.
+   */
+  .setting-row-chevron {
+    transition: rotate 0.22s cubic-bezier(0.2, 0.85, 0.3, 1);
+  }
+
+  details[open] > summary .setting-row-chevron {
+    rotate: 90deg;
+  }
+
+  details[open] > summary .setting-row-value {
+    display: none;
+  }
+
+  /*
+   * The switch in a `ToggleRow` (ticket 235). Drawn rather than composed from
+   * utilities because the knob is a pseudo-element — a checkbox can't hold a
+   * child.
+   */
+  .switch-track {
+    position: relative;
+    flex: none;
+    width: 2.375rem;
+    height: 1.375rem;
+    border: 1px solid var(--rule-2);
+    border-radius: var(--radius-pill);
+    background: var(--sheet-3);
+    transition: background 0.22s cubic-bezier(0.2, 0.85, 0.3, 1);
+  }
+
+  .switch-track::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 1rem;
+    height: 1rem;
+    border-radius: var(--radius-pill);
+    background: var(--sheet);
+    box-shadow: var(--shadow-sm);
+    transition: translate 0.22s cubic-bezier(0.2, 0.85, 0.3, 1);
+  }
+
+  .peer:checked ~ .switch-track {
+    background: var(--pen);
+    border-color: var(--pen);
+  }
+
+  .peer:checked ~ .switch-track::after {
+    translate: 1rem 0;
+  }
+
+  .peer:focus-visible ~ .switch-track {
+    outline: 2px solid var(--pen);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /*
+   * The travel map on a profile (ticket 95). Leaflet with no tile layer, so
+   * there is nothing under these shapes but the page's own paper — the frame
+   * matches the Route map's so the two read as the same kind of object, and
+   * the fills are the highlighter tokens rather than map colours.
+   */
+  .travel-map-frame {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--rule-2);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    background: var(--sheet);
+  }
+
+  .travel-map-canvas {
+    height: 380px;
+    width: 100%;
+  }
+
+  @media (max-width: 640px) {
+    .travel-map-canvas {
+      height: 280px;
+    }
+  }
+
+  /* Unpainted: an outline on paper. The stroke is the rule colour, so an empty
+     map reads as a drawing of the world rather than as a failed load. */
+  .country {
+    fill: var(--sheet-3);
+    fill-opacity: 1;
+    stroke: var(--rule-2);
+  }
+
+  .country-editable {
+    cursor: pointer;
+  }
+
+  .country-green {
+    fill: var(--green-2);
+    stroke: var(--green-edge);
+  }
+
+  .country-yellow {
+    fill: var(--highlight);
+    stroke: var(--highlight-edge);
+  }
+
+  .country-editable:hover {
+    stroke: var(--pen);
+    stroke-width: 1.4;
+  }
+
+  /* The key beside the map and the swatch in the country list — the same
+     square, so "that colour means been there" only has to be learnt once. */
+  .travel-key {
+    display: inline-block;
+    width: 0.75rem;
+    height: 0.75rem;
+    border: 1px solid var(--rule-2);
+    border-radius: 2px;
+    background: var(--sheet-2);
+  }
+
+  .travel-key-green {
+    background: var(--green-2);
+    border-color: var(--green-edge);
+  }
+
+  .travel-key-yellow {
+    background: var(--highlight);
+    border-color: var(--highlight-edge);
+  }
+}
+
+/*
+ * The two things Leaflet's own stylesheet has to be taken back from on the
+ * travel map (ticket 95). Unlayered on purpose: leaflet.css is unlayered too,
+ * and an unlayered rule beats anything in `@layer components` however specific
+ * — which is why the same two rules did nothing from inside the layer.
+ */
+.travel-map-frame .leaflet-container {
+  /* Leaflet paints its container #ddd for tiles that haven't loaded. There are
+     no tiles here, so that grey *is* the sea — and the sea is paper. */
+  background: var(--sheet);
+}
+
+.travel-map-frame .leaflet-interactive:focus {
+  /* The browser's focus ring on an SVG path draws an orange rectangle round
+     the country's bounding box — over Greenland that is a box the size of the
+     Arctic. Nothing is lost by dropping it: the shapes aren't in the tab order
+     (the country list underneath is the keyboard path), so this ring only ever
+     appeared under a mouse click. */
+  outline: none;
+}
+
+/*
+ * BlockNote's palette and type, taken back to the house tokens (ticket 238).
+ * Unlayered for the same reason as Leaflet above: the library's stylesheet is
+ * unlayered, so a rule inside `@layer components` would lose to it.
+ */
+.bn-root.bn-root {
+  /* Doubled up on purpose: BlockNote defines these same variables under
+     `[data-color-scheme]`, which outranks a single class. The theme is ours,
+     not the library's, so the selector has to outrank it back. */
+  --bn-colors-editor-text: var(--ink);
+  /* The doc has no ground of its own — the sheet it sits on is the ground. */
+  --bn-colors-editor-background: transparent;
+  --bn-colors-menu-text: var(--ink);
+  --bn-colors-menu-background: var(--sheet);
+  --bn-colors-tooltip-text: var(--ink);
+  --bn-colors-tooltip-background: var(--sheet-2);
+  --bn-colors-hovered-text: var(--ink);
+  --bn-colors-hovered-background: var(--sheet-2);
+  --bn-colors-selected-text: var(--pen-deep);
+  --bn-colors-selected-background: var(--pen-2);
+  --bn-colors-disabled-text: var(--ink-3);
+  --bn-colors-disabled-background: var(--sheet-2);
+  --bn-colors-border: var(--rule);
+  --bn-colors-side-menu: var(--ink-3);
+  --bn-border-radius-small: 6px;
+  --bn-border-radius-medium: 10px;
+  --bn-border-radius-large: 14px;
+}
+
+.bn-root .bn-default-styles {
+  /* The library ships Inter; the app writes in Instrument Sans. */
+  font-family: var(--sans);
+  font-size: 15px;
+}
+
+.bn-root .bn-editor {
+  /* The doc already sits inside a padded sheet — 54px of its own doubles it. */
+  padding-inline: 0;
+  /* Opens as a page with room on it, not a one-line box. */
+  min-height: 26rem;
+}
+
+.bn-root .bn-ak-menu-item[aria-selected="true"] {
+  /* Ariakit paints its own blue on the highlighted row. Blue means "yours to
+     do" here and there is only one of it. */
+  background: var(--pen);
+  color: var(--sheet);
+}
+
+/*
+ * The selection toolbar, shrunk. The library ships 40px buttons in a box that
+ * scrolls, so a dozen of them put a scrollbar on each edge of the bubble.
+ * Nothing here needs to scroll once the buttons are the size of the text.
+ */
+.bn-root .bn-ak-toolbar {
+  overflow: visible;
+  gap: 1px;
+  padding: 3px;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lift);
+}
+
+.bn-root .bn-ak-toolbar .bn-ak-button {
+  height: 1.75rem;
+  min-width: 1.75rem;
+  border-radius: 8px;
+  padding-inline: 0.4rem;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+  box-shadow: none;
+}
+
+.bn-root .bn-ak-toolbar .bn-ak-button svg {
+  width: 15px;
+  height: 15px;
+}
+
+/*
+ * A block of ours embedded in the document — the ideas board (ticket 238).
+ *
+ * Two things the editor does to its own prose have to be undone inside it.
+ * The first is the reset that flattens margin and padding on every `p` and
+ * `li`: unlayered, so it beats Tailwind whatever the specificity, and it was
+ * stripping the cards back to their text. `revert-layer` hands the value back
+ * to the layer underneath, which is where the utilities live.
+ */
+.bn-root .bn-default-styles [data-app-block] :is(p, li, h1, h2, h3, h4, h5, h6) {
+  font-size: revert-layer;
+  margin: revert-layer;
+  padding: revert-layer;
+  min-width: revert-layer !important;
+}
+
+/* The second is the blue wash ProseMirror lays over a selected node. On a
+   paragraph it reads as "selected"; over a board of pastel cards it reads as
+   broken. */
+.bn-block-content.ProseMirror-selectednode > [data-app-block]:after,
+.ProseMirror-selectednode > .bn-block-content > [data-app-block]:after {
+  content: none;
+}

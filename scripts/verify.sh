@@ -86,12 +86,12 @@ fi
 # `git status --porcelain`, not `git diff`: a missing migration shows up as a
 # brand new *untracked* .sql file, which `git diff` does not report at all.
 step "Schema changes ship with a migration"
-if pnpm --filter waypoint-web db:generate >/tmp/verify-drizzle.log 2>&1; then
-  drift=$(git status --porcelain -- ventures/waypoint/apps/web/drizzle)
+if pnpm --filter floc-web db:generate >/tmp/verify-drizzle.log 2>&1; then
+  drift=$(git status --porcelain -- floc/apps/web/drizzle)
   if [ -n "$drift" ]; then
     bad "a schema change has no migration"
     echo "$drift"
-    echo "     fix: pnpm --filter waypoint-web db:generate, then commit ventures/waypoint/apps/web/drizzle/"
+    echo "     fix: pnpm --filter floc-web db:generate, then commit floc/apps/web/drizzle/"
   else
     ok "migrations are in step with the schema"
   fi
@@ -108,7 +108,7 @@ fi
 # deleted them); the check stays so the next one is born correct.
 step "Wireframes stay self-contained"
 shopt -s nullglob
-files=(ventures/*/wireframe/*.html)
+files=(floc/wireframe/*.html)
 if [ ${#files[@]} -eq 0 ]; then
   ok "no wireframes — nothing to check"
 else

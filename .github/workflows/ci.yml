@@ -73,7 +73,7 @@ jobs:
       - name: Fitness
         run: pnpm turbo run fitness --filter='${{ steps.filter.outputs.value }}'
 
-  # A schema change with no migration file is how waypoint's production
+  # A schema change with no migration file is how floc's production
   # database fell behind its code: `trip.tags` shipped, nothing ever altered
   # the table, and every logged-in hit on /trips threw "no such column".
   # `drizzle-kit generate` is deterministic against the committed snapshot, so
@@ -101,7 +101,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Regenerate migrations
-        run: pnpm --filter waypoint-web db:generate
+        run: pnpm --filter floc-web db:generate
 
       # `git status --porcelain`, not `git diff`: a missing migration shows up
       # as a brand new *untracked* .sql file, which `git diff` does not report
@@ -109,9 +109,9 @@ jobs:
       # clean while a 0001 file sat on disk.
       - name: Fail if a migration is missing
         run: |
-          drift=$(git status --porcelain -- ventures/waypoint/apps/web/drizzle)
+          drift=$(git status --porcelain -- floc/apps/web/drizzle)
           if [ -n "$drift" ]; then
-            echo "::error::src/db/schema.ts changed without a migration. Run: pnpm --filter waypoint-web db:generate — then commit ventures/waypoint/apps/web/drizzle/."
+            echo "::error::src/db/schema.ts changed without a migration. Run: pnpm --filter floc-web db:generate — then commit floc/apps/web/drizzle/."
             echo "$drift"
             exit 1
           fi
@@ -131,7 +131,7 @@ jobs:
         run: |
           set -uo pipefail
           shopt -s nullglob
-          files=(ventures/*/wireframe/*.html)
+          files=(floc/wireframe/*.html)
           if [ ${#files[@]} -eq 0 ]; then
             echo "No wireframes found — nothing to check."
             exit 0

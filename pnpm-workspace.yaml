@@ -1,6 +1,5 @@
 # Workspace globs for the Nexus hub. Anything not matched here is NOT part of the
-# pnpm/Turborepo workspace. The `_template` venture is intentionally excluded so
-# its scaffold packages aren't installed until copied into a real venture.
+# pnpm/Turborepo workspace.
 # The settings below are duplicated from the root package.json's `pnpm` field,
 # and both copies have to stay in step until `packageManager` moves off pnpm 9.
 # pnpm 9 — which is what CI installs, from `packageManager` — reads them from
@@ -9,13 +8,10 @@
 # override can look applied locally and silently not be in CI. Keeping both is
 # the only arrangement where every reader sees the same floors.
 packages:
-  - "ventures/*/apps/*"
-  - "ventures/*/services/*"
-  - "ventures/*/data-platform/*"
+  - "floc/apps/*"
   - "shared/packages/*"
   - "internal-tools/*"
   - "enablement/cli"
-  - "!ventures/_template/**"
 
 neverBuiltDependencies:
   - esbuild

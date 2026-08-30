@@ -4,14 +4,12 @@
 > foundations. Spin up a new venture with infra, CI/CD, design system, and
 > security already in place — instead of rebuilding the plumbing every time.
 
-**Status:** early scaffold. The hub structure exists; the first venture
-(**[finance-planner](ventures/finance-planner/)** — an AI-assisted financial
-adviser) is a pre-MVP design canvas. Most areas are documented placeholders,
-not running systems.
+**Status:** pre-MVP. The hub structure exists; the one product
+(**[floc](floc/apps/web/README.md)** — a group-travel planner) is the only
+venture. Most other areas are documented placeholders, not running systems.
 
 > **Nexus** is the name of this **incubator hub**, not any single product.
-> `finance-planner` is a placeholder folder name for the first venture — rename
-> it to the product's real brand when chosen.
+> **Floc** is the product.
 
 ---
 
@@ -19,9 +17,8 @@ not running systems.
 
 One repo, two kinds of thing:
 
-- **`ventures/`** — each company/product/startup, all shaped the same way
-  (`apps/`, `services/`, `data-platform/`). New ventures are scaffolded from
-  `ventures/_template/`.
+- **The product** — `floc/`, holding its own `apps/`. A second venture would
+  sit beside it as its own top-level folder.
 - **Shared foundations** — everything a venture *inherits* rather than
   duplicates: reusable packages, infra modules, security/compliance tooling,
   internal tools, and enablement (templates, CLI, standards, onboarding).
@@ -33,13 +30,9 @@ undifferentiated heavy lifting
 
 ```
 /
-├── ventures/                    # one folder per company/product
-│   ├── _template/               # scaffold copied for every new venture
-│   │   ├── apps/                #   user-facing frontends
-│   │   ├── services/            #   backend services / APIs / domain logic
-│   │   └── data-platform/       #   pipelines, warehouse, analytics
-│   └── finance-planner/         # first venture — AI financial adviser (placeholder name)
-│       ├── apps/  services/  data-platform/  docs/
+├── floc/                        # the product — group-travel planner
+│   ├── apps/web/                #   the Next.js app
+│   └── docs/                    #   product-scoped notes
 ├── shared/                      # reused across every venture
 │   ├── packages/                #   design-system, ui-kit, shared-types, shared-utils, api-client
 │   ├── infra-modules/           #   reusable terraform/k8s modules
@@ -58,8 +51,8 @@ undifferentiated heavy lifting
   browser straight off disk. The docs are a small local-only site now, not
   Markdown files: plain HTML, a sidebar to browse with, no server and no build.
 - **Wireframes** → [`docs/mockups/`](docs/mockups/README.md)
-- **The venture** → [`ventures/waypoint/apps/web/README.md`](ventures/waypoint/apps/web/README.md)
-- **Agent instructions** → [`CLAUDE.md`](CLAUDE.md) (hub) · each venture may add its own
+- **The venture** → [`floc/apps/web/README.md`](floc/apps/web/README.md)
+- **Agent instructions** → [`CLAUDE.md`](CLAUDE.md) — one file, hub and product together
 
 ## Conventions
 
