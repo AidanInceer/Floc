@@ -5,26 +5,50 @@
  * page and the product teach one colour language.
  */
 import type { ReactNode } from "react";
-import Link from "next/link";
-
 import { getSession } from "@/server/access";
 import { proPrices, subscriptionOf } from "@/server/billing";
+import type { ProPrice } from "@/server/billing";
 import { allFeaturesFree } from "@/lib/env";
-import { isLive, renewalLabel } from "@/lib/subscription-copy";
-import { ProUpgrade } from "@/components/billing-buttons";
-import { ButtonLink, cx } from "@/components/ui";
+import { formatMoney } from "@/lib/money";
+import { isLive } from "@/lib/subscription-copy";
+import { ButtonLink, PASTEL_SKINS, cx } from "@/components/ui";
 import { RouteMap } from "@/components/route-map";
+import { ProBlock } from "./landing-pro";
 import { ConfettiWord } from "@/components/confetti-word";
-import {
-  Glyph,
-  Stars,
-  reviews,
-  features,
-  sampleStops,
-  proLead,
-  proPerks,
-} from "./landing-content";
-import type { Feature, Perk } from "./landing-content";
+import { FlockChevron } from "@/components/flock-chevron";
+import { Glyph, features, sampleStops } from "./landing-content";
+import type { Feature } from "./landing-content";
+
+/**
+ * Where every call to action on the page lands. Signed out the whole product
+ * sits behind the account, so each one detours through the door it needs and
+ * comes back — one place to change that, not four.
+ */
+function destinations(signedIn: boolean) {
+  return signedIn
+    ? {
+        start: "/trips",
+        inspire: "/explore",
+        billing: "/settings?section=billing",
+      }
+    : {
+        start: "/signup",
+        inspire: "/login?redirect=%2Fexplore",
+        billing: "/login?redirect=%2Fsettings%3Fsection%3Dbilling",
+      };
+}
+
+/**
+ * The hero's second button (ticket 278). The monthly price rides on the label
+ * so the objection is answered above the fold; Stripe owning the figure means
+ * an unreachable price sells Pro without quoting one rather than breaking.
+ */
+function proCtaLabel(prices: ProPrice[]): string {
+  const monthly = prices.find((p) => p.interval === "monthly");
+  return monthly
+    ? `Or go Pro — ${formatMoney(monthly.amountMinor, monthly.currency)}/mo`
+    : "Or go Pro";
+}
 
 function SectionHead({
   title,
@@ -69,11 +93,11 @@ export default async function LandingPage() {
   ]);
   const alreadyPro = proRow !== null && isLive(proRow);
 
-  const start = session?.user ? "/trips" : "/signup";
-  const inspire = session?.user ? "/explore" : "/login?redirect=%2Fexplore";
+  const { start, inspire, billing } = destinations(Boolean(session?.user));
+  const proCta = sellingPro && !alreadyPro ? proCtaLabel(prices) : null;
 
   return (
-    <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6 sm:pt-10">
+    <div className="mx-auto w-full max-w-[84rem] px-4 pt-6 sm:px-6 sm:pt-10">
       {/* ── hero ─────────────────────────────────────────────────────── */}
       <section className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.82fr)] lg:gap-16">
         <div>
@@ -84,18 +108,20 @@ export default async function LandingPage() {
             </ConfettiWord>
             .
           </h1>
-          <p className="mt-6 max-w-[36ch] text-md text-ink-soft">
-            Less faff, fewer group chats. Everything for the trip in one place,
-            kept in sync.
+          <p className="mt-5 max-w-[46ch] text-md text-ink-soft">
+            One page your whole group can edit: where you&rsquo;re going, the
+            days everyone can make, the route, and who owes who.
           </p>
-
           {/* One call to action above the fold (ticket 192); the secondary
-              "get inspired" route waits until the invite band below. */}
-          <div className="mt-8">
-            <ButtonLink href={start} variant="primary">
-              Get planning!
-            </ButtonLink>
-          </div>
+              "get inspired" route waits until the invite band below. Signed
+              out the whole product is behind the account, so the button says
+              so — the price is the objection, so it goes on the button. */}
+          <HeroCta
+            start={start}
+            signedIn={Boolean(session?.user)}
+            proCta={proCta}
+            billing={billing}
+          />
         </div>
 
         {/* Illustrative sample, not a live query — one settled trip, so the
@@ -104,7 +130,8 @@ export default async function LandingPage() {
           <p className="typed text-current">One trip, one page</p>
           <div className="mt-3 flex items-baseline justify-between gap-4">
             <h2 className="text-xl">Sicily</h2>
-            <span className="inline-flex items-center rounded-full bg-mint px-3 py-1 font-display text-xs font-semibold text-mint-ink">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-pen px-3 py-1 font-display text-xs font-semibold text-sheet">
+              <Glyph name="check" className="size-[11px]" />
               Agreed
             </span>
           </div>
@@ -120,10 +147,8 @@ export default async function LandingPage() {
             <StubRow k="Money">
               <span className="nums text-sm">£177 each</span>
             </StubRow>
-            <StubRow k="Days">
-              <span className="inline-flex items-center rounded-full bg-sheet/70 px-3 py-0.5 text-xs font-semibold">
-                2 still blank
-              </span>
+            <StubRow k="Who">
+              <span className="nums text-sm">6 in, all paid up</span>
             </StubRow>
           </div>
 
@@ -133,51 +158,16 @@ export default async function LandingPage() {
         </aside>
       </section>
 
-      {/* ── what people say (artificial) ─────────────────────────────── */}
-      <section className="mt-24">
-        <SectionHead title="What people say" />
-
-        {/* Pulled out to the page gutter on purpose — the cards should run off
-            the edge rather than stop dead at the column. */}
-        <div className="marquee -mx-4 mt-10 sm:-mx-6">
-          <div className="marquee-track py-2">
-            {[0, 1].map((pass) =>
-              reviews.map((r) => (
-                <figure
-                  key={`${pass}-${r.name}`}
-                  aria-hidden={pass === 1}
-                  className={cx(
-                    "lift mr-5 w-[19rem] shrink-0 rounded-lg p-6",
-                    r.skin,
-                  )}
-                >
-                  <Stars rating={r.rating} />
-                  <blockquote className="mt-4 text-sm opacity-90">
-                    “{r.body}”
-                  </blockquote>
-                  <figcaption className="mt-5">
-                    <p className="font-display text-md font-semibold tracking-tight">
-                      {r.name}
-                    </p>
-                    <p className="mt-0.5 font-mono text-xs opacity-70">
-                      {r.role}
-                    </p>
-                  </figcaption>
-                </figure>
-              )),
-            )}
-          </div>
-        </div>
-      </section>
-
       {/* ── feature summary ──────────────────────────────────────────── */}
       <section className="mt-24">
         <SectionHead title="Everything in one place" />
         {/* Same contract as the Pro block below: what you see is what you can
           use today, and what is only planned folds away behind the chevron. */}
+        {/* The three that ARE the product head the grid in their domain
+          pastels; the table stakes follow in plain sheet. */}
         <div className="mt-10 flex flex-wrap justify-center gap-5">
           {features
-            .filter((f) => !f.soon)
+            .filter((f) => f.lead)
             .map((f) => (
               <div
                 key={f.title}
@@ -187,26 +177,33 @@ export default async function LandingPage() {
               </div>
             ))}
         </div>
+        {/* Below the leads no pastel carries meaning — notes and tickets own
+          no domain — so these take the decorative rotation by position. */}
+        <div className="mt-5 flex flex-wrap justify-center gap-5">
+          {features
+            .filter((f) => !f.soon && !f.lead)
+            .map((f, i) => (
+              <div
+                key={f.title}
+                className="w-full md:w-[calc((100%-1.25rem)/2)] lg:w-[calc((100%-2.5rem)/3)]"
+              >
+                <FeatureCard
+                  feature={f}
+                  tone={PASTEL_SKINS[i % PASTEL_SKINS.length]}
+                />
+              </div>
+            ))}
+        </div>
 
         {/* <details>, not state — the fold works before hydration. */}
         <details className="group mt-6">
           <summary className="mx-auto flex w-fit cursor-pointer list-none items-center gap-2 rounded-full border border-rule px-4 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft transition-colors hover:bg-sheet-2 [&::-webkit-details-marker]:hidden">
             <span className="group-open:hidden">More, coming soon</span>
             <span className="hidden group-open:inline">Show less</span>
-            <svg
-              width={12}
-              height={12}
-              viewBox="0 0 14 14"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.6}
-              strokeLinecap="round"
-              strokeLinejoin="round"
+            <FlockChevron
+              size={11}
               className="shrink-0 transition-transform group-open:-rotate-180"
-              aria-hidden
-            >
-              <path d="M3 5.5l4 4 4-4" />
-            </svg>
+            />
           </summary>
 
           {/* Flex, not grid: a part-full last row centres under the grid above
@@ -229,10 +226,7 @@ export default async function LandingPage() {
 
       {/* ── the sample map ───────────────────────────────────────────── */}
       <section className="mt-24">
-        <SectionHead title="See the route">
-          The same map that sits at the top of a trip. Numbered pins match the
-          order; the yellow badge is how many nights you spend there.
-        </SectionHead>
+        <SectionHead title="See the route" />
 
         <div className="mt-8">
           <RouteMap stops={sampleStops} missing={[]} />
@@ -277,174 +271,30 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* ── get the app (doesn't exist yet) ──────────────────────────── */}
-      <section className="mt-24">
-        <div className="flex flex-col items-center gap-6 rounded-lg border border-rule bg-sheet px-8 py-12 text-center">
-          <span className="inline-flex size-12 items-center justify-center rounded-lg bg-sheet-2 text-ink">
-            <Glyph name="app" className="size-6" />
-          </span>
-          <div className="max-w-[46ch]">
-            <h2 className="text-[clamp(1.5rem,3vw,2.1rem)]">
-              The app is coming — the plan in your pocket.
-            </h2>
-            <p className="mt-4 text-ink-soft">
-              Everything the group has agreed, offline and on your phone. iOS
-              and Android both. Plan on the web today; take it with you soon.
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            {["iOS", "Android"].map((os) => (
-              <span
-                key={os}
-                className="inline-flex items-center rounded-full bg-sheet-2 px-4 py-2 font-mono text-xs uppercase tracking-[0.14em] text-ink-soft"
-              >
-                {os} — coming soon
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Pro tier (blueprint) ─────────────────────────────────────── */}
-      {/* Nothing to sell while every feature is free — the whole block goes,
-          rather than a version of it that quotes no price. */}
-      {/* The one paid thing on the page, so it is the one block that refuses
-          the pale palette: parchment and gold in light, black and gold in
-          dark. Pro is real as of ticket 247, so the button now sells. */}
-      {sellingPro ? (
-        <section className="mt-24">
-          <div className="overflow-hidden rounded-lg bg-pro p-8 text-pro-ink sm:p-12">
-            {/* The block runs down one centre line: name, then the reason the
-              tier exists, then the perks, then the button. */}
-            <div className="flex justify-center">
-              <span className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-pro-gold px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-pro-gold">
-                <Glyph name="star" />
-                Floc Pro
-              </span>
-            </div>
-
-            {/* The headline perk stands alone above the grid — it is the reason
-              the tier exists, not one of eight equals. */}
-            <div className="mt-10 flex flex-col items-center text-center">
-              <span className="inline-flex size-11 items-center justify-center rounded-md bg-pro-gold text-pro">
-                <Glyph name={proLead.icon} className="size-[22px]" />
-              </span>
-              <h2 className="mt-4 text-xl text-pro-ink">{proLead.title}</h2>
-              {proLead.soon ? (
-                <span className="mt-3 inline-flex items-center whitespace-nowrap rounded-full border border-pro-gold px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.18em] text-pro-gold">
-                  Coming soon
-                </span>
-              ) : null}
-              <p className="mt-3 max-w-[52ch] text-md text-pro-ink-soft">
-                {proLead.body}
-              </p>
-            </div>
-
-            {/* Built first, and only built. What is not shipped yet is folded
-              away behind the chevron: the block still tells the whole story
-              of the tier, but what you can use today is what you see. */}
-            <div className="mt-10 flex flex-wrap justify-center gap-4">
-              {proPerks
-                .filter((p) => !p.soon)
-                .map((p) => (
-                  <div
-                    key={p.title}
-                    className="w-full sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]"
-                  >
-                    <PerkCard perk={p} />
-                  </div>
-                ))}
-            </div>
-
-            {/* <details>, not state — the fold works before hydration, and the
-              open/closed arrow is one CSS variant off the parent. */}
-            <details className="group mt-6">
-              <summary className="mx-auto flex w-fit cursor-pointer list-none items-center gap-2 rounded-full border border-pro-edge px-4 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-pro-gold transition-colors hover:bg-pro-2 [&::-webkit-details-marker]:hidden">
-                <span className="group-open:hidden">More, coming soon</span>
-                <span className="hidden group-open:inline">Show less</span>
-                <svg
-                  width={12}
-                  height={12}
-                  viewBox="0 0 14 14"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={1.6}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="shrink-0 transition-transform group-open:-rotate-180"
-                  aria-hidden
-                >
-                  <path d="M3 5.5l4 4 4-4" />
-                </svg>
-              </summary>
-
-              {/* Flex for the same reason as the free fold above: a part-full
-                last row sits centred, not left-hung. */}
-              <div className="mt-6 flex flex-wrap justify-center gap-4">
-                {proPerks
-                  .filter((p) => p.soon)
-                  .map((p) => (
-                    <div
-                      key={p.title}
-                      className="w-full sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]"
-                    >
-                      <PerkCard perk={p} />
-                    </div>
-                  ))}
-              </div>
-            </details>
-
-            {/* At the foot rather than the corner: it reads after the perks
-              have made the case, and it is the widest thing in the block so
-              it is unmissable. Lands on the billing panel, where the plan,
-              the two prices and the portal live — signing in first if need be. */}
-            <div className="mt-10 flex flex-col items-center gap-3">
-              <div className="w-full max-w-[30rem]">
-                {/* One press per interval, straight to Stripe — the only page
-                  between wanting Pro and paying for it is Stripe's own. */}
-                {alreadyPro ? (
-                  /* Already paying — the block stops selling and reports. */
-                  <div className="flex flex-col items-center gap-2">
-                    <p className="font-display text-md font-semibold tracking-tight text-pro-ink">
-                      You&rsquo;re on Pro. All of this is yours.
-                    </p>
-                    <p className="text-sm text-pro-ink-soft">
-                      {renewalLabel(proRow)}
-                    </p>
-                    <Link
-                      href="/settings?section=billing"
-                      className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-pro-gold underline-offset-4 hover:underline"
-                    >
-                      Your plan and billing
-                    </Link>
-                  </div>
-                ) : (
-                  <ProUpgrade
-                    prices={prices}
-                    canBuy={Boolean(session?.user)}
-                    href="/login?redirect=%2Fsettings%3Fsection%3Dbilling"
-                  />
-                )}
-              </div>
-              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-pro-ink-soft">
-                Cancel any time
-              </p>
-            </div>
-          </div>
-        </section>
-      ) : null}
+      <ProBlock
+        show={sellingPro}
+        alreadyPro={alreadyPro}
+        proRow={proRow}
+        prices={prices}
+        canBuy={Boolean(session?.user)}
+        billing={billing}
+      />
 
       {/* ── invite band (closing) ────────────────────────────────────── */}
       <section className="mt-24 grid items-center gap-12 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)] lg:gap-16">
+        {/* The closing band's left card advertises the app instead of the
+            invite link (ticket 277): the buttons beside it start a trip, so a
+            card addressed to someone arriving on an invite pointed the wrong
+            way. Same box, same size — different pitch. */}
         <div className="rounded-lg bg-pen-soft px-8 py-10 text-center text-pen-deep">
-          <p className="font-mono text-[10px] uppercase tracking-[0.22em] opacity-70">
-            Floc · admitted
+          <span className="mx-auto mb-3.5 inline-flex size-10 items-center justify-center rounded-md bg-sheet/60">
+            <Glyph name="app" className="size-5" />
+          </span>
+          <p className="font-display text-xl font-semibold tracking-tight">
+            The plan in your pocket
           </p>
-          <p className="my-3.5 font-display text-xl font-semibold tracking-tight">
-            Got a link from a friend?
-          </p>
-          <p className="font-mono text-[10px] uppercase tracking-[0.22em] opacity-70">
-            No account needed to look
+          <p className="mt-3.5 font-mono text-[10px] uppercase tracking-[0.22em] opacity-70">
+            iOS and Android — coming soon
           </p>
         </div>
 
@@ -472,17 +322,71 @@ export default async function LandingPage() {
 }
 
 /**
+ * The hero pair. Signed out the whole product sits behind the account, so the
+ * primary button says the price on it and a quiet sign-in sits beside it.
+ */
+function HeroCta({
+  start,
+  signedIn,
+  proCta,
+  billing,
+}: {
+  start: string;
+  signedIn: boolean;
+  proCta: string | null;
+  billing: string;
+}) {
+  return (
+    <div className="mt-8">
+      {/* One free action only — signing in lives in the header, so a second
+        pill here just competed with it. */}
+      <ButtonLink href={start} variant="primary">
+        {signedIn ? "Get planning!" : "Sign up free — get planning"}
+      </ButtonLink>
+      {/* Its own line, not a third pill in the row: free stays the obvious
+        action and Pro is still unmissable. */}
+      {proCta ? (
+        <div className="mt-3">
+          <ButtonLink href={billing} variant="pro">
+            <Glyph name="star" className="size-[13px]" />
+            {proCta}
+          </ButtonLink>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/**
  * One tile in the free feature grid. The "soon" badge is a plain rule outline
  * — the Pro grid's gold is what marks a perk as paid, so it stays over there.
  */
-function FeatureCard({ feature }: { feature: Feature }) {
+function FeatureCard({
+  feature,
+  tone,
+}: {
+  feature: Feature;
+  tone?: string;
+}) {
   return (
     <article className="lift h-full rounded-lg border border-rule bg-sheet p-6">
       <div className="flex items-start gap-3">
-        <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-md bg-sheet-2 text-ink">
+        <span
+          className={cx(
+            "inline-flex size-9 shrink-0 items-center justify-center rounded-md",
+            feature.tone ?? tone ?? "bg-sheet-2 text-ink",
+          )}
+        >
           <Glyph name={feature.icon} className="size-[18px]" />
         </span>
-        <h3 className="self-center text-md">{feature.title}</h3>
+        <h3
+          className={cx(
+            "self-center text-md",
+            feature.lead && "font-semibold tracking-tight",
+          )}
+        >
+          {feature.title}
+        </h3>
         {/* items-start + a nudge, not items-center: a title that wraps to two
           lines would otherwise drag the badge down with it. */}
         {feature.soon ? (
@@ -492,30 +396,6 @@ function FeatureCard({ feature }: { feature: Feature }) {
         ) : null}
       </div>
       <p className="mt-4 text-sm text-ink-soft">{feature.body}</p>
-    </article>
-  );
-}
-
-/**
- * One perk in the Pro grid. The "coming soon" badge is a gold outline rather
- * than a filled chip so it reads as a caveat on the perk and never competes
- * with the buy buttons at the foot of the block.
- */
-function PerkCard({ perk }: { perk: Perk }) {
-  return (
-    <article className="h-full rounded-md border border-pro-edge bg-pro-2 p-4">
-      <div className="flex items-start gap-2.5">
-        <span className="shrink-0 text-pro-gold">
-          <Glyph name={perk.icon} className="mt-px size-[18px]" />
-        </span>
-        <h3 className="text-sm text-pro-ink">{perk.title}</h3>
-        {perk.soon ? (
-          <span className="ml-auto mt-px inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-pro-gold px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.18em] text-pro-gold">
-            Soon
-          </span>
-        ) : null}
-      </div>
-      <p className="mt-2 text-sm text-pro-ink-soft">{perk.body}</p>
     </article>
   );
 }

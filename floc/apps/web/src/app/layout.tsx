@@ -6,6 +6,7 @@ import {
 } from "next/font/google";
 
 import { AppChrome } from "@/components/app-chrome";
+import { SiteFooter } from "@/components/site-footer";
 import { THEME_BOOTSTRAP } from "@/lib/theme";
 import { getSession } from "@/server/access";
 import { subscriptionOf } from "@/server/billing";
@@ -96,6 +97,7 @@ export default async function RootLayout({
           isPro={!allFeaturesFree() && proRow !== null && isLive(proRow)}
         />
         <main>{children}</main>
+        <SiteFooter />
       </body>
     </html>
   );

@@ -13,6 +13,7 @@ import { Field, PASTEL_SKINS, Stack, Textarea, cx, menuDangerItemClass, menuItem
 import { ConfirmSubmit, Menu, Sheet, SubmitButton } from "@/components/client-ui";
 import { IdeaByline, IdeaVoteBar } from "@/components/idea-byline";
 import { linkify } from "@/components/linkify";
+import { FlockChevron } from "@/components/flock-chevron";
 import type { IdeaCardData } from "@/components/idea-data";
 import {
   deleteIdea,
@@ -102,18 +103,10 @@ export function IdeaCard({
           {commentCount === 0
             ? "Discuss"
             : `${commentCount} ${commentCount === 1 ? "comment" : "comments"}`}
-          <svg
-            viewBox="0 0 24 24"
-            width="12"
-            height="12"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            aria-hidden="true"
+          <FlockChevron
+            size={11}
             className={cx("transition-transform", open && "rotate-180")}
-          >
-            <path d="M6 9l6 6 6-6" />
-          </svg>
+          />
         </button>
         {/* Edit and Remove behind one triple-dot (ticket 125 pattern). Both open
             a native <dialog> inside the menu, which is why Menu doesn't close on

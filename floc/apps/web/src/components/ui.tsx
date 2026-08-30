@@ -61,7 +61,7 @@ export function Stack({
   );
 }
 
-type Variant = "primary" | "secondary" | "ghost" | "danger";
+type Variant = "primary" | "secondary" | "ghost" | "danger" | "pro";
 
 // Hover must read without the cursor visible (ticket 120): primary steps to
 // --pen-deep (brightness-110 was too subtle on dark ink); secondary jumps a
@@ -72,6 +72,9 @@ const variants: Record<Variant, string> = {
     "border-rule-strong bg-sheet text-ink-2 hover:border-pen hover:bg-sheet-3 hover:text-ink",
   ghost: "border-transparent bg-transparent text-pen hover:bg-pen-soft hover:text-pen-deep",
   danger: "border-red/30 bg-red-soft text-red hover:border-red/60 hover:bg-red/15",
+  // The only button outside the pastel palette — Pro's parchment and gold, so
+  // the one paid action reads as paid wherever it lands.
+  pro: "border-pro-edge bg-pro text-pro-gold hover:border-pro-gold hover:bg-pro-2",
 };
 
 // Pill controls with the shared hover lift (ticket 190). `.lift` owns the

@@ -221,14 +221,14 @@
   --mint-ink: #8fd9b6;
   --butter: #3d3114;
   --butter-ink: #f0cd85;
-  --blush: #41241d;
+  --blush: #3c2229;
   --blush-ink: #f3ab95;
 
   /* One step lighter than each wash here — an edge separates by lifting. */
   --peri-edge: #3a4680;
   --mint-edge: #245442;
   --butter-edge: #5c4a20;
-  --blush-edge: #5f372c;
+  --blush-edge: #59333d;
 
   --highlight-2: #2a2210;
 
@@ -413,44 +413,6 @@
   }
 
   /*
-   * The review wall drifts right-to-left for ever: the list is
-   * rendered twice and the track slides exactly half its width, so the seam
-   * never shows. Hover pauses it, and the mask fades both edges so cards
-   * arrive and leave rather than being cut off.
-   */
-  .marquee {
-    overflow: hidden;
-    -webkit-mask-image: linear-gradient(
-      to right,
-      transparent,
-      black 5%,
-      black 95%,
-      transparent
-    );
-    mask-image: linear-gradient(
-      to right,
-      transparent,
-      black 5%,
-      black 95%,
-      transparent
-    );
-  }
-  .marquee-track {
-    display: flex;
-    width: max-content;
-    animation: marquee-drift 70s linear infinite;
-  }
-  .marquee:hover .marquee-track,
-  .marquee:focus-within .marquee-track {
-    animation-play-state: paused;
-  }
-  @keyframes marquee-drift {
-    to {
-      transform: translateX(-50%);
-    }
-  }
-
-  /*
    * The hero's hover confetti (`ConfettiWord`). The overlay never takes the
    * pointer, or the burst would re-fire on every piece that crossed the cursor.
    */
@@ -497,13 +459,6 @@
     /* Remove the movement, keep the feedback (ticket 190). */
     .lift:hover {
       transform: none;
-    }
-    /* The drift becomes a hand-scrolled row rather than a frozen one. */
-    .marquee-track {
-      animation: none;
-    }
-    .marquee {
-      overflow-x: auto;
     }
   }
 }
@@ -829,11 +784,13 @@
    * the chevron turns down, and the row's value gives way to the editor.
    */
   .setting-row-chevron {
+    /* The flock points down at rest, so a closed row turns it to point right. */
+    rotate: -90deg;
     transition: rotate 0.22s cubic-bezier(0.2, 0.85, 0.3, 1);
   }
 
   details[open] > summary .setting-row-chevron {
-    rotate: 90deg;
+    rotate: 0deg;
   }
 
   details[open] > summary .setting-row-value {
