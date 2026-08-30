@@ -11,6 +11,7 @@ import { useState, type ReactNode } from "react";
 
 import { Avatar, Textarea, cx } from "@/components/ui";
 import { ReactionGlyph } from "@/components/reaction-glyph";
+import { FlockChevron } from "@/components/flock-chevron";
 import {
   ActionForm,
   ConfirmSubmit,
@@ -311,15 +312,13 @@ function Run({
             {collapsed
               ? `${count} ${count === 1 ? "reply" : "replies"}`
               : "Hide"}
-            <span
-              aria-hidden="true"
+            <FlockChevron
+              size={9}
               className={cx(
-                "text-[9px] leading-none transition-transform",
+                "transition-transform",
                 collapsed ? "rotate-0" : "rotate-180",
               )}
-            >
-              ▾
-            </span>
+            />
           </button>
         ) : null}
       </div>

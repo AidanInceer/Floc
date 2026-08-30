@@ -5,6 +5,7 @@
  */
 import type { ReactNode } from "react";
 
+import { FlockChevron } from "@/components/flock-chevron";
 import { cx } from "@/components/ui";
 
 export function AccountPage({
@@ -105,20 +106,10 @@ export function SettingRow({
         <span className="text-sm">{label}</span>
         <span className="flex min-w-0 items-center gap-2 text-sm text-ink-soft">
           <span className="setting-row-value truncate">{value}</span>
-          <svg
-            width={13}
-            height={13}
-            viewBox="0 0 14 14"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.6}
-            strokeLinecap="round"
-            strokeLinejoin="round"
+          <FlockChevron
+            size={12}
             className="setting-row-chevron shrink-0 text-ink-faint"
-            aria-hidden
-          >
-            <path d="M5.5 3l4 4-4 4" />
-          </svg>
+          />
         </span>
       </summary>
       <div className="border-t border-rule bg-sheet-2 px-6 py-5">{children}</div>

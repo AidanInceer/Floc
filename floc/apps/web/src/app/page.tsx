@@ -15,6 +15,7 @@ import { ProUpgrade } from "@/components/billing-buttons";
 import { ButtonLink, cx } from "@/components/ui";
 import { RouteMap } from "@/components/route-map";
 import { ConfettiWord } from "@/components/confetti-word";
+import { FlockChevron } from "@/components/flock-chevron";
 import {
   Glyph,
   Stars,
@@ -186,20 +187,10 @@ export default async function LandingPage() {
           <summary className="mx-auto flex w-fit cursor-pointer list-none items-center gap-2 rounded-full border border-rule px-4 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft transition-colors hover:bg-sheet-2 [&::-webkit-details-marker]:hidden">
             <span className="group-open:hidden">More, coming soon</span>
             <span className="hidden group-open:inline">Show less</span>
-            <svg
-              width={12}
-              height={12}
-              viewBox="0 0 14 14"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.6}
-              strokeLinecap="round"
-              strokeLinejoin="round"
+            <FlockChevron
+              size={11}
               className="shrink-0 transition-transform group-open:-rotate-180"
-              aria-hidden
-            >
-              <path d="M3 5.5l4 4 4-4" />
-            </svg>
+            />
           </summary>
 
           {/* Flex, not grid: a part-full last row centres under the grid above
@@ -355,20 +346,10 @@ export default async function LandingPage() {
               <summary className="mx-auto flex w-fit cursor-pointer list-none items-center gap-2 rounded-full border border-pro-edge px-4 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-pro-gold transition-colors hover:bg-pro-2 [&::-webkit-details-marker]:hidden">
                 <span className="group-open:hidden">More, coming soon</span>
                 <span className="hidden group-open:inline">Show less</span>
-                <svg
-                  width={12}
-                  height={12}
-                  viewBox="0 0 14 14"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={1.6}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                <FlockChevron
+                  size={11}
                   className="shrink-0 transition-transform group-open:-rotate-180"
-                  aria-hidden
-                >
-                  <path d="M3 5.5l4 4 4-4" />
-                </svg>
+                />
               </summary>
 
               {/* Flex for the same reason as the free fold above: a part-full

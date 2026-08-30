@@ -829,11 +829,13 @@
    * the chevron turns down, and the row's value gives way to the editor.
    */
   .setting-row-chevron {
+    /* The flock points down at rest, so a closed row turns it to point right. */
+    rotate: -90deg;
     transition: rotate 0.22s cubic-bezier(0.2, 0.85, 0.3, 1);
   }
 
   details[open] > summary .setting-row-chevron {
-    rotate: 90deg;
+    rotate: 0deg;
   }
 
   details[open] > summary .setting-row-value {
