@@ -106,7 +106,11 @@ export function AuthForm({
         return;
       }
     }
+    // Without the refresh the header stays signed out: the root layout is a
+    // Server Component, and the router cache would replay the payload it
+    // rendered before the session cookie existed. Matches SignOutButton.
     router.push(redirectTo);
+    router.refresh();
   }
 
   return (
