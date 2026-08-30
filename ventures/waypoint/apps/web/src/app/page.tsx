@@ -8,6 +8,9 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { getSession } from "@/server/access";
+import { proPrices, subscriptionOf } from "@/server/billing";
+import { isLive, renewalLabel } from "@/lib/subscription-copy";
+import { ProUpgrade } from "@/components/billing-buttons";
 import { ButtonLink, cx } from "@/components/ui";
 import { RouteMap } from "@/components/route-map";
 import {
@@ -48,10 +51,19 @@ function StubRow({ k, children }: { k: string; children: ReactNode }) {
   );
 }
 
+
 export default async function LandingPage() {
   const session = await getSession();
   // One start destination, reused by every call to action on the page. Signed
   // out heads to /signup; signed in, straight to your trips.
+  // The Pro button goes straight to Stripe for someone signed in and not
+  // already paying; anyone else needs a page first, so it stays a link.
+  const [proRow, prices] = await Promise.all([
+    session?.user ? subscriptionOf(session.user.id) : null,
+    proPrices(),
+  ]);
+  const alreadyPro = proRow !== null && isLive(proRow);
+
   const start = session?.user ? "/trips" : "/signup";
   const inspire = session?.user ? "/explore" : "/login?redirect=%2Fexplore";
 
@@ -298,14 +310,35 @@ export default async function LandingPage() {
               it is unmissable. Lands on the billing panel, where the plan,
               the two prices and the portal live — signing in first if need be. */}
           <div className="mt-10 flex flex-col items-center gap-3">
-            <Link
-              href="/settings?section=billing"
-              className="lift w-full max-w-[22rem] rounded-md bg-pro-gold px-8 py-4 text-center font-display text-md font-semibold tracking-tight text-pro"
-            >
-              Upgrade now
-            </Link>
+            <div className="w-full max-w-[30rem]">
+              {/* One press per interval, straight to Stripe — the only page
+                  between wanting Pro and paying for it is Stripe's own. */}
+              {alreadyPro ? (
+                /* Already paying — the block stops selling and reports. */
+                <div className="flex flex-col items-center gap-2">
+                  <p className="font-display text-md font-semibold tracking-tight text-pro-ink">
+                    You&rsquo;re on Pro. All of this is yours.
+                  </p>
+                  <p className="text-sm text-pro-ink-soft">
+                    {renewalLabel(proRow)}
+                  </p>
+                  <Link
+                    href="/settings?section=billing"
+                    className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-pro-gold underline-offset-4 hover:underline"
+                  >
+                    Your plan and billing
+                  </Link>
+                </div>
+              ) : (
+                <ProUpgrade
+                  prices={prices}
+                  canBuy={Boolean(session?.user)}
+                  href="/login?redirect=%2Fsettings%3Fsection%3Dbilling"
+                />
+              )}
+            </div>
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-pro-ink-soft">
-              Monthly or yearly · cancel any time
+              Cancel any time
             </p>
           </div>
         </div>

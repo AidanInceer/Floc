@@ -12,13 +12,16 @@ import "server-only";
 
 import { and, desc, eq, isNull } from "drizzle-orm";
 import Stripe from "stripe";
+import { cache } from "react";
 
 import { db } from "@/db";
 import { subscription } from "@/db/schema";
 import type { Subscription, SubscriptionStatus } from "@/db/schema";
+import type { Currency } from "@/lib/currency";
+import { BILLING_INTERVALS, type BillingInterval } from "@/lib/plans";
 
-export const BILLING_INTERVALS = ["monthly", "yearly"] as const;
-export type BillingInterval = (typeof BILLING_INTERVALS)[number];
+export { BILLING_INTERVALS, type BillingInterval };
+
 
 let client: Stripe | null | undefined;
 
@@ -121,11 +124,52 @@ function periodEndOf(sub: Stripe.Subscription): Date | null {
 }
 
 /**
+ * What Pro costs, asked of Stripe rather than written down (ticket 250).
+ * Stripe owns the figures, so a price change is a dashboard edit and no
+ * amount ever lands in this repo. Empty when unconfigured or unreachable —
+ * the page then sells Pro without quoting a price rather than breaking.
+ */
+export type ProPrice = {
+  interval: BillingInterval;
+  amountMinor: number;
+  currency: Currency;
+};
+
+export const proPrices = cache(async function proPrices(): Promise<ProPrice[]> {
+  const api = stripe();
+  if (!api) return [];
+
+  const wanted = BILLING_INTERVALS.map(
+    (interval) => [interval, priceFor(interval)] as const,
+  ).filter((pair): pair is [BillingInterval, string] => Boolean(pair[1]));
+
+  const rows = await Promise.all(
+    wanted.map(async ([interval, id]) => {
+      try {
+        const price = await api.prices.retrieve(id);
+        return price.unit_amount === null
+          ? null
+          : {
+              interval,
+              amountMinor: price.unit_amount,
+              currency: price.currency.toUpperCase() as Currency,
+            };
+      } catch {
+        console.warn("[billing] could not read a price — selling without one");
+        return null;
+      }
+    }),
+  );
+
+  return rows.filter((r): r is ProPrice => r !== null);
+});
+
+/**
  * The account's own subscription row, or null (ticket 247). Newest first, so
  * an account that resubscribed after lapsing shows the current arrangement
  * rather than the dead one.
  */
-export async function subscriptionOf(
+export const subscriptionOf = cache(async function subscriptionOf(
   userId: string,
 ): Promise<Subscription | null> {
   const row = await db
@@ -136,7 +180,7 @@ export async function subscriptionOf(
     .get();
 
   return row ?? null;
-}
+});
 
 /**
  * A one-off link into Stripe's hosted billing portal (ticket 247). Hosted

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Bricolage_Grotesque, DM_Mono, Instrument_Sans } from "next/font/google";
 
 import { AppChrome } from "@/components/app-chrome";
+import { subscriptionOf } from "@/server/billing";
+import { isLive } from "@/lib/subscription-copy";
 import { THEME_BOOTSTRAP } from "@/lib/theme";
 import { getSession } from "@/server/access";
 import { countIncomingFriendRequests } from "@/server/friends";
@@ -49,13 +51,14 @@ export default async function RootLayout({
   // friend request are the two things that arrive while you're elsewhere in the
   // app, so both have to be visible from anywhere. Counts, not the things
   // themselves — the answering happens on the page behind each link.
-  const [inviteCount, friendRequestCount, profile] = session?.user
+  const [inviteCount, friendRequestCount, profile, proRow] = session?.user
     ? await Promise.all([
         countPendingInvitesFor(session.user.id),
         countIncomingFriendRequests(session.user.id),
         getProfile(session.user.id),
+        subscriptionOf(session.user.id),
       ])
-    : [0, 0, undefined];
+    : [0, 0, undefined, null];
 
   // The header must key the avatar off the same identity a roster does
   // (`displayName ?? name`), so the viewer is the same initials and colour
@@ -85,6 +88,7 @@ export default async function RootLayout({
           user={chromeUser}
           inviteCount={inviteCount}
           friendRequestCount={friendRequestCount}
+          isPro={proRow !== null && isLive(proRow)}
         />
         <main>{children}</main>
       </body>

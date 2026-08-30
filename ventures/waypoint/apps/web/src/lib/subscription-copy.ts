@@ -40,3 +40,19 @@ export function renewalLabel(s: SubscriptionFacts, now = new Date()): string {
 
   return s.cancelAtPeriodEnd ? `Ends ${when}` : `Renews ${when}`;
 }
+
+/**
+ * How much cheaper a year is than twelve months of the monthly price, as a
+ * whole percent (ticket 250). Null when there is nothing to boast about, so
+ * the page never advertises a saving of 0% — or a negative one.
+ */
+export function yearlySaving(
+  monthlyMinor: number,
+  yearlyMinor: number,
+): number | null {
+  const twelve = monthlyMinor * 12;
+  if (twelve <= 0) return null;
+
+  const saved = Math.round(((twelve - yearlyMinor) / twelve) * 100);
+  return saved > 0 ? saved : null;
+}

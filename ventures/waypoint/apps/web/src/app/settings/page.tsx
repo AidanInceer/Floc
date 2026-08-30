@@ -32,7 +32,7 @@ import type { Subscription, Visibility } from "@/db/schema";
 import { requireUser } from "@/server/access";
 import { subscriptionOf } from "@/server/billing";
 import { ensureProfile, listLinkedAccounts } from "@/server/profile";
-import { BillingAction } from "./billing-buttons";
+import { BillingAction } from "@/components/billing-buttons";
 import { isLive, renewalLabel } from "@/lib/subscription-copy";
 import {
   AccountPage,

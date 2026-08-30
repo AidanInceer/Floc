@@ -41,3 +41,8 @@ export type TargetOf<K extends FeatureKey> =
 export function planMeets(held: Plan, required: Plan): boolean {
   return PLANS.indexOf(held) >= PLANS.indexOf(required);
 }
+
+/** How often Pro is paid for. Here rather than with Stripe, so the browser
+ * can name an interval without pulling the server in behind it. */
+export const BILLING_INTERVALS = ["monthly", "yearly"] as const;
+export type BillingInterval = (typeof BILLING_INTERVALS)[number];
