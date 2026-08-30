@@ -31,8 +31,17 @@ export function ThemeSwitch() {
     <div
       role="group"
       aria-label="Theme"
-      className="flex shrink-0 items-center gap-0.5 rounded-full bg-sheet-3 p-0.5"
+      className="relative flex shrink-0 items-center rounded-full bg-sheet-3 p-0.5"
     >
+      {/* One sliding fill, exactly as PillNav does it, rather than a background
+          appearing under whichever half is lit — the switch belongs to the same
+          family of controls, so it must move the same way. Its position is CSS
+          keyed off `<html>`, so it is under the right half in the first painted
+          frame. */}
+      <span
+        aria-hidden
+        className="theme-indicator pointer-events-none absolute left-0.5 top-0.5 h-8 w-7 rounded-full bg-ink transition-transform duration-200 ease-[cubic-bezier(0.2,0.85,0.3,1)] motion-reduce:transition-none sm:w-8"
+      />
       {THEMES.map((option) => (
         <button
           key={option}
@@ -41,7 +50,9 @@ export function ThemeSwitch() {
           aria-label={option === "light" ? "Light" : "Dark"}
           aria-pressed={theme === null ? undefined : theme === option}
           onClick={() => choose(option)}
-          className="theme-choice lift flex h-8 w-7 items-center justify-center rounded-full sm:w-8 text-ink-soft hover:text-ink"
+          // Colour is left to `.theme-choice` in globals.css — a Tailwind text
+          // utility here sits in a later layer and wins over the lit state.
+          className="theme-choice relative z-10 flex h-8 w-7 items-center justify-center rounded-full sm:w-8"
         >
           {option === "light" ? <SunriseIcon /> : <MoonIcon />}
         </button>

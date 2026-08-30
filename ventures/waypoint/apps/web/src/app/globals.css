@@ -567,12 +567,29 @@
    * attribute rather than a React class, so the correct half is lit in the
    * first painted frame — the switch is the one control that must be right
    * before hydration, because it is the thing that says which theme you are in.
+   *
+   * Ink fill on a sheet-3 track, matching PillNav's current-page pill: the
+   * switch sits in the account menu now, and a white-on-white segment did not
+   * read as chosen there.
    */
+  .theme-choice {
+    color: var(--ink-soft);
+  }
+
+  .theme-choice:hover {
+    color: var(--ink);
+  }
+
   :root[data-theme="light"] .theme-choice[data-choice="light"],
-  :root[data-theme="dark"] .theme-choice[data-choice="dark"] {
-    background: var(--sheet);
-    color: var(--pen-deep);
-    box-shadow: var(--shadow-sm);
+  :root[data-theme="dark"] .theme-choice[data-choice="dark"],
+  :root[data-theme="light"] .theme-choice[data-choice="light"]:hover,
+  :root[data-theme="dark"] .theme-choice[data-choice="dark"]:hover {
+    color: var(--sheet);
+  }
+
+  /* The fill slides rather than reappears; dark is the second segment. */
+  :root[data-theme="dark"] .theme-indicator {
+    transform: translateX(100%);
   }
 }
 

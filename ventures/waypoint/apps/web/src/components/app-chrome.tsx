@@ -42,8 +42,11 @@ export function AppChrome({
   user,
   inviteCount = 0,
   friendRequestCount = 0,
+  isPro = false,
 }: {
   user: { id: string; name: string; image: string | null } | null;
+  /** Badges the bar in gold, so Pro is visible from every screen. */
+  isPro?: boolean;
   /** Open trip invites for this account — badges the Trips link. */
   inviteCount?: number;
   /** Friend requests waiting on this account — badges the Friends link. */
@@ -97,14 +100,26 @@ export function AppChrome({
           {user ? <PillNav label="Your surfaces" items={navItems} /> : null}
         </div>
 
-        {/* The theme switch sits with the account controls, signed in or out —
-            the same control in the same place either way (ticket 240). */}
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-          <ThemeSwitch />
+          {/* Gold, and the only gold in the bar — it reads as the one paid
+              thing rather than as another control. Links to the billing
+              panel, because "what am I on" and "change it" are one question. */}
+          {user && isPro ? (
+            <Link
+              href="/settings?section=billing"
+              className="inline-flex items-center gap-1 rounded-full border border-pro-gold px-2 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-pro-gold hover:bg-pro-gold/10"
+              title="You're on Waypoint Pro"
+            >
+              Pro
+            </Link>
+          ) : null}
+          {/* Signed in, the theme switch is inside the account menu — the bar
+              only carries it for someone who has no menu to put it in. */}
           {user ? (
             <AccountMenu user={user} />
           ) : (
             <>
+              <ThemeSwitch />
               <ButtonLink href="/login" variant="ghost">
                 Log in
               </ButtonLink>

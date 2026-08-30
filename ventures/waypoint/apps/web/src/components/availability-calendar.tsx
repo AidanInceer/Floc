@@ -11,6 +11,8 @@
  *   two in turn; a half-made range previews before you make it (ticket 135).
  * - **Weather** — see below (ticket 148).
  */
+import Link from "next/link";
+
 import { Fragment, useRef, useState, useTransition } from "react";
 
 import { DayCell, type View } from "@/components/availability-day-cell";
@@ -47,6 +49,7 @@ export function AvailabilityCalendar({
   tripEnd,
   dayLoads,
   weather,
+  weatherLocked = false,
   save,
   saveDates,
 }: {
@@ -59,6 +62,8 @@ export function AvailabilityCalendar({
   tripEnd: string | null;
   dayLoads: DayLoad[]; // every live day + its event count — what a shrink costs
   weather: TripForecast | null; // null → Weather mode not offered (ticket 148)
+  /** Free trip: the mode is still offered, and says so instead (ticket 248). */
+  weatherLocked?: boolean;
   save: (add: string[], remove: string[]) => Promise<void>;
   saveDates: (start: string | null, end: string | null) => Promise<void>; // null/null clears
 }) {
@@ -67,7 +72,7 @@ export function AvailabilityCalendar({
   const [pending, startTransition] = useTransition();
   const surface = useRef<HTMLDivElement>(null);
 
-  const hasWeather = weather !== null;
+  const hasWeather = weather !== null || weatherLocked;
   // Only the trip's own days carry weather (ticket 148): keep the days inside
   // `[tripStart, tripEnd]` so the reading follows the window if the dates move.
   const byDate: Record<IsoDate, DailyForecast> = {};
@@ -462,6 +467,21 @@ export function AvailabilityCalendar({
           <LegendKey swatch="bg-green-soft border-green" label="All free" />
           <LegendKey swatch="bg-red-soft border-red" label="Some missing" />
           <LegendKey swatch="bg-sheet-2 border-rule" label="No answer yet" />
+        </div>
+      ) : view === "weather" && weatherLocked ? (
+        /* Visible, honest, inert (ticket 248) — the mode is here and says what
+           it is. No blurred sample forecast: placeholder data pretending to be
+           real is a lie told to a group who will screenshot it at each other. */
+        <div className={footer}>
+          <p className="text-sm text-ink-soft">
+            The forecast on your dates is a Waypoint Pro feature.{" "}
+            <Link
+              href="/settings?section=billing"
+              className="text-pen underline underline-offset-2 hover:text-pen-deep"
+            >
+              See Pro
+            </Link>
+          </p>
         </div>
       ) : weather ? (
         /* Weather (ticket 148): a reading line following the hovered day, plus

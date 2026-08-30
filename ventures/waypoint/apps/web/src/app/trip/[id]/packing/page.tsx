@@ -4,6 +4,7 @@
  * top-to-bottom on a phone as on a desk.
  */
 import { requireTripAccess } from "@/server/access";
+import { canUseFeature } from "@/server/entitlements";
 import { getPackSettings } from "@/server/packing";
 import {
   autoFillPersonalBag,
@@ -113,15 +114,17 @@ export default async function PackingPage({
   const access = await requireTripAccess(id, `/trip/${id}/packing`);
   const tripId = access.trip.id;
 
-  const [lines, claims, packSettings, profile, plan, kits, bag] = await Promise.all([
-    listPackingLines(tripId),
-    listPackingClaims(tripId),
-    getPackSettings(tripId, access.viewer.id),
-    ensureProfile(access.viewer.id),
-    packingPlanFor(access.trip),
-    listPackingKits(access.viewer.id),
-    listPersonalPackingLines(tripId, access.viewer.id),
-  ]);
+  const [lines, claims, packSettings, profile, plan, kits, bag, packingPro] =
+    await Promise.all([
+      listPackingLines(tripId),
+      listPackingClaims(tripId),
+      getPackSettings(tripId, access.viewer.id),
+      ensureProfile(access.viewer.id),
+      packingPlanFor(access.trip),
+      listPackingKits(access.viewer.id),
+      listPersonalPackingLines(tripId, access.viewer.id),
+      canUseFeature("packing.autoGenerate", tripId),
+    ]);
 
   const tier = resolvePackTier(packSettings.tier, profile.packTier);
 
@@ -148,7 +151,12 @@ export default async function PackingPage({
     );
 
   const sharedGroups = viewPackingLines(lines, sharedView);
-  const sharedHref = hrefBuilder(path, "shared", sharedView, keep("bag", bagView));
+  const sharedHref = hrefBuilder(
+    path,
+    "shared",
+    sharedView,
+    keep("bag", bagView),
+  );
 
   // Seeded here rather than behind a button because that's what the profile
   // setting asks for (ticket 221). The flag is the fill's own one-shot mark,
@@ -158,7 +166,11 @@ export default async function PackingPage({
   // prefetch can't trigger it either: the tab renders behind `loading.tsx`,
   // which is as far as Next prefetches a dynamic segment.
   let mine = bag;
-  if (profile.packAutoGenerate && packSettings.generatedAt === null) {
+  if (
+    packingPro &&
+    profile.packAutoGenerate &&
+    packSettings.generatedAt === null
+  ) {
     await autoFillPersonalBag({
       tripId,
       ownerId: access.viewer.id,
@@ -254,14 +266,32 @@ export default async function PackingPage({
 
           {/* Additive, so the label promises a top-up rather than a rebuild —
               pressing it never costs you an edit. */}
-          <form
-            action={fillMyPackingList.bind(null, tripId)}
-            className="ml-auto shrink-0"
-          >
-            <SubmitButton pendingLabel="Working it out…" className="!px-3 sm:!px-5">
-              Pack my bag
-            </SubmitButton>
-          </form>
+          {packingPro ? (
+            <form
+              action={fillMyPackingList.bind(null, tripId)}
+              className="ml-auto shrink-0"
+            >
+              <SubmitButton
+                pendingLabel="Working it out…"
+                className="!px-3 sm:!px-5"
+              >
+                Pack my bag
+              </SubmitButton>
+            </form>
+          ) : (
+            /* Present and inert, never hidden (ticket 248) — and whatever is
+               already in the bag stays fully editable below. */
+            <p className="ml-auto shrink-0 text-sm text-ink-soft">
+              Packing your bag for you is{" "}
+              <Link
+                href="/settings?section=billing"
+                className="text-pen underline underline-offset-2 hover:text-pen-deep"
+              >
+                a Waypoint Pro feature
+              </Link>
+              .
+            </p>
+          )}
         </div>
 
         <p className="mt-2 max-w-prose text-sm text-ink-soft">

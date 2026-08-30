@@ -14,6 +14,7 @@ import {
   seedScenario,
   signIn,
   type Scenario,
+  givePro,
 } from "@/test/db";
 import {
   insertPackingLine,
@@ -194,6 +195,7 @@ describe("the trip's packing tier", () => {
 describe("suggesting what to pack", () => {
   it("fills the presser's own bag, following the trip's tier", async () => {
     signIn(world.admin);
+    await givePro(world.admin);
     await setTripPackTier(world.ours.id, form({ packTier: "light" }));
 
     await fillMyPackingList(world.ours.id);
@@ -207,6 +209,32 @@ describe("suggesting what to pack", () => {
     signIn(world.outsider);
     await expectNotFound(() => fillMyPackingList(world.ours.id));
     expect(await listPersonalPackingLines(world.ours.id, world.outsider)).toEqual([]);
+  });
+
+  it("refuses a free trip — Pro buys the generating (ticket 248)", async () => {
+    signIn(world.admin);
+
+    await expect(fillMyPackingList(world.ours.id)).rejects.toThrow(
+      "Waypoint Pro",
+    );
+    expect(await listPersonalPackingLines(world.ours.id, world.admin)).toEqual([]);
+  });
+
+  it("leaves a list generated while Pro editable once Pro lapses", async () => {
+    signIn(world.admin);
+    await givePro(world.admin);
+    await fillMyPackingList(world.ours.id);
+    const before = await listPersonalPackingLines(world.ours.id, world.admin);
+
+    await db.delete(schema.subscription);
+
+    const after = await listPersonalPackingLines(world.ours.id, world.admin);
+    expect(after).toHaveLength(before.length);
+
+    // Still editable: the gate is on generating, never on the content.
+    await setPersonalPackingPacked(world.ours.id, after[0].id, true);
+    const packed = await listPersonalPackingLines(world.ours.id, world.admin);
+    expect(packed[0].packedAt).not.toBeNull();
   });
 });
 

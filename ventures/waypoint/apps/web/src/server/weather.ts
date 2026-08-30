@@ -21,6 +21,7 @@ import {
   wmoToCondition,
   type WeatherCondition,
 } from "@/lib/weather";
+import { canUseFeature } from "@/server/entitlements";
 
 const OPEN_METEO = "https://api.open-meteo.com/v1/forecast";
 
@@ -93,6 +94,11 @@ type OpenMeteoResponse = {
 
 // Any failure — no anchor, unreachable, non-OK, malformed — is a quiet null.
 export async function getTripForecast(tripId: number): Promise<TripForecast | null> {
+  // The gate lives on the read, not only on the tab (ticket 248): hiding a tab
+  // is presentation, and a free trip must not obtain a forecast however it
+  // asks. The page asks `canUseFeature` separately, to say *why* it is empty.
+  if (!(await canUseFeature("dates.weather", tripId))) return null;
+
   const anchor = await tripForecastAnchor(tripId);
   if (!anchor) return null;
 

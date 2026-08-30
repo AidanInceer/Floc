@@ -5,7 +5,13 @@ import { db, schema } from "@/db";
 import { getTripForecast, tripForecastAnchor } from "@/server/weather";
 import { addDays, today } from "@/lib/dates";
 import { HORIZON_DAYS } from "@/lib/weather";
-import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
+import {
+  givePro,
+  migrateTestDb,
+  resetDb,
+  seedScenario,
+  type Scenario,
+} from "@/test/db";
 
 let world: Scenario;
 
@@ -98,6 +104,19 @@ describe("tripForecastAnchor", () => {
 });
 
 describe("getTripForecast", () => {
+  // Every case below is a Pro trip: the forecast is gated on the read itself
+  // (ticket 248), so an ungated trip never reaches the mapping at all.
+  beforeEach(() => givePro(world.admin));
+
+  it("refuses a free trip however it asks, without calling out", async () => {
+    await anchorTrip(world.ours.dayId);
+    const fetchMock = stubFetch(meteoBody(today()));
+    await db.delete(schema.subscription);
+
+    expect(await getTripForecast(world.ours.id)).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("bounds the request to the honest horizon and maps the days", async () => {
     await anchorTrip(world.ours.dayId);
     const from = today();

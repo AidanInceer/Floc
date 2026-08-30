@@ -1,11 +1,12 @@
 {
   "name": "waypoint-web",
-  "version": "0.66.2",
+  "version": "0.71.0",
   "private": true,
   "description": "Waypoint v1 — group travel planner. Next.js App Router + Turso (libSQL) + Drizzle + Better Auth.",
   "type": "module",
   "scripts": {
     "dev": "next dev",
+    "clean:next": "node scripts/clean-next.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
@@ -35,7 +36,8 @@
     "next": "^15.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "resend": "^4.0.0"
+    "resend": "^4.0.0",
+    "stripe": "^22.6.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",

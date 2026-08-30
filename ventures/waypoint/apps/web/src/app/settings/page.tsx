@@ -28,9 +28,13 @@ import {
   updatePacking,
   updateVibeTags,
 } from "@/app/profile/actions";
-import type { Visibility } from "@/db/schema";
+import type { Subscription, Visibility } from "@/db/schema";
 import { requireUser } from "@/server/access";
+import { subscriptionOf } from "@/server/billing";
+import { allFeaturesFree } from "@/lib/env";
 import { ensureProfile, listLinkedAccounts } from "@/server/profile";
+import { BillingAction } from "@/components/billing-buttons";
+import { isLive, renewalLabel } from "@/lib/subscription-copy";
 import {
   AccountPage,
   PillChoice,
@@ -39,7 +43,11 @@ import {
   ToggleRow,
 } from "@/components/account-ui";
 import { Field, Input, Select, Stack, Textarea, cx } from "@/components/ui";
-import { ActionForm, ConfirmSubmit, SubmitButton } from "@/components/client-ui";
+import {
+  ActionForm,
+  ConfirmSubmit,
+  SubmitButton,
+} from "@/components/client-ui";
 import { VibePicker } from "@/components/vibe-picker";
 import { DIET_FLAGS, MAX_DIETARY_NOTES, readDietFlags } from "@/lib/dietary";
 import { PACK_TIERS, PACK_TIER_LABELS } from "@/lib/packing";
@@ -49,6 +57,7 @@ const SECTIONS = [
   { id: "privacy", label: "Privacy" },
   { id: "about-you", label: "About you" },
   { id: "trips", label: "Trips" },
+  { id: "billing", label: "Billing" },
   { id: "email", label: "Email" },
   { id: "account", label: "Account" },
   { id: "data", label: "Your data" },
@@ -56,6 +65,17 @@ const SECTIONS = [
 ] as const;
 
 type SectionId = (typeof SECTIONS)[number]["id"];
+
+/**
+ * The panel to draw. With Pro switched off there is no Billing panel, so an
+ * old link or a stale checkout return falls back to the first section rather
+ * than rendering nothing.
+ */
+function sectionFor(asked: string | undefined): SectionId {
+  const found = SECTIONS.find((s) => s.id === asked)?.id;
+  if (!found) return "privacy";
+  return found === "billing" && allFeaturesFree() ? "privacy" : found;
+}
 
 const NOTIFICATION_TOGGLES = [
   { name: "notifyInvites", label: "Trip invites" },
@@ -85,16 +105,22 @@ const RING_OPTIONS = (
 export default async function SettingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ section?: string }>;
+  searchParams: Promise<{ section?: string; billing?: string }>;
 }) {
-  const viewer = await requireUser("/settings");
-  const { section } = await searchParams;
-  const current: SectionId =
-    SECTIONS.find((s) => s.id === section)?.id ?? "privacy";
+  const { section, billing } = await searchParams;
+  // Carry the section through the login round trip, so "Upgrade now" from the
+  // home page lands on Billing rather than on Privacy.
+  const viewer = await requireUser(
+    section ? `/settings?section=${section}` : "/settings",
+  );
+  // Checkout returns to `?billing=done`, so land on the panel that shows it.
+  const asked = section ?? (billing ? "billing" : undefined);
+  const current = sectionFor(asked);
 
-  const [profile, linkedAccounts] = await Promise.all([
+  const [profile, linkedAccounts, subscription] = await Promise.all([
     ensureProfile(viewer.id),
     listLinkedAccounts(viewer.id),
+    subscriptionOf(viewer.id),
   ]);
 
   const vibeTags = readVibeTags(profile.vibeTags);
@@ -291,6 +317,10 @@ export default async function SettingsPage({
             </Stack>
           ) : null}
 
+          {current === "billing" && !allFeaturesFree() ? (
+            <BillingPanel subscription={subscription} billing={billing} />
+          ) : null}
+
           {current === "email" ? (
             <Panel
               title="Email notifications"
@@ -329,7 +359,10 @@ export default async function SettingsPage({
                   <span className="typed mb-2 block">Sign-in methods</span>
                   <ul className="flex flex-col divide-y divide-rule border-y border-rule">
                     {linkedAccounts.map((a) => (
-                      <PersonRow key={a.id} className="rounded-none bg-transparent px-0">
+                      <PersonRow
+                        key={a.id}
+                        className="rounded-none bg-transparent px-0"
+                      >
                         <span className="text-sm">
                           {PROVIDER_LABELS[a.providerId] ?? a.providerId}
                         </span>
@@ -339,7 +372,9 @@ export default async function SettingsPage({
                             variant="ghost"
                             pendingLabel="Unlinking…"
                             className={
-                              linkedAccounts.length <= 1 ? "opacity-50" : undefined
+                              linkedAccounts.length <= 1
+                                ? "opacity-50"
+                                : undefined
                             }
                           >
                             Unlink
@@ -349,8 +384,8 @@ export default async function SettingsPage({
                     ))}
                   </ul>
                   <p className="mt-2 text-xs text-ink-faint">
-                    Unlinking your last remaining method is refused — you&rsquo;d
-                    lose access.
+                    Unlinking your last remaining method is refused —
+                    you&rsquo;d lose access.
                   </p>
                 </div>
               </Stack>
@@ -361,10 +396,10 @@ export default async function SettingsPage({
             <Panel title="Your data">
               <Stack gap={3}>
                 <p className="text-sm text-ink-soft">
-                  There&rsquo;s no consent banner because there&rsquo;s nothing to
-                  consent to yet — Waypoint sends no marketing email and runs no
-                  analytics. The invite, nudge and money emails are transactional,
-                  not consent-based.
+                  There&rsquo;s no consent banner because there&rsquo;s nothing
+                  to consent to yet — Waypoint sends no marketing email and runs
+                  no analytics. The invite, nudge and money emails are
+                  transactional, not consent-based.
                 </p>
                 <p className="text-sm text-ink-soft">
                   Want a copy of your data? Email{" "}
@@ -413,29 +448,111 @@ function SectionRail({ current }: { current: SectionId }) {
       aria-label="Settings sections"
       className="scroll-x-bare flex flex-row items-center gap-1 rounded-full bg-sheet-3 p-1 sm:flex-col sm:items-stretch sm:overflow-visible sm:rounded-[1.3125rem]"
     >
-      {SECTIONS.map((s) => {
-        const active = s.id === current;
-        const danger = s.id === "delete";
-        return (
-          <Link
-            key={s.id}
-            href={`/settings?section=${s.id}`}
-            aria-current={active ? "page" : undefined}
-            className={cx(
-              "shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-colors sm:text-left",
-              active && danger
-                ? "bg-red text-sheet"
-                : active
-                  ? "bg-ink text-sheet"
-                  : danger
-                    ? "text-red hover:bg-red-soft hover:text-red"
-                    : "text-ink-soft hover:bg-sheet hover:text-ink",
-            )}
-          >
-            {s.label}
-          </Link>
-        );
-      })}
+      {SECTIONS.filter((s) => s.id !== "billing" || !allFeaturesFree()).map(
+        (s) => {
+          const active = s.id === current;
+          const danger = s.id === "delete";
+          return (
+            <Link
+              key={s.id}
+              href={`/settings?section=${s.id}`}
+              aria-current={active ? "page" : undefined}
+              className={cx(
+                "shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-colors sm:text-left",
+                active && danger
+                  ? "bg-red text-sheet"
+                  : active
+                    ? "bg-ink text-sheet"
+                    : danger
+                      ? "text-red hover:bg-red-soft hover:text-red"
+                      : "text-ink-soft hover:bg-sheet hover:text-ink",
+              )}
+            >
+              {s.label}
+            </Link>
+          );
+        },
+      )}
     </nav>
+  );
+}
+
+/**
+ * Plan, date, and the one link out (ticket 247). Split from the page body
+ * because the panel branches three ways — comped, paying, and neither.
+ */
+function BillingPanel({
+  subscription,
+  billing,
+}: {
+  subscription: Subscription | null;
+  billing?: string;
+}) {
+  return (
+    <Panel
+      title="Waypoint Pro"
+      hint="Pro covers everyone on a trip you're in — one of you paying is enough."
+    >
+      <Stack gap={4}>
+        {billing === "cancelled" ? (
+          <p className="text-sm text-ink-soft">
+            No payment was taken — you closed the checkout.
+          </p>
+        ) : null}
+
+        {subscription && isLive(subscription) ? (
+          <Stack gap={4}>
+            <p className="text-sm font-medium">You&rsquo;re on Pro.</p>
+            {subscription.stripeCustomerId ? (
+              /* Date and the way out on one line — the button is what
+                       the date is for, so it does not need its own row. */
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <p className="text-sm text-ink-soft">
+                  {renewalLabel(subscription)}
+                </p>
+                <BillingAction path="/api/billing/portal">
+                  Manage or cancel
+                </BillingAction>
+              </div>
+            ) : (
+              <div>
+                <p className="text-sm text-ink-soft">
+                  {renewalLabel(subscription)}
+                </p>
+                <p className="mt-1 text-sm text-ink-faint">
+                  This one was granted rather than bought, so there is nothing
+                  to bill or cancel.
+                </p>
+              </div>
+            )}
+          </Stack>
+        ) : (
+          <Stack gap={4}>
+            <p className="text-sm text-ink-soft">
+              {subscription
+                ? renewalLabel(subscription)
+                : "You’re on the free plan."}{" "}
+              Pro adds the weather forecast on your dates and a packing list
+              filled in for you.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <BillingAction
+                path="/api/billing/checkout"
+                body={{ interval: "monthly" }}
+                variant="primary"
+              >
+                Go Pro monthly
+              </BillingAction>
+              <BillingAction
+                path="/api/billing/checkout"
+                body={{ interval: "yearly" }}
+              >
+                Go Pro yearly
+              </BillingAction>
+            </div>
+          </Stack>
+        )}
+      </Stack>
+    </Panel>
   );
 }
