@@ -584,8 +584,12 @@
   :root[data-theme="dark"] .theme-choice[data-choice="dark"],
   :root[data-theme="light"] .theme-choice[data-choice="light"]:hover,
   :root[data-theme="dark"] .theme-choice[data-choice="dark"]:hover {
-    background: var(--ink);
     color: var(--sheet);
+  }
+
+  /* The fill slides rather than reappears; dark is the second segment. */
+  :root[data-theme="dark"] .theme-indicator {
+    transform: translateX(100%);
   }
 }
 
