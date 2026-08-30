@@ -5,6 +5,7 @@
  * page and the product teach one colour language.
  */
 import type { ReactNode } from "react";
+import Link from "next/link";
 
 import { getSession } from "@/server/access";
 import { ButtonLink, cx } from "@/components/ui";
@@ -251,26 +252,13 @@ export default async function LandingPage() {
       {/* ── Pro tier (blueprint) ─────────────────────────────────────── */}
       {/* The one paid thing on the page, so it is the one block that refuses
           the pale palette: parchment and gold in light, black and gold in
-          dark. The button is a blueprint — it goes nowhere yet. */}
+          dark. Pro is real as of ticket 247, so the button now sells. */}
       <section className="mt-24">
         <div className="overflow-hidden rounded-lg bg-pro p-8 text-pro-ink sm:p-12">
-          {/* The button shares the pill's row at every width, so it stays
-              top-right on a phone without squeezing the heading beside it. */}
-          <div className="flex items-center justify-between gap-4">
-            <span className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-pro-gold px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-pro-gold">
-              <Glyph name="star" />
-              Coming soon · Pro
-            </span>
-
-            {/* Blueprint — goes nowhere yet. */}
-            <button
-              type="button"
-              disabled
-              className="lift shrink-0 whitespace-nowrap rounded-md bg-pro-gold px-3 py-2 font-display text-xs font-semibold tracking-tight text-pro sm:px-6 sm:py-3 sm:text-md"
-            >
-              Upgrade now
-            </button>
-          </div>
+          <span className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-pro-gold px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-pro-gold">
+            <Glyph name="star" />
+            Waypoint Pro
+          </span>
 
           <h2 className="mt-6 max-w-[46ch] text-[clamp(1.6rem,3.2vw,2.3rem)]">
             The full trip, for the ones who travel a lot.
@@ -303,6 +291,22 @@ export default async function LandingPage() {
                 <p className="mt-2 text-sm text-pro-ink-soft">{p.body}</p>
               </article>
             ))}
+          </div>
+
+          {/* At the foot rather than the corner: it reads after the perks
+              have made the case, and it is the widest thing in the block so
+              it is unmissable. Lands on the billing panel, where the plan,
+              the two prices and the portal live — signing in first if need be. */}
+          <div className="mt-10 flex flex-col items-center gap-3">
+            <Link
+              href="/settings?section=billing"
+              className="lift w-full max-w-[22rem] rounded-md bg-pro-gold px-8 py-4 text-center font-display text-md font-semibold tracking-tight text-pro"
+            >
+              Upgrade now
+            </Link>
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-pro-ink-soft">
+              Monthly or yearly · cancel any time
+            </p>
           </div>
         </div>
       </section>

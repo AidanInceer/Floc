@@ -91,8 +91,12 @@ export default async function SettingsPage({
 }: {
   searchParams: Promise<{ section?: string; billing?: string }>;
 }) {
-  const viewer = await requireUser("/settings");
   const { section, billing } = await searchParams;
+  // Carry the section through the login round trip, so "Upgrade now" from the
+  // home page lands on Billing rather than on Privacy.
+  const viewer = await requireUser(
+    section ? `/settings?section=${section}` : "/settings",
+  );
   // Checkout returns to `?billing=done`, so land on the panel that shows it.
   const asked = section ?? (billing ? "billing" : undefined);
   const current: SectionId =
