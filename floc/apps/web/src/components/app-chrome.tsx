@@ -59,8 +59,11 @@ export function AppChrome({
   user,
   inviteCount = 0,
   friendRequestCount = 0,
+  isPro = false,
 }: {
   user: { id: string; name: string; image: string | null } | null;
+  /** Puts the gold star in the account pill — the only paid signal in the bar. */
+  isPro?: boolean;
   /** Open trip invites for this account — badges the Trips link. */
   inviteCount?: number;
   /** Friend requests waiting on this account — badges the Friends link. */
@@ -122,7 +125,7 @@ export function AppChrome({
           {/* Signed in, the theme switch is inside the account menu — the bar
               only carries it for someone who has no menu to put it in. */}
           {user ? (
-            <AccountMenu user={user} />
+            <AccountMenu user={user} isPro={isPro} />
           ) : (
             <>
               <ThemeSwitch />
