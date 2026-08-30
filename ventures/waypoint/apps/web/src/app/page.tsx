@@ -255,22 +255,22 @@ export default async function LandingPage() {
           dark. Pro is real as of ticket 247, so the button now sells. */}
       <section className="mt-24">
         <div className="overflow-hidden rounded-lg bg-pro p-8 text-pro-ink sm:p-12">
-          <span className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-pro-gold px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-pro-gold">
-            <Glyph name="star" />
-            Waypoint Pro
-          </span>
-
-          <h2 className="mt-6 max-w-[46ch] text-[clamp(1.6rem,3.2vw,2.3rem)]">
-            The full trip, for the ones who travel a lot.
-          </h2>
+          {/* The block runs down one centre line: name, then the reason the
+              tier exists, then the perks, then the button. */}
+          <div className="flex justify-center">
+            <span className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-pro-gold px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-pro-gold">
+              <Glyph name="star" />
+              Waypoint Pro
+            </span>
+          </div>
 
           {/* The headline perk stands alone above the grid — it is the reason
               the tier exists, not one of eight equals. */}
-          <div className="mt-12 flex flex-col items-center text-center">
+          <div className="mt-10 flex flex-col items-center text-center">
             <span className="inline-flex size-11 items-center justify-center rounded-md bg-pro-gold text-pro">
               <Glyph name={proLead.icon} className="size-[22px]" />
             </span>
-            <h3 className="mt-4 text-xl text-pro-ink">{proLead.title}</h3>
+            <h2 className="mt-4 text-xl text-pro-ink">{proLead.title}</h2>
             <p className="mt-3 max-w-[52ch] text-md text-pro-ink-soft">
               {proLead.body}
             </p>
