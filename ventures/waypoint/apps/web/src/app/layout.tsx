@@ -40,9 +40,9 @@ const mono = DM_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Waypoint — plan a trip with the group",
+  title: "Floc — plan a trip with the group",
   description:
-    "Waypoint keeps a group trip in one place: ideas, the route, the days, and who owes who.",
+    "Floc keeps a group trip in one place: ideas, the route, the days, and who owes who.",
 };
 
 export default async function RootLayout({

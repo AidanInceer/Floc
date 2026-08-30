@@ -35,12 +35,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { token } = await params;
   const found = await findTripByInviteToken(token);
-  if (!found) return { title: "Waypoint" };
+  if (!found) return { title: "Floc" };
 
   const title = `You've been invited to join “${found.name}”`;
   const description = found.hostName
-    ? `${found.hostName} is planning ${found.name} on Waypoint.`
-    : `${found.name} is being planned on Waypoint.`;
+    ? `${found.hostName} is planning ${found.name} on Floc.`
+    : `${found.name} is being planned on Floc.`;
 
   return {
     title,
@@ -144,7 +144,7 @@ export default async function InvitePage({
         <h1 className="mt-3 text-[clamp(2.1rem,5vw,3.4rem)]">{found.name}</h1>
         <p className="mt-3 max-w-[60ch] text-md text-ink-soft">
           {memberCount} {memberCount === 1 ? "person is" : "people are"} already
-          planning this on Waypoint. Have a look before you decide.
+          planning this on Floc. Have a look before you decide.
         </p>
         <div className="mt-6">{join}</div>
       </header>
@@ -235,7 +235,7 @@ function DeadLink() {
       </p>
       <div className="mt-8 flex flex-wrap justify-center gap-3">
         <ButtonLink variant="primary" href="/">
-          What Waypoint is
+          What Floc is
         </ButtonLink>
         <ButtonLink variant="secondary" href="/trips">
           Your own trips

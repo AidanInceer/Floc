@@ -474,7 +474,7 @@ export function AvailabilityCalendar({
            real is a lie told to a group who will screenshot it at each other. */
         <div className={footer}>
           <p className="text-sm text-ink-soft">
-            The forecast on your dates is a Waypoint Pro feature.{" "}
+            The forecast on your dates is a Floc Pro feature.{" "}
             <Link
               href="/settings?section=billing"
               className="text-pen underline underline-offset-2 hover:text-pen-deep"

@@ -49,7 +49,7 @@ export type LimitKey = keyof typeof LIMITS;
 /** Called when a read landed exactly on its ceiling. No PII, no ids beyond the trip's own — just a named log. */
 export function reportCeiling(what: LimitKey, scope: string): void {
   console.warn(
-    `[waypoint] ceiling reached: ${what} at ${LIMITS[what]} for ${scope} — the view is truncated (see server/limits.ts)`,
+    `[floc] ceiling reached: ${what} at ${LIMITS[what]} for ${scope} — the view is truncated (see server/limits.ts)`,
   );
 }
 

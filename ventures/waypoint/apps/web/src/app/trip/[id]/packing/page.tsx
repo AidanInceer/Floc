@@ -287,7 +287,7 @@ export default async function PackingPage({
                 href="/settings?section=billing"
                 className="text-pen underline underline-offset-2 hover:text-pen-deep"
               >
-                a Waypoint Pro feature
+                a Floc Pro feature
               </Link>
               .
             </p>

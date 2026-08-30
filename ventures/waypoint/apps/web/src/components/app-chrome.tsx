@@ -14,10 +14,10 @@ import { ThemeSwitch } from "@/components/theme-switch";
 // The typographic wordmark: the display face, lowercase, with the one blue dot
 // that carries through the product as "yours". Replaces the paper-era serif
 // logo — it can't sit on the white ground.
-function WaypointWordmark() {
+function FlocWordmark() {
   return (
     <span className="font-display text-[15px] font-semibold leading-none tracking-tight text-ink sm:text-[22px]">
-      way<span className="text-pen">.</span>point
+      floc<span className="text-pen">.</span>
     </span>
   );
 }
@@ -90,10 +90,10 @@ export function AppChrome({
       <div className="mx-auto flex h-14 w-full max-w-[84rem] items-center gap-1.5 px-2 sm:gap-4 sm:px-6">
         <Link
           href="/"
-          aria-label="Waypoint home"
+          aria-label="Floc home"
           className="flex shrink-0 items-center transition-opacity hover:opacity-70"
         >
-          <WaypointWordmark />
+          <FlocWordmark />
         </Link>
 
         <div className="flex min-w-0 flex-1 justify-center">
@@ -108,7 +108,7 @@ export function AppChrome({
             <Link
               href="/settings?section=billing"
               className="inline-flex items-center gap-1 rounded-full border border-pro-gold px-2 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-pro-gold hover:bg-pro-gold/10"
-              title="You're on Waypoint Pro"
+              title="You're on Floc Pro"
             >
               Pro
             </Link>

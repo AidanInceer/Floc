@@ -1,4 +1,4 @@
-/* Waypoint docs — mermaid init + a small pan/zoom/expand viewer.
+/* Floc docs — mermaid init + a small pan/zoom/expand viewer.
  *
  * Loaded after assets/vendor/mermaid.min.js on the pages that carry diagrams.
  * Renders every <pre class="mermaid">, then wraps each result in a stage the

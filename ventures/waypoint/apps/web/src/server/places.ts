@@ -16,7 +16,7 @@ import { place } from "@/db/schema";
 import { readCountryCode } from "@/lib/countries";
 
 /** Nominatim requires an identifying UA with a contact address — not a secret, no key to leak. */
-const USER_AGENT = "Waypoint (aidaninceer0@gmail.com)";
+const USER_AGENT = "Floc (aidaninceer0@gmail.com)";
 
 const NOMINATIM_SEARCH = "https://nominatim.openstreetmap.org/search";
 

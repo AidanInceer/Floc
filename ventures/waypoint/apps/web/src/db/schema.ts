@@ -1,5 +1,5 @@
 /**
- * Waypoint v1 physical schema — SQLite/libSQL dialect via Drizzle.
+ * Floc v1 physical schema — SQLite/libSQL dialect via Drizzle.
  * Source of truth: .scratch/waypoint-v1/issues/04-core-data-model-and-schema.md, docs/data-model/erd.html
  *
  * Every application table carries id, created_at, deleted_at (soft-delete), last_modified_at.

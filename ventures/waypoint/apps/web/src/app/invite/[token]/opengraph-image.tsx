@@ -8,7 +8,7 @@
  * trip's name large. No custom font is loaded — ImageResponse's default keeps
  * this robust (rule 11): a card that always renders beats a prettier one that
  * can fail on a font fetch. A dead or unknown token falls back to a plain
- * Waypoint card rather than throwing.
+ * Floc card rather than throwing.
  */
 import { ImageResponse } from "next/og";
 
@@ -18,7 +18,7 @@ import { formatDateRange } from "@/lib/dates";
 export const runtime = "nodejs";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "You're invited to a trip on Waypoint";
+export const alt = "You're invited to a trip on Floc";
 
 const GROUND = "#F7F6F3";
 const INK = "#22201C";
@@ -34,7 +34,7 @@ export default async function InviteOgImage({
   const { token } = await params;
   const found = await findTripByInviteToken(token).catch(() => null);
 
-  const heading = found ? found.name : "Waypoint";
+  const heading = found ? found.name : "Floc";
   const kicker = found
     ? found.hostName
       ? `${found.hostName} invited you to`
@@ -61,7 +61,7 @@ export default async function InviteOgImage({
         }}
       >
         <div style={{ display: "flex", fontSize: 34, fontWeight: 600, color: INK }}>
-          way<span style={{ color: PEN }}>.</span>point
+          floc<span style={{ color: PEN }}>.</span>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column" }}>

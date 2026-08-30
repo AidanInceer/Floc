@@ -315,7 +315,7 @@ export default async function LandingPage() {
             <div className="flex justify-center">
               <span className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-pro-gold px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-pro-gold">
                 <Glyph name="star" />
-                Waypoint Pro
+                Floc Pro
               </span>
             </div>
 
@@ -434,7 +434,7 @@ export default async function LandingPage() {
       <section className="mt-24 grid items-center gap-12 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)] lg:gap-16">
         <div className="rounded-lg bg-pen-soft px-8 py-10 text-center text-pen-deep">
           <p className="font-mono text-[10px] uppercase tracking-[0.22em] opacity-70">
-            Waypoint · admitted
+            Floc · admitted
           </p>
           <p className="my-3.5 font-display text-xl font-semibold tracking-tight">
             Got a link from a friend?

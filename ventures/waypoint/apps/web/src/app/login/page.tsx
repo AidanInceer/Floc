@@ -16,7 +16,7 @@ export default function LoginPage() {
       blurb="Back to the trip you're planning."
       footer={
         <>
-          New to Waypoint?{" "}
+          New to Floc?{" "}
           <Link href="/signup" className={authLinkClass}>
             Create an account
           </Link>

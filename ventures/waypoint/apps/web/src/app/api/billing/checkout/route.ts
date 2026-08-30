@@ -45,7 +45,7 @@ export async function POST(request: Request): Promise<Response> {
     client_reference_id: session.user.id,
     subscription_data: { metadata: { userId: session.user.id } },
     /**
-     * Waypoint sells in GBP only, and both Prices are GBP, so Stripe already
+     * Floc sells in GBP only, and both Prices are GBP, so Stripe already
      * refuses any other currency. Collecting the billing address is what makes
      * a non-GB customer visible; Checkout has no country allow-list of its own.
      */

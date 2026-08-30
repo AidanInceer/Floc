@@ -20,7 +20,7 @@ export type PresetTrip = {
   title: string;
   /** Illustrative only — nothing is a partner. */
   operator: string;
-  /** True for listings Waypoint would write itself rather than sell space for. */
+  /** True for listings Floc would write itself rather than sell space for. */
   editorial?: boolean;
   region: Region;
   country: string;
@@ -48,7 +48,7 @@ export const PRESET_TRIPS: PresetTrip[] = [
   {
     id: "amalfi-slow-week",
     title: "Amalfi coast, slowly",
-    operator: "Waypoint editorial",
+    operator: "Floc editorial",
     editorial: true,
     region: "Europe",
     country: "Italy",
@@ -77,7 +77,7 @@ export const PRESET_TRIPS: PresetTrip[] = [
   {
     id: "scottish-highlands-bothy",
     title: "Highlands walking week",
-    operator: "Waypoint editorial",
+    operator: "Floc editorial",
     editorial: true,
     region: "Europe",
     country: "Scotland",

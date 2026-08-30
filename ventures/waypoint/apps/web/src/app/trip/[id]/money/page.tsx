@@ -226,7 +226,7 @@ function EmptyMoney({ addForm }: { addForm: React.ReactNode }) {
     <div className="mt-8 rounded-lg bg-sheet px-6 py-14 text-center">
       <h2 className="text-xl">Nothing logged yet</h2>
       <p className="mx-auto mt-2 max-w-[48ch] text-sm text-ink-soft">
-        Add an expense and Waypoint works out the fewest payments to square
+        Add an expense and Floc works out the fewest payments to square
         everyone up.
       </p>
       <div className="mt-5 flex justify-center">

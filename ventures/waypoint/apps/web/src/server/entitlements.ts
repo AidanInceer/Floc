@@ -118,6 +118,6 @@ export async function assertFeature<K extends FeatureKey>(
   target: TargetOf<K>,
 ): Promise<void> {
   if (!(await canUseFeature(feature, target))) {
-    throw new Error("That's a Waypoint Pro feature");
+    throw new Error("That's a Floc Pro feature");
   }
 }

@@ -102,7 +102,7 @@ export default async function ExplorePage({
 
       <p className="mt-10 border-t border-rule pt-5 text-xs text-ink-faint">
         These listings are illustrative and not bookable. Operator names are
-        placeholders used to show what a listing would look like — Waypoint has
+        placeholders used to show what a listing would look like — Floc has
         no partnership with any of them, and nothing on this page is paid
         placement.
       </p>

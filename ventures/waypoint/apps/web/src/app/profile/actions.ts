@@ -45,7 +45,7 @@ export async function updateCurrency(formData: FormData): Promise<{ error?: stri
 
   const homeCurrency = String(formData.get("homeCurrency") ?? "GBP") as Currency;
   if (!CURRENCIES.includes(homeCurrency)) {
-    return { error: "Pick a currency Waypoint supports." };
+    return { error: "Pick a currency Floc supports." };
   }
 
   await updateProfileFields(viewer.id, { homeCurrency });

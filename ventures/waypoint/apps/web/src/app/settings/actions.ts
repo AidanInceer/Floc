@@ -1,7 +1,7 @@
 "use server";
 
 // Settings mutations: notification booleans, privacy flags, unlinking a
-// sign-in method, account deletion. No theme action — Waypoint is light-only.
+// sign-in method, account deletion. No theme action — Floc is light-only.
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 

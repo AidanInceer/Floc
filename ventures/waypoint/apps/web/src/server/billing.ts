@@ -185,7 +185,7 @@ export const subscriptionOf = cache(async function subscriptionOf(
 /**
  * A one-off link into Stripe's hosted billing portal (ticket 247). Hosted
  * rather than built: cancelling, swapping card and reading invoices all live
- * behind it, and card details never touch Waypoint.
+ * behind it, and card details never touch Floc.
  */
 export async function portalUrlFor(args: {
   customerId: string;

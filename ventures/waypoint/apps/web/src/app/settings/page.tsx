@@ -397,17 +397,17 @@ export default async function SettingsPage({
               <Stack gap={3}>
                 <p className="text-sm text-ink-soft">
                   There&rsquo;s no consent banner because there&rsquo;s nothing
-                  to consent to yet — Waypoint sends no marketing email and runs
+                  to consent to yet — Floc sends no marketing email and runs
                   no analytics. The invite, nudge and money emails are
                   transactional, not consent-based.
                 </p>
                 <p className="text-sm text-ink-soft">
                   Want a copy of your data? Email{" "}
                   <a
-                    href="mailto:support@waypoint.example"
+                    href="mailto:support@floc.example"
                     className="text-pen underline underline-offset-2 hover:text-pen-deep"
                   >
-                    support@waypoint.example
+                    support@floc.example
                   </a>{" "}
                   — there&rsquo;s no self-serve export in v1.
                 </p>
@@ -423,7 +423,7 @@ export default async function SettingsPage({
             >
               <form action={deleteAccount}>
                 <ConfirmSubmit
-                  message="Delete your Waypoint account? Trips you're the sole admin of will hand admin to their earliest-joined remaining member. This can't be undone from the app."
+                  message="Delete your Floc account? Trips you're the sole admin of will hand admin to their earliest-joined remaining member. This can't be undone from the app."
                   pendingLabel="Deleting…"
                 >
                   Delete my account
@@ -490,7 +490,7 @@ function BillingPanel({
 }) {
   return (
     <Panel
-      title="Waypoint Pro"
+      title="Floc Pro"
       hint="Pro covers everyone on a trip you're in — one of you paying is enough."
     >
       <Stack gap={4}>

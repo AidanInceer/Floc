@@ -64,7 +64,7 @@ function resend(key: string) {
 /** The send itself, once the category gate has already been cleared. */
 async function deliver(email: OutboundEmail): Promise<boolean> {
   const html = renderShell(email);
-  const from = process.env.EMAIL_FROM ?? "Waypoint <no-reply@waypoint.example>";
+  const from = process.env.EMAIL_FROM ?? "Floc <no-reply@floc.example>";
   const key = process.env.RESEND_API_KEY;
 
   if (!key) {
@@ -124,7 +124,7 @@ export async function sendEmails(batch: OutboundEmail[]): Promise<void> {
   );
 }
 
-/** `ada@waypoint.example` → `a…a@waypoint.example`: enough to tell apart, not enough to be an address. */
+/** `ada@floc.example` → `a…a@floc.example`: enough to tell apart, not enough to be an address. */
 function maskAddress(to: string): string {
   const at = to.lastIndexOf("@");
   if (at <= 0) return "…";
@@ -159,9 +159,9 @@ function renderShell(email: OutboundEmail) {
   // retired Georgia belonged to the notebook's serif voice (ticket 121).
   return `<div style="background:#f7f6f3;padding:24px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#14141a">
   <div style="max-width:520px;margin:0 auto;background:#ffffff;border:1px solid #e6e4de;border-radius:16px;padding:24px">
-    <p style="margin:0 0 20px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:12px;color:#63636f">Waypoint</p>
+    <p style="margin:0 0 20px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:12px;color:#63636f">Floc</p>
     ${body}${cta}
-    <p style="margin:24px 0 0;font-size:12px;color:#63636f">You can turn these emails off in Waypoint settings.</p>
+    <p style="margin:24px 0 0;font-size:12px;color:#63636f">You can turn these emails off in Floc settings.</p>
   </div>
 </div>`;
 }
@@ -203,9 +203,9 @@ export const emails = {
   /** Trigger: a password sign-up (ticket 149). Google sign-ups never see this. */
   verifyEmail: (args: { to: string; url: string }): OutboundEmail => ({
     to: args.to,
-    subject: "Confirm your email for Waypoint",
+    subject: "Confirm your email for Floc",
     lines: [
-      "Confirm this address to start joining trips on Waypoint.",
+      "Confirm this address to start joining trips on Floc.",
       "The link works once and expires within the hour.",
     ],
     cta: { label: "Confirm email", url: args.url },
@@ -218,7 +218,7 @@ export const emails = {
   /** Trigger: someone asks to reset a forgotten password (#149). */
   resetPassword: (args: { to: string; url: string }): OutboundEmail => ({
     to: args.to,
-    subject: "Reset your Waypoint password",
+    subject: "Reset your Floc password",
     lines: [
       "Someone asked to reset the password on this address.",
       "The link works once and expires within the hour. If this wasn't you, ignore it — nothing has changed.",
@@ -239,7 +239,7 @@ export const emails = {
     to: args.to,
     subject: `${args.fromName} invited you to ${args.tripName}`,
     lines: [
-      `${args.fromName} is planning ${args.tripName} on Waypoint and wants you in.`,
+      `${args.fromName} is planning ${args.tripName} on Floc and wants you in.`,
       "Anyone with this link can join the trip, so keep it to the group.",
     ],
     cta: { label: "See the trip", url: absoluteUrl(`/invite/${args.token}`) },
@@ -309,7 +309,7 @@ export const emails = {
     subject: `${args.fromName} added a cost to ${args.tripName}`,
     lines: [
       `${args.fromName} logged “${args.description}”.`,
-      `Your share is ${args.share}. Nothing has moved — Waypoint only keeps the ledger.`,
+      `Your share is ${args.share}. Nothing has moved — Floc only keeps the ledger.`,
     ],
     cta: { label: "See the money", url: absoluteUrl(`/trip/${args.tripId}/money`) },
     category: "money",
@@ -324,7 +324,7 @@ export const emails = {
     to: args.to,
     toUserId: args.toUserId,
     subject: `${args.fromName} wants to be travel friends`,
-    lines: [`${args.fromName} sent you a friend request on Waypoint.`],
+    lines: [`${args.fromName} sent you a friend request on Floc.`],
     cta: { label: "Open friends", url: absoluteUrl("/friends") },
     category: "invites",
   }),

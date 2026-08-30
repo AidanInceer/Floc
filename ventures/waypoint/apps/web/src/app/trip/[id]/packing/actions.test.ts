@@ -215,7 +215,7 @@ describe("suggesting what to pack", () => {
     signIn(world.admin);
 
     await expect(fillMyPackingList(world.ours.id)).rejects.toThrow(
-      "Waypoint Pro",
+      "Floc Pro",
     );
     expect(await listPersonalPackingLines(world.ours.id, world.admin)).toEqual([]);
   });
