@@ -23,7 +23,7 @@ import {
   proLead,
   proPerks,
 } from "./landing-content";
-import type { Perk } from "./landing-content";
+import type { Feature, Perk } from "./landing-content";
 
 function SectionHead({
   title,
@@ -169,22 +169,53 @@ export default async function LandingPage() {
       {/* ── feature summary ──────────────────────────────────────────── */}
       <section className="mt-24">
         <SectionHead title="Everything in one place" />
+        {/* Same contract as the Pro block below: what you see is what you can
+          use today, and what is only planned folds away behind the chevron. */}
         <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {features.map((f) => (
-            <article
-              key={f.title}
-              className="lift rounded-lg border border-rule bg-sheet p-6"
-            >
-              <div className="flex items-center gap-3">
-                <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-md bg-sheet-2 text-ink">
-                  <Glyph name={f.icon} className="size-[18px]" />
-                </span>
-                <h3 className="text-md">{f.title}</h3>
-              </div>
-              <p className="mt-4 text-sm text-ink-soft">{f.body}</p>
-            </article>
-          ))}
+          {features
+            .filter((f) => !f.soon)
+            .map((f) => (
+              <FeatureCard key={f.title} feature={f} />
+            ))}
         </div>
+
+        {/* <details>, not state — the fold works before hydration. */}
+        <details className="group mt-6">
+          <summary className="mx-auto flex w-fit cursor-pointer list-none items-center gap-2 rounded-full border border-rule px-4 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft transition-colors hover:bg-sheet-2 [&::-webkit-details-marker]:hidden">
+            <span className="group-open:hidden">More, coming soon</span>
+            <span className="hidden group-open:inline">Show less</span>
+            <svg
+              width={12}
+              height={12}
+              viewBox="0 0 14 14"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.6}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="shrink-0 transition-transform group-open:-rotate-180"
+              aria-hidden
+            >
+              <path d="M3 5.5l4 4 4-4" />
+            </svg>
+          </summary>
+
+          {/* Flex, not grid: a part-full last row centres under the grid above
+            rather than hanging off its left edge. The widths reproduce the
+            same tracks, gap included. */}
+          <div className="mt-6 flex flex-wrap justify-center gap-5">
+            {features
+              .filter((f) => f.soon)
+              .map((f) => (
+                <div
+                  key={f.title}
+                  className="w-full md:w-[calc((100%-1.25rem)/2)] lg:w-[calc((100%-2.5rem)/3)]"
+                >
+                  <FeatureCard feature={f} />
+                </div>
+              ))}
+          </div>
+        </details>
       </section>
 
       {/* ── the sample map ───────────────────────────────────────────── */}
@@ -333,11 +364,18 @@ export default async function LandingPage() {
                 </svg>
               </summary>
 
-              <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {/* Flex for the same reason as the free fold above: a part-full
+                last row sits centred, not left-hung. */}
+              <div className="mt-6 flex flex-wrap justify-center gap-4">
                 {proPerks
                   .filter((p) => p.soon)
                   .map((p) => (
-                    <PerkCard key={p.title} perk={p} />
+                    <div
+                      key={p.title}
+                      className="w-full sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-3rem)/4)]"
+                    >
+                      <PerkCard perk={p} />
+                    </div>
                   ))}
               </div>
             </details>
@@ -420,13 +458,36 @@ export default async function LandingPage() {
 }
 
 /**
+ * One tile in the free feature grid. The "soon" badge is a plain rule outline
+ * — the Pro grid's gold is what marks a perk as paid, so it stays over there.
+ */
+function FeatureCard({ feature }: { feature: Feature }) {
+  return (
+    <article className="lift h-full rounded-lg border border-rule bg-sheet p-6">
+      <div className="flex items-center gap-3">
+        <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-md bg-sheet-2 text-ink">
+          <Glyph name={feature.icon} className="size-[18px]" />
+        </span>
+        <h3 className="text-md">{feature.title}</h3>
+        {feature.soon ? (
+          <span className="ml-auto inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-rule px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">
+            Soon
+          </span>
+        ) : null}
+      </div>
+      <p className="mt-4 text-sm text-ink-soft">{feature.body}</p>
+    </article>
+  );
+}
+
+/**
  * One perk in the Pro grid. The "coming soon" badge is a gold outline rather
  * than a filled chip so it reads as a caveat on the perk and never competes
  * with the buy buttons at the foot of the block.
  */
 function PerkCard({ perk }: { perk: Perk }) {
   return (
-    <article className="rounded-md border border-pro-edge bg-pro-2 p-4">
+    <article className="h-full rounded-md border border-pro-edge bg-pro-2 p-4">
       <div className="flex items-center gap-2.5">
         <span className="shrink-0 text-pro-gold">
           <Glyph name={perk.icon} className="size-[18px]" />

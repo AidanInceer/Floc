@@ -290,7 +290,14 @@ export const reviews: Review[] = [
 ];
 
 // ── the feature summary (sc2) ─────────────────────────────────────────────
-export type Feature = { icon: GlyphName; title: string; body: string };
+/** `soon` marks a feature that is sold but not built yet — same contract as
+ * `Perk.soon`. Drop the flag the day it ships. */
+export type Feature = {
+  icon: GlyphName;
+  title: string;
+  body: string;
+  soon?: boolean;
+};
 
 export const features: Feature[] = [
   {
@@ -337,6 +344,18 @@ export const features: Feature[] = [
     icon: "book",
     title: "Memories you won't forget",
     body: "Come back to it in ten years and the whole trip is still exactly where you left it.",
+  },
+  {
+    icon: "dates",
+    title: "Tickets on the day they're for",
+    soon: true,
+    body: "The ferry ticket lives on the ferry day, not in a folder with eleven others.",
+  },
+  {
+    icon: "alert",
+    title: "Nothing double-booked",
+    soon: true,
+    body: "Two plans, one afternoon. It spots the clash before you're stood in the wrong street.",
   },
 ];
 
