@@ -295,53 +295,48 @@ export type Feature = { icon: GlyphName; title: string; body: string };
 export const features: Feature[] = [
   {
     icon: "ideas",
-    title: "Vote on where to go",
-    body: "Everyone drops in places and votes. The board settles it, not the loudest voice.",
+    title: "Decide where, together",
+    body: "Anyone can add a place. Everyone votes. The board picks, not the loudest voice.",
   },
   {
     icon: "dates",
-    title: "Find the week that works",
-    body: "Everyone shades their free days; the weeks that work for all show through.",
+    title: "Group availability, sorted",
+    body: "Shade your free days once. The calendar shows which weeks the whole group can make.",
   },
   {
     icon: "days",
-    title: "Plan each day, loosely",
-    body: "Where you sleep and roughly what's on. Empty days stay empty — a plan, not a schedule.",
+    title: "A plan, not a schedule",
+    body: "For all kinds of traveller — flexible or down to the minute.",
   },
   {
     icon: "money",
-    title: "Settle who owes who",
-    body: "Log what you paid and how it splits. One net figure each — no money moves through Waypoint.",
+    title: "Split the bill, not the group",
+    body: "Log what you paid, set how it splits. One number each — no group accountant required.",
   },
   {
     icon: "people",
-    title: "Everyone plans together",
-    body: "One page the whole group edits, kept in sync. No forwarded screenshots, no lost threads.",
-  },
-  {
-    icon: "weather",
-    title: "The forecast on your dates",
-    body: "Sun, rain and temperature against every day you might go.",
+    title: "Ditch the group chat",
+    body: "One plan everyone can edit. No scrolling back 400 messages for the address.",
   },
   {
     icon: "packing",
-    title: "Pack without the list chat",
-    body: "Shared and personal lists side by side — the tent gets brought once, the socks are your problem.",
+    title: "Pack once, pack right",
+    body: "Split the list: what the group brings, what's on you. Nothing doubles up, nothing's forgotten.",
   },
   {
     icon: "notes",
-    title: "Write anything down",
-    body: "The door code, the ferry quirk, the plan B — written once, read by everyone.",
+    title: "Notes everyone can see",
+    body: "The door code lives here, not in someone's DMs. Write it once and everyone has it.",
   },
   {
     icon: "files",
-    title: "Keep the paperwork together",
-    body: "Bookings, tickets and passes filed against the trip, not buried in someone's inbox.",
+    title: "Tickets, filed",
+    body: "Confirmations and passes attached to the trip. Nobody has to forward anything, ever.",
   },
   {
     icon: "book",
-    title: "Keep the trip after",
-    body: "A finished trip is kept, not deleted. Next year starts from what this one actually cost.",
+    title: "Memories you won't forget",
+    body: "Come back to it in ten years and the whole trip is still exactly where you left it.",
   },
 ];
 
@@ -370,7 +365,7 @@ export const proLead: Perk = {
   icon: "flight",
   soon: true,
   title: "A travel agent in your pocket",
-  body: "AI trip planning that does the legwork: sorts the bookings, suggests what to do, and reorganises the days when something is delayed.",
+  body: "Ideas worth doing, tickets that appear right on time, and a day that quietly reshuffles itself when something slips.",
 };
 
 export const proPerks: Perk[] = [
@@ -382,26 +377,31 @@ export const proPerks: Perk[] = [
   },
   {
     icon: "compass",
-    title: "Places worth going",
+    title: "Hidden gems, found",
     soon: true,
-    body: "Picked for your stop, not a top-ten list.",
+    body: "Picked for your stop and your dates — the places a top-ten list never gets to.",
   },
   {
     icon: "alert",
     title: "Delays, handled",
     soon: true,
-    body: "A late flight reshuffles the day for you to accept.",
+    body: "Train late? The schedule shifts around it before anyone starts panicking.",
   },
   {
     icon: "inbox",
-    title: "Bookings in and out",
+    title: "Bookings that file themselves",
     soon: true,
-    body: "Confirmations file themselves into the right day.",
+    body: "Send the confirmation in; it finds its day and waits there for you.",
+  },
+  {
+    icon: "weather",
+    title: "The weather, in advance",
+    body: "Sun, rain and degrees for each day you might go. Pack accordingly.",
   },
   {
     icon: "packing",
     title: "Packing that reads the trip",
-    body: "Lists built from the forecast and what is on.",
+    body: "Lists built from the forecast and what's actually on the plan.",
   },
   {
     icon: "notes",
@@ -412,12 +412,12 @@ export const proPerks: Perk[] = [
   {
     icon: "files",
     title: "Room for every document",
-    body: "Far more storage for tickets, passes and scans.",
+    body: "A full 1GB per trip — enough for every ticket, pass and scan, twice over.",
   },
   {
     icon: "offline",
-    title: "Offline access",
+    title: "No signal, no problem",
     soon: true,
-    body: "The whole plan on the phone, no signal needed.",
+    body: "Everything downloaded before you go. The plan works in a tunnel or on a plane.",
   },
 ];
