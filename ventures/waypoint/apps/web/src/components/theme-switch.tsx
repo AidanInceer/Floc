@@ -41,7 +41,9 @@ export function ThemeSwitch() {
           aria-label={option === "light" ? "Light" : "Dark"}
           aria-pressed={theme === null ? undefined : theme === option}
           onClick={() => choose(option)}
-          className="theme-choice lift flex h-8 w-7 items-center justify-center rounded-full sm:w-8 text-ink-soft hover:text-ink"
+          // Colour is left to `.theme-choice` in globals.css — a Tailwind text
+          // utility here sits in a later layer and wins over the lit state.
+          className="theme-choice lift flex h-8 w-7 items-center justify-center rounded-full sm:w-8"
         >
           {option === "light" ? <SunriseIcon /> : <MoonIcon />}
         </button>

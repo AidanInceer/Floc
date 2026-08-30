@@ -100,8 +100,6 @@ export function AppChrome({
           {user ? <PillNav label="Your surfaces" items={navItems} /> : null}
         </div>
 
-        {/* The theme switch sits with the account controls, signed in or out —
-            the same control in the same place either way (ticket 240). */}
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           {/* Gold, and the only gold in the bar — it reads as the one paid
               thing rather than as another control. Links to the billing
@@ -109,17 +107,19 @@ export function AppChrome({
           {user && isPro ? (
             <Link
               href="/settings?section=billing"
-              className="hidden items-center gap-1 rounded-full border border-pro-gold px-2 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-pro-gold hover:bg-pro-gold/10 sm:inline-flex"
+              className="inline-flex items-center gap-1 rounded-full border border-pro-gold px-2 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-pro-gold hover:bg-pro-gold/10"
               title="You're on Waypoint Pro"
             >
               Pro
             </Link>
           ) : null}
-          <ThemeSwitch />
+          {/* Signed in, the theme switch is inside the account menu — the bar
+              only carries it for someone who has no menu to put it in. */}
           {user ? (
             <AccountMenu user={user} />
           ) : (
             <>
+              <ThemeSwitch />
               <ButtonLink href="/login" variant="ghost">
                 Log in
               </ButtonLink>
