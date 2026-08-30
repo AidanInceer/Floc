@@ -17,6 +17,12 @@ Pitfalls: [`learnings.md`](learnings.md).
 
 Key docs: [approach](docs/design/approach.html) · [visual language](docs/design/visual-language.html) · [architecture](docs/architecture/architecture.html) · [ERD](docs/data-model/erd.html).
 
+## Environment
+
+Windows 11. The terminal is **Windows PowerShell 5.1** (VS Code's default), not pwsh 7 and not bash.
+No `&&` — chain with `;`. No `ls`/`rm -rf`/`touch`/`cat` — use `Get-ChildItem`, `Remove-Item -Recurse -Force`, `New-Item`, `Get-Content`.
+Hand the user PowerShell, never Unix shell.
+
 ## Commands
 
 ```bash
