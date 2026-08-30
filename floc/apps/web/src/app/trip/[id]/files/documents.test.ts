@@ -21,19 +21,19 @@ import { listDocuments } from "@/server/documents";
 import { removeDocument, setCategory, uploadDocument } from "./actions";
 
 let world: Scenario;
-const previousDir = process.env.WAYPOINT_FILES_DIR;
+const previousDir = process.env.FLOC_FILES_DIR;
 
 beforeAll(migrateTestDb);
 
 afterAll(() => {
-  process.env.WAYPOINT_FILES_DIR = previousDir;
+  process.env.FLOC_FILES_DIR = previousDir;
 });
 
 beforeEach(async () => {
   // A fresh volume each time, so "what is on the disk?" is a question about
   // this test only.
-  process.env.WAYPOINT_FILES_DIR = await mkdtemp(
-    path.join(tmpdir(), "waypoint-files-"),
+  process.env.FLOC_FILES_DIR = await mkdtemp(
+    path.join(tmpdir(), "floc-files-"),
   );
   await resetDb();
   world = await seedScenario();
@@ -79,7 +79,7 @@ describe("uploadDocument", () => {
     expect(await uploadDocument(world.ours.id, data)).toEqual({
       error: "Only PDFs and images can go here",
     });
-    expect(await readdir(process.env.WAYPOINT_FILES_DIR!)).toEqual([]);
+    expect(await readdir(process.env.FLOC_FILES_DIR!)).toEqual([]);
   });
 
   it("refuses a trip the viewer is not on", async () => {
@@ -105,7 +105,7 @@ describe("removeDocument", () => {
     await removeDocument(world.ours.id, doc.id);
 
     expect(await listDocuments(world.ours.id, world.member)).toEqual([]);
-    expect(await readdir(process.env.WAYPOINT_FILES_DIR!)).toEqual([]);
+    expect(await readdir(process.env.FLOC_FILES_DIR!)).toEqual([]);
   });
 });
 

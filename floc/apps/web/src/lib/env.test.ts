@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { appUrl, requireInProduction } from "./env";
 
-const NAME = "WAYPOINT_TEST_ONLY_VAR";
+const NAME = "FLOC_TEST_ONLY_VAR";
 
 afterEach(() => {
   vi.unstubAllEnvs();

@@ -1,4 +1,4 @@
-# Waypoint — glossary
+# Floc — glossary
 
 The project's ubiquitous language. Terms only — no implementation, no spec.
 Keep it a glossary and nothing else.

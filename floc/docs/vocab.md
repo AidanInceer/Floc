@@ -1,4 +1,4 @@
-# Vocabulary — Waypoint
+# Vocabulary — Floc
 
 The words this venture uses, and the words it does not. Use the term as it is
 defined here in code, in copy, in issues and in commit messages. Do not use a

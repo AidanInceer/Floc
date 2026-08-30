@@ -4,13 +4,13 @@ import { isValidEmail, passwordWeakness } from "./credentials";
 
 describe("isValidEmail", () => {
   it("accepts a plain address", () => {
-    expect(isValidEmail("ada@waypoint.example")).toBe(true);
+    expect(isValidEmail("ada@floc.example")).toBe(true);
   });
 
   it("rejects a missing @ or domain", () => {
-    expect(isValidEmail("ada.waypoint.example")).toBe(false);
+    expect(isValidEmail("ada.floc.example")).toBe(false);
     expect(isValidEmail("ada@localhost")).toBe(false);
-    expect(isValidEmail("ada @waypoint.example")).toBe(false);
+    expect(isValidEmail("ada @floc.example")).toBe(false);
   });
 });
 

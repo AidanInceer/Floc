@@ -16,7 +16,7 @@ import { join } from "node:path";
 
 import { vi } from "vitest";
 
-const dir = mkdtempSync(join(tmpdir(), "waypoint-test-"));
+const dir = mkdtempSync(join(tmpdir(), "floc-test-"));
 const worker = process.env.VITEST_WORKER_ID ?? "0";
 process.env.TURSO_DATABASE_URL = `file:${join(dir, `w${worker}.db`)}`;
 delete process.env.TURSO_AUTH_TOKEN;

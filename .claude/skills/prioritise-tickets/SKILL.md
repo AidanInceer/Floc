@@ -1,26 +1,26 @@
 ---
 name: prioritise-tickets
-description: Order and tag every unprioritised open issue in AidanInceer/Waypoint, prefix each title with its feature category, and write the result to the Priority stack issue. Use when the user wants to prioritise the backlog, groom ticket order, or fix ticket labels and titles.
+description: Order and tag every unprioritised open issue in AidanInceer/Floc, prefix each title with its feature category, and write the result to the Priority stack issue. Use when the user wants to prioritise the backlog, groom ticket order, or fix ticket labels and titles.
 ---
 
 # prioritise-tickets
 
-Put every open Waypoint issue into one ordered stack, and make sure each one carries the right labels.
+Put every open Floc issue into one ordered stack, and make sure each one carries the right labels.
 
-The order lives in a single GitHub issue titled **`Priority`** in `AidanInceer/Waypoint`. Its body is the stack — **top line = next ticket to pick up**.
+The order lives in a single GitHub issue titled **`Priority`** in `AidanInceer/Floc`. Its body is the stack — **top line = next ticket to pick up**.
 
 ## The stack issue
 
 Find it:
 
 ```bash
-gh issue list --repo AidanInceer/Waypoint --state open --search "Priority in:title" --json number,title
+gh issue list --repo AidanInceer/Floc --state open --search "Priority in:title" --json number,title
 ```
 
 If it does not exist, create it once:
 
 ```bash
-gh issue create --repo AidanInceer/Waypoint --title "Priority" --label future-work \
+gh issue create --repo AidanInceer/Floc --title "Priority" --label future-work \
   --body "## Priority stack
 
 Top = next to pick up. Maintained by \`/prioritise-tickets\`. Consumed by \`/pickup-ticket\`.
@@ -39,7 +39,7 @@ Body format — one line per ticket, highest priority first:
 
 Every ticket title is prefixed with its **feature category**: `<category>: <title>`. Do this **agentically** — derive the category from the ticket body, apply it, and only ask the user when a ticket genuinely fits two categories equally.
 
-Categories come from the app's own routes and server modules (`ventures/waypoint/apps/web/src/app/trip/[id]/*`, `src/server/*`). Current set:
+Categories come from the app's own routes and server modules (`floc/apps/web/src/app/trip/[id]/*`, `src/server/*`). Current set:
 
 | Category | Covers |
 |---|---|
@@ -65,7 +65,7 @@ Categories come from the app's own routes and server modules (`ventures/waypoint
 Add a category only if a ticket fits none — and say so when you do. Apply with:
 
 ```bash
-gh issue edit <n> --repo AidanInceer/Waypoint --title "<category>: <title>"
+gh issue edit <n> --repo AidanInceer/Floc --title "<category>: <title>"
 ```
 
 Never double-prefix. If a title already starts with `<something>: `, replace that prefix rather than stacking another on top. Strip it and re-derive.
@@ -90,9 +90,9 @@ Blocked-by edges live in the issue **body** under `## Blocked by`, written as `#
 Create any missing type label once:
 
 ```bash
-gh label create "type:feat" --repo AidanInceer/Waypoint --color 1d76db --description "New behaviour"
-gh label create "type:fix" --repo AidanInceer/Waypoint --color d73a4a --description "Something is broken"
-gh label create "type:refinement" --repo AidanInceer/Waypoint --color fbca04 --description "Reshape or polish existing behaviour"
+gh label create "type:feat" --repo AidanInceer/Floc --color 1d76db --description "New behaviour"
+gh label create "type:fix" --repo AidanInceer/Floc --color d73a4a --description "Something is broken"
+gh label create "type:refinement" --repo AidanInceer/Floc --color fbca04 --description "Reshape or polish existing behaviour"
 ```
 
 ## Process
@@ -100,7 +100,7 @@ gh label create "type:refinement" --repo AidanInceer/Waypoint --color fbca04 --d
 ### 1. Work out what is unprioritised
 
 ```bash
-gh issue list --repo AidanInceer/Waypoint --state open --limit 200 --json number,title,labels,body
+gh issue list --repo AidanInceer/Floc --state open --limit 200 --json number,title,labels,body
 ```
 
 Read the `Priority` issue body. A ticket is **unprioritised** if it is open, is not the `Priority` issue itself, is not labelled `future-work` or `on-develop`, and does not already appear in the stack.
@@ -159,7 +159,7 @@ Every ticket in the stack carries exactly one type label. A `wayfinder:*` label 
 Derive the type yourself and apply it. Only ask when a ticket genuinely reads as two types at once, and then ask about every such ticket in the same message as the Step A ambiguity questions — never one at a time:
 
 ```bash
-gh issue edit <n> --repo AidanInceer/Waypoint --add-label "type:feat"
+gh issue edit <n> --repo AidanInceer/Floc --add-label "type:feat"
 ```
 
 If the user says a ticket should be parked instead, label it `future-work` and leave it out of the stack.
@@ -173,7 +173,7 @@ A ticket must never sit **above** a ticket it is blocked by. After every insert,
 Rewrite the whole `Priority` issue body once, at the end:
 
 ```bash
-gh issue edit <priority-issue-number> --repo AidanInceer/Waypoint --body-file <file>
+gh issue edit <priority-issue-number> --repo AidanInceer/Floc --body-file <file>
 ```
 
 ### 7. Report back

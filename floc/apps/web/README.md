@@ -1,6 +1,6 @@
-# waypoint-web
+# floc-web
 
-The Waypoint v1 app: a group-travel planner. Next.js App Router, Turso (libSQL)
+The Floc v1 app: a group-travel planner. Next.js App Router, Turso (libSQL)
 + Drizzle, Better Auth.
 
 This replaces [`../prototype`](../prototype/README.md), which implemented the
@@ -17,19 +17,19 @@ corepack pnpm install
 ```
 
 ```bash
-cp ventures/waypoint/apps/web/.env.example ventures/waypoint/apps/web/.env
+cp floc/apps/web/.env.example floc/apps/web/.env
 ```
 
 ```bash
-corepack pnpm --filter waypoint-web db:push
+corepack pnpm --filter floc-web db:push
 ```
 
 ```bash
-corepack pnpm --filter waypoint-web db:seed
+corepack pnpm --filter floc-web db:seed
 ```
 
 ```bash
-corepack pnpm --filter waypoint-web dev
+corepack pnpm --filter floc-web dev
 ```
 
 `db:seed` writes one trip mid-planning ("Portugal, late summer") so every tab
@@ -98,7 +98,7 @@ Ticket 04 lists invariants SQLite cannot enforce. Where each one lives:
 `src/db/schema.ts` and `drizzle/` move together. Edit the schema, then:
 
 ```bash
-corepack pnpm --filter waypoint-web db:generate
+corepack pnpm --filter floc-web db:generate
 ```
 
 Commit the generated `.sql` and the `meta/` update alongside the schema change.
@@ -121,7 +121,7 @@ anything shared.
 To apply migrations by hand to an environment you have credentials for:
 
 ```bash
-railway run --service waypoint-web node ventures/waypoint/apps/web/scripts/migrate.mjs
+railway run --service floc-web node floc/apps/web/scripts/migrate.mjs
 ```
 
 `scripts/baseline-migrations.mjs` is the one-off that stamped the existing
@@ -133,7 +133,7 @@ migration that genuinely needs to run.
 ## Tests
 
 ```bash
-corepack pnpm --filter waypoint-web test
+corepack pnpm --filter floc-web test
 ```
 
 Unit tests cover the parts with exact invariants: money splitting and balances,
@@ -142,7 +142,7 @@ in v1.
 
 ## Deployment
 
-Live on Railway (service `waypoint-web`, project `unique-healing`), building
+Live on Railway (service `floc-web`, project `unique-healing`), building
 from `main` in this repo. Deploy behaviour is config-as-code in
 [`railway.json`](../../../../railway.json) at the repo root: `preDeployCommand`
 runs migrations, `startCommand` boots the app. Both override the dashboard

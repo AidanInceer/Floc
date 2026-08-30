@@ -1,6 +1,6 @@
 ---
 name: pickup-ticket
-description: Take the top ticket off the Priority stack in AidanInceer/Waypoint and start work on it. Use when the user asks what's next, or wants to pick up the next ticket.
+description: Take the top ticket off the Priority stack in AidanInceer/Floc and start work on it. Use when the user asks what's next, or wants to pick up the next ticket.
 ---
 
 # pickup-ticket
@@ -12,7 +12,7 @@ Take the **top** ticket off the `Priority` stack issue and start it.
 ### 1. Read the stack
 
 ```bash
-gh issue list --repo AidanInceer/Waypoint --state open --search "Priority in:title" --json number,body
+gh issue list --repo AidanInceer/Floc --state open --search "Priority in:title" --json number,body
 ```
 
 If the stack is missing or empty, say so and point at `/prioritise-tickets`.
@@ -36,8 +36,8 @@ Follow the repo workflow in `CLAUDE.md`:
 
 - Work on `develop`. No feature branch.
 - One commit for the ticket. Subject: `<version> #<issue>: <type>: <description>`.
-- Bump `ventures/waypoint/apps/web/package.json` in the same commit — minor for `feat`, patch for `fix`/`refinement`.
-- Body ends `Closes AidanInceer/Waypoint#<n>`.
+- Bump `floc/apps/web/package.json` in the same commit — minor for `feat`, patch for `fix`/`refinement`.
+- Body ends `Closes AidanInceer/Floc#<n>`.
 - Run `pnpm verify` green before pushing. Stop the dev server first.
 
 ### 5. Pop the stack once it is on develop
@@ -45,13 +45,13 @@ Follow the repo workflow in `CLAUDE.md`:
 The moment the ticket's commit is pushed to `develop`:
 
 ```bash
-gh issue edit <n> --repo AidanInceer/Waypoint --add-label "on-develop"
+gh issue edit <n> --repo AidanInceer/Floc --add-label "on-develop"
 ```
 
 Then remove that ticket's line from the `Priority` issue body and renumber:
 
 ```bash
-gh issue edit <priority-issue-number> --repo AidanInceer/Waypoint --body-file <file>
+gh issue edit <priority-issue-number> --repo AidanInceer/Floc --body-file <file>
 ```
 
 **A ticket leaves the stack when it is tagged `on-develop`, not when work starts.** If the work is abandoned, the ticket stays where it is.

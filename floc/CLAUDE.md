@@ -1,6 +1,6 @@
-# CLAUDE.md — Waypoint (venture)
+# CLAUDE.md — Floc (venture)
 
-Venture rules. Win inside `ventures/waypoint/`; hub [`CLAUDE.md`](../../CLAUDE.md) covers the rest. Pitfalls: [`../../learnings.md`](../../learnings.md).
+Venture rules. Win inside `floc/`; hub [`CLAUDE.md`](../../CLAUDE.md) covers the rest. Pitfalls: [`../../learnings.md`](../../learnings.md).
 
 ## What it is
 
@@ -17,7 +17,7 @@ Group-travel planner: friends deciding where/when/order, who owes who. Pre-MVP. 
 | `apps/web/src/components/` | `ui.tsx`/`client-ui.tsx` = house design system — reach first. |
 | `apps/web/src/db/schema.ts` | Schema of record. Mirrors [`docs/data-model/erd.html`](../../docs/data-model/erd.html) — change both. |
 | `docs/` | Local HTML site (`docs/index.html`), no build. Approach, visual language, vocab, backlog. |
-| `.scratch/waypoint-v1/` | One file per ticket/decision (`map.md` = index). Read relevant ticket before changing behaviour. |
+| `.scratch/floc-v1/` | One file per ticket/decision (`map.md` = index). Read relevant ticket before changing behaviour. |
 
 ## Non-negotiables
 

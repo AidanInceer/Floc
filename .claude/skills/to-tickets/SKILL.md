@@ -1,11 +1,11 @@
 ---
 name: to-tickets
-description: Break a plan, spec, or conversation into tracer-bullet GitHub issues in AidanInceer/Waypoint, each labelled and declaring its blocking edges. Use when slicing a feature into tickets.
+description: Break a plan, spec, or conversation into tracer-bullet GitHub issues in AidanInceer/Floc, each labelled and declaring its blocking edges. Use when slicing a feature into tickets.
 ---
 
 # to-tickets
 
-Break a plan into **tracer-bullet** GitHub issues in `AidanInceer/Waypoint`.
+Break a plan into **tracer-bullet** GitHub issues in `AidanInceer/Floc`.
 
 New issues come out **unprioritised** — they are not added to the `Priority` stack here. `/prioritise-tickets` places them; `/pickup-ticket` works them.
 
@@ -55,7 +55,7 @@ Iterate until the user approves.
 
 ### 5. Create the issues
 
-Create approved tickets in `AidanInceer/Waypoint`, in dependency order (blockers first so they get real issue numbers to reference).
+Create approved tickets in `AidanInceer/Floc`, in dependency order (blockers first so they get real issue numbers to reference).
 
 **Approval can arrive sideways.** "Yes, create those" tacked onto the front of another command still counts. Do not re-ask.
 
@@ -63,7 +63,7 @@ Apply the type label at creation — `--label "type:feat" | "type:fix" | "type:r
 
 ```bash
 gh issue create \
-  --repo AidanInceer/Waypoint \
+  --repo AidanInceer/Floc \
   --title "<title>" \
   --body "$(cat <<'EOF'
 ## What to build
@@ -91,7 +91,7 @@ List every created issue: number, title, type label, blocking edges. Then remind
 ## Constraints
 
 - Avoid specific file paths or code snippets in issue bodies — they go stale fast. Exception: a prototype snippet that encodes a decision precisely (state machine, type shape, schema diff) is worth including; note briefly that it came from a prototype.
-- Issues live in `AidanInceer/Waypoint`, not the hub repo.
+- Issues live in `AidanInceer/Floc`, not the hub repo.
 - Blocked-by edges go in the body under `## Blocked by` as `#<n>`, never as a label — `/prioritise-tickets` and `/pickup-ticket` read them from there.
 - Never touch the `Priority` issue from this skill.
 - Every created ticket gets a category-prefixed title and exactly one `type:` label at creation.

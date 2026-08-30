@@ -1,6 +1,6 @@
 {
-  "name": "waypoint-web",
-  "version": "0.72.2",
+  "name": "floc-web",
+  "version": "0.72.3",
   "private": true,
   "description": "Floc v1 — group travel planner. Next.js App Router + Turso (libSQL) + Drizzle + Better Auth.",
   "type": "module",

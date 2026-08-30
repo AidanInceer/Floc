@@ -11,7 +11,7 @@
  * Already run once against production (2026-07-30). Kept for the next
  * environment created from an existing database.
  *
- *   railway run --service waypoint-web node ventures/waypoint/apps/web/scripts/baseline-migrations.mjs
+ *   railway run --service floc-web node floc/apps/web/scripts/baseline-migrations.mjs
  */
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";

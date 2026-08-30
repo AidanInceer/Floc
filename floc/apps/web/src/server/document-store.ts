@@ -1,6 +1,6 @@
 /**
  * The bytes, on disk (ticket 239). Railway mounts a volume at
- * `WAYPOINT_FILES_DIR`; no variable, no volume, and the whole Documents
+ * `FLOC_FILES_DIR`; no variable, no volume, and the whole Documents
  * feature hides rather than throwing (rule 11).
  *
  * Deliberately the only file in the codebase that touches the filesystem, and
@@ -19,7 +19,7 @@ import path from "node:path";
 import type { AllowedType } from "@/lib/documents";
 
 function root(): string | null {
-  const dir = process.env.WAYPOINT_FILES_DIR?.trim();
+  const dir = process.env.FLOC_FILES_DIR?.trim();
   return dir ? path.resolve(dir) : null;
 }
 

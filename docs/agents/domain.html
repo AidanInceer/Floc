@@ -13,20 +13,16 @@
 <ul>
 <li><strong><code>CONTEXT-MAP.md</code></strong> at the repo root — points at one <code>CONTEXT.md</code> per venture/context. Read each one relevant to the topic.</li>
 <li><strong><code>docs/adr/</code></strong> — hub-level ADRs (cross-cutting decisions affecting <code>shared/</code>, <code>infra/</code>, or multiple ventures).</li>
-<li><strong><code>ventures/&lt;name&gt;/docs/adr/</code></strong> — venture-scoped decisions for the venture you&#39;re about to work in.</li>
+<li><strong><code>&lt;venture&gt;/docs/adr/</code></strong> — venture-scoped decisions for the venture you&#39;re about to work in, e.g. <code>floc/docs/adr/</code>.</li>
 </ul>
 <p>If any of these files don&#39;t exist, <strong>proceed silently</strong>. Don&#39;t flag their absence; don&#39;t suggest creating them upfront. The <code>/domain-modeling</code> skill (reached via <code>/grill-with-docs</code> and <code>/improve-codebase-architecture</code>) creates them lazily when terms or decisions actually get resolved.</p>
 <h2>File structure (multi-context: this hub)</h2>
 <pre><code>/
 ├── CONTEXT-MAP.md
 ├── docs/adr/                              ← hub-wide decisions
-└── ventures/
-    ├── finance-planner/
-    │   ├── CONTEXT.md
-    │   └── docs/adr/                      ← venture-specific decisions
-    └── waypoint/
-        ├── CONTEXT.md
-        └── docs/adr/
+└── floc/                                  ← one folder per venture
+    ├── CONTEXT.md
+    └── docs/adr/                       ← venture-specific decisions
 </code></pre>
 <h2>Use the glossary&#39;s vocabulary</h2>
 <p>When your output names a domain concept (in an issue title, a refactor proposal, a hypothesis, a test name), use the term as defined in the relevant venture&#39;s <code>CONTEXT.md</code>. Don&#39;t drift to synonyms the glossary explicitly avoids.</p>

@@ -28,7 +28,7 @@ const OUT_TS = path.join(app, "src/lib/countries.ts");
 // Natural Earth codes these two as "-99" — no ISO code, because their status is
 // disputed. Folding each into the state it is internationally recognised as
 // part of keeps the map whole (a blank hole inside Cyprus reads as a bug) and
-// keeps Waypoint out of making a territorial claim in a UI fill.
+// keeps Floc out of making a territorial claim in a UI fill.
 const FOLD = { CYN: "CY", SOL: "SO" };
 
 const round = (n) => Math.round(n * 100) / 100;

@@ -1,7 +1,7 @@
 {
   "$schema": "https://railway.com/railway.schema.json",
   "deploy": {
-    "preDeployCommand": "node ventures/waypoint/apps/web/scripts/migrate.mjs",
-    "startCommand": "pnpm --filter waypoint-web start"
+    "preDeployCommand": "node floc/apps/web/scripts/migrate.mjs",
+    "startCommand": "pnpm --filter floc-web start"
   }
 }

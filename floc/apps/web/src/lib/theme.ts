@@ -9,7 +9,7 @@ export const THEMES = ["light", "dark"] as const;
 
 export type Theme = (typeof THEMES)[number];
 
-export const THEME_STORAGE_KEY = "waypoint-theme";
+export const THEME_STORAGE_KEY = "floc-theme";
 
 /** A stored or already-applied value, or `light` when it is neither. */
 export function readStoredTheme(value: string | undefined | null): Theme {

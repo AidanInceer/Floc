@@ -23,14 +23,14 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-const RESET_URL = "https://waypoint.test/reset-password?token=super-secret-token";
+const RESET_URL = "https://floc.test/reset-password?token=super-secret-token";
 
 describe("console fallback", () => {
   it("keeps the reset token out of production logs", async () => {
     vi.stubEnv("NODE_ENV", "production");
 
     await realEmail.sendEmails([
-      realEmail.emails.resetPassword({ to: "ada@waypoint.test", url: RESET_URL }),
+      realEmail.emails.resetPassword({ to: "ada@floc.test", url: RESET_URL }),
     ]);
 
     expect(logged.join("\n")).not.toContain("super-secret-token");
@@ -40,7 +40,7 @@ describe("console fallback", () => {
     vi.stubEnv("NODE_ENV", "development");
 
     await realEmail.sendEmails([
-      realEmail.emails.resetPassword({ to: "ada@waypoint.test", url: RESET_URL }),
+      realEmail.emails.resetPassword({ to: "ada@floc.test", url: RESET_URL }),
     ]);
 
     expect(logged.join("\n")).toContain("super-secret-token");
@@ -50,10 +50,10 @@ describe("console fallback", () => {
     vi.stubEnv("NODE_ENV", "development");
 
     await realEmail.sendEmails([
-      realEmail.emails.resetPassword({ to: "ada@waypoint.test", url: RESET_URL }),
+      realEmail.emails.resetPassword({ to: "ada@floc.test", url: RESET_URL }),
     ]);
 
-    expect(logged.join("\n")).not.toContain("ada@waypoint.test");
-    expect(logged.join("\n")).toContain("a…a@waypoint.test");
+    expect(logged.join("\n")).not.toContain("ada@floc.test");
+    expect(logged.join("\n")).toContain("a…a@floc.test");
   });
 });
