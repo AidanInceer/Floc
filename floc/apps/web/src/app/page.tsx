@@ -84,18 +84,11 @@ export default async function LandingPage() {
             </ConfettiWord>
             .
           </h1>
-          <p className="mt-6 max-w-[36ch] text-md text-ink-soft">
-            Less faff, fewer group chats. Everything for the trip in one place,
-            kept in sync.
-          </p>
-
           {/* One call to action above the fold (ticket 192); the secondary
-              "get inspired" route waits until the invite band below. */}
-          <div className="mt-8">
-            <ButtonLink href={start} variant="primary">
-              Get planning!
-            </ButtonLink>
-          </div>
+              "get inspired" route waits until the invite band below. Signed
+              out the whole product is behind the account, so the button says
+              so — the price is the objection, so it goes on the button. */}
+          <HeroCta start={start} signedIn={Boolean(session?.user)} />
         </div>
 
         {/* Illustrative sample, not a live query — one settled trip, so the
@@ -467,6 +460,25 @@ export default async function LandingPage() {
           </div>
         </div>
       </section>
+    </div>
+  );
+}
+
+/**
+ * The hero pair. Signed out the whole product sits behind the account, so the
+ * primary button says the price on it and a quiet sign-in sits beside it.
+ */
+function HeroCta({ start, signedIn }: { start: string; signedIn: boolean }) {
+  return (
+    <div className="mt-8 flex flex-wrap items-center gap-4">
+      <ButtonLink href={start} variant="primary">
+        {signedIn ? "Get planning!" : "Sign up free — get planning"}
+      </ButtonLink>
+      {signedIn ? null : (
+        <ButtonLink href="/login" variant="ghost">
+          Sign in
+        </ButtonLink>
+      )}
     </div>
   );
 }
