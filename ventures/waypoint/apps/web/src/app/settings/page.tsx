@@ -28,9 +28,12 @@ import {
   updatePacking,
   updateVibeTags,
 } from "@/app/profile/actions";
-import type { Visibility } from "@/db/schema";
+import type { Subscription, Visibility } from "@/db/schema";
 import { requireUser } from "@/server/access";
+import { subscriptionOf } from "@/server/billing";
 import { ensureProfile, listLinkedAccounts } from "@/server/profile";
+import { BillingAction } from "./billing-buttons";
+import { isLive, renewalLabel } from "@/lib/subscription-copy";
 import {
   AccountPage,
   PillChoice,
@@ -49,6 +52,7 @@ const SECTIONS = [
   { id: "privacy", label: "Privacy" },
   { id: "about-you", label: "About you" },
   { id: "trips", label: "Trips" },
+  { id: "billing", label: "Billing" },
   { id: "email", label: "Email" },
   { id: "account", label: "Account" },
   { id: "data", label: "Your data" },
@@ -85,16 +89,19 @@ const RING_OPTIONS = (
 export default async function SettingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ section?: string }>;
+  searchParams: Promise<{ section?: string; billing?: string }>;
 }) {
   const viewer = await requireUser("/settings");
-  const { section } = await searchParams;
+  const { section, billing } = await searchParams;
+  // Checkout returns to `?billing=done`, so land on the panel that shows it.
+  const asked = section ?? (billing ? "billing" : undefined);
   const current: SectionId =
-    SECTIONS.find((s) => s.id === section)?.id ?? "privacy";
+    SECTIONS.find((s) => s.id === asked)?.id ?? "privacy";
 
-  const [profile, linkedAccounts] = await Promise.all([
+  const [profile, linkedAccounts, subscription] = await Promise.all([
     ensureProfile(viewer.id),
     listLinkedAccounts(viewer.id),
+    subscriptionOf(viewer.id),
   ]);
 
   const vibeTags = readVibeTags(profile.vibeTags);
@@ -291,6 +298,10 @@ export default async function SettingsPage({
             </Stack>
           ) : null}
 
+          {current === "billing" ? (
+            <BillingPanel subscription={subscription} billing={billing} />
+          ) : null}
+
           {current === "email" ? (
             <Panel
               title="Email notifications"
@@ -437,5 +448,84 @@ function SectionRail({ current }: { current: SectionId }) {
         );
       })}
     </nav>
+  );
+}
+
+/**
+ * Plan, date, and the one link out (ticket 247). Split from the page body
+ * because the panel branches three ways — comped, paying, and neither.
+ */
+function BillingPanel({
+  subscription,
+  billing,
+}: {
+  subscription: Subscription | null;
+  billing?: string;
+}) {
+  return (
+          <Panel
+            title="Waypoint Pro"
+            hint="Pro covers everyone on a trip you're in — one of you paying is enough."
+          >
+            <Stack gap={4}>
+              {billing === "cancelled" ? (
+                <p className="text-sm text-ink-soft">
+                  No payment was taken — you closed the checkout.
+                </p>
+              ) : null}
+
+              {subscription && isLive(subscription) ? (
+                <Stack gap={4}>
+                  <div>
+                    <p className="text-sm font-medium">You&rsquo;re on Pro.</p>
+                    <p className="mt-1 text-sm text-ink-soft">
+                      {renewalLabel(subscription)}
+                    </p>
+                  </div>
+                  {subscription.stripeCustomerId ? (
+                    <div>
+                      <BillingAction path="/api/billing/portal">
+                        Manage or cancel
+                      </BillingAction>
+                      <p className="mt-2 text-xs text-ink-faint">
+                        Opens Stripe, where your card lives. Cancelling keeps
+                        Pro until the date above.
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-ink-faint">
+                      This one was granted rather than bought, so there is
+                      nothing to bill or cancel.
+                    </p>
+                  )}
+                </Stack>
+              ) : (
+                <Stack gap={4}>
+                  <p className="text-sm text-ink-soft">
+                    {subscription
+                      ? renewalLabel(subscription)
+                      : "You’re on the free plan."}{" "}
+                    Pro adds the weather forecast on your dates and a packing
+                    list filled in for you.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <BillingAction
+                      path="/api/billing/checkout"
+                      body={{ interval: "monthly" }}
+                      variant="primary"
+                    >
+                      Go Pro monthly
+                    </BillingAction>
+                    <BillingAction
+                      path="/api/billing/checkout"
+                      body={{ interval: "yearly" }}
+                    >
+                      Go Pro yearly
+                    </BillingAction>
+                  </div>
+                </Stack>
+              )}
+            </Stack>
+          </Panel>
   );
 }

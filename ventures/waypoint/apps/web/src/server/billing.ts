@@ -10,12 +10,12 @@
  */
 import "server-only";
 
-import { eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import Stripe from "stripe";
 
 import { db } from "@/db";
 import { subscription } from "@/db/schema";
-import type { SubscriptionStatus } from "@/db/schema";
+import type { Subscription, SubscriptionStatus } from "@/db/schema";
 
 export const BILLING_INTERVALS = ["monthly", "yearly"] as const;
 export type BillingInterval = (typeof BILLING_INTERVALS)[number];
@@ -118,6 +118,44 @@ function periodEndOf(sub: Stripe.Subscription): Date | null {
     .current_period_end;
   const seconds = fromItem ?? fromSub;
   return seconds ? new Date(seconds * 1000) : null;
+}
+
+/**
+ * The account's own subscription row, or null (ticket 247). Newest first, so
+ * an account that resubscribed after lapsing shows the current arrangement
+ * rather than the dead one.
+ */
+export async function subscriptionOf(
+  userId: string,
+): Promise<Subscription | null> {
+  const row = await db
+    .select()
+    .from(subscription)
+    .where(and(eq(subscription.userId, userId), isNull(subscription.deletedAt)))
+    .orderBy(desc(subscription.id))
+    .get();
+
+  return row ?? null;
+}
+
+/**
+ * A one-off link into Stripe's hosted billing portal (ticket 247). Hosted
+ * rather than built: cancelling, swapping card and reading invoices all live
+ * behind it, and card details never touch Waypoint.
+ */
+export async function portalUrlFor(args: {
+  customerId: string;
+  returnUrl: string;
+}): Promise<string | null> {
+  const api = stripe();
+  if (!api) return null;
+
+  const session = await api.billingPortal.sessions.create({
+    customer: args.customerId,
+    return_url: args.returnUrl,
+  });
+
+  return session.url;
 }
 
 /** Who a `customer.subscription.*` event belongs to. */
