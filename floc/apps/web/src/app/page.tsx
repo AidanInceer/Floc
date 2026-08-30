@@ -14,6 +14,7 @@ import { isLive, renewalLabel } from "@/lib/subscription-copy";
 import { ProUpgrade } from "@/components/billing-buttons";
 import { ButtonLink, cx } from "@/components/ui";
 import { RouteMap } from "@/components/route-map";
+import { ConfettiWord } from "@/components/confetti-word";
 import {
   Glyph,
   Stars,
@@ -77,8 +78,11 @@ export default async function LandingPage() {
       <section className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.82fr)] lg:gap-16">
         <div>
           <h1 className="font-display text-[clamp(2.4rem,5.4vw,4rem)] font-semibold leading-[1.04] tracking-[-0.03em]">
-            <span className="hl hl-loose hl-red">Group</span> trip planning,{" "}
-            <span className="hl hl-loose hl-green">sorted</span>.
+            Group trip planning,{" "}
+            <ConfettiWord>
+              <span className="hl hl-loose hl-green">sorted</span>
+            </ConfettiWord>
+            .
           </h1>
           <p className="mt-6 max-w-[36ch] text-md text-ink-soft">
             Less faff, fewer group chats. Everything for the trip in one place,

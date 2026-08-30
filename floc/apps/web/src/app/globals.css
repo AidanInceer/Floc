@@ -450,6 +450,43 @@
     }
   }
 
+  /*
+   * The hero's hover confetti (`ConfettiWord`). The overlay never takes the
+   * pointer, or the burst would re-fire on every piece that crossed the cursor.
+   */
+  .confetti {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: visible;
+  }
+  .confetti i {
+    position: absolute;
+    top: 12%;
+    display: block;
+    opacity: 0;
+    animation: confetti-throw 0.9s cubic-bezier(0.15, 0.75, 0.35, 1) forwards;
+  }
+  /* Up and out, then let it fall — one keyframe, no physics. */
+  @keyframes confetti-throw {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0) rotate(0deg) scale(0.4);
+    }
+    12% {
+      opacity: 1;
+    }
+    55% {
+      transform: translate(calc(var(--dx) * 0.8), var(--dy))
+        rotate(calc(var(--rot) * 0.6)) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(var(--dx), calc(var(--dy) * -0.35))
+        rotate(var(--rot)) scale(0.9);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -520,10 +557,6 @@
       var(--hl-stroke) 18% 97%,
       transparent 97%
     );
-  }
-
-  .hl-red {
-    --hl-stroke: var(--red-edge);
   }
 
   .hl-green {

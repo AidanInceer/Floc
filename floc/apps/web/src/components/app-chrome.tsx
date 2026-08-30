@@ -11,13 +11,30 @@ import { PillNav, type PillNavItem } from "@/components/pill-nav";
 import { AccountMenu } from "@/components/account-menu";
 import { ThemeSwitch } from "@/components/theme-switch";
 
-// The typographic wordmark: the display face, lowercase, with the one blue dot
-// that carries through the product as "yours". Replaces the paper-era serif
-// logo — it can't sit on the white ground.
+// The wordmark: three chevrons in a V — the flock, and the "who's coming" of a
+// trip — then the display face lowercase with the one blue dot that carries
+// through the product as "yours". The chevrons are the only part that can leave
+// the bar, so they carry the favicon and the app icon too.
 function FlocWordmark() {
   return (
-    <span className="font-display text-[15px] font-semibold leading-none tracking-tight text-ink sm:text-[22px]">
-      floc<span className="text-pen">.</span>
+    <span className="inline-flex items-center gap-1.5 font-display text-[15px] font-semibold leading-none tracking-tight text-ink sm:text-[22px]">
+      <svg
+        viewBox="0 0 26 20"
+        aria-hidden="true"
+        className="h-[14px] w-[18px] shrink-0 text-pen sm:h-5 sm:w-[25px]"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={1.2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M3 14 6.5 10.5 10 14" />
+        <path d="M9.5 8.5 13 5 16.5 8.5" />
+        <path d="M16 14 19.5 10.5 23 14" />
+      </svg>
+      <span>
+        floc<span className="text-pen">.</span>
+      </span>
     </span>
   );
 }
@@ -42,11 +59,8 @@ export function AppChrome({
   user,
   inviteCount = 0,
   friendRequestCount = 0,
-  isPro = false,
 }: {
   user: { id: string; name: string; image: string | null } | null;
-  /** Badges the bar in gold, so Pro is visible from every screen. */
-  isPro?: boolean;
   /** Open trip invites for this account — badges the Trips link. */
   inviteCount?: number;
   /** Friend requests waiting on this account — badges the Friends link. */
@@ -80,14 +94,12 @@ export function AppChrome({
 
   return (
     <header className="sticky top-0 z-20 border-b border-rule bg-sheet/90 backdrop-blur">
-      {/* Three columns so the nav is centred and the account stays hard right
-          whether or not the middle is filled. */}
       {/* Flex, not a three-column grid: an `auto` grid track refuses to shrink
           below its max-content, so at phone widths the pills grew past their
           column and sat over the wordmark. Here the ends are content-sized and
           unshrinkable, and the middle takes what is left — the track scrolls
           inside it rather than pushing anything off the row. */}
-      <div className="mx-auto flex h-14 w-full max-w-[84rem] items-center gap-1.5 px-2 sm:gap-4 sm:px-6">
+      <div className="relative mx-auto flex h-14 w-full max-w-[84rem] items-center gap-1.5 px-2 sm:gap-4 sm:px-6">
         <Link
           href="/"
           aria-label="Floc home"
@@ -96,23 +108,17 @@ export function AppChrome({
           <FlocWordmark />
         </Link>
 
-        <div className="flex min-w-0 flex-1 justify-center">
+        {/* Centred on the *bar*, not on what the two ends leave over: the ends
+            are never equal widths, so flow-centring sat the pills ~39px left of
+            true centre. Absolute only from `sm` up — on a phone there isn't the
+            room, and the pills must stay in flow so the row can shrink. */}
+        <div className="flex min-w-0 flex-1 justify-center sm:absolute sm:left-1/2 sm:w-auto sm:max-w-[calc(100%-22rem)] sm:flex-none sm:-translate-x-1/2">
           {user ? <PillNav label="Your surfaces" items={navItems} /> : null}
         </div>
 
-        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-          {/* Gold, and the only gold in the bar — it reads as the one paid
-              thing rather than as another control. Links to the billing
-              panel, because "what am I on" and "change it" are one question. */}
-          {user && isPro ? (
-            <Link
-              href="/settings?section=billing"
-              className="inline-flex items-center gap-1 rounded-full border border-pro-gold px-2 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-pro-gold hover:bg-pro-gold/10"
-              title="You're on Floc Pro"
-            >
-              Pro
-            </Link>
-          ) : null}
+        {/* `ml-auto`, because from `sm` up the middle leaves the flow and there
+            is nothing left to push the account controls to the right edge. */}
+        <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
           {/* Signed in, the theme switch is inside the account menu — the bar
               only carries it for someone who has no menu to put it in. */}
           {user ? (
