@@ -1,11 +1,13 @@
 ---
 name: to-tickets
-description: Break a plan, spec, or conversation into tracer-bullet GitHub issues in AidanInceer/Waypoint, each declaring its blocking edges. Use when slicing a feature into tickets, or when backlog-refine calls it.
+description: Break a plan, spec, or conversation into tracer-bullet GitHub issues in AidanInceer/Waypoint, each labelled and declaring its blocking edges. Use when slicing a feature into tickets.
 ---
 
 # to-tickets
 
 Break a plan into **tracer-bullet** GitHub issues in `AidanInceer/Waypoint`.
+
+New issues come out **unprioritised** — they are not added to the `Priority` stack here. `/prioritise-tickets` places them; `/pickup-ticket` works them.
 
 ## Process
 
@@ -16,6 +18,8 @@ Work from whatever is already in conversation. If an argument is passed (issue n
 ### 2. Explore the codebase
 
 If not already oriented, read enough of the code to use the project's domain vocabulary in ticket titles and descriptions. Respect any ADRs or constraints in the area being touched.
+
+**Check the request's factual premises against the code before writing a ticket around them.** A request often carries an assumption about how the app works today that is out of date — "move off SQLite" when the app already runs Turso, "add X" when X half-exists. Verify each premise, and if one is wrong say so plainly at the top of the breakdown and reshape that ticket around what is actually true. A ticket built on a false premise wastes a whole context window later.
 
 Look for prefactor opportunities — "make the change easy, then make the easy change."
 
@@ -36,9 +40,11 @@ Give each ticket its **blocking edges** — which tickets must complete before i
 
 Present the breakdown as a numbered list. For each ticket show:
 
-- **Title** — short descriptive name
+- **Title** — short descriptive name, already prefixed with its feature category (`money:`, `platform:`, `explore:` …) so `/prioritise-tickets` has nothing to re-title
 - **Blocked by** — which other tickets gate it (or "none")
 - **Delivers** — the end-to-end behaviour, from the user's perspective
+
+Flag anything the user must decide before a ticket can be built — a product name, a vendor choice — as its own line. The ticket does the work; it does not make the decision for them.
 
 Ask:
 - Does the granularity feel right?
@@ -50,6 +56,10 @@ Iterate until the user approves.
 ### 5. Create the issues
 
 Create approved tickets in `AidanInceer/Waypoint`, in dependency order (blockers first so they get real issue numbers to reference).
+
+**Approval can arrive sideways.** "Yes, create those" tacked onto the front of another command still counts. Do not re-ask.
+
+Apply the type label at creation — `--label "type:feat" | "type:fix" | "type:refinement"` — every ticket, no exceptions. A research or prototype ticket carries its `wayfinder:*` label **and** a type label. Leaving the type off pushes the work onto `/prioritise-tickets`.
 
 ```bash
 gh issue create \
@@ -76,9 +86,13 @@ Do **not** close or modify any parent issue.
 
 ### 6. Report back
 
-List every created issue: number, title, blocking edges. If called from `backlog-refine`, return so it can add the hyperlinks to the backlog HTML.
+List every created issue: number, title, type label, blocking edges. Then remind the user to run `/prioritise-tickets` — until they do, the new tickets are not in the `Priority` stack and `/pickup-ticket` will not see them.
 
 ## Constraints
 
 - Avoid specific file paths or code snippets in issue bodies — they go stale fast. Exception: a prototype snippet that encodes a decision precisely (state machine, type shape, schema diff) is worth including; note briefly that it came from a prototype.
 - Issues live in `AidanInceer/Waypoint`, not the hub repo.
+- Blocked-by edges go in the body under `## Blocked by` as `#<n>`, never as a label — `/prioritise-tickets` and `/pickup-ticket` read them from there.
+- Never touch the `Priority` issue from this skill.
+- Every created ticket gets a category-prefixed title and exactly one `type:` label at creation.
+- Never build a ticket on an unverified claim about the current codebase.

@@ -45,6 +45,8 @@ pnpm verify                         # everything CI runs, locally
 - **Branching.** Two long-lived branches, no feature branches. Work lands on `develop`, one commit per ticket, `pnpm verify` green **before every push**. `develop` reaches `main` in batches via PR, merged as a **merge commit** — never squash, never rebase; squashing flattens the one-commit-per-ticket history. `main` deploys, so it is only ever a merge commit or a hotfix. Hotfix = commit straight to `main`; [`sync-develop.yml`](.github/workflows/sync-develop.yml) merges `main` back into `develop` on every push to `main`, so nothing has to be resynced by hand. Never commit a feature to `main` directly. No branch protection — the hotfix path stays open.
 - **Ticket state.** `Closes` only fires on the default branch, so an issue built on `develop` stays open until the batch merges. Label it **`on-develop`** the moment its commit is pushed; `gh issue list --label on-develop --state open` is then the list of what is built but unshipped. The merge to `main` closes them; leave the label on as history.
   Deliberately parked work gets **`future-work`** instead — `gh issue list --label future-work` is the pile nobody is picking up next, so an open issue is never ambiguous about whether it is queued.
+- **Priority = one stack issue.** An issue titled **`Priority`** in `AidanInceer/Waypoint` holds the ordered backlog in its body — top line is the next ticket to pick up. It is never worked on and never closed. `/prioritise-tickets` writes it, `/pickup-ticket` pops it. A ticket leaves the stack when it is tagged `on-develop`, not when work starts.
+- **Ticket labels.** Exactly one type label per queued ticket: `type:feat` | `type:fix` | `type:refinement`. State labels on top: `wayfinder:grilling` (must be grilled before it can be built), `on-develop`, `future-work`. Blocked-by edges live in the issue body under `## Blocked by` as `#<n>` — not as a label. A ticket never sits above its blocker in the stack.
 - **Commit subject:** `<version> #<issue>: <type>: <description>` — e.g. `0.4.0 #93: feat: split the profile`. Version bumps `apps/web/package.json` same commit (minor=feat, patch=fix). Body ends `Closes AidanInceer/Waypoint#<n>`. Types: `feat|fix|docs|refactor|chore|test`. No-ticket work → literal `#no-ticket`, drop `Closes`. Never invent/borrow a number (wrong `Closes` shuts someone's issue). Don't open an issue just to cite one.
 - **Deploy = Railway** via `railway.json` at root: runs migration, starts `waypoint-web`. Push to `main` deploys. Env vars in Railway Variables tab, never repo.
 
@@ -55,3 +57,11 @@ No secrets/keys/tokens in repo. No logging PII/tokens. Degrade without credentia
 ## Agent skills
 
 Issues/PRDs = GitHub issues (`gh`) — [issue-tracker](docs/agents/issue-tracker.html) / [domain](docs/agents/domain.html).
+
+| Skill | Does |
+|---|---|
+| `/to-tickets` | Slices a plan into tracer-bullet issues, each with its blocking edges. |
+| `/prioritise-tickets` | Places every unprioritised open issue into the `Priority` stack by pairwise comparison, and fixes its type label. |
+| `/pickup-ticket` | Takes the top startable ticket off the stack and works it to a pushed `develop` commit. |
+
+**The loop:** idea → `/to-tickets` (issue created, no order) → `/prioritise-tickets` (labelled + placed in the stack) → `/pickup-ticket` (top of stack) → build on `develop`, one commit, `pnpm verify` green → push → tag `on-develop` → pop the stack → batch PR to `main` closes it.
