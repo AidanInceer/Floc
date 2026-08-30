@@ -3,7 +3,7 @@
  * every one of these should fail if the rule moves back into a caller.
  */
 import { and, eq } from "drizzle-orm";
-import { beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
@@ -104,9 +104,9 @@ describe("who it spreads to", () => {
 
 describe("assertFeature", () => {
   it("refuses without Pro", async () => {
-    await expect(
-      assertFeature("dates.weather", world.ours.id),
-    ).rejects.toThrow("Pro");
+    await expect(assertFeature("dates.weather", world.ours.id)).rejects.toThrow(
+      "Pro",
+    );
   });
 
   it("says nothing with Pro", async () => {
@@ -114,6 +114,29 @@ describe("assertFeature", () => {
     await expect(
       assertFeature("dates.weather", world.ours.id),
     ).resolves.toBeUndefined();
+  });
+});
+
+describe("the all-features-free switch", () => {
+  afterEach(() => {
+    delete process.env.NEXT_PUBLIC_ALL_FEATURES_FREE;
+  });
+
+  it("hands a gated feature to a trip with no subscription", async () => {
+    process.env.NEXT_PUBLIC_ALL_FEATURES_FREE = "true";
+    expect(await canUseFeature("dates.weather", world.ours.id)).toBe(true);
+  });
+
+  it("lets the write path through too", async () => {
+    process.env.NEXT_PUBLIC_ALL_FEATURES_FREE = "true";
+    await expect(
+      assertFeature("dates.weather", world.ours.id),
+    ).resolves.toBeUndefined();
+  });
+
+  it("does nothing when set to anything but true", async () => {
+    process.env.NEXT_PUBLIC_ALL_FEATURES_FREE = "1";
+    expect(await canUseFeature("dates.weather", world.ours.id)).toBe(false);
   });
 });
 

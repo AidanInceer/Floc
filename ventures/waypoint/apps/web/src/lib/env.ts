@@ -46,3 +46,17 @@ export function requireInProduction(name: string, devFallback: string): string {
 export function appUrl(): string {
   return requireInProduction("BETTER_AUTH_URL", "http://localhost:3000");
 }
+
+/**
+ * The kill switch for the paid tier: every gated feature answers "yes" and
+ * every Pro surface stops being drawn, as if Pro did not exist. Set it while
+ * Pro is not ready to sell — shipping the gates before the checkout would
+ * otherwise take the weather and the packing auto-fill away from everybody.
+ *
+ * `NEXT_PUBLIC_` so a client component can read it too; there is nothing
+ * secret about it, and the alternative is threading a boolean through every
+ * tree that draws a lock.
+ */
+export function allFeaturesFree(): boolean {
+  return process.env.NEXT_PUBLIC_ALL_FEATURES_FREE === "true";
+}

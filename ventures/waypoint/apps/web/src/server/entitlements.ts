@@ -21,6 +21,7 @@ import { cache } from "react";
 
 import { db } from "@/db";
 import { subscription, tripMembership } from "@/db/schema";
+import { allFeaturesFree } from "@/lib/env";
 import { FEATURE_PLAN, planMeets } from "@/lib/plans";
 import type { FeatureKey, Plan, TargetOf } from "@/lib/plans";
 
@@ -64,10 +65,7 @@ const planOfTrip = cache(async function planOfTrip(
   const rows = await db
     .select({ plan: subscription.plan })
     .from(subscription)
-    .innerJoin(
-      tripMembership,
-      eq(tripMembership.userId, subscription.userId),
-    )
+    .innerJoin(tripMembership, eq(tripMembership.userId, subscription.userId))
     .where(
       and(
         eq(tripMembership.tripId, tripId),
@@ -101,6 +99,10 @@ export async function canUseFeature<K extends FeatureKey>(
   feature: K,
   target: TargetOf<K>,
 ): Promise<boolean> {
+  // The kill switch is read here, above the query, so a build with Pro turned
+  // off never asks the database who is paying.
+  if (allFeaturesFree()) return true;
+
   const { plan, scope } = FEATURE_PLAN[feature];
   const held =
     scope === "trip"

@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, DM_Mono, Instrument_Sans } from "next/font/google";
+import {
+  Bricolage_Grotesque,
+  DM_Mono,
+  Instrument_Sans,
+} from "next/font/google";
 
 import { AppChrome } from "@/components/app-chrome";
 import { subscriptionOf } from "@/server/billing";
+import { allFeaturesFree } from "@/lib/env";
 import { isLive } from "@/lib/subscription-copy";
 import { THEME_BOOTSTRAP } from "@/lib/theme";
 import { getSession } from "@/server/access";
@@ -88,7 +93,7 @@ export default async function RootLayout({
           user={chromeUser}
           inviteCount={inviteCount}
           friendRequestCount={friendRequestCount}
-          isPro={proRow !== null && isLive(proRow)}
+          isPro={!allFeaturesFree() && proRow !== null && isLive(proRow)}
         />
         <main>{children}</main>
       </body>
