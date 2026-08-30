@@ -10,7 +10,7 @@ Things that bite. Read before editing.
 - npm-style `"workspaces"` array — workspaces live in `pnpm-workspace.yaml` only.
 - PowerShell commit here-string where `@'`/`'@` aren't alone on their lines — `@` leaks into subject. Verify `git log -1 --format=%s`.
 - Running `pnpm verify`/`build` with dev server up — corrupts `.next`; user must delete by hand. Stop dev first; check `preview_list`, not `ps`.
-- Skipping the venture CLAUDE.md — it holds the real non-negotiables.
+- Skipping `CLAUDE.md` — it holds the real non-negotiables. One file at the root; there is no venture-level copy.
 - Inventing/borrowing a `Closes` issue number — shuts someone else's issue.
 
 ## Venture / app

@@ -52,7 +52,7 @@ undifferentiated heavy lifting
   Markdown files: plain HTML, a sidebar to browse with, no server and no build.
 - **Wireframes** → [`docs/mockups/`](docs/mockups/README.md)
 - **The venture** → [`floc/apps/web/README.md`](floc/apps/web/README.md)
-- **Agent instructions** → [`CLAUDE.md`](CLAUDE.md) (hub) · each venture may add its own
+- **Agent instructions** → [`CLAUDE.md`](CLAUDE.md) — one file, hub and product together
 
 ## Conventions
 

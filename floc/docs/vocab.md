@@ -44,5 +44,5 @@ Copy says user. Code says member. Neither word crosses over.
 
 ## Related
 
-- [`CLAUDE.md`](../CLAUDE.md) — the non-negotiables these terms serve.
+- [`CLAUDE.md`](../../CLAUDE.md) — the non-negotiables these terms serve.
 - [`docs/data-model/erd.html`](../../../docs/data-model/erd.html) — the schema of record.
