@@ -6,6 +6,16 @@ Venture rules. Win inside `floc/`; hub [`CLAUDE.md`](../../CLAUDE.md) covers the
 
 Group-travel planner: friends deciding where/when/order, who owes who. Pre-MVP. Stack: **Next.js App Router + Turso (libSQL) + Drizzle + Better Auth** (`apps/web`). `apps/prototype` superseded — don't extend.
 
+## The name
+
+**Floc** — that spelling, everywhere, until the owner says otherwise (#264, renamed from Waypoint 2026-08-30).
+
+`Flok` is still on the table and may replace it. No domain is bought yet, so nothing is locked; the deciding factor will be what turns out to be purchasable. Don't pre-empt it — a half-applied spelling is worse than either one.
+
+Casing is not a style choice. `Floc` in prose and titles; lowercase everywhere a machine parses — package name `floc-web`, the `floc/` folder, `FLOC_FILES_DIR`, `floc-theme`. npm rejects capitals in package names.
+
+The wordmark is `floc` plus the pen dot: **floc.** — [`app-chrome.tsx`](apps/web/src/components/app-chrome.tsx), and again in the invite OG card, which is a separate copy.
+
 ## Structure
 
 | Where | What |
