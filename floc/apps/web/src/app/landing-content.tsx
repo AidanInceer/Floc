@@ -16,6 +16,7 @@ export type GlyphName =
   | "people"
   | "book"
   | "star"
+  | "check"
   | "app"
   | "packing"
   | "notes"
@@ -69,6 +70,9 @@ const PATHS: Record<GlyphName, ReactNode> = {
   ),
   star: (
     <path d="M7 1.8l1.5 3.4 3.7.3-2.8 2.4.9 3.6L7 9.9 3.7 11.5l.9-3.6L1.8 5.5l3.7-.3Z" />
+  ),
+  check: (
+    <path d="M2.6 7.4 5.6 10.4 11.4 4" />
   ),
   app: (
     <>
@@ -168,157 +172,46 @@ export function Glyph({
   );
 }
 
-// The star mark, drawn twice: an outline for the empty part and a solid for
-// the filled part. Kept out of `Glyph` because it needs both fills.
-const STAR_D =
-  "M7 1.8l1.5 3.4 3.7.3-2.8 2.4.9 3.6L7 9.9 3.7 11.5l.9-3.6L1.8 5.5l3.7-.3Z";
-
-function Star({ solid }: { solid?: boolean }) {
-  return (
-    <svg
-      viewBox="0 0 14 14"
-      width="14"
-      height="14"
-      fill={solid ? "currentColor" : "none"}
-      stroke="currentColor"
-      strokeWidth={1.2}
-      strokeLinejoin="round"
-      aria-hidden
-      className="block"
-    >
-      <path d={STAR_D} />
-    </svg>
-  );
-}
-
-// Five drawn stars with the score also written — status is never colour or
-// icon alone (CLAUDE.md). Halves are the solid star clipped to its left half
-// by an overflow-hidden wrapper, which avoids an SVG gradient id repeated
-// once per card.
-export function Stars({ rating }: { rating: number }) {
-  return (
-    <span className="inline-flex items-center gap-2">
-      <span aria-hidden className="inline-flex gap-0.5 text-butter-ink">
-        {Array.from({ length: 5 }).map((_, i) => {
-          const fill = Math.min(1, Math.max(0, rating - i));
-          return (
-            <span key={i} className="relative block size-[14px]">
-              <Star />
-              {fill > 0 && (
-                <span
-                  className="absolute inset-y-0 left-0 overflow-hidden"
-                  style={{ width: `${fill * 100}%` }}
-                >
-                  <Star solid />
-                </span>
-              )}
-            </span>
-          );
-        })}
-      </span>
-      <span className="sr-only">Rated {rating} out of 5</span>
-    </span>
-  );
-}
-
-// ── social proof (artificial) ─────────────────────────────────────────────
-export type Review = {
-  name: string;
-  role: string;
-  body: string;
-  rating: number;
-  skin: string;
-};
-
-export const reviews: Review[] = [
-  {
-    name: "Priya & the Sicily lot",
-    role: "8 friends · yearly trip",
-    body: "We argued about dates for three years running. This time it took a week — everyone shaded their days and the answer was just there.",
-    rating: 5,
-    skin: "bg-peri text-peri-ink",
-  },
-  {
-    name: "Tom H.",
-    role: "Stag weekend, Porto",
-    body: "I was the one organising and quietly hating it. The money side alone was worth it — one number each, no spreadsheet.",
-    rating: 4,
-    skin: "bg-mint text-mint-ink",
-  },
-  {
-    name: "The Okafor–Bright houses",
-    role: "Two families, one villa",
-    body: "Who paid the deposit, who's covering food — sorted without a single awkward chat. We kept the book for next year.",
-    rating: 4.5,
-    skin: "bg-butter text-butter-ink",
-  },
-  {
-    name: "Mei L.",
-    role: "6 friends · road trip",
-    body: "The voting board stopped the loudest person deciding for everyone. We actually went where the group wanted.",
-    rating: 5,
-    skin: "bg-blush text-blush-ink",
-  },
-  {
-    name: "Danny & Ruth",
-    role: "Honeymoon, 3 weeks",
-    body: "Two of us, and still worth it. The route map is what sold us — we could see the drive between each place before we booked anything.",
-    rating: 4.5,
-    skin: "bg-peri text-peri-ink",
-  },
-  {
-    name: "The Thursday hikers",
-    role: "11 walkers · Snowdonia",
-    body: "Packing lists split shared and personal, so we turned up with one stove instead of four. Small thing, saved a lot of grumbling.",
-    rating: 5,
-    skin: "bg-mint text-mint-ink",
-  },
-  {
-    name: "Sofia R.",
-    role: "Interrailing, 5 friends",
-    body: "The notes page held every ferry quirk and door code. Would like offline on the phone — that is the one bit we missed on the road.",
-    rating: 4,
-    skin: "bg-butter text-butter-ink",
-  },
-  {
-    name: "The Ellis reunion",
-    role: "14 cousins · one house",
-    body: "Fourteen people agreed a week without a single group-chat argument. I did not think that was possible.",
-    rating: 5,
-    skin: "bg-blush text-blush-ink",
-  },
-];
-
 // ── the feature summary (sc2) ─────────────────────────────────────────────
 /** `soon` marks a feature that is sold but not built yet — same contract as
- * `Perk.soon`. Drop the flag the day it ships. */
+ * `Perk.soon`. Drop the flag the day it ships.
+ * `lead` marks one of the three that ARE the product; they head the grid and
+ * wear their domain pastel, the rest are table stakes in plain sheet. */
 export type Feature = {
   icon: GlyphName;
   title: string;
   body: string;
   soon?: boolean;
+  lead?: boolean;
+  tone?: string;
 };
 
 export const features: Feature[] = [
   {
     icon: "ideas",
+    lead: true,
+    tone: "bg-butter text-butter-ink",
     title: "Decide where, together",
     body: "Anyone can add a place. Everyone votes. The board picks, not the loudest voice.",
   },
   {
     icon: "dates",
+    lead: true,
+    tone: "bg-peri text-peri-ink",
     title: "Group availability, sorted",
     body: "Shade your free days once. The calendar shows which weeks the whole group can make.",
+  },
+  {
+    icon: "money",
+    lead: true,
+    tone: "bg-mint text-mint-ink",
+    title: "Split the bill, not the group",
+    body: "Log what you paid, set how it splits. One number each — no group accountant required.",
   },
   {
     icon: "days",
     title: "A plan, not a schedule",
     body: "For all kinds of traveller — flexible or down to the minute.",
-  },
-  {
-    icon: "money",
-    title: "Split the bill, not the group",
-    body: "Log what you paid, set how it splits. One number each — no group accountant required.",
   },
   {
     icon: "people",
