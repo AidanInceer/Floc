@@ -6,6 +6,7 @@
  */
 import { requireTripAccess } from "@/server/access";
 import { listAvailability } from "@/server/availability";
+import { canUseFeature } from "@/server/entitlements";
 import { listDayLoads } from "@/server/itinerary";
 import { getTripForecast } from "@/server/weather";
 import { monthOf, thisMonth } from "@/lib/availability";
@@ -40,11 +41,13 @@ export default async function DatesPage({
   const { trip, viewer, members } = access;
   const tripId = trip.id;
 
-  const [rows, dayLoads, forecast] = await Promise.all([
+  const [rows, dayLoads, forecast, weatherPro] = await Promise.all([
     listAvailability(tripId),
     listDayLoads(tripId),
-    // Null → the calendar offers no Weather mode (ticket 148).
+    // Null → the calendar offers no Weather mode (ticket 148), and always null
+    // on a free trip — the gate is inside the read (ticket 248).
     getTripForecast(tripId),
+    canUseFeature("dates.weather", tripId),
   ]);
 
   const free = rows.filter((r) => r.available);
@@ -156,6 +159,7 @@ export default async function DatesPage({
               tripEnd={trip.endDate}
               dayLoads={dayLoads}
               weather={forecast}
+              weatherLocked={!weatherPro}
               save={saveAvailability.bind(null, tripId)}
               saveDates={setTripDates.bind(null, tripId)}
             />

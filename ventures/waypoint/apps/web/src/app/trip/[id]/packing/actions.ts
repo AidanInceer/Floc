@@ -12,6 +12,7 @@ import {
 } from "@/lib/packing";
 import { capRequiredText } from "@/lib/text";
 import { requireTripAccess } from "@/server/access";
+import { assertFeature } from "@/server/entitlements";
 import { LIMITS } from "@/server/limits";
 import { ensureProfile } from "@/server/profile";
 import { getPackTier, setPackTier } from "@/server/packing";
@@ -158,6 +159,9 @@ export async function setTripPackTier(tripId: number, formData: FormData) {
  */
 export async function fillMyPackingList(tripId: number) {
   const access = await requireTripAccess(tripId);
+  // Pro buys the *action*, never the data (ticket 248): a list already
+  // generated stays visible and editable after Pro lapses.
+  await assertFeature("packing.autoGenerate", access.trip.id);
 
   const [perTrip, profile] = await Promise.all([
     getPackTier(access.trip.id, access.viewer.id),

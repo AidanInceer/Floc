@@ -142,6 +142,21 @@ export async function seedScenario() {
   return { admin, member, outsider, ours, theirs };
 }
 
+/**
+ * Make an account Pro for the rest of the test (ticket 248). A trip is Pro if
+ * any member holds a live subscription, so this is how a test says "this trip
+ * has paid" without going near Stripe.
+ */
+export async function givePro(userId: string): Promise<void> {
+  await db.insert(schema.subscription).values({
+    userId,
+    status: "active",
+    source: "comp",
+    currentPeriodEnd: null,
+    stripeSubscriptionId: `sub_test_${userId}`,
+  });
+}
+
 // Rule 5: foreign and nonexistent ids get the same response, so "it threw
 // something" isn't good enough — assert this exact refusal.
 export async function expectNotFound(fn: () => Promise<unknown>): Promise<void> {
