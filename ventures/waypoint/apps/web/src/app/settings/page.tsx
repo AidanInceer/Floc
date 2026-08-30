@@ -480,27 +480,28 @@ function BillingPanel({
 
               {subscription && isLive(subscription) ? (
                 <Stack gap={4}>
-                  <div>
-                    <p className="text-sm font-medium">You&rsquo;re on Pro.</p>
-                    <p className="mt-1 text-sm text-ink-soft">
-                      {renewalLabel(subscription)}
-                    </p>
-                  </div>
+                  <p className="text-sm font-medium">You&rsquo;re on Pro.</p>
                   {subscription.stripeCustomerId ? (
-                    <div>
+                    /* Date and the way out on one line — the button is what
+                       the date is for, so it does not need its own row. */
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                      <p className="text-sm text-ink-soft">
+                        {renewalLabel(subscription)}
+                      </p>
                       <BillingAction path="/api/billing/portal">
                         Manage or cancel
                       </BillingAction>
-                      <p className="mt-2 text-xs text-ink-faint">
-                        Opens Stripe, where your card lives. Cancelling keeps
-                        Pro until the date above.
-                      </p>
                     </div>
                   ) : (
-                    <p className="text-sm text-ink-faint">
-                      This one was granted rather than bought, so there is
-                      nothing to bill or cancel.
-                    </p>
+                    <div>
+                      <p className="text-sm text-ink-soft">
+                        {renewalLabel(subscription)}
+                      </p>
+                      <p className="mt-1 text-sm text-ink-faint">
+                        This one was granted rather than bought, so there is
+                        nothing to bill or cancel.
+                      </p>
+                    </div>
                   )}
                 </Stack>
               ) : (

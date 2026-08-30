@@ -22,6 +22,7 @@ import {
   proLead,
   proPerks,
 } from "./landing-content";
+import type { Perk } from "./landing-content";
 
 function SectionHead({
   title,
@@ -283,27 +284,57 @@ export default async function LandingPage() {
               <Glyph name={proLead.icon} className="size-[22px]" />
             </span>
             <h2 className="mt-4 text-xl text-pro-ink">{proLead.title}</h2>
+            {proLead.soon ? (
+              <span className="mt-3 inline-flex items-center whitespace-nowrap rounded-full border border-pro-gold px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.18em] text-pro-gold">
+                Coming soon
+              </span>
+            ) : null}
             <p className="mt-3 max-w-[52ch] text-md text-pro-ink-soft">
               {proLead.body}
             </p>
           </div>
 
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {proPerks.map((p) => (
-              <article
-                key={p.title}
-                className="rounded-md border border-pro-edge bg-pro-2 p-4"
-              >
-                <div className="flex items-center gap-2.5">
-                  <span className="shrink-0 text-pro-gold">
-                    <Glyph name={p.icon} className="size-[18px]" />
-                  </span>
-                  <h3 className="text-sm text-pro-ink">{p.title}</h3>
-                </div>
-                <p className="mt-2 text-sm text-pro-ink-soft">{p.body}</p>
-              </article>
-            ))}
+          {/* Built first, and only built. What is not shipped yet is folded
+              away behind the chevron: the block still tells the whole story
+              of the tier, but what you can use today is what you see. */}
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {proPerks
+              .filter((p) => !p.soon)
+              .map((p) => (
+                <PerkCard key={p.title} perk={p} />
+              ))}
           </div>
+
+          {/* <details>, not state — the fold works before hydration, and the
+              open/closed arrow is one CSS variant off the parent. */}
+          <details className="group mt-6">
+            <summary className="mx-auto flex w-fit cursor-pointer list-none items-center gap-2 rounded-full border border-pro-edge px-4 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-pro-gold transition-colors hover:bg-pro-2 [&::-webkit-details-marker]:hidden">
+              <span className="group-open:hidden">More, coming soon</span>
+              <span className="hidden group-open:inline">Show less</span>
+              <svg
+                width={12}
+                height={12}
+                viewBox="0 0 14 14"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={1.6}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="shrink-0 transition-transform group-open:-rotate-180"
+                aria-hidden
+              >
+                <path d="M3 5.5l4 4 4-4" />
+              </svg>
+            </summary>
+
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {proPerks
+                .filter((p) => p.soon)
+                .map((p) => (
+                  <PerkCard key={p.title} perk={p} />
+                ))}
+            </div>
+          </details>
 
           {/* At the foot rather than the corner: it reads after the perks
               have made the case, and it is the widest thing in the block so
@@ -378,5 +409,29 @@ export default async function LandingPage() {
         </div>
       </section>
     </div>
+  );
+}
+
+/**
+ * One perk in the Pro grid. The "coming soon" badge is a gold outline rather
+ * than a filled chip so it reads as a caveat on the perk and never competes
+ * with the buy buttons at the foot of the block.
+ */
+function PerkCard({ perk }: { perk: Perk }) {
+  return (
+    <article className="rounded-md border border-pro-edge bg-pro-2 p-4">
+      <div className="flex items-center gap-2.5">
+        <span className="shrink-0 text-pro-gold">
+          <Glyph name={perk.icon} className="size-[18px]" />
+        </span>
+        <h3 className="text-sm text-pro-ink">{perk.title}</h3>
+        {perk.soon ? (
+          <span className="ml-auto inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-pro-gold px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.18em] text-pro-gold">
+            Soon
+          </span>
+        ) : null}
+      </div>
+      <p className="mt-2 text-sm text-pro-ink-soft">{perk.body}</p>
+    </article>
   );
 }

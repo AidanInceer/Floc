@@ -26,7 +26,8 @@ export type GlyphName =
   | "pin"
   | "nav"
   | "compass"
-  | "alert";
+  | "alert"
+  | "weather";
 
 const PATHS: Record<GlyphName, ReactNode> = {
   ideas: (
@@ -131,6 +132,13 @@ const PATHS: Record<GlyphName, ReactNode> = {
     <>
       <path d="M7 12.4S2.8 8.6 2.8 5.8a4.2 4.2 0 0 1 8.4 0c0 2.8-4.2 6.6-4.2 6.6Z" />
       <circle cx="7" cy="5.7" r="1.4" />
+    </>
+  ),
+  weather: (
+    <>
+      <circle cx="5.1" cy="4.7" r="2" />
+      <path d="M5.1 1.2v.8M5.1 7.4v.8M1.6 4.7h.8M7.8 4.7h.8M2.6 2.2l.6.6M7 6.6l.6.6M7.6 2.2l-.6.6M3.2 6.6l-.6.6" />
+      <path d="M6.2 11.9a2.4 2.4 0 0 1 .3-4.8 3.1 3.1 0 0 1 5.8 1.2 1.9 1.9 0 0 1-.5 3.6Z" />
     </>
   ),
 };
@@ -311,6 +319,11 @@ export const features: Feature[] = [
     body: "One page the whole group edits, kept in sync. No forwarded screenshots, no lost threads.",
   },
   {
+    icon: "weather",
+    title: "The forecast on your dates",
+    body: "Sun, rain and temperature against every day you might go.",
+  },
+  {
     icon: "packing",
     title: "Pack without the list chat",
     body: "Shared and personal lists side by side — the tent gets brought once, the socks are your problem.",
@@ -343,11 +356,19 @@ export const sampleStops = [
 ];
 
 // ── Pro tier (sc4) — blueprint, artificial for now ────────────────────────
-export type Perk = { icon: GlyphName; title: string; body: string };
+/** `soon` marks a perk that is sold but not built yet, so the block can say
+ * so rather than promise it. Drop the flag the day it ships. */
+export type Perk = {
+  icon: GlyphName;
+  title: string;
+  body: string;
+  soon?: boolean;
+};
 
 // The headline perk, sold on its own above the grid.
 export const proLead: Perk = {
   icon: "flight",
+  soon: true,
   title: "A travel agent in your pocket",
   body: "AI trip planning that does the legwork: sorts the bookings, suggests what to do, and reorganises the days when something is delayed.",
 };
@@ -356,21 +377,25 @@ export const proPerks: Perk[] = [
   {
     icon: "nav",
     title: "Live day view",
+    soon: true,
     body: "Today on a map: what is next, and the way there.",
   },
   {
     icon: "compass",
     title: "Places worth going",
+    soon: true,
     body: "Picked for your stop, not a top-ten list.",
   },
   {
     icon: "alert",
     title: "Delays, handled",
+    soon: true,
     body: "A late flight reshuffles the day for you to accept.",
   },
   {
     icon: "inbox",
     title: "Bookings in and out",
+    soon: true,
     body: "Confirmations file themselves into the right day.",
   },
   {
@@ -381,6 +406,7 @@ export const proPerks: Perk[] = [
   {
     icon: "notes",
     title: "Notes, many pages",
+    soon: true,
     body: "A page per city, per plan, per running joke.",
   },
   {
@@ -391,6 +417,7 @@ export const proPerks: Perk[] = [
   {
     icon: "offline",
     title: "Offline access",
+    soon: true,
     body: "The whole plan on the phone, no signal needed.",
   },
 ];
