@@ -171,11 +171,16 @@ export default async function LandingPage() {
         <SectionHead title="Everything in one place" />
         {/* Same contract as the Pro block below: what you see is what you can
           use today, and what is only planned folds away behind the chevron. */}
-        <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 flex flex-wrap justify-center gap-5">
           {features
             .filter((f) => !f.soon)
             .map((f) => (
-              <FeatureCard key={f.title} feature={f} />
+              <div
+                key={f.title}
+                className="w-full md:w-[calc((100%-1.25rem)/2)] lg:w-[calc((100%-2.5rem)/3)]"
+              >
+                <FeatureCard feature={f} />
+              </div>
             ))}
         </div>
 
@@ -334,11 +339,16 @@ export default async function LandingPage() {
             {/* Built first, and only built. What is not shipped yet is folded
               away behind the chevron: the block still tells the whole story
               of the tier, but what you can use today is what you see. */}
-            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-10 flex flex-wrap justify-center gap-4">
               {proPerks
                 .filter((p) => !p.soon)
                 .map((p) => (
-                  <PerkCard key={p.title} perk={p} />
+                  <div
+                    key={p.title}
+                    className="w-full sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]"
+                  >
+                    <PerkCard perk={p} />
+                  </div>
                 ))}
             </div>
 
@@ -372,7 +382,7 @@ export default async function LandingPage() {
                   .map((p) => (
                     <div
                       key={p.title}
-                      className="w-full sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-3rem)/4)]"
+                      className="w-full sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]"
                     >
                       <PerkCard perk={p} />
                     </div>
@@ -464,13 +474,15 @@ export default async function LandingPage() {
 function FeatureCard({ feature }: { feature: Feature }) {
   return (
     <article className="lift h-full rounded-lg border border-rule bg-sheet p-6">
-      <div className="flex items-center gap-3">
+      <div className="flex items-start gap-3">
         <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-md bg-sheet-2 text-ink">
           <Glyph name={feature.icon} className="size-[18px]" />
         </span>
-        <h3 className="text-md">{feature.title}</h3>
+        <h3 className="self-center text-md">{feature.title}</h3>
+        {/* items-start + a nudge, not items-center: a title that wraps to two
+          lines would otherwise drag the badge down with it. */}
         {feature.soon ? (
-          <span className="ml-auto inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-rule px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">
+          <span className="ml-auto mt-[9px] inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-rule px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">
             Soon
           </span>
         ) : null}
@@ -488,13 +500,13 @@ function FeatureCard({ feature }: { feature: Feature }) {
 function PerkCard({ perk }: { perk: Perk }) {
   return (
     <article className="h-full rounded-md border border-pro-edge bg-pro-2 p-4">
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-start gap-2.5">
         <span className="shrink-0 text-pro-gold">
-          <Glyph name={perk.icon} className="size-[18px]" />
+          <Glyph name={perk.icon} className="mt-px size-[18px]" />
         </span>
         <h3 className="text-sm text-pro-ink">{perk.title}</h3>
         {perk.soon ? (
-          <span className="ml-auto inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-pro-gold px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.18em] text-pro-gold">
+          <span className="ml-auto mt-px inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-pro-gold px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.18em] text-pro-gold">
             Soon
           </span>
         ) : null}
