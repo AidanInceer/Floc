@@ -3,43 +3,49 @@ import { describe, expect, it } from "vitest";
 import {
   computeBalances,
   computeSplits,
+  convertMinor,
+  convertTotal,
+  crossRate,
   formatMoney,
   formatTicker,
   isAllSettled,
+  maxExpenseMinor,
   parseMoney,
   resolveWeightedSplit,
   suggestSettlements,
 } from "./money";
-import { CURRENCIES } from "./currency";
+import { CURRENCIES, currencySymbol, type Currency } from "./currency";
 
 /** An even split is one share each since ticket 85 — see `WritableSplitType`. */
 const people = (...ids: string[]) => ids.map((userId) => ({ userId, value: 1 }));
 
 describe("formatMoney / parseMoney", () => {
   it("round-trips through minor units", () => {
-    expect(parseMoney("12.34")).toBe(1234);
-    expect(parseMoney("£1,200")).toBe(120000);
-    expect(parseMoney("0.05")).toBe(5);
+    expect(parseMoney("12.34", "GBP")).toBe(1234);
+    expect(parseMoney("£1,200", "GBP")).toBe(120000);
+    expect(parseMoney("0.05", "GBP")).toBe(5);
     expect(formatMoney(1234, "GBP")).toBe("£12.34");
     expect(formatMoney(120000, "EUR")).toBe("€1,200.00");
     // Ticker form for the convert control: ISO code, not a symbol.
     expect(formatTicker(1234, "GBP")).toBe("GBP 12.34");
     expect(formatTicker(560000, "USD")).toBe("USD 5,600.00");
-    expect(formatMoney(-500, "USD")).toBe("−$5.00");
+    // `$` names seven currencies in the list, so USD prints its code (ticket 253).
+    expect(formatMoney(1234, "USD")).toBe("USD 12.34");
+    expect(formatMoney(-500, "USD")).toBe("−USD 5.00");
   });
 
   it("rejects anything that is not an exact amount", () => {
-    expect(() => parseMoney("12.345")).toThrow();
-    expect(() => parseMoney("twelve")).toThrow();
+    expect(() => parseMoney("12.345", "GBP")).toThrow();
+    expect(() => parseMoney("twelve", "GBP")).toThrow();
   });
 
   // Ticket 33: an amount past the safe-integer range used to write fine and
   // then make every later read of the trip throw, locking the group out of
   // Overview. It has to be refused at parse time.
   it("refuses an amount too large to survive a round trip", () => {
-    expect(parseMoney("999999999.99")).toBe(99999999999);
-    expect(() => parseMoney("99999999999999999999")).toThrow(/too large/);
-    expect(() => parseMoney("-99999999999999999999")).toThrow(/too large/);
+    expect(parseMoney("999999999.99", "GBP")).toBe(99999999999);
+    expect(() => parseMoney("99999999999999999999", "GBP")).toThrow(/too large/);
+    expect(() => parseMoney("-99999999999999999999", "GBP")).toThrow(/too large/);
     expect(() => computeSplits(1e15, "shares", people("a", "b"))).toThrow(
       /too large/,
     );
@@ -184,7 +190,7 @@ describe("resolveWeightedSplit (ticket 85)", () => {
   });
 
   it("stays a shares split when nobody is pinned", () => {
-    const resolved = resolveWeightedSplit(8400, [row("a", 1), row("b", 1), row("c", 1)]);
+    const resolved = resolveWeightedSplit(8400, [row("a", 1), row("b", 1), row("c", 1)], "GBP");
     expect(resolved.splitType).toBe("shares");
     expect(resolved.participants).toEqual([
       { userId: "a", value: 1 },
@@ -198,7 +204,7 @@ describe("resolveWeightedSplit (ticket 85)", () => {
       row("a", 1),
       row("b", 1),
       row("c", 0, 3000),
-    ]);
+    ], "GBP");
     expect(resolved.splitType).toBe("exact");
     expect(resolved.participants).toEqual([
       { userId: "a", value: 2700 },
@@ -210,24 +216,24 @@ describe("resolveWeightedSplit (ticket 85)", () => {
   });
 
   it("hands the odd penny out deterministically", () => {
-    const resolved = resolveWeightedSplit(1000, [row("a", 1), row("b", 1), row("c", 1)]);
+    const resolved = resolveWeightedSplit(1000, [row("a", 1), row("b", 1), row("c", 1)], "GBP");
     expect(sum(computeSplits(1000, "shares", resolved.participants))).toBe(1000);
   });
 
   it("treats everyone pinned as exact amounts", () => {
-    const resolved = resolveWeightedSplit(5000, [row("a", 0, 2000), row("b", 0, 3000)]);
+    const resolved = resolveWeightedSplit(5000, [row("a", 0, 2000), row("b", 0, 3000)], "GBP");
     expect(resolved.splitType).toBe("exact");
     expect(sum(computeSplits(5000, "exact", resolved.participants))).toBe(5000);
   });
 
   it("refuses pins that overshoot the total", () => {
-    expect(() => resolveWeightedSplit(4000, [row("a", 1), row("b", 0, 5000)])).toThrow(
+    expect(() => resolveWeightedSplit(4000, [row("a", 1), row("b", 0, 5000)], "GBP")).toThrow(
       /more than the total/,
     );
   });
 
   it("refuses a leftover with nobody on shares to absorb it", () => {
-    expect(() => resolveWeightedSplit(4000, [row("a", 0), row("b", 0, 1000)])).toThrow(
+    expect(() => resolveWeightedSplit(4000, [row("a", 0), row("b", 0, 1000)], "GBP")).toThrow(
       /nobody's on shares/,
     );
   });
@@ -237,7 +243,7 @@ describe("resolveWeightedSplit (ticket 85)", () => {
       row("a", 1),
       row("b", 0),
       row("c", 0, 1000),
-    ]);
+    ], "GBP");
     expect(resolved.participants).toEqual([
       { userId: "a", value: 2000 },
       { userId: "b", value: 0 },
@@ -246,7 +252,7 @@ describe("resolveWeightedSplit (ticket 85)", () => {
   });
 
   it("rejects negative shares", () => {
-    expect(() => resolveWeightedSplit(1000, [row("a", -1)])).toThrow(/negative/);
+    expect(() => resolveWeightedSplit(1000, [row("a", -1)], "GBP")).toThrow(/negative/);
   });
 });
 
@@ -288,8 +294,8 @@ describe("computeBalances seeds itself from CURRENCIES", () => {
 describe("the awkward halves of the money helpers", () => {
   it("carries a minus sign through format and parse", () => {
     expect(formatMoney(-1234, "GBP")).toBe("−£12.34");
-    expect(parseMoney("-12")).toBe(-1200);
-    expect(parseMoney("-0.5")).toBe(-50);
+    expect(parseMoney("-12", "GBP")).toBe(-1200);
+    expect(parseMoney("-0.5", "GBP")).toBe(-50);
   });
 
   it("refuses an amount that is not whole minor units", () => {
@@ -324,6 +330,149 @@ describe("the awkward halves of the money helpers", () => {
   });
 
   it("refuses an expense with nobody in it", () => {
-    expect(() => resolveWeightedSplit(1000, [])).toThrow(/at least one/);
+    expect(() => resolveWeightedSplit(1000, [], "GBP")).toThrow(/at least one/);
+  });
+});
+
+// Ticket 253. `MINOR_PER_MAJOR` used to be hardcoded to 100, so a yen amount
+// would have been stored — and split — a hundredfold wrong.
+describe("zero-decimal currencies", () => {
+  it("formats and parses without a decimal point", () => {
+    expect(formatMoney(5600, "JPY")).toBe("JPY 5,600");
+    expect(formatTicker(5600, "JPY")).toBe("JPY 5,600");
+    expect(parseMoney("5600", "JPY")).toBe(5600);
+    expect(parseMoney("¥5,600", "JPY")).toBe(5600);
+    // A typed "5600.00" is a mistake, not a hundredfold amount.
+    expect(() => parseMoney("5600.00", "JPY")).toThrow();
+  });
+
+  it("keeps the exact-sum invariant on a three-way split", () => {
+    const rows = computeSplits(5600, "shares", people("a", "b", "c"));
+    expect(sum(rows)).toBe(5600);
+    expect(rows.map((r) => r.owedAmountMinor)).toEqual([1867, 1867, 1866]);
+  });
+
+  it("caps an expense in the currency's own major units", () => {
+    expect(maxExpenseMinor("JPY")).toBe(1_000_000);
+    expect(maxExpenseMinor("GBP")).toBe(100_000_000);
+  });
+});
+
+describe("symbols and codes (ticket 253)", () => {
+  it("uses a symbol only where it names one currency in the list", () => {
+    expect(currencySymbol("GBP")).toBe("£");
+    expect(currencySymbol("INR")).toBe("₹");
+    // `$` covers seven of these, `kr` four, `¥` two — those print their code.
+    for (const c of ["USD", "AUD", "CAD", "SEK", "ISK", "JPY", "CNY"] as const) {
+      expect(currencySymbol(c)).toBeNull();
+      expect(formatMoney(100, c).startsWith(c)).toBe(true);
+    }
+  });
+});
+
+describe("cross-currency settlement (ticket 253)", () => {
+  const line = {
+    paidBy: "sam",
+    currency: "EUR" as const,
+    amountMinor: 6240,
+    splits: [
+      { userId: "sam", owedAmountMinor: 3120 },
+      { userId: "you", owedAmountMinor: 3120 },
+    ],
+  };
+
+  it("credits the cleared currency, not the currency handed over", () => {
+    const balances = computeBalances(
+      [line],
+      [
+        {
+          from: "you",
+          to: "sam",
+          currency: "GBP",
+          amountMinor: 2700,
+          clearsCurrency: "EUR",
+          clearsAmountMinor: 3120,
+        },
+      ],
+    );
+    expect(balances.EUR.you).toBe(0);
+    expect(balances.EUR.sam).toBe(0);
+    // No GBP debt was ever created, so nothing lands in the GBP book.
+    expect(balances.GBP.you).toBeUndefined();
+    expect(isAllSettled(balances)).toBe(true);
+  });
+
+  it("leaves the overpayment in the cleared currency when the expense goes", () => {
+    // Same settlement, expense since deleted — the settlement stands.
+    const balances = computeBalances(
+      [],
+      [
+        {
+          from: "you",
+          to: "sam",
+          currency: "GBP",
+          amountMinor: 2700,
+          clearsCurrency: "EUR",
+          clearsAmountMinor: 3120,
+        },
+      ],
+    );
+    expect(balances.EUR.you).toBe(3120);
+    expect(balances.EUR.sam).toBe(-3120);
+  });
+
+  it("behaves exactly as before when the currencies match", () => {
+    const balances = computeBalances(
+      [line],
+      [{ from: "you", to: "sam", currency: "EUR", amountMinor: 3120 }],
+    );
+    expect(balances.EUR.you).toBe(0);
+  });
+});
+
+describe("display conversion (ticket 253)", () => {
+  // 1 EUR = 0.86 GBP, and JPY is zero-decimal, so the exponents must not cancel.
+  const quotes: Partial<Record<Currency, number>> = {
+    GBP: 1,
+    EUR: 0.86,
+    JPY: 0.0052,
+  };
+  const rateFor = (c: Currency) => quotes[c] ?? null;
+
+  it("rounds each row, then sums the rounded rows", () => {
+    // €31.20 → £26.83 (26.832), €10.05 → £8.64 (8.643). Rounded first: 3547.
+    const total = convertTotal(
+      [
+        { currency: "EUR", amountMinor: 3120 },
+        { currency: "EUR", amountMinor: 1005 },
+      ],
+      "GBP",
+      rateFor,
+    );
+    expect(total).toBe(2683 + 864);
+  });
+
+  it("crosses the exponent gap between a 0- and 2-decimal currency", () => {
+    // ¥5,600 at 0.0052 GBP per yen is £29.12 — 2912 pence, not 29 or 291,200.
+    expect(convertMinor(5600, "JPY", "GBP", 0.0052)).toBe(2912);
+    // And back: £29.12 → ¥5,600.
+    expect(convertMinor(2912, "GBP", "JPY", 1 / 0.0052)).toBe(5600);
+  });
+
+  it("refuses a total when one currency has no rate", () => {
+    expect(
+      convertTotal(
+        [{ currency: "USD", amountMinor: 1000 }],
+        "GBP",
+        () => null,
+      ),
+    ).toBeNull();
+  });
+
+  it("derives a cross rate from two quotes against the same base", () => {
+    // Both quoted in GBP: 1 EUR = 0.86 GBP, 1 JPY = 0.0052 GBP.
+    const rate = crossRate("EUR", "JPY", rateFor);
+    expect(rate).toBeCloseTo(0.86 / 0.0052, 6);
+    expect(crossRate("EUR", "EUR", () => null)).toBe(1);
   });
 });

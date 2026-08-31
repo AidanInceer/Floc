@@ -9,7 +9,13 @@
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 
 import type { ActionState } from "@/app/trip/[id]/money/actions";
-import { CURRENCY_SYMBOLS, formatMoney, MAX_EXPENSE_MINOR } from "@/lib/money";
+import {
+  formatMoney,
+  maxExpenseMinor,
+  sanitizeAmountInput,
+  toMajorInput,
+} from "@/lib/money";
+import { CURRENCIES, currencySymbol, minorPerMajor } from "@/lib/currency";
 import type { Currency, SplitType } from "@/db/schema";
 import {
   CATEGORY_LABELS,
@@ -92,7 +98,7 @@ export function ExpenseForm({
   }, [state, done]);
 
   const [amount, setAmount] = useState(
-    expense ? (expense.amountMinor / 100).toFixed(2) : "",
+    expense ? toMajorInput(expense.amountMinor, expense.currency) : "",
   );
   const [currency, setCurrency] = useState<Currency>(
     expense?.currency ?? homeCurrency,
@@ -119,19 +125,25 @@ export function ExpenseForm({
       const split = expense?.splits.find((s) => s.userId === m.userId);
       initial[m.userId] = {
         shares: 1,
-        pin: pinned && split ? (split.owedAmountMinor / 100).toFixed(2) : "",
+        pin:
+          pinned && split
+            ? toMajorInput(split.owedAmountMinor, expense.currency)
+            : "",
       };
     }
     return initial;
   });
 
   const amountMinor = useMemo(() => {
-    const n = Number(amount.replace(/[£€$,\s]/g, ""));
+    const n = Number(amount.replace(/[^\d.-]/g, ""));
     if (!Number.isFinite(n)) return 0;
     // Clamp so a pasted 20-digit number can't blow up the readout; the action
     // is still the gate that refuses it.
-    return Math.max(0, Math.min(Math.round(n * 100), MAX_EXPENSE_MINOR));
-  }, [amount]);
+    return Math.max(
+      0,
+      Math.min(Math.round(n * minorPerMajor(currency)), maxExpenseMinor(currency)),
+    );
+  }, [amount, currency]);
 
   const participants = members.filter((m) => checked.has(m.userId));
   const row = (userId: string) => rows[userId] ?? { shares: 1, pin: "" };
@@ -159,9 +171,14 @@ export function ExpenseForm({
   };
 
   const preview = useMemo(
-    () => previewSplit(amountMinor, participants.map((p) => rowFor(p.userId))),
+    () =>
+      previewSplit(
+        amountMinor,
+        participants.map((p) => rowFor(p.userId)),
+        currency,
+      ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [amountMinor, rows, checked, members, mode],
+    [amountMinor, rows, checked, members, mode, currency],
   );
 
   return (
@@ -253,9 +270,9 @@ export function ExpenseForm({
                   aria-label="Currency"
                   className="absolute inset-0 cursor-pointer opacity-0"
                 >
-                  {Object.keys(CURRENCY_SYMBOLS).map((c) => (
+                  {CURRENCIES.map((c) => (
                     <option key={c} value={c}>
-                      {c} ({CURRENCY_SYMBOLS[c as Currency]})
+                      {c}{currencySymbol(c) ? ` (${currencySymbol(c)})` : ""}
                     </option>
                   ))}
                 </select>
@@ -278,7 +295,7 @@ export function ExpenseForm({
                 name="amount"
                 inputMode="decimal"
                 value={amount}
-                onChange={(e) => setAmount(sanitizeAmount(e.target.value))}
+                onChange={(e) => setAmount(sanitizeAmountInput(e.target.value, currency))}
                 placeholder="0.00"
                 maxLength={12}
                 required
@@ -396,7 +413,7 @@ export function ExpenseForm({
                             name={`pin_${m.userId}`}
                             value={r.pin}
                             onChange={(e) =>
-                              setRow(m.userId, { pin: sanitizeAmount(e.target.value) })
+                              setRow(m.userId, { pin: sanitizeAmountInput(e.target.value, currency) })
                             }
                             placeholder="0.00"
                             aria-label={`Amount for ${m.name}`}
@@ -482,15 +499,10 @@ export function ExpenseForm({
 // the top, the rest spreads by shares, odd penny to the largest fractions.
 // Keeps a money box to digits and a single decimal point — no minus sign, no
 // letters. The server still validates; this just stops nonsense being typed.
-function sanitizeAmount(raw: string): string {
-  const cleaned = raw.replace(/[^\d.]/g, "");
-  const [whole, ...rest] = cleaned.split(".");
-  return rest.length ? `${whole}.${rest.join("").slice(0, 2)}` : whole;
-}
-
 function previewSplit(
   amountMinor: number,
   rows: { userId: string; shares: number; pin: string }[],
+  currency: Currency,
 ): {
   amounts: Record<string, number>;
   allocated: number;
@@ -502,11 +514,14 @@ function previewSplit(
 
   const parsed = rows.map((r) => {
     const pin = r.pin.trim();
-    const n = pin === "" ? null : Number(pin.replace(/[£€$,\s]/g, ""));
+    const n = pin === "" ? null : Number(pin.replace(/[^\d.-]/g, ""));
     return {
       userId: r.userId,
       shares: r.shares,
-      pinnedMinor: n === null || !Number.isFinite(n) ? null : Math.round(n * 100),
+      pinnedMinor:
+        n === null || !Number.isFinite(n)
+          ? null
+          : Math.round(n * minorPerMajor(currency)),
     };
   });
 

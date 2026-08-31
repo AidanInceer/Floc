@@ -2,23 +2,22 @@
  * Money is never a float; every amount is an integer minor-unit count.
  * Exact-sum invariant is enforced here, not in the schema (issue 04).
  */
-import { CURRENCIES, type Currency } from "@/lib/currency";
+import {
+  CURRENCIES,
+  currencySymbol,
+  minorPerMajor,
+  minorUnitExponent,
+  type Currency,
+} from "@/lib/currency";
 import type { SplitType } from "@/db/schema";
-
-export const CURRENCY_SYMBOLS: Record<Currency, string> = {
-  GBP: "£",
-  EUR: "€",
-  USD: "$",
-};
-
-/** All three v1 currencies have two decimal places. */
-const MINOR_PER_MAJOR = 100;
 
 /** Ceiling of £1bn in minor units — past MAX_SAFE_INTEGER, every later read throws and locks the trip out (ticket 33). */
 const MAX_AMOUNT_MINOR = 100_000_000_000;
 
-/** A single expense (or a pinned share) can't exceed £1,000,000 — a friendly cap well under the arithmetic ceiling. */
-export const MAX_EXPENSE_MINOR = 1_000_000 * MINOR_PER_MAJOR;
+/** A single expense (or a pinned share) can't exceed 1,000,000 major units — a friendly cap well under the arithmetic ceiling. */
+export function maxExpenseMinor(currency: Currency): number {
+  return 1_000_000 * minorPerMajor(currency);
+}
 
 function assertInRange(amountMinor: number): void {
   if (!Number.isFinite(amountMinor) || Math.abs(amountMinor) > MAX_AMOUNT_MINOR) {
@@ -26,37 +25,62 @@ function assertInRange(amountMinor: number): void {
   }
 }
 
+/** Digits only, no symbol or code — "12.34", "5600". The shared half of both formatters. */
+function decimalString(amountMinor: number, currency: Currency): string {
+  const exponent = minorUnitExponent(currency);
+  const per = minorPerMajor(currency);
+  const abs = Math.abs(amountMinor);
+  const major = Math.floor(abs / per).toLocaleString("en-GB");
+  if (exponent === 0) return major;
+  return `${major}.${String(abs % per).padStart(exponent, "0")}`;
+}
+
+/** "£47.50", "JPY 5600" — symbol where one names this currency alone, ISO code where it doesn't (ticket 253). */
 export function formatMoney(amountMinor: number, currency: Currency): string {
-  const negative = amountMinor < 0;
-  const abs = Math.abs(amountMinor);
-  const major = Math.floor(abs / MINOR_PER_MAJOR);
-  const minor = abs % MINOR_PER_MAJOR;
-  const body = `${CURRENCY_SYMBOLS[currency]}${major.toLocaleString("en-GB")}.${String(
-    minor,
-  ).padStart(2, "0")}`;
-  return negative ? `−${body}` : body;
+  const symbol = currencySymbol(currency);
+  const digits = decimalString(amountMinor, currency);
+  const body = symbol ? `${symbol}${digits}` : `${currency} ${digits}`;
+  return amountMinor < 0 ? `−${body}` : body;
 }
 
-/** ISO-ticker form — "GBP 12.34", "JPY 5600.00" — for the convert control, where the code, not a symbol, is the point. */
+/** ISO-ticker form — "GBP 12.34", "JPY 5600" — for the convert control, where the code, not a symbol, is the point. */
 export function formatTicker(amountMinor: number, currency: Currency): string {
-  const negative = amountMinor < 0;
-  const abs = Math.abs(amountMinor);
-  const major = Math.floor(abs / MINOR_PER_MAJOR);
-  const minor = abs % MINOR_PER_MAJOR;
-  const body = `${currency} ${major.toLocaleString("en-GB")}.${String(minor).padStart(2, "0")}`;
-  return negative ? `−${body}` : body;
+  const body = `${currency} ${decimalString(amountMinor, currency)}`;
+  return amountMinor < 0 ? `−${body}` : body;
 }
 
-/** Parses "12.34", "12", "£12.34" into minor units. Throws on nonsense. */
-export function parseMoney(input: string): number {
-  const cleaned = input.replace(/[£€$,\s]/g, "");
-  if (!/^-?\d+(\.\d{1,2})?$/.test(cleaned)) {
+/** Minor units → the bare decimal a form box edits — "12.34", "5600". No grouping, no symbol. */
+export function toMajorInput(amountMinor: number, currency: Currency): string {
+  return (amountMinor / minorPerMajor(currency)).toFixed(minorUnitExponent(currency));
+}
+
+/** Keeps a money box to digits and at most this currency's decimal places. */
+export function sanitizeAmountInput(raw: string, currency: Currency): string {
+  const exponent = minorUnitExponent(currency);
+  const cleaned = raw.replace(/[^\d.]/g, "");
+  const [whole, ...rest] = cleaned.split(".");
+  if (exponent === 0) return whole;
+  return rest.length ? `${whole}.${rest.join("").slice(0, exponent)}` : whole;
+}
+
+/**
+ * Parses "12.34", "12", "£12.34" into minor units. Throws on nonsense —
+ * including more decimal places than the currency has, so "5600.00" is a
+ * rejection for JPY rather than a hundredfold error (ticket 253).
+ */
+export function parseMoney(input: string, currency: Currency): number {
+  const exponent = minorUnitExponent(currency);
+  const cleaned = input.replace(/[^\d.-]/g, "");
+  const shape =
+    exponent === 0 ? /^-?\d+$/ : new RegExp(`^-?\\d+(\\.\\d{1,${exponent}})?$`);
+  if (!shape.test(cleaned)) {
     throw new Error(`Not a valid amount: ${input}`);
   }
   const negative = cleaned.startsWith("-");
   const [major, minor = ""] = cleaned.replace("-", "").split(".");
   const total =
-    Number(major) * MINOR_PER_MAJOR + Number(minor.padEnd(2, "0") || 0);
+    Number(major) * minorPerMajor(currency) +
+    (exponent === 0 ? 0 : Number(minor.padEnd(exponent, "0") || 0));
   assertInRange(total);
   return negative ? -total : total;
 }
@@ -164,6 +188,7 @@ export type WeightedInput = {
 export function resolveWeightedSplit(
   amountMinor: number,
   rows: WeightedInput[],
+  currency: Currency,
 ): { splitType: WritableSplitType; participants: SplitInput[] } {
   if (rows.length === 0) {
     throw new Error("An expense needs at least one person in it.");
@@ -184,7 +209,7 @@ export function resolveWeightedSplit(
   const remainder = amountMinor - pinnedTotal;
   if (remainder < 0) {
     throw new Error(
-      `The pinned amounts already come to ${formatMinor(pinnedTotal)}, which is more than the total.`,
+      `The pinned amounts already come to ${formatMoney(pinnedTotal, currency)}, which is more than the total.`,
     );
   }
 
@@ -192,7 +217,7 @@ export function resolveWeightedSplit(
   const shareTotal = unpinned.reduce((sum, r) => sum + r.shares, 0);
   if (remainder > 0 && shareTotal === 0) {
     throw new Error(
-      `${formatMinor(remainder)} is left over and nobody's on shares to absorb it.`,
+      `${formatMoney(remainder, currency)} is left over and nobody's on shares to absorb it.`,
     );
   }
 
@@ -216,11 +241,6 @@ export function resolveWeightedSplit(
   };
 }
 
-/** Bare minor units as a decimal — currency-less, for error strings. */
-function formatMinor(amountMinor: number): string {
-  return (amountMinor / MINOR_PER_MAJOR).toFixed(2);
-}
-
 // Balances — derived at read time, never stored (ticket 04). An expense is
 // what a bill implies about who owes who; a settlement is real money that has
 // since moved. The net of the two is the live position, and either can be
@@ -232,12 +252,19 @@ export type LedgerLine = {
   splits: { userId: string; owedAmountMinor: number }[];
 };
 
-/** A recorded transfer that has already happened off-app. */
+/**
+ * A recorded transfer that has already happened off-app. When the money left
+ * the payer's pocket in one currency and cleared a debt in another, `clears*`
+ * carry the debt side and the balance moves there — the amount actually handed
+ * over is a record of the payment, never a rate to reuse (ticket 253).
+ */
 export type LedgerSettlement = {
   from: string;
   to: string;
   currency: Currency;
   amountMinor: number;
+  clearsCurrency?: Currency | null;
+  clearsAmountMinor?: number | null;
 };
 
 /**
@@ -266,9 +293,11 @@ export function computeBalances(
 
   // A paid B: B's debt drops (B moves up), A is owed that much less (A down).
   for (const s of settlements) {
-    const book = balances[s.currency];
-    book[s.from] = (book[s.from] ?? 0) + s.amountMinor;
-    book[s.to] = (book[s.to] ?? 0) - s.amountMinor;
+    const currency = s.clearsCurrency ?? s.currency;
+    const amountMinor = s.clearsAmountMinor ?? s.amountMinor;
+    const book = balances[currency];
+    book[s.from] = (book[s.from] ?? 0) + amountMinor;
+    book[s.to] = (book[s.to] ?? 0) - amountMinor;
   }
 
   return balances;
@@ -318,4 +347,54 @@ export function suggestSettlements(
     if (creditors[c].amount === 0) c += 1;
   }
   return settlements;
+}
+
+/**
+ * Display-only sum of one member's books in a single currency (ticket 253).
+ * Each row is converted and rounded on its own, then the rounded rows are
+ * added — so the figure always matches the rows printed beside it, at the cost
+ * of a possible minor unit of drift from a directly-converted total. That is
+ * what the `≈` is for. Nothing here is ever stored.
+ */
+export function convertTotal(
+  perCurrency: { currency: Currency; amountMinor: number }[],
+  home: Currency,
+  rateFor: (currency: Currency) => number | null,
+): number | null {
+  let total = 0;
+  for (const row of perCurrency) {
+    if (row.currency === home) {
+      total += row.amountMinor;
+      continue;
+    }
+    const rate = rateFor(row.currency);
+    if (rate === null) return null; // one missing rate makes the whole total a lie
+    total += convertMinor(row.amountMinor, row.currency, home, rate);
+  }
+  return total;
+}
+
+/** Cross rate between two currencies quoted against the same base — `to` per 1 `from`. */
+export function crossRate(
+  from: Currency,
+  to: Currency,
+  rateFor: (currency: Currency) => number | null,
+): number | null {
+  if (from === to) return 1;
+  const fromRate = rateFor(from);
+  const toRate = rateFor(to);
+  if (!fromRate || !toRate) return null;
+  return fromRate / toRate;
+}
+
+/** Applies a `to`-per-`from` rate to a minor amount, honouring both exponents. */
+export function convertMinor(
+  amountMinor: number,
+  from: Currency,
+  to: Currency,
+  rate: number,
+): number {
+  return Math.round(
+    amountMinor * rate * (minorPerMajor(to) / minorPerMajor(from)),
+  );
 }

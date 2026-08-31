@@ -8,8 +8,12 @@
  * first three of the shown set are full-width highlight rows that plot their
  * bases on a real map (`RouteMap`), alternating side to side; the rest fall to
  * compact tiles whose base chain still carries the shape without a map.
+ *
+ * Public: a signed-out visitor sees the same listings, because the reason to
+ * make an account is on this page. Starting a trip needs one, so their button
+ * says so and goes to /signup rather than half-starting anything.
  */
-import { requireUser } from "@/server/access";
+import { getSession } from "@/server/access";
 import { formatMoney } from "@/lib/money";
 import { ButtonLink, PASTEL_SKINS, cx } from "@/components/ui";
 import { SubmitButton } from "@/components/client-ui";
@@ -40,7 +44,8 @@ export default async function ExplorePage({
 }: {
   searchParams: Promise<{ region?: string }>;
 }) {
-  await requireUser("/explore");
+  const session = await getSession();
+  const signedIn = !!session?.user;
 
   const { region } = await searchParams;
   const active = isRegion(region) ? region : null;
@@ -83,7 +88,13 @@ export default async function ExplorePage({
       {highlighted.length > 0 && (
         <ul className="mt-8 flex flex-col gap-4">
           {highlighted.map((t, i) => (
-            <HighlightRow key={t.id} preset={t} skin={skinFor(t)} flip={i % 2 === 1} />
+            <HighlightRow
+              key={t.id}
+              preset={t}
+              skin={skinFor(t)}
+              flip={i % 2 === 1}
+              signedIn={signedIn}
+            />
           ))}
         </ul>
       )}
@@ -95,9 +106,9 @@ export default async function ExplorePage({
         )}
       >
         {rest.map((t) => (
-          <PresetTile key={t.id} preset={t} skin={skinFor(t)} />
+          <PresetTile key={t.id} preset={t} skin={skinFor(t)} signedIn={signedIn} />
         ))}
-        <BlankTile empty={shown.length === 0} region={active} />
+        <BlankTile empty={shown.length === 0} region={active} signedIn={signedIn} />
       </ul>
 
       <p className="mt-10 border-t border-rule pt-5 text-xs text-ink-faint">
@@ -128,10 +139,12 @@ function HighlightRow({
   preset,
   skin,
   flip,
+  signedIn,
 }: {
   preset: PresetTrip;
   skin: string;
   flip: boolean;
+  signedIn: boolean;
 }) {
   return (
     <li
@@ -159,26 +172,44 @@ function HighlightRow({
           <span className="nums text-sm">
             {formatMoney(preset.priceFromMinor, preset.currency)} each, roughly
           </span>
-          <form
-            action={startTripFromPreset}
-            className="w-full sm:ml-auto sm:w-auto"
-          >
-            <input type="hidden" name="presetId" value={preset.id} />
-            <SubmitButton
-              variant="primary"
-              pendingLabel="Starting…"
-              className="w-full sm:w-auto"
+          {signedIn ? (
+            <form
+              action={startTripFromPreset}
+              className="w-full sm:ml-auto sm:w-auto"
             >
-              Start this trip
-            </SubmitButton>
-          </form>
+              <input type="hidden" name="presetId" value={preset.id} />
+              <SubmitButton
+                variant="primary"
+                pendingLabel="Starting…"
+                className="w-full sm:w-auto"
+              >
+                Start this trip
+              </SubmitButton>
+            </form>
+          ) : (
+            <ButtonLink
+              href="/signup"
+              variant="primary"
+              className="w-full sm:ml-auto sm:w-auto"
+            >
+              Sign up to start this trip
+            </ButtonLink>
+          )}
         </div>
       </div>
     </li>
   );
 }
 
-function PresetTile({ preset, skin }: { preset: PresetTrip; skin: string }) {
+function PresetTile({
+  preset,
+  skin,
+  signedIn,
+}: {
+  preset: PresetTrip;
+  skin: string;
+  signedIn: boolean;
+}) {
   const bases = preset.legs.filter((l) => l.kind === "base");
   return (
     <li className={cx("lift flex flex-col gap-5 rounded-lg p-6", skin)}>
@@ -207,12 +238,18 @@ function PresetTile({ preset, skin }: { preset: PresetTrip; skin: string }) {
           {formatMoney(preset.priceFromMinor, preset.currency)}
           <span className="text-xs opacity-70"> pp</span>
         </span>
-        <form action={startTripFromPreset}>
-          <input type="hidden" name="presetId" value={preset.id} />
-          <SubmitButton variant="primary" pendingLabel="Starting…">
-            Start
-          </SubmitButton>
-        </form>
+        {signedIn ? (
+          <form action={startTripFromPreset}>
+            <input type="hidden" name="presetId" value={preset.id} />
+            <SubmitButton variant="primary" pendingLabel="Starting…">
+              Start
+            </SubmitButton>
+          </form>
+        ) : (
+          <ButtonLink href="/signup" variant="primary">
+            Sign up
+          </ButtonLink>
+        )}
       </div>
     </li>
   );
@@ -223,7 +260,15 @@ function PresetTile({ preset, skin }: { preset: PresetTrip; skin: string }) {
  * same one obvious action as a group taking a listing. When a region filter
  * empties the grid it's the only card left, and says what belongs there.
  */
-function BlankTile({ empty, region }: { empty: boolean; region: Region | null }) {
+function BlankTile({
+  empty,
+  region,
+  signedIn,
+}: {
+  empty: boolean;
+  region: Region | null;
+  signedIn: boolean;
+}) {
   return (
     <li className="lift flex min-h-[13rem] flex-col gap-4 rounded-lg bg-pen-soft p-6 text-pen-deep">
       <div>
@@ -244,8 +289,12 @@ function BlankTile({ empty, region }: { empty: boolean; region: Region | null })
             Show everywhere
           </ButtonLink>
         ) : null}
-        <ButtonLink href="/trips" variant="primary" className="ml-auto">
-          Start a trip
+        <ButtonLink
+          href={signedIn ? "/trips" : "/signup"}
+          variant="primary"
+          className="ml-auto"
+        >
+          {signedIn ? "Start a trip" : "Sign up"}
         </ButtonLink>
       </div>
     </li>

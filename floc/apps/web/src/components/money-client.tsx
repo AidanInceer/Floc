@@ -6,8 +6,16 @@ import { useActionState, useEffect, useRef, useState } from "react";
 
 import type { ActionState } from "@/app/trip/[id]/money/actions";
 import type { Currency } from "@/db/schema";
-import { formatMoney, formatTicker } from "@/lib/money";
-import { Button, ErrorText, Field, Input, Stack } from "@/components/ui";
+import {
+  convertMinor,
+  formatMoney,
+  formatTicker,
+  sanitizeAmountInput,
+  toMajorInput,
+} from "@/lib/money";
+import { CURRENCIES } from "@/lib/currency";
+import { formatDate } from "@/lib/dates";
+import { Button, ErrorText, Field, Input, Select, Stack } from "@/components/ui";
 import { SubmitButton, useSheetClose } from "@/components/client-ui";
 
 function SwapGlyph() {
@@ -55,7 +63,7 @@ export function ConvertAmount({
     return <span className={className}>{formatMoney(amountMinor, currency)}</span>;
   }
 
-  const homeMinor = Math.round(amountMinor * (rate as number));
+  const homeMinor = convertMinor(amountMinor, currency, home, rate as number);
 
   return (
     <button
@@ -113,7 +121,11 @@ export function SettleUpForm({
     if (submitted.current && !state.error) sheetClose?.();
   }, [state, sheetClose]);
 
-  const [amount, setAmount] = useState((amountMinor / 100).toFixed(2));
+  const [amount, setAmount] = useState(toMajorInput(amountMinor, currency));
+  // Paying in a currency other than the debt (ticket 253). The server fetches
+  // the rate itself — a client-posted rate would be a client-posted balance.
+  const [payCurrency, setPayCurrency] = useState<Currency>(currency);
+  const [payAmount, setPayAmount] = useState("");
 
   return (
     <form
@@ -139,10 +151,43 @@ export function SettleUpForm({
             name="amount"
             inputMode="decimal"
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            onChange={(e) => setAmount(sanitizeAmountInput(e.target.value, currency))}
             required
           />
         </Field>
+
+        <Field label="Paid in">
+          <Select
+            name="payCurrency"
+            value={payCurrency}
+            onChange={(e) => setPayCurrency(e.target.value as Currency)}
+          >
+            {CURRENCIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </Select>
+        </Field>
+
+        {payCurrency !== currency ? (
+          <>
+            <p className="text-sm text-ink-soft">
+              The debt stays {currency}. Floc converts at the day&rsquo;s
+              published rate and keeps that rate on this payment forever.
+            </p>
+            <Field label={`What you handed over (${payCurrency}) — only if no rate is available`}>
+              <Input
+                name="payAmount"
+                inputMode="decimal"
+                value={payAmount}
+                onChange={(e) =>
+                  setPayAmount(sanitizeAmountInput(e.target.value, payCurrency))
+                }
+              />
+            </Field>
+          </>
+        ) : null}
 
         <ErrorText>{state.error}</ErrorText>
 
@@ -156,5 +201,51 @@ export function SettleUpForm({
         </div>
       </Stack>
     </form>
+  );
+}
+
+/**
+ * Display-only combined total across a multi-currency trip (ticket 253). The
+ * per-currency rows above it are the truth; this is a preview, so it always
+ * carries `≈` and names the day its rate was published. Nothing here is stored,
+ * and no balance is derived from it.
+ */
+export function CombinedTotal({
+  totalMinor,
+  home,
+  rateDate,
+  stale,
+}: {
+  /** Null when a rate is missing for one of the currencies in play. */
+  totalMinor: number | null;
+  home: Currency;
+  rateDate: string;
+  stale: boolean;
+}) {
+  const [show, setShow] = useState(false);
+  if (totalMinor === null) return null;
+
+  return (
+    <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
+      <button
+        type="button"
+        onClick={() => setShow((v) => !v)}
+        className="font-semibold text-pen"
+      >
+        {show ? `Hide ${home} totals` : `Show totals in ${home}`}
+      </button>
+      {show ? (
+        <>
+          <span className="nums font-medium">
+            ≈ {formatTicker(totalMinor, home)}
+          </span>
+          <span className="text-ink-soft">
+            {stale
+              ? `Converted at the rate published on ${formatDate(rateDate)} — the latest Floc could reach.`
+              : `Converted at the rate published on ${formatDate(rateDate)}.`}
+          </span>
+        </>
+      ) : null}
+    </div>
   );
 }

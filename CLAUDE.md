@@ -45,6 +45,8 @@ pnpm verify                      # everything CI runs, locally
 
 **No pre-push hook.** Run `pnpm verify` by hand before **every** push, `develop` included.
 
+**A schema change is not done until `local.db` has it.** `db:generate` writes the migration; nothing applies it locally, so the dev server keeps querying the old table and dies on `no such column`. Run the new `drizzle/*.sql` against `local.db` in the same slice as the schema edit, before pushing — a pushed migration with an unmigrated `local.db` breaks dev for everyone next pulling it.
+
 ## Non-negotiables
 
 1. **Money never a float.** Integer minor units; `parseMoney`/`computeSplits`/`formatMoney` only.

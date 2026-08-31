@@ -721,12 +721,50 @@ export const settlement = sqliteTable(
       .references(() => user.id),
     amountMinor: integer("amount_minor").notNull(),
     currency: text("currency", { enum: CURRENCIES }).notNull(),
+    /**
+     * Cross-currency settle-up (ticket 253): money handed over in `currency`
+     * clearing a debt held in `clears_currency`. Null on a same-currency
+     * settlement, which behaves exactly as before. The rate is a *snapshot of
+     * this payment* — same shape as `expense_split`, and never read back to
+     * convert anything else.
+     */
+    clearsAmountMinor: integer("clears_amount_minor"),
+    clearsCurrency: text("clears_currency", { enum: CURRENCIES }),
+    /** Units of `clears_currency` per 1 `currency`, as published on `fx_rate_date`. */
+    fxRate: real("fx_rate"),
+    /** `YYYY-MM-DD` of the quote used — no timezone, rule 10. */
+    fxRateDate: text("fx_rate_date"),
     createdBy: text("created_by")
       .notNull()
       .references(() => user.id),
     ...audit,
   },
   (t) => [index("settlement_trip_idx").on(t.tripId)],
+);
+
+/**
+ * Cached daily reference rates from frankfurter.app (ticket 253). A record of
+ * a published public fact, not a statement about what anyone owes — so it has
+ * no `deleted_at` and sits outside rule 8, and no balance is ever derived from
+ * it: it only backs the display toggle and pre-fills a cross-currency
+ * settle-up, which snapshots its own rate on the settlement row.
+ */
+export const fxRate = sqliteTable(
+  "fx_rate",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    /** `YYYY-MM-DD` as the provider published it, rule 10. */
+    date: text("date").notNull(),
+    base: text("base", { enum: CURRENCIES }).notNull(),
+    currency: text("currency", { enum: CURRENCIES }).notNull(),
+    /** Units of `currency` per 1 `base`. A rate, not money — a float is correct here. */
+    rate: real("rate").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(now),
+  },
+  (t) => [
+    uniqueIndex("fx_rate_quote_idx").on(t.date, t.base, t.currency),
+    index("fx_rate_base_date_idx").on(t.base, t.date),
+  ],
 );
 
 /* -------------------------------------------------------------------------- */
