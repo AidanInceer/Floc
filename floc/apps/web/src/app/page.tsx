@@ -20,9 +20,10 @@ import { Glyph, features, sampleStops } from "./landing-content";
 import type { Feature } from "./landing-content";
 
 /**
- * Where every call to action on the page lands. Signed out the whole product
- * sits behind the account, so each one detours through the door it needs and
- * comes back — one place to change that, not four.
+ * Where every call to action on the page lands. Signed out, most of the
+ * product sits behind the account, so those detour through the door they need
+ * and come back — one place to change that, not four. Explore is the
+ * exception: it is public, so "get inspired" goes straight there.
  */
 function destinations(signedIn: boolean) {
   return signedIn
@@ -33,7 +34,7 @@ function destinations(signedIn: boolean) {
       }
     : {
         start: "/signup",
-        inspire: "/login?redirect=%2Fexplore",
+        inspire: "/explore",
         billing: "/login?redirect=%2Fsettings%3Fsection%3Dbilling",
       };
 }

@@ -89,7 +89,12 @@ export function AppChrome({
             true centre. Absolute only from `sm` up — on a phone there isn't the
             room, and the pills must stay in flow so the row can shrink. */}
         <div className="flex min-w-0 flex-1 justify-center sm:absolute sm:left-1/2 sm:w-auto sm:max-w-[calc(100%-22rem)] sm:flex-none sm:-translate-x-1/2">
-          {user ? <PillNav label="Your surfaces" items={navItems} /> : null}
+          {/* Explore is public, so it stays in the bar signed out — the one
+              surface a visitor can reach without an account. */}
+          <PillNav
+            label={user ? "Your surfaces" : "Browse"}
+            items={user ? navItems : navItems.filter((i) => i.href === "/explore")}
+          />
         </div>
 
         {/* `ml-auto`, because from `sm` up the middle leaves the flow and there

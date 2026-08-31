@@ -30,10 +30,11 @@ import {
 } from "@/app/profile/actions";
 import type { Subscription, Visibility } from "@/db/schema";
 import { requireUser } from "@/server/access";
-import { subscriptionOf } from "@/server/billing";
+import { proPrices, subscriptionOf } from "@/server/billing";
+import type { ProPrice } from "@/server/billing";
 import { allFeaturesFree } from "@/lib/env";
 import { ensureProfile, listLinkedAccounts } from "@/server/profile";
-import { BillingAction } from "@/components/billing-buttons";
+import { BillingAction, ProUpgrade } from "@/components/billing-buttons";
 import { isLive, renewalLabel } from "@/lib/subscription-copy";
 import {
   AccountPage,
@@ -117,10 +118,13 @@ export default async function SettingsPage({
   const asked = section ?? (billing ? "billing" : undefined);
   const current = sectionFor(asked);
 
-  const [profile, linkedAccounts, subscription] = await Promise.all([
+  const [profile, linkedAccounts, subscription, prices] = await Promise.all([
     ensureProfile(viewer.id),
     listLinkedAccounts(viewer.id),
     subscriptionOf(viewer.id),
+    // Someone sent here by a locked feature arrived to find out the cost
+    // (ticket 279), so the panel quotes it rather than naming the plan.
+    allFeaturesFree() ? Promise.resolve<ProPrice[]>([]) : proPrices(),
   ]);
 
   const vibeTags = readVibeTags(profile.vibeTags);
@@ -318,7 +322,11 @@ export default async function SettingsPage({
           ) : null}
 
           {current === "billing" && !allFeaturesFree() ? (
-            <BillingPanel subscription={subscription} billing={billing} />
+            <BillingPanel
+              subscription={subscription}
+              billing={billing}
+              prices={prices}
+            />
           ) : null}
 
           {current === "email" ? (
@@ -484,9 +492,11 @@ function SectionRail({ current }: { current: SectionId }) {
 function BillingPanel({
   subscription,
   billing,
+  prices,
 }: {
   subscription: Subscription | null;
   billing?: string;
+  prices: ProPrice[];
 }) {
   return (
     <Panel
@@ -535,21 +545,7 @@ function BillingPanel({
               Pro adds the weather forecast on your dates and a packing list
               filled in for you.
             </p>
-            <div className="flex flex-wrap gap-2">
-              <BillingAction
-                path="/api/billing/checkout"
-                body={{ interval: "monthly" }}
-                variant="primary"
-              >
-                Go Pro monthly
-              </BillingAction>
-              <BillingAction
-                path="/api/billing/checkout"
-                body={{ interval: "yearly" }}
-              >
-                Go Pro yearly
-              </BillingAction>
-            </div>
+            <ProUpgrade prices={prices} canBuy href="/settings?section=billing" />
           </Stack>
         )}
       </Stack>
