@@ -177,6 +177,11 @@ export async function writeSettlement(args: {
   toUserId: string;
   amountMinor: number;
   currency: Currency;
+  /** Cross-currency only (ticket 253) — the debt side, and the rate snapshotted at the moment it was paid. */
+  clearsAmountMinor?: number;
+  clearsCurrency?: Currency;
+  fxRate?: number;
+  fxRateDate?: string | null;
 }): Promise<void> {
   await db.insert(settlement).values(args);
 }

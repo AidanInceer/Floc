@@ -6,12 +6,14 @@
  * that any member can delete to revert. When every book nets to zero the whole
  * tab collapses behind a "settled up" banner.
  */
-import type { Currency, Expense, ExpenseSplit, Settlement } from "@/db/schema";
+import type { Currency, ExpenseSplit } from "@/db/schema";
 import { CURRENCIES } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
-import { formatDate, toIsoDate } from "@/lib/dates";
+import { formatDate } from "@/lib/dates";
 import {
   computeBalances,
+  convertTotal,
+  formatMoney,
   isAllSettled,
   suggestSettlements,
 } from "@/lib/money";
@@ -25,38 +27,13 @@ import {
 } from "@/server/money";
 import { getProfile } from "@/server/profile";
 import { getHomeRates } from "@/server/fx";
-import { Avatar, cx, menuDangerItemClass, menuItemClass } from "@/components/ui";
-import { ConfirmSubmit, Menu, Sheet } from "@/components/client-ui";
-import { CategoryIcon } from "@/components/category-icon";
-import { ConvertAmount, SettleUpForm } from "@/components/money-client";
+import { Avatar, cx } from "@/components/ui";
+import { Sheet } from "@/components/client-ui";
+import { CombinedTotal, ConvertAmount, SettleUpForm } from "@/components/money-client";
+import { ActivityFeed } from "@/components/money-activity";
 import { ExpenseForm } from "@/components/expense-form";
 import type { FormDay, FormMember } from "@/components/expense-form";
-import {
-  addExpense,
-  deleteExpense,
-  deleteSettlement,
-  recordSettlement,
-  updateExpense,
-} from "./actions";
-
-// Even split is stored as one share each; read it back from the numbers
-// (within a penny, for remainder handling) rather than trusting splitType.
-const SPLIT_LABELS: Record<Expense["splitType"], string> = {
-  even: "split evenly",
-  exact: "set amounts",
-  percentage: "by percentage",
-  shares: "by shares",
-};
-
-function splitLabel(e: Expense, splits: { owedAmountMinor: number }[]): string {
-  if (splits.length === 1) return "all on one person";
-  if (splits.length > 1 && (e.splitType === "shares" || e.splitType === "even")) {
-    const min = Math.min(...splits.map((s) => s.owedAmountMinor));
-    const max = Math.max(...splits.map((s) => s.owedAmountMinor));
-    if (max - min <= 1) return SPLIT_LABELS.even;
-  }
-  return SPLIT_LABELS[e.splitType];
-}
+import { addExpense, recordSettlement } from "./actions";
 
 export default async function MoneyPage({
   params,
@@ -128,6 +105,8 @@ export default async function MoneyPage({
     to: s.toUserId,
     currency: s.currency,
     amountMinor: s.amountMinor,
+    clearsCurrency: s.clearsCurrency,
+    clearsAmountMinor: s.clearsAmountMinor,
   }));
 
   const balances = computeBalances(ledgerLines, ledgerSettlements);
@@ -169,6 +148,24 @@ export default async function MoneyPage({
       return aMine - bMine;
     });
 
+  // The viewer's own position, one row per currency — the truth the combined
+  // total only previews (ticket 253). Negative reads as owing, or as having
+  // overpaid once the expense behind a settlement is deleted.
+  // Bills alone, no settlements — the yardstick for "overpaid": settle-up has
+  // pushed the viewer above where the expenses put them, which is what an
+  // expense deleted after a settlement looks like (ticket 253).
+  const expenseOnly = computeBalances(ledgerLines);
+  const myPosition = active
+    .map((currency) => ({
+      currency,
+      amountMinor: balances[currency][viewerId] ?? 0,
+      overpaid:
+        (balances[currency][viewerId] ?? 0) >
+        Math.max(expenseOnly[currency][viewerId] ?? 0, 0),
+    }))
+    .filter((row) => row.amountMinor !== 0);
+  const myTotalInHome = convertTotal(myPosition, homeCurrency, rateFor);
+
   return (
     <div className="mx-auto w-full max-w-[64rem] px-4 pb-20 pt-6 sm:px-6">
       <header className="flex flex-wrap items-end justify-between gap-6">
@@ -187,15 +184,25 @@ export default async function MoneyPage({
           {allSettled ? (
             <SettledBanner addForm={addForm} />
           ) : (
-            <SettleUpCard
-              tripId={tripId}
-              transfers={transfers}
-              viewerId={viewerId}
-              label={label}
-              tone={tone}
-              home={homeCurrency}
-              rateFor={rateFor}
-            />
+            <>
+              <YourPosition
+                rows={myPosition}
+                active={active}
+                home={homeCurrency}
+                totalInHome={myTotalInHome}
+                rateDate={rates?.date ?? null}
+                rateStale={rates?.stale ?? false}
+              />
+              <SettleUpCard
+                tripId={tripId}
+                transfers={transfers}
+                viewerId={viewerId}
+                label={label}
+                tone={tone}
+                home={homeCurrency}
+                rateFor={rateFor}
+              />
+            </>
           )}
 
           <ActivityFeed
@@ -268,6 +275,67 @@ function SettledBanner({ addForm }: { addForm: React.ReactNode }) {
           {addForm}
         </Sheet>
       </div>
+    </section>
+  );
+}
+
+/**
+ * Where the viewer stands, one honest row per currency (ticket 253). A trip
+ * with GBP flights and EUR meals is the normal trip, so this never collapses
+ * the two — the combined figure underneath is a preview, marked `≈`, and only
+ * appears when a rate exists.
+ */
+function YourPosition({
+  rows,
+  active,
+  home,
+  totalInHome,
+  rateDate,
+  rateStale,
+}: {
+  rows: { currency: Currency; amountMinor: number; overpaid: boolean }[];
+  active: Currency[];
+  home: Currency;
+  totalInHome: number | null;
+  rateDate: string | null;
+  rateStale: boolean;
+}) {
+  if (rows.length === 0) return null;
+  return (
+    <section className="rounded-lg bg-sheet p-6">
+      <h2 className="border-b border-rule pb-3 text-xl">Where you stand</h2>
+      {active.length > 1 ? (
+        <p className="mt-3 text-sm text-ink-soft">
+          This trip has balances in {active.join(" and ")}.
+        </p>
+      ) : null}
+      <ul className="mt-2 flex flex-col">
+        {rows.map((row) => (
+          <li
+            key={row.currency}
+            className="flex items-center justify-between gap-3 border-b border-rule py-3 last:border-b-0"
+          >
+            <span className="text-sm text-ink-soft">
+              {row.overpaid
+                ? "Owed back to you — you overpaid"
+                : row.amountMinor > 0
+                  ? "You are owed"
+                  : "You owe"}
+            </span>
+            <span className="nums text-sm font-medium">
+              {formatMoney(Math.abs(row.amountMinor), row.currency)}
+            </span>
+          </li>
+        ))}
+      </ul>
+      {rateDate && active.length > 1 ? (
+        <CombinedTotal
+          totalMinor={totalInHome}
+          home={home}
+          rateDate={rateDate}
+          stale={rateStale}
+        />
+      ) : null}
     </section>
   );
 }
@@ -349,238 +417,5 @@ function SettleUpCard({
         })}
       </ul>
     </section>
-  );
-}
-
-type FeedItem =
-  | { kind: "expense"; at: Date; expense: Expense }
-  | { kind: "settlement"; at: Date; settlement: Settlement };
-
-function ActivityFeed(props: {
-  collapsed: boolean;
-  tripId: number;
-  viewerId: string;
-  expenses: Expense[];
-  settlements: Settlement[];
-  splitsByExpense: Map<number, ExpenseSplit[]>;
-  dayById: Map<number, { date: string }>;
-  name: (userId: string) => string;
-  label: (userId: string) => string;
-  tone: (userId: string) => string | undefined;
-  home: Currency;
-  rateFor: (currency: Currency) => number | null;
-  formMembers: FormMember[];
-  formDays: FormDay[];
-  homeCurrency: Currency;
-}) {
-  const items: FeedItem[] = [
-    ...props.expenses.map((e): FeedItem => ({ kind: "expense", at: e.createdAt, expense: e })),
-    ...props.settlements.map(
-      (s): FeedItem => ({ kind: "settlement", at: s.createdAt, settlement: s }),
-    ),
-  ].sort((a, b) => b.at.getTime() - a.at.getTime());
-
-  const rows = (
-    <ul className="mt-2 flex flex-col">
-      {items.map((item) =>
-        item.kind === "expense" ? (
-          <ExpenseRow key={`e${item.expense.id}`} {...props} expense={item.expense} />
-        ) : (
-          <SettlementRow key={`s${item.settlement.id}`} {...props} settlement={item.settlement} />
-        ),
-      )}
-    </ul>
-  );
-
-  if (props.collapsed) {
-    return (
-      <details className="rounded-lg bg-sheet p-6">
-        <summary className="flex cursor-pointer list-none items-center justify-center gap-2 text-sm font-semibold text-ink-soft [&::-webkit-details-marker]:hidden">
-          Past activity
-          <svg
-            width={14}
-            height={14}
-            viewBox="0 0 14 14"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.4}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden
-          >
-            <path d="M3.5 5.2L7 8.7l3.5-3.5" />
-          </svg>
-        </summary>
-        {rows}
-      </details>
-    );
-  }
-
-  return (
-    <section className="rounded-lg bg-sheet p-6">
-      <h2 className="border-b border-rule pb-3 text-xl">Activity</h2>
-      {rows}
-    </section>
-  );
-}
-
-function ExpenseRow({
-  tripId,
-  viewerId,
-  expense: e,
-  splitsByExpense,
-  dayById,
-  name,
-  home,
-  rateFor,
-  formMembers,
-  formDays,
-  homeCurrency,
-}: {
-  tripId: number;
-  viewerId: string;
-  expense: Expense;
-  splitsByExpense: Map<number, ExpenseSplit[]>;
-  dayById: Map<number, { date: string }>;
-  name: (userId: string) => string;
-  home: Currency;
-  rateFor: (currency: Currency) => number | null;
-  formMembers: FormMember[];
-  formDays: FormDay[];
-  homeCurrency: Currency;
-}) {
-  const rowSplits = splitsByExpense.get(e.id) ?? [];
-  const d = e.dayId ? dayById.get(e.dayId) : null;
-  const payer = e.paidBy === viewerId ? "You" : name(e.paidBy);
-
-  return (
-    <li className="flex items-center gap-3 border-b border-rule py-3 last:border-b-0">
-      <span className="flex h-9 w-9 flex-none items-center justify-center rounded-md border border-rule bg-sheet-2 text-ink-soft">
-        <CategoryIcon category={e.category} />
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="truncate font-medium">{e.description}</p>
-        <p className="mt-0.5 truncate text-xs text-ink-soft">
-          {payer} paid · {splitLabel(e, rowSplits)}
-          {d ? ` · ${formatDate(d.date)}` : ""}
-        </p>
-      </div>
-      <div className="flex items-center gap-1.5">
-        <ConvertAmount
-          amountMinor={e.amountMinor}
-          currency={e.currency}
-          home={home}
-          rate={rateFor(e.currency)}
-          className="nums text-sm font-medium"
-        />
-        <Menu label={`Actions for ${e.description}`}>
-          <Sheet
-            trigger="Edit"
-            title="Expense"
-            triggerVariant="ghost"
-            triggerClassName={menuItemClass}
-            keepOpenOnSubmit
-          >
-            <ExpenseForm
-              tripId={tripId}
-              members={formMembers}
-              days={formDays}
-              homeCurrency={homeCurrency}
-              viewerId={viewerId}
-              action={updateExpense}
-              expense={{
-                id: e.id,
-                description: e.description,
-                amountMinor: e.amountMinor,
-                currency: e.currency,
-                splitType: e.splitType,
-                category: e.category,
-                paidBy: e.paidBy,
-                dayId: e.dayId,
-                notes: e.notes,
-                splits: rowSplits.map((s) => ({
-                  userId: s.userId,
-                  owedAmountMinor: s.owedAmountMinor,
-                })),
-              }}
-            />
-          </Sheet>
-          <form action={deleteExpense}>
-            <input type="hidden" name="tripId" value={tripId} />
-            <input type="hidden" name="expenseId" value={e.id} />
-            <ConfirmSubmit
-              message={`Delete "${e.description}"?`}
-              variant="ghost"
-              className={menuDangerItemClass}
-            >
-              Delete
-            </ConfirmSubmit>
-          </form>
-        </Menu>
-      </div>
-    </li>
-  );
-}
-
-function SettlementRow({
-  tripId,
-  settlement: s,
-  label,
-  home,
-  rateFor,
-}: {
-  tripId: number;
-  settlement: Settlement;
-  label: (userId: string) => string;
-  home: Currency;
-  rateFor: (currency: Currency) => number | null;
-}) {
-  return (
-    <li className="flex items-center gap-3 border-b border-rule py-3 last:border-b-0">
-      <span className="flex h-9 w-9 flex-none items-center justify-center rounded-md border border-mint-edge bg-mint text-mint-ink">
-        <svg
-          width={18}
-          height={18}
-          viewBox="0 0 14 14"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={1.2}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden
-        >
-          <path d="M2 4.5h8L8.2 2.7M12 9.5H4l1.8 1.8" />
-        </svg>
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="truncate font-medium">
-          {label(s.fromUserId)} paid {label(s.toUserId)}
-        </p>
-        <p className="mt-0.5 truncate text-xs text-ink-soft">
-          Cash · {formatDate(toIsoDate(s.createdAt))}
-        </p>
-      </div>
-      <div className="flex items-center gap-1.5">
-        <ConvertAmount
-          amountMinor={s.amountMinor}
-          currency={s.currency}
-          home={home}
-          rate={rateFor(s.currency)}
-          className="nums text-sm font-medium text-mint-ink"
-        />
-        <form action={deleteSettlement}>
-          <input type="hidden" name="tripId" value={tripId} />
-          <input type="hidden" name="settlementId" value={s.id} />
-          <ConfirmSubmit
-            message="Undo this settlement? The balances go back to before it."
-            variant="ghost"
-            className={menuDangerItemClass}
-            label="Undo settlement"
-          >
-            Undo
-          </ConfirmSubmit>
-        </form>
-      </div>
-    </li>
   );
 }

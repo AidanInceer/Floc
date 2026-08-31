@@ -7,7 +7,8 @@ import { after } from "next/server";
 
 import type { Currency } from "@/db/schema";
 import { capRequiredText, capText } from "@/lib/text";
-import { CURRENCIES } from "@/lib/currency";
+import { CURRENCIES, minorPerMajor } from "@/lib/currency";
+import { getHomeRates } from "@/server/fx";
 import {
   DEFAULT_CATEGORY,
   isExpenseCategory,
@@ -27,8 +28,9 @@ import type { WritableSplitType } from "@/lib/money";
 import {
   computeSplits,
   formatMoney,
-  MAX_EXPENSE_MINOR,
+  maxExpenseMinor,
   parseMoney,
+  convertMinor,
   resolveWeightedSplit,
 } from "@/lib/money";
 import type { SplitInput, WeightedInput } from "@/lib/money";
@@ -43,6 +45,7 @@ export type ActionState = { error?: string };
 function parseSplit(
   formData: FormData,
   amountMinor: number,
+  currency: Currency,
 ): { splitType: WritableSplitType; participants: SplitInput[] } {
   const ids = formData.getAll("participant").map(String).filter(Boolean);
   const rows: WeightedInput[] = ids.map((userId) => {
@@ -52,24 +55,27 @@ function parseSplit(
       userId,
       shares: rawShares === "" ? 0 : Number(rawShares),
       // Empty box = not pinned; a typed 0.00 is a real pin of nothing.
-      pinnedMinor: rawPin === "" ? null : parseMoney(rawPin),
+      pinnedMinor: rawPin === "" ? null : parseMoney(rawPin, currency),
     };
   });
-  return resolveWeightedSplit(amountMinor, rows);
+  return resolveWeightedSplit(amountMinor, rows, currency);
 }
 
 // Parses the amount and holds it to a sane, positive range — the arithmetic
 // ceiling in lib/money is a safety net, not a product limit.
-function readAmount(formData: FormData): { amountMinor: number } | { error: string } {
+function readAmount(
+  formData: FormData,
+  currency: Currency,
+): { amountMinor: number } | { error: string } {
   let amountMinor: number;
   try {
-    amountMinor = parseMoney(String(formData.get("amount") ?? ""));
+    amountMinor = parseMoney(String(formData.get("amount") ?? ""), currency);
   } catch (err) {
     return { error: (err as Error).message };
   }
   if (amountMinor <= 0) return { error: "Enter an amount above zero." };
-  if (amountMinor > MAX_EXPENSE_MINOR) {
-    return { error: "Keep an expense under £1,000,000." };
+  if (amountMinor > maxExpenseMinor(currency)) {
+    return { error: `Keep an expense under ${formatMoney(maxExpenseMinor(currency), currency)}.` };
   }
   return { amountMinor };
 }
@@ -141,15 +147,16 @@ export async function addExpense(
 
   if (!description) return { error: "Give the expense a description." };
   if (!paidBy) return { error: "Say who paid." };
+  if (!CURRENCIES.includes(currency)) return { error: "Pick a currency." };
 
-  const parsed = readAmount(formData);
+  const parsed = readAmount(formData, currency);
   if ("error" in parsed) return { error: parsed.error };
   const amountMinor = parsed.amountMinor;
 
   let splits;
   let splitType: WritableSplitType;
   try {
-    const resolved = parseSplit(formData, amountMinor);
+    const resolved = parseSplit(formData, amountMinor, currency);
     splitType = resolved.splitType;
     splits = computeSplits(amountMinor, splitType, resolved.participants);
   } catch (err) {
@@ -196,18 +203,19 @@ export async function updateExpense(
 
   if (!description) return { error: "Give the expense a description." };
   if (!paidBy) return { error: "Say who paid." };
+  if (!CURRENCIES.includes(currency)) return { error: "Pick a currency." };
 
   const existing = await findLiveExpense(access.trip.id, expenseId);
   if (!existing) return { error: "That expense no longer exists." };
 
-  const parsed = readAmount(formData);
+  const parsed = readAmount(formData, currency);
   if ("error" in parsed) return { error: parsed.error };
   const amountMinor = parsed.amountMinor;
 
   let splits;
   let splitType: WritableSplitType;
   try {
-    const resolved = parseSplit(formData, amountMinor);
+    const resolved = parseSplit(formData, amountMinor, currency);
     splitType = resolved.splitType;
     splits = computeSplits(amountMinor, splitType, resolved.participants);
   } catch (err) {
@@ -253,6 +261,44 @@ export async function deleteExpense(formData: FormData): Promise<void> {
   refresh({ kind: "money", tripId: access.trip.id });
 }
 
+/**
+ * The paid side of a cross-currency settlement. The rate is fetched here, not
+ * accepted from the form — a client-posted rate would be a client-posted
+ * balance. When no rate can be had at all the payer types the amount they
+ * actually handed over and the implied rate is recorded with no date, because
+ * there is no publication to point at (ticket 253).
+ */
+async function readCrossPayment(
+  clearsCurrency: Currency,
+  payCurrency: Currency,
+  clearsAmountMinor: number,
+  formData: FormData,
+): Promise<{ paidMinor: number; rate: number; date: string | null } | { error: string }> {
+  const rates = await getHomeRates(clearsCurrency);
+  const rate = rates?.toHome[payCurrency] || null;
+
+  if (rate !== null) {
+    const paidMinor = convertMinor(clearsAmountMinor, clearsCurrency, payCurrency, 1 / rate);
+    if (paidMinor <= 0) return { error: "That converts to nothing — check the amount." };
+    return { paidMinor, rate, date: rates?.date ?? null };
+  }
+
+  let paidMinor: number;
+  try {
+    paidMinor = parseMoney(String(formData.get("payAmount") ?? ""), payCurrency);
+  } catch {
+    return { error: `No rate available — type what you paid in ${payCurrency}.` };
+  }
+  if (paidMinor <= 0) return { error: "Enter an amount above zero." };
+  return {
+    paidMinor,
+    rate:
+      (clearsAmountMinor / minorPerMajor(clearsCurrency)) /
+      (paidMinor / minorPerMajor(payCurrency)),
+    date: null,
+  };
+}
+
 // Records a settlement pre-filled from a simplified transfer, amount/person
 // editable. Either party to it may record it (money overhaul).
 export async function recordSettlement(
@@ -282,19 +328,45 @@ export async function recordSettlement(
 
   let amountMinor: number;
   try {
-    amountMinor = parseMoney(String(formData.get("amount") ?? ""));
+    amountMinor = parseMoney(String(formData.get("amount") ?? ""), currency);
   } catch (err) {
     return { error: (err as Error).message };
   }
   if (amountMinor <= 0) return { error: "Enter an amount above zero." };
+
+  // Paying in a different currency from the debt (ticket 253). The debt side
+  // is what moves the balance; the paid side and the rate are a snapshot of
+  // this one payment, never read back to convert anything else.
+  const payCurrency = String(formData.get("payCurrency") ?? currency) as Currency;
+  if (!CURRENCIES.includes(payCurrency)) return { error: "Pick a currency." };
+
+  if (payCurrency === currency) {
+    await writeSettlement({
+      tripId: access.trip.id,
+      createdBy: access.viewer.id,
+      fromUserId,
+      toUserId,
+      amountMinor,
+      currency,
+    });
+    refresh({ kind: "money", tripId: access.trip.id });
+    return {};
+  }
+
+  const cross = await readCrossPayment(currency, payCurrency, amountMinor, formData);
+  if ("error" in cross) return { error: cross.error };
 
   await writeSettlement({
     tripId: access.trip.id,
     createdBy: access.viewer.id,
     fromUserId,
     toUserId,
-    amountMinor,
-    currency,
+    amountMinor: cross.paidMinor,
+    currency: payCurrency,
+    clearsAmountMinor: amountMinor,
+    clearsCurrency: currency,
+    fxRate: cross.rate,
+    fxRateDate: cross.date,
   });
 
   refresh({ kind: "money", tripId: access.trip.id });
