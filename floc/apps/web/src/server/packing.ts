@@ -11,8 +11,8 @@ import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
 
 import { db } from "@/db";
 import { packingClaim, packingLine, tripMembership, user, userProfile } from "@/db/schema";
-import { MAX_PACK_QUANTITY, MIN_PACK_QUANTITY } from "@/lib/packing";
-import type { PackCategory, PackTier } from "@/lib/packing";
+import { MAX_PACK_QUANTITY, MIN_PACK_QUANTITY } from "@floc/core/packing";
+import type { PackCategory, PackTier } from "@floc/core/packing";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
 import { liveMembership } from "@/server/roster";

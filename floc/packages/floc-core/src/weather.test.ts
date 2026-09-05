@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { addDays } from "@/lib/dates";
+import { addDays } from "./dates";
 import {
   HORIZON_DAYS,
   conditionLabel,
   withinHorizon,
   wmoToCondition,
-} from "@/lib/weather";
+} from "./weather";
 
 describe("wmoToCondition", () => {
   it("maps the WMO code bands to the four buckets", () => {

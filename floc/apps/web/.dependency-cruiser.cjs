@@ -40,6 +40,19 @@ module.exports = {
       to: { path: "^src/db/index\.ts$" },
     },
     {
+      name: "floc-core-owes-the-app-nothing",
+      severity: "error",
+      comment:
+        "@floc/core holds the domain rules, and from #289 the phone apps " +
+        "import them too — where a Drizzle client, a Turso URL and Next.js " +
+        "do not exist. An import reaching back into apps/web would compile " +
+        "here and be unshippable there, so the dependency only ever runs one " +
+        "way. The row vocabulary the rules branch on lives in " +
+        "@floc/core/vocabulary, which db/schema.ts imports and re-exports.",
+      from: { path: "^(\.\./)+packages/floc-core/" },
+      to: { path: "^src/" },
+    },
+    {
       name: "freshness-owns-the-cache",
       severity: "error",
       comment:
@@ -54,7 +67,9 @@ module.exports = {
     },
   ],
   options: {
-    doNotFollow: { path: "node_modules" },
+    // Follow the workspace package's real source rather than stopping at the
+    // node_modules symlink, or the rule above has nothing to look at (#286).
+    doNotFollow: { path: "node_modules/(?!@floc/)" },
     exclude: { path: "(^|/)(\.next|coverage|drizzle)/" },
     tsPreCompilationDeps: "specify",
     tsConfig: { fileName: "tsconfig.json" },

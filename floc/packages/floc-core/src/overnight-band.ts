@@ -4,7 +4,7 @@
  * stored. Kept in `lib/` and tested separately: a run one day short, or split
  * where the days agree, is a lie about the trip.
  */
-import { addDays } from "@/lib/dates";
+import { addDays } from "./dates";
 
 /** The part of a calendar day the band actually reads. */
 export type BandDay = {

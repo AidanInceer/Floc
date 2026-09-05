@@ -30,9 +30,8 @@ import {
   user,
   userProfile,
 } from "./schema.ts";
-// Relative, not `@/` — this runs under Node's type stripping, which does no path mapping.
-import type { WritableSplitType } from "../lib/money.ts";
-import { computeSplits } from "../lib/money.ts";
+import type { WritableSplitType } from "@floc/core/money";
+import { computeSplits } from "@floc/core/money";
 
 const PEOPLE = [
   {

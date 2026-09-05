@@ -1,5 +1,6 @@
 /**
- * Resolves the `@/…` path alias for scripts run under plain Node.
+ * Resolves the `@/…` and `@floc/core/…` specifiers for scripts run under plain
+ * Node.
  *
  * Next.js and Vitest both read the alias out of tsconfig; Node's own type
  * stripping does no path mapping at all, so `pnpm db:seed` broke the moment a
@@ -15,12 +16,21 @@ import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-const srcDir = join(dirname(fileURLToPath(import.meta.url)), "..", "src");
+const here = dirname(fileURLToPath(import.meta.url));
+const srcDir = join(here, "..", "src");
+// The workspace package's own source, not the node_modules symlink: Node's type
+// stripping refuses TypeScript reached through a dependency (#286).
+const coreDir = join(here, "..", "..", "..", "packages", "floc-core", "src");
 
 export function resolve(specifier, context, nextResolve) {
-  if (!specifier.startsWith("@/")) return nextResolve(specifier, context);
+  const root = specifier.startsWith("@/")
+    ? [srcDir, specifier.slice(2)]
+    : specifier.startsWith("@floc/core/")
+      ? [coreDir, specifier.slice("@floc/core/".length)]
+      : null;
+  if (!root) return nextResolve(specifier, context);
 
-  const base = join(srcDir, specifier.slice(2));
+  const base = join(root[0], root[1]);
   const target = [base, `${base}.ts`, `${base}.tsx`, join(base, "index.ts")].find(
     existsSync,
   );

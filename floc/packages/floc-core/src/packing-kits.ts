@@ -3,8 +3,8 @@
  * counts as "already in the bag" — is the whole decision and belongs where it
  * can be read and tested, not inside a query.
  */
-import { clampPackQuantity } from "@/lib/packing";
-import type { PackCategory } from "@/lib/packing";
+import { clampPackQuantity } from "./packing";
+import type { PackCategory } from "./packing";
 
 export type KitItem = {
   label: string;

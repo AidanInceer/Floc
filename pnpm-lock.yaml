@@ -37,6 +37,9 @@ importers:
       '@blocknote/react':
         specifier: ^0.54.0
         version: 0.54.0(@floating-ui/dom@1.8.0)(@types/hast@3.0.5)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@floc/core':
+        specifier: workspace:*
+        version: link:../../packages/floc-core
       '@libsql/client':
         specifier: ^0.14.0
         version: 0.14.0
@@ -107,6 +110,31 @@ importers:
       tailwindcss:
         specifier: ^4.0.0
         version: 4.3.3
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.6
+        version: 3.2.7(@types/node@22.20.1)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.1)(yaml@2.9.0)
+
+  floc/packages/floc-core:
+    dependencies:
+      drizzle-orm:
+        specifier: ^0.45.2
+        version: 0.45.2(@libsql/client@0.14.0)(@types/sql.js@1.4.11)(gel@2.2.0)(kysely@0.29.4)(sql.js@1.14.1)
+    devDependencies:
+      '@eslint/eslintrc':
+        specifier: ^3.3.1
+        version: 3.3.6
+      '@vitest/coverage-v8':
+        specifier: ^3.2.7
+        version: 3.2.7(vitest@3.2.7(@types/node@22.20.1)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.1)(yaml@2.9.0))
+      eslint:
+        specifier: ^9.17.0
+        version: 9.39.5(jiti@2.7.0)
+      eslint-config-next:
+        specifier: ^15.1.0
+        version: 15.5.22(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3)
       typescript:
         specifier: ^5.7.0
         version: 5.9.3

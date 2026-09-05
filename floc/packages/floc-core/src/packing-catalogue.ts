@@ -8,10 +8,10 @@
  * the tier (nudges the counts up or down). Every one of them is allowed to be
  * missing — an undated trip still gets a list, just a generic one (rule 11).
  */
-import type { PackTier } from "@/lib/packing";
-import { clampPackQuantity, MAX_PACK_QUANTITY } from "@/lib/packing";
-import type { PackCategory } from "@/lib/packing";
-import type { WeatherCondition } from "@/lib/weather";
+import type { PackTier } from "./packing";
+import { clampPackQuantity, MAX_PACK_QUANTITY } from "./packing";
+import type { PackCategory } from "./packing";
+import type { WeatherCondition } from "./weather";
 
 /**
  * The forecast boiled down to the only three questions the catalogue asks.

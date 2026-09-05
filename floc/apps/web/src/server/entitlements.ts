@@ -22,8 +22,8 @@ import { cache } from "react";
 import { db } from "@/db";
 import { subscription, tripMembership } from "@/db/schema";
 import { allFeaturesFree } from "@/lib/env";
-import { FEATURE_PLAN, planMeets } from "@/lib/plans";
-import type { FeatureKey, Plan, TargetOf } from "@/lib/plans";
+import { FEATURE_PLAN, planMeets } from "@floc/core/plans";
+import type { FeatureKey, Plan, TargetOf } from "@floc/core/plans";
 
 /**
  * Stripe keeps a cancelled subscription `active` until the period ends, so

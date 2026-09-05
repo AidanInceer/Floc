@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { kitItemsToAdd } from "@/lib/packing-kits";
-import type { KitItem } from "@/lib/packing-kits";
+import { kitItemsToAdd } from "./packing-kits";
+import type { KitItem } from "./packing-kits";
 
 const item = (label: string, quantity = 1): KitItem => ({
   label,

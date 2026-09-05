@@ -7,8 +7,8 @@
 import Link from "next/link";
 
 import type { ProPrice } from "@/server/billing";
-import { renewalLabel } from "@/lib/subscription-copy";
-import type { SubscriptionFacts } from "@/lib/subscription-copy";
+import { renewalLabel } from "@floc/core/subscription-copy";
+import type { SubscriptionFacts } from "@floc/core/subscription-copy";
 import { ProUpgrade } from "@/components/billing-buttons";
 import { FlockChevron } from "@/components/flock-chevron";
 import { Glyph, proLead, proPerks } from "./landing-content";

@@ -3,7 +3,7 @@
  * the byline and the discussion panel all take it, and hanging it off any one of
  * them makes the other two import that component to name their own props.
  */
-import type { NoteRow } from "@/lib/notes";
+import type { NoteRow } from "@floc/core/notes";
 import type { VoteValue } from "@/db/schema";
 
 type IdeaVoteRow = {

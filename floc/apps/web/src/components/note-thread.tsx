@@ -29,7 +29,7 @@ import {
   sortRuns,
   type NoteRow,
   type NoteSort,
-} from "@/lib/notes";
+} from "@floc/core/notes";
 
 export type { NoteRow };
 

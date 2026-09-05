@@ -5,7 +5,7 @@ import {
   formatBytes,
   kindLabel,
   rejectUpload,
-} from "@/lib/documents";
+} from "./documents";
 
 describe("rejectUpload", () => {
   it("passes a PDF inside the cap", () => {

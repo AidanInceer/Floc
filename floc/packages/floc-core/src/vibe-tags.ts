@@ -4,7 +4,7 @@
  * tags across accounts, and free text would give "slow travel"/"slow
  * traveller"/"slow" to reconcile. Custom tags are deferred, not refused.
  */
-import { normaliseTag } from "@/lib/tags";
+import { normaliseTag } from "./tags";
 
 /**
  * Lower-case, as stored. Cut from thirty to five (ticket 201 follow-up)

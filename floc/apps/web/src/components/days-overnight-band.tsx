@@ -15,7 +15,7 @@ import {
   type BandDrag,
   type CalendarDay,
 } from "@/components/days-calendar-shared";
-import { runBoundsAt, type BandRun, type BandSpan } from "@/lib/overnight-band";
+import { runBoundsAt, type BandRun, type BandSpan } from "@floc/core/overnight-band";
 
 export function OvernightBandRow({
   bandRuns,

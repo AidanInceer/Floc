@@ -6,7 +6,7 @@
  * two — they are one control conceptually, not one element.
  */
 import { cx } from "@/components/ui";
-import { MAX_PACK_QUANTITY, MIN_PACK_QUANTITY } from "@/lib/packing";
+import { MAX_PACK_QUANTITY, MIN_PACK_QUANTITY } from "@floc/core/packing";
 import { MinusGlyph, PlusGlyph, tickBoxBase } from "@/components/packing-glyphs";
 
 export function PackingStepper({

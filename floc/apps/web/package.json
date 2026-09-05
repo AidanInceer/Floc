@@ -1,6 +1,6 @@
 {
   "name": "floc-web",
-  "version": "0.79.3",
+  "version": "0.79.4",
   "private": true,
   "description": "Floc v1 — group travel planner. Next.js App Router + Turso (libSQL) + Drizzle + Better Auth.",
   "type": "module",
@@ -26,6 +26,7 @@
     "auth:generate": "better-auth generate"
   },
   "dependencies": {
+    "@floc/core": "workspace:*",
     "@blocknote/ariakit": "^0.54.0",
     "@blocknote/core": "^0.54.0",
     "@blocknote/react": "^0.54.0",

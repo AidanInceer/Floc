@@ -13,7 +13,7 @@ import { Button } from "@/components/ui";
 import { SubmitButton } from "@/components/client-ui";
 import type { IdeaCardData } from "@/components/idea-data";
 import { IdeasBoard } from "@/components/ideas-board";
-import { voteScore } from "@/lib/votes";
+import { voteScore } from "@floc/core/votes";
 import { postIdea } from "@/app/trip/[id]/notes/actions";
 
 export type IdeasBlockData = {

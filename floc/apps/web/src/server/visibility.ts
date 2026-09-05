@@ -27,10 +27,10 @@ import {
   user,
   userProfile,
 } from "@/db/schema";
-import { hasEnded } from "@/lib/dates";
+import { hasEnded } from "@floc/core/dates";
 import { travelMapFor } from "@/server/travel-map";
-import { readVibeTags } from "@/lib/vibe-tags";
-import type { TravelMap } from "@/lib/travel-map";
+import { readVibeTags } from "@floc/core/vibe-tags";
+import type { TravelMap } from "@floc/core/travel-map";
 import type { PastTripsShow, Visibility } from "@/db/schema";
 
 /**

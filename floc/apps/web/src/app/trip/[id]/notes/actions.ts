@@ -3,7 +3,7 @@
 // Server actions for the Notes doc (ticket 238) and the idea board inside it (ticket 14).
 import { after } from "next/server";
 
-import { capRequiredText, TEXT_CAPS } from "@/lib/text";
+import { capRequiredText, TEXT_CAPS } from "@floc/core/text";
 import { requireTripAccess, assertAdmin } from "@/server/access";
 import { emails, sendEmails } from "@/server/email";
 import {

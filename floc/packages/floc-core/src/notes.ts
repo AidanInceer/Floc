@@ -1,10 +1,10 @@
 /**
  * The client-safe half of discussion threads (v0.2 ticket 06): the shape of a
  * comment, and how its timestamp reads. `note-thread.tsx` is a Client
- * Component, so this file must never touch `@/db` — the read lives in
+ * Component, so this file must never touch the database — the read lives in
  * `lib/notes-read.ts`, the same split as `lib/tabs.ts` vs `server/notes.ts`.
  */
-import { REACTION_KINDS, type ReactionKind } from "@/db/schema";
+import { REACTION_KINDS, type ReactionKind } from "./vocabulary";
 
 export type Reactions = Record<ReactionKind, { count: number; mine: boolean }>;
 

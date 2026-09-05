@@ -8,11 +8,19 @@
  * but are Better Auth's shape — don't hand-edit; our columns live on `user_profile` (ticket 06).
  */
 import { sql } from "drizzle-orm";
-import { CURRENCIES } from "@/lib/currency";
-import { DEFAULT_CATEGORY, EXPENSE_CATEGORIES } from "@/lib/expense-category";
-import { DOC_CATEGORIES } from "@/lib/documents";
-import { PACK_CATEGORIES, PACK_TIERS } from "@/lib/packing";
-import { PLANS } from "@/lib/plans";
+import {
+  COUNTRY_MARK_STATES,
+  DAY_EVENT_TYPES,
+  REACTION_KINDS,
+  SPLIT_TYPES,
+  TRANSPORT_TYPES,
+  VOTE_VALUES,
+} from "@floc/core/vocabulary";
+import { CURRENCIES } from "@floc/core/currency";
+import { DEFAULT_CATEGORY, EXPENSE_CATEGORIES } from "@floc/core/expense-category";
+import { DOC_CATEGORIES } from "@floc/core/documents";
+import { PACK_CATEGORIES, PACK_TIERS } from "@floc/core/packing";
+import { PLANS } from "@floc/core/plans";
 import {
   index,
   integer,
@@ -90,8 +98,28 @@ export const verification = sqliteTable("verification", {
 });
 
 // Re-exported from lib/currency.ts (ticket 115) so `@/db/schema` importers are unaffected.
-export { CURRENCIES } from "@/lib/currency";
-export type { Currency } from "@/lib/currency";
+export { CURRENCIES } from "@floc/core/currency";
+export type { Currency } from "@floc/core/currency";
+
+// The closed sets the domain rules branch on live in @floc/core (#286); the
+// columns below still spell themselves from these, and readers still find the
+// whole vocabulary on the schema.
+export {
+  COUNTRY_MARK_STATES,
+  DAY_EVENT_TYPES,
+  REACTION_KINDS,
+  SPLIT_TYPES,
+  TRANSPORT_TYPES,
+  VOTE_VALUES,
+} from "@floc/core/vocabulary";
+export type {
+  CountryMarkState,
+  DayEventType,
+  ReactionKind,
+  SplitType,
+  TransportType,
+  VoteValue,
+} from "@floc/core/vocabulary";
 
 export const SIGNUP_CHANNELS = ["whatsapp", "email", "link", "direct"] as const;
 export type SignupChannel = (typeof SIGNUP_CHANNELS)[number];
@@ -166,10 +194,6 @@ export const userProfile = sqliteTable("user_profile", {
     .default(true),
   ...audit,
 });
-
-/** `none` is a rejection of a mark, not the absence of one (ticket 95). */
-export const COUNTRY_MARK_STATES = ["green", "yellow", "none"] as const;
-export type CountryMarkState = (typeof COUNTRY_MARK_STATES)[number];
 
 /**
  * Hand-painted countries only (ticket 95) — trip marks are derived on read
@@ -368,9 +392,6 @@ export const tripNoteDoc = sqliteTable(
   },
   (t) => [uniqueIndex("trip_note_doc_trip_idx").on(t.tripId)],
 );
-
-export const VOTE_VALUES = ["up", "dont_mind", "down"] as const;
-export type VoteValue = (typeof VOTE_VALUES)[number];
 
 // No reason field — the retired block+reason rule is gone (ticket 04).
 export const ideaVote = sqliteTable(
@@ -604,19 +625,6 @@ export const day = sqliteTable(
   (t) => [uniqueIndex("day_trip_date_idx").on(t.tripId, t.date)],
 );
 
-/** The event's category — the one field the Days page colours by (ticket 68). Accommodation is the day's overnight place, not an event. */
-export const DAY_EVENT_TYPES = ["activity", "transport", "food"] as const;
-export type DayEventType = (typeof DAY_EVENT_TYPES)[number];
-
-export const TRANSPORT_TYPES = [
-  "flight",
-  "train",
-  "car",
-  "ferry",
-  "other",
-] as const;
-export type TransportType = (typeof TRANSPORT_TYPES)[number];
-
 export const dayEvent = sqliteTable(
   "day_event",
   {
@@ -644,9 +652,6 @@ export const dayEvent = sqliteTable(
 /* -------------------------------------------------------------------------- */
 /* Money — integer minor units, never a float                                 */
 /* -------------------------------------------------------------------------- */
-
-export const SPLIT_TYPES = ["even", "exact", "percentage", "shares"] as const;
-export type SplitType = (typeof SPLIT_TYPES)[number];
 
 export const expense = sqliteTable(
   "expense",
@@ -839,10 +844,6 @@ export const note = sqliteTable(
     index("note_parent_idx").on(t.parentId),
   ],
 );
-
-/** Three, fixed, in render order — independent of each other, unlike the exclusive idea vote. */
-export const REACTION_KINDS = ["heart", "up", "down"] as const;
-export type ReactionKind = (typeof REACTION_KINDS)[number];
 
 export const noteReaction = sqliteTable(
   "note_reaction",

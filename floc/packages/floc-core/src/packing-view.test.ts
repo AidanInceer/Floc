@@ -11,8 +11,8 @@ import {
   PACK_SORTS,
   sortPackingLines,
   viewPackingLines,
-} from "@/lib/packing";
-import type { PackCategory } from "@/lib/packing";
+} from "./packing";
+import type { PackCategory } from "./packing";
 
 const line = (label: string, category: PackCategory, quantity = 1) => ({
   label,

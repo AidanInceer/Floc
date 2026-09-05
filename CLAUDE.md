@@ -13,7 +13,8 @@ Next.js App Router + Turso (libSQL) + Drizzle + Better Auth.
 | `floc/apps/web/src/app/` | Routes. Server Components + Server Actions (`actions.ts` per folder). |
 | `floc/apps/web/src/server/` | All SQL + soft-delete filtering. One file per concept; name needs "and" → split. |
 | `.../server/freshness.ts` | Fact → stale pages. Only importer of `next/cache`; else call `refresh`. |
-| `floc/apps/web/src/lib/` | Pure helpers (money/dates/calendar). No I/O. |
+| `floc/packages/floc-core/src/` | `@floc/core` — the domain rules and vocabulary (money/dates/calendar/packing). Pure, no I/O, imports nothing from the app. |
+| `floc/apps/web/src/lib/` | What is left: browser- or Next-bound helpers only (env, theme, tabs, map, auth-client). |
 | `floc/apps/web/src/components/` | `ui.tsx`/`client-ui.tsx` = house design system. Reach first. |
 | `floc/apps/web/src/db/schema.ts` | Schema of record. Mirrors [ERD](docs/data-model/erd.html) — change both. |
 | `floc/apps/prototype/` | Old, don't extend. |
@@ -59,7 +60,7 @@ pnpm verify                      # everything CI runs, locally
 
 - Server Components by default; mutations are Server Actions in `actions.ts` — never inline `"use server"` closures.
 - **Nothing in `app/` imports `@/db`** — SQL lives only in `server/`.
-- Validate at the door: dates via `lib/dates.ts`, free text via `lib/text.ts`. Rejections are form errors, never throws.
+- Validate at the door: dates via `@floc/core/dates`, free text via `@floc/core/text`. Rejections are form errors, never throws.
 - **Colours from tokens only** — no hex literals. Status always carries a word, never colour/icon alone.
 - **Light + dark, same token names** — dark restates base values in `:root[data-theme="dark"]`. **No `dark:` variant** (means the token is wrong). Choice in `localStorage`, never a column.
 - **No emoji** — icons are line-art: 14×14 `viewBox` ~13px, `fill="none"`, `strokeWidth` 1.15–1.25, `stroke="currentColor"`.
@@ -72,7 +73,7 @@ pnpm verify                      # everything CI runs, locally
 ## Code standards
 
 - **Single responsibility** — name needs "and" → two files.
-- **Dependency inversion at seams** — `lib/` pure; `components/` take data, never fetch; only `server/` opens the DB. Type-only imports across a seam OK. `pnpm deps:check` enforces.
+- **Dependency inversion at seams** — `@floc/core` pure and app-free; `components/` take data, never fetch; only `server/` opens the DB. Type-only imports across a seam OK. `pnpm deps:check` enforces.
 - **YAGNI** — no abstraction/option/knob without a second call site today.
 - **Composability over configuration** — 8 optional props for 4 cases → several components.
 

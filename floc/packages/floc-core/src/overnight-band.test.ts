@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { bandRuns, runBoundsAt, uncoveredBy, type BandDay } from "@/lib/overnight-band";
+import { bandRuns, runBoundsAt, uncoveredBy, type BandDay } from "./overnight-band";
 
 /**
  * `GIR 5 6 . 8` reads as: five days from the 5th of August, the first two in

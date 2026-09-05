@@ -12,8 +12,8 @@ import {
   moveSpan,
   resizeSpan,
   toHhmm,
-} from "@/lib/calendar";
-import type { BandSpan } from "@/lib/overnight-band";
+} from "./calendar";
+import type { BandSpan } from "./overnight-band";
 
 /** A minute span on the clock, the shape `spanOf` returns. */
 type Span = { start: number; end: number; open: boolean };

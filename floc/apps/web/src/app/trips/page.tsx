@@ -12,7 +12,7 @@ import { requireUser } from "@/server/access";
 import { listFriendsFor, type Person } from "@/server/friends";
 import { listPendingInvitesFor, type PendingInvite } from "@/server/invites";
 import { loadTripCards } from "./cards";
-import { formatDateRange, hasEnded } from "@/lib/dates";
+import { formatDateRange, hasEnded } from "@floc/core/dates";
 import {
   Avatar,
   ButtonLink,

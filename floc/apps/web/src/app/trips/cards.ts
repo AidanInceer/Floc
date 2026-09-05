@@ -12,9 +12,9 @@ import { listMembersFor, type TripMember } from "@/server/access";
 import { tripIdsWithIdeas } from "@/server/ideas";
 import { firstOvernightPlaceByTrip } from "@/server/itinerary";
 import { listTripsFor } from "@/server/trips";
-import { hasEnded } from "@/lib/dates";
-import { readTags } from "@/lib/tags";
-import { readTripColor } from "@/lib/trip-color";
+import { hasEnded } from "@floc/core/dates";
+import { readTags } from "@floc/core/tags";
+import { readTripColor } from "@floc/core/trip-color";
 import type { TripCardData } from "@/components/trip-card";
 
 // Card plus the roster it was built from — Archived names the admins to ask

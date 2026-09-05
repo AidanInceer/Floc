@@ -10,7 +10,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
 import { signIn, signUp } from "@/lib/auth-client";
-import { isValidEmail, passwordWeakness } from "@/lib/credentials";
+import { isValidEmail, passwordWeakness } from "@floc/core/credentials";
 import { Button, ErrorText, Field, Input, Stack } from "@/components/ui";
 
 const VIA_VALUES = ["whatsapp", "email", "link", "direct"] as const;

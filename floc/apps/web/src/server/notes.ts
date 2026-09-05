@@ -17,7 +17,7 @@ import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { note, noteReaction } from "@/db/schema";
 import type { NoteScope, ReactionKind } from "@/db/schema";
-import { TEXT_CAPS } from "@/lib/text";
+import { TEXT_CAPS } from "@floc/core/text";
 import { touch } from "@/server/audit";
 
 /** Re-exported from `lib/text.ts` (ticket 113) — predates the others' move there. */

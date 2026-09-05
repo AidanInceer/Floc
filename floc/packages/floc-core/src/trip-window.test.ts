@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { windowCost, windowCostLabel, windowCostNoun } from "@/lib/trip-window";
+import { windowCost, windowCostLabel, windowCostNoun } from "./trip-window";
 
 /** 1–7 Sep, with events only on the 6th and 7th. */
 const week = [

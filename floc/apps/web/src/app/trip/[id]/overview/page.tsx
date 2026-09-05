@@ -49,10 +49,10 @@ import { listAvailability } from "@/server/availability";
 import { listPendingInvitees } from "@/server/invites";
 import { listExpenses, listSettlements, listSplits } from "@/server/money";
 import { absoluteUrl } from "@/server/email";
-import { formatMoney } from "@/lib/money";
-import type { Currency } from "@/lib/currency";
-import { tripStateFor } from "@/lib/trip-state";
-import { formatDateRange } from "@/lib/dates";
+import { formatMoney } from "@floc/core/money";
+import type { Currency } from "@floc/core/currency";
+import { tripStateFor } from "@floc/core/trip-state";
+import { formatDateRange } from "@floc/core/dates";
 import { Avatar, Badge, ButtonLink, PASTEL_BY_KEY, PASTEL_SKINS, Stack, cx } from "@/components/ui";
 import { Sheet, SubmitButton } from "@/components/client-ui";
 import { TripNameInline } from "@/components/trip-name-inline";
@@ -62,8 +62,8 @@ import { TripRoute } from "@/components/trip-route";
 import { TripDayTrack } from "@/components/trip-day-track";
 import { DocumentsBlock } from "@/components/documents-block";
 import { TagEditor } from "@/components/tag-editor";
-import { readTags } from "@/lib/tags";
-import { readTripColor } from "@/lib/trip-color";
+import { readTags } from "@floc/core/tags";
+import { readTripColor } from "@floc/core/trip-color";
 import { renameTrip, setTripTags } from "./actions";
 
 export default async function OverviewPage({

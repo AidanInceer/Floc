@@ -7,7 +7,7 @@ import {
   parsePackTier,
   parseQuantityStep,
   resolvePackTier,
-} from "@/lib/packing";
+} from "./packing";
 
 const packed = { packedAt: new Date() };
 const open = { packedAt: null };

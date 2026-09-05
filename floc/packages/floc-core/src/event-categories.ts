@@ -1,4 +1,4 @@
-import type { DayEventType } from "@/db/schema";
+import type { DayEventType } from "./vocabulary";
 
 /**
  * How each event category reads on Days (ticket 68) — one place so the badge,

@@ -14,13 +14,13 @@ import { and, asc, eq, isNotNull, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { day, place } from "@/db/schema";
-import { addDays, today, type IsoDate } from "@/lib/dates";
+import { addDays, today, type IsoDate } from "@floc/core/dates";
 import {
   HORIZON_DAYS,
   conditionLabel,
   wmoToCondition,
   type WeatherCondition,
-} from "@/lib/weather";
+} from "@floc/core/weather";
 import { canUseFeature } from "@/server/entitlements";
 
 const OPEN_METEO = "https://api.open-meteo.com/v1/forecast";

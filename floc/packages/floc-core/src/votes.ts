@@ -4,7 +4,7 @@
  * quieter real yes, thumbs-down an objection carrying equal weight to
  * enthusiasm — one heart and one rather-not scores zero, not net-positive.
  */
-import type { VoteValue } from "@/db/schema";
+import type { VoteValue } from "./vocabulary";
 
 const VOTE_WEIGHT: Record<VoteValue, number> = {
   up: 2,

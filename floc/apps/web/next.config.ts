@@ -3,6 +3,9 @@ import type { NextConfig } from "next";
 // Redeploy touchpoint — see chore commit.
 const config: NextConfig = {
   reactStrictMode: true,
+  // @floc/core ships TypeScript source, not a build (#286) — a workspace
+  // package with no build step is one less thing to be stale in dev.
+  transpilePackages: ["@floc/core"],
   // Better Auth + the libSQL driver both want the Node runtime, not Edge.
   serverExternalPackages: ["@libsql/client", "better-auth"],
   experimental: {

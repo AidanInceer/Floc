@@ -22,10 +22,12 @@ screens — see <a href="multi-platform.html">Web, iOS and Android</a>.</p>
         Routes["Pages + layouts + actions.ts"]
         API["Route handlers&lt;br/&gt;app/api/auth, app/api/billing"]
         Server["server/*&lt;br/&gt;access, entitlements, billing, itinerary, money, fx,&lt;br/&gt;places, documents, packing, weather, notes, freshness"]
-        Lib["lib/*&lt;br/&gt;pure: money, dates, plans, packing, stops,&lt;br/&gt;votes, tags, calendar, text"]
+        Lib["lib/*&lt;br/&gt;browser/Next-bound:&lt;br/&gt;env, theme, tabs, map, auth-client"]
         Components["components/*"]
         DB["db/*&lt;br/&gt;schema.ts, index.ts, seed.ts (Drizzle)"]
     end
+
+    Core["floc/packages/floc-core&lt;br/&gt;@floc/core — pure domain rules:&lt;br/&gt;money, dates, packing, stops, votes,&lt;br/&gt;tags, calendar, text, vocabulary"]
 
     Turso[("Turso libSQL")]
     Stripe["Stripe"]
@@ -38,6 +40,9 @@ screens — see <a href="multi-platform.html">Web, iOS and Android</a>.</p>
     API --&gt; Server
     Server --&gt; DB
     Server --&gt; Lib
+    Server --&gt; Core
+    Routes --&gt; Core
+    DB --&gt; Core
     Server --&gt; Stripe
     Server --&gt; Volume
     DB --&gt; Turso
@@ -52,7 +57,13 @@ screens — see <a href="multi-platform.html">Web, iOS and Android</a>.</p>
     Root -.legacy.-&gt; Prototype</pre>
 <h2>Layers</h2>
 <ul>
-<li><code>lib/</code> is pure — no I/O, no DB, no <code>next/*</code>.</li>
+<li><code>@floc/core</code> holds the domain rules and the closed sets they branch on.
+It is pure — no I/O, no DB, no <code>next/*</code> — and imports nothing from
+<code>apps/web</code>, so the phone apps can run the same rules (#286).
+<code>db/schema.ts</code> imports its vocabulary and re-exports it.</li>
+<li>What stays in <code>lib/</code> is what only a browser or Next can run:
+<code>env</code>, <code>theme</code>, <code>tabs</code>, <code>map</code>,
+<code>auth-client</code>.</li>
 <li><code>server/</code> owns all SQL and all soft-delete filtering. One file per concept;
 a name needing an &quot;and&quot; is two files.</li>
 <li><code>components/</code> take data, never fetch it.</li>
@@ -129,7 +140,7 @@ sharing an <code>overnight_place_id</code>. Storage is day-first.</li>
 <li><strong>No lifecycle state.</strong> Trip state derives from the data present — no enum,
 flag, column or tab gate. The last persisted lifecycle bits (the sticky
 tab-unlock flags) went with ticket 126.</li>
-<li><strong>Money is integer minor units</strong>, only ever through <code>lib/money.ts</code>.
+<li><strong>Money is integer minor units</strong>, only ever through <code>@floc/core/money</code>.
 <code>expense_split</code> rows are write-once snapshots, so a member leaving cannot
 corrupt history.</li>
 <li><strong>Soft-delete everywhere</strong> — every read <em>and write</em> filters

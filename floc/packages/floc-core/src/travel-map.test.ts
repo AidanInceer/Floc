@@ -5,8 +5,8 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { readCountryCode } from "@/lib/countries";
-import { mergeMarks } from "@/lib/travel-map";
+import { readCountryCode } from "./countries";
+import { mergeMarks } from "./travel-map";
 
 describe("mergeMarks", () => {
   it("draws what the trips say when nothing is hand-painted", () => {

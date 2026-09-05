@@ -4,7 +4,7 @@
  * the picked one carries a ring. Lives inside the trip menus, on the card and
  * in the header, so both change the colour the same way.
  */
-import { TRIP_COLORS, type TripColor } from "@/lib/trip-color";
+import { TRIP_COLORS, type TripColor } from "@floc/core/trip-color";
 import { PASTEL_BY_KEY, cx } from "@/components/ui";
 import { setTripColor } from "@/app/trips/actions";
 

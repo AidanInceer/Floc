@@ -1,7 +1,7 @@
 /** The text caps (ticket 113). */
 import { describe, expect, it } from "vitest";
 
-import { capRequiredText, capText, TEXT_CAPS } from "@/lib/text";
+import { capRequiredText, capText, TEXT_CAPS } from "./text";
 
 describe("capText", () => {
   it("trims, and treats an empty result as not-set", () => {

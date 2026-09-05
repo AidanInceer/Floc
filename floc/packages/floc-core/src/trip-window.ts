@@ -7,7 +7,7 @@
  * that number before the write. Pure: the calendar prices a window mid-drag,
  * and a round trip per pointer move isn't worth paying.
  */
-import { dateRange, type IsoDate } from "@/lib/dates";
+import { dateRange, type IsoDate } from "./dates";
 
 /** One live day and how much is planned on it. */
 export type DayLoad = { date: IsoDate; events: number };

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { VoteValue } from "@/db/schema";
+import type { VoteValue } from "./vocabulary";
 
 import { voteScore } from "./votes";
 

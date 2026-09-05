@@ -75,7 +75,6 @@ const config = [
       "src/components/travel-map.tsx",
       "src/components/trip-roster.tsx",
       "src/db/seed.ts",
-      "src/lib/trip-state.ts",
       "src/server/visibility.ts",
       "src/server/weather.ts",
       "src/app/invite/**/page.tsx",

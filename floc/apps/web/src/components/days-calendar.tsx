@@ -51,19 +51,19 @@ import {
   snap,
   spanOf,
   toHhmm,
-} from "@/lib/calendar";
+} from "@floc/core/calendar";
 import {
   draggedPast,
   eventKeyGesture,
   eventLanding,
   rangeFromAnchor,
   resolveBandRelease,
-} from "@/lib/calendar-gestures";
+} from "@floc/core/calendar-gestures";
 import {
   bandRuns as runsOfBand,
   uncoveredBy,
   type BandSpan,
-} from "@/lib/overnight-band";
+} from "@floc/core/overnight-band";
 import type { DayEventType } from "@/db/schema";
 
 export type { CalendarDay, CalendarEvent, OvernightPlace } from "@/components/days-calendar-shared";

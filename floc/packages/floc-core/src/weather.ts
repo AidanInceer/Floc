@@ -3,7 +3,7 @@
  * and its tests share it. Open-Meteo's dozens of WMO codes collapse to four
  * buckets because the app draws four glyphs.
  */
-import { addDays, type IsoDate } from "@/lib/dates";
+import { addDays, type IsoDate } from "./dates";
 
 // Open-Meteo serves up to 16 days but the far end is noise; a fortnight is as
 // far as we draw (ticket 148).

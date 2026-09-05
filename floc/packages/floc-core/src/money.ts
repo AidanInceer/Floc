@@ -8,8 +8,8 @@ import {
   minorPerMajor,
   minorUnitExponent,
   type Currency,
-} from "@/lib/currency";
-import type { SplitType } from "@/db/schema";
+} from "./currency";
+import type { SplitType } from "./vocabulary";
 
 /** Ceiling of £1bn in minor units — past MAX_SAFE_INTEGER, every later read throws and locks the trip out (ticket 33). */
 const MAX_AMOUNT_MINOR = 100_000_000_000;

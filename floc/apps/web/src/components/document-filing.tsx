@@ -13,8 +13,8 @@ import { setCategory } from "@/app/trip/[id]/files/actions";
 import { CategoryChip } from "@/components/document-row";
 import { Menu } from "@/components/client-ui";
 import { menuItemClass } from "@/components/ui";
-import { DOC_CATEGORIES, DOC_CATEGORY_LABELS } from "@/lib/documents";
-import type { DocCategory } from "@/lib/documents";
+import { DOC_CATEGORIES, DOC_CATEGORY_LABELS } from "@floc/core/documents";
+import type { DocCategory } from "@floc/core/documents";
 
 export function DocumentFiling({
   tripId,

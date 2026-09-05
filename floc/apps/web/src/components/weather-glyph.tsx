@@ -4,7 +4,7 @@
  * see visual-language "Iconography"). No `"use client"` — paths only, so it
  * composes into server or client rows.
  */
-import type { WeatherCondition } from "@/lib/weather";
+import type { WeatherCondition } from "@floc/core/weather";
 
 const PATHS: Record<WeatherCondition, string[]> = {
   sun: [

@@ -77,10 +77,11 @@ credentials.</li>
 <li><code>floc/apps/mobile</code> — the Expo app, iOS and Android from one
 codebase. Matched by the existing <code>floc/apps/*</code> workspace glob.</li>
 <li><code>floc/packages/floc-core</code> — shared logic, types and tokens.
-Needs a new <code>floc/packages/*</code> glob in <strong>both</strong>
-<code>pnpm-workspace.yaml</code> and the duplicate <code>pnpm</code> field in
-the root <code>package.json</code>; the two readers disagree across pnpm 9 and
-10, so neither copy may move alone.</li>
+Built in <code>#286</code>. The <code>floc/packages/*</code> glob goes in
+<code>pnpm-workspace.yaml</code> only: the duplicated <code>pnpm</code> field in
+the root <code>package.json</code> carries overrides, not workspace globs. The
+package ships TypeScript source with no build step, so
+<code>next.config.ts</code> lists it under <code>transpilePackages</code>.</li>
 </ul>
 
 <p><code>shared/packages/</code> is for code crossing ventures. Floc-only code
@@ -114,8 +115,13 @@ apps are worth building for store presence, not for that number.</p>
 Turso credentials.</li>
 <li>Drizzle schema and migrations stay in <code>apps/web/src/db</code>.
 <code>schema.ts</code> remains the schema of record.</li>
-<li>Row types are re-exported from <code>floc-core</code>
-<strong>without</strong> the db client.</li>
+<li>The closed sets the rules branch on — <code>SPLIT_TYPES</code>,
+<code>VOTE_VALUES</code>, <code>DAY_EVENT_TYPES</code> and the rest — live in
+<code>floc-core/vocabulary</code>, which <code>schema.ts</code> imports and
+re-exports. Drizzle's inferred row types stay in <code>apps/web</code>: they are
+derived from the tables, so they cannot leave without the tables, and the phone
+will read the tRPC router's output types instead (<code>#287</code>) — a
+narrower shape than a raw row, which is the better thing to share anyway.</li>
 <li>A <code>depcruise</code> rule forbids importing <code>db/</code> from
 anywhere but <code>apps/web</code>, alongside the existing rule keeping
 <code>app/</code> off <code>@/db</code>.</li>
@@ -221,9 +227,9 @@ builds iOS in the cloud and submits from there.</p>
 phone app is ever built.</p>
 
 <ol>
-<li><strong>floc-core carve-out</strong> — pure logic and row types out of
-<code>apps/web</code>, plus the <code>depcruise</code> rule blocking
-<code>db/</code> imports from outside it.</li>
+<li><strong>floc-core carve-out</strong> — done (<code>#286</code>). Pure logic
+and vocabulary out of <code>apps/web</code>, plus the
+<code>floc-core-owes-the-app-nothing</code> <code>depcruise</code> rule.</li>
 <li><strong>tRPC router</strong> over the existing <code>server/</code>
 modules. The web app is untouched.</li>
 <li><strong>Design tokens package</strong>, so the two UIs cannot drift on

@@ -10,13 +10,13 @@ import { and, asc, count, eq, isNull, sql } from "drizzle-orm";
 
 import { db } from "@/db";
 import { packingKit, packingKitItem, packingLine } from "@/db/schema";
-import { kitItemsToAdd } from "@/lib/packing-kits";
-import type { KitItem } from "@/lib/packing-kits";
+import { kitItemsToAdd } from "@floc/core/packing-kits";
+import type { KitItem } from "@floc/core/packing-kits";
 import {
   MAX_PACK_QUANTITY,
   MIN_PACK_QUANTITY,
   type PackCategory,
-} from "@/lib/packing";
+} from "@floc/core/packing";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
 

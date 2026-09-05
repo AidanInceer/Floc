@@ -10,7 +10,7 @@ import {
   newSuggestionsOnly,
   summariseClimate,
   type PackClimate,
-} from "@/lib/packing-catalogue";
+} from "./packing-catalogue";
 
 const mild: PackClimate = { hot: false, cold: false, wet: false };
 const hot: PackClimate = { hot: true, cold: false, wet: false };

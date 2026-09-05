@@ -14,7 +14,7 @@
  * says so and goes to /signup rather than half-starting anything.
  */
 import { getSession } from "@/server/access";
-import { formatMoney } from "@/lib/money";
+import { formatMoney } from "@floc/core/money";
 import { ButtonLink, PASTEL_SKINS, cx } from "@/components/ui";
 import { SubmitButton } from "@/components/client-ui";
 import { RouteMap } from "@/components/route-map";
