@@ -8,7 +8,10 @@
 <main>
 <p class="crumb">Docs / Competitors</p>
 <h1>Competitor Feature Summary</h1>
-<p>A cross-competitor feature matrix and gap analysis for Floc.</p>
+<p>A cross-competitor feature matrix and gap analysis for Floc.
+<strong>Competitor features were read in July 2026</strong> and will drift; the Floc
+column is kept current. Key: &#10005; absent &middot; &#9989; shipped &middot;
+&#9888;&#65039; partial, with the caveat named in the cell.</p>
 <p><strong>Competitors covered:</strong> Wanderlust · TripIt · Splitwise · Wanderlog · Polarsteps</p>
 <hr>
 <h2>Feature matrix</h2>
@@ -76,7 +79,7 @@
 <td align="center">❌</td>
 <td align="center">✅</td>
 <td align="center">❌</td>
-<td align="center">❌</td>
+<td align="center">✅</td>
 </tr>
 <tr>
 <td>City data layer (cost, safety, neighbourhoods)</td>
@@ -193,7 +196,7 @@
 <td align="center">❌</td>
 <td align="center">✅</td>
 <td align="center">❌</td>
-<td align="center">✅</td>
+<td align="center">⚠️ last-write-wins</td>
 </tr>
 <tr>
 <td>Activity voting</td>
@@ -202,7 +205,7 @@
 <td align="center">❌</td>
 <td align="center">❌</td>
 <td align="center">❌</td>
-<td align="center">❌</td>
+<td align="center">✅</td>
 </tr>
 <tr>
 <td>Read-only sharing link</td>
@@ -247,7 +250,7 @@
 <td align="center">✅</td>
 <td align="center">❌</td>
 <td align="center">❌</td>
-<td align="center">❌</td>
+<td align="center">✅</td>
 </tr>
 <tr>
 <td>Equal / unequal / % / shares split modes</td>
@@ -256,7 +259,7 @@
 <td align="center">✅</td>
 <td align="center">❌</td>
 <td align="center">❌</td>
-<td align="center">❌</td>
+<td align="center">✅</td>
 </tr>
 <tr>
 <td>Recurring expenses</td>
@@ -274,7 +277,7 @@
 <td align="center">✅</td>
 <td align="center">❌</td>
 <td align="center">❌</td>
-<td align="center">❌</td>
+<td align="center">⚠️ 31</td>
 </tr>
 <tr>
 <td>Currency conversion</td>
@@ -283,7 +286,7 @@
 <td align="center">✅ (Pro)</td>
 <td align="center">❌</td>
 <td align="center">❌</td>
-<td align="center">❌</td>
+<td align="center">✅</td>
 </tr>
 <tr>
 <td>Receipt scanning</td>
@@ -364,7 +367,7 @@
 <td align="center">❌</td>
 <td align="center">✅</td>
 <td align="center">❌</td>
-<td align="center">❌</td>
+<td align="center">⚠️ static</td>
 </tr>
 <tr>
 <td>Community / user-shared trips</td>
@@ -418,7 +421,7 @@
 <td align="center">❌</td>
 <td align="center">❌</td>
 <td align="center">✅</td>
-<td align="center">❌</td>
+<td align="center">✅</td>
 </tr>
 <tr>
 <td>Cumulative travel stats</td>
@@ -459,8 +462,13 @@
 </tbody></table>
 <hr>
 <h2>What Floc is missing</h2>
-<p>Grouped by strategic priority for a <strong>group-travel planner</strong> at pre-MVP stage.</p>
-<h3>Priority 1 — Core group planning gaps (high impact, in-scope)</h3>
+<p>Grouped by strategic priority. <strong>Closed since this was written:</strong> activity
+voting (<code>idea_vote</code>), simplified settle-up (<code>suggestSettlements</code>),
+multi-currency with conversion (<code>fx_rate</code>), all four split modes
+(even / exact / percentage / shares), and packing checklists. They are listed
+below as <em>closed</em> rather than deleted, so the gap analysis still reads as a
+record of what the competitors forced.</p>
+<h3>Priority 1 — Core group planning gaps</h3>
 <table>
 <thead>
 <tr>
@@ -470,9 +478,9 @@
 </tr>
 </thead>
 <tbody><tr>
-<td><strong>Activity voting</strong></td>
+<td><strong>Activity voting</strong> — <em>closed</em></td>
 <td>Wanderlust</td>
-<td>The #1 group friction: agreeing on what to do. Async voting unlocks this without chat chaos.</td>
+<td>The #1 group friction: agreeing on what to do. Shipped as ideas plus up / don&#39;t mind / down votes.</td>
 </tr>
 <tr>
 <td><strong>Day / route optimiser</strong></td>
@@ -480,19 +488,19 @@
 <td>Groups waste significant time manually reordering stops. A one-tap optimise is a clear &quot;wow&quot; moment.</td>
 </tr>
 <tr>
-<td><strong>Simplified debt / settle up</strong></td>
+<td><strong>Simplified debt / settle up</strong> — <em>closed</em></td>
 <td>Splitwise</td>
-<td>Floc splits expenses but doesn&#39;t collapse the web of IOUs into minimum transfers. Groups need this.</td>
+<td>Collapses the web of IOUs into minimum transfers. A suggestion only — Floc moves no money.</td>
 </tr>
 <tr>
-<td><strong>Multi-currency &amp; currency conversion</strong></td>
+<td><strong>Multi-currency &amp; currency conversion</strong> — <em>closed</em></td>
 <td>Splitwise</td>
-<td>International trips involve multiple currencies; single-currency money tracking is a hard limit.</td>
+<td>Rates are cached per day in <code>fx_rate</code>; balances stay in integer minor units per currency.</td>
 </tr>
 <tr>
-<td><strong>Split modes (%, shares, unequal)</strong></td>
+<td><strong>Split modes (%, shares, unequal)</strong> — <em>closed</em></td>
 <td>Splitwise</td>
-<td>Equal split isn&#39;t always fair — couples, mixed groups, and shared accommodation all need flexibility.</td>
+<td>Even, exact, percentage and shares. Splits are write-once snapshots, never recalculated.</td>
 </tr>
 <tr>
 <td><strong>Read-only sharing link</strong></td>
@@ -525,9 +533,9 @@
 <td>&quot;Tell me what to do for 5 days in Lisbon&quot; is the first thing a user wants. Currently requires manual building.</td>
 </tr>
 <tr>
-<td><strong>Packing checklists</strong></td>
+<td><strong>Packing checklists</strong> — <em>closed</em></td>
 <td>Wanderlog</td>
-<td>Small feature, high utility, low build cost. Keeps users in the app pre-trip.</td>
+<td>Shared and personal lines, claimable, plus saved kits. Auto-generation is behind Pro.</td>
 </tr>
 <tr>
 <td><strong>Scheduled visit times / travel times</strong></td>

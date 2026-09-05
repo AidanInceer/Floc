@@ -20,7 +20,7 @@ Stack: Next.js App Router + Turso (libSQL) + Drizzle + Better Auth.
 | `floc/apps/web/src/components/` | `ui.tsx`/`client-ui.tsx` = house design system — reach first. |
 | `floc/apps/web/src/db/schema.ts` | Schema of record. Mirrors [ERD](docs/data-model/erd.html) — change both. |
 | `floc/apps/prototype/` | Superseded — don't extend. |
-| `floc/.scratch/floc-v1/` | One file per ticket/decision; `map.md` = index. Read before changing behaviour. |
+| `floc/.scratch/floc-v1/decisions/` | One file per decision, named for its ticket. Read before changing behaviour. |
 | `docs/` | Local HTML site, no build. Open `docs/index.html` off disk. |
 
 Key docs: [approach](docs/design/approach.html) · [visual language](docs/design/visual-language.html) · [architecture](docs/architecture/architecture.html) · [ERD](docs/data-model/erd.html).
@@ -66,7 +66,7 @@ pnpm verify                      # everything CI runs, locally
 - Server Components by default; mutations are Server Actions in the route's `actions.ts` — never inline `"use server"` closures.
 - **Nothing in `app/` imports `@/db`** — SQL lives only in `server/` aggregates.
 - Validate at the door: dates via `lib/dates.ts`, free text via `lib/text.ts`. Rejections are form errors, never throws.
-- **Visual: white ground + pastels + one blue.** Canvas `#F7F6F3`, white surfaces, hairlines; four pastels one-per-domain (peri/dates, mint/money, butter/ideas & people, blush/route); **blue `#4E68D8` = "yours to do" only**. Large radii, pill controls, pill-box nav, account right-aligned; quiet motion (1.5–2px hover lift, `.22s`, `cubic-bezier(.2,.85,.3,1)`). Type: Bricolage Grotesque (display) + Instrument Sans (body) + DM Mono (all money/dates).
+- **Visual: white ground + pastels + one blue.** Ground `--paper` `#fafafa`, `--sheet` white surfaces, `--rule` hairlines; four pastels one-per-domain (peri/dates, mint/money, butter/ideas & people, blush/route); **`--pen` `#4e68d8` = "yours to do" only**. Large radii, pill controls, pill-box nav, account right-aligned; quiet motion (1.5–2px hover lift, `.22s`, `cubic-bezier(.2,.85,.3,1)`). Type: Bricolage Grotesque (display) + Instrument Sans (body) + DM Mono (all money/dates).
 - Colours from tokens only — no hex literals. Status never colour or icon alone; always a word too.
 - **Light + dark, same token names.** Dark restates base values in `:root[data-theme="dark"]`. **No `dark:` variant** — needing one means the token is wrong. Choice in `localStorage`, never a column. Contrast checked both.
 - **No emoji anywhere.** Every icon is drawn line-art: 14×14 `viewBox` at ~13px, `fill="none"`, `strokeWidth` 1.15–1.25, `stroke="currentColor"`.
@@ -114,7 +114,7 @@ No secrets, keys, or tokens in the repo. No logging PII or tokens. Degrade witho
 
 ## Agent skills
 
-Issues and PRDs are GitHub issues (`gh`) — [issue-tracker](docs/agents/issue-tracker.html) · [domain](docs/agents/domain.html).
+Issues and PRDs are GitHub issues, driven with `gh`.
 
 | Skill | Does |
 |---|---|

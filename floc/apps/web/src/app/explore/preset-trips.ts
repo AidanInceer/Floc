@@ -1,5 +1,5 @@
 // Static listings for the Explore mockup. No partner backend or deal —
-// operator names are illustrative placeholders. See docs/partner-trips.html.
+// operator names are illustrative placeholders. See docs/research/partner-trips.html.
 // Money is minor units (rule 1); format with `formatMoney`, never by hand.
 import type { Currency, TransportType } from "@/db/schema";
 

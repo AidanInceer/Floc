@@ -173,7 +173,8 @@ body {
 main {
   flex: 1 1 auto;
   min-width: 0;
-  max-width: 860px;
+  max-width: 1100px;
+  margin-inline: auto;
   padding: 56px 46px 140px;
 }
 

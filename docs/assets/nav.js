@@ -35,7 +35,6 @@
         { id: 'erd', label: 'ERD', href: 'data-model/erd.html' }
       ]
     },
-    { id: 'backlog', label: 'Backlog', href: 'backlog/backlog.html' },
     {
       label: 'Competitors',
       children: [
@@ -52,19 +51,6 @@
       children: [
         { id: 'listings-legal', label: 'Listings & legal', href: 'research/listings-legal.html' },
         { id: 'map-embed-options', label: 'Map embed options', href: 'research/map-embed-options.html' }
-      ]
-    },
-    {
-      label: 'Reviews',
-      children: [
-        { id: 'codebase-review-2026-08-01', label: 'Codebase review — 2026-08-01', href: 'reviews/2026-08-01-codebase-review.html' }
-      ]
-    },
-    {
-      label: 'Agents',
-      children: [
-        { id: 'agents-domain', label: 'Domain docs', href: 'agents/domain.html' },
-        { id: 'agents-issue-tracker', label: 'Issue tracker', href: 'agents/issue-tracker.html' }
       ]
     }
   ];
