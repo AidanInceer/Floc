@@ -14,15 +14,15 @@ import {
   maxExpenseMinor,
   sanitizeAmountInput,
   toMajorInput,
-} from "@/lib/money";
-import { CURRENCIES, currencySymbol, minorPerMajor } from "@/lib/currency";
+} from "@floc/core/money";
+import { CURRENCIES, currencySymbol, minorPerMajor } from "@floc/core/currency";
 import type { Currency, SplitType } from "@/db/schema";
 import {
   CATEGORY_LABELS,
   DEFAULT_CATEGORY,
   EXPENSE_CATEGORIES,
-} from "@/lib/expense-category";
-import type { ExpenseCategory } from "@/lib/expense-category";
+} from "@floc/core/expense-category";
+import type { ExpenseCategory } from "@floc/core/expense-category";
 import { CategoryIcon } from "@/components/category-icon";
 import {
   Badge,

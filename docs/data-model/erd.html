@@ -8,15 +8,13 @@
 <main>
 <p class="crumb">Docs / Data model</p>
 <h1>Floc v1 — physical data model</h1>
-<p>Source of truth for the decisions is
-<a href="../../../../.scratch/floc-v1/issues/04-core-data-model-and-schema.md">Core data model and SQLite schema</a>.
-This diagram is documentation of that decision, not schema code — no
-migrations/DDL land until the whole <code>floc-v1</code> map is walked.</p>
-<p>Every table carries <code>id</code> (PK), <code>created_at</code>, <code>deleted_at</code>, <code>last_modified_at</code>
-— omitted from the entity blocks below to keep them readable; assume all four
-on every entity.</p>
-<p><code>user</code> / <code>account</code> / <code>session</code> are Better Auth&#39;s own tables, used unmodified
-— shown here only as the <code>user</code> anchor that our tables extend.</p>
+<p>The schema of record is <a href="../../floc/apps/web/src/db/schema.ts"><code>db/schema.ts</code></a>.
+This diagram mirrors it — change both in the same commit, or one of them is lying.</p>
+<p>Assume <code>id</code> (PK), <code>created_at</code>, <code>deleted_at</code> and <code>last_modified_at</code> on every
+entity — omitted below to keep the blocks readable. <code>fx_rate</code> is the one
+exception, noted where it appears.</p>
+<p><code>user</code> / <code>account</code> / <code>session</code> / <code>verification</code> are Better Auth&#39;s own tables,
+used unmodified. Only the <code>user</code> anchor is drawn here.</p>
 <pre class="mermaid">erDiagram
     USER ||--o| USER_PROFILE : &quot;has&quot;
     USER ||--o{ USER_COUNTRY_MARK : &quot;paints (ticket 95)&quot;
@@ -28,10 +26,6 @@ on every entity.</p>
     TRIP ||--o{ TRIP_INVITE : &quot;asks (ticket 146)&quot;
     USER ||--o{ TRIP_INVITE : &quot;sends (from_user_id)&quot;
     USER ||--o{ TRIP_INVITE : &quot;receives (to_user_id)&quot;
-    TRIP ||--o{ IDEA : &quot;has&quot;
-    USER ||--o{ IDEA : &quot;creates (created_by)&quot;
-    IDEA ||--o{ IDEA_VOTE : &quot;receives&quot;
-    USER ||--o{ IDEA_VOTE : &quot;casts&quot;
     TRIP ||--o{ PACKING_LINE : &quot;has (ticket 219)&quot;
     USER ||--o{ PACKING_LINE : &quot;adds (created_by)&quot;
     USER ||--o{ PACKING_LINE : &quot;owns, when personal (owner_id, ticket 220)&quot;
@@ -60,6 +54,12 @@ on every entity.</p>
     TRIP ||--o{ NUDGE : &quot;has&quot;
     USER ||--o{ NUDGE : &quot;sends (from_user_id)&quot;
     USER ||--o{ NUDGE : &quot;receives (to_user_id)&quot;
+    TRIP ||--o| TRIP_NOTE_DOC : &quot;has one (ticket 238)&quot;
+    USER ||--o{ TRIP_NOTE_DOC : &quot;last saved (updated_by)&quot;
+    TRIP ||--o{ DOCUMENT : &quot;holds (ticket 239)&quot;
+    USER ||--o{ DOCUMENT : &quot;uploads (uploaded_by)&quot;
+    USER ||--o{ DOCUMENT : &quot;owns, when private (owner_id)&quot;
+    USER ||--o{ SUBSCRIPTION : &quot;holds (ticket 246)&quot;
 
     USER {
         string id PK
@@ -85,7 +85,6 @@ on every entity.</p>
         string visibility_friends &quot;private|friends|trip_members, default friends&quot;
         string past_trips_show &quot;latest | all, default all&quot;
         bool notify_invites &quot;default true&quot;
-        bool notify_votes &quot;default true&quot;
         bool notify_money &quot;default true&quot;
         bool notify_nudges &quot;default true&quot;
         string pack_tier &quot;light | balanced | comfort, default balanced — the fallback for trips that haven't chosen&quot;
@@ -134,21 +133,6 @@ on every entity.</p>
         string from_user_id FK &quot;-&gt; USER.id — who asked&quot;
         string to_user_id FK &quot;-&gt; USER.id — the friend asked&quot;
         string status &quot;pending | accepted | declined&quot;
-    }
-
-    IDEA {
-        int id PK
-        int trip_id FK &quot;-&gt; TRIP.id&quot;
-        string created_by FK &quot;-&gt; USER.id&quot;
-        text note
-        datetime pinned_at &quot;nullable — pinned to the top of the board, group-wide&quot;
-    }
-
-    IDEA_VOTE {
-        int id PK
-        int idea_id FK &quot;-&gt; IDEA.id&quot;
-        string user_id FK &quot;-&gt; USER.id&quot;
-        string value &quot;up | dont_mind | down&quot;
     }
 
     AVAILABILITY {
@@ -256,7 +240,7 @@ on every entity.</p>
         int id PK
         int trip_id FK &quot;-&gt; TRIP.id&quot;
         string created_by FK &quot;-&gt; USER.id&quot;
-        string scope &quot;trip|day|day_event|idea|expense&quot;
+        string scope &quot;trip|day|day_event|expense&quot;
         int scope_id &quot;not a real FK — polymorphic, app-enforced&quot;
         int parent_id &quot;-&gt; NOTE.id, nullable — a reply; exactly one level&quot;
         text body
@@ -283,9 +267,50 @@ on every entity.</p>
         int trip_id FK &quot;-&gt; TRIP.id&quot;
         string from_user_id FK &quot;-&gt; USER.id&quot;
         string to_user_id FK &quot;-&gt; USER.id&quot;
-        string tab &quot;ideas|dates|days|money — deep-linked in the email&quot;
+        string tab &quot;notes|dates|days|money — deep-linked in the email&quot;
         text message &quot;nullable&quot;
+    }
+
+    TRIP_NOTE_DOC {
+        int id PK
+        int trip_id FK &quot;-&gt; TRIP.id, unique — one doc per trip&quot;
+        string updated_by FK &quot;-&gt; USER.id, whoever saved last&quot;
+        text body &quot;BlockNote Block[], stringified. Never parsed server-side&quot;
+    }
+
+    DOCUMENT {
+        int id PK
+        int trip_id FK &quot;-&gt; TRIP.id&quot;
+        string uploaded_by FK &quot;-&gt; USER.id&quot;
+        string owner_id FK &quot;-&gt; USER.id, nullable — null means shared&quot;
+        string name &quot;on-screen name; the file&#39;s own, cleaned, never a path&quot;
+        string storage_key &quot;opaque, generated — never derived from name&quot;
+        string mime_type &quot;from the allow-list in lib/documents.ts&quot;
+        int size_bytes
+        string category &quot;filing heading; changeable after upload&quot;
+    }
+
+    SUBSCRIPTION {
+        int id PK
+        string user_id FK &quot;-&gt; USER.id&quot;
+        string plan &quot;free | pro&quot;
+        string status &quot;active | trialing | past_due | canceled …&quot;
+        string source &quot;stripe | comp — the gate never reads this&quot;
+        string stripe_customer_id &quot;nullable&quot;
+        string stripe_subscription_id &quot;nullable, unique — makes a retried webhook an upsert&quot;
+        int current_period_end &quot;nullable; null means never lapses (a comp)&quot;
+        bool cancel_at_period_end
+    }
+
+    FX_RATE {
+        int id PK
+        string date &quot;YYYY-MM-DD, as the provider published it&quot;
+        string base
+        string currency
+        float rate &quot;units of currency per 1 base — a rate, not money, so a float is correct&quot;
     }</pre>
+<p><code>fx_rate</code> stands apart: it is a cache of published rates, owned by nobody, so
+it has no foreign keys and no <code>deleted_at</code>.</p>
 <h2>Relationship cardinalities (plain-English index)</h2>
 <table>
 <thead>
@@ -325,18 +350,6 @@ on every entity.</p>
 <td>M–M</td>
 <td>via <code>trip_membership</code> (composite PK)</td>
 <td></td>
-</tr>
-<tr>
-<td><code>trip</code></td>
-<td><code>idea</code></td>
-<td>1–M</td>
-<td><code>pinned_at</code> floats a note above the board&#39;s sort (v0.2 ticket 09)</td>
-</tr>
-<tr>
-<td><code>idea</code></td>
-<td><code>idea_vote</code></td>
-<td>1–M</td>
-<td>one vote per (idea, user) in practice, not DB-enforced</td>
 </tr>
 <tr>
 <td><code>trip</code></td>
@@ -476,6 +489,30 @@ on every entity.</p>
 <td>1–M (×2)</td>
 <td><code>from_user_id</code> and <code>to_user_id</code></td>
 </tr>
+<tr>
+<td><code>trip</code></td>
+<td><code>trip_note_doc</code></td>
+<td>1–0..1</td>
+<td>unique on <code>trip_id</code> — one doc per trip, the group&#39;s, so no author</td>
+</tr>
+<tr>
+<td><code>trip</code></td>
+<td><code>document</code></td>
+<td>1–M</td>
+<td><code>owner_id</code> null = shared with the trip; set = private to that member</td>
+</tr>
+<tr>
+<td><code>user</code></td>
+<td><code>subscription</code></td>
+<td>1–M</td>
+<td>a trip is Pro if <em>any</em> member holds a live row</td>
+</tr>
+<tr>
+<td>—</td>
+<td><code>fx_rate</code></td>
+<td>—</td>
+<td>a cache of published rates; no owner, no FKs, no <code>deleted_at</code></td>
+</tr>
 </tbody></table>
 <p>A <strong>&quot;stop&quot;</strong> (e.g. &quot;3 nights in Rome&quot;) is not a table — it&#39;s derived by
 grouping consecutive <code>day</code> rows that share the same <code>overnight_place_id</code>.</p>
@@ -497,8 +534,8 @@ expense under a settlement can tip a balance negative: an honest overpayment,
 not an error. When every currency&#39;s balances net to zero the whole trip reads as
 settled.</p>
 <p><code>note</code> is the <strong>discussion thread</strong> on anything that has one. In use today for
-<code>scope: &quot;idea&quot;</code> (why this one, or why not) and <code>scope: &quot;day_event&quot;</code> (whatever the
-group needs to know about that ferry), read scoped by <code>(trip_id, scope, scope_id)</code> off <code>note_scope_idx</code>. One table rather than <code>idea_comment</code> +
+<code>scope: &quot;day&quot;</code> and <code>scope: &quot;day_event&quot;</code> (whatever the
+group needs to know about that ferry), read scoped by <code>(trip_id, scope, scope_id)</code> off <code>note_scope_idx</code>. One table rather than <code>day_comment</code> +
 <code>day_event_comment</code> + …: a note is the same object with the same author-or-admin
 delete rule wherever it hangs.</p>
 <p><code>note.parent_id</code> makes a <strong>reply</strong>, and threads are <strong>exactly one level deep</strong>
@@ -506,8 +543,8 @@ delete rule wherever it hangs.</p>
 attaches to that reply&#39;s own parent and the shape can&#39;t drift however the UI
 changes. Deleting a top-level comment soft-deletes its replies with it — a
 reply is only legible under the comment it answers. Unbounded nesting was
-rejected on render grounds: Ideas draws its thread in a <code>max-w-lg</code> modal, where
-a fourth level would be a few words a line.</p>
+rejected on render grounds: a thread draws in a narrow panel, where a fourth
+level would be a few words a line.</p>
 <p><code>note.edited_at</code> marks a comment its <strong>author</strong> has rewritten, and the UI says
 &quot;edited&quot; beside the timestamp. Editing is deliberately <strong>not an admin power</strong>
 (rule 6 — admin powers are exactly four): an admin can delete a comment, which
@@ -515,16 +552,14 @@ is unambiguous, but never put different words in someone&#39;s mouth under their
 name. <code>last_modified_at</code> can&#39;t stand in for this — it is for debugging only and
 moves for reasons the author never chose.</p>
 <p><code>note_reaction</code> is the three fixed reactions — heart, thumbs up, thumbs down —
-independent of each other, unlike <code>idea_vote</code>, which is three-state and
-exclusive. Un-reacting soft-deletes the row and re-reacting revives it, so
+independent of each other — a note can carry all three. Un-reacting soft-deletes the row and re-reacting revives it, so
 <code>note_reaction_one_idx</code> is <strong>unique on (note_id, user_id, kind) and deliberately
 excludes <code>deleted_at</code></strong> — the dead row is the row the upsert wants to land on
 (ticket 115, migration <code>0005</code>). It was originally non-unique on the reasoning
 that reviving needs the row to survive, which is the same fact read backwards:
 without uniqueness the toggle was a read-modify-write over nothing, and two
 concurrent taps wrote two rows, after which one person&#39;s heart counted as two.
-<code>idea_vote_unique_idx</code> and <code>friendship_pair_idx</code> have the same shape for the
-same reason. Every read still filters <code>deleted_at</code>.</p>
+<code>friendship_pair_idx</code> has the same shape for the same reason. Every read still filters <code>deleted_at</code>.</p>
 <p><code>trip_link</code> is the <strong>link shelf</strong> (ticket 103) — the listings, timetables and
 documents a group keeps coming back to, beside the trip thread in the Days pane. Its
 own table rather than a <code>note</code> with a URL in it, because the two behave
@@ -539,8 +574,10 @@ single JSON blob of editor blocks, never parsed server-side. Whole-doc rather
 than a row per block because the editor already owns block order and nesting,
 so a table of blocks would mean keeping two orderings honest for a read nobody
 makes. Saves are last-write-wins (rule 7): two people typing at once is a known
-gap, not a solved one. The voting board is one block inside the document and
-still reads <code>idea</code>/<code>idea_vote</code> — those tables are untouched.</p>
+gap, not a solved one. The idea board that once sat inside it as a custom block
+is gone, along with the <code>idea</code> and <code>idea_vote</code> tables and every
+<code>note</code> scoped to one (migration <code>0023</code>); a stored document still
+holding the block simply drops it on load.</p>
 <p><code>document</code> is a <strong>trip file</strong> (ticket 239) — a booking, a ticket, a visa
 scan. It mirrors <code>packing_line</code>&#39;s split rather than inventing a second one:
 <code>owner_id</code> null means shared with every member, and set means private to that

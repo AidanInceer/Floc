@@ -1,7 +1,7 @@
 /**
  * The heart / thumbs-up / thumbs-down glyph set, shared by the two places the
  * group says what it thinks of something: comment reactions in
- * `note-thread.tsx` and the idea vote in `idea-votes.tsx` (ticket 36).
+ * `note-thread.tsx` (ticket 36).
  *
  * One file, because the two controls have to be the same drawing — a board note
  * and its own comment thread sit on screen together, and two hand-drawn hearts

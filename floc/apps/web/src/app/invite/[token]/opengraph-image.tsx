@@ -13,7 +13,7 @@
 import { ImageResponse } from "next/og";
 
 import { findTripByInviteToken } from "@/server/invites";
-import { formatDateRange } from "@/lib/dates";
+import { formatDateRange } from "@floc/core/dates";
 
 export const runtime = "nodejs";
 export const size = { width: 1200, height: 630 };

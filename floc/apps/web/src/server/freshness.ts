@@ -24,7 +24,6 @@ export type Fact =
   | { kind: "tripHeader"; tripId: number }
   | { kind: "tripOverview"; tripId: number }
   | { kind: "money"; tripId: number }
-  | { kind: "ideas"; tripId: number }
   | { kind: "packing"; tripId: number }
   | { kind: "documents"; tripId: number }
   | { kind: "tripLinks"; tripId: number }
@@ -61,7 +60,6 @@ const PAGES: Pages = {
   tripHeader: ({ tripId }) => [{ path: `/trip/${tripId}`, type: "layout" }],
   tripOverview: ({ tripId }) => [{ path: `/trip/${tripId}/overview` }],
   money: ({ tripId }) => [{ path: `/trip/${tripId}/money` }],
-  ideas: ({ tripId }) => [{ path: `/trip/${tripId}/notes` }],
   packing: ({ tripId }) => [{ path: `/trip/${tripId}/packing` }],
   documents: ({ tripId }) => [
     { path: `/trip/${tripId}/files` },
@@ -84,11 +82,9 @@ const IMPLIES: Partial<Record<FactKind, FactKind[]>> = {
   tripWindow: ["itinerary", "tripDates", "tripHeader"],
 };
 
-/** The tab a note thread is rendered on — notes hang off four different surfaces. */
+/** The tab a note thread is rendered on — notes hang off several surfaces. */
 function threadPath(tripId: number, scope: NoteScope): string {
   switch (scope) {
-    case "idea":
-      return `/trip/${tripId}/notes`;
     case "day_event":
     case "day":
       return `/trip/${tripId}/days`;

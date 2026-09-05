@@ -12,13 +12,12 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { getSession } from "@/server/access";
-import { countIdeas } from "@/server/ideas";
 import { listRouteDays } from "@/server/itinerary";
 import { findPendingInvite, findTripByInviteToken } from "@/server/invites";
 import { countMembers, isLiveMember } from "@/server/roster";
 import { emailConfigured } from "@/server/email";
 import { peopleByIds } from "@/server/friends";
-import { formatDateRange } from "@/lib/dates";
+import { formatDateRange } from "@floc/core/dates";
 import { ButtonLink } from "@/components/ui";
 import { SubmitButton } from "@/components/client-ui";
 import { joinTrip, resendVerification } from "./actions";
@@ -74,10 +73,9 @@ export default async function InvitePage({
     redirect(`/trip/${found.id}/overview`);
   }
 
-  // Three independent reads, was three serial round trips for one paragraph.
-  const [memberCount, ideaCount, days] = await Promise.all([
+  // Two independent reads, was two serial round trips for one paragraph.
+  const [memberCount, days] = await Promise.all([
     countMembers(found.id),
-    countIdeas(found.id),
     listRouteDays(found.id),
   ]);
 
@@ -182,19 +180,9 @@ export default async function InvitePage({
           )}
         </section>
 
-        <section className="rounded-lg bg-butter p-6 text-butter-ink">
-          <p className="typed text-current">Ideas on the board</p>
-          <p className="nums mt-3 text-2xl font-semibold">{ideaCount}</p>
-          <p className="mt-2 text-sm opacity-75">
-            {ideaCount === 0
-              ? "Nobody has suggested anywhere yet."
-              : "Places someone has put forward. Nothing is binding."}
-          </p>
-        </section>
-
         {/* Not a paywall — it's other people's information, and it opens the
             moment you're one of them. */}
-        <section className="relative overflow-hidden rounded-lg bg-sheet p-6">
+        <section className="relative overflow-hidden rounded-lg bg-sheet p-6 sm:col-span-2">
           <div aria-hidden className="select-none blur-[5px] opacity-45">
             <p className="typed">Who is going, and what it has cost</p>
             <p className="mt-3 text-2xl font-semibold">

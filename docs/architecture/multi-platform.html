@@ -1,0 +1,251 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Web, iOS and Android — Floc docs</title>
+<link rel="stylesheet" href="../assets/docs.css">
+<body data-root=".." data-page="multi-platform">
+<nav id="sidebar" aria-label="Documentation"></nav>
+<main>
+<p class="crumb">Docs / Architecture</p>
+<h1>Web, iOS and Android</h1>
+
+<p>Floc ships three surfaces from one repo: the web app on Railway, and native
+apps listed on Google Play and the App Store. <strong>Behaviour and
+functionality are identical on all three. The UI is native to each.</strong>
+This page is the plan; the reasoning, and the roads refused, are in the
+decision record for <code>#237</code>.</p>
+
+<h2>Shape</h2>
+
+<p>Logic is shared, screens are not. The web app stays Next.js App Router with
+Server Components; the phone apps are Expo, with their own screens, talking to
+the web app over tRPC.</p>
+
+<pre class="mermaid">flowchart TB
+    subgraph Devices["Surfaces"]
+        Web["Browser&lt;br/&gt;Next.js App Router"]
+        IOS["iOS — Expo"]
+        Android["Android — Expo"]
+    end
+
+    subgraph Shared["floc/packages/floc-core"]
+        Types["Row types + domain types"]
+        Rules["Domain rules&lt;br/&gt;money, dates, splits, stops, calendar"]
+        Client["tRPC client + router types"]
+        Tokens["Design tokens"]
+    end
+
+    subgraph WebApp["floc/apps/web — the only thing with credentials"]
+        RSC["Server Components + actions.ts"]
+        Router["tRPC router"]
+        Server["server/*"]
+        DB["db/* (Drizzle)"]
+        Auth["Better Auth&lt;br/&gt;cookie + bearer"]
+    end
+
+    Turso[("Turso libSQL")]
+
+    Web --&gt; RSC
+    IOS --&gt; Router
+    Android --&gt; Router
+    RSC --&gt; Server
+    Router --&gt; Server
+    Server --&gt; DB
+    DB --&gt; Turso
+    IOS --&gt; Auth
+    Android --&gt; Auth
+    Web --&gt; Auth
+
+    RSC --&gt; Rules
+    Router --&gt; Types
+    IOS --&gt; Shared
+    Android --&gt; Shared
+    Web --&gt; Tokens
+</pre>
+
+<p><strong>The road not taken.</strong> Expo plus react-native-web would render
+one UI tree everywhere. It is refused: the requirement is native UI per
+platform, so its only advantage is unwanted. It would also cost a rewrite of
+22,548 lines of UI and the loss of server rendering, because react-native-web
+cannot run a Server Component.</p>
+
+<h2>Where things live</h2>
+
+<ul>
+<li><code>floc/apps/web</code> — unchanged. The only place with database
+credentials.</li>
+<li><code>floc/apps/mobile</code> — the Expo app, iOS and Android from one
+codebase. Matched by the existing <code>floc/apps/*</code> workspace glob.</li>
+<li><code>floc/packages/floc-core</code> — shared logic, types and tokens.
+Built in <code>#286</code>. The <code>floc/packages/*</code> glob goes in
+<code>pnpm-workspace.yaml</code> only: the duplicated <code>pnpm</code> field in
+the root <code>package.json</code> carries overrides, not workspace globs. The
+package ships TypeScript source with no build step, so
+<code>next.config.ts</code> lists it under <code>transpilePackages</code>.</li>
+</ul>
+
+<p><code>shared/packages/</code> is for code crossing ventures. Floc-only code
+does not belong there.</p>
+
+<h2>Reuse boundary</h2>
+
+<p>Measured, not estimated: the web app is 40,272 lines, of which
+<code>lib/</code> is 6,858. Genuine reuse is about <strong>17%</strong>. The
+apps are worth building for store presence, not for that number.</p>
+
+<table>
+<thead><tr><th>Concern</th><th>Lives in</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>Row and domain types</td><td>floc-core</td><td>One shape, or the surfaces drift.</td></tr>
+<tr><td>Domain rules — money, splits, dates, stops, calendar</td><td>floc-core</td><td>Pure, no I/O. Already the shape <code>lib/</code> is in.</td></tr>
+<tr><td>Input validation</td><td>floc-core</td><td>Same rejection wording on every surface.</td></tr>
+<tr><td>tRPC client and router types</td><td>floc-core</td><td>A changed rule must fail the phone build.</td></tr>
+<tr><td>Design tokens</td><td>floc-core</td><td>Values only. Each platform draws them itself.</td></tr>
+<tr><td>Drizzle schema, migrations, db client</td><td>web only</td><td>Credentials never leave the server.</td></tr>
+<tr><td>Server Components, <code>actions.ts</code>, freshness</td><td>web only</td><td>Next.js primitives. No phone equivalent.</td></tr>
+<tr><td>Screens and navigation</td><td>per surface</td><td>Native UI is the requirement.</td></tr>
+<tr><td>Local and secure storage</td><td>mobile only</td><td>The keychain has no browser equivalent.</td></tr>
+</tbody>
+</table>
+
+<h2>Data</h2>
+
+<ul>
+<li><strong>One database, server-side only.</strong> The phone never holds
+Turso credentials.</li>
+<li>Drizzle schema and migrations stay in <code>apps/web/src/db</code>.
+<code>schema.ts</code> remains the schema of record.</li>
+<li>The closed sets the rules branch on — <code>SPLIT_TYPES</code>,
+<code>VOTE_VALUES</code>, <code>DAY_EVENT_TYPES</code> and the rest — live in
+<code>floc-core/vocabulary</code>, which <code>schema.ts</code> imports and
+re-exports. Drizzle's inferred row types stay in <code>apps/web</code>: they are
+derived from the tables, so they cannot leave without the tables, and the phone
+will read the tRPC router's output types instead (<code>#287</code>) — a
+narrower shape than a raw row, which is the better thing to share anyway.</li>
+<li>A <code>depcruise</code> rule forbids importing <code>db/</code> from
+anywhere but <code>apps/web</code>, alongside the existing rule keeping
+<code>app/</code> off <code>@/db</code>.</li>
+<li>The phone reads and writes only through tRPC, which calls the same
+<code>server/</code> modules the web app calls. Soft-delete filtering,
+<code>requireTripAccess</code> and <code>assertAdmin</code> are therefore
+enforced once, for both surfaces.</li>
+</ul>
+
+<h3>Why tRPC and not REST</h3>
+
+<p>The requirement is behaviour that cannot drift. With tRPC, changing a server
+signature fails the mobile typecheck. With hand-written REST it does not — it
+fails at runtime, on a phone, days after review. A separate API app was
+refused: a second deployable, no gain today.</p>
+
+<h2>Auth</h2>
+
+<p>One Better Auth instance, one user table, two credential styles.</p>
+
+<ul>
+<li><strong>Web</strong> — cookie session. Unchanged.</li>
+<li><strong>Phone</strong> — bearer token via the <code>expo</code> and
+<code>bearer</code> plugins, held in the device keychain, never in plain
+storage.</li>
+<li><strong>Refresh</strong> — the token refreshes on use, matching the long
+rolling sessions the web already has. No re-authentication in v1 on any
+surface.</li>
+<li><strong>Logout is per device.</strong> It clears that device credential
+only; signing out on a phone does not end the web session.</li>
+<li><strong>Google sign-in</strong> uses the native flow on a phone, not the
+web redirect. Wiring, not architecture.</li>
+<li>Missing provider credentials still degrade rather than throw — the button
+is not drawn, on any surface.</li>
+</ul>
+
+<h2>Offline</h2>
+
+<p>Not built yet, but the data layer is chosen so it can be. The client cache
+persists to disk when <code>#226</code> turns it on, which makes offline reads
+a switch rather than a rewrite.</p>
+
+<p>Offline <em>writes</em> are not promised. Last-write-wins with no optimistic
+locking (non-negotiable 7) means a queued write replayed an hour later would
+silently overwrite someone. That belongs to <code>#169</code>, and must be
+settled before offline writes are attempted.</p>
+
+<h2>Delivery</h2>
+
+<p>Deploying on push to <code>main</code> cannot mean the same thing for a
+store as for a server.</p>
+
+<ul>
+<li><strong>Web</strong> → Railway on push to <code>main</code>. Unchanged.</li>
+<li><strong>Phone, JavaScript-only change</strong> → EAS Update. Minutes, no
+review.</li>
+<li><strong>Phone, native change</strong> → full EAS build and store review.
+Days.</li>
+</ul>
+
+<p><strong>The rule for which is which.</strong> A change is native — and needs
+a build — if it adds or upgrades a package containing native code, changes a
+permission, entitlement or bundle identifier, changes the icon, splash or app
+name, or bumps the Expo SDK. Everything else is JavaScript-only and ships by
+update. An update may not change what the app is for; a change of purpose needs
+a build and a new review whatever the diff looks like.</p>
+
+<p><strong>Versions.</strong> The commit convention bumps
+<code>floc/apps/web/package.json</code>. A store build cannot use that.
+<code>floc/apps/mobile</code> carries its own version, bumped only when a build
+is submitted, with the build number incremented per submission.</p>
+
+<p><strong>CI.</strong> <code>pnpm verify</code> gains typecheck, lint and test
+for <code>floc-core</code> and <code>floc/apps/mobile</code>. The matching
+<code>.github/workflows/</code> check job changes in the same commit, as ever.
+Store builds are not part of <code>verify</code> — they are triggered
+deliberately, not on every push.</p>
+
+<h2>Payments</h2>
+
+<p>Apple and Google both require that anything unlocking features inside the
+app is sold through their billing rather than Stripe, at 15% for a small
+business and 30% above it. Stripe is unaffected on the web.</p>
+
+<ul>
+<li><strong>First release:</strong> the app shows Pro features but sells
+nothing. Upgrades happen on the website. No commission is paid, and the app
+does not steer the user to the web to pay — which store rules forbid.</li>
+<li><strong>Later:</strong> native in-app purchase beside Stripe, with one
+entitlement truth in <code>server/entitlements</code> regardless of which
+processor took the money. Deferred, not refused.</li>
+</ul>
+
+<h2>Budget</h2>
+
+<p>Apple Developer Program $99 a year. Google Play Console $25 once. EAS has a
+free tier with queued builds and paid tiers above it. No Mac is needed — EAS
+builds iOS in the cloud and submits from there.</p>
+
+<h2>Slices</h2>
+
+<p>Ordered. Each ships alone. The first two are worth doing whether or not a
+phone app is ever built.</p>
+
+<ol>
+<li><strong>floc-core carve-out</strong> — done (<code>#286</code>). Pure logic
+and vocabulary out of <code>apps/web</code>, plus the
+<code>floc-core-owes-the-app-nothing</code> <code>depcruise</code> rule.</li>
+<li><strong>tRPC router</strong> over the existing <code>server/</code>
+modules. The web app is untouched.</li>
+<li><strong>Design tokens package</strong>, so the two UIs cannot drift on
+look.</li>
+<li><strong>Expo app skeleton</strong> — boots, signs in, lists trips over
+tRPC. The first point at which a phone app exists.</li>
+<li><strong>EAS pipeline</strong> — build profiles, update channel, CI job,
+<code>verify.sh</code>, the mobile versioning rule.</li>
+<li><strong>Mobile screens to MVP parity</strong> — trips, itinerary, expenses,
+roster. Several tickets.</li>
+<li><strong>Store readiness</strong> — icons, splash, listings, privacy labels,
+developer accounts.</li>
+</ol>
+
+</main>
+<script src="../assets/nav.js"></script>
+<script src="../assets/vendor/mermaid.min.js"></script>
+<script src="../assets/diagrams.js"></script>
+</body>

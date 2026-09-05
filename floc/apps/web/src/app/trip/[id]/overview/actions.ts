@@ -9,8 +9,8 @@ import { after } from "next/server";
 import { NUDGE_TABS, type NudgeTab } from "@/db/schema";
 import { assertAdmin, requireTripAccess } from "@/server/access";
 import { emails, sendEmails } from "@/server/email";
-import { parseTagNames } from "@/lib/tags";
-import { capText, TEXT_CAPS } from "@/lib/text";
+import { parseTagNames } from "@floc/core/tags";
+import { capText, TEXT_CAPS } from "@floc/core/text";
 import { LIMITS } from "@/server/limits";
 import { inviteToTrip } from "@/server/invites";
 import {

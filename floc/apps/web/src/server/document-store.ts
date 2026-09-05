@@ -16,7 +16,7 @@ import { randomUUID } from "node:crypto";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-import type { AllowedType } from "@/lib/documents";
+import type { AllowedType } from "@floc/core/documents";
 
 function root(): string | null {
   const dir = process.env.FLOC_FILES_DIR?.trim();

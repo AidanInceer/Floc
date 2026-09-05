@@ -17,8 +17,8 @@ import { cache } from "react";
 import { db } from "@/db";
 import { subscription } from "@/db/schema";
 import type { Subscription, SubscriptionStatus } from "@/db/schema";
-import type { Currency } from "@/lib/currency";
-import { BILLING_INTERVALS, type BillingInterval } from "@/lib/plans";
+import type { Currency } from "@floc/core/currency";
+import { BILLING_INTERVALS, type BillingInterval } from "@floc/core/plans";
 
 export { BILLING_INTERVALS, type BillingInterval };
 

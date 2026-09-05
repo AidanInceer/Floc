@@ -8,12 +8,14 @@
 <main>
 <p class="crumb">Docs / Research</p>
 <h1>Research — how to embed a map, concretely</h1>
-<p>Findings for <a href="../../../../.scratch/floc-v0.2/issues/14-map-embed-options.md">ticket 14</a>,
-which ticket 08 (a map at the top of the Route tab) decides from. <strong>This
-document does not pick an option.</strong></p>
-<p>Sources are primary (Mapbox, Stadia Maps, Next.js) and linked inline. <strong>All
-pricing was read on 26 July 2026</strong> and is not quoted anywhere in the app — it
-changes, and a figure copied into code will rot.</p>
+<p><strong>Resolved &mdash; neither option below shipped.</strong> The map is
+<strong>Leaflet</strong> over <strong>MapTiler</strong>&rsquo;s OpenStreetMap style, falling back to raw
+OSM tiles when <code>NEXT_PUBLIC_MAPTILER_KEY</code> is absent. Geocoding is
+<strong>Nominatim</strong>, free and account-free. Mapbox and Stadia Maps were both
+dropped: this page is why. Kept as the record of the reasoning, not as a live
+recommendation.</p>
+<p>Sources are primary and linked inline. <strong>Pricing was read on 26 July 2026</strong>
+and is quoted nowhere in the app — a figure copied into code rots.</p>
 <h2>Headline: two facts that outrank the embed question</h2>
 <p><strong>1. Permanent Geocoding has no free tier.</strong> V1 ticket 09 chose Mapbox
 specifically because <code>permanent=true</code> lets us persist a <code>place</code> row. Mapbox&#39;s

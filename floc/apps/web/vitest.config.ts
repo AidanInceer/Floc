@@ -25,17 +25,26 @@ export default defineConfig({
       exclude: ["src/**/*.test.ts", "src/lib/auth-client.ts"],
       // A ratchet: each threshold sits just under the measured figure, so
       // coverage can only go up. Raise them when it rises; never lower one to
-      // make a run pass. Re-baselined at v0.47.0 (measured 67.99 / 80.00 /
-      // 90.78 / 67.99) — the first release where the thresholds actually ran.
+      // make a run pass.
       //
       // Statements read as "how much of this is exercised", branches as "how
       // thoroughly the exercised part is" — which is why one is low and the
       // other high over the same code.
+      //
+      // Re-baselined at the floc-core carve-out (#286, measured 58.82 / 78.38
+      // / 84.29 / 58.82). The figures fell because `lib/` — pure and cheaply
+      // covered — left for its own package, which now carries the higher
+      // ratchet. Nothing became less tested: the same tests run, across two
+      // packages instead of one.
+      //
+      // Branches dropped a point again when the idea board was removed: its
+      // actions were the most heavily branch-tested thing in `app/`, and
+      // deleting tested code moves the ratio without untesting anything.
       thresholds: {
-        lines: 67,
-        functions: 79,
-        branches: 90,
-        statements: 67,
+        lines: 58,
+        functions: 78,
+        branches: 83,
+        statements: 58,
       },
     },
   },

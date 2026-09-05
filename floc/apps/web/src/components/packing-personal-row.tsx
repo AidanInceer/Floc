@@ -3,7 +3,7 @@
 import { useOptimistic } from "react";
 
 import { Badge, cx } from "@/components/ui";
-import { clampPackQuantity } from "@/lib/packing";
+import { clampPackQuantity } from "@floc/core/packing";
 import { ConfirmSubmit } from "@/components/client-ui";
 import {
   CheckGlyph,

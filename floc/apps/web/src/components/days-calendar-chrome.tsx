@@ -28,8 +28,8 @@ import {
   type CalendarEvent,
   type Landing,
 } from "@/components/days-calendar-shared";
-import { EVENT_CATEGORIES } from "@/lib/event-categories";
-import { spanOf, toHhmm, toMinutes } from "@/lib/calendar";
+import { EVENT_CATEGORIES } from "@floc/core/event-categories";
+import { spanOf, toHhmm, toMinutes } from "@floc/core/calendar";
 
 export function CalendarToolbar({
   hasToday,

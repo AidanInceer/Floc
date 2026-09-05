@@ -21,6 +21,8 @@ Things that bite. Read before editing.
 - Forgetting `isNull(deletedAt)` on a new write, or copying a hard-delete exception without re-reading why it's one.
 - Hand-rolling a membership check instead of `requireTripAccess`.
 - Reaching for a hex colour instead of a token.
+- Guessing a token name from the docs' prose — the ground is `--paper`, the surface `--sheet`, the hairline `--rule`, the blue `--pen`. "Canvas", "white" and "blue" are descriptions, not variables. `globals.css` is the list.
+- Adding a schema column without running the new `drizzle/*.sql` against `local.db` — the migration is written, never applied; dev dies on `no such column`.
 - `@/db` import inside `app/` — SQL only in `server/`.
 - A `dark:` variant — token is wrong instead.
 - Recalculating `expense_split` rows — they're snapshots.

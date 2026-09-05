@@ -83,7 +83,6 @@ export async function updateNotifications(formData: FormData): Promise<void> {
   await ensureProfile(viewer.id);
   await updateProfileFields(viewer.id, {
     notifyInvites: formData.get("notifyInvites") === "on",
-    notifyVotes: formData.get("notifyVotes") === "on",
     notifyMoney: formData.get("notifyMoney") === "on",
     notifyNudges: formData.get("notifyNudges") === "on",
   });
@@ -93,7 +92,7 @@ export async function updateNotifications(formData: FormData): Promise<void> {
 // where the viewer is sole admin, so it isn't left admin-less; 2) soft-delete
 // the viewer's memberships; 3) Better Auth's delete cascades user/session/
 // account rows (the one hard delete here, on Better Auth's tables only).
-// Ideas, notes, votes, day_events and expense_split rows are left untouched
+// Notes, day_events and expense_split rows are left untouched
 // and stay attributed to the "deleted user" placeholder (a display fallback,
 // not a rewrite of created_by/paid_by).
 export async function deleteAccount(): Promise<void> {

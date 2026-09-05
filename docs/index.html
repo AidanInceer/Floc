@@ -9,9 +9,9 @@
 <p class="crumb">Docs</p>
 <h1>Floc documentation</h1>
 
-<p>Everything written down about Floc, the group-travel planner. This is a
-local-only site — plain HTML files opened straight off disk. No server, no build
-step, no dependencies. Browse with the sidebar; the filter box narrows it.</p>
+<p>Everything written down about Floc, the group-travel planner. Plain HTML
+opened off disk — no server, no build, no dependencies. Browse with the sidebar;
+the filter box narrows it.</p>
 
 <h2>Start here</h2>
 <div class="cards">
@@ -25,11 +25,11 @@ step, no dependencies. Browse with the sidebar; the filter box narrows it.</p>
   </a>
   <a class="card" href="design/approach.html">
     <b>Design approach</b>
-    <span>The higher-level design guide: clarity, hierarchy, trust, and the anti-patterns to avoid.</span>
+    <span>Clarity, hierarchy, trust, and the anti-patterns to avoid.</span>
   </a>
   <a class="card" href="design/visual-language.html">
     <b>Visual language</b>
-    <span>Paper and biro. Type, colour, and the rules the mockups follow.</span>
+    <span>White ground, four pastels, one blue. Tokens, type, and the contrast rules.</span>
   </a>
 </div>
 
@@ -37,7 +37,11 @@ step, no dependencies. Browse with the sidebar; the filter box narrows it.</p>
 <div class="cards">
   <a class="card" href="monetisation/monetisation.html">
     <b>Monetisation</b>
-    <span>The commercial stance and where money could come from.</span>
+    <span>The commercial stance, the options, and the rejected list.</span>
+  </a>
+  <a class="card" href="monetisation/pro-tier.html">
+    <b>Pro tier</b>
+    <span>What Pro is, what it costs, what it gates, and how the gate works.</span>
   </a>
   <a class="card" href="research/partner-trips.html">
     <b>Partner trips</b>
@@ -47,30 +51,18 @@ step, no dependencies. Browse with the sidebar; the filter box narrows it.</p>
     <b>Competitors</b>
     <span>Wanderlog, TripIt, Splitwise, Polarsteps and friends — plus the summary.</span>
   </a>
-  <a class="card" href="backlog/backlog.html">
-    <b>Backlog</b>
-    <span>Near-term bugs, the free/paid feature tracks, and what's contested.</span>
-  </a>
   <a class="card" href="research/map-embed-options.html">
     <b>Research</b>
     <span>Map embed options and the listings/legal groundwork.</span>
   </a>
 </div>
 
-<h2>Working notes</h2>
-<p>The <a href="agents/domain.html">domain docs</a> and
-<a href="agents/issue-tracker.html">issue tracker</a> pages describe the
-conventions agents follow. The most recent
-<a href="reviews/2026-08-01-codebase-review.html">codebase review</a> is the
-longest read here and the best snapshot of where the code actually stands.</p>
-
 <h2>Editing these docs</h2>
-<p>HTML is the source now — there are no Markdown originals to regenerate from.
-Edit the page directly. To add a page, copy the shell from any existing one
-(<code>data-root</code> is the relative path back up to <code>docs/</code>,
-<code>data-page</code> is the page id) and add a matching entry to the
-<code>TREE</code> array in <code>assets/nav.js</code>, which is the one place the
-sidebar is defined.</p>
+<p>HTML is the source. There is nothing to regenerate from — edit the page.
+To add one, copy the shell from any existing page (<code>data-root</code> is the
+path back up to <code>docs/</code>, <code>data-page</code> is the page id) and add
+a matching entry to <code>TREE</code> in <code>assets/nav.js</code>. A page missing
+from <code>TREE</code> is unreachable.</p>
 </main>
 <script src="assets/nav.js"></script>
 </body>

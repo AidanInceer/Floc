@@ -6,10 +6,10 @@
 import { CURRENCIES } from "@/db/schema";
 import type { Currency } from "@/db/schema";
 import { requireUser } from "@/server/access";
-import { readCountryCode } from "@/lib/countries";
-import { MAX_DIETARY_NOTES, parseDietFlags } from "@/lib/dietary";
-import { capText } from "@/lib/text";
-import { parsePackTier } from "@/lib/packing";
+import { readCountryCode } from "@floc/core/countries";
+import { MAX_DIETARY_NOTES, parseDietFlags } from "@floc/core/dietary";
+import { capText } from "@floc/core/text";
+import { parsePackTier } from "@floc/core/packing";
 import { clearMapPrompt, hasPendingMapPrompt } from "@/server/roster";
 import {
   ensureProfile,
@@ -21,7 +21,7 @@ import {
   keepMarksFromTrip,
   setManualMark,
 } from "@/server/travel-map";
-import { parseVibeTags } from "@/lib/vibe-tags";
+import { parseVibeTags } from "@floc/core/vibe-tags";
 import { refresh } from "@/server/freshness";
 
 export async function updateIdentity(formData: FormData): Promise<{ error?: string }> {

@@ -4,9 +4,9 @@
 // requireTripAccess + assertAdmin — never a hand-rolled membership check.
 import { redirect } from "next/navigation";
 
-import { readOptionalIsoDate } from "@/lib/dates";
-import { capRequiredText } from "@/lib/text";
-import { isTripColor } from "@/lib/trip-color";
+import { readOptionalIsoDate } from "@floc/core/dates";
+import { capRequiredText } from "@floc/core/text";
+import { isTripColor } from "@floc/core/trip-color";
 import { renameTrip as validateAndRenameTrip } from "@/app/trip/[id]/overview/actions";
 import { assertAdmin, requireTripAccess, requireUser } from "@/server/access";
 import { acceptInvite, declineInvite, inviteToTrip } from "@/server/invites";
@@ -20,8 +20,8 @@ import { ensureProfile } from "@/server/profile";
 import { LIMITS } from "@/server/limits";
 import { refresh } from "@/server/freshness";
 
-// Smallest thing at creation: a name, the creator as admin, an empty idea
-// board. Dates are optional and never guessed at.
+// Smallest thing at creation: a name and the creator as admin. Dates are
+// optional and never guessed at.
 export async function createTrip(formData: FormData): Promise<void> {
   const viewer = await requireUser("/trips");
   const name = capRequiredText(formData.get("name"), "tripName");

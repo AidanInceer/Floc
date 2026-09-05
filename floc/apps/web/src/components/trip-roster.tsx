@@ -161,7 +161,7 @@ export function TripRoster({
                       <Field label="Message (optional)">
                         <Textarea
                           name="message"
-                          placeholder={`e.g. "Can you vote on the ideas before the weekend?"`}
+                          placeholder={`e.g. "Can you put your dates in before the weekend?"`}
                         />
                       </Field>
                       <SubmitButton pendingLabel="Sending…">

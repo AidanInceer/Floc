@@ -7,7 +7,7 @@
 import { useState } from "react";
 
 import { Button } from "@/components/ui";
-import { MAX_TAGS, MAX_TAG_LENGTH } from "@/lib/tags";
+import { MAX_TAGS, MAX_TAG_LENGTH } from "@floc/core/tags";
 
 type Row = { id: number; name: string };
 

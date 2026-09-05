@@ -20,8 +20,6 @@ import {
   expense,
   expenseSplit,
   friendship,
-  idea,
-  ideaVote,
   note,
   place,
   subscription,
@@ -30,9 +28,8 @@ import {
   user,
   userProfile,
 } from "./schema.ts";
-// Relative, not `@/` — this runs under Node's type stripping, which does no path mapping.
-import type { WritableSplitType } from "../lib/money.ts";
-import { computeSplits } from "../lib/money.ts";
+import type { WritableSplitType } from "@floc/core/money";
+import { computeSplits } from "@floc/core/money";
 
 const PEOPLE = [
   {
@@ -206,37 +203,6 @@ async function main() {
     { tripId, userId: sofia, role: "member" },
   ]);
 
-  const ideas = await db
-    .insert(idea)
-    .values([
-      {
-        tripId,
-        createdBy: priya,
-        note: "Lisbon for a few nights, then train down to the Algarve",
-      },
-      {
-        tripId,
-        createdBy: tom,
-        note: "Porto instead — cheaper, and the Douro valley is a day trip",
-      },
-      {
-        tripId,
-        createdBy: sofia,
-        note: "Skip cities entirely, rent one house near Lagos for the week",
-      },
-    ])
-    .returning({ id: idea.id });
-
-  // Sofia has deliberately not voted — voting is optional.
-  await db.insert(ideaVote).values([
-    { ideaId: ideas[0].id, userId: aidan, value: "up" },
-    { ideaId: ideas[0].id, userId: priya, value: "up" },
-    { ideaId: ideas[0].id, userId: tom, value: "dont_mind" },
-    { ideaId: ideas[1].id, userId: aidan, value: "dont_mind" },
-    { ideaId: ideas[1].id, userId: tom, value: "up" },
-    { ideaId: ideas[2].id, userId: priya, value: "down" },
-  ]);
-
   for (const [i, userId] of [aidan, priya, tom].entries()) {
     await db.insert(availability).values(
       [0, 1, 2, 3, 4, 5, 6, 7].map((offset) => ({
@@ -329,27 +295,6 @@ async function main() {
     .returning({ id: dayEvent.id });
 
   await db.insert(note).values([
-    {
-      tripId,
-      createdBy: tom,
-      scope: "idea",
-      scopeId: ideas[0].id,
-      body: "Trains down to the Algarve are about 4 hours with one change — fine, but it eats a day.",
-    },
-    {
-      tripId,
-      createdBy: sofia,
-      scope: "idea",
-      scopeId: ideas[0].id,
-      body: "I'd rather do that than change cities twice. Lisbon first is fine by me.",
-    },
-    {
-      tripId,
-      createdBy: priya,
-      scope: "idea",
-      scopeId: ideas[2].id,
-      body: "A house works out cheaper than four hotel rooms, but only if we all actually commit.",
-    },
     {
       tripId,
       createdBy: aidan,

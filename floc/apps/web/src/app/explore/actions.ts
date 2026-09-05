@@ -2,7 +2,7 @@
 
 /**
  * Starts a trip from an Explore listing: new trip named after the listing,
- * its highlights seeded onto the idea board as unvoted ideas, nothing else
+ * its highlights seeded into the trip's Notes doc as bullets, nothing else
  * — the group still decides. Copied, not linked: no listing id or FK back to
  * `PRESET_TRIPS`, so editing the trip never touches the listing and vice
  * versa. `bestMonths` is deliberately not applied — dates come from the
@@ -11,7 +11,7 @@
 import { redirect } from "next/navigation";
 
 import { requireUser } from "@/server/access";
-import { insertIdeas } from "@/server/ideas";
+import { bulletDoc, saveNoteDoc } from "@/server/note-doc";
 import { createTripWithAdmin } from "@/server/trips";
 import { ensureProfile } from "@/server/profile";
 import { refresh } from "@/server/freshness";
@@ -33,7 +33,9 @@ export async function startTripFromPreset(formData: FormData): Promise<void> {
     createdBy: viewer.id,
   });
 
-  await insertIdeas(tripId, viewer.id, preset.highlights);
+  if (preset.highlights.length > 0) {
+    await saveNoteDoc(tripId, viewer.id, bulletDoc(preset.highlights));
+  }
 
   refresh({ kind: "tripList" });
   redirect(`/trip/${tripId}/overview`);

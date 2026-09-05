@@ -15,7 +15,7 @@ import {
   type OvernightPlace,
 } from "@/components/days-calendar-shared";
 import type { PlaceSearch } from "@/components/event-form";
-import type { BandSpan } from "@/lib/overnight-band";
+import type { BandSpan } from "@floc/core/overnight-band";
 
 export function OvernightDialog({
   span,

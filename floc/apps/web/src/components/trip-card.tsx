@@ -12,9 +12,9 @@ import type { ReactNode } from "react";
 
 import { AvatarRow, PASTEL_BY_KEY, PASTEL_SKINS, cx } from "@/components/ui";
 import { TripCardMenu } from "@/components/trip-card-menu";
-import { daysUntil, formatDateRange, hasEnded } from "@/lib/dates";
-import type { IsoDate } from "@/lib/dates";
-import type { TripColor } from "@/lib/trip-color";
+import { daysUntil, formatDateRange, hasEnded } from "@floc/core/dates";
+import type { IsoDate } from "@floc/core/dates";
+import type { TripColor } from "@floc/core/trip-color";
 import type { TripRole } from "@/db/schema";
 
 export type TripCardData = {

@@ -6,14 +6,14 @@
 import { after } from "next/server";
 
 import type { Currency } from "@/db/schema";
-import { capRequiredText, capText } from "@/lib/text";
-import { CURRENCIES, minorPerMajor } from "@/lib/currency";
+import { capRequiredText, capText } from "@floc/core/text";
+import { CURRENCIES, minorPerMajor } from "@floc/core/currency";
 import { getHomeRates } from "@/server/fx";
 import {
   DEFAULT_CATEGORY,
   isExpenseCategory,
-} from "@/lib/expense-category";
-import type { ExpenseCategory } from "@/lib/expense-category";
+} from "@floc/core/expense-category";
+import type { ExpenseCategory } from "@floc/core/expense-category";
 import { requireTripAccess } from "@/server/access";
 import {
   emailsForUsers,
@@ -24,7 +24,7 @@ import {
   writeExpense,
   writeSettlement,
 } from "@/server/money";
-import type { WritableSplitType } from "@/lib/money";
+import type { WritableSplitType } from "@floc/core/money";
 import {
   computeSplits,
   formatMoney,
@@ -32,8 +32,8 @@ import {
   parseMoney,
   convertMinor,
   resolveWeightedSplit,
-} from "@/lib/money";
-import type { SplitInput, WeightedInput } from "@/lib/money";
+} from "@floc/core/money";
+import type { SplitInput, WeightedInput } from "@floc/core/money";
 import { emails, sendEmails } from "@/server/email";
 import { refresh } from "@/server/freshness";
 

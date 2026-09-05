@@ -10,9 +10,7 @@
  *     downward, which is why the rail is where they belong — the roster used
  *     to be a full-width panel holding one row of avatars and a lot of air.
  *   - Documents (ticket 239) and the week run full width under both, because a
- *     file list and a day track both want length. The Ideas count tile that
- *     used to sit in the rail went with them: a number you could not act on,
- *     beside a tab that already carries it.
+ *     file list and a day track both want length.
  *
  * On a narrow screen the rail simply falls in under the left column; nothing
  * is repositioned by media query beyond the columns collapsing.
@@ -27,9 +25,9 @@
  * Also GONE: the "Needs you" panel (ticket 209). A to-do list narrated back at
  * you ("One thing, then you're clear") is not what a member opens a trip page
  * for, and every item on it was a link to a tab that is already in the tab bar
- * — voting to Ideas, availability to Dates, a balance to Money. The one thing
- * it said that nothing else does — who the group is still waiting on — is its
- * own panel in the rail.
+ * — availability to Dates, a balance to Money. The one thing it said that
+ * nothing else does — who the group is still waiting on — is its own panel in
+ * the rail.
  *
  * Every panel carries ONE heading, no eyebrow above it (`SectionHead`).
  */
@@ -39,7 +37,6 @@ import type { ReactNode } from "react";
 import { requireTripAccess } from "@/server/access";
 import { listDocuments } from "@/server/documents";
 import { documentsEnabled } from "@/server/document-store";
-import { listIdeaIds, listVotes } from "@/server/ideas";
 import {
   listDays,
   listRouteDays,
@@ -49,10 +46,10 @@ import { listAvailability } from "@/server/availability";
 import { listPendingInvitees } from "@/server/invites";
 import { listExpenses, listSettlements, listSplits } from "@/server/money";
 import { absoluteUrl } from "@/server/email";
-import { formatMoney } from "@/lib/money";
-import type { Currency } from "@/lib/currency";
-import { tripStateFor } from "@/lib/trip-state";
-import { formatDateRange } from "@/lib/dates";
+import { formatMoney } from "@floc/core/money";
+import type { Currency } from "@floc/core/currency";
+import { tripStateFor } from "@floc/core/trip-state";
+import { formatDateRange } from "@floc/core/dates";
 import { Avatar, Badge, ButtonLink, PASTEL_BY_KEY, PASTEL_SKINS, Stack, cx } from "@/components/ui";
 import { Sheet, SubmitButton } from "@/components/client-ui";
 import { TripNameInline } from "@/components/trip-name-inline";
@@ -62,8 +59,8 @@ import { TripRoute } from "@/components/trip-route";
 import { TripDayTrack } from "@/components/trip-day-track";
 import { DocumentsBlock } from "@/components/documents-block";
 import { TagEditor } from "@/components/tag-editor";
-import { readTags } from "@/lib/tags";
-import { readTripColor } from "@/lib/trip-color";
+import { readTags } from "@floc/core/tags";
+import { readTripColor } from "@floc/core/trip-color";
 import { renameTrip, setTripTags } from "./actions";
 
 export default async function OverviewPage({
@@ -87,28 +84,24 @@ export default async function OverviewPage({
   ]);
   const tripId = trip.id;
 
-  // All independent, so one round trip behind the access check. Votes/splits
-  // scope by joining on `trip_id` rather than ids a first wave returns, which
-  // is what keeps them out of a second wave.
+  // All independent, so one round trip behind the access check. Splits scope
+  // by joining on `trip_id` rather than ids a first wave returns, which is what
+  // keeps them out of a second wave.
   const [
-    ideaIds,
     availabilityRows,
     expenseRows,
     dayRows,
-    votes,
     splitRows,
     settlementRows,
     routeDays,
     transportModes,
     docs,
   ] = await Promise.all([
-    listIdeaIds(tripId),
     // Unconditional: one indexed read is cheaper than a serial round trip when
     // the dates are unset.
     listAvailability(tripId),
     listExpenses(tripId),
     listDays(tripId),
-    listVotes(tripId),
     listSplits(tripId),
     listSettlements(tripId),
     // Route moved here when its tab retired (ticket 142): places + coordinates
@@ -129,8 +122,6 @@ export default async function OverviewPage({
     members,
     viewerId: viewer.id,
     viewerIsAdmin: isAdmin,
-    ideaIds,
-    votes,
     availabilityUserIds: availabilityRows.map((r) => r.userId),
     days: dayRows,
     expenses: expenseRows,
@@ -150,13 +141,6 @@ export default async function OverviewPage({
     : PASTEL_SKINS[trip.id % PASTEL_SKINS.length];
 
   const waiting = [
-    ...unresolved.votingOthers.map((m) => ({
-      userId: m.userId,
-      name: m.name,
-      avatarUrl: m.avatarUrl,
-      what: "their vote",
-      href: `/trip/${tripId}/notes`,
-    })),
     ...unresolved.availabilityOthers.map((m) => ({
       userId: m.userId,
       name: m.name,

@@ -1,0 +1,2 @@
+# Shell scripts must keep LF, or bash on Windows chokes on the CR (#252).
+*.sh text eol=lf

@@ -35,7 +35,7 @@ import type { ProPrice } from "@/server/billing";
 import { allFeaturesFree } from "@/lib/env";
 import { ensureProfile, listLinkedAccounts } from "@/server/profile";
 import { BillingAction, ProUpgrade } from "@/components/billing-buttons";
-import { isLive, renewalLabel } from "@/lib/subscription-copy";
+import { isLive, renewalLabel } from "@floc/core/subscription-copy";
 import {
   AccountPage,
   PillChoice,
@@ -50,9 +50,9 @@ import {
   SubmitButton,
 } from "@/components/client-ui";
 import { VibePicker } from "@/components/vibe-picker";
-import { DIET_FLAGS, MAX_DIETARY_NOTES, readDietFlags } from "@/lib/dietary";
-import { PACK_TIERS, PACK_TIER_LABELS } from "@/lib/packing";
-import { readVibeTags } from "@/lib/vibe-tags";
+import { DIET_FLAGS, MAX_DIETARY_NOTES, readDietFlags } from "@floc/core/dietary";
+import { PACK_TIERS, PACK_TIER_LABELS } from "@floc/core/packing";
+import { readVibeTags } from "@floc/core/vibe-tags";
 
 const SECTIONS = [
   { id: "privacy", label: "Privacy" },
@@ -80,7 +80,6 @@ function sectionFor(asked: string | undefined): SectionId {
 
 const NOTIFICATION_TOGGLES = [
   { name: "notifyInvites", label: "Trip invites" },
-  { name: "notifyVotes", label: "New ideas & votes" },
   { name: "notifyMoney", label: "Costs added to a trip" },
   { name: "notifyNudges", label: "Nudges from other members" },
 ] as const;

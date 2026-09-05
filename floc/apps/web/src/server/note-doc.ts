@@ -12,6 +12,21 @@ import { db } from "@/db";
 import { tripNoteDoc } from "@/db/schema";
 import { touch } from "@/server/audit";
 
+/**
+ * A starting document of bullets — Explore's "start this trip" seed (ticket 39,
+ * rehomed here when the idea board went). The one place we *write* the blob's
+ * shape rather than hand it back untouched; BlockNote loads partial blocks, so
+ * a type and content are all a bullet needs.
+ */
+export function bulletDoc(lines: string[]): string {
+  return JSON.stringify(
+    lines.map((text) => ({
+      type: "bulletListItem",
+      content: [{ type: "text", text, styles: {} }],
+    })),
+  );
+}
+
 /** The saved document, or null when nobody has written in this trip yet. */
 export async function loadNoteDoc(tripId: number): Promise<string | null> {
   const row = await db

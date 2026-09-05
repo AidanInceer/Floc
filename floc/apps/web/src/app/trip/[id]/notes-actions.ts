@@ -1,8 +1,8 @@
 "use server";
 
 // Discussion threads, shared by every surface that has one (server/notes.ts
-// owns the table shape, ticket 108). Not admin-gated to post; delete follows
-// deleteIdea's rule — own or any admin's.
+// owns the table shape, ticket 108). Not admin-gated to post; delete is your
+// own comment, or any admin can remove one.
 import { assertAdmin, requireTripAccess } from "@/server/access";
 import {
   findNote,

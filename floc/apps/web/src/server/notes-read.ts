@@ -1,5 +1,5 @@
 /**
- * Reading discussion threads — shared by every surface that has one. Ideas and
+ * Reading discussion threads — shared by every surface that has one. Days and
  * Days used to run and group the same join by hand, which is how they drifted
  * apart once replies and reactions arrived; one reader, two callers now
  * (ticket 06). Shape/formatting for the Client Component lives in
@@ -12,7 +12,7 @@ import { and, asc, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { note, noteReaction, user, userProfile, type NoteScope } from "@/db/schema";
-import { emptyReactions, type NoteRow, type Reactions } from "@/lib/notes";
+import { emptyReactions, type NoteRow, type Reactions } from "@floc/core/notes";
 
 export async function loadThreads({
   tripId,
@@ -31,7 +31,7 @@ export async function loadThreads({
   // Scoped by (trip_id, scope), not a list of ids the caller just fetched —
   // that made this a serial read, the third round trip on the busiest tabs.
   // (trip_id, scope) leads the note_scope_idx index and matches what a page
-  // can display; extra rows from a soft-deleted idea/event are just dropped.
+  // can display; extra rows from a soft-deleted day/event are just dropped.
   // Reactions join through `note` and reuse the same scope, so they don't
   // wait on note ids either.
   const scoped = and(

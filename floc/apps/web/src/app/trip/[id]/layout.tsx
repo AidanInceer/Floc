@@ -10,8 +10,8 @@ import { AvatarRow } from "@/components/ui";
 import { TripTabs } from "@/components/trip-tabs";
 import { TripMenu } from "@/components/trip-menu";
 import { requireTripAccess } from "@/server/access";
-import { leaveCostFor } from "@/lib/trip-state";
-import { readTripColor } from "@/lib/trip-color";
+import { leaveCostFor } from "@floc/core/trip-state";
+import { readTripColor } from "@floc/core/trip-color";
 import { TABS } from "@/lib/tabs";
 
 export default async function TripLayout({

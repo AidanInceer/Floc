@@ -3,7 +3,7 @@
 // Open to any member, not just admin — choosing when to go isn't one of
 // admin's four powers (rule 6). Committing a window also updates
 // server/itinerary.ts since the window decides which days exist (ticket 140).
-import { isIsoDate, readIsoDate } from "@/lib/dates";
+import { isIsoDate, readIsoDate } from "@floc/core/dates";
 import { requireTripAccess } from "@/server/access";
 import { applyTripWindow } from "@/server/itinerary";
 import { clearAvailabilityFor, setAvailability } from "@/server/availability";
@@ -71,7 +71,7 @@ export async function setTripDates(
 }
 
 // Back to undated — supported (rule 9), not an error state. No window means
-// no extent, so the itinerary goes with it (ticket 140); ideas/money/people stay.
+// no extent, so the itinerary goes with it (ticket 140); notes/money/people stay.
 export async function clearTripDates(tripId: number) {
   const access = await requireTripAccess(tripId);
   await updateTrip(access.trip.id, { startDate: null, endDate: null });

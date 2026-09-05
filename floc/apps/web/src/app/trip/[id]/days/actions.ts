@@ -9,9 +9,9 @@ import type { DayEventType, TransportType } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
 import { resolveEventPlace } from "../place-actions";
 import { upsertPlace } from "@/server/places";
-import { isIsoDate } from "@/lib/dates";
-import { capText } from "@/lib/text";
-import { insertAt, permuteEventSlots } from "@/lib/event-order";
+import { isIsoDate } from "@floc/core/dates";
+import { capText } from "@floc/core/text";
+import { insertAt, permuteEventSlots } from "@floc/core/event-order";
 import {
   applyEventSlots,
   extendTripDays,

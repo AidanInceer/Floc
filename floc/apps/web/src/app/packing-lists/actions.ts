@@ -10,8 +10,8 @@ import {
   clampPackQuantity,
   parsePackCategory,
   parseQuantityStep,
-} from "@/lib/packing";
-import { capRequiredText } from "@/lib/text";
+} from "@floc/core/packing";
+import { capRequiredText } from "@floc/core/text";
 import { requireUser } from "@/server/access";
 import {
   insertPackingKit,

@@ -9,6 +9,7 @@
 # the only arrangement where every reader sees the same floors.
 packages:
   - "floc/apps/*"
+  - "floc/packages/*"
   - "shared/packages/*"
   - "internal-tools/*"
   - "enablement/cli"

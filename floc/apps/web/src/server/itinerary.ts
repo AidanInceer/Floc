@@ -16,10 +16,10 @@ import { and, asc, eq, inArray, isNull, not, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { day, dayEvent, expense, place } from "@/db/schema";
 import type { DayEventType, TransportType } from "@/db/schema";
-import { addDays as addDaysToDate, dateRange } from "@/lib/dates";
-import { orderEvents } from "@/lib/event-order";
-import type { DayLoad } from "@/lib/trip-window";
-import { capRequiredText, capText } from "@/lib/text";
+import { addDays as addDaysToDate, dateRange } from "@floc/core/dates";
+import { orderEvents } from "@floc/core/event-order";
+import type { DayLoad } from "@floc/core/trip-window";
+import { capRequiredText, capText } from "@floc/core/text";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
 import { refresh } from "@/server/freshness";
@@ -127,7 +127,7 @@ export async function applyTripWindow(
 
 /* ---------------------------------------------- the reads the tabs render */
 // Three separate reads, not one loadDaysTab() — Days, Route, Money and the
-// invite teaser each want a different slice (ticket 118, see server/ideas.ts).
+// invite teaser each want a different slice (ticket 118).
 
 export type DayWithEvents = {
   id: number;

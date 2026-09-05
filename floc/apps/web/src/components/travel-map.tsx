@@ -16,7 +16,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 
 import "leaflet/dist/leaflet.css";
 
-import { COUNTRIES, countryName } from "@/lib/countries";
+import { COUNTRIES, countryName } from "@floc/core/countries";
 import { Input, cx } from "./ui";
 
 export type MapState = "green" | "yellow";

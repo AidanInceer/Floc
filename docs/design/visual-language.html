@@ -17,15 +17,13 @@ tool, not a chat app. The living version of this is the code: tokens in
 principles this token/component layer serves.</p>
 
 <h2>The direction, in one paragraph</h2>
-<p>A white surface floats on a soft off-white canvas, separated by the faintest
-hairline. Corners are large and rounded — &ldquo;soft toy geometry&rdquo;. Each area of the
-app carries its own pastel so you know where you are without reading the tab. A
-single blue is reserved for one meaning: <strong>something that is yours to
-act on</strong> — a button, your own row in a ledger, a trip waiting on you.
-Motion is quiet: a small lift on hover and nothing more. This replaced an
-earlier paper-and-biro notebook look; see the
-<a href="../../floc/.scratch/floc-v1/">decision note</a> for
-why it changed.</p>
+<p>White surfaces on an off-white ground, divided by hairlines. Large corner
+radii; pill-shaped controls. Each area of the app has one pastel, so the domain
+is legible before the tab is read. One blue, <code>--pen</code>, means exactly one
+thing: this is yours to act on — a button, your own ledger row, a trip blocked on
+you. Motion is a 1.5&ndash;2px hover lift and nothing more. This replaced an
+earlier paper-and-biro look; the reasoning is in
+<a href="../../floc/.scratch/floc-v1/decisions/187-white-pastel-direction.md">decision 187</a>.</p>
 
 <h2>Colour</h2>
 <p>Every colour is a token in <code>globals.css</code> on <code>:root</code>, re-exported
@@ -50,19 +48,26 @@ margin.</p>
 <table>
 <thead><tr><th>Token</th><th>Hex</th><th>Role</th></tr></thead>
 <tbody>
-<tr><td><code>canvas</code></td><td><code>#F7F6F3</code></td><td>the ground the whole app sits on &mdash; a barely-there off-white, since a panel&rsquo;s hairline carries its edge (#209)</td></tr>
-<tr><td><code>white</code></td><td><code>#FFFFFF</code></td><td>every surface / card</td></tr>
-<tr><td><code>hair</code></td><td><code>#E6E4DE</code></td><td>hairlines between surfaces</td></tr>
-<tr><td><code>ink</code></td><td><code>#14141A</code></td><td>primary text</td></tr>
-<tr><td><code>ink-2</code></td><td><code>#63636F</code></td><td>secondary text</td></tr>
-<tr><td><code>ink-3</code></td><td><code>#6F6F7B</code></td><td>faint text / placeholders</td></tr>
+<tr><td><code>--paper</code></td><td><code>#fafafa</code></td><td>the ground the whole app sits on; a panel&rsquo;s hairline carries its edge, so the ground stays near-white (#209)</td></tr>
+<tr><td><code>--sheet</code></td><td><code>#ffffff</code></td><td>every surface / card</td></tr>
+<tr><td><code>--sheet-2</code>, <code>--sheet-3</code></td><td><code>#f5f4f0</code>, <code>#eeece7</code></td><td>recessed surfaces inside a card</td></tr>
+<tr><td><code>--rule</code></td><td><code>#e6e4de</code></td><td>hairlines between surfaces</td></tr>
+<tr><td><code>--rule-2</code></td><td><code>#d8d5cd</code></td><td>the one step stronger, for a control&rsquo;s own edge</td></tr>
+<tr><td><code>--ink</code></td><td><code>#14141a</code></td><td>primary text</td></tr>
+<tr><td><code>--ink-2</code></td><td><code>#63636f</code></td><td>secondary text</td></tr>
+<tr><td><code>--ink-3</code></td><td><code>#6f6f7b</code></td><td>faint text / placeholders</td></tr>
 </tbody></table>
-<p>Three ink levels, no more — the same discipline as before, new values.</p>
+<p>Three ink levels, no more.</p>
+<p><strong>The tokens are <code>--paper</code> and <code>--sheet</code>.</strong> The
+names predate the redesign and were kept — renaming every call site would change
+nothing. Read them as ground and surface. The literal <code>#F7F6F3</code> remains
+in two places that cannot resolve a <code>var()</code>: the notification email and
+the invite OG card.</p>
 <p><strong><code>ink-3</code> was <code>#9B9BA5</code> and failed</strong> (#204). It read
 2.8:1 on white, and it is the colour of <code>.typed</code> — the 11px uppercase
 label — so the smallest text in the app was also the palest. Darkened to
-<code>#6F6F7B</code>: 5.0:1 on white, 4.6:1 on the canvas. The ramp still steps;
-it no longer steps off the edge.</p>
+<code>#6f6f7b</code>: 5.0:1 on the sheet, 4.6:1 on the paper. Still three distinct
+ink levels, now all above the AA floor.</p>
 
 <h3>Contrast — the rule the pale palette needs</h3>
 <p><strong>Every text-and-surface pair in the product clears WCAG AA (4.5:1) at the
@@ -70,9 +75,9 @@ size it is used.</strong> A pale palette is exactly the palette that fails quiet
 so this is checked as a number, not by eye (#204).</p>
 <p>Three rules come out of that audit and are load-bearing:</p>
 <ul>
-<li><strong>Blue text on a pastel must be <code>blue-deep</code>, never
-<code>blue</code>.</strong> <code>#4E68D8</code> clears AA on white (4.9:1) and on the
-canvas (4.5:1) and on nothing else — it is 3.8:1 on blush. <code>blue-deep</code>
+<li><strong>Blue text on a pastel must be <code>--pen-deep</code>, never
+<code>--pen</code>.</strong> <code>#4e68d8</code> clears AA on the sheet (4.9:1) and the
+paper (4.5:1) and nothing else — it is 3.8:1 on blush. <code>--pen-deep</code>
 clears it everywhere.</li>
 <li><strong>Opacity is not a colour.</strong> Fading ink to 70% to make a label
 quieter takes a passing pair to a failing one, and on a pastel panel it fades the
@@ -85,24 +90,24 @@ also carries its word (&ldquo;Owed back&rdquo;, &ldquo;Owes&rdquo;,
 &ldquo;Square&rdquo;), every map key carries its label, and every calendar cell
 carries an <code>aria-label</code> saying what it is.</li>
 </ul>
-<p>Focus is one ring everywhere: a 2px <code>blue</code> outline at 2px offset, set
+<p>Focus is one ring everywhere: a 2px <code>--pen</code> outline at 2px offset, set
 once on <code>:focus-visible</code>. It clears 3:1 against every surface in the
 palette. A component may move where the ring is drawn — the availability
 calendar draws it on the inner disc — but nothing removes it.</p>
 
 <h3>The blue — &ldquo;yours to do&rdquo;</h3>
+<p>The token is <code>--pen</code>. The rule on it is strict.</p>
 <table>
 <thead><tr><th>Token</th><th>Hex</th><th>Role</th></tr></thead>
 <tbody>
-<tr><td><code>blue</code></td><td><code>#4E68D8</code></td><td>actions, links, your own rows</td></tr>
-<tr><td><code>blue-soft</code></td><td><code>#E7EBFA</code></td><td>the tint those sit on</td></tr>
-<tr><td><code>blue-deep</code></td><td><code>#2B3B85</code></td><td>ink on the tint</td></tr>
+<tr><td><code>--pen</code></td><td><code>#4e68d8</code></td><td>actions, links, your own rows</td></tr>
+<tr><td><code>--pen-2</code></td><td><code>#e7ebfa</code></td><td>the tint those sit on</td></tr>
+<tr><td><code>--pen-deep</code></td><td><code>#2b3b85</code></td><td>ink on the tint</td></tr>
 </tbody></table>
-<p><strong>Blue has exactly one meaning: this is yours to act on.</strong> A primary
-button, a link, your own row in the money ledger, a trip that is blocked on you.
-Do not spend blue on decoration — the moment blue means two things, it means
-nothing, and the &ldquo;waiting on you&rdquo; signal is lost. This is the direct
-descendant of the old biro-blue accent rule, tightened.</p>
+<p><strong>Blue means one thing: this is yours to act on.</strong> A primary button, a
+link, your own row in the ledger, a trip blocked on you. Never decoration — the
+moment blue means two things it means nothing, and the &ldquo;waiting on
+you&rdquo; signal is lost.</p>
 
 <h3>Four pastels, one per domain</h3>
 <p>Each area of the app owns a pastel, with a darker ink pair for text on it. The
@@ -110,24 +115,41 @@ colour tells you which part of Floc you are in before you read a word.</p>
 <table>
 <thead><tr><th>Token</th><th>Wash</th><th>Ink</th><th>Domain</th></tr></thead>
 <tbody>
-<tr><td><code>peri</code></td><td><code>#DFE3FF</code></td><td><code>#33409B</code></td><td>dates</td></tr>
-<tr><td><code>mint</code></td><td><code>#DCEFE4</code></td><td><code>#1B6B4C</code></td><td>money</td></tr>
-<tr><td><code>butter</code></td><td><code>#FBEAC8</code></td><td><code>#8A6412</code></td><td>ideas and people</td></tr>
-<tr><td><code>blush</code></td><td><code>#FADDD6</code></td><td><code>#A34A31</code></td><td>route and places</td></tr>
+<tr><td><code>--peri</code></td><td><code>#dfe3ff</code></td><td><code>#33409b</code></td><td>dates</td></tr>
+<tr><td><code>--mint</code></td><td><code>#dcefe4</code></td><td><code>#1b6b4c</code></td><td>money</td></tr>
+<tr><td><code>--butter</code></td><td><code>#fbeac8</code></td><td><code>#8a6412</code></td><td>notes and people</td></tr>
+<tr><td><code>--blush</code></td><td><code>#faddd6</code></td><td><code>#a34a31</code></td><td>route and places</td></tr>
 </tbody></table>
-<p>Keep the pastels vivid enough to read as chosen, not washed out to grey — a
-bland pastel reads as unfinished. But they stay <em>quiet next to the blue</em>:
-pastels are where-you-are, blue is what-to-do, and the blue must always win the
-eye. <strong>Peri and blue are deliberately close</strong> — peri is a dates
-wash, blue is an action; never put a peri surface and a blue button so close
-that the wash reads as a disabled button.</p>
-<p><strong>People live in the butter domain.</strong> Ideas and the people who vote
-on them share one colour. Within a single roster you still have to tell members
-apart at a glance, so a member's avatar carries a per-seat tint <em>within</em>
-butter rather than eight unrelated pastels — the exact tinting is settled in the
-roster/overview page ticket, not prescribed here. Colour is a recognition aid
-and never the only way to tell two people apart; the initials and the
-<code>title</code> still do that.</p>
+<p>Keep the pastels saturated enough not to read as grey; a washed-out pastel
+looks unfinished. They must stay less prominent than <code>--pen</code>: a pastel
+marks the domain, blue marks the action, and the action has to stay the more
+prominent of the two. <strong>Peri and blue are close in hue</strong> — peri is
+the dates wash, blue is an action — so never place a peri surface next to a blue
+button, or the wash reads as a disabled button.</p>
+<p><strong>Notes and people share the butter domain.</strong> Members still need to
+be told apart within one roster, so each takes a seat tint, <code>--who-1</code>
+through <code>--who-8</code>, each with its own ink. <code>--who-1</code> to
+<code>--who-5</code> are aliases of the domain pastels plus <code>--pen-2</code>;
+only 6&ndash;8 have their own values, because there are more seats than pastels.
+Every pair clears AA. Colour is one recognition cue, not the only one — the
+initials and the <code>title</code> attribute also identify the member.</p>
+
+<h3>Gold — the one place the palette breaks</h3>
+<p>Pro is the only paid feature, and its block is the only one that leaves the
+blue-and-pastel palette: parchment and gold in light, near-black and gold in
+dark.</p>
+<table>
+<thead><tr><th>Token</th><th>Light</th><th>Dark</th><th>Role</th></tr></thead>
+<tbody>
+<tr><td><code>--pro</code></td><td><code>#fbf3e2</code></td><td><code>#17171d</code></td><td>the block&rsquo;s ground</td></tr>
+<tr><td><code>--pro-edge</code></td><td><code>#ecdcb5</code></td><td><code>#3b3b46</code></td><td>its hairline</td></tr>
+<tr><td><code>--pro-ink</code></td><td><code>#3a2d0f</code></td><td><code>#f6f2e8</code></td><td>text on it</td></tr>
+<tr><td><code>--pro-gold</code></td><td><code>#8a6412</code></td><td><code>#e7bd63</code></td><td>what marks a perk as paid</td></tr>
+</tbody></table>
+<p><strong>Gold is constant across themes; the ground is not.</strong> A near-black
+block on a white page was tried and rejected — it read as a gap rather than a
+card. Gold marks a paid perk only; it never substitutes for blue, and blue never
+marks a lock.</p>
 
 <h3>Status is never colour alone</h3>
 <p>A three-state meaning — <strong>agreed / open / needs action</strong> — applied
@@ -154,12 +176,11 @@ and balances are <strong>always</strong> the mono face, never the display face.
 The display face carries personality in headings; it never carries data.</p>
 
 <h2>Shape and motion</h2>
-<h3>Soft toy geometry</h3>
-<p>Large radii and pill-shaped controls. Where the old paper look was &ldquo;cut,
-not moulded&rdquo; (radii 3&ndash;6px), the new look is the opposite: generously
-rounded surfaces, and interactive controls (buttons, nav, chips) are full pills.
-Exact radius steps are set in tokens in the components ticket; the rule is
-&ldquo;soft and rounded, consistently&rdquo;.</p>
+<h3>Shape: large radii, pill controls</h3>
+<p>Surfaces use large corner radii; interactive controls (buttons, nav, chips)
+are full pills. The old paper look used 3&ndash;6px radii; this is deliberately
+rounder. Exact radius steps live in tokens set by the components ticket. The rule
+is: rounded, and consistent across the app.</p>
 <h3>Motion is deliberately quiet</h3>
 <table>
 <thead><tr><th>Property</th><th>Value</th></tr></thead>
@@ -202,12 +223,10 @@ round-trip would put the flash back. There is no third &ldquo;system&rdquo;
 position; two states, with the OS as the default before you choose.</p>
 
 <h2>Iconography — unchanged</h2>
-<p><strong>Every icon is drawn line-art, in the app's own hand. No emoji,
-anywhere.</strong> This rule is not affected by the redesign and is restated in
-full because it is load-bearing. An emoji is someone else's artwork: full-colour,
-rounded, different on every OS, and it cannot take the ink of the thing it sits
-in. Three glossy pictograms in a row are the fastest way to make the app look
-like a chat app.</p>
+<p><strong>Every icon is drawn line-art. No emoji, anywhere.</strong> An emoji is a
+fixed bitmap: full-colour, rendered differently on each OS, and it cannot inherit
+the colour of its context. Line-art icons take <code>currentColor</code> and stay
+consistent across platforms.</p>
 <p>The house treatment, shared by
 <a href="../../floc/apps/web/src/components/travel-mode-icon.tsx"><code>TravelModeIcon</code></a>,
 <a href="../../floc/apps/web/src/components/reaction-glyph.tsx"><code>ReactionGlyph</code></a>
@@ -236,13 +255,13 @@ white. They travel with the components, not the palette.</p>
 they go behind a single triple-dot menu, revealed on demand. A ledger is mostly
 read; a line of buttons down its right edge competes with what the row says. Keep
 one action visible only where it plainly dominates (a standalone <em>Join</em>).</li>
-<li><strong>A thread is a disclosure, not a feed.</strong> Discussions (ideas, day
-events) are collapsed behind a summary carrying the count (&ldquo;3 notes&rdquo;),
-oldest-first; expanded only where you've clicked in.</li>
-<li><strong>A day event opens up.</strong> Collapsed it is one line — the sequence
-is what you read at a glance; open it holds its note, deep link, thread and
-controls. Controls live in the open panel, never in the summary row (a button
-inside a <code>&lt;summary&gt;</code> toggles the disclosure as it fires).</li>
+<li><strong>Threads are collapsed by default.</strong> Discussions (on days and
+day events) sit behind a summary showing the count (&ldquo;3 notes&rdquo;),
+oldest-first, and expand only when opened.</li>
+<li><strong>A day event is a disclosure.</strong> Collapsed, it is one line, so the
+day reads as a sequence; expanded, it holds its note, deep link, thread and
+controls. Controls go in the expanded panel, never the summary row — a button
+inside a <code>&lt;summary&gt;</code> toggles the disclosure when clicked.</li>
 <li><strong>Lists whose order is the point are drawn as a line, not a stack.</strong>
 Route's stops run down one spine through numbered nodes; the node that draws the
 order is the node you grab; <code>↑</code>/<code>↓</code> are the keyboard path.</li>
@@ -301,16 +320,16 @@ their own copy of the same four strings in three different orders until #207.</p
 <code>ConfirmSubmit</code>, <code>CopyLink</code>, <code>Segmented</code>,
 <code>Menu</code>. Avatar colouring lives in <code>lib/who.ts</code>.</p>
 
-<h2>The screen that carries the character</h2>
-<p><code>/trip/[id]/overview</code> — it holds the day track, the roster, the route
-and the forecast at once, so it is where the pastel-per-domain system, the pill
-chrome and the three-state status semantics have to work hardest together. The
-rest of the app is derived from it.</p>
+<h2>Reference screen: the trip overview</h2>
+<p><code>/trip/[id]/overview</code> holds the day track, roster, route and forecast
+at once, so it exercises the pastel-per-domain system, the pill chrome and the
+three-state status semantics together. Treat it as the reference for the rest of
+the app.</p>
 <p><strong>Its layout is two columns, and the split is trip vs group</strong> (#209,
 settled against grey-box wireframes A/B/C and recorded here now the prototypes
 are gone, #208). The wide left column is the <em>trip</em>: where you are going.
 The narrow right rail is the <em>group</em>: who is going, what has been spent,
-how many ideas, who the trip is waiting on. Everything in the rail grows
+who the trip is waiting on. Everything in the rail grows
 downward, which is what makes a rail the right shape for it — the roster used to
 be a full-width panel holding one row of avatars and a lot of air. The week runs
 full width beneath both, because a day track wants length. On a narrow screen the

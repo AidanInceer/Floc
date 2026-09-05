@@ -15,9 +15,9 @@ import {
   PACK_CATEGORIES,
   PACK_CATEGORY_LABELS,
   PACK_SORT_LABELS,
-} from "@/lib/packing";
+} from "@floc/core/packing";
 import { FilterGlyph, SortGlyph } from "@/components/packing-glyphs";
-import type { PackCategory, PackSort } from "@/lib/packing";
+import type { PackCategory, PackSort } from "@floc/core/packing";
 
 /**
  * Both controls are one icon that opens a menu, the same shape the Days

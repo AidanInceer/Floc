@@ -11,9 +11,9 @@ import "server-only";
 import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
-import { capRequiredText } from "@/lib/text";
+import { capRequiredText } from "@floc/core/text";
 import { place } from "@/db/schema";
-import { readCountryCode } from "@/lib/countries";
+import { readCountryCode } from "@floc/core/countries";
 
 /** Nominatim requires an identifying UA with a contact address — not a secret, no key to leak. */
 const USER_AGENT = "Floc (aidaninceer0@gmail.com)";

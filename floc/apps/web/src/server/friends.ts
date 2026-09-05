@@ -9,7 +9,7 @@ import { and, count, eq, inArray, isNull, lt, ne, or } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { db } from "@/db";
 import { friendship, trip, tripMembership, user, userProfile } from "@/db/schema";
-import { today } from "@/lib/dates";
+import { today } from "@floc/core/dates";
 import { bounded, LIMITS } from "@/server/limits";
 
 /** Canonical direction is lower userId first, matching the unique index — never a duplicate reversed row. */

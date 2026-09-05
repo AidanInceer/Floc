@@ -20,7 +20,7 @@
 import { useState } from "react";
 
 import { Field, Select } from "@/components/ui";
-import { EVENT_CATEGORIES } from "@/lib/event-categories";
+import { EVENT_CATEGORIES } from "@floc/core/event-categories";
 import type { DayEventType, TransportType } from "@/db/schema";
 
 const TRANSPORT_LABELS: Record<TransportType, string> = {

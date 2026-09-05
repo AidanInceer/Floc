@@ -14,7 +14,7 @@
  * says so and goes to /signup rather than half-starting anything.
  */
 import { getSession } from "@/server/access";
-import { formatMoney } from "@/lib/money";
+import { formatMoney } from "@floc/core/money";
 import { ButtonLink, PASTEL_SKINS, cx } from "@/components/ui";
 import { SubmitButton } from "@/components/client-ui";
 import { RouteMap } from "@/components/route-map";
@@ -281,7 +281,7 @@ function BlankTile({
       <p className="text-sm opacity-85">
         {empty
           ? "Ideas for this region will show up here as they're written. Everywhere else still has plenty."
-          : "A trip with no dates and no destination is a normal way to start. Pin a few ideas and let the group vote."}
+          : "A trip with no dates and no destination is a normal way to start. Write down what you fancy and see who agrees."}
       </p>
       <div className="mt-auto flex flex-wrap items-center gap-3 border-t border-ink/10 pt-4">
         {empty ? (
