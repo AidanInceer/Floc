@@ -13,7 +13,13 @@
 (function () {
   var TREE = [
     { id: 'index', label: 'Overview', href: 'index.html' },
-    { id: 'architecture', label: 'Architecture', href: 'architecture/architecture.html' },
+    {
+      label: 'Architecture',
+      children: [
+        { id: 'architecture', label: 'Architecture', href: 'architecture/architecture.html' },
+        { id: 'multi-platform', label: 'Web, iOS and Android', href: 'architecture/multi-platform.html' }
+      ]
+    },
     {
       label: 'Design',
       children: [
