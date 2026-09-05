@@ -17,7 +17,7 @@
     "verify": "bash scripts/verify.sh"
   },
   "devDependencies": {
-    "turbo": "^2.0.0",
+    "turbo": "^2.10.12",
     "typescript": "^5.5.0"
   },
   "pnpm": {
