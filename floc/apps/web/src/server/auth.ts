@@ -47,7 +47,13 @@ export const auth = betterAuth({
    * always did, and signing out on a phone leaves it alone.
    */
   plugins: [bearer(), expo()],
-  trustedOrigins: [`${MOBILE_SCHEME}://`],
+  // A phone reaches a dev server by LAN address, never `localhost`, so that
+  // origin has to be trusted too or sign-in hangs (ticket 289). Unset in
+  // production, where `baseURL` is already the real origin.
+  trustedOrigins: [
+    `${MOBILE_SCHEME}://`,
+    ...(process.env.FLOC_LAN_ORIGIN ? [process.env.FLOC_LAN_ORIGIN] : []),
+  ],
   // Ticket 112: fatal in production if unset. A session secret has no degraded
   // mode — a deploy signing cookies with a value from the repo is an auth
   // bypass, not a reduced feature set.

@@ -10,7 +10,6 @@
         "floc-web",
         "dev"
       ],
-      "autoPort": true,
       "port": 3000
     },
     {

@@ -25,21 +25,23 @@
       },
       "edgeToEdgeEnabled": true
     },
-    "plugins": ["expo-router", "expo-secure-store", "expo-web-browser"],
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-web-browser"
+    ],
     "experiments": {
       "typedRoutes": true
     },
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
+        "projectId": "1e3711c4-71e5-460d-b374-ed6913a1f840"
       }
-    },
-    "updates": {
-      "url": "https://u.expo.dev/REPLACE_WITH_EAS_PROJECT_ID"
     },
     "runtimeVersion": {
       "policy": "appVersion"
-    }
+    },
+    "owner": "ainceer"
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "floc-web",
-  "version": "0.80.0",
+  "version": "0.80.1",
   "private": true,
   "description": "Floc v1 — group travel planner. Next.js App Router + Turso (libSQL) + Drizzle + Better Auth.",
   "type": "module",
@@ -39,8 +39,8 @@
     "drizzle-orm": "^0.45.2",
     "leaflet": "^1.9.4",
     "next": "^15.1.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
     "resend": "^4.0.0",
     "stripe": "^22.6.0"
   },
