@@ -58,6 +58,12 @@ fi
 # filters to packages affected by the diff; locally we just run all of them,
 # because with one venture that is the same set and the filter is the part most
 # likely to drift.
+#
+# Four packages now, not one (#287, #289): floc-web, floc-mobile, @floc/core
+# and @floc/api. Adding a package needs no edit here or in ci.yml — both go
+# through turbo, which reads pnpm-workspace.yaml. `floc-mobile` has no build
+# task on purpose; a phone bundle is EAS's job, not CI's (see
+# floc/apps/mobile/SHIPPING.md).
 step "Lint · typecheck · test · build"
 for task in lint typecheck test build; do
   if pnpm "$task" >/tmp/verify-$task.log 2>&1; then

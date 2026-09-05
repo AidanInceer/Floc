@@ -23,43 +23,6 @@ export function rootBlock(css, selector = LIGHT) {
   return { start, end, text: css.slice(start, end) };
 }
 
-function declarations(css, selector) {
-  const raw = new Map();
-  for (const [, name, value] of rootBlock(css, selector).text.matchAll(
-    /^\s*--([\w-]+):\s*([^;]+);/gm,
-  )) {
-    raw.set(name, value.trim());
-  }
-  return raw;
-}
-
-/**
- * Every token as a hex, for one theme. Dark restates only the values that
- * change, so it is read as an overlay on light — exactly how the cascade sees
- * it, and the reason an alias needs no dark counterpart.
- */
-export function readTokens(css = readCss(), theme = "light") {
-  const raw = declarations(css, LIGHT);
-  if (theme === "dark") {
-    for (const [name, value] of declarations(css, DARK)) raw.set(name, value);
-  }
-
-  const resolve = (name, seen = new Set()) => {
-    const value = raw.get(name);
-    if (value === undefined || seen.has(name)) return null;
-    const alias = value.match(/^var\(--([\w-]+)\)$/);
-    if (alias) return resolve(alias[1], seen.add(name));
-    return /^#[0-9a-f]{6}$/i.test(value) ? value.toLowerCase() : null;
-  };
-
-  const out = new Map();
-  for (const name of raw.keys()) {
-    const hex = resolve(name);
-    if (hex) out.set(name, hex);
-  }
-  return out;
-}
-
 /** WCAG 2.1 relative luminance / contrast ratio. */
 export function contrast(a, b) {
   const lum = (hex) => {

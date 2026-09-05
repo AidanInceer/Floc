@@ -13,7 +13,10 @@ Next.js App Router + Turso (libSQL) + Drizzle + Better Auth.
 | `floc/apps/web/src/app/` | Routes. Server Components + Server Actions (`actions.ts` per folder). |
 | `floc/apps/web/src/server/` | All SQL + soft-delete filtering. One file per concept; name needs "and" → split. |
 | `.../server/freshness.ts` | Fact → stale pages. Only importer of `next/cache`; else call `refresh`. |
-| `floc/packages/floc-core/src/` | `@floc/core` — the domain rules and vocabulary (money/dates/calendar/packing). Pure, no I/O, imports nothing from the app. |
+| `floc/packages/floc-core/src/` | `@floc/core` — the domain rules and vocabulary (money/dates/calendar/packing) **and the design token values**. Pure, no I/O, imports nothing from the app. |
+| `floc/packages/floc-api/src/` | `@floc/api` — the tRPC router every non-web client reads a trip through. Declares procedures and input rules; reaches data only via `FlocPort`, which the host implements. |
+| `floc/apps/web/src/server/api-port.ts` | The web app's `FlocPort` — the API's data access, built from the same `server/` modules the pages use. |
+| `floc/apps/mobile/` | `floc-mobile` — Expo (iOS + Android). Own UI, own version. [`SHIPPING.md`](floc/apps/mobile/SHIPPING.md) decides store build vs EAS Update; [`STORE.md`](floc/apps/mobile/STORE.md) is the submission checklist. |
 | `floc/apps/web/src/lib/` | What is left: browser- or Next-bound helpers only (env, theme, tabs, map, auth-client). |
 | `floc/apps/web/src/components/` | `ui.tsx`/`client-ui.tsx` = house design system. Reach first. |
 | `floc/apps/web/src/db/schema.ts` | Schema of record. Mirrors [ERD](docs/data-model/erd.html) — change both. |
@@ -61,7 +64,7 @@ pnpm verify                      # everything CI runs, locally
 - Server Components by default; mutations are Server Actions in `actions.ts` — never inline `"use server"` closures.
 - **Nothing in `app/` imports `@/db`** — SQL lives only in `server/`.
 - Validate at the door: dates via `@floc/core/dates`, free text via `@floc/core/text`. Rejections are form errors, never throws.
-- **Colours from tokens only** — no hex literals. Status always carries a word, never colour/icon alone.
+- **Colours from tokens only** — no hex literals, and token *values* live in `@floc/core/tokens`, not `globals.css`. `pnpm fitness` fails if the two disagree. Status always carries a word, never colour/icon alone.
 - **Light + dark, same token names** — dark restates base values in `:root[data-theme="dark"]`. **No `dark:` variant** (means the token is wrong). Choice in `localStorage`, never a column.
 - **No emoji** — icons are line-art: 14×14 `viewBox` ~13px, `fill="none"`, `strokeWidth` 1.15–1.25, `stroke="currentColor"`.
 - **Outside UI libraries** only where hand-rolling costs months (BlockNote runs Notes), and only if it takes the tokens/type/no-emoji rules.

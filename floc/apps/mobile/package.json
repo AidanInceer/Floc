@@ -1,0 +1,44 @@
+{
+  "name": "floc-mobile",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Floc for iOS and Android — one Expo codebase, reading the same trips through @floc/api as the web app.",
+  "main": "expo-router/entry",
+  "scripts": {
+    "dev": "expo start",
+    "ios": "expo run:ios",
+    "android": "expo run:android",
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@better-auth/expo": "~1.6.30",
+    "@floc/api": "workspace:*",
+    "@floc/core": "workspace:*",
+    "@tanstack/react-query": "^5.102.0",
+    "@trpc/client": "^11.18.0",
+    "@trpc/tanstack-react-query": "^11.18.0",
+    "better-auth": "~1.6.30",
+    "expo": "~57.0.20",
+    "expo-constants": "~57.0.17",
+    "expo-linking": "~57.0.9",
+    "expo-router": "~57.0.19",
+    "expo-secure-store": "~57.0.3",
+    "expo-status-bar": "~57.0.1",
+    "expo-web-browser": "~57.0.2",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-native": "0.87.1",
+    "react-native-safe-area-context": "~5.9.1",
+    "react-native-screens": "~4.27.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@types/react": "~19.2.0",
+    "eslint": "^9.17.0",
+    "eslint-config-next": "^15.1.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.2.6"
+  }
+}

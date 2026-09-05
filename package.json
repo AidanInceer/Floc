@@ -2,8 +2,8 @@
   "name": "nexus-hub",
   "version": "0.0.0",
   "private": true,
-  "description": "Nexus \u00e2\u20ac\u201d a centralised incubator hub for building multiple ventures on shared foundations.",
-  "packageManager": "pnpm@9.0.0",
+  "description": "Nexus â€” a centralised incubator hub for building multiple ventures on shared foundations.",
+  "packageManager": "pnpm@9.15.9",
   "engines": {
     "node": ">=22"
   },
@@ -34,7 +34,16 @@
       "nanoid": "^3.3.17",
       "brace-expansion": "^5.0.9",
       "glob>minimatch": "^10.0.1",
-      "esbuild": "^0.25.0"
+      "esbuild": "^0.25.0",
+      "uuid": "^11.1.1",
+      "decode-uri-component": "^0.5.0"
+    },
+    "auditConfig": {
+      "//": "image-size has NO patched version (advisories say '<0.0.0') and is reached only through Metro, Expo's bundler — a developer-machine build tool, not the shipped app or any server. Scoped to these two GHSAs so every other finding still fails the gate. Revisit when image-size publishes a fix; see pnpm-workspace.yaml.",
+      "ignoreGhsas": [
+        "GHSA-w3rx-r6r6-pgpr",
+        "GHSA-5p2g-fcmc-qvqq"
+      ]
     }
   }
 }

@@ -1,0 +1,276 @@
+/**
+ * The port the phone reads a trip through (ticket 287), against a real
+ * database.
+ *
+ * The point of these is not that the queries work — `trips.test.ts` and the
+ * rest already prove that. It is that the *same rules* survive the new door.
+ * Rule 5 in particular: `requireTripAccess` keeps it by leaving through
+ * `notFound()`, and the port cannot do that, so it has to keep it another way.
+ * A rule with two enforcement paths needs a test on both.
+ */
+import { beforeAll, beforeEach, describe, expect, it } from "vitest";
+
+import { db, schema } from "@/db";
+import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
+import { webPort } from "@/server/api-port";
+
+let world: Scenario;
+
+beforeAll(migrateTestDb);
+beforeEach(async () => {
+  await resetDb();
+  world = await seedScenario();
+});
+
+describe("who can see a trip (rule 5)", () => {
+  it("gives a member the trip", async () => {
+    const trip = await webPort.loadTrip(world.member, world.ours.id);
+    expect(trip?.name).toBe("Ours");
+    expect(trip?.role).toBe("member");
+  });
+
+  it("answers a non-member and a nonexistent trip identically", async () => {
+    const foreign = await webPort.loadTrip(world.outsider, world.ours.id);
+    const missing = await webPort.loadTrip(world.outsider, 999_999);
+    expect(foreign).toBeNull();
+    expect(missing).toBeNull();
+  });
+
+  it("refuses a non-member every trip-scoped read, not only the trip itself", async () => {
+    await expect(webPort.listDays(world.outsider, world.ours.id)).rejects.toThrow();
+    await expect(webPort.loadLedger(world.outsider, world.ours.id)).rejects.toThrow();
+  });
+
+  it("never returns another person's trips from the list", async () => {
+    const mine = await webPort.listTrips(world.member, { archived: false });
+    expect(mine.map((t) => t.name)).toEqual(["Ours"]);
+  });
+});
+
+describe("the four admin powers (rule 6)", () => {
+  it("lets an admin archive, promote and remove", async () => {
+    await webPort.archiveTrip(world.admin, world.ours.id, true);
+    await webPort.promoteMember(world.admin, world.ours.id, world.member);
+
+    const trip = await webPort.loadTrip(world.admin, world.ours.id);
+    expect(trip?.archived).toBe(true);
+    expect(trip?.members.find((m) => m.userId === world.member)?.role).toBe("admin");
+  });
+
+  it("refuses a member all three", async () => {
+    await expect(
+      webPort.archiveTrip(world.member, world.ours.id, true),
+    ).rejects.toThrow(/admin/i);
+    await expect(
+      webPort.promoteMember(world.member, world.ours.id, world.admin),
+    ).rejects.toThrow(/admin/i);
+    await expect(
+      webPort.removeMember(world.member, world.ours.id, world.admin),
+    ).rejects.toThrow(/admin/i);
+  });
+
+  it("lets any member leave, because leaving is not an admin power", async () => {
+    await webPort.leaveTrip(world.member, world.ours.id);
+    expect(await webPort.loadTrip(world.member, world.ours.id)).toBeNull();
+    // The trip itself is untouched — the admin is still on it.
+    expect(await webPort.loadTrip(world.admin, world.ours.id)).not.toBeNull();
+  });
+
+  it("treats an admin removing themselves as leaving, so succession still runs", async () => {
+    await webPort.removeMember(world.admin, world.ours.id, world.admin);
+
+    const trip = await webPort.loadTrip(world.member, world.ours.id);
+    // The sole remaining member inherits admin rather than the trip being left
+    // with nobody who can administer it.
+    expect(trip?.members.find((m) => m.userId === world.member)?.role).toBe("admin");
+  });
+});
+
+describe("joining", () => {
+  it("joins by the share token", async () => {
+    const joined = await webPort.joinByToken(world.outsider, "token-ours");
+    expect(joined).toEqual({ id: world.ours.id });
+    expect(await webPort.loadTrip(world.outsider, world.ours.id)).not.toBeNull();
+  });
+
+  it("answers null for a token that resolves to nothing", async () => {
+    expect(await webPort.joinByToken(world.outsider, "not-a-token")).toBeNull();
+  });
+});
+
+describe("creating and patching a trip", () => {
+  it("makes the creator an admin", async () => {
+    const { id } = await webPort.createTrip(world.member, {
+      name: "Faroes",
+      startDate: null,
+      endDate: null,
+    });
+    const trip = await webPort.loadTrip(world.member, id);
+    expect(trip?.role).toBe("admin");
+    // A trip with no dates is a normal trip (rule 9).
+    expect(trip?.startDate).toBeNull();
+  });
+
+  it("clears tags when the wire says null", async () => {
+    await webPort.updateTrip(world.admin, world.ours.id, { tags: ["beach"] });
+    expect((await webPort.loadTrip(world.admin, world.ours.id))?.tags).toEqual(["beach"]);
+
+    await webPort.updateTrip(world.admin, world.ours.id, { tags: null });
+    expect((await webPort.loadTrip(world.admin, world.ours.id))?.tags).toEqual([]);
+  });
+
+  it("leaves a field alone when the patch omits it", async () => {
+    await webPort.updateTrip(world.admin, world.ours.id, { name: "Renamed" });
+    const trip = await webPort.loadTrip(world.admin, world.ours.id);
+    expect(trip?.name).toBe("Renamed");
+    expect(trip?.colorKey).toBeNull();
+  });
+});
+
+describe("money", () => {
+  it("writes an expense with its whole split set, and reads both back", async () => {
+    await webPort.writeExpense(world.admin, world.ours.id, {
+      description: "Dinner",
+      amountMinor: 4000,
+      currency: "GBP",
+      category: "food",
+      splitType: "shares",
+      paidBy: world.admin,
+      dayId: null,
+      notes: null,
+      splits: [
+        { userId: world.admin, owedAmountMinor: 2000 },
+        { userId: world.member, owedAmountMinor: 2000 },
+      ],
+    });
+
+    const ledger = await webPort.loadLedger(world.member, world.ours.id);
+    expect(ledger.expenses).toHaveLength(1);
+    expect(ledger.expenses[0].amountMinor).toBe(4000);
+    expect(ledger.splits).toHaveLength(2);
+  });
+
+  it("refuses to edit an expense belonging to another trip", async () => {
+    await webPort.writeExpense(world.outsider, world.theirs.id, {
+      description: "Theirs",
+      amountMinor: 100,
+      currency: "GBP",
+      category: "other",
+      splitType: "shares",
+      paidBy: world.outsider,
+      dayId: null,
+      notes: null,
+      splits: [{ userId: world.outsider, owedAmountMinor: 100 }],
+    });
+    const theirs = await webPort.loadLedger(world.outsider, world.theirs.id);
+    const stolenId = theirs.expenses[0].id;
+
+    await expect(
+      webPort.writeExpense(world.admin, world.ours.id, {
+        expenseId: stolenId,
+        description: "Hijacked",
+        amountMinor: 1,
+        currency: "GBP",
+        category: "other",
+        splitType: "shares",
+        paidBy: world.admin,
+        dayId: null,
+        notes: null,
+        splits: [{ userId: world.admin, owedAmountMinor: 1 }],
+      }),
+    ).rejects.toThrow();
+
+    // And the other trip's row is untouched.
+    const after = await webPort.loadLedger(world.outsider, world.theirs.id);
+    expect(after.expenses[0].description).toBe("Theirs");
+  });
+
+  it("soft-deletes an expense rather than removing the row (rule 8)", async () => {
+    await webPort.writeExpense(world.admin, world.ours.id, {
+      description: "Taxi",
+      amountMinor: 500,
+      currency: "GBP",
+      category: "transport",
+      splitType: "shares",
+      paidBy: world.admin,
+      dayId: null,
+      notes: null,
+      splits: [{ userId: world.admin, owedAmountMinor: 500 }],
+    });
+    const before = await webPort.loadLedger(world.admin, world.ours.id);
+    await webPort.deleteExpense(world.admin, world.ours.id, before.expenses[0].id);
+
+    expect((await webPort.loadLedger(world.admin, world.ours.id)).expenses).toHaveLength(0);
+    const rows = await db.select().from(schema.expense).all();
+    expect(rows).toHaveLength(1);
+    expect(rows[0].deletedAt).not.toBeNull();
+  });
+});
+
+describe("the itinerary", () => {
+  it("returns days with their events attached", async () => {
+    const days = await webPort.listDays(world.admin, world.ours.id);
+    expect(days).toHaveLength(1);
+    expect(days[0].events).toHaveLength(2);
+  });
+
+  it("adds, edits and soft-deletes an event", async () => {
+    await webPort.addEvent(world.admin, world.ours.id, world.ours.dayId, {
+      type: "activity",
+      title: "Museum",
+      transportType: null,
+      time: "11:00",
+      endTime: null,
+      allDay: false,
+      note: null,
+    });
+
+    let days = await webPort.listDays(world.admin, world.ours.id);
+    const added = days[0].events.find((e) => e.title === "Museum");
+    expect(added).toBeDefined();
+
+    await webPort.updateEvent(world.admin, world.ours.id, added!.id, {
+      type: "activity",
+      title: "Gallery",
+      transportType: null,
+      time: "11:00",
+      endTime: null,
+      allDay: false,
+      note: null,
+    });
+    days = await webPort.listDays(world.admin, world.ours.id);
+    expect(days[0].events.find((e) => e.id === added!.id)?.title).toBe("Gallery");
+
+    await webPort.deleteEvent(world.admin, world.ours.id, added!.id);
+    days = await webPort.listDays(world.admin, world.ours.id);
+    expect(days[0].events.find((e) => e.id === added!.id)).toBeUndefined();
+  });
+
+  it("refuses to put an event on another trip's day", async () => {
+    await expect(
+      webPort.addEvent(world.admin, world.ours.id, world.theirs.dayId, {
+        type: "activity",
+        title: "Trespass",
+        transportType: null,
+        time: null,
+        endTime: null,
+        allDay: true,
+        note: null,
+      }),
+    ).rejects.toThrow();
+  });
+
+  it("refuses to edit another trip's event", async () => {
+    await expect(
+      webPort.updateEvent(world.admin, world.ours.id, world.theirs.eventId, {
+        type: "activity",
+        title: "Trespass",
+        transportType: null,
+        time: null,
+        endTime: null,
+        allDay: true,
+        note: null,
+      }),
+    ).rejects.toThrow();
+  });
+});

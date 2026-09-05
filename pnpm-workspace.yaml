@@ -36,3 +36,23 @@ overrides:
   # requests. Reached only through @esbuild-kit/*, which drizzle-kit still
   # pulls in and which is itself deprecated; patched in 0.25.0.
   esbuild: ^0.25.0
+  # Both reachable only through Expo's toolchain (#289) and both patchable, so
+  # they are pinned forward like every other entry rather than ignored below.
+  uuid: ^11.1.1
+  decode-uri-component: ^0.5.0
+
+# The one thing an override cannot answer: an advisory with NO patched version.
+#
+# `image-size` 2.0.2 is the latest release and every version is vulnerable —
+# the advisories name a patched range of "<0.0.0", meaning no fix exists. It
+# arrives only through Metro, Expo's bundler (#289), so it runs on a developer
+# machine while building and is in neither the shipped app nor any server.
+#
+# Pinning forward is impossible and weakening `--audit-level=high` would hide
+# every future finding, so the exception is scoped to these two GHSAs and
+# nothing else. REVIEW THIS when image-size next publishes: if a fixed version
+# exists, delete both lines and add an override instead.
+auditConfig:
+  ignoreGhsas:
+    - GHSA-w3rx-r6r6-pgpr # image-size: ICNS parser infinite loop (DoS)
+    - GHSA-5p2g-fcmc-qvqq # image-size: JXL/HEIF parser infinite loops (DoS)
