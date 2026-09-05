@@ -12,8 +12,8 @@ describe("capText", () => {
   });
 
   it("truncates rather than rejecting", () => {
-    const long = "x".repeat(TEXT_CAPS.ideaNote + 1000);
-    expect(capText(long, "ideaNote")).toHaveLength(TEXT_CAPS.ideaNote);
+    const long = "x".repeat(TEXT_CAPS.eventNote + 1000);
+    expect(capText(long, "eventNote")).toHaveLength(TEXT_CAPS.eventNote);
   });
 
   it("leaves anything under the cap alone", () => {
@@ -27,8 +27,8 @@ describe("capText", () => {
 
 describe("capRequiredText", () => {
   it("keeps an empty string empty, so the caller can reject it itself", () => {
-    expect(capRequiredText("   ", "ideaNote")).toBe("");
-    expect(capRequiredText(null, "ideaNote")).toBe("");
+    expect(capRequiredText("   ", "eventNote")).toBe("");
+    expect(capRequiredText(null, "eventNote")).toBe("");
   });
 
   it("truncates to the same cap", () => {

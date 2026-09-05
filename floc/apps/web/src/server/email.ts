@@ -13,11 +13,10 @@ import { userProfile } from "@/db/schema";
 import { appUrl } from "@/lib/env";
 import { TAB_LABELS } from "@/lib/tabs";
 
-type EmailCategory = "invites" | "votes" | "money" | "nudges";
+type EmailCategory = "invites" | "money" | "nudges";
 
 const CATEGORY_COLUMN = {
   invites: "notifyInvites",
-  votes: "notifyVotes",
   money: "notifyMoney",
   nudges: "notifyNudges",
 } as const;
@@ -272,26 +271,6 @@ export const emails = {
       url: absoluteUrl(`/trip/${args.tripId}/${args.tab}`),
     },
     category: "nudges",
-  }),
-
-  /** Trigger: someone posts a new idea. */
-  ideaPosted: (args: {
-    to: string;
-    toUserId: string;
-    tripId: number;
-    tripName: string;
-    fromName: string;
-    idea: string;
-  }): OutboundEmail => ({
-    to: args.to,
-    toUserId: args.toUserId,
-    subject: `New idea for ${args.tripName}`,
-    lines: [`${args.fromName} suggested: “${args.idea}”`, "Say what you think."],
-    cta: {
-      label: "Vote on it",
-      url: absoluteUrl(`/trip/${args.tripId}/notes`),
-    },
-    category: "votes",
   }),
 
   /** Trigger: an expense is added that the recipient owes a share of. */

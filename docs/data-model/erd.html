@@ -26,10 +26,6 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
     TRIP ||--o{ TRIP_INVITE : &quot;asks (ticket 146)&quot;
     USER ||--o{ TRIP_INVITE : &quot;sends (from_user_id)&quot;
     USER ||--o{ TRIP_INVITE : &quot;receives (to_user_id)&quot;
-    TRIP ||--o{ IDEA : &quot;has&quot;
-    USER ||--o{ IDEA : &quot;creates (created_by)&quot;
-    IDEA ||--o{ IDEA_VOTE : &quot;receives&quot;
-    USER ||--o{ IDEA_VOTE : &quot;casts&quot;
     TRIP ||--o{ PACKING_LINE : &quot;has (ticket 219)&quot;
     USER ||--o{ PACKING_LINE : &quot;adds (created_by)&quot;
     USER ||--o{ PACKING_LINE : &quot;owns, when personal (owner_id, ticket 220)&quot;
@@ -89,7 +85,6 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
         string visibility_friends &quot;private|friends|trip_members, default friends&quot;
         string past_trips_show &quot;latest | all, default all&quot;
         bool notify_invites &quot;default true&quot;
-        bool notify_votes &quot;default true&quot;
         bool notify_money &quot;default true&quot;
         bool notify_nudges &quot;default true&quot;
         string pack_tier &quot;light | balanced | comfort, default balanced — the fallback for trips that haven't chosen&quot;
@@ -138,21 +133,6 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
         string from_user_id FK &quot;-&gt; USER.id — who asked&quot;
         string to_user_id FK &quot;-&gt; USER.id — the friend asked&quot;
         string status &quot;pending | accepted | declined&quot;
-    }
-
-    IDEA {
-        int id PK
-        int trip_id FK &quot;-&gt; TRIP.id&quot;
-        string created_by FK &quot;-&gt; USER.id&quot;
-        text note
-        datetime pinned_at &quot;nullable — pinned to the top of the board, group-wide&quot;
-    }
-
-    IDEA_VOTE {
-        int id PK
-        int idea_id FK &quot;-&gt; IDEA.id&quot;
-        string user_id FK &quot;-&gt; USER.id&quot;
-        string value &quot;up | dont_mind | down&quot;
     }
 
     AVAILABILITY {
@@ -260,7 +240,7 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
         int id PK
         int trip_id FK &quot;-&gt; TRIP.id&quot;
         string created_by FK &quot;-&gt; USER.id&quot;
-        string scope &quot;trip|day|day_event|idea|expense&quot;
+        string scope &quot;trip|day|day_event|expense&quot;
         int scope_id &quot;not a real FK — polymorphic, app-enforced&quot;
         int parent_id &quot;-&gt; NOTE.id, nullable — a reply; exactly one level&quot;
         text body
@@ -287,7 +267,7 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
         int trip_id FK &quot;-&gt; TRIP.id&quot;
         string from_user_id FK &quot;-&gt; USER.id&quot;
         string to_user_id FK &quot;-&gt; USER.id&quot;
-        string tab &quot;ideas|dates|days|money — deep-linked in the email&quot;
+        string tab &quot;notes|dates|days|money — deep-linked in the email&quot;
         text message &quot;nullable&quot;
     }
 
@@ -370,18 +350,6 @@ it has no foreign keys and no <code>deleted_at</code>.</p>
 <td>M–M</td>
 <td>via <code>trip_membership</code> (composite PK)</td>
 <td></td>
-</tr>
-<tr>
-<td><code>trip</code></td>
-<td><code>idea</code></td>
-<td>1–M</td>
-<td><code>pinned_at</code> floats a note above the board&#39;s sort (v0.2 ticket 09)</td>
-</tr>
-<tr>
-<td><code>idea</code></td>
-<td><code>idea_vote</code></td>
-<td>1–M</td>
-<td>one vote per (idea, user) in practice, not DB-enforced</td>
 </tr>
 <tr>
 <td><code>trip</code></td>
@@ -566,8 +534,8 @@ expense under a settlement can tip a balance negative: an honest overpayment,
 not an error. When every currency&#39;s balances net to zero the whole trip reads as
 settled.</p>
 <p><code>note</code> is the <strong>discussion thread</strong> on anything that has one. In use today for
-<code>scope: &quot;idea&quot;</code> (why this one, or why not) and <code>scope: &quot;day_event&quot;</code> (whatever the
-group needs to know about that ferry), read scoped by <code>(trip_id, scope, scope_id)</code> off <code>note_scope_idx</code>. One table rather than <code>idea_comment</code> +
+<code>scope: &quot;day&quot;</code> and <code>scope: &quot;day_event&quot;</code> (whatever the
+group needs to know about that ferry), read scoped by <code>(trip_id, scope, scope_id)</code> off <code>note_scope_idx</code>. One table rather than <code>day_comment</code> +
 <code>day_event_comment</code> + …: a note is the same object with the same author-or-admin
 delete rule wherever it hangs.</p>
 <p><code>note.parent_id</code> makes a <strong>reply</strong>, and threads are <strong>exactly one level deep</strong>
@@ -575,8 +543,8 @@ delete rule wherever it hangs.</p>
 attaches to that reply&#39;s own parent and the shape can&#39;t drift however the UI
 changes. Deleting a top-level comment soft-deletes its replies with it — a
 reply is only legible under the comment it answers. Unbounded nesting was
-rejected on render grounds: Ideas draws its thread in a <code>max-w-lg</code> modal, where
-a fourth level would be a few words a line.</p>
+rejected on render grounds: a thread draws in a narrow panel, where a fourth
+level would be a few words a line.</p>
 <p><code>note.edited_at</code> marks a comment its <strong>author</strong> has rewritten, and the UI says
 &quot;edited&quot; beside the timestamp. Editing is deliberately <strong>not an admin power</strong>
 (rule 6 — admin powers are exactly four): an admin can delete a comment, which
@@ -584,16 +552,14 @@ is unambiguous, but never put different words in someone&#39;s mouth under their
 name. <code>last_modified_at</code> can&#39;t stand in for this — it is for debugging only and
 moves for reasons the author never chose.</p>
 <p><code>note_reaction</code> is the three fixed reactions — heart, thumbs up, thumbs down —
-independent of each other, unlike <code>idea_vote</code>, which is three-state and
-exclusive. Un-reacting soft-deletes the row and re-reacting revives it, so
+independent of each other — a note can carry all three. Un-reacting soft-deletes the row and re-reacting revives it, so
 <code>note_reaction_one_idx</code> is <strong>unique on (note_id, user_id, kind) and deliberately
 excludes <code>deleted_at</code></strong> — the dead row is the row the upsert wants to land on
 (ticket 115, migration <code>0005</code>). It was originally non-unique on the reasoning
 that reviving needs the row to survive, which is the same fact read backwards:
 without uniqueness the toggle was a read-modify-write over nothing, and two
 concurrent taps wrote two rows, after which one person&#39;s heart counted as two.
-<code>idea_vote_unique_idx</code> and <code>friendship_pair_idx</code> have the same shape for the
-same reason. Every read still filters <code>deleted_at</code>.</p>
+<code>friendship_pair_idx</code> has the same shape for the same reason. Every read still filters <code>deleted_at</code>.</p>
 <p><code>trip_link</code> is the <strong>link shelf</strong> (ticket 103) — the listings, timetables and
 documents a group keeps coming back to, beside the trip thread in the Days pane. Its
 own table rather than a <code>note</code> with a URL in it, because the two behave
@@ -608,8 +574,10 @@ single JSON blob of editor blocks, never parsed server-side. Whole-doc rather
 than a row per block because the editor already owns block order and nesting,
 so a table of blocks would mean keeping two orderings honest for a read nobody
 makes. Saves are last-write-wins (rule 7): two people typing at once is a known
-gap, not a solved one. The voting board is one block inside the document and
-still reads <code>idea</code>/<code>idea_vote</code> — those tables are untouched.</p>
+gap, not a solved one. The idea board that once sat inside it as a custom block
+is gone, along with the <code>idea</code> and <code>idea_vote</code> tables and every
+<code>note</code> scoped to one (migration <code>0023</code>); a stored document still
+holding the block simply drops it on load.</p>
 <p><code>document</code> is a <strong>trip file</strong> (ticket 239) — a booking, a ticket, a visa
 scan. It mirrors <code>packing_line</code>&#39;s split rather than inventing a second one:
 <code>owner_id</code> null means shared with every member, and set means private to that

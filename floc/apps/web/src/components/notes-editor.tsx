@@ -1,6 +1,6 @@
 /**
  * The trip's Notes document (ticket 238) — a BlockNote editor over one JSON
- * blob, with the voting board as a custom block.
+ * blob.
  *
  * Autosave rather than a Save button: the doc is the group's shared page, and
  * a button is one more thing to forget. Last-write-wins (rule 7) — two people
@@ -14,49 +14,18 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   BlockNoteSchema,
   defaultBlockSpecs,
-  filterSuggestionItems,
   type Block,
 } from "@blocknote/core";
 import { BlockNoteView } from "@blocknote/ariakit";
-import {
-  createReactBlockSpec,
-  getDefaultReactSlashMenuItems,
-  SuggestionMenuController,
-  useCreateBlockNote,
-} from "@blocknote/react";
+import { useCreateBlockNote } from "@blocknote/react";
 
-import {
-  IdeasBlockBody,
-  IdeasBlockProvider,
-  type IdeasBlockData,
-} from "@/components/ideas-block";
 import { saveNotes } from "@/app/trip/[id]/notes/actions";
 
-/** The board is a single indivisible block — nothing types inside it. */
-const ideasBoardSpec = createReactBlockSpec(
-  { type: "ideasBoard", propSchema: {}, content: "none" },
-  { render: () => <IdeasBlockBody /> },
-);
-
-const schema = BlockNoteSchema.create({
-  blockSpecs: { ...defaultBlockSpecs, ideasBoard: ideasBoardSpec() },
-});
+const schema = BlockNoteSchema.create({ blockSpecs: defaultBlockSpecs });
 
 const SAVE_AFTER_MS = 900;
 
-/**
- * What an untouched trip opens on. The board is in it because every trip that
- * predates this doc already has ideas — an empty page would hide them.
- *
- * It can be deleted like any block, and then the ideas have no surface until
- * someone adds it back. That is deliberate: the block is where the board goes,
- * not what keeps it — the rows are untouched, and "/ideas" brings it back.
- */
-const STARTING_DOC = [
-  { type: "paragraph" },
-  { type: "ideasBoard" },
-  { type: "paragraph" },
-] as const;
+const STARTING_DOC = [{ type: "paragraph" }] as const;
 
 type SaveState = "idle" | "saving" | "saved" | "failed";
 
@@ -66,11 +35,9 @@ const KNOWN_BLOCK_TYPES = new Set(Object.keys(schema.blockSchema));
 export function NotesEditor({
   tripId,
   initialDoc,
-  board,
 }: {
   tripId: number;
   initialDoc: string | null;
-  board: IdeasBlockData;
 }) {
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -124,57 +91,24 @@ export function NotesEditor({
   }, [flush]);
 
   return (
-    <IdeasBlockProvider value={board}>
+    <>
       <BlockNoteView
         editor={editor}
         // No `theme` prop: the palette is set in globals.css off the house
         // tokens, so it follows `data-theme` with nothing to hydrate. Naming a
         // theme here would only pin the few styles the tokens do not cover.
-        slashMenu={false}
         onChange={queueSave}
-      >
-        <SuggestionMenuController
-          triggerCharacter="/"
-          getItems={async (query) =>
-            filterSuggestionItems(
-              [
-                ...getDefaultReactSlashMenuItems(editor),
-                // One board per doc. A second copy is the same rows twice, and
-                // whichever you voted in, both would move.
-                ...(editor.document.some((b) => b.type === "ideasBoard")
-                  ? []
-                  : [
-                      {
-                        title: "Ideas board",
-                        group: "Trip",
-                        aliases: ["ideas", "vote", "voting"],
-                        onItemClick: () =>
-                          editor.insertBlocks(
-                            [{ type: "ideasBoard" }],
-                            editor.getTextCursorPosition().block,
-                            "after",
-                          ),
-                      },
-                    ]),
-              ],
-              query,
-            )
-          }
-        />
-      </BlockNoteView>
-      <div className="mt-4 flex items-center justify-between gap-4">
-        <p className="typed">Type /ideas for the voting board</p>
-        <p className="typed" aria-live="polite">
-          {saveState === "saving"
-            ? "Saving"
-            : saveState === "saved"
-              ? "Saved"
-              : saveState === "failed"
-                ? "Not saved — still trying"
-                : ""}
-        </p>
-      </div>
-    </IdeasBlockProvider>
+      />
+      <p className="typed mt-4 text-right" aria-live="polite">
+        {saveState === "saving"
+          ? "Saving"
+          : saveState === "saved"
+            ? "Saved"
+            : saveState === "failed"
+              ? "Not saved — still trying"
+              : ""}
+      </p>
+    </>
   );
 }
 
@@ -182,7 +116,8 @@ export function NotesEditor({
  * A stored doc this build cannot render must not take the tab down with it.
  * BlockNote throws while constructing the editor on a block type it does not
  * know, and that is a render no error boundary of ours is under — so unknown
- * blocks are dropped here rather than caught later.
+ * blocks are dropped here rather than caught later. This is also what retires
+ * the old `ideasBoard` block: docs still holding one simply lose it on load.
  */
 function parseDoc(raw: string | null): Block[] | null {
   if (!raw) return null;

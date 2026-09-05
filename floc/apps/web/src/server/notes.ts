@@ -3,7 +3,7 @@
  * `server/notes-read.ts` — one aggregate split by direction, not by table.
  *
  * Threads go through the polymorphic `note` table (scope + scope_id) rather
- * than a table per surface, since a note on an idea and one on a day event are
+ * than a table per surface, since a note on a day and one on a day event are
  * the same object with the same rules.
  *
  * Owns: soft-delete (rule 8) including the reaction toggle's revive-not-insert

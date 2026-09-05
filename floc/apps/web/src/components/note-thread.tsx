@@ -4,7 +4,7 @@
 // default; "most liked" is opt-in per thread (ticket 35), reordering runs only.
 // Unit is the run (v0.2 ticket 06): replies are exactly one level deep — a
 // reply-to-a-reply attaches to the same parent and names who it answers in the
-// body, since Ideas renders this in a max-w-lg modal.
+// body, since a thread renders in a narrow panel.
 // Client component because collapse/composer/sort state is local per thread —
 // a dozen threads can be open on one screen, so a single ?sort= can't serve them.
 import { useState, type ReactNode } from "react";

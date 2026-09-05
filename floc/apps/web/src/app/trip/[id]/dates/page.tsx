@@ -110,7 +110,7 @@ export default async function DatesPage({
               <ConfirmSubmit
                 variant="ghost"
                 className={menuDangerItemClass}
-                message={`Resetting the dates removes the whole itinerary — ${resetNoun}. Ideas, costs and people stay.`}
+                message={`Resetting the dates removes the whole itinerary — ${resetNoun}. Notes, costs and people stay.`}
                 confirmLabel={resetLabel!}
                 pendingLabel="Resetting…"
               >

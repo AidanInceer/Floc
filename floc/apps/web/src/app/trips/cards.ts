@@ -3,13 +3,12 @@
  * argument instead of duplicating the assembly. Not in `server/`: this is
  * the card shape two pages in this folder share, not a domain aggregate.
  *
- * Archived loads less: "needs you" and the Place sort are live-list
- * furniture, so those two reads only fire for the live list.
+ * Archived loads less: the Place sort is live-list furniture, so that read
+ * only fires for the live list.
  */
 import "server-only";
 
 import { listMembersFor, type TripMember } from "@/server/access";
-import { tripIdsWithIdeas } from "@/server/ideas";
 import { firstOvernightPlaceByTrip } from "@/server/itinerary";
 import { listTripsFor } from "@/server/trips";
 import { hasEnded } from "@floc/core/dates";
@@ -30,9 +29,8 @@ export async function loadTripCards(
   const tripIds = rows.map((r) => r.id);
 
   // One query for the whole list each, not one per card.
-  const [membersByTrip, tripsWithIdeas, whereByTrip] = await Promise.all([
+  const [membersByTrip, whereByTrip] = await Promise.all([
     listMembersFor(tripIds),
-    archived ? new Set<number>() : tripIdsWithIdeas(tripIds),
     archived ? new Map<number, string>() : firstOvernightPlaceByTrip(tripIds),
   ]);
 
@@ -47,10 +45,14 @@ export async function loadTripCards(
         endDate: r.endDate,
         role: r.role,
         members,
-        // Cheapest signal a fresh trip has: an empty idea board.
+        // A trip nobody has decided anything about yet — no window, nowhere to
+        // stay. Read off rows already loaded, so it costs no extra query.
         needsYou: archived
           ? undefined
-          : !hasEnded(r.endDate) && !tripsWithIdeas.has(r.id),
+          : !hasEnded(r.endDate) &&
+            !r.startDate &&
+            !r.endDate &&
+            !whereByTrip.has(r.id),
         where: whereByTrip.get(r.id) ?? null,
         tags: readTags(r.tags),
         color: readTripColor(r.colorKey),

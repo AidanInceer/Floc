@@ -20,8 +20,8 @@ import { ensureProfile } from "@/server/profile";
 import { LIMITS } from "@/server/limits";
 import { refresh } from "@/server/freshness";
 
-// Smallest thing at creation: a name, the creator as admin, an empty idea
-// board. Dates are optional and never guessed at.
+// Smallest thing at creation: a name and the creator as admin. Dates are
+// optional and never guessed at.
 export async function createTrip(formData: FormData): Promise<void> {
   const viewer = await requireUser("/trips");
   const name = capRequiredText(formData.get("name"), "tripName");

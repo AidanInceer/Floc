@@ -16,7 +16,6 @@ import {
   dayEvent,
   document,
   expense,
-  idea,
   note,
   packingLine,
   trip,
@@ -61,7 +60,6 @@ export type TripAccess = {
    */
   day: (dayId: number) => Promise<typeof day.$inferSelect>;
   event: (eventId: number) => Promise<typeof dayEvent.$inferSelect>;
-  idea: (ideaId: number) => Promise<typeof idea.$inferSelect>;
   expense: (expenseId: number) => Promise<typeof expense.$inferSelect>;
   note: (noteId: number) => Promise<typeof note.$inferSelect>;
   packingLine: (lineId: number) => Promise<typeof packingLine.$inferSelect>;
@@ -183,18 +181,6 @@ const resolveEvent = cache(async (tripId: number, eventId: number) => {
   return row.event;
 });
 
-const resolveIdea = cache(async (tripId: number, ideaId: number) => {
-  const row = await db
-    .select()
-    .from(idea)
-    .where(
-      and(eq(idea.id, ideaId), eq(idea.tripId, tripId), isNull(idea.deletedAt)),
-    )
-    .get();
-  if (!row) notFound();
-  return row;
-});
-
 /**
  * Also scoped by owner (ticket 220): one table holds the shared list and every
  * member's personal one, so trip membership alone is no longer enough. A line
@@ -280,7 +266,6 @@ function scopedTo(tripId: number, viewerId: string) {
   return {
     day: (dayId: number) => resolveDay(tripId, dayId),
     event: (eventId: number) => resolveEvent(tripId, eventId),
-    idea: (ideaId: number) => resolveIdea(tripId, ideaId),
     expense: (expenseId: number) => resolveExpense(tripId, expenseId),
     note: (noteId: number) => resolveNote(tripId, noteId),
     packingLine: (lineId: number) => resolvePackingLine(tripId, viewerId, lineId),

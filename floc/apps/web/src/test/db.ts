@@ -31,8 +31,6 @@ const TABLES = [
   schema.fxRate,
   schema.dayEvent,
   schema.day,
-  schema.ideaVote,
-  schema.idea,
   schema.availability,
   schema.nudge,
   schema.userCountryMark,
@@ -116,18 +114,11 @@ export async function seedScenario() {
       .returning({ id: schema.dayEvent.id })
       .all();
 
-    const ideaRow = await db
-      .insert(schema.idea)
-      .values({ tripId: row.id, createdBy: owner, note: `${name} idea` })
-      .returning({ id: schema.idea.id })
-      .get();
-
     return {
       id: row.id,
       dayId: dayRow.id,
       eventId: events[0].id,
       lateEventId: events[1].id, // the 19:00 one
-      ideaId: ideaRow.id,
     };
   }
 

@@ -71,7 +71,7 @@ export async function setTripDates(
 }
 
 // Back to undated — supported (rule 9), not an error state. No window means
-// no extent, so the itinerary goes with it (ticket 140); ideas/money/people stay.
+// no extent, so the itinerary goes with it (ticket 140); notes/money/people stay.
 export async function clearTripDates(tripId: number) {
   const access = await requireTripAccess(tripId);
   await updateTrip(access.trip.id, { startDate: null, endDate: null });

@@ -18,8 +18,6 @@ export const LIMITS = {
   days: 366,
   /** Events on one day. A packed day is a dozen; a hundred is a runaway import. */
   eventsPerDay: 100,
-  /** Ideas on one board. */
-  ideas: 500,
   /** Expenses in one trip's ledger. */
   expenses: 2000,
   /** Split rows read back for one trip's balances. */

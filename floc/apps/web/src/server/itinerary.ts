@@ -127,7 +127,7 @@ export async function applyTripWindow(
 
 /* ---------------------------------------------- the reads the tabs render */
 // Three separate reads, not one loadDaysTab() — Days, Route, Money and the
-// invite teaser each want a different slice (ticket 118, see server/ideas.ts).
+// invite teaser each want a different slice (ticket 118).
 
 export type DayWithEvents = {
   id: number;

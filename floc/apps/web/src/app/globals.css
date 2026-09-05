@@ -30,8 +30,8 @@
  *   - `index`   → the token discipline: no component ever holds a hex value.
  *
  * Trimmed back to what the redesign actually uses (ticket 206): the ruled
- * sheet, the red margin, the tape, the boarding-pass landing page, the tilted
- * ideas board and the post-it washes are gone, along with their tokens.
+ * sheet, the red margin, the tape, the boarding-pass landing page and the
+ * post-it washes are gone, along with their tokens.
  */
 
 :root {
@@ -76,7 +76,7 @@
   --pen-2: #e7ebfa; /* the soft tint blue sits on */
 
   /* Four pastels, one per domain (wash / ink): peri = dates, mint = money,
-     butter = ideas and people, blush = route and places. THE ONLY PLACE THESE
+     butter = notes and people, blush = route and places. THE ONLY PLACE THESE
      SIX-DIGIT VALUES APPEAR — everything below aliases them. */
   --peri: #dfe3ff;
   --peri-ink: #33409b; /* 7.1:1 on peri */
@@ -1016,26 +1016,3 @@
   height: 15px;
 }
 
-/*
- * A block of ours embedded in the document — the ideas board (ticket 238).
- *
- * Two things the editor does to its own prose have to be undone inside it.
- * The first is the reset that flattens margin and padding on every `p` and
- * `li`: unlayered, so it beats Tailwind whatever the specificity, and it was
- * stripping the cards back to their text. `revert-layer` hands the value back
- * to the layer underneath, which is where the utilities live.
- */
-.bn-root .bn-default-styles [data-app-block] :is(p, li, h1, h2, h3, h4, h5, h6) {
-  font-size: revert-layer;
-  margin: revert-layer;
-  padding: revert-layer;
-  min-width: revert-layer !important;
-}
-
-/* The second is the blue wash ProseMirror lays over a selected node. On a
-   paragraph it reads as "selected"; over a board of pastel cards it reads as
-   broken. */
-.bn-block-content.ProseMirror-selectednode > [data-app-block]:after,
-.ProseMirror-selectednode > .bn-block-content > [data-app-block]:after {
-  content: none;
-}

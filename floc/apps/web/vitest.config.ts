@@ -34,12 +34,16 @@ export default defineConfig({
       // Re-baselined at the floc-core carve-out (#286, measured 58.82 / 78.38
       // / 84.29 / 58.82). The figures fell because `lib/` — pure and cheaply
       // covered — left for its own package, which now carries the higher
-      // ratchet. Nothing became less tested: the same 622 tests run, across
-      // two packages instead of one.
+      // ratchet. Nothing became less tested: the same tests run, across two
+      // packages instead of one.
+      //
+      // Branches dropped a point again when the idea board was removed: its
+      // actions were the most heavily branch-tested thing in `app/`, and
+      // deleting tested code moves the ratio without untesting anything.
       thresholds: {
         lines: 58,
         functions: 78,
-        branches: 84,
+        branches: 83,
         statements: 58,
       },
     },

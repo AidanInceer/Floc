@@ -11,7 +11,7 @@ import { countdownLabel, hasEnded } from "./dates";
 type StationState = "done" | "now" | "snag" | "ahead";
 
 type TrailStation = {
-  key: "ideas" | "dates" | "days" | "money";
+  key: "dates" | "days" | "money";
   label: string;
   caption: string;
   state: StationState;
@@ -35,8 +35,6 @@ export type TripStateInput<M extends StateMember> = {
   members: M[];
   viewerId: string;
   viewerIsAdmin: boolean;
-  ideaIds: number[];
-  votes: { ideaId: number; userId: string }[];
   availabilityUserIds: string[];
   days: { id: number; overnightPlaceId: number | null }[];
   expenses: { id: number; paidBy: string; currency: Currency; amountMinor: number }[];
@@ -63,9 +61,6 @@ export type TripState<M extends StateMember> = {
   stageNote: string;
   stations: TrailStation[];
   unresolved: {
-    voting: M[];
-    /** Without the viewer — the page renders this, not `voting`. */
-    votingOthers: M[];
     availability: M[];
     availabilityOthers: M[];
     /** User ids with a non-zero balance in any currency. */
@@ -73,7 +68,6 @@ export type TripState<M extends StateMember> = {
     moneyOthers: string[];
   };
   viewer: {
-    hasVotedAll: boolean;
     hasAvailability: boolean;
     positions: { currency: Currency; amount: number }[];
   };
@@ -84,26 +78,17 @@ export type TripState<M extends StateMember> = {
 export function tripStateFor<M extends StateMember>(
   input: TripStateInput<M>,
 ): TripState<M> {
-  const { trip, members, viewerId, ideaIds, days, expenses } = input;
+  const { trip, members, viewerId, days, expenses } = input;
 
-  const isBrandNew = ideaIds.length === 0;
   const hasDays = days.length > 0;
   const datesUnset = !trip.startDate && !trip.endDate;
   const ended = hasEnded(trip.endDate);
+  // Nothing decided yet: no window, no days, no spend. Was "the idea board is
+  // empty" until the board was removed — same question, asked of the data that
+  // is left.
+  const isBrandNew = datesUnset && !hasDays && expenses.length === 0;
 
   const withoutViewer = (list: M[]) => list.filter((m) => m.userId !== viewerId);
-
-  const votedByUser = new Map<string, Set<number>>();
-  for (const v of input.votes) {
-    const set = votedByUser.get(v.userId) ?? new Set<number>();
-    set.add(v.ideaId);
-    votedByUser.set(v.userId, set);
-  }
-  const voting = isBrandNew
-    ? []
-    : members.filter((m) => (votedByUser.get(m.userId)?.size ?? 0) < ideaIds.length);
-  const viewerHasVotedAll =
-    isBrandNew || (votedByUser.get(viewerId)?.size ?? 0) >= ideaIds.length;
 
   // Availability is only a question while dates are unset.
   const withAvailability = new Set(input.availabilityUserIds);
@@ -161,14 +146,14 @@ export function tripStateFor<M extends StateMember>(
         : { label: "Planning", tone: "marine" };
 
   const stageNote = isBrandNew
-    ? "Nothing posted yet — the first idea is what gets a trip moving."
+    ? "Nothing settled yet — a window everyone can do is what gets a trip moving."
     : ended
       ? "Still open — nothing about a finished trip is read-only."
       : hasDays
         ? trip.startDate
           ? "The itinerary is being sketched day by day."
           : "The itinerary is being sketched — the dates still aren't agreed."
-        : "Picking ideas and a route.";
+        : "Working out when, and where.";
 
   const placeCount = new Set(
     days.map((d) => d.overnightPlaceId).filter((p): p is number => p !== null),
@@ -176,18 +161,10 @@ export function tripStateFor<M extends StateMember>(
 
   const stations: TrailStation[] = [
     {
-      key: "ideas",
-      label: "Ideas",
-      caption: isBrandNew
-        ? "start here"
-        : `${ideaIds.length} posted${voting.length ? "" : ", all voted"}`,
-      state: isBrandNew ? "now" : voting.length ? "snag" : "done",
-    },
-    {
       key: "dates",
       label: "Dates",
       caption: datesUnset ? "still open" : "agreed",
-      state: datesUnset ? (isBrandNew ? "ahead" : "snag") : "done",
+      state: datesUnset ? "snag" : "done",
     },
     {
       key: "days",
@@ -210,7 +187,7 @@ export function tripStateFor<M extends StateMember>(
     },
   ];
 
-  // At most one "now" — Ideas is the default when nothing else is open.
+  // At most one "now" — Dates is the default when nothing else is open.
   if (!stations.some((s) => s.state === "now")) stations[0].state = "now";
 
   const leave = leaveCostFor({
@@ -230,15 +207,12 @@ export function tripStateFor<M extends StateMember>(
     stageNote,
     stations,
     unresolved: {
-      voting,
-      votingOthers: withoutViewer(voting),
       availability,
       availabilityOthers: withoutViewer(availability),
       money,
       moneyOthers: money.filter((u) => u !== viewerId),
     },
     viewer: {
-      hasVotedAll: viewerHasVotedAll,
       hasAvailability: viewerHasAvailability,
       positions,
     },

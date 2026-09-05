@@ -1,5 +1,5 @@
 /**
- * The reads ticket 118 moved off nine `page.tsx` files and into the
+ * The reads ticket 118 moved off the `page.tsx` files and into the
  * aggregates. Each is checked against a scenario with a second, disjoint
  * trip, for the two ways a hand-written join goes quietly wrong: rule 5 (no
  * cross-trip leakage) and rule 8 (soft-deleted rows stay gone).
@@ -9,13 +9,6 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
-import {
-  countIdeas,
-  listIdeaIds,
-  listIdeas,
-  listVotes,
-  tripIdsWithIdeas,
-} from "@/server/ideas";
 import {
   firstOvernightPlaceByTrip,
   listDaysWithEvents,
@@ -77,70 +70,6 @@ async function makeExpense(
   );
   return row.id;
 }
-
-describe("the ideas board's reads", () => {
-  it("returns the trip's own ideas, with the author already on them", async () => {
-    const ideas = await listIdeas(world.ours.id);
-
-    expect(ideas.map((i) => i.id)).toEqual([world.ours.ideaId]);
-    expect(ideas[0].authorName).toBe("Ada"); // the author join is the point of the aggregate
-    expect(await listIdeaIds(world.theirs.id)).toEqual([world.theirs.ideaId]);
-  });
-
-  it("drops a soft-deleted idea from every shape of the read", async () => {
-    await db
-      .update(schema.idea)
-      .set({ deletedAt: new Date() })
-      .where(eq(schema.idea.id, world.ours.ideaId));
-
-    expect(await listIdeas(world.ours.id)).toEqual([]);
-    expect(await listIdeaIds(world.ours.id)).toEqual([]);
-    expect(await countIdeas(world.ours.id)).toBe(0);
-    expect(await tripIdsWithIdeas([world.ours.id])).toEqual(new Set());
-  });
-
-  it("scopes votes through the idea, so another trip's never arrive", async () => {
-    await db.insert(schema.ideaVote).values([
-      { ideaId: world.ours.ideaId, userId: world.admin, value: "up" },
-      { ideaId: world.theirs.ideaId, userId: world.outsider, value: "up" },
-    ]);
-
-    const votes = await listVotes(world.ours.id);
-    expect(votes).toHaveLength(1);
-    expect(votes[0].ideaId).toBe(world.ours.ideaId);
-    expect(votes[0].name).toBe("Ada"); // voter may have since left the trip, so the roster can't answer this
-  });
-
-  it("drops a cleared vote, and a vote on a deleted idea", async () => {
-    await db.insert(schema.ideaVote).values({
-      ideaId: world.ours.ideaId,
-      userId: world.admin,
-      value: "up",
-    });
-    await db
-      .update(schema.ideaVote)
-      .set({ deletedAt: new Date() })
-      .where(eq(schema.ideaVote.ideaId, world.ours.ideaId));
-    expect(await listVotes(world.ours.id)).toEqual([]);
-
-    await db
-      .update(schema.ideaVote)
-      .set({ deletedAt: null })
-      .where(eq(schema.ideaVote.ideaId, world.ours.ideaId));
-    await db
-      .update(schema.idea)
-      .set({ deletedAt: new Date() })
-      .where(eq(schema.idea.id, world.ours.ideaId));
-    expect(await listVotes(world.ours.id)).toEqual([]);
-  });
-
-  it("answers the trip list's probe for the whole list in one read", async () => {
-    expect(await tripIdsWithIdeas([world.ours.id, world.theirs.id])).toEqual(
-      new Set([world.ours.id, world.theirs.id]),
-    );
-    expect(await tripIdsWithIdeas([])).toEqual(new Set());
-  });
-});
 
 describe("the itinerary's reads", () => {
   it("attaches each day's own events, in timeline order", async () => {

@@ -14,7 +14,6 @@ import {
   REACTION_KINDS,
   SPLIT_TYPES,
   TRANSPORT_TYPES,
-  VOTE_VALUES,
 } from "@floc/core/vocabulary";
 import { CURRENCIES } from "@floc/core/currency";
 import { DEFAULT_CATEGORY, EXPENSE_CATEGORIES } from "@floc/core/expense-category";
@@ -110,7 +109,6 @@ export {
   REACTION_KINDS,
   SPLIT_TYPES,
   TRANSPORT_TYPES,
-  VOTE_VALUES,
 } from "@floc/core/vocabulary";
 export type {
   CountryMarkState,
@@ -118,7 +116,6 @@ export type {
   ReactionKind,
   SplitType,
   TransportType,
-  VoteValue,
 } from "@floc/core/vocabulary";
 
 export const SIGNUP_CHANNELS = ["whatsapp", "email", "link", "direct"] as const;
@@ -181,9 +178,6 @@ export const userProfile = sqliteTable("user_profile", {
     .default(true),
   // No theme column — light-only (ticket 07).
   notifyInvites: integer("notify_invites", { mode: "boolean" })
-    .notNull()
-    .default(true),
-  notifyVotes: integer("notify_votes", { mode: "boolean" })
     .notNull()
     .default(true),
   notifyMoney: integer("notify_money", { mode: "boolean" })
@@ -344,30 +338,8 @@ export const tripInvite = sqliteTable(
 );
 
 /* -------------------------------------------------------------------------- */
-/* Ideas, voting, availability                                                */
+/* Availability, the Notes doc                                                */
 /* -------------------------------------------------------------------------- */
-
-export const idea = sqliteTable(
-  "idea",
-  {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    tripId: integer("trip_id")
-      .notNull()
-      .references(() => trip.id, { onDelete: "cascade" }),
-    createdBy: text("created_by")
-      .notNull()
-      .references(() => user.id),
-    note: text("note").notNull(),
-    /**
-     * Pinned to top (v0.2 ticket 09). Group state, not per-viewer. Timestamp,
-     * not boolean, so several pins keep a stable order. The only board position
-     * persisted — tilt and column are derived decoration, never stored.
-     */
-    pinnedAt: integer("pinned_at", { mode: "timestamp" }),
-    ...audit,
-  },
-  (t) => [index("idea_trip_idx").on(t.tripId)],
-);
 
 /**
  * The trip's Notes doc (ticket 238) — one row per trip, the whole document as
@@ -391,23 +363,6 @@ export const tripNoteDoc = sqliteTable(
     ...audit,
   },
   (t) => [uniqueIndex("trip_note_doc_trip_idx").on(t.tripId)],
-);
-
-// No reason field — the retired block+reason rule is gone (ticket 04).
-export const ideaVote = sqliteTable(
-  "idea_vote",
-  {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    ideaId: integer("idea_id")
-      .notNull()
-      .references(() => idea.id, { onDelete: "cascade" }),
-    userId: text("user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    value: text("value", { enum: VOTE_VALUES }).notNull(),
-    ...audit,
-  },
-  (t) => [uniqueIndex("idea_vote_unique_idx").on(t.ideaId, t.userId)],
 );
 
 /**
@@ -773,7 +728,7 @@ export const fxRate = sqliteTable(
 );
 
 /* -------------------------------------------------------------------------- */
-/* Polymorphic notes — the discussion threads on ideas and day events         */
+/* Polymorphic notes — the discussion threads on days, events and expenses    */
 /* -------------------------------------------------------------------------- */
 
 /**
@@ -805,7 +760,6 @@ export const NOTE_SCOPES = [
   "trip",
   "day",
   "day_event",
-  "idea",
   "expense",
 ] as const;
 export type NoteScope = (typeof NOTE_SCOPES)[number];
@@ -826,7 +780,7 @@ export const note = sqliteTable(
     /**
      * Null for a top-level comment. **Exactly one level deep** (v0.2 ticket
      * 06) — `addNote` walks up to the root before inserting a reply-to-a-reply,
-     * since Ideas renders threads in a `max-w-lg` modal.
+     * since a thread renders in a narrow panel.
      */
     parentId: integer("parent_id"),
     body: text("body").notNull(),
@@ -865,7 +819,7 @@ export const noteReaction = sqliteTable(
      * soft-deletes the row, so re-reacting must land on it rather than insert a
      * second. Without this a toggle was read-modify-write with nothing behind
      * it, and concurrent taps double-counted. Same shape as
-     * `idea_vote_unique_idx` and `friendship_pair_idx`, same reason.
+     * `friendship_pair_idx`, same reason.
      */
     uniqueIndex("note_reaction_one_idx").on(t.noteId, t.userId, t.kind),
   ],
@@ -875,7 +829,7 @@ export const noteReaction = sqliteTable(
 /* Nudges — peer-to-peer, no automation (ticket 01 step 6)                     */
 /* -------------------------------------------------------------------------- */
 
-export const NUDGE_TABS = ["ideas", "dates", "days", "money"] as const;
+export const NUDGE_TABS = ["notes", "dates", "days", "money"] as const;
 export type NudgeTab = (typeof NUDGE_TABS)[number];
 
 export const nudge = sqliteTable(
@@ -967,8 +921,6 @@ export type UserProfile = typeof userProfile.$inferSelect;
 export type Trip = typeof trip.$inferSelect;
 export type TripMembership = typeof tripMembership.$inferSelect;
 export type TripInvite = typeof tripInvite.$inferSelect;
-export type Idea = typeof idea.$inferSelect;
-export type IdeaVote = typeof ideaVote.$inferSelect;
 export type Availability = typeof availability.$inferSelect;
 export type Day = typeof day.$inferSelect;
 export type DayEvent = typeof dayEvent.$inferSelect;

@@ -69,7 +69,6 @@ const config = [
       "src/components/availability-calendar.tsx",
       "src/components/days-calendar.tsx",
       "src/components/expense-form.tsx",
-      "src/components/idea-card.tsx",
       "src/components/note-thread.tsx",
       "src/components/place-picker.tsx",
       "src/components/travel-map.tsx",

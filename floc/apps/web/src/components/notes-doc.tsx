@@ -9,17 +9,11 @@
 
 import dynamic from "next/dynamic";
 
-import type { IdeasBlockData } from "@/components/ideas-block";
-
 const NotesEditor = dynamic(
   () => import("@/components/notes-editor").then((m) => m.NotesEditor),
   { ssr: false, loading: () => <p className="typed">Opening the doc</p> },
 );
 
-export function NotesDoc(props: {
-  tripId: number;
-  initialDoc: string | null;
-  board: IdeasBlockData;
-}) {
+export function NotesDoc(props: { tripId: number; initialDoc: string | null }) {
   return <NotesEditor {...props} />;
 }

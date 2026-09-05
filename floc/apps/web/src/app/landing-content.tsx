@@ -9,7 +9,6 @@ import type { ReactNode } from "react";
 // Line-art in the app's own hand (CLAUDE.md: no emoji, no icon fonts). 14×14
 // viewBox, fill none, currentColor, hairline stroke.
 export type GlyphName =
-  | "ideas"
   | "dates"
   | "days"
   | "money"
@@ -31,12 +30,6 @@ export type GlyphName =
   | "weather";
 
 const PATHS: Record<GlyphName, ReactNode> = {
-  ideas: (
-    <>
-      <path d="M7 1.6a4 4 0 0 1 2.4 7.2c-.5.4-.7.7-.7 1.3v.4H5.3v-.4c0-.6-.2-.9-.7-1.3A4 4 0 0 1 7 1.6Z" />
-      <path d="M5.6 12.4h2.8M6 13.4h2" />
-    </>
-  ),
   dates: (
     <>
       <rect x="1.8" y="2.8" width="10.4" height="9.4" rx="1.6" />
@@ -188,11 +181,11 @@ export type Feature = {
 
 export const features: Feature[] = [
   {
-    icon: "ideas",
+    icon: "notes",
     lead: true,
     tone: "bg-butter text-butter-ink",
     title: "Decide where, together",
-    body: "Anyone can add a place. Everyone votes. The board picks, not the loudest voice.",
+    body: "One page the whole group writes on. The shortlist, the door code, the thing someone read — not buried in a chat.",
   },
   {
     icon: "dates",
@@ -222,11 +215,6 @@ export const features: Feature[] = [
     icon: "packing",
     title: "Pack once, pack right",
     body: "Split the list: what the group brings, what's on you. Nothing doubles up, nothing's forgotten.",
-  },
-  {
-    icon: "notes",
-    title: "Notes everyone can see",
-    body: "The door code lives here, not in someone's DMs. Write it once and everyone has it.",
   },
   {
     icon: "files",

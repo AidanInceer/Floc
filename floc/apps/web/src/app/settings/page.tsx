@@ -80,7 +80,6 @@ function sectionFor(asked: string | undefined): SectionId {
 
 const NOTIFICATION_TOGGLES = [
   { name: "notifyInvites", label: "Trip invites" },
-  { name: "notifyVotes", label: "New ideas & votes" },
   { name: "notifyMoney", label: "Costs added to a trip" },
   { name: "notifyNudges", label: "Nudges from other members" },
 ] as const;

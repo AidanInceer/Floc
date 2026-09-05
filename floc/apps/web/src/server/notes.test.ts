@@ -35,8 +35,8 @@ async function post(body: string, parentId: number | null = null) {
   await insertNote({
     tripId: world.ours.id,
     createdBy: world.admin,
-    scope: "idea",
-    scopeId: world.ours.ideaId,
+    scope: "day",
+    scopeId: world.ours.dayId,
     parentId,
     body,
   });
@@ -62,8 +62,8 @@ describe("replying", () => {
     const parent = await post("Worth a look");
     const resolved = await resolveParent({
       tripId: world.ours.id,
-      scope: "idea",
-      scopeId: world.ours.ideaId,
+      scope: "day",
+      scopeId: world.ours.dayId,
       replyTo: parent.id,
     });
     expect(resolved).toBe(parent.id);
@@ -75,8 +75,8 @@ describe("replying", () => {
 
     const resolved = await resolveParent({
       tripId: world.ours.id,
-      scope: "idea",
-      scopeId: world.ours.ideaId,
+      scope: "day",
+      scopeId: world.ours.dayId,
       replyTo: reply.id,
     });
     expect(resolved).toBe(parent.id);
@@ -88,8 +88,8 @@ describe("replying", () => {
     expect(
       await resolveParent({
         tripId: world.theirs.id,
-        scope: "idea",
-        scopeId: world.ours.ideaId,
+        scope: "day",
+        scopeId: world.ours.dayId,
         replyTo: parent.id,
       }),
     ).toBeUndefined();

@@ -34,8 +34,6 @@ const base = (
   members: [ada, mo],
   viewerId: "ada",
   viewerIsAdmin: true,
-  ideaIds: [],
-  votes: [],
   availabilityUserIds: [],
   days: [],
   expenses: [],
@@ -45,20 +43,24 @@ const base = (
 });
 
 describe("the stage", () => {
-  it("is 'Not started' until somebody posts an idea", () => {
+  it("is 'Not started' while no window, no days and no spend exist", () => {
     const state = tripStateFor(base());
     expect(state.isBrandNew).toBe(true);
     expect(state.stage.label).toBe("Not started");
-    expect(state.stageNote).toContain("first idea");
+    expect(state.stageNote).toContain("gets a trip moving");
   });
 
-  it("is 'Planning' once there are ideas but no days", () => {
-    expect(tripStateFor(base({ ideaIds: [1] })).stage.label).toBe("Planning");
+  it("is 'Planning' once the dates are set but no days exist", () => {
+    const state = tripStateFor(
+      base({ trip: { name: "t", startDate: "2099-09-01", endDate: "2099-09-08" } }),
+    );
+    expect(state.isBrandNew).toBe(false);
+    expect(state.stage.label).toBe("Planning");
   });
 
   it("is 'Underway' once days exist", () => {
     const state = tripStateFor(
-      base({ ideaIds: [1], days: [{ id: 1, overnightPlaceId: null }] }),
+      base({ days: [{ id: 1, overnightPlaceId: null }] }),
     );
     expect(state.stage.label).toBe("Underway");
     expect(state.hasDays).toBe(true);
@@ -67,7 +69,6 @@ describe("the stage", () => {
   it("is 'Ended' once the end date has passed, and says it stays editable", () => {
     const state = tripStateFor(
       base({
-        ideaIds: [1],
         days: [{ id: 1, overnightPlaceId: null }],
         trip: {
           name: "Past trip",
@@ -85,7 +86,7 @@ describe("the stage", () => {
   /** Non-negotiable 9: undated is normal, never an error state. */
   it("treats an undated trip as ordinary at every stage", () => {
     const state = tripStateFor(
-      base({ ideaIds: [1], days: [{ id: 1, overnightPlaceId: null }] }),
+      base({ days: [{ id: 1, overnightPlaceId: null }] }),
     );
     expect(state.datesUnset).toBe(true);
     expect(state.ended).toBe(false);
@@ -95,34 +96,6 @@ describe("the stage", () => {
 });
 
 describe("who still owes an answer", () => {
-  it("lists everyone who has not voted on every idea", () => {
-    const state = tripStateFor(
-      base({ ideaIds: [1, 2], votes: [{ ideaId: 1, userId: "ada" }] }),
-    );
-    expect(state.unresolved.voting.map((m) => m.userId)).toEqual(["ada", "mo"]);
-    expect(state.viewer.hasVotedAll).toBe(false);
-  });
-
-  it("clears once everyone has voted on everything", () => {
-    const state = tripStateFor(
-      base({
-        ideaIds: [1],
-        votes: [
-          { ideaId: 1, userId: "ada" },
-          { ideaId: 1, userId: "mo" },
-        ],
-      }),
-    );
-    expect(state.unresolved.voting).toEqual([]);
-    expect(state.viewer.hasVotedAll).toBe(true);
-  });
-
-  it("keeps 'everyone else' separate from 'everyone', because the page shows both", () => {
-    const state = tripStateFor(base({ ideaIds: [1] }));
-    expect(state.unresolved.voting).toHaveLength(2);
-    expect(state.unresolved.votingOthers.map((m) => m.userId)).toEqual(["mo"]);
-  });
-
   it("asks about availability only while the dates are unset", () => {
     const undated = tripStateFor(base({ availabilityUserIds: ["ada"] }));
     expect(undated.unresolved.availability.map((m) => m.userId)).toEqual(["mo"]);
@@ -201,10 +174,8 @@ describe("the trail", () => {
   it("marks exactly one station as 'now', always", () => {
     const cases: TripStateInput<StateMember>[] = [
       base(),
-      base({ ideaIds: [1] }),
-      base({ ideaIds: [1], days: [{ id: 1, overnightPlaceId: 4 }] }),
+      base({ days: [{ id: 1, overnightPlaceId: 4 }] }),
       base({
-        ideaIds: [1],
         days: [{ id: 1, overnightPlaceId: 4 }],
         trip: {
           name: "t",
@@ -223,7 +194,7 @@ describe("the trail", () => {
   // stamped. No station is ever shut now — an empty Days is "ahead", the same
   // as any other station nobody has got to yet.
   it("shows an empty Days as ahead, never as shut", () => {
-    const stations = tripStateFor(base({ ideaIds: [1] })).stations;
+    const stations = tripStateFor(base()).stations;
     expect(stations.find((s) => s.key === "days")?.state).toBe("ahead");
   });
 
@@ -232,7 +203,6 @@ describe("the trail", () => {
   it("counts distinct places on the route, not day rows", () => {
     const state = tripStateFor(
       base({
-        ideaIds: [1],
         trip: {
           name: "t",
           startDate: null,
