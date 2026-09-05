@@ -21,6 +21,7 @@
     "@trpc/tanstack-react-query": "^11.18.0",
     "better-auth": "~1.6.30",
     "expo": "~57.0.20",
+    "expo-build-properties": "~57.0.17",
     "expo-constants": "~57.0.17",
     "expo-linking": "~57.0.9",
     "expo-router": "~57.0.19",
