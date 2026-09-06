@@ -73,6 +73,114 @@ jobs:
       - name: Fitness
         run: pnpm turbo run fitness --filter='${{ steps.filter.outputs.value }}'
 
+  # Which parts of the repo this push touched. GitHub's own `paths:` filter
+  # only works at the workflow level, so a job that should run for mobile
+  # changes and skip a docs push has to ask git itself.
+  changes:
+    name: What changed
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      mobile: ${{ steps.check.outputs.mobile }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Did the mobile app change
+        id: check
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            base="origin/${{ github.base_ref }}"
+          else
+            base="HEAD^1"
+          fi
+          # The packages too: `@floc/core` and `@floc/api` are compiled into
+          # the phone's bundle, so a change there can break it.
+          if git diff --name-only "$base" HEAD | grep -qE '^(floc/apps/mobile/|floc/packages/|pnpm-lock\.yaml|\.github/workflows/ci\.yml)'; then
+            echo "mobile=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "mobile=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # The phone app has no `build` script, so the `verify` job above never builds
+  # it — lint, typecheck and test are all it sees. These two jobs are the rest.
+  #
+  # NOTHING HERE DEPLOYS. No EAS, no store, no signing. They prove the app
+  # compiles; whether it *runs* is still only ever answered on a device.
+  mobile:
+    name: Expo · bundles for Android and iOS
+    needs: changes
+    if: needs.changes.outputs.mobile == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # Advisory, not a gate. Expo pins a version of every dependency per SDK
+      # and `pnpm add` gives you npm's latest instead — a mismatch that shows
+      # up as a red screen at runtime, not an install error, which is why this
+      # is worth seeing. It is red today over three config-schema notes and a
+      # TypeScript major, so it reports rather than blocks until those are
+      # decided on.
+      - name: Doctor
+        continue-on-error: true
+        run: npx expo-doctor
+        working-directory: floc/apps/mobile
+
+      # Metro over the whole app, once per platform. Catches a broken import, a
+      # missing asset, a `Platform.select` that only holds up on one side —
+      # none of which typecheck sees. No native toolchain and no macOS runner:
+      # a bundle is JavaScript, so the iOS one builds here for nothing.
+      - name: Bundle
+        run: npx expo export --platform android --platform ios --output-dir dist
+        working-directory: floc/apps/mobile
+
+  # The real native compile: Java, Kotlin and CMake against the committed
+  # `android/` project. This is what catches a native module that was added but
+  # never wired in — the class of failure a bundle cannot see.
+  #
+  # ALLOWED TO FAIL for now. It has never been run in CI, so it reports red on
+  # the run page without blocking a push. Make it a gate once it is green.
+  mobile-android:
+    name: Android · native build (advisory)
+    needs: changes
+    if: needs.changes.outputs.mobile == 'true'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # JDK 17, not the runner's default. A newer JDK's restricted-native-access
+      # warning buries the real CMake error and the build looks unexplained.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # Debug, not release: release wants a signing key, and a key in CI is a
+      # secret this repo does not need to hold to prove the app compiles.
+      - name: Assemble
+        run: ./gradlew assembleDebug --no-daemon
+        working-directory: floc/apps/mobile/android
+
   # A schema change with no migration file is how floc's production
   # database fell behind its code: `trip.tags` shipped, nothing ever altered
   # the table, and every logged-in hit on /trips threw "no such column".
