@@ -1,0 +1,184 @@
+<title>App navigation — v3 (day first)</title>
+<style>
+  :root{
+    --paper:#fafafa;--sheet:#fff;--sheet-2:#f5f4f0;--rule:#e6e4de;--rule-2:#d8d5cd;
+    --ink:#14141a;--ink-2:#63636f;--pen:#4e68d8;--pen-deep:#2b3b85;--pen-2:#e7ebfa;
+    --peri:#dfe3ff;--peri-ink:#33409b;--peri-edge:#c6d0f2;
+    --mint:#dcefe4;--mint-ink:#1b6b4c;--mint-edge:#c3e3d2;
+    --butter:#fbeac8;--butter-ink:#8a6412;--butter-edge:#efd9ae;
+    --blush:#faddd6;--blush-ink:#a34a31;--blush-edge:#f0c7bc;
+    --shadow-sm:0 1px 2px rgb(20 20 26/.05);
+    --shadow:0 1px 2px rgb(20 20 26/.05),0 6px 14px -12px rgb(20 20 26/.3);
+    --display:"Bricolage Grotesque","Trebuchet MS",sans-serif;
+    --sans:"Instrument Sans",system-ui,-apple-system,sans-serif;
+    --type:"DM Mono","Cascadia Mono",Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
+    font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:86rem;margin:0 auto;padding:24px}
+  h1,h2,h3{font-family:var(--display);font-weight:600;letter-spacing:-.01em;margin:0}
+  .mono{font-family:var(--type);font-variant-numeric:tabular-nums}
+  .soft{color:var(--ink-2)}
+  svg{display:block}
+  .banner{max-width:86rem;margin:18px auto 0;padding:12px 20px;font-family:var(--type);
+    font-size:12px;color:var(--pen-deep);background:var(--pen-2);border-radius:12px;
+    border:1px solid var(--peri-edge);line-height:1.6}
+  .banner a{color:var(--pen-deep)}
+  .row{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start;margin-top:22px}
+  .cap{width:300px;font-size:13px;color:var(--ink-2);margin:10px 0 0}
+  .cap b{color:var(--ink);font-weight:600;font-family:var(--display)}
+
+  /* --- phone --- */
+  .phone{width:300px;height:620px;background:var(--paper);border:1px solid var(--rule-2);
+    border-radius:34px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;position:relative}
+  .status{height:26px;flex:none;display:flex;align-items:center;justify-content:space-between;
+    padding:0 18px;font-family:var(--type);font-size:10px;color:var(--ink-2)}
+  .nav{flex:none;padding:4px 16px 10px;display:flex;align-items:center;gap:10px}
+  .nav h2{font-size:21px}
+  .screen{flex:1;overflow:hidden;padding:0 16px;position:relative}
+  .bar{flex:none;height:58px;border-top:1px solid var(--rule);background:var(--sheet);
+    display:flex;align-items:center;justify-content:space-around;padding-bottom:4px}
+  .bi{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:var(--ink-2);flex:1}
+  .bi.on{color:var(--pen);font-weight:600}
+  .card{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;padding:13px 14px;margin-bottom:10px}
+  .chip{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;font-size:11px}
+  .av{width:22px;height:22px;border-radius:999px;display:inline-flex;align-items:center;
+    justify-content:center;font-size:10px;font-weight:600;border:1.5px solid var(--sheet)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;
+    border-radius:999px;font-size:13px;border:1px solid var(--rule);background:var(--sheet)}
+  .btn.blue{background:var(--pen);border-color:var(--pen);color:#fff;font-weight:600}
+  .seg{display:flex;gap:4px;background:var(--sheet-2);border-radius:999px;padding:3px}
+  .seg span{flex:1;text-align:center;font-size:12px;padding:5px 0;border-radius:999px;color:var(--ink-2)}
+  .seg span.on{background:var(--sheet);color:var(--ink);font-weight:600;box-shadow:var(--shadow-sm)}
+  .lbl{font-family:var(--type);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+  .verdict{margin-top:6px;padding:11px 13px;border-radius:12px;font-size:13px;line-height:1.55}
+  .good{background:var(--mint);border:1px solid var(--mint-edge);color:var(--mint-ink)}
+  .bad{background:var(--blush);border:1px solid var(--blush-edge);color:var(--blush-ink)}
+</style>
+<div class="banner">
+  WIREFRAME · Phone navigation · <b>Direction 3 — the day is the app</b><br>
+  A trip opens straight onto its days. Everything else &mdash; money, packing, notes, files &mdash; is reached from a sheet, not a tab.
+</div>
+<div class="wrap">
+  <div class="row">
+
+    <div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span>100%</span></div>
+        <div class="nav"><h2>Trips</h2><span style="margin-left:auto" class="btn blue">+ New</span></div>
+        <div class="screen">
+          <div class="card" style="background:var(--peri);border-color:var(--peri-edge)">
+            <div class="lbl" style="color:var(--peri-ink)">In 12 days</div>
+            <h3 style="font-size:17px;margin:3px 0 6px">Japan, cherry blossom</h3>
+            <div class="mono" style="font-size:11px;color:var(--peri-ink)">28 Mar &ndash; 9 Apr &middot; 12 nights</div>
+            <div style="display:flex;margin-top:10px">
+              <span class="av" style="background:var(--butter);color:var(--butter-ink)">A</span>
+              <span class="av" style="background:var(--mint);color:var(--mint-ink);margin-left:-6px">R</span>
+              <span class="av" style="background:var(--blush);color:var(--blush-ink);margin-left:-6px">M</span>
+              <span class="av" style="background:var(--sheet-2);color:var(--ink-2);margin-left:-6px">+2</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="lbl">No dates yet</div>
+            <h3 style="font-size:17px;margin:3px 0 6px">Lisbon, someday</h3>
+            <div class="soft" style="font-size:12px">3 going &middot; nothing planned</div>
+          </div>
+          <div class="card">
+            <div class="lbl">Finished</div>
+            <h3 style="font-size:17px;margin:3px 0 6px">Snowdonia</h3>
+            <div class="mono" style="font-size:11px;color:var(--ink-2)">You are owed &pound;42.10</div>
+          </div>
+        </div>
+        <div class="bar">
+          <span class="bi"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.2" cy="6.2" r="4.2"/><path d="M9.4 9.4 12 12"/></svg>Explore</span>
+          <span class="bi on"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4.2h10M2 7h10M2 9.8h6"/></svg>Trips</span>
+          <span class="bi"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="4.6" r="2.4"/><path d="M2.4 12c.6-2.6 2.4-3.8 4.6-3.8S11 9.4 11.6 12"/></svg>Profile</span>
+        </div>
+      </div>
+      <p class="cap"><b>1 &middot; Trips</b> Same root again.</p>
+    </div>
+
+    <div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span>100%</span></div>
+        <div class="nav">
+          <svg width="18" height="18" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 2.5 4 7l4.5 4.5"/></svg>
+          <h2 style="font-size:18px">Japan</h2>
+          <span style="margin-left:auto;display:flex;gap:5px;align-items:center">
+            <span class="chip" style="background:var(--blush);color:var(--blush-ink)">&minus;&pound;128</span>
+            <svg width="19" height="19" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2 4h10M2 7h10M2 10h10"/></svg>
+          </span>
+        </div>
+        <div class="screen" style="padding:0">
+          <div style="display:flex;gap:5px;padding:0 16px 10px;overflow:hidden">
+            <span class="chip" style="flex-direction:column;padding:5px 8px;background:var(--sheet);border:1px solid var(--rule)"><span class="lbl" style="font-size:8px">MON</span><b>28</b></span>
+            <span class="chip" style="flex-direction:column;padding:5px 8px;background:var(--pen);color:#fff"><span style="font-size:8px;opacity:.8">TUE</span><b>29</b></span>
+            <span class="chip" style="flex-direction:column;padding:5px 8px;background:var(--sheet);border:1px solid var(--rule)"><span class="lbl" style="font-size:8px">WED</span><b>30</b></span>
+            <span class="chip" style="flex-direction:column;padding:5px 8px;background:var(--sheet);border:1px solid var(--rule)"><span class="lbl" style="font-size:8px">THU</span><b>31</b></span>
+            <span class="chip" style="flex-direction:column;padding:5px 8px;background:var(--sheet);border:1px solid var(--rule)"><span class="lbl" style="font-size:8px">FRI</span><b>01</b></span>
+          </div>
+          <div style="padding:0 16px">
+            <div class="chip" style="background:var(--mint);color:var(--mint-ink);margin-bottom:9px">Overnight &middot; Tokyo</div>
+            <div class="card"><div class="mono" style="font-size:11px;color:var(--ink-2)">09:30</div><div style="font-size:14px">Tsukiji outer market</div></div>
+            <div class="card"><div class="mono" style="font-size:11px;color:var(--ink-2)">13:00</div><div style="font-size:14px">teamLab Planets</div><span class="chip" style="background:var(--butter);color:var(--butter-ink);margin-top:5px">Tickets needed</span></div>
+            <div class="card"><div class="mono" style="font-size:11px;color:var(--ink-2)">19:30</div><div style="font-size:14px">Dinner &mdash; Ichiran</div><div class="soft" style="font-size:11px">&pound;54.00 &middot; Mo paid</div></div>
+            <div class="card" style="border-style:dashed;color:var(--ink-2);text-align:center;font-size:13px">+ Add to this day</div>
+          </div>
+        </div>
+        <div class="bar">
+          <span class="bi"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.2" cy="6.2" r="4.2"/><path d="M9.4 9.4 12 12"/></svg>Explore</span>
+          <span class="bi on"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4.2h10M2 7h10M2 9.8h6"/></svg>Trips</span>
+          <span class="bi"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="4.6" r="2.4"/><path d="M2.4 12c.6-2.6 2.4-3.8 4.6-3.8S11 9.4 11.6 12"/></svg>Profile</span>
+        </div>
+      </div>
+      <p class="cap"><b>2 &middot; The trip is its days</b> No overview page at all. Money leaks in where it happened &mdash; the dinner shows its cost.</p>
+    </div>
+
+    <div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span>100%</span></div>
+        <div class="nav">
+          <svg width="18" height="18" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 2.5 4 7l4.5 4.5"/></svg>
+          <h2 style="font-size:18px">Japan</h2>
+        </div>
+        <div class="screen" style="padding:0">
+          <div style="position:absolute;inset:0;background:rgb(20 20 26/.28)"></div>
+          <div style="position:absolute;left:0;right:0;bottom:0;background:var(--sheet);
+                      border-top-left-radius:20px;border-top-right-radius:20px;
+                      border-top:1px solid var(--rule);padding:10px 16px 18px;box-shadow:var(--shadow)">
+            <div style="width:34px;height:4px;border-radius:999px;background:var(--rule-2);margin:0 auto 12px"></div>
+            <div class="lbl" style="margin-bottom:8px">Everything else</div>
+            <div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:11px 13px">
+              <span style="font-size:14px">Money</span><span class="mono" style="font-size:12px;color:var(--blush-ink)">&minus;&pound;128.40</span>
+            </div>
+            <div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:11px 13px">
+              <span style="font-size:14px">Packing</span><span class="mono soft" style="font-size:12px">4 of 19</span>
+            </div>
+            <div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:11px 13px">
+              <span style="font-size:14px">Notes</span><span class="mono soft" style="font-size:12px">Yesterday</span>
+            </div>
+            <div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:11px 13px">
+              <span style="font-size:14px">Files</span><span class="mono soft" style="font-size:12px">6</span>
+            </div>
+            <div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:11px 13px;margin-bottom:0">
+              <span style="font-size:14px">Who is coming</span><span class="mono soft" style="font-size:12px">5</span>
+            </div>
+          </div>
+        </div>
+        <div class="bar">
+          <span class="bi"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.2" cy="6.2" r="4.2"/><path d="M9.4 9.4 12 12"/></svg>Explore</span>
+          <span class="bi on"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4.2h10M2 7h10M2 9.8h6"/></svg>Trips</span>
+          <span class="bi"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="4.6" r="2.4"/><path d="M2.4 12c.6-2.6 2.4-3.8 4.6-3.8S11 9.4 11.6 12"/></svg>Profile</span>
+        </div>
+      </div>
+      <p class="cap"><b>3 &middot; The sheet</b> One menu holds the rest. It is a drawer, and drawers get ignored.</p>
+    </div>
+
+  </div>
+
+  <div style="max-width:52rem;margin-top:26px">
+    <div class="verdict good"><b>Good:</b> the strongest point of view, and it matches how the data is actually shaped &mdash; day-first, with no stop table. Unbeatable while you are on the trip, and it is where offline mode wants to land.</div>
+    <div class="verdict bad"><b>Costly:</b> punishing before the trip exists. A trip with no dates has no days, so the main screen is empty exactly when a group is deciding where to go &mdash; which is most of the planning. Everything not a day feels second class.</div>
+  </div>
+</div>

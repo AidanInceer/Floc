@@ -23,6 +23,18 @@
         "--no-clipboard"
       ],
       "port": 4000
+    },
+    {
+      "name": "wireframes",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "serve",
+        "floc/wireframe",
+        "-p",
+        "4100",
+        "--no-clipboard"
+      ],
+      "port": 4100
     }
   ]
 }
