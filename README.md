@@ -1,63 +1,55 @@
-# Nexus — Venture Hub
+<img src="docs/brand/floc-logo.svg" alt="floc" width="132" height="28">
 
-> A centralised monorepo for building multiple companies/products on shared
-> foundations. Spin up a new venture with infra, CI/CD, design system, and
-> security already in place — instead of rebuilding the plumbing every time.
+# floc — group-travel planning, sorted
 
-**Status:** pre-MVP. The hub structure exists; the one product
-(**[floc](floc/apps/web/README.md)** — a group-travel planner) is the only
-venture. Most other areas are documented placeholders, not running systems.
+Planning a trip with friends means one chat, five tabs, a spreadsheet and
+nobody sure who owes who. **floc** is one shared place for the whole trip.
 
-> **Nexus** is the name of this **incubator hub**, not any single product.
-> **Floc** is the product.
+**Status:** pre-MVP. One venture, one web app, one mobile app.
 
----
+## What it does
 
-## The idea
+- **Where** — pick places together, vote on ideas, see the route on a map.
+- **When** — everyone marks their availability; the dates fall out of it.
+- **The days** — a day-by-day itinerary, built from the places you picked.
+- **The money** — log expenses, split them, see who owes who at the end.
+- **The stuff** — shared notes, documents and packing lists.
 
-One repo, two kinds of thing:
+A trip has no lifecycle and no setup wizard. Add what you know; the app grows
+around it. Dates can stay unset forever and nothing breaks.
 
-- **The product** — `floc/`, holding its own `apps/`. A second venture would
-  sit beside it as its own top-level folder.
-- **Shared foundations** — everything a venture *inherits* rather than
-  duplicates: reusable packages, infra modules, security/compliance tooling,
-  internal tools, and enablement (templates, CLI, standards, onboarding).
-
-A venture should be able to focus on its product and lean on the hub for the
-undifferentiated heavy lifting
-
-## Layout
+## The shape of it
 
 ```
-/
-├── floc/                        # the product — group-travel planner
-│   ├── apps/web/                #   the Next.js app
-│   └── docs/                    #   product-scoped notes
-├── shared/                      # reused across every venture
-│   ├── packages/                #   design-system, ui-kit, shared-types, shared-utils, api-client
-│   ├── infra-modules/           #   reusable terraform/k8s modules
-│   └── data-modules/            #   reusable pipeline/warehouse templates
-├── infra/                       # the hub's own infrastructure
-│   ├── terraform/  kubernetes/  observability/  ci-cd/
-├── security-compliance/         # policies-as-code, vuln tooling, evidence automation
-├── internal-tools/              # docs site, admin dashboards, support tooling
-├── enablement/                  # templates, CLI, standards, onboarding — make teams fast
-└── docs/                        # hub-level documentation
+floc/
+├── apps/web/       Next.js App Router · Turso (libSQL) · Drizzle · Better Auth
+├── apps/mobile/    Expo — iOS + Android
+├── packages/
+│   ├── floc-core/  domain rules (money, dates, calendar, packing) + design tokens
+│   └── floc-api/   the tRPC router every non-web client reads a trip through
+└── wireframe/      throwaway HTML explorations
+docs/               local HTML docs site — open docs/index.html off disk
 ```
 
-## Quick links
+pnpm workspaces + Turborepo.
 
-- **All documentation** → [`docs/index.html`](docs/index.html) — open it in a
-  browser straight off disk. The docs are a small local-only site now, not
-  Markdown files: plain HTML, a sidebar to browse with, no server and no build.
-- **Wireframes** → [`docs/mockups/`](docs/mockups/README.md)
-- **The venture** → [`floc/apps/web/README.md`](floc/apps/web/README.md)
-- **Agent instructions** → [`CLAUDE.md`](CLAUDE.md) — one file, hub and product together
+## Run it
+
+```bash
+pnpm install
+pnpm dev
+pnpm verify   # everything CI runs — stop the dev server first
+```
+
+## Read next
+
+- [`CLAUDE.md`](CLAUDE.md) — the rules of the codebase, hub and product together
+- [`docs/index.html`](docs/index.html) — all documentation
+- [approach](docs/design/approach.html) · [visual language](docs/design/visual-language.html) · [architecture](docs/architecture/architecture.html) · [ERD](docs/data-model/erd.html)
+- [`learnings.md`](learnings.md) — pitfalls already paid for
 
 ## Conventions
 
-- Monorepo: **pnpm workspaces + Turborepo**.
-- Commits: **Conventional Commits** (`feat:`, `fix:`, `docs:`, `chore:`…),
-  ideally scoped by area (`feat(nexus): …`, `chore(infra): …`).
-- Each venture owns its stack but should prefer shared packages/modules.
-- Secrets never in the repo. See [`security-compliance/`](security-compliance/).
+- Conventional Commits (`feat:`, `fix:`, `docs:`…).
+- Secrets never in the repo.
+- British English, sentence case, no emoji, colours from tokens only.
