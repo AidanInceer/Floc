@@ -69,6 +69,7 @@ import {
   setClaimPacked,
   setPersonalPacked,
   softDeletePackingLine,
+  stepPersonalQuantity,
   unclaimPackingLine,
 } from "@/server/packing";
 import { travelMapFor } from "@/server/travel-map";
@@ -186,6 +187,15 @@ export const webPort: FlocPort = {
     // tick belongs to your claim, a personal line's to the line itself.
     if (line.ownerId === null) await setClaimPacked(line.id, viewerId, packed);
     else await setPersonalPacked(line.id, viewerId, packed);
+    refresh({ kind: "packing", tripId });
+  },
+
+  async stepPackingQuantity(viewerId, tripId, lineId, delta) {
+    const access = await scoped(viewerId, tripId);
+    // `packingLine` resolves a personal line only for its owner, so a bag that
+    // is not yours does not exist to this call.
+    const line = await access.packingLine(lineId);
+    await stepPersonalQuantity(line.id, viewerId, delta);
     refresh({ kind: "packing", tripId });
   },
 

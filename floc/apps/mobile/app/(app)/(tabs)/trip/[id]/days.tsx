@@ -6,13 +6,17 @@
  * `deriveStops`, which reads consecutive days sharing an overnight place. No
  * `stop` table exists and none ever will.
  *
- * ONE DAY ON SCREEN, THE REST IN THE STRIP. The web app lists every day down
- * the page because it has the room. A phone does not, so the strip is the
- * spine and the day below it is the detail. Same data, different shape — which
- * is the reason the two UIs are separate at all.
+ * ONE DAY ON SCREEN, THE REST IN THE STRIP. The web app draws hours down and
+ * days across. A phone has one column, so the day strip is the "days across"
+ * axis — spread over time instead of over the screen — and `DayGrid` draws the
+ * hours below it. The day itself is now the same drawing in both apps: the
+ * card list this replaced showed the events but never the gaps between them.
  *
  * TIMES ARE LOCAL TO THE ITINERARY (rule 10). `HH:MM` is displayed exactly as
  * stored; nothing here consults the device's timezone.
+ *
+ * ADDING LEADS. The button sat under the grid, so on a full day the one thing
+ * you came to do was a scroll past every hour of it (#302).
  *
  * UNDATED IS NOT BROKEN (rule 9). A trip with no days says so and points at
  * Dates. It is not gated, refused, or treated as an error state (rule 4).
@@ -25,21 +29,12 @@ import type { DayEventType } from "@floc/core/vocabulary";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 
+import { DayGrid } from "@/components/day-grid";
 import { DayStrip } from "@/components/day-strip";
 import { EventForm, type EventDraft } from "@/components/event-form";
-import {
-  Body,
-  Button,
-  Card,
-  Empty,
-  Failed,
-  Figure,
-  Label,
-  Loading,
-  Pill,
-} from "@/components/ui";
+import { Body, Button, Empty, Failed, Label, Loading, Pill } from "@/components/ui";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 
@@ -161,47 +156,6 @@ export default function Days() {
           <Body tone="ink-3">No overnight place set.</Body>
         )}
 
-        {orderEvents(day.events).map((event) =>
-          editing.kind === "edit" && editing.eventId === event.id ? (
-            <EventForm
-              key={event.id}
-              initial={{
-                type: event.type,
-                title: event.title ?? "",
-                time: event.time,
-                allDay: event.allDay,
-                note: event.note,
-              }}
-              busy={busy}
-              problem={problem}
-              onSave={save}
-              onCancel={() => setEditing({ kind: "none" })}
-              onDelete={() => deleteEvent.mutate({ tripId, eventId: event.id })}
-            />
-          ) : (
-            <Pressable
-              key={event.id}
-              accessibilityRole="button"
-              accessibilityLabel={`Edit ${event.title ?? "this"}`}
-              onPress={() => {
-                setEditing({ kind: "edit", eventId: event.id });
-                setProblem(null);
-              }}
-            >
-              <Card>
-                <Figure tone="ink-2">{event.allDay ? "All day" : (event.time ?? "—")}</Figure>
-                <Body>{event.title}</Body>
-                {event.note ? <Body tone="ink-2">{event.note}</Body> : null}
-                {event.placeName ? <Body tone="ink-3">{event.placeName}</Body> : null}
-              </Card>
-            </Pressable>
-          ),
-        )}
-
-        {day.events.length === 0 && editing.kind !== "add" ? (
-          <Body tone="ink-3">Nothing planned for this day.</Body>
-        ) : null}
-
         {editing.kind === "add" ? (
           <EventForm
             busy={busy}
@@ -219,6 +173,44 @@ export default function Days() {
             }}
           />
         )}
+
+        {/* Editing happens in place of the grid — a form under a calendar puts
+            the thing you are typing off the bottom of the screen. */}
+        {editing.kind === "edit" ? (
+          (() => {
+            const event = day.events.find((row) => row.id === editing.eventId);
+            if (!event) return null;
+            return (
+              <EventForm
+                initial={{
+                  type: event.type,
+                  title: event.title ?? "",
+                  time: event.time,
+                  allDay: event.allDay,
+                  note: event.note,
+                }}
+                busy={busy}
+                problem={problem}
+                onSave={save}
+                onCancel={() => setEditing({ kind: "none" })}
+                onDelete={() => deleteEvent.mutate({ tripId, eventId: event.id })}
+              />
+            );
+          })()
+        ) : (
+          <DayGrid
+            events={orderEvents(day.events)}
+            onPick={(eventId) => {
+              setEditing({ kind: "edit", eventId });
+              setProblem(null);
+            }}
+          />
+        )}
+
+        {day.events.length === 0 && editing.kind === "none" ? (
+          <Body tone="ink-3">Nothing planned for this day.</Body>
+        ) : null}
+
       </ScrollView>
     </View>
   );

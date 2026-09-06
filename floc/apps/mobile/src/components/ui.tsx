@@ -13,7 +13,7 @@
  *   - Status always carries a word, never colour alone.
  *   - If the drawing is clear, say nothing.
  */
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -27,6 +27,8 @@ import {
 
 import { fonts, radius, size, space } from "@/lib/theme";
 
+import { ChevronGlyph } from "./glyphs";
+import { Sheet } from "./sheet";
 import { useTheme } from "./theme";
 
 /* ------------------------------------------------------------------ text */
@@ -347,6 +349,168 @@ export function Screen({ children }: { children: ReactNode }) {
   return (
     <View style={{ flex: 1, backgroundColor: c.paper, padding: space.lg, gap: space.lg }}>
       {children}
+    </View>
+  );
+}
+
+/**
+ * A square tap target holding one glyph (#302 follow-up).
+ *
+ * WHY THIS EXISTS. Packing drew a stack of full-width `Button`s per line —
+ * three bars of the same weight as "Save", for actions that are neither
+ * primary nor rare. That is a web page's row of buttons dropped onto a phone:
+ * it makes a five-item list four screens long and gives "Remove" the same
+ * shout as "I've packed it".
+ *
+ * A glyph alone is allowed here and only here: the row's *status* is still a
+ * word beside it (#204), and every one of these carries `accessibilityLabel`,
+ * so nothing is said by drawing alone.
+ */
+export function IconButton({
+  label,
+  on,
+  tone = "quiet",
+  disabled,
+  children,
+  onPress,
+}: {
+  /** Said aloud, and the only place the action is named. Never optional. */
+  label: string;
+  /** Filled rather than outlined — the state is on. */
+  on?: boolean;
+  tone?: "quiet" | "danger";
+  disabled?: boolean;
+  children: (color: string) => ReactNode;
+  onPress: () => void;
+}) {
+  const { c } = useTheme();
+  const ink = disabled
+    ? c["ink-3"]
+    : on
+      ? c["mint-ink"]
+      : tone === "danger"
+        ? c.red
+        : c["ink-2"];
+  const ground = on && !disabled ? c.mint : "transparent";
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected: !!on, disabled: !!disabled }}
+      onPress={onPress}
+      disabled={disabled}
+      hitSlop={6}
+      style={({ pressed }) => ({
+        width: 34,
+        height: 34,
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: radius.md,
+        backgroundColor: ground,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: on && !disabled ? c["mint-edge"] : c.rule,
+        opacity: disabled ? 0.4 : pressed ? 0.6 : 1,
+      })}
+    >
+      {children(ink)}
+    </Pressable>
+  );
+}
+
+/** A list line: what it is on the left, what you can do to it on the right. */
+export function Row({ children }: { children: ReactNode }) {
+  const { c } = useTheme();
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: space.md,
+        backgroundColor: c.sheet,
+        borderColor: c.rule,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderRadius: radius.md,
+        paddingVertical: space.sm,
+        paddingHorizontal: space.md,
+      }}
+    >
+      {children}
+    </View>
+  );
+}
+
+/**
+ * Pick one of a list, from a sheet.
+ *
+ * A phone has no `<select>`, and the two obvious substitutes both failed here:
+ * a `Segmented` lays eight equal cells across the width and breaks a word
+ * across two lines, and a scrolling pill strip drawn directly above the
+ * packing filter made two different questions look like one control (#302).
+ * A closed line showing the answer is neither.
+ */
+export function Dropdown<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: { value: T; label: string }[];
+  value: T;
+  onChange: (value: T) => void;
+}) {
+  const { c } = useTheme();
+  const [open, setOpen] = useState(false);
+  const chosen = options.find((option) => option.value === value);
+
+  return (
+    <View style={{ gap: space.xs }}>
+      <Label>{label}</Label>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${label}: ${chosen?.label ?? ""}`}
+        onPress={() => setOpen(true)}
+        style={({ pressed }) => ({
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          backgroundColor: c.sheet,
+          borderColor: c.rule,
+          borderWidth: StyleSheet.hairlineWidth,
+          borderRadius: radius.md,
+          padding: space.md,
+          opacity: pressed ? 0.7 : 1,
+        })}
+      >
+        <Body>{chosen?.label ?? ""}</Body>
+        <ChevronGlyph color={c["ink-3"]} />
+      </Pressable>
+
+      <Sheet open={open} onClose={() => setOpen(false)}>
+        {options.map((option) => (
+          <Pressable
+            key={option.value}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: option.value === value }}
+            accessibilityLabel={option.label}
+            onPress={() => {
+              onChange(option.value);
+              setOpen(false);
+            }}
+            style={({ pressed }) => ({
+              paddingVertical: space.md,
+              paddingHorizontal: space.lg,
+              backgroundColor: pressed ? c["sheet-2"] : "transparent",
+            })}
+          >
+            {/* The chosen one says so in words — a tint alone is not a state (#204). */}
+            <Body tone={option.value === value ? "ink" : "ink-2"}>
+              {option.value === value ? `${option.label} · chosen` : option.label}
+            </Body>
+          </Pressable>
+        ))}
+      </Sheet>
     </View>
   );
 }

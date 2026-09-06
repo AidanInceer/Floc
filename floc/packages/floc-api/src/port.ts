@@ -317,6 +317,22 @@ export type FlocPort = {
     packed: boolean,
   ): Promise<void>;
 
+  /**
+   * Nudges a personal line's count by one. Only your own bag has counts — a
+   * shared line is one thing the group brings, and "three tents" is three
+   * lines somebody has to claim separately.
+   *
+   * A delta, not a number, on purpose: the host clamps and adds in SQL, so two
+   * quick taps are two additions rather than the slower one overwriting the
+   * faster with a stale total.
+   */
+  stepPackingQuantity(
+    viewerId: string,
+    tripId: number,
+    lineId: number,
+    delta: 1 | -1,
+  ): Promise<void>;
+
   /** Soft-deletes one line (rule 8). A shared line is anyone's to drop; a personal one only its owner's. */
   removePackingLine(viewerId: string, tripId: number, lineId: number): Promise<void>;
 

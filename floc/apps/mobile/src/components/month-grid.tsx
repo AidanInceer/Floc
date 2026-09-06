@@ -18,7 +18,7 @@
  */
 import { WEEKDAY_LABELS, monthGrid, type IsoMonth } from "@floc/core/availability";
 import { useRef, useState } from "react";
-import { PanResponder, StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";
+import { PanResponder, StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "./theme";
 import { fonts, radius, size, space } from "@/lib/theme";
@@ -103,6 +103,14 @@ export function MonthGrid({
   const geometry = useRef({ width: 0, weeks });
   geometry.current = { width, weeks };
 
+  // THE SAME TRAP, for the callbacks (#302 follow-up). `PanResponder.create`
+  // runs once, so it captured the FIRST render's `onPaint` and kept calling it
+  // for the life of the screen — with the first render's `view` and the first
+  // render's marks baked in. That is why a tap "did not work most of the
+  // time": it worked, against a state three renders old.
+  const handlers = useRef({ onPaint, onRelease });
+  handlers.current = { onPaint, onRelease };
+
   /** Which date is under a touch, from the grid's own geometry. Null off the grid or on a pad cell. */
   function dateAt(x: number, y: number): string | null {
     const { width: gridWidth, weeks: rows } = geometry.current;
@@ -117,31 +125,32 @@ export function MonthGrid({
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
+      // The grid sits in a ScrollView. Without this the parent can steal the
+      // gesture mid-drag and the painted run stops where the scroll began.
+      onPanResponderTerminationRequest: () => false,
       onPanResponderGrant: (event) => {
         const date = dateAt(event.nativeEvent.locationX, event.nativeEvent.locationY);
         if (!date) return;
         anchor.current = date;
-        onPaint(date, date);
+        handlers.current.onPaint(date, date);
       },
       onPanResponderMove: (event) => {
         if (!anchor.current) return;
         const date = dateAt(event.nativeEvent.locationX, event.nativeEvent.locationY);
         // Off the grid mid-drag keeps the last good span rather than clearing
         // it — a finger straying over the edge is not a change of mind.
-        if (date) onPaint(anchor.current, date);
+        if (date) handlers.current.onPaint(anchor.current, date);
       },
       onPanResponderRelease: () => {
         anchor.current = null;
-        onRelease();
+        handlers.current.onRelease();
       },
       onPanResponderTerminate: () => {
         anchor.current = null;
-        onRelease();
+        handlers.current.onRelease();
       },
     }),
   ).current;
-
-  const measure = (event: LayoutChangeEvent) => setWidth(event.nativeEvent.layout.width);
 
   return (
     <View>
@@ -162,9 +171,25 @@ export function MonthGrid({
         ))}
       </View>
 
-      <View onLayout={measure} {...responder.panHandlers}>
+      {/*
+        `pointerEvents="none"` on every week row is what makes
+        `locationX` trustworthy. A touch is measured from the view that
+        *received* it, so while the day cells were targets the reading restarted
+        at zero inside every cell and the finger landed on the wrong date — the
+        tap that "did nothing" had painted a day somewhere else. With the cells
+        out of the way the grid receives every touch itself, and one coordinate
+        frame covers the month.
+      */}
+      <View
+        onLayout={(event) => setWidth(event.nativeEvent.layout.width)}
+        {...responder.panHandlers}
+      >
         {weeks.map((week, row) => (
-          <View key={row} style={{ flexDirection: "row", height: ROW_HEIGHT }}>
+          <View
+            key={row}
+            pointerEvents="none"
+            style={{ flexDirection: "row", height: ROW_HEIGHT }}
+          >
             {week.map((date, column) => {
               if (!date) return <View key={column} style={{ flex: 1 }} />;
               return <DayCell key={column} date={date} cell={look(date)} />;

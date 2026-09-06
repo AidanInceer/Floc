@@ -22,13 +22,14 @@
  * SETTLING IS NOT AN ADMIN POWER (rule 6). Any member records a transfer, in
  * either direction — the four powers are invite, kick, promote and archive.
  */
+import { formatDate } from "@floc/core/dates";
 import { formatMoney, suggestSettlements, computeBalances, toMajorInput } from "@floc/core/money";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
 
-import { ExpenseForm, type ExpenseDraft } from "@/components/expense-form";
+import { ExpenseForm, type DayOption, type ExpenseDraft } from "@/components/expense-form";
 import { useTheme } from "@/components/theme";
 import {
   Body,
@@ -40,21 +41,12 @@ import {
   Heading,
   Label,
   Loading,
-  Segmented,
 } from "@/components/ui";
 import { trpc } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 import { ledgerCurrency, viewerBalance } from "@/lib/balance";
 import { radius, space } from "@/lib/theme";
 import type { Ledger } from "@floc/api/port";
-
-/** Everything the group spent, or only what the viewer is in on. A view, not a filter of truth. */
-type Scope = "all" | "mine";
-
-const SCOPES = [
-  { value: "all" as const, label: "Everything" },
-  { value: "mine" as const, label: "Just mine" },
-];
 
 /** Nothing open, adding, or editing this expense. One state, so two cannot both be true. */
 type Editing = { kind: "none" } | { kind: "add" } | { kind: "edit"; expenseId: number };
@@ -82,11 +74,15 @@ function BalanceCard({
   const tone = owing ? "blush" : "mint";
   return (
     <Card style={{ backgroundColor: c[tone], borderColor: c[`${tone}-edge`] }}>
-      <View style={{ gap: space.sm }}>
+      {/* Centred, like the web page's settled panel: one figure, alone, is a
+          statement rather than the first item of a list. */}
+      <View style={{ gap: space.sm, alignItems: "center", paddingVertical: space.md }}>
         <Heading>{figure}</Heading>
         {lines.length > 0 ? <Body tone="ink-2">{lines.join(" · ")}</Body> : null}
         {lines.length > 0 ? (
-          <Button label="Settle up" variant="quiet" busy={busy} onPress={onSettle} />
+          <View style={{ alignSelf: "stretch" }}>
+            <Button label="Settle up" variant="quiet" busy={busy} onPress={onSettle} />
+          </View>
         ) : null}
       </View>
     </Card>
@@ -110,12 +106,14 @@ export default function Money() {
   const { c } = useTheme();
   const { data: session } = useSession();
 
-  const [scope, setScope] = useState<Scope>("all");
   const [editing, setEditing] = useState<Editing>({ kind: "none" });
   const [problem, setProblem] = useState<string | null>(null);
 
   const trip = useQuery(trpc.trips.get.queryOptions({ tripId }, { enabled: ready }));
   const ledger = useQuery(trpc.money.ledger.queryOptions({ tripId }, { enabled: ready }));
+  // For "which day". An undated trip returns none, which is not an error
+  // (rule 9) — the form simply stops asking.
+  const itinerary = useQuery(trpc.itinerary.days.queryOptions({ tripId }, { enabled: ready }));
 
   const done = () => {
     setEditing({ kind: "none" });
@@ -147,6 +145,11 @@ export default function Money() {
   const nameOf = (userId: string) =>
     members.find((member) => member.userId === userId)?.name ?? "Someone who left";
 
+  const dayOptions: DayOption[] = (itinerary.data ?? []).map((day) => ({
+    id: day.id,
+    label: formatDate(day.date),
+  }));
+
   const currency = ledgerCurrency(ledger.data);
   const balance = viewerBalance(ledger.data, me);
   const owing = balance.minor < 0;
@@ -177,14 +180,16 @@ export default function Money() {
       `${transfer.from === me ? nameOf(transfer.to) : nameOf(transfer.from)} ${formatMoney(transfer.amountMinor, currency)}`,
   );
 
-  const shown =
-    scope === "all"
-      ? ledger.data.expenses
-      : ledger.data.expenses.filter((expense) => shareOf(ledger.data, expense.id, me) !== null);
+  // Every expense, always. There was a two-way switch here; it earned its
+  // removal — a trip splits money between *people*, not between "mine" and
+  // "everyone", and every line on this list is already labelled with the
+  // viewer's own share. The filter hid rows to say what the rows already said.
+  const shown = ledger.data.expenses;
 
+  // Everything the API is told now comes from the form. It used to guess the
+  // payer, the day, the note and the split type, which is how the phone could
+  // record an expense it had no way to describe.
   function save(draft: ExpenseDraft) {
-    const payer = me;
-    if (!payer) return;
     write.mutate({
       tripId,
       ...(editing.kind === "edit" ? { expenseId: editing.expenseId } : {}),
@@ -192,15 +197,10 @@ export default function Money() {
       amountMinor: draft.amountMinor,
       currency,
       category: "other",
-      splitType: "shares",
-      // An edit keeps whoever actually paid; a new one is paid by whoever is
-      // holding the phone. Neither is guessed from the split.
-      paidBy:
-        editing.kind === "edit"
-          ? (snapshot.expenses.find((e) => e.id === editing.expenseId)?.paidBy ?? payer)
-          : payer,
-      dayId: null,
-      notes: null,
+      splitType: draft.splitType,
+      paidBy: draft.paidBy,
+      dayId: draft.dayId,
+      notes: draft.notes,
       splits: draft.splits,
     });
   }
@@ -220,22 +220,23 @@ export default function Money() {
 
   return (
     <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }}>
-      <BalanceCard
-        figure={balance.figure}
-        owing={owing}
-        lines={lines}
-        busy={settle.isPending}
-        onSettle={settleAll}
-      />
-
-      <Segmented options={SCOPES} value={scope} onChange={setScope} />
+      {/* Only while somebody owes somebody. A whole panel whose news is
+          "settled" is a panel reporting the absence of news — the expenses
+          below already show every share is square (#126). */}
+      {snapshot.expenses.length > 0 && lines.length > 0 ? (
+        <BalanceCard
+          figure={balance.figure}
+          owing={owing}
+          lines={lines}
+          busy={settle.isPending}
+          onSettle={settleAll}
+        />
+      ) : null}
 
       {problem ? <Body tone="red">{problem}</Body> : null}
 
       {shown.length === 0 ? (
-        <Empty>
-          {scope === "mine" ? "Nothing here is yours yet." : "Nothing spent yet."}
-        </Empty>
+        <Empty>Nothing spent yet.</Empty>
       ) : null}
 
       {shown.map((expense) =>
@@ -243,10 +244,15 @@ export default function Money() {
           <ExpenseForm
             key={expense.id}
             people={members}
+            days={dayOptions}
+            viewerId={me ?? ""}
             currency={expense.currency}
             initial={{
               description: expense.description,
               amount: toMajorInput(expense.amountMinor, expense.currency),
+              paidBy: expense.paidBy,
+              dayId: expense.dayId ?? null,
+              notes: expense.notes ?? "",
               inOn: ledger.data.splits
                 .filter((split) => split.expenseId === expense.id && split.owedAmountMinor !== 0)
                 .map((split) => split.userId),
@@ -296,6 +302,8 @@ export default function Money() {
           <Label>Add an expense</Label>
           <ExpenseForm
             people={members}
+            days={dayOptions}
+            viewerId={me ?? ""}
             currency={currency}
             busy={write.isPending}
             onSave={save}

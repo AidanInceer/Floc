@@ -29,10 +29,8 @@ import { RosterStrip } from "@/components/roster-strip";
 import {
   Body,
   Card,
-  Empty,
   Failed,
   Figure,
-  Heading,
   Label,
   Loading,
   Pill,
@@ -104,8 +102,9 @@ export default function Overview() {
 
   return (
     <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.xl }}>
+      {/* No name here: the header carries it on every section, and printing it
+          again on one of the six said the same word twice for no reason. */}
       <View style={{ gap: space.xs }}>
-        <Heading>{trip.data.name}</Heading>
         <Figure tone="ink-2">{formatDateRange(trip.data.startDate, trip.data.endDate)}</Figure>
         {trip.data.archived ? <Pill word="Archived" tone="butter" /> : null}
       </View>
@@ -148,10 +147,6 @@ export default function Overview() {
           )}
         </Card>
       </View>
-
-      {trip.data.members.length === 1 ? (
-        <Empty>Only you so far. Inviting is on the website.</Empty>
-      ) : null}
     </ScrollView>
   );
 }

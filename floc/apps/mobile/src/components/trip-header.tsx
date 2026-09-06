@@ -93,14 +93,18 @@ export function TripHeader({
   balance,
   owing,
   onGo,
+  onEditName,
 }: {
   title: string;
   sections: Section[];
   /** The section showing, as a route — `""` for the trip's index. */
   current: string;
-  balance: string;
+  /** The figure, or null when there is nothing spent to have a balance about. */
+  balance: string | null;
   owing: boolean;
   onGo: (route: string) => void;
+  /** Tapping the name renames it. The trip's own layout owns the sheet and the write. */
+  onEditName: () => void;
 }) {
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
@@ -124,26 +128,46 @@ export function TripHeader({
           paddingVertical: space.md,
         }}
       >
-        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={router.back}>
+        {/* To the trip list, not to wherever you happened to be. `router.back`
+            popped the navigation history, so opening a trip from Explore and
+            leaving it put you back on Explore — the arrow above a trip means
+            "out of this trip", and out of a trip is the list of them (#302). */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="All trips"
+          onPress={() => router.navigate("/trips")}
+        >
           <BackArrow color={c.ink} />
         </Pressable>
-        <Text
-          numberOfLines={1}
-          style={{
-            flex: 1,
-            color: c.ink,
-            fontFamily: fonts.display,
-            fontSize: size.heading,
-            fontWeight: "600",
-          }}
+        {/* The name is the control. A trip is named once and renamed rarely,
+            so a labelled field parked at the foot of Overview was a permanent
+            form for an occasional job — and it printed the name a second time
+            to do it (#126, #302). Tapping the title is the whole affordance. */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Rename ${title}`}
+          onPress={onEditName}
+          style={{ flex: 1 }}
         >
-          {title}
-        </Text>
-        <BalanceChip
-          text={balance}
-          tone={owing ? "blush" : "mint"}
-          onPress={() => onGo("money")}
-        />
+          <Text
+            numberOfLines={1}
+            style={{
+              color: c.ink,
+              fontFamily: fonts.display,
+              fontSize: size.heading,
+              fontWeight: "600",
+            }}
+          >
+            {title}
+          </Text>
+        </Pressable>
+        {balance !== null ? (
+          <BalanceChip
+            text={balance}
+            tone={owing ? "blush" : "mint"}
+            onPress={() => onGo("money")}
+          />
+        ) : null}
       </View>
 
       <ScrollView

@@ -1,163 +1,310 @@
 /**
- * Add or edit one expense, with its split (ticket 300).
+ * Add or edit one expense (ticket 300, reshaped #302).
  *
- * MONEY IS NEVER A FLOAT (rule 1). What a person types is a string. It becomes
- * integer minor units through `parseMoney` and nothing else, and if `parseMoney`
- * refuses it the person is told — a rejection is a message, never a throw.
+ * WHAT IT LOOKS LIKE AND WHY. The form asks the seven things the web modal
+ * asks and used to be drawn the way the web modal draws them: a labelled block
+ * per question, stacked. On a desk that is a modal; on a phone it was a page
+ * and a half of scrolling for an expense that is usually "lunch, £24, split
+ * four ways". Three compressions were drawn and looked at on the device — rows,
+ * a sentence, and this. This one won.
  *
- * SPLITS ARE SNAPSHOTS (rule 2). The form hands back the whole split set,
- * computed by `computeSplits` from `@floc/core/money`, and the API rewrites
- * expense and splits in one transaction. Nothing here edits one split alone,
- * and nothing recalculates an old expense's split from today's roster.
+ * THE TWO THINGS NOBODY CAN GUESS ARE UP. What it was for and how much: those
+ * have to be typed, so they open the card, one line each. The split follows,
+ * because it is the thing groups actually disagree about.
  *
- * THE SHARE PICKER IS WHO, NOT HOW MUCH. Shares of 1 or 0 per person is what a
- * group actually wants nine times in ten — "was I in on this?" — and it keeps
- * the leftover penny landing where `computeSplits` puts it, the same place the
- * web app puts it.
+ * THE THREE THAT ARE USUALLY RIGHT FOLD. The payer is whoever is holding the
+ * phone, the day is none, the note is empty. What is folded is still *said*
+ * while it is folded — "Aidan paid · No day" — so the fold hides controls and
+ * never facts (#126).
+ *
+ * THE RULES ARE NOT HERE. `expense-form-parts` holds every one of them, so
+ * money, splits and rejections cannot drift from the drawing.
  */
-import type { Currency } from "@floc/core/currency";
-import { computeSplits, parseMoney } from "@floc/core/money";
-import { useState } from "react";
-import { Pressable, View } from "react-native";
+import { formatMoney } from "@floc/core/money";
+import { useState, type ReactNode } from "react";
+import { Pressable, StyleSheet, TextInput, View } from "react-native";
 
+import {
+  MODES,
+  ParticipantChips,
+  Participants,
+  Pills,
+  buildDraft,
+  dayOptions,
+  labelOf,
+  payerOptions,
+  trySave,
+  useFields,
+  type ExpenseFormProps,
+} from "./expense-form-parts";
 import { useTheme } from "./theme";
-import { Body, Button, Card, Field, Label } from "./ui";
-import { radius, space } from "@/lib/theme";
+import { Body, Button, Card, Field, Label, Segmented } from "./ui";
+import { fonts, size, space } from "@/lib/theme";
 
-export type ExpenseDraft = {
-  description: string;
-  amountMinor: number;
-  splits: { userId: string; owedAmountMinor: number }[];
-};
+export type { DayOption, ExpenseDraft } from "./expense-form-parts";
 
-type Person = { userId: string; name: string };
+/** One line: what is being asked on the left, the answer on the right. */
+function Line({ label, children, first }: { label: string; children: ReactNode; first?: boolean }) {
+  const { c } = useTheme();
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: space.md,
+        paddingVertical: space.sm,
+        borderTopWidth: first ? 0 : StyleSheet.hairlineWidth,
+        borderTopColor: c.rule,
+      }}
+    >
+      <Label>{label}</Label>
+      <View style={{ flexShrink: 1, alignItems: "flex-end" }}>{children}</View>
+    </View>
+  );
+}
 
-function Who({
-  people,
-  inOn,
-  onToggle,
+/** A bare input with no label of its own — the line beside it already said what it is. */
+function Plain({
+  value,
+  onChangeText,
+  placeholder,
+  accessibilityLabel,
+  numeric,
+  big,
 }: {
-  people: Person[];
-  inOn: Set<string>;
-  onToggle: (userId: string) => void;
+  value: string;
+  onChangeText: (value: string) => void;
+  placeholder: string;
+  accessibilityLabel: string;
+  numeric?: boolean;
+  big?: boolean;
 }) {
   const { c } = useTheme();
   return (
-    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.sm }}>
-      {people.map((person) => {
-        const on = inOn.has(person.userId);
-        return (
-          <Pressable
-            key={person.userId}
-            accessibilityRole="checkbox"
-            accessibilityState={{ checked: on }}
-            accessibilityLabel={person.name}
-            onPress={() => onToggle(person.userId)}
-            style={{
-              paddingVertical: space.sm,
-              paddingHorizontal: space.md,
-              borderRadius: radius.pill,
-              backgroundColor: on ? c.mint : c["sheet-2"],
-              borderWidth: 1,
-              borderColor: on ? c["mint-edge"] : c.rule,
-            }}
-          >
-            {/* The word "in", not the fill, is what says they are in (#204). */}
-            <Body tone={on ? "ink" : "ink-3"}>{on ? `${person.name} · in` : person.name}</Body>
-          </Pressable>
-        );
-      })}
+    <TextInput
+      accessibilityLabel={accessibilityLabel}
+      value={value}
+      onChangeText={onChangeText}
+      placeholder={placeholder}
+      placeholderTextColor={c["ink-3"]}
+      keyboardType={numeric ? "decimal-pad" : "default"}
+      inputMode={numeric ? "decimal" : "text"}
+      style={{
+        minWidth: 140,
+        color: c.ink,
+        fontFamily: numeric ? fonts.type : fonts.sans,
+        fontSize: big ? size.heading : size.body,
+        textAlign: "right",
+        paddingVertical: space.xs,
+      }}
+    />
+  );
+}
+
+/** Save and Cancel on one row. Three stacked full-width buttons is a wall. */
+function Actions({
+  busy,
+  onSave,
+  onCancel,
+  onDelete,
+}: {
+  busy: boolean;
+  onSave: () => void;
+  onCancel: () => void;
+  onDelete?: () => void;
+}) {
+  return (
+    <View style={{ gap: space.sm }}>
+      <View style={{ flexDirection: "row", gap: space.sm }}>
+        <View style={{ flex: 1 }}>
+          <Button label="Cancel" variant="quiet" onPress={onCancel} />
+        </View>
+        <View style={{ flex: 2 }}>
+          <Button label="Save" busy={busy} onPress={onSave} />
+        </View>
+      </View>
+      {/* Deleting is not one of two equals — it sits apart, below. */}
+      {onDelete ? <Button label="Delete this expense" variant="danger" onPress={onDelete} /> : null}
+    </View>
+  );
+}
+
+/** How the amount is divided, and between whom. */
+function Split({
+  f,
+  people,
+  currency,
+}: {
+  f: ReturnType<typeof useFields>;
+  people: ExpenseFormProps["people"];
+  currency: ExpenseFormProps["currency"];
+}) {
+  return (
+    <View style={{ gap: space.sm }}>
+      <Segmented options={MODES} value={f.mode} onChange={f.setMode} />
+      {/* Equally asks a yes or no, so a chip each fits one line; the other two
+          ask for a figure, which needs a row. */}
+      {f.mode === "equally" ? (
+        <ParticipantChips people={people} inOn={f.inOn} onToggle={f.toggle} />
+      ) : (
+        <Participants
+          people={people}
+          mode={f.mode}
+          inOn={f.inOn}
+          weights={f.weights}
+          currency={currency}
+          onToggle={f.toggle}
+          onWeight={f.setWeight}
+        />
+      )}
+    </View>
+  );
+}
+
+/** What each person is down for, once it is knowable. Status, so it is said (#126). */
+function Each({
+  f,
+  people,
+  currency,
+}: {
+  f: ReturnType<typeof useFields>;
+  people: ExpenseFormProps["people"];
+  currency: ExpenseFormProps["currency"];
+}) {
+  const attempt = buildDraft(
+    { description: "", amount: f.amount, paidBy: f.paidBy, dayId: null, notes: "", mode: f.mode },
+    people,
+    f.inOn,
+    f.weights,
+    currency,
+  );
+  const share =
+    attempt.ok && f.mode === "equally"
+      ? attempt.draft.splits.find((split) => split.owedAmountMinor > 0)?.owedAmountMinor
+      : undefined;
+
+  return (
+    <Body tone="ink-3">
+      {share === undefined ? "" : `${formatMoney(share, currency)} each · `}
+      {f.inOn.size} of {people.length} in
+    </Body>
+  );
+}
+
+/** The payer, the day and the note, behind one line that says what they currently are. */
+function Folded({
+  f,
+  people,
+  days,
+}: {
+  f: ReturnType<typeof useFields>;
+  people: ExpenseFormProps["people"];
+  days: ExpenseFormProps["days"];
+}) {
+  const [open, setOpen] = useState(false);
+  const { c } = useTheme();
+  const payers = payerOptions(people);
+  const whichDay = dayOptions(days);
+  const dayValue = f.dayId === null ? "none" : String(f.dayId);
+  const said = [
+    `${labelOf(payers, f.paidBy)} paid`,
+    // An undated trip has no days, and that is normal (rule 9) — the question
+    // is simply not asked, and nothing is said about it either.
+    days.length > 0 ? labelOf(whichDay, dayValue) : null,
+    f.notes.trim() === "" ? null : "a note",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  return (
+    <View>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ expanded: open }}
+        accessibilityLabel="Payer, day and notes"
+        onPress={() => setOpen(!open)}
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          gap: space.md,
+          paddingVertical: space.sm,
+          borderTopWidth: StyleSheet.hairlineWidth,
+          borderTopColor: c.rule,
+        }}
+      >
+        <Body tone="ink-2">{said}</Body>
+        <Body tone="pen">{open ? "Done" : "Change"}</Body>
+      </Pressable>
+
+      {open ? (
+        <View style={{ gap: space.md, paddingBottom: space.sm }}>
+          <Pills label="Paid by" options={payers} value={f.paidBy} small onChange={f.setPaidBy} />
+          {days.length > 0 ? (
+            <Pills
+              label="Which day"
+              options={whichDay}
+              value={dayValue}
+              small
+              onChange={(key) => f.setDayId(key === "none" ? null : Number(key))}
+            />
+          ) : null}
+          <Field label="Notes" value={f.notes} onChangeText={f.setNotes} multiline />
+        </View>
+      ) : null}
     </View>
   );
 }
 
 export function ExpenseForm({
   people,
+  days,
   currency,
+  viewerId,
   initial,
   busy,
   onSave,
   onCancel,
   onDelete,
-}: {
-  people: Person[];
-  currency: Currency;
-  initial?: { description: string; amount: string; inOn: string[] };
-  busy: boolean;
-  onSave: (draft: ExpenseDraft) => void;
-  onCancel: () => void;
-  onDelete?: () => void;
-}) {
-  const [description, setDescription] = useState(initial?.description ?? "");
-  const [amount, setAmount] = useState(initial?.amount ?? "");
-  const [inOn, setInOn] = useState<Set<string>>(
-    new Set(initial?.inOn ?? people.map((person) => person.userId)),
-  );
-  const [problem, setProblem] = useState<string | null>(null);
-
-  function toggle(userId: string) {
-    setInOn((current) => {
-      const next = new Set(current);
-      if (next.has(userId)) next.delete(userId);
-      else next.add(userId);
-      return next;
-    });
-  }
-
-  function save() {
-    if (inOn.size === 0) {
-      setProblem("Somebody has to be in on it.");
-      return;
-    }
-    // `parseMoney` refuses nonsense rather than returning NaN, so what was
-    // typed is turned away here — as a message, never as a crash.
-    let amountMinor: number;
-    try {
-      amountMinor = parseMoney(amount, currency);
-    } catch {
-      setProblem("That isn't an amount.");
-      return;
-    }
-    if (amountMinor <= 0) {
-      setProblem("That isn't an amount.");
-      return;
-    }
-    setProblem(null);
-    onSave({
-      description: description.trim(),
-      amountMinor,
-      splits: computeSplits(
-        amountMinor,
-        "shares",
-        people.map((person) => ({
-          userId: person.userId,
-          value: inOn.has(person.userId) ? 1 : 0,
-        })),
-      ),
-    });
-  }
+}: ExpenseFormProps) {
+  const f = useFields(initial, viewerId, people);
 
   return (
     <Card>
       <View style={{ gap: space.md }}>
-        <Field label="What for" value={description} onChangeText={setDescription} />
-        <Field
-          label={`Amount (${currency})`}
-          value={amount}
-          onChangeText={setAmount}
-          keyboardType="decimal-pad"
-          inputMode="decimal"
-        />
-        <View style={{ gap: space.sm }}>
-          <Label>Who was in on it</Label>
-          <Who people={people} inOn={inOn} onToggle={toggle} />
+        <View>
+          <Line label="What for" first>
+            <Plain
+              accessibilityLabel="Description"
+              value={f.description}
+              onChangeText={f.setDescription}
+              placeholder="Lunch"
+            />
+          </Line>
+          <Line label={`Amount (${currency})`}>
+            <Plain
+              accessibilityLabel="Amount"
+              value={f.amount}
+              onChangeText={f.setAmount}
+              placeholder="0.00"
+              numeric
+              big
+            />
+          </Line>
         </View>
-        {problem ? <Body tone="red">{problem}</Body> : null}
-        <Button label="Save" busy={busy} onPress={save} />
-        <Button label="Cancel" variant="quiet" onPress={onCancel} />
-        {onDelete ? (
-          <Button label="Delete this expense" variant="danger" onPress={onDelete} />
-        ) : null}
+
+        <Split f={f} people={people} currency={currency} />
+        <Each f={f} people={people} currency={currency} />
+
+        <Folded f={f} people={people} days={days} />
+
+        {f.problem ? <Body tone="red">{f.problem}</Body> : null}
+        <Actions
+          busy={busy}
+          onSave={() => trySave(f, people, currency, onSave)}
+          onCancel={onCancel}
+          onDelete={onDelete}
+        />
       </View>
     </Card>
   );

@@ -10,7 +10,8 @@
         "floc-web",
         "dev"
       ],
-      "port": 3000
+      "port": 3000,
+      "autoPort": false
     },
     {
       "name": "floc-metro",
@@ -24,7 +25,8 @@
         "start",
         "--dev-client"
       ],
-      "port": 8081
+      "port": 8081,
+      "autoPort": false
     },
     {
       "name": "docs",

@@ -11,6 +11,11 @@
  * this tab layout with its own header hidden, so the bar stays reachable while
  * a trip is open — leaving a trip should not require finding the back arrow.
  * The trip's own sections carry their own navigation, one level below.
+ *
+ * THE MARKS ARE PEN, THE WORDS ARE INK. Every glyph is full `pen`, on or off
+ * — a dimmed inactive mark was tried and read as three disabled buttons. Which
+ * tab you are on is said by the word underneath going from `ink-3` to `ink`,
+ * which is the signal that works without colour anyway (#204).
  */
 import { Tabs } from "expo-router";
 
@@ -37,21 +42,21 @@ export default function TabsLayout() {
         name="explore"
         options={{
           title: "Explore",
-          tabBarIcon: ({ color }) => <ExploreIcon color={color} />,
+          tabBarIcon: () => <ExploreIcon color={c.pen} />,
         }}
       />
       <Tabs.Screen
         name="trips"
         options={{
           title: "Trips",
-          tabBarIcon: ({ color }) => <TripsIcon color={color} />,
+          tabBarIcon: () => <TripsIcon color={c.pen} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: "You",
-          tabBarIcon: ({ color }) => <YouIcon color={color} />,
+          tabBarIcon: () => <YouIcon color={c.pen} />,
         }}
       />
       {/* A trip lives under the Trips tab so the bar survives opening one; it

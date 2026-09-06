@@ -59,6 +59,13 @@ export const packingRouter = router({
       await ctx.port.setPackingPacked(ctx.viewer.id, input.tripId, input.lineId, input.packed);
     }),
 
+  /** Your own bag only — see `stepPackingQuantity` on the port for why it is a delta. */
+  stepQuantity: tripProcedure
+    .input(z.object({ lineId, delta: z.union([z.literal(1), z.literal(-1)]) }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.port.stepPackingQuantity(ctx.viewer.id, input.tripId, input.lineId, input.delta);
+    }),
+
   remove: tripProcedure
     .input(z.object({ lineId }))
     .mutation(async ({ ctx, input }) => {

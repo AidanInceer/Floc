@@ -5,8 +5,13 @@
  * and where the result is sent, so two components would be the same component
  * twice — and the second one would drift.
  *
- * A BLANK TIME IS ALL-DAY, not an empty time. The API refuses `""`, and
- * rightly: a person who typed nothing did not mean midnight.
+ * ALL DAY IS AN ANSWER, not an empty field. `TimeField` asks it outright, so
+ * "no time" is something chosen rather than something left blank — and the
+ * time itself can no longer be typed wrongly (see that file).
+ *
+ * SAVE AND CANCEL SHARE A ROW. Three full-width buttons stacked is a wall at
+ * the foot of every form; Save is the wider of the two because it is the one
+ * being reached for.
  *
  * TIMES ARE LOCAL TO THE ITINERARY (rule 10). `HH:MM` in, `HH:MM` out, and the
  * device clock is never asked what it thinks.
@@ -15,6 +20,7 @@ import { DAY_EVENT_TYPES, type DayEventType } from "@floc/core/vocabulary";
 import { useState } from "react";
 import { View } from "react-native";
 
+import { TimeField } from "./time-field";
 import { Body, Button, Card, Field, Segmented } from "./ui";
 import { space } from "@/lib/theme";
 
@@ -49,7 +55,7 @@ export function EventForm({
 }) {
   const [type, setType] = useState<DayEventType>(initial?.type ?? "activity");
   const [title, setTitle] = useState(initial?.title ?? "");
-  const [time, setTime] = useState(initial?.time ?? "");
+  const [time, setTime] = useState<string | null>(initial?.time ?? null);
   const [note, setNote] = useState(initial?.note ?? "");
 
   return (
@@ -57,13 +63,7 @@ export function EventForm({
       <View style={{ gap: space.md }}>
         <Segmented options={TYPES} value={type} onChange={setType} />
         <Field label="What" value={title} onChangeText={setTitle} autoFocus />
-        <Field
-          label="Time (optional)"
-          value={time}
-          onChangeText={setTime}
-          placeholder="09:30"
-          keyboardType="numbers-and-punctuation"
-        />
+        <TimeField value={time} onChange={setTime} />
         <Field
           label="Anything to remember (optional)"
           value={note}
@@ -71,20 +71,27 @@ export function EventForm({
           multiline
         />
         {problem ? <Body tone="red">{problem}</Body> : null}
-        <Button
-          label="Save"
-          busy={busy}
-          onPress={() =>
-            onSave({
-              type,
-              title: title.trim(),
-              allDay: time.trim() === "",
-              time: time.trim() || null,
-              note: note.trim() || null,
-            })
-          }
-        />
-        <Button label="Cancel" variant="quiet" onPress={onCancel} />
+        <View style={{ flexDirection: "row", gap: space.sm }}>
+          <View style={{ flex: 1 }}>
+            <Button label="Cancel" variant="quiet" onPress={onCancel} />
+          </View>
+          <View style={{ flex: 2 }}>
+            <Button
+              label="Save"
+              busy={busy}
+              onPress={() =>
+                onSave({
+                  type,
+                  title: title.trim(),
+                  allDay: time === null,
+                  time,
+                  note: note.trim() || null,
+                })
+              }
+            />
+          </View>
+        </View>
+        {/* Deleting is not one of two equals — it sits apart, below. */}
         {onDelete ? (
           <Button label="Delete this" variant="danger" onPress={onDelete} />
         ) : null}
