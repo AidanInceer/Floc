@@ -40,7 +40,7 @@ export default function Trips() {
         }
         ListEmptyComponent={<Empty>No trips yet.</Empty>}
         renderItem={({ item }) => (
-          <Link href={{ pathname: "/(app)/trip/[id]", params: { id: item.id } }} asChild>
+          <Link href={{ pathname: "/trip/[id]", params: { id: item.id } }} asChild>
             <Pressable>
               <Card>
                 <Body bold>{item.name}</Body>

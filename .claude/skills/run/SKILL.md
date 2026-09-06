@@ -88,3 +88,29 @@ Say what is up, what is not, and the one next action. Nothing else.
   inbound firewall rule and an administrator.
 - **A sign-in failure is not always a wrong password.** The screen tells the
   two apart now — read the message before debugging credentials.
+
+## After adding a mobile dependency
+
+The loop above assumes the app is already built. A new package breaks that
+assumption in three places, so do these in order and the rebuild is boring:
+
+1. **`npx expo install <pkg>`, servers stopped.** Not `pnpm add` — Expo pins a
+   version per SDK and npm's latest is usually a different one. The mismatch
+   does not fail the install; it fails at runtime, as a red screen naming a
+   module the bundle has no business needing (`react-native-svg@15.14.0` asked
+   for `buffer`). A live dev server holds `node_modules` and the install dies
+   on `EPERM ... rename`, rolling back with the dep left in `package.json`.
+2. **Rebuild if it has native code.** `pnpm --filter floc-mobile android`, on
+   JDK 17. A JS-only package needs only a Metro restart.
+3. **Typecheck after Metro is up, not before.** Adding or moving a route makes
+   expo-router rewrite `.expo/types/router.d.ts` at Metro start. Run it early
+   and it validates against the old union and passes on paths that no longer
+   exist.
+
+Two failures that look worse than they are:
+
+- `ENOENT ... watch '...\.next\...'` at Metro start — Metro is watching the web
+  app's stale build. `pnpm --filter floc-web run clean:next`.
+- "Port 8081 is being used" — a killed `expo run:android` left a `node` orphan.
+  Say **no** to 8082; the `adb reverse` tunnel only covers 8081. Find it with
+  `Get-NetTCPConnection -LocalPort 8081 -State Listen` and stop that PID.

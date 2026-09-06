@@ -36,7 +36,7 @@ export default function Join() {
         return;
       }
       queryClient.invalidateQueries({ queryKey: trpc.trips.list.queryKey() });
-      router.replace({ pathname: "/(app)/trip/[id]", params: { id: trip.id } });
+      router.replace({ pathname: "/trip/[id]", params: { id: trip.id } });
     },
     onError: () => setProblem("That link doesn't work any more."),
   });

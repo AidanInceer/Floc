@@ -68,7 +68,7 @@ export default function Overview() {
       id: "dates",
       said: "No dates set yet.",
       action: "Set them",
-      onPress: () => router.push(`/(app)/trip/${tripId}/dates`),
+      onPress: () => router.push(`/trip/${tripId}/dates`),
     });
   }
 
@@ -97,7 +97,7 @@ export default function Overview() {
         id: "money",
         said: "Money is not settled up.",
         action: "See who owes what",
-        onPress: () => router.push(`/(app)/trip/${tripId}/money`),
+        onPress: () => router.push(`/trip/${tripId}/money`),
       });
     }
   }

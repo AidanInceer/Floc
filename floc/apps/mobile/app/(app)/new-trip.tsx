@@ -29,7 +29,7 @@ export default function NewTrip() {
     ...trpc.trips.create.mutationOptions(),
     onSuccess: (trip) => {
       queryClient.invalidateQueries({ queryKey: trpc.trips.list.queryKey() });
-      router.replace({ pathname: "/(app)/trip/[id]", params: { id: trip.id } });
+      router.replace({ pathname: "/trip/[id]", params: { id: trip.id } });
     },
   });
 

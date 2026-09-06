@@ -1,18 +1,20 @@
 /**
  * The bottom bar (ticket 302) — the three places that are not a trip.
  *
- * WORDS, NOT ICONS. #299 removed the trip's own tab bar and said a word needs
- * no icon beside it; the same holds here. React Native has no SVG without
- * another dependency, and three nouns are clearer than three drawings anyone
- * would have to learn (#148 forbids the emoji that would otherwise fill in).
+ * MARKS AND WORDS, BOTH. #299 and #302 chose words alone because React Native
+ * had no SVG here and three bad drawings read worse than three nouns. With
+ * `react-native-svg` the drawings are the web app's own line-art (see
+ * `tab-icons`), so each tab now carries its mark *and* its word: the glyph
+ * makes the bar scannable, the word is what nobody has to learn.
  *
- * A TRIP IS PUSHED OVER THIS, not inside it. `trip/[id]` lives one level up in
- * the `(app)` stack, so opening a trip covers the bar entirely and the section
- * sheet (#299) stays the only way around inside one. Two navigations stacked on
- * top of each other is the thing that direction exists to avoid.
+ * A TRIP IS PUSHED INSIDE THIS BAR, not over it. `trip/[id]` is a screen of
+ * this tab layout with its own header hidden, so the bar stays reachable while
+ * a trip is open — leaving a trip should not require finding the back arrow.
+ * The trip's own sections carry their own navigation, one level below.
  */
 import { Tabs } from "expo-router";
 
+import { ExploreIcon, TripsIcon, YouIcon } from "@/components/tab-icons";
 import { useTheme } from "@/components/theme";
 import { fonts, size } from "@/lib/theme";
 
@@ -29,13 +31,36 @@ export default function TabsLayout() {
         tabBarActiveTintColor: c.ink,
         tabBarInactiveTintColor: c["ink-3"],
         tabBarLabelStyle: { fontFamily: fonts.type, fontSize: size.label },
-        // The label is the whole control, so it sits where an icon would.
-        tabBarIconStyle: { display: "none" },
       }}
     >
-      <Tabs.Screen name="explore" options={{ title: "Explore" }} />
-      <Tabs.Screen name="trips" options={{ title: "Trips" }} />
-      <Tabs.Screen name="profile" options={{ title: "You" }} />
+      <Tabs.Screen
+        name="explore"
+        options={{
+          title: "Explore",
+          tabBarIcon: ({ color }) => <ExploreIcon color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="trips"
+        options={{
+          title: "Trips",
+          tabBarIcon: ({ color }) => <TripsIcon color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "You",
+          tabBarIcon: ({ color }) => <YouIcon color={color} />,
+        }}
+      />
+      {/* A trip lives under the Trips tab so the bar survives opening one; it
+          is not itself a tab. */}
+      {/* The route is `trip/[id]`, not `trip` — naming the folder alone matches
+          nothing, and the bar grows a fourth tab labelled with the raw path.
+          `href: null` keeps it out of the bar; `headerShown` off stops a second
+          header drawing over the trip's own. */}
+      <Tabs.Screen name="trip/[id]" options={{ href: null, headerShown: false }} />
     </Tabs>
   );
 }

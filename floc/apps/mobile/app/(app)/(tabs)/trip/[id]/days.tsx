@@ -106,7 +106,7 @@ export default function Days() {
         <Empty>No days yet — this trip has no dates.</Empty>
         <Button
           label="Pick the dates"
-          onPress={() => router.push(`/(app)/trip/${tripId}/dates`)}
+          onPress={() => router.push(`/trip/${tripId}/dates`)}
         />
       </View>
     );

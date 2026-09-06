@@ -35,3 +35,8 @@ Things that bite. Read before editing.
 - Calling `requireTripAccess` from a route handler — `notFound()` throws a Next navigation signal it cannot catch. Use `findTripAccess`, which answers `null` (#287).
 - Adding a trip-scoped tRPC procedure on `protectedProcedure` — use `tripProcedure`, which resolves access before the body runs (rule 5).
 - Restarting `next dev` after a dependency change without clearing `.next` — it serves the old module and the error names the wrong cause.
+- `pnpm add` for a native/Expo package in `floc/apps/mobile` — installs whatever npm calls latest, which is rarely what the SDK pins. `react-native-svg@15.14.0` imported the Node `buffer` polyfill and every screen went red. Always `npx expo install <pkg>`, and `npx expo install --check` before believing a version.
+- `pnpm add` with a dev server up — the running process holds `node_modules`, pnpm dies on `EPERM ... rename` and rolls the install back with the dep still in `package.json`. Stop servers first.
+- Trusting a mobile `typecheck` that ran before Metro — expo-router writes `.expo/types/router.d.ts` at start, so after moving or adding a route the old union still validates. Start Metro, then typecheck again.
+- A killed `expo run:android` leaves a `node` orphan on 8081; the next run offers 8082, which the `adb reverse` tunnel does not cover. Answer no, kill the PID from `Get-NetTCPConnection -LocalPort 8081`.
+- Metro dying on `ENOENT: ... watch '...\.next\...'` — it is watching the web app's stale build, not a mobile problem. `pnpm --filter floc-web run clean:next`.

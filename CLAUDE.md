@@ -44,6 +44,8 @@ pnpm verify                      # everything CI runs, locally
 - **Stop dev server before anything that builds.** `verify`/`build`/`fitness` write `.next`, owned by `next dev`; building over it corrupts chunks. Fix: `pnpm --filter floc-web run clean:next` (the one delete an agent may run; also cures OneDrive `EINVAL: readlink`). Check with `preview_list`, not `ps`.
 - **No pre-push hook** — run `pnpm verify` by hand before **every** push, `develop` included.
 - **Schema change isn't done until `local.db` has it.** `db:generate` writes the migration but nothing applies it locally → dev dies on `no such column`. Run the new `drizzle/*.sql` against `local.db` in the same slice, before pushing.
+- **Mobile deps come from `npx expo install`, never `pnpm add`.** Expo pins a version per SDK; npm's latest is a different one, and the mismatch surfaces as a red screen at runtime, not an install error. Servers down first (a live process holds `node_modules` and the install rolls back). `npx expo install --check` before believing any version.
+- **A new native module means a rebuild, a new route means new router types.** `pnpm --filter floc-mobile android` for the first; for the second, expo-router rewrites `.expo/types/router.d.ts` when Metro starts, so typecheck *after* Metro or it passes on the old union.
 
 ## Non-negotiables
 

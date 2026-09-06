@@ -48,7 +48,7 @@ export default function Explore() {
     onSuccess: (result) => {
       // Null means the listing has gone since it was drawn — stay put rather
       // than navigate nowhere (rule 11).
-      if (result) router.push({ pathname: "/(app)/trip/[id]", params: { id: result.id } });
+      if (result) router.push({ pathname: "/trip/[id]", params: { id: result.id } });
     },
   });
 
