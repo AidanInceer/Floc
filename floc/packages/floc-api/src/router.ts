@@ -9,6 +9,7 @@ import { availabilityRouter } from "./routers/availability";
 import { filesRouter } from "./routers/files";
 import { itineraryRouter } from "./routers/itinerary";
 import { moneyRouter } from "./routers/money";
+import { notesRouter } from "./routers/notes";
 import { placesRouter } from "./routers/places";
 import { rosterRouter } from "./routers/roster";
 import { tripsRouter } from "./routers/trips";
@@ -22,6 +23,7 @@ export const appRouter = router({
   money: moneyRouter,
   roster: rosterRouter,
   files: filesRouter,
+  notes: notesRouter,
   places: placesRouter,
   availability: availabilityRouter,
 });
