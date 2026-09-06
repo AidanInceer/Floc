@@ -1,0 +1,470 @@
+<title>App — v3 screens (day first)</title>
+<style>
+  :root{
+    --paper:#fafafa;--sheet:#fff;--sheet-2:#f5f4f0;--rule:#e6e4de;--rule-2:#d8d5cd;
+    --ink:#14141a;--ink-2:#63636f;--pen:#4e68d8;--pen-deep:#2b3b85;--pen-2:#e7ebfa;
+    --peri:#dfe3ff;--peri-ink:#33409b;--peri-edge:#c6d0f2;
+    --mint:#dcefe4;--mint-ink:#1b6b4c;--mint-edge:#c3e3d2;
+    --butter:#fbeac8;--butter-ink:#8a6412;--butter-edge:#efd9ae;
+    --blush:#faddd6;--blush-ink:#a34a31;--blush-edge:#f0c7bc;
+    --shadow-sm:0 1px 2px rgb(20 20 26/.05);
+    --shadow:0 1px 2px rgb(20 20 26/.05),0 6px 14px -12px rgb(20 20 26/.3);
+    --display:"Bricolage Grotesque","Trebuchet MS",sans-serif;
+    --sans:"Instrument Sans",system-ui,-apple-system,sans-serif;
+    --type:"DM Mono","Cascadia Mono",Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
+    font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:86rem;margin:0 auto;padding:24px}
+  h1,h2,h3{font-family:var(--display);font-weight:600;letter-spacing:-.01em;margin:0}
+  .mono{font-family:var(--type);font-variant-numeric:tabular-nums}
+  .soft{color:var(--ink-2)}
+  svg{display:block}
+  .banner{max-width:86rem;margin:18px auto 0;padding:12px 20px;font-family:var(--type);
+    font-size:12px;color:var(--pen-deep);background:var(--pen-2);border-radius:12px;
+    border:1px solid var(--peri-edge);line-height:1.6}
+  .banner a{color:var(--pen-deep)}
+  .row{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start;margin-top:22px}
+  .cap{width:300px;font-size:13px;color:var(--ink-2);margin:10px 0 0}
+  .cap b{color:var(--ink);font-weight:600;font-family:var(--display)}
+
+  /* --- phone --- */
+  .phone{width:300px;height:620px;background:var(--paper);border:1px solid var(--rule-2);
+    border-radius:34px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;position:relative}
+  .status{height:26px;flex:none;display:flex;align-items:center;justify-content:space-between;
+    padding:0 18px;font-family:var(--type);font-size:10px;color:var(--ink-2)}
+  .nav{flex:none;padding:4px 16px 10px;display:flex;align-items:center;gap:10px}
+  .nav h2{font-size:21px}
+  .screen{flex:1;overflow:hidden;padding:0 16px;position:relative}
+  .bar{flex:none;height:58px;border-top:1px solid var(--rule);background:var(--sheet);
+    display:flex;align-items:center;justify-content:space-around;padding-bottom:4px}
+  .bi{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:var(--ink-2);flex:1}
+  .bi.on{color:var(--pen);font-weight:600}
+  .card{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;padding:13px 14px;margin-bottom:10px}
+  .chip{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;font-size:11px}
+  .av{width:22px;height:22px;border-radius:999px;display:inline-flex;align-items:center;
+    justify-content:center;font-size:10px;font-weight:600;border:1.5px solid var(--sheet)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;
+    border-radius:999px;font-size:13px;border:1px solid var(--rule);background:var(--sheet)}
+  .btn.blue{background:var(--pen);border-color:var(--pen);color:#fff;font-weight:600}
+  .seg{display:flex;gap:4px;background:var(--sheet-2);border-radius:999px;padding:3px}
+  .seg span{flex:1;text-align:center;font-size:12px;padding:5px 0;border-radius:999px;color:var(--ink-2)}
+  .seg span.on{background:var(--sheet);color:var(--ink);font-weight:600;box-shadow:var(--shadow-sm)}
+  .lbl{font-family:var(--type);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+  .verdict{margin-top:6px;padding:11px 13px;border-radius:12px;font-size:13px;line-height:1.55}
+  .good{background:var(--mint);border:1px solid var(--mint-edge);color:var(--mint-ink)}
+  .bad{background:var(--blush);border:1px solid var(--blush-edge);color:var(--blush-ink)}
+</style>
+<style>
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+  .cal span{aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+    font-family:var(--type);font-size:10px;border-radius:7px;color:var(--ink-2)}
+  .cal span.d{background:var(--sheet);border:1px solid var(--rule);color:var(--ink)}
+  .cal span.most{background:var(--mint);border-color:var(--mint-edge);color:var(--mint-ink);font-weight:600}
+  .cal span.some{background:var(--butter);border-color:var(--butter-edge);color:var(--butter-ink)}
+  .cal span.win{background:var(--pen);border-color:var(--pen);color:#fff;font-weight:600}
+  .cal span.hd{background:none;border:0;font-size:8px;text-transform:uppercase;letter-spacing:.05em}
+  .rowitem{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .grp{margin:16px 0 7px}
+</style>
+
+<div class="banner">
+  WIREFRAME &middot; Phone &middot; <b>Direction 3 &mdash; the day is the app</b> &middot; the screens<br>
+  Chosen direction, taken further. A trip is two faces: <b>Overview</b> is its who, where and what &mdash; people,
+  map, files, anything outstanding. <b>Days</b> is its when. Everything else is a section reached from the sheet.
+  A trip with no dates simply opens on Overview instead of Days: nothing is gated, and no state is stored.
+</div>
+
+<div class="wrap">
+
+  <div class="lbl grp" style="font-size:11px">The trip: its two faces, and the sheet between them</div>
+  <div class="row">
+
+    <div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span>100%</span></div>
+        <div class="nav">
+          <svg width="18" height="18" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 2.5 4 7l4.5 4.5"/></svg>
+          <h2 style="font-size:18px">Lisbon, someday</h2>
+          <span style="margin-left:auto">
+            <svg width="19" height="19" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2 4h10M2 7h10M2 10h10"/></svg>
+          </span>
+        </div>
+        <div class="screen" style="overflow-y:auto">
+          <div class="card" style="background:var(--butter);border-color:var(--butter-edge)">
+            <div class="lbl" style="color:var(--butter-ink)">Needs you</div>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
+              <div class="rowitem" style="font-size:13px;color:var(--butter-ink)">
+                <span>No dates set yet</span><span class="mono" style="font-size:11px">Set them &rsaquo;</span>
+              </div>
+              <div class="rowitem" style="font-size:13px;color:var(--butter-ink)">
+                <span>Mo has not said when he is free</span><span class="mono" style="font-size:11px">Nudge &rsaquo;</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="lbl grp" style="margin-top:12px">Who is coming</div>
+          <div class="card" style="padding:12px 13px">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div class="rowitem">
+                <span style="display:flex;align-items:center;gap:8px;font-size:13px">
+                  <span class="av" style="background:var(--butter);color:var(--butter-ink)">A</span>You</span>
+                <span class="chip" style="background:var(--peri);color:var(--peri-ink)">Admin</span>
+              </div>
+              <div class="rowitem">
+                <span style="display:flex;align-items:center;gap:8px;font-size:13px">
+                  <span class="av" style="background:var(--mint);color:var(--mint-ink)">R</span>Rae</span>
+                <span class="chip" style="background:var(--peri);color:var(--peri-ink)">Admin</span>
+              </div>
+              <div class="rowitem">
+                <span style="display:flex;align-items:center;gap:8px;font-size:13px">
+                  <span class="av" style="background:var(--blush);color:var(--blush-ink)">M</span>Mo</span>
+              </div>
+              <div class="rowitem">
+                <span style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2)">
+                  <span class="av" style="background:var(--sheet-2);color:var(--ink-2)">J</span>Jess</span>
+                <span class="chip" style="background:var(--sheet-2);color:var(--ink-2)">Invited</span>
+              </div>
+            </div>
+            <div class="btn" style="width:100%;margin-top:11px">Invite someone</div>
+          </div>
+
+          <div class="lbl grp">Where</div>
+          <div class="card" style="padding:0;overflow:hidden">
+            <div style="height:104px;background:var(--sheet-2);position:relative">
+              <svg viewBox="0 0 260 104" style="width:100%;height:100%" fill="none" stroke="var(--rule-2)" stroke-width="1">
+                <path d="M0 66 40 58 92 72 148 52 200 64 260 48"/>
+                <path d="M0 34 56 40 110 26 170 38 224 22 260 30"/>
+                <path d="M74 0v104M168 0v104"/>
+              </svg>
+              <span style="position:absolute;left:52px;top:30px" class="chip" title="Tokyo">
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="var(--pen)" stroke="none"><circle cx="7" cy="7" r="4"/></svg>
+              </span>
+              <span style="position:absolute;left:118px;top:56px" class="chip">
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="var(--pen)" stroke="none"><circle cx="7" cy="7" r="4"/></svg>
+              </span>
+              <span style="position:absolute;left:176px;top:38px" class="chip">
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="var(--pen)" stroke="none"><circle cx="7" cy="7" r="4"/></svg>
+              </span>
+            </div>
+            <div style="padding:10px 13px">
+              <div style="font-size:13px">Tokyo &rarr; Hakone &rarr; Kyoto</div>
+              <div class="soft mono" style="font-size:11px">3 places &middot; 8 saved spots</div>
+            </div>
+          </div>
+
+          <div class="lbl grp">Files</div>
+          <div class="card rowitem" style="padding:11px 13px">
+            <span style="font-size:13px">Flight confirmation.pdf</span>
+            <span class="mono soft" style="font-size:10px">1.2 MB</span>
+          </div>
+          <div class="card rowitem" style="padding:11px 13px">
+            <span style="font-size:13px">Ryokan booking.pdf</span>
+            <span class="mono soft" style="font-size:10px">840 kB</span>
+          </div>
+          <div class="card rowitem" style="padding:11px 13px;border-style:dashed;color:var(--ink-2)">
+            <span style="font-size:13px">All 6 files</span><span class="mono" style="font-size:11px">&rsaquo;</span>
+          </div>
+        </div>
+        <div class="bar">
+          <span class="bi"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.2" cy="6.2" r="4.2"/><path d="M9.4 9.4 12 12"/></svg>Explore</span>
+          <span class="bi on"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4.2h10M2 7h10M2 9.8h6"/></svg>Trips</span>
+          <span class="bi"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="4.6" r="2.4"/><path d="M2.4 12c.6-2.6 2.4-3.8 4.6-3.8S11 9.4 11.6 12"/></svg>Profile</span>
+        </div>
+      </div>
+      <p class="cap"><b>1 &middot; Overview</b> The trip's <i>who, where and what</i> &mdash; everything that is not tied to a day. Outstanding items sit at the top; the map and files sit here because neither belongs to a single date.</p>
+    </div>
+
+    <div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span>100%</span></div>
+        <div class="nav">
+          <svg width="18" height="18" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 2.5 4 7l4.5 4.5"/></svg>
+          <h2 style="font-size:18px">Dates</h2>
+        </div>
+        <div class="screen" style="overflow-y:auto">
+          <div class="seg" style="margin-bottom:11px"><span class="on">When I am free</span><span>The window</span></div>
+          <div class="rowitem" style="margin-bottom:8px">
+            <span style="font-size:13px;font-weight:600">April 2026</span>
+            <span class="soft mono" style="font-size:11px">&lsaquo; &rsaquo;</span>
+          </div>
+          <div class="cal" style="margin-bottom:10px">
+            <span class="hd">M</span><span class="hd">T</span><span class="hd">W</span><span class="hd">T</span><span class="hd">F</span><span class="hd">S</span><span class="hd">S</span>
+            <span></span><span></span><span class="d">1</span><span class="d">2</span><span class="d">3</span><span class="d">4</span><span class="d">5</span>
+            <span class="d">6</span><span class="d">7</span><span class="d some">8</span><span class="d some">9</span><span class="d most">10</span><span class="d most">11</span><span class="d most">12</span>
+            <span class="d most">13</span><span class="d most">14</span><span class="d most">15</span><span class="d some">16</span><span class="d some">17</span><span class="d">18</span><span class="d">19</span>
+            <span class="d">20</span><span class="d">21</span><span class="d">22</span><span class="d">23</span><span class="d">24</span><span class="d">25</span><span class="d">26</span>
+            <span class="d">27</span><span class="d">28</span><span class="d">29</span><span class="d">30</span><span></span><span></span><span></span>
+          </div>
+          <div style="display:flex;gap:12px;font-size:11px;margin-bottom:11px">
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:var(--mint);border:1px solid var(--mint-edge)"></span>All 5 free</span>
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:var(--butter);border:1px solid var(--butter-edge)"></span>3 free</span>
+          </div>
+          <div class="card" style="background:var(--mint);border-color:var(--mint-edge)">
+            <div class="lbl" style="color:var(--mint-ink)">Best window</div>
+            <div class="mono" style="font-size:14px;color:var(--mint-ink);margin-top:2px">10 &ndash; 15 Apr &middot; 5 nights</div>
+            <div style="font-size:12px;color:var(--mint-ink)">Everyone can make it</div>
+          </div>
+          <div class="btn blue" style="width:100%">Set this as the trip window</div>
+        </div>
+        <div class="bar">
+          <span class="bi"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.2" cy="6.2" r="4.2"/><path d="M9.4 9.4 12 12"/></svg>Explore</span>
+          <span class="bi on"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4.2h10M2 7h10M2 9.8h6"/></svg>Trips</span>
+          <span class="bi"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="4.6" r="2.4"/><path d="M2.4 12c.6-2.6 2.4-3.8 4.6-3.8S11 9.4 11.6 12"/></svg>Profile</span>
+        </div>
+      </div>
+      <p class="cap"><b>2 &middot; Dates</b> Paint when you are free, then set the window from the same grid. The colour always carries a word &mdash; the legend and the &ldquo;Everyone can make it&rdquo; line, never the colour alone.</p>
+    </div>
+
+    <div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span>100%</span></div>
+        <div class="nav">
+          <svg width="18" height="18" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 2.5 4 7l4.5 4.5"/></svg>
+          <h2 style="font-size:18px">Japan</h2>
+          <span style="margin-left:auto;display:flex;gap:6px;align-items:center">
+            <span class="chip" style="background:var(--blush);color:var(--blush-ink)">&minus;&pound;128</span>
+            <svg width="19" height="19" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2 4h10M2 7h10M2 10h10"/></svg>
+          </span>
+        </div>
+        <div class="screen" style="padding:0">
+          <div style="display:flex;gap:5px;padding:0 16px 10px;overflow:hidden">
+            <span class="chip" style="flex-direction:column;padding:5px 8px;background:var(--sheet);border:1px solid var(--rule)"><span class="lbl" style="font-size:8px">MON</span><b>28</b></span>
+            <span class="chip" style="flex-direction:column;padding:5px 8px;background:var(--pen);color:#fff"><span style="font-size:8px;opacity:.8">TUE</span><b>29</b></span>
+            <span class="chip" style="flex-direction:column;padding:5px 8px;background:var(--sheet);border:1px solid var(--rule)"><span class="lbl" style="font-size:8px">WED</span><b>30</b></span>
+            <span class="chip" style="flex-direction:column;padding:5px 8px;background:var(--sheet);border:1px solid var(--rule)"><span class="lbl" style="font-size:8px">THU</span><b>31</b></span>
+            <span class="chip" style="flex-direction:column;padding:5px 8px;background:var(--sheet);border:1px solid var(--rule)"><span class="lbl" style="font-size:8px">FRI</span><b>01</b></span>
+          </div>
+          <div style="padding:0 16px">
+            <div class="chip" style="background:var(--mint);color:var(--mint-ink);margin-bottom:9px">Overnight &middot; Tokyo</div>
+            <div class="card"><div class="mono" style="font-size:11px;color:var(--ink-2)">09:30</div><div style="font-size:14px">Tsukiji outer market</div></div>
+            <div class="card"><div class="mono" style="font-size:11px;color:var(--ink-2)">13:00</div><div style="font-size:14px">teamLab Planets</div><span class="chip" style="background:var(--butter);color:var(--butter-ink);margin-top:5px">Tickets needed</span></div>
+            <div class="card"><div class="mono" style="font-size:11px;color:var(--ink-2)">19:30</div><div style="font-size:14px">Dinner &mdash; Ichiran</div><div class="soft" style="font-size:11px">&pound;54.00 &middot; Mo paid</div></div>
+            <div class="card" style="border-style:dashed;color:var(--ink-2);text-align:center;font-size:13px">+ Add to this day</div>
+          </div>
+        </div>
+        <div class="bar">
+          <span class="bi"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.2" cy="6.2" r="4.2"/><path d="M9.4 9.4 12 12"/></svg>Explore</span>
+          <span class="bi on"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4.2h10M2 7h10M2 9.8h6"/></svg>Trips</span>
+          <span class="bi"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="4.6" r="2.4"/><path d="M2.4 12c.6-2.6 2.4-3.8 4.6-3.8S11 9.4 11.6 12"/></svg>Profile</span>
+        </div>
+      </div>
+      <p class="cap"><b>3 &middot; Days</b> The trip's <i>when</i>, and its front door once dates exist. Undated, the app opens on Overview instead &mdash; no flag decides this, only whether <span class="mono">start_date</span> is null.</p>
+    </div>
+
+    <div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span>100%</span></div>
+        <div class="nav">
+          <svg width="18" height="18" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 2.5 4 7l4.5 4.5"/></svg>
+          <h2 style="font-size:18px">Japan</h2>
+        </div>
+        <div class="screen" style="padding:0">
+          <div style="position:absolute;inset:0;background:rgb(20 20 26/.28)"></div>
+          <div style="position:absolute;left:0;right:0;bottom:0;background:var(--sheet);
+                      border-top-left-radius:20px;border-top-right-radius:20px;
+                      border-top:1px solid var(--rule);padding:10px 16px 16px;box-shadow:var(--shadow)">
+            <div style="width:34px;height:4px;border-radius:999px;background:var(--rule-2);margin:0 auto 12px"></div>
+            <div class="card rowitem" style="padding:11px 13px;background:var(--peri);border-color:var(--peri-edge)">
+              <span style="font-size:14px;color:var(--peri-ink);font-weight:600">Overview</span>
+              <span class="mono" style="font-size:11px;color:var(--peri-ink)">2 need you</span>
+            </div>
+            <div class="card rowitem" style="padding:11px 13px">
+              <span style="font-size:14px">Days</span><span class="mono soft" style="font-size:11px">12 days</span>
+            </div>
+            <div class="card rowitem" style="padding:11px 13px">
+              <span style="font-size:14px">Dates</span><span class="mono soft" style="font-size:11px">28 Mar &ndash; 9 Apr</span>
+            </div>
+            <div class="card rowitem" style="padding:11px 13px">
+              <span style="font-size:14px">Money</span><span class="mono" style="font-size:11px;color:var(--blush-ink)">&minus;&pound;128.40</span>
+            </div>
+            <div class="card rowitem" style="padding:11px 13px">
+              <span style="font-size:14px">Notes</span><span class="mono soft" style="font-size:11px">Yesterday</span>
+            </div>
+            <div class="card rowitem" style="padding:11px 13px;margin-bottom:0">
+              <span style="font-size:14px">Packing</span><span class="mono soft" style="font-size:11px">4 of 19</span>
+            </div>
+          </div>
+        </div>
+        <div class="bar">
+          <span class="bi"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.2" cy="6.2" r="4.2"/><path d="M9.4 9.4 12 12"/></svg>Explore</span>
+          <span class="bi on"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4.2h10M2 7h10M2 9.8h6"/></svg>Trips</span>
+          <span class="bi"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="4.6" r="2.4"/><path d="M2.4 12c.6-2.6 2.4-3.8 4.6-3.8S11 9.4 11.6 12"/></svg>Profile</span>
+        </div>
+      </div>
+      <p class="cap"><b>4 &middot; The sheet</b> The one way between sections. Overview sits top and carries its outstanding count, so the thing most likely to need you is the thing you see first.</p>
+    </div>
+
+  </div>
+
+  <div class="lbl grp" style="font-size:11px">Money, notes, and you</div>
+  <div class="row">
+
+    <div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span>100%</span></div>
+        <div class="nav">
+          <svg width="18" height="18" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 2.5 4 7l4.5 4.5"/></svg>
+          <h2 style="font-size:18px">Money</h2>
+          <span style="margin-left:auto" class="btn blue">+ Add</span>
+        </div>
+        <div class="screen" style="overflow-y:auto">
+          <div class="card" style="background:var(--blush);border-color:var(--blush-edge)">
+            <div class="lbl" style="color:var(--blush-ink)">You owe</div>
+            <div class="mono" style="font-size:24px;color:var(--blush-ink);line-height:1.2">&pound;128.40</div>
+            <div style="font-size:12px;color:var(--blush-ink)">Rae &pound;96.00 &middot; Mo &pound;32.40</div>
+            <div class="btn" style="width:100%;margin-top:10px;background:var(--sheet)">Settle up</div>
+          </div>
+
+          <div class="seg" style="margin-bottom:10px"><span class="on">Everything</span><span>Just mine</span></div>
+
+          <div class="card">
+            <div class="rowitem">
+              <div style="font-size:14px">Ryokan deposit</div><div class="mono" style="font-size:13px">&pound;480.00</div>
+            </div>
+            <div class="rowitem" style="margin-top:3px">
+              <span class="soft" style="font-size:11px">Rae paid &middot; split 5 ways</span>
+              <span class="mono" style="font-size:11px;color:var(--blush-ink)">you &pound;96.00</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="rowitem">
+              <div style="font-size:14px">JR passes</div><div class="mono" style="font-size:13px">&pound;162.00</div>
+            </div>
+            <div class="rowitem" style="margin-top:3px">
+              <span class="soft" style="font-size:11px">You paid &middot; split 5 ways</span>
+              <span class="mono" style="font-size:11px;color:var(--mint-ink)">owed &pound;129.60</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="rowitem">
+              <div style="font-size:14px">Dinner &mdash; Ichiran</div><div class="mono" style="font-size:13px">&pound;54.00</div>
+            </div>
+            <div class="rowitem" style="margin-top:3px">
+              <span class="soft" style="font-size:11px">Mo paid &middot; Tue 29 Mar</span>
+              <span class="mono" style="font-size:11px;color:var(--blush-ink)">you &pound;10.80</span>
+            </div>
+          </div>
+        </div>
+        <div class="bar">
+          <span class="bi"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.2" cy="6.2" r="4.2"/><path d="M9.4 9.4 12 12"/></svg>Explore</span>
+          <span class="bi on"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4.2h10M2 7h10M2 9.8h6"/></svg>Trips</span>
+          <span class="bi"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="4.6" r="2.4"/><path d="M2.4 12c.6-2.6 2.4-3.8 4.6-3.8S11 9.4 11.6 12"/></svg>Profile</span>
+        </div>
+      </div>
+      <p class="cap"><b>5 &middot; Money</b> Your balance first, the ledger second &mdash; on a phone you check what you owe far more often than you read the list. An expense tied to a day says so, which is the link back to the timeline.</p>
+    </div>
+
+    <div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span>100%</span></div>
+        <div class="nav">
+          <svg width="18" height="18" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 2.5 4 7l4.5 4.5"/></svg>
+          <h2 style="font-size:18px">Notes</h2>
+          <span style="margin-left:auto;display:flex;align-items:center;gap:6px">
+            <span class="av" style="background:var(--mint);color:var(--mint-ink)">R</span>
+            <span class="chip" style="background:var(--sheet-2);color:var(--ink-2)">Saved</span>
+          </span>
+        </div>
+        <div class="screen" style="overflow-y:auto">
+          <h3 style="font-size:18px;margin-bottom:3px">Japan, cherry blossom</h3>
+          <p class="soft" style="font-size:12px;margin:0 0 14px">Everyone can write here.</p>
+
+          <h3 style="font-size:14px;margin-bottom:5px">Getting around</h3>
+          <ul style="margin:0 0 14px;padding-left:17px;font-size:13px;line-height:1.65">
+            <li>Suica card at the airport</li>
+            <li>JR pass &mdash; <span style="background:var(--butter);padding:0 3px;border-radius:3px">book before we fly</span></li>
+          </ul>
+
+          <h3 style="font-size:14px;margin-bottom:5px">Food Rae found</h3>
+          <ul style="margin:0 0 14px;padding-left:17px;font-size:13px;line-height:1.65">
+            <li>Ichiran &mdash; queue early</li>
+            <li>Nishiki market, Kyoto</li>
+          </ul>
+
+          <div class="card" style="border-style:dashed;color:var(--ink-2);font-size:13px;text-align:center">
+            Tap to write &middot; &ldquo;/&rdquo; for a block
+          </div>
+        </div>
+        <div style="flex:none;border-top:1px solid var(--rule);background:var(--sheet);
+                    display:flex;gap:14px;align-items:center;padding:9px 16px;font-size:13px;color:var(--ink-2)">
+          <b style="color:var(--ink)">B</b><i>I</i><span>&bull; List</span><span>H</span><span style="margin-left:auto">&#9744;</span>
+        </div>
+        <div class="bar">
+          <span class="bi"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.2" cy="6.2" r="4.2"/><path d="M9.4 9.4 12 12"/></svg>Explore</span>
+          <span class="bi on"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4.2h10M2 7h10M2 9.8h6"/></svg>Trips</span>
+          <span class="bi"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="4.6" r="2.4"/><path d="M2.4 12c.6-2.6 2.4-3.8 4.6-3.8S11 9.4 11.6 12"/></svg>Profile</span>
+        </div>
+      </div>
+      <p class="cap"><b>6 &middot; Notes</b> Needs no dates, so it works on an undated trip exactly as it does here. The formatting bar sits above the keyboard; whose edit it is shows in the header, not in the text.</p>
+    </div>
+
+    <div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span>100%</span></div>
+        <div class="nav"><h2>Profile</h2></div>
+        <div class="screen" style="overflow-y:auto">
+          <div class="card" style="background:var(--butter);border-color:var(--butter-edge);text-align:center;padding:16px">
+            <div class="av" style="width:52px;height:52px;font-size:19px;background:var(--sheet);color:var(--butter-ink);margin:0 auto 8px">A</div>
+            <h3 style="font-size:18px">Aidan</h3>
+            <div class="mono" style="font-size:11px;color:var(--butter-ink);margin-top:2px">9 been &middot; 14 want to go</div>
+            <div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-top:9px">
+              <span class="chip" style="background:var(--sheet);color:var(--butter-ink)">Slow mornings</span>
+              <span class="chip" style="background:var(--sheet);color:var(--butter-ink)">Hiking</span>
+            </div>
+          </div>
+
+          <div class="lbl grp" style="margin-top:13px">Yours</div>
+          <div class="card rowitem" style="padding:11px 13px">
+            <span style="font-size:14px">Travel map</span><span class="mono soft" style="font-size:11px">9 countries &rsaquo;</span>
+          </div>
+          <div class="card rowitem" style="padding:11px 13px">
+            <span style="font-size:14px">Friends</span><span class="mono soft" style="font-size:11px">12 &rsaquo;</span>
+          </div>
+          <div class="card rowitem" style="padding:11px 13px">
+            <span style="font-size:14px">Packing lists</span><span class="mono soft" style="font-size:11px">3 &rsaquo;</span>
+          </div>
+          <div class="card rowitem" style="padding:11px 13px">
+            <span style="font-size:14px">Past trips</span><span class="mono soft" style="font-size:11px">6 &rsaquo;</span>
+          </div>
+
+          <div class="lbl grp">Settings</div>
+          <div class="card rowitem" style="padding:11px 13px">
+            <span style="font-size:14px">Appearance</span><span class="mono soft" style="font-size:11px">System &rsaquo;</span>
+          </div>
+          <div class="card rowitem" style="padding:11px 13px">
+            <span style="font-size:14px">Privacy</span><span class="mono soft" style="font-size:11px">&rsaquo;</span>
+          </div>
+          <div class="card rowitem" style="padding:11px 13px">
+            <span style="font-size:14px">Notifications</span><span class="mono soft" style="font-size:11px">&rsaquo;</span>
+          </div>
+          <div class="card rowitem" style="padding:11px 13px">
+            <span style="font-size:14px">Account</span><span class="mono soft" style="font-size:11px">&rsaquo;</span>
+          </div>
+        </div>
+        <div class="bar">
+          <span class="bi"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.2" cy="6.2" r="4.2"/><path d="M9.4 9.4 12 12"/></svg>Explore</span>
+          <span class="bi"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4.2h10M2 7h10M2 9.8h6"/></svg>Trips</span>
+          <span class="bi on"><svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="4.6" r="2.4"/><path d="M2.4 12c.6-2.6 2.4-3.8 4.6-3.8S11 9.4 11.6 12"/></svg>Profile</span>
+        </div>
+      </div>
+      <p class="cap"><b>7 &middot; Profile</b> Two groups, on purpose. The web splits what you <i>curate</i> from what you <i>configure</i> across two pages; a phone has one tab, so the split becomes two headings rather than two destinations.</p>
+    </div>
+
+  </div>
+
+  <div style="max-width:52rem;margin-top:26px">
+    <div class="verdict good">
+      <b>Why the split works:</b> Overview and Days divide a trip along a line that already exists in the data.
+      Days come from <span class="mono">day</span> rows; people, places and files do not belong to any one date.
+      So an undated trip is not a special case being handled &mdash; Overview is simply the half that still has
+      something to show. No flag, no lifecycle state, nothing gated.
+    </div>
+    <div class="verdict bad">
+      <b>Still open:</b> the sheet is a drawer, and drawers get ignored. Money is the section people reach for most,
+      which is why it also sits in the header as a balance chip. If a second section turns out to need that escape
+      hatch, the sheet is the wrong answer and this direction needs revisiting.
+    </div>
+  </div>
+</div>
