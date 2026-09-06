@@ -25,9 +25,8 @@ identity check has refused people for a mismatched address; do it early.
 - Neither can be changed after the first submission. Changing one means a new
   app listing and every installed copy stays on the old one.
 
-`app.json` already carries both. It also carries two placeholders that must be
-replaced before the first build — `extra.eas.projectId` and the `updates.url`
-that embeds it. `eas init` writes them.
+`app.json` already carries both, and `eas init` has written the real
+`extra.eas.projectId`.
 
 ## Assets
 
@@ -41,8 +40,10 @@ that embeds it. `eas init` writes them.
 | Android screenshots | 2–8, min 320px on the short edge | Play Console |
 | Play feature graphic | 1024×500 | Play Console |
 
-The icon is drawn from the wordmark — `floc` with the pen dot — on `--paper`.
-Not a screenshot, and no emoji.
+The icon, adaptive icon and splash are **generated** by
+`scripts/make-icons.mjs` from the wordmark's three chevrons on `--paper` — the
+mark alone, no lettering, because the wordmark is unreadable at 48dp. Rerun the
+script rather than editing the PNGs. Not a screenshot, and no emoji.
 
 Screenshots must show the app as submitted. Both stores reject a shot of a
 screen the reviewer cannot reach.
@@ -110,9 +111,9 @@ or the reviewer sees empty states and rejects for "incomplete functionality".
 ## Order of operations
 
 1. Developer accounts (slowest, do first).
-2. `eas init` — replaces both `projectId` placeholders.
+2. `eas init` — done.
 3. Legal pages live (#270).
-4. Icon, splash, screenshots.
+4. Icon and splash — done. Screenshots still to do.
 5. `eas build --profile preview` — install on a real device, check it works.
 6. Store listings, data safety, age rating.
 7. `eas build --profile production`, then `eas submit`.

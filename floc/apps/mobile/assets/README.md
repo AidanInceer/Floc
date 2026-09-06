@@ -1,8 +1,17 @@
-# Placeholders (ticket 292)
+# Icons
 
-`icon.png`, `adaptive-icon.png` and `splash.png` are flat `--paper` fills. They
-exist so `expo start` and `eas build` work today; they are **not** the artwork.
+`icon.png`, `adaptive-icon.png` and `splash.png` are **generated**, not drawn.
+Do not edit them by hand — rerun the generator instead:
 
-Replace all three before the first store submission — sizes and the rest of the
-list are in [`../STORE.md`](../STORE.md). The icon is the `floc` wordmark with
-its pen dot, on `--paper`. No emoji, and never a screenshot.
+```
+node scripts/make-icons.mjs
+```
+
+It draws the wordmark's three chevrons (`--pen` on `--paper`) at the sizes each
+store wants, so the app icon cannot drift from `wordmark.tsx` on the web. Change
+the mark there, change `CHEVRONS` here, rerun.
+
+`adaptive-icon.png` is transparent on purpose: Android masks it and paints the
+background from `app.json`.
+
+The rest of the store submission list is in [`../STORE.md`](../STORE.md).
