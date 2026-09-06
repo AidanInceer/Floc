@@ -274,3 +274,92 @@ describe("the itinerary", () => {
     ).rejects.toThrow();
   });
 });
+
+describe("packing through the port (#220's two lists)", () => {
+  it("keeps your bag out of the group's list, and out of everybody else's read", async () => {
+    await webPort.addPackingLine(world.admin, world.ours.id, {
+      label: "Sun cream",
+      category: "essentials",
+      mine: false,
+    });
+    await webPort.addPackingLine(world.admin, world.ours.id, {
+      label: "Ada's inhaler",
+      category: "essentials",
+      mine: true,
+    });
+
+    const ada = await webPort.loadPacking(world.admin, world.ours.id);
+    expect(ada.shared.map((l) => l.label)).toEqual(["Sun cream"]);
+    expect(ada.mine.map((l) => l.label)).toEqual(["Ada's inhaler"]);
+
+    // Mo sees the group's line and nothing of Ada's bag.
+    const mo = await webPort.loadPacking(world.member, world.ours.id);
+    expect(mo.shared.map((l) => l.label)).toEqual(["Sun cream"]);
+    expect(mo.mine).toEqual([]);
+  });
+
+  it("lets several people claim one line, and ticks only the caller's own claim", async () => {
+    await webPort.addPackingLine(world.admin, world.ours.id, {
+      label: "Speaker",
+      category: "other",
+      mine: false,
+    });
+    const [line] = (await webPort.loadPacking(world.admin, world.ours.id)).shared;
+
+    await webPort.claimPackingLine(world.admin, world.ours.id, line.id, true);
+    await webPort.claimPackingLine(world.member, world.ours.id, line.id, true);
+    await webPort.setPackingPacked(world.admin, world.ours.id, line.id, true);
+
+    const claims = (await webPort.loadPacking(world.member, world.ours.id)).shared[0].claims;
+    expect(claims).toHaveLength(2);
+    expect(claims.find((c) => c.userId === world.admin)?.packed).toBe(true);
+    expect(claims.find((c) => c.userId === world.member)?.packed).toBe(false);
+  });
+
+  it("refuses an outsider every packing call, the same way as a trip that does not exist (rule 5)", async () => {
+    await expect(webPort.loadPacking(world.outsider, world.ours.id)).rejects.toThrow();
+    await expect(
+      webPort.addPackingLine(world.outsider, world.ours.id, {
+        label: "Crowbar",
+        category: "other",
+        mine: false,
+      }),
+    ).rejects.toThrow();
+  });
+
+  it("soft-deletes a line rather than removing it (rule 8)", async () => {
+    await webPort.addPackingLine(world.admin, world.ours.id, {
+      label: "Tent",
+      category: "other",
+      mine: false,
+    });
+    const [line] = (await webPort.loadPacking(world.admin, world.ours.id)).shared;
+
+    // Anyone on the trip may drop a shared line — the list is the group's.
+    await webPort.removePackingLine(world.member, world.ours.id, line.id);
+
+    expect((await webPort.loadPacking(world.admin, world.ours.id)).shared).toEqual([]);
+    const rows = await db.select().from(schema.packingLine).all();
+    expect(rows).toHaveLength(1);
+    expect(rows[0].deletedAt).not.toBeNull();
+  });
+});
+
+describe("the signed-in person (ticket 302)", () => {
+  it("reads back a name, the trips they are on, and nobody else's", async () => {
+    const ada = await webPort.loadMe(world.admin);
+    expect(ada.id).toBe(world.admin);
+    expect(ada.tripCount).toBe(1);
+
+    const ozz = await webPort.loadMe(world.outsider);
+    expect(ozz.tripCount).toBe(1);
+    expect(ozz.id).toBe(world.outsider);
+  });
+
+  it("lets you rename yourself, and the display name wins over the signup name", async () => {
+    await webPort.renameMe(world.admin, "Ada L");
+    expect((await webPort.loadMe(world.admin)).name).toBe("Ada L");
+    // Mo is untouched — a rename is scoped to the caller, never taken on trust.
+    expect((await webPort.loadMe(world.member)).name).toBe("Mo");
+  });
+});

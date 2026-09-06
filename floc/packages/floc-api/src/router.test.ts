@@ -44,6 +44,11 @@ function fakePort(overrides: Partial<FlocPort> = {}): FlocPort {
       tripCount: 1,
     }),
     renameMe: vi.fn().mockResolvedValue(undefined),
+    loadPacking: vi.fn().mockResolvedValue({ shared: [], mine: [] }),
+    addPackingLine: vi.fn().mockResolvedValue(undefined),
+    claimPackingLine: vi.fn().mockResolvedValue(undefined),
+    setPackingPacked: vi.fn().mockResolvedValue(undefined),
+    removePackingLine: vi.fn().mockResolvedValue(undefined),
     listTrips: vi.fn().mockResolvedValue([]),
     // Only member "u1" is in trip 1; everyone and everything else is null.
     loadTrip: vi.fn(async (viewerId: string, tripId: number) =>

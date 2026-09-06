@@ -19,7 +19,6 @@
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "./theme";
-import { Body } from "./ui";
 import { fonts, radius, size, space } from "@/lib/theme";
 
 export type Section = {
@@ -143,7 +142,6 @@ export function SectionSheet({
             />
           ))}
         </ScrollView>
-        <Body tone="ink-3">Packing is on the website for now.</Body>
       </View>
     </Modal>
   );

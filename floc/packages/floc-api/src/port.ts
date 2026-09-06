@@ -25,6 +25,7 @@
 import type { Currency } from "@floc/core/currency";
 import type { DocCategory } from "@floc/core/documents";
 import type { ExpenseCategory } from "@floc/core/expense-category";
+import type { PackCategory } from "@floc/core/packing";
 import type { DayEventType, SplitType, TransportType } from "@floc/core/vocabulary";
 
 export type { Currency, DayEventType, DocCategory, ExpenseCategory, SplitType, TransportType };
@@ -241,6 +242,35 @@ export type Me = {
   tripCount: number;
 };
 
+/**
+ * The trip's packing, as a phone reads it (the phone's Packing screen).
+ *
+ * TWO LISTS, ONE TABLE. A shared line has no owner and belongs to the group;
+ * a personal line is owned and is one person's bag. They live in the same
+ * table on the host side, and the two are never merged here — a shared line
+ * leaking into somebody's bag is what #220 exists to prevent.
+ */
+export type PackingShared = {
+  id: number;
+  label: string;
+  category: PackCategory;
+  /** Everyone who said they would bring it. Several may — two of you with sun cream is an answer. */
+  claims: { userId: string; name: string; packed: boolean }[];
+};
+
+export type PackingMine = {
+  id: number;
+  label: string;
+  category: PackCategory;
+  quantity: number;
+  packed: boolean;
+};
+
+export type PackingBoard = {
+  shared: PackingShared[];
+  mine: PackingMine[];
+};
+
 export type FlocPort = {
   /** The viewer's trips. Never another user's, whatever id is passed. */
   /**
@@ -252,6 +282,43 @@ export type FlocPort = {
    * settings stay on the web, where they are edited.
    */
   loadMe(viewerId: string): Promise<Me>;
+
+  /** Both lists in one read — the screen draws both, and asking twice is a second round trip. */
+  loadPacking(viewerId: string, tripId: number): Promise<PackingBoard>;
+
+  /** Adds to the group's list when `mine` is false, to your own bag when it is true. */
+  addPackingLine(
+    viewerId: string,
+    tripId: number,
+    input: { label: string; category: PackCategory; mine: boolean },
+  ): Promise<void>;
+
+  /**
+   * Says you will bring a shared thing, or takes it back. Open by design: any
+   * member may claim any line, and several may claim the same one. Not one of
+   * the four admin powers (rule 6).
+   */
+  claimPackingLine(
+    viewerId: string,
+    tripId: number,
+    lineId: number,
+    claimed: boolean,
+  ): Promise<void>;
+
+  /**
+   * Ticks something as packed — your own claim on a shared line, or a line in
+   * your own bag. Never anyone else's: the host scopes the write to (line,
+   * viewer), so ticking for somebody else is not expressible.
+   */
+  setPackingPacked(
+    viewerId: string,
+    tripId: number,
+    lineId: number,
+    packed: boolean,
+  ): Promise<void>;
+
+  /** Soft-deletes one line (rule 8). A shared line is anyone's to drop; a personal one only its owner's. */
+  removePackingLine(viewerId: string, tripId: number, lineId: number): Promise<void>;
 
   /** Renames the display name. Not an admin power (rule 6) — it is your own name. */
   renameMe(viewerId: string, displayName: string): Promise<void>;

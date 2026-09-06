@@ -11,6 +11,7 @@ import { itineraryRouter } from "./routers/itinerary";
 import { meRouter } from "./routers/me";
 import { moneyRouter } from "./routers/money";
 import { notesRouter } from "./routers/notes";
+import { packingRouter } from "./routers/packing";
 import { placesRouter } from "./routers/places";
 import { rosterRouter } from "./routers/roster";
 import { tripsRouter } from "./routers/trips";
@@ -26,6 +27,7 @@ export const appRouter = router({
   roster: rosterRouter,
   files: filesRouter,
   notes: notesRouter,
+  packing: packingRouter,
   places: placesRouter,
   availability: availabilityRouter,
 });

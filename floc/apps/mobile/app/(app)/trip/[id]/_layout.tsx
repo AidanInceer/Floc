@@ -95,10 +95,17 @@ export default function TripLayout() {
   const trip = useQuery(trpc.trips.get.queryOptions({ tripId }));
   const days = useQuery(trpc.itinerary.days.queryOptions({ tripId }));
   const ledger = useQuery(trpc.money.ledger.queryOptions({ tripId }));
+  const packing = useQuery(trpc.packing.list.queryOptions({ tripId }));
 
   const balance = viewerBalance(ledger.data, session?.user.id);
   const moneyFigure = balance.figure;
   const owing = balance.minor < 0;
+
+  // What is still outstanding, not what exists — a total says nothing about
+  // whether anyone need open the screen.
+  const packingFigure = packing.data
+    ? `${packing.data.shared.filter((line) => line.claims.length === 0).length} unclaimed`
+    : "—";
 
   const sections: Section[] = [
     { route: "", label: "Overview", figure: trip.data?.name ?? "—" },
@@ -110,6 +117,7 @@ export default function TripLayout() {
     },
     { route: "money", label: "Money", figure: moneyFigure, tone: owing ? "red" : undefined },
     { route: "notes", label: "Notes", figure: "everyone can write" },
+    { route: "packing", label: "Packing", figure: packingFigure },
     {
       route: "roster",
       label: "Who",

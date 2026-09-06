@@ -20,6 +20,7 @@ import type {
   ExpenseInput,
   FlocPort,
   Me,
+  PackingBoard,
   ItineraryDay,
   Ledger,
   NewTrip,
@@ -58,6 +59,18 @@ import {
   loadIdentity,
   updateProfileFields,
 } from "@/server/profile";
+import {
+  claimPackingLine,
+  insertPackingLine,
+  insertPersonalPackingLine,
+  listPackingClaims,
+  listPackingLines,
+  listPersonalPackingLines,
+  setClaimPacked,
+  setPersonalPacked,
+  softDeletePackingLine,
+  unclaimPackingLine,
+} from "@/server/packing";
 import { travelMapFor } from "@/server/travel-map";
 import { leaveTripAs, removeMembership, setMemberRoleAdmin } from "@/server/roster";
 import {
@@ -113,6 +126,79 @@ function toEventFields(input: EventInput) {
 }
 
 export const webPort: FlocPort = {
+  async loadPacking(viewerId, tripId): Promise<PackingBoard> {
+    await scoped(viewerId, tripId);
+    const [shared, claims, mine] = await Promise.all([
+      listPackingLines(tripId),
+      listPackingClaims(tripId),
+      listPersonalPackingLines(tripId, viewerId),
+    ]);
+
+    // Claims come back flat for one query rather than one per line; grouping
+    // here keeps the wire shape the screen actually draws.
+    const byLine = new Map<number, PackingBoard["shared"][number]["claims"]>();
+    for (const claim of claims) {
+      const list = byLine.get(claim.packingLineId) ?? [];
+      list.push({ userId: claim.userId, name: claim.name, packed: claim.packedAt !== null });
+      byLine.set(claim.packingLineId, list);
+    }
+
+    return {
+      shared: shared.map((line) => ({
+        id: line.id,
+        label: line.label,
+        category: line.category,
+        claims: byLine.get(line.id) ?? [],
+      })),
+      mine: mine.map((line) => ({
+        id: line.id,
+        label: line.label,
+        category: line.category,
+        quantity: line.quantity,
+        packed: line.packedAt !== null,
+      })),
+    };
+  },
+
+  async addPackingLine(viewerId, tripId, input) {
+    await scoped(viewerId, tripId);
+    // Author and owner are the same person by construction on a personal line
+    // — there is no way to add to somebody else's bag from here (#220).
+    if (input.mine) await insertPersonalPackingLine(tripId, viewerId, input.label, input.category);
+    else await insertPackingLine(tripId, viewerId, input.label, input.category);
+    refresh({ kind: "packing", tripId });
+  },
+
+  async claimPackingLine(viewerId, tripId, lineId, claimed) {
+    const access = await scoped(viewerId, tripId);
+    // Resolved through the same resolver the web action uses: a line on
+    // another trip, or somebody else's personal line, never resolves at all.
+    const line = await access.packingLine(lineId);
+    if (claimed) await claimPackingLine(line.id, viewerId);
+    else await unclaimPackingLine(line.id, viewerId);
+    refresh({ kind: "packing", tripId });
+  },
+
+  async setPackingPacked(viewerId, tripId, lineId, packed) {
+    const access = await scoped(viewerId, tripId);
+    const line = await access.packingLine(lineId);
+    // Which list it is on decides which row carries the tick: a shared line's
+    // tick belongs to your claim, a personal line's to the line itself.
+    if (line.ownerId === null) await setClaimPacked(line.id, viewerId, packed);
+    else await setPersonalPacked(line.id, viewerId, packed);
+    refresh({ kind: "packing", tripId });
+  },
+
+  async removePackingLine(viewerId, tripId, lineId) {
+    const access = await scoped(viewerId, tripId);
+    // A shared line is anyone's to drop — the list is the group's, and one
+    // nobody wants should not outlive whoever typed it. A personal one only
+    // ever resolves for its owner, so this is already scoped.
+    const line = await access.packingLine(lineId);
+    await softDeletePackingLine(line.id);
+    refresh({ kind: "packing", tripId });
+  },
+
   async loadMe(viewerId): Promise<Me> {
     // The lazy profile row first, so a person who has never opened settings
     // still reads back a profile rather than a hole.
