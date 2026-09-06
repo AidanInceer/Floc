@@ -22,7 +22,9 @@ import type {
   Ledger,
   NewTrip,
   TripDetail,
+  TripFile,
   TripPatch,
+  TripPlace,
 } from "@floc/api/port";
 
 import { assertAdmin, findTripAccess, type TripAccess } from "@/server/access";
@@ -42,6 +44,8 @@ import {
   softDeleteExpense,
   writeExpense,
 } from "@/server/money";
+import { listDocuments } from "@/server/documents";
+import { listTripPlaces } from "@/server/places";
 import { ensureProfile } from "@/server/profile";
 import { leaveTripAs, removeMembership, setMemberRoleAdmin } from "@/server/roster";
 import {
@@ -141,6 +145,29 @@ export const webPort: FlocPort = {
         currency: s.currency,
       })),
     };
+  },
+
+  async listFiles(viewerId, tripId): Promise<TripFile[]> {
+    await scoped(viewerId, tripId);
+    // The viewer goes down to the query, which drops a private file that is
+    // somebody else's rather than returning it flagged.
+    const rows = await listDocuments(tripId, viewerId);
+    return rows.map((d) => ({
+      id: d.id,
+      name: d.name,
+      mimeType: d.mimeType,
+      sizeBytes: d.sizeBytes,
+      category: d.category,
+      uploadedAt: d.createdAt.toISOString(),
+      uploadedBy: d.uploadedBy,
+      uploaderName: d.uploaderName,
+      ownerId: d.ownerId,
+    }));
+  },
+
+  async listPlaces(viewerId, tripId): Promise<TripPlace[]> {
+    await scoped(viewerId, tripId);
+    return listTripPlaces(tripId);
   },
 
   async createTrip(viewerId, input: NewTrip) {

@@ -31,7 +31,8 @@ import { useTheme } from "./theme";
 
 /* ------------------------------------------------------------------ text */
 
-type TextTone = "ink" | "ink-2" | "ink-3" | "pen" | "red" | "green";
+/** Every tone is a token name. `butter-ink` is here so text on a butter ground keeps its contrast (#204). */
+type TextTone = "ink" | "ink-2" | "ink-3" | "pen" | "red" | "green" | "butter-ink";
 
 export function Body({
   children,

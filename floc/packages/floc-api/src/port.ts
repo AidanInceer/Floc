@@ -23,10 +23,11 @@
  *  10. No timezones. Dates are `YYYY-MM-DD`; times are local to the itinerary.
  */
 import type { Currency } from "@floc/core/currency";
+import type { DocCategory } from "@floc/core/documents";
 import type { ExpenseCategory } from "@floc/core/expense-category";
 import type { DayEventType, SplitType, TransportType } from "@floc/core/vocabulary";
 
-export type { Currency, DayEventType, ExpenseCategory, SplitType, TransportType };
+export type { Currency, DayEventType, DocCategory, ExpenseCategory, SplitType, TransportType };
 
 export type TripRole = "admin" | "member";
 
@@ -132,6 +133,44 @@ export type Ledger = {
   settlements: Settlement[];
 };
 
+/**
+ * One file on a trip (ticket 296).
+ *
+ * `ownerId` is the private/shared line: null means the whole trip can see it,
+ * and a set value is only ever the viewer's own — the implementation filters
+ * somebody else's private file out rather than returning it flagged.
+ */
+export type TripFile = {
+  id: number;
+  name: string;
+  mimeType: string;
+  sizeBytes: number;
+  category: DocCategory;
+  /** ISO 8601 instant. The one place a time crosses this wire, and it is a record of an upload, not an itinerary time (rule 10). */
+  uploadedAt: string;
+  uploadedBy: string;
+  uploaderName: string;
+  ownerId: string | null;
+};
+
+/**
+ * A place the trip's days point at, for the map (ticket 296).
+ *
+ * This is NOT a stop. A stop is consecutive days sharing an overnight place
+ * and is derived by `@floc/core/stops` from `listDays` (rule 3). This is the
+ * flat set of places, with the coordinates a map needs and `listDays` does not
+ * carry. `lat`/`lng` are nullable: a place typed during a provider outage has
+ * none and simply does not reach the map (rule 11).
+ */
+export type TripPlace = {
+  id: number;
+  name: string;
+  lat: number | null;
+  lng: number | null;
+  /** ISO 3166-1 alpha-2, upper case. */
+  countryCode: string | null;
+};
+
 export type NewTrip = {
   name: string;
   startDate: string | null;
@@ -185,6 +224,12 @@ export type FlocPort = {
   listDays(viewerId: string, tripId: number): Promise<ItineraryDay[]>;
 
   loadLedger(viewerId: string, tripId: number): Promise<Ledger>;
+
+  /** Newest first. Somebody else's private file is never in the result (ticket 296). */
+  listFiles(viewerId: string, tripId: number): Promise<TripFile[]>;
+
+  /** The distinct places the trip's days and events point at — for the map, not for stops (ticket 296). */
+  listPlaces(viewerId: string, tripId: number): Promise<TripPlace[]>;
 
   createTrip(viewerId: string, input: NewTrip): Promise<{ id: number }>;
 

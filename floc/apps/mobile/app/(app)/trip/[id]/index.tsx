@@ -1,78 +1,155 @@
 /**
- * Trip overview (ticket 291).
+ * Trip Overview (tickets 291, 296).
  *
- * What the trip *is*: its name, its dates, where it stops, who is on it. Every
- * one of those is derived, not stored — the stops especially. A stop is
- * consecutive days sharing an overnight place, computed here by
- * `@floc/core/stops`, exactly as the web app computes it. There is no `stop`
- * table and this screen must never make it look as though there is (rule 3).
+ * A TRIP HAS TWO FACES. Days is its *when*. This is its *who, where and what*:
+ * people, places, files, and anything outstanding. That line already exists in
+ * the data — days come from `day` rows, while members, places and files belong
+ * to no particular date.
+ *
+ * So a trip with no dates opens here not because it is blocked, but because
+ * this is the half that still has something to show. Nothing is gated, no flag
+ * is stored, and undated is never an error (rules 4 and 9).
+ *
+ * EVERYTHING ON THIS SCREEN IS DERIVED. The outstanding items especially:
+ * there is no notification table and no dismiss, so an item is present exactly
+ * while the fact behind it is true. The stops likewise — consecutive days
+ * sharing an overnight place, computed by `@floc/core/stops`, never a `stop`
+ * table (rule 3).
  */
-import { deriveStops, placedStops } from "@floc/core/stops";
+import { computeBalances, isAllSettled } from "@floc/core/money";
 import { formatDateRange } from "@floc/core/dates";
 import { useQuery } from "@tanstack/react-query";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { ScrollView, View } from "react-native";
 
-import { Body, Card, Empty, Failed, Figure, Heading, Label, Loading, Pill } from "@/components/ui";
+import { FileList } from "@/components/file-list";
+import { NeedsYou, type Outstanding } from "@/components/needs-you";
+import { PlacePlot } from "@/components/place-plot";
+import { RosterStrip } from "@/components/roster-strip";
+import {
+  Body,
+  Card,
+  Empty,
+  Failed,
+  Figure,
+  Heading,
+  Label,
+  Loading,
+  Pill,
+} from "@/components/ui";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
+
+/** Overview shows the top of the pile; the rest is a count, and the Files screen. */
+const FILES_SHOWN = 3;
 
 export default function Overview() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const tripId = Number(id);
+  const router = useRouter();
 
   const trip = useQuery(trpc.trips.get.queryOptions({ tripId }));
-  const days = useQuery(trpc.itinerary.days.queryOptions({ tripId }));
+  const places = useQuery(trpc.places.list.queryOptions({ tripId }));
+  const files = useQuery(trpc.files.list.queryOptions({ tripId }));
+  const ledger = useQuery(trpc.money.ledger.queryOptions({ tripId }));
 
   if (trip.isPending) return <Loading />;
   if (trip.isError) return <Failed onRetry={() => trip.refetch()} />;
 
-  // Derived here, never fetched — the API has no procedure that returns one.
-  const stops = placedStops(
-    deriveStops(
-      (days.data ?? []).map((d) => ({
-        dayId: d.id,
-        date: d.date,
-        overnightPlaceId: d.overnightPlaceId,
-        overnightPlaceName: d.overnightPlaceName,
+  const outstanding: Outstanding[] = [];
+
+  // No dates is the normal starting state of a trip, so this is an invitation,
+  // never a warning (rule 9).
+  if (!trip.data.startDate) {
+    outstanding.push({
+      id: "dates",
+      said: "No dates set yet.",
+      action: "Set them",
+      // Availability is where dates get agreed; the itinerary is what follows.
+      onPress: () => router.push(`/(app)/trip/${tripId}/itinerary`),
+    });
+  }
+
+  // Derived from the ledger the API already returned — there is no balance
+  // column and no balance procedure, because a stored balance is a second
+  // source of truth about the same money (rule 1).
+  if (ledger.data) {
+    const balances = computeBalances(
+      ledger.data.expenses.map((expense) => ({
+        paidBy: expense.paidBy,
+        currency: expense.currency,
+        amountMinor: expense.amountMinor,
+        splits: ledger.data.splits
+          .filter((split) => split.expenseId === expense.id)
+          .map((split) => ({ userId: split.userId, owedAmountMinor: split.owedAmountMinor })),
       })),
-    ),
-  );
+      ledger.data.settlements.map((settlement) => ({
+        from: settlement.fromUserId,
+        to: settlement.toUserId,
+        currency: settlement.currency,
+        amountMinor: settlement.amountMinor,
+      })),
+    );
+    if (!isAllSettled(balances)) {
+      outstanding.push({
+        id: "money",
+        said: "Money is not settled up.",
+        action: "See who owes what",
+        onPress: () => router.push(`/(app)/trip/${tripId}/money`),
+      });
+    }
+  }
 
   return (
-    <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }}>
+    <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.xl }}>
       <View style={{ gap: space.xs }}>
         <Heading>{trip.data.name}</Heading>
         <Figure tone="ink-2">{formatDateRange(trip.data.startDate, trip.data.endDate)}</Figure>
         {trip.data.archived ? <Pill word="Archived" tone="butter" /> : null}
       </View>
 
+      <NeedsYou items={outstanding} />
+
       <View style={{ gap: space.sm }}>
-        <Label>Where</Label>
-        {days.isPending ? (
-          <Loading />
-        ) : stops.length === 0 ? (
-          <Empty>No overnight places set yet.</Empty>
-        ) : (
-          stops.map((stop) => (
-            <Card key={stop.startDate}>
-              <Body bold>{stop.placeName}</Body>
-              <Figure tone="ink-2">
-                {formatDateRange(stop.startDate, stop.endDate)}
-              </Figure>
-            </Card>
-          ))
-        )}
+        <Label>Who is coming</Label>
+        <Card>
+          <RosterStrip people={trip.data.members} />
+        </Card>
       </View>
 
       <View style={{ gap: space.sm }}>
-        <Label>Who</Label>
+        <Label>Where</Label>
         <Card>
-          <Body>
-            {trip.data.members.map((m) => m.name).join(", ")}
-          </Body>
+          {places.isPending ? (
+            <Loading />
+          ) : places.isError ? (
+            <Failed onRetry={() => places.refetch()} />
+          ) : places.data.length === 0 ? (
+            <Body tone="ink-2">Nowhere on the map yet.</Body>
+          ) : (
+            <PlacePlot places={places.data} />
+          )}
         </Card>
       </View>
+
+      <View style={{ gap: space.sm }}>
+        <Label>Files</Label>
+        <Card>
+          {files.isPending ? (
+            <Loading />
+          ) : files.isError ? (
+            <Failed onRetry={() => files.refetch()} />
+          ) : files.data.length === 0 ? (
+            <Body tone="ink-2">No files yet.</Body>
+          ) : (
+            <FileList files={files.data} showing={FILES_SHOWN} />
+          )}
+        </Card>
+      </View>
+
+      {trip.data.members.length === 1 ? (
+        <Empty>Only you so far. Inviting is on the website.</Empty>
+      ) : null}
     </ScrollView>
   );
 }

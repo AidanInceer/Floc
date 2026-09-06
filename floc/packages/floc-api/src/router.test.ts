@@ -40,6 +40,8 @@ function fakePort(overrides: Partial<FlocPort> = {}): FlocPort {
       viewerId === "u1" && tripId === 1 ? TRIP : null,
     ),
     listDays: vi.fn().mockResolvedValue([]),
+    listFiles: vi.fn().mockResolvedValue([]),
+    listPlaces: vi.fn().mockResolvedValue([]),
     loadLedger: vi.fn().mockResolvedValue({ expenses: [], splits: [], settlements: [] }),
     createTrip: vi.fn().mockResolvedValue({ id: 2 }),
     updateTrip: vi.fn().mockResolvedValue(undefined),
@@ -196,5 +198,31 @@ describe("joining", () => {
   it("answers null for a bad token rather than saying what was wrong", async () => {
     const { caller: ana } = caller("u1");
     await expect(ana.trips.join({ token: "nope" })).resolves.toBeNull();
+  });
+});
+
+describe("what Overview reads (ticket 296)", () => {
+  it("refuses files and places on a trip the viewer is not in, the same way as one that does not exist", async () => {
+    const { caller: ana } = caller("u1");
+    await expect(ana.files.list({ tripId: 2 })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+      message: "No such trip.",
+    });
+    await expect(ana.places.list({ tripId: 2 })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+      message: "No such trip.",
+    });
+  });
+
+  it("passes the viewer down, so the port can drop somebody else's private file", async () => {
+    const { caller: ana, port } = caller("u1");
+    await ana.files.list({ tripId: 1 });
+    expect(port.listFiles).toHaveBeenCalledWith("u1", 1);
+  });
+
+  it("reads the trip's places for the map", async () => {
+    const { caller: ana, port } = caller("u1");
+    await ana.places.list({ tripId: 1 });
+    expect(port.listPlaces).toHaveBeenCalledWith("u1", 1);
   });
 });
