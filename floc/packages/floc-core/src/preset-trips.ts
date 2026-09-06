@@ -1,7 +1,8 @@
 // Static listings for the Explore mockup. No partner backend or deal —
 // operator names are illustrative placeholders. See docs/research/partner-trips.html.
 // Money is minor units (rule 1); format with `formatMoney`, never by hand.
-import type { Currency, TransportType } from "@/db/schema";
+import type { Currency } from "./currency";
+import type { TransportType } from "./vocabulary";
 
 /**
  * Ticket 194: a listing is shown by its *shape* — where you sleep and how you

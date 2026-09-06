@@ -8,12 +8,13 @@
  */
 import "server-only";
 
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, or } from "drizzle-orm";
 
 import { db } from "@/db";
 import { capRequiredText } from "@floc/core/text";
-import { place } from "@/db/schema";
+import { day, dayEvent, place } from "@/db/schema";
 import { readCountryCode } from "@floc/core/countries";
+import { bounded, LIMITS } from "@/server/limits";
 
 /** Nominatim requires an identifying UA with a contact address — not a secret, no key to leak. */
 const USER_AGENT = "Floc (aidaninceer0@gmail.com)";
@@ -170,4 +171,51 @@ export async function upsertPlace(input: {
     .get();
 
   return inserted.id;
+}
+
+/** One place as the map needs it — the row plus nothing derived (ticket 296). */
+export type TripPlaceRow = {
+  id: number;
+  name: string;
+  lat: number | null;
+  lng: number | null;
+  countryCode: string | null;
+};
+
+/**
+ * Every place a trip's days point at, once each (ticket 296).
+ *
+ * Two ways a day reaches a place: it is where the group sleeps
+ * (`day.overnightPlaceId`) or it is where an event happens
+ * (`day_event.place_id`). Both count for the map.
+ *
+ * This says nothing about stops. A stop is consecutive days sharing an
+ * overnight place and is derived from the days themselves (rule 3) — this is
+ * the flat set, and the only thing it adds is coordinates.
+ */
+export async function listTripPlaces(tripId: number): Promise<TripPlaceRow[]> {
+  const rows = await db
+    .selectDistinct({
+      id: place.id,
+      name: place.name,
+      lat: place.lat,
+      lng: place.lng,
+      countryCode: place.countryCode,
+    })
+    .from(day)
+    .leftJoin(dayEvent, and(eq(dayEvent.dayId, day.id), isNull(dayEvent.deletedAt)))
+    .innerJoin(
+      place,
+      and(
+        or(eq(place.id, day.overnightPlaceId), eq(place.id, dayEvent.placeId)),
+        isNull(place.deletedAt),
+      ),
+    )
+    .where(and(eq(day.tripId, tripId), isNull(day.deletedAt)))
+    // Bounded by the day cap: a place only reaches this result by way of a
+    // day, so there can never be more places than days.
+    .limit(LIMITS.days)
+    .all();
+
+  return bounded(rows, "days", `places on trip ${tripId}`);
 }

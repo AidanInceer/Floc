@@ -15,7 +15,7 @@ import { bulletDoc, saveNoteDoc } from "@/server/note-doc";
 import { createTripWithAdmin } from "@/server/trips";
 import { ensureProfile } from "@/server/profile";
 import { refresh } from "@/server/freshness";
-import { PRESET_TRIPS } from "./preset-trips";
+import { PRESET_TRIPS } from "@floc/core/preset-trips";
 
 export async function startTripFromPreset(formData: FormData): Promise<void> {
   const viewer = await requireUser("/explore");

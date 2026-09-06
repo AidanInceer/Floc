@@ -3,6 +3,10 @@ import type { NextConfig } from "next";
 // Redeploy touchpoint — see chore commit.
 const config: NextConfig = {
   reactStrictMode: true,
+  // The phone app reads this dev server over the LAN, so its requests arrive
+  // from a different origin than localhost (ticket 289). The host is per
+  // machine, so it comes from the environment rather than the repo.
+  allowedDevOrigins: process.env.FLOC_LAN_HOST ? [process.env.FLOC_LAN_HOST] : [],
   // @floc/core ships TypeScript source, not a build (#286) — a workspace
   // package with no build step is one less thing to be stale in dev.
   transpilePackages: ["@floc/core"],

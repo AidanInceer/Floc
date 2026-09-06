@@ -148,6 +148,42 @@ export async function requireTripAccess(
 }
 
 /**
+ * The same load as `requireTripAccess`, answering `null` instead of leaving
+ * through `notFound()` (ticket 287).
+ *
+ * The API needs the *decision*, not the redirect: a tRPC procedure has to turn
+ * "no" into a NOT_FOUND on the wire, and `notFound()` throws a Next navigation
+ * signal a route handler cannot catch. Rule 5 is unchanged and stays the
+ * caller's to keep — a trip that does not exist and one the viewer is not in
+ * both answer `null` here, so neither is distinguishable from the other.
+ */
+export async function findTripAccess(
+  tripId: number,
+  viewerId: string,
+): Promise<TripAccess | null> {
+  if (!Number.isInteger(tripId)) return null;
+
+  const { membership, row, members } = await loadTripAccess(tripId, viewerId);
+  if (!membership || !row) return null;
+
+  const viewer = await db
+    .select({ id: user.id, name: user.name, email: user.email, image: user.image })
+    .from(user)
+    .where(eq(user.id, viewerId))
+    .get();
+  if (!viewer) return null;
+
+  return {
+    trip: row,
+    role: membership.role,
+    isAdmin: membership.role === "admin",
+    viewer: { ...viewer, image: viewer.image ?? null },
+    members,
+    ...scopedTo(tripId, viewerId),
+  };
+}
+
+/**
  * The resolvers on `TripAccess`, built for one trip id — see the type's doc.
  * Each is memoised with `cache()`, keyed on trip + child id, since several
  * actions resolve the same row more than once. `event` reaches `trip` through

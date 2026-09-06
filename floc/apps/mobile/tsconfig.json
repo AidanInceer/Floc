@@ -1,0 +1,24 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+
+    // React Native 0.87 ships TWO sets of types, chosen by export condition:
+    // the new generated ones (default), and the mature hand-written ones
+    // behind `react-native-legacy-deep-imports`. The generated set is broken
+    // here — `____ViewStyle_Internal` builds itself from a chain of `Omit`s
+    // that drops the base style props, so `backgroundColor` and `color` come
+    // back as unknown and tsc helpfully suggests the CSS `backgroundClip`
+    // instead. Every style in the app failed against it (ticket 289).
+    //
+    // Selecting the legacy set is a types-only choice: the runtime resolves
+    // through Metro and never reads this. Revisit when 0.88 regenerates them.
+    "customConditions": ["react-native-legacy-deep-imports", "react-native"],
+
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"],
+  "exclude": ["node_modules"]
+}

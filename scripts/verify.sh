@@ -10,6 +10,11 @@
 #   ci.yml       fitness     → layers · dead code · tokens · contrast · bundle
 #   ci.yml       migrations  → schema changes ship with a migration
 #   ci.yml       wireframes  → wireframes stay self-contained
+#   ci.yml       mobile      → Expo bundles for Android and iOS
+#
+# One CI job is deliberately NOT mirrored: `mobile-android`, the native gradle
+# compile. It takes twenty minutes and wants a JDK 17, which is too much to ask
+# of a gate meant to be run before every push — and it is advisory in CI too.
 #   security.yml audit       → pnpm audit --audit-level=high
 #   security.yml secrets     → gitleaks (skipped when not installed)
 #
@@ -58,6 +63,12 @@ fi
 # filters to packages affected by the diff; locally we just run all of them,
 # because with one venture that is the same set and the filter is the part most
 # likely to drift.
+#
+# Four packages now, not one (#287, #289): floc-web, floc-mobile, @floc/core
+# and @floc/api. Adding a package needs no edit here or in ci.yml — both go
+# through turbo, which reads pnpm-workspace.yaml. `floc-mobile` has no build
+# task on purpose; a phone bundle is EAS's job, not CI's (see
+# floc/apps/mobile/SHIPPING.md).
 step "Lint · typecheck · test · build"
 for task in lint typecheck test build; do
   if pnpm "$task" >/tmp/verify-$task.log 2>&1; then
@@ -125,6 +136,26 @@ else
   done
   [ "$wf" -eq 0 ] && ok "${#files[@]} wireframe(s) self-contained" || bad "wireframes reference external assets"
 fi
+
+# --------------------------------------------------- ci.yml :: mobile
+
+# Metro over the phone app, once per platform. The `verify` step above never
+# builds it — floc-mobile has no `build` script, so turbo has nothing to run —
+# which left a broken import on a mobile-only screen invisible until the app
+# was opened. A bundle is JavaScript, so the iOS one builds on Windows fine.
+#
+# It always runs. The first cut skipped when nothing under the app had changed
+# since HEAD, which meant it skipped the moment the work was committed — a gate
+# that goes quiet exactly when you are about to push is not a gate. CI decides
+# the same question against the previous commit, which is a thing CI can see
+# and a pre-push script cannot.
+step "The phone app bundles"
+if (cd floc/apps/mobile && npx expo export --platform android --platform ios --output-dir dist >/dev/null 2>&1); then
+  ok "android and ios bundles built"
+else
+  bad "the phone app does not bundle"
+fi
+rm -rf floc/apps/mobile/dist
 
 # ------------------------------------------ security.yml :: audit
 

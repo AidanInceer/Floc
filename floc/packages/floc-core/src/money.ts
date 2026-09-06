@@ -98,7 +98,14 @@ export type SplitResult = { userId: string; owedAmountMinor: number };
  * readable (immutable snapshots, non-negotiable 2) but only these two are
  * produced since the shares model (ticket 85).
  */
-export type WritableSplitType = Extract<SplitType, "shares" | "exact">;
+// `satisfies` rather than a bare tuple: these must stay real `SplitType`s, so
+// renaming one in the vocabulary breaks here instead of at a call site.
+export const WRITABLE_SPLIT_TYPES = [
+  "shares",
+  "exact",
+] as const satisfies readonly SplitType[];
+
+export type WritableSplitType = (typeof WRITABLE_SPLIT_TYPES)[number];
 
 /** Split type + participants → snapshot rows summing to exactly `amountMinor`. */
 export function computeSplits(

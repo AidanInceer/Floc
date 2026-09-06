@@ -6,7 +6,9 @@
  * `--ink-3` sat at 2.75:1 through an entire redesign (#204). This is the only
  * check in the repo that catches one.
  */
-import { contrast, readTokens } from "./tokens.mjs";
+import { resolveColours } from "@floc/core/tokens";
+
+import { contrast } from "./tokens.mjs";
 
 const AA_TEXT = 4.5;
 
@@ -59,7 +61,7 @@ const failures = [];
 let checked = 0;
 
 for (const theme of ["light", "dark"]) {
-  const tokens = readTokens(undefined, theme);
+  const tokens = new Map(Object.entries(resolveColours(theme)));
   const pairs = [...PAIRS];
 
   // Every `--who-N` / `--who-N-ink` pair, however many there turn out to be.

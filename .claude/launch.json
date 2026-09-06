@@ -10,8 +10,23 @@
         "floc-web",
         "dev"
       ],
-      "autoPort": true,
-      "port": 3000
+      "port": 3000,
+      "autoPort": false
+    },
+    {
+      "name": "floc-metro",
+      "runtimeExecutable": "corepack",
+      "runtimeArgs": [
+        "pnpm",
+        "--filter",
+        "floc-mobile",
+        "exec",
+        "expo",
+        "start",
+        "--dev-client"
+      ],
+      "port": 8081,
+      "autoPort": false
     },
     {
       "name": "docs",
@@ -24,6 +39,18 @@
         "--no-clipboard"
       ],
       "port": 4000
+    },
+    {
+      "name": "wireframes",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "serve",
+        "floc/wireframe",
+        "-p",
+        "4100",
+        "--no-clipboard"
+      ],
+      "port": 4100
     }
   ]
 }

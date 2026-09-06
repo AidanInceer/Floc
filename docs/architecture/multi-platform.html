@@ -230,19 +230,46 @@ phone app is ever built.</p>
 <li><strong>floc-core carve-out</strong> — done (<code>#286</code>). Pure logic
 and vocabulary out of <code>apps/web</code>, plus the
 <code>floc-core-owes-the-app-nothing</code> <code>depcruise</code> rule.</li>
-<li><strong>tRPC router</strong> over the existing <code>server/</code>
-modules. The web app is untouched.</li>
-<li><strong>Design tokens package</strong>, so the two UIs cannot drift on
-look.</li>
-<li><strong>Expo app skeleton</strong> — boots, signs in, lists trips over
-tRPC. The first point at which a phone app exists.</li>
-<li><strong>EAS pipeline</strong> — build profiles, update channel, CI job,
-<code>verify.sh</code>, the mobile versioning rule.</li>
-<li><strong>Mobile screens to MVP parity</strong> — trips, itinerary, expenses,
-roster. Several tickets.</li>
-<li><strong>Store readiness</strong> — icons, splash, listings, privacy labels,
-developer accounts.</li>
+<li><strong>tRPC router</strong> — done (<code>#287</code>). <code>@floc/api</code>
+declares the procedures and reaches data through a port the host implements;
+<code>apps/web/src/server/api-port.ts</code> implements it from the same
+<code>server/</code> modules the pages use. The web app is untouched and does
+not call it.</li>
+<li><strong>Design tokens package</strong> — done (<code>#288</code>). Values
+live in <code>@floc/core/tokens</code>; <code>globals.css</code> is checked
+against them on every <code>pnpm fitness</code>, and the phone resolves the same
+map at runtime.</li>
+<li><strong>Expo app skeleton</strong> — done (<code>#289</code>).
+<code>apps/mobile</code> signs in against the same Better Auth instance,
+carrying a bearer token instead of a cookie, and lists trips over tRPC.</li>
+<li><strong>EAS pipeline</strong> — done (<code>#290</code>). Build profiles and
+the update channel are in <code>apps/mobile/eas.json</code>; the rule deciding
+store build vs EAS Update is in
+<code>apps/mobile/SHIPPING.md</code>.</li>
+<li><strong>Mobile screens to MVP parity</strong> — done (<code>#291</code>).
+Trips, overview, itinerary, money and roster, each over tRPC and each reusing
+<code>@floc/core</code> rather than restating it.</li>
+<li><strong>Store readiness</strong> — the checklist is in
+<code>apps/mobile/STORE.md</code> (<code>#292</code>). Every item is an account,
+a console form or an asset, so none of it can be done from the repository.</li>
 </ol>
+
+<h2>What the phone deliberately cannot do</h2>
+
+<p>Each of these is a decision, not a gap left by accident.</p>
+
+<ul>
+<li><strong>Buy Pro.</strong> Apple 3.1.1 and Google Play Billing forbid the
+link <em>and</em> the nudge. Pro is visible and not purchasable, and the app
+does not steer anyone to the website to pay.</li>
+<li><strong>Invite by email.</strong> No mail composer on the device; the
+roster says so rather than offering a button that half works.</li>
+<li><strong>Commit a trip window.</strong> Days appear once the Dates tab
+commits one, which is still web-only — identical to a trip created in a
+browser.</li>
+<li><strong>Work offline.</strong> The query cache was chosen so it can be
+persisted later (<code>#226</code>); it is not persisted yet.</li>
+</ul>
 
 </main>
 <script src="../assets/nav.js"></script>

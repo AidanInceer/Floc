@@ -8,9 +8,11 @@
  */
 import "server-only";
 
+import { expo } from "@better-auth/expo";
 import { eq } from "drizzle-orm";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { bearer } from "better-auth/plugins";
 
 import { db } from "@/db";
 import * as schema from "@/db/schema";
@@ -26,8 +28,32 @@ export const enabledProviders = {
   facebook: false,
 } as const;
 
+/**
+ * The phone app's deep-link scheme (ticket 289). Better Auth only redirects a
+ * social sign-in back to an origin it has been told about, so an unset value
+ * here shows up as Google refusing to return to the app.
+ */
+const MOBILE_SCHEME = process.env.FLOC_MOBILE_SCHEME ?? "floc";
+
 export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
+  /**
+   * The phone has no cookie jar, so it signs in against this same instance and
+   * the same user table, and carries its session as a bearer token instead
+   * (ticket 289). Two plugins, one identity: `bearer` accepts that token on
+   * the API, `expo` handles the native redirect back out of the browser sheet.
+   *
+   * Nothing about the browser's session changes — it still uses the cookie it
+   * always did, and signing out on a phone leaves it alone.
+   */
+  plugins: [bearer(), expo()],
+  // A phone reaches a dev server by LAN address, never `localhost`, so that
+  // origin has to be trusted too or sign-in hangs (ticket 289). Unset in
+  // production, where `baseURL` is already the real origin.
+  trustedOrigins: [
+    `${MOBILE_SCHEME}://`,
+    ...(process.env.FLOC_LAN_ORIGIN ? [process.env.FLOC_LAN_ORIGIN] : []),
+  ],
   // Ticket 112: fatal in production if unset. A session secret has no degraded
   // mode — a deploy signing cookies with a value from the repo is an auth
   // bypass, not a reduced feature set.
