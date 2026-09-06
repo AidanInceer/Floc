@@ -171,6 +171,20 @@ export type TripPlace = {
   countryCode: string | null;
 };
 
+/**
+ * One person saying yes or no to one date (ticket 297).
+ *
+ * A `false` row is not the same as no row: it is "asked, said no", which the
+ * Dates screen must be able to tell from "has not looked yet". Both read the
+ * same to the maths in `@floc/core/availability`, and differently to a human.
+ */
+export type Availability = {
+  userId: string;
+  /** `YYYY-MM-DD`. No timezone, ever (rule 10). */
+  date: string;
+  available: boolean;
+};
+
 export type NewTrip = {
   name: string;
   startDate: string | null;
@@ -230,6 +244,21 @@ export type FlocPort = {
 
   /** The distinct places the trip's days and events point at — for the map, not for stops (ticket 296). */
   listPlaces(viewerId: string, tripId: number): Promise<TripPlace[]>;
+
+  /** Everyone's marks on the trip, `false` rows included (ticket 297). */
+  listAvailability(viewerId: string, tripId: number): Promise<Availability[]>;
+
+  /**
+   * Sets the VIEWER'S OWN marks and nobody else's (ticket 297). There is no
+   * parameter for whose they are, deliberately: availability is the one thing
+   * on a trip an admin has no power over (rule 6).
+   */
+  setAvailability(
+    viewerId: string,
+    tripId: number,
+    dates: string[],
+    available: boolean,
+  ): Promise<void>;
 
   createTrip(viewerId: string, input: NewTrip): Promise<{ id: number }>;
 

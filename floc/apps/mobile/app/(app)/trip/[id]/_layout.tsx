@@ -1,8 +1,8 @@
 /**
- * One trip, four tabs (ticket 291).
+ * One trip, five tabs (tickets 291, 297).
  *
  * The web app draws these as a pill row under the trip name; a phone gets the
- * platform's own bottom bar. Same four places, same order, different chrome —
+ * platform's own bottom bar. Same places, same order, different chrome —
  * which is the whole point of keeping the two UIs separate.
  *
  * NO TAB IS GATED. A trip has no lifecycle state (rule 4), so Money is
@@ -33,6 +33,13 @@ export default function TripLayout() {
         options={{
           title: "Overview",
           tabBarIcon: ({ color }) => <TabGlyph name="overview" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="dates"
+        options={{
+          title: "Dates",
+          tabBarIcon: ({ color }) => <TabGlyph name="dates" color={color} />,
         }}
       />
       <Tabs.Screen

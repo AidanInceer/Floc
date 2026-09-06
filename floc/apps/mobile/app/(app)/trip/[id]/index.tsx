@@ -65,8 +65,7 @@ export default function Overview() {
       id: "dates",
       said: "No dates set yet.",
       action: "Set them",
-      // Availability is where dates get agreed; the itinerary is what follows.
-      onPress: () => router.push(`/(app)/trip/${tripId}/itinerary`),
+      onPress: () => router.push(`/(app)/trip/${tripId}/dates`),
     });
   }
 

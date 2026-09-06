@@ -250,6 +250,68 @@ export function Pill({
 }
 
 /**
+ * One row of choices, one of them on (ticket 297).
+ *
+ * A view switch, not a filter and not a setting — which is why the chosen one
+ * is filled rather than ticked, and why there is no "all". Each option is its
+ * own word: the fill is a second signal, never the only one (#204).
+ */
+export function Segmented<T extends string>({
+  options,
+  value,
+  onChange,
+}: {
+  options: readonly { value: T; label: string }[];
+  value: T;
+  onChange: (value: T) => void;
+}) {
+  const { c } = useTheme();
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        backgroundColor: c["sheet-2"],
+        borderRadius: radius.pill,
+        padding: space.xs,
+        gap: space.xs,
+      }}
+    >
+      {options.map((option) => {
+        const on = option.value === value;
+        return (
+          <Pressable
+            key={option.value}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: on }}
+            onPress={() => onChange(option.value)}
+            style={{
+              flex: 1,
+              alignItems: "center",
+              paddingVertical: space.sm,
+              borderRadius: radius.pill,
+              backgroundColor: on ? c.sheet : "transparent",
+              borderWidth: on ? StyleSheet.hairlineWidth : 0,
+              borderColor: c.rule,
+            }}
+          >
+            <Text
+              style={{
+                color: on ? c.ink : c["ink-2"],
+                fontFamily: fonts.sans,
+                fontSize: size.small,
+                fontWeight: on ? "600" : "400",
+              }}
+            >
+              {option.label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+/**
  * What is missing, said plainly. One of the two things text is still for when
  * the drawing is clear — the other being status.
  */

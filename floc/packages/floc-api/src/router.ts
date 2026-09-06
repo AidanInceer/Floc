@@ -5,6 +5,7 @@
  * a *type* — no runtime code crosses to the phone, so nothing server-side can
  * end up in a bundle that ships to a device.
  */
+import { availabilityRouter } from "./routers/availability";
 import { filesRouter } from "./routers/files";
 import { itineraryRouter } from "./routers/itinerary";
 import { moneyRouter } from "./routers/money";
@@ -22,6 +23,7 @@ export const appRouter = router({
   roster: rosterRouter,
   files: filesRouter,
   places: placesRouter,
+  availability: availabilityRouter,
 });
 
 export type AppRouter = typeof appRouter;

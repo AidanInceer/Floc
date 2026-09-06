@@ -14,7 +14,7 @@ import { StyleSheet, Text, View, type ColorValue } from "react-native";
 const BOX = 18;
 const STROKE = 1.25;
 
-type Glyph = "overview" | "itinerary" | "money" | "roster";
+type Glyph = "overview" | "dates" | "itinerary" | "money" | "roster";
 
 function Line({ color, width, top }: { color: ColorValue; width: number; top: number }) {
   return (
@@ -40,11 +40,18 @@ export function TabGlyph({ name, color }: { name: Glyph; color: ColorValue }) {
     borderRadius: 3,
   } as const;
 
-  // Overview is the whole sheet; itinerary is the sheet ruled into days; money
-  // is a sheet with one figure on it; roster is two overlapping people.
+  // Overview is the whole sheet; dates is a calendar — the sheet with its
+  // header rule; itinerary is the sheet ruled into days; money is a sheet with
+  // one figure on it; roster is two overlapping people.
   switch (name) {
     case "overview":
       return <View style={frame} />;
+    case "dates":
+      return (
+        <View style={frame}>
+          <Line color={color} width={BOX - 4} top={3} />
+        </View>
+      );
     case "itinerary":
       return (
         <View style={frame}>

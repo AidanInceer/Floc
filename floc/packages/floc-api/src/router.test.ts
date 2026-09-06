@@ -40,6 +40,8 @@ function fakePort(overrides: Partial<FlocPort> = {}): FlocPort {
       viewerId === "u1" && tripId === 1 ? TRIP : null,
     ),
     listDays: vi.fn().mockResolvedValue([]),
+    listAvailability: vi.fn().mockResolvedValue([]),
+    setAvailability: vi.fn().mockResolvedValue(undefined),
     listFiles: vi.fn().mockResolvedValue([]),
     listPlaces: vi.fn().mockResolvedValue([]),
     loadLedger: vi.fn().mockResolvedValue({ expenses: [], splits: [], settlements: [] }),
@@ -224,5 +226,35 @@ describe("what Overview reads (ticket 296)", () => {
     const { caller: ana, port } = caller("u1");
     await ana.places.list({ tripId: 1 });
     expect(port.listPlaces).toHaveBeenCalledWith("u1", 1);
+  });
+});
+
+describe("availability (ticket 297)", () => {
+  it("writes the caller's own marks, with no way to name anybody else", async () => {
+    const { caller: ana, port } = caller("u1");
+    await ana.availability.set({ tripId: 1, dates: ["2026-05-01"], available: true });
+    expect(port.setAvailability).toHaveBeenCalledWith("u1", 1, ["2026-05-01"], true);
+  });
+
+  it("refuses a date that is not YYYY-MM-DD, as a message rather than a crash", async () => {
+    const { caller: ana } = caller("u1");
+    await expect(
+      ana.availability.set({ tripId: 1, dates: ["01/05/2026"], available: true }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  it("refuses an empty set — saying nothing is not a mark", async () => {
+    const { caller: ana } = caller("u1");
+    await expect(
+      ana.availability.set({ tripId: 1, dates: [], available: true }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  it("hides the group's marks from somebody not on the trip", async () => {
+    const { caller: ana } = caller("u1");
+    await expect(ana.availability.list({ tripId: 2 })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+      message: "No such trip.",
+    });
   });
 });

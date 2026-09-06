@@ -15,6 +15,7 @@
 import "server-only";
 
 import type {
+  Availability,
   EventInput,
   ExpenseInput,
   FlocPort,
@@ -44,6 +45,7 @@ import {
   softDeleteExpense,
   writeExpense,
 } from "@/server/money";
+import { listAvailability, setAvailability } from "@/server/availability";
 import { listDocuments } from "@/server/documents";
 import { listTripPlaces } from "@/server/places";
 import { ensureProfile } from "@/server/profile";
@@ -145,6 +147,19 @@ export const webPort: FlocPort = {
         currency: s.currency,
       })),
     };
+  },
+
+  async listAvailability(viewerId, tripId): Promise<Availability[]> {
+    await scoped(viewerId, tripId);
+    return listAvailability(tripId);
+  },
+
+  async setAvailability(viewerId, tripId, dates, available) {
+    await scoped(viewerId, tripId);
+    // The viewer id goes straight down as the row's owner, so there is no path
+    // by which this writes somebody else's answer (rule 6).
+    await setAvailability(tripId, viewerId, dates, available);
+    refresh({ kind: "tripDates", tripId });
   },
 
   async listFiles(viewerId, tripId): Promise<TripFile[]> {
