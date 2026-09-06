@@ -148,14 +148,15 @@ jobs:
   # `android/` project. This is what catches a native module that was added but
   # never wired in — the class of failure a bundle cannot see.
   #
-  # ALLOWED TO FAIL for now. It has never been run in CI, so it reports red on
-  # the run page without blocking a push. Make it a gate once it is green.
+  # ALLOWED TO FAIL for now. `continue-on-error` sits on the steps, not the job:
+  # at job level GitHub still publishes the check run as red, which is what a
+  # branch rule reads. Step level lets the job conclude green. Make it a gate
+  # once it is reliably passing.
   mobile-android:
     name: Android · native build (advisory)
     needs: changes
     if: needs.changes.outputs.mobile == 'true'
     runs-on: ubuntu-latest
-    continue-on-error: true
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -174,12 +175,14 @@ jobs:
 
       - name: Install
         run: pnpm install --frozen-lockfile
+        continue-on-error: true
 
       # Debug, not release: release wants a signing key, and a key in CI is a
       # secret this repo does not need to hold to prove the app compiles.
       - name: Assemble
         run: ./gradlew assembleDebug --no-daemon
         working-directory: floc/apps/mobile/android
+        continue-on-error: true
 
   # A schema change with no migration file is how floc's production
   # database fell behind its code: `trip.tags` shipped, nothing ever altered
