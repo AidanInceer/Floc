@@ -44,9 +44,11 @@ import {
   listSplits,
   softDeleteExpense,
   writeExpense,
+  writeSettlement,
 } from "@/server/money";
 import { listAvailability, setAvailability } from "@/server/availability";
 import { listDocuments } from "@/server/documents";
+import { loadNoteDoc, saveNoteDoc } from "@/server/note-doc";
 import { listTripPlaces } from "@/server/places";
 import { ensureProfile } from "@/server/profile";
 import { leaveTripAs, removeMembership, setMemberRoleAdmin } from "@/server/roster";
@@ -185,6 +187,20 @@ export const webPort: FlocPort = {
     return listTripPlaces(tripId);
   },
 
+  async loadNotes(viewerId, tripId): Promise<string | null> {
+    await scoped(viewerId, tripId);
+    return loadNoteDoc(tripId);
+  },
+
+  async saveNotes(viewerId, tripId, body) {
+    await scoped(viewerId, tripId);
+    // No role check: writing in the trip's notebook is not one of the four
+    // admin powers (rule 6). Last write wins (rule 7), as on the web page.
+    await saveNoteDoc(tripId, viewerId, body);
+    // No revalidate, matching the web action: the editor already holds what it
+    // just sent, and re-rendering under it would fight the caret.
+  },
+
   async createTrip(viewerId, input: NewTrip) {
     // The lazy profile row, as the web action does — a trip whose creator has
     // no profile renders a nameless admin on every roster.
@@ -273,6 +289,18 @@ export const webPort: FlocPort = {
       },
       splits: input.splits,
     });
+    refresh({ kind: "money", tripId });
+  },
+
+  async settleUp(viewerId, tripId, input) {
+    const access = await scoped(viewerId, tripId);
+    // Both ends must be on this trip. Without the check, a crafted id would
+    // write a debt against somebody who is not in the group at all.
+    const onTrip = new Set(access.members.map((member) => member.userId));
+    if (!onTrip.has(input.fromUserId) || !onTrip.has(input.toUserId)) {
+      throw new Error("That person is not on this trip.");
+    }
+    await writeSettlement({ tripId, createdBy: viewerId, ...input });
     refresh({ kind: "money", tripId });
   },
 

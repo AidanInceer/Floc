@@ -59,6 +59,25 @@ export const moneyRouter = router({
       await ctx.port.writeExpense(ctx.viewer.id, tripId, expense);
     }),
 
+  /**
+   * Writes down a transfer that already happened. Any member may record one,
+   * in either direction — settling up is not one of the four admin powers
+   * (rule 6), and the person who paid is usually the one holding the phone.
+   */
+  settle: tripProcedure
+    .input(
+      z.object({
+        fromUserId: z.string().min(1),
+        toUserId: z.string().min(1),
+        amountMinor: minorUnits.positive("A settlement of nothing settles nothing."),
+        currency: z.enum(CURRENCIES),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { tripId, ...transfer } = input;
+      await ctx.port.settleUp(ctx.viewer.id, tripId, transfer);
+    }),
+
   deleteExpense: tripProcedure
     .input(z.object({ expenseId: z.number().int().positive() }))
     .mutation(async ({ ctx, input }) => {

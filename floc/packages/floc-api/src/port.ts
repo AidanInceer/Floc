@@ -260,6 +260,19 @@ export type FlocPort = {
     available: boolean,
   ): Promise<void>;
 
+  /**
+   * The trip's shared Notes document — BlockNote's `Block[]`, JSON-encoded,
+   * handed back exactly as it was stored (ticket 301). Null means nobody has
+   * written in this trip yet, which is ordinary and not an error.
+   *
+   * The blob is never parsed on the server. Only the editors understand its
+   * shape, and `@floc/core/note-blocks` is where a client reads it.
+   */
+  loadNotes(viewerId: string, tripId: number): Promise<string | null>;
+
+  /** Replaces the whole document. Last write wins (rule 7) — no version check, by design. */
+  saveNotes(viewerId: string, tripId: number, body: string): Promise<void>;
+
   createTrip(viewerId: string, input: NewTrip): Promise<{ id: number }>;
 
   updateTrip(viewerId: string, tripId: number, patch: TripPatch): Promise<void>;
@@ -285,6 +298,23 @@ export type FlocPort = {
   ): Promise<void>;
 
   deleteExpense(viewerId: string, tripId: number, expenseId: number): Promise<void>;
+
+  /**
+   * Records a transfer that has already happened off-app (ticket 300).
+   * Append-only: a settlement is never edited, only soft-deleted, because it
+   * is a record of something that happened rather than a plan that changed.
+   * v1 moves no money — this writes down that somebody did.
+   */
+  settleUp(
+    viewerId: string,
+    tripId: number,
+    input: {
+      fromUserId: string;
+      toUserId: string;
+      amountMinor: number;
+      currency: Currency;
+    },
+  ): Promise<void>;
 
   addEvent(
     viewerId: string,
