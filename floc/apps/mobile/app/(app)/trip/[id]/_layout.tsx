@@ -87,15 +87,18 @@ export default function TripLayout() {
   const { c } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const tripId = Number(id);
+  // A screen keeps rendering for a frame while it leaves, and `id` is gone by
+  // then: NaN goes down the wire as null and the server rightly refuses it.
+  const ready = Number.isFinite(tripId);
   const router = useRouter();
   const pathname = usePathname();
   const { data: session } = useSession();
   const [open, setOpen] = useState(false);
 
-  const trip = useQuery(trpc.trips.get.queryOptions({ tripId }));
-  const days = useQuery(trpc.itinerary.days.queryOptions({ tripId }));
-  const ledger = useQuery(trpc.money.ledger.queryOptions({ tripId }));
-  const packing = useQuery(trpc.packing.list.queryOptions({ tripId }));
+  const trip = useQuery(trpc.trips.get.queryOptions({ tripId }, { enabled: ready }));
+  const days = useQuery(trpc.itinerary.days.queryOptions({ tripId }, { enabled: ready }));
+  const ledger = useQuery(trpc.money.ledger.queryOptions({ tripId }, { enabled: ready }));
+  const packing = useQuery(trpc.packing.list.queryOptions({ tripId }, { enabled: ready }));
 
   const balance = viewerBalance(ledger.data, session?.user.id);
   const moneyFigure = balance.figure;

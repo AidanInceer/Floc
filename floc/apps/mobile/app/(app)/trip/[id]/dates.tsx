@@ -190,11 +190,14 @@ function WindowPanel({
 export default function Dates() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const tripId = Number(id);
+  // A screen keeps rendering for a frame while it leaves, and `id` is gone by
+  // then: NaN goes down the wire as null and the server rightly refuses it.
+  const ready = Number.isFinite(tripId);
   const queryClient = useQueryClient();
   const { data: session } = useSession();
 
-  const trip = useQuery(trpc.trips.get.queryOptions({ tripId }));
-  const rows = useQuery(trpc.availability.list.queryOptions({ tripId }));
+  const trip = useQuery(trpc.trips.get.queryOptions({ tripId }, { enabled: ready }));
+  const rows = useQuery(trpc.availability.list.queryOptions({ tripId }, { enabled: ready }));
 
   const [view, setView] = useState<CalendarView>("mine");
   const [month, setMonth] = useState<string | null>(null);

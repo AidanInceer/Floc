@@ -103,6 +103,9 @@ function shareOf(ledger: Ledger, expenseId: number, viewerId: string | undefined
 export default function Money() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const tripId = Number(id);
+  // A screen keeps rendering for a frame while it leaves, and `id` is gone by
+  // then: NaN goes down the wire as null and the server rightly refuses it.
+  const ready = Number.isFinite(tripId);
   const queryClient = useQueryClient();
   const { c } = useTheme();
   const { data: session } = useSession();
@@ -111,8 +114,8 @@ export default function Money() {
   const [editing, setEditing] = useState<Editing>({ kind: "none" });
   const [problem, setProblem] = useState<string | null>(null);
 
-  const trip = useQuery(trpc.trips.get.queryOptions({ tripId }));
-  const ledger = useQuery(trpc.money.ledger.queryOptions({ tripId }));
+  const trip = useQuery(trpc.trips.get.queryOptions({ tripId }, { enabled: ready }));
+  const ledger = useQuery(trpc.money.ledger.queryOptions({ tripId }, { enabled: ready }));
 
   const done = () => {
     setEditing({ kind: "none" });

@@ -27,12 +27,15 @@ import { space } from "@/lib/theme";
 export default function Roster() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const tripId = Number(id);
+  // A screen keeps rendering for a frame while it leaves, and `id` is gone by
+  // then: NaN goes down the wire as null and the server rightly refuses it.
+  const ready = Number.isFinite(tripId);
   const router = useRouter();
   const { c } = useTheme();
   const queryClient = useQueryClient();
   const { data: session } = useSession();
 
-  const trip = useQuery(trpc.trips.get.queryOptions({ tripId }));
+  const trip = useQuery(trpc.trips.get.queryOptions({ tripId }, { enabled: ready }));
 
   const invalidate = () =>
     queryClient.invalidateQueries({ queryKey: trpc.trips.get.queryKey({ tripId }) });

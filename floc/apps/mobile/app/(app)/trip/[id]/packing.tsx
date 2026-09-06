@@ -47,9 +47,12 @@ const LISTS = [
 export default function Packing() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const tripId = Number(id);
+  // A screen keeps rendering for a frame while it leaves, and `id` is gone by
+  // then: NaN goes down the wire as null and the server rightly refuses it.
+  const ready = Number.isFinite(tripId);
   const queryClient = useQueryClient();
 
-  const board = useQuery(trpc.packing.list.queryOptions({ tripId }));
+  const board = useQuery(trpc.packing.list.queryOptions({ tripId }, { enabled: ready }));
   const me = useQuery(trpc.me.get.queryOptions());
 
   const [addingTo, setAddingTo] = useState<"shared" | "mine">("shared");

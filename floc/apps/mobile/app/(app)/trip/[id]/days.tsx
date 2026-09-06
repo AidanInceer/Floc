@@ -62,6 +62,9 @@ type Editing = { kind: "none" } | { kind: "add" } | { kind: "edit"; eventId: num
 export default function Days() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const tripId = Number(id);
+  // A screen keeps rendering for a frame while it leaves, and `id` is gone by
+  // then: NaN goes down the wire as null and the server rightly refuses it.
+  const ready = Number.isFinite(tripId);
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -69,7 +72,7 @@ export default function Days() {
   const [editing, setEditing] = useState<Editing>({ kind: "none" });
   const [problem, setProblem] = useState<string | null>(null);
 
-  const days = useQuery(trpc.itinerary.days.queryOptions({ tripId }));
+  const days = useQuery(trpc.itinerary.days.queryOptions({ tripId }, { enabled: ready }));
 
   const done = () => {
     setEditing({ kind: "none" });

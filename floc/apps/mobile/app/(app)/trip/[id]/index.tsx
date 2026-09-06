@@ -46,12 +46,15 @@ const FILES_SHOWN = 3;
 export default function Overview() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const tripId = Number(id);
+  // A screen keeps rendering for a frame while it leaves, and `id` is gone by
+  // then: NaN goes down the wire as null and the server rightly refuses it.
+  const ready = Number.isFinite(tripId);
   const router = useRouter();
 
-  const trip = useQuery(trpc.trips.get.queryOptions({ tripId }));
-  const places = useQuery(trpc.places.list.queryOptions({ tripId }));
-  const files = useQuery(trpc.files.list.queryOptions({ tripId }));
-  const ledger = useQuery(trpc.money.ledger.queryOptions({ tripId }));
+  const trip = useQuery(trpc.trips.get.queryOptions({ tripId }, { enabled: ready }));
+  const places = useQuery(trpc.places.list.queryOptions({ tripId }, { enabled: ready }));
+  const files = useQuery(trpc.files.list.queryOptions({ tripId }, { enabled: ready }));
+  const ledger = useQuery(trpc.money.ledger.queryOptions({ tripId }, { enabled: ready }));
 
   if (trip.isPending) return <Loading />;
   if (trip.isError) return <Failed onRetry={() => trip.refetch()} />;

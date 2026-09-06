@@ -61,9 +61,12 @@ function numberIn(blocks: NoteBlock[], at: number): number {
 export default function Notes() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const tripId = Number(id);
+  // A screen keeps rendering for a frame while it leaves, and `id` is gone by
+  // then: NaN goes down the wire as null and the server rightly refuses it.
+  const ready = Number.isFinite(tripId);
   const queryClient = useQueryClient();
 
-  const doc = useQuery(trpc.notes.get.queryOptions({ tripId }));
+  const doc = useQuery(trpc.notes.get.queryOptions({ tripId }, { enabled: ready }));
 
   /** The working copy. Null until the server's document has been read in. */
   const [blocks, setBlocks] = useState<NoteBlock[] | null>(null);
