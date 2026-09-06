@@ -17,7 +17,9 @@ export default function AppLayout() {
         contentStyle: { backgroundColor: c.paper },
       }}
     >
-      <Stack.Screen name="trips" options={{ title: "Your trips" }} />
+      {/* The bottom bar owns its own headers; a trip is pushed over the whole
+          thing, so it never draws under the bar (ticket 302). */}
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="new-trip" options={{ title: "New trip", presentation: "modal" }} />
       <Stack.Screen name="join" options={{ title: "Join a trip", presentation: "modal" }} />
     </Stack>

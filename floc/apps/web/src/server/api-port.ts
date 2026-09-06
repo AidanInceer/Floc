@@ -19,6 +19,7 @@ import type {
   EventInput,
   ExpenseInput,
   FlocPort,
+  Me,
   ItineraryDay,
   Ledger,
   NewTrip,
@@ -27,6 +28,8 @@ import type {
   TripPatch,
   TripPlace,
 } from "@floc/api/port";
+
+import { PRESET_TRIPS } from "@floc/core/preset-trips";
 
 import { assertAdmin, findTripAccess, type TripAccess } from "@/server/access";
 import { refresh } from "@/server/freshness";
@@ -48,9 +51,14 @@ import {
 } from "@/server/money";
 import { listAvailability, setAvailability } from "@/server/availability";
 import { listDocuments } from "@/server/documents";
-import { loadNoteDoc, saveNoteDoc } from "@/server/note-doc";
+import { bulletDoc, loadNoteDoc, saveNoteDoc } from "@/server/note-doc";
 import { listTripPlaces } from "@/server/places";
-import { ensureProfile } from "@/server/profile";
+import {
+  ensureProfile,
+  loadIdentity,
+  updateProfileFields,
+} from "@/server/profile";
+import { travelMapFor } from "@/server/travel-map";
 import { leaveTripAs, removeMembership, setMemberRoleAdmin } from "@/server/roster";
 import {
   createTripWithAdmin,
@@ -105,6 +113,35 @@ function toEventFields(input: EventInput) {
 }
 
 export const webPort: FlocPort = {
+  async loadMe(viewerId): Promise<Me> {
+    // The lazy profile row first, so a person who has never opened settings
+    // still reads back a profile rather than a hole.
+    await ensureProfile(viewerId);
+    const [identity, map, trips] = await Promise.all([
+      loadIdentity(viewerId),
+      travelMapFor(viewerId),
+      listTripsFor(viewerId, { archived: false }),
+    ]);
+    // The session proved this id a moment ago; a missing row here is the
+    // account being deleted mid-request, not an ordinary state.
+    if (!identity) throw new Error("No such account.");
+
+    return {
+      ...identity,
+      been: map.visited,
+      wantToGo: map.wantToGo,
+      tripCount: trips.length,
+    };
+  },
+
+  async renameMe(viewerId, displayName) {
+    await ensureProfile(viewerId);
+    await updateProfileFields(viewerId, { displayName });
+    // The name rides on every roster and every expense line, so every page
+    // showing this person is now stale.
+    refresh({ kind: "tripList" });
+  },
+
   listTrips: (viewerId, options) => listTripsFor(viewerId, options),
 
   async loadTrip(viewerId, tripId): Promise<TripDetail | null> {
@@ -206,6 +243,27 @@ export const webPort: FlocPort = {
     // no profile renders a nameless admin on every roster.
     await ensureProfile(viewerId);
     const id = await createTripWithAdmin({ ...input, createdBy: viewerId });
+    refresh({ kind: "tripList" });
+    return { id };
+  },
+
+  async startTripFromPreset(viewerId, presetId) {
+    const preset = PRESET_TRIPS.find((listing) => listing.id === presetId);
+    // A listing can be retired between drawing and tapping — null, not a throw.
+    if (!preset) return null;
+
+    await ensureProfile(viewerId);
+    const id = await createTripWithAdmin({
+      name: preset.title,
+      // `bestMonths` is deliberately not applied: dates come from the group's
+      // own availability overlap, and an undated trip is never wrong (rule 9).
+      startDate: null,
+      endDate: null,
+      createdBy: viewerId,
+    });
+    if (preset.highlights.length > 0) {
+      await saveNoteDoc(id, viewerId, bulletDoc(preset.highlights));
+    }
     refresh({ kind: "tripList" });
     return { id };
   },

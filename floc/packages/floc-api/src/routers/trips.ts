@@ -35,6 +35,17 @@ export const tripsRouter = router({
     )
     .mutation(({ ctx, input }) => ctx.port.createTrip(ctx.viewer.id, input)),
 
+  /**
+   * Starts a trip from an Explore listing. The listing itself is static data in
+   * `@floc/core/preset-trips`, which both clients read directly — only the
+   * writing needs a server, so only the writing is here.
+   */
+  startFromPreset: protectedProcedure
+    .input(z.object({ presetId: z.string().min(1) }))
+    .mutation(({ ctx, input }) =>
+      ctx.port.startTripFromPreset(ctx.viewer.id, input.presetId),
+    ),
+
   update: tripProcedure
     .input(
       z.object({

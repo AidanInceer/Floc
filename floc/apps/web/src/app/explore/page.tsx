@@ -19,8 +19,8 @@ import { ButtonLink, PASTEL_SKINS, cx } from "@/components/ui";
 import { SubmitButton } from "@/components/client-ui";
 import { RouteMap } from "@/components/route-map";
 import { startTripFromPreset } from "./actions";
-import { PRESET_TRIPS, REGIONS } from "./preset-trips";
-import type { PresetTrip, Region } from "./preset-trips";
+import { PRESET_TRIPS, REGIONS } from "@floc/core/preset-trips";
+import type { PresetTrip, Region } from "@floc/core/preset-trips";
 
 function isRegion(value: string | undefined): value is Region {
   return !!value && (REGIONS as readonly string[]).includes(value);

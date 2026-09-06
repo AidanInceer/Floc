@@ -34,6 +34,16 @@ const TRIP: TripDetail = {
 function fakePort(overrides: Partial<FlocPort> = {}): FlocPort {
   const unused = () => Promise.reject(new Error("not used in this test"));
   return {
+    loadMe: vi.fn().mockResolvedValue({
+      id: "u1",
+      name: "Ana",
+      email: "ana@example.com",
+      avatarUrl: null,
+      been: 2,
+      wantToGo: 1,
+      tripCount: 1,
+    }),
+    renameMe: vi.fn().mockResolvedValue(undefined),
     listTrips: vi.fn().mockResolvedValue([]),
     // Only member "u1" is in trip 1; everyone and everything else is null.
     loadTrip: vi.fn(async (viewerId: string, tripId: number) =>
@@ -46,6 +56,7 @@ function fakePort(overrides: Partial<FlocPort> = {}): FlocPort {
     listPlaces: vi.fn().mockResolvedValue([]),
     loadLedger: vi.fn().mockResolvedValue({ expenses: [], splits: [], settlements: [] }),
     createTrip: vi.fn().mockResolvedValue({ id: 2 }),
+    startTripFromPreset: vi.fn().mockResolvedValue({ id: 3 }),
     updateTrip: vi.fn().mockResolvedValue(undefined),
     archiveTrip: vi.fn().mockResolvedValue(undefined),
     leaveTrip: vi.fn().mockResolvedValue(undefined),

@@ -8,6 +8,7 @@
 import { availabilityRouter } from "./routers/availability";
 import { filesRouter } from "./routers/files";
 import { itineraryRouter } from "./routers/itinerary";
+import { meRouter } from "./routers/me";
 import { moneyRouter } from "./routers/money";
 import { notesRouter } from "./routers/notes";
 import { placesRouter } from "./routers/places";
@@ -18,6 +19,7 @@ import { publicProcedure, router } from "./trpc";
 export const appRouter = router({
   /** Reachable unauthenticated, so a client can tell "server down" from "signed out". */
   health: publicProcedure.query(() => ({ ok: true as const })),
+  me: meRouter,
   trips: tripsRouter,
   itinerary: itineraryRouter,
   money: moneyRouter,

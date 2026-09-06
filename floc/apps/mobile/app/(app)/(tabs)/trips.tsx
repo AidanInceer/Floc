@@ -14,7 +14,6 @@ import { Body, Button, Card, Empty, Failed, Figure, Loading, Pill } from "@/comp
 import { formatDateRange } from "@floc/core/dates";
 
 import { trpc } from "@/lib/api";
-import { signOut } from "@/lib/auth";
 import { space } from "@/lib/theme";
 
 export default function Trips() {
@@ -60,8 +59,6 @@ export default function Trips() {
               variant="quiet"
               onPress={() => router.push("/(app)/join")}
             />
-            {/* Signs out this device only — the web session is a different row. */}
-            <Button label="Sign out" variant="quiet" onPress={() => signOut()} />
           </View>
         }
       />

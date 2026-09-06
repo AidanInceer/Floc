@@ -1,28 +1,70 @@
 /**
- * Which palette is on (tickets 288, 289).
+ * Which palette is on (tickets 288, 289; the choice added by 302).
  *
- * The web app keeps the choice in `localStorage` and writes `data-theme` before
- * paint; the phone has neither, so it follows the OS and nothing else. That is
- * a real difference in mechanism, not in behaviour — both end up with one of
- * the two palettes in `@floc/core/tokens`, and no component knows which.
+ * THREE STATES, NOT TWO. "System" follows the OS, which is the default and
+ * what most people want; light and dark are an explicit override. That is the
+ * same shape as the web app's toggle, and the same rule about where it lives:
+ * a device setting, never a column (#302). Two devices may sit on two themes
+ * and neither is wrong.
  *
- * A per-app override is deliberately not here. Adding one means a second place
- * a person sets their theme and a second thing to keep in step; if it is ever
- * wanted, it belongs in the account, not in device storage.
+ * WHY THE KEYCHAIN FOR A THEME. `expo-secure-store` is already a dependency
+ * because the session token must live there; a theme is not a secret, but a
+ * second storage library for one short string is a worse trade than putting it
+ * somewhere slightly too safe.
+ *
+ * WHY IT FLASHES. The web writes `data-theme` before paint; a phone cannot
+ * read storage synchronously, so the first frame is the OS theme and the saved
+ * choice lands immediately after. Rendering nothing until it loads would trade
+ * a flash for a blank screen, which is worse.
  */
-import { createContext, useContext, useMemo, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useColorScheme } from "react-native";
+import * as SecureStore from "expo-secure-store";
 
 import { palette, type Palette, type Theme } from "@/lib/theme";
 
-type ThemeValue = { theme: Theme; c: Palette };
+export type ThemeChoice = Theme | "system";
+
+const KEY = "floc.theme";
+
+type ThemeValue = {
+  theme: Theme;
+  c: Palette;
+  /** What the person picked, which is not the same as what is drawn. */
+  choice: ThemeChoice;
+  setChoice: (choice: ThemeChoice) => void;
+};
 
 const ThemeContext = createContext<ThemeValue | null>(null);
 
+function readChoice(value: string | null): ThemeChoice {
+  return value === "light" || value === "dark" ? value : "system";
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const scheme = useColorScheme();
-  const theme: Theme = scheme === "dark" ? "dark" : "light";
-  const value = useMemo(() => ({ theme, c: palette(theme) }), [theme]);
+  const [choice, setStoredChoice] = useState<ThemeChoice>("system");
+
+  useEffect(() => {
+    // A store that will not open costs the saved choice, never the app (rule 11).
+    SecureStore.getItemAsync(KEY)
+      .then((value) => setStoredChoice(readChoice(value)))
+      .catch(() => setStoredChoice("system"));
+  }, []);
+
+  const value = useMemo<ThemeValue>(() => {
+    const followed: Theme = scheme === "dark" ? "dark" : "light";
+    const theme = choice === "system" ? followed : choice;
+    return {
+      theme,
+      c: palette(theme),
+      choice,
+      setChoice: (next) => {
+        setStoredChoice(next);
+        void SecureStore.setItemAsync(KEY, next).catch(() => {});
+      },
+    };
+  }, [choice, scheme]);
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }

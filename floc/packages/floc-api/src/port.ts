@@ -228,8 +228,34 @@ export type EventInput = {
  * loaded the row for it. That keeps rule 5 in one place on the host side,
  * where `requireTripAccess` already lives, instead of being re-derived here.
  */
+export type Me = {
+  id: string;
+  /** The display name if one is set, else the name the account signed up with. */
+  name: string;
+  email: string;
+  avatarUrl: string | null;
+  /** Countries a finished trip put on the map. */
+  been: number;
+  /** Countries a trip that has not ended yet puts there. */
+  wantToGo: number;
+  tripCount: number;
+};
+
 export type FlocPort = {
   /** The viewer's trips. Never another user's, whatever id is passed. */
+  /**
+   * The signed-in person, as their own profile shows them (ticket 302).
+   *
+   * `been` and `wantToGo` are the travel map's counts, derived on read from the
+   * trips they are on — never stored, so they cannot go stale. Only what the
+   * phone's profile draws is here; the web's vibe tags, dietary and visibility
+   * settings stay on the web, where they are edited.
+   */
+  loadMe(viewerId: string): Promise<Me>;
+
+  /** Renames the display name. Not an admin power (rule 6) — it is your own name. */
+  renameMe(viewerId: string, displayName: string): Promise<void>;
+
   listTrips(viewerId: string, options: { archived: boolean }): Promise<TripSummary[]>;
 
   /** Null when the trip does not exist OR the viewer is not a member — the same answer for both (rule 5). */
@@ -274,6 +300,15 @@ export type FlocPort = {
   saveNotes(viewerId: string, tripId: number, body: string): Promise<void>;
 
   createTrip(viewerId: string, input: NewTrip): Promise<{ id: number }>;
+
+  /**
+   * Starts a trip from an Explore listing (ticket 302's bottom bar needs the
+   * Explore seat to actually do something). Copied, never linked: the new trip
+   * keeps no id back to the listing, so editing one never touches the other.
+   * Null when the listing has been retired since it was drawn — degrade, don't
+   * crash (rule 11).
+   */
+  startTripFromPreset(viewerId: string, presetId: string): Promise<{ id: number } | null>;
 
   updateTrip(viewerId: string, tripId: number, patch: TripPatch): Promise<void>;
 

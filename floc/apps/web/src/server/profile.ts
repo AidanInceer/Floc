@@ -7,7 +7,7 @@ import "server-only";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
-import { account, userProfile } from "@/db/schema";
+import { account, user, userProfile } from "@/db/schema";
 import type { SignupChannel, UserProfile } from "@/db/schema";
 
 /** Sign-in methods on an account (ticket 118), for Settings to offer unlinking. Read-only — unlinking goes through the action's own last-credential guard. */
@@ -58,4 +58,36 @@ export async function updateProfileFields(
     .update(userProfile)
     .set({ ...patch, lastModifiedAt: new Date() })
     .where(eq(userProfile.userId, userId));
+}
+
+/**
+ * Name, email and picture for one person — the account row and its profile
+ * extension read as one (ticket 302). The display name wins over the signup
+ * name because that is the whole point of curating one; `undefined` means the
+ * account itself has gone, which is not the same as having no profile row.
+ */
+export async function loadIdentity(
+  userId: string,
+): Promise<{ id: string; name: string; email: string; avatarUrl: string | null } | undefined> {
+  const row = await db
+    .select({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      image: user.image,
+      displayName: userProfile.displayName,
+      avatarUrl: userProfile.avatarUrl,
+    })
+    .from(user)
+    .leftJoin(userProfile, eq(userProfile.userId, user.id))
+    .where(eq(user.id, userId))
+    .get();
+  if (!row) return undefined;
+
+  return {
+    id: row.id,
+    name: row.displayName ?? row.name,
+    email: row.email,
+    avatarUrl: row.avatarUrl ?? row.image ?? null,
+  };
 }
