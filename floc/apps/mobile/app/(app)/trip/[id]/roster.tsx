@@ -46,7 +46,7 @@ export default function Roster() {
     ...trpc.trips.leave.mutationOptions(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: trpc.trips.list.queryKey() });
-      router.replace("/(app)/trips");
+      router.replace("/trips");
     },
   });
 

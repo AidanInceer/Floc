@@ -13,11 +13,29 @@
  */
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
+import { KeyboardAvoidingView, Linking, Platform, ScrollView, View } from "react-native";
 
 import { Body, Button, Field, Heading, Screen } from "@/components/ui";
 import { signIn } from "@/lib/auth";
+import { API_BASE_URL } from "@/lib/config";
 import { space } from "@/lib/theme";
+
+const OFFLINE = `Can't reach ${API_BASE_URL}. Check the server is running and the phone can see it.`;
+
+/**
+ * A request that never arrived carries no status, so Better Auth reports it the
+ * same shape as a refusal. Telling the two apart matters most in development,
+ * where a firewalled dev server otherwise reads as a wrong password.
+ */
+function unreachable(error: { status?: number }): boolean {
+  return !error.status;
+}
+
+function explain(error: { status?: number }): string {
+  // Deliberately one message for a wrong address and a wrong password: which
+  // one was wrong is an answer to "does this account exist".
+  return unreachable(error) ? OFFLINE : "That email and password don't match.";
+}
 
 export default function SignIn() {
   const router = useRouter();
@@ -31,10 +49,8 @@ export default function SignIn() {
     setProblem(null);
     const { error } = await signIn.email({ email: email.trim(), password });
     setBusy(false);
-    // Deliberately one message for a wrong address and a wrong password: which
-    // one was wrong is an answer to "does this account exist".
-    if (error) setProblem("That email and password don't match.");
-    else router.replace("/(app)/trips");
+    if (error) setProblem(explain(error));
+    else router.replace("/trips");
   }
 
   async function withGoogle() {
@@ -42,7 +58,7 @@ export default function SignIn() {
     setProblem(null);
     const { error } = await signIn.social({ provider: "google", callbackURL: "/trips" });
     setBusy(false);
-    if (error) setProblem("Google sign-in isn't available right now.");
+    if (error) setProblem(unreachable(error) ? OFFLINE : "Google sign-in isn't available right now.");
   }
 
   return (
@@ -82,8 +98,18 @@ export default function SignIn() {
           </View>
 
           {/* Signing up stays on the website: it needs the terms, the privacy
-              policy and email verification, none of which are built here yet. */}
-          <Body tone="ink-3">New here? Create your account on floc.app, then sign in.</Body>
+              policy and email verification, none of which are built here yet.
+              It still needs a control here — a sentence naming a website is not
+              a way in. */}
+          <View style={{ gap: space.xs }}>
+            <Button
+              label="Create an account"
+              variant="quiet"
+              disabled={busy}
+              onPress={() => void Linking.openURL(`${API_BASE_URL}/signup`)}
+            />
+            <Body tone="ink-3">Opens the website. Come back here to sign in.</Body>
+          </View>
         </Screen>
       </ScrollView>
     </KeyboardAvoidingView>

@@ -13,6 +13,20 @@
       "port": 3000
     },
     {
+      "name": "floc-metro",
+      "runtimeExecutable": "corepack",
+      "runtimeArgs": [
+        "pnpm",
+        "--filter",
+        "floc-mobile",
+        "exec",
+        "expo",
+        "start",
+        "--dev-client"
+      ],
+      "port": 8081
+    },
+    {
       "name": "docs",
       "runtimeExecutable": "npx",
       "runtimeArgs": [

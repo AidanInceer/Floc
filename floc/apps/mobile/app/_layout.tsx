@@ -29,7 +29,7 @@ function Routes() {
   useEffect(() => {
     if (isPending) return;
     if (!signedIn && inApp) router.replace("/sign-in");
-    if (signedIn && !inApp) router.replace("/(app)/trips");
+    if (signedIn && !inApp) router.replace("/trips");
   }, [isPending, signedIn, inApp, router]);
 
   // Rendering a screen before the session is known would flash sign-in at
