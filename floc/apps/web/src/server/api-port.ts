@@ -29,6 +29,7 @@ import type {
   TripFile,
   TripPatch,
   TripPlace,
+  PlaceHit,
 } from "@floc/api/port";
 
 import { PRESET_TRIPS } from "@floc/core/preset-trips";
@@ -62,7 +63,8 @@ import {
 import { listAvailability, setAvailability } from "@/server/availability";
 import { listDocuments } from "@/server/documents";
 import { bulletDoc, loadNoteDoc, saveNoteDoc } from "@/server/note-doc";
-import { listTripPlaces } from "@/server/places";
+import { listTripPlaces, searchPlaces as geocode } from "@/server/places";
+import { applyOvernight } from "@/server/overnight";
 import {
   ensureProfile,
   loadIdentity,
@@ -449,6 +451,19 @@ export const webPort: FlocPort = {
   async listPlaces(viewerId, tripId): Promise<TripPlace[]> {
     await scoped(viewerId, tripId);
     return listTripPlaces(tripId);
+  },
+
+  // No trip to scope to: the picker searches before one is chosen. Signed in
+  // is the whole gate, and the procedure has already insisted on that.
+  searchPlaces(_viewerId, query): Promise<PlaceHit[]> {
+    return geocode(query);
+  },
+
+  async setOvernight(viewerId, tripId, input) {
+    await scoped(viewerId, tripId);
+    if (await applyOvernight(tripId, input.startDate, input.endDate, input.place)) {
+      refresh({ kind: "itinerary", tripId });
+    }
   },
 
   async loadNotes(viewerId, tripId): Promise<string | null> {

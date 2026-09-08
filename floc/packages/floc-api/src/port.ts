@@ -173,6 +173,36 @@ export type TripPlace = {
 };
 
 /**
+ * One hit from the geocoder (ticket 308). Not a `place` row — nothing is
+ * written until it is chosen. An outage returns none of these, never a throw
+ * (rule 11), so a client falls back to the name somebody typed.
+ */
+export type PlaceHit = {
+  /** Provider-scoped stable id, e.g. `osm:relation:65606`. */
+  providerId: string;
+  name: string;
+  /** Full display name, for telling two hits apart in a list. */
+  label: string;
+  lat: number;
+  lng: number;
+  countryCode: string | null;
+};
+
+/**
+ * Where a run of days sleeps (ticket 308). Either a place this trip already
+ * points at — which keeps its pin — or a fresh pick. Null clears the span.
+ */
+export type OvernightPlace =
+  | { placeId: number }
+  | {
+      name: string;
+      providerId: string | null;
+      lat: number | null;
+      lng: number | null;
+      countryCode: string | null;
+    };
+
+/**
  * One person saying yes or no to one date (ticket 297).
  *
  * A `false` row is not the same as no row: it is "asked, said no", which the
@@ -723,6 +753,24 @@ export type FlocPort = {
 
   /** The distinct places the trip's days and events point at — for the map, not for stops (ticket 296). */
   listPlaces(viewerId: string, tripId: number): Promise<TripPlace[]>;
+
+  /**
+   * Geocoder search, signed in only (ticket 308) — unguarded this is an open
+   * geocoding proxy on somebody else's budget. Not trip-scoped: the picker
+   * searches before a trip is in scope, and `place` rows belong to no trip.
+   */
+  searchPlaces(viewerId: string, query: string): Promise<PlaceHit[]>;
+
+  /**
+   * Sets `overnight_place_id` on every day from `startDate` to `endDate`
+   * (ticket 308). Day-first — no stop is written, ever (rule 3). A span that
+   * covers no day of this trip is a no-op, not an error.
+   */
+  setOvernight(
+    viewerId: string,
+    tripId: number,
+    input: { startDate: string; endDate: string; place: OvernightPlace | null },
+  ): Promise<void>;
 
   /** Everyone's marks on the trip, `false` rows included (ticket 297). */
   listAvailability(viewerId: string, tripId: number): Promise<Availability[]>;

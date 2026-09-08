@@ -24,7 +24,6 @@
 import { today } from "@floc/core/dates";
 import { formatDate } from "@floc/core/dates";
 import { orderEvents } from "@floc/core/event-order";
-import { deriveStops } from "@floc/core/stops";
 import type { DayEventType } from "@floc/core/vocabulary";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -34,7 +33,8 @@ import { ScrollView, View } from "react-native";
 import { DayGrid } from "@/components/day-grid";
 import { DayStrip } from "@/components/day-strip";
 import { EventForm, type EventDraft } from "@/components/event-form";
-import { Body, Button, Empty, Failed, Label, Loading, Pill } from "@/components/ui";
+import { OvernightLine } from "@/components/overnight-line";
+import { Body, Button, Empty, Failed, Label, Loading } from "@/components/ui";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 
@@ -114,15 +114,6 @@ export default function Days() {
   const selected = chosen ?? (dates.includes(now) ? now : dates[0]);
   const day = days.data.find((row) => row.date === selected) ?? days.data[0];
 
-  const stop = deriveStops(
-    days.data.map((row) => ({
-      dayId: row.id,
-      date: row.date,
-      overnightPlaceId: row.overnightPlaceId,
-      overnightPlaceName: row.overnightPlaceName,
-    })),
-  ).find((run) => run.dayIds.includes(day.id));
-
   const busy = addEvent.isPending || updateEvent.isPending || deleteEvent.isPending;
 
   function save(draft: EventDraft) {
@@ -150,11 +141,7 @@ export default function Days() {
       <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.md }}>
         <Label>{formatDate(day.date)}</Label>
 
-        {stop?.placeName ? (
-          <Pill word={`Overnight · ${stop.placeName}`} tone="mint" />
-        ) : (
-          <Body tone="ink-3">No overnight place set.</Body>
-        )}
+        <OvernightLine tripId={tripId} days={days.data} date={day.date} />
 
         {editing.kind === "add" ? (
           <EventForm

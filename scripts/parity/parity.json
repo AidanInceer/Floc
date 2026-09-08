@@ -66,6 +66,9 @@
     "itinerary.deleteEvent": {
       "mobile": "yes"
     },
+    "itinerary.setOvernight": {
+      "mobile": "yes"
+    },
     "itinerary.updateEvent": {
       "mobile": "yes"
     },
@@ -170,6 +173,9 @@
       "mobile": "yes"
     },
     "places.list": {
+      "mobile": "yes"
+    },
+    "places.search": {
       "mobile": "yes"
     },
     "roster.list": {
