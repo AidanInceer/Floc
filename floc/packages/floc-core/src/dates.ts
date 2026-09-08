@@ -112,6 +112,20 @@ export function hasEnded(endDate: IsoDate | null): boolean {
   return !!endDate && endDate < today();
 }
 
+/**
+ * Live trips first, finished ones apart — the trip lists fold the ended half
+ * away rather than scrolling past it. Relative order is kept, so the caller
+ * sorts once and splits after.
+ */
+export function splitEnded<T extends { endDate: IsoDate | null }>(
+  items: readonly T[],
+): { live: T[]; ended: T[] } {
+  const live: T[] = [];
+  const ended: T[] = [];
+  for (const item of items) (hasEnded(item.endDate) ? ended : live).push(item);
+  return { live, ended };
+}
+
 export function daysUntil(date: IsoDate | null): number | null {
   if (!date) return null;
   return Math.round(

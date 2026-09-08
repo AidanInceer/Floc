@@ -12,7 +12,7 @@ import { requireUser } from "@/server/access";
 import { listFriendsFor, type Person } from "@/server/friends";
 import { listPendingInvitesFor, type PendingInvite } from "@/server/invites";
 import { loadTripCards } from "./cards";
-import { formatDateRange, hasEnded } from "@floc/core/dates";
+import { formatDateRange, hasEnded, splitEnded } from "@floc/core/dates";
 import {
   Avatar,
   ButtonLink,
@@ -23,6 +23,7 @@ import {
 } from "@/components/ui";
 import { Sheet, SubmitButton } from "@/components/client-ui";
 import { FriendPicker } from "@/components/friend-picker";
+import { FlockChevron } from "@/components/flock-chevron";
 import { TripCard } from "@/components/trip-card";
 import type { TripCardData } from "@/components/trip-card";
 import { acceptTripInvite, createTrip, declineTripInvite } from "./actions";
@@ -61,6 +62,9 @@ export default async function TripsPage({
     tag ? cards.filter((card) => card.tags?.some((value) => value.toLowerCase() === tag)) : cards,
     sort,
   );
+  // A finished trip is still yours, so it is folded away rather than dropped —
+  // archiving is the other thing, and it is a decision someone has to make.
+  const { live, ended } = splitEnded(sorted);
 
   return (
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
@@ -99,30 +103,60 @@ export default async function TripsPage({
         </div>
       ) : null}
 
-      {sorted.length === 0 ? (
+      {live.length === 0 ? (
         <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <NewTripTile friends={friends} first />
+          <NewTripTile friends={friends} first={cards.length === 0} />
         </ul>
       ) : (
-        <ul
-          className={cx(
-            "mt-8",
-            view === "list"
-              ? "flex flex-col gap-3"
-              : "grid gap-4 sm:grid-cols-2 lg:grid-cols-3",
-          )}
-        >
-          {sorted.map((t) => (
-            <TripCard
-              key={t.id}
-              trip={t}
-              href={`/trip/${t.id}/overview`}
-              layout={view}
-            />
-          ))}
-        </ul>
+        <TripGrid trips={live} view={view} className="mt-8" />
       )}
+
+      {ended.length > 0 ? <PastTrips trips={ended} view={view} /> : null}
     </div>
+  );
+}
+
+function TripGrid({
+  trips,
+  view,
+  className,
+}: {
+  trips: TripCardData[];
+  view: "grid" | "list";
+  className?: string;
+}) {
+  return (
+    <ul
+      className={cx(
+        className,
+        view === "list"
+          ? "flex flex-col gap-3"
+          // Flex, not grid, so a part-filled last row centres instead of
+          // hanging left; the widths restate the 1/2/3 columns it replaces.
+          : "flex flex-wrap justify-center gap-4 [&>li]:w-full sm:[&>li]:w-[calc((100%-1rem)/2)] lg:[&>li]:w-[calc((100%-2rem)/3)]",
+      )}
+    >
+      {trips.map((t) => (
+        <TripCard key={t.id} trip={t} href={`/trip/${t.id}/overview`} layout={view} />
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * Trips that have finished, folded shut. Native `<details>` — the fold needs
+ * no state, so the page stays a server component; the flock chevron is the
+ * product's one disclosure mark (see [[flock-chevron]]).
+ */
+function PastTrips({ trips, view }: { trips: TripCardData[]; view: "grid" | "list" }) {
+  return (
+    <details className="past-trips mt-10">
+      <summary className="mx-auto flex w-fit cursor-pointer list-none items-center gap-2 text-ink-soft transition-colors hover:text-ink [&::-webkit-details-marker]:hidden">
+        <FlockChevron size={12} className="past-trips-chevron shrink-0" />
+        <span className="typed text-current">Past trips · {trips.length}</span>
+      </summary>
+      <TripGrid trips={trips} view={view} className="mt-5" />
+    </details>
   );
 }
 

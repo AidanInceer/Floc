@@ -9,6 +9,7 @@ import {
   formatDateRange,
   hasEnded,
   isIsoDate,
+  splitEnded,
   nightsBetween,
   readIsoDate,
   readOptionalIsoDate,
@@ -146,5 +147,20 @@ describe("the awkward halves of the date helpers", () => {
     expect(countdownLabel(addDays(today(), 1))).toBe("tomorrow");
     expect(countdownLabel(today())).toBe("today");
     expect(countdownLabel(addDays(today(), -1))).toBeNull();
+  });
+
+  it("splits ended trips off the live ones, keeping their order", () => {
+    const past = { endDate: addDays(today(), -1) };
+    const soon = { endDate: addDays(today(), 1) };
+    const older = { endDate: addDays(today(), -9) };
+    const undated = { endDate: null };
+    expect(splitEnded([past, soon, older, undated])).toEqual({
+      live: [soon, undated],
+      ended: [past, older],
+    });
+  });
+
+  it("counts a trip ending today as still live", () => {
+    expect(splitEnded([{ endDate: today() }]).ended).toEqual([]);
   });
 });

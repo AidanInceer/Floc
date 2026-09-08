@@ -19,13 +19,13 @@ import { Link, useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { FlatList, Pressable, RefreshControl, View } from "react-native";
 
-import { MoreGlyph } from "@/components/glyphs";
+import { FlockChevronGlyph, MoreGlyph } from "@/components/glyphs";
 import { InviteBanner } from "@/components/invite-banner";
 import { TagPills } from "@/components/tag-pills";
 import { useTheme } from "@/components/theme";
 import { TripSheet, draftFor, type TripDraft } from "@/components/trip-sheet";
 import { Body, Button, Card, Empty, Failed, Figure, IconButton, Loading, Pill } from "@/components/ui";
-import { formatDateRange } from "@floc/core/dates";
+import { formatDateRange, splitEnded } from "@floc/core/dates";
 import { readTripColor, tripPastel } from "@floc/core/trip-color";
 
 import type { AppRouter } from "@floc/api/router";
@@ -59,6 +59,8 @@ export default function Trips() {
 
   /** The trip whose menu is open, held whole so the sheet survives a re-read of the list. */
   const [chosen, setChosen] = useState<TripCard | null>(null);
+  /** Past trips start folded — they are yours, but they are not what you opened the app for. */
+  const [showPast, setShowPast] = useState(false);
 
   const settled = {
     onSuccess: () => {
@@ -72,10 +74,12 @@ export default function Trips() {
   if (trips.isPending) return <Loading />;
   if (trips.isError) return <Failed onRetry={() => trips.refetch()} />;
 
+  const { live, ended } = splitEnded(trips.data);
+
   return (
     <View style={{ flex: 1, backgroundColor: c.paper }}>
       <FlatList
-        data={trips.data}
+        data={live}
         keyExtractor={(t) => String(t.id)}
         contentContainerStyle={{ padding: space.lg, gap: space.md }}
         refreshControl={
@@ -96,54 +100,31 @@ export default function Trips() {
           />
         }
         ListEmptyComponent={<Empty>No trips yet.</Empty>}
-        renderItem={({ item }) => {
-          // The chosen colour, or the id rotation still filling in (#213). It
-          // is a rail, not a wash: a card tinted edge to edge would fight the
-          // tag pills wearing the same pastel.
-          const tone = tripPastel(readTripColor(item.colorKey), item.id);
-          return (
-            <Link href={{ pathname: "/trip/[id]", params: { id: item.id } }} asChild>
-              <Pressable>
-                <Card style={{ borderLeftWidth: 4, borderLeftColor: c[tone] }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
-                    <View style={{ flex: 1, gap: space.xs }}>
-                      <Body bold>{item.name}</Body>
-                      {/* Undated is normal, not an error (rule 9) — so it is said, not hidden. */}
-                      <Figure tone="ink-2">
-                        {formatDateRange(item.startDate, item.endDate)}
-                      </Figure>
-                    </View>
-                    <IconButton
-                      label={`More for ${item.name}`}
-                      onPress={() => setChosen(item)}
-                    >
-                      {(colour) => <MoreGlyph color={colour} />}
-                    </IconButton>
-                  </View>
-                  {/* Tags and the role share a line: two short things, and the
-                      role on its own row was a whole line for one word. */}
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      flexWrap: "wrap",
-                      gap: space.sm,
-                    }}
-                  >
-                    <TagPills
-                      tags={item.tags}
-                      color={readTripColor(item.colorKey)}
-                      tripId={item.id}
-                    />
-                    {item.role === "admin" ? <Pill word="Admin" tone="peri" /> : null}
-                  </View>
-                </Card>
-              </Pressable>
-            </Link>
-          );
-        }}
+        renderItem={({ item }) => <TripRow trip={item} onMenu={setChosen} />}
         ListFooterComponent={
           <View style={{ gap: space.sm, paddingTop: space.lg }}>
+            {ended.length > 0 ? (
+              <View style={{ gap: space.md, paddingBottom: space.md }}>
+                <Pressable
+                  onPress={() => setShowPast((open) => !open)}
+                  accessibilityRole="button"
+                  accessibilityState={{ expanded: showPast }}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: space.sm,
+                    paddingVertical: space.sm,
+                  }}
+                >
+                  <FlockChevronGlyph color={c["ink-2"]} open={showPast} />
+                  <Figure tone="ink-2">{`Past trips · ${ended.length}`}</Figure>
+                </Pressable>
+                {showPast
+                  ? ended.map((t) => <TripRow key={t.id} trip={t} onMenu={setChosen} />)
+                  : null}
+              </View>
+            ) : null}
             <Button label="New trip" onPress={() => router.push("/(app)/new-trip")} />
             {/* Two rare, short jobs on one line — three stacked bars gave a
                 once-a-month button the same shout as the one you came for. */}
@@ -173,6 +154,52 @@ export default function Trips() {
         <TripMenu trip={chosen} onClose={() => setChosen(null)} />
       ) : null}
     </View>
+  );
+}
+
+/** One trip's card — the live list and the past fold draw the same row. */
+function TripRow({
+  trip,
+  onMenu,
+}: {
+  trip: TripCard;
+  onMenu: (trip: TripCard) => void;
+}) {
+  const { c } = useTheme();
+  // The chosen colour, or the id rotation still filling in (#213). It is a
+  // rail, not a wash: a card tinted edge to edge would fight the tag pills
+  // wearing the same pastel.
+  const tone = tripPastel(readTripColor(trip.colorKey), trip.id);
+  return (
+    <Link href={{ pathname: "/trip/[id]", params: { id: trip.id } }} asChild>
+      <Pressable>
+        <Card style={{ borderLeftWidth: 4, borderLeftColor: c[tone] }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
+            <View style={{ flex: 1, gap: space.xs }}>
+              <Body bold>{trip.name}</Body>
+              {/* Undated is normal, not an error (rule 9) — so it is said, not hidden. */}
+              <Figure tone="ink-2">{formatDateRange(trip.startDate, trip.endDate)}</Figure>
+            </View>
+            <IconButton label={`More for ${trip.name}`} onPress={() => onMenu(trip)}>
+              {(colour) => <MoreGlyph color={colour} />}
+            </IconButton>
+          </View>
+          {/* Tags and the role share a line: two short things, and the role on
+              its own row was a whole line for one word. */}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: space.sm,
+            }}
+          >
+            <TagPills tags={trip.tags} color={readTripColor(trip.colorKey)} tripId={trip.id} />
+            {trip.role === "admin" ? <Pill word="Admin" tone="peri" /> : null}
+          </View>
+        </Card>
+      </Pressable>
+    </Link>
   );
 }
 
