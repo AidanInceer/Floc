@@ -37,9 +37,10 @@ import {
   useFields,
   type ExpenseFormProps,
 } from "./expense-form-parts";
+import { CategoryPicker } from "./category-picker";
 import { useTheme } from "./theme";
 import { Body, Button, Card, Field, Label, Segmented } from "./ui";
-import { fonts, size, space } from "@/lib/theme";
+import { fonts, radius, size, space } from "@/lib/theme";
 
 export type { DayOption, ExpenseDraft } from "./expense-form-parts";
 
@@ -64,7 +65,15 @@ function Line({ label, children, first }: { label: string; children: ReactNode; 
   );
 }
 
-/** A bare input with no label of its own — the line beside it already said what it is. */
+/**
+ * The input on a line, boxed.
+ *
+ * IT WAS BARE, AND THAT WAS THE BUG. Right-aligned text with no border and a
+ * grey placeholder read as a value already filled in — people saw "Lunch" and
+ * "0.00" as this expense's description and amount rather than as the shape of
+ * an answer. A field has to look like a field: its own ground, its own edge,
+ * and ink dark enough to tell typed text from a hint.
+ */
 function Plain({
   value,
   onChangeText,
@@ -91,12 +100,17 @@ function Plain({
       keyboardType={numeric ? "decimal-pad" : "default"}
       inputMode={numeric ? "decimal" : "text"}
       style={{
-        minWidth: 140,
+        minWidth: 150,
         color: c.ink,
         fontFamily: numeric ? fonts.type : fonts.sans,
         fontSize: big ? size.heading : size.body,
         textAlign: "right",
-        paddingVertical: space.xs,
+        backgroundColor: c.sheet,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: c["rule-2"] ?? c.rule,
+        borderRadius: radius.md,
+        paddingVertical: space.sm,
+        paddingHorizontal: space.md,
       }}
     />
   );
@@ -173,7 +187,15 @@ function Each({
   currency: ExpenseFormProps["currency"];
 }) {
   const attempt = buildDraft(
-    { description: "", amount: f.amount, paidBy: f.paidBy, dayId: null, notes: "", mode: f.mode },
+    {
+      description: "",
+      category: f.category,
+      amount: f.amount,
+      paidBy: f.paidBy,
+      dayId: null,
+      notes: "",
+      mode: f.mode,
+    },
     people,
     f.inOn,
     f.weights,
@@ -273,19 +295,32 @@ export function ExpenseForm({
     <Card>
       <View style={{ gap: space.md }}>
         <View>
-          <Line label="What for" first>
-            <Plain
-              accessibilityLabel="Description"
-              value={f.description}
-              onChangeText={f.setDescription}
-              placeholder="Lunch"
-            />
+          {/* "Description" is what the web asks, and what the thing is. "What
+              for" was a different question in a second vocabulary. */}
+          {/* The category rides this line rather than owning one. It has a
+              correct default, so a labelled row of its own was the form's
+              least-changed question taking a third of its height. */}
+          <Line label="Description" first>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
+              <CategoryPicker value={f.category} onChange={f.setCategory} compact />
+              <Plain
+                accessibilityLabel="Description"
+                value={f.description}
+                onChangeText={f.setDescription}
+                // No word here on purpose: a greyed "Lunch" inside an unboxed
+                // field read as an expense already described.
+                placeholder=""
+              />
+            </View>
           </Line>
           <Line label={`Amount (${currency})`}>
             <Plain
               accessibilityLabel="Amount"
               value={f.amount}
               onChangeText={f.setAmount}
+              // This one stays: it is the *shape* of the answer, not a guess at
+              // it, and a decimal field that does not say "two places" invites
+              // pennies typed as pounds.
               placeholder="0.00"
               numeric
               big

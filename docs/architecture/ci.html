@@ -1,0 +1,96 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CI — Floc docs</title>
+<link rel="stylesheet" href="../assets/docs.css">
+<body data-root=".." data-page="ci">
+<nav id="sidebar" aria-label="Documentation"></nav>
+<main>
+<p class="crumb">Docs / Architecture</p>
+<h1>CI</h1>
+
+<p>Three workflows in <code>.github/workflows/</code>. Nothing here deploys —
+CI proves the code compiles, passes and keeps its schema honest. Shipping is a
+separate, manual act.</p>
+
+<h2>Flow</h2>
+
+<pre class="mermaid">flowchart TB
+    PR["Pull request&lt;br/&gt;or push to main / develop"]
+
+    subgraph CIWF["ci.yml"]
+        Verify["verify&lt;br/&gt;lint · typecheck · test · build · fitness&lt;br/&gt;(only affected packages, via Turborepo)"]
+        Changed{"changes&lt;br/&gt;mobile touched?"}
+        Bundle["mobile&lt;br/&gt;expo export — Android + iOS"]
+        Native["mobile-android&lt;br/&gt;gradlew assembleDebug&lt;br/&gt;(advisory)"]
+        Migr["migrations&lt;br/&gt;db:generate must leave the tree clean"]
+        Wire["wireframes&lt;br/&gt;no external assets, no doc wrapper"]
+    end
+
+    subgraph SecWF["security.yml — also weekly on cron"]
+        Secrets["gitleaks&lt;br/&gt;full history"]
+        Audit["pnpm audit --audit-level=high"]
+    end
+
+    Merge["Merge to main"]
+    Sync["sync-develop.yml&lt;br/&gt;merge main back into develop"]
+
+    PR --&gt; Verify
+    PR --&gt; Changed
+    PR --&gt; Migr
+    PR --&gt; Wire
+    PR --&gt; Secrets
+    PR --&gt; Audit
+    Changed --&gt;|yes| Bundle
+    Changed --&gt;|yes| Native
+    Changed --&gt;|no| Skip["skipped"]
+
+    Verify --&gt; Merge
+    Bundle --&gt; Merge
+    Migr --&gt; Merge
+    Wire --&gt; Merge
+    Secrets --&gt; Merge
+    Audit --&gt; Merge
+    Merge --&gt; Sync
+</pre>
+
+<h2>The jobs, briefly</h2>
+
+<ul>
+<li><strong>verify</strong> — lint, typecheck, test, build, then the fitness
+functions (layering, dead code, tokens, contrast, bundle budget). Filtered to
+<code>...[base]</code>, so a docs-only change costs seconds.</li>
+<li><strong>changes</strong> — asks git whether
+<code>apps/mobile/</code>, <code>packages/</code> or the lockfile moved, and
+gates the two mobile jobs on the answer.</li>
+<li><strong>mobile</strong> — Metro bundles both platforms. The phone app has
+no <code>build</code> script, so this is its build.</li>
+<li><strong>mobile-android</strong> — real native compile on JDK 17. Advisory:
+<code>continue-on-error</code> sits on the steps so the check run stays
+green.</li>
+<li><strong>migrations</strong> — re-runs <code>db:generate</code>; a dirty
+tree means a schema change shipped without a migration. Touches no
+database.</li>
+<li><strong>wireframes</strong> — plain HTML must stay self-contained.</li>
+<li><strong>Security</strong> — gitleaks over full history plus
+<code>pnpm audit</code>; also weekly on a cron, so an old secret still
+surfaces.</li>
+<li><strong>Sync develop</strong> — on every push to <code>main</code>, merges
+it back into <code>develop</code> so the next PR has no phantom conflicts.</li>
+</ul>
+
+<h2>Rules of thumb</h2>
+
+<ul>
+<li>A new push to the same branch cancels the previous run
+(<code>concurrency</code>), except the develop sync.</li>
+<li>Permissions are <code>contents: read</code> everywhere but the sync, which
+needs write.</li>
+<li>Node 22, pnpm, <code>--frozen-lockfile</code>, in every job.</li>
+</ul>
+
+</main>
+<script src="../assets/nav.js"></script>
+<script src="../assets/vendor/mermaid.min.js"></script>
+<script src="../assets/diagrams.js"></script>
+</body>

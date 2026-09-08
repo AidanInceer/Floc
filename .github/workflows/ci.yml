@@ -228,6 +228,26 @@ jobs:
           fi
           echo "Migrations are in step with the schema."
 
+  # The web/app gap, declared rather than remembered (see
+  # floc/packages/floc-api/src/parity.ts). Its own job, not a turbo fitness
+  # task: the affected-filter above builds a changed package plus its
+  # *dependents*, and a mobile-only change has none — which is exactly the
+  # change most likely to move parity. No install needed; the checker is plain
+  # Node over source files.
+  parity:
+    name: The web/app gap is declared
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Compare parity.json to the router and the app
+        run: node --experimental-strip-types scripts/parity/run.mjs
+
   # Wireframes are plain HTML with no build step, so CI just proves they stay
   # self-contained — no external requests — which the Artifact CSP and our own
   # offline-first convention both require.

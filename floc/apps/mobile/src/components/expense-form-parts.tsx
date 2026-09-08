@@ -28,12 +28,19 @@ import { computeSplits, formatMoney, parseMoney } from "@floc/core/money";
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 
+import {
+  DEFAULT_CATEGORY,
+  type ExpenseCategory,
+} from "@floc/core/expense-category";
+
 import { useTheme } from "./theme";
 import { Body, Label } from "./ui";
 import { fonts, radius, size, space } from "@/lib/theme";
 
 export type ExpenseDraft = {
   description: string;
+  /** Filed under one of the fixed twelve; the glyph is the rendering, never the value. */
+  category: ExpenseCategory;
   amountMinor: number;
   paidBy: string;
   dayId: number | null;
@@ -57,6 +64,7 @@ export const MODES = [
 /** What an edit starts from. Absent means a new expense. */
 export type Initial = {
   description: string;
+  category: ExpenseCategory;
   amount: string;
   paidBy: string;
   dayId: number | null;
@@ -299,6 +307,7 @@ export type Attempt = { ok: true; draft: ExpenseDraft } | { ok: false; problem: 
 export function buildDraft(
   fields: {
     description: string;
+    category: ExpenseCategory;
     amount: string;
     paidBy: string;
     dayId: number | null;
@@ -342,6 +351,7 @@ export function buildDraft(
     ok: true,
     draft: {
       description: fields.description.trim(),
+      category: fields.category,
       amountMinor,
       paidBy: fields.paidBy,
       dayId: fields.dayId,
@@ -389,6 +399,9 @@ function participantValues(
  */
 export function useFields(initial: Initial | undefined, viewerId: string, people: Person[]) {
   const [description, setDescription] = useState(initial?.description ?? "");
+  const [category, setCategory] = useState<ExpenseCategory>(
+    initial?.category ?? DEFAULT_CATEGORY,
+  );
   const [amount, setAmount] = useState(initial?.amount ?? "");
   const [paidBy, setPaidBy] = useState(initial?.paidBy ?? viewerId);
   const [dayId, setDayId] = useState<number | null>(initial?.dayId ?? null);
@@ -403,6 +416,8 @@ export function useFields(initial: Initial | undefined, viewerId: string, people
   return {
     description,
     setDescription,
+    category,
+    setCategory,
     amount,
     setAmount,
     paidBy,
@@ -439,6 +454,7 @@ export function trySave(
   const attempt = buildDraft(
     {
       description: f.description,
+      category: f.category,
       amount: f.amount,
       paidBy: f.paidBy,
       dayId: f.dayId,

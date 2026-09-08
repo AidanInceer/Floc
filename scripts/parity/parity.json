@@ -1,0 +1,257 @@
+{
+  "procedures": {
+    "availability.list": {
+      "mobile": "yes"
+    },
+    "availability.set": {
+      "mobile": "yes"
+    },
+    "files.canUpload": {
+      "mobile": "yes"
+    },
+    "files.list": {
+      "mobile": "yes"
+    },
+    "files.remove": {
+      "mobile": "yes"
+    },
+    "files.setCategory": {
+      "mobile": "yes"
+    },
+    "files.upload": {
+      "mobile": "yes"
+    },
+    "friends.accept": {
+      "mobile": "yes"
+    },
+    "friends.cancel": {
+      "mobile": "yes"
+    },
+    "friends.decline": {
+      "mobile": "yes"
+    },
+    "friends.list": {
+      "mobile": "yes"
+    },
+    "friends.remove": {
+      "mobile": "yes"
+    },
+    "friends.request": {
+      "mobile": "yes"
+    },
+    "invites.accept": {
+      "mobile": "yes"
+    },
+    "invites.decline": {
+      "mobile": "yes"
+    },
+    "invites.forTrip": {
+      "mobile": "yes"
+    },
+    "invites.mine": {
+      "mobile": "yes"
+    },
+    "invites.preview": {
+      "mobile": "yes"
+    },
+    "invites.send": {
+      "mobile": "yes"
+    },
+    "itinerary.addEvent": {
+      "mobile": "yes"
+    },
+    "itinerary.days": {
+      "mobile": "yes"
+    },
+    "itinerary.deleteEvent": {
+      "mobile": "yes"
+    },
+    "itinerary.updateEvent": {
+      "mobile": "yes"
+    },
+    "kits.addItem": {
+      "mobile": "yes"
+    },
+    "kits.create": {
+      "mobile": "yes"
+    },
+    "kits.list": {
+      "mobile": "yes"
+    },
+    "kits.remove": {
+      "mobile": "yes"
+    },
+    "kits.removeItem": {
+      "mobile": "yes"
+    },
+    "kits.rename": {
+      "mobile": "yes"
+    },
+    "kits.stepItem": {
+      "mobile": "yes"
+    },
+    "me.answerMapPrompt": {
+      "mobile": "yes"
+    },
+    "me.get": {
+      "mobile": "yes"
+    },
+    "me.mapPrompts": {
+      "mobile": "yes"
+    },
+    "me.profile": {
+      "mobile": "yes"
+    },
+    "me.rename": {
+      "mobile": "wontfix",
+      "why": "The app renames you through settings.identity, which writes the name and the picture together — the same sheet, one write. A second procedure that writes half of that would be a second way to do one job."
+    },
+    "me.setMark": {
+      "mobile": "yes"
+    },
+    "money.deleteExpense": {
+      "mobile": "yes"
+    },
+    "money.ledger": {
+      "mobile": "yes"
+    },
+    "money.settle": {
+      "mobile": "yes"
+    },
+    "money.write": {
+      "mobile": "yes"
+    },
+    "notes.get": {
+      "mobile": "yes"
+    },
+    "notes.write": {
+      "mobile": "yes"
+    },
+    "packing.add": {
+      "mobile": "yes"
+    },
+    "packing.applyKit": {
+      "mobile": "yes"
+    },
+    "packing.claim": {
+      "mobile": "yes"
+    },
+    "packing.deleteKit": {
+      "mobile": "yes"
+    },
+    "packing.fillMyBag": {
+      "mobile": "yes"
+    },
+    "packing.list": {
+      "mobile": "yes"
+    },
+    "packing.remove": {
+      "mobile": "yes"
+    },
+    "packing.removeMany": {
+      "mobile": "yes"
+    },
+    "packing.reset": {
+      "mobile": "yes"
+    },
+    "packing.saveKit": {
+      "mobile": "yes"
+    },
+    "packing.setPacked": {
+      "mobile": "yes"
+    },
+    "packing.setTier": {
+      "mobile": "yes"
+    },
+    "packing.stepQuantity": {
+      "mobile": "yes"
+    },
+    "people.profile": {
+      "mobile": "yes"
+    },
+    "places.list": {
+      "mobile": "yes"
+    },
+    "roster.list": {
+      "mobile": "wontfix",
+      "why": "tripProcedure already returns members, so the app's roster screen reads trips.get. This exists for a client that wants to refetch the roster alone."
+    },
+    "roster.promote": {
+      "mobile": "yes"
+    },
+    "roster.remove": {
+      "mobile": "yes"
+    },
+    "settings.currency": {
+      "mobile": "yes"
+    },
+    "settings.deleteAccount": {
+      "mobile": "yes"
+    },
+    "settings.dietary": {
+      "mobile": "yes"
+    },
+    "settings.get": {
+      "mobile": "yes"
+    },
+    "settings.identity": {
+      "mobile": "yes"
+    },
+    "settings.notifications": {
+      "mobile": "yes"
+    },
+    "settings.packing": {
+      "mobile": "yes"
+    },
+    "settings.privacy": {
+      "mobile": "yes"
+    },
+    "settings.unlinkSignIn": {
+      "mobile": "yes"
+    },
+    "settings.vibeTags": {
+      "mobile": "yes"
+    },
+    "trips.create": {
+      "mobile": "yes"
+    },
+    "trips.delete": {
+      "mobile": "yes"
+    },
+    "trips.get": {
+      "mobile": "yes"
+    },
+    "trips.join": {
+      "mobile": "yes"
+    },
+    "trips.leave": {
+      "mobile": "yes"
+    },
+    "trips.list": {
+      "mobile": "yes"
+    },
+    "trips.setArchived": {
+      "mobile": "yes"
+    },
+    "trips.startFromPreset": {
+      "mobile": "yes"
+    },
+    "trips.update": {
+      "mobile": "yes"
+    }
+  },
+  "webOnly": [
+    {
+      "id": "files",
+      "path": "floc/apps/web/src/app/trip/[id]/files",
+      "status": "planned",
+      "why": "The app lists, uploads, re-files and removes. What is still web-only is opening one: the bytes come off a route handler behind a session cookie, and a phone has no viewer for a PDF yet."
+    },
+    {
+      "id": "signup",
+      "path": "floc/apps/web/src/app/signup",
+      "status": "wontfix",
+      "why": "Account creation, password reset and email verification stay in the browser — the app signs in only, so there is one place credentials are handled."
+    }
+  ]
+}

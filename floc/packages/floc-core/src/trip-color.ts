@@ -21,3 +21,12 @@ export function isTripColor(value: unknown): value is TripColor {
 export function readTripColor(value: unknown): TripColor | null {
   return isTripColor(value) ? value : null;
 }
+
+/**
+ * The pastel a trip wears: the one a member picked, or the id rotation that
+ * fills in when nobody has. Shared because the card, the header and the tag
+ * pills must land on the same colour, on a phone and in a browser alike.
+ */
+export function tripPastel(color: TripColor | null, tripId: number): TripColor {
+  return color ?? TRIP_COLORS[tripId % TRIP_COLORS.length];
+}

@@ -23,12 +23,14 @@
  * either direction — the four powers are invite, kick, promote and archive.
  */
 import { formatDate } from "@floc/core/dates";
+import { DEFAULT_CATEGORY, isExpenseCategory } from "@floc/core/expense-category";
 import { formatMoney, suggestSettlements, computeBalances, toMajorInput } from "@floc/core/money";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
 
+import { CategoryIcon } from "@/components/category-icon";
 import { ExpenseForm, type DayOption, type ExpenseDraft } from "@/components/expense-form";
 import { useTheme } from "@/components/theme";
 import {
@@ -196,7 +198,7 @@ export default function Money() {
       description: draft.description,
       amountMinor: draft.amountMinor,
       currency,
-      category: "other",
+      category: draft.category,
       splitType: draft.splitType,
       paidBy: draft.paidBy,
       dayId: draft.dayId,
@@ -249,6 +251,11 @@ export default function Money() {
             currency={expense.currency}
             initial={{
               description: expense.description,
+              // Guarded on the way in: `category` is a stored word and a row
+              // written before the column existed can be anything (rule 11).
+              category: isExpenseCategory(expense.category)
+                ? expense.category
+                : DEFAULT_CATEGORY,
               amount: toMajorInput(expense.amountMinor, expense.currency),
               paidBy: expense.paidBy,
               dayId: expense.dayId ?? null,
@@ -268,8 +275,27 @@ export default function Money() {
             style={{ borderRadius: radius.md, borderColor: c.rule }}
           >
             <View style={{ gap: space.xs }}>
-              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                <Body bold>{expense.description}</Body>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: space.sm,
+                }}
+              >
+                {/* The glyph makes a long list scannable; the description is
+                    still the thing that says what it was. A mark, not a label
+                    (#204) — its own `accessibilityLabel` carries the word. */}
+                <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm, flex: 1 }}>
+                  <CategoryIcon
+                    category={
+                      isExpenseCategory(expense.category) ? expense.category : DEFAULT_CATEGORY
+                    }
+                    color={c["ink-2"]}
+                    size={16}
+                  />
+                  <Body bold>{expense.description}</Body>
+                </View>
                 <Figure>{formatMoney(expense.amountMinor, expense.currency)}</Figure>
               </View>
               <View style={{ flexDirection: "row", justifyContent: "space-between" }}>

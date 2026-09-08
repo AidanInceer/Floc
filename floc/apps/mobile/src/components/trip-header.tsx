@@ -21,6 +21,7 @@ import { useRouter } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { PenGlyph } from "./glyphs";
 import { useTheme } from "./theme";
 import { fonts, radius, size, space } from "@/lib/theme";
 
@@ -103,7 +104,7 @@ export function TripHeader({
   balance: string | null;
   owing: boolean;
   onGo: (route: string) => void;
-  /** Tapping the name renames it. The trip's own layout owns the sheet and the write. */
+  /** Tapping the name opens its name, colour and tags. The layout owns the sheet and the write. */
   onEditName: () => void;
 }) {
   const { c } = useTheme();
@@ -142,16 +143,22 @@ export function TripHeader({
         {/* The name is the control. A trip is named once and renamed rarely,
             so a labelled field parked at the foot of Overview was a permanent
             form for an occasional job — and it printed the name a second time
-            to do it (#126, #302). Tapping the title is the whole affordance. */}
+            to do it (#126, #302). Tapping the title is the whole affordance.
+
+            THE PEN IS NOT DECORATION. When this opened a rename and nothing
+            else, a bare title was enough of a hint. It now opens the colour
+            and the tags too, and nothing on screen said so — the drawing was
+            not clear, so it gets the mark rather than a caption explaining it. */}
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Rename ${title}`}
+          accessibilityLabel={`Edit ${title} — name, colour and tags`}
           onPress={onEditName}
-          style={{ flex: 1 }}
+          style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: space.sm }}
         >
           <Text
             numberOfLines={1}
             style={{
+              flexShrink: 1,
               color: c.ink,
               fontFamily: fonts.display,
               fontSize: size.heading,
@@ -160,6 +167,7 @@ export function TripHeader({
           >
             {title}
           </Text>
+          <PenGlyph color={c["ink-3"]} />
         </Pressable>
         {balance !== null ? (
           <BalanceChip

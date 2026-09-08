@@ -5,13 +5,20 @@
  * not, which is the entire reason the column exists. A token that resolves to
  * nothing answers the same way as one for a deleted trip — nothing here tells
  * anybody which they typed.
+ *
+ * IT SHOWS THE TRIP BEFORE YOU JOIN IT. A pasted link is a string; what the
+ * person actually wants to know is whose trip it is and when. `invites.preview`
+ * reads without a session and carries a name, some dates and a host — no
+ * roster, no money, no notes, because whoever holds a forwarded link is not a
+ * member yet (ticket 147).
  */
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { formatDateRange } from "@floc/core/dates";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
 
-import { Body, Button, Field, Screen } from "@/components/ui";
+import { Body, Button, Card, Field, Screen } from "@/components/ui";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 
@@ -27,6 +34,13 @@ export default function Join() {
   const queryClient = useQueryClient();
   const [link, setLink] = useState("");
   const [problem, setProblem] = useState<string | null>(null);
+
+  const token = tokenFrom(link);
+  // Only once there is something worth asking about — a half-typed link is not
+  // a question, and a spinner under every keystroke reads as a failure.
+  const preview = useQuery(
+    trpc.invites.preview.queryOptions({ token }, { enabled: token.length > 8 }),
+  );
 
   const join = useMutation({
     ...trpc.trips.join.mutationOptions(),
@@ -53,13 +67,24 @@ export default function Join() {
           autoFocus
           placeholder="https://floc.app/invite/…"
         />
+        {preview.data ? (
+          <Card>
+            <Body bold>{preview.data.name}</Body>
+            <Body tone="ink-2">
+              {formatDateRange(preview.data.startDate, preview.data.endDate)}
+            </Body>
+            {preview.data.hostName ? (
+              <Body tone="ink-3">{preview.data.hostName}&apos;s trip</Body>
+            ) : null}
+          </Card>
+        ) : null}
         {problem ? <Body tone="red">{problem}</Body> : null}
         <Button
           label="Join"
           busy={join.isPending}
           onPress={() => {
             setProblem(null);
-            join.mutate({ token: tokenFrom(link) });
+            join.mutate({ token });
           }}
         />
       </View>

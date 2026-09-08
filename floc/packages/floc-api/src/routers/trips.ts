@@ -68,6 +68,14 @@ export const tripsRouter = router({
       await ctx.port.archiveTrip(ctx.viewer.id, input.tripId, input.archived);
     }),
 
+  /**
+   * Admin-only, any stage, no undo (rule 6). A soft delete, so the rows stay
+   * for an operator — but nothing in either client ever offers them again.
+   */
+  delete: tripProcedure.mutation(async ({ ctx, input }) => {
+    await ctx.port.deleteTrip(ctx.viewer.id, input.tripId);
+  }),
+
   /** Leaving is not an admin power — any member may (rule 6). */
   leave: tripProcedure.mutation(async ({ ctx, input }) => {
     await ctx.port.leaveTrip(ctx.viewer.id, input.tripId);

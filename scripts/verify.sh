@@ -10,6 +10,7 @@
 #   ci.yml       fitness     → layers · dead code · tokens · contrast · bundle
 #   ci.yml       migrations  → schema changes ship with a migration
 #   ci.yml       wireframes  → wireframes stay self-contained
+#   ci.yml       parity      → the web/app gap is declared, not forgotten
 #   ci.yml       mobile      → Expo bundles for Android and iOS
 #
 # One CI job is deliberately NOT mirrored: `mobile-android`, the native gradle
@@ -135,6 +136,21 @@ else
     fi
   done
   [ "$wf" -eq 0 ] && ok "${#files[@]} wireframe(s) self-contained" || bad "wireframes reference external assets"
+fi
+
+# -------------------------------------------------- ci.yml :: parity
+
+# What the phone app has and has not caught up on, asserted rather than
+# remembered (see floc/packages/floc-api/src/parity.ts). Its own job in CI, not
+# a turbo fitness task: turbo's affected-filter builds a changed package plus
+# its *dependents*, and a mobile-only change has none — which is the change
+# most likely to move parity.
+step "The web/app gap is declared, not forgotten"
+if pnpm parity >/tmp/verify-parity.log 2>&1; then
+  ok "$(tail -1 /tmp/verify-parity.log)"
+else
+  bad "parity.json disagrees with the code"
+  cat /tmp/verify-parity.log
 fi
 
 # --------------------------------------------------- ci.yml :: mobile

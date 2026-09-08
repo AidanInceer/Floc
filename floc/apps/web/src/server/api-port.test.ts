@@ -345,6 +345,100 @@ describe("packing through the port (#220's two lists)", () => {
   });
 });
 
+describe("packing setup through the port (#220, #229)", () => {
+  const add = (viewer: string, label: string, mine: boolean) =>
+    webPort.addPackingLine(viewer, world.ours.id, { label, category: "other", mine });
+
+  it("keeps the tier on the trip, not on the profile — Light here leaves elsewhere alone", async () => {
+    await webPort.setPackTier(world.admin, world.ours.id, "light");
+
+    const ours = await webPort.loadPacking(world.admin, world.ours.id);
+    expect(ours.tier).toBe("light");
+    // The other member's own view of the same trip is their own choice, which
+    // they have not made — so it falls through to their profile default.
+    const theirs = await webPort.loadPacking(world.member, world.ours.id);
+    expect(theirs.tier).toBe("balanced");
+  });
+
+  it("refuses a bulk remove holding somebody else's bag line, whole rather than in part", async () => {
+    await add(world.admin, "Group speaker", false);
+    await add(world.member, "Mo's razor", true);
+
+    const shared = (await webPort.loadPacking(world.admin, world.ours.id)).shared;
+    const mosLine = (await webPort.loadPacking(world.member, world.ours.id)).mine;
+
+    await expect(
+      webPort.removePackingLines(world.admin, world.ours.id, [shared[0].id, mosLine[0].id]),
+    ).rejects.toThrow();
+
+    // Nothing went — not even the line Ada was allowed to remove.
+    expect((await webPort.loadPacking(world.admin, world.ours.id)).shared).toHaveLength(1);
+    expect((await webPort.loadPacking(world.member, world.ours.id)).mine).toHaveLength(1);
+  });
+
+  it("makes a kit out of the bag, and it is only ever the maker's", async () => {
+    await add(world.admin, "Head torch", true);
+    await add(world.admin, "Dry bag", true);
+
+    expect(await webPort.savePackingKit(world.admin, world.ours.id, "Camping")).toBe(true);
+
+    const ada = await webPort.loadPacking(world.admin, world.ours.id);
+    expect(ada.kits).toEqual([expect.objectContaining({ name: "Camping", itemCount: 2 })]);
+    // A kit belongs to the account, not the trip — Mo sees none of it.
+    expect((await webPort.loadPacking(world.member, world.ours.id)).kits).toEqual([]);
+  });
+
+  it("cannot delete a kit that is not yours, and says nothing about whose it is", async () => {
+    await add(world.admin, "Head torch", true);
+    await webPort.savePackingKit(world.admin, world.ours.id, "Camping");
+    const kitId = (await webPort.loadPacking(world.admin, world.ours.id)).kits[0].id;
+
+    // Resolved by owner inside, so this is a no-op rather than a refusal —
+    // the same answer Mo would get for an id that never existed (rule 5).
+    await webPort.deletePackingKit(world.member, kitId);
+
+    expect((await webPort.loadPacking(world.admin, world.ours.id)).kits).toHaveLength(1);
+  });
+
+  it("removes several in one call when every one of them resolves", async () => {
+    await add(world.admin, "Tent", false);
+    await add(world.admin, "Poles", false);
+    const shared = (await webPort.loadPacking(world.admin, world.ours.id)).shared;
+
+    await webPort.removePackingLines(world.member, world.ours.id, shared.map((l) => l.id));
+
+    expect((await webPort.loadPacking(world.admin, world.ours.id)).shared).toEqual([]);
+  });
+
+  it("empties one list and leaves the other standing", async () => {
+    await add(world.admin, "Group stove", false);
+    await add(world.admin, "Ada's boots", true);
+
+    await webPort.resetPackingList(world.admin, world.ours.id, true);
+
+    const after = await webPort.loadPacking(world.admin, world.ours.id);
+    expect(after.mine).toEqual([]);
+    expect(after.shared.map((l) => l.label)).toEqual(["Group stove"]);
+  });
+
+  it("cannot be aimed at another person's bag — resetting yours never touches theirs", async () => {
+    await add(world.member, "Mo's towel", true);
+
+    await webPort.resetPackingList(world.admin, world.ours.id, true);
+
+    expect((await webPort.loadPacking(world.member, world.ours.id)).mine).toHaveLength(1);
+  });
+
+  it("refuses an outsider the setup calls too (rule 5)", async () => {
+    await expect(
+      webPort.setPackTier(world.outsider, world.ours.id, "comfort"),
+    ).rejects.toThrow();
+    await expect(
+      webPort.resetPackingList(world.outsider, world.ours.id, false),
+    ).rejects.toThrow();
+  });
+});
+
 describe("the signed-in person (ticket 302)", () => {
   it("reads back a name, the trips they are on, and nobody else's", async () => {
     const ada = await webPort.loadMe(world.admin);

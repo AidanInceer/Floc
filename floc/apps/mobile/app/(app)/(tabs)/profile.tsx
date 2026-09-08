@@ -1,122 +1,201 @@
 /**
- * You (ticket 302) — what you curate, then what you configure.
+ * You — the face you curate (ticket 302, direction C).
  *
- * THE SPLIT IS KEPT. The web app has /profile and /settings, and collapsing
- * them makes a screen that is neither. So: the face at the top, the counts and
- * trips under it, and settings plainly separated below a rule. Only what a
- * phone can honestly own is here — theme and signing out. Visibility, dietary,
- * vibe tags, notifications and deleting the account stay on the web, where
- * they are already edited, and the screen says so rather than going quiet.
+ * THE SPLIT THE WEB HAS, KEPT WHOLE. `/profile` is what you curate and
+ * `/settings` is what you configure, and this screen used to be both at once
+ * with a rule drawn between them. A rule is not a split: the theme buttons
+ * were still the tallest thing on a page about who you are. So Settings is its
+ * own screen now, reached by one row at the foot, exactly as on the web.
+ *
+ * THE FACE IS THE CONTROL. Your name and picture are edited by tapping the
+ * card, not by a button parked under it — the same move the trip header makes,
+ * for the same reason: a rename is rare, and a permanent form for a rare job
+ * is furniture.
  *
  * THE COUNTS ARE DERIVED (#95). Been and want-to-go come off the trips you are
- * on, read fresh, never stored — so this can never disagree with the map the
- * web app draws.
+ * on, read fresh, never stored — so this can never disagree with the web.
  *
- * SIGNING OUT ENDS THIS DEVICE ONLY. The web session is a different row.
+ * THE MAP IS EDITABLE HERE NOW. It used to say "change them on the website",
+ * which is a section explaining why it is not one. Trip marks are still
+ * derived and nobody's to edit; the hand-painted ones are painted from the
+ * sheet behind "Paint the map".
+ *
+ * TWO READS, NOT ONE. `me` is the identity every screen wants; `me.profile` is
+ * the heavier face. Packing reads the first and has no use for a travel map.
  */
+import { formatDateRange } from "@floc/core/dates";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
 import { useState } from "react";
-import { ScrollView, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 
-import { useTheme, type ThemeChoice } from "@/components/theme";
+import { IdentitySheet } from "@/components/identity-sheet";
+import { MapPromptCard } from "@/components/map-prompt";
+import { MarkEditor } from "@/components/mark-editor";
+import { ProfileFace } from "@/components/profile-face";
+import { Sheet } from "@/components/sheet";
+import { TravelMarks } from "@/components/travel-marks";
 import {
   Body,
   Button,
   Card,
-  Divider,
+  Empty,
   Failed,
-  Field,
   Figure,
-  Heading,
   Label,
   Loading,
+  Row,
 } from "@/components/ui";
 import { trpc } from "@/lib/api";
-import { signOut } from "@/lib/auth";
 import { space } from "@/lib/theme";
-
-const THEMES: readonly { value: ThemeChoice; label: string }[] = [
-  { value: "system", label: "Match my phone" },
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
-];
 
 export default function Profile() {
   const queryClient = useQueryClient();
-  const { choice, setChoice } = useTheme();
+  const router = useRouter();
   const me = useQuery(trpc.me.get.queryOptions());
+  const face = useQuery(trpc.me.profile.queryOptions());
+  const prompts = useQuery(trpc.me.mapPrompts.queryOptions());
 
-  const [name, setName] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [painting, setPainting] = useState(false);
 
-  const rename = useMutation({
-    ...trpc.me.rename.mutationOptions(),
+  /** Both reads move together: a mark changes the map and the two counts on the card. */
+  const refetchFace = () => {
+    queryClient.invalidateQueries({ queryKey: trpc.me.get.queryKey() });
+    queryClient.invalidateQueries({ queryKey: trpc.me.profile.queryKey() });
+    queryClient.invalidateQueries({ queryKey: trpc.me.mapPrompts.queryKey() });
+  };
+
+  const saveIdentity = useMutation({
+    ...trpc.settings.identity.mutationOptions(),
     onSuccess: () => {
-      setName(null);
-      queryClient.invalidateQueries({ queryKey: trpc.me.get.queryKey() });
+      setEditing(false);
+      refetchFace();
     },
+  });
+
+  const setMark = useMutation({
+    ...trpc.me.setMark.mutationOptions(),
+    onSuccess: refetchFace,
+  });
+
+  const answerPrompt = useMutation({
+    ...trpc.me.answerMapPrompt.mutationOptions(),
+    onSuccess: refetchFace,
   });
 
   if (me.isPending) return <Loading />;
   if (me.isError) return <Failed onRetry={() => me.refetch()} />;
 
   return (
-    <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }}>
-      <Card>
-        <View style={{ gap: space.sm }}>
-          <Heading>{me.data.name}</Heading>
-          <Figure tone="ink-2">
-            {me.data.been} been · {me.data.wantToGo} want to go
-          </Figure>
-          <Figure tone="ink-3">
-            {me.data.tripCount} {me.data.tripCount === 1 ? "trip" : "trips"} on the go
-          </Figure>
-        </View>
-      </Card>
+    <>
+      <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }}>
+        <ProfileFace
+          name={me.data.name}
+          avatarUrl={me.data.avatarUrl}
+          been={me.data.been}
+          wantToGo={me.data.wantToGo}
+          vibeTags={face.data?.vibeTags ?? []}
+          onEdit={() => setEditing(true)}
+        />
 
-      {name === null ? (
-        <Button label="Change your name" variant="quiet" onPress={() => setName(me.data.name)} />
-      ) : (
-        <Card>
-          <View style={{ gap: space.md }}>
-            <Field label="Your name" value={name} onChangeText={setName} autoFocus />
-            <Button
-              label="Save"
-              busy={rename.isPending}
-              onPress={() => rename.mutate({ displayName: name })}
-            />
-            <Button label="Cancel" variant="quiet" onPress={() => setName(null)} />
-            {rename.isError ? <Body tone="red">{rename.error.message}</Body> : null}
-          </View>
-        </Card>
-      )}
-
-      {/* What is missing is worth saying; what is drawn is not (#126). */}
-      <Body tone="ink-3">Your picture is set on the website.</Body>
-
-      <Divider />
-
-      <View style={{ gap: space.sm }}>
-        <Label>Theme</Label>
-        {/* Three states will not fit one segmented row on a narrow phone, and
-            "Match my phone" is a sentence rather than a word. Rows, then. */}
-        {THEMES.map((option) => (
-          <Button
-            key={option.value}
-            label={option.value === choice ? `${option.label} — on` : option.label}
-            variant={option.value === choice ? "primary" : "quiet"}
-            onPress={() => setChoice(option.value)}
+        {/* One card per trip you have left, above everything else: it is the
+            only moment its countries can be kept. */}
+        {prompts.data?.map((prompt) => (
+          <MapPromptCard
+            key={prompt.tripId}
+            prompt={prompt}
+            busy={answerPrompt.isPending}
+            onAnswer={(keep) => answerPrompt.mutate({ tripId: prompt.tripId, keep })}
           />
         ))}
-      </View>
 
-      <View style={{ gap: space.sm }}>
-        <Label>Account</Label>
-        <Body tone="ink-3">
-          Notifications, privacy and deleting your account are on the website.
-        </Body>
-        {/* This device only — the web session is a different row. */}
-        <Button label="Sign out of this phone" variant="quiet" onPress={() => signOut()} />
-      </View>
-    </ScrollView>
+        <View style={{ gap: space.sm }}>
+          <Label>Travel map</Label>
+          <Card>
+            {face.isPending ? (
+              <Loading />
+            ) : face.isError ? (
+              <Failed onRetry={() => face.refetch()} />
+            ) : (
+              <TravelMarks marks={face.data.map} />
+            )}
+          </Card>
+          <Button label="Paint the map" variant="quiet" onPress={() => setPainting(true)} />
+        </View>
+
+        <View style={{ gap: space.sm }}>
+          <Label>Trips you have been on</Label>
+          {face.data && face.data.pastTrips.length === 0 ? (
+            <Empty>Nothing here yet.</Empty>
+          ) : null}
+          {face.data?.pastTrips.map((trip) => (
+            <Row key={trip.id}>
+              <View style={{ flex: 1, gap: space.xs }}>
+                <Body bold>{trip.name}</Body>
+                <Figure tone="ink-3">
+                  {formatDateRange(trip.startDate, trip.endDate)}
+                </Figure>
+              </View>
+            </Row>
+          ))}
+        </View>
+
+        {/* Three rows at the foot, as on the web. Saved lists and friends are
+            yours rather than any trip's, so they hang off you, not off a trip. */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Saved packing lists"
+          onPress={() => router.push("/kits")}
+        >
+          <Row>
+            <Body bold>Saved packing lists</Body>
+          </Row>
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Friends"
+          onPress={() => router.push("/friends")}
+        >
+          <Row>
+            <Body bold>Friends</Body>
+          </Row>
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Settings"
+          onPress={() => router.push("/settings")}
+        >
+          <Row>
+            <Body bold>Settings</Body>
+          </Row>
+        </Pressable>
+      </ScrollView>
+
+      {/* Keyed on the name it opened with, so re-opening after a save starts
+          from the saved values rather than a stale draft. */}
+      {editing ? (
+        <IdentitySheet
+          open
+          key={me.data.name}
+          name={me.data.name}
+          avatarUrl={me.data.avatarUrl}
+          busy={saveIdentity.isPending}
+          error={saveIdentity.isError ? saveIdentity.error.message : null}
+          onClose={() => setEditing(false)}
+          onSave={(input) => saveIdentity.mutate(input)}
+        />
+      ) : null}
+
+      <Sheet open={painting} onClose={() => setPainting(false)}>
+        <MarkEditor
+          marks={face.data?.map ?? []}
+          busy={setMark.isPending}
+          onSet={(code, state) => setMark.mutate({ code, state })}
+        />
+      </Sheet>
+    </>
   );
 }
