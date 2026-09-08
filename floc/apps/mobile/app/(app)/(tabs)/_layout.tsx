@@ -55,6 +55,10 @@ export default function TabsLayout() {
           tabBarIcon: () => <TripsIcon color={c.pen} />,
         }}
       />
+      {/* Settings and Saved lists are NOT hidden tabs. A hidden tab is still a
+          tab, so back from one pops to whichever tab the bar starts on rather
+          than to You — they are pushed onto the (app) stack instead, the way
+          Friends is. */}
       <Tabs.Screen
         name="profile"
         options={{
@@ -62,14 +66,6 @@ export default function TabsLayout() {
           tabBarIcon: () => <YouIcon color={c.pen} />,
         }}
       />
-      {/* Settings is one level under You, not a fourth tab — the bar is the
-          three places that are not a trip, and a settings tab would make a
-          rarely-touched screen look like one of them (#302). */}
-      <Tabs.Screen name="settings" options={{ href: null, title: "Settings" }} />
-      {/* Saved packing lists are yours rather than any trip's, so they hang
-          off You for the same reason Settings does — and for the same reason
-          they are not a fourth seat in the bar (#230). */}
-      <Tabs.Screen name="kits" options={{ href: null, title: "Saved lists" }} />
       {/* A trip lives under the Trips tab so the bar survives opening one; it
           is not itself a tab. */}
       {/* The route is `trip/[id]`, not `trip` — naming the folder alone matches

@@ -1,10 +1,9 @@
 /**
- * Asking people onto the trip (tickets 05, 146) — the two doors, one screen.
+ * Asking friends onto the trip by name (tickets 05, 146).
  *
- * THE LINK AND THE NAMED INVITE ARE DIFFERENT THINGS. A link is a secret
- * anybody may forward; an invite is a row addressed to one person, and it
- * turns up on their trips list rather than in their inbox. Both are here
- * because they answer the same question for the person doing the asking.
+ * NO LINK HERE. A link is a secret anybody may forward; an invite is a row
+ * addressed to one person. They are two jobs, and "Share trip" on the group
+ * card already owns the link — this screen is only the named ask.
  *
  * ONLY FRIENDS ARE OFFERED. Somebody who has not agreed to know you would make
  * a trip invite a backdoor friend request (ticket 146). Anyone already on the
@@ -14,15 +13,13 @@
  * ADMIN-ONLY (rule 6). A member is told so, not shown dead buttons.
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import * as Clipboard from "expo-clipboard";
 import { useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 
 import { PersonRow } from "@/components/person-row";
 import { useTheme } from "@/components/theme";
-import { Body, Button, Card, Empty, Failed, Label, Loading } from "@/components/ui";
+import { Body, Button, Empty, Failed, Label, Loading } from "@/components/ui";
 import { trpc } from "@/lib/api";
-import { inviteUrl } from "@/lib/config";
 import { space } from "@/lib/theme";
 import { useLocalSearchParams } from "expo-router";
 
@@ -34,7 +31,6 @@ export default function Invite() {
   const queryClient = useQueryClient();
 
   const [picked, setPicked] = useState<string[]>([]);
-  const [copied, setCopied] = useState(false);
 
   const panel = useQuery(trpc.invites.forTrip.queryOptions({ tripId }, { enabled: ready }));
 
@@ -53,7 +49,6 @@ export default function Invite() {
     return <Failed onRetry={() => panel.refetch()} />;
   }
 
-  const link = inviteUrl(panel.data.token);
   const toggle = (userId: string) =>
     setPicked((was) =>
       was.includes(userId) ? was.filter((v) => v !== userId) : [...was, userId],
@@ -65,27 +60,9 @@ export default function Invite() {
       contentContainerStyle={{ padding: space.lg, gap: space.lg }}
     >
       <View style={{ gap: space.sm }}>
-        <Label>Anyone with the link</Label>
-        <Card>
-          <Body>{link}</Body>
-        </Card>
-        <Button
-          label={copied ? "Copied" : "Copy the link"}
-          variant="quiet"
-          onPress={() => {
-            void Clipboard.setStringAsync(link);
-            setCopied(true);
-          }}
-        />
-        <Body tone="ink-3">
-          Anybody holding this can join. Send it to people, not to a group nobody reads.
-        </Body>
-      </View>
-
-      <View style={{ gap: space.sm }}>
-        <Label>Ask a friend by name</Label>
+        <Label>Your friends</Label>
         {panel.data.candidates.length === 0 ? (
-          <Empty>Nobody left to ask.</Empty>
+          <Empty>No friends to ask — everyone you know is already on this trip, or asked.</Empty>
         ) : (
           panel.data.candidates.map((person) => {
             const on = picked.includes(person.id);

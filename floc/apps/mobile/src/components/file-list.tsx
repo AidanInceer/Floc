@@ -55,12 +55,12 @@ export function FileList({ files, showing }: { files: TripFileRow[]; showing: nu
             borderBottomColor: c.rule,
           }}
         >
-          <View style={{ flex: 1, gap: space.xs }}>
+          <View style={{ flex: 1 }}>
             <Body>{file.name}</Body>
-            <Figure tone="ink-2">
-              {DOC_CATEGORY_LABELS[file.category]} · {readableSize(file.sizeBytes)}
-            </Figure>
           </View>
+          <Figure tone="ink-2">
+            {DOC_CATEGORY_LABELS[file.category]} · {readableSize(file.sizeBytes)}
+          </Figure>
           {file.ownerId ? <Pill word="Private" tone="peri" /> : null}
         </View>
       ))}

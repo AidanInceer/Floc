@@ -24,6 +24,10 @@ export default function AppLayout() {
       <Stack.Screen name="join" options={{ title: "Join a trip", presentation: "modal" }} />
       <Stack.Screen name="archived" options={{ title: "Archived trips" }} />
       <Stack.Screen name="friends" options={{ title: "Friends" }} />
+      {/* One level under You, not a fourth tab — the bar is the three places
+          that are not a trip (#302, #230). */}
+      <Stack.Screen name="settings" options={{ title: "Settings" }} />
+      <Stack.Screen name="kits" options={{ title: "Saved lists" }} />
       {/* The title is the person's name, so the screen sets it once it knows one. */}
       <Stack.Screen name="person/[userId]" options={{ title: "Profile" }} />
     </Stack>
