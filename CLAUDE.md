@@ -37,9 +37,11 @@ pnpm install                     # root
 pnpm dev                         # turbo run dev (build|typecheck|lint|test likewise)
 pnpm --filter floc-web <task>    # scope to app
 pnpm fitness                     # layers, dead code, tokens, contrast, bundle
+pnpm parity                      # the web/app gap is declared, not forgotten
 pnpm verify                      # everything CI runs, locally
 ```
 
+- **A new API procedure needs a line in [`parity.json`](scripts/parity/parity.json)** saying whether the phone app has it, and why not. `pnpm parity --fix` writes the boring half; the `why` is yours. Rules and tests: [`parity.ts`](floc/packages/floc-api/src/parity.ts).
 - [`verify`](scripts/verify.sh) mirrors CI. Change a `.github/workflows/` **check** job → change verify.sh same commit. `sync-develop.yml` has no check, moves alone.
 - **Stop dev server before anything that builds.** `verify`/`build`/`fitness` write `.next`, owned by `next dev`; building over it corrupts chunks. Fix: `pnpm --filter floc-web run clean:next` (the one delete an agent may run; also cures OneDrive `EINVAL: readlink`). Check with `preview_list`, not `ps`.
 - **No pre-push hook** — run `pnpm verify` by hand before **every** push, `develop` included.
@@ -71,6 +73,7 @@ pnpm verify                      # everything CI runs, locally
 - **No emoji** — icons are line-art: 14×14 `viewBox` ~13px, `fill="none"`, `strokeWidth` 1.15–1.25, `stroke="currentColor"`.
 - **Outside UI libraries** only where hand-rolling costs months (BlockNote runs Notes), and only if it takes the tokens/type/no-emoji rules.
 - **If the drawing is clear, say nothing** — text carries only what layout can't. No heading-above-heading, captions decoding the design, or narrating state a control shows. Exceptions: what's *missing*, and status.
+- **On the app, cut harder** — same rules, no browser slack. Prefer the glyph alone where the word is one press away and is the accessible label; don't spend a labelled row on a question with a right default (ride the line it belongs to); two short controls share a line; short labels, the section heading carries the subject. Never a dead control with a sentence explaining why — make it work or don't draw it. Check overflow on the device.
 - British English, sentence case, real content — never lorem.
 - Read [approach](docs/design/approach.html) + [visual language](docs/design/visual-language.html) before UI/UX work — full visual language lives there.
 - **Comments ruthless** — only *why* + ticket pointer, or a real gotcha; never *what*. One line beats a block.

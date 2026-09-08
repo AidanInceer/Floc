@@ -18,6 +18,13 @@ import { protectedProcedure, router } from "../trpc";
 export const meRouter = router({
   get: protectedProcedure.query(({ ctx }) => ctx.port.loadMe(ctx.viewer.id)),
 
+  /**
+   * The face: vibe tags, the travel map and the trips you have been on. Its
+   * own procedure because every screen wanting the viewer's id calls `get`,
+   * and none of them want a map with it.
+   */
+  profile: protectedProcedure.query(({ ctx }) => ctx.port.loadMyProfile(ctx.viewer.id)),
+
   rename: protectedProcedure
     .input(
       z.object({
@@ -30,5 +37,37 @@ export const meRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       await ctx.port.renameMe(ctx.viewer.id, input.displayName);
+    }),
+
+  /**
+   * The travel map's hand marks (ticket 108). Trip marks are derived on read
+   * and are nobody's to edit; these are the ones you paint yourself.
+   *
+   * `blank` is not simply "delete". Over a country a trip still claims it
+   * stores a rejection — "no, I didn't go" — because without one the app goes
+   * on asserting something false. The host tells the two cases apart.
+   */
+  setMark: protectedProcedure
+    .input(
+      z.object({
+        code: z.string().length(2),
+        state: z.enum(["green", "yellow", "blank"]),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ctx.port.setCountryMark(ctx.viewer.id, input.code, input.state);
+    }),
+
+  /**
+   * Questions a trip left behind when you stopped being on it (ticket 95).
+   * Its countries stop being derived the moment the membership ends, so this
+   * is the only moment they can be kept. Nobody answers it for somebody else.
+   */
+  mapPrompts: protectedProcedure.query(({ ctx }) => ctx.port.listMapPrompts(ctx.viewer.id)),
+
+  answerMapPrompt: protectedProcedure
+    .input(z.object({ tripId: z.number().int().positive(), keep: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.port.answerMapPrompt(ctx.viewer.id, input.tripId, input.keep);
     }),
 });

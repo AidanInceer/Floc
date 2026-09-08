@@ -17,6 +17,7 @@ import { useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
   Pressable,
+  Switch,
   StyleSheet,
   Text,
   TextInput,
@@ -415,6 +416,57 @@ export function IconButton({
     >
       {children(ink)}
     </Pressable>
+  );
+}
+
+/**
+ * A setting that is on or off, saved the moment it moves.
+ *
+ * NO SAVE BUTTON. The web draws these in a form with one Save at the foot,
+ * because a browser form is how a page posts. A phone has no such excuse: the
+ * switch is the answer, so the switch is the write. That removes eight
+ * buttons from the settings screen and the question of what is unsaved.
+ *
+ * THE HINT IS ONLY EVER WHAT THE DRAWING CANNOT SAY — a consequence, not a
+ * restatement of the label. Most rows have none.
+ */
+export function Toggle({
+  label,
+  hint,
+  value,
+  onChange,
+  disabled,
+}: {
+  label: string;
+  hint?: string;
+  value: boolean;
+  onChange: (next: boolean) => void;
+  disabled?: boolean;
+}) {
+  const { c } = useTheme();
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: space.md,
+        paddingVertical: space.sm,
+        opacity: disabled ? 0.5 : 1,
+      }}
+    >
+      <View style={{ flex: 1, gap: space.xs }}>
+        <Body>{label}</Body>
+        {hint ? <Body tone="ink-3">{hint}</Body> : null}
+      </View>
+      <Switch
+        accessibilityLabel={label}
+        value={value}
+        onValueChange={onChange}
+        disabled={disabled}
+        trackColor={{ false: c["sheet-3"], true: c.pen }}
+        thumbColor={c.sheet}
+      />
+    </View>
   );
 }
 

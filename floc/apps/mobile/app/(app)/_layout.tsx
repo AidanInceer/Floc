@@ -22,6 +22,10 @@ export default function AppLayout() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="new-trip" options={{ title: "New trip", presentation: "modal" }} />
       <Stack.Screen name="join" options={{ title: "Join a trip", presentation: "modal" }} />
+      <Stack.Screen name="archived" options={{ title: "Archived trips" }} />
+      <Stack.Screen name="friends" options={{ title: "Friends" }} />
+      {/* The title is the person's name, so the screen sets it once it knows one. */}
+      <Stack.Screen name="person/[userId]" options={{ title: "Profile" }} />
     </Stack>
   );
 }

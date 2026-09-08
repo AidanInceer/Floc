@@ -9,13 +9,20 @@
  * Leaving is NOT one of the four. Every member can leave, including the last
  * admin, so it sits outside the admin block deliberately.
  *
- * Inviting stays on the website. It composes an email, which is a surface this
- * app does not have — better an honest pointer than a button that half works.
+ * INVITING IS HERE NOW. It used to point at the website, on the grounds that
+ * it composed an email — but a named invite sends no mail on either client, it
+ * turns up on the invitee's trips list. The share link and the friend picker
+ * both live on their own screen, because both are an admin's rare job and the
+ * roster is the frequent one.
+ *
+ * A NAME OPENS A PROFILE. Which is how you meet somebody well enough to ask
+ * them to be a friend — a co-traveller is already inside one of your rings, so
+ * that profile is one you may see (ticket 46).
  */
 import { whoTone } from "@floc/core/who";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Alert, ScrollView, View } from "react-native";
+import { Alert, Pressable, ScrollView, View } from "react-native";
 
 import { Seat } from "@/components/glyphs";
 import { useTheme } from "@/components/theme";
@@ -64,20 +71,34 @@ export default function Roster() {
           const tone = whoTone(m.name);
           return (
             <Card key={m.userId}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
-                <Seat
-                  initial={m.name.slice(0, 1).toUpperCase()}
-                  ground={c[tone] ?? c["sheet-2"]}
-                  ink={c[`${tone}-ink`] ?? c.ink}
-                />
-                <View style={{ flex: 1, gap: space.xs }}>
-                  <Body bold>{m.name}</Body>
-                  {/* A functional attribute for a group picking dinner — shown
-                      only when they chose to share it (#46). */}
-                  {m.dietary ? <Body tone="ink-2">{m.dietary}</Body> : null}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={
+                  m.userId === me ? m.name : `Open ${m.name}'s profile`
+                }
+                disabled={m.userId === me}
+                onPress={() =>
+                  router.push({
+                    pathname: "/person/[userId]",
+                    params: { userId: m.userId },
+                  })
+                }
+              >
+                <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
+                  <Seat
+                    initial={m.name.slice(0, 1).toUpperCase()}
+                    ground={c[tone] ?? c["sheet-2"]}
+                    ink={c[`${tone}-ink`] ?? c.ink}
+                  />
+                  <View style={{ flex: 1, gap: space.xs }}>
+                    <Body bold>{m.name}</Body>
+                    {/* A functional attribute for a group picking dinner — shown
+                        only when they chose to share it (#46). */}
+                    {m.dietary ? <Body tone="ink-2">{m.dietary}</Body> : null}
+                  </View>
+                  {m.role === "admin" ? <Pill word="Admin" tone="peri" /> : null}
                 </View>
-                {m.role === "admin" ? <Pill word="Admin" tone="peri" /> : null}
-              </View>
+              </Pressable>
 
               {isAdmin && m.userId !== me ? (
                 <View style={{ flexDirection: "row", gap: space.sm }}>
@@ -109,7 +130,15 @@ export default function Roster() {
         })}
       </View>
 
-      <Body tone="ink-3">Invite someone new from floc.app — it sends them an email.</Body>
+      {isAdmin ? (
+        <Button
+          label="Invite people"
+          onPress={() => router.push(`/trip/${tripId}/invite` as never)}
+        />
+      ) : (
+        // What is missing is one of the two things text still carries (rule 6).
+        <Body tone="ink-3">Only an admin can ask somebody new onto this trip.</Body>
+      )}
 
       <Button
         label="Leave this trip"

@@ -106,3 +106,34 @@ export function ChevronGlyph({ color }: { color: string }) {
     </Svg>
   );
 }
+
+/**
+ * A pen. "This is a control, not a caption" — it sits beside the trip name in
+ * the header, which opens the trip's name, colour and tags. Without it the
+ * title read as a heading and nobody tapped it.
+ */
+export function PenGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 14 14" fill="none">
+      <Path d="M9.3 2.6l2.1 2.1-6 6-2.6.5.5-2.6 6-6z" stroke={color} strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+/**
+ * Want-to-go: a pin planted, not a star. A star would read as a rating, and
+ * nobody rates a country they have never been to.
+ */
+export function FlagGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+      <Path
+        d="M3.5 12.5V2.2c2-1 4 1 6 0v5c-2 1-4-1-6 0"
+        stroke={color}
+        strokeWidth={1.2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}

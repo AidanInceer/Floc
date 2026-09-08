@@ -18,6 +18,7 @@
  */
 import { computeBalances, isAllSettled } from "@floc/core/money";
 import { formatDateRange } from "@floc/core/dates";
+import { readTripColor } from "@floc/core/trip-color";
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ScrollView, View } from "react-native";
@@ -26,6 +27,7 @@ import { FileList } from "@/components/file-list";
 import { NeedsYou, type Outstanding } from "@/components/needs-you";
 import { PlacePlot } from "@/components/place-plot";
 import { RosterStrip } from "@/components/roster-strip";
+import { TagPills } from "@/components/tag-pills";
 import {
   Body,
   Card,
@@ -106,6 +108,14 @@ export default function Overview() {
           again on one of the six said the same word twice for no reason. */}
       <View style={{ gap: space.xs }}>
         <Figure tone="ink-2">{formatDateRange(trip.data.startDate, trip.data.endDate)}</Figure>
+        {/* Tags sit under the dates, as they do on the web's hero row. There
+            is no "add a tag" here — the header's sheet owns every edit to the
+            trip itself, so this is the reading half only (#71, #213). */}
+        <TagPills
+          tags={trip.data.tags}
+          color={readTripColor(trip.data.colorKey)}
+          tripId={tripId}
+        />
         {trip.data.archived ? <Pill word="Archived" tone="butter" /> : null}
       </View>
 

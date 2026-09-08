@@ -20,6 +20,7 @@ import type {
   ExpenseInput,
   FlocPort,
   Me,
+  MyProfile,
   PackingBoard,
   ItineraryDay,
   Ledger,
@@ -33,6 +34,14 @@ import type {
 import { PRESET_TRIPS } from "@floc/core/preset-trips";
 
 import { assertAdmin, findTripAccess, type TripAccess } from "@/server/access";
+import { scoped } from "@/server/api-port-scope";
+// The account, map and saved-list halves live in their own files — this one is
+// the trip half, and a file whose name needs "and" is two files.
+import { filesPort } from "@/server/api-port-files";
+import { kitsPort } from "@/server/api-port-kits";
+import { mapPort } from "@/server/api-port-map";
+import { settingsPort } from "@/server/api-port-settings";
+import { socialPort } from "@/server/api-port-social";
 import { refresh } from "@/server/freshness";
 import { findTripByInviteToken, joinWithLink } from "@/server/invites";
 import {
@@ -66,30 +75,37 @@ import {
   listPackingClaims,
   listPackingLines,
   listPersonalPackingLines,
+  getPackTier,
+  setPackTier,
+  softDeletePackingLines,
+  softDeleteWholeList,
   setClaimPacked,
   setPersonalPacked,
   softDeletePackingLine,
   stepPersonalQuantity,
   unclaimPackingLine,
 } from "@/server/packing";
+import {
+  listPackingKits,
+  applyPackingKitToBag,
+  insertPackingKit,
+  insertPackingKitItem,
+  softDeletePackingKit,
+} from "@/server/packing-kits";
+import { fillPersonalBag, packingPlanFor } from "@/server/packing-generator";
+import { canUseFeature, assertFeature } from "@/server/entitlements";
+import { resolvePackTier } from "@floc/core/packing";
+import { readVibeTags } from "@floc/core/vibe-tags";
+import { pastTripsFor } from "@/server/visibility";
 import { travelMapFor } from "@/server/travel-map";
 import { leaveTripAs, removeMembership, setMemberRoleAdmin } from "@/server/roster";
 import {
   createTripWithAdmin,
   listTripsFor,
   setTripArchived,
+  softDeleteTrip,
   updateTrip,
 } from "@/server/trips";
-
-/** Every trip-scoped method starts here. Refusing is a thrown error, not a redirect — a route handler cannot catch `notFound()`. */
-async function scoped(viewerId: string, tripId: number): Promise<TripAccess> {
-  const access = await findTripAccess(tripId, viewerId);
-  // The router already resolved the trip once through `loadTrip`, so this only
-  // fires on a race — somebody kicked between the two reads. `cache()` makes
-  // the repeat read free within a request.
-  if (!access) throw new Error("No such trip.");
-  return access;
-}
 
 function toDetail(access: TripAccess): TripDetail {
   return {
@@ -127,12 +143,22 @@ function toEventFields(input: EventInput) {
 }
 
 export const webPort: FlocPort = {
+  ...settingsPort,
+  ...mapPort,
+  ...kitsPort,
+  ...filesPort,
+  ...socialPort,
+
   async loadPacking(viewerId, tripId): Promise<PackingBoard> {
     await scoped(viewerId, tripId);
-    const [shared, claims, mine] = await Promise.all([
+    const [shared, claims, mine, perTrip, profile, kits, canAutoFill] = await Promise.all([
       listPackingLines(tripId),
       listPackingClaims(tripId),
       listPersonalPackingLines(tripId, viewerId),
+      getPackTier(tripId, viewerId),
+      ensureProfile(viewerId),
+      listPackingKits(viewerId),
+      canUseFeature("packing.autoGenerate", tripId),
     ]);
 
     // Claims come back flat for one query rather than one per line; grouping
@@ -158,6 +184,12 @@ export const webPort: FlocPort = {
         quantity: line.quantity,
         packed: line.packedAt !== null,
       })),
+      // Resolved here rather than on the wire: the per-trip choice wins and the
+      // profile fills in, and a client that had to know that rule would be a
+      // second place it could be got wrong (ticket 220).
+      tier: resolvePackTier(perTrip, profile.packTier),
+      kits: kits.map((kit) => ({ id: kit.id, name: kit.name, itemCount: kit.itemCount })),
+      canAutoFill,
     };
   },
 
@@ -207,6 +239,105 @@ export const webPort: FlocPort = {
     const line = await access.packingLine(lineId);
     await softDeletePackingLine(line.id);
     refresh({ kind: "packing", tripId });
+  },
+
+  async removePackingLines(viewerId, tripId, lineIds) {
+    const access = await scoped(viewerId, tripId);
+    // One resolve per id, not a filtered `IN`: the bulk shape is a convenience
+    // for the person, never a way round the per-line check (#229). A set
+    // holding somebody else's personal line throws whole.
+    const lines = await Promise.all(lineIds.map((id) => access.packingLine(id)));
+    await softDeletePackingLines(lines.map((line) => line.id));
+    refresh({ kind: "packing", tripId });
+  },
+
+  async resetPackingList(viewerId, tripId, mine) {
+    await scoped(viewerId, tripId);
+    // The scope is decided here and applied in the SQL, so "clear my bag"
+    // cannot be spelled as "clear someone else's".
+    await softDeleteWholeList(tripId, mine ? viewerId : null);
+    refresh({ kind: "packing", tripId });
+  },
+
+  async setPackTier(viewerId, tripId, tier) {
+    await scoped(viewerId, tripId);
+    // The membership row, not the profile — Light for one weekend must not
+    // become the default everywhere (#220).
+    await setPackTier(tripId, viewerId, tier);
+    refresh({ kind: "packing", tripId });
+  },
+
+  async fillMyBag(viewerId, tripId) {
+    const access = await scoped(viewerId, tripId);
+    // Pro buys the action, never the data (#248): a bag already filled stays
+    // readable and editable after Pro lapses.
+    await assertFeature("packing.autoGenerate", tripId);
+
+    const [perTrip, profile] = await Promise.all([
+      getPackTier(tripId, viewerId),
+      ensureProfile(viewerId),
+    ]);
+    // Re-resolved rather than trusted from the client: the screen that drew the
+    // button may be a stale tab.
+    await fillPersonalBag({
+      tripId,
+      ownerId: viewerId,
+      tier: resolvePackTier(perTrip, profile.packTier),
+      plan: await packingPlanFor(access.trip),
+    });
+    refresh({ kind: "packing", tripId });
+  },
+
+  async applyPackingKit(viewerId, tripId, kitId) {
+    await scoped(viewerId, tripId);
+    // Resolved by owner inside, so another account's kit is not addressable.
+    await applyPackingKitToBag({ tripId, ownerId: viewerId, kitId });
+    refresh({ kind: "packing", tripId });
+  },
+
+  async savePackingKit(viewerId, tripId, name): Promise<boolean> {
+    await scoped(viewerId, tripId);
+    const lines = await listPersonalPackingLines(tripId, viewerId);
+    const kitId = await insertPackingKit(viewerId, name);
+    // Null is the ceiling, not a failure — the caller says so and nothing throws.
+    if (kitId === null) return false;
+    // One at a time because the item insert re-reads the kit to check its own
+    // cap; a bag past `LIMITS.packingKitItems` fills the kit and stops there.
+    for (const line of lines) {
+      await insertPackingKitItem(kitId, viewerId, line.label, line.category, line.quantity);
+    }
+    refresh({ kind: "packing", tripId });
+    return true;
+  },
+
+  async deletePackingKit(viewerId, kitId) {
+    // No trip scope: a kit is the viewer's own row, resolved by owner inside.
+    await softDeletePackingKit(kitId, viewerId);
+  },
+
+  async loadMyProfile(viewerId): Promise<MyProfile> {
+    const profile = await ensureProfile(viewerId);
+    const [map, pastTrips] = await Promise.all([
+      travelMapFor(viewerId),
+      pastTripsFor(viewerId, profile.pastTripsShow),
+    ]);
+
+    return {
+      vibeTags: readVibeTags(profile.vibeTags),
+      // Codes and states only — both clients hold `@floc/core/countries`, so
+      // sending the names would be sending what the reader already has.
+      map: Object.entries(map.states).map(([code, state]) => ({ code, state })),
+      been: map.visited,
+      wantToGo: map.wantToGo,
+      // `place` is dropped: the phone's list is a name and a date range, and a
+      // field nothing draws is a field that goes stale unnoticed.
+      pastTrips: pastTrips.map((trip) => ({
+        id: trip.id,
+        name: trip.name,
+        startDate: trip.startDate,
+        endDate: trip.endDate,
+      })),
+    };
   },
 
   async loadMe(viewerId): Promise<Me> {
@@ -379,6 +510,12 @@ export const webPort: FlocPort = {
   async archiveTrip(viewerId, tripId, archived) {
     assertAdmin(await scoped(viewerId, tripId));
     await setTripArchived(tripId, archived);
+    refresh({ kind: "tripList" });
+  },
+
+  async deleteTrip(viewerId, tripId) {
+    assertAdmin(await scoped(viewerId, tripId));
+    await softDeleteTrip(tripId);
     refresh({ kind: "tripList" });
   },
 

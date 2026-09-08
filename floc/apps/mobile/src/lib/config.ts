@@ -30,3 +30,14 @@ export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL ?? (__DEV__ ? (devHost() ?? PRODUCTION) : PRODUCTION);
 
 export const TRPC_URL = `${API_BASE_URL}/api/trpc`;
+
+/**
+ * The share link for a trip (ticket 05).
+ *
+ * Built from the same base the API is read through, so a link copied on a dev
+ * build opens the dev site rather than sending somebody to production. The
+ * token is the whole secret — the trip id never appears in it.
+ */
+export function inviteUrl(token: string): string {
+  return `${API_BASE_URL}/invite/${token}`;
+}

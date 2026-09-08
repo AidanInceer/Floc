@@ -1,0 +1,64 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vocabulary — Floc docs</title>
+<link rel="stylesheet" href="assets/docs.css">
+<body data-root="." data-page="vocab">
+<nav id="sidebar" aria-label="Documentation"></nav>
+<main>
+<p class="crumb">Docs</p>
+<h1>Vocabulary</h1>
+<p>The words this venture uses, and the words it does not. Use the term as it is
+defined here in code, in copy, in issues and in commit messages. Do not use a
+synonym.</p>
+<p>Write in Simplified Technical English: short sentences, active voice, one idea
+per sentence, present tense.</p>
+
+<h2>People</h2>
+<table>
+<thead><tr><th>Term</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><strong>user</strong></td><td>A person with an account. Use this word in anything a person reads.</td></tr>
+<tr><td><strong>member</strong></td><td>A user's link to one trip. This is the code word: <code>trip_membership</code>, <code>TripMember</code>, <code>listMembers</code>, non-negotiable 6. A user is a member <em>of a trip</em>; a user with no trip is still a user.</td></tr>
+<tr><td><strong>admin</strong></td><td>A member with the four powers: invite, kick, promote, delete (plus archive and restore). Nothing else.</td></tr>
+<tr><td><strong>viewer</strong></td><td>The member who is making the current request. <code>requireTripAccess</code> returns it.</td></tr>
+</tbody>
+</table>
+<p>Copy says user. Code says member. Neither word crosses over.</p>
+
+<h2>The trip</h2>
+<table>
+<thead><tr><th>Term</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><strong>trip</strong></td><td>The whole plan one group is making.</td></tr>
+<tr><td><strong>window</strong></td><td>The trip's dates: <code>start_date</code> and <code>end_date</code>. A trip may have no window (non-negotiable 9). The window is the extent of the itinerary (ticket 140).</td></tr>
+<tr><td><strong>availability</strong></td><td>A user's marks on the calendar: the dates that user could go. Availability is not the window. The group reads the overlap, then commits a window.</td></tr>
+<tr><td><strong>itinerary</strong></td><td>Every <code>day</code> in the trip, with what each day holds.</td></tr>
+<tr><td><strong>day</strong></td><td>One date in the window. Stored. Holds an overnight place and its events.</td></tr>
+<tr><td><strong>day_event</strong></td><td>One thing that happens on a day: activity, transport or food. Stored.</td></tr>
+<tr><td><strong>stop</strong></td><td>Consecutive days that share an <code>overnight_place_id</code>. <strong>Derived, never stored</strong> (non-negotiable 3).</td></tr>
+<tr><td><strong>place</strong></td><td>A geocoded location, or free text where geocoding is unavailable.</td></tr>
+</tbody>
+</table>
+
+<h2>Words to avoid</h2>
+<table>
+<thead><tr><th>Do not write</th><th>Write instead</th></tr></thead>
+<tbody>
+<tr><td>date range, trip dates</td><td>window</td></tr>
+<tr><td>leg, segment, destination</td><td>stop</td></tr>
+<tr><td>activity, item, entry</td><td>day_event</td></tr>
+<tr><td>participant, traveller, attendee</td><td>member</td></tr>
+<tr><td>lifecycle, phase, status, state machine</td><td>Nothing. Trip state is derived (non-negotiable 4).</td></tr>
+<tr><td>soft delete a day when the window shrinks</td><td>remove the day. Ticket 140 hard-deletes it, because a soft-deleted row keeps the <code>(trip, date)</code> index.</td></tr>
+</tbody>
+</table>
+
+<h2>Related</h2>
+<ul>
+<li><code>CLAUDE.md</code> — the non-negotiables these terms serve.</li>
+<li><a href="data-model/erd.html">ERD</a> — the schema of record.</li>
+</ul>
+</main>
+<script src="assets/nav.js"></script>
+</body>
