@@ -11,14 +11,14 @@
  * three-way picker with a "neither" nobody would pick on purpose.
  *
  * SEARCH IS THE LIST. Two hundred and fifty countries is not a scroll, so
- * nothing is drawn until a name is typed — except the ones already marked,
- * which are what you came to change.
+ * nothing is drawn until a name is typed. What is already marked is on the map
+ * above and in its key, so listing it again here was the same answer twice.
  */
-import { COUNTRIES, countryName } from "@floc/core/countries";
+import { COUNTRIES } from "@floc/core/countries";
 import { useState } from "react";
 import { View } from "react-native";
 
-import { Body, Empty, Field, IconButton, Label, Row } from "./ui";
+import { Body, Empty, IconButton, Label, Row, SearchField } from "./ui";
 import { FlagGlyph, TickGlyph } from "./glyphs";
 import { space } from "@/lib/theme";
 
@@ -47,24 +47,18 @@ export function MarkEditor({
         0,
         MAX_RESULTS,
       )
-    : marks
-        .map((mark) => ({ code: mark.code, name: countryName(mark.code) }))
-        .sort((a, b) => a.name.localeCompare(b.name, "en-GB"));
+    : [];
 
   return (
     <View style={{ padding: space.lg, gap: space.md }}>
       <Label>Paint the map</Label>
-      <Field
-        label="Find a country"
+      <SearchField
+        placeholder="Search for a country…"
         value={query}
         onChangeText={setQuery}
-        autoCorrect={false}
-        placeholder="Portugal"
       />
 
-      {shown.length === 0 ? (
-        <Empty>{term ? "No country by that name." : "Nothing marked by hand yet."}</Empty>
-      ) : null}
+      {term && shown.length === 0 ? <Empty>No country by that name.</Empty> : null}
 
       {shown.map((country) => {
         const state = stateOf(country.code);

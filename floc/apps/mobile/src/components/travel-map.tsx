@@ -3,9 +3,10 @@
  *
  * WHAT CHANGED SINCE #302. `travel-marks.tsx` listed the marked countries as
  * two named groups and said, honestly, that the phone could not draw the world
- * because there was no map library in the app. There is one now, so the reason
- * is gone and the drawing is back — with the names kept underneath it, because
- * a shape at phone width is not a label (#204: never colour alone).
+ * because there was no map library in the app. There is one now, so the drawing
+ * is back and the naming shrank to the web's key — two named swatches and the
+ * two counts. Colour still never stands alone (#204), but a hundred pills below
+ * a phone-sized map was the map's answer restated at length.
  *
  * SHAPES, NO TILES. Natural Earth outlines on the page's own paper, exactly as
  * the web does it: this screen needs an outline, not geography, and tiles would
@@ -20,7 +21,7 @@
 // hoist changes, and this one is not re-exported from the RN package.
 import type { ExpressionSpecification } from "@maplibre/maplibre-gl-style-spec";
 
-import { COUNTRIES, countryName } from "@floc/core/countries";
+import { COUNTRIES } from "@floc/core/countries";
 import {
   Camera,
   GeoJSONSource,
@@ -29,13 +30,13 @@ import {
   type PressEventWithFeatures,
 } from "@maplibre/maplibre-react-native";
 import { useMemo, useState } from "react";
-import { StyleSheet, Text, View, type NativeSyntheticEvent } from "react-native";
+import { StyleSheet, View, type NativeSyntheticEvent } from "react-native";
 
 import { useTheme } from "./theme";
-import { Body, Label } from "./ui";
+import { Body } from "./ui";
 import COUNTRY_SHAPES from "@/lib/countries-110m.json";
 import { paperStyle } from "@/lib/map";
-import { fonts, radius, size, space } from "@/lib/theme";
+import { radius, space } from "@/lib/theme";
 
 export type MapState = "green" | "yellow";
 /** What a tap asks for — the displayed state, not the stored row. */
@@ -105,7 +106,18 @@ export function TravelMap({
   const { c } = useTheme();
   // Optimistic: a failed write is corrected when `marks` refetches.
   const [local, setLocal] = useState<CountryMark[]>(marks);
-  const shown = useMemo(() => (editable ? local : marks), [editable, local, marks]);
+
+  // The server is the truth, and it changes under us — the mark sheet writes
+  // through the same mutation, so a refetch is how its marks reach this map.
+  // Adjusting during render rather than in an effect: an effect would draw the
+  // stale fills for a frame first (#no-ticket).
+  const [seen, setSeen] = useState(marks);
+  if (seen !== marks) {
+    setSeen(marks);
+    setLocal(marks);
+  }
+
+  const shown = editable ? local : marks;
 
   const state = useMemo(() => {
     const byCode: Record<string, MapState> = {};
@@ -189,56 +201,43 @@ export function TravelMap({
         </Map>
       </View>
 
-      {editable ? <Body tone="ink-2">Tap a country to mark it.</Body> : null}
+      {/* The key, as the web draws it: each fill named, and the counts saying
+          the same thing in words (#204 — never colour alone). */}
+      <View
+        style={{
+          flexDirection: "row",
+          flexWrap: "wrap",
+          alignItems: "center",
+          gap: space.md,
+        }}
+      >
+        <Key word="Been there" tone="green-2" />
+        <Key word="Want to go" tone="highlight" />
+        <Body tone="ink-2">
+          {green.length} visited · {yellow.length} want to go
+        </Body>
+      </View>
 
-      <Named heading="Been there" codes={green.map((country) => country.code)} tone="mint" />
-      <Named
-        heading="Want to go"
-        codes={yellow.map((country) => country.code)}
-        tone="butter"
-      />
-      {green.length === 0 && yellow.length === 0 ? (
-        <Body tone="ink-2">Nothing marked yet.</Body>
-      ) : null}
+      {editable ? <Body tone="ink-2">Tap a country to mark it.</Body> : null}
     </View>
   );
 }
 
-/** Named, not only coloured (#204) — green and yellow carry no meaning alone. */
-function Named({
-  heading,
-  codes,
-  tone,
-}: {
-  heading: string;
-  codes: string[];
-  tone: "mint" | "butter";
-}) {
+function Key({ word, tone }: { word: string; tone: "green-2" | "highlight" }) {
   const { c } = useTheme();
-  if (codes.length === 0) return null;
-
   return (
-    <View style={{ gap: space.xs }}>
-      <Label>{heading}</Label>
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.xs }}>
-        {codes.map((code) => (
-          <View
-            key={code}
-            style={{
-              backgroundColor: c[tone],
-              borderColor: c[`${tone}-edge`],
-              borderWidth: StyleSheet.hairlineWidth,
-              borderRadius: radius.pill,
-              paddingVertical: 2,
-              paddingHorizontal: space.sm,
-            }}
-          >
-            <Text style={{ color: c.ink, fontFamily: fonts.sans, fontSize: size.small }}>
-              {countryName(code)}
-            </Text>
-          </View>
-        ))}
-      </View>
+    <View style={{ flexDirection: "row", alignItems: "center", gap: space.xs }}>
+      <View
+        style={{
+          width: 10,
+          height: 10,
+          borderRadius: 2,
+          backgroundColor: c[tone],
+          borderColor: c["rule-2"],
+          borderWidth: StyleSheet.hairlineWidth,
+        }}
+      />
+      <Body tone="ink-2">{word}</Body>
     </View>
   );
 }

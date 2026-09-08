@@ -222,26 +222,51 @@ export function Field({
   label,
   ...props
 }: TextInputProps & { label: string }) {
-  const { c } = useTheme();
   return (
     <View style={{ gap: space.xs }}>
       <Label>{label}</Label>
-      <TextInput
-        accessibilityLabel={label}
-        placeholderTextColor={c["ink-3"]}
-        {...props}
-        style={{
-          backgroundColor: c.sheet,
-          borderColor: c.rule,
-          borderWidth: StyleSheet.hairlineWidth,
-          borderRadius: radius.md,
-          padding: space.md,
-          color: c.ink,
-          fontFamily: fonts.sans,
-          fontSize: size.body,
-        }}
-      />
+      <TextInputBox accessibilityLabel={label} {...props} />
     </View>
+  );
+}
+
+/**
+ * A search box. No label above it: the placeholder is the whole question, and
+ * a labelled row for it would spend a line saying twice what one line says.
+ * `placeholder` is required because it doubles as the accessible name.
+ */
+export function SearchField({
+  placeholder,
+  ...props
+}: TextInputProps & { placeholder: string }) {
+  return (
+    <TextInputBox
+      accessibilityLabel={placeholder}
+      placeholder={placeholder}
+      autoCorrect={false}
+      autoCapitalize="words"
+      {...props}
+    />
+  );
+}
+
+function TextInputBox(props: TextInputProps) {
+  const { c } = useTheme();
+  return (
+    <TextInput
+      placeholderTextColor={c["ink-3"]}
+      {...props}
+      style={{
+        backgroundColor: c.sheet,
+        borderColor: c.rule,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderRadius: radius.md,
+        padding: space.md,
+        color: c.ink,
+        fontFamily: fonts.sans,
+        fontSize: size.body,
+      }}
+    />
   );
 }
 
