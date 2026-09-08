@@ -17,7 +17,9 @@
     "typecheck": "turbo run typecheck",
     "fitness": "turbo run fitness",
     "parity": "node --experimental-strip-types scripts/parity/run.mjs",
-    "verify": "node scripts/verify.mjs"
+    "verify": "node scripts/verify.mjs",
+    "push:preflight": "node scripts/push.mjs preflight",
+    "push:land": "node scripts/push.mjs land"
   },
   "devDependencies": {
     "turbo": "^2.0.0",
