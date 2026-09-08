@@ -13,9 +13,13 @@ import { useEffect } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ThemeProvider, useTheme } from "@/components/theme";
+import { FlocWordmark } from "@/components/wordmark";
 import { Loading } from "@/components/ui";
 import { queryClient } from "@/lib/api";
 import { useSession } from "@/lib/auth";
+
+/** The routes Better Auth's emails redirect into. See `deepLinked` below. */
+const DEEP_LINKED = ["reset-password", "verified"];
 
 function Routes() {
   const { c, theme } = useTheme();
@@ -25,12 +29,17 @@ function Routes() {
 
   const signedIn = !!session?.user;
   const inApp = segments[0] === "(app)";
+  // A deep link is not a navigation, and these three arrive as one: a reset
+  // link opens while signed out *and* while signed in, and throwing the
+  // holder at /trips would strand the token. So the signed-in redirect skips
+  // them; the signed-out one does not need to, they already sit outside (app).
+  const deepLinked = DEEP_LINKED.includes(segments[0] as string);
 
   useEffect(() => {
     if (isPending) return;
     if (!signedIn && inApp) router.replace("/sign-in");
-    if (signedIn && !inApp) router.replace("/trips");
-  }, [isPending, signedIn, inApp, router]);
+    if (signedIn && !inApp && !deepLinked) router.replace("/trips");
+  }, [isPending, signedIn, inApp, deepLinked, router]);
 
   // Rendering a screen before the session is known would flash sign-in at
   // somebody who is already signed in, every cold start.
@@ -46,7 +55,16 @@ function Routes() {
           contentStyle: { backgroundColor: c.paper },
         }}
       >
-        <Stack.Screen name="sign-in" options={{ title: "Floc" }} />
+        {/* The mark, centred, instead of the word "Floc" — the first thing
+            somebody sees on opening the app should be the mark itself. */}
+        <Stack.Screen
+          name="sign-in"
+          options={{ headerTitle: () => <FlocWordmark />, headerTitleAlign: "center" }}
+        />
+        <Stack.Screen name="sign-up" options={{ title: "Create an account" }} />
+        <Stack.Screen name="forgot-password" options={{ title: "Forgotten password" }} />
+        <Stack.Screen name="reset-password" options={{ title: "New password" }} />
+        <Stack.Screen name="verified" options={{ title: "Email confirmed" }} />
         <Stack.Screen name="(app)" options={{ headerShown: false }} />
       </Stack>
     </>

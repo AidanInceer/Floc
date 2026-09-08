@@ -1,9 +1,13 @@
 /**
- * The account itself — email, sign-in methods, and the way out (ticket 07).
+ * The account itself — email, sign-in methods, and deleting it (ticket 07).
  *
  * EMAIL IS SHOWN, NOT EDITED. It comes from whichever provider signed you in,
  * so it is a fact rather than a field. Drawing it as a disabled input would be
  * a dead control with a sentence explaining why.
+ *
+ * SIGNING OUT IS NOT HERE. It lives at the foot of You (#no-ticket) — it is
+ * the end of a session, not a preference, and burying it under a screen of
+ * switches made it the hardest ordinary thing in the app to find.
  *
  * THE LAST METHOD CANNOT BE UNLINKED. The host refuses; this greys the press
  * when there is one left, so the refusal is visible before it happens rather
@@ -31,14 +35,12 @@ export function SettingsAccount({
   methods,
   busy,
   onUnlink,
-  onSignOut,
   onDelete,
 }: {
   email: string;
   methods: SignInMethod[];
   busy: boolean;
   onUnlink: (accountId: string) => void;
-  onSignOut: () => void;
   onDelete: () => void;
 }) {
   const last = methods.length <= 1;
@@ -73,8 +75,6 @@ export function SettingsAccount({
       </View>
 
       <Divider />
-
-      <Button label="Sign out of this phone" variant="quiet" onPress={onSignOut} />
 
       <Button
         label="Delete my account"

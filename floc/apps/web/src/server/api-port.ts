@@ -44,6 +44,7 @@ import { mapPort } from "@/server/api-port-map";
 import { settingsPort } from "@/server/api-port-settings";
 import { socialPort } from "@/server/api-port-social";
 import { refresh } from "@/server/freshness";
+import { emailConfigured } from "@/server/email";
 import { findTripByInviteToken, joinWithLink } from "@/server/invites";
 import {
   insertEvent,
@@ -357,6 +358,7 @@ export const webPort: FlocPort = {
 
     return {
       ...identity,
+      canConfirmEmail: emailConfigured(),
       been: map.visited,
       wantToGo: map.wantToGo,
       tripCount: trips.length,

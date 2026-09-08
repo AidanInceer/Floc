@@ -68,12 +68,16 @@ export async function updateProfileFields(
  */
 export async function loadIdentity(
   userId: string,
-): Promise<{ id: string; name: string; email: string; avatarUrl: string | null } | undefined> {
+): Promise<
+  | { id: string; name: string; email: string; emailVerified: boolean; avatarUrl: string | null }
+  | undefined
+> {
   const row = await db
     .select({
       id: user.id,
       name: user.name,
       email: user.email,
+      emailVerified: user.emailVerified,
       image: user.image,
       displayName: userProfile.displayName,
       avatarUrl: userProfile.avatarUrl,
@@ -88,6 +92,7 @@ export async function loadIdentity(
     id: row.id,
     name: row.displayName ?? row.name,
     email: row.email,
+    emailVerified: row.emailVerified,
     avatarUrl: row.avatarUrl ?? row.image ?? null,
   };
 }

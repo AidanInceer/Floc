@@ -1,5 +1,5 @@
 /**
- * Signing in (ticket 289).
+ * Signing in (ticket 289; the other three doors added #no-ticket).
  *
  * Email and password, plus Google through the native flow — not the web
  * redirect. The distinction matters: `signIn.social` with the Expo plugin
@@ -10,36 +10,44 @@
  * Google is offered unconditionally. If the server has no Google credentials
  * it answers with an error and the person falls back to a password — a
  * reduced feature, never a crash (rule 11).
+ *
+ * FIVE BOXES OF EQUAL WEIGHT IS NOT A HIERARCHY. This screen used to draw
+ * "Sign in", Google, the dev door, "Create an account" and "Forgotten your
+ * password?" as one stack of identical pills, so nothing on it said which one
+ * you came for. Now there are three tiers and they are drawn as three:
+ *
+ *   - Sign in is the primary and the only filled control.
+ *   - Google is Google's own button, below an "or" rule that says the two are
+ *     alternatives rather than a sequence.
+ *   - Creating an account is the quiet outline; forgetting a password is a
+ *     centred line of text, because it is a rare afterthought and not a job.
+ *
+ * THE DEV DOOR IS AT THE FOOT, IN BLUSH. It is the one control here that is
+ * not for a real person, so it sits under everything with the screen's empty
+ * space above it, wearing the one colour nothing else on the screen wears.
+ * A store build never contains the branch at all.
+ *
+ * SIGNING UP NO LONGER OPENS THE WEBSITE. It used to, and the sentence under
+ * the button explaining that was the tell: a control that leaves the app is
+ * not a way in, it is an apology. `/sign-up` is a screen now.
  */
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { KeyboardAvoidingView, Linking, Platform, ScrollView, View } from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Body, Button, Field, Heading, Screen } from "@/components/ui";
+import { GoogleButton } from "@/components/google-button";
+import { Body, Button, Field, Heading, OrRule, Screen, TextLink } from "@/components/ui";
 import { signIn } from "@/lib/auth";
+import { explainGoogle, explainSignIn } from "@/lib/auth-errors";
 import { devSignIn } from "@/lib/dev-sign-in";
-import { API_BASE_URL } from "@/lib/config";
 import { space } from "@/lib/theme";
-
-const OFFLINE = `Can't reach ${API_BASE_URL}. Check the server is running and the phone can see it.`;
-
-/**
- * A request that never arrived carries no status, so Better Auth reports it the
- * same shape as a refusal. Telling the two apart matters most in development,
- * where a firewalled dev server otherwise reads as a wrong password.
- */
-function unreachable(error: { status?: number }): boolean {
-  return !error.status;
-}
-
-function explain(error: { status?: number }): string {
-  // Deliberately one message for a wrong address and a wrong password: which
-  // one was wrong is an answer to "does this account exist".
-  return unreachable(error) ? OFFLINE : "That email and password don't match.";
-}
 
 export default function SignIn() {
   const router = useRouter();
+  // The screen has no bottom bar to hold the gesture indicator off, and the
+  // dev door is pinned to the foot — without this it sits under the handle.
+  const insets = useSafeAreaInsets();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -50,7 +58,7 @@ export default function SignIn() {
     setProblem(null);
     const { error } = await signIn.email({ email: email.trim(), password });
     setBusy(false);
-    if (error) setProblem(explain(error));
+    if (error) setProblem(explainSignIn(error));
     else router.replace("/trips");
   }
 
@@ -59,7 +67,7 @@ export default function SignIn() {
     setProblem(null);
     const { error } = await signIn.social({ provider: "google", callbackURL: "/trips" });
     setBusy(false);
-    if (error) setProblem(unreachable(error) ? OFFLINE : "Google sign-in isn't available right now.");
+    if (error) setProblem(explainGoogle(error));
   }
 
   async function asDevUser() {
@@ -104,28 +112,42 @@ export default function SignIn() {
             {problem ? <Body tone="red">{problem}</Body> : null}
 
             <Button label="Sign in" onPress={withPassword} busy={busy} />
-            <Button label="Continue with Google" onPress={withGoogle} variant="quiet" disabled={busy} />
+            <TextLink
+              label="Forgotten your password?"
+              disabled={busy}
+              onPress={() => router.push("/forgot-password")}
+            />
           </View>
 
-          {/* Only on a dev build, and only when the dev server is offering an
-              account — a store build never contains this branch. */}
-          {__DEV__ ? (
-            <Button label="Sign in as the dev user" variant="quiet" disabled={busy} onPress={asDevUser} />
-          ) : null}
+          <OrRule label="or" />
 
-          {/* Signing up stays on the website: it needs the terms, the privacy
-              policy and email verification, none of which are built here yet.
-              It still needs a control here — a sentence naming a website is not
-              a way in. */}
-          <View style={{ gap: space.xs }}>
+          <View style={{ gap: space.md }}>
+            <GoogleButton label="Continue with Google" onPress={withGoogle} disabled={busy} />
             <Button
               label="Create an account"
               variant="quiet"
               disabled={busy}
-              onPress={() => void Linking.openURL(`${API_BASE_URL}/signup`)}
+              onPress={() => router.push("/sign-up")}
             />
-            <Body tone="ink-3">Opens the website. Come back here to sign in.</Body>
           </View>
+
+          {/* Everything above keeps its own height; this takes the slack, so
+              the dev door sits on the bottom edge on a tall screen and simply
+              follows the stack on a short one. */}
+          <View style={{ flex: 1, minHeight: space.xl }} />
+
+          {/* Only on a dev build, and only when the dev server is offering an
+              account — a store build never contains this branch. */}
+          {__DEV__ ? (
+            <View style={{ paddingBottom: insets.bottom }}>
+              <Button
+                label="Dev Sign In"
+                variant="danger"
+                disabled={busy}
+                onPress={asDevUser}
+              />
+            </View>
+          ) : null}
         </Screen>
       </ScrollView>
     </KeyboardAvoidingView>

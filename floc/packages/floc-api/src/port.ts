@@ -353,6 +353,14 @@ export type Me = {
   /** The display name if one is set, else the name the account signed up with. */
   name: string;
   email: string;
+  /** False until the confirmation link is opened. Joining a trip waits on it (#149). */
+  emailVerified: boolean;
+  /**
+   * Whether asking for another confirmation mail can do anything — false when
+   * the host has no mail provider, so nothing offers a link that cannot arrive
+   * (rule 11).
+   */
+  canConfirmEmail: boolean;
   avatarUrl: string | null;
   /** Countries a finished trip put on the map. */
   been: number;

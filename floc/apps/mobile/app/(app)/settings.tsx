@@ -278,7 +278,6 @@ function SettingsPanels({
         methods={settings.signInMethods}
         busy={unlink.isPending || remove.isPending}
         onUnlink={(accountId) => unlink.mutate({ accountId })}
-        onSignOut={() => signOut().then(onSignedOut)}
         onDelete={() => remove.mutate()}
       />
     </View>
