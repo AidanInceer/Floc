@@ -15,15 +15,23 @@
  * your own; no operator is a partner and no money moves.
  */
 import { formatMoney } from "@floc/core/money";
-import { PRESET_TRIPS } from "@floc/core/preset-trips";
+import { PRESET_TRIPS, type PresetTrip } from "@floc/core/preset-trips";
 import { useMutation } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { ScrollView, View } from "react-native";
 
 import { PresetRoute } from "@/components/preset-route";
+import { RouteMapFrame } from "@/components/route-map";
 import { Body, Button, Card, Empty, Figure, Label, Pill } from "@/components/ui";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
+
+/** A listing's bases as map pins — pin number matches base order, as on the web. */
+function bases(trip: PresetTrip) {
+  return trip.legs
+    .filter((leg) => leg.kind === "base")
+    .map((leg, index) => ({ id: index, name: leg.place, lat: leg.lat, lng: leg.lng }));
+}
 
 export default function PresetDetail() {
   const { preset } = useLocalSearchParams<{ preset: string }>();
@@ -63,7 +71,12 @@ export default function PresetDetail() {
         <View style={{ gap: space.sm }}>
           <Label>The shape of it</Label>
           <Card>
-            <PresetRoute trip={trip} />
+            {/* The map above the written route, not instead of it: the shape
+                says how long you sleep where, which no pin can carry. */}
+            <View style={{ gap: space.md }}>
+              <RouteMapFrame places={bases(trip)} />
+              <PresetRoute trip={trip} />
+            </View>
           </Card>
         </View>
 

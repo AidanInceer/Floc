@@ -1,10 +1,10 @@
 /**
  * Painting the travel map by hand, on a phone (ticket 108).
  *
- * NO WORLD DRAWING, AND NO APOLOGY FOR IT. `TravelMarks` already explains why
- * the phone shows named groups rather than a Natural Earth outline; the editor
- * follows the same choice. You cannot tap a 4-pixel country anyway — you can
- * type three letters of its name.
+ * STILL A SEARCH, NOW THAT THERE IS A MAP. `TravelMap` draws the world and
+ * takes taps, which covers the countries you can hit; this covers the ones you
+ * cannot. Andorra is four pixels wide — typing three letters of its name will
+ * always beat pinching for it.
  *
  * TWO MARKS, NOT THREE. Been and want-to-go are the answers; blank is what you
  * get by turning one off, which is why each row is two toggles rather than a

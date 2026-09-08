@@ -19,7 +19,7 @@ import { Stack, useLocalSearchParams } from "expo-router";
 import { ScrollView, View } from "react-native";
 
 import { Face } from "@/components/person-row";
-import { TravelMarks } from "@/components/travel-marks";
+import { TravelMap } from "@/components/travel-map";
 import {
   Body,
   Button,
@@ -106,7 +106,7 @@ export default function PersonProfile() {
           <View style={{ gap: space.sm }}>
             <Label>Where they have been</Label>
             <Card>
-              <TravelMarks marks={p.map} />
+              <TravelMap marks={p.map} />
             </Card>
             <Figure tone="ink-3">
               {p.been} been · {p.wantToGo} to go

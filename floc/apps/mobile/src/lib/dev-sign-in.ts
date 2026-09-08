@@ -24,10 +24,19 @@ async function credentials(): Promise<{ email: string; password: string } | null
   }
 }
 
-/** Null when it worked; otherwise what to say. */
+/**
+ * Null when it worked; otherwise what to say.
+ *
+ * SAYS WHAT ACTUALLY BROKE. This used to guess — every failure printed "the
+ * dev account exists in .env but not in the database", which sent an hour
+ * chasing a database that was fine. A guess that names the wrong cause is
+ * worse than no message, so the server's own words are passed through.
+ */
 export async function devSignIn(): Promise<string | null> {
   const account = await credentials();
   if (!account) return "No dev account. Set FLOC_DEV_USER_EMAIL and FLOC_DEV_USER_PASSWORD in the web .env.";
+
   const { error } = await signIn.email(account);
-  return error ? "The dev account exists in .env but not in the database." : null;
+  if (!error) return null;
+  return `Sign-in failed at ${API_BASE_URL}: ${error.message ?? error.statusText ?? error.status}`;
 }

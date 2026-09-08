@@ -26,7 +26,7 @@ import { ScrollView, View } from "react-native";
 import { FileList } from "@/components/file-list";
 import { GroupActions } from "@/components/group-actions";
 import { NeedsYou, type Outstanding } from "@/components/needs-you";
-import { PlacePlot } from "@/components/place-plot";
+import { RouteMap } from "@/components/route-map";
 import { RosterStrip } from "@/components/roster-strip";
 import { TagPills } from "@/components/tag-pills";
 import {
@@ -125,7 +125,7 @@ export default function Overview() {
           ) : places.data.length === 0 ? (
             <Body tone="ink-2">Nowhere on the map yet.</Body>
           ) : (
-            <PlacePlot places={places.data} />
+            <RouteMap places={places.data} />
           )}
         </Card>
       </View>

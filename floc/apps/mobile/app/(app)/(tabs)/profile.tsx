@@ -34,7 +34,7 @@ import { MapPromptCard } from "@/components/map-prompt";
 import { MarkEditor } from "@/components/mark-editor";
 import { ProfileFace } from "@/components/profile-face";
 import { Sheet } from "@/components/sheet";
-import { TravelMarks } from "@/components/travel-marks";
+import { TravelMap } from "@/components/travel-map";
 import {
   Body,
   Button,
@@ -118,7 +118,11 @@ export default function Profile() {
             ) : face.isError ? (
               <Failed onRetry={() => face.refetch()} />
             ) : (
-              <TravelMarks marks={face.data.map} />
+              <TravelMap
+                marks={face.data.map}
+                editable
+                onSet={(code, state) => setMark.mutate({ code, state })}
+              />
             )}
           </Card>
           <Button label="Paint the map" variant="quiet" onPress={() => setPainting(true)} />
