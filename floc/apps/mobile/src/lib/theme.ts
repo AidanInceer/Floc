@@ -59,7 +59,11 @@ export const space = {
   xxl: 32,
 } as const;
 
-export const radius = { sm: 6, md: 10, lg: 14, pill: 999 } as const;
+/**
+ * The web's radius ramp, to the pixel (`globals.css`: 10/16/22/pill). The app
+ * had a tighter one, which read as blocky next to the same panel in a browser.
+ */
+export const radius = { sm: 10, md: 16, lg: 22, pill: 999 } as const;
 
 /** Type sizes, matching the web app's ramp. `type` is tabular and carries every figure. */
 export const size = {

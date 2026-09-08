@@ -10,7 +10,7 @@
  * sheet is a list of words, and a word needs no icon beside it.
 */
 import { StyleSheet, Text, View } from "react-native";
-import Svg, { Path } from "react-native-svg";
+import Svg, { Circle, Path } from "react-native-svg";
 
 /** A member's seat colour as a filled disc with their initial — the roster's `whoTone` made visible. */
 export function Seat({
@@ -133,6 +133,43 @@ export function FlagGlyph({ color }: { color: string }) {
         strokeWidth={1.2}
         strokeLinecap="round"
         strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+/**
+ * Three dots: "there is more to this than the line shows". The web trip card
+ * wears the same mark, so the phone borrows it rather than inventing a word.
+ */
+export function MoreGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 14 14" fill="none">
+      <Circle cx={3.2} cy={7} r={1} fill={color} />
+      <Circle cx={7} cy={7} r={1} fill={color} />
+      <Circle cx={10.8} cy={7} r={1} fill={color} />
+    </Svg>
+  );
+}
+
+/**
+ * Share: a box with an arrow leaving it. Not a chain link — a link is the
+ * thing being handed over, and drawing the thing rather than the act read as
+ * "attachment" in testing.
+ */
+export function ShareGlyph({ color }: { color: string }) {
+  // The web's share mark (`trip-roster.tsx`): three nodes on two lines. Same
+  // drawing on both, so "share" is one picture, not two.
+  return (
+    <Svg width={16} height={16} viewBox="0 0 14 14" fill="none">
+      <Circle cx={10.5} cy={2.9} r={1.75} stroke={color} strokeWidth={1.2} />
+      <Circle cx={3.5} cy={7} r={1.75} stroke={color} strokeWidth={1.2} />
+      <Circle cx={10.5} cy={11.1} r={1.75} stroke={color} strokeWidth={1.2} />
+      <Path
+        d="M5 7.9l4 2.3M9 3.8L5 6.1"
+        stroke={color}
+        strokeWidth={1.2}
+        strokeLinecap="round"
       />
     </Svg>
   );

@@ -35,7 +35,7 @@ import { useTheme } from "./theme";
 /* ------------------------------------------------------------------ text */
 
 /** Every tone is a token name. `butter-ink` is here so text on a butter ground keeps its contrast (#204). */
-type TextTone = "ink" | "ink-2" | "ink-3" | "pen" | "red" | "green" | "butter-ink";
+type TextTone = "ink" | "ink-2" | "ink-3" | "pen" | "red" | "green" | "butter-ink" | "peri-ink";
 
 export function Body({
   children,
@@ -146,19 +146,35 @@ export function Button({
   label,
   onPress,
   variant = "primary",
+  fit = "full",
+  icon,
   busy,
   disabled,
 }: {
   label: string;
   onPress: () => void;
+  /** Drawn before the label, in the label's own colour. Line-art only, no emoji. */
+  icon?: (ink: string) => ReactNode;
   variant?: "primary" | "quiet" | "danger";
+  /**
+   * `full` fills its parent, which is what a phone wants for the one thing you
+   * came to do. `small` shrinks to its words, for the two or three controls
+   * that share a line — a rare job at full width is the loudest thing on the
+   * card, which is how the group panel ended up shouting "Share trip".
+   */
+  fit?: "full" | "small";
   busy?: boolean;
   disabled?: boolean;
 }) {
   const { c } = useTheme();
-  const ground = { primary: c.pen, quiet: c["sheet-2"], danger: c["red-2"] }[variant];
-  const ink = { primary: c.sheet, quiet: c.ink, danger: c.red }[variant];
+  const ground = { primary: c.pen, quiet: c.sheet, danger: c["red-2"] }[variant];
+  const ink = { primary: c.sheet, quiet: c["ink-2"], danger: c.red }[variant];
+  // The web's secondary button is an outline on the sheet, not a grey slab
+  // (`ui.tsx`, `variants.secondary`). A filled quiet button carried the same
+  // weight as the primary next to it, so the pair read as two primaries.
+  const edge = { primary: c.pen, quiet: c["rule-2"], danger: c["red-2"] }[variant];
   const off = disabled || busy;
+  const small = fit === "small";
 
   return (
     <Pressable
@@ -168,19 +184,35 @@ export function Button({
       disabled={off}
       style={({ pressed }) => ({
         backgroundColor: ground,
+        borderWidth: 1,
+        borderColor: edge,
         borderRadius: radius.md,
-        paddingVertical: space.md,
-        paddingHorizontal: space.lg,
+        paddingVertical: small ? space.sm : space.md,
+        paddingHorizontal: small ? space.md : space.lg,
+        flexDirection: "row",
+        justifyContent: "center",
         alignItems: "center",
+        gap: space.sm,
+        alignSelf: small ? "flex-start" : "auto",
         opacity: off ? 0.5 : pressed ? 0.85 : 1,
       })}
     >
       {busy ? (
         <ActivityIndicator color={ink} />
       ) : (
-        <Text style={{ color: ink, fontFamily: fonts.sans, fontSize: size.body, fontWeight: "600" }}>
-          {label}
-        </Text>
+        <>
+          {icon ? icon(ink) : null}
+          <Text
+          style={{
+            color: ink,
+            fontFamily: fonts.sans,
+            fontSize: small ? size.small : size.body,
+            fontWeight: "600",
+          }}
+        >
+            {label}
+          </Text>
+        </>
       )}
     </Pressable>
   );

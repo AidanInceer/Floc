@@ -12,10 +12,11 @@
  */
 import { MAX_TAGS, MAX_TAG_LENGTH } from "@floc/core/tags";
 import { TRIP_COLORS, type TripColor } from "@floc/core/trip-color";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, TextInput, View } from "react-native";
 
+import { CrossGlyph } from "./glyphs";
 import { useTheme } from "./theme";
-import { Body, Button, Field, Label } from "./ui";
+import { Body, Button, Field, IconButton, Label } from "./ui";
 import { fonts, radius, size, space } from "@/lib/theme";
 
 /** A row keeps an id so deleting one does not hand its text to the next. */
@@ -90,22 +91,11 @@ function TagRowInput({
           fontSize: size.body,
         }}
       />
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`Delete ${row.name || "this tag"}`}
-        onPress={onDelete}
-        style={{
-          paddingHorizontal: space.md,
-          paddingVertical: space.md,
-          borderRadius: radius.md,
-          borderWidth: StyleSheet.hairlineWidth,
-          borderColor: c.rule,
-        }}
-      >
-        <Text style={{ color: c["ink-2"], fontFamily: fonts.sans, fontSize: size.body }}>
-          Delete
-        </Text>
-      </Pressable>
+      {/* The word "Delete" beside every tag was three quarters as wide as the
+          tag itself. The mark is allowed here: the label is said aloud. */}
+      <IconButton label={`Delete ${row.name || "this tag"}`} onPress={onDelete}>
+        {(colour) => <CrossGlyph color={colour} />}
+      </IconButton>
     </View>
   );
 }
@@ -117,9 +107,6 @@ export function TripEdit({
   onChangeColor,
   rows,
   onChangeRows,
-  busy,
-  error,
-  onSave,
 }: {
   name: string;
   onChangeName: (name: string) => void;
@@ -128,14 +115,11 @@ export function TripEdit({
   onChangeColor: (color: TripColor) => void;
   rows: TagRow[];
   onChangeRows: (rows: TagRow[]) => void;
-  busy: boolean;
-  error: string | null;
-  onSave: () => void;
 }) {
   const nextId = rows.reduce((top, row) => Math.max(top, row.id), 0) + 1;
 
   return (
-    <View style={{ padding: space.lg, gap: space.lg }}>
+    <View style={{ padding: space.lg, gap: space.md }}>
       <Field label="Trip name" value={name} onChangeText={onChangeName} autoFocus />
 
       <View style={{ gap: space.sm }}>
@@ -174,9 +158,6 @@ export function TripEdit({
           <Body tone="ink-2">{MAX_TAGS} tags is the limit — delete one to add another.</Body>
         )}
       </View>
-
-      {error ? <Body tone="red">{error}</Body> : null}
-      <Button label="Save" busy={busy} onPress={onSave} />
     </View>
   );
 }

@@ -7,7 +7,7 @@
  * it stops being true. Nothing here is stored, which is also why nothing here
  * can go stale or be dismissed into a lie.
  *
- * The card is butter, and every row carries its words. Colour is never the
+ * The card is peri, and every row carries its words. Colour is never the
  * thing that says something needs you (#204).
  */
 import { Pressable, StyleSheet, View } from "react-native";
@@ -38,8 +38,8 @@ export function NeedsYou({ items }: { items: Outstanding[] }) {
       <Label>Needs you</Label>
       <View
         style={{
-          backgroundColor: c.butter,
-          borderColor: c["butter-edge"],
+          backgroundColor: c.peri,
+          borderColor: c["peri-edge"],
           borderWidth: StyleSheet.hairlineWidth,
           borderRadius: radius.lg,
           overflow: "hidden",
@@ -54,13 +54,14 @@ export function NeedsYou({ items }: { items: Outstanding[] }) {
             style={({ pressed }) => ({
               padding: space.lg,
               gap: space.xs,
+              alignItems: "center",
               opacity: pressed ? 0.7 : 1,
               borderTopWidth: index === 0 ? 0 : StyleSheet.hairlineWidth,
-              borderTopColor: c["butter-edge"],
+              borderTopColor: c["peri-edge"],
             })}
           >
             <Body>{item.said}</Body>
-            <Body bold tone="butter-ink">
+            <Body bold tone="peri-ink">
               {item.action}
             </Body>
           </Pressable>

@@ -24,6 +24,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { ScrollView, View } from "react-native";
 
 import { FileList } from "@/components/file-list";
+import { GroupActions } from "@/components/group-actions";
 import { NeedsYou, type Outstanding } from "@/components/needs-you";
 import { PlacePlot } from "@/components/place-plot";
 import { RosterStrip } from "@/components/roster-strip";
@@ -37,8 +38,15 @@ import {
   Loading,
   Pill,
 } from "@/components/ui";
+import type { AppRouter } from "@floc/api/router";
+import type { inferRouterOutputs } from "@trpc/server";
+
 import { trpc } from "@/lib/api";
+import { inviteUrl } from "@/lib/config";
 import { space } from "@/lib/theme";
+
+/** The ledger as the API returns it — named once so the two helpers below agree. */
+type Ledger = inferRouterOutputs<AppRouter>["money"]["ledger"];
 
 /** Overview shows the top of the pile; the rest is a count, and the Files screen. */
 const FILES_SHOWN = 3;
@@ -55,59 +63,31 @@ export default function Overview() {
   const places = useQuery(trpc.places.list.queryOptions({ tripId }, { enabled: ready }));
   const files = useQuery(trpc.files.list.queryOptions({ tripId }, { enabled: ready }));
   const ledger = useQuery(trpc.money.ledger.queryOptions({ tripId }, { enabled: ready }));
+  // Admin-only on the server (rule 6), so it is only asked for by an admin —
+  // a member firing this would get a refusal it has no use for.
+  const isAdmin = trip.data?.role === "admin";
+  const invites = useQuery(
+    trpc.invites.forTrip.queryOptions({ tripId }, { enabled: ready && isAdmin }),
+  );
 
   if (trip.isPending) return <Loading />;
   if (trip.isError) return <Failed onRetry={() => trip.refetch()} />;
 
-  const outstanding: Outstanding[] = [];
-
-  // No dates is the normal starting state of a trip, so this is an invitation,
-  // never a warning (rule 9).
-  if (!trip.data.startDate) {
-    outstanding.push({
-      id: "dates",
-      said: "No dates set yet.",
-      action: "Set them",
-      onPress: () => router.push(`/trip/${tripId}/dates`),
-    });
-  }
-
-  // Derived from the ledger the API already returned — there is no balance
-  // column and no balance procedure, because a stored balance is a second
-  // source of truth about the same money (rule 1).
-  if (ledger.data) {
-    const balances = computeBalances(
-      ledger.data.expenses.map((expense) => ({
-        paidBy: expense.paidBy,
-        currency: expense.currency,
-        amountMinor: expense.amountMinor,
-        splits: ledger.data.splits
-          .filter((split) => split.expenseId === expense.id)
-          .map((split) => ({ userId: split.userId, owedAmountMinor: split.owedAmountMinor })),
-      })),
-      ledger.data.settlements.map((settlement) => ({
-        from: settlement.fromUserId,
-        to: settlement.toUserId,
-        currency: settlement.currency,
-        amountMinor: settlement.amountMinor,
-      })),
-    );
-    if (!isAllSettled(balances)) {
-      outstanding.push({
-        id: "money",
-        said: "Money is not settled up.",
-        action: "See who owes what",
-        onPress: () => router.push(`/trip/${tripId}/money`),
-      });
-    }
-  }
+  const outstanding = outstandingFor(trip.data.startDate, ledger.data, (route) =>
+    router.push(`/trip/${tripId}/${route}`),
+  );
 
   return (
     <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.xl }}>
       {/* No name here: the header carries it on every section, and printing it
           again on one of the six said the same word twice for no reason. */}
       <View style={{ gap: space.xs }}>
-        <Figure tone="ink-2">{formatDateRange(trip.data.startDate, trip.data.endDate)}</Figure>
+        {/* Undated says so once. "Dates not set" here and "No dates set yet"
+            in the card below it was the same fact twice, and the card is the
+            one that can do something about it. */}
+        {trip.data.startDate ? (
+          <Figure tone="ink-2">{formatDateRange(trip.data.startDate, trip.data.endDate)}</Figure>
+        ) : null}
         {/* Tags sit under the dates, as they do on the web's hero row. There
             is no "add a tag" here — the header's sheet owns every edit to the
             trip itself, so this is the reading half only (#71, #213). */}
@@ -122,8 +102,15 @@ export default function Overview() {
       <NeedsYou items={outstanding} />
 
       <View style={{ gap: space.sm }}>
-        <Label>Who is coming</Label>
+        {/* "The group", as the web panel calls it — one name for one thing. */}
+        <Label>The group</Label>
         <Card>
+          {isAdmin ? (
+            <GroupActions
+              link={invites.data ? inviteUrl(invites.data.token) : null}
+              onInvite={() => router.push(`/trip/${tripId}/invite`)}
+            />
+          ) : null}
           <RosterStrip people={trip.data.members} />
         </Card>
       </View>
@@ -158,5 +145,58 @@ export default function Overview() {
         </Card>
       </View>
     </ScrollView>
+  );
+}
+
+/** Whatever is still true and still unanswered. Nothing is stored — an item exists while its fact does. */
+function outstandingFor(
+  startDate: string | null,
+  ledger: Ledger | undefined,
+  go: (route: string) => void,
+): Outstanding[] {
+  const items: Outstanding[] = [];
+
+  // No dates is the normal starting state of a trip, so this is an invitation,
+  // never a warning (rule 9).
+  if (!startDate) {
+    items.push({
+      id: "dates",
+      said: "No dates set yet.",
+      action: "Set them",
+      onPress: () => go("dates"),
+    });
+  }
+
+  // Derived from the ledger the API already returned — there is no balance
+  // column and no balance procedure, because a stored balance is a second
+  // source of truth about the same money (rule 1).
+  if (ledger && !isAllSettled(balancesFrom(ledger))) {
+    items.push({
+      id: "money",
+      said: "Money is not settled up.",
+      action: "See who owes what",
+      onPress: () => go("money"),
+    });
+  }
+
+  return items;
+}
+
+function balancesFrom(ledger: Ledger) {
+  return computeBalances(
+    ledger.expenses.map((expense) => ({
+      paidBy: expense.paidBy,
+      currency: expense.currency,
+      amountMinor: expense.amountMinor,
+      splits: ledger.splits
+        .filter((split) => split.expenseId === expense.id)
+        .map((split) => ({ userId: split.userId, owedAmountMinor: split.owedAmountMinor })),
+    })),
+    ledger.settlements.map((settlement) => ({
+      from: settlement.fromUserId,
+      to: settlement.toUserId,
+      currency: settlement.currency,
+      amountMinor: settlement.amountMinor,
+    })),
   );
 }

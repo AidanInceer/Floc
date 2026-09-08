@@ -17,6 +17,7 @@ import { KeyboardAvoidingView, Linking, Platform, ScrollView, View } from "react
 
 import { Body, Button, Field, Heading, Screen } from "@/components/ui";
 import { signIn } from "@/lib/auth";
+import { devSignIn } from "@/lib/dev-sign-in";
 import { API_BASE_URL } from "@/lib/config";
 import { space } from "@/lib/theme";
 
@@ -61,6 +62,15 @@ export default function SignIn() {
     if (error) setProblem(unreachable(error) ? OFFLINE : "Google sign-in isn't available right now.");
   }
 
+  async function asDevUser() {
+    setBusy(true);
+    setProblem(null);
+    const trouble = await devSignIn();
+    setBusy(false);
+    if (trouble) setProblem(trouble);
+    else router.replace("/trips");
+  }
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -96,6 +106,12 @@ export default function SignIn() {
             <Button label="Sign in" onPress={withPassword} busy={busy} />
             <Button label="Continue with Google" onPress={withGoogle} variant="quiet" disabled={busy} />
           </View>
+
+          {/* Only on a dev build, and only when the dev server is offering an
+              account — a store build never contains this branch. */}
+          {__DEV__ ? (
+            <Button label="Sign in as the dev user" variant="quiet" disabled={busy} onPress={asDevUser} />
+          ) : null}
 
           {/* Signing up stays on the website: it needs the terms, the privacy
               policy and email verification, none of which are built here yet.

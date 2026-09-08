@@ -16,7 +16,7 @@ Next.js App Router + Turso (libSQL) + Drizzle + Better Auth.
 | `floc/packages/floc-core/src/` | `@floc/core` — the domain rules and vocabulary (money/dates/calendar/packing) **and the design token values**. Pure, no I/O, imports nothing from the app. |
 | `floc/packages/floc-api/src/` | `@floc/api` — the tRPC router every non-web client reads a trip through. Declares procedures and input rules; reaches data only via `FlocPort`, which the host implements. |
 | `floc/apps/web/src/server/api-port.ts` | The web app's `FlocPort` — the API's data access, built from the same `server/` modules the pages use. |
-| `floc/apps/mobile/` | `floc-mobile` — Expo (iOS + Android). Own UI, own version. [`SHIPPING.md`](floc/apps/mobile/SHIPPING.md) decides store build vs EAS Update; [`STORE.md`](floc/apps/mobile/STORE.md) is the submission checklist. |
+| `floc/apps/mobile/` | `floc-mobile` — Expo (iOS + Android). Own UI, own version, same [visual language](docs/design/visual-language.html). [`SHIPPING.md`](floc/apps/mobile/SHIPPING.md) decides store build vs EAS Update; [`STORE.md`](floc/apps/mobile/STORE.md) is the submission checklist. |
 | `floc/apps/web/src/lib/` | What is left: browser- or Next-bound helpers only (env, theme, tabs, map, auth-client). |
 | `floc/apps/web/src/components/` | `ui.tsx`/`client-ui.tsx` = house design system. Reach first. |
 | `floc/apps/web/src/db/schema.ts` | Schema of record. Mirrors [ERD](docs/data-model/erd.html) — change both. |
@@ -73,7 +73,7 @@ pnpm verify                      # everything CI runs, locally
 - **No emoji** — icons are line-art: 14×14 `viewBox` ~13px, `fill="none"`, `strokeWidth` 1.15–1.25, `stroke="currentColor"`.
 - **Outside UI libraries** only where hand-rolling costs months (BlockNote runs Notes), and only if it takes the tokens/type/no-emoji rules.
 - **If the drawing is clear, say nothing** — text carries only what layout can't. No heading-above-heading, captions decoding the design, or narrating state a control shows. Exceptions: what's *missing*, and status.
-- **On the app, cut harder** — same rules, no browser slack. Prefer the glyph alone where the word is one press away and is the accessible label; don't spend a labelled row on a question with a right default (ride the line it belongs to); two short controls share a line; short labels, the section heading carries the subject. Never a dead control with a sentence explaining why — make it work or don't draw it. Check overflow on the device.
+- **On the app, cut harder** — same [approach](docs/design/approach.html) and [visual language](docs/design/visual-language.html), no browser slack. Prefer the glyph alone where the word is one press away and is the accessible label; don't spend a labelled row on a question with a right default (ride the line it belongs to); two short controls share a line; short labels, the section heading carries the subject. Never a dead control with a sentence explaining why — make it work or don't draw it. Check overflow on the device.
 - British English, sentence case, real content — never lorem.
 - Read [approach](docs/design/approach.html) + [visual language](docs/design/visual-language.html) before UI/UX work — full visual language lives there.
 - **Comments ruthless** — only *why* + ticket pointer, or a real gotcha; never *what*. One line beats a block.

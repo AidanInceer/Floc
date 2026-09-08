@@ -12,7 +12,8 @@
  * its own ticket.
  */
 import type { AppRouter } from "@floc/api/router";
-import { QueryClient } from "@tanstack/react-query";
+import { QueryClient, focusManager } from "@tanstack/react-query";
+import { AppState } from "react-native";
 import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
 
@@ -24,9 +25,14 @@ export const queryClient = new QueryClient({
     queries: {
       // A trip is edited by other people while you are looking at it, and
       // last-write-wins (rule 7) means the screen is only ever as fresh as its
-      // last read. Thirty seconds is short enough to feel live and long
-      // enough to survive a tab switch without a refetch storm.
-      staleTime: 30_000,
+      // last read — so it re-reads on a tick rather than waiting to be asked.
+      // Fifteen seconds: fast enough that a trip deleted in a browser leaves
+      // the phone while you are still looking at it, slow enough that a group
+      // of six is not a load test. `refetchIntervalInBackground` stays off, so
+      // a pocketed phone asks nothing.
+      staleTime: 15_000,
+      refetchInterval: 15_000,
+      refetchOnWindowFocus: true,
       retry: 2,
     },
   },
@@ -43,3 +49,12 @@ const client = createTRPCClient<AppRouter>({
 });
 
 export const trpc = createTRPCOptionsProxy<AppRouter>({ client, queryClient });
+
+/**
+ * React Query's idea of "focused" is a browser tab. On a phone it is the app
+ * being in front of you, and without this it is focused forever — so nothing
+ * refetched on coming back, and the polling above would run in your pocket.
+ */
+AppState.addEventListener("change", (state) => {
+  focusManager.setFocused(state === "active");
+});
