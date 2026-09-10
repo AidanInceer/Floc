@@ -19,11 +19,11 @@ import {
 } from "./actions";
 import { requireUser } from "@/server/access";
 import { formatDateRange } from "@floc/core/dates";
-import { ensureProfile } from "@/server/profile";
+import { ensureProfile } from "@/server/auth/profile";
 import { readVibeTags } from "@floc/core/vibe-tags";
 import { countryName } from "@floc/core/countries";
-import { pendingMapPrompts, travelMapFor } from "@/server/travel-map";
-import { pastTripsFor } from "@/server/visibility";
+import { pendingMapPrompts, travelMapFor } from "@/server/itinerary/travel-map";
+import { pastTripsFor } from "@/server/auth/visibility";
 import { AccountPage, Panel, RowList, SettingRow } from "@/components/account-ui";
 import { Avatar, Badge, Field, Input, Stack } from "@/components/ui";
 import { ActionForm, SubmitButton } from "@/components/client-ui";

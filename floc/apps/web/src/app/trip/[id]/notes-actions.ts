@@ -12,7 +12,7 @@ import {
   toggleReaction,
   updateNoteBody,
   NOTE_BODY_MAX,
-} from "@/server/notes";
+} from "@/server/notes/notes";
 import type { NoteScope, ReactionKind } from "@/db/schema";
 import { refresh } from "@/server/freshness";
 

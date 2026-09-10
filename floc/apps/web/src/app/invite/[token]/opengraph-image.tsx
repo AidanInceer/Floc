@@ -12,7 +12,7 @@
  */
 import { ImageResponse } from "next/og";
 
-import { findTripByInviteToken } from "@/server/invites";
+import { findTripByInviteToken } from "@/server/trips/invites";
 import { formatDateRange } from "@floc/core/dates";
 
 export const runtime = "nodejs";

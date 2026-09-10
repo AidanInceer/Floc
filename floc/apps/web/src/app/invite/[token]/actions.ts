@@ -7,10 +7,10 @@
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 
-import { auth } from "@/server/auth";
+import { auth } from "@/server/auth/auth";
 import { requireUser } from "@/server/access";
-import { emailConfigured } from "@/server/email";
-import { findTripByInviteToken, joinWithLink } from "@/server/invites";
+import { emailConfigured } from "@/server/auth/email";
+import { findTripByInviteToken, joinWithLink } from "@/server/trips/invites";
 
 export async function joinTrip(token: string) {
   const redirectTo = `/invite/${token}`;

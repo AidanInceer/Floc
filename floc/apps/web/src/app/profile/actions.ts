@@ -10,17 +10,17 @@ import { readCountryCode } from "@floc/core/countries";
 import { MAX_DIETARY_NOTES, parseDietFlags } from "@floc/core/dietary";
 import { capText } from "@floc/core/text";
 import { parsePackTier } from "@floc/core/packing";
-import { clearMapPrompt, hasPendingMapPrompt } from "@/server/roster";
+import { clearMapPrompt, hasPendingMapPrompt } from "@/server/trips/roster";
 import {
   ensureProfile,
   updateProfileFields,
-} from "@/server/profile";
+} from "@/server/auth/profile";
 import {
   clearManualMark,
   derivedStateFor,
   keepMarksFromTrip,
   setManualMark,
-} from "@/server/travel-map";
+} from "@/server/itinerary/travel-map";
 import { parseVibeTags } from "@floc/core/vibe-tags";
 import { refresh } from "@/server/freshness";
 

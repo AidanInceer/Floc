@@ -6,7 +6,7 @@
  */
 import Link from "next/link";
 
-import type { ProPrice } from "@/server/billing";
+import type { ProPrice } from "@/server/billing/billing";
 import { renewalLabel } from "@floc/core/subscription-copy";
 import type { SubscriptionFacts } from "@floc/core/subscription-copy";
 import { ProUpgrade } from "@/components/billing-buttons";

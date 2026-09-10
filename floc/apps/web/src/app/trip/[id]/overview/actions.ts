@@ -8,18 +8,18 @@ import { after } from "next/server";
 
 import { NUDGE_TABS, type NudgeTab } from "@/db/schema";
 import { assertAdmin, requireTripAccess } from "@/server/access";
-import { emails, sendEmails } from "@/server/email";
+import { emails, sendEmails } from "@/server/auth/email";
 import { parseTagNames } from "@floc/core/tags";
 import { capText, TEXT_CAPS } from "@floc/core/text";
 import { LIMITS } from "@/server/limits";
-import { inviteToTrip } from "@/server/invites";
+import { inviteToTrip } from "@/server/trips/invites";
 import {
   insertNudge,
   leaveTripAs,
   removeMembership,
   setMemberRoleAdmin,
-} from "@/server/roster";
-import { updateTrip } from "@/server/trips";
+} from "@/server/trips/roster";
+import { updateTrip } from "@/server/trips/trips";
 import { refresh } from "@/server/freshness";
 
 export async function sendNudge(formData: FormData) {

@@ -12,9 +12,9 @@
 import Link from "next/link";
 
 import { requireTripAccess } from "@/server/access";
-import { listDocuments } from "@/server/documents";
-import type { TripDocument } from "@/server/documents";
-import { documentsEnabled } from "@/server/document-store";
+import { listDocuments } from "@/server/documents/documents";
+import type { TripDocument } from "@/server/documents/documents";
+import { documentsEnabled } from "@/server/documents/document-store";
 import {
   DOC_CATEGORIES,
   DOC_CATEGORY_LABELS,

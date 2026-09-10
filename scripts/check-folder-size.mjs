@@ -20,7 +20,6 @@ const SKIP = new Set(["node_modules", ".next", ".expo", ".git", "dist", "build",
  */
 const ALLOWLIST = new Set([
   "floc/apps/web/src/components",
-  "floc/apps/web/src/server",
   "floc/apps/mobile/src/components",
   // Found by this check, not in the original plan — its own slice.
   "floc/packages/floc-core/src",

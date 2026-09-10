@@ -8,7 +8,7 @@
 import type { DayEventType, TransportType } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
 import { resolveEventPlace } from "../place-actions";
-import { applyOvernight, type OvernightPlaceInput } from "@/server/overnight";
+import { applyOvernight, type OvernightPlaceInput } from "@/server/itinerary/overnight";
 import { insertAt, permuteEventSlots } from "@floc/core/event-order";
 import {
   applyEventSlots,
@@ -23,7 +23,7 @@ import {
   softDeleteEvent,
   updateEventFields,
   type EventFields,
-} from "@/server/itinerary";
+} from "@/server/itinerary/itinerary";
 import { refresh } from "@/server/freshness";
 
 export async function addDays(tripId: number, afterDate: string, count: number) {

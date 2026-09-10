@@ -9,12 +9,12 @@ import { AppChrome } from "@/components/app-chrome";
 import { SiteFooter } from "@/components/site-footer";
 import { THEME_BOOTSTRAP } from "@/lib/theme";
 import { getSession } from "@/server/access";
-import { subscriptionOf } from "@/server/billing";
+import { subscriptionOf } from "@/server/billing/billing";
 import { allFeaturesFree } from "@/lib/env";
 import { isLive } from "@floc/core/subscription-copy";
-import { countIncomingFriendRequests } from "@/server/friends";
-import { countPendingInvitesFor } from "@/server/invites";
-import { getProfile } from "@/server/profile";
+import { countIncomingFriendRequests } from "@/server/social/friends";
+import { countPendingInvitesFor } from "@/server/trips/invites";
+import { getProfile } from "@/server/auth/profile";
 
 import "./globals.css";
 

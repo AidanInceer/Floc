@@ -17,7 +17,7 @@ import {
   type Scenario,
 } from "@/test/db";
 import { requireTripAccess } from "@/server/access";
-import { listDocuments } from "@/server/documents";
+import { listDocuments } from "@/server/documents/documents";
 import { removeDocument, setCategory, uploadDocument } from "./actions";
 
 let world: Scenario;

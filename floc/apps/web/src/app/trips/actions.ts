@@ -9,14 +9,14 @@ import { capRequiredText } from "@floc/core/text";
 import { isTripColor } from "@floc/core/trip-color";
 import { renameTrip as validateAndRenameTrip } from "@/app/trip/[id]/overview/actions";
 import { assertAdmin, requireTripAccess, requireUser } from "@/server/access";
-import { acceptInvite, declineInvite, inviteToTrip } from "@/server/invites";
+import { acceptInvite, declineInvite, inviteToTrip } from "@/server/trips/invites";
 import {
   createTripWithAdmin,
   setTripArchived,
   softDeleteTrip,
   updateTrip,
-} from "@/server/trips";
-import { ensureProfile } from "@/server/profile";
+} from "@/server/trips/trips";
+import { ensureProfile } from "@/server/auth/profile";
 import { LIMITS } from "@/server/limits";
 import { refresh } from "@/server/freshness";
 

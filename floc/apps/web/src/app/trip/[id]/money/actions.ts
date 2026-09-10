@@ -8,7 +8,7 @@ import { after } from "next/server";
 import type { Currency } from "@/db/schema";
 import { capRequiredText, capText } from "@floc/core/text";
 import { CURRENCIES, minorPerMajor } from "@floc/core/currency";
-import { getHomeRates } from "@/server/fx";
+import { getHomeRates } from "@/server/money/fx";
 import {
   DEFAULT_CATEGORY,
   isExpenseCategory,
@@ -23,7 +23,7 @@ import {
   softDeleteSettlement,
   writeExpense,
   writeSettlement,
-} from "@/server/money";
+} from "@/server/money/money";
 import type { WritableSplitType } from "@floc/core/money";
 import {
   computeSplits,
@@ -34,7 +34,7 @@ import {
   resolveWeightedSplit,
 } from "@floc/core/money";
 import type { SplitInput, WeightedInput } from "@floc/core/money";
-import { emails, sendEmails } from "@/server/email";
+import { emails, sendEmails } from "@/server/auth/email";
 import { refresh } from "@/server/freshness";
 
 export type ActionState = { error?: string };

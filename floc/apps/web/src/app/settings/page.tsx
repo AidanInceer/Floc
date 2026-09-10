@@ -30,10 +30,10 @@ import {
 } from "@/app/profile/actions";
 import type { Subscription, Visibility } from "@/db/schema";
 import { requireUser } from "@/server/access";
-import { proPrices, subscriptionOf } from "@/server/billing";
-import type { ProPrice } from "@/server/billing";
+import { proPrices, subscriptionOf } from "@/server/billing/billing";
+import type { ProPrice } from "@/server/billing/billing";
 import { allFeaturesFree } from "@/lib/env";
-import { ensureProfile, listLinkedAccounts } from "@/server/profile";
+import { ensureProfile, listLinkedAccounts } from "@/server/auth/profile";
 import { BillingAction, ProUpgrade } from "@/components/billing-buttons";
 import { isLive, renewalLabel } from "@floc/core/subscription-copy";
 import {

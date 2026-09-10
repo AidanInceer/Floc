@@ -35,17 +35,17 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { requireTripAccess } from "@/server/access";
-import { listDocuments } from "@/server/documents";
-import { documentsEnabled } from "@/server/document-store";
+import { listDocuments } from "@/server/documents/documents";
+import { documentsEnabled } from "@/server/documents/document-store";
 import {
   listDays,
   listRouteDays,
   transportModesByDay,
-} from "@/server/itinerary";
-import { listAvailability } from "@/server/availability";
-import { listPendingInvitees } from "@/server/invites";
-import { listExpenses, listSettlements, listSplits } from "@/server/money";
-import { absoluteUrl } from "@/server/email";
+} from "@/server/itinerary/itinerary";
+import { listAvailability } from "@/server/itinerary/availability";
+import { listPendingInvitees } from "@/server/trips/invites";
+import { listExpenses, listSettlements, listSplits } from "@/server/money/money";
+import { absoluteUrl } from "@/server/auth/email";
 import { formatMoney } from "@floc/core/money";
 import type { Currency } from "@floc/core/currency";
 import { tripStateFor } from "@floc/core/trip-state";
@@ -54,7 +54,7 @@ import { Avatar, Badge, ButtonLink, PASTEL_BY_KEY, PASTEL_SKINS, Stack, cx } fro
 import { Sheet, SubmitButton } from "@/components/client-ui";
 import { TripNameInline } from "@/components/trip-name-inline";
 import { TripRoster } from "@/components/trip-roster";
-import { friendStatesFor, listFriendsFor } from "@/server/friends";
+import { friendStatesFor, listFriendsFor } from "@/server/social/friends";
 import { TripRoute } from "@/components/trip-route";
 import { TripDayTrack } from "@/components/trip-day-track";
 import { DocumentsBlock } from "@/components/documents-block";

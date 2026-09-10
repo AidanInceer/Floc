@@ -9,8 +9,8 @@
 import Link from "next/link";
 
 import { requireUser } from "@/server/access";
-import { listFriendsFor, type Person } from "@/server/friends";
-import { listPendingInvitesFor, type PendingInvite } from "@/server/invites";
+import { listFriendsFor, type Person } from "@/server/social/friends";
+import { listPendingInvitesFor, type PendingInvite } from "@/server/trips/invites";
 import { loadTripCards } from "./cards";
 import { formatDateRange, hasEnded, splitEnded } from "@floc/core/dates";
 import {

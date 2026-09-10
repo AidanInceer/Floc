@@ -37,7 +37,7 @@ import {
   windowCostLabel,
   type DayLoad,
 } from "@floc/core/trip-window";
-import type { DailyForecast, TripForecast } from "@/server/weather";
+import type { DailyForecast, TripForecast } from "@/server/itinerary/weather";
 
 export function AvailabilityCalendar({
   firstMonth,

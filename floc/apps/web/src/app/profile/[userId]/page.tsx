@@ -16,8 +16,8 @@ import { redirect } from "next/navigation";
 
 import { requireUser } from "@/server/access";
 import { formatDateRange } from "@floc/core/dates";
-import { friendStateWith } from "@/server/friends";
-import { requireProfileView } from "@/server/visibility";
+import { friendStateWith } from "@/server/social/friends";
+import { requireProfileView } from "@/server/auth/visibility";
 import { AccountPage, Panel, PersonRow } from "@/components/account-ui";
 import { Avatar, Badge } from "@/components/ui";
 import { FriendButton } from "@/components/friend-button";

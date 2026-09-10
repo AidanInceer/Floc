@@ -9,7 +9,7 @@
 import { cx } from "@/components/ui";
 import { WeatherGlyph } from "@/components/weather-glyph";
 import { formatDate, type IsoDate } from "@floc/core/dates";
-import type { DailyForecast, HourlyPoint } from "@/server/weather";
+import type { DailyForecast, HourlyPoint } from "@/server/itinerary/weather";
 
 // Reading line under the weather calendar: temperatures for the hovered day; at
 // rest it names the place and horizon, so the row is never empty.

@@ -8,7 +8,7 @@
 import { after } from "next/server";
 
 import { requireUser } from "@/server/access";
-import { emails, sendEmails } from "@/server/email";
+import { emails, sendEmails } from "@/server/auth/email";
 import {
   acceptPendingRequest,
   dropFriendship,
@@ -17,8 +17,8 @@ import {
   friendOfFriend,
   friendshipBetween,
   openPendingRequest,
-} from "@/server/friends";
-import { canSeeFriendsOf, relationTo } from "@/server/visibility";
+} from "@/server/social/friends";
+import { canSeeFriendsOf, relationTo } from "@/server/auth/visibility";
 import { refresh } from "@/server/freshness";
 
 /**

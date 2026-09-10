@@ -9,7 +9,7 @@
 import { notFound } from "next/navigation";
 
 import { requireTripAccess } from "@/server/access";
-import { readDocument } from "@/server/document-store";
+import { readDocument } from "@/server/documents/document-store";
 
 export async function GET(
   _request: Request,

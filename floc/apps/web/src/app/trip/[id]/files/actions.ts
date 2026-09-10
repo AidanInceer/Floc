@@ -15,13 +15,13 @@ import {
   insertDocument,
   setDocumentCategory,
   softDeleteDocument,
-} from "@/server/documents";
+} from "@/server/documents/documents";
 import { LIMITS } from "@/server/limits";
 import {
   documentsEnabled,
   dropDocument,
   putDocument,
-} from "@/server/document-store";
+} from "@/server/documents/document-store";
 import { refresh } from "@/server/freshness";
 
 /** Refusals come back as form errors, never throws (the validation convention). */

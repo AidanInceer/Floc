@@ -20,7 +20,7 @@ import {
   softDeletePackingKit,
   softDeletePackingKitItem,
   stepPackingKitItemQuantity,
-} from "@/server/packing-kits";
+} from "@/server/packing/packing-kits";
 import { refresh } from "@/server/freshness";
 
 export async function createPackingKit(formData: FormData) {

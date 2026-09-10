@@ -9,7 +9,7 @@
 import { ButtonLink } from "@/components/ui";
 
 import type { TransportType } from "@/db/schema";
-import type { RouteDay } from "@/server/itinerary";
+import type { RouteDay } from "@/server/itinerary/itinerary";
 import { formatDate } from "@floc/core/dates";
 import { deriveStops, placedStops } from "@floc/core/stops";
 import { RouteMap } from "@/components/route-map";

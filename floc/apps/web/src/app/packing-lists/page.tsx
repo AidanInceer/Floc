@@ -21,7 +21,7 @@ import {
   viewPackingLines,
 } from "@floc/core/packing";
 import { requireUser } from "@/server/access";
-import { listPackingKitsWithItems } from "@/server/packing-kits";
+import { listPackingKitsWithItems } from "@/server/packing/packing-kits";
 import {
   PackingCard,
   PackingCardEmpty,

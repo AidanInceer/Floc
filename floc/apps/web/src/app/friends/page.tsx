@@ -12,7 +12,7 @@ import {
   peopleByIds,
   syncCompletedCoTripFriendships,
   type Person,
-} from "@/server/friends";
+} from "@/server/social/friends";
 import { AccountPage, Panel, PersonRow } from "@/components/account-ui";
 import { Avatar, Badge, Button, EmptyState } from "@/components/ui";
 import { SubmitButton } from "@/components/client-ui";

@@ -16,8 +16,8 @@ import { appRouter } from "@floc/api/router";
 import type { Context } from "@floc/api/port";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 
-import { webPort } from "@/server/api-port";
-import { auth } from "@/server/auth";
+import { webPort } from "@/server/api-port/api-port";
+import { auth } from "@/server/auth/auth";
 
 /** libSQL over HTTP, and a session read per request — nothing here is static. */
 export const dynamic = "force-dynamic";

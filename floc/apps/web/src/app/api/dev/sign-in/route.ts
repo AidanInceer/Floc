@@ -24,7 +24,7 @@
  * exact path the sign-in form uses. The password only ever travels on a dev
  * LAN, to a device the developer owns, and only while the gate below is open.
  */
-import { auth } from "@/server/auth";
+import { auth } from "@/server/auth/auth";
 
 export const runtime = "nodejs";
 

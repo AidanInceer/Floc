@@ -13,7 +13,7 @@ import {
   recordSubscription,
   stripe,
   userIdForCustomer,
-} from "@/server/billing";
+} from "@/server/billing/billing";
 
 export const runtime = "nodejs";
 

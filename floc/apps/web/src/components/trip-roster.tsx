@@ -8,8 +8,8 @@ import { Avatar, Badge, menuDangerItemClass, menuItemClass } from "@/components/
 import { PersonLink } from "@/components/person-link";
 import { FriendButton } from "@/components/friend-button";
 import { FriendPicker } from "@/components/friend-picker";
-import type { FriendState, Person } from "@/server/friends";
-import type { PendingInvitee } from "@/server/invites";
+import type { FriendState, Person } from "@/server/social/friends";
+import type { PendingInvitee } from "@/server/trips/invites";
 import { Field, Select, Stack, Textarea } from "@/components/ui";
 import { ConfirmSubmit, CopyLink, Menu, Sheet, SubmitButton } from "@/components/client-ui";
 import { NUDGE_TABS } from "@/db/schema";

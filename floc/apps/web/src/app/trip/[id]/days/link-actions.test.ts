@@ -11,7 +11,7 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, signIn, type Scenario } from "@/test/db";
-import { labelFor, readWebUrl } from "@/server/trip-links";
+import { labelFor, readWebUrl } from "@/server/trips/trip-links";
 import { addTripLink, removeTripLink } from "./link-actions";
 
 let world: Scenario;

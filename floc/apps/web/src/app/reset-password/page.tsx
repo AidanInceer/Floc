@@ -7,7 +7,7 @@ import { notFound } from "next/navigation";
 
 import { NewPasswordForm } from "@/components/password-reset-forms";
 import { AuthShell } from "@/components/auth-shell";
-import { emailConfigured } from "@/server/email";
+import { emailConfigured } from "@/server/auth/email";
 
 export default function ResetPasswordPage() {
   if (!emailConfigured()) notFound();

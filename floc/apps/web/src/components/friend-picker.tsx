@@ -12,7 +12,7 @@
  * the form around it still has a job to do.
  */
 import { Avatar } from "@/components/ui";
-import type { Person } from "@/server/friends";
+import type { Person } from "@/server/social/friends";
 
 export function FriendPicker({
   friends,

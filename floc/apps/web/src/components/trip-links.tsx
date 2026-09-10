@@ -12,7 +12,7 @@ import type { ReactNode } from "react";
 import { addTripLink, removeTripLink } from "@/app/trip/[id]/days/link-actions";
 import { ConfirmSubmit, SubmitButton } from "@/components/client-ui";
 import { Input } from "@/components/ui";
-import type { TripLinkRow } from "@/server/trip-links";
+import type { TripLinkRow } from "@/server/trips/trip-links";
 
 export function TripLinks({
   tripId,

@@ -15,7 +15,7 @@
 import Link from "next/link";
 
 import type { TransportType } from "@/db/schema";
-import type { RouteDay } from "@/server/itinerary";
+import type { RouteDay } from "@/server/itinerary/itinerary";
 import { formatDate } from "@floc/core/dates";
 import { TravelModeIcon } from "@/components/travel-mode-icon";
 import { ButtonLink, PASTEL_SKINS, cx } from "@/components/ui";

@@ -6,8 +6,8 @@
  */
 import type { ReactNode } from "react";
 import { getSession } from "@/server/access";
-import { proPrices, subscriptionOf } from "@/server/billing";
-import type { ProPrice } from "@/server/billing";
+import { proPrices, subscriptionOf } from "@/server/billing/billing";
+import type { ProPrice } from "@/server/billing/billing";
 import { allFeaturesFree } from "@/lib/env";
 import { formatMoney } from "@floc/core/money";
 import { isLive } from "@floc/core/subscription-copy";

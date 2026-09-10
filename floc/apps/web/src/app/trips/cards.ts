@@ -9,8 +9,8 @@
 import "server-only";
 
 import { listMembersFor, type TripMember } from "@/server/access";
-import { firstOvernightPlaceByTrip } from "@/server/itinerary";
-import { listTripsFor } from "@/server/trips";
+import { firstOvernightPlaceByTrip } from "@/server/itinerary/itinerary";
+import { listTripsFor } from "@/server/trips/trips";
 import { hasEnded } from "@floc/core/dates";
 import { readTags } from "@floc/core/tags";
 import { readTripColor } from "@floc/core/trip-color";

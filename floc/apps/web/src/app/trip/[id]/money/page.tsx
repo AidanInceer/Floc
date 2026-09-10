@@ -18,15 +18,15 @@ import {
   suggestSettlements,
 } from "@floc/core/money";
 import type { LedgerLine, LedgerSettlement } from "@floc/core/money";
-import { listDays } from "@/server/itinerary";
+import { listDays } from "@/server/itinerary/itinerary";
 import {
   listExpenses,
   listSettlements,
   listSplits,
   namesForUsers,
-} from "@/server/money";
-import { getProfile } from "@/server/profile";
-import { getHomeRates } from "@/server/fx";
+} from "@/server/money/money";
+import { getProfile } from "@/server/auth/profile";
+import { getHomeRates } from "@/server/money/fx";
 import { Avatar, cx } from "@/components/ui";
 import { Sheet } from "@/components/client-ui";
 import { CombinedTotal, ConvertAmount, SettleUpForm } from "@/components/money-client";

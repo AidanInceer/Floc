@@ -5,10 +5,10 @@
  * error (rule 9).
  */
 import { requireTripAccess } from "@/server/access";
-import { listAvailability } from "@/server/availability";
-import { canUseFeature } from "@/server/entitlements";
-import { listDayLoads } from "@/server/itinerary";
-import { getTripForecast } from "@/server/weather";
+import { listAvailability } from "@/server/itinerary/availability";
+import { canUseFeature } from "@/server/billing/entitlements";
+import { listDayLoads } from "@/server/itinerary/itinerary";
+import { getTripForecast } from "@/server/itinerary/weather";
 import { monthOf, thisMonth } from "@floc/core/availability";
 import { formatDateRange, nightsBetween } from "@floc/core/dates";
 import { windowCost, windowCostLabel, windowCostNoun } from "@floc/core/trip-window";

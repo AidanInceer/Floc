@@ -4,19 +4,19 @@
  * top-to-bottom on a phone as on a desk.
  */
 import { requireTripAccess } from "@/server/access";
-import { canUseFeature } from "@/server/entitlements";
-import { getPackSettings } from "@/server/packing";
+import { canUseFeature } from "@/server/billing/entitlements";
+import { getPackSettings } from "@/server/packing/packing";
 import {
   autoFillPersonalBag,
   packingPlanFor,
-} from "@/server/packing-generator";
+} from "@/server/packing/packing-generator";
 import {
   listPackingClaims,
   listPackingLines,
   listPersonalPackingLines,
-} from "@/server/packing";
-import { listPackingKits } from "@/server/packing-kits";
-import { ensureProfile } from "@/server/profile";
+} from "@/server/packing/packing";
+import { listPackingKits } from "@/server/packing/packing-kits";
+import { ensureProfile } from "@/server/auth/profile";
 import {
   PACK_SORTS,
   PACK_TIERS,

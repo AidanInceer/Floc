@@ -12,11 +12,11 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { getSession } from "@/server/access";
-import { listRouteDays } from "@/server/itinerary";
-import { findPendingInvite, findTripByInviteToken } from "@/server/invites";
-import { countMembers, isLiveMember } from "@/server/roster";
-import { emailConfigured } from "@/server/email";
-import { peopleByIds } from "@/server/friends";
+import { listRouteDays } from "@/server/itinerary/itinerary";
+import { findPendingInvite, findTripByInviteToken } from "@/server/trips/invites";
+import { countMembers, isLiveMember } from "@/server/trips/roster";
+import { emailConfigured } from "@/server/auth/email";
+import { peopleByIds } from "@/server/social/friends";
 import { formatDateRange } from "@floc/core/dates";
 import { ButtonLink } from "@/components/ui";
 import { SubmitButton } from "@/components/client-ui";

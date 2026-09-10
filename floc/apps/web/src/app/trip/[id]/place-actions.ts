@@ -5,7 +5,7 @@
 // twice. Kept separate from server/places.ts because every export of a
 // "use server" file is a public endpoint, and upsertPlace must stay internal.
 import { requireUser } from "@/server/access";
-import { searchPlaces, upsertPlace } from "@/server/places";
+import { searchPlaces, upsertPlace } from "@/server/itinerary/places";
 
 // Signed-in only (ticket 104) — unguarded, this was an open geocoding proxy
 // billed to our Nominatim budget. requireUser not requireTripAccess: the

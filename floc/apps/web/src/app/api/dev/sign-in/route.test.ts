@@ -4,7 +4,7 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/server/auth", () => ({
+vi.mock("@/server/auth/auth", () => ({
   auth: { api: { signInEmail: vi.fn(async () => new Response("ok")) } },
 }));
 
