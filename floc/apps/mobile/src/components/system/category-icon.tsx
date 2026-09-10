@@ -12,7 +12,7 @@
  * A GLYPH IS NEVER ALONE (#204). Every place that draws one puts the category
  * word beside it — the drawing is the scanning aid, the word is the meaning.
  */
-import { CATEGORY_LABELS, type ExpenseCategory } from "@floc/core/expense-category";
+import { CATEGORY_LABELS, type ExpenseCategory } from "@floc/core/money/expense-category";
 import Svg, { Path } from "react-native-svg";
 
 const PATHS: Record<ExpenseCategory, string> = {

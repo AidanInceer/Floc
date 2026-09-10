@@ -5,8 +5,8 @@
  * Decided per *day*: one column, `day.overnight_place_id`, on every day in the
  * span. A stop is still derived and never stored (rule 3).
  */
-import { isIsoDate } from "@floc/core/dates";
-import { capText } from "@floc/core/text";
+import { isIsoDate } from "@floc/core/dates/dates";
+import { capText } from "@floc/core/text/text";
 
 import {
   listDays,

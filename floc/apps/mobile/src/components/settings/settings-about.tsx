@@ -13,8 +13,8 @@
  * screen that cannot save per keystroke, so it saves on blur rather than
  * growing the screen's only Save button.
  */
-import { DIET_FLAGS, MAX_DIETARY_NOTES } from "@floc/core/dietary";
-import { VIBE_TAGS } from "@floc/core/vibe-tags";
+import { DIET_FLAGS, MAX_DIETARY_NOTES } from "@floc/core/people/dietary";
+import { VIBE_TAGS } from "@floc/core/trip/vibe-tags";
 import { StyleSheet, Pressable, Text, View } from "react-native";
 
 import { useTheme } from "../system/theme";

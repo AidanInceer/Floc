@@ -14,7 +14,7 @@
  * nothing is drawn until a name is typed. What is already marked is on the map
  * above and in its key, so listing it again here was the same answer twice.
  */
-import { COUNTRIES } from "@floc/core/countries";
+import { COUNTRIES } from "@floc/core/people/countries";
 import { useState } from "react";
 import { View } from "react-native";
 

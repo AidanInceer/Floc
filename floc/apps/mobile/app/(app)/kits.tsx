@@ -12,7 +12,7 @@
  * bag in front of you, which is the faster way in and the reason this screen
  * does not need a list builder to be useful. This is where you edit one after.
  */
-import { PACK_CATEGORIES, PACK_CATEGORY_LABELS, type PackCategory } from "@floc/core/packing";
+import { PACK_CATEGORIES, PACK_CATEGORY_LABELS, type PackCategory } from "@floc/core/packing/packing";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { ScrollView, View } from "react-native";

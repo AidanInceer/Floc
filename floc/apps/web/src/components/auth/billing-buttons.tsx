@@ -12,10 +12,10 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { Button, ErrorText, cx } from "@/components/system/ui";
-import { formatMoney } from "@floc/core/money";
-import { yearlySaving } from "@floc/core/subscription-copy";
-import type { Currency } from "@floc/core/currency";
-import type { BillingInterval } from "@floc/core/plans";
+import { formatMoney } from "@floc/core/money/money";
+import { yearlySaving } from "@floc/core/billing/subscription-copy";
+import type { Currency } from "@floc/core/money/currency";
+import type { BillingInterval } from "@floc/core/billing/plans";
 
 export function BillingAction({
   path,

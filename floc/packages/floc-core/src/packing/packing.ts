@@ -3,7 +3,7 @@
  * anything later that summarises packing all ask the same function, so the
  * three words can never drift apart between call sites.
  */
-import { asText } from "./text";
+import { asText } from "../text/text";
 
 export type PackingStatus = "packed" | "claimed" | "unclaimed";
 

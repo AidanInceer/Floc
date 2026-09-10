@@ -21,7 +21,7 @@
 // hoist changes, and this one is not re-exported from the RN package.
 import type { ExpressionSpecification } from "@maplibre/maplibre-gl-style-spec";
 
-import { COUNTRIES } from "@floc/core/countries";
+import { COUNTRIES } from "@floc/core/people/countries";
 import {
   Camera,
   GeoJSONSource,

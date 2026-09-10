@@ -7,8 +7,8 @@
  *
  * Lower case, as they are stored: a tag is the group's own word, not a title.
  */
-import { readTags } from "@floc/core/tags";
-import { tripPastel, type TripColor } from "@floc/core/trip-color";
+import { readTags } from "@floc/core/trip/tags";
+import { tripPastel, type TripColor } from "@floc/core/trip/trip-color";
 import { StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "../system/theme";

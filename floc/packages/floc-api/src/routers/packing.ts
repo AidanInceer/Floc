@@ -25,8 +25,8 @@
  * because it does not need one: the bag on screen is already the list, so
  * `saveKit` names it. Editing the contents of a saved kit stays a desk job.
  */
-import { PACK_CATEGORIES, PACK_TIERS } from "@floc/core/packing";
-import { TEXT_CAPS } from "@floc/core/text";
+import { PACK_CATEGORIES, PACK_TIERS } from "@floc/core/packing/packing";
+import { TEXT_CAPS } from "@floc/core/text/text";
 import { z } from "zod";
 
 import { router, tripProcedure } from "../trpc";

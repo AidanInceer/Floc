@@ -19,7 +19,7 @@
  * them to be a friend — a co-traveller is already inside one of your rings, so
  * that profile is one you may see (ticket 46).
  */
-import { whoTone } from "@floc/core/who";
+import { whoTone } from "@floc/core/people/who";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Alert, Pressable, ScrollView, View } from "react-native";

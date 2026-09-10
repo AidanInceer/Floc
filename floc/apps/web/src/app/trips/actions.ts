@@ -4,9 +4,9 @@
 // requireTripAccess + assertAdmin — never a hand-rolled membership check.
 import { redirect } from "next/navigation";
 
-import { readOptionalIsoDate } from "@floc/core/dates";
-import { capRequiredText } from "@floc/core/text";
-import { isTripColor } from "@floc/core/trip-color";
+import { readOptionalIsoDate } from "@floc/core/dates/dates";
+import { capRequiredText } from "@floc/core/text/text";
+import { isTripColor } from "@floc/core/trip/trip-color";
 import { renameTrip as validateAndRenameTrip } from "@/app/trip/[id]/overview/actions";
 import { assertAdmin, requireTripAccess, requireUser } from "@/server/access";
 import { acceptInvite, declineInvite, inviteToTrip } from "@/server/trips/invites";

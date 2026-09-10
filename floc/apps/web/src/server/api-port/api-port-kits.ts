@@ -10,7 +10,7 @@ import "server-only";
 
 import type { FlocPort, SavedKit } from "@floc/api/port";
 
-import type { PackCategory } from "@floc/core/packing";
+import type { PackCategory } from "@floc/core/packing/packing";
 import { refresh } from "@/server/freshness";
 import {
   insertPackingKit,

@@ -3,7 +3,7 @@
  * and how a file is described on screen. No I/O: the store and the aggregate
  * both validate through here, so "is this allowed?" has one answer.
  */
-import { asText, TEXT_CAPS } from "./text";
+import { asText, TEXT_CAPS } from "../text/text";
 
 
 /** 10 MB. A boarding pass is kilobytes; this is generous for a scanned visa. */

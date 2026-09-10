@@ -10,7 +10,7 @@
  * IT WORKS SIGNED OUT. That is the whole point — the person cannot sign in.
  * The root layout leaves this route alone for the same reason.
  */
-import { passwordWeakness } from "@floc/core/credentials";
+import { passwordWeakness } from "@floc/core/text/credentials";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";

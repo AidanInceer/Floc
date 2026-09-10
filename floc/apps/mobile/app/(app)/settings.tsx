@@ -22,8 +22,8 @@
  * a second place for the record to be half-right.
  */
 import type { MySettings } from "@floc/api/port";
-import { CURRENCIES } from "@floc/core/currency";
-import { PACK_TIERS, PACK_TIER_LABELS, type PackTier } from "@floc/core/packing";
+import { CURRENCIES } from "@floc/core/money/currency";
+import { PACK_TIERS, PACK_TIER_LABELS, type PackTier } from "@floc/core/packing/packing";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";

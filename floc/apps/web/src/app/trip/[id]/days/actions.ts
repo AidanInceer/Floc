@@ -9,7 +9,7 @@ import type { DayEventType, TransportType } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
 import { resolveEventPlace } from "../place-actions";
 import { applyOvernight, type OvernightPlaceInput } from "@/server/itinerary/overnight";
-import { insertAt, permuteEventSlots } from "@floc/core/event-order";
+import { insertAt, permuteEventSlots } from "@floc/core/itinerary/event-order";
 import {
   applyEventSlots,
   extendTripDays,

@@ -7,7 +7,7 @@
  * THE LINE IS THE CONTROL. Tapping what it says opens the form — a labelled
  * row saying "overnight" above a pill saying "overnight" is the word twice.
  */
-import { deriveStops } from "@floc/core/stops";
+import { deriveStops } from "@floc/core/itinerary/stops";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Pressable } from "react-native";

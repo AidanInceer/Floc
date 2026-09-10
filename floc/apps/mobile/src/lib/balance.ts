@@ -13,8 +13,8 @@
  * outstanding list, and Money itself — which is the second call site YAGNI
  * asks for before a helper exists.
  */
-import type { Currency } from "@floc/core/currency";
-import { computeBalances, formatMoney } from "@floc/core/money";
+import type { Currency } from "@floc/core/money/currency";
+import { computeBalances, formatMoney } from "@floc/core/money/money";
 import type { Ledger } from "@floc/api/port";
 
 export type ViewerBalance = {

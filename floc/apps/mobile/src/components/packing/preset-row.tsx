@@ -20,8 +20,8 @@
  * two agree. Colour is never the only signal: the country is on the row and
  * the region names itself in the chip.
  */
-import { formatMoney } from "@floc/core/money";
-import type { PresetTrip } from "@floc/core/preset-trips";
+import { formatMoney } from "@floc/core/money/money";
+import type { PresetTrip } from "@floc/core/trip/preset-trips";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "../system/theme";

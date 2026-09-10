@@ -15,14 +15,14 @@ import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { packingLine, tripMembership } from "@/db/schema";
-import { nightsBetween, type IsoDate } from "@floc/core/dates";
+import { nightsBetween, type IsoDate } from "@floc/core/dates/dates";
 import {
   generatePackingList,
   newSuggestionsOnly,
   summariseClimate,
   type PackClimate,
-} from "@floc/core/packing-catalogue";
-import type { PackTier } from "@floc/core/packing";
+} from "@floc/core/packing/packing-catalogue";
+import type { PackTier } from "@floc/core/packing/packing";
 import { LIMITS } from "@/server/limits";
 import { getTripForecast, tripForecastAnchor } from "@/server/itinerary/weather";
 

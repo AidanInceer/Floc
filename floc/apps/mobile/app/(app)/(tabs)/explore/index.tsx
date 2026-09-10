@@ -16,7 +16,7 @@
  * SHAPE, NOT PHOTOGRAPHS (#194). Still true, and still the reason the mark on
  * each row is the travel mode rather than a picture of somewhere.
  */
-import { PRESET_TRIPS, type Region } from "@floc/core/preset-trips";
+import { PRESET_TRIPS, type Region } from "@floc/core/trip/preset-trips";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { FlatList, View } from "react-native";

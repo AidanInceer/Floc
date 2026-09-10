@@ -8,8 +8,8 @@ import {
   DOC_CATEGORY_SKINS,
   formatBytes,
   kindLabel,
-} from "@floc/core/documents";
-import type { DocCategory } from "@floc/core/documents";
+} from "@floc/core/documents/documents";
+import type { DocCategory } from "@floc/core/documents/documents";
 import { cx } from "@/components/system/ui";
 
 export type DocumentRowData = {

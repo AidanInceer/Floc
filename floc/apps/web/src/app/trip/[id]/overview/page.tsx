@@ -46,10 +46,10 @@ import { listAvailability } from "@/server/itinerary/availability";
 import { listPendingInvitees } from "@/server/trips/invites";
 import { listExpenses, listSettlements, listSplits } from "@/server/money/money";
 import { absoluteUrl } from "@/server/auth/email";
-import { formatMoney } from "@floc/core/money";
-import type { Currency } from "@floc/core/currency";
-import { tripStateFor } from "@floc/core/trip-state";
-import { formatDateRange } from "@floc/core/dates";
+import { formatMoney } from "@floc/core/money/money";
+import type { Currency } from "@floc/core/money/currency";
+import { tripStateFor } from "@floc/core/trip/trip-state";
+import { formatDateRange } from "@floc/core/dates/dates";
 import { Avatar, Badge, ButtonLink, PASTEL_BY_KEY, PASTEL_SKINS, Stack, cx } from "@/components/system/ui";
 import { Sheet, SubmitButton } from "@/components/system/client-ui";
 import { TripNameInline } from "@/components/trip/trip-name-inline";
@@ -59,8 +59,8 @@ import { TripRoute } from "@/components/trip/trip-route";
 import { TripDayTrack } from "@/components/days/trip-day-track";
 import { DocumentsBlock } from "@/components/documents/documents-block";
 import { TagEditor } from "@/components/trip/tag-editor";
-import { readTags } from "@floc/core/tags";
-import { readTripColor } from "@floc/core/trip-color";
+import { readTags } from "@floc/core/trip/tags";
+import { readTripColor } from "@floc/core/trip/trip-color";
 import { renameTrip, setTripTags } from "./actions";
 
 export default async function OverviewPage({

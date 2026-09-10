@@ -22,10 +22,10 @@
  *      is never an error.
  *  10. No timezones. Dates are `YYYY-MM-DD`; times are local to the itinerary.
  */
-import type { Currency } from "@floc/core/currency";
-import type { DocCategory } from "@floc/core/documents";
-import type { ExpenseCategory } from "@floc/core/expense-category";
-import type { PackCategory, PackTier } from "@floc/core/packing";
+import type { Currency } from "@floc/core/money/currency";
+import type { DocCategory } from "@floc/core/documents/documents";
+import type { ExpenseCategory } from "@floc/core/money/expense-category";
+import type { PackCategory, PackTier } from "@floc/core/packing/packing";
 import type { DayEventType, SplitType, TransportType } from "@floc/core/vocabulary";
 
 export type { Currency, DayEventType, DocCategory, ExpenseCategory, SplitType, TransportType };

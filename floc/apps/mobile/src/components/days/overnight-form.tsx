@@ -11,7 +11,7 @@
  * SEARCH MAY GIVE NOTHING (rule 11). The geocoder being down is not an error
  * state — the typed name is saved as it stands, and the map simply has no pin.
  */
-import { formatDate } from "@floc/core/dates";
+import { formatDate } from "@floc/core/dates/dates";
 import { useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
 

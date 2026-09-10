@@ -8,7 +8,7 @@
  */
 import { cx } from "@/components/system/ui";
 import { WeatherGlyph } from "@/components/system/weather-glyph";
-import type { WeatherCondition } from "@floc/core/weather";
+import type { WeatherCondition } from "@floc/core/itinerary/weather";
 import type { DailyForecast } from "@/server/itinerary/weather";
 
 export type View = "mine" | "everyone" | "dates" | "weather";

@@ -25,8 +25,8 @@ import { TagPills } from "@/components/trip/tag-pills";
 import { useTheme } from "@/components/system/theme";
 import { TripSheet, draftFor, type TripDraft } from "@/components/trip/trip-sheet";
 import { Body, Button, Card, Empty, Failed, Figure, IconButton, Loading, Pill } from "@/components/system/ui";
-import { formatDateRange, splitEnded } from "@floc/core/dates";
-import { readTripColor, tripPastel } from "@floc/core/trip-color";
+import { formatDateRange, splitEnded } from "@floc/core/dates/dates";
+import { readTripColor, tripPastel } from "@floc/core/trip/trip-color";
 
 import type { AppRouter } from "@floc/api/router";
 import type { inferRouterOutputs } from "@trpc/server";

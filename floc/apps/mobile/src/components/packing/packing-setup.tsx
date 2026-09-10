@@ -14,7 +14,7 @@
  * press goes, and what it already wrote stays — so this says the press is
  * unavailable rather than pretending the feature does not exist.
  */
-import { PACK_TIERS, PACK_TIER_LABELS, type PackTier } from "@floc/core/packing";
+import { PACK_TIERS, PACK_TIER_LABELS, type PackTier } from "@floc/core/packing/packing";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "../system/theme";

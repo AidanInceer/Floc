@@ -12,8 +12,8 @@ import {
   tickBoxBase,
   tickBoxClass,
 } from "@/components/packing/packing-glyphs";
-import { packingStatus, packingStatusLabel } from "@floc/core/packing";
-import type { PackingStatus } from "@floc/core/packing";
+import { packingStatus, packingStatusLabel } from "@floc/core/packing/packing";
+import type { PackingStatus } from "@floc/core/packing/packing";
 
 export type PackingClaimant = {
   userId: string;

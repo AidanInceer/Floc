@@ -13,7 +13,7 @@
  * else's trip is its own piece of work, and its roster would show third parties
  * who never agreed to appear here.
  */
-import { formatDateRange } from "@floc/core/dates";
+import { formatDateRange } from "@floc/core/dates/dates";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { ScrollView, View } from "react-native";

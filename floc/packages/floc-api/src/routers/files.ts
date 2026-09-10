@@ -13,7 +13,7 @@
  * are ordinary mistakes; `upload` answers with the sentence a form shows, and
  * null when the file landed.
  */
-import { DOC_CATEGORIES } from "@floc/core/documents";
+import { DOC_CATEGORIES } from "@floc/core/documents/documents";
 import { z } from "zod";
 
 import { router, tripProcedure } from "../trpc";

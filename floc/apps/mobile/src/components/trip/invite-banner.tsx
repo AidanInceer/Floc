@@ -8,7 +8,7 @@
  * ABOVE THE LIST, AND ONLY WHEN THERE IS ONE. It is the only thing on the
  * screen waiting on you; the ordinary state is that this draws nothing at all.
  */
-import { formatDateRange } from "@floc/core/dates";
+import { formatDateRange } from "@floc/core/dates/dates";
 import { View } from "react-native";
 
 import { PersonRow } from "./person-row";

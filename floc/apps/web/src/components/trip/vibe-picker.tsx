@@ -17,7 +17,7 @@
 import { useState } from "react";
 
 import { PASTEL_SKINS, cx } from "@/components/system/ui";
-import { VIBE_TAGS } from "@floc/core/vibe-tags";
+import { VIBE_TAGS } from "@floc/core/trip/vibe-tags";
 
 export function VibePicker({ selected }: { selected: string[] }) {
   const [picked, setPicked] = useState<string[]>(selected);

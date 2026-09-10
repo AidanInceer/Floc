@@ -26,8 +26,8 @@ import {
   parsePackSort,
   resolvePackTier,
   viewPackingLines,
-} from "@floc/core/packing";
-import type { PackCategory, PackSort } from "@floc/core/packing";
+} from "@floc/core/packing/packing";
+import type { PackCategory, PackSort } from "@floc/core/packing/packing";
 import {
   CategorySelect,
   PackingBulkBar,

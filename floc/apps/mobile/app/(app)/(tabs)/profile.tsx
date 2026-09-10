@@ -28,7 +28,7 @@
  * TWO READS, NOT ONE. `me` is the identity every screen wants; `me.profile` is
  * the heavier face. Packing reads the first and has no use for a travel map.
  */
-import { formatDateRange } from "@floc/core/dates";
+import { formatDateRange } from "@floc/core/dates/dates";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";

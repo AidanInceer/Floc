@@ -16,7 +16,7 @@
  * Cells are drawn but never *only* drawn: a day carries its number, and a
  * shaded day carries the count of who is free (#204).
  */
-import { WEEKDAY_LABELS, monthGrid, type IsoMonth } from "@floc/core/availability";
+import { WEEKDAY_LABELS, monthGrid, type IsoMonth } from "@floc/core/dates/availability";
 import { useRef, useState } from "react";
 import { PanResponder, StyleSheet, Text, View } from "react-native";
 

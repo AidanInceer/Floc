@@ -13,7 +13,7 @@ import { and, count, desc, eq, isNull, or } from "drizzle-orm";
 
 import { db } from "@/db";
 import { document, user, userProfile } from "@/db/schema";
-import type { DocCategory } from "@floc/core/documents";
+import type { DocCategory } from "@floc/core/documents/documents";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
 

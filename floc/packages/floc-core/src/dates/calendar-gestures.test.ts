@@ -11,7 +11,7 @@ import {
   rangeFromAnchor,
   resolveBandRelease,
 } from "./calendar-gestures";
-import type { BandSpan } from "./overnight-band";
+import type { BandSpan } from "../itinerary/overnight-band";
 
 const span = (start: number, end: number, open = false) => ({ start, end, open });
 

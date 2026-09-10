@@ -25,18 +25,18 @@ import {
   monthGrid,
   monthsFrom,
   type IsoMonth,
-} from "@floc/core/availability";
+} from "@floc/core/dates/availability";
 import {
   advanceRangePick,
   paintRange,
   pickedRange,
-} from "@floc/core/calendar-gestures";
-import { dateRange, today, type IsoDate } from "@floc/core/dates";
+} from "@floc/core/dates/calendar-gestures";
+import { dateRange, today, type IsoDate } from "@floc/core/dates/dates";
 import {
   windowCost,
   windowCostLabel,
   type DayLoad,
-} from "@floc/core/trip-window";
+} from "@floc/core/trip/trip-window";
 import type { DailyForecast, TripForecast } from "@/server/itinerary/weather";
 
 export function AvailabilityCalendar({

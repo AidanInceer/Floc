@@ -10,8 +10,8 @@ import { ButtonLink } from "@/components/system/ui";
 
 import type { TransportType } from "@/db/schema";
 import type { RouteDay } from "@/server/itinerary/itinerary";
-import { formatDate } from "@floc/core/dates";
-import { deriveStops, placedStops } from "@floc/core/stops";
+import { formatDate } from "@floc/core/dates/dates";
+import { deriveStops, placedStops } from "@floc/core/itinerary/stops";
 import { RouteMap } from "@/components/map/route-map";
 import { TravelModeIcon } from "@/components/map/travel-mode-icon";
 

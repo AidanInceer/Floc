@@ -17,7 +17,7 @@
  * and still typechecks, but it is a deprecation shim that throws the moment it
  * runs — so the compiler is no help here and the import has to be the new one.
  */
-import { DOCUMENT_ACCEPT } from "@floc/core/documents";
+import { DOCUMENT_ACCEPT } from "@floc/core/documents/documents";
 import * as DocumentPicker from "expo-document-picker";
 import { File } from "expo-file-system";
 

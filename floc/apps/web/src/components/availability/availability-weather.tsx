@@ -8,7 +8,7 @@
  */
 import { cx } from "@/components/system/ui";
 import { WeatherGlyph } from "@/components/system/weather-glyph";
-import { formatDate, type IsoDate } from "@floc/core/dates";
+import { formatDate, type IsoDate } from "@floc/core/dates/dates";
 import type { DailyForecast, HourlyPoint } from "@/server/itinerary/weather";
 
 // Reading line under the weather calendar: temperatures for the hovered day; at

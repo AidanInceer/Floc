@@ -9,7 +9,7 @@
  * which Better Auth is told to trust, so opening the mail on the phone lands
  * on `/reset-password` here rather than on the website.
  */
-import { isValidEmail } from "@floc/core/credentials";
+import { isValidEmail } from "@floc/core/text/credentials";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";

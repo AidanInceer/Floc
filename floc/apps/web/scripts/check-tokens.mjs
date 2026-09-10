@@ -14,7 +14,7 @@
  */
 import { rootBlock, readCss, LIGHT, DARK } from "./tokens.mjs";
 
-import { lightTokens, darkTokens } from "@floc/core/tokens";
+import { lightTokens, darkTokens } from "@floc/core/design/tokens";
 
 const css = readCss();
 const failures = [];

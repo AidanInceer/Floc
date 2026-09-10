@@ -11,7 +11,7 @@
 import type { PackTier } from "./packing";
 import { clampPackQuantity, MAX_PACK_QUANTITY } from "./packing";
 import type { PackCategory } from "./packing";
-import type { WeatherCondition } from "./weather";
+import type { WeatherCondition } from "../itinerary/weather";
 
 /**
  * The forecast boiled down to the only three questions the catalogue asks.

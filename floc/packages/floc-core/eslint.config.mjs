@@ -45,7 +45,7 @@ const config = [
 
   // 2026-08-23: predates the ceiling (#212), carried over from apps/web.
   {
-    files: ["src/trip-state.ts"],
+    files: ["src/trip/trip-state.ts"],
     rules: { "max-lines-per-function": "off", complexity: "off" },
   },
 

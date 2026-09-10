@@ -24,7 +24,7 @@ import type {
   Settlement,
   SplitType,
 } from "@/db/schema";
-import type { ExpenseCategory } from "@floc/core/expense-category";
+import type { ExpenseCategory } from "@floc/core/money/expense-category";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
 

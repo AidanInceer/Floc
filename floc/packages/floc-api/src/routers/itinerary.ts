@@ -6,7 +6,7 @@
  * by `@floc/core/stops` on whichever client is drawing it. Both platforms
  * derive it with the same function, so neither invents its own idea of one.
  */
-import { isIsoDate } from "@floc/core/dates";
+import { isIsoDate } from "@floc/core/dates/dates";
 import { DAY_EVENT_TYPES, TRANSPORT_TYPES } from "@floc/core/vocabulary";
 import { z } from "zod";
 

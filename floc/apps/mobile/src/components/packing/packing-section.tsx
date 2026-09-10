@@ -20,7 +20,7 @@ import {
   viewPackingLines,
   type PackCategory,
   type PackSort,
-} from "@floc/core/packing";
+} from "@floc/core/packing/packing";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "../system/theme";

@@ -15,12 +15,10 @@ const MAX = 20;
 const SKIP = new Set(["node_modules", ".next", ".expo", ".git", "dist", "build", "coverage"]);
 
 /**
- * 2026-09-10: the three folders the cap was written for. Each entry goes when
- * its slice lands — the check is what stops them growing back.
+ * 2026-09-10: the four walls the cap was written for are all split. What is
+ * left is the one folder a refactor would not repay.
  */
 const ALLOWLIST = new Set([
-  // Found by this check, not in the original plan — its own slice.
-  "floc/packages/floc-core/src",
   // Old, don't extend (CLAUDE.md) — a dead app is not worth a refactor.
   "floc/apps/prototype",
 ]);

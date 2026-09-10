@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { addDays } from "./dates";
+import { addDays } from "../dates/dates";
 import {
   HORIZON_DAYS,
   conditionLabel,

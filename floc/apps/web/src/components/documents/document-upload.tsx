@@ -28,7 +28,7 @@ import {
   DOC_CATEGORY_LABELS,
   formatBytes,
   kindLabel,
-} from "@floc/core/documents";
+} from "@floc/core/documents/documents";
 
 export function DocumentUpload({
   tripId,

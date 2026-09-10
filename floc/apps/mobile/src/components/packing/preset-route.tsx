@@ -10,7 +10,7 @@
  * how you get between is how you spend the day in the middle. Both still say
  * their words, so the shapes are decoration on top of a readable list.
  */
-import type { PresetTrip } from "@floc/core/preset-trips";
+import type { PresetTrip } from "@floc/core/trip/preset-trips";
 import { StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "../system/theme";

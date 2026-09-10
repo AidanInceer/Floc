@@ -37,15 +37,15 @@ import {
 } from "@/components/days/days-calendar";
 import { EventForm } from "@/components/days/event-form";
 import { Badge, ButtonLink, EmptyState, menuDangerItemClass, menuItemClass } from "@/components/system/ui";
-import { EVENT_CATEGORIES } from "@floc/core/event-categories";
-import { formatLength, formatSpan, spanOf } from "@floc/core/calendar";
+import { EVENT_CATEGORIES } from "@floc/core/itinerary/event-categories";
+import { formatLength, formatSpan, spanOf } from "@floc/core/dates/calendar";
 import { NoteThread, type NoteRow } from "@/components/notes/note-thread";
 import { requireTripAccess } from "@/server/access";
 import { listDaysWithEvents, type DayEventRow } from "@/server/itinerary/itinerary";
 import { loadThreads } from "@/server/notes/notes-read";
 import { listTripLinks } from "@/server/trips/trip-links";
 import { TripLinks } from "@/components/trip/trip-links";
-import { addDays as addDaysToDate, fromIsoDate, today } from "@floc/core/dates";
+import { addDays as addDaysToDate, fromIsoDate, today } from "@floc/core/dates/dates";
 
 export default async function DaysPage({
   params,

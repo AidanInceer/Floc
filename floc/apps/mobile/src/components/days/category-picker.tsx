@@ -21,7 +21,7 @@ import {
   CATEGORY_LABELS,
   EXPENSE_CATEGORIES,
   type ExpenseCategory,
-} from "@floc/core/expense-category";
+} from "@floc/core/money/expense-category";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 

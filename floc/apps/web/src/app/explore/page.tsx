@@ -14,13 +14,13 @@
  * says so and goes to /signup rather than half-starting anything.
  */
 import { getSession } from "@/server/access";
-import { formatMoney } from "@floc/core/money";
+import { formatMoney } from "@floc/core/money/money";
 import { ButtonLink, PASTEL_SKINS, cx } from "@/components/system/ui";
 import { SubmitButton } from "@/components/system/client-ui";
 import { RouteMap } from "@/components/map/route-map";
 import { startTripFromPreset } from "./actions";
-import { PRESET_TRIPS, REGIONS } from "@floc/core/preset-trips";
-import type { PresetTrip, Region } from "@floc/core/preset-trips";
+import { PRESET_TRIPS, REGIONS } from "@floc/core/trip/preset-trips";
+import type { PresetTrip, Region } from "@floc/core/trip/preset-trips";
 
 function isRegion(value: string | undefined): value is Region {
   return !!value && (REGIONS as readonly string[]).includes(value);

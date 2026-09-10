@@ -16,9 +16,9 @@
  * sharing an overnight place, computed by `@floc/core/stops`, never a `stop`
  * table (rule 3).
  */
-import { computeBalances, isAllSettled } from "@floc/core/money";
-import { formatDateRange } from "@floc/core/dates";
-import { readTripColor } from "@floc/core/trip-color";
+import { computeBalances, isAllSettled } from "@floc/core/money/money";
+import { formatDateRange } from "@floc/core/dates/dates";
+import { readTripColor } from "@floc/core/trip/trip-color";
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ScrollView, View } from "react-native";

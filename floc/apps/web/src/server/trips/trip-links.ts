@@ -15,7 +15,7 @@ import { and, asc, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { tripLink, user } from "@/db/schema";
-import { capText } from "@floc/core/text";
+import { capText } from "@floc/core/text/text";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
 

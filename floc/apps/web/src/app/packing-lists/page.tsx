@@ -19,7 +19,7 @@ import {
   MAX_PACK_QUANTITY,
   MIN_PACK_QUANTITY,
   viewPackingLines,
-} from "@floc/core/packing";
+} from "@floc/core/packing/packing";
 import { requireUser } from "@/server/access";
 import { listPackingKitsWithItems } from "@/server/packing/packing-kits";
 import {

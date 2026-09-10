@@ -17,7 +17,7 @@
  * account works from the first screen, and the unconfirmed state is said on
  * You, where it can be resent.
  */
-import { isValidEmail, passwordWeakness } from "@floc/core/credentials";
+import { isValidEmail, passwordWeakness } from "@floc/core/text/credentials";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";

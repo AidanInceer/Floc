@@ -20,7 +20,7 @@
  * THE RULES ARE NOT HERE. `expense-form-parts` holds every one of them, so
  * money, splits and rejections cannot drift from the drawing.
  */
-import { formatMoney } from "@floc/core/money";
+import { formatMoney } from "@floc/core/money/money";
 import { useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
 

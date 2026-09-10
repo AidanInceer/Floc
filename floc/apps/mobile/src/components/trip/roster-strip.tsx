@@ -9,7 +9,7 @@
  * never a stored column. `Admin` is a word, so the four powers are legible
  * without seeing a colour at all (rule 6, #204).
  */
-import { whoTone } from "@floc/core/who";
+import { whoTone } from "@floc/core/people/who";
 import { View } from "react-native";
 
 import { Seat } from "../system/glyphs";

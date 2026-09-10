@@ -40,7 +40,7 @@ import {
   isChecked,
   type DrawnBlock,
   type NoteBlock,
-} from "@floc/core/note-blocks";
+} from "@floc/core/notes/note-blocks";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";

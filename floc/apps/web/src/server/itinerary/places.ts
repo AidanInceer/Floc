@@ -11,9 +11,9 @@ import "server-only";
 import { and, eq, isNull, or } from "drizzle-orm";
 
 import { db } from "@/db";
-import { capRequiredText } from "@floc/core/text";
+import { capRequiredText } from "@floc/core/text/text";
 import { day, dayEvent, place } from "@/db/schema";
-import { readCountryCode } from "@floc/core/countries";
+import { readCountryCode } from "@floc/core/people/countries";
 import { bounded, LIMITS } from "@/server/limits";
 
 /** Nominatim requires an identifying UA with a contact address — not a secret, no key to leak. */

@@ -8,8 +8,8 @@
  * anything that arrives here is already the viewer's to see. The `Private`
  * pill therefore means "only you", not "restricted".
  */
-import { DOC_CATEGORY_LABELS } from "@floc/core/documents";
-import type { DocCategory } from "@floc/core/documents";
+import { DOC_CATEGORY_LABELS } from "@floc/core/documents/documents";
+import type { DocCategory } from "@floc/core/documents/documents";
 import { StyleSheet, View } from "react-native";
 
 import { useTheme } from "../system/theme";

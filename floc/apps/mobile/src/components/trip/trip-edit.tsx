@@ -10,8 +10,8 @@
  * separator; a row per tag shows the shape it is saved in. `parseTagNames`
  * still normalises, so the phone never decides what a tag is.
  */
-import { MAX_TAGS, MAX_TAG_LENGTH } from "@floc/core/tags";
-import { TRIP_COLORS, type TripColor } from "@floc/core/trip-color";
+import { MAX_TAGS, MAX_TAG_LENGTH } from "@floc/core/trip/tags";
+import { TRIP_COLORS, type TripColor } from "@floc/core/trip/trip-color";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
 
 import { CrossGlyph } from "../system/glyphs";

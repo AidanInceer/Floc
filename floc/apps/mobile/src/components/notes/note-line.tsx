@@ -27,7 +27,7 @@ import {
   headingLevel,
   isChecked,
   type NoteBlock,
-} from "@floc/core/note-blocks";
+} from "@floc/core/notes/note-blocks";
 import { forwardRef } from "react";
 import { Pressable, Text, TextInput, View, type NativeSyntheticEvent, type TextInputKeyPressEventData } from "react-native";
 

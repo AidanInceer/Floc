@@ -27,7 +27,7 @@ import {
   type PackCategory,
   type PackSort,
   type PackTier,
-} from "@floc/core/packing";
+} from "@floc/core/packing/packing";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";

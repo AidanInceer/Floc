@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { readCountryCode } from "./countries";
+import { readCountryCode } from "../people/countries";
 import { mergeMarks } from "./travel-map";
 
 describe("mergeMarks", () => {

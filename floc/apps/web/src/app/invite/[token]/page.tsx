@@ -17,7 +17,7 @@ import { findPendingInvite, findTripByInviteToken } from "@/server/trips/invites
 import { countMembers, isLiveMember } from "@/server/trips/roster";
 import { emailConfigured } from "@/server/auth/email";
 import { peopleByIds } from "@/server/social/friends";
-import { formatDateRange } from "@floc/core/dates";
+import { formatDateRange } from "@floc/core/dates/dates";
 import { ButtonLink } from "@/components/system/ui";
 import { SubmitButton } from "@/components/system/client-ui";
 import { joinTrip, resendVerification } from "./actions";

@@ -1,7 +1,7 @@
 "use server";
 
 // Server action for the Notes doc (ticket 238).
-import { TEXT_CAPS } from "@floc/core/text";
+import { TEXT_CAPS } from "@floc/core/text/text";
 import { requireTripAccess } from "@/server/access";
 import { saveNoteDoc } from "@/server/notes/note-doc";
 

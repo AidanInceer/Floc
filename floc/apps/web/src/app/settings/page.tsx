@@ -35,7 +35,7 @@ import type { ProPrice } from "@/server/billing/billing";
 import { allFeaturesFree } from "@/lib/env";
 import { ensureProfile, listLinkedAccounts } from "@/server/auth/profile";
 import { BillingAction, ProUpgrade } from "@/components/auth/billing-buttons";
-import { isLive, renewalLabel } from "@floc/core/subscription-copy";
+import { isLive, renewalLabel } from "@floc/core/billing/subscription-copy";
 import {
   AccountPage,
   PillChoice,
@@ -50,9 +50,9 @@ import {
   SubmitButton,
 } from "@/components/system/client-ui";
 import { VibePicker } from "@/components/trip/vibe-picker";
-import { DIET_FLAGS, MAX_DIETARY_NOTES, readDietFlags } from "@floc/core/dietary";
-import { PACK_TIERS, PACK_TIER_LABELS } from "@floc/core/packing";
-import { readVibeTags } from "@floc/core/vibe-tags";
+import { DIET_FLAGS, MAX_DIETARY_NOTES, readDietFlags } from "@floc/core/people/dietary";
+import { PACK_TIERS, PACK_TIER_LABELS } from "@floc/core/packing/packing";
+import { readVibeTags } from "@floc/core/trip/vibe-tags";
 
 const SECTIONS = [
   { id: "privacy", label: "Privacy" },

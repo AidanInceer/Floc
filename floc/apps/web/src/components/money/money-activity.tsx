@@ -5,8 +5,8 @@
  * every query.
  */
 import type { Currency, Expense, ExpenseSplit, Settlement } from "@/db/schema";
-import { formatDate, toIsoDate } from "@floc/core/dates";
-import { formatTicker } from "@floc/core/money";
+import { formatDate, toIsoDate } from "@floc/core/dates/dates";
+import { formatTicker } from "@floc/core/money/money";
 import { menuDangerItemClass, menuItemClass } from "@/components/system/ui";
 import { ConfirmSubmit, Menu, Sheet } from "@/components/system/client-ui";
 import { CategoryIcon } from "@/components/system/category-icon";

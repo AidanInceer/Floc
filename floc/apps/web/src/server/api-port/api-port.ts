@@ -32,7 +32,7 @@ import type {
   PlaceHit,
 } from "@floc/api/port";
 
-import { PRESET_TRIPS } from "@floc/core/preset-trips";
+import { PRESET_TRIPS } from "@floc/core/trip/preset-trips";
 
 import { assertAdmin, findTripAccess, type TripAccess } from "@/server/access";
 import { scoped } from "@/server/api-port/api-port-scope";
@@ -97,8 +97,8 @@ import {
 } from "@/server/packing/packing-kits";
 import { fillPersonalBag, packingPlanFor } from "@/server/packing/packing-generator";
 import { canUseFeature, assertFeature } from "@/server/billing/entitlements";
-import { resolvePackTier } from "@floc/core/packing";
-import { readVibeTags } from "@floc/core/vibe-tags";
+import { resolvePackTier } from "@floc/core/packing/packing";
+import { readVibeTags } from "@floc/core/trip/vibe-tags";
 import { pastTripsFor } from "@/server/auth/visibility";
 import { travelMapFor } from "@/server/itinerary/travel-map";
 import { leaveTripAs, removeMembership, setMemberRoleAdmin } from "@/server/trips/roster";

@@ -28,7 +28,7 @@ import {
   MIN_PACK_QUANTITY,
   packingStatusLabel,
   type PackCategory,
-} from "@floc/core/packing";
+} from "@floc/core/packing/packing";
 import { View } from "react-native";
 
 import { Pressable } from "react-native";

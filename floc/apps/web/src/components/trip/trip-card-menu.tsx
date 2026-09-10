@@ -7,8 +7,8 @@
 import { ConfirmSubmit, Menu, Sheet, SubmitButton } from "@/components/system/client-ui";
 import { Field, Input, Stack, menuDangerItemClass, menuItemClass } from "@/components/system/ui";
 import { TripColorPicker } from "@/components/trip/trip-color-picker";
-import { TEXT_CAPS } from "@floc/core/text";
-import type { TripColor } from "@floc/core/trip-color";
+import { TEXT_CAPS } from "@floc/core/text/text";
+import type { TripColor } from "@floc/core/trip/trip-color";
 import { archiveTrip, deleteTrip, renameTripFromMenu } from "@/app/trips/actions";
 
 export function TripCardMenu({

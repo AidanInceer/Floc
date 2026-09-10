@@ -9,15 +9,15 @@
 import type { Currency, ExpenseSplit } from "@/db/schema";
 import { CURRENCIES } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
-import { formatDate } from "@floc/core/dates";
+import { formatDate } from "@floc/core/dates/dates";
 import {
   computeBalances,
   convertTotal,
   formatMoney,
   isAllSettled,
   suggestSettlements,
-} from "@floc/core/money";
-import type { LedgerLine, LedgerSettlement } from "@floc/core/money";
+} from "@floc/core/money/money";
+import type { LedgerLine, LedgerSettlement } from "@floc/core/money/money";
 import { listDays } from "@/server/itinerary/itinerary";
 import {
   listExpenses,

@@ -4,7 +4,7 @@
  * Component, so this file must never touch the database — the read lives in
  * `lib/notes-read.ts`, the same split as `lib/tabs.ts` vs `server/notes.ts`.
  */
-import { REACTION_KINDS, type ReactionKind } from "./vocabulary";
+import { REACTION_KINDS, type ReactionKind } from "../vocabulary";
 
 export type Reactions = Record<ReactionKind, { count: number; mine: boolean }>;
 

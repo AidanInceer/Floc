@@ -8,7 +8,7 @@ import {
   cleanFileName,
   parseDocCategory,
   rejectUpload,
-} from "@floc/core/documents";
+} from "@floc/core/documents/documents";
 import { requireTripAccess } from "@/server/access";
 import {
   countDocuments,

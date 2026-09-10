@@ -16,8 +16,8 @@ import { headers } from "next/headers";
 
 import type { FlocPort, MySettings } from "@floc/api/port";
 
-import { parseDietFlags, readDietFlags } from "@floc/core/dietary";
-import { parseVibeTags, readVibeTags } from "@floc/core/vibe-tags";
+import { parseDietFlags, readDietFlags } from "@floc/core/people/dietary";
+import { parseVibeTags, readVibeTags } from "@floc/core/trip/vibe-tags";
 import { auth, listLinkedAccounts, unlinkAccountById } from "@/server/auth/auth";
 import { refresh } from "@/server/freshness";
 import { ensureProfile, loadIdentity, updateProfileFields } from "@/server/auth/profile";

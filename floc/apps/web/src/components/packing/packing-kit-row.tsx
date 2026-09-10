@@ -6,7 +6,7 @@ import { cx } from "@/components/system/ui";
 import { ConfirmSubmit } from "@/components/system/client-ui";
 import { CrossGlyph, squareButton } from "@/components/packing/packing-glyphs";
 import { PackingStepper } from "@/components/packing/packing-quantity";
-import { clampPackQuantity } from "@floc/core/packing";
+import { clampPackQuantity } from "@floc/core/packing/packing";
 
 /**
  * One thing in a saved list (ticket 230). The same row as a bag's, minus the

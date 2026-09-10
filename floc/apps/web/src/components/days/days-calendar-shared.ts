@@ -4,7 +4,7 @@
  * pieces — the day column, the overnight band, the dialog — all read.
  */
 import type { DayEventType, TransportType } from "@/db/schema";
-import type { BandSpan } from "@floc/core/overnight-band";
+import type { BandSpan } from "@floc/core/itinerary/overnight-band";
 
 /** Pixels per hour. Tall enough that a 15-minute block is still a target. */
 export const HOUR_PX = 56;

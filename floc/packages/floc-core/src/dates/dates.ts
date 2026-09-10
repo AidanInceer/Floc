@@ -5,7 +5,7 @@
  * time only.
  */
 
-import { asText } from "./text";
+import { asText } from "../text/text";
 
 export type IsoDate = string;
 

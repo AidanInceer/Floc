@@ -15,7 +15,7 @@
  * rebuilding them on every render of every screen would be a real cost for a
  * map that never changes.
  */
-import { resolveTokens, type Theme } from "@floc/core/tokens";
+import { resolveTokens, type Theme } from "@floc/core/design/tokens";
 
 export type { Theme };
 

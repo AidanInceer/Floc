@@ -18,7 +18,7 @@ import {
   isChecked,
   isDrawn,
   type NoteBlock,
-} from "@floc/core/note-blocks";
+} from "@floc/core/notes/note-blocks";
 import { Pressable, Text, View } from "react-native";
 
 import { useTheme } from "../system/theme";

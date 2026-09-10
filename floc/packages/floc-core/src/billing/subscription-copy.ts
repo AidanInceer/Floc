@@ -7,7 +7,7 @@
  * features, this one only picks words. Neither may drift, so both are short
  * enough to read side by side.
  */
-import { formatDate, toIsoDate } from "./dates";
+import { formatDate, toIsoDate } from "../dates/dates";
 
 /** The parts of a subscription row that decide the wording. */
 export type SubscriptionFacts = {

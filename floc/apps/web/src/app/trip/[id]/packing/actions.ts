@@ -9,8 +9,8 @@ import {
   parsePackTier,
   parseQuantityStep,
   resolvePackTier,
-} from "@floc/core/packing";
-import { capRequiredText } from "@floc/core/text";
+} from "@floc/core/packing/packing";
+import { capRequiredText } from "@floc/core/text/text";
 import { requireTripAccess } from "@/server/access";
 import { assertFeature } from "@/server/billing/entitlements";
 import { LIMITS } from "@/server/limits";

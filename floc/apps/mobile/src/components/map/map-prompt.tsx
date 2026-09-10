@@ -9,7 +9,7 @@
  * NAMED, NOT COUNTED. "Keep 3 countries?" is not a question anyone can answer;
  * the countries are listed with what each was marked as.
  */
-import { countryName } from "@floc/core/countries";
+import { countryName } from "@floc/core/people/countries";
 import { StyleSheet, View } from "react-native";
 
 import { useTheme } from "../system/theme";

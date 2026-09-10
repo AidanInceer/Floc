@@ -3,8 +3,8 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 
 import { db, schema } from "@/db";
 import { getTripForecast, tripForecastAnchor } from "@/server/itinerary/weather";
-import { addDays, today } from "@floc/core/dates";
-import { HORIZON_DAYS } from "@floc/core/weather";
+import { addDays, today } from "@floc/core/dates/dates";
+import { HORIZON_DAYS } from "@floc/core/itinerary/weather";
 import {
   givePro,
   migrateTestDb,

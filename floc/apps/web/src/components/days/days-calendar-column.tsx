@@ -16,8 +16,8 @@ import {
   type CalendarEvent,
   type Landing,
 } from "@/components/days/days-calendar-shared";
-import { clamp, formatSpan, packLanes, snap, spanOf, toHhmm, toMinutes } from "@floc/core/calendar";
-import { EVENT_CATEGORIES } from "@floc/core/event-categories";
+import { clamp, formatSpan, packLanes, snap, spanOf, toHhmm, toMinutes } from "@floc/core/dates/calendar";
+import { EVENT_CATEGORIES } from "@floc/core/itinerary/event-categories";
 
 // Packing decides *where* a block goes, not render order — rendering in
 // `packLanes`' start-sorted order re-sorted the keyed nodes on drag, and Chrome

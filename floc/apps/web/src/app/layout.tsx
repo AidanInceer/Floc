@@ -11,7 +11,7 @@ import { THEME_BOOTSTRAP } from "@/lib/theme";
 import { getSession } from "@/server/access";
 import { subscriptionOf } from "@/server/billing/billing";
 import { allFeaturesFree } from "@/lib/env";
-import { isLive } from "@floc/core/subscription-copy";
+import { isLive } from "@floc/core/billing/subscription-copy";
 import { countIncomingFriendRequests } from "@/server/social/friends";
 import { countPendingInvitesFor } from "@/server/trips/invites";
 import { getProfile } from "@/server/auth/profile";

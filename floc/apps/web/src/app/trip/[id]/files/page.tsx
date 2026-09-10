@@ -19,8 +19,8 @@ import {
   DOC_CATEGORIES,
   DOC_CATEGORY_LABELS,
   parseCategoryFilter,
-} from "@floc/core/documents";
-import type { DocCategory } from "@floc/core/documents";
+} from "@floc/core/documents/documents";
+import type { DocCategory } from "@floc/core/documents/documents";
 import { DocumentRow } from "@/components/documents/document-row";
 import { DocumentFiling } from "@/components/documents/document-filing";
 import { DocumentUpload } from "@/components/documents/document-upload";

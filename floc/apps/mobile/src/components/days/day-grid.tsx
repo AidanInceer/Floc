@@ -34,8 +34,8 @@
  * length so it has a height; the block says its start time only, because the
  * end is not known and a drawn box must not claim one (#126).
  */
-import { packLanes, spanOf, type TimedLike } from "@floc/core/calendar";
-import { EVENT_CATEGORIES } from "@floc/core/event-categories";
+import { packLanes, spanOf, type TimedLike } from "@floc/core/dates/calendar";
+import { EVENT_CATEGORIES } from "@floc/core/itinerary/event-categories";
 import type { DayEventType } from "@floc/core/vocabulary";
 import { Pressable, Text, View } from "react-native";
 

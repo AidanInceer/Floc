@@ -8,8 +8,8 @@
  * ONE DRAFT, SO IT CANNOT BE HALF-OPEN. The draft is seeded when the sheet
  * opens and thrown away when it shuts.
  */
-import { parseTagNames, readTags } from "@floc/core/tags";
-import { readTripColor, type TripColor } from "@floc/core/trip-color";
+import { parseTagNames, readTags } from "@floc/core/trip/tags";
+import { readTripColor, type TripColor } from "@floc/core/trip/trip-color";
 
 import { View } from "react-native";
 

@@ -11,8 +11,8 @@
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 
-import { whoTone } from "@floc/core/who";
-import type { TripColor } from "@floc/core/trip-color";
+import { whoTone } from "@floc/core/people/who";
+import type { TripColor } from "@floc/core/trip/trip-color";
 
 /**
  * The four domain pastels as a rotation, for the places where a pastel is

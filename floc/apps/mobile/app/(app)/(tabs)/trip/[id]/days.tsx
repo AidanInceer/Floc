@@ -21,9 +21,9 @@
  * UNDATED IS NOT BROKEN (rule 9). A trip with no days says so and points at
  * Dates. It is not gated, refused, or treated as an error state (rule 4).
  */
-import { today } from "@floc/core/dates";
-import { formatDate } from "@floc/core/dates";
-import { orderEvents } from "@floc/core/event-order";
+import { today } from "@floc/core/dates/dates";
+import { formatDate } from "@floc/core/dates/dates";
+import { orderEvents } from "@floc/core/itinerary/event-order";
 import type { DayEventType } from "@floc/core/vocabulary";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";

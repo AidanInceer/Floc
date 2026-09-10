@@ -13,7 +13,7 @@
 import { ConfirmSubmit, Menu } from "@/components/system/client-ui";
 import { menuDangerItemClass, menuItemClass } from "@/components/system/ui";
 import { TripColorPicker } from "@/components/trip/trip-color-picker";
-import type { TripColor } from "@floc/core/trip-color";
+import type { TripColor } from "@floc/core/trip/trip-color";
 import { archiveTrip, deleteTrip } from "@/app/trips/actions";
 import { leaveTrip } from "@/app/trip/[id]/overview/actions";
 

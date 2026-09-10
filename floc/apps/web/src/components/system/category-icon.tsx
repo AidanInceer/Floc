@@ -1,6 +1,6 @@
 // Line-art glyph per expense category (money overhaul). Drawn in the app's own
 // hand, no emoji (#148): 14×14 viewBox, currentColor, strokeWidth ~1.2.
-import type { ExpenseCategory } from "@floc/core/expense-category";
+import type { ExpenseCategory } from "@floc/core/money/expense-category";
 
 const PATHS: Record<ExpenseCategory, React.ReactNode> = {
   food: (

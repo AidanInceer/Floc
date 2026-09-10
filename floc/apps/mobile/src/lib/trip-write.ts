@@ -14,7 +14,7 @@
  */
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import type { TripColor } from "@floc/core/trip-color";
+import type { TripColor } from "@floc/core/trip/trip-color";
 
 import { trpc } from "./api";
 

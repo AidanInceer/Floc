@@ -23,15 +23,15 @@
  * NO TIMEZONES (rule 10). The day is a `dayId`; its label is the itinerary's
  * own date string, shown exactly as stored.
  */
-import type { Currency } from "@floc/core/currency";
-import { computeSplits, formatMoney, parseMoney } from "@floc/core/money";
+import type { Currency } from "@floc/core/money/currency";
+import { computeSplits, formatMoney, parseMoney } from "@floc/core/money/money";
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 
 import {
   DEFAULT_CATEGORY,
   type ExpenseCategory,
-} from "@floc/core/expense-category";
+} from "@floc/core/money/expense-category";
 
 import { useTheme } from "../system/theme";
 import { Body, Label } from "../system/ui";

@@ -12,7 +12,7 @@ import { and, asc, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { note, noteReaction, user, userProfile, type NoteScope } from "@/db/schema";
-import { emptyReactions, type NoteRow, type Reactions } from "@floc/core/notes";
+import { emptyReactions, type NoteRow, type Reactions } from "@floc/core/notes/notes";
 
 export async function loadThreads({
   tripId,

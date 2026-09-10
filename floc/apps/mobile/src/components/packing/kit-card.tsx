@@ -12,7 +12,7 @@
  * DELETING A LIST IS NOT DELETING A BAG. Bags already filled from it keep
  * their things: a kit is a stencil, not a source.
  */
-import { PACK_CATEGORY_LABELS, type PackCategory } from "@floc/core/packing";
+import { PACK_CATEGORY_LABELS, type PackCategory } from "@floc/core/packing/packing";
 import { useState } from "react";
 import { Alert, Pressable, View } from "react-native";
 

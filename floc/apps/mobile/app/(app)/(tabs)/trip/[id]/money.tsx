@@ -22,9 +22,9 @@
  * SETTLING IS NOT AN ADMIN POWER (rule 6). Any member records a transfer, in
  * either direction — the four powers are invite, kick, promote and archive.
  */
-import { formatDate } from "@floc/core/dates";
-import { DEFAULT_CATEGORY, isExpenseCategory } from "@floc/core/expense-category";
-import { formatMoney, suggestSettlements, computeBalances, toMajorInput } from "@floc/core/money";
+import { formatDate } from "@floc/core/dates/dates";
+import { DEFAULT_CATEGORY, isExpenseCategory } from "@floc/core/money/expense-category";
+import { formatMoney, suggestSettlements, computeBalances, toMajorInput } from "@floc/core/money/money";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";

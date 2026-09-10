@@ -25,8 +25,8 @@ import {
 } from "@/db/schema";
 import { auth } from "@/server/auth/auth";
 import { bounded, LIMITS } from "@/server/limits";
-import { dietarySummary, readDietFlags } from "@floc/core/dietary";
-import { whoTone } from "@floc/core/who";
+import { dietarySummary, readDietFlags } from "@floc/core/people/dietary";
+import { whoTone } from "@floc/core/people/who";
 import type { TripRole } from "@/db/schema";
 
 export const getSession = cache(async () => {

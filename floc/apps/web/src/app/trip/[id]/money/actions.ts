@@ -6,14 +6,14 @@
 import { after } from "next/server";
 
 import type { Currency } from "@/db/schema";
-import { capRequiredText, capText } from "@floc/core/text";
-import { CURRENCIES, minorPerMajor } from "@floc/core/currency";
+import { capRequiredText, capText } from "@floc/core/text/text";
+import { CURRENCIES, minorPerMajor } from "@floc/core/money/currency";
 import { getHomeRates } from "@/server/money/fx";
 import {
   DEFAULT_CATEGORY,
   isExpenseCategory,
-} from "@floc/core/expense-category";
-import type { ExpenseCategory } from "@floc/core/expense-category";
+} from "@floc/core/money/expense-category";
+import type { ExpenseCategory } from "@floc/core/money/expense-category";
 import { requireTripAccess } from "@/server/access";
 import {
   emailsForUsers,
@@ -24,7 +24,7 @@ import {
   writeExpense,
   writeSettlement,
 } from "@/server/money/money";
-import type { WritableSplitType } from "@floc/core/money";
+import type { WritableSplitType } from "@floc/core/money/money";
 import {
   computeSplits,
   formatMoney,
@@ -32,8 +32,8 @@ import {
   parseMoney,
   convertMinor,
   resolveWeightedSplit,
-} from "@floc/core/money";
-import type { SplitInput, WeightedInput } from "@floc/core/money";
+} from "@floc/core/money/money";
+import type { SplitInput, WeightedInput } from "@floc/core/money/money";
 import { emails, sendEmails } from "@/server/auth/email";
 import { refresh } from "@/server/freshness";
 

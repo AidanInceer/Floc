@@ -28,9 +28,9 @@ import {
   tally,
   thisMonth,
   type Tally,
-} from "@floc/core/availability";
-import { paintRange, pickedRange } from "@floc/core/calendar-gestures";
-import { dateRange, formatDateRange } from "@floc/core/dates";
+} from "@floc/core/dates/availability";
+import { paintRange, pickedRange } from "@floc/core/dates/calendar-gestures";
+import { dateRange, formatDateRange } from "@floc/core/dates/dates";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";

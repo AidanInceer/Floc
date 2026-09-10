@@ -17,7 +17,7 @@
  * The length cap is `TEXT_CAPS.noteDoc` — the same number the web action
  * checks, so a document the browser accepts is never one the phone refuses.
  */
-import { TEXT_CAPS } from "@floc/core/text";
+import { TEXT_CAPS } from "@floc/core/text/text";
 import { z } from "zod";
 
 import { router, tripProcedure } from "../trpc";

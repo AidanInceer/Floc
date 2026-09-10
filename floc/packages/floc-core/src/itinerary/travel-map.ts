@@ -8,7 +8,7 @@
  * hand-painted marks in `user_country_mark`, which win permanently — a `none`
  * row means "no, I didn't go", taking back a trip's claim after the fact.
  */
-import type { CountryMarkState } from "./vocabulary";
+import type { CountryMarkState } from "../vocabulary";
 
 /** What a country can look like on the drawing. Absent means unpainted. */
 export type MapState = "green" | "yellow";

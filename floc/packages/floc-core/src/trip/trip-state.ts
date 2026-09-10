@@ -3,9 +3,9 @@
  * enum, stage is a function of what data exists. Pure — no `db`, no React —
  * so it's testable; the page just renders what it's handed.
  */
-import { computeBalances } from "./money";
-import type { Currency } from "./currency";
-import { countdownLabel, hasEnded } from "./dates";
+import { computeBalances } from "../money/money";
+import type { Currency } from "../money/currency";
+import { countdownLabel, hasEnded } from "../dates/dates";
 
 /** What a station on the trail is doing. No `locked` — every tab is open (ticket 126). */
 type StationState = "done" | "now" | "snag" | "ahead";

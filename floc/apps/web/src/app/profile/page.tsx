@@ -18,10 +18,10 @@ import {
   updateIdentity,
 } from "./actions";
 import { requireUser } from "@/server/access";
-import { formatDateRange } from "@floc/core/dates";
+import { formatDateRange } from "@floc/core/dates/dates";
 import { ensureProfile } from "@/server/auth/profile";
-import { readVibeTags } from "@floc/core/vibe-tags";
-import { countryName } from "@floc/core/countries";
+import { readVibeTags } from "@floc/core/trip/vibe-tags";
+import { countryName } from "@floc/core/people/countries";
 import { pendingMapPrompts, travelMapFor } from "@/server/itinerary/travel-map";
 import { pastTripsFor } from "@/server/auth/visibility";
 import { AccountPage, Panel, RowList, SettingRow } from "@/components/auth/account-ui";

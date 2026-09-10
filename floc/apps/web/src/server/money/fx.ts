@@ -16,8 +16,8 @@ import { and, desc, eq } from "drizzle-orm";
 
 import { db } from "@/db";
 import { fxRate } from "@/db/schema";
-import { CURRENCIES } from "@floc/core/currency";
-import type { Currency } from "@floc/core/currency";
+import { CURRENCIES } from "@floc/core/money/currency";
+import type { Currency } from "@floc/core/money/currency";
 
 /** Multipliers turning a major amount in each currency into the home currency, plus the day they were published. */
 export type HomeRates = {

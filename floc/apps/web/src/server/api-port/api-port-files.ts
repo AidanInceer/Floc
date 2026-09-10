@@ -20,7 +20,7 @@ import {
   cleanFileName,
   rejectUpload,
   type DocCategory,
-} from "@floc/core/documents";
+} from "@floc/core/documents/documents";
 import type { FileUpload, FlocPort } from "@floc/api/port";
 
 import { scoped } from "@/server/api-port/api-port-scope";

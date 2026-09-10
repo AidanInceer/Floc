@@ -14,7 +14,7 @@ import "server-only";
 
 import type { FlocPort, MapPrompt } from "@floc/api/port";
 
-import { readCountryCode } from "@floc/core/countries";
+import { readCountryCode } from "@floc/core/people/countries";
 import { refresh } from "@/server/freshness";
 import { clearMapPrompt, hasPendingMapPrompt } from "@/server/trips/roster";
 import {

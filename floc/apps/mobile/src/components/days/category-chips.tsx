@@ -10,7 +10,7 @@
  * is ever unreachable — this is a view over the rows, not a state the trip is
  * in.
  */
-import { PACK_CATEGORIES, PACK_CATEGORY_LABELS, type PackCategory } from "@floc/core/packing";
+import { PACK_CATEGORIES, PACK_CATEGORY_LABELS, type PackCategory } from "@floc/core/packing/packing";
 import { Pressable, ScrollView, View } from "react-native";
 
 import { useTheme } from "../system/theme";
