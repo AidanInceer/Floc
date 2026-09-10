@@ -15,14 +15,14 @@
 import { redirect } from "next/navigation";
 
 import { requireUser } from "@/server/access";
-import { formatDateRange } from "@floc/core/dates";
-import { friendStateWith } from "@/server/friends";
-import { requireProfileView } from "@/server/visibility";
-import { AccountPage, Panel, PersonRow } from "@/components/account-ui";
-import { Avatar, Badge } from "@/components/ui";
-import { FriendButton } from "@/components/friend-button";
-import { PersonLink } from "@/components/person-link";
-import { TravelMap } from "@/components/travel-map";
+import { formatDateRange } from "@floc/core/dates/dates";
+import { friendStateWith } from "@/server/social/friends";
+import { requireProfileView } from "@/server/auth/visibility";
+import { AccountPage, Panel, PersonRow } from "@/components/auth/account-ui";
+import { Avatar, Badge } from "@/components/system/ui";
+import { FriendButton } from "@/components/social/friend-button";
+import { PersonLink } from "@/components/social/person-link";
+import { TravelMap } from "@/components/map/travel-map";
 
 export default async function PublicProfilePage({
   params,

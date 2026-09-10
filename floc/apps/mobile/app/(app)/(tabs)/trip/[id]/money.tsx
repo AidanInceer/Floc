@@ -22,17 +22,17 @@
  * SETTLING IS NOT AN ADMIN POWER (rule 6). Any member records a transfer, in
  * either direction — the four powers are invite, kick, promote and archive.
  */
-import { formatDate } from "@floc/core/dates";
-import { DEFAULT_CATEGORY, isExpenseCategory } from "@floc/core/expense-category";
-import { formatMoney, suggestSettlements, computeBalances, toMajorInput } from "@floc/core/money";
+import { formatDate } from "@floc/core/dates/dates";
+import { DEFAULT_CATEGORY, isExpenseCategory } from "@floc/core/money/expense-category";
+import { formatMoney, suggestSettlements, computeBalances, toMajorInput } from "@floc/core/money/money";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
 
-import { CategoryIcon } from "@/components/category-icon";
-import { ExpenseForm, type DayOption, type ExpenseDraft } from "@/components/expense-form";
-import { useTheme } from "@/components/theme";
+import { CategoryIcon } from "@/components/system/category-icon";
+import { ExpenseForm, type DayOption, type ExpenseDraft } from "@/components/money/expense-form";
+import { useTheme } from "@/components/system/theme";
 import {
   Body,
   Button,
@@ -43,7 +43,7 @@ import {
   Heading,
   Label,
   Loading,
-} from "@/components/ui";
+} from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 import { ledgerCurrency, viewerBalance } from "@/lib/balance";

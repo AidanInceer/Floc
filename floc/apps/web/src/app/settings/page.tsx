@@ -30,29 +30,29 @@ import {
 } from "@/app/profile/actions";
 import type { Subscription, Visibility } from "@/db/schema";
 import { requireUser } from "@/server/access";
-import { proPrices, subscriptionOf } from "@/server/billing";
-import type { ProPrice } from "@/server/billing";
+import { proPrices, subscriptionOf } from "@/server/billing/billing";
+import type { ProPrice } from "@/server/billing/billing";
 import { allFeaturesFree } from "@/lib/env";
-import { ensureProfile, listLinkedAccounts } from "@/server/profile";
-import { BillingAction, ProUpgrade } from "@/components/billing-buttons";
-import { isLive, renewalLabel } from "@floc/core/subscription-copy";
+import { ensureProfile, listLinkedAccounts } from "@/server/auth/profile";
+import { BillingAction, ProUpgrade } from "@/components/auth/billing-buttons";
+import { isLive, renewalLabel } from "@floc/core/billing/subscription-copy";
 import {
   AccountPage,
   PillChoice,
   Panel,
   PersonRow,
   ToggleRow,
-} from "@/components/account-ui";
-import { Field, Input, Select, Stack, Textarea, cx } from "@/components/ui";
+} from "@/components/auth/account-ui";
+import { Field, Input, Select, Stack, Textarea, cx } from "@/components/system/ui";
 import {
   ActionForm,
   ConfirmSubmit,
   SubmitButton,
-} from "@/components/client-ui";
-import { VibePicker } from "@/components/vibe-picker";
-import { DIET_FLAGS, MAX_DIETARY_NOTES, readDietFlags } from "@floc/core/dietary";
-import { PACK_TIERS, PACK_TIER_LABELS } from "@floc/core/packing";
-import { readVibeTags } from "@floc/core/vibe-tags";
+} from "@/components/system/client-ui";
+import { VibePicker } from "@/components/trip/vibe-picker";
+import { DIET_FLAGS, MAX_DIETARY_NOTES, readDietFlags } from "@floc/core/people/dietary";
+import { PACK_TIERS, PACK_TIER_LABELS } from "@floc/core/packing/packing";
+import { readVibeTags } from "@floc/core/trip/vibe-tags";
 
 const SECTIONS = [
   { id: "privacy", label: "Privacy" },

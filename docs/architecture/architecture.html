@@ -107,6 +107,9 @@ same response as a trip that doesn&#39;t exist — enumeration-proof by construc
 never a hand-rolled membership <code>if</code>.</p>
 <p><strong>The gate runs on writes and refreshes, never on reads.</strong> Lapsed Pro content
 stays readable forever; only the action stops.</p>
+<p><strong>Admin powers are exactly four</strong> — invite, kick, promote, delete/archive —
+each gated by <code>assertAdmin</code>. Everything else, leaving included, is any
+member.</p>
 <h2>Auth</h2>
 <p>Better Auth owns sessions. <code>lib/auth-client.ts</code> is the browser handle,
 <code>server/auth.ts</code> the server one. No custom session table, no hand-rolled JWT.
@@ -146,6 +149,10 @@ corrupt history.</li>
 <li><strong>Soft-delete everywhere</strong> — every read <em>and write</em> filters
 <code>deletedAt IS NULL</code>, with three documented exceptions.</li>
 <li><strong>Last-write-wins.</strong> No version column; <code>last_modified_at</code> is debug-only.</li>
+<li><strong>A trip may have no dates.</strong> <code>start_date</code>/<code>end_date</code> are
+nullable; undated is never an error.</li>
+<li><strong>No timezones.</strong> Dates are <code>YYYY-MM-DD</code>; event times are local
+to the itinerary, never stored with an offset.</li>
 <li><strong>Discussion is one polymorphic <code>note</code> table</strong> (<code>scope</code> + <code>scope_id</code>),
 not a comment table per feature.</li>
 <li><strong>Pro is one <code>subscription</code> row.</strong> A <code>source</code> column records <code>stripe</code> or

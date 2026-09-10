@@ -14,14 +14,14 @@ import {
   listDaysWithEvents,
   listRouteDays,
   transportModesByDay,
-} from "@/server/itinerary";
-import { listAvailability } from "@/server/availability";
-import { findTripByInviteToken } from "@/server/invites";
-import { countMembers, isLiveMember } from "@/server/roster";
-import { listTripsFor } from "@/server/trips";
-import { listExpenses, listSplits, namesForUsers } from "@/server/money";
-import { listFriendshipsFor, peopleByIds } from "@/server/friends";
-import { listLinkedAccounts } from "@/server/profile";
+} from "@/server/itinerary/itinerary";
+import { listAvailability } from "@/server/itinerary/availability";
+import { findTripByInviteToken } from "@/server/trips/invites";
+import { countMembers, isLiveMember } from "@/server/trips/roster";
+import { listTripsFor } from "@/server/trips/trips";
+import { listExpenses, listSplits, namesForUsers } from "@/server/money/money";
+import { listFriendshipsFor, peopleByIds } from "@/server/social/friends";
+import { listLinkedAccounts } from "@/server/auth/profile";
 
 let world: Scenario;
 

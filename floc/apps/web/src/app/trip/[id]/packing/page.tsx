@@ -4,19 +4,19 @@
  * top-to-bottom on a phone as on a desk.
  */
 import { requireTripAccess } from "@/server/access";
-import { canUseFeature } from "@/server/entitlements";
-import { getPackSettings } from "@/server/packing";
+import { canUseFeature } from "@/server/billing/entitlements";
+import { getPackSettings } from "@/server/packing/packing";
 import {
   autoFillPersonalBag,
   packingPlanFor,
-} from "@/server/packing-generator";
+} from "@/server/packing/packing-generator";
 import {
   listPackingClaims,
   listPackingLines,
   listPersonalPackingLines,
-} from "@/server/packing";
-import { listPackingKits } from "@/server/packing-kits";
-import { ensureProfile } from "@/server/profile";
+} from "@/server/packing/packing";
+import { listPackingKits } from "@/server/packing/packing-kits";
+import { ensureProfile } from "@/server/auth/profile";
 import {
   PACK_SORTS,
   PACK_TIERS,
@@ -26,14 +26,14 @@ import {
   parsePackSort,
   resolvePackTier,
   viewPackingLines,
-} from "@floc/core/packing";
-import type { PackCategory, PackSort } from "@floc/core/packing";
+} from "@floc/core/packing/packing";
+import type { PackCategory, PackSort } from "@floc/core/packing/packing";
 import {
   CategorySelect,
   PackingBulkBar,
   PackingKitMenu,
   PackingListFilters,
-} from "@/components/packing-controls";
+} from "@/components/packing/packing-controls";
 import {
   PackingCard,
   PackingCardEmpty,
@@ -43,13 +43,13 @@ import {
   segmentOff,
   segmentOn,
   segmentShape,
-} from "@/components/packing-card";
+} from "@/components/packing/packing-card";
 import Link from "next/link";
-import { cx } from "@/components/ui";
-import { SubmitButton } from "@/components/client-ui";
-import { PackingLineRow } from "@/components/packing-line-row";
-import { PersonalPackingRow } from "@/components/packing-personal-row";
-import type { PackingClaimant } from "@/components/packing-line-row";
+import { cx } from "@/components/system/ui";
+import { SubmitButton } from "@/components/system/client-ui";
+import { PackingLineRow } from "@/components/packing/packing-line-row";
+import { PersonalPackingRow } from "@/components/packing/packing-personal-row";
+import type { PackingClaimant } from "@/components/packing/packing-line-row";
 import {
   addPackingLine,
   addPersonalPackingLine,

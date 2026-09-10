@@ -59,6 +59,8 @@ function fakePort(overrides: Partial<FlocPort> = {}): FlocPort {
     setAvailability: vi.fn().mockResolvedValue(undefined),
     listFiles: vi.fn().mockResolvedValue([]),
     listPlaces: vi.fn().mockResolvedValue([]),
+    searchPlaces: vi.fn().mockResolvedValue([]),
+    setOvernight: vi.fn().mockResolvedValue(undefined),
     loadLedger: vi.fn().mockResolvedValue({ expenses: [], splits: [], settlements: [] }),
     createTrip: vi.fn().mockResolvedValue({ id: 2 }),
     startTripFromPreset: vi.fn().mockResolvedValue({ id: 3 }),
@@ -274,6 +276,69 @@ describe("availability (ticket 297)", () => {
     await expect(ana.availability.list({ tripId: 2 })).rejects.toMatchObject({
       code: "NOT_FOUND",
       message: "No such trip.",
+    });
+  });
+});
+
+describe("where the group sleeps (ticket 308)", () => {
+  it("writes the span day-first — no stop is ever named (rule 3)", async () => {
+    const { caller: ana, port } = caller("u1");
+    await ana.itinerary.setOvernight({
+      tripId: 1,
+      startDate: "2026-05-01",
+      endDate: "2026-05-03",
+      place: { name: "Tokyo", providerId: null, lat: null, lng: null, countryCode: null },
+    });
+    expect(port.setOvernight).toHaveBeenCalledWith("u1", 1, {
+      startDate: "2026-05-01",
+      endDate: "2026-05-03",
+      place: { name: "Tokyo", providerId: null, lat: null, lng: null, countryCode: null },
+    });
+  });
+
+  it("takes null as a clear, which is not the same as a missing place", async () => {
+    const { caller: ana, port } = caller("u1");
+    await ana.itinerary.setOvernight({
+      tripId: 1,
+      startDate: "2026-05-01",
+      endDate: "2026-05-01",
+      place: null,
+    });
+    expect(port.setOvernight).toHaveBeenCalledWith("u1", 1, {
+      startDate: "2026-05-01",
+      endDate: "2026-05-01",
+      place: null,
+    });
+  });
+
+  it("refuses a timestamp where a date belongs (rule 10)", async () => {
+    const { caller: ana } = caller("u1");
+    await expect(
+      ana.itinerary.setOvernight({
+        tripId: 1,
+        startDate: "2026-05-01T00:00:00Z",
+        endDate: "2026-05-02",
+        place: null,
+      }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  it("refuses a non-member exactly as it refuses a trip that is not there (rule 5)", async () => {
+    const { caller: mal } = caller("intruder");
+    await expect(
+      mal.itinerary.setOvernight({
+        tripId: 1,
+        startDate: "2026-05-01",
+        endDate: "2026-05-01",
+        place: null,
+      }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+
+  it("keeps the geocoder behind a sign-in — it is somebody else's budget", async () => {
+    const { caller: anon } = caller(null);
+    await expect(anon.places.search({ query: "Tokyo" })).rejects.toMatchObject({
+      code: "UNAUTHORIZED",
     });
   });
 });

@@ -58,7 +58,33 @@ Write it to the scratchpad, not the repo. Drive the app with
 `adb shell input tap <x> <y>` and `adb shell input text <string>` to walk a
 feature end to end rather than asking the user to do it.
 
-### 5. Report
+### 5. Sign in without typing a password
+
+Both surfaces have a no-password door for the local test account. It only
+answers when the web app is not production **and** both `FLOC_DEV_USER_EMAIL`
+and `FLOC_DEV_USER_PASSWORD` are set in `floc/apps/web/.env` — otherwise it
+404s, so a 404 here means the variables are missing, not that the route broke.
+
+Web — POST it and reload the pane:
+
+```bash
+curl -s -o /dev/null -w 'sign-in=%{http_code}
+' -X POST http://localhost:3000/api/dev/sign-in
+```
+
+In the browser pane, do it from the page instead so the cookie lands on that
+origin: `javascript_tool` → `await fetch('/api/dev/sign-in',{method:'POST'})`,
+then reload.
+
+App — the sign-in screen has a **"Sign in as the dev user"** button on a dev
+build. Tap it with `adb shell input tap`. It fetches the credentials from the
+same route and signs in down the normal path, so the token lands in the
+keychain as usual.
+
+If the route 404s, tell the user to add the two variables and restart the web
+server. The account has to already exist — signing up is theirs to do.
+
+### 6. Report
 
 Say what is up, what is not, and the one next action. Nothing else.
 

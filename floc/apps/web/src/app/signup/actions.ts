@@ -10,7 +10,7 @@
  */
 import type { SignupChannel } from "@/db/schema";
 import { getSession } from "@/server/access";
-import { ensureProfile } from "@/server/profile";
+import { ensureProfile } from "@/server/auth/profile";
 
 const VIA_VALUES = ["whatsapp", "email", "link", "direct"] as const;
 

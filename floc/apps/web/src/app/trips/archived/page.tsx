@@ -6,9 +6,9 @@
  * by a WhatsApp message.
  */
 import { requireUser } from "@/server/access";
-import { ButtonLink } from "@/components/ui";
-import { ConfirmSubmit } from "@/components/client-ui";
-import { TripCard } from "@/components/trip-card";
+import { ButtonLink } from "@/components/system/ui";
+import { ConfirmSubmit } from "@/components/system/client-ui";
+import { TripCard } from "@/components/trip/trip-card";
 import { loadTripCards } from "../cards";
 import { restoreTrip } from "../actions";
 

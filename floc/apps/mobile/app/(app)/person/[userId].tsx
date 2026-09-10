@@ -13,13 +13,13 @@
  * else's trip is its own piece of work, and its roster would show third parties
  * who never agreed to appear here.
  */
-import { formatDateRange } from "@floc/core/dates";
+import { formatDateRange } from "@floc/core/dates/dates";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { ScrollView, View } from "react-native";
 
-import { Face } from "@/components/person-row";
-import { TravelMarks } from "@/components/travel-marks";
+import { Face } from "@/components/trip/person-row";
+import { TravelMap } from "@/components/map/travel-map";
 import {
   Body,
   Button,
@@ -31,7 +31,7 @@ import {
   Loading,
   Pill,
   Row,
-} from "@/components/ui";
+} from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 
@@ -106,7 +106,7 @@ export default function PersonProfile() {
           <View style={{ gap: space.sm }}>
             <Label>Where they have been</Label>
             <Card>
-              <TravelMarks marks={p.map} />
+              <TravelMap marks={p.map} />
             </Card>
             <Figure tone="ink-3">
               {p.been} been · {p.wantToGo} to go

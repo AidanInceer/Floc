@@ -10,7 +10,7 @@
  * `been` and `wantToGo` are derived on read from the trips you are on, never
  * stored (#95), so they cannot disagree with the map the web app draws.
  */
-import { TEXT_CAPS } from "@floc/core/text";
+import { TEXT_CAPS } from "@floc/core/text/text";
 import { z } from "zod";
 
 import { protectedProcedure, router } from "../trpc";

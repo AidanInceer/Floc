@@ -10,8 +10,8 @@ import {
   clampPackQuantity,
   parsePackCategory,
   parseQuantityStep,
-} from "@floc/core/packing";
-import { capRequiredText } from "@floc/core/text";
+} from "@floc/core/packing/packing";
+import { capRequiredText } from "@floc/core/text/text";
 import { requireUser } from "@/server/access";
 import {
   insertPackingKit,
@@ -20,7 +20,7 @@ import {
   softDeletePackingKit,
   softDeletePackingKitItem,
   stepPackingKitItemQuantity,
-} from "@/server/packing-kits";
+} from "@/server/packing/packing-kits";
 import { refresh } from "@/server/freshness";
 
 export async function createPackingKit(formData: FormData) {

@@ -32,7 +32,28 @@ export const authClient = createAuthClient({
   ],
 });
 
-export const { signIn, signUp, signOut, useSession } = authClient;
+export const {
+  signIn,
+  signUp,
+  signOut,
+  useSession,
+  requestPasswordReset,
+  resetPassword,
+  sendVerificationEmail,
+} = authClient;
+
+/**
+ * Where a reset link comes back to (#no-ticket).
+ *
+ * Better Auth answers the link in the mail with a redirect to this address
+ * carrying the token, and `floc://` is a trusted origin on the server, so the
+ * hop lands in the app rather than on the website. A phone that reset its
+ * password in a browser would then have to come back and type it again.
+ */
+export const RESET_REDIRECT = "floc://reset-password";
+
+/** Where a verification link comes back to. Same reason as above. */
+export const VERIFY_REDIRECT = "floc://verified";
 
 /**
  * The header the API expects, or nothing when signed out.

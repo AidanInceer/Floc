@@ -7,14 +7,14 @@
 import { headers } from "next/headers";
 
 import { appUrl } from "@/lib/env";
-import { auth } from "@/server/auth";
+import { auth } from "@/server/auth/auth";
 import {
   BILLING_INTERVALS,
   customerFor,
   priceFor,
   stripe,
   type BillingInterval,
-} from "@/server/billing";
+} from "@/server/billing/billing";
 
 export const runtime = "nodejs";
 

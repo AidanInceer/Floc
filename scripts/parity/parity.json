@@ -66,6 +66,9 @@
     "itinerary.deleteEvent": {
       "mobile": "yes"
     },
+    "itinerary.setOvernight": {
+      "mobile": "yes"
+    },
     "itinerary.updateEvent": {
       "mobile": "yes"
     },
@@ -172,6 +175,9 @@
     "places.list": {
       "mobile": "yes"
     },
+    "places.search": {
+      "mobile": "yes"
+    },
     "roster.list": {
       "mobile": "wontfix",
       "why": "tripProcedure already returns members, so the app's roster screen reads trips.get. This exists for a client that wants to refetch the roster alone."
@@ -251,7 +257,7 @@
       "id": "signup",
       "path": "floc/apps/web/src/app/signup",
       "status": "wontfix",
-      "why": "Account creation, password reset and email verification stay in the browser — the app signs in only, so there is one place credentials are handled."
+      "why": "Creating an account, asking for a reset link and setting a new password are all on the phone now, against the same Better Auth instance; the reset and confirmation mails redirect to floc:// so they land back in the app. What stays web-only is the /signup page itself, which a phone install has no link to and no ?via= channel to record."
     }
   ]
 }

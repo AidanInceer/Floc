@@ -35,32 +35,32 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { requireTripAccess } from "@/server/access";
-import { listDocuments } from "@/server/documents";
-import { documentsEnabled } from "@/server/document-store";
+import { listDocuments } from "@/server/documents/documents";
+import { documentsEnabled } from "@/server/documents/document-store";
 import {
   listDays,
   listRouteDays,
   transportModesByDay,
-} from "@/server/itinerary";
-import { listAvailability } from "@/server/availability";
-import { listPendingInvitees } from "@/server/invites";
-import { listExpenses, listSettlements, listSplits } from "@/server/money";
-import { absoluteUrl } from "@/server/email";
-import { formatMoney } from "@floc/core/money";
-import type { Currency } from "@floc/core/currency";
-import { tripStateFor } from "@floc/core/trip-state";
-import { formatDateRange } from "@floc/core/dates";
-import { Avatar, Badge, ButtonLink, PASTEL_BY_KEY, PASTEL_SKINS, Stack, cx } from "@/components/ui";
-import { Sheet, SubmitButton } from "@/components/client-ui";
-import { TripNameInline } from "@/components/trip-name-inline";
-import { TripRoster } from "@/components/trip-roster";
-import { friendStatesFor, listFriendsFor } from "@/server/friends";
-import { TripRoute } from "@/components/trip-route";
-import { TripDayTrack } from "@/components/trip-day-track";
-import { DocumentsBlock } from "@/components/documents-block";
-import { TagEditor } from "@/components/tag-editor";
-import { readTags } from "@floc/core/tags";
-import { readTripColor } from "@floc/core/trip-color";
+} from "@/server/itinerary/itinerary";
+import { listAvailability } from "@/server/itinerary/availability";
+import { listPendingInvitees } from "@/server/trips/invites";
+import { listExpenses, listSettlements, listSplits } from "@/server/money/money";
+import { absoluteUrl } from "@/server/auth/email";
+import { formatMoney } from "@floc/core/money/money";
+import type { Currency } from "@floc/core/money/currency";
+import { tripStateFor } from "@floc/core/trip/trip-state";
+import { formatDateRange } from "@floc/core/dates/dates";
+import { Avatar, Badge, ButtonLink, PASTEL_BY_KEY, PASTEL_SKINS, Stack, cx } from "@/components/system/ui";
+import { Sheet, SubmitButton } from "@/components/system/client-ui";
+import { TripNameInline } from "@/components/trip/trip-name-inline";
+import { TripRoster } from "@/components/trip/trip-roster";
+import { friendStatesFor, listFriendsFor } from "@/server/social/friends";
+import { TripRoute } from "@/components/trip/trip-route";
+import { TripDayTrack } from "@/components/days/trip-day-track";
+import { DocumentsBlock } from "@/components/documents/documents-block";
+import { TagEditor } from "@/components/trip/tag-editor";
+import { readTags } from "@floc/core/trip/tags";
+import { readTripColor } from "@floc/core/trip/trip-color";
 import { renameTrip, setTripTags } from "./actions";
 
 export default async function OverviewPage({

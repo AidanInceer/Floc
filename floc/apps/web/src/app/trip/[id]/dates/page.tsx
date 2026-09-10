@@ -5,16 +5,16 @@
  * error (rule 9).
  */
 import { requireTripAccess } from "@/server/access";
-import { listAvailability } from "@/server/availability";
-import { canUseFeature } from "@/server/entitlements";
-import { listDayLoads } from "@/server/itinerary";
-import { getTripForecast } from "@/server/weather";
-import { monthOf, thisMonth } from "@floc/core/availability";
-import { formatDateRange, nightsBetween } from "@floc/core/dates";
-import { windowCost, windowCostLabel, windowCostNoun } from "@floc/core/trip-window";
-import { Avatar, Field, Select, Stack, Textarea, menuDangerItemClass } from "@/components/ui";
-import { ConfirmSubmit, Menu, Sheet, SubmitButton } from "@/components/client-ui";
-import { AvailabilityCalendar } from "@/components/availability-calendar";
+import { listAvailability } from "@/server/itinerary/availability";
+import { canUseFeature } from "@/server/billing/entitlements";
+import { listDayLoads } from "@/server/itinerary/itinerary";
+import { getTripForecast } from "@/server/itinerary/weather";
+import { monthOf, thisMonth } from "@floc/core/dates/availability";
+import { formatDateRange, nightsBetween } from "@floc/core/dates/dates";
+import { windowCost, windowCostLabel, windowCostNoun } from "@floc/core/trip/trip-window";
+import { Avatar, Field, Select, Stack, Textarea, menuDangerItemClass } from "@/components/system/ui";
+import { ConfirmSubmit, Menu, Sheet, SubmitButton } from "@/components/system/client-ui";
+import { AvailabilityCalendar } from "@/components/availability/availability-calendar";
 import { NUDGE_TABS } from "@/db/schema";
 import { TAB_LABELS } from "@/lib/tabs";
 import { sendNudge } from "@/app/trip/[id]/overview/actions";

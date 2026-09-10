@@ -16,7 +16,7 @@ import {
   insertTripLink,
   readWebUrl,
   softDeleteTripLink,
-} from "@/server/trip-links";
+} from "@/server/trips/trip-links";
 import { refresh } from "@/server/freshness";
 
 export async function addTripLink(tripId: number, formData: FormData) {

@@ -12,7 +12,7 @@ import {
   signIn,
   type Scenario,
 } from "@/test/db";
-import { loadNoteDoc } from "@/server/note-doc";
+import { loadNoteDoc } from "@/server/notes/note-doc";
 import { saveNotes } from "./actions";
 
 let world: Scenario;

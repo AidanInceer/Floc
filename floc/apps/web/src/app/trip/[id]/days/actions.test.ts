@@ -28,7 +28,7 @@ import {
   updateEvent,
 } from "./actions";
 import { searchPlacesAction } from "../place-actions";
-import { deriveStops, placedStops } from "@floc/core/stops";
+import { deriveStops, placedStops } from "@floc/core/itinerary/stops";
 
 let world: Scenario;
 

@@ -8,8 +8,8 @@
 import { headers } from "next/headers";
 
 import { appUrl } from "@/lib/env";
-import { auth } from "@/server/auth";
-import { portalUrlFor, subscriptionOf } from "@/server/billing";
+import { auth } from "@/server/auth/auth";
+import { portalUrlFor, subscriptionOf } from "@/server/billing/billing";
 
 export const runtime = "nodejs";
 

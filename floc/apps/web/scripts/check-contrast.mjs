@@ -6,7 +6,7 @@
  * `--ink-3` sat at 2.75:1 through an entire redesign (#204). This is the only
  * check in the repo that catches one.
  */
-import { resolveColours } from "@floc/core/tokens";
+import { resolveColours } from "@floc/core/design/tokens";
 
 import { contrast } from "./tokens.mjs";
 

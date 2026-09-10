@@ -5,9 +5,9 @@
  */
 import Link from "next/link";
 
-import { AuthForm } from "@/components/auth-form";
-import { AuthShell, authLinkClass } from "@/components/auth-shell";
-import { enabledProviders } from "@/server/auth";
+import { AuthForm } from "@/components/auth/auth-form";
+import { AuthShell, authLinkClass } from "@/components/auth/auth-shell";
+import { enabledProviders } from "@/server/auth/auth";
 import { captureChannel } from "./actions";
 
 export default function SignupPage() {

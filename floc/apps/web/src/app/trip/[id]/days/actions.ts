@@ -8,28 +8,22 @@
 import type { DayEventType, TransportType } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
 import { resolveEventPlace } from "../place-actions";
-import { upsertPlace } from "@/server/places";
-import { isIsoDate } from "@floc/core/dates";
-import { capText } from "@floc/core/text";
-import { insertAt, permuteEventSlots } from "@floc/core/event-order";
+import { applyOvernight, type OvernightPlaceInput } from "@/server/itinerary/overnight";
+import { insertAt, permuteEventSlots } from "@floc/core/itinerary/event-order";
 import {
   applyEventSlots,
   extendTripDays,
   insertEvent,
   listDayIds,
-  listDays,
   listEventSlots,
-  listOvernightPlaces,
   moveEventToDay,
   rescheduleEvent as moveEventTo,
   rebaseEventOrder,
-  setOvernightPlaceOn,
   softDeleteDay,
   softDeleteEvent,
   updateEventFields,
   type EventFields,
-  type ItineraryDay,
-} from "@/server/itinerary";
+} from "@/server/itinerary/itinerary";
 import { refresh } from "@/server/freshness";
 
 export async function addDays(tripId: number, afterDate: string, count: number) {
@@ -46,28 +40,9 @@ export async function removeDay(tripId: number, dayId: number) {
 }
 
 /**
- * Where the group sleeps, for a run of days (ticket 141).
- *
- * Decided per *day*: one column, `day.overnight_place_id`, on every day in the
- * span. A stop is still derived and never stored (rule 3) — `deriveStops`
- * groups agreeing runs, nothing here merges them.
- *
- * Writes via `setOvernightPlaceOn`, not a span-creating helper: since ticket
- * 140 the trip's dates own which days exist, so a span running off the end
- * just sets the days it covers rather than growing the itinerary sideways.
+ * Where the group sleeps, for a run of days (ticket 141). The rules live in
+ * `server/overnight.ts` (ticket 308) so the phone reaches them through the API.
  */
-export type OvernightPlaceInput =
-  /** A place this trip's itinerary already points at — an extend keeps its pin. */
-  | { placeId: number }
-  /** A fresh pick from the search, or a name typed when the provider is down. */
-  | {
-      name: string;
-      providerId?: string | null;
-      lat?: number | null;
-      lng?: number | null;
-      countryCode?: string | null;
-    };
-
 export async function setDayOvernight(
   tripId: number,
   startDate: string,
@@ -75,61 +50,9 @@ export async function setDayOvernight(
   place: OvernightPlaceInput | null,
 ) {
   const access = await requireTripAccess(tripId);
-  // Reachable without the drag (ticket 113) — validated at the door.
-  if (!isIsoDate(startDate) || !isIsoDate(endDate)) return;
-  if (endDate < startDate) return;
-
-  const days = await listDays(access.trip.id);
-  const targets = days.filter((d) => d.date >= startDate && d.date <= endDate);
-  if (targets.length === 0) return;
-
-  const placeId =
-    place === null ? null : await resolveOvernightPlace(access.trip.id, days, place);
-  // Failing to resolve isn't a clear — refuse rather than clear the span.
-  if (place !== null && placeId === null) return;
-
-  await setOvernightPlaceOn(
-    access.trip.id,
-    targets.map((d) => d.id),
-    placeId,
-  );
-
-  refresh({ kind: "itinerary", tripId: access.trip.id });
-}
-
-/**
- * The place id a span should point at. Extending sends the existing id rather
- * than re-geocoding the name, which would mint a second, coordinate-less row.
- * A client-supplied id only counts if this trip's own days already use it —
- * otherwise it's a way to read another group's place row by number (rule 5).
- */
-async function resolveOvernightPlace(
-  tripId: number,
-  days: ItineraryDay[],
-  place: OvernightPlaceInput,
-): Promise<number | null> {
-  if ("placeId" in place) {
-    return days.some((d) => d.overnightPlaceId === place.placeId) ? place.placeId : null;
+  if (await applyOvernight(access.trip.id, startDate, endDate, place)) {
+    refresh({ kind: "itinerary", tripId: access.trip.id });
   }
-  const name = capText(place.name, "placeName");
-  if (!name) return null;
-
-  // A name typed while the provider was down (rule 11) has no id to dedupe
-  // on, so check the trip's own places first to avoid minting a duplicate.
-  if (!place.providerId) {
-    const known = (await listOvernightPlaces(tripId)).find(
-      (p) => p.name.toLowerCase() === name.toLowerCase(),
-    );
-    if (known) return known.id;
-  }
-
-  return upsertPlace({
-    providerId: place.providerId ?? null,
-    name,
-    lat: place.lat ?? null,
-    lng: place.lng ?? null,
-    countryCode: place.countryCode ?? null,
-  });
 }
 
 export async function addEvent(tripId: number, dayId: number, input: EventFields) {

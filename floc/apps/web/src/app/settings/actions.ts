@@ -8,12 +8,12 @@ import { redirect } from "next/navigation";
 import { PAST_TRIPS_SHOW, VISIBILITIES } from "@/db/schema";
 import type { PastTripsShow, Visibility } from "@/db/schema";
 import { requireUser } from "@/server/access";
-import { auth, listLinkedAccounts, unlinkAccountById } from "@/server/auth";
-import { handOverAndLeaveAllTrips } from "@/server/roster";
+import { auth, listLinkedAccounts, unlinkAccountById } from "@/server/auth/auth";
+import { handOverAndLeaveAllTrips } from "@/server/trips/roster";
 import {
   ensureProfile,
   updateProfileFields,
-} from "@/server/profile";
+} from "@/server/auth/profile";
 import { refresh } from "@/server/freshness";
 
 // Privacy lives here, not on /profile — configuration, not identity. One

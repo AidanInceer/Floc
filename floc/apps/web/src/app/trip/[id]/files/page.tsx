@@ -12,20 +12,20 @@
 import Link from "next/link";
 
 import { requireTripAccess } from "@/server/access";
-import { listDocuments } from "@/server/documents";
-import type { TripDocument } from "@/server/documents";
-import { documentsEnabled } from "@/server/document-store";
+import { listDocuments } from "@/server/documents/documents";
+import type { TripDocument } from "@/server/documents/documents";
+import { documentsEnabled } from "@/server/documents/document-store";
 import {
   DOC_CATEGORIES,
   DOC_CATEGORY_LABELS,
   parseCategoryFilter,
-} from "@floc/core/documents";
-import type { DocCategory } from "@floc/core/documents";
-import { DocumentRow } from "@/components/document-row";
-import { DocumentFiling } from "@/components/document-filing";
-import { DocumentUpload } from "@/components/document-upload";
-import { ConfirmSubmit } from "@/components/client-ui";
-import { cx } from "@/components/ui";
+} from "@floc/core/documents/documents";
+import type { DocCategory } from "@floc/core/documents/documents";
+import { DocumentRow } from "@/components/documents/document-row";
+import { DocumentFiling } from "@/components/documents/document-filing";
+import { DocumentUpload } from "@/components/documents/document-upload";
+import { ConfirmSubmit } from "@/components/system/client-ui";
+import { cx } from "@/components/system/ui";
 import { removeDocument } from "./actions";
 
 export default async function FilesPage({

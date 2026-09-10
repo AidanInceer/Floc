@@ -16,11 +16,11 @@
  * refused rather than obeyed; deleting is its own procedure with its own name
  * so nothing can reach it by mistake.
  */
-import { CURRENCIES } from "@floc/core/currency";
-import { DIET_FLAGS, MAX_DIETARY_NOTES } from "@floc/core/dietary";
-import { PACK_TIERS } from "@floc/core/packing";
-import { TEXT_CAPS } from "@floc/core/text";
-import { VIBE_TAGS } from "@floc/core/vibe-tags";
+import { CURRENCIES } from "@floc/core/money/currency";
+import { DIET_FLAGS, MAX_DIETARY_NOTES } from "@floc/core/people/dietary";
+import { PACK_TIERS } from "@floc/core/packing/packing";
+import { TEXT_CAPS } from "@floc/core/text/text";
+import { VIBE_TAGS } from "@floc/core/trip/vibe-tags";
 import { z } from "zod";
 
 import { protectedProcedure, router } from "../trpc";

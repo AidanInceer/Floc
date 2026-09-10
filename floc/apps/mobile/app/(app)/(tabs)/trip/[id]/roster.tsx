@@ -19,14 +19,14 @@
  * them to be a friend — a co-traveller is already inside one of your rings, so
  * that profile is one you may see (ticket 46).
  */
-import { whoTone } from "@floc/core/who";
+import { whoTone } from "@floc/core/people/who";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Alert, Pressable, ScrollView, View } from "react-native";
 
-import { Seat } from "@/components/glyphs";
-import { useTheme } from "@/components/theme";
-import { Body, Button, Card, Failed, Label, Loading, Pill } from "@/components/ui";
+import { Seat } from "@/components/system/glyphs";
+import { useTheme } from "@/components/system/theme";
+import { Body, Button, Card, Failed, Label, Loading, Pill } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 import { space } from "@/lib/theme";

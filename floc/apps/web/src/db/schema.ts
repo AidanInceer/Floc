@@ -15,11 +15,11 @@ import {
   SPLIT_TYPES,
   TRANSPORT_TYPES,
 } from "@floc/core/vocabulary";
-import { CURRENCIES } from "@floc/core/currency";
-import { DEFAULT_CATEGORY, EXPENSE_CATEGORIES } from "@floc/core/expense-category";
-import { DOC_CATEGORIES } from "@floc/core/documents";
-import { PACK_CATEGORIES, PACK_TIERS } from "@floc/core/packing";
-import { PLANS } from "@floc/core/plans";
+import { CURRENCIES } from "@floc/core/money/currency";
+import { DEFAULT_CATEGORY, EXPENSE_CATEGORIES } from "@floc/core/money/expense-category";
+import { DOC_CATEGORIES } from "@floc/core/documents/documents";
+import { PACK_CATEGORIES, PACK_TIERS } from "@floc/core/packing/packing";
+import { PLANS } from "@floc/core/billing/plans";
 import {
   index,
   integer,
@@ -97,8 +97,8 @@ export const verification = sqliteTable("verification", {
 });
 
 // Re-exported from lib/currency.ts (ticket 115) so `@/db/schema` importers are unaffected.
-export { CURRENCIES } from "@floc/core/currency";
-export type { Currency } from "@floc/core/currency";
+export { CURRENCIES } from "@floc/core/money/currency";
+export type { Currency } from "@floc/core/money/currency";
 
 // The closed sets the domain rules branch on live in @floc/core (#286); the
 // columns below still spell themselves from these, and readers still find the

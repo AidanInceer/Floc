@@ -24,8 +24,14 @@ neverBuiltDependencies:
 overrides:
   vitest: ^3.2.6
   vite: ^6.4.3
-  sharp: ^0.35.0
+  # GHSA-rgj7-g3m4-5g8c — libheif flaws reached through the bundled binary.
+  # Patched in 0.35.4; the floor sat at ^0.35.0 and resolved to 0.35.3.
+  sharp: ^0.35.4
   postcss: ^8.5.18
+  # GHSA-2883-xcg3-v3hh — maxTotalMergeKeys does not bound CPU on empty merge
+  # sources, so a crafted document still burns the parser. Reached through
+  # Expo's toolchain; patched in 4.3.2.
+  js-yaml: ^4.3.2
   # GHSA-rgw5-rvv9-x895 — DoS via unbounded intermediate arrays, which bypasses
   # the CVE-2026-14257 mitigation. Patched in 5.0.9; the floor sat at ^5.0.8 and
   # the lockfile had resolved it to exactly 5.0.8, so the pin was one patch

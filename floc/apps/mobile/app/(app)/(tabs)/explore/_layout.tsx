@@ -12,7 +12,7 @@
  */
 import { Stack } from "expo-router";
 
-import { useTheme } from "@/components/theme";
+import { useTheme } from "@/components/system/theme";
 
 export default function ExploreLayout() {
   const { c } = useTheme();

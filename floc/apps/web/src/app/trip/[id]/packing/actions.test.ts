@@ -21,8 +21,8 @@ import {
   insertPersonalPackingLine,
   listPackingLines,
   listPersonalPackingLines,
-} from "@/server/packing";
-import { getPackTier } from "@/server/packing";
+} from "@/server/packing/packing";
+import { getPackTier } from "@/server/packing/packing";
 import {
   addPackingLine,
   fillMyPackingList,

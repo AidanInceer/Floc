@@ -12,14 +12,14 @@
  * AN ARCHIVED TRIP IS STILL A TRIP. Tapping one opens it exactly as the list
  * does — nothing is gated (rule 4), it is simply out of the way.
  */
-import { formatDateRange } from "@floc/core/dates";
-import { readTripColor, tripPastel } from "@floc/core/trip-color";
+import { formatDateRange } from "@floc/core/dates/dates";
+import { readTripColor, tripPastel } from "@floc/core/trip/trip-color";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "expo-router";
 import { FlatList, Pressable, RefreshControl, View } from "react-native";
 
-import { useTheme } from "@/components/theme";
-import { Body, Button, Card, Empty, Failed, Figure, Loading } from "@/components/ui";
+import { useTheme } from "@/components/system/theme";
+import { Body, Button, Card, Empty, Failed, Figure, Loading } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 

@@ -1,9 +1,9 @@
 "use server";
 
 // Server action for the Notes doc (ticket 238).
-import { TEXT_CAPS } from "@floc/core/text";
+import { TEXT_CAPS } from "@floc/core/text/text";
 import { requireTripAccess } from "@/server/access";
-import { saveNoteDoc } from "@/server/note-doc";
+import { saveNoteDoc } from "@/server/notes/note-doc";
 
 /**
  * Replace the whole document. No revalidate: the editor already holds what it

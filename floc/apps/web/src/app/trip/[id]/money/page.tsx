@@ -9,30 +9,30 @@
 import type { Currency, ExpenseSplit } from "@/db/schema";
 import { CURRENCIES } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
-import { formatDate } from "@floc/core/dates";
+import { formatDate } from "@floc/core/dates/dates";
 import {
   computeBalances,
   convertTotal,
   formatMoney,
   isAllSettled,
   suggestSettlements,
-} from "@floc/core/money";
-import type { LedgerLine, LedgerSettlement } from "@floc/core/money";
-import { listDays } from "@/server/itinerary";
+} from "@floc/core/money/money";
+import type { LedgerLine, LedgerSettlement } from "@floc/core/money/money";
+import { listDays } from "@/server/itinerary/itinerary";
 import {
   listExpenses,
   listSettlements,
   listSplits,
   namesForUsers,
-} from "@/server/money";
-import { getProfile } from "@/server/profile";
-import { getHomeRates } from "@/server/fx";
-import { Avatar, cx } from "@/components/ui";
-import { Sheet } from "@/components/client-ui";
-import { CombinedTotal, ConvertAmount, SettleUpForm } from "@/components/money-client";
-import { ActivityFeed } from "@/components/money-activity";
-import { ExpenseForm } from "@/components/expense-form";
-import type { FormDay, FormMember } from "@/components/expense-form";
+} from "@/server/money/money";
+import { getProfile } from "@/server/auth/profile";
+import { getHomeRates } from "@/server/money/fx";
+import { Avatar, cx } from "@/components/system/ui";
+import { Sheet } from "@/components/system/client-ui";
+import { CombinedTotal, ConvertAmount, SettleUpForm } from "@/components/money/money-client";
+import { ActivityFeed } from "@/components/money/money-activity";
+import { ExpenseForm } from "@/components/money/expense-form";
+import type { FormDay, FormMember } from "@/components/money/expense-form";
 import { addExpense, recordSettlement } from "./actions";
 
 export default async function MoneyPage({

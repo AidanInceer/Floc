@@ -6,22 +6,22 @@
 import { CURRENCIES } from "@/db/schema";
 import type { Currency } from "@/db/schema";
 import { requireUser } from "@/server/access";
-import { readCountryCode } from "@floc/core/countries";
-import { MAX_DIETARY_NOTES, parseDietFlags } from "@floc/core/dietary";
-import { capText } from "@floc/core/text";
-import { parsePackTier } from "@floc/core/packing";
-import { clearMapPrompt, hasPendingMapPrompt } from "@/server/roster";
+import { readCountryCode } from "@floc/core/people/countries";
+import { MAX_DIETARY_NOTES, parseDietFlags } from "@floc/core/people/dietary";
+import { capText } from "@floc/core/text/text";
+import { parsePackTier } from "@floc/core/packing/packing";
+import { clearMapPrompt, hasPendingMapPrompt } from "@/server/trips/roster";
 import {
   ensureProfile,
   updateProfileFields,
-} from "@/server/profile";
+} from "@/server/auth/profile";
 import {
   clearManualMark,
   derivedStateFor,
   keepMarksFromTrip,
   setManualMark,
-} from "@/server/travel-map";
-import { parseVibeTags } from "@floc/core/vibe-tags";
+} from "@/server/itinerary/travel-map";
+import { parseVibeTags } from "@floc/core/trip/vibe-tags";
 import { refresh } from "@/server/freshness";
 
 export async function updateIdentity(formData: FormData): Promise<{ error?: string }> {

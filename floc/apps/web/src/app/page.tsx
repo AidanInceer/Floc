@@ -6,16 +6,16 @@
  */
 import type { ReactNode } from "react";
 import { getSession } from "@/server/access";
-import { proPrices, subscriptionOf } from "@/server/billing";
-import type { ProPrice } from "@/server/billing";
+import { proPrices, subscriptionOf } from "@/server/billing/billing";
+import type { ProPrice } from "@/server/billing/billing";
 import { allFeaturesFree } from "@/lib/env";
-import { formatMoney } from "@floc/core/money";
-import { isLive } from "@floc/core/subscription-copy";
-import { ButtonLink, PASTEL_SKINS, cx } from "@/components/ui";
-import { RouteMap } from "@/components/route-map";
+import { formatMoney } from "@floc/core/money/money";
+import { isLive } from "@floc/core/billing/subscription-copy";
+import { ButtonLink, PASTEL_SKINS, cx } from "@/components/system/ui";
+import { RouteMap } from "@/components/map/route-map";
 import { ProBlock } from "./landing-pro";
-import { ConfettiWord } from "@/components/confetti-word";
-import { FlockChevron } from "@/components/flock-chevron";
+import { ConfettiWord } from "@/components/system/confetti-word";
+import { FlockChevron } from "@/components/system/flock-chevron";
 import { Glyph, features, sampleStops } from "./landing-content";
 import type { Feature } from "./landing-content";
 

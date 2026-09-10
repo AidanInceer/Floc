@@ -9,15 +9,15 @@ import {
   parsePackTier,
   parseQuantityStep,
   resolvePackTier,
-} from "@floc/core/packing";
-import { capRequiredText } from "@floc/core/text";
+} from "@floc/core/packing/packing";
+import { capRequiredText } from "@floc/core/text/text";
 import { requireTripAccess } from "@/server/access";
-import { assertFeature } from "@/server/entitlements";
+import { assertFeature } from "@/server/billing/entitlements";
 import { LIMITS } from "@/server/limits";
-import { ensureProfile } from "@/server/profile";
-import { getPackTier, setPackTier } from "@/server/packing";
-import { fillPersonalBag, packingPlanFor } from "@/server/packing-generator";
-import { applyPackingKitToBag } from "@/server/packing-kits";
+import { ensureProfile } from "@/server/auth/profile";
+import { getPackTier, setPackTier } from "@/server/packing/packing";
+import { fillPersonalBag, packingPlanFor } from "@/server/packing/packing-generator";
+import { applyPackingKitToBag } from "@/server/packing/packing-kits";
 import {
   claimPackingLine,
   insertPackingLine,
@@ -29,7 +29,7 @@ import {
   softDeletePackingLines,
   softDeleteWholeList,
   unclaimPackingLine,
-} from "@/server/packing";
+} from "@/server/packing/packing";
 import { refresh } from "@/server/freshness";
 
 export async function addPackingLine(tripId: number, formData: FormData) {

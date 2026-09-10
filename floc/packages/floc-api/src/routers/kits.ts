@@ -10,8 +10,8 @@
  * the bag afterwards never writes back here, and deleting a kit leaves every
  * bag already filled from it alone.
  */
-import { MAX_PACK_QUANTITY, MIN_PACK_QUANTITY, PACK_CATEGORIES } from "@floc/core/packing";
-import { TEXT_CAPS } from "@floc/core/text";
+import { MAX_PACK_QUANTITY, MIN_PACK_QUANTITY, PACK_CATEGORIES } from "@floc/core/packing/packing";
+import { TEXT_CAPS } from "@floc/core/text/text";
 import { z } from "zod";
 
 import { protectedProcedure, router } from "../trpc";

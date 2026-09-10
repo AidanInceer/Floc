@@ -20,21 +20,27 @@
  * derived and nobody's to edit; the hand-painted ones are painted from the
  * sheet behind "Paint the map".
  *
+ * THE WAY OUT IS AT THE FOOT OF THIS SCREEN, not inside Settings. Signing out
+ * is not a setting — it is the last thing you do to yourself, and it was two
+ * taps and a scroll down a screen of switches away from anywhere you would
+ * look for it.
+ *
  * TWO READS, NOT ONE. `me` is the identity every screen wants; `me.profile` is
  * the heavier face. Packing reads the first and has no use for a travel map.
  */
-import { formatDateRange } from "@floc/core/dates";
+import { formatDateRange } from "@floc/core/dates/dates";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 
-import { IdentitySheet } from "@/components/identity-sheet";
-import { MapPromptCard } from "@/components/map-prompt";
-import { MarkEditor } from "@/components/mark-editor";
-import { ProfileFace } from "@/components/profile-face";
-import { Sheet } from "@/components/sheet";
-import { TravelMarks } from "@/components/travel-marks";
+import { IdentitySheet } from "@/components/auth/identity-sheet";
+import { MapPromptCard } from "@/components/map/map-prompt";
+import { MarkEditor } from "@/components/notes/mark-editor";
+import { ProfileFace } from "@/components/system/profile-face";
+import { Sheet } from "@/components/system/sheet";
+import { TravelMap } from "@/components/map/travel-map";
+import { VerifyEmailCard } from "@/components/auth/verify-email";
 import {
   Body,
   Button,
@@ -45,8 +51,9 @@ import {
   Label,
   Loading,
   Row,
-} from "@/components/ui";
+} from "@/components/system/ui";
 import { trpc } from "@/lib/api";
+import { signOut } from "@/lib/auth";
 import { space } from "@/lib/theme";
 
 export default function Profile() {
@@ -99,7 +106,16 @@ export default function Profile() {
           onEdit={() => setEditing(true)}
         />
 
-        {/* One card per trip you have left, above everything else: it is the
+        {/* Above the prompts and the map: it is the one thing on this screen
+            that stops something else from working. It draws nothing at all
+            once the address is confirmed. */}
+        <VerifyEmailCard
+          email={me.data.email}
+          verified={me.data.emailVerified}
+          canConfirm={me.data.canConfirmEmail}
+        />
+
+        {/* One card per trip you have left, above the rest: it is the
             only moment its countries can be kept. */}
         {prompts.data?.map((prompt) => (
           <MapPromptCard
@@ -118,7 +134,11 @@ export default function Profile() {
             ) : face.isError ? (
               <Failed onRetry={() => face.refetch()} />
             ) : (
-              <TravelMarks marks={face.data.map} />
+              <TravelMap
+                marks={face.data.map}
+                editable
+                onSet={(code, state) => setMark.mutate({ code, state })}
+              />
             )}
           </Card>
           <Button label="Paint the map" variant="quiet" onPress={() => setPainting(true)} />
@@ -172,6 +192,14 @@ export default function Profile() {
             <Body bold>Settings</Body>
           </Row>
         </Pressable>
+
+        {/* Below the three rows and below everything else, because it ends the
+            session rather than opening anything. */}
+        <Button
+          label="Sign out of this phone"
+          variant="quiet"
+          onPress={() => void signOut().then(() => router.replace("/"))}
+        />
       </ScrollView>
 
       {/* Keyed on the name it opened with, so re-opening after a save starts

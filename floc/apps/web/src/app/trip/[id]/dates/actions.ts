@@ -3,11 +3,11 @@
 // Open to any member, not just admin — choosing when to go isn't one of
 // admin's four powers (rule 6). Committing a window also updates
 // server/itinerary.ts since the window decides which days exist (ticket 140).
-import { isIsoDate, readIsoDate } from "@floc/core/dates";
+import { isIsoDate, readIsoDate } from "@floc/core/dates/dates";
 import { requireTripAccess } from "@/server/access";
-import { applyTripWindow } from "@/server/itinerary";
-import { clearAvailabilityFor, setAvailability } from "@/server/availability";
-import { updateTrip } from "@/server/trips";
+import { applyTripWindow } from "@/server/itinerary/itinerary";
+import { clearAvailabilityFor, setAvailability } from "@/server/itinerary/availability";
+import { updateTrip } from "@/server/trips/trips";
 import { refresh } from "@/server/freshness";
 
 // Client-provided, so checked not trusted; isIsoDate rejects impossible

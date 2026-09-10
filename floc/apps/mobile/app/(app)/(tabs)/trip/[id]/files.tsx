@@ -16,14 +16,14 @@
  * any member may drop a shared line — a booking somebody else is relying on is
  * not yours to bin.
  */
-import { DOC_CATEGORIES, DOC_CATEGORY_LABELS, type DocCategory } from "@floc/core/documents";
+import { DOC_CATEGORIES, DOC_CATEGORY_LABELS, type DocCategory } from "@floc/core/documents/documents";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
 
-import { pickFile } from "@/components/file-picker";
-import { useTheme } from "@/components/theme";
+import { pickFile } from "@/components/files/file-picker";
+import { useTheme } from "@/components/system/theme";
 import {
   Body,
   Button,
@@ -36,7 +36,7 @@ import {
   Loading,
   Pill,
   Toggle,
-} from "@/components/ui";
+} from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 import { space } from "@/lib/theme";

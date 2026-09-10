@@ -51,7 +51,7 @@ vi.mock("next/headers", () => ({
  */
 export const currentUser: { id: string | null } = { id: null };
 
-vi.mock("@/server/auth", () => ({
+vi.mock("@/server/auth/auth", () => ({
   enabledProviders: { google: false, facebook: false },
   // Real reads against the test database — the "you can't unlink your last
   // method" rule is the caller's, and a stub returning [] would make it pass
@@ -87,7 +87,7 @@ vi.mock("@/server/auth", () => ({
 }));
 
 // Stubbed so a suite never depends on RESEND_API_KEY or prints a send.
-vi.mock("@/server/email", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/server/email")>();
+vi.mock("@/server/auth/email", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/server/auth/email")>();
   return { ...actual, sendEmails: async () => {} };
 });

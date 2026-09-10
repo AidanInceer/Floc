@@ -22,10 +22,10 @@
  *      is never an error.
  *  10. No timezones. Dates are `YYYY-MM-DD`; times are local to the itinerary.
  */
-import type { Currency } from "@floc/core/currency";
-import type { DocCategory } from "@floc/core/documents";
-import type { ExpenseCategory } from "@floc/core/expense-category";
-import type { PackCategory, PackTier } from "@floc/core/packing";
+import type { Currency } from "@floc/core/money/currency";
+import type { DocCategory } from "@floc/core/documents/documents";
+import type { ExpenseCategory } from "@floc/core/money/expense-category";
+import type { PackCategory, PackTier } from "@floc/core/packing/packing";
 import type { DayEventType, SplitType, TransportType } from "@floc/core/vocabulary";
 
 export type { Currency, DayEventType, DocCategory, ExpenseCategory, SplitType, TransportType };
@@ -173,6 +173,36 @@ export type TripPlace = {
 };
 
 /**
+ * One hit from the geocoder (ticket 308). Not a `place` row — nothing is
+ * written until it is chosen. An outage returns none of these, never a throw
+ * (rule 11), so a client falls back to the name somebody typed.
+ */
+export type PlaceHit = {
+  /** Provider-scoped stable id, e.g. `osm:relation:65606`. */
+  providerId: string;
+  name: string;
+  /** Full display name, for telling two hits apart in a list. */
+  label: string;
+  lat: number;
+  lng: number;
+  countryCode: string | null;
+};
+
+/**
+ * Where a run of days sleeps (ticket 308). Either a place this trip already
+ * points at — which keeps its pin — or a fresh pick. Null clears the span.
+ */
+export type OvernightPlace =
+  | { placeId: number }
+  | {
+      name: string;
+      providerId: string | null;
+      lat: number | null;
+      lng: number | null;
+      countryCode: string | null;
+    };
+
+/**
  * One person saying yes or no to one date (ticket 297).
  *
  * A `false` row is not the same as no row: it is "asked, said no", which the
@@ -192,13 +222,14 @@ export type NewTrip = {
   endDate: string | null;
 };
 
-export type TripPatch = Partial<{
-  name: string;
-  startDate: string | null;
-  endDate: string | null;
-  colorKey: string | null;
-  tags: string[] | null;
-}>;
+/** Every field is optional and may arrive as an explicit `undefined` — the wire omits what it isn't changing. */
+export type TripPatch = {
+  name?: string | undefined;
+  startDate?: string | null | undefined;
+  endDate?: string | null | undefined;
+  colorKey?: string | null | undefined;
+  tags?: string[] | null | undefined;
+};
 
 export type ExpenseInput = {
   description: string;
@@ -323,6 +354,14 @@ export type Me = {
   /** The display name if one is set, else the name the account signed up with. */
   name: string;
   email: string;
+  /** False until the confirmation link is opened. Joining a trip waits on it (#149). */
+  emailVerified: boolean;
+  /**
+   * Whether asking for another confirmation mail can do anything — false when
+   * the host has no mail provider, so nothing offers a link that cannot arrive
+   * (rule 11).
+   */
+  canConfirmEmail: boolean;
   avatarUrl: string | null;
   /** Countries a finished trip put on the map. */
   been: number;
@@ -724,6 +763,24 @@ export type FlocPort = {
   /** The distinct places the trip's days and events point at — for the map, not for stops (ticket 296). */
   listPlaces(viewerId: string, tripId: number): Promise<TripPlace[]>;
 
+  /**
+   * Geocoder search, signed in only (ticket 308) — unguarded this is an open
+   * geocoding proxy on somebody else's budget. Not trip-scoped: the picker
+   * searches before a trip is in scope, and `place` rows belong to no trip.
+   */
+  searchPlaces(viewerId: string, query: string): Promise<PlaceHit[]>;
+
+  /**
+   * Sets `overnight_place_id` on every day from `startDate` to `endDate`
+   * (ticket 308). Day-first — no stop is written, ever (rule 3). A span that
+   * covers no day of this trip is a no-op, not an error.
+   */
+  setOvernight(
+    viewerId: string,
+    tripId: number,
+    input: { startDate: string; endDate: string; place: OvernightPlace | null },
+  ): Promise<void>;
+
   /** Everyone's marks on the trip, `false` rows included (ticket 297). */
   listAvailability(viewerId: string, tripId: number): Promise<Availability[]>;
 
@@ -782,7 +839,7 @@ export type FlocPort = {
   writeExpense(
     viewerId: string,
     tripId: number,
-    input: ExpenseInput & { expenseId?: number },
+    input: ExpenseInput & { expenseId?: number | undefined },
   ): Promise<void>;
 
   deleteExpense(viewerId: string, tripId: number, expenseId: number): Promise<void>;

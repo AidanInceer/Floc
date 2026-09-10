@@ -12,11 +12,11 @@ import {
   peopleByIds,
   syncCompletedCoTripFriendships,
   type Person,
-} from "@/server/friends";
-import { AccountPage, Panel, PersonRow } from "@/components/account-ui";
-import { Avatar, Badge, Button, EmptyState } from "@/components/ui";
-import { SubmitButton } from "@/components/client-ui";
-import { PersonLink } from "@/components/person-link";
+} from "@/server/social/friends";
+import { AccountPage, Panel, PersonRow } from "@/components/auth/account-ui";
+import { Avatar, Badge, Button, EmptyState } from "@/components/system/ui";
+import { SubmitButton } from "@/components/system/client-ui";
+import { PersonLink } from "@/components/social/person-link";
 
 const UNKNOWN = (id: string): Person => ({ id, name: "Someone", avatarUrl: null });
 

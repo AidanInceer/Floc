@@ -12,13 +12,13 @@
  * roster, no money, no notes, because whoever holds a forwarded link is not a
  * member yet (ticket 147).
  */
-import { formatDateRange } from "@floc/core/dates";
+import { formatDateRange } from "@floc/core/dates/dates";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
 
-import { Body, Button, Card, Field, Screen } from "@/components/ui";
+import { Body, Button, Card, Field, Screen } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 

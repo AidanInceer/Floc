@@ -11,11 +11,11 @@
 import { redirect } from "next/navigation";
 
 import { requireUser } from "@/server/access";
-import { bulletDoc, saveNoteDoc } from "@/server/note-doc";
-import { createTripWithAdmin } from "@/server/trips";
-import { ensureProfile } from "@/server/profile";
+import { bulletDoc, saveNoteDoc } from "@/server/notes/note-doc";
+import { createTripWithAdmin } from "@/server/trips/trips";
+import { ensureProfile } from "@/server/auth/profile";
 import { refresh } from "@/server/freshness";
-import { PRESET_TRIPS } from "@floc/core/preset-trips";
+import { PRESET_TRIPS } from "@floc/core/trip/preset-trips";
 
 export async function startTripFromPreset(formData: FormData): Promise<void> {
   const viewer = await requireUser("/explore");

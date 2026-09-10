@@ -19,18 +19,18 @@ import {
   MAX_PACK_QUANTITY,
   MIN_PACK_QUANTITY,
   viewPackingLines,
-} from "@floc/core/packing";
+} from "@floc/core/packing/packing";
 import { requireUser } from "@/server/access";
-import { listPackingKitsWithItems } from "@/server/packing-kits";
+import { listPackingKitsWithItems } from "@/server/packing/packing-kits";
 import {
   PackingCard,
   PackingCardEmpty,
   PackingCount,
   PackingGroup,
-} from "@/components/packing-card";
-import { PackingKitRow } from "@/components/packing-kit-row";
-import { CategorySelect } from "@/components/packing-controls";
-import { ConfirmSubmit, SubmitButton } from "@/components/client-ui";
+} from "@/components/packing/packing-card";
+import { PackingKitRow } from "@/components/packing/packing-kit-row";
+import { CategorySelect } from "@/components/packing/packing-controls";
+import { ConfirmSubmit, SubmitButton } from "@/components/system/client-ui";
 
 export default async function PackingListsPage() {
   const viewer = await requireUser("/packing-lists");

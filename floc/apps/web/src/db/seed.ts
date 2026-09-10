@@ -28,8 +28,8 @@ import {
   user,
   userProfile,
 } from "./schema.ts";
-import type { WritableSplitType } from "@floc/core/money";
-import { computeSplits } from "@floc/core/money";
+import type { WritableSplitType } from "@floc/core/money/money";
+import { computeSplits } from "@floc/core/money/money";
 
 const PEOPLE = [
   {

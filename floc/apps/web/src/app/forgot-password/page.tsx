@@ -5,9 +5,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { RequestResetForm } from "@/components/password-reset-forms";
-import { AuthShell, authLinkClass } from "@/components/auth-shell";
-import { emailConfigured } from "@/server/email";
+import { RequestResetForm } from "@/components/auth/password-reset-forms";
+import { AuthShell, authLinkClass } from "@/components/auth/auth-shell";
+import { emailConfigured } from "@/server/auth/email";
 
 export default function ForgotPasswordPage() {
   if (!emailConfigured()) notFound();

@@ -12,9 +12,9 @@
  * no procedure that edits splits alone: one would let a client recalculate a
  * set that must never be recalculated.
  */
-import { CURRENCIES } from "@floc/core/currency";
-import { EXPENSE_CATEGORIES } from "@floc/core/expense-category";
-import { WRITABLE_SPLIT_TYPES } from "@floc/core/money";
+import { CURRENCIES } from "@floc/core/money/currency";
+import { EXPENSE_CATEGORIES } from "@floc/core/money/expense-category";
+import { WRITABLE_SPLIT_TYPES } from "@floc/core/money/money";
 import { z } from "zod";
 
 import { router, tripProcedure } from "../trpc";

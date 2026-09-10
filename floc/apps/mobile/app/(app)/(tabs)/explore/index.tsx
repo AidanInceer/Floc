@@ -16,15 +16,15 @@
  * SHAPE, NOT PHOTOGRAPHS (#194). Still true, and still the reason the mark on
  * each row is the travel mode rather than a picture of somewhere.
  */
-import { PRESET_TRIPS, type Region } from "@floc/core/preset-trips";
+import { PRESET_TRIPS, type Region } from "@floc/core/trip/preset-trips";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { FlatList, View } from "react-native";
 
-import { PresetRow } from "@/components/preset-row";
-import { RegionChips, type RegionChoice } from "@/components/region-chips";
-import { useTheme } from "@/components/theme";
-import { Body, Empty } from "@/components/ui";
+import { PresetRow } from "@/components/packing/preset-row";
+import { RegionChips, type RegionChoice } from "@/components/map/region-chips";
+import { useTheme } from "@/components/system/theme";
+import { Body, Empty } from "@/components/system/ui";
 import { space } from "@/lib/theme";
 
 const AVAILABLE: Region[] = [...new Set(PRESET_TRIPS.map((trip) => trip.region))];

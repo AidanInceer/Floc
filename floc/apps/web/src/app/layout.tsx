@@ -5,16 +5,16 @@ import {
   Instrument_Sans,
 } from "next/font/google";
 
-import { AppChrome } from "@/components/app-chrome";
-import { SiteFooter } from "@/components/site-footer";
+import { AppChrome } from "@/components/chrome/app-chrome";
+import { SiteFooter } from "@/components/chrome/site-footer";
 import { THEME_BOOTSTRAP } from "@/lib/theme";
 import { getSession } from "@/server/access";
-import { subscriptionOf } from "@/server/billing";
+import { subscriptionOf } from "@/server/billing/billing";
 import { allFeaturesFree } from "@/lib/env";
-import { isLive } from "@floc/core/subscription-copy";
-import { countIncomingFriendRequests } from "@/server/friends";
-import { countPendingInvitesFor } from "@/server/invites";
-import { getProfile } from "@/server/profile";
+import { isLive } from "@floc/core/billing/subscription-copy";
+import { countIncomingFriendRequests } from "@/server/social/friends";
+import { countPendingInvitesFor } from "@/server/trips/invites";
+import { getProfile } from "@/server/auth/profile";
 
 import "./globals.css";
 
