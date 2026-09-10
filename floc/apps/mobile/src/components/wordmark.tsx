@@ -6,6 +6,10 @@
  * dot that carries through the product as "yours". Same 26×20 viewBox and the
  * same three paths as the browser draws, so the two surfaces cannot drift.
  *
+ * IT IS THE BIGGEST THING ON THE SIGN-IN SCREEN, a third over the browser's
+ * size. On a phone the header is the whole top of the screen rather than one
+ * end of a bar, so the mark at the web's 22px read as a caption.
+ *
  * IT REPLACES THE WORD "Floc" IN THE HEADER. A stack title is a label; the
  * first thing somebody sees on opening the app should be the mark itself.
  */
@@ -19,7 +23,7 @@ export function FlocWordmark() {
   const { c } = useTheme();
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
-      <Svg width={25} height={20} viewBox="0 0 26 20" fill="none">
+      <Svg width={32} height={26} viewBox="0 0 26 20" fill="none">
         <Path
           d="M3 14 6.5 10.5 10 14"
           stroke={c.pen}
@@ -46,8 +50,7 @@ export function FlocWordmark() {
         style={{
           color: c.ink,
           fontFamily: fonts.display,
-          fontSize: 22,
-          fontWeight: "600",
+          fontSize: 29,
           letterSpacing: -0.3,
         }}
       >

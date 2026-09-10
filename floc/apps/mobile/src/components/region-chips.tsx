@@ -64,9 +64,8 @@ export function RegionChips({
             <Text
               style={{
                 color: on ? c[tint.ink] : c["ink-2"],
-                fontFamily: fonts.sans,
+                fontFamily: on ? fonts.sansBold : fonts.sans,
                 fontSize: size.small,
-                fontWeight: on ? "600" : "400",
               }}
             >
               {choice ?? "All"}

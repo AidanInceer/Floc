@@ -61,7 +61,6 @@ function Face({ name, url }: { name: string; url: string | null }) {
           color: c["peri-ink"],
           fontFamily: fonts.display,
           fontSize: size.heading,
-          fontWeight: "600",
         }}
       >
         {initials(name)}
@@ -110,7 +109,6 @@ export function ProfileFace({
               color: c.ink,
               fontFamily: fonts.display,
               fontSize: size.heading,
-              fontWeight: "600",
             }}
           >
             {name}

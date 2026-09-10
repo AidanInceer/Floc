@@ -56,9 +56,8 @@ export function GoogleButton({
           <Text
             style={{
               color: "#1f1f1f",
-              fontFamily: fonts.sans,
+              fontFamily: fonts.sansBold,
               fontSize: size.body,
-              fontWeight: "600",
             }}
           >
             {label}

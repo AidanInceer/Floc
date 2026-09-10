@@ -75,9 +75,8 @@ export function DayStrip({
             <Text
               style={{
                 color: on ? c.paper : c.ink,
-                fontFamily: fonts.type,
+                fontFamily: fonts.typeBold,
                 fontSize: size.body,
-                fontWeight: "600",
                 fontVariant: ["tabular-nums"],
               }}
             >

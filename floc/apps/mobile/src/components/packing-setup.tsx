@@ -51,9 +51,8 @@ function Chip({
       <Text
         style={{
           color: on ? c.ink : c["ink-2"],
-          fontFamily: fonts.sans,
+          fontFamily: on ? fonts.sansBold : fonts.sans,
           fontSize: size.small,
-          fontWeight: on ? "600" : "400",
         }}
       >
         {word}
@@ -94,7 +93,7 @@ function HalfButton({
       })}
     >
       <Text
-        style={{ color: c.ink, fontFamily: fonts.sans, fontSize: size.small, fontWeight: "600" }}
+        style={{ color: c.ink, fontFamily: fonts.sansBold, fontSize: size.small }}
       >
         {label}
       </Text>

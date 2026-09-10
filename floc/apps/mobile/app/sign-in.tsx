@@ -27,6 +27,10 @@
  * space above it, wearing the one colour nothing else on the screen wears.
  * A store build never contains the branch at all.
  *
+ * NO PITCH ABOVE THE FORM. A heading and a sentence sold the product to
+ * somebody who has already installed it and come back to sign in. What is left
+ * is the mark and four words centred under it — who, then what.
+ *
  * SIGNING UP NO LONGER OPENS THE WEBSITE. It used to, and the sentence under
  * the button explaining that was the tell: a control that leaves the app is
  * not a way in, it is an apology. `/sign-up` is a screen now.
@@ -37,7 +41,7 @@ import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { GoogleButton } from "@/components/google-button";
-import { Body, Button, Field, Heading, OrRule, Screen, TextLink } from "@/components/ui";
+import { Body, Button, Field, OrRule, Screen, TextLink } from "@/components/ui";
 import { signIn } from "@/lib/auth";
 import { explainGoogle, explainSignIn } from "@/lib/auth-errors";
 import { devSignIn } from "@/lib/dev-sign-in";
@@ -86,9 +90,10 @@ export default function SignIn() {
     >
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
         <Screen>
-          <View style={{ gap: space.xs }}>
-            <Heading>Plan a trip with the group</Heading>
-            <Body tone="ink-2">Where, when, in what order, and who owes who.</Body>
+          {/* Four words under the mark, centred on it — the mark says who,
+              this says what, and together they are the whole introduction. */}
+          <View style={{ alignItems: "center" }}>
+            <Body tone="ink-2">Trip planning, sorted</Body>
           </View>
 
           <View style={{ gap: space.md }}>

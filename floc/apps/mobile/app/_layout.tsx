@@ -6,7 +6,17 @@
  * separate navigator, because a session can end at any moment — a token
  * expiring while a trip is open has to land on sign-in from wherever it was.
  */
+import {
+  BricolageGrotesque_600SemiBold,
+  BricolageGrotesque_700Bold,
+} from "@expo-google-fonts/bricolage-grotesque";
+import { DMMono_400Regular, DMMono_500Medium } from "@expo-google-fonts/dm-mono";
+import {
+  InstrumentSans_400Regular,
+  InstrumentSans_600SemiBold,
+} from "@expo-google-fonts/instrument-sans";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { useFonts } from "expo-font";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
@@ -18,11 +28,26 @@ import { Loading } from "@/components/ui";
 import { queryClient } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 
+/**
+ * The six files behind the three faces (#no-ticket). Two weights each for
+ * display and sans, two for the mono — the weights the app actually draws.
+ * Every one is its own family; see the note in `lib/theme.ts` for why.
+ */
+const FACES = {
+  BricolageGrotesque_600SemiBold,
+  BricolageGrotesque_700Bold,
+  InstrumentSans_400Regular,
+  InstrumentSans_600SemiBold,
+  DMMono_400Regular,
+  DMMono_500Medium,
+};
+
 /** The routes Better Auth's emails redirect into. See `deepLinked` below. */
 const DEEP_LINKED = ["reset-password", "verified"];
 
 function Routes() {
   const { c, theme } = useTheme();
+  const [facesLoaded] = useFonts(FACES);
   const { data: session, isPending } = useSession();
   const segments = useSegments();
   const router = useRouter();
@@ -42,15 +67,21 @@ function Routes() {
   }, [isPending, signedIn, inApp, deepLinked, router]);
 
   // Rendering a screen before the session is known would flash sign-in at
-  // somebody who is already signed in, every cold start.
-  if (isPending) return <Loading />;
+  // somebody who is already signed in, every cold start. The faces wait with
+  // it: text drawn in Roboto and then reflowed into Bricolage is a worse first
+  // impression than a beat of nothing.
+  if (isPending || !facesLoaded) return <Loading />;
 
   return (
     <>
       <StatusBar style={theme === "dark" ? "light" : "dark"} />
       <Stack
         screenOptions={{
-          headerStyle: { backgroundColor: c.sheet },
+          // One surface, not two. A sheet-coloured bar over a paper screen
+          // draws a tone step, and the hairline under it drew a second line
+          // across a screen that is a single column of controls.
+          headerStyle: { backgroundColor: c.paper },
+          headerShadowVisible: false,
           headerTintColor: c.ink,
           contentStyle: { backgroundColor: c.paper },
         }}

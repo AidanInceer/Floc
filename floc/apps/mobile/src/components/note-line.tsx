@@ -138,7 +138,6 @@ export const NoteLine = forwardRef<
           color: struck ? c["ink-3"] : c.ink,
           fontFamily: heading ? fonts.display : fonts.sans,
           fontSize: heading ? HEADING_SIZE[headingLevel(block)] : size.body,
-          fontWeight: heading ? "600" : "400",
           lineHeight: heading ? 32 : 24,
         }}
       />

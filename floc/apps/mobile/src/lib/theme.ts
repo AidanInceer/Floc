@@ -15,8 +15,7 @@
  * rebuilding them on every render of every screen would be a real cost for a
  * map that never changes.
  */
-import { fontStacks, resolveTokens, type Theme } from "@floc/core/tokens";
-import { Platform } from "react-native";
+import { resolveTokens, type Theme } from "@floc/core/tokens";
 
 export type { Theme };
 
@@ -32,17 +31,31 @@ export function palette(theme: Theme): Palette {
 }
 
 /**
- * The three faces (#189). Until the font files are bundled, this names the
- * face and lets the platform fall back — a missing family renders in the
- * system face rather than failing, which is rule 11 applied to type.
+ * The three faces (#189), bundled rather than named (#no-ticket).
+ *
+ * THEY USED TO BE A WISH. This named "Bricolage Grotesque" and let the
+ * platform fall back, which on a phone means every word in the app rendered in
+ * Roboto — the wordmark included, so the app and the browser were visibly two
+ * products. The same three faces the web self-hosts through `next/font` are
+ * now bundled here through `@expo-google-fonts`, and `useFonts` in the root
+ * layout loads them before anything draws.
+ *
+ * ONE FAMILY PER WEIGHT, AND NEVER `fontWeight`. React Native cannot
+ * synthesise a bold from a single font file: ask it to and Android quietly
+ * renders the regular, so the app would look *nearly* right in a way nobody
+ * could point at. Every weight is therefore its own family and every call site
+ * picks the family instead — `sans` and `sansBold`, not `sans` at 600.
+ *
+ * `display` is 600 because that is the weight it is used at everywhere but
+ * `Heading`, which takes `displayBold`.
  */
 export const fonts = {
-  display: Platform.select({
-    ios: fontStacks.display[0],
-    default: fontStacks.display[0],
-  }),
-  sans: Platform.select({ ios: fontStacks.sans[0], default: fontStacks.sans[0] }),
-  type: Platform.select({ ios: fontStacks.type[0], default: fontStacks.type[0] }),
+  display: "BricolageGrotesque_600SemiBold",
+  displayBold: "BricolageGrotesque_700Bold",
+  sans: "InstrumentSans_400Regular",
+  sansBold: "InstrumentSans_600SemiBold",
+  type: "DMMono_400Regular",
+  typeBold: "DMMono_500Medium",
 } as const;
 
 /**

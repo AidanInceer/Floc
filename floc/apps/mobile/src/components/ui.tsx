@@ -51,9 +51,8 @@ export function Body({
     <Text
       style={{
         color: c[tone],
-        fontFamily: fonts.sans,
+        fontFamily: bold ? fonts.sansBold : fonts.sans,
         fontSize: size.body,
-        fontWeight: bold ? "600" : "400",
       }}
     >
       {children}
@@ -67,9 +66,8 @@ export function Heading({ children }: { children: ReactNode }) {
     <Text
       style={{
         color: c.ink,
-        fontFamily: fonts.display,
+        fontFamily: fonts.displayBold,
         fontSize: size.heading,
-        fontWeight: "700",
       }}
     >
       {children}
@@ -232,9 +230,8 @@ export function Button({
           <Text
           style={{
             color: ink,
-            fontFamily: fonts.sans,
+            fontFamily: fonts.sansBold,
             fontSize: small ? size.small : size.body,
-            fontWeight: "600",
           }}
         >
             {label}
@@ -431,9 +428,8 @@ export function Segmented<T extends string>({
             <Text
               style={{
                 color: on ? c.ink : c["ink-2"],
-                fontFamily: fonts.sans,
+                fontFamily: on ? fonts.sansBold : fonts.sans,
                 fontSize: size.small,
-                fontWeight: on ? "600" : "400",
               }}
             >
               {option.label}

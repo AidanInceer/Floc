@@ -12,6 +12,8 @@
 import { StyleSheet, Text, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 
+import { fonts } from "@/lib/theme";
+
 /** A member's seat colour as a filled disc with their initial — the roster's `whoTone` made visible. */
 export function Seat({
   initial,
@@ -35,7 +37,7 @@ export function Seat({
         borderColor: ink,
       }}
     >
-      <Text style={{ color: ink, fontSize: 12, fontWeight: "600" }}>{initial}</Text>
+      <Text style={{ color: ink, fontFamily: fonts.sansBold, fontSize: 12 }}>{initial}</Text>
     </View>
   );
 }

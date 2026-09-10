@@ -56,7 +56,6 @@ export function Face({ name, avatarUrl, size: box = 36 }: {
           color: c["peri-ink"],
           fontFamily: fonts.display,
           fontSize: size.small,
-          fontWeight: "600",
         }}
       >
         {initialsOf(name)}

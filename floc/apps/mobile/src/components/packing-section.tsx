@@ -122,9 +122,8 @@ export function PackingSection<
             <Text
               style={{
                 color: selecting ? c["mint-ink"] : c.ink,
-                fontFamily: fonts.sans,
+                fontFamily: fonts.sansBold,
                 fontSize: size.body,
-                fontWeight: "600",
               }}
             >
               {selecting ? "Done" : "Select"}

@@ -93,7 +93,6 @@ export function NoteBlockView({
             color: struck ? c["ink-3"] : c.ink,
             fontFamily: heading ? fonts.display : fonts.sans,
             fontSize: heading ? HEADING_SIZE[headingLevel(block)] : size.body,
-            fontWeight: heading ? "600" : "400",
             lineHeight: heading ? 26 : 22,
           }}
         >
@@ -104,7 +103,7 @@ export function NoteBlockView({
               <Text
                 key={i}
                 style={{
-                  fontWeight: run.styles.bold ? "600" : undefined,
+                  fontFamily: run.styles.bold ? fonts.sansBold : undefined,
                   fontStyle: run.styles.italic ? "italic" : undefined,
                   backgroundColor: run.styles.backgroundColor ? c.butter : undefined,
                   color: run.href ? c.pen : undefined,

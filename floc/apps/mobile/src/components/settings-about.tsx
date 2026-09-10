@@ -53,9 +53,8 @@ function TagPill({
       <Text
         style={{
           color: on ? c["peri-ink"] : c["ink-2"],
-          fontFamily: fonts.sans,
+          fontFamily: on ? fonts.sansBold : fonts.sans,
           fontSize: size.small,
-          fontWeight: on ? "600" : "400",
         }}
       >
         {tag}

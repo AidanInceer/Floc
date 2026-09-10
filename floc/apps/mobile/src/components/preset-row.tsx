@@ -77,7 +77,6 @@ export function PresetRow({ trip, onOpen }: { trip: PresetTrip; onOpen: () => vo
             color: c.ink,
             fontFamily: fonts.display,
             fontSize: size.body,
-            fontWeight: "600",
           }}
         >
           {trip.title}

@@ -132,7 +132,6 @@ function TitleBar({
             color: c.ink,
             fontFamily: fonts.display,
             fontSize: size.heading,
-            fontWeight: "600",
           }}
         >
           {title}
@@ -201,9 +200,8 @@ export function TripHeader({
               <Text
                 style={{
                   color: on ? c.ink : c["ink-2"],
-                  fontFamily: fonts.sans,
+                  fontFamily: on ? fonts.sansBold : fonts.sans,
                   fontSize: size.body,
-                  fontWeight: on ? "600" : "400",
                 }}
               >
                 {section.label}
