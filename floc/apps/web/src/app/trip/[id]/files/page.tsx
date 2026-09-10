@@ -21,11 +21,11 @@ import {
   parseCategoryFilter,
 } from "@floc/core/documents";
 import type { DocCategory } from "@floc/core/documents";
-import { DocumentRow } from "@/components/document-row";
-import { DocumentFiling } from "@/components/document-filing";
-import { DocumentUpload } from "@/components/document-upload";
-import { ConfirmSubmit } from "@/components/client-ui";
-import { cx } from "@/components/ui";
+import { DocumentRow } from "@/components/documents/document-row";
+import { DocumentFiling } from "@/components/documents/document-filing";
+import { DocumentUpload } from "@/components/documents/document-upload";
+import { ConfirmSubmit } from "@/components/system/client-ui";
+import { cx } from "@/components/system/ui";
 import { removeDocument } from "./actions";
 
 export default async function FilesPage({

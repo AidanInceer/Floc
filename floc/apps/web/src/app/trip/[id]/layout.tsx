@@ -6,9 +6,9 @@
  * The trip's name, dates and badges are not here — they are the Overview
  * hero's, and printing them twice a hand's width apart was ticket 89.
  */
-import { AvatarRow } from "@/components/ui";
-import { TripTabs } from "@/components/trip-tabs";
-import { TripMenu } from "@/components/trip-menu";
+import { AvatarRow } from "@/components/system/ui";
+import { TripTabs } from "@/components/chrome/trip-tabs";
+import { TripMenu } from "@/components/trip/trip-menu";
 import { requireTripAccess } from "@/server/access";
 import { leaveCostFor } from "@floc/core/trip-state";
 import { readTripColor } from "@floc/core/trip-color";

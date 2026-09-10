@@ -33,7 +33,7 @@ import {
   PackingBulkBar,
   PackingKitMenu,
   PackingListFilters,
-} from "@/components/packing-controls";
+} from "@/components/packing/packing-controls";
 import {
   PackingCard,
   PackingCardEmpty,
@@ -43,13 +43,13 @@ import {
   segmentOff,
   segmentOn,
   segmentShape,
-} from "@/components/packing-card";
+} from "@/components/packing/packing-card";
 import Link from "next/link";
-import { cx } from "@/components/ui";
-import { SubmitButton } from "@/components/client-ui";
-import { PackingLineRow } from "@/components/packing-line-row";
-import { PersonalPackingRow } from "@/components/packing-personal-row";
-import type { PackingClaimant } from "@/components/packing-line-row";
+import { cx } from "@/components/system/ui";
+import { SubmitButton } from "@/components/system/client-ui";
+import { PackingLineRow } from "@/components/packing/packing-line-row";
+import { PersonalPackingRow } from "@/components/packing/packing-personal-row";
+import type { PackingClaimant } from "@/components/packing/packing-line-row";
 import {
   addPackingLine,
   addPersonalPackingLine,

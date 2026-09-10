@@ -5,8 +5,8 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 
-import { NewPasswordForm } from "@/components/password-reset-forms";
-import { AuthShell } from "@/components/auth-shell";
+import { NewPasswordForm } from "@/components/auth/password-reset-forms";
+import { AuthShell } from "@/components/auth/auth-shell";
 import { emailConfigured } from "@/server/auth/email";
 
 export default function ResetPasswordPage() {

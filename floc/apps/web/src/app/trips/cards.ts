@@ -14,7 +14,7 @@ import { listTripsFor } from "@/server/trips/trips";
 import { hasEnded } from "@floc/core/dates";
 import { readTags } from "@floc/core/tags";
 import { readTripColor } from "@floc/core/trip-color";
-import type { TripCardData } from "@/components/trip-card";
+import type { TripCardData } from "@/components/trip/trip-card";
 
 // Card plus the roster it was built from — Archived names the admins to ask
 // for a restore. `TripCardData.members` is deliberately narrower (avatar row

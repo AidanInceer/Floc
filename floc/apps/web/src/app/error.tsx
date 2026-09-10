@@ -10,7 +10,7 @@
  * log. The message itself is never printed — it can carry anything the query
  * was holding.
  */
-import { ButtonLink, Button } from "@/components/ui";
+import { ButtonLink, Button } from "@/components/system/ui";
 
 export default function AppError({
   error,

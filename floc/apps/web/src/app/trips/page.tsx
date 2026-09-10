@@ -20,12 +20,12 @@ import {
   Input,
   Stack,
   cx,
-} from "@/components/ui";
-import { Sheet, SubmitButton } from "@/components/client-ui";
-import { FriendPicker } from "@/components/friend-picker";
-import { FlockChevron } from "@/components/flock-chevron";
-import { TripCard } from "@/components/trip-card";
-import type { TripCardData } from "@/components/trip-card";
+} from "@/components/system/ui";
+import { Sheet, SubmitButton } from "@/components/system/client-ui";
+import { FriendPicker } from "@/components/social/friend-picker";
+import { FlockChevron } from "@/components/system/flock-chevron";
+import { TripCard } from "@/components/trip/trip-card";
+import type { TripCardData } from "@/components/trip/trip-card";
 import { acceptTripInvite, createTrip, declineTripInvite } from "./actions";
 
 const SORTS = {

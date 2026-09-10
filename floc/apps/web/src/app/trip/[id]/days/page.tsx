@@ -29,22 +29,22 @@ import {
   submitEvent,
 } from "./actions";
 import { searchPlacesAction } from "../place-actions";
-import { ConfirmSubmit, Menu, Sheet, SubmitButton } from "@/components/client-ui";
+import { ConfirmSubmit, Menu, Sheet, SubmitButton } from "@/components/system/client-ui";
 import {
   DaysCalendar,
   type CalendarDay,
   type CalendarEvent,
-} from "@/components/days-calendar";
-import { EventForm } from "@/components/event-form";
-import { Badge, ButtonLink, EmptyState, menuDangerItemClass, menuItemClass } from "@/components/ui";
+} from "@/components/days/days-calendar";
+import { EventForm } from "@/components/days/event-form";
+import { Badge, ButtonLink, EmptyState, menuDangerItemClass, menuItemClass } from "@/components/system/ui";
 import { EVENT_CATEGORIES } from "@floc/core/event-categories";
 import { formatLength, formatSpan, spanOf } from "@floc/core/calendar";
-import { NoteThread, type NoteRow } from "@/components/note-thread";
+import { NoteThread, type NoteRow } from "@/components/notes/note-thread";
 import { requireTripAccess } from "@/server/access";
 import { listDaysWithEvents, type DayEventRow } from "@/server/itinerary/itinerary";
 import { loadThreads } from "@/server/notes/notes-read";
 import { listTripLinks } from "@/server/trips/trip-links";
-import { TripLinks } from "@/components/trip-links";
+import { TripLinks } from "@/components/trip/trip-links";
 import { addDays as addDaysToDate, fromIsoDate, today } from "@floc/core/dates";
 
 export default async function DaysPage({

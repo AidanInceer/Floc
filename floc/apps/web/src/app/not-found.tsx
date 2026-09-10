@@ -8,7 +8,7 @@
  * says which one exists. That is why there is no "back to the trip" here, only
  * ways back into the product at large.
  */
-import { ButtonLink } from "@/components/ui";
+import { ButtonLink } from "@/components/system/ui";
 
 export default function NotFound() {
   return (

@@ -1,7 +1,7 @@
 /** Notes tab (ticket 238) — the trip's free-form document. */
 import { requireTripAccess } from "@/server/access";
 import { loadNoteDoc } from "@/server/notes/note-doc";
-import { NotesDoc } from "@/components/notes-doc";
+import { NotesDoc } from "@/components/notes/notes-doc";
 
 export default async function NotesPage({
   params,

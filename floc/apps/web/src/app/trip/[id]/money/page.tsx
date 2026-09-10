@@ -27,12 +27,12 @@ import {
 } from "@/server/money/money";
 import { getProfile } from "@/server/auth/profile";
 import { getHomeRates } from "@/server/money/fx";
-import { Avatar, cx } from "@/components/ui";
-import { Sheet } from "@/components/client-ui";
-import { CombinedTotal, ConvertAmount, SettleUpForm } from "@/components/money-client";
-import { ActivityFeed } from "@/components/money-activity";
-import { ExpenseForm } from "@/components/expense-form";
-import type { FormDay, FormMember } from "@/components/expense-form";
+import { Avatar, cx } from "@/components/system/ui";
+import { Sheet } from "@/components/system/client-ui";
+import { CombinedTotal, ConvertAmount, SettleUpForm } from "@/components/money/money-client";
+import { ActivityFeed } from "@/components/money/money-activity";
+import { ExpenseForm } from "@/components/money/expense-form";
+import type { FormDay, FormMember } from "@/components/money/expense-form";
 import { addExpense, recordSettlement } from "./actions";
 
 export default async function MoneyPage({

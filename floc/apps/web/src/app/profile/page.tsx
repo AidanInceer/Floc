@@ -24,10 +24,10 @@ import { readVibeTags } from "@floc/core/vibe-tags";
 import { countryName } from "@floc/core/countries";
 import { pendingMapPrompts, travelMapFor } from "@/server/itinerary/travel-map";
 import { pastTripsFor } from "@/server/auth/visibility";
-import { AccountPage, Panel, RowList, SettingRow } from "@/components/account-ui";
-import { Avatar, Badge, Field, Input, Stack } from "@/components/ui";
-import { ActionForm, SubmitButton } from "@/components/client-ui";
-import { TravelMap } from "@/components/travel-map";
+import { AccountPage, Panel, RowList, SettingRow } from "@/components/auth/account-ui";
+import { Avatar, Badge, Field, Input, Stack } from "@/components/system/ui";
+import { ActionForm, SubmitButton } from "@/components/system/client-ui";
+import { TravelMap } from "@/components/map/travel-map";
 
 export default async function ProfilePage() {
   const viewer = await requireUser("/profile");

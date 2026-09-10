@@ -27,10 +27,10 @@ import {
   PackingCardEmpty,
   PackingCount,
   PackingGroup,
-} from "@/components/packing-card";
-import { PackingKitRow } from "@/components/packing-kit-row";
-import { CategorySelect } from "@/components/packing-controls";
-import { ConfirmSubmit, SubmitButton } from "@/components/client-ui";
+} from "@/components/packing/packing-card";
+import { PackingKitRow } from "@/components/packing/packing-kit-row";
+import { CategorySelect } from "@/components/packing/packing-controls";
+import { ConfirmSubmit, SubmitButton } from "@/components/system/client-ui";
 
 export default async function PackingListsPage() {
   const viewer = await requireUser("/packing-lists");
