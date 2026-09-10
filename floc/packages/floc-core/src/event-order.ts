@@ -63,12 +63,16 @@ const slotOf = (e: EventSlot): Slot => ({
 /** A null start time is what all-day *is* — covers legacy rows too. */
 const isAllDay = (e: EventSlot) => e.allDay || e.time === null;
 
+/** The narrowing `isAllDay` implies but cannot express: not all-day means there is a start time. */
+const isTimed = <T extends EventSlot>(e: T): e is T & { time: string } => !isAllDay(e);
+
 /** Sorts a day's events into display order: by time, untimed last, `order_index` breaking ties. */
 export function orderEvents<T extends EventSlot>(events: T[]): T[] {
   return events.slice().sort((a, b) => {
-    const [aAll, bAll] = [isAllDay(a), isAllDay(b)];
-    if (aAll !== bAll) return aAll ? 1 : -1;
-    if (!aAll && a.time !== b.time) return a.time! < b.time! ? -1 : 1;
+    const aTimed = isTimed(a);
+    const bTimed = isTimed(b);
+    if (aTimed !== bTimed) return aTimed ? -1 : 1;
+    if (aTimed && bTimed && a.time !== b.time) return a.time < b.time ? -1 : 1;
     return a.orderIndex - b.orderIndex;
   });
 }
@@ -81,15 +85,15 @@ export function orderEvents<T extends EventSlot>(events: T[]): T[] {
  * event with no end time clashes only with something running through it.
  */
 export function findOverlaps(events: EventSlot[]): Set<number> {
-  const timed = events.filter((e) => !isAllDay(e));
+  const timed = events.filter(isTimed);
   const clashing = new Set<number>();
 
   for (let i = 0; i < timed.length; i++) {
     for (let j = i + 1; j < timed.length; j++) {
       const [a, b] = [timed[i], timed[j]];
-      const aEnd = a.endTime ?? a.time!;
-      const bEnd = b.endTime ?? b.time!;
-      if (a.time === b.time || (aEnd > b.time! && bEnd > a.time!)) {
+      const aEnd = a.endTime ?? a.time;
+      const bEnd = b.endTime ?? b.time;
+      if (a.time === b.time || (aEnd > b.time && bEnd > a.time)) {
         clashing.add(a.id);
         clashing.add(b.id);
       }
@@ -113,11 +117,16 @@ export function permuteEventSlots(
 
   const byId = new Map(events.map((e) => [e.id, e]));
   if (new Set(newOrder).size !== newOrder.length) return [];
-  if (!newOrder.every((id) => byId.has(id))) return [];
+
+  const ordered: EventSlot[] = [];
+  for (const id of newOrder) {
+    const event = byId.get(id);
+    if (!event) return [];
+    ordered.push(event);
+  }
 
   const writes: (Slot & { id: number; orderIndex: number })[] = [];
-  newOrder.forEach((id, i) => {
-    const event = byId.get(id)!;
+  ordered.forEach((event, i) => {
     // Whole slot traded together — half a trade would leave an event ending
     // before it starts. `order_index` re-bases to the position, which is how
     // the all-day tail holds a hand-picked order despite having no times.
@@ -130,7 +139,7 @@ export function permuteEventSlots(
     ) {
       return;
     }
-    writes.push({ id, ...slot, orderIndex: i });
+    writes.push({ id: event.id, ...slot, orderIndex: i });
   });
   return writes;
 }

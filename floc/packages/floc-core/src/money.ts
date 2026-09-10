@@ -286,7 +286,7 @@ export function computeBalances(
 ): Balances {
   // Derived from CURRENCIES, not a literal — drifted silently to undefined on a 4th currency before (ticket 115).
   const balances = Object.fromEntries(
-    CURRENCIES.map((c) => [c, {} as Record<string, number>]),
+    CURRENCIES.map((c) => [c, {}]),
   ) as Balances;
 
   for (const line of lines) {

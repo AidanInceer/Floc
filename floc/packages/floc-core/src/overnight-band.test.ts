@@ -28,7 +28,7 @@ function daysOf(spec: string): BandDay[] {
       date: `2026-08-${String(of).padStart(2, "0")}`,
       outside,
       overnightPlaceId: decided ? PLACES[place as string] : null,
-      overnightPlaceName: decided ? (place as string) : null,
+      overnightPlaceName: decided ? (place) : null,
     };
   }).filter((d): d is BandDay => d !== null);
 }

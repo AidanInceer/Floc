@@ -109,24 +109,22 @@ export function bestWindow(
   rows: AvailabilityRow[],
   minLength = 2,
 ): Window | null {
-  const counts = tally(rows);
-  const dates = [...counts.keys()].sort();
-  if (dates.length === 0) return null;
+  // Entries, not keys: the tally travels with its date, so no lookup can miss.
+  const dated = [...tally(rows).entries()].sort(([a], [b]) => (a < b ? -1 : 1));
+  if (dated.length === 0) return null;
 
-  const top = Math.max(...dates.map((d) => counts.get(d)!.free));
+  const top = Math.max(...dated.map(([, t]) => t.free));
 
   for (let threshold = top; threshold >= 1; threshold -= 1) {
-    const best = longestRun(dates, counts, threshold);
+    const best = longestRun(dated, threshold);
     if (best && runLength(best) >= minLength) {
       return { ...best, free: threshold };
     }
   }
 
   // Nothing reaches minLength: fall back to the single best-attended day.
-  const bestDay = dates.reduce((a, b) =>
-    counts.get(b)!.free > counts.get(a)!.free ? b : a,
-  );
-  return { start: bestDay, end: bestDay, free: counts.get(bestDay)!.free };
+  const [bestDay, bestTally] = dated.reduce((a, b) => (b[1].free > a[1].free ? b : a));
+  return { start: bestDay, end: bestDay, free: bestTally.free };
 }
 
 function runLength(w: { start: IsoDate; end: IsoDate }): number {
@@ -137,12 +135,11 @@ function runLength(w: { start: IsoDate; end: IsoDate }): number {
 
 /** Longest run of consecutive dates whose tally is at or above `threshold`. */
 function longestRun(
-  dates: IsoDate[],
-  counts: Map<IsoDate, Tally>,
+  dated: [IsoDate, Tally][],
   threshold: number,
 ): { start: IsoDate; end: IsoDate } | null {
   const eligible = new Set(
-    dates.filter((d) => counts.get(d)!.free >= threshold),
+    dated.filter(([, t]) => t.free >= threshold).map(([d]) => d),
   );
   let best: { start: IsoDate; end: IsoDate } | null = null;
   let bestLen = 0;

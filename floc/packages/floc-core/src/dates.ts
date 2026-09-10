@@ -5,6 +5,8 @@
  * time only.
  */
 
+import { asText } from "./text";
+
 export type IsoDate = string;
 
 export function today(): IsoDate {
@@ -47,7 +49,7 @@ export function readIsoDate(value: unknown): IsoDate | null {
  * must tell that apart from `null`.
  */
 export function readOptionalIsoDate(value: unknown): IsoDate | null | undefined {
-  const raw = String(value ?? "").trim();
+  const raw = asText(value).trim();
   if (!raw) return null;
   return isIsoDate(raw) ? raw : undefined;
 }

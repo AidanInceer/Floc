@@ -3,7 +3,7 @@
  * and how a file is described on screen. No I/O: the store and the aggregate
  * both validate through here, so "is this allowed?" has one answer.
  */
-import { TEXT_CAPS } from "./text";
+import { asText, TEXT_CAPS } from "./text";
 
 
 /** 10 MB. A boarding pass is kilobytes; this is generous for a scanned visa. */
@@ -57,7 +57,7 @@ export const DOC_CATEGORY_SKINS: Record<DocCategory, string> = {
 
 /** Anything off the list falls to `other` — filing is not data worth refusing a file over. */
 export function parseDocCategory(value: unknown): DocCategory {
-  const s = String(value ?? "");
+  const s = asText(value);
   return (DOC_CATEGORIES as readonly string[]).includes(s)
     ? (s as DocCategory)
     : "other";
@@ -65,7 +65,7 @@ export function parseDocCategory(value: unknown): DocCategory {
 
 /** "all" is a real answer, not a missing one (rule 11). */
 export function parseCategoryFilter(value: unknown): DocCategory | "all" {
-  const s = String(value ?? "");
+  const s = asText(value);
   return (DOC_CATEGORIES as readonly string[]).includes(s)
     ? (s as DocCategory)
     : "all";
@@ -77,8 +77,8 @@ export type AllowedType = { mimeType: string; ext: string; kind: DocumentKind };
 export const DOCUMENT_ACCEPT = Object.keys(ALLOWED).join(",");
 
 export function allowedType(mimeType: unknown): AllowedType | null {
-  const found = ALLOWED[String(mimeType ?? "").toLowerCase()];
-  return found ? { mimeType: String(mimeType).toLowerCase(), ...found } : null;
+  const found = ALLOWED[asText(mimeType).toLowerCase()];
+  return found ? { mimeType: asText(mimeType).toLowerCase(), ...found } : null;
 }
 
 function documentKind(mimeType: string): DocumentKind {
@@ -99,7 +99,7 @@ export function kindLabel(mimeType: string): string {
  * the value early.
  */
 export function cleanFileName(raw: unknown, fallback = "Document"): string {
-  const name = String(raw ?? "")
+  const name = asText(raw)
     .replace(/[\u0000-\u001f\u007f]/g, "")
     .replace(/["\\/]/g, " ")
     .trim()

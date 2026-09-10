@@ -83,7 +83,7 @@ describe("the stage", () => {
     expect(state.stageNote).toContain("nothing about a finished trip is read-only");
   });
 
-  /** Non-negotiable 9: undated is normal, never an error state. */
+  /** Invariant: undated is normal, never an error state. */
   it("treats an undated trip as ordinary at every stage", () => {
     const state = tripStateFor(
       base({ days: [{ id: 1, overnightPlaceId: null }] }),

@@ -19,9 +19,21 @@
     "parity": "node --experimental-strip-types scripts/parity/run.mjs",
     "verify": "node scripts/verify.mjs",
     "push:preflight": "node scripts/push.mjs preflight",
-    "push:land": "node scripts/push.mjs land"
+    "push:land": "node scripts/push.mjs land",
+    "hooks:install": "simple-git-hooks",
+    "prepare": "simple-git-hooks"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm exec lint-staged",
+    "commit-msg": "node scripts/check-commit-msg.mjs $1"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": "eslint --flag v10_config_lookup_from_file --max-warnings=0",
+    "*": "node scripts/check-staged-secrets.mjs"
   },
   "devDependencies": {
+    "lint-staged": "^17.5.1",
+    "simple-git-hooks": "^2.14.0",
     "turbo": "^2.0.0",
     "typescript": "^5.5.0"
   },

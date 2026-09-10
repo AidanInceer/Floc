@@ -1,5 +1,5 @@
 /**
- * Where a trip is up to, derived (ticket 109). Non-negotiable 4: no lifecycle
+ * Where a trip is up to, derived (ticket 109). Invariant: no lifecycle
  * enum, stage is a function of what data exists. Pure — no `db`, no React —
  * so it's testable; the page just renders what it's handed.
  */

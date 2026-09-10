@@ -3,6 +3,8 @@
  * anything later that summarises packing all ask the same function, so the
  * three words can never drift apart between call sites.
  */
+import { asText } from "./text";
+
 export type PackingStatus = "packed" | "claimed" | "unclaimed";
 
 const PACKING_STATUS_LABELS: Record<PackingStatus, string> = {
@@ -52,7 +54,7 @@ export const PACK_TIER_LABELS: Record<PackTier, string> = {
 
 /** Anything off the list is not a tier — a hand-made POST must not invent one. */
 export function parsePackTier(value: unknown): PackTier | null {
-  const s = String(value ?? "");
+  const s = asText(value);
   return (PACK_TIERS as readonly string[]).includes(s) ? (s as PackTier) : null;
 }
 
@@ -88,7 +90,7 @@ export function clampPackQuantity(value: number): number {
 
 /** Only ever one step, either way — the row has two buttons, not a number field. */
 export function parseQuantityStep(value: unknown): 1 | -1 | null {
-  const s = String(value ?? "");
+  const s = asText(value);
   if (s === "1") return 1;
   if (s === "-1") return -1;
   return null;
@@ -121,7 +123,7 @@ export const PACK_CATEGORY_LABELS: Record<PackCategory, string> = {
 
 /** Anything off the list falls to `other` rather than failing — a category is filing, not data worth rejecting a row over. */
 export function parsePackCategory(value: unknown): PackCategory {
-  const s = String(value ?? "");
+  const s = asText(value);
   return (PACK_CATEGORIES as readonly string[]).includes(s)
     ? (s as PackCategory)
     : "other";
@@ -129,7 +131,7 @@ export function parsePackCategory(value: unknown): PackCategory {
 
 /** "all" is a real answer, not a missing one — an unknown filter shows everything rather than nothing (rule 11). */
 export function parseCategoryFilter(value: unknown): PackCategory | "all" {
-  const s = String(value ?? "");
+  const s = asText(value);
   return (PACK_CATEGORIES as readonly string[]).includes(s)
     ? (s as PackCategory)
     : "all";
@@ -155,7 +157,7 @@ export const PACK_SORT_LABELS: Record<PackSort, string> = {
 
 /** Falls back to `category` rather than failing — a bad sort in a URL is a shrug, not an error (rule 11). */
 export function parsePackSort(value: unknown, allowed: readonly PackSort[]): PackSort {
-  const s = String(value ?? "");
+  const s = asText(value);
   return (allowed as readonly string[]).includes(s) ? (s as PackSort) : "category";
 }
 

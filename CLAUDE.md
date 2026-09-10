@@ -11,17 +11,16 @@ Next.js App Router + Turso (libSQL) + Drizzle + Better Auth.
 | Path | What |
 |---|---|
 | `floc/apps/web/src/app/` | Routes. Server Components + Server Actions (`actions.ts` per folder). |
-| `floc/apps/web/src/server/` | All SQL + soft-delete filtering. One file per concept; name needs "and" → split. |
+| `floc/apps/web/src/server/` | All SQL. One file per concept; name needs "and" → split. |
 | `.../server/freshness.ts` | Fact → stale pages. Only importer of `next/cache`; else call `refresh`. |
 | `floc/packages/floc-core/src/` | `@floc/core` — the domain rules and vocabulary (money/dates/calendar/packing) **and the design token values**. Pure, no I/O, imports nothing from the app. |
 | `floc/packages/floc-api/src/` | `@floc/api` — the tRPC router every non-web client reads a trip through. Declares procedures and input rules; reaches data only via `FlocPort`, which the host implements. |
-| `floc/apps/web/src/server/api-port.ts` | The web app's `FlocPort` — the API's data access, built from the same `server/` modules the pages use. |
-| `floc/apps/mobile/` | `floc-mobile` — Expo (iOS + Android). Own UI, own version, same [visual language](docs/design/visual-language.html). [`SHIPPING.md`](floc/apps/mobile/SHIPPING.md) decides store build vs EAS Update; [`STORE.md`](floc/apps/mobile/STORE.md) is the submission checklist. |
+| `floc/apps/web/src/server/api-port.ts` | The web app's `FlocPort` — the same `server/` modules the pages use. |
+| `floc/apps/mobile/` | `floc-mobile` — Expo (iOS + Android). Own UI and version, same [visual language](docs/design/visual-language.html). Ship: [`SHIPPING.md`](floc/apps/mobile/SHIPPING.md), [`STORE.md`](floc/apps/mobile/STORE.md). |
 | `floc/apps/web/src/lib/` | What is left: browser- or Next-bound helpers only (env, theme, tabs, map, auth-client). |
 | `floc/apps/web/src/components/` | `ui.tsx`/`client-ui.tsx` = house design system. Reach first. |
 | `floc/apps/web/src/db/schema.ts` | Schema of record. Mirrors [ERD](docs/data-model/erd.html) — change both. |
 | `floc/apps/prototype/` | Old, don't extend. |
-| `floc/.scratch/floc-v1/decisions/` | One file per decision, named for its ticket. Read before changing behaviour. |
 | `docs/` | Local HTML site, no build. Open `docs/index.html` off disk. |
 
 Docs: [approach](docs/design/approach.html) · [visual language](docs/design/visual-language.html) · [architecture](docs/architecture/architecture.html) · [ERD](docs/data-model/erd.html).
@@ -42,47 +41,50 @@ pnpm verify                      # everything CI runs, locally
 ```
 
 - **A new API procedure needs a line in [`parity.json`](scripts/parity/parity.json)** saying whether the phone app has it, and why not. `pnpm parity --fix` writes the boring half; the `why` is yours. Rules and tests: [`parity.ts`](floc/packages/floc-api/src/parity.ts).
-- [`verify`](scripts/verify.sh) mirrors CI. Change a `.github/workflows/` **check** job → change verify.sh same commit. `sync-develop.yml` has no check, moves alone.
+- [`verify`](scripts/verify.sh) mirrors CI. Change a `.github/workflows/` **check** job → change verify.sh same commit.
 - **Stop dev server before anything that builds.** `verify`/`build`/`fitness` write `.next`, owned by `next dev`; building over it corrupts chunks. Fix: `pnpm --filter floc-web run clean:next` (the one delete an agent may run; also cures OneDrive `EINVAL: readlink`). Check with `preview_list`, not `ps`.
-- **No pre-push hook** — run `pnpm verify` by hand before **every** push, `develop` included.
+- **No pre-push hook** — run `pnpm verify` by hand before **every** push, `develop` included. Two cheap hooks do exist: `pre-commit` lints staged files and scans them for secrets; `commit-msg` checks the subject and that `Closes` matches it. `pnpm install` sets them up; `pnpm hooks:install` re-arms them.
 - **Schema change isn't done until `local.db` has it.** `db:generate` writes the migration but nothing applies it locally → dev dies on `no such column`. Run the new `drizzle/*.sql` against `local.db` in the same slice, before pushing.
 - **Mobile deps come from `npx expo install`, never `pnpm add`.** Expo pins a version per SDK; npm's latest is a different one, and the mismatch surfaces as a red screen at runtime, not an install error. Servers down first (a live process holds `node_modules` and the install rolls back). `npx expo install --check` before believing any version.
 - **A new native module means a rebuild, a new route means new router types.** `pnpm --filter floc-mobile android` for the first; for the second, expo-router rewrites `.expo/types/router.d.ts` when Metro starts, so typecheck *after* Metro or it passes on the old union.
 
-## Non-negotiables
+## Invariants
 
-1. **Money never a float** — integer minor units; `parseMoney`/`computeSplits`/`formatMoney` only.
-2. **`expense_split` rows = snapshots**, never recalculated; edit rewrites expense + splits in one transaction.
-3. **Itinerary day-first** — store `day`/`day_event`; a "stop" derives from consecutive days sharing `overnight_place_id`. Never add a `stop` table.
-4. **No lifecycle state** — trip state derives from data present; no enum/flag/column/tab gating.
-5. **Enumeration-proof access** — load a trip only via `requireTripAccess`; non-member gets the same response as nonexistent.
-6. **Admin powers = exactly four**: invite, kick, promote, delete/archive. Else (incl. leaving) = any member. Gate with `assertAdmin`.
-7. **Last-write-wins** — no optimistic locking; `last_modified_at` is debug-only.
-8. **Soft-delete everywhere** — every read *and write* filters `isNull(table.deletedAt)`. Three exceptions (`ensureDays`, `applyTripWindow`, `addMember`) — see comments.
-9. **A trip may have no dates** — nullable `start_date`/`end_date`; undated is never an error.
-10. **No timezones** — dates are `YYYY-MM-DD`, event times local to the itinerary. Never persist an offset.
-11. **Degrade, don't crash, without credentials** — missing provider (Nominatim/Resend/Google) → reduced feature, never a throw.
+Never break these — integer money, enumeration-proof trip access, soft-delete on every read and write, trip state derived from data (no lifecycle flags), exactly four admin powers, day-first itinerary (no `stop` table), last-write-wins, nullable dates, no timezones. Each is specified in [architecture](docs/architecture/architecture.html) — read it before changing behaviour.
 
 ## Conventions
 
 - Server Components by default; mutations are Server Actions in `actions.ts` — never inline `"use server"` closures.
 - **Nothing in `app/` imports `@/db`** — SQL lives only in `server/`.
 - Validate at the door: dates via `@floc/core/dates`, free text via `@floc/core/text`. Rejections are form errors, never throws.
+- British English, sentence case, real content — never lorem.
+- **Comments ruthless** — none by default; a good name beats a line. Write one only for a *why* the code can't show: a non-obvious constraint, an upstream bug, a decision that looks wrong until explained, or a gotcha that has bitten. Never restate *what*, never head a function with a summary of itself, never leave one to justify code you could delete. Ticket pointer where it carries the why (`#212`). One line beats a block.
+
+## UI and UX
+
+**Both surfaces share one visual language**, ruled by [approach](docs/design/approach.html) and [visual language](docs/design/visual-language.html) — read them before UI work. Below is only what code enforces; the docs own how it looks.
+
 - **Colours from tokens only** — no hex literals, and token *values* live in `@floc/core/tokens`, not `globals.css`. `pnpm fitness` fails if the two disagree. Status always carries a word, never colour/icon alone.
 - **Light + dark, same token names** — dark restates base values in `:root[data-theme="dark"]`. **No `dark:` variant** (means the token is wrong). Choice in `localStorage`, never a column.
-- **No emoji** — icons are line-art: 14×14 `viewBox` ~13px, `fill="none"`, `strokeWidth` 1.15–1.25, `stroke="currentColor"`.
-- **Outside UI libraries** only where hand-rolling costs months (BlockNote runs Notes), and only if it takes the tokens/type/no-emoji rules.
+- **No emoji** — icons are line-art: 14×14 `viewBox` ~13px, `fill="none"`, `strokeWidth` 1.15–1.25, `stroke="currentColor"`. See [iconography](docs/design/visual-language.html#iconography).
 - **If the drawing is clear, say nothing** — text carries only what layout can't. No heading-above-heading, captions decoding the design, or narrating state a control shows. Exceptions: what's *missing*, and status.
-- **On the app, cut harder** — same [approach](docs/design/approach.html) and [visual language](docs/design/visual-language.html), no browser slack. Prefer the glyph alone where the word is one press away and is the accessible label; don't spend a labelled row on a question with a right default (ride the line it belongs to); two short controls share a line; short labels, the section heading carries the subject. Never a dead control with a sentence explaining why — make it work or don't draw it. Check overflow on the device.
-- British English, sentence case, real content — never lorem.
-- Read [approach](docs/design/approach.html) + [visual language](docs/design/visual-language.html) before UI/UX work — full visual language lives there.
-- **Comments ruthless** — only *why* + ticket pointer, or a real gotcha; never *what*. One line beats a block.
+- **Outside UI libraries** only where hand-rolling costs months (BlockNote runs Notes), and only if it takes the tokens/type/no-emoji rules.
+
+Surface differences live in the docs, once — **don't restate them here**:
+
+| Surface | House components | Surface rules |
+|---|---|---|
+| Web | `floc/apps/web/src/components/ui.tsx` · `client-ui.tsx` | The baseline both docs describe throughout; the app is drawn tighter against it. |
+| App | `floc/apps/mobile/src/components/ui.tsx` · `glyphs.tsx` | [on a phone, cut it back](docs/design/visual-language.html#on-a-phone); [drawn tighter](docs/design/approach.html#the-app). |
+
+Reach for the house component before writing markup; if neither surface has it, the [component inventory](docs/design/visual-language.html#components) says whether it should exist. A rule that fits both surfaces belongs in the shared docs, not one app.
 
 ## Code standards
 
 - **Single responsibility** — name needs "and" → two files.
-- **Dependency inversion at seams** — `@floc/core` pure and app-free; `components/` take data, never fetch; only `server/` opens the DB. Type-only imports across a seam OK. `pnpm deps:check` enforces.
-- **YAGNI** — no abstraction/option/knob without a second call site today.
+- **Group by feature, nest freely** — a folder past 20 flat `.ts/.tsx` files splits into feature subfolders (`components/trip/`, `server/money/`); subfolders may nest further (`trip/card/`). Prefer many small files and folders. `pnpm fitness` enforces the cap.
+- **Dependency inversion at seams** — `@floc/core` pure and app-free; `components/` take data, never fetch. Type-only imports across a seam OK. `pnpm deps:check` enforces.
+- **Follow YAGNI, KISS, SOLID** - you are a principle engineer/designer, who creates performant app/websites which are scalable, modular, maintainable and performant
 - **Composability over configuration** — 8 optional props for 4 cases → several components.
 
 | Rule | Limit |
@@ -94,7 +96,7 @@ pnpm verify                      # everything CI runs, locally
 
 `eslint` enforces all but props. Pre-ceiling files on a dated allowlist in `eslint.config.mjs`. Split beats adding a line.
 
-**Performance:** Server Components unless a client is needed; no client fetch where a server read does; no heavyweight import behind a rare branch; cap/page unbounded lists (`LIMITS`). `pnpm check:bundle` holds shared First Load JS under budget.
+**Performance:** no client fetch where a server read does; no heavyweight import behind a rare branch; cap/page unbounded lists (`LIMITS`). `pnpm check:bundle` holds shared First Load JS under budget.
 
 ## Out of scope (v1)
 
@@ -102,17 +104,16 @@ Payments, POI data/reviews, flight *booking* (deep links only), i18n, analytics,
 
 ## Workflow
 
-- **Branching.** Two long-lived branches, no feature branches. Work lands on `develop`, one commit per ticket, `verify` green before every push. `develop` → `main` in batches via PR, **merge commit** — never squash/rebase. `main` deploys → only ever a merge commit or hotfix. Hotfix = commit straight to `main`; [`sync-develop.yml`](.github/workflows/sync-develop.yml) merges it back. Never commit a feature to `main`.
-- **Commit subject:** `<version> #<issue>: <type>: <description>` (e.g. `0.4.0 #93: feat: split the profile`). Bump `floc/apps/web/package.json` same commit (minor=feat, patch=fix). Body ends `Closes AidanInceer/Floc#<n>`. Types: `feat|fix|docs|refactor|chore|test`. No-ticket work uses literal `#no-ticket`, drops `Closes`. Never invent/borrow a number — a wrong `Closes` shuts someone's issue.
-- **Ticket state.** `Closes` fires only on `main`, so a `develop` issue stays open until the batch merges — label **`on-develop`** the moment its commit is pushed. Parked work gets **`future-work`**.
-- **Ticket labels.** One type label: `type:feat` | `type:fix` | `type:refinement`. State labels on top: `wayfinder:grilling`, `on-develop`, `future-work`. Blocked-by edges in the body under `## Blocked by` as `#<n>`, never a label. A ticket never sits above its blocker.
-- **Priority stack.** Issue titled **`Priority`** in `AidanInceer/Floc` holds the ordered backlog in its body; top line = next ticket. Never worked on, never closed. A ticket leaves when tagged `on-develop`.
-- **Docs = HTML, not markdown** — edit the page. Each needs `<link>` `assets/docs.css`, `<nav id="sidebar">`, `<script src>` `assets/nav.js` (plain `<script src>` only — `fetch`/ES modules blocked on `file://`). New page needs a line in [`nav.js`](docs/assets/nav.js) `TREE` or it's unreachable. `docs/mockups/` standalone.
+- **Branches.** Two long-lived, no feature branches. Work lands on `develop` (one commit per ticket, `verify` green first), batched to `main` by PR as a **merge commit** — never squash/rebase. Hotfix = commit straight to `main`. Never commit a feature to `main`.
+- **Commit subject:** `<version> #<issue>: <type>: <description>` (e.g. `0.4.0 #93: feat: split the profile`). Bump `floc/apps/web/package.json` same commit (minor=feat, patch=fix). Body ends `Closes AidanInceer/Floc#<n>`. Types: `feat|fix|docs|refactor|chore|test`. No-ticket work uses `#no-ticket`, drops `Closes`. Never borrow a number — a wrong `Closes` shuts someone's issue.
+- **Tickets.** One type label: `type:feat|type:fix|type:refinement`; state labels on top: `wayfinder:grilling`, `on-develop`, `future-work`. `Closes` fires only on `main`, so tag `on-develop` when the commit is pushed to `develop`; parked work gets `future-work`. Blocked-by edges in the body under `## Blocked by` as `#<n>`, never above a blocker.
+- **Priority stack.** Issue titled `Priority` holds the ordered backlog in its body; top line = next ticket. Never worked on or closed; a ticket leaves when tagged `on-develop`.
+- **Docs = HTML, not markdown** — edit the page.
 - **Deploy = Railway** via `railway.json` (runs migration, starts `floc-web`). Push to `main` deploys. Env vars in Railway Variables tab, never the repo.
 
 ## Security
 
-No secrets/keys/tokens in the repo. No logging PII or tokens. Degrade without credentials, don't crash. Flag anything touching auth, encryption, PII, or compliance.
+No secrets/keys/tokens in the repo. No logging PII or tokens. Flag anything touching auth, encryption, PII, or compliance.
 
 ## Agent skills
 
@@ -124,4 +125,4 @@ Issues/PRDs are GitHub issues, driven with `gh`.
 | `/prioritise-tickets` | Puts unprioritised open issues into the `Priority` stack, fixes type labels. |
 | `/pickup-ticket` | Takes the top startable ticket, works it to a pushed `develop` commit. |
 
-**Loop:** idea → `/to-tickets` → `/prioritise-tickets` → `/pickup-ticket` → build on `develop`, one commit, `verify` green → push → tag `on-develop` → pop stack → batch PR to `main` closes it.
+**Loop:** idea → `/to-tickets` → `/prioritise-tickets` → `/pickup-ticket`.

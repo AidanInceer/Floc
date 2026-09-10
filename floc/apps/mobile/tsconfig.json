@@ -2,6 +2,15 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    "noImplicitOverride": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    // Off in the React apps, on in @floc/core and @floc/api. JSX passes an
+    // explicit undefined to any prop it omits conditionally, so here the flag
+    // fires on every optional prop and found no real bug; in the pure packages
+    // it caught port contracts that lied about what they accept.
+    "exactOptionalPropertyTypes": false,
 
     // React Native 0.87 ships TWO sets of types, chosen by export condition:
     // the new generated ones (default), and the mature hand-written ones

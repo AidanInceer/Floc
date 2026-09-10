@@ -30,14 +30,24 @@ export const TEXT_CAPS = {
 
 export type TextCap = keyof typeof TEXT_CAPS;
 
+/**
+ * Untrusted input as text. A string is itself and a number is its digits;
+ * anything else — an object from a hand-made POST — is not text and reads as
+ * empty, rather than as the literal "[object Object]".
+ */
+export function asText(value: unknown): string {
+  if (typeof value === "string") return value;
+  return typeof value === "number" && Number.isFinite(value) ? String(value) : "";
+}
+
 /** Trims and truncates to a named cap. `null` for empty — keeps "" and "not set" the same. */
 export function capText(value: unknown, cap: TextCap): string | null {
-  const trimmed = String(value ?? "").trim();
+  const trimmed = asText(value).trim();
   if (!trimmed) return null;
   return trimmed.slice(0, TEXT_CAPS[cap]);
 }
 
 /** The same, for a column that must not be null — an empty string stays empty. */
 export function capRequiredText(value: unknown, cap: TextCap): string {
-  return String(value ?? "").trim().slice(0, TEXT_CAPS[cap]);
+  return asText(value).trim().slice(0, TEXT_CAPS[cap]);
 }

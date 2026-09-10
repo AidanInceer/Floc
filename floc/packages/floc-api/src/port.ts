@@ -222,13 +222,14 @@ export type NewTrip = {
   endDate: string | null;
 };
 
-export type TripPatch = Partial<{
-  name: string;
-  startDate: string | null;
-  endDate: string | null;
-  colorKey: string | null;
-  tags: string[] | null;
-}>;
+/** Every field is optional and may arrive as an explicit `undefined` — the wire omits what it isn't changing. */
+export type TripPatch = {
+  name?: string | undefined;
+  startDate?: string | null | undefined;
+  endDate?: string | null | undefined;
+  colorKey?: string | null | undefined;
+  tags?: string[] | null | undefined;
+};
 
 export type ExpenseInput = {
   description: string;
@@ -838,7 +839,7 @@ export type FlocPort = {
   writeExpense(
     viewerId: string,
     tripId: number,
-    input: ExpenseInput & { expenseId?: number },
+    input: ExpenseInput & { expenseId?: number | undefined },
   ): Promise<void>;
 
   deleteExpense(viewerId: string, tripId: number, expenseId: number): Promise<void>;

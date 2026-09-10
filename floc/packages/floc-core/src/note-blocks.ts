@@ -66,13 +66,16 @@ export function serialiseNoteDoc(blocks: NoteBlock[]): string {
   return JSON.stringify(blocks);
 }
 
+/** A link run carries no href when the editor left it empty, so `href` is optional and may be undefined. */
+export type FlatRun = { text: string; styles: Record<string, unknown>; href?: string | undefined };
+
 /** The runs to draw, flattened one level so a link's own text comes through with its href. */
-export function inlineRuns(block: NoteBlock): { text: string; styles: Record<string, unknown>; href?: string }[] {
+export function inlineRuns(block: NoteBlock): FlatRun[] {
   const content = block.content;
   if (typeof content === "string") return [{ text: content, styles: {} }];
   if (!Array.isArray(content)) return [];
 
-  const runs: { text: string; styles: Record<string, unknown>; href?: string }[] = [];
+  const runs: FlatRun[] = [];
   for (const run of content) {
     if (run.type === "link") {
       const inner = Array.isArray(run.content) ? run.content : [];
