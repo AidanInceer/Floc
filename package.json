@@ -15,7 +15,7 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
-    "fitness": "turbo run fitness",
+    "fitness": "node scripts/check-folder-size.mjs && turbo run fitness",
     "parity": "node --experimental-strip-types scripts/parity/run.mjs",
     "verify": "node scripts/verify.mjs",
     "push:preflight": "node scripts/push.mjs preflight",

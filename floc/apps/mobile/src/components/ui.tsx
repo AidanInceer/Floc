@@ -12,6 +12,10 @@
  *   - No emoji. Icons are line-art, drawn as strokes.
  *   - Status always carries a word, never colour alone.
  *   - If the drawing is clear, say nothing.
+ *
+ * Its twin is `floc/apps/web/src/components/ui.tsx`. Separate files, one
+ * product: a control added or restyled there needs the same move here, or a
+ * reason it does not apply on a phone.
  */
 import { useState, type ReactNode } from "react";
 import {

@@ -1,5 +1,13 @@
-// Hand-rolled component inventory (ticket 11) — no shadcn/ui, keeps the
-// white-and-pastel visual language undiluted. Server components unless "use client".
+/**
+ * Hand-rolled component inventory (ticket 11) — no shadcn/ui, keeps the
+ * white-and-pastel visual language undiluted. Server components unless "use client".
+ *
+ * Its twin is `floc/apps/mobile/src/components/ui.tsx`. The two are separate
+ * files on purpose — this one draws DOM, that one draws native views — but
+ * they are one product, so anything visible must stay aligned: a control added
+ * or restyled here needs the same move there, or a reason it does not apply on
+ * a phone. `docs/design/visual-language.html` rules both.
+ */
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 
