@@ -18,8 +18,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "expo-router";
 import { FlatList, Pressable, RefreshControl, View } from "react-native";
 
-import { useTheme } from "@/components/theme";
-import { Body, Button, Card, Empty, Failed, Figure, Loading } from "@/components/ui";
+import { useTheme } from "@/components/system/theme";
+import { Body, Button, Card, Empty, Failed, Figure, Loading } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 

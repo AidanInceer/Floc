@@ -33,13 +33,13 @@ import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
 
-import { CategoryChips, type CategoryFilter } from "@/components/category-chips";
-import { PackingBulkBar } from "@/components/packing-bulk-bar";
-import { PackingKitSheet } from "@/components/packing-kit-sheet";
-import { MineRow, SharedRow } from "@/components/packing-rows";
-import { PackingSection } from "@/components/packing-section";
-import { PackingSetup } from "@/components/packing-setup";
-import { Sheet } from "@/components/sheet";
+import { CategoryChips, type CategoryFilter } from "@/components/days/category-chips";
+import { PackingBulkBar } from "@/components/packing/packing-bulk-bar";
+import { PackingKitSheet } from "@/components/packing/packing-kit-sheet";
+import { MineRow, SharedRow } from "@/components/packing/packing-rows";
+import { PackingSection } from "@/components/packing/packing-section";
+import { PackingSetup } from "@/components/packing/packing-setup";
+import { Sheet } from "@/components/system/sheet";
 import {
   Body,
   Button,
@@ -50,7 +50,7 @@ import {
   Label,
   Loading,
   Segmented,
-} from "@/components/ui";
+} from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 

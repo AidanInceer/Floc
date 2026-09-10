@@ -18,8 +18,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { ScrollView, View } from "react-native";
 
-import { Face } from "@/components/person-row";
-import { TravelMap } from "@/components/travel-map";
+import { Face } from "@/components/trip/person-row";
+import { TravelMap } from "@/components/map/travel-map";
 import {
   Body,
   Button,
@@ -31,7 +31,7 @@ import {
   Loading,
   Pill,
   Row,
-} from "@/components/ui";
+} from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 

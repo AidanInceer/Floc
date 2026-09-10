@@ -29,11 +29,11 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
 
-import { SettingsAccount } from "@/components/settings-account";
-import { SettingsDietary, SettingsVibeTags, type Dietary } from "@/components/settings-about";
-import { SettingsPrivacy, type Privacy } from "@/components/settings-privacy";
-import { useTheme, type ThemeChoice } from "@/components/theme";
-import { Body, Button, Divider, Dropdown, Failed, Label, Loading, Segmented, Toggle } from "@/components/ui";
+import { SettingsAccount } from "@/components/settings/settings-account";
+import { SettingsDietary, SettingsVibeTags, type Dietary } from "@/components/settings/settings-about";
+import { SettingsPrivacy, type Privacy } from "@/components/settings/settings-privacy";
+import { useTheme, type ThemeChoice } from "@/components/system/theme";
+import { Body, Button, Divider, Dropdown, Failed, Label, Loading, Segmented, Toggle } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { signOut } from "@/lib/auth";
 import { space } from "@/lib/theme";

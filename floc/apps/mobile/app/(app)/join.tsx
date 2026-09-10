@@ -18,7 +18,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
 
-import { Body, Button, Card, Field, Screen } from "@/components/ui";
+import { Body, Button, Card, Field, Screen } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 

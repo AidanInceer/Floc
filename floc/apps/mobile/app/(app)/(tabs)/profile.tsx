@@ -34,13 +34,13 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 
-import { IdentitySheet } from "@/components/identity-sheet";
-import { MapPromptCard } from "@/components/map-prompt";
-import { MarkEditor } from "@/components/mark-editor";
-import { ProfileFace } from "@/components/profile-face";
-import { Sheet } from "@/components/sheet";
-import { TravelMap } from "@/components/travel-map";
-import { VerifyEmailCard } from "@/components/verify-email";
+import { IdentitySheet } from "@/components/auth/identity-sheet";
+import { MapPromptCard } from "@/components/map/map-prompt";
+import { MarkEditor } from "@/components/notes/mark-editor";
+import { ProfileFace } from "@/components/system/profile-face";
+import { Sheet } from "@/components/system/sheet";
+import { TravelMap } from "@/components/map/travel-map";
+import { VerifyEmailCard } from "@/components/auth/verify-email";
 import {
   Body,
   Button,
@@ -51,7 +51,7 @@ import {
   Label,
   Loading,
   Row,
-} from "@/components/ui";
+} from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { signOut } from "@/lib/auth";
 import { space } from "@/lib/theme";

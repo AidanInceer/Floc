@@ -22,9 +22,9 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import { ThemeProvider, useTheme } from "@/components/theme";
-import { FlocWordmark } from "@/components/wordmark";
-import { Loading } from "@/components/ui";
+import { ThemeProvider, useTheme } from "@/components/system/theme";
+import { FlocWordmark } from "@/components/system/wordmark";
+import { Loading } from "@/components/system/ui";
 import { queryClient } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 

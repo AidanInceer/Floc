@@ -40,8 +40,8 @@ import { useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { GoogleButton } from "@/components/google-button";
-import { Body, Button, Field, OrRule, Screen, TextLink } from "@/components/ui";
+import { GoogleButton } from "@/components/auth/google-button";
+import { Body, Button, Field, OrRule, Screen, TextLink } from "@/components/system/ui";
 import { signIn } from "@/lib/auth";
 import { explainGoogle, explainSignIn } from "@/lib/auth-errors";
 import { devSignIn } from "@/lib/dev-sign-in";

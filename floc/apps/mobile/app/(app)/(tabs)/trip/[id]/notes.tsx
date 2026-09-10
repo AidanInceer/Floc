@@ -46,10 +46,10 @@ import { useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, TextInput, View } from "react-native";
 
-import { NoteBlockView } from "@/components/note-block";
-import { NoteLine } from "@/components/note-line";
-import { useTheme } from "@/components/theme";
-import { Body, Failed, Loading } from "@/components/ui";
+import { NoteBlockView } from "@/components/notes/note-block";
+import { NoteLine } from "@/components/notes/note-line";
+import { useTheme } from "@/components/system/theme";
+import { Body, Failed, Loading } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { radius, space } from "@/lib/theme";
 

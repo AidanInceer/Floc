@@ -30,11 +30,11 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
 
-import { DayGrid } from "@/components/day-grid";
-import { DayStrip } from "@/components/day-strip";
-import { EventForm, type EventDraft } from "@/components/event-form";
-import { OvernightLine } from "@/components/overnight-line";
-import { Body, Button, Empty, Failed, Label, Loading } from "@/components/ui";
+import { DayGrid } from "@/components/days/day-grid";
+import { DayStrip } from "@/components/days/day-strip";
+import { EventForm, type EventDraft } from "@/components/days/event-form";
+import { OvernightLine } from "@/components/days/overnight-line";
+import { Body, Button, Empty, Failed, Label, Loading } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 

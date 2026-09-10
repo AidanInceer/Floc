@@ -17,8 +17,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
 
-import { KitCard } from "@/components/kit-card";
-import { Sheet } from "@/components/sheet";
+import { KitCard } from "@/components/packing/kit-card";
+import { Sheet } from "@/components/system/sheet";
 import {
   Body,
   Button,
@@ -28,7 +28,7 @@ import {
   Field,
   Label,
   Loading,
-} from "@/components/ui";
+} from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 

@@ -20,9 +20,9 @@ import { useMutation } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { ScrollView, View } from "react-native";
 
-import { PresetRoute } from "@/components/preset-route";
-import { RouteMapFrame } from "@/components/route-map";
-import { Body, Button, Card, Empty, Figure, Label, Pill } from "@/components/ui";
+import { PresetRoute } from "@/components/packing/preset-route";
+import { RouteMapFrame } from "@/components/map/route-map";
+import { Body, Button, Card, Empty, Figure, Label, Pill } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 

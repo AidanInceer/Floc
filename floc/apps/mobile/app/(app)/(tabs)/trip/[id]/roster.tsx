@@ -24,9 +24,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Alert, Pressable, ScrollView, View } from "react-native";
 
-import { Seat } from "@/components/glyphs";
-import { useTheme } from "@/components/theme";
-import { Body, Button, Card, Failed, Label, Loading, Pill } from "@/components/ui";
+import { Seat } from "@/components/system/glyphs";
+import { useTheme } from "@/components/system/theme";
+import { Body, Button, Card, Failed, Label, Loading, Pill } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 import { space } from "@/lib/theme";

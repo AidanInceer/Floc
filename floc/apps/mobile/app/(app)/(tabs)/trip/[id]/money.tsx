@@ -30,9 +30,9 @@ import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
 
-import { CategoryIcon } from "@/components/category-icon";
-import { ExpenseForm, type DayOption, type ExpenseDraft } from "@/components/expense-form";
-import { useTheme } from "@/components/theme";
+import { CategoryIcon } from "@/components/system/category-icon";
+import { ExpenseForm, type DayOption, type ExpenseDraft } from "@/components/money/expense-form";
+import { useTheme } from "@/components/system/theme";
 import {
   Body,
   Button,
@@ -43,7 +43,7 @@ import {
   Heading,
   Label,
   Loading,
-} from "@/components/ui";
+} from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 import { ledgerCurrency, viewerBalance } from "@/lib/balance";

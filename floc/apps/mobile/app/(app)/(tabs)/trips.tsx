@@ -19,12 +19,12 @@ import { Link, useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { FlatList, Pressable, RefreshControl, View } from "react-native";
 
-import { FlockChevronGlyph, MoreGlyph } from "@/components/glyphs";
-import { InviteBanner } from "@/components/invite-banner";
-import { TagPills } from "@/components/tag-pills";
-import { useTheme } from "@/components/theme";
-import { TripSheet, draftFor, type TripDraft } from "@/components/trip-sheet";
-import { Body, Button, Card, Empty, Failed, Figure, IconButton, Loading, Pill } from "@/components/ui";
+import { FlockChevronGlyph, MoreGlyph } from "@/components/system/glyphs";
+import { InviteBanner } from "@/components/trip/invite-banner";
+import { TagPills } from "@/components/trip/tag-pills";
+import { useTheme } from "@/components/system/theme";
+import { TripSheet, draftFor, type TripDraft } from "@/components/trip/trip-sheet";
+import { Body, Button, Card, Empty, Failed, Figure, IconButton, Loading, Pill } from "@/components/system/ui";
 import { formatDateRange, splitEnded } from "@floc/core/dates";
 import { readTripColor, tripPastel } from "@floc/core/trip-color";
 

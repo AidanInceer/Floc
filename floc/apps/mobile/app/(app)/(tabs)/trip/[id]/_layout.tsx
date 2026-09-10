@@ -31,8 +31,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, usePathname, useRouter } from "expo-router";
 import { useEffect } from "react";
 
-import { useTheme } from "@/components/theme";
-import { TripHeader, type Section } from "@/components/trip-header";
+import { useTheme } from "@/components/system/theme";
+import { TripHeader, type Section } from "@/components/trip/trip-header";
 import { trpc } from "@/lib/api";
 import { viewerBalance } from "@/lib/balance";
 import { useSession } from "@/lib/auth";

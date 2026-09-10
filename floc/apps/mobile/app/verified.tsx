@@ -12,7 +12,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect } from "react";
 import { View } from "react-native";
 
-import { Body, Button, Heading, Screen } from "@/components/ui";
+import { Body, Button, Heading, Screen } from "@/components/system/ui";
 import { useSession } from "@/lib/auth";
 import { space } from "@/lib/theme";
 

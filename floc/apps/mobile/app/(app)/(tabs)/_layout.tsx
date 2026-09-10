@@ -19,8 +19,8 @@
  */
 import { Tabs } from "expo-router";
 
-import { ExploreIcon, TripsIcon, YouIcon } from "@/components/tab-icons";
-import { useTheme } from "@/components/theme";
+import { ExploreIcon, TripsIcon, YouIcon } from "@/components/system/tab-icons";
+import { useTheme } from "@/components/system/theme";
 import { fonts, size } from "@/lib/theme";
 
 export default function TabsLayout() {

@@ -36,7 +36,7 @@ import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
 
-import { MonthGrid, type CellLook } from "@/components/month-grid";
+import { MonthGrid, type CellLook } from "@/components/days/month-grid";
 import {
   Body,
   Button,
@@ -47,7 +47,7 @@ import {
   Label,
   Loading,
   Segmented,
-} from "@/components/ui";
+} from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 import { space } from "@/lib/theme";

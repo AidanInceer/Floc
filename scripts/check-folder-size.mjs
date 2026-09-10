@@ -19,7 +19,6 @@ const SKIP = new Set(["node_modules", ".next", ".expo", ".git", "dist", "build",
  * its slice lands — the check is what stops them growing back.
  */
 const ALLOWLIST = new Set([
-  "floc/apps/mobile/src/components",
   // Found by this check, not in the original plan — its own slice.
   "floc/packages/floc-core/src",
   // Old, don't extend (CLAUDE.md) — a dead app is not worth a refactor.

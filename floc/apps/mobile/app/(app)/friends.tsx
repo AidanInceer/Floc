@@ -16,8 +16,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { Pressable, ScrollView, View } from "react-native";
 
-import { PersonRow } from "@/components/person-row";
-import { Body, Button, Empty, Failed, Label, Loading } from "@/components/ui";
+import { PersonRow } from "@/components/trip/person-row";
+import { Body, Button, Empty, Failed, Label, Loading } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 

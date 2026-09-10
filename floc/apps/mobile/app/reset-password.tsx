@@ -15,7 +15,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 
-import { Body, Button, Field, Heading, Screen } from "@/components/ui";
+import { Body, Button, Field, Heading, Screen } from "@/components/system/ui";
 import { resetPassword } from "@/lib/auth";
 import { OFFLINE, unreachable } from "@/lib/auth-errors";
 import { space } from "@/lib/theme";

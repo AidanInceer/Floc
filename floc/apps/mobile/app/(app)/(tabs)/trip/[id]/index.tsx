@@ -23,12 +23,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ScrollView, View } from "react-native";
 
-import { FileList } from "@/components/file-list";
-import { GroupActions } from "@/components/group-actions";
-import { NeedsYou, type Outstanding } from "@/components/needs-you";
-import { RouteMap } from "@/components/route-map";
-import { RosterStrip } from "@/components/roster-strip";
-import { TagPills } from "@/components/tag-pills";
+import { FileList } from "@/components/files/file-list";
+import { GroupActions } from "@/components/trip/group-actions";
+import { NeedsYou, type Outstanding } from "@/components/trip/needs-you";
+import { RouteMap } from "@/components/map/route-map";
+import { RosterStrip } from "@/components/trip/roster-strip";
+import { TagPills } from "@/components/trip/tag-pills";
 import {
   Body,
   Card,
@@ -37,7 +37,7 @@ import {
   Label,
   Loading,
   Pill,
-} from "@/components/ui";
+} from "@/components/system/ui";
 import type { AppRouter } from "@floc/api/router";
 import type { inferRouterOutputs } from "@trpc/server";
 
