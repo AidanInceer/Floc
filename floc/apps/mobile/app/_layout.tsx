@@ -19,12 +19,12 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ThemeProvider, useTheme } from "@/components/system/theme";
+import { LaunchCurtain } from "@/components/system/launch";
 import { FlocWordmark } from "@/components/system/wordmark";
-import { Loading } from "@/components/system/ui";
 import { queryClient } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 
@@ -51,6 +51,7 @@ function Routes() {
   const { data: session, isPending } = useSession();
   const segments = useSegments();
   const router = useRouter();
+  const [launched, setLaunched] = useState(false);
 
   const signedIn = !!session?.user;
   const inApp = segments[0] === "(app)";
@@ -69,35 +70,39 @@ function Routes() {
   // Rendering a screen before the session is known would flash sign-in at
   // somebody who is already signed in, every cold start. The faces wait with
   // it: text drawn in Roboto and then reflowed into Bricolage is a worse first
-  // impression than a beat of nothing.
-  if (isPending || !facesLoaded) return <Loading />;
+  // impression than a beat of nothing. The curtain is that beat, and it holds
+  // until both are known.
+  const ready = !isPending && facesLoaded;
 
   return (
     <>
       <StatusBar style={theme === "dark" ? "light" : "dark"} />
-      <Stack
-        screenOptions={{
-          // One surface, not two. A sheet-coloured bar over a paper screen
-          // draws a tone step, and the hairline under it drew a second line
-          // across a screen that is a single column of controls.
-          headerStyle: { backgroundColor: c.paper },
-          headerShadowVisible: false,
-          headerTintColor: c.ink,
-          contentStyle: { backgroundColor: c.paper },
-        }}
-      >
-        {/* The mark, centred, instead of the word "Floc" — the first thing
-            somebody sees on opening the app should be the mark itself. */}
-        <Stack.Screen
-          name="sign-in"
-          options={{ headerTitle: () => <FlocWordmark />, headerTitleAlign: "center" }}
-        />
-        <Stack.Screen name="sign-up" options={{ title: "Create an account" }} />
-        <Stack.Screen name="forgot-password" options={{ title: "Forgotten password" }} />
-        <Stack.Screen name="reset-password" options={{ title: "New password" }} />
-        <Stack.Screen name="verified" options={{ title: "Email confirmed" }} />
-        <Stack.Screen name="(app)" options={{ headerShown: false }} />
-      </Stack>
+      {ready && (
+        <Stack
+          screenOptions={{
+            // One surface, not two. A sheet-coloured bar over a paper screen
+            // draws a tone step, and the hairline under it drew a second line
+            // across a screen that is a single column of controls.
+            headerStyle: { backgroundColor: c.paper },
+            headerShadowVisible: false,
+            headerTintColor: c.ink,
+            contentStyle: { backgroundColor: c.paper },
+          }}
+        >
+          {/* The mark, centred, instead of the word "Floc" — the first thing
+              somebody sees on opening the app should be the mark itself. */}
+          <Stack.Screen
+            name="sign-in"
+            options={{ headerTitle: () => <FlocWordmark />, headerTitleAlign: "center" }}
+          />
+          <Stack.Screen name="sign-up" options={{ title: "Create an account" }} />
+          <Stack.Screen name="forgot-password" options={{ title: "Forgotten password" }} />
+          <Stack.Screen name="reset-password" options={{ title: "New password" }} />
+          <Stack.Screen name="verified" options={{ title: "Email confirmed" }} />
+          <Stack.Screen name="(app)" options={{ headerShown: false }} />
+        </Stack>
+      )}
+      {!launched && <LaunchCurtain ready={ready} onDone={() => setLaunched(true)} />}
     </>
   );
 }
