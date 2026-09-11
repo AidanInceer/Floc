@@ -121,6 +121,7 @@ export default function SignIn() {
           <View style={{ gap: space.md }}>
             <Field
               label="Email"
+              testID="sign-in-email"
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
@@ -130,6 +131,7 @@ export default function SignIn() {
             />
             <Field
               label="Password"
+              testID="sign-in-password"
               value={password}
               onChangeText={setPassword}
               secureTextEntry

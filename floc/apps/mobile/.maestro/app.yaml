@@ -1,0 +1,56 @@
+appId: com.floc.app
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: "Trip planning, sorted"
+    timeout: 180000
+
+- tapOn:
+    id: "sign-in-email"
+- inputText: priya@a.seed.floc.test
+- tapOn:
+    id: "sign-in-password"
+- inputText: not-the-password
+- hideKeyboard
+- tapOn: "Sign in"
+- extendedWaitUntil:
+    visible: "That email and password don't match."
+    timeout: 30000
+
+- scrollUntilVisible:
+    element: "Dev Sign In"
+- tapOn: "Sign in as: .*"
+- tapOn: "Priya Raman"
+- tapOn: "Dev Sign In"
+- extendedWaitUntil:
+    visible: "Portugal, late summer"
+    timeout: 30000
+
+- tapOn: "Portugal, late summer"
+- extendedWaitUntil:
+    visible: "Money is not settled up."
+    timeout: 30000
+- assertVisible: "Tom Whitfield"
+- assertVisible: "Sofia Alves"
+
+- tapOn: "Days"
+- extendedWaitUntil:
+    visible: ".*Flight to Lisbon.*"
+    timeout: 15000
+
+- tapOn: "Money"
+- extendedWaitUntil:
+    visible: ".*Dinner in Alfama.*"
+    timeout: 15000
+
+- tapOn: "Packing"
+- scrollUntilVisible:
+    element: ".*Beach towels.*"
+    timeout: 15000
+
+- tapOn: "All trips"
+- tapOn: "You"
+- extendedWaitUntil:
+    visible: ".*Priya Raman.*"
+    timeout: 15000

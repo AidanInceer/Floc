@@ -17,6 +17,12 @@
     "test": {
       "dependsOn": ["^build"]
     },
+    "e2e": {
+      "dependsOn": ["build"],
+      "env": ["FLOC_NEXT_DIST_DIR"],
+      "passThroughEnv": ["CI"],
+      "cache": false
+    },
     "fitness": {
       "dependsOn": ["build"],
       "env": ["FLOC_NEXT_DIST_DIR"]

@@ -41,7 +41,7 @@ config.resolver.disableHierarchicalLookup = true;
 // deleted while Metro runs kills Metro with ENOENT.
 config.resolver.blockList = [
   ...[].concat(config.resolver.blockList ?? []),
-  /[\\/]floc[\\/]apps[\\/](web[\\/](\.next(-verify)?|coverage)|mobile[\\/](dist|coverage))([\\/].*)?$/,
+  /[\\/]floc[\\/]apps[\\/](web[\\/](\.next(-verify)?|\.e2e|coverage)|mobile[\\/](dist|coverage))([\\/].*)?$/,
 ];
 
 module.exports = config;

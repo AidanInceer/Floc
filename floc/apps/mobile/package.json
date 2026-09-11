@@ -10,7 +10,8 @@
     "android": "expo run:android",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --coverage"
+    "test": "vitest run --coverage",
+    "maestro": "maestro test .maestro"
   },
   "dependencies": {
     "@better-auth/expo": "~1.6.30",

@@ -7,6 +7,7 @@
 # drifted from CI is worse than no local gate, because it buys false confidence.
 #
 #   ci.yml       verify      → lint · typecheck · test · build   (via turbo)
+#   ci.yml       e2e-web     → Playwright over the build, on its own database
 #   ci.yml       fitness     → layers · dead code · tokens · contrast · bundle
 #   ci.yml       migrations  → schema changes ship with a migration
 #   ci.yml       wireframes  → wireframes stay self-contained
@@ -14,8 +15,10 @@
 #   ci.yml       mobile      → Expo bundles for Android and iOS
 #
 # One CI job is deliberately NOT mirrored: `mobile-android`, the native gradle
-# compile. It takes twenty minutes and wants a JDK 17, which is too much to ask
-# of a gate meant to be run before every push — and it is advisory in CI too.
+# compile and the Maestro flows on an emulator. It takes forty minutes and wants
+# a JDK 17, which is too much to ask of a gate meant to be run before every
+# push — and it is advisory in CI too. Run the flows by hand:
+# `pnpm --filter floc-mobile maestro`.
 #   security.yml audit       → pnpm audit --audit-level=high
 #   security.yml secrets     → gitleaks (skipped when not installed)
 #
@@ -93,6 +96,18 @@ if pnpm build >/tmp/verify-build.log 2>&1; then
 else
   bad "build"
   tail -30 /tmp/verify-build.log
+fi
+
+# --------------------------------------------------- ci.yml :: e2e-web
+
+# Over the build above, on port 3100 and `.e2e/data`, so the dev server and
+# local.db are untouched.
+step "The web app works end to end"
+if pnpm --filter floc-web e2e >/tmp/verify-e2e.log 2>&1; then
+  ok "$(grep -E '[0-9]+ passed' /tmp/verify-e2e.log | tail -1 | xargs)"
+else
+  bad "a Playwright test failed"
+  grep -vE '^\[WebServer\]' /tmp/verify-e2e.log | tail -40
 fi
 
 # --------------------------------------------------- ci.yml :: fitness

@@ -152,12 +152,16 @@ jobs:
   # at job level GitHub still publishes the check run as red, which is what a
   # branch rule reads. Step level lets the job conclude green. Make it a gate
   # once it is reliably passing.
+  #
+  # The same APK then runs the Maestro flows in `floc/apps/mobile/.maestro`,
+  # against a seeded web server (scripts/e2e-app-ci.sh). Advisory for the same
+  # reason, and too slow for verify.sh to mirror.
   mobile-android:
-    name: Android · native build (advisory)
+    name: Android · native build and flows (advisory)
     needs: changes
     if: needs.changes.outputs.mobile == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -183,6 +187,64 @@ jobs:
         run: ./gradlew assembleDebug --no-daemon
         working-directory: floc/apps/mobile/android
         continue-on-error: true
+
+      - name: Install Maestro
+        run: |
+          curl -fsSL "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+        continue-on-error: true
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+        continue-on-error: true
+
+      - name: Flows
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          script: bash scripts/e2e-app-ci.sh
+        env:
+          MAESTRO_CLI_NO_ANALYTICS: 1
+        continue-on-error: true
+
+  # The web app driven in a real browser: sign in, open a trip, start one, and
+  # someone else's trip answering exactly like a missing one. Its own seeded
+  # database on port 3100 — see floc/apps/web/e2e/serve.mjs.
+  e2e-web:
+    name: Web · end to end
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      FLOC_NEXT_DIST_DIR: .next-verify
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        run: pnpm --filter floc-web exec playwright install --with-deps chromium
+
+      - name: Playwright
+        run: pnpm turbo run e2e --filter floc-web
+
+      - name: Keep the report and traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright
+          path: floc/apps/web/.e2e/
+          retention-days: 7
 
   # A schema change with no migration file is how floc's production
   # database fell behind its code: `trip.tags` shipped, nothing ever altered
