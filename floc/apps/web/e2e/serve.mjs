@@ -1,14 +1,11 @@
-// A fresh, seeded database, then `next start` over the last build. Playwright
-// runs it on 3100. The phone's CI job passes `3000 --dev`: `adb reverse` points
-// at 3000, and the dev sign-in door stays shut under `next start`.
+// A fresh, seeded database, then `next start` over the last build, on 3100.
 import { execSync, spawn } from "node:child_process";
 import { mkdirSync, rmSync } from "node:fs";
 import { createRequire } from "node:module";
 
 import { DATA_DIR, WEB_DIR, e2eEnv } from "./env.mjs";
 
-const port = Number(process.argv.find((arg) => /^\d+$/.test(arg)) ?? 3100);
-const mode = process.argv.includes("--dev") ? "dev" : "start";
+const port = Number(process.argv[2] ?? 3100);
 const env = { ...process.env, ...e2eEnv(port) };
 const run = (command) => execSync(command, { cwd: WEB_DIR, env, stdio: "inherit" });
 
@@ -20,7 +17,7 @@ run(
 );
 
 const nextBin = createRequire(import.meta.url).resolve("next/dist/bin/next");
-const next = spawn(process.execPath, [nextBin, mode, "-p", String(port)], {
+const next = spawn(process.execPath, [nextBin, "start", "-p", String(port)], {
   cwd: WEB_DIR,
   env,
   stdio: "inherit",

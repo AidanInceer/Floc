@@ -15,10 +15,9 @@
 #   ci.yml       mobile      → Expo bundles for Android and iOS
 #
 # One CI job is deliberately NOT mirrored: `mobile-android`, the native gradle
-# compile and the Maestro flows on an emulator. It takes forty minutes and wants
-# a JDK 17, which is too much to ask of a gate meant to be run before every
-# push — and it is advisory in CI too. Run the flows by hand:
-# `pnpm --filter floc-mobile maestro`.
+# compile. It takes twenty minutes and wants a JDK 17, which is too much to ask
+# of a gate meant to be run before every push — and it is advisory in CI too.
+# The Maestro flows run nowhere automatically: `pnpm --filter floc-mobile maestro`.
 #   security.yml audit       → pnpm audit --audit-level=high
 #   security.yml secrets     → gitleaks (skipped when not installed)
 #

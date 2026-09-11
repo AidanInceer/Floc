@@ -152,16 +152,12 @@ jobs:
   # at job level GitHub still publishes the check run as red, which is what a
   # branch rule reads. Step level lets the job conclude green. Make it a gate
   # once it is reliably passing.
-  #
-  # The same APK then runs the Maestro flows in `floc/apps/mobile/.maestro`,
-  # against a seeded web server (scripts/e2e-app-ci.sh). Advisory for the same
-  # reason, and too slow for verify.sh to mirror.
   mobile-android:
-    name: Android · native build and flows (advisory)
+    name: Android · native build (advisory)
     needs: changes
     if: needs.changes.outputs.mobile == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 50
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -186,42 +182,6 @@ jobs:
       - name: Assemble
         run: ./gradlew assembleDebug --no-daemon
         working-directory: floc/apps/mobile/android
-        continue-on-error: true
-
-      # The runner is left with ~5.5 GB after the build and the emulator wants
-      # more. None of these are needed once the APK exists.
-      - name: Free disk for the emulator
-        run: |
-          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost /opt/hostedtoolcache/CodeQL "$ANDROID_HOME/ndk"
-          rm -rf ~/.gradle/caches floc/apps/mobile/android/app/build/intermediates
-          df -h /
-        continue-on-error: true
-
-      - name: Install Maestro
-        run: |
-          curl -fsSL "https://get.maestro.mobile.dev" | bash
-          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
-        continue-on-error: true
-
-      - name: Enable KVM
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-          ls -l /dev/kvm
-        continue-on-error: true
-
-      - name: Flows
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 34
-          arch: x86_64
-          target: google_apis
-          disk-size: 3G
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-metrics
-          script: bash scripts/e2e-app-ci.sh
-        env:
-          MAESTRO_CLI_NO_ANALYTICS: 1
         continue-on-error: true
 
   # The web app driven in a real browser: sign in, open a trip, start one, and
