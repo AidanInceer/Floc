@@ -138,7 +138,7 @@ export default function Files() {
       <View style={{ gap: space.sm }}>
         <Label>On this trip</Label>
         {files.data.length === 0 ? (
-          <Empty>No files yet.</Empty>
+          <Empty>{writable.data === false ? "No files yet." : "Add the first file above."}</Empty>
         ) : (
           files.data.map((file) => (
             <Card key={file.id}>

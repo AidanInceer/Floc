@@ -50,6 +50,7 @@ export function NotesEditor({
   const editor = useCreateBlockNote({
     schema,
     initialContent: initialContent ?? [...STARTING_DOC],
+    placeholders: { emptyDocument: "Write the first note" },
   });
 
   const flush = useCallback(async () => {

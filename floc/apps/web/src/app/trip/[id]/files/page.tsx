@@ -101,7 +101,7 @@ export default async function FilesPage({
             note="Everyone on the trip"
             empty={
               category === "all"
-                ? "Nothing shared yet — bookings and tickets go here."
+                ? "Add the first file with Upload — bookings and tickets go here."
                 : "Nothing shared is filed here."
             }
             docs={shared}

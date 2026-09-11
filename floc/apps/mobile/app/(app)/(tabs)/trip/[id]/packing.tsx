@@ -252,7 +252,7 @@ export default function Packing() {
           onSort={setMineSort}
           selecting={picking?.list === "mine"}
           onSelecting={(on) => startPicking("mine", on)}
-          emptyWord={filtered ? "Nothing in your bag in this one." : "Your bag is empty."}
+          emptyWord={filtered ? "Nothing in your bag in this one." : "Start your bag — add the first thing above."}
           renderLine={(line) => (
             <MineRow
               key={line.id}

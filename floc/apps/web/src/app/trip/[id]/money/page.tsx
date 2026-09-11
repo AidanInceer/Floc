@@ -237,7 +237,7 @@ function EmptyMoney({ addForm }: { addForm: React.ReactNode }) {
         everyone up.
       </p>
       <div className="mt-5 flex justify-center">
-        <Sheet trigger="Add the first expense" title="Expense" keepOpenOnSubmit>
+        <Sheet trigger="Log the first cost" title="Expense" keepOpenOnSubmit>
           {addForm}
         </Sheet>
       </div>

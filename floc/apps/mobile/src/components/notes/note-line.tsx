@@ -130,7 +130,7 @@ export const NoteLine = forwardRef<
         onFocus={onFocus}
         multiline
         submitBehavior="submit"
-        placeholder={index === 1 && text === "" ? "Write something" : ""}
+        placeholder={index === 1 && text === "" ? "Write the first note" : ""}
         placeholderTextColor={c["ink-3"]}
         style={{
           flex: 1,

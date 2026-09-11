@@ -107,7 +107,16 @@ export default async function TripsPage({
         <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <NewTripTile friends={friends} first={cards.length === 0} />
         </ul>
-      ) : (
+      ) : null}
+      {cards.length === 0 ? (
+        <p className="mt-4 text-center text-sm text-ink-soft">
+          or{" "}
+          <Link href="/explore" className="text-pen hover:underline">
+            borrow one from Explore
+          </Link>
+        </p>
+      ) : null}
+      {live.length === 0 ? null : (
         <TripGrid trips={live} view={view} className="mt-8" />
       )}
 

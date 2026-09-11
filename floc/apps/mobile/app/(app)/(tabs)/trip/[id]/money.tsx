@@ -238,7 +238,7 @@ export default function Money() {
       {problem ? <Body tone="red">{problem}</Body> : null}
 
       {shown.length === 0 ? (
-        <Empty>Nothing spent yet.</Empty>
+        <Empty>No costs logged yet.</Empty>
       ) : null}
 
       {shown.map((expense) =>
@@ -338,7 +338,7 @@ export default function Money() {
         </View>
       ) : (
         <Button
-          label="Add an expense"
+          label={shown.length === 0 ? "Log the first cost" : "Add an expense"}
           onPress={() => {
             setEditing({ kind: "add" });
             setProblem(null);
