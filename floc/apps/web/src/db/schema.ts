@@ -176,6 +176,8 @@ export const userProfile = sqliteTable("user_profile", {
   packAutoGenerate: integer("pack_auto_generate", { mode: "boolean" })
     .notNull()
     .default(true),
+  /** First set when the tour is finished or skipped, never cleared — once per person, not per trip (#314). */
+  tourSeenAt: integer("tour_seen_at", { mode: "timestamp" }),
   // No theme column — light-only (ticket 07).
   notifyInvites: integer("notify_invites", { mode: "boolean" })
     .notNull()

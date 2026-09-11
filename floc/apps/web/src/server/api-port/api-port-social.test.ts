@@ -155,6 +155,14 @@ describe("the share link (ticket 05, 147)", () => {
   });
 });
 
+describe("the tour through the port (#314)", () => {
+  it("is unseen until marked, then seen", async () => {
+    expect(await webPort.tourSeen(world.member)).toBe(false);
+    await webPort.markTourSeen(world.member);
+    expect(await webPort.tourSeen(world.member)).toBe(true);
+  });
+});
+
 describe("deleting a trip (rule 6, rule 8)", () => {
   it("refuses a member", async () => {
     await expect(webPort.deleteTrip(world.member, world.ours.id)).rejects.toThrow();

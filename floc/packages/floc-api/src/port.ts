@@ -536,6 +536,12 @@ export type FlocPort = {
    */
   loadMe(viewerId: string): Promise<Me>;
 
+  /** Whether the first-trip tour was ever finished or skipped — per person, never per trip (#314). */
+  tourSeen(viewerId: string): Promise<boolean>;
+
+  /** The first time stands; calling it again changes nothing. */
+  markTourSeen(viewerId: string): Promise<void>;
+
   /**
    * The profile's face (ticket 302, direction C). Separate from `loadMe`
    * because it is heavier and rarer — every screen that needs the viewer's id

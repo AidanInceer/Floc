@@ -1,0 +1,1 @@
+ALTER TABLE `user_profile` ADD `tour_seen_at` integer;

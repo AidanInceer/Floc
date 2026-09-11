@@ -102,6 +102,10 @@
     "me.mapPrompts": {
       "mobile": "yes"
     },
+    "me.markTourSeen": {
+      "mobile": "planned",
+      "why": "The app's tour (#315) marks it on finish or skip. Nothing on the app draws a tour yet."
+    },
     "me.profile": {
       "mobile": "yes"
     },
@@ -111,6 +115,10 @@
     },
     "me.setMark": {
       "mobile": "yes"
+    },
+    "me.tourSeen": {
+      "mobile": "planned",
+      "why": "The app's tour (#315) reads it to run once per person. Nothing on the app draws a tour yet."
     },
     "money.deleteExpense": {
       "mobile": "yes"

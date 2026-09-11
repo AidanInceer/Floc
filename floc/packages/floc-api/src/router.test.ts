@@ -44,6 +44,8 @@ function fakePort(overrides: Partial<FlocPort> = {}): FlocPort {
       tripCount: 1,
     }),
     renameMe: vi.fn().mockResolvedValue(undefined),
+    tourSeen: vi.fn().mockResolvedValue(false),
+    markTourSeen: vi.fn().mockResolvedValue(undefined),
     loadPacking: vi.fn().mockResolvedValue({ shared: [], mine: [] }),
     addPackingLine: vi.fn().mockResolvedValue(undefined),
     claimPackingLine: vi.fn().mockResolvedValue(undefined),
@@ -109,6 +111,21 @@ describe("being signed in", () => {
     const { caller: ana, port } = caller("u1");
     await ana.trips.list({ archived: false });
     expect(port.listTrips).toHaveBeenCalledWith("u1", { archived: false });
+  });
+});
+
+describe("the tour (#314)", () => {
+  it("reads and marks only the caller's own record", async () => {
+    const { caller: ana, port } = caller("u1");
+    await expect(ana.me.tourSeen()).resolves.toBe(false);
+    await ana.me.markTourSeen();
+    expect(port.tourSeen).toHaveBeenCalledWith("u1");
+    expect(port.markTourSeen).toHaveBeenCalledWith("u1");
+  });
+
+  it("refuses a signed-out caller", async () => {
+    const { caller: anon } = caller(null);
+    await expect(anon.me.markTourSeen()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 });
 

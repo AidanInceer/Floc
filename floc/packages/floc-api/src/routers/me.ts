@@ -25,6 +25,12 @@ export const meRouter = router({
    */
   profile: protectedProcedure.query(({ ctx }) => ctx.port.loadMyProfile(ctx.viewer.id)),
 
+  tourSeen: protectedProcedure.query(({ ctx }) => ctx.port.tourSeen(ctx.viewer.id)),
+
+  markTourSeen: protectedProcedure.mutation(async ({ ctx }) => {
+    await ctx.port.markTourSeen(ctx.viewer.id);
+  }),
+
   rename: protectedProcedure
     .input(
       z.object({

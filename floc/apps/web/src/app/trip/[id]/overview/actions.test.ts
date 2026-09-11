@@ -17,6 +17,7 @@ import {
   inviteFriends,
   kickMember,
   leaveTrip,
+  markTourSeen,
   promoteMember,
   renameTrip,
   sendNudge,
@@ -121,6 +122,19 @@ describe("the admin powers", () => {
   it("are refused on a trip the viewer is not on (rule 5)", async () => {
     signIn(world.outsider);
     await expectNotFound(() => kickMember(form({ tripId: ours(), userId: world.member })));
+  });
+});
+
+describe("the tour (#314)", () => {
+  it("marks the signed-in person as having seen it", async () => {
+    signIn(world.member);
+    await markTourSeen();
+    const profile = await db
+      .select()
+      .from(schema.userProfile)
+      .where(eq(schema.userProfile.userId, world.member))
+      .get();
+    expect(profile?.tourSeenAt).toBeInstanceOf(Date);
   });
 });
 

@@ -22,6 +22,7 @@ import { auth, listLinkedAccounts, unlinkAccountById } from "@/server/auth/auth"
 import { refresh } from "@/server/freshness";
 import { ensureProfile, loadIdentity, updateProfileFields } from "@/server/auth/profile";
 import { handOverAndLeaveAllTrips } from "@/server/trips/roster";
+import { markTourSeen, tourSeenAt } from "@/server/auth/tour";
 
 type SettingsPort = Pick<
   FlocPort,
@@ -35,9 +36,17 @@ type SettingsPort = Pick<
   | "updateNotifications"
   | "unlinkSignIn"
   | "deleteMyAccount"
+  | "tourSeen"
+  | "markTourSeen"
 >;
 
 export const settingsPort: SettingsPort = {
+  async tourSeen(viewerId) {
+    return (await tourSeenAt(viewerId)) !== null;
+  },
+
+  markTourSeen: (viewerId) => markTourSeen(viewerId),
+
   async loadMySettings(viewerId): Promise<MySettings> {
     // The lazy row first, so somebody who has never opened settings on the web
     // reads back defaults rather than a hole.
