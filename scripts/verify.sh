@@ -181,12 +181,15 @@ fi
 # the same question against the previous commit, which is a thing CI can see
 # and a pre-push script cannot.
 step "The phone app bundles"
-if (cd floc/apps/mobile && npx expo export --platform android --platform ios --output-dir dist >/dev/null 2>&1); then
+# Outside the repo: Metro watches the whole tree and dies when a folder it
+# watches is deleted, which is what cleaning up `dist` did.
+bundle_dir=$(mktemp -d)
+if (cd floc/apps/mobile && npx expo export --platform android --platform ios --output-dir "$bundle_dir" >/dev/null 2>&1); then
   ok "android and ios bundles built"
 else
   bad "the phone app does not bundle"
 fi
-rm -rf floc/apps/mobile/dist
+rm -rf "$bundle_dir"
 
 # ------------------------------------------ security.yml :: audit
 

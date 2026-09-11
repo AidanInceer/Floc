@@ -37,11 +37,11 @@ config.resolver.extraNodeModules = {
 // Windows resolves past the repo. Search only the roots.
 config.resolver.disableHierarchicalLookup = true;
 
-// Watching the repo root means watching the web app's build folders too. A
-// build that empties one while Metro runs kills Metro with ENOENT.
+// Watching the repo root means watching build and coverage folders too. One
+// deleted while Metro runs kills Metro with ENOENT.
 config.resolver.blockList = [
   ...[].concat(config.resolver.blockList ?? []),
-  /[\\/]floc[\\/]apps[\\/]web[\\/]\.next(-verify)?[\\/].*/,
+  /[\\/]floc[\\/]apps[\\/](web[\\/](\.next(-verify)?|coverage)|mobile[\\/](dist|coverage))([\\/].*)?$/,
 ];
 
 module.exports = config;
