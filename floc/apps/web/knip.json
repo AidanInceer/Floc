@@ -1,7 +1,9 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "entry": [
-    "scripts/*.mjs"
+    "scripts/*.mjs",
+    "e2e/serve.mjs",
+    "e2e/auth.setup.ts"
   ],
   "ignoreDependencies": ["server-only", "@tailwindcss/postcss", "tailwindcss", "eslint-config-next"],
   "ignoreBinaries": ["better-auth"]

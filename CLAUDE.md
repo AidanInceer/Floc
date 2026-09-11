@@ -40,7 +40,11 @@ pnpm parity                      # the web/app gap is declared, not forgotten
 pnpm verify                      # everything CI runs, locally
 pnpm --filter floc-web db:seed    # dev scenarios A + B (`a`/`b` for one, `--reset` to remove)
 pnpm --filter floc-web db:reset   # empty local.db + uploads, then seed — same state every time
+pnpm --filter floc-web e2e        # Playwright over the `.next-verify` build, own db on :3100
+pnpm --filter floc-mobile maestro # Maestro flows on the emulator, against the dev loop
 ```
+
+- **End to end.** Playwright ([`e2e/`](floc/apps/web/e2e/)) needs a build first (`verify` does one); it seeds its own database, never `local.db`. Sign in once per person in `auth.setup.ts` — production allows 3 sign-ins per 10 s. Maestro ([`.maestro/`](floc/apps/mobile/.maestro/)) runs against `/floc:run` with scenario A seeded. One flow, `app.yaml`: wipe once, sign in once as a seeded person through the dev sign-in button, then walk the app. Extend it rather than adding flows that relaunch. Target a control by `testID` → `id:`. Not in CI or `verify` — run it by hand.
 
 - **A new API procedure needs a line in [`parity.json`](scripts/parity/parity.json)** saying whether the phone app has it, and why not. `pnpm parity --fix` writes the boring half; the `why` is yours. Rules and tests: [`parity.ts`](floc/packages/floc-api/src/parity.ts).
 - [`verify`](scripts/verify.sh) mirrors CI. Change a `.github/workflows/` **check** job → change verify.sh same commit.

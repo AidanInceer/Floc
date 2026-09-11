@@ -184,6 +184,40 @@ jobs:
         working-directory: floc/apps/mobile/android
         continue-on-error: true
 
+  # The web app driven in a real browser: sign in, open a trip, start one, and
+  # someone else's trip answering exactly like a missing one. Its own seeded
+  # database on port 3100 — see floc/apps/web/e2e/serve.mjs.
+  e2e-web:
+    name: Web · end to end
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      FLOC_NEXT_DIST_DIR: .next-verify
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        run: pnpm --filter floc-web exec playwright install --with-deps chromium
+
+      - name: Playwright
+        run: pnpm turbo run e2e --filter floc-web
+
+      - name: Keep the report and traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright
+          path: floc/apps/web/.e2e/
+          retention-days: 7
+
   # A schema change with no migration file is how floc's production
   # database fell behind its code: `trip.tags` shipped, nothing ever altered
   # the table, and every logged-in hit on /trips threw "no such column".
