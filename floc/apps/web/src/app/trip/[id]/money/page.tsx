@@ -3,8 +3,10 @@
  * balances are derived at read time from expenses − settlements (rule 04,
  * `computeBalances`), the page shows only the *simplified* transfers that
  * square everyone up, and a merged activity feed of expenses and settlements
- * that any member can delete to revert. When every book nets to zero the whole
- * tab collapses behind a "settled up" banner.
+ * that any member can delete to revert. The top of the page is the viewer's
+ * own two sides only — what they owe, what they are owed (#317) — and collapses
+ * behind a "settled up" banner as soon as *they* are square, whether or not two
+ * other people still owe each other.
  */
 import type { Currency, ExpenseSplit } from "@/db/schema";
 import { CURRENCIES } from "@/db/schema";
@@ -14,9 +16,14 @@ import {
   computeBalances,
   convertTotal,
   formatMoney,
-  isAllSettled,
   suggestSettlements,
 } from "@floc/core/money/money";
+import {
+  yourSettleUp,
+  type CurrencyTotal,
+  type CurrencyTransfer,
+  type YourSettleUp,
+} from "@floc/core/money/settle-up";
 import type { LedgerLine, LedgerSettlement } from "@floc/core/money/money";
 import { listDays } from "@/server/itinerary/itinerary";
 import {
@@ -27,9 +34,9 @@ import {
 } from "@/server/money/money";
 import { getProfile } from "@/server/auth/profile";
 import { getHomeRates } from "@/server/money/fx";
-import { Avatar, cx } from "@/components/system/ui";
+import { Avatar } from "@/components/system/ui";
 import { Sheet } from "@/components/system/client-ui";
-import { CombinedTotal, ConvertAmount, SettleUpForm } from "@/components/money/money-client";
+import { ConvertAmount, SettleUpForm } from "@/components/money/money-client";
 import { ActivityFeed } from "@/components/money/money-activity";
 import { ExpenseForm } from "@/components/money/expense-form";
 import type { FormDay, FormMember } from "@/components/money/expense-form";
@@ -45,15 +52,14 @@ export default async function MoneyPage({
   const tripId = access.trip.id;
   const viewerId = access.viewer.id;
 
-  const [expenses, days, viewerProfile, splits, settlements] = await Promise.all(
-    [
+  const [expenses, days, viewerProfile, splits, settlements] =
+    await Promise.all([
       listExpenses(tripId),
       listDays(tripId),
       getProfile(viewerId),
       listSplits(tripId),
       listSettlements(tripId),
-    ],
-  );
+    ]);
 
   const homeCurrency: Currency = viewerProfile?.homeCurrency ?? "GBP";
   const rates = await getHomeRates(homeCurrency);
@@ -76,7 +82,8 @@ export default async function MoneyPage({
   for (const m of access.members) userNames[m.userId] = m.name;
   for (const u of extraUsers) userNames[u.id] = u.name;
   const name = (userId: string) => userNames[userId] ?? "Former member";
-  const label = (userId: string) => (userId === viewerId ? "You" : name(userId));
+  const label = (userId: string) =>
+    userId === viewerId ? "You" : name(userId);
 
   const memberTones: Record<string, string> = {};
   for (const m of access.members) memberTones[m.userId] = m.tone;
@@ -134,37 +141,13 @@ export default async function MoneyPage({
   );
 
   const hasActivity = expenses.length > 0 || settlements.length > 0;
-  const allSettled = hasActivity && isAllSettled(balances);
 
-  // Every transfer that squares the group up, across currencies, viewer's own
-  // first — those are theirs to act on (the page's one blue).
-  const transfers = active
-    .flatMap((currency) =>
-      suggestSettlements(balances[currency]).map((s) => ({ ...s, currency })),
-    )
-    .sort((a, b) => {
-      const aMine = a.from === viewerId ? 0 : 1;
-      const bMine = b.from === viewerId ? 0 : 1;
-      return aMine - bMine;
-    });
-
-  // The viewer's own position, one row per currency — the truth the combined
-  // total only previews (ticket 253). Negative reads as owing, or as having
-  // overpaid once the expense behind a settlement is deleted.
-  // Bills alone, no settlements — the yardstick for "overpaid": settle-up has
-  // pushed the viewer above where the expenses put them, which is what an
-  // expense deleted after a settlement looks like (ticket 253).
-  const expenseOnly = computeBalances(ledgerLines);
-  const myPosition = active
-    .map((currency) => ({
-      currency,
-      amountMinor: balances[currency][viewerId] ?? 0,
-      overpaid:
-        (balances[currency][viewerId] ?? 0) >
-        Math.max(expenseOnly[currency][viewerId] ?? 0, 0),
-    }))
-    .filter((row) => row.amountMinor !== 0);
-  const myTotalInHome = convertTotal(myPosition, homeCurrency, rateFor);
+  // Every transfer that squares the group up, across currencies — then only the
+  // viewer's own, because the rest is other people's business (#317).
+  const transfers: CurrencyTransfer[] = active.flatMap((currency) =>
+    suggestSettlements(balances[currency]).map((s) => ({ ...s, currency })),
+  );
+  const mine = yourSettleUp({ transfers, viewerId });
 
   return (
     <div className="mx-auto w-full max-w-[64rem] px-4 pb-20 pt-6 sm:px-6">
@@ -181,32 +164,21 @@ export default async function MoneyPage({
         <EmptyMoney addForm={addForm} />
       ) : (
         <div className="mt-8 flex flex-col gap-4">
-          {allSettled ? (
+          {mine.settled ? (
             <SettledBanner addForm={addForm} />
           ) : (
-            <>
-              <YourPosition
-                rows={myPosition}
-                active={active}
-                home={homeCurrency}
-                totalInHome={myTotalInHome}
-                rateDate={rates?.date ?? null}
-                rateStale={rates?.stale ?? false}
-              />
-              <SettleUpCard
-                tripId={tripId}
-                transfers={transfers}
-                viewerId={viewerId}
-                label={label}
-                tone={tone}
-                home={homeCurrency}
-                rateFor={rateFor}
-              />
-            </>
+            <MySettleUp
+              tripId={tripId}
+              mine={mine}
+              label={label}
+              tone={tone}
+              home={homeCurrency}
+              rateFor={rateFor}
+            />
           )}
 
           <ActivityFeed
-            collapsed={allSettled}
+            collapsed={mine.settled}
             tripId={tripId}
             viewerId={viewerId}
             expenses={expenses}
@@ -233,8 +205,8 @@ function EmptyMoney({ addForm }: { addForm: React.ReactNode }) {
     <div className="mt-8 rounded-lg bg-sheet px-6 py-14 text-center">
       <h2 className="text-xl">Nothing logged yet</h2>
       <p className="mx-auto mt-2 max-w-[48ch] text-sm text-ink-soft">
-        Add an expense and Floc works out the fewest payments to square
-        everyone up.
+        Add an expense and Floc works out the fewest payments to square everyone
+        up.
       </p>
       <div className="mt-5 flex justify-center">
         <Sheet trigger="Log the first cost" title="Expense" keepOpenOnSubmit>
@@ -280,142 +252,127 @@ function SettledBanner({ addForm }: { addForm: React.ReactNode }) {
 }
 
 /**
- * Where the viewer stands, one honest row per currency (ticket 253). A trip
- * with GBP flights and EUR meals is the normal trip, so this never collapses
- * the two — the combined figure underneath is a preview, marked `≈`, and only
- * appears when a rate exists.
+ * Your own side of settle-up, and only yours (#317): money out on the left,
+ * money in on the right, each side holding its own total per currency. A
+ * transfer between two other people is real but it is not yours to act on — it
+ * shows in the feed when it happens, and a button on somebody else's debt was
+ * what made this page read as a wall.
  */
-function YourPosition({
-  rows,
-  active,
-  home,
-  totalInHome,
-  rateDate,
-  rateStale,
-}: {
-  rows: { currency: Currency; amountMinor: number; overpaid: boolean }[];
-  active: Currency[];
-  home: Currency;
-  totalInHome: number | null;
-  rateDate: string | null;
-  rateStale: boolean;
-}) {
-  if (rows.length === 0) return null;
-  return (
-    <section className="rounded-lg bg-sheet p-6">
-      <h2 className="border-b border-rule pb-3 text-xl">Where you stand</h2>
-      {active.length > 1 ? (
-        <p className="mt-3 text-sm text-ink-soft">
-          This trip has balances in {active.join(" and ")}.
-        </p>
-      ) : null}
-      <ul className="mt-2 flex flex-col">
-        {rows.map((row) => (
-          <li
-            key={row.currency}
-            className="flex items-center justify-between gap-3 border-b border-rule py-3 last:border-b-0"
-          >
-            <span className="text-sm text-ink-soft">
-              {row.overpaid
-                ? "Owed back to you — you overpaid"
-                : row.amountMinor > 0
-                  ? "You are owed"
-                  : "You owe"}
-            </span>
-            <span className="nums text-sm font-medium">
-              {formatMoney(Math.abs(row.amountMinor), row.currency)}
-            </span>
-          </li>
-        ))}
-      </ul>
-      {rateDate && active.length > 1 ? (
-        <CombinedTotal
-          totalMinor={totalInHome}
-          home={home}
-          rateDate={rateDate}
-          stale={rateStale}
-        />
-      ) : null}
-    </section>
-  );
-}
-
-/**
- * The simplified transfers that square everyone up, per currency, netted
- * across the group. The viewer's own are blue with a "Settle up" that records
- * the payment; everyone else's are quiet.
- */
-function SettleUpCard({
+function MySettleUp({
   tripId,
-  transfers,
-  viewerId,
+  mine,
   label,
   tone,
   home,
   rateFor,
 }: {
   tripId: number;
-  transfers: { from: string; to: string; amountMinor: number; currency: Currency }[];
-  viewerId: string;
+  mine: YourSettleUp;
   label: (userId: string) => string;
   tone: (userId: string) => string | undefined;
   home: Currency;
   rateFor: (currency: Currency) => number | null;
 }) {
-  if (transfers.length === 0) return null;
-  return (
-    <section className="rounded-lg bg-sheet p-6">
-      <h2 className="border-b border-rule pb-3 text-xl">Settle up</h2>
-      <ul className="mt-2 flex flex-col">
-        {transfers.map((t, i) => {
-          const mine = t.from === viewerId;
-          return (
-            <li
-              key={i}
-              className="flex flex-wrap items-center justify-between gap-3 border-b border-rule py-3 last:border-b-0"
-            >
-              <span className="flex items-center gap-2.5">
-                <Avatar name={label(t.from)} tone={tone(t.from)} size={28} />
-                <span className="text-sm">
-                  <span className={cx(t.from === viewerId && "font-semibold text-pen-deep")}>
-                    {label(t.from)}
-                  </span>
-                  <span className="mx-1.5 text-ink-faint">→</span>
-                  <span className={cx(t.to === viewerId && "font-semibold text-pen-deep")}>
-                    {label(t.to)}
-                  </span>
-                </span>
-              </span>
-              <span className="flex items-center gap-3">
-                <ConvertAmount
-                  amountMinor={t.amountMinor}
-                  currency={t.currency}
-                  home={home}
-                  rate={rateFor(t.currency)}
-                  className="nums text-sm font-medium"
-                />
-                <Sheet
-                  trigger={mine ? "Settle up" : "Mark paid"}
-                  title="Settle up"
-                  triggerVariant={mine ? "primary" : "secondary"}
-                  keepOpenOnSubmit
+  const row = (t: CurrencyTransfer, paying: boolean) => {
+    const other = paying ? t.to : t.from;
+    return (
+      <li
+        key={`${t.from}-${t.to}-${t.currency}`}
+        className="flex flex-wrap items-center justify-between gap-3 border-b border-rule py-3 last:border-b-0"
+      >
+        <span className="flex items-center gap-2.5">
+          <Avatar name={label(other)} tone={tone(other)} size={28} />
+          <span className="text-sm">{label(other)}</span>
+        </span>
+        <span className="flex items-center gap-3">
+          <ConvertAmount
+            amountMinor={t.amountMinor}
+            currency={t.currency}
+            home={home}
+            rate={rateFor(t.currency)}
+            className="nums text-sm font-medium"
+          />
+          <Sheet
+            trigger={paying ? "Settle up" : "Mark paid"}
+            title="Settle up"
+            triggerVariant={paying ? "primary" : "secondary"}
+            keepOpenOnSubmit
+          >
+            <SettleUpForm
+              tripId={tripId}
+              fromUserId={t.from}
+              toUserId={t.to}
+              fromName={label(t.from)}
+              toName={label(t.to)}
+              currency={t.currency}
+              amountMinor={t.amountMinor}
+              action={recordSettlement}
+            />
+          </Sheet>
+        </span>
+      </li>
+    );
+  };
+
+  const column = (
+    title: string,
+    empty: string,
+    rows: CurrencyTransfer[],
+    totals: CurrencyTotal[],
+    paying: boolean,
+  ) => {
+    // Two currencies never add up, so each keeps its own figure and the home
+    // total underneath is a preview, marked `≈` (ticket 253).
+    const approx =
+      totals.length > 1 ? convertTotal(totals, home, rateFor) : null;
+    return (
+      <section className="rounded-lg bg-sheet p-6">
+        <h2 className="border-b border-rule pb-3 text-xl">{title}</h2>
+        {rows.length === 0 ? (
+          <p className="flex min-h-[8rem] flex-col items-center justify-center gap-1 text-center">
+            <span className="font-display text-xl text-mint-ink">{empty}</span>
+            <span className="text-sm text-ink-soft">
+              {paying
+                ? "You have paid your share."
+                : "Everyone has paid you back."}
+            </span>
+          </p>
+        ) : (
+          <>
+            <p className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              {totals.map((total) => (
+                <span
+                  key={total.currency}
+                  className="nums font-display text-2xl"
                 >
-                  <SettleUpForm
-                    tripId={tripId}
-                    fromUserId={t.from}
-                    toUserId={t.to}
-                    fromName={label(t.from)}
-                    toName={label(t.to)}
-                    currency={t.currency}
-                    amountMinor={t.amountMinor}
-                    action={recordSettlement}
-                  />
-                </Sheet>
-              </span>
-            </li>
-          );
-        })}
-      </ul>
-    </section>
+                  {formatMoney(total.amountMinor, total.currency)}
+                </span>
+              ))}
+              {approx !== null ? (
+                <span className="nums text-sm text-ink-soft">
+                  &asymp; {formatMoney(approx, home)}
+                </span>
+              ) : null}
+            </p>
+            <ul className="mt-2 flex flex-col">
+              {rows.map((t) => row(t, paying))}
+            </ul>
+          </>
+        )}
+      </section>
+    );
+  };
+
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      {column("You owe", "All square", mine.owe, mine.oweTotals, true)}
+      {column(
+        "You are owed",
+        "Nothing to chase",
+        mine.owed,
+        mine.owedTotals,
+        false,
+      )}
+    </div>
   );
 }

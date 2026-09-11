@@ -44,7 +44,11 @@ import {
 } from "@/server/itinerary/itinerary";
 import { listAvailability } from "@/server/itinerary/availability";
 import { listPendingInvitees } from "@/server/trips/invites";
-import { listExpenses, listSettlements, listSplits } from "@/server/money/money";
+import {
+  listExpenses,
+  listSettlements,
+  listSplits,
+} from "@/server/money/money";
 import { viewerHasPacking } from "@/server/packing/packing";
 import { nextStepFor } from "@floc/core/trip/next-step";
 import { NextStepNudge } from "@/components/trip/next-step-nudge";
@@ -56,7 +60,15 @@ import { formatMoney } from "@floc/core/money/money";
 import type { Currency } from "@floc/core/money/currency";
 import { tripStateFor } from "@floc/core/trip/trip-state";
 import { formatDateRange } from "@floc/core/dates/dates";
-import { Avatar, Badge, ButtonLink, PASTEL_BY_KEY, PASTEL_SKINS, Stack, cx } from "@/components/system/ui";
+import {
+  Avatar,
+  Badge,
+  ButtonLink,
+  PASTEL_BY_KEY,
+  PASTEL_SKINS,
+  Stack,
+  cx,
+} from "@/components/system/ui";
 import { Sheet, SubmitButton } from "@/components/system/client-ui";
 import { TripNameInline } from "@/components/trip/trip-name-inline";
 import { TripRoster } from "@/components/trip/trip-roster";
@@ -116,9 +128,7 @@ export default async function OverviewPage({
     listRouteDays(tripId),
     transportModesByDay(tripId),
     // Rule 11: no storage volume, no Documents block — and no query for it.
-    documentsEnabled()
-      ? listDocuments(tripId, viewer.id)
-      : Promise.resolve([]),
+    documentsEnabled() ? listDocuments(tripId, viewer.id) : Promise.resolve([]),
     viewerHasPacking(tripId, viewer.id),
     tourSeenAt(viewer.id),
   ]);
@@ -202,29 +212,29 @@ export default async function OverviewPage({
                 <PencilIcon />
               </ButtonLink>
             </p>
-          </div>
-          {/* Group labels, edited where they're read (ticket 71, 86). Any member. */}
-          <div className="mt-3 flex flex-wrap items-center gap-1.5">
-            {tags.map((tag) => (
-              <span
-                key={tag}
-                className={cx(
-                  "rounded-full px-3 py-1 text-xs font-semibold",
-                  tagSkin,
-                )}
+            {/* Group labels, edited where they're read (ticket 71, 86). Any member. */}
+            <span className="flex flex-wrap items-center gap-1.5">
+              {tags.map((tag) => (
+                <span
+                  key={tag}
+                  className={cx(
+                    "rounded-full px-3 py-1 text-xs font-semibold",
+                    tagSkin,
+                  )}
+                >
+                  {tag}
+                </span>
+              ))}
+              <Sheet
+                trigger={<TagIcon />}
+                triggerLabel={tags.length > 0 ? "Edit tags" : "Add tags"}
+                title="Tags"
+                triggerVariant="secondary"
+                triggerClassName="!px-2 !py-1"
               >
-                {tag}
-              </span>
-            ))}
-            <Sheet
-              trigger={<TagIcon />}
-              triggerLabel={tags.length > 0 ? "Edit tags" : "Add tags"}
-              title="Tags"
-              triggerVariant="secondary"
-              triggerClassName="!px-2 !py-1"
-            >
-              <TripTagsForm tripId={tripId} tags={tags} />
-            </Sheet>
+                <TripTagsForm tripId={tripId} tags={tags} />
+              </Sheet>
+            </span>
           </div>
         </div>
       </header>
@@ -232,7 +242,11 @@ export default async function OverviewPage({
       {nextStep ? (
         <NextStepNudge
           step={nextStep}
-          href={nextStep.key === "invite" ? "#the-group" : `/trip/${tripId}/${nextStep.key}`}
+          href={
+            nextStep.key === "invite"
+              ? "#the-group"
+              : `/trip/${tripId}/${nextStep.key}`
+          }
         />
       ) : null}
 
@@ -320,7 +334,10 @@ export default async function OverviewPage({
 
       {shouldStartTour({ seen: tourSeen !== null }) ? (
         <TourSpotlight
-          stops={tourStopsFor({ hasNudge: nextStep !== null, hasFiles: documentsEnabled() })}
+          stops={tourStopsFor({
+            hasNudge: nextStep !== null,
+            hasFiles: documentsEnabled(),
+          })}
         />
       ) : null}
     </div>

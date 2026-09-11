@@ -11,9 +11,10 @@
  * `parseMoney`, both from `@floc/core/money` — so the phone cannot round a
  * penny differently from the browser.
  *
- * BALANCES ARE DERIVED, NEVER FETCHED. `viewerBalance` runs `computeBalances`
- * over the ledger the API returned. There is no balance column, because a
- * stored balance is a second source of truth about the same money.
+ * BALANCES ARE DERIVED, NEVER FETCHED. `computeBalances` runs over the ledger
+ * the API returned, and `yourSettleUp` keeps the viewer's own half of it
+ * (#317). There is no balance column, because a stored balance is a second
+ * source of truth about the same money.
  *
  * SPLITS ARE SNAPSHOTS (rule 2). An edit sends the whole split set and the API
  * rewrites expense and splits together. Nothing here recalculates an old
@@ -23,15 +24,34 @@
  * either direction — the three powers are kick, promote and archive.
  */
 import { formatDate } from "@floc/core/dates/dates";
-import { DEFAULT_CATEGORY, isExpenseCategory } from "@floc/core/money/expense-category";
-import { formatMoney, suggestSettlements, computeBalances, toMajorInput } from "@floc/core/money/money";
+import {
+  DEFAULT_CATEGORY,
+  isExpenseCategory,
+} from "@floc/core/money/expense-category";
+import {
+  formatMoney,
+  suggestSettlements,
+  computeBalances,
+  toMajorInput,
+} from "@floc/core/money/money";
+import { CURRENCIES } from "@floc/core/money/currency";
+import {
+  yourSettleUp,
+  type CurrencyTotal,
+  type CurrencyTransfer,
+  type YourSettleUp,
+} from "@floc/core/money/settle-up";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { ScrollView, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 
 import { CategoryIcon } from "@/components/system/category-icon";
-import { ExpenseForm, type DayOption, type ExpenseDraft } from "@/components/money/expense-form";
+import {
+  ExpenseForm,
+  type DayOption,
+  type ExpenseDraft,
+} from "@/components/money/expense-form";
 import { useTheme } from "@/components/system/theme";
 import {
   Body,
@@ -46,29 +66,34 @@ import {
 } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { useSession } from "@/lib/auth";
-import { ledgerCurrency, viewerBalance } from "@/lib/balance";
+import { ledgerCurrency } from "@/lib/balance";
 import { radius, space } from "@/lib/theme";
 import type { Ledger } from "@floc/api/port";
 
 /** Nothing open, adding, or editing this expense. One state, so two cannot both be true. */
-type Editing = { kind: "none" } | { kind: "add" } | { kind: "edit"; expenseId: number };
+type Editing =
+  { kind: "none" } | { kind: "add" } | { kind: "edit"; expenseId: number };
 
 /**
- * The viewer's own balance, large. The word `owed`/`owe` comes from
- * `viewerBalance` and is what carries the meaning; the ground is a second
- * signal, never the only one (#204).
+ * One side of the viewer's money: what they owe, or what they are owed (#317).
+ * Money the rest of the group owes each other is not here — it is theirs, not
+ * the reader's, and it still shows in the list below when it is paid.
  */
-function BalanceCard({
-  figure,
+function SideCard({
+  title,
+  total,
+  rows,
+  empty,
   owing,
-  lines,
   onSettle,
   busy,
 }: {
-  figure: string;
+  title: string;
+  total: string | null;
+  /** Who with, and how much — the thing a total alone cannot say. */
+  rows: string[];
+  empty: string;
   owing: boolean;
-  /** Who with, and how much — the thing a balance alone cannot say. */
-  lines: string[];
   onSettle: () => void;
   busy: boolean;
 }) {
@@ -76,26 +101,133 @@ function BalanceCard({
   const tone = owing ? "blush" : "mint";
   return (
     <Card style={{ backgroundColor: c[tone], borderColor: c[`${tone}-edge`] }}>
-      {/* Centred, like the web page's settled panel: one figure, alone, is a
-          statement rather than the first item of a list. */}
-      <View style={{ gap: space.sm, alignItems: "center", paddingVertical: space.md }}>
-        <Heading>{figure}</Heading>
-        {lines.length > 0 ? <Body tone="ink-2">{lines.join(" · ")}</Body> : null}
-        {lines.length > 0 ? (
-          <View style={{ alignSelf: "stretch" }}>
-            <Button label="Settle up" variant="quiet" busy={busy} onPress={onSettle} />
-          </View>
-        ) : null}
+      <View style={{ gap: space.sm, paddingVertical: space.sm }}>
+        <Label>{title}</Label>
+        {total === null ? (
+          <Body tone="ink-2">{empty}</Body>
+        ) : (
+          <>
+            <Heading>{total}</Heading>
+            {rows.map((row) => (
+              <Body key={row} tone="ink-2">
+                {row}
+              </Body>
+            ))}
+            <Button
+              label={owing ? "Settle up" : "Mark paid"}
+              variant="quiet"
+              busy={busy}
+              onPress={onSettle}
+            />
+          </>
+        )}
       </View>
     </Card>
   );
 }
 
+/**
+ * The top of the screen: your two sides, or one panel saying you are square.
+ * Being square is the viewer's own state — two other people can still owe each
+ * other and that is not this reader's news (#317).
+ */
+function MoneyTop({
+  mine,
+  nameOf,
+  busy,
+  onSettle,
+}: {
+  mine: YourSettleUp;
+  nameOf: (userId: string) => string;
+  busy: boolean;
+  onSettle: (list: CurrencyTransfer[]) => void;
+}) {
+  const { c } = useTheme();
+  if (mine.settled) {
+    return (
+      <Card style={{ backgroundColor: c.mint, borderColor: c["mint-edge"] }}>
+        <View
+          style={{
+            gap: space.xs,
+            alignItems: "center",
+            paddingVertical: space.md,
+          }}
+        >
+          <Heading>All settled up</Heading>
+          <Body tone="ink-2">You are square with everyone on this trip.</Body>
+        </View>
+      </Card>
+    );
+  }
+  return (
+    <>
+      <SideCard
+        title="You owe"
+        total={totalOf(mine.oweTotals)}
+        rows={rowsOf(mine.owe, true, nameOf)}
+        empty="All square — you have paid your share."
+        owing
+        busy={busy}
+        onSettle={() => onSettle(mine.owe)}
+      />
+      <SideCard
+        title="You are owed"
+        total={totalOf(mine.owedTotals)}
+        rows={rowsOf(mine.owed, false, nameOf)}
+        empty="Nothing to chase — everyone has paid you back."
+        owing={false}
+        busy={busy}
+        onSettle={() => onSettle(mine.owed)}
+      />
+    </>
+  );
+}
+
 /** The viewer's own share of one expense, or null when they were not in on it. */
-function shareOf(ledger: Ledger, expenseId: number, viewerId: string | undefined): number | null {
+function shareOf(
+  ledger: Ledger,
+  expenseId: number,
+  viewerId: string | undefined,
+): number | null {
   if (!viewerId) return null;
-  const split = ledger.splits.find((s) => s.expenseId === expenseId && s.userId === viewerId);
+  const split = ledger.splits.find(
+    (s) => s.expenseId === expenseId && s.userId === viewerId,
+  );
   return split ? split.owedAmountMinor : null;
+}
+
+/** Who paid, and what it cost you — one line under the description. */
+function shareLine(
+  ledger: Ledger,
+  expense: Ledger["expenses"][number],
+  me: string | undefined,
+  nameOf: (userId: string) => string,
+): string {
+  const share = shareOf(ledger, expense.id, me);
+  const who =
+    expense.paidBy === me ? "You paid" : `${nameOf(expense.paidBy)} paid`;
+  if (share === null) return `${who} · not yours`;
+  return `${who} · your share ${formatMoney(share, expense.currency)}`;
+}
+
+/** One line per person on a side, naming the other party. */
+function rowsOf(
+  list: CurrencyTransfer[],
+  paying: boolean,
+  nameOf: (userId: string) => string,
+): string[] {
+  return list.map(
+    (transfer) =>
+      `${nameOf(paying ? transfer.to : transfer.from)} ${formatMoney(transfer.amountMinor, transfer.currency)}`,
+  );
+}
+
+/** Two currencies never add up, so each keeps its own figure (ticket 253). */
+function totalOf(totals: CurrencyTotal[]): string | null {
+  if (totals.length === 0) return null;
+  return totals
+    .map((total) => formatMoney(total.amountMinor, total.currency))
+    .join(" · ");
 }
 
 export default function Money() {
@@ -111,20 +243,32 @@ export default function Money() {
   const [editing, setEditing] = useState<Editing>({ kind: "none" });
   const [problem, setProblem] = useState<string | null>(null);
 
-  const trip = useQuery(trpc.trips.get.queryOptions({ tripId }, { enabled: ready }));
-  const ledger = useQuery(trpc.money.ledger.queryOptions({ tripId }, { enabled: ready }));
+  const trip = useQuery(
+    trpc.trips.get.queryOptions({ tripId }, { enabled: ready }),
+  );
+  const ledger = useQuery(
+    trpc.money.ledger.queryOptions({ tripId }, { enabled: ready }),
+  );
   // For "which day". An undated trip returns none, which is not an error
   // (rule 9) — the form simply stops asking.
-  const itinerary = useQuery(trpc.itinerary.days.queryOptions({ tripId }, { enabled: ready }));
+  const itinerary = useQuery(
+    trpc.itinerary.days.queryOptions({ tripId }, { enabled: ready }),
+  );
 
   const done = () => {
     setEditing({ kind: "none" });
     setProblem(null);
-    queryClient.invalidateQueries({ queryKey: trpc.money.ledger.queryKey({ tripId }) });
+    queryClient.invalidateQueries({
+      queryKey: trpc.money.ledger.queryKey({ tripId }),
+    });
   };
   const failed = (error: { message: string }) => setProblem(error.message);
 
-  const write = useMutation({ ...trpc.money.write.mutationOptions(), onSuccess: done, onError: failed });
+  const write = useMutation({
+    ...trpc.money.write.mutationOptions(),
+    onSuccess: done,
+    onError: failed,
+  });
   const remove = useMutation({
     ...trpc.money.deleteExpense.mutationOptions(),
     onSuccess: done,
@@ -145,7 +289,8 @@ export default function Money() {
   const me = session?.user.id;
   const members = trip.data.members;
   const nameOf = (userId: string) =>
-    members.find((member) => member.userId === userId)?.name ?? "Someone who left";
+    members.find((member) => member.userId === userId)?.name ??
+    "Someone who left";
 
   const dayOptions: DayOption[] = (itinerary.data ?? []).map((day) => ({
     id: day.id,
@@ -153,8 +298,6 @@ export default function Money() {
   }));
 
   const currency = ledgerCurrency(ledger.data);
-  const balance = viewerBalance(ledger.data, me);
-  const owing = balance.minor < 0;
 
   // Who the viewer specifically owes, or is owed by. The same greedy matching
   // the web app shows, so both suggest the same transfers.
@@ -165,7 +308,10 @@ export default function Money() {
       amountMinor: expense.amountMinor,
       splits: ledger.data.splits
         .filter((split) => split.expenseId === expense.id)
-        .map((split) => ({ userId: split.userId, owedAmountMinor: split.owedAmountMinor })),
+        .map((split) => ({
+          userId: split.userId,
+          owedAmountMinor: split.owedAmountMinor,
+        })),
     })),
     ledger.data.settlements.map((settlement) => ({
       from: settlement.fromUserId,
@@ -174,14 +320,17 @@ export default function Money() {
       amountMinor: settlement.amountMinor,
     })),
   );
-  const transfers = suggestSettlements(book[currency] ?? {}).filter(
-    (transfer) => transfer.from === me || transfer.to === me,
-  );
-  const lines = transfers.map(
-    (transfer) =>
-      `${transfer.from === me ? nameOf(transfer.to) : nameOf(transfer.from)} ${formatMoney(transfer.amountMinor, currency)}`,
-  );
-
+  // Why: a trip with euro dinners and pound flights has two books, and reading
+  // only one made a real debt look like nothing owed (#317).
+  const mine = yourSettleUp({
+    transfers: CURRENCIES.flatMap((inCurrency) =>
+      suggestSettlements(book[inCurrency] ?? {}).map((transfer) => ({
+        ...transfer,
+        currency: inCurrency,
+      })),
+    ),
+    viewerId: me ?? "",
+  });
   // Every expense, always. There was a two-way switch here; it earned its
   // removal — a trip splits money between *people*, not between "mine" and
   // "everyone", and every line on this list is already labelled with the
@@ -208,8 +357,8 @@ export default function Money() {
   }
 
   /** Records every transfer the viewer is part of, as separate rows — each one really happened separately. */
-  function settleAll() {
-    for (const transfer of transfers) {
+  function settleSide(list: CurrencyTransfer[]) {
+    for (const transfer of list) {
       settle.mutate({
         tripId,
         fromUserId: transfer.from,
@@ -222,107 +371,17 @@ export default function Money() {
 
   return (
     <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }}>
-      {/* Only while somebody owes somebody. A whole panel whose news is
-          "settled" is a panel reporting the absence of news — the expenses
-          below already show every share is square (#126). */}
-      {snapshot.expenses.length > 0 && lines.length > 0 ? (
-        <BalanceCard
-          figure={balance.figure}
-          owing={owing}
-          lines={lines}
+      {snapshot.expenses.length > 0 ? (
+        <MoneyTop
+          mine={mine}
+          nameOf={nameOf}
           busy={settle.isPending}
-          onSettle={settleAll}
+          onSettle={settleSide}
         />
       ) : null}
 
-      {problem ? <Body tone="red">{problem}</Body> : null}
-
-      {shown.length === 0 ? (
-        <Empty>No costs logged yet.</Empty>
-      ) : null}
-
-      {shown.map((expense) =>
-        editing.kind === "edit" && editing.expenseId === expense.id ? (
-          <ExpenseForm
-            key={expense.id}
-            people={members}
-            days={dayOptions}
-            viewerId={me ?? ""}
-            currency={expense.currency}
-            initial={{
-              description: expense.description,
-              // Guarded on the way in: `category` is a stored word and a row
-              // written before the column existed can be anything (rule 11).
-              category: isExpenseCategory(expense.category)
-                ? expense.category
-                : DEFAULT_CATEGORY,
-              amount: toMajorInput(expense.amountMinor, expense.currency),
-              paidBy: expense.paidBy,
-              dayId: expense.dayId ?? null,
-              notes: expense.notes ?? "",
-              inOn: ledger.data.splits
-                .filter((split) => split.expenseId === expense.id && split.owedAmountMinor !== 0)
-                .map((split) => split.userId),
-            }}
-            busy={write.isPending || remove.isPending}
-            onSave={save}
-            onCancel={() => setEditing({ kind: "none" })}
-            onDelete={() => remove.mutate({ tripId, expenseId: expense.id })}
-          />
-        ) : (
-          <Card
-            key={expense.id}
-            style={{ borderRadius: radius.md, borderColor: c.rule }}
-          >
-            <View style={{ gap: space.xs }}>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: space.sm,
-                }}
-              >
-                {/* The glyph makes a long list scannable; the description is
-                    still the thing that says what it was. A mark, not a label
-                    (#204) — its own `accessibilityLabel` carries the word. */}
-                <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm, flex: 1 }}>
-                  <CategoryIcon
-                    category={
-                      isExpenseCategory(expense.category) ? expense.category : DEFAULT_CATEGORY
-                    }
-                    color={c["ink-2"]}
-                    size={16}
-                  />
-                  <Body bold>{expense.description}</Body>
-                </View>
-                <Figure>{formatMoney(expense.amountMinor, expense.currency)}</Figure>
-              </View>
-              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                <Body tone="ink-3">{nameOf(expense.paidBy)} paid</Body>
-                <Figure tone="ink-2">
-                  {(() => {
-                    const share = shareOf(ledger.data, expense.id, me);
-                    if (share === null) return "not yours";
-                    return expense.paidBy === me
-                      ? `you paid, your share ${formatMoney(share, expense.currency)}`
-                      : `you ${formatMoney(share, expense.currency)}`;
-                  })()}
-                </Figure>
-              </View>
-              <Button
-                label="Edit"
-                variant="quiet"
-                onPress={() => {
-                  setEditing({ kind: "edit", expenseId: expense.id });
-                  setProblem(null);
-                }}
-              />
-            </View>
-          </Card>
-        ),
-      )}
-
+      {/* Adding a cost sits with the money it changes, not at the end of the
+          list you have to scroll past (#317). */}
       {editing.kind === "add" ? (
         <View style={{ gap: space.sm }}>
           <Label>Add an expense</Label>
@@ -344,6 +403,89 @@ export default function Money() {
             setProblem(null);
           }}
         />
+      )}
+
+      {problem ? <Body tone="red">{problem}</Body> : null}
+
+      {shown.length === 0 ? <Empty>No costs logged yet.</Empty> : null}
+
+      {shown.map((expense) =>
+        editing.kind === "edit" && editing.expenseId === expense.id ? (
+          <ExpenseForm
+            key={expense.id}
+            people={members}
+            days={dayOptions}
+            viewerId={me ?? ""}
+            currency={expense.currency}
+            initial={{
+              description: expense.description,
+              // Guarded on the way in: `category` is a stored word and a row
+              // written before the column existed can be anything (rule 11).
+              category: isExpenseCategory(expense.category)
+                ? expense.category
+                : DEFAULT_CATEGORY,
+              amount: toMajorInput(expense.amountMinor, expense.currency),
+              paidBy: expense.paidBy,
+              dayId: expense.dayId ?? null,
+              notes: expense.notes ?? "",
+              inOn: ledger.data.splits
+                .filter(
+                  (split) =>
+                    split.expenseId === expense.id &&
+                    split.owedAmountMinor !== 0,
+                )
+                .map((split) => split.userId),
+            }}
+            busy={write.isPending || remove.isPending}
+            onSave={save}
+            onCancel={() => setEditing({ kind: "none" })}
+            onDelete={() => remove.mutate({ tripId, expenseId: expense.id })}
+          />
+        ) : (
+          // One row, tapped to edit. The Edit button under every cost tripled
+          // the list's height to repeat what a tap already does (#317).
+          <Pressable
+            key={expense.id}
+            accessibilityRole="button"
+            accessibilityLabel={`Edit ${expense.description}`}
+            onPress={() => {
+              setEditing({ kind: "edit", expenseId: expense.id });
+              setProblem(null);
+            }}
+          >
+            <Card style={{ borderRadius: radius.md, borderColor: c.rule }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: space.sm,
+                }}
+              >
+                {/* The glyph makes a long list scannable; the description is
+                    still the thing that says what it was. A mark, not a label
+                    (#204) — its own `accessibilityLabel` carries the word. */}
+                <CategoryIcon
+                  category={
+                    isExpenseCategory(expense.category)
+                      ? expense.category
+                      : DEFAULT_CATEGORY
+                  }
+                  color={c["ink-2"]}
+                  size={16}
+                />
+                <View style={{ flex: 1, gap: 2 }}>
+                  <Body bold>{expense.description}</Body>
+                  <Body tone="ink-3">
+                    {shareLine(ledger.data, expense, me, nameOf)}
+                  </Body>
+                </View>
+                <Figure>
+                  {formatMoney(expense.amountMinor, expense.currency)}
+                </Figure>
+              </View>
+            </Card>
+          </Pressable>
+        ),
       )}
     </ScrollView>
   );
