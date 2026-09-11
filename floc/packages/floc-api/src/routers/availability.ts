@@ -6,8 +6,8 @@
  * overlaps. `set` takes no user id at all: it writes the caller's marks and
  * there is no shape of request that writes somebody else's.
  *
- * That is deliberate and is not an oversight to be fixed later. The four admin
- * powers are invite, kick, promote and delete/archive (rule 6) — answering for
+ * That is deliberate and is not an oversight to be fixed later. The three admin
+ * powers are kick, promote and delete/archive (rule 6) — answering for
  * another person is not among them, and an admin who could would make the
  * answer worthless.
  *

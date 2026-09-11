@@ -17,7 +17,7 @@
  *   3. Itinerary is day-first — a "stop" is derived, never stored.
  *   5. `loadTrip` answers identically for a trip that does not exist and one
  *      the viewer is not in. The implementation must return null for both.
- *   6. Admin powers are exactly four; `assertAdmin` is the implementation's job.
+ *   6. Admin powers are exactly three; `assertAdmin` is the implementation's job.
  *   9. A trip may have no dates. `startDate`/`endDate` are nullable and that
  *      is never an error.
  *  10. No timezones. Dates are `YYYY-MM-DD`; times are local to the itinerary.
@@ -556,7 +556,7 @@ export type FlocPort = {
   /**
    * Says you will bring a shared thing, or takes it back. Open by design: any
    * member may claim any line, and several may claim the same one. Not one of
-   * the four admin powers (rule 6).
+   * the three admin powers (rule 6).
    */
   claimPackingLine(
     viewerId: string,

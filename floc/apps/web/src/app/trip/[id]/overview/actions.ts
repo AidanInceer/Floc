@@ -1,8 +1,8 @@
 "use server";
 
 // Overview tab's who-may-do-what (ticket 13); the SQL lives in server/roster.ts,
-// server/invites.ts and server/trips.ts (ticket 242). Admin powers stay
-// invite/kick/delete/promote (ticket 01 step 7).
+// server/invites.ts and server/trips.ts (ticket 242). Admin powers are
+// kick/promote/delete (#312 took invite off the list).
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 
@@ -62,8 +62,7 @@ export async function sendNudge(formData: FormData) {
   refresh({ kind: "tripOverview", tripId: access.trip.id });
 }
 
-// Invite by name (ticket 146). Admin-gated like the share link (rule 6);
-// in-app only, delivered on the invitee's next /trips load — no email/push.
+// Why: any member may invite (#312). In-app only, no mail (ticket 146).
 export async function inviteFriends(formData: FormData) {
   const tripId = Number(formData.get("tripId"));
   const friendIds = [
@@ -76,7 +75,6 @@ export async function inviteFriends(formData: FormData) {
   ].slice(0, LIMITS.members);
 
   const access = await requireTripAccess(tripId);
-  assertAdmin(access);
 
   if (friendIds.length === 0) return;
 
@@ -119,7 +117,7 @@ export async function promoteMember(formData: FormData) {
   refresh({ kind: "tripOverview", tripId: access.trip.id });
 }
 
-// Open to any member deliberately — not one of the four admin powers (rule 6).
+// Open to any member deliberately — not one of the three admin powers (rule 6).
 export async function renameTrip(formData: FormData) {
   const tripId = Number(formData.get("tripId"));
   const name = String(formData.get("name") ?? "").trim();

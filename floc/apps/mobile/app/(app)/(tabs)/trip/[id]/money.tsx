@@ -20,7 +20,7 @@
  * expense from today's roster.
  *
  * SETTLING IS NOT AN ADMIN POWER (rule 6). Any member records a transfer, in
- * either direction — the four powers are invite, kick, promote and archive.
+ * either direction — the three powers are kick, promote and archive.
  */
 import { formatDate } from "@floc/core/dates/dates";
 import { DEFAULT_CATEGORY, isExpenseCategory } from "@floc/core/money/expense-category";

@@ -107,7 +107,7 @@ export async function renameTripFromMenu(formData: FormData): Promise<void> {
 }
 
 // The trip's pastel (ticket 213). Cosmetic, so open to any member like rename
-// and tags (rule 6) — not one of the four admin powers. An unknown value clears
+// and tags (rule 6) — not one of the three admin powers. An unknown value clears
 // it back to the id-rotation default rather than throwing (rule 11).
 export async function setTripColor(formData: FormData): Promise<void> {
   const tripId = Number(formData.get("tripId"));

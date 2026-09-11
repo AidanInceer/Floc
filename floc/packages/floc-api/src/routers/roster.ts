@@ -1,11 +1,10 @@
 /**
  * The roster, and the admin powers over it (tickets 287, 291).
  *
- * EXACTLY FOUR ADMIN POWERS (rule 6): invite, kick, promote, delete/archive.
+ * EXACTLY THREE ADMIN POWERS (rule 6): kick, promote, delete/archive.
  * Two of them live here; archive is on the trips router beside the trip it
- * changes, and invite is still web-only (the phone has no mail composer of its
- * own). Everything else — including leaving — is any member's, which is why
- * `trips.leave` is not in this file.
+ * changes. Everything else — inviting and leaving included (#312) — is any
+ * member's, which is why `trips.leave` is not in this file.
  *
  * The gate itself is the port's, not this router's: a phone must not be able
  * to authorise itself by asking nicely.

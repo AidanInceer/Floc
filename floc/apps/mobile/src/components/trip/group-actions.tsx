@@ -12,8 +12,7 @@
  * else one tap away, and asking someone to copy and then go and find the app
  * is a browser's habit on a device that does not need it.
  *
- * ADMIN ONLY (rule 6), and drawn only for an admin. A member sees the roster
- * with nothing above it rather than two controls that would be refused.
+ * ANY MEMBER (#312). Inviting is not an admin power.
  *
  * SHAPED LIKE THE WEB'S. Two controls sized to their words, secondary then
  * primary, with a rule under them and the people below it — the panel reads

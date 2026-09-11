@@ -1,7 +1,7 @@
 "use server";
 
 // Open to any member, not just admin — choosing when to go isn't one of
-// admin's four powers (rule 6). Committing a window also updates
+// admin's three powers (rule 6). Committing a window also updates
 // server/itinerary.ts since the window decides which days exist (ticket 140).
 import { isIsoDate, readIsoDate } from "@floc/core/dates/dates";
 import { requireTripAccess } from "@/server/access";

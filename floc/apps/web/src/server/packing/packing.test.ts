@@ -20,6 +20,7 @@ import {
   softDeletePackingLine,
   stepPersonalQuantity,
   unclaimPackingLine,
+  viewerHasPacking,
 } from "@/server/packing/packing";
 
 let world: Scenario;
@@ -51,6 +52,27 @@ describe("the shared list", () => {
 
     expect(await listPackingLines(world.ours.id)).toHaveLength(0);
     expect(await listPackingClaims(world.ours.id)).toHaveLength(0);
+  });
+});
+
+describe("whether the viewer has packing (#312)", () => {
+  it("is false on an empty trip", async () => {
+    expect(await viewerHasPacking(world.ours.id, world.member)).toBe(false);
+  });
+
+  it("is true once their own bag has a line", async () => {
+    await insertPersonalPackingLine(world.ours.id, world.member, "Socks", "other");
+    expect(await viewerHasPacking(world.ours.id, world.member)).toBe(true);
+    expect(await viewerHasPacking(world.ours.id, world.admin)).toBe(false);
+  });
+
+  it("is true once they claim a shared line, and false again when it is removed", async () => {
+    const lineId = await addLine("Speaker");
+    await claimPackingLine(lineId, world.member);
+    expect(await viewerHasPacking(world.ours.id, world.member)).toBe(true);
+
+    await softDeletePackingLine(lineId);
+    expect(await viewerHasPacking(world.ours.id, world.member)).toBe(false);
   });
 });
 

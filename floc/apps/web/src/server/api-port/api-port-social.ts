@@ -4,7 +4,7 @@
  *
  * ONE PERMISSION MODEL, NOT TWO. Every decision about who may see or ask what
  * is delegated: `relationTo` and `requireProfileView` for profiles,
- * `assertAdmin` for inviting, `listFriendsFor` for who may be offered. Restating
+ * `scoped` for inviting (any member, #312), `listFriendsFor` for who may be offered. Restating
  * any of them here is how the phone quietly grows a looser set of rules than
  * the browser has.
  *
@@ -27,7 +27,6 @@ import type {
   TripInvites,
 } from "@floc/api/port";
 
-import { assertAdmin } from "@/server/access";
 import { scoped } from "@/server/api-port/api-port-scope";
 import { emails, sendEmails } from "@/server/auth/email";
 import {
@@ -226,7 +225,6 @@ export const socialPort: SocialPort = {
 
   async loadTripInvites(viewerId, tripId): Promise<TripInvites> {
     const access = await scoped(viewerId, tripId);
-    assertAdmin(access);
 
     const [friends, pending] = await Promise.all([
       // Accepted friends only: offering somebody who has not agreed to know you
@@ -252,8 +250,7 @@ export const socialPort: SocialPort = {
   },
 
   async inviteToTrip(viewerId, tripId, userIds): Promise<number> {
-    const access = await scoped(viewerId, tripId);
-    assertAdmin(access);
+    await scoped(viewerId, tripId);
 
     // In-app only, like the web (ticket 146): the invitee sees it on their next
     // trips load. No mail, so nothing here is a way to email a stranger.
