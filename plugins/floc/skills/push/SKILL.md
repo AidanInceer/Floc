@@ -1,108 +1,137 @@
 ---
 name: push
-description: Take finished local work to the develop branch — servers down, verify green, one commit with the right version and subject, pushed, ticket tagged and popped. Use when the user says /floc:push, "push this", "ship it", or "get this on develop".
+description: Take finished local work to the develop branch — verify green, one commit with the right version and subject, pushed, ticket tagged and popped, CI watched. Use when the user says /floc:push, "push this", "ship it", or "get this on develop".
 ---
 
 # push
 
 Local work → `develop`, in one commit, with `verify` green. There is **no
-pre-push hook**, so nothing else catches what this skill misses.
+pre-push hook**, so nothing else catches what this skill misses. The rules for
+commits and ticket state live **here**, not in `CLAUDE.md`.
 
-`scripts/push.mjs` does the mechanical half — branch guard, version bump,
-`verify`, subject check, commit, push. This file covers the half a script
-cannot have an opinion about: an unexpected diff, the commit message, and the
-ticket.
+`scripts/push.mjs` does the mechanical half. This file covers what a script
+cannot judge: an unexpected diff, the commit message, and the issue number.
 
-## 1. Servers down
+## 1. Preflight
 
-`verify` writes `.next`, which `next dev` owns. Building over a live dev server
-corrupts chunks. The script cannot do this — `preview_stop` is a Claude tool.
-
-- `preview_list` → `preview_stop` each server **Claude** started. Not `ps`.
-- Started outside Claude: `pnpm run:stop`.
-- `.next` already poisoned (`EINVAL: readlink`, bad chunks):
-  `pnpm --filter floc-web run clean:next`.
-
-## 2. Preflight
+Dev servers **stay up** — verify builds into `.next-verify`, never the `.next`
+that `next dev` owns.
 
 ```bash
 pnpm push:preflight <feat|fix|docs|refactor|chore|test>
 ```
 
-It refuses unless on `develop` with something to push, prints the changed
-files, flags a schema or `floc-api` change, bumps
-`floc/apps/web/package.json` (`feat` minor, everything else patch), then runs
-`pnpm verify`.
+The script, in order:
 
-**Read the file list it prints.** A file the user did not ask you to touch is
-the one thing the script cannot judge — stop and say what is going.
+1. Refuses unless on `develop`.
+2. Fetches, and refuses if `origin/develop` moved. Fix:
+   `git pull --rebase --autostash origin develop`, then preflight again.
+3. Warns `!!` on local commits not yet pushed. One commit per ticket — say so
+   and ask before squashing.
+4. Prints the changed files.
+5. Refuses if anything under `plugins/floc/` changed and the plugin `version`
+   did not.
+6. Flags a schema or `floc-api` change.
+7. Bumps `floc/apps/web/package.json`.
+8. Runs `pnpm verify`.
 
-Act on the two `!!` warnings yourself:
+**Read the file list.** A file the user did not ask you to touch → stop and
+say what it is.
 
-- **Schema.** `db:generate` writes the migration; nothing applies it. Run the
-  new `drizzle/*.sql` against `local.db` in this same slice or dev dies on
-  `no such column`.
-- **A new API procedure** needs a line in `scripts/parity/parity.json`.
-  `pnpm parity --fix` writes the boring half — the `why` is the user's, so ask
-  rather than invent one.
+Act on the `!!` warnings yourself:
 
-Red verify is a fix, never a `--no-verify`. Fix it and run preflight again —
-the bump is kept, so it will not double-bump. Never skip hooks or signing.
+- **Schema.** Run the new `drizzle/*.sql` against `local.db` in this slice, or
+  dev dies on `no such column`.
+- **API procedure.** Needs a line in `scripts/parity/parity.json`.
+  `pnpm parity --fix` writes the boring half. The `why` is the user's — ask.
+- **Plugin.** After the bump, `claude plugin update floc@floc --scope project`.
+  Tell the user to restart the session to load it.
+
+Red verify is a fix, never `--no-verify`. Fix, then preflight again — the bump
+is kept. Never skip hooks or signing.
+
+## 2. Pick the type and the issue
+
+| Type | When | Bump |
+|---|---|---|
+| `feat` | new behaviour a user can see | minor |
+| `fix` | something was broken | patch |
+| `refactor` | same behaviour, better shape | patch |
+| `docs` | `docs/`, `CLAUDE.md`, skills text only | patch |
+| `chore` | tooling, deps, config, scripts | patch |
+| `test` | tests only | patch |
+
+A `type:refinement` ticket ships as `feat` if a user sees new behaviour,
+otherwise `refactor`.
+
+The issue number comes **only** from:
+
+- the ticket this session picked up (`/floc:pickup-ticket`), or
+- a number the user gave in chat.
+
+Not from a branch name, an old commit, or a guess. None → `#no-ticket`.
 
 ## 3. Land
 
-Write the message to a file, then:
+Write the message to a file in the scratchpad, then:
 
 ```bash
 pnpm push:land --message-file <path>
 ```
 
-Subject: `<version> #<issue>: <type>: <description>` — the script rejects
-anything else, and rejects a version that is not the one it just bumped to.
+```
+<version> #<issue>: <type>: <description>
 
-- Body says *why*, then ends `Closes AidanInceer/Floc#<n>`.
-- **No ticket** → literal `#no-ticket` in the subject and **no** `Closes` line.
-- **Never invent or borrow an issue number.** A wrong `Closes` shuts someone
-  else's issue. Not known → ask, or `#no-ticket`.
+<why, in a few lines — not a list of files>
 
-One commit per ticket. Already several commits → say so and ask before
-squashing.
-
-## 4. Ticket state
-
-`Closes` only fires on `main`, so the issue stays open until the batch merges.
-The script prints the number when there is one:
-
-```bash
-gh issue edit <n> --repo AidanInceer/Floc --add-label "on-develop"
+Closes AidanInceer/Floc#<issue>
 ```
 
-Then remove that ticket's line from the `Priority` stack issue body and
-renumber the rest. Skip the whole step for `#no-ticket`.
+- Description: lowercase start, present tense, says what a user or developer
+  now gets. `0.4.0 #93: feat: split the profile`.
+- `#no-ticket` → no `Closes` line at all.
 
-## 5. Put back what you took down
+Before it commits, `land` refuses when the issue does not exist, is closed, is
+the `Priority` issue, or is already `on-develop`. The `commit-msg` hook also
+refuses a `Closes` that does not match the subject. Do not work around either —
+the number is wrong.
 
-Servers running when this started → `preview_start` `floc-web` and
-`floc-metro`. Do not leave the user with a dead loop.
+After the push, `land` labels the issue `on-develop` and pops its line off the
+`Priority` stack, renumbering the rest. `Closes` fires only when `develop`
+reaches `main` (`/floc:release`), so the issue stays open until then. A `!!`
+from this step means do that part by hand with the command it prints.
+
+## 4. Watch CI
+
+`land` prints the pushed SHA. Spawn the watcher **in the background** and carry
+on — do not wait for it:
+
+```
+Agent({
+  subagent_type: "floc:ci-watch",
+  description: "Watch CI for <short sha>",
+  prompt: "<full sha>",
+  run_in_background: true
+})
+```
+
+When it reports red, tell the user the job and the cause. Fix only if asked.
 
 ## Report
 
-Version, subject line, `verify` result, the pushed SHA, the ticket state. If
-you fixed something to get verify green that was not part of the work, say so.
-Nothing else.
+Version, subject line, `verify` result, pushed SHA, ticket state, and that CI
+is being watched. If you fixed something to get verify green that was not part
+of the work, say so. Nothing else.
 
 ## Gotchas
 
-- **`develop` may have moved.** The script tells you when the push is
-  rejected: `git pull --rebase origin develop`, then run **preflight again** —
-  someone else's commit is now under yours.
+- **Push rejected** after preflight passed: someone pushed in between.
+  `git pull --rebase origin develop`, then preflight again.
 - **A `.github/workflows/` check job changed** → `scripts/verify.sh` changes in
-  the same commit, or CI and local stop agreeing. `sync-develop.yml` has no
-  check and moves alone.
-- **A red audit is still a red verify.** Advisories arrive on their own
-  schedule, so a gate can fail on something the slice never touched. Pin the
-  floor forward in **both** `pnpm-workspace.yaml` and the root `package.json`
-  (pnpm 9 reads one, pnpm 10 the other) — never weaken `--audit-level`. Say in
-  the report that you did it.
-- **`develop` → `main` is a separate job** — a batch PR with a **merge
-  commit**, never squash or rebase. This skill does not do it.
+  the same commit. `sync-develop.yml` has no check and moves alone.
+- **A red audit is still a red verify.** Pin the floor forward in **both**
+  `pnpm-workspace.yaml` and the root `package.json` (pnpm 9 reads one, pnpm 10
+  the other). Never weaken `--audit-level`. Say so in the report.
+- **`.next` poisoned** (`EINVAL: readlink`, bad chunks):
+  `pnpm --filter floc-web run clean:next`, then restart `floc-web`.
+- **`develop` → `main` is `/floc:release`.** This skill never touches `main`.

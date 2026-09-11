@@ -23,6 +23,7 @@ const config = [
   {
     ignores: [
       ".next/**",
+      ".next-verify/**",
       "node_modules/**",
       "next-env.d.ts",
       "drizzle/**",

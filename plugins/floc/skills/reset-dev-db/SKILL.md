@@ -95,5 +95,4 @@ Stop the servers before restoring: the copy must not land on an open file.
   account's existing id. Only `db:reset` guarantees `dev-user`.
 - **A new table needs nothing.** The wipe reads `sqlite_master` and turns foreign
   keys off for the sweep, so a new table is not a new ordering problem.
-- **This is not `pnpm verify`.** The reset does not touch `.next`, but verify
-  does. Stop the servers before verify, as always.
+- **The reset does not touch `.next`.** Servers may stay up.

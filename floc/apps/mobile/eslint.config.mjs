@@ -23,7 +23,7 @@ const compat = new FlatCompat({
  * avoid braces already, which is why this only ever bites a new one.
  */
 const config = [
-  { ignores: ["node_modules/**", ".expo/**", "dist/**", "android/**", "ios/**", "expo-env.d.ts"] },
+  { ignores: ["node_modules/**", ".expo/**", "dist/**", "coverage/**", "android/**", "ios/**", "expo-env.d.ts"] },
   ...compat.extends("next/typescript"),
 
   // The same ceilings as the web app and the packages (#212) — the platform

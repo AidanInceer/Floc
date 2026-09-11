@@ -70,15 +70,30 @@ fi
 # through turbo, which reads pnpm-workspace.yaml. `floc-mobile` has no build
 # task on purpose; a phone bundle is EAS's job, not CI's (see
 # floc/apps/mobile/SHIPPING.md).
+#
+# The build goes to `.next-verify`, not the `.next` a running `next dev` owns,
+# so the dev servers can stay up through verify. CI builds to `.next` as usual.
+export FLOC_NEXT_DIST_DIR=.next-verify
+
+# One turbo call runs lint, typecheck and test side by side. Build is a second
+# call: typecheck reads `.next-verify/types`, which a parallel build rewrites.
 step "Lint · typecheck · test · build"
-for task in lint typecheck test build; do
-  if pnpm "$task" >/tmp/verify-$task.log 2>&1; then
-    ok "$task"
-  else
-    bad "$task"
-    tail -30 "/tmp/verify-$task.log"
-  fi
-done
+if pnpm turbo run lint typecheck test --continue >/tmp/verify-checks.log 2>&1; then
+  for task in lint typecheck test; do ok "$task"; done
+else
+  failed_line=$(grep -E '^\s*Failed:' /tmp/verify-checks.log || true)
+  for task in lint typecheck test; do
+    if echo "$failed_line" | grep -qE "#$task\b"; then bad "$task"; else ok "$task"; fi
+  done
+  [ -z "$failed_line" ] && bad "turbo (lint · typecheck · test)"
+  tail -40 /tmp/verify-checks.log
+fi
+if pnpm build >/tmp/verify-build.log 2>&1; then
+  ok "build"
+else
+  bad "build"
+  tail -30 /tmp/verify-build.log
+fi
 
 # --------------------------------------------------- ci.yml :: fitness
 

@@ -12,7 +12,7 @@ import { join, relative, sep } from "node:path";
 const ROOT = new URL("..", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 const MAX = 20;
 
-const SKIP = new Set(["node_modules", ".next", ".expo", ".git", "dist", "build", "coverage"]);
+const SKIP = new Set(["node_modules", ".next", ".next-verify", ".expo", ".git", "dist", "build", "coverage"]);
 
 /**
  * 2026-09-10: the four walls the cap was written for are all split. What is

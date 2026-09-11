@@ -28,6 +28,7 @@ const TABLES = [
   schema.note,
   schema.expenseSplit,
   schema.expense,
+  schema.settlement,
   schema.fxRate,
   schema.dayEvent,
   schema.day,

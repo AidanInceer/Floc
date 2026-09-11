@@ -3,8 +3,9 @@
   Stop what run.ps1 started: the web dev server and Metro.
 
 .DESCRIPTION
-  Needed before `pnpm verify`, `build` or `fitness`: those write `.next`, which
+  Needed before a bare `pnpm build` or `fitness`: those write `.next`, which
   `next dev` owns, and building over a live dev server corrupts its chunks.
+  `pnpm verify` builds into `.next-verify` and does not need this.
 
   The emulator is left running — it is slow to boot and harmless to keep.
   Use -Emulator to close it too.

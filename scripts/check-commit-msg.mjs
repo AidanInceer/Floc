@@ -50,6 +50,6 @@ if (closes && ticket && ticket[1] !== closes[1]) {
 if (problems.length) {
   console.error("\nCommit message rejected:\n");
   for (const p of problems) console.error(`  · ${p}`);
-  console.error("\n  See CLAUDE.md → Workflow → Commit subject.\n");
+  console.error("\n  See plugins/floc/skills/push/SKILL.md → Land.\n");
   process.exit(1);
 }

@@ -16,7 +16,8 @@
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
     "fitness": "node scripts/check-folder-size.mjs && turbo run fitness",
-    "parity": "node --experimental-strip-types scripts/parity/run.mjs",
+    "comments": "node scripts/check-comments.mjs --working",
+    "parity":"node --experimental-strip-types scripts/parity/run.mjs",
     "verify": "node scripts/verify.mjs",
     "push:preflight": "node scripts/push.mjs preflight",
     "push:land": "node scripts/push.mjs land",
@@ -29,6 +30,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": "eslint --flag v10_config_lookup_from_file --max-warnings=0",
+    "*.{ts,tsx,js,jsx,mjs,cjs}": "node scripts/check-comments.mjs --staged",
     "*": "node scripts/check-staged-secrets.mjs"
   },
   "devDependencies": {

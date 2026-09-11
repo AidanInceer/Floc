@@ -44,8 +44,8 @@ pnpm --filter floc-web db:reset   # empty local.db + uploads, then seed — same
 
 - **A new API procedure needs a line in [`parity.json`](scripts/parity/parity.json)** saying whether the phone app has it, and why not. `pnpm parity --fix` writes the boring half; the `why` is yours. Rules and tests: [`parity.ts`](floc/packages/floc-api/src/parity.ts).
 - [`verify`](scripts/verify.sh) mirrors CI. Change a `.github/workflows/` **check** job → change verify.sh same commit.
-- **Stop dev server before anything that builds.** `verify`/`build`/`fitness` write `.next`, owned by `next dev`; building over it corrupts chunks. Fix: `pnpm --filter floc-web run clean:next` (the one delete an agent may run; also cures OneDrive `EINVAL: readlink`). Check with `preview_list`, not `ps`.
-- **No pre-push hook** — run `pnpm verify` by hand before **every** push, `develop` included. Two cheap hooks do exist: `pre-commit` lints staged files and scans them for secrets; `commit-msg` checks the subject and that `Closes` matches it. `pnpm install` sets them up; `pnpm hooks:install` re-arms them.
+- **`verify` builds into `.next-verify`**, so dev servers stay up. A bare `build`/`fitness` still writes `.next`, owned by `next dev` — stop servers first (`preview_list`, not `ps`). Poisoned `.next`: `pnpm --filter floc-web run clean:next` (the one delete an agent may run; also cures OneDrive `EINVAL: readlink`).
+- **No pre-push hook** — every push goes through `/floc:push`, which runs `verify`. `pre-commit` lints staged files and scans for secrets; `commit-msg` checks the subject. `pnpm hooks:install` re-arms them.
 - **Schema change isn't done until `local.db` has it.** `db:generate` writes the migration but nothing applies it locally → dev dies on `no such column`. Run the new `drizzle/*.sql` against `local.db` in the same slice, before pushing.
 - **Mobile deps come from `npx expo install`, never `pnpm add`.** Expo pins a version per SDK; npm's latest is a different one, and the mismatch surfaces as a red screen at runtime, not an install error. Servers down first (a live process holds `node_modules` and the install rolls back). `npx expo install --check` before believing any version.
 - **A new native module means a rebuild, a new route means new router types.** `pnpm --filter floc-mobile android` for the first; for the second, expo-router rewrites `.expo/types/router.d.ts` when Metro starts, so typecheck *after* Metro or it passes on the old union.
@@ -60,7 +60,7 @@ Never break these — integer money, enumeration-proof trip access, soft-delete 
 - **Nothing in `app/` imports `@/db`** — SQL lives only in `server/`.
 - Validate at the door: dates via `@floc/core/dates`, free text via `@floc/core/text`. Rejections are form errors, never throws.
 - British English, sentence case, real content — never lorem.
-- **Comments ruthless** — none by default; a good name beats a line. Write one only for a *why* the code can't show: a non-obvious constraint, an upstream bug, a decision that looks wrong until explained, or a gotcha that has bitten. Never restate *what*, never head a function with a summary of itself, never leave one to justify code you could delete. Ticket pointer where it carries the why (`#212`). One line beats a block.
+- **Comments ruthless** — none by default; a good name beats a line. Write one only for a *why* the code can't show: a non-obvious constraint, an upstream bug, a decision that looks wrong until explained, or a gotcha that has bitten. Never restate *what*, never head a function with a summary of itself, never leave one to justify code you could delete. Ticket pointer where it carries the why (`#212`). One line beats a block. [`check-comments`](scripts/check-comments.mjs) flags new noise on edit and at commit (`pnpm comments` to run it); a longer comment passes with its ticket or a leading `Why:`.
 
 ## UI and UX
 
@@ -88,6 +88,8 @@ Reach for the house component before writing markup; if neither surface has it, 
 - **Dependency inversion at seams** — `@floc/core` pure and app-free; `components/` take data, never fetch. Type-only imports across a seam OK. `pnpm deps:check` enforces.
 - **Follow YAGNI, KISS, SOLID** - you are a principle engineer/designer, who creates performant app/websites which are scalable, modular, maintainable and performant
 - **Composability over configuration** — 8 optional props for 4 cases → several components.
+- **Test-driven** — red, green, refactor. Write the failing test first, watch it fail for the right reason, write the least code that passes, then tidy. A bug fix starts with a test that reproduces it. One behaviour per test, through the public interface, not the internals. Screens and components that need a renderer are exempt; the logic behind them is not — move it somewhere testable. `/mattpocock-skills:tdd` drives the loop.
+- **Coverage floor 80%** (lines, functions, branches, statements) on every package — `vitest --coverage` fails under it. Never lower a threshold to pass; add the test.
 
 | Rule | Limit |
 |---|---|
@@ -106,10 +108,8 @@ Payments, POI data/reviews, flight *booking* (deep links only), i18n, analytics,
 
 ## Workflow
 
-- **Branches.** Two long-lived, no feature branches. Work lands on `develop` (one commit per ticket, `verify` green first), batched to `main` by PR as a **merge commit** — never squash/rebase. Hotfix = commit straight to `main`. Never commit a feature to `main`.
-- **Commit subject:** `<version> #<issue>: <type>: <description>` (e.g. `0.4.0 #93: feat: split the profile`). Bump `floc/apps/web/package.json` same commit (minor=feat, patch=fix). Body ends `Closes AidanInceer/Floc#<n>`. Types: `feat|fix|docs|refactor|chore|test`. No-ticket work uses `#no-ticket`, drops `Closes`. Never borrow a number — a wrong `Closes` shuts someone's issue.
-- **Tickets.** One type label: `type:feat|type:fix|type:refinement`; state labels on top: `wayfinder:grilling`, `on-develop`, `future-work`. `Closes` fires only on `main`, so tag `on-develop` when the commit is pushed to `develop`; parked work gets `future-work`. Blocked-by edges in the body under `## Blocked by` as `#<n>`, never above a blocker.
-- **Priority stack.** Issue titled `Priority` holds the ordered backlog in its body; top line = next ticket. Never worked on or closed; a ticket leaves when tagged `on-develop`.
+- **Branches.** Two long-lived, no feature branches. Work lands on `develop` via `/floc:push`, batched to `main` via `/floc:release`. Hotfix = commit straight to `main`. Never commit a feature to `main`.
+- **Commits, labels, Priority stack** — the skills own the rules: `/floc:push` (subject, version bump, `Closes`, `on-develop`), `/floc:prioritise-tickets` (labels, stack), `/floc:to-tickets` (blocked-by edges). Never borrow an issue number.
 - **Docs = HTML, not markdown** — edit the page.
 - **Deploy = Railway** via `railway.json` (runs migration, starts `floc-web`). Push to `main` deploys. Env vars in Railway Variables tab, never the repo.
 
@@ -124,11 +124,14 @@ Issues/PRDs are GitHub issues, driven with `gh`. The skills are the `floc` plugi
 | Skill | Does |
 |---|---|
 | `/floc:run` | Brings up web, Metro, emulator and app, then proves each answers. |
-| `/floc:push` | Local work → one verified commit on `develop`, ticket tagged. |
+| `/floc:push` | Local work → one verified commit on `develop`, ticket tagged, CI watched. |
+| `/floc:release` | `develop` → `main` PR, merge commit on your yes, then tickets, sync and deploy checked. |
 | `/floc:to-tickets` | Slices a plan into tracer-bullet issues with blocking edges. |
 | `/floc:prioritise-tickets` | Puts unprioritised open issues into the `Priority` stack, fixes type labels. |
 | `/floc:pickup-ticket` | Takes the top startable ticket, works it to a pushed `develop` commit. |
 | `/floc:seed-dev-db` | Loads dev scenarios A/B (people, trips, claims, profiles) next to existing data. |
 | `/floc:reset-dev-db` | Backs up, wipes `local.db` + uploads, reseeds with fixed ids, signs back in. |
 
-**Loop:** idea → `/floc:to-tickets` → `/floc:prioritise-tickets` → `/floc:pickup-ticket`.
+Agent `floc:ci-watch` — watches CI for one SHA; `/floc:push` and `/floc:release` spawn it in the background.
+
+**Loop:** idea → `/floc:to-tickets` → `/floc:prioritise-tickets` → `/floc:pickup-ticket` → `/floc:push` → `/floc:release`.

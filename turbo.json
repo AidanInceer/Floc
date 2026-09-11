@@ -3,7 +3,8 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
+      "env": ["FLOC_NEXT_DIST_DIR"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**", ".next-verify/**", "!.next-verify/cache/**"]
     },
     "dev": {
       "cache": false,
@@ -17,7 +18,8 @@
       "dependsOn": ["^build"]
     },
     "fitness": {
-      "dependsOn": ["build"]
+      "dependsOn": ["build"],
+      "env": ["FLOC_NEXT_DIST_DIR"]
     }
   }
 }

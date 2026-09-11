@@ -1,4 +1,39 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(pnpm verify)",
+      "Bash(pnpm push:preflight *)",
+      "Bash(pnpm push:land *)",
+      "Bash(pnpm parity*)",
+      "Bash(pnpm --filter floc-web run clean:next)",
+      "Bash(node scripts/ci-watch.mjs *)",
+      "Bash(git status*)",
+      "Bash(git log *)",
+      "Bash(git diff*)",
+      "Bash(git fetch*)",
+      "Bash(git mv *)",
+      "Bash(gh issue *)",
+      "Bash(gh run *)",
+      "Bash(gh pr list *)",
+      "Bash(gh pr view *)",
+      "Bash(gh pr checks *)",
+      "Bash(claude plugin update floc@floc *)",
+      "Bash(claude plugin validate *)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/check-comments.mjs\" --hook"
+          }
+        ]
+      }
+    ]
+  },
   "extraKnownMarketplaces": {
     "floc": {
       "source": {

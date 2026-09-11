@@ -240,4 +240,4 @@ Write-Host "Ready." -ForegroundColor Green
 if (-not $SkipWeb) { Write-Host "  web    http://localhost:$WebPort" }
 if (-not $SkipMetro) { Write-Host "  metro  press r in the 'floc-mobile metro' window to reload" }
 Write-Host ""
-Write-Host "Stop the dev servers before pnpm verify / build / fitness - they share .next." -ForegroundColor DarkGray
+Write-Host "pnpm verify is safe with these up. Stop them before a bare pnpm build / fitness - they share .next." -ForegroundColor DarkGray
