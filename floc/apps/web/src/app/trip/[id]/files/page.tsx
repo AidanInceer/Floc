@@ -6,8 +6,6 @@
  * One filter bar and row chips rather than Packing's per-list controls and
  * heading strips: a documents list is a dozen rows, not hundreds, so both would
  * cost more than they organise.
- *
- * Not a tab: documents are fetched, not a stage of planning.
  */
 import Link from "next/link";
 
@@ -53,15 +51,7 @@ export default async function FilesPage({
 
   return (
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <h1 className="text-[clamp(1.9rem,4vw,2.8rem)]">Documents</h1>
-        <Link
-          href={`/trip/${tripId}/overview`}
-          className="text-sm text-pen hover:underline"
-        >
-          &larr; Overview
-        </Link>
-      </div>
+      <h1 className="text-[clamp(1.9rem,4vw,2.8rem)]">Files</h1>
 
       {!documentsEnabled() ? (
         // Rule 11: say what is missing rather than offering an upload that

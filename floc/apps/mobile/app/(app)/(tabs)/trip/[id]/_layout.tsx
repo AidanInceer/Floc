@@ -37,14 +37,14 @@ import { trpc } from "@/lib/api";
 import { viewerBalance } from "@/lib/balance";
 import { useSession } from "@/lib/auth";
 
-/** Planning order: you land, talk it over, fix dates, fill days, settle, pack, file. */
+/** Same order as the web's tabs (#315): the planning steps, then notes and files. */
 const SECTIONS: Section[] = [
   { route: "", label: "Overview" },
-  { route: "notes", label: "Notes" },
   { route: "dates", label: "Dates" },
   { route: "days", label: "Days" },
   { route: "money", label: "Money" },
   { route: "packing", label: "Packing" },
+  { route: "notes", label: "Notes" },
   { route: "files", label: "Files" },
 ];
 
