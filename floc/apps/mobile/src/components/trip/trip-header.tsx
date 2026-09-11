@@ -165,7 +165,6 @@ function RailItem({
   const target = useTourTarget(section.route === "" ? null : (section.route as TourStopKey));
   return (
     <Pressable
-      ref={target}
       accessibilityRole="tab"
       accessibilityState={{ selected: on }}
       onPress={() => onGo(section.route)}
@@ -176,15 +175,18 @@ function RailItem({
         borderBottomColor: on ? c.pen : "transparent",
       }}
     >
-      <Text
-        style={{
-          color: on ? c.ink : c["ink-2"],
-          fontFamily: on ? fonts.sansBold : fonts.sans,
-          fontSize: size.body,
-        }}
-      >
-        {section.label}
-      </Text>
+      {/* Why: the tour lights the label, not the tab's underline padding (#315). */}
+      <View ref={target}>
+        <Text
+          style={{
+            color: on ? c.ink : c["ink-2"],
+            fontFamily: on ? fonts.sansBold : fonts.sans,
+            fontSize: size.body,
+          }}
+        >
+          {section.label}
+        </Text>
+      </View>
     </Pressable>
   );
 }

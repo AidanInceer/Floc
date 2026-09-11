@@ -5,6 +5,7 @@
 import { tourStep, tourStopsFor, type TourStop } from "@floc/core/trip/tour";
 import { useEffect, useState } from "react";
 import { Modal, StyleSheet, useWindowDimensions, View } from "react-native";
+import Svg, { Path } from "react-native-svg";
 
 import { useTheme } from "../system/theme";
 import { Body, Button, Label } from "../system/ui";
@@ -13,7 +14,8 @@ import { radius, space } from "@/lib/theme";
 
 type Rect = { x: number; y: number; width: number; height: number };
 
-const PAD = 6;
+const PAD_X = 12;
+const PAD_Y = 8;
 /** Why: long enough for the rail to finish scrolling before it is measured. */
 const SETTLE_MS = 350;
 
@@ -23,11 +25,16 @@ function useStopRect(stop: TourStop | null): Rect | null {
 
   useEffect(() => {
     tour?.setActive(stop?.key ?? null);
-    setRect(null);
     if (!stop) return;
+    // Why: the last stop's box is held until the new one is measured, so the card does not jump.
     const timer = setTimeout(() => {
       tour?.targets.current?.get(stop.key)?.measureInWindow((x, y, width, height) =>
-        setRect({ x: x - PAD, y: y - PAD, width: width + PAD * 2, height: height + PAD * 2 }),
+        setRect({
+          x: x - PAD_X,
+          y: y - PAD_Y,
+          width: width + PAD_X * 2,
+          height: height + PAD_Y * 2,
+        }),
       );
     }, SETTLE_MS);
     return () => clearTimeout(timer);
@@ -37,32 +44,43 @@ function useStopRect(stop: TourStop | null): Rect | null {
   return rect;
 }
 
+/** A short control gets a pill, a panel gets the panel's own corner. */
+function cornerOf(rect: Rect): number {
+  return rect.height < 64 ? rect.height / 2 : radius.lg;
+}
+
+function holePath(rect: Rect): string {
+  const r = cornerOf(rect);
+  const { x, y, width: w, height: h } = rect;
+  return (
+    `M${x + r},${y}h${w - r * 2}a${r},${r} 0 0 1 ${r},${r}` +
+    `v${h - r * 2}a${r},${r} 0 0 1 ${-r},${r}` +
+    `h${-(w - r * 2)}a${r},${r} 0 0 1 ${-r},${-r}` +
+    `v${-(h - r * 2)}a${r},${r} 0 0 1 ${r},${-r}z`
+  );
+}
+
+/** Why: a view cannot cut a hole in another, so the dim is one SVG with the lit box taken out. */
 function Dim({ rect }: { rect: Rect | null }) {
   const { c } = useTheme();
   const { width, height } = useWindowDimensions();
-  const band = { position: "absolute" as const, backgroundColor: c.ink, opacity: 0.45 };
-  if (!rect) return <View style={[StyleSheet.absoluteFill, band]} />;
-  const bottom = rect.y + rect.height;
-  const right = rect.x + rect.width;
-  return (
-    <>
-      <View style={[band, { top: 0, left: 0, width, height: Math.max(0, rect.y) }]} />
-      <View style={[band, { top: bottom, left: 0, width, height: Math.max(0, height - bottom) }]} />
-      <View style={[band, { top: rect.y, left: 0, width: Math.max(0, rect.x), height: rect.height }]} />
-      <View style={[band, { top: rect.y, left: right, width: Math.max(0, width - right), height: rect.height }]} />
+  if (!rect) {
+    return (
       <View
-        style={{
-          position: "absolute",
-          top: rect.y,
-          left: rect.x,
-          width: rect.width,
-          height: rect.height,
-          borderRadius: radius.lg,
-          borderWidth: 2,
-          borderColor: c.pen,
-        }}
+        style={[StyleSheet.absoluteFill, { backgroundColor: c.ink, opacity: 0.45 }]}
       />
-    </>
+    );
+  }
+  return (
+    <Svg style={StyleSheet.absoluteFill} width={width} height={height} pointerEvents="none">
+      <Path
+        d={`M0,0h${width}v${height}h${-width}z ${holePath(rect)}`}
+        fill={c.ink}
+        fillOpacity={0.45}
+        fillRule="evenodd"
+      />
+      <Path d={holePath(rect)} fill="none" stroke={c.pen} strokeWidth={2} />
+    </Svg>
   );
 }
 
