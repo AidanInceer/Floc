@@ -23,7 +23,7 @@ If it does not exist, create it once:
 gh issue create --repo AidanInceer/Floc --title "Priority" --label future-work \
   --body "## Priority stack
 
-Top = next to pick up. Maintained by \`/prioritise-tickets\`. Consumed by \`/pickup-ticket\`.
+Top = next to pick up. Maintained by \`/floc:prioritise-tickets\`. Consumed by \`/floc:pickup-ticket\`.
 
 1. _(empty)_"
 ```
@@ -85,7 +85,7 @@ Every prioritised ticket must end up with exactly one **type** label, plus any s
 
 Blocked-by edges live in the issue **body** under `## Blocked by`, written as `#<n>` — not as a label. Read them from there.
 
-**Grilling is orthogonal to priority.** A ticket that needs grilling sits in the stack on its own merit, alongside build-ready tickets. Never demote a ticket because it carries `wayfinder:grilling`, and never mention the label as a reason to move it. `/pickup-ticket` deals with the grilling when the ticket reaches the top.
+**Grilling is orthogonal to priority.** A ticket that needs grilling sits in the stack on its own merit, alongside build-ready tickets. Never demote a ticket because it carries `wayfinder:grilling`, and never mention the label as a reason to move it. `/floc:pickup-ticket` deals with the grilling when the ticket reaches the top.
 
 Create any missing type label once:
 
@@ -187,7 +187,7 @@ gh issue edit <priority-issue-number> --repo AidanInceer/Floc --body-file <file>
 
 ## Constraints
 
-- Never remove a ticket from the stack here — that is `/pickup-ticket`'s job.
+- Never remove a ticket from the stack here — that is `/floc:pickup-ticket`'s job.
 - Never invent priority. Every position comes from a user answer or from a blocking edge.
 - The `Priority` issue is never closed and never picked up as work.
 - Never use `AskUserQuestion` here — every question is plain text in the response body.

@@ -9,7 +9,7 @@ Things that bite. Read before editing.
 - `fetch`/ES modules in a docs page — breaks on `file://`, use `<script src>`.
 - npm-style `"workspaces"` array — workspaces live in `pnpm-workspace.yaml` only.
 - PowerShell commit here-string where `@'`/`'@` aren't alone on their lines — `@` leaks into subject. Verify `git log -1 --format=%s`.
-- Running `pnpm verify`/`build` with dev server up — corrupts `.next`; user must delete by hand. Stop dev first; check `preview_list`, not `ps`.
+- Running a bare `pnpm build`/`fitness` with dev server up — corrupts `.next`. `pnpm verify` is safe (it builds to `.next-verify`); for the others stop dev first, check `preview_list`, not `ps`.
 - Skipping `CLAUDE.md` — it holds the real non-negotiables. One file at the root; there is no venture-level copy.
 - Inventing/borrowing a `Closes` issue number — shuts someone else's issue.
 - A brace glob in an `eslint.config.mjs` — the `brace-expansion` security pin breaks `minimatch@3`'s expander, and ESLint dies with "expand is not a function" naming neither. List the extensions separately.

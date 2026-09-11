@@ -126,6 +126,18 @@ export default function Profile() {
           />
         ))}
 
+        {/* Up with the face, not at the foot: people are what you come to
+            this screen for most, and a scroll past the map hid them. */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Friends"
+          onPress={() => router.push("/friends")}
+        >
+          <Row>
+            <Body bold>Friends</Body>
+          </Row>
+        </Pressable>
+
         <View style={{ gap: space.sm }}>
           <Label>Travel map</Label>
           <Card>
@@ -161,8 +173,8 @@ export default function Profile() {
           ))}
         </View>
 
-        {/* Three rows at the foot, as on the web. Saved lists and friends are
-            yours rather than any trip's, so they hang off you, not off a trip. */}
+        {/* Saved lists are yours rather than any trip's, so they hang off
+            you, not off a trip. */}
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Saved packing lists"
@@ -170,16 +182,6 @@ export default function Profile() {
         >
           <Row>
             <Body bold>Saved packing lists</Body>
-          </Row>
-        </Pressable>
-
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Friends"
-          onPress={() => router.push("/friends")}
-        >
-          <Row>
-            <Body bold>Friends</Body>
           </Row>
         </Pressable>
 
@@ -193,7 +195,7 @@ export default function Profile() {
           </Row>
         </Pressable>
 
-        {/* Below the three rows and below everything else, because it ends the
+        {/* Below the rows and below everything else, because it ends the
             session rather than opening anything. */}
         <Button
           label="Sign out of this phone"

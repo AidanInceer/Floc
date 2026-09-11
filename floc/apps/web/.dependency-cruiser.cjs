@@ -70,7 +70,7 @@ module.exports = {
     // Follow the workspace package's real source rather than stopping at the
     // node_modules symlink, or the rule above has nothing to look at (#286).
     doNotFollow: { path: "node_modules/(?!@floc/)" },
-    exclude: { path: "(^|/)(\.next|coverage|drizzle)/" },
+    exclude: { path: "(^|/)(\.next|\.next-verify|coverage|drizzle)/" },
     tsPreCompilationDeps: "specify",
     tsConfig: { fileName: "tsconfig.json" },
     enhancedResolveOptions: {

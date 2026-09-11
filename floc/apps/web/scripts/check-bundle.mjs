@@ -14,7 +14,8 @@ import { fileURLToPath } from "node:url";
 
 const BUDGET_KB = 115;
 
-const next = new URL("../.next/", import.meta.url);
+const distDir = process.env.FLOC_NEXT_DIST_DIR ?? ".next";
+const next = new URL(`../${distDir}/`, import.meta.url);
 const manifest = JSON.parse(
   readFileSync(fileURLToPath(new URL("build-manifest.json", next)), "utf8"),
 );
@@ -25,7 +26,7 @@ const sizes = (manifest.rootMainFiles ?? []).map((file) => [
 ]);
 
 if (sizes.length === 0) {
-  console.error("No root chunks in .next/build-manifest.json — build first.");
+  console.error(`No root chunks in ${distDir}/build-manifest.json — build first.`);
   process.exit(1);
 }
 

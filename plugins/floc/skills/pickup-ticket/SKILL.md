@@ -15,7 +15,7 @@ Take the **top** ticket off the `Priority` stack issue and start it.
 gh issue list --repo AidanInceer/Floc --state open --search "Priority in:title" --json number,body
 ```
 
-If the stack is missing or empty, say so and point at `/prioritise-tickets`.
+If the stack is missing or empty, say so and point at `/floc:prioritise-tickets`.
 
 ### 2. Walk down to the first startable ticket
 
@@ -30,38 +30,23 @@ Starting at the top, skip a ticket if any of these hold — and say which and wh
 
 Show the user the ticket: number, title, type label, what it delivers, acceptance criteria, blocked-by. Ask to confirm before starting work.
 
-### 4. Start the work
+### 4. Build it
 
-Follow the repo workflow in `CLAUDE.md`:
+Work on `develop`. No feature branch. Keep to the ticket's acceptance criteria.
 
-- Work on `develop`. No feature branch.
-- One commit for the ticket. Subject: `<version> #<issue>: <type>: <description>`.
-- Bump `floc/apps/web/package.json` in the same commit — minor for `feat`, patch for `fix`/`refinement`.
-- Body ends `Closes AidanInceer/Floc#<n>`.
-- Run `pnpm verify` green before pushing. Stop the dev server first.
+### 5. Land it with `/floc:push`
 
-### 5. Pop the stack once it is on develop
-
-The moment the ticket's commit is pushed to `develop`:
-
-```bash
-gh issue edit <n> --repo AidanInceer/Floc --add-label "on-develop"
-```
-
-Then remove that ticket's line from the `Priority` issue body and renumber:
-
-```bash
-gh issue edit <priority-issue-number> --repo AidanInceer/Floc --body-file <file>
-```
+Run `/floc:push` with this ticket's number. It owns the commit rules, the bump,
+verify, the `on-develop` label and popping the stack.
 
 **A ticket leaves the stack when it is tagged `on-develop`, not when work starts.** If the work is abandoned, the ticket stays where it is.
 
 ### 6. Report back
 
-Ticket number and title, what was built, whether `pnpm verify` passed, whether it was pushed and popped, and what is now on top of the stack.
+Ticket number and title, what was built, the `/floc:push` result, and what is now on top of the stack.
 
 ## Constraints
 
-- Only ever take from the top. Never reorder here — that is `/prioritise-tickets`.
+- Only ever take from the top. Never reorder here — that is `/floc:prioritise-tickets`.
 - Never close the issue by hand. `Closes` fires when `develop` reaches `main`.
 - Never pick up the `Priority` issue itself.

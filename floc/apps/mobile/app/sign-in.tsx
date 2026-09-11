@@ -36,15 +36,24 @@
  * not a way in, it is an apology. `/sign-up` is a screen now.
  */
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { GoogleButton } from "@/components/auth/google-button";
-import { Body, Button, Field, OrRule, Screen, TextLink } from "@/components/system/ui";
+import {
+  Body,
+  Button,
+  Dropdown,
+  Field,
+  OrRule,
+  Screen,
+  TextLink,
+} from "@/components/system/ui";
 import { signIn } from "@/lib/auth";
 import { explainGoogle, explainSignIn } from "@/lib/auth-errors";
-import { devSignIn } from "@/lib/dev-sign-in";
+import type { DevAccount } from "@/lib/dev-sign-in";
+import { devAccounts, devSignIn } from "@/lib/dev-sign-in";
 import { space } from "@/lib/theme";
 
 export default function SignIn() {
@@ -56,6 +65,19 @@ export default function SignIn() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
+  const [cast, setCast] = useState<DevAccount[]>([]);
+  const [asWho, setAsWho] = useState("");
+
+  // Asked once, on a dev build only. A store build never runs this branch, and
+  // a phone with no dev server on the LAN gets null and simply shows no picker.
+  useEffect(() => {
+    if (!__DEV__) return;
+    void devAccounts().then((found) => {
+      if (!found) return;
+      setCast(found);
+      setAsWho(found[0].email);
+    });
+  }, []);
 
   async function withPassword() {
     setBusy(true);
@@ -77,7 +99,7 @@ export default function SignIn() {
   async function asDevUser() {
     setBusy(true);
     setProblem(null);
-    const trouble = await devSignIn();
+    const trouble = await devSignIn(cast.find((a) => a.email === asWho));
     setBusy(false);
     if (trouble) setProblem(trouble);
     else router.replace("/trips");
@@ -144,7 +166,15 @@ export default function SignIn() {
           {/* Only on a dev build, and only when the dev server is offering an
               account — a store build never contains this branch. */}
           {__DEV__ ? (
-            <View style={{ paddingBottom: insets.bottom }}>
+            <View style={{ paddingBottom: insets.bottom, gap: space.sm }}>
+              {cast.length > 1 ? (
+                <Dropdown
+                  label="Sign in as"
+                  value={asWho}
+                  options={cast.map((a) => ({ value: a.email, label: a.name }))}
+                  onChange={setAsWho}
+                />
+              ) : null}
               <Button
                 label="Dev Sign In"
                 variant="danger"

@@ -1,6 +1,6 @@
 ---
 name: run
-description: Bring up the whole Floc development loop — Pixel 9 emulator, floc-web dev server, Metro, and the mobile app — then confirm each piece is actually answering. Use when the user says /run, "start everything", "launch the emulator", or wants to test a feature on the phone.
+description: Bring up the whole Floc development loop — Pixel 9 emulator, floc-web dev server, Metro, and the mobile app — then confirm each piece is actually answering. Use when the user says /floc:run, "start everything", "launch the emulator", or wants to test a feature on the phone.
 ---
 
 # run
@@ -100,9 +100,10 @@ Say what is up, what is not, and the one next action. Nothing else.
 - **Env changes need a Metro restart**, not a reload. `EXPO_PUBLIC_*` is baked
   into the bundle at build time. Confirm one landed by grepping the served
   bundle rather than guessing.
-- **Stop the servers before anything that builds.** `verify`, `build` and
-  `fitness` write `.next`, which `next dev` owns. Use `preview_stop` for
-  servers Claude started, `pnpm run:stop` for ones the user started.
+- **`pnpm verify` is safe with the servers up** — it builds into
+  `.next-verify`. A bare `pnpm build` or `pnpm fitness` still writes `.next`,
+  which `next dev` owns: stop the servers first (`preview_stop`, or
+  `pnpm run:stop` for ones the user started).
 - **Never run the script in the foreground.** A cold boot takes minutes and
   the tool call dies before the emulator is up.
 - **`adb` writes to stderr on a normal day** (its daemon-start notice), which
