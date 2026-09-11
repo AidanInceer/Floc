@@ -1,0 +1,16 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "floc",
+  "owner": {
+    "name": "Aidan Inceer"
+  },
+  "description": "Skills that only make sense inside the Floc repo.",
+  "plugins": [
+    {
+      "name": "floc",
+      "source": "./plugins/floc",
+      "description": "Floc's own skills: tickets, run, push and the dev database.",
+      "category": "development"
+    }
+  ]
+}

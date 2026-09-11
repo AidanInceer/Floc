@@ -1,6 +1,6 @@
 ---
 name: reset-dev-db
-description: Put the Floc dev database back to the exact same seeded state every time — empty local.db and the uploads folder, then load scenarios A and B with fixed ids — and sign the web and phone back in. Use when the user says /reset-dev-db, "reset the db", "start fresh", "back to the seed state", or wants a deterministic starting point before testing.
+description: Put the Floc dev database back to the exact same seeded state every time — empty local.db and the uploads folder, then load scenarios A and B with fixed ids — and sign the web and phone back in. Use when the user says /floc:reset-dev-db, "reset the db", "start fresh", "back to the seed state", or wants a deterministic starting point before testing.
 ---
 
 # reset-dev-db
@@ -11,7 +11,7 @@ every other reset:
 - trips `1` Portugal, `2` Dolomites, `3` Tokyo, `4` Krakow
 - users `dev-user`, `seed-a-priya` … `seed-b-ruth`
 
-To add the seed **without** losing the user's own data, use `/seed-dev-db`.
+To add the seed **without** losing the user's own data, use `/floc:seed-dev-db`.
 
 ## Process
 

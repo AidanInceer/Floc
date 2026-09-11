@@ -1,6 +1,6 @@
 ---
 name: push
-description: Take finished local work to the develop branch — servers down, verify green, one commit with the right version and subject, pushed, ticket tagged and popped. Use when the user says /push, "push this", "ship it", or "get this on develop".
+description: Take finished local work to the develop branch — servers down, verify green, one commit with the right version and subject, pushed, ticket tagged and popped. Use when the user says /floc:push, "push this", "ship it", or "get this on develop".
 ---
 
 # push

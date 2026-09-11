@@ -15,7 +15,7 @@ Take the **top** ticket off the `Priority` stack issue and start it.
 gh issue list --repo AidanInceer/Floc --state open --search "Priority in:title" --json number,body
 ```
 
-If the stack is missing or empty, say so and point at `/prioritise-tickets`.
+If the stack is missing or empty, say so and point at `/floc:prioritise-tickets`.
 
 ### 2. Walk down to the first startable ticket
 
@@ -62,6 +62,6 @@ Ticket number and title, what was built, whether `pnpm verify` passed, whether i
 
 ## Constraints
 
-- Only ever take from the top. Never reorder here — that is `/prioritise-tickets`.
+- Only ever take from the top. Never reorder here — that is `/floc:prioritise-tickets`.
 - Never close the issue by hand. `Closes` fires when `develop` reaches `main`.
 - Never pick up the `Priority` issue itself.

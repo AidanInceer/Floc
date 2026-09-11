@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * The mechanical half of `/push`, so the skill stops re-deriving it each time.
+ * The mechanical half of `/floc:push`, so the skill stops re-deriving it each time.
  *
  * WHY A SCRIPT. Every step here has one right answer — the branch, the bump,
  * the two things `verify` cannot know, the commit, the push. Done by hand they

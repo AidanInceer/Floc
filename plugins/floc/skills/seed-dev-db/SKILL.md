@@ -1,12 +1,12 @@
 ---
 name: seed-dev-db
-description: Load the Floc dev scenarios (A and B) into local.db alongside whatever is already there, so the web and phone apps have trips, friends, packing claims, money and profiles to test with — and sign in as any seeded person. Use when the user says /seed-dev-db, "seed the db", "load scenario A/B", "I need test data", or wants to test something between several people.
+description: Load the Floc dev scenarios (A and B) into local.db alongside whatever is already there, so the web and phone apps have trips, friends, packing claims, money and profiles to test with — and sign in as any seeded person. Use when the user says /floc:seed-dev-db, "seed the db", "load scenario A/B", "I need test data", or wants to test something between several people.
 ---
 
 # seed-dev-db
 
 Put the seed people and trips into `local.db`. It does **not** touch your own trips,
-friends or uploads. To go back to a clean, fixed state, use `/reset-dev-db` instead.
+friends or uploads. To go back to a clean, fixed state, use `/floc:reset-dev-db` instead.
 
 ## Process
 

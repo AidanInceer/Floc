@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "floc": {
+      "source": {
+        "source": "directory",
+        "path": "C:\\dev\\Floc"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "floc@floc": true
+  }
+}

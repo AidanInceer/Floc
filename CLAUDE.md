@@ -119,14 +119,16 @@ No secrets/keys/tokens in the repo. No logging PII or tokens. Flag anything touc
 
 ## Agent skills
 
-Issues/PRDs are GitHub issues, driven with `gh`.
+Issues/PRDs are GitHub issues, driven with `gh`. The skills are the `floc` plugin in [`plugins/floc/`](plugins/floc/), enabled by `.claude/settings.json`. **Claude reads a cached copy** — after editing a skill, bump `version` in `plugins/floc/.claude-plugin/plugin.json`, run `claude plugin update floc@floc --scope project`, then restart the session.
 
 | Skill | Does |
 |---|---|
-| `/to-tickets` | Slices a plan into tracer-bullet issues with blocking edges. |
-| `/prioritise-tickets` | Puts unprioritised open issues into the `Priority` stack, fixes type labels. |
-| `/pickup-ticket` | Takes the top startable ticket, works it to a pushed `develop` commit. |
-| `/seed-dev-db` | Loads dev scenarios A/B (people, trips, claims, profiles) next to existing data. |
-| `/reset-dev-db` | Backs up, wipes `local.db` + uploads, reseeds with fixed ids, signs back in. |
+| `/floc:run` | Brings up web, Metro, emulator and app, then proves each answers. |
+| `/floc:push` | Local work → one verified commit on `develop`, ticket tagged. |
+| `/floc:to-tickets` | Slices a plan into tracer-bullet issues with blocking edges. |
+| `/floc:prioritise-tickets` | Puts unprioritised open issues into the `Priority` stack, fixes type labels. |
+| `/floc:pickup-ticket` | Takes the top startable ticket, works it to a pushed `develop` commit. |
+| `/floc:seed-dev-db` | Loads dev scenarios A/B (people, trips, claims, profiles) next to existing data. |
+| `/floc:reset-dev-db` | Backs up, wipes `local.db` + uploads, reseeds with fixed ids, signs back in. |
 
-**Loop:** idea → `/to-tickets` → `/prioritise-tickets` → `/pickup-ticket`.
+**Loop:** idea → `/floc:to-tickets` → `/floc:prioritise-tickets` → `/floc:pickup-ticket`.

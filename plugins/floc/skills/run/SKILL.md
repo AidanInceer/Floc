@@ -1,6 +1,6 @@
 ---
 name: run
-description: Bring up the whole Floc development loop — Pixel 9 emulator, floc-web dev server, Metro, and the mobile app — then confirm each piece is actually answering. Use when the user says /run, "start everything", "launch the emulator", or wants to test a feature on the phone.
+description: Bring up the whole Floc development loop — Pixel 9 emulator, floc-web dev server, Metro, and the mobile app — then confirm each piece is actually answering. Use when the user says /floc:run, "start everything", "launch the emulator", or wants to test a feature on the phone.
 ---
 
 # run

@@ -7,7 +7,7 @@ description: Break a plan, spec, or conversation into tracer-bullet GitHub issue
 
 Break a plan into **tracer-bullet** GitHub issues in `AidanInceer/Floc`.
 
-New issues come out **unprioritised** — they are not added to the `Priority` stack here. `/prioritise-tickets` places them; `/pickup-ticket` works them.
+New issues come out **unprioritised** — they are not added to the `Priority` stack here. `/floc:prioritise-tickets` places them; `/floc:pickup-ticket` works them.
 
 ## Process
 
@@ -40,7 +40,7 @@ Give each ticket its **blocking edges** — which tickets must complete before i
 
 Present the breakdown as a numbered list. For each ticket show:
 
-- **Title** — short descriptive name, already prefixed with its feature category (`money:`, `platform:`, `explore:` …) so `/prioritise-tickets` has nothing to re-title
+- **Title** — short descriptive name, already prefixed with its feature category (`money:`, `platform:`, `explore:` …) so `/floc:prioritise-tickets` has nothing to re-title
 - **Blocked by** — which other tickets gate it (or "none")
 - **Delivers** — the end-to-end behaviour, from the user's perspective
 
@@ -59,7 +59,7 @@ Create approved tickets in `AidanInceer/Floc`, in dependency order (blockers fir
 
 **Approval can arrive sideways.** "Yes, create those" tacked onto the front of another command still counts. Do not re-ask.
 
-Apply the type label at creation — `--label "type:feat" | "type:fix" | "type:refinement"` — every ticket, no exceptions. A research or prototype ticket carries its `wayfinder:*` label **and** a type label. Leaving the type off pushes the work onto `/prioritise-tickets`.
+Apply the type label at creation — `--label "type:feat" | "type:fix" | "type:refinement"` — every ticket, no exceptions. A research or prototype ticket carries its `wayfinder:*` label **and** a type label. Leaving the type off pushes the work onto `/floc:prioritise-tickets`.
 
 ```bash
 gh issue create \
@@ -86,13 +86,13 @@ Do **not** close or modify any parent issue.
 
 ### 6. Report back
 
-List every created issue: number, title, type label, blocking edges. Then remind the user to run `/prioritise-tickets` — until they do, the new tickets are not in the `Priority` stack and `/pickup-ticket` will not see them.
+List every created issue: number, title, type label, blocking edges. Then remind the user to run `/floc:prioritise-tickets` — until they do, the new tickets are not in the `Priority` stack and `/floc:pickup-ticket` will not see them.
 
 ## Constraints
 
 - Avoid specific file paths or code snippets in issue bodies — they go stale fast. Exception: a prototype snippet that encodes a decision precisely (state machine, type shape, schema diff) is worth including; note briefly that it came from a prototype.
 - Issues live in `AidanInceer/Floc`, not the hub repo.
-- Blocked-by edges go in the body under `## Blocked by` as `#<n>`, never as a label — `/prioritise-tickets` and `/pickup-ticket` read them from there.
+- Blocked-by edges go in the body under `## Blocked by` as `#<n>`, never as a label — `/floc:prioritise-tickets` and `/floc:pickup-ticket` read them from there.
 - Never touch the `Priority` issue from this skill.
 - Every created ticket gets a category-prefixed title and exactly one `type:` label at creation.
 - Never build a ticket on an unverified claim about the current codebase.
