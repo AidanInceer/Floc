@@ -5,10 +5,14 @@ import Link from "next/link";
 
 import { AuthForm } from "@/components/auth/auth-form";
 import { AuthShell, authLinkClass } from "@/components/auth/auth-shell";
+import { DevSignInButton } from "@/components/auth/dev-sign-in-button";
 import { enabledProviders } from "@/server/auth/auth";
+import { listDevAccounts } from "@/server/auth/dev-accounts";
 import { emailConfigured } from "@/server/auth/email";
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const devAccounts = await listDevAccounts();
+
   return (
     <AuthShell
       eyebrow="Welcome back"
@@ -20,6 +24,11 @@ export default function LoginPage() {
           <Link href="/signup" className={authLinkClass}>
             Create an account
           </Link>
+          {devAccounts.length > 0 ? (
+            <div className="mt-6">
+              <DevSignInButton accounts={devAccounts} />
+            </div>
+          ) : null}
         </>
       }
     >

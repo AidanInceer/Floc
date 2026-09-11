@@ -8,6 +8,12 @@ vi.mock("@/server/auth/auth", () => ({
   auth: { api: { signInEmail: vi.fn(async () => new Response("ok")) } },
 }));
 
+// The roster is a database read; the gate is what this file is about.
+vi.mock("@/server/auth/dev-accounts", async (original) => {
+  const real = await original<typeof import("@/server/auth/dev-accounts")>();
+  return { ...real, listDevAccounts: vi.fn(async () => []) };
+});
+
 const ORIGINAL = { ...process.env };
 
 afterEach(() => {
@@ -15,9 +21,10 @@ afterEach(() => {
   vi.resetModules();
 });
 
-async function post(): Promise<Response> {
+async function post(email?: string): Promise<Response> {
   const { POST } = await import("./route");
-  return POST();
+  const query = email ? `?email=${encodeURIComponent(email)}` : "";
+  return POST(new Request(`http://localhost/api/dev/sign-in${query}`, { method: "POST" }));
 }
 
 async function get(): Promise<Response> {
@@ -52,12 +59,21 @@ describe("the dev sign-in route", () => {
     expect((await post()).status).toBe(200);
   });
 
+  it("signs in as a seeded person, and refuses anybody else", async () => {
+    process.env.FLOC_DEV_USER_EMAIL = "test@example.com";
+    process.env.FLOC_DEV_USER_PASSWORD = "hunter2";
+    expect((await post("priya@a.seed.floc.test")).status).toBe(200);
+    // The door is not a way to become a real user who happens to be local.
+    expect((await post("someone@gmail.com")).status).toBe(404);
+  });
+
   it("hands the phone the credentials when it is on, and nothing when it is off", async () => {
     process.env.FLOC_DEV_USER_EMAIL = "test@example.com";
     process.env.FLOC_DEV_USER_PASSWORD = "hunter2";
     await expect((await get()).json()).resolves.toEqual({
       email: "test@example.com",
       password: "hunter2",
+      accounts: [],
     });
 
     delete process.env.FLOC_DEV_USER_PASSWORD;

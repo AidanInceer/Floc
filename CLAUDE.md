@@ -38,6 +38,8 @@ pnpm --filter floc-web <task>    # scope to app
 pnpm fitness                     # layers, dead code, tokens, contrast, bundle
 pnpm parity                      # the web/app gap is declared, not forgotten
 pnpm verify                      # everything CI runs, locally
+pnpm --filter floc-web db:seed    # dev scenarios A + B (`a`/`b` for one, `--reset` to remove)
+pnpm --filter floc-web db:reset   # empty local.db + uploads, then seed — same state every time
 ```
 
 - **A new API procedure needs a line in [`parity.json`](scripts/parity/parity.json)** saying whether the phone app has it, and why not. `pnpm parity --fix` writes the boring half; the `why` is yours. Rules and tests: [`parity.ts`](floc/packages/floc-api/src/parity.ts).
@@ -124,5 +126,7 @@ Issues/PRDs are GitHub issues, driven with `gh`.
 | `/to-tickets` | Slices a plan into tracer-bullet issues with blocking edges. |
 | `/prioritise-tickets` | Puts unprioritised open issues into the `Priority` stack, fixes type labels. |
 | `/pickup-ticket` | Takes the top startable ticket, works it to a pushed `develop` commit. |
+| `/seed-dev-db` | Loads dev scenarios A/B (people, trips, claims, profiles) next to existing data. |
+| `/reset-dev-db` | Backs up, wipes `local.db` + uploads, reseeds with fixed ids, signs back in. |
 
 **Loop:** idea → `/to-tickets` → `/prioritise-tickets` → `/pickup-ticket`.

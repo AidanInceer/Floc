@@ -11,6 +11,11 @@
  * A resolve hook instead of relative-import discipline: one place to fix, and
  * `src/` keeps saying `@/` throughout as the rest of the app does. Extensionless
  * specifiers get `.ts` appended, since that's how the codebase writes them.
+ *
+ * The same appending has to happen for plain relative imports too: `@floc/core`
+ * writes `../text/text` internally, and Node resolves that literally and finds
+ * nothing. Only extensionless ones are touched, so `./index.ts` still goes
+ * straight through.
  */
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -22,7 +27,19 @@ const srcDir = join(here, "..", "src");
 // stripping refuses TypeScript reached through a dependency (#286).
 const coreDir = join(here, "..", "..", "..", "packages", "floc-core", "src");
 
+const EXTENSIONS = [".ts", ".tsx", "/index.ts"];
+
+function firstThatExists(base) {
+  return [base, ...EXTENSIONS.map((ext) => `${base}${ext}`)].find(existsSync);
+}
+
 export function resolve(specifier, context, nextResolve) {
+  if (specifier.startsWith(".") && !/\.[cm]?[jt]sx?$/.test(specifier)) {
+    const from = context.parentURL ? dirname(fileURLToPath(context.parentURL)) : here;
+    const target = firstThatExists(join(from, specifier));
+    if (target) return nextResolve(pathToFileURL(target).href, context);
+  }
+
   const root = specifier.startsWith("@/")
     ? [srcDir, specifier.slice(2)]
     : specifier.startsWith("@floc/core/")
@@ -30,10 +47,7 @@ export function resolve(specifier, context, nextResolve) {
       : null;
   if (!root) return nextResolve(specifier, context);
 
-  const base = join(root[0], root[1]);
-  const target = [base, `${base}.ts`, `${base}.tsx`, join(base, "index.ts")].find(
-    existsSync,
-  );
+  const target = firstThatExists(join(root[0], root[1]));
 
   return nextResolve(target ? pathToFileURL(target).href : specifier, context);
 }
