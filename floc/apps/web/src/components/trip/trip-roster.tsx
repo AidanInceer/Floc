@@ -48,7 +48,7 @@ export function TripRoster({
     // now, so everything inside stacks: the title over its buttons, one member
     // per row. The old full-width two-column version was a panel of air on a
     // trip with three people — the list grows downward here instead.
-    <section id="the-group" className="scroll-mt-24 rounded-lg bg-sheet p-5 ring-1 ring-rule">
+    <section id="the-group" data-tour="roster" className="scroll-mt-24 rounded-lg bg-sheet p-5 ring-1 ring-rule">
       <div className="border-b border-rule pb-3">
         <h2 className="font-display text-lg">The group</h2>
         {/* Invite URL never appears on the page — the button copies it instead. */}

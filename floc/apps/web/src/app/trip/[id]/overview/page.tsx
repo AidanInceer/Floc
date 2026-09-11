@@ -48,6 +48,9 @@ import { listExpenses, listSettlements, listSplits } from "@/server/money/money"
 import { viewerHasPacking } from "@/server/packing/packing";
 import { nextStepFor } from "@floc/core/trip/next-step";
 import { NextStepNudge } from "@/components/trip/next-step-nudge";
+import { tourSeenAt } from "@/server/auth/tour";
+import { shouldStartTour, tourStopsFor } from "@floc/core/trip/tour";
+import { TourSpotlight } from "@/components/tour/tour-spotlight";
 import { absoluteUrl } from "@/server/auth/email";
 import { formatMoney } from "@floc/core/money/money";
 import type { Currency } from "@floc/core/money/currency";
@@ -99,6 +102,7 @@ export default async function OverviewPage({
     transportModes,
     docs,
     hasPacking,
+    tourSeen,
   ] = await Promise.all([
     // Unconditional: one indexed read is cheaper than a serial round trip when
     // the dates are unset.
@@ -116,6 +120,7 @@ export default async function OverviewPage({
       ? listDocuments(tripId, viewer.id)
       : Promise.resolve([]),
     viewerHasPacking(tripId, viewer.id),
+    tourSeenAt(viewer.id),
   ]);
 
   // All "where the trip is up to" is derived in one pure call (ticket 109); the
@@ -312,6 +317,12 @@ export default async function OverviewPage({
         days={routeDays}
         transportModes={transportModes}
       />
+
+      {shouldStartTour({ seen: tourSeen !== null }) ? (
+        <TourSpotlight
+          stops={tourStopsFor({ hasNudge: nextStep !== null, hasFiles: documentsEnabled() })}
+        />
+      ) : null}
     </div>
   );
 }

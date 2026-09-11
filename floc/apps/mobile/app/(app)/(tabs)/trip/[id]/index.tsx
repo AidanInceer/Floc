@@ -30,6 +30,7 @@ import { NeedsYou, type Outstanding } from "@/components/trip/needs-you";
 import { RouteMap } from "@/components/map/route-map";
 import { RosterStrip } from "@/components/trip/roster-strip";
 import { TagPills } from "@/components/trip/tag-pills";
+import { useTourTarget } from "@/components/tour/tour-context";
 import {
   Body,
   Card,
@@ -90,6 +91,8 @@ export default function Overview() {
   const packing = useQuery(trpc.packing.list.queryOptions({ tripId }, { enabled: ready }));
   const invites = useQuery(trpc.invites.forTrip.queryOptions({ tripId }, { enabled: ready }));
   const { data: session } = useSession();
+  const nudgeTarget = useTourTarget("nudge");
+  const rosterTarget = useTourTarget("roster");
 
   if (trip.isPending) return <Loading />;
   if (trip.isError) return <Failed onRetry={() => trip.refetch()} />;
@@ -124,9 +127,15 @@ export default function Overview() {
         {trip.data.archived ? <Pill word="Archived" tone="butter" /> : null}
       </View>
 
-      <NeedsYou items={outstanding} />
+      {step ? (
+        <View ref={nudgeTarget}>
+          <NeedsYou items={outstanding} />
+        </View>
+      ) : (
+        <NeedsYou items={outstanding} />
+      )}
 
-      <View style={{ gap: space.sm }}>
+      <View ref={rosterTarget} style={{ gap: space.sm }}>
         {/* "The group", as the web panel calls it — one name for one thing. */}
         <Label>The group</Label>
         <Card>
