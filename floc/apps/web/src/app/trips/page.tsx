@@ -190,15 +190,15 @@ function NewTripTile({ friends, first }: { friends: Person[]; first?: boolean })
 
 function InviteList({ invites }: { invites: PendingInvite[] }) {
   return (
-    <section className="mt-8 rounded-lg bg-butter p-6 text-butter-ink">
-      <p className="typed text-current">
+    <section className="mt-8">
+      <p className="typed">
         {invites.length === 1 ? "An invitation" : "Invitations"} · waiting on you
       </p>
-      <Stack gap={3} className="mt-4">
+      <Stack gap={3} className="mt-3">
         {invites.map((invite) => (
           <div
             key={invite.tripId}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-sheet/70 px-4 py-3"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-peri-edge bg-peri px-4 py-3 text-ink"
           >
             <div className="flex min-w-0 items-center gap-2.5">
               <Avatar name={invite.fromName} src={invite.fromAvatarUrl} />

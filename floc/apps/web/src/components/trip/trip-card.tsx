@@ -10,7 +10,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { AvatarRow, PASTEL_BY_KEY, PASTEL_SKINS, cx } from "@/components/system/ui";
+import { AvatarRow, Badge, PASTEL_BY_KEY, PASTEL_SKINS, cx } from "@/components/system/ui";
 import { TripCardMenu } from "@/components/trip/trip-card-menu";
 import { daysUntil, formatDateRange, hasEnded } from "@floc/core/dates/dates";
 import type { IsoDate } from "@floc/core/dates/dates";
@@ -73,11 +73,10 @@ export function TripCard({
         className={cx(
           "after:absolute after:inset-0 after:content-['']",
           // Narrow: a fixed stack — name, then dates and place, then tags.
-          // Wrapping decided the order by title length, so "Japan - 2026" and
-          // "Ski trip" laid their dates and tags out differently. Only once
-          // there is room to flow do they sit on one line.
+          // Wide: name with its tags under it, then dates and place in fixed
+          // columns sitting on the name's last line, so they line up down the list.
           list &&
-            "flex min-w-0 flex-1 flex-col items-start gap-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6",
+            "flex min-w-0 flex-1 flex-col items-start gap-1 max-sm:basis-full sm:grid sm:grid-cols-[minmax(0,1fr)_11rem_minmax(0,9rem)] sm:[grid-template-areas:'name_dates_place'_'tags_tags_tags'] sm:gap-x-4 sm:gap-y-2",
         )}
       >
         <CardBody trip={trip} eyebrow={eyebrow} past={past} list={list} />
@@ -87,7 +86,7 @@ export function TripCard({
       <div
         className={cx(
           "pointer-events-none relative flex flex-wrap items-center gap-3",
-          list ? "ml-auto" : "mt-auto border-t border-ink/10 pt-4",
+          list ? "ml-auto justify-end sm:w-56 sm:flex-nowrap" : "mt-auto border-t border-ink/10 pt-4",
         )}
       >
         {soon && list ? <UpcomingFlag bg={soonFlag} inline /> : null}
@@ -107,14 +106,7 @@ export function TripCard({
             ) : null}
           </>
         ) : (
-          <div className="pointer-events-auto ml-auto">
-            <TripCardMenu
-              tripId={trip.id}
-              tripName={trip.name}
-              isAdmin={trip.role === "admin"}
-              color={trip.color ?? null}
-            />
-          </div>
+          <LiveActions trip={trip} />
         )}
       </div>
     </li>
@@ -122,9 +114,8 @@ export function TripCard({
 }
 
 // The tile's text: state eyebrow, name, dates, place and tags. In a grid tile
-// they stack; in a list row they flow left to right (name, dates, place, then
-// tags pushed to the right) so the row fills its width. Split out to keep
-// TripCard under the complexity ceiling.
+// they stack; in a list row the name and its tags sit left, with dates and
+// place beside the name. Split out to keep TripCard under the complexity ceiling.
 function CardBody({
   trip,
   eyebrow,
@@ -138,7 +129,7 @@ function CardBody({
 }) {
   return (
     <>
-      <span className={cx("block", list && "min-w-0")}>
+      <span className={cx("block", list && "min-w-0 sm:[grid-area:name]")}>
         <span className="typed block text-current">{eyebrow}</span>
         <h3 className={cx("mt-1", list ? "text-xl" : "text-2xl", past && "text-ink-soft")}>
           {trip.name}
@@ -152,7 +143,7 @@ function CardBody({
           list && "flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 sm:contents",
         )}
       >
-        <p className={cx("nums text-xs opacity-75", !list && "mt-1.5")}>
+        <p className={cx("nums text-xs opacity-75", list ? ON_NAME_LINE.dates : "mt-1.5")}>
           {formatDateRange(trip.startDate, trip.endDate)}
           {trip.where && !list ? <> · {trip.where}</> : null}
         </p>
@@ -161,26 +152,51 @@ function CardBody({
             <span aria-hidden className="text-xs opacity-50 sm:hidden">
               ·
             </span>
-            <p className="text-xs opacity-75">{trip.where}</p>
+            <p className={cx("truncate text-xs opacity-75", ON_NAME_LINE.place)}>{trip.where}</p>
           </>
         ) : null}
       </span>
-      {trip.tags?.length ? (
-        <ul className={cx("flex flex-wrap gap-1.5", list ? "sm:ml-auto" : "mt-3")}>
-          {trip.tags.map((tag) => (
-            <li
-              key={tag}
-              className={cx(
-                "rounded-full px-3 py-1 text-xs font-semibold",
-                past ? "bg-sheet-2" : "bg-sheet/70",
-              )}
-            >
-              {tag}
-            </li>
-          ))}
-        </ul>
-      ) : null}
+      {trip.tags?.length ? <TagList tags={trip.tags} past={past} list={list} /> : null}
     </>
+  );
+}
+
+function LiveActions({ trip }: { trip: TripCardData }) {
+  const isAdmin = trip.role === "admin";
+  return (
+    <div className="pointer-events-auto ml-auto flex items-center gap-3">
+      {isAdmin ? <Badge tone="marine">Admin</Badge> : null}
+      <TripCardMenu
+        tripId={trip.id}
+        tripName={trip.name}
+        isAdmin={isAdmin}
+        color={trip.color ?? null}
+      />
+    </div>
+  );
+}
+
+// Bottom of the name's cell, nudged up to the title's baseline.
+const ON_NAME_LINE = {
+  dates: "sm:[grid-area:dates] sm:self-end sm:pb-1.5",
+  place: "sm:[grid-area:place] sm:self-end sm:pb-1.5",
+};
+
+function TagList({ tags, past, list }: { tags: string[]; past?: boolean; list: boolean }) {
+  return (
+    <ul className={cx("flex flex-wrap gap-1.5", list ? "sm:[grid-area:tags]" : "mt-3")}>
+      {tags.map((tag) => (
+        <li
+          key={tag}
+          className={cx(
+            "rounded-full px-3 py-1 text-xs font-semibold",
+            past ? "bg-sheet-2" : "bg-sheet/70",
+          )}
+        >
+          {tag}
+        </li>
+      ))}
+    </ul>
   );
 }
 
