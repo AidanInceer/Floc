@@ -6,6 +6,7 @@
  * end up in a bundle that ships to a device.
  */
 import { availabilityRouter } from "./routers/availability";
+import { commentsRouter } from "./routers/comments";
 import { filesRouter } from "./routers/files";
 import { friendsRouter } from "./routers/friends";
 import { invitesRouter } from "./routers/invites";
@@ -37,6 +38,7 @@ export const appRouter = router({
   invites: invitesRouter,
   files: filesRouter,
   notes: notesRouter,
+  comments: commentsRouter,
   packing: packingRouter,
   places: placesRouter,
   availability: availabilityRouter,

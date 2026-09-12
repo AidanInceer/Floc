@@ -26,16 +26,16 @@ export function initialsOf(name: string): string {
     .join("");
 }
 
-export function Face({ name, avatarUrl, size: box = 36 }: {
+export function Face({ name, avatarIcon, size: box = 36 }: {
   name: string;
-  avatarUrl: string | null;
+  avatarIcon: string | null;
   size?: number;
 }) {
   const { c } = useTheme();
-  return avatarUrl ? (
+  return avatarIcon ? (
     <Image
       accessibilityIgnoresInvertColors
-      source={{ uri: avatarUrl }}
+      source={{ uri: avatarIcon }}
       style={{ width: box, height: box, borderRadius: radius.pill }}
     />
   ) : (
@@ -66,12 +66,12 @@ export function Face({ name, avatarUrl, size: box = 36 }: {
 
 export function PersonRow({
   name,
-  avatarUrl,
+  avatarIcon,
   caption,
   children,
 }: {
   name: string;
-  avatarUrl: string | null;
+  avatarIcon: string | null;
   /** What the row has to say that the name cannot — how you met, say. */
   caption?: string | null;
   /** The actions, if this screen has any. */
@@ -92,7 +92,7 @@ export function PersonRow({
         paddingHorizontal: space.md,
       }}
     >
-      <Face name={name} avatarUrl={avatarUrl} />
+      <Face name={name} avatarIcon={avatarIcon} />
       <View style={{ flex: 1, gap: space.xs }}>
         <Body bold>{name}</Body>
         {caption ? <Body tone="ink-3">{caption}</Body> : null}

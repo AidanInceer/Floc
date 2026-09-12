@@ -22,13 +22,15 @@
  *      is never an error.
  *  10. No timezones. Dates are `YYYY-MM-DD`; times are local to the itinerary.
  */
+
+import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import type { Currency } from "@floc/core/money/currency";
 import type { DocCategory } from "@floc/core/documents/documents";
 import type { ExpenseCategory } from "@floc/core/money/expense-category";
 import type { PackCategory, PackTier } from "@floc/core/packing/packing";
-import type { DayEventType, SplitType, TransportType } from "@floc/core/vocabulary";
+import type { DayEventType, ReactionKind, SplitType, TransportType } from "@floc/core/vocabulary";
 
-export type { Currency, DayEventType, DocCategory, ExpenseCategory, SplitType, TransportType };
+export type { Currency, DayEventType, DocCategory, ExpenseCategory, ReactionKind, SplitType, TransportType };
 
 export type TripRole = "admin" | "member";
 
@@ -55,7 +57,7 @@ export type TripMember = {
   role: TripRole;
   name: string;
   email: string;
-  avatarUrl: string | null;
+  avatarIcon: AvatarIcon | null;
   /** Roster seat colour, assigned from the name — a token name, not a hex. */
   tone: string;
   /** Null unless the member chose to share it. Never on a profile — it is for the group picking dinner. */
@@ -152,6 +154,34 @@ export type TripFile = {
   uploadedBy: string;
   uploaderName: string;
   ownerId: string | null;
+  /**
+   * The live event it is parked on, if any (tickets 320, 325). A soft-deleted
+   * event reads as null here: an event that goes unattaches its files, it never
+   * takes them with it.
+   */
+  dayEventId: number | null;
+  /** That event's own name, so a row can say what it is for without a second read. */
+  eventTitle: string | null;
+};
+
+/**
+ * One comment on an event (ticket 325). Replies are exactly one level deep, so
+ * a reply never carries replies of its own.
+ *
+ * `createdAt` is an ISO 8601 instant — a record of when somebody typed, not an
+ * itinerary time, so rule 10 does not apply to it.
+ */
+export type Comment = {
+  id: number;
+  body: string;
+  createdAt: string;
+  /** Set on the author's first self-edit; the client says "edited". */
+  editedAt: string | null;
+  createdBy: string;
+  authorName: string;
+  authorAvatarIcon: AvatarIcon | null;
+  reactions: Record<ReactionKind, { count: number; mine: boolean }>;
+  replies: Comment[];
 };
 
 /**
@@ -312,9 +342,8 @@ export type MapPrompt = {
 export type MySettings = {
   email: string;
   displayName: string;
-  avatarUrl: string | null;
+  avatarIcon: AvatarIcon | null;
   isPrivate: boolean;
-  visibilityPicture: Visibility;
   visibilityVibeTags: Visibility;
   visibilityTravelMap: Visibility;
   visibilityFriends: Visibility;
@@ -362,7 +391,7 @@ export type Me = {
    * (rule 11).
    */
   canConfirmEmail: boolean;
-  avatarUrl: string | null;
+  avatarIcon: AvatarIcon | null;
   /** Countries a finished trip put on the map. */
   been: number;
   /** Countries a trip that has not ended yet puts there. */
@@ -428,7 +457,7 @@ export type FriendState = "none" | "friends" | "outgoing" | "incoming";
 export type FriendPerson = {
   id: string;
   name: string;
-  avatarUrl: string | null;
+  avatarIcon: AvatarIcon | null;
 };
 
 /**
@@ -457,7 +486,7 @@ export type FriendsBoard = {
 export type PublicProfileView = {
   userId: string;
   name: string;
-  avatarUrl: string | null;
+  avatarIcon: AvatarIcon | null;
   /** How the viewer knows them; no other relation may see a profile at all. */
   relation: "friend" | "co_traveller";
   isPrivate: boolean;
@@ -482,7 +511,7 @@ export type PendingTripInvite = {
   startDate: string | null;
   endDate: string | null;
   fromName: string;
-  fromAvatarUrl: string | null;
+  fromAvatarIcon: AvatarIcon | null;
 };
 
 /**
@@ -522,6 +551,12 @@ export type FileUpload = {
   category: DocCategory;
   /** True puts it in the trip's pile; false keeps it in your own (ticket 239). */
   shared: boolean;
+  /**
+   * The event it lands on, when it was added from that event's modal (ticket
+   * 325). Absent or null is the ordinary upload — the file sits on the trip
+   * and nowhere in the itinerary.
+   */
+  dayEventId?: number | null;
 };
 
 export type FlocPort = {
@@ -646,15 +681,14 @@ export type FlocPort = {
   /** Renames the display name. Not an admin power (rule 6) — it is your own name. */
   renameMe(viewerId: string, displayName: string): Promise<void>;
 
+  /** Your name (tickets 46, 157). */
+  updateIdentity(viewerId: string, input: { displayName: string }): Promise<void>;
+
   /**
-   * Name and picture together (ticket 46). The picture is a URL, not an
-   * upload: uploading is its own decision that has not been taken, and until
-   * it lands this is the only way to have a picture at all.
+   * Your face (#157). Apart from the name because the picker saves on tap, and
+   * sending an unchanged name alongside it would let a face clobber a rename.
    */
-  updateIdentity(
-    viewerId: string,
-    input: { displayName: string; avatarUrl: string | null },
-  ): Promise<void>;
+  updateAvatarIcon(viewerId: string, icon: AvatarIcon | null): Promise<void>;
 
   /** The account half of the profile, in one read (ticket 07). */
   loadMySettings(viewerId: string): Promise<MySettings>;
@@ -668,8 +702,7 @@ export type FlocPort = {
     viewerId: string,
     input: {
       isPrivate: boolean;
-      visibilityPicture: Visibility;
-      visibilityVibeTags: Visibility;
+          visibilityVibeTags: Visibility;
       visibilityTravelMap: Visibility;
       visibilityFriends: Visibility;
       pastTripsShow: PastTripsShow;
@@ -765,6 +798,13 @@ export type FlocPort = {
 
   /** Newest first. Somebody else's private file is never in the result (ticket 296). */
   listFiles(viewerId: string, tripId: number): Promise<TripFile[]>;
+
+  /**
+   * An address that opens one file in a plain browser (#325 feedback). The
+   * phone carries a bearer token a browser cannot replay, so the link is signed
+   * and short-lived instead. Minted only after the ordinary trip check passed.
+   */
+  fileViewUrl(viewerId: string, tripId: number, fileId: number): Promise<string>;
 
   /** The distinct places the trip's days and events point at — for the map, not for stops (ticket 296). */
   listPlaces(viewerId: string, tripId: number): Promise<TripPlace[]>;
@@ -891,8 +931,8 @@ export type FlocPort = {
   uploadFile(viewerId: string, tripId: number, input: FileUpload): Promise<string | null>;
 
   /**
-   * Uploader only — deliberately stricter than packing, where any member may
-   * drop a shared line. A booking somebody else is relying on is not yours to bin.
+   * Any member's to do, like a shared packing line. A private file is never
+   * handed to anybody but its owner, so it is not addressable by the rest.
    */
   deleteFile(viewerId: string, tripId: number, fileId: number): Promise<void>;
 
@@ -904,8 +944,66 @@ export type FlocPort = {
     category: DocCategory,
   ): Promise<void>;
 
+  /**
+   * Parks a file on one of the trip's events, or takes it off again (ticket
+   * 325). Filing, not ownership: any member who can see the row may, the way
+   * any member may re-file it. Detaching leaves the file on the trip.
+   */
+  attachFileToEvent(
+    viewerId: string,
+    tripId: number,
+    fileId: number,
+    dayEventId: number,
+  ): Promise<void>;
+
+  detachFileFromEvent(viewerId: string, tripId: number, fileId: number): Promise<void>;
+
   /** False when no volume is mounted — the client hides the upload rather than offering one that throws (rule 11). */
   filesWritable(): boolean;
+
+  /**
+   * One event's thread, oldest first, replies nested one level under their
+   * parent. Scoped to the event rather than the trip: a phone opens one modal
+   * at a time, and the whole trip's comments is a bigger read than it shows.
+   */
+  listEventComments(
+    viewerId: string,
+    tripId: number,
+    dayEventId: number,
+  ): Promise<Comment[]>;
+
+  /**
+   * Posts a comment, or a reply when `replyTo` names one. Returns the refusal
+   * in the words the composer shows, or null when it landed. A reply to a
+   * reply attaches to the same parent: the thread is one level deep by
+   * design (#325), because it draws in a narrow panel.
+   */
+  addEventComment(
+    viewerId: string,
+    tripId: number,
+    dayEventId: number,
+    replyTo: number | null,
+    body: string,
+  ): Promise<string | null>;
+
+  /** The author's own to do, deliberately not an admin power (rule 6). */
+  editComment(
+    viewerId: string,
+    tripId: number,
+    commentId: number,
+    body: string,
+  ): Promise<string | null>;
+
+  /** Your own comment, or any comment if you are an admin. Replies go with it. */
+  deleteComment(viewerId: string, tripId: number, commentId: number): Promise<void>;
+
+  /** Toggles — reacting again takes the reaction back. */
+  reactToComment(
+    viewerId: string,
+    tripId: number,
+    commentId: number,
+    kind: ReactionKind,
+  ): Promise<void>;
 
   /* --------------------------------------------------------- friends (#18) */
 

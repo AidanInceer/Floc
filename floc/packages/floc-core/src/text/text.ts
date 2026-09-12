@@ -17,7 +17,7 @@ export const TEXT_CAPS = {
   expenseNotes: 2000,
   nudgeMessage: 500,
   displayName: 80,
-  avatarUrl: 500,
+  avatarIcon: 500,
   placeName: 200,
   eventTitle: 200,
   eventNote: 2000,

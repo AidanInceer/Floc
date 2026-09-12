@@ -9,6 +9,7 @@ import { migrateTestDb, resetDb, seedScenario, signIn, type Scenario } from "@/t
 import {
   dropPromptCountries,
   keepPromptCountries,
+  setAvatarIcon,
   setCountryMark,
   updateCurrency,
   updateDietary,
@@ -40,9 +41,25 @@ beforeEach(async () => {
 });
 
 describe("the profile", () => {
-  it("saves the name and picture, making the profile if it is missing", async () => {
-    expect(await updateIdentity(form({ displayName: "Mo B", avatarUrl: "https://example.test/mo.png" }))).toEqual({});
-    expect(await profile()).toMatchObject({ displayName: "Mo B", avatarUrl: "https://example.test/mo.png" });
+  it("saves the name, making the profile if it is missing", async () => {
+    expect(await updateIdentity(form({ displayName: "Mo B" }))).toEqual({});
+    expect(await profile()).toMatchObject({ displayName: "Mo B" });
+  });
+
+  it("sets a face from the list", async () => {
+    await setAvatarIcon(form({ avatarIcon: "compass" }));
+    expect((await profile())?.avatarIcon).toBe("compass");
+  });
+
+  it("clears back to initials", async () => {
+    await setAvatarIcon(form({ avatarIcon: "compass" }));
+    await setAvatarIcon(form({ avatarIcon: "" }));
+    expect((await profile())?.avatarIcon).toBeNull();
+  });
+
+  it("takes initials over an icon nobody drew, rather than throwing", async () => {
+    await setAvatarIcon(form({ avatarIcon: "tent" }));
+    expect((await profile())?.avatarIcon).toBeNull();
   });
 
   it("saves a supported currency and refuses any other", async () => {

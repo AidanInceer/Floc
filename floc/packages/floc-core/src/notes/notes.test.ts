@@ -61,7 +61,7 @@ describe("likeScore / sortRuns", () => {
       editedAt: null,
       createdBy: "a",
       authorName: "Aidan",
-      authorAvatar: null,
+      authorAvatarIcon: null,
       reactions,
       replies,
     };

@@ -6,12 +6,11 @@
  *
  * `components/days-calendar.tsx` is a Client Component owning geometry and
  * gestures; this stays a Server Component owning every Server Action — the
- * detail panel, trip-wide thread, adding/removing a day — passed over as
- * pre-rendered nodes so mutations stay on the server.
+ * event modal's panel, adding/removing a day — passed over as pre-rendered
+ * nodes so mutations stay on the server.
  *
  * Notes hang off *events*, not days (a free-text per-day box had no clear use);
- * the trip-wide thread in the pane's other tab covers what's about the trip
- * rather than any one event.
+ * trip-wide talk lives on the Notes page now, not here (ticket 321).
  *
  * Each event category has its own colour (ticket 68) via `EVENT_CATEGORIES`,
  * with the word always present too — colour is never the only signal. A
@@ -29,28 +28,32 @@ import {
   submitEvent,
 } from "./actions";
 import { searchPlacesAction } from "../place-actions";
-import { ConfirmSubmit, Menu, Sheet, SubmitButton } from "@/components/system/client-ui";
+import { ConfirmSubmit, SubmitButton } from "@/components/system/client-ui";
 import {
   DaysCalendar,
   type CalendarDay,
   type CalendarEvent,
 } from "@/components/days/days-calendar";
+import { EventFiles } from "@/components/documents/event-files";
+import type { FileChoice } from "@/components/documents/attach-existing";
 import { EventForm } from "@/components/days/event-form";
-import { Badge, ButtonLink, EmptyState, menuDangerItemClass, menuItemClass } from "@/components/system/ui";
+import { Badge, ButtonLink, EmptyState } from "@/components/system/ui";
 import { EVENT_CATEGORIES } from "@floc/core/itinerary/event-categories";
-import { formatLength, formatSpan, spanOf } from "@floc/core/dates/calendar";
 import { NoteThread, type NoteRow } from "@/components/notes/note-thread";
 import { requireTripAccess } from "@/server/access";
 import { listDaysWithEvents, type DayEventRow } from "@/server/itinerary/itinerary";
 import { loadThreads } from "@/server/notes/notes-read";
-import { listTripLinks } from "@/server/trips/trip-links";
-import { TripLinks } from "@/components/trip/trip-links";
+import { byEvent, listDocuments } from "@/server/documents/documents";
+import type { TripDocument } from "@/server/documents/documents";
+import { documentsEnabled } from "@/server/documents/document-store";
 import { addDays as addDaysToDate, fromIsoDate, today } from "@floc/core/dates/dates";
 
 export default async function DaysPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ event?: string }>;
 }) {
   const { id } = await params;
   const access = await requireTripAccess(id, `/trip/${id}/days`);
@@ -59,14 +62,23 @@ export default async function DaysPage({
   // One person, one colour across every tab.
   const toneOf = new Map(members.map((m) => [m.userId, m.tone]));
 
-  // Independent reads that go out together — threads scope by trip rather
-  // than by event ids, so none waits on another (ticket 118).
-  const [days, notesByEvent, tripNotes, tripLinks] = await Promise.all([
+  // Two independent reads that go out together (ticket 118). Trip-wide talk
+  // moved to the Notes page (ticket 321), so the days route no longer reads
+  // the trip thread or its links.
+  const [days, notesByEvent, docs] = await Promise.all([
     listDaysWithEvents(trip.id),
     loadThreads({ tripId: trip.id, scope: "day_event", viewerId: viewer.id, toneOf }),
-    loadThreads({ tripId: trip.id, scope: "trip", viewerId: viewer.id, toneOf }),
-    listTripLinks(trip.id),
+    documentsEnabled() ? listDocuments(trip.id, viewer.id) : [],
   ]);
+
+  // One read for every block's files (tickets 322, 324), not one per event.
+  const filesByEvent = byEvent(docs);
+  const loose: FileChoice[] = docs
+    .filter((d) => d.dayEventId === null)
+    .map((d) => ({ id: d.id, name: d.name }));
+
+  // Arrives from a file's "on [event]" tag (ticket 323).
+  const openEventId = Number((await searchParams).event) || null;
 
   if (days.length === 0) {
     // Two empty states (ticket 126): an undated trip is sent to Dates rather
@@ -152,6 +164,7 @@ export default async function DaysPage({
         endTime: event.endTime,
         allDay: event.allDay,
         hasNote: Boolean(event.note),
+        hasFiles: (filesByEvent.get(event.id) ?? []).length > 0,
         // Replies count too — the block says how much conversation is in there.
         commentCount: (notesByEvent.get(event.id) ?? []).reduce(
           (n, run) => n + 1 + run.replies.length,
@@ -168,6 +181,9 @@ export default async function DaysPage({
           originPlaceName={previousPlace}
           destinationPlaceName={d.overnightPlaceName}
           notes={notesByEvent.get(event.id) ?? []}
+          files={filesByEvent.get(event.id) ?? []}
+          loose={loose}
+          filesEnabled={documentsEnabled()}
           viewerId={viewer.id}
           isAdmin={isAdmin}
         />
@@ -208,26 +224,7 @@ export default async function DaysPage({
         moveEventToDay={moveEventToAnotherDay.bind(null, trip.id)}
         setOvernight={setDayOvernight.bind(null, trip.id)}
         searchPlaces={searchPlacesAction}
-        tripThread={
-          <>
-            <h3 className="typed">Trip thread</h3>
-            <p className="mt-1 text-sm text-ink-soft">
-              For the things that belong to the whole trip rather than to one
-              event — the deposit that went out, the car nobody has booked, the
-              day that is loose on purpose.
-            </p>
-            <NoteThread
-              tripId={trip.id}
-              scope="trip"
-              scopeId={trip.id}
-              notes={tripNotes.get(trip.id) ?? []}
-              viewerId={viewer.id}
-              isAdmin={isAdmin}
-              placeholder="Anything the group should know?"
-            />
-            <TripLinks tripId={trip.id} links={tripLinks} />
-          </>
-        }
+        openEventId={openEventId}
       />
       </div>
     </div>
@@ -290,6 +287,9 @@ function EventPanel({
   originPlaceName,
   destinationPlaceName,
   notes,
+  files,
+  loose,
+  filesEnabled,
   viewerId,
   isAdmin,
 }: {
@@ -300,12 +300,14 @@ function EventPanel({
   originPlaceName: string | null;
   destinationPlaceName: string | null;
   notes: NoteRow[];
+  files: TripDocument[];
+  loose: FileChoice[];
+  filesEnabled: boolean;
   viewerId: string;
   isAdmin: boolean;
 }) {
   const isTransport = event.type === "transport";
   const category = EVENT_CATEGORIES[event.type];
-  const span = spanOf(event);
   const flightLink =
     isTransport && event.transportType === "flight"
       ? buildFlightSearchUrl({
@@ -316,44 +318,39 @@ function EventPanel({
       : null;
 
   return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         {/* Transport names its own kind — "ferry" says more than "transport"
             and is still the category's word. */}
         <Badge tone={category.tone}>
           {isTransport ? (event.transportType ?? "transport") : category.label}
         </Badge>
+        <form action={deleteEvent.bind(null, tripId, event.id)}>
+          <ConfirmSubmit message="Delete this event?" variant="ghost">
+            Delete event
+          </ConfirmSubmit>
+        </form>
       </div>
 
-      <h3 className="font-display text-base font-semibold">
-        {event.title ?? event.placeName ?? category.label}
-      </h3>
-
-      <dl className="grid grid-cols-[4.5rem_1fr] gap-x-3 gap-y-1.5">
-        <Detail label="Time">
-          {span ? (
-            <span className="nums">
-              {formatSpan(event)}
-              {span.open
-                ? " — no end time"
-                : ` · ${formatLength(span.end - span.start)}`}
-            </span>
-          ) : (
-            <span className="text-ink-faint">All day — no time set</span>
-          )}
-        </Detail>
-        <Detail label="Place">
-          {event.placeName ?? <span className="text-ink-faint">Not set</span>}
-        </Detail>
-        <Detail label="Type">
-          {isTransport && event.transportType
-            ? `${category.label} — ${event.transportType}`
-            : category.label}
-        </Detail>
-        <Detail label="Notes">
-          {event.note ?? <span className="text-ink-faint">None yet</span>}
-        </Detail>
-      </dl>
+      {/* The facts edit in place and save on change (ticket 321) — no read
+          view, no Edit sheet. The title is the modal's heading. */}
+      <EventForm
+        autosave
+        action={submitEvent.bind(null, tripId)}
+        searchPlaces={searchPlacesAction}
+        defaults={{
+          dayId,
+          eventId: event.id,
+          type: event.type,
+          transportType: event.transportType,
+          time: event.time,
+          endTime: event.endTime,
+          allDay: event.allDay || !event.time,
+          title: event.title,
+          note: event.note,
+          placeName: event.placeName,
+        }}
+      />
 
       {flightLink ? (
         <a
@@ -366,63 +363,28 @@ function EventPanel({
         </a>
       ) : null}
 
-      {/* One triple-dot for both verbs (ticket 125), sharing the thread's
-          header row with the sort toggle (ticket 233). */}
-      <NoteThread
-        tripId={tripId}
-        scope="day_event"
-        scopeId={event.id}
-        notes={notes}
-        viewerId={viewerId}
-        isAdmin={isAdmin}
-        placeholder="Anything the group should know about this?"
-        toolbar={
-          <Menu label={`Actions for ${event.title}`}>
-            <Sheet trigger="Edit" title="Edit event" triggerVariant="ghost" triggerClassName={menuItemClass}>
-              <EventForm
-                action={submitEvent.bind(null, tripId)}
-                searchPlaces={searchPlacesAction}
-                defaults={{
-                  dayId,
-                  eventId: event.id,
-                  type: event.type,
-                  transportType: event.transportType,
-                  time: event.time,
-                  endTime: event.endTime,
-                  /* Rows predating the flag have no start time, which is what
-                     all-day means — same rule the ordering uses. */
-                  allDay: event.allDay || !event.time,
-                  title: event.title,
-                  note: event.note,
-                  placeName: event.placeName,
-                }}
-              />
-            </Sheet>
-            <form action={deleteEvent.bind(null, tripId, event.id)}>
-              <ConfirmSubmit
-                message="Delete this event?"
-                variant="ghost"
-                className={menuDangerItemClass}
-              >
-                Delete
-              </ConfirmSubmit>
-            </form>
-          </Menu>
-        }
-      />
-    </div>
-  );
-}
+      {filesEnabled ? (
+        <EventFiles
+          tripId={tripId}
+          dayEventId={event.id}
+          files={files}
+          loose={loose}
+          viewerId={viewerId}
+        />
+      ) : null}
 
-/** One labelled fact in the detail panel. */
-function Detail({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <>
-      <dt className="font-mono text-[10.5px] uppercase leading-5 tracking-[0.06em] text-ink-faint">
-        {label}
-      </dt>
-      <dd className="text-sm">{children}</dd>
-    </>
+      <div className="border-t border-rule pt-3">
+        <NoteThread
+          tripId={tripId}
+          scope="day_event"
+          scopeId={event.id}
+          notes={notes}
+          viewerId={viewerId}
+          isAdmin={isAdmin}
+          placeholder="Anything the group should know about this?"
+        />
+      </div>
+    </div>
   );
 }
 

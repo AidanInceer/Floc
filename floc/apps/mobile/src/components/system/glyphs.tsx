@@ -10,7 +10,7 @@
  * sheet is a list of words, and a word needs no icon beside it.
 */
 import { StyleSheet, Text, View } from "react-native";
-import Svg, { Circle, Path } from "react-native-svg";
+import Svg, { Circle, G, Path } from "react-native-svg";
 
 import { fonts } from "@/lib/theme";
 
@@ -194,6 +194,66 @@ export function ShareGlyph({ color }: { color: string }) {
         strokeWidth={1.2}
         strokeLinecap="round"
       />
+    </Svg>
+  );
+}
+
+/**
+ * A paperclip: this block has files on it (ticket 324). The same path the web
+ * draws, so a clipped event is one picture across both apps.
+ */
+export function ClipGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={11} height={11} viewBox="0 0 14 14" fill="none">
+      <Path
+        d="M10.5 6.5 6 11a2.6 2.6 0 0 1-3.7-3.7l5.2-5.2a1.7 1.7 0 0 1 2.4 2.4L4.7 9.7a.8.8 0 0 1-1.2-1.2l4.6-4.6"
+        stroke={color}
+        strokeWidth={1.25}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+const HEART =
+  "M7 12.1C3.3 9.4 1.5 7.5 1.5 5.4A3.2 3.2 0 0 1 7 3.5a3.2 3.2 0 0 1 5.5 1.9c0 2.1-1.8 4-5.5 6.7Z";
+const THUMB = [
+  "M4.3 6.1 6.9 1.5a1.35 1.35 0 0 1 2 1.25V5.5h2.9a1.2 1.2 0 0 1 1.16 1.53l-1.1 3.85A1.5 1.5 0 0 1 10.4 12H4.3Z",
+  "M1.3 6.1h2.4V12H1.3Z",
+];
+
+/**
+ * Heart, thumbs up, thumbs down — the same paths the web's `ReactionGlyph`
+ * draws (ticket 36), so one reaction is one picture on both surfaces. Yours
+ * fills in; the count beside it is what carries the state, never the fill
+ * alone (#204).
+ */
+export function ReactionGlyph({
+  kind,
+  mine,
+  color,
+}: {
+  kind: "heart" | "up" | "down";
+  mine: boolean;
+  color: string;
+}) {
+  const paths = kind === "heart" ? [HEART] : THUMB;
+  return (
+    <Svg width={13} height={13} viewBox="0 0 14 14">
+      {/* Thumbs down is thumbs up, turned over. */}
+      <G transform={kind === "down" ? "rotate(180 7 7)" : undefined}>
+        {paths.map((d) => (
+          <Path
+            key={d}
+            d={d}
+            fill={mine ? color : "none"}
+            stroke={color}
+            strokeWidth={mine ? 0 : 1.25}
+            strokeLinejoin="round"
+          />
+        ))}
+      </G>
     </Svg>
   );
 }

@@ -3,6 +3,8 @@
  * completes → friends" is reconciled lazily on friends-page load: cheap,
  * idempotent (`onConflictDoNothing`), exact timing doesn't matter.
  */
+
+import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import "server-only";
 
 import { and, count, eq, inArray, isNull, lt, ne, or } from "drizzle-orm";
@@ -125,7 +127,7 @@ export async function listFriendshipsFor(
   return rows;
 }
 
-export type Person = { id: string; name: string; avatarUrl: string | null };
+export type Person = { id: string; name: string; avatarIcon: AvatarIcon | null };
 
 /** One query for the lot — was a `personFor(id)` per row, a hundred friends meant a hundred round trips (ticket 118). */
 export async function peopleByIds(ids: string[]): Promise<Map<string, Person>> {
@@ -138,7 +140,7 @@ export async function peopleByIds(ids: string[]): Promise<Map<string, Person>> {
       name: user.name,
       image: user.image,
       displayName: userProfile.displayName,
-      avatarUrl: userProfile.avatarUrl,
+      avatarIcon: userProfile.avatarIcon,
     })
     .from(user)
     .leftJoin(userProfile, eq(userProfile.userId, user.id))
@@ -150,7 +152,7 @@ export async function peopleByIds(ids: string[]): Promise<Map<string, Person>> {
     out.set(r.id, {
       id: r.id,
       name: r.displayName ?? r.name ?? "Someone",
-      avatarUrl: r.avatarUrl ?? r.image ?? null,
+      avatarIcon: r.avatarIcon,
     });
   }
   return out;

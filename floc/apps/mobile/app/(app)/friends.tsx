@@ -51,7 +51,7 @@ export default function Friends() {
           <Empty>No requests.</Empty>
         ) : (
           incoming.map((person) => (
-            <PersonRow key={person.id} name={person.name} avatarUrl={person.avatarUrl}>
+            <PersonRow key={person.id} name={person.name} avatarIcon={person.avatarIcon}>
               <Button
                 label="Accept"
                 busy={accept.isPending}
@@ -72,7 +72,7 @@ export default function Friends() {
         <View style={{ gap: space.sm }}>
           <Label>Asked, not answered</Label>
           {outgoing.map((person) => (
-            <PersonRow key={person.id} name={person.name} avatarUrl={person.avatarUrl}>
+            <PersonRow key={person.id} name={person.name} avatarIcon={person.avatarIcon}>
               <Button
                 label="Cancel"
                 variant="quiet"
@@ -98,7 +98,7 @@ export default function Friends() {
                 router.push({ pathname: "/person/[userId]", params: { userId: person.id } })
               }
             >
-              <PersonRow name={person.name} avatarUrl={person.avatarUrl}>
+              <PersonRow name={person.name} avatarIcon={person.avatarIcon}>
                 <Button
                   label="Remove"
                   variant="quiet"

@@ -1,50 +1,36 @@
 /**
  * The trip's files (tickets 239, 296) — the phone's half of `/trip/[id]/files`.
  *
- * OVERVIEW SHOWS THE TOP OF THE PILE; THIS IS THE PILE. Overview's block was
- * read-only and said how many more there were, which is the right thing for a
- * summary and the wrong thing for the only view there is.
+ * ONE LINE PER FILE, AND A FILTER, the way the browser draws it (#325
+ * feedback). A card per file put a name, a dropdown and a button on every row,
+ * so three files filled the screen.
  *
- * SHARED OR PRIVATE IS ASKED ONCE, ON THE LINE THE FILE GOES UP WITH. It is a
- * question with a right default — the trip's pile — so it rides the line it
- * belongs to rather than taking a labelled row of its own.
+ * ADDING IS BEHIND A PRESS. The form asks two questions and picks a file; open
+ * on the screen it was the first thing you met and the pile was below it.
  *
  * WITHOUT A VOLUME THERE IS NO UPLOAD DRAWN (rule 11). Not a dead button with a
  * sentence under it: the control is absent and the reason is said once.
  *
- * REMOVING IS THE UPLOADER'S ONLY. Deliberately stricter than packing, where
- * any member may drop a shared line — a booking somebody else is relying on is
- * not yours to bin.
+ * REMOVING A SHARED FILE IS ANY MEMBER'S, the way a shared packing line is. A
+ * private file is never handed to anybody but its owner, so it is not
+ * addressable by the rest.
  */
-import { DOC_CATEGORIES, DOC_CATEGORY_LABELS, type DocCategory } from "@floc/core/documents/documents";
+import { DOC_CATEGORIES, type DocCategory } from "@floc/core/documents/documents";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
 
-import { pickFile } from "@/components/files/file-picker";
+import { AddFile } from "@/components/files/add-file";
+import { FileActions } from "@/components/files/file-actions";
+import { FileFilters, type FileFilter } from "@/components/files/file-filter";
+import { FileRow } from "@/components/files/file-row";
+import { openFileNatively } from "@/components/files/open-file";
+import { Sheet } from "@/components/system/sheet";
 import { useTheme } from "@/components/system/theme";
-import {
-  Body,
-  Button,
-  Card,
-  Dropdown,
-  Empty,
-  Failed,
-  Figure,
-  Label,
-  Loading,
-  Pill,
-  Toggle,
-} from "@/components/system/ui";
+import { Body, Button, Empty, Failed, Loading } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
-import { useSession } from "@/lib/auth";
 import { space } from "@/lib/theme";
-
-const CATEGORY_OPTIONS = DOC_CATEGORIES.map((value) => ({
-  value,
-  label: DOC_CATEGORY_LABELS[value],
-}));
 
 export default function Files() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -52,12 +38,11 @@ export default function Files() {
   const ready = Number.isFinite(tripId);
   const { c } = useTheme();
   const queryClient = useQueryClient();
-  const { data: session } = useSession();
 
-  const [category, setCategory] = useState<DocCategory>("other");
-  const [shared, setShared] = useState(true);
   const [problem, setProblem] = useState<string | null>(null);
-  const [picking, setPicking] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [openFileId, setOpenFileId] = useState<number | null>(null);
+  const [filter, setFilter] = useState<FileFilter>("all");
 
   const files = useQuery(trpc.files.list.queryOptions({ tripId }, { enabled: ready }));
   const writable = useQuery(trpc.files.canUpload.queryOptions({ tripId }, { enabled: ready }));
@@ -81,96 +66,107 @@ export default function Files() {
   const remove = useMutation({ ...trpc.files.remove.mutationOptions(), ...settled });
   const refile = useMutation({ ...trpc.files.setCategory.mutationOptions(), ...settled });
 
-  const choose = async () => {
-    setProblem(null);
-    setPicking(true);
+  // The address is asked for at the moment of the tap, not held on the row:
+  // it is signed and it expires, so a list minted an hour ago opens nothing.
+  // It then goes to the phone's own reader, not a browser — see `open-file`.
+  const view = async (file: { id: number; name: string; mimeType: string }) => {
     try {
-      const picked = await pickFile();
-      if (picked) upload.mutate({ tripId, ...picked, category, shared });
+      const url = await queryClient.fetchQuery(
+        trpc.files.viewUrl.queryOptions({ tripId, fileId: file.id }),
+      );
+      await openFileNatively(url, file.name, file.mimeType);
     } catch {
-      setProblem("That file could not be read.");
-    } finally {
-      setPicking(false);
+      setProblem("That file could not be opened.");
     }
   };
 
   if (files.isPending) return <Loading />;
   if (files.isError) return <Failed onRetry={() => files.refetch()} />;
 
-  const mine = session?.user.id;
+  const counts = Object.fromEntries(
+    DOC_CATEGORIES.map((category) => [
+      category,
+      files.data.filter((file) => file.category === category).length,
+    ]),
+  ) as Record<DocCategory, number>;
+
+  const shown = files.data.filter((file) => filter === "all" || file.category === filter);
+  const open = files.data.find((file) => file.id === openFileId) ?? null;
 
   return (
     <ScrollView
       style={{ backgroundColor: c.paper }}
       contentContainerStyle={{ padding: space.lg, gap: space.lg }}
     >
-      {writable.data === false ? (
-        <Body tone="ink-3">
-          Files cannot be added yet — this Floc has nowhere to keep them.
-        </Body>
-      ) : (
-        <View style={{ gap: space.sm }}>
-          <Label>Add a file</Label>
-          <Dropdown
-            label="Filed under"
-            options={CATEGORY_OPTIONS}
-            value={category}
-            onChange={setCategory}
-          />
-          <Toggle
-            label="Everyone on the trip"
-            hint="Off keeps it in your own pile."
-            value={shared}
-            onChange={setShared}
-          />
-          <Button
-            label="Choose a file"
-            busy={picking || upload.isPending}
-            onPress={() => {
-              void choose();
-            }}
-          />
-          {problem ? <Body tone="red">{problem}</Body> : null}
-          <Body tone="ink-3">PDFs and pictures, up to 10 MB.</Body>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <FileFilters counts={counts} value={filter} onChange={setFilter} />
         </View>
-      )}
+        {writable.data !== false ? (
+          <Button label="Upload" fit="small" onPress={() => setAdding(true)} />
+        ) : null}
+      </View>
 
-      <View style={{ gap: space.sm }}>
-        <Label>On this trip</Label>
-        {files.data.length === 0 ? (
-          <Empty>{writable.data === false ? "No files yet." : "Add the first file above."}</Empty>
+      {writable.data === false ? (
+        <Body tone="ink-3">Files cannot be added yet — this Floc has nowhere to keep them.</Body>
+      ) : null}
+
+      {problem ? <Body tone="red">{problem}</Body> : null}
+
+      <View>
+        {shown.length === 0 ? (
+          <Empty>
+            {filter === "all" ? "No files yet." : "Nothing is filed here."}
+          </Empty>
         ) : (
-          files.data.map((file) => (
-            <Card key={file.id}>
-              <Body bold>{file.name}</Body>
-              <Figure tone="ink-2">
-                {file.uploaderName} · {DOC_CATEGORY_LABELS[file.category]}
-              </Figure>
-              {/* "Private" here means only you — the API never sends somebody
-                  else's, so it cannot mean "restricted". */}
-              {file.ownerId ? <Pill word="Private" tone="peri" /> : null}
-              <Dropdown
-                label="Filed under"
-                options={CATEGORY_OPTIONS}
-                value={file.category}
-                onChange={(next) =>
-                  refile.mutate({ tripId, fileId: file.id, category: next })
-                }
-              />
-              {file.uploadedBy === mine ? (
-                <Button
-                  label="Remove"
-                  variant="danger"
-                  busy={remove.isPending}
-                  onPress={() => remove.mutate({ tripId, fileId: file.id })}
-                />
-              ) : (
-                <Body tone="ink-3">Only {file.uploaderName} can remove this.</Body>
-              )}
-            </Card>
+          shown.map((file) => (
+            <FileRow
+              key={file.id}
+              name={file.name}
+              uploaderName={file.uploaderName}
+              category={file.category}
+              own={file.ownerId !== null}
+              onOpen={() => {
+                void view(file);
+              }}
+              onActions={() => setOpenFileId(file.id)}
+            />
           ))
         )}
       </View>
+
+      <Sheet open={adding} onClose={() => setAdding(false)}>
+        {/* No heading over it: the dropdown, the switch and "Choose a file"
+            say what this is, and a label above a label says nothing (#325
+            feedback). */}
+        <View style={{ paddingHorizontal: space.lg, gap: space.sm }}>
+          <AddFile
+            filedUnder="other"
+            busy={upload.isPending}
+            onPicked={(picked) => {
+              setProblem(null);
+              upload.mutate({ tripId, ...picked });
+              setAdding(false);
+            }}
+            onUnreadable={() => setProblem("That file could not be read.")}
+            onCancel={() => setAdding(false)}
+          />
+        </View>
+      </Sheet>
+
+      <FileActions
+        name={open?.name ?? null}
+        category={open?.category ?? "other"}
+        busy={remove.isPending}
+        onRefile={(category) => {
+          if (open) refile.mutate({ tripId, fileId: open.id, category });
+        }}
+        onRemove={() => {
+          if (open) remove.mutate({ tripId, fileId: open.id });
+          setOpenFileId(null);
+        }}
+        onClose={() => setOpenFileId(null)}
+      />
     </ScrollView>
   );
 }

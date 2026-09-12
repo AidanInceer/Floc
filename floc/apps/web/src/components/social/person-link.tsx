@@ -9,6 +9,8 @@
  * made-up user id gets. Your own face links to /profile, not to your public
  * page — that's the one you can edit.
  */
+
+import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import Link from "next/link";
 
 import { Avatar, cx } from "@/components/system/ui";
@@ -16,7 +18,7 @@ import { Avatar, cx } from "@/components/system/ui";
 export function PersonLink({
   userId,
   name,
-  avatarUrl,
+  avatarIcon,
   size = 28,
   tone,
   isYou,
@@ -24,7 +26,7 @@ export function PersonLink({
 }: {
   userId: string;
   name: string;
-  avatarUrl?: string | null;
+  avatarIcon?: AvatarIcon | null;
   size?: number;
   /** A trip member's seat colour — pass it through so it survives the link. */
   tone?: string;
@@ -40,7 +42,7 @@ export function PersonLink({
         className,
       )}
     >
-      <Avatar name={name} src={avatarUrl} size={size} tone={tone} />
+      <Avatar name={name} icon={avatarIcon} size={size} tone={tone} />
     </Link>
   );
 }

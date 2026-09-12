@@ -11,6 +11,8 @@
  * Walking through the door is one operation (`acceptInvite` / `joinWithLink`),
  * not a sequence for each caller to get right.
  */
+
+import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import "server-only";
 
 import { and, count, eq, inArray, isNull } from "drizzle-orm";
@@ -72,7 +74,7 @@ export type PendingInvite = {
   endDate: string | null;
   fromUserId: string;
   fromName: string;
-  fromAvatarUrl: string | null;
+  fromAvatarIcon: AvatarIcon | null;
   invitedAt: Date;
 };
 
@@ -141,7 +143,7 @@ export async function listPendingInvitesFor(
       fromName: user.name,
       fromImage: user.image,
       fromDisplayName: userProfile.displayName,
-      fromAvatarUrl: userProfile.avatarUrl,
+      fromAvatarIcon: userProfile.avatarIcon,
     })
     .from(tripInvite)
     .innerJoin(trip, eq(trip.id, tripInvite.tripId))
@@ -166,7 +168,7 @@ export async function listPendingInvitesFor(
     endDate: r.endDate,
     fromUserId: r.fromUserId,
     fromName: r.fromDisplayName ?? r.fromName,
-    fromAvatarUrl: r.fromAvatarUrl ?? r.fromImage ?? null,
+    fromAvatarIcon: r.fromAvatarIcon,
     invitedAt: r.invitedAt,
   }));
 }
@@ -175,7 +177,7 @@ export async function listPendingInvitesFor(
 export type PendingInvitee = {
   userId: string;
   name: string;
-  avatarUrl: string | null;
+  avatarIcon: AvatarIcon | null;
 };
 
 export async function listPendingInvitees(
@@ -187,7 +189,7 @@ export async function listPendingInvitees(
       name: user.name,
       image: user.image,
       displayName: userProfile.displayName,
-      avatarUrl: userProfile.avatarUrl,
+      avatarIcon: userProfile.avatarIcon,
     })
     .from(tripInvite)
     .innerJoin(user, eq(user.id, tripInvite.toUserId))
@@ -205,7 +207,7 @@ export async function listPendingInvitees(
   return bounded(rows, "invites", `trip ${tripId}`).map((r) => ({
     userId: r.userId,
     name: r.displayName ?? r.name,
-    avatarUrl: r.avatarUrl ?? r.image ?? null,
+    avatarIcon: r.avatarIcon,
   }));
 }
 

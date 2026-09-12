@@ -144,18 +144,11 @@ export default async function SettingsPage({
                   <ToggleRow
                     name="isPrivate"
                     label="Make my whole profile private"
-                    hint="People can still click your face — they'll see your name and picture, and nothing else."
+                    hint="People can still click your face — they'll see your name, and nothing else."
                     defaultChecked={profile.isPrivate}
                   />
 
                   <hr className="border-rule" />
-
-                  <PillChoice
-                    name="visibilityPicture"
-                    label="Profile picture"
-                    value={profile.visibilityPicture}
-                    options={RING_OPTIONS}
-                  />
 
                   <PillChoice
                     name="visibilityVibeTags"

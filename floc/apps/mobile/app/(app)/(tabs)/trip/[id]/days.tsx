@@ -15,8 +15,15 @@
  * TIMES ARE LOCAL TO THE ITINERARY (rule 10). `HH:MM` is displayed exactly as
  * stored; nothing here consults the device's timezone.
  *
- * ADDING LEADS. The button sat under the grid, so on a full day the one thing
- * you came to do was a scroll past every hour of it (#302).
+ * ADDING IS A PRESS ON THE HOUR YOU MEAN. There is no "add to this day"
+ * button: pressing an empty slot starts an event at that time, which is both
+ * the answer to "when" and the place the thumb already is. The time is only a
+ * start — the form that opens can move it.
+ *
+ * TAPPING AN EVENT OPENS IT (#325). Editing used to happen in place of the
+ * grid, which lost sight of the day and left nowhere to put the event's files
+ * or the talk about it. Adding still happens in place: there is no event yet
+ * to open, and nothing to attach to one.
  *
  * UNDATED IS NOT BROKEN (rule 9). A trip with no days says so and points at
  * Dates. It is not gated, refused, or treated as an error state (rule 4).
@@ -28,13 +35,16 @@ import type { DayEventType } from "@floc/core/vocabulary";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { ScrollView, View } from "react-native";
+import { View } from "react-native";
 
 import { DayGrid } from "@/components/days/day-grid";
+import { EventOpen } from "@/components/days/event-open";
+import { EventSheet } from "@/components/days/event-sheet";
 import { DayStrip } from "@/components/days/day-strip";
 import { EventForm, type EventDraft } from "@/components/days/event-form";
 import { OvernightLine } from "@/components/days/overnight-line";
-import { Body, Button, Empty, Failed, Label, Loading } from "@/components/system/ui";
+import { Button, Empty, Failed, Label, Loading } from "@/components/system/ui";
+import { useSession } from "@/lib/auth";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 
@@ -52,7 +62,10 @@ function toInput(draft: EventDraft) {
 }
 
 /** Nothing open, adding to this day, or editing this event. One state, so two cannot both be true. */
-type Editing = { kind: "none" } | { kind: "add" } | { kind: "edit"; eventId: number };
+type Editing =
+  | { kind: "none" }
+  | { kind: "add"; time: string }
+  | { kind: "edit"; eventId: number };
 
 export default function Days() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -62,12 +75,16 @@ export default function Days() {
   const ready = Number.isFinite(tripId);
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { data: session } = useSession();
 
   const [chosen, setChosen] = useState<string | null>(null);
   const [editing, setEditing] = useState<Editing>({ kind: "none" });
   const [problem, setProblem] = useState<string | null>(null);
 
   const days = useQuery(trpc.itinerary.days.queryOptions({ tripId }, { enabled: ready }));
+  // One read for every block's clip (#324), not one per event. A trip with no
+  // file store answers with an error the marker simply does without.
+  const files = useQuery(trpc.files.list.queryOptions({ tripId }, { enabled: ready }));
 
   const done = () => {
     setEditing({ kind: "none" });
@@ -115,6 +132,11 @@ export default function Days() {
   const day = days.data.find((row) => row.date === selected) ?? days.data[0];
 
   const busy = addEvent.isPending || updateEvent.isPending || deleteEvent.isPending;
+  const viewerId = session?.user.id;
+
+  // Every event with a live file on it, across the whole trip — so the strip
+  // can move to another day without a second read.
+  const clipped = new Set((files.data ?? []).flatMap((file) => file.dayEventId ?? []));
 
   function save(draft: EventDraft) {
     if (editing.kind === "edit") {
@@ -138,67 +160,61 @@ export default function Days() {
         />
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.md }}>
+      {/* The head of the day stays put and the grid scrolls under it: with the
+          whole clock drawn, a page that scrolls as one puts the date and where
+          you are sleeping off the top the moment you reach lunch. */}
+      <View style={{ paddingHorizontal: space.lg, gap: space.md }}>
         <Label>{formatDate(day.date)}</Label>
-
         <OvernightLine tripId={tripId} days={days.data} date={day.date} />
+      </View>
 
-        {editing.kind === "add" ? (
-          <EventForm
-            busy={busy}
-            problem={problem}
-            onSave={save}
-            onCancel={() => setEditing({ kind: "none" })}
-          />
-        ) : (
-          <Button
-            label="Add to this day"
-            variant="quiet"
-            onPress={() => {
-              setEditing({ kind: "add" });
-              setProblem(null);
-            }}
-          />
-        )}
+      <View style={{ flex: 1, paddingHorizontal: space.lg, paddingTop: space.md }}>
+        <DayGrid
+          events={orderEvents(day.events)}
+          withFiles={clipped}
+          onPick={(eventId) => {
+            setEditing({ kind: "edit", eventId });
+            setProblem(null);
+          }}
+          onAddAt={(time) => {
+            setEditing({ kind: "add", time });
+            setProblem(null);
+          }}
+        />
+      </View>
 
-        {/* Editing happens in place of the grid — a form under a calendar puts
-            the thing you are typing off the bottom of the screen. */}
-        {editing.kind === "edit" ? (
-          (() => {
-            const event = day.events.find((row) => row.id === editing.eventId);
-            if (!event) return null;
-            return (
-              <EventForm
-                initial={{
-                  type: event.type,
-                  title: event.title ?? "",
-                  time: event.time,
-                  allDay: event.allDay,
-                  note: event.note,
-                }}
-                busy={busy}
-                problem={problem}
-                onSave={save}
-                onCancel={() => setEditing({ kind: "none" })}
-                onDelete={() => deleteEvent.mutate({ tripId, eventId: event.id })}
-              />
-            );
-          })()
-        ) : (
-          <DayGrid
-            events={orderEvents(day.events)}
-            onPick={(eventId) => {
-              setEditing({ kind: "edit", eventId });
-              setProblem(null);
-            }}
-          />
-        )}
+      <EventSheet
+        open={editing.kind === "add"}
+        title="Add to this day"
+        onClose={() => setEditing({ kind: "none" })}
+      >
+        <EventForm
+          initial={{
+            type: "activity",
+            title: "",
+            time: editing.kind === "add" ? editing.time : null,
+            allDay: false,
+            note: null,
+          }}
+          busy={busy}
+          problem={problem}
+          onSave={save}
+        />
+      </EventSheet>
 
-        {day.events.length === 0 && editing.kind === "none" ? (
-          <Body tone="ink-3">Nothing planned for this day.</Body>
-        ) : null}
-
-      </ScrollView>
+      {editing.kind === "edit" && viewerId ? (
+        <EventOpen
+          events={day.events}
+          eventId={editing.eventId}
+          tripId={tripId}
+          viewerId={viewerId}
+          busy={busy}
+          problem={problem}
+          onSave={save}
+          onDelete={(eventId) => deleteEvent.mutate({ tripId, eventId })}
+          onClose={() => setEditing({ kind: "none" })}
+        />
+      ) : null}
     </View>
   );
 }

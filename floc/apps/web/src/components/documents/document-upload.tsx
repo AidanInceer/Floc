@@ -34,14 +34,24 @@ export function DocumentUpload({
   tripId,
   scope,
   className,
+  dayEventId,
 }: {
   tripId: number;
   scope: "shared" | "private";
   className?: string;
+  /** Lands the file straight on this event (ticket 322). */
+  dayEventId?: number;
 }) {
   return (
-    <Sheet trigger="Upload" title="Add a file" triggerClassName={className}>
+    <Sheet
+      trigger="Upload"
+      title={dayEventId ? "Add a file to this event" : "Add a file"}
+      triggerClassName={className}
+    >
       <ActionForm action={uploadDocument.bind(null, tripId)}>
+        {dayEventId ? (
+          <input type="hidden" name="dayEventId" value={dayEventId} />
+        ) : null}
         <FilePicker />
         <div className="mt-4 flex flex-wrap items-end gap-x-5 gap-y-3">
           <ScopeChoice initial={scope} />

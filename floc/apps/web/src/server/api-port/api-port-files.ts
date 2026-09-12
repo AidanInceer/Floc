@@ -27,6 +27,7 @@ import { scoped } from "@/server/api-port/api-port-scope";
 import {
   countDocuments,
   insertDocument,
+  placeDocument,
   setDocumentCategory,
   softDeleteDocument,
 } from "@/server/documents/documents";
@@ -35,12 +36,20 @@ import {
   dropDocument,
   putDocument,
 } from "@/server/documents/document-store";
+import { mintViewToken } from "@/server/documents/view-link";
+import { appUrl } from "@/lib/env";
 import { refresh } from "@/server/freshness";
 import { LIMITS } from "@/server/limits";
 
 type FilesPort = Pick<
   FlocPort,
-  "uploadFile" | "deleteFile" | "setFileCategory" | "filesWritable"
+  | "uploadFile"
+  | "deleteFile"
+  | "setFileCategory"
+  | "attachFileToEvent"
+  | "detachFileFromEvent"
+  | "fileViewUrl"
+  | "filesWritable"
 >;
 
 /** Base64 in, bytes out. A body that is not base64 is a broken client, not a user mistake. */
@@ -79,6 +88,11 @@ export const filesPort: FilesPort = {
       return "This trip is holding as many files as it can";
     }
 
+    // Resolved, not trusted: the event id arrives from the client.
+    const onEvent = input.dayEventId
+      ? (await access.event(input.dayEventId)).id
+      : null;
+
     const storageKey = await putDocument(bytes, type);
     try {
       await insertDocument({
@@ -92,6 +106,7 @@ export const filesPort: FilesPort = {
         mimeType: type.mimeType,
         sizeBytes: bytes.byteLength,
         category: input.category,
+        dayEventId: onEvent,
       });
     } catch (err) {
       await dropDocument(storageKey);
@@ -107,13 +122,43 @@ export const filesPort: FilesPort = {
     // The resolver binds the id to this trip, so another trip's file is not
     // addressable rather than merely refused (ticket 106).
     const doc = await access.document(fileId);
-    if (doc.uploadedBy !== access.viewer.id) {
-      throw new Error("Only whoever uploaded it can remove it.");
-    }
 
     await softDeleteDocument(doc.id);
     await dropDocument(doc.storageKey);
     refresh({ kind: "documents", tripId });
+  },
+
+  async attachFileToEvent(
+    viewerId: string,
+    tripId: number,
+    fileId: number,
+    dayEventId: number,
+  ) {
+    const access = await scoped(viewerId, tripId);
+    // Both ids go through the resolvers, so another trip's is not expressible.
+    const doc = await access.document(fileId);
+    const event = await access.event(dayEventId);
+
+    await placeDocument(doc.id, { dayId: null, dayEventId: event.id });
+    refresh({ kind: "documents", tripId });
+  },
+
+  async detachFileFromEvent(viewerId: string, tripId: number, fileId: number) {
+    const access = await scoped(viewerId, tripId);
+    const doc = await access.document(fileId);
+
+    await placeDocument(doc.id, { dayId: null, dayEventId: null });
+    refresh({ kind: "documents", tripId });
+  },
+
+  async fileViewUrl(viewerId: string, tripId: number, fileId: number): Promise<string> {
+    const access = await scoped(viewerId, tripId);
+    // Resolved first: the token that comes out of this carries the permission,
+    // so the check has to happen before it is minted, never after.
+    const doc = await access.document(fileId);
+
+    const token = mintViewToken(doc.id);
+    return `${appUrl()}/trip/${tripId}/files/${doc.id}/raw?t=${token}`;
   },
 
   async setFileCategory(

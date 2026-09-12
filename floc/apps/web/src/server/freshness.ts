@@ -61,9 +61,12 @@ const PAGES: Pages = {
   tripOverview: ({ tripId }) => [{ path: `/trip/${tripId}/overview` }],
   money: ({ tripId }) => [{ path: `/trip/${tripId}/money` }],
   packing: ({ tripId }) => [{ path: `/trip/${tripId}/packing` }],
+  // Days too since ticket 322: a file can sit on an event, and the block draws
+  // a marker when it does.
   documents: ({ tripId }) => [
     { path: `/trip/${tripId}/files` },
     { path: `/trip/${tripId}/overview` },
+    { path: `/trip/${tripId}/days` },
   ],
   tripLinks: ({ tripId }) => [{ path: `/trip/${tripId}/days` }],
   thread: ({ tripId, scope }) => [{ path: threadPath(tripId, scope) }],

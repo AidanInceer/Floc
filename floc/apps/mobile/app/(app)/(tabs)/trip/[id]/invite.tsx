@@ -70,7 +70,7 @@ export default function Invite() {
                 accessibilityLabel={person.name}
                 onPress={() => toggle(person.id)}
               >
-                <PersonRow name={person.name} avatarUrl={person.avatarUrl}>
+                <PersonRow name={person.name} avatarIcon={person.avatarIcon}>
                   {/* The word, not a tick alone — a mark by itself says nothing
                       to anybody who cannot see it (#204). */}
                   <Body tone={on ? "ink" : "ink-3"}>{on ? "Asking" : "Ask"}</Body>
@@ -92,7 +92,7 @@ export default function Invite() {
         <View style={{ gap: space.sm }}>
           <Label>Asked, not answered</Label>
           {panel.data.pending.map((person) => (
-            <PersonRow key={person.id} name={person.name} avatarUrl={person.avatarUrl} />
+            <PersonRow key={person.id} name={person.name} avatarIcon={person.avatarIcon} />
           ))}
         </View>
       ) : null}

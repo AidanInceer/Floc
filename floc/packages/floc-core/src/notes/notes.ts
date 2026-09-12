@@ -4,6 +4,8 @@
  * Component, so this file must never touch the database — the read lives in
  * `lib/notes-read.ts`, the same split as `lib/tabs.ts` vs `server/notes.ts`.
  */
+
+import type { AvatarIcon } from "../people/avatar-icon";
 import { REACTION_KINDS, type ReactionKind } from "../vocabulary";
 
 export type Reactions = Record<ReactionKind, { count: number; mine: boolean }>;
@@ -16,7 +18,7 @@ export type NoteRow = {
   editedAt: Date | null;
   createdBy: string;
   authorName: string;
-  authorAvatar: string | null;
+  authorAvatarIcon: AvatarIcon | null;
   /** The author's trip avatar colour — see `TripMember.tone`. */
   authorTone?: string;
   reactions: Reactions;

@@ -49,6 +49,8 @@ export type CalendarEvent = {
   endTime: string | null;
   allDay: boolean;
   hasNote: boolean;
+  /** Files parked on it (ticket 324) — the block wears a clip. */
+  hasFiles: boolean;
   commentCount: number;
 };
 

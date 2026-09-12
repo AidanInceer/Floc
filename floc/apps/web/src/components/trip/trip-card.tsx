@@ -14,6 +14,7 @@ import { AvatarRow, Badge, PASTEL_BY_KEY, PASTEL_SKINS, cx } from "@/components/
 import { TripCardMenu } from "@/components/trip/trip-card-menu";
 import { daysUntil, formatDateRange, hasEnded } from "@floc/core/dates/dates";
 import type { IsoDate } from "@floc/core/dates/dates";
+import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import type { TripColor } from "@floc/core/trip/trip-color";
 import type { TripRole } from "@/db/schema";
 
@@ -23,7 +24,7 @@ export type TripCardData = {
   startDate: IsoDate | null;
   endDate: IsoDate | null;
   role: TripRole;
-  members: { name: string; avatarUrl?: string | null; tone?: string }[];
+  members: { name: string; avatarIcon?: AvatarIcon | null; tone?: string }[];
   needsYou?: boolean;
   where?: string | null; // first overnight place, or null if unsettled (ticket 70)
   tags?: string[];

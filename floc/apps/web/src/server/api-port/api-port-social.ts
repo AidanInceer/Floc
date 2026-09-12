@@ -73,10 +73,10 @@ type SocialPort = Pick<
 >;
 
 /** A row whose person has since gone still has to draw as something. */
-const UNKNOWN = (id: string): Person => ({ id, name: "Someone", avatarUrl: null });
+const UNKNOWN = (id: string): Person => ({ id, name: "Someone", avatarIcon: null });
 
 function toPerson(p: Person): FriendPerson {
-  return { id: p.id, name: p.name, avatarUrl: p.avatarUrl };
+  return { id: p.id, name: p.name, avatarIcon: p.avatarIcon };
 }
 
 /**
@@ -196,7 +196,7 @@ export const socialPort: SocialPort = {
     return {
       userId: profile.userId,
       name: profile.name,
-      avatarUrl: profile.avatarUrl,
+      avatarIcon: profile.avatarIcon,
       relation: profile.relation === "friend" ? "friend" : "co_traveller",
       isPrivate: profile.isPrivate,
       vibeTags: profile.vibeTags,
@@ -241,7 +241,7 @@ export const socialPort: SocialPort = {
       pending: pending.map((p) => ({
         id: p.userId,
         name: p.name,
-        avatarUrl: p.avatarUrl,
+        avatarIcon: p.avatarIcon,
       })),
       candidates: friends
         .filter((f) => !asked.has(f.id) && !onRoster.has(f.id))
@@ -272,7 +272,7 @@ export const socialPort: SocialPort = {
       startDate: r.startDate,
       endDate: r.endDate,
       fromName: r.fromName,
-      fromAvatarUrl: r.fromAvatarUrl,
+      fromAvatarIcon: r.fromAvatarIcon,
     }));
   },
 

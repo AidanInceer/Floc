@@ -28,6 +28,7 @@ type SettingsPort = Pick<
   FlocPort,
   | "loadMySettings"
   | "updateIdentity"
+  | "updateAvatarIcon"
   | "updatePrivacy"
   | "updateVibeTags"
   | "updateDietary"
@@ -62,9 +63,8 @@ export const settingsPort: SettingsPort = {
     return {
       email: identity.email,
       displayName: identity.name,
-      avatarUrl: profile.avatarUrl,
+      avatarIcon: profile.avatarIcon,
       isPrivate: profile.isPrivate,
-      visibilityPicture: profile.visibilityPicture,
       visibilityVibeTags: profile.visibilityVibeTags,
       visibilityTravelMap: profile.visibilityTravelMap,
       visibilityFriends: profile.visibilityFriends,
@@ -85,12 +85,16 @@ export const settingsPort: SettingsPort = {
 
   async updateIdentity(viewerId, input) {
     await ensureProfile(viewerId);
-    await updateProfileFields(viewerId, {
-      displayName: input.displayName,
-      avatarUrl: input.avatarUrl,
-    });
+    await updateProfileFields(viewerId, { displayName: input.displayName });
     // The name and face ride on every roster and every expense line, so every
     // page showing this person is now stale.
+    refresh({ kind: "profile" });
+    refresh({ kind: "tripList" });
+  },
+
+  async updateAvatarIcon(viewerId, icon) {
+    await ensureProfile(viewerId);
+    await updateProfileFields(viewerId, { avatarIcon: icon });
     refresh({ kind: "profile" });
     refresh({ kind: "tripList" });
   },

@@ -59,6 +59,8 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
     TRIP ||--o{ DOCUMENT : &quot;holds (ticket 239)&quot;
     USER ||--o{ DOCUMENT : &quot;uploads (uploaded_by)&quot;
     USER ||--o{ DOCUMENT : &quot;owns, when private (owner_id)&quot;
+    DAY ||--o{ DOCUMENT : &quot;file sits on (day_id, nullable)&quot;
+    DAY_EVENT ||--o{ DOCUMENT : &quot;file sits on (day_event_id, nullable)&quot;
     USER ||--o{ SUBSCRIPTION : &quot;holds (ticket 246)&quot;
 
     USER {
@@ -71,7 +73,7 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
     USER_PROFILE {
         string user_id PK &quot;FK -&gt; USER.id&quot;
         string display_name &quot;nullable — our editable copy, not mirrored live&quot;
-        string avatar_url &quot;nullable&quot;
+        string avatar_icon &quot;nullable, one of AVATAR_ICONS; null is initials&quot;
         string home_currency &quot;GBP | EUR | USD, default GBP&quot;
         json vibe_tags &quot;seed-only, from VIBE_TAGS (ticket 46)&quot;
         string signup_channel &quot;whatsapp|email|link|direct, nullable&quot;
@@ -79,7 +81,6 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
         string dietary_notes &quot;allergies &amp; intolerances, nullable&quot;
         bool share_dietary &quot;default false — covers the whole dietary record&quot;
         bool is_private &quot;default false — hides every display attribute&quot;
-        string visibility_picture &quot;private|friends|trip_members, default trip_members&quot;
         string visibility_vibe_tags &quot;private|friends|trip_members, default trip_members&quot;
         string visibility_travel_map &quot;private|friends|trip_members, default trip_members&quot;
         string visibility_friends &quot;private|friends|trip_members, default friends&quot;
@@ -289,6 +290,8 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
         string mime_type &quot;from the allow-list in lib/documents.ts&quot;
         int size_bytes
         string category &quot;filing heading; changeable after upload&quot;
+        int day_id FK &quot;-&gt; DAY.id, nullable, set null — file sits on a day&quot;
+        int day_event_id FK &quot;-&gt; DAY_EVENT.id, nullable, set null — file sits on an event&quot;
     }
 
     SUBSCRIPTION {
@@ -593,7 +596,10 @@ deliberately stricter than a shared packing line, which any member may drop.
 <code>category</code> is one of five buckets (travel / stay / tickets / admin /
 other), defaulted rather than required and changeable from the row afterwards:
 filing is a habit, not a fact, and an unknown value falls to <code>other</code>
-rather than refusing the file.</p>
+rather than refusing the file. A file can also sit in the itinerary (ticket
+320): <code>day_id</code> and <code>day_event_id</code> are both nullable and both
+<code>set null</code>, so a ticket parked on the ferry event survives that event
+being deleted — it simply comes unattached, never binned.</p>
 <p><code>trip_invite</code> is a <strong>named invite</strong> (ticket 146) — one person asked one friend
 onto one trip, answered in-app on the invitee&#39;s next load. Deliberately not a
 <code>trip_membership</code> row with a status column: membership is what every trip read

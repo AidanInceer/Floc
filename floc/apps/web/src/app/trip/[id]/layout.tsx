@@ -2,11 +2,10 @@
  * The persistent trip bar (ticket 05; flattened 209). Overview is both the
  * default tab and the trip's landing — there is no separate dashboard route.
  *
- * ONE row: the tab pills centred, the roster and the trip menu hard right.
+ * ONE row: the tab pills centred, the trip menu hard right.
  * The trip's name, dates and badges are not here — they are the Overview
  * hero's, and printing them twice a hand's width apart was ticket 89.
  */
-import { AvatarRow } from "@/components/system/ui";
 import { TripTabs } from "@/components/chrome/trip-tabs";
 import { TripMenu } from "@/components/trip/trip-menu";
 import { requireTripAccess } from "@/server/access";
@@ -35,7 +34,7 @@ export default async function TripLayout({
 
   return (
     <div>
-      {/* ONE ROW, not three (ticket 209). The roster and the trip menu used to
+      {/* ONE ROW, not three (ticket 209). The controls used to
           sit on their own line above the tabs, which stacked a header, a
           controls row and a tab row on top of each other before any content.
           Same three-column grid as the app header: tabs centred, the people
@@ -52,8 +51,10 @@ export default async function TripLayout({
               rather than on the middle of what the avatars leave over. */}
           <div className="hidden sm:block" />
           <TripTabs tripId={trip.id} tabs={TABS} />
+          {/* No faces here (#325 feedback). Who is going is the Overview
+              roster's job, and a second copy of it on every tab said nothing
+              you could act on. */}
           <div className="flex shrink-0 items-center gap-2 sm:justify-self-end">
-            <AvatarRow people={members} />
             {/* Archive, delete and leave used to be two separate blocks on the
                 Overview tab — one on the hero, one inside a "Trip settings"
                 fold. One menu, on every tab. */}

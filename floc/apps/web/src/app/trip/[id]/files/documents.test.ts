@@ -1,7 +1,7 @@
 /**
  * Documents (ticket 239). The two things worth a test are the two that are not
  * obvious from reading a row: a private file is invisible to everyone but its
- * owner, and removal belongs to whoever uploaded it.
+ * owner, and a shared file is any member's to remove.
  */
 import { mkdtemp, readdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -88,14 +88,22 @@ describe("uploadDocument", () => {
 });
 
 describe("removeDocument", () => {
-  it("refuses anyone but the uploader", async () => {
+  it("lets a member who did not upload it remove a shared file", async () => {
     await uploadDocument(world.ours.id, form("shared"));
     const [doc] = await listDocuments(world.ours.id, world.member);
 
     signIn(world.admin);
-    await expect(removeDocument(world.ours.id, doc.id)).rejects.toThrow(
-      /uploaded it/,
-    );
+    await removeDocument(world.ours.id, doc.id);
+
+    expect(await listDocuments(world.ours.id, world.member)).toEqual([]);
+  });
+
+  it("cannot reach another member's private file", async () => {
+    await uploadDocument(world.ours.id, form("private"));
+    const [doc] = await listDocuments(world.ours.id, world.member);
+
+    signIn(world.admin);
+    await expectNotFound(() => removeDocument(world.ours.id, doc.id));
   });
 
   it("takes the file out of the list and off the disk", async () => {

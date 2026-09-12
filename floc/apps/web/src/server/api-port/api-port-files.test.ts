@@ -127,13 +127,9 @@ describe("removing and re-filing", () => {
     return (await webPort.listFiles(world.admin, world.ours.id))[0];
   }
 
-  it("lets the uploader remove it and nobody else", async () => {
+  it("lets any member remove a shared file, uploader or not", async () => {
     const file = await oneFile();
-    await expect(
-      webPort.deleteFile(world.member, world.ours.id, file.id),
-    ).rejects.toThrow();
-
-    await webPort.deleteFile(world.admin, world.ours.id, file.id);
+    await webPort.deleteFile(world.member, world.ours.id, file.id);
     expect(await webPort.listFiles(world.admin, world.ours.id)).toEqual([]);
   });
 
@@ -149,6 +145,60 @@ describe("removing and re-filing", () => {
     const file = await oneFile();
     await expect(
       webPort.setFileCategory(world.outsider, world.theirs.id, file.id, "travel"),
+    ).rejects.toThrow();
+  });
+});
+
+describe("parking a file on an event", () => {
+  /** One shared file on the trip, and its id. */
+  async function aFile(name = "ferry.png") {
+    await webPort.uploadFile(world.admin, world.ours.id, {
+      name,
+      mimeType: "image/png",
+      contentBase64: PNG_BASE64,
+      category: "tickets",
+      shared: true,
+    });
+    const files = await webPort.listFiles(world.admin, world.ours.id);
+    return files.find((f) => f.name === name)!.id;
+  }
+
+  it("uploads straight onto an event and names it on the row", async () => {
+    await webPort.uploadFile(world.admin, world.ours.id, {
+      name: "boarding.png",
+      mimeType: "image/png",
+      contentBase64: PNG_BASE64,
+      category: "tickets",
+      shared: true,
+      dayEventId: world.ours.eventId,
+    });
+
+    const [file] = await webPort.listFiles(world.member, world.ours.id);
+    expect(file.dayEventId).toBe(world.ours.eventId);
+    expect(file.eventTitle).not.toBeNull();
+  });
+
+  it("attaches a file that was already on the trip, and detaches it again", async () => {
+    const fileId = await aFile();
+    expect((await webPort.listFiles(world.admin, world.ours.id))[0].dayEventId).toBeNull();
+
+    // Filing is any member's to do, like the category — not only the uploader's.
+    await webPort.attachFileToEvent(world.member, world.ours.id, fileId, world.ours.eventId);
+    expect((await webPort.listFiles(world.admin, world.ours.id))[0].dayEventId).toBe(
+      world.ours.eventId,
+    );
+
+    await webPort.detachFileFromEvent(world.member, world.ours.id, fileId);
+    const [loose] = await webPort.listFiles(world.admin, world.ours.id);
+    // Detaching leaves the file on the trip — only the tie goes.
+    expect(loose.dayEventId).toBeNull();
+    expect(loose.name).toBe("ferry.png");
+  });
+
+  it("cannot park a file on another trip's event", async () => {
+    const fileId = await aFile();
+    await expect(
+      webPort.attachFileToEvent(world.admin, world.ours.id, fileId, world.theirs.eventId),
     ).rejects.toThrow();
   });
 });

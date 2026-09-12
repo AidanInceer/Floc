@@ -12,7 +12,7 @@ import "server-only";
 import { and, count, desc, eq, isNull, or } from "drizzle-orm";
 
 import { db } from "@/db";
-import { document, user, userProfile } from "@/db/schema";
+import { dayEvent, document, user, userProfile } from "@/db/schema";
 import type { DocCategory } from "@floc/core/documents/documents";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
@@ -28,6 +28,13 @@ export type TripDocument = {
   uploaderName: string;
   /** Null = shared with the trip. Set = private, and only ever the viewer's. */
   ownerId: string | null;
+  /** Where in the itinerary it sits — either, neither, or both null. */
+  dayId: number | null;
+  /** The *live* event, off the join — a soft-deleted one reads as unattached. */
+  dayEventId: number | null;
+  /** The event's own name, for the row's "on …" tag (ticket 323). */
+  eventTitle: string | null;
+  eventDayId: number | null;
 };
 
 /** Newest first — a documents list is a pile you add to, not a checklist. */
@@ -47,9 +54,19 @@ export async function listDocuments(
       userName: user.name,
       displayName: userProfile.displayName,
       ownerId: document.ownerId,
+      dayId: document.dayId,
+      dayEventId: dayEvent.id,
+      eventTitle: dayEvent.title,
+      eventDayId: dayEvent.dayId,
     })
     .from(document)
     .innerJoin(user, eq(user.id, document.uploadedBy))
+    // Rule 8 on the join's own condition, not the where: in the where it would
+    // drop every unattached file too, rather than only the dead event's tag.
+    .leftJoin(
+      dayEvent,
+      and(eq(dayEvent.id, document.dayEventId), isNull(dayEvent.deletedAt)),
+    )
     .leftJoin(userProfile, eq(userProfile.userId, document.uploadedBy))
     .where(
       and(
@@ -72,7 +89,42 @@ export async function listDocuments(
     uploadedBy: r.uploadedBy,
     uploaderName: r.displayName ?? r.userName,
     ownerId: r.ownerId,
+    dayId: r.dayId,
+    dayEventId: r.dayEventId,
+    eventTitle: r.eventTitle,
+    eventDayId: r.eventDayId,
   }));
+}
+
+/**
+ * The trip's files grouped by the event they sit on (tickets 322, 324). One
+ * read, not one per block — the Days page needs every event's files at once.
+ */
+export function byEvent(docs: TripDocument[]): Map<number, TripDocument[]> {
+  const out = new Map<number, TripDocument[]>();
+  for (const doc of docs) {
+    if (doc.dayEventId === null) continue;
+    const run = out.get(doc.dayEventId);
+    if (run) run.push(doc);
+    else out.set(doc.dayEventId, [doc]);
+  }
+  return out;
+}
+
+/**
+ * Park a document on a day or an event, or clear it (both null). Only touches
+ * a live row; the resolver has already refused another trip's or somebody
+ * else's private file.
+ */
+export async function placeDocument(
+  documentId: number,
+  where: { dayId: number | null; dayEventId: number | null },
+): Promise<void> {
+  await db
+    .update(document)
+    .set({ dayId: where.dayId, dayEventId: where.dayEventId, ...touch() })
+    .where(and(eq(document.id, documentId), isNull(document.deletedAt)))
+    .run();
 }
 
 /**
@@ -100,6 +152,8 @@ export async function insertDocument(input: {
   mimeType: string;
   sizeBytes: number;
   category: DocCategory;
+  dayId?: number | null;
+  dayEventId?: number | null;
 }): Promise<void> {
   await db.insert(document).values(input).run();
 }
@@ -126,4 +180,20 @@ export async function setDocumentCategory(
     .set({ category, ...touch() })
     .where(and(eq(document.id, documentId), isNull(document.deletedAt)))
     .run();
+}
+
+/**
+ * One live document by id, with no trip check (#325 feedback). Only for a
+ * request carrying a valid view token: the token was minted for this exact id
+ * *after* the ordinary check passed, so the permission has already been
+ * decided and re-deciding it is not possible — the caller has no viewer.
+ */
+export async function liveDocument(
+  documentId: number,
+): Promise<typeof document.$inferSelect | undefined> {
+  return db
+    .select()
+    .from(document)
+    .where(and(eq(document.id, documentId), isNull(document.deletedAt)))
+    .get();
 }

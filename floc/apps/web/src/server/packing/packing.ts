@@ -5,6 +5,8 @@
  * for the whole trip in one query, scoped by joining the line, so the two reads
  * can run together rather than one after the other.
  */
+
+import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import "server-only";
 
 import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
@@ -29,7 +31,7 @@ export type PackingClaimRow = {
   userId: string;
   packedAt: Date | null;
   name: string;
-  avatarUrl: string | null;
+  avatarIcon: AvatarIcon | null;
 };
 
 /**
@@ -111,7 +113,7 @@ export async function listPackingClaims(
       userId: packingClaim.userId,
       packedAt: packingClaim.packedAt,
       name: user.name,
-      avatarUrl: userProfile.avatarUrl,
+      avatarIcon: userProfile.avatarIcon,
     })
     .from(packingClaim)
     .innerJoin(packingLine, eq(packingLine.id, packingClaim.packingLineId))

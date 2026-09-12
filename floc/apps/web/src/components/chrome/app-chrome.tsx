@@ -4,6 +4,8 @@
  * and at every size. Trip tabs are the same pill group, rendered by the trip
  * layout; this bar holds the signed-in surfaces when you're outside a trip.
  */
+
+import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import Link from "next/link";
 
 import { ButtonLink } from "@/components/system/ui";
@@ -34,7 +36,7 @@ export function AppChrome({
   friendRequestCount = 0,
   isPro = false,
 }: {
-  user: { id: string; name: string; image: string | null } | null;
+  user: { id: string; name: string; avatarIcon: AvatarIcon | null } | null;
   /** Puts the gold star in the account pill — the only paid signal in the bar. */
   isPro?: boolean;
   /** Open trip invites for this account — badges the Trips link. */

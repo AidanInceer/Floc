@@ -116,7 +116,7 @@ function Comment({
     <div className="group/cm flex gap-2.5 py-2">
       <Avatar
         name={note.authorName}
-        src={note.authorAvatar}
+        icon={note.authorAvatarIcon}
         size={reply ? 22 : 26}
         tone={note.authorTone}
       />

@@ -18,7 +18,7 @@ import { Avatar, Badge, Button, EmptyState } from "@/components/system/ui";
 import { SubmitButton } from "@/components/system/client-ui";
 import { PersonLink } from "@/components/social/person-link";
 
-const UNKNOWN = (id: string): Person => ({ id, name: "Someone", avatarUrl: null });
+const UNKNOWN = (id: string): Person => ({ id, name: "Someone", avatarIcon: null });
 
 export default async function FriendsPage() {
   const viewer = await requireUser("/friends");
@@ -79,7 +79,7 @@ export default async function FriendsPage() {
             {incomingPeople.map(({ requesterId, person }) => (
               <PersonRow key={requesterId} className="bg-sheet">
                 <div className="flex min-w-0 items-center gap-2">
-                  <Avatar name={person.name} src={person.avatarUrl} />
+                  <Avatar name={person.name} icon={person.avatarIcon} />
                   <span className="min-w-0 truncate text-sm text-ink">
                     {person.name}
                   </span>
@@ -104,7 +104,7 @@ export default async function FriendsPage() {
             {outgoingPeople.map(({ targetId, person }) => (
               <PersonRow key={targetId} className="bg-sheet">
                 <div className="flex min-w-0 items-center gap-2">
-                  <Avatar name={person.name} src={person.avatarUrl} />
+                  <Avatar name={person.name} icon={person.avatarIcon} />
                   <span className="min-w-0 truncate text-sm text-ink">
                     {person.name}
                   </span>
@@ -142,7 +142,7 @@ export default async function FriendsPage() {
                   <PersonLink
                     userId={person.id}
                     name={person.name}
-                    avatarUrl={person.avatarUrl}
+                    avatarIcon={person.avatarIcon}
                   />
                   <div className="min-w-0">
                     <p className="truncate text-sm">{person.name}</p>

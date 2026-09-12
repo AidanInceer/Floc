@@ -1,0 +1,1 @@
+ALTER TABLE `user_profile` ADD `avatar_icon` text;

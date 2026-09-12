@@ -43,7 +43,7 @@ export function FriendPicker({
               value={f.id}
               className="size-4 rounded-sm border-rule-strong"
             />
-            <Avatar name={f.name} src={f.avatarUrl} size={24} />
+            <Avatar name={f.name} icon={f.avatarIcon} size={24} />
             <span className="min-w-0 truncate">{f.name}</span>
           </label>
         </li>

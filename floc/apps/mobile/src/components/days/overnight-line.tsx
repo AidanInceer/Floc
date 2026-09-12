@@ -4,16 +4,14 @@
  * DAY-FIRST (rule 3). `deriveStops` reads the run the selected day sits in;
  * saving writes `overnight_place_id` across that run's days. No stop is stored.
  *
- * THE LINE IS THE CONTROL. Tapping what it says opens the form — a labelled
- * row saying "overnight" above a pill saying "overnight" is the word twice.
+ * THE LINE IS THE CONTROL. `OvernightRow` draws it; this file is the read, the
+ * write, and the run `deriveStops` gives back.
  */
 import { deriveStops } from "@floc/core/itinerary/stops";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Pressable } from "react-native";
-
 import { OvernightForm } from "./overnight-form";
-import { Body, Pill } from "../system/ui";
+import { OvernightRow } from "./overnight-row";
 import { trpc } from "@/lib/api";
 
 export type OvernightDay = {
@@ -92,19 +90,12 @@ export function OvernightLine({
   }
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel="Set where you are sleeping"
+    <OvernightRow
+      place={stop?.placeName ?? null}
       onPress={() => {
         setOpen(true);
         setProblem(null);
       }}
-    >
-      {stop?.placeName ? (
-        <Pill word={`Overnight · ${stop.placeName}`} tone="mint" />
-      ) : (
-        <Body tone="ink-3">No overnight place set.</Body>
-      )}
-    </Pressable>
+    />
   );
 }

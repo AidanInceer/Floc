@@ -96,7 +96,7 @@ export function TripRoster({
               <PersonLink
                 userId={m.userId}
                 name={m.name}
-                avatarUrl={m.avatarUrl}
+                avatarIcon={m.avatarIcon}
                 size={26}
                 tone={m.tone}
                 isYou={m.userId === viewerId}
@@ -213,7 +213,7 @@ export function TripRoster({
           >
             <span className="flex min-w-0 flex-1 items-center gap-2 text-sm opacity-75">
               <span className="opacity-60">
-                <Avatar name={p.name} src={p.avatarUrl} size={26} />
+                <Avatar name={p.name} icon={p.avatarIcon} size={26} />
               </span>
               <span className="min-w-0 truncate">{p.name}</span>
               <Badge tone="neutral">Invited</Badge>

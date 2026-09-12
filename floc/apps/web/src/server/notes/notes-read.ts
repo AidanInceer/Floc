@@ -51,7 +51,7 @@ export async function loadThreads({
         editedAt: note.editedAt,
         createdBy: note.createdBy,
         authorName: user.name,
-        authorAvatar: userProfile.avatarUrl,
+        authorAvatarIcon: userProfile.avatarIcon,
       })
       .from(note)
       .innerJoin(user, eq(user.id, note.createdBy))
@@ -90,7 +90,7 @@ export async function loadThreads({
       editedAt: r.editedAt,
       createdBy: r.createdBy,
       authorName: r.authorName,
-      authorAvatar: r.authorAvatar,
+      authorAvatarIcon: r.authorAvatarIcon,
       authorTone: toneOf.get(r.createdBy),
       reactions: reactionsByNote.get(r.id) ?? emptyReactions(),
       replies: [],

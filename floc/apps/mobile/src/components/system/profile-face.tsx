@@ -6,16 +6,20 @@
  * against — so the colour read as a warning, not a welcome. The picture, the
  * name and the tags are enough to make it the page's subject.
  *
- * THE PEN MAKES IT A CONTROL. The name is edited from here, so the card has to
- * say it is touchable — the same mark the trip header carries, for the same
- * reason.
+ * TWO TARGETS, NOT ONE (#157). The face opens the picker and the pen opens the
+ * name, because one Pressable cannot mean both once the picture became a
+ * choice rather than a text field.
  *
  * INITIALS ARE NOT A FALLBACK, THEY ARE THE DEFAULT. Most people have no
  * picture set and never will; a broken-image slot for them would be a hole
  * where a face should be.
  */
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import type { AvatarIcon } from "@floc/core/people/avatar-icon";
+import { whoTone } from "@floc/core/people/who";
+
+import { AvatarIconMark } from "./avatar-icon";
 import { PenGlyph } from "./glyphs";
 import { useTheme } from "./theme";
 import { fonts, radius, size, space } from "@/lib/theme";
@@ -23,7 +27,7 @@ import { fonts, radius, size, space } from "@/lib/theme";
 const AVATAR = 60;
 
 /** First letters of the first two words — "Aidan Inceer" is AI, "Ada" is A. */
-function initials(name: string): string {
+export function initialsOf(name: string): string {
   return name
     .trim()
     .split(/\s+/)
@@ -32,65 +36,62 @@ function initials(name: string): string {
     .join("");
 }
 
-function Face({ name, url }: { name: string; url: string | null }) {
+function Face({ name, icon }: { name: string; icon: AvatarIcon | null }) {
   const { c } = useTheme();
-  if (url) {
-    return (
-      <Image
-        source={{ uri: url }}
-        accessibilityIgnoresInvertColors
-        style={{ width: AVATAR, height: AVATAR, borderRadius: radius.pill }}
-      />
-    );
-  }
+  // Hardcoded peri until #157: the card was the one place a person was not
+  // their own colour, so you were a different person here than on the roster.
+  const tone = whoTone(name);
   return (
     <View
       style={{
         width: AVATAR,
         height: AVATAR,
         borderRadius: radius.pill,
-        backgroundColor: c.peri,
+        backgroundColor: c[tone],
         borderWidth: StyleSheet.hairlineWidth,
-        borderColor: c["peri-edge"],
+        borderColor: c[`${tone}-ink`],
         alignItems: "center",
         justifyContent: "center",
       }}
     >
-      <Text
-        style={{
-          color: c["peri-ink"],
-          fontFamily: fonts.display,
-          fontSize: size.heading,
-        }}
-      >
-        {initials(name)}
-      </Text>
+      {icon ? (
+        <AvatarIconMark icon={icon} color={c[`${tone}-ink`]} size={30} />
+      ) : (
+        <Text
+          style={{
+            color: c[`${tone}-ink`],
+            fontFamily: fonts.display,
+            fontSize: size.heading,
+          }}
+        >
+          {initialsOf(name)}
+        </Text>
+      )}
     </View>
   );
 }
 
 export function ProfileFace({
   name,
-  avatarUrl,
+  avatarIcon,
   been,
   wantToGo,
   vibeTags,
-  onEdit,
+  onEditName,
+  onEditFace,
 }: {
   name: string;
-  avatarUrl: string | null;
+  avatarIcon: AvatarIcon | null;
   been: number;
   wantToGo: number;
   vibeTags: string[];
-  onEdit: () => void;
+  onEditName: () => void;
+  onEditFace: () => void;
 }) {
   const { c } = useTheme();
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={`Edit your name — ${name}`}
-      onPress={onEdit}
+    <View
       style={{
         backgroundColor: c.sheet,
         borderColor: c.rule,
@@ -101,7 +102,21 @@ export function ProfileFace({
       }}
     >
       <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
-        <Face name={name} url={avatarUrl} />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Change your picture"
+          testID="edit-face"
+          onPress={onEditFace}
+        >
+          <Face name={name} icon={avatarIcon} />
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Edit your name — ${name}`}
+          testID="edit-name"
+          onPress={onEditName}
+          style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: space.md }}
+        >
         <View style={{ flex: 1, gap: space.xs }}>
           <Text
             numberOfLines={1}
@@ -125,6 +140,7 @@ export function ProfileFace({
           </Text>
         </View>
         <PenGlyph color={c["ink-3"]} />
+        </Pressable>
       </View>
 
       {vibeTags.length > 0 ? (
@@ -148,6 +164,6 @@ export function ProfileFace({
           ))}
         </View>
       ) : null}
-    </Pressable>
+    </View>
   );
 }

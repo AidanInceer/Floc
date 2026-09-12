@@ -11,9 +11,21 @@
 import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse, type NextRequest } from "next/server";
 
+/**
+ * A signed file link carries its own permission and no cookie (#325 feedback).
+ * Redirecting it to /login is what stopped a file the phone handed a browser
+ * from ever opening. The route checks the signature; this only lets it ask.
+ */
+function signedFileLink(request: NextRequest): boolean {
+  return (
+    /^\/trip\/\d+\/files\/\d+\/raw$/.test(request.nextUrl.pathname) &&
+    request.nextUrl.searchParams.has("t")
+  );
+}
+
 export function middleware(request: NextRequest) {
   const session = getSessionCookie(request);
-  if (session) return NextResponse.next();
+  if (session || signedFileLink(request)) return NextResponse.next();
 
   const { pathname, search } = request.nextUrl;
   const url = request.nextUrl.clone();
