@@ -20,6 +20,8 @@ import type { Subscription, SubscriptionStatus } from "@/db/schema";
 import type { Currency } from "@floc/core/money/currency";
 import { BILLING_INTERVALS, type BillingInterval } from "@floc/core/billing/plans";
 
+import { endsWithoutRenewing } from "./cancellation";
+
 export { BILLING_INTERVALS, type BillingInterval };
 
 
@@ -97,7 +99,7 @@ export async function recordSubscription(args: {
       typeof sub.customer === "string" ? sub.customer : sub.customer.id,
     stripeSubscriptionId: sub.id,
     currentPeriodEnd: periodEnd,
-    cancelAtPeriodEnd: sub.cancel_at_period_end,
+    cancelAtPeriodEnd: endsWithoutRenewing(sub),
     lastModifiedAt: new Date(),
   };
 
