@@ -1,20 +1,17 @@
-/**
- * Dates tab (redesigned 197, narrowed 233) — the surface that settles a trip's
- * window. One centred calendar: paint the days you could go, then set the trip
- * window from the same grid. Undated is the normal starting state, never an
- * error (rule 9).
- */
+// Dates tab (#197, #233). Undated is the normal starting state, never an error (rule 9).
 import { requireTripAccess } from "@/server/access";
 import { listAvailability } from "@/server/itinerary/availability";
 import { canUseFeature } from "@/server/billing/entitlements";
 import { listDayLoads } from "@/server/itinerary/itinerary";
 import { getTripForecast } from "@/server/itinerary/weather";
-import { monthOf, thisMonth } from "@floc/core/dates/availability";
+import { bestWindow, monthOf, thisMonth } from "@floc/core/dates/availability";
 import { formatDateRange, nightsBetween } from "@floc/core/dates/dates";
 import { windowCost, windowCostLabel, windowCostNoun } from "@floc/core/trip/trip-window";
-import { Avatar, Field, Select, Stack, Textarea, menuDangerItemClass } from "@/components/system/ui";
+import { Field, Select, Stack, Textarea, menuDangerItemClass } from "@/components/system/ui";
 import { ConfirmSubmit, Menu, Sheet, SubmitButton } from "@/components/system/client-ui";
 import { AvailabilityCalendar } from "@/components/availability/availability-calendar";
+import { BestWindowCard } from "@/components/availability/best-window-card";
+import { WhoAnswered } from "@/components/availability/who-answered";
 import { NUDGE_TABS } from "@/db/schema";
 import { TAB_LABELS } from "@/lib/tabs";
 import { sendNudge } from "@/app/trip/[id]/overview/actions";
@@ -54,10 +51,11 @@ export default async function DatesPage({
   const mine = free.filter((r) => r.userId === viewer.id).map((r) => r.date);
 
   const tallies: Record<string, number> = {};
-  for (const row of free) tallies[row.date] = (tallies[row.date] ?? 0) + 1;
-
-  const answered = new Set(free.map((r) => r.userId));
-  const waitingOn = members.filter((m) => !answered.has(m.userId));
+  const marked: Record<string, number> = {};
+  for (const row of free) {
+    tallies[row.date] = (tallies[row.date] ?? 0) + 1;
+    marked[row.userId] = (marked[row.userId] ?? 0) + 1;
+  }
 
   // Trip's month, else earliest marked month, else now. `?from=` overrides so
   // paging is linkable.
@@ -78,23 +76,25 @@ export default async function DatesPage({
   const resetNoun = windowCostNoun(resetCost);
   const resetLabel = windowCostLabel(resetCost);
 
+  const best = bestWindow(rows);
+  const bestCost = best ? windowCost(dayLoads, best.start, best.end) : null;
+  const bestNoun = bestCost && windowCostNoun(bestCost);
+
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 pb-20 pt-6 sm:px-6">
-      <header className="flex flex-wrap items-end justify-between gap-6">
+    <div className="mx-auto w-full max-w-5xl px-4 pb-20 pt-6 sm:px-6">
+      <header className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="text-[clamp(1.9rem,4vw,2.8rem)]">Dates</h1>
-          <p className="mt-3 text-md text-ink-soft">
+          <h1 className="text-3xl">Dates</h1>
+          <p className="mt-1 text-sm text-ink-soft">
             {hasDates ? (
               <>
                 <span className="nums text-ink">
                   {formatDateRange(trip.startDate, trip.endDate)}
                 </span>{" "}
-                <span className="text-ink-faint">
-                  ({nightsBetween(trip.startDate!, trip.endDate!)} nights)
-                </span>
+                · {nightsBetween(trip.startDate!, trip.endDate!)} nights
               </>
             ) : (
-              "Nothing settled yet — paint the days you could go."
+              "No dates yet"
             )}
           </p>
         </div>
@@ -138,94 +138,72 @@ export default async function DatesPage({
         </Menu>
       </header>
 
-      <div className="mt-8 flex flex-col gap-4">
-        <section className="rounded-lg bg-peri p-6 text-peri-ink">
-          <div className="flex flex-wrap items-baseline justify-between gap-3">
-            <h2 className="text-xl">Who can do when</h2>
-            <span className="typed text-current">
-              {mine.length === 0
-                ? "Paint your own days"
-                : `${mine.length} ${mine.length === 1 ? "day" : "days"} marked by you`}
-            </span>
-          </div>
-          <div className="mt-4">
-            <AvailabilityCalendar
-              firstMonth={firstMonth}
-              monthCount={MONTHS_SHOWN}
-              mine={mine}
-              tallies={tallies}
-              memberCount={members.length}
-              tripStart={trip.startDate}
-              tripEnd={trip.endDate}
-              dayLoads={dayLoads}
-              weather={forecast}
-              weatherLocked={!weatherPro}
-              save={saveAvailability.bind(null, tripId)}
-              saveDates={setTripDates.bind(null, tripId)}
-            />
-          </div>
-        </section>
+      <div className="mt-6 grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
+        <AvailabilityCalendar
+          firstMonth={firstMonth}
+          monthCount={MONTHS_SHOWN}
+          mine={mine}
+          tallies={tallies}
+          memberCount={members.length}
+          tripStart={trip.startDate}
+          tripEnd={trip.endDate}
+          dayLoads={dayLoads}
+          weather={forecast}
+          weatherLocked={!weatherPro}
+          save={saveAvailability.bind(null, tripId)}
+          saveDates={setTripDates.bind(null, tripId)}
+        />
 
-        {waitingOn.length > 0 ? (
-          <StillToSay tripId={tripId} people={waitingOn} />
-        ) : null}
+        {/* Why: the top offset clears the view switch, so the rail lines up with the card. */}
+        <aside className="flex flex-col gap-4 lg:mt-[50px]">
+          {best ? (
+            <BestWindowCard
+              window={best}
+              memberCount={members.length}
+              current={best.start === trip.startDate && best.end === trip.endDate}
+              cost={bestNoun ? { noun: bestNoun, label: windowCostLabel(bestCost!)! } : null}
+              apply={setTripDates.bind(null, tripId, best.start, best.end)}
+            />
+          ) : null}
+          <WhoAnswered
+            members={members}
+            marked={marked}
+            viewerId={viewer.id}
+            nudgeFor={(m) => <NudgeSheet tripId={tripId} member={m} />}
+          />
+        </aside>
       </div>
     </div>
   );
 }
 
-/** Who hasn't answered, named — so the group chases a person, not nobody. */
-function StillToSay({
-  tripId,
-  people,
-}: {
-  tripId: number;
-  people: TripMember[];
-}) {
+/** Chase a person, not nobody. */
+function NudgeSheet({ tripId, member }: { tripId: number; member: TripMember }) {
   return (
-    <section className="rounded-lg bg-butter p-6 text-butter-ink">
-      <h2 className="text-xl">Still to say</h2>
-      <ul className="mt-3 flex flex-col gap-2">
-        {people.map((m) => (
-          <li
-            key={m.userId}
-            className="flex flex-wrap items-center gap-2 rounded-md bg-sheet/70 px-3 py-2"
-          >
-            <Avatar name={m.name} icon={m.avatarIcon} size={24} tone={m.tone} />
-            <span className="min-w-0 flex-1 truncate text-sm">{m.name}</span>
-            <Sheet
-              trigger="Nudge"
-              triggerVariant="secondary"
-              title={`Nudge ${m.name}`}
-            >
-              {/* Real Server Action ref — a wrapping closure wouldn't survive
-                  the boundary. */}
-              <form action={sendNudge}>
-                <input type="hidden" name="tripId" value={tripId} />
-                <input type="hidden" name="toUserId" value={m.userId} />
-                <Stack gap={3}>
-                  <Field label="What's it about">
-                    <Select name="tab" defaultValue="days">
-                      {NUDGE_TABS.map((t) => (
-                        <option key={t} value={t}>
-                          {TAB_LABELS[t] ?? t}
-                        </option>
-                      ))}
-                    </Select>
-                  </Field>
-                  <Field label="Message (optional)">
-                    <Textarea
-                      name="message"
-                      placeholder={`e.g. "Can you mark your days before the weekend?"`}
-                    />
-                  </Field>
-                  <SubmitButton pendingLabel="Sending…">Send nudge</SubmitButton>
-                </Stack>
-              </form>
-            </Sheet>
-          </li>
-        ))}
-      </ul>
-    </section>
+    <Sheet trigger="Nudge" triggerVariant="secondary" title={`Nudge ${member.name}`}>
+      {/* Real Server Action ref — a wrapping closure wouldn't survive the boundary. */}
+      <form action={sendNudge}>
+        <input type="hidden" name="tripId" value={tripId} />
+        <input type="hidden" name="toUserId" value={member.userId} />
+        <Stack gap={3}>
+          <Field label="What's it about">
+            <Select name="tab" defaultValue="days">
+              {NUDGE_TABS.map((t) => (
+                <option key={t} value={t}>
+                  {TAB_LABELS[t] ?? t}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Message (optional)">
+            <Textarea
+              name="message"
+              placeholder={`e.g. "Can you mark your days before the weekend?"`}
+            />
+          </Field>
+          <SubmitButton pendingLabel="Sending…">Send nudge</SubmitButton>
+        </Stack>
+      </form>
+    </Sheet>
   );
 }

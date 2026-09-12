@@ -17,7 +17,8 @@ import { Fragment, useRef, useState, useTransition } from "react";
 
 import { DayCell, type View } from "@/components/availability/availability-day-cell";
 import { HourlyCurve, WeatherReadout } from "@/components/availability/availability-weather";
-import { Button, LegendKey, cx } from "@/components/system/ui";
+import { Button, LegendKey } from "@/components/system/ui";
+import { PillToggle } from "@/components/system/client-ui";
 import {
   WEEKDAY_LABELS,
   addMonths,
@@ -38,6 +39,13 @@ import {
   type DayLoad,
 } from "@floc/core/trip/trip-window";
 import type { DailyForecast, TripForecast } from "@/server/itinerary/weather";
+
+const VIEWS: { value: View; label: string }[] = [
+  { value: "mine", label: "Mine" },
+  { value: "everyone", label: "Everyone" },
+  { value: "dates", label: "The dates" },
+];
+const WEATHER: { value: View; label: string } = { value: "weather", label: "Weather" };
 
 export function AvailabilityCalendar({
   firstMonth,
@@ -214,7 +222,7 @@ export function AvailabilityCalendar({
   // bottom edge. Reserves two rows (ticket 133): the dates view's range + buttons
   // + key wrap to a second line below a wide desktop.
   const footer =
-    "mt-5 flex min-h-[calc(2rem+0.5rem+2rem+1rem+1px)] flex-wrap content-start items-center gap-x-4 gap-y-2 border-t border-rule pt-4";
+    "mt-3 flex min-h-[calc(2rem+0.5rem+2rem+1rem+1px)] flex-wrap content-start items-center gap-x-4 gap-y-2 border-t border-rule pt-3";
 
   return (
     <div
@@ -249,41 +257,16 @@ export function AvailabilityCalendar({
         setRangeDrag(null);
       }}
     >
-      {/* One row at every width (ticket 134): a wrap stranded the arrows on
-          their own line. */}
-      <div className="mb-4 flex items-center justify-between gap-2">
-        <div className="scroll-x-bare flex min-w-0 flex-1 gap-1 rounded-full bg-sheet/60 p-1 sm:flex-none">
-          {(hasWeather
-            ? (["mine", "everyone", "dates", "weather"] as const)
-            : (["mine", "everyone", "dates"] as const)
-          ).map((v) => (
-            <button
-              key={v}
-              type="button"
-              aria-pressed={view === v}
-              onClick={() => changeView(v)}
-              className={cx(
-                // `whitespace-nowrap`: survive being squeezed next to the arrows
-                // rather than breaking "The dates" over two lines.
-                "shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.06em] transition-colors sm:px-3",
-                view === v
-                  ? "bg-pen text-sheet"
-                  : "text-ink-soft hover:bg-sheet",
-              )}
-            >
-              {v === "mine"
-                ? "Mine"
-                : v === "everyone"
-                  ? "Everyone"
-                  : v === "dates"
-                    ? "The dates"
-                    : "Weather"}
-            </button>
-          ))}
-        </div>
+      <PillToggle
+        label="Calendar view"
+        value={view}
+        options={hasWeather ? [...VIEWS, WEATHER] : VIEWS}
+        onChange={changeView}
+        className="mb-3"
+      />
 
-        {/* Arrows give up width, not the switch — a squeeze clipped "The dates". */}
-        <div className="flex shrink-0 items-center gap-1.5">
+      <div className="rounded-md border border-rule bg-sheet p-3 shadow-card">
+        <div className="mb-2 flex items-center gap-2">
           <Button
             variant="secondary"
             className="!px-2.5"
@@ -292,6 +275,7 @@ export function AvailabilityCalendar({
           >
             <MonthArrow direction="back" />
           </Button>
+          <p className="flex-1 text-center font-display font-semibold">{formatMonth(month)}</p>
           <Button
             variant="secondary"
             className="!px-2.5"
@@ -301,17 +285,14 @@ export function AvailabilityCalendar({
             <MonthArrow direction="forward" />
           </Button>
         </div>
-      </div>
 
-      <div>
-        {months.map((m) => (
+        {months.map((m, i) => (
           <div key={m}>
-            <p className="typed mb-2">{formatMonth(m)}</p>
+            {i > 0 ? <p className="typed mb-2 mt-4">{formatMonth(m)}</p> : null}
             <div
               // `touch-none`: else the browser claims a week-to-week vertical
-              // drag as a page scroll (ticket 127). Ruled paper, not boxes — one
-              // rule under each week, cells abut (ticket 129).
-              className="grid touch-none grid-cols-7 border-t border-rule text-center"
+              // drag as a page scroll (ticket 127).
+              className="grid touch-none grid-cols-7 gap-1 text-center"
               role="grid"
               aria-label={`${formatMonth(m)} availability`}
             >
@@ -331,10 +312,7 @@ export function AvailabilityCalendar({
                 <Fragment key={`w-${wi}`}>
                   {week.map((date, di) =>
                     date === null ? (
-                      <span
-                        key={`pad-${wi}-${di}`}
-                        className="border-b border-rule"
-                      />
+                      <span key={`pad-${wi}-${di}`} />
                     ) : (
                       <DayCell
                         key={date}
@@ -401,7 +379,6 @@ export function AvailabilityCalendar({
             </div>
           </div>
         ))}
-      </div>
 
       {view === "dates" ? (
         <div className={footer}>
@@ -433,13 +410,17 @@ export function AvailabilityCalendar({
           {/* Same key as Everyone (this view draws the same marks) plus the one
               only it has — status is never colour alone. */}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <LegendKey swatch="bg-green border-green" label="The trip" />
-            <LegendKey swatch="bg-green-soft border-green" label="All free" />
-            <LegendKey swatch="bg-red-soft border-red" label="Some missing" />
+            <LegendKey swatch="bg-peri border-pen" label="The trip" />
+            <LegendKey swatch="bg-mint border-mint-edge" label="All free" />
+            <LegendKey swatch="bg-butter border-butter-edge" label="Some free" />
           </div>
         </div>
       ) : view === "mine" ? (
         <div className={footer}>
+          {/* Status is never colour alone — the mark gets a word too. */}
+          <span className="mr-auto">
+            <LegendKey swatch="bg-peri border-peri-edge" label="Days you can do" />
+          </span>
           <Button
             variant="primary"
             disabled={changed.length === 0 || pending}
@@ -451,22 +432,13 @@ export function AvailabilityCalendar({
                 ? "Nothing to save"
                 : `Save ${changed.length} ${changed.length === 1 ? "day" : "days"}`}
           </Button>
-          <Button
-            variant="ghost"
-            disabled={changed.length === 0}
-            onClick={() => setEdits({})}
-          >
-            Discard
-          </Button>
-          {/* Status is never colour alone — the mark gets a word too. */}
-          <LegendKey swatch="bg-pen-soft border-pen" label="Days you can do" />
         </div>
       ) : view === "everyone" ? (
         /* A key, not a paragraph (ticket 76): swatch matches, not reads. */
         <div className={footer}>
-          <LegendKey swatch="bg-green-soft border-green" label="All free" />
-          <LegendKey swatch="bg-red-soft border-red" label="Some missing" />
-          <LegendKey swatch="bg-sheet-2 border-rule" label="No answer yet" />
+          <LegendKey swatch="bg-mint border-mint-edge" label="All free" />
+          <LegendKey swatch="bg-butter border-butter-edge" label="Some free" />
+          <LegendKey swatch="bg-sheet border-pen" label="The trip" />
         </div>
       ) : view === "weather" && weatherLocked ? (
         /* Visible, honest, inert (ticket 248) — the mode is here and says what
@@ -505,6 +477,7 @@ export function AvailabilityCalendar({
           </div>
         </div>
       ) : null}
+      </div>
     </div>
   );
 }

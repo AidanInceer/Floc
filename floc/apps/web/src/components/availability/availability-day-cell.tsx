@@ -31,24 +31,28 @@ export type DayCellProps = {
   onToggle: () => void;
 };
 
-// Shared cell chrome: one rule under the week, no box around the day (ticket 129).
+// Filled tiles, drawn like the app's month grid.
 const CELL =
+  "relative flex h-11 flex-col items-center justify-center rounded-sm font-mono text-[13px] leading-none transition-colors";
+
+const TRIP_RING = "inset-ring-[1.5px] inset-ring-pen";
+
+// Weather keeps its ruled square: the disc needs the room.
+const WEATHER_CELL =
   "relative flex aspect-square flex-col items-center justify-center border-b border-ink/10 font-mono text-[11px] leading-none";
 
-// Focus ring on the mark, not the cell (ticket 129): the square cell outline
-// drew a blue box around the round mark.
+// Focus ring on the mark, not the cell (ticket 129).
 const FOCUS_RING =
   "group-focus-visible:ring-2 group-focus-visible:ring-pen group-focus-visible:ring-offset-1 group-focus-visible:ring-offset-sheet";
 
-// Three states, not a ramp (ticket 67): either the whole group is free (green)
-// or the day costs somebody (red); no answer yet is the plain sheet, not a bad
-// answer. Exact count rides on `title`/aria, not a number under the mark.
+// Three states, not a ramp (ticket 67): the whole group free, some free, or no
+// answer — which is the plain sheet, not a bad answer. Butter and mint, as the app.
 function groupMark(tally: number, memberCount: number): string {
   return tally === 0
-    ? "text-ink-faint"
+    ? "text-ink-soft"
     : tally === memberCount
-      ? "bg-green-soft text-green"
-      : "bg-red-soft text-red";
+      ? "bg-mint text-mint-ink"
+      : "bg-butter text-butter-ink";
 }
 
 export function DayCell(props: DayCellProps) {
@@ -94,7 +98,7 @@ function WeatherCell({
   // Outside the window: no weather at all, not even a dashed ring (ticket 148).
   if (!inTrip) {
     return (
-      <span role="gridcell" data-date={date} className={cx(CELL, "opacity-70")}>
+      <span role="gridcell" data-date={date} className={cx(WEATHER_CELL, "opacity-70")}>
         {corner}
       </span>
     );
@@ -106,7 +110,7 @@ function WeatherCell({
         role="gridcell"
         data-date={date}
         title={`${date} — beyond the forecast`}
-        className={cx(CELL, past && "opacity-70")}
+        className={cx(WEATHER_CELL, past && "opacity-70")}
       >
         {corner}
         <span
@@ -126,7 +130,7 @@ function WeatherCell({
       aria-label={`${date} — ${weather.label}, high ${weather.hi}°, low ${weather.lo}°`}
       title={`${date} — ${weather.label}, ${weather.hi}° / ${weather.lo}°`}
       onClick={onToggle}
-      className={cx(CELL, "group transition-colors focus-visible:outline-none", past && "opacity-70")}
+      className={cx(WEATHER_CELL, "group transition-colors focus-visible:outline-none", past && "opacity-70")}
     >
       {corner}
       <span
@@ -147,22 +151,17 @@ function WeatherCell({
   );
 }
 
-// Read-only agreement wash for the whole group (ticket 67).
+// Read-only agreement for the whole group (ticket 67). Shaded and counted, so
+// the wash is never the only thing saying it (#204).
 function EveryoneCell({ date, tally, memberCount, past, inTrip }: DayCellProps) {
   return (
     <span
       role="gridcell"
       title={`${date} — ${tally} of ${memberCount} free`}
-      className={cx(CELL, past && "opacity-70")}
+      className={cx(CELL, groupMark(tally, memberCount), inTrip && TRIP_RING, past && "opacity-70")}
     >
-      <span
-        className={cx(
-          "flex h-[70%] w-[70%] items-center justify-center rounded-full",
-          inTrip ? "bg-green font-semibold text-sheet" : groupMark(tally, memberCount),
-        )}
-      >
-        {Number(date.slice(8, 10))}
-      </span>
+      {Number(date.slice(8, 10))}
+      {tally > 0 ? <span className="mt-1 text-[9px] opacity-80">{tally}</span> : null}
     </span>
   );
 }
@@ -175,29 +174,21 @@ function paintLabel(p: DayCellProps, picking: boolean): string {
   return `${p.date} — ${p.tally} of ${p.memberCount} free${trip}${start}${proposed}`;
 }
 
-// The mark's wash: the group's answer while picking, your own blue while
-// painting; the classes are pulled out so the cell itself stays flat.
-function paintMarkClass(p: DayCellProps, picking: boolean): string {
-  return cx(
-    "flex h-[70%] w-[70%] items-center justify-center rounded-full transition-colors",
-    FOCUS_RING,
-    // Picking: the group's answer, chosen days pressed into solid green.
-    picking && (p.inRange ? "bg-green font-semibold text-sheet" : groupMark(p.tally, p.memberCount)),
-    // The span you'd get by clicking here: solid green at half strength (ticket 135).
-    picking && p.pending && "bg-green/45 font-semibold text-sheet",
-    // Start with no end: ringed, else a lone solid day read as a one-day trip.
-    picking && p.openEnd && "ring-2 ring-pen ring-offset-1 ring-offset-sheet",
-    // Blue, because a day you marked is your own answer (ticket 197) — green is
-    // reserved for the run the whole group can do.
-    !picking && p.free && "bg-pen-soft font-semibold text-pen-deep ring-1 ring-pen",
-    !picking && !p.free && "text-ink-soft",
-    p.isToday && !p.free && !p.inRange && "ring-1 ring-pen", // today circled
-  );
+// One fill per state, chosen in order: Tailwind can't be trusted to let a later
+// `bg-*` beat an earlier one in the same class list.
+function paintFill(p: DayCellProps, picking: boolean): string {
+  if (!picking) return p.free ? "bg-peri font-semibold text-peri-ink" : "text-ink";
+  // Start with no end: ringed, else a lone filled day read as a one-day trip.
+  if (p.openEnd) return cx("bg-peri font-semibold text-peri-ink", "inset-ring-2 inset-ring-pen");
+  if (p.inRange) return cx("bg-peri font-semibold text-peri-ink", TRIP_RING);
+  // The span you'd get by clicking here (ticket 135).
+  if (p.pending) return "bg-peri/60 text-peri-ink";
+  return groupMark(p.tally, p.memberCount);
 }
 
 // Two things one cell shows (ticket 128): painting availability it's on/off;
 // picking the window it shows the group's washes, since choosing a week is a
-// decision about who can make it. An in-window day overrides with solid green.
+// decision about who can make it.
 function PaintCell(p: DayCellProps) {
   const picking = p.view === "dates";
   const marked = picking ? p.inRange : p.free;
@@ -219,9 +210,15 @@ function PaintCell(p: DayCellProps) {
       onClick={(e) => {
         if (e.detail === 0) p.onToggle();
       }}
-      className={cx(CELL, "group transition-colors focus-visible:outline-none", p.past && "opacity-70")}
+      className={cx(
+        CELL,
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pen",
+        paintFill(p, picking),
+        p.isToday && !marked && !p.pending && "inset-ring-1 inset-ring-rule-strong",
+        p.past && "opacity-70",
+      )}
     >
-      <span className={paintMarkClass(p, picking)}>{Number(p.date.slice(8, 10))}</span>
+      {Number(p.date.slice(8, 10))}
     </button>
   );
 }
