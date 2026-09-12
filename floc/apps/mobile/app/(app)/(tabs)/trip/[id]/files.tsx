@@ -38,7 +38,6 @@ import {
   Toggle,
 } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
-import { useSession } from "@/lib/auth";
 import { space } from "@/lib/theme";
 
 const CATEGORY_OPTIONS = DOC_CATEGORIES.map((value) => ({
@@ -52,7 +51,6 @@ export default function Files() {
   const ready = Number.isFinite(tripId);
   const { c } = useTheme();
   const queryClient = useQueryClient();
-  const { data: session } = useSession();
 
   const [category, setCategory] = useState<DocCategory>("other");
   const [shared, setShared] = useState(true);
@@ -96,8 +94,6 @@ export default function Files() {
 
   if (files.isPending) return <Loading />;
   if (files.isError) return <Failed onRetry={() => files.refetch()} />;
-
-  const mine = session?.user.id;
 
   return (
     <ScrollView
@@ -157,16 +153,12 @@ export default function Files() {
                   refile.mutate({ tripId, fileId: file.id, category: next })
                 }
               />
-              {file.uploadedBy === mine ? (
-                <Button
-                  label="Remove"
-                  variant="danger"
-                  busy={remove.isPending}
-                  onPress={() => remove.mutate({ tripId, fileId: file.id })}
-                />
-              ) : (
-                <Body tone="ink-3">Only {file.uploaderName} can remove this.</Body>
-              )}
+              <Button
+                label="Remove"
+                variant="danger"
+                busy={remove.isPending}
+                onPress={() => remove.mutate({ tripId, fileId: file.id })}
+              />
             </Card>
           ))
         )}

@@ -1,11 +1,11 @@
 "use client";
 
-// Add/edit event form — one form, two mount points (ticket 103): editing
-// happens server-side in a detail panel, adding happens client-side wherever
-// the grid was clicked. dayId/eventId ride as hidden fields rather than bound
-// into the action, since the client picked them; submitEvent re-checks (rule 5).
+// Add/edit event form (tickets 103, 321). `autosave` is the modal's edit mode:
+// no submit button, saves on change. dayId/eventId ride as hidden fields since
+// the client picked them; submitEvent re-checks (rule 5).
 
-import type { ComponentProps } from "react";
+import { useCallback, useRef, type ComponentProps } from "react";
+import { useFormStatus } from "react-dom";
 
 import { SubmitButton } from "@/components/system/client-ui";
 import { EventTimeFields } from "@/components/days/event-time-fields";
@@ -33,15 +33,36 @@ export function EventForm({
   action,
   searchPlaces,
   defaults,
+  autosave = false,
 }: {
   action: (formData: FormData) => Promise<void>;
   searchPlaces: PlaceSearch;
   defaults: EventFormDefaults;
+  /** In the event modal: no submit button, saves on change (ticket 321). */
+  autosave?: boolean;
 }) {
+  const formRef = useRef<HTMLFormElement>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const save = useCallback(() => {
+    if (timer.current) clearTimeout(timer.current);
+    formRef.current?.requestSubmit();
+  }, []);
+  const saveSoon = useCallback(() => {
+    if (!autosave) return;
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => formRef.current?.requestSubmit(), 700);
+  }, [autosave]);
+
   // Name first (ticket 74): the thought before the paperwork, and the form's
   // one required field is the first thing you meet.
   return (
-    <form action={action}>
+    <form
+      ref={formRef}
+      action={action}
+      onChange={autosave ? saveSoon : undefined}
+      onBlur={autosave ? save : undefined}
+    >
       <input type="hidden" name="dayId" value={defaults.dayId} />
       {defaults.eventId ? (
         <input type="hidden" name="eventId" value={defaults.eventId} />
@@ -65,6 +86,7 @@ export function EventForm({
           label="Place (optional)"
           defaultName={defaults.placeName ?? ""}
           search={searchPlaces}
+          onSelect={autosave ? save : undefined}
         />
         {/* step={60}: a quarter-hour picker quietly rounded 10:50 to 10:45. */}
         <EventTimeFields
@@ -79,8 +101,22 @@ export function EventForm({
         >
           <Textarea name="note" defaultValue={defaults.note ?? ""} rows={2} />
         </Field>
-        <SubmitButton>{defaults.eventId ? "Save event" : "Add event"}</SubmitButton>
+        {autosave ? (
+          <SaveStatus />
+        ) : (
+          <SubmitButton>{defaults.eventId ? "Save event" : "Add event"}</SubmitButton>
+        )}
       </Stack>
     </form>
+  );
+}
+
+/** The autosave form's only feedback — a word, never colour alone. */
+function SaveStatus() {
+  const { pending } = useFormStatus();
+  return (
+    <p className="text-sm text-ink-faint" role="status" aria-live="polite">
+      {pending ? "Saving…" : "Saved automatically"}
+    </p>
   );
 }

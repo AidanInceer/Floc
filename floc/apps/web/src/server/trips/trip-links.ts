@@ -11,21 +11,12 @@
  */
 import "server-only";
 
-import { and, asc, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
-import { tripLink, user } from "@/db/schema";
+import { tripLink } from "@/db/schema";
 import { capText } from "@floc/core/text/text";
-import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
-
-export type TripLinkRow = {
-  id: number;
-  url: string;
-  label: string;
-  createdBy: string;
-  authorName: string;
-};
 
 /** Returns the normalised string, not a boolean, so "is this a link" and "what do we store" can't disagree. */
 export function readWebUrl(value: unknown): string | null {
@@ -56,27 +47,6 @@ export function labelFor(url: string, label: string | null): string {
   }
 }
 
-export async function listTripLinks(tripId: number): Promise<TripLinkRow[]> {
-  const rows = await db
-    .select({
-      id: tripLink.id,
-      url: tripLink.url,
-      label: tripLink.label,
-      createdBy: tripLink.createdBy,
-      authorName: user.name,
-    })
-    .from(tripLink)
-    .innerJoin(user, eq(user.id, tripLink.createdBy))
-    .where(and(eq(tripLink.tripId, tripId), isNull(tripLink.deletedAt)))
-    .orderBy(asc(tripLink.id)) // oldest first: a shelf, not a feed
-    .limit(LIMITS.tripLinks)
-    .all();
-
-  return bounded(rows, "tripLinks", `trip ${tripId}`).map((r) => ({
-    ...r,
-    label: labelFor(r.url, r.label),
-  }));
-}
 
 export async function insertTripLink(args: {
   tripId: number;

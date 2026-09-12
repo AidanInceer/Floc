@@ -43,7 +43,7 @@ export const filesRouter = router({
       return ctx.port.uploadFile(ctx.viewer.id, tripId, file);
     }),
 
-  /** Uploader only — a booking somebody else is relying on is not yours to bin. */
+  /** Any member's to do — the resolver already refused what they cannot see. */
   remove: tripProcedure
     .input(z.object({ fileId: z.number().int().positive() }))
     .mutation(async ({ ctx, input }) => {

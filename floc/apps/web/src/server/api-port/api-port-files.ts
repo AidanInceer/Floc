@@ -107,9 +107,6 @@ export const filesPort: FilesPort = {
     // The resolver binds the id to this trip, so another trip's file is not
     // addressable rather than merely refused (ticket 106).
     const doc = await access.document(fileId);
-    if (doc.uploadedBy !== access.viewer.id) {
-      throw new Error("Only whoever uploaded it can remove it.");
-    }
 
     await softDeleteDocument(doc.id);
     await dropDocument(doc.storageKey);

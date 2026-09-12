@@ -3,6 +3,8 @@
  * the Overview block (client) and the Files page (server) render the same
  * thing. Anything that acts on the row arrives as `children`.
  */
+import Link from "next/link";
+
 import {
   DOC_CATEGORY_LABELS,
   DOC_CATEGORY_SKINS,
@@ -21,6 +23,9 @@ export type DocumentRowData = {
   uploadedBy: string;
   uploaderName: string;
   ownerId: string | null;
+  /** Set when the file sits on a live event (ticket 323). */
+  dayEventId?: number | null;
+  eventTitle?: string | null;
 };
 
 /** Blush for a PDF, peri for an image — with the word, never the colour alone. */
@@ -85,6 +90,14 @@ export function DocumentRow({
       </div>
       <div className="flex items-center gap-3 pl-14 sm:pl-0">
         {filing ?? <CategoryChip category={doc.category} />}
+        {doc.dayEventId ? (
+          <Link
+            href={`/trip/${tripId}/days?event=${doc.dayEventId}`}
+            className="shrink-0 truncate text-xs text-pen hover:underline"
+          >
+            on {doc.eventTitle ?? "an event"}
+          </Link>
+        ) : null}
         <span className="nums shrink-0 text-xs text-ink-soft">
           {mine ? "You" : doc.uploaderName} &middot; {formatBytes(doc.sizeBytes)}
         </span>

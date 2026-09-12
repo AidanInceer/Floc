@@ -2,7 +2,7 @@
 
 /**
  * The Days calendar's chrome (ticket 243, split from `days-calendar`): the
- * toolbar, the event/notes side pane, and the add-event dialog. All drawing and
+ * toolbar, the event modal, and the add-event dialog. All drawing and
  * dispatch — no gesture logic lives here.
  */
 import {
@@ -13,6 +13,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
+import { EventMarkers } from "@/components/days/event-markers";
 
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
 
@@ -248,7 +249,7 @@ export function AllDayStrip({
                 )}
               >
                 {event.title}
-                {event.hasNote ? <span aria-hidden> ✎</span> : null}
+                <EventMarkers hasNote={event.hasNote} hasFiles={event.hasFiles} />
               </button>
             ))}
         </div>
@@ -389,63 +390,55 @@ export function CalendarGrid({
   );
 }
 
-export function EventPane({
-  tab,
-  setTab,
+/**
+ * The event modal (ticket 321) — one centred sheet holding the event's facts
+ * and its comment thread. Replaced the side pane and its Event/Trip-notes
+ * tabs; trip-wide talk lives on the Notes page now. Backdrop or ✕ closes,
+ * matching `AddEventDialog`.
+ */
+export function EventModal({
+  open,
   onClose,
-  tripThread,
   panel,
 }: {
-  tab: "event" | "notes";
-  setTab: (tab: "event" | "notes") => void;
+  open: boolean;
   onClose: () => void;
-  tripThread: ReactNode;
   panel: ReactNode;
 }) {
-  return (
-    <aside className="flex min-w-0 flex-col bg-sheet">
-      <div className="flex border-b border-rule bg-sheet-2">
-        <div role="tablist" className="flex min-w-0 flex-1">
-          {(
-            [
-              ["event", "Event"],
-              ["notes", "Trip notes"],
-            ] as const
-          ).map(([value, label]) => (
-            <button
-              key={value}
-              role="tab"
-              type="button"
-              aria-selected={tab === value}
-              onClick={() => setTab(value)}
-              className={cx(
-                "flex-1 border-b-2 px-2 py-2 text-sm",
-                tab === value
-                  ? "border-pen bg-sheet font-semibold text-ink"
-                  : "border-transparent text-ink-soft hover:text-ink",
-              )}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-        {/* Clicking off the event closes the pane, but only once you know that —
-            the ✕ is the visible way out, where a panel's close always is. */}
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close the event pane"
-          title="Close"
-          className="border-b-2 border-transparent px-3 py-2 text-sm text-ink-soft hover:text-ink"
-        >
-          ✕
-        </button>
-      </div>
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (open && !dialog.open) dialog.showModal();
+    if (!open && dialog.open) dialog.close();
+  }, [open]);
 
-      <div role="tabpanel" className="max-h-[70vh] overflow-y-auto p-3">
-        {tab === "notes" ? tripThread : panel}
-      </div>
-    </aside>
+  return (
+    <dialog
+      ref={dialogRef}
+      onClose={onClose}
+      onClick={(ev) => {
+        if (ev.target === dialogRef.current) onClose();
+      }}
+      className="m-auto w-full max-w-lg rounded-lg bg-sheet p-0 text-ink shadow-card backdrop:bg-black/30"
+    >
+      {open ? (
+        <>
+          <div className="flex items-center justify-end border-b border-rule bg-sheet-2 px-3 py-2">
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              title="Close"
+              className="rounded-sm px-2 text-lg leading-none text-ink-faint hover:text-ink"
+            >
+              ×
+            </button>
+          </div>
+          <div className="max-h-[75vh] overflow-y-auto p-4">{panel}</div>
+        </>
+      ) : null}
+    </dialog>
   );
 }
 

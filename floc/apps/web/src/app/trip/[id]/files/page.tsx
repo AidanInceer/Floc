@@ -168,18 +168,16 @@ function FileCard({
                 />
               }
             >
-              {doc.uploadedBy === viewerId ? (
-                <form action={removeDocument.bind(null, tripId, doc.id)}>
-                  <ConfirmSubmit
-                    variant="ghost"
-                    confirmVariant="danger"
-                    confirmLabel="Remove it"
-                    message="Remove this file? It goes for everyone who could see it."
-                  >
-                    Remove
-                  </ConfirmSubmit>
-                </form>
-              ) : null}
+              <form action={removeDocument.bind(null, tripId, doc.id)}>
+                <ConfirmSubmit
+                  variant="ghost"
+                  confirmVariant="danger"
+                  confirmLabel="Remove it"
+                  message="Remove this file? It goes for everyone who could see it."
+                >
+                  Remove
+                </ConfirmSubmit>
+              </form>
             </DocumentRow>
           ))}
         </ul>

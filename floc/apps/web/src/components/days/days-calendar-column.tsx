@@ -7,6 +7,7 @@
  * they mean live in `lib/calendar-gestures.ts`.
  */
 import { useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
+import { EventMarkers } from "@/components/days/event-markers";
 
 import { cx } from "@/components/system/ui";
 import {
@@ -278,7 +279,7 @@ function EventBlock({
     >
       <span className="block font-semibold">
         {event.title}
-        {event.hasNote ? <span aria-hidden> ✎</span> : null}
+        <EventMarkers hasNote={event.hasNote} hasFiles={event.hasFiles} />
       </span>
       <span className="nums block text-[10px] opacity-85">
         {formatSpan(event)}

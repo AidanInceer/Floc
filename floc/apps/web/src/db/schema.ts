@@ -473,11 +473,22 @@ export const document = sqliteTable(
     category: text("category", { enum: DOC_CATEGORIES })
       .notNull()
       .default("other"),
+    /**
+     * Where in the itinerary it sits. Either, neither, or (rarely) both set:
+     * a ticket on the ferry day, or on the ferry event. `set null` — deleting
+     * the day or event only unattaches the file, never bins it.
+     */
+    dayId: integer("day_id").references(() => day.id, { onDelete: "set null" }),
+    dayEventId: integer("day_event_id").references(() => dayEvent.id, {
+      onDelete: "set null",
+    }),
     ...audit,
   },
   (t) => [
     index("document_trip_idx").on(t.tripId),
     index("document_owner_idx").on(t.tripId, t.ownerId),
+    index("document_day_idx").on(t.dayId),
+    index("document_day_event_idx").on(t.dayEventId),
   ],
 );
 

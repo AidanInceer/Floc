@@ -2,8 +2,8 @@
 
 /**
  * Days as a calendar (ticket 103) — hours down, days across, events as blocks.
- * Owns geometry/gestures only; `days/page.tsx` owns the content (detail panel,
- * trip thread) as server-rendered nodes, since those are full of Server Actions.
+ * Owns geometry/gestures only; `days/page.tsx` owns the content (the event
+ * modal's panel) as server-rendered nodes, since those are full of Server Actions.
  */
 
 import {
@@ -26,7 +26,7 @@ import {
   CalendarGrid,
   CalendarToolbar,
   DayHeads,
-  EventPane,
+  EventModal,
 } from "@/components/days/days-calendar-chrome";
 import { OvernightBandRow } from "@/components/days/days-overnight-band";
 import { OvernightDialog } from "@/components/days/days-overnight-dialog";
@@ -42,7 +42,6 @@ import {
   type Landing,
   type OvernightPlace,
 } from "@/components/days/days-calendar-shared";
-import { cx } from "@/components/system/ui";
 import {
   LAST_START_MINUTE,
   clamp,
@@ -83,19 +82,18 @@ export function DaysCalendar({
   days,
   events,
   panels,
-  tripThread,
   removeDayControls,
   submitEvent,
   rescheduleEvent,
   moveEventToDay,
   setOvernight,
   searchPlaces,
+  openEventId,
 }: {
   days: CalendarDay[];
   events: CalendarEvent[];
   /** Server-rendered detail panel per event id. */
   panels: Record<number, ReactNode>;
-  tripThread: ReactNode;
   removeDayControls: Record<number, ReactNode>;
   submitEvent: (formData: FormData) => Promise<void>;
   rescheduleEvent: (
@@ -112,6 +110,8 @@ export function DaysCalendar({
     place: OvernightPlace | null,
   ) => Promise<void>;
   searchPlaces: PlaceSearch;
+  /** Opened on arrival, from a file's "on [event]" tag (ticket 323). */
+  openEventId?: number | null;
 }) {
   const hasToday = days.some((d) => d.isToday);
   const todayIndex = Math.max(
@@ -123,7 +123,6 @@ export function DaysCalendar({
   const [anchor, setAnchor] = useState(todayIndex);
   const [hidden, setHidden] = useState<ReadonlySet<DayEventType>>(new Set());
   const [selected, setSelected] = useState<number | null>(null);
-  const [tab, setTab] = useState<"event" | "notes">("event");
   const [adding, setAdding] = useState<{ dayId: number; time: string } | null>(null);
   const [announcement, setAnnouncement] = useState("");
 
@@ -151,6 +150,19 @@ export function DaysCalendar({
     setHeadHeight(node.offsetHeight);
     return () => observer.disconnect();
   }, []);
+
+  // Once per id, not once per render: after this the selection is the user's,
+  // so re-running would reopen the modal every time they close it.
+  const arrivedOn = useRef<number | null>(null);
+  useEffect(() => {
+    if (openEventId == null || arrivedOn.current === openEventId) return;
+    arrivedOn.current = openEventId;
+    const event = events.find((e) => e.id === openEventId);
+    if (!event) return;
+    const index = days.findIndex((d) => d.id === event.dayId);
+    if (index >= 0) setAnchor(index);
+    setSelected(openEventId);
+  }, [openEventId, events, days]);
 
   const say = useCallback((message: string) => setAnnouncement(message), []);
 
@@ -368,7 +380,6 @@ export function DaysCalendar({
   const select = (id: number) => {
     keptSelection.current = true;
     setSelected(id);
-    setTab("event");
   };
 
   const onCalendarClick = () => {
@@ -602,18 +613,8 @@ export function DaysCalendar({
         setView={setView}
       />
 
-      {/* The pane's 20rem only appears once an event is picked — the calendar
-          is what the page is for otherwise. */}
-      <div
-        className={cx(
-          "grid grid-cols-1",
-          selectedEvent && "lg:grid-cols-[minmax(0,1fr)_20rem]",
-        )}
-      >
-        <div
-          onClick={onCalendarClick}
-          className="min-w-0 border-b border-rule lg:border-r lg:border-b-0"
-        >
+      <div className="grid grid-cols-1">
+        <div onClick={onCalendarClick} className="min-w-0">
           {/* ONE scroll container for both axes — load-bearing. `position:
               sticky` resolves against the nearest scrolling ancestor, so
               separate horizontal/vertical scrollers would leave the gutter
@@ -678,16 +679,13 @@ export function DaysCalendar({
           </div>
         </div>
 
-        {selectedEvent ? (
-          <EventPane
-            tab={tab}
-            setTab={setTab}
-            onClose={() => setSelected(null)}
-            tripThread={tripThread}
-            panel={panels[selectedEvent.id]}
-          />
-        ) : null}
       </div>
+
+      <EventModal
+        open={selectedEvent != null}
+        onClose={() => setSelected(null)}
+        panel={selectedEvent ? panels[selectedEvent.id] : null}
+      />
 
       {/* Every gesture says what it did: a drag that reports itself only
           visually reports itself to some of the group. */}

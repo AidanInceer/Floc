@@ -127,13 +127,9 @@ describe("removing and re-filing", () => {
     return (await webPort.listFiles(world.admin, world.ours.id))[0];
   }
 
-  it("lets the uploader remove it and nobody else", async () => {
+  it("lets any member remove a shared file, uploader or not", async () => {
     const file = await oneFile();
-    await expect(
-      webPort.deleteFile(world.member, world.ours.id, file.id),
-    ).rejects.toThrow();
-
-    await webPort.deleteFile(world.admin, world.ours.id, file.id);
+    await webPort.deleteFile(world.member, world.ours.id, file.id);
     expect(await webPort.listFiles(world.admin, world.ours.id)).toEqual([]);
   });
 

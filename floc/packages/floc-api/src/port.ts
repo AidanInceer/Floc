@@ -890,8 +890,8 @@ export type FlocPort = {
   uploadFile(viewerId: string, tripId: number, input: FileUpload): Promise<string | null>;
 
   /**
-   * Uploader only — deliberately stricter than packing, where any member may
-   * drop a shared line. A booking somebody else is relying on is not yours to bin.
+   * Any member's to do, like a shared packing line. A private file is never
+   * handed to anybody but its owner, so it is not addressable by the rest.
    */
   deleteFile(viewerId: string, tripId: number, fileId: number): Promise<void>;
 

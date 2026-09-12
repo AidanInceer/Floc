@@ -13,6 +13,7 @@ import { requireTripAccess } from "@/server/access";
 import {
   countDocuments,
   insertDocument,
+  placeDocument,
   setDocumentCategory,
   softDeleteDocument,
 } from "@/server/documents/documents";
@@ -46,6 +47,11 @@ export async function uploadDocument(
     return { error: "This trip is holding as many files as it can" };
   }
 
+  // Uploaded straight onto an event (ticket 322). Resolved, not trusted: the
+  // id arrives as a hidden field.
+  const onEvent = formData.get("dayEventId");
+  const dayEventId = onEvent ? (await access.event(Number(onEvent))).id : null;
+
   const storageKey = await putDocument(
     new Uint8Array(await file.arrayBuffer()),
     type,
@@ -64,6 +70,7 @@ export async function uploadDocument(
       mimeType: type.mimeType,
       sizeBytes: file.size,
       category: parseDocCategory(formData.get("category")),
+      dayEventId,
     });
   } catch (err) {
     await dropDocument(storageKey);
@@ -74,15 +81,13 @@ export async function uploadDocument(
 }
 
 /**
- * Uploader only — deliberately stricter than packing, where any member may drop
- * a shared line. A booking someone else is relying on is not yours to bin.
+ * Any member may remove a shared file, the way any member may drop a shared
+ * packing line. A private file stays its owner's alone: the resolver never
+ * hands one to anybody else, so it is not addressable here.
  */
 export async function removeDocument(tripId: number, documentId: number) {
   const access = await requireTripAccess(tripId);
   const doc = await access.document(documentId);
-  if (doc.uploadedBy !== access.viewer.id) {
-    throw new Error("Only whoever uploaded it can remove it");
-  }
 
   await softDeleteDocument(doc.id);
   await dropDocument(doc.storageKey);
@@ -104,6 +109,34 @@ export async function setCategory(
   const doc = await access.document(documentId);
 
   await setDocumentCategory(doc.id, parseDocCategory(formData.get("category")));
+
+  refresh({ kind: "documents", tripId: access.trip.id });
+}
+
+/**
+ * Park an existing file on an event, or take it off again (ticket 322). Any
+ * member who can see the row may: filing is housekeeping, like the category.
+ * Both ids go through the resolvers, so another trip's is not expressible.
+ */
+export async function attachToEvent(
+  tripId: number,
+  dayEventId: number,
+  formData: FormData,
+) {
+  const access = await requireTripAccess(tripId);
+  const event = await access.event(dayEventId);
+  const doc = await access.document(Number(formData.get("documentId")));
+
+  await placeDocument(doc.id, { dayId: null, dayEventId: event.id });
+
+  refresh({ kind: "documents", tripId: access.trip.id });
+}
+
+export async function detachFromEvent(tripId: number, documentId: number) {
+  const access = await requireTripAccess(tripId);
+  const doc = await access.document(documentId);
+
+  await placeDocument(doc.id, { dayId: null, dayEventId: null });
 
   refresh({ kind: "documents", tripId: access.trip.id });
 }
