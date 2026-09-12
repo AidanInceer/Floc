@@ -14,8 +14,14 @@ import {
   toMajorInput,
 } from "@floc/core/money/money";
 import { CURRENCIES } from "@floc/core/money/currency";
-import { formatDate } from "@floc/core/dates/dates";
-import { Button, ErrorText, Field, Input, Select, Stack } from "@/components/system/ui";
+import {
+  Button,
+  ErrorText,
+  Field,
+  Input,
+  Select,
+  Stack,
+} from "@/components/system/ui";
 import { SubmitButton, useSheetClose } from "@/components/system/client-ui";
 
 function SwapGlyph() {
@@ -60,7 +66,9 @@ export function ConvertAmount({
   const canConvert = rate !== null && home !== currency;
 
   if (!canConvert) {
-    return <span className={className}>{formatMoney(amountMinor, currency)}</span>;
+    return (
+      <span className={className}>{formatMoney(amountMinor, currency)}</span>
+    );
   }
 
   const homeMinor = convertMinor(amountMinor, currency, home, rate as number);
@@ -80,7 +88,10 @@ export function ConvertAmount({
         key={showHome ? "home" : "orig"}
         style={{ animation: "fadeSwap .18s ease" }}
       >
-        {formatTicker(showHome ? homeMinor : amountMinor, showHome ? home : currency)}
+        {formatTicker(
+          showHome ? homeMinor : amountMinor,
+          showHome ? home : currency,
+        )}
       </span>
       <style>{`@keyframes fadeSwap{from{opacity:.3}to{opacity:1}}`}</style>
     </button>
@@ -151,7 +162,9 @@ export function SettleUpForm({
             name="amount"
             inputMode="decimal"
             value={amount}
-            onChange={(e) => setAmount(sanitizeAmountInput(e.target.value, currency))}
+            onChange={(e) =>
+              setAmount(sanitizeAmountInput(e.target.value, currency))
+            }
             required
           />
         </Field>
@@ -176,7 +189,9 @@ export function SettleUpForm({
               The debt stays {currency}. Floc converts at the day&rsquo;s
               published rate and keeps that rate on this payment forever.
             </p>
-            <Field label={`What you handed over (${payCurrency}) — only if no rate is available`}>
+            <Field
+              label={`What you handed over (${payCurrency}) — only if no rate is available`}
+            >
               <Input
                 name="payAmount"
                 inputMode="decimal"
@@ -201,51 +216,5 @@ export function SettleUpForm({
         </div>
       </Stack>
     </form>
-  );
-}
-
-/**
- * Display-only combined total across a multi-currency trip (ticket 253). The
- * per-currency rows above it are the truth; this is a preview, so it always
- * carries `≈` and names the day its rate was published. Nothing here is stored,
- * and no balance is derived from it.
- */
-export function CombinedTotal({
-  totalMinor,
-  home,
-  rateDate,
-  stale,
-}: {
-  /** Null when a rate is missing for one of the currencies in play. */
-  totalMinor: number | null;
-  home: Currency;
-  rateDate: string;
-  stale: boolean;
-}) {
-  const [show, setShow] = useState(false);
-  if (totalMinor === null) return null;
-
-  return (
-    <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
-      <button
-        type="button"
-        onClick={() => setShow((v) => !v)}
-        className="font-semibold text-pen"
-      >
-        {show ? `Hide ${home} totals` : `Show totals in ${home}`}
-      </button>
-      {show ? (
-        <>
-          <span className="nums font-medium">
-            ≈ {formatTicker(totalMinor, home)}
-          </span>
-          <span className="text-ink-soft">
-            {stale
-              ? `Converted at the rate published on ${formatDate(rateDate)} — the latest Floc could reach.`
-              : `Converted at the rate published on ${formatDate(rateDate)}.`}
-          </span>
-        </>
-      ) : null}
-    </div>
   );
 }

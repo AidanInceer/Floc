@@ -6,7 +6,7 @@
  * the one that opens the full roster.
  *
  * A seat colour comes from `whoTone`, computed from the display name, and is
- * never a stored column. `Admin` is a word, so the four powers are legible
+ * never a stored column. `Admin` is a word, so the three powers are legible
  * without seeing a colour at all (rule 6, #204).
  */
 import { whoTone } from "@floc/core/people/who";

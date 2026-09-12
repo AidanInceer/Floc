@@ -10,7 +10,7 @@
 const TAG_SEPARATOR = ", ";
 
 /** Beyond this a trip card is a wall of pills, not a label. */
-export const MAX_TAGS = 8;
+export const MAX_TAGS = 5;
 export const MAX_TAG_LENGTH = 24;
 
 /**
@@ -47,7 +47,9 @@ export function formatTags(tags: string[] | null | undefined): string {
  */
 export function readTags(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
-  return value.filter((t): t is string => typeof t === "string" && t.length > 0);
+  return value
+    .filter((t): t is string => typeof t === "string" && t.length > 0)
+    .slice(0, MAX_TAGS); // rows saved under the old limit of eight hold more
 }
 
 /**

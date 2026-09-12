@@ -107,7 +107,16 @@ export default async function TripsPage({
         <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <NewTripTile friends={friends} first={cards.length === 0} />
         </ul>
-      ) : (
+      ) : null}
+      {cards.length === 0 ? (
+        <p className="mt-4 text-center text-sm text-ink-soft">
+          or{" "}
+          <Link href="/explore" className="text-pen hover:underline">
+            borrow one from Explore
+          </Link>
+        </p>
+      ) : null}
+      {live.length === 0 ? null : (
         <TripGrid trips={live} view={view} className="mt-8" />
       )}
 
@@ -190,15 +199,15 @@ function NewTripTile({ friends, first }: { friends: Person[]; first?: boolean })
 
 function InviteList({ invites }: { invites: PendingInvite[] }) {
   return (
-    <section className="mt-8 rounded-lg bg-butter p-6 text-butter-ink">
-      <p className="typed text-current">
+    <section className="mt-8">
+      <p className="typed">
         {invites.length === 1 ? "An invitation" : "Invitations"} · waiting on you
       </p>
-      <Stack gap={3} className="mt-4">
+      <Stack gap={3} className="mt-3">
         {invites.map((invite) => (
           <div
             key={invite.tripId}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-sheet/70 px-4 py-3"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-peri-edge bg-peri px-4 py-3 text-ink"
           >
             <div className="flex min-w-0 items-center gap-2.5">
               <Avatar name={invite.fromName} src={invite.fromAvatarUrl} />

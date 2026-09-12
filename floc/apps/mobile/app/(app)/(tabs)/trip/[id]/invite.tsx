@@ -9,8 +9,6 @@
  * a trip invite a backdoor friend request (ticket 146). Anyone already on the
  * roster or already asked is filtered out on the server, so this list is what
  * is left rather than everything with the used ones greyed out.
- *
- * ADMIN-ONLY (rule 6). A member is told so, not shown dead buttons.
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -43,8 +41,6 @@ export default function Invite() {
   });
 
   if (panel.isPending) return <Loading />;
-  // Admin-only on the server, so a member's refusal arrives here as an error.
-  // What is missing is one of the two things text still carries.
   if (panel.isError) {
     return <Failed onRetry={() => panel.refetch()} />;
   }

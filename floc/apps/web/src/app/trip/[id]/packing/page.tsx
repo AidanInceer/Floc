@@ -456,8 +456,8 @@ export default async function PackingPage({
           }
         >
           {mine.length === 0 ? (
-            <PackingCardEmpty title="Your bag’s empty.">
-              Only you can see this list.
+            <PackingCardEmpty title="Start your bag.">
+              Add the first thing above. Only you can see this list.
             </PackingCardEmpty>
           ) : bagGroups.length === 0 ? (
             <PackingCardEmpty title="Nothing in that category.">

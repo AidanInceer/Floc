@@ -17,11 +17,14 @@
  *
  * PLANNING ORDER (see the trip layout). Not alphabetical, not by traffic.
  */
+import type { TourStopKey } from "@floc/core/trip/tour";
 import { useRouter } from "expo-router";
+import { useEffect, useRef } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useTheme } from "../system/theme";
+import { useTour, useTourTarget } from "../tour/tour-context";
 import { fonts, radius, size, space } from "@/lib/theme";
 
 export type Section = {
@@ -147,6 +150,47 @@ function TitleBar({
   );
 }
 
+function RailItem({
+  section,
+  on,
+  onGo,
+  onX,
+}: {
+  section: Section;
+  on: boolean;
+  onGo: (route: string) => void;
+  onX: (x: number) => void;
+}) {
+  const { c } = useTheme();
+  const target = useTourTarget(section.route === "" ? null : (section.route as TourStopKey));
+  return (
+    <Pressable
+      accessibilityRole="tab"
+      accessibilityState={{ selected: on }}
+      onPress={() => onGo(section.route)}
+      onLayout={(event) => onX(event.nativeEvent.layout.x)}
+      style={{
+        paddingBottom: space.md,
+        borderBottomWidth: 2,
+        borderBottomColor: on ? c.pen : "transparent",
+      }}
+    >
+      {/* Why: the tour lights the label, not the tab's underline padding (#315). */}
+      <View ref={target}>
+        <Text
+          style={{
+            color: on ? c.ink : c["ink-2"],
+            fontFamily: on ? fonts.sansBold : fonts.sans,
+            fontSize: size.body,
+          }}
+        >
+          {section.label}
+        </Text>
+      </View>
+    </Pressable>
+  );
+}
+
 export function TripHeader({
   title,
   sections,
@@ -166,6 +210,16 @@ export function TripHeader({
 }) {
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
+  const rail = useRef<ScrollView>(null);
+  const railX = useRef(new Map<string, number>());
+  const tour = useTour();
+  const lit = tour?.active;
+
+  // Why: the rail scrolls sideways, so a tour stop off the edge is brought into view first (#315).
+  useEffect(() => {
+    const x = lit ? railX.current.get(lit) : undefined;
+    if (x !== undefined) rail.current?.scrollTo({ x: Math.max(0, x - space.lg * 3), animated: true });
+  }, [lit]);
 
   return (
     <View
@@ -179,36 +233,20 @@ export function TripHeader({
       <TitleBar title={title} balance={balance} owing={owing} onGo={onGo} />
 
       <ScrollView
+        ref={rail}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: space.lg, gap: space.lg }}
       >
-        {sections.map((section) => {
-          const on = section.route === current;
-          return (
-            <Pressable
-              key={section.route}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: on }}
-              onPress={() => onGo(section.route)}
-              style={{
-                paddingBottom: space.md,
-                borderBottomWidth: 2,
-                borderBottomColor: on ? c.pen : "transparent",
-              }}
-            >
-              <Text
-                style={{
-                  color: on ? c.ink : c["ink-2"],
-                  fontFamily: on ? fonts.sansBold : fonts.sans,
-                  fontSize: size.body,
-                }}
-              >
-                {section.label}
-              </Text>
-            </Pressable>
-          );
-        })}
+        {sections.map((section) => (
+          <RailItem
+            key={section.route}
+            section={section}
+            on={section.route === current}
+            onGo={onGo}
+            onX={(x) => railX.current.set(section.route, x)}
+          />
+        ))}
       </ScrollView>
     </View>
   );

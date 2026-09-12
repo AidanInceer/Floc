@@ -25,8 +25,14 @@
  */
 import type { Currency } from "@floc/core/money/currency";
 import { computeSplits, formatMoney, parseMoney } from "@floc/core/money/money";
-import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { useState, type ReactNode } from "react";
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
+} from "react-native";
 
 import {
   DEFAULT_CATEGORY,
@@ -34,6 +40,7 @@ import {
 } from "@floc/core/money/expense-category";
 
 import { useTheme } from "../system/theme";
+import { TickGlyph } from "../system/glyphs";
 import { Body, Label } from "../system/ui";
 import { fonts, radius, size, space } from "@/lib/theme";
 
@@ -155,35 +162,37 @@ export function Pills({
   );
 }
 
-/** The small number beside a person, in the two modes where the answer is a figure. */
-export function Weight({
+/**
+ * The amount typed against one person, in Exact.
+ *
+ * The currency is said to the LEFT of the box and the box has a real edge
+ * (#317): a hairline field holding a greyed "GBP" read as a filled-in amount
+ * rather than as somewhere to type one.
+ */
+function MoneyInput({
   person,
-  mode,
-  currency,
   value,
   onChange,
 }: {
   person: Person;
-  mode: Mode;
-  currency: Currency;
   value: string;
   onChange: (value: string) => void;
 }) {
   const { c } = useTheme();
   return (
     <TextInput
-      accessibilityLabel={mode === "exact" ? `${person.name}, amount` : `${person.name}, shares`}
+      accessibilityLabel={`${person.name}, amount`}
       value={value}
       onChangeText={onChange}
       keyboardType="decimal-pad"
       inputMode="decimal"
-      placeholder={mode === "exact" ? currency : "1"}
+      placeholder="0.00"
       placeholderTextColor={c["ink-3"]}
       style={{
-        width: 76,
+        width: 96,
         borderRadius: radius.md,
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: c.rule,
+        borderWidth: 1,
+        borderColor: c["ink-3"],
         backgroundColor: c.sheet,
         paddingVertical: space.xs,
         paddingHorizontal: space.sm,
@@ -196,15 +205,165 @@ export function Weight({
   );
 }
 
+/** Minus and plus, because a share is counted, not typed (#317). */
+function Stepper({
+  person,
+  value,
+  onChange,
+}: {
+  person: Person;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const { c } = useTheme();
+  const shares = value === "" ? 1 : Math.max(1, Math.round(Number(value) || 1));
+  const step = (by: number) => onChange(String(Math.max(1, shares + by)));
+  const key = {
+    width: 30,
+    height: 30,
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+    borderRadius: radius.pill,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: c.rule,
+    backgroundColor: c["sheet-2"],
+  };
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: space.xs }}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`One share fewer for ${person.name}`}
+        onPress={() => step(-1)}
+        style={key}
+      >
+        <Body bold>&minus;</Body>
+      </Pressable>
+      <View style={{ minWidth: 22, alignItems: "center" }}>
+        <Body>{shares}</Body>
+      </View>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`One share more for ${person.name}`}
+        onPress={() => step(1)}
+        style={key}
+      >
+        <Body bold>+</Body>
+      </Pressable>
+    </View>
+  );
+}
+
+/** Ticked or empty. An empty box is the one shape everybody reads as "turn me on". */
+function Tick({ on }: { on: boolean }) {
+  const { c } = useTheme();
+  return (
+    <View
+      style={{
+        width: 20,
+        height: 20,
+        // Half of `radius.sm` — at 20 points the small radius is a full circle,
+        // and a circle reads as a radio button, one of many.
+        borderRadius: radius.sm / 2,
+        borderWidth: 1.5,
+        borderColor: on ? c.pen : c["rule-2"],
+        backgroundColor: on ? c.pen : c.sheet,
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      {on ? <TickGlyph color={c.sheet} /> : null}
+    </View>
+  );
+}
+
 /**
- * The people, and what each one is down for.
+ * One person, tapped to put them in or out, with whatever the mode asks of them
+ * on the right. A row each, not wrapped chips (#317): names are different
+ * lengths, so chips left a ragged block nobody could scan down.
  *
- * Equally is a tick list — in or out. Exact and Shares put a number beside
- * each person, because in those two the answer is a figure and not a yes.
+ * THE BOX IS WHY THE ROW LOOKS PRESSABLE. "Dev user · in" was the whole row and
+ * read as a statement, so nobody found the tap that takes a person out (#317).
  */
-export function Participants({
+function PersonRow({
+  person,
+  on,
+  onToggle,
+  children,
+}: {
+  person: Person;
+  on: boolean;
+  onToggle: (userId: string) => void;
+  children?: ReactNode;
+}) {
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: space.sm,
+        paddingVertical: space.xs,
+      }}
+    >
+      <Pressable
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: on }}
+        accessibilityLabel={person.name}
+        onPress={() => onToggle(person.userId)}
+        style={{
+          flex: 1,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: space.sm,
+        }}
+      >
+        <Tick on={on} />
+        {/* Out is the odd state, so it says so — a tick alone is an icon (#204). */}
+        <Body tone={on ? "ink" : "ink-3"}>
+          {on ? person.name : `${person.name} · out`}
+        </Body>
+      </Pressable>
+      {on ? children : null}
+    </View>
+  );
+}
+
+/**
+ * Equally asks a yes or no, and answers with the cost.
+ *
+ * The share sits on the right of the row it belongs to, so ticking somebody out
+ * is seen in the figure it changes rather than in a total further down.
+ */
+export function TickList({
   people,
-  mode,
+  inOn,
+  onToggle,
+  shareFor,
+}: {
+  people: Person[];
+  inOn: Set<string>;
+  onToggle: (userId: string) => void;
+  /** What this person is down for, or "" while the amount is unusable. */
+  shareFor: (userId: string) => string;
+}) {
+  return (
+    <View>
+      {people.map((person) => (
+        <PersonRow
+          key={person.userId}
+          person={person}
+          on={inOn.has(person.userId)}
+          onToggle={onToggle}
+        >
+          <Body tone="ink-2">{shareFor(person.userId)}</Body>
+        </PersonRow>
+      ))}
+    </View>
+  );
+}
+
+/** Exact asks for a figure each, in the trip's currency. */
+export function ExactList({
+  people,
   inOn,
   weights,
   currency,
@@ -212,7 +371,6 @@ export function Participants({
   onWeight,
 }: {
   people: Person[];
-  mode: Mode;
   inOn: Set<string>;
   weights: Record<string, string>;
   currency: Currency;
@@ -220,83 +378,69 @@ export function Participants({
   onWeight: (userId: string, value: string) => void;
 }) {
   return (
-    <View style={{ gap: space.xs }}>
-      {people.map((person) => {
-        const on = inOn.has(person.userId);
-        return (
-          <View
-            key={person.userId}
-            style={{ flexDirection: "row", alignItems: "center", gap: space.md }}
-          >
-            <Pressable
-              accessibilityRole="checkbox"
-              accessibilityState={{ checked: on }}
-              accessibilityLabel={person.name}
-              onPress={() => onToggle(person.userId)}
-              style={{ flex: 1 }}
-            >
-              {/* The word "in", not the fill, is what says they are in (#204). */}
-              <Body tone={on ? "ink" : "ink-3"}>{on ? `${person.name} · in` : person.name}</Body>
-            </Pressable>
-            {mode !== "equally" && on ? (
-              <Weight
-                person={person}
-                mode={mode}
-                currency={currency}
-                value={weights[person.userId] ?? ""}
-                onChange={(value) => onWeight(person.userId, value)}
-              />
-            ) : null}
-          </View>
-        );
-      })}
+    <View>
+      {people.map((person) => (
+        <PersonRow
+          key={person.userId}
+          person={person}
+          on={inOn.has(person.userId)}
+          onToggle={onToggle}
+        >
+          <Body tone="ink-3">{currency}</Body>
+          <MoneyInput
+            person={person}
+            value={weights[person.userId] ?? ""}
+            onChange={(value) => onWeight(person.userId, value)}
+          />
+        </PersonRow>
+      ))}
     </View>
   );
 }
 
-/** In Equally, who is in is a yes or no — so a chip each fits a line instead of a list. */
-export function ParticipantChips({
+/** Shares counts up and down, and says what each count comes to. */
+export function ShareList({
   people,
   inOn,
+  weights,
   onToggle,
+  onWeight,
+  shareFor,
 }: {
   people: Person[];
   inOn: Set<string>;
+  weights: Record<string, string>;
   onToggle: (userId: string) => void;
+  onWeight: (userId: string, value: string) => void;
+  /** What this person's shares come to, or "" while the amount is unusable. */
+  shareFor: (userId: string) => string;
 }) {
-  const { c } = useTheme();
   return (
-    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.xs }}>
-      {people.map((person) => {
-        const on = inOn.has(person.userId);
-        return (
-          <Pressable
-            key={person.userId}
-            accessibilityRole="checkbox"
-            accessibilityState={{ checked: on }}
-            accessibilityLabel={person.name}
-            onPress={() => onToggle(person.userId)}
-            style={{
-              paddingVertical: space.xs,
-              paddingHorizontal: space.sm,
-              borderRadius: radius.pill,
-              backgroundColor: on ? c.mint : c["sheet-2"],
-              borderWidth: 1,
-              borderColor: on ? c["mint-edge"] : c.rule,
-            }}
-          >
-            {/* "out" is said, because a chip that is merely paler is not a state
-                anyone can read at a glance (#204). */}
-            <Body tone={on ? "ink" : "ink-3"}>{on ? person.name : `${person.name} · out`}</Body>
-          </Pressable>
-        );
-      })}
+    <View>
+      {people.map((person) => (
+        <PersonRow
+          key={person.userId}
+          person={person}
+          on={inOn.has(person.userId)}
+          onToggle={onToggle}
+        >
+          <Stepper
+            person={person}
+            value={weights[person.userId] ?? ""}
+            onChange={(value) => onWeight(person.userId, value)}
+          />
+          <View style={{ minWidth: 78, alignItems: "flex-end" }}>
+            <Body tone="ink-2">{shareFor(person.userId)}</Body>
+          </View>
+        </PersonRow>
+      ))}
     </View>
   );
 }
 
 /** What the form produced, or what to tell the person instead. A rejection is a message. */
-export type Attempt = { ok: true; draft: ExpenseDraft } | { ok: false; problem: string };
+export type Attempt =
+  { ok: true; draft: ExpenseDraft } | { ok: false; problem: string };
 
 /**
  * Everything that can be wrong with a filled-in form, in one place.
@@ -319,7 +463,8 @@ export function buildDraft(
   weights: Record<string, string>,
   currency: Currency,
 ): Attempt {
-  if (inOn.size === 0) return { ok: false, problem: "Somebody has to be in on it." };
+  if (inOn.size === 0)
+    return { ok: false, problem: "Somebody has to be in on it." };
 
   let amountMinor: number;
   try {
@@ -386,7 +531,10 @@ function participantValues(
     }
     // Exact is money, so it goes through `parseMoney` like every other amount
     // — a share typed "3.5" must round the way the total does.
-    return { userId: person.userId, value: typed === "" ? 0 : parseMoney(typed, currency) };
+    return {
+      userId: person.userId,
+      value: typed === "" ? 0 : parseMoney(typed, currency),
+    };
   });
 }
 
@@ -397,7 +545,11 @@ function participantValues(
  * own `?? fallback` put a shape over both the length and the complexity
  * ceilings, and none of that branching is about drawing anything.
  */
-export function useFields(initial: Initial | undefined, viewerId: string, people: Person[]) {
+export function useFields(
+  initial: Initial | undefined,
+  viewerId: string,
+  people: Person[],
+) {
   const [description, setDescription] = useState(initial?.description ?? "");
   const [category, setCategory] = useState<ExpenseCategory>(
     initial?.category ?? DEFAULT_CATEGORY,
@@ -475,7 +627,10 @@ export function trySave(
 }
 
 /** The name a chosen key answers with, for a shape that shows the answer rather than the choices. */
-export function labelOf(options: { key: string; label: string }[], value: string): string {
+export function labelOf(
+  options: { key: string; label: string }[],
+  value: string,
+): string {
   return options.find((option) => option.key === value)?.label ?? "";
 }
 

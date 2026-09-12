@@ -18,7 +18,7 @@ import { protectedProcedure, publicProcedure, router, tripProcedure } from "../t
 const tripOnly = z.object({ tripId: z.number().int().positive() });
 
 export const invitesRouter = router({
-  /** The link, who has been asked, and who is left to ask. Admin-only on the host (rule 6). */
+  /** The link, who has been asked, and who is left to ask. Any member (#312). */
   forTrip: tripProcedure.query(({ ctx, input }) =>
     ctx.port.loadTripInvites(ctx.viewer.id, input.tripId),
   ),

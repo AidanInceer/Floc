@@ -19,6 +19,7 @@
 import { computeBalances, isAllSettled } from "@floc/core/money/money";
 import { formatDateRange } from "@floc/core/dates/dates";
 import { readTripColor } from "@floc/core/trip/trip-color";
+import { nextStepFor } from "@floc/core/trip/next-step";
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ScrollView, View } from "react-native";
@@ -29,6 +30,7 @@ import { NeedsYou, type Outstanding } from "@/components/trip/needs-you";
 import { RouteMap } from "@/components/map/route-map";
 import { RosterStrip } from "@/components/trip/roster-strip";
 import { TagPills } from "@/components/trip/tag-pills";
+import { useTourTarget } from "@/components/tour/tour-context";
 import {
   Body,
   Card,
@@ -42,11 +44,33 @@ import type { AppRouter } from "@floc/api/router";
 import type { inferRouterOutputs } from "@trpc/server";
 
 import { trpc } from "@/lib/api";
+import { useSession } from "@/lib/auth";
 import { inviteUrl } from "@/lib/config";
 import { space } from "@/lib/theme";
 
 /** The ledger as the API returns it — named once so the two helpers below agree. */
 type Ledger = inferRouterOutputs<AppRouter>["money"]["ledger"];
+type Outputs = inferRouterOutputs<AppRouter>;
+
+// Why: waits for every read, so the nudge never flashes a step that is not empty.
+function stepFor(
+  trip: Outputs["trips"]["get"],
+  days: Outputs["itinerary"]["days"] | undefined,
+  ledger: Ledger | undefined,
+  packing: Outputs["packing"]["list"] | undefined,
+  viewerId: string | undefined,
+) {
+  if (!days || !ledger || !packing) return null;
+  return nextStepFor({
+    memberCount: trip.members.length,
+    datesUnset: !trip.startDate && !trip.endDate,
+    dayCount: days.length,
+    expenseCount: ledger.expenses.length,
+    viewerHasPacking:
+      packing.mine.length > 0 ||
+      packing.shared.some((line) => line.claims.some((claim) => claim.userId === viewerId)),
+  });
+}
 
 /** Overview shows the top of the pile; the rest is a count, and the Files screen. */
 const FILES_SHOWN = 3;
@@ -63,19 +87,23 @@ export default function Overview() {
   const places = useQuery(trpc.places.list.queryOptions({ tripId }, { enabled: ready }));
   const files = useQuery(trpc.files.list.queryOptions({ tripId }, { enabled: ready }));
   const ledger = useQuery(trpc.money.ledger.queryOptions({ tripId }, { enabled: ready }));
-  // Admin-only on the server (rule 6), so it is only asked for by an admin —
-  // a member firing this would get a refusal it has no use for.
-  const isAdmin = trip.data?.role === "admin";
-  const invites = useQuery(
-    trpc.invites.forTrip.queryOptions({ tripId }, { enabled: ready && isAdmin }),
-  );
+  const days = useQuery(trpc.itinerary.days.queryOptions({ tripId }, { enabled: ready }));
+  const packing = useQuery(trpc.packing.list.queryOptions({ tripId }, { enabled: ready }));
+  const invites = useQuery(trpc.invites.forTrip.queryOptions({ tripId }, { enabled: ready }));
+  const { data: session } = useSession();
+  const nudgeTarget = useTourTarget("nudge");
+  const rosterTarget = useTourTarget("roster");
 
   if (trip.isPending) return <Loading />;
   if (trip.isError) return <Failed onRetry={() => trip.refetch()} />;
 
-  const outstanding = outstandingFor(trip.data.startDate, ledger.data, (route) =>
-    router.push(`/trip/${tripId}/${route}`),
-  );
+  const go = (route: string) => router.push(`/trip/${tripId}/${route}` as never);
+  const step = stepFor(trip.data, days.data, ledger.data, packing.data, session?.user.id);
+
+  const outstanding = [
+    ...(step ? [{ id: step.key, said: step.said, action: step.action, onPress: () => go(step.key) }] : []),
+    ...outstandingFor(ledger.data, go),
+  ];
 
   return (
     <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.xl }}>
@@ -99,18 +127,22 @@ export default function Overview() {
         {trip.data.archived ? <Pill word="Archived" tone="butter" /> : null}
       </View>
 
-      <NeedsYou items={outstanding} />
+      {step ? (
+        <View ref={nudgeTarget}>
+          <NeedsYou items={outstanding} />
+        </View>
+      ) : (
+        <NeedsYou items={outstanding} />
+      )}
 
-      <View style={{ gap: space.sm }}>
+      <View ref={rosterTarget} style={{ gap: space.sm }}>
         {/* "The group", as the web panel calls it — one name for one thing. */}
         <Label>The group</Label>
         <Card>
-          {isAdmin ? (
-            <GroupActions
-              link={invites.data ? inviteUrl(invites.data.token) : null}
-              onInvite={() => router.push(`/trip/${tripId}/invite`)}
-            />
-          ) : null}
+          <GroupActions
+            link={invites.data ? inviteUrl(invites.data.token) : null}
+            onInvite={() => router.push(`/trip/${tripId}/invite`)}
+          />
           <RosterStrip people={trip.data.members} />
         </Card>
       </View>
@@ -150,22 +182,10 @@ export default function Overview() {
 
 /** Whatever is still true and still unanswered. Nothing is stored — an item exists while its fact does. */
 function outstandingFor(
-  startDate: string | null,
   ledger: Ledger | undefined,
   go: (route: string) => void,
 ): Outstanding[] {
   const items: Outstanding[] = [];
-
-  // No dates is the normal starting state of a trip, so this is an invitation,
-  // never a warning (rule 9).
-  if (!startDate) {
-    items.push({
-      id: "dates",
-      said: "No dates set yet.",
-      action: "Set them",
-      onPress: () => go("dates"),
-    });
-  }
 
   // Derived from the ledger the API already returned — there is no balance
   // column and no balance procedure, because a stored balance is a second

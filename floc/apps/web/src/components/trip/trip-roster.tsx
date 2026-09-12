@@ -36,13 +36,11 @@ export function TripRoster({
   viewerId: string;
   members: TripMember[];
   isAdmin: boolean;
-  /** Absent for a non-admin — inviting is one of the four admin powers. */
-  inviteUrl?: string;
+  inviteUrl: string;
   /** userId → where you stand with them (ticket 96), resolved in one query. */
   friendStates: Map<string, FriendState>;
   /** Asked by name and yet to answer (ticket 146). Shown to every member. */
   pendingInvitees: PendingInvitee[];
-  /** The viewer's friends, for the picker. Empty for a non-admin. */
   friends: Person[];
 }) {
   return (
@@ -50,13 +48,12 @@ export function TripRoster({
     // now, so everything inside stacks: the title over its buttons, one member
     // per row. The old full-width two-column version was a panel of air on a
     // trip with three people — the list grows downward here instead.
-    <section className="rounded-lg bg-sheet p-5 ring-1 ring-rule">
+    <section id="the-group" data-tour="roster" className="scroll-mt-24 rounded-lg bg-sheet p-5 ring-1 ring-rule">
       <div className="border-b border-rule pb-3">
         <h2 className="font-display text-lg">The group</h2>
         {/* Invite URL never appears on the page — the button copies it instead. */}
-        {inviteUrl ? (
-          <span className="mt-3 flex flex-wrap items-center gap-2">
-            {/* Named invites first (ticket 146), link as fallback; both the same admin power (rule 6). */}
+        {/* Why: any member may invite, by name or by link (#312). */}
+        <span className="mt-3 flex flex-wrap items-center gap-2">
             <Sheet
               trigger="Invite friends"
               title="Invite friends"
@@ -85,8 +82,7 @@ export function TripRoster({
               variant="primary"
               icon={<ShareIcon />}
             />
-          </span>
-        ) : null}
+        </span>
       </div>
 
       <ul className="mt-3 flex flex-col gap-1.5">
@@ -226,12 +222,6 @@ export function TripRoster({
           </li>
         ))}
       </ul>
-
-      {isAdmin && members.length === 1 && pendingInvitees.length === 0 ? (
-        <p className="mt-3 text-xs text-ink-faint">
-          Just you so far — share the trip to get the others in.
-        </p>
-      ) : null}
     </section>
   );
 }

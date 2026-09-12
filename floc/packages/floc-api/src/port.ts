@@ -17,7 +17,7 @@
  *   3. Itinerary is day-first — a "stop" is derived, never stored.
  *   5. `loadTrip` answers identically for a trip that does not exist and one
  *      the viewer is not in. The implementation must return null for both.
- *   6. Admin powers are exactly four; `assertAdmin` is the implementation's job.
+ *   6. Admin powers are exactly three; `assertAdmin` is the implementation's job.
  *   9. A trip may have no dates. `startDate`/`endDate` are nullable and that
  *      is never an error.
  *  10. No timezones. Dates are `YYYY-MM-DD`; times are local to the itinerary.
@@ -536,6 +536,12 @@ export type FlocPort = {
    */
   loadMe(viewerId: string): Promise<Me>;
 
+  /** Whether the first-trip tour was ever finished or skipped — per person, never per trip (#314). */
+  tourSeen(viewerId: string): Promise<boolean>;
+
+  /** The first time stands; calling it again changes nothing. */
+  markTourSeen(viewerId: string): Promise<void>;
+
   /**
    * The profile's face (ticket 302, direction C). Separate from `loadMe`
    * because it is heavier and rarer — every screen that needs the viewer's id
@@ -556,7 +562,7 @@ export type FlocPort = {
   /**
    * Says you will bring a shared thing, or takes it back. Open by design: any
    * member may claim any line, and several may claim the same one. Not one of
-   * the four admin powers (rule 6).
+   * the three admin powers (rule 6).
    */
   claimPackingLine(
     viewerId: string,

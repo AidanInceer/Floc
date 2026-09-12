@@ -26,6 +26,10 @@ describe("parseTags", () => {
     expect(parseTags(many)).toHaveLength(MAX_TAGS);
   });
 
+  it("keeps at most five tags", () => {
+    expect(parseTags("a, b, c, d, e, f, g")).toEqual(["a", "b", "c", "d", "e"]);
+  });
+
   it("truncates an over-long tag rather than rejecting the lot", () => {
     expect(parseTags("a".repeat(40))[0]).toHaveLength(24);
   });
@@ -45,6 +49,10 @@ describe("readTags", () => {
     expect(readTags(null)).toEqual([]);
     expect(readTags("beach")).toEqual([]);
     expect(readTags(["beach", 3, "", "stag"])).toEqual(["beach", "stag"]);
+  });
+
+  it("shows only the first five of a row saved under the old limit of eight", () => {
+    expect(readTags(["a", "b", "c", "d", "e", "f", "g", "h"])).toEqual(["a", "b", "c", "d", "e"]);
   });
 });
 

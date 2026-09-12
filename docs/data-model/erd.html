@@ -89,6 +89,7 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
         bool notify_nudges &quot;default true&quot;
         string pack_tier &quot;light | balanced | comfort, default balanced — the fallback for trips that haven't chosen&quot;
         bool pack_auto_generate &quot;default true — fill the personal list on first open, or wait to be asked&quot;
+        timestamp tour_seen_at &quot;nullable — first tour finish or skip, never cleared (ticket 314)&quot;
     }
 
     USER_COUNTRY_MARK {
@@ -547,7 +548,7 @@ rejected on render grounds: a thread draws in a narrow panel, where a fourth
 level would be a few words a line.</p>
 <p><code>note.edited_at</code> marks a comment its <strong>author</strong> has rewritten, and the UI says
 &quot;edited&quot; beside the timestamp. Editing is deliberately <strong>not an admin power</strong>
-(rule 6 — admin powers are exactly four): an admin can delete a comment, which
+(rule 6 — admin powers are exactly three): an admin can delete a comment, which
 is unambiguous, but never put different words in someone&#39;s mouth under their own
 name. <code>last_modified_at</code> can&#39;t stand in for this — it is for debugging only and
 moves for reasons the author never chose.</p>

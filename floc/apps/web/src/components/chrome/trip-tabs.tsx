@@ -20,6 +20,7 @@ export function TripTabs({
         items={tabs.map((tab) => ({
           href: `/trip/${tripId}/${tab.key}`,
           label: tab.label,
+          tourKey: tab.key,
         }))}
       />
     </div>

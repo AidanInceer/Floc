@@ -17,6 +17,7 @@ import {
   inviteFriends,
   kickMember,
   leaveTrip,
+  markTourSeen,
   promoteMember,
   renameTrip,
   sendNudge,
@@ -75,9 +76,9 @@ describe("nudging", () => {
   });
 });
 
-describe("the admin powers", () => {
-  it("invites friends by name, once each", async () => {
-    signIn(world.admin);
+describe("inviting (#312)", () => {
+  it("lets a member invite friends by name, once each", async () => {
+    signIn(world.member);
     await inviteFriends(form({ tripId: ours(), friendIds: [world.outsider, world.outsider, ""] }));
 
     const invites = await db.select().from(schema.tripInvite).all();
@@ -90,6 +91,13 @@ describe("the admin powers", () => {
     expect(await db.select().from(schema.tripInvite).all()).toEqual([]);
   });
 
+  it("is refused on a trip the viewer is not on (rule 5)", async () => {
+    signIn(world.outsider);
+    await expectNotFound(() => inviteFriends(form({ tripId: ours(), friendIds: world.admin })));
+  });
+});
+
+describe("the admin powers", () => {
   it("kicks and promotes", async () => {
     signIn(world.admin);
 
@@ -104,7 +112,6 @@ describe("the admin powers", () => {
     signIn(world.member);
     const admin = "Only a trip admin can do that";
 
-    await expect(inviteFriends(form({ tripId: ours(), friendIds: world.outsider }))).rejects.toThrow(admin);
     await expect(kickMember(form({ tripId: ours(), userId: world.admin }))).rejects.toThrow(admin);
     await expect(promoteMember(form({ tripId: ours(), userId: world.member }))).rejects.toThrow(admin);
 
@@ -115,6 +122,19 @@ describe("the admin powers", () => {
   it("are refused on a trip the viewer is not on (rule 5)", async () => {
     signIn(world.outsider);
     await expectNotFound(() => kickMember(form({ tripId: ours(), userId: world.member })));
+  });
+});
+
+describe("the tour (#314)", () => {
+  it("marks the signed-in person as having seen it", async () => {
+    signIn(world.member);
+    await markTourSeen();
+    const profile = await db
+      .select()
+      .from(schema.userProfile)
+      .where(eq(schema.userProfile.userId, world.member))
+      .get();
+    expect(profile?.tourSeenAt).toBeInstanceOf(Date);
   });
 });
 

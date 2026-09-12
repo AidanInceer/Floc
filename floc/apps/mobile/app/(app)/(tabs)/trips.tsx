@@ -99,7 +99,19 @@ export default function Trips() {
             }
           />
         }
-        ListEmptyComponent={<Empty>No trips yet.</Empty>}
+        ListEmptyComponent={
+          trips.data.length === 0 ? (
+            <View style={{ gap: space.sm }}>
+              <Empty>No trips yet.</Empty>
+              <Button label="Start a trip" onPress={() => router.push("/(app)/new-trip")} />
+              <Button
+                label="Or borrow one from Explore"
+                variant="quiet"
+                onPress={() => router.push("/explore" as never)}
+              />
+            </View>
+          ) : null
+        }
         renderItem={({ item }) => <TripRow trip={item} onMenu={setChosen} />}
         ListFooterComponent={
           <View style={{ gap: space.sm, paddingTop: space.lg }}>
@@ -125,7 +137,9 @@ export default function Trips() {
                   : null}
               </View>
             ) : null}
-            <Button label="New trip" onPress={() => router.push("/(app)/new-trip")} />
+            {trips.data.length > 0 ? (
+              <Button label="New trip" onPress={() => router.push("/(app)/new-trip")} />
+            ) : null}
             {/* Two rare, short jobs on one line — three stacked bars gave a
                 once-a-month button the same shout as the one you came for. */}
             <View style={{ flexDirection: "row", gap: space.sm }}>

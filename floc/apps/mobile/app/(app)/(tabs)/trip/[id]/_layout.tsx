@@ -27,24 +27,27 @@
  * NOTHING HERE IS GATED (rule 4). Every route is reachable on any trip. Money
  * opens with no expenses, Days opens with no dates, and each says so itself.
  */
-import { useQuery } from "@tanstack/react-query";
+import { shouldStartTour } from "@floc/core/trip/tour";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, usePathname, useRouter } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { useTheme } from "@/components/system/theme";
+import { TourProvider } from "@/components/tour/tour-context";
+import { TourOverlay } from "@/components/tour/tour-overlay";
 import { TripHeader, type Section } from "@/components/trip/trip-header";
 import { trpc } from "@/lib/api";
 import { viewerBalance } from "@/lib/balance";
 import { useSession } from "@/lib/auth";
 
-/** Planning order: you land, talk it over, fix dates, fill days, settle, pack, file. */
+/** Same order as the web's tabs (#315): the planning steps, then notes and files. */
 const SECTIONS: Section[] = [
   { route: "", label: "Overview" },
-  { route: "notes", label: "Notes" },
   { route: "dates", label: "Dates" },
   { route: "days", label: "Days" },
   { route: "money", label: "Money" },
   { route: "packing", label: "Packing" },
+  { route: "notes", label: "Notes" },
   { route: "files", label: "Files" },
 ];
 
@@ -89,8 +92,10 @@ export default function TripLayout() {
   }, [trip.isError, router]);
 
   const name = trip.data?.name ?? "Trip";
+  const onOverview = sectionOf(pathname, tripId) === "";
 
   return (
+    <TourProvider>
     <Stack
       screenOptions={{
         contentStyle: { backgroundColor: c.paper },
@@ -108,6 +113,29 @@ export default function TripLayout() {
             onGo={go}
           />
         ),
+      }}
+    />
+      {trip.data && onOverview ? <FirstTripTour /> : null}
+    </TourProvider>
+  );
+}
+
+/** Once per person, ever (#314) — whichever trip they happen to open first. */
+function FirstTripTour() {
+  const queryClient = useQueryClient();
+  const seen = useQuery(trpc.me.tourSeen.queryOptions());
+  const mark = useMutation({
+    ...trpc.me.markTourSeen.mutationOptions(),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: trpc.me.tourSeen.queryKey() }),
+  });
+  const [closed, setClosed] = useState(false);
+
+  if (seen.data === undefined || closed || !shouldStartTour({ seen: seen.data })) return null;
+  return (
+    <TourOverlay
+      onDone={() => {
+        setClosed(true);
+        mark.mutate();
       }}
     />
   );

@@ -475,7 +475,7 @@ export const webPort: FlocPort = {
 
   async saveNotes(viewerId, tripId, body) {
     await scoped(viewerId, tripId);
-    // No role check: writing in the trip's notebook is not one of the four
+    // No role check: writing in the trip's notebook is not one of the three
     // admin powers (rule 6). Last write wins (rule 7), as on the web page.
     await saveNoteDoc(tripId, viewerId, body);
     // No revalidate, matching the web action: the editor already holds what it

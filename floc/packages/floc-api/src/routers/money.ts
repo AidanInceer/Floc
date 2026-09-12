@@ -61,7 +61,7 @@ export const moneyRouter = router({
 
   /**
    * Writes down a transfer that already happened. Any member may record one,
-   * in either direction — settling up is not one of the four admin powers
+   * in either direction — settling up is not one of the three admin powers
    * (rule 6), and the person who paid is usually the one holding the phone.
    */
   settle: tripProcedure

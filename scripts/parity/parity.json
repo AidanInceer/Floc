@@ -102,6 +102,9 @@
     "me.mapPrompts": {
       "mobile": "yes"
     },
+    "me.markTourSeen": {
+      "mobile": "yes"
+    },
     "me.profile": {
       "mobile": "yes"
     },
@@ -110,6 +113,9 @@
       "why": "The app renames you through settings.identity, which writes the name and the picture together — the same sheet, one write. A second procedure that writes half of that would be a second way to do one job."
     },
     "me.setMark": {
+      "mobile": "yes"
+    },
+    "me.tourSeen": {
       "mobile": "yes"
     },
     "money.deleteExpense": {

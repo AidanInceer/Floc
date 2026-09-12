@@ -128,6 +128,32 @@ export async function listPackingClaims(
     .all();
 }
 
+/** Anything in the viewer's own bag, or a shared line they said they would bring (#312). */
+export async function viewerHasPacking(tripId: number, userId: string): Promise<boolean> {
+  const own = await db
+    .select({ id: packingLine.id })
+    .from(packingLine)
+    .where(and(eq(packingLine.tripId, tripId), eq(packingLine.ownerId, userId), isNull(packingLine.deletedAt)))
+    .limit(1)
+    .get();
+  if (own) return true;
+  const claimed = await db
+    .select({ id: packingClaim.packingLineId })
+    .from(packingClaim)
+    .innerJoin(packingLine, eq(packingLine.id, packingClaim.packingLineId))
+    .where(
+      and(
+        eq(packingLine.tripId, tripId),
+        eq(packingClaim.userId, userId),
+        isNull(packingLine.deletedAt),
+        isNull(packingClaim.deletedAt),
+      ),
+    )
+    .limit(1)
+    .get();
+  return claimed !== undefined;
+}
+
 export async function insertPackingLine(
   tripId: number,
   createdBy: string,

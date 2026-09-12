@@ -9,8 +9,7 @@
  *   rule 5, applied to people — a stranger's profile and an id that was never
  *   an account must answer identically, or this becomes a way to find out who
  *   has a Floc account (ticket 46);
- *   rule 6 — inviting is one of the four admin powers, and the phone must not
- *   be the client that forgot;
+ *   rule 5 — any member may invite (#312), but nobody outside the trip may;
  *   ticket 146 — only accepted friends may be offered, else a trip invite is
  *   a backdoor friend request.
  */
@@ -87,11 +86,16 @@ describe("friend requests (ticket 46)", () => {
   });
 });
 
-describe("inviting (rule 6, ticket 146)", () => {
-  it("refuses a member the invite panel and the invite itself", async () => {
-    await expect(webPort.loadTripInvites(world.member, world.ours.id)).rejects.toThrow();
+describe("inviting (#312, ticket 146)", () => {
+  it("gives a member the invite panel", async () => {
+    const panel = await webPort.loadTripInvites(world.member, world.ours.id);
+    expect(panel.token).toBe("token-ours");
+  });
+
+  it("refuses somebody not on the trip the panel and the invite", async () => {
+    await expect(webPort.loadTripInvites(world.outsider, world.ours.id)).rejects.toThrow();
     await expect(
-      webPort.inviteToTrip(world.member, world.ours.id, [world.outsider]),
+      webPort.inviteToTrip(world.outsider, world.ours.id, [world.member]),
     ).rejects.toThrow();
   });
 
@@ -148,6 +152,14 @@ describe("the share link (ticket 05, 147)", () => {
 
   it("answers null for a token that is not one", async () => {
     expect(await webPort.previewInvite("not-a-token")).toBeNull();
+  });
+});
+
+describe("the tour through the port (#314)", () => {
+  it("is unseen until marked, then seen", async () => {
+    expect(await webPort.tourSeen(world.member)).toBe(false);
+    await webPort.markTourSeen(world.member);
+    expect(await webPort.tourSeen(world.member)).toBe(true);
   });
 });
 

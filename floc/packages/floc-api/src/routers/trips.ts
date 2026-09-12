@@ -1,10 +1,10 @@
 /**
  * Trips: the list, one trip, creating, renaming, archiving, joining, leaving
- * (tickets 287, 291).
+ * (#287, #291, #312).
  *
  * Writes go through the port, which is the web app's own `server/` modules —
  * so a phone and a browser share one implementation of every rule, including
- * the four admin powers (rule 6) and soft delete (rule 8). None of that is
+ * the three admin powers (rule 6) and soft delete (rule 8). None of that is
  * restated here; restating it is how two clients drift apart.
  */
 import { z } from "zod";

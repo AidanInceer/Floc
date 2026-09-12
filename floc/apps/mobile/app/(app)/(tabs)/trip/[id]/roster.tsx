@@ -1,19 +1,12 @@
 /**
  * Who is on the trip (ticket 291).
  *
- * EXACTLY FOUR ADMIN POWERS (rule 6). Two are reachable here — remove and
+ * EXACTLY THREE ADMIN POWERS (rule 6). Two are reachable here — remove and
  * promote — and both are hidden from a member, then refused again by the API
  * if the screen is wrong. Hiding a control is a courtesy; the gate is the
  * server's.
  *
- * Leaving is NOT one of the four. Every member can leave, including the last
- * admin, so it sits outside the admin block deliberately.
- *
- * INVITING IS HERE NOW. It used to point at the website, on the grounds that
- * it composed an email — but a named invite sends no mail on either client, it
- * turns up on the invitee's trips list. The share link and the friend picker
- * both live on their own screen, because both are an admin's rare job and the
- * roster is the frequent one.
+ * Leaving and inviting are NOT admin powers. Any member may do both (#312).
  *
  * A NAME OPENS A PROFILE. Which is how you meet somebody well enough to ask
  * them to be a friend — a co-traveller is already inside one of your rings, so
@@ -130,15 +123,10 @@ export default function Roster() {
         })}
       </View>
 
-      {isAdmin ? (
-        <Button
-          label="Invite people"
-          onPress={() => router.push(`/trip/${tripId}/invite` as never)}
-        />
-      ) : (
-        // What is missing is one of the two things text still carries (rule 6).
-        <Body tone="ink-3">Only an admin can ask somebody new onto this trip.</Body>
-      )}
+      <Button
+        label="Invite people"
+        onPress={() => router.push(`/trip/${tripId}/invite` as never)}
+      />
 
       <Button
         label="Leave this trip"

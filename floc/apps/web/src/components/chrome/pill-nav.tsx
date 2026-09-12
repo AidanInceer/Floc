@@ -18,6 +18,8 @@ export type PillNavItem = {
   label: string;
   /** A count or dot rendered after the label (invites, friend requests). */
   badge?: ReactNode;
+  /** What the first-trip tour highlights this pill as (#315). */
+  tourKey?: string;
 };
 
 // useLayoutEffect warns during SSR; on the server there is nothing to measure.
@@ -150,6 +152,7 @@ export function PillNav({
               pillRefs.current[item.href] = el;
             }}
             href={item.href}
+            data-tour={item.tourKey}
             aria-current={active ? "page" : undefined}
             className={cx(
               "relative z-10 shrink-0 rounded-full px-1 py-1.5 text-[13px] font-medium transition-colors sm:px-4 sm:text-sm",

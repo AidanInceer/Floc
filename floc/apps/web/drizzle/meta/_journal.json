@@ -169,6 +169,13 @@
       "when": 1788605671104,
       "tag": "0023_breezy_madripoor",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "6",
+      "when": 1789161958540,
+      "tag": "0024_adorable_kabuki",
+      "breakpoints": true
     }
   ]
 }

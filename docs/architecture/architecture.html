@@ -107,9 +107,9 @@ same response as a trip that doesn&#39;t exist — enumeration-proof by construc
 never a hand-rolled membership <code>if</code>.</p>
 <p><strong>The gate runs on writes and refreshes, never on reads.</strong> Lapsed Pro content
 stays readable forever; only the action stops.</p>
-<p><strong>Admin powers are exactly four</strong> — invite, kick, promote, delete/archive —
-each gated by <code>assertAdmin</code>. Everything else, leaving included, is any
-member.</p>
+<p><strong>Admin powers are exactly three</strong> — kick, promote, delete/archive —
+each gated by <code>assertAdmin</code>. Everything else, inviting and leaving included,
+is any member.</p>
 <h2>Auth</h2>
 <p>Better Auth owns sessions. <code>lib/auth-client.ts</code> is the browser handle,
 <code>server/auth.ts</code> the server one. No custom session table, no hand-rolled JWT.

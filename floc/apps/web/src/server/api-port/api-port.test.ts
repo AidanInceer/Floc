@@ -47,7 +47,7 @@ describe("who can see a trip (rule 5)", () => {
   });
 });
 
-describe("the four admin powers (rule 6)", () => {
+describe("the three admin powers (rule 6)", () => {
   it("lets an admin archive, promote and remove", async () => {
     await webPort.archiveTrip(world.admin, world.ours.id, true);
     await webPort.promoteMember(world.admin, world.ours.id, world.member);

@@ -10,8 +10,8 @@
  * going to be one — the web app behaves the same way, and #238's reload guard
  * is the stated follow-up for both clients rather than a lock for one.
  *
- * EVERY MEMBER MAY WRITE. Notes is not gated by role: the four admin powers
- * are invite, kick, promote and delete/archive (rule 6), and writing in the
+ * EVERY MEMBER MAY WRITE. Notes is not gated by role: the three admin powers
+ * are kick, promote and delete/archive (rule 6), and writing in the
  * trip's notebook is not among them.
  *
  * The length cap is `TEXT_CAPS.noteDoc` — the same number the web action

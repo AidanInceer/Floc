@@ -25,10 +25,11 @@ import { useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
 
 import {
+  ExactList,
   MODES,
-  ParticipantChips,
-  Participants,
   Pills,
+  ShareList,
+  TickList,
   buildDraft,
   dayOptions,
   labelOf,
@@ -44,23 +45,35 @@ import { fonts, radius, size, space } from "@/lib/theme";
 
 export type { DayOption, ExpenseDraft } from "./expense-form-parts";
 
-/** One line: what is being asked on the left, the answer on the right. */
-function Line({ label, children, first }: { label: string; children: ReactNode; first?: boolean }) {
+/**
+ * What is being asked, then the field under it.
+ *
+ * IT USED TO BE ONE ROW, label left and field right. A phone has no room for
+ * that: "Description" and a typed sentence fought for the same 200 points and
+ * the label was clipped by the field beside it (#317). Stacked, both get the
+ * full width and a long description stops colliding with its own label.
+ */
+function Asked({
+  label,
+  children,
+  first,
+}: {
+  label: string;
+  children: ReactNode;
+  first?: boolean;
+}) {
   const { c } = useTheme();
   return (
     <View
       style={{
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: space.md,
+        gap: space.xs,
         paddingVertical: space.sm,
         borderTopWidth: first ? 0 : StyleSheet.hairlineWidth,
         borderTopColor: c.rule,
       }}
     >
       <Label>{label}</Label>
-      <View style={{ flexShrink: 1, alignItems: "flex-end" }}>{children}</View>
+      {children}
     </View>
   );
 }
@@ -86,6 +99,7 @@ function Plain({
   onChangeText: (value: string) => void;
   placeholder: string;
   accessibilityLabel: string;
+  /** Numbers are tabular and right-aligned; words read from the left. */
   numeric?: boolean;
   big?: boolean;
 }) {
@@ -100,11 +114,12 @@ function Plain({
       keyboardType={numeric ? "decimal-pad" : "default"}
       inputMode={numeric ? "decimal" : "text"}
       style={{
-        minWidth: 150,
+        flex: 1,
+        minWidth: 0,
         color: c.ink,
         fontFamily: numeric ? fonts.type : fonts.sans,
         fontSize: big ? size.heading : size.body,
-        textAlign: "right",
+        textAlign: numeric ? "right" : "left",
         backgroundColor: c.sheet,
         borderWidth: StyleSheet.hairlineWidth,
         borderColor: c["rule-2"] ?? c.rule,
@@ -129,17 +144,21 @@ function Actions({
   onDelete?: () => void;
 }) {
   return (
-    <View style={{ gap: space.sm }}>
-      <View style={{ flexDirection: "row", gap: space.sm }}>
-        <View style={{ flex: 1 }}>
-          <Button label="Cancel" variant="quiet" onPress={onCancel} />
-        </View>
-        <View style={{ flex: 2 }}>
-          <Button label="Save" busy={busy} onPress={onSave} />
-        </View>
-      </View>
-      {/* Deleting is not one of two equals — it sits apart, below. */}
-      {onDelete ? <Button label="Delete this expense" variant="danger" onPress={onDelete} /> : null}
+    <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
+      {/* Deleting is not one of the two equals: it stays a word, not a slab. */}
+      {onDelete ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={onDelete}
+          hitSlop={space.sm}
+          style={{ paddingHorizontal: space.sm }}
+        >
+          <Body tone="red">Delete</Body>
+        </Pressable>
+      ) : null}
+      <View style={{ flex: 1 }} />
+      <Button label="Cancel" variant="quiet" fit="small" onPress={onCancel} />
+      <Button label="Save" busy={busy} fit="small" onPress={onSave} />
     </View>
   );
 }
@@ -154,38 +173,53 @@ function Split({
   people: ExpenseFormProps["people"];
   currency: ExpenseFormProps["currency"];
 }) {
+  let list = (
+    <TickList
+      people={people}
+      inOn={f.inOn}
+      onToggle={f.toggle}
+      shareFor={shareOf(f, people, currency)}
+    />
+  );
+  if (f.mode === "exact") {
+    list = (
+      <ExactList
+        people={people}
+        inOn={f.inOn}
+        weights={f.weights}
+        currency={currency}
+        onToggle={f.toggle}
+        onWeight={f.setWeight}
+      />
+    );
+  }
+  if (f.mode === "shares") {
+    list = (
+      <ShareList
+        people={people}
+        inOn={f.inOn}
+        weights={f.weights}
+        onToggle={f.toggle}
+        onWeight={f.setWeight}
+        shareFor={shareOf(f, people, currency)}
+      />
+    );
+  }
+
   return (
     <View style={{ gap: space.sm }}>
       <Segmented options={MODES} value={f.mode} onChange={f.setMode} />
-      {/* Equally asks a yes or no, so a chip each fits one line; the other two
-          ask for a figure, which needs a row. */}
-      {f.mode === "equally" ? (
-        <ParticipantChips people={people} inOn={f.inOn} onToggle={f.toggle} />
-      ) : (
-        <Participants
-          people={people}
-          mode={f.mode}
-          inOn={f.inOn}
-          weights={f.weights}
-          currency={currency}
-          onToggle={f.toggle}
-          onWeight={f.setWeight}
-        />
-      )}
+      {list}
     </View>
   );
 }
 
-/** What each person is down for, once it is knowable. Status, so it is said (#126). */
-function Each({
-  f,
-  people,
-  currency,
-}: {
-  f: ReturnType<typeof useFields>;
-  people: ExpenseFormProps["people"];
-  currency: ExpenseFormProps["currency"];
-}) {
+/** What each person's shares currently come to, or "" while the sum cannot be worked out. */
+function shareOf(
+  f: ReturnType<typeof useFields>,
+  people: ExpenseFormProps["people"],
+  currency: ExpenseFormProps["currency"],
+): (userId: string) => string {
   const attempt = buildDraft(
     {
       description: "",
@@ -201,14 +235,23 @@ function Each({
     f.weights,
     currency,
   );
-  const share =
-    attempt.ok && f.mode === "equally"
-      ? attempt.draft.splits.find((split) => split.owedAmountMinor > 0)?.owedAmountMinor
-      : undefined;
+  if (!attempt.ok) return () => "";
+  return (userId) => {
+    const split = attempt.draft.splits.find((one) => one.userId === userId);
+    return split ? formatMoney(split.owedAmountMinor, currency) : "";
+  };
+}
 
+/** How many are in. Each person's own figure is on their own row. */
+function Each({
+  f,
+  people,
+}: {
+  f: ReturnType<typeof useFields>;
+  people: ExpenseFormProps["people"];
+}) {
   return (
     <Body tone="ink-3">
-      {share === undefined ? "" : `${formatMoney(share, currency)} each · `}
       {f.inOn.size} of {people.length} in
     </Body>
   );
@@ -261,17 +304,30 @@ function Folded({
 
       {open ? (
         <View style={{ gap: space.md, paddingBottom: space.sm }}>
-          <Pills label="Paid by" options={payers} value={f.paidBy} small onChange={f.setPaidBy} />
+          <Pills
+            label="Paid by"
+            options={payers}
+            value={f.paidBy}
+            small
+            onChange={f.setPaidBy}
+          />
           {days.length > 0 ? (
             <Pills
               label="Which day"
               options={whichDay}
               value={dayValue}
               small
-              onChange={(key) => f.setDayId(key === "none" ? null : Number(key))}
+              onChange={(key) =>
+                f.setDayId(key === "none" ? null : Number(key))
+              }
             />
           ) : null}
-          <Field label="Notes" value={f.notes} onChangeText={f.setNotes} multiline />
+          <Field
+            label="Notes"
+            value={f.notes}
+            onChangeText={f.setNotes}
+            multiline
+          />
         </View>
       ) : null}
     </View>
@@ -300,9 +356,19 @@ export function ExpenseForm({
           {/* The category rides this line rather than owning one. It has a
               correct default, so a labelled row of its own was the form's
               least-changed question taking a third of its height. */}
-          <Line label="Description" first>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
-              <CategoryPicker value={f.category} onChange={f.setCategory} compact />
+          <Asked label="Description" first>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: space.sm,
+              }}
+            >
+              <CategoryPicker
+                value={f.category}
+                onChange={f.setCategory}
+                compact
+              />
               <Plain
                 accessibilityLabel="Description"
                 value={f.description}
@@ -312,8 +378,8 @@ export function ExpenseForm({
                 placeholder=""
               />
             </View>
-          </Line>
-          <Line label={`Amount (${currency})`}>
+          </Asked>
+          <Asked label={`Amount (${currency})`}>
             <Plain
               accessibilityLabel="Amount"
               value={f.amount}
@@ -325,11 +391,11 @@ export function ExpenseForm({
               numeric
               big
             />
-          </Line>
+          </Asked>
         </View>
 
         <Split f={f} people={people} currency={currency} />
-        <Each f={f} people={people} currency={currency} />
+        <Each f={f} people={people} />
 
         <Folded f={f} people={people} days={days} />
 

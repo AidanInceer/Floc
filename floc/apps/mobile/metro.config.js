@@ -42,6 +42,7 @@ config.resolver.disableHierarchicalLookup = true;
 config.resolver.blockList = [
   ...[].concat(config.resolver.blockList ?? []),
   /[\\/]floc[\\/]apps[\\/](web[\\/](\.next(-verify)?|\.e2e|coverage)|mobile[\\/](dist|coverage))([\\/].*)?$/,
+  /[\\/]floc[\\/]packages[\\/][^\\/]+[\\/]coverage([\\/].*)?$/,
 ];
 
 module.exports = config;

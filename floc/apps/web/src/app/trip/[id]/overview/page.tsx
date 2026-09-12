@@ -44,13 +44,31 @@ import {
 } from "@/server/itinerary/itinerary";
 import { listAvailability } from "@/server/itinerary/availability";
 import { listPendingInvitees } from "@/server/trips/invites";
-import { listExpenses, listSettlements, listSplits } from "@/server/money/money";
+import {
+  listExpenses,
+  listSettlements,
+  listSplits,
+} from "@/server/money/money";
+import { viewerHasPacking } from "@/server/packing/packing";
+import { nextStepFor } from "@floc/core/trip/next-step";
+import { NextStepNudge } from "@/components/trip/next-step-nudge";
+import { tourSeenAt } from "@/server/auth/tour";
+import { shouldStartTour, tourStopsFor } from "@floc/core/trip/tour";
+import { TourSpotlight } from "@/components/tour/tour-spotlight";
 import { absoluteUrl } from "@/server/auth/email";
 import { formatMoney } from "@floc/core/money/money";
 import type { Currency } from "@floc/core/money/currency";
 import { tripStateFor } from "@floc/core/trip/trip-state";
 import { formatDateRange } from "@floc/core/dates/dates";
-import { Avatar, Badge, ButtonLink, PASTEL_BY_KEY, PASTEL_SKINS, Stack, cx } from "@/components/system/ui";
+import {
+  Avatar,
+  Badge,
+  ButtonLink,
+  PASTEL_BY_KEY,
+  PASTEL_SKINS,
+  Stack,
+  cx,
+} from "@/components/system/ui";
 import { Sheet, SubmitButton } from "@/components/system/client-ui";
 import { TripNameInline } from "@/components/trip/trip-name-inline";
 import { TripRoster } from "@/components/trip/trip-roster";
@@ -72,15 +90,14 @@ export default async function OverviewPage({
   const access = await requireTripAccess(id, `/trip/${id}/overview`);
   const { trip, members, isAdmin, viewer } = access;
 
-  // One roster query, not a per-row N+1 (ticket 96). Friends read is admin-only
-  // — a member can't invite (rule 6), so it has nothing to render (ticket 146).
+  // One roster query, not a per-row N+1 (ticket 96).
   const [friendStates, pendingInvitees, friends] = await Promise.all([
     friendStatesFor(
       viewer.id,
       members.map((m) => m.userId),
     ),
     listPendingInvitees(trip.id),
-    isAdmin ? listFriendsFor(viewer.id) : Promise.resolve([]),
+    listFriendsFor(viewer.id),
   ]);
   const tripId = trip.id;
 
@@ -96,6 +113,8 @@ export default async function OverviewPage({
     routeDays,
     transportModes,
     docs,
+    hasPacking,
+    tourSeen,
   ] = await Promise.all([
     // Unconditional: one indexed read is cheaper than a serial round trip when
     // the dates are unset.
@@ -109,9 +128,9 @@ export default async function OverviewPage({
     listRouteDays(tripId),
     transportModesByDay(tripId),
     // Rule 11: no storage volume, no Documents block — and no query for it.
-    documentsEnabled()
-      ? listDocuments(tripId, viewer.id)
-      : Promise.resolve([]),
+    documentsEnabled() ? listDocuments(tripId, viewer.id) : Promise.resolve([]),
+    viewerHasPacking(tripId, viewer.id),
+    tourSeenAt(viewer.id),
   ]);
 
   // All "where the trip is up to" is derived in one pure call (ticket 109); the
@@ -130,6 +149,13 @@ export default async function OverviewPage({
   });
 
   const { datesUnset, unresolved } = state;
+  const nextStep = nextStepFor({
+    memberCount: members.length,
+    datesUnset,
+    dayCount: dayRows.length,
+    expenseCount: expenseRows.length,
+    viewerHasPacking: hasPacking,
+  });
   const spend = spendByCurrency(expenseRows);
   const inviteUrl = absoluteUrl(`/invite/${trip.inviteToken}`);
   const tags = readTags(trip.tags);
@@ -186,32 +212,43 @@ export default async function OverviewPage({
                 <PencilIcon />
               </ButtonLink>
             </p>
-          </div>
-          {/* Group labels, edited where they're read (ticket 71, 86). Any member. */}
-          <div className="mt-3 flex flex-wrap items-center gap-1.5">
-            {tags.map((tag) => (
-              <span
-                key={tag}
-                className={cx(
-                  "rounded-full px-3 py-1 text-xs font-semibold",
-                  tagSkin,
-                )}
+            {/* Group labels, edited where they're read (ticket 71, 86). Any member. */}
+            <span className="flex flex-wrap items-center gap-1.5">
+              {tags.map((tag) => (
+                <span
+                  key={tag}
+                  className={cx(
+                    "rounded-full px-3 py-1 text-xs font-semibold",
+                    tagSkin,
+                  )}
+                >
+                  {tag}
+                </span>
+              ))}
+              <Sheet
+                trigger={<TagIcon />}
+                triggerLabel={tags.length > 0 ? "Edit tags" : "Add tags"}
+                title="Tags"
+                triggerVariant="secondary"
+                triggerClassName="!px-2 !py-1"
               >
-                {tag}
-              </span>
-            ))}
-            <Sheet
-              trigger={<TagIcon />}
-              triggerLabel={tags.length > 0 ? "Edit tags" : "Add tags"}
-              title="Tags"
-              triggerVariant="secondary"
-              triggerClassName="!px-2 !py-1"
-            >
-              <TripTagsForm tripId={tripId} tags={tags} />
-            </Sheet>
+                <TripTagsForm tripId={tripId} tags={tags} />
+              </Sheet>
+            </span>
           </div>
         </div>
       </header>
+
+      {nextStep ? (
+        <NextStepNudge
+          step={nextStep}
+          href={
+            nextStep.key === "invite"
+              ? "#the-group"
+              : `/trip/${tripId}/${nextStep.key}`
+          }
+        />
+      ) : null}
 
       <div className="mt-6 grid gap-4 lg:grid-cols-3">
         {/* The trip. */}
@@ -233,7 +270,7 @@ export default async function OverviewPage({
             viewerId={viewer.id}
             members={members}
             isAdmin={isAdmin}
-            inviteUrl={isAdmin ? inviteUrl : undefined}
+            inviteUrl={inviteUrl}
             friendStates={friendStates}
             pendingInvitees={pendingInvitees}
             friends={friends}
@@ -294,6 +331,15 @@ export default async function OverviewPage({
         days={routeDays}
         transportModes={transportModes}
       />
+
+      {shouldStartTour({ seen: tourSeen !== null }) ? (
+        <TourSpotlight
+          stops={tourStopsFor({
+            hasNudge: nextStep !== null,
+            hasFiles: documentsEnabled(),
+          })}
+        />
+      ) : null}
     </div>
   );
 }

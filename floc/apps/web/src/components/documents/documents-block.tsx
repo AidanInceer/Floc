@@ -57,7 +57,7 @@ export function DocumentsBlock({
       {shown.length === 0 ? (
         <p className="mt-4 text-sm text-ink-soft">
           {scope === "shared"
-            ? "Nothing shared with the trip yet — bookings and tickets go here."
+            ? "Add the first file with Upload — bookings and tickets go here."
             : "Nothing of your own here yet."}
         </p>
       ) : (

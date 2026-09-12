@@ -17,7 +17,8 @@ type TabKey =
   | "dates"
   | "days"
   | "money"
-  | "packing";
+  | "packing"
+  | "files";
 
 export type TabState = { key: TabKey; label: string };
 
@@ -33,16 +34,13 @@ export const TAB_LABELS: Record<string, string> = {
   money: "Money",
 };
 
+/** Planning order (#315): the steps Overview nudges through, then the trip's paper. */
 export const TABS: TabState[] = [
   { key: "overview", label: "Overview" },
-  { key: "notes", label: "Notes" },
-  // Dates sits third, between the suggesting and the sketching: the trip's
-  // dates are the itinerary's extent (ticket 140), so there are no days to
-  // fill in until they're set — and a trip is allowed to exist with no dates
-  // at all until then.
   { key: "dates", label: "Dates" },
   { key: "days", label: "Days" },
   { key: "money", label: "Money" },
-  // Last: packing is the thing you do once the trip is settled (ticket 219).
   { key: "packing", label: "Packing" },
+  { key: "notes", label: "Notes" },
+  { key: "files", label: "Files" },
 ];

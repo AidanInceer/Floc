@@ -80,7 +80,7 @@ Ticket 04 lists invariants SQLite cannot enforce. Where each one lives:
 |---|---|
 | Splits sum to the expense total exactly | `lib/money.ts` (`computeSplits`), covered by `money.test.ts` |
 | Tab unlocks never regress | `server/unlocks.ts` (`refreshUnlocks` only ever `coalesce`s a timestamp in) |
-| Only an admin may invite, kick, promote, archive or delete | `server/access.ts` (`assertAdmin`) at the top of each admin action |
+| Only an admin may kick, promote, archive or delete | `server/access.ts` (`assertAdmin`) at the top of each admin action |
 | A non-member cannot tell a real trip id from a fake one | `server/access.ts` (`requireTripAccess` → `notFound()`), plus `app/not-found.tsx` |
 | Money is never a float | `lib/money.ts` — integer minor units throughout, `parseMoney` refuses anything else |
 | Every read filters soft-deletes | the `server/` aggregates — `isNull(deletedAt)` does not appear in `app/` at all |
