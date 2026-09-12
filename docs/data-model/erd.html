@@ -31,6 +31,9 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
     USER ||--o{ PACKING_LINE : &quot;owns, when personal (owner_id, ticket 220)&quot;
     PACKING_LINE ||--o{ PACKING_CLAIM : &quot;is claimed by&quot;
     USER ||--o{ PACKING_CLAIM : &quot;claims&quot;
+    USER ||--o{ PACKING_KIT : &quot;saves (owner_id, ticket 230)&quot;
+    PACKING_KIT ||--o{ PACKING_KIT_ITEM : &quot;holds&quot;
+    PACKING_KIT |o..o{ PACKING_LINE : &quot;copied into (kit_name, by name, no FK)&quot;
     TRIP ||--o{ AVAILABILITY : &quot;has&quot;
     USER ||--o{ AVAILABILITY : &quot;reports&quot;
     TRIP ||--o{ DAY : &quot;has&quot;
@@ -62,6 +65,23 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
     DAY ||--o{ DOCUMENT : &quot;file sits on (day_id, nullable)&quot;
     DAY_EVENT ||--o{ DOCUMENT : &quot;file sits on (day_event_id, nullable)&quot;
     USER ||--o{ SUBSCRIPTION : &quot;holds (ticket 246)&quot;
+
+    classDef people fill:#dfe3ff,stroke:#8f9fd8
+    classDef social fill:#faddd6,stroke:#d69a8a
+    classDef trip fill:#e7dfca,stroke:#b3a47f
+    classDef dates fill:#dcefe4,stroke:#8cc3a6
+    classDef money fill:#fbeac8,stroke:#d6b36e
+    classDef packing fill:#d9eef5,stroke:#86bcd0
+    classDef notes fill:#ece2f7,stroke:#b39cd3
+    classDef billing fill:#fbf3e2,stroke:#c9a24f
+    class USER,USER_PROFILE,USER_COUNTRY_MARK people
+    class FRIENDSHIP,TRIP_INVITE,NUDGE social
+    class TRIP,TRIP_MEMBERSHIP,TRIP_LINK trip
+    class AVAILABILITY,DAY,DAY_EVENT,PLACE dates
+    class EXPENSE,EXPENSE_SPLIT,SETTLEMENT,FX_RATE money
+    class PACKING_LINE,PACKING_CLAIM,PACKING_KIT,PACKING_KIT_ITEM packing
+    class NOTE,NOTE_REACTION,TRIP_NOTE_DOC,DOCUMENT notes
+    class SUBSCRIPTION billing
 
     USER {
         string id PK
@@ -308,13 +328,24 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
         bool cancel_at_period_end
     }
 
-    FX_RATE {
+    FX_RATE:::money {
         int id PK
         string date &quot;YYYY-MM-DD, as the provider published it&quot;
         string base
         string currency
         float rate &quot;units of currency per 1 base — a rate, not money, so a float is correct&quot;
     }</pre>
+<p class="erd-key">
+<span style="background:#dfe3ff;border:1px solid #8f9fd8">People</span>
+<span style="background:#faddd6;border:1px solid #d69a8a">Social</span>
+<span style="background:#e7dfca;border:1px solid #b3a47f">Trip</span>
+<span style="background:#dcefe4;border:1px solid #8cc3a6">Dates and itinerary</span>
+<span style="background:#fbeac8;border:1px solid #d6b36e">Money</span>
+<span style="background:#d9eef5;border:1px solid #86bcd0">Packing</span>
+<span style="background:#ece2f7;border:1px solid #b39cd3">Notes and files</span>
+<span style="background:#fbf3e2;border:1px solid #c9a24f">Billing</span>
+</p>
+<style>.erd-key{display:flex;flex-wrap:wrap;gap:.5rem}.erd-key span{padding:.15rem .6rem;border-radius:4px;font-size:.85rem;color:#23211c}</style>
 <p><code>fx_rate</code> stands apart: it is a cache of published rates, owned by nobody, so
 it has no foreign keys and no <code>deleted_at</code>.</p>
 <h2>Relationship cardinalities (plain-English index)</h2>
