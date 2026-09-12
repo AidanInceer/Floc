@@ -6,7 +6,28 @@
     "availability.set": {
       "mobile": "yes"
     },
+    "comments.add": {
+      "mobile": "yes"
+    },
+    "comments.edit": {
+      "mobile": "yes"
+    },
+    "comments.onEvent": {
+      "mobile": "yes"
+    },
+    "comments.react": {
+      "mobile": "yes"
+    },
+    "comments.remove": {
+      "mobile": "yes"
+    },
+    "files.attach": {
+      "mobile": "yes"
+    },
     "files.canUpload": {
+      "mobile": "yes"
+    },
+    "files.detach": {
       "mobile": "yes"
     },
     "files.list": {
@@ -19,6 +40,9 @@
       "mobile": "yes"
     },
     "files.upload": {
+      "mobile": "yes"
+    },
+    "files.viewUrl": {
       "mobile": "yes"
     },
     "friends.accept": {

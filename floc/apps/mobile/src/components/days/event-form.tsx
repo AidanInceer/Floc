@@ -9,13 +9,16 @@
  * "no time" is something chosen rather than something left blank — and the
  * time itself can no longer be typed wrongly (see that file).
  *
- * SAVE AND CANCEL SHARE A ROW. Three full-width buttons stacked is a wall at
- * the foot of every form; Save is the wider of the two because it is the one
- * being reached for.
+ * NO CANCEL. The form only ever opens in a sheet, and the sheet's own X is the
+ * way out — a second one is the same door twice (#325 feedback).
+ *
+ * SAVE AND DELETE SHARE THE ROW. Delete sits where Cancel did, narrow and on
+ * the left, so the thumb that reached for Save still lands on Save.
  *
  * TIMES ARE LOCAL TO THE ITINERARY (rule 10). `HH:MM` in, `HH:MM` out, and the
  * device clock is never asked what it thinks.
  */
+import { EVENT_CATEGORIES } from "@floc/core/itinerary/event-categories";
 import { DAY_EVENT_TYPES, type DayEventType } from "@floc/core/vocabulary";
 import { useState } from "react";
 import { View } from "react-native";
@@ -32,9 +35,11 @@ export type EventDraft = {
   note: string | null;
 };
 
+// The same words the website uses, out of the same table — the phone used to
+// say "Doing / Travel / Eating", which is a second vocabulary for one thing.
 const TYPES = DAY_EVENT_TYPES.map((type) => ({
   value: type,
-  label: type === "activity" ? "Doing" : type === "food" ? "Eating" : "Travel",
+  label: EVENT_CATEGORIES[type].label,
 }));
 
 export function EventForm({
@@ -42,14 +47,12 @@ export function EventForm({
   busy,
   problem,
   onSave,
-  onCancel,
   onDelete,
 }: {
   initial?: EventDraft;
   busy: boolean;
   problem: string | null;
   onSave: (draft: EventDraft) => void;
-  onCancel: () => void;
   /** Absent when adding — there is nothing yet to delete. */
   onDelete?: () => void;
 }) {
@@ -65,16 +68,18 @@ export function EventForm({
         <Field label="What" value={title} onChangeText={setTitle} autoFocus />
         <TimeField value={time} onChange={setTime} />
         <Field
-          label="Anything to remember (optional)"
+          label="Notes"
           value={note}
           onChangeText={setNote}
           multiline
         />
         {problem ? <Body tone="red">{problem}</Body> : null}
         <View style={{ flexDirection: "row", gap: space.sm }}>
-          <View style={{ flex: 1 }}>
-            <Button label="Cancel" variant="quiet" onPress={onCancel} />
-          </View>
+          {onDelete ? (
+            <View style={{ flex: 1 }}>
+              <Button label="Delete" variant="danger" onPress={onDelete} />
+            </View>
+          ) : null}
           <View style={{ flex: 2 }}>
             <Button
               label="Save"
@@ -91,10 +96,6 @@ export function EventForm({
             />
           </View>
         </View>
-        {/* Deleting is not one of two equals — it sits apart, below. */}
-        {onDelete ? (
-          <Button label="Delete this" variant="danger" onPress={onDelete} />
-        ) : null}
       </View>
     </Card>
   );

@@ -61,7 +61,7 @@ export function DocumentsBlock({
             : "Nothing of your own here yet."}
         </p>
       ) : (
-        <ul className="mt-3 divide-y divide-rule-soft">
+        <ul className="mt-3 divide-y divide-rule">
           {shown.slice(0, PREVIEW).map((doc) => (
             <DocumentRow
               key={doc.id}

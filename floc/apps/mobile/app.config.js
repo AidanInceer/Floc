@@ -17,6 +17,7 @@ module.exports = ({ config }) => {
     plugins: [
       ...(config.plugins ?? []),
       ["expo-build-properties", { android: { usesCleartextTraffic: true } }],
+      "expo-sharing",
     ],
   };
 };

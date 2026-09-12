@@ -181,3 +181,19 @@ export async function setDocumentCategory(
     .where(and(eq(document.id, documentId), isNull(document.deletedAt)))
     .run();
 }
+
+/**
+ * One live document by id, with no trip check (#325 feedback). Only for a
+ * request carrying a valid view token: the token was minted for this exact id
+ * *after* the ordinary check passed, so the permission has already been
+ * decided and re-deciding it is not possible — the caller has no viewer.
+ */
+export async function liveDocument(
+  documentId: number,
+): Promise<typeof document.$inferSelect | undefined> {
+  return db
+    .select()
+    .from(document)
+    .where(and(eq(document.id, documentId), isNull(document.deletedAt)))
+    .get();
+}

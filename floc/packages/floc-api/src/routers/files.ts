@@ -36,6 +36,8 @@ export const filesRouter = router({
         contentBase64: z.string().min(1),
         category,
         shared: z.boolean(),
+        /** Set when it was added from an event's modal (ticket 325). */
+        dayEventId: z.number().int().positive().nullable().default(null),
       }),
     )
     .mutation(({ ctx, input }) => {
@@ -43,11 +45,46 @@ export const filesRouter = router({
       return ctx.port.uploadFile(ctx.viewer.id, tripId, file);
     }),
 
+  /**
+   * Where to send a browser to look at the file (#325 feedback). A query, not a
+   * field on `list`: the link expires, so it is minted when it is about to be
+   * used rather than for every row of a list nobody may tap.
+   */
+  viewUrl: tripProcedure
+    .input(z.object({ fileId: z.number().int().positive() }))
+    .query(({ ctx, input }) => ctx.port.fileViewUrl(ctx.viewer.id, input.tripId, input.fileId)),
+
   /** Any member's to do — the resolver already refused what they cannot see. */
   remove: tripProcedure
     .input(z.object({ fileId: z.number().int().positive() }))
     .mutation(async ({ ctx, input }) => {
       await ctx.port.deleteFile(ctx.viewer.id, input.tripId, input.fileId);
+    }),
+
+  /**
+   * Filing, not ownership (ticket 325) — any member who can see the row may
+   * park it on an event, and detaching leaves the file on the trip.
+   */
+  attach: tripProcedure
+    .input(
+      z.object({
+        fileId: z.number().int().positive(),
+        dayEventId: z.number().int().positive(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ctx.port.attachFileToEvent(
+        ctx.viewer.id,
+        input.tripId,
+        input.fileId,
+        input.dayEventId,
+      );
+    }),
+
+  detach: tripProcedure
+    .input(z.object({ fileId: z.number().int().positive() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.port.detachFileFromEvent(ctx.viewer.id, input.tripId, input.fileId);
     }),
 
   setCategory: tripProcedure

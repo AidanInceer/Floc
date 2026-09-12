@@ -16,11 +16,18 @@
  * 09:30 block starts a third of the way down an hour in both apps, and an
  * overlap swims into the same lanes.
  *
- * THE WINDOW IS THE ONE THING NOT SHARED. `gridWindow` draws midnight to
- * midnight, which the browser hides behind a scrollbar; on a phone that is
- * twenty-four rows of nothing to push past with a thumb before reaching lunch.
- * `hoursShown` draws the hours the day actually uses instead, and never fewer
- * than `LEAST_HOURS` so an empty day is still recognisably a day.
+ * THE WHOLE DAY IS DRAWN, midnight to midnight, the same window the browser
+ * draws. Cropping to the hours in use saved a thumb-scroll and cost the thing
+ * the grid is for: an empty evening only reads as free if it is on the screen.
+ *
+ * AN EMPTY HOUR IS THE ADD CONTROL. Pressing one starts an event at that time
+ * — which is where somebody is already pointing — instead of a button above
+ * the grid that starts one at no time at all.
+ *
+ * IT SCROLLS ITSELF, AND OPENS ON THE FIRST EVENT. Drawing the whole day put
+ * breakfast eight hours below the fold; the grid arrives at the first thing
+ * planned, and the small hours are still there above it for anyone whose
+ * flight leaves at four.
  *
  * TIMES ARE LOCAL TO THE ITINERARY (rule 10). `HH:MM` is drawn exactly as
  * stored. Nothing here reads the device clock or a timezone.
@@ -37,29 +44,18 @@
 import { packLanes, spanOf, type TimedLike } from "@floc/core/dates/calendar";
 import { EVENT_CATEGORIES } from "@floc/core/itinerary/event-categories";
 import type { DayEventType } from "@floc/core/vocabulary";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 
+import { ClipGlyph, PenGlyph } from "../system/glyphs";
 import { useTheme } from "../system/theme";
 import { fonts, radius, size, space } from "@/lib/theme";
 
 /** One hour's height. Tall enough that a half-hour block is still a tappable target. */
 const HOUR = 52;
 
-/** The window a day with nothing in it draws: a waking day, not a whole one. */
-const QUIET_START = 8;
-const QUIET_END = 21;
-
-/** Fewer rows than this and the grid stops reading as a clock. */
-const LEAST_HOURS = 6;
-
-/** The hours to draw: what the day uses, widened to something a day's shape is legible in. */
-function hoursShown(events: TimedLike[]): { startHour: number; endHour: number } {
-  const spans = events.flatMap((event) => spanOf(event) ?? []);
-  if (spans.length === 0) return { startHour: QUIET_START, endHour: QUIET_END };
-  const startHour = Math.floor(Math.min(...spans.map((span) => span.start)) / 60);
-  const endHour = Math.ceil(Math.max(...spans.map((span) => span.end)) / 60);
-  return { startHour, endHour: Math.min(24, Math.max(endHour, startHour + LEAST_HOURS)) };
-}
+/** Midnight to midnight. Rule 10: these are itinerary hours, not the device's. */
+const START_HOUR = 0;
+const END_HOUR = 24;
 
 /** Room for "09", left of the rules. */
 const GUTTER = 34;
@@ -92,12 +88,16 @@ function EventBlock({
   type,
   title,
   when,
+  hasNote,
+  hasFiles,
   onPress,
   style,
 }: {
   type: DayEventType;
   title: string;
   when: string | null;
+  hasNote: boolean;
+  hasFiles: boolean;
   onPress: () => void;
   style?: object;
 }) {
@@ -125,27 +125,53 @@ function EventBlock({
         style,
       ]}
     >
-      <Text
-        numberOfLines={2}
-        style={{ color: c[`${ground}-ink`], fontFamily: fonts.sans, fontSize: size.small }}
-      >
-        {said}
-      </Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
+        <Text
+          numberOfLines={2}
+          style={{
+            flexShrink: 1,
+            color: c[`${ground}-ink`],
+            fontFamily: fonts.sans,
+            fontSize: size.small,
+          }}
+        >
+          {said}
+        </Text>
+        {/* The marks say only "more inside" — the modal is the real answer, so
+            the label above already carries everything a reader is told. */}
+        {hasNote ? <PenGlyph color={c[`${ground}-ink`]} /> : null}
+        {hasFiles ? <ClipGlyph color={c[`${ground}-ink`]} /> : null}
+      </View>
     </Pressable>
   );
 }
 
 export function DayGrid({
   events,
+  withFiles,
   onPick,
+  onAddAt,
 }: {
   events: GridEvent[];
-  /** Tapping a block edits it — the same tap the card list had. */
+  /** The ids wearing a clip (ticket 324) — the whole trip's, so the strip can move without a second read. */
+  withFiles: Set<number>;
+  /** Tapping a block opens it — the same tap the card list had. */
   onPick: (eventId: number) => void;
+  /** Tapping an empty hour starts one there, `HH:MM` (rule 10 — itinerary time). */
+  onAddAt: (time: string) => void;
 }) {
   const { c } = useTheme();
-  const { startHour, endHour } = hoursShown(events);
+  const startHour = START_HOUR;
+  const endHour = END_HOUR;
   const top = startHour * 60;
+
+  // An hour above the first thing planned, so the block is not flush with the
+  // top edge and the hour before it reads as free.
+  const firstSpan = Math.min(
+    ...events.flatMap((event) => spanOf(event)?.start ?? []),
+    END_HOUR * 60,
+  );
+  const opensAt = Math.max(0, Math.floor(firstSpan / 60) - 1 - startHour) * HOUR;
 
   const allDay = events.filter((event) => event.allDay);
   // Anything with no start time at all sits with the all-day chips rather than
@@ -159,7 +185,7 @@ export function DayGrid({
   const packed = packLanes(timed.map((t) => ({ id: t.event.id, start: t.span.start, end: t.span.end })));
 
   return (
-    <View style={{ gap: space.md }}>
+    <View style={{ flex: 1, gap: space.md }}>
       {allDay.length + loose.length > 0 ? (
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.sm }}>
           {[...allDay, ...loose].map((event) => (
@@ -168,13 +194,19 @@ export function DayGrid({
               type={event.type}
               title={event.title ?? "Untitled"}
               when={event.allDay ? "All day" : "No time"}
+              hasNote={Boolean(event.note)}
+              hasFiles={withFiles.has(event.id)}
               onPress={() => onPick(event.id)}
             />
           ))}
         </View>
       ) : null}
 
-      <View style={{ flexDirection: "row" }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentOffset={{ x: 0, y: opensAt }}
+        contentContainerStyle={{ flexDirection: "row", paddingBottom: space.lg }}
+      >
         <View style={{ width: GUTTER }}>
           {Array.from({ length: endHour - startHour }, (_, i) => (
             <View key={i} style={{ height: HOUR }}>
@@ -193,9 +225,17 @@ export function DayGrid({
         </View>
 
         <View style={{ flex: 1 }}>
-          {/* The rules are the hours. Drawn first so blocks sit over them. */}
+          {/* The rules are the hours, and each one is where an event at that
+              hour is started. Drawn first so blocks sit over them — a press
+              that lands on a block opens the block instead. */}
           {Array.from({ length: endHour - startHour }, (_, i) => (
-            <View key={i} style={{ height: HOUR, borderTopWidth: 1, borderTopColor: c.rule }} />
+            <Pressable
+              key={i}
+              accessibilityRole="button"
+              accessibilityLabel={`Add something at ${String(startHour + i).padStart(2, "0")}:00`}
+              onPress={() => onAddAt(`${String(startHour + i).padStart(2, "0")}:00`)}
+              style={{ height: HOUR, borderTopWidth: 1, borderTopColor: c.rule }}
+            />
           ))}
 
           {packed.map((block) => {
@@ -210,6 +250,8 @@ export function DayGrid({
                 // Open-ended events say their start and nothing else — the box's
                 // height is a drawing, not a claim about when it finishes.
                 when={found.event.time}
+                hasNote={Boolean(found.event.note)}
+                hasFiles={withFiles.has(found.event.id)}
                 onPress={() => onPick(block.id)}
                 style={{
                   position: "absolute",
@@ -223,7 +265,7 @@ export function DayGrid({
             );
           })}
         </View>
-      </View>
+      </ScrollView>
     </View>
   );
 }
