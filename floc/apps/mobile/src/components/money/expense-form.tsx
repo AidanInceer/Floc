@@ -144,23 +144,21 @@ function Actions({
   onDelete?: () => void;
 }) {
   return (
-    <View style={{ gap: space.sm }}>
-      <View style={{ flexDirection: "row", gap: space.sm }}>
-        <View style={{ flex: 1 }}>
-          <Button label="Cancel" variant="quiet" onPress={onCancel} />
-        </View>
-        <View style={{ flex: 2 }}>
-          <Button label="Save" busy={busy} onPress={onSave} />
-        </View>
-      </View>
-      {/* Deleting is not one of two equals — it sits apart, below. */}
+    <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
+      {/* Deleting is not one of the two equals: it stays a word, not a slab. */}
       {onDelete ? (
-        <Button
-          label="Delete this expense"
-          variant="danger"
+        <Pressable
+          accessibilityRole="button"
           onPress={onDelete}
-        />
+          hitSlop={space.sm}
+          style={{ paddingHorizontal: space.sm }}
+        >
+          <Body tone="red">Delete</Body>
+        </Pressable>
       ) : null}
+      <View style={{ flex: 1 }} />
+      <Button label="Cancel" variant="quiet" fit="small" onPress={onCancel} />
+      <Button label="Save" busy={busy} fit="small" onPress={onSave} />
     </View>
   );
 }
