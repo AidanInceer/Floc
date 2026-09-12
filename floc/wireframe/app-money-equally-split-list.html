@@ -1,0 +1,166 @@
+<title>Equally split — who is in, three ways</title>
+<style>
+  :root{
+    --paper:#fafafa;--sheet:#fff;--sheet-2:#f5f4f0;--rule:#e6e4de;--rule-2:#d8d5cd;
+    --ink:#14141a;--ink-2:#63636f;--ink-3:#9a9aa4;--pen:#4e68d8;--pen-deep:#2b3b85;--pen-2:#e7ebfa;
+    --peri-edge:#c6d0f2;
+    --mint:#dcefe4;--mint-ink:#1b6b4c;--mint-edge:#c3e3d2;
+    --blush:#faddd6;--blush-ink:#a34a31;--blush-edge:#f0c7bc;
+    --shadow-sm:0 1px 2px rgb(20 20 26/.05);
+    --shadow:0 1px 2px rgb(20 20 26/.05),0 6px 14px -12px rgb(20 20 26/.3);
+    --display:"Bricolage Grotesque","Trebuchet MS",sans-serif;
+    --sans:"Instrument Sans",system-ui,-apple-system,sans-serif;
+    --type:"DM Mono","Cascadia Mono",Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
+    font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:86rem;margin:0 auto;padding:24px}
+  h1,h2,h3{font-family:var(--display);font-weight:600;letter-spacing:-.01em;margin:0}
+  .mono{font-family:var(--type);font-variant-numeric:tabular-nums}
+  svg{display:block}
+  .banner{max-width:86rem;margin:18px auto 0;padding:12px 20px;font-family:var(--type);
+    font-size:12px;color:var(--pen-deep);background:var(--pen-2);border-radius:12px;
+    border:1px solid var(--peri-edge);line-height:1.6}
+  .row{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start;margin-top:22px}
+  .col{width:320px}
+  .cap{font-size:13px;color:var(--ink-2);margin:10px 0 0}
+  .cap b{color:var(--ink);font-weight:600;font-family:var(--display)}
+
+  .card{background:var(--sheet);border:1px solid var(--rule);border-radius:18px;
+    padding:14px 16px;box-shadow:var(--shadow)}
+  .lbl{font-family:var(--type);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+  .seg{display:flex;gap:4px;background:var(--sheet-2);border-radius:999px;padding:3px;margin-bottom:12px}
+  .seg span{flex:1;text-align:center;font-size:12px;padding:6px 0;border-radius:999px;color:var(--ink-2)}
+  .seg span.on{background:var(--sheet);color:var(--ink);font-weight:600;box-shadow:var(--shadow-sm)}
+
+  .p{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--rule);font-size:14px}
+  .p:last-of-type{border-bottom:0}
+  .p .name{flex:1;min-width:0}
+  .out .name{color:var(--ink-3)}
+  .amt{font-family:var(--type);font-variant-numeric:tabular-nums;font-size:13px}
+  .out .amt{color:var(--ink-3)}
+  .sum{font-size:13px;color:var(--ink-2);padding-top:10px;border-top:1px solid var(--rule)}
+
+  .box{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--rule-2);flex:none;
+    display:flex;align-items:center;justify-content:center;background:var(--sheet)}
+  .box.on{background:var(--pen);border-color:var(--pen)}
+
+  .pill{font-size:11px;padding:3px 10px;border-radius:999px;border:1px solid var(--rule-2);
+    color:var(--ink-2);background:var(--sheet)}
+  .pill.on{background:var(--pen-2);border-color:var(--peri-edge);color:var(--pen-deep);font-weight:600}
+
+  .x{width:24px;height:24px;border-radius:999px;border:1px solid var(--rule);flex:none;
+    display:flex;align-items:center;justify-content:center;color:var(--ink-2);background:var(--sheet)}
+  .backin{display:flex;gap:6px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--rule)}
+  .chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;
+    font-size:12px;border:1px dashed var(--rule-2);color:var(--ink-2)}
+
+  .verdict{margin-top:8px;padding:11px 13px;border-radius:12px;font-size:13px;line-height:1.55}
+  .good{background:var(--mint);border:1px solid var(--mint-edge);color:var(--mint-ink)}
+  .bad{background:var(--blush);border:1px solid var(--blush-edge);color:var(--blush-ink)}
+</style>
+
+<div class="banner">
+  WIREFRAME · App · Money · <b>The Equally list — how you know a person can be taken out</b><br>
+  Today the row says "Dev user · in" and nothing looks pressable. Three ways to fix that.
+  Same card, same four people, Tom taken out in each.
+</div>
+
+<div class="wrap">
+<div class="row">
+
+  <!-- A -->
+  <div class="col">
+    <h3>A — Tick box</h3>
+    <div class="card">
+      <div class="seg"><span class="on">Equally</span><span>Exact</span><span>Shares</span></div>
+
+      <div class="p">
+        <div class="box on"><svg width="12" height="12" viewBox="0 0 14 14" fill="none"
+          stroke="#fff" stroke-width="1.8"><path d="M3 7.5 6 10.5 11 4"/></svg></div>
+        <div class="name">Dev user</div><div class="amt">£160.00</div>
+      </div>
+      <div class="p">
+        <div class="box on"><svg width="12" height="12" viewBox="0 0 14 14" fill="none"
+          stroke="#fff" stroke-width="1.8"><path d="M3 7.5 6 10.5 11 4"/></svg></div>
+        <div class="name">Priya Raman</div><div class="amt">£160.00</div>
+      </div>
+      <div class="p">
+        <div class="box on"><svg width="12" height="12" viewBox="0 0 14 14" fill="none"
+          stroke="#fff" stroke-width="1.8"><path d="M3 7.5 6 10.5 11 4"/></svg></div>
+        <div class="name">Sofia Alves</div><div class="amt">£160.00</div>
+      </div>
+      <div class="p out">
+        <div class="box"></div>
+        <div class="name">Tom Whitfield</div><div class="amt">—</div>
+      </div>
+
+      <div class="sum">£160.00 each · 3 of 4 in</div>
+    </div>
+    <p class="cap"><b>Tap anywhere on the row.</b> An empty box is the one shape everybody
+      already reads as "this can be turned on". The share moves to the right, so you see the
+      cost change as you tick.</p>
+    <div class="verdict good">Cheapest to build, hardest to misread. Matches Exact and Shares,
+      which also need a per-person row.</div>
+    <div class="verdict bad">A tick box is quiet. Nothing shouts the list is editable until
+      you look at it.</div>
+  </div>
+
+  <!-- B -->
+  <div class="col">
+    <h3>B — In / Out switch</h3>
+    <div class="card">
+      <div class="seg"><span class="on">Equally</span><span>Exact</span><span>Shares</span></div>
+
+      <div class="p"><div class="name">Dev user</div>
+        <div class="amt">£160.00</div><div class="pill on">In</div></div>
+      <div class="p"><div class="name">Priya Raman</div>
+        <div class="amt">£160.00</div><div class="pill on">In</div></div>
+      <div class="p"><div class="name">Sofia Alves</div>
+        <div class="amt">£160.00</div><div class="pill on">In</div></div>
+      <div class="p out"><div class="name">Tom Whitfield</div>
+        <div class="amt"></div><div class="pill">Out</div></div>
+
+      <div class="sum">£160.00 each · 3 of 4 in</div>
+    </div>
+    <p class="cap"><b>The state is a word, not a mark.</b> Each row carries a small pill that
+      says In or Out and flips when tapped. Nothing is hidden behind a symbol.</p>
+    <div class="verdict good">Status carries a word, which is the house rule. No guessing what
+      a grey box means.</div>
+    <div class="verdict bad">Four pills is four loud objects on a short list, and the pill
+      competes with the amount beside it.</div>
+  </div>
+
+  <!-- C -->
+  <div class="col">
+    <h3>C — Remove, then add back</h3>
+    <div class="card">
+      <div class="seg"><span class="on">Equally</span><span>Exact</span><span>Shares</span></div>
+
+      <div class="p"><div class="name">Dev user</div><div class="amt">£160.00</div>
+        <div class="x"><svg width="11" height="11" viewBox="0 0 14 14" fill="none"
+          stroke="currentColor" stroke-width="1.2"><path d="M3.5 3.5 10.5 10.5M10.5 3.5 3.5 10.5"/></svg></div></div>
+      <div class="p"><div class="name">Priya Raman</div><div class="amt">£160.00</div>
+        <div class="x"><svg width="11" height="11" viewBox="0 0 14 14" fill="none"
+          stroke="currentColor" stroke-width="1.2"><path d="M3.5 3.5 10.5 10.5M10.5 3.5 3.5 10.5"/></svg></div></div>
+      <div class="p"><div class="name">Sofia Alves</div><div class="amt">£160.00</div>
+        <div class="x"><svg width="11" height="11" viewBox="0 0 14 14" fill="none"
+          stroke="currentColor" stroke-width="1.2"><path d="M3.5 3.5 10.5 10.5M10.5 3.5 3.5 10.5"/></svg></div></div>
+
+      <div class="backin">
+        <span class="lbl" style="width:100%">Not in this one</span>
+        <span class="chip">+ Tom Whitfield</span>
+      </div>
+
+      <div class="sum">£160.00 each · 3 of 4 in</div>
+    </div>
+    <p class="cap"><b>The list is only the people who are in.</b> A × takes one out and drops
+      the name to a row of dashed chips below; tapping the chip puts them back.</p>
+    <div class="verdict good">Shortest list. The people paying are the only thing you read.</div>
+    <div class="verdict bad">Two places to look for one person, and the list jumps as rows
+      leave and rejoin. The × is also the only control on the card that deletes anything.</div>
+  </div>
+
+</div>
+</div>

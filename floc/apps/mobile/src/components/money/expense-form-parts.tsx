@@ -40,6 +40,7 @@ import {
 } from "@floc/core/money/expense-category";
 
 import { useTheme } from "../system/theme";
+import { TickGlyph } from "../system/glyphs";
 import { Body, Label } from "../system/ui";
 import { fonts, radius, size, space } from "@/lib/theme";
 
@@ -252,10 +253,36 @@ function Stepper({
   );
 }
 
+/** Ticked or empty. An empty box is the one shape everybody reads as "turn me on". */
+function Tick({ on }: { on: boolean }) {
+  const { c } = useTheme();
+  return (
+    <View
+      style={{
+        width: 20,
+        height: 20,
+        // Half of `radius.sm` — at 20 points the small radius is a full circle,
+        // and a circle reads as a radio button, one of many.
+        borderRadius: radius.sm / 2,
+        borderWidth: 1.5,
+        borderColor: on ? c.pen : c["rule-2"],
+        backgroundColor: on ? c.pen : c.sheet,
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      {on ? <TickGlyph color={c.sheet} /> : null}
+    </View>
+  );
+}
+
 /**
  * One person, tapped to put them in or out, with whatever the mode asks of them
  * on the right. A row each, not wrapped chips (#317): names are different
  * lengths, so chips left a ragged block nobody could scan down.
+ *
+ * THE BOX IS WHY THE ROW LOOKS PRESSABLE. "Dev user · in" was the whole row and
+ * read as a statement, so nobody found the tap that takes a person out (#317).
  */
 function PersonRow({
   person,
@@ -282,11 +309,17 @@ function PersonRow({
         accessibilityState={{ checked: on }}
         accessibilityLabel={person.name}
         onPress={() => onToggle(person.userId)}
-        style={{ flex: 1 }}
+        style={{
+          flex: 1,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: space.sm,
+        }}
       >
-        {/* The word, not the fill, is what says they are in or out (#204). */}
+        <Tick on={on} />
+        {/* Out is the odd state, so it says so — a tick alone is an icon (#204). */}
         <Body tone={on ? "ink" : "ink-3"}>
-          {on ? `${person.name} · in` : `${person.name} · out`}
+          {on ? person.name : `${person.name} · out`}
         </Body>
       </Pressable>
       {on ? children : null}
@@ -294,15 +327,23 @@ function PersonRow({
   );
 }
 
-/** Equally asks a yes or no, so the row carries nothing but the name. */
+/**
+ * Equally asks a yes or no, and answers with the cost.
+ *
+ * The share sits on the right of the row it belongs to, so ticking somebody out
+ * is seen in the figure it changes rather than in a total further down.
+ */
 export function TickList({
   people,
   inOn,
   onToggle,
+  shareFor,
 }: {
   people: Person[];
   inOn: Set<string>;
   onToggle: (userId: string) => void;
+  /** What this person is down for, or "" while the amount is unusable. */
+  shareFor: (userId: string) => string;
 }) {
   return (
     <View>
@@ -312,7 +353,9 @@ export function TickList({
           person={person}
           on={inOn.has(person.userId)}
           onToggle={onToggle}
-        />
+        >
+          <Body tone="ink-2">{shareFor(person.userId)}</Body>
+        </PersonRow>
       ))}
     </View>
   );

@@ -173,7 +173,14 @@ function Split({
   people: ExpenseFormProps["people"];
   currency: ExpenseFormProps["currency"];
 }) {
-  let list = <TickList people={people} inOn={f.inOn} onToggle={f.toggle} />;
+  let list = (
+    <TickList
+      people={people}
+      inOn={f.inOn}
+      onToggle={f.toggle}
+      shareFor={shareOf(f, people, currency)}
+    />
+  );
   if (f.mode === "exact") {
     list = (
       <ExactList
@@ -235,40 +242,16 @@ function shareOf(
   };
 }
 
-/** What each person is down for, once it is knowable. Status, so it is said (#126). */
+/** How many are in. Each person's own figure is on their own row. */
 function Each({
   f,
   people,
-  currency,
 }: {
   f: ReturnType<typeof useFields>;
   people: ExpenseFormProps["people"];
-  currency: ExpenseFormProps["currency"];
 }) {
-  const attempt = buildDraft(
-    {
-      description: "",
-      category: f.category,
-      amount: f.amount,
-      paidBy: f.paidBy,
-      dayId: null,
-      notes: "",
-      mode: f.mode,
-    },
-    people,
-    f.inOn,
-    f.weights,
-    currency,
-  );
-  const share =
-    attempt.ok && f.mode === "equally"
-      ? attempt.draft.splits.find((split) => split.owedAmountMinor > 0)
-          ?.owedAmountMinor
-      : undefined;
-
   return (
     <Body tone="ink-3">
-      {share === undefined ? "" : `${formatMoney(share, currency)} each · `}
       {f.inOn.size} of {people.length} in
     </Body>
   );
@@ -412,7 +395,7 @@ export function ExpenseForm({
         </View>
 
         <Split f={f} people={people} currency={currency} />
-        <Each f={f} people={people} currency={currency} />
+        <Each f={f} people={people} />
 
         <Folded f={f} people={people} days={days} />
 
