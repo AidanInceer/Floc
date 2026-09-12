@@ -52,17 +52,19 @@ export default async function MoneyPage({
   const tripId = access.trip.id;
   const viewerId = access.viewer.id;
 
-  const [expenses, days, viewerProfile, splits, settlements] =
+  const homeRates = getProfile(viewerId).then(async (profile) => {
+    const home: Currency = profile?.homeCurrency ?? "GBP";
+    return { home, rates: await getHomeRates(home) };
+  });
+  const [expenses, days, { home: homeCurrency, rates }, splits, settlements] =
     await Promise.all([
       listExpenses(tripId),
       listDays(tripId),
-      getProfile(viewerId),
+      homeRates,
       listSplits(tripId),
       listSettlements(tripId),
     ]);
 
-  const homeCurrency: Currency = viewerProfile?.homeCurrency ?? "GBP";
-  const rates = await getHomeRates(homeCurrency);
   const rateFor = (currency: Currency): number | null =>
     rates ? rates.toHome[currency] || null : null;
 

@@ -32,7 +32,7 @@
  * Every panel carries ONE heading, no eyebrow above it (`SectionHead`).
  */
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 
 import { requireTripAccess } from "@/server/access";
 import { listDocuments } from "@/server/documents/documents";
@@ -54,7 +54,6 @@ import { nextStepFor } from "@floc/core/trip/next-step";
 import { NextStepNudge } from "@/components/trip/next-step-nudge";
 import { tourSeenAt } from "@/server/auth/tour";
 import { shouldStartTour, tourStopsFor } from "@floc/core/trip/tour";
-import { TourSpotlight } from "@/components/tour/tour-spotlight";
 import { absoluteUrl } from "@/server/auth/email";
 import { formatMoney } from "@floc/core/money/money";
 import type { Currency } from "@floc/core/money/currency";
@@ -71,15 +70,19 @@ import {
 } from "@/components/system/ui";
 import { Sheet, SubmitButton } from "@/components/system/client-ui";
 import { TripNameInline } from "@/components/trip/trip-name-inline";
-import { TripRoster } from "@/components/trip/trip-roster";
 import { friendStatesFor, listFriendsFor } from "@/server/social/friends";
 import { TripRoute } from "@/components/trip/trip-route";
 import { TripDayTrack } from "@/components/days/trip-day-track";
-import { DocumentsBlock } from "@/components/documents/documents-block";
 import { TagEditor } from "@/components/trip/tag-editor";
 import { readTags } from "@floc/core/trip/tags";
 import { readTripColor } from "@floc/core/trip/trip-color";
 import { renameTrip, setTripTags } from "./actions";
+import {
+  PanelPlaceholder,
+  StreamedDocuments,
+  StreamedRoster,
+  TourWhenReady,
+} from "./streamed";
 
 export default async function OverviewPage({
   params,
@@ -90,16 +93,25 @@ export default async function OverviewPage({
   const access = await requireTripAccess(id, `/trip/${id}/overview`);
   const { trip, members, isAdmin, viewer } = access;
 
-  // One roster query, not a per-row N+1 (ticket 96).
-  const [friendStates, pendingInvitees, friends] = await Promise.all([
+  const tripId = trip.id;
+
+  // Why: the roster and files stream in under Suspense, so their reads start now but never hold the page.
+  const rosterExtras = Promise.all([
     friendStatesFor(
       viewer.id,
       members.map((m) => m.userId),
     ),
-    listPendingInvitees(trip.id),
+    listPendingInvitees(tripId),
     listFriendsFor(viewer.id),
-  ]);
-  const tripId = trip.id;
+  ]).then(([friendStates, pendingInvitees, friends]) => ({
+    friendStates,
+    pendingInvitees,
+    friends,
+  }));
+  // Rule 11: no storage volume, no Documents block — and no query for it.
+  const docs = documentsEnabled()
+    ? listDocuments(tripId, viewer.id)
+    : Promise.resolve([]);
 
   // All independent, so one round trip behind the access check. Splits scope
   // by joining on `trip_id` rather than ids a first wave returns, which is what
@@ -112,7 +124,6 @@ export default async function OverviewPage({
     settlementRows,
     routeDays,
     transportModes,
-    docs,
     hasPacking,
     tourSeen,
   ] = await Promise.all([
@@ -127,8 +138,6 @@ export default async function OverviewPage({
     // `listDays` doesn't carry, plus travel modes off `day_event`.
     listRouteDays(tripId),
     transportModesByDay(tripId),
-    // Rule 11: no storage volume, no Documents block — and no query for it.
-    documentsEnabled() ? listDocuments(tripId, viewer.id) : Promise.resolve([]),
     viewerHasPacking(tripId, viewer.id),
     tourSeenAt(viewer.id),
   ]);
@@ -265,16 +274,16 @@ export default async function OverviewPage({
         {/* The group. Narrow on purpose: every panel in here is a list or a
             single figure, and both read better tall than wide. */}
         <div className="flex flex-col gap-4">
-          <TripRoster
-            tripId={tripId}
-            viewerId={viewer.id}
-            members={members}
-            isAdmin={isAdmin}
-            inviteUrl={inviteUrl}
-            friendStates={friendStates}
-            pendingInvitees={pendingInvitees}
-            friends={friends}
-          />
+          <Suspense fallback={<PanelPlaceholder tall />}>
+            <StreamedRoster
+              tripId={tripId}
+              viewerId={viewer.id}
+              members={members}
+              isAdmin={isAdmin}
+              inviteUrl={inviteUrl}
+              extras={rosterExtras}
+            />
+          </Suspense>
           {/* Present, but visibly not the viewer's problem: white, not blue. */}
           <Tile skin={PANEL}>
             <SectionHead title="Still outstanding" />
@@ -321,7 +330,9 @@ export default async function OverviewPage({
       {/* The group's paperwork (ticket 239) — bookings and tickets, full width
           because a file list wants length, not a rail. */}
       {documentsEnabled() ? (
-        <DocumentsBlock tripId={tripId} docs={docs} viewerId={viewer.id} />
+        <Suspense fallback={<PanelPlaceholder />}>
+          <StreamedDocuments tripId={tripId} docs={docs} viewerId={viewer.id} />
+        </Suspense>
       ) : null}
 
       {/* The week, last: it is the detail behind everything above, and the
@@ -333,12 +344,15 @@ export default async function OverviewPage({
       />
 
       {shouldStartTour({ seen: tourSeen !== null }) ? (
-        <TourSpotlight
-          stops={tourStopsFor({
-            hasNudge: nextStep !== null,
-            hasFiles: documentsEnabled(),
-          })}
-        />
+        <Suspense fallback={null}>
+          <TourWhenReady
+            targets={[rosterExtras, docs]}
+            stops={tourStopsFor({
+              hasNudge: nextStep !== null,
+              hasFiles: documentsEnabled(),
+            })}
+          />
+        </Suspense>
       ) : null}
     </div>
   );
