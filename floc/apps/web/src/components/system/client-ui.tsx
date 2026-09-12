@@ -443,7 +443,7 @@ export function PillToggle<T extends string>({
 }: {
   label: string;
   value: T;
-  options: { value: T; label: string }[];
+  options: { value: T; label: ReactNode }[];
   onChange: (value: T) => void;
   className?: string;
 }) {
@@ -455,14 +455,21 @@ export function PillToggle<T extends string>({
 
   useIsoLayoutEffect(() => {
     const nav = navRef.current;
-    const pill = pillRefs.current[value];
-    if (!nav || !pill) return;
-    const navRect = nav.getBoundingClientRect();
-    const pillRect = pill.getBoundingClientRect();
-    setIndicator({
-      left: pillRect.left - navRect.left + nav.scrollLeft,
-      width: pillRect.width,
-    });
+    if (!nav) return;
+    const measure = () => {
+      const pill = pillRefs.current[value];
+      if (!pill) return;
+      const navRect = nav.getBoundingClientRect();
+      const pillRect = pill.getBoundingClientRect();
+      setIndicator({
+        left: pillRect.left - navRect.left + nav.scrollLeft,
+        width: pillRect.width,
+      });
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(nav);
+    return () => observer.disconnect();
   }, [value, options]);
 
   return (
