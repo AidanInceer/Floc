@@ -9,6 +9,7 @@
  * The tab glyphs that lived here went with the tab bar (#299) — the section
  * sheet is a list of words, and a word needs no icon beside it.
 */
+import type { WeatherCondition } from "@floc/core/itinerary/weather";
 import { StyleSheet, Text, View } from "react-native";
 import Svg, { Circle, G, Path } from "react-native-svg";
 
@@ -212,6 +213,58 @@ export function ClipGlyph({ color }: { color: string }) {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+    </Svg>
+  );
+}
+
+/** Pro's mark, the web's `pro-star.tsx` path. Decorative: the words "Floc Pro" always travel with it. */
+export function ProStarGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={13} height={13} viewBox="0 0 14 14" fill="none">
+      <Path
+        d="M7 1.9 8.6 5.2 12.2 5.7 9.6 8.2 10.2 11.8 7 10.1 3.8 11.8 4.4 8.2 1.8 5.7 5.4 5.2Z"
+        stroke={color}
+        strokeWidth={STROKE}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+const WEATHER_PATHS: Record<WeatherCondition, string[]> = {
+  sun: [
+    "M7 4.6a2.4 2.4 0 1 0 0 4.8 2.4 2.4 0 0 0 0-4.8Z",
+    "M7 1.4v1.4M7 11.2v1.4M1.4 7h1.4M11.2 7h1.4",
+    "M3 3l1 1M10 10l1 1M11 3l-1 1M4 10l-1 1",
+  ],
+  part: [
+    "M5 3.4a1.8 1.8 0 1 0 1.5 2.8",
+    "M5 1.2v1.1M2 3.6l.8.8M8 3.6l-.8.8",
+    "M4.3 11.5h5.4a2.1 2.1 0 0 0 .2-4.2 3 3 0 0 0-5.7-.7 2.15 2.15 0 0 0 .1 4.9Z",
+  ],
+  cloud: ["M4.3 11h5.9a2.3 2.3 0 0 0 .2-4.6 3.3 3.3 0 0 0-6.3-.8 2.35 2.35 0 0 0 .2 5.4Z"],
+  rain: [
+    "M4.3 9h5.9a2.3 2.3 0 0 0 .2-4.6 3.3 3.3 0 0 0-6.3-.8 2.35 2.35 0 0 0 .2 5.4Z",
+    "M5 10.4l-.7 1.8M7 10.4l-.7 1.8M9 10.4l-.7 1.8",
+  ],
+};
+
+/** The web's `weather-glyph.tsx`, same paths, so a sunny day is one picture on both. */
+export function WeatherGlyph({
+  condition,
+  color,
+  size = 16,
+}: {
+  condition: WeatherCondition;
+  color: string;
+  size?: number;
+}) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 14 14" fill="none">
+      {WEATHER_PATHS[condition].map((d) => (
+        <Path key={d} d={d} stroke={color} strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round" />
+      ))}
     </Svg>
   );
 }

@@ -359,3 +359,48 @@ describe("where the group sleeps (ticket 308)", () => {
     });
   });
 });
+
+describe("the forecast (#148)", () => {
+  it("gives a member the trip's forecast", async () => {
+    const view = { locked: true, forecast: null };
+    const { caller: ana, port } = caller("u1", fakePort({ loadTripForecast: vi.fn().mockResolvedValue(view) }));
+    await expect(ana.itinerary.forecast({ tripId: 1 })).resolves.toEqual(view);
+    expect(port.loadTripForecast).toHaveBeenCalledWith("u1", 1);
+  });
+
+  it("refuses a non-member exactly as it refuses a trip that is not there (rule 5)", async () => {
+    const { caller: mal } = caller("intruder");
+    await expect(mal.itinerary.forecast({ tripId: 1 })).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+});
+
+describe("buying Pro in the app", () => {
+  const claim = { platform: "ios" as const, productId: "floc_pro_yearly", token: "jws" };
+
+  it("refuses a signed-out caller", async () => {
+    const { caller: anon } = caller(null);
+    await expect(anon.billing.status()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+    await expect(anon.billing.claim(claim)).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+
+  it("claims a purchase for the caller and nobody else", async () => {
+    const claimStorePurchase = vi.fn().mockResolvedValue("recorded");
+    const { caller: ana } = caller("u1", fakePort({ claimStorePurchase }));
+    await expect(ana.billing.claim(claim)).resolves.toBe("recorded");
+    expect(claimStorePurchase).toHaveBeenCalledWith("u1", claim);
+  });
+
+  it("refuses a platform that is not a store we sell on", async () => {
+    const { caller: ana } = caller("u1");
+    await expect(
+      ana.billing.claim({ ...claim, platform: "web" as never }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  it("refuses an empty token rather than asking the store about nothing", async () => {
+    const { caller: ana } = caller("u1");
+    await expect(ana.billing.claim({ ...claim, token: "" })).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+    });
+  });
+});

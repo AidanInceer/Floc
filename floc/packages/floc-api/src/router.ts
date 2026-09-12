@@ -6,6 +6,7 @@
  * end up in a bundle that ships to a device.
  */
 import { availabilityRouter } from "./routers/availability";
+import { billingRouter } from "./routers/billing";
 import { commentsRouter } from "./routers/comments";
 import { filesRouter } from "./routers/files";
 import { friendsRouter } from "./routers/friends";
@@ -42,6 +43,7 @@ export const appRouter = router({
   packing: packingRouter,
   places: placesRouter,
   availability: availabilityRouter,
+  billing: billingRouter,
 });
 
 export type AppRouter = typeof appRouter;

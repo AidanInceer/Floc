@@ -42,6 +42,7 @@ import { ProfileFace, initialsOf } from "@/components/system/profile-face";
 import { Sheet } from "@/components/system/sheet";
 import { TravelMap } from "@/components/map/travel-map";
 import { VerifyEmailCard } from "@/components/auth/verify-email";
+import { ProRow } from "@/components/billing/pro-row";
 import {
   Body,
   Button,
@@ -61,6 +62,7 @@ export default function Profile() {
   const queryClient = useQueryClient();
   const router = useRouter();
   const me = useQuery(trpc.me.get.queryOptions());
+  const billing = useQuery(trpc.billing.status.queryOptions());
   const face = useQuery(trpc.me.profile.queryOptions());
   const prompts = useQuery(trpc.me.mapPrompts.queryOptions());
 
@@ -192,6 +194,8 @@ export default function Profile() {
             <Body bold>Saved packing lists</Body>
           </Row>
         </Pressable>
+
+        <ProRow status={billing.data} onPress={() => router.push("/settings")} />
 
         <Pressable
           accessibilityRole="button"

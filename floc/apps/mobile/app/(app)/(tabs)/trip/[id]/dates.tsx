@@ -1,10 +1,11 @@
 /**
  * Dates (ticket 297) — the screen that settles when a trip happens.
  *
- * ONE GRID, THREE VIEWS, exactly as the web page does it:
+ * ONE GRID, FOUR VIEWS, exactly as the web page does it:
  *   Mine     — paint the days you could go.
  *   Everyone — read-only, shaded and numbered by how many can.
  *   Window   — commit the trip's dates, dragged out of the same grid.
+ *   Weather  — the forecast on the trip's own days. Pro, and says so when locked.
  *
  * UNDATED IS THE NORMAL STARTING STATE (rule 9). Nothing here treats a trip
  * with no dates as broken, and clearing the window is an ordinary thing to do,
@@ -32,11 +33,13 @@ import {
 import { paintRange, pickedRange } from "@floc/core/dates/calendar-gestures";
 import { dateRange, formatDateRange } from "@floc/core/dates/dates";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
 
+import { DatesWeather, forecastIndex } from "@/components/days/dates-weather";
 import { MonthGrid, type CellLook } from "@/components/days/month-grid";
+import { WEATHER_LOOK, type ForecastDay } from "@/components/days/weather-panel";
 import {
   Body,
   Button,
@@ -52,13 +55,18 @@ import { trpc } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 import { space } from "@/lib/theme";
 
-/** Which of the three readings of the same grid is on screen. */
-type CalendarView = "mine" | "everyone" | "window";
+/** Which of the four readings of the same grid is on screen. */
+type CalendarView = "mine" | "everyone" | "window" | "weather";
 
-const VIEWS = [
-  { value: "mine" as const, label: "Mine" },
-  { value: "everyone" as const, label: "Everyone" },
-  { value: "window" as const, label: "The dates" },
+const VIEWS: { value: CalendarView; label: string }[] = [
+  { value: "mine", label: "Mine" },
+  { value: "everyone", label: "Everyone" },
+  { value: "window", label: "The dates" },
+];
+
+const WITH_WEATHER: { value: CalendarView; label: string }[] = [
+  ...VIEWS,
+  { value: "weather", label: "Weather" },
 ];
 
 const NOTHING: CellLook = { ground: null, ink: null, count: null, ringed: false };
@@ -80,8 +88,24 @@ function cellLook(
     counts: Map<string, Tally>;
     memberCount: number;
     windowDays: Set<string>;
+    forecast: Record<string, ForecastDay>;
   },
 ): CellLook {
+  if (view === "weather") {
+    // Only the trip's own days carry weather, as on the web (#148).
+    const inTrip = state.windowDays.has(date);
+    const day = inTrip ? state.forecast[date] : undefined;
+    if (!day) return { ...NOTHING, ringed: inTrip };
+    const look = WEATHER_LOOK[day.condition];
+    return {
+      ground: look.ground,
+      ink: look.ink,
+      count: day.hi,
+      countLabel: `${look.word}, high of ${day.hi} degrees`,
+      ringed: true,
+    };
+  }
+
   if (view === "mine") {
     return state.mineOn(date)
       ? { ground: "mint", ink: "mint-ink", count: null, ringed: false }
@@ -194,12 +218,15 @@ export default function Dates() {
   // then: NaN goes down the wire as null and the server rightly refuses it.
   const ready = Number.isFinite(tripId);
   const queryClient = useQueryClient();
+  const router = useRouter();
   const { data: session } = useSession();
 
   const trip = useQuery(trpc.trips.get.queryOptions({ tripId }, { enabled: ready }));
   const rows = useQuery(trpc.availability.list.queryOptions({ tripId }, { enabled: ready }));
+  const weather = useQuery(trpc.itinerary.forecast.queryOptions({ tripId }, { enabled: ready }));
 
   const [view, setView] = useState<CalendarView>("mine");
+  const [openDay, setOpenDay] = useState<string | null>(null);
   const [month, setMonth] = useState<string | null>(null);
   /** Local paint, over what the server said. Empty means nothing unsaved. */
   const [edits, setEdits] = useState<Record<string, boolean>>({});
@@ -242,16 +269,24 @@ export default function Dates() {
 
   const windowDays = windowSet(range, trip.data.startDate, trip.data.endDate);
 
+  const forecast = forecastIndex(weather.data);
+  const forecastByDate = forecast.byDate;
+
   const look = (date: string) =>
     cellLook(view, date, {
       mineOn,
       counts: tally(rows.data),
       memberCount: trip.data.members.length,
       windowDays,
+      forecast: forecastByDate,
     });
 
   function paint(anchor: string, target: string) {
     if (view === "everyone") return;
+    if (view === "weather") {
+      if (windowDays.has(target) && forecastByDate[target]) setOpenDay(target);
+      return;
+    }
     if (view === "window") {
       setRange(pickedRange(anchor, target));
       return;
@@ -280,7 +315,7 @@ export default function Dates() {
         </Figure>
       </View>
 
-      <Segmented options={VIEWS} value={view} onChange={setView} />
+      <Segmented options={forecast.offered ? WITH_WEATHER : VIEWS} value={view} onChange={setView} />
 
       <Card>
         <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
@@ -319,6 +354,15 @@ export default function Dates() {
             saveWindow.mutate({ tripId, startDate: range.start, endDate: range.end })
           }
           onClear={() => saveWindow.mutate({ tripId, startDate: null, endDate: null })}
+        />
+      ) : null}
+
+      {view === "weather" ? (
+        <DatesWeather
+          view={weather.data}
+          byDate={forecastByDate}
+          openDay={openDay}
+          onSeePro={() => router.push("/settings")}
         />
       ) : null}
     </ScrollView>

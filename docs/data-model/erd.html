@@ -299,9 +299,11 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
         string user_id FK &quot;-&gt; USER.id&quot;
         string plan &quot;free | pro&quot;
         string status &quot;active | trialing | past_due | canceled …&quot;
-        string source &quot;stripe | comp — the gate never reads this&quot;
+        string source &quot;stripe | comp | app_store | play — the gate never reads this&quot;
         string stripe_customer_id &quot;nullable&quot;
         string stripe_subscription_id &quot;nullable, unique — makes a retried webhook an upsert&quot;
+        string store_transaction_id &quot;nullable, unique — Apple original transaction id or Play purchase token; one purchase, one account&quot;
+        string store_product_id &quot;nullable — floc_pro_monthly | floc_pro_yearly&quot;
         int current_period_end &quot;nullable; null means never lapses (a comp)&quot;
         bool cancel_at_period_end
     }
