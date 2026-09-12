@@ -18,6 +18,7 @@ import Link from "next/link";
 
 import { Avatar, menuItemClass } from "@/components/system/ui";
 import { Menu } from "@/components/system/client-ui";
+import { ProStar } from "@/components/system/pro-star";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { ThemeSwitch } from "@/components/chrome/theme-switch";
 
@@ -26,23 +27,6 @@ import { ThemeSwitch } from "@/components/chrome/theme-switch";
 // its time removing. Gold, the only paid colour in the product, and drawn to
 // the house icon rules. Colour is never the whole story here (CLAUDE.md), so
 // the word "Floc Pro" waits inside the open menu.
-function ProStar() {
-  return (
-    <svg
-      viewBox="0 0 14 14"
-      aria-hidden="true"
-      className="size-[13px] shrink-0 text-pro-gold"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M7 1.9 8.6 5.2 12.2 5.7 9.6 8.2 10.2 11.8 7 10.1 3.8 11.8 4.4 8.2 1.8 5.7 5.4 5.2Z" />
-    </svg>
-  );
-}
-
 export function AccountMenu({
   user,
   isPro = false,

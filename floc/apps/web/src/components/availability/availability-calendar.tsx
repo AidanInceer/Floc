@@ -11,14 +11,13 @@
  *   two in turn; a half-made range previews before you make it (ticket 135).
  * - **Weather** — see below (ticket 148).
  */
-import Link from "next/link";
-
-import { Fragment, useRef, useState, useTransition } from "react";
+import { Fragment, useRef, useState, useTransition, type ReactNode } from "react";
 
 import { DayCell, type View } from "@/components/availability/availability-day-cell";
 import { HourlyCurve, WeatherReadout } from "@/components/availability/availability-weather";
 import { Button, LegendKey } from "@/components/system/ui";
 import { PillToggle } from "@/components/system/client-ui";
+import { ProStar } from "@/components/system/pro-star";
 import {
   WEEKDAY_LABELS,
   addMonths,
@@ -40,12 +39,28 @@ import {
 } from "@floc/core/trip/trip-window";
 import type { DailyForecast, TripForecast } from "@/server/itinerary/weather";
 
-const VIEWS: { value: View; label: string }[] = [
+type ViewOption = { value: View; label: ReactNode };
+
+const VIEWS: ViewOption[] = [
   { value: "mine", label: "Mine" },
   { value: "everyone", label: "Everyone" },
   { value: "dates", label: "The dates" },
 ];
-const WEATHER: { value: View; label: string } = { value: "weather", label: "Weather" };
+
+// A free trip still sees the mode (ticket 248); the star says it is Pro.
+function weatherOption(locked: boolean): ViewOption {
+  if (!locked) return { value: "weather", label: "Weather" };
+  return {
+    value: "weather",
+    label: (
+      <span className="inline-flex items-center gap-1.5">
+        Weather
+        <ProStar />
+        <span className="sr-only">, a Floc Pro feature</span>
+      </span>
+    ),
+  };
+}
 
 export function AvailabilityCalendar({
   firstMonth,
@@ -260,7 +275,7 @@ export function AvailabilityCalendar({
       <PillToggle
         label="Calendar view"
         value={view}
-        options={hasWeather ? [...VIEWS, WEATHER] : VIEWS}
+        options={hasWeather ? [...VIEWS, weatherOption(weatherLocked)] : VIEWS}
         onChange={changeView}
         className="mb-3"
       />
@@ -440,21 +455,6 @@ export function AvailabilityCalendar({
           <LegendKey swatch="bg-butter border-butter-edge" label="Some free" />
           <LegendKey swatch="bg-sheet border-pen" label="The trip" />
         </div>
-      ) : view === "weather" && weatherLocked ? (
-        /* Visible, honest, inert (ticket 248) — the mode is here and says what
-           it is. No blurred sample forecast: placeholder data pretending to be
-           real is a lie told to a group who will screenshot it at each other. */
-        <div className={footer}>
-          <p className="text-sm text-ink-soft">
-            The forecast on your dates is a Floc Pro feature.{" "}
-            <Link
-              href="/settings?section=billing"
-              className="text-pen underline underline-offset-2 hover:text-pen-deep"
-            >
-              See Pro
-            </Link>
-          </p>
-        </div>
       ) : weather ? (
         /* Weather (ticket 148): a reading line following the hovered day, plus
            the key, in the same reserved footer. */
@@ -469,7 +469,7 @@ export function AvailabilityCalendar({
             <LegendKey swatch="bg-highlight-soft border-highlight" label="Sun" />
             <LegendKey swatch="bg-sheet-3 border-rule-strong" label="Cloud" />
             <LegendKey swatch="bg-pen-soft border-pen-edge" label="Rain" />
-            <LegendKey swatch="bg-green border-green" label="In the trip" />
+            <LegendKey swatch="bg-sheet border-pen" label="In the trip" />
             <LegendKey
               swatch="border-dashed bg-sheet border-rule-strong"
               label="Beyond the forecast"

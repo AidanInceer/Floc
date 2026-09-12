@@ -37,14 +37,6 @@ const CELL =
 
 const TRIP_RING = "inset-ring-[1.5px] inset-ring-pen";
 
-// Weather keeps its ruled square: the disc needs the room.
-const WEATHER_CELL =
-  "relative flex aspect-square flex-col items-center justify-center border-b border-ink/10 font-mono text-[11px] leading-none";
-
-// Focus ring on the mark, not the cell (ticket 129).
-const FOCUS_RING =
-  "group-focus-visible:ring-2 group-focus-visible:ring-pen group-focus-visible:ring-offset-1 group-focus-visible:ring-offset-sheet";
-
 // Three states, not a ramp (ticket 67): the whole group free, some free, or no
 // answer — which is the plain sheet, not a bad answer. Butter and mint, as the app.
 function groupMark(tally: number, memberCount: number): string {
@@ -61,45 +53,33 @@ export function DayCell(props: DayCellProps) {
   return <PaintCell {...props} />;
 }
 
-// Disc wash per condition (ticket 148): sun is the highlighter, rain the biro
+// Tile wash per condition (ticket 148): sun is the highlighter, rain the biro
 // wash; part/cloud share the neutral sheet, told apart by glyph and word.
-const DISC_TINT: Record<WeatherCondition, string> = {
-  sun: "bg-highlight-soft",
-  part: "bg-sheet-3",
-  cloud: "bg-sheet-3",
-  rain: "bg-pen-soft",
+const WEATHER_TINT: Record<WeatherCondition, string> = {
+  sun: "bg-highlight-soft text-highlight-ink",
+  part: "bg-sheet-3 text-ink-soft",
+  cloud: "bg-sheet-3 text-ink-soft",
+  rain: "bg-pen-soft text-pen",
 };
 
-// Weather (ticket 148): the disc is the condition, day number in the corner, so
-// a run of sun reads as a shape. Inside the horizon a day opens its hourly
-// drawer; past it, a non-interactive dashed ring (no drawer onto no data).
+// Weather (ticket 148): the same tile as the other views, washed by condition
+// with its glyph under the day. Inside the horizon a day opens its hourly
+// drawer; past it, a dashed tile (no drawer onto no data).
 function WeatherCell({
   date,
   past,
   inTrip,
-  isToday,
   weather,
   weatherOpen,
   onToggle,
 }: DayCellProps) {
-  const dayNumber = Number(date.slice(8, 10));
-  const corner = (
-    <span
-      aria-hidden
-      className="absolute left-1 top-0.5 font-mono text-[9px] leading-none text-ink-faint"
-    >
-      {dayNumber}
-    </span>
-  );
-  const discBase =
-    "flex h-[70%] w-[70%] items-center justify-center rounded-full transition-colors";
-  const windowRing = inTrip || isToday ? "ring-1 ring-pen" : "";
+  const day = Number(date.slice(8, 10));
 
-  // Outside the window: no weather at all, not even a dashed ring (ticket 148).
+  // Outside the window: no weather at all (ticket 148).
   if (!inTrip) {
     return (
-      <span role="gridcell" data-date={date} className={cx(WEATHER_CELL, "opacity-70")}>
-        {corner}
+      <span role="gridcell" data-date={date} className={cx(CELL, "text-ink-faint opacity-70")}>
+        {day}
       </span>
     );
   }
@@ -110,13 +90,9 @@ function WeatherCell({
         role="gridcell"
         data-date={date}
         title={`${date} — beyond the forecast`}
-        className={cx(WEATHER_CELL, past && "opacity-70")}
+        className={cx(CELL, "border border-dashed border-rule-strong text-ink-soft", past && "opacity-70")}
       >
-        {corner}
-        <span
-          aria-hidden
-          className={cx(discBase, "border border-dashed border-rule-strong", windowRing)}
-        />
+        {day}
       </span>
     );
   }
@@ -130,23 +106,16 @@ function WeatherCell({
       aria-label={`${date} — ${weather.label}, high ${weather.hi}°, low ${weather.lo}°`}
       title={`${date} — ${weather.label}, ${weather.hi}° / ${weather.lo}°`}
       onClick={onToggle}
-      className={cx(WEATHER_CELL, "group transition-colors focus-visible:outline-none", past && "opacity-70")}
+      className={cx(
+        CELL,
+        "gap-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pen",
+        WEATHER_TINT[weather.condition],
+        weatherOpen ? "inset-ring-2 inset-ring-pen" : cx(TRIP_RING, "hover:inset-ring-2"),
+        past && "opacity-70",
+      )}
     >
-      {corner}
-      <span
-        className={cx(
-          discBase,
-          FOCUS_RING,
-          DISC_TINT[weather.condition],
-          weather.condition === "rain" ? "text-pen" : "text-ink-soft",
-          windowRing,
-          // Hover previews the open day's pen ring, so it reads without the cursor.
-          "group-hover:ring-2 group-hover:ring-pen",
-          weatherOpen && "ring-2 ring-pen",
-        )}
-      >
-        <WeatherGlyph condition={weather.condition} size={20} />
-      </span>
+      {day}
+      <WeatherGlyph condition={weather.condition} size={14} />
     </button>
   );
 }

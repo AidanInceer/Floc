@@ -443,7 +443,7 @@ export function PillToggle<T extends string>({
 }: {
   label: string;
   value: T;
-  options: { value: T; label: string }[];
+  options: { value: T; label: ReactNode }[];
   onChange: (value: T) => void;
   className?: string;
 }) {
