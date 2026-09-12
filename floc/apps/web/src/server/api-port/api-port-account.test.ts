@@ -35,7 +35,6 @@ describe("settings", () => {
   it("keeps every privacy field it was given", async () => {
     await webPort.updatePrivacy(world.member, {
       isPrivate: true,
-      visibilityPicture: "private",
       visibilityVibeTags: "friends",
       visibilityTravelMap: "trip_members",
       visibilityFriends: "private",
@@ -44,7 +43,6 @@ describe("settings", () => {
 
     const settings = await webPort.loadMySettings(world.member);
     expect(settings.isPrivate).toBe(true);
-    expect(settings.visibilityPicture).toBe("private");
     expect(settings.visibilityVibeTags).toBe("friends");
     expect(settings.pastTripsShow).toBe("latest");
   });

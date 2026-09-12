@@ -203,6 +203,9 @@
     "settings.dietary": {
       "mobile": "yes"
     },
+    "settings.face": {
+      "mobile": "yes"
+    },
     "settings.get": {
       "mobile": "yes"
     },

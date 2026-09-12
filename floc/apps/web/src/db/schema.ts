@@ -20,6 +20,7 @@ import { DEFAULT_CATEGORY, EXPENSE_CATEGORIES } from "@floc/core/money/expense-c
 import { DOC_CATEGORIES } from "@floc/core/documents/documents";
 import { PACK_CATEGORIES, PACK_TIERS } from "@floc/core/packing/packing";
 import { PLANS } from "@floc/core/billing/plans";
+import { AVATAR_ICONS } from "@floc/core/people/avatar-icon";
 import {
   index,
   integer,
@@ -134,7 +135,8 @@ export const userProfile = sqliteTable("user_profile", {
     .references(() => user.id, { onDelete: "cascade" }),
   // Editable copies, deliberately not mirrored live from the provider.
   displayName: text("display_name"),
-  avatarUrl: text("avatar_url"),
+  /** One of `AVATAR_ICONS` (#157); null is initials, the default not a fallback. */
+  avatarIcon: text("avatar_icon", { enum: AVATAR_ICONS }),
   homeCurrency: text("home_currency", { enum: CURRENCIES })
     .notNull()
     .default("GBP"),
@@ -148,11 +150,8 @@ export const userProfile = sqliteTable("user_profile", {
   shareDietary: integer("share_dietary", { mode: "boolean" })
     .notNull()
     .default(false),
-  /** Profile-wide switch: hides every display attribute, falls back to name + picture. */
+  /** Profile-wide switch: hides every display attribute, falls back to the name. */
   isPrivate: integer("is_private", { mode: "boolean" }).notNull().default(false),
-  visibilityPicture: text("visibility_picture", { enum: VISIBILITIES })
-    .notNull()
-    .default("trip_members"),
   visibilityVibeTags: text("visibility_vibe_tags", { enum: VISIBILITIES })
     .notNull()
     .default("trip_members"),

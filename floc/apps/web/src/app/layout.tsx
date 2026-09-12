@@ -73,7 +73,7 @@ export default async function RootLayout({
     ? {
         id: session.user.id,
         name: profile?.displayName ?? session.user.name,
-        image: profile?.avatarUrl ?? session.user.image ?? null,
+        avatarIcon: profile?.avatarIcon ?? null,
       }
     : null;
 

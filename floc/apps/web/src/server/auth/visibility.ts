@@ -5,6 +5,8 @@
  * (rule 5): otherwise walking user ids harvests a directory of every account.
  * The comparison half is pure, at the top, testable without a database.
  */
+
+import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import "server-only";
 
 import { and, eq, inArray, isNull, or } from "drizzle-orm";
@@ -121,14 +123,14 @@ export type PastTrip = {
 type ProfileFriend = {
   id: string;
   name: string;
-  avatarUrl: string | null;
+  avatarIcon: AvatarIcon | null;
   state: FriendState;
 };
 
 export type PublicProfile = {
   userId: string;
   name: string;
-  avatarUrl: string | null;
+  avatarIcon: AvatarIcon | null;
   relation: NonNullable<Relation>;
   isPrivate: boolean;
   /** Already filtered by the flags — a hidden attribute simply isn't here. */
@@ -151,12 +153,10 @@ export async function requireProfileView(
   const row = await db
     .select({
       name: user.name,
-      image: user.image,
       displayName: userProfile.displayName,
-      avatarUrl: userProfile.avatarUrl,
+      avatarIcon: userProfile.avatarIcon,
       vibeTags: userProfile.vibeTags,
       isPrivate: userProfile.isPrivate,
-      visibilityPicture: userProfile.visibilityPicture,
       visibilityVibeTags: userProfile.visibilityVibeTags,
       pastTripsShow: userProfile.pastTripsShow,
       visibilityTravelMap: userProfile.visibilityTravelMap,
@@ -171,7 +171,6 @@ export async function requireProfileView(
 
   // Profile row is created lazily, so a never-opened account has none — read defaults, don't 404.
   const isPrivate = row.isPrivate ?? false;
-  const picture = row.visibilityPicture ?? "trip_members";
   const vibes = row.visibilityVibeTags ?? "trip_members";
   const pastTripsShow: PastTripsShow = row.pastTripsShow ?? "all";
   const travelMap = row.visibilityTravelMap ?? "trip_members";
@@ -192,10 +191,7 @@ export async function requireProfileView(
   return {
     userId: ownerId,
     name: row.displayName ?? row.name,
-    // Half the floor, so a hidden picture falls back to initials, not nothing.
-    avatarUrl: showsAttribute(relation, picture, isPrivate)
-      ? (row.avatarUrl ?? row.image ?? null)
-      : null,
+    avatarIcon: row.avatarIcon,
     relation,
     isPrivate,
     vibeTags: showsAttribute(relation, vibes, isPrivate)
@@ -252,11 +248,9 @@ async function friendsOnProfile(
     .select({
       id: user.id,
       name: user.name,
-      image: user.image,
       displayName: userProfile.displayName,
-      avatarUrl: userProfile.avatarUrl,
+      avatarIcon: userProfile.avatarIcon,
       isPrivate: userProfile.isPrivate,
-      visibilityPicture: userProfile.visibilityPicture,
     })
     .from(user)
     .leftJoin(userProfile, eq(userProfile.userId, user.id))
@@ -273,16 +267,7 @@ async function friendsOnProfile(
       return {
         id: r.id,
         name: r.displayName ?? r.name ?? "Someone",
-        // Read against the viewer's standing with them, not the owner's — being
-        // listed here must not exceed the audience their own profile grants.
-        // Non-friends score at the widest ring, the weakest claim without a
-        // `relationTo` per row.
-        avatarUrl: canSee(
-          state === "friends" ? "friend" : "co_traveller",
-          r.visibilityPicture ?? "trip_members",
-        )
-          ? (r.avatarUrl ?? r.image ?? null)
-          : null,
+        avatarIcon: r.avatarIcon,
         state,
       };
     })

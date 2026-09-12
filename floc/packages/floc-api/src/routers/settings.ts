@@ -16,6 +16,8 @@
  * refused rather than obeyed; deleting is its own procedure with its own name
  * so nothing can reach it by mistake.
  */
+
+import { AVATAR_ICONS } from "@floc/core/people/avatar-icon";
 import { CURRENCIES } from "@floc/core/money/currency";
 import { DIET_FLAGS, MAX_DIETARY_NOTES } from "@floc/core/people/dietary";
 import { PACK_TIERS } from "@floc/core/packing/packing";
@@ -34,8 +36,7 @@ export const settingsRouter = router({
   get: protectedProcedure.query(({ ctx }) => ctx.port.loadMySettings(ctx.viewer.id)),
 
   /**
-   * Name and picture. The picture is a URL and blank is a real answer — it
-   * means initials, which is the default rather than a fallback.
+   * Your name.
    */
   identity: protectedProcedure
     .input(
@@ -45,25 +46,25 @@ export const settingsRouter = router({
           .trim()
           .min(1, "Give yourself a name.")
           .max(TEXT_CAPS.displayName, "That name is too long."),
-        avatarUrl: z
-          .string()
-          .trim()
-          .max(TEXT_CAPS.avatarUrl, "That address is too long.")
-          .nullable(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       await ctx.port.updateIdentity(ctx.viewer.id, {
         displayName: input.displayName,
-        avatarUrl: input.avatarUrl || null,
       });
+    }),
+
+  /** Null is initials, which is the default rather than a fallback (#157). */
+  face: protectedProcedure
+    .input(z.object({ avatarIcon: z.enum(AVATAR_ICONS).nullable() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.port.updateAvatarIcon(ctx.viewer.id, input.avatarIcon);
     }),
 
   privacy: protectedProcedure
     .input(
       z.object({
         isPrivate: z.boolean(),
-        visibilityPicture: visibility,
         visibilityVibeTags: visibility,
         visibilityTravelMap: visibility,
         visibilityFriends: visibility,

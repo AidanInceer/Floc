@@ -3,6 +3,8 @@
  * to login, revealing nothing. Authenticated non-member → same generic
  * response whether the trip id is real or fake, so ids can't be enumerated.
  */
+
+import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import "server-only";
 
 import { and, eq, inArray, isNull, or } from "drizzle-orm";
@@ -71,7 +73,7 @@ export type TripMember = {
   role: TripRole;
   name: string;
   email: string;
-  avatarUrl: string | null;
+  avatarIcon: AvatarIcon | null;
   joinedAt: Date;
   /** Roster-position colour (ticket 11) — pass through rather than letting `Avatar` hash the name. */
   tone: string;
@@ -322,7 +324,7 @@ function memberQuery() {
       email: user.email,
       image: user.image,
       displayName: userProfile.displayName,
-      avatarUrl: userProfile.avatarUrl,
+      avatarIcon: userProfile.avatarIcon,
       dietFlags: userProfile.dietFlags,
       dietaryNotes: userProfile.dietaryNotes,
       shareDietary: userProfile.shareDietary,
@@ -342,7 +344,7 @@ function toRoster(rows: MemberRow[]): TripMember[] {
       role: r.role,
       name: r.displayName ?? r.name,
       email: r.email,
-      avatarUrl: r.avatarUrl ?? r.image ?? null,
+      avatarIcon: r.avatarIcon,
       joinedAt: r.joinedAt,
       dietary: r.shareDietary
         ? dietarySummary(readDietFlags(r.dietFlags), r.dietaryNotes)

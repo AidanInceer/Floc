@@ -15,6 +15,8 @@ import { View } from "react-native";
 
 import { Face } from "./person-row";
 import { useTheme } from "../system/theme";
+import type { AvatarIcon } from "@floc/core/people/avatar-icon";
+
 import { Body, Button, Card, Label } from "../system/ui";
 import { space } from "@/lib/theme";
 
@@ -24,7 +26,7 @@ export type Invitation = {
   startDate: string | null;
   endDate: string | null;
   fromName: string;
-  fromAvatarUrl: string | null;
+  fromAvatarIcon: AvatarIcon | null;
 };
 
 export function InviteBanner({
@@ -50,7 +52,7 @@ export function InviteBanner({
           <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
             {/* Who asked leads — an invite from somebody you do not recognise
                 is the one you want to decline. */}
-            <Face name={invite.fromName} avatarUrl={invite.fromAvatarUrl} />
+            <Face name={invite.fromName} avatarIcon={invite.fromAvatarIcon} />
             <View style={{ flex: 1 }}>
               <Body bold>{invite.tripName}</Body>
               <Body tone="peri-ink">{invite.fromName} asked you</Body>

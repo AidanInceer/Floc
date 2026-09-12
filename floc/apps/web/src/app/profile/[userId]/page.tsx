@@ -61,7 +61,7 @@ export default async function PublicProfilePage({
           a fully private profile still shows exactly these two. */}
       <Panel className="bg-butter text-butter-ink">
         <div className="flex flex-wrap items-center gap-4">
-          <Avatar name={profile.name} src={profile.avatarUrl} size={64} />
+          <Avatar name={profile.name} icon={profile.avatarIcon} size={64} />
           <div className="min-w-0">
             <p className="font-display text-2xl font-semibold">{profile.name}</p>
             {profile.isPrivate ? (
@@ -136,10 +136,10 @@ export default async function PublicProfilePage({
                       <PersonLink
                         userId={f.id}
                         name={f.name}
-                        avatarUrl={f.avatarUrl}
+                        avatarIcon={f.avatarIcon}
                       />
                     ) : (
-                      <Avatar name={f.name} src={f.avatarUrl} />
+                      <Avatar name={f.name} icon={f.avatarIcon} />
                     )}
                     <span className="min-w-0 truncate text-sm">{f.name}</span>
                   </div>

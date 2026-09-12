@@ -23,7 +23,6 @@ export type PastTripsShow = "all" | "latest";
 
 export type Privacy = {
   isPrivate: boolean;
-  visibilityPicture: Visibility;
   visibilityVibeTags: Visibility;
   visibilityTravelMap: Visibility;
   visibilityFriends: Visibility;
@@ -38,7 +37,6 @@ const RINGS: readonly { value: Visibility; label: string }[] = [
 
 /** The four attributes, in the order the web lists them. */
 const ATTRIBUTES = [
-  { key: "visibilityPicture", label: "Profile picture" },
   { key: "visibilityVibeTags", label: "Vibe tags" },
   { key: "visibilityTravelMap", label: "Travel map" },
   { key: "visibilityFriends", label: "Your friends list" },

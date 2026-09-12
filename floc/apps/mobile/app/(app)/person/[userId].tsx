@@ -70,7 +70,7 @@ export default function PersonProfile() {
             sees — a fully private profile still shows exactly these two. */}
         <Card>
           <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
-            <Face name={p.name} avatarUrl={p.avatarUrl} size={64} />
+            <Face name={p.name} avatarIcon={p.avatarIcon} size={64} />
             <View style={{ flex: 1, gap: space.xs }}>
               <Body bold>{p.name}</Body>
               <Body tone="ink-3">

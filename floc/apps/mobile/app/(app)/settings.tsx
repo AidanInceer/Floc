@@ -108,7 +108,6 @@ function SettingsPanels({
 }) {
   const [privacy, setPrivacy] = useState<Privacy>({
     isPrivate: settings.isPrivate,
-    visibilityPicture: settings.visibilityPicture,
     visibilityVibeTags: settings.visibilityVibeTags,
     visibilityTravelMap: settings.visibilityTravelMap,
     visibilityFriends: settings.visibilityFriends,

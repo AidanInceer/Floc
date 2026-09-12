@@ -25,7 +25,8 @@ import { countryName } from "@floc/core/people/countries";
 import { pendingMapPrompts, travelMapFor } from "@/server/itinerary/travel-map";
 import { pastTripsFor } from "@/server/auth/visibility";
 import { AccountPage, Panel, RowList, SettingRow } from "@/components/auth/account-ui";
-import { Avatar, Badge, Field, Input, Stack } from "@/components/system/ui";
+import { Badge, Field, Input, Stack } from "@/components/system/ui";
+import { FacePicker } from "@/components/profile/face-picker";
 import { ActionForm, SubmitButton } from "@/components/system/client-ui";
 import { TravelMap } from "@/components/map/travel-map";
 
@@ -49,7 +50,7 @@ export default async function ProfilePage() {
           it — the page's one moment of the visitor's view. */}
       <Panel className="bg-butter text-butter-ink">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
-          <Avatar name={name} src={profile.avatarUrl ?? viewer.image} size={64} />
+          <FacePicker name={name} icon={profile.avatarIcon} />
           <div className="min-w-0">
             <p className="font-display text-2xl font-semibold text-ink">{name}</p>
             <p className="nums mt-1 text-sm">
@@ -141,16 +142,6 @@ export default async function ProfilePage() {
                   name="displayName"
                   defaultValue={profile.displayName ?? viewer.name}
                   placeholder={viewer.name}
-                />
-              </Field>
-              {/* Still a URL field: real uploading is its own decision, and
-                  until it lands this is the only way to have a picture at all
-                  (ticket 46 carved it out to a follow-up). */}
-              <Field label="Picture URL" hint="Blank means your initials.">
-                <Input
-                  name="avatarUrl"
-                  defaultValue={profile.avatarUrl ?? ""}
-                  placeholder="https://…"
                 />
               </Field>
               <div>

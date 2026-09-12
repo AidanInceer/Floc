@@ -11,7 +11,10 @@
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 
+import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import { whoTone } from "@floc/core/people/who";
+
+import { AvatarIconMark } from "./avatar-icon";
 import type { TripColor } from "@floc/core/trip/trip-color";
 
 /**
@@ -182,7 +185,7 @@ export function EmptyState({
   );
 }
 
-function initials(name: string) {
+export function initials(name: string) {
   return name
     .trim()
     .split(/\s+/)
@@ -193,36 +196,20 @@ function initials(name: string) {
 
 export function Avatar({
   name,
-  src,
+  icon,
   size = 28,
   title,
   tone,
 }: {
   name: string;
-  src?: string | null;
+  /** Null is initials — the default, not a fallback (ticket 157). */
+  icon?: AvatarIcon | null;
   size?: number;
   title?: string;
   /** A `who-*` class — pass a member's own tone to keep it consistent trip-wide; omit to fall back to the name hash. */
   tone?: string;
 }) {
   const style = { width: size, height: size, fontSize: Math.round(size / 2.6) };
-  if (src) {
-    return (
-      // Arbitrary provider hosts — next/image would need every one allow-listed.
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={src}
-        alt={name}
-        title={title ?? name}
-        style={style}
-        // Google (and most provider CDNs) 403 a hotlinked avatar unless the
-        // request carries no referrer (ticket 149) — so send none, everywhere
-        // an avatar renders, header included.
-        referrerPolicy="no-referrer"
-        className="shrink-0 rounded-full border border-rule-strong object-cover"
-      />
-    );
-  }
   return (
     <span
       style={style}
@@ -233,7 +220,11 @@ export function Avatar({
         tone ?? whoTone(name),
       )}
     >
-      {initials(name)}
+      {icon ? (
+        <AvatarIconMark icon={icon} size={Math.round(size * 0.56)} />
+      ) : (
+        initials(name)
+      )}
     </span>
   );
 }
@@ -243,7 +234,7 @@ export function AvatarRow({
   max = 5,
   size = 28,
 }: {
-  people: { name: string; avatarUrl?: string | null; tone?: string }[];
+  people: { name: string; avatarIcon?: AvatarIcon | null; tone?: string }[];
   max?: number;
   size?: number;
 }) {
@@ -257,7 +248,7 @@ export function AvatarRow({
           key={`${p.name}-${i}`}
           className={cx("inline-flex", i > 0 && "-ml-2")}
         >
-          <Avatar name={p.name} src={p.avatarUrl} size={size} tone={p.tone} />
+          <Avatar name={p.name} icon={p.avatarIcon} size={size} tone={p.tone} />
         </span>
       ))}
       {extra > 0 ? (

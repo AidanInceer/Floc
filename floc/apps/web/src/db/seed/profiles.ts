@@ -11,6 +11,7 @@
  * outside `VIBE_TAGS` is silently dropped on read, which is how the old seed's
  * "food and markets" never showed up anywhere.
  */
+import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import type { DietFlag } from "@floc/core/people/dietary";
 import type { VIBE_TAGS } from "@floc/core/trip/vibe-tags";
 
@@ -19,7 +20,7 @@ type Ring = "private" | "friends" | "trip_members";
 
 export type Rings = {
   isPrivate: boolean;
-  visibilityPicture: Ring;
+  avatarIcon: AvatarIcon;
   visibilityVibeTags: Ring;
   visibilityTravelMap: Ring;
   visibilityFriends: Ring;
@@ -38,7 +39,7 @@ export type Profile = {
 /** Everything shown to anyone you share a trip with. */
 export const OPEN: Rings = {
   isPrivate: false,
-  visibilityPicture: "trip_members",
+  avatarIcon: "compass",
   visibilityVibeTags: "trip_members",
   visibilityTravelMap: "trip_members",
   visibilityFriends: "trip_members",
@@ -48,7 +49,7 @@ export const OPEN: Rings = {
 /** A co-traveller who is not a friend sees name and picture, nothing else. */
 export const FRIENDS_ONLY: Rings = {
   isPrivate: false,
-  visibilityPicture: "friends",
+  avatarIcon: "camera",
   visibilityVibeTags: "friends",
   visibilityTravelMap: "friends",
   visibilityFriends: "friends",
@@ -61,7 +62,7 @@ export const PRIVATE: Rings = { ...OPEN, isPrivate: true };
 /** One of each ring, so a single profile shows every rule at once. */
 export const MIXED: Rings = {
   isPrivate: false,
-  visibilityPicture: "trip_members",
+  avatarIcon: "mountain",
   visibilityVibeTags: "trip_members",
   visibilityTravelMap: "friends",
   visibilityFriends: "private",

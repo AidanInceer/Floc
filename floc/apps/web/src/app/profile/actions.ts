@@ -6,6 +6,7 @@
 import { CURRENCIES } from "@/db/schema";
 import type { Currency } from "@/db/schema";
 import { requireUser } from "@/server/access";
+import { parseAvatarIcon } from "@floc/core/people/avatar-icon";
 import { readCountryCode } from "@floc/core/people/countries";
 import { MAX_DIETARY_NOTES, parseDietFlags } from "@floc/core/people/dietary";
 import { capText } from "@floc/core/text/text";
@@ -24,14 +25,24 @@ import {
 import { parseVibeTags } from "@floc/core/trip/vibe-tags";
 import { refresh } from "@/server/freshness";
 
+/** Its own action because the picker saves on tap — see face-picker.tsx. */
+export async function setAvatarIcon(formData: FormData): Promise<void> {
+  const viewer = await requireUser();
+  await ensureProfile(viewer.id);
+  await updateProfileFields(viewer.id, {
+    avatarIcon: parseAvatarIcon(formData.get("avatarIcon")),
+  });
+  refresh({ kind: "profile" });
+  refresh({ kind: "tripList" });
+}
+
 export async function updateIdentity(formData: FormData): Promise<{ error?: string }> {
   const viewer = await requireUser();
   await ensureProfile(viewer.id);
 
   const displayName = capText(formData.get("displayName"), "displayName");
-  const avatarUrl = capText(formData.get("avatarUrl"), "avatarUrl");
 
-  await updateProfileFields(viewer.id, { displayName, avatarUrl });
+  await updateProfileFields(viewer.id, { displayName });
 
   refresh({ kind: "profile" });
   return {};

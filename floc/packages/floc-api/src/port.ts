@@ -22,6 +22,8 @@
  *      is never an error.
  *  10. No timezones. Dates are `YYYY-MM-DD`; times are local to the itinerary.
  */
+
+import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import type { Currency } from "@floc/core/money/currency";
 import type { DocCategory } from "@floc/core/documents/documents";
 import type { ExpenseCategory } from "@floc/core/money/expense-category";
@@ -55,7 +57,7 @@ export type TripMember = {
   role: TripRole;
   name: string;
   email: string;
-  avatarUrl: string | null;
+  avatarIcon: AvatarIcon | null;
   /** Roster seat colour, assigned from the name — a token name, not a hex. */
   tone: string;
   /** Null unless the member chose to share it. Never on a profile — it is for the group picking dinner. */
@@ -312,9 +314,8 @@ export type MapPrompt = {
 export type MySettings = {
   email: string;
   displayName: string;
-  avatarUrl: string | null;
+  avatarIcon: AvatarIcon | null;
   isPrivate: boolean;
-  visibilityPicture: Visibility;
   visibilityVibeTags: Visibility;
   visibilityTravelMap: Visibility;
   visibilityFriends: Visibility;
@@ -362,7 +363,7 @@ export type Me = {
    * (rule 11).
    */
   canConfirmEmail: boolean;
-  avatarUrl: string | null;
+  avatarIcon: AvatarIcon | null;
   /** Countries a finished trip put on the map. */
   been: number;
   /** Countries a trip that has not ended yet puts there. */
@@ -428,7 +429,7 @@ export type FriendState = "none" | "friends" | "outgoing" | "incoming";
 export type FriendPerson = {
   id: string;
   name: string;
-  avatarUrl: string | null;
+  avatarIcon: AvatarIcon | null;
 };
 
 /**
@@ -457,7 +458,7 @@ export type FriendsBoard = {
 export type PublicProfileView = {
   userId: string;
   name: string;
-  avatarUrl: string | null;
+  avatarIcon: AvatarIcon | null;
   /** How the viewer knows them; no other relation may see a profile at all. */
   relation: "friend" | "co_traveller";
   isPrivate: boolean;
@@ -482,7 +483,7 @@ export type PendingTripInvite = {
   startDate: string | null;
   endDate: string | null;
   fromName: string;
-  fromAvatarUrl: string | null;
+  fromAvatarIcon: AvatarIcon | null;
 };
 
 /**
@@ -646,15 +647,14 @@ export type FlocPort = {
   /** Renames the display name. Not an admin power (rule 6) — it is your own name. */
   renameMe(viewerId: string, displayName: string): Promise<void>;
 
+  /** Your name (tickets 46, 157). */
+  updateIdentity(viewerId: string, input: { displayName: string }): Promise<void>;
+
   /**
-   * Name and picture together (ticket 46). The picture is a URL, not an
-   * upload: uploading is its own decision that has not been taken, and until
-   * it lands this is the only way to have a picture at all.
+   * Your face (#157). Apart from the name because the picker saves on tap, and
+   * sending an unchanged name alongside it would let a face clobber a rename.
    */
-  updateIdentity(
-    viewerId: string,
-    input: { displayName: string; avatarUrl: string | null },
-  ): Promise<void>;
+  updateAvatarIcon(viewerId: string, icon: AvatarIcon | null): Promise<void>;
 
   /** The account half of the profile, in one read (ticket 07). */
   loadMySettings(viewerId: string): Promise<MySettings>;
@@ -668,8 +668,7 @@ export type FlocPort = {
     viewerId: string,
     input: {
       isPrivate: boolean;
-      visibilityPicture: Visibility;
-      visibilityVibeTags: Visibility;
+          visibilityVibeTags: Visibility;
       visibilityTravelMap: Visibility;
       visibilityFriends: Visibility;
       pastTripsShow: PastTripsShow;

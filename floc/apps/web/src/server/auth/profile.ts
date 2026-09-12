@@ -2,6 +2,8 @@
  * `user_profile` is our extension of Better Auth's user table (ticket 06) —
  * created lazily so a user who signed up before a column existed still works.
  */
+
+import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import "server-only";
 
 import { eq } from "drizzle-orm";
@@ -69,7 +71,7 @@ export async function updateProfileFields(
 export async function loadIdentity(
   userId: string,
 ): Promise<
-  | { id: string; name: string; email: string; emailVerified: boolean; avatarUrl: string | null }
+  | { id: string; name: string; email: string; emailVerified: boolean; avatarIcon: AvatarIcon | null }
   | undefined
 > {
   const row = await db
@@ -80,7 +82,7 @@ export async function loadIdentity(
       emailVerified: user.emailVerified,
       image: user.image,
       displayName: userProfile.displayName,
-      avatarUrl: userProfile.avatarUrl,
+      avatarIcon: userProfile.avatarIcon,
     })
     .from(user)
     .leftJoin(userProfile, eq(userProfile.userId, user.id))
@@ -93,6 +95,6 @@ export async function loadIdentity(
     name: row.displayName ?? row.name,
     email: row.email,
     emailVerified: row.emailVerified,
-    avatarUrl: row.avatarUrl ?? row.image ?? null,
+    avatarIcon: row.avatarIcon,
   };
 }

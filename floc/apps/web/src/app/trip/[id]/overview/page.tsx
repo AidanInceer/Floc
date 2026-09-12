@@ -170,7 +170,7 @@ export default async function OverviewPage({
     ...unresolved.availabilityOthers.map((m) => ({
       userId: m.userId,
       name: m.name,
-      avatarUrl: m.avatarUrl,
+      avatarIcon: m.avatarIcon,
       what: "their dates",
       href: `/trip/${tripId}/dates`,
     })),
@@ -179,7 +179,7 @@ export default async function OverviewPage({
       .map((m) => ({
         userId: m.userId,
         name: m.name,
-        avatarUrl: m.avatarUrl,
+        avatarIcon: m.avatarIcon,
         what: "settling up",
         href: `/trip/${tripId}/money`,
       })),
@@ -290,7 +290,7 @@ export default async function OverviewPage({
                       href={w.href}
                       className="flex items-center gap-2 rounded-full bg-sheet-2 py-1 pl-1 pr-4 text-sm transition-colors hover:bg-sheet-3"
                     >
-                      <Avatar name={w.name} src={w.avatarUrl} size={26} />
+                      <Avatar name={w.name} icon={w.avatarIcon} size={26} />
                       <span className="truncate">
                         {w.name} &mdash; {w.what}
                       </span>

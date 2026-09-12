@@ -37,7 +37,8 @@ import { Pressable, ScrollView, View } from "react-native";
 import { IdentitySheet } from "@/components/auth/identity-sheet";
 import { MapPromptCard } from "@/components/map/map-prompt";
 import { MarkEditor } from "@/components/notes/mark-editor";
-import { ProfileFace } from "@/components/system/profile-face";
+import { FaceSheet } from "@/components/auth/face-sheet";
+import { ProfileFace, initialsOf } from "@/components/system/profile-face";
 import { Sheet } from "@/components/system/sheet";
 import { TravelMap } from "@/components/map/travel-map";
 import { VerifyEmailCard } from "@/components/auth/verify-email";
@@ -65,6 +66,7 @@ export default function Profile() {
 
   const [editing, setEditing] = useState(false);
   const [painting, setPainting] = useState(false);
+  const [pickingFace, setPickingFace] = useState(false);
 
   /** Both reads move together: a mark changes the map and the two counts on the card. */
   const refetchFace = () => {
@@ -79,6 +81,11 @@ export default function Profile() {
       setEditing(false);
       refetchFace();
     },
+  });
+
+  const saveFace = useMutation({
+    ...trpc.settings.face.mutationOptions(),
+    onSuccess: refetchFace,
   });
 
   const setMark = useMutation({
@@ -99,11 +106,12 @@ export default function Profile() {
       <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }}>
         <ProfileFace
           name={me.data.name}
-          avatarUrl={me.data.avatarUrl}
+          avatarIcon={me.data.avatarIcon}
           been={me.data.been}
           wantToGo={me.data.wantToGo}
           vibeTags={face.data?.vibeTags ?? []}
-          onEdit={() => setEditing(true)}
+          onEditName={() => setEditing(true)}
+          onEditFace={() => setPickingFace(true)}
         />
 
         {/* Above the prompts and the map: it is the one thing on this screen
@@ -211,13 +219,20 @@ export default function Profile() {
           open
           key={me.data.name}
           name={me.data.name}
-          avatarUrl={me.data.avatarUrl}
           busy={saveIdentity.isPending}
           error={saveIdentity.isError ? saveIdentity.error.message : null}
           onClose={() => setEditing(false)}
           onSave={(input) => saveIdentity.mutate(input)}
         />
       ) : null}
+
+      <FaceSheet
+        open={pickingFace}
+        initials={initialsOf(me.data.name)}
+        icon={me.data.avatarIcon}
+        onClose={() => setPickingFace(false)}
+        onPick={(avatarIcon) => saveFace.mutate({ avatarIcon })}
+      />
 
       <Sheet open={painting} onClose={() => setPainting(false)}>
         <MarkEditor

@@ -71,7 +71,7 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
     USER_PROFILE {
         string user_id PK &quot;FK -&gt; USER.id&quot;
         string display_name &quot;nullable — our editable copy, not mirrored live&quot;
-        string avatar_url &quot;nullable&quot;
+        string avatar_icon &quot;nullable, one of AVATAR_ICONS; null is initials&quot;
         string home_currency &quot;GBP | EUR | USD, default GBP&quot;
         json vibe_tags &quot;seed-only, from VIBE_TAGS (ticket 46)&quot;
         string signup_channel &quot;whatsapp|email|link|direct, nullable&quot;
@@ -79,7 +79,6 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
         string dietary_notes &quot;allergies &amp; intolerances, nullable&quot;
         bool share_dietary &quot;default false — covers the whole dietary record&quot;
         bool is_private &quot;default false — hides every display attribute&quot;
-        string visibility_picture &quot;private|friends|trip_members, default trip_members&quot;
         string visibility_vibe_tags &quot;private|friends|trip_members, default trip_members&quot;
         string visibility_travel_map &quot;private|friends|trip_members, default trip_members&quot;
         string visibility_friends &quot;private|friends|trip_members, default friends&quot;

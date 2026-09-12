@@ -125,7 +125,7 @@ function toDetail(access: TripAccess): TripDetail {
       role: m.role,
       name: m.name,
       email: m.email,
-      avatarUrl: m.avatarUrl,
+      avatarIcon: m.avatarIcon,
       tone: m.tone,
       dietary: m.dietary,
     })),

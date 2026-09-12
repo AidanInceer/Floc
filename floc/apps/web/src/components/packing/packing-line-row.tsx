@@ -18,7 +18,7 @@ import type { PackingStatus } from "@floc/core/packing/packing";
 export type PackingClaimant = {
   userId: string;
   name: string;
-  avatarUrl: string | null;
+  avatarIcon: AvatarIcon | null;
   tone?: string;
   packedAt: Date | null;
 };
@@ -49,6 +49,8 @@ const TONE_BY_STATUS: Record<PackingStatus, "agreed" | "marine" | "open"> = {
  * tick, the word and the avatars can never disagree mid-flight; the server's
  * answer overwrites it, so a refused write corrects itself.
  */
+
+import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 export function PackingLineRow({
   tripId,
   lineId,
@@ -69,7 +71,7 @@ export function PackingLineRow({
   claimants: PackingClaimant[];
   viewerId: string;
   /** The viewer's own name and avatar, so claiming can draw their pill before the server confirms it. */
-  viewer: { name: string; avatarUrl: string | null; tone?: string };
+  viewer: { name: string; avatarIcon: AvatarIcon | null; tone?: string };
   setClaim: (tripId: number, lineId: number, claimed: boolean) => Promise<void>;
   setPacked: (tripId: number, lineId: number, packed: boolean) => Promise<void>;
   remove: (tripId: number, lineId: number) => Promise<void>;
@@ -136,7 +138,7 @@ export function PackingLineRow({
           size={24}
           people={shown.map((c) => ({
             name: c.packedAt ? `${c.name} — packed` : c.name,
-            avatarUrl: c.avatarUrl,
+            avatarIcon: c.avatarIcon,
             tone: c.tone,
           }))}
         />
@@ -193,7 +195,7 @@ type ClaimPatch =
       kind: "claim";
       viewerId: string;
       claimed: boolean;
-      viewer: { name: string; avatarUrl: string | null; tone?: string };
+      viewer: { name: string; avatarIcon: AvatarIcon | null; tone?: string };
     };
 
 function applyToViewer(

@@ -28,14 +28,12 @@ export async function updatePrivacy(formData: FormData): Promise<{ error?: strin
     return VISIBILITIES.includes(value as Visibility) ? (value as Visibility) : null;
   };
 
-  const picture = ring("visibilityPicture");
   const vibeTags = ring("visibilityVibeTags");
   const travelMap = ring("visibilityTravelMap");
   const friends = ring("visibilityFriends");
   const show = String(formData.get("pastTripsShow") ?? "");
 
   if (
-    !picture ||
     !vibeTags ||
     !travelMap ||
     !friends ||
@@ -46,7 +44,6 @@ export async function updatePrivacy(formData: FormData): Promise<{ error?: strin
 
   await updateProfileFields(viewer.id, {
     isPrivate: formData.get("isPrivate") === "on",
-    visibilityPicture: picture,
     visibilityVibeTags: vibeTags,
     visibilityTravelMap: travelMap,
     visibilityFriends: friends,

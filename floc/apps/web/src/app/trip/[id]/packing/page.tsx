@@ -195,7 +195,7 @@ export default async function PackingPage({
   // the pill flip from photo to initials the moment the server answers.
   const viewerClaimant = {
     name: access.viewer.name,
-    avatarUrl: profile.avatarUrl,
+    avatarIcon: profile.avatarIcon,
     tone: toneOf.get(access.viewer.id),
   };
 
@@ -205,7 +205,7 @@ export default async function PackingPage({
     list.push({
       userId: c.userId,
       name: c.name,
-      avatarUrl: c.avatarUrl,
+      avatarIcon: c.avatarIcon,
       tone: toneOf.get(c.userId),
       packedAt: c.packedAt,
     });
