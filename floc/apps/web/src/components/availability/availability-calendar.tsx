@@ -425,9 +425,9 @@ export function AvailabilityCalendar({
           {/* Same key as Everyone (this view draws the same marks) plus the one
               only it has — status is never colour alone. */}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <LegendKey swatch="bg-peri border-pen" label="The trip" />
+            <LegendKey swatch="bg-green border-green" label="The trip" />
             <LegendKey swatch="bg-mint border-mint-edge" label="All free" />
-            <LegendKey swatch="bg-butter border-butter-edge" label="Some free" />
+            <LegendKey swatch="bg-blush border-blush-edge" label="Some free" />
           </div>
         </div>
       ) : view === "mine" ? (
@@ -452,7 +452,7 @@ export function AvailabilityCalendar({
         /* A key, not a paragraph (ticket 76): swatch matches, not reads. */
         <div className={footer}>
           <LegendKey swatch="bg-mint border-mint-edge" label="All free" />
-          <LegendKey swatch="bg-butter border-butter-edge" label="Some free" />
+          <LegendKey swatch="bg-blush border-blush-edge" label="Some free" />
           <LegendKey swatch="bg-sheet border-pen" label="The trip" />
         </div>
       ) : weather ? (

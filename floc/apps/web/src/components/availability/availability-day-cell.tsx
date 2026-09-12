@@ -44,7 +44,7 @@ function groupMark(tally: number, memberCount: number): string {
     ? "text-ink-soft"
     : tally === memberCount
       ? "bg-mint text-mint-ink"
-      : "bg-butter text-butter-ink";
+      : "bg-blush text-blush-ink";
 }
 
 export function DayCell(props: DayCellProps) {
@@ -148,10 +148,10 @@ function paintLabel(p: DayCellProps, picking: boolean): string {
 function paintFill(p: DayCellProps, picking: boolean): string {
   if (!picking) return p.free ? "bg-peri font-semibold text-peri-ink" : "text-ink";
   // Start with no end: ringed, else a lone filled day read as a one-day trip.
-  if (p.openEnd) return cx("bg-peri font-semibold text-peri-ink", "inset-ring-2 inset-ring-pen");
-  if (p.inRange) return cx("bg-peri font-semibold text-peri-ink", TRIP_RING);
+  if (p.openEnd) return "bg-green font-semibold text-sheet inset-ring-2 inset-ring-pen";
+  if (p.inRange) return "bg-green font-semibold text-sheet";
   // The span you'd get by clicking here (ticket 135).
-  if (p.pending) return "bg-peri/60 text-peri-ink";
+  if (p.pending) return "bg-green/45 font-semibold text-sheet";
   return groupMark(p.tally, p.memberCount);
 }
 
