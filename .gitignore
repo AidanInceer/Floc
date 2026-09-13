@@ -54,6 +54,8 @@ human-*.md
 !**/backlog/*.html
 .agents/
 **/mockups/
+# Product docs stay local — the repo may go public.
+docs/
 # Private docs — stack accounts, credential inventories. Never committed.
 docs/private/
 
