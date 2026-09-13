@@ -76,8 +76,11 @@ jobs:
   # Which parts of the repo this push touched. GitHub's own `paths:` filter
   # only works at the workflow level, so a job that should run for mobile
   # changes and skip a docs push has to ask git itself.
+  # PAUSED to keep the Actions bill down. `if: false` skips a job at no cost;
+  # delete the line to turn it back on. Only the mobile jobs read it.
   changes:
     name: What changed
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
@@ -111,7 +114,8 @@ jobs:
   mobile:
     name: Expo · bundles for Android and iOS
     needs: changes
-    if: needs.changes.outputs.mobile == 'true'
+    # PAUSED (bill). Restore: if: needs.changes.outputs.mobile == 'true'
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -155,7 +159,8 @@ jobs:
   mobile-android:
     name: Android · native build (advisory)
     needs: changes
-    if: needs.changes.outputs.mobile == 'true'
+    # PAUSED (bill). Restore: if: needs.changes.outputs.mobile == 'true'
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -189,6 +194,8 @@ jobs:
   # database on port 3100 — see floc/apps/web/e2e/serve.mjs.
   e2e-web:
     name: Web · end to end
+    # PAUSED (bill). `pnpm verify` still runs it locally. Delete to restore.
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -287,6 +294,8 @@ jobs:
   # offline-first convention both require.
   wireframes:
     name: Wireframes stay self-contained
+    # PAUSED (bill). `pnpm verify` still runs it locally. Delete to restore.
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

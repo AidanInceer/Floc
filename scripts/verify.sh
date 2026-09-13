@@ -14,6 +14,10 @@
 #   ci.yml       parity      → the web/app gap is declared, not forgotten
 #   ci.yml       mobile      → Expo bundles for Android and iOS
 #
+# Why: e2e-web, wireframes and the mobile jobs are paused in CI (`if: false`) to
+# keep the Actions bill down. They still run here, so verify is now the only gate
+# for them.
+#
 # One CI job is deliberately NOT mirrored: `mobile-android`, the native gradle
 # compile. It takes twenty minutes and wants a JDK 17, which is too much to ask
 # of a gate meant to be run before every push — and it is advisory in CI too.
