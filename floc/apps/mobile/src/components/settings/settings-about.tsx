@@ -134,7 +134,6 @@ export function SettingsDietary({
 
       <Toggle
         label="Share this with people I'm on a trip with"
-        hint="All of it or none of it — the diets and the free text move together."
         value={dietary.share}
         onChange={(share) => onChange({ ...dietary, share })}
       />

@@ -2,15 +2,9 @@
  * Settings — what you configure, as against what you curate (ticket 302,
  * direction C; the web's own panels brought over).
  *
- * ITS OWN SCREEN, BECAUSE THE WEB HAS ITS OWN PAGE. These sat under a rule at
- * the foot of the profile, which made the theme buttons the tallest thing on a
- * page about who you are. A rule is not a split.
- *
- * IT USED TO SAY "ON THE WEBSITE" AND LIST FIVE THINGS. That was honest while
- * the phone had no API for them; it is not a design. Everything the web's
- * `/settings` rail holds is here now — privacy, vibe tags, dietary, packing
- * defaults, home currency, notifications and the account — with theme, which
- * only the phone has, at the top where it started.
+ * DRAWERS, GROUPED LIKE THE WEB RAIL. One long scroll of switches read as one
+ * wall; three groups of closed drawers, each showing its answer, read as a
+ * contents page. Delete sits alone at the foot, out of the way of everything.
  *
  * NO SAVE BUTTONS. A switch or a segmented row *is* the answer, so it is also
  * the write; only the free-text note waits for you to leave it. That is the
@@ -21,7 +15,7 @@
  * sending the changed one alone would need the server to merge, and a merge is
  * a second place for the record to be half-right.
  */
-import type { MySettings } from "@floc/api/port";
+import type { BillingStatus, MySettings } from "@floc/api/port";
 import { CURRENCIES } from "@floc/core/money/currency";
 import { PACK_TIERS, PACK_TIER_LABELS, type PackTier } from "@floc/core/packing/packing";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -30,13 +24,16 @@ import { useState, type ReactNode } from "react";
 import { ScrollView, View } from "react-native";
 
 import { ProSection } from "@/components/billing/pro-section";
-import { SettingsAccount } from "@/components/settings/settings-account";
+import { SettingsAccount, SettingsDelete } from "@/components/settings/settings-account";
 import { SettingsDietary, SettingsVibeTags, type Dietary } from "@/components/settings/settings-about";
+import { Drawer, DrawerGroup } from "@/components/system/drawer";
 import { SettingsPrivacy, type Privacy } from "@/components/settings/settings-privacy";
 import { useTheme, type ThemeChoice } from "@/components/system/theme";
-import { Body, Divider, Dropdown, Failed, Label, Loading, Segmented, Toggle } from "@/components/system/ui";
+import { Body, Dropdown, Failed, Label, Loading, Segmented, Toggle } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { signOut } from "@/lib/auth";
+import { proView } from "@/lib/billing/pro";
+import { aboutSummary, emailSummary, privacySummary, tripsSummary } from "@/lib/settings/summary";
 import { MoonGlyph, SunGlyph } from "@/components/system/glyphs";
 import { space } from "@/lib/theme";
 
@@ -46,6 +43,8 @@ const THEMES = [
   { value: "system", label: "Auto" },
 ] satisfies { value: ThemeChoice; label: string; icon?: (color: string) => ReactNode }[];
 
+const THEME_LABELS: Record<ThemeChoice, string> = { light: "Light", dark: "Dark", system: "Auto" };
+
 const CURRENCY_OPTIONS = CURRENCIES.map((code) => ({ value: code, label: code }));
 
 const TIER_OPTIONS = PACK_TIERS.map((tier) => ({
@@ -54,7 +53,6 @@ const TIER_OPTIONS = PACK_TIERS.map((tier) => ({
 }));
 
 export default function Settings() {
-  const { choice, setChoice } = useTheme();
   const router = useRouter();
   const queryClient = useQueryClient();
   const settings = useQuery(trpc.settings.get.queryOptions());
@@ -65,34 +63,22 @@ export default function Settings() {
   if (settings.isError) return <Failed onRetry={() => settings.refetch()} />;
 
   return (
-    <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.xl }}>
-      <View style={{ gap: space.sm }}>
-        <Label>Theme</Label>
-        <Segmented options={THEMES} value={choice} onChange={setChoice} />
-        {/* Theme is this device's, and "Auto" needs saying once — nothing on
-            screen could show either. */}
-        <Body tone="ink-3">Auto follows your phone. This phone only; everything below follows you everywhere.</Body>
-      </View>
-
-      {/* Pro changes what every trip screen can do, so a purchase refetches everything. */}
-      {billing.data ? (
-        <ProSection
-          status={billing.data}
-          claim={(input) => claim.mutateAsync(input)}
-          onClaimed={() => queryClient.invalidateQueries()}
-        />
-      ) : null}
-
-      <Divider />
-
-      <SettingsPanels
-        settings={settings.data}
-        onSaved={() =>
-          queryClient.invalidateQueries({ queryKey: trpc.settings.get.queryKey() })
-        }
-        onSignedOut={() => router.replace("/")}
-      />
-    </ScrollView>
+    <SettingsPanels
+      settings={settings.data}
+      billing={billing.data}
+      pro={
+        billing.data ? (
+          // Pro changes what every trip screen can do, so a purchase refetches everything.
+          <ProSection
+            status={billing.data}
+            claim={(input) => claim.mutateAsync(input)}
+            onClaimed={() => queryClient.invalidateQueries()}
+          />
+        ) : null
+      }
+      onSaved={() => queryClient.invalidateQueries({ queryKey: trpc.settings.get.queryKey() })}
+      onSignedOut={() => router.replace("/")}
+    />
   );
 }
 
@@ -103,13 +89,18 @@ export default function Settings() {
  */
 function SettingsPanels({
   settings,
+  billing,
+  pro,
   onSaved,
   onSignedOut,
 }: {
   settings: MySettings;
+  billing: BillingStatus | undefined;
+  pro: ReactNode;
   onSaved: () => void;
   onSignedOut: () => void;
 }) {
+  const { choice, setChoice } = useTheme();
   const [privacy, setPrivacy] = useState<Privacy>({
     isPrivate: settings.isPrivate,
     visibilityVibeTags: settings.visibilityVibeTags,
@@ -159,130 +150,149 @@ function SettingsPanels({
     onSuccess: () => signOut().then(onSignedOut),
   });
 
+  const plan = billing ? proView(billing) : null;
+  const busy = unlink.isPending || remove.isPending;
+
   return (
-    <View style={{ gap: space.xl }}>
+    <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.xl }}>
       {failed ? <Body tone="red">That didn&apos;t save. Try it again.</Body> : null}
 
-      <SettingsPrivacy
-        privacy={privacy}
-        onChange={(next) => {
-          setPrivacy(next);
-          savePrivacy.mutate(next);
-        }}
-      />
+      <DrawerGroup label="You">
+        <Drawer first title="Theme" summary={THEME_LABELS[choice]}>
+          <Segmented options={THEMES} value={choice} onChange={setChoice} />
+        </Drawer>
 
-      <Divider />
+        <Drawer title="Privacy" summary={privacySummary(privacy)}>
+          <SettingsPrivacy
+            privacy={privacy}
+            onChange={(next) => {
+              setPrivacy(next);
+              savePrivacy.mutate(next);
+            }}
+          />
+        </Drawer>
 
-      <SettingsVibeTags
-        tags={tags}
-        onChange={(next) => {
-          setTags(next);
-          saveTags.mutate({ tags: next as never });
-        }}
-      />
+        <Drawer title="About you" summary={aboutSummary(tags.length, dietary.flags.length)}>
+          <SettingsVibeTags
+            tags={tags}
+            onChange={(next) => {
+              setTags(next);
+              saveTags.mutate({ tags: next as never });
+            }}
+          />
+          <SettingsDietary
+            dietary={dietary}
+            onChange={(next) => {
+              setDietary(next);
+              // The free text is the one field that would fire per keystroke, so
+              // it waits for the blur below; everything else writes now.
+              if (next.notes === dietary.notes) {
+                saveDietary.mutate({
+                  flags: next.flags as never,
+                  notes: next.notes || null,
+                  share: next.share,
+                });
+              }
+            }}
+            onCommitNotes={() =>
+              saveDietary.mutate({
+                flags: dietary.flags as never,
+                notes: dietary.notes || null,
+                share: dietary.share,
+              })
+            }
+          />
+        </Drawer>
+      </DrawerGroup>
 
-      <SettingsDietary
-        dietary={dietary}
-        onChange={(next) => {
-          setDietary(next);
-          // The free text is the one field that would fire per keystroke, so
-          // it waits for the blur below; everything else writes now.
-          if (next.notes === dietary.notes) {
-            saveDietary.mutate({
-              flags: next.flags as never,
-              notes: next.notes || null,
-              share: next.share,
-            });
-          }
-        }}
-        onCommitNotes={() =>
-          saveDietary.mutate({
-            flags: dietary.flags as never,
-            notes: dietary.notes || null,
-            share: dietary.share,
-          })
-        }
-      />
+      <DrawerGroup label="Trips">
+        <Drawer first title="Packing and money" summary={tripsSummary(PACK_TIER_LABELS[tier], currency)}>
+          <View style={{ gap: space.sm }}>
+            <Label>Packing</Label>
+            {/* Where a new trip starts. Choosing Light on one weekend must not
+                become the default everywhere (#220) — worth the line, because a
+                defaults screen cannot show that it is defaults. */}
+            <Body tone="ink-3">
+              Where a new trip starts. Changing it on one trip stays on that trip.
+            </Body>
+            <Segmented
+              options={TIER_OPTIONS}
+              value={tier}
+              onChange={(next) => {
+                setTier(next);
+                savePacking.mutate({ tier: next, autoGenerate: autoFill });
+              }}
+            />
+            <Toggle
+              label="Fill my bag in when I open a trip's packing"
+              value={autoFill}
+              onChange={(next) => {
+                setAutoFill(next);
+                savePacking.mutate({ tier, autoGenerate: next });
+              }}
+            />
+          </View>
 
-      <Divider />
+          <Dropdown
+            label="Home currency"
+            options={CURRENCY_OPTIONS}
+            value={currency}
+            onChange={(next) => {
+              setCurrency(next);
+              saveCurrency.mutate({ currency: next });
+            }}
+          />
+        </Drawer>
 
-      <View style={{ gap: space.sm }}>
-        <Label>Packing</Label>
-        {/* Where a new trip starts. Choosing Light on one weekend must not
-            become the default everywhere (#220) — worth the line, because a
-            defaults screen cannot show that it is defaults. */}
-        <Body tone="ink-3">
-          Where a new trip starts. Changing it on one trip stays on that trip.
-        </Body>
-        <Segmented
-          options={TIER_OPTIONS}
-          value={tier}
-          onChange={(next) => {
-            setTier(next);
-            savePacking.mutate({ tier: next, autoGenerate: autoFill });
-          }}
-        />
-        <Toggle
-          label="Fill my bag in when I open a trip's packing"
-          hint="Off means the list stays empty until you ask."
-          value={autoFill}
-          onChange={(next) => {
-            setAutoFill(next);
-            savePacking.mutate({ tier, autoGenerate: next });
-          }}
-        />
-      </View>
+        {plan && plan.kind !== "hidden" ? (
+          <Drawer title="Floc Pro" summary={plan.kind === "pro" ? "Pro" : "Free plan"}>
+            {pro}
+          </Drawer>
+        ) : null}
 
-      <Dropdown
-        label="Home currency"
-        options={CURRENCY_OPTIONS}
-        value={currency}
-        onChange={(next) => {
-          setCurrency(next);
-          saveCurrency.mutate({ currency: next });
-        }}
-      />
+        <Drawer title="Email" summary={emailSummary(notify)}>
+          <Toggle
+            label="Trip invites"
+            value={notify.invites}
+            onChange={(invites) => {
+              setNotify({ ...notify, invites });
+              saveNotify.mutate({ ...notify, invites });
+            }}
+          />
+          <Toggle
+            label="Costs added to a trip"
+            value={notify.money}
+            onChange={(money) => {
+              setNotify({ ...notify, money });
+              saveNotify.mutate({ ...notify, money });
+            }}
+          />
+          <Toggle
+            label="Nudges from other members"
+            value={notify.nudges}
+            onChange={(nudges) => {
+              setNotify({ ...notify, nudges });
+              saveNotify.mutate({ ...notify, nudges });
+            }}
+          />        </Drawer>
+      </DrawerGroup>
 
-      <Divider />
+      <DrawerGroup label="Account">
+        <Drawer first title="Sign-in" summary={settings.email}>
+          <SettingsAccount
+            email={settings.email}
+            methods={settings.signInMethods}
+            busy={busy}
+            onUnlink={(accountId) => unlink.mutate({ accountId })}
+          />
+        </Drawer>
+      </DrawerGroup>
 
-      <View style={{ gap: space.sm }}>
-        <Label>Email notifications</Label>
-        <Toggle
-          label="Trip invites"
-          value={notify.invites}
-          onChange={(invites) => {
-            setNotify({ ...notify, invites });
-            saveNotify.mutate({ ...notify, invites });
-          }}
-        />
-        <Toggle
-          label="Costs added to a trip"
-          value={notify.money}
-          onChange={(money) => {
-            setNotify({ ...notify, money });
-            saveNotify.mutate({ ...notify, money });
-          }}
-        />
-        <Toggle
-          label="Nudges from other members"
-          value={notify.nudges}
-          onChange={(nudges) => {
-            setNotify({ ...notify, nudges });
-            saveNotify.mutate({ ...notify, nudges });
-          }}
-        />
-        <Body tone="ink-3">An invite you asked for always sends, whatever these say.</Body>
-      </View>
-
-      <Divider />
-
-      <SettingsAccount
-        email={settings.email}
-        methods={settings.signInMethods}
-        busy={unlink.isPending || remove.isPending}
-        onUnlink={(accountId) => unlink.mutate({ accountId })}
-        onDelete={() => remove.mutate()}
-      />
-    </View>
+      <DrawerGroup danger>
+        <Drawer first danger title="Delete account">
+          <SettingsDelete busy={busy} onDelete={() => remove.mutate()} />
+        </Drawer>
+      </DrawerGroup>
+    </ScrollView>
   );
 }

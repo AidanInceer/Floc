@@ -19,7 +19,7 @@
  */
 import { Alert, View } from "react-native";
 
-import { Body, Button, Divider, Label, Row } from "../system/ui";
+import { Body, Button, Label, Row } from "../system/ui";
 import { space } from "@/lib/theme";
 
 export type SignInMethod = { id: string; provider: string };
@@ -35,13 +35,11 @@ export function SettingsAccount({
   methods,
   busy,
   onUnlink,
-  onDelete,
 }: {
   email: string;
   methods: SignInMethod[];
   busy: boolean;
   onUnlink: (accountId: string) => void;
-  onDelete: () => void;
 }) {
   const last = methods.length <= 1;
 
@@ -73,9 +71,13 @@ export function SettingsAccount({
           </Body>
         ) : null}
       </View>
+    </View>
+  );
+}
 
-      <Divider />
-
+export function SettingsDelete({ busy, onDelete }: { busy: boolean; onDelete: () => void }) {
+  return (
+    <View style={{ gap: space.md }}>
       <Button
         label="Delete my account"
         variant="danger"

@@ -15,7 +15,7 @@
  */
 import { View } from "react-native";
 
-import { Body, Label, Segmented, Toggle } from "../system/ui";
+import { Label, Segmented, Toggle } from "../system/ui";
 import { space } from "@/lib/theme";
 
 export type Visibility = "private" | "friends" | "trip_members";
@@ -51,11 +51,8 @@ export function SettingsPrivacy({
 }) {
   return (
     <View style={{ gap: space.md }}>
-      <Label>Who can see your profile</Label>
-
       <Toggle
         label="Make my whole profile private"
-        hint="People can still open your face — they see your name and picture, nothing else."
         value={privacy.isPrivate}
         onChange={(isPrivate) => onChange({ ...privacy, isPrivate })}
       />
@@ -70,12 +67,6 @@ export function SettingsPrivacy({
           />
         </View>
       ))}
-
-      {/* What is missing is worth saying; that the rings are dimmed is not. */}
-      <Body tone="ink-3">
-        Anyone who has made their own profile private stays off your friends list whatever you
-        choose.
-      </Body>
 
       <View style={{ gap: space.xs, opacity: privacy.isPrivate ? 0.4 : 1 }}>
         <Label>Past trips</Label>
