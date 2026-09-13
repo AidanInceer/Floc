@@ -29,6 +29,7 @@ import {
 } from "./actions";
 import { searchPlacesAction } from "../place-actions";
 import { ConfirmSubmit, SubmitButton } from "@/components/system/client-ui";
+import { CalendarMenu } from "@/components/days/calendar-menu";
 import {
   DaysCalendar,
   type CalendarDay,
@@ -38,6 +39,8 @@ import { EventFiles } from "@/components/documents/event-files";
 import type { FileChoice } from "@/components/documents/attach-existing";
 import { EventForm } from "@/components/days/event-form";
 import { Badge, ButtonLink, EmptyState } from "@/components/system/ui";
+import { appUrl } from "@/lib/env";
+import { mintCalendarToken } from "@/server/itinerary/calendar-link";
 import { EVENT_CATEGORIES } from "@floc/core/itinerary/event-categories";
 import { NoteThread, type NoteRow } from "@/components/notes/note-thread";
 import { requireTripAccess } from "@/server/access";
@@ -212,6 +215,10 @@ export default async function DaysPage({
         <div>
           <h1 className="text-[clamp(1.9rem,4vw,2.8rem)]">Days</h1>
         </div>
+        <CalendarMenu
+          downloadHref={`/trip/${trip.id}/calendar.ics`}
+          feedUrl={`${appUrl()}/calendar/${mintCalendarToken(trip.id, viewer.id)}.ics`}
+        />
       </header>
 
       <div className="mt-8">

@@ -247,6 +247,35 @@ export function ProStarGlyph({ color }: { color: string }) {
   );
 }
 
+/** Light theme. The web switch's sun, same path. */
+export function SunGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={13} height={13} viewBox="0 0 14 14" fill="none">
+      <Circle cx={7} cy={7} r={2.5} stroke={color} strokeWidth={1.2} />
+      <Path
+        d="M7 1.3v1.3M7 11.4v1.3M1.3 7h1.3M11.4 7h1.3M3 3l.9.9M10.1 10.1l.9.9M11 3l-.9.9M3.9 10.1 3 11"
+        stroke={color}
+        strokeWidth={1.2}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
+/** Dark theme. The web switch's moon, same path. */
+export function MoonGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={13} height={13} viewBox="0 0 14 14" fill="none">
+      <Path
+        d="M10.9 9.4A4.6 4.6 0 0 1 6 2a5 5 0 1 0 4.9 7.4Z"
+        stroke={color}
+        strokeWidth={1.2}
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
 /** A trip you starred. Same drawing as Pro's mark; `on` fills it. */
 export function StarGlyph({ color, on }: { color: string; on: boolean }) {
   return (

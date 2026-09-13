@@ -37,6 +37,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
 
+import { AddToCalendar } from "@/components/days/add-to-calendar";
 import { DayGrid } from "@/components/days/day-grid";
 import { EventOpen } from "@/components/days/event-open";
 import { EventSheet } from "@/components/days/event-sheet";
@@ -164,7 +165,10 @@ export default function Days() {
           whole clock drawn, a page that scrolls as one puts the date and where
           you are sleeping off the top the moment you reach lunch. */}
       <View style={{ paddingHorizontal: space.lg, gap: space.md }}>
-        <Label>{formatDate(day.date)}</Label>
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+          <Label>{formatDate(day.date)}</Label>
+          <AddToCalendar tripId={tripId} />
+        </View>
         <OvernightLine tripId={tripId} days={days.data} date={day.date} />
       </View>
 

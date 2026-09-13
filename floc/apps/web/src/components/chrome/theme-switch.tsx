@@ -1,82 +1,103 @@
 "use client";
 
 /**
- * The light/dark switch (ticket 240): a two-segment pill in the header, on the
- * same recessed track as `PillNav`, so the right-hand side of the bar reads as
- * one family of controls.
+ * The light / dark / auto switch (ticket 240): a three-segment pill with words,
+ * on the same recessed track as `PillNav`.
  *
- * The selected segment is painted by CSS keyed off `:root[data-theme]`, not by
- * React state — the attribute is on `<html>` before first paint, so the right
- * segment is lit in the same frame the page arrives, with no flash and nothing
- * to hydrate. State exists only to carry `aria-pressed`, which CSS cannot say.
+ * The selected segment is painted by CSS keyed off `:root[data-theme-choice]`,
+ * not by React state — the attribute is on `<html>` before first paint, so the
+ * right segment is lit in the same frame the page arrives, with nothing to
+ * hydrate. State exists only to carry `aria-pressed`, which CSS cannot say.
  */
 import { useEffect, useState } from "react";
 
-import { THEMES, readStoredTheme, storeTheme, type Theme } from "@/lib/theme";
+import { cx } from "@/components/system/ui";
+import {
+  THEME_CHOICES,
+  readStoredChoice,
+  resolveTheme,
+  storeChoice,
+  type ThemeChoice,
+} from "@/lib/theme";
 
-export function ThemeSwitch() {
-  const [theme, setTheme] = useState<Theme | null>(null);
+const LABELS: Record<ThemeChoice, string> = { light: "Light", dark: "Dark", system: "Auto" };
+
+const DARK_QUERY = "(prefers-color-scheme: dark)";
+
+export function ThemeSwitch({ className }: { className?: string }) {
+  const [choice, setChoice] = useState<ThemeChoice | null>(null);
 
   useEffect(() => {
-    setTheme(readStoredTheme(document.documentElement.dataset.theme));
+    setChoice(readStoredChoice(document.documentElement.dataset.themeChoice));
   }, []);
 
-  const choose = (next: Theme) => {
-    document.documentElement.dataset.theme = next;
-    storeTheme(next);
-    setTheme(next);
+  // Auto has to keep following the device while the page stays open.
+  useEffect(() => {
+    if (choice !== "system") return;
+    const query = matchMedia(DARK_QUERY);
+    const follow = () => {
+      document.documentElement.dataset.theme = resolveTheme("system", query.matches);
+    };
+    query.addEventListener("change", follow);
+    return () => query.removeEventListener("change", follow);
+  }, [choice]);
+
+  const choose = (next: ThemeChoice) => {
+    const root = document.documentElement;
+    root.dataset.themeChoice = next;
+    root.dataset.theme = resolveTheme(next, matchMedia(DARK_QUERY).matches);
+    storeChoice(next);
+    setChoice(next);
   };
 
   return (
     <div
       role="group"
       aria-label="Theme"
-      className="relative flex shrink-0 items-center rounded-full bg-sheet-3 p-0.5"
+      className={cx(
+        "relative grid shrink-0 grid-cols-3 items-center rounded-full bg-sheet-3 p-[3px]",
+        className,
+      )}
     >
-      {/* One sliding fill, exactly as PillNav does it, rather than a background
-          appearing under whichever half is lit — the switch belongs to the same
-          family of controls, so it must move the same way. Its position is CSS
-          keyed off `<html>`, so it is under the right half in the first painted
-          frame. */}
+      {/* One sliding fill, exactly as PillNav does it, positioned by CSS keyed
+          off `<html>` so it is under the right segment in the first painted frame. */}
       <span
         aria-hidden
-        className="theme-indicator pointer-events-none absolute left-0.5 top-0.5 h-8 w-7 rounded-full bg-ink transition-transform duration-200 ease-[cubic-bezier(0.2,0.85,0.3,1)] motion-reduce:transition-none sm:w-8"
+        className="theme-indicator pointer-events-none absolute left-[3px] top-[3px] h-7 w-[calc((100%-6px)/3)] rounded-full bg-sheet shadow-card transition-transform duration-200 ease-[cubic-bezier(0.2,0.85,0.3,1)] motion-reduce:transition-none"
       />
-      {THEMES.map((option) => (
+      {THEME_CHOICES.map((option) => (
         <button
           key={option}
           type="button"
           data-choice={option}
-          aria-label={option === "light" ? "Light" : "Dark"}
-          aria-pressed={theme === null ? undefined : theme === option}
+          aria-pressed={choice === null ? undefined : choice === option}
           onClick={() => choose(option)}
           // Colour is left to `.theme-choice` in globals.css — a Tailwind text
           // utility here sits in a later layer and wins over the lit state.
-          className="theme-choice relative z-10 flex h-8 w-7 items-center justify-center rounded-full sm:w-8"
+          className="theme-choice relative z-10 flex h-7 items-center justify-center gap-1.5 rounded-full px-2.5 text-[12.5px]"
         >
-          {option === "light" ? <SunriseIcon /> : <MoonIcon />}
+          {option === "light" ? <SunIcon /> : option === "dark" ? <MoonIcon /> : null}
+          {LABELS[option]}
         </button>
       ))}
     </div>
   );
 }
 
-// Half a sun over the horizon rather than a full disc with rays: at 14px the
-// rays close up and the glyph reads as a blob.
-function SunriseIcon() {
+function SunIcon() {
   return (
     <svg
       aria-hidden
       viewBox="0 0 14 14"
-      width="14"
-      height="14"
+      width="13"
+      height="13"
       fill="none"
       stroke="currentColor"
       strokeWidth="1.2"
       strokeLinecap="round"
     >
-      <circle cx="7" cy="8" r="2.3" />
-      <path d="M7 2.9v1.2M3.1 8H1.9M12.1 8h-1.2M4.1 5.1l-.85-.85M9.9 5.1l.85-.85M1.4 11.4h11.2" />
+      <circle cx="7" cy="7" r="2.5" />
+      <path d="M7 1.3v1.3M7 11.4v1.3M1.3 7h1.3M11.4 7h1.3M3 3l.9.9M10.1 10.1l.9.9M11 3l-.9.9M3.9 10.1 3 11" />
     </svg>
   );
 }
@@ -86,14 +107,14 @@ function MoonIcon() {
     <svg
       aria-hidden
       viewBox="0 0 14 14"
-      width="14"
-      height="14"
+      width="13"
+      height="13"
       fill="none"
       stroke="currentColor"
       strokeWidth="1.2"
       strokeLinejoin="round"
     >
-      <path d="M11.4 8.6A4.9 4.9 0 0 1 5.4 2.6a4.9 4.9 0 1 0 6 6Z" />
+      <path d="M10.9 9.4A4.6 4.6 0 0 1 6 2a5 5 0 1 0 4.9 7.4Z" />
     </svg>
   );
 }

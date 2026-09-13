@@ -835,6 +835,13 @@ export type FlocPort = {
 
   listDays(viewerId: string, tripId: number): Promise<ItineraryDay[]>;
 
+  /**
+   * The viewer's own subscribable `.ics` address for the trip (#334). Signed,
+   * with no expiry; every poll re-checks live membership. Minted only after the
+   * trip check passed.
+   */
+  calendarFeedUrl(viewerId: string, tripId: number): Promise<string>;
+
   loadLedger(viewerId: string, tripId: number): Promise<Ledger>;
 
   /** Newest first. Somebody else's private file is never in the result (ticket 296). */

@@ -87,8 +87,8 @@ export function AccountMenu({
           240 put it there): on a phone the bar had four pill controls and
           the account one was the first to be squeezed out. The menu stays
           open while you flick between light and dark. */}
-      <div className="flex justify-center px-2 py-1">
-        <ThemeSwitch />
+      <div className="px-2 py-1">
+        <ThemeSwitch className="w-full" />
       </div>
       <div className="my-1 border-t border-dotted border-rule-strong" />
       <SignOutButton role="menuitem" className={menuItemClass} />

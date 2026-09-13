@@ -43,6 +43,7 @@ import { Sheet } from "@/components/system/sheet";
 import { TravelMap } from "@/components/map/travel-map";
 import { VerifyEmailCard } from "@/components/auth/verify-email";
 import { ProRow } from "@/components/billing/pro-row";
+import { Drawer, DrawerGroup, DrawerLink } from "@/components/system/drawer";
 import {
   Body,
   Button,
@@ -166,54 +167,27 @@ export default function Profile() {
           <Button label="Paint the map" variant="quiet" onPress={() => setPainting(true)} />
         </View>
 
+        <YourTravel trips={face.data?.pastTrips} onKits={() => router.push("/kits")} />
+
         <View style={{ gap: space.sm }}>
-          <Label>Trips you have been on</Label>
-          {face.data && face.data.pastTrips.length === 0 ? (
-            <Empty>Nothing here yet.</Empty>
-          ) : null}
-          {face.data?.pastTrips.map((trip) => (
-            <Row key={trip.id}>
-              <View style={{ flex: 1, gap: space.xs }}>
-                <Body bold>{trip.name}</Body>
-                <Figure tone="ink-3">
-                  {formatDateRange(trip.startDate, trip.endDate)}
-                </Figure>
-              </View>
-            </Row>
-          ))}
+          <View style={{ paddingHorizontal: space.xs }}>
+            <Label>Account</Label>
+          </View>
+          <ProRow status={billing.data} onPress={() => router.push("/settings")} />
+          <DrawerGroup>
+            <DrawerLink first title="Settings" onPress={() => router.push("/settings")} />
+          </DrawerGroup>
         </View>
 
-        {/* Saved lists are yours rather than any trip's, so they hang off
-            you, not off a trip. */}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Saved packing lists"
-          onPress={() => router.push("/kits")}
-        >
-          <Row>
-            <Body bold>Saved packing lists</Body>
-          </Row>
-        </Pressable>
-
-        <ProRow status={billing.data} onPress={() => router.push("/settings")} />
-
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Settings"
-          onPress={() => router.push("/settings")}
-        >
-          <Row>
-            <Body bold>Settings</Body>
-          </Row>
-        </Pressable>
-
-        {/* Below the rows and below everything else, because it ends the
-            session rather than opening anything. */}
-        <Button
-          label="Sign out of this phone"
-          variant="quiet"
-          onPress={() => void signOut().then(() => router.replace("/"))}
-        />
+        {/* Alone at the foot, because it ends the session rather than opening anything. */}
+        <DrawerGroup>
+          <DrawerLink
+            first
+            quiet
+            title="Sign out of this phone"
+            onPress={() => void signOut().then(() => router.replace("/"))}
+          />
+        </DrawerGroup>
       </ScrollView>
 
       {/* Keyed on the name it opened with, so re-opening after a save starts
@@ -246,5 +220,25 @@ export default function Profile() {
         />
       </Sheet>
     </>
+  );
+}
+
+type PastTrip = { id: number; name: string; startDate: string | null; endDate: string | null };
+
+function YourTravel({ trips, onKits }: { trips: PastTrip[] | undefined; onKits: () => void }) {
+  return (
+    <DrawerGroup label="Your travel">
+      <Drawer first title="Past trips" summary={trips ? String(trips.length) : undefined}>
+        {trips && trips.length === 0 ? <Empty>Nothing here yet.</Empty> : null}
+        {trips?.map((trip) => (
+          <View key={trip.id} style={{ gap: space.xs }}>
+            <Body bold>{trip.name}</Body>
+            <Figure tone="ink-3">{formatDateRange(trip.startDate, trip.endDate)}</Figure>
+          </View>
+        ))}
+      </Drawer>
+      {/* Saved lists are yours rather than any trip's, so they hang off you, not off a trip. */}
+      <DrawerLink title="Saved packing lists" onPress={onKits} />
+    </DrawerGroup>
   );
 }

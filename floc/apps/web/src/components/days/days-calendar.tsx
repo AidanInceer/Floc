@@ -63,7 +63,6 @@ import {
   uncoveredBy,
   type BandSpan,
 } from "@floc/core/itinerary/overnight-band";
-import type { DayEventType } from "@/db/schema";
 
 export type { CalendarDay, CalendarEvent, OvernightPlace } from "@/components/days/days-calendar-shared";
 
@@ -123,7 +122,6 @@ export function DaysCalendar({
 
   const [view, setView] = useState<"day" | "week">("week");
   const [anchor, setAnchor] = useState(todayIndex);
-  const [hidden, setHidden] = useState<ReadonlySet<DayEventType>>(new Set());
   const [selected, setSelected] = useState<number | null>(null);
   const [adding, setAdding] = useState<{ dayId: number; time: string } | null>(null);
   const [announcement, setAnnouncement] = useState("");
@@ -199,8 +197,8 @@ export function DaysCalendar({
         ? { ...base, time: landing.time, endTime: landing.endTime }
         : base;
     });
-    return live.filter((e) => !hidden.has(e.type));
-  }, [events, hidden, optimistic, landing]);
+    return live;
+  }, [events, optimistic, landing]);
 
   const { startHour, endHour } = useMemo(() => gridWindow(shown), [shown]);
   const gridHeight = (endHour - startHour) * HOUR_PX;
@@ -609,8 +607,6 @@ export function DaysCalendar({
         canPrev={canPrev}
         canNext={canNext}
         rangeLabel={rangeLabel}
-        hidden={hidden}
-        setHidden={setHidden}
         effectiveView={effectiveView}
         setView={setView}
       />

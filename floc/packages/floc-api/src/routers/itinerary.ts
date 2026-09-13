@@ -55,6 +55,10 @@ export const itineraryRouter = router({
     ctx.port.listDays(ctx.viewer.id, input.tripId),
   ),
 
+  calendarUrl: tripProcedure.query(({ ctx, input }) =>
+    ctx.port.calendarFeedUrl(ctx.viewer.id, input.tripId),
+  ),
+
   forecast: tripProcedure.query(({ ctx, input }) =>
     ctx.port.loadTripForecast(ctx.viewer.id, input.tripId),
   ),

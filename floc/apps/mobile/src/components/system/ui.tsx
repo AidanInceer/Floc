@@ -396,7 +396,7 @@ export function Segmented<T extends string>({
   value,
   onChange,
 }: {
-  options: readonly { value: T; label: string }[];
+  options: readonly { value: T; label: string; icon?: (color: string) => ReactNode }[];
   value: T;
   onChange: (value: T) => void;
 }) {
@@ -421,7 +421,10 @@ export function Segmented<T extends string>({
             onPress={() => onChange(option.value)}
             style={{
               flex: 1,
+              flexDirection: "row",
               alignItems: "center",
+              justifyContent: "center",
+              gap: space.xs,
               paddingVertical: space.sm,
               borderRadius: radius.pill,
               backgroundColor: on ? c.sheet : "transparent",
@@ -429,6 +432,7 @@ export function Segmented<T extends string>({
               borderColor: c.rule,
             }}
           >
+            {option.icon?.(on ? c.ink : c["ink-2"])}
             <Text
               style={{
                 color: on ? c.ink : c["ink-2"],
