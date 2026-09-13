@@ -17,6 +17,7 @@ import "server-only";
 
 import {
   allowedType,
+  bytesMatchType,
   cleanFileName,
   rejectUpload,
   type DocCategory,
@@ -82,7 +83,7 @@ export const filesPort: FilesPort = {
     const refusal = rejectUpload(input.mimeType, bytes.byteLength);
     if (refusal) return refusal;
     const type = allowedType(input.mimeType);
-    if (!type) return "Only PDFs and images can go here";
+    if (!type || !bytesMatchType(type.mimeType, bytes)) return "Only PDFs and images can go here";
 
     if ((await countDocuments(tripId)) >= LIMITS.documents) {
       return "This trip is holding as many files as it can";

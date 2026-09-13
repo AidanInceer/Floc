@@ -19,6 +19,10 @@ up through `.claude/launch.json` instead — their logs are then readable with
 Call `preview_start` twice: `floc-web` (port 3000) and `floc-metro` (port
 8081). Both are idempotent — an already-running server is reused.
 
+**Another chat owns port 3000** → never let it start on 3001 (the app's
+`adb reverse` and `EXPO_PUBLIC_API_URL` point at 3000). Use that server:
+`preview_start {url: "http://localhost:3000"}`. Same for 8081.
+
 ### 2. Emulator, tunnels, app
 
 The rest has no Claude tool, so it stays in the script. Run it in the

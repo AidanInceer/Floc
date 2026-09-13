@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "floc",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Floc's own skills: tickets, run, push, release and the dev database.",
   "author": {
     "name": "Aidan Inceer"

@@ -5,6 +5,7 @@
 import { redirect } from "next/navigation";
 
 import { readOptionalIsoDate } from "@floc/core/dates/dates";
+import { localPath } from "@floc/core/text/local-path";
 import { capRequiredText } from "@floc/core/text/text";
 import { isTripColor } from "@floc/core/trip/trip-color";
 import { renameTrip as validateAndRenameTrip } from "@/app/trip/[id]/overview/actions";
@@ -95,9 +96,7 @@ export async function declineTripInvite(formData: FormData): Promise<void> {
 // Where to land afterwards is a form field, not a second copy of these
 // actions per caller — avoids two Server Actions doing one job.
 function redirectTo(formData: FormData, fallback: string): string {
-  const raw = String(formData.get("redirectTo") ?? "");
-  // Site-relative only — an off-site value is ignored, not obeyed.
-  return raw.startsWith("/") && !raw.startsWith("//") ? raw : fallback;
+  return localPath(formData.get("redirectTo"), fallback);
 }
 
 // The card menu renames from a plain form with no inline error surface, so it

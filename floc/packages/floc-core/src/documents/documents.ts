@@ -115,6 +115,27 @@ export function formatBytes(bytes: number): string {
   return `${(kb / 1024).toFixed(1)} MB`;
 }
 
+const HEIC_BRANDS = ["heic", "heix", "hevc", "heim", "heis", "mif1", "msf1"];
+
+const startsWith = (data: Uint8Array, prefix: number[], offset = 0) =>
+  prefix.every((byte, i) => data[offset + i] === byte);
+
+const ascii = (text: string) => Array.from(new TextEncoder().encode(text));
+
+const SIGNATURES: Record<string, (data: Uint8Array) => boolean> = {
+  "application/pdf": (d) => startsWith(d, ascii("%PDF-")),
+  "image/png": (d) => startsWith(d, [0x89, ...ascii("PNG"), 0x0d, 0x0a, 0x1a, 0x0a]),
+  "image/jpeg": (d) => startsWith(d, [0xff, 0xd8, 0xff]),
+  "image/heic": (d) =>
+    startsWith(d, ascii("ftyp"), 4) && HEIC_BRANDS.some((b) => startsWith(d, ascii(b), 8)),
+};
+
+/** Why: the MIME type is the client's claim; the served Content-Type echoes it, so the bytes must agree. */
+export function bytesMatchType(mimeType: unknown, data: Uint8Array): boolean {
+  const type = allowedType(mimeType);
+  return !!type && (SIGNATURES[type.mimeType]?.(data) ?? false);
+}
+
 /** Why an upload was refused, in the words the form shows. Null = fine. */
 export function rejectUpload(
   mimeType: unknown,

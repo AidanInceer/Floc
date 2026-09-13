@@ -46,7 +46,7 @@ function form(
   category = "travel",
 ) {
   const data = new FormData();
-  data.set("file", new File([new Uint8Array([1, 2, 3])], name, { type: "application/pdf" }));
+  data.set("file", new File(["%PDF-1.7"], name, { type: "application/pdf" }));
   data.set("scope", scope);
   data.set("category", category);
   return data;
@@ -69,6 +69,17 @@ describe("uploadDocument", () => {
     expect(
       (await listDocuments(world.ours.id, world.member)).map((d) => d.name),
     ).toEqual(["boarding pass.pdf"]);
+  });
+
+  it("refuses a page dressed up as a PDF, and writes nothing", async () => {
+    const data = new FormData();
+    data.set("file", new File(["<html><script>"], "booking.pdf", { type: "application/pdf" }));
+    data.set("scope", "shared");
+
+    expect(await uploadDocument(world.ours.id, data)).toEqual({
+      error: "Only PDFs and images can go here",
+    });
+    expect(await readdir(process.env.FLOC_FILES_DIR!)).toEqual([]);
   });
 
   it("refuses a type that is not a PDF or an image, and writes nothing", async () => {

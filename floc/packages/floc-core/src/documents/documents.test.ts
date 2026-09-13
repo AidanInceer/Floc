@@ -5,7 +5,35 @@ import {
   formatBytes,
   kindLabel,
   rejectUpload,
+  bytesMatchType,
 } from "./documents";
+
+const bytes = (...parts: (number[] | string)[]) =>
+  new Uint8Array(parts.flatMap((p) => (typeof p === "string" ? Array.from(new TextEncoder().encode(p)) : p)));
+
+describe("bytesMatchType", () => {
+  it.each([
+    ["application/pdf", bytes("%PDF-1.7")],
+    ["image/png", bytes([0x89], "PNG", [0x0d, 0x0a, 0x1a, 0x0a])],
+    ["image/jpeg", bytes([0xff, 0xd8, 0xff, 0xe0])],
+    ["image/heic", bytes([0, 0, 0, 0x18], "ftypheic")],
+    ["image/heic", bytes([0, 0, 0, 0x18], "ftypmif1")],
+  ])("accepts real %s bytes", (type, data) => {
+    expect(bytesMatchType(type, data)).toBe(true);
+  });
+
+  it("refuses HTML sent as a PDF", () => {
+    expect(bytesMatchType("application/pdf", bytes("<html><script>"))).toBe(false);
+  });
+
+  it("refuses a PNG sent as a JPEG", () => {
+    expect(bytesMatchType("image/jpeg", bytes([0x89], "PNG", [0x0d, 0x0a, 0x1a, 0x0a]))).toBe(false);
+  });
+
+  it("refuses a type off the allow-list", () => {
+    expect(bytesMatchType("text/html", bytes("%PDF-"))).toBe(false);
+  });
+});
 
 describe("rejectUpload", () => {
   it("passes a PDF inside the cap", () => {
