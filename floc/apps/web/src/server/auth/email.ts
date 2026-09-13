@@ -11,14 +11,12 @@ import { inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { userProfile } from "@/db/schema";
 import { appUrl } from "@/lib/env";
-import { TAB_LABELS } from "@/lib/tabs";
 
-type EmailCategory = "invites" | "money" | "nudges";
+type EmailCategory = "invites" | "money";
 
 const CATEGORY_COLUMN = {
   invites: "notifyInvites",
   money: "notifyMoney",
-  nudges: "notifyNudges",
 } as const;
 
 export type OutboundEmail = {
@@ -245,32 +243,6 @@ export const emails = {
     category: "invites",
     // Asked-for and one-shot: always sends.
     transactional: true,
-  }),
-
-  /** Trigger: one member nudges another. Deep-links to the tab it's about. */
-  nudge: (args: {
-    to: string;
-    toUserId: string;
-    tripId: number;
-    tripName: string;
-    fromName: string;
-    tab: string;
-    message?: string | null;
-  }): OutboundEmail => ({
-    to: args.to,
-    toUserId: args.toUserId,
-    subject: `${args.fromName} nudged you about ${args.tripName}`,
-    lines: [
-      `${args.fromName} is waiting on you for ${args.tripName}.`,
-      args.message?.trim()
-        ? `“${args.message.trim()}”`
-        : `It's the ${TAB_LABELS[args.tab] ?? args.tab} tab.`,
-    ],
-    cta: {
-      label: `Open ${TAB_LABELS[args.tab] ?? args.tab}`,
-      url: absoluteUrl(`/trip/${args.tripId}/${args.tab}`),
-    },
-    category: "nudges",
   }),
 
   /** Trigger: an expense is added that the recipient owes a share of. */

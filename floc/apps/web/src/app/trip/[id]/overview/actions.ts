@@ -4,12 +4,10 @@
 // server/invites.ts and server/trips.ts (ticket 242). Admin powers are
 // kick/promote/delete (#312 took invite off the list).
 import { redirect } from "next/navigation";
-import { after } from "next/server";
 
 import { NUDGE_TABS, type NudgeTab } from "@/db/schema";
 import { assertAdmin, requireTripAccess, requireUser } from "@/server/access";
 import { markTourSeen as markTourSeenFor } from "@/server/auth/tour";
-import { emails, sendEmails } from "@/server/auth/email";
 import { parseTagNames } from "@floc/core/trip/tags";
 import { capText, TEXT_CAPS } from "@floc/core/text/text";
 import { LIMITS } from "@/server/limits";
@@ -26,7 +24,7 @@ import { refresh } from "@/server/freshness";
 export async function sendNudge(formData: FormData) {
   const tripId = Number(formData.get("tripId"));
   const toUserId = String(formData.get("toUserId"));
-  // Checked, not cast: a bad tab would deep-link a mail to a 404 (ticket 144).
+  // Checked, not cast: a bad tab would deep-link the inbox to a 404 (ticket 144).
   const posted = String(formData.get("tab"));
   const tab = (NUDGE_TABS as readonly string[]).includes(posted)
     ? (posted as NudgeTab)
@@ -34,8 +32,9 @@ export async function sendNudge(formData: FormData) {
   const message = capText(formData.get("message"), "nudgeMessage");
 
   const access = await requireTripAccess(tripId);
-  const recipient = access.members.find((m) => m.userId === toUserId);
-  if (!recipient) throw new Error("Not a member of this trip");
+  if (!access.members.some((m) => m.userId === toUserId)) {
+    throw new Error("Not a member of this trip");
+  }
 
   await insertNudge({
     tripId: access.trip.id,
@@ -44,21 +43,6 @@ export async function sendNudge(formData: FormData) {
     tab,
     message,
   });
-
-  // Mail rides out after the response, not blocking it (ticket 111).
-  after(() =>
-    sendEmails([
-      emails.nudge({
-        to: recipient.email,
-        toUserId: recipient.userId,
-        tripId: access.trip.id,
-        tripName: access.trip.name,
-        fromName: access.viewer.name,
-        tab,
-        message,
-      }),
-    ]),
-  );
 
   refresh({ kind: "tripOverview", tripId: access.trip.id });
 }
@@ -103,7 +87,7 @@ export async function kickMember(formData: FormData) {
   const access = await requireTripAccess(tripId);
   assertAdmin(access);
 
-  await removeMembership(access.trip.id, userId);
+  await removeMembership(access.trip.id, userId, access.viewer.id);
 
   refresh(
     { kind: "tripOverview", tripId: access.trip.id },

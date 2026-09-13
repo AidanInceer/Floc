@@ -3,7 +3,7 @@
  * (ticket 108). Route and Days are two views of the same rows, one aggregate.
  *
  * Soft-delete (rule 8) filtered here only, not in `app/`; exceptions:
- * `ensureDays` and `applyTripWindow`, each noted where they are.
+ * `ensureDays` and `setTripWindow`, each noted where they are.
  * Day-first (rule 3): no stored stop, no `order_index` on a day — a "move"
  * is a permutation of day *contents* between date rows, not a drag of dates.
  * Expenses (`expense.day_id`) and comment threads (on `day_event`) deliberately
@@ -14,7 +14,7 @@ import "server-only";
 import { and, asc, eq, inArray, isNull, not, sql } from "drizzle-orm";
 
 import { db } from "@/db";
-import { day, dayEvent, expense, place } from "@/db/schema";
+import { day, dayEvent, expense, place, trip } from "@/db/schema";
 import type { DayEventType, TransportType } from "@/db/schema";
 import { addDays as addDaysToDate, dateRange } from "@floc/core/dates/dates";
 import { orderEvents } from "@floc/core/itinerary/event-order";
@@ -23,7 +23,8 @@ import { capRequiredText, capText } from "@floc/core/text/text";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
 import { refresh } from "@/server/freshness";
-import { updateTrip } from "@/server/trips/trips";
+import { recordActivity, type Tx } from "@/server/notifications/activity";
+import { tripHref } from "@floc/core/notifications/notification-href";
 
 export function moveItem<T>(items: T[], from: number, to: number): T[] {
   if (from === to || from < 0 || to < 0 || from >= items.length || to >= items.length) {
@@ -94,35 +95,52 @@ export async function listDayLoads(tripId: number): Promise<DayLoad[]> {
  * deliberately detached, not deleted, with their day (`expense.day_id` nullable
  * for this).
  */
-export async function applyTripWindow(
+export async function setTripWindow(
   tripId: number,
   start: string | null,
   end: string | null,
+  by: string,
 ): Promise<void> {
   const dates = dateRange(start, end);
 
-  // Unfiltered on deletedAt — same reason the delete is hard, below.
-  const surplus = await db
-    .select({ id: day.id })
-    .from(day)
-    .where(
-      and(
-        eq(day.tripId, tripId),
-        dates.length ? not(inArray(day.date, dates)) : undefined,
-      ),
-    )
-    .limit(LIMITS.days)
-    .all();
+  await db.transaction(async (tx) => {
+    await tx
+      .update(trip)
+      .set({ startDate: start, endDate: end, ...touch() })
+      .where(and(eq(trip.id, tripId), isNull(trip.deletedAt)));
 
-  if (surplus.length) {
-    const ids = surplus.map((d) => d.id);
-    await db.update(expense).set({ dayId: null }).where(inArray(expense.dayId, ids));
-    await db.delete(dayEvent).where(inArray(dayEvent.dayId, ids));
-    await db.delete(day).where(inArray(day.id, ids));
-  }
+    // Unfiltered on deletedAt — same reason the delete is hard, below.
+    const surplus = await tx
+      .select({ id: day.id })
+      .from(day)
+      .where(
+        and(
+          eq(day.tripId, tripId),
+          dates.length ? not(inArray(day.date, dates)) : undefined,
+        ),
+      )
+      .limit(LIMITS.days)
+      .all();
 
-  await ensureDays(tripId, dates);
-  refresh({ kind: "itinerary", tripId });
+    if (surplus.length) {
+      const ids = surplus.map((d) => d.id);
+      await tx.update(expense).set({ dayId: null }).where(inArray(expense.dayId, ids));
+      await tx.delete(dayEvent).where(inArray(dayEvent.dayId, ids));
+      await tx.delete(day).where(inArray(day.id, ids));
+    }
+
+    await ensureDays(tripId, dates, tx);
+    await recordActivity(tx, {
+      kind: "trip_dates_changed",
+      tripId,
+      actorId: by,
+      subjectId: null,
+      href: tripHref(tripId, "dates"),
+      affected: [],
+    });
+  });
+
+  refresh({ kind: "tripWindow", tripId });
 }
 
 /* ---------------------------------------------- the reads the tabs render */
@@ -320,10 +338,14 @@ export async function firstOvernightPlaceByTrip(
  * Existence check deliberately unfiltered on `deletedAt` (rule 8 exception) —
  * a soft-deleted row still occupies the (trip, date) unique index.
  */
-export async function ensureDays(tripId: number, dates: string[]): Promise<void> {
+export async function ensureDays(
+  tripId: number,
+  dates: string[],
+  run: Pick<Tx, "select" | "insert"> = db,
+): Promise<void> {
   if (dates.length === 0) return;
 
-  const existing = await db
+  const existing = await run
     .select({ date: day.date })
     .from(day)
     .where(and(eq(day.tripId, tripId), inArray(day.date, dates)))
@@ -333,7 +355,7 @@ export async function ensureDays(tripId: number, dates: string[]): Promise<void>
   const covered = new Set(existing.map((d) => d.date));
   const missing = dates.filter((d) => !covered.has(d));
   if (missing.length) {
-    await db.insert(day).values(missing.map((date) => ({ tripId, date })));
+    await run.insert(day).values(missing.map((date) => ({ tripId, date })));
   }
 }
 
@@ -357,11 +379,24 @@ export async function setOvernightPlaceOn(
 }
 
 /** Its events go with it, hidden by the day's own filter — not deleted themselves. */
-export async function softDeleteDay(dayId: number): Promise<void> {
-  await db
-    .update(day)
-    .set({ deletedAt: new Date(), ...touch() })
-    .where(and(eq(day.id, dayId), isNull(day.deletedAt)));
+export async function softDeleteDay(dayId: number, by: string): Promise<void> {
+  await db.transaction(async (tx) => {
+    const gone = await tx
+      .update(day)
+      .set({ deletedAt: new Date(), ...touch() })
+      .where(and(eq(day.id, dayId), isNull(day.deletedAt)))
+      .returning({ tripId: day.tripId })
+      .get();
+    if (!gone) return;
+    await recordActivity(tx, {
+      kind: "days_removed",
+      tripId: gone.tripId,
+      actorId: by,
+      subjectId: null,
+      href: tripHref(gone.tripId, "days"),
+      affected: [],
+    });
+  });
 }
 
 /**
@@ -545,9 +580,10 @@ export async function rebaseEventOrder(ids: number[]): Promise<void> {
  * trip is normal (rule 9) and appending a day doesn't settle it.
  */
 export async function extendTripDays(
-  trip: { id: number; startDate: string | null; endDate: string | null },
+  target: { id: number; startDate: string | null; endDate: string | null },
   afterDate: string,
   count: number,
+  by: string,
 ): Promise<void> {
   const dates: string[] = [];
   let cursor = afterDate;
@@ -557,13 +593,26 @@ export async function extendTripDays(
   }
   if (dates.length === 0) return;
 
-  await ensureDays(trip.id, dates);
-
   const last = dates[dates.length - 1];
-  const movesTheWindow = Boolean(trip.startDate && trip.endDate && last > trip.endDate);
-  if (movesTheWindow) {
-    await updateTrip(trip.id, { startDate: trip.startDate, endDate: last });
-  }
+  const movesTheWindow = Boolean(target.startDate && target.endDate && last > target.endDate);
 
-  refresh({ kind: movesTheWindow ? "tripWindow" : "itinerary", tripId: trip.id });
+  await db.transaction(async (tx) => {
+    await ensureDays(target.id, dates, tx);
+    if (movesTheWindow) {
+      await tx
+        .update(trip)
+        .set({ endDate: last, ...touch() })
+        .where(and(eq(trip.id, target.id), isNull(trip.deletedAt)));
+    }
+    await recordActivity(tx, {
+      kind: "days_added",
+      tripId: target.id,
+      actorId: by,
+      subjectId: null,
+      href: tripHref(target.id, "days"),
+      affected: [],
+    });
+  });
+
+  refresh({ kind: movesTheWindow ? "tripWindow" : "itinerary", tripId: target.id });
 }

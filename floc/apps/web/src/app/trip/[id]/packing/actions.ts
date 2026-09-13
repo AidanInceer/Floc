@@ -54,7 +54,7 @@ export async function removePackingLine(tripId: number, lineId: number) {
   const access = await requireTripAccess(tripId);
   const line = await access.packingLine(lineId);
 
-  await softDeletePackingLine(line.id);
+  await softDeletePackingLine(line.id, access.viewer.id);
 
   refresh({ kind: "packing", tripId: access.trip.id });
 }
@@ -200,7 +200,7 @@ export async function removePackingLines(tripId: number, formData: FormData) {
 
   const lines = await Promise.all(ids.map((id) => access.packingLine(id)));
 
-  await softDeletePackingLines(lines.map((l) => l.id));
+  await softDeletePackingLines(lines.map((l) => l.id), access.viewer.id);
 
   refresh({ kind: "packing", tripId: access.trip.id });
 }
@@ -217,7 +217,7 @@ export async function resetPackingList(
 ) {
   const access = await requireTripAccess(tripId);
 
-  await softDeleteWholeList(access.trip.id, mine ? access.viewer.id : null);
+  await softDeleteWholeList(access.trip.id, mine ? access.viewer.id : null, access.viewer.id);
 
   refresh({ kind: "packing", tripId: access.trip.id });
 }

@@ -26,7 +26,9 @@ import type {
 } from "@/db/schema";
 import type { ExpenseCategory } from "@floc/core/money/expense-category";
 import { bounded, LIMITS } from "@/server/limits";
+import { tripHref } from "@floc/core/notifications/notification-href";
 import { touch } from "@/server/audit";
+import { recordActivity } from "@/server/notifications/activity";
 
 /** The trip's live ledger, newest first (ticket 118). Whole rows — Money and Overview both read columns from it. */
 export async function listExpenses(tripId: number): Promise<Expense[]> {
@@ -119,6 +121,15 @@ export async function writeExpense(args: {
         owedAmountMinor: s.owedAmountMinor,
       })),
     );
+
+    await recordActivity(tx, {
+      kind: expenseId === undefined ? "expense_added" : "expense_changed",
+      tripId,
+      actorId: createdBy,
+      subjectId: id,
+      href: tripHref(tripId, "money"),
+      affected: splits.map((s) => s.userId),
+    });
   });
 }
 
@@ -183,7 +194,17 @@ export async function writeSettlement(args: {
   fxRate?: number;
   fxRateDate?: string | null;
 }): Promise<void> {
-  await db.insert(settlement).values(args);
+  await db.transaction(async (tx) => {
+    const row = await tx.insert(settlement).values(args).returning({ id: settlement.id }).get();
+    await recordActivity(tx, {
+      kind: "settlement_recorded",
+      tripId: args.tripId,
+      actorId: args.createdBy,
+      subjectId: row.id,
+      href: tripHref(args.tripId, "money"),
+      affected: [args.fromUserId, args.toUserId],
+    });
+  });
 }
 
 /** Confirms a settlement is this trip's and still live, before reverting it. */

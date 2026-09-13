@@ -172,6 +172,15 @@
     "notes.write": {
       "mobile": "yes"
     },
+    "notifications.list": {
+      "mobile": "yes"
+    },
+    "notifications.open": {
+      "mobile": "yes"
+    },
+    "notifications.unread": {
+      "mobile": "yes"
+    },
     "packing.add": {
       "mobile": "yes"
     },

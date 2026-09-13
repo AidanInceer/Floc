@@ -21,6 +21,7 @@ import { DOC_CATEGORIES } from "@floc/core/documents/documents";
 import { PACK_CATEGORIES, PACK_TIERS } from "@floc/core/packing/packing";
 import { PLANS } from "@floc/core/billing/plans";
 import { AVATAR_ICONS } from "@floc/core/people/avatar-icon";
+import { ACTIVITY_KINDS } from "@floc/core/notifications/rules";
 import {
   index,
   integer,
@@ -865,6 +866,44 @@ export const nudge = sqliteTable(
     ...audit,
   },
   (t) => [index("nudge_trip_to_idx").on(t.tripId, t.toUserId)],
+);
+
+export const activity = sqliteTable(
+  "activity",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    /** Null for friend requests, which belong to no trip. */
+    tripId: integer("trip_id").references(() => trip.id, { onDelete: "cascade" }),
+    actorId: text("actor_id")
+      .notNull()
+      .references(() => user.id),
+    kind: text("kind", { enum: ACTIVITY_KINDS }).notNull(),
+    /** Not a real FK — polymorphic by `kind`, like `note.scope_id`. */
+    subjectId: integer("subject_id"),
+    href: text("href").notNull(),
+    ...audit,
+  },
+  (t) => [index("activity_group_idx").on(t.actorId, t.kind, t.subjectId)],
+);
+
+export const notification = sqliteTable(
+  "notification",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    activityId: integer("activity_id")
+      .notNull()
+      .references(() => activity.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id),
+    loud: integer("loud", { mode: "boolean" }).notNull(),
+    readAt: integer("read_at", { mode: "timestamp" }),
+    ...audit,
+  },
+  (t) => [
+    uniqueIndex("notification_one_idx").on(t.activityId, t.userId),
+    index("notification_user_idx").on(t.userId),
+  ],
 );
 
 /* -------------------------------------------------------------------------- */

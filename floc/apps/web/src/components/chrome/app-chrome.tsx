@@ -30,10 +30,45 @@ function WaitingCount({ count, label }: { count: number; label: string }) {
   );
 }
 
+function BellLink({ count }: { count: number }) {
+  const shown = count > 99 ? "99+" : String(count);
+  return (
+    <Link
+      href="/inbox"
+      aria-label={count ? `Notifications, ${shown} unread` : "Notifications"}
+      className="lift inline-flex h-8 items-center rounded-full px-2 text-ink-2 hover:bg-sheet-3 hover:text-ink"
+    >
+      <svg
+        aria-hidden
+        viewBox="0 0 14 14"
+        width="13"
+        height="13"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M3.5 9.8V6.3a3.5 3.5 0 0 1 7 0v3.5l1 1.2h-9l1-1.2Z" />
+        <path d="M5.8 12.3a1.3 1.3 0 0 0 2.4 0" />
+      </svg>
+      {count ? (
+        <span
+          aria-hidden
+          className="ml-1 inline-flex min-w-[17px] items-center justify-center rounded-full bg-pen px-1 text-[10.5px] font-semibold leading-[17px] text-sheet"
+        >
+          {shown}
+        </span>
+      ) : null}
+    </Link>
+  );
+}
+
 export function AppChrome({
   user,
   inviteCount = 0,
   friendRequestCount = 0,
+  notificationCount = 0,
   isPro = false,
 }: {
   user: { id: string; name: string; avatarIcon: AvatarIcon | null } | null;
@@ -43,6 +78,8 @@ export function AppChrome({
   inviteCount?: number;
   /** Friend requests waiting on this account — badges the Friends link. */
   friendRequestCount?: number;
+  /** Unread notifications (#344) — badges the bell. */
+  notificationCount?: number;
 }) {
   // Your signed-in surfaces, in one pill group. Discover sits among them —
   // browsing is still one of the places you go.
@@ -105,7 +142,10 @@ export function AppChrome({
           {/* Signed in, the theme switch is inside the account menu — the bar
               only carries it for someone who has no menu to put it in. */}
           {user ? (
-            <AccountMenu user={user} isPro={isPro} />
+            <>
+              <BellLink count={notificationCount} />
+              <AccountMenu user={user} isPro={isPro} />
+            </>
           ) : (
             <>
               <ThemeSwitch />

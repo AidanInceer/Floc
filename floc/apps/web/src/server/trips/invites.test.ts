@@ -160,7 +160,7 @@ describe("answering", () => {
   });
 
   it("revives a kicked member's row rather than colliding on the unique key", async () => {
-    await removeMembership(world.ours.id, world.member);
+    await removeMembership(world.ours.id, world.member, world.member);
     await joinWithLink(world.ours.id, world.member);
 
     const row = await membership(world.ours.id, world.member);

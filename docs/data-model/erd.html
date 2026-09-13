@@ -57,6 +57,10 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
     TRIP ||--o{ NUDGE : &quot;has&quot;
     USER ||--o{ NUDGE : &quot;sends (from_user_id)&quot;
     USER ||--o{ NUDGE : &quot;receives (to_user_id)&quot;
+    TRIP |o--o{ ACTIVITY : &quot;logs&quot;
+    USER ||--o{ ACTIVITY : &quot;acts (actor_id)&quot;
+    ACTIVITY ||--o{ NOTIFICATION : &quot;tells&quot;
+    USER ||--o{ NOTIFICATION : &quot;receives&quot;
     TRIP ||--o| TRIP_NOTE_DOC : &quot;has one (ticket 238)&quot;
     USER ||--o{ TRIP_NOTE_DOC : &quot;last saved (updated_by)&quot;
     TRIP ||--o{ DOCUMENT : &quot;holds (ticket 239)&quot;
@@ -75,7 +79,7 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
     classDef notes fill:#ece2f7,stroke:#b39cd3
     classDef billing fill:#fbf3e2,stroke:#c9a24f
     class USER,USER_PROFILE,USER_COUNTRY_MARK people
-    class FRIENDSHIP,TRIP_INVITE,NUDGE social
+    class FRIENDSHIP,TRIP_INVITE,NUDGE,ACTIVITY,NOTIFICATION social
     class TRIP,TRIP_MEMBERSHIP,TRIP_LINK trip
     class AVAILABILITY,DAY,DAY_EVENT,PLACE dates
     class EXPENSE,EXPENSE_SPLIT,SETTLEMENT,FX_RATE money
@@ -290,8 +294,25 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
         int trip_id FK &quot;-&gt; TRIP.id&quot;
         string from_user_id FK &quot;-&gt; USER.id&quot;
         string to_user_id FK &quot;-&gt; USER.id&quot;
-        string tab &quot;notes|dates|days|money — deep-linked in the email&quot;
+        string tab &quot;notes|dates|days|money — where the notification opens&quot;
         text message &quot;nullable&quot;
+    }
+
+    ACTIVITY {
+        int id PK
+        int trip_id FK &quot;-&gt; TRIP.id, nullable — null for friend requests&quot;
+        string actor_id FK &quot;-&gt; USER.id&quot;
+        string kind &quot;one of ACTIVITY_KINDS&quot;
+        int subject_id &quot;nullable, polymorphic by kind — not a real FK&quot;
+        string href &quot;web path the notification opens&quot;
+    }
+
+    NOTIFICATION {
+        int id PK
+        int activity_id FK &quot;-&gt; ACTIVITY.id&quot;
+        string user_id FK &quot;-&gt; USER.id&quot;
+        bool loud &quot;affected people; push and email later (#345)&quot;
+        timestamp read_at &quot;nullable — read on any device&quot;
     }
 
     TRIP_NOTE_DOC {
@@ -526,6 +547,18 @@ it has no foreign keys and no <code>deleted_at</code>.</p>
 <td><code>nudge</code></td>
 <td>1–M (×2)</td>
 <td><code>from_user_id</code> and <code>to_user_id</code></td>
+</tr>
+<tr>
+<td><code>trip</code></td>
+<td><code>activity</code></td>
+<td>0..1–M</td>
+<td>one row per change, written in the change&#39;s transaction; rapid edits by one person to one thing fold into one row (#344)</td>
+</tr>
+<tr>
+<td><code>activity</code></td>
+<td><code>notification</code></td>
+<td>1–M</td>
+<td>one row per (activity, person); never the actor</td>
 </tr>
 <tr>
 <td><code>trip</code></td>

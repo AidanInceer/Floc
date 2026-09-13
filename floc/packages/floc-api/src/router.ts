@@ -16,6 +16,7 @@ import { kitsRouter } from "./routers/kits";
 import { meRouter } from "./routers/me";
 import { moneyRouter } from "./routers/money";
 import { notesRouter } from "./routers/notes";
+import { notificationsRouter } from "./routers/notifications";
 import { packingRouter } from "./routers/packing";
 import { peopleRouter } from "./routers/people";
 import { placesRouter } from "./routers/places";
@@ -44,6 +45,7 @@ export const appRouter = router({
   places: placesRouter,
   availability: availabilityRouter,
   billing: billingRouter,
+  notifications: notificationsRouter,
 });
 
 export type AppRouter = typeof appRouter;

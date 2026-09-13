@@ -48,7 +48,7 @@ describe("the shared list", () => {
     const lineId = await addLine("Speaker");
     await claimPackingLine(lineId, world.admin);
 
-    await softDeletePackingLine(lineId);
+    await softDeletePackingLine(lineId, "u-admin");
 
     expect(await listPackingLines(world.ours.id)).toHaveLength(0);
     expect(await listPackingClaims(world.ours.id)).toHaveLength(0);
@@ -71,7 +71,7 @@ describe("whether the viewer has packing (#312)", () => {
     await claimPackingLine(lineId, world.member);
     expect(await viewerHasPacking(world.ours.id, world.member)).toBe(true);
 
-    await softDeletePackingLine(lineId);
+    await softDeletePackingLine(lineId, "u-admin");
     expect(await viewerHasPacking(world.ours.id, world.member)).toBe(false);
   });
 });
@@ -178,7 +178,7 @@ describe("the personal list", () => {
 
   it("drops a removed line from the read, and won't tick it back", async () => {
     const id = await addMine(world.admin, "Towel");
-    await softDeletePackingLine(id);
+    await softDeletePackingLine(id, "u-admin");
 
     await setPersonalPacked(id, world.admin, true);
     expect(await listPersonalPackingLines(world.ours.id, world.admin)).toHaveLength(0);
@@ -220,7 +220,7 @@ describe("a line's quantity", () => {
     await stepPersonalQuantity(id, world.member, 1);
     expect(await qty()).toBe(1);
 
-    await softDeletePackingLine(id);
+    await softDeletePackingLine(id, "u-admin");
     await stepPersonalQuantity(id, world.admin, 1);
     expect(await listPersonalPackingLines(world.ours.id, world.admin)).toHaveLength(0);
   });

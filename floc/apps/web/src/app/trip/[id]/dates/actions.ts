@@ -5,9 +5,8 @@
 // server/itinerary.ts since the window decides which days exist (ticket 140).
 import { isIsoDate, readIsoDate } from "@floc/core/dates/dates";
 import { requireTripAccess } from "@/server/access";
-import { applyTripWindow } from "@/server/itinerary/itinerary";
+import { setTripWindow } from "@/server/itinerary/itinerary";
 import { clearAvailabilityFor, setAvailability } from "@/server/itinerary/availability";
-import { updateTrip } from "@/server/trips/trips";
 import { refresh } from "@/server/freshness";
 
 // Client-provided, so checked not trusted; isIsoDate rejects impossible
@@ -60,26 +59,16 @@ export async function setTripDates(
   if (startDate > endDate) throw new Error("The end date is before the start");
 
   const access = await requireTripAccess(tripId);
-  await updateTrip(access.trip.id, { startDate, endDate });
   // Window is the itinerary's extent (ticket 140): days in both windows keep
   // their events, days only in the old one go, days only in the new arrive blank.
-  await applyTripWindow(access.trip.id, startDate, endDate);
-
-  // The window is the itinerary's extent (ticket 140), so one fact carries
-  // the dates tab, the header and the days it just added or dropped.
-  refresh({ kind: "tripWindow", tripId: access.trip.id });
+  await setTripWindow(access.trip.id, startDate, endDate, access.viewer.id);
 }
 
 // Back to undated — supported (rule 9), not an error state. No window means
 // no extent, so the itinerary goes with it (ticket 140); notes/money/people stay.
 export async function clearTripDates(tripId: number) {
   const access = await requireTripAccess(tripId);
-  await updateTrip(access.trip.id, { startDate: null, endDate: null });
-  await applyTripWindow(access.trip.id, null, null);
-
-  // The window is the itinerary's extent (ticket 140), so one fact carries
-  // the dates tab, the header and the days it just added or dropped.
-  refresh({ kind: "tripWindow", tripId: access.trip.id });
+  await setTripWindow(access.trip.id, null, null, access.viewer.id);
 }
 
 // "Start again" — per-person only, never wipes what the rest of the group said.

@@ -33,6 +33,7 @@ const EVERY_FACT: { [K in FactKind]: Extract<Fact, { kind: K }> } = {
   profileTrips: { kind: "profileTrips" },
   packingKits: { kind: "packingKits" },
   friendship: { kind: "friendship", otherId: "u1" },
+  inbox: { kind: "inbox" },
 };
 
 const facts = Object.values(EVERY_FACT) as Fact[];

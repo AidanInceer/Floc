@@ -18,7 +18,9 @@ import { db } from "@/db";
 import { note, noteReaction } from "@/db/schema";
 import type { NoteScope, ReactionKind } from "@/db/schema";
 import { TEXT_CAPS } from "@floc/core/text/text";
+import { tripHref, threadTab } from "@floc/core/notifications/notification-href";
 import { touch } from "@/server/audit";
+import { recordActivity } from "@/server/notifications/activity";
 
 /** Re-exported from `lib/text.ts` (ticket 113) — predates the others' move there. */
 export const NOTE_BODY_MAX = TEXT_CAPS.noteBody;
@@ -70,7 +72,26 @@ export async function insertNote(args: {
   parentId: number | null;
   body: string;
 }): Promise<void> {
-  await db.insert(note).values({ ...args, body: args.body.slice(0, NOTE_BODY_MAX) });
+  await db.transaction(async (tx) => {
+    const row = await tx
+      .insert(note)
+      .values({ ...args, body: args.body.slice(0, NOTE_BODY_MAX) })
+      .returning({ id: note.id })
+      .get();
+    const parent =
+      args.parentId === null
+        ? undefined
+        : await tx.select({ createdBy: note.createdBy }).from(note).where(eq(note.id, args.parentId)).get();
+
+    await recordActivity(tx, {
+      kind: parent ? "comment_replied" : "comment_added",
+      tripId: args.tripId,
+      actorId: args.createdBy,
+      subjectId: row.id,
+      href: tripHref(args.tripId, threadTab(args.scope)),
+      affected: parent ? [parent.createdBy] : [],
+    });
+  });
 }
 
 export async function updateNoteBody(noteId: number, body: string): Promise<void> {

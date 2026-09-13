@@ -9,14 +9,16 @@
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import "server-only";
 
-import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, sql, type SQL } from "drizzle-orm";
 
 import { db } from "@/db";
 import { packingClaim, packingLine, tripMembership, user, userProfile } from "@/db/schema";
 import { MAX_PACK_QUANTITY, MIN_PACK_QUANTITY } from "@floc/core/packing/packing";
 import type { PackCategory, PackTier } from "@floc/core/packing/packing";
 import { bounded, LIMITS } from "@/server/limits";
+import { tripHref } from "@floc/core/notifications/notification-href";
 import { touch } from "@/server/audit";
+import { recordActivity } from "@/server/notifications/activity";
 import { liveMembership } from "@/server/trips/roster";
 
 export type PackingLine = {
@@ -234,35 +236,63 @@ export async function setPersonalPacked(
 export async function softDeleteWholeList(
   tripId: number,
   ownerId: string | null,
+  by: string,
 ): Promise<void> {
-  await db
-    .update(packingLine)
-    .set({ deletedAt: new Date(), ...touch() })
-    .where(
-      and(
-        eq(packingLine.tripId, tripId),
-        ownerId === null
-          ? isNull(packingLine.ownerId)
-          : eq(packingLine.ownerId, ownerId),
-        isNull(packingLine.deletedAt),
-      ),
-    );
+  await dropLines(
+    by,
+    and(
+      eq(packingLine.tripId, tripId),
+      ownerId === null
+        ? isNull(packingLine.ownerId)
+        : eq(packingLine.ownerId, ownerId),
+      isNull(packingLine.deletedAt),
+    ),
+  );
 }
 
 /** Several at once, from a tick-and-remove (ticket 229). The caller has already resolved every id through `access.packingLine`. */
-export async function softDeletePackingLines(lineIds: number[]): Promise<void> {
+export async function softDeletePackingLines(lineIds: number[], by: string): Promise<void> {
   if (lineIds.length === 0) return;
-  await db
-    .update(packingLine)
-    .set({ deletedAt: new Date(), ...touch() })
-    .where(and(inArray(packingLine.id, lineIds), isNull(packingLine.deletedAt)));
+  await dropLines(by, and(inArray(packingLine.id, lineIds), isNull(packingLine.deletedAt)));
 }
 
-export async function softDeletePackingLine(lineId: number): Promise<void> {
-  await db
-    .update(packingLine)
-    .set({ deletedAt: new Date(), ...touch() })
-    .where(and(eq(packingLine.id, lineId), isNull(packingLine.deletedAt)));
+export async function softDeletePackingLine(lineId: number, by: string): Promise<void> {
+  await dropLines(by, and(eq(packingLine.id, lineId), isNull(packingLine.deletedAt)));
+}
+
+/** Removing a line someone else claimed changes what they are bringing, so they hear about it (#344). */
+async function dropLines(by: string, which: SQL | undefined): Promise<void> {
+  await db.transaction(async (tx) => {
+    const lines = await tx
+      .update(packingLine)
+      .set({ deletedAt: new Date(), ...touch() })
+      .where(which)
+      .returning({ id: packingLine.id, tripId: packingLine.tripId })
+      .all();
+    if (lines.length === 0) return;
+
+    const claims = await tx
+      .select({ userId: packingClaim.userId })
+      .from(packingClaim)
+      .where(
+        and(
+          inArray(packingClaim.packingLineId, lines.map((l) => l.id)),
+          isNull(packingClaim.deletedAt),
+        ),
+      )
+      .all();
+    const affected = claims.map((c) => c.userId).filter((userId) => userId !== by);
+    if (affected.length === 0) return;
+
+    await recordActivity(tx, {
+      kind: "packing_claim_changed",
+      tripId: lines[0].tripId,
+      actorId: by,
+      subjectId: null,
+      href: tripHref(lines[0].tripId, "packing"),
+      affected,
+    });
+  });
 }
 
 /**

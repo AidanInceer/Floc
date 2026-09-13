@@ -1117,7 +1117,28 @@ export type FlocPort = {
   deleteTrip(viewerId: string, tripId: number): Promise<void>;
 
   deleteEvent(viewerId: string, tripId: number, eventId: number): Promise<void>;
+
+  /** Newest first, one page. Pass the last page's `next` for the page after. */
+  listNotifications(viewerId: string, cursor: string | null): Promise<NotificationPage>;
+
+  /** The bell's number. */
+  countUnreadNotifications(viewerId: string): Promise<number>;
+
+  /** Marks it read on every device and says where it points. Null for an id that is not yours. */
+  openNotification(viewerId: string, notificationId: number): Promise<string | null>;
 };
+
+export type NotificationItem = {
+  id: number;
+  text: string;
+  /** A web path. The phone maps it with `phoneRoute` from `@floc/core`. */
+  href: string;
+  loud: boolean;
+  read: boolean;
+  at: string;
+};
+
+export type NotificationPage = { items: NotificationItem[]; next: string | null };
 
 /** What a procedure gets. `viewer` is null for an unauthenticated caller; `protectedProcedure` refuses those. */
 export type Context = {

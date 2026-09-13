@@ -276,6 +276,21 @@ export function MoonGlyph({ color }: { color: string }) {
   );
 }
 
+/** Notifications (#344). The web bar's bell, same paths. */
+export function BellGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={15} height={15} viewBox="0 0 14 14" fill="none">
+      <Path
+        d="M3.5 9.8V6.3a3.5 3.5 0 0 1 7 0v3.5l1 1.2h-9l1-1.2ZM5.8 12.3a1.3 1.3 0 0 0 2.4 0"
+        stroke={color}
+        strokeWidth={1.2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
 /** A trip you starred. Same drawing as Pro's mark; `on` fills it. */
 export function StarGlyph({ color, on }: { color: string; on: boolean }) {
   return (
