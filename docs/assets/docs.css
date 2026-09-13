@@ -323,13 +323,46 @@ main table {
   width: 100%;
   margin: 0 0 20px;
   font-size: 14px;
-  display: block;
   overflow-x: auto;
   background: var(--sheet);
   border: 1px solid var(--rule);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-sm);
 }
+
+@media (max-width: 760px) {
+  main table { display: block; }
+}
+
+main details.section {
+  border-top: 1px solid var(--rule);
+  margin: 0;
+}
+main details.section:last-of-type { border-bottom: 1px solid var(--rule); }
+main details.section > summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 0;
+}
+main details.section > summary::-webkit-details-marker { display: none; }
+main details.section > summary::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid var(--ink-3);
+  border-bottom: 1.5px solid var(--ink-3);
+  transform: rotate(-45deg);
+  transition: transform .15s;
+  flex: none;
+}
+main details.section[open] > summary::before { transform: rotate(45deg); }
+main details.section > summary h2 { margin: 0; font-size: 20px; }
+main details.section > summary:hover h2 { color: var(--ink-2); }
+main details.section[open] { padding-bottom: 16px; }
+main details.section + :not(details) { margin-top: 32px; }
 
 main th, main td {
   border-bottom: 1px solid var(--rule);

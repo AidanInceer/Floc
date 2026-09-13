@@ -47,6 +47,8 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
     USER ||--o{ EXPENSE_SPLIT : &quot;owes&quot;
     TRIP ||--o{ SETTLEMENT : &quot;records&quot;
     USER ||--o{ SETTLEMENT : &quot;pays / receives&quot;
+    EXPENSE }o..o{ FX_RATE : &quot;converted by currency (no FK, display only)&quot;
+    SETTLEMENT }o..o{ FX_RATE : &quot;pre-filled rate, then snapshotted (no FK)&quot;
     TRIP ||--o{ NOTE : &quot;has&quot;
     USER ||--o{ NOTE : &quot;creates (created_by)&quot;
     NOTE ||--o{ NOTE : &quot;replies (parent_id, one level)&quot;
@@ -391,8 +393,10 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
 <span style="background:#fbf3e2;border:1px solid #c9a24f">Billing</span>
 </p>
 <style>.erd-key{display:flex;flex-wrap:wrap;gap:.5rem}.erd-key span{padding:.15rem .6rem;border-radius:4px;font-size:.85rem;color:#23211c}</style>
-<p><code>fx_rate</code> stands apart: it is a cache of published rates, owned by nobody, so
-it has no foreign keys and no <code>deleted_at</code>.</p>
+<p><code>fx_rate</code> has no foreign keys and no <code>deleted_at</code>. It is a cache of
+published rates, owned by nobody. It joins money only by currency code — the dashed
+lines. It converts totals for display and pre-fills a cross-currency settlement, which
+then stores its own rate.</p>
 <h2>Relationship cardinalities (plain-English index)</h2>
 <table>
 <thead>
