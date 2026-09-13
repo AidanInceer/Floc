@@ -44,8 +44,12 @@ describe("rejectUpload", () => {
     expect(rejectUpload("application/zip", 1024)).toMatch(/PDFs and images/);
   });
 
-  it("refuses a file over 10 MB", () => {
-    expect(rejectUpload("image/png", 11 * 1024 * 1024)).toMatch(/10 MB/);
+  it("refuses a file over 8 MB", () => {
+    expect(rejectUpload("image/png", 8 * 1024 * 1024 + 1)).toMatch(/8 MB/);
+  });
+
+  it("takes a file of exactly 8 MB", () => {
+    expect(rejectUpload("image/png", 8 * 1024 * 1024)).toBeNull();
   });
 });
 

@@ -584,7 +584,7 @@ export type FileUpload = {
   mimeType: string;
   /**
    * The bytes, base64. A phone has no multipart form to post, and the cap is
-   * 10 MB either way — so the wire carries a third more than the file, once, on
+   * 8 MB either way — so the wire carries a third more than the file, once, on
    * a rare action, rather than growing a second upload endpoint beside this one.
    */
   contentBase64: string;

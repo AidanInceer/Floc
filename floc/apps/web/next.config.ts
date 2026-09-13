@@ -17,9 +17,9 @@ const config: NextConfig = {
   serverExternalPackages: ["@libsql/client", "better-auth"],
   experimental: {
     // Next caps Server Action bodies at 1 MB, so a 2 MB upload threw before
-    // `rejectUpload` saw it (ticket 239). Headroom over the 10 MB cap keeps
+    // `rejectUpload` saw it (ticket 239). Headroom over the 8 MB cap keeps
     // the refusal ours.
-    serverActions: { bodySizeLimit: "12mb" },
+    serverActions: { bodySizeLimit: "10mb" },
   },
   async headers() {
     return [

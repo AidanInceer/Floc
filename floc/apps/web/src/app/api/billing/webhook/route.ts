@@ -54,7 +54,8 @@ async function handle(api: Stripe, event: Stripe.Event): Promise<void> {
 
     case "customer.subscription.updated":
     case "customer.subscription.deleted": {
-      const sub = event.data.object;
+      // Why: Stripe does not order events, so the payload can be stale; read the live state.
+      const sub = await api.subscriptions.retrieve(event.data.object.id);
       const userId =
         sub.metadata?.userId ?? (await userIdForCustomer(sub.customer));
       if (!userId) return;

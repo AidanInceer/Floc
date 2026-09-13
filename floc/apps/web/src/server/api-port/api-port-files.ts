@@ -1,8 +1,8 @@
 /**
- * The port's files half (tickets 239, 296; split out of `api-port.ts`).
+ * The port's files half (#239, #296; split out of `api-port.ts`).
  *
  * SAME RULES AS THE WEB'S FORM, NOT A SECOND SET. Every refusal here comes out
- * of `@floc/core/documents` — the type list, the 10 MB cap, the name cleaner —
+ * of `@floc/core/documents` — the type list, the 8 MB cap, the name cleaner —
  * and the trip ceiling out of `LIMITS`. The phone gets the same "no" for the
  * same reason, in the same words.
  *

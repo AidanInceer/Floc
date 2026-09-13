@@ -81,7 +81,7 @@ export function AddFile({
           />
         </View>
       </View>
-      <Body tone="ink-3">PDFs and pictures, up to 10 MB.</Body>
+      <Body tone="ink-3">PDFs and pictures, up to 8 MB.</Body>
     </View>
   );
 }

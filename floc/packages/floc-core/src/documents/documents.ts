@@ -6,8 +6,8 @@
 import { asText, TEXT_CAPS } from "../text/text";
 
 
-/** 10 MB. A boarding pass is kilobytes; this is generous for a scanned visa. */
-const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024;
+/** 8 MB. A boarding pass is kilobytes; this is generous for a scanned visa. */
+const MAX_DOCUMENT_BYTES = 8 * 1024 * 1024;
 
 /**
  * Allow-list, not a deny-list. Keyed by MIME type because that is what the
@@ -142,7 +142,7 @@ export function rejectUpload(
   bytes: number,
 ): string | null {
   if (bytes <= 0) return "That file is empty";
-  if (bytes > MAX_DOCUMENT_BYTES) return "Files are capped at 10 MB";
+  if (bytes > MAX_DOCUMENT_BYTES) return "Files are capped at 8 MB";
   if (!allowedType(mimeType)) return "Only PDFs and images can go here";
   return null;
 }

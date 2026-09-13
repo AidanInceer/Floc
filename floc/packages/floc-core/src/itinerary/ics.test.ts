@@ -35,6 +35,11 @@ describe("a trip as a calendar file", () => {
     expect(lines(ics)).toContain("DTSTAMP:20260913T103000Z");
   });
 
+  it("escapes a bare carriage return, so a title cannot start a new line", () => {
+    const ics = tripCalendar({ tripId: 4, tripName: "L", entries: [entry({ title: "A\rX-EVIL:1" })], now });
+    expect(lines(ics)).toContain("SUMMARY:A\\nX-EVIL:1");
+  });
+
   it("keeps the same UID for an event across exports, so a feed updates it", () => {
     const a = tripCalendar({ tripId: 4, tripName: "L", entries: [entry({ id: 9 })], now });
     const b = tripCalendar({
