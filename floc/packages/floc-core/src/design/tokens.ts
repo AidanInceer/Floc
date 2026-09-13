@@ -117,46 +117,47 @@ export const lightTokens: Readonly<Record<string, TokenValue>> = {
 
 /** Dark, as an overlay on light. Same names, new values — never a new name. */
 export const darkTokens: Readonly<Record<string, TokenValue>> = {
-  paper: "#242430",
-  sheet: "#2e2e3d",
-  "sheet-2": "#353546",
-  "sheet-3": "#3d3d50",
-  rule: "#424255",
-  "rule-2": "#535366",
+  /* Neutral grey, not blue-grey: a tinted ground fought every pastel on it. */
+  paper: "#18181b",
+  sheet: "#222226",
+  "sheet-2": "#2a2a2f",
+  "sheet-3": "#323238",
+  rule: "#34343a",
+  "rule-2": "#45454c",
 
   /* Never pure white: #ffffff on a near-black ground haloes. */
-  ink: "#ececf2",
-  "ink-2": "#a4a4b3",
-  "ink-3": "#9797a4",
+  ink: "#f0f0f3",
+  "ink-2": "#b8b8c1",
+  "ink-3": "#a2a2ac",
 
   /* On a dark ground "pressed harder" reads as brighter, not darker. */
-  pen: "#8ea0ff",
-  "pen-deep": "#b6c1ff",
-  "pen-2": "#232a4c",
+  pen: "#9aabff",
+  "pen-deep": "#c3cbff",
+  "pen-2": "#24283a",
 
-  /* The pastels swap roles: the wash goes deep, the ink goes light. */
-  peri: "#272f5f",
-  "peri-ink": "#b9c3ff",
-  mint: "#16382b",
-  "mint-ink": "#8fd9b6",
-  butter: "#3d3114",
-  "butter-ink": "#f0cd85",
-  blush: "#3c2229",
-  "blush-ink": "#f3ab95",
+  /* The pastels swap roles: the wash is only a hint, the ink carries the colour. */
+  peri: "#252a3d",
+  "peri-ink": "#c3cbff",
+  mint: "#1f2e27",
+  "mint-ink": "#9fe0c0",
+  butter: "#2f2a1e",
+  "butter-ink": "#f2d596",
+  blush: "#302326",
+  "blush-ink": "#f5b7a5",
 
-  "peri-edge": "#3a4680",
-  "mint-edge": "#245442",
-  "butter-edge": "#5c4a20",
-  "blush-edge": "#59333d",
+  "peri-edge": "#39406a",
+  "mint-edge": "#2f4a3d",
+  "butter-edge": "#4a4230",
+  "blush-edge": "#4c3438",
 
-  "highlight-2": "#2a2210",
+  "highlight-2": "#262219",
 
-  "who-6": "#1e3434",
-  "who-6-ink": "#97c4c1",
-  "who-7": "#3a2e20",
-  "who-7-ink": "#dcbe94",
-  "who-8": "#2b2a26",
-  "who-8-ink": "#c3bfb4",
+  "who-6": "#212b2b",
+  "who-6-ink": "#a6d0cc",
+  "who-7": "#2d271f",
+  "who-7-ink": "#e0c59f",
+  "who-8": "#29292c",
+  "who-8-ink": "#c8c5bd",
 
   "shadow-sm": "0 1px 2px rgb(0 0 0 / 0.4)",
   shadow: "0 1px 2px rgb(0 0 0 / 0.4), 0 6px 14px -12px rgb(0 0 0 / 0.9)",
