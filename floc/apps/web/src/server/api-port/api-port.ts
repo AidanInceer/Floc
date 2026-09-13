@@ -32,7 +32,7 @@ import type {
   PlaceHit,
 } from "@floc/api/port";
 
-import { PRESET_TRIPS } from "@floc/core/trip/preset-trips";
+import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 
 import { assertAdmin, findTripAccess, type TripAccess } from "@/server/access";
 import { scoped } from "@/server/api-port/api-port-scope";
@@ -41,6 +41,7 @@ import { scoped } from "@/server/api-port/api-port-scope";
 import { billingPort } from "@/server/api-port/api-port-billing";
 import { commentsPort } from "@/server/api-port/api-port-comments";
 import { filesPort } from "@/server/api-port/api-port-files";
+import { explorePort } from "@/server/api-port/api-port-explore";
 import { kitsPort } from "@/server/api-port/api-port-kits";
 import { mapPort } from "@/server/api-port/api-port-map";
 import { settingsPort } from "@/server/api-port/api-port-settings";
@@ -165,6 +166,7 @@ export const webPort: FlocPort = {
   ...weatherPort,
   ...calendarPort,
   ...notificationsPort,
+  ...explorePort,
 
   async loadPacking(viewerId, tripId): Promise<PackingBoard> {
     await scoped(viewerId, tripId);

@@ -739,6 +739,34 @@
   overflow: visible;
 }
 
+/* Explore's world map: one numbered pin per lead listing. */
+.route-map-frame .explore-pin span {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink);
+  background: var(--sheet);
+  color: var(--ink);
+  font-family: var(--type);
+  font-size: 11px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s var(--ease);
+}
+
+.route-map-frame .explore-pin:hover span,
+.route-map-frame .explore-pin.is-picked span {
+  transform: scale(1.18);
+  background: var(--pen);
+  border-color: var(--pen);
+  color: var(--paper);
+}
+
+.route-map-frame .explore-pin.is-picked {
+  z-index: 1000 !important;
+}
+
 /* The landing page's route timeline uses `.route-pin` too, and its filled
    centre dot is a bare `::after` — harmless while the map pin was solid pen,
    but it paints straight over the number now the pin is hollow. Cancelled

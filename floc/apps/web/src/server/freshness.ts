@@ -35,7 +35,8 @@ export type Fact =
   | { kind: "profileTrips" }
   | { kind: "packingKits" }
   | { kind: "friendship"; otherId: string }
-  | { kind: "inbox" };
+  | { kind: "inbox" }
+  | { kind: "explore" };
 
 export type FactKind = Fact["kind"];
 
@@ -80,6 +81,7 @@ const PAGES: Pages = {
   packingKits: () => [{ path: "/packing-lists" }],
   friendship: ({ otherId }) => [{ path: "/friends" }, { path: `/profile/${otherId}` }],
   inbox: () => [{ path: "/inbox" }],
+  explore: () => [{ path: "/explore" }],
 };
 
 /** Facts a fact drags with it. Same shape of id, so the implied fact reuses it. */

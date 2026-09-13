@@ -27,11 +27,16 @@ import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import type { Currency } from "@floc/core/money/currency";
 import type { DocCategory } from "@floc/core/documents/documents";
 import type { ExpenseCategory } from "@floc/core/money/expense-category";
+import type { ExploreAnswers } from "@floc/core/trip/explore/explore-match";
 import type { WeatherCondition } from "@floc/core/itinerary/weather";
 import type { PackCategory, PackTier } from "@floc/core/packing/packing";
 import type { DayEventType, ReactionKind, SplitType, TransportType } from "@floc/core/vocabulary";
 
 export type { Currency, DayEventType, DocCategory, ExpenseCategory, ReactionKind, SplitType, TransportType };
+
+export type { ExploreAnswers };
+
+export type ExploreState = { saved: string[]; answers: ExploreAnswers | null };
 
 export type TripRole = "admin" | "member";
 
@@ -927,6 +932,16 @@ export type FlocPort = {
    * crash (rule 11).
    */
   startTripFromPreset(viewerId: string, presetId: string): Promise<{ id: number } | null>;
+
+  /** Your Explore shortlist and last quiz answers — null answers means never asked. */
+  loadExplore(viewerId: string): Promise<ExploreState>;
+  /** "full" when the shortlist is at its cap; "unknown" for a retired listing. */
+  setExploreSaved(
+    viewerId: string,
+    presetId: string,
+    saved: boolean,
+  ): Promise<"ok" | "full" | "unknown">;
+  setExploreAnswers(viewerId: string, answers: ExploreAnswers): Promise<void>;
 
   updateTrip(viewerId: string, tripId: number, patch: TripPatch): Promise<void>;
 

@@ -69,6 +69,9 @@ function fakePort(overrides: Partial<FlocPort> = {}): FlocPort {
     loadLedger: vi.fn().mockResolvedValue({ expenses: [], splits: [], settlements: [] }),
     createTrip: vi.fn().mockResolvedValue({ id: 2 }),
     startTripFromPreset: vi.fn().mockResolvedValue({ id: 3 }),
+    loadExplore: vi.fn().mockResolvedValue({ saved: [], answers: null }),
+    setExploreSaved: vi.fn().mockResolvedValue("ok"),
+    setExploreAnswers: vi.fn().mockResolvedValue(undefined),
     updateTrip: vi.fn().mockResolvedValue(undefined),
     archiveTrip: vi.fn().mockResolvedValue(undefined),
     leaveTrip: vi.fn().mockResolvedValue(undefined),
@@ -159,6 +162,35 @@ describe("the tour (#314)", () => {
   it("refuses a signed-out caller", async () => {
     const { caller: anon } = caller(null);
     await expect(anon.me.markTourSeen()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+});
+
+describe("explore", () => {
+  it("saves and answers only for the caller", async () => {
+    const { caller: ana, port } = caller("u1");
+    await ana.explore.setSaved({ presetId: "amalfi-slow-week", saved: true });
+    await ana.explore.setAnswers({ size: "2-4", when: "any", cost: "more", pace: "move", nights: 7 });
+    expect(port.setExploreSaved).toHaveBeenCalledWith("u1", "amalfi-slow-week", true);
+    expect(port.setExploreAnswers).toHaveBeenCalledWith("u1", {
+      size: "2-4",
+      when: "any",
+      cost: "more",
+      pace: "move",
+      nights: 7,
+    });
+  });
+
+  it("refuses an answer the quiz never offers", async () => {
+    const { caller: ana, port } = caller("u1");
+    await expect(
+      ana.explore.setAnswers({ size: "40" as "2-4", when: "any", cost: "more", pace: "move", nights: 7 }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    expect(port.setExploreAnswers).not.toHaveBeenCalled();
+  });
+
+  it("refuses a signed-out caller", async () => {
+    const { caller: anon } = caller(null);
+    await expect(anon.explore.get()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 });
 

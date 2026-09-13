@@ -183,8 +183,23 @@ export const userProfile = sqliteTable("user_profile", {
   notifyPush: integer("notify_push", { mode: "boolean" }).notNull().default(true),
   notifyEmail: integer("notify_email", { mode: "boolean" }).notNull().default(true),
   notifyReminders: integer("notify_reminders", { mode: "boolean" }).notNull().default(true),
+  /** Explore's last quiz answers, read through `readAnswers` — a bad shape reads as none. */
+  exploreAnswers: text("explore_answers", { mode: "json" }).$type<unknown>(),
   ...audit,
 });
+
+/** An Explore listing a person saved. `presetId` is static data in `@floc/core`, so no FK. */
+export const exploreSave = sqliteTable(
+  "explore_save",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    presetId: text("preset_id").notNull(),
+    ...audit,
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.presetId] })],
+);
 
 /**
  * Hand-painted countries only (ticket 95) — trip marks are derived on read

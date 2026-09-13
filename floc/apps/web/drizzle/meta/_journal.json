@@ -239,6 +239,13 @@
       "when": 1789311596725,
       "tag": "0033_nasty_clint_barton",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "6",
+      "when": 1789332013214,
+      "tag": "0034_smiling_mojo",
+      "breakpoints": true
     }
   ]
 }

@@ -8,6 +8,7 @@
 import { availabilityRouter } from "./routers/availability";
 import { billingRouter } from "./routers/billing";
 import { commentsRouter } from "./routers/comments";
+import { exploreRouter } from "./routers/explore";
 import { filesRouter } from "./routers/files";
 import { friendsRouter } from "./routers/friends";
 import { invitesRouter } from "./routers/invites";
@@ -32,6 +33,7 @@ export const appRouter = router({
   settings: settingsRouter,
   kits: kitsRouter,
   trips: tripsRouter,
+  explore: exploreRouter,
   itinerary: itineraryRouter,
   money: moneyRouter,
   roster: rosterRouter,

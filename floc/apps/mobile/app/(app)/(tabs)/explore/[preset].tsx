@@ -15,7 +15,7 @@
  * your own; no operator is a partner and no money moves.
  */
 import { formatMoney } from "@floc/core/money/money";
-import { PRESET_TRIPS, type PresetTrip } from "@floc/core/trip/preset-trips";
+import { PRESET_TRIPS, type PresetTrip } from "@floc/core/trip/explore/preset-trips";
 import { useMutation } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { ScrollView, View } from "react-native";
