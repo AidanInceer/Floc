@@ -1,17 +1,26 @@
 import { describe, expect, it } from "vitest";
 
-import { readStoredTheme, THEME_BOOTSTRAP, THEME_STORAGE_KEY } from "./theme";
+import { readStoredChoice, resolveTheme, THEME_BOOTSTRAP, THEME_STORAGE_KEY } from "./theme";
 
-describe("readStoredTheme", () => {
+describe("readStoredChoice", () => {
   it("keeps a real choice", () => {
-    expect(readStoredTheme("dark")).toBe("dark");
-    expect(readStoredTheme("light")).toBe("light");
+    expect(readStoredChoice("dark")).toBe("dark");
+    expect(readStoredChoice("light")).toBe("light");
   });
 
-  it("falls back to light for anything else", () => {
-    expect(readStoredTheme(undefined)).toBe("light");
-    expect(readStoredTheme(null)).toBe("light");
-    expect(readStoredTheme("system")).toBe("light");
+  it("is auto for anything else", () => {
+    expect(readStoredChoice(undefined)).toBe("system");
+    expect(readStoredChoice(null)).toBe("system");
+    expect(readStoredChoice("sepia")).toBe("system");
+  });
+});
+
+describe("resolveTheme", () => {
+  it("follows the device only on auto", () => {
+    expect(resolveTheme("system", true)).toBe("dark");
+    expect(resolveTheme("system", false)).toBe("light");
+    expect(resolveTheme("light", true)).toBe("light");
+    expect(resolveTheme("dark", false)).toBe("dark");
   });
 });
 
@@ -31,17 +40,17 @@ describe("THEME_BOOTSTRAP", () => {
       () => ({ matches: prefersDark }),
       { documentElement: root },
     );
-    return root.dataset.theme;
+    return root.dataset;
   };
 
   it("uses the stored choice over the browser's setting", () => {
-    expect(run("light", true)).toBe("light");
-    expect(run("dark", false)).toBe("dark");
+    expect(run("light", true)).toMatchObject({ theme: "light", themeChoice: "light" });
+    expect(run("dark", false)).toMatchObject({ theme: "dark", themeChoice: "dark" });
   });
 
-  it("falls back to the browser's setting when nothing is stored", () => {
-    expect(run(null, true)).toBe("dark");
-    expect(run(null, false)).toBe("light");
+  it("is auto, following the browser, when nothing is stored", () => {
+    expect(run(null, true)).toMatchObject({ theme: "dark", themeChoice: "system" });
+    expect(run(null, false)).toMatchObject({ theme: "light", themeChoice: "system" });
   });
 
   it("reads the key storeTheme writes", () => {

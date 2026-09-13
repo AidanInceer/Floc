@@ -26,7 +26,7 @@ import { CURRENCIES } from "@floc/core/money/currency";
 import { PACK_TIERS, PACK_TIER_LABELS, type PackTier } from "@floc/core/packing/packing";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { ScrollView, View } from "react-native";
 
 import { ProSection } from "@/components/billing/pro-section";
@@ -34,16 +34,17 @@ import { SettingsAccount } from "@/components/settings/settings-account";
 import { SettingsDietary, SettingsVibeTags, type Dietary } from "@/components/settings/settings-about";
 import { SettingsPrivacy, type Privacy } from "@/components/settings/settings-privacy";
 import { useTheme, type ThemeChoice } from "@/components/system/theme";
-import { Body, Button, Divider, Dropdown, Failed, Label, Loading, Segmented, Toggle } from "@/components/system/ui";
+import { Body, Divider, Dropdown, Failed, Label, Loading, Segmented, Toggle } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { signOut } from "@/lib/auth";
+import { MoonGlyph, SunGlyph } from "@/components/system/glyphs";
 import { space } from "@/lib/theme";
 
-const THEMES: readonly { value: ThemeChoice; label: string }[] = [
-  { value: "system", label: "Match my phone" },
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
-];
+const THEMES = [
+  { value: "light", label: "Light", icon: (color: string) => <SunGlyph color={color} /> },
+  { value: "dark", label: "Dark", icon: (color: string) => <MoonGlyph color={color} /> },
+  { value: "system", label: "Auto" },
+] satisfies { value: ThemeChoice; label: string; icon?: (color: string) => ReactNode }[];
 
 const CURRENCY_OPTIONS = CURRENCIES.map((code) => ({ value: code, label: code }));
 
@@ -67,19 +68,10 @@ export default function Settings() {
     <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.xl }}>
       <View style={{ gap: space.sm }}>
         <Label>Theme</Label>
-        {/* Three states will not fit one segmented row on a narrow phone, and
-            "Match my phone" is a sentence rather than a word. Rows, then. */}
-        {THEMES.map((option) => (
-          <Button
-            key={option.value}
-            label={option.value === choice ? `${option.label} — on` : option.label}
-            variant={option.value === choice ? "primary" : "quiet"}
-            onPress={() => setChoice(option.value)}
-          />
-        ))}
-        {/* Theme is this device's, and the web has none — worth one line,
-            because nothing on screen could show it. */}
-        <Body tone="ink-3">This phone only. Everything below follows you everywhere.</Body>
+        <Segmented options={THEMES} value={choice} onChange={setChoice} />
+        {/* Theme is this device's, and "Auto" needs saying once — nothing on
+            screen could show either. */}
+        <Body tone="ink-3">Auto follows your phone. This phone only; everything below follows you everywhere.</Body>
       </View>
 
       {/* Pro changes what every trip screen can do, so a purchase refetches everything. */}

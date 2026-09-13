@@ -556,9 +556,9 @@
    * first painted frame — the switch is the one control that must be right
    * before hydration, because it is the thing that says which theme you are in.
    *
-   * Ink fill on a sheet-3 track, matching PillNav's current-page pill: the
-   * switch sits in the account menu now, and a white-on-white segment did not
-   * read as chosen there.
+   * A lifted sheet segment on a sheet-3 track, with a shadow and words: the
+   * black fill it replaced was the heaviest thing in the account menu, and the
+   * shadow is what stops white-on-white reading as unchosen.
    */
   .theme-choice {
     color: var(--ink-soft);
@@ -568,16 +568,19 @@
     color: var(--ink);
   }
 
-  :root[data-theme="light"] .theme-choice[data-choice="light"],
-  :root[data-theme="dark"] .theme-choice[data-choice="dark"],
-  :root[data-theme="light"] .theme-choice[data-choice="light"]:hover,
-  :root[data-theme="dark"] .theme-choice[data-choice="dark"]:hover {
-    color: var(--sheet);
+  :root[data-theme-choice="light"] .theme-choice[data-choice="light"],
+  :root[data-theme-choice="dark"] .theme-choice[data-choice="dark"],
+  :root[data-theme-choice="system"] .theme-choice[data-choice="system"] {
+    color: var(--ink);
   }
 
-  /* The fill slides rather than reappears; dark is the second segment. */
-  :root[data-theme="dark"] .theme-indicator {
+  /* The fill slides rather than reappears: light, dark, auto. */
+  :root[data-theme-choice="dark"] .theme-indicator {
     transform: translateX(100%);
+  }
+
+  :root[data-theme-choice="system"] .theme-indicator {
+    transform: translateX(200%);
   }
 }
 
