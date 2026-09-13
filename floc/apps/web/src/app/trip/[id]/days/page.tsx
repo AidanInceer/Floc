@@ -28,7 +28,7 @@ import {
   submitEvent,
 } from "./actions";
 import { searchPlacesAction } from "../place-actions";
-import { ConfirmSubmit, SubmitButton } from "@/components/system/client-ui";
+import { ConfirmSubmit, CopyLink, SubmitButton } from "@/components/system/client-ui";
 import {
   DaysCalendar,
   type CalendarDay,
@@ -37,7 +37,9 @@ import {
 import { EventFiles } from "@/components/documents/event-files";
 import type { FileChoice } from "@/components/documents/attach-existing";
 import { EventForm } from "@/components/days/event-form";
-import { Badge, ButtonLink, EmptyState } from "@/components/system/ui";
+import { Badge, ButtonLink, EmptyState, ExternalButtonLink } from "@/components/system/ui";
+import { appUrl } from "@/lib/env";
+import { mintCalendarToken } from "@/server/itinerary/calendar-link";
 import { EVENT_CATEGORIES } from "@floc/core/itinerary/event-categories";
 import { NoteThread, type NoteRow } from "@/components/notes/note-thread";
 import { requireTripAccess } from "@/server/access";
@@ -211,6 +213,15 @@ export default async function DaysPage({
       <header className="flex flex-wrap items-end justify-between gap-6">
         <div>
           <h1 className="text-[clamp(1.9rem,4vw,2.8rem)]">Days</h1>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <ExternalButtonLink href={`/trip/${trip.id}/calendar.ics`} download>
+            Download .ics
+          </ExternalButtonLink>
+          <CopyLink
+            value={`${appUrl()}/calendar/${mintCalendarToken(trip.id, viewer.id)}.ics`}
+            label="Copy calendar feed"
+          />
         </div>
       </header>
 
