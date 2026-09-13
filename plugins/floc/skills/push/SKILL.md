@@ -43,9 +43,10 @@ Act on the `!!` warnings yourself:
 - **Schema.** Run the new `drizzle/*.sql` against `local.db` in this slice, or
   dev dies on `no such column`.
 - **API procedure.** Needs a line in `scripts/parity/parity.json`.
-  `pnpm parity --fix` writes the boring half. The `why` is the user's — ask.
-- **Plugin.** After the bump, `claude plugin update floc@floc --scope project`.
-  Tell the user to restart the session to load it.
+  `pnpm parity --fix` writes the boring half. Draft the `why` from the ticket
+  and name it in the report — do not stop to ask.
+- **Plugin.** A hook bumps the version and runs the update on the first skill
+  edit. Tell the user to restart the session to load it.
 
 Red verify is a fix, never `--no-verify`. Fix, then preflight again — the bump
 is kept. Never skip hooks or signing.
@@ -120,7 +121,8 @@ When it reports red, tell the user the job and the cause. Fix only if asked.
 ## Report
 
 Version, subject line, `verify` result, pushed SHA, ticket state, and that CI
-is being watched. If you fixed something to get verify green that was not part
+is being watched. UI change → the light and dark screenshots of each surface,
+sent with `SendUserFile`. If you fixed something to get verify green that was not part
 of the work, say so. Nothing else.
 
 ## Gotchas

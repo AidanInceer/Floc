@@ -1,8 +1,8 @@
 /**
- * The port's files half (tickets 239, 296; split out of `api-port.ts`).
+ * The port's files half (#239, #296; split out of `api-port.ts`).
  *
  * SAME RULES AS THE WEB'S FORM, NOT A SECOND SET. Every refusal here comes out
- * of `@floc/core/documents` — the type list, the 10 MB cap, the name cleaner —
+ * of `@floc/core/documents` — the type list, the 8 MB cap, the name cleaner —
  * and the trip ceiling out of `LIMITS`. The phone gets the same "no" for the
  * same reason, in the same words.
  *
@@ -17,6 +17,7 @@ import "server-only";
 
 import {
   allowedType,
+  bytesMatchType,
   cleanFileName,
   rejectUpload,
   type DocCategory,
@@ -82,7 +83,7 @@ export const filesPort: FilesPort = {
     const refusal = rejectUpload(input.mimeType, bytes.byteLength);
     if (refusal) return refusal;
     const type = allowedType(input.mimeType);
-    if (!type) return "Only PDFs and images can go here";
+    if (!type || !bytesMatchType(type.mimeType, bytes)) return "Only PDFs and images can go here";
 
     if ((await countDocuments(tripId)) >= LIMITS.documents) {
       return "This trip is holding as many files as it can";

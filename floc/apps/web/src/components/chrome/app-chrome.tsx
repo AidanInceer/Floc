@@ -11,7 +11,6 @@ import Link from "next/link";
 import { ButtonLink } from "@/components/system/ui";
 import { PillNav, type PillNavItem } from "@/components/chrome/pill-nav";
 import { AccountMenu } from "@/components/chrome/account-menu";
-import { ThemeSwitch } from "@/components/chrome/theme-switch";
 import { FlocWordmark } from "@/components/system/wordmark";
 
 /**
@@ -139,8 +138,6 @@ export function AppChrome({
         {/* `ml-auto`, because from `sm` up the middle leaves the flow and there
             is nothing left to push the account controls to the right edge. */}
         <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
-          {/* Signed in, the theme switch is inside the account menu — the bar
-              only carries it for someone who has no menu to put it in. */}
           {user ? (
             <>
               <BellLink count={notificationCount} />
@@ -148,7 +145,6 @@ export function AppChrome({
             </>
           ) : (
             <>
-              <ThemeSwitch />
               <ButtonLink href="/login" variant="ghost">
                 Log in
               </ButtonLink>

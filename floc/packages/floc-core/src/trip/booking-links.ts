@@ -19,18 +19,29 @@ export type BookingPlan = {
   stays: StayRow[] | "unset";
 };
 
-const googleFlights = (q: string) =>
-  `https://www.google.com/travel/flights?q=${encodeURIComponent(q)}`;
+const GOOGLE_FLIGHTS = "https://www.google.com/travel/flights";
+
+const googleFlights = (q: string) => `${GOOGLE_FLIGHTS}?q=${encodeURIComponent(q)}`;
+
+/** Filling in the place, dates and head count is Pro (`booking.prefill`); free opens each site's own search. */
+type Prefill = { prefill: boolean };
 
 export function flightLinks({
   destination,
   start,
   end,
+  prefill,
 }: {
   destination: string | null;
   start: string;
   end: string;
-}): BookingLink[] {
+} & Prefill): BookingLink[] {
+  if (!prefill) {
+    return [
+      { site: "Google Flights", url: GOOGLE_FLIGHTS },
+      { site: "Skyscanner", url: "https://www.skyscanner.net/flights" },
+    ];
+  }
   const to = destination ? ` to ${destination}` : "";
   // Why: Skyscanner's prefill wants airport codes, which a place has none of; dates are what it can take.
   const skyscanner = new URL("https://www.skyscanner.net/g/referrals/v1/flights/day-view");
@@ -47,12 +58,19 @@ export function stayLinks({
   checkIn,
   checkOut,
   adults,
+  prefill,
 }: {
   place: string;
   checkIn: string;
   checkOut: string;
   adults: number;
-}): BookingLink[] {
+} & Prefill): BookingLink[] {
+  if (!prefill) {
+    return [
+      { site: "Booking.com", url: "https://www.booking.com/" },
+      { site: "Trip.com", url: "https://www.trip.com/hotels/" },
+    ];
+  }
   const booking = new URL("https://www.booking.com/searchresults.html");
   booking.searchParams.set("ss", place);
   booking.searchParams.set("checkin", checkIn);
@@ -77,12 +95,14 @@ export function eventFlightUrl({
   origin,
   destination,
   date,
+  prefill,
 }: {
   origin: string;
   destination: string;
   date: string;
-}): string | null {
+} & Prefill): string | null {
   if (!origin || !destination) return null;
+  if (!prefill) return GOOGLE_FLIGHTS;
   return googleFlights(`Flights from ${origin} to ${destination} on ${date}`);
 }
 
@@ -92,25 +112,26 @@ export function bookingPlan({
   days,
   today,
   adults,
+  prefill,
 }: {
   trip: { startDate: string | null; endDate: string | null };
   days: StopDayInput[];
   today: string;
   adults: number;
-}): BookingPlan | null {
+} & Prefill): BookingPlan | null {
   const { startDate, endDate } = trip;
   if (!startDate || !endDate || today >= startDate) return null;
 
   const stops = deriveStops(days);
   const firstPlace = stops.find((s) => s.placeName)?.placeName ?? null;
-  const flights = flightLinks({ destination: firstPlace, start: startDate, end: endDate });
+  const flights = flightLinks({ destination: firstPlace, start: startDate, end: endDate, prefill });
   if (!firstPlace) return { flights, stays: "unset" };
 
   const stays = stops.map((s): StayRow => {
     const checkIn = s.startDate;
     const checkOut = addDays(s.endDate, 1);
     return s.placeName
-      ? { kind: "stop", placeName: s.placeName, checkIn, checkOut, links: stayLinks({ place: s.placeName, checkIn, checkOut, adults }) }
+      ? { kind: "stop", placeName: s.placeName, checkIn, checkOut, links: stayLinks({ place: s.placeName, checkIn, checkOut, adults, prefill }) }
       : { kind: "gap", checkIn, checkOut };
   });
   return { flights, stays };

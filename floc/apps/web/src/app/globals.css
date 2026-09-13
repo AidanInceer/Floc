@@ -485,6 +485,38 @@
     display: none;
   }
 
+  /* The landing tour's play-time line: a dashed track, filled over one stop. */
+  .dash-track {
+    background: repeating-linear-gradient(90deg, var(--sheet-2) 0 6px, transparent 6px 10px);
+  }
+  .dash-fill {
+    width: 0;
+    background: repeating-linear-gradient(90deg, var(--rule) 0 6px, transparent 6px 10px);
+    animation: dash-fill linear forwards;
+  }
+  @keyframes dash-fill {
+    to {
+      width: 100%;
+    }
+  }
+  .rise-in {
+    animation: rise-in 0.35s var(--ease) both;
+  }
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+  .typing-dot {
+    animation: typing-dot 1s infinite;
+  }
+  @keyframes typing-dot {
+    50% {
+      opacity: 0.25;
+    }
+  }
+
   /* Anything typed rather than written: labels, counts, dates, section heads. */
   .typed {
     font-family: var(--type);
@@ -705,6 +737,34 @@
   box-shadow: var(--shadow-sm);
   /* The day badge hangs off the corner. */
   overflow: visible;
+}
+
+/* Explore's world map: one numbered pin per lead listing. */
+.route-map-frame .explore-pin span {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink);
+  background: var(--sheet);
+  color: var(--ink);
+  font-family: var(--type);
+  font-size: 11px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s var(--ease);
+}
+
+.route-map-frame .explore-pin:hover span,
+.route-map-frame .explore-pin.is-picked span {
+  transform: scale(1.18);
+  background: var(--pen);
+  border-color: var(--pen);
+  color: var(--paper);
+}
+
+.route-map-frame .explore-pin.is-picked {
+  z-index: 1000 !important;
 }
 
 /* The landing page's route timeline uses `.route-pin` too, and its filled

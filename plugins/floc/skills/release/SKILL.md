@@ -37,7 +37,8 @@ gh issue list --repo AidanInceer/Floc --state open --label on-develop --json num
 Compare the two lists and say plainly:
 
 - in a `Closes` line but not `on-develop` → label drifted; add it.
-- `on-develop` but no `Closes` line → it will **not** close. Ask the user.
+- `on-develop` with a `## Split into` section in its body → a split parent. No commit closes it. Close it in step 7 once every child is closed.
+- `on-develop` but no `Closes` line and no `## Split into` → it will **not** close. Ask the user.
 
 ## 4. The PR
 
@@ -102,6 +103,9 @@ Merge SHA: `gh pr view <n> --repo AidanInceer/Floc --json mergeCommit --jq .merg
    sync means a conflict to resolve by hand.
 2. **Tickets.** Each number from step 3 → `gh issue view <n> --repo AidanInceer/Floc --json state`.
    Still open → say which.
+   Split parents from step 3: if every `## Split into` child is closed →
+   `gh issue close <n> --repo AidanInceer/Floc --reason completed --comment "All split tickets shipped."`.
+   Any child still open → leave the parent open and say which child.
 3. **Deploy.** Railway reports to GitHub deployments:
 
    ```bash
@@ -122,4 +126,4 @@ shipped, deploy state, CI being watched.
 
 - Merge without the user's yes in this session.
 - Push to `main` directly — that is a hotfix, and a separate decision.
-- Close issues by hand; `Closes` does it.
+- Close issues by hand; `Closes` does it. Only exception: split parents in step 7.

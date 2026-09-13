@@ -14,6 +14,9 @@ Things that bite. Read before editing.
 - Inventing/borrowing a `Closes` issue number — shuts someone else's issue.
 - A brace glob in an `eslint.config.mjs` — the `brace-expansion` security pin breaks `minimatch@3`'s expander, and ESLint dies with "expand is not a function" naming neither. List the extensions separately.
 - `*/` inside a block comment (a glob like `**/*.ts` in prose) — closes the comment early; reword it.
+- Shell calls that drift — a `cd` persists, so the next `cd floc/apps/web` fails; inline Python or long quoted `bash -c` one-liners break on quotes. Use absolute paths, write anything longer than a line to a scratchpad `.mjs`/`.ps1` and run that. `Glob` a path before `Read` — `floc-core/src/tokens` is a file, not a folder.
+- The `"pnpm" field in package.json is no longer read` warning — the global npm `pnpm` (10) ran instead of corepack's pinned 9. Harmless, but the overrides you see applied are the yaml copy. `corepack enable` once; never delete the `package.json` copy, CI's pnpm 9 reads only that one.
+- Port 3000 held by another chat's `floc-web` — do not start a second one on 3001. Point the pane at the running server (`preview_start {url: "http://localhost:3000"}`) or ask the user to stop it.
 - Editing a source file with a plain string replace — most files here are CRLF, so an LF-keyed match silently finds nothing. Normalise, patch, restore.
 
 ## Venture / app

@@ -23,16 +23,28 @@ Starting at the top, skip a ticket if any of these hold — and say which and wh
 
 - It is labelled `on-develop` or `future-work` → it should not be in the stack. Remove that line from the stack body and carry on down.
 - It is closed → remove the line, carry on.
-- It is labelled `wayfinder:grilling` → it needs grilling before it can be built. Offer the user: grill it now (`grilling` skill), or skip it.
+- It is labelled `wayfinder:grilling` → it needs grilling before it can be built. Offer the user: grill it now (`grilling` skill), or skip it. If the grilling splits it into new tickets, run `/floc:to-tickets` with this ticket's number — it tags this parent `on-develop` and pops it off the stack. The children get built, not the parent.
 - Its `## Blocked by` names an issue that is still open and not `on-develop` → report the blocker and move to the next ticket.
 
 ### 3. Confirm
 
-Show the user the ticket: number, title, type label, what it delivers, acceptance criteria, blocked-by. Ask to confirm before starting work.
+Show the user the ticket: number, title, type label, what it delivers, acceptance criteria, blocked-by.
+
+**Auto** — start without asking when the ticket has acceptance criteria and the user said `auto`, "just do it", or asked for several tickets. Otherwise ask to confirm.
 
 ### 4. Build it
 
 Work on `develop`. No feature branch. Keep to the ticket's acceptance criteria.
+
+1. **Test first.** Failing test for each criterion, watch it fail, then the code (`/mattpocock-skills:tdd`).
+2. **Schema change** → `db:generate`, then run the new `drizzle/*.sql` against `local.db` now, not at preflight.
+3. **New API procedure** → its `parity.json` line. Draft the `why` from the ticket; show it in the report rather than stopping to ask.
+4. **Look at it before the user does.** UI change → screenshot every surface it touches (web via the Browser pane; app via `adb exec-out screencap`), in light **and** dark. Check each against [visual language](../../../../docs/design/visual-language.html): tokens, spacing, alignment, no heading-above-heading, web and app agree. Fix what is off, then shoot again. Send the final shots with `SendUserFile`.
+5. **App flow changed** and the emulator is up → `pnpm --filter floc-mobile maestro`. Extend `app.yaml` if the ticket adds a screen.
+
+### Several tickets in one go
+
+One ticket → one `/floc:push` → the next ticket. Never batch several tickets into one commit: a session cut off by a usage limit then loses one ticket, not all of them.
 
 ### 5. Land it with `/floc:push`
 

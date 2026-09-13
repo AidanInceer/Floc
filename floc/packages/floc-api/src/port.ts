@@ -27,11 +27,16 @@ import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import type { Currency } from "@floc/core/money/currency";
 import type { DocCategory } from "@floc/core/documents/documents";
 import type { ExpenseCategory } from "@floc/core/money/expense-category";
+import type { ExploreAnswers } from "@floc/core/trip/explore/explore-match";
 import type { WeatherCondition } from "@floc/core/itinerary/weather";
 import type { PackCategory, PackTier } from "@floc/core/packing/packing";
 import type { DayEventType, ReactionKind, SplitType, TransportType } from "@floc/core/vocabulary";
 
 export type { Currency, DayEventType, DocCategory, ExpenseCategory, ReactionKind, SplitType, TransportType };
+
+export type { ExploreAnswers };
+
+export type ExploreState = { saved: string[]; answers: ExploreAnswers | null };
 
 export type TripRole = "admin" | "member";
 
@@ -81,6 +86,8 @@ export type TripDetail = {
   /** The viewer's own role, so a client can hide what `assertAdmin` would refuse anyway. */
   role: TripRole;
   members: TripMember[];
+  /** Pro: booking links arrive with the place and dates filled in. */
+  bookingPrefill: boolean;
 };
 
 export type DayEvent = {
@@ -584,7 +591,7 @@ export type FileUpload = {
   mimeType: string;
   /**
    * The bytes, base64. A phone has no multipart form to post, and the cap is
-   * 10 MB either way — so the wire carries a third more than the file, once, on
+   * 8 MB either way — so the wire carries a third more than the file, once, on
    * a rare action, rather than growing a second upload endpoint beside this one.
    */
   contentBase64: string;
@@ -925,6 +932,16 @@ export type FlocPort = {
    * crash (rule 11).
    */
   startTripFromPreset(viewerId: string, presetId: string): Promise<{ id: number } | null>;
+
+  /** Your Explore shortlist and last quiz answers — null answers means never asked. */
+  loadExplore(viewerId: string): Promise<ExploreState>;
+  /** "full" when the shortlist is at its cap; "unknown" for a retired listing. */
+  setExploreSaved(
+    viewerId: string,
+    presetId: string,
+    saved: boolean,
+  ): Promise<"ok" | "full" | "unknown">;
+  setExploreAnswers(viewerId: string, answers: ExploreAnswers): Promise<void>;
 
   updateTrip(viewerId: string, tripId: number, patch: TripPatch): Promise<void>;
 

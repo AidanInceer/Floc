@@ -56,7 +56,7 @@ export default async function DatesPage({
   const { trip, viewer, members } = access;
   const tripId = trip.id;
 
-  const [rows, dayLoads, routeDays, forecast, weatherPro] = await Promise.all([
+  const [rows, dayLoads, routeDays, forecast, weatherPro, bookingPrefill] = await Promise.all([
     listAvailability(tripId),
     listDayLoads(tripId),
     listRouteDays(tripId),
@@ -64,6 +64,7 @@ export default async function DatesPage({
     // on a free trip — the gate is inside the read (ticket 248).
     getTripForecast(tripId),
     canUseFeature("dates.weather", tripId),
+    canUseFeature("booking.prefill", tripId),
   ]);
 
   const free = rows.filter((r) => r.available);
@@ -104,6 +105,7 @@ export default async function DatesPage({
     days: routeDays.map((d) => ({ ...d, overnightPlaceName: d.placeName })),
     today: today(),
     adults: members.length,
+    prefill: bookingPrefill,
   });
 
   return (

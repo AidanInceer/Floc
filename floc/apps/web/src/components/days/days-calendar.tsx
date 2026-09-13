@@ -89,6 +89,7 @@ export function DaysCalendar({
   searchPlaces,
   openEventId,
   groupSize,
+  bookingPrefill,
 }: {
   days: CalendarDay[];
   events: CalendarEvent[];
@@ -113,6 +114,7 @@ export function DaysCalendar({
   /** Opened on arrival, from a file's "on [event]" tag (ticket 323). */
   openEventId?: number | null;
   groupSize: number;
+  bookingPrefill: boolean;
 }) {
   const hasToday = days.some((d) => d.isToday);
   const todayIndex = Math.max(
@@ -705,6 +707,7 @@ export function DaysCalendar({
           days={tripDays}
           searchPlaces={searchPlaces}
           groupSize={groupSize}
+          bookingPrefill={bookingPrefill}
           onClose={() => setBanding(null)}
           onSave={(end, place) => {
             const span = { ...banding, end };

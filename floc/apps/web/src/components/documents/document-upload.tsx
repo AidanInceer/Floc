@@ -157,7 +157,7 @@ function FilePicker() {
               {over ? "Drop it here" : "Choose a file"}
             </span>
             <span className="block text-xs text-ink-soft">
-              PDF or image, up to 10 MB
+              PDF or image, up to 8 MB
             </span>
           </span>
         )}

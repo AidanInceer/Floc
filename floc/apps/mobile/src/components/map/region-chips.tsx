@@ -14,7 +14,7 @@
  * match its map. Both read `REGION_TINT`. The word is still the signal — the
  * colour only agrees with it.
  */
-import { REGIONS, type Region } from "@floc/core/trip/preset-trips";
+import { REGIONS, type Region } from "@floc/core/trip/explore/preset-trips";
 import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
 
 import { useTheme } from "../system/theme";

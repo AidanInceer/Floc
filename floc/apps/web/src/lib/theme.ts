@@ -33,10 +33,10 @@ export function storeChoice(choice: ThemeChoice) {
 }
 
 /**
- * Run on `<html>` before the first paint, so a dark reload never flashes
- * light. Inlined as a string because it has to execute ahead of any bundle.
- * `themeChoice` is written too, so the switch is lit right before hydration.
+ * Why: runs before any bundle so a dark reload never flashes light, and lights
+ * the switch before hydration. Signed out there is no switch, so stored is ignored.
  */
-export const THEME_BOOTSTRAP = `(function(){var r=document.documentElement;try{var c=localStorage.getItem(${JSON.stringify(
-  THEME_STORAGE_KEY,
-)});if(c!=="light"&&c!=="dark"){c="system"}r.dataset.themeChoice=c;r.dataset.theme=c==="system"?(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):c}catch(e){r.dataset.themeChoice="system";r.dataset.theme="light"}})()`;
+export function themeBootstrap(signedIn: boolean): string {
+  const read = signedIn ? `localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)})` : "null";
+  return `(function(){var r=document.documentElement;try{var c=${read};if(c!=="light"&&c!=="dark"){c="system"}r.dataset.themeChoice=c;r.dataset.theme=c==="system"?(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):c}catch(e){r.dataset.themeChoice="system";r.dataset.theme="light"}})()`;
+}

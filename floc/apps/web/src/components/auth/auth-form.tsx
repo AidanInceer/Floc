@@ -11,6 +11,7 @@ import { useState, type FormEvent } from "react";
 
 import { signIn, signUp } from "@/lib/auth-client";
 import { isValidEmail, passwordWeakness } from "@floc/core/text/credentials";
+import { localPath } from "@floc/core/text/local-path";
 import { Button, ErrorText, Field, Input, Stack } from "@/components/system/ui";
 
 const VIA_VALUES = ["whatsapp", "email", "link", "direct"] as const;
@@ -30,7 +31,7 @@ export function AuthForm({
 }) {
   const router = useRouter();
   const params = useSearchParams();
-  const redirectTo = params.get("redirect") || "/trips";
+  const redirectTo = localPath(params.get("redirect"), "/trips");
   const viaParam = params.get("via");
   const via = (VIA_VALUES as readonly string[]).includes(viaParam ?? "")
     ? (viaParam as (typeof VIA_VALUES)[number])

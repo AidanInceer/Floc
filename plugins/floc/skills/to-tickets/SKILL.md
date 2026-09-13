@@ -82,7 +82,19 @@ EOF
 )"
 ```
 
-Do **not** close or modify any parent issue.
+Put `Parent: #<n>` as the first line of each child body when the tickets come from a parent issue.
+
+### 5b. Retire the parent (split from a ticket)
+
+When the tickets come from an existing issue — most often a `wayfinder:grilling` ticket that was grilled — the children now cover it. No commit will ever close the parent, so it must not sit in the stack. Do all three:
+
+1. Add a `## Split into` section to the end of the parent body, one `- #<n> <title>` per child.
+2. Label it: `gh issue edit <parent> --repo AidanInceer/Floc --add-label on-develop`.
+3. Remove the parent's line from the `Priority` issue body, and renumber.
+
+`/floc:release` closes it once every child is closed. Do not close it by hand here.
+
+Skip this only if the user says the parent still holds work of its own.
 
 ### 6. Report back
 
@@ -93,6 +105,6 @@ List every created issue: number, title, type label, blocking edges. Then remind
 - Avoid specific file paths or code snippets in issue bodies — they go stale fast. Exception: a prototype snippet that encodes a decision precisely (state machine, type shape, schema diff) is worth including; note briefly that it came from a prototype.
 - Issues live in `AidanInceer/Floc`, not the hub repo.
 - Blocked-by edges go in the body under `## Blocked by` as `#<n>`, never as a label — `/floc:prioritise-tickets` and `/floc:pickup-ticket` read them from there.
-- Never touch the `Priority` issue from this skill.
+- Never touch the `Priority` issue from this skill, except to pop a retired parent (step 5b).
 - Every created ticket gets a category-prefixed title and exactly one `type:` label at creation.
 - Never build a ticket on an unverified claim about the current codebase.

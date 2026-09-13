@@ -21,7 +21,7 @@
  * the region names itself in the chip.
  */
 import { formatMoney } from "@floc/core/money/money";
-import type { PresetTrip } from "@floc/core/trip/preset-trips";
+import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "../system/theme";

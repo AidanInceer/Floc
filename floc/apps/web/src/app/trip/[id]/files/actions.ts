@@ -5,6 +5,7 @@
 // pointing at nothing is a broken link on the page.
 import {
   allowedType,
+  bytesMatchType,
   cleanFileName,
   parseDocCategory,
   rejectUpload,
@@ -41,7 +42,10 @@ export async function uploadDocument(
   const refusal = rejectUpload(file.type, file.size);
   if (refusal) return { error: refusal };
   const type = allowedType(file.type);
-  if (!type) return { error: "Only PDFs and images can go here" };
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  if (!type || !bytesMatchType(type.mimeType, bytes)) {
+    return { error: "Only PDFs and images can go here" };
+  }
 
   if ((await countDocuments(access.trip.id)) >= LIMITS.documents) {
     return { error: "This trip is holding as many files as it can" };
@@ -52,10 +56,7 @@ export async function uploadDocument(
   const onEvent = formData.get("dayEventId");
   const dayEventId = onEvent ? (await access.event(Number(onEvent))).id : null;
 
-  const storageKey = await putDocument(
-    new Uint8Array(await file.arrayBuffer()),
-    type,
-  );
+  const storageKey = await putDocument(bytes, type);
 
   try {
     await insertDocument({

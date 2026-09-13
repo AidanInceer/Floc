@@ -18,7 +18,18 @@
       "Bash(gh pr view *)",
       "Bash(gh pr checks *)",
       "Bash(claude plugin update floc@floc *)",
-      "Bash(claude plugin validate *)"
+      "Bash(claude plugin validate *)",
+      "Bash(pnpm --filter floc-web db:generate)",
+      "Bash(pnpm --filter floc-web typecheck)",
+      "Bash(pnpm --filter floc-web test*)",
+      "Bash(pnpm --filter floc-mobile typecheck)",
+      "Bash(pnpm --filter floc-mobile test*)",
+      "Bash(pnpm --filter floc-mobile maestro)",
+      "Bash(pnpm comments*)",
+      "Bash(git add *)",
+      "Bash(git show *)",
+      "Bash(gh pr create *)",
+      "Bash(curl -s -o /dev/null -w *)"
     ]
   },
   "hooks": {

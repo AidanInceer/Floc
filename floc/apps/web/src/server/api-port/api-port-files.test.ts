@@ -1,9 +1,9 @@
 /**
- * The files half of the port, against a real database (tickets 239, 296).
+ * The files half of the port, against a real database (#239, #296).
  *
  * WHAT THESE ARE FOR. The web posts a multipart form and the phone posts
  * base64, so the two arrive by different roads — and every refusal along the
- * way (the type list, the 10 MB cap, the trip ceiling) has to be the same "no"
+ * way (the type list, the 8 MB cap, the trip ceiling) has to be the same "no"
  * for the same reason. A second road is exactly where a rule goes missing.
  *
  * THE CAP IS CHECKED ON THE DECODED BYTES. A client says how big its file is;
@@ -69,9 +69,9 @@ describe("putting a file on a trip", () => {
   });
 
   it("weighs the decoded bytes, not what the client claimed", async () => {
-    // 11 MB of base64 zeroes decodes past the 10 MB cap. Nothing in the input
+    // 9 MB of base64 zeroes decodes past the 8 MB cap. Nothing in the input
     // says how big it is, so the only way to know is to decode it.
-    const tooBig = Buffer.alloc(11 * 1024 * 1024).toString("base64");
+    const tooBig = Buffer.alloc(9 * 1024 * 1024).toString("base64");
     const refusal = await webPort.uploadFile(world.admin, world.ours.id, {
       name: "huge.png",
       mimeType: "image/png",
@@ -79,7 +79,7 @@ describe("putting a file on a trip", () => {
       category: "other",
       shared: true,
     });
-    expect(refusal).toBe("Files are capped at 10 MB");
+    expect(refusal).toBe("Files are capped at 8 MB");
   });
 
   it("refuses a non-member outright, not with a sentence", async () => {

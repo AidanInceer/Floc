@@ -10,7 +10,7 @@
  * exhaustive by type, so a sixth region cannot be added without choosing its
  * colour here.
  */
-import type { Region } from "@floc/core/trip/preset-trips";
+import type { Region } from "@floc/core/trip/explore/preset-trips";
 
 export type Tint = { fill: string; edge: string; ink: string };
 

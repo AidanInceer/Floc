@@ -17,6 +17,10 @@
  * table (rule 3).
  */
 import { computeBalances, isAllSettled } from "@floc/core/money/money";
+import { spendHeadline } from "@floc/core/money/spend";
+import { groupStatuses, owingUserIds } from "@floc/core/trip/group/group-status";
+import { bookingPlan } from "@floc/core/trip/booking-links";
+import { today } from "@floc/core/dates/dates";
 import { formatDateRange } from "@floc/core/dates/dates";
 import { readTripColor } from "@floc/core/trip/trip-color";
 import { nextStepFor } from "@floc/core/trip/next-step";
@@ -29,6 +33,8 @@ import { GroupActions } from "@/components/trip/group-actions";
 import { NeedsYou, type Outstanding } from "@/components/trip/needs-you";
 import { RouteMap } from "@/components/map/route-map";
 import { RosterStrip } from "@/components/trip/roster-strip";
+import { BookingTiles } from "@/components/trip/booking-tiles";
+import { SpendingStrip } from "@/components/trip/spending-strip";
 import { TagPills } from "@/components/trip/tag-pills";
 import { useTourTarget } from "@/components/tour/tour-context";
 import {
@@ -90,6 +96,7 @@ export default function Overview() {
   const days = useQuery(trpc.itinerary.days.queryOptions({ tripId }, { enabled: ready }));
   const packing = useQuery(trpc.packing.list.queryOptions({ tripId }, { enabled: ready }));
   const invites = useQuery(trpc.invites.forTrip.queryOptions({ tripId }, { enabled: ready }));
+  const availability = useQuery(trpc.availability.list.queryOptions({ tripId }, { enabled: ready }));
   const { data: session } = useSession();
   const nudgeTarget = useTourTarget("nudge");
   const rosterTarget = useTourTarget("roster");
@@ -138,14 +145,17 @@ export default function Overview() {
       <View ref={rosterTarget} style={{ gap: space.sm }}>
         {/* "The group", as the web panel calls it — one name for one thing. */}
         <Label>The group</Label>
-        <Card>
-          <GroupActions
-            link={invites.data ? inviteUrl(invites.data.token) : null}
-            onInvite={() => router.push(`/trip/${tripId}/invite`)}
-          />
-          <RosterStrip people={trip.data.members} />
-        </Card>
+        <GroupCard
+          trip={trip.data}
+          link={invites.data ? inviteUrl(invites.data.token) : null}
+          availability={availability.data}
+          ledger={ledger.data}
+          onInvite={() => router.push(`/trip/${tripId}/invite`)}
+          onMoney={() => go("money")}
+        />
       </View>
+
+      <BookingSection trip={trip.data} onOpen={() => go("dates")} />
 
       <View style={{ gap: space.sm }}>
         <Label>Where</Label>
@@ -178,6 +188,62 @@ export default function Overview() {
       </View>
     </ScrollView>
   );
+}
+
+function GroupCard({
+  trip,
+  link,
+  availability,
+  ledger,
+  onInvite,
+  onMoney,
+}: {
+  trip: Outputs["trips"]["get"];
+  link: string | null;
+  availability: Outputs["availability"]["list"] | undefined;
+  ledger: Ledger | undefined;
+  onInvite: () => void;
+  onMoney: () => void;
+}) {
+  return (
+    <Card>
+      <GroupActions link={link} onInvite={onInvite} />
+      <RosterStrip people={trip.members} statuses={statusesFor(trip, availability, ledger)} />
+      <SpendingStrip
+        headline={ledger ? spendHeadline(ledger.expenses) : null}
+        count={ledger?.expenses.length ?? 0}
+        onPress={onMoney}
+      />
+    </Card>
+  );
+}
+
+/** The web's rule: bookable while the dates are set and the trip is still ahead. */
+function BookingSection({ trip, onOpen }: { trip: Outputs["trips"]["get"]; onOpen: () => void }) {
+  const bookable =
+    bookingPlan({ trip, days: [], today: today(), adults: trip.members.length, prefill: false }) !== null;
+  if (!bookable) return null;
+  return (
+    <View style={{ gap: space.sm }}>
+      <Label>Get booking</Label>
+      <Card>
+        <BookingTiles onOpen={onOpen} />
+      </Card>
+    </View>
+  );
+}
+
+function statusesFor(
+  trip: Outputs["trips"]["get"],
+  availability: Outputs["availability"]["list"] | undefined,
+  ledger: Ledger | undefined,
+) {
+  const undated = !trip.startDate && !trip.endDate;
+  const marked = new Set((availability ?? []).map((row) => row.userId));
+  return groupStatuses({
+    needDates: undated && availability ? trip.members.map((m) => m.userId).filter((id) => !marked.has(id)) : [],
+    owing: ledger ? owingUserIds(balancesFrom(ledger)) : [],
+  });
 }
 
 /** Whatever is still true and still unanswered. Nothing is stored — an item exists while its fact does. */

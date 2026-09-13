@@ -27,6 +27,15 @@
     "comments.remove": {
       "mobile": "yes"
     },
+    "explore.get": {
+      "mobile": "yes"
+    },
+    "explore.setAnswers": {
+      "mobile": "yes"
+    },
+    "explore.setSaved": {
+      "mobile": "yes"
+    },
     "files.attach": {
       "mobile": "yes"
     },

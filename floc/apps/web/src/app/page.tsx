@@ -11,13 +11,11 @@ import type { ProPrice } from "@/server/billing/billing";
 import { allFeaturesFree } from "@/lib/env";
 import { formatMoney } from "@floc/core/money/money";
 import { isLive } from "@floc/core/billing/subscription-copy";
-import { ButtonLink, PASTEL_SKINS, cx } from "@/components/system/ui";
+import { ButtonLink } from "@/components/system/ui";
 import { RouteMap } from "@/components/map/route-map";
-import { ProBlock } from "./landing-pro";
 import { ConfettiWord } from "@/components/system/confetti-word";
-import { FlockChevron } from "@/components/system/flock-chevron";
-import { Glyph, features, sampleStops } from "./landing-content";
-import type { Feature } from "./landing-content";
+import { Glyph, sampleStops, tourFor } from "./landing-content";
+import { LandingTour } from "./landing-tour";
 
 /**
  * Where every call to action on the page lands. Signed out, most of the
@@ -162,67 +160,9 @@ export default async function LandingPage() {
       {/* ── feature summary ──────────────────────────────────────────── */}
       <section className="mt-24">
         <SectionHead title="Everything in one place" />
-        {/* Same contract as the Pro block below: what you see is what you can
-          use today, and what is only planned folds away behind the chevron. */}
-        {/* The three that ARE the product head the grid in their domain
-          pastels; the table stakes follow in plain sheet. */}
-        <div className="mt-10 flex flex-wrap justify-center gap-5">
-          {features
-            .filter((f) => f.lead)
-            .map((f) => (
-              <div
-                key={f.title}
-                className="w-full md:w-[calc((100%-1.25rem)/2)] lg:w-[calc((100%-2.5rem)/3)]"
-              >
-                <FeatureCard feature={f} />
-              </div>
-            ))}
+        <div className="mt-10">
+          <LandingTour stops={tourFor(sellingPro)} />
         </div>
-        {/* Below the leads no pastel carries meaning — notes and tickets own
-          no domain — so these take the decorative rotation by position. */}
-        <div className="mt-5 flex flex-wrap justify-center gap-5">
-          {features
-            .filter((f) => !f.soon && !f.lead)
-            .map((f, i) => (
-              <div
-                key={f.title}
-                className="w-full md:w-[calc((100%-1.25rem)/2)] lg:w-[calc((100%-2.5rem)/3)]"
-              >
-                <FeatureCard
-                  feature={f}
-                  tone={PASTEL_SKINS[i % PASTEL_SKINS.length]}
-                />
-              </div>
-            ))}
-        </div>
-
-        {/* <details>, not state — the fold works before hydration. */}
-        <details className="group mt-6">
-          <summary className="mx-auto flex w-fit cursor-pointer list-none items-center gap-2 rounded-full border border-rule px-4 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft transition-colors hover:bg-sheet-2 [&::-webkit-details-marker]:hidden">
-            <span className="group-open:hidden">More, coming soon</span>
-            <span className="hidden group-open:inline">Show less</span>
-            <FlockChevron
-              size={11}
-              className="shrink-0 transition-transform group-open:-rotate-180"
-            />
-          </summary>
-
-          {/* Flex, not grid: a part-full last row centres under the grid above
-            rather than hanging off its left edge. The widths reproduce the
-            same tracks, gap included. */}
-          <div className="mt-6 flex flex-wrap justify-center gap-5">
-            {features
-              .filter((f) => f.soon)
-              .map((f) => (
-                <div
-                  key={f.title}
-                  className="w-full md:w-[calc((100%-1.25rem)/2)] lg:w-[calc((100%-2.5rem)/3)]"
-                >
-                  <FeatureCard feature={f} />
-                </div>
-              ))}
-          </div>
-        </details>
       </section>
 
       {/* ── the sample map ───────────────────────────────────────────── */}
@@ -271,15 +211,6 @@ export default async function LandingPage() {
           </div>
         </div>
       </section>
-
-      <ProBlock
-        show={sellingPro}
-        alreadyPro={alreadyPro}
-        proRow={proRow}
-        prices={prices}
-        canBuy={Boolean(session?.user)}
-        billing={billing}
-      />
 
       {/* ── invite band (closing) ────────────────────────────────────── */}
       <section className="mt-24 grid items-center gap-12 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)] lg:gap-16">
@@ -355,48 +286,5 @@ function HeroCta({
         </div>
       ) : null}
     </div>
-  );
-}
-
-/**
- * One tile in the free feature grid. The "soon" badge is a plain rule outline
- * — the Pro grid's gold is what marks a perk as paid, so it stays over there.
- */
-function FeatureCard({
-  feature,
-  tone,
-}: {
-  feature: Feature;
-  tone?: string;
-}) {
-  return (
-    <article className="lift h-full rounded-lg border border-rule bg-sheet p-6">
-      <div className="flex items-start gap-3">
-        <span
-          className={cx(
-            "inline-flex size-9 shrink-0 items-center justify-center rounded-md",
-            feature.tone ?? tone ?? "bg-sheet-2 text-ink",
-          )}
-        >
-          <Glyph name={feature.icon} className="size-[18px]" />
-        </span>
-        <h3
-          className={cx(
-            "self-center text-md",
-            feature.lead && "font-semibold tracking-tight",
-          )}
-        >
-          {feature.title}
-        </h3>
-        {/* items-start + a nudge, not items-center: a title that wraps to two
-          lines would otherwise drag the badge down with it. */}
-        {feature.soon ? (
-          <span className="ml-auto mt-[9px] inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-rule px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">
-            Soon
-          </span>
-        ) : null}
-      </div>
-      <p className="mt-4 text-sm text-ink-soft">{feature.body}</p>
-    </article>
   );
 }

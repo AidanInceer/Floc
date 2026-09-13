@@ -7,7 +7,7 @@
  * phone has a filesystem.
  *
  * BASE64, NOT MULTIPART. There is no form to post from a phone, and the cap is
- * 10 MB either way — the wire carries a third more than the file, on a rare
+ * 8 MB either way — the wire carries a third more than the file, on a rare
  * action, rather than growing a second upload endpoint with its own auth.
  *
  * CANCELLING IS NOT AN ERROR. Backing out of the picker is the ordinary way to

@@ -81,7 +81,7 @@ Every prioritised ticket must end up with exactly one **type** label, plus any s
 | `type:refinement` | reshape or polish existing behaviour |
 | `wayfinder:grilling` | needs the user grilled before it can be built — **does not affect priority** |
 | `future-work` | parked on purpose — **not** in the stack |
-| `on-develop` | built, merged to `develop`, waiting on the batch to `main` — **not** in the stack |
+| `on-develop` | built, merged to `develop`, waiting on the batch to `main` — **not** in the stack. Also set on a parent split into child tickets (`## Split into` in its body); `/floc:release` closes it when all children close |
 
 Blocked-by edges live in the issue **body** under `## Blocked by`, written as `#<n>` — not as a label. Read them from there.
 

@@ -21,6 +21,25 @@ export type OvernightDay = {
   overnightPlaceName: string | null;
 };
 
+function bookingFacts(trip: { members: unknown[]; bookingPrefill: boolean } | undefined) {
+  return trip
+    ? { groupSize: trip.members.length, bookingPrefill: trip.bookingPrefill }
+    : { groupSize: 1, bookingPrefill: false };
+}
+
+function knownPlaces(days: OvernightDay[]): { id: number; name: string }[] {
+  return [
+    ...new Map(
+      days
+        .filter((row) => row.overnightPlaceId !== null && row.overnightPlaceName !== null)
+        .map((row) => [
+          row.overnightPlaceId,
+          { id: row.overnightPlaceId as number, name: row.overnightPlaceName as string },
+        ]),
+    ).values(),
+  ];
+}
+
 export function OvernightLine({
   tripId,
   days,
@@ -70,17 +89,8 @@ export function OvernightLine({
         }}
         // Sending an id back keeps the pin the map draws from; re-typing the
         // name would mint a second, coordinate-less place row.
-        known={[
-          ...new Map(
-            days
-              .filter((row) => row.overnightPlaceId !== null && row.overnightPlaceName !== null)
-              .map((row) => [
-                row.overnightPlaceId,
-                { id: row.overnightPlaceId as number, name: row.overnightPlaceName as string },
-              ]),
-          ).values(),
-        ]}
-        groupSize={trip.data?.members.length ?? 1}
+        known={knownPlaces(days)}
+        {...bookingFacts(trip.data)}
         busy={save.isPending}
         problem={problem}
         onCancel={() => setOpen(false)}

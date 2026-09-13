@@ -6,6 +6,7 @@
 import { computeBalances } from "../money/money";
 import type { Currency } from "../money/currency";
 import { countdownLabel, hasEnded } from "../dates/dates";
+import { owingUserIds } from "./group/group-status";
 
 /** What a station on the trail is doing. No `locked` — every tab is open (ticket 126). */
 type StationState = "done" | "now" | "snag" | "ahead";
@@ -121,16 +122,7 @@ export function tripStateFor<M extends StateMember>(
     })),
   );
 
-  // People, not per-currency entries — a group owing in two currencies isn't twice as many outstanding things.
-  const money = Array.from(
-    new Set(
-      Object.values(balances).flatMap((book) =>
-        Object.entries(book)
-          .filter(([, amount]) => amount !== 0)
-          .map(([userId]) => userId),
-      ),
-    ),
-  );
+  const money = owingUserIds(balances);
 
   const positions = (Object.entries(balances) as [Currency, Record<string, number>][])
     .map(([currency, book]) => ({ currency, amount: book[viewerId] ?? 0 }))

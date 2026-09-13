@@ -174,6 +174,15 @@ columns of numbers lining up and a ledger legible.</li>
 <p>The legibility rule that survives from the old system, restated: money, dates
 and balances are <strong>always</strong> the mono face, never the display face.
 The display face carries personality in headings; it never carries data.</p>
+<p><strong>Weight low, sizes few.</strong> Pull weight back before reaching for
+size: regular or medium by default, bold only where one line on the screen must
+win. Aim for three text sizes per screen. Five or six sizes and heavy weights are
+the fastest way a screen reads as machine-made. Where code still uses bold for
+emphasis, treat it as a thing to pull back, not a pattern to copy.</p>
+<p><strong>Keep lines short.</strong> Prose takes a max width; a sentence that
+runs the full width of a wide screen is tiring to read.</p>
+<p><strong>Headings read alone.</strong> Scroll a page reading only its headings.
+If they do not say what the page holds, fix the headings, not the body.</p>
 
 <h2>Shape and motion</h2>
 <h3>Shape: large radii, pill controls</h3>
@@ -194,6 +203,10 @@ is: rounded, and consistent across the app.</p>
 surface still has a <strong>visible</strong> hover (a whole card lifts, a chip
 takes a border, a link takes the blue) — a cursor change alone is never the whole
 affordance. Nothing animates under <code>prefers-reduced-motion</code>.</p>
+<p><strong>Motion must carry meaning.</strong> Animate only to draw the eye to one
+thing or to make a change obvious (a row that moved, a total that updated). No
+looping motion, no entrance animation on scroll, nothing that moves while the user
+is reading.</p>
 
 <h2>Navigation and chrome</h2>
 <p><strong>Pill-box navigation, everywhere.</strong> The primary nav is a row of
@@ -215,7 +228,12 @@ component needs one, the token is wrong. Contrast is asserted for
 not move because the ground did.</p>
 <p>The switch is a two-segment pill (sunrise / moon) in the header, beside the
 account controls, signed in or out. Your browser's setting is the default; an
-explicit choice is kept in <code>localStorage</code> and wins. It is applied to
+explicit choice is kept in <code>localStorage</code> and wins.</p>
+<p><strong>Dark is a palette, not an inversion.</strong> Every dark value is
+chosen, never produced by flipping the light one, and the ground is never pure
+black. A careless dark mode is a tell; a dark value that fails its contrast pair
+is a bug, not a style.</p>
+<p> It is applied to
 <code>&lt;html&gt;</code> before first paint, so a dark reload never flashes
 light — which is also why there is no <code>theme</code> column on
 <code>user_profile</code>: the choice belongs to the device, and a server
@@ -307,6 +325,33 @@ order is the node you grab; <code>↑</code>/<code>↓</code> are the keyboard p
 <li><strong>Nothing is written until you press save</strong> on the availability
 calendar — one action per editing session, not one per day.</li>
 </ul>
+
+<h2 id="tells">Tells to delete</h2>
+<p>Generated UI has a look, and users read it as &ldquo;nobody checked this&rdquo;
+&mdash; then wonder what else nobody checked. For an app that holds a group&rsquo;s
+money, that doubt is expensive. Most of the cure is deleting. If one of these
+appears, remove it rather than restyle it:</p>
+<ul>
+<li><strong>Widgets for their own sake.</strong> Numbers, icons or badges that fill
+a corner but say nothing. Ask what it tells the user; if nothing, delete it and
+let the layout close up.</li>
+<li><strong>Cards for everything.</strong> A card is a surface that groups; twenty
+cards on one screen group nothing. Prefer rows on one surface, split by hairlines.</li>
+<li><strong>A coloured stripe down a card&rsquo;s edge.</strong> The domain pastel
+is the wash, not a 2px accent bar.</li>
+<li><strong>Tiny all-caps kickers</strong> with wide letter spacing above a
+heading. The heading is enough. The <code>.typed</code> label is for naming a
+value, never for introducing a section.</li>
+<li><strong>Pills with icons inside, everywhere.</strong> A pill is a control or a
+status; a pill that is neither is decoration.</li>
+<li><strong>Gradients and glow.</strong> None. Flat pastels and one blue.</li>
+<li><strong>Small slips.</strong> A double space, a space before a full stop,
+text that wraps one word to a line, uneven gaps. Each is minor; together they say
+nobody looked.</li>
+</ul>
+<p><strong>One widget, one behaviour.</strong> A control that looks like a
+<code>Segmented</code> switch must switch. Two buttons drawn as a toggle, or a
+toggle drawn as two buttons, teaches the user the wrong thing on the same page.</p>
 
 <h2>The dates calendar</h2>
 <p><code>AvailabilityCalendar</code> (client) keeps its interaction model — a month

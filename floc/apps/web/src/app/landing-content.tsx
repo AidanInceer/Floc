@@ -165,80 +165,150 @@ export function Glyph({
   );
 }
 
-// ── the feature summary (sc2) ─────────────────────────────────────────────
-/** `soon` marks a feature that is sold but not built yet — same contract as
- * `Perk.soon`. Drop the flag the day it ships.
- * `lead` marks one of the three that ARE the product; they head the grid and
- * wear their domain pastel, the rest are table stakes in plain sheet. */
-export type Feature = {
+// ── the feature tour (sc2) ────────────────────────────────────────────────
+// In trip order: the tour walks a trip from picking a place to looking back.
+export type TourMessage = { from: string; text: string; when?: string; reply?: boolean };
+
+export type TourStop = {
   icon: GlyphName;
+  tone: string;
   title: string;
-  body: string;
-  soon?: boolean;
-  lead?: boolean;
-  tone?: string;
+  line: string;
+  chat: TourMessage[];
+  answer: string;
+  detail: string;
+  pro?: "yes" | "soon";
+  proExtra?: string;
 };
 
-export const features: Feature[] = [
+const tourStops: TourStop[] = [
   {
     icon: "notes",
-    lead: true,
     tone: "bg-butter text-butter-ink",
     title: "Decide where, together",
-    body: "One page the whole group writes on. The shortlist, the door code, the thing someone read — not buried in a chat.",
+    line: "One page the whole group writes on",
+    chat: [
+      { from: "Jo", text: "where are we even going" },
+      { from: "Sam", text: "sicily? sardinia?", reply: true },
+      { from: "Priya", text: "i sent a link last week somewhere" },
+    ],
+    answer: "Sicily — 5 of 6 voted",
+    detail: "The shortlist, the links and the thing someone read, on one page.",
   },
   {
     icon: "dates",
-    lead: true,
     tone: "bg-peri text-peri-ink",
     title: "Group availability, sorted",
-    body: "Shade your free days once. The calendar shows which weeks the whole group can make.",
+    line: "Shade your free days once",
+    chat: [
+      { from: "Sam", text: "september?" },
+      { from: "Jo", text: "not the second week", reply: true },
+      { from: "Alex", text: "i can only do weekends" },
+    ],
+    answer: "12–19 Sep works for all six",
+    detail: "Everyone shades their free days once. The calendar shows the weeks the whole group can make.",
   },
   {
-    icon: "money",
-    lead: true,
-    tone: "bg-mint text-mint-ink",
-    title: "Split the bill, not the group",
-    body: "Log what you paid, set how it splits. One number each — no group accountant required.",
+    icon: "weather",
+    tone: "bg-pro text-pro-gold border border-pro-edge",
+    pro: "yes",
+    title: "The weather, in advance",
+    line: "For each day you might go",
+    chat: [
+      { from: "Alex", text: "do i need a coat" },
+      { from: "Sam", text: "it's sicily", reply: true },
+      { from: "Alex", when: "Friday", text: "it is raining" },
+    ],
+    answer: "Friday: rain, 22°",
+    detail: "Sun, rain and degrees for each day you might go — before you pick the dates.",
   },
   {
     icon: "days",
+    tone: "bg-peri text-peri-ink",
     title: "A plan, not a schedule",
-    body: "For all kinds of traveller — flexible or down to the minute.",
-  },
-  {
-    icon: "people",
-    title: "Ditch the group chat",
-    body: "One plan everyone can edit. No scrolling back 400 messages for the address.",
-  },
-  {
-    icon: "packing",
-    title: "Pack once, pack right",
-    body: "Split the list: what the group brings, what's on you. Nothing doubles up, nothing's forgotten.",
+    line: "Flexible or down to the minute",
+    chat: [
+      { from: "Priya", text: "what are we doing tuesday" },
+      { from: "Alex", text: "vibes", reply: true },
+      { from: "Sam", text: "i booked a 9am train??" },
+    ],
+    answer: "Tuesday: Taormina, 09:40 train",
+    detail: "Plan every hour, or just the one thing that matters each day.",
   },
   {
     icon: "files",
+    tone: "bg-blush text-blush-ink",
     title: "Tickets, filed",
-    body: "Confirmations and passes attached to the trip. Nobody has to forward anything, ever.",
+    line: "Passes attached to the trip",
+    proExtra: "Pro: 1 GB per trip, for every pass and scan",
+    chat: [
+      { from: "Jo", text: "can someone forward the boarding pass" },
+      { from: "Sam", text: "check your email", reply: true },
+      { from: "Jo", text: "which email" },
+    ],
+    answer: "Flights · 6 passes, filed",
+    detail: "Confirmations and passes live on the trip. Nobody forwards anything.",
+  },
+  {
+    icon: "packing",
+    tone: "bg-butter text-butter-ink",
+    title: "Pack once, pack right",
+    line: "What the group brings, what's on you",
+    proExtra: "Pro: a list built from the forecast and the plan",
+    chat: [
+      { from: "Sam", text: "who's bringing the speaker" },
+      { from: "Jo", text: "me", reply: true },
+      { from: "Priya", text: "me too", reply: true },
+    ],
+    answer: "Speaker: Sam. Sun cream: you.",
+    detail: "Split the list. Nothing doubles up, nothing gets forgotten.",
+  },
+  {
+    icon: "money",
+    tone: "bg-mint text-mint-ink",
+    title: "Split the bill, not the group",
+    line: "One number each",
+    chat: [
+      { from: "Priya", text: "flat was 960, send me your bit" },
+      { from: "Jo", text: "minus the taxi i paid?", reply: true },
+      { from: "Sam", text: "and thursday dinner" },
+    ],
+    answer: "You owe Priya £42.50",
+    detail: "Log what you paid and how it splits. One number each.",
   },
   {
     icon: "book",
+    tone: "bg-peri text-peri-ink",
     title: "Memories you won't forget",
-    body: "Come back to it in ten years and the whole trip is still exactly where you left it.",
+    line: "Still there in ten years",
+    chat: [
+      { from: "Sam", when: "2037", text: "where was that flat in palermo" },
+      { from: "Jo", when: "2037", text: "no idea, new phone", reply: true },
+    ],
+    answer: "Sicily, Sept 2027 — all of it",
+    detail: "Come back in ten years and the whole trip is where you left it.",
   },
   {
-    icon: "dates",
-    title: "Tickets on the day they're for",
-    soon: true,
-    body: "The ferry ticket lives on the ferry day, not in a folder with eleven others.",
-  },
-  {
-    icon: "alert",
-    title: "Nothing double-booked",
-    soon: true,
-    body: "Two plans, one afternoon. It spots the clash before you're stood in the wrong street.",
+    icon: "flight",
+    tone: "bg-pro text-pro-gold border border-pro-edge",
+    pro: "soon",
+    title: "A travel agent in your pocket",
+    line: "A day that fixes itself",
+    chat: [
+      { from: "Alex", text: "train's cancelled" },
+      { from: "Priya", text: "ok so what now", reply: true },
+      { from: "Sam", text: "googling" },
+    ],
+    answer: "Next train 10:25 — day moved back an hour",
+    detail: "Ideas worth doing, and a day that quietly reshuffles when something slips.",
   },
 ];
+
+/** With every feature free there is no Pro to point at, so its stops and asides go. */
+export function tourFor(sellingPro: boolean): TourStop[] {
+  if (sellingPro) return tourStops;
+  return tourStops.filter((s) => !s.pro).map((s) => ({ ...s, proExtra: undefined }));
+}
 
 // ── the sample map (sc3) ─────────────────────────────────────────────────
 // Illustrative sample, not a live query — a settled Sicily route so the map
@@ -248,76 +318,4 @@ export const sampleStops = [
   { no: 2, name: "Cefalù", days: 1, lat: 38.0392, lng: 14.023 },
   { no: 3, name: "Taormina", days: 2, lat: 37.8516, lng: 15.2853 },
   { no: 4, name: "Syracuse", days: 2, lat: 37.0755, lng: 15.2866 },
-];
-
-// ── Pro tier (sc4) — blueprint, artificial for now ────────────────────────
-/** `soon` marks a perk that is sold but not built yet, so the block can say
- * so rather than promise it. Drop the flag the day it ships. */
-export type Perk = {
-  icon: GlyphName;
-  title: string;
-  body: string;
-  soon?: boolean;
-};
-
-// The headline perk, sold on its own above the grid.
-export const proLead: Perk = {
-  icon: "flight",
-  soon: true,
-  title: "A travel agent in your pocket",
-  body: "Ideas worth doing, tickets that appear right on time, and a day that quietly reshuffles itself when something slips.",
-};
-
-export const proPerks: Perk[] = [
-  {
-    icon: "nav",
-    title: "Live day view",
-    soon: true,
-    body: "Today on a map: what is next, and the way there.",
-  },
-  {
-    icon: "compass",
-    title: "Hidden gems, found",
-    soon: true,
-    body: "Picked for your stop and your dates — the places a top-ten list never gets to.",
-  },
-  {
-    icon: "alert",
-    title: "Delays, handled",
-    soon: true,
-    body: "Train late? The schedule shifts around it before anyone starts panicking.",
-  },
-  {
-    icon: "inbox",
-    title: "Bookings that file themselves",
-    soon: true,
-    body: "Send the confirmation in; it finds its day and waits there for you.",
-  },
-  {
-    icon: "weather",
-    title: "The weather, in advance",
-    body: "Sun, rain and degrees for each day you might go. Pack accordingly.",
-  },
-  {
-    icon: "packing",
-    title: "Packing that reads the trip",
-    body: "Lists built from the forecast and what's actually on the plan.",
-  },
-  {
-    icon: "notes",
-    title: "Notes, many pages",
-    soon: true,
-    body: "A page per city, per plan, per running joke.",
-  },
-  {
-    icon: "files",
-    title: "Room for every document",
-    body: "A full 1GB per trip — enough for every ticket, pass and scan, twice over.",
-  },
-  {
-    icon: "offline",
-    title: "No signal, no problem",
-    soon: true,
-    body: "Everything downloaded before you go. The plan works in a tunnel or on a plane.",
-  },
 ];

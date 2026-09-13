@@ -247,9 +247,16 @@
   function run() {
     var nodes = Array.prototype.slice.call(document.querySelectorAll('pre.mermaid'));
     if (!nodes.length) return;
+    // Mermaid measures text, and a closed <details> measures as zero — open
+    // them for the render, then close them again.
+    var closed = Array.prototype.slice.call(document.querySelectorAll('details:not([open])'));
+    closed.forEach(function (d) { d.open = true; });
     mermaid
       .run({ nodes: nodes })
-      .then(function () { nodes.forEach(enhance); })
+      .then(function () {
+        nodes.forEach(enhance);
+        closed.forEach(function (d) { d.open = false; });
+      })
       .catch(function (err) {
         // A parse error shouldn't leave the reader with an empty box.
         nodes.forEach(function (el) { el.style.visibility = 'visible'; });
