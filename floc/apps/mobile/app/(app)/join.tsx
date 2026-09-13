@@ -20,6 +20,7 @@ import { View } from "react-native";
 
 import { Body, Button, Card, Field, Screen } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
+import { askForPushOnce } from "@/lib/push/push";
 import { space } from "@/lib/theme";
 
 /** People paste the whole link, not the token out of it. */
@@ -51,6 +52,7 @@ export default function Join() {
       }
       queryClient.invalidateQueries({ queryKey: trpc.trips.list.queryKey() });
       router.replace({ pathname: "/trip/[id]", params: { id: trip.id } });
+      void askForPushOnce();
     },
     onError: () => setProblem("That link doesn't work any more."),
   });

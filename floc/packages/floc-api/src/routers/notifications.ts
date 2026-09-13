@@ -6,6 +6,8 @@ import { z } from "zod";
 
 import { protectedProcedure, router } from "../trpc";
 
+const pushTokenInput = z.string().min(1).max(200);
+
 export const notificationsRouter = router({
   list: protectedProcedure
     .input(z.object({ cursor: z.string().max(64).nullish() }))
@@ -16,4 +18,12 @@ export const notificationsRouter = router({
   open: protectedProcedure
     .input(z.object({ id: z.number().int().positive() }))
     .mutation(({ ctx, input }) => ctx.port.openNotification(ctx.viewer.id, input.id)),
+
+  registerPhone: protectedProcedure
+    .input(z.object({ token: pushTokenInput }))
+    .mutation(({ ctx, input }) => ctx.port.registerPushToken(ctx.viewer.id, input.token)),
+
+  forgetPhone: protectedProcedure
+    .input(z.object({ token: pushTokenInput }))
+    .mutation(({ ctx, input }) => ctx.port.forgetPushToken(ctx.viewer.id, input.token)),
 });

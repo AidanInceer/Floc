@@ -9,7 +9,7 @@
  * Tied to the URL rather than the build profile so it cannot outlive its
  * reason: point the app at an https API and the exemption disappears.
  */
-module.exports = ({ config }) => {
+function withCleartext(config) {
   if (!(process.env.EXPO_PUBLIC_API_URL ?? "").startsWith("http://")) return config;
 
   return {
@@ -20,4 +20,17 @@ module.exports = ({ config }) => {
       "expo-sharing",
     ],
   };
-};
+}
+
+/** Why: the Firebase file is kept out of git, so EAS hands it over as the GOOGLE_SERVICES_JSON file variable (#345). */
+function withFirebase(config) {
+  return {
+    ...config,
+    android: {
+      ...config.android,
+      googleServicesFile: process.env.GOOGLE_SERVICES_JSON ?? "./google-services.json",
+    },
+  };
+}
+
+module.exports = ({ config }) => withFirebase(withCleartext(config));

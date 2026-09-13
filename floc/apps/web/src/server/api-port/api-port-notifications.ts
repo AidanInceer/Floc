@@ -4,10 +4,15 @@ import type { FlocPort } from "@floc/api/port";
 
 import { refresh } from "@/server/freshness";
 import { countUnread, listInbox, openNotification } from "@/server/notifications/inbox";
+import { forgetPushToken, registerPushToken } from "@/server/notifications/push";
 
 type NotificationsPort = Pick<
   FlocPort,
-  "listNotifications" | "countUnreadNotifications" | "openNotification"
+  | "listNotifications"
+  | "countUnreadNotifications"
+  | "openNotification"
+  | "registerPushToken"
+  | "forgetPushToken"
 >;
 
 export const notificationsPort: NotificationsPort = {
@@ -33,4 +38,8 @@ export const notificationsPort: NotificationsPort = {
     refresh({ kind: "inbox" });
     return href;
   },
+
+  registerPushToken: (viewerId, token) => registerPushToken(viewerId, token),
+
+  forgetPushToken: (viewerId, token) => forgetPushToken(viewerId, token),
 };

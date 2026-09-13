@@ -4,42 +4,14 @@
  */
 import "server-only";
 
-import {
-  and,
-  desc,
-  eq,
-  gte,
-  inArray,
-  isNotNull,
-  isNull,
-  lt,
-  ne,
-  notInArray,
-  or,
-  type SQL,
-} from "drizzle-orm";
+import { and, eq, isNull, lt, or } from "drizzle-orm";
 
 import { db } from "@/db";
-import {
-  activity,
-  expense,
-  note,
-  notification,
-  settlement,
-  trip,
-  tripMembership,
-  user,
-  userProfile,
-} from "@/db/schema";
+import { activity, notification } from "@/db/schema";
 import { notificationText } from "@floc/core/notifications/notification-text";
-import {
-  COMMENT_KINDS,
-  EXPENSE_KINDS,
-  INBOX_KEEP_DAYS,
-  INBOX_PAGE,
-  type ActivityKind,
-} from "@floc/core/notifications/rules";
+import { INBOX_PAGE, type ActivityKind } from "@floc/core/notifications/rules";
 import { touch } from "@/server/audit";
+import { notificationRows, stillVisible } from "@/server/notifications/visible";
 
 type InboxItem = {
   id: number;
@@ -53,62 +25,7 @@ type InboxItem = {
 
 export type InboxPage = { items: InboxItem[]; next: string | null };
 
-function inboxRows(where: SQL | undefined, limit: number) {
-  return db
-    .select({
-      id: notification.id,
-      kind: activity.kind,
-      href: activity.href,
-      loud: notification.loud,
-      readAt: notification.readAt,
-      at: activity.lastModifiedAt,
-      tripName: trip.name,
-      actorName: user.name,
-      actorDisplayName: userProfile.displayName,
-    })
-    .from(notification)
-    .innerJoin(activity, eq(activity.id, notification.activityId))
-    .leftJoin(trip, eq(trip.id, activity.tripId))
-    .leftJoin(
-      tripMembership,
-      and(
-        eq(tripMembership.tripId, activity.tripId),
-        eq(tripMembership.userId, notification.userId),
-        isNull(tripMembership.deletedAt),
-      ),
-    )
-    .leftJoin(note, and(eq(note.id, activity.subjectId), inArray(activity.kind, COMMENT_KINDS)))
-    .leftJoin(expense, and(eq(expense.id, activity.subjectId), inArray(activity.kind, EXPENSE_KINDS)))
-    .leftJoin(
-      settlement,
-      and(eq(settlement.id, activity.subjectId), eq(activity.kind, "settlement_recorded")),
-    )
-    .innerJoin(user, eq(user.id, activity.actorId))
-    .leftJoin(userProfile, eq(userProfile.userId, activity.actorId))
-    .where(where)
-    .orderBy(desc(activity.lastModifiedAt), desc(notification.id))
-    .limit(limit)
-    .all();
-}
-
-function visibleTo(userId: string) {
-  return and(
-    eq(notification.userId, userId),
-    isNull(notification.deletedAt),
-    isNull(activity.deletedAt),
-    gte(activity.lastModifiedAt, new Date(Date.now() - INBOX_KEEP_DAYS * 86_400_000)),
-    or(
-      isNull(activity.tripId),
-      and(
-        isNull(trip.deletedAt),
-        or(isNotNull(tripMembership.userId), eq(activity.kind, "trip_invited")),
-      ),
-    ),
-    or(notInArray(activity.kind, COMMENT_KINDS), isNull(note.deletedAt)),
-    or(notInArray(activity.kind, EXPENSE_KINDS), isNull(expense.deletedAt)),
-    or(ne(activity.kind, "settlement_recorded"), isNull(settlement.deletedAt)),
-  );
-}
+const visibleTo = (userId: string) => and(eq(notification.userId, userId), stillVisible());
 
 /** `<ms>-<id>`: the time alone is not unique, so the id breaks the tie. */
 function parseCursor(cursor: string | null) {
@@ -123,7 +40,7 @@ function parseCursor(cursor: string | null) {
 }
 
 export async function listInbox(userId: string, cursor: string | null): Promise<InboxPage> {
-  const rows = await inboxRows(and(visibleTo(userId), parseCursor(cursor)), INBOX_PAGE);
+  const rows = await notificationRows(and(visibleTo(userId), parseCursor(cursor)), INBOX_PAGE);
 
   const items = rows.map((r) => ({
     id: r.id,
@@ -143,7 +60,7 @@ export async function listInbox(userId: string, cursor: string | null): Promise<
 
 /** Capped: past 99 the bell says "99+", so counting further is wasted work on every page. */
 export async function countUnread(userId: string): Promise<number> {
-  const rows = await inboxRows(and(visibleTo(userId), isNull(notification.readAt)), 100);
+  const rows = await notificationRows(and(visibleTo(userId), isNull(notification.readAt)), 100);
   return rows.length;
 }
 

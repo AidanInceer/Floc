@@ -898,12 +898,32 @@ export const notification = sqliteTable(
       .references(() => user.id),
     loud: integer("loud", { mode: "boolean" }).notNull(),
     readAt: integer("read_at", { mode: "timestamp" }),
+    /** Why: a lease, so a second instance skips it and a crashed send is retried once the lease runs out (#345). */
+    pushClaimedAt: integer("push_claimed_at", { mode: "timestamp" }),
+    pushedAt: integer("pushed_at", { mode: "timestamp" }),
     ...audit,
   },
   (t) => [
     uniqueIndex("notification_one_idx").on(t.activityId, t.userId),
     index("notification_user_idx").on(t.userId),
+    index("notification_push_idx").on(t.loud, t.pushedAt),
   ],
+);
+
+/** One row per phone that allowed push (#345). */
+export const pushToken = sqliteTable(
+  "push_token",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id),
+    token: text("token").notNull(),
+    /** Why: only notifications after this reach the phone, so a new install is not handed a month of backlog. */
+    registeredAt: integer("registered_at", { mode: "timestamp" }).notNull().default(now),
+    ...audit,
+  },
+  (t) => [uniqueIndex("push_token_token_idx").on(t.token), index("push_token_user_idx").on(t.userId)],
 );
 
 /* -------------------------------------------------------------------------- */

@@ -65,7 +65,7 @@ import {
   listSplits,
   softDeleteExpense,
   writeExpense,
-  writeSettlement,
+  writeSettlements,
 } from "@/server/money/money";
 import { listAvailability, setAvailability } from "@/server/itinerary/availability";
 import { listDocuments } from "@/server/documents/documents";
@@ -631,15 +631,15 @@ export const webPort: FlocPort = {
     refresh({ kind: "money", tripId });
   },
 
-  async settleUp(viewerId, tripId, input) {
+  async settleUp(viewerId, tripId, transfers) {
     const access = await scoped(viewerId, tripId);
     // Both ends must be on this trip. Without the check, a crafted id would
     // write a debt against somebody who is not in the group at all.
     const onTrip = new Set(access.members.map((member) => member.userId));
-    if (!onTrip.has(input.fromUserId) || !onTrip.has(input.toUserId)) {
+    if (transfers.some((t) => !onTrip.has(t.fromUserId) || !onTrip.has(t.toUserId))) {
       throw new Error("That person is not on this trip.");
     }
-    await writeSettlement({ tripId, createdBy: viewerId, ...input });
+    await writeSettlements(tripId, viewerId, transfers);
     refresh({ kind: "money", tripId });
   },
 

@@ -61,6 +61,7 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
     USER ||--o{ ACTIVITY : &quot;acts (actor_id)&quot;
     ACTIVITY ||--o{ NOTIFICATION : &quot;tells&quot;
     USER ||--o{ NOTIFICATION : &quot;receives&quot;
+    USER ||--o{ PUSH_TOKEN : &quot;allows push on&quot;
     TRIP ||--o| TRIP_NOTE_DOC : &quot;has one (ticket 238)&quot;
     USER ||--o{ TRIP_NOTE_DOC : &quot;last saved (updated_by)&quot;
     TRIP ||--o{ DOCUMENT : &quot;holds (ticket 239)&quot;
@@ -311,8 +312,17 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
         int id PK
         int activity_id FK &quot;-&gt; ACTIVITY.id&quot;
         string user_id FK &quot;-&gt; USER.id&quot;
-        bool loud &quot;affected people; push and email later (#345)&quot;
+        bool loud &quot;affected people; pushed to their phones (#345)&quot;
         timestamp read_at &quot;nullable — read on any device&quot;
+        timestamp push_claimed_at &quot;nullable — lease held by the run sending it&quot;
+        timestamp pushed_at &quot;nullable — set once sent; also the limits&#39; history&quot;
+    }
+
+    PUSH_TOKEN {
+        int id PK
+        string user_id FK &quot;-&gt; USER.id&quot;
+        string token &quot;unique — one Expo token per phone&quot;
+        timestamp registered_at &quot;only later notifications reach it&quot;
     }
 
     TRIP_NOTE_DOC {
@@ -559,6 +569,12 @@ it has no foreign keys and no <code>deleted_at</code>.</p>
 <td><code>notification</code></td>
 <td>1–M</td>
 <td>one row per (activity, person); never the actor</td>
+</tr>
+<tr>
+<td><code>user</code></td>
+<td><code>push_token</code></td>
+<td>1–M</td>
+<td>one row per phone that allowed push; moves to whoever signed in last; soft-deleted when Expo says the phone is gone (#345)</td>
 </tr>
 <tr>
 <td><code>trip</code></td>

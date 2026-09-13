@@ -17,7 +17,7 @@ without flooding them. Decided in the grilling of
     Log[("activity&lt;br/&gt;one row per change,&lt;br/&gt;same transaction")]
     Rules["Rules&lt;br/&gt;who is affected,&lt;br/&gt;how loud, mute"]
     Inbox[("notification&lt;br/&gt;per person")]
-    Cron["Railway cron&lt;br/&gt;every minute"]
+    Cron["Railway cron&lt;br/&gt;every 5 minutes"]
     Push["Expo Push"]
     Email["Resend email"]
     Bell["Bell + inbox&lt;br/&gt;web and app"]
@@ -99,9 +99,19 @@ the limits — they are few and deliberate. No marketing or win-back reminders i
 </ul>
 
 <h2>Sending</h2>
-<p>A Railway cron runs every minute: finds notifications past their wait,
+<p>A Railway cron runs every 5 minutes (Railway's floor): finds notifications past their wait,
 groups them, applies limits, sends. All state lives in the database, so a restart
 or a second web instance never loses or doubles a message.</p>
+<ul>
+<li>A separate Railway cron service, schedule <code>*/5 * * * *</code>, runs
+<code>node floc/apps/web/scripts/cron-push.mjs</code>. It only calls
+<code>POST /api/cron/push</code> with <code>CRON_SECRET</code>; the web service does the work.</li>
+<li>Push waits 2 minutes. Each run claims its rows with a 5-minute lease, so an
+overlapping run skips them and a crashed send is retried.</li>
+<li>A phone only gets notifications from after it registered.</li>
+<li>Android push needs <code>google-services.json</code> (EAS file variable
+<code>GOOGLE_SERVICES_JSON</code>) and the FCM key uploaded to EAS.</li>
+</ul>
 </main>
 <script src="../assets/nav.js"></script>
 <script src="../assets/vendor/mermaid.min.js"></script>

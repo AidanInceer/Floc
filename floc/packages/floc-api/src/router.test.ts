@@ -209,6 +209,24 @@ describe("what the input rules refuse", () => {
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 
+  it("settles every transfer in one call, so they save together or not at all", async () => {
+    const { caller: ana, port } = caller("u1");
+    const transfers = [
+      { fromUserId: "u1", toUserId: "u2", amountMinor: 3270, currency: "EUR" as const },
+      { fromUserId: "u1", toUserId: "u3", amountMinor: 5460, currency: "GBP" as const },
+    ];
+    await ana.money.settle({ tripId: 1, transfers });
+    expect(port.settleUp).toHaveBeenCalledTimes(1);
+    expect(port.settleUp).toHaveBeenCalledWith("u1", 1, transfers);
+  });
+
+  it("refuses a settle-up with no transfers", async () => {
+    const { caller: ana } = caller("u1");
+    await expect(ana.money.settle({ tripId: 1, transfers: [] })).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+    });
+  });
+
   it("refuses a date that is not YYYY-MM-DD, and an offset with it (rule 10)", async () => {
     const { caller: ana } = caller("u1");
     await expect(

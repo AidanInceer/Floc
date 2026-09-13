@@ -56,3 +56,6 @@ human-*.md
 **/mockups/
 # Private docs — stack accounts, credential inventories. Never committed.
 docs/private/
+
+# Firebase config for Android push (#345). On EAS it comes from the GOOGLE_SERVICES_JSON file variable.
+floc/apps/mobile/google-services.json

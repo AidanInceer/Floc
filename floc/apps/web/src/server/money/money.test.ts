@@ -20,6 +20,7 @@ import {
   softDeleteSettlement,
   writeExpense,
   writeSettlement,
+  writeSettlements,
   type ExpenseFields,
 } from "@/server/money/money";
 
@@ -149,6 +150,25 @@ describe("settlements", () => {
     await settle();
     const [row] = await listSettlements(world.ours.id);
     expect(await findLiveSettlement(world.theirs.id, row.id)).toBeUndefined();
+  });
+
+  it("records several transfers in one write, each in its own currency", async () => {
+    await writeSettlements(world.ours.id, world.member, [
+      { fromUserId: world.member, toUserId: world.admin, amountMinor: 1500, currency: "GBP" },
+      { fromUserId: world.member, toUserId: world.admin, amountMinor: 3270, currency: "EUR" },
+    ]);
+    const rows = await listSettlements(world.ours.id);
+    expect(rows.map((r) => `${r.amountMinor} ${r.currency}`).sort()).toEqual(["1500 GBP", "3270 EUR"]);
+  });
+
+  it("writes none of them when one is refused", async () => {
+    await expect(
+      writeSettlements(world.ours.id, world.member, [
+        { fromUserId: world.member, toUserId: world.admin, amountMinor: 1500, currency: "GBP" },
+        { fromUserId: world.member, toUserId: "u-nobody", amountMinor: 900, currency: "GBP" },
+      ]),
+    ).rejects.toThrow();
+    expect(await listSettlements(world.ours.id)).toEqual([]);
   });
 });
 

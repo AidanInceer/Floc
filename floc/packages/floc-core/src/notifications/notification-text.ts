@@ -1,24 +1,33 @@
 import type { ActivityKind } from "./rules";
 
-const LINES: Record<ActivityKind, (actor: string, trip: string) => string> = {
-  comment_added: (a, t) => `${a} commented on ${t}`,
-  comment_replied: (a, t) => `${a} replied to a comment on ${t}`,
-  expense_added: (a, t) => `${a} added an expense to ${t}`,
-  expense_changed: (a, t) => `${a} changed an expense on ${t}`,
-  settlement_recorded: (a, t) => `${a} recorded a payment on ${t}`,
-  nudge_sent: (a, t) => `${a} nudged you about ${t}`,
-  packing_claim_changed: (a, t) => `${a} removed something you were bringing to ${t}`,
-  trip_dates_changed: (a, t) => `${a} changed the dates of ${t}`,
-  days_added: (a, t) => `${a} added days to ${t}`,
-  days_removed: (a, t) => `${a} removed a day from ${t}`,
-  member_joined: (a, t) => `${a} joined ${t}`,
-  member_left: (a, t) => `${a} left ${t}`,
-  trip_invited: (a, t) => `${a} invited you to ${t}`,
-  friend_requested: (a) => `${a} sent you a friend request`,
-  friend_accepted: (a) => `${a} accepted your friend request`,
+/** What the person did, and the word that joins it to the trip — null when there is no trip to name. */
+const LINES: Record<ActivityKind, { did: string; joins: string | null }> = {
+  comment_added: { did: "commented", joins: "on" },
+  comment_replied: { did: "replied to a comment", joins: "on" },
+  expense_added: { did: "added an expense", joins: "to" },
+  expense_changed: { did: "changed an expense", joins: "on" },
+  settlement_recorded: { did: "recorded a payment", joins: "on" },
+  nudge_sent: { did: "nudged you", joins: "about" },
+  packing_claim_changed: { did: "removed something you were bringing", joins: "to" },
+  trip_dates_changed: { did: "changed the dates", joins: "of" },
+  days_added: { did: "added days", joins: "to" },
+  days_removed: { did: "removed a day", joins: "from" },
+  member_joined: { did: "joined", joins: "" },
+  member_left: { did: "left", joins: "" },
+  trip_invited: { did: "invited you", joins: "to" },
+  friend_requested: { did: "sent you a friend request", joins: null },
+  friend_accepted: { did: "accepted your friend request", joins: null },
 };
 
 /** One line for the inbox, the same on web and phone. */
 export function notificationText(kind: ActivityKind, actor: string, tripName: string | null): string {
-  return LINES[kind](actor, tripName ?? "a trip");
+  const { did, joins } = LINES[kind];
+  if (joins === null) return `${actor} ${did}`;
+  return [actor, did, joins, tripName ?? "a trip"].filter(Boolean).join(" ");
+}
+
+/** The push body: its title is already the trip, so the trip is not said twice (#345). */
+export function pushText(kind: ActivityKind, actor: string): string {
+  const { did, joins } = LINES[kind];
+  return joins === "" ? `${actor} ${did} the trip` : `${actor} ${did}`;
 }

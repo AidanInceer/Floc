@@ -950,17 +950,18 @@ export type FlocPort = {
    * Records a transfer that has already happened off-app (ticket 300).
    * Append-only: a settlement is never edited, only soft-deleted, because it
    * is a record of something that happened rather than a plan that changed.
-   * v1 moves no money — this writes down that somebody did.
+   * v1 moves no money — this writes down that somebody did. All transfers
+   * save together or none do.
    */
   settleUp(
     viewerId: string,
     tripId: number,
-    input: {
+    transfers: {
       fromUserId: string;
       toUserId: string;
       amountMinor: number;
       currency: Currency;
-    },
+    }[],
   ): Promise<void>;
 
   addEvent(
@@ -1126,6 +1127,12 @@ export type FlocPort = {
 
   /** Marks it read on every device and says where it points. Null for an id that is not yours. */
   openNotification(viewerId: string, notificationId: number): Promise<string | null>;
+
+  /** This phone may be pushed to, for this person. A token held by someone else moves to them. */
+  registerPushToken(viewerId: string, token: string): Promise<void>;
+
+  /** Stop pushing to this phone. Only its owner can. */
+  forgetPushToken(viewerId: string, token: string): Promise<void>;
 };
 
 export type NotificationItem = {
