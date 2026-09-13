@@ -19,9 +19,7 @@ import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerE
 
 import { EventForm, type PlaceSearch } from "@/components/days/event-form";
 import { DayColumn } from "@/components/days/days-calendar-column";
-import { Menu } from "@/components/system/client-ui";
-import { Button, cx, menuItemClass } from "@/components/system/ui";
-import type { DayEventType } from "@/db/schema";
+import { Button, cx } from "@/components/system/ui";
 import {
   HOUR_PX,
   OUTSIDE_DAY_CLASS,
@@ -40,8 +38,6 @@ export function CalendarToolbar({
   canPrev,
   canNext,
   rangeLabel,
-  hidden,
-  setHidden,
   effectiveView,
   setView,
 }: {
@@ -52,15 +48,9 @@ export function CalendarToolbar({
   canPrev: boolean;
   canNext: boolean;
   rangeLabel: string;
-  hidden: ReadonlySet<DayEventType>;
-  setHidden: (update: (prev: ReadonlySet<DayEventType>) => ReadonlySet<DayEventType>) => void;
   effectiveView: "day" | "week";
   setView: (view: "day" | "week") => void;
 }) {
-  const typeCount = Object.keys(EVENT_CATEGORIES).length;
-  const hiddenCount = hidden.size;
-  const shownLabel = `${typeCount - hiddenCount} of ${typeCount} shown`;
-
   return (
     <div className="flex flex-wrap items-center gap-2 border-b border-rule bg-sheet-2 px-3 py-2.5">
       <Button onClick={onToday} disabled={!hasToday} title={hasToday ? undefined : "The trip isn't running today"}>
@@ -94,13 +84,6 @@ export function CalendarToolbar({
       </p>
 
       <div className="flex-1" />
-
-      {/* The block-colour key doubles as the filter (ticket 90), behind one
-          triple-dot rather than three always-on swatches. */}
-      {hiddenCount > 0 ? (
-        <span className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-soft">{shownLabel}</span>
-      ) : null}
-      <TypeFilter hidden={hidden} setHidden={setHidden} shownLabel={shownLabel} hiddenCount={hiddenCount} />
 
       <div className="inline-flex overflow-hidden rounded-full border border-rule-strong">
         {(["day", "week"] as const).map((option) => (
@@ -255,58 +238,6 @@ export function AllDayStrip({
         </div>
       ))}
     </div>
-  );
-}
-
-function TypeFilter({
-  hidden,
-  setHidden,
-  shownLabel,
-  hiddenCount,
-}: {
-  hidden: ReadonlySet<DayEventType>;
-  setHidden: (update: (prev: ReadonlySet<DayEventType>) => ReadonlySet<DayEventType>) => void;
-  shownLabel: string;
-  hiddenCount: number;
-}) {
-  return (
-    <Menu
-      label={hiddenCount > 0 ? `Filter by type — ${shownLabel}` : "Filter by type"}
-      triggerClassName={cx(
-        "flex h-[26px] w-[26px] items-center justify-center rounded-full border",
-        hiddenCount > 0
-          ? "border-rule-strong bg-sheet text-ink"
-          : "border-transparent text-ink-faint hover:border-rule-strong hover:bg-sheet-2 hover:text-ink",
-      )}
-    >
-      {(Object.keys(EVENT_CATEGORIES) as DayEventType[]).map((type) => {
-        const category = EVENT_CATEGORIES[type];
-        const on = !hidden.has(type);
-        return (
-          <button
-            key={type}
-            type="button"
-            role="menuitemcheckbox"
-            aria-checked={on}
-            onClick={() =>
-              setHidden((prev) => {
-                const next = new Set(prev);
-                if (!next.delete(type)) next.add(type);
-                return next;
-              })
-            }
-            className={cx(
-              menuItemClass,
-              "!flex !items-center !gap-2 !font-mono !text-[10.5px] !uppercase !tracking-[0.06em]",
-              on ? "!text-ink" : "!text-ink-faint !line-through",
-            )}
-          >
-            <span aria-hidden className={cx("size-2 shrink-0 rounded-sm", category.dot)} />
-            {category.label}
-          </button>
-        );
-      })}
-    </Menu>
   );
 }
 

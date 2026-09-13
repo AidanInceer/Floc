@@ -391,6 +391,20 @@ describe("the forecast (#148)", () => {
   });
 });
 
+describe("the trip calendar link (#334)", () => {
+  it("gives a member their own link to the trip's calendar", async () => {
+    const url = "https://floc.example/calendar/abc.def.ics";
+    const { caller: ana, port } = caller("u1", fakePort({ calendarFeedUrl: vi.fn().mockResolvedValue(url) }));
+    await expect(ana.itinerary.calendarUrl({ tripId: 1 })).resolves.toBe(url);
+    expect(port.calendarFeedUrl).toHaveBeenCalledWith("u1", 1);
+  });
+
+  it("refuses a non-member exactly as it refuses a trip that is not there (rule 5)", async () => {
+    const { caller: mal } = caller("intruder");
+    await expect(mal.itinerary.calendarUrl({ tripId: 1 })).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+});
+
 describe("buying Pro in the app", () => {
   const claim = { platform: "ios" as const, productId: "floc_pro_yearly", token: "jws" };
 

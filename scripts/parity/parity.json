@@ -90,6 +90,9 @@
     "itinerary.addEvent": {
       "mobile": "yes"
     },
+    "itinerary.calendarUrl": {
+      "mobile": "yes"
+    },
     "itinerary.days": {
       "mobile": "yes"
     },
