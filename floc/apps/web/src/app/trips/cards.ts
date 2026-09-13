@@ -45,6 +45,7 @@ export async function loadTripCards(
         endDate: r.endDate,
         role: r.role,
         starred: r.starred,
+        muted: r.muted,
         members,
         // A trip nobody has decided anything about yet — no window, nowhere to
         // stay. Read off rows already loaded, so it costs no extra query.

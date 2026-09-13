@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { PUSH_DAY_CAP, PUSH_TRIP_GAP_MS, planPushes, type PendingPush } from "./push-plan";
+import { EMAIL_LIMITS, PUSH_DAY_CAP, PUSH_TRIP_GAP_MS, planPushes, type PendingPush } from "./push-plan";
 
 const now = new Date("2026-09-13T12:00:00Z");
 const ago = (ms: number) => new Date(now.getTime() - ms);
@@ -25,6 +25,7 @@ describe("planPushes", () => {
         body: "Ada nudged you about Rome",
         href: "/trip/7/money",
         notificationIds: [1],
+        lines: ["Ada nudged you about Rome"],
       },
     ]);
   });
@@ -71,6 +72,24 @@ describe("planPushes", () => {
     }));
     const plan = planPushes([pending(), pending({ notificationId: 2, tripId: 8 })], sent, now);
     expect(plan.map((p) => p.tripId)).toEqual([7]);
+  });
+
+  it("holds email to 1 per trip per hour and 3 a day", () => {
+    const hourAgo = [{ userId: "sam", tripId: 7, sentAt: ago(EMAIL_LIMITS.tripGapMs - 1) }];
+    expect(planPushes([pending()], hourAgo, now, EMAIL_LIMITS)).toEqual([]);
+
+    const three = [1, 2, 3].map((i) => ({ userId: "sam", tripId: 100 + i, sentAt: ago(3 * 3_600_000) }));
+    expect(planPushes([pending()], three, now, EMAIL_LIMITS)).toEqual([]);
+  });
+
+  it("sends a reminder past the limits, and does not count it against them", () => {
+    const sent = Array.from({ length: PUSH_DAY_CAP }, (_, i) => ({ userId: "sam", tripId: 7, sentAt: ago(60_000 * (i + 1)) }));
+    const reminder = pending({ notificationId: 9, exempt: true });
+    expect(planPushes([pending(), reminder], sent, now).map((p) => p.notificationIds)).toEqual([[9]]);
+
+    const [first, second] = planPushes([reminder, pending({ notificationId: 2, tripId: 8 })], [], now);
+    expect(first.notificationIds).toEqual([9]);
+    expect(second.notificationIds).toEqual([2]);
   });
 
   it("forgets a push older than a day", () => {

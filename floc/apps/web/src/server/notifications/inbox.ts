@@ -45,7 +45,7 @@ export async function listInbox(userId: string, cursor: string | null): Promise<
   const items = rows.map((r) => ({
     id: r.id,
     kind: r.kind,
-    text: notificationText(r.kind, r.actorDisplayName ?? r.actorName, r.tripName),
+    text: notificationText(r.kind, { actor: r.actorDisplayName ?? r.actorName, trip: r.tripName, detail: r.detail }),
     href: r.href,
     loud: r.loud,
     read: r.readAt !== null,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { aboutSummary, emailSummary, privacySummary, tripsSummary } from "./summary";
+import { aboutSummary, notificationSummary, privacySummary, tripsSummary } from "./summary";
 
 const open = {
   isPrivate: false,
@@ -44,16 +44,16 @@ describe("tripsSummary", () => {
   });
 });
 
-describe("emailSummary", () => {
+describe("notificationSummary", () => {
   it("says all on", () => {
-    expect(emailSummary({ invites: true, money: true, nudges: true })).toBe("All on");
+    expect(notificationSummary({ push: true, email: true, reminders: true })).toBe("All on");
   });
 
   it("says all off", () => {
-    expect(emailSummary({ invites: false, money: false, nudges: false })).toBe("All off");
+    expect(notificationSummary({ push: false, email: false, reminders: false })).toBe("All off");
   });
 
   it("counts a mix", () => {
-    expect(emailSummary({ invites: true, money: false, nudges: true })).toBe("2 of 3 on");
+    expect(notificationSummary({ push: true, email: false, reminders: true })).toBe("2 of 3 on");
   });
 });

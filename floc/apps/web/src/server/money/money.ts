@@ -279,17 +279,3 @@ export async function namesForUsers(
     name: r.displayName ?? r.name,
   }));
 }
-
-/** Same former-member case as `namesForUsers`, for the mail rather than the ledger. */
-export async function emailsForUsers(
-  userIds: string[],
-): Promise<{ id: string; email: string }[]> {
-  if (userIds.length === 0) return [];
-  const rows = await db
-    .select({ id: user.id, email: user.email })
-    .from(user)
-    .where(inArray(user.id, userIds))
-    .limit(LIMITS.members)
-    .all();
-  return bounded(rows, "members", "expense participants");
-}

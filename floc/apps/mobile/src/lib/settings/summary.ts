@@ -28,7 +28,7 @@ export function tripsSummary(packingStyle: string, currency: string): string {
   return `${packingStyle} · ${currency}`;
 }
 
-export function emailSummary(notify: Record<string, boolean>): string {
+export function notificationSummary(notify: Record<string, boolean>): string {
   const values = Object.values(notify);
   const on = values.filter(Boolean).length;
   if (on === values.length) return "All on";

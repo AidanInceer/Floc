@@ -62,6 +62,8 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
     ACTIVITY ||--o{ NOTIFICATION : &quot;tells&quot;
     USER ||--o{ NOTIFICATION : &quot;receives&quot;
     USER ||--o{ PUSH_TOKEN : &quot;allows push on&quot;
+    TRIP ||--o{ REMINDER : &quot;reminds about&quot;
+    USER ||--o{ REMINDER : &quot;was reminded&quot;
     TRIP ||--o| TRIP_NOTE_DOC : &quot;has one (ticket 238)&quot;
     USER ||--o{ TRIP_NOTE_DOC : &quot;last saved (updated_by)&quot;
     TRIP ||--o{ DOCUMENT : &quot;holds (ticket 239)&quot;
@@ -80,7 +82,7 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
     classDef notes fill:#ece2f7,stroke:#b39cd3
     classDef billing fill:#fbf3e2,stroke:#c9a24f
     class USER,USER_PROFILE,USER_COUNTRY_MARK people
-    class FRIENDSHIP,TRIP_INVITE,NUDGE,ACTIVITY,NOTIFICATION social
+    class FRIENDSHIP,TRIP_INVITE,NUDGE,ACTIVITY,NOTIFICATION,REMINDER social
     class TRIP,TRIP_MEMBERSHIP,TRIP_LINK trip
     class AVAILABILITY,DAY,DAY_EVENT,PLACE dates
     class EXPENSE,EXPENSE_SPLIT,SETTLEMENT,FX_RATE money
@@ -110,9 +112,9 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
         string visibility_travel_map &quot;private|friends|trip_members, default trip_members&quot;
         string visibility_friends &quot;private|friends|trip_members, default friends&quot;
         string past_trips_show &quot;latest | all, default all&quot;
-        bool notify_invites &quot;default true&quot;
-        bool notify_money &quot;default true&quot;
-        bool notify_nudges &quot;default true&quot;
+        bool notify_push &quot;default true — push on the phone (#346)&quot;
+        bool notify_email &quot;default true — email only when push can&#39;t reach&quot;
+        bool notify_reminders &quot;default true — date reminders&quot;
         string pack_tier &quot;light | balanced | comfort, default balanced — the fallback for trips that haven't chosen&quot;
         bool pack_auto_generate &quot;default true — fill the personal list on first open, or wait to be asked&quot;
         timestamp tour_seen_at &quot;nullable — first tour finish or skip, never cleared (ticket 314)&quot;
@@ -153,6 +155,7 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
         string pack_tier &quot;light | balanced | comfort, nullable — null falls through to the profile default&quot;
         datetime pack_generated_at &quot;nullable — null is &#39;never auto-filled&#39;; stops the generator refilling an emptied bag (ticket 221)&quot;
         datetime starred_at &quot;nullable — this member&#39;s own star on their trip list&quot;
+        datetime muted_at &quot;nullable — this member&#39;s own mute: no push or email from the trip (#346)&quot;
     }
 
     TRIP_INVITE {
@@ -306,6 +309,7 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
         string kind &quot;one of ACTIVITY_KINDS&quot;
         int subject_id &quot;nullable, polymorphic by kind — not a real FK&quot;
         string href &quot;web path the notification opens&quot;
+        string detail &quot;nullable — words a reminder carries, like Sam £40.00&quot;
     }
 
     NOTIFICATION {
@@ -316,6 +320,8 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
         timestamp read_at &quot;nullable — read on any device&quot;
         timestamp push_claimed_at &quot;nullable — lease held by the run sending it&quot;
         timestamp pushed_at &quot;nullable — set once sent; also the limits&#39; history&quot;
+        timestamp email_claimed_at &quot;nullable — the email fallback&#39;s lease (#346)&quot;
+        timestamp emailed_at &quot;nullable — set once emailed; never set with pushed_at&quot;
     }
 
     PUSH_TOKEN {
@@ -323,6 +329,13 @@ used unmodified. Only the <code>user</code> anchor is drawn here.</p>
         string user_id FK &quot;-&gt; USER.id&quot;
         string token &quot;unique — one Expo token per phone&quot;
         timestamp registered_at &quot;only later notifications reach it&quot;
+    }
+
+    REMINDER {
+        int id PK
+        string kind &quot;one of REMINDER_KINDS&quot;
+        int trip_id FK &quot;-&gt; TRIP.id&quot;
+        string user_id FK &quot;-&gt; USER.id&quot;
     }
 
     TRIP_NOTE_DOC {
@@ -557,6 +570,12 @@ it has no foreign keys and no <code>deleted_at</code>.</p>
 <td><code>nudge</code></td>
 <td>1–M (×2)</td>
 <td><code>from_user_id</code> and <code>to_user_id</code></td>
+</tr>
+<tr>
+<td><code>trip</code> / <code>user</code></td>
+<td><code>reminder</code></td>
+<td>1–M</td>
+<td>one row per reminder kind, trip and person; the unique key is what sends each reminder once (#346)</td>
 </tr>
 <tr>
 <td><code>trip</code></td>

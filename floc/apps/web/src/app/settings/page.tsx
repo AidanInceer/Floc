@@ -59,7 +59,7 @@ const SECTIONS = [
   { id: "about-you", label: "About you" },
   { id: "trips", label: "Trips" },
   { id: "billing", label: "Billing" },
-  { id: "email", label: "Email" },
+  { id: "notifications", label: "Notifications" },
   { id: "account", label: "Account" },
   { id: "data", label: "Your data" },
   { id: "delete", label: "Delete" },
@@ -79,9 +79,9 @@ function sectionFor(asked: string | undefined): SectionId {
 }
 
 const NOTIFICATION_TOGGLES = [
-  { name: "notifyInvites", label: "Trip invites" },
-  { name: "notifyMoney", label: "Costs added to a trip" },
-  { name: "notifyNudges", label: "Nudges from other members" },
+  { name: "notifyPush", label: "Push", hint: "On any phone signed in to Floc." },
+  { name: "notifyEmail", label: "Email", hint: "Only when push can't reach you." },
+  { name: "notifyReminders", label: "Reminders", hint: "A week before a trip, on the day, and money still owed after." },
 ] as const;
 
 const PROVIDER_LABELS: Record<string, string> = {
@@ -327,10 +327,10 @@ export default async function SettingsPage({
             />
           ) : null}
 
-          {current === "email" ? (
+          {current === "notifications" ? (
             <Panel
-              title="Email notifications"
-              hint="Invites you're asked for always send regardless of this."
+              title="Notifications"
+              hint="Mute one trip from its … menu on your trip list."
             >
               <form action={updateNotifications}>
                 <Stack gap={3}>
@@ -339,6 +339,7 @@ export default async function SettingsPage({
                       key={t.name}
                       name={t.name}
                       label={t.label}
+                      hint={"hint" in t ? t.hint : undefined}
                       defaultChecked={profile[t.name]}
                     />
                   ))}
@@ -404,8 +405,8 @@ export default async function SettingsPage({
                 <p className="text-sm text-ink-soft">
                   There&rsquo;s no consent banner because there&rsquo;s nothing
                   to consent to yet — Floc sends no marketing email and runs
-                  no analytics. The invite, nudge and money emails are
-                  transactional, not consent-based.
+                  no analytics. Notification emails are about your own trips,
+                  and switch off under Notifications.
                 </p>
                 <p className="text-sm text-ink-soft">
                   Want a copy of your data? Email{" "}

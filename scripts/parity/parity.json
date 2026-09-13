@@ -299,6 +299,9 @@
     "trips.setArchived": {
       "mobile": "yes"
     },
+    "trips.setMuted": {
+      "mobile": "yes"
+    },
     "trips.setStarred": {
       "mobile": "yes"
     },

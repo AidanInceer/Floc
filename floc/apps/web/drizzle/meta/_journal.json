@@ -225,6 +225,20 @@
       "when": 1789300437364,
       "tag": "0031_early_aqueduct",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "6",
+      "when": 1789311582529,
+      "tag": "0032_spotty_lockheed",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "6",
+      "when": 1789311596725,
+      "tag": "0033_nasty_clint_barton",
+      "breakpoints": true
     }
   ]
 }

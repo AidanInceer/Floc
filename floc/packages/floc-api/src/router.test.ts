@@ -53,6 +53,7 @@ function fakePort(overrides: Partial<FlocPort> = {}): FlocPort {
     removePackingLine: vi.fn().mockResolvedValue(undefined),
     listTrips: vi.fn().mockResolvedValue([]),
     setTripStarred: vi.fn().mockResolvedValue(undefined),
+    setTripMuted: vi.fn().mockResolvedValue(undefined),
     // Only member "u1" is in trip 1; everyone and everything else is null.
     loadTrip: vi.fn(async (viewerId: string, tripId: number) =>
       viewerId === "u1" && tripId === 1 ? TRIP : null,
@@ -128,6 +129,20 @@ describe("starring a trip", () => {
       code: "NOT_FOUND",
     });
     expect(port.setTripStarred).not.toHaveBeenCalled();
+  });
+});
+
+describe("muting a trip (#346)", () => {
+  it("mutes only for the caller", async () => {
+    const { caller: ana, port } = caller("u1");
+    await ana.trips.setMuted({ tripId: 1, muted: true });
+    expect(port.setTripMuted).toHaveBeenCalledWith("u1", 1, true);
+  });
+
+  it("refuses a trip the caller is not on", async () => {
+    const { caller: bo, port } = caller("u2");
+    await expect(bo.trips.setMuted({ tripId: 1, muted: true })).rejects.toMatchObject({ code: "NOT_FOUND" });
+    expect(port.setTripMuted).not.toHaveBeenCalled();
   });
 });
 

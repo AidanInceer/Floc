@@ -72,6 +72,25 @@ describe("starring a trip", () => {
   });
 });
 
+describe("muting a trip (#346)", () => {
+  it("mutes it for the viewer alone, and unmutes again", async () => {
+    await webPort.setTripMuted(world.member, world.ours.id, true);
+
+    const mine = await webPort.listTrips(world.member, { archived: false });
+    const theirs = await webPort.listTrips(world.admin, { archived: false });
+    expect(mine.find((t) => t.id === world.ours.id)?.muted).toBe(true);
+    expect(theirs.find((t) => t.id === world.ours.id)?.muted).toBe(false);
+
+    await webPort.setTripMuted(world.member, world.ours.id, false);
+    const again = await webPort.listTrips(world.member, { archived: false });
+    expect(again.find((t) => t.id === world.ours.id)?.muted).toBe(false);
+  });
+
+  it("refuses a non-member (rule 5)", async () => {
+    await expect(webPort.setTripMuted(world.outsider, world.ours.id, true)).rejects.toThrow();
+  });
+});
+
 describe("the three admin powers (rule 6)", () => {
   it("lets an admin archive, promote and remove", async () => {
     await webPort.archiveTrip(world.admin, world.ours.id, true);

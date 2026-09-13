@@ -65,23 +65,13 @@ beforeEach(async () => {
 });
 
 describe("adding an expense", () => {
-  it("writes the expense and an even split, and mails everyone but the payer", async () => {
+  it("writes the expense and an even split, and leaves telling people to the notification rules (#346)", async () => {
     expect(await addExpense({}, expenseForm())).toEqual({});
 
     const [expense] = await listExpenses(world.ours.id);
     expect(expense).toMatchObject({ description: "Dinner", amountMinor: 3000, currency: "GBP" });
     const splits = await listSplits(world.ours.id);
     expect(splits.map((s) => s.owedAmountMinor)).toEqual([1500, 1500]);
-    expect(await sentTo()).toEqual([`${world.member}@example.test`]);
-  });
-
-  it("mails a participant who is no longer on the roster", async () => {
-    await addExpense({}, expenseForm({ participant: [world.admin, world.outsider] }));
-    expect(await sentTo()).toEqual([`${world.outsider}@example.test`]);
-  });
-
-  it("mails nobody when the payer is the only participant", async () => {
-    await addExpense({}, expenseForm({ participant: [world.admin] }));
     expect(await sentTo()).toEqual([]);
   });
 
@@ -126,8 +116,6 @@ describe("editing an expense", () => {
 
   it("replaces the fields and the whole split set", async () => {
     const expenseId = String(await existing());
-    await sentTo();
-    sendEmails.mockReset();
 
     const result = await updateExpense(
       {},
@@ -139,7 +127,6 @@ describe("editing an expense", () => {
     expect(expense).toMatchObject({ description: "Late dinner", amountMinor: 1200 });
     const splits = await listSplits(world.ours.id);
     expect(splits.map((s) => [s.userId, s.owedAmountMinor])).toEqual([[world.member, 1200]]);
-    expect(await sentTo()).toEqual([`${world.member}@example.test`]);
   });
 
   it("says so when the expense is gone", async () => {

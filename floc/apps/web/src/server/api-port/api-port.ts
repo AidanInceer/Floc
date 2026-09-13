@@ -112,6 +112,7 @@ import {
   createTripWithAdmin,
   listTripsFor,
   setTripArchived,
+  setTripMuted,
   setTripStarred,
   softDeleteTrip,
   updateTrip,
@@ -390,6 +391,12 @@ export const webPort: FlocPort = {
   async setTripStarred(viewerId, tripId, starred) {
     await scoped(viewerId, tripId);
     await setTripStarred(tripId, viewerId, starred);
+    refresh({ kind: "tripList" });
+  },
+
+  async setTripMuted(viewerId, tripId, muted) {
+    await scoped(viewerId, tripId);
+    await setTripMuted(tripId, viewerId, muted);
     refresh({ kind: "tripList" });
   },
 

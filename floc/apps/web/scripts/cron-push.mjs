@@ -14,8 +14,9 @@ const response = await fetch(new URL("/api/cron/push", url), {
   method: "POST",
   headers: { authorization: `Bearer ${secret}` },
 });
+const body = await response.text();
 if (!response.ok) {
-  console.error(`[cron-push] ${response.status}`);
+  console.error(`[cron-push] ${response.status} ${body}`);
   process.exit(1);
 }
-console.log(`[cron-push] sent ${(await response.json()).sent}`);
+console.log(`[cron-push] ${body}`);

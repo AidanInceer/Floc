@@ -28,6 +28,8 @@ export type TripCardData = {
   role: TripRole;
   /** The viewer's own star. */
   starred?: boolean;
+  /** The viewer's own mute (#346). */
+  muted?: boolean;
   members: { name: string; avatarIcon?: AvatarIcon | null; tone?: string }[];
   needsYou?: boolean;
   where?: string | null; // first overnight place, or null if unsettled (ticket 70)
@@ -176,6 +178,7 @@ function LiveActions({ trip }: { trip: TripCardData }) {
         tripName={trip.name}
         isAdmin={isAdmin}
         color={trip.color ?? null}
+        muted={Boolean(trip.muted)}
       />
     </div>
   );

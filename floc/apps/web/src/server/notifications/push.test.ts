@@ -78,6 +78,20 @@ describe("sending pushes", () => {
     expect(sent[0].data.ids).toHaveLength(2);
   });
 
+  it("sends nothing from a muted trip, or with push switched off", async () => {
+    await registerPushToken(world.member, "ExponentPushToken[a]");
+    await db.update(schema.tripMembership).set({ mutedAt: new Date() }).where(eq(schema.tripMembership.userId, world.member));
+    await nudge();
+    const { sent, send } = sender();
+    await sendDuePushes(send, minutes(3));
+    expect(sent).toEqual([]);
+
+    await db.update(schema.tripMembership).set({ mutedAt: null });
+    await db.insert(schema.userProfile).values({ userId: world.member, notifyPush: false });
+    await sendDuePushes(send, minutes(4));
+    expect(sent).toEqual([]);
+  });
+
   it("skips what was already read", async () => {
     await registerPushToken(world.member, "ExponentPushToken[a]");
     await nudge();

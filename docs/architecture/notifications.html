@@ -25,8 +25,8 @@ without flooding them. Decided in the grilling of
     Change --> Log --> Rules --> Inbox
     Inbox --> Bell
     Inbox --> Cron
-    Cron -->|push on| Push
-    Cron -->|no push| Email</pre>
+    Cron -->|phone, push on| Push
+    Cron -->|no phone or push off| Email</pre>
 
 <h2>The backbone</h2>
 <ul>
@@ -78,7 +78,10 @@ Not in scope: votes, decision deadlines. Mentions come later
 <h2>Reminders</h2>
 <p>Not changes — dates. The cron checks once a day and sends at 08:00 UTC
 (no timezones; revisit when users outside Europe grow). Trips with no dates
-get none. Each sends once per person per trip.</p>
+get none. Each sends once per person per trip: a <code>reminder</code> row with a
+unique (kind, trip, person) key is claimed before anything is written, so an
+overlapping run inserts nothing twice. The cron runs every 5 minutes, so "at
+08:00" means the first run from 08:00 UTC that day.</p>
 <table>
 <tr><th>Reminder</th><th>Who</th><th>When</th></tr>
 <tr><td>Your trip starts in a week</td><td>Every member</td><td>7 days before start</td></tr>
@@ -111,6 +114,15 @@ overlapping run skips them and a crashed send is retried.</li>
 <li>A phone only gets notifications from after it registered.</li>
 <li>Android push needs <code>google-services.json</code> (EAS file variable
 <code>GOOGLE_SERVICES_JSON</code>) and the FCM key uploaded to EAS.</li>
+<li>Each run does reminders, then push, then email. One failing does not stop the others.</li>
+<li>Email waits 10 minutes, so something already opened in the app is read first. It reaches
+exactly the people push does not — no live phone registered before the change, or push
+switched off — so one notification is never both.</li>
+<li>A muted trip is skipped by push and email alike; its rows still reach the inbox.</li>
+<li>Email links are plain web links. Once the site serves
+<code>/.well-known/assetlinks.json</code> (<code>ANDROID_CERT_SHA256</code>) and
+<code>/.well-known/apple-app-site-association</code> (<code>APPLE_TEAM_ID</code>), a phone
+with the app opens them in the app; without those, they open the website.</li>
 </ul>
 </main>
 <script src="../assets/nav.js"></script>

@@ -28,6 +28,7 @@ export function notificationRows(where: SQL | undefined, limit: number) {
       tripId: activity.tripId,
       kind: activity.kind,
       href: activity.href,
+      detail: activity.detail,
       loud: notification.loud,
       readAt: notification.readAt,
       at: activity.lastModifiedAt,

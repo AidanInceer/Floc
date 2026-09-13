@@ -53,6 +53,8 @@ export type TripSummary = {
   role: TripRole;
   /** The viewer's own star — never another member's. */
   starred: boolean;
+  /** The viewer's own mute: no push or email from this trip (#346). */
+  muted: boolean;
 };
 
 export type TripMember = {
@@ -361,9 +363,9 @@ export type MySettings = {
   packTier: PackTier;
   packAutoGenerate: boolean;
   homeCurrency: Currency;
-  notifyInvites: boolean;
-  notifyMoney: boolean;
-  notifyNudges: boolean;
+  notifyPush: boolean;
+  notifyEmail: boolean;
+  notifyReminders: boolean;
   /** `provider` is the raw id (`google`, `credential`); a client names it. */
   signInMethods: { id: string; provider: string }[];
 };
@@ -767,7 +769,7 @@ export type FlocPort = {
 
   updateNotifications(
     viewerId: string,
-    input: { invites: boolean; money: boolean; nudges: boolean },
+    input: { push: boolean; email: boolean; reminders: boolean },
   ): Promise<void>;
 
   /**
@@ -829,6 +831,8 @@ export type FlocPort = {
 
   /** Stars the trip for the viewer alone. Any member may (not an admin power). */
   setTripStarred(viewerId: string, tripId: number, starred: boolean): Promise<void>;
+
+  setTripMuted(viewerId: string, tripId: number, muted: boolean): Promise<void>;
 
   /** Null when the trip does not exist OR the viewer is not a member — the same answer for both (rule 5). */
   loadTrip(viewerId: string, tripId: number): Promise<TripDetail | null>;

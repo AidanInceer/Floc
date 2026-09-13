@@ -11,6 +11,7 @@
 import { parseTagNames, readTags } from "@floc/core/trip/tags";
 import { readTripColor, type TripColor } from "@floc/core/trip/trip-color";
 
+import type { ReactNode } from "react";
 import { View } from "react-native";
 
 import { Sheet } from "../system/sheet";
@@ -43,7 +44,10 @@ export function TripSheet({
   onChange,
   onClose,
   write,
+  children,
 }: {
+  /** Controls that are yours alone, like mute, drawn above the shared footer. */
+  children?: ReactNode;
   trip: TripSheetTrip | null;
   /** Null when the sheet is shut. The caller owns it so it survives a re-read of the trip. */
   draft: Draft | null;
@@ -71,6 +75,7 @@ export function TripSheet({
             onChangeRows={(rows) => onChange({ ...draft, rows })}
           />
           <View style={{ paddingHorizontal: space.lg, gap: space.sm }}>
+            {children}
             {write.error ? <Body tone="red">{write.error}</Body> : null}
             <TripActions
               isAdmin={trip.role === "admin"}

@@ -12,7 +12,6 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import {
-  emailsForUsers,
   findLiveExpense,
   findLiveSettlement,
   listSettlements,
@@ -184,14 +183,5 @@ describe("writes against deleted rows", () => {
     expect((await expensesOf(world.ours.id))[0].deletedAt?.getTime()).toBe(
       first?.getTime(),
     );
-  });
-});
-
-describe("addressing the notification", () => {
-  it("looks up participants who have left the roster, and shortcuts on none", async () => {
-    expect(await emailsForUsers([])).toEqual([]);
-    const rows = await emailsForUsers([world.member]);
-    expect(rows).toHaveLength(1);
-    expect(rows[0].id).toBe(world.member);
   });
 });

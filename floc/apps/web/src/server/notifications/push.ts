@@ -5,17 +5,14 @@
  */
 import "server-only";
 
-import { and, eq, exists, gte, inArray, isNotNull, isNull, lt, lte, or } from "drizzle-orm";
+import { and, eq, inArray, isNull, not } from "drizzle-orm";
 
 import { db } from "@/db";
-import { activity, notification, pushToken } from "@/db/schema";
+import { pushToken } from "@/db/schema";
 import { pushText } from "@floc/core/notifications/notification-text";
-import { planPushes, PUSH_WAIT_MS, type PlannedPush } from "@floc/core/notifications/push-plan";
+import { PUSH_LIMITS, PUSH_WAIT_MS } from "@floc/core/notifications/push-plan";
 import { touch } from "@/server/audit";
-import { notificationRows, stillVisible } from "@/server/notifications/visible";
-
-const CLAIM_LEASE_MS = 5 * 60_000;
-const BATCH = 500;
+import { claim, hasPhone, markSent, planDue, release, switchedOff, type Channel } from "@/server/notifications/outbox";
 
 export type PushMessage = {
   to: string;
@@ -25,6 +22,15 @@ export type PushMessage = {
 };
 
 export type PushSender = (messages: PushMessage[]) => Promise<{ deadTokens: string[] }>;
+
+const PUSH: Channel = {
+  claimKey: "pushClaimedAt",
+  sentKey: "pushedAt",
+  waitMs: PUSH_WAIT_MS,
+  limits: PUSH_LIMITS,
+  reaches: () => and(hasPhone(), not(switchedOff("notifyPush"))),
+  words: (kind, parts) => pushText(kind, parts),
+};
 
 export async function registerPushToken(userId: string, token: string): Promise<void> {
   const at = new Date();
@@ -44,76 +50,6 @@ export async function forgetPushToken(userId: string, token: string): Promise<vo
     .where(and(eq(pushToken.token, token), eq(pushToken.userId, userId)));
 }
 
-const hasPhone = () =>
-  exists(
-    db
-      .select({ id: pushToken.id })
-      .from(pushToken)
-      .where(
-        and(
-          eq(pushToken.userId, notification.userId),
-          isNull(pushToken.deletedAt),
-          lte(pushToken.registeredAt, activity.createdAt),
-        ),
-      ),
-  );
-
-async function duePushes(now: Date) {
-  const rows = await notificationRows(
-    and(
-      eq(notification.loud, true),
-      isNull(notification.readAt),
-      isNull(notification.pushedAt),
-      or(
-        isNull(notification.pushClaimedAt),
-        lt(notification.pushClaimedAt, new Date(now.getTime() - CLAIM_LEASE_MS)),
-      ),
-      lte(activity.lastModifiedAt, new Date(now.getTime() - PUSH_WAIT_MS)),
-      stillVisible(),
-      hasPhone(),
-    ),
-    BATCH,
-  );
-  return rows.map((r) => ({
-    notificationId: r.id,
-    userId: r.userId,
-    tripId: r.tripId,
-    tripName: r.tripName,
-    text: pushText(r.kind, r.actorDisplayName ?? r.actorName),
-    href: r.href,
-  }));
-}
-
-async function sentToday(now: Date) {
-  const rows = await db
-    .selectDistinct({ userId: notification.userId, tripId: activity.tripId, sentAt: notification.pushedAt })
-    .from(notification)
-    .innerJoin(activity, eq(activity.id, notification.activityId))
-    .where(and(isNotNull(notification.pushedAt), gte(notification.pushedAt, new Date(now.getTime() - 86_400_000))))
-    .all();
-  return rows.map((r) => ({ ...r, sentAt: r.sentAt! }));
-}
-
-/** Only rows this run wins are sent; a run that loses the race sends nothing for them. */
-async function claim(push: PlannedPush, now: Date): Promise<number[]> {
-  const won = await db
-    .update(notification)
-    .set({ pushClaimedAt: now })
-    .where(
-      and(
-        inArray(notification.id, push.notificationIds),
-        isNull(notification.pushedAt),
-        or(
-          isNull(notification.pushClaimedAt),
-          lt(notification.pushClaimedAt, new Date(now.getTime() - CLAIM_LEASE_MS)),
-        ),
-      ),
-    )
-    .returning({ id: notification.id })
-    .all();
-  return won.map((w) => w.id);
-}
-
 async function phonesOf(userIds: string[]) {
   return db
     .select({ userId: pushToken.userId, token: pushToken.token })
@@ -123,14 +59,14 @@ async function phonesOf(userIds: string[]) {
 }
 
 export async function sendDuePushes(send: PushSender, now = new Date()): Promise<number> {
-  const plan = planPushes(await duePushes(now), await sentToday(now), now);
+  const plan = await planDue(PUSH, now);
   if (plan.length === 0) return 0;
 
   const claimed: number[] = [];
   const phones = await phonesOf([...new Set(plan.map((p) => p.userId))]);
   const messages: PushMessage[] = [];
   for (const push of plan) {
-    const ids = await claim(push, now);
+    const ids = await claim(PUSH, push.notificationIds, now);
     if (ids.length === 0) continue;
     claimed.push(...ids);
     for (const phone of phones.filter((p) => p.userId === push.userId)) {
@@ -143,11 +79,11 @@ export async function sendDuePushes(send: PushSender, now = new Date()): Promise
   try {
     ({ deadTokens } = await send(messages));
   } catch (error) {
-    await db.update(notification).set({ pushClaimedAt: null }).where(inArray(notification.id, claimed));
+    await release(PUSH, claimed);
     throw error;
   }
 
-  await db.update(notification).set({ pushedAt: now, ...touch() }).where(inArray(notification.id, claimed));
+  await markSent(PUSH, claimed, now);
   if (deadTokens.length > 0) {
     await db
       .update(pushToken)

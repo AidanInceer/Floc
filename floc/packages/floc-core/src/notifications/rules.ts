@@ -19,8 +19,25 @@ export const ACTIVITY_KINDS = [
   "trip_invited",
   "friend_requested",
   "friend_accepted",
+  "trip_starts_week",
+  "trip_starts_today",
+  "still_owe",
+  "year_ago",
 ] as const;
 export type ActivityKind = (typeof ACTIVITY_KINDS)[number];
+
+/** Dates, not changes (#346): made by the cron, never by a person, and exempt from the send limits. */
+export const REMINDER_KINDS = [
+  "trip_starts_week",
+  "trip_starts_today",
+  "still_owe",
+  "year_ago",
+] as const satisfies ActivityKind[];
+export type ReminderKind = (typeof REMINDER_KINDS)[number];
+
+export function isReminder(kind: ActivityKind): kind is ReminderKind {
+  return (REMINDER_KINDS as readonly ActivityKind[]).includes(kind);
+}
 
 /** Kinds whose `subjectId` is a note — the inbox hides them once the note is gone. */
 export const COMMENT_KINDS = ["comment_added", "comment_replied"] as const satisfies ActivityKind[];
@@ -53,6 +70,10 @@ const RULES: Record<ActivityKind, Rule> = {
   trip_invited: { audience: "affected", loud: "affected" },
   friend_requested: { audience: "affected", loud: "affected" },
   friend_accepted: { audience: "affected", loud: "affected" },
+  trip_starts_week: { audience: "affected", loud: "affected" },
+  trip_starts_today: { audience: "affected", loud: "affected" },
+  still_owe: { audience: "affected", loud: "affected" },
+  year_ago: { audience: "affected", loud: "affected" },
 };
 
 export type Recipient = { userId: string; loud: boolean };
