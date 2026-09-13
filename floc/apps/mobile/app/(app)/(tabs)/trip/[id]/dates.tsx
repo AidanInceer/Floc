@@ -31,13 +31,15 @@ import {
   type Tally,
 } from "@floc/core/dates/availability";
 import { paintRange, pickedRange } from "@floc/core/dates/calendar-gestures";
-import { dateRange, formatDateRange } from "@floc/core/dates/dates";
+import { dateRange, formatDateRange, today } from "@floc/core/dates/dates";
+import { bookingPlan } from "@floc/core/trip/booking-links";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
 
 import { DatesWeather, forecastIndex } from "@/components/days/dates-weather";
+import { BookingPanel } from "@/components/trip/booking-panel";
 import { MonthGrid, type CellLook } from "@/components/days/month-grid";
 import { WEATHER_LOOK, type ForecastDay } from "@/components/days/weather-panel";
 import {
@@ -224,6 +226,7 @@ export default function Dates() {
   const trip = useQuery(trpc.trips.get.queryOptions({ tripId }, { enabled: ready }));
   const rows = useQuery(trpc.availability.list.queryOptions({ tripId }, { enabled: ready }));
   const weather = useQuery(trpc.itinerary.forecast.queryOptions({ tripId }, { enabled: ready }));
+  const days = useQuery(trpc.itinerary.days.queryOptions({ tripId }, { enabled: ready }));
 
   const [view, setView] = useState<CalendarView>("mine");
   const [openDay, setOpenDay] = useState<string | null>(null);
@@ -268,6 +271,13 @@ export default function Dates() {
     edits[date] ?? marked.some((row) => row.userId === me && row.date === date);
 
   const windowDays = windowSet(range, trip.data.startDate, trip.data.endDate);
+
+  const booking = bookingPlan({
+    trip: trip.data,
+    days: (days.data ?? []).map((d) => ({ ...d, dayId: d.id })),
+    today: today(),
+    adults: trip.data.members.length,
+  });
 
   const forecast = forecastIndex(weather.data);
   const forecastByDate = forecast.byDate;
@@ -364,6 +374,10 @@ export default function Dates() {
           openDay={openDay}
           onSeePro={() => router.push("/settings")}
         />
+      ) : null}
+
+      {booking ? (
+        <BookingPanel plan={booking} onOpenDays={() => router.push(`/trip/${tripId}/days`)} />
       ) : null}
     </ScrollView>
   );

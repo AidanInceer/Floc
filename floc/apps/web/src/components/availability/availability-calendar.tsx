@@ -277,7 +277,7 @@ export function AvailabilityCalendar({
         value={view}
         options={hasWeather ? [...VIEWS, weatherOption(weatherLocked)] : VIEWS}
         onChange={changeView}
-        className="mb-3"
+        className="mb-4"
       />
 
       <div className="rounded-md border border-rule bg-sheet p-3 shadow-card">

@@ -58,7 +58,8 @@ import { absoluteUrl } from "@/server/auth/email";
 import { formatMoney } from "@floc/core/money/money";
 import type { Currency } from "@floc/core/money/currency";
 import { tripStateFor } from "@floc/core/trip/trip-state";
-import { formatDateRange } from "@floc/core/dates/dates";
+import { formatDateRange, today } from "@floc/core/dates/dates";
+import { bookingPlan } from "@floc/core/trip/booking-links";
 import {
   Avatar,
   Badge,
@@ -165,6 +166,8 @@ export default async function OverviewPage({
     expenseCount: expenseRows.length,
     viewerHasPacking: hasPacking,
   });
+  const canBook =
+    bookingPlan({ trip, days: [], today: today(), adults: members.length }) !== null;
   const spend = spendByCurrency(expenseRows);
   const inviteUrl = absoluteUrl(`/invite/${trip.inviteToken}`);
   const tags = readTags(trip.tags);
@@ -269,6 +272,14 @@ export default async function OverviewPage({
             days={routeDays}
             transportModes={transportModes}
           />
+          {canBook ? (
+            <Link
+              href={`/trip/${tripId}/dates`}
+              className="self-start text-sm text-pen hover:text-pen-deep"
+            >
+              Book flights · Find a stay →
+            </Link>
+          ) : null}
         </div>
 
         {/* The group. Narrow on purpose: every panel in here is a list or a

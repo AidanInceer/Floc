@@ -199,6 +199,21 @@ export function ShareGlyph({ color }: { color: string }) {
   );
 }
 
+/** Leaves Floc for another site — the web's booking-link arrow. */
+export function OutGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={12} height={12} viewBox="0 0 14 14" fill="none">
+      <Path
+        d="M5 2.5h6.5V9M11.5 2.5 2.5 11.5"
+        stroke={color}
+        strokeWidth={1.2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
 /**
  * A paperclip: this block has files on it (ticket 324). The same path the web
  * draws, so a clipped event is one picture across both apps.
