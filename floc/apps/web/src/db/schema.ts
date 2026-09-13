@@ -295,6 +295,8 @@ export const tripMembership = sqliteTable(
      * tells them apart.
      */
     packGeneratedAt: integer("pack_generated_at", { mode: "timestamp" }),
+    /** Your own star on your trip list. Per person: one member's star is nobody else's. */
+    starredAt: integer("starred_at", { mode: "timestamp" }),
     ...audit,
   },
   (t) => [

@@ -247,6 +247,22 @@ export function ProStarGlyph({ color }: { color: string }) {
   );
 }
 
+/** A trip you starred. Same drawing as Pro's mark; `on` fills it. */
+export function StarGlyph({ color, on }: { color: string; on: boolean }) {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 14 14" fill="none">
+      <Path
+        d="M7 1.9 8.6 5.2 12.2 5.7 9.6 8.2 10.2 11.8 7 10.1 3.8 11.8 4.4 8.2 1.8 5.7 5.4 5.2Z"
+        stroke={color}
+        fill={on ? color : "none"}
+        strokeWidth={STROKE}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
 const WEATHER_PATHS: Record<WeatherCondition, string[]> = {
   sun: [
     "M7 4.6a2.4 2.4 0 1 0 0 4.8 2.4 2.4 0 0 0 0-4.8Z",

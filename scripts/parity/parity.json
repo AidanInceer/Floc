@@ -281,6 +281,9 @@
     "trips.setArchived": {
       "mobile": "yes"
     },
+    "trips.setStarred": {
+      "mobile": "yes"
+    },
     "trips.startFromPreset": {
       "mobile": "yes"
     },

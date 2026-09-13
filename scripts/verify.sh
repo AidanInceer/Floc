@@ -126,10 +126,13 @@ fi
 
 # `git status --porcelain`, not `git diff`: a missing migration shows up as a
 # brand new *untracked* .sql file, which `git diff` does not report at all.
+# Why: compared with the state before generating, so a migration written in this
+# slice but not yet committed is not mistaken for a missing one.
 step "Schema changes ship with a migration"
+before=$(git status --porcelain -- floc/apps/web/drizzle)
 if pnpm --filter floc-web db:generate >/tmp/verify-drizzle.log 2>&1; then
   drift=$(git status --porcelain -- floc/apps/web/drizzle)
-  if [ -n "$drift" ]; then
+  if [ "$drift" != "$before" ]; then
     bad "a schema change has no migration"
     echo "$drift"
     echo "     fix: pnpm --filter floc-web db:generate, then commit floc/apps/web/drizzle/"

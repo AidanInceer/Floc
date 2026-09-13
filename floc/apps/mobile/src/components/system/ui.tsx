@@ -501,6 +501,7 @@ export function Screen({ children }: { children: ReactNode }) {
 export function IconButton({
   label,
   on,
+  onColor = "mint",
   tone = "quiet",
   disabled,
   children,
@@ -510,6 +511,8 @@ export function IconButton({
   label: string;
   /** Filled rather than outlined — the state is on. */
   on?: boolean;
+  /** The pastel an "on" button wears. */
+  onColor?: "mint" | "peri" | "butter" | "blush";
   tone?: "quiet" | "danger";
   disabled?: boolean;
   children: (color: string) => ReactNode;
@@ -519,11 +522,11 @@ export function IconButton({
   const ink = disabled
     ? c["ink-3"]
     : on
-      ? c["mint-ink"]
+      ? c[`${onColor}-ink`]
       : tone === "danger"
         ? c.red
         : c["ink-2"];
-  const ground = on && !disabled ? c.mint : "transparent";
+  const ground = on && !disabled ? c[onColor] : "transparent";
 
   return (
     <Pressable
@@ -541,7 +544,7 @@ export function IconButton({
         borderRadius: radius.md,
         backgroundColor: ground,
         borderWidth: StyleSheet.hairlineWidth,
-        borderColor: on && !disabled ? c["mint-edge"] : c.rule,
+        borderColor: on && !disabled ? c[`${onColor}-edge`] : c.rule,
         opacity: disabled ? 0.4 : pressed ? 0.6 : 1,
       })}
     >

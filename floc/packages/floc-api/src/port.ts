@@ -51,6 +51,8 @@ export type TripSummary = {
   tags: string[] | null;
   colorKey: string | null;
   role: TripRole;
+  /** The viewer's own star — never another member's. */
+  starred: boolean;
 };
 
 export type TripMember = {
@@ -824,6 +826,9 @@ export type FlocPort = {
   stepKitItemQuantity(viewerId: string, itemId: number, delta: 1 | -1): Promise<void>;
 
   listTrips(viewerId: string, options: { archived: boolean }): Promise<TripSummary[]>;
+
+  /** Stars the trip for the viewer alone. Any member may (not an admin power). */
+  setTripStarred(viewerId: string, tripId: number, starred: boolean): Promise<void>;
 
   /** Null when the trip does not exist OR the viewer is not a member — the same answer for both (rule 5). */
   loadTrip(viewerId: string, tripId: number): Promise<TripDetail | null>;

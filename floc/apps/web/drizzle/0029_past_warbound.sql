@@ -1,0 +1,1 @@
+ALTER TABLE `trip_membership` ADD `starred_at` integer;
