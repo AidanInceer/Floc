@@ -19,6 +19,9 @@ import { subscription } from "@/db/schema";
 import type { Subscription, SubscriptionStatus } from "@/db/schema";
 import type { Currency } from "@floc/core/money/currency";
 import { BILLING_INTERVALS, type BillingInterval } from "@floc/core/billing/plans";
+import { isLive } from "@floc/core/billing/subscription-copy";
+
+import { endsWithoutRenewing } from "./cancellation";
 
 export { BILLING_INTERVALS, type BillingInterval };
 
@@ -97,7 +100,7 @@ export async function recordSubscription(args: {
       typeof sub.customer === "string" ? sub.customer : sub.customer.id,
     stripeSubscriptionId: sub.id,
     currentPeriodEnd: periodEnd,
-    cancelAtPeriodEnd: sub.cancel_at_period_end,
+    cancelAtPeriodEnd: endsWithoutRenewing(sub),
     lastModifiedAt: new Date(),
   };
 
@@ -165,21 +168,21 @@ export const proPrices = cache(async function proPrices(): Promise<ProPrice[]> {
 });
 
 /**
- * The account's own subscription row, or null (ticket 247). Newest first, so
- * an account that resubscribed after lapsing shows the current arrangement
- * rather than the dead one.
+ * The account's own subscription row, or null (ticket 247). A live row first,
+ * then the newest — an account can hold a Stripe and a store row, and a lapsed
+ * one must not hide the one still paying.
  */
 export const subscriptionOf = cache(async function subscriptionOf(
   userId: string,
 ): Promise<Subscription | null> {
-  const row = await db
+  const rows = await db
     .select()
     .from(subscription)
     .where(and(eq(subscription.userId, userId), isNull(subscription.deletedAt)))
     .orderBy(desc(subscription.id))
-    .get();
+    .all();
 
-  return row ?? null;
+  return rows.find((row) => isLive(row)) ?? rows[0] ?? null;
 });
 
 /**

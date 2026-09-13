@@ -2,13 +2,31 @@
 import { requireTripAccess } from "@/server/access";
 import { listAvailability } from "@/server/itinerary/availability";
 import { canUseFeature } from "@/server/billing/entitlements";
-import { listDayLoads } from "@/server/itinerary/itinerary";
+import { listDayLoads, listRouteDays } from "@/server/itinerary/itinerary";
+import { bookingPlan } from "@floc/core/trip/booking-links";
+import { today } from "@floc/core/dates/dates";
+import { BookingCard } from "@/components/booking/booking-card";
 import { getTripForecast } from "@/server/itinerary/weather";
 import { bestWindow, monthOf, thisMonth } from "@floc/core/dates/availability";
 import { formatDateRange, nightsBetween } from "@floc/core/dates/dates";
-import { windowCost, windowCostLabel, windowCostNoun } from "@floc/core/trip/trip-window";
-import { Field, Select, Stack, Textarea, menuDangerItemClass } from "@/components/system/ui";
-import { ConfirmSubmit, Menu, Sheet, SubmitButton } from "@/components/system/client-ui";
+import {
+  windowCost,
+  windowCostLabel,
+  windowCostNoun,
+} from "@floc/core/trip/trip-window";
+import {
+  Field,
+  Select,
+  Stack,
+  Textarea,
+  menuDangerItemClass,
+} from "@/components/system/ui";
+import {
+  ConfirmSubmit,
+  Menu,
+  Sheet,
+  SubmitButton,
+} from "@/components/system/client-ui";
 import { AvailabilityCalendar } from "@/components/availability/availability-calendar";
 import { BestWindowCard } from "@/components/availability/best-window-card";
 import { WhoAnswered } from "@/components/availability/who-answered";
@@ -38,9 +56,10 @@ export default async function DatesPage({
   const { trip, viewer, members } = access;
   const tripId = trip.id;
 
-  const [rows, dayLoads, forecast, weatherPro] = await Promise.all([
+  const [rows, dayLoads, routeDays, forecast, weatherPro] = await Promise.all([
     listAvailability(tripId),
     listDayLoads(tripId),
+    listRouteDays(tripId),
     // Null → the calendar offers no Weather mode (ticket 148), and always null
     // on a free trip — the gate is inside the read (ticket 248).
     getTripForecast(tripId),
@@ -79,6 +98,13 @@ export default async function DatesPage({
   const best = bestWindow(rows);
   const bestCost = best ? windowCost(dayLoads, best.start, best.end) : null;
   const bestNoun = bestCost && windowCostNoun(bestCost);
+
+  const booking = bookingPlan({
+    trip,
+    days: routeDays.map((d) => ({ ...d, overnightPlaceName: d.placeName })),
+    today: today(),
+    adults: members.length,
+  });
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 pb-20 pt-6 sm:px-6">
@@ -139,38 +165,57 @@ export default async function DatesPage({
       </header>
 
       <div className="mt-6 grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
-        <AvailabilityCalendar
-          firstMonth={firstMonth}
-          monthCount={MONTHS_SHOWN}
-          mine={mine}
-          tallies={tallies}
-          memberCount={members.length}
-          tripStart={trip.startDate}
-          tripEnd={trip.endDate}
-          dayLoads={dayLoads}
-          weather={forecast}
-          weatherLocked={!weatherPro}
-          save={saveAvailability.bind(null, tripId)}
-          saveDates={setTripDates.bind(null, tripId)}
-        />
-
-        {/* Why: the top offset clears the view switch, so the rail lines up with the card. */}
-        <aside className="flex flex-col gap-4 lg:mt-[50px]">
-          {best ? (
-            <BestWindowCard
-              window={best}
+        {/* Why: `contents` below lg flattens both columns into one, so `order` can put the set dates straight under the calendar. */}
+        <div className="contents min-w-0 lg:flex lg:flex-col lg:gap-4">
+          <div className="order-1 min-w-0">
+            <AvailabilityCalendar
+              firstMonth={firstMonth}
+              monthCount={MONTHS_SHOWN}
+              mine={mine}
+              tallies={tallies}
               memberCount={members.length}
-              current={best.start === trip.startDate && best.end === trip.endDate}
-              cost={bestNoun ? { noun: bestNoun, label: windowCostLabel(bestCost!)! } : null}
-              apply={setTripDates.bind(null, tripId, best.start, best.end)}
+              tripStart={trip.startDate}
+              tripEnd={trip.endDate}
+              dayLoads={dayLoads}
+              weather={forecast}
+              weatherLocked={!weatherPro}
+              save={saveAvailability.bind(null, tripId)}
+              saveDates={setTripDates.bind(null, tripId)}
             />
+          </div>
+          {booking ? (
+            <div className="order-3">
+              <BookingCard tripId={tripId} plan={booking} />
+            </div>
           ) : null}
-          <WhoAnswered
-            members={members}
-            marked={marked}
-            viewerId={viewer.id}
-            nudgeFor={(m) => <NudgeSheet tripId={tripId} member={m} />}
-          />
+        </div>
+
+        <aside className="contents lg:flex lg:flex-col lg:gap-4">
+          {best ? (
+            <div className="order-2">
+              <BestWindowCard
+                window={best}
+                memberCount={members.length}
+                current={
+                  best.start === trip.startDate && best.end === trip.endDate
+                }
+                cost={
+                  bestNoun
+                    ? { noun: bestNoun, label: windowCostLabel(bestCost!)! }
+                    : null
+                }
+                apply={setTripDates.bind(null, tripId, best.start, best.end)}
+              />
+            </div>
+          ) : null}
+          <div className="order-4">
+            <WhoAnswered
+              members={members}
+              marked={marked}
+              viewerId={viewer.id}
+              nudgeFor={(m) => <NudgeSheet tripId={tripId} member={m} />}
+            />
+          </div>
         </aside>
       </div>
     </div>
@@ -178,9 +223,19 @@ export default async function DatesPage({
 }
 
 /** Chase a person, not nobody. */
-function NudgeSheet({ tripId, member }: { tripId: number; member: TripMember }) {
+function NudgeSheet({
+  tripId,
+  member,
+}: {
+  tripId: number;
+  member: TripMember;
+}) {
   return (
-    <Sheet trigger="Nudge" triggerVariant="secondary" title={`Nudge ${member.name}`}>
+    <Sheet
+      trigger="Nudge"
+      triggerVariant="secondary"
+      title={`Nudge ${member.name}`}
+    >
       {/* Real Server Action ref — a wrapping closure wouldn't survive the boundary. */}
       <form action={sendNudge}>
         <input type="hidden" name="tripId" value={tripId} />

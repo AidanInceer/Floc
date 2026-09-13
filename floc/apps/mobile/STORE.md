@@ -82,14 +82,25 @@ this table changes in the same slice.
 
 ## Payments — the one that gets apps rejected
 
-Pro is bought **on the website**, not in the app. The app may show what Pro is;
-it must not link to a purchase flow, and must not steer the user to the site to
-pay.
+Pro is bought **through the store** in the app, with `expo-iap`: Apple's
+StoreKit on iOS, Google Play Billing on Android. The stores take 15–30%. The
+website still sells through Stripe. The app must never link to the website's
+checkout or portal, and must never steer anyone there to pay — Apple's rule
+3.1.1 and Google's Play Billing policy forbid both.
 
-Apple's rule 3.1.1 forbids both the link and the nudge; Google's Play Billing
-policy is now equivalent. The app already reflects this — Pro is visible and
-not purchasable (#291) — and it must stay that way unless someone decides to
-add real in-app purchase, which is its own decision and its own 15–30% cut.
+- **Products.** `floc_pro_monthly` and `floc_pro_yearly`
+  (`@floc/core/billing/store-products`), auto-renewing, in one App Store
+  subscription group. On Play, one subscription per id with one base plan.
+- **The server decides.** The app sends each purchase to `billing.claim`. The
+  server checks it with Apple or Google, writes the `subscription` row, and only
+  then does the app finish the transaction.
+- **Renewals and refunds** reach `/api/billing/app-store` (App Store Server
+  Notifications V2) and `/api/billing/play` (Play real-time developer
+  notifications via Pub/Sub push).
+- **A web subscriber** sees "You're on Pro" in the app, with no link out.
+- **Review needs**: the renewal line and "Restore a purchase" beside the price
+  (both drawn), plus a privacy policy URL and terms of use in the store listing
+  — the legal pages are still #249.
 
 ## Age rating
 

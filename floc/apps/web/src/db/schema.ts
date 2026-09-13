@@ -295,6 +295,8 @@ export const tripMembership = sqliteTable(
      * tells them apart.
      */
     packGeneratedAt: integer("pack_generated_at", { mode: "timestamp" }),
+    /** Your own star on your trip list. Per person: one member's star is nobody else's. */
+    starredAt: integer("starred_at", { mode: "timestamp" }),
     ...audit,
   },
   (t) => [
@@ -886,7 +888,7 @@ export const SUBSCRIPTION_STATUSES = [
 export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUSES)[number];
 
 /** How the row came to exist. The gate never reads this (ticket 246). */
-export const SUBSCRIPTION_SOURCES = ["stripe", "comp"] as const;
+export const SUBSCRIPTION_SOURCES = ["stripe", "comp", "app_store", "play"] as const;
 export type SubscriptionSource = (typeof SUBSCRIPTION_SOURCES)[number];
 
 /**
@@ -909,6 +911,9 @@ export const subscription = sqliteTable(
       .default("stripe"),
     stripeCustomerId: text("stripe_customer_id"),
     stripeSubscriptionId: text("stripe_subscription_id"),
+    /** Apple's original transaction id, or Google's purchase token. */
+    storeTransactionId: text("store_transaction_id"),
+    storeProductId: text("store_product_id"),
     /** Paid up to here. Null means no end — a comp, which never lapses. */
     currentPeriodEnd: integer("current_period_end", { mode: "timestamp" }),
     cancelAtPeriodEnd: integer("cancel_at_period_end", { mode: "boolean" })
@@ -925,6 +930,8 @@ export const subscription = sqliteTable(
      * reason as `note_reaction_one_idx`.
      */
     uniqueIndex("subscription_stripe_idx").on(t.stripeSubscriptionId),
+    /** Same job for store notifications, and one purchase can back one account only. */
+    uniqueIndex("subscription_store_idx").on(t.storeTransactionId),
   ],
 );
 

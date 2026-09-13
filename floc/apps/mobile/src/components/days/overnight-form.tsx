@@ -12,6 +12,7 @@
  * state — the typed name is saved as it stands, and the map simply has no pin.
  */
 import { formatDate } from "@floc/core/dates/dates";
+import { FindAStay } from "../trip/booking-links";
 import { useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
 
@@ -49,12 +50,14 @@ export function OvernightForm({
   known,
   busy,
   problem,
+  groupSize,
   onSave,
   onCancel,
 }: {
   span: OvernightSpan;
   /** Places this trip's days already point at — an extend keeps the pin. */
   known: { id: number; name: string }[];
+  groupSize: number;
   busy: boolean;
   problem: string | null;
   /** Null clears the span. */
@@ -156,6 +159,10 @@ export function OvernightForm({
 
         {span.placeId !== null ? (
           <Button label="No overnight here" variant="danger" onPress={() => onSave(end, null)} />
+        ) : null}
+
+        {span.placeName ? (
+          <FindAStay place={span.placeName} start={span.start} end={span.end} adults={groupSize} />
         ) : null}
       </View>
       {/* Silence is the answer when the provider is down (rule 11) — the typed

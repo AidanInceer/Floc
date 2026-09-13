@@ -116,6 +116,22 @@ export function ButtonLink({
   );
 }
 
+/** A button that leaves Floc: new tab, no referrer, so the other site learns nothing about the trip. */
+export function ExternalButtonLink({
+  variant = "secondary",
+  className,
+  ...props
+}: Omit<ComponentProps<"a">, "target" | "rel"> & { variant?: Variant }) {
+  return (
+    <a
+      {...props}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={cx(buttonBase, variants[variant], className)}
+    />
+  );
+}
+
 /** The three-state semantics used identically across every tab. */
 export type Tone = "agreed" | "open" | "action" | "neutral" | "marine";
 

@@ -8,7 +8,7 @@
  * write, and the run `deriveStops` gives back.
  */
 import { deriveStops } from "@floc/core/itinerary/stops";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { OvernightForm } from "./overnight-form";
 import { OvernightRow } from "./overnight-row";
@@ -34,6 +34,7 @@ export function OvernightLine({
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
+  const trip = useQuery(trpc.trips.get.queryOptions({ tripId }));
 
   const save = useMutation({
     ...trpc.itinerary.setOvernight.mutationOptions(),
@@ -79,6 +80,7 @@ export function OvernightLine({
               ]),
           ).values(),
         ]}
+        groupSize={trip.data?.members.length ?? 1}
         busy={save.isPending}
         problem={problem}
         onCancel={() => setOpen(false)}

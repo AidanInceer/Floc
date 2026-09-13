@@ -195,50 +195,50 @@
   color-scheme: dark;
 
   /* Ground and surfaces. The canvas is the deepest; a surface lifts off it. */
-  --paper: #242430;
-  --sheet: #2e2e3d;
-  --sheet-2: #353546;
-  --sheet-3: #3d3d50;
-  --rule: #424255;
-  --rule-2: #535366;
+  --paper: #18181b;
+  --sheet: #222226;
+  --sheet-2: #2a2a2f;
+  --sheet-3: #323238;
+  --rule: #34343a;
+  --rule-2: #45454c;
 
   /* Ink, inverted. Never pure white: #ffffff on a near-black ground haloes. */
-  --ink: #ececf2;
-  --ink-2: #a4a4b3;
-  --ink-3: #9797a4;
+  --ink: #f0f0f3;
+  --ink-2: #b8b8c1;
+  --ink-3: #a2a2ac;
 
   /* Blue still means "yours to do". Lifted until it carries text on a dark
      surface; `--pen-deep` is now the *lighter* of the two, because on a dark
      ground "pressed harder" reads as brighter, not darker. */
-  --pen: #8ea0ff;
-  --pen-deep: #b6c1ff;
-  --pen-2: #232a4c;
+  --pen: #9aabff;
+  --pen-deep: #c3cbff;
+  --pen-2: #24283a;
 
-  /* The four pastels swap roles: the wash goes deep, the ink goes light. */
-  --peri: #272f5f;
-  --peri-ink: #b9c3ff;
-  --mint: #16382b;
-  --mint-ink: #8fd9b6;
-  --butter: #3d3114;
-  --butter-ink: #f0cd85;
-  --blush: #3c2229;
-  --blush-ink: #f3ab95;
+  /* The four pastels swap roles: the wash is only a hint, the ink carries the colour. */
+  --peri: #252a3d;
+  --peri-ink: #c3cbff;
+  --mint: #1f2e27;
+  --mint-ink: #9fe0c0;
+  --butter: #2f2a1e;
+  --butter-ink: #f2d596;
+  --blush: #302326;
+  --blush-ink: #f5b7a5;
 
   /* One step lighter than each wash here — an edge separates by lifting. */
-  --peri-edge: #3a4680;
-  --mint-edge: #245442;
-  --butter-edge: #5c4a20;
-  --blush-edge: #59333d;
+  --peri-edge: #39406a;
+  --mint-edge: #2f4a3d;
+  --butter-edge: #4a4230;
+  --blush-edge: #4c3438;
 
-  --highlight-2: #2a2210;
+  --highlight-2: #262219;
 
   /* Seats 6-8, the three with no domain pastel behind them. */
-  --who-6: #1e3434;
-  --who-6-ink: #97c4c1;
-  --who-7: #3a2e20;
-  --who-7-ink: #dcbe94;
-  --who-8: #2b2a26;
-  --who-8-ink: #c3bfb4;
+  --who-6: #212b2b;
+  --who-6-ink: #a6d0cc;
+  --who-7: #2d271f;
+  --who-7-ink: #e0c59f;
+  --who-8: #29292c;
+  --who-8-ink: #c8c5bd;
 
   /* A shadow on a dark ground has to be near-black and harder, or the lift
      under a card is invisible. */

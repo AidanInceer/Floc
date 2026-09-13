@@ -27,6 +27,7 @@ import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import type { Currency } from "@floc/core/money/currency";
 import type { DocCategory } from "@floc/core/documents/documents";
 import type { ExpenseCategory } from "@floc/core/money/expense-category";
+import type { WeatherCondition } from "@floc/core/itinerary/weather";
 import type { PackCategory, PackTier } from "@floc/core/packing/packing";
 import type { DayEventType, ReactionKind, SplitType, TransportType } from "@floc/core/vocabulary";
 
@@ -50,6 +51,8 @@ export type TripSummary = {
   tags: string[] | null;
   colorKey: string | null;
   role: TripRole;
+  /** The viewer's own star — never another member's. */
+  starred: boolean;
 };
 
 export type TripMember = {
@@ -364,6 +367,41 @@ export type MySettings = {
   /** `provider` is the raw id (`google`, `credential`); a client names it. */
   signInMethods: { id: string; provider: string }[];
 };
+
+/** The Dates screen's Weather view (#148). `locked` says why a free trip has no forecast. */
+export type TripForecastView = {
+  locked: boolean;
+  forecast: {
+    placeName: string;
+    from: string;
+    horizonEnd: string;
+    days: { date: string; condition: WeatherCondition; label: string; hi: number; lo: number }[];
+    hourly: Record<string, { hour: string; condition: WeatherCondition; temp: number; pop: number }[]>;
+  } | null;
+};
+
+/**
+ * Your own Pro record. `selling` false means the all-features-free switch is on
+ * and no Pro surface should draw. `accountToken` ties a store purchase to this
+ * account, so a receipt lifted from somebody else's phone cannot be claimed.
+ */
+export type BillingStatus = {
+  selling: boolean;
+  accountToken: string;
+  subscription: {
+    status: string;
+    source: string;
+    storeProductId: string | null;
+    /** An instant, not a trip date — ISO 8601. Null never lapses (a comp). */
+    currentPeriodEnd: string | null;
+    cancelAtPeriodEnd: boolean;
+  } | null;
+};
+
+export type StoreClaim = { platform: "ios" | "android"; productId: string; token: string };
+
+/** `refused` is a receipt that did not check out; `unavailable` is a store the host cannot reach. */
+export type StoreClaimResult = "recorded" | "refused" | "unavailable";
 
 /**
  * One saved packing list, with its things (ticket 230).
@@ -789,6 +827,9 @@ export type FlocPort = {
 
   listTrips(viewerId: string, options: { archived: boolean }): Promise<TripSummary[]>;
 
+  /** Stars the trip for the viewer alone. Any member may (not an admin power). */
+  setTripStarred(viewerId: string, tripId: number, starred: boolean): Promise<void>;
+
   /** Null when the trip does not exist OR the viewer is not a member — the same answer for both (rule 5). */
   loadTrip(viewerId: string, tripId: number): Promise<TripDetail | null>;
 
@@ -829,6 +870,14 @@ export type FlocPort = {
 
   /** Everyone's marks on the trip, `false` rows included (ticket 297). */
   listAvailability(viewerId: string, tripId: number): Promise<Availability[]>;
+
+  /** Null forecast on a free trip, however it asks — the gate is on the read (#248). */
+  loadTripForecast(viewerId: string, tripId: number): Promise<TripForecastView>;
+
+  loadBillingStatus(viewerId: string): Promise<BillingStatus>;
+
+  /** Checks the receipt with the store before anything is written. Never trusts the client's word. */
+  claimStorePurchase(viewerId: string, claim: StoreClaim): Promise<StoreClaimResult>;
 
   /**
    * Sets the VIEWER'S OWN marks and nobody else's (ticket 297). There is no

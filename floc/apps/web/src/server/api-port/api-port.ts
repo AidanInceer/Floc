@@ -38,12 +38,14 @@ import { assertAdmin, findTripAccess, type TripAccess } from "@/server/access";
 import { scoped } from "@/server/api-port/api-port-scope";
 // The account, map and saved-list halves live in their own files — this one is
 // the trip half, and a file whose name needs "and" is two files.
+import { billingPort } from "@/server/api-port/api-port-billing";
 import { commentsPort } from "@/server/api-port/api-port-comments";
 import { filesPort } from "@/server/api-port/api-port-files";
 import { kitsPort } from "@/server/api-port/api-port-kits";
 import { mapPort } from "@/server/api-port/api-port-map";
 import { settingsPort } from "@/server/api-port/api-port-settings";
 import { socialPort } from "@/server/api-port/api-port-social";
+import { weatherPort } from "@/server/api-port/api-port-weather";
 import { refresh } from "@/server/freshness";
 import { emailConfigured } from "@/server/auth/email";
 import { findTripByInviteToken, joinWithLink } from "@/server/trips/invites";
@@ -107,6 +109,7 @@ import {
   createTripWithAdmin,
   listTripsFor,
   setTripArchived,
+  setTripStarred,
   softDeleteTrip,
   updateTrip,
 } from "@/server/trips/trips";
@@ -153,6 +156,8 @@ export const webPort: FlocPort = {
   ...filesPort,
   ...commentsPort,
   ...socialPort,
+  ...billingPort,
+  ...weatherPort,
 
   async loadPacking(viewerId, tripId): Promise<PackingBoard> {
     await scoped(viewerId, tripId);
@@ -376,6 +381,12 @@ export const webPort: FlocPort = {
   },
 
   listTrips: (viewerId, options) => listTripsFor(viewerId, options),
+
+  async setTripStarred(viewerId, tripId, starred) {
+    await scoped(viewerId, tripId);
+    await setTripStarred(tripId, viewerId, starred);
+    refresh({ kind: "tripList" });
+  },
 
   async loadTrip(viewerId, tripId): Promise<TripDetail | null> {
     const access = await findTripAccess(tripId, viewerId);

@@ -47,6 +47,31 @@ describe("who can see a trip (rule 5)", () => {
   });
 });
 
+describe("starring a trip", () => {
+  it("stars it for the viewer alone", async () => {
+    await webPort.setTripStarred(world.member, world.ours.id, true);
+
+    const mine = await webPort.listTrips(world.member, { archived: false });
+    const theirs = await webPort.listTrips(world.admin, { archived: false });
+    expect(mine.find((t) => t.id === world.ours.id)?.starred).toBe(true);
+    expect(theirs.find((t) => t.id === world.ours.id)?.starred).toBe(false);
+  });
+
+  it("takes the star off again", async () => {
+    await webPort.setTripStarred(world.member, world.ours.id, true);
+    await webPort.setTripStarred(world.member, world.ours.id, false);
+
+    const mine = await webPort.listTrips(world.member, { archived: false });
+    expect(mine.find((t) => t.id === world.ours.id)?.starred).toBe(false);
+  });
+
+  it("refuses a non-member (rule 5)", async () => {
+    await expect(
+      webPort.setTripStarred(world.outsider, world.ours.id, true),
+    ).rejects.toThrow();
+  });
+});
+
 describe("the three admin powers (rule 6)", () => {
   it("lets an admin archive, promote and remove", async () => {
     await webPort.archiveTrip(world.admin, world.ours.id, true);

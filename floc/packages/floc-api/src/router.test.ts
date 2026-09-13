@@ -52,6 +52,7 @@ function fakePort(overrides: Partial<FlocPort> = {}): FlocPort {
     setPackingPacked: vi.fn().mockResolvedValue(undefined),
     removePackingLine: vi.fn().mockResolvedValue(undefined),
     listTrips: vi.fn().mockResolvedValue([]),
+    setTripStarred: vi.fn().mockResolvedValue(undefined),
     // Only member "u1" is in trip 1; everyone and everything else is null.
     loadTrip: vi.fn(async (viewerId: string, tripId: number) =>
       viewerId === "u1" && tripId === 1 ? TRIP : null,
@@ -111,6 +112,22 @@ describe("being signed in", () => {
     const { caller: ana, port } = caller("u1");
     await ana.trips.list({ archived: false });
     expect(port.listTrips).toHaveBeenCalledWith("u1", { archived: false });
+  });
+});
+
+describe("starring a trip", () => {
+  it("stars only for the caller", async () => {
+    const { caller: ana, port } = caller("u1");
+    await ana.trips.setStarred({ tripId: 1, starred: true });
+    expect(port.setTripStarred).toHaveBeenCalledWith("u1", 1, true);
+  });
+
+  it("refuses a trip the caller is not on", async () => {
+    const { caller: bo, port } = caller("u2");
+    await expect(bo.trips.setStarred({ tripId: 1, starred: true })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
+    expect(port.setTripStarred).not.toHaveBeenCalled();
   });
 });
 
@@ -356,6 +373,51 @@ describe("where the group sleeps (ticket 308)", () => {
     const { caller: anon } = caller(null);
     await expect(anon.places.search({ query: "Tokyo" })).rejects.toMatchObject({
       code: "UNAUTHORIZED",
+    });
+  });
+});
+
+describe("the forecast (#148)", () => {
+  it("gives a member the trip's forecast", async () => {
+    const view = { locked: true, forecast: null };
+    const { caller: ana, port } = caller("u1", fakePort({ loadTripForecast: vi.fn().mockResolvedValue(view) }));
+    await expect(ana.itinerary.forecast({ tripId: 1 })).resolves.toEqual(view);
+    expect(port.loadTripForecast).toHaveBeenCalledWith("u1", 1);
+  });
+
+  it("refuses a non-member exactly as it refuses a trip that is not there (rule 5)", async () => {
+    const { caller: mal } = caller("intruder");
+    await expect(mal.itinerary.forecast({ tripId: 1 })).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+});
+
+describe("buying Pro in the app", () => {
+  const claim = { platform: "ios" as const, productId: "floc_pro_yearly", token: "jws" };
+
+  it("refuses a signed-out caller", async () => {
+    const { caller: anon } = caller(null);
+    await expect(anon.billing.status()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+    await expect(anon.billing.claim(claim)).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+
+  it("claims a purchase for the caller and nobody else", async () => {
+    const claimStorePurchase = vi.fn().mockResolvedValue("recorded");
+    const { caller: ana } = caller("u1", fakePort({ claimStorePurchase }));
+    await expect(ana.billing.claim(claim)).resolves.toBe("recorded");
+    expect(claimStorePurchase).toHaveBeenCalledWith("u1", claim);
+  });
+
+  it("refuses a platform that is not a store we sell on", async () => {
+    const { caller: ana } = caller("u1");
+    await expect(
+      ana.billing.claim({ ...claim, platform: "web" as never }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  it("refuses an empty token rather than asking the store about nothing", async () => {
+    const { caller: ana } = caller("u1");
+    await expect(ana.billing.claim({ ...claim, token: "" })).rejects.toMatchObject({
+      code: "BAD_REQUEST",
     });
   });
 });

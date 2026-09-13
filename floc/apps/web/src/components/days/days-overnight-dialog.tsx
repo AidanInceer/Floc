@@ -16,11 +16,15 @@ import {
 } from "@/components/days/days-calendar-shared";
 import type { PlaceSearch } from "@/components/days/event-form";
 import type { BandSpan } from "@floc/core/itinerary/overnight-band";
+import { addDays } from "@floc/core/dates/dates";
+import { stayLinks } from "@floc/core/trip/booking-links";
+import { OFFSITE_NOTE, SiteLinks } from "@/components/booking/site-links";
 
 export function OvernightDialog({
   span,
   days,
   searchPlaces,
+  groupSize,
   onClose,
   onSave,
   onClear,
@@ -29,6 +33,7 @@ export function OvernightDialog({
   /** The trip's real days — the last of them is as far as a stay can reach. */
   days: CalendarDay[];
   searchPlaces: PlaceSearch;
+  groupSize: number;
   onClose: () => void;
   onSave: (end: string, place: OvernightPlace) => void;
   onClear: () => void;
@@ -116,6 +121,21 @@ export function OvernightDialog({
           </Button>
         </div>
       </div>
+
+      {span.placeName ? (
+        <div className="space-y-2 border-t border-rule px-4 py-3">
+          <p className="text-sm font-medium">Find a stay</p>
+          <SiteLinks
+            links={stayLinks({
+              place: span.placeName,
+              checkIn: span.start,
+              checkOut: addDays(span.end, 1),
+              adults: groupSize,
+            })}
+          />
+          <p className="text-[11px] text-ink-faint">{OFFSITE_NOTE}</p>
+        </div>
+      ) : null}
     </dialog>
   );
 }

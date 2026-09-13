@@ -19,13 +19,14 @@ import { Link, useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { FlatList, Pressable, RefreshControl, View } from "react-native";
 
-import { FlockChevronGlyph, MoreGlyph } from "@/components/system/glyphs";
+import { FlockChevronGlyph, MoreGlyph, StarGlyph } from "@/components/system/glyphs";
 import { InviteBanner } from "@/components/trip/invite-banner";
 import { TagPills } from "@/components/trip/tag-pills";
 import { useTheme } from "@/components/system/theme";
 import { TripSheet, draftFor, type TripDraft } from "@/components/trip/trip-sheet";
-import { Body, Button, Card, Empty, Failed, Figure, IconButton, Loading, Pill } from "@/components/system/ui";
+import { Body, Button, Card, Empty, Failed, Figure, IconButton, Label, Loading } from "@/components/system/ui";
 import { formatDateRange, splitEnded } from "@floc/core/dates/dates";
+import { tripListStage } from "@floc/core/trip/list-stage";
 import { readTripColor, tripPastel } from "@floc/core/trip/trip-color";
 
 import type { AppRouter } from "@floc/api/router";
@@ -70,6 +71,9 @@ export default function Trips() {
   };
   const accept = useMutation({ ...trpc.invites.accept.mutationOptions(), ...settled });
   const decline = useMutation({ ...trpc.invites.decline.mutationOptions(), ...settled });
+  const star = useMutation({ ...trpc.trips.setStarred.mutationOptions(), ...settled });
+  const toggleStar = (trip: TripCard) =>
+    star.mutate({ tripId: trip.id, starred: !trip.starred });
 
   if (trips.isPending) return <Loading />;
   if (trips.isError) return <Failed onRetry={() => trips.refetch()} />;
@@ -112,7 +116,9 @@ export default function Trips() {
             </View>
           ) : null
         }
-        renderItem={({ item }) => <TripRow trip={item} onMenu={setChosen} />}
+        renderItem={({ item }) => (
+          <TripRow trip={item} onMenu={setChosen} onStar={toggleStar} />
+        )}
         ListFooterComponent={
           <View style={{ gap: space.sm, paddingTop: space.lg }}>
             {ended.length > 0 ? (
@@ -133,7 +139,9 @@ export default function Trips() {
                   <Figure tone="ink-2">{`Past trips · ${ended.length}`}</Figure>
                 </Pressable>
                 {showPast
-                  ? ended.map((t) => <TripRow key={t.id} trip={t} onMenu={setChosen} />)
+                  ? ended.map((t) => (
+                      <TripRow key={t.id} trip={t} onMenu={setChosen} onStar={toggleStar} />
+                    ))
                   : null}
               </View>
             ) : null}
@@ -175,9 +183,11 @@ export default function Trips() {
 function TripRow({
   trip,
   onMenu,
+  onStar,
 }: {
   trip: TripCard;
   onMenu: (trip: TripCard) => void;
+  onStar: (trip: TripCard) => void;
 }) {
   const { c } = useTheme();
   // The chosen colour, or the id rotation still filling in (#213). It is a
@@ -190,13 +200,24 @@ function TripRow({
         <Card style={{ borderLeftWidth: 4, borderLeftColor: c[tone] }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
             <View style={{ flex: 1, gap: space.xs }}>
+              <Label>{tripListStage(trip)}</Label>
               <Body bold>{trip.name}</Body>
               {/* Undated is normal, not an error (rule 9) — so it is said, not hidden. */}
               <Figure tone="ink-2">{formatDateRange(trip.startDate, trip.endDate)}</Figure>
             </View>
-            <IconButton label={`More for ${trip.name}`} onPress={() => onMenu(trip)}>
-              {(colour) => <MoreGlyph color={colour} />}
-            </IconButton>
+            <View style={{ gap: space.sm }}>
+              <IconButton label={`More for ${trip.name}`} onPress={() => onMenu(trip)}>
+                {(colour) => <MoreGlyph color={colour} />}
+              </IconButton>
+              <IconButton
+                label={trip.starred ? `Unstar ${trip.name}` : `Star ${trip.name}`}
+                on={trip.starred}
+                onColor={tone}
+                onPress={() => onStar(trip)}
+              >
+                {(colour) => <StarGlyph color={colour} on={trip.starred} />}
+              </IconButton>
+            </View>
           </View>
           {/* Tags and the role share a line: two short things, and the role on
               its own row was a whole line for one word. */}
@@ -209,7 +230,6 @@ function TripRow({
             }}
           >
             <TagPills tags={trip.tags} color={readTripColor(trip.colorKey)} tripId={trip.id} />
-            {trip.role === "admin" ? <Pill word="Admin" tone="peri" /> : null}
           </View>
         </Card>
       </Pressable>

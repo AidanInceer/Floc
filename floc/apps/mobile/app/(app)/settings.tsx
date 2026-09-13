@@ -29,6 +29,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
 
+import { ProSection } from "@/components/billing/pro-section";
 import { SettingsAccount } from "@/components/settings/settings-account";
 import { SettingsDietary, SettingsVibeTags, type Dietary } from "@/components/settings/settings-about";
 import { SettingsPrivacy, type Privacy } from "@/components/settings/settings-privacy";
@@ -56,6 +57,8 @@ export default function Settings() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const settings = useQuery(trpc.settings.get.queryOptions());
+  const billing = useQuery(trpc.billing.status.queryOptions());
+  const claim = useMutation(trpc.billing.claim.mutationOptions());
 
   if (settings.isPending) return <Loading />;
   if (settings.isError) return <Failed onRetry={() => settings.refetch()} />;
@@ -78,6 +81,15 @@ export default function Settings() {
             because nothing on screen could show it. */}
         <Body tone="ink-3">This phone only. Everything below follows you everywhere.</Body>
       </View>
+
+      {/* Pro changes what every trip screen can do, so a purchase refetches everything. */}
+      {billing.data ? (
+        <ProSection
+          status={billing.data}
+          claim={(input) => claim.mutateAsync(input)}
+          onClaimed={() => queryClient.invalidateQueries()}
+        />
+      ) : null}
 
       <Divider />
 

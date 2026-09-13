@@ -13,6 +13,7 @@ import { acceptInvite, declineInvite, inviteToTrip } from "@/server/trips/invite
 import {
   createTripWithAdmin,
   setTripArchived,
+  setTripStarred,
   softDeleteTrip,
   updateTrip,
 } from "@/server/trips/trips";
@@ -123,6 +124,17 @@ export async function setTripColor(formData: FormData): Promise<void> {
     { kind: "tripHeader", tripId: access.trip.id },
     { kind: "tripOverview", tripId: access.trip.id },
   );
+}
+
+// Your own star. Any member, not an admin power (rule 6).
+export async function starTrip(formData: FormData): Promise<void> {
+  const tripId = Number(formData.get("tripId"));
+  const starred = formData.get("starred") === "true";
+
+  const access = await requireTripAccess(tripId);
+  await setTripStarred(access.trip.id, access.viewer.id, starred);
+
+  refresh({ kind: "tripList" });
 }
 
 // Admin-only. Archived trips stay visible to every member.

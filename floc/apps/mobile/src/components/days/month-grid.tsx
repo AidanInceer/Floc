@@ -31,6 +31,8 @@ export type CellLook = {
   ink: string | null;
   /** A number under the day — how many people are free. Null draws nothing. */
   count: number | null;
+  /** What the number means to a screen reader, when it is not a count of who is free. */
+  countLabel?: string;
   /** A ring, for the trip window's own days. */
   ringed: boolean;
 };
@@ -41,7 +43,9 @@ function DayCell({ date, cell }: { date: string; cell: CellLook }) {
   const ink = cell.ink ? c[cell.ink] : c.ink;
   return (
     <View
-      accessibilityLabel={cell.count === null ? date : `${date}, ${cell.count} free`}
+      accessibilityLabel={
+        cell.count === null ? date : `${date}, ${cell.countLabel ?? `${cell.count} free`}`
+      }
       style={{
         flex: 1,
         alignItems: "center",

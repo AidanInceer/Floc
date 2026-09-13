@@ -90,6 +90,12 @@ const PROVIDER_LABELS: Record<string, string> = {
   credential: "Email & password",
 };
 
+/** Apple and Google will not let anyone but themselves cancel a store subscription. */
+const STORE_NAMES: Partial<Record<string, string>> = {
+  app_store: "the App Store",
+  play: "Google Play",
+};
+
 /** Widest ring last, matching the nesting in lib/visibility.ts. */
 const RING_LABELS: Record<Visibility, string> = {
   private: "Only me",
@@ -505,7 +511,17 @@ function BillingPanel({
         {subscription && isLive(subscription) ? (
           <Stack gap={4}>
             <p className="text-sm font-medium">You&rsquo;re on Pro.</p>
-            {subscription.stripeCustomerId ? (
+            {STORE_NAMES[subscription.source] ? (
+              <div>
+                <p className="text-sm text-ink-soft">
+                  {renewalLabel(subscription)}
+                </p>
+                <p className="mt-1 text-sm text-ink-faint">
+                  Bought in {STORE_NAMES[subscription.source]}, so it is managed
+                  or cancelled there.
+                </p>
+              </div>
+            ) : subscription.stripeCustomerId ? (
               /* Date and the way out on one line — the button is what
                        the date is for, so it does not need its own row. */
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2">

@@ -29,7 +29,8 @@
       "expo-router",
       "expo-secure-store",
       "expo-web-browser",
-      "@maplibre/maplibre-react-native"
+      "@maplibre/maplibre-react-native",
+      "expo-iap"
     ],
     "experiments": {
       "typedRoutes": true

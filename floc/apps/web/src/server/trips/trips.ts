@@ -24,6 +24,7 @@ export type TripListRow = {
   tags: string[] | null;
   colorKey: string | null;
   role: TripRole;
+  starred: boolean;
 };
 
 /** `archived` is a param so /trips and /trips/archived share one query (ticket 118). */
@@ -40,6 +41,7 @@ export async function listTripsFor(
       tags: trip.tags,
       colorKey: trip.colorKey,
       role: tripMembership.role,
+      starredAt: tripMembership.starredAt,
     })
     .from(tripMembership)
     .innerJoin(trip, eq(trip.id, tripMembership.tripId))
@@ -53,7 +55,24 @@ export async function listTripsFor(
     )
     .limit(LIMITS.tripsPerUser)
     .all();
-  return bounded(rows, "tripsPerUser", `user ${userId}`);
+  return bounded(rows, "tripsPerUser", `user ${userId}`).map(({ starredAt, ...row }) => ({
+    ...row,
+    starred: starredAt !== null,
+  }));
+}
+
+/** Only the viewer's own membership row, so a star never reaches anyone else. */
+export async function setTripStarred(tripId: number, userId: string, starred: boolean) {
+  await db
+    .update(tripMembership)
+    .set({ starredAt: starred ? new Date() : null, ...touch() })
+    .where(
+      and(
+        eq(tripMembership.tripId, tripId),
+        eq(tripMembership.userId, userId),
+        isNull(tripMembership.deletedAt),
+      ),
+    );
 }
 
 /** Smallest thing that exists at creation (ticket 01). */

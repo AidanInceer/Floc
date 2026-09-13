@@ -55,6 +55,10 @@ export const itineraryRouter = router({
     ctx.port.listDays(ctx.viewer.id, input.tripId),
   ),
 
+  forecast: tripProcedure.query(({ ctx, input }) =>
+    ctx.port.loadTripForecast(ctx.viewer.id, input.tripId),
+  ),
+
   addEvent: tripProcedure
     .input(z.object({ dayId: z.number().int().positive(), event: eventFields }))
     .mutation(async ({ ctx, input }) => {

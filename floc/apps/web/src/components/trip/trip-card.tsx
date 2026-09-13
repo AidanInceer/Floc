@@ -10,9 +10,11 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { AvatarRow, Badge, PASTEL_BY_KEY, PASTEL_SKINS, cx } from "@/components/system/ui";
+import { AvatarRow, PASTEL_BY_KEY, PASTEL_SKINS, cx } from "@/components/system/ui";
 import { TripCardMenu } from "@/components/trip/trip-card-menu";
-import { daysUntil, formatDateRange, hasEnded } from "@floc/core/dates/dates";
+import { starTrip } from "@/app/trips/actions";
+import { daysUntil, formatDateRange } from "@floc/core/dates/dates";
+import { tripListStage } from "@floc/core/trip/list-stage";
 import type { IsoDate } from "@floc/core/dates/dates";
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import type { TripColor } from "@floc/core/trip/trip-color";
@@ -24,6 +26,8 @@ export type TripCardData = {
   startDate: IsoDate | null;
   endDate: IsoDate | null;
   role: TripRole;
+  /** The viewer's own star. */
+  starred?: boolean;
   members: { name: string; avatarIcon?: AvatarIcon | null; tone?: string }[];
   needsYou?: boolean;
   where?: string | null; // first overnight place, or null if unsettled (ticket 70)
@@ -48,7 +52,7 @@ export function TripCard({
   /** Grid tile (default) or a compact horizontal row for the list view. */
   layout?: "grid" | "list";
 }) {
-  const { skin, eyebrow, soon, soonFlag } = cardLook(trip, past);
+  const { skin, eyebrow, flag, soonFlag } = cardLook(trip, past);
   const list = layout === "list";
 
   return (
@@ -68,7 +72,7 @@ export function TripCard({
           highlight is never colour alone. Pinned to the top-right corner of a
           grid tile; in a list row it rides inline in the right cluster instead,
           where a corner pill would sit on top of the avatars. */}
-      {soon && !list ? <UpcomingFlag bg={soonFlag} /> : null}
+      {flag && !list ? <StateFlag label={flag} bg={soonFlag} /> : null}
       <Link
         href={href}
         className={cx(
@@ -90,7 +94,7 @@ export function TripCard({
           list ? "ml-auto justify-end sm:w-56 sm:flex-nowrap" : "mt-auto border-t border-ink/10 pt-4",
         )}
       >
-        {soon && list ? <UpcomingFlag bg={soonFlag} inline /> : null}
+        {flag && list ? <StateFlag label={flag} bg={soonFlag} inline /> : null}
         <AvatarRow people={trip.members} size={26} />
         {/* Archived cards keep the role label and the caller's restore slot;
             a live card trades the label for its own actions menu (ticket 213),
@@ -165,8 +169,8 @@ function CardBody({
 function LiveActions({ trip }: { trip: TripCardData }) {
   const isAdmin = trip.role === "admin";
   return (
-    <div className="pointer-events-auto ml-auto flex items-center gap-3">
-      {isAdmin ? <Badge tone="marine">Admin</Badge> : null}
+    <div className="pointer-events-auto ml-auto flex items-center gap-1.5">
+      <StarButton tripId={trip.id} tripName={trip.name} starred={Boolean(trip.starred)} />
       <TripCardMenu
         tripId={trip.id}
         tripName={trip.name}
@@ -174,6 +178,46 @@ function LiveActions({ trip }: { trip: TripCardData }) {
         color={trip.color ?? null}
       />
     </div>
+  );
+}
+
+function StarButton({
+  tripId,
+  tripName,
+  starred,
+}: {
+  tripId: number;
+  tripName: string;
+  starred: boolean;
+}) {
+  const label = starred ? `Unstar ${tripName}` : `Star ${tripName}`;
+  return (
+    <form action={starTrip}>
+      <input type="hidden" name="tripId" value={tripId} />
+      <input type="hidden" name="starred" value={String(!starred)} />
+      <button
+        type="submit"
+        aria-label={label}
+        aria-pressed={starred}
+        title={label}
+        className={cx(
+          "flex h-[26px] w-[26px] items-center justify-center rounded-full border transition-colors",
+          starred
+            ? "border-rule-strong bg-sheet text-ink"
+            : "border-transparent text-ink-faint hover:border-rule-strong hover:bg-sheet-2 hover:text-ink",
+        )}
+      >
+        <svg viewBox="0 0 14 14" width="13" height="13" aria-hidden>
+          <path
+            d="M7 1.9 8.6 5.2 12.2 5.7 9.6 8.2 10.2 11.8 7 10.1 3.8 11.8 4.4 8.2 1.8 5.7 5.4 5.2Z"
+            fill={starred ? "currentColor" : "none"}
+            stroke="currentColor"
+            strokeWidth={1.2}
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+    </form>
   );
 }
 
@@ -205,7 +249,7 @@ function TagList({ tags, past, list }: { tags: string[]; past?: boolean; list: b
 // accent — the chosen colour's dark ink, or amber by default — so the flag
 // matches the ring around it (ticket 213). Corner-pinned on a grid tile;
 // `inline` rides it in the list row's right cluster, clear of the avatars.
-function UpcomingFlag({ bg, inline }: { bg: string; inline?: boolean }) {
+function StateFlag({ label, bg, inline }: { label: string; bg: string; inline?: boolean }) {
   return (
     <span
       className={cx(
@@ -216,7 +260,7 @@ function UpcomingFlag({ bg, inline }: { bg: string; inline?: boolean }) {
           : "absolute right-4 top-4 z-10 px-2.5 py-1 text-[10px]",
       )}
     >
-      Upcoming
+      {label}
     </span>
   );
 }
@@ -237,16 +281,15 @@ const SOON_ACCENT: Record<TripColor | "default", { ring: string; flag: string }>
 function cardLook(
   trip: TripCardData,
   past?: boolean,
-): { skin: string; eyebrow: string; soon: boolean; soonFlag: string } {
-  const ended = hasEnded(trip.endDate);
-  const wanted = !past && Boolean(trip.needsYou);
-  // Starting within the week gets the butter "attention" wash with a strong
-  // dark-amber ring — the ring is what sets it apart from a card that merely
-  // happens to roll butter in the pastel rotation, and the "Soon" flag plus the
-  // countdown eyebrow carry the word. `daysUntil` is >= 0 from today; 7 is the
-  // window.
-  const until = past || ended ? null : daysUntil(trip.startDate);
-  const soon = until !== null && until >= 0 && until <= 7;
+): { skin: string; eyebrow: string; flag: string | null; soonFlag: string } {
+  const eyebrow = tripListStage({ ...trip, needsYou: !past && trip.needsYou, archived: past });
+  const happening = eyebrow === "Happening now";
+  // Why: the ring, not the butter wash, sets a soon or running trip apart from a
+  // card that merely rolls butter in the rotation; the flag carries the word.
+  const until = eyebrow === "Planning" ? daysUntil(trip.startDate) : null;
+  const upcoming = until !== null && until >= 0 && until <= 7;
+  const flag = happening ? "Happening now" : upcoming ? "Upcoming" : null;
+  const soon = flag !== null;
 
   // A chosen colour (ticket 213) sets the pastel; only the archived drain fully
   // overrides it. A "soon" card keeps a ring and its Upcoming flag + countdown
@@ -265,27 +308,5 @@ function cardLook(
         )
       : restingSkin;
 
-  return {
-    skin,
-    eyebrow: cardEyebrow({ past, wanted, ended }),
-    soon,
-    soonFlag: accent.flag,
-  };
-}
-
-// The card's one-word state, split out so `cardLook` stays under the complexity
-// ceiling. Status is never colour alone (CLAUDE.md) — this is the word.
-function cardEyebrow({
-  past,
-  wanted,
-  ended,
-}: {
-  past?: boolean;
-  wanted: boolean;
-  ended: boolean;
-}): string {
-  if (past) return "Archived";
-  if (wanted) return "Needs you";
-  if (ended) return "Ended";
-  return "Planning";
+  return { skin, eyebrow, flag, soonFlag: accent.flag };
 }

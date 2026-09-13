@@ -243,6 +243,33 @@ value is hiding it.</li>
 </ul>
 <p>Cost: roughly 200 lines and an extra afternoon.</p>
 
+<h3>In the phone app — Apple and Google</h3>
+<p><strong>The app sells Pro through the stores, the website through Stripe.</strong>
+Apple and Google refuse an app that links to a web checkout, so the app uses
+<code>expo-iap</code> (StoreKit, Play Billing) and pays the stores&rsquo; 15–30%.
+A receipt check on our own server was chosen over a hosted service, so no third
+party sees purchase data.</p>
+<ul>
+<li><strong>Same table, same gate.</strong> A store purchase is a
+<code>subscription</code> row with <code>source</code> <code>app_store</code> or
+<code>play</code>, keyed on <code>store_transaction_id</code>. The gate still never
+reads <code>source</code>.</li>
+<li><strong>The phone asks; the server decides.</strong> <code>billing.claim</code>
+sends the purchase token. The server verifies Apple&rsquo;s signed transaction or
+reads the Play Developer API, checks the product id and the account token, then
+writes. Only a recorded claim finishes the transaction on the phone.</li>
+<li><strong>One purchase, one account.</strong> The unique index on
+<code>store_transaction_id</code> and the account token (a UUID derived from the
+user id, sent as Apple&rsquo;s <code>appAccountToken</code> and Play&rsquo;s
+<code>obfuscatedAccountId</code>) stop a receipt moving to another account.</li>
+<li><strong>After the purchase</strong>, renewals, cancellations and refunds arrive at
+<code>/api/billing/app-store</code> (signed notifications) and
+<code>/api/billing/play</code> (Pub/Sub push with a Google ID token).</li>
+<li><strong>Managing</strong> happens where it was bought: the store&rsquo;s own
+subscription screen in the app, Stripe&rsquo;s portal on the web. Each surface
+names the other without linking to it.</li>
+</ul>
+
 <h2>Keys and environments</h2>
 <p><strong>Test keys everywhere, including production, until the legal pages exist.</strong>
 The Buy button works, the webhook fires, no money moves. <code>develop</code> is always

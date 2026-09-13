@@ -47,6 +47,7 @@ import { byEvent, listDocuments } from "@/server/documents/documents";
 import type { TripDocument } from "@/server/documents/documents";
 import { documentsEnabled } from "@/server/documents/document-store";
 import { addDays as addDaysToDate, fromIsoDate, today } from "@floc/core/dates/dates";
+import { eventFlightUrl } from "@floc/core/trip/booking-links";
 
 export default async function DaysPage({
   params,
@@ -225,6 +226,7 @@ export default async function DaysPage({
         setOvernight={setDayOvernight.bind(null, trip.id)}
         searchPlaces={searchPlacesAction}
         openEventId={openEventId}
+        groupSize={members.length}
       />
       </div>
     </div>
@@ -310,7 +312,7 @@ function EventPanel({
   const category = EVENT_CATEGORIES[event.type];
   const flightLink =
     isTransport && event.transportType === "flight"
-      ? buildFlightSearchUrl({
+      ? eventFlightUrl({
           origin: originPlaceName ?? event.placeName ?? "",
           destination: destinationPlaceName ?? event.placeName ?? "",
           date,
@@ -386,19 +388,4 @@ function EventPanel({
       </div>
     </div>
   );
-}
-
-/** Deep link only (ticket 10) — no Amadeus call, no live fare. */
-function buildFlightSearchUrl({
-  origin,
-  destination,
-  date,
-}: {
-  origin: string;
-  destination: string;
-  date: string;
-}) {
-  if (!origin || !destination) return null;
-  const q = `Flights from ${origin} to ${destination} on ${date}`;
-  return `https://www.google.com/travel/flights?q=${encodeURIComponent(q)}`;
 }
