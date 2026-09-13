@@ -44,6 +44,7 @@ import { mintCalendarToken } from "@/server/itinerary/calendar-link";
 import { EVENT_CATEGORIES } from "@floc/core/itinerary/event-categories";
 import { NoteThread, type NoteRow } from "@/components/notes/note-thread";
 import { requireTripAccess } from "@/server/access";
+import { canUseFeature } from "@/server/billing/entitlements";
 import { listDaysWithEvents, type DayEventRow } from "@/server/itinerary/itinerary";
 import { loadThreads } from "@/server/notes/notes-read";
 import { byEvent, listDocuments } from "@/server/documents/documents";
@@ -69,10 +70,11 @@ export default async function DaysPage({
   // Two independent reads that go out together (ticket 118). Trip-wide talk
   // moved to the Notes page (ticket 321), so the days route no longer reads
   // the trip thread or its links.
-  const [days, notesByEvent, docs] = await Promise.all([
+  const [days, notesByEvent, docs, bookingPrefill] = await Promise.all([
     listDaysWithEvents(trip.id),
     loadThreads({ tripId: trip.id, scope: "day_event", viewerId: viewer.id, toneOf }),
     documentsEnabled() ? listDocuments(trip.id, viewer.id) : [],
+    canUseFeature("booking.prefill", trip.id),
   ]);
 
   // One read for every block's files (tickets 322, 324), not one per event.
@@ -190,6 +192,7 @@ export default async function DaysPage({
           filesEnabled={documentsEnabled()}
           viewerId={viewer.id}
           isAdmin={isAdmin}
+          bookingPrefill={bookingPrefill}
         />
       );
     }
@@ -234,6 +237,7 @@ export default async function DaysPage({
         searchPlaces={searchPlacesAction}
         openEventId={openEventId}
         groupSize={members.length}
+        bookingPrefill={bookingPrefill}
       />
       </div>
     </div>
@@ -301,6 +305,7 @@ function EventPanel({
   filesEnabled,
   viewerId,
   isAdmin,
+  bookingPrefill,
 }: {
   tripId: number;
   dayId: number;
@@ -314,6 +319,7 @@ function EventPanel({
   filesEnabled: boolean;
   viewerId: string;
   isAdmin: boolean;
+  bookingPrefill: boolean;
 }) {
   const isTransport = event.type === "transport";
   const category = EVENT_CATEGORIES[event.type];
@@ -323,6 +329,7 @@ function EventPanel({
           origin: originPlaceName ?? event.placeName ?? "",
           destination: destinationPlaceName ?? event.placeName ?? "",
           date,
+          prefill: bookingPrefill,
         })
       : null;
 

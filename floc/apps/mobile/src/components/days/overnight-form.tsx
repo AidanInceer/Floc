@@ -51,6 +51,7 @@ export function OvernightForm({
   busy,
   problem,
   groupSize,
+  bookingPrefill,
   onSave,
   onCancel,
 }: {
@@ -58,6 +59,7 @@ export function OvernightForm({
   /** Places this trip's days already point at — an extend keeps the pin. */
   known: { id: number; name: string }[];
   groupSize: number;
+  bookingPrefill: boolean;
   busy: boolean;
   problem: string | null;
   /** Null clears the span. */
@@ -162,7 +164,7 @@ export function OvernightForm({
         ) : null}
 
         {span.placeName ? (
-          <FindAStay place={span.placeName} start={span.start} end={span.end} adults={groupSize} />
+          <FindAStay place={span.placeName} start={span.start} end={span.end} adults={groupSize} prefill={bookingPrefill} />
         ) : null}
       </View>
       {/* Silence is the answer when the provider is down (rule 11) — the typed

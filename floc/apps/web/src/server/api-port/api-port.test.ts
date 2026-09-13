@@ -29,6 +29,21 @@ describe("who can see a trip (rule 5)", () => {
     expect(trip?.role).toBe("member");
   });
 
+  it("says whether booking links come filled in, which is Pro", async () => {
+    expect((await webPort.loadTrip(world.member, world.ours.id))?.bookingPrefill).toBe(false);
+
+    await db.insert(schema.subscription).values({
+      userId: world.admin,
+      status: "active",
+      source: "comp",
+      currentPeriodEnd: null,
+      cancelAtPeriodEnd: false,
+      stripeSubscriptionId: `sub_${world.admin}`,
+    });
+
+    expect((await webPort.loadTrip(world.member, world.ours.id))?.bookingPrefill).toBe(true);
+  });
+
   it("answers a non-member and a nonexistent trip identically", async () => {
     const foreign = await webPort.loadTrip(world.outsider, world.ours.id);
     const missing = await webPort.loadTrip(world.outsider, 999_999);

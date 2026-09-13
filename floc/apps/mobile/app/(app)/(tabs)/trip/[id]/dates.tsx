@@ -277,6 +277,7 @@ export default function Dates() {
     days: (days.data ?? []).map((d) => ({ ...d, dayId: d.id })),
     today: today(),
     adults: trip.data.members.length,
+    prefill: trip.data.bookingPrefill,
   });
 
   const forecast = forecastIndex(weather.data);

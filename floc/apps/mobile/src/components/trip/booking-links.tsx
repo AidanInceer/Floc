@@ -41,16 +41,18 @@ export function FindAStay({
   start,
   end,
   adults,
+  prefill,
 }: {
   place: string;
   start: string;
   end: string;
   adults: number;
+  prefill: boolean;
 }) {
   return (
     <View style={{ gap: space.sm }}>
       <Body bold>Find a stay</Body>
-      <SiteLinks links={stayLinks({ place, checkIn: start, checkOut: addDays(end, 1), adults })} />
+      <SiteLinks links={stayLinks({ place, checkIn: start, checkOut: addDays(end, 1), adults, prefill })} />
       <OffsiteNote />
     </View>
   );

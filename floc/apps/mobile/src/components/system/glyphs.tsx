@@ -199,6 +199,37 @@ export function ShareGlyph({ color }: { color: string }) {
   );
 }
 
+/** Flights — the web's Overview booking tile. */
+export function PlaneGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+      <Path
+        d="M12.4 2.4 6.2 8.6M12.4 2.4l-4 9.8-2.2-3.6-3.6-2.2Z"
+        stroke={color}
+        strokeWidth={STROKE}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+/** Stays — the web's Overview booking tile. */
+export function BedGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+      <Path
+        d="M1.8 11.5V3.5M1.8 8.2h10.4v3.3M12.2 8.2V7a1.5 1.5 0 0 0-1.5-1.5H6.2v2.7"
+        stroke={color}
+        strokeWidth={STROKE}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Circle cx={4} cy={6.4} r={1} stroke={color} strokeWidth={STROKE} />
+    </Svg>
+  );
+}
+
 /** Leaves Floc for another site — the web's booking-link arrow. */
 export function OutGlyph({ color }: { color: string }) {
   return (

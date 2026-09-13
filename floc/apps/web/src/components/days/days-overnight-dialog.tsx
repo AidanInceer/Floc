@@ -25,6 +25,7 @@ export function OvernightDialog({
   days,
   searchPlaces,
   groupSize,
+  bookingPrefill,
   onClose,
   onSave,
   onClear,
@@ -34,6 +35,7 @@ export function OvernightDialog({
   days: CalendarDay[];
   searchPlaces: PlaceSearch;
   groupSize: number;
+  bookingPrefill: boolean;
   onClose: () => void;
   onSave: (end: string, place: OvernightPlace) => void;
   onClear: () => void;
@@ -131,6 +133,7 @@ export function OvernightDialog({
               checkIn: span.start,
               checkOut: addDays(span.end, 1),
               adults: groupSize,
+              prefill: bookingPrefill,
             })}
           />
           <p className="text-[11px] text-ink-faint">{OFFSITE_NOTE}</p>

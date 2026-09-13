@@ -4,6 +4,8 @@
  * someone*, and ticket 125 put nudge/promote/remove behind one triple-dot per
  * row. Nudging stays peer-to-peer, no deadlines, delivered by email in `sendNudge`.
  */
+import type { ReactNode } from "react";
+
 import { Avatar, Badge, menuDangerItemClass, menuItemClass } from "@/components/system/ui";
 import { PersonLink } from "@/components/social/person-link";
 import { FriendButton } from "@/components/social/friend-button";
@@ -31,7 +33,13 @@ export function TripRoster({
   friendStates,
   pendingInvitees,
   friends,
+  statuses,
+  footer,
 }: {
+  /** userId → what they still owe the group, in words (`groupStatuses`). */
+  statuses: Map<string, string[]>;
+  /** Drawn flush along the panel's foot — Overview's spending strip. */
+  footer?: ReactNode;
   tripId: number;
   viewerId: string;
   members: TripMember[];
@@ -89,9 +97,9 @@ export function TripRoster({
         {members.map((m) => (
           <li
             key={m.userId}
-            className="flex items-center gap-2 rounded-md bg-sheet-2 px-2.5 py-1.5"
+            className="flex min-h-[52px] items-center gap-2 rounded-md bg-sheet-2 px-2.5 py-2"
           >
-            <span className="flex min-w-0 flex-1 items-center gap-2 text-sm">
+            <span className="flex min-w-0 flex-1 items-center gap-2.5 text-sm">
               {/* Every face links to that person's profile (ticket 46). */}
               <PersonLink
                 userId={m.userId}
@@ -108,17 +116,17 @@ export function TripRoster({
                     <span className="text-xs opacity-60">(you)</span>
                   ) : null}
                   {m.role === "admin" ? (
-                    <Badge tone="marine">Admin</Badge>
+                    <span className="font-mono text-[10px] uppercase tracking-wider text-pen-deep">Admin</span>
                   ) : null}
                 </span>
                 {/* Dietary never shows on a profile page, only here (ticket 46). */}
                 {m.dietary ? (
-                  <span className="block truncate text-xs text-ink-faint">
-                    {m.dietary}
-                  </span>
+                  <span className="mt-0.5 block truncate text-xs text-ink-faint">{m.dietary}</span>
                 ) : null}
               </span>
             </span>
+
+            <MemberStatuses words={statuses.get(m.userId) ?? []} />
 
             {/* Same control as the profile page, cut down to fit a row (ticket 96). */}
             {m.userId !== viewerId ? (
@@ -209,7 +217,7 @@ export function TripRoster({
         {pendingInvitees.map((p) => (
           <li
             key={p.userId}
-            className="flex items-center gap-2 rounded-md bg-sheet-2 px-2.5 py-1.5"
+            className="flex min-h-[52px] items-center gap-2 rounded-md bg-sheet-2 px-2.5 py-1.5"
           >
             <span className="flex min-w-0 flex-1 items-center gap-2 text-sm opacity-75">
               <span className="opacity-60">
@@ -222,7 +230,21 @@ export function TripRoster({
           </li>
         ))}
       </ul>
+      {footer ? <div className="-mx-5 -mb-5 mt-4">{footer}</div> : null}
     </section>
+  );
+}
+
+function MemberStatuses({ words }: { words: string[] }) {
+  if (words.length === 0) return null;
+  return (
+    <span className="flex shrink-0 flex-col items-end gap-1">
+      {words.map((word) => (
+        <Badge key={word} tone="open">
+          {word}
+        </Badge>
+      ))}
+    </span>
   );
 }
 

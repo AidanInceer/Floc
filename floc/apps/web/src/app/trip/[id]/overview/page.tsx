@@ -26,13 +26,13 @@
  * you ("One thing, then you're clear") is not what a member opens a trip page
  * for, and every item on it was a link to a tab that is already in the tab bar
  * — availability to Dates, a balance to Money. The one thing it said that
- * nothing else does — who the group is still waiting on — is its own panel in
- * the rail.
+ * nothing else does — who the group is still waiting on — now sits as a word on
+ * that person's row in The group, with spending along the panel's foot.
  *
  * Every panel carries ONE heading, no eyebrow above it (`SectionHead`).
  */
 import Link from "next/link";
-import { Suspense, type ReactNode } from "react";
+import { Suspense } from "react";
 
 import { requireTripAccess } from "@/server/access";
 import { listDocuments } from "@/server/documents/documents";
@@ -56,12 +56,14 @@ import { tourSeenAt } from "@/server/auth/tour";
 import { shouldStartTour, tourStopsFor } from "@floc/core/trip/tour";
 import { absoluteUrl } from "@/server/auth/email";
 import { formatMoney } from "@floc/core/money/money";
-import type { Currency } from "@floc/core/money/currency";
+import { spendHeadline, spendNote } from "@floc/core/money/spend";
+import { groupStatuses } from "@floc/core/trip/group/group-status";
+import { OverviewBooking } from "@/components/trip/overview-booking";
 import { tripStateFor } from "@floc/core/trip/trip-state";
 import { formatDateRange, today } from "@floc/core/dates/dates";
 import { bookingPlan } from "@floc/core/trip/booking-links";
+import { canUseFeature } from "@/server/billing/entitlements";
 import {
-  Avatar,
   Badge,
   ButtonLink,
   PASTEL_BY_KEY,
@@ -127,6 +129,7 @@ export default async function OverviewPage({
     transportModes,
     hasPacking,
     tourSeen,
+    bookingPrefill,
   ] = await Promise.all([
     // Unconditional: one indexed read is cheaper than a serial round trip when
     // the dates are unset.
@@ -141,6 +144,7 @@ export default async function OverviewPage({
     transportModesByDay(tripId),
     viewerHasPacking(tripId, viewer.id),
     tourSeenAt(viewer.id),
+    canUseFeature("booking.prefill", tripId),
   ]);
 
   // All "where the trip is up to" is derived in one pure call (ticket 109); the
@@ -166,9 +170,14 @@ export default async function OverviewPage({
     expenseCount: expenseRows.length,
     viewerHasPacking: hasPacking,
   });
-  const canBook =
-    bookingPlan({ trip, days: [], today: today(), adults: members.length }) !== null;
-  const spend = spendByCurrency(expenseRows);
+  const booking = bookingPlan({
+    trip,
+    days: routeDays.map((d) => ({ ...d, overnightPlaceName: d.placeName })),
+    today: today(),
+    adults: members.length,
+    prefill: bookingPrefill,
+  });
+  const spend = spendHeadline(expenseRows);
   const inviteUrl = absoluteUrl(`/invite/${trip.inviteToken}`);
   const tags = readTags(trip.tags);
   // Tags wear the trip's one colour now (ticket 213): the chosen pastel, or the
@@ -178,24 +187,10 @@ export default async function OverviewPage({
     ? PASTEL_BY_KEY[tripColor]
     : PASTEL_SKINS[trip.id % PASTEL_SKINS.length];
 
-  const waiting = [
-    ...unresolved.availabilityOthers.map((m) => ({
-      userId: m.userId,
-      name: m.name,
-      avatarIcon: m.avatarIcon,
-      what: "their dates",
-      href: `/trip/${tripId}/dates`,
-    })),
-    ...members
-      .filter((m) => unresolved.moneyOthers.includes(m.userId))
-      .map((m) => ({
-        userId: m.userId,
-        name: m.name,
-        avatarIcon: m.avatarIcon,
-        what: "settling up",
-        href: `/trip/${tripId}/money`,
-      })),
-  ];
+  const statuses = groupStatuses({
+    needDates: unresolved.availability.map((m) => m.userId),
+    owing: unresolved.money,
+  });
 
   return (
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
@@ -272,14 +267,6 @@ export default async function OverviewPage({
             days={routeDays}
             transportModes={transportModes}
           />
-          {canBook ? (
-            <Link
-              href={`/trip/${tripId}/dates`}
-              className="self-start text-sm text-pen hover:text-pen-deep"
-            >
-              Book flights · Find a stay →
-            </Link>
-          ) : null}
         </div>
 
         {/* The group. Narrow on purpose: every panel in here is a list or a
@@ -292,49 +279,25 @@ export default async function OverviewPage({
               members={members}
               isAdmin={isAdmin}
               inviteUrl={inviteUrl}
+              statuses={statuses}
               extras={rosterExtras}
+              footer={
+                <Link
+                  href={`/trip/${tripId}/money`}
+                  className="flex items-baseline justify-between gap-3 rounded-b-lg bg-mint px-5 py-4 text-mint-ink transition-colors hover:bg-mint-edge"
+                >
+                  <span className="min-w-0">
+                    <span className="block font-display text-lg">Spending</span>
+                    <span className="block text-sm opacity-80">{spendNote(expenseRows.length, spend)}</span>
+                  </span>
+                  <span className="nums shrink-0 font-display text-2xl font-semibold tracking-tight">
+                    {spend ? formatMoney(spend.total, spend.currency) : "—"}
+                  </span>
+                </Link>
+              }
             />
           </Suspense>
-          {/* Present, but visibly not the viewer's problem: white, not blue. */}
-          <Tile skin={PANEL}>
-            <SectionHead title="Still outstanding" />
-            {waiting.length === 0 ? (
-              <p className="mt-2 text-sm text-ink-soft">
-                Nobody owes the group anything right now.
-              </p>
-            ) : (
-              <ul className="mt-3 flex flex-wrap gap-2">
-                {waiting.map((w) => (
-                  <li key={`${w.userId}-${w.what}`}>
-                    <Link
-                      href={w.href}
-                      className="flex items-center gap-2 rounded-full bg-sheet-2 py-1 pl-1 pr-4 text-sm transition-colors hover:bg-sheet-3"
-                    >
-                      <Avatar name={w.name} icon={w.avatarIcon} size={26} />
-                      <span className="truncate">
-                        {w.name} &mdash; {w.what}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Tile>
-          <TileLink href={`/trip/${tripId}/money`} skin="bg-mint text-mint-ink">
-            <span className="font-display text-lg">Spending</span>
-            <p className="mt-1 font-display text-3xl font-semibold tracking-tight">
-              {spend ? formatMoney(spend.total, spend.currency) : "—"}
-            </p>
-            <p className="mt-2 text-sm opacity-80">
-              {expenseRows.length === 0
-                ? "Nothing logged yet"
-                : `${expenseRows.length} ${expenseRows.length === 1 ? "expense" : "expenses"}${
-                    spend && spend.otherCurrencies > 0
-                      ? `, plus ${spend.otherCurrencies} in other currencies`
-                      : ""
-                  }`}
-            </p>
-          </TileLink>
+          {booking ? <OverviewBooking plan={booking} /> : null}
         </div>
       </div>
 
@@ -367,79 +330,6 @@ export default async function OverviewPage({
       ) : null}
     </div>
   );
-}
-
-/**
- * Rank 3: a white panel with a hairline. The hairline is what makes a white
- * surface a panel at all — white on the near-white canvas has no edge of its
- * own, which is why the old bare `bg-sheet` sections read as loose text.
- */
-const PANEL = "bg-sheet ring-1 ring-rule";
-
-function Tile({
-  skin,
-  tight,
-  children,
-}: {
-  skin: string;
-  /** Rail padding — for a panel in the narrow right column. */
-  tight?: boolean;
-  children: ReactNode;
-}) {
-  return (
-    <section className={cx("rounded-lg", tight ? "p-5" : "p-6", skin)}>
-      {children}
-    </section>
-  );
-}
-
-/**
- * ONE heading per panel (ticket 209). It used to be a typed eyebrow over a
- * display title — "The group" above "Who's going" — which is the same fact
- * printed twice. A panel gets one name; the drawing under it says the rest.
- */
-function SectionHead({ title }: { title: string }) {
-  return <h2 className="font-display text-lg">{title}</h2>;
-}
-
-// A rail figure — one number and a line about it. Tighter than a `Tile`:
-// these sit in the narrow column and shouldn't out-weigh the roster above them.
-function TileLink({
-  href,
-  skin,
-  children,
-}: {
-  href: string;
-  skin: string;
-  children: ReactNode;
-}) {
-  return (
-    <Link href={href} className={cx("lift block rounded-lg p-5", skin)}>
-      {children}
-    </Link>
-  );
-}
-
-/**
- * A headline number needs one currency. The one with the most expenses wins and
- * the rest are counted, rather than summing across currencies (rule 1's spirit:
- * money is never fudged).
- */
-function spendByCurrency(
-  expenses: { currency: Currency; amountMinor: number }[],
-): { currency: Currency; total: number; otherCurrencies: number } | null {
-  if (expenses.length === 0) return null;
-  const books = new Map<Currency, { total: number; count: number }>();
-  for (const e of expenses) {
-    const book = books.get(e.currency) ?? { total: 0, count: 0 };
-    book.total += e.amountMinor;
-    book.count += 1;
-    books.set(e.currency, book);
-  }
-  const [currency, book] = [...books.entries()].reduce((best, entry) =>
-    entry[1].count > best[1].count ? entry : best,
-  );
-  return { currency, total: book.total, otherCurrencies: books.size - 1 };
 }
 
 // The dates' edit affordance (ticket 213) — a pencil linking to the Dates tab,

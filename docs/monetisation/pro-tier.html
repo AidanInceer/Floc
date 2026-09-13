@@ -101,12 +101,17 @@ lives in <strong>one function</strong>, <code>canUseFeature()</code> in
 policy edit inside that function rather than a refactor.</p>
 
 <h2>What Pro gates</h2>
-<p>Two things. A small, boring set proves the pipe; it is not meant to make Pro
+<p>Three things. A small, boring set proves the pipe; it is not meant to make Pro
 attractive yet.</p>
 <ul>
 <li><strong>Weather</strong> — <code>dates.weather</code>, in <code>server/weather.ts</code>.</li>
 <li><strong>The automatic packing planner</strong> — <code>packing.autoGenerate</code>, in
 <code>server/packing-generator.ts</code>.</li>
+<li><strong>Filled-in booking searches</strong> — <code>booking.prefill</code>. Free keeps every
+flight and stay link, but each opens the site&#39;s own empty search; Pro sends the
+place, dates and head count along. The URLs are built in
+<code>@floc/core/trip/booking-links</code>; the web pages ask the gate, and the phone reads
+<code>bookingPrefill</code> on the trip.</li>
 </ul>
 <p><strong>Not gated, though the landing page lists it as coming:</strong> multiple notes
 pages. <code>server/note-doc.ts</code> is still one row, one blob, per trip. It gets a
@@ -186,6 +191,7 @@ export type Plan = (typeof PLANS)[number];
 export const FEATURE_PLAN = {
   &quot;dates.weather&quot;:        { plan: &quot;pro&quot;, scope: &quot;trip&quot; },
   &quot;packing.autoGenerate&quot;: { plan: &quot;pro&quot;, scope: &quot;trip&quot; },
+  &quot;booking.prefill&quot;:      { plan: &quot;pro&quot;, scope: &quot;trip&quot; },
 } as const satisfies Record&lt;string, { plan: Plan; scope: Scope }&gt;;</code></pre>
 <ul>
 <li><strong><code>Plan</code>, not <code>Tier</code>.</strong> <code>PACK_TIERS</code> already

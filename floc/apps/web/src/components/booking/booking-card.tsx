@@ -14,7 +14,7 @@ function nightsLabel(row: StayRow) {
 export function BookingCard({ tripId, plan }: { tripId: number; plan: BookingPlan }) {
   const daysHref = `/trip/${tripId}/days`;
   return (
-    <section className="rounded-md border border-rule bg-sheet p-4 shadow-card">
+    <section id="booking" className="scroll-mt-24 rounded-md border border-rule bg-sheet p-4 shadow-card">
       <h2 className={headClass}>Get booking</h2>
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-b border-rule pb-3">

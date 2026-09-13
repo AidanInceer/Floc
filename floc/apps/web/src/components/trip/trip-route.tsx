@@ -97,13 +97,9 @@ export function TripRoute({
     <section className="flex flex-1 flex-col rounded-lg bg-sheet p-6 ring-1 ring-rule">
       {/* One heading, not an eyebrow over a title saying the same thing. */}
       <h2 className="font-display text-lg">The route</h2>
-      {/* The list wants far less width than the map and gets it — but only
-          once there is width to give. This panel sits in Overview's left
-          column (ticket 209), so the split waits for `xl`; below that the list
-          sits under the map rather than squeezing it. */}
-      <div className="mt-4 grid flex-1 gap-4 xl:grid-cols-[minmax(0,66fr)_minmax(0,34fr)] xl:items-stretch">
-        <RouteMap stops={pinned} missing={missing} fill />
-        <ol className="self-start rounded-md bg-sheet-2 p-3 text-ink">
+      <div className="mt-4 flex flex-1 flex-col gap-4">
+        <RouteMap stops={pinned} missing={missing} />
+        <ol className="rounded-md bg-sheet-2 p-3 text-ink">
           {stops.map((stop, i) => (
             <li key={stop.dayIds.join("-")}>
               {i > 0 ? <Leg mode={legMode(i)} /> : null}

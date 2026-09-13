@@ -29,6 +29,7 @@ const TRIP: TripDetail = {
       dietary: null,
     },
   ],
+  bookingPrefill: false,
 };
 
 function fakePort(overrides: Partial<FlocPort> = {}): FlocPort {

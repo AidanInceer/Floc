@@ -14,7 +14,7 @@ import { View } from "react-native";
 
 import { Seat } from "../system/glyphs";
 import { useTheme } from "../system/theme";
-import { Body, Pill } from "../system/ui";
+import { Body, Label, Pill } from "../system/ui";
 import { radius, space } from "@/lib/theme";
 
 export type RosterPerson = {
@@ -23,7 +23,14 @@ export type RosterPerson = {
   role: "admin" | "member";
 };
 
-export function RosterStrip({ people }: { people: RosterPerson[] }) {
+export function RosterStrip({
+  people,
+  statuses,
+}: {
+  people: RosterPerson[];
+  /** userId → what they still owe the group, in words (`groupStatuses`). */
+  statuses: Map<string, string[]>;
+}) {
   const { c } = useTheme();
 
   return (
@@ -50,20 +57,18 @@ export function RosterStrip({ people }: { people: RosterPerson[] }) {
               ground={c[tone]}
               ink={c[`${tone}-ink`]}
             />
-            {/* Name and role sit together, left, as they do on the web — a
-                pill alone at the far edge reads as a control, not a fact. */}
-            <View
-              style={{
-                flex: 1,
-                flexDirection: "row",
-                flexWrap: "wrap",
-                alignItems: "center",
-                gap: space.sm,
-              }}
-            >
+            {/* Who on the left, status on the right, same place every row. */}
+            <View style={{ flex: 1, flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: space.sm }}>
               <Body>{person.name}</Body>
-              {person.role === "admin" ? <Pill word="Admin" tone="peri" /> : null}
+              {person.role === "admin" ? <Label>Admin</Label> : null}
             </View>
+            {(statuses.get(person.userId) ?? []).length > 0 ? (
+              <View style={{ alignItems: "flex-end", gap: space.xs }}>
+                {(statuses.get(person.userId) ?? []).map((word) => (
+                  <Pill key={word} word={word} tone="butter" />
+                ))}
+              </View>
+            ) : null}
           </View>
         );
       })}

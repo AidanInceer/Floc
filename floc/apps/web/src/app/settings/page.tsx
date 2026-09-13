@@ -551,8 +551,9 @@ function BillingPanel({
               {subscription
                 ? renewalLabel(subscription)
                 : "You’re on the free plan."}{" "}
-              Pro adds the weather forecast on your dates and a packing list
-              filled in for you.
+              Pro adds the weather forecast on your dates, a packing list
+              filled in for you, and flight and stay searches that arrive
+              with your place and dates filled in.
             </p>
             <ProUpgrade prices={prices} canBuy href="/settings?section=billing" />
           </Stack>

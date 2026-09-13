@@ -81,6 +81,8 @@ export type TripDetail = {
   /** The viewer's own role, so a client can hide what `assertAdmin` would refuse anyway. */
   role: TripRole;
   members: TripMember[];
+  /** Pro: booking links arrive with the place and dates filled in. */
+  bookingPrefill: boolean;
 };
 
 export type DayEvent = {
