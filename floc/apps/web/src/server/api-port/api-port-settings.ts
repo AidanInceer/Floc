@@ -76,9 +76,9 @@ export const settingsPort: SettingsPort = {
       packTier: profile.packTier,
       packAutoGenerate: profile.packAutoGenerate,
       homeCurrency: profile.homeCurrency,
-      notifyInvites: profile.notifyInvites,
-      notifyMoney: profile.notifyMoney,
-      notifyNudges: profile.notifyNudges,
+      notifyPush: profile.notifyPush,
+      notifyEmail: profile.notifyEmail,
+      notifyReminders: profile.notifyReminders,
       signInMethods: linked.map((a) => ({ id: a.id, provider: a.providerId })),
     };
   },
@@ -144,9 +144,9 @@ export const settingsPort: SettingsPort = {
   async updateNotifications(viewerId, input) {
     await ensureProfile(viewerId);
     await updateProfileFields(viewerId, {
-      notifyInvites: input.invites,
-      notifyMoney: input.money,
-      notifyNudges: input.nudges,
+      notifyPush: input.push,
+      notifyEmail: input.email,
+      notifyReminders: input.reminders,
     });
   },
 

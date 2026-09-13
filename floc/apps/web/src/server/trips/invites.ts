@@ -24,6 +24,7 @@ import { touch } from "@/server/audit";
 import { refresh } from "@/server/freshness";
 import { ensureProfile } from "@/server/auth/profile";
 import { addMember } from "@/server/trips/roster";
+import { recordActivity } from "@/server/notifications/activity";
 
 /* --------------------------------------------------------- the share link */
 
@@ -105,25 +106,35 @@ export async function inviteToTrip(args: {
   const toInvite = wanted.filter((id) => !members.has(id));
   if (toInvite.length === 0) return 0;
 
-  await db
-    .insert(tripInvite)
-    .values(
-      toInvite.map((toUserId) => ({
-        tripId,
-        fromUserId,
-        toUserId,
-        status: "pending" as const,
-      })),
-    )
-    .onConflictDoUpdate({
-      target: [tripInvite.tripId, tripInvite.toUserId],
-      set: {
-        fromUserId,
-        status: "pending",
-        deletedAt: null,
-        lastModifiedAt: new Date(),
-      },
+  await db.transaction(async (tx) => {
+    await tx
+      .insert(tripInvite)
+      .values(
+        toInvite.map((toUserId) => ({
+          tripId,
+          fromUserId,
+          toUserId,
+          status: "pending" as const,
+        })),
+      )
+      .onConflictDoUpdate({
+        target: [tripInvite.tripId, tripInvite.toUserId],
+        set: {
+          fromUserId,
+          status: "pending",
+          deletedAt: null,
+          lastModifiedAt: new Date(),
+        },
+      });
+    await recordActivity(tx, {
+      kind: "trip_invited",
+      tripId,
+      actorId: fromUserId,
+      subjectId: null,
+      href: "/trips",
+      affected: toInvite,
     });
+  });
 
   return toInvite.length;
 }

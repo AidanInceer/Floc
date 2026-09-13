@@ -12,7 +12,6 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import {
-  emailsForUsers,
   findLiveExpense,
   findLiveSettlement,
   listSettlements,
@@ -20,6 +19,7 @@ import {
   softDeleteSettlement,
   writeExpense,
   writeSettlement,
+  writeSettlements,
   type ExpenseFields,
 } from "@/server/money/money";
 
@@ -150,6 +150,25 @@ describe("settlements", () => {
     const [row] = await listSettlements(world.ours.id);
     expect(await findLiveSettlement(world.theirs.id, row.id)).toBeUndefined();
   });
+
+  it("records several transfers in one write, each in its own currency", async () => {
+    await writeSettlements(world.ours.id, world.member, [
+      { fromUserId: world.member, toUserId: world.admin, amountMinor: 1500, currency: "GBP" },
+      { fromUserId: world.member, toUserId: world.admin, amountMinor: 3270, currency: "EUR" },
+    ]);
+    const rows = await listSettlements(world.ours.id);
+    expect(rows.map((r) => `${r.amountMinor} ${r.currency}`).sort()).toEqual(["1500 GBP", "3270 EUR"]);
+  });
+
+  it("writes none of them when one is refused", async () => {
+    await expect(
+      writeSettlements(world.ours.id, world.member, [
+        { fromUserId: world.member, toUserId: world.admin, amountMinor: 1500, currency: "GBP" },
+        { fromUserId: world.member, toUserId: "u-nobody", amountMinor: 900, currency: "GBP" },
+      ]),
+    ).rejects.toThrow();
+    expect(await listSettlements(world.ours.id)).toEqual([]);
+  });
 });
 
 /** Ticket 115 (M10) — writes filter soft-deletes too, not just reads. */
@@ -164,14 +183,5 @@ describe("writes against deleted rows", () => {
     expect((await expensesOf(world.ours.id))[0].deletedAt?.getTime()).toBe(
       first?.getTime(),
     );
-  });
-});
-
-describe("addressing the notification", () => {
-  it("looks up participants who have left the roster, and shortcuts on none", async () => {
-    expect(await emailsForUsers([])).toEqual([]);
-    const rows = await emailsForUsers([world.member]);
-    expect(rows).toHaveLength(1);
-    expect(rows[0].id).toBe(world.member);
   });
 });

@@ -39,4 +39,6 @@ Things that bite. Read before editing.
 - `pnpm add` with a dev server up — the running process holds `node_modules`, pnpm dies on `EPERM ... rename` and rolls the install back with the dep still in `package.json`. Stop servers first.
 - Trusting a mobile `typecheck` that ran before Metro — expo-router writes `.expo/types/router.d.ts` at start, so after moving or adding a route the old union still validates. Start Metro, then typecheck again.
 - A killed `expo run:android` leaves a `node` orphan on 8081; the next run offers 8082, which the `adb reverse` tunnel does not cover. Answer no, kill the PID from `Get-NetTCPConnection -LocalPort 8081`.
+- Trusting `pnpm --filter floc-mobile android` after adding a config plugin or `google-services.json` — it reuses the ignored `android/` folder and never re-runs prebuild, so the plugin is missing and push tokens silently come back null. Run `pnpm --filter floc-mobile exec expo prebuild --platform android --clean` first (#345).
+- Firing one tRPC mutation per row in a loop — on the local file database parallel write transactions hit `SQLITE_BUSY` and half the rows save. Send the batch as one call, one transaction (#345).
 - Metro dying on `ENOENT: ... watch '...\.next\...'` — it is watching the web app's stale build, not a mobile problem. `pnpm --filter floc-web run clean:next`.

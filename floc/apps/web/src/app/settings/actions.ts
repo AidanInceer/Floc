@@ -79,9 +79,9 @@ export async function updateNotifications(formData: FormData): Promise<void> {
   const viewer = await requireUser();
   await ensureProfile(viewer.id);
   await updateProfileFields(viewer.id, {
-    notifyInvites: formData.get("notifyInvites") === "on",
-    notifyMoney: formData.get("notifyMoney") === "on",
-    notifyNudges: formData.get("notifyNudges") === "on",
+    notifyPush: formData.get("notifyPush") === "on",
+    notifyEmail: formData.get("notifyEmail") === "on",
+    notifyReminders: formData.get("notifyReminders") === "on",
   });
 }
 

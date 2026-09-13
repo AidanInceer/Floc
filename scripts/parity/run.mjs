@@ -37,7 +37,7 @@ function declaredProcedures() {
   return names.sort();
 }
 
-/** Every `trpc.<router>.<procedure>` the phone app mentions, wherever it mentions it. */
+/** Every `trpc.<router>.<procedure>` or plain `client.<router>.<procedure>` the phone app mentions, wherever it mentions it. */
 function mobileCalls() {
   const found = new Set();
   const skip = new Set(["node_modules", ".expo", "android", "ios", "dist", "coverage"]);
@@ -47,7 +47,7 @@ function mobileCalls() {
         if (!skip.has(entry.name)) walk(join(dir, entry.name));
       } else if (/\.tsx?$/.test(entry.name)) {
         for (const [, name] of readFileSync(join(dir, entry.name), "utf8").matchAll(
-          /\btrpc\.([a-zA-Z]+\.[a-zA-Z]+)/g,
+          /\b(?:trpc|client)\.([a-zA-Z]+\.[a-zA-Z]+)/g,
         )) {
           found.add(name);
         }

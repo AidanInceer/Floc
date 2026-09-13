@@ -26,7 +26,9 @@ import type {
 } from "@/db/schema";
 import type { ExpenseCategory } from "@floc/core/money/expense-category";
 import { bounded, LIMITS } from "@/server/limits";
+import { tripHref } from "@floc/core/notifications/notification-href";
 import { touch } from "@/server/audit";
+import { recordActivity } from "@/server/notifications/activity";
 
 /** The trip's live ledger, newest first (ticket 118). Whole rows — Money and Overview both read columns from it. */
 export async function listExpenses(tripId: number): Promise<Expense[]> {
@@ -119,6 +121,15 @@ export async function writeExpense(args: {
         owedAmountMinor: s.owedAmountMinor,
       })),
     );
+
+    await recordActivity(tx, {
+      kind: expenseId === undefined ? "expense_added" : "expense_changed",
+      tripId,
+      actorId: createdBy,
+      subjectId: id,
+      href: tripHref(tripId, "money"),
+      affected: splits.map((s) => s.userId),
+    });
   });
 }
 
@@ -169,10 +180,7 @@ export async function listSettlements(tripId: number): Promise<Settlement[]> {
   return bounded(rows, "expenses", `trip ${tripId} settlements`);
 }
 
-/** Records one transfer that has already happened off-app. Append-only — never edited, reverted by soft-delete. */
-export async function writeSettlement(args: {
-  tripId: number;
-  createdBy: string;
+export type Transfer = {
   fromUserId: string;
   toUserId: string;
   amountMinor: number;
@@ -182,8 +190,33 @@ export async function writeSettlement(args: {
   clearsCurrency?: Currency;
   fxRate?: number;
   fxRateDate?: string | null;
-}): Promise<void> {
-  await db.insert(settlement).values(args);
+};
+
+/** Records one transfer that has already happened off-app. Append-only — never edited, reverted by soft-delete. */
+export async function writeSettlement(args: Transfer & { tripId: number; createdBy: string }): Promise<void> {
+  const { tripId, createdBy, ...transfer } = args;
+  await writeSettlements(tripId, createdBy, [transfer]);
+}
+
+/** One transaction for the lot: a settle-up saves whole or not at all, and never races itself for the write lock. */
+export async function writeSettlements(tripId: number, createdBy: string, transfers: Transfer[]): Promise<void> {
+  await db.transaction(async (tx) => {
+    for (const transfer of transfers) {
+      const row = await tx
+        .insert(settlement)
+        .values({ tripId, createdBy, ...transfer })
+        .returning({ id: settlement.id })
+        .get();
+      await recordActivity(tx, {
+        kind: "settlement_recorded",
+        tripId,
+        actorId: createdBy,
+        subjectId: row.id,
+        href: tripHref(tripId, "money"),
+        affected: [transfer.fromUserId, transfer.toUserId],
+      });
+    }
+  });
 }
 
 /** Confirms a settlement is this trip's and still live, before reverting it. */
@@ -245,18 +278,4 @@ export async function namesForUsers(
     id: r.id,
     name: r.displayName ?? r.name,
   }));
-}
-
-/** Same former-member case as `namesForUsers`, for the mail rather than the ledger. */
-export async function emailsForUsers(
-  userIds: string[],
-): Promise<{ id: string; email: string }[]> {
-  if (userIds.length === 0) return [];
-  const rows = await db
-    .select({ id: user.id, email: user.email })
-    .from(user)
-    .where(inArray(user.id, userIds))
-    .limit(LIMITS.members)
-    .all();
-  return bounded(rows, "members", "expense participants");
 }

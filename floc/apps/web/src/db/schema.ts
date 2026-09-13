@@ -21,6 +21,7 @@ import { DOC_CATEGORIES } from "@floc/core/documents/documents";
 import { PACK_CATEGORIES, PACK_TIERS } from "@floc/core/packing/packing";
 import { PLANS } from "@floc/core/billing/plans";
 import { AVATAR_ICONS } from "@floc/core/people/avatar-icon";
+import { ACTIVITY_KINDS, REMINDER_KINDS } from "@floc/core/notifications/rules";
 import {
   index,
   integer,
@@ -178,15 +179,10 @@ export const userProfile = sqliteTable("user_profile", {
   /** First set when the tour is finished or skipped, never cleared — once per person, not per trip (#314). */
   tourSeenAt: integer("tour_seen_at", { mode: "timestamp" }),
   // No theme column — light-only (ticket 07).
-  notifyInvites: integer("notify_invites", { mode: "boolean" })
-    .notNull()
-    .default(true),
-  notifyMoney: integer("notify_money", { mode: "boolean" })
-    .notNull()
-    .default(true),
-  notifyNudges: integer("notify_nudges", { mode: "boolean" })
-    .notNull()
-    .default(true),
+  /** The three switches #346 left: push, email, and date reminders. */
+  notifyPush: integer("notify_push", { mode: "boolean" }).notNull().default(true),
+  notifyEmail: integer("notify_email", { mode: "boolean" }).notNull().default(true),
+  notifyReminders: integer("notify_reminders", { mode: "boolean" }).notNull().default(true),
   ...audit,
 });
 
@@ -297,6 +293,8 @@ export const tripMembership = sqliteTable(
     packGeneratedAt: integer("pack_generated_at", { mode: "timestamp" }),
     /** Your own star on your trip list. Per person: one member's star is nobody else's. */
     starredAt: integer("starred_at", { mode: "timestamp" }),
+    /** Your own mute (#346): no push or email from this trip, the inbox still fills. */
+    mutedAt: integer("muted_at", { mode: "timestamp" }),
     ...audit,
   },
   (t) => [
@@ -865,6 +863,87 @@ export const nudge = sqliteTable(
     ...audit,
   },
   (t) => [index("nudge_trip_to_idx").on(t.tripId, t.toUserId)],
+);
+
+export const activity = sqliteTable(
+  "activity",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    /** Null for friend requests, which belong to no trip. */
+    tripId: integer("trip_id").references(() => trip.id, { onDelete: "cascade" }),
+    actorId: text("actor_id")
+      .notNull()
+      .references(() => user.id),
+    kind: text("kind", { enum: ACTIVITY_KINDS }).notNull(),
+    /** Not a real FK — polymorphic by `kind`, like `note.scope_id`. */
+    subjectId: integer("subject_id"),
+    href: text("href").notNull(),
+    /** Words a reminder carries that no row holds, like "Sam £40.00" (#346). */
+    detail: text("detail"),
+    ...audit,
+  },
+  (t) => [index("activity_group_idx").on(t.actorId, t.kind, t.subjectId)],
+);
+
+export const notification = sqliteTable(
+  "notification",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    activityId: integer("activity_id")
+      .notNull()
+      .references(() => activity.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id),
+    loud: integer("loud", { mode: "boolean" }).notNull(),
+    readAt: integer("read_at", { mode: "timestamp" }),
+    /** Why: a lease, so a second instance skips it and a crashed send is retried once the lease runs out (#345). */
+    pushClaimedAt: integer("push_claimed_at", { mode: "timestamp" }),
+    pushedAt: integer("pushed_at", { mode: "timestamp" }),
+    /** Same lease as push, for the email fallback (#346). */
+    emailClaimedAt: integer("email_claimed_at", { mode: "timestamp" }),
+    emailedAt: integer("emailed_at", { mode: "timestamp" }),
+    ...audit,
+  },
+  (t) => [
+    uniqueIndex("notification_one_idx").on(t.activityId, t.userId),
+    index("notification_user_idx").on(t.userId),
+    index("notification_push_idx").on(t.loud, t.pushedAt),
+    index("notification_email_idx").on(t.loud, t.emailedAt),
+  ],
+);
+
+/** Why: the unique key is what makes a reminder send once per person per trip, even when two cron runs overlap (#346). */
+export const reminder = sqliteTable(
+  "reminder",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    kind: text("kind", { enum: REMINDER_KINDS }).notNull(),
+    tripId: integer("trip_id")
+      .notNull()
+      .references(() => trip.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    ...audit,
+  },
+  (t) => [uniqueIndex("reminder_once_idx").on(t.kind, t.tripId, t.userId)],
+);
+
+/** One row per phone that allowed push (#345). */
+export const pushToken = sqliteTable(
+  "push_token",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id),
+    token: text("token").notNull(),
+    /** Why: only notifications after this reach the phone, so a new install is not handed a month of backlog. */
+    registeredAt: integer("registered_at", { mode: "timestamp" }).notNull().default(now),
+    ...audit,
+  },
+  (t) => [uniqueIndex("push_token_token_idx").on(t.token), index("push_token_user_idx").on(t.userId)],
 );
 
 /* -------------------------------------------------------------------------- */

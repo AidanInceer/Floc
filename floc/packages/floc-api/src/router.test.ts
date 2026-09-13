@@ -53,6 +53,7 @@ function fakePort(overrides: Partial<FlocPort> = {}): FlocPort {
     removePackingLine: vi.fn().mockResolvedValue(undefined),
     listTrips: vi.fn().mockResolvedValue([]),
     setTripStarred: vi.fn().mockResolvedValue(undefined),
+    setTripMuted: vi.fn().mockResolvedValue(undefined),
     // Only member "u1" is in trip 1; everyone and everything else is null.
     loadTrip: vi.fn(async (viewerId: string, tripId: number) =>
       viewerId === "u1" && tripId === 1 ? TRIP : null,
@@ -128,6 +129,20 @@ describe("starring a trip", () => {
       code: "NOT_FOUND",
     });
     expect(port.setTripStarred).not.toHaveBeenCalled();
+  });
+});
+
+describe("muting a trip (#346)", () => {
+  it("mutes only for the caller", async () => {
+    const { caller: ana, port } = caller("u1");
+    await ana.trips.setMuted({ tripId: 1, muted: true });
+    expect(port.setTripMuted).toHaveBeenCalledWith("u1", 1, true);
+  });
+
+  it("refuses a trip the caller is not on", async () => {
+    const { caller: bo, port } = caller("u2");
+    await expect(bo.trips.setMuted({ tripId: 1, muted: true })).rejects.toMatchObject({ code: "NOT_FOUND" });
+    expect(port.setTripMuted).not.toHaveBeenCalled();
   });
 });
 
@@ -207,6 +222,24 @@ describe("what the input rules refuse", () => {
         splits: [],
       }),
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  it("settles every transfer in one call, so they save together or not at all", async () => {
+    const { caller: ana, port } = caller("u1");
+    const transfers = [
+      { fromUserId: "u1", toUserId: "u2", amountMinor: 3270, currency: "EUR" as const },
+      { fromUserId: "u1", toUserId: "u3", amountMinor: 5460, currency: "GBP" as const },
+    ];
+    await ana.money.settle({ tripId: 1, transfers });
+    expect(port.settleUp).toHaveBeenCalledTimes(1);
+    expect(port.settleUp).toHaveBeenCalledWith("u1", 1, transfers);
+  });
+
+  it("refuses a settle-up with no transfers", async () => {
+    const { caller: ana } = caller("u1");
+    await expect(ana.money.settle({ tripId: 1, transfers: [] })).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+    });
   });
 
   it("refuses a date that is not YYYY-MM-DD, and an offset with it (rule 10)", async () => {

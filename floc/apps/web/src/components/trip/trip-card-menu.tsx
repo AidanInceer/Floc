@@ -9,18 +9,20 @@ import { Field, Input, Stack, menuDangerItemClass, menuItemClass } from "@/compo
 import { TripColorPicker } from "@/components/trip/trip-color-picker";
 import { TEXT_CAPS } from "@floc/core/text/text";
 import type { TripColor } from "@floc/core/trip/trip-color";
-import { archiveTrip, deleteTrip, renameTripFromMenu } from "@/app/trips/actions";
+import { archiveTrip, deleteTrip, muteTrip, renameTripFromMenu } from "@/app/trips/actions";
 
 export function TripCardMenu({
   tripId,
   tripName,
   isAdmin,
   color,
+  muted,
 }: {
   tripId: number;
   tripName: string;
   isAdmin: boolean;
   color: TripColor | null;
+  muted: boolean;
 }) {
   return (
     <Menu label={`Actions for ${tripName}`}>
@@ -47,6 +49,14 @@ export function TripCardMenu({
       </Sheet>
 
       <TripColorPicker tripId={tripId} current={color} />
+
+      <form action={muteTrip}>
+        <input type="hidden" name="tripId" value={tripId} />
+        <input type="hidden" name="muted" value={String(!muted)} />
+        <SubmitButton variant="ghost" pendingLabel="…" className={menuItemClass}>
+          {muted ? "Unmute trip" : "Mute trip"}
+        </SubmitButton>
+      </form>
 
       {isAdmin ? (
         <form action={archiveTrip}>

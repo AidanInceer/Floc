@@ -55,12 +55,14 @@ beforeEach(async () => {
 describe("nudging", () => {
   beforeEach(() => signIn(world.member));
 
-  it("records the nudge and mails the member", async () => {
+  it("records the nudge and puts it in the member's inbox, with no email (#344)", async () => {
     await sendNudge(form({ tripId: ours(), toUserId: world.admin, tab: "money", message: "Pay up" }));
 
     const [row] = await db.select().from(schema.nudge).all();
     expect(row).toMatchObject({ fromUserId: world.member, toUserId: world.admin, tab: "money", message: "Pay up" });
-    expect(sendEmails.mock.calls[0][0][0].to).toBe(`${world.admin}@example.test`);
+    const [told] = await db.select().from(schema.notification).all();
+    expect(told).toMatchObject({ userId: world.admin, loud: true });
+    expect(sendEmails).not.toHaveBeenCalled();
   });
 
   it("falls back to the first tab for one it does not know", async () => {

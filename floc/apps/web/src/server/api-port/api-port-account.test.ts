@@ -67,6 +67,16 @@ describe("settings", () => {
     expect(settings.shareDietary).toBe(true);
   });
 
+  it("keeps the three notification switches, all on until changed (#346)", async () => {
+    const before = await webPort.loadMySettings(world.member);
+    expect([before.notifyPush, before.notifyEmail, before.notifyReminders]).toEqual([true, true, true]);
+
+    await webPort.updateNotifications(world.member, { push: false, email: true, reminders: false });
+
+    const after = await webPort.loadMySettings(world.member);
+    expect([after.notifyPush, after.notifyEmail, after.notifyReminders]).toEqual([false, true, false]);
+  });
+
   it("refuses to unlink the last sign-in method", async () => {
     await db.insert(schema.account).values({
       id: "acc-only",

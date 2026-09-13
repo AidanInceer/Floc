@@ -47,12 +47,14 @@ import { settingsPort } from "@/server/api-port/api-port-settings";
 import { socialPort } from "@/server/api-port/api-port-social";
 import { weatherPort } from "@/server/api-port/api-port-weather";
 import { calendarPort } from "@/server/api-port/api-port-calendar";
+import { notificationsPort } from "@/server/api-port/api-port-notifications";
 import { refresh } from "@/server/freshness";
 import { emailConfigured } from "@/server/auth/email";
 import { findTripByInviteToken, joinWithLink } from "@/server/trips/invites";
 import {
   insertEvent,
   listDaysWithEvents,
+  setTripWindow,
   softDeleteEvent,
   updateEventFields,
 } from "@/server/itinerary/itinerary";
@@ -63,7 +65,7 @@ import {
   listSplits,
   softDeleteExpense,
   writeExpense,
-  writeSettlement,
+  writeSettlements,
 } from "@/server/money/money";
 import { listAvailability, setAvailability } from "@/server/itinerary/availability";
 import { listDocuments } from "@/server/documents/documents";
@@ -110,6 +112,7 @@ import {
   createTripWithAdmin,
   listTripsFor,
   setTripArchived,
+  setTripMuted,
   setTripStarred,
   softDeleteTrip,
   updateTrip,
@@ -160,6 +163,7 @@ export const webPort: FlocPort = {
   ...billingPort,
   ...weatherPort,
   ...calendarPort,
+  ...notificationsPort,
 
   async loadPacking(viewerId, tripId): Promise<PackingBoard> {
     await scoped(viewerId, tripId);
@@ -249,7 +253,7 @@ export const webPort: FlocPort = {
     // nobody wants should not outlive whoever typed it. A personal one only
     // ever resolves for its owner, so this is already scoped.
     const line = await access.packingLine(lineId);
-    await softDeletePackingLine(line.id);
+    await softDeletePackingLine(line.id, viewerId);
     refresh({ kind: "packing", tripId });
   },
 
@@ -259,7 +263,7 @@ export const webPort: FlocPort = {
     // for the person, never a way round the per-line check (#229). A set
     // holding somebody else's personal line throws whole.
     const lines = await Promise.all(lineIds.map((id) => access.packingLine(id)));
-    await softDeletePackingLines(lines.map((line) => line.id));
+    await softDeletePackingLines(lines.map((line) => line.id), viewerId);
     refresh({ kind: "packing", tripId });
   },
 
@@ -267,7 +271,7 @@ export const webPort: FlocPort = {
     await scoped(viewerId, tripId);
     // The scope is decided here and applied in the SQL, so "clear my bag"
     // cannot be spelled as "clear someone else's".
-    await softDeleteWholeList(tripId, mine ? viewerId : null);
+    await softDeleteWholeList(tripId, mine ? viewerId : null, viewerId);
     refresh({ kind: "packing", tripId });
   },
 
@@ -387,6 +391,12 @@ export const webPort: FlocPort = {
   async setTripStarred(viewerId, tripId, starred) {
     await scoped(viewerId, tripId);
     await setTripStarred(tripId, viewerId, starred);
+    refresh({ kind: "tripList" });
+  },
+
+  async setTripMuted(viewerId, tripId, muted) {
+    await scoped(viewerId, tripId);
+    await setTripMuted(tripId, viewerId, muted);
     refresh({ kind: "tripList" });
   },
 
@@ -533,11 +543,22 @@ export const webPort: FlocPort = {
     await scoped(viewerId, tripId);
     // `tags: null` clears on the wire, but the column's patch type says
     // `string[]`, so an explicit clear becomes an empty list.
-    const { tags, ...rest } = patch;
+    const { tags, startDate, endDate, ...rest } = patch;
     await updateTrip(tripId, {
       ...rest,
       ...(tags !== undefined ? { tags: tags ?? [] } : {}),
     });
+    // Why: dates go through the same window write as the web's Dates tab, so
+    // the days follow (ticket 140) and the group hears about it (#344).
+    if (startDate !== undefined || endDate !== undefined) {
+      const current = await scoped(viewerId, tripId);
+      await setTripWindow(
+        tripId,
+        startDate === undefined ? current.trip.startDate : startDate,
+        endDate === undefined ? current.trip.endDate : endDate,
+        viewerId,
+      );
+    }
     refresh({ kind: "tripHeader", tripId }, { kind: "tripList" });
   },
 
@@ -572,7 +593,7 @@ export const webPort: FlocPort = {
     // Kicking yourself is leaving, which is not an admin power — route it there
     // so succession and the last-member archive still run (rule 6).
     if (userId === viewerId) return webPort.leaveTrip(viewerId, tripId);
-    await removeMembership(tripId, userId);
+    await removeMembership(tripId, userId, viewerId);
     refresh({ kind: "tripHeader", tripId });
   },
 
@@ -617,15 +638,15 @@ export const webPort: FlocPort = {
     refresh({ kind: "money", tripId });
   },
 
-  async settleUp(viewerId, tripId, input) {
+  async settleUp(viewerId, tripId, transfers) {
     const access = await scoped(viewerId, tripId);
     // Both ends must be on this trip. Without the check, a crafted id would
     // write a debt against somebody who is not in the group at all.
     const onTrip = new Set(access.members.map((member) => member.userId));
-    if (!onTrip.has(input.fromUserId) || !onTrip.has(input.toUserId)) {
+    if (transfers.some((t) => !onTrip.has(t.fromUserId) || !onTrip.has(t.toUserId))) {
       throw new Error("That person is not on this trip.");
     }
-    await writeSettlement({ tripId, createdBy: viewerId, ...input });
+    await writeSettlements(tripId, viewerId, transfers);
     refresh({ kind: "money", tripId });
   },
 

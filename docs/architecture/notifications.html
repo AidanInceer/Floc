@@ -1,0 +1,131 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notifications — Floc docs</title>
+<link rel="stylesheet" href="../assets/docs.css">
+<body data-root=".." data-page="notifications">
+<nav id="sidebar" aria-label="Documentation"></nav>
+<main>
+<p class="crumb">Docs · Architecture</p>
+<h1>Notifications</h1>
+<p>How a change in a trip reaches the people who need it, on web and phone,
+without flooding them. Decided in the grilling of
+<a href="https://github.com/AidanInceer/Floc/issues/331">#331</a>.</p>
+
+<pre class="mermaid">flowchart LR
+    Change["server/* change&lt;br/&gt;(expense, day, note, nudge…)"]
+    Log[("activity&lt;br/&gt;one row per change,&lt;br/&gt;same transaction")]
+    Rules["Rules&lt;br/&gt;who is affected,&lt;br/&gt;how loud, mute"]
+    Inbox[("notification&lt;br/&gt;per person")]
+    Cron["Railway cron&lt;br/&gt;every 5 minutes"]
+    Push["Expo Push"]
+    Email["Resend email"]
+    Bell["Bell + inbox&lt;br/&gt;web and app"]
+
+    Change --> Log --> Rules --> Inbox
+    Inbox --> Bell
+    Inbox --> Cron
+    Cron -->|phone, push on| Push
+    Cron -->|no phone or push off| Email</pre>
+
+<h2>The backbone</h2>
+<ul>
+<li><b>One activity log.</b> Every change writes one row: who, what, which thing, when, and its trip — empty for friend requests, which belong to no trip. Nobody sees the log. It exists so the rules have one source of truth.</li>
+<li><b>Written where the fact changes.</b> Each <code>server/</code> function that changes a fact writes its row in the same transaction — like <code>freshness.ts</code>. Web and the app API both go through <code>server/</code>, so both log the same.</li>
+<li><b>Grouped at write.</b> Rapid edits by the same person to the same thing fold into one row.</li>
+</ul>
+
+<h2>Loudness</h2>
+<table>
+<tr><th>Level</th><th>Who</th><th>Reaches</th></tr>
+<tr><td>Logged</td><td>—</td><td>The log only.</td></tr>
+<tr><td>Inbox</td><td>Other members</td><td>Inbox and bell count.</td></tr>
+<tr><td>Loud</td><td>People affected, and everyone for trip date changes</td><td>Inbox, bell, then push — or email if no push.</td></tr>
+</table>
+<p>The person who made the change is never told.</p>
+
+<h3>Loud events</h3>
+<ul>
+<li>A reply to your comment.</li>
+<li>A new expense that includes you.</li>
+<li>A settlement with you.</li>
+<li>A nudge to you.</li>
+<li>A change to your packing claim.</li>
+<li>Trip dates change, to every member.</li>
+<li>Someone invites you to a trip.</li>
+<li>Someone sends you a friend request, or accepts yours.</li>
+</ul>
+<p>Days added or removed and members joining or leaving reach the inbox only.
+Not in scope: votes, decision deadlines. Mentions come later
+(<a href="https://github.com/AidanInceer/Floc/issues/343">#343</a>).</p>
+
+<h2>Channels</h2>
+<ul>
+<li><b>Push</b> via Expo Push Service, phone app only. No web push.</li>
+<li><b>Email</b> via Resend, only when the person has no app or push off. Never both for one notification.</li>
+<li><b>Permission</b> is asked when you first join or create a trip, after one line saying why — never at launch.</li>
+</ul>
+
+<h2>Not annoying</h2>
+<ul>
+<li><b>Wait, then group.</b> A short wait; everything for one person and trip goes as one message.</li>
+<li><b>Limits.</b> Push: 1 per trip per 15 min, 6 per day. Email: 1 per trip per hour, 3 per day.</li>
+<li><b>Over the limit</b> is held and sent later as one summary — never dropped.</li>
+<li><b>Settings.</b> Push on/off, email on/off, reminders on/off. Mute a trip from its <code>…</code> menu: stops push and email, inbox and count still update. Friend requests and trip invites have no trip to mute, so only the push and email switches stop them.</li>
+<li><b>Nudges</b> go through the same rules. No path bypasses them.</li>
+</ul>
+
+<h2>Reminders</h2>
+<p>Not changes — dates. The cron checks once a day and sends at 08:00 UTC
+(no timezones; revisit when users outside Europe grow). Trips with no dates
+get none. Each sends once per person per trip: a <code>reminder</code> row with a
+unique (kind, trip, person) key is claimed before anything is written, so an
+overlapping run inserts nothing twice. The cron runs every 5 minutes, so "at
+08:00" means the first run from 08:00 UTC that day.</p>
+<table>
+<tr><th>Reminder</th><th>Who</th><th>When</th></tr>
+<tr><td>Your trip starts in a week</td><td>Every member</td><td>7 days before start</td></tr>
+<tr><td>Your trip starts today</td><td>Every member</td><td>Start date</td></tr>
+<tr><td>You still owe Sam £40</td><td>Each person who owes</td><td>Once, 3 days after end</td></tr>
+<tr><td>One year ago today: Rome</td><td>Every member</td><td>Once, 1 year after start</td></tr>
+</table>
+<p>Reminders go to the inbox, obey trip mute and the reminders switch, and skip
+the limits — they are few and deliberate. No marketing or win-back reminders in v1.</p>
+
+<h2>Inbox</h2>
+<ul>
+<li>A bell in the top bar, web and app, with the unread count.</li>
+<li>Read when opened — on any device, stored on the server.</li>
+<li>Tap opens the exact thing. One web URL the app also handles.</li>
+<li>Kept 30 days, 50 per page.</li>
+<li>Hidden when its thing is deleted or you left the trip.</li>
+</ul>
+
+<h2>Sending</h2>
+<p>A Railway cron runs every 5 minutes (Railway's floor): finds notifications past their wait,
+groups them, applies limits, sends. All state lives in the database, so a restart
+or a second web instance never loses or doubles a message.</p>
+<ul>
+<li>A separate Railway cron service, schedule <code>*/5 * * * *</code>, runs
+<code>node floc/apps/web/scripts/cron-push.mjs</code>. It only calls
+<code>POST /api/cron/push</code> with <code>CRON_SECRET</code>; the web service does the work.</li>
+<li>Push waits 2 minutes. Each run claims its rows with a 5-minute lease, so an
+overlapping run skips them and a crashed send is retried.</li>
+<li>A phone only gets notifications from after it registered.</li>
+<li>Android push needs <code>google-services.json</code> (EAS file variable
+<code>GOOGLE_SERVICES_JSON</code>) and the FCM key uploaded to EAS.</li>
+<li>Each run does reminders, then push, then email. One failing does not stop the others.</li>
+<li>Email waits 10 minutes, so something already opened in the app is read first. It reaches
+exactly the people push does not — no live phone registered before the change, or push
+switched off — so one notification is never both.</li>
+<li>A muted trip is skipped by push and email alike; its rows still reach the inbox.</li>
+<li>Email links are plain web links. Once the site serves
+<code>/.well-known/assetlinks.json</code> (<code>ANDROID_CERT_SHA256</code>) and
+<code>/.well-known/apple-app-site-association</code> (<code>APPLE_TEAM_ID</code>), a phone
+with the app opens them in the app; without those, they open the website.</li>
+</ul>
+</main>
+<script src="../assets/nav.js"></script>
+<script src="../assets/vendor/mermaid.min.js"></script>
+<script src="../assets/diagrams.js"></script>
+</body>

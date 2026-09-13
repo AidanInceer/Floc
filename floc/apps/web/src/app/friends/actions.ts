@@ -5,10 +5,7 @@
  * (ticket 108); this file decides who may open a request and what the other
  * person is told.
  */
-import { after } from "next/server";
-
 import { requireUser } from "@/server/access";
-import { emails, sendEmails } from "@/server/auth/email";
 import {
   acceptPendingRequest,
   dropFriendship,
@@ -52,17 +49,6 @@ export async function requestFriendById(formData: FormData): Promise<{ error?: s
   if (await friendshipBetween(viewer.id, target.id)) return {};
 
   await openPendingRequest(viewer.id, target.id);
-
-  // Notifying is a side effect, runs after the response (ticket 111).
-  after(() =>
-    sendEmails([
-      emails.friendRequest({
-        to: target.email,
-        toUserId: target.id,
-        fromName: viewer.name,
-      }),
-    ]),
-  );
 
   refresh({ kind: "friendship", otherId: target.id });
   // The button lives on the middle person's page, so that's what redraws.

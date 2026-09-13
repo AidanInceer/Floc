@@ -33,7 +33,7 @@ import { Body, Dropdown, Failed, Label, Loading, Segmented, Toggle } from "@/com
 import { trpc } from "@/lib/api";
 import { signOut } from "@/lib/auth";
 import { proView } from "@/lib/billing/pro";
-import { aboutSummary, emailSummary, privacySummary, tripsSummary } from "@/lib/settings/summary";
+import { aboutSummary, notificationSummary, privacySummary, tripsSummary } from "@/lib/settings/summary";
 import { MoonGlyph, SunGlyph } from "@/components/system/glyphs";
 import { space } from "@/lib/theme";
 
@@ -118,9 +118,9 @@ function SettingsPanels({
   const [autoFill, setAutoFill] = useState(settings.packAutoGenerate);
   const [currency, setCurrency] = useState(settings.homeCurrency);
   const [notify, setNotify] = useState({
-    invites: settings.notifyInvites,
-    money: settings.notifyMoney,
-    nudges: settings.notifyNudges,
+    push: settings.notifyPush,
+    email: settings.notifyEmail,
+    reminders: settings.notifyReminders,
   });
   const [failed, setFailed] = useState(false);
 
@@ -250,31 +250,33 @@ function SettingsPanels({
           </Drawer>
         ) : null}
 
-        <Drawer title="Email" summary={emailSummary(notify)}>
+        <Drawer title="Notifications" summary={notificationSummary(notify)}>
           <Toggle
-            label="Trip invites"
-            value={notify.invites}
-            onChange={(invites) => {
-              setNotify({ ...notify, invites });
-              saveNotify.mutate({ ...notify, invites });
+            label="Push"
+            value={notify.push}
+            onChange={(push) => {
+              setNotify({ ...notify, push });
+              saveNotify.mutate({ ...notify, push });
+            }}
+          />
+          {/* Why: without the line, turning email off looks like it silences everything, when email only stands in for push. */}
+          <Toggle
+            label="Email when push can't reach you"
+            value={notify.email}
+            onChange={(email) => {
+              setNotify({ ...notify, email });
+              saveNotify.mutate({ ...notify, email });
             }}
           />
           <Toggle
-            label="Costs added to a trip"
-            value={notify.money}
-            onChange={(money) => {
-              setNotify({ ...notify, money });
-              saveNotify.mutate({ ...notify, money });
+            label="Reminders"
+            value={notify.reminders}
+            onChange={(reminders) => {
+              setNotify({ ...notify, reminders });
+              saveNotify.mutate({ ...notify, reminders });
             }}
           />
-          <Toggle
-            label="Nudges from other members"
-            value={notify.nudges}
-            onChange={(nudges) => {
-              setNotify({ ...notify, nudges });
-              saveNotify.mutate({ ...notify, nudges });
-            }}
-          />        </Drawer>
+        </Drawer>
       </DrawerGroup>
 
       <DrawerGroup label="Account">

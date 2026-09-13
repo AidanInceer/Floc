@@ -114,7 +114,7 @@ describe("the travel map", () => {
   });
 
   it("answers the question a left trip leaves behind, either way", async () => {
-    await removeMembership(world.ours.id, world.member);
+    await removeMembership(world.ours.id, world.member, world.member);
     expect(await hasPendingMapPrompt(world.ours.id, world.member)).toBe(true);
     await dropPromptCountries(form({ tripId: String(world.ours.id) }));
     expect(await hasPendingMapPrompt(world.ours.id, world.member)).toBe(false);

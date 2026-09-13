@@ -48,14 +48,14 @@ describe("the roster", () => {
     expect(await countMembers(world.ours.id)).toBe(2);
     expect(await isLiveMember(world.ours.id, world.member)).toBe(true);
 
-    await removeMembership(world.ours.id, world.member);
+    await removeMembership(world.ours.id, world.member, world.member);
 
     expect(await countMembers(world.ours.id)).toBe(1);
     expect(await isLiveMember(world.ours.id, world.member)).toBe(false);
   });
 
   it("revives a kicked member's row rather than colliding on the unique key", async () => {
-    await removeMembership(world.ours.id, world.member);
+    await removeMembership(world.ours.id, world.member, world.member);
     expect((await membership(world.ours.id, world.member))?.deletedAt).not.toBeNull();
 
     await addMember(world.ours.id, world.member);
@@ -66,7 +66,7 @@ describe("the roster", () => {
   });
 
   it("leaves a kicked member's map prompt for them to answer", async () => {
-    await removeMembership(world.ours.id, world.member);
+    await removeMembership(world.ours.id, world.member, world.member);
     const row = await membership(world.ours.id, world.member);
     expect(row?.mapPromptAt).not.toBeNull();
     expect(await hasPendingMapPrompt(world.ours.id, world.member)).toBe(true);
@@ -76,7 +76,7 @@ describe("the roster", () => {
   });
 
   it("will not promote a departed member's dead row", async () => {
-    await removeMembership(world.ours.id, world.member);
+    await removeMembership(world.ours.id, world.member, world.member);
     await setMemberRoleAdmin(world.ours.id, world.member);
     expect((await membership(world.ours.id, world.member))?.role).toBe("member");
   });

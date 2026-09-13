@@ -13,6 +13,7 @@ import { acceptInvite, declineInvite, inviteToTrip } from "@/server/trips/invite
 import {
   createTripWithAdmin,
   setTripArchived,
+  setTripMuted,
   setTripStarred,
   softDeleteTrip,
   updateTrip,
@@ -133,6 +134,17 @@ export async function starTrip(formData: FormData): Promise<void> {
 
   const access = await requireTripAccess(tripId);
   await setTripStarred(access.trip.id, access.viewer.id, starred);
+
+  refresh({ kind: "tripList" });
+}
+
+// Your own mute (#346): no push or email from this trip. Any member.
+export async function muteTrip(formData: FormData): Promise<void> {
+  const tripId = Number(formData.get("tripId"));
+  const muted = formData.get("muted") === "true";
+
+  const access = await requireTripAccess(tripId);
+  await setTripMuted(access.trip.id, access.viewer.id, muted);
 
   refresh({ kind: "tripList" });
 }

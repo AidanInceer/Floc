@@ -25,6 +25,7 @@ export type TripListRow = {
   colorKey: string | null;
   role: TripRole;
   starred: boolean;
+  muted: boolean;
 };
 
 /** `archived` is a param so /trips and /trips/archived share one query (ticket 118). */
@@ -42,6 +43,7 @@ export async function listTripsFor(
       colorKey: trip.colorKey,
       role: tripMembership.role,
       starredAt: tripMembership.starredAt,
+      mutedAt: tripMembership.mutedAt,
     })
     .from(tripMembership)
     .innerJoin(trip, eq(trip.id, tripMembership.tripId))
@@ -55,10 +57,25 @@ export async function listTripsFor(
     )
     .limit(LIMITS.tripsPerUser)
     .all();
-  return bounded(rows, "tripsPerUser", `user ${userId}`).map(({ starredAt, ...row }) => ({
+  return bounded(rows, "tripsPerUser", `user ${userId}`).map(({ starredAt, mutedAt, ...row }) => ({
     ...row,
     starred: starredAt !== null,
+    muted: mutedAt !== null,
   }));
+}
+
+/** Only the viewer's own membership row: muting a trip quiets it for you, nobody else (#346). */
+export async function setTripMuted(tripId: number, userId: string, muted: boolean) {
+  await db
+    .update(tripMembership)
+    .set({ mutedAt: muted ? new Date() : null, ...touch() })
+    .where(
+      and(
+        eq(tripMembership.tripId, tripId),
+        eq(tripMembership.userId, userId),
+        isNull(tripMembership.deletedAt),
+      ),
+    );
 }
 
 /** Only the viewer's own membership row, so a star never reaches anyone else. */

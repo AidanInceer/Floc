@@ -15,8 +15,6 @@
  */
 import "server-only";
 
-import { after } from "next/server";
-
 import type {
   FlocPort,
   FriendPerson,
@@ -28,7 +26,6 @@ import type {
 } from "@floc/api/port";
 
 import { scoped } from "@/server/api-port/api-port-scope";
-import { emails, sendEmails } from "@/server/auth/email";
 import {
   acceptPendingRequest,
   dropFriendship,
@@ -43,7 +40,6 @@ import {
   syncCompletedCoTripFriendships,
   type Person,
 } from "@/server/social/friends";
-import { loadIdentity } from "@/server/auth/profile";
 import { refresh } from "@/server/freshness";
 import {
   acceptInvite,
@@ -77,24 +73,6 @@ const UNKNOWN = (id: string): Person => ({ id, name: "Someone", avatarIcon: null
 
 function toPerson(p: Person): FriendPerson {
   return { id: p.id, name: p.name, avatarIcon: p.avatarIcon };
-}
-
-/**
- * A side effect that must not take the request down with it (rule 11).
- *
- * `after` runs the work once the response is out, which is what a
- * notification wants — but it THROWS when there is no request scope, and the
- * port is called from places that have none (a test, a script, anything that
- * is not a route handler). Losing the mail is a degraded feature; losing the
- * friend request that was already written is a lie told to the person who
- * asked. So the scope is the optional half, not the write.
- */
-function notify(work: () => Promise<unknown>): void {
-  try {
-    after(work);
-  } catch {
-    void work();
-  }
 }
 
 export const socialPort: SocialPort = {
@@ -139,20 +117,7 @@ export const socialPort: SocialPort = {
     // Already friends, or a request already sitting one way — refuse quietly.
     if (await friendshipBetween(viewerId, target.id)) return;
 
-    // The display name, not the signup name — the same one the web signs
-    // the mail with.
-    const me = await loadIdentity(viewerId);
     await openPendingRequest(viewerId, target.id);
-
-    notify(() =>
-      sendEmails([
-        emails.friendRequest({
-          to: target.email,
-          toUserId: target.id,
-          fromName: me?.name ?? "Someone",
-        }),
-      ]),
-    );
 
     refresh({ kind: "friendship", otherId: target.id });
   },

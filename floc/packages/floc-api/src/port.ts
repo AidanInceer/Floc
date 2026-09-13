@@ -53,6 +53,8 @@ export type TripSummary = {
   role: TripRole;
   /** The viewer's own star — never another member's. */
   starred: boolean;
+  /** The viewer's own mute: no push or email from this trip (#346). */
+  muted: boolean;
 };
 
 export type TripMember = {
@@ -361,9 +363,9 @@ export type MySettings = {
   packTier: PackTier;
   packAutoGenerate: boolean;
   homeCurrency: Currency;
-  notifyInvites: boolean;
-  notifyMoney: boolean;
-  notifyNudges: boolean;
+  notifyPush: boolean;
+  notifyEmail: boolean;
+  notifyReminders: boolean;
   /** `provider` is the raw id (`google`, `credential`); a client names it. */
   signInMethods: { id: string; provider: string }[];
 };
@@ -767,7 +769,7 @@ export type FlocPort = {
 
   updateNotifications(
     viewerId: string,
-    input: { invites: boolean; money: boolean; nudges: boolean },
+    input: { push: boolean; email: boolean; reminders: boolean },
   ): Promise<void>;
 
   /**
@@ -829,6 +831,8 @@ export type FlocPort = {
 
   /** Stars the trip for the viewer alone. Any member may (not an admin power). */
   setTripStarred(viewerId: string, tripId: number, starred: boolean): Promise<void>;
+
+  setTripMuted(viewerId: string, tripId: number, muted: boolean): Promise<void>;
 
   /** Null when the trip does not exist OR the viewer is not a member — the same answer for both (rule 5). */
   loadTrip(viewerId: string, tripId: number): Promise<TripDetail | null>;
@@ -950,17 +954,18 @@ export type FlocPort = {
    * Records a transfer that has already happened off-app (ticket 300).
    * Append-only: a settlement is never edited, only soft-deleted, because it
    * is a record of something that happened rather than a plan that changed.
-   * v1 moves no money — this writes down that somebody did.
+   * v1 moves no money — this writes down that somebody did. All transfers
+   * save together or none do.
    */
   settleUp(
     viewerId: string,
     tripId: number,
-    input: {
+    transfers: {
       fromUserId: string;
       toUserId: string;
       amountMinor: number;
       currency: Currency;
-    },
+    }[],
   ): Promise<void>;
 
   addEvent(
@@ -1117,7 +1122,34 @@ export type FlocPort = {
   deleteTrip(viewerId: string, tripId: number): Promise<void>;
 
   deleteEvent(viewerId: string, tripId: number, eventId: number): Promise<void>;
+
+  /** Newest first, one page. Pass the last page's `next` for the page after. */
+  listNotifications(viewerId: string, cursor: string | null): Promise<NotificationPage>;
+
+  /** The bell's number. */
+  countUnreadNotifications(viewerId: string): Promise<number>;
+
+  /** Marks it read on every device and says where it points. Null for an id that is not yours. */
+  openNotification(viewerId: string, notificationId: number): Promise<string | null>;
+
+  /** This phone may be pushed to, for this person. A token held by someone else moves to them. */
+  registerPushToken(viewerId: string, token: string): Promise<void>;
+
+  /** Stop pushing to this phone. Only its owner can. */
+  forgetPushToken(viewerId: string, token: string): Promise<void>;
 };
+
+export type NotificationItem = {
+  id: number;
+  text: string;
+  /** A web path. The phone maps it with `phoneRoute` from `@floc/core`. */
+  href: string;
+  loud: boolean;
+  read: boolean;
+  at: string;
+};
+
+export type NotificationPage = { items: NotificationItem[]; next: string | null };
 
 /** What a procedure gets. `viewer` is null for an unauthenticated caller; `protectedProcedure` refuses those. */
 export type Context = {

@@ -11,7 +11,7 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import {
-  applyTripWindow,
+  setTripWindow,
   extendTripDays,
   ensureDays,
   listDayIds,
@@ -62,7 +62,7 @@ describe("reading the itinerary", () => {
   });
 
   it("drops a soft-deleted day from every read", async () => {
-    await softDeleteDay(world.ours.dayId);
+    await softDeleteDay(world.ours.dayId, world.admin);
     expect(await listDays(world.ours.id)).toEqual([]);
   });
 });
@@ -70,7 +70,7 @@ describe("reading the itinerary", () => {
 describe("ensureDays", () => {
   it("is idempotent, including over a soft-deleted date", async () => {
     // Soft-deleted row still occupies the (trip, date) unique index; skipping it keeps a re-run from throwing.
-    await softDeleteDay(world.ours.dayId);
+    await softDeleteDay(world.ours.dayId, world.admin);
     await ensureDays(world.ours.id, ["2026-09-01"]);
     await ensureDays(world.ours.id, ["2026-09-01"]);
 
@@ -100,10 +100,10 @@ describe("listDayLoads", () => {
   });
 });
 
-describe("applyTripWindow", () => {
+describe("setTripWindow", () => {
   it("creates a day per date and keeps what the old window shared", async () => {
     // 1 Sep → 1-3 Sep: a day is addressed by its date, so the seeded day/events stay put.
-    await applyTripWindow(world.ours.id, "2026-09-01", "2026-09-03");
+    await setTripWindow(world.ours.id, "2026-09-01", "2026-09-03", world.admin);
 
     expect((await listDays(world.ours.id)).map((d) => d.date)).toEqual([
       "2026-09-01",
@@ -114,7 +114,7 @@ describe("applyTripWindow", () => {
   });
 
   it("hard-deletes the days outside the window, with their events", async () => {
-    await applyTripWindow(world.ours.id, "2026-09-05", "2026-09-06");
+    await setTripWindow(world.ours.id, "2026-09-05", "2026-09-06", world.admin);
 
     // Hard, not soft (2nd exception to rule 8) — a soft-deleted row would hold 1 Sep forever on the unique index.
     const rows = await db
@@ -127,8 +127,8 @@ describe("applyTripWindow", () => {
   });
 
   it("gives a blank day back when the window extends over a removed date", async () => {
-    await applyTripWindow(world.ours.id, "2026-09-05", "2026-09-06");
-    await applyTripWindow(world.ours.id, "2026-09-01", "2026-09-06");
+    await setTripWindow(world.ours.id, "2026-09-05", "2026-09-06", world.admin);
+    await setTripWindow(world.ours.id, "2026-09-01", "2026-09-06", world.admin);
 
     const days = await listDays(world.ours.id);
     expect(days).toHaveLength(6);
@@ -151,7 +151,7 @@ describe("applyTripWindow", () => {
       .returning({ id: schema.expense.id })
       .get();
 
-    await applyTripWindow(world.ours.id, "2026-09-05", "2026-09-06");
+    await setTripWindow(world.ours.id, "2026-09-05", "2026-09-06", world.admin);
 
     const after = await db
       .select()
@@ -162,7 +162,7 @@ describe("applyTripWindow", () => {
   });
 
   it("empties the itinerary when the window is cleared", async () => {
-    await applyTripWindow(world.ours.id, null, null);
+    await setTripWindow(world.ours.id, null, null, world.admin);
 
     expect(await listDays(world.ours.id)).toEqual([]);
     expect(await listDayIds(world.theirs.id)).toEqual([world.theirs.dayId]); // other trip's day untouched
@@ -187,7 +187,7 @@ describe("the overnight place", () => {
 
   it("will not resurrect a deleted day from a stale id", async () => { // ticket 115: writes filter soft-deletes too
     const placeId = await makePlace();
-    await softDeleteDay(world.ours.dayId);
+    await softDeleteDay(world.ours.dayId, world.admin);
 
     await setOvernightPlaceOn(world.ours.id, [world.ours.dayId], placeId);
 
@@ -197,9 +197,9 @@ describe("the overnight place", () => {
 
 describe("deleting", () => {
   it("does not re-stamp deletedAt on a day deleted twice", async () => {
-    await softDeleteDay(world.ours.dayId);
+    await softDeleteDay(world.ours.dayId, world.admin);
     const first = (await dayRow(world.ours.dayId))?.deletedAt;
-    await softDeleteDay(world.ours.dayId);
+    await softDeleteDay(world.ours.dayId, world.admin);
     expect((await dayRow(world.ours.dayId))?.deletedAt?.getTime()).toBe(
       first?.getTime(),
     );
@@ -256,7 +256,7 @@ describe("extendTripDays", () => {
       .set({ startDate: trip.startDate, endDate: trip.endDate })
       .where(eq(schema.trip.id, trip.id));
 
-    await extendTripDays(trip, "2026-09-01", 2);
+    await extendTripDays(trip, "2026-09-01", 2, world.admin);
 
     expect((await listDays(trip.id)).map((d) => d.date)).toEqual([
       "2026-09-01",
@@ -272,7 +272,7 @@ describe("extendTripDays", () => {
   it("leaves an undated trip undated — appending a day does not settle it", async () => {
     const trip = { id: world.ours.id, startDate: null, endDate: null };
 
-    await extendTripDays(trip, "2026-09-01", 1);
+    await extendTripDays(trip, "2026-09-01", 1, world.admin);
 
     expect((await listDays(trip.id)).map((d) => d.date)).toContain("2026-09-02");
     expect(await windowOf(trip.id)).toEqual({ startDate: null, endDate: null });
@@ -285,7 +285,7 @@ describe("extendTripDays", () => {
       .set({ startDate: trip.startDate, endDate: trip.endDate })
       .where(eq(schema.trip.id, trip.id));
 
-    await extendTripDays(trip, "2026-09-01", 1);
+    await extendTripDays(trip, "2026-09-01", 1, world.admin);
 
     expect(await windowOf(trip.id)).toEqual({
       startDate: "2026-09-01",

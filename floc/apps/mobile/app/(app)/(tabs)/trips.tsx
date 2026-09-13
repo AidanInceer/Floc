@@ -24,7 +24,7 @@ import { InviteBanner } from "@/components/trip/invite-banner";
 import { TagPills } from "@/components/trip/tag-pills";
 import { useTheme } from "@/components/system/theme";
 import { TripSheet, draftFor, type TripDraft } from "@/components/trip/trip-sheet";
-import { Body, Button, Card, Empty, Failed, Figure, IconButton, Label, Loading } from "@/components/system/ui";
+import { Body, Button, Card, Empty, Failed, Figure, IconButton, Label, Loading, Toggle } from "@/components/system/ui";
 import { formatDateRange, splitEnded } from "@floc/core/dates/dates";
 import { tripListStage } from "@floc/core/trip/list-stage";
 import { readTripColor, tripPastel } from "@floc/core/trip/trip-color";
@@ -241,6 +241,13 @@ function TripRow({
 function TripMenu({ trip, onClose }: { trip: TripCard; onClose: () => void }) {
   const [draft, setDraft] = useState<TripDraft | null>(() => draftFor(shape(trip)));
   const write = useTripWrite(trip.id, onClose);
+  const queryClient = useQueryClient();
+  const [muted, setMuted] = useState(trip.muted);
+  const mute = useMutation({
+    ...trpc.trips.setMuted.mutationOptions(),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: trpc.trips.list.queryKey() }),
+    onError: () => setMuted(trip.muted),
+  });
 
   // A save that landed has nothing left to show, and leaving the sheet open on
   // a stale draft is how you save the same name twice.
@@ -255,7 +262,16 @@ function TripMenu({ trip, onClose }: { trip: TripCard; onClose: () => void }) {
       onChange={setDraft}
       onClose={onClose}
       write={write}
-    />
+    >
+      <Toggle
+        label="Mute this trip"
+        value={muted}
+        onChange={(next) => {
+          setMuted(next);
+          mute.mutate({ tripId: trip.id, muted: next });
+        }}
+      />
+    </TripSheet>
   );
 }
 

@@ -1,25 +1,12 @@
 /**
- * Transactional email (ticket 08: Resend) and the v1 catalogue (ticket 20).
- * Categories map 1:1 onto the four `user_profile.notify_*` booleans (ticket
- * 07); transactional mail always sends, everything else is suppressible.
+ * Email (ticket 08: Resend). Asked-for mail — confirming an address, resetting
+ * a password, a trip link sent to an address — goes straight out; everything
+ * else is a notification and reaches email only through the fallback (#346).
  * With no RESEND_API_KEY the send is logged to the server console (rule 11).
  */
 import "server-only";
 
-import { inArray } from "drizzle-orm";
-
-import { db } from "@/db";
-import { userProfile } from "@/db/schema";
 import { appUrl } from "@/lib/env";
-import { TAB_LABELS } from "@/lib/tabs";
-
-type EmailCategory = "invites" | "money" | "nudges";
-
-const CATEGORY_COLUMN = {
-  invites: "notifyInvites",
-  money: "notifyMoney",
-  nudges: "notifyNudges",
-} as const;
 
 export type OutboundEmail = {
   to: string;
@@ -27,11 +14,6 @@ export type OutboundEmail = {
   /** Plain body; wrapped in the shared shell below. */
   lines: string[];
   cta?: { label: string; url: string };
-  category: EmailCategory;
-  /** Transactional mail ignores the recipient's category toggle. */
-  transactional?: boolean;
-  /** Recipient's user id — needed to read their preference. */
-  toUserId?: string;
   /** CTA carries a credential; keep it out of production logs (#149). */
   sensitive?: boolean;
 };
@@ -60,8 +42,7 @@ function resend(key: string) {
   return resendClient;
 }
 
-/** The send itself, once the category gate has already been cleared. */
-async function deliver(email: OutboundEmail): Promise<boolean> {
+async function deliver(email: OutboundEmail): Promise<void> {
   const html = renderShell(email);
   const from = process.env.EMAIL_FROM ?? "Floc <no-reply@floc.example>";
   const key = process.env.RESEND_API_KEY;
@@ -73,11 +54,11 @@ async function deliver(email: OutboundEmail): Promise<boolean> {
     const showCta =
       email.cta && (!email.sensitive || process.env.NODE_ENV !== "production");
     console.info(
-      `[email:${email.category}] → ${maskAddress(email.to)}: ${email.subject}\n${email.lines.join("\n")}${
+      `[email] → ${maskAddress(email.to)}: ${email.subject}\n${email.lines.join("\n")}${
         showCta ? `\n${email.cta!.label}: ${email.cta!.url}` : ""
       }`,
     );
-    return true;
+    return;
   }
 
   const client = await resend(key);
@@ -87,40 +68,11 @@ async function deliver(email: OutboundEmail): Promise<boolean> {
     subject: email.subject,
     html,
   });
-  return true;
 }
 
-/**
- * The one send entry point (ticket 111) — used to be a singular `sendEmail`
- * plus this, and the singular one read `user_profile` per message, costing six
- * round trips on a six-person expense. Now a single send is just a batch of
- * one, and the preference lookup is always one query. Defaults: missing
- * profile → on, transactional → always sends.
- */
+/** The one send entry point (ticket 111): a single send is a batch of one. */
 export async function sendEmails(batch: OutboundEmail[]): Promise<void> {
-  if (batch.length === 0) return;
-
-  const gated = batch.filter((e) => !e.transactional && e.toUserId);
-  const allowedByUser = new Map<string, typeof userProfile.$inferSelect>();
-
-  if (gated.length) {
-    const profiles = await db
-      .select()
-      .from(userProfile)
-      .where(inArray(userProfile.userId, [...new Set(gated.map((e) => e.toUserId!))]))
-      .all();
-    for (const p of profiles) allowedByUser.set(p.userId, p);
-  }
-
-  await Promise.all(
-    batch.map((email) => {
-      if (!email.transactional && email.toUserId) {
-        const profile = allowedByUser.get(email.toUserId);
-        if (profile && !profile[CATEGORY_COLUMN[email.category]]) return Promise.resolve(false);
-      }
-      return deliver(email);
-    }),
-  );
+  await Promise.all(batch.map(deliver));
 }
 
 /** `ada@floc.example` → `a…a@floc.example`: enough to tell apart, not enough to be an address. */
@@ -197,7 +149,7 @@ function escape(s: string) {
   );
 }
 
-// The catalogue (ticket 20) — five emails, all instant, no digests in v1.
+// The catalogue of asked-for mail (ticket 20). Notifications are not here: they are worded by the fallback (#346).
 export const emails = {
   /** Trigger: a password sign-up (ticket 149). Google sign-ups never see this. */
   verifyEmail: (args: { to: string; url: string }): OutboundEmail => ({
@@ -208,9 +160,6 @@ export const emails = {
       "The link works once and expires within the hour.",
     ],
     cta: { label: "Confirm email", url: args.url },
-    category: "invites",
-    // Asked-for and one-shot: always sends, never gated by a preference.
-    transactional: true,
     sensitive: true,
   }),
 
@@ -223,8 +172,6 @@ export const emails = {
       "The link works once and expires within the hour. If this wasn't you, ignore it — nothing has changed.",
     ],
     cta: { label: "Choose a new password", url: args.url },
-    category: "invites",
-    transactional: true,
     sensitive: true,
   }),
 
@@ -242,69 +189,5 @@ export const emails = {
       "Anyone with this link can join the trip, so keep it to the group.",
     ],
     cta: { label: "See the trip", url: absoluteUrl(`/invite/${args.token}`) },
-    category: "invites",
-    // Asked-for and one-shot: always sends.
-    transactional: true,
-  }),
-
-  /** Trigger: one member nudges another. Deep-links to the tab it's about. */
-  nudge: (args: {
-    to: string;
-    toUserId: string;
-    tripId: number;
-    tripName: string;
-    fromName: string;
-    tab: string;
-    message?: string | null;
-  }): OutboundEmail => ({
-    to: args.to,
-    toUserId: args.toUserId,
-    subject: `${args.fromName} nudged you about ${args.tripName}`,
-    lines: [
-      `${args.fromName} is waiting on you for ${args.tripName}.`,
-      args.message?.trim()
-        ? `“${args.message.trim()}”`
-        : `It's the ${TAB_LABELS[args.tab] ?? args.tab} tab.`,
-    ],
-    cta: {
-      label: `Open ${TAB_LABELS[args.tab] ?? args.tab}`,
-      url: absoluteUrl(`/trip/${args.tripId}/${args.tab}`),
-    },
-    category: "nudges",
-  }),
-
-  /** Trigger: an expense is added that the recipient owes a share of. */
-  expenseAdded: (args: {
-    to: string;
-    toUserId: string;
-    tripId: number;
-    tripName: string;
-    fromName: string;
-    description: string;
-    share: string;
-  }): OutboundEmail => ({
-    to: args.to,
-    toUserId: args.toUserId,
-    subject: `${args.fromName} added a cost to ${args.tripName}`,
-    lines: [
-      `${args.fromName} logged “${args.description}”.`,
-      `Your share is ${args.share}. Nothing has moved — Floc only keeps the ledger.`,
-    ],
-    cta: { label: "See the money", url: absoluteUrl(`/trip/${args.tripId}/money`) },
-    category: "money",
-  }),
-
-  /** Trigger: a friend request via a profile bubble. */
-  friendRequest: (args: {
-    to: string;
-    toUserId: string;
-    fromName: string;
-  }): OutboundEmail => ({
-    to: args.to,
-    toUserId: args.toUserId,
-    subject: `${args.fromName} wants to be travel friends`,
-    lines: [`${args.fromName} sent you a friend request on Floc.`],
-    cta: { label: "Open friends", url: absoluteUrl("/friends") },
-    category: "invites",
   }),
 };

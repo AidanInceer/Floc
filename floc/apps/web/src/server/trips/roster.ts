@@ -15,7 +15,9 @@ import { db } from "@/db";
 import { nudge, tripMembership } from "@/db/schema";
 import type { NudgeTab } from "@/db/schema";
 import { bounded, LIMITS } from "@/server/limits";
+import { tripHref } from "@floc/core/notifications/notification-href";
 import { touch } from "@/server/audit";
+import { recordActivity } from "@/server/notifications/activity";
 import { setTripArchived } from "@/server/trips/trips";
 
 /** Matches one live membership row. Every roster read and write goes through this. */
@@ -54,25 +56,49 @@ export async function isLiveMember(tripId: number, userId: string): Promise<bool
  * `deletedAt`. Both doors into a trip land here; `invites.ts` owns which door.
  */
 export async function addMember(tripId: number, userId: string): Promise<void> {
-  await db
-    .insert(tripMembership)
-    .values({ tripId, userId, role: "member" })
-    .onConflictDoUpdate({
-      target: [tripMembership.tripId, tripMembership.userId],
-      // mapPromptAt clears: rejoining moots the "keep these countries?" question (ticket 95)
-      set: { deletedAt: null, mapPromptAt: null, lastModifiedAt: new Date() },
+  await db.transaction(async (tx) => {
+    await tx
+      .insert(tripMembership)
+      .values({ tripId, userId, role: "member" })
+      .onConflictDoUpdate({
+        target: [tripMembership.tripId, tripMembership.userId],
+        // mapPromptAt clears: rejoining moots the "keep these countries?" question (ticket 95)
+        set: { deletedAt: null, mapPromptAt: null, lastModifiedAt: new Date() },
+      });
+    await recordActivity(tx, {
+      kind: "member_joined",
+      tripId,
+      actorId: userId,
+      subjectId: null,
+      href: tripHref(tripId, "overview"),
+      affected: [],
     });
+  });
 }
 
 /** `mapPromptAt` parks the "keep these countries?" question for later (ticket 95) — leaving and being kicked leave the same mark since only they can answer it. */
 export async function removeMembership(
   tripId: number,
   userId: string,
+  by: string,
 ): Promise<void> {
-  await db
-    .update(tripMembership)
-    .set({ deletedAt: new Date(), mapPromptAt: new Date(), ...touch() })
-    .where(liveMembership(tripId, userId));
+  await db.transaction(async (tx) => {
+    const gone = await tx
+      .update(tripMembership)
+      .set({ deletedAt: new Date(), mapPromptAt: new Date(), ...touch() })
+      .where(liveMembership(tripId, userId))
+      .returning({ userId: tripMembership.userId })
+      .all();
+    if (gone.length === 0) return;
+    await recordActivity(tx, {
+      kind: "member_left",
+      tripId,
+      actorId: by,
+      subjectId: null,
+      href: tripHref(tripId, "overview"),
+      affected: [],
+    });
+  });
 }
 
 export async function setMemberRoleAdmin(
@@ -99,7 +125,7 @@ export async function leaveTripAs(args: {
 }): Promise<void> {
   const { tripId, userId, isAdmin, archivedAt, others } = args;
 
-  await removeMembership(tripId, userId);
+  await removeMembership(tripId, userId, userId);
 
   if (others.length === 0) {
     if (!archivedAt) await setTripArchived(tripId, true);
@@ -214,7 +240,7 @@ export async function clearMapPrompt(
 
 /* -------------------------------------------------------------- the nudge */
 
-/** A poke aimed at one member of the roster; the action sends the mail. */
+/** A poke aimed at one member of the roster. It reaches them through the inbox, like every other change (#344). */
 export async function insertNudge(args: {
   tripId: number;
   fromUserId: string;
@@ -222,5 +248,15 @@ export async function insertNudge(args: {
   tab: NudgeTab;
   message: string | null;
 }): Promise<void> {
-  await db.insert(nudge).values(args);
+  await db.transaction(async (tx) => {
+    const row = await tx.insert(nudge).values(args).returning({ id: nudge.id }).get();
+    await recordActivity(tx, {
+      kind: "nudge_sent",
+      tripId: args.tripId,
+      actorId: args.fromUserId,
+      subjectId: row.id,
+      href: tripHref(args.tripId, args.tab),
+      affected: [args.toUserId],
+    });
+  });
 }

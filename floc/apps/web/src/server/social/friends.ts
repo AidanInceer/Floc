@@ -13,6 +13,7 @@ import { db } from "@/db";
 import { friendship, trip, tripMembership, user, userProfile } from "@/db/schema";
 import { today } from "@floc/core/dates/dates";
 import { bounded, LIMITS } from "@/server/limits";
+import { recordActivity } from "@/server/notifications/activity";
 
 /** Canonical direction is lower userId first, matching the unique index — never a duplicate reversed row. */
 export async function syncCompletedCoTripFriendships(userId: string): Promise<void> {
@@ -328,23 +329,33 @@ export async function openPendingRequest(
   viewerId: string,
   targetId: string,
 ): Promise<void> {
-  await db
-    .insert(friendship)
-    .values({
-      userId: viewerId,
-      friendId: targetId,
-      status: "pending",
-      origin: "request",
-    })
-    .onConflictDoUpdate({
-      target: [friendship.userId, friendship.friendId],
-      set: {
+  await db.transaction(async (tx) => {
+    await tx
+      .insert(friendship)
+      .values({
+        userId: viewerId,
+        friendId: targetId,
         status: "pending",
         origin: "request",
-        deletedAt: null,
-        lastModifiedAt: new Date(),
-      },
+      })
+      .onConflictDoUpdate({
+        target: [friendship.userId, friendship.friendId],
+        set: {
+          status: "pending",
+          origin: "request",
+          deletedAt: null,
+          lastModifiedAt: new Date(),
+        },
+      });
+    await recordActivity(tx, {
+      kind: "friend_requested",
+      tripId: null,
+      actorId: viewerId,
+      subjectId: null,
+      href: "/friends",
+      affected: [targetId],
     });
+  });
 }
 
 /** Matches the one pending row `requesterId` opened towards `addresseeId`. */
@@ -361,10 +372,23 @@ export async function acceptPendingRequest(
   requesterId: string,
   addresseeId: string,
 ): Promise<void> {
-  await db
-    .update(friendship)
-    .set({ status: "accepted", lastModifiedAt: new Date() })
-    .where(pendingRequest(requesterId, addresseeId));
+  await db.transaction(async (tx) => {
+    const accepted = await tx
+      .update(friendship)
+      .set({ status: "accepted", lastModifiedAt: new Date() })
+      .where(pendingRequest(requesterId, addresseeId))
+      .returning({ id: friendship.id })
+      .all();
+    if (accepted.length === 0) return;
+    await recordActivity(tx, {
+      kind: "friend_accepted",
+      tripId: null,
+      actorId: addresseeId,
+      subjectId: null,
+      href: "/friends",
+      affected: [requesterId],
+    });
+  });
 }
 
 /** Declining and cancelling are the same write from the two opposite ends. */

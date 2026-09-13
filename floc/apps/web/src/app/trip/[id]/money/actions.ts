@@ -3,8 +3,6 @@
 // An expense write always rewrites expense + the whole expense_split set in
 // one transaction (writeExpense, server/money.ts) — last-write-wins, never a
 // partial-row merge (ticket 12). Any member may add/edit/delete (ticket 01).
-import { after } from "next/server";
-
 import type { Currency } from "@/db/schema";
 import { capRequiredText, capText } from "@floc/core/text/text";
 import { CURRENCIES, minorPerMajor } from "@floc/core/money/currency";
@@ -16,7 +14,6 @@ import {
 import type { ExpenseCategory } from "@floc/core/money/expense-category";
 import { requireTripAccess } from "@/server/access";
 import {
-  emailsForUsers,
   findLiveExpense,
   findLiveSettlement,
   softDeleteExpense,
@@ -34,7 +31,6 @@ import {
   resolveWeightedSplit,
 } from "@floc/core/money/money";
 import type { SplitInput, WeightedInput } from "@floc/core/money/money";
-import { emails, sendEmails } from "@/server/auth/email";
 import { refresh } from "@/server/freshness";
 
 export type ActionState = { error?: string };
@@ -94,48 +90,6 @@ function readExpenseFields(formData: FormData) {
   return { description, currency, paidBy, dayId, notes, category };
 }
 
-// Emails everyone in the split except the actor. Addresses come from the
-// already-loaded roster; `user` is queried only for a participant kicked
-// since the expense was written, whose split rows survive by design.
-async function notifyParticipants(args: {
-  tripId: number;
-  tripName: string;
-  fromName: string;
-  fromUserId: string;
-  description: string;
-  currency: Currency;
-  splits: { userId: string; owedAmountMinor: number }[];
-  members: { userId: string; email: string }[];
-}) {
-  const others = args.splits.filter((s) => s.userId !== args.fromUserId);
-  if (others.length === 0) return;
-
-  const emailById = new Map(args.members.map((m) => [m.userId, m.email]));
-  const unknown = others.filter((s) => !emailById.has(s.userId));
-  if (unknown.length) {
-    const rows = await emailsForUsers(unknown.map((s) => s.userId));
-    for (const r of rows) emailById.set(r.id, r.email);
-  }
-
-  await sendEmails(
-    others.flatMap((s) => {
-      const to = emailById.get(s.userId);
-      if (!to) return [];
-      return [
-        emails.expenseAdded({
-          to,
-          toUserId: s.userId,
-          tripId: args.tripId,
-          tripName: args.tripName,
-          fromName: args.fromName,
-          description: args.description,
-          share: formatMoney(s.owedAmountMinor, args.currency),
-        }),
-      ];
-    }),
-  );
-}
-
 export async function addExpense(
   _prev: ActionState,
   formData: FormData,
@@ -172,20 +126,6 @@ export async function addExpense(
     fields: { dayId, paidBy, description, amountMinor, currency, splitType, category, notes },
     splits,
   });
-
-  // Mail isn't part of the write; after() runs it once the response flushes.
-  after(() =>
-    notifyParticipants({
-      tripId: access.trip.id,
-      tripName: access.trip.name,
-      fromName: access.viewer.name,
-      fromUserId: access.viewer.id,
-      description,
-      currency,
-      splits,
-      members: access.members,
-    }),
-  );
 
   refresh({ kind: "money", tripId: access.trip.id });
   return {};
@@ -233,19 +173,6 @@ export async function updateExpense(
     fields: { dayId, paidBy, description, amountMinor, currency, splitType, category, notes },
     splits,
   });
-
-  after(() =>
-    notifyParticipants({
-      tripId: access.trip.id,
-      tripName: access.trip.name,
-      fromName: access.viewer.name,
-      fromUserId: access.viewer.id,
-      description,
-      currency,
-      splits,
-      members: access.members,
-    }),
-  );
 
   refresh({ kind: "money", tripId: access.trip.id });
   return {};

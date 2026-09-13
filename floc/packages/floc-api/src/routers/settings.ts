@@ -113,7 +113,7 @@ export const settingsRouter = router({
     }),
 
   notifications: protectedProcedure
-    .input(z.object({ invites: z.boolean(), money: z.boolean(), nudges: z.boolean() }))
+    .input(z.object({ push: z.boolean(), email: z.boolean(), reminders: z.boolean() }))
     .mutation(async ({ ctx, input }) => {
       await ctx.port.updateNotifications(ctx.viewer.id, input);
     }),

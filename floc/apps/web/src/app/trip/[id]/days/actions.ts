@@ -28,14 +28,14 @@ import { refresh } from "@/server/freshness";
 
 export async function addDays(tripId: number, afterDate: string, count: number) {
   const access = await requireTripAccess(tripId);
-  await extendTripDays(access.trip, afterDate, count);
+  await extendTripDays(access.trip, afterDate, count, access.viewer.id);
 }
 
 /** Soft-deletes a single day row; its events go with it (hidden by the day's own filter). */
 export async function removeDay(tripId: number, dayId: number) {
   const access = await requireTripAccess(tripId);
   const target = await access.day(dayId);
-  await softDeleteDay(target.id);
+  await softDeleteDay(target.id, access.viewer.id);
   refresh({ kind: "itinerary", tripId: access.trip.id });
 }
 

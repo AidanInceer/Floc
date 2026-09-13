@@ -143,7 +143,7 @@ describe("a second fill never costs you an edit", () => {
   it("re-suggests something you removed, since asking again is the whole action", async () => {
     await fill();
     const shirts = (await myBag()).find((l) => l.label === "t-shirt")!;
-    await softDeletePackingLine(shirts.id);
+    await softDeletePackingLine(shirts.id, "u-admin");
 
     expect(await fill()).toBe(1);
     expect((await myBag()).map((l) => l.label)).toContain("t-shirt");
@@ -185,7 +185,7 @@ describe("the automatic fill happens once, ever", () => {
 
   it("leaves a bag you deliberately emptied empty", async () => {
     await auto();
-    for (const line of await myBag()) await softDeletePackingLine(line.id);
+    for (const line of await myBag()) await softDeletePackingLine(line.id, "u-admin");
 
     await auto();
     expect(await myBag()).toEqual([]);

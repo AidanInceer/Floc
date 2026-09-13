@@ -14,6 +14,7 @@ import { allFeaturesFree } from "@/lib/env";
 import { isLive } from "@floc/core/billing/subscription-copy";
 import { countIncomingFriendRequests } from "@/server/social/friends";
 import { countPendingInvitesFor } from "@/server/trips/invites";
+import { countUnread } from "@/server/notifications/inbox";
 import { getProfile } from "@/server/auth/profile";
 
 import "./globals.css";
@@ -57,14 +58,15 @@ export default async function RootLayout({
   // friend request are the two things that arrive while you're elsewhere in the
   // app, so both have to be visible from anywhere. Counts, not the things
   // themselves — the answering happens on the page behind each link.
-  const [inviteCount, friendRequestCount, profile, proRow] = session?.user
+  const [inviteCount, friendRequestCount, profile, proRow, notificationCount] = session?.user
     ? await Promise.all([
         countPendingInvitesFor(session.user.id),
         countIncomingFriendRequests(session.user.id),
         getProfile(session.user.id),
         subscriptionOf(session.user.id),
+        countUnread(session.user.id),
       ])
-    : [0, 0, undefined, null];
+    : [0, 0, undefined, null, 0];
 
   // The header must key the avatar off the same identity a roster does
   // (`displayName ?? name`), so the viewer is the same initials and colour
@@ -94,6 +96,7 @@ export default async function RootLayout({
           user={chromeUser}
           inviteCount={inviteCount}
           friendRequestCount={friendRequestCount}
+          notificationCount={notificationCount}
           isPro={!allFeaturesFree() && proRow !== null && isLive(proRow)}
         />
         <main>{children}</main>

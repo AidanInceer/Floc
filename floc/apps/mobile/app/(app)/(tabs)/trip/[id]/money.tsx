@@ -463,17 +463,17 @@ export default function Money() {
     });
   }
 
-  /** Records every transfer the viewer is part of, as separate rows — each one really happened separately. */
+  /** One row per transfer — each really happened separately — sent as one call so they save together. */
   function settleSide(list: CurrencyTransfer[]) {
-    for (const transfer of list) {
-      settle.mutate({
-        tripId,
+    settle.mutate({
+      tripId,
+      transfers: list.map((transfer) => ({
         fromUserId: transfer.from,
         toUserId: transfer.to,
         amountMinor: transfer.amountMinor,
-        currency,
-      });
-    }
+        currency: transfer.currency,
+      })),
+    });
   }
 
   const editingExpense = expenseBeingEdited(shown, editing);

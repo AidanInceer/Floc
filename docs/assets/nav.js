@@ -19,6 +19,7 @@
       children: [
         { id: 'architecture', label: 'Architecture', href: 'architecture/architecture.html' },
         { id: 'multi-platform', label: 'Web, iOS and Android', href: 'architecture/multi-platform.html' },
+        { id: 'notifications', label: 'Notifications', href: 'architecture/notifications.html' },
         { id: 'ci', label: 'CI', href: 'architecture/ci.html' }
       ]
     },
@@ -93,12 +94,11 @@
   brand.className = 'brand';
   brand.href = url('index.html');
   brand.innerHTML =
-    '<svg viewBox="0 0 120 120" width="30" height="30" aria-hidden="true">' +
-    '<circle cx="60" cy="60" r="50" fill="none" stroke="var(--pen)" stroke-width="7"/>' +
-    '<path d="M38 90 C 84 78, 24 60, 64 42 C 80 35, 82 28, 78 22" fill="none" ' +
-    'stroke="var(--pen)" stroke-width="7" stroke-linecap="round" stroke-dasharray="0.1 15"/>' +
-    '<circle cx="38" cy="90" r="11" fill="var(--red)"/></svg>' +
-    '<span class="brand-text"><b>Floc</b><span>Documentation</span></span>';
+    '<svg viewBox="0 0 26 20" width="25" height="20" aria-hidden="true" fill="none" ' +
+    'stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M3 14 6.5 10.5 10 14"/><path d="M9.5 8.5 13 5 16.5 8.5"/>' +
+    '<path d="M16 14 19.5 10.5 23 14"/></svg>' +
+    '<span class="brand-text"><b>floc<i>.</i></b><span>Documentation</span></span>';
   host.appendChild(brand);
 
   var filter = document.createElement('input');

@@ -32,20 +32,25 @@
     return;
   }
 
+  // Mermaid paints hex into the SVG, so it takes the resolved values from docs.css.
+  function token(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
   mermaid.initialize({
     startOnLoad: false,
     theme: 'base',
     securityLevel: 'strict',
-    fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+    fontFamily: token('--sans'),
     maxTextSize: 200000,
     themeVariables: {
-      background: '#fbf8f1',
-      primaryColor: '#fbf8f1',
-      primaryTextColor: '#23211c',
-      primaryBorderColor: '#2a4d7a',
-      lineColor: '#8b8477',
-      secondaryColor: '#e7dfca',
-      tertiaryColor: '#f3eee2'
+      background: token('--sheet'),
+      primaryColor: token('--sheet'),
+      primaryTextColor: token('--ink'),
+      primaryBorderColor: token('--pen'),
+      lineColor: token('--ink-3'),
+      secondaryColor: token('--pen-2'),
+      tertiaryColor: token('--sheet-2')
     }
   });
 

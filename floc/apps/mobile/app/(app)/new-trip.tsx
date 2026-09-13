@@ -12,6 +12,7 @@ import { View } from "react-native";
 
 import { Body, Button, Field, Screen } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
+import { askForPushOnce } from "@/lib/push/push";
 import { space } from "@/lib/theme";
 
 /** The API refuses anything that is not `YYYY-MM-DD`; an empty box means "not set", not "invalid". */
@@ -30,6 +31,7 @@ export default function NewTrip() {
     onSuccess: (trip) => {
       queryClient.invalidateQueries({ queryKey: trpc.trips.list.queryKey() });
       router.replace({ pathname: "/trip/[id]", params: { id: trip.id } });
+      void askForPushOnce();
     },
   });
 

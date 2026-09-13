@@ -67,6 +67,12 @@ export const tripsRouter = router({
       await ctx.port.setTripStarred(ctx.viewer.id, input.tripId, input.starred);
     }),
 
+  setMuted: tripProcedure
+    .input(z.object({ muted: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.port.setTripMuted(ctx.viewer.id, input.tripId, input.muted);
+    }),
+
   /** Admin-only, enforced by the port (rule 6). */
   setArchived: tripProcedure
     .input(z.object({ archived: z.boolean() }))

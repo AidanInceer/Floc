@@ -172,6 +172,21 @@
     "notes.write": {
       "mobile": "yes"
     },
+    "notifications.forgetPhone": {
+      "mobile": "yes"
+    },
+    "notifications.list": {
+      "mobile": "yes"
+    },
+    "notifications.open": {
+      "mobile": "yes"
+    },
+    "notifications.registerPhone": {
+      "mobile": "yes"
+    },
+    "notifications.unread": {
+      "mobile": "yes"
+    },
     "packing.add": {
       "mobile": "yes"
     },
@@ -282,6 +297,9 @@
       "mobile": "yes"
     },
     "trips.setArchived": {
+      "mobile": "yes"
+    },
+    "trips.setMuted": {
       "mobile": "yes"
     },
     "trips.setStarred": {

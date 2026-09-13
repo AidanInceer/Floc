@@ -9,7 +9,7 @@
  * Tied to the URL rather than the build profile so it cannot outlive its
  * reason: point the app at an https API and the exemption disappears.
  */
-module.exports = ({ config }) => {
+function withCleartext(config) {
   if (!(process.env.EXPO_PUBLIC_API_URL ?? "").startsWith("http://")) return config;
 
   return {
@@ -20,4 +20,43 @@ module.exports = ({ config }) => {
       "expo-sharing",
     ],
   };
-};
+}
+
+/** Why: the Firebase file is kept out of git, so EAS hands it over as the GOOGLE_SERVICES_JSON file variable (#345). */
+function withFirebase(config) {
+  return {
+    ...config,
+    android: {
+      ...config.android,
+      googleServicesFile: process.env.GOOGLE_SERVICES_JSON ?? "./google-services.json",
+    },
+  };
+}
+
+/** Why: a link to the site opens the app only once the site vouches for it, and only an https site can (#346). */
+function withAppLinks(config) {
+  const host = (process.env.EXPO_PUBLIC_API_URL ?? "").match(/^https:\/\/([^/?#]+)/)?.[1];
+  if (!host) return config;
+
+  return {
+    ...config,
+    ios: { ...config.ios, associatedDomains: [`applinks:${host}`] },
+    android: {
+      ...config.android,
+      intentFilters: [
+        {
+          action: "VIEW",
+          autoVerify: true,
+          data: [
+            { scheme: "https", host, pathPrefix: "/trip/" },
+            { scheme: "https", host, path: "/friends" },
+            { scheme: "https", host, path: "/inbox" },
+          ],
+          category: ["BROWSABLE", "DEFAULT"],
+        },
+      ],
+    },
+  };
+}
+
+module.exports = ({ config }) => withAppLinks(withFirebase(withCleartext(config)));
