@@ -21,17 +21,9 @@ import { isAbsolute, relative, resolve } from "node:path";
 import { sql } from "drizzle-orm";
 
 import { db } from "../index.ts";
+import { assertLocalDatabase } from "./local-only.ts";
 
 const KEEP = new Set(["__drizzle_migrations", "fx_rate", "sqlite_sequence"]);
-
-function assertLocal(): void {
-  const url = process.env.TURSO_DATABASE_URL ?? "file:./local.db";
-  if (process.env.NODE_ENV === "production" || !url.startsWith("file:")) {
-    throw new Error(
-      "Refusing to wipe: db:reset only runs against a local file: database outside production.",
-    );
-  }
-}
 
 async function emptyTables(): Promise<number> {
   const tables = await db.all<{ name: string }>(
@@ -67,7 +59,7 @@ async function emptyUploads(): Promise<string | null> {
 }
 
 export async function wipeEverything(): Promise<string> {
-  assertLocal();
+  assertLocalDatabase();
   const tables = await emptyTables();
   const uploads = await emptyUploads();
   return `Wiped ${tables} tables${uploads ? ` and ${uploads}` : ""}.`;

@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 132 28" width="132" height="28" role="img" aria-label="floc">
-  <title>floc</title>
-  <g fill="none" stroke="#4e68d8" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" transform="translate(0 4)">
-    <path d="M3 14 6.5 10.5 10 14" />
-    <path d="M9.5 8.5 13 5 16.5 8.5" />
-    <path d="M16 14 19.5 10.5 23 14" />
-  </g>
-  <text x="30" y="21" font-family="Bricolage Grotesque, Trebuchet MS, system-ui, sans-serif" font-size="22" font-weight="600" letter-spacing="-0.5" fill="#14141a">floc<tspan fill="#4e68d8">.</tspan></text>
-</svg>

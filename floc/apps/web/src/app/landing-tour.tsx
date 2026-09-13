@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import { cx } from "@/components/system/ui";
@@ -9,6 +9,7 @@ import { stepTo, tourAnswerAt, tourBeats } from "@/lib/landing-tour";
 import type { TourStop } from "./landing-content";
 import { PlayLine, ProTag, StopIcon, TourChat } from "./landing-tour-parts";
 import type { TourPhase } from "./landing-tour-parts";
+import { TourLink } from "./landing-tour-link";
 
 const settled = (messages: number): TourPhase => ({ shown: messages, typing: false, answered: true });
 
@@ -43,6 +44,9 @@ function useTour(stops: TourStop[], run: number, still: boolean) {
 
 export function LandingTour({ stops }: { stops: TourStop[] }) {
   const [run, setRun] = useState(0);
+  const root = useRef<HTMLDivElement>(null);
+  const tile = useRef<HTMLButtonElement>(null);
+  const chat = useRef<HTMLDivElement>(null);
   const still = useStill();
   const { current, setCurrent, phase } = useTour(stops, run, still);
   const stop = stops[current];
@@ -55,22 +59,26 @@ export function LandingTour({ stops }: { stops: TourStop[] }) {
   };
 
   return (
-    <div className="grid gap-7 md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
-      <ul className="hidden gap-0.5 md:grid">
+    <div ref={root} className="relative grid gap-7 md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+      <TourLink root={root} from={tile} to={chat} pick={current} />
+      <ul className="hidden gap-2 md:grid">
         {stops.map((s, i) => (
           <li key={s.title}>
             <button
+              ref={i === current ? tile : undefined}
               type="button"
               aria-pressed={i === current}
               onClick={() => pick(i)}
               className={cx(
-                "group relative grid w-full grid-cols-[2.25rem_1fr_auto] items-center gap-3 rounded-md border px-3.5 pb-3.5 pt-3 text-left transition-colors",
-                i === current ? "border-rule bg-sheet shadow-raised" : "border-transparent",
+                "group relative grid w-full grid-cols-[2.25rem_1fr_auto] items-center gap-3 rounded-md border px-3.5 pb-3.5 pt-3 text-left transition-[border-color,box-shadow,background-color,translate]",
+                i === current
+                  ? "border-ink bg-sheet shadow-raised"
+                  : "border-rule bg-sheet-2 hover:-translate-y-px hover:border-rule-strong hover:bg-sheet hover:shadow-raised",
               )}
             >
               <StopIcon stop={s} />
               <span>
-                <b className="block text-[15px] font-semibold transition-colors group-hover:text-pen-deep">{s.title}</b>
+                <b className="block text-[15px] font-semibold">{s.title}</b>
                 <small className="text-sm text-ink-soft">{s.line}</small>
               </span>
               <ProTag stop={s} />
@@ -86,7 +94,9 @@ export function LandingTour({ stops }: { stops: TourStop[] }) {
 
       <div>
         <div className="md:sticky md:top-[max(5rem,calc(50vh-14.5rem))]">
-          <TourChat stop={stop} phase={phase} />
+          <div ref={chat}>
+            <TourChat stop={stop} phase={phase} />
+          </div>
           <TourControls
             stop={stop}
             position={`${current + 1} of ${stops.length}`}
