@@ -18,6 +18,7 @@
  * reaching for on a Tuesday morning.
  */
 import { SCENARIOS, SEED_PASSWORD, type Scenario, seedEmail } from "./identity.ts";
+import { assertLocalDatabase } from "./local-only.ts";
 import { buildScenarioA } from "./scenario-a.ts";
 import { buildScenarioB } from "./scenario-b.ts";
 import { resetSeed } from "./reset.ts";
@@ -40,6 +41,7 @@ function parse(argv: string[]): { scenarios: Scenario[]; resetOnly: boolean; fre
 }
 
 async function main(): Promise<void> {
+  assertLocalDatabase();
   const { scenarios, resetOnly, fresh } = parse(process.argv);
   if (fresh) console.info(await wipeEverything());
 
