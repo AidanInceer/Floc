@@ -23,7 +23,7 @@ Starting at the top, skip a ticket if any of these hold — and say which and wh
 
 - It is labelled `on-develop` or `future-work` → it should not be in the stack. Remove that line from the stack body and carry on down.
 - It is closed → remove the line, carry on.
-- It is labelled `wayfinder:grilling` → it needs grilling before it can be built. Offer the user: grill it now (`grilling` skill), or skip it.
+- It is labelled `wayfinder:grilling` → it needs grilling before it can be built. Offer the user: grill it now (`grilling` skill), or skip it. If the grilling splits it into new tickets, run `/floc:to-tickets` with this ticket's number — it tags this parent `on-develop` and pops it off the stack. The children get built, not the parent.
 - Its `## Blocked by` names an issue that is still open and not `on-develop` → report the blocker and move to the next ticket.
 
 ### 3. Confirm
