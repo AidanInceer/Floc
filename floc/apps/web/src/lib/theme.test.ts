@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { readStoredChoice, resolveTheme, THEME_BOOTSTRAP, THEME_STORAGE_KEY } from "./theme";
+import { readStoredChoice, resolveTheme, themeBootstrap, THEME_STORAGE_KEY } from "./theme";
 
 describe("readStoredChoice", () => {
   it("keeps a real choice", () => {
@@ -24,15 +24,15 @@ describe("resolveTheme", () => {
   });
 });
 
-describe("THEME_BOOTSTRAP", () => {
+describe("themeBootstrap", () => {
   /** It runs before any bundle, so a throw here would take the page with it. */
-  const run = (stored: string | null, prefersDark: boolean) => {
+  const run = (stored: string | null, prefersDark: boolean, signedIn = true) => {
     const root = { dataset: {} as Record<string, string> };
     new Function(
       "localStorage",
       "matchMedia",
       "document",
-      THEME_BOOTSTRAP,
+      themeBootstrap(signedIn),
     )(
       {
         getItem: () => stored,
@@ -53,7 +53,12 @@ describe("THEME_BOOTSTRAP", () => {
     expect(run(null, false)).toMatchObject({ theme: "light", themeChoice: "system" });
   });
 
+  it("is auto when signed out, whatever is stored", () => {
+    expect(run("light", true, false)).toMatchObject({ theme: "dark", themeChoice: "system" });
+    expect(run("dark", false, false)).toMatchObject({ theme: "light", themeChoice: "system" });
+  });
+
   it("reads the key storeTheme writes", () => {
-    expect(THEME_BOOTSTRAP).toContain(JSON.stringify(THEME_STORAGE_KEY));
+    expect(themeBootstrap(true)).toContain(JSON.stringify(THEME_STORAGE_KEY));
   });
 });

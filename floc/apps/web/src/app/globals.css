@@ -485,6 +485,38 @@
     display: none;
   }
 
+  /* The landing tour's play-time line: a dashed track, filled over one stop. */
+  .dash-track {
+    background: repeating-linear-gradient(90deg, var(--sheet-2) 0 6px, transparent 6px 10px);
+  }
+  .dash-fill {
+    width: 0;
+    background: repeating-linear-gradient(90deg, var(--rule) 0 6px, transparent 6px 10px);
+    animation: dash-fill linear forwards;
+  }
+  @keyframes dash-fill {
+    to {
+      width: 100%;
+    }
+  }
+  .rise-in {
+    animation: rise-in 0.35s var(--ease) both;
+  }
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+  .typing-dot {
+    animation: typing-dot 1s infinite;
+  }
+  @keyframes typing-dot {
+    50% {
+      opacity: 0.25;
+    }
+  }
+
   /* Anything typed rather than written: labels, counts, dates, section heads. */
   .typed {
     font-family: var(--type);

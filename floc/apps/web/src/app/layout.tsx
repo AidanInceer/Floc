@@ -7,7 +7,7 @@ import {
 
 import { AppChrome } from "@/components/chrome/app-chrome";
 import { SiteFooter } from "@/components/chrome/site-footer";
-import { THEME_BOOTSTRAP } from "@/lib/theme";
+import { themeBootstrap } from "@/lib/theme";
 import { getSession } from "@/server/access";
 import { subscriptionOf } from "@/server/billing/billing";
 import { allFeaturesFree } from "@/lib/env";
@@ -89,7 +89,7 @@ export default async function RootLayout({
       className={`${display.variable} ${body.variable} ${mono.variable}`}
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
+        <script dangerouslySetInnerHTML={{ __html: themeBootstrap(Boolean(session?.user)) }} />
       </head>
       <body className="min-h-dvh">
         <AppChrome
