@@ -1052,6 +1052,38 @@
   min-height: 26rem;
 }
 
+/* Ariakit paints its surfaces in fixed light hex and only swaps them under a
+   `.dark` class we never set, so every popup is taken back to the tokens. */
+.bn-ak-menu.bn-ak-menu,
+.bn-ak-popover.bn-ak-popover,
+.bn-ak-hovercard.bn-ak-hovercard,
+.bn-ak-tooltip.bn-ak-tooltip,
+.bn-ak-toolbar.bn-ak-toolbar,
+.bn-ak-wrapper.bn-ak-wrapper,
+.bn-ak-input-wrapper.bn-ak-input-wrapper {
+  color: var(--ink);
+  background-color: var(--sheet);
+  border-color: var(--rule);
+}
+
+.bn-ak-input.bn-ak-input {
+  color: var(--ink);
+  background-color: var(--sheet-2);
+}
+
+.bn-ak-button.bn-ak-button {
+  color: var(--ink);
+}
+
+.bn-ak-separator.bn-ak-separator {
+  border-color: var(--rule);
+}
+
+.bn-ak-menu.bn-ak-menu:not(:focus) .bn-ak-menu-item:not(:focus)[aria-expanded="true"],
+.bn-ak-secondary.bn-ak-secondary:hover {
+  background-color: var(--sheet-2);
+}
+
 .bn-root .bn-ak-menu-item[aria-selected="true"] {
   /* Ariakit paints its own blue on the highlighted row. Blue means "yours to
      do" here and there is only one of it. */

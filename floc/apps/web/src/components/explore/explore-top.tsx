@@ -44,19 +44,14 @@ export function ExploreTop({
 
   return (
     <>
+      <h1 className="mb-4 text-[clamp(1.8rem,3.4vw,2.6rem)] leading-[1.08]">
+        Explore
+      </h1>
       <div
         ref={atlas}
         className="grid scroll-mt-20 overflow-hidden rounded-xl border border-rule bg-sheet shadow-[var(--shadow)] lg:grid-cols-[1fr_21rem]"
       >
-        <div className="relative">
-          <ExploreAtlas picked={trip.id} onPick={setPicked} />
-          <div className="rounded-lg border border-rule bg-sheet p-4 shadow-[var(--shadow)] max-lg:m-4 lg:absolute lg:left-5 lg:top-4 lg:z-[500] lg:max-w-[21rem]">
-            <p className="typed">Explore</p>
-            <h1 className="mt-1 text-[clamp(1.8rem,3.4vw,2.6rem)] leading-[1.08]">
-              Every route here has a plan behind it.
-            </h1>
-          </div>
-        </div>
+        <ExploreAtlas picked={trip.id} onPick={setPicked} />
         <ExploreSide
           trip={trip}
           saved={saved}

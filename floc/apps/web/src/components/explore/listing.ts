@@ -1,5 +1,7 @@
 import type { PresetTrip, Region } from "@floc/core/trip/explore/preset-trips";
 
+import type { RouteMapStop } from "@/components/map/route-map";
+
 // Same families as the app's `region-tint.ts`, so a region is one colour on both.
 const REGION_SKIN: Record<Region, string> = {
   Europe: "bg-peri text-peri-ink",
@@ -13,13 +15,19 @@ export function skinFor(trip: PresetTrip): string {
   return REGION_SKIN[trip.region];
 }
 
-export function basePlaces(trip: PresetTrip): string[] {
-  return trip.legs.filter((l) => l.kind === "base").map((l) => l.place);
-}
-
 export function legLine(leg: PresetTrip["legs"][number]): string {
   if (leg.kind === "hop") return `${leg.place} · ${leg.detail}`;
   return `${leg.place} · ${leg.nights} ${leg.nights === 1 ? "night" : "nights"}`;
+}
+
+export function routeStops(trip: PresetTrip): RouteMapStop[] {
+  return trip.legs.flatMap((l) => (l.kind === "base" ? [l] : [])).map((b, i) => ({
+    no: i + 1,
+    name: b.place,
+    days: b.nights,
+    lat: b.lat,
+    lng: b.lng,
+  }));
 }
 
 export function firstBase(trip: PresetTrip): { lat: number; lng: number } {

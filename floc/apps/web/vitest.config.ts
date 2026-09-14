@@ -3,6 +3,8 @@ import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  // Match Next's JSX runtime, so a test can import a module that holds JSX.
+  esbuild: { jsx: "automatic" },
   test: {
     globals: true,
     environment: "node",

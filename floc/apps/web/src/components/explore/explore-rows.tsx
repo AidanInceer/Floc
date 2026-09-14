@@ -1,16 +1,13 @@
 import Link from "next/link";
-import { formatMoney } from "@floc/core/money/money";
 import { REGIONS, type PresetTrip, type Region } from "@floc/core/trip/explore/preset-trips";
 
-import { startTripFromPreset } from "@/app/explore/actions";
-import { basePlaces, skinFor } from "@/components/explore/listing";
-import { SubmitButton } from "@/components/system/client-ui";
-import { ButtonLink, cx } from "@/components/system/ui";
+import { ExploreRowList } from "@/components/explore/explore-row-list";
+import { ButtonLink } from "@/components/system/ui";
 
 const ROW_LIMIT = 10;
 
 const row =
-  "grid grid-cols-[0.6rem_1fr_auto] items-center gap-4 border-b border-rule px-1 py-2.5 hover:bg-sheet md:grid-cols-[0.6rem_1.3fr_2fr_5rem_6rem_auto]";
+  "grid min-h-[3.25rem] grid-cols-[0.6rem_1fr_auto] items-center gap-4 border-b border-rule px-1 py-2.5 hover:bg-sheet md:grid-cols-[0.6rem_1.3fr_2fr_auto]";
 
 export function ExploreRows({
   trips,
@@ -46,35 +43,11 @@ export function ExploreRows({
       </div>
 
       <ul className="border-t border-rule">
-        {shown.map((trip) => (
-          <li key={trip.id} className={row}>
-            <span aria-hidden className={cx("size-2.5 rounded-full", skinFor(trip))} />
-            <h3 className="text-base">{trip.title}</h3>
-            <span className="nums hidden truncate text-[12.5px] text-ink-soft md:block">
-              {basePlaces(trip).join(" → ")}
-            </span>
-            <span className="nums hidden text-[13px] md:block">{trip.nights} nights</span>
-            <span className="nums hidden text-[13px] md:block">
-              {formatMoney(trip.priceFromMinor, trip.currency)} pp
-            </span>
-            {signedIn ? (
-              <form action={startTripFromPreset}>
-                <input type="hidden" name="presetId" value={trip.id} />
-                <SubmitButton pendingLabel="Starting…">Start</SubmitButton>
-              </form>
-            ) : (
-              <ButtonLink href="/signup" variant="primary">
-                Sign up
-              </ButtonLink>
-            )}
-          </li>
-        ))}
+        <ExploreRowList trips={shown} signedIn={signedIn} row={row} />
         <li className={row}>
           <span aria-hidden className="size-2.5 rounded-full border-[1.5px] border-dashed border-pen" />
           <h3 className="text-base text-pen-deep">{trips.length === 0 ? `Nothing in ${region} yet` : "Your own"}</h3>
           <span className="hidden text-[12.5px] text-ink-soft md:block">No dates, no destination. See who agrees.</span>
-          <span className="hidden md:block" />
-          <span className="hidden md:block" />
           <ButtonLink href={signedIn ? "/trips" : "/signup"}>Start blank</ButtonLink>
         </li>
       </ul>
