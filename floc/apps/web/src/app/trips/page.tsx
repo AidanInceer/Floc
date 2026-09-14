@@ -20,6 +20,7 @@ import {
   Input,
   Stack,
   cx,
+  PageTitle,
 } from "@/components/system/ui";
 import { Sheet, SubmitButton } from "@/components/system/client-ui";
 import { FriendPicker } from "@/components/social/friend-picker";
@@ -70,7 +71,7 @@ export default async function TripsPage({
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
       <header className="flex flex-wrap items-end justify-between gap-6">
         <div>
-          <h1 className="text-[clamp(1.9rem,4vw,2.8rem)]">My trips</h1>
+          <PageTitle>My trips</PageTitle>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <ButtonLink href="/trips/archived" variant="ghost">
@@ -271,7 +272,7 @@ function SortIcon() {
       height="14"
       fill="none"
       stroke="currentColor"
-      strokeWidth={1.5}
+      strokeWidth={1.2}
       strokeLinecap="round"
       className="text-ink-soft"
       role="img"
@@ -316,7 +317,7 @@ function ViewToggle({
           height="14"
           fill="none"
           stroke="currentColor"
-          strokeWidth={1.6}
+          strokeWidth={1.2}
           strokeLinecap="round"
           aria-hidden
         >

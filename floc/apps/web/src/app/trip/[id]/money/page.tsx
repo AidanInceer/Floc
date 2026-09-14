@@ -34,7 +34,7 @@ import {
 } from "@/server/money/money";
 import { getProfile } from "@/server/auth/profile";
 import { getHomeRates } from "@/server/money/fx";
-import { Avatar } from "@/components/system/ui";
+import { Avatar, PageTitle, EmptyState, SectionHeading } from "@/components/system/ui";
 import { Sheet } from "@/components/system/client-ui";
 import { ConvertAmount, SettleUpForm } from "@/components/money/money-client";
 import { ActivityFeed } from "@/components/money/money-activity";
@@ -154,7 +154,7 @@ export default async function MoneyPage({
   return (
     <div className="mx-auto w-full max-w-[64rem] px-4 pb-20 pt-6 sm:px-6">
       <header className="flex flex-wrap items-end justify-between gap-6">
-        <h1 className="text-[clamp(1.9rem,4vw,2.8rem)]">Money</h1>
+        <PageTitle>Money</PageTitle>
         {hasActivity ? (
           <Sheet trigger="Add expense" title="Expense" keepOpenOnSubmit>
             {addForm}
@@ -204,17 +204,18 @@ export default async function MoneyPage({
 
 function EmptyMoney({ addForm }: { addForm: React.ReactNode }) {
   return (
-    <div className="mt-8 rounded-lg bg-sheet px-6 py-14 text-center">
-      <h2 className="text-xl">Nothing logged yet</h2>
-      <p className="mx-auto mt-2 max-w-[48ch] text-sm text-ink-soft">
+    <div className="mt-8">
+      <EmptyState
+        title="Nothing logged yet"
+        action={
+          <Sheet trigger="Log the first cost" title="Expense" keepOpenOnSubmit>
+            {addForm}
+          </Sheet>
+        }
+      >
         Add an expense and Floc works out the fewest payments to square everyone
         up.
-      </p>
-      <div className="mt-5 flex justify-center">
-        <Sheet trigger="Log the first cost" title="Expense" keepOpenOnSubmit>
-          {addForm}
-        </Sheet>
-      </div>
+      </EmptyState>
     </div>
   );
 }
@@ -229,7 +230,7 @@ function SettledBanner({ addForm }: { addForm: React.ReactNode }) {
           viewBox="0 0 14 14"
           fill="none"
           stroke="currentColor"
-          strokeWidth={1.4}
+          strokeWidth={1.2}
           strokeLinecap="round"
           strokeLinejoin="round"
           aria-hidden
@@ -237,7 +238,7 @@ function SettledBanner({ addForm }: { addForm: React.ReactNode }) {
           <path d="M3 7.3l2.8 2.7L11 4.2" />
         </svg>
       </span>
-      <h2 className="mt-3 text-2xl">Trip settled up</h2>
+      <SectionHeading className="mt-3">Trip settled up</SectionHeading>
       <p className="mt-1 text-sm opacity-80">Everyone&rsquo;s square.</p>
       <div className="mt-5 flex justify-center">
         <Sheet
@@ -329,7 +330,7 @@ function MySettleUp({
       totals.length > 1 ? convertTotal(totals, home, rateFor) : null;
     return (
       <section className="rounded-lg bg-sheet p-6">
-        <h2 className="border-b border-rule pb-3 text-xl">{title}</h2>
+        <SectionHeading className="border-b border-rule pb-3">{title}</SectionHeading>
         {rows.length === 0 ? (
           <p className="flex min-h-[8rem] flex-col items-center justify-center gap-1 text-center">
             <span className="font-display text-xl text-mint-ink">{empty}</span>

@@ -20,6 +20,7 @@ import {
   Stack,
   Textarea,
   menuDangerItemClass,
+  PageTitle,
 } from "@/components/system/ui";
 import {
   ConfirmSubmit,
@@ -112,7 +113,7 @@ export default async function DatesPage({
     <div className="mx-auto w-full max-w-5xl px-4 pb-20 pt-6 sm:px-6">
       <header className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl">Dates</h1>
+          <PageTitle>Dates</PageTitle>
           <p className="mt-1 text-sm text-ink-soft">
             {hasDates ? (
               <>

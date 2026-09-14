@@ -38,7 +38,7 @@ import {
 import { EventFiles } from "@/components/documents/event-files";
 import type { FileChoice } from "@/components/documents/attach-existing";
 import { EventForm } from "@/components/days/event-form";
-import { Badge, ButtonLink, EmptyState } from "@/components/system/ui";
+import { Badge, ButtonLink, EmptyState, PageTitle } from "@/components/system/ui";
 import { appUrl } from "@/lib/env";
 import { mintCalendarToken } from "@/server/itinerary/calendar-link";
 import { EVENT_CATEGORIES } from "@floc/core/itinerary/event-categories";
@@ -94,7 +94,7 @@ export default async function DaysPage({
     return (
       <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
         <header>
-          <h1 className="text-[clamp(1.9rem,4vw,2.8rem)]">Days</h1>
+          <PageTitle>Days</PageTitle>
         </header>
         <div className="mt-8">
         {trip.startDate ? (
@@ -216,7 +216,7 @@ export default async function DaysPage({
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
       <header className="flex flex-wrap items-end justify-between gap-6">
         <div>
-          <h1 className="text-[clamp(1.9rem,4vw,2.8rem)]">Days</h1>
+          <PageTitle>Days</PageTitle>
         </div>
         <CalendarMenu
           downloadHref={`/trip/${trip.id}/calendar.ics`}
@@ -375,7 +375,7 @@ function EventPanel({
           rel="noreferrer"
           className="inline-block text-sm font-medium text-pen underline underline-offset-2 transition-colors hover:bg-highlight-soft hover:text-pen-deep"
         >
-          Search flights →
+          Search flights
         </a>
       ) : null}
 

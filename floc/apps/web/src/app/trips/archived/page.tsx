@@ -6,7 +6,7 @@
  * by a WhatsApp message.
  */
 import { requireUser } from "@/server/access";
-import { ButtonLink } from "@/components/system/ui";
+import { ButtonLink, PageTitle, EmptyState } from "@/components/system/ui";
 import { ConfirmSubmit } from "@/components/system/client-ui";
 import { TripCard } from "@/components/trip/trip-card";
 import { loadTripCards } from "../cards";
@@ -29,7 +29,7 @@ export default async function ArchivedTripsPage() {
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
       <header className="flex flex-wrap items-end justify-between gap-6">
         <div>
-          <h1 className="text-[clamp(1.9rem,4vw,2.8rem)]">Archived trips</h1>
+          <PageTitle>Archived trips</PageTitle>
           <p className="mt-3 max-w-[58ch] text-md text-ink-soft">
             Trips you&rsquo;re part of that an admin has archived. Only an admin
             can restore one.
@@ -41,12 +41,11 @@ export default async function ArchivedTripsPage() {
       </header>
 
       {cards.length === 0 ? (
-        <div className="mt-8 rounded-lg bg-sheet px-6 py-14 text-center">
-          <h2 className="text-xl">Nothing archived</h2>
-          <p className="mx-auto mt-2 max-w-[46ch] text-sm text-ink-soft">
+        <div className="mt-8">
+          <EmptyState title="Nothing archived">
             Trips an admin archives will show up here, still visible to every
             member.
-          </p>
+          </EmptyState>
         </div>
       ) : (
         <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

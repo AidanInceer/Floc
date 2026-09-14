@@ -220,6 +220,11 @@ export function ConfirmSubmit({
   const { pending } = useFormStatus();
   const ref = useRef<HTMLDialogElement>(null);
   const labelId = useId();
+  const wasPending = useRef(false);
+  useEffect(() => {
+    if (wasPending.current && !pending) ref.current?.close();
+    wasPending.current = pending;
+  }, [pending]);
 
   return (
     <>
@@ -259,13 +264,9 @@ export function ConfirmSubmit({
             >
               Cancel
             </Button>
-            {/* Real submit inside the form — submits the action directly. */}
-            <Button
-              type="submit"
-              variant={confirmVariant ?? variant}
-              onClick={() => ref.current?.close()}
-            >
-              {confirmLabel}
+            {/* Stays open until the action settles, so a slow or failed one is seen. */}
+            <Button type="submit" variant={confirmVariant ?? variant} disabled={pending}>
+              {pending ? (pendingLabel ?? "Working…") : confirmLabel}
             </Button>
           </div>
         </div>
@@ -286,23 +287,32 @@ export function CopyLink({
   variant?: "primary" | "secondary" | "ghost" | "danger";
   icon?: ReactNode;
 }) {
-  const [copied, setCopied] = useState(false);
+  const [status, setStatus] = useState<"idle" | "copied" | "failed">("idle");
   return (
-    <Button
-      variant={variant}
-      onClick={async () => {
-        await navigator.clipboard.writeText(value);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      }}
-    >
-      {copied ? "Copied" : (
-        <>
-          {icon}
-          {label}
-        </>
-      )}
-    </Button>
+    <>
+      <Button
+        variant={variant}
+        onClick={async () => {
+          try {
+            await navigator.clipboard.writeText(value);
+            setStatus("copied");
+          } catch {
+            setStatus("failed");
+          }
+          setTimeout(() => setStatus("idle"), 2500);
+        }}
+      >
+        {status === "copied" ? "Copied" : status === "failed" ? "Copy failed" : (
+          <>
+            {icon}
+            {label}
+          </>
+        )}
+      </Button>
+      <span aria-live="polite" className="sr-only">
+        {status === "copied" ? "Link copied" : status === "failed" ? `Copy failed. The link is ${value}` : ""}
+      </span>
+    </>
   );
 }
 

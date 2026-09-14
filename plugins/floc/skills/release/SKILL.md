@@ -6,7 +6,8 @@ description: Batch develop into main for AidanInceer/Floc — PR with a merge co
 # release
 
 `develop` → `main` as one PR, merged with a **merge commit**. A merge to `main`
-deploys production on Railway, so the merge waits for the user's yes.
+deploys production on Railway. The user's standing yes: merge as soon as the PR
+checks are green — do not stop to ask.
 
 ## 1. Is there anything to release
 
@@ -82,10 +83,11 @@ gh pr checks <n> --repo AidanInceer/Floc --watch --fail-fast
 
 Red → stop and report. Do not merge.
 
-## 6. Confirm, then merge
+## 6. Merge
 
-Show the user: version, ticket count, migrations, PR URL. Ask for a clear yes.
-This deploys production.
+Checks green → merge. No need to ask; the user has said a green PR may go to
+`main`. Stop and ask only if step 3 found an issue that will not close, or the
+release ships a schema migration.
 
 ```bash
 gh pr merge <n> --repo AidanInceer/Floc --merge
@@ -124,6 +126,6 @@ shipped, deploy state, CI being watched.
 
 ## Never
 
-- Merge without the user's yes in this session.
+- Merge while any check is red or pending.
 - Push to `main` directly — that is a hotfix, and a separate decision.
 - Close issues by hand; `Closes` does it. Only exception: split parents in step 7.

@@ -45,7 +45,7 @@ import {
   segmentShape,
 } from "@/components/packing/packing-card";
 import Link from "next/link";
-import { cx } from "@/components/system/ui";
+import { cx, PageTitle } from "@/components/system/ui";
 import { SubmitButton } from "@/components/system/client-ui";
 import { PackingLineRow } from "@/components/packing/packing-line-row";
 import { PersonalPackingRow } from "@/components/packing/packing-personal-row";
@@ -232,7 +232,7 @@ export default async function PackingPage({
 
   return (
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
-      <h1 className="text-[clamp(1.9rem,4vw,2.8rem)]">Packing</h1>
+      <PageTitle>Packing</PageTitle>
 
       {/* Above both lists because it governs one of them and explains the other
           (ticket 229): the tier is how much you like to take, and the button is

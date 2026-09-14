@@ -18,7 +18,7 @@ import { countMembers, isLiveMember } from "@/server/trips/roster";
 import { emailConfigured } from "@/server/auth/email";
 import { peopleByIds } from "@/server/social/friends";
 import { formatDateRange } from "@floc/core/dates/dates";
-import { ButtonLink } from "@/components/system/ui";
+import { ButtonLink, PageTitle } from "@/components/system/ui";
 import { SubmitButton } from "@/components/system/client-ui";
 import { joinTrip, resendVerification } from "./actions";
 
@@ -216,7 +216,7 @@ export default async function InvitePage({
 function DeadLink() {
   return (
     <div className="mx-auto w-full max-w-[42rem] px-4 pb-20 pt-16 text-center sm:px-6">
-      <h1 className="text-[clamp(1.9rem,4vw,2.8rem)]">This link no longer works</h1>
+      <PageTitle>This link no longer works</PageTitle>
       <p className="mx-auto mt-4 max-w-[48ch] text-md text-ink-soft">
         The trip may have been deleted, or the invite link replaced. Ask whoever
         sent it for a fresh one — a new link takes them a moment to make.

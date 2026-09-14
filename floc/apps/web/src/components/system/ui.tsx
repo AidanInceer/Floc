@@ -9,7 +9,7 @@
  * a phone. `docs/design/visual-language.html` rules both.
  */
 import Link from "next/link";
-import type { ComponentProps, ReactNode } from "react";
+import { cloneElement, isValidElement, useId, type ComponentProps, type ReactElement, type ReactNode } from "react";
 
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import { whoTone } from "@floc/core/people/who";
@@ -292,13 +292,53 @@ export function Field({
   children: ReactNode;
   className?: string;
 }) {
+  const hintId = useId();
+  const control =
+    hint && isValidElement(children)
+      ? cloneElement(children as ReactElement<{ "aria-describedby"?: string }>, {
+          "aria-describedby": hintId,
+        })
+      : children;
   return (
     <label className={cx("block", className)}>
       <span className="typed mb-1 block">{label}</span>
-      {children}
-      {hint ? <span className="mt-1 block text-xs text-ink-faint">{hint}</span> : null}
+      {control}
+      {hint ? (
+        <span id={hintId} className="mt-1 block text-xs text-ink-faint">
+          {hint}
+        </span>
+      ) : null}
     </label>
   );
+}
+
+/** For several controls under one name — a `<label>` would forward every click to the first. */
+export function FieldGroup({
+  label,
+  children,
+  className,
+}: {
+  label: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  const labelId = useId();
+  return (
+    <div role="group" aria-labelledby={labelId} className={cx("block", className)}>
+      <span id={labelId} className="typed mb-1 block">
+        {label}
+      </span>
+      {children}
+    </div>
+  );
+}
+
+export function PageTitle({ children, className }: { children: ReactNode; className?: string }) {
+  return <h1 className={cx("text-[clamp(1.9rem,4vw,2.8rem)]", className)}>{children}</h1>;
+}
+
+export function SectionHeading({ children, className }: { children: ReactNode; className?: string }) {
+  return <h2 className={cx("text-xl", className)}>{children}</h2>;
 }
 
 export function Input({ className, ...props }: ComponentProps<"input">) {
@@ -317,7 +357,11 @@ export function Select({ className, ...props }: ComponentProps<"select">) {
 
 export function ErrorText({ children }: { children?: ReactNode }) {
   if (!children) return null;
-  return <p className="text-sm text-red">{children}</p>;
+  return (
+    <p role="alert" className="text-sm text-red">
+      {children}
+    </p>
+  );
 }
 
 /*
