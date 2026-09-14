@@ -1,6 +1,6 @@
 /**
  * Floc v1 physical schema — SQLite/libSQL dialect via Drizzle.
- * Source of truth: .scratch/floc-v1/issues/04-core-data-model-and-schema.md, docs/data-model/erd.html
+ * Source of truth: .scratch/floc-v1/issues/04-core-data-model-and-schema.md, docs/architecture/data-model/erd.html
  *
  * Every application table carries id, created_at, deleted_at (soft-delete), last_modified_at.
  * `last_modified_at` is debugging-only — no optimistic locking in v1 (ticket 12).

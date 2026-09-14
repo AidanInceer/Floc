@@ -1,5 +1,5 @@
 // Static listings for the Explore mockup. No partner backend or deal —
-// operator names are illustrative placeholders. See docs/research/partner-trips.html.
+// operator names are illustrative placeholders. See docs/product/partner-trips/partner-trips.html.
 // Money is minor units (rule 1); format with `formatMoney`, never by hand.
 import type { PresetTrip } from "./preset-trip-types";
 import { MORE_PRESET_TRIPS } from "./preset-trips-more";

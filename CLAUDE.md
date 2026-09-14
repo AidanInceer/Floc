@@ -19,11 +19,11 @@ Next.js App Router + Turso (libSQL) + Drizzle + Better Auth.
 | `floc/apps/mobile/` | `floc-mobile` — Expo (iOS + Android). Own UI and version, same [visual language](docs/design/visual-language.html). Ship: [`SHIPPING.md`](floc/apps/mobile/SHIPPING.md), [`STORE.md`](floc/apps/mobile/STORE.md). |
 | `floc/apps/web/src/lib/` | What is left: browser- or Next-bound helpers only (env, theme, tabs, map, auth-client). |
 | `floc/apps/web/src/components/` | `ui.tsx`/`client-ui.tsx` = house design system. Reach first. |
-| `floc/apps/web/src/db/schema.ts` | Schema of record. Mirrors [ERD](docs/data-model/erd.html) — change both. |
+| `floc/apps/web/src/db/schema.ts` | Schema of record. Mirrors [ERD](docs/architecture/data-model/erd.html) — change both. |
 | `floc/apps/prototype/` | Old, don't extend. |
 | `docs/` | Local HTML site, no build. Open `docs/index.html` off disk. |
 
-Docs: [approach](docs/design/approach.html) · [visual language](docs/design/visual-language.html) · [architecture](docs/architecture/architecture.html) · [ERD](docs/data-model/erd.html).
+Docs: [approach](docs/design/approach.html) · [visual language](docs/design/visual-language.html) · [architecture](docs/architecture/architecture.html) · [ERD](docs/architecture/data-model/erd.html).
 
 ## Environment
 
@@ -108,7 +108,7 @@ Reach for the house component before writing markup; if neither surface has it, 
 
 ## Out of scope (v1)
 
-Payments, POI data/reviews, flight *booking* (deep links only), i18n, advertising, marketing email, push notifications.
+Payments, POI data/reviews, flight *booking* (deep links only), i18n, advertising, marketing email.
 
 **Analytics and cookie consent land before go-live** ([#368](https://github.com/AidanInceer/Floc/issues/368)). Until then only strictly necessary cookies. Rules: three categories — strictly necessary, functional, analytics (no ads); nothing non-essential runs or stores before consent; no cookie or stored choice lasts past 12 months. A new or changed cookie → update the list on `/privacy` same commit.
 
