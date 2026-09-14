@@ -1,9 +1,9 @@
 "use server";
 
 // Discussion threads, shared by every surface that has one (server/notes.ts
-// owns the table shape, ticket 108). Not admin-gated to post; delete is your
-// own comment, or any admin can remove one.
-import { assertAdmin, requireTripAccess } from "@/server/access";
+// owns the table shape, ticket 108). Anyone posts; only the author edits or
+// deletes — removing someone else's words is not one of the three admin powers.
+import { requireTripAccess } from "@/server/access";
 import {
   findNote,
   insertNote,
@@ -16,8 +16,6 @@ import {
 import type { NoteScope, ReactionKind } from "@/db/schema";
 import { refresh } from "@/server/freshness";
 
-// Author only, deliberately not an admin power (rule 6) — an admin can delete
-// a comment, but putting different words in someone's mouth is a different act.
 export async function editNote(
   tripId: number,
   noteId: number,
@@ -93,7 +91,7 @@ export async function deleteNote(tripId: number, noteId: number) {
   const row = await findNote(access.trip.id, noteId);
   if (!row) return;
 
-  if (row.createdBy !== access.viewer.id) assertAdmin(access);
+  if (row.createdBy !== access.viewer.id) return;
 
   await softDeleteNoteAndReplies(row.id);
 

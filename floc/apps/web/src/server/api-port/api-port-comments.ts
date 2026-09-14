@@ -22,7 +22,6 @@ import type { Comment, FlocPort, ReactionKind } from "@floc/api/port";
 import type { NoteRow } from "@floc/core/notes/notes";
 
 import { scoped } from "@/server/api-port/api-port-scope";
-import { assertAdmin } from "@/server/access";
 import { loadThreads } from "@/server/notes/notes-read";
 import {
   findNote,
@@ -111,9 +110,7 @@ export const commentsPort: CommentsPort = {
     const access = await scoped(viewerId, tripId);
     const row = await findNote(access.trip.id, commentId);
     if (!row) return "That comment has gone.";
-    // Author only, deliberately not an admin power (rule 6) — an admin may
-    // delete a comment, but putting different words in someone's mouth is a
-    // different act.
+    // Author only, deliberately not an admin power (rule 6).
     if (row.createdBy !== access.viewer.id) {
       return "You can only edit your own comments.";
     }
@@ -130,7 +127,9 @@ export const commentsPort: CommentsPort = {
     const row = await findNote(access.trip.id, commentId);
     if (!row) return;
 
-    if (row.createdBy !== access.viewer.id) assertAdmin(access);
+    if (row.createdBy !== access.viewer.id) {
+      throw new Error("You can only delete your own comments.");
+    }
 
     await softDeleteNoteAndReplies(row.id);
     refresh({ kind: "thread", tripId: access.trip.id, scope: row.scope });

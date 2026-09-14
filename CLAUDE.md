@@ -18,7 +18,7 @@ Next.js App Router + Turso (libSQL) + Drizzle + Better Auth.
 | `floc/apps/web/src/server/api-port.ts` | The web app's `FlocPort` — the same `server/` modules the pages use. |
 | `floc/apps/mobile/` | `floc-mobile` — Expo (iOS + Android). Own UI and version, same [visual language](docs/design/visual-language.html). Ship: [`SHIPPING.md`](floc/apps/mobile/SHIPPING.md), [`STORE.md`](floc/apps/mobile/STORE.md). |
 | `floc/apps/web/src/lib/` | What is left: browser- or Next-bound helpers only (env, theme, tabs, map, auth-client). |
-| `floc/apps/web/src/components/` | `ui.tsx`/`client-ui.tsx` = house design system. Reach first. |
+| `floc/apps/web/src/components/` | `system/ui.tsx`/`system/client-ui.tsx` = house design system. Reach first. |
 | `floc/apps/web/src/db/schema.ts` | Schema of record. Mirrors [ERD](docs/architecture/data-model/erd.html) — change both. |
 | `floc/apps/prototype/` | Old, don't extend. |
 | `docs/` | Local HTML site, no build. Open `docs/index.html` off disk. |
@@ -80,7 +80,7 @@ Surface differences live in the docs, once — **don't restate them here**:
 
 | Surface | House components | Surface rules |
 |---|---|---|
-| Web | `floc/apps/web/src/components/ui.tsx` · `client-ui.tsx` | The baseline both docs describe throughout; the app is drawn tighter against it. |
+| Web | `floc/apps/web/src/components/system/ui.tsx` · `client-ui.tsx` | The baseline both docs describe throughout; the app is drawn tighter against it. |
 | App | `floc/apps/mobile/src/components/ui.tsx` · `glyphs.tsx` | [on a phone, cut it back](docs/design/visual-language.html#on-a-phone); [drawn tighter](docs/design/approach.html#the-app). |
 
 Reach for the house component before writing markup; if neither surface has it, the [component inventory](docs/design/visual-language.html#components) says whether it should exist. A rule that fits both surfaces belongs in the shared docs, not one app.
@@ -117,6 +117,7 @@ Payments, POI data/reviews, flight *booking* (deep links only), i18n, advertisin
 - **Branches.** Two long-lived, no feature branches. Work lands on `develop` via `/floc:push`, batched to `main` via `/floc:release`. Hotfix = commit straight to `main`. Never commit a feature to `main`.
 - **Commits, labels, Priority stack** — the skills own the rules: `/floc:push` (subject, version bump, `Closes`, `on-develop`), `/floc:prioritise-tickets` (labels, stack), `/floc:to-tickets` (blocked-by edges). Never borrow an issue number.
 - **Docs = HTML, not markdown** — edit the page.
+- **Docs move with the code, same commit.** A change that makes a doc page wrong updates that page in the same commit — never a follow-up. Map: schema → [ERD](docs/architecture/data-model/erd.html) + [architecture](docs/architecture/architecture.html) "Data model shape"; layers, seams, auth, money, trip state, files, deploy → [architecture](docs/architecture/architecture.html); trip access, roles, `assertAdmin`, a new door → [access](docs/architecture/access.html); PII, tokens, signed links, webhooks, cookies → [security](docs/architecture/security.html); a tRPC procedure → [API map](docs/architecture/api.html); an env var, `railway.json`, a failure you fixed in production → [runbook](docs/architecture/operations.html); a CI job or `verify.sh` → [ci](docs/architecture/ci.html); workflow or skills → [lifecycle](docs/architecture/lifecycle.html); web/app split or `parity.json` → [multi-platform](docs/architecture/multi-platform.html); notifications → [notifications](docs/architecture/notifications.html); a feature's behaviour → its page in `docs/product/domains/`; a token, component or UI rule → [visual language](docs/design/visual-language.html); a domain word → [vocab](docs/vocab.html). New page → link it from `docs/index.html`. Moved page → fix every link to it (grep `docs/`, `CLAUDE.md`, `plugins/`). Before `/floc:push`, ask: which page does this diff make untrue? `pnpm docs:check` (in `fitness`; local only, `docs/` is gitignored) fails on a schema table missing from the ERD, a procedure missing from the API map, or a broken link in `docs/` or here.
 - **Deploy = Railway** via `railway.json` (runs migration, starts `floc-web`). Push to `main` deploys. Env vars in Railway Variables tab, never the repo.
 
 ## Security

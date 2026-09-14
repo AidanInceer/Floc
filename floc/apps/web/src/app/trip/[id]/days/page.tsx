@@ -62,7 +62,7 @@ export default async function DaysPage({
 }) {
   const { id } = await params;
   const access = await requireTripAccess(id, `/trip/${id}/days`);
-  const { trip, viewer, isAdmin, members } = access;
+  const { trip, viewer, members } = access;
 
   // One person, one colour across every tab.
   const toneOf = new Map(members.map((m) => [m.userId, m.tone]));
@@ -191,7 +191,6 @@ export default async function DaysPage({
           loose={loose}
           filesEnabled={documentsEnabled()}
           viewerId={viewer.id}
-          isAdmin={isAdmin}
           bookingPrefill={bookingPrefill}
         />
       );
@@ -304,7 +303,6 @@ function EventPanel({
   loose,
   filesEnabled,
   viewerId,
-  isAdmin,
   bookingPrefill,
 }: {
   tripId: number;
@@ -318,7 +316,6 @@ function EventPanel({
   loose: FileChoice[];
   filesEnabled: boolean;
   viewerId: string;
-  isAdmin: boolean;
   bookingPrefill: boolean;
 }) {
   const isTransport = event.type === "transport";
@@ -396,7 +393,6 @@ function EventPanel({
           scopeId={event.id}
           notes={notes}
           viewerId={viewerId}
-          isAdmin={isAdmin}
           placeholder="Anything the group should know about this?"
         />
       </div>

@@ -95,7 +95,6 @@ function Comment({
   tripId,
   note,
   viewerId,
-  isAdmin,
   onReply,
   hasReplies,
   reply,
@@ -103,13 +102,11 @@ function Comment({
   tripId: number;
   note: NoteRow;
   viewerId: string;
-  isAdmin: boolean;
   onReply: () => void;
   hasReplies: boolean; // deleting a top-level comment takes replies with it
   reply?: boolean; // smaller avatar/body inside a run
 }) {
   const mine = note.createdBy === viewerId;
-  const canDelete = isAdmin || mine;
   const [editing, setEditing] = useState(false);
 
   return (
@@ -198,7 +195,7 @@ function Comment({
                 Edit
               </button>
             ) : null}
-            {canDelete ? (
+            {mine ? (
               <form action={deleteNote.bind(null, tripId, note.id)}>
                 <ConfirmSubmit
                   message={
@@ -278,14 +275,12 @@ function Run({
   scopeId,
   note,
   viewerId,
-  isAdmin,
 }: {
   tripId: number;
   scope: NoteScope;
   scopeId: number;
   note: NoteRow;
   viewerId: string;
-  isAdmin: boolean;
 }) {
   const [replying, setReplying] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -298,7 +293,6 @@ function Run({
           tripId={tripId}
           note={note}
           viewerId={viewerId}
-          isAdmin={isAdmin}
           onReply={() => setReplying(true)}
           hasReplies={count > 0}
         />
@@ -333,7 +327,6 @@ function Run({
               tripId={tripId}
               note={r}
               viewerId={viewerId}
-              isAdmin={isAdmin}
               onReply={() => setReplying(true)}
               hasReplies={false}
               reply
@@ -409,7 +402,6 @@ export function NoteThread({
   scopeId,
   notes,
   viewerId,
-  isAdmin,
   placeholder = "Add a comment…",
   toolbar,
 }: {
@@ -418,7 +410,6 @@ export function NoteThread({
   scopeId: number;
   notes: NoteRow[];
   viewerId: string;
-  isAdmin: boolean;
   placeholder?: string;
   /** The owning card's own controls, so they share the thread's header row
       rather than stacking above it (ticket 233). */
@@ -451,7 +442,6 @@ export function NoteThread({
               scopeId={scopeId}
               note={n}
               viewerId={viewerId}
-              isAdmin={isAdmin}
             />
           ))}
         </div>
