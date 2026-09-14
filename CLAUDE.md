@@ -108,7 +108,9 @@ Reach for the house component before writing markup; if neither surface has it, 
 
 ## Out of scope (v1)
 
-Payments, POI data/reviews, flight *booking* (deep links only), i18n, analytics, consent UI, marketing email, push notifications.
+Payments, POI data/reviews, flight *booking* (deep links only), i18n, advertising, marketing email, push notifications.
+
+**Analytics and cookie consent land before go-live** ([#368](https://github.com/AidanInceer/Floc/issues/368)). Until then only strictly necessary cookies. Rules: three categories — strictly necessary, functional, analytics (no ads); nothing non-essential runs or stores before consent; no cookie or stored choice lasts past 12 months. A new or changed cookie → update the list on `/privacy` same commit.
 
 ## Workflow
 
