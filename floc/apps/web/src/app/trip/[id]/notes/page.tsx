@@ -2,6 +2,7 @@
 import { requireTripAccess } from "@/server/access";
 import { loadNoteDoc } from "@/server/notes/note-doc";
 import { NotesDoc } from "@/components/notes/notes-doc";
+import { PageTitle } from "@/components/system/ui";
 
 export default async function NotesPage({
   params,
@@ -19,7 +20,7 @@ export default async function NotesPage({
             one block to the left of the text. The heading takes the same indent
             so the two line up. */}
         <div className="pl-12 pr-4 sm:pr-8">
-          <h1 className="text-[clamp(1.9rem,4vw,2.8rem)]">Notes</h1>
+          <PageTitle>Notes</PageTitle>
         </div>
         <div className="mt-6 pl-12 pr-4 sm:pr-8">
           <NotesDoc tripId={trip.id} initialDoc={doc} />

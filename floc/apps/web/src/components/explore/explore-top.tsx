@@ -9,7 +9,7 @@ import { ExploreAtlas } from "@/components/explore/explore-atlas";
 import { ExploreMatches } from "@/components/explore/explore-matches";
 import { ExploreQuiz } from "@/components/explore/explore-quiz";
 import { ExploreSide } from "@/components/explore/explore-side";
-import { ButtonLink } from "@/components/system/ui";
+import { ButtonLink, PageTitle } from "@/components/system/ui";
 
 const MATCH_COUNT = 5;
 
@@ -44,9 +44,7 @@ export function ExploreTop({
 
   return (
     <>
-      <h1 className="mb-4 text-[clamp(1.8rem,3.4vw,2.6rem)] leading-[1.08]">
-        Explore
-      </h1>
+      <PageTitle className="mb-4">Explore</PageTitle>
       <div
         ref={atlas}
         className="grid scroll-mt-20 overflow-hidden rounded-xl border border-rule bg-sheet shadow-[var(--shadow)] lg:grid-cols-[1fr_21rem]"

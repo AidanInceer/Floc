@@ -29,6 +29,7 @@ import {
   Button,
   ErrorText,
   Field,
+  FieldGroup,
   Input,
   Select,
   Stack,
@@ -107,6 +108,7 @@ export function ExpenseForm({
     expense?.category ?? DEFAULT_CATEGORY,
   );
   const [pickerOpen, setPickerOpen] = useState(false);
+  const pickerTrigger = useRef<HTMLButtonElement>(null);
   const [mode, setMode] = useState<SplitMode>(
     expense?.splitType === "exact" || expense?.splitType === "percentage"
       ? "exact"
@@ -181,6 +183,8 @@ export function ExpenseForm({
     [amountMinor, rows, checked, members, mode, currency],
   );
 
+  const unbalanced = amountMinor > 0 && participants.length > 0 && preview.leftover !== 0;
+
   return (
     <form
       action={(formData) => {
@@ -194,11 +198,22 @@ export function ExpenseForm({
       <input type="hidden" name="category" value={category} />
 
       <Stack gap={3}>
-        <Field label="Description">
+        <FieldGroup label="Description">
           <div className="flex items-stretch gap-2">
-            <div className="relative flex-none">
+            <div
+              className="relative flex-none"
+              onKeyDown={(e) => {
+                if (e.key !== "Escape" || !pickerOpen) return;
+                e.preventDefault();
+                e.stopPropagation();
+                setPickerOpen(false);
+                pickerTrigger.current?.focus();
+              }}
+            >
               <button
+                ref={pickerTrigger}
                 type="button"
+                aria-haspopup="dialog"
                 onClick={() => setPickerOpen((o) => !o)}
                 aria-label={`Category: ${CATEGORY_LABELS[category]}`}
                 aria-expanded={pickerOpen}
@@ -215,6 +230,7 @@ export function ExpenseForm({
                     aria-hidden
                   />
                   <div
+                    role="dialog"
                     aria-label="Choose a category"
                     className="absolute left-0 top-full z-30 mt-1 grid w-max grid-cols-4 gap-1.5 rounded-md border border-rule bg-sheet p-2 shadow-lg"
                   >
@@ -227,7 +243,9 @@ export function ExpenseForm({
                           onClick={() => {
                             setCategory(c);
                             setPickerOpen(false);
+                            pickerTrigger.current?.focus();
                           }}
+                          autoFocus={on}
                           aria-pressed={on}
                           title={CATEGORY_LABELS[c]}
                           className={cx(
@@ -250,14 +268,15 @@ export function ExpenseForm({
               name="description"
               defaultValue={expense?.description}
               placeholder="Expense description"
+              aria-label="Description"
               className="flex-1"
               required
             />
           </div>
-        </Field>
+        </FieldGroup>
 
-        <div className="grid grid-cols-3 gap-3">
-          <Field label="Amount" className="col-span-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <FieldGroup label="Amount" className="sm:col-span-2">
             {/* Currency rides inside the amount as a compact ticker, not a
                 second full-width control (mockup). */}
             <div className="flex items-stretch overflow-hidden rounded-md border border-rule-strong bg-sheet focus-within:border-pen">
@@ -282,7 +301,7 @@ export function ExpenseForm({
                   viewBox="0 0 14 14"
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth={1.4}
+                  strokeWidth={1.2}
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   className="ml-1 text-ink-faint"
@@ -299,10 +318,11 @@ export function ExpenseForm({
                 placeholder="0.00"
                 maxLength={12}
                 required
+                aria-label="Amount"
                 className="w-full min-w-0 bg-sheet px-2.5 py-1.5 text-right font-mono text-sm text-ink placeholder:text-ink-faint focus:outline-none"
               />
             </div>
-          </Field>
+          </FieldGroup>
           <Field label="Which day">
             <Select name="dayId" defaultValue={expense?.dayId ?? days[0]?.id ?? ""}>
               <option value="">—</option>
@@ -325,7 +345,7 @@ export function ExpenseForm({
           </Select>
         </Field>
 
-        <Field label="Split between">
+        <FieldGroup label="Split between">
           <Stack gap={3}>
             <PillToggle
               label="How to split"
@@ -345,42 +365,46 @@ export function ExpenseForm({
                     // each a different height) doesn't resize the modal.
                     className="flex h-11 items-center gap-2.5 border-b border-rule last:border-b-0"
                   >
-                    <button
-                      type="button"
-                      onClick={() => toggle(m.userId)}
-                      aria-pressed={isIn}
-                      title={isIn ? `Take ${m.name} out` : `Put ${m.name} in`}
-                      className={cx(
-                        "flex h-[18px] w-[18px] flex-none items-center justify-center rounded-[5px] border transition-colors",
-                        isIn
-                          ? "border-pen bg-pen text-white"
-                          : "border-rule-strong bg-sheet",
-                      )}
-                    >
-                      {isIn ? (
-                        <svg
-                          width={11}
-                          height={11}
-                          viewBox="0 0 14 14"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={1.6}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          aria-hidden
-                        >
-                          <path d="M3 7.3l2.6 2.6L11 4.4" />
-                        </svg>
-                      ) : null}
-                    </button>
-                    <span
-                      className={cx(
-                        "flex-1 truncate text-sm",
-                        isIn ? undefined : "text-ink-faint",
-                      )}
-                    >
-                      {m.name}
-                    </span>
+                    <label className="flex h-full min-w-0 flex-1 cursor-pointer items-center gap-2.5">
+                      <input
+                        type="checkbox"
+                        checked={isIn}
+                        onChange={() => toggle(m.userId)}
+                        className="peer sr-only"
+                      />
+                      <span
+                        aria-hidden
+                        className={cx(
+                          "flex h-[18px] w-[18px] flex-none items-center justify-center rounded-[5px] border transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-pen",
+                          isIn
+                            ? "border-pen bg-pen text-white"
+                            : "border-rule-strong bg-sheet",
+                        )}
+                      >
+                        {isIn ? (
+                          <svg
+                            width={11}
+                            height={11}
+                            viewBox="0 0 14 14"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth={1.2}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M3 7.3l2.6 2.6L11 4.4" />
+                          </svg>
+                        ) : null}
+                      </span>
+                      <span
+                        className={cx(
+                          "flex-1 truncate text-sm",
+                          isIn ? undefined : "text-ink-faint",
+                        )}
+                      >
+                        {m.name}
+                      </span>
+                    </label>
 
                     {isIn ? (
                       <>
@@ -389,10 +413,11 @@ export function ExpenseForm({
                             <button
                               type="button"
                               onClick={() =>
-                                setRow(m.userId, { shares: Math.max(0, r.shares - 1) })
+                                setRow(m.userId, { shares: Math.max(1, r.shares - 1) })
                               }
+                              disabled={r.shares <= 1}
                               aria-label={`Fewer shares for ${m.name}`}
-                              className="flex h-7 w-7 items-center justify-center bg-sheet-2 text-ink-soft hover:text-ink"
+                              className="flex h-9 w-9 items-center disabled:opacity-40 justify-center bg-sheet-2 text-ink-soft hover:text-ink"
                             >
                               −
                             </button>
@@ -401,7 +426,7 @@ export function ExpenseForm({
                               type="button"
                               onClick={() => setRow(m.userId, { shares: r.shares + 1 })}
                               aria-label={`More shares for ${m.name}`}
-                              className="flex h-7 w-7 items-center justify-center bg-sheet-2 text-ink-soft hover:text-ink"
+                              className="flex h-9 w-9 items-center justify-center bg-sheet-2 text-ink-soft hover:text-ink"
                             >
                               +
                             </button>
@@ -449,9 +474,9 @@ export function ExpenseForm({
               })}
             </div>
           </Stack>
-        </Field>
+        </FieldGroup>
 
-        {/* Nudge only — the action, not this readout, is what refuses. */}
+        {/* The action still refuses; this only stops a submit that is sure to fail. */}
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-rule pt-3 text-sm text-ink-soft">
           <span>
             {participants.length === 0
@@ -480,13 +505,16 @@ export function ExpenseForm({
 
         <ErrorText>{state.error}</ErrorText>
 
-        <div className="flex justify-end gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {unbalanced ? (
+            <span className="mr-auto text-xs text-ink-soft">Split must add up to the amount</span>
+          ) : null}
           {done ? (
             <Button type="button" variant="ghost" onClick={done}>
               Cancel
             </Button>
           ) : null}
-          <SubmitButton pendingLabel="Saving…">
+          <SubmitButton pendingLabel="Saving…" disabled={unbalanced}>
             {expense ? "Save changes" : "Add expense"}
           </SubmitButton>
         </div>

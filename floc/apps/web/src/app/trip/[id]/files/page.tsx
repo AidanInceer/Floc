@@ -23,7 +23,8 @@ import { DocumentRow } from "@/components/documents/document-row";
 import { DocumentFiling } from "@/components/documents/document-filing";
 import { DocumentUpload } from "@/components/documents/document-upload";
 import { ConfirmSubmit } from "@/components/system/client-ui";
-import { cx } from "@/components/system/ui";
+import { cx, PageTitle } from "@/components/system/ui";
+import { FlockChevron } from "@/components/system/flock-chevron";
 import { removeDocument } from "./actions";
 
 export default async function FilesPage({
@@ -51,7 +52,7 @@ export default async function FilesPage({
 
   return (
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
-      <h1 className="text-[clamp(1.9rem,4vw,2.8rem)]">Files</h1>
+      <PageTitle>Files</PageTitle>
 
       {!documentsEnabled() ? (
         // Rule 11: say what is missing rather than offering an upload that
@@ -141,9 +142,10 @@ function FileCard({
       className="group/card mt-6 rounded-xl border border-rule bg-sheet"
     >
       <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-4 gap-y-2 rounded-t-xl border-b border-rule bg-sheet-2 px-4 py-3 [&::-webkit-details-marker]:hidden">
-        <span className="shrink-0 text-ink-faint transition-transform group-open/card:rotate-90">
-          &#9656;
-        </span>
+        <FlockChevron
+          size={11}
+          className="shrink-0 -rotate-90 text-ink-faint transition-transform group-open/card:rotate-0"
+        />
         <h2 className="font-display text-base font-semibold">{title}</h2>
         <span className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-faint">
           {note}

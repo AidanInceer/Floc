@@ -60,10 +60,9 @@ export function AuthForm({
       return;
     }
     setBusy(true);
-    const { error: err } = await signIn.social({
-      provider: "google",
-      callbackURL: redirectTo,
-    });
+    const { error: err } = await signIn
+      .social({ provider: "google", callbackURL: redirectTo })
+      .catch(() => ({ error: { code: undefined, message: "Could not reach Floc. Try again." } }));
     if (err) {
       setBusy(false);
       setError(mapGoogleError(err.code, err.message));
@@ -75,6 +74,10 @@ export function AuthForm({
     if (busy) return;
     setError(null);
 
+    if (mode === "signup" && !name.trim()) {
+      setError("Add your name.");
+      return;
+    }
     if (!isValidEmail(email)) {
       setError("That doesn't look like an email address.");
       return;
@@ -89,23 +92,29 @@ export function AuthForm({
     }
 
     setBusy(true);
-    if (mode === "signup") {
-      const { error: err } = await signUp.email({ name, email, password });
-      if (err) {
-        setBusy(false);
-        setError(mapAuthError(err.message));
-        return;
+    try {
+      if (mode === "signup") {
+        const { error: err } = await signUp.email({ name, email, password });
+        if (err) {
+          setBusy(false);
+          setError(mapAuthError(err.message));
+          return;
+        }
+        // ensureProfile no-ops if a profile already exists, so this only ever
+        // sets signup_channel on the very first sign-up (ticket 06).
+        await captureChannel?.(via ?? "direct");
+      } else {
+        const { error: err } = await signIn.email({ email, password });
+        if (err) {
+          setBusy(false);
+          setError(mapSignInError(err.message, googleEnabled));
+          return;
+        }
       }
-      // ensureProfile no-ops if a profile already exists, so this only ever
-      // sets signup_channel on the very first sign-up (ticket 06).
-      await captureChannel?.(via ?? "direct");
-    } else {
-      const { error: err } = await signIn.email({ email, password });
-      if (err) {
-        setBusy(false);
-        setError(mapSignInError(err.message, googleEnabled));
-        return;
-      }
+    } catch {
+      setBusy(false);
+      setError("Could not reach Floc. Try again.");
+      return;
     }
     // Without the refresh the header stays signed out: the root layout is a
     // Server Component, and the router cache would replay the payload it

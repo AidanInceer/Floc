@@ -7,6 +7,7 @@
  * looking like a settings form and the other like a checklist would be two
  * designs for one idea.
  */
+import { PageTitle } from "@/components/system/ui";
 import {
   addKitItem,
   createPackingKit,
@@ -39,7 +40,7 @@ export default async function PackingListsPage() {
 
   return (
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
-      <h1 className="text-[clamp(1.9rem,4vw,2.8rem)]">Saved lists</h1>
+      <PageTitle>Saved lists</PageTitle>
 
       <section className="mt-6 rounded-xl border border-rule bg-sheet px-4 py-4">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-3">

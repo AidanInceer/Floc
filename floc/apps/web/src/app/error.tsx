@@ -10,7 +10,7 @@
  * log. The message itself is never printed — it can carry anything the query
  * was holding.
  */
-import { ButtonLink, Button } from "@/components/system/ui";
+import { ButtonLink, Button, PageTitle } from "@/components/system/ui";
 
 export default function AppError({
   error,
@@ -22,9 +22,9 @@ export default function AppError({
   return (
     <div className="mx-auto w-full max-w-[42rem] px-4 pb-20 pt-16 text-center sm:px-6">
       <p className="typed">Something went wrong</p>
-      <h1 className="mt-3 text-[clamp(1.9rem,4vw,2.8rem)]">
+      <PageTitle className="mt-3">
         This page didn&rsquo;t load
-      </h1>
+      </PageTitle>
       <p className="mx-auto mt-4 max-w-[48ch] text-sm text-ink-soft">
         Nothing you did caused it and nothing you had saved is lost. Try it
         again — if it keeps happening, the reference below identifies it.

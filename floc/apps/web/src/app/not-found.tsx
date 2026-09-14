@@ -8,15 +8,15 @@
  * says which one exists. That is why there is no "back to the trip" here, only
  * ways back into the product at large.
  */
-import { ButtonLink } from "@/components/system/ui";
+import { ButtonLink, PageTitle } from "@/components/system/ui";
 
 export default function NotFound() {
   return (
     <div className="mx-auto w-full max-w-[42rem] px-4 pb-20 pt-16 text-center sm:px-6">
       <p className="typed">Nothing here</p>
-      <h1 className="mt-3 text-[clamp(1.9rem,4vw,2.8rem)]">
+      <PageTitle className="mt-3">
         This page has no answer for you
-      </h1>
+      </PageTitle>
       <p className="mx-auto mt-4 max-w-[48ch] text-sm text-ink-soft">
         It either doesn&rsquo;t exist or isn&rsquo;t yours to see. If someone sent you a
         link, ask them to check it.
