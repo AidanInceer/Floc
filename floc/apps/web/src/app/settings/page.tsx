@@ -178,17 +178,17 @@ export default async function SettingsPage({
                     options={RING_OPTIONS}
                   />
 
-                  <div className="flex flex-wrap items-center justify-between gap-4">
-                    <PillChoice
-                      className="flex-1"
-                      name="pastTripsShow"
-                      label="Past trips"
-                      value={profile.pastTripsShow}
-                      options={[
-                        { value: "all", label: "All of them" },
-                        { value: "latest", label: "Most recent only" },
-                      ]}
-                    />
+                  <PillChoice
+                    name="pastTripsShow"
+                    label="Past trips"
+                    value={profile.pastTripsShow}
+                    options={[
+                      { value: "all", label: "All of them" },
+                      { value: "latest", label: "Most recent only" },
+                    ]}
+                  />
+
+                  <div className="flex justify-end">
                     <SubmitButton variant="primary" pendingLabel="Saving…">
                       Save privacy
                     </SubmitButton>
@@ -297,23 +297,23 @@ export default async function SettingsPage({
                 hint="Defaults the currency picker in Money. Never shown on your profile."
               >
                 <ActionForm action={updateCurrency}>
-                  <Stack gap={4}>
-                    <Field label="Currency">
-                      <Select
-                        name="homeCurrency"
-                        defaultValue={profile.homeCurrency}
-                      >
-                        <option value="GBP">GBP — £</option>
-                        <option value="EUR">EUR — €</option>
-                        <option value="USD">USD — $</option>
-                      </Select>
-                    </Field>
-                    <div>
-                      <SubmitButton variant="primary" pendingLabel="Saving…">
-                        Save
-                      </SubmitButton>
+                  <div className="flex items-end gap-3">
+                    <div className="flex-1">
+                      <Field label="Currency">
+                        <Select
+                          name="homeCurrency"
+                          defaultValue={profile.homeCurrency}
+                        >
+                          <option value="GBP">GBP — £</option>
+                          <option value="EUR">EUR — €</option>
+                          <option value="USD">USD — $</option>
+                        </Select>
+                      </Field>
                     </div>
-                  </Stack>
+                    <SubmitButton variant="primary" pendingLabel="Saving…">
+                      Save
+                    </SubmitButton>
+                  </div>
                 </ActionForm>
               </Panel>
             </Stack>

@@ -83,6 +83,7 @@ export function AppChrome({
   // Your signed-in surfaces, in one pill group. Discover sits among them —
   // browsing is still one of the places you go.
   const navItems: PillNavItem[] = [
+    { href: "/explore", label: "Explore" },
     {
       href: "/trips",
       label: "Trips",
@@ -93,7 +94,6 @@ export function AppChrome({
         />
       ) : undefined,
     },
-    { href: "/explore", label: "Explore" },
     {
       href: "/friends",
       label: "Friends",
