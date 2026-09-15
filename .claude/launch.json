@@ -30,15 +30,11 @@
     },
     {
       "name": "docs",
-      "runtimeExecutable": "npx",
+      "runtimeExecutable": "node",
       "runtimeArgs": [
-        "serve",
-        "docs",
-        "-p",
-        "4000",
-        "--no-clipboard"
+        "scripts/docs-server.mjs"
       ],
-      "port": 4000
+      "port": 4173
     },
     {
       "name": "wireframes",
