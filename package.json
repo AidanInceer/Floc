@@ -39,7 +39,7 @@
   "devDependencies": {
     "lint-staged": "^17.5.1",
     "simple-git-hooks": "^2.14.0",
-    "turbo": "^2.0.0",
+    "turbo": "^2.10.12",
     "typescript": "^5.5.0"
   },
   "pnpm": {
