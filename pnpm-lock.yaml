@@ -154,6 +154,9 @@ importers:
       eslint-config-next:
         specifier: ^15.1.0
         version: 15.5.22(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3)
+      expo-doctor:
+        specifier: 1.20.1
+        version: 1.20.1
       sharp:
         specifier: ^0.35.4
         version: 0.35.4(@types/node@25.9.6)
@@ -4085,6 +4088,11 @@ packages:
     peerDependencies:
       expo: '*'
       react-native: '*'
+
+  expo-doctor@1.20.1:
+    resolution: {integrity: sha512-u0QYTm3hTZbuMuNdnvscA1X6Xm31ilQ6uxrf8FfzO0ddpOEBrgVEYp8jXgFOBwrRf6DqJoD2j3eKUTWTqvKVzg==}
+    engines: {node: ^20.19.4 || ^22.13.0 || ^24.3.0 || >= 25.0.0}
+    hasBin: true
 
   expo-document-picker@57.0.1:
     resolution: {integrity: sha512-qBwM5oxDZ3I9kwFD3pUE1oK/WNv9artoEKO6UpqhQgNRr0XA1ALRVWYjkF4+ge9lUNDRehjTm/jenINkzqg84g==}
@@ -11054,6 +11062,8 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
     optional: true
+
+  expo-doctor@1.20.1: {}
 
   expo-document-picker@57.0.1(expo@57.0.20):
     dependencies:

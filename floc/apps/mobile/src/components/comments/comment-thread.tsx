@@ -202,16 +202,18 @@ function One({
           </Pressable>
         ) : null}
         {mine ? (
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => setOpen({ kind: "edit", id: comment.id })}
-          >
-            <Figure tone="pen">Edit</Figure>
-          </Pressable>
+          <>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setOpen({ kind: "edit", id: comment.id })}
+            >
+              <Figure tone="pen">Edit</Figure>
+            </Pressable>
+            <Pressable accessibilityRole="button" onPress={() => actions.onDelete(comment.id)}>
+              <Figure tone="ink-3">Delete</Figure>
+            </Pressable>
+          </>
         ) : null}
-        <Pressable accessibilityRole="button" onPress={() => actions.onDelete(comment.id)}>
-          <Figure tone="ink-3">Delete</Figure>
-        </Pressable>
       </View>
 
       {comment.replies.length > 0 ? (

@@ -113,7 +113,7 @@ describe("changing what was said", () => {
     expect(await webPort.listEventComments(world.member, ours().trip, ours().event)).toEqual([]);
   });
 
-  it("lets an admin remove somebody else's comment, and a member not", async () => {
+  it("refuses to remove somebody else's comment, admin or not", async () => {
     await webPort.addEventComment(world.member, ours().trip, ours().event, null, "Theirs.");
     const [comment] = await webPort.listEventComments(world.member, ours().trip, ours().event);
 
@@ -121,13 +121,11 @@ describe("changing what was said", () => {
     const admins = await webPort.listEventComments(world.admin, ours().trip, ours().event);
     const byAdmin = admins.find((c) => c.body === "Ours.")!;
 
-    await expect(
-      webPort.deleteComment(world.member, ours().trip, byAdmin.id),
-    ).rejects.toThrow();
+    await expect(webPort.deleteComment(world.member, ours().trip, byAdmin.id)).rejects.toThrow();
+    await expect(webPort.deleteComment(world.admin, ours().trip, comment.id)).rejects.toThrow();
 
-    await webPort.deleteComment(world.admin, ours().trip, comment.id);
     const left = await webPort.listEventComments(world.admin, ours().trip, ours().event);
-    expect(left.map((c) => c.body)).toEqual(["Ours."]);
+    expect(left.map((c) => c.body).sort()).toEqual(["Ours.", "Theirs."]);
   });
 });
 

@@ -8,7 +8,7 @@ import { dirname, isAbsolute, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CODE_FILE = /\.(ts|tsx|js|jsx|mjs|cjs)$/;
+const CODE_FILE = /^(?!.*(\/vendor\/|\.min\.js$)).*\.(ts|tsx|js|jsx|mjs|cjs)$/;
 const MAX_LINES = 3;
 
 const DIRECTIVE =

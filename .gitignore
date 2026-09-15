@@ -56,6 +56,14 @@ human-*.md
 **/mockups/
 # Product docs stay local — the repo may go public.
 docs/
+# Shared docs runtime assets are source code and must be committed.
+!docs/
+!docs/assets/
+!docs/assets/**
+docs/*.html
+docs/**/*.html
+docs/*.md
+docs/**/*.md
 # Private docs — stack accounts, credential inventories. Never committed.
 docs/private/
 

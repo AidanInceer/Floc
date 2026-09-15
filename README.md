@@ -45,7 +45,7 @@ pnpm verify   # everything CI runs — stop the dev server first
 
 - [`CLAUDE.md`](CLAUDE.md) — the rules of the codebase, hub and product together
 - [`docs/index.html`](docs/index.html) — all documentation
-- [approach](docs/design/approach.html) · [visual language](docs/design/visual-language.html) · [architecture](docs/architecture/architecture.html) · [ERD](docs/data-model/erd.html)
+- [approach](docs/design/approach.html) · [visual language](docs/design/visual-language.html) · [architecture](docs/architecture/architecture.html) · [ERD](docs/architecture/data-model/erd.html)
 - [`learnings.md`](learnings.md) — pitfalls already paid for
 
 ## Conventions
