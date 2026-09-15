@@ -76,6 +76,9 @@ jobs:
   sonarqube:
     name: SonarQube analysis
     needs: verify
+    # SonarQube Cloud Free supports the main branch and pull requests, but
+    # not direct analysis of non-main branches such as develop.
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
