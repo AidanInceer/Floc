@@ -1,7 +1,7 @@
 /** The text caps (ticket 113). */
 import { describe, expect, it } from "vitest";
 
-import { capRequiredText, capText, TEXT_CAPS } from "./text";
+import { capRequiredText, capText, properCase, TEXT_CAPS } from "./text";
 
 describe("capText", () => {
   it("trims, and treats an empty result as not-set", () => {
@@ -43,5 +43,13 @@ describe("the caps themselves", () => {
     for (const [name, value] of Object.entries(TEXT_CAPS)) {
       expect(value, name).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("properCase", () => {
+  it("normalises trip names without losing punctuation", () => {
+    expect(properCase("  PORTUGAL, late-summer  ")).toBe(
+      "  Portugal, Late-Summer  ",
+    );
   });
 });

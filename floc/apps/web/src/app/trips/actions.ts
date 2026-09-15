@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 
 import { readOptionalIsoDate } from "@floc/core/dates/dates";
 import { localPath } from "@floc/core/text/local-path";
-import { capRequiredText } from "@floc/core/text/text";
+import { capRequiredText, properCase } from "@floc/core/text/text";
 import { isTripColor } from "@floc/core/trip/trip-color";
 import { renameTrip as validateAndRenameTrip } from "@/app/trip/[id]/overview/actions";
 import { assertAdmin, requireTripAccess, requireUser } from "@/server/access";
@@ -27,7 +27,7 @@ import { refresh } from "@/server/freshness";
 // optional and never guessed at.
 export async function createTrip(formData: FormData): Promise<void> {
   const viewer = await requireUser("/trips");
-  const name = capRequiredText(formData.get("name"), "tripName");
+  const name = properCase(capRequiredText(formData.get("name"), "tripName"));
   if (!name) throw new Error("A trip needs a name");
 
   // Empty is fine (rule 9), but unparseable is not — creating the trip

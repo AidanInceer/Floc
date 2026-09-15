@@ -9,7 +9,7 @@ import { NUDGE_TABS, type NudgeTab } from "@/db/schema";
 import { assertAdmin, requireTripAccess, requireUser } from "@/server/access";
 import { markTourSeen as markTourSeenFor } from "@/server/auth/tour";
 import { parseTagNames } from "@floc/core/trip/tags";
-import { capText, TEXT_CAPS } from "@floc/core/text/text";
+import { capText, properCase, TEXT_CAPS } from "@floc/core/text/text";
 import { LIMITS } from "@/server/limits";
 import { inviteToTrip } from "@/server/trips/invites";
 import {
@@ -110,7 +110,7 @@ export async function promoteMember(formData: FormData) {
 // Open to any member deliberately — not one of the three admin powers (rule 6).
 export async function renameTrip(formData: FormData) {
   const tripId = Number(formData.get("tripId"));
-  const name = String(formData.get("name") ?? "").trim();
+  const name = properCase(String(formData.get("name") ?? "").trim());
 
   if (!name) return { error: "A trip needs a name." };
   // Rejected, not truncated — silent clipping would be visibly wrong (ticket 113).
@@ -166,4 +166,3 @@ export async function leaveTrip(formData: FormData) {
   );
   redirect("/trips");
 }
-

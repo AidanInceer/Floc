@@ -88,6 +88,7 @@ export function DaysCalendar({
   setOvernight,
   searchPlaces,
   openEventId,
+  initialDate,
   groupSize,
   bookingPrefill,
 }: {
@@ -113,6 +114,8 @@ export function DaysCalendar({
   searchPlaces: PlaceSearch;
   /** Opened on arrival, from a file's "on [event]" tag (ticket 323). */
   openEventId?: number | null;
+  /** Day to show first when arriving from an Overview day card. */
+  initialDate?: string;
   groupSize: number;
   bookingPrefill: boolean;
 }) {
@@ -123,7 +126,10 @@ export function DaysCalendar({
   );
 
   const [view, setView] = useState<"day" | "week">("week");
-  const [anchor, setAnchor] = useState(todayIndex);
+  const initialIndex = days.findIndex((d) => d.date === initialDate);
+  const [anchor, setAnchor] = useState(
+    initialIndex >= 0 ? initialIndex : todayIndex,
+  );
   const [selected, setSelected] = useState<number | null>(null);
   const [adding, setAdding] = useState<{ dayId: number; time: string } | null>(null);
   const [announcement, setAnnouncement] = useState("");

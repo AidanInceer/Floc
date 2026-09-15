@@ -1,0 +1,3 @@
+0.131.14 #no-ticket: fix: polish trip navigation and setup flows
+
+The trip planner now lands on the selected itinerary day, uses consistent trip-name casing, and avoids stale setup prompts. Sharing surfaces also have safer friend removal and a browser identity.

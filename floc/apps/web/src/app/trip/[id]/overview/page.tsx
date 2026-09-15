@@ -51,7 +51,6 @@ import {
 } from "@/server/money/money";
 import { viewerHasPacking } from "@/server/packing/packing";
 import { nextStepFor } from "@floc/core/trip/next-step";
-import { NextStepNudge } from "@/components/trip/next-step-nudge";
 import { tourSeenAt } from "@/server/auth/tour";
 import { shouldStartTour, tourStopsFor } from "@floc/core/trip/tour";
 import { absoluteUrl } from "@/server/auth/email";
@@ -245,17 +244,6 @@ export default async function OverviewPage({
           </div>
         </div>
       </header>
-
-      {nextStep ? (
-        <NextStepNudge
-          step={nextStep}
-          href={
-            nextStep.key === "invite"
-              ? "#the-group"
-              : `/trip/${tripId}/${nextStep.key}`
-          }
-        />
-      ) : null}
 
       <div className="mt-6 grid gap-4 lg:grid-cols-3">
         {/* The trip. */}
