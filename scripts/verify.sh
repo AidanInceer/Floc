@@ -208,7 +208,7 @@ step "The phone app bundles"
 # Outside the repo: Metro watches the whole tree and dies when a folder it
 # watches is deleted, which is what cleaning up `dist` did.
 bundle_dir=$(mktemp -d)
-if (cd floc/apps/mobile && npx expo export --platform android --platform ios --output-dir "$bundle_dir" >/dev/null 2>&1); then
+if (cd floc/apps/mobile && pnpm exec expo export --platform android --platform ios --output-dir "$bundle_dir" >/dev/null 2>&1); then
   ok "android and ios bundles built"
 else
   bad "the phone app does not bundle"

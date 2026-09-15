@@ -9,10 +9,24 @@
  * to notice. `#no-ticket` is the escape hatch for work with no issue, and it
  * must not carry a `Closes`.
  */
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
-const path = process.argv[2];
-const raw = readFileSync(path, "utf8");
+const suppliedPath = process.argv[2];
+const gitMessagePath = resolve(
+  process.cwd(),
+  execFileSync("git", ["rev-parse", "--git-path", "COMMIT_EDITMSG"], {
+    encoding: "utf8",
+  }).trim(),
+);
+
+if (!suppliedPath || resolve(process.cwd(), suppliedPath) !== gitMessagePath) {
+  console.error("commit message path must be Git's COMMIT_EDITMSG file");
+  process.exit(1);
+}
+
+const raw = readFileSync(gitMessagePath, "utf8");
 const lines = raw.split("\n").filter((l) => !l.startsWith("#"));
 const subject = (lines[0] ?? "").trim();
 

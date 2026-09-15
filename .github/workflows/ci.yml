@@ -34,7 +34,7 @@ jobs:
           # Turborepo needs history to diff against the base branch.
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
 
       - uses: actions/setup-node@v4
         with:
@@ -83,7 +83,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
 
       - uses: actions/setup-node@v4
         with:
@@ -98,7 +98,7 @@ jobs:
         run: pnpm turbo run test --filter='...[HEAD^1]'
 
       - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v8.2.1
+        uses: SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f # v8.2.1
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
@@ -149,7 +149,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -166,7 +166,7 @@ jobs:
       # decided on.
       - name: Doctor
         continue-on-error: true
-        run: npx expo-doctor
+        run: pnpm exec expo-doctor
         working-directory: floc/apps/mobile
 
       # Metro over the whole app, once per platform. Catches a broken import, a
@@ -174,7 +174,7 @@ jobs:
       # none of which typecheck sees. No native toolchain and no macOS runner:
       # a bundle is JavaScript, so the iOS one builds here for nothing.
       - name: Bundle
-        run: npx expo export --platform android --platform ios --output-dir dist
+        run: pnpm exec expo export --platform android --platform ios --output-dir dist
         working-directory: floc/apps/mobile
 
   # The real native compile: Java, Kotlin and CMake against the committed
@@ -194,7 +194,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -231,7 +231,7 @@ jobs:
       FLOC_NEXT_DIST_DIR: .next-verify
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -271,7 +271,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
 
       - uses: actions/setup-node@v4
         with:
