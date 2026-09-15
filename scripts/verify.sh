@@ -7,6 +7,7 @@
 # drifted from CI is worse than no local gate, because it buys false confidence.
 #
 #   ci.yml       verify      → lint · typecheck · test · build   (via turbo)
+#   ci.yml       sonarqube   → coverage + SonarCloud quality gate (cloud-only)
 #   ci.yml       e2e-web     → Playwright over the build, on its own database
 #   ci.yml       fitness     → layers · dead code · tokens · contrast · bundle
 #   ci.yml       migrations  → schema changes ship with a migration
@@ -28,6 +29,8 @@
 # Run it by hand:   pnpm verify
 # Nothing runs it for you — the pre-push hook was removed deliberately. CI is
 # the gate that blocks; this is the way to hear about it before pushing.
+# SonarCloud is intentionally not run here: it needs the CI token and its
+# result is reported by the GitHub job after this local gate.
 #
 # Not `set -e`: every check runs even after one fails, so a single run tells
 # you everything that is wrong rather than only the first thing.

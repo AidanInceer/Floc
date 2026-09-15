@@ -73,6 +73,35 @@ jobs:
       - name: Fitness
         run: pnpm turbo run fitness --filter='${{ steps.filter.outputs.value }}'
 
+  sonarqube:
+    name: SonarQube analysis
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # Coverage must exist before SonarScanner reads sonar-project.properties.
+      - name: Test with coverage
+        run: pnpm turbo run test --filter='...[HEAD^1]'
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v8.2.1
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
   # Which parts of the repo this push touched. GitHub's own `paths:` filter
   # only works at the workflow level, so a job that should run for mobile
   # changes and skip a docs push has to ask git itself.
