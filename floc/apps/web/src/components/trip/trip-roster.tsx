@@ -64,7 +64,7 @@ export function TripRoster({
         <h2 className="font-display text-lg">The group</h2>
         {/* Invite URL never appears on the page — the button copies it instead. */}
         {/* Why: any member may invite, by name or by link (#312). */}
-        <span className="mt-3 flex flex-wrap items-center gap-2">
+        <span className="mt-3 flex flex-wrap items-center justify-center gap-2">
             <Sheet
               trigger="Invite friends"
               title="Invite friends"
