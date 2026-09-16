@@ -23,7 +23,7 @@ import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
 import { refresh } from "@/server/freshness";
 import { ensureProfile } from "@/server/auth/profile";
-import { addMember } from "@/server/trips/roster";
+import { addMember, isLiveMember } from "@/server/trips/roster";
 import { recordActivity } from "@/server/notifications/activity";
 
 /* --------------------------------------------------------- the share link */
@@ -194,11 +194,24 @@ export type PendingInvitee = {
 export async function listPendingInvitees(
   tripId: number,
 ): Promise<PendingInvitee[]> {
+  return listInviteesByStatus(tripId, "pending");
+}
+
+/** Said no, and not asked again since — re-asking flips the same row back to pending. */
+export async function listDeclinedInvitees(
+  tripId: number,
+): Promise<PendingInvitee[]> {
+  return listInviteesByStatus(tripId, "declined");
+}
+
+async function listInviteesByStatus(
+  tripId: number,
+  status: "pending" | "declined",
+): Promise<PendingInvitee[]> {
   const rows = await db
     .select({
       userId: tripInvite.toUserId,
       name: user.name,
-      image: user.image,
       displayName: userProfile.displayName,
       avatarIcon: userProfile.avatarIcon,
     })
@@ -208,7 +221,7 @@ export async function listPendingInvitees(
     .where(
       and(
         eq(tripInvite.tripId, tripId),
-        eq(tripInvite.status, "pending"),
+        eq(tripInvite.status, status),
         isNull(tripInvite.deletedAt),
       ),
     )
@@ -314,6 +327,7 @@ export async function acceptInvite(tripId: number, userId: string): Promise<bool
  * verified (ticket 149) before getting here.
  */
 export async function joinWithLink(tripId: number, userId: string): Promise<void> {
+  if (await isLiveMember(tripId, userId)) return;
   await admit(tripId, userId);
 }
 

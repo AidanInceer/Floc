@@ -5,7 +5,7 @@ import { DocumentsBlock } from "@/components/documents/documents-block";
 import { TourSpotlight } from "@/components/tour/tour-spotlight";
 
 type RosterProps = ComponentProps<typeof TripRoster>;
-type RosterExtras = Pick<RosterProps, "friendStates" | "pendingInvitees" | "friends">;
+type RosterExtras = Pick<RosterProps, "friendStates" | "pendingInvitees" | "declinedInvitees" | "friends">;
 
 export function PanelPlaceholder({ tall }: { tall?: boolean }) {
   return (

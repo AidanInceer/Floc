@@ -43,7 +43,7 @@ import {
   transportModesByDay,
 } from "@/server/itinerary/itinerary";
 import { listAvailability } from "@/server/itinerary/availability";
-import { listPendingInvitees } from "@/server/trips/invites";
+import { listDeclinedInvitees, listPendingInvitees } from "@/server/trips/invites";
 import {
   listExpenses,
   listSettlements,
@@ -104,10 +104,12 @@ export default async function OverviewPage({
       members.map((m) => m.userId),
     ),
     listPendingInvitees(tripId),
+    listDeclinedInvitees(tripId),
     listFriendsFor(viewer.id),
-  ]).then(([friendStates, pendingInvitees, friends]) => ({
+  ]).then(([friendStates, pendingInvitees, declinedInvitees, friends]) => ({
     friendStates,
     pendingInvitees,
+    declinedInvitees,
     friends,
   }));
   // Rule 11: no storage volume, no Documents block — and no query for it.

@@ -18,6 +18,7 @@ import {
   findTripByInviteToken,
   inviteToTrip,
   joinWithLink,
+  listDeclinedInvitees,
   listPendingInvitees,
   listPendingInvitesFor,
 } from "@/server/trips/invites";
@@ -118,6 +119,17 @@ describe("asking someone by name", () => {
     expect(await countPendingInvitesFor(world.outsider)).toBe(0);
   });
 
+  it("lists who said no until they are asked again", async () => {
+    await ask([world.outsider]);
+    expect(await listDeclinedInvitees(world.ours.id)).toEqual([]);
+
+    await declineInvite(world.ours.id, world.outsider);
+    expect((await listDeclinedInvitees(world.ours.id)).map((p) => p.name)).toEqual(["Ozz"]);
+
+    await ask([world.outsider]);
+    expect(await listDeclinedInvitees(world.ours.id)).toEqual([]);
+  });
+
   it("is a no-op with nobody to invite", async () => {
     expect(await ask([])).toBe(0);
     expect(await invitesFor(world.ours.id)).toHaveLength(0);
@@ -166,6 +178,20 @@ describe("answering", () => {
     const row = await membership(world.ours.id, world.member);
     expect(row?.deletedAt).toBeNull();
     expect(row?.mapPromptAt).toBeNull(); // rejoining makes the travel-map question moot (ticket 95)
+  });
+
+  it("records no second join for someone already on the trip", async () => {
+    const joins = () =>
+      db
+        .select()
+        .from(schema.activity)
+        .where(eq(schema.activity.kind, "member_joined"))
+        .all();
+    const before = (await joins()).length;
+
+    await joinWithLink(world.ours.id, world.member);
+
+    expect(await joins()).toHaveLength(before);
   });
 
   it("gives whoever walked in a profile", async () => {

@@ -103,12 +103,20 @@ export default async function InvitePage({
   // The same action twice — once at the top for anyone already sold, once at
   // the foot for anyone who read the whole thing.
   const join = !session?.user ? (
-    <ButtonLink
-      variant="primary"
-      href={`/signup?redirect=${encodeURIComponent(redirectTo)}&via=link`}
-    >
-      Join this trip
-    </ButtonLink>
+    <div className="flex flex-wrap items-center gap-3">
+      <ButtonLink
+        variant="primary"
+        href={`/signup?redirect=${encodeURIComponent(redirectTo)}&via=link`}
+      >
+        Join this trip
+      </ButtonLink>
+      <ButtonLink
+        variant="secondary"
+        href={`/login?redirect=${encodeURIComponent(redirectTo)}`}
+      >
+        I have an account
+      </ButtonLink>
+    </div>
   ) : !session.user.emailVerified && emailConfigured() ? (
     // The friendly face of the gate `joinTrip` enforces (#149).
     <div className="flex flex-col items-start gap-2">

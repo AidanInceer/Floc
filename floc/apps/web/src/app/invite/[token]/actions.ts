@@ -11,6 +11,7 @@ import { auth } from "@/server/auth/auth";
 import { requireUser } from "@/server/access";
 import { emailConfigured } from "@/server/auth/email";
 import { findTripByInviteToken, joinWithLink } from "@/server/trips/invites";
+import { isLiveMember } from "@/server/trips/roster";
 
 export async function joinTrip(token: string) {
   const redirectTo = `/invite/${token}`;
@@ -18,6 +19,8 @@ export async function joinTrip(token: string) {
 
   const found = await findTripByInviteToken(token);
   if (!found) notFound();
+
+  if (await isLiveMember(found.id, user.id)) redirect(`/trip/${found.id}/overview`);
 
   // #149: joining is the one action gated on a verified inbox. The action is
   // the real enforcement — the page's hidden button can be replayed. Skipped

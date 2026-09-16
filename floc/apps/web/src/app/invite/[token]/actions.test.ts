@@ -62,6 +62,17 @@ describe("join gate", () => {
   });
 });
 
+describe("opening the link again", () => {
+  it("takes a current member to the trip, even before they confirm their email", async () => {
+    signIn(world.member);
+    await setVerified(world.member, false);
+
+    await expect(joinTrip("token-ours")).rejects.toThrow(
+      `NEXT_REDIRECT:/trip/${world.ours.id}/overview`,
+    );
+  });
+});
+
 describe("no mail provider", () => {
   it("lets an unverified user join — the link could never arrive", async () => {
     vi.stubEnv("RESEND_API_KEY", "");
