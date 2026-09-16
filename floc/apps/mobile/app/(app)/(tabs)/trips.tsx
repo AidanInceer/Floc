@@ -14,6 +14,7 @@
  * something asks again, so it asks: on focus, on returning to the app, and on
  * a slow tick while you are looking at it (see `api.ts`).
  */
+import { titleCase } from "@floc/core/text/title-case";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
@@ -201,7 +202,7 @@ function TripRow({
           <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
             <View style={{ flex: 1, gap: space.xs }}>
               <Label>{tripListStage(trip)}</Label>
-              <Body bold>{trip.name}</Body>
+              <Body bold>{titleCase(trip.name)}</Body>
               {/* Undated is normal, not an error (rule 9) — so it is said, not hidden. */}
               <Figure tone="ink-2">{formatDateRange(trip.startDate, trip.endDate)}</Figure>
             </View>

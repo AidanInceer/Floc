@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import { shouldStartTour, tourStep, tourStopsFor } from "./tour";
 
 describe("which stops the tour shows (#315)", () => {
-  it("shows all eight, in planning order", () => {
-    expect(tourStopsFor({ hasNudge: true, hasFiles: true }).map((s) => s.key)).toEqual([
+  it("shows all seven, in planning order", () => {
+    expect(tourStopsFor({ hasFiles: true }).map((s) => s.key)).toEqual([
       "roster",
       "dates",
       "days",
@@ -12,22 +12,17 @@ describe("which stops the tour shows (#315)", () => {
       "packing",
       "notes",
       "files",
-      "nudge",
     ]);
   });
 
   it("skips Files when there is nowhere to keep them", () => {
-    const keys = tourStopsFor({ hasNudge: true, hasFiles: false }).map((s) => s.key);
+    const keys = tourStopsFor({ hasFiles: false }).map((s) => s.key);
     expect(keys).not.toContain("files");
-    expect(keys).toHaveLength(7);
-  });
-
-  it("skips the nudge when no step is empty", () => {
-    expect(tourStopsFor({ hasNudge: false, hasFiles: true }).map((s) => s.key)).not.toContain("nudge");
+    expect(keys).toHaveLength(6);
   });
 
   it("gives every stop a title and one line", () => {
-    for (const stop of tourStopsFor({ hasNudge: true, hasFiles: true })) {
+    for (const stop of tourStopsFor({ hasFiles: true })) {
       expect(stop.title.length).toBeGreaterThan(0);
       expect(stop.line.length).toBeGreaterThan(0);
     }

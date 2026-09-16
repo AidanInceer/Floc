@@ -51,3 +51,12 @@ export function capText(value: unknown, cap: TextCap): string | null {
 export function capRequiredText(value: unknown, cap: TextCap): string {
   return asText(value).trim().slice(0, TEXT_CAPS[cap]);
 }
+
+/** Title-case trip names while preserving punctuation and word spacing. */
+export function properCase(value: string): string {
+  return value
+    .toLocaleLowerCase("en-GB")
+    .replace(/(^|[\s"'/-])(\p{L})/gu, (_, separator: string, letter: string) =>
+      `${separator}${letter.toLocaleUpperCase("en-GB")}`,
+    );
+}

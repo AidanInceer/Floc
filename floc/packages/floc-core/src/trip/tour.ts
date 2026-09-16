@@ -9,8 +9,7 @@ export type TourStopKey =
   | "money"
   | "packing"
   | "notes"
-  | "files"
-  | "nudge";
+  | "files";
 
 export type TourStop = { key: TourStopKey; title: string; line: string };
 
@@ -22,13 +21,12 @@ const STOPS: TourStop[] = [
   { key: "packing", title: "Packing", line: "Your own bag, and what the group brings." },
   { key: "notes", title: "Notes", line: "Anything the group wants written down." },
   { key: "files", title: "Files", line: "Bookings and tickets, in one place." },
-  { key: "nudge", title: "Start here", line: "This always points to the next empty step." },
 ];
 
-export function tourStopsFor(input: { hasNudge: boolean; hasFiles: boolean }): TourStop[] {
+export function tourStopsFor(input: { hasFiles: boolean }): TourStop[] {
   return STOPS.filter(
     (stop) =>
-      (stop.key !== "files" || input.hasFiles) && (stop.key !== "nudge" || input.hasNudge),
+      stop.key !== "files" || input.hasFiles,
   );
 }
 

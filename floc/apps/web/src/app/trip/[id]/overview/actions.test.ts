@@ -148,6 +148,11 @@ describe("renaming and tagging", () => {
     expect((await tripRow(world.ours.id))?.name).toBe("Lisbon");
   });
 
+  it("proper-cases renamed trip names", async () => {
+    await renameTrip(form({ tripId: ours(), name: "portugal and france" }));
+    expect((await tripRow(world.ours.id))?.name).toBe("Portugal And France");
+  });
+
   it("refuses a blank or overlong name without writing", async () => {
     expect(await renameTrip(form({ tripId: ours(), name: "   " }))).toEqual({ error: "A trip needs a name." });
     expect(await renameTrip(form({ tripId: ours(), name: "x".repeat(1000) }))).toEqual({

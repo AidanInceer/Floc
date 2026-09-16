@@ -43,15 +43,12 @@ import {
   transportModesByDay,
 } from "@/server/itinerary/itinerary";
 import { listAvailability } from "@/server/itinerary/availability";
-import { listPendingInvitees } from "@/server/trips/invites";
+import { listDeclinedInvitees, listPendingInvitees } from "@/server/trips/invites";
 import {
   listExpenses,
   listSettlements,
   listSplits,
 } from "@/server/money/money";
-import { viewerHasPacking } from "@/server/packing/packing";
-import { nextStepFor } from "@floc/core/trip/next-step";
-import { NextStepNudge } from "@/components/trip/next-step-nudge";
 import { tourSeenAt } from "@/server/auth/tour";
 import { shouldStartTour, tourStopsFor } from "@floc/core/trip/tour";
 import { absoluteUrl } from "@/server/auth/email";
@@ -105,10 +102,12 @@ export default async function OverviewPage({
       members.map((m) => m.userId),
     ),
     listPendingInvitees(tripId),
+    listDeclinedInvitees(tripId),
     listFriendsFor(viewer.id),
-  ]).then(([friendStates, pendingInvitees, friends]) => ({
+  ]).then(([friendStates, pendingInvitees, declinedInvitees, friends]) => ({
     friendStates,
     pendingInvitees,
+    declinedInvitees,
     friends,
   }));
   // Rule 11: no storage volume, no Documents block — and no query for it.
@@ -127,7 +126,6 @@ export default async function OverviewPage({
     settlementRows,
     routeDays,
     transportModes,
-    hasPacking,
     tourSeen,
     bookingPrefill,
   ] = await Promise.all([
@@ -142,7 +140,6 @@ export default async function OverviewPage({
     // `listDays` doesn't carry, plus travel modes off `day_event`.
     listRouteDays(tripId),
     transportModesByDay(tripId),
-    viewerHasPacking(tripId, viewer.id),
     tourSeenAt(viewer.id),
     canUseFeature("booking.prefill", tripId),
   ]);
@@ -163,13 +160,6 @@ export default async function OverviewPage({
   });
 
   const { datesUnset, unresolved } = state;
-  const nextStep = nextStepFor({
-    memberCount: members.length,
-    datesUnset,
-    dayCount: dayRows.length,
-    expenseCount: expenseRows.length,
-    viewerHasPacking: hasPacking,
-  });
   const booking = bookingPlan({
     trip,
     days: routeDays.map((d) => ({ ...d, overnightPlaceName: d.placeName })),
@@ -246,17 +236,6 @@ export default async function OverviewPage({
         </div>
       </header>
 
-      {nextStep ? (
-        <NextStepNudge
-          step={nextStep}
-          href={
-            nextStep.key === "invite"
-              ? "#the-group"
-              : `/trip/${tripId}/${nextStep.key}`
-          }
-        />
-      ) : null}
-
       <div className="mt-6 grid gap-4 lg:grid-cols-3">
         {/* The trip. */}
         <div className="flex flex-col gap-4 lg:col-span-2">
@@ -322,7 +301,6 @@ export default async function OverviewPage({
           <TourWhenReady
             targets={[rosterExtras, docs]}
             stops={tourStopsFor({
-              hasNudge: nextStep !== null,
               hasFiles: documentsEnabled(),
             })}
           />

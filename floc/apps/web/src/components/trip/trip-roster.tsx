@@ -32,6 +32,7 @@ export function TripRoster({
   inviteUrl,
   friendStates,
   pendingInvitees,
+  declinedInvitees,
   friends,
   statuses,
   footer,
@@ -49,6 +50,8 @@ export function TripRoster({
   friendStates: Map<string, FriendState>;
   /** Asked by name and yet to answer (ticket 146). Shown to every member. */
   pendingInvitees: PendingInvitee[];
+  /** Said no; still askable, so the picker keeps offering them. */
+  declinedInvitees: PendingInvitee[];
   friends: Person[];
 }) {
   return (
@@ -61,28 +64,39 @@ export function TripRoster({
         <h2 className="font-display text-lg">The group</h2>
         {/* Invite URL never appears on the page — the button copies it instead. */}
         {/* Why: any member may invite, by name or by link (#312). */}
-        <span className="mt-3 flex flex-wrap items-center gap-2">
+        <span className="mt-3 flex flex-wrap items-center justify-center gap-2">
             <Sheet
               trigger="Invite friends"
               title="Invite friends"
               triggerVariant="secondary"
             >
-              <form action={inviteFriends}>
-                <input type="hidden" name="tripId" value={tripId} />
+              {friends.length === 0 ? (
                 <Stack gap={3}>
-                  <FriendPicker
-                    friends={friends}
-                    excludeIds={[
-                      ...members.map((m) => m.userId),
-                      ...pendingInvitees.map((p) => p.userId),
-                    ]}
-                    emptyNote="Everyone you're friends with is already on this trip, or has been asked."
-                  />
-                  <SubmitButton pendingLabel="Inviting…">
-                    Send invites
-                  </SubmitButton>
+                  <p className="text-sm text-ink-soft">
+                    You have no friends on Floc yet. Share the trip link instead.
+                  </p>
+                  <span>
+                    <CopyLink value={inviteUrl} label="Share trip" variant="primary" icon={<ShareIcon />} />
+                  </span>
                 </Stack>
-              </form>
+              ) : (
+                <form action={inviteFriends}>
+                  <input type="hidden" name="tripId" value={tripId} />
+                  <Stack gap={3}>
+                    <FriendPicker
+                      friends={friends}
+                      excludeIds={[
+                        ...members.map((m) => m.userId),
+                        ...pendingInvitees.map((p) => p.userId),
+                      ]}
+                      emptyNote="Everyone you're friends with is already on this trip, or has been asked."
+                    />
+                    <SubmitButton pendingLabel="Inviting…">
+                      Send invites
+                    </SubmitButton>
+                  </Stack>
+                </form>
+              )}
             </Sheet>
             <CopyLink
               value={inviteUrl}
@@ -215,23 +229,29 @@ export function TripRoster({
         ))}
         {/* Asked, not answered (ticket 146) — same list, not a separate panel. */}
         {pendingInvitees.map((p) => (
-          <li
-            key={p.userId}
-            className="flex min-h-[52px] items-center gap-2 rounded-md bg-sheet-2 px-2.5 py-1.5"
-          >
-            <span className="flex min-w-0 flex-1 items-center gap-2 text-sm opacity-75">
-              <span className="opacity-60">
-                <Avatar name={p.name} icon={p.avatarIcon} size={26} />
-              </span>
-              <span className="min-w-0 truncate">{p.name}</span>
-              <Badge tone="neutral">Invited</Badge>
-            </span>
-            <span aria-hidden="true" className="h-[26px] w-[26px]" />
-          </li>
+          <InviteeRow key={p.userId} person={p} status={<Badge tone="open">Invited</Badge>} />
+        ))}
+        {declinedInvitees.map((p) => (
+          <InviteeRow key={p.userId} person={p} status={<Badge tone="neutral">Declined</Badge>} />
         ))}
       </ul>
       {footer ? <div className="-mx-5 -mb-5 mt-4">{footer}</div> : null}
     </section>
+  );
+}
+
+function InviteeRow({ person, status }: { person: PendingInvitee; status: ReactNode }) {
+  return (
+    <li className="flex min-h-[52px] items-center gap-2 rounded-md bg-sheet-2 px-2.5 py-1.5">
+      <span className="flex min-w-0 flex-1 items-center gap-2 text-sm">
+        <span className="opacity-60">
+          <Avatar name={person.name} icon={person.avatarIcon} size={26} />
+        </span>
+        <span className="min-w-0 truncate text-ink-soft">{person.name}</span>
+        {status}
+      </span>
+      <span aria-hidden="true" className="h-[26px] w-[26px]" />
+    </li>
   );
 }
 

@@ -14,8 +14,8 @@ import {
   type Person,
 } from "@/server/social/friends";
 import { AccountPage, Panel, PersonRow } from "@/components/auth/account-ui";
-import { Avatar, Badge, Button, EmptyState } from "@/components/system/ui";
-import { SubmitButton } from "@/components/system/client-ui";
+import { Avatar, Badge, EmptyState } from "@/components/system/ui";
+import { ConfirmSubmit, SubmitButton } from "@/components/system/client-ui";
 import { PersonLink } from "@/components/social/person-link";
 
 const UNKNOWN = (id: string): Person => ({ id, name: "Someone", avatarIcon: null });
@@ -155,9 +155,13 @@ export default async function FriendsPage() {
                 </div>
                 <form action={removeFriend}>
                   <input type="hidden" name="otherId" value={person.id} />
-                  <Button variant="ghost" type="submit">
+                  <ConfirmSubmit
+                    variant="danger"
+                    message={`Remove ${person.name} as a friend?`}
+                    confirmLabel="Remove friend"
+                  >
                     Remove
-                  </Button>
+                  </ConfirmSubmit>
                 </form>
               </PersonRow>
             ))}

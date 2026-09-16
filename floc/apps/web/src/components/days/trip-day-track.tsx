@@ -19,6 +19,7 @@ import type { RouteDay } from "@/server/itinerary/itinerary";
 import { formatDate } from "@floc/core/dates/dates";
 import { TravelModeIcon } from "@/components/map/travel-mode-icon";
 import { ButtonLink, PASTEL_SKINS, cx } from "@/components/system/ui";
+import { dayHref } from "@/lib/trip-links";
 
 // Colour here means "the same bed", not a domain — so the rotation is
 // `PASTEL_SKINS` by the order places first appear, and the track's own caption
@@ -82,7 +83,7 @@ export function TripDayTrack({
           return (
             <li key={d.dayId} className="min-w-[7.5rem] flex-1">
               <Link
-                href={`/trip/${tripId}/days`}
+                href={dayHref(tripId, d.date)}
                 className={cx(
                   "lift flex h-full min-h-[7rem] flex-col gap-2 rounded-md p-3",
                   // A gap in the plan is drawn as a gap: white, outlined, no name.

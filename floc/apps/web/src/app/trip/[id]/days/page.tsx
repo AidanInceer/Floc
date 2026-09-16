@@ -58,7 +58,7 @@ export default async function DaysPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ event?: string }>;
+  searchParams: Promise<{ event?: string; date?: string }>;
 }) {
   const { id } = await params;
   const access = await requireTripAccess(id, `/trip/${id}/days`);
@@ -84,7 +84,8 @@ export default async function DaysPage({
     .map((d) => ({ id: d.id, name: d.name }));
 
   // Arrives from a file's "on [event]" tag (ticket 323).
-  const openEventId = Number((await searchParams).event) || null;
+  const query = await searchParams;
+  const openEventId = Number(query.event) || null;
 
   if (days.length === 0) {
     // Two empty states (ticket 126): an undated trip is sent to Dates rather
@@ -235,6 +236,7 @@ export default async function DaysPage({
         setOvernight={setDayOvernight.bind(null, trip.id)}
         searchPlaces={searchPlacesAction}
         openEventId={openEventId}
+        initialDate={query.date}
         groupSize={members.length}
         bookingPrefill={bookingPrefill}
       />
