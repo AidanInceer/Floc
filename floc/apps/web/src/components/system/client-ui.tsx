@@ -288,8 +288,6 @@ export function CopyLink({
   icon?: ReactNode;
 }) {
   const [status, setStatus] = useState<"idle" | "copied" | "failed">("idle");
-  // Why: the clipboard is blocked on http and in some in-app browsers; the link must stay reachable after the label resets.
-  const [failedOnce, setFailedOnce] = useState(false);
   return (
     <>
       <Button
@@ -300,7 +298,6 @@ export function CopyLink({
             setStatus("copied");
           } catch {
             setStatus("failed");
-            setFailedOnce(true);
           }
           setTimeout(() => setStatus("idle"), 2500);
         }}
@@ -313,17 +310,9 @@ export function CopyLink({
         )}
       </Button>
       <span aria-live="polite" className="sr-only">
-        {status === "copied" ? "Link copied" : status === "failed" ? "Copy failed. The link is shown to copy by hand." : ""}
+        {status === "copied" ? "Link copied" : status === "failed" ? `Copy failed. The link is ${value}` : ""}
       </span>
-      {failedOnce ? (
-        <input
-          readOnly
-          aria-label="Invite link"
-          value={value}
-          onFocus={(e) => e.currentTarget.select()}
-          className="w-full min-w-0 rounded-md bg-sheet-2 px-2.5 py-1.5 font-mono text-xs text-ink ring-1 ring-rule"
-        />
-      ) : null}
+
     </>
   );
 }

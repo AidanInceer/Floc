@@ -70,26 +70,37 @@ export function TripRoster({
               title="Invite friends"
               triggerVariant="secondary"
             >
-              <form action={inviteFriends}>
-                <input type="hidden" name="tripId" value={tripId} />
+              {friends.length === 0 ? (
                 <Stack gap={3}>
-                  <FriendPicker
-                    friends={friends}
-                    excludeIds={[
-                      ...members.map((m) => m.userId),
-                      ...pendingInvitees.map((p) => p.userId),
-                    ]}
-                    emptyNote="Everyone you're friends with is already on this trip, or has been asked."
-                  />
-                  <SubmitButton pendingLabel="Inviting…">
-                    Send invites
-                  </SubmitButton>
+                  <p className="text-sm text-ink-soft">
+                    You have no friends on Floc yet. Share the trip link instead.
+                  </p>
+                  <span>
+                    <CopyLink value={inviteUrl} label="Share trip" variant="primary" icon={<ShareIcon />} />
+                  </span>
                 </Stack>
-              </form>
+              ) : (
+                <form action={inviteFriends}>
+                  <input type="hidden" name="tripId" value={tripId} />
+                  <Stack gap={3}>
+                    <FriendPicker
+                      friends={friends}
+                      excludeIds={[
+                        ...members.map((m) => m.userId),
+                        ...pendingInvitees.map((p) => p.userId),
+                      ]}
+                      emptyNote="Everyone you're friends with is already on this trip, or has been asked."
+                    />
+                    <SubmitButton pendingLabel="Inviting…">
+                      Send invites
+                    </SubmitButton>
+                  </Stack>
+                </form>
+              )}
             </Sheet>
             <CopyLink
               value={inviteUrl}
-              label="Copy invite link"
+              label="Share trip"
               variant="primary"
               icon={<ShareIcon />}
             />

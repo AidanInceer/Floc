@@ -7,7 +7,7 @@
  * places, on one tab out of five. They live here now, beside the roster and the
  * tabs, so they're reachable from any tab and never in the way.
  *
- * Sharing is not here: the roster's own Copy invite link button is the one place to
+ * Sharing is not here: the roster's own Share trip button is the one place to
  * hand out an invite, and a second copy would be two ways to do it.
  */
 import { ConfirmSubmit, Menu } from "@/components/system/client-ui";
