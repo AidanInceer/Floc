@@ -49,6 +49,12 @@ appId: com.floc.app
     element: ".*Beach towels.*"
     timeout: 15000
 
+- tapOn: "Notes"
+- extendedWaitUntil:
+    visible: "Saved"
+    timeout: 15000
+- assertVisible: "1 person here"
+
 - tapOn: "All trips"
 - tapOn: "You"
 - extendedWaitUntil:

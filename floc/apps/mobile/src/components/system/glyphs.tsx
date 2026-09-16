@@ -102,6 +102,22 @@ export function MinusGlyph({ color }: { color: string }) {
 }
 
 /** A chevron pointing down: "this opens". */
+export function SortGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+      <Path d="M2 3.5h9M2 7h6M2 10.5h3" stroke={color} strokeWidth={STROKE} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+export function FilterGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+      <Path d="M2 3h10L8.2 7.6V11L5.8 12V7.6z" stroke={color} strokeWidth={STROKE} strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
 export function ChevronGlyph({ color }: { color: string }) {
   return (
     <Svg width={16} height={16} viewBox="0 0 14 14" fill="none">

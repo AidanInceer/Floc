@@ -1,144 +1,77 @@
 /**
- * The trip's Notes document (ticket 238) — a BlockNote editor over one JSON
- * blob.
- *
- * Autosave rather than a Save button: the doc is the group's shared page, and
- * a button is one more thing to forget. Last-write-wins (rule 7) — two people
- * typing at once is a known gap, tracked separately.
+ * The trip's Notes document (ticket 238), edited live with the rest of the
+ * trip through Yjs (#392). No save call: every keystroke is a Yjs update.
  */
 "use client";
 
 import "@blocknote/ariakit/style.css";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  BlockNoteSchema,
-  defaultBlockSpecs,
-  type Block,
-} from "@blocknote/core";
-import { useSiteTheme } from "@/lib/use-site-theme";
+import { BlockNoteSchema, defaultBlockSpecs } from "@blocknote/core";
+import { withCollaboration } from "@blocknote/core/yjs";
 import { BlockNoteView } from "@blocknote/ariakit";
 import { useCreateBlockNote } from "@blocknote/react";
 
-import { saveNotes } from "@/app/trip/[id]/notes/actions";
+import { AvatarRow } from "@/components/system/ui";
+import { NOTES_FRAGMENT } from "@floc/core/notes/live/live-names";
+import { liveUser } from "@floc/core/notes/live/live-presence";
+import { LIVE_STATUS_WORDS } from "@floc/core/notes/live/live-status";
+import { useSiteTheme } from "@/lib/use-site-theme";
+import { renderLiveCursor } from "./live-cursor";
+import { PhoneBlockCursors } from "./phone-block-cursors";
+import { useLiveNotes, type LiveNotes } from "./use-live-notes";
+import { useLivePresence } from "./use-live-presence";
 
 const schema = BlockNoteSchema.create({ blockSpecs: defaultBlockSpecs });
 
-const SAVE_AFTER_MS = 900;
-
-const STARTING_DOC = [{ type: "paragraph" }] as const;
-
-type SaveState = "idle" | "saving" | "saved" | "failed";
-
-/** Block types this build can render — anything else came from a newer one. */
-const KNOWN_BLOCK_TYPES = new Set(Object.keys(schema.blockSchema));
+type Viewer = { id: string; name: string };
 
 export function NotesEditor({
   tripId,
-  initialDoc,
+  epoch,
+  viewer,
 }: {
   tripId: number;
-  initialDoc: string | null;
+  epoch: string | null;
+  viewer: Viewer;
 }) {
-  const [saveState, setSaveState] = useState<SaveState>("idle");
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  /** The newest edit not yet written. Held so unmount can still send it. */
-  const unsaved = useRef<string | null>(null);
-  const mounted = useRef(true);
+  const live = useLiveNotes(tripId, epoch);
+  if (!live) return <p className="typed">Opening the doc</p>;
+  return <LiveEditor key={live.provider.document.guid} live={live} viewer={viewer} />;
+}
 
-  const initialContent = useMemo(() => parseDoc(initialDoc), [initialDoc]);
-
-  const editor = useCreateBlockNote({
-    schema,
-    initialContent: initialContent ?? [...STARTING_DOC],
-    placeholders: { emptyDocument: "Write the first note" },
-  });
-
-  const flush = useCallback(async () => {
-    const body = unsaved.current;
-    if (body === null) return;
-    unsaved.current = null;
-    try {
-      await saveNotes(tripId, body);
-      if (mounted.current) setSaveState("saved");
-    } catch {
-      // Put it back: the next keystroke, or leaving the page, tries again.
-      unsaved.current = body;
-      if (mounted.current) setSaveState("failed");
-    }
-  }, [tripId]);
-
-  const queueSave = useCallback(() => {
-    if (timer.current) clearTimeout(timer.current);
-    unsaved.current = JSON.stringify(editor.document);
-    setSaveState("saving");
-    timer.current = setTimeout(() => void flush(), SAVE_AFTER_MS);
-  }, [editor, flush]);
-
-  // Leaving inside the debounce window used to lose the edit silently — the
-  // timer was cleared and never fired. Send it instead, on the way out and
-  // whenever the tab is hidden, which is the last moment a phone gives you.
-  useEffect(() => {
-    mounted.current = true;
-    const onHide = () => {
-      if (document.visibilityState === "hidden") void flush();
-    };
-    document.addEventListener("visibilitychange", onHide);
-    return () => {
-      mounted.current = false;
-      document.removeEventListener("visibilitychange", onHide);
-      if (timer.current) clearTimeout(timer.current);
-      void flush();
-    };
-  }, [flush]);
-
+function LiveEditor({ live, viewer }: { live: LiveNotes; viewer: Viewer }) {
+  const editor = useCreateBlockNote(
+    withCollaboration({
+      schema,
+      collaboration: {
+        provider: { awareness: live.provider.awareness ?? undefined },
+        fragment: live.doc.getXmlFragment(NOTES_FRAGMENT),
+        user: liveUser(viewer),
+        renderCursor: renderLiveCursor,
+      },
+      placeholders: { emptyDocument: "Write the first note" },
+    }),
+  );
   const theme = useSiteTheme();
+  const presence = useLivePresence(live.provider, live.doc);
 
   return (
     <>
-      <BlockNoteView
-        editor={editor}
-        // Why: left unset, BlockNote follows the device's dark setting and
-        // paints the editor dark on a light site.
-        theme={theme}
-        onChange={queueSave}
-      />
-      <p className="typed mt-4 text-right" aria-live="polite">
-        {saveState === "saving"
-          ? "Saving"
-          : saveState === "saved"
-            ? "Saved"
-            : saveState === "failed"
-              ? "Not saved — still trying"
-              : ""}
-      </p>
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <AvatarRow people={presence.people} size={24} />
+        <p className="typed" aria-live="polite">
+          {LIVE_STATUS_WORDS[live.status]}
+        </p>
+      </div>
+      <div className="relative">
+        <BlockNoteView
+          editor={editor}
+          // Why: left unset, BlockNote follows the device's dark setting and
+          // paints the editor dark on a light site.
+          theme={theme}
+        />
+        <PhoneBlockCursors editor={editor} people={presence.cursors} />
+      </div>
     </>
   );
-}
-
-/**
- * A stored doc this build cannot render must not take the tab down with it.
- * BlockNote throws while constructing the editor on a block type it does not
- * know, and that is a render no error boundary of ours is under — so unknown
- * blocks are dropped here rather than caught later. This is also what retires
- * the old `ideasBoard` block: docs still holding one simply lose it on load.
- */
-function parseDoc(raw: string | null): Block[] | null {
-  if (!raw) return null;
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    return null;
-  }
-  if (!Array.isArray(parsed)) return null;
-  const blocks = parsed.filter(
-    (b): b is Block =>
-      typeof b === "object" &&
-      b !== null &&
-      "type" in b &&
-      typeof b.type === "string" &&
-      KNOWN_BLOCK_TYPES.has(b.type),
-  );
-  return blocks.length > 0 ? blocks : null;
 }

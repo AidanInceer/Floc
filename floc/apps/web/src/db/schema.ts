@@ -23,6 +23,7 @@ import { PLANS } from "@floc/core/billing/plans";
 import { AVATAR_ICONS } from "@floc/core/people/avatar-icon";
 import { ACTIVITY_KINDS, REMINDER_KINDS } from "@floc/core/notifications/rules";
 import {
+  blob,
   index,
   integer,
   primaryKey,
@@ -361,7 +362,8 @@ export const tripInvite = sqliteTable(
  * The trip's Notes doc (ticket 238) — one row per trip, the whole document as
  * one JSON blob of BlockNote blocks. Whole-doc, not a row per block: the
  * editor owns block order and nesting, so splitting them out would mean
- * keeping two orderings honest for no read we make. Last-write-wins (rule 7).
+ * keeping two orderings honest for no read we make. Live editing (#391) merges
+ * through `yjsState`; `body` stays as its JSON copy for every other reader.
  */
 export const tripNoteDoc = sqliteTable(
   "trip_note_doc",
@@ -376,6 +378,8 @@ export const tripNoteDoc = sqliteTable(
       .references(() => user.id),
     /** BlockNote's `Block[]`, `JSON.stringify`d. Never parsed server-side. */
     body: text("body").notNull(),
+    /** The live Yjs doc. Null = seed it from `body` on next open. */
+    yjsState: blob("yjs_state", { mode: "buffer" }),
     ...audit,
   },
   (t) => [uniqueIndex("trip_note_doc_trip_idx").on(t.tripId)],

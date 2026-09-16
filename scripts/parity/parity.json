@@ -30,6 +30,9 @@
     "explore.get": {
       "mobile": "yes"
     },
+    "explore.rates": {
+      "mobile": "yes"
+    },
     "explore.setAnswers": {
       "mobile": "yes"
     },
@@ -173,12 +176,6 @@
       "mobile": "yes"
     },
     "money.write": {
-      "mobile": "yes"
-    },
-    "notes.get": {
-      "mobile": "yes"
-    },
-    "notes.write": {
       "mobile": "yes"
     },
     "notifications.forgetPhone": {

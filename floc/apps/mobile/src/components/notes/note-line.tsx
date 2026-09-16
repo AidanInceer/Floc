@@ -18,9 +18,7 @@
  * one paragraph.
  *
  * A BLOCK THE PHONE CANNOT DRAW IS NOT EDITED HERE. Tables, images and the
- * rest come back through `NoteBlockView` read-only, so `setBlockText` never
- * touches a block whose shape this file does not understand (rule: splits and
- * documents are carried through, not rebuilt).
+ * rest come back through `NoteBlockView` read-only and are never edited.
  */
 import {
   blockText,
@@ -28,10 +26,12 @@ import {
   isChecked,
   type NoteBlock,
 } from "@floc/core/notes/note-blocks";
+import type { PresentBlockCursor } from "@floc/core/notes/live/live-presence";
 import { forwardRef } from "react";
 import { Pressable, Text, TextInput, View, type NativeSyntheticEvent, type TextInputKeyPressEventData } from "react-native";
 
 import { useTheme } from "../system/theme";
+import { initials } from "./live-presence";
 import { fonts, size, space } from "@/lib/theme";
 
 const HEADING_SIZE = { 1: size.display, 2: size.heading, 3: 17 } as const;
@@ -94,6 +94,7 @@ export const NoteLine = forwardRef<
     block: NoteBlock;
     /** Its place among the numbered items before it, for a numbered list's figure. */
     index: number;
+    cursors: PresentBlockCursor[];
     onChangeText: (text: string) => void;
     /** Enter: everything after the caret becomes a new block below. */
     onSplit: () => void;
@@ -101,8 +102,9 @@ export const NoteLine = forwardRef<
     onBackspaceEmpty: () => void;
     onToggle: () => void;
     onFocus: () => void;
+    onBlur: () => void;
   }
->(function NoteLine({ block, index, onChangeText, onSplit, onBackspaceEmpty, onToggle, onFocus }, ref) {
+>(function NoteLine({ block, index, cursors, onChangeText, onSplit, onBackspaceEmpty, onToggle, onFocus, onBlur }, ref) {
   const { c } = useTheme();
   const heading = block.type === "heading";
   const struck = block.type === "checkListItem" && isChecked(block);
@@ -111,6 +113,14 @@ export const NoteLine = forwardRef<
   function key(event: NativeSyntheticEvent<TextInputKeyPressEventData>) {
     if (event.nativeEvent.key === "Backspace" && text === "") onBackspaceEmpty();
   }
+
+  const typeStyle = {
+    paddingVertical: space.xs,
+    paddingHorizontal: 0,
+    fontFamily: heading ? fonts.display : fonts.sans,
+    fontSize: heading ? HEADING_SIZE[headingLevel(block)] : size.body,
+    lineHeight: heading ? 32 : 24,
+  };
 
   return (
     <View style={{ flexDirection: "row", alignItems: "flex-start", gap: space.sm }}>
@@ -128,19 +138,37 @@ export const NoteLine = forwardRef<
         onKeyPress={key}
         onSubmitEditing={onSplit}
         onFocus={onFocus}
+        onBlur={onBlur}
         multiline
         submitBehavior="submit"
         placeholder={index === 1 && text === "" ? "Write the first note" : ""}
         placeholderTextColor={c["ink-3"]}
-        style={{
-          flex: 1,
-          paddingVertical: space.xs,
-          color: struck ? c["ink-3"] : c.ink,
-          fontFamily: heading ? fonts.display : fonts.sans,
-          fontSize: heading ? HEADING_SIZE[headingLevel(block)] : size.body,
-          lineHeight: heading ? 32 : 24,
-        }}
+        style={{ ...typeStyle, flex: 1, color: struck ? c["ink-3"] : c.ink }}
       />
+      {cursors.length > 0 ? (
+        // Why: a TextInput cannot hold a tag, so an invisible copy of the text
+        // lays out the same way and carries the tags after its last word.
+        <Text
+          pointerEvents="none"
+          accessibilityLabel={`${cursors.map((person) => person.name).join(", ")} editing this line`}
+          style={{ ...typeStyle, position: "absolute", left: GUTTER + space.sm, right: 0, color: "transparent" }}
+        >
+          {text}
+          {cursors.map((person) => (
+            <Text
+              key={person.id}
+              style={{
+                color: c[`${person.tone}-ink`],
+                backgroundColor: c[person.tone],
+                fontFamily: fonts.sansBold,
+                fontSize: size.label,
+              }}
+            >
+              {` ${initials(person.name)} `}
+            </Text>
+          ))}
+        </Text>
+      ) : null}
     </View>
   );
 });

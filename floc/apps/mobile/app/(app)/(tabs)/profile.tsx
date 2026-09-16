@@ -57,6 +57,7 @@ import {
 } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { signOut } from "@/lib/auth";
+import { forgetCachedNotes } from "@/lib/notes/live-cache";
 import { forgetThisPhone } from "@/lib/push/push";
 import { space } from "@/lib/theme";
 
@@ -186,7 +187,7 @@ export default function Profile() {
             first
             quiet
             title="Sign out of this phone"
-            onPress={() => void forgetThisPhone().then(() => signOut()).then(() => router.replace("/"))}
+            onPress={() => void forgetThisPhone().then(() => { forgetCachedNotes(); return signOut(); }).then(() => router.replace("/"))}
           />
         </DrawerGroup>
       </ScrollView>

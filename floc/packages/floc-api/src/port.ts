@@ -28,6 +28,7 @@ import type { Currency } from "@floc/core/money/currency";
 import type { DocCategory } from "@floc/core/documents/documents";
 import type { ExpenseCategory } from "@floc/core/money/expense-category";
 import type { ExploreAnswers } from "@floc/core/trip/explore/explore-match";
+import type { RatesToHome } from "@floc/core/trip/explore/explore-sort";
 import type { WeatherCondition } from "@floc/core/itinerary/weather";
 import type { PackCategory, PackTier } from "@floc/core/packing/packing";
 import type { DayEventType, ReactionKind, SplitType, TransportType } from "@floc/core/vocabulary";
@@ -909,19 +910,6 @@ export type FlocPort = {
     available: boolean,
   ): Promise<void>;
 
-  /**
-   * The trip's shared Notes document — BlockNote's `Block[]`, JSON-encoded,
-   * handed back exactly as it was stored (ticket 301). Null means nobody has
-   * written in this trip yet, which is ordinary and not an error.
-   *
-   * The blob is never parsed on the server. Only the editors understand its
-   * shape, and `@floc/core/note-blocks` is where a client reads it.
-   */
-  loadNotes(viewerId: string, tripId: number): Promise<string | null>;
-
-  /** Replaces the whole document. Last write wins (rule 7) — no version check, by design. */
-  saveNotes(viewerId: string, tripId: number, body: string): Promise<void>;
-
   createTrip(viewerId: string, input: NewTrip): Promise<{ id: number }>;
 
   /**
@@ -942,6 +930,8 @@ export type FlocPort = {
     saved: boolean,
   ): Promise<"ok" | "full" | "unknown">;
   setExploreAnswers(viewerId: string, answers: ExploreAnswers): Promise<void>;
+  /** Home-currency multipliers for the Price sort — null when neither the provider nor the cache has any. */
+  loadExploreRates(viewerId: string): Promise<RatesToHome | null>;
 
   updateTrip(viewerId: string, tripId: number, patch: TripPatch): Promise<void>;
 

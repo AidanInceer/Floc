@@ -4,12 +4,14 @@
  * the reason to make an account is on this page; saving and starting need one.
  */
 import { DEFAULT_ANSWERS } from "@floc/core/trip/explore/explore-match";
+import { readExploreSort, sortPresetTrips } from "@floc/core/trip/explore/explore-sort";
 import { PRESET_TRIPS, REGIONS, type Region } from "@floc/core/trip/explore/preset-trips";
 
 import { ExploreRows } from "@/components/explore/explore-rows";
 import { ExploreTop } from "@/components/explore/explore-top";
 import { getSession } from "@/server/access";
 import { loadAnswers } from "@/server/explore/explore-answers";
+import { loadExploreRates } from "@/server/explore/explore-rates";
 import { listSaved } from "@/server/explore/shortlist";
 
 function isRegion(value: string | undefined): value is Region {
@@ -19,22 +21,25 @@ function isRegion(value: string | undefined): value is Region {
 export default async function ExplorePage({
   searchParams,
 }: {
-  searchParams: Promise<{ region?: string; all?: string }>;
+  searchParams: Promise<{ region?: string; all?: string; sort?: string }>;
 }) {
   const session = await getSession();
   const userId = session?.user?.id ?? null;
-  const [{ region, all }, saved, answers] = await Promise.all([
-    searchParams,
+  const params = await searchParams;
+  const sort = readExploreSort(params.sort);
+  const [saved, answers, rates] = await Promise.all([
     userId ? listSaved(userId) : [],
     userId ? loadAnswers(userId) : null,
+    sort === "price" ? loadExploreRates(userId) : null,
   ]);
-  const active = isRegion(region) ? region : null;
-  const shown = active ? PRESET_TRIPS.filter((t) => t.region === active) : PRESET_TRIPS;
+  const active = isRegion(params.region) ? params.region : null;
+  const inRegion = active ? PRESET_TRIPS.filter((t) => t.region === active) : PRESET_TRIPS;
+  const shown = sortPresetTrips(inRegion, sort, rates);
 
   return (
     <div className="mx-auto w-full max-w-[76rem] px-4 pb-20 pt-6 sm:px-6">
       <ExploreTop signedIn={!!userId} saved={saved} initialAnswers={answers ?? DEFAULT_ANSWERS} />
-      <ExploreRows trips={shown} region={active} signedIn={!!userId} showAll={all === "1"} />
+      <ExploreRows trips={shown} region={active} sort={sort} signedIn={!!userId} showAll={params.all === "1"} />
 
       <p className="mt-10 border-t border-rule pt-5 text-xs text-ink-faint">
         These listings are illustrative and not bookable. Operator names are

@@ -72,6 +72,7 @@ function fakePort(overrides: Partial<FlocPort> = {}): FlocPort {
     loadExplore: vi.fn().mockResolvedValue({ saved: [], answers: null }),
     setExploreSaved: vi.fn().mockResolvedValue("ok"),
     setExploreAnswers: vi.fn().mockResolvedValue(undefined),
+    loadExploreRates: vi.fn().mockResolvedValue({ GBP: 1, EUR: 0.85 }),
     updateTrip: vi.fn().mockResolvedValue(undefined),
     archiveTrip: vi.fn().mockResolvedValue(undefined),
     leaveTrip: vi.fn().mockResolvedValue(undefined),
@@ -81,8 +82,6 @@ function fakePort(overrides: Partial<FlocPort> = {}): FlocPort {
     writeExpense: vi.fn().mockResolvedValue(undefined),
     deleteExpense: vi.fn().mockResolvedValue(undefined),
     settleUp: vi.fn().mockResolvedValue(undefined),
-    loadNotes: vi.fn().mockResolvedValue(null),
-    saveNotes: vi.fn().mockResolvedValue(undefined),
     addEvent: unused,
     updateEvent: unused,
     deleteEvent: unused,
@@ -188,8 +187,15 @@ describe("explore", () => {
     expect(port.setExploreAnswers).not.toHaveBeenCalled();
   });
 
+  it("reads rates into the caller's home currency", async () => {
+    const { caller: ana, port } = caller("u1");
+    await expect(ana.explore.rates()).resolves.toEqual({ GBP: 1, EUR: 0.85 });
+    expect(port.loadExploreRates).toHaveBeenCalledWith("u1");
+  });
+
   it("refuses a signed-out caller", async () => {
     const { caller: anon } = caller(null);
+    await expect(anon.explore.rates()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
     await expect(anon.explore.get()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 });

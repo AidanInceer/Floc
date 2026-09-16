@@ -15,8 +15,9 @@
  * colour only agrees with it.
  */
 import { REGIONS, type Region } from "@floc/core/trip/explore/preset-trips";
-import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
+import { FilterGlyph } from "../system/glyphs";
 import { useTheme } from "../system/theme";
 import { ALL_TINT, REGION_TINT } from "@/lib/region-tint";
 import { fonts, radius, size, space } from "@/lib/theme";
@@ -40,8 +41,11 @@ export function RegionChips({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{ gap: space.sm, paddingHorizontal: space.lg }}
+      contentContainerStyle={{ gap: space.sm, paddingHorizontal: space.lg, alignItems: "center" }}
     >
+      <View accessibilityLabel="Filter by region" accessible>
+        <FilterGlyph color={c["ink-2"]} />
+      </View>
       {choices.map((choice) => {
         const on = choice === value;
         const tint = choice === null ? ALL_TINT : REGION_TINT[choice];

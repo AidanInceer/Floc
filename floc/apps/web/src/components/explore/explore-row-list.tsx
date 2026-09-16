@@ -2,12 +2,13 @@
 
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 import { useState } from "react";
+import { formatMoney } from "@floc/core/money/money";
 
 import { ExploreRowDrawer } from "@/components/explore/explore-row-drawer";
 import { skinFor } from "@/components/explore/listing";
 import { cx } from "@/components/system/ui";
 
-export function ExploreRowList({ trips, signedIn, row }: { trips: PresetTrip[]; signedIn: boolean; row: string }) {
+export function ExploreRowList({ trips, signedIn, row, tag }: { trips: PresetTrip[]; signedIn: boolean; row: string; tag: string }) {
   const [openId, setOpenId] = useState<string | null>(null);
   return (
     <>
@@ -22,9 +23,10 @@ export function ExploreRowList({ trips, signedIn, row }: { trips: PresetTrip[]; 
               aria-controls={`drawer-${trip.id}`}
               className={cx(row, "w-full text-left", open && "bg-sheet")}
             >
-              <span aria-hidden className={cx("size-2.5 rounded-full", skinFor(trip))} />
-              <h3 className="text-base">{trip.title}</h3>
-              <span className="hidden text-[12.5px] text-ink-soft md:block">{trip.country}</span>
+              <span className={cx(tag, skinFor(trip))}>{trip.country}</span>
+              <h3 className="min-w-0 truncate text-base">{trip.title}</h3>
+              <span className="nums hidden text-right text-[13px] md:block">{trip.nights}</span>
+              <span className="nums hidden text-right text-[13px] md:block">{formatMoney(trip.priceFromMinor, trip.currency)}</span>
               <svg
                 width="18"
                 height="18"

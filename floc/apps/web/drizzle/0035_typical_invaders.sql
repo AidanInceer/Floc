@@ -1,0 +1,1 @@
+ALTER TABLE `trip_note_doc` ADD `yjs_state` blob;

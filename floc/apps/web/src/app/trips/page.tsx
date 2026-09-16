@@ -25,6 +25,8 @@ import {
 import { Sheet, SubmitButton } from "@/components/system/client-ui";
 import { FriendPicker } from "@/components/social/friend-picker";
 import { FlockChevron } from "@/components/system/flock-chevron";
+import { SortIcon } from "@/components/system/list-control-icons";
+import { PillChoice } from "@/components/system/pill-choice";
 import { TripCard } from "@/components/trip/trip-card";
 import type { TripCardData } from "@/components/trip/trip-card";
 import { acceptTripInvite, createTrip, declineTripInvite } from "./actions";
@@ -87,19 +89,12 @@ export default async function TripsPage({
 
       {cards.length > 1 ? (
         <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <SortIcon />
-            {(Object.keys(SORTS) as Sort[]).map((key) => (
-              <ButtonLink
-                key={key}
-                href={hrefFor({ sort: key, view, tag })}
-                variant={key === sort ? "primary" : "secondary"}
-                aria-current={key === sort ? "true" : undefined}
-              >
-                {SORTS[key]}
-              </ButtonLink>
-            ))}
-          </div>
+          <PillChoice
+            icon={<SortIcon />}
+            label="Sort trips"
+            current={sort}
+            options={(Object.keys(SORTS) as Sort[]).map((key) => ({ key, label: SORTS[key], href: hrefFor({ sort: key, view, tag }) }))}
+          />
           <ViewToggle sort={sort} view={view} tag={tag} />
         </div>
       ) : null}
@@ -260,27 +255,6 @@ function hrefFor({
   if (tag) query.set("tag", tag);
   const q = query.toString();
   return q ? `/trips?${q}` : "/trips";
-}
-
-// The label for the sort row, drawn rather than spelled (three descending
-// bars). Named for anything reading the outline; the pills beside it say which.
-function SortIcon() {
-  return (
-    <svg
-      viewBox="0 0 14 14"
-      width="14"
-      height="14"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.2}
-      strokeLinecap="round"
-      className="text-ink-soft"
-      role="img"
-      aria-label="Sort"
-    >
-      <path d="M2 3.5h9M2 7h6M2 10.5h3" />
-    </svg>
-  );
 }
 
 // Grid/list switch, right-aligned on the controls row. Two icon links (the

@@ -17,7 +17,7 @@
  * nothing. Only extensionless ones are touched, so `./index.ts` still goes
  * straight through.
  */
-import { existsSync } from "node:fs";
+import { existsSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -30,7 +30,8 @@ const coreDir = join(here, "..", "..", "..", "packages", "floc-core", "src");
 const EXTENSIONS = [".ts", ".tsx", "/index.ts"];
 
 function firstThatExists(base) {
-  return [base, ...EXTENSIONS.map((ext) => `${base}${ext}`)].find(existsSync);
+  const isFile = (path) => existsSync(path) && statSync(path).isFile();
+  return [base, ...EXTENSIONS.map((ext) => `${base}${ext}`)].find(isFile);
 }
 
 export function resolve(specifier, context, nextResolve) {
