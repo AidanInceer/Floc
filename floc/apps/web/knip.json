@@ -5,6 +5,13 @@
     "e2e/serve.mjs",
     "e2e/auth.setup.ts"
   ],
-  "ignoreDependencies": ["server-only", "@tailwindcss/postcss", "tailwindcss", "eslint-config-next"],
-  "ignoreBinaries": ["better-auth"]
+  "ignoreDependencies": [
+    "server-only",
+    "@tailwindcss/postcss",
+    "tailwindcss",
+    "eslint-config-next"
+  ],
+  "ignoreBinaries": [
+    "better-auth"
+  ]
 }

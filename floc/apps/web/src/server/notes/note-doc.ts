@@ -59,6 +59,6 @@ export async function saveNoteDoc(
     .values({ tripId, updatedBy, body })
     .onConflictDoUpdate({
       target: tripNoteDoc.tripId,
-      set: { body, updatedBy, deletedAt: null, ...touch() },
+      set: { body, updatedBy, yjsState: null, deletedAt: null, ...touch() },
     });
 }

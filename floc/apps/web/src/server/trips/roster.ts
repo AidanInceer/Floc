@@ -17,6 +17,7 @@ import type { NudgeTab } from "@/db/schema";
 import { bounded, LIMITS } from "@/server/limits";
 import { tripHref } from "@floc/core/notifications/notification-href";
 import { touch } from "@/server/audit";
+import { kickFromTripNotes } from "@/server/notes/live/live-kick";
 import { recordActivity } from "@/server/notifications/activity";
 import { setTripArchived } from "@/server/trips/trips";
 
@@ -82,14 +83,14 @@ export async function removeMembership(
   userId: string,
   by: string,
 ): Promise<void> {
-  await db.transaction(async (tx) => {
+  const removed = await db.transaction(async (tx) => {
     const gone = await tx
       .update(tripMembership)
       .set({ deletedAt: new Date(), mapPromptAt: new Date(), ...touch() })
       .where(liveMembership(tripId, userId))
       .returning({ userId: tripMembership.userId })
       .all();
-    if (gone.length === 0) return;
+    if (gone.length === 0) return false;
     await recordActivity(tx, {
       kind: "member_left",
       tripId,
@@ -98,7 +99,9 @@ export async function removeMembership(
       href: tripHref(tripId, "overview"),
       affected: [],
     });
+    return true;
   });
+  if (removed) kickFromTripNotes(tripId, userId);
 }
 
 export async function setMemberRoleAdmin(
