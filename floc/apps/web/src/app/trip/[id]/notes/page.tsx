@@ -1,6 +1,6 @@
 /** Notes tab (ticket 238) — the trip's free-form document. */
 import { requireTripAccess } from "@/server/access";
-import { loadNoteDoc } from "@/server/notes/note-doc";
+import { loadLiveEpoch } from "@/server/notes/live/live-epoch-store";
 import { NotesDoc } from "@/components/notes/notes-doc";
 import { PageTitle } from "@/components/system/ui";
 
@@ -10,8 +10,8 @@ export default async function NotesPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { trip } = await requireTripAccess(id, `/trip/${id}/notes`);
-  const doc = await loadNoteDoc(trip.id);
+  const { trip, viewer } = await requireTripAccess(id, `/trip/${id}/notes`);
+  const epoch = await loadLiveEpoch(trip.id);
 
   return (
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
@@ -23,7 +23,7 @@ export default async function NotesPage({
           <PageTitle>Notes</PageTitle>
         </div>
         <div className="mt-6 pl-12 pr-4 sm:pr-8">
-          <NotesDoc tripId={trip.id} initialDoc={doc} />
+          <NotesDoc tripId={trip.id} epoch={epoch} viewerName={viewer.name} />
         </div>
       </div>
     </div>

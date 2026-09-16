@@ -14,8 +14,8 @@
  * are kick, promote and delete/archive (rule 6), and writing in the
  * trip's notebook is not among them.
  *
- * The length cap is `TEXT_CAPS.noteDoc` — the same number the web action
- * checks, so a document the browser accepts is never one the phone refuses.
+ * The length cap is `TEXT_CAPS.noteDoc`. Until #394 this whole-document save
+ * resets the live doc the web edits.
  */
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { z } from "zod";

@@ -84,6 +84,21 @@ describe("the live socket", () => {
     expect(read(ada.document)).toBe(read(mo.document));
   });
 
+  it("keeps edits made while disconnected and sends them on reconnect", async () => {
+    const ada = connectAs(world.admin, world.ours.id);
+    const mo = connectAs(world.member, world.ours.id);
+    await until(() => ada.isSynced && mo.isSynced);
+
+    sockets[1].disconnect();
+    await until(() => sockets[1].status === "disconnected");
+    write(mo.document, "on the train");
+    expect(mo.hasUnsyncedChanges).toBe(true);
+
+    await sockets[1].connect();
+    await until(() => read(ada.document).includes("on the train"));
+    await until(() => !mo.hasUnsyncedChanges);
+  });
+
   it("refuses a non-member", async () => {
     let refused = "";
     const ozz = connectAs(world.outsider, world.ours.id);

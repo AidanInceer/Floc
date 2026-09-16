@@ -5,7 +5,9 @@
 import { ServerBlockNoteEditor } from "@blocknote/server-util";
 import * as Y from "yjs";
 
-export const NOTES_FRAGMENT = "document-store";
+import { NOTES_FRAGMENT } from "@/lib/notes/live-names";
+
+export { NOTES_FRAGMENT };
 
 let editor: ServerBlockNoteEditor | null = null;
 const blockNote = () => (editor ??= ServerBlockNoteEditor.create());

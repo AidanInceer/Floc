@@ -14,6 +14,6 @@ const NotesEditor = dynamic(
   { ssr: false, loading: () => <p className="typed">Opening the doc</p> },
 );
 
-export function NotesDoc(props: { tripId: number; initialDoc: string | null }) {
+export function NotesDoc(props: { tripId: number; epoch: string | null; viewerName: string }) {
   return <NotesEditor {...props} />;
 }

@@ -6,25 +6,19 @@ import { Hocuspocus } from "@hocuspocus/server";
 import * as Y from "yjs";
 
 import { isLiveMember } from "./live-access";
+import { stampEpoch } from "@/lib/notes/live-epoch";
+import { notesDocumentName, tripIdOf } from "@/lib/notes/live-names";
 import { blocksJson, seedFromJson } from "./live-doc";
 import { onNotesKick } from "./live-kick";
 import { loadLiveState, storeLiveState } from "./live-store";
 
 type LiveContext = { userId: string };
 
-const PREFIX = "trip-notes:";
-
 // Why seed an empty doc: two editors opening a blank one would each create
 // their own root group, and BlockNote reads only the first.
 const EMPTY_DOC = JSON.stringify([{ type: "paragraph" }]);
 
-export const notesDocumentName = (tripId: number) => `${PREFIX}${tripId}`;
-
-function tripIdOf(documentName: string): number | null {
-  if (!documentName.startsWith(PREFIX)) return null;
-  const id = Number(documentName.slice(PREFIX.length));
-  return Number.isInteger(id) && id > 0 ? id : null;
-}
+export { notesDocumentName };
 
 export function createNotesLive(options: {
   resolveUser: (headers: Headers) => Promise<string | null>;
@@ -50,7 +44,10 @@ export function createNotesLive(options: {
       if (tripId === null) throw new Error("Not found");
       const { state, body } = await loadLiveState(tripId);
       if (state) Y.applyUpdate(document, state);
-      else seedFromJson(document, body ?? EMPTY_DOC);
+      else {
+        seedFromJson(document, body ?? EMPTY_DOC);
+        stampEpoch(document, crypto.randomUUID());
+      }
       return document;
     },
 

@@ -11,6 +11,8 @@ import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { createNotesLive, notesDocumentName } from "./notes-live";
 import { blocksJson, NOTES_FRAGMENT } from "./live-doc";
 import { loadLiveState } from "./live-store";
+import { readEpoch } from "@/lib/notes/live-epoch";
+import { loadLiveEpoch } from "./live-epoch-store";
 
 let world: Scenario;
 
@@ -144,6 +146,24 @@ describe("loading and storing", () => {
 
     await saveNoteDoc(world.ours.id, world.admin, doc("from the phone"));
     expect((await loadLiveState(world.ours.id)).state).toBeNull();
+  });
+});
+
+describe("the epoch", () => {
+  it("stamps a seeded doc, and a whole-document save gives the next seed a new one", async () => {
+    const name = notesDocumentName(world.ours.id);
+    const first = await liveAs(world.admin).openDirectConnection(name, { userId: world.admin });
+    await first.transact(() => {});
+    const before = readEpoch(first.document!);
+    await first.disconnect();
+    expect(before).not.toBeNull();
+    expect(await loadLiveEpoch(world.ours.id)).toBe(before);
+
+    await saveNoteDoc(world.ours.id, world.admin, doc("from the phone"));
+    expect(await loadLiveEpoch(world.ours.id)).toBeNull();
+    const again = await liveAs(world.admin).openDirectConnection(name, { userId: world.admin });
+    expect(readEpoch(again.document!)).not.toBe(before);
+    await again.disconnect();
   });
 });
 
