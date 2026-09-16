@@ -23,7 +23,7 @@ export default async function NotesPage({
           <PageTitle>Notes</PageTitle>
         </div>
         <div className="mt-6 pl-12 pr-4 sm:pr-8">
-          <NotesDoc tripId={trip.id} epoch={epoch} viewerName={viewer.name} />
+          <NotesDoc tripId={trip.id} epoch={epoch} viewer={{ id: viewer.id, name: viewer.name }} />
         </div>
       </div>
     </div>

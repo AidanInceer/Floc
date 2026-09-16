@@ -1039,6 +1039,24 @@
   --bn-border-radius-large: 14px;
 }
 
+/* Live cursors (#393): each person's `who-*` tone, set as --who/--who-ink on the caret. */
+.bn-root .bn-editor .bn-collaboration-cursor__base .bn-collaboration-cursor__caret {
+  background-color: var(--who-ink);
+}
+.bn-root .bn-editor .bn-collaboration-cursor__base .bn-collaboration-cursor__label {
+  background-color: var(--who-ink);
+}
+.bn-root .bn-editor .bn-collaboration-cursor__base[data-active] .bn-collaboration-cursor__label {
+  background-color: var(--who);
+  color: var(--who-ink);
+  border: 1px solid var(--who-ink);
+  font-family: var(--font-mono);
+}
+/* Why !important: y-prosemirror inlines a selection colour; ours must follow the theme. */
+.bn-root .bn-editor .ProseMirror-yjs-selection {
+  background-color: var(--highlight) !important;
+}
+
 .bn-root .bn-default-styles {
   /* The library ships Inter; the app writes in Instrument Sans. */
   font-family: var(--sans);
