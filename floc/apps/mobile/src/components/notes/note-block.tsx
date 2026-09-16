@@ -6,8 +6,7 @@
  * fonts, scrolling and stylesheet and fight the tokens the whole way.
  *
  * A BLOCK THIS DOES NOT DRAW IS STILL SHOWN, as its text, and is never
- * rewritten — `setBlockText` carries a block's `id`, `type` and `props`
- * through untouched, so a table written on the web survives a phone edit.
+ * rewritten: phone edits touch one live block at a time (#394).
  *
  * Highlights and links are drawn from the same `styles` BlockNote wrote, and a
  * link says so with an underline AND its own colour, never colour alone (#204).

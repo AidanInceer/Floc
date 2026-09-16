@@ -29,7 +29,7 @@ For each annotation, resolve the marked text on that page before editing. No mar
 | Mark | Do |
 |---|---|
 | Red `#f5b7a5` | Delete the marked text. Empty element left → delete the element. |
-| Yellow `#ffe58a` | Reword shorter and clearer. Same meaning, [CLAUDE.md](../../../../CLAUDE.md) voice. |
+| Yellow `#ffe58a` | Reword shorter and clearer. Same meaning, [AGENTS.md](../../../../AGENTS.md) voice. |
 | Comment | Do what it asks. Unclear or out of scope → leave it, list it in the report. |
 | Green, blue, bold, underline | Leave. |
 

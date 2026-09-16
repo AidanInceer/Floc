@@ -45,4 +45,11 @@ config.resolver.blockList = [
   /[\\/]floc[\\/]packages[\\/][^\\/]+[\\/]coverage([\\/].*)?$/,
 ];
 
+const lib0Crypto = path.resolve(projectRoot, "shims/lib0-webcrypto.js");
+const resolveRequest = config.resolver.resolveRequest;
+config.resolver.resolveRequest = (context, moduleName, platform) =>
+  moduleName === "lib0/webcrypto"
+    ? { type: "sourceFile", filePath: lib0Crypto }
+    : (resolveRequest ?? context.resolveRequest)(context, moduleName, platform);
+
 module.exports = config;

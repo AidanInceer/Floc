@@ -12,21 +12,15 @@ import { BlockNoteView } from "@blocknote/ariakit";
 import { useCreateBlockNote } from "@blocknote/react";
 
 import { AvatarRow } from "@/components/system/ui";
-import { NOTES_FRAGMENT } from "@/lib/notes/live-names";
-import { liveUser } from "@/lib/notes/live-presence";
-import type { LiveStatus } from "@/lib/notes/live-status";
+import { NOTES_FRAGMENT } from "@floc/core/notes/live/live-names";
+import { liveUser } from "@floc/core/notes/live/live-presence";
+import { LIVE_STATUS_WORDS } from "@floc/core/notes/live/live-status";
 import { useSiteTheme } from "@/lib/use-site-theme";
 import { renderLiveCursor } from "./live-cursor";
 import { useLiveNotes, type LiveNotes } from "./use-live-notes";
 import { useLivePresence } from "./use-live-presence";
 
 const schema = BlockNoteSchema.create({ blockSpecs: defaultBlockSpecs });
-
-const STATUS_WORDS: Record<LiveStatus, string> = {
-  saved: "Saved",
-  saving: "Saving",
-  offline: "Offline — changes kept",
-};
 
 type Viewer = { id: string; name: string };
 
@@ -71,7 +65,7 @@ function LiveEditor({ live, viewer }: { live: LiveNotes; viewer: Viewer }) {
       <div className="mt-4 flex items-center justify-between gap-4">
         <AvatarRow people={people} size={24} />
         <p className="typed" aria-live="polite">
-          {STATUS_WORDS[live.status]}
+          {LIVE_STATUS_WORDS[live.status]}
         </p>
       </div>
     </>

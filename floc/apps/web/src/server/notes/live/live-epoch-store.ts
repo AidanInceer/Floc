@@ -1,6 +1,6 @@
 import * as Y from "yjs";
 
-import { readEpoch } from "@/lib/notes/live-epoch";
+import { readEpoch } from "@floc/core/notes/live/live-epoch";
 import { loadLiveState } from "./live-store";
 
 export async function loadLiveEpoch(tripId: number): Promise<string | null> {

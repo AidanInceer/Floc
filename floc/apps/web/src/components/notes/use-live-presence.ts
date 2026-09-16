@@ -3,7 +3,7 @@
 import type { HocuspocusProvider } from "@hocuspocus/provider";
 import { useEffect, useState } from "react";
 
-import { presentPeople, type PresentPerson } from "@/lib/notes/live-presence";
+import { presentPeople, type PresentPerson } from "@floc/core/notes/live/live-presence";
 
 export function useLivePresence(provider: HocuspocusProvider): PresentPerson[] {
   const [people, setPeople] = useState<PresentPerson[]>([]);

@@ -13,7 +13,8 @@
     "test": "vitest run --coverage"
   },
   "dependencies": {
-    "drizzle-orm": "^0.45.2"
+    "drizzle-orm": "^0.45.2",
+    "yjs": "13.6.32"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",

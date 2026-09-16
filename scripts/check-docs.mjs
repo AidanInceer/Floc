@@ -77,9 +77,9 @@ function checkLinks() {
     if (!existsSync(join(DOCS, m[1]))) failures.push(`nav.js: TREE points at missing "${m[1]}"`);
   }
 
-  const claude = join(ROOT, "CLAUDE.md");
+  const claude = join(ROOT, "AGENTS.md");
   for (const m of readFileSync(claude, "utf8").matchAll(/\]\(([^)\s]+)\)/g)) {
-    checkTarget(claude, m[1], "CLAUDE.md");
+    checkTarget(claude, m[1], "AGENTS.md");
   }
   return pages.length;
 }

@@ -70,7 +70,7 @@ import {
 } from "@/server/money/money";
 import { listAvailability, setAvailability } from "@/server/itinerary/availability";
 import { listDocuments } from "@/server/documents/documents";
-import { bulletDoc, loadNoteDoc, saveNoteDoc } from "@/server/notes/note-doc";
+import { bulletDoc, saveNoteDoc } from "@/server/notes/note-doc";
 import { listTripPlaces, searchPlaces as geocode } from "@/server/itinerary/places";
 import { applyOvernight } from "@/server/itinerary/overnight";
 import {
@@ -496,20 +496,6 @@ export const webPort: FlocPort = {
     if (await applyOvernight(tripId, input.startDate, input.endDate, input.place)) {
       refresh({ kind: "itinerary", tripId });
     }
-  },
-
-  async loadNotes(viewerId, tripId): Promise<string | null> {
-    await scoped(viewerId, tripId);
-    return loadNoteDoc(tripId);
-  },
-
-  async saveNotes(viewerId, tripId, body) {
-    await scoped(viewerId, tripId);
-    // No role check: writing in the trip's notebook is not one of the three
-    // admin powers (rule 6). Last write wins (rule 7), as on the web page.
-    await saveNoteDoc(tripId, viewerId, body);
-    // No revalidate, matching the web action: the editor already holds what it
-    // just sent, and re-rendering under it would fight the caret.
   },
 
   async createTrip(viewerId, input: NewTrip) {

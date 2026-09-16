@@ -82,8 +82,6 @@ function fakePort(overrides: Partial<FlocPort> = {}): FlocPort {
     writeExpense: vi.fn().mockResolvedValue(undefined),
     deleteExpense: vi.fn().mockResolvedValue(undefined),
     settleUp: vi.fn().mockResolvedValue(undefined),
-    loadNotes: vi.fn().mockResolvedValue(null),
-    saveNotes: vi.fn().mockResolvedValue(undefined),
     addEvent: unused,
     updateEvent: unused,
     deleteEvent: unused,

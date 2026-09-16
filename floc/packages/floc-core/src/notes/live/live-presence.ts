@@ -1,4 +1,4 @@
-import { whoTone } from "@floc/core/people/who";
+import { whoTone } from "../../people/who";
 
 export type LiveUser = { id: string; name: string; tone: string; color: string };
 

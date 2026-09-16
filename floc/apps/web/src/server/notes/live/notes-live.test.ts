@@ -11,7 +11,7 @@ import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { createNotesLive, notesDocumentName } from "./notes-live";
 import { blocksJson, NOTES_FRAGMENT } from "./live-doc";
 import { loadLiveState } from "./live-store";
-import { readEpoch } from "@/lib/notes/live-epoch";
+import { readEpoch } from "@floc/core/notes/live/live-epoch";
 import { loadLiveEpoch } from "./live-epoch-store";
 
 let world: Scenario;

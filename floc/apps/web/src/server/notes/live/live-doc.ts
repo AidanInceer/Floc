@@ -5,7 +5,7 @@
 import { ServerBlockNoteEditor } from "@blocknote/server-util";
 import * as Y from "yjs";
 
-import { NOTES_FRAGMENT } from "@/lib/notes/live-names";
+import { NOTES_FRAGMENT } from "@floc/core/notes/live/live-names";
 
 export { NOTES_FRAGMENT };
 

@@ -16,7 +16,6 @@ import { itineraryRouter } from "./routers/itinerary";
 import { kitsRouter } from "./routers/kits";
 import { meRouter } from "./routers/me";
 import { moneyRouter } from "./routers/money";
-import { notesRouter } from "./routers/notes";
 import { notificationsRouter } from "./routers/notifications";
 import { packingRouter } from "./routers/packing";
 import { peopleRouter } from "./routers/people";
@@ -41,7 +40,6 @@ export const appRouter = router({
   people: peopleRouter,
   invites: invitesRouter,
   files: filesRouter,
-  notes: notesRouter,
   comments: commentsRouter,
   packing: packingRouter,
   places: placesRouter,

@@ -18,9 +18,7 @@
  * one paragraph.
  *
  * A BLOCK THE PHONE CANNOT DRAW IS NOT EDITED HERE. Tables, images and the
- * rest come back through `NoteBlockView` read-only, so `setBlockText` never
- * touches a block whose shape this file does not understand (rule: splits and
- * documents are carried through, not rebuilt).
+ * rest come back through `NoteBlockView` read-only and are never edited.
  */
 import {
   blockText,

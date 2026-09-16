@@ -32,6 +32,7 @@ import { useTheme, type ThemeChoice } from "@/components/system/theme";
 import { Body, Dropdown, Failed, Label, Loading, Segmented, Toggle } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { signOut } from "@/lib/auth";
+import { forgetCachedNotes } from "@/lib/notes/live-cache";
 import { proView } from "@/lib/billing/pro";
 import { aboutSummary, notificationSummary, privacySummary, tripsSummary } from "@/lib/settings/summary";
 import { MoonGlyph, SunGlyph } from "@/components/system/glyphs";
@@ -147,7 +148,10 @@ function SettingsPanels({
   const remove = useMutation({
     ...trpc.settings.deleteAccount.mutationOptions(),
     onError,
-    onSuccess: () => signOut().then(onSignedOut),
+    onSuccess: () => {
+      forgetCachedNotes();
+      return signOut().then(onSignedOut);
+    },
   });
 
   const plan = billing ? proView(billing) : null;

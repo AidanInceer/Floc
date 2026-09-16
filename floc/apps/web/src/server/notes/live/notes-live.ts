@@ -6,8 +6,8 @@ import { Hocuspocus } from "@hocuspocus/server";
 import * as Y from "yjs";
 
 import { isLiveMember } from "./live-access";
-import { stampEpoch } from "@/lib/notes/live-epoch";
-import { notesDocumentName, tripIdOf } from "@/lib/notes/live-names";
+import { stampEpoch } from "@floc/core/notes/live/live-epoch";
+import { notesDocumentName, tripIdOf } from "@floc/core/notes/live/live-names";
 import { blocksJson, seedFromJson } from "./live-doc";
 import { onNotesKick } from "./live-kick";
 import { loadLiveState, storeLiveState } from "./live-store";

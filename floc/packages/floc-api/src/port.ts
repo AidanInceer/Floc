@@ -910,19 +910,6 @@ export type FlocPort = {
     available: boolean,
   ): Promise<void>;
 
-  /**
-   * The trip's shared Notes document — BlockNote's `Block[]`, JSON-encoded,
-   * handed back exactly as it was stored (ticket 301). Null means nobody has
-   * written in this trip yet, which is ordinary and not an error.
-   *
-   * The blob is never parsed on the server. Only the editors understand its
-   * shape, and `@floc/core/note-blocks` is where a client reads it.
-   */
-  loadNotes(viewerId: string, tripId: number): Promise<string | null>;
-
-  /** Replaces the whole document. Last write wins (rule 7) — no version check, by design. */
-  saveNotes(viewerId: string, tripId: number, body: string): Promise<void>;
-
   createTrip(viewerId: string, input: NewTrip): Promise<{ id: number }>;
 
   /**

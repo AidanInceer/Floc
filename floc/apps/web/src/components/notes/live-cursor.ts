@@ -1,6 +1,6 @@
 import type { CollaborationUser } from "@blocknote/core/yjs";
 
-import { cursorTone } from "@/lib/notes/live-presence";
+import { cursorTone } from "@floc/core/notes/live/live-presence";
 
 /** BlockNote's cursor, painted with the person's tone instead of an inline colour. */
 export function renderLiveCursor(user: CollaborationUser): HTMLElement {

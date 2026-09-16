@@ -5,9 +5,9 @@ import { useEffect, useState } from "react";
 import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
 
-import { liveCacheName, readEpoch } from "@/lib/notes/live-epoch";
-import { LIVE_NOTES_PATH, notesDocumentName } from "@/lib/notes/live-names";
-import { liveStatus, type LiveStatus } from "@/lib/notes/live-status";
+import { liveCacheName, readEpoch } from "@floc/core/notes/live/live-epoch";
+import { LIVE_NOTES_PATH, notesDocumentName } from "@floc/core/notes/live/live-names";
+import { liveStatus, type LiveStatus } from "@floc/core/notes/live/live-status";
 
 export type LiveNotes = { doc: Y.Doc; provider: HocuspocusProvider; status: LiveStatus };
 
