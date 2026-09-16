@@ -28,6 +28,7 @@ import type { Currency } from "@floc/core/money/currency";
 import type { DocCategory } from "@floc/core/documents/documents";
 import type { ExpenseCategory } from "@floc/core/money/expense-category";
 import type { ExploreAnswers } from "@floc/core/trip/explore/explore-match";
+import type { RatesToHome } from "@floc/core/trip/explore/explore-sort";
 import type { WeatherCondition } from "@floc/core/itinerary/weather";
 import type { PackCategory, PackTier } from "@floc/core/packing/packing";
 import type { DayEventType, ReactionKind, SplitType, TransportType } from "@floc/core/vocabulary";
@@ -942,6 +943,8 @@ export type FlocPort = {
     saved: boolean,
   ): Promise<"ok" | "full" | "unknown">;
   setExploreAnswers(viewerId: string, answers: ExploreAnswers): Promise<void>;
+  /** Home-currency multipliers for the Price sort — null when neither the provider nor the cache has any. */
+  loadExploreRates(viewerId: string): Promise<RatesToHome | null>;
 
   updateTrip(viewerId: string, tripId: number, patch: TripPatch): Promise<void>;
 

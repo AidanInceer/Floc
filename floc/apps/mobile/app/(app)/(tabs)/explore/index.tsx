@@ -8,6 +8,7 @@ import {
   rankMatches,
   type ExploreAnswers,
 } from "@floc/core/trip/explore/explore-match";
+import { DEFAULT_EXPLORE_SORT, sortPresetTrips, type ExploreSort } from "@floc/core/trip/explore/explore-sort";
 import { PRESET_TRIPS, type Region } from "@floc/core/trip/explore/preset-trips";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
@@ -18,6 +19,7 @@ import { ExploreCard } from "@/components/explore/explore-card";
 import { ExploreMap } from "@/components/explore/explore-map";
 import { ExploreMatches } from "@/components/explore/explore-matches";
 import { ExploreQuiz } from "@/components/explore/explore-quiz";
+import { SortChips } from "@/components/explore/sort-chips";
 import { PresetRow } from "@/components/packing/preset-row";
 import { RegionChips, type RegionChoice } from "@/components/map/region-chips";
 import { useTheme } from "@/components/system/theme";
@@ -42,6 +44,8 @@ export default function Explore() {
   const [answers, setAnswers] = useState<ExploreAnswers>(DEFAULT_ANSWERS);
   const [region, setRegion] = useState<RegionChoice>(null);
   const [showAll, setShowAll] = useState(false);
+  const [sort, setSort] = useState<ExploreSort>(DEFAULT_EXPLORE_SORT);
+  const rates = useQuery({ ...trpc.explore.rates.queryOptions(), enabled: sort === "price" });
 
   useEffect(() => {
     if (state.data?.answers) setAnswers(state.data.answers);
@@ -59,7 +63,10 @@ export default function Explore() {
 
   const trip = PRESET_TRIPS.find((t) => t.id === picked) ?? PRESET_TRIPS[0];
   const matches = useMemo(() => rankMatches(PRESET_TRIPS, answers, MATCH_COUNT), [answers]);
-  const listings = region === null ? PRESET_TRIPS : PRESET_TRIPS.filter((t) => t.region === region);
+  const listings = useMemo(
+    () => sortPresetTrips(region === null ? PRESET_TRIPS : PRESET_TRIPS.filter((t) => t.region === region), sort, rates.data ?? null),
+    [region, sort, rates.data],
+  );
 
   const answer = (next: ExploreAnswers) => {
     setAnswers(next);
@@ -106,6 +113,7 @@ export default function Explore() {
           setRegion(next);
           setShowAll(false);
         }} />
+        <SortChips value={sort} onChange={setSort} />
         <View style={{ paddingHorizontal: space.lg, gap: space.sm }}>
           {(showAll ? listings : listings.slice(0, ROW_LIMIT)).map((item) => (
             <PresetRow

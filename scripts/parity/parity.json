@@ -30,6 +30,9 @@
     "explore.get": {
       "mobile": "yes"
     },
+    "explore.rates": {
+      "mobile": "yes"
+    },
     "explore.setAnswers": {
       "mobile": "yes"
     },

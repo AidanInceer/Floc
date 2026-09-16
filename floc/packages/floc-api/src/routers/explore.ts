@@ -18,6 +18,8 @@ const choice = <K extends keyof typeof EXPLORE_QUESTIONS>(key: K) =>
 export const exploreRouter = router({
   get: protectedProcedure.query(({ ctx }) => ctx.port.loadExplore(ctx.viewer.id)),
 
+  rates: protectedProcedure.query(({ ctx }) => ctx.port.loadExploreRates(ctx.viewer.id)),
+
   setSaved: protectedProcedure
     .input(z.object({ presetId: z.string().min(1), saved: z.boolean() }))
     .mutation(({ ctx, input }) =>
