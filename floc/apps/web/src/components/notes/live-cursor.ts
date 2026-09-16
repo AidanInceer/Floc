@@ -1,5 +1,6 @@
 import type { CollaborationUser } from "@blocknote/core/yjs";
 
+import { initials } from "@/components/system/ui";
 import { cursorTone } from "@floc/core/notes/live/live-presence";
 
 /** BlockNote's cursor, painted with the person's tone instead of an inline colour. */
@@ -15,7 +16,7 @@ export function renderLiveCursor(user: CollaborationUser): HTMLElement {
 
   const label = document.createElement("span");
   label.classList.add("bn-collaboration-cursor__label");
-  label.append(document.createTextNode(user.name));
+  label.append(document.createTextNode(initials(user.name)));
 
   caret.append(label);
   base.append(document.createTextNode("⁠"), caret, document.createTextNode("⁠"));

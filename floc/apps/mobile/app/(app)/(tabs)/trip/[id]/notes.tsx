@@ -16,14 +16,17 @@ import {
 import { LIVE_STATUS_WORDS } from "@floc/core/notes/live/live-status";
 import { isChecked, isDrawn, type DrawnBlock, type NoteBlock } from "@floc/core/notes/note-blocks";
 import { useLocalSearchParams } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, TextInput, View } from "react-native";
 
+import { BlockCursors, PresenceRow } from "@/components/notes/live-presence";
 import { NoteBlockView } from "@/components/notes/note-block";
 import { NoteLine } from "@/components/notes/note-line";
 import { useLiveNotes } from "@/components/notes/use-live-notes";
+import { useLivePresence } from "@/components/notes/use-live-presence";
 import { useTheme } from "@/components/system/theme";
 import { Body, Loading } from "@/components/system/ui";
+import { useSession } from "@/lib/auth";
 import { newBlockId } from "@/lib/notes/block-id";
 import { radius, space } from "@/lib/theme";
 
@@ -77,7 +80,13 @@ function TypeBar({ current, onPick }: { current: NoteBlock; onPick: (type: Drawn
 export default function Notes() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const live = useLiveNotes(Number(id));
+  const { data: session } = useSession();
   const [focused, setFocused] = useState<string | null>(null);
+  const viewer = useMemo(
+    () => session?.user ? { id: session.user.id, name: session.user.name } : null,
+    [session?.user.id, session?.user.name],
+  );
+  const presence = useLivePresence(live?.provider ?? null, live?.doc ?? null, viewer, focused);
   const inputs = useRef<Record<string, TextInput | null>>({});
   const wanted = useRef<string | null>(null);
 
@@ -109,22 +118,31 @@ export default function Notes() {
     <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.xs }} keyboardShouldPersistTaps="handled">
       {blocks.map((block, at) => {
         const key = block.id ?? String(at);
-        return isDrawn(block) ? (
-          <NoteLine
-            key={key}
-            ref={(input) => {
-              inputs.current[key] = input;
-            }}
-            block={block}
-            index={numberIn(blocks, at)}
-            onChangeText={(text) => setLiveText(doc, key, text)}
-            onSplit={() => split(at)}
-            onBackspaceEmpty={() => backspace(at)}
-            onToggle={() => setLiveChecked(doc, key, !isChecked(block))}
-            onFocus={() => setFocused(key)}
-          />
-        ) : (
-          <NoteBlockView key={key} block={block} index={numberIn(blocks, at)} onPress={() => {}} onToggle={() => {}} />
+        const cursors = presence.cursors.filter((cursor) => cursor.blockId === key);
+        return (
+          <View key={key} style={{ gap: space.xs }}>
+            {isDrawn(block) ? (
+              <NoteLine
+                ref={(input) => {
+                  inputs.current[key] = input;
+                }}
+                block={block}
+                index={numberIn(blocks, at)}
+                cursors={cursors}
+                onChangeText={(text) => setLiveText(doc, key, text)}
+                onSplit={() => split(at)}
+                onBackspaceEmpty={() => backspace(at)}
+                onToggle={() => setLiveChecked(doc, key, !isChecked(block))}
+                onFocus={() => setFocused(key)}
+                onBlur={() => setFocused((current) => current === key ? null : current)}
+              />
+            ) : (
+              <>
+                <NoteBlockView block={block} index={numberIn(blocks, at)} onPress={() => {}} onToggle={() => {}} />
+                <BlockCursors people={cursors} />
+              </>
+            )}
+          </View>
         );
       })}
 
@@ -134,7 +152,8 @@ export default function Notes() {
         </View>
       ) : null}
 
-      <View style={{ paddingTop: space.lg, alignItems: "flex-end" }}>
+      <View style={{ paddingTop: space.lg, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+        <PresenceRow people={presence.people} />
         <Body tone="ink-3">{LIVE_STATUS_WORDS[status]}</Body>
       </View>
     </ScrollView>

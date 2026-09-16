@@ -84,6 +84,23 @@ describe("the live socket", () => {
     expect(read(ada.document)).toBe(read(mo.document));
   });
 
+  it("carries a phone member's identity and cursor to the web", async () => {
+    const web = connectAs(world.admin, world.ours.id);
+    const phone = connectAs(world.member, world.ours.id);
+    await until(() => web.isSynced && phone.isSynced);
+
+    phone.awareness?.setLocalStateField("user", { id: world.member, name: "Phone member", tone: "who-2" });
+    phone.awareness?.setLocalStateField("blockCursor", "plan");
+
+    await until(() => [...(web.awareness?.getStates().values() ?? [])].some((state) => state.user?.id === world.member));
+    expect([...(web.awareness?.getStates().values() ?? [])]).toContainEqual(
+      expect.objectContaining({
+        user: expect.objectContaining({ id: world.member, name: "Phone member" }),
+        blockCursor: "plan",
+      }),
+    );
+  });
+
   it("keeps edits made while disconnected and sends them on reconnect", async () => {
     const ada = connectAs(world.admin, world.ours.id);
     const mo = connectAs(world.member, world.ours.id);

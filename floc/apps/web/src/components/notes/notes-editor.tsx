@@ -17,6 +17,7 @@ import { liveUser } from "@floc/core/notes/live/live-presence";
 import { LIVE_STATUS_WORDS } from "@floc/core/notes/live/live-status";
 import { useSiteTheme } from "@/lib/use-site-theme";
 import { renderLiveCursor } from "./live-cursor";
+import { PhoneBlockCursors } from "./phone-block-cursors";
 import { useLiveNotes, type LiveNotes } from "./use-live-notes";
 import { useLivePresence } from "./use-live-presence";
 
@@ -52,21 +53,24 @@ function LiveEditor({ live, viewer }: { live: LiveNotes; viewer: Viewer }) {
     }),
   );
   const theme = useSiteTheme();
-  const people = useLivePresence(live.provider);
+  const presence = useLivePresence(live.provider, live.doc);
 
   return (
     <>
-      <BlockNoteView
-        editor={editor}
-        // Why: left unset, BlockNote follows the device's dark setting and
-        // paints the editor dark on a light site.
-        theme={theme}
-      />
-      <div className="mt-4 flex items-center justify-between gap-4">
-        <AvatarRow people={people} size={24} />
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <AvatarRow people={presence.people} size={24} />
         <p className="typed" aria-live="polite">
           {LIVE_STATUS_WORDS[live.status]}
         </p>
+      </div>
+      <div className="relative">
+        <BlockNoteView
+          editor={editor}
+          // Why: left unset, BlockNote follows the device's dark setting and
+          // paints the editor dark on a light site.
+          theme={theme}
+        />
+        <PhoneBlockCursors editor={editor} people={presence.cursors} />
       </div>
     </>
   );

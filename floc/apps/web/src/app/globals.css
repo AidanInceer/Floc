@@ -1057,6 +1057,32 @@
   background-color: var(--highlight) !important;
 }
 
+.floc-phone-block-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.floc-phone-block-cursors {
+  position: absolute;
+  align-items: center;
+  margin-left: 0.375rem;
+  z-index: 2;
+  display: flex;
+  gap: 0.25rem;
+  pointer-events: none;
+}
+
+.floc-phone-block-cursor {
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 0.1rem 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  white-space: nowrap;
+}
+
 .bn-root .bn-default-styles {
   /* The library ships Inter; the app writes in Instrument Sans. */
   font-family: var(--sans);
@@ -1137,4 +1163,3 @@
   width: 15px;
   height: 15px;
 }
-

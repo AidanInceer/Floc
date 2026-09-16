@@ -1,8 +1,13 @@
+import type * as Y from "yjs";
+
 import { whoTone } from "../../people/who";
+import { liveBlockCursor, liveCursorBlockId } from "./live-block-cursor";
 
 export type LiveUser = { id: string; name: string; tone: string; color: string };
 
 export type PresentPerson = { id: string; name: string; tone: string };
+
+export type PresentBlockCursor = PresentPerson & { blockId: string };
 
 const FALLBACK_TONE = "who-8";
 
@@ -26,4 +31,19 @@ export function presentPeople(states: Map<number, unknown>): PresentPerson[] {
     if (!people.has(user.id)) people.set(user.id, { id: user.id, name: user.name, tone: cursorTone(user) });
   }
   return [...people.values()];
+}
+
+export function presentBlockCursors(states: Map<number, unknown>, doc: Y.Doc): PresentBlockCursor[] {
+  const cursors = new Map<string, PresentBlockCursor>();
+  for (const state of states.values()) {
+    const remote = state as { user?: Record<string, unknown>; cursor?: unknown; blockCursor?: unknown } | null;
+    const user = remote?.user;
+    if (typeof user?.id !== "string" || typeof user.name !== "string" || cursors.has(user.id)) continue;
+    const explicit = remote?.blockCursor;
+    const blockId = typeof explicit === "string" && liveBlockCursor(doc, explicit)
+      ? explicit
+      : liveCursorBlockId(doc, remote?.cursor);
+    if (blockId) cursors.set(user.id, { id: user.id, name: user.name, tone: cursorTone(user), blockId });
+  }
+  return [...cursors.values()];
 }
