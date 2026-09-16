@@ -46,6 +46,7 @@ import { EventForm, type EventDraft } from "@/components/days/event-form";
 import { OvernightLine } from "@/components/days/overnight-line";
 import { Button, Empty, Failed, Label, Loading } from "@/components/system/ui";
 import { useSession } from "@/lib/auth";
+import { openingDay } from "@/lib/days/opening-day";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 
@@ -69,7 +70,7 @@ type Editing =
   | { kind: "edit"; eventId: number };
 
 export default function Days() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, date } = useLocalSearchParams<{ id: string; date?: string }>();
   const tripId = Number(id);
   // A screen keeps rendering for a frame while it leaves, and `id` is gone by
   // then: NaN goes down the wire as null and the server rightly refuses it.
@@ -78,7 +79,6 @@ export default function Days() {
   const queryClient = useQueryClient();
   const { data: session } = useSession();
 
-  const [chosen, setChosen] = useState<string | null>(null);
   const [editing, setEditing] = useState<Editing>({ kind: "none" });
   const [problem, setProblem] = useState<string | null>(null);
 
@@ -126,10 +126,10 @@ export default function Days() {
   }
 
   const dates = days.data.map((day) => day.date);
-  // The trip's own today when it is running, else its first day. Neither is a
-  // stored choice — both fall straight out of the dates that exist (rule 4).
   const now = today();
-  const selected = chosen ?? (dates.includes(now) ? now : dates[0]);
+  // Why: the chosen day lives in the route, so a tap on Overview's track lands
+  // here even when this tab is already mounted.
+  const selected = openingDay(dates, date, now);
   const day = days.data.find((row) => row.date === selected) ?? days.data[0];
 
   const busy = addEvent.isPending || updateEvent.isPending || deleteEvent.isPending;
@@ -154,8 +154,8 @@ export default function Days() {
           dates={dates}
           selected={selected}
           todayDate={now}
-          onSelect={(date) => {
-            setChosen(date);
+          onSelect={(picked) => {
+            router.setParams({ date: picked });
             setEditing({ kind: "none" });
           }}
         />

@@ -16,6 +16,7 @@ import {
   defaultBlockSpecs,
   type Block,
 } from "@blocknote/core";
+import { useSiteTheme } from "@/lib/use-site-theme";
 import { BlockNoteView } from "@blocknote/ariakit";
 import { useCreateBlockNote } from "@blocknote/react";
 
@@ -91,13 +92,15 @@ export function NotesEditor({
     };
   }, [flush]);
 
+  const theme = useSiteTheme();
+
   return (
     <>
       <BlockNoteView
         editor={editor}
-        // No `theme` prop: the palette is set in globals.css off the house
-        // tokens, so it follows `data-theme` with nothing to hydrate. Naming a
-        // theme here would only pin the few styles the tokens do not cover.
+        // Why: left unset, BlockNote follows the device's dark setting and
+        // paints the editor dark on a light site.
+        theme={theme}
         onChange={queueSave}
       />
       <p className="typed mt-4 text-right" aria-live="polite">

@@ -156,7 +156,7 @@ export default async function FriendsPage() {
                 <form action={removeFriend}>
                   <input type="hidden" name="otherId" value={person.id} />
                   <ConfirmSubmit
-                    variant="ghost"
+                    variant="danger"
                     message={`Remove ${person.name} as a friend?`}
                     confirmLabel="Remove friend"
                   >

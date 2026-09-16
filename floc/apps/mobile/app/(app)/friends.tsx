@@ -14,7 +14,7 @@
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { Pressable, ScrollView, View } from "react-native";
+import { Alert, Pressable, ScrollView, View } from "react-native";
 
 import { PersonRow } from "@/components/trip/person-row";
 import { Body, Button, Empty, Failed, Label, Loading } from "@/components/system/ui";
@@ -101,9 +101,18 @@ export default function Friends() {
               <PersonRow name={person.name} avatarIcon={person.avatarIcon}>
                 <Button
                   label="Remove"
-                  variant="quiet"
+                  variant="danger"
                   busy={remove.isPending}
-                  onPress={() => remove.mutate({ userId: person.id })}
+                  onPress={() =>
+                    Alert.alert(`Remove ${person.name} as a friend?`, undefined, [
+                      { text: "Cancel", style: "cancel" },
+                      {
+                        text: "Remove friend",
+                        style: "destructive",
+                        onPress: () => remove.mutate({ userId: person.id }),
+                      },
+                    ])
+                  }
                 />
               </PersonRow>
             </Pressable>

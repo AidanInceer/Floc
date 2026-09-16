@@ -12,6 +12,7 @@
  *
  * Still open to any member, not just an admin — see `renameTrip`.
  */
+import { titleCase } from "@floc/core/text/title-case";
 import { useActionState, useEffect, useRef, useState } from "react";
 
 import { Button, ErrorText, Input } from "@/components/system/ui";
@@ -56,7 +57,7 @@ export function TripNameInline({
     return (
       <span className="inline-flex items-center gap-2">
         <h1 className="font-display text-2xl font-semibold tracking-tight">
-          {name}
+          {titleCase(name)}
         </h1>
         {/* Icon-only (ticket 213): the pencil carries a bordered box at rest so
             it still reads as a control on a hero of plain text. */}
@@ -78,7 +79,7 @@ export function TripNameInline({
     <form action={formAction} className="inline-flex flex-col gap-1">
       {/* The visible heading is the input while editing, so the page keeps an
           <h1> for anything reading the outline. */}
-      <h1 className="sr-only">{name}</h1>
+      <h1 className="sr-only">{titleCase(name)}</h1>
       <span className="flex items-center gap-1.5">
         <input type="hidden" name="tripId" value={tripId} />
         <Input

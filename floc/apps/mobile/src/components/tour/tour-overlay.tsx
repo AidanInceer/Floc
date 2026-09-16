@@ -91,10 +91,9 @@ export function TourOverlay({ onDone }: { onDone: () => void }) {
   const [stops, setStops] = useState<TourStop[] | null>(null);
   const [state, setState] = useState({ index: 0, done: false });
 
-  // Why: waits a beat so Overview has drawn — the nudge is a stop only if it is there.
   useEffect(() => {
     const timer = setTimeout(() => {
-      setStops(tourStopsFor({ hasNudge: tour?.targets.current?.has("nudge") ?? false, hasFiles: true }));
+      setStops(tourStopsFor({ hasFiles: true }));
     }, SETTLE_MS * 2);
     return () => clearTimeout(timer);
   }, []);

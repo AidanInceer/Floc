@@ -49,8 +49,6 @@ import {
   listSettlements,
   listSplits,
 } from "@/server/money/money";
-import { viewerHasPacking } from "@/server/packing/packing";
-import { nextStepFor } from "@floc/core/trip/next-step";
 import { tourSeenAt } from "@/server/auth/tour";
 import { shouldStartTour, tourStopsFor } from "@floc/core/trip/tour";
 import { absoluteUrl } from "@/server/auth/email";
@@ -128,7 +126,6 @@ export default async function OverviewPage({
     settlementRows,
     routeDays,
     transportModes,
-    hasPacking,
     tourSeen,
     bookingPrefill,
   ] = await Promise.all([
@@ -143,7 +140,6 @@ export default async function OverviewPage({
     // `listDays` doesn't carry, plus travel modes off `day_event`.
     listRouteDays(tripId),
     transportModesByDay(tripId),
-    viewerHasPacking(tripId, viewer.id),
     tourSeenAt(viewer.id),
     canUseFeature("booking.prefill", tripId),
   ]);
@@ -164,13 +160,6 @@ export default async function OverviewPage({
   });
 
   const { datesUnset, unresolved } = state;
-  const nextStep = nextStepFor({
-    memberCount: members.length,
-    datesUnset,
-    dayCount: dayRows.length,
-    expenseCount: expenseRows.length,
-    viewerHasPacking: hasPacking,
-  });
   const booking = bookingPlan({
     trip,
     days: routeDays.map((d) => ({ ...d, overnightPlaceName: d.placeName })),
@@ -312,7 +301,6 @@ export default async function OverviewPage({
           <TourWhenReady
             targets={[rosterExtras, docs]}
             stops={tourStopsFor({
-              hasNudge: nextStep !== null,
               hasFiles: documentsEnabled(),
             })}
           />

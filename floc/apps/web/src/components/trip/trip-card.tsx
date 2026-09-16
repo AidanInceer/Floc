@@ -7,6 +7,7 @@
  * wears a quiet pastel, and an archived trip drains to white so last year's
  * trip stays readable without asking for anything.
  */
+import { titleCase } from "@floc/core/text/title-case";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -139,7 +140,7 @@ function CardBody({
       <span className={cx("block", list && "min-w-0 sm:[grid-area:name]")}>
         <span className="typed block text-current">{eyebrow}</span>
         <h3 className={cx("mt-1", list ? "text-xl" : "text-2xl", past && "text-ink-soft")}>
-          {trip.name}
+          {titleCase(trip.name)}
         </h3>
       </span>
       {/* `sm:contents` dissolves this wrapper once the row flows, so dates and

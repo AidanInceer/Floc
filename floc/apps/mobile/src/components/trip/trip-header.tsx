@@ -17,6 +17,7 @@
  *
  * PLANNING ORDER (see the trip layout). Not alphabetical, not by traffic.
  */
+import { titleCase } from "@floc/core/text/title-case";
 import type { TourStopKey } from "@floc/core/trip/tour";
 import { useRouter } from "expo-router";
 import { useEffect, useRef } from "react";
@@ -137,7 +138,7 @@ function TitleBar({
             fontSize: size.heading,
           }}
         >
-          {title}
+          {titleCase(title)}
         </Text>
         {balance !== null ? (
           <BalanceChip
