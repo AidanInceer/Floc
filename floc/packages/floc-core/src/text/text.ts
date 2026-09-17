@@ -26,6 +26,8 @@ export const TEXT_CAPS = {
   /** A file's own name (ticket 239) — it rides in a response header twice. */
   documentName: 200,
   packingKitName: 80,
+  /** One idea on the overview — a line, not a paragraph. */
+  ideaTitle: 140,
 } as const;
 
 export type TextCap = keyof typeof TEXT_CAPS;

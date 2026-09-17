@@ -253,6 +253,13 @@
       "when": 1789593631721,
       "tag": "0035_typical_invaders",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "6",
+      "when": 1789667454363,
+      "tag": "0036_tranquil_puma",
+      "breakpoints": true
     }
   ]
 }

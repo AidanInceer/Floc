@@ -198,6 +198,23 @@ export type Comment = {
 };
 
 /**
+ * One idea for the trip, with its tally. `createdAt` crosses as an ISO string
+ * — it records when somebody typed, not an itinerary date, so rule 10 does not
+ * apply, but a `Date` does not survive JSON.
+ */
+export type Idea = {
+  id: number;
+  title: string;
+  createdAt: string;
+  createdBy: string;
+  authorName: string;
+  authorAvatarIcon: AvatarIcon | null;
+  votes: number;
+  /** Whether the caller has voted for it. */
+  mine: boolean;
+};
+
+/**
  * A place the trip's days point at, for the map (ticket 296).
  *
  * This is NOT a stop. A stop is consecutive days sharing an overnight place
@@ -1072,6 +1089,18 @@ export type FlocPort = {
     commentId: number,
     kind: ReactionKind,
   ): Promise<void>;
+
+  /** The trip's ideas, newest first; the client orders them for reading. */
+  listIdeas(viewerId: string, tripId: number): Promise<Idea[]>;
+
+  /** Any member may add one. The title is capped, never rejected for length. */
+  addIdea(viewerId: string, tripId: number, title: string): Promise<void>;
+
+  /** Toggles — voting again takes the vote back. One vote per person. */
+  voteIdea(viewerId: string, tripId: number, ideaId: number): Promise<void>;
+
+  /** Any member may remove any idea: it is the group's, and this is not a fourth admin power (rule 6). */
+  removeIdea(viewerId: string, tripId: number, ideaId: number): Promise<void>;
 
   /* --------------------------------------------------------- friends (#18) */
 

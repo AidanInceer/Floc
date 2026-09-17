@@ -30,6 +30,8 @@ const TABLES = [
   schema.packingLine,
   schema.noteReaction,
   schema.note,
+  schema.ideaVote,
+  schema.idea,
   schema.expenseSplit,
   schema.expense,
   schema.settlement,

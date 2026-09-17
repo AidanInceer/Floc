@@ -40,6 +40,7 @@ import { scoped } from "@/server/api-port/api-port-scope";
 // the trip half, and a file whose name needs "and" is two files.
 import { billingPort } from "@/server/api-port/api-port-billing";
 import { commentsPort } from "@/server/api-port/api-port-comments";
+import { ideasPort } from "@/server/api-port/ideas/ideas";
 import { filesPort } from "@/server/api-port/api-port-files";
 import { explorePort } from "@/server/api-port/api-port-explore";
 import { kitsPort } from "@/server/api-port/api-port-kits";
@@ -161,6 +162,7 @@ export const webPort: FlocPort = {
   ...kitsPort,
   ...filesPort,
   ...commentsPort,
+  ...ideasPort,
   ...socialPort,
   ...billingPort,
   ...weatherPort,

@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "floc",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "Floc's own skills: tickets, run, push, release and the dev database.",
   "author": {
     "name": "Aidan Inceer"
@@ -11,6 +11,7 @@
     "./skills/prioritise-tickets",
     "./skills/pickup-ticket",
     "./skills/run",
+    "./skills/implement-feature",
     "./skills/push",
     "./skills/release",
     "./skills/seed-dev-db",

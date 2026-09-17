@@ -386,6 +386,46 @@ export const tripNoteDoc = sqliteTable(
 );
 
 /**
+ * An idea for the trip, before the trip has a shape — a destination, a way of
+ * going. Any member may add one, vote for one, or remove one; there is no
+ * thread, so no `parent_id` and no scope.
+ */
+export const idea = sqliteTable(
+  "idea",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    tripId: integer("trip_id")
+      .notNull()
+      .references(() => trip.id, { onDelete: "cascade" }),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => user.id),
+    title: text("title").notNull(),
+    ...audit,
+  },
+  (t) => [index("idea_trip_idx").on(t.tripId)],
+);
+
+export const ideaVote = sqliteTable(
+  "idea_vote",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    ideaId: integer("idea_id")
+      .notNull()
+      .references(() => idea.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id),
+    ...audit,
+  },
+  (t) => [
+    index("idea_vote_idea_idx").on(t.ideaId),
+    /** Unique without `deleted_at`, like `note_reaction_one_idx`: un-voting soft-deletes, so voting again must land on the same row rather than count twice. */
+    uniqueIndex("idea_vote_one_idx").on(t.ideaId, t.userId),
+  ],
+);
+
+/**
  * A thing to pack (ticket 219, extended by 220). One table, two lists: a null
  * `owner_id` is the trip's shared gear, a set one is that person's own bag and
  * is never read for anybody else.

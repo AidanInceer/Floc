@@ -21,6 +21,7 @@ const EVERY_FACT: { [K in FactKind]: Extract<Fact, { kind: K }> } = {
   tripDates: { kind: "tripDates", tripId: TRIP },
   tripHeader: { kind: "tripHeader", tripId: TRIP },
   tripOverview: { kind: "tripOverview", tripId: TRIP },
+  ideas: { kind: "ideas", tripId: TRIP },
   money: { kind: "money", tripId: TRIP },
   packing: { kind: "packing", tripId: TRIP },
   documents: { kind: "documents", tripId: TRIP },

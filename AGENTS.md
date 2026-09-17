@@ -135,6 +135,7 @@ Issues/PRDs are GitHub issues, driven with `gh`. The skills are the `floc` plugi
 | Skill | Does |
 |---|---|
 | `/floc:run` | Brings up web, Metro, emulator and app, then proves each answers. |
+| `/floc:implement-feature` | Builds one feature test-first on web + app, checks parity, UI and docs, reports. |
 | `/floc:push` | Local work → one verified commit on `develop`, ticket tagged, CI watched. |
 | `/floc:release` | `develop` → `main` PR, merge commit on your yes, then tickets, sync and deploy checked. |
 | `/floc:to-tickets` | Slices a plan into tracer-bullet issues with blocking edges. |

@@ -43,6 +43,7 @@ import {
   transportModesByDay,
 } from "@/server/itinerary/itinerary";
 import { listAvailability } from "@/server/itinerary/availability";
+import { listIdeas } from "@/server/ideas/ideas-read";
 import { listDeclinedInvitees, listPendingInvitees } from "@/server/trips/invites";
 import {
   listExpenses,
@@ -73,6 +74,7 @@ import { TripNameInline } from "@/components/trip/trip-name-inline";
 import { friendStatesFor, listFriendsFor } from "@/server/social/friends";
 import { TripRoute } from "@/components/trip/trip-route";
 import { TripDayTrack } from "@/components/days/trip-day-track";
+import { IdeasPanel } from "@/components/trip/ideas/ideas-panel";
 import { TagEditor } from "@/components/trip/tag-editor";
 import { readTags } from "@floc/core/trip/tags";
 import { readTripColor } from "@floc/core/trip/trip-color";
@@ -128,6 +130,7 @@ export default async function OverviewPage({
     transportModes,
     tourSeen,
     bookingPrefill,
+    ideas,
   ] = await Promise.all([
     // Unconditional: one indexed read is cheaper than a serial round trip when
     // the dates are unset.
@@ -142,6 +145,7 @@ export default async function OverviewPage({
     transportModesByDay(tripId),
     tourSeenAt(viewer.id),
     canUseFeature("booking.prefill", tripId),
+    listIdeas(tripId, viewer.id),
   ]);
 
   // All "where the trip is up to" is derived in one pure call (ticket 109); the
@@ -236,7 +240,12 @@ export default async function OverviewPage({
         </div>
       </header>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-3">
+      {/* Ideas first: before dates exist it is the only live question on the page. */}
+      <div className="mt-6">
+        <IdeasPanel tripId={tripId} ideas={ideas} datesUnset={datesUnset} />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
         {/* The trip. */}
         <div className="flex flex-col gap-4 lg:col-span-2">
           {/* Renders nothing until a day has an overnight place — an undated

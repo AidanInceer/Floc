@@ -38,6 +38,8 @@ export const LIMITS = {
   invites: 200,
   /** Files parked against one trip. A folder, not a drive. */
   documents: 500,
+  /** Ideas on one trip. A shortlist, not a suggestion box. */
+  ideas: 200,
   /** Availability marks read for the Dates grid: members × days, capped. */
   availability: 20_000,
 } as const;
