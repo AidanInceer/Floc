@@ -7,8 +7,10 @@
 import { ConfirmSubmit, Menu, Sheet, SubmitButton } from "@/components/system/client-ui";
 import { Field, Input, Stack, menuDangerItemClass, menuItemClass } from "@/components/system/ui";
 import { TripColorPicker } from "@/components/trip/trip-color-picker";
+import { TripMarkPicker } from "@/components/trip/trip-mark-picker";
 import { TEXT_CAPS } from "@floc/core/text/text";
-import type { TripColor } from "@floc/core/trip/trip-color";
+import { tripPastel, type TripColor } from "@floc/core/trip/trip-color";
+import type { TripMark } from "@floc/core/trip/mark/trip-mark";
 import { archiveTrip, deleteTrip, muteTrip, renameTripFromMenu } from "@/app/trips/actions";
 
 export function TripCardMenu({
@@ -16,12 +18,14 @@ export function TripCardMenu({
   tripName,
   isAdmin,
   color,
+  mark,
   muted,
 }: {
   tripId: number;
   tripName: string;
   isAdmin: boolean;
   color: TripColor | null;
+  mark: TripMark | null;
   muted: boolean;
 }) {
   return (
@@ -49,6 +53,8 @@ export function TripCardMenu({
       </Sheet>
 
       <TripColorPicker tripId={tripId} current={color} />
+
+      <TripMarkPicker tripId={tripId} current={mark} tone={tripPastel(color, tripId)} />
 
       <form action={muteTrip}>
         <input type="hidden" name="tripId" value={tripId} />

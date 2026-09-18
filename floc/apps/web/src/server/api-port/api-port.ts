@@ -40,6 +40,7 @@ import { scoped } from "@/server/api-port/api-port-scope";
 // the trip half, and a file whose name needs "and" is two files.
 import { billingPort } from "@/server/api-port/api-port-billing";
 import { commentsPort } from "@/server/api-port/api-port-comments";
+import { ideasPort } from "@/server/api-port/ideas/ideas";
 import { filesPort } from "@/server/api-port/api-port-files";
 import { explorePort } from "@/server/api-port/api-port-explore";
 import { kitsPort } from "@/server/api-port/api-port-kits";
@@ -128,6 +129,7 @@ function toDetail(access: TripAccess, bookingPrefill: boolean): TripDetail {
     endDate: access.trip.endDate,
     tags: access.trip.tags,
     colorKey: access.trip.colorKey,
+    mark: access.trip.mark,
     archived: access.trip.archivedAt !== null,
     role: access.role,
     members: access.members.map((m) => ({
@@ -161,6 +163,7 @@ export const webPort: FlocPort = {
   ...kitsPort,
   ...filesPort,
   ...commentsPort,
+  ...ideasPort,
   ...socialPort,
   ...billingPort,
   ...weatherPort,

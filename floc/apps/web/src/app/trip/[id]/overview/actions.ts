@@ -10,6 +10,12 @@ import { assertAdmin, requireTripAccess, requireUser } from "@/server/access";
 import { markTourSeen as markTourSeenFor } from "@/server/auth/tour";
 import { parseTagNames } from "@floc/core/trip/tags";
 import { capText, properCase, TEXT_CAPS } from "@floc/core/text/text";
+import {
+  findIdea,
+  insertIdea,
+  softDeleteIdea,
+  toggleIdeaVote,
+} from "@/server/ideas/ideas";
 import { LIMITS } from "@/server/limits";
 import { inviteToTrip } from "@/server/trips/invites";
 import {
@@ -165,4 +171,50 @@ export async function leaveTrip(formData: FormData) {
     { kind: "profileTrips" },
   );
   redirect("/trips");
+}
+
+// Ideas — add, vote, remove. All three are open to every member: an idea is
+// the group's, and removing one is not a fourth admin power (rule 6).
+export async function addIdea(formData: FormData) {
+  const tripId = Number(formData.get("tripId"));
+  const title = capText(formData.get("title"), "ideaTitle");
+
+  if (!title) return { error: "An idea needs a line of text." };
+
+  const access = await requireTripAccess(tripId);
+
+  await insertIdea({
+    tripId: access.trip.id,
+    createdBy: access.viewer.id,
+    title,
+  });
+
+  refresh({ kind: "ideas", tripId: access.trip.id });
+}
+
+export async function voteIdea(formData: FormData) {
+  const tripId = Number(formData.get("tripId"));
+  const ideaId = Number(formData.get("ideaId"));
+
+  const access = await requireTripAccess(tripId);
+  // Re-read inside the trip, so a crafted id can't vote on another trip's idea.
+  const target = await findIdea(access.trip.id, ideaId);
+  if (!target) return;
+
+  await toggleIdeaVote(target.id, access.viewer.id);
+
+  refresh({ kind: "ideas", tripId: access.trip.id });
+}
+
+export async function removeIdea(formData: FormData) {
+  const tripId = Number(formData.get("tripId"));
+  const ideaId = Number(formData.get("ideaId"));
+
+  const access = await requireTripAccess(tripId);
+  const target = await findIdea(access.trip.id, ideaId);
+  if (!target) return;
+
+  await softDeleteIdea(access.trip.id, target.id);
+
+  refresh({ kind: "ideas", tripId: access.trip.id });
 }

@@ -97,6 +97,14 @@ describe("updating the trip row", () => {
     expect(after?.tags).toEqual(["beach"]);
   });
 
+  it("stores a chosen mark, and clears it back to the pastel alone (#318)", async () => {
+    await updateTrip(world.ours.id, { mark: "wave" });
+    expect((await tripRow(world.ours.id))?.mark).toBe("wave");
+
+    await updateTrip(world.ours.id, { mark: null });
+    expect((await tripRow(world.ours.id))?.mark).toBeNull();
+  });
+
   it("leaves a deleted trip alone — the patch is not a way back in", async () => {
     await softDeleteTrip(world.ours.id);
     await updateTrip(world.ours.id, { name: "Resurrected" });

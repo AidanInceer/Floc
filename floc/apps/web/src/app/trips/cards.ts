@@ -14,6 +14,7 @@ import { listTripsFor } from "@/server/trips/trips";
 import { hasEnded } from "@floc/core/dates/dates";
 import { readTags } from "@floc/core/trip/tags";
 import { readTripColor } from "@floc/core/trip/trip-color";
+import { readTripMark } from "@floc/core/trip/mark/trip-mark";
 import type { TripCardData } from "@/components/trip/trip-card";
 
 // Card plus the roster it was built from — Archived names the admins to ask
@@ -58,6 +59,7 @@ export async function loadTripCards(
         where: whereByTrip.get(r.id) ?? null,
         tags: readTags(r.tags),
         color: readTripColor(r.colorKey),
+        mark: readTripMark(r.mark),
       },
     };
   });

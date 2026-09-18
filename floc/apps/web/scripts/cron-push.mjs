@@ -14,7 +14,7 @@ const response = await fetch(new URL("/api/cron/push", url), {
   method: "POST",
   headers: { authorization: `Bearer ${secret}` },
 });
-const body = await response.text();
+const body = (await response.text()).replace(/[\r\n]+/g, " ");
 if (!response.ok) {
   console.error(`[cron-push] ${response.status} ${body}`);
   process.exit(1);

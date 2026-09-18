@@ -13,7 +13,9 @@
 import { ConfirmSubmit, Menu } from "@/components/system/client-ui";
 import { menuDangerItemClass, menuItemClass } from "@/components/system/ui";
 import { TripColorPicker } from "@/components/trip/trip-color-picker";
-import type { TripColor } from "@floc/core/trip/trip-color";
+import { TripMarkPicker } from "@/components/trip/trip-mark-picker";
+import { tripPastel, type TripColor } from "@floc/core/trip/trip-color";
+import type { TripMark } from "@floc/core/trip/mark/trip-mark";
 import { archiveTrip, deleteTrip } from "@/app/trips/actions";
 import { leaveTrip } from "@/app/trip/[id]/overview/actions";
 
@@ -24,6 +26,7 @@ export function TripMenu({
   archived,
   leaveWarning,
   color,
+  mark,
 }: {
   tripId: number;
   tripName: string;
@@ -31,11 +34,15 @@ export function TripMenu({
   archived: boolean;
   leaveWarning: string;
   color: TripColor | null;
+  mark: TripMark | null;
 }) {
   return (
     <Menu label="Trip actions">
-      {/* The trip's colour — any member, same as rename and tags (ticket 213). */}
+      {/* The trip's colour and mark — any member, same as rename and tags
+          (ticket 213, #318). */}
       <TripColorPicker tripId={tripId} current={color} />
+
+      <TripMarkPicker tripId={tripId} current={mark} tone={tripPastel(color, tripId)} />
 
       {/* Leaving is not an admin power (rule 6), so every member sees it. The
           confirm copy carries whichever consequence applies. */}

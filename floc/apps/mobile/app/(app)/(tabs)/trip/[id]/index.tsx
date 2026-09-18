@@ -1,22 +1,9 @@
 /**
- * Trip Overview (tickets 291, 296).
- *
- * A TRIP HAS TWO FACES. Days is its *when*. This is its *who, where and what*:
- * people, places, files, and anything outstanding. That line already exists in
- * the data — days come from `day` rows, while members, places and files belong
- * to no particular date.
- *
- * So a trip with no dates opens here not because it is blocked, but because
- * this is the half that still has something to show. Nothing is gated, no flag
- * is stored, and undated is never an error (rules 4 and 9).
- *
- * EVERYTHING ON THIS SCREEN IS DERIVED. The outstanding items especially:
- * there is no notification table and no dismiss, so an item is present exactly
- * while the fact behind it is true. The stops likewise — consecutive days
- * sharing an overnight place, computed by `@floc/core/stops`, never a `stop`
- * table (rule 3).
+ * Trip Overview (tickets 291, 296) — the trip's *who, where and what*; Days is
+ * its *when*. Undated opens here and is never an error (rules 4 and 9), and a
+ * stop is derived from the days, never stored (rule 3).
  */
-import { computeBalances, isAllSettled } from "@floc/core/money/money";
+import { computeBalances } from "@floc/core/money/money";
 import { spendHeadline } from "@floc/core/money/spend";
 import { groupStatuses, owingUserIds } from "@floc/core/trip/group/group-status";
 import { bookingPlan } from "@floc/core/trip/booking-links";
@@ -30,7 +17,7 @@ import { ScrollView, View } from "react-native";
 import { DayTrack } from "@/components/days/day-track";
 import { FileList } from "@/components/files/file-list";
 import { GroupActions } from "@/components/trip/group-actions";
-import { NeedsYou, type Outstanding } from "@/components/trip/needs-you";
+import { IdeasSection } from "@/components/trip/ideas/ideas-section";
 import { RouteMap } from "@/components/map/route-map";
 import { RosterStrip } from "@/components/trip/roster-strip";
 import { BookingTiles } from "@/components/trip/booking-tiles";
@@ -82,8 +69,6 @@ export default function Overview() {
 
   const go = (route: string) => router.push(`/trip/${tripId}/${route}` as never);
 
-  const outstanding = outstandingFor(ledger.data, go);
-
   return (
     <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.xl }}>
       {/* No name here: the header carries it on every section, and printing it
@@ -106,7 +91,8 @@ export default function Overview() {
         {trip.data.archived ? <Pill word="Archived" tone="butter" /> : null}
       </View>
 
-      <NeedsYou items={outstanding} />
+      {/* Ideas first: before the dates exist it is the only live question here. */}
+      <IdeasSection tripId={tripId} datesUnset={!trip.data.startDate && !trip.data.endDate} />
 
       <View ref={rosterTarget} style={{ gap: space.sm }}>
         {/* "The group", as the web panel calls it — one name for one thing. */}
@@ -231,28 +217,6 @@ function statusesFor(
     needDates: undated && availability ? trip.members.map((m) => m.userId).filter((id) => !marked.has(id)) : [],
     owing: ledger ? owingUserIds(balancesFrom(ledger)) : [],
   });
-}
-
-/** Whatever is still true and still unanswered. Nothing is stored — an item exists while its fact does. */
-function outstandingFor(
-  ledger: Ledger | undefined,
-  go: (route: string) => void,
-): Outstanding[] {
-  const items: Outstanding[] = [];
-
-  // Derived from the ledger the API already returned — there is no balance
-  // column and no balance procedure, because a stored balance is a second
-  // source of truth about the same money (rule 1).
-  if (ledger && !isAllSettled(balancesFrom(ledger))) {
-    items.push({
-      id: "money",
-      said: "Money is not settled up.",
-      action: "See who owes what",
-      onPress: () => go("money"),
-    });
-  }
-
-  return items;
 }
 
 function balancesFrom(ledger: Ledger) {

@@ -16,6 +16,7 @@ const TRIP: TripDetail = {
   endDate: "2026-05-05",
   tags: null,
   colorKey: null,
+  mark: null,
   archived: false,
   role: "member",
   members: [

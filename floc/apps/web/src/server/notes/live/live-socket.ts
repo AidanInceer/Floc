@@ -23,7 +23,7 @@ export function attachNotesLive(
 ): void {
   const sockets = new WebSocketServer({ noServer: true, maxPayload: 2 * 1024 * 1024 });
   server.on("upgrade", (req, socket, head) => {
-    if (new URL(req.url ?? "/", "http://x").pathname !== LIVE_NOTES_PATH) {
+    if ((req.url ?? "/").split("?")[0] !== LIVE_NOTES_PATH) {
       if (fallback) fallback(req, socket, head);
       else socket.destroy();
       return;

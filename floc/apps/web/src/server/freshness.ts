@@ -23,6 +23,7 @@ export type Fact =
   | { kind: "tripDates"; tripId: number }
   | { kind: "tripHeader"; tripId: number }
   | { kind: "tripOverview"; tripId: number }
+  | { kind: "ideas"; tripId: number }
   | { kind: "money"; tripId: number }
   | { kind: "packing"; tripId: number }
   | { kind: "documents"; tripId: number }
@@ -61,6 +62,7 @@ const PAGES: Pages = {
   // that need it say so with their own fact.
   tripHeader: ({ tripId }) => [{ path: `/trip/${tripId}`, type: "layout" }],
   tripOverview: ({ tripId }) => [{ path: `/trip/${tripId}/overview` }],
+  ideas: ({ tripId }) => [{ path: `/trip/${tripId}/overview` }],
   money: ({ tripId }) => [{ path: `/trip/${tripId}/money` }],
   packing: ({ tripId }) => [{ path: `/trip/${tripId}/packing` }],
   // Days too since ticket 322: a file can sit on an event, and the block draws

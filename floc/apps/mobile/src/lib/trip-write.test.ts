@@ -47,15 +47,15 @@ beforeEach(() => {
 });
 
 describe("useTripWrite", () => {
-  it("saves a trimmed name with the colour and tags", () => {
+  it("saves a trimmed name with the colour, mark and tags", () => {
     const write = useTripWrite(7, vi.fn());
-    write.save({ name: "  Lisbon  ", color: null, tags: ["food"] });
-    expect(byKey("trips.update").mutate).toHaveBeenCalledWith({ tripId: 7, name: "Lisbon", colorKey: null, tags: ["food"] });
+    write.save({ name: "  Lisbon  ", color: null, mark: "wave", tags: ["food"] });
+    expect(byKey("trips.update").mutate).toHaveBeenCalledWith({ tripId: 7, name: "Lisbon", colorKey: null, mark: "wave", tags: ["food"] });
   });
 
   it("does not save a blank name", () => {
     const write = useTripWrite(7, vi.fn());
-    write.save({ name: "   ", color: null, tags: [] });
+    write.save({ name: "   ", color: null, mark: null, tags: [] });
     expect(byKey("trips.update").mutate).not.toHaveBeenCalled();
   });
 

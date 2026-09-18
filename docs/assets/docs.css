@@ -1,7 +1,9 @@
 /* Floc docs — local-only static site.
    Palette, faces, radii and shadows follow the web app: values from
    floc/packages/floc-core/src/design/tokens.ts, shapes from app/globals.css.
-   Dark follows the system setting; the docs have no switch. */
+   Light and dark are both explicit: assets/theme.js writes data-theme on <html>
+   before first paint, from the saved choice or the system setting. There is no
+   prefers-color-scheme block, so the two never disagree. */
 
 @import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap");
 
@@ -35,27 +37,25 @@
   --mono: "DM Mono", "Cascadia Mono", Consolas, "Courier New", monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #18181b;
-    --sheet: #222226;
-    --sheet-2: #2a2a2f;
-    --sheet-3: #323238;
-    --rule: #34343a;
-    --rule-2: #45454c;
-    --ink: #f0f0f3;
-    --ink-2: #b8b8c1;
-    --ink-3: #a2a2ac;
-    --pen: #9aabff;
-    --pen-deep: #c3cbff;
-    --pen-2: #24283a;
-    --pen-edge: #39406a;
-    --red: #f5b7a5;
-    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 14px -12px rgb(0 0 0 / 0.9);
-    --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.5), 0 14px 28px -16px rgb(0 0 0 / 0.95);
-    color-scheme: dark;
-  }
+:root[data-theme="dark"] {
+  --paper: #18181b;
+  --sheet: #222226;
+  --sheet-2: #2a2a2f;
+  --sheet-3: #323238;
+  --rule: #34343a;
+  --rule-2: #45454c;
+  --ink: #f0f0f3;
+  --ink-2: #b8b8c1;
+  --ink-3: #a2a2ac;
+  --pen: #9aabff;
+  --pen-deep: #c3cbff;
+  --pen-2: #24283a;
+  --pen-edge: #39406a;
+  --red: #f5b7a5;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 14px -12px rgb(0 0 0 / 0.9);
+  --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.5), 0 14px 28px -16px rgb(0 0 0 / 0.95);
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -602,4 +602,42 @@ main a.card { color: var(--ink); text-decoration: none; }
   #sidebar { display: none; }
   main { max-width: none; padding: 0; }
   main table, main pre, figure.diagram, .card { box-shadow: none; }
+}
+
+/* ---------- theme switch ---------- */
+
+.theme-toggle {
+  display: flex;
+  gap: 4px;
+  margin: 0 18px 14px;
+  padding: 3px;
+  background: var(--sheet-2);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-pill);
+}
+
+.theme-toggle button {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--ink-3);
+  font: 500 11px/1 var(--mono);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .18s var(--ease), color .18s var(--ease);
+}
+
+.theme-toggle button:hover { color: var(--ink); }
+
+.theme-toggle button[aria-pressed="true"] {
+  background: var(--sheet);
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
 }

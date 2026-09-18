@@ -56,6 +56,8 @@ export type TripSummary = {
   endDate: string | null;
   tags: string[] | null;
   colorKey: string | null;
+  /** The chosen mark, or null for the pastel alone (#318). Never a URL. */
+  mark: string | null;
   role: TripRole;
   /** The viewer's own star — never another member's. */
   starred: boolean;
@@ -83,6 +85,8 @@ export type TripDetail = {
   endDate: string | null;
   tags: string[] | null;
   colorKey: string | null;
+  /** The chosen mark, or null for the pastel alone (#318). Never a URL. */
+  mark: string | null;
   archived: boolean;
   /** The viewer's own role, so a client can hide what `assertAdmin` would refuse anyway. */
   role: TripRole;
@@ -198,6 +202,23 @@ export type Comment = {
 };
 
 /**
+ * One idea for the trip, with its tally. `createdAt` crosses as an ISO string
+ * — it records when somebody typed, not an itinerary date, so rule 10 does not
+ * apply, but a `Date` does not survive JSON.
+ */
+export type Idea = {
+  id: number;
+  title: string;
+  createdAt: string;
+  createdBy: string;
+  authorName: string;
+  authorAvatarIcon: AvatarIcon | null;
+  votes: number;
+  /** Whether the caller has voted for it. */
+  mine: boolean;
+};
+
+/**
  * A place the trip's days point at, for the map (ticket 296).
  *
  * This is NOT a stop. A stop is consecutive days sharing an overnight place
@@ -271,6 +292,7 @@ export type TripPatch = {
   startDate?: string | null | undefined;
   endDate?: string | null | undefined;
   colorKey?: string | null | undefined;
+  mark?: string | null | undefined;
   tags?: string[] | null | undefined;
 };
 
@@ -1072,6 +1094,18 @@ export type FlocPort = {
     commentId: number,
     kind: ReactionKind,
   ): Promise<void>;
+
+  /** The trip's ideas, newest first; the client orders them for reading. */
+  listIdeas(viewerId: string, tripId: number): Promise<Idea[]>;
+
+  /** Any member may add one. The title is capped, never rejected for length. */
+  addIdea(viewerId: string, tripId: number, title: string): Promise<void>;
+
+  /** Toggles — voting again takes the vote back. One vote per person. */
+  voteIdea(viewerId: string, tripId: number, ideaId: number): Promise<void>;
+
+  /** Any member may remove any idea: it is the group's, and this is not a fourth admin power (rule 6). */
+  removeIdea(viewerId: string, tripId: number, ideaId: number): Promise<void>;
 
   /* --------------------------------------------------------- friends (#18) */
 

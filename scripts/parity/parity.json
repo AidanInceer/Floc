@@ -81,6 +81,18 @@
     "friends.request": {
       "mobile": "yes"
     },
+    "ideas.add": {
+      "mobile": "yes"
+    },
+    "ideas.list": {
+      "mobile": "yes"
+    },
+    "ideas.remove": {
+      "mobile": "yes"
+    },
+    "ideas.vote": {
+      "mobile": "yes"
+    },
     "invites.accept": {
       "mobile": "yes"
     },

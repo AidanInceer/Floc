@@ -43,6 +43,7 @@ import {
   transportModesByDay,
 } from "@/server/itinerary/itinerary";
 import { listAvailability } from "@/server/itinerary/availability";
+import { listIdeas } from "@/server/ideas/ideas-read";
 import { listDeclinedInvitees, listPendingInvitees } from "@/server/trips/invites";
 import {
   listExpenses,
@@ -57,6 +58,9 @@ import { spendHeadline, spendNote } from "@floc/core/money/spend";
 import { groupStatuses } from "@floc/core/trip/group/group-status";
 import { OverviewBooking } from "@/components/trip/overview-booking";
 import { tripStateFor } from "@floc/core/trip/trip-state";
+import { tripPastel } from "@floc/core/trip/trip-color";
+import { readTripMark } from "@floc/core/trip/mark/trip-mark";
+import { TripMarkIcon } from "@/components/trip/trip-mark";
 import { formatDateRange, today } from "@floc/core/dates/dates";
 import { bookingPlan } from "@floc/core/trip/booking-links";
 import { canUseFeature } from "@/server/billing/entitlements";
@@ -73,6 +77,7 @@ import { TripNameInline } from "@/components/trip/trip-name-inline";
 import { friendStatesFor, listFriendsFor } from "@/server/social/friends";
 import { TripRoute } from "@/components/trip/trip-route";
 import { TripDayTrack } from "@/components/days/trip-day-track";
+import { IdeasPanel } from "@/components/trip/ideas/ideas-panel";
 import { TagEditor } from "@/components/trip/tag-editor";
 import { readTags } from "@floc/core/trip/tags";
 import { readTripColor } from "@floc/core/trip/trip-color";
@@ -128,6 +133,7 @@ export default async function OverviewPage({
     transportModes,
     tourSeen,
     bookingPrefill,
+    ideas,
   ] = await Promise.all([
     // Unconditional: one indexed read is cheaper than a serial round trip when
     // the dates are unset.
@@ -142,6 +148,7 @@ export default async function OverviewPage({
     transportModesByDay(tripId),
     tourSeenAt(viewer.id),
     canUseFeature("booking.prefill", tripId),
+    listIdeas(tripId, viewer.id),
   ]);
 
   // All "where the trip is up to" is derived in one pure call (ticket 109); the
@@ -182,6 +189,9 @@ export default async function OverviewPage({
     owing: unresolved.money,
   });
 
+  const mark = readTripMark(trip.mark);
+  const tone = tripPastel(readTripColor(trip.colorKey), tripId);
+
   return (
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
       <header className="flex flex-wrap items-end justify-between gap-6">
@@ -189,6 +199,13 @@ export default async function OverviewPage({
           {/* The name is the headline (ticket 89), with the dates on the same
               line — one hero row, not two (ticket 213). */}
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+            {/* The trip's mark, in its own pastel ink (#318). Decoration, so it
+                carries no label — the name beside it is the heading. */}
+            {mark ? (
+              <span className={cx("grid size-8 place-items-center rounded-md", PASTEL_BY_KEY[tone])}>
+                <TripMarkIcon mark={mark} size={18} />
+              </span>
+            ) : null}
             <TripNameInline
               tripId={tripId}
               name={trip.name}
@@ -236,7 +253,12 @@ export default async function OverviewPage({
         </div>
       </header>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-3">
+      {/* Ideas first: before dates exist it is the only live question on the page. */}
+      <div className="mt-6">
+        <IdeasPanel tripId={tripId} ideas={ideas} datesUnset={datesUnset} />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
         {/* The trip. */}
         <div className="flex flex-col gap-4 lg:col-span-2">
           {/* Renders nothing until a day has an overnight place — an undated

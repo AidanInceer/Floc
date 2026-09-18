@@ -29,6 +29,8 @@ import { Body, Button, Card, Empty, Failed, Figure, IconButton, Label, Loading, 
 import { formatDateRange, splitEnded } from "@floc/core/dates/dates";
 import { tripListStage } from "@floc/core/trip/list-stage";
 import { readTripColor, tripPastel } from "@floc/core/trip/trip-color";
+import { readTripMark } from "@floc/core/trip/mark/trip-mark";
+import { TripMarkIcon } from "@/components/trip/trip-mark";
 
 import type { AppRouter } from "@floc/api/router";
 import type { inferRouterOutputs } from "@trpc/server";
@@ -195,13 +197,20 @@ function TripRow({
   // rail, not a wash: a card tinted edge to edge would fight the tag pills
   // wearing the same pastel.
   const tone = tripPastel(readTripColor(trip.colorKey), trip.id);
+  const mark = readTripMark(trip.mark);
   return (
     <Link href={{ pathname: "/trip/[id]", params: { id: trip.id } }} asChild>
       <Pressable>
         <Card style={{ borderLeftWidth: 4, borderLeftColor: c[tone] }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
             <View style={{ flex: 1, gap: space.xs }}>
-              <Label>{tripListStage(trip)}</Label>
+              {/* The mark rides on the stage line, as it does on the web card:
+                  the rail already carries the trip's colour, so a tile of the
+                  same pastel would say it twice (#318). */}
+              <View style={{ flexDirection: "row", alignItems: "center", gap: space.xs }}>
+                {mark ? <TripMarkIcon mark={mark} color={c[`${tone}-ink`]} size={14} /> : null}
+                <Label>{tripListStage(trip)}</Label>
+              </View>
               <Body bold>{titleCase(trip.name)}</Body>
               {/* Undated is normal, not an error (rule 9) — so it is said, not hidden. */}
               <Figure tone="ink-2">{formatDateRange(trip.startDate, trip.endDate)}</Figure>
@@ -279,8 +288,10 @@ function TripMenu({ trip, onClose }: { trip: TripCard; onClose: () => void }) {
 /** This list is the unarchived one, so `archived` is known without asking. */
 function shape(trip: TripCard) {
   return {
+    id: trip.id,
     name: trip.name,
     colorKey: trip.colorKey,
+    mark: trip.mark,
     tags: trip.tags,
     role: trip.role,
     archived: false,

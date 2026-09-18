@@ -8,6 +8,7 @@ import { readOptionalIsoDate } from "@floc/core/dates/dates";
 import { localPath } from "@floc/core/text/local-path";
 import { capRequiredText, properCase } from "@floc/core/text/text";
 import { isTripColor } from "@floc/core/trip/trip-color";
+import { readTripMark } from "@floc/core/trip/mark/trip-mark";
 import { renameTrip as validateAndRenameTrip } from "@/app/trip/[id]/overview/actions";
 import { assertAdmin, requireTripAccess, requireUser } from "@/server/access";
 import { acceptInvite, declineInvite, inviteToTrip } from "@/server/trips/invites";
@@ -118,6 +119,23 @@ export async function setTripColor(formData: FormData): Promise<void> {
   const access = await requireTripAccess(tripId);
 
   await updateTrip(access.trip.id, { colorKey: color });
+
+  refresh(
+    { kind: "tripList" },
+    { kind: "tripHeader", tripId: access.trip.id },
+    { kind: "tripOverview", tripId: access.trip.id },
+  );
+}
+
+// The trip's mark (#318). Cosmetic, so open to any member like the colour it
+// sits beside. An unknown value clears it, leaving the pastel alone (rule 11).
+export async function setTripMark(formData: FormData): Promise<void> {
+  const tripId = Number(formData.get("tripId"));
+  const mark = readTripMark(formData.get("mark"));
+
+  const access = await requireTripAccess(tripId);
+
+  await updateTrip(access.trip.id, { mark });
 
   refresh(
     { kind: "tripList" },
