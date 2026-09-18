@@ -23,6 +23,7 @@ export type TripListRow = {
   endDate: string | null;
   tags: string[] | null;
   colorKey: string | null;
+  mark: string | null;
   role: TripRole;
   starred: boolean;
   muted: boolean;
@@ -41,6 +42,7 @@ export async function listTripsFor(
       endDate: trip.endDate,
       tags: trip.tags,
       colorKey: trip.colorKey,
+      mark: trip.mark,
       role: tripMembership.role,
       starredAt: tripMembership.starredAt,
       mutedAt: tripMembership.mutedAt,
@@ -132,6 +134,7 @@ export type TripPatch = Partial<{
   endDate: string | null;
   tags: string[];
   colorKey: string | null;
+  mark: string | null;
 }>;
 
 export async function updateTrip(tripId: number, patch: TripPatch): Promise<void> {

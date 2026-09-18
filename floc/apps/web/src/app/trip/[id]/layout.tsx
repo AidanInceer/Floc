@@ -11,6 +11,7 @@ import { TripMenu } from "@/components/trip/trip-menu";
 import { requireTripAccess } from "@/server/access";
 import { leaveCostFor } from "@floc/core/trip/trip-state";
 import { readTripColor } from "@floc/core/trip/trip-color";
+import { readTripMark } from "@floc/core/trip/mark/trip-mark";
 import { TABS } from "@/lib/tabs";
 
 export default async function TripLayout({
@@ -65,6 +66,7 @@ export default async function TripLayout({
               archived={Boolean(trip.archivedAt)}
               leaveWarning={leaveWarning}
               color={readTripColor(trip.colorKey)}
+              mark={readTripMark(trip.mark)}
             />
           </div>
         </div>

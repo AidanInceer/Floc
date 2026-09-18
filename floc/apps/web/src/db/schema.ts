@@ -263,7 +263,8 @@ export const trip = sqliteTable(
       .references(() => user.id),
     /** Unguessable share token — never the trip id (ticket 05). */
     inviteToken: text("invite_token").notNull().unique(),
-    coverImageUrl: text("cover_image_url"),
+    /** A chosen mark from a fixed set (#318); null = the pastel alone. Never a URL — a cover image on a host we do not control carried the risk #157 took off a face. */
+    mark: text("mark"),
     /** Free-text, not a fixed set (ticket 71) — per-group private joke, normalised by src/lib/tags.ts. */
     tags: text("tags", { mode: "json" }).$type<string[] | null>(),
     /** Chosen pastel (ticket 213); null = the id-rotation default. Tags inherit it, so per-tag tones went. */

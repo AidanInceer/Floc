@@ -10,6 +10,7 @@
  */
 import { parseTagNames, readTags } from "@floc/core/trip/tags";
 import { readTripColor, type TripColor } from "@floc/core/trip/trip-color";
+import { readTripMark, type TripMark } from "@floc/core/trip/mark/trip-mark";
 
 import type { ReactNode } from "react";
 import { View } from "react-native";
@@ -21,19 +22,27 @@ import { Body } from "../system/ui";
 import { space } from "@/lib/theme";
 
 export type TripSheetTrip = {
+  id: number;
   name: string;
   colorKey: string | null;
+  mark: string | null;
   tags: string[] | null;
   role: string;
   archived: boolean;
 };
 
-type Draft = { name: string; color: TripColor | null; rows: TagRow[] };
+type Draft = {
+  name: string;
+  color: TripColor | null;
+  mark: TripMark | null;
+  rows: TagRow[];
+};
 
 export function draftFor(trip: TripSheetTrip): Draft {
   return {
     name: trip.name,
     color: readTripColor(trip.colorKey),
+    mark: readTripMark(trip.mark),
     rows: rowsFromTags(readTags(trip.tags)),
   };
 }
@@ -54,7 +63,12 @@ export function TripSheet({
   onChange: (draft: Draft) => void;
   onClose: () => void;
   write: {
-    save: (payload: { name: string; color: TripColor | null; tags: string[] }) => void;
+    save: (payload: {
+      name: string;
+      color: TripColor | null;
+      mark: TripMark | null;
+      tags: string[];
+    }) => void;
     setArchived: (archived: boolean) => void;
     destroy: () => void;
     saving: boolean;
@@ -67,10 +81,13 @@ export function TripSheet({
       {draft !== null && trip !== null ? (
         <View style={{ gap: space.md, paddingBottom: space.lg }}>
           <TripEdit
+            tripId={trip.id}
             name={draft.name}
             onChangeName={(name) => onChange({ ...draft, name })}
             color={draft.color}
             onChangeColor={(color) => onChange({ ...draft, color })}
+            mark={draft.mark}
+            onChangeMark={(mark) => onChange({ ...draft, mark })}
             rows={draft.rows}
             onChangeRows={(rows) => onChange({ ...draft, rows })}
           />
@@ -88,6 +105,7 @@ export function TripSheet({
                 write.save({
                   name: draft.name,
                   color: draft.color,
+                  mark: draft.mark,
                   tags: parseTagNames(draft.rows.map((row) => row.name)),
                 })
               }

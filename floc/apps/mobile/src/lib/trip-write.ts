@@ -15,10 +15,16 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import type { TripColor } from "@floc/core/trip/trip-color";
+import type { TripMark } from "@floc/core/trip/mark/trip-mark";
 
 import { trpc } from "./api";
 
-export type TripEditPayload = { name: string; color: TripColor | null; tags: string[] };
+export type TripEditPayload = {
+  name: string;
+  color: TripColor | null;
+  mark: TripMark | null;
+  tags: string[];
+};
 
 export function useTripWrite(tripId: number, onGone: () => void) {
   const queryClient = useQueryClient();
@@ -43,7 +49,13 @@ export function useTripWrite(tripId: number, onGone: () => void) {
     /** A blank name is not a rename; the caller's field keeps whatever it had. */
     save: (draft: TripEditPayload) => {
       if (draft.name.trim() === "") return;
-      save.mutate({ tripId, name: draft.name.trim(), colorKey: draft.color, tags: draft.tags });
+      save.mutate({
+        tripId,
+        name: draft.name.trim(),
+        colorKey: draft.color,
+        mark: draft.mark,
+        tags: draft.tags,
+      });
     },
     setArchived: (archived: boolean) => archive.mutate({ tripId, archived }),
     destroy: () => destroy.mutate({ tripId }),

@@ -15,6 +15,7 @@ import {
   renameTripFromMenu,
   restoreTrip,
   setTripColor,
+  setTripMark,
 } from "./actions";
 
 let world: Scenario;
@@ -120,6 +121,26 @@ describe("the card menu", () => {
     await db.update(schema.trip).set({ colorKey: "peri" }).where(eq(schema.trip.id, world.ours.id));
     await setTripColor(form({ tripId: String(world.ours.id), color: "neon" }));
     expect((await tripRow(world.ours.id))?.colorKey).toBeNull();
+  });
+
+  it("sets a mark any member may pick (#318)", async () => {
+    signIn(world.member);
+    await setTripMark(form({ tripId: String(world.ours.id), mark: "wave" }));
+    expect((await tripRow(world.ours.id))?.mark).toBe("wave");
+  });
+
+  it("clears an unknown mark back to the pastel alone", async () => {
+    signIn(world.member);
+    await db.update(schema.trip).set({ mark: "wave" }).where(eq(schema.trip.id, world.ours.id));
+    await setTripMark(form({ tripId: String(world.ours.id), mark: "lighthouse" }));
+    expect((await tripRow(world.ours.id))?.mark).toBeNull();
+  });
+
+  it("refuses a mark from someone who is not on the trip", async () => {
+    signIn(world.outsider);
+    await expect(
+      setTripMark(form({ tripId: String(world.ours.id), mark: "wave" })),
+    ).rejects.toThrow();
   });
 });
 

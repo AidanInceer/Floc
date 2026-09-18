@@ -58,6 +58,9 @@ import { spendHeadline, spendNote } from "@floc/core/money/spend";
 import { groupStatuses } from "@floc/core/trip/group/group-status";
 import { OverviewBooking } from "@/components/trip/overview-booking";
 import { tripStateFor } from "@floc/core/trip/trip-state";
+import { tripPastel } from "@floc/core/trip/trip-color";
+import { readTripMark } from "@floc/core/trip/mark/trip-mark";
+import { TripMarkIcon } from "@/components/trip/trip-mark";
 import { formatDateRange, today } from "@floc/core/dates/dates";
 import { bookingPlan } from "@floc/core/trip/booking-links";
 import { canUseFeature } from "@/server/billing/entitlements";
@@ -186,6 +189,9 @@ export default async function OverviewPage({
     owing: unresolved.money,
   });
 
+  const mark = readTripMark(trip.mark);
+  const tone = tripPastel(readTripColor(trip.colorKey), tripId);
+
   return (
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
       <header className="flex flex-wrap items-end justify-between gap-6">
@@ -193,6 +199,13 @@ export default async function OverviewPage({
           {/* The name is the headline (ticket 89), with the dates on the same
               line — one hero row, not two (ticket 213). */}
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+            {/* The trip's mark, in its own pastel ink (#318). Decoration, so it
+                carries no label — the name beside it is the heading. */}
+            {mark ? (
+              <span className={cx("grid size-8 place-items-center rounded-md", PASTEL_BY_KEY[tone])}>
+                <TripMarkIcon mark={mark} size={18} />
+              </span>
+            ) : null}
             <TripNameInline
               tripId={tripId}
               name={trip.name}

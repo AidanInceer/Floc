@@ -11,9 +11,11 @@
  * still normalises, so the phone never decides what a tag is.
  */
 import { MAX_TAGS, MAX_TAG_LENGTH } from "@floc/core/trip/tags";
-import { TRIP_COLORS, type TripColor } from "@floc/core/trip/trip-color";
+import { TRIP_COLORS, tripPastel, type TripColor } from "@floc/core/trip/trip-color";
+import { TRIP_MARKS, TRIP_MARK_LABELS, type TripMark } from "@floc/core/trip/mark/trip-mark";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
 
+import { TripMarkIcon } from "./trip-mark";
 import { CrossGlyph } from "../system/glyphs";
 import { useTheme } from "../system/theme";
 import { Body, Button, Field, IconButton, Label } from "../system/ui";
@@ -59,6 +61,55 @@ function Swatch({
   );
 }
 
+/**
+ * Two rows of five, which is the whole set — see `trip-mark.ts` before adding an
+ * eleventh. Tapping the mark already on the trip clears it, so "no mark" needs
+ * no second control saying None.
+ */
+function MarkGrid({
+  tone,
+  mark,
+  onChange,
+}: {
+  tone: TripColor;
+  mark: TripMark | null;
+  onChange: (mark: TripMark | null) => void;
+}) {
+  const { c } = useTheme();
+  return (
+    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.sm }}>
+      {TRIP_MARKS.map((option) => {
+        const picked = mark === option;
+        return (
+          <Pressable
+            key={option}
+            accessibilityRole="button"
+            accessibilityLabel={TRIP_MARK_LABELS[option]}
+            accessibilityState={{ selected: picked }}
+            onPress={() => onChange(picked ? null : option)}
+            style={{
+              width: 44,
+              height: 44,
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: radius.md,
+              backgroundColor: picked ? c[tone] : "transparent",
+              borderWidth: picked ? 2 : StyleSheet.hairlineWidth,
+              borderColor: picked ? c[`${tone}-ink`] : c.rule,
+            }}
+          >
+            <TripMarkIcon
+              mark={option}
+              color={picked ? c[`${tone}-ink`] : c["ink-2"]}
+              size={21}
+            />
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
 function TagRowInput({
   row,
   onChange,
@@ -101,18 +152,25 @@ function TagRowInput({
 }
 
 export function TripEdit({
+  tripId,
   name,
   onChangeName,
   color,
   onChangeColor,
+  mark,
+  onChangeMark,
   rows,
   onChangeRows,
 }: {
+  tripId: number;
   name: string;
   onChangeName: (name: string) => void;
   /** The picked colour, or null while the id rotation is still filling in. */
   color: TripColor | null;
   onChangeColor: (color: TripColor) => void;
+  /** The picked mark, or null for the pastel alone (#318). */
+  mark: TripMark | null;
+  onChangeMark: (mark: TripMark | null) => void;
   rows: TagRow[];
   onChangeRows: (rows: TagRow[]) => void;
 }) {
@@ -134,6 +192,11 @@ export function TripEdit({
             />
           ))}
         </View>
+      </View>
+
+      <View style={{ gap: space.sm }}>
+        <Label>Icon</Label>
+        <MarkGrid tone={tripPastel(color, tripId)} mark={mark} onChange={onChangeMark} />
       </View>
 
       <View style={{ gap: space.sm }}>

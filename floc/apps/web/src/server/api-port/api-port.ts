@@ -129,6 +129,7 @@ function toDetail(access: TripAccess, bookingPrefill: boolean): TripDetail {
     endDate: access.trip.endDate,
     tags: access.trip.tags,
     colorKey: access.trip.colorKey,
+    mark: access.trip.mark,
     archived: access.trip.archivedAt !== null,
     role: access.role,
     members: access.members.map((m) => ({

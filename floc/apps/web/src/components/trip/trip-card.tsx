@@ -19,6 +19,8 @@ import { tripListStage } from "@floc/core/trip/list-stage";
 import type { IsoDate } from "@floc/core/dates/dates";
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import type { TripColor } from "@floc/core/trip/trip-color";
+import type { TripMark } from "@floc/core/trip/mark/trip-mark";
+import { TripMarkIcon } from "@/components/trip/trip-mark";
 import type { TripRole } from "@/db/schema";
 
 export type TripCardData = {
@@ -36,6 +38,7 @@ export type TripCardData = {
   where?: string | null; // first overnight place, or null if unsettled (ticket 70)
   tags?: string[];
   color?: TripColor | null; // chosen pastel (ticket 213); null = id-rotation
+  mark?: TripMark | null; // chosen mark (#318); null = the pastel alone
 };
 
 // No pastel carries meaning here — a trip isn't a domain — so the rotation is
@@ -138,7 +141,13 @@ function CardBody({
   return (
     <>
       <span className={cx("block", list && "min-w-0 sm:[grid-area:name]")}>
-        <span className="typed block text-current">{eyebrow}</span>
+        {/* The mark rides on the eyebrow line rather than in a band of its own:
+            the card is already the trip's pastel, so a second coloured block
+            would say the same thing twice (#318). */}
+        <span className="typed flex items-center gap-1.5 text-current">
+          {trip.mark ? <TripMarkIcon mark={trip.mark} size={14} /> : null}
+          {eyebrow}
+        </span>
         <h3 className={cx("mt-1", list ? "text-xl" : "text-2xl", past && "text-ink-soft")}>
           {titleCase(trip.name)}
         </h3>
@@ -179,6 +188,7 @@ function LiveActions({ trip }: { trip: TripCardData }) {
         tripName={trip.name}
         isAdmin={isAdmin}
         color={trip.color ?? null}
+        mark={trip.mark ?? null}
         muted={Boolean(trip.muted)}
       />
     </div>

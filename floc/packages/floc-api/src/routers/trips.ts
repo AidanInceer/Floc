@@ -53,6 +53,7 @@ export const tripsRouter = router({
         startDate: optionalDate.optional(),
         endDate: optionalDate.optional(),
         colorKey: z.string().nullable().optional(),
+        mark: z.string().nullable().optional(),
         tags: z.array(z.string()).nullable().optional(),
       }),
     )

@@ -56,6 +56,8 @@ export type TripSummary = {
   endDate: string | null;
   tags: string[] | null;
   colorKey: string | null;
+  /** The chosen mark, or null for the pastel alone (#318). Never a URL. */
+  mark: string | null;
   role: TripRole;
   /** The viewer's own star — never another member's. */
   starred: boolean;
@@ -83,6 +85,8 @@ export type TripDetail = {
   endDate: string | null;
   tags: string[] | null;
   colorKey: string | null;
+  /** The chosen mark, or null for the pastel alone (#318). Never a URL. */
+  mark: string | null;
   archived: boolean;
   /** The viewer's own role, so a client can hide what `assertAdmin` would refuse anyway. */
   role: TripRole;
@@ -288,6 +292,7 @@ export type TripPatch = {
   startDate?: string | null | undefined;
   endDate?: string | null | undefined;
   colorKey?: string | null | undefined;
+  mark?: string | null | undefined;
   tags?: string[] | null | undefined;
 };
 
