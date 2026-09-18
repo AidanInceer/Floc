@@ -16,8 +16,8 @@ import type { ReactNode } from "react";
 
 import { GuestCta } from "@/components/guest/guest-cta";
 import { emailConfigured } from "@/server/auth/email";
-import { JoinControls } from "./join-controls";
-import { GuestTabs } from "./guest-tabs";
+import { JoinControls } from "@/components/guest/join-controls";
+import { GuestTabs } from "@/components/guest/guest-tabs";
 import { inviteTrip, inviteViewer } from "./invite-access";
 
 export default async function InviteLayout({

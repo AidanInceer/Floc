@@ -22,8 +22,8 @@ import { emailConfigured } from "@/server/auth/email";
 import { guestItinerary } from "@/server/trips/guest-view";
 import { formatDateRange } from "@floc/core/dates/dates";
 import { PageTitle } from "@/components/system/ui";
-import { DeadLink } from "./dead-link";
-import { JoinControls } from "./join-controls";
+import { DeadLink } from "@/components/guest/dead-link";
+import { JoinControls } from "@/components/guest/join-controls";
 import { inviteTrip, inviteViewer } from "./invite-access";
 
 /**

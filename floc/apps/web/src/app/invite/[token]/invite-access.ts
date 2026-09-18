@@ -38,11 +38,11 @@ export type InviteViewer =
   | { kind: "member"; tripId: number };
 
 /**
- * Who is looking, in the only four ways that change what this page offers.
- * `member` is resolved here rather than guessed from the session so the page
- * can send them to the real trip instead of a read-only copy of it.
+ * Why: not `cache()`d, unlike `inviteTrip` above — the answer depends on the
+ * session, which is not one of the arguments, so memoising on
+ * (trip, mailWorks) would be right only by accident.
  */
-export const inviteViewer = cache(async function inviteViewer(
+export async function inviteViewer(
   tripId: number,
   mailWorks: boolean,
 ): Promise<InviteViewer> {
@@ -60,4 +60,4 @@ export const inviteViewer = cache(async function inviteViewer(
   }
 
   return { kind: "canJoin" };
-});
+}

@@ -13,7 +13,7 @@ import { GuestDocuments } from "@/components/guest/guest-documents";
 import { emailConfigured } from "@/server/auth/email";
 import { guestDocuments } from "@/server/trips/guest-view";
 import { PageTitle } from "@/components/system/ui";
-import { DeadLink } from "../dead-link";
+import { DeadLink } from "@/components/guest/dead-link";
 import { inviteTrip, inviteViewer } from "../invite-access";
 
 export async function generateMetadata({

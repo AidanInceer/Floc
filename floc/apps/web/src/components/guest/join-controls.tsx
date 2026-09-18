@@ -11,8 +11,11 @@
  */
 import { ButtonLink } from "@/components/system/ui";
 import { SubmitButton } from "@/components/system/client-ui";
-import { joinTrip, resendVerification } from "./actions";
-import { inviteAuthHrefs, type InviteViewer } from "./invite-access";
+import { joinTrip, resendVerification } from "@/app/invite/[token]/actions";
+import {
+  inviteAuthHrefs,
+  type InviteViewer,
+} from "@/app/invite/[token]/invite-access";
 
 export function JoinControls({
   token,
