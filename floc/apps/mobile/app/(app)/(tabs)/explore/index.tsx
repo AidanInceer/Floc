@@ -23,7 +23,8 @@ import { SortChips } from "@/components/explore/sort-chips";
 import { PresetRow } from "@/components/packing/preset-row";
 import { RegionChips, type RegionChoice } from "@/components/map/region-chips";
 import { useTheme } from "@/components/system/theme";
-import { Body, Heading, TextLink } from "@/components/system/ui";
+import { Body, Heading } from "@/components/system/ui";
+import { TextLink } from "@/components/system/text-controls";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 

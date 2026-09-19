@@ -18,6 +18,7 @@ import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 
 import { webPort } from "@/server/api-port/api-port";
 import { auth } from "@/server/auth/auth";
+import { boundedRequest } from "@/server/http/request-body";
 
 /** libSQL over HTTP, and a session read per request — nothing here is static. */
 export const dynamic = "force-dynamic";
@@ -37,20 +38,20 @@ async function createContext(req: Request): Promise<Context> {
   };
 }
 
-function handler(req: Request) {
+async function handler(req: Request) {
+  const bounded = await boundedRequest(req);
+  if (!bounded) {
+    return new Response("Request body is too large", { status: 413 });
+  }
   return fetchRequestHandler({
     endpoint: "/api/trpc",
-    req,
+    req: bounded,
     router: appRouter,
     createContext: () => createContext(req),
-    /**
-     * A thrown message could be a database error naming a column. Clients get
-     * tRPC's own code and message; the detail stays in the server log, where
-     * it is useful and not a disclosure.
-     */
     onError({ error, path }) {
       if (error.code === "INTERNAL_SERVER_ERROR") {
-        console.error(`tRPC ${path ?? "<no path>"}:`, error.cause ?? error);
+        // Database errors can include query parameters containing PII.
+        console.error(`tRPC ${path ?? "<no path>"}: ${error.code}`);
       }
     },
   });

@@ -2,7 +2,7 @@
 
 // Overview tab's who-may-do-what (ticket 13); the SQL lives in server/roster.ts,
 // server/invites.ts and server/trips.ts (ticket 242). Admin powers are
-// kick/promote/delete (#312 took invite off the list).
+// kick/promote/delete/re-lock (#312 took invite off the list, #358 added the fourth).
 import { redirect } from "next/navigation";
 
 import { NUDGE_TABS, type NudgeTab } from "@/db/schema";
@@ -24,7 +24,7 @@ import {
   removeMembership,
   setMemberRoleAdmin,
 } from "@/server/trips/roster";
-import { updateTrip } from "@/server/trips/trips";
+import { resetInviteToken, updateTrip } from "@/server/trips/trips";
 import { refresh } from "@/server/freshness";
 
 export async function sendNudge(formData: FormData) {
@@ -113,7 +113,24 @@ export async function promoteMember(formData: FormData) {
   refresh({ kind: "tripOverview", tripId: access.trip.id });
 }
 
-// Open to any member deliberately — not one of the three admin powers (rule 6).
+/**
+ * The fourth admin power (#358). Admin-only although sharing the link is not
+ * (#312): handing the link out is additive, revoking it cancels every copy the
+ * group has already sent. No confirmation of who held the old link is possible,
+ * so the deliberate choice is to keep the act rare rather than make it safe.
+ */
+export async function resetInviteLink(formData: FormData) {
+  const tripId = Number(formData.get("tripId"));
+
+  const access = await requireTripAccess(tripId);
+  assertAdmin(access);
+
+  await resetInviteToken(access.trip.id);
+
+  refresh({ kind: "tripOverview", tripId: access.trip.id });
+}
+
+// Open to any member deliberately — not one of the admin powers (rule 6).
 export async function renameTrip(formData: FormData) {
   const tripId = Number(formData.get("tripId"));
   const name = properCase(String(formData.get("name") ?? "").trim());
@@ -174,7 +191,7 @@ export async function leaveTrip(formData: FormData) {
 }
 
 // Ideas — add, vote, remove. All three are open to every member: an idea is
-// the group's, and removing one is not a fourth admin power (rule 6).
+// the group's, and removing one is not an admin power (rule 6).
 export async function addIdea(formData: FormData) {
   const tripId = Number(formData.get("tripId"));
   const title = capText(formData.get("title"), "ideaTitle");

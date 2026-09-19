@@ -41,15 +41,8 @@ import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { GoogleButton } from "@/components/auth/google-button";
-import {
-  Body,
-  Button,
-  Dropdown,
-  Field,
-  OrRule,
-  Screen,
-  TextLink,
-} from "@/components/system/ui";
+import { Body, Button, Dropdown, Field, OrRule, Screen } from "@/components/system/ui";
+import { TextLink } from "@/components/system/text-controls";
 import { signIn } from "@/lib/auth";
 import { explainGoogle, explainSignIn } from "@/lib/auth-errors";
 import type { DevAccount } from "@/lib/dev-sign-in";

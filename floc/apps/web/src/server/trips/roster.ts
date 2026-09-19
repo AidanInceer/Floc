@@ -205,6 +205,7 @@ export async function handOverAndLeaveAllTrips(userId: string): Promise<void> {
     .update(tripMembership)
     .set({ deletedAt: new Date(), lastModifiedAt: new Date() })
     .where(eq(tripMembership.userId, userId));
+  kickFromTripNotes(null, userId);
 }
 
 /* --------------------------------------------------------- the map prompt */

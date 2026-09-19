@@ -10,7 +10,8 @@ import { removeMembership } from "@/server/trips/roster";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { createNotesLive, notesDocumentName } from "./notes-live";
 import { blocksJson, NOTES_FRAGMENT } from "./live-doc";
-import { loadLiveState } from "./live-store";
+import { loadLiveState, storeLiveState } from "./live-store";
+import { softDeleteTrip } from "@/server/trips/trips";
 import { readEpoch } from "@floc/core/notes/live/live-epoch";
 import { loadLiveEpoch } from "./live-epoch-store";
 
@@ -84,6 +85,12 @@ describe("who may connect", () => {
 });
 
 describe("loading and storing", () => {
+  it("does not persist a pending save after the trip is deleted", async () => {
+    await softDeleteTrip(world.ours.id);
+    await storeLiveState(world.ours.id, world.member, new Uint8Array([0, 0]), doc("too late"));
+    expect((await loadLiveState(world.ours.id)).body).toBeNull();
+  });
+
   it("seeds a live doc from the saved JSON without losing content", async () => {
     await saveNoteDoc(world.ours.id, world.admin, doc("Kyoto in April"));
     const live = liveAs(world.admin);

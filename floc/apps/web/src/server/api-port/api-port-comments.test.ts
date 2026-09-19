@@ -97,7 +97,7 @@ describe("changing what was said", () => {
     await webPort.addEventComment(world.member, ours().trip, ours().event, null, "Mine.");
     const [comment] = await webPort.listEventComments(world.member, ours().trip, ours().event);
 
-    // The admin holds exactly three powers and this is not one of them (rule 6).
+    // The admin's powers are enumerated in rule 6 and this is not one of them (rule 6).
     expect(await webPort.editComment(world.admin, ours().trip, comment.id, "Not mine.")).toBe(
       "You can only edit your own comments.",
     );

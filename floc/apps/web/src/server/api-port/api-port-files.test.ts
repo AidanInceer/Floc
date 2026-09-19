@@ -39,6 +39,14 @@ beforeEach(async () => {
 });
 
 describe("putting a file on a trip", () => {
+  it("caps encoded input even when base64 decoding would discard it", async () => {
+    const refusal = await webPort.uploadFile(world.admin, world.ours.id, {
+      name: "huge.png", mimeType: "image/png", category: "other", shared: true,
+      contentBase64: " ".repeat(Math.ceil(8 * 1024 * 1024 / 3) * 4 + 1),
+    });
+    expect(refusal).toBe("Files are capped at 8 MB");
+  });
+
   it("takes a PNG and lists it back", async () => {
     const refusal = await webPort.uploadFile(world.admin, world.ours.id, {
       name: "booking.png",

@@ -17,7 +17,7 @@
  *   3. Itinerary is day-first — a "stop" is derived, never stored.
  *   5. `loadTrip` answers identically for a trip that does not exist and one
  *      the viewer is not in. The implementation must return null for both.
- *   6. Admin powers are exactly three; `assertAdmin` is the implementation's job.
+ *   6. Admin powers are exactly four; `assertAdmin` is the implementation's job.
  *   9. A trip may have no dates. `startDate`/`endDate` are nullable and that
  *      is never an error.
  *  10. No timezones. Dates are `YYYY-MM-DD`; times are local to the itinerary.
@@ -667,7 +667,7 @@ export type FlocPort = {
   /**
    * Says you will bring a shared thing, or takes it back. Open by design: any
    * member may claim any line, and several may claim the same one. Not one of
-   * the three admin powers (rule 6).
+   * the admin powers (rule 6).
    */
   claimPackingLine(
     viewerId: string,
@@ -969,6 +969,14 @@ export type FlocPort = {
 
   /** Joining by the trip's share token — never by its id (ticket 05). */
   joinByToken(viewerId: string, token: string): Promise<{ id: number } | null>;
+
+  /**
+   * Re-locks the trip and answers the new token (#358). Admin-only on the host
+   * side (rule 6): handing the link out is any member's, cancelling every copy
+   * already sent is not. The old token then reads as a bad one, not a revoked
+   * one (rule 5).
+   */
+  resetInviteLink(viewerId: string, tripId: number): Promise<string>;
 
   /** Rewrites the expense and its whole split set in one transaction (rule 2). */
   writeExpense(

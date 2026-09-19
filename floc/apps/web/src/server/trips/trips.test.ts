@@ -11,6 +11,7 @@ import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { findTripByInviteToken } from "@/server/trips/invites";
 import {
   createTripWithAdmin,
+  resetInviteToken,
   setTripArchived,
   softDeleteTrip,
   updateTrip,
@@ -124,5 +125,35 @@ describe("archiving and deleting", () => {
     await softDeleteTrip(world.ours.id);
     expect((await tripRow(world.ours.id))?.deletedAt).not.toBeNull();
     expect(await findTripByInviteToken("token-ours")).toBeUndefined();
+  });
+});
+
+describe("resetting the invite link", () => {
+  it("stops the old token resolving and mints a working one", async () => {
+    const before = (await tripRow(world.ours.id))?.inviteToken as string;
+
+    const after = await resetInviteToken(world.ours.id);
+
+    expect(after).not.toBe(before);
+    expect(await findTripByInviteToken(before)).toBeUndefined();
+    expect((await findTripByInviteToken(after))?.id).toBe(world.ours.id);
+  });
+
+  it("leaves the roster and every other trip alone", async () => {
+    const theirs = (await tripRow(world.theirs.id))?.inviteToken as string;
+
+    await resetInviteToken(world.ours.id);
+
+    expect((await membership(world.ours.id, world.member))?.deletedAt).toBeNull();
+    expect((await tripRow(world.theirs.id))?.inviteToken).toBe(theirs);
+  });
+
+  it("refuses a deleted trip, so a stale id cannot mint a live token", async () => {
+    await softDeleteTrip(world.ours.id);
+    const before = (await tripRow(world.ours.id))?.inviteToken;
+
+    await resetInviteToken(world.ours.id);
+
+    expect((await tripRow(world.ours.id))?.inviteToken).toBe(before);
   });
 });

@@ -4,7 +4,7 @@
  *
  * Writes go through the port, which is the web app's own `server/` modules —
  * so a phone and a browser share one implementation of every rule, including
- * the three admin powers (rule 6) and soft delete (rule 8). None of that is
+ * the admin powers (rule 6) and soft delete (rule 8). None of that is
  * restated here; restating it is how two clients drift apart.
  */
 import { z } from "zod";

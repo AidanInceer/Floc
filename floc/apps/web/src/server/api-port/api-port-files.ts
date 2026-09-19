@@ -19,6 +19,7 @@ import {
   allowedType,
   bytesMatchType,
   cleanFileName,
+  MAX_DOCUMENT_BASE64_LENGTH,
   rejectUpload,
   type DocCategory,
 } from "@floc/core/documents/documents";
@@ -74,6 +75,8 @@ export const filesPort: FilesPort = {
   ): Promise<string | null> {
     const access = await scoped(viewerId, tripId);
     if (!documentsEnabled()) return "File storage is not set up";
+
+    if (input.contentBase64.length > MAX_DOCUMENT_BASE64_LENGTH) return "Files are capped at 8 MB";
 
     const bytes = decode(input.contentBase64);
     if (!bytes || bytes.byteLength === 0) return "That file is empty";

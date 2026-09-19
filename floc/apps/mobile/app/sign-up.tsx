@@ -23,7 +23,8 @@ import { useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 
 import { GoogleButton } from "@/components/auth/google-button";
-import { Body, Button, Field, Heading, OrRule, Screen, TextLink } from "@/components/system/ui";
+import { Body, Button, Field, Heading, OrRule, Screen } from "@/components/system/ui";
+import { TextLink } from "@/components/system/text-controls";
 import { signIn, signUp } from "@/lib/auth";
 import { explainGoogle, explainSignUp } from "@/lib/auth-errors";
 import { space } from "@/lib/theme";

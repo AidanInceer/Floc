@@ -13,7 +13,7 @@
  * are ordinary mistakes; `upload` answers with the sentence a form shows, and
  * null when the file landed.
  */
-import { DOC_CATEGORIES } from "@floc/core/documents/documents";
+import { DOC_CATEGORIES, MAX_DOCUMENT_BASE64_LENGTH } from "@floc/core/documents/documents";
 import { z } from "zod";
 
 import { router, tripProcedure } from "../trpc";
@@ -33,7 +33,7 @@ export const filesRouter = router({
       z.object({
         name: z.string().trim().min(1).max(200),
         mimeType: z.string().min(1).max(120),
-        contentBase64: z.string().min(1),
+        contentBase64: z.string().min(1).max(MAX_DOCUMENT_BASE64_LENGTH, "Files are capped at 8 MB"),
         category,
         shared: z.boolean(),
         /** Set when it was added from an event's modal (ticket 325). */

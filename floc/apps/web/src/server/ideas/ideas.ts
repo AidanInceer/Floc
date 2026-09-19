@@ -2,7 +2,7 @@
  * `idea` + `idea_vote` writes; reads are in `ideas-read.ts`.
  *
  * Why: removing is open to every member, not just the author — an idea belongs
- * to the group, and the three admin powers stay kick/promote/delete.
+ * to the group, and the admin powers stay kick/promote/delete/re-lock.
  */
 import "server-only";
 

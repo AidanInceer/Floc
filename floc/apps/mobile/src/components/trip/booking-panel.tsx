@@ -4,7 +4,8 @@ import { useState } from "react";
 import { View } from "react-native";
 
 import { useTheme } from "../system/theme";
-import { Body, Card, Label, Segmented, TextLink } from "../system/ui";
+import { Body, Card, Label, Segmented } from "../system/ui";
+import { TextLink } from "../system/text-controls";
 import { OffsiteNote, SiteLinks } from "./booking-links";
 import { radius, space } from "@/lib/theme";
 

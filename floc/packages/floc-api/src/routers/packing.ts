@@ -8,7 +8,7 @@
  *
  * CLAIMING IS OPEN. Any member may claim any shared line, and several may claim
  * the same one — two of you bringing sun cream is a real answer, not a clash.
- * Claiming is not one of the three admin powers (rule 6).
+ * Claiming is not one of the admin powers (rule 6).
  *
  * TICKING IS YOURS ALONE. `packed` always means "packed by the caller"; the
  * host scopes the write to (line, viewer), so ticking for somebody else is not

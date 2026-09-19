@@ -106,7 +106,7 @@ describe("muting a trip (#346)", () => {
   });
 });
 
-describe("the three admin powers (rule 6)", () => {
+describe("the admin powers (rule 6)", () => {
   it("lets an admin archive, promote and remove", async () => {
     await webPort.archiveTrip(world.admin, world.ours.id, true);
     await webPort.promoteMember(world.admin, world.ours.id, world.member);
@@ -116,7 +116,17 @@ describe("the three admin powers (rule 6)", () => {
     expect(trip?.members.find((m) => m.userId === world.member)?.role).toBe("admin");
   });
 
-  it("refuses a member all three", async () => {
+  it("lets an admin reset the invite link, retiring the old token (#358)", async () => {
+    const minted = await webPort.resetInviteLink(world.admin, world.ours.id);
+
+    expect(minted).not.toBe("token-ours");
+    expect(await webPort.previewInvite("token-ours")).toBeNull();
+    expect((await webPort.previewInvite(minted))?.name).toBe("Ours");
+    // Re-locking the door does not put anybody outside it.
+    expect(await webPort.loadTrip(world.member, world.ours.id)).not.toBeNull();
+  });
+
+  it("refuses a member all four", async () => {
     await expect(
       webPort.archiveTrip(world.member, world.ours.id, true),
     ).rejects.toThrow(/admin/i);
@@ -126,6 +136,16 @@ describe("the three admin powers (rule 6)", () => {
     await expect(
       webPort.removeMember(world.member, world.ours.id, world.admin),
     ).rejects.toThrow(/admin/i);
+    await expect(
+      webPort.resetInviteLink(world.member, world.ours.id),
+    ).rejects.toThrow(/admin/i);
+  });
+
+  it("refuses the reset to a non-member, without saying the trip exists (rule 5)", async () => {
+    await expect(
+      webPort.resetInviteLink(world.outsider, world.ours.id),
+    ).rejects.toThrow();
+    expect((await webPort.previewInvite("token-ours"))?.name).toBe("Ours");
   });
 
   it("lets any member leave, because leaving is not an admin power", async () => {

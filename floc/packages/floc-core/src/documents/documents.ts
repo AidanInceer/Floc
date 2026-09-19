@@ -8,6 +8,7 @@ import { asText, TEXT_CAPS } from "../text/text";
 
 /** 8 MB. A boarding pass is kilobytes; this is generous for a scanned visa. */
 const MAX_DOCUMENT_BYTES = 8 * 1024 * 1024;
+export const MAX_DOCUMENT_BASE64_LENGTH = Math.ceil(MAX_DOCUMENT_BYTES / 3) * 4;
 
 /**
  * Allow-list, not a deny-list. Keyed by MIME type because that is what the

@@ -108,6 +108,9 @@
     "invites.preview": {
       "mobile": "yes"
     },
+    "invites.resetLink": {
+      "mobile": "yes"
+    },
     "invites.send": {
       "mobile": "yes"
     },

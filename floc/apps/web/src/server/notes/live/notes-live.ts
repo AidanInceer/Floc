@@ -39,6 +39,14 @@ export function createNotesLive(options: {
       context.userId = userId;
     },
 
+    async beforeHandleMessage({ documentName, requestHeaders, context }) {
+      const tripId = tripIdOf(documentName);
+      const userId = await options.resolveUser(requestHeaders);
+      if (!userId || userId !== context.userId || tripId === null || !(await isLiveMember(tripId, userId))) {
+        throw new Error("Not found");
+      }
+    },
+
     async onLoadDocument({ documentName, document }) {
       const tripId = tripIdOf(documentName);
       if (tripId === null) throw new Error("Not found");
@@ -59,9 +67,11 @@ export function createNotesLive(options: {
   });
 
   const stop = onNotesKick((tripId, userId) => {
-    const document = live.documents.get(notesDocumentName(tripId));
-    for (const connection of document?.getConnections() ?? []) {
-      if (connection.context?.userId === userId) connection.close();
+    for (const document of live.documents.values()) {
+      if (tripId !== null && document.name !== notesDocumentName(tripId)) continue;
+      for (const connection of document.getConnections()) {
+        if (userId === undefined || connection.context?.userId === userId) connection.close();
+      }
     }
   });
   live.configure({ extensions: [{ async onDestroy() { stop(); } }] });

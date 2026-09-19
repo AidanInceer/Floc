@@ -1,7 +1,7 @@
 import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
-import { tripNoteDoc } from "@/db/schema";
+import { trip, tripNoteDoc } from "@/db/schema";
 
 export async function loadLiveState(
   tripId: number,
@@ -21,11 +21,16 @@ export async function storeLiveState(
   body: string,
 ): Promise<void> {
   const yjsState = Buffer.from(state);
-  await db
-    .insert(tripNoteDoc)
-    .values({ tripId, updatedBy, body, yjsState })
-    .onConflictDoUpdate({
-      target: tripNoteDoc.tripId,
-      set: { body, yjsState, updatedBy, deletedAt: null, lastModifiedAt: new Date() },
-    });
+  await db.transaction(async (tx) => {
+    const alive = await tx.select({ id: trip.id }).from(trip)
+      .where(and(eq(trip.id, tripId), isNull(trip.deletedAt))).get();
+    if (!alive) return;
+    await tx
+      .insert(tripNoteDoc)
+      .values({ tripId, updatedBy, body, yjsState })
+      .onConflictDoUpdate({
+        target: tripNoteDoc.tripId,
+        set: { body, yjsState, updatedBy, deletedAt: null, lastModifiedAt: new Date() },
+      });
+  });
 }
