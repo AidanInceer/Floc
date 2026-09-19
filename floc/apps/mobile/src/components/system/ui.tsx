@@ -254,45 +254,6 @@ export function Button({
  * says which one you came for. A rare afterthought is a line of text you can
  * tap, centred under the thing it follows.
  */
-export function TextLink({
-  label,
-  onPress,
-  disabled,
-}: {
-  label: string;
-  onPress: () => void;
-  disabled?: boolean;
-}) {
-  const { c } = useTheme();
-  return (
-    <Pressable
-      accessibilityRole="link"
-      accessibilityState={{ disabled: !!disabled }}
-      onPress={onPress}
-      disabled={disabled}
-      // Bigger than the text, so the tap target clears the 44pt minimum
-      // without the text itself having to grow into a control.
-      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-      style={({ pressed }) => ({
-        alignSelf: "center",
-        paddingVertical: space.xs,
-        opacity: disabled ? 0.5 : pressed ? 0.6 : 1,
-      })}
-    >
-      <Text
-        style={{
-          color: c["ink-2"],
-          fontFamily: fonts.sans,
-          fontSize: size.small,
-          textDecorationLine: "underline",
-        }}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
 export function Field({
   label,
   ...props

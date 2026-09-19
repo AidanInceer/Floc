@@ -41,6 +41,14 @@ export const invitesRouter = router({
     await ctx.port.declineTripInvite(ctx.viewer.id, input.tripId);
   }),
 
+  /**
+   * Re-locks the trip and answers the new token (#358). Admin-only, enforced by
+   * the port (rule 6) — unlike `forTrip` and `send`, which any member may call.
+   */
+  resetLink: tripProcedure.mutation(({ ctx, input }) =>
+    ctx.port.resetInviteLink(ctx.viewer.id, input.tripId),
+  ),
+
   /** Null for a bad or retired token — never an error naming what was wrong. */
   preview: publicProcedure
     .input(z.object({ token: z.string().min(1) }))

@@ -8,9 +8,13 @@ import type { AddressInfo } from "node:net";
 import { HocuspocusProvider, HocuspocusProviderWebsocket } from "@hocuspocus/provider";
 import WebSocket from "ws";
 import * as Y from "yjs";
+import { and, eq } from "drizzle-orm";
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { removeMembership } from "@/server/trips/roster";
+import { handOverAndLeaveAllTrips, removeMembership } from "@/server/trips/roster";
+import { softDeleteTrip } from "@/server/trips/trips";
+import { db } from "@/db";
+import { tripMembership } from "@/db/schema";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { attachNotesLive, LIVE_NOTES_PATH } from "./live-socket";
 import { createNotesLive, notesDocumentName } from "./notes-live";
@@ -20,13 +24,18 @@ let server: Server;
 let url: string;
 const open: HocuspocusProvider[] = [];
 const sockets: HocuspocusProviderWebsocket[] = [];
+const revokedSessions = new Set<string>();
 
 beforeAll(migrateTestDb);
 beforeEach(async () => {
   await resetDb();
   world = await seedScenario();
+  revokedSessions.clear();
   const live = createNotesLive({
-    resolveUser: async (headers) => headers.get("cookie"),
+    resolveUser: async (headers) => {
+      const userId = headers.get("cookie");
+      return userId && !revokedSessions.has(userId) ? userId : null;
+    },
     debounce: 0,
   });
   server = createServer((_req, res) => res.end());
@@ -72,6 +81,49 @@ const write = (doc: Y.Doc, text: string) => doc.getMap("probe").set(text, true);
 const read = (doc: Y.Doc) => [...doc.getMap("probe").keys()].sort().join(",");
 
 describe("the live socket", () => {
+  it.each(["session", "membership"])("rejects an edit after %s revocation without a kick", async (revoked) => {
+    const ada = connectAs(world.admin, world.ours.id);
+    const mo = connectAs(world.member, world.ours.id);
+    await until(() => ada.isSynced && mo.isSynced);
+    let closed = false;
+    mo.on("close", () => { closed = true; });
+    if (revoked === "session") revokedSessions.add(world.member);
+    else await db.update(tripMembership).set({ deletedAt: new Date() }).where(
+      and(eq(tripMembership.tripId, world.ours.id), eq(tripMembership.userId, world.member)),
+    );
+
+    write(mo.document, "forbidden edit");
+
+    await until(() => closed);
+    expect(read(ada.document)).not.toContain("forbidden edit");
+  });
+
+  it("closes every live editor when a trip is deleted", async () => {
+    const ada = connectAs(world.admin, world.ours.id);
+    const mo = connectAs(world.member, world.ours.id);
+    await until(() => ada.isSynced && mo.isSynced);
+    let closed = 0;
+    ada.on("close", () => { closed++; });
+    mo.on("close", () => { closed++; });
+
+    await softDeleteTrip(world.ours.id);
+
+    await until(() => closed === 2);
+  });
+
+  it("disconnects a member when account deletion removes their memberships", async () => {
+    const ada = connectAs(world.admin, world.ours.id);
+    const mo = connectAs(world.member, world.ours.id);
+    await until(() => ada.isSynced && mo.isSynced);
+    let disconnected = false;
+    mo.on("close", () => { disconnected = true; });
+
+    await handOverAndLeaveAllTrips(world.member);
+
+    await until(() => disconnected);
+    expect(sockets[0].status).toBe("connected");
+  });
+
   it("carries one member's edit to another, and keeps both of two edits", async () => {
     const ada = connectAs(world.admin, world.ours.id);
     const mo = connectAs(world.member, world.ours.id);

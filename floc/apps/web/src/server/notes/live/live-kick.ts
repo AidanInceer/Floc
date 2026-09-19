@@ -3,7 +3,7 @@
  * their own copy of this module in one process, so a module-level set would
  * never see the other side's registration.
  */
-type Kicker = (tripId: number, userId: string) => void;
+type Kicker = (tripId: number | null, userId?: string) => void;
 
 const KEY = Symbol.for("floc.notesLive.kickers");
 const kickers = ((globalThis as Record<symbol, Set<Kicker>>)[KEY] ??= new Set());
@@ -13,6 +13,6 @@ export function onNotesKick(kicker: Kicker): () => void {
   return () => kickers.delete(kicker);
 }
 
-export function kickFromTripNotes(tripId: number, userId: string): void {
+export function kickFromTripNotes(tripId: number | null, userId?: string): void {
   for (const kick of kickers) kick(tripId, userId);
 }

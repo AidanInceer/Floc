@@ -15,6 +15,7 @@ import { trip, tripMembership } from "@/db/schema";
 import type { TripRole } from "@/db/schema";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
+import { kickFromTripNotes } from "@/server/notes/live/live-kick";
 
 export type TripListRow = {
   id: number;
@@ -144,6 +145,22 @@ export async function updateTrip(tripId: number, patch: TripPatch): Promise<void
     .where(and(eq(trip.id, tripId), isNull(trip.deletedAt)));
 }
 
+/**
+ * Changes the trip's lock (#358). Whoever still holds the old link now resolves
+ * to nothing, which is the normal not-found page — same shape as a guessed
+ * token, so a revoked link and a made-up one are indistinguishable (rule 5).
+ * Members already through the door keep their `trip_membership` row.
+ */
+export async function resetInviteToken(tripId: number): Promise<string> {
+  const minted = crypto.randomUUID();
+  const [row] = await db
+    .update(trip)
+    .set({ inviteToken: minted, ...touch() })
+    .where(and(eq(trip.id, tripId), isNull(trip.deletedAt)))
+    .returning({ inviteToken: trip.inviteToken });
+  return row?.inviteToken ?? minted;
+}
+
 /** Archiving is reversible and keeps every row — the delete below is the one-way door. */
 export async function setTripArchived(
   tripId: number,
@@ -161,4 +178,5 @@ export async function softDeleteTrip(tripId: number): Promise<void> {
     .update(trip)
     .set({ deletedAt: new Date(), ...touch() })
     .where(eq(trip.id, tripId));
+  kickFromTripNotes(tripId);
 }

@@ -2,7 +2,7 @@
 
 // Discussion threads, shared by every surface that has one (server/notes.ts
 // owns the table shape, ticket 108). Anyone posts; only the author edits or
-// deletes — removing someone else's words is not one of the three admin powers.
+// deletes — removing someone else's words is not one of the admin powers.
 import { requireTripAccess } from "@/server/access";
 import {
   findNote,

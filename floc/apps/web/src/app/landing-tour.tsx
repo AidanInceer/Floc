@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import type { ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { ReactNode, RefObject } from "react";
 
 import { cx } from "@/components/system/ui";
 import { FlockChevron } from "@/components/system/flock-chevron";
@@ -19,7 +19,27 @@ function useStill() {
   return still;
 }
 
-/** Nothing plays until someone picks a stop; before that the first one sits answered. */
+/** The tour plays itself once it scrolls into view; before that the first stop sits answered. */
+function useStartInView(root: RefObject<HTMLDivElement | null>, start: () => void) {
+  const started = useRef(false);
+  useEffect(() => {
+    const node = root.current;
+    if (!node || started.current) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting) || started.current) return;
+        started.current = true;
+        observer.disconnect();
+        start();
+      },
+      { threshold: 0.35 },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [root, start]);
+}
+
+/** Nothing else plays until someone picks a stop. */
 function useTour(stops: TourStop[], run: number, still: boolean) {
   const [current, setCurrent] = useState(0);
   const [phase, setPhase] = useState<TourPhase>(settled(stops[0].chat.length));
@@ -53,10 +73,12 @@ export function LandingTour({ stops }: { stops: TourStop[] }) {
   const duration = tourAnswerAt(stop.chat.length);
   const line = run > 0 ? <PlayLine key={`${current}-${run}`} duration={duration} still={still} /> : null;
 
-  const pick = (index: number) => {
+  const pick = useCallback((index: number) => {
     setRun((r) => r + 1);
     setCurrent(index);
-  };
+  }, [setCurrent]);
+
+  useStartInView(root, useCallback(() => pick(0), [pick]));
 
   return (
     <div ref={root} className="relative grid gap-7 md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">

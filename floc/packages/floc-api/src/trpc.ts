@@ -13,7 +13,16 @@ import { z } from "zod";
 
 import type { Context } from "./port";
 
-const t = initTRPC.context<Context>().create();
+const t = initTRPC.context<Context>().create({
+  errorFormatter({ shape, error }) {
+    if (error.code !== "INTERNAL_SERVER_ERROR") return shape;
+    return {
+      ...shape,
+      message: "Something went wrong. Please try again.",
+      data: { code: shape.data.code, httpStatus: shape.data.httpStatus, path: shape.data.path },
+    };
+  },
+});
 
 export const router = t.router;
 

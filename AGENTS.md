@@ -56,7 +56,7 @@ pnpm --filter floc-mobile maestro # Maestro flows on the emulator, against the d
 
 ## Invariants
 
-Never break these — integer money, enumeration-proof trip access, soft-delete on every read and write, trip state derived from data (no lifecycle flags), exactly three admin powers, day-first itinerary (no `stop` table), last-write-wins, nullable dates, no timezones. Each is specified in [architecture](docs/architecture/architecture.html) — read it before changing behaviour.
+Never break these — integer money, enumeration-proof trip access, soft-delete on every read and write, trip state derived from data (no lifecycle flags), exactly four admin powers, day-first itinerary (no `stop` table), last-write-wins, nullable dates, no timezones. Each is specified in [architecture](docs/architecture/architecture.html) — read it before changing behaviour.
 
 ## Conventions
 

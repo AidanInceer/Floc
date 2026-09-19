@@ -10,7 +10,7 @@ import { bookingPlan } from "@floc/core/trip/booking-links";
 import { today } from "@floc/core/dates/dates";
 import { formatDateRange } from "@floc/core/dates/dates";
 import { readTripColor } from "@floc/core/trip/trip-color";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ScrollView, View } from "react-native";
 
@@ -63,6 +63,15 @@ export default function Overview() {
   const invites = useQuery(trpc.invites.forTrip.queryOptions({ tripId }, { enabled: ready }));
   const availability = useQuery(trpc.availability.list.queryOptions({ tripId }, { enabled: ready }));
   const rosterTarget = useTourTarget("roster");
+  const queryClient = useQueryClient();
+  // Only the link changed, so only the query that carries it is refetched.
+  const resetLink = useMutation({
+    ...trpc.invites.resetLink.mutationOptions(),
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        queryKey: trpc.invites.forTrip.queryKey({ tripId }),
+      }),
+  });
 
   if (trip.isPending) return <Loading />;
   if (trip.isError) return <Failed onRetry={() => trip.refetch()} />;
@@ -94,26 +103,6 @@ export default function Overview() {
       {/* Ideas first: before the dates exist it is the only live question here. */}
       <IdeasSection tripId={tripId} datesUnset={!trip.data.startDate && !trip.data.endDate} />
 
-      <View ref={rosterTarget} style={{ gap: space.sm }}>
-        {/* "The group", as the web panel calls it — one name for one thing. */}
-        <Label>The group</Label>
-        <GroupCard
-          trip={trip.data}
-          link={invites.data ? inviteUrl(invites.data.token) : null}
-          availability={availability.data}
-          ledger={ledger.data}
-          onInvite={() => router.push(`/trip/${tripId}/invite`)}
-          onMoney={() => go("money")}
-        />
-      </View>
-
-      <TripSection
-        days={days.data}
-        onOpen={(date) => router.push({ pathname: "/trip/[id]/days", params: { id: tripId, date } })}
-      />
-
-      <BookingSection trip={trip.data} onOpen={() => go("dates")} />
-
       <View style={{ gap: space.sm }}>
         <Label>Where</Label>
         <Card>
@@ -128,6 +117,29 @@ export default function Overview() {
           )}
         </Card>
       </View>
+
+      <View ref={rosterTarget} style={{ gap: space.sm }}>
+        {/* "The group", as the web panel calls it — one name for one thing. */}
+        <Label>The group</Label>
+        <GroupCard
+          trip={trip.data}
+          link={invites.data ? inviteUrl(invites.data.token) : null}
+          availability={availability.data}
+          ledger={ledger.data}
+          isAdmin={trip.data.role === "admin"}
+          resetting={resetLink.isPending}
+          onInvite={() => router.push(`/trip/${tripId}/invite`)}
+          onResetLink={() => resetLink.mutate({ tripId })}
+          onMoney={() => go("money")}
+        />
+      </View>
+
+      <TripSection
+        days={days.data}
+        onOpen={(date) => router.push({ pathname: "/trip/[id]/days", params: { id: tripId, date } })}
+      />
+
+      <BookingSection trip={trip.data} onOpen={() => go("dates")} />
 
       <View style={{ gap: space.sm }}>
         <Label>Files</Label>
@@ -168,19 +180,31 @@ function GroupCard({
   link,
   availability,
   ledger,
+  isAdmin,
+  resetting,
   onInvite,
+  onResetLink,
   onMoney,
 }: {
   trip: Outputs["trips"]["get"];
   link: string | null;
+  isAdmin: boolean;
+  resetting: boolean;
   availability: Outputs["availability"]["list"] | undefined;
   ledger: Ledger | undefined;
   onInvite: () => void;
+  onResetLink: () => void;
   onMoney: () => void;
 }) {
   return (
     <Card>
-      <GroupActions link={link} onInvite={onInvite} />
+      <GroupActions
+        link={link}
+        isAdmin={isAdmin}
+        resetting={resetting}
+        onInvite={onInvite}
+        onResetLink={onResetLink}
+      />
       <RosterStrip people={trip.members} statuses={statusesFor(trip, availability, ledger)} />
       <SpendingStrip
         headline={ledger ? spendHeadline(ledger.expenses) : null}

@@ -15,7 +15,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { Platform, View } from "react-native";
 
-import { TextLink } from "../system/ui";
+import { TextLink } from "../system/text-controls";
 import { ProButton, ProText } from "./pro-parts";
 import { space } from "@/lib/theme";
 import { claimOf, offerTokenOf, yearlySavingOf } from "@/lib/billing/pro";

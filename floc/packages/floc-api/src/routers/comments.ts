@@ -5,7 +5,7 @@
  * carries threads hung off a `day_event`. They share a table and nothing else
  * — one is a page you write, the other is a conversation you join.
  *
- * EVERY MEMBER MAY POST. Commenting is not one of the three admin powers.
+ * EVERY MEMBER MAY POST. Commenting is not one of the admin powers.
  * Deleting somebody else's comment is: the port checks it, not this router.
  *
  * REFUSALS COME BACK AS WORDS, NOT THROWS. An empty body and a comment that

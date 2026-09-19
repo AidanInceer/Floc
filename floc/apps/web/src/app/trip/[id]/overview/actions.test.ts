@@ -20,6 +20,7 @@ import {
   markTourSeen,
   promoteMember,
   renameTrip,
+  resetInviteLink,
   sendNudge,
   setTripTags,
 } from "./actions";
@@ -124,6 +125,36 @@ describe("the admin powers", () => {
   it("are refused on a trip the viewer is not on (rule 5)", async () => {
     signIn(world.outsider);
     await expectNotFound(() => kickMember(form({ tripId: ours(), userId: world.member })));
+  });
+});
+
+describe("resetting the invite link (#358)", () => {
+  it("re-locks the trip, leaving the people already in it", async () => {
+    signIn(world.admin);
+    const before = (await tripRow(world.ours.id))?.inviteToken;
+
+    await resetInviteLink(form({ tripId: ours() }));
+
+    expect((await tripRow(world.ours.id))?.inviteToken).not.toBe(before);
+    expect((await membership(world.ours.id, world.member))?.deletedAt).toBeNull();
+  });
+
+  it("is refused to a member — it is an admin power (#358)", async () => {
+    signIn(world.member);
+    const before = (await tripRow(world.ours.id))?.inviteToken;
+
+    await expect(resetInviteLink(form({ tripId: ours() }))).rejects.toThrow(
+      "Only a trip admin can do that",
+    );
+    expect((await tripRow(world.ours.id))?.inviteToken).toBe(before);
+  });
+
+  it("is refused on a trip the viewer is not on (rule 5)", async () => {
+    signIn(world.outsider);
+    const before = (await tripRow(world.ours.id))?.inviteToken;
+
+    await expectNotFound(() => resetInviteLink(form({ tripId: ours() })));
+    expect((await tripRow(world.ours.id))?.inviteToken).toBe(before);
   });
 });
 

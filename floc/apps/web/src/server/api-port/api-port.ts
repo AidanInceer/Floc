@@ -113,6 +113,7 @@ import { leaveTripAs, removeMembership, setMemberRoleAdmin } from "@/server/trip
 import {
   createTripWithAdmin,
   listTripsFor,
+  resetInviteToken,
   setTripArchived,
   setTripMuted,
   setTripStarred,
@@ -593,6 +594,13 @@ export const webPort: FlocPort = {
     assertAdmin(await scoped(viewerId, tripId));
     await setMemberRoleAdmin(tripId, userId);
     refresh({ kind: "tripHeader", tripId });
+  },
+
+  async resetInviteLink(viewerId, tripId) {
+    assertAdmin(await scoped(viewerId, tripId));
+    const minted = await resetInviteToken(tripId);
+    refresh({ kind: "tripOverview", tripId });
+    return minted;
   },
 
   async joinByToken(viewerId, token) {

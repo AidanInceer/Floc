@@ -6,7 +6,7 @@
  */
 import type { ReactNode } from "react";
 
-import { Avatar, Badge, menuDangerItemClass, menuItemClass } from "@/components/system/ui";
+import { Avatar, Badge, menuDangerItemClass, menuItemClass, quietActionClass } from "@/components/system/ui";
 import { PersonLink } from "@/components/social/person-link";
 import { FriendButton } from "@/components/social/friend-button";
 import { FriendPicker } from "@/components/social/friend-picker";
@@ -21,6 +21,7 @@ import {
   inviteFriends,
   kickMember,
   promoteMember,
+  resetInviteLink,
   sendNudge,
 } from "@/app/trip/[id]/overview/actions";
 
@@ -105,6 +106,25 @@ export function TripRoster({
               icon={<ShareIcon />}
             />
         </span>
+        {/* Why: revoking cancels every copy already sent, so it is an admin power (#358) —
+            unlike handing the link out, which any member may do (#312). */}
+        {isAdmin ? (
+          <span className="mt-1.5 flex justify-center">
+            <form action={resetInviteLink}>
+              <input type="hidden" name="tripId" value={tripId} />
+              <ConfirmSubmit
+                variant="ghost"
+                confirmVariant="danger"
+                className={quietActionClass}
+                message="Reset the invite link? The old link stops working for anyone still holding it. Everyone already on the trip stays."
+                confirmLabel="Reset the link"
+                pendingLabel="Resetting…"
+              >
+                Reset link
+              </ConfirmSubmit>
+            </form>
+          </span>
+        ) : null}
       </div>
 
       <ul className="mt-3 flex flex-col gap-1.5">
