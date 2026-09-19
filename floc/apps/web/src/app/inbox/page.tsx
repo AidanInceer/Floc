@@ -1,10 +1,10 @@
 import { commentTime } from "@floc/core/notes/notes";
 
 import { openNotification, readEverything, seeInbox } from "./actions";
-import { SeenOnLanding } from "./seen-on-landing";
 import { requireUser } from "@/server/access";
 import { countUnread, listInbox } from "@/server/notifications/inbox";
 import { AccountPage, Panel } from "@/components/auth/account-ui";
+import { SeenOnLanding } from "@/components/notifications/seen-on-landing";
 import { SubmitButton } from "@/components/system/client-ui";
 import { Badge, ButtonLink, EmptyState, cx } from "@/components/system/ui";
 

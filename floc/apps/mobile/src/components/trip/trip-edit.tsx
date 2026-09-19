@@ -16,16 +16,16 @@ import { TRIP_MARKS, TRIP_MARK_LABELS, type TripMark } from "@floc/core/trip/mar
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
 
 import { TripMarkIcon } from "./trip-mark";
-import { CrossGlyph } from "../system/glyphs";
+import { CrossGlyph, PlusGlyph } from "../system/glyphs";
 import { useTheme } from "../system/theme";
-import { Body, Button, Field, IconButton, Label } from "../system/ui";
+import { Body, Field, IconButton, Label } from "../system/ui";
 import { fonts, radius, size, space } from "@/lib/theme";
 
 /** A row keeps an id so deleting one does not hand its text to the next. */
 export type TagRow = { id: number; name: string };
 
 export function rowsFromTags(tags: string[]): TagRow[] {
-  // Opens on one empty row, not nothing — else the only control is "Add a tag".
+  // Opens on one empty row, not nothing — else there is nothing to add beside.
   return tags.length > 0
     ? tags.map((name, id) => ({ id, name }))
     : [{ id: 0, name: "" }];
@@ -114,10 +114,13 @@ function TagRowInput({
   row,
   onChange,
   onDelete,
+  onAdd,
 }: {
   row: TagRow;
   onChange: (name: string) => void;
   onDelete: () => void;
+  /** Only the last row carries it, so tags and "add one" share a line. */
+  onAdd: (() => void) | null;
 }) {
   const { c } = useTheme();
   return (
@@ -147,6 +150,11 @@ function TagRowInput({
       <IconButton label={`Delete ${row.name || "this tag"}`} onPress={onDelete}>
         {(colour) => <CrossGlyph color={colour} />}
       </IconButton>
+      {onAdd ? (
+        <IconButton label="Add a tag" onPress={onAdd}>
+          {(colour) => <PlusGlyph color={colour} />}
+        </IconButton>
+      ) : null}
     </View>
   );
 }
@@ -201,7 +209,7 @@ export function TripEdit({
 
       <View style={{ gap: space.sm }}>
         <Label>Tags</Label>
-        {rows.map((row) => (
+        {rows.map((row, i) => (
           <TagRowInput
             key={row.id}
             row={row}
@@ -209,15 +217,14 @@ export function TripEdit({
               onChangeRows(rows.map((r) => (r.id === row.id ? { ...r, name: text } : r)))
             }
             onDelete={() => onChangeRows(rows.filter((r) => r.id !== row.id))}
+            onAdd={
+              i === rows.length - 1 && rows.length < MAX_TAGS
+                ? () => onChangeRows([...rows, { id: nextId, name: "" }])
+                : null
+            }
           />
         ))}
-        {rows.length < MAX_TAGS ? (
-          <Button
-            label="Add a tag"
-            variant="quiet"
-            onPress={() => onChangeRows([...rows, { id: nextId, name: "" }])}
-          />
-        ) : (
+        {rows.length < MAX_TAGS ? null : (
           <Body tone="ink-2">{MAX_TAGS} tags is the limit — delete one to add another.</Body>
         )}
       </View>

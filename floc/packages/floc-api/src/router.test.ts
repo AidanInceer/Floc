@@ -70,8 +70,7 @@ function fakePort(overrides: Partial<FlocPort> = {}): FlocPort {
     loadLedger: vi.fn().mockResolvedValue({ expenses: [], splits: [], settlements: [] }),
     createTrip: vi.fn().mockResolvedValue({ id: 2 }),
     startTripFromPreset: vi.fn().mockResolvedValue({ id: 3 }),
-    loadExplore: vi.fn().mockResolvedValue({ saved: [], answers: null }),
-    setExploreSaved: vi.fn().mockResolvedValue("ok"),
+    loadExplore: vi.fn().mockResolvedValue({ answers: null }),
     setExploreAnswers: vi.fn().mockResolvedValue(undefined),
     loadExploreRates: vi.fn().mockResolvedValue({ GBP: 1, EUR: 0.85 }),
     updateTrip: vi.fn().mockResolvedValue(undefined),
@@ -166,11 +165,9 @@ describe("the tour (#314)", () => {
 });
 
 describe("explore", () => {
-  it("saves and answers only for the caller", async () => {
+  it("saves answers only for the caller", async () => {
     const { caller: ana, port } = caller("u1");
-    await ana.explore.setSaved({ presetId: "amalfi-slow-week", saved: true });
     await ana.explore.setAnswers({ size: "2-4", when: "any", cost: "more", pace: "move", nights: 7 });
-    expect(port.setExploreSaved).toHaveBeenCalledWith("u1", "amalfi-slow-week", true);
     expect(port.setExploreAnswers).toHaveBeenCalledWith("u1", {
       size: "2-4",
       when: "any",

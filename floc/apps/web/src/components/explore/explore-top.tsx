@@ -2,9 +2,9 @@
 
 import { rankMatches, type ExploreAnswers } from "@floc/core/trip/explore/explore-match";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
-import { useRef, useState, useTransition } from "react";
+import { useRef, useState } from "react";
 
-import { rememberAnswers, toggleSaved } from "@/app/explore/actions";
+import { rememberAnswers } from "@/app/explore/actions";
 import { ExploreAtlas } from "@/components/explore/explore-atlas";
 import { ExploreMatches } from "@/components/explore/explore-matches";
 import { ExploreQuiz } from "@/components/explore/explore-quiz";
@@ -15,16 +15,13 @@ const MATCH_COUNT = 5;
 
 export function ExploreTop({
   signedIn,
-  saved,
   initialAnswers,
 }: {
   signedIn: boolean;
-  saved: string[];
   initialAnswers: ExploreAnswers;
 }) {
-  const [picked, setPicked] = useState(saved[0] ?? PRESET_TRIPS[0].id);
+  const [picked, setPicked] = useState(PRESET_TRIPS[0].id);
   const [answers, setAnswers] = useState(initialAnswers);
-  const [busy, startSave] = useTransition();
   const atlas = useRef<HTMLDivElement>(null);
   const pendingSave = useRef<ReturnType<typeof setTimeout>>(undefined);
   const trip = PRESET_TRIPS.find((t) => t.id === picked) ?? PRESET_TRIPS[0];
@@ -50,17 +47,7 @@ export function ExploreTop({
         className="grid scroll-mt-20 overflow-hidden rounded-xl border border-rule bg-sheet shadow-[var(--shadow)] lg:grid-cols-[1fr_21rem]"
       >
         <ExploreAtlas picked={trip.id} onPick={setPicked} />
-        <ExploreSide
-          trip={trip}
-          saved={saved}
-          signedIn={signedIn}
-          busy={busy}
-          onToggleSave={() =>
-            startSave(async () => {
-              await toggleSaved(trip.id, !saved.includes(trip.id));
-            })
-          }
-        />
+        <ExploreSide trip={trip} signedIn={signedIn} />
       </div>
 
       <a

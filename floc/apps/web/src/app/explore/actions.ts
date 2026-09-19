@@ -18,14 +18,6 @@ import { refresh } from "@/server/freshness";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import { readAnswers } from "@floc/core/trip/explore/explore-match";
 import { saveAnswers } from "@/server/explore/explore-answers";
-import { setSaved, type SaveResult } from "@/server/explore/shortlist";
-
-export async function toggleSaved(presetId: string, saved: boolean): Promise<SaveResult> {
-  const viewer = await requireUser("/explore");
-  const result = await setSaved(viewer.id, presetId, saved);
-  refresh({ kind: "explore" });
-  return result;
-}
 
 // No refresh: the page already holds the answers it just sent.
 export async function rememberAnswers(value: unknown): Promise<void> {

@@ -75,10 +75,6 @@ export function TripActions({
         </View>
       </View>
 
-      {/* The one thing the buttons cannot say: what does not come back. */}
-      {asking === "delete" ? (
-        <Body tone="red">Days, money, packing and notes go with it. No undo.</Body>
-      ) : null}
       {asking === "archive" ? (
         <Body tone="ink-3">Keeps everything, hides it from your list. Members can still open it.</Body>
       ) : null}

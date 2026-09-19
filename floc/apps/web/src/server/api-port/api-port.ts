@@ -49,7 +49,7 @@ import { settingsPort } from "@/server/api-port/api-port-settings";
 import { socialPort } from "@/server/api-port/api-port-social";
 import { weatherPort } from "@/server/api-port/api-port-weather";
 import { calendarPort } from "@/server/api-port/api-port-calendar";
-import { notificationsPort } from "@/server/api-port/api-port-notifications";
+import { notificationsPort } from "@/server/api-port/notifications/notifications";
 import { refresh } from "@/server/freshness";
 import { emailConfigured } from "@/server/auth/email";
 import { findTripByInviteToken, joinWithLink } from "@/server/trips/invites";

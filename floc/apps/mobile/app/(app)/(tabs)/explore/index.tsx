@@ -1,7 +1,7 @@
 /**
  * Explore — the web's map, match and list, cut back to one scroll. The
- * listings are static `@floc/core` data; only the shortlist, the answers and
- * starting a trip reach the server.
+ * listings are static `@floc/core` data; only the answers and starting a trip
+ * reach the server.
  */
 import {
   DEFAULT_ANSWERS,
@@ -10,7 +10,7 @@ import {
 } from "@floc/core/trip/explore/explore-match";
 import { DEFAULT_EXPLORE_SORT, sortPresetTrips, type ExploreSort } from "@floc/core/trip/explore/explore-sort";
 import { PRESET_TRIPS, type Region } from "@floc/core/trip/explore/preset-trips";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, View } from "react-native";
@@ -35,12 +35,10 @@ const ROW_LIMIT = 10;
 export default function Explore() {
   const router = useRouter();
   const { c } = useTheme();
-  const queryClient = useQueryClient();
   const scroll = useRef<ScrollView>(null);
   const pendingSave = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const state = useQuery(trpc.explore.get.queryOptions());
-  const saved = state.data?.saved ?? [];
   const [picked, setPicked] = useState(PRESET_TRIPS[0].id);
   const [answers, setAnswers] = useState<ExploreAnswers>(DEFAULT_ANSWERS);
   const [region, setRegion] = useState<RegionChoice>(null);
@@ -52,8 +50,6 @@ export default function Explore() {
     if (state.data?.answers) setAnswers(state.data.answers);
   }, [state.data?.answers]);
 
-  const refetch = () => queryClient.invalidateQueries({ queryKey: trpc.explore.get.queryKey() });
-  const save = useMutation({ ...trpc.explore.setSaved.mutationOptions(), onSuccess: refetch });
   const remember = useMutation(trpc.explore.setAnswers.mutationOptions());
   const start = useMutation({
     ...trpc.trips.startFromPreset.mutationOptions(),
@@ -91,12 +87,9 @@ export default function Explore() {
         <ExploreMap picked={trip.id} onPick={setPicked} />
         <ExploreCard
           trip={trip}
-          saved={saved}
-          saving={save.isPending}
           starting={start.isPending}
           onStart={() => start.mutate({ presetId: trip.id })}
           onOpen={() => router.push({ pathname: "/explore/[preset]", params: { preset: trip.id } })}
-          onToggleSave={() => save.mutate({ presetId: trip.id, saved: !saved.includes(trip.id) })}
         />
       </View>
 

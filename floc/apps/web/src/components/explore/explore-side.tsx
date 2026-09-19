@@ -1,28 +1,15 @@
 "use client";
 
 import { formatMoney } from "@floc/core/money/money";
-import { SHORTLIST_CAP } from "@floc/core/trip/explore/explore-match";
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 
 import { startTripFromPreset } from "@/app/explore/actions";
-import { HeartGlyph, PinGlyph, TickGlyph } from "@/components/explore/explore-glyphs";
+import { PinGlyph } from "@/components/explore/explore-glyphs";
 import { legLine, skinFor } from "@/components/explore/listing";
 import { SubmitButton } from "@/components/system/client-ui";
-import { Button, ButtonLink, cx } from "@/components/system/ui";
+import { ButtonLink, cx } from "@/components/system/ui";
 
-export function ExploreSide({
-  trip,
-  saved,
-  signedIn,
-  busy,
-  onToggleSave,
-}: {
-  trip: PresetTrip;
-  saved: string[];
-  signedIn: boolean;
-  busy: boolean;
-  onToggleSave: () => void;
-}) {
+export function ExploreSide({ trip, signedIn }: { trip: PresetTrip; signedIn: boolean }) {
   return (
     <aside className="flex flex-col gap-4 border-t border-rule p-5 lg:border-l lg:border-t-0">
       <div>
@@ -59,61 +46,7 @@ export function ExploreSide({
             Sign up to start
           </ButtonLink>
         )}
-        <SaveButton trip={trip} saved={saved} signedIn={signedIn} busy={busy} onToggle={onToggleSave} />
       </div>
-
-      <Shortlist count={saved.length} signedIn={signedIn} />
     </aside>
-  );
-}
-
-function SaveButton({
-  trip,
-  saved,
-  signedIn,
-  busy,
-  onToggle,
-}: {
-  trip: PresetTrip;
-  saved: string[];
-  signedIn: boolean;
-  busy: boolean;
-  onToggle: () => void;
-}) {
-  if (!signedIn) {
-    return (
-      <ButtonLink href="/signup">
-        <HeartGlyph /> Save
-      </ButtonLink>
-    );
-  }
-  const isSaved = saved.includes(trip.id);
-  const full = !isSaved && saved.length >= SHORTLIST_CAP;
-  return (
-    <Button onClick={onToggle} disabled={busy || full} aria-pressed={isSaved}>
-      {isSaved ? <TickGlyph /> : <HeartGlyph />}
-      {isSaved ? "Saved" : full ? "Full" : "Save"}
-    </Button>
-  );
-}
-
-function Shortlist({ count, signedIn }: { count: number; signedIn: boolean }) {
-  const line = !signedIn
-    ? "Sign up and we keep three for you."
-    : count >= SHORTLIST_CAP
-      ? "Full. Unsave one to make room."
-      : "Save three and we keep them for you.";
-  return (
-    <div className="rounded-md bg-mint p-3 text-[13px] text-mint-ink">
-      <strong>
-        Your shortlist · {count} of {SHORTLIST_CAP}
-      </strong>
-      <div className="mt-1.5 flex gap-1" aria-hidden>
-        {Array.from({ length: SHORTLIST_CAP }, (_, k) => (
-          <i key={k} className={cx("h-1.5 w-[22px] rounded-sm", k < count ? "bg-mint-ink" : "bg-mint-edge")} />
-        ))}
-      </div>
-      <p className="mt-1.5">{line}</p>
-    </div>
   );
 }

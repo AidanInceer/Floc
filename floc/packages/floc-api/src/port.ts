@@ -37,7 +37,7 @@ export type { Currency, DayEventType, DocCategory, ExpenseCategory, ReactionKind
 
 export type { ExploreAnswers };
 
-export type ExploreState = { saved: string[]; answers: ExploreAnswers | null };
+export type ExploreState = { answers: ExploreAnswers | null };
 
 export type TripRole = "admin" | "member";
 
@@ -943,14 +943,8 @@ export type FlocPort = {
    */
   startTripFromPreset(viewerId: string, presetId: string): Promise<{ id: number } | null>;
 
-  /** Your Explore shortlist and last quiz answers — null answers means never asked. */
+  /** Your last Explore quiz answers — null means never asked. */
   loadExplore(viewerId: string): Promise<ExploreState>;
-  /** "full" when the shortlist is at its cap; "unknown" for a retired listing. */
-  setExploreSaved(
-    viewerId: string,
-    presetId: string,
-    saved: boolean,
-  ): Promise<"ok" | "full" | "unknown">;
   setExploreAnswers(viewerId: string, answers: ExploreAnswers): Promise<void>;
   /** Home-currency multipliers for the Price sort — null when neither the provider nor the cache has any. */
   loadExploreRates(viewerId: string): Promise<RatesToHome | null>;

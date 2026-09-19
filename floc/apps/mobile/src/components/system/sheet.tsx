@@ -20,6 +20,7 @@
  */
 import type { ReactNode } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useTheme } from "./theme";
 import { radius, space } from "@/lib/theme";
@@ -35,6 +36,7 @@ export function Sheet({
 }) {
   const { c } = useTheme();
   const { height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   return (
     <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
       <View style={{ flex: 1, justifyContent: "flex-end" }}>
@@ -51,8 +53,11 @@ export function Sheet({
             backgroundColor: c.sheet,
             borderTopLeftRadius: radius.lg,
             borderTopRightRadius: radius.lg,
-            paddingVertical: space.md,
-            maxHeight: height * 0.6,
+            paddingTop: space.md,
+            // Why: the gesture bar sits over the last row of a sheet that ends at
+            // the screen edge — the footer buttons were cut in half.
+            paddingBottom: space.md + insets.bottom,
+            maxHeight: height * 0.85,
           }}
         >
           <ScrollView>{children}</ScrollView>
