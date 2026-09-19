@@ -202,8 +202,16 @@
     "notifications.open": {
       "mobile": "yes"
     },
+    "notifications.readAll": {
+      "mobile": "no",
+      "why": "The phone has no inbox list yet, so there is nothing on screen to mark. It follows the screen, not the other way round."
+    },
     "notifications.registerPhone": {
       "mobile": "yes"
+    },
+    "notifications.seen": {
+      "mobile": "no",
+      "why": "Web only for now: seeing happens when the inbox page is on screen, and the phone has no inbox page."
     },
     "notifications.unread": {
       "mobile": "yes"

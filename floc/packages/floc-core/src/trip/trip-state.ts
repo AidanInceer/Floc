@@ -223,7 +223,7 @@ export function leaveCostFor<M extends StateMember>(input: {
   const others = members.filter((m) => m.userId !== viewerId);
   const heir =
     others.length > 0 && viewerIsAdmin && !others.some((m) => m.role === "admin")
-      ? others.reduce((earliest, m) => (m.joinedAt < earliest.joinedAt ? m : earliest))
+      ? others.reduce((earliest, m) => (m.joinedAt < earliest.joinedAt ? m : earliest), others[0])
       : null;
 
   const warning =

@@ -86,7 +86,7 @@ export default async function DatesPage({
       : trip.startDate
         ? monthOf(trip.startDate)
         : free.length > 0
-          ? monthOf(free.map((r) => r.date).sort()[0])
+          ? monthOf(free.map((r) => r.date).sort((a, b) => a.localeCompare(b))[0])
           : thisMonth();
 
   const hasDates = !!trip.startDate && !!trip.endDate;

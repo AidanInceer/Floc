@@ -956,6 +956,8 @@ export const notification = sqliteTable(
       .notNull()
       .references(() => user.id),
     loud: integer("loud", { mode: "boolean" }).notNull(),
+    /** Why: the bell counts unseen, the list marks unread — landing on the inbox answers the first, not the second (#403). */
+    seenAt: integer("seen_at", { mode: "timestamp" }),
     readAt: integer("read_at", { mode: "timestamp" }),
     /** Why: a lease, so a second instance skips it and a crashed send is retried once the lease runs out (#345). */
     pushClaimedAt: integer("push_claimed_at", { mode: "timestamp" }),

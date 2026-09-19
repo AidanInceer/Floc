@@ -28,6 +28,12 @@ node scripts/ci-watch.mjs <sha>
 
 Exit `2` → run again. Exit `1` → stop and report the failure. Never release red.
 
+Sonar does not run on `develop` — SonarQube Cloud Free analyses only `main` and
+pull requests — so the gate is first seen on the PR in step 6, and again on
+`main` in step 7. Its new-code window on `main` is *since the last release*,
+which is wider than the PR diff: a PR can pass while `main` fails on issues
+that piled up. Both are checked.
+
 ## 3. What it closes
 
 ```bash
@@ -95,6 +101,15 @@ gh pr merge <n> --repo AidanInceer/Floc --merge
 
 **Only `--merge`.** Never `--squash`, `--rebase`, `--admin` or `--auto`.
 
+Before merging, the Sonar gate on the PR branch:
+
+```bash
+node scripts/sonar-gate.mjs <pr head branch>
+```
+
+Exit `1` → fix the issues it lists and push again; do not merge. Exit `2` →
+the analysis has not landed yet; wait and run it again.
+
 ## 7. After the merge
 
 Merge SHA: `gh pr view <n> --repo AidanInceer/Floc --json mergeCommit --jq .mergeCommit.oid`.
@@ -102,7 +117,16 @@ Merge SHA: `gh pr view <n> --repo AidanInceer/Floc --json mergeCommit --jq .merg
 1. **CI and sync.** Spawn the watcher in the background for the merge SHA —
    `Agent({ subagent_type: "floc:ci-watch", prompt: "<merge sha>", run_in_background: true })`.
    It covers `Sync develop`, which merges `main` back into `develop`. A red
-   sync means a conflict to resolve by hand.
+   sync means a conflict to resolve by hand. It also covers
+   `SonarQube analysis`, whose gate on `main` measures a wider new-code window
+   than the PR did. Once CI reports, confirm it yourself:
+
+   ```bash
+   node scripts/sonar-gate.mjs main
+   ```
+
+   Exit `1` → the release is on `main` but the gate is red. Fix the listed
+   issues as the next commit on `develop`; do not leave it red.
 2. **Tickets.** Each number from step 3 → `gh issue view <n> --repo AidanInceer/Floc --json state`.
    Still open → say which.
    Split parents from step 3: if every `## Split into` child is closed →

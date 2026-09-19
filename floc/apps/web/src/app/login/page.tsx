@@ -6,11 +6,17 @@ import Link from "next/link";
 import { AuthForm } from "@/components/auth/auth-form";
 import { AuthShell, authLinkClass } from "@/components/auth/auth-shell";
 import { DevSignInButton } from "@/components/auth/dev-sign-in-button";
+import { requireGuest } from "@/server/access";
 import { enabledProviders } from "@/server/auth/auth";
 import { listDevAccounts } from "@/server/auth/dev-accounts";
 import { emailConfigured } from "@/server/auth/email";
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ redirect?: string }>;
+}) {
+  await requireGuest((await searchParams).redirect);
   const devAccounts = await listDevAccounts();
 
   return (

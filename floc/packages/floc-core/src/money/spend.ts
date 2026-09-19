@@ -17,8 +17,10 @@ export function spendHeadline(
     book.count += 1;
     books.set(e.currency, book);
   }
-  const [currency, book] = [...books.entries()].reduce((best, entry) =>
-    entry[1].count > best[1].count ? entry : best,
+  const entries = [...books.entries()];
+  const [currency, book] = entries.reduce(
+    (best, entry) => (entry[1].count > best[1].count ? entry : best),
+    entries[0],
   );
   return { currency, total: book.total, otherCurrencies: books.size - 1 };
 }

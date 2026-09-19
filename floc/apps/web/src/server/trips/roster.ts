@@ -136,8 +136,9 @@ export async function leaveTripAs(args: {
   }
 
   if (isAdmin && !others.some((m) => m.role === "admin")) {
-    const heir = others.reduce((earliest, m) =>
-      m.joinedAt < earliest.joinedAt ? m : earliest,
+    const heir = others.reduce(
+      (earliest, m) => (m.joinedAt < earliest.joinedAt ? m : earliest),
+      others[0],
     );
     await setMemberRoleAdmin(tripId, heir.userId);
   }
@@ -191,8 +192,9 @@ export async function handOverAndLeaveAllTrips(userId: string): Promise<void> {
       const roster = byTrip.get(tripId) ?? [];
       if (roster.length === 0 || roster.some((m) => m.role === "admin")) continue;
 
-      const heir = roster.reduce((earliest, m) =>
-        m.createdAt < earliest.createdAt ? m : earliest,
+      const heir = roster.reduce(
+        (earliest, m) => (m.createdAt < earliest.createdAt ? m : earliest),
+        roster[0],
       );
       promotions.push(setMemberRoleAdmin(tripId, heir.userId));
     }

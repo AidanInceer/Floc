@@ -123,7 +123,7 @@ export function bestWindow(
   }
 
   // Nothing reaches minLength: fall back to the single best-attended day.
-  const [bestDay, bestTally] = dated.reduce((a, b) => (b[1].free > a[1].free ? b : a));
+  const [bestDay, bestTally] = dated.reduce((a, b) => (b[1].free > a[1].free ? b : a), dated[0]);
   return { start: bestDay, end: bestDay, free: bestTally.free };
 }
 
@@ -144,7 +144,7 @@ function longestRun(
   let best: { start: IsoDate; end: IsoDate } | null = null;
   let bestLen = 0;
 
-  for (const start of [...eligible].sort()) {
+  for (const start of [...eligible].sort((a, b) => a.localeCompare(b))) {
     // Only start a run at its first day, or every day would seed a duplicate.
     if (eligible.has(addDays(start, -1))) continue;
     let end = start;

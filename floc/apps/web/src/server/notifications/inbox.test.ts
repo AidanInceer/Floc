@@ -10,7 +10,7 @@ import { insertNote, softDeleteNoteAndReplies } from "@/server/notes/notes";
 import { insertNudge, removeMembership } from "@/server/trips/roster";
 import { inviteToTrip } from "@/server/trips/invites";
 import { softDeleteTrip } from "@/server/trips/trips";
-import { countUnread, listInbox, openNotification } from "@/server/notifications/inbox";
+import { countUnread, listInbox, markAllRead, markInboxSeen, openNotification } from "@/server/notifications/inbox";
 
 let world: Scenario;
 
@@ -41,6 +41,24 @@ describe("the inbox", () => {
     expect(await openNotification(world.member, item.id)).toBe(`/trip/${world.ours.id}/money`);
     expect(await countUnread(world.member)).toBe(0);
     expect((await listInbox(world.member, null)).items[0].read).toBe(true);
+  });
+
+  it("clears the bell on landing but leaves each row still new", async () => {
+    await nudge();
+    await markInboxSeen(world.member);
+
+    expect(await countUnread(world.member)).toBe(0);
+    expect((await listInbox(world.member, null)).items[0].read).toBe(false);
+  });
+
+  it("marks all read at once, and only your own", async () => {
+    await nudge();
+    await markAllRead(world.outsider);
+    expect((await listInbox(world.member, null)).items[0].read).toBe(false);
+
+    await markAllRead(world.member);
+    expect((await listInbox(world.member, null)).items[0].read).toBe(true);
+    expect(await countUnread(world.member)).toBe(0);
   });
 
   it("will not open somebody else's", async () => {

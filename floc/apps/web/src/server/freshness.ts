@@ -37,6 +37,7 @@ export type Fact =
   | { kind: "packingKits" }
   | { kind: "friendship"; otherId: string }
   | { kind: "inbox" }
+  | { kind: "bell" }
   | { kind: "explore" };
 
 export type FactKind = Fact["kind"];
@@ -83,12 +84,15 @@ const PAGES: Pages = {
   packingKits: () => [{ path: "/packing-lists" }],
   friendship: ({ otherId }) => [{ path: "/friends" }, { path: `/profile/${otherId}` }],
   inbox: () => [{ path: "/inbox" }],
+  // The bell hangs off the root layout, so it is stale on every page at once.
+  bell: () => [{ path: "/", type: "layout" }],
   explore: () => [{ path: "/explore" }],
 };
 
 /** Facts a fact drags with it. Same shape of id, so the implied fact reuses it. */
 const IMPLIES: Partial<Record<FactKind, FactKind[]>> = {
   tripWindow: ["itinerary", "tripDates", "tripHeader"],
+  inbox: ["bell"],
 };
 
 /** The tab a note thread is rendered on — notes hang off several surfaces. */

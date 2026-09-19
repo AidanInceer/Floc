@@ -118,6 +118,18 @@ Agent({
 
 When it reports red, tell the user the job and the cause. Fix only if asked.
 
+**Sonar is silent here.** SonarQube Cloud Free analyses `main` and pull
+requests only, so a `develop` push never runs the gate — the bill arrives at
+`/floc:release`, measured over everything since the last release. Once a push
+lands, look at what is already waiting:
+
+```bash
+node scripts/sonar-gate.mjs main
+```
+
+Exit `1` → report the issues in the files this commit touched, so they are
+fixed here rather than found at release time. Exit `0` or `2` → say nothing.
+
 ## Report
 
 Version, subject line, `verify` result, pushed SHA, ticket state, and that CI

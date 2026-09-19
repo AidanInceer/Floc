@@ -7,10 +7,13 @@ import Link from "next/link";
 
 import { AuthForm } from "@/components/auth/auth-form";
 import { AuthShell, authLinkClass } from "@/components/auth/auth-shell";
+import { requireGuest } from "@/server/access";
 import { enabledProviders } from "@/server/auth/auth";
 import { captureChannel } from "./actions";
 
-export default function SignupPage() {
+export default async function SignupPage() {
+  await requireGuest();
+
   return (
     <AuthShell
       eyebrow="First time here"

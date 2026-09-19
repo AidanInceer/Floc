@@ -15,6 +15,10 @@ export const notificationsRouter = router({
 
   unread: protectedProcedure.query(({ ctx }) => ctx.port.countUnreadNotifications(ctx.viewer.id)),
 
+  seen: protectedProcedure.mutation(({ ctx }) => ctx.port.markNotificationsSeen(ctx.viewer.id)),
+
+  readAll: protectedProcedure.mutation(({ ctx }) => ctx.port.markAllNotificationsRead(ctx.viewer.id)),
+
   open: protectedProcedure
     .input(z.object({ id: z.number().int().positive() }))
     .mutation(({ ctx, input }) => ctx.port.openNotification(ctx.viewer.id, input.id)),
