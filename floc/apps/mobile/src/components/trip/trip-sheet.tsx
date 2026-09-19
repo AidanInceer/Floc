@@ -7,6 +7,11 @@
  *
  * ONE DRAFT, SO IT CANNOT BE HALF-OPEN. The draft is seeded when the sheet
  * opens and thrown away when it shuts.
+ *
+ * SHUTTING IT IS SAVING IT. A Save button here asked you to confirm edits you
+ * had already made and could see; leaving without pressing it lost them
+ * silently. Every way out — the cross, the backdrop, the back gesture — writes
+ * the draft, so the only sheet state is the one on screen.
  */
 import { parseTagNames, readTags } from "@floc/core/trip/tags";
 import { readTripColor, type TripColor } from "@floc/core/trip/trip-color";
@@ -18,7 +23,8 @@ import { View } from "react-native";
 import { Sheet } from "../system/sheet";
 import { TripActions } from "./trip-actions";
 import { TripEdit, rowsFromTags, type TagRow } from "./trip-edit";
-import { Body } from "../system/ui";
+import { CrossGlyph } from "../system/glyphs";
+import { Body, IconButton } from "../system/ui";
 import { space } from "@/lib/theme";
 
 export type TripSheetTrip = {
@@ -71,15 +77,31 @@ export function TripSheet({
     }) => void;
     setArchived: (archived: boolean) => void;
     destroy: () => void;
-    saving: boolean;
     leaving: boolean;
     error: string | null;
   };
 }) {
+  const done = () => {
+    if (draft !== null) {
+      write.save({
+        name: draft.name,
+        color: draft.color,
+        mark: draft.mark,
+        tags: parseTagNames(draft.rows.map((row) => row.name)),
+      });
+    }
+    onClose();
+  };
+
   return (
-    <Sheet open={draft !== null} onClose={onClose}>
+    <Sheet open={draft !== null} onClose={done}>
       {draft !== null && trip !== null ? (
         <View style={{ gap: space.md, paddingBottom: space.lg }}>
+          <View style={{ alignItems: "flex-end", paddingHorizontal: space.lg, paddingTop: space.sm }}>
+            <IconButton label="Close" onPress={done}>
+              {(colour) => <CrossGlyph color={colour} />}
+            </IconButton>
+          </View>
           <TripEdit
             tripId={trip.id}
             name={draft.name}
@@ -98,17 +120,8 @@ export function TripSheet({
               isAdmin={trip.role === "admin"}
               archived={trip.archived}
               busy={write.leaving}
-              saving={write.saving}
               onArchive={write.setArchived}
               onDelete={write.destroy}
-              onSave={() =>
-                write.save({
-                  name: draft.name,
-                  color: draft.color,
-                  mark: draft.mark,
-                  tags: parseTagNames(draft.rows.map((row) => row.name)),
-                })
-              }
             />
           </View>
         </View>

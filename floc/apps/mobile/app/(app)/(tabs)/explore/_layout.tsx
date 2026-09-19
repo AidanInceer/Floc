@@ -12,6 +12,7 @@
  */
 import { Stack } from "expo-router";
 
+import { Bell } from "@/components/notifications/bell";
 import { useTheme } from "@/components/system/theme";
 
 export default function ExploreLayout() {
@@ -19,6 +20,7 @@ export default function ExploreLayout() {
   return (
     <Stack
       screenOptions={{
+        headerRight: () => <Bell />,
         headerStyle: { backgroundColor: c.sheet },
         headerTintColor: c.ink,
         headerShadowVisible: false,
