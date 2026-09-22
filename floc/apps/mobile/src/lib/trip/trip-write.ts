@@ -1,23 +1,13 @@
 /**
- * The four writes that change a trip itself: rename/recolour/retag, archive,
- * restore, delete.
- *
- * WHY A HOOK AND NOT TWO ROUTES. The trip's header opens this sheet, and so
- * does the card on the trips list — the web puts the same menu in both places,
- * so the phone has two callers for one job. Copying eighty lines of mutation
- * and invalidation into the second one is how the two drift apart. It lives in
- * `lib/` beside the client it uses; the routes still own the sheet and the
- * state, this only owns the wire.
- *
- * `onGone` is fired by archive and delete, never by save: both take the trip
- * off the list you were looking at, so the caller has to go somewhere.
+ * Why: `onGone` fires on archive and delete, never on save — both take the
+ * trip off the list you were on, so the caller has to go somewhere.
  */
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import type { TripColor } from "@floc/core/trip/trip-color";
 import type { TripMark } from "@floc/core/trip/mark/trip-mark";
 
-import { trpc } from "./api";
+import { trpc } from "../api";
 
 export type TripEditPayload = {
   name: string;

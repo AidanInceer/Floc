@@ -25,7 +25,7 @@ export async function generateMetadata({
   const trip = await inviteTrip(token);
   const robots = { index: false, follow: false };
 
-  if (!trip) return { title: "Floc", robots };
+  if (!trip) return { title: { absolute: "Floc" }, robots };
   return { title: `${trip.name} — files`, robots };
 }
 

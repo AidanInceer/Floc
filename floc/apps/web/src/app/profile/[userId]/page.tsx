@@ -24,6 +24,8 @@ import { FriendButton } from "@/components/social/friend-button";
 import { PersonLink } from "@/components/social/person-link";
 import { TravelMap } from "@/components/map/travel-map";
 
+export const metadata = { title: "Profile" };
+
 export default async function PublicProfilePage({
   params,
 }: {

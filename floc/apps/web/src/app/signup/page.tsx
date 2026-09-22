@@ -11,6 +11,8 @@ import { requireGuest } from "@/server/access";
 import { enabledProviders } from "@/server/auth/auth";
 import { captureChannel } from "./actions";
 
+export const metadata = { title: "Sign up" };
+
 export default async function SignupPage() {
   await requireGuest();
 

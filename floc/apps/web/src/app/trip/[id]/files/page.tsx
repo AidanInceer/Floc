@@ -27,6 +27,8 @@ import { cx, PageTitle } from "@/components/system/ui";
 import { FlockChevron } from "@/components/system/flock-chevron";
 import { removeDocument } from "./actions";
 
+export const metadata = { title: "Files" };
+
 export default async function FilesPage({
   params,
   searchParams,

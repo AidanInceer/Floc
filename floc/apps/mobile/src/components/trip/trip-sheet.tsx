@@ -11,13 +11,14 @@
  * SHUTTING IT IS SAVING IT. A Save button here asked you to confirm edits you
  * had already made and could see; leaving without pressing it lost them
  * silently. Every way out — the cross, the backdrop, the back gesture — writes
- * the draft, so the only sheet state is the one on screen.
+ * the draft, so the only sheet state is the one on screen. The sheet stays up
+ * until the write lands, so a rejected save or a blank name is said, not lost.
  */
 import { parseTagNames, readTags } from "@floc/core/trip/tags";
 import { readTripColor, type TripColor } from "@floc/core/trip/trip-color";
 import { readTripMark, type TripMark } from "@floc/core/trip/mark/trip-mark";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { View } from "react-native";
 
 import { Sheet } from "../system/sheet";
@@ -26,6 +27,8 @@ import { TripEdit, rowsFromTags, type TagRow } from "./trip-edit";
 import { CrossGlyph } from "../system/glyphs";
 import { Body, IconButton } from "../system/ui";
 import { space } from "@/lib/theme";
+import { sheetExit } from "@/lib/trip/trip-sheet-exit";
+import type { TripEditPayload } from "@/lib/trip/trip-write";
 
 export type TripSheetTrip = {
   id: number;
@@ -77,20 +80,21 @@ export function TripSheet({
     }) => void;
     setArchived: (archived: boolean) => void;
     destroy: () => void;
+    saving: boolean;
     leaving: boolean;
     error: string | null;
   };
 }) {
+  const [blank, setBlank] = useState(false);
   const done = () => {
-    if (draft !== null) {
-      write.save({
-        name: draft.name,
-        color: draft.color,
-        mark: draft.mark,
-        tags: parseTagNames(draft.rows.map((row) => row.name)),
-      });
-    }
-    onClose();
+    if (draft === null || trip === null) return onClose();
+    if (write.saving) return;
+    // A second close after a failed save is a choice to leave it; the sheet said so.
+    if (write.error) return onClose();
+    const exit = sheetExit(payloadOf(draftFor(trip)), payloadOf(draft));
+    setBlank(exit.kind === "blank");
+    if (exit.kind === "close") onClose();
+    if (exit.kind === "save") write.save(exit.payload);
   };
 
   return (
@@ -115,7 +119,10 @@ export function TripSheet({
           />
           <View style={{ paddingHorizontal: space.lg, gap: space.sm }}>
             {children}
-            {write.error ? <Body tone="red">{write.error}</Body> : null}
+            {blank ? <Body tone="red">A trip needs a name.</Body> : null}
+            {write.error ? (
+              <Body tone="red">{`${write.error} Not saved — close again to leave it.`}</Body>
+            ) : null}
             <TripActions
               isAdmin={trip.role === "admin"}
               archived={trip.archived}
@@ -128,6 +135,15 @@ export function TripSheet({
       ) : null}
     </Sheet>
   );
+}
+
+function payloadOf(draft: Draft): TripEditPayload {
+  return {
+    name: draft.name,
+    color: draft.color,
+    mark: draft.mark,
+    tags: parseTagNames(draft.rows.map((row) => row.name)),
+  };
 }
 
 export type { Draft as TripDraft };

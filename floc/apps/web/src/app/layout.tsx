@@ -42,7 +42,7 @@ const mono = DM_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Floc — plan a trip with the group",
+  title: { default: "Floc — plan a trip with the group", template: "%s · Floc" },
   description:
     "Floc keeps a group trip in one place: the notes, the route, the days, and who owes who.",
 };

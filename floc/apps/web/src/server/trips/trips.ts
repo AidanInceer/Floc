@@ -169,7 +169,7 @@ export async function setTripArchived(
   await db
     .update(trip)
     .set({ archivedAt: archived ? new Date() : null, ...touch() })
-    .where(eq(trip.id, tripId));
+    .where(and(eq(trip.id, tripId), isNull(trip.deletedAt)));
 }
 
 /** Soft-delete only — admin is the *only* role that can delete (ticket 01). */

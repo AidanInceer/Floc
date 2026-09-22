@@ -42,6 +42,8 @@ function readSort(value: string | string[] | undefined): Sort {
   return typeof value === "string" && value in SORTS ? (value as Sort) : "date";
 }
 
+export const metadata = { title: "My trips" };
+
 export default async function TripsPage({
   searchParams,
 }: {

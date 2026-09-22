@@ -25,7 +25,7 @@ const procedure = (key: string) => ({
   queryKey: (input?: unknown) => [key, input],
   mutationOptions: () => ({ key }),
 });
-vi.mock("./api", () => ({
+vi.mock("../api", () => ({
   trpc: {
     trips: {
       get: procedure("trips.get"),

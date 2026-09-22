@@ -44,6 +44,8 @@ import {
 
 const MONTHS_SHOWN = 1; // one month, arrows page the rest
 
+export const metadata = { title: "Dates" };
+
 export default async function DatesPage({
   params,
   searchParams,

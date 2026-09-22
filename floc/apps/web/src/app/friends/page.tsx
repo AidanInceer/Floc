@@ -20,6 +20,8 @@ import { PersonLink } from "@/components/social/person-link";
 
 const UNKNOWN = (id: string): Person => ({ id, name: "Someone", avatarIcon: null });
 
+export const metadata = { title: "Friends" };
+
 export default async function FriendsPage() {
   const viewer = await requireUser("/friends");
 

@@ -103,6 +103,8 @@ function hrefBuilder(
   };
 }
 
+export const metadata = { title: "Packing" };
+
 export default async function PackingPage({
   params,
   searchParams,

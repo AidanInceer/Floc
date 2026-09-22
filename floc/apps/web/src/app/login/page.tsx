@@ -11,6 +11,8 @@ import { enabledProviders } from "@/server/auth/auth";
 import { listDevAccounts } from "@/server/auth/dev-accounts";
 import { emailConfigured } from "@/server/auth/email";
 
+export const metadata = { title: "Sign in" };
+
 export default async function LoginPage({
   searchParams,
 }: {

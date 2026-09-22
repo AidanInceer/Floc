@@ -17,6 +17,8 @@ function isRegion(value: string | undefined): value is Region {
   return !!value && (REGIONS as readonly string[]).includes(value);
 }
 
+export const metadata = { title: "Explore" };
+
 export default async function ExplorePage({
   searchParams,
 }: {

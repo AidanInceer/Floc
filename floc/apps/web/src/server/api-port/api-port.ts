@@ -33,6 +33,9 @@ import type {
 } from "@floc/api/port";
 
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
+import { readTripMark } from "@floc/core/trip/mark/trip-mark";
+import { parseTagNames } from "@floc/core/trip/tags";
+import { readTripColor } from "@floc/core/trip/trip-color";
 
 import { assertAdmin, findTripAccess, type TripAccess } from "@/server/access";
 import { scoped } from "@/server/api-port/api-port-scope";
@@ -536,10 +539,12 @@ export const webPort: FlocPort = {
     await scoped(viewerId, tripId);
     // `tags: null` clears on the wire, but the column's patch type says
     // `string[]`, so an explicit clear becomes an empty list.
-    const { tags, startDate, endDate, ...rest } = patch;
+    const { tags, startDate, endDate, colorKey, mark, ...rest } = patch;
     await updateTrip(tripId, {
       ...rest,
-      ...(tags !== undefined ? { tags: tags ?? [] } : {}),
+      ...(colorKey !== undefined ? { colorKey: readTripColor(colorKey) } : {}),
+      ...(mark !== undefined ? { mark: readTripMark(mark) } : {}),
+      ...(tags !== undefined ? { tags: parseTagNames(tags ?? []) } : {}),
     });
     // Why: dates go through the same window write as the web's Dates tab, so
     // the days follow (ticket 140) and the group hears about it (#344).
@@ -645,6 +650,9 @@ export const webPort: FlocPort = {
     const onTrip = new Set(access.members.map((member) => member.userId));
     if (transfers.some((t) => !onTrip.has(t.fromUserId) || !onTrip.has(t.toUserId))) {
       throw new Error("That person is not on this trip.");
+    }
+    if (transfers.some((t) => viewerId !== t.fromUserId && viewerId !== t.toUserId)) {
+      throw new Error("Only the payer or receiver can record this.");
     }
     await writeSettlements(tripId, viewerId, transfers);
     refresh({ kind: "money", tripId });

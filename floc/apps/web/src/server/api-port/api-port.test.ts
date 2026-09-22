@@ -8,6 +8,7 @@
  * `notFound()`, and the port cannot do that, so it has to keep it another way.
  * A rule with two enforcement paths needs a test on both.
  */
+import { parseTagNames } from "@floc/core/trip/tags";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";
@@ -198,6 +199,18 @@ describe("creating and patching a trip", () => {
     expect((await webPort.loadTrip(world.admin, world.ours.id))?.tags).toEqual([]);
   });
 
+  it("reads colour, mark and tags through the same rules as the web form", async () => {
+    await webPort.updateTrip(world.admin, world.ours.id, {
+      colorKey: "not-a-colour",
+      mark: "not-a-mark",
+      tags: ["  Beach ", "beach", "", "x".repeat(500)],
+    });
+    const trip = await webPort.loadTrip(world.admin, world.ours.id);
+    expect(trip?.colorKey).toBeNull();
+    expect(trip?.mark).toBeNull();
+    expect(trip?.tags).toEqual(parseTagNames(["  Beach ", "beach", "", "x".repeat(500)]));
+  });
+
   it("leaves a field alone when the patch omits it", async () => {
     await webPort.updateTrip(world.admin, world.ours.id, { name: "Renamed" });
     const trip = await webPort.loadTrip(world.admin, world.ours.id);
@@ -262,6 +275,21 @@ describe("money", () => {
     // And the other trip's row is untouched.
     const after = await webPort.loadLedger(world.outsider, world.theirs.id);
     expect(after.expenses[0].description).toBe("Theirs");
+  });
+
+  it("lets only the payer or the receiver record a settlement", async () => {
+    await webPort.joinByToken(world.outsider, "token-ours");
+    const between = [
+      { fromUserId: world.admin, toUserId: world.outsider, amountMinor: 500, currency: "GBP" as const },
+    ];
+
+    await expect(webPort.settleUp(world.member, world.ours.id, between)).rejects.toThrow(
+      /payer or receiver/i,
+    );
+    expect((await webPort.loadLedger(world.admin, world.ours.id)).settlements).toHaveLength(0);
+
+    await webPort.settleUp(world.outsider, world.ours.id, between);
+    expect((await webPort.loadLedger(world.admin, world.ours.id)).settlements).toHaveLength(1);
   });
 
   it("soft-deletes an expense rather than removing the row (rule 8)", async () => {

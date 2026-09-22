@@ -9,6 +9,8 @@ import { NewPasswordForm } from "@/components/auth/password-reset-forms";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { emailConfigured } from "@/server/auth/email";
 
+export const metadata = { title: "Reset password" };
+
 export default function ResetPasswordPage() {
   if (!emailConfigured()) notFound();
 

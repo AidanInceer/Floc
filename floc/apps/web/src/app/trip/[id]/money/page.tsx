@@ -42,6 +42,8 @@ import { ExpenseForm } from "@/components/money/expense-form";
 import type { FormDay, FormMember } from "@/components/money/expense-form";
 import { addExpense, recordSettlement } from "./actions";
 
+export const metadata = { title: "Money" };
+
 export default async function MoneyPage({
   params,
 }: {

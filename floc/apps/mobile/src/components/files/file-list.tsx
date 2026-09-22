@@ -8,7 +8,7 @@
  * anything that arrives here is already the viewer's to see. The `Private`
  * pill therefore means "only you", not "restricted".
  */
-import { DOC_CATEGORY_LABELS } from "@floc/core/documents/documents";
+import { DOC_CATEGORY_LABELS, formatBytes } from "@floc/core/documents/documents";
 import type { DocCategory } from "@floc/core/documents/documents";
 import { StyleSheet, View } from "react-native";
 
@@ -23,18 +23,6 @@ export type TripFileRow = {
   category: DocCategory;
   ownerId: string | null;
 };
-
-/** Binary units, one decimal, and never below a kilobyte — a size is a rough sense of weight, not an audit. */
-function readableSize(bytes: number): string {
-  const units = ["kB", "MB", "GB"];
-  let value = bytes / 1024;
-  let unit = 0;
-  while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024;
-    unit += 1;
-  }
-  return `${value < 10 ? value.toFixed(1) : Math.round(value)} ${units[unit]}`;
-}
 
 export function FileList({ files, showing }: { files: TripFileRow[]; showing: number }) {
   const { c } = useTheme();
@@ -59,7 +47,7 @@ export function FileList({ files, showing }: { files: TripFileRow[]; showing: nu
             <Body>{file.name}</Body>
           </View>
           <Figure tone="ink-2">
-            {DOC_CATEGORY_LABELS[file.category]} · {readableSize(file.sizeBytes)}
+            {DOC_CATEGORY_LABELS[file.category]} · {formatBytes(file.sizeBytes)}
           </Figure>
           {file.ownerId ? <Pill word="Private" tone="peri" /> : null}
         </View>

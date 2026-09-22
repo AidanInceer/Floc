@@ -8,6 +8,8 @@ import { SeenOnLanding } from "@/components/notifications/seen-on-landing";
 import { SubmitButton } from "@/components/system/client-ui";
 import { Badge, ButtonLink, EmptyState, cx } from "@/components/system/ui";
 
+export const metadata = { title: "Inbox" };
+
 export default async function InboxPage({
   searchParams,
 }: {

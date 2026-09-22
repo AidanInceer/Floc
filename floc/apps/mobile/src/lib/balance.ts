@@ -13,19 +13,20 @@
  * outstanding list, and Money itself — which is the second call site YAGNI
  * asks for before a helper exists.
  */
-import type { Currency } from "@floc/core/money/currency";
+import { CURRENCIES, type Currency } from "@floc/core/money/currency";
 import { computeBalances, formatMoney } from "@floc/core/money/money";
 import type { Ledger } from "@floc/api/port";
 
 export type ViewerBalance = {
-  currency: Currency;
-  /** Positive: owed to the viewer. Negative: owed by them. Zero: settled. */
-  minor: number;
   /** Already carries the word, so no caller has to add one (#204). */
   figure: string;
+  owing: boolean;
+  settled: boolean;
 };
 
-/** Until a currency picker exists, a trip reads in its first expense's currency, or sterling. */
+const SETTLED: ViewerBalance = { figure: "settled", owing: false, settled: true };
+
+/** A new expense starts in the trip's first expense's currency, or sterling. */
 export function ledgerCurrency(ledger: Ledger | undefined): Currency {
   return ledger?.expenses[0]?.currency ?? "GBP";
 }
@@ -34,8 +35,7 @@ export function viewerBalance(
   ledger: Ledger | undefined,
   viewerId: string | undefined,
 ): ViewerBalance {
-  const currency = ledgerCurrency(ledger);
-  if (!ledger || !viewerId) return { currency, minor: 0, figure: "settled" };
+  if (!ledger || !viewerId) return SETTLED;
 
   const balances = computeBalances(
     ledger.expenses.map((expense) => ({
@@ -54,12 +54,17 @@ export function viewerBalance(
     })),
   );
 
-  const minor = balances[currency]?.[viewerId] ?? 0;
-  const figure =
-    minor === 0
-      ? "settled"
-      : minor > 0
-        ? `owed ${formatMoney(minor, currency)}`
-        : `owe ${formatMoney(-minor, currency)}`;
-  return { currency, minor, figure };
+  // Why: two currencies never add up, so each book says its own figure (#317).
+  const books = CURRENCIES.map((currency) => ({
+    currency,
+    minor: balances[currency]?.[viewerId] ?? 0,
+  }));
+  const owe = books
+    .filter((b) => b.minor < 0)
+    .map((b) => `owe ${formatMoney(-b.minor, b.currency)}`);
+  const owed = books
+    .filter((b) => b.minor > 0)
+    .map((b) => `owed ${formatMoney(b.minor, b.currency)}`);
+  if (owe.length + owed.length === 0) return SETTLED;
+  return { figure: [...owe, ...owed].join(" · "), owing: owe.length > 0, settled: false };
 }

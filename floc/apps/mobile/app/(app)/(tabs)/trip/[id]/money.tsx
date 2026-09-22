@@ -453,7 +453,7 @@ export default function Money() {
       ...(editing.kind === "edit" ? { expenseId: editing.expenseId } : {}),
       description: draft.description,
       amountMinor: draft.amountMinor,
-      currency,
+      currency: draft.currency,
       category: draft.category,
       splitType: draft.splitType,
       paidBy: draft.paidBy,

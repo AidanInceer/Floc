@@ -30,6 +30,8 @@ import { FacePicker } from "@/components/profile/face-picker";
 import { ActionForm, SubmitButton } from "@/components/system/client-ui";
 import { TravelMap } from "@/components/map/travel-map";
 
+export const metadata = { title: "Your profile" };
+
 export default async function ProfilePage() {
   const viewer = await requireUser("/profile");
   const profile = await ensureProfile(viewer.id);
