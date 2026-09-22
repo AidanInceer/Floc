@@ -27,6 +27,37 @@ beforeEach(async () => {
   world = await seedScenario();
 });
 
+/** #360: three ways to ask someone you have not shared a trip with. */
+describe("finding someone to ask", () => {
+  async function befriend(a: string, b: string) {
+    const [lo, hi] = a < b ? [a, b] : [b, a];
+    await db
+      .insert(schema.friendship)
+      .values({ userId: lo, friendId: hi, status: "accepted", origin: "request" });
+  }
+
+  it("lets you ask a public friend of a friend found by name", async () => {
+    await befriend(world.admin, world.member);
+    await befriend(world.admin, world.outsider);
+
+    const found = await webPort.findFriends(world.member, "ozz");
+    expect(found).toMatchObject({ kind: "people", people: [{ id: world.outsider }] });
+
+    await webPort.requestFriend(world.member, world.outsider);
+    expect((await webPort.loadFriends(world.outsider)).incoming.map((p) => p.id)).toEqual([
+      world.member,
+    ]);
+  });
+
+  it("asks by code, and the sender sees who they asked", async () => {
+    const { code } = await webPort.loadFriends(world.outsider);
+    await webPort.requestFriendByCode(world.member, code);
+    expect((await webPort.loadFriends(world.member)).outgoing.map((p) => p.id)).toEqual([
+      world.outsider,
+    ]);
+  });
+});
+
 /** Two people who share a trip are co-travellers, which is a ring (ticket 46). */
 describe("someone else's profile (rule 5, applied to people)", () => {
   it("shows a co-traveller their fellow member", async () => {

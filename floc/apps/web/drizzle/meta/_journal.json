@@ -281,6 +281,13 @@
       "when": 1789850636481,
       "tag": "0039_thick_purple_man",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "6",
+      "when": 1790112868658,
+      "tag": "0040_friend_code",
+      "breakpoints": true
     }
   ]
 }

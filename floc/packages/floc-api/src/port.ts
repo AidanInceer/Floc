@@ -530,20 +530,28 @@ export type FriendPerson = {
   avatarIcon: AvatarIcon | null;
 };
 
-/**
- * The Friends screen in one read (ticket 18).
- *
- * There is no add-by-email here, on purpose: you meet people by sharing a trip
- * and then ask from their profile or their roster row. A form taking an address
- * would turn this into "is that an account?" for any address typed.
- */
+/** The Friends screen in one read (ticket 18). */
 export type FriendsBoard = {
   friends: FriendPerson[];
   /** Waiting on the viewer to answer. `id` is the requester. */
   incoming: FriendPerson[];
   /** Sent by the viewer, not yet answered. `id` is the person asked. */
   outgoing: FriendPerson[];
+  /** The viewer's own friend code, to hand out (#360). */
+  code: string;
 };
+
+export type FoundFriend = FriendPerson & { state: FriendState };
+
+/**
+ * One search box, two readings (#360). A name only reaches people already in
+ * the viewer's rings or a public friend of a friend. There is no lookup by
+ * email address: any answer to one says whether it is an account.
+ */
+export type FriendSearch =
+  | { kind: "people"; people: FoundFriend[] }
+  | { kind: "code"; code: string; person: FoundFriend | null }
+  | { kind: "invalid" };
 
 /**
  * Somebody else's profile, already filtered by their rings (ticket 46).
@@ -1116,10 +1124,15 @@ export type FlocPort = {
 
   /**
    * Opens a request. The target id is never trusted alone — the host re-checks
-   * they are inside one of the viewer's rings, or this becomes "is this a real
-   * account?" for any id posted (ticket 46). Refusals are silent by design.
+   * they are inside one of the viewer's rings or a public friend of a friend,
+   * or this becomes "is this a real account?" for any id posted (ticket 46).
+   * Refusals are silent by design.
    */
   requestFriend(viewerId: string, targetId: string): Promise<void>;
+
+  findFriends(viewerId: string, query: string): Promise<FriendSearch>;
+
+  requestFriendByCode(viewerId: string, code: string): Promise<void>;
 
   acceptFriend(viewerId: string, requesterId: string): Promise<void>;
 

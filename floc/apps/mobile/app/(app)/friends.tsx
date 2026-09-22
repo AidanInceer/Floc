@@ -4,9 +4,9 @@
  * REQUESTS FIRST. Incoming ones are the only thing on the screen waiting on
  * you, so they are at the top and they are the only rows with a filled button.
  *
- * NO ADD-BY-EMAIL, HERE OR ANYWHERE. You meet people by sharing a trip, then
- * ask from their profile or their roster row. A field taking an address would
- * turn this into "is that an account?" for any address typed (ticket 46).
+ * NO ADD-BY-EMAIL, HERE OR ANYWHERE. Find someone by name or friend code
+ * (#360); a field taking an address would turn this into "is that an
+ * account?" for any address typed (ticket 46).
  *
  * A NAME OPENS A PROFILE ONLY WHERE IT LANDS SOMEWHERE. An accepted friend has
  * a profile you may see; somebody who has only asked may be outside every one
@@ -16,6 +16,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { Alert, Pressable, ScrollView, View } from "react-native";
 
+import { FindFriend } from "@/components/social/find-friend";
 import { PersonRow } from "@/components/trip/person-row";
 import { Body, Button, Empty, Failed, Label, Loading } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
@@ -41,7 +42,7 @@ export default function Friends() {
   if (board.isPending) return <Loading />;
   if (board.isError) return <Failed onRetry={() => board.refetch()} />;
 
-  const { friends, incoming, outgoing } = board.data;
+  const { friends, incoming, outgoing, code } = board.data;
 
   return (
     <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }}>
@@ -84,6 +85,8 @@ export default function Friends() {
         </View>
       ) : null}
 
+      <FindFriend code={code} />
+
       <View style={{ gap: space.sm }}>
         <Label>Friends</Label>
         {friends.length === 0 ? (
@@ -120,10 +123,7 @@ export default function Friends() {
         )}
       </View>
 
-      <Body tone="ink-3">
-        People you finish a trip with become friends on their own. There is no way to add
-        somebody by their address.
-      </Body>
+      <Body tone="ink-3">People you finish a trip with become friends on their own.</Body>
     </ScrollView>
   );
 }

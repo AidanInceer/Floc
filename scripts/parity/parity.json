@@ -75,7 +75,13 @@
     "friends.remove": {
       "mobile": "yes"
     },
+    "friends.find": {
+      "mobile": "yes"
+    },
     "friends.request": {
+      "mobile": "yes"
+    },
+    "friends.requestByCode": {
       "mobile": "yes"
     },
     "ideas.add": {

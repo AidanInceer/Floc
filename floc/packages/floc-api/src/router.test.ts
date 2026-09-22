@@ -505,3 +505,28 @@ describe("buying Pro in the app", () => {
     });
   });
 });
+
+describe("friends.find (#360)", () => {
+  it("refuses somebody signed out", async () => {
+    const { caller: c } = caller(null);
+    await expect(c.friends.find({ query: "sam" })).rejects.toMatchObject({
+      code: "UNAUTHORIZED",
+    });
+  });
+
+  it("refuses an empty search before the port hears of it", async () => {
+    const findFriends = vi.fn();
+    const { caller: c } = caller("u1", fakePort({ findFriends }));
+    await expect(c.friends.find({ query: "   " })).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+    });
+    expect(findFriends).not.toHaveBeenCalled();
+  });
+
+  it("hands the typed text to the host as the viewer", async () => {
+    const findFriends = vi.fn().mockResolvedValue({ kind: "invalid" });
+    const { caller: c } = caller("u1", fakePort({ findFriends }));
+    expect(await c.friends.find({ query: " sam " })).toEqual({ kind: "invalid" });
+    expect(findFriends).toHaveBeenCalledWith("u1", "sam");
+  });
+});
