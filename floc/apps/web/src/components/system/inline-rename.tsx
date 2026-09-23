@@ -73,7 +73,7 @@ export function InlineRename({
         aria-label={label}
         aria-invalid={error ? true : undefined}
         readOnly={pending}
-        autoFocus
+        ref={(el) => el?.focus()}
         onFocus={(e) => e.currentTarget.select()}
         onBlur={(e) => commit(e.currentTarget.value)}
         onKeyDown={(e) => {

@@ -17,7 +17,7 @@ export function whoTone(name: string): string {
   let hash = 0;
   for (let i = 0; i < name.length; i += 1) {
     // djb2-ish, kept in 32-bit range.
-    hash = (hash * 31 + name.charCodeAt(i)) | 0;
+    hash = (hash * 31 + name.charCodeAt(i)) & 0xffffffff;
   }
   return `who-${(Math.abs(hash) % WHO_TONES) + 1}`;
 }

@@ -23,7 +23,7 @@ const failures = [];
 function declared(selector) {
   const out = [];
   for (const [, name, value] of rootBlock(css, selector).text.matchAll(
-    /^\s*--([\w-]+):\s*([^;]+);/gm,
+    /^[ \t]*--([\w-]+):([^;]+);/gm,
   )) {
     // Multi-line values (the shadows) are folded, so a rewrap is not a diff.
     out.push([name, value.trim().replace(/\s+/g, " ")]);

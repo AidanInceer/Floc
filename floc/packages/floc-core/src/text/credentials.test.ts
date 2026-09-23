@@ -11,6 +11,15 @@ describe("isValidEmail", () => {
     expect(isValidEmail("ada.floc.example")).toBe(false);
     expect(isValidEmail("ada@localhost")).toBe(false);
     expect(isValidEmail("ada @floc.example")).toBe(false);
+    expect(isValidEmail("ada@floc@example.com")).toBe(false);
+    expect(isValidEmail("@floc.example")).toBe(false);
+    expect(isValidEmail("ada@.example")).toBe(false);
+    expect(isValidEmail("ada@floc.")).toBe(false);
+  });
+
+  it("takes a dotted local part and a subdomain", () => {
+    expect(isValidEmail(" ada.l@mail.floc.example ")).toBe(true);
+    expect(isValidEmail("ada@b.c.")).toBe(true);
   });
 });
 

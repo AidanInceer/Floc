@@ -201,6 +201,7 @@ export function ExpenseForm({
         <FieldGroup label="Description">
           <div className="flex items-stretch gap-2">
             <div
+              role="group"
               className="relative flex-none"
               onKeyDown={(e) => {
                 if (e.key !== "Escape" || !pickerOpen) return;

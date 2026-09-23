@@ -31,6 +31,8 @@ describe("monthsOf", () => {
 describe("groupRange", () => {
   it("reads the low and high ends", () => {
     expect(groupRange("6–12 people")).toEqual({ min: 6, max: 12 });
+    expect(groupRange("4 - 8")).toEqual({ min: 4, max: 8 });
+    expect(groupRange("about 10")).toBeNull();
   });
 
   it("reads every listing", () => {
