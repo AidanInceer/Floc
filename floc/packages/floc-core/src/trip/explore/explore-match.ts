@@ -56,12 +56,18 @@ export function monthsOf(bestMonths: string): number[] {
   return [...found].sort((a, b) => a - b);
 }
 
+function trailingDigits(text: string): string {
+  let start = text.length;
+  while (start > 0 && text[start - 1] >= "0" && text[start - 1] <= "9") start--;
+  return text.slice(start);
+}
+
 export function groupRange(groupSize: string): { min: number; max: number } | null {
   const dash = /[–-]/.exec(groupSize);
   if (!dash) return null;
-  const low = /\d+$/.exec(groupSize.slice(0, dash.index).trimEnd());
+  const low = trailingDigits(groupSize.slice(0, dash.index).trimEnd());
   const high = /^\d+/.exec(groupSize.slice(dash.index + 1).trimStart());
-  return low && high ? { min: Number(low[0]), max: Number(high[0]) } : null;
+  return low && high ? { min: Number(low), max: Number(high[0]) } : null;
 }
 
 const SIZE_PROBE: Record<ExploreAnswers["size"], number> = { "2-4": 3, "5-8": 6, "9+": 10 };

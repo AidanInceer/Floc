@@ -33,6 +33,7 @@ describe("groupRange", () => {
     expect(groupRange("6–12 people")).toEqual({ min: 6, max: 12 });
     expect(groupRange("4 - 8")).toEqual({ min: 4, max: 8 });
     expect(groupRange("about 10")).toBeNull();
+    expect(groupRange("few – 8")).toBeNull();
   });
 
   it("reads every listing", () => {

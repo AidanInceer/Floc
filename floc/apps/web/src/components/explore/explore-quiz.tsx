@@ -45,9 +45,11 @@ export function ExploreQuiz({
           </div>
         </fieldset>
       ))}
-      <label htmlFor="explore-nights" className="block">
+      <div>
         <span className="flex items-baseline justify-between">
-          <span className="typed">{NIGHTS.label}</span>
+          <label htmlFor="explore-nights" className="typed">
+            {NIGHTS.label}
+          </label>
           <span className="nums text-sm">{nightsLabel(answers.nights)}</span>
         </span>
         <input
@@ -65,7 +67,7 @@ export function ExploreQuiz({
           <span>{NIGHTS.min} nights</span>
           <span>Any</span>
         </span>
-      </label>
+      </div>
     </div>
   );
 }
