@@ -100,8 +100,17 @@ jobs:
       - name: Test with coverage
         run: pnpm turbo run test --filter='...[HEAD^1]'
 
+      - name: Version
+        id: version
+        run: echo "version=$(node -p "require('./floc/apps/web/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      # Why: main's new-code window is "since the previous version". Without a
+      # version every analysis is "not provided", the window never resets, and
+      # main fails on old code a release PR never saw.
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f # v8.2.1
+        with:
+          args: -Dsonar.projectVersion=${{ steps.version.outputs.version }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
