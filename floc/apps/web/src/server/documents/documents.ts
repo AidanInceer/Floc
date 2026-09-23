@@ -9,7 +9,7 @@
  */
 import "server-only";
 
-import { and, count, desc, eq, isNull, or } from "drizzle-orm";
+import { and, count, desc, eq, isNull, or, sum } from "drizzle-orm";
 
 import { db } from "@/db";
 import { dayEvent, document, user, userProfile } from "@/db/schema";
@@ -143,6 +143,16 @@ export async function countDocuments(tripId: number): Promise<number> {
   return row?.n ?? 0;
 }
 
+/** Bytes the trip holds against its quota (#285): every member's live files, private ones too. */
+export async function usedBytes(tripId: number): Promise<number> {
+  const row = await db
+    .select({ bytes: sum(document.sizeBytes).mapWith(Number) })
+    .from(document)
+    .where(and(eq(document.tripId, tripId), isNull(document.deletedAt)))
+    .get();
+  return row?.bytes ?? 0;
+}
+
 export async function insertDocument(input: {
   tripId: number;
   uploadedBy: string;
@@ -162,6 +172,15 @@ export async function softDeleteDocument(documentId: number): Promise<void> {
   await db
     .update(document)
     .set({ deletedAt: new Date(), ...touch() })
+    .where(and(eq(document.id, documentId), isNull(document.deletedAt)))
+    .run();
+}
+
+/** Only the label moves (#364); `storageKey` is never derived from it. */
+export async function setDocumentName(documentId: number, name: string): Promise<void> {
+  await db
+    .update(document)
+    .set({ name, ...touch() })
     .where(and(eq(document.id, documentId), isNull(document.deletedAt)))
     .run();
 }

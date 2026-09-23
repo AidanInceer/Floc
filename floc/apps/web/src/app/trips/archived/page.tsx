@@ -12,6 +12,8 @@ import { TripCard } from "@/components/trip/trip-card";
 import { loadTripCards } from "../cards";
 import { restoreTrip } from "../actions";
 
+export const metadata = { title: "Archived trips" };
+
 export default async function ArchivedTripsPage() {
   const viewer = await requireUser("/trips/archived");
 

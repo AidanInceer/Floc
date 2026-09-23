@@ -36,11 +36,14 @@ import { getProfile } from "@/server/auth/profile";
 import { getHomeRates } from "@/server/money/fx";
 import { Avatar, PageTitle, EmptyState, SectionHeading } from "@/components/system/ui";
 import { Sheet } from "@/components/system/client-ui";
-import { ConvertAmount, SettleUpForm } from "@/components/money/money-client";
+import { ConvertAmount } from "@/components/money/money-client";
+import { SettleUpForm } from "@/components/money/settlement-form";
 import { ActivityFeed } from "@/components/money/money-activity";
 import { ExpenseForm } from "@/components/money/expense-form";
 import type { FormDay, FormMember } from "@/components/money/expense-form";
 import { addExpense, recordSettlement } from "./actions";
+
+export const metadata = { title: "Money" };
 
 export default async function MoneyPage({
   params,

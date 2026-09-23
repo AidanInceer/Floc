@@ -139,7 +139,7 @@ function openingMonth(
 ): string {
   if (chosen) return chosen;
   if (startDate) return monthOf(startDate);
-  if (markedDates.length > 0) return monthOf([...markedDates].sort()[0]);
+  if (markedDates.length > 0) return monthOf([...markedDates].sort((a, b) => a.localeCompare(b))[0]);
   return thisMonth();
 }
 

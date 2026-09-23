@@ -37,7 +37,7 @@ const HOURS = Array.from({ length: 24 }, (_, i) => {
 /** Fives, plus whatever this event already says — see the file's note. */
 function minuteOptions(current: string): { value: string; label: string }[] {
   const fives = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, "0"));
-  const all = fives.includes(current) ? fives : [...fives, current].sort();
+  const all = fives.includes(current) ? fives : [...fives, current].sort((a, b) => a.localeCompare(b));
   return all.map((value) => ({ value, label: value }));
 }
 

@@ -54,6 +54,7 @@ import {
   addPackingLine,
   addPersonalPackingLine,
   removePackingLine,
+  renamePackingLine,
   setPackingClaim,
   setPackingPacked,
   setPersonalPackingPacked,
@@ -102,6 +103,8 @@ function hrefBuilder(
     return query ? `${path}?${query}` : path;
   };
 }
+
+export const metadata = { title: "Packing" };
 
 export default async function PackingPage({
   params,
@@ -396,6 +399,7 @@ export default async function PackingPage({
                     setClaim={setPackingClaim}
                     setPacked={setPackingPacked}
                     remove={removePackingLine}
+                    rename={renamePackingLine}
                   />
                 ))}
               </PackingGroup>
@@ -483,6 +487,7 @@ export default async function PackingPage({
                     setPacked={setPersonalPackingPacked}
                     step={stepPersonalPackingQuantity}
                     remove={removePackingLine}
+                    rename={renamePackingLine}
                   />
                 ))}
               </PackingGroup>

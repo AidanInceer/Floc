@@ -3,13 +3,21 @@ import "server-only";
 import type { FlocPort } from "@floc/api/port";
 
 import { refresh } from "@/server/freshness";
-import { countUnread, listInbox, openNotification } from "@/server/notifications/inbox";
+import {
+  countUnread,
+  listInbox,
+  markAllRead,
+  markInboxSeen,
+  openNotification,
+} from "@/server/notifications/inbox";
 import { forgetPushToken, registerPushToken } from "@/server/notifications/push";
 
 type NotificationsPort = Pick<
   FlocPort,
   | "listNotifications"
   | "countUnreadNotifications"
+  | "markNotificationsSeen"
+  | "markAllNotificationsRead"
   | "openNotification"
   | "registerPushToken"
   | "forgetPushToken"
@@ -32,6 +40,16 @@ export const notificationsPort: NotificationsPort = {
   },
 
   countUnreadNotifications: (viewerId) => countUnread(viewerId),
+
+  async markNotificationsSeen(viewerId) {
+    await markInboxSeen(viewerId);
+    refresh({ kind: "bell" });
+  },
+
+  async markAllNotificationsRead(viewerId) {
+    await markAllRead(viewerId);
+    refresh({ kind: "inbox" });
+  },
 
   async openNotification(viewerId, notificationId) {
     const href = await openNotification(viewerId, notificationId);

@@ -232,6 +232,7 @@ export function Button({
         <>
           {icon ? icon(ink) : null}
           <Text
+          numberOfLines={1}
           style={{
             color: ink,
             fontFamily: fonts.sansBold,

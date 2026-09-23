@@ -1,10 +1,14 @@
 import { commentTime } from "@floc/core/notes/notes";
 
-import { openNotification } from "./actions";
+import { openNotification, readEverything, seeInbox } from "./actions";
 import { requireUser } from "@/server/access";
-import { listInbox } from "@/server/notifications/inbox";
+import { countUnread, listInbox } from "@/server/notifications/inbox";
 import { AccountPage, Panel } from "@/components/auth/account-ui";
+import { SeenOnLanding } from "@/components/notifications/seen-on-landing";
+import { SubmitButton } from "@/components/system/client-ui";
 import { Badge, ButtonLink, EmptyState, cx } from "@/components/system/ui";
+
+export const metadata = { title: "Inbox" };
 
 export default async function InboxPage({
   searchParams,
@@ -14,9 +18,24 @@ export default async function InboxPage({
   const viewer = await requireUser("/inbox");
   const { after } = await searchParams;
   const page = await listInbox(viewer.id, after ?? null);
+  const unseen = await countUnread(viewer.id);
+  const anyUnread = page.items.some((item) => !item.read);
 
   return (
-    <AccountPage eyebrow="What changed" title="Notifications">
+    <AccountPage
+      eyebrow="What changed"
+      title="Notifications"
+      actions={
+        anyUnread ? (
+          <form action={readEverything}>
+            <SubmitButton variant="secondary" pendingLabel="Marking…">
+              Mark all as read
+            </SubmitButton>
+          </form>
+        ) : null
+      }
+    >
+      <SeenOnLanding act={seeInbox} count={unseen} />
       <Panel>
         {page.items.length === 0 ? (
           <EmptyState title={after ? "Nothing older" : "Nothing new"} />

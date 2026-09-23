@@ -15,10 +15,19 @@ import {
   seedScenario,
   signIn,
   type Scenario,
+  givePro,
 } from "@/test/db";
 import { requireTripAccess } from "@/server/access";
-import { listDocuments } from "@/server/documents/documents";
-import { removeDocument, setCategory, uploadDocument } from "./actions";
+import {
+  insertDocument,
+  listDocuments,
+  liveDocument,
+  softDeleteDocument,
+  usedBytes,
+} from "@/server/documents/documents";
+import { FREE_TRIP_STORAGE_BYTES, PRO_TRIP_STORAGE_BYTES } from "@floc/core/documents/documents";
+import { storageUsage } from "@/server/documents/storage-quota";
+import { removeDocument, renameDocument, setCategory, uploadDocument } from "./actions";
 
 let world: Scenario;
 const previousDir = process.env.FLOC_FILES_DIR;
@@ -177,5 +186,95 @@ describe("setCategory", () => {
     const move = new FormData();
     move.set("category", "stay");
     await expectNotFound(() => setCategory(world.ours.id, doc.id, move));
+  });
+});
+
+describe("renameDocument (#364)", () => {
+  it("gives a file a clear name and leaves the stored file alone", async () => {
+    await uploadDocument(world.ours.id, form("shared", "IMG_2231.pdf"));
+    const [before] = await listDocuments(world.ours.id, world.member);
+    const stored = (await liveDocument(before.id))!.storageKey;
+    const disk = await readdir(process.env.FLOC_FILES_DIR!, { recursive: true });
+
+    signIn(world.admin);
+    expect(await renameDocument(world.ours.id, before.id, "  Ferry to Mull ")).toEqual({});
+
+    const [after] = await listDocuments(world.ours.id, world.admin);
+    expect(after).toMatchObject({ id: before.id, name: "Ferry to Mull.pdf" });
+    expect((await liveDocument(before.id))!.storageKey).toBe(stored);
+    expect(await readdir(process.env.FLOC_FILES_DIR!, { recursive: true })).toEqual(disk);
+  });
+
+  it("refuses a blank name as a form error", async () => {
+    await uploadDocument(world.ours.id, form("shared"));
+    const [doc] = await listDocuments(world.ours.id, world.member);
+
+    expect(await renameDocument(world.ours.id, doc.id, "   ")).toEqual({ error: "Give the file a name." });
+    expect((await listDocuments(world.ours.id, world.member))[0].name).toBe("booking.pdf");
+  });
+
+  it("cannot reach another member's private file", async () => {
+    await uploadDocument(world.ours.id, form("private"));
+    const [doc] = await listDocuments(world.ours.id, world.member);
+
+    signIn(world.admin);
+    await expectNotFound(() => renameDocument(world.ours.id, doc.id, "Mine now"));
+  });
+});
+
+describe("the trip's storage quota (#285)", () => {
+  const bigFile = (sizeBytes: number) =>
+    insertDocument({
+      tripId: world.ours.id,
+      uploadedBy: world.admin,
+      ownerId: null,
+      name: "scans.pdf",
+      storageKey: `seeded-${sizeBytes}`,
+      mimeType: "application/pdf",
+      sizeBytes,
+      category: "other",
+    });
+
+  it("takes a file that fits in what is left", async () => {
+    await bigFile(FREE_TRIP_STORAGE_BYTES - 1024);
+    expect(await uploadDocument(world.ours.id, form("shared"))).toBeUndefined();
+    expect(await usedBytes(world.ours.id)).toBe(FREE_TRIP_STORAGE_BYTES - 1024 + "%PDF-1.7".length);
+  });
+
+  it("refuses one past the quota as a form error naming the space left, and writes nothing", async () => {
+    await bigFile(FREE_TRIP_STORAGE_BYTES - 4);
+
+    expect(await uploadDocument(world.ours.id, form("shared"))).toEqual({
+      error: "This trip has 4 B of its 200 MB left, and that file is 8 B.",
+    });
+    expect(await listDocuments(world.ours.id, world.member)).toHaveLength(1);
+  });
+
+  it("gives a removed file's bytes back", async () => {
+    await bigFile(FREE_TRIP_STORAGE_BYTES);
+    const [full] = await listDocuments(world.ours.id, world.member);
+    expect((await uploadDocument(world.ours.id, form("shared")))?.error).toMatch(/used all of its 200 MB/);
+
+    await softDeleteDocument(full.id);
+
+    expect(await usedBytes(world.ours.id)).toBe(0);
+    expect(await uploadDocument(world.ours.id, form("shared"))).toBeUndefined();
+  });
+
+  it("counts every member's private files, not only the viewer's", async () => {
+    await uploadDocument(world.ours.id, form("private"));
+    signIn(world.admin);
+    expect(await usedBytes(world.ours.id)).toBe("%PDF-1.7".length);
+  });
+
+  it("lifts the quota for a trip with a Pro member on it", async () => {
+    await givePro(world.admin);
+    await bigFile(FREE_TRIP_STORAGE_BYTES);
+
+    expect(await uploadDocument(world.ours.id, form("shared"))).toBeUndefined();
+    expect(await storageUsage(world.ours.id)).toEqual({
+      usedBytes: FREE_TRIP_STORAGE_BYTES + "%PDF-1.7".length,
+      quotaBytes: PRO_TRIP_STORAGE_BYTES,
+    });
   });
 });

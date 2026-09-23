@@ -49,6 +49,7 @@ export type ExpenseDraft = {
   /** Filed under one of the fixed twelve; the glyph is the rendering, never the value. */
   category: ExpenseCategory;
   amountMinor: number;
+  currency: Currency;
   paidBy: string;
   dayId: number | null;
   notes: string | null;
@@ -84,6 +85,7 @@ export type ExpenseFormProps = {
   people: Person[];
   /** The trip's days, for "which day". Empty on an undated trip — not an error (rule 9). */
   days: DayOption[];
+  /** What the form starts in: the expense's own on an edit, the trip's on an add. */
   currency: Currency;
   /** Who the payer defaults to on a new expense: whoever is holding the phone. */
   viewerId: string;
@@ -498,6 +500,7 @@ export function buildDraft(
       description: fields.description.trim(),
       category: fields.category,
       amountMinor,
+      currency,
       paidBy: fields.paidBy,
       dayId: fields.dayId,
       notes: fields.notes.trim() === "" ? null : fields.notes.trim(),
@@ -549,7 +552,9 @@ export function useFields(
   initial: Initial | undefined,
   viewerId: string,
   people: Person[],
+  startCurrency: Currency,
 ) {
+  const [currency, setCurrency] = useState<Currency>(startCurrency);
   const [description, setDescription] = useState(initial?.description ?? "");
   const [category, setCategory] = useState<ExpenseCategory>(
     initial?.category ?? DEFAULT_CATEGORY,
@@ -566,6 +571,8 @@ export function useFields(
   );
 
   return {
+    currency,
+    setCurrency,
     description,
     setDescription,
     category,
@@ -600,7 +607,6 @@ export function useFields(
 export function trySave(
   f: ReturnType<typeof useFields>,
   people: Person[],
-  currency: Currency,
   onSave: (draft: ExpenseDraft) => void,
 ) {
   const attempt = buildDraft(
@@ -616,7 +622,7 @@ export function trySave(
     people,
     f.inOn,
     f.weights,
-    currency,
+    f.currency,
   );
   if (!attempt.ok) {
     f.setProblem(attempt.problem);

@@ -89,6 +89,8 @@ import {
   TourWhenReady,
 } from "./streamed";
 
+export const metadata = { title: "Overview" };
+
 export default async function OverviewPage({
   params,
 }: {

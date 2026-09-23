@@ -108,6 +108,8 @@ const RING_OPTIONS = (
   Object.entries(RING_LABELS) as [Visibility, string][]
 ).map(([value, label]) => ({ value, label }));
 
+export const metadata = { title: "Settings" };
+
 export default async function SettingsPage({
   searchParams,
 }: {

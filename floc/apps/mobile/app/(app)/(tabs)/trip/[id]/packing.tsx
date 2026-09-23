@@ -122,6 +122,7 @@ export default function Packing() {
   const tick = useMutation({ ...trpc.packing.setPacked.mutationOptions(), onSuccess: again });
   const step = useMutation({ ...trpc.packing.stepQuantity.mutationOptions(), onSuccess: again });
   const drop = useMutation({ ...trpc.packing.remove.mutationOptions(), onSuccess: again });
+  const rename = useMutation({ ...trpc.packing.rename.mutationOptions(), onSuccess: again });
   const setTier = useMutation({ ...trpc.packing.setTier.mutationOptions(), onSuccess: again });
   const fill = useMutation({ ...trpc.packing.fillMyBag.mutationOptions(), onSuccess: again });
   const applyKit = useMutation({
@@ -237,6 +238,7 @@ export default function Packing() {
               onClaim={(claimed) => claim.mutate({ tripId, lineId: line.id, claimed })}
               onPacked={(packed) => tick.mutate({ tripId, lineId: line.id, packed })}
               onRemove={() => drop.mutate({ tripId, lineId: line.id })}
+              onRename={(label) => rename.mutateAsync({ tripId, lineId: line.id, label })}
             />
           )}
         />
@@ -263,6 +265,7 @@ export default function Packing() {
               onStep={(delta) => step.mutate({ tripId, lineId: line.id, delta })}
               onPacked={(packed) => tick.mutate({ tripId, lineId: line.id, packed })}
               onRemove={() => drop.mutate({ tripId, lineId: line.id })}
+              onRename={(label) => rename.mutateAsync({ tripId, lineId: line.id, label })}
             />
           )}
         />

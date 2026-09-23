@@ -33,6 +33,12 @@ import { router, tripProcedure } from "../trpc";
 
 const lineId = z.number().int().positive();
 
+const label = z
+  .string()
+  .trim()
+  .min(1, "A thing to pack needs a name.")
+  .max(TEXT_CAPS.packingLabel, "That name is too long.");
+
 /** Matches the host's `LIMITS.packingLines` — a list cannot offer more than it holds. */
 const MAX_BULK = 500;
 
@@ -42,11 +48,7 @@ export const packingRouter = router({
   add: tripProcedure
     .input(
       z.object({
-        label: z
-          .string()
-          .trim()
-          .min(1, "A thing to pack needs a name.")
-          .max(TEXT_CAPS.packingLabel, "That name is too long."),
+        label,
         category: z.enum(PACK_CATEGORIES),
         /** True puts it in your own bag, false on the group's list. */
         mine: z.boolean(),
@@ -74,6 +76,12 @@ export const packingRouter = router({
     .input(z.object({ lineId, delta: z.union([z.literal(1), z.literal(-1)]) }))
     .mutation(async ({ ctx, input }) => {
       await ctx.port.stepPackingQuantity(ctx.viewer.id, input.tripId, input.lineId, input.delta);
+    }),
+
+  rename: tripProcedure
+    .input(z.object({ lineId, label }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.port.renamePackingLine(ctx.viewer.id, input.tripId, input.lineId, input.label);
     }),
 
   remove: tripProcedure

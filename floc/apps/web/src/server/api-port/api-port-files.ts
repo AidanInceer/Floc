@@ -20,7 +20,9 @@ import {
   bytesMatchType,
   cleanFileName,
   MAX_DOCUMENT_BASE64_LENGTH,
+  rejectForSpace,
   rejectUpload,
+  renamedFileName,
   type DocCategory,
 } from "@floc/core/documents/documents";
 import type { FileUpload, FlocPort } from "@floc/api/port";
@@ -31,6 +33,7 @@ import {
   insertDocument,
   placeDocument,
   setDocumentCategory,
+  setDocumentName,
   softDeleteDocument,
 } from "@/server/documents/documents";
 import {
@@ -39,6 +42,7 @@ import {
   putDocument,
 } from "@/server/documents/document-store";
 import { mintViewToken } from "@/server/documents/view-link";
+import { storageUsage } from "@/server/documents/storage-quota";
 import { appUrl } from "@/lib/env";
 import { refresh } from "@/server/freshness";
 import { LIMITS } from "@/server/limits";
@@ -48,6 +52,8 @@ type FilesPort = Pick<
   | "uploadFile"
   | "deleteFile"
   | "setFileCategory"
+  | "renameFile"
+  | "fileUsage"
   | "attachFileToEvent"
   | "detachFileFromEvent"
   | "fileViewUrl"
@@ -91,6 +97,9 @@ export const filesPort: FilesPort = {
     if ((await countDocuments(tripId)) >= LIMITS.documents) {
       return "This trip is holding as many files as it can";
     }
+    const space = await storageUsage(tripId);
+    const noSpace = rejectForSpace(space.usedBytes, bytes.byteLength, space.quotaBytes);
+    if (noSpace) return noSpace;
 
     // Resolved, not trusted: the event id arrives from the client.
     const onEvent = input.dayEventId
@@ -163,6 +172,21 @@ export const filesPort: FilesPort = {
 
     const token = mintViewToken(doc.id);
     return `${appUrl()}/trip/${tripId}/files/${doc.id}/raw?t=${token}`;
+  },
+
+  async fileUsage(viewerId, tripId) {
+    await scoped(viewerId, tripId);
+    return storageUsage(tripId);
+  },
+
+  async renameFile(viewerId, tripId, fileId, raw) {
+    const access = await scoped(viewerId, tripId);
+    const doc = await access.document(fileId);
+    const name = renamedFileName(raw, doc.name);
+    if (!name) return "Give the file a name.";
+    await setDocumentName(doc.id, name);
+    refresh({ kind: "documents", tripId });
+    return null;
   },
 
   async setFileCategory(

@@ -240,7 +240,7 @@ const tourStops: TourStop[] = [
     tone: "bg-blush text-blush-ink",
     title: "Tickets, filed",
     line: "Passes attached to the trip",
-    proExtra: "Pro: 1 GB per trip, for every pass and scan",
+    proExtra: "Pro: extra trip storage, for every pass and scan",
     chat: [
       { from: "Jo", text: "can someone forward the boarding pass" },
       { from: "Sam", text: "check your email", reply: true },

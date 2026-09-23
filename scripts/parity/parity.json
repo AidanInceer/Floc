@@ -36,9 +36,6 @@
     "explore.setAnswers": {
       "mobile": "yes"
     },
-    "explore.setSaved": {
-      "mobile": "yes"
-    },
     "files.attach": {
       "mobile": "yes"
     },
@@ -54,10 +51,16 @@
     "files.remove": {
       "mobile": "yes"
     },
+    "files.rename": {
+      "mobile": "yes"
+    },
     "files.setCategory": {
       "mobile": "yes"
     },
     "files.upload": {
+      "mobile": "yes"
+    },
+    "files.usage": {
       "mobile": "yes"
     },
     "files.viewUrl": {
@@ -72,6 +75,9 @@
     "friends.decline": {
       "mobile": "yes"
     },
+    "friends.find": {
+      "mobile": "yes"
+    },
     "friends.list": {
       "mobile": "yes"
     },
@@ -79,6 +85,9 @@
       "mobile": "yes"
     },
     "friends.request": {
+      "mobile": "yes"
+    },
+    "friends.requestByCode": {
       "mobile": "yes"
     },
     "ideas.add": {
@@ -202,8 +211,15 @@
     "notifications.open": {
       "mobile": "yes"
     },
+    "notifications.readAll": {
+      "mobile": "yes"
+    },
     "notifications.registerPhone": {
       "mobile": "yes"
+    },
+    "notifications.seen": {
+      "mobile": "no",
+      "why": "Web only for now: seeing happens when the inbox page is on screen, and the phone has no inbox page."
     },
     "notifications.unread": {
       "mobile": "yes"
@@ -230,6 +246,9 @@
       "mobile": "yes"
     },
     "packing.removeMany": {
+      "mobile": "yes"
+    },
+    "packing.rename": {
       "mobile": "yes"
     },
     "packing.reset": {
@@ -338,7 +357,7 @@
       "id": "files",
       "path": "floc/apps/web/src/app/trip/[id]/files",
       "status": "planned",
-      "why": "The app lists, uploads, re-files and removes. What is still web-only is opening one: the bytes come off a route handler behind a session cookie, and a phone has no viewer for a PDF yet."
+      "why": "The app lists, uploads, renames, re-files and removes. What is still web-only is opening one: the bytes come off a route handler behind a session cookie, and a phone has no viewer for a PDF yet."
     },
     {
       "id": "signup",

@@ -15,6 +15,7 @@ import {
   findLiveExpense,
   findLiveSettlement,
   listSettlements,
+  rewriteSettlement,
   softDeleteExpense,
   softDeleteSettlement,
   writeExpense,
@@ -158,6 +159,57 @@ describe("settlements", () => {
     ]);
     const rows = await listSettlements(world.ours.id);
     expect(rows.map((r) => `${r.amountMinor} ${r.currency}`).sort()).toEqual(["1500 GBP", "3270 EUR"]);
+  });
+
+  it("rewrites a live settlement in place, dropping a cross-currency snapshot (#361)", async () => {
+    await writeSettlement({
+      tripId: world.ours.id,
+      createdBy: world.member,
+      fromUserId: world.member,
+      toUserId: world.admin,
+      amountMinor: 1750,
+      currency: "EUR",
+      clearsAmountMinor: 1500,
+      clearsCurrency: "GBP",
+      fxRate: 0.85,
+      fxRateDate: "2026-09-01",
+    });
+    const [row] = await listSettlements(world.ours.id);
+
+    expect(
+      await rewriteSettlement(world.ours.id, row.id, {
+        fromUserId: world.admin,
+        toUserId: world.member,
+        amountMinor: 900,
+        currency: "GBP",
+      }),
+    ).toBe(true);
+
+    const [edited] = await listSettlements(world.ours.id);
+    expect(edited).toMatchObject({
+      id: row.id,
+      fromUserId: world.admin,
+      toUserId: world.member,
+      amountMinor: 900,
+      currency: "GBP",
+      clearsAmountMinor: null,
+      clearsCurrency: null,
+      fxRate: null,
+      fxRateDate: null,
+    });
+  });
+
+  it("will not rewrite a reverted settlement, or another trip's", async () => {
+    await settle();
+    const [row] = await listSettlements(world.ours.id);
+    const edit = { fromUserId: world.member, toUserId: world.admin, amountMinor: 1, currency: "GBP" as const };
+
+    expect(await rewriteSettlement(world.theirs.id, row.id, edit)).toBe(false);
+    await softDeleteSettlement(world.ours.id, row.id);
+    expect(await rewriteSettlement(world.ours.id, row.id, edit)).toBe(false);
+
+    const [dead] = await db.select().from(schema.settlement).all();
+    expect(dead.amountMinor).toBe(1500);
   });
 
   it("writes none of them when one is refused", async () => {

@@ -20,6 +20,7 @@
  * THE RULES ARE NOT HERE. `expense-form-parts` holds every one of them, so
  * money, splits and rejections cannot drift from the drawing.
  */
+import { CURRENCIES } from "@floc/core/money/currency";
 import { formatMoney } from "@floc/core/money/money";
 import { useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
@@ -40,7 +41,7 @@ import {
 } from "./expense-form-parts";
 import { CategoryPicker } from "../days/category-picker";
 import { useTheme } from "../system/theme";
-import { Body, Button, Card, Field, Label, Segmented } from "../system/ui";
+import { Body, Button, Card, Dropdown, Field, Label, Segmented } from "../system/ui";
 import { fonts, radius, size, space } from "@/lib/theme";
 
 export type { DayOption, ExpenseDraft } from "./expense-form-parts";
@@ -257,6 +258,8 @@ function Each({
   );
 }
 
+const CURRENCY_OPTIONS = CURRENCIES.map((code) => ({ value: code, label: code }));
+
 /** The payer, the day and the note, behind one line that says what they currently are. */
 function Folded({
   f,
@@ -287,7 +290,7 @@ function Folded({
       <Pressable
         accessibilityRole="button"
         accessibilityState={{ expanded: open }}
-        accessibilityLabel="Payer, day and notes"
+        accessibilityLabel="Payer, day, currency and notes"
         onPress={() => setOpen(!open)}
         style={{
           flexDirection: "row",
@@ -322,6 +325,12 @@ function Folded({
               }
             />
           ) : null}
+          <Dropdown
+            label="Currency"
+            options={CURRENCY_OPTIONS}
+            value={f.currency}
+            onChange={f.setCurrency}
+          />
           <Field
             label="Notes"
             value={f.notes}
@@ -345,7 +354,7 @@ export function ExpenseForm({
   onCancel,
   onDelete,
 }: ExpenseFormProps) {
-  const f = useFields(initial, viewerId, people);
+  const f = useFields(initial, viewerId, people, currency);
 
   return (
     <Card>
@@ -379,7 +388,7 @@ export function ExpenseForm({
               />
             </View>
           </Asked>
-          <Asked label={`Amount (${currency})`}>
+          <Asked label={`Amount (${f.currency})`}>
             <Plain
               accessibilityLabel="Amount"
               value={f.amount}
@@ -394,7 +403,7 @@ export function ExpenseForm({
           </Asked>
         </View>
 
-        <Split f={f} people={people} currency={currency} />
+        <Split f={f} people={people} currency={f.currency} />
         <Each f={f} people={people} />
 
         <Folded f={f} people={people} days={days} />
@@ -402,7 +411,7 @@ export function ExpenseForm({
         {f.problem ? <Body tone="red">{f.problem}</Body> : null}
         <Actions
           busy={busy}
-          onSave={() => trySave(f, people, currency, onSave)}
+          onSave={() => trySave(f, people, onSave)}
           onCancel={onCancel}
           onDelete={onDelete}
         />

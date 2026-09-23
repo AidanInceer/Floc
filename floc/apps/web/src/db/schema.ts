@@ -186,6 +186,8 @@ export const userProfile = sqliteTable("user_profile", {
   notifyReminders: integer("notify_reminders", { mode: "boolean" }).notNull().default(true),
   /** Explore's last quiz answers, read through `readAnswers` — a bad shape reads as none. */
   exploreAnswers: text("explore_answers", { mode: "json" }).$type<unknown>(),
+  /** Handed out by its owner so a stranger can find them (#360); made on first look, never reissued. */
+  friendCode: text("friend_code").unique(),
   ...audit,
 });
 
@@ -226,6 +228,9 @@ export const userCountryMark = sqliteTable(
 export const FRIENDSHIP_STATUSES = ["pending", "accepted"] as const;
 export type FriendshipStatus = (typeof FRIENDSHIP_STATUSES)[number];
 
+export const FRIENDSHIP_ORIGINS = ["co_trip", "request", "code"] as const;
+export type FriendshipOrigin = (typeof FRIENDSHIP_ORIGINS)[number];
+
 // One row per requested direction (ticket 04).
 export const friendship = sqliteTable(
   "friendship",
@@ -240,7 +245,7 @@ export const friendship = sqliteTable(
     status: text("status", { enum: FRIENDSHIP_STATUSES })
       .notNull()
       .default("pending"),
-    origin: text("origin", { enum: ["co_trip", "request"] })
+    origin: text("origin", { enum: FRIENDSHIP_ORIGINS })
       .notNull()
       .default("request"),
     ...audit,
@@ -956,6 +961,8 @@ export const notification = sqliteTable(
       .notNull()
       .references(() => user.id),
     loud: integer("loud", { mode: "boolean" }).notNull(),
+    /** Why: the bell counts unseen, the list marks unread — landing on the inbox answers the first, not the second (#403). */
+    seenAt: integer("seen_at", { mode: "timestamp" }),
     readAt: integer("read_at", { mode: "timestamp" }),
     /** Why: a lease, so a second instance skips it and a crashed send is retried once the lease runs out (#345). */
     pushClaimedAt: integer("push_claimed_at", { mode: "timestamp" }),

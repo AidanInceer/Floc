@@ -192,7 +192,7 @@ export type Transfer = {
   fxRateDate?: string | null;
 };
 
-/** Records one transfer that has already happened off-app. Append-only — never edited, reverted by soft-delete. */
+/** Records one transfer that has already happened off-app. Reverted by soft-delete, corrected by `rewriteSettlement`. */
 export async function writeSettlement(args: Transfer & { tripId: number; createdBy: string }): Promise<void> {
   const { tripId, createdBy, ...transfer } = args;
   await writeSettlements(tripId, createdBy, [transfer]);
@@ -239,6 +239,33 @@ export async function findLiveSettlement(
       ),
     )
     .get();
+}
+
+/** Last-write-wins over the whole transfer (#361); false when the row is gone or not this trip's. */
+export async function rewriteSettlement(
+  tripId: number,
+  settlementId: number,
+  transfer: Transfer,
+): Promise<boolean> {
+  const rows = await db
+    .update(settlement)
+    .set({
+      clearsAmountMinor: null,
+      clearsCurrency: null,
+      fxRate: null,
+      fxRateDate: null,
+      ...transfer,
+      ...touch(),
+    })
+    .where(
+      and(
+        eq(settlement.id, settlementId),
+        eq(settlement.tripId, tripId),
+        isNull(settlement.deletedAt),
+      ),
+    )
+    .returning({ id: settlement.id });
+  return rows.length > 0;
 }
 
 /** Soft-deletes a settlement — the revert; the balance recomputes as if the money never moved. */

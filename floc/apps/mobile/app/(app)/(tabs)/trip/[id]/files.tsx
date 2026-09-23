@@ -25,6 +25,7 @@ import { AddFile } from "@/components/files/add-file";
 import { FileActions } from "@/components/files/file-actions";
 import { FileFilters, type FileFilter } from "@/components/files/file-filter";
 import { FileRow } from "@/components/files/file-row";
+import { StorageMeter } from "@/components/files/storage-meter";
 import { openFileNatively } from "@/components/files/open-file";
 import { Sheet } from "@/components/system/sheet";
 import { useTheme } from "@/components/system/theme";
@@ -46,10 +47,12 @@ export default function Files() {
 
   const files = useQuery(trpc.files.list.queryOptions({ tripId }, { enabled: ready }));
   const writable = useQuery(trpc.files.canUpload.queryOptions({ tripId }, { enabled: ready }));
+  const usage = useQuery(trpc.files.usage.queryOptions({ tripId }, { enabled: ready }));
 
   const settled = {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: trpc.files.list.queryKey({ tripId }) });
+      queryClient.invalidateQueries({ queryKey: trpc.files.usage.queryKey({ tripId }) });
     },
   };
 
@@ -65,6 +68,7 @@ export default function Files() {
   });
   const remove = useMutation({ ...trpc.files.remove.mutationOptions(), ...settled });
   const refile = useMutation({ ...trpc.files.setCategory.mutationOptions(), ...settled });
+  const rename = useMutation({ ...trpc.files.rename.mutationOptions(), ...settled });
 
   // The address is asked for at the moment of the tap, not held on the row:
   // it is signed and it expires, so a list minted an hour ago opens nothing.
@@ -135,6 +139,8 @@ export default function Files() {
         )}
       </View>
 
+      {usage.data && writable.data !== false ? <StorageMeter {...usage.data} /> : null}
+
       <Sheet open={adding} onClose={() => setAdding(false)}>
         {/* No heading over it: the dropdown, the switch and "Choose a file"
             say what this is, and a label above a label says nothing (#325
@@ -164,6 +170,11 @@ export default function Files() {
         onRemove={() => {
           if (open) remove.mutate({ tripId, fileId: open.id });
           setOpenFileId(null);
+        }}
+        onRename={async (name) => {
+          if (!open) return;
+          const refusal = await rename.mutateAsync({ tripId, fileId: open.id, name });
+          if (refusal) throw new Error(refusal);
         }}
         onClose={() => setOpenFileId(null)}
       />

@@ -8,6 +8,7 @@
  * `notFound()`, and the port cannot do that, so it has to keep it another way.
  * A rule with two enforcement paths needs a test on both.
  */
+import { parseTagNames } from "@floc/core/trip/tags";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";
@@ -198,6 +199,18 @@ describe("creating and patching a trip", () => {
     expect((await webPort.loadTrip(world.admin, world.ours.id))?.tags).toEqual([]);
   });
 
+  it("reads colour, mark and tags through the same rules as the web form", async () => {
+    await webPort.updateTrip(world.admin, world.ours.id, {
+      colorKey: "not-a-colour",
+      mark: "not-a-mark",
+      tags: ["  Beach ", "beach", "", "x".repeat(500)],
+    });
+    const trip = await webPort.loadTrip(world.admin, world.ours.id);
+    expect(trip?.colorKey).toBeNull();
+    expect(trip?.mark).toBeNull();
+    expect(trip?.tags).toEqual(parseTagNames(["  Beach ", "beach", "", "x".repeat(500)]));
+  });
+
   it("leaves a field alone when the patch omits it", async () => {
     await webPort.updateTrip(world.admin, world.ours.id, { name: "Renamed" });
     const trip = await webPort.loadTrip(world.admin, world.ours.id);
@@ -262,6 +275,21 @@ describe("money", () => {
     // And the other trip's row is untouched.
     const after = await webPort.loadLedger(world.outsider, world.theirs.id);
     expect(after.expenses[0].description).toBe("Theirs");
+  });
+
+  it("lets only the payer or the receiver record a settlement", async () => {
+    await webPort.joinByToken(world.outsider, "token-ours");
+    const between = [
+      { fromUserId: world.admin, toUserId: world.outsider, amountMinor: 500, currency: "GBP" as const },
+    ];
+
+    await expect(webPort.settleUp(world.member, world.ours.id, between)).rejects.toThrow(
+      /payer or receiver/i,
+    );
+    expect((await webPort.loadLedger(world.admin, world.ours.id)).settlements).toHaveLength(0);
+
+    await webPort.settleUp(world.outsider, world.ours.id, between);
+    expect((await webPort.loadLedger(world.admin, world.ours.id)).settlements).toHaveLength(1);
   });
 
   it("soft-deletes an expense rather than removing the row (rule 8)", async () => {
@@ -421,6 +449,28 @@ describe("packing through the port (#220's two lists)", () => {
     const rows = await db.select().from(schema.packingLine).all();
     expect(rows).toHaveLength(1);
     expect(rows[0].deletedAt).not.toBeNull();
+  });
+});
+
+describe("renaming a packing line through the port (#362)", () => {
+  it("renames a shared line and keeps its claims", async () => {
+    await webPort.addPackingLine(world.admin, world.ours.id, { label: "Sun cream", category: "other", mine: false });
+    const [line] = (await webPort.loadPacking(world.admin, world.ours.id)).shared;
+    await webPort.claimPackingLine(world.member, world.ours.id, line.id, true);
+
+    await webPort.renamePackingLine(world.member, world.ours.id, line.id, "Factor 50");
+
+    const [renamed] = (await webPort.loadPacking(world.admin, world.ours.id)).shared;
+    expect(renamed).toMatchObject({ id: line.id, label: "Factor 50" });
+    expect(renamed.claims.map((c) => c.userId)).toEqual([world.member]);
+  });
+
+  it("never reaches another member's bag", async () => {
+    await webPort.addPackingLine(world.member, world.ours.id, { label: "Meds", category: "other", mine: true });
+    const [line] = (await webPort.loadPacking(world.member, world.ours.id)).mine;
+
+    await expect(webPort.renamePackingLine(world.admin, world.ours.id, line.id, "Mine now")).rejects.toThrow();
+    expect((await webPort.loadPacking(world.member, world.ours.id)).mine[0].label).toBe("Meds");
   });
 });
 

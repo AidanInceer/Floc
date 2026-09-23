@@ -5,6 +5,8 @@ import { useOptimistic } from "react";
 import { Badge, cx } from "@/components/system/ui";
 import { clampPackQuantity } from "@floc/core/packing/packing";
 import { ConfirmSubmit } from "@/components/system/client-ui";
+import { InlineRename } from "@/components/system/inline-rename";
+import { TEXT_CAPS } from "@floc/core/text/text";
 import {
   CheckGlyph,
   CrossGlyph,
@@ -37,6 +39,7 @@ export function PersonalPackingRow({
   setPacked,
   step,
   remove,
+  rename,
 }: {
   tripId: number;
   lineId: number;
@@ -48,6 +51,7 @@ export function PersonalPackingRow({
   setPacked: (tripId: number, lineId: number, packed: boolean) => Promise<void>;
   step: (tripId: number, lineId: number, formData: FormData) => Promise<void>;
   remove: (tripId: number, lineId: number) => Promise<void>;
+  rename: (tripId: number, lineId: number, label: string) => Promise<{ error?: string }>;
 }) {
   const [packed, showPacked] = useOptimistic(packedAt !== null);
   // A reducer, not a set value: two clicks before the first render commits both
@@ -84,11 +88,16 @@ export function PersonalPackingRow({
       {/* The count sits ahead of the label and shows even at one, so a row
           never changes shape as you step it. */}
       <span
-        className={cx("min-w-0 flex-1 truncate text-sm", packed && "text-ink-soft")}
+        className={cx("flex min-w-0 flex-1 items-baseline whitespace-pre text-sm", packed && "text-ink-soft")}
       >
         <span className="font-mono tabular-nums text-ink-faint">{shown}</span>
         <span className="text-ink-faint">{" — "}</span>
-        {label}
+        <InlineRename
+          value={label}
+          label={`Rename ${label}`}
+          maxLength={TEXT_CAPS.packingLabel}
+          save={(next) => rename(tripId, lineId, next)}
+        />
       </span>
 
       <span className="hidden shrink-0 sm:block">

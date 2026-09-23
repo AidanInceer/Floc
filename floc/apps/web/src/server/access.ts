@@ -46,6 +46,16 @@ export async function requireUser(redirectTo?: string) {
   return session.user;
 }
 
+/**
+ * The other door: a signed-in person has no business on the sign-in pages.
+ * Back-button history used to land them there and let them become somebody
+ * else without signing out first (#403).
+ */
+export async function requireGuest(next?: string) {
+  const session = await getSession();
+  if (session?.user) redirect(next && next.startsWith("/") ? next : "/trips");
+}
+
 export type TripAccess = {
   trip: typeof trip.$inferSelect;
   role: TripRole;

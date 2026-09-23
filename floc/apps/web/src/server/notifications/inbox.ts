@@ -58,17 +58,40 @@ export async function listInbox(userId: string, cursor: string | null): Promise<
   };
 }
 
-/** Capped: past 99 the bell says "99+", so counting further is wasted work on every page. */
+/**
+ * What the bell shows. Unseen, not unread: landing on the inbox answers the
+ * bell, while each row keeps its own "New" mark until you open it (#403).
+ * Capped: past 99 the bell says "99+", so counting further is wasted work.
+ */
 export async function countUnread(userId: string): Promise<number> {
-  const rows = await notificationRows(and(visibleTo(userId), isNull(notification.readAt)), 100);
+  const rows = await notificationRows(and(visibleTo(userId), isNull(notification.seenAt)), 100);
   return rows.length;
+}
+
+/** Landing on the inbox: every row on screen has now been seen. */
+export async function markInboxSeen(userId: string): Promise<void> {
+  await db
+    .update(notification)
+    .set({ seenAt: new Date(), ...touch() })
+    .where(and(eq(notification.userId, userId), isNull(notification.seenAt), isNull(notification.deletedAt)))
+    .run();
+}
+
+/** The "Mark all as read" control: clears both marks at once. */
+export async function markAllRead(userId: string): Promise<void> {
+  const now = new Date();
+  await db
+    .update(notification)
+    .set({ readAt: now, seenAt: now, ...touch() })
+    .where(and(eq(notification.userId, userId), isNull(notification.readAt), isNull(notification.deletedAt)))
+    .run();
 }
 
 /** Marks one of your own notifications read and says where it points. Null for anyone else's id. */
 export async function openNotification(userId: string, notificationId: number): Promise<string | null> {
   const opened = await db
     .update(notification)
-    .set({ readAt: new Date(), ...touch() })
+    .set({ readAt: new Date(), seenAt: new Date(), ...touch() })
     .where(
       and(
         eq(notification.id, notificationId),

@@ -53,6 +53,8 @@ import { documentsEnabled } from "@/server/documents/document-store";
 import { addDays as addDaysToDate, fromIsoDate, today } from "@floc/core/dates/dates";
 import { eventFlightUrl } from "@floc/core/trip/booking-links";
 
+export const metadata = { title: "Days" };
+
 export default async function DaysPage({
   params,
   searchParams,

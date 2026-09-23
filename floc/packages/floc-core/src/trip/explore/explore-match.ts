@@ -130,4 +130,3 @@ export function readAnswers(value: unknown): ExploreAnswers | null {
   return out as ExploreAnswers;
 }
 
-export const SHORTLIST_CAP = 3;

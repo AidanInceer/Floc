@@ -1,6 +1,6 @@
 /**
- * Explore — your shortlist of listings and your last quiz answers. The
- * listings themselves are static `@floc/core` data both clients read directly.
+ * Explore — your last quiz answers. The listings themselves are static
+ * `@floc/core` data both clients read directly.
  */
 import { EXPLORE_QUESTIONS, NIGHTS } from "@floc/core/trip/explore/explore-match";
 import { z } from "zod";
@@ -19,12 +19,6 @@ export const exploreRouter = router({
   get: protectedProcedure.query(({ ctx }) => ctx.port.loadExplore(ctx.viewer.id)),
 
   rates: protectedProcedure.query(({ ctx }) => ctx.port.loadExploreRates(ctx.viewer.id)),
-
-  setSaved: protectedProcedure
-    .input(z.object({ presetId: z.string().min(1), saved: z.boolean() }))
-    .mutation(({ ctx, input }) =>
-      ctx.port.setExploreSaved(ctx.viewer.id, input.presetId, input.saved),
-    ),
 
   setAnswers: protectedProcedure
     .input(

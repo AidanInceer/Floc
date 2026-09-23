@@ -12,10 +12,12 @@ import { ConfirmSubmit, Menu, Sheet } from "@/components/system/client-ui";
 import { CategoryIcon } from "@/components/system/category-icon";
 import { ConvertAmount } from "@/components/money/money-client";
 import { ExpenseForm } from "@/components/money/expense-form";
+import { SettlementEditForm } from "@/components/money/settlement-form";
 import type { FormDay, FormMember } from "@/components/money/expense-form";
 import {
   deleteExpense,
   deleteSettlement,
+  editSettlement,
   updateExpense,
 } from "@/app/trip/[id]/money/actions";
 
@@ -211,17 +213,22 @@ function ExpenseRow({
 
 function SettlementRow({
   tripId,
+  viewerId,
   settlement: s,
   label,
   home,
   rateFor,
+  formMembers,
 }: {
   tripId: number;
+  viewerId: string;
   settlement: Settlement;
   label: (userId: string) => string;
   home: Currency;
   rateFor: (currency: Currency) => number | null;
+  formMembers: FormMember[];
 }) {
+  const party = viewerId === s.fromUserId || viewerId === s.toUserId;
   return (
     <li className="flex items-center gap-3 border-b border-rule py-3 last:border-b-0">
       <span className="flex h-9 w-9 flex-none items-center justify-center rounded-md border border-mint-edge bg-mint text-mint-ink">
@@ -257,18 +264,42 @@ function SettlementRow({
           rate={rateFor(s.currency)}
           className="nums text-sm font-medium text-mint-ink"
         />
-        <form action={deleteSettlement}>
-          <input type="hidden" name="tripId" value={tripId} />
-          <input type="hidden" name="settlementId" value={s.id} />
-          <ConfirmSubmit
-            message="Undo this settlement? The balances go back to before it."
-            variant="ghost"
-            className={menuDangerItemClass}
-            label="Undo settlement"
-          >
-            Undo
-          </ConfirmSubmit>
-        </form>
+        <Menu label={`Actions for ${label(s.fromUserId)} paid ${label(s.toUserId)}`}>
+          {party ? (
+            <Sheet
+              trigger="Edit"
+              title="Settlement"
+              triggerVariant="ghost"
+              triggerClassName={menuItemClass}
+              keepOpenOnSubmit
+            >
+              <SettlementEditForm
+                tripId={tripId}
+                settlement={{
+                  id: s.id,
+                  fromUserId: s.fromUserId,
+                  toUserId: s.toUserId,
+                  amountMinor: s.clearsAmountMinor ?? s.amountMinor,
+                  currency: s.clearsCurrency ?? s.currency,
+                  payCurrency: s.currency,
+                }}
+                people={formMembers.map((m) => ({ id: m.userId, name: m.name }))}
+                action={editSettlement}
+              />
+            </Sheet>
+          ) : null}
+          <form action={deleteSettlement}>
+            <input type="hidden" name="tripId" value={tripId} />
+            <input type="hidden" name="settlementId" value={s.id} />
+            <ConfirmSubmit
+              message="Undo this settlement? The balances go back to before it."
+              variant="ghost"
+              className={menuDangerItemClass}
+            >
+              Undo
+            </ConfirmSubmit>
+          </form>
+        </Menu>
       </div>
     </li>
   );

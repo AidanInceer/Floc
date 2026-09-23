@@ -18,6 +18,7 @@ import "server-only";
 import type {
   FlocPort,
   FriendPerson,
+  FriendSearch,
   FriendsBoard,
   InvitePreview,
   PendingTripInvite,
@@ -37,9 +38,13 @@ import {
   listFriendshipsFor,
   openPendingRequest,
   peopleByIds,
+  splitFriendships,
   syncCompletedCoTripFriendships,
   type Person,
 } from "@/server/social/friends";
+import { mayAskToBeFriends } from "@/server/social/find-friends";
+import { friendCodeFor, requestByCode } from "@/server/social/friend-code";
+import { searchFriends } from "@/server/social/friend-search";
 import { refresh } from "@/server/freshness";
 import {
   acceptInvite,
@@ -55,6 +60,8 @@ type SocialPort = Pick<
   FlocPort,
   | "loadFriends"
   | "requestFriend"
+  | "findFriends"
+  | "requestFriendByCode"
   | "acceptFriend"
   | "declineFriend"
   | "cancelFriendRequest"
@@ -81,7 +88,10 @@ export const socialPort: SocialPort = {
     // a finished co-trip becomes a friendship the next time either end looks.
     await syncCompletedCoTripFriendships(viewerId);
 
-    const rows = await listFriendshipsFor(viewerId);
+    const [rows, code] = await Promise.all([
+      listFriendshipsFor(viewerId),
+      friendCodeFor(viewerId),
+    ]);
     const otherIdOf = (r: (typeof rows)[number]) =>
       r.userId === viewerId ? r.friendId : r.userId;
 
@@ -89,28 +99,20 @@ export const socialPort: SocialPort = {
     // friends was a hundred serial round trips (ticket 118).
     const people = await peopleByIds(rows.map(otherIdOf));
     const personFor = (id: string) => toPerson(people.get(id) ?? UNKNOWN(id));
+    const { accepted, incoming, outgoing } = splitFriendships(rows, viewerId);
 
     return {
-      friends: rows
-        .filter((r) => r.status === "accepted")
-        .map((r) => personFor(otherIdOf(r))),
-      // Which end of the pair the viewer is at is what tells these apart.
-      incoming: rows
-        .filter((r) => r.status === "pending" && r.friendId === viewerId)
-        .map((r) => personFor(r.userId)),
-      outgoing: rows
-        .filter((r) => r.status === "pending" && r.userId === viewerId)
-        .map((r) => personFor(r.friendId)),
+      friends: accepted.map((r) => personFor(otherIdOf(r))),
+      incoming: incoming.map((r) => personFor(r.userId)),
+      outgoing: outgoing.map((r) => personFor(r.friendId)),
+      code,
     };
   },
 
   async requestFriend(viewerId, targetId) {
-    if (!targetId || targetId === viewerId) return;
-
     // The id is never trusted alone (ticket 46): without this, posting any id
     // answers "is that a real account?" through the side effect.
-    const relation = await relationTo(viewerId, targetId);
-    if (!relation || relation === "self") return;
+    if (!(await mayAskToBeFriends(viewerId, targetId))) return;
 
     const target = await findUserById(targetId);
     if (!target) return;
@@ -120,6 +122,15 @@ export const socialPort: SocialPort = {
     await openPendingRequest(viewerId, target.id);
 
     refresh({ kind: "friendship", otherId: target.id });
+  },
+
+  async findFriends(viewerId, query): Promise<FriendSearch> {
+    return searchFriends(viewerId, query);
+  },
+
+  async requestFriendByCode(viewerId, code) {
+    const found = await requestByCode(viewerId, code);
+    if (found) refresh({ kind: "friendship", otherId: found.id });
   },
 
   async acceptFriend(viewerId, requesterId) {

@@ -37,7 +37,7 @@ export type { Currency, DayEventType, DocCategory, ExpenseCategory, ReactionKind
 
 export type { ExploreAnswers };
 
-export type ExploreState = { saved: string[]; answers: ExploreAnswers | null };
+export type ExploreState = { answers: ExploreAnswers | null };
 
 export type TripRole = "admin" | "member";
 
@@ -530,20 +530,28 @@ export type FriendPerson = {
   avatarIcon: AvatarIcon | null;
 };
 
-/**
- * The Friends screen in one read (ticket 18).
- *
- * There is no add-by-email here, on purpose: you meet people by sharing a trip
- * and then ask from their profile or their roster row. A form taking an address
- * would turn this into "is that an account?" for any address typed.
- */
+/** The Friends screen in one read (ticket 18). */
 export type FriendsBoard = {
   friends: FriendPerson[];
   /** Waiting on the viewer to answer. `id` is the requester. */
   incoming: FriendPerson[];
   /** Sent by the viewer, not yet answered. `id` is the person asked. */
   outgoing: FriendPerson[];
+  /** The viewer's own friend code, to hand out (#360). */
+  code: string;
 };
+
+export type FoundFriend = FriendPerson & { state: FriendState };
+
+/**
+ * One search box, two readings (#360). A name only reaches people already in
+ * the viewer's rings or a public friend of a friend. There is no lookup by
+ * email address: any answer to one says whether it is an account.
+ */
+export type FriendSearch =
+  | { kind: "people"; people: FoundFriend[] }
+  | { kind: "code"; code: string; person: FoundFriend | null }
+  | { kind: "invalid" };
 
 /**
  * Somebody else's profile, already filtered by their rings (ticket 46).
@@ -706,6 +714,9 @@ export type FlocPort = {
 
   /** Soft-deletes one line (rule 8). A shared line is anyone's to drop; a personal one only its owner's. */
   removePackingLine(viewerId: string, tripId: number, lineId: number): Promise<void>;
+
+  /** Same reach as remove (#362). Claims hang off the line, so they survive it. */
+  renamePackingLine(viewerId: string, tripId: number, lineId: number, label: string): Promise<void>;
 
   /**
    * Several lines in one press (ticket 229). Every id is still resolved one at
@@ -943,14 +954,8 @@ export type FlocPort = {
    */
   startTripFromPreset(viewerId: string, presetId: string): Promise<{ id: number } | null>;
 
-  /** Your Explore shortlist and last quiz answers — null answers means never asked. */
+  /** Your last Explore quiz answers — null means never asked. */
   loadExplore(viewerId: string): Promise<ExploreState>;
-  /** "full" when the shortlist is at its cap; "unknown" for a retired listing. */
-  setExploreSaved(
-    viewerId: string,
-    presetId: string,
-    saved: boolean,
-  ): Promise<"ok" | "full" | "unknown">;
   setExploreAnswers(viewerId: string, answers: ExploreAnswers): Promise<void>;
   /** Home-currency multipliers for the Price sort — null when neither the provider nor the cache has any. */
   loadExploreRates(viewerId: string): Promise<RatesToHome | null>;
@@ -989,9 +994,8 @@ export type FlocPort = {
 
   /**
    * Records a transfer that has already happened off-app (ticket 300).
-   * Append-only: a settlement is never edited, only soft-deleted, because it
-   * is a record of something that happened rather than a plan that changed.
-   * v1 moves no money — this writes down that somebody did. All transfers
+   * A party to it can correct or undo it on the web (#361); the phone has no
+   * list of settlements to do either from. v1 moves no money — this writes down that somebody did. All transfers
    * save together or none do.
    */
   settleUp(
@@ -1033,6 +1037,12 @@ export type FlocPort = {
    * handed to anybody but its owner, so it is not addressable by the rest.
    */
   deleteFile(viewerId: string, tripId: number, fileId: number): Promise<void>;
+
+  /** Every member's live files count, private ones too, so this is a total and never a list (#285). */
+  fileUsage(viewerId: string, tripId: number): Promise<{ usedBytes: number; quotaBytes: number }>;
+
+  /** Same reach as re-filing (#364). Only the label changes; null when it saved, else the refusal in words. */
+  renameFile(viewerId: string, tripId: number, fileId: number, name: string): Promise<string | null>;
 
   /** Re-filing is any member's to do: nothing is lost, and the resolver already refused what they cannot see. */
   setFileCategory(
@@ -1122,10 +1132,15 @@ export type FlocPort = {
 
   /**
    * Opens a request. The target id is never trusted alone — the host re-checks
-   * they are inside one of the viewer's rings, or this becomes "is this a real
-   * account?" for any id posted (ticket 46). Refusals are silent by design.
+   * they are inside one of the viewer's rings or a public friend of a friend,
+   * or this becomes "is this a real account?" for any id posted (ticket 46).
+   * Refusals are silent by design.
    */
   requestFriend(viewerId: string, targetId: string): Promise<void>;
+
+  findFriends(viewerId: string, query: string): Promise<FriendSearch>;
+
+  requestFriendByCode(viewerId: string, code: string): Promise<void>;
 
   acceptFriend(viewerId: string, requesterId: string): Promise<void>;
 
@@ -1175,8 +1190,14 @@ export type FlocPort = {
   /** Newest first, one page. Pass the last page's `next` for the page after. */
   listNotifications(viewerId: string, cursor: string | null): Promise<NotificationPage>;
 
-  /** The bell's number. */
+  /** The bell's number: how many you have not yet laid eyes on. */
   countUnreadNotifications(viewerId: string): Promise<number>;
+
+  /** The inbox is on screen, so the bell is answered. The rows stay unread. */
+  markNotificationsSeen(viewerId: string): Promise<void>;
+
+  /** Clears every row's "New" mark, and the bell with it. */
+  markAllNotificationsRead(viewerId: string): Promise<void>;
 
   /** Marks it read on every device and says where it points. Null for an id that is not yours. */
   openNotification(viewerId: string, notificationId: number): Promise<string | null>;

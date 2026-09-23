@@ -167,6 +167,14 @@ export async function insertPackingLine(
   await db.insert(packingLine).values({ tripId, createdBy, label, category });
 }
 
+/** Claims hang off the line id, so they ride through a rename untouched (#362). */
+export async function renamePackingLineLabel(lineId: number, label: string): Promise<void> {
+  await db
+    .update(packingLine)
+    .set({ label, ...touch() })
+    .where(and(eq(packingLine.id, lineId), isNull(packingLine.deletedAt)));
+}
+
 /** The same table, with an owner — author and owner are the same person by construction. */
 export async function insertPersonalPackingLine(
   tripId: number,

@@ -1,7 +1,7 @@
 /**
  * /explore — ready-made trip ideas to start from. Listings are static and
  * editorial: nothing bookable (see docs/partner-trips.html). Public, because
- * the reason to make an account is on this page; saving and starting need one.
+ * the reason to make an account is on this page; starting a trip needs one.
  */
 import { DEFAULT_ANSWERS } from "@floc/core/trip/explore/explore-match";
 import { readExploreSort, sortPresetTrips } from "@floc/core/trip/explore/explore-sort";
@@ -12,11 +12,12 @@ import { ExploreTop } from "@/components/explore/explore-top";
 import { getSession } from "@/server/access";
 import { loadAnswers } from "@/server/explore/explore-answers";
 import { loadExploreRates } from "@/server/explore/explore-rates";
-import { listSaved } from "@/server/explore/shortlist";
 
 function isRegion(value: string | undefined): value is Region {
   return !!value && (REGIONS as readonly string[]).includes(value);
 }
+
+export const metadata = { title: "Explore" };
 
 export default async function ExplorePage({
   searchParams,
@@ -27,8 +28,7 @@ export default async function ExplorePage({
   const userId = session?.user?.id ?? null;
   const params = await searchParams;
   const sort = readExploreSort(params.sort);
-  const [saved, answers, rates] = await Promise.all([
-    userId ? listSaved(userId) : [],
+  const [answers, rates] = await Promise.all([
     userId ? loadAnswers(userId) : null,
     sort === "price" ? loadExploreRates(userId) : null,
   ]);
@@ -38,7 +38,7 @@ export default async function ExplorePage({
 
   return (
     <div className="mx-auto w-full max-w-[76rem] px-4 pb-20 pt-6 sm:px-6">
-      <ExploreTop signedIn={!!userId} saved={saved} initialAnswers={answers ?? DEFAULT_ANSWERS} />
+      <ExploreTop signedIn={!!userId} initialAnswers={answers ?? DEFAULT_ANSWERS} />
       <ExploreRows trips={shown} region={active} sort={sort} signedIn={!!userId} showAll={params.all === "1"} />
 
       <p className="mt-10 border-t border-rule pt-5 text-xs text-ink-faint">

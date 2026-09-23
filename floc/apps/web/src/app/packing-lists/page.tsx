@@ -33,6 +33,8 @@ import { PackingKitRow } from "@/components/packing/packing-kit-row";
 import { CategorySelect } from "@/components/packing/packing-controls";
 import { ConfirmSubmit, SubmitButton } from "@/components/system/client-ui";
 
+export const metadata = { title: "Packing lists" };
+
 export default async function PackingListsPage() {
   const viewer = await requireUser("/packing-lists");
 

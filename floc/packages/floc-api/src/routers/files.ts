@@ -14,6 +14,7 @@
  * null when the file landed.
  */
 import { DOC_CATEGORIES, MAX_DOCUMENT_BASE64_LENGTH } from "@floc/core/documents/documents";
+import { TEXT_CAPS } from "@floc/core/text/text";
 import { z } from "zod";
 
 import { router, tripProcedure } from "../trpc";
@@ -86,6 +87,21 @@ export const filesRouter = router({
     .mutation(async ({ ctx, input }) => {
       await ctx.port.detachFileFromEvent(ctx.viewer.id, input.tripId, input.fileId);
     }),
+
+  /** Space used against the trip's quota (#285). */
+  usage: tripProcedure.query(({ ctx, input }) => ctx.port.fileUsage(ctx.viewer.id, input.tripId)),
+
+  /** A clearer label for a file already stored (#364). Null when it saved, else the refusal in words. */
+  rename: tripProcedure
+    .input(
+      z.object({
+        fileId: z.number().int().positive(),
+        name: z.string().trim().min(1, "Give the file a name.").max(TEXT_CAPS.documentName),
+      }),
+    )
+    .mutation(({ ctx, input }) =>
+      ctx.port.renameFile(ctx.viewer.id, input.tripId, input.fileId, input.name),
+    ),
 
   setCategory: tripProcedure
     .input(z.object({ fileId: z.number().int().positive(), category }))

@@ -38,7 +38,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { token } = await params;
   const found = await inviteTrip(token);
-  if (!found) return { title: "Floc" };
+  if (!found) return { title: { absolute: "Floc" } };
 
   const title = `You've been invited to join “${found.name}”`;
   const description = found.hostName

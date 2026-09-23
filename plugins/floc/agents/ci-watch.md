@@ -24,6 +24,16 @@ You watch CI for one commit. You never fix, commit, push or re-run anything.
 4. On a failure, read the log. Find the first real error, not the lines after
    it. If it names a file, `Read` that file near the line to say what is wrong.
    Do not guess past what the log and the file show.
+5. `SonarQube analysis` is the exception: its log only ever says
+   `QUALITY GATE STATUS: FAILED`. The conditions and the issues behind them
+   are in SonarCloud, not in the log. Run
+
+   ```bash
+   node scripts/sonar-gate.mjs main
+   ```
+
+   (the PR branch name for a pull-request run) and report what it prints —
+   the failing conditions, and the issues in the new-code window.
 
 ## Report
 
@@ -34,3 +44,5 @@ Short. No preamble.
   if known, the likely cause in one sentence, and the run URL.
 - `mobile-android` is advisory. A red there is reported as advisory, never as
   a failure.
+- A red `SonarQube analysis`: the failing conditions, then each new-code issue
+  as rule, file, line and message. It blocks; it is not advisory.

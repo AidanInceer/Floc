@@ -1,8 +1,7 @@
 /**
  * Friends (ticket 18; redesigned 201): accepted friends, incoming requests to
- * act on, and outgoing requests still pending. There's no add-a-friend form
- * here — you meet people by sharing a trip, then send the request from their
- * profile or their roster row.
+ * act on, outgoing requests still pending, and finding someone new by name or
+ * friend code (#360) — never by email address.
  */
 import { acceptFriend, declineFriend, cancelRequest, removeFriend } from "./actions";
 import { requireUser } from "@/server/access";
@@ -10,15 +9,20 @@ import {
   coTripNameFor,
   listFriendshipsFor,
   peopleByIds,
+  splitFriendships,
   syncCompletedCoTripFriendships,
   type Person,
 } from "@/server/social/friends";
 import { AccountPage, Panel, PersonRow } from "@/components/auth/account-ui";
 import { Avatar, Badge, EmptyState } from "@/components/system/ui";
-import { ConfirmSubmit, SubmitButton } from "@/components/system/client-ui";
+import { ConfirmSubmit, CopyLink, SubmitButton } from "@/components/system/client-ui";
 import { PersonLink } from "@/components/social/person-link";
+import { FindFriend } from "@/components/social/find-friend";
+import { friendCodeFor } from "@/server/social/friend-code";
 
 const UNKNOWN = (id: string): Person => ({ id, name: "Someone", avatarIcon: null });
+
+export const metadata = { title: "Friends" };
 
 export default async function FriendsPage() {
   const viewer = await requireUser("/friends");
@@ -27,11 +31,11 @@ export default async function FriendsPage() {
   // into a friendship the next time either party loads this page.
   await syncCompletedCoTripFriendships(viewer.id);
 
-  const rows = await listFriendshipsFor(viewer.id);
-
-  const accepted = rows.filter((r) => r.status === "accepted");
-  const incoming = rows.filter((r) => r.status === "pending" && r.friendId === viewer.id);
-  const outgoing = rows.filter((r) => r.status === "pending" && r.userId === viewer.id);
+  const [rows, code] = await Promise.all([
+    listFriendshipsFor(viewer.id),
+    friendCodeFor(viewer.id),
+  ]);
+  const { accepted, incoming, outgoing } = splitFriendships(rows, viewer.id);
 
   const otherIdOf = (r: (typeof rows)[number]) =>
     r.userId === viewer.id ? r.friendId : r.userId;
@@ -120,6 +124,19 @@ export default async function FriendsPage() {
             ))}
           </ul>
         )}
+      </Panel>
+
+      <Panel
+        title="Find someone"
+        aside={
+          <span className="flex items-center gap-2">
+            <span className="typed">Your code</span>
+            <span className="font-mono text-sm text-ink">{code}</span>
+            <CopyLink value={code} label="Copy" variant="ghost" />
+          </span>
+        }
+      >
+        <FindFriend />
       </Panel>
 
       <Panel

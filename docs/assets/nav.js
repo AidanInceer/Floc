@@ -66,7 +66,8 @@
           label: 'Research',
           children: [
             { id: 'listings-legal', label: 'Listings & legal', href: 'product/research/listings-legal.html' },
-            { id: 'map-embed-options', label: 'Map embed options', href: 'product/research/map-embed-options.html' }
+            { id: 'map-embed-options', label: 'Map embed options', href: 'product/research/map-embed-options.html' },
+            { id: 'pricing-models', label: 'Pricing models', href: 'product/research/pricing-models.html' }
           ]
         }
       ]

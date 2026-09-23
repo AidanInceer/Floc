@@ -70,8 +70,7 @@ function fakePort(overrides: Partial<FlocPort> = {}): FlocPort {
     loadLedger: vi.fn().mockResolvedValue({ expenses: [], splits: [], settlements: [] }),
     createTrip: vi.fn().mockResolvedValue({ id: 2 }),
     startTripFromPreset: vi.fn().mockResolvedValue({ id: 3 }),
-    loadExplore: vi.fn().mockResolvedValue({ saved: [], answers: null }),
-    setExploreSaved: vi.fn().mockResolvedValue("ok"),
+    loadExplore: vi.fn().mockResolvedValue({ answers: null }),
     setExploreAnswers: vi.fn().mockResolvedValue(undefined),
     loadExploreRates: vi.fn().mockResolvedValue({ GBP: 1, EUR: 0.85 }),
     updateTrip: vi.fn().mockResolvedValue(undefined),
@@ -166,11 +165,9 @@ describe("the tour (#314)", () => {
 });
 
 describe("explore", () => {
-  it("saves and answers only for the caller", async () => {
+  it("saves answers only for the caller", async () => {
     const { caller: ana, port } = caller("u1");
-    await ana.explore.setSaved({ presetId: "amalfi-slow-week", saved: true });
     await ana.explore.setAnswers({ size: "2-4", when: "any", cost: "more", pace: "move", nights: 7 });
-    expect(port.setExploreSaved).toHaveBeenCalledWith("u1", "amalfi-slow-week", true);
     expect(port.setExploreAnswers).toHaveBeenCalledWith("u1", {
       size: "2-4",
       when: "any",
@@ -304,6 +301,19 @@ describe("what the input rules refuse", () => {
     await expect(ana.trips.create({ name: "   " })).rejects.toMatchObject({
       code: "BAD_REQUEST",
     });
+  });
+
+  it("renames a packing line trimmed, and refuses a blank name before the host sees it (#362)", async () => {
+    const renamePackingLine = vi.fn().mockResolvedValue(undefined);
+    const { caller: ana } = caller("u1", fakePort({ renamePackingLine }));
+
+    await ana.packing.rename({ tripId: 1, lineId: 7, label: "  Factor 50 " });
+    expect(renamePackingLine).toHaveBeenCalledWith("u1", 1, 7, "Factor 50");
+
+    await expect(ana.packing.rename({ tripId: 1, lineId: 7, label: "   " })).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+    });
+    expect(renamePackingLine).toHaveBeenCalledTimes(1);
   });
 
   it("refuses a time carrying an offset (rule 10)", async () => {
@@ -506,5 +516,30 @@ describe("buying Pro in the app", () => {
     await expect(ana.billing.claim({ ...claim, token: "" })).rejects.toMatchObject({
       code: "BAD_REQUEST",
     });
+  });
+});
+
+describe("friends.find (#360)", () => {
+  it("refuses somebody signed out", async () => {
+    const { caller: c } = caller(null);
+    await expect(c.friends.find({ query: "sam" })).rejects.toMatchObject({
+      code: "UNAUTHORIZED",
+    });
+  });
+
+  it("refuses an empty search before the port hears of it", async () => {
+    const findFriends = vi.fn();
+    const { caller: c } = caller("u1", fakePort({ findFriends }));
+    await expect(c.friends.find({ query: "   " })).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+    });
+    expect(findFriends).not.toHaveBeenCalled();
+  });
+
+  it("hands the typed text to the host as the viewer", async () => {
+    const findFriends = vi.fn().mockResolvedValue({ kind: "invalid" });
+    const { caller: c } = caller("u1", fakePort({ findFriends }));
+    expect(await c.friends.find({ query: " sam " })).toEqual({ kind: "invalid" });
+    expect(findFriends).toHaveBeenCalledWith("u1", "sam");
   });
 });

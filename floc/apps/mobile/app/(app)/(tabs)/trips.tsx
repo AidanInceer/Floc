@@ -36,7 +36,7 @@ import type { AppRouter } from "@floc/api/router";
 import type { inferRouterOutputs } from "@trpc/server";
 
 import { trpc } from "@/lib/api";
-import { useTripWrite } from "@/lib/trip-write";
+import { useTripWrite } from "@/lib/trip/trip-write";
 import { space } from "@/lib/theme";
 
 /** One row of `trips.list`, named so the card, its menu and its writes agree on the shape. */

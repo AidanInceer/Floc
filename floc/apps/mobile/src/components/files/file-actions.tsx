@@ -6,10 +6,12 @@
  * forms rather than a list of files.
  */
 import { DOC_CATEGORIES, DOC_CATEGORY_LABELS, type DocCategory } from "@floc/core/documents/documents";
+import { TEXT_CAPS } from "@floc/core/text/text";
 import { View } from "react-native";
 
 import { Sheet } from "../system/sheet";
-import { Body, Button, Dropdown } from "../system/ui";
+import { InlineRename } from "../system/inline-rename";
+import { Button, Dropdown } from "../system/ui";
 import { space } from "@/lib/theme";
 
 const CATEGORY_OPTIONS = DOC_CATEGORIES.map((value) => ({
@@ -23,6 +25,7 @@ export function FileActions({
   busy,
   onRefile,
   onRemove,
+  onRename,
   onClose,
 }: {
   /** Null when nothing is open. */
@@ -31,12 +34,16 @@ export function FileActions({
   busy: boolean;
   onRefile: (next: DocCategory) => void;
   onRemove: () => void;
+  /** Rejects with the refusal when the name is not taken. */
+  onRename: (next: string) => Promise<unknown>;
   onClose: () => void;
 }) {
   return (
     <Sheet open={name !== null} onClose={onClose}>
       <View style={{ paddingHorizontal: space.lg, gap: space.md }}>
-        <Body bold>{name}</Body>
+        {name !== null ? (
+          <InlineRename key={name} value={name} maxLength={TEXT_CAPS.documentName} onSave={onRename} />
+        ) : null}
         <Dropdown
           label="Filed under"
           options={CATEGORY_OPTIONS}

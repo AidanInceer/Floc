@@ -8,7 +8,7 @@ export async function boundedRequest(req: Request): Promise<Request | null> {
     await req.body?.cancel();
     return null;
   }
-  if (!req.body) return req;
+  if (!req.body || req.method === "GET" || req.method === "HEAD") return req;
 
   const reader = req.body.getReader();
   const chunks: Uint8Array[] = [];

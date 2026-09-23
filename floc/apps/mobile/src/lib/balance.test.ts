@@ -30,20 +30,16 @@ describe("ledgerCurrency", () => {
 
 describe("viewerBalance", () => {
   it("is settled before the ledger or the viewer is known", () => {
-    expect(viewerBalance(undefined, "ada")).toEqual({ currency: "GBP", minor: 0, figure: "settled" });
-    expect(viewerBalance(dinner, undefined)).toMatchObject({ minor: 0, figure: "settled" });
+    expect(viewerBalance(undefined, "ada")).toEqual({ figure: "settled", owing: false, settled: true });
+    expect(viewerBalance(dinner, undefined)).toMatchObject({ settled: true });
   });
 
   it("says what the payer is owed", () => {
-    const balance = viewerBalance(dinner, "ada");
-    expect(balance.minor).toBe(2000);
-    expect(balance.figure).toMatch(/^owed /);
+    expect(viewerBalance(dinner, "ada")).toEqual({ figure: "owed €20.00", owing: false, settled: false });
   });
 
   it("says what a sharer owes", () => {
-    const balance = viewerBalance(dinner, "mo");
-    expect(balance.minor).toBe(-1000);
-    expect(balance.figure).toMatch(/^owe /);
+    expect(viewerBalance(dinner, "mo")).toEqual({ figure: "owe €10.00", owing: true, settled: false });
   });
 
   it("is settled once a settlement clears the debt", () => {
@@ -53,10 +49,28 @@ describe("viewerBalance", () => {
         { fromUserId: "mo", toUserId: "ada", currency: "EUR", amountMinor: 1000 },
       ] as Ledger["settlements"],
     });
-    expect(viewerBalance(paid, "mo")).toEqual({ currency: "EUR", minor: 0, figure: "settled" });
+    expect(viewerBalance(paid, "mo")).toMatchObject({ figure: "settled", settled: true });
   });
 
   it("is settled for someone outside the ledger", () => {
     expect(viewerBalance(dinner, "stranger").figure).toBe("settled");
+  });
+
+  it("reads every currency, not only the first expense's (#317)", () => {
+    const twoBooks = ledger({
+      expenses: [
+        ...dinner.expenses,
+        { id: 2, paidBy: "mo", currency: "GBP", amountMinor: 900 },
+      ] as Ledger["expenses"],
+      splits: [
+        ...dinner.splits,
+        { expenseId: 2, userId: "ada", owedAmountMinor: 900 },
+      ] as Ledger["splits"],
+    });
+    expect(viewerBalance(twoBooks, "ada")).toEqual({
+      figure: "owe £9.00 · owed €20.00",
+      owing: true,
+      settled: false,
+    });
   });
 });

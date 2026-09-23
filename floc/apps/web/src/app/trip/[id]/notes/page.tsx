@@ -4,6 +4,8 @@ import { loadLiveEpoch } from "@/server/notes/live/live-epoch-store";
 import { NotesDoc } from "@/components/notes/notes-doc";
 import { PageTitle } from "@/components/system/ui";
 
+export const metadata = { title: "Notes" };
+
 export default async function NotesPage({
   params,
 }: {

@@ -1,0 +1,1 @@
+ALTER TABLE `notification` ADD `seen_at` integer;

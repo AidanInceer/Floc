@@ -44,6 +44,8 @@ import {
 
 const MONTHS_SHOWN = 1; // one month, arrows page the rest
 
+export const metadata = { title: "Dates" };
+
 export default async function DatesPage({
   params,
   searchParams,
@@ -86,7 +88,7 @@ export default async function DatesPage({
       : trip.startDate
         ? monthOf(trip.startDate)
         : free.length > 0
-          ? monthOf(free.map((r) => r.date).sort()[0])
+          ? monthOf(free.map((r) => r.date).sort((a, b) => a.localeCompare(b))[0])
           : thisMonth();
 
   const hasDates = !!trip.startDate && !!trip.endDate;

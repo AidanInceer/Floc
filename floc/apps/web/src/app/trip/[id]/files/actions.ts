@@ -8,7 +8,9 @@ import {
   bytesMatchType,
   cleanFileName,
   parseDocCategory,
+  rejectForSpace,
   rejectUpload,
+  renamedFileName,
 } from "@floc/core/documents/documents";
 import { requireTripAccess } from "@/server/access";
 import {
@@ -16,6 +18,7 @@ import {
   insertDocument,
   placeDocument,
   setDocumentCategory,
+  setDocumentName,
   softDeleteDocument,
 } from "@/server/documents/documents";
 import { LIMITS } from "@/server/limits";
@@ -24,6 +27,7 @@ import {
   dropDocument,
   putDocument,
 } from "@/server/documents/document-store";
+import { storageUsage } from "@/server/documents/storage-quota";
 import { refresh } from "@/server/freshness";
 
 /** Refusals come back as form errors, never throws (the validation convention). */
@@ -50,6 +54,9 @@ export async function uploadDocument(
   if ((await countDocuments(access.trip.id)) >= LIMITS.documents) {
     return { error: "This trip is holding as many files as it can" };
   }
+  const space = await storageUsage(access.trip.id);
+  const noSpace = rejectForSpace(space.usedBytes, file.size, space.quotaBytes);
+  if (noSpace) return { error: noSpace };
 
   // Uploaded straight onto an event (ticket 322). Resolved, not trusted: the
   // id arrives as a hidden field.
@@ -112,6 +119,23 @@ export async function setCategory(
   await setDocumentCategory(doc.id, parseDocCategory(formData.get("category")));
 
   refresh({ kind: "documents", tripId: access.trip.id });
+}
+
+/** Same reach as re-filing: anyone who can see the file may give it a clearer name (#364). */
+export async function renameDocument(
+  tripId: number,
+  documentId: number,
+  rawName: string,
+): Promise<{ error?: string }> {
+  const access = await requireTripAccess(tripId);
+  const doc = await access.document(documentId);
+  const name = renamedFileName(rawName, doc.name);
+  if (!name) return { error: "Give the file a name." };
+
+  await setDocumentName(doc.id, name);
+
+  refresh({ kind: "documents", tripId: access.trip.id });
+  return {};
 }
 
 /**

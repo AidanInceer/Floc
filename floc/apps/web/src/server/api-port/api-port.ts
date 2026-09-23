@@ -33,6 +33,9 @@ import type {
 } from "@floc/api/port";
 
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
+import { readTripMark } from "@floc/core/trip/mark/trip-mark";
+import { parseTagNames } from "@floc/core/trip/tags";
+import { readTripColor } from "@floc/core/trip/trip-color";
 
 import { assertAdmin, findTripAccess, type TripAccess } from "@/server/access";
 import { scoped } from "@/server/api-port/api-port-scope";
@@ -49,7 +52,7 @@ import { settingsPort } from "@/server/api-port/api-port-settings";
 import { socialPort } from "@/server/api-port/api-port-social";
 import { weatherPort } from "@/server/api-port/api-port-weather";
 import { calendarPort } from "@/server/api-port/api-port-calendar";
-import { notificationsPort } from "@/server/api-port/api-port-notifications";
+import { notificationsPort } from "@/server/api-port/notifications/notifications";
 import { refresh } from "@/server/freshness";
 import { emailConfigured } from "@/server/auth/email";
 import { findTripByInviteToken, joinWithLink } from "@/server/trips/invites";
@@ -93,6 +96,7 @@ import {
   setClaimPacked,
   setPersonalPacked,
   softDeletePackingLine,
+  renamePackingLineLabel,
   stepPersonalQuantity,
   unclaimPackingLine,
 } from "@/server/packing/packing";
@@ -106,6 +110,7 @@ import {
 import { fillPersonalBag, packingPlanFor } from "@/server/packing/packing-generator";
 import { canUseFeature, assertFeature } from "@/server/billing/entitlements";
 import { resolvePackTier } from "@floc/core/packing/packing";
+import { capRequiredText } from "@floc/core/text/text";
 import { readVibeTags } from "@floc/core/trip/vibe-tags";
 import { pastTripsFor } from "@/server/auth/visibility";
 import { travelMapFor } from "@/server/itinerary/travel-map";
@@ -261,6 +266,15 @@ export const webPort: FlocPort = {
     // ever resolves for its owner, so this is already scoped.
     const line = await access.packingLine(lineId);
     await softDeletePackingLine(line.id, viewerId);
+    refresh({ kind: "packing", tripId });
+  },
+
+  async renamePackingLine(viewerId, tripId, lineId, label) {
+    const access = await scoped(viewerId, tripId);
+    const line = await access.packingLine(lineId);
+    const name = capRequiredText(label, "packingLabel");
+    if (!name) throw new Error("A thing to pack needs a name.");
+    await renamePackingLineLabel(line.id, name);
     refresh({ kind: "packing", tripId });
   },
 
@@ -536,10 +550,12 @@ export const webPort: FlocPort = {
     await scoped(viewerId, tripId);
     // `tags: null` clears on the wire, but the column's patch type says
     // `string[]`, so an explicit clear becomes an empty list.
-    const { tags, startDate, endDate, ...rest } = patch;
+    const { tags, startDate, endDate, colorKey, mark, ...rest } = patch;
     await updateTrip(tripId, {
       ...rest,
-      ...(tags !== undefined ? { tags: tags ?? [] } : {}),
+      ...(colorKey !== undefined ? { colorKey: readTripColor(colorKey) } : {}),
+      ...(mark !== undefined ? { mark: readTripMark(mark) } : {}),
+      ...(tags !== undefined ? { tags: parseTagNames(tags ?? []) } : {}),
     });
     // Why: dates go through the same window write as the web's Dates tab, so
     // the days follow (ticket 140) and the group hears about it (#344).
@@ -645,6 +661,9 @@ export const webPort: FlocPort = {
     const onTrip = new Set(access.members.map((member) => member.userId));
     if (transfers.some((t) => !onTrip.has(t.fromUserId) || !onTrip.has(t.toUserId))) {
       throw new Error("That person is not on this trip.");
+    }
+    if (transfers.some((t) => viewerId !== t.fromUserId && viewerId !== t.toUserId)) {
+      throw new Error("Only the payer or receiver can record this.");
     }
     await writeSettlements(tripId, viewerId, transfers);
     refresh({ kind: "money", tripId });

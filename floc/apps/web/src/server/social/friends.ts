@@ -10,7 +10,14 @@ import "server-only";
 import { and, count, eq, inArray, isNull, lt, ne, or } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { db } from "@/db";
-import { friendship, trip, tripMembership, user, userProfile } from "@/db/schema";
+import {
+  friendship,
+  trip,
+  tripMembership,
+  user,
+  userProfile,
+  type FriendshipOrigin,
+} from "@/db/schema";
 import { today } from "@floc/core/dates/dates";
 import { bounded, LIMITS } from "@/server/limits";
 import { recordActivity } from "@/server/notifications/activity";
@@ -126,6 +133,15 @@ export async function listFriendshipsFor(
     .limit(LIMITS.members * LIMITS.tripsPerUser)
     .all();
   return rows;
+}
+
+/** The three lists every Friends screen draws. */
+export function splitFriendships(rows: FriendshipRow[], viewerId: string) {
+  return {
+    accepted: rows.filter((r) => r.status === "accepted"),
+    incoming: rows.filter((r) => r.status === "pending" && r.friendId === viewerId),
+    outgoing: rows.filter((r) => r.status === "pending" && r.userId === viewerId),
+  };
 }
 
 export type Person = { id: string; name: string; avatarIcon: AvatarIcon | null };
@@ -328,6 +344,7 @@ export async function friendshipBetween(a: string, b: string) {
 export async function openPendingRequest(
   viewerId: string,
   targetId: string,
+  origin: FriendshipOrigin = "request",
 ): Promise<void> {
   await db.transaction(async (tx) => {
     await tx
@@ -336,13 +353,13 @@ export async function openPendingRequest(
         userId: viewerId,
         friendId: targetId,
         status: "pending",
-        origin: "request",
+        origin,
       })
       .onConflictDoUpdate({
         target: [friendship.userId, friendship.friendId],
         set: {
           status: "pending",
-          origin: "request",
+          origin,
           deletedAt: null,
           lastModifiedAt: new Date(),
         },

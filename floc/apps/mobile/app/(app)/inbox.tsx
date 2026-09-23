@@ -10,7 +10,7 @@ import { commentTime } from "@floc/core/notes/notes";
 import { phoneRoute } from "@floc/core/notifications/notification-href";
 
 import { useTheme } from "@/components/system/theme";
-import { Body, Empty, Failed, Label, Loading } from "@/components/system/ui";
+import { Body, Button, Empty, Failed, Label, Loading } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { radius, space } from "@/lib/theme";
 
@@ -32,16 +32,35 @@ export default function Inbox() {
     },
   });
 
+  const readAll = useMutation({
+    ...trpc.notifications.readAll.mutationOptions(),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: trpc.notifications.pathKey() }),
+  });
+
   if (pages.isPending) return <Loading />;
   if (pages.isError) return <Failed onRetry={() => pages.refetch()} />;
 
   const items = pages.data.pages.flatMap((page) => page.items);
+  const anyUnread = items.some((item) => !item.read);
 
   return (
     <FlatList
       data={items}
       keyExtractor={(item) => String(item.id)}
       contentContainerStyle={{ padding: space.lg, gap: space.sm }}
+      ListHeaderComponent={
+        anyUnread ? (
+          <View style={{ alignItems: "flex-end" }}>
+            <Button
+              label="Mark all as read"
+              variant="quiet"
+              fit="small"
+              busy={readAll.isPending}
+              onPress={() => readAll.mutate()}
+            />
+          </View>
+        ) : null
+      }
       ListEmptyComponent={<Empty>Nothing new.</Empty>}
       onEndReached={() => {
         if (pages.hasNextPage && !pages.isFetchingNextPage) void pages.fetchNextPage();

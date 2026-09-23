@@ -30,6 +30,7 @@ export const FEATURE_PLAN = {
   "dates.weather": { plan: "pro", scope: "trip" },
   "packing.autoGenerate": { plan: "pro", scope: "trip" },
   "booking.prefill": { plan: "pro", scope: "trip" },
+  "files.extraStorage": { plan: "pro", scope: "trip" },
 } as const satisfies Record<string, { plan: Plan; scope: Scope }>;
 
 export type FeatureKey = keyof typeof FEATURE_PLAN;

@@ -121,6 +121,12 @@ describe("archiving and deleting", () => {
     expect((await tripRow(world.ours.id))?.archivedAt).toBeNull();
   });
 
+  it("leaves a deleted trip alone (rule 8)", async () => {
+    await softDeleteTrip(world.ours.id);
+    await setTripArchived(world.ours.id, true);
+    expect((await tripRow(world.ours.id))?.archivedAt).toBeNull();
+  });
+
   it("deletes softly, and the invite token stops resolving", async () => {
     await softDeleteTrip(world.ours.id);
     expect((await tripRow(world.ours.id))?.deletedAt).not.toBeNull();

@@ -6,6 +6,8 @@
  * The trip's name, dates and badges are not here — they are the Overview
  * hero's, and printing them twice a hand's width apart was ticket 89.
  */
+import type { Metadata } from "next";
+import { titleCase } from "@floc/core/text/title-case";
 import { TripTabs } from "@/components/chrome/trip-tabs";
 import { TripMenu } from "@/components/trip/trip-menu";
 import { requireTripAccess } from "@/server/access";
@@ -13,6 +15,17 @@ import { leaveCostFor } from "@floc/core/trip/trip-state";
 import { readTripColor } from "@floc/core/trip/trip-color";
 import { readTripMark } from "@floc/core/trip/mark/trip-mark";
 import { TABS } from "@/lib/tabs";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const { trip } = await requireTripAccess(id, `/trip/${id}/overview`);
+  const name = titleCase(trip.name);
+  return { title: { default: `${name} · Floc`, template: `%s · ${name} · Floc` } };
+}
 
 export default async function TripLayout({
   children,
