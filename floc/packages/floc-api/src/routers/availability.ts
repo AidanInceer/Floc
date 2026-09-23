@@ -1,31 +1,19 @@
 /**
- * Who can do which days (ticket 297).
+ * Who can do which days (#297). The maths lives in `@floc/core/availability`, shared with the web.
  *
- * READ IS THE GROUP'S, WRITE IS YOUR OWN. `list` returns everybody's marks,
- * because the whole point of the Dates screen is seeing where the group
- * overlaps. `set` takes no user id at all: it writes the caller's marks and
- * there is no shape of request that writes somebody else's.
- *
- * That is deliberate and is not an oversight to be fixed later. The three admin
- * powers are kick, promote and delete/archive (rule 6) — answering for
- * another person is not among them, and an admin who could would make the
- * answer worthless.
- *
- * The maths over these rows lives in `@floc/core/availability`, shared with
- * the web app. Nothing is computed here.
+ * Why: read is the group's, write is your own. `set` takes no user id, so no shape of request
+ * writes somebody else's marks — answering for another person is not an admin power (rule 6), and
+ * an admin who could would make the answer worthless.
  */
 import { z } from "zod";
 
 import { router, tripProcedure } from "../trpc";
 
-/** `YYYY-MM-DD`. No timezone and no offset ever crosses this wire (rule 10). */
+// `YYYY-MM-DD`. No timezone and no offset ever crosses this wire (rule 10).
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD.");
 
-/**
- * A year of dates in one call is already far more than a person paints in one
- * gesture; the cap is here so a malformed client cannot ask for a million-row
- * insert, not because anyone will reach it.
- */
+// Why: a cap against a malformed client asking for a million-row insert, not a limit anyone
+// paints into.
 const MAX_DATES = 366;
 
 export const availabilityRouter = router({

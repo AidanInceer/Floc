@@ -1,9 +1,8 @@
 /**
- * The trip's Notes doc (ticket 238) — one row per trip, one JSON blob.
+ * The trip's Notes doc (#238) — one row per trip, one JSON blob.
  *
- * The blob is BlockNote's own `Block[]` and is never parsed here: the editor
- * is the only thing that understands its shape, so the server's job is to hand
- * the same string back. Last-write-wins (rule 7), no version check.
+ * Why: the blob is BlockNote's own `Block[]` and is never parsed here; only the editor understands
+ * its shape, so the server hands the same string back. Last-write-wins (rule 7), no version check.
  */
 import "server-only";
 
@@ -12,12 +11,8 @@ import { db } from "@/db";
 import { tripNoteDoc } from "@/db/schema";
 import { touch } from "@/server/audit";
 
-/**
- * A starting document of bullets — Explore's "start this trip" seed (ticket 39,
- * rehomed here when the idea board went). The one place we *write* the blob's
- * shape rather than hand it back untouched; BlockNote loads partial blocks, so
- * a type and content are all a bullet needs.
- */
+// Why: the one place the blob's shape is written rather than handed back — BlockNote loads
+// partial blocks, so a type and content are all a bullet needs (#39).
 export function bulletDoc(lines: string[]): string {
   return JSON.stringify(
     lines.map((text) => ({
@@ -27,7 +22,6 @@ export function bulletDoc(lines: string[]): string {
   );
 }
 
-/** The saved document, or null when nobody has written in this trip yet. */
 export async function loadNoteDoc(tripId: number): Promise<string | null> {
   const row = await db
     .select({ body: tripNoteDoc.body })
@@ -38,16 +32,10 @@ export async function loadNoteDoc(tripId: number): Promise<string | null> {
 }
 
 /**
- * Replace the whole document.
- *
- * Wider than rule 7's field-level last-write-wins, and worth being plain about:
- * the editor writes the snapshot it loaded with, so a tab left open all morning
- * overwrites everything anyone else added in the meantime, and neither side is
- * told. The reload guard is ticket 238's stated follow-up.
- *
- * `deletedAt: null` on conflict matches the vote upsert: the unique index
- * doesn't know about soft-delete, so without the reset a cleared doc would
- * swallow every later save.
+ * Why: wider than rule 7's field-level last-write-wins — the editor writes the snapshot it loaded
+ * with, so a tab left open all morning silently overwrites everyone else. Reload guard is #238's
+ * follow-up. `deletedAt: null` on conflict because the unique index does not know about
+ * soft-delete, and without it a cleared doc swallows every later save.
  */
 export async function saveNoteDoc(
   tripId: number,

@@ -1,15 +1,9 @@
 /**
- * Ceilings on how much of anything one trip can hold (ticket 108) — added
- * after a review found 58 `.all()` calls and zero `.limit()`.
+ * Ceilings on how much one trip can hold (#108).
  *
- * Behaviour at the ceiling is truncate-and-say-so, not throw or paginate (rule
- * 11: degrade, don't crash); every one of these lists renders whole today, so
- * paginating means designing the paged view first. Truncation is loud on the
- * server (`reportCeiling`) and silent in the UI — nobody hits these by
- * accident.
- *
- * Raising a limit is a one-line change; lowering one is a ratchet — a trip
- * already over the new number would lose rows from view.
+ * Why: truncate-and-say-so at the ceiling, not throw or paginate (rule 11) — every list here
+ * renders whole, so paginating means designing the paged view first. Loud on the server, silent
+ * in the UI. Raising a limit is one line; lowering one drops rows a trip can already see.
  */
 import "server-only";
 
@@ -46,14 +40,14 @@ export const LIMITS = {
 
 export type LimitKey = keyof typeof LIMITS;
 
-/** Called when a read landed exactly on its ceiling. No PII, no ids beyond the trip's own — just a named log. */
+// Why: no PII and no ids beyond the trip's own — a ceiling log is not an audit trail.
 export function reportCeiling(what: LimitKey, scope: string): void {
   console.warn(
     `[floc] ceiling reached: ${what} at ${LIMITS[what]} for ${scope} — the view is truncated (see server/limits.ts)`,
   );
 }
 
-/** Wraps a bounded read so "did we bound this query?" is answerable by grep. */
+// Why: wrapping every bounded read makes "did we bound this query?" answerable by grep.
 export function bounded<T>(rows: T[], what: LimitKey, scope: string): T[] {
   if (rows.length >= LIMITS[what]) reportCeiling(what, scope);
   return rows;

@@ -6,9 +6,6 @@
     "e2e/auth.setup.ts"
   ],
   "ignoreDependencies": [
-    "server-only",
-    "@tailwindcss/postcss",
-    "tailwindcss",
     "eslint-config-next"
   ],
   "ignoreBinaries": [
