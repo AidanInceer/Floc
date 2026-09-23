@@ -59,7 +59,12 @@ Categories come from the app's own routes and server modules (`floc/apps/web/src
 | `ai` | anything the model generates or suggests |
 | `billing` | tiers, limits, entitlements, payment |
 | `auth` | sign-in, sessions, accounts |
-| `platform` | cross-cutting: offline, concurrency, mobile, audit, infrastructure |
+| `platform` | what the device and runtime can do: offline, OS integration (share extension), concurrency |
+| `legal` | terms, privacy, cookie consent, a person's data rights, compliance |
+| `ops` | running the service: hosting, scale, go-live, support channels |
+| `growth` | public pages found by search and shared: SEO, metadata, marketing site |
+| `agents` | machine readers: llms.txt, MCP, agent-facing surfaces |
+| `ux` | design passes that span many screens |
 | `docs` | the `docs/` site, no app code |
 
 Add a category only if a ticket fits none — and say so when you do. Apply with:
