@@ -6,7 +6,12 @@
 
 /** Enough to reject an obvious typo; the real check is the verification mail. */
 export function isValidEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const value = email.trim();
+  if (/\s/.test(value)) return false;
+  const parts = value.split("@");
+  if (parts.length !== 2) return false;
+  const [local, domain] = parts;
+  return local.length > 0 && domain.slice(1, -1).includes(".");
 }
 
 /** A reason the new password is too weak, or null if it's fine. */

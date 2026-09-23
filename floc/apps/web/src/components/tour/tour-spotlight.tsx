@@ -33,7 +33,7 @@ function rectOf(key: string): Rect | null {
   const r = el.getBoundingClientRect();
   // Why: the ring follows the target's own corners, so a pill gets a pill, not a box clipping its neighbour.
   const radius = Math.min(
-    parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0,
+    Number.parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0,
     r.height / 2,
   );
   return {

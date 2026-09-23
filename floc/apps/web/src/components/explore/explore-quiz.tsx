@@ -45,12 +45,13 @@ export function ExploreQuiz({
           </div>
         </fieldset>
       ))}
-      <label className="block">
+      <label htmlFor="explore-nights" className="block">
         <span className="flex items-baseline justify-between">
           <span className="typed">{NIGHTS.label}</span>
           <span className="nums text-sm">{nightsLabel(answers.nights)}</span>
         </span>
         <input
+          id="explore-nights"
           type="range"
           min={NIGHTS.min}
           max={NIGHTS.max}

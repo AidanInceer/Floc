@@ -57,8 +57,11 @@ export function monthsOf(bestMonths: string): number[] {
 }
 
 export function groupRange(groupSize: string): { min: number; max: number } | null {
-  const hit = /(\d+)\s*[–-]\s*(\d+)/.exec(groupSize);
-  return hit ? { min: Number(hit[1]), max: Number(hit[2]) } : null;
+  const dash = /[–-]/.exec(groupSize);
+  if (!dash) return null;
+  const low = /\d+$/.exec(groupSize.slice(0, dash.index).trimEnd());
+  const high = /^\d+/.exec(groupSize.slice(dash.index + 1).trimStart());
+  return low && high ? { min: Number(low[0]), max: Number(high[0]) } : null;
 }
 
 const SIZE_PROBE: Record<ExploreAnswers["size"], number> = { "2-4": 3, "5-8": 6, "9+": 10 };

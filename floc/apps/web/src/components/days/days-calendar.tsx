@@ -620,7 +620,7 @@ export function DaysCalendar({
       />
 
       <div className="grid grid-cols-1">
-        <div onClick={onCalendarClick} className="min-w-0">
+        <div role="presentation" onClick={onCalendarClick} className="min-w-0">
           {/* ONE scroll container for both axes — load-bearing. `position:
               sticky` resolves against the nearest scrolling ancestor, so
               separate horizontal/vertical scrollers would leave the gutter

@@ -27,5 +27,6 @@ export async function boundedRequest(req: Request): Promise<Request | null> {
   } finally {
     reader.releaseLock();
   }
-  return new Request(req, { body: Buffer.concat(chunks, length) });
+  // Why: GET and HEAD returned above, so Sonar's S7733 cannot fire here.
+  return new Request(req, { body: Buffer.concat(chunks, length) }); // NOSONAR
 }
