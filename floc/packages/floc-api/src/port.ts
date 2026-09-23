@@ -715,6 +715,9 @@ export type FlocPort = {
   /** Soft-deletes one line (rule 8). A shared line is anyone's to drop; a personal one only its owner's. */
   removePackingLine(viewerId: string, tripId: number, lineId: number): Promise<void>;
 
+  /** Same reach as remove (#362). Claims hang off the line, so they survive it. */
+  renamePackingLine(viewerId: string, tripId: number, lineId: number, label: string): Promise<void>;
+
   /**
    * Several lines in one press (ticket 229). Every id is still resolved one at
    * a time on the host side: the bulk shape is a convenience for the person,
@@ -991,9 +994,8 @@ export type FlocPort = {
 
   /**
    * Records a transfer that has already happened off-app (ticket 300).
-   * Append-only: a settlement is never edited, only soft-deleted, because it
-   * is a record of something that happened rather than a plan that changed.
-   * v1 moves no money — this writes down that somebody did. All transfers
+   * A party to it can correct or undo it on the web (#361); the phone has no
+   * list of settlements to do either from. v1 moves no money — this writes down that somebody did. All transfers
    * save together or none do.
    */
   settleUp(
@@ -1035,6 +1037,12 @@ export type FlocPort = {
    * handed to anybody but its owner, so it is not addressable by the rest.
    */
   deleteFile(viewerId: string, tripId: number, fileId: number): Promise<void>;
+
+  /** Every member's live files count, private ones too, so this is a total and never a list (#285). */
+  fileUsage(viewerId: string, tripId: number): Promise<{ usedBytes: number; quotaBytes: number }>;
+
+  /** Same reach as re-filing (#364). Only the label changes; null when it saved, else the refusal in words. */
+  renameFile(viewerId: string, tripId: number, fileId: number, name: string): Promise<string | null>;
 
   /** Re-filing is any member's to do: nothing is lost, and the resolver already refused what they cannot see. */
   setFileCategory(

@@ -11,6 +11,7 @@ import Link from "next/link";
 
 import { requireTripAccess } from "@/server/access";
 import { listDocuments } from "@/server/documents/documents";
+import { storageUsage } from "@/server/documents/storage-quota";
 import type { TripDocument } from "@/server/documents/documents";
 import { documentsEnabled } from "@/server/documents/document-store";
 import {
@@ -18,14 +19,16 @@ import {
   DOC_CATEGORY_LABELS,
   parseCategoryFilter,
 } from "@floc/core/documents/documents";
+import { StorageMeter } from "@/components/documents/storage-meter";
 import type { DocCategory } from "@floc/core/documents/documents";
 import { DocumentRow } from "@/components/documents/document-row";
 import { DocumentFiling } from "@/components/documents/document-filing";
 import { DocumentUpload } from "@/components/documents/document-upload";
-import { ConfirmSubmit } from "@/components/system/client-ui";
+import { DocumentRenameForm } from "@/components/documents/document-rename";
+import { ConfirmSubmit, Sheet } from "@/components/system/client-ui";
 import { cx, PageTitle } from "@/components/system/ui";
 import { FlockChevron } from "@/components/system/flock-chevron";
-import { removeDocument } from "./actions";
+import { removeDocument, renameDocument } from "./actions";
 
 export const metadata = { title: "Files" };
 
@@ -42,7 +45,9 @@ export default async function FilesPage({
   const viewerId = access.viewer.id;
 
   const category = parseCategoryFilter((await searchParams).category);
-  const docs = documentsEnabled() ? await listDocuments(tripId, viewerId) : [];
+  const [docs, space] = documentsEnabled()
+    ? await Promise.all([listDocuments(tripId, viewerId), storageUsage(tripId)])
+    : [[], null];
 
   const keep = (d: TripDocument) =>
     category === "all" || d.category === category;
@@ -114,6 +119,8 @@ export default async function FilesPage({
             tripId={tripId}
             viewerId={viewerId}
           />
+
+          {space ? <StorageMeter {...space} /> : null}
         </>
       )}
     </div>
@@ -172,6 +179,9 @@ function FileCard({
                 />
               }
             >
+              <Sheet trigger="Rename" title="Rename file" triggerVariant="ghost" keepOpenOnSubmit>
+                <DocumentRenameForm name={doc.name} rename={renameDocument.bind(null, tripId, doc.id)} />
+              </Sheet>
               <form action={removeDocument.bind(null, tripId, doc.id)}>
                 <ConfirmSubmit
                   variant="ghost"

@@ -17,6 +17,9 @@ import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
+import { FREE_TRIP_STORAGE_BYTES } from "@floc/core/documents/documents";
+
+import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { webPort } from "@/server/api-port/api-port";
 
@@ -149,11 +152,47 @@ describe("removing and re-filing", () => {
     expect(after[0].category).toBe("travel");
   });
 
+  it("renames it, keeping the extension, and says so in words when the name is empty (#364)", async () => {
+    const file = await oneFile();
+
+    expect(await webPort.renameFile(world.member, world.ours.id, file.id, "Ferry to Mull")).toBeNull();
+    expect((await webPort.listFiles(world.admin, world.ours.id))[0].name).toBe("Ferry to Mull.png");
+
+    expect(await webPort.renameFile(world.member, world.ours.id, file.id, "\u0007")).toBe("Give the file a name.");
+    await expect(webPort.renameFile(world.outsider, world.theirs.id, file.id, "Mine")).rejects.toThrow();
+  });
+
   it("will not touch a file belonging to another trip", async () => {
     const file = await oneFile();
     await expect(
       webPort.setFileCategory(world.outsider, world.theirs.id, file.id, "travel"),
     ).rejects.toThrow();
+  });
+});
+
+describe("the trip's storage quota (#285)", () => {
+  const png = { name: "pass.png", mimeType: "image/png", contentBase64: PNG_BASE64, category: "other" as const, shared: true };
+
+  it("reports what the trip uses against its quota", async () => {
+    await webPort.uploadFile(world.admin, world.ours.id, png);
+    const pngBytes = Buffer.from(PNG_BASE64, "base64").byteLength;
+
+    expect(await webPort.fileUsage(world.member, world.ours.id)).toEqual({
+      usedBytes: pngBytes,
+      quotaBytes: FREE_TRIP_STORAGE_BYTES,
+    });
+    await expect(webPort.fileUsage(world.outsider, world.ours.id)).rejects.toThrow();
+  });
+
+  it("refuses the phone's upload past the quota in the same words as the web", async () => {
+    await db.insert(schema.document).values({
+      tripId: world.ours.id, uploadedBy: world.admin, ownerId: null, name: "scans.pdf",
+      storageKey: "seeded", mimeType: "application/pdf", sizeBytes: FREE_TRIP_STORAGE_BYTES, category: "other",
+    });
+
+    expect(await webPort.uploadFile(world.admin, world.ours.id, png)).toBe(
+      "This trip has used all of its 200 MB. Remove a file to make room.",
+    );
   });
 });
 

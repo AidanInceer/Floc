@@ -452,6 +452,28 @@ describe("packing through the port (#220's two lists)", () => {
   });
 });
 
+describe("renaming a packing line through the port (#362)", () => {
+  it("renames a shared line and keeps its claims", async () => {
+    await webPort.addPackingLine(world.admin, world.ours.id, { label: "Sun cream", category: "other", mine: false });
+    const [line] = (await webPort.loadPacking(world.admin, world.ours.id)).shared;
+    await webPort.claimPackingLine(world.member, world.ours.id, line.id, true);
+
+    await webPort.renamePackingLine(world.member, world.ours.id, line.id, "Factor 50");
+
+    const [renamed] = (await webPort.loadPacking(world.admin, world.ours.id)).shared;
+    expect(renamed).toMatchObject({ id: line.id, label: "Factor 50" });
+    expect(renamed.claims.map((c) => c.userId)).toEqual([world.member]);
+  });
+
+  it("never reaches another member's bag", async () => {
+    await webPort.addPackingLine(world.member, world.ours.id, { label: "Meds", category: "other", mine: true });
+    const [line] = (await webPort.loadPacking(world.member, world.ours.id)).mine;
+
+    await expect(webPort.renamePackingLine(world.admin, world.ours.id, line.id, "Mine now")).rejects.toThrow();
+    expect((await webPort.loadPacking(world.member, world.ours.id)).mine[0].label).toBe("Meds");
+  });
+});
+
 describe("packing setup through the port (#220, #229)", () => {
   const add = (viewer: string, label: string, mine: boolean) =>
     webPort.addPackingLine(viewer, world.ours.id, { label, category: "other", mine });

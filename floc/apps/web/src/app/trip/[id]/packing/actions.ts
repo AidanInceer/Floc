@@ -22,6 +22,7 @@ import {
   claimPackingLine,
   insertPackingLine,
   insertPersonalPackingLine,
+  renamePackingLineLabel,
   setClaimPacked,
   setPersonalPacked,
   stepPersonalQuantity,
@@ -45,6 +46,22 @@ export async function addPackingLine(tripId: number, formData: FormData) {
   );
 
   refresh({ kind: "packing", tripId: access.trip.id });
+}
+
+export async function renamePackingLine(
+  tripId: number,
+  lineId: number,
+  rawLabel: string,
+): Promise<{ error?: string }> {
+  const access = await requireTripAccess(tripId);
+  const line = await access.packingLine(lineId);
+  const label = capRequiredText(rawLabel, "packingLabel");
+  if (!label) return { error: "A thing to pack needs a name." };
+
+  await renamePackingLineLabel(line.id, label);
+
+  refresh({ kind: "packing", tripId: access.trip.id });
+  return {};
 }
 
 // Both lists, with the resolver drawing the line: a shared line is anyone's to

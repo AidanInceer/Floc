@@ -17,7 +17,9 @@ vi.mock("@/server/auth/email", async (importOriginal) => ({
   sendEmails,
 }));
 
-import { addExpense, deleteExpense, deleteSettlement, recordSettlement, updateExpense } from "./actions";
+import { computeBalances } from "@floc/core/money/money";
+
+import { addExpense, deleteExpense, deleteSettlement, editSettlement, recordSettlement, updateExpense } from "./actions";
 
 let world: Scenario;
 
@@ -235,6 +237,66 @@ describe("recording a settlement", () => {
     });
     expect(await recordSettlement({}, settlementForm({ payCurrency: "EUR", payAmount: "0" }))).toEqual({
       error: "Enter an amount above zero.",
+    });
+  });
+
+  describe("editing it (#361)", () => {
+    async function recorded() {
+      await recordSettlement({}, settlementForm());
+      const [row] = await listSettlements(world.ours.id);
+      return row;
+    }
+    const editForm = (settlementId: number, overrides: Record<string, string> = {}) =>
+      settlementForm({ settlementId: String(settlementId), ...overrides });
+    const balances = async () =>
+      computeBalances(
+        [],
+        (await listSettlements(world.ours.id)).map((s) => ({ from: s.fromUserId, to: s.toUserId, ...s })),
+      ).GBP;
+
+    it("rewrites the amount and people, and the balances follow", async () => {
+      const row = await recorded();
+      expect(await balances()).toEqual({ [world.member]: 1500, [world.admin]: -1500 });
+
+      expect(
+        await editSettlement({}, editForm(row.id, { fromUserId: world.admin, toUserId: world.member, amount: "4.00" })),
+      ).toEqual({});
+
+      expect(await listSettlements(world.ours.id)).toEqual([
+        expect.objectContaining({ id: row.id, fromUserId: world.admin, toUserId: world.member, amountMinor: 400 }),
+      ]);
+      expect(await balances()).toEqual({ [world.member]: -400, [world.admin]: 400 });
+    });
+
+    it.each([
+      ["a zero amount", { amount: "0" }, "Enter an amount above zero."],
+      ["the same person twice", { toUserId: "u-member" }, "A settlement is between two different people."],
+      ["someone off the trip", { toUserId: "u-outsider" }, "Both people must be on the trip."],
+    ])("keeps the record rules: refuses %s", async (_, overrides, error) => {
+      const row = await recorded();
+      expect(await editSettlement({}, editForm(row.id, overrides))).toEqual({ error });
+      expect((await listSettlements(world.ours.id))[0].amountMinor).toBe(1500);
+    });
+
+    it("refuses an undone settlement", async () => {
+      const row = await recorded();
+      await deleteSettlement(form({ tripId: String(world.ours.id), settlementId: String(row.id) }));
+
+      expect(await editSettlement({}, editForm(row.id))).toEqual({
+        error: "That settlement has been undone.",
+      });
+      expect(await listSettlements(world.ours.id)).toEqual([]);
+    });
+
+    it("lets only the payer or receiver of the recorded payment change it", async () => {
+      const row = await recorded();
+      await db.insert(schema.user).values({ id: "u-third", name: "Tia", email: "u-third@example.test" });
+      await db.insert(schema.tripMembership).values({ tripId: world.ours.id, userId: "u-third", role: "member" });
+      signIn("u-third");
+
+      expect(await editSettlement({}, editForm(row.id, { fromUserId: "u-third" }))).toEqual({
+        error: "Only the payer or receiver can change this.",
+      });
     });
   });
 

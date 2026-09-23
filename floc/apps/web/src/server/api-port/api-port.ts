@@ -96,6 +96,7 @@ import {
   setClaimPacked,
   setPersonalPacked,
   softDeletePackingLine,
+  renamePackingLineLabel,
   stepPersonalQuantity,
   unclaimPackingLine,
 } from "@/server/packing/packing";
@@ -109,6 +110,7 @@ import {
 import { fillPersonalBag, packingPlanFor } from "@/server/packing/packing-generator";
 import { canUseFeature, assertFeature } from "@/server/billing/entitlements";
 import { resolvePackTier } from "@floc/core/packing/packing";
+import { capRequiredText } from "@floc/core/text/text";
 import { readVibeTags } from "@floc/core/trip/vibe-tags";
 import { pastTripsFor } from "@/server/auth/visibility";
 import { travelMapFor } from "@/server/itinerary/travel-map";
@@ -264,6 +266,15 @@ export const webPort: FlocPort = {
     // ever resolves for its owner, so this is already scoped.
     const line = await access.packingLine(lineId);
     await softDeletePackingLine(line.id, viewerId);
+    refresh({ kind: "packing", tripId });
+  },
+
+  async renamePackingLine(viewerId, tripId, lineId, label) {
+    const access = await scoped(viewerId, tripId);
+    const line = await access.packingLine(lineId);
+    const name = capRequiredText(label, "packingLabel");
+    if (!name) throw new Error("A thing to pack needs a name.");
+    await renamePackingLineLabel(line.id, name);
     refresh({ kind: "packing", tripId });
   },
 

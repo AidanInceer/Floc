@@ -108,12 +108,49 @@ export function cleanFileName(raw: unknown, fallback = "Document"): string {
   return name || fallback;
 }
 
+/**
+ * A new display name for a file already stored (#364). The bytes never change,
+ * so a name typed without the extension gets the old one back — a download
+ * called "Ferry to Mull" opens as nothing on a desktop.
+ */
+export function renamedFileName(raw: unknown, previous: string): string | null {
+  const cleaned = cleanFileName(raw, "");
+  if (!cleaned) return null;
+  const extension = /\.[a-z0-9]{1,5}$/i.exec(previous)?.[0] ?? "";
+  if (!extension || cleaned.toLowerCase().endsWith(extension.toLowerCase())) return cleaned;
+  return cleaned.slice(0, TEXT_CAPS.documentName - extension.length).trimEnd() + extension;
+}
+
 /** "240 KB", "1.1 MB" — sized for a row, never more than one decimal. */
 export function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   const kb = bytes / 1024;
   if (kb < 1024) return `${Math.round(kb)} KB`;
-  return `${(kb / 1024).toFixed(1)} MB`;
+  const mb = kb / 1024;
+  const oneDecimal = (n: number) => n.toFixed(1).replace(/\.0$/, "");
+  if (mb < 1024) return `${oneDecimal(mb)} MB`;
+  return `${oneDecimal(mb / 1024)} GB`;
+}
+
+/**
+ * What one trip may hold, shared and private together (#285). Deleted files
+ * give their bytes back. Pro's number is not printed on the landing page — it
+ * sells "extra storage", so this can move without the copy going wrong.
+ */
+export const FREE_TRIP_STORAGE_BYTES = 200 * 1024 ** 2;
+export const PRO_TRIP_STORAGE_BYTES = 1024 ** 3;
+
+export function tripStorageBytes(pro: boolean): number {
+  return pro ? PRO_TRIP_STORAGE_BYTES : FREE_TRIP_STORAGE_BYTES;
+}
+
+/** Refuses an upload that would take the trip past its quota, naming what is left. */
+export function rejectForSpace(usedBytes: number, incomingBytes: number, quotaBytes: number): string | null {
+  const left = quotaBytes - usedBytes;
+  const quota = formatBytes(quotaBytes);
+  if (left <= 0) return `This trip has used all of its ${quota}. Remove a file to make room.`;
+  if (incomingBytes <= left) return null;
+  return `This trip has ${formatBytes(left)} of its ${quota} left, and that file is ${formatBytes(incomingBytes)}.`;
 }
 
 const HEIC_BRANDS = ["heic", "heix", "hevc", "heim", "heis", "mif1", "msf1"];

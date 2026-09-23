@@ -4,6 +4,8 @@ import { useOptimistic } from "react";
 
 import { AvatarRow, Badge, cx } from "@/components/system/ui";
 import { ConfirmSubmit, SubmitButton } from "@/components/system/client-ui";
+import { InlineRename } from "@/components/system/inline-rename";
+import { TEXT_CAPS } from "@floc/core/text/text";
 import {
   CheckGlyph,
   CrossGlyph,
@@ -62,6 +64,7 @@ export function PackingLineRow({
   setClaim,
   setPacked,
   remove,
+  rename,
 }: {
   tripId: number;
   lineId: number;
@@ -75,6 +78,7 @@ export function PackingLineRow({
   setClaim: (tripId: number, lineId: number, claimed: boolean) => Promise<void>;
   setPacked: (tripId: number, lineId: number, packed: boolean) => Promise<void>;
   remove: (tripId: number, lineId: number) => Promise<void>;
+  rename: (tripId: number, lineId: number, label: string) => Promise<{ error?: string }>;
 }) {
   const [shown, patch] = useOptimistic(claimants, applyToViewer);
   const [gone, showGone] = useOptimistic<boolean, void>(false, () => true);
@@ -120,13 +124,14 @@ export function PackingLineRow({
         <span className="size-7 shrink-0" aria-hidden />
       )}
 
-      <span
-        className={cx(
-          "min-w-0 flex-1 truncate text-sm",
-          status === "packed" && "text-ink-soft",
-        )}
-      >
-        {label}
+      <span className="flex min-w-0 flex-1">
+        <InlineRename
+          value={label}
+          label={`Rename ${label}`}
+          maxLength={TEXT_CAPS.packingLabel}
+          save={(next) => rename(tripId, lineId, next)}
+          className={cx("text-sm", status === "packed" && "text-ink-soft")}
+        />
       </span>
 
       <Badge tone={tone} className="shrink-0 whitespace-nowrap">

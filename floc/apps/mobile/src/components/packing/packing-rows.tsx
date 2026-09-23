@@ -29,11 +29,13 @@ import {
   packingStatusLabel,
   type PackCategory,
 } from "@floc/core/packing/packing";
+import { TEXT_CAPS } from "@floc/core/text/text";
 import { View } from "react-native";
 
 import { Pressable } from "react-native";
 
 import { ClaimGlyph, CrossGlyph, MinusGlyph, PlusGlyph, TickGlyph } from "../system/glyphs";
+import { InlineRename } from "../system/inline-rename";
 import { useTheme } from "../system/theme";
 import { Body, Figure, IconButton, Label, Row } from "../system/ui";
 import { radius, space } from "@/lib/theme";
@@ -121,6 +123,7 @@ export function SharedRow({
   onClaim,
   onPacked,
   onRemove,
+  onRename,
 }: {
   line: SharedLine;
   viewerId: string | undefined;
@@ -130,6 +133,7 @@ export function SharedRow({
   onClaim: (claimed: boolean) => void;
   onPacked: (packed: boolean) => void;
   onRemove: () => void;
+  onRename: (label: string) => Promise<unknown>;
 }) {
   const mine = line.claims.find((claim) => claim.userId === viewerId);
   // Names only. Whether it is packed is already the status beside them, and
@@ -173,7 +177,7 @@ export function SharedRow({
       </View>
 
       <View style={{ flex: 1, gap: space.xs }}>
-        <Body bold>{line.label}</Body>
+        <InlineRename value={line.label} maxLength={TEXT_CAPS.packingLabel} onSave={onRename} />
         {/* Status and who, on ONE line. They were two, so claiming a line made
             the row grow by a line and the list jumped under the finger. Who is
             bringing it is still said by name — a colour would say the same
@@ -205,6 +209,7 @@ export function MineRow({
   onStep,
   onPacked,
   onRemove,
+  onRename,
 }: {
   line: MineLine;
   selecting: boolean;
@@ -214,6 +219,7 @@ export function MineRow({
   onStep: (delta: 1 | -1) => void;
   onPacked: (packed: boolean) => void;
   onRemove: () => void;
+  onRename: (label: string) => Promise<unknown>;
 }) {
   if (selecting) {
     return (
@@ -240,7 +246,7 @@ export function MineRow({
       </View>
 
       <View style={{ flex: 1, gap: space.xs }}>
-        <Body bold>{line.label}</Body>
+        <InlineRename value={line.label} maxLength={TEXT_CAPS.packingLabel} onSave={onRename} />
         <Label>{line.packed ? "Packed" : "Not packed"}</Label>
       </View>
 

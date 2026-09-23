@@ -4,7 +4,12 @@ import {
   cleanFileName,
   formatBytes,
   kindLabel,
+  rejectForSpace,
   rejectUpload,
+  renamedFileName,
+  FREE_TRIP_STORAGE_BYTES,
+  PRO_TRIP_STORAGE_BYTES,
+  tripStorageBytes,
   bytesMatchType,
 } from "./documents";
 
@@ -63,10 +68,66 @@ describe("cleanFileName", () => {
   });
 });
 
+describe("renamedFileName (#364)", () => {
+  it("keeps the old extension when the new name drops it, so a download still opens", () => {
+    expect(renamedFileName("Ferry to Mull", "IMG_2231.PDF")).toBe("Ferry to Mull.PDF");
+  });
+
+  it("leaves a name alone that already ends in the extension, whatever its case", () => {
+    expect(renamedFileName("Ferry.pdf", "scan.PDF")).toBe("Ferry.pdf");
+  });
+
+  it("adds nothing when the old name had no extension", () => {
+    expect(renamedFileName("Ferry", "Document")).toBe("Ferry");
+  });
+
+  it("cleans the new name the way an upload's is cleaned", () => {
+    expect(renamedFileName(' a/b"c ', "x.jpg")).toBe("a b c.jpg");
+  });
+
+  it("answers null for a name that is nothing once cleaned", () => {
+    expect(renamedFileName("  \u0007 ", "x.jpg")).toBeNull();
+    expect(renamedFileName(42n, "x.jpg")).toBeNull();
+  });
+});
+
 describe("formatBytes", () => {
   it("rounds to a size a row can hold", () => {
     expect(formatBytes(240 * 1024)).toBe("240 KB");
     expect(formatBytes(1_153_434)).toBe("1.1 MB");
+  });
+
+  it("goes up to gigabytes, dropping a bare .0 (#285)", () => {
+    expect(formatBytes(PRO_TRIP_STORAGE_BYTES)).toBe("1 GB");
+    expect(formatBytes(1.5 * 1024 ** 3)).toBe("1.5 GB");
+  });
+});
+
+describe("tripStorageBytes (#285)", () => {
+  it("gives a free trip 200 MB and a Pro trip more", () => {
+    expect(formatBytes(tripStorageBytes(false))).toBe("200 MB");
+    expect(tripStorageBytes(true)).toBeGreaterThan(tripStorageBytes(false));
+  });
+});
+
+describe("rejectForSpace (#285)", () => {
+  const MB = 1024 * 1024;
+  const quota = FREE_TRIP_STORAGE_BYTES;
+
+  it("lets a file in that fits in what is left", () => {
+    expect(rejectForSpace(quota - 5 * MB, 5 * MB, quota)).toBeNull();
+  });
+
+  it("names the space actually left when the file will not fit", () => {
+    expect(rejectForSpace(quota - 3 * MB, 5 * MB, quota)).toBe(
+      "This trip has 3 MB of its 200 MB left, and that file is 5 MB.",
+    );
+  });
+
+  it("says nothing is left at the quota, and past it", () => {
+    const full = "This trip has used all of its 200 MB. Remove a file to make room.";
+    expect(rejectForSpace(quota, 1, quota)).toBe(full);
+    expect(rejectForSpace(quota + MB, 1, quota)).toBe(full);
   });
 });
 

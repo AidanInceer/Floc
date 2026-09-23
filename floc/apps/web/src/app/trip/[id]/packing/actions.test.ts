@@ -30,6 +30,7 @@ import {
   resetPackingList,
   addPersonalPackingLine,
   removePackingLine,
+  renamePackingLine,
   setPackingClaim,
   setPackingPacked,
   setPersonalPackingPacked,
@@ -117,6 +118,44 @@ describe("within a trip", () => {
     form.set("label", "   ");
     await expect(addPackingLine(world.ours.id, form)).rejects.toThrow();
     expect(await listPackingLines(world.ours.id)).toHaveLength(1);
+  });
+});
+
+describe("renaming a line (#362)", () => {
+  beforeEach(() => signIn(world.member));
+
+  it("renames in place and keeps every claim on it", async () => {
+    await setPackingClaim(world.ours.id, ourLineId, true);
+
+    expect(await renamePackingLine(world.ours.id, ourLineId, "  Factor 50 sun cream ")).toEqual({});
+
+    const [line] = await listPackingLines(world.ours.id);
+    expect(line).toMatchObject({ id: ourLineId, label: "Factor 50 sun cream" });
+    expect((await liveClaims(ourLineId)).map((c) => c.userId)).toEqual([world.member]);
+  });
+
+  it.each([["", "blank"], ["   ", "only spaces"]])("refuses %j (%s) as a form error", async (label) => {
+    expect(await renamePackingLine(world.ours.id, ourLineId, label)).toEqual({
+      error: "A thing to pack needs a name.",
+    });
+    expect((await listPackingLines(world.ours.id))[0].label).toBe("Sun cream");
+  });
+
+  it("refuses a line on another trip as though it did not exist", async () => {
+    signIn(world.outsider);
+    await expectNotFound(() => renamePackingLine(world.theirs.id, ourLineId, "Mine now"));
+    expect((await listPackingLines(world.ours.id))[0].label).toBe("Sun cream");
+  });
+
+  it("renames your own bag's line, and never another member's", async () => {
+    await insertPersonalPackingLine(world.ours.id, world.admin, "Charger", "essentials");
+    const [theirs] = await listPersonalPackingLines(world.ours.id, world.admin);
+
+    await expectNotFound(() => renamePackingLine(world.ours.id, theirs.id, "Mine now"));
+
+    signIn(world.admin);
+    expect(await renamePackingLine(world.ours.id, theirs.id, "USB-C charger")).toEqual({});
+    expect((await listPersonalPackingLines(world.ours.id, world.admin))[0].label).toBe("USB-C charger");
   });
 });
 

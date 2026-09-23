@@ -16,10 +16,12 @@ import { requireTripAccess } from "@/server/access";
 import {
   findLiveExpense,
   findLiveSettlement,
+  rewriteSettlement,
   softDeleteExpense,
   softDeleteSettlement,
   writeExpense,
   writeSettlement,
+  type Transfer,
 } from "@/server/money/money";
 import type { WritableSplitType } from "@floc/core/money/money";
 import {
@@ -226,15 +228,10 @@ async function readCrossPayment(
   };
 }
 
-// Records a settlement pre-filled from a simplified transfer, amount/person
-// editable. Either party to it may record it (money overhaul).
-export async function recordSettlement(
-  _prev: ActionState,
-  formData: FormData,
-): Promise<ActionState> {
-  const tripId = Number(formData.get("tripId"));
-  const access = await requireTripAccess(tripId);
+type Access = Awaited<ReturnType<typeof requireTripAccess>>;
 
+// The record rules, shared by record and edit (#361).
+async function readTransfer(access: Access, formData: FormData): Promise<Transfer | { error: string }> {
   const fromUserId = String(formData.get("fromUserId") ?? "");
   const toUserId = String(formData.get("toUserId") ?? "");
   const currency = String(formData.get("currency") ?? "") as Currency;
@@ -267,25 +264,12 @@ export async function recordSettlement(
   const payCurrency = String(formData.get("payCurrency") ?? currency) as Currency;
   if (!CURRENCIES.includes(payCurrency)) return { error: "Pick a currency." };
 
-  if (payCurrency === currency) {
-    await writeSettlement({
-      tripId: access.trip.id,
-      createdBy: access.viewer.id,
-      fromUserId,
-      toUserId,
-      amountMinor,
-      currency,
-    });
-    refresh({ kind: "money", tripId: access.trip.id });
-    return {};
-  }
+  if (payCurrency === currency) return { fromUserId, toUserId, amountMinor, currency };
 
   const cross = await readCrossPayment(currency, payCurrency, amountMinor, formData);
   if ("error" in cross) return { error: cross.error };
 
-  await writeSettlement({
-    tripId: access.trip.id,
-    createdBy: access.viewer.id,
+  return {
     fromUserId,
     toUserId,
     amountMinor: cross.paidMinor,
@@ -294,8 +278,44 @@ export async function recordSettlement(
     clearsCurrency: currency,
     fxRate: cross.rate,
     fxRateDate: cross.date,
-  });
+  };
+}
 
+// Records a settlement pre-filled from a simplified transfer, amount/person
+// editable. Either party to it may record it (money overhaul).
+export async function recordSettlement(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const access = await requireTripAccess(Number(formData.get("tripId")));
+  const transfer = await readTransfer(access, formData);
+  if ("error" in transfer) return transfer;
+
+  await writeSettlement({ tripId: access.trip.id, createdBy: access.viewer.id, ...transfer });
+  refresh({ kind: "money", tripId: access.trip.id });
+  return {};
+}
+
+// A party to the recorded payment may correct it; last write wins (#361).
+export async function editSettlement(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const access = await requireTripAccess(Number(formData.get("tripId")));
+  const settlementId = Number(formData.get("settlementId"));
+
+  const existing = await findLiveSettlement(access.trip.id, settlementId);
+  if (!existing) return { error: "That settlement has been undone." };
+  if (access.viewer.id !== existing.fromUserId && access.viewer.id !== existing.toUserId) {
+    return { error: "Only the payer or receiver can change this." };
+  }
+
+  const transfer = await readTransfer(access, formData);
+  if ("error" in transfer) return transfer;
+
+  if (!(await rewriteSettlement(access.trip.id, settlementId, transfer))) {
+    return { error: "That settlement has been undone." };
+  }
   refresh({ kind: "money", tripId: access.trip.id });
   return {};
 }

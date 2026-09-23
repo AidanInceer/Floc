@@ -303,6 +303,19 @@ describe("what the input rules refuse", () => {
     });
   });
 
+  it("renames a packing line trimmed, and refuses a blank name before the host sees it (#362)", async () => {
+    const renamePackingLine = vi.fn().mockResolvedValue(undefined);
+    const { caller: ana } = caller("u1", fakePort({ renamePackingLine }));
+
+    await ana.packing.rename({ tripId: 1, lineId: 7, label: "  Factor 50 " });
+    expect(renamePackingLine).toHaveBeenCalledWith("u1", 1, 7, "Factor 50");
+
+    await expect(ana.packing.rename({ tripId: 1, lineId: 7, label: "   " })).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+    });
+    expect(renamePackingLine).toHaveBeenCalledTimes(1);
+  });
+
   it("refuses a time carrying an offset (rule 10)", async () => {
     const { caller: ana } = caller("u1");
     await expect(

@@ -51,10 +51,16 @@
     "files.remove": {
       "mobile": "yes"
     },
+    "files.rename": {
+      "mobile": "yes"
+    },
     "files.setCategory": {
       "mobile": "yes"
     },
     "files.upload": {
+      "mobile": "yes"
+    },
+    "files.usage": {
       "mobile": "yes"
     },
     "files.viewUrl": {
@@ -69,13 +75,13 @@
     "friends.decline": {
       "mobile": "yes"
     },
+    "friends.find": {
+      "mobile": "yes"
+    },
     "friends.list": {
       "mobile": "yes"
     },
     "friends.remove": {
-      "mobile": "yes"
-    },
-    "friends.find": {
       "mobile": "yes"
     },
     "friends.request": {
@@ -206,8 +212,7 @@
       "mobile": "yes"
     },
     "notifications.readAll": {
-      "mobile": "no",
-      "why": "The phone has no inbox list yet, so there is nothing on screen to mark. It follows the screen, not the other way round."
+      "mobile": "yes"
     },
     "notifications.registerPhone": {
       "mobile": "yes"
@@ -241,6 +246,9 @@
       "mobile": "yes"
     },
     "packing.removeMany": {
+      "mobile": "yes"
+    },
+    "packing.rename": {
       "mobile": "yes"
     },
     "packing.reset": {
@@ -349,7 +357,7 @@
       "id": "files",
       "path": "floc/apps/web/src/app/trip/[id]/files",
       "status": "planned",
-      "why": "The app lists, uploads, re-files and removes. What is still web-only is opening one: the bytes come off a route handler behind a session cookie, and a phone has no viewer for a PDF yet."
+      "why": "The app lists, uploads, renames, re-files and removes. What is still web-only is opening one: the bytes come off a route handler behind a session cookie, and a phone has no viewer for a PDF yet."
     },
     {
       "id": "signup",
