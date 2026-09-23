@@ -38,12 +38,12 @@ pnpm workspaces + Turborepo.
 ```bash
 pnpm install
 pnpm dev
-pnpm verify   # everything CI runs — stop the dev server first
+pnpm verify   # everything CI runs — safe with the dev server up
 ```
 
 ## Read next
 
-- [`CLAUDE.md`](CLAUDE.md) — the rules of the codebase, hub and product together
+- [`AGENTS.md`](AGENTS.md) — the rules of the codebase (`CLAUDE.md` imports it)
 - [`docs/index.html`](docs/index.html) — all documentation
 - [approach](docs/design/approach.html) · [visual language](docs/design/visual-language.html) · [architecture](docs/architecture/architecture.html) · [ERD](docs/architecture/data-model/erd.html)
 - [`learnings.md`](learnings.md) — pitfalls already paid for

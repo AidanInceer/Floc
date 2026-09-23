@@ -219,7 +219,7 @@
     },
     "notifications.seen": {
       "mobile": "no",
-      "why": "Web only for now: seeing happens when the inbox page is on screen, and the phone has no inbox page."
+      "why": "The phone has an inbox but does not mark rows seen when it opens, so its bell empties only when a row is opened or Mark all as read is pressed."
     },
     "notifications.unread": {
       "mobile": "yes"
@@ -353,12 +353,6 @@
     }
   },
   "webOnly": [
-    {
-      "id": "files",
-      "path": "floc/apps/web/src/app/trip/[id]/files",
-      "status": "planned",
-      "why": "The app lists, uploads, renames, re-files and removes. What is still web-only is opening one: the bytes come off a route handler behind a session cookie, and a phone has no viewer for a PDF yet."
-    },
     {
       "id": "signup",
       "path": "floc/apps/web/src/app/signup",

@@ -68,8 +68,8 @@ what the ticket asked, not just that it renders.
 
 ## 9. Docs move with the code
 
-Update every doc page the change makes untrue (the map is in `AGENTS.md` →
-Workflow). Same commit, not a follow-up.
+Run `/floc:sync-docs`: it finds every doc page the change makes untrue and
+updates it. Same slice, not a follow-up.
 
 ## 10. Report
 
@@ -80,8 +80,9 @@ one next action (usually `/floc:push`). Nothing else.
 
 - **Don't push.** This skill stops at a working, verified local build. Landing
   it is `/floc:push`'s job.
-- **Schema change isn't done until `local.db` has it** — apply the new
-  `drizzle/*.sql` in the same slice or dev dies on `no such column`.
+- **Schema change** → `/floc:schema-change`. It is not done until `local.db`
+  has the migration, or dev dies on `no such column`.
+- **New mobile package** → `/floc:add-mobile-dep`, never `pnpm add`.
 - **`pnpm verify` is safe with servers up** (builds into `.next-verify`); a bare
   `build`/`fitness` writes `.next` and needs the servers stopped first.
 - **No new venture, no scope creep.** One feature. If the work wants slicing,

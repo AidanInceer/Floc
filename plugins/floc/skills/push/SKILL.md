@@ -45,8 +45,10 @@ Act on the `!!` warnings yourself:
 - **API procedure.** Needs a line in `scripts/parity/parity.json`.
   `pnpm parity --fix` writes the boring half. Draft the `why` from the ticket
   and name it in the report — do not stop to ask.
-- **Plugin.** A hook bumps the version and runs the update on the first skill
-  edit. Tell the user to restart the session to load it.
+- **Plugin.** Preflight refuses a skill edit without a `version` bump in
+  `plugins/floc/.claude-plugin/plugin.json`. Bump it, run
+  `claude plugin update floc@floc --scope project`, and tell the user to
+  restart the session to load it.
 
 Red verify is a fix, never `--no-verify`. Fix, then preflight again — the bump
 is kept. Never skip hooks or signing.
@@ -58,7 +60,7 @@ is kept. Never skip hooks or signing.
 | `feat` | new behaviour a user can see | minor |
 | `fix` | something was broken | patch |
 | `refactor` | same behaviour, better shape | patch |
-| `docs` | `docs/`, `CLAUDE.md`, skills text only | patch |
+| `docs` | `AGENTS.md`, skills text only (`docs/` is gitignored) | patch |
 | `chore` | tooling, deps, config, scripts | patch |
 | `test` | tests only | patch |
 

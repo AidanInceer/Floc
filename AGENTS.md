@@ -55,7 +55,19 @@ pnpm --filter floc-mobile maestro # Maestro flows on the emulator, against the d
 
 ## Invariants
 
-Never break these: integer money, enumeration-proof trip access, soft-delete on every read and write, trip state derived from data (no lifecycle flags), exactly four admin powers, day-first itinerary (no `stop` table), last write wins, nullable dates, no timezones. [Architecture](docs/architecture/architecture.html) specifies each — read it before you change behaviour.
+Never break these. Code comments cite them by number (`rule 5`), so keep the numbers. [Architecture](docs/architecture/architecture.html) explains each — read it before you change behaviour.
+
+1. **Money is never a float.** Integer minor units; only `@floc/core/money` does maths on it.
+2. **`expense_split` rows are snapshots.** Never recalculated. An edit rewrites the expense and its splits in one transaction.
+3. **The itinerary is day-first.** Store `day` and `day_event`. A stop is consecutive days with the same `overnight_place_id` — never a `stop` table.
+4. **No lifecycle state.** Trip state comes from the data present — no status enum, flag, column or tab gate.
+5. **Trip access is enumeration-proof.** Load a trip only through `requireTripAccess` (web) or `tripProcedure` (API). A non-member gets the same answer as a trip that does not exist.
+6. **Exactly four admin powers:** remove a member, promote, delete or archive the trip, reset the invite link. Everything else, leaving included, is open to any member. Gate with `assertAdmin`.
+7. **Last write wins.** No optimistic locking; `last_modified_at` is for debugging only.
+8. **Soft-delete everywhere.** Every read *and write* filters `deleted_at IS NULL`. The few exceptions (`ensureDays`, `setTripWindow`, `addMember`) explain themselves in comments.
+9. **A trip may have no dates.** `start_date` and `end_date` are nullable; undated is never an error.
+10. **No timezones.** Dates are `YYYY-MM-DD`; event times are local to the trip. Never store an offset.
+11. **Degrade, do not crash, without credentials.** A missing provider key (mail, Google, maps, stores) hides or reduces the feature — never a throw.
 
 ## Conventions
 
@@ -140,7 +152,7 @@ Issues and PRDs are GitHub issues, driven with `gh`. The skills are the `floc` p
 | `/floc:sync-docs` | Finds the doc pages a diff makes untrue, updates them, runs `docs:check`. |
 | `/floc:review-docs` | Acts on the marks left in the local docs editor. |
 | `/floc:push` | Local work → one verified commit on `develop`, ticket tagged, CI watched. |
-| `/floc:release` | `develop` → `main` PR, merge commit on your yes, then checks tickets, sync and deploy. |
+| `/floc:release` | `develop` → `main` PR; merges on green checks (asks on a schema migration), then checks tickets, sync and deploy. |
 | `/floc:to-tickets` | Slices a plan into tracer-bullet issues with blocking edges. |
 | `/floc:prioritise-tickets` | Puts unprioritised open issues into the `Priority` stack, fixes type labels. |
 | `/floc:pickup-ticket` | Takes the top startable ticket and works it to a pushed `develop` commit. |
