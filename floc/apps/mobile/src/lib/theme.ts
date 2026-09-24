@@ -1,19 +1,8 @@
 /**
- * The palette, drawn natively (tickets 288, 289).
- *
- * React Native has no cascade and no `var()`, so a token cannot be *declared*
- * here the way `globals.css` declares one — it has to be resolved to a value
- * first. `resolveTokens` does exactly that, following the aliases the web app
- * leaves to the browser.
- *
- * The values come from `@floc/core/tokens`, which is the same file the web
- * app's stylesheet is checked against on every `pnpm fitness`. That is the
- * whole reason the two UIs can look like one product while sharing no
- * components: they cannot disagree about what "peri" is.
- *
- * The two themes are built once at module load — there are ~65 tokens and
- * rebuilding them on every render of every screen would be a real cost for a
- * map that never changes.
+ * Why: React Native has no cascade and no `var()`, so a token must be resolved to a value here
+ * rather than declared. Values come from `@floc/core/tokens`, the same file `pnpm fitness` checks
+ * the web stylesheet against, so the two UIs cannot disagree. Built once at module load — ~65
+ * tokens per theme, and the map never changes (#288, #289).
  */
 import { resolveTokens, type Theme } from "@floc/core/design/tokens";
 
@@ -31,23 +20,9 @@ export function palette(theme: Theme): Palette {
 }
 
 /**
- * The three faces (#189), bundled rather than named (#no-ticket).
- *
- * THEY USED TO BE A WISH. This named "Bricolage Grotesque" and let the
- * platform fall back, which on a phone means every word in the app rendered in
- * Roboto — the wordmark included, so the app and the browser were visibly two
- * products. The same three faces the web self-hosts through `next/font` are
- * now bundled here through `@expo-google-fonts`, and `useFonts` in the root
- * layout loads them before anything draws.
- *
- * ONE FAMILY PER WEIGHT, AND NEVER `fontWeight`. React Native cannot
- * synthesise a bold from a single font file: ask it to and Android quietly
- * renders the regular, so the app would look *nearly* right in a way nobody
- * could point at. Every weight is therefore its own family and every call site
- * picks the family instead — `sans` and `sansBold`, not `sans` at 600.
- *
- * `display` is 600 because that is the weight it is used at everywhere but
- * `Heading`, which takes `displayBold`.
+ * Why: bundled through `@expo-google-fonts`, not named — naming a face lets the platform fall
+ * back, and every word rendered in Roboto. One family per weight, never `fontWeight`: React
+ * Native cannot synthesise a bold, and Android quietly renders the regular instead (#189).
  */
 export const fonts = {
   display: "BricolageGrotesque_600SemiBold",
@@ -58,11 +33,7 @@ export const fonts = {
   typeBold: "DMMono_500Medium",
 } as const;
 
-/**
- * The one spacing scale, so a screen never invents a gap. Not a token in the
- * CSS sense — the web app spaces with Tailwind's scale, and this is the same
- * rhythm expressed where Tailwind cannot reach.
- */
+// Why: Tailwind's rhythm restated where Tailwind cannot reach, so a screen never invents a gap.
 export const space = {
   xs: 4,
   sm: 8,
@@ -72,13 +43,10 @@ export const space = {
   xxl: 32,
 } as const;
 
-/**
- * The web's radius ramp, to the pixel (`globals.css`: 10/16/22/pill). The app
- * had a tighter one, which read as blocky next to the same panel in a browser.
- */
+// Why: the web ramp to the pixel — the app's own tighter one read as blocky beside a browser.
 export const radius = { sm: 10, md: 16, lg: 22, pill: 999 } as const;
 
-/** Type sizes, matching the web app's ramp. `type` is tabular and carries every figure. */
+// Why: matches the web ramp; `type` is tabular and carries every figure.
 export const size = {
   label: 11,
   small: 13,

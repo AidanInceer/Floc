@@ -1,23 +1,15 @@
 /**
- * Trip tags (ticket 71) — free text, normalised here so the same label typed
- * two ways in two trips is still one tag on the /trips filter.
- *
- * Pure, no DB access: `trip.tags` is a JSON column and every writer runs its
- * input through `parseTags` first, so nothing unnormalised reaches the row.
+ * Trip tags (#71) — free text, normalised so the same label typed two ways is one tag on the
+ * /trips filter. Every writer runs its input through `parseTags`, so nothing unnormalised is stored.
  */
 
-/** Comma-separated in the field, an array in the column. */
 const TAG_SEPARATOR = ", ";
 
-/** Beyond this a trip card is a wall of pills, not a label. */
+// Why: beyond this a trip card is a wall of pills, not a label.
 export const MAX_TAGS = 5;
 export const MAX_TAG_LENGTH = 24;
 
-/**
- * Lower-cases, trims, collapses inner whitespace, drops blanks and duplicates,
- * and caps both the count and each tag's length. Order is what the author
- * typed — first mention wins, so re-saving doesn't shuffle the pills.
- */
+// Why: order is what the author typed — first mention wins, so re-saving never shuffles the pills.
 export function parseTags(input: string | null | undefined): string[] {
   if (!input) return [];
   const seen = new Set<string>();
@@ -30,21 +22,16 @@ export function parseTags(input: string | null | undefined): string[] {
   return [...seen];
 }
 
-/** One tag's text, as it's stored: lower-case, single-spaced, length-capped. */
 export function normaliseTag(raw: string): string {
   return raw.trim().toLowerCase().replace(/\s+/g, " ").slice(0, MAX_TAG_LENGTH);
 }
 
-/** The column back into the text field. */
 export function formatTags(tags: string[] | null | undefined): string {
   return (tags ?? []).join(TAG_SEPARATOR);
 }
 
-/**
- * Guards the read side too: `tags` is JSON, so a hand-edited row (or one
- * written before this column existed) can be anything at all. Rule 11 —
- * degrade, don't crash.
- */
+// Why: `tags` is JSON, so a hand-edited row — or one written before the column existed — can hold
+// anything at all. Rule 11.
 export function readTags(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return value
@@ -52,12 +39,8 @@ export function readTags(value: unknown): string[] {
     .slice(0, MAX_TAGS); // rows saved under the old limit of eight hold more
 }
 
-/**
- * A tag save from the row editor: one name per row. Colour is no longer
- * per-tag — the whole trip wears one chosen pastel (ticket 213), so a tag is
- * just its text. A blank row deletes a tag; normalisation drops dupes and caps
- * the count.
- */
+// Why: one name per row, no colour — the whole trip wears one chosen pastel (#213), so a tag is
+// just its text, and a blank row deletes it.
 export function parseTagNames(names: string[]): string[] {
   const tags: string[] = [];
   for (const name of names) {

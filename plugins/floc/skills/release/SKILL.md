@@ -1,6 +1,6 @@
 ---
 name: release
-description: Batch develop into main for AidanInceer/Floc — PR with a merge commit, CI green, user confirms, merge, then check tickets closed, develop synced and Railway deployed. Use when the user says /floc:release, "release", "ship to main", or "deploy".
+description: Batch develop into main for AidanInceer/Floc — PR with a merge commit, merged once checks are green (asks only on a ticket that will not close or a schema migration), then check tickets closed, develop synced and Railway deployed. Use when the user says /floc:release, "release", "ship to main", or "deploy".
 ---
 
 # release

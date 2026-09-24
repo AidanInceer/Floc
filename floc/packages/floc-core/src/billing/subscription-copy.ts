@@ -1,15 +1,12 @@
 /**
- * How a subscription reads on the settings page (ticket 247). Pure, so the
- * "renews" versus "ends" distinction — the whole reason the record stores a
- * period end rather than a boolean — is testable without Stripe or a request.
+ * How a subscription reads on the settings page (#247). Pure, so "renews" versus "ends" — the
+ * reason the record stores a period end rather than a boolean — is testable without Stripe.
  *
- * `isLive` mirrors server/entitlements.ts deliberately: that one guards
- * features, this one only picks words. Neither may drift, so both are short
- * enough to read side by side.
+ * Why: `isLive` mirrors `server/entitlements.ts` on purpose; that one guards features, this one
+ * only picks words. Both stay short enough to read side by side so neither drifts.
  */
 import { formatDate, toIsoDate } from "../dates/dates";
 
-/** The parts of a subscription row that decide the wording. */
 export type SubscriptionFacts = {
   status: string;
   cancelAtPeriodEnd: boolean;
@@ -24,11 +21,8 @@ export function isLive(s: SubscriptionFacts, now = new Date()): boolean {
   return s.currentPeriodEnd === null || s.currentPeriodEnd > now;
 }
 
-/**
- * Cancelling in Stripe's portal leaves the subscription `active` with
- * `cancel_at_period_end` set, so the honest word is "ends" — someone who
- * cancelled keeps Pro until the date, and must not be told it renews.
- */
+// Why: Stripe's portal leaves a cancelled subscription `active` with `cancel_at_period_end`, so
+// the honest word is "ends" — they keep Pro until the date and must not be told it renews.
 export function renewalLabel(s: SubscriptionFacts, now = new Date()): string {
   if (!isLive(s, now)) return "Your Pro access has ended.";
   if (!s.currentPeriodEnd) return "Never expires.";
@@ -41,11 +35,8 @@ export function renewalLabel(s: SubscriptionFacts, now = new Date()): string {
   return s.cancelAtPeriodEnd ? `Ends ${when}` : `Renews ${when}`;
 }
 
-/**
- * How much cheaper a year is than twelve months of the monthly price, as a
- * whole percent (ticket 250). Null when there is nothing to boast about, so
- * the page never advertises a saving of 0% — or a negative one.
- */
+// Why: null when there is nothing to boast about, so the page never advertises a 0% saving —
+// or a negative one (#250).
 export function yearlySaving(
   monthlyMinor: number,
   yearlyMinor: number,

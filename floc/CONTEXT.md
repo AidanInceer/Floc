@@ -13,7 +13,7 @@ rewrites the whole set, never mutates a row.
 
 **Settlement** — a single real-world payment from one member to another for an
 amount, recorded after money has moved (cash, outside the app). An immutable
-fact: never rewritten, only soft-deleted (which reverts it).
+fact. A party to it may correct it (#361); soft-deleting it reverts it.
 
 **Balance** — a member's net position in one currency: what they're owed minus
 what they owe. Derived live from expenses − settlements; never stored. Positive
