@@ -23,7 +23,7 @@ Starting at the top, skip a ticket if any of these hold — and say which and wh
 
 - It is labelled `on-develop` or `future-work` → it should not be in the stack. Remove that line from the stack body and carry on down.
 - It is closed → remove the line, carry on.
-- It is labelled `wayfinder:grilling` → it needs grilling before it can be built. Offer the user: grill it now (`grilling` skill), or skip it. If the grilling splits it into new tickets, run `/floc:to-tickets` with this ticket's number — it tags this parent `on-develop` and pops it off the stack. The children get built, not the parent.
+- It is labelled `grilling` → it needs grilling before it can be built. Offer the user: grill it now (`/floc:grill`), or skip it. The grill writes decisions and acceptance criteria into the ticket and keeps it one ticket; then build it here. Only if the user asks for a split, run `/floc:to-tickets` with this ticket's number — it tags this parent `on-develop` and pops it off the stack.
 - Its `## Blocked by` names an issue that is still open and not `on-develop` → report the blocker and move to the next ticket.
 
 ### 3. Confirm
@@ -36,7 +36,7 @@ Show the user the ticket: number, title, type label, what it delivers, acceptanc
 
 Work on `develop`. No feature branch. Keep to the ticket's acceptance criteria.
 
-1. **Test first.** Failing test for each criterion, watch it fail, then the code (`/mattpocock-skills:tdd`).
+1. **Test first.** Failing test for each criterion, watch it fail, then the code (`/floc:tdd`).
 2. **Schema change** → `db:generate`, then run the new `drizzle/*.sql` against `local.db` now, not at preflight.
 3. **New API procedure** → its `parity.json` line. Draft the `why` from the ticket; show it in the report rather than stopping to ask.
 4. **Look at it before the user does.** UI change → screenshot every surface it touches (web via the Browser pane; app via `adb exec-out screencap`), in light **and** dark. Check each against [visual language](../../../../docs/design/visual-language.html): tokens, spacing, alignment, no heading-above-heading, web and app agree. Fix what is off, then shoot again. Send the final shots with `SendUserFile`.

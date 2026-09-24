@@ -84,13 +84,13 @@ Every prioritised ticket must end up with exactly one **type** label, plus any s
 | `type:feat` | new behaviour |
 | `type:fix` | something is broken |
 | `type:refinement` | reshape or polish existing behaviour |
-| `wayfinder:grilling` | needs the user grilled before it can be built — **does not affect priority** |
+| `grilling` | needs the user grilled (`/floc:grill`) before it can be built — **does not affect priority** |
 | `future-work` | parked on purpose — **not** in the stack |
 | `on-develop` | built, merged to `develop`, waiting on the batch to `main` — **not** in the stack. Also set on a parent split into child tickets (`## Split into` in its body); `/floc:release` closes it when all children close |
 
 Blocked-by edges live in the issue **body** under `## Blocked by`, written as `#<n>` — not as a label. Read them from there.
 
-**Grilling is orthogonal to priority.** A ticket that needs grilling sits in the stack on its own merit, alongside build-ready tickets. Never demote a ticket because it carries `wayfinder:grilling`, and never mention the label as a reason to move it. `/floc:pickup-ticket` deals with the grilling when the ticket reaches the top.
+**Grilling is orthogonal to priority.** A ticket that needs grilling sits in the stack on its own merit, alongside build-ready tickets. Never demote a ticket because it carries `grilling`, and never mention the label as a reason to move it. `/floc:pickup-ticket` deals with the grilling when the ticket reaches the top.
 
 Create any missing type label once:
 
@@ -198,5 +198,5 @@ gh issue edit <priority-issue-number> --repo AidanInceer/Floc --body-file <file>
 - Never use `AskUserQuestion` here — every question is plain text in the response body.
 - Never walk the stack one position at a time unless the user asks for it. Show the whole order and take edits in one reply.
 - Tickets already in the stack keep their relative order by default.
-- Never let `wayfinder:grilling` push a ticket down. Grilling is a state, not a priority.
+- Never let `grilling` push a ticket down. Grilling is a state, not a priority.
 - Category prefixes are applied agentically, never one question per ticket.
