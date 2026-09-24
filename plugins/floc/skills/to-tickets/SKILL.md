@@ -17,7 +17,7 @@ Work from whatever is already in conversation. If an argument is passed (issue n
 
 ### 2. Explore the codebase
 
-If not already oriented, read enough of the code to use the project's domain vocabulary in ticket titles and descriptions. Respect any ADRs or constraints in the area being touched.
+Read [mission and values](../../../../docs/mission.html) and the [decision log](../../../../docs/adr/decisions.html) first. If not already oriented, read enough of the code to use the project's domain vocabulary in ticket titles and descriptions. Respect any ADRs or constraints in the area being touched.
 
 **Check the request's factual premises against the code before writing a ticket around them.** A request often carries an assumption about how the app works today that is out of date — "move off SQLite" when the app already runs Turso, "add X" when X half-exists. Verify each premise, and if one is wrong say so plainly at the top of the breakdown and reshape that ticket around what is actually true. A ticket built on a false premise wastes a whole context window later.
 

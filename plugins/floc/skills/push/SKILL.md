@@ -104,21 +104,24 @@ After the push, `land` labels the issue `on-develop` and pops its line off the
 reaches `main` (`/floc:release`), so the issue stays open until then. A `!!`
 from this step means do that part by hand with the command it prints.
 
-## 4. Watch CI
+## 4. Babysit CI
 
-`land` prints the pushed SHA. Spawn the watcher **in the background** and carry
-on — do not wait for it:
+`land` prints the pushed SHA. Spawn the babysitter **in the background, in its
+own worktree**, and carry on — do not wait for it:
 
 ```
 Agent({
-  subagent_type: "floc:ci-watch",
-  description: "Watch CI for <short sha>",
+  subagent_type: "floc:ci-babysit",
+  description: "Babysit CI for <short sha>",
   prompt: "<full sha>",
+  isolation: "worktree",
   run_in_background: true
 })
 ```
 
-When it reports red, tell the user the job and the cause. Fix only if asked.
+On red it fixes the cause on `develop`, pushes and watches again (at most three
+tries). Pass on its report: what failed, what it fixed, or why it stopped.
+Your local `develop` is now behind — the next preflight pulls it.
 
 **Sonar is silent here.** SonarQube Cloud Free analyses `main` and pull
 requests only, so a `develop` push never runs the gate — the bill arrives at

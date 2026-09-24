@@ -1,8 +1,12 @@
 # AGENTS.md — Floc
 
-Floc is a group-travel planner: where, when, in what order, and who owes who. Pre-MVP. One pnpm + Turborepo monorepo, one product — do not add another unasked. Work in narrow slices, one ticket at a time. Confirm scope before a big build. Known pitfalls: [`learnings.md`](learnings.md).
+Floc is group trip planning, simplified — the travel agent partner for a group: where, when, in what order, and who owes who. Pre-MVP. One pnpm + Turborepo monorepo, one product — do not add another unasked. Work in narrow slices, one ticket at a time. Confirm scope before a big build. Known pitfalls: [`learnings.md`](learnings.md).
 
-**Name.** Write `Floc` in prose and `floc` where a machine reads it (`floc-web`, `floc/`, `FLOC_FILES_DIR`). The name may change to `Flok` — change all of it or none. The wordmark is `floc` with a pen-blue dot (**floc.**), drawn by `components/system/wordmark.tsx` and the invite OG card.
+**Name.** Write `Floc` in prose and `floc` where a machine reads it (`floc-web`, `floc/`, `FLOC_FILES_DIR`). The name is settled ([ADR-016](docs/adr/decisions.html#adr-016)). The wordmark is `floc` with a pen-blue dot (**floc.**), drawn by `components/system/wordmark.tsx` and the invite OG card.
+
+## Mission first
+
+Before you plan, grill, write a ticket or build, read [mission and values](docs/mission.html) — what Floc is for, who it serves and what it values — and the [decision log](docs/adr/decisions.html). Every choice must fit both. Name the value or ADR a recommendation rests on. If they are silent or an option conflicts with them, ask Aidan; do not guess. A new product decision gets an ADR record; a new value or a change to what Floc is for goes on the mission page.
 
 ## Structure
 
@@ -22,7 +26,7 @@ Next.js App Router + Turso (libSQL) + Drizzle + Better Auth.
 | `floc/apps/web/src/db/schema.ts` | Schema of record. The [ERD](docs/architecture/data-model/erd.html) mirrors it — change both together. |
 | `docs/` | Local HTML site, no build, gitignored. Open `docs/index.html` from disk. |
 
-Docs: [approach](docs/design/approach.html) · [visual language](docs/design/visual-language.html) · [architecture](docs/architecture/architecture.html) · [ERD](docs/architecture/data-model/erd.html).
+Docs: [mission and values](docs/mission.html) · [decision log](docs/adr/decisions.html) · [approach](docs/design/approach.html) · [visual language](docs/design/visual-language.html) · [architecture](docs/architecture/architecture.html) · [ERD](docs/architecture/data-model/erd.html).
 
 ## Environment
 
@@ -156,12 +160,13 @@ Issues and PRDs are GitHub issues, driven with `gh`. The skills are the `floc` p
 | `/floc:grill` | Grills you 2–4 questions a round, writes the decisions into the ticket, reports the shared understanding, then hands over to `implement-feature`. Never splits unless asked. |
 | `/floc:tdd` | Red → green loop: what a good test is, where it goes, the anti-patterns. |
 | `/floc:prototype` | Throwaway code that answers one question: UI variants on a real route, or a logic TUI. Never on `develop`. |
+| `/floc:feedback` | Turns what you noticed in a build into tickets, names why it drifted, and fixes the mission page or the decision log. |
 | `/floc:to-tickets` | Slices a plan into tracer-bullet issues with blocking edges. |
 | `/floc:prioritise-tickets` | Puts unprioritised open issues into the `Priority` stack, fixes type labels. |
 | `/floc:pickup-ticket` | Takes the top startable ticket and works it to a pushed `develop` commit. |
 | `/floc:seed-dev-db` | Loads dev scenarios A and B next to existing data. |
 | `/floc:reset-dev-db` | Backs up, wipes `local.db` and uploads, reseeds with fixed ids, signs back in. |
 
-Agent `floc:ci-watch` watches CI for one commit; `/floc:push` and `/floc:release` start it in the background.
+Agent `floc:ci-babysit` watches CI for one commit, and on red fixes it on `develop`, pushes and watches again (three tries, never weakening a check). `/floc:push` and `/floc:release` start it in the background, in its own worktree.
 
-**Loop:** idea → `/floc:grill` → `/floc:to-tickets` → `/floc:prioritise-tickets` → `/floc:pickup-ticket` → `/floc:push` → `/floc:release`.
+**Loop:** idea → `/floc:grill` → `/floc:to-tickets` → `/floc:prioritise-tickets` → `/floc:pickup-ticket` → `/floc:push` → `/floc:release` → `/floc:feedback`.

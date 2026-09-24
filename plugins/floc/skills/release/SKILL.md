@@ -26,7 +26,7 @@ git rev-parse origin/develop
 node scripts/ci-watch.mjs <sha>
 ```
 
-Exit `2` → run again. Exit `1` → stop and report the failure. Never release red.
+Exit `2` → run again. Exit `1` → run `floc:ci-babysit` on that SHA (in a worktree, not in the background) and carry on once it reports green; stop if it could not fix it. Never release red.
 
 Sonar does not run on `develop` — SonarQube Cloud Free analyses only `main` and
 pull requests — so the gate is first seen on the PR in step 6, and again on
@@ -114,8 +114,9 @@ the analysis has not landed yet; wait and run it again.
 
 Merge SHA: `gh pr view <n> --repo AidanInceer/Floc --json mergeCommit --jq .mergeCommit.oid`.
 
-1. **CI and sync.** Spawn the watcher in the background for the merge SHA —
-   `Agent({ subagent_type: "floc:ci-watch", prompt: "<merge sha>", run_in_background: true })`.
+1. **CI and sync.** Spawn the babysitter in the background for the merge SHA —
+   `Agent({ subagent_type: "floc:ci-babysit", prompt: "<merge sha>", isolation: "worktree", run_in_background: true })`.
+   A red job gets fixed on `develop`; the fix reaches `main` on the next release.
    It covers `Sync develop`, which merges `main` back into `develop`. A red
    sync means a conflict to resolve by hand. It also covers
    `SonarQube analysis`, whose gate on `main` measures a wider new-code window

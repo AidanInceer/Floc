@@ -37,6 +37,8 @@ Include untracked files. If the user named a commit range, diff that instead.
 | A feature's behaviour | its page in `docs/product/domains/` |
 | A Pro gate (`FEATURE_PLAN`) | [Pro tier](../../../../docs/product/monetisation/pro-tier.html) |
 | A token, component or UI rule | [visual language](../../../../docs/design/visual-language.html) |
+| What Floc is or is not for | [mission and values](../../../../docs/mission.html) |
+| A decision other features must follow | [decision log](../../../../docs/adr/decisions.html) — a new record, never an edit |
 | A domain word | [vocabulary](../../../../docs/vocab.html) and `floc/CONTEXT.md` |
 
 Nothing matches → say "no doc change needed" and stop.

@@ -24,7 +24,9 @@ answers. Do not assume a started process is a working one.
 
 ## 3. Read before you build
 
-Read the parts of `AGENTS.md`, the relevant `docs/` pages (architecture,
+Read [mission and values](../../../../docs/mission.html) and the
+[decision log](../../../../docs/adr/decisions.html) first: what Floc is for and
+what is already decided. Then the parts of `AGENTS.md`, the relevant `docs/` pages (architecture,
 access, the feature's domain page, visual language) and existing code that the
 feature touches. Respect the **Invariants** — integer money, soft-delete,
 trip state from data, day-first itinerary, nullable dates, no timezones.

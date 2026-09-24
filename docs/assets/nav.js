@@ -4,6 +4,8 @@
 (function () {
   var TREE = [
     { id: 'index', label: 'Overview', href: 'index.html' },
+    { id: 'mission', label: 'Mission and values', href: 'mission.html' },
+    { id: 'decisions', label: 'Decision log', href: 'adr/decisions.html' },
     { id: 'vocab', label: 'Vocabulary', href: 'vocab.html' },
     {
       label: 'Business',
