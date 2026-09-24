@@ -31,7 +31,7 @@ trip state from data, day-first itinerary, nullable dates, no timezones.
 
 ## 4. Build test-first
 
-Red → green → refactor (`/mattpocock-skills:tdd`). Failing test first, watch it
+Red → green → refactor (`/floc:tdd`). Failing test first, watch it
 fail for the right reason, least code to pass, then tidy. SQL in `server/`
 only; mutations as Server Actions in `actions.ts`; validate at the door;
 tokens not hex; no emoji; British English, real content. Keep to the file /

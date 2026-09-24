@@ -103,7 +103,7 @@ Use a house component before writing markup. If neither surface has one, the [co
 - **Dependency inversion at seams.** `@floc/core` stays pure and app-free; `components/` take data and never fetch. Type-only imports across a seam are fine. `pnpm deps:check` enforces this.
 - **YAGNI, KISS, SOLID.** Build like a principal engineer and designer: fast, scalable, modular, maintainable.
 - **Composition over configuration.** Eight optional props for four cases → several components.
-- **Test first.** Red, green, refactor: write the failing test, watch it fail for the right reason, write the least code that passes, then tidy. A bug fix starts with a test that reproduces it. One behaviour per test, through the public interface. Screens and components that need a renderer are exempt; the logic behind them is not — move it somewhere testable. `/mattpocock-skills:tdd` drives the loop.
+- **Test first.** Red, green, refactor: write the failing test, watch it fail for the right reason, write the least code that passes, then tidy. A bug fix starts with a test that reproduces it. One behaviour per test, through the public interface. Screens and components that need a renderer are exempt; the logic behind them is not — move it somewhere testable. `/floc:tdd` drives the loop.
 - **Coverage floor 80%** (lines, functions, branches, statements) on every package; `vitest --coverage` fails below it. Never lower a threshold — add the test.
 
 | Rule | Limit |
@@ -153,6 +153,9 @@ Issues and PRDs are GitHub issues, driven with `gh`. The skills are the `floc` p
 | `/floc:review-docs` | Acts on the marks left in the local docs editor. |
 | `/floc:push` | Local work → one verified commit on `develop`, ticket tagged, CI watched. |
 | `/floc:release` | `develop` → `main` PR; merges on green checks (asks on a schema migration), then checks tickets, sync and deploy. |
+| `/floc:grill` | Grills you 2–4 questions a round, writes the decisions into the ticket, reports the shared understanding, then hands over to `implement-feature`. Never splits unless asked. |
+| `/floc:tdd` | Red → green loop: what a good test is, where it goes, the anti-patterns. |
+| `/floc:prototype` | Throwaway code that answers one question: UI variants on a real route, or a logic TUI. Never on `develop`. |
 | `/floc:to-tickets` | Slices a plan into tracer-bullet issues with blocking edges. |
 | `/floc:prioritise-tickets` | Puts unprioritised open issues into the `Priority` stack, fixes type labels. |
 | `/floc:pickup-ticket` | Takes the top startable ticket and works it to a pushed `develop` commit. |
@@ -161,4 +164,4 @@ Issues and PRDs are GitHub issues, driven with `gh`. The skills are the `floc` p
 
 Agent `floc:ci-watch` watches CI for one commit; `/floc:push` and `/floc:release` start it in the background.
 
-**Loop:** idea → `/floc:to-tickets` → `/floc:prioritise-tickets` → `/floc:pickup-ticket` → `/floc:push` → `/floc:release`.
+**Loop:** idea → `/floc:grill` → `/floc:to-tickets` → `/floc:prioritise-tickets` → `/floc:pickup-ticket` → `/floc:push` → `/floc:release`.

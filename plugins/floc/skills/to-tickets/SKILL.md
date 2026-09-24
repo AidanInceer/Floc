@@ -86,7 +86,7 @@ Put `Parent: #<n>` as the first line of each child body when the tickets come fr
 
 ### 5b. Retire the parent (split from a ticket)
 
-When the tickets come from an existing issue — most often a `wayfinder:grilling` ticket that was grilled — the children now cover it. No commit will ever close the parent, so it must not sit in the stack. Do all three:
+When the tickets come from an existing issue — most often a `grilling` ticket the user asked to split after `/floc:grill` — the children now cover it. No commit will ever close the parent, so it must not sit in the stack. Do all three:
 
 1. Add a `## Split into` section to the end of the parent body, one `- #<n> <title>` per child.
 2. Label it: `gh issue edit <parent> --repo AidanInceer/Floc --add-label on-develop`.
