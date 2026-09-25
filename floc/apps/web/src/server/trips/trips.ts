@@ -16,6 +16,8 @@ import type { TripRole } from "@/db/schema";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
 import { kickFromTripNotes } from "@/server/notes/live/live-kick";
+import { insertFirstPage } from "@/server/notes/pages/page-first";
+import type { PageBlock } from "@floc/core/notes/pages/page-blocks";
 
 export type TripListRow = {
   id: number;
@@ -101,6 +103,8 @@ export async function createTripWithAdmin(input: {
   startDate: string | null;
   endDate: string | null;
   createdBy: string;
+  /** What the first notes page starts with; blank when left out. */
+  firstPage?: PageBlock[];
 }): Promise<number> {
   const [created] = await db
     .insert(trip)
@@ -118,6 +122,7 @@ export async function createTripWithAdmin(input: {
     userId: input.createdBy,
     role: "admin",
   });
+  await insertFirstPage(db, created.id, input.createdBy, input.firstPage);
 
   return created.id;
 }

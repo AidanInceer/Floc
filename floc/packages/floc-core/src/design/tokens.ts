@@ -72,6 +72,16 @@ export const lightTokens: Readonly<Record<string, TokenValue>> = {
   "green-edge": "var(--mint-edge)",
   "pen-edge": "var(--peri-edge)",
 
+  /* A member's highlight and table colour on a notes page (#408): the tint, and the text on it. */
+  "tone-butter": "var(--butter)",
+  "tone-butter-ink": "var(--ink)",
+  "tone-blush": "var(--blush)",
+  "tone-blush-ink": "var(--ink)",
+  "tone-mint": "var(--mint)",
+  "tone-mint-ink": "var(--ink)",
+  "tone-peri": "var(--peri)",
+  "tone-peri-ink": "var(--ink)",
+
   ease: "cubic-bezier(0.2, 0.85, 0.3, 1)",
   "shadow-sm": "0 1px 2px rgb(20 20 26 / 0.05)",
   shadow:
@@ -149,6 +159,16 @@ export const darkTokens: Readonly<Record<string, TokenValue>> = {
   "mint-edge": "#2f4a3d",
   "butter-edge": "#4a4230",
   "blush-edge": "#4c3438",
+
+  /* A dark wash is too faint to mark words: highlights take the edge, and the ink carries the colour. */
+  "tone-butter": "var(--butter-edge)",
+  "tone-butter-ink": "var(--butter-ink)",
+  "tone-blush": "var(--blush-edge)",
+  "tone-blush-ink": "var(--blush-ink)",
+  "tone-mint": "var(--mint-edge)",
+  "tone-mint-ink": "var(--mint-ink)",
+  "tone-peri": "var(--peri-edge)",
+  "tone-peri-ink": "var(--peri-ink)",
 
   "highlight-2": "#262219",
 

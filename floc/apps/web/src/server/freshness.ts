@@ -29,6 +29,7 @@ export type Fact =
   | { kind: "documents"; tripId: number }
   | { kind: "tripLinks"; tripId: number }
   | { kind: "thread"; tripId: number; scope: NoteScope }
+  | { kind: "notesPages"; tripId: number }
   | { kind: "tripList" }
   | { kind: "invites" }
   | { kind: "profile" }
@@ -75,6 +76,7 @@ const PAGES: Pages = {
   ],
   tripLinks: ({ tripId }) => [{ path: `/trip/${tripId}/days` }],
   thread: ({ tripId, scope }) => [{ path: threadPath(tripId, scope) }],
+  notesPages: ({ tripId }) => [{ path: `/trip/${tripId}/notes` }],
   tripList: () => [{ path: "/trips" }, { path: "/trips/archived" }],
   invites: () => [{ path: "/trips" }],
   profile: () => [{ path: "/profile" }, { path: "/settings" }],
@@ -105,6 +107,8 @@ function threadPath(tripId: number, scope: NoteScope): string {
       return `/trip/${tripId}/money`;
     case "trip":
       return `/trip/${tripId}/overview`;
+    case "page":
+      return `/trip/${tripId}/notes`;
   }
 }
 

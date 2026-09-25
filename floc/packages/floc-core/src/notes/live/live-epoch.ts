@@ -1,7 +1,7 @@
 import type * as Y from "yjs";
 
-// Why: a whole-doc save from the phone reseeds the live doc with new Yjs items.
-// A browser cache of the old doc merged into it would duplicate every block.
+// Why: a page doc seeded again from its body (its live state lost) is made of
+// new Yjs items. A device's cache of the old doc merged into it would double every block.
 const META = "meta";
 
 export function stampEpoch(doc: Y.Doc, epoch: string): void {
@@ -13,4 +13,4 @@ export function readEpoch(doc: Y.Doc): string | null {
   return typeof epoch === "string" ? epoch : null;
 }
 
-export const liveCacheName = (tripId: number, epoch: string) => `floc-notes:${tripId}:${epoch}`;
+export const liveCacheName = (documentName: string, epoch: string) => `floc-notes:${documentName}:${epoch}`;

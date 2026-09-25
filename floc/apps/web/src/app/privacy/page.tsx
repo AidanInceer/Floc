@@ -26,12 +26,22 @@ const strictlyNecessary: StoredItem[] = [
     purpose: "Protects sign-in with Google.",
     lasts: "10 minutes",
   },
+  {
+    name: "floc-notes:*",
+    purpose: "A copy of each notes page you open, so what you write offline is kept and sent when you are back online. Kept in your browser.",
+    lasts: "Until you clear your browser",
+  },
 ];
 
 const functional: StoredItem[] = [
   {
     name: "floc-theme",
     purpose: "Remembers light or dark mode. Kept in your browser, not sent to us.",
+    lasts: "Until you change it or clear your browser",
+  },
+  {
+    name: "floc-folds:*",
+    purpose: "Remembers which headings you folded on each notes page. Kept in your browser, not sent to us.",
     lasts: "Until you change it or clear your browser",
   },
 ];

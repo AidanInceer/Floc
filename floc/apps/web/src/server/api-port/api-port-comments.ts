@@ -43,7 +43,7 @@ type CommentsPort = Pick<
   | "reactToComment"
 >;
 
-function toComment(row: NoteRow): Comment {
+export function toComment(row: NoteRow): Comment {
   return {
     id: row.id,
     body: row.body,

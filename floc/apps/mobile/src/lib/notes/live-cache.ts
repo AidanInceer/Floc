@@ -1,12 +1,13 @@
 import { Directory, File, Paths } from "expo-file-system";
 
-// Why a file: edits made offline must outlive the app being closed (#394).
+// Why a file: edits made offline must outlive the app being closed (#394, #408).
 const folder = () => new Directory(Paths.document, "notes");
 
-const fileFor = (tripId: number) => new File(folder(), `${tripId}.yjs`);
+// Why the swap: a live doc's name has colons, which not every file system takes.
+const fileFor = (documentName: string) => new File(folder(), `${documentName.replace(/:/g, "_")}.yjs`);
 
-export function readCachedNotes(tripId: number): Uint8Array | null {
-  const file = fileFor(tripId);
+export function readCachedNotes(documentName: string): Uint8Array | null {
+  const file = fileFor(documentName);
   try {
     return file.exists ? file.bytesSync() : null;
   } catch {
@@ -14,9 +15,9 @@ export function readCachedNotes(tripId: number): Uint8Array | null {
   }
 }
 
-export function writeCachedNotes(tripId: number, state: Uint8Array): void {
+export function writeCachedNotes(documentName: string, state: Uint8Array): void {
   folder().create({ idempotent: true, intermediates: true });
-  fileFor(tripId).write(state);
+  fileFor(documentName).write(state);
 }
 
 export function forgetCachedNotes(): void {

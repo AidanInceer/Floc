@@ -19,6 +19,7 @@ Next.js App Router + Turso (libSQL) + Drizzle + Better Auth.
 | `.../server/freshness.ts` | Maps a changed fact to the pages it makes stale. The only importer of `next/cache`; everything else calls `refresh`. |
 | `.../server/api-port/` | The web app's `FlocPort`: the same `server/` modules the pages use. |
 | `floc/packages/floc-core/src/` | `@floc/core`: domain rules and words (money, dates, calendar, packing) and the design token values. Pure: no I/O, no imports from an app. |
+| `floc/packages/floc-editor/src/` | `@floc/editor`: the notes page editor ([ADR-014](docs/adr/decisions.html#adr-014)) — Tiptap schema, commands and React UI. The web renders it; the phone runs it in an Expo DOM component. Takes a Yjs doc and callbacks; no I/O. |
 | `floc/packages/floc-api/src/` | `@floc/api`: the tRPC router every non-web client uses. Declares procedures and input rules; reaches data only through `FlocPort`. |
 | `floc/apps/mobile/` | `floc-mobile`: Expo app for iOS and Android. Own UI and version, same [visual language](docs/design/visual-language.html). Shipping: [`SHIPPING.md`](floc/apps/mobile/SHIPPING.md), [`STORE.md`](floc/apps/mobile/STORE.md). |
 | `floc/apps/web/src/lib/` | Browser- or Next-bound helpers only (env, theme, tabs, map, auth client). |
@@ -68,7 +69,7 @@ Never break these. Code comments cite them by number (`rule 5`), so keep the num
 5. **Trip access is enumeration-proof.** Load a trip only through `requireTripAccess` (web) or `tripProcedure` (API). A non-member gets the same answer as a trip that does not exist.
 6. **Exactly four admin powers:** remove a member, promote, delete or archive the trip, reset the invite link. Everything else, leaving included, is open to any member. Gate with `assertAdmin`.
 7. **Last write wins.** No optimistic locking; `last_modified_at` is for debugging only.
-8. **Soft-delete everywhere.** Every read *and write* filters `deleted_at IS NULL`. The few exceptions (`ensureDays`, `setTripWindow`, `addMember`) explain themselves in comments.
+8. **Soft-delete everywhere.** Every read *and write* filters `deleted_at IS NULL`. The few exceptions (`ensureDays`, `setTripWindow`, `addMember`) explain themselves in comments. A notes page a member archives is deleted for good after 7 days ([ADR-017](docs/adr/decisions.html#adr-017)).
 9. **A trip may have no dates.** `start_date` and `end_date` are nullable; undated is never an error.
 10. **No timezones.** Dates are `YYYY-MM-DD`; event times are local to the trip. Never store an offset.
 11. **Degrade, do not crash, without credentials.** A missing provider key (mail, Google, maps, stores) hides or reduces the feature — never a throw.
@@ -89,7 +90,7 @@ Never break these. Code comments cite them by number (`rule 5`), so keep the num
 - **Light and dark use the same token names.** Dark restates values in `:root[data-theme="dark"]`. **No `dark:` variant** — needing one means the token is wrong. The choice lives in `localStorage`, never in a column.
 - **No emoji.** Icons are line art: 14×14 `viewBox`, drawn at ~13px, `fill="none"`, `strokeWidth` 1.15–1.25, `stroke="currentColor"`. See [iconography](docs/design/visual-language.html#iconography).
 - **If the drawing is clear, say nothing.** Text carries only what the layout cannot. No heading above a heading, no caption that explains the design, no words that repeat what a control shows. Exceptions: what is *missing*, and status.
-- **Outside UI libraries** only where building it ourselves would take months (BlockNote runs Notes), and only if the library accepts our tokens, type and no-emoji rules.
+- **Outside UI libraries** only where building it ourselves would take months, and only if the library accepts our tokens, type and no-emoji rules. Notes runs on the headless Tiptap core under our own UI, in `@floc/editor` ([ADR-014](docs/adr/decisions.html#adr-014)).
 
 Differences between the surfaces are written once, in the docs — do not repeat them here:
 
@@ -137,7 +138,7 @@ Payments between members, POI data and reviews, flight *booking* (deep links onl
 
 ## Real users — hard stop
 
-Production has a few real test users. **Never delete, wipe or overwrite trip or user data** (people, trips, money, files) in production or any shared database: no hard deletes, no destructive migrations, no resets, no scripts that remove rows. Ask first, every time. Resetting and seeding local `local.db` is fine.
+Production has a few real test users. **Never delete, wipe or overwrite trip or user data** (people, trips, money, files) in production or any shared database: no hard deletes, no destructive migrations, no resets, no scripts that remove rows. Ask first, every time. Resetting and seeding local `local.db` is fine. The one exception: a notes page a member archives is deleted for good after 7 days ([ADR-017](docs/adr/decisions.html#adr-017)).
 
 ## Security
 

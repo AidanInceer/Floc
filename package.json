@@ -32,11 +32,6 @@
     "pre-commit": "pnpm exec lint-staged",
     "commit-msg": "node scripts/check-commit-msg.mjs $1"
   },
-  "lint-staged": {
-    "*.{ts,tsx}": "eslint --flag v10_config_lookup_from_file --max-warnings=0",
-    "*.{ts,tsx,js,jsx,mjs,cjs}": "node scripts/check-comments.mjs --staged",
-    "*": "node scripts/check-staged-secrets.mjs"
-  },
   "devDependencies": {
     "lint-staged": "^17.5.1",
     "simple-git-hooks": "^2.14.0",

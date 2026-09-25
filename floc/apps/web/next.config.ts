@@ -10,9 +10,9 @@ const config: NextConfig = {
   // from a different origin than localhost (ticket 289). The host is per
   // machine, so it comes from the environment rather than the repo.
   allowedDevOrigins: process.env.FLOC_LAN_HOST ? [process.env.FLOC_LAN_HOST] : [],
-  // @floc/core ships TypeScript source, not a build (#286) — a workspace
-  // package with no build step is one less thing to be stale in dev.
-  transpilePackages: ["@floc/core"],
+  // @floc/core and @floc/editor ship TypeScript source, not a build (#286) —
+  // a workspace package with no build step is one less thing to be stale in dev.
+  transpilePackages: ["@floc/core", "@floc/editor"],
   // Better Auth + the libSQL driver both want the Node runtime, not Edge.
   serverExternalPackages: ["@libsql/client", "better-auth"],
   experimental: {

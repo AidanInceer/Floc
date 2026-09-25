@@ -1,10 +1,11 @@
-/** Called every 5 minutes by the Railway cron (`scripts/cron-push.mjs`): reminders, then push, then the email fallback (#346). */
+/** Called every 5 minutes by the Railway cron (`scripts/cron-push.mjs`): reminders, then push, then the email fallback (#346), then archived notes pages past their week (#408). */
 import { sendEmails } from "@/server/auth/email";
 import { isCronCaller } from "@/server/notifications/cron-caller";
 import { sendDueEmails } from "@/server/notifications/email-fallback";
 import { sendExpoPushes } from "@/server/notifications/expo-push";
 import { sendDuePushes } from "@/server/notifications/push";
 import { sendDueReminders } from "@/server/notifications/reminders";
+import { purgeArchivedPages } from "@/server/notes/pages/page-purge";
 
 export const runtime = "nodejs";
 
@@ -24,6 +25,7 @@ export async function POST(request: Request): Promise<Response> {
     reminders: await attempt("reminders", () => sendDueReminders()),
     pushes: await attempt("push", () => sendDuePushes(sendExpoPushes)),
     emails: await attempt("email", () => sendDueEmails(sendEmails)),
+    pages: await attempt("pages", () => purgeArchivedPages()),
   };
   const failed = Object.values(result).includes(null);
   return Response.json(result, { status: failed ? 500 : 200 });

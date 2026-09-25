@@ -5,8 +5,8 @@ import { liveStatus } from "./live-status";
 const base = { connected: true, synced: true, unsynced: 0, failed: false };
 
 describe("liveStatus", () => {
-  it("is saved when synced with nothing waiting", () => {
-    expect(liveStatus(base)).toBe("saved");
+  it("is live when synced with nothing waiting", () => {
+    expect(liveStatus(base)).toBe("live");
   });
 
   it("is saving while changes wait on the server", () => {

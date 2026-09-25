@@ -27,7 +27,7 @@ const config = [
   // A router is one `t.router({...})` call, so every procedure counts as one
   // function body. Splitting on the line count would split the contract.
   {
-    files: ["src/routers/*.ts"],
+    files: ["src/routers/**/*.ts"],
     rules: { "max-lines-per-function": "off" },
   },
 

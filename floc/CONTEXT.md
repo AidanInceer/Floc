@@ -40,3 +40,30 @@ changes what the ledger stores.
 **Convert** — a UI-only toggle that shows an amount in the viewer's home
 currency using a free daily FX rate. Display only — the ledger is always in the
 currency the expense/settlement was recorded in.
+
+## Notes
+
+**Notes** — the trip's tab of shared, freely written pages. Any member may
+write in any page; several people can write at once.
+
+**Page** (or *notes page*) — one page in Notes, with a title and a body of
+blocks. Every trip has at least one. A page may hold sub-pages, one level deep.
+Never call it a "doc": that word is kept for an uploaded *document* in Files.
+
+**Block** — one line-level piece of a page: a paragraph, heading, list item,
+checklist item, quote, divider or table.
+
+**Highlight** — a colour laid on a run of text in a page.
+
+**Page comment** — a comment pinned to a run of text in a page, with replies;
+it can be resolved.
+
+**Trip link** — an inline pill in a page that points at a day, event, place,
+expense, packing item or file on the same trip. It shows the item's current
+name, and "Removed" once the item is deleted.
+
+**Page icon** — an optional line icon a member picks for a page, from Floc's
+own icon set. Never an emoji.
+
+**Archived page** — a page a member has archived. It can be restored for 7
+days, then it is deleted for good, with its sub-pages and comments.

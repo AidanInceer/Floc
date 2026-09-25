@@ -34,10 +34,12 @@ export async function loadThreads({
   // can display; extra rows from a soft-deleted day/event are just dropped.
   // Reactions join through `note` and reuse the same scope, so they don't
   // wait on note ids either.
+  // A resolved page comment (#408) has left its page; nothing else resolves.
   const scoped = and(
     eq(note.tripId, tripId),
     eq(note.scope, scope),
     isNull(note.deletedAt),
+    isNull(note.resolvedAt),
   );
 
   const [rows, reactionRows] = await Promise.all([

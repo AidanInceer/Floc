@@ -6,9 +6,10 @@ export function tripHref(tripId: number, tab: TripTab): string {
 }
 
 /** The tab a comment thread is drawn on. Mirrors `threadPath` in the web app's freshness table. */
-export function threadTab(scope: "trip" | "day" | "day_event" | "expense"): TripTab {
+export function threadTab(scope: "trip" | "day" | "day_event" | "expense" | "page"): TripTab {
   if (scope === "day" || scope === "day_event") return "days";
   if (scope === "expense") return "money";
+  if (scope === "page") return "notes";
   return "overview";
 }
 
