@@ -9,7 +9,7 @@ import { CellSelection, selectedRect } from "@tiptap/pm/tables";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import { PAGE_LIMITS } from "@floc/core/notes/pages/page-rules";
 
-const newId = () => Math.random().toString(36).slice(2, 10);
+const newId = () => Array.from(crypto.getRandomValues(new Uint8Array(6)), (byte) => byte.toString(36).padStart(2, "0")).join("").slice(0, 8);
 
 export function headingIds(makeId: () => string = newId) {
   return new Plugin({

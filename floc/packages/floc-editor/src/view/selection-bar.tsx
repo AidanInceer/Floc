@@ -7,7 +7,7 @@
 
 import { useEditorState, type Editor } from "@tiptap/react";
 import { TextSelection } from "@tiptap/pm/state";
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { addComment, setHighlight, setLink } from "../commands/marks";
 import { Icon, type IconName } from "./icons";
@@ -47,6 +47,10 @@ export function SelectionBar({ editor, onComment }: { editor: Editor; onComment:
     setError(null);
   };
   const dismiss = useDismiss(mode !== "tools", done);
+  const input = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (mode !== "tools") input.current?.focus();
+  }, [mode]);
   useViewportTick();
 
   const at = mode === "tools" ? range : held;
@@ -78,7 +82,7 @@ export function SelectionBar({ editor, onComment }: { editor: Editor; onComment:
   };
 
   return (
-    <div ref={dismiss} className="fe-bar" style={style} onMouseDown={(event) => { if (!(event.target instanceof HTMLInputElement)) event.preventDefault(); }}>
+    <div ref={dismiss} className="fe-bar" role="toolbar" aria-label="Format" tabIndex={-1} style={style} onMouseDown={(event) => { if (!(event.target instanceof HTMLInputElement)) event.preventDefault(); }}>
       {mode === "tools" ? (
         <>
           {MARKS.map(([name, label, icon]) => (
@@ -98,7 +102,7 @@ export function SelectionBar({ editor, onComment }: { editor: Editor; onComment:
         <form onSubmit={(event) => { void submit(event); }}>
           <span className="fe-lead"><Icon name={mode === "link" ? "link" : "comment"} /></span>
           <input
-            autoFocus
+            ref={input}
             value={value}
             onChange={(event) => { setValue(event.target.value); setError(null); }}
             placeholder={mode === "link" ? "Paste a link" : "Write a comment"}

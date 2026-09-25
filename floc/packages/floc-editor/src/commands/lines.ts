@@ -25,11 +25,11 @@ export function indentLines(step: 1 | -1): Command {
   return (state, dispatch) => {
     if (state.selection.$from.depth !== 1 && state.selection.$from.depth !== 0) return false;
     const tr = state.tr;
-    state.doc.nodesBetween(state.selection.from, state.selection.to, (node, pos) => {
-      if (!isTextBlock(node)) return false;
+    const { from, to } = state.selection;
+    state.doc.forEach((node, pos) => {
+      if (pos >= to || pos + node.nodeSize <= from || !isTextBlock(node)) return;
       const indent = Math.max(0, Math.min(MAX_INDENT, (node.attrs.indent as number) + step));
       if (indent !== node.attrs.indent) tr.setNodeAttribute(pos, "indent", indent);
-      return false;
     });
     if (!tr.docChanged) return false;
     dispatch?.(tr);

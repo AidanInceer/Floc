@@ -95,7 +95,7 @@ export function CellBar({ editor }: { editor: Editor }) {
   const place = info ? barPlace(editor, info) : null;
   if (!info || !place) return null;
   return (
-    <div className="fe-bar fe-cellbar" style={place} onMouseDown={(event) => event.preventDefault()}>
+    <div className="fe-bar fe-cellbar" role="toolbar" aria-label="Cells" tabIndex={-1} style={place} onMouseDown={(event) => event.preventDefault()}>
       <span className="fe-count">{`${info.count} cell${info.count > 1 ? "s" : ""}`}</span>
       <span className="fe-sep" />
       <Swatches none what="background" onPick={(tone) => { run(editor, paintCells(info.tablePos, info.rect, tone)); }} />

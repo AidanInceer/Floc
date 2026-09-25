@@ -47,6 +47,10 @@ export function PageTop({ title, icon, onRename, onIcon, onDown, touch = false }
   const [picker, setPicker] = useState<Point | null>(null);
   const typing = useRef(false);
   const field = useRef<HTMLTextAreaElement>(null);
+  const startsEmpty = useRef(!title);
+  useEffect(() => {
+    if (startsEmpty.current) field.current?.focus();
+  }, []);
 
   useEffect(() => {
     if (!typing.current) setValue(title);
@@ -83,7 +87,6 @@ export function PageTop({ title, icon, onRename, onIcon, onDown, touch = false }
       <textarea
         ref={field}
         className="fe-title"
-        autoFocus={!title}
         rows={1}
         value={value}
         maxLength={PAGE_LIMITS.titleChars}

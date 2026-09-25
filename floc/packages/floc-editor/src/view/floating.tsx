@@ -69,6 +69,7 @@ export function Menu({ at, label, onClose, children, className = "" }: { at: Poi
       className={`fe-menu ${className}`}
       role="menu"
       aria-label={label}
+      tabIndex={-1}
       style={place}
       onMouseDown={(event) => event.preventDefault()}
     >

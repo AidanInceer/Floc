@@ -119,7 +119,7 @@ function MenuBox({ at, anchorTop, mode, items, index, onHover, onPick }: {
     ref.current?.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: "nearest" });
   }, [index, ref]);
   return (
-    <div ref={ref} className={`fe-slash is-${mode}`} role="listbox" aria-label={TITLES[mode]} style={place} onMouseDown={(event) => event.preventDefault()}>
+    <div ref={ref} className={`fe-slash is-${mode}`} role="listbox" aria-label={TITLES[mode]} tabIndex={-1} style={place} onMouseDown={(event) => event.preventDefault()}>
       {mode !== "things" ? <p className="fe-group">{TITLES[mode]}</p> : null}
       {items.length === 0 ? <p className="fe-none">{NONE[mode]}</p> : null}
       {items.map((item, i) => (

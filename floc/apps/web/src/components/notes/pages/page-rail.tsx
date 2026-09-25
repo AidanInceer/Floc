@@ -6,7 +6,7 @@
  */
 "use client";
 
-import { useState, type DragEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type DragEvent, type ReactNode } from "react";
 import { Glyph, Icon } from "@floc/editor/view/icons";
 import { IconPicker } from "@floc/editor/view/page-top";
 import { Menu, type Point } from "@floc/editor/view/floating";
@@ -34,9 +34,11 @@ const nameOf = (page: { title: string }) => page.title || "Untitled";
 
 function RenameField({ page, onDone }: { page: RailPage; onDone: (title: string | null) => void }) {
   const [value, setValue] = useState(page.title);
+  const input = useRef<HTMLInputElement>(null);
+  useEffect(() => input.current?.focus(), []);
   return (
     <input
-      autoFocus
+      ref={input}
       className="notes-rename"
       value={value}
       placeholder="Untitled"
