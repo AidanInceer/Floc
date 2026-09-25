@@ -12,7 +12,7 @@ A prototype is **throwaway code that answers a question**. The question decides 
 Identify which question is being answered — from the user's prompt, the surrounding code, or by asking if the user is around:
 
 - **"Does this logic / state model feel right?"** → [LOGIC.md](LOGIC.md). Build a tiny interactive terminal app that pushes the state machine through cases that are hard to reason about on paper.
-- **"What should this look like?"** → [UI.md](UI.md). Generate several radically different UI variations on a single route, switchable via a URL search param and a floating bottom bar.
+- **"What should this look like?"** → [UI.md](UI.md). Generate several radically different UI variations on one page, switchable via a URL search param and a floating bottom bar. In Floc that page is a static wireframe, not an app route.
 
 The two branches produce very different artifacts — getting this wrong wastes the whole prototype. If the question is genuinely ambiguous and the user isn't reachable, default to whichever branch better matches the surrounding code (a backend module → logic; a page or component → UI) and state the assumption at the top of the prototype.
 
@@ -23,18 +23,27 @@ The two branches produce very different artifacts — getting this wrong wastes 
 3. **No persistence by default.** State lives in memory. Persistence is the thing the prototype is _checking_, not something it should depend on. If the question explicitly involves a database, hit a scratch DB or a local file with a clear "PROTOTYPE — wipe me" name.
 4. **Skip the polish.** No tests, no error handling beyond what makes the prototype _runnable_, no abstractions. The point is to learn something fast.
 5. **Surface the state.** After every action (logic) or on every variant switch (UI), print or render the full relevant state so the user can see what changed.
-6. **Capture it when done.** Fold any validated decision into the real code, then capture the prototype itself as a **primary source**: commit it to a throwaway branch, out of main, and leave a context pointer to that branch on the implementation issue. Capture the answer too — the verdict and the question it settled — in the issue or a commit. The main branch keeps only the validated decision.
+6. **Capture it when done.** Fold any validated decision into the real code. Capture the answer — the verdict and the question it settled — on the issue. The prototype itself stays out of git (see In Floc).
 
 ## In Floc
 
-These override the generic rules above where they differ.
+These override the generic rules above where they differ. The biggest one: **a prototype never touches the app, never gets a branch, never gets committed.** Work goes local → `develop` → `main`, nothing else.
 
-- **Never on `develop`.** A prototype breaks `verify` on purpose (no tests, dead code, lint). Never `/floc:push` it. Rule 6's throwaway branch is `prototype/<issue>-<slug>`, pushed to origin and never merged — the one branch allowed besides `develop` and `main`. Return to `develop` when done.
-- **Where it lives.**
-  - UI, web: sub-shape A on the real route under `floc/apps/web/src/app/`, gated by `?variant=`. The switcher is dev-only (`process.env.NODE_ENV !== "production"`).
-  - UI, phone: variants in the real screen under `floc/apps/mobile/`, switched by a dev-only bar gated on `__DEV__`. Prototype the phone only when the question is phone-specific; otherwise the web answer carries over through the [visual language](../../../../docs/design/visual-language.html).
-  - Logic: the pure module sits where it would live for real — `floc/packages/floc-core/src/` for a domain rule, `floc/apps/web/src/server/` for data. The TUI runs with `node --experimental-strip-types <file>.ts` behind a `prototype:<name>` script in that package.
-- **Real data.** Run against the dev loop (`/floc:run`) with scenario A seeded (`/floc:seed-dev-db`), so variants sit next to real trips, people and money. Never touch production.
-- **House look, still.** Even throwaway variants use tokens (no hex), house components from `components/system/`, line icons, no emoji — or the verdict judges the wrong thing.
-- **Hand it over with proof.** Open the route with `preview_start` and send screenshots of each variant, light and dark, with `SendUserFile`.
-- **Capture the verdict on the ticket.** Add `## Prototype verdict` to the issue body: the question, the winner, why, and the branch name. Remove the `wayfinder:prototype` label. Open decisions left → `/floc:grill`; settled → `/floc:implement-feature` builds it properly, test-first.
+- **It lives in `floc/wireframe/`, which is gitignored.** One folder per prototype: `floc/wireframe/<issue>-<slug>/index.html` plus its own `.js` and `.css`. Nothing under `floc/apps/` or `floc/packages/` changes, so `verify`, lint, coverage and `fitness` never see it. No `prototype/*` branch, no `/floc:push`, no commit.
+- **It runs on the wireframe port.** `pnpm wireframe` (or `preview_start` with `wireframes`) serves `floc/wireframe/` on http://localhost:4100. The root lists every prototype. The server is `scripts/wireframe-server.mjs`.
+- **Plain HTML, CSS and JS.** No build, no framework, no packages from a CDN. Every page links the house base:
+
+  ```html
+  <link rel="stylesheet" href="/_house/house.css">
+  <script src="/_house/house.js" defer></script>
+  ```
+
+  `house.css` loads the real token values from `@floc/core/design/tokens` (light and dark), the three faces, `.typed`, `.nums`, `.who-1`…`.who-8`, `.avatar`, `.btn`. `house.js` adds the light/dark switch; the page opens in light.
+- **House look, still.** Colours only through `var(--token)`, never hex. Line icons (14×14 `viewBox`, stroke only), no emoji. Copy the shapes from `components/system/` by eye; do not import them. Otherwise the verdict judges the wrong thing.
+- **Realistic data, in the file.** A static page cannot reach the database. Write believable trips, people and plans in the prototype's own JS, shaped like scenario A (`/floc:seed-dev-db` shows what that holds). Real words, never lorem ipsum.
+- **Interactive beats pretty.** The user clicks and types in it to learn how it feels. State lives in memory; a reload starts over.
+- **Variants.** Several answers to one question → `?variant=` on the same page, cycled by a small bar at the bottom centre. One agreed direction that the grill keeps changing → one page, edited round by round.
+- **UI, phone.** Draw the phone as a 390×844 frame on the same page, when the question is phone-specific. Otherwise the web answer carries over through the [visual language](../../../../docs/design/visual-language.html).
+- **Logic.** A TUI in `floc/wireframe/<issue>-<slug>/tui.ts`, run with `node <file>.ts`. It may import pure modules from `@floc/core` by relative path; it never writes them.
+- **Hand it over with proof.** Open it with `preview_start` (`wireframes`) and send light and dark screenshots with `SendUserFile`. Give the user the URL.
+- **Capture the verdict on the ticket.** Add `## Prototype verdict` to the issue body: the question, the answer, why, and the folder name. Remove the `wayfinder:prototype` label. The folder stays on the user's disk as the source; `/floc:implement-feature` rebuilds the answer properly, test-first. Open decisions left → `/floc:grill`.

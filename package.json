@@ -18,6 +18,7 @@
     "fitness": "node scripts/check-folder-size.mjs && node scripts/check-docs.mjs && turbo run fitness",
     "docs:check": "node scripts/check-docs.mjs",
     "docs:dev": "node scripts/docs-server.mjs",
+    "wireframe": "node scripts/wireframe-server.mjs",
     "comments": "node scripts/check-comments.mjs --working",
     "parity":"node --experimental-strip-types scripts/parity/run.mjs",
     "verify": "node scripts/verify.mjs",

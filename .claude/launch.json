@@ -38,13 +38,9 @@
     },
     {
       "name": "wireframes",
-      "runtimeExecutable": "npx",
+      "runtimeExecutable": "node",
       "runtimeArgs": [
-        "serve",
-        "floc/wireframe",
-        "-p",
-        "4100",
-        "--no-clipboard"
+        "scripts/wireframe-server.mjs"
       ],
       "port": 4100
     }
