@@ -9,6 +9,7 @@
 import { db } from "../index.ts";
 import { availability, day, dayEvent, place } from "../schema.ts";
 import type { Person } from "./people.ts";
+import { seedNotesPages } from "./notes-pages.ts";
 import { FRIENDS_ONLY, OPEN, PRIVATE } from "./profiles.ts";
 import { befriend, ensureDevUser, seedPerson } from "./people.ts";
 import {
@@ -96,6 +97,7 @@ export async function buildScenarioA(): Promise<string> {
   const days = await planPortugal(tripId);
   await packPortugal(tripId, { you, priya, tom, sofia });
   await spendPortugal(tripId, days, { you, priya, tom, roster });
+  await seedNotesPages(tripId, { you, priya, tom, sofia });
 
   return `Portugal, late summer — trip ${tripId}, 4 members, 5 shared packing lines, 3 expenses.`;
 }

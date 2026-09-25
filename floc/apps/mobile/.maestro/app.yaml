@@ -51,9 +51,12 @@ appId: com.floc.app
 
 - tapOn: "Notes"
 - extendedWaitUntil:
-    visible: "Saved"
+    visible: "Live"
     timeout: 15000
 - assertVisible: "1 person here"
+- tapOn: "Pages"
+- assertVisible: "New page"
+- tapOn: "Close"
 
 - tapOn: "All trips"
 - tapOn: "You"

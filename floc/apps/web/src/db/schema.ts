@@ -20,10 +20,12 @@ import { DOC_CATEGORIES } from "@floc/core/documents/documents";
 import { PACK_CATEGORIES, PACK_TIERS } from "@floc/core/packing/packing";
 import { PLANS } from "@floc/core/billing/plans";
 import { AVATAR_ICONS } from "@floc/core/people/avatar-icon";
+import { PAGE_ICONS } from "@floc/core/notes/pages/page-icons";
 import { ACTIVITY_KINDS, REMINDER_KINDS } from "@floc/core/notifications/rules";
 import {
   blob,
   index,
+  type AnySQLiteColumn,
   integer,
   primaryKey,
   real,
@@ -364,11 +366,10 @@ export const tripInvite = sqliteTable(
 /* -------------------------------------------------------------------------- */
 
 /**
- * The trip's Notes doc (ticket 238) — one row per trip, the whole document as
- * one JSON blob of BlockNote blocks. Whole-doc, not a row per block: the
- * editor owns block order and nesting, so splitting them out would mean
- * keeping two orderings honest for no read we make. Live editing (#391) merges
- * through `yjsState`; `body` stays as its JSON copy for every other reader.
+ * The trip's Notes doc from before pages (ticket 238), as BlockNote JSON. Since
+ * #408 it is only read: the first time a trip's Notes opens, it becomes that
+ * trip's first page (`server/notes/pages/page-first`). Removed by a later
+ * ticket once one release has run with pages.
  */
 export const tripNoteDoc = sqliteTable(
   "trip_note_doc",
@@ -381,13 +382,48 @@ export const tripNoteDoc = sqliteTable(
     updatedBy: text("updated_by")
       .notNull()
       .references(() => user.id),
-    /** BlockNote's `Block[]`, `JSON.stringify`d. Never parsed server-side. */
+    /** BlockNote's `Block[]`, `JSON.stringify`d. Read once, by the move to pages. */
     body: text("body").notNull(),
     /** The live Yjs doc. Null = seed it from `body` on next open. */
     yjsState: blob("yjs_state", { mode: "buffer" }),
     ...audit,
   },
   (t) => [uniqueIndex("trip_note_doc_trip_idx").on(t.tripId)],
+);
+
+/**
+ * A notes page (#408, ADR-014): the trip's Notes is a list of these, one level
+ * of sub-pages deep. `yjs_state` is the live doc; `body` is its copy in our own
+ * block format (`@floc/core/notes/pages/page-blocks`) for every other reader.
+ *
+ * Why `archived_at` and a hard delete: an archived page is restorable for 7
+ * days, then it, its sub-pages and their comments go for good — the one
+ * exception to rule 8 (ADR-017), done by `purgeArchivedPages` alone.
+ */
+export const tripPage = sqliteTable(
+  "trip_page",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    tripId: integer("trip_id")
+      .notNull()
+      .references(() => trip.id, { onDelete: "cascade" }),
+    /** Null for a top-level page. Never a sub-page's id: one level deep. */
+    parentId: integer("parent_id").references((): AnySQLiteColumn => tripPage.id),
+    title: text("title").notNull().default(""),
+    icon: text("icon", { enum: PAGE_ICONS }),
+    /** Order among its siblings; rewritten for the whole list on a move. */
+    position: integer("position").notNull().default(0),
+    archivedAt: integer("archived_at", { mode: "timestamp" }),
+    body: text("body").notNull(),
+    /** The live Yjs doc. Null = seed it from `body` on next open. */
+    yjsState: blob("yjs_state", { mode: "buffer" }),
+    /** Whoever changed it last — the page is the group's, so there is no author. */
+    updatedBy: text("updated_by")
+      .notNull()
+      .references(() => user.id),
+    ...audit,
+  },
+  (t) => [index("trip_page_trip_idx").on(t.tripId, t.parentId)],
 );
 
 /**
@@ -827,6 +863,7 @@ export const NOTE_SCOPES = [
   "day",
   "day_event",
   "expense",
+  "page",
 ] as const;
 export type NoteScope = (typeof NOTE_SCOPES)[number];
 
@@ -857,6 +894,8 @@ export const note = sqliteTable(
      * it's debugging-only and moves for reasons the author never chose.
      */
     editedAt: integer("edited_at", { mode: "timestamp" }),
+    /** A page comment (#408) someone marked done. Any member may; its thread leaves the page. */
+    resolvedAt: integer("resolved_at", { mode: "timestamp" }),
     ...audit,
   },
   (t) => [

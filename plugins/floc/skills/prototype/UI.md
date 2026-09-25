@@ -1,5 +1,7 @@
 # UI Prototype
 
+> **In Floc, skip the two sub-shapes below.** A prototype is a static page in gitignored `floc/wireframe/`, never an app route ([SKILL.md](SKILL.md#in-floc)). Keep sub-shape A's point by drawing the chrome around it — the header, the trip tab bar, a real-looking trip — so it is never judged in a vacuum.
+
 Generate **several radically different UI variations** on a single route, switchable from a floating bottom bar. The user flips between variants in the browser, picks one (or steals bits from each), then throws the rest away.
 
 If the question is about logic/state rather than what something looks like — wrong branch. Use [LOGIC.md](LOGIC.md).

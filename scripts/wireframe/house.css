@@ -1,0 +1,90 @@
+/* The web app's base, for static wireframes. Token values come from @floc/core via /_house/tokens.css. */
+@import url("/_house/tokens.css");
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600&family=DM+Mono:wght@400;500&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap");
+
+:root {
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 15px;
+  --text-md: 17px;
+  --text-lg: 20px;
+  --text-xl: 25px;
+  --text-2xl: 31px;
+  --text-3xl: 39px;
+  color-scheme: light;
+}
+:root[data-theme="dark"] { color-scheme: dark; }
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: var(--text-base);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 {
+  font-family: var(--display);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+  margin: 0;
+}
+p { margin: 0; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+input { font: inherit; color: inherit; }
+a { color: var(--pen); }
+:focus-visible { outline: 2px solid var(--pen); outline-offset: 2px; }
+
+.typed {
+  font-family: var(--type);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.nums { font-family: var(--type); font-variant-numeric: tabular-nums; }
+
+.who-1 { background: var(--who-1); color: var(--who-1-ink); }
+.who-2 { background: var(--who-2); color: var(--who-2-ink); }
+.who-3 { background: var(--who-3); color: var(--who-3-ink); }
+.who-4 { background: var(--who-4); color: var(--who-4-ink); }
+.who-5 { background: var(--who-5); color: var(--who-5-ink); }
+.who-6 { background: var(--who-6); color: var(--who-6-ink); }
+.who-7 { background: var(--who-7); color: var(--who-7-ink); }
+.who-8 { background: var(--who-8); color: var(--who-8-ink); }
+
+.avatar {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  border-radius: 999px; border: 1px solid var(--rule-2);
+  font-family: var(--type); font-weight: 600;
+}
+.avatar-row { display: flex; align-items: center; }
+.avatar-row > * + * { margin-left: -8px; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border-radius: 999px; border: 1px solid var(--rule-2); background: var(--sheet); color: var(--ink-2);
+  padding: 6px 16px; font-family: var(--type); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+}
+.btn:hover { border-color: var(--pen); color: var(--ink); }
+.btn-primary { background: var(--pen); border-color: var(--pen); color: var(--sheet); }
+
+/* Not part of any design under review. */
+.wf-theme {
+  position: fixed; right: 16px; bottom: 16px; z-index: 1000;
+  display: flex; gap: 2px; padding: 3px; border-radius: 999px;
+  background: var(--ink); box-shadow: var(--shadow-lift);
+}
+.wf-theme button {
+  padding: 4px 10px; border-radius: 999px; font-family: var(--type); font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.06em; color: var(--paper); opacity: 0.6;
+}
+.wf-theme button[aria-pressed="true"] { background: var(--paper); color: var(--ink); opacity: 1; }
+
+.wf-index { max-width: 44rem; margin: 64px auto; padding: 0 24px; }
+.wf-index ul { list-style: none; padding: 0; margin: 24px 0 0; }
+.wf-index li { display: flex; align-items: baseline; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--rule); }
+.wf-index a { font-size: var(--text-md); text-decoration: none; }

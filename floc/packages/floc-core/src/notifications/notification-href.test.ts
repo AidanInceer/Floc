@@ -8,6 +8,7 @@ describe("notification links", () => {
     expect(tripHref(4, threadTab("day"))).toBe("/trip/4/days");
     expect(tripHref(4, threadTab("expense"))).toBe("/trip/4/money");
     expect(tripHref(4, threadTab("trip"))).toBe("/trip/4/overview");
+    expect(tripHref(4, threadTab("page"))).toBe("/trip/4/notes");
   });
 
   it("sends the phone to its own Overview route", () => {

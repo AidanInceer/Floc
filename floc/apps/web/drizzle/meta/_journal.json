@@ -288,6 +288,13 @@
       "when": 1790112868658,
       "tag": "0040_friend_code",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "6",
+      "when": 1790283250743,
+      "tag": "0041_overjoyed_rogue",
+      "breakpoints": true
     }
   ]
 }

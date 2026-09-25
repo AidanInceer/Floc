@@ -1,9 +1,6 @@
-import * as Y from "yjs";
 import { describe, expect, it } from "vitest";
 
-import { liveBlockCursor } from "./live-block-cursor";
-import { NOTES_FRAGMENT } from "./live-names";
-import { cursorTone, liveUser, presentBlockCursors, presentPeople } from "./live-presence";
+import { cursorTone, liveUser, peopleByPage, presentPeople } from "./live-presence";
 
 const ada = liveUser({ id: "u-ada", name: "Ada Lovelace" });
 const mo = liveUser({ id: "u-mo", name: "Mo Farah" });
@@ -28,66 +25,29 @@ describe("cursorTone", () => {
 
 describe("presentPeople", () => {
   it("lists each connected person once, even with two tabs open", () => {
-    const states = new Map<number, unknown>([
-      [1, { user: ada }],
-      [2, { user: mo }],
-      [3, { user: ada }],
-    ]);
+    const states = new Map<number, unknown>([[1, { user: ada }], [2, { user: mo }], [3, { user: ada }]]);
     expect(presentPeople(states).map((p) => p.name)).toEqual(["Ada Lovelace", "Mo Farah"]);
   });
 
   it("skips a client that has not said who it is", () => {
-    const states = new Map<number, unknown>([
-      [1, {}],
-      [2, { user: { id: "u-x", name: 42 } }],
-      [3, { user: mo }],
-    ]);
+    const states = new Map<number, unknown>([[1, {}], [2, { user: { id: "u-x", name: 42 } }], [3, { user: mo }], [4, null]]);
     expect(presentPeople(states).map((p) => p.name)).toEqual(["Mo Farah"]);
-  });
-
-  it("drops a person when their state goes", () => {
-    const states = new Map<number, unknown>([[1, { user: ada }]]);
-    states.delete(1);
-    expect(presentPeople(states)).toEqual([]);
   });
 });
 
-describe("presentBlockCursors", () => {
-  it("lists the block each connected person is editing once", () => {
-    const doc = new Y.Doc();
-    const group = new Y.XmlElement("blockGroup");
-    const block = new Y.XmlElement("blockContainer");
-    const paragraph = new Y.XmlElement("paragraph");
-    const text = new Y.XmlText();
-    doc.getXmlFragment(NOTES_FRAGMENT).insert(0, [group]);
-    group.insert(0, [block]);
-    block.setAttribute("id", "plan");
-    block.insert(0, [paragraph]);
-    paragraph.insert(0, [text]);
-    const cursor = liveBlockCursor(doc, "plan");
+describe("peopleByPage", () => {
+  it("groups people by the page they have open, once each", () => {
     const states = new Map<number, unknown>([
-      [1, { user: ada, cursor }],
-      [2, { user: ada, cursor }],
-      [3, { user: mo, cursor: { head: "made up" } }],
+      [1, { user: ada, page: 4 }],
+      [2, { user: ada, page: 4 }],
+      [3, { user: mo, page: 4 }],
+      [4, { user: mo, page: 9 }],
+      [5, { user: ada }],
+      [6, { page: 9 }],
     ]);
-
-    expect(presentBlockCursors(states, doc)).toEqual([
-      { id: ada.id, name: ada.name, tone: ada.tone, blockId: "plan" },
-    ]);
-  });
-
-  it("accepts the phone's explicit focused block when no ProseMirror cursor can be drawn", () => {
-    const doc = new Y.Doc();
-    const group = new Y.XmlElement("blockGroup");
-    const block = new Y.XmlElement("blockContainer");
-    const paragraph = new Y.XmlElement("paragraph");
-    doc.getXmlFragment(NOTES_FRAGMENT).insert(0, [group]);
-    group.insert(0, [block]);
-    block.setAttribute("id", "plan");
-    block.insert(0, [paragraph]);
-
-    expect(presentBlockCursors(new Map([[1, { user: ada, blockCursor: "plan" }]]), doc)).toEqual([
-      { id: ada.id, name: ada.name, tone: ada.tone, blockId: "plan" },
-    ]);
+    const byPage = peopleByPage(states);
+    expect(byPage.get(4)?.map((p) => p.id)).toEqual(["u-ada", "u-mo"]);
+    expect(byPage.get(9)?.map((p) => p.id)).toEqual(["u-mo"]);
+    expect([...byPage.keys()]).toEqual([4, 9]);
   });
 });

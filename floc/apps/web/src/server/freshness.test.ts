@@ -27,6 +27,7 @@ const EVERY_FACT: { [K in FactKind]: Extract<Fact, { kind: K }> } = {
   documents: { kind: "documents", tripId: TRIP },
   tripLinks: { kind: "tripLinks", tripId: TRIP },
   thread: { kind: "thread", tripId: TRIP, scope: "day" },
+  notesPages: { kind: "notesPages", tripId: TRIP },
   tripList: { kind: "tripList" },
   invites: { kind: "invites" },
   profile: { kind: "profile" },
@@ -74,7 +75,7 @@ describe("the fact table", () => {
     }
   });
 
-  it("covers every note scope, since a thread hangs off four surfaces", () => {
+  it("covers every note scope, since a thread hangs off five surfaces", () => {
     for (const scope of NOTE_SCOPES) {
       const pages = pagesFor([{ kind: "thread", tripId: TRIP, scope }]);
       expect(pages, scope).toHaveLength(1);

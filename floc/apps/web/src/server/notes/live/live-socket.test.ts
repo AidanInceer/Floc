@@ -17,7 +17,9 @@ import { db } from "@/db";
 import { tripMembership } from "@/db/schema";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { attachNotesLive, LIVE_NOTES_PATH } from "./live-socket";
-import { createNotesLive, notesDocumentName } from "./notes-live";
+import { createNotesLive } from "./notes-live";
+import { pageDocumentName } from "@floc/core/notes/live/live-names";
+import { loadPages } from "@/server/notes/pages/pages-read";
 
 let world: Scenario;
 let server: Server;
@@ -25,11 +27,13 @@ let url: string;
 const open: HocuspocusProvider[] = [];
 const sockets: HocuspocusProviderWebsocket[] = [];
 const revokedSessions = new Set<string>();
+const pageOf = new Map<number, number>();
 
 beforeAll(migrateTestDb);
 beforeEach(async () => {
   await resetDb();
   world = await seedScenario();
+  pageOf.set(world.ours.id, (await loadPages(world.ours.id, world.admin)).pages[0].id);
   revokedSessions.clear();
   const live = createNotesLive({
     resolveUser: async (headers) => {
@@ -59,7 +63,7 @@ function connectAs(userId: string, tripId: number) {
   const websocketProvider = new HocuspocusProviderWebsocket({ url, WebSocketPolyfill });
   const provider = new HocuspocusProvider({
     websocketProvider,
-    name: notesDocumentName(tripId),
+    name: pageDocumentName(tripId, pageOf.get(tripId) ?? 1),
     token: "session",
   });
   provider.attach();
@@ -76,7 +80,7 @@ const until = (check: () => boolean) =>
     tick();
   });
 
-// A plain map, not the Notes fragment: this proves the pipe, not BlockNote's shape.
+// A plain map, not the page fragment: this proves the pipe, not the page's shape.
 const write = (doc: Y.Doc, text: string) => doc.getMap("probe").set(text, true);
 const read = (doc: Y.Doc) => [...doc.getMap("probe").keys()].sort().join(",");
 

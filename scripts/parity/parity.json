@@ -182,7 +182,7 @@
     },
     "me.rename": {
       "mobile": "wontfix",
-      "why": "The app renames you through settings.identity, which writes the name and the picture together — the same sheet, one write. A second procedure that writes half of that would be a second way to do one job."
+      "why": "The app renames you through settings.identity, which writes the name and the picture together \u2014 the same sheet, one write. A second procedure that writes half of that would be a second way to do one job."
     },
     "me.setMark": {
       "mobile": "yes"
@@ -264,6 +264,39 @@
       "mobile": "yes"
     },
     "packing.stepQuantity": {
+      "mobile": "yes"
+    },
+    "pages.archive": {
+      "mobile": "yes"
+    },
+    "pages.comment": {
+      "mobile": "yes"
+    },
+    "pages.comments": {
+      "mobile": "yes"
+    },
+    "pages.create": {
+      "mobile": "yes"
+    },
+    "pages.links": {
+      "mobile": "yes"
+    },
+    "pages.list": {
+      "mobile": "yes"
+    },
+    "pages.move": {
+      "mobile": "yes"
+    },
+    "pages.rename": {
+      "mobile": "yes"
+    },
+    "pages.resolve": {
+      "mobile": "yes"
+    },
+    "pages.restore": {
+      "mobile": "yes"
+    },
+    "pages.setIcon": {
       "mobile": "yes"
     },
     "people.profile": {

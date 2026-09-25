@@ -11,7 +11,7 @@
 import { redirect } from "next/navigation";
 
 import { requireUser } from "@/server/access";
-import { bulletDoc, saveNoteDoc } from "@/server/notes/note-doc";
+import { bulletPage } from "@floc/core/notes/pages/page-blocks";
 import { createTripWithAdmin } from "@/server/trips/trips";
 import { ensureProfile } from "@/server/auth/profile";
 import { refresh } from "@/server/freshness";
@@ -40,11 +40,8 @@ export async function startTripFromPreset(formData: FormData): Promise<void> {
     startDate: null,
     endDate: null,
     createdBy: viewer.id,
+    firstPage: bulletPage(preset.highlights),
   });
-
-  if (preset.highlights.length > 0) {
-    await saveNoteDoc(tripId, viewer.id, bulletDoc(preset.highlights));
-  }
 
   refresh({ kind: "tripList" });
   redirect(`/trip/${tripId}/overview`);

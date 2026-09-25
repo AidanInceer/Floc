@@ -1,43 +1,38 @@
 /**
- * Live Notes sync (#391): who may connect, how an old JSON doc becomes a Yjs
- * doc, what is stored, and that a removed member is dropped at once.
+ * Live notes pages (#391, #408): who may open which doc, how a page is seeded
+ * and stored, and that archived pages and removed members are dropped at once.
  */
 import * as Y from "yjs";
+import { eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { loadNoteDoc, saveNoteDoc } from "@/server/notes/note-doc";
-import { removeMembership } from "@/server/trips/roster";
-import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
-import { createNotesLive, notesDocumentName } from "./notes-live";
-import { blocksJson, NOTES_FRAGMENT } from "./live-doc";
-import { loadLiveState, storeLiveState } from "./live-store";
-import { softDeleteTrip } from "@/server/trips/trips";
+import { db } from "@/db";
+import { tripPage } from "@/db/schema";
+import { pageDocumentName, pagesDocumentName } from "@floc/core/notes/live/live-names";
 import { readEpoch } from "@floc/core/notes/live/live-epoch";
-import { loadLiveEpoch } from "./live-epoch-store";
+import { parsePageBody, serialisePage, type PageBlock } from "@floc/core/notes/pages/page-blocks";
+import { PAGE_FRAGMENT, readPageYjs } from "@floc/core/notes/pages/page-yjs";
+import { archivePage, createPage } from "@/server/notes/pages/pages";
+import { loadPages } from "@/server/notes/pages/pages-read";
+import { removeMembership } from "@/server/trips/roster";
+import { softDeleteTrip } from "@/server/trips/trips";
+import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
+import { createNotesLive } from "./notes-live";
+import { loadPageEpoch } from "./live-epoch-store";
+import { loadPageState, storePageState } from "./page-live-store";
 
 let world: Scenario;
+let pageId: number;
 
 beforeAll(migrateTestDb);
 beforeEach(async () => {
   await resetDb();
   world = await seedScenario();
+  pageId = (await loadPages(world.ours.id, world.admin)).pages[0].id;
 });
 
-const doc = (text: string) =>
-  JSON.stringify([
-    {
-      id: "b1",
-      type: "paragraph",
-      props: { backgroundColor: "default", textColor: "default", textAlignment: "left" },
-      content: [{ type: "text", text, styles: {} }],
-      children: [],
-    },
-  ]);
-
-const texts = (json: string) =>
-  (JSON.parse(json) as { content: { text: string }[] }[]).map((b) =>
-    b.content.map((c) => c.text).join(""),
-  );
+const lines = (text: string): PageBlock[] => [{ type: "paragraph", indent: 0, content: [{ type: "text", text }] }];
+const texts = (blocks: PageBlock[]) => blocks.map((block) => (block.type === "paragraph" ? block.content.map((run) => (run.type === "text" ? run.text : "")).join("") : block.type));
 
 function liveAs(userId: string | null) {
   return createNotesLive({ resolveUser: async () => userId, debounce: 0 });
@@ -45,153 +40,131 @@ function liveAs(userId: string | null) {
 
 async function authenticate(live: ReturnType<typeof liveAs>, documentName: string) {
   const context: Record<string, unknown> = {};
-  await live.hooks("onAuthenticate", {
-    context,
-    documentName,
-    requestHeaders: new Headers(),
-  } as never);
+  await live.hooks("onAuthenticate", { context, documentName, requestHeaders: new Headers() } as never);
   return context;
 }
 
+async function spare() {
+  const made = await createPage(world.ours.id, world.member, null);
+  if ("error" in made) throw new Error(made.error);
+  return made.id;
+}
+
 describe("who may connect", () => {
-  it("lets a trip member in", async () => {
-    const ctx = await authenticate(liveAs(world.member), notesDocumentName(world.ours.id));
-    expect(ctx.userId).toBe(world.member);
+  it("lets a trip member into a page and the trip's page list", async () => {
+    expect((await authenticate(liveAs(world.member), pageDocumentName(world.ours.id, pageId))).userId).toBe(world.member);
+    expect((await authenticate(liveAs(world.member), pagesDocumentName(world.ours.id))).userId).toBe(world.member);
   });
 
   it("refuses a signed-out person", async () => {
-    await expect(authenticate(liveAs(null), notesDocumentName(world.ours.id))).rejects.toThrow();
+    await expect(authenticate(liveAs(null), pageDocumentName(world.ours.id, pageId))).rejects.toThrow();
   });
 
-  it("refuses a member of another trip, the same as a trip that does not exist", async () => {
+  it("refuses an outsider the same way for a real trip, a made-up one, and a page of another trip", async () => {
     const outsider = liveAs(world.outsider);
-    const theirs = authenticate(outsider, notesDocumentName(world.ours.id));
-    const none = authenticate(outsider, notesDocumentName(999_999));
-    await expect(theirs).rejects.toThrow("Not found");
-    await expect(none).rejects.toThrow("Not found");
+    await expect(authenticate(outsider, pageDocumentName(world.ours.id, pageId))).rejects.toThrow("Not found");
+    await expect(authenticate(outsider, pagesDocumentName(999_999))).rejects.toThrow("Not found");
+    await expect(authenticate(liveAs(world.member), pageDocumentName(world.theirs.id, pageId))).rejects.toThrow("Not found");
+    const theirs = (await loadPages(world.theirs.id, world.outsider)).pages[0].id;
+    await expect(authenticate(liveAs(world.member), pageDocumentName(world.ours.id, theirs))).rejects.toThrow("Not found");
   });
 
-  it("refuses a document name that is not a trip's Notes", async () => {
-    await expect(authenticate(liveAs(world.member), "trip:abc")).rejects.toThrow("Not found");
-    await expect(authenticate(liveAs(world.member), "other:1")).rejects.toThrow("Not found");
+  it("refuses a name that is not a notes doc, and an archived page", async () => {
+    await expect(authenticate(liveAs(world.member), "trip-notes:1")).rejects.toThrow("Not found");
+    const page = await spare();
+    await archivePage(world.ours.id, page, world.member);
+    await expect(authenticate(liveAs(world.member), pageDocumentName(world.ours.id, page))).rejects.toThrow("Not found");
   });
 
   it("refuses a member who has left", async () => {
     await removeMembership(world.ours.id, world.member, world.member);
-    await expect(
-      authenticate(liveAs(world.member), notesDocumentName(world.ours.id)),
-    ).rejects.toThrow("Not found");
+    await expect(authenticate(liveAs(world.member), pageDocumentName(world.ours.id, pageId))).rejects.toThrow("Not found");
   });
 });
 
-describe("loading and storing", () => {
-  it("does not persist a pending save after the trip is deleted", async () => {
-    await softDeleteTrip(world.ours.id);
-    await storeLiveState(world.ours.id, world.member, new Uint8Array([0, 0]), doc("too late"));
-    expect((await loadLiveState(world.ours.id)).body).toBeNull();
-  });
-
-  it("seeds a live doc from the saved JSON without losing content", async () => {
-    await saveNoteDoc(world.ours.id, world.admin, doc("Kyoto in April"));
-    const live = liveAs(world.admin);
-    const conn = await live.openDirectConnection(notesDocumentName(world.ours.id), {
-      userId: world.admin,
-    });
-
-    expect(texts(blocksJson(conn.document!))).toEqual(["Kyoto in April"]);
+describe("loading and storing a page", () => {
+  it("seeds the live doc from the page's body, stamped with an epoch", async () => {
+    await db.update(tripPage).set({ body: serialisePage(lines("Kyoto in April")) }).where(eq(tripPage.id, pageId));
+    const conn = await liveAs(world.admin).openDirectConnection(pageDocumentName(world.ours.id, pageId), { userId: world.admin });
+    expect(texts(readPageYjs(conn.document!))).toEqual(["Kyoto in April"]);
+    expect(readEpoch(conn.document!)).not.toBeNull();
     await conn.disconnect();
   });
 
-  it("starts a trip with no Notes from one empty paragraph, so editors share one root", async () => {
-    const conn = await liveAs(world.admin).openDirectConnection(notesDocumentName(world.ours.id), {
-      userId: world.admin,
-    });
-    expect(conn.document!.getXmlFragment(NOTES_FRAGMENT).length).toBe(1);
-    expect(texts(blocksJson(conn.document!))).toEqual([""]);
-    await conn.disconnect();
-  });
-
-  it("stores the Yjs state and a JSON copy after a change", async () => {
-    const live = liveAs(world.admin);
-    const name = notesDocumentName(world.ours.id);
-    const conn = await live.openDirectConnection(name, { userId: world.admin });
-    await conn.transact((d) => {
-      const para = new Y.XmlElement("paragraph");
-      para.insert(0, [new Y.XmlText("Pack sun cream")]);
-      const container = new Y.XmlElement("blockContainer");
-      container.setAttribute("id", "x1");
-      container.insert(0, [para]);
-      const group = new Y.XmlElement("blockGroup");
-      group.insert(0, [container]);
-      d.getXmlFragment(NOTES_FRAGMENT).insert(0, [group]);
-    });
-    await conn.disconnect();
-
-    const stored = await loadLiveState(world.ours.id);
-    expect(stored.state).not.toBeNull();
-    expect(texts(stored.body!)).toEqual(["Pack sun cream"]);
-    expect(texts((await loadNoteDoc(world.ours.id))!)).toEqual(["Pack sun cream"]);
-  });
-
-  it("reopens from the stored Yjs state", async () => {
-    const name = notesDocumentName(world.ours.id);
-    await saveNoteDoc(world.ours.id, world.admin, doc("first"));
-    const first = await liveAs(world.admin).openDirectConnection(name, { userId: world.admin });
-    await first.transact(() => {});
-    await first.disconnect();
-
-    const again = await liveAs(world.admin).openDirectConnection(name, { userId: world.admin });
-    expect(texts(blocksJson(again.document!))).toEqual(["first"]);
-    await again.disconnect();
-  });
-
-  it("a whole-document save drops the Yjs state, so the next open reseeds from it", async () => {
-    const name = notesDocumentName(world.ours.id);
+  it("stores the Yjs state and a readable body after a change, and reopens from the state", async () => {
+    const name = pageDocumentName(world.ours.id, pageId);
     const conn = await liveAs(world.admin).openDirectConnection(name, { userId: world.admin });
-    await conn.transact(() => {});
+    const epoch = readEpoch(conn.document!);
+    await conn.transact((doc) => {
+      const paragraph = new Y.XmlElement("paragraph");
+      paragraph.insert(0, [new Y.XmlText("Pack sun cream")]);
+      doc.getXmlFragment(PAGE_FRAGMENT).push([paragraph]);
+    });
     await conn.disconnect();
 
-    await saveNoteDoc(world.ours.id, world.admin, doc("from the phone"));
-    expect((await loadLiveState(world.ours.id)).state).toBeNull();
+    const stored = await loadPageState(pageId);
+    expect(stored.state).not.toBeNull();
+    expect(texts(parsePageBody(stored.body))).toEqual(["", "Pack sun cream"]);
+    expect(await loadPageEpoch(pageId)).toBe(epoch);
+
+    const again = await liveAs(world.admin).openDirectConnection(name, { userId: world.admin });
+    expect(texts(readPageYjs(again.document!))).toEqual(["", "Pack sun cream"]);
+    await again.disconnect();
+  });
+
+  it("does not store a page that was archived or whose trip was deleted meanwhile", async () => {
+    const page = await spare();
+    await archivePage(world.ours.id, page, world.member);
+    await storePageState(world.ours.id, page, world.member, new Uint8Array([0, 0]), serialisePage(lines("too late")));
+    expect((await loadPageState(page)).state).toBeNull();
+
+    await softDeleteTrip(world.ours.id);
+    await storePageState(world.ours.id, pageId, world.member, new Uint8Array([0, 0]), serialisePage(lines("too late")));
+    expect((await loadPageState(pageId)).state).toBeNull();
+  });
+
+  it("does not store a page over 1 MB", async () => {
+    await storePageState(world.ours.id, pageId, world.member, new Uint8Array([0, 0]), serialisePage(lines("x".repeat(1_000_001))));
+    expect((await loadPageState(pageId)).state).toBeNull();
+  });
+
+  it("answers no epoch for a page never opened", async () => {
+    expect(await loadPageEpoch(pageId)).toBeNull();
   });
 });
 
-describe("the epoch", () => {
-  it("stamps a seeded doc, and a whole-document save gives the next seed a new one", async () => {
-    const name = notesDocumentName(world.ours.id);
-    const first = await liveAs(world.admin).openDirectConnection(name, { userId: world.admin });
-    await first.transact(() => {});
-    const before = readEpoch(first.document!);
-    await first.disconnect();
-    expect(before).not.toBeNull();
-    expect(await loadLiveEpoch(world.ours.id)).toBe(before);
+describe("the page list channel", () => {
+  it("tells open page lists that the list changed, and closes an archived page's editors", async () => {
+    const live = liveAs(world.admin);
+    const page = await spare();
+    await live.openDirectConnection(pagesDocumentName(world.ours.id), { userId: world.admin });
+    await live.openDirectConnection(pageDocumentName(world.ours.id, page), { userId: world.admin });
+    const said: string[] = [];
+    const closed: string[] = [];
+    const fake = (tag: string) => ({ context: { userId: world.member }, messageAddress: tag, send: () => said.push(tag), close: () => closed.push(tag) });
+    live.documents.get(pagesDocumentName(world.ours.id))!.addConnection(fake("list") as never);
+    live.documents.get(pageDocumentName(world.ours.id, page))!.addConnection(fake("page") as never);
 
-    await saveNoteDoc(world.ours.id, world.admin, doc("from the phone"));
-    expect(await loadLiveEpoch(world.ours.id)).toBeNull();
-    const again = await liveAs(world.admin).openDirectConnection(name, { userId: world.admin });
-    expect(readEpoch(again.document!)).not.toBe(before);
-    await again.disconnect();
+    await archivePage(world.ours.id, page, world.member);
+
+    expect(said).toEqual(["list"]);
+    expect(closed).toEqual(["page"]);
   });
 });
 
 describe("removal kick", () => {
-  it("closes a removed member's connections and keeps the rest", async () => {
+  it("closes a removed member's connections on every doc of the trip, and keeps the rest", async () => {
     const live = liveAs(world.member);
-    const name = notesDocumentName(world.ours.id);
     const closed: string[] = [];
-    const fake = (userId: string) => ({
-      context: { userId },
-      messageAddress: name,
-      send: () => {},
-      close: () => closed.push(userId),
-    });
-    await live.openDirectConnection(name, { userId: world.admin });
-    const document = live.documents.get(name)!;
-    document.addConnection(fake(world.member) as never);
-    document.addConnection(fake(world.admin) as never);
+    const fake = (userId: string) => ({ context: { userId }, messageAddress: userId, send: () => {}, close: () => closed.push(userId) });
+    for (const name of [pageDocumentName(world.ours.id, pageId), pagesDocumentName(world.ours.id)]) {
+      await live.openDirectConnection(name, { userId: world.admin });
+      live.documents.get(name)!.addConnection(fake(world.member) as never);
+      live.documents.get(name)!.addConnection(fake(world.admin) as never);
+    }
 
     await removeMembership(world.ours.id, world.member, world.admin);
 
-    expect(closed).toEqual([world.member]);
+    expect(closed).toEqual([world.member, world.member]);
   });
 });

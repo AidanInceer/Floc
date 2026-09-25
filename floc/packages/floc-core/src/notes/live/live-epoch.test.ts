@@ -14,8 +14,8 @@ describe("the live Notes epoch", () => {
     expect(readEpoch(new Y.Doc())).toBeNull();
   });
 
-  it("keys the local cache by trip and epoch, so a reseeded doc never merges with an old copy", () => {
-    expect(liveCacheName(7, "e1")).not.toBe(liveCacheName(7, "e2"));
-    expect(liveCacheName(7, "e1")).not.toBe(liveCacheName(8, "e1"));
+  it("keys the local cache by page and epoch, so a reseeded doc never merges with an old copy", () => {
+    expect(liveCacheName("trip-page:7:1", "e1")).not.toBe(liveCacheName("trip-page:7:1", "e2"));
+    expect(liveCacheName("trip-page:7:1", "e1")).not.toBe(liveCacheName("trip-page:7:2", "e1"));
   });
 });

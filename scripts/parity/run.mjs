@@ -13,7 +13,7 @@
  * `planned` with no `why`, which still fails — the reason is yours to give.
  */
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { diffParity, paritySummary } from "../../floc/packages/floc-api/src/parity.ts";
@@ -23,11 +23,11 @@ const routersDir = join(root, "floc/packages/floc-api/src/routers");
 const mobileDir = join(root, "floc/apps/mobile");
 const manifestPath = join(root, "scripts/parity/parity.json");
 
-/** Every `name: xProcedure` at the top level of a router file, prefixed by the file it lives in. */
+/** Every `name: xProcedure` at the top level of a router file, prefixed by the file it lives in, in any subfolder. */
 function declaredProcedures() {
   const names = [];
-  for (const file of readdirSync(routersDir).filter((f) => f.endsWith(".ts") && !f.includes(".test."))) {
-    const prefix = file.replace(/\.ts$/, "");
+  for (const file of readdirSync(routersDir, { recursive: true }).filter((f) => f.endsWith(".ts") && !f.includes(".test."))) {
+    const prefix = basename(file, ".ts");
     for (const [, name] of readFileSync(join(routersDir, file), "utf8").matchAll(
       /^ {2}([a-zA-Z]+): (?:protected|trip|public)Procedure/gm,
     )) {

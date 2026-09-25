@@ -1,10 +1,10 @@
 import * as Y from "yjs";
 
 import { readEpoch } from "@floc/core/notes/live/live-epoch";
-import { loadLiveState } from "./live-store";
+import { loadPageState } from "./page-live-store";
 
-export async function loadLiveEpoch(tripId: number): Promise<string | null> {
-  const { state } = await loadLiveState(tripId);
+export async function loadPageEpoch(pageId: number): Promise<string | null> {
+  const { state } = await loadPageState(pageId);
   if (!state) return null;
   const doc = new Y.Doc();
   Y.applyUpdate(doc, state);

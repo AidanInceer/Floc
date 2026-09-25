@@ -71,8 +71,8 @@ export async function insertNote(args: {
   scopeId: number;
   parentId: number | null;
   body: string;
-}): Promise<void> {
-  await db.transaction(async (tx) => {
+}): Promise<number> {
+  return db.transaction(async (tx) => {
     const row = await tx
       .insert(note)
       .values({ ...args, body: args.body.slice(0, NOTE_BODY_MAX) })
@@ -91,6 +91,7 @@ export async function insertNote(args: {
       href: tripHref(args.tripId, threadTab(args.scope)),
       affected: parent ? [parent.createdBy] : [],
     });
+    return row.id;
   });
 }
 

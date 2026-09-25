@@ -43,6 +43,7 @@ import { scoped } from "@/server/api-port/api-port-scope";
 // the trip half, and a file whose name needs "and" is two files.
 import { billingPort } from "@/server/api-port/api-port-billing";
 import { commentsPort } from "@/server/api-port/api-port-comments";
+import { pagesPort } from "@/server/api-port/pages/api-port-pages";
 import { ideasPort } from "@/server/api-port/ideas/ideas";
 import { filesPort } from "@/server/api-port/api-port-files";
 import { explorePort } from "@/server/api-port/api-port-explore";
@@ -74,7 +75,7 @@ import {
 } from "@/server/money/money";
 import { listAvailability, setAvailability } from "@/server/itinerary/availability";
 import { listDocuments } from "@/server/documents/documents";
-import { bulletDoc, saveNoteDoc } from "@/server/notes/note-doc";
+import { bulletPage } from "@floc/core/notes/pages/page-blocks";
 import { listTripPlaces, searchPlaces as geocode } from "@/server/itinerary/places";
 import { applyOvernight } from "@/server/itinerary/overnight";
 import {
@@ -169,6 +170,7 @@ export const webPort: FlocPort = {
   ...kitsPort,
   ...filesPort,
   ...commentsPort,
+  ...pagesPort,
   ...ideasPort,
   ...socialPort,
   ...billingPort,
@@ -538,10 +540,8 @@ export const webPort: FlocPort = {
       startDate: null,
       endDate: null,
       createdBy: viewerId,
+      firstPage: bulletPage(preset.highlights),
     });
-    if (preset.highlights.length > 0) {
-      await saveNoteDoc(id, viewerId, bulletDoc(preset.highlights));
-    }
     refresh({ kind: "tripList" });
     return { id };
   },

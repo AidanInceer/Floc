@@ -19,6 +19,7 @@ import { meRouter } from "./routers/me";
 import { moneyRouter } from "./routers/money";
 import { notificationsRouter } from "./routers/notifications";
 import { packingRouter } from "./routers/packing";
+import { pagesRouter } from "./routers/notes/pages";
 import { peopleRouter } from "./routers/people";
 import { placesRouter } from "./routers/places";
 import { rosterRouter } from "./routers/roster";
@@ -43,6 +44,7 @@ export const appRouter = router({
   invites: invitesRouter,
   files: filesRouter,
   comments: commentsRouter,
+  pages: pagesRouter,
   packing: packingRouter,
   places: placesRouter,
   availability: availabilityRouter,

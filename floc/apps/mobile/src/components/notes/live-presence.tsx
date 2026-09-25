@@ -1,8 +1,8 @@
-import type { PresentBlockCursor, PresentPerson } from "@floc/core/notes/live/live-presence";
+import type { PresentPerson } from "@floc/core/notes/live/live-presence";
 import { StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "@/components/system/theme";
-import { fonts, radius, size, space } from "@/lib/theme";
+import { fonts, radius } from "@/lib/theme";
 
 export function initials(name: string) {
   return name
@@ -11,31 +11,6 @@ export function initials(name: string) {
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase() ?? "")
     .join("");
-}
-
-export function BlockCursors({ people }: { people: PresentBlockCursor[] }) {
-  const { c } = useTheme();
-  if (people.length === 0) return null;
-  return (
-    <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "flex-end", gap: space.xs }}>
-      {people.map((person) => (
-        <View
-          key={person.id}
-          accessibilityLabel={`${person.name} is editing this line`}
-          style={{
-            borderRadius: radius.pill,
-            backgroundColor: c[person.tone],
-            paddingHorizontal: space.sm,
-            paddingVertical: 2,
-          }}
-        >
-          <Text style={{ color: c[`${person.tone}-ink`], fontFamily: fonts.sansBold, fontSize: size.label }}>
-            {initials(person.name)}
-          </Text>
-        </View>
-      ))}
-    </View>
-  );
 }
 
 export function PresenceRow({ people }: { people: PresentPerson[] }) {

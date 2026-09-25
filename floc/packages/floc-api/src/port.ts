@@ -28,6 +28,9 @@ import type { WeatherCondition } from "@floc/core/itinerary/weather";
 import type { PackCategory, PackTier } from "@floc/core/packing/packing";
 import type { DayEventType, ReactionKind, SplitType, TransportType } from "@floc/core/vocabulary";
 
+import type { Comment } from "./port-comment";
+import type { PagesPort } from "./port-pages";
+
 export type { Currency, DayEventType, DocCategory, ExpenseCategory, ReactionKind, SplitType, TransportType };
 
 export type { ExploreAnswers };
@@ -171,22 +174,7 @@ export type TripFile = {
   eventTitle: string | null;
 };
 
-/**
- * One comment on an event (#325). Replies are exactly one level deep, so a reply never carries
- * replies of its own. `createdAt` is an instant — when somebody typed, not an itinerary time.
- */
-export type Comment = {
-  id: number;
-  body: string;
-  createdAt: string;
-  /** Set on the author's first self-edit; the client says "edited". */
-  editedAt: string | null;
-  createdBy: string;
-  authorName: string;
-  authorAvatarIcon: AvatarIcon | null;
-  reactions: Record<ReactionKind, { count: number; mine: boolean }>;
-  replies: Comment[];
-};
+export type { Comment } from "./port-comment";
 
 // One idea for the trip, with its tally. `createdAt` is an instant, as a string — a `Date` does
 // not survive JSON.
@@ -1173,7 +1161,7 @@ export type FlocPort = {
 
   /** Stop pushing to this phone. Only its owner can. */
   forgetPushToken(viewerId: string, token: string): Promise<void>;
-};
+} & PagesPort;
 
 export type NotificationItem = {
   id: number;

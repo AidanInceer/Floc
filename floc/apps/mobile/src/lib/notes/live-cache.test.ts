@@ -40,22 +40,23 @@ const { forgetCachedNotes, readCachedNotes, writeCachedNotes } = await import(".
 
 beforeEach(() => disk.clear());
 
-describe("the Notes copy kept on the phone", () => {
-  it("reads back what was written, per trip", () => {
-    writeCachedNotes(1, new Uint8Array([1, 2]));
-    expect(readCachedNotes(1)).toEqual(new Uint8Array([1, 2]));
-    expect(readCachedNotes(2)).toBeNull();
+describe("the notes pages kept on the phone", () => {
+  it("reads back what was written, per page", () => {
+    writeCachedNotes("trip-page:1:4", new Uint8Array([1, 2]));
+    expect(readCachedNotes("trip-page:1:4")).toEqual(new Uint8Array([1, 2]));
+    expect(readCachedNotes("trip-page:1:5")).toBeNull();
+    expect([...disk.keys()]).toEqual(["doc/notes/trip-page_1_4.yjs"]);
   });
 
   it("reads an unreadable copy as none", () => {
-    writeCachedNotes(1, new Uint8Array([255]));
-    expect(readCachedNotes(1)).toBeNull();
+    writeCachedNotes("trip-page:1:4", new Uint8Array([255]));
+    expect(readCachedNotes("trip-page:1:4")).toBeNull();
   });
 
-  it("forgets every trip's copy", () => {
-    writeCachedNotes(1, new Uint8Array([1]));
+  it("forgets every page's copy", () => {
+    writeCachedNotes("trip-page:1:4", new Uint8Array([1]));
     forgetCachedNotes();
-    expect(readCachedNotes(1)).toBeNull();
+    expect(readCachedNotes("trip-page:1:4")).toBeNull();
     expect(() => forgetCachedNotes()).not.toThrow();
   });
 });
