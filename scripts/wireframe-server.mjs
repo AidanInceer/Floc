@@ -26,11 +26,6 @@ function inside(base, relative) {
 const meta = (html, name) =>
   html.match(new RegExp(`<meta\\s+name="${name}"\\s+content="([^"]*)"`, "i"))?.[1]?.trim() || "";
 
-const STATUS_TONE = [
-  [/^shipped/i, "shipped"],
-  [/^chosen/i, "chosen"],
-];
-
 async function readPrototype(entry) {
   const file = path.join(root, entry.name, "index.html");
   const html = await fs.readFile(file, "utf8").catch(() => null);
@@ -41,35 +36,23 @@ async function readPrototype(entry) {
     title: html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.trim() || entry.name,
     page: meta(html, "wf-page"),
     route: meta(html, "wf-route"),
-    status: meta(html, "wf-status") || "Status not set",
+    status: meta(html, "wf-status"),
     about: meta(html, "description"),
-    changed: mtime,
+    changed: mtime.toISOString(),
   };
 }
 
-function card(p) {
-  const tone = STATUS_TONE.find(([test]) => test.test(p.status))?.[1] || "open";
-  const day = p.changed.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-  return `<li class="wf-card"><a href="/${p.folder}/"><span class="wf-card-head"><b>${p.title}</b><span class="wf-status wf-${tone}">${p.status}</span></span>${p.about ? `<span class="wf-about">${p.about}</span>` : ""}<span class="typed">${p.folder} · changed ${day}</span></a></li>`;
-}
-
-async function listing() {
+async function prototypes() {
   await fs.mkdir(root, { recursive: true });
   const entries = await fs.readdir(root, { withFileTypes: true });
-  const found = (await Promise.all(entries.filter((e) => e.isDirectory() && !e.name.startsWith("_")).map(readPrototype))).filter(Boolean);
-  const groups = new Map();
-  for (const p of found.sort((a, b) => b.changed - a.changed)) {
-    const key = p.page || "Not labelled";
-    if (!groups.has(key)) groups.set(key, { route: p.route, items: [] });
-    groups.get(key).items.push(p);
-  }
-  // Why: an unlabelled prototype sorts last, so the page names above it stay the map.
-  const sections = [...groups].sort(([a], [b]) => (a === "Not labelled") - (b === "Not labelled"))
-    .map(([page, g]) => `<section class="wf-group"><h2>${page}${g.route ? ` <code>${g.route}</code>` : ""}</h2><ul>${g.items.map(card).join("")}</ul></section>`);
-  return `<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><title>Floc wireframes</title>
-<link rel="stylesheet" href="/_house/house.css"><script src="/_house/house.js" defer></script></head>
-<body><main class="wf-index"><h1>Wireframes</h1><p class="wf-lede">Grouped by the app page each one is for. Newest first.</p>${sections.length ? sections.join("") : `<p>No prototypes yet. Each one is a folder in <code>floc/wireframe/</code> with an <code>index.html</code>.</p>`}</main></body></html>`;
+  return (await Promise.all(entries.filter((e) => e.isDirectory() && !e.name.startsWith("_")).map(readPrototype))).filter(Boolean);
 }
+
+// The index is a shell; /_house/nav.js and /_house/index.js draw it from /_house/list.json.
+const shell = `<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Floc wireframes</title>
+<link rel="stylesheet" href="/_house/house.css"><link rel="stylesheet" href="/_house/nav.css">
+<script src="/_house/house.js" defer></script><script src="/_house/nav.js" defer></script><script src="/_house/index.js" defer></script></head>
+<body class="wf-home-page"><aside class="wf-side" id="wf-side" aria-label="Wireframes"></aside><main class="wf-main" id="wf-main"></main></body></html>`;
 
 const server = http.createServer(async (req, res) => {
   const requested = decodeURIComponent((req.url || "/").split("?")[0]);
@@ -77,7 +60,8 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(status, { "Content-Type": type, "Cache-Control": "no-store" });
     res.end(body);
   };
-  if (requested === "/") return send(200, "text/html", await listing());
+  if (requested === "/") return send(200, "text/html", shell);
+  if (requested === "/_house/list.json") return send(200, "application/json", JSON.stringify(await prototypes()));
   if (requested === "/_house/tokens.css") return send(200, "text/css", tokensCss());
 
   const base = requested.startsWith("/_house/") ? house : root;

@@ -21,15 +21,9 @@ const ROLL_MS = 3200;
 function TripCard({ card, tone }: { card: BorrowCard; tone: string }) {
   return (
     <div className={cx("rounded-[28px] px-7 pb-[22px] pt-[26px] transition-colors duration-500", tone)}>
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <span className="typed text-current">{card.place}</span>
-          <h3 className="mt-1.5 text-[28px] tracking-[-0.03em] text-ink">{card.title}</h3>
-        </div>
-        <span className="borrow-stamp">
-          <b className="nums text-[30px] font-medium">{card.nights}</b>
-          <small className="mt-[3px] font-mono text-[8px] uppercase tracking-[0.08em]">nights</small>
-        </span>
+      <div>
+        <span className="typed text-current">{card.place}</span>
+        <h3 className="mt-1.5 text-[28px] tracking-[-0.03em] text-ink">{card.title}</h3>
       </div>
       <div className="mt-4">
         <BorrowMap stops={card.stops} />
@@ -102,7 +96,7 @@ export function BorrowTrip({ cards, signedIn, explore }: { cards: BorrowCard[]; 
   return (
     <div className="grid items-center gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] md:gap-14" onPointerEnter={() => setRolling(false)}>
       <div>
-        <h2 className="text-[clamp(2.2rem,4.6vw,3.6rem)] leading-[1.02] tracking-[-0.03em]">
+        <h2 className="band-title">
           Borrow a trip to
           <br />
           <span className="inline-block min-h-[1.1em]" aria-live="polite">

@@ -1,8 +1,8 @@
+import { RouteMap } from "@/components/map/route-map";
 import { Avatar, cx } from "@/components/system/ui";
 
-import { alex, jo, maya, priya, sam, you } from "../sample-trip";
+import { alex, jo, maya, priya, sam, sampleStops, you } from "../sample-trip";
 import { FakeButton, ScreenFrame, muted, stayTone } from "./screen-frame";
-import { SicilySketch } from "./sicily-sketch";
 
 const DAYS = [
   { day: "Sun 12", stay: "Palermo", tone: stayTone.blue, what: "Land 14:05 · Ballarò market" },
@@ -17,7 +17,7 @@ const DAYS = [
 export function PlanScreen() {
   return (
     <ScreenFrame active="days">
-      <div className="grid grid-cols-[1fr_230px] gap-5">
+      <div className="grid grid-cols-[1fr_280px] gap-5">
         <div className="flex flex-col gap-1.5">
           {DAYS.map((d) => (
             <div key={d.day} className="grid grid-cols-[58px_92px_1fr] items-center gap-2.5 rounded-[10px] border border-rule px-2.5 py-2">
@@ -27,9 +27,8 @@ export function PlanScreen() {
             </div>
           ))}
         </div>
-        <div className="self-start rounded-[14px] bg-pastel-blue p-3">
-          <SicilySketch />
-          <p className="nums mt-1.5 text-[11px] text-pastel-blue-ink">4 stops · 7 nights</p>
+        <div className="film-map">
+          <RouteMap stops={sampleStops} missing={[]} fill />
         </div>
       </div>
     </ScreenFrame>

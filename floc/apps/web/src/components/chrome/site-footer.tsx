@@ -5,7 +5,7 @@ import { FlocWordmark } from "@/components/system/wordmark";
 
 export function SiteFooter() {
   return (
-    <footer className="mt-24 border-t border-rule">
+    <footer className="site-footer mt-24 border-t border-rule">
       <div className="mx-auto flex w-full max-w-[84rem] flex-wrap items-center gap-x-8 gap-y-4 px-4 py-7 sm:px-6">
         <Link href="/" aria-label="Floc home">
           <FlocWordmark />

@@ -1,15 +1,15 @@
 /**
- * The account-level chrome (ticket 191): wordmark left, one pill-navigation
- * group in the middle, account controls right — the same shape on every screen
- * and at every size. Trip tabs are the same pill group, rendered by the trip
- * layout; this bar holds the signed-in surfaces when you're outside a trip.
+ * The top bar: three beads, centred — the wordmark, your places, you. The same
+ * shape on every screen and at every size. The current place's glyph takes the
+ * blue tile the trip tabs use below it, so the two bars say "here" one way.
  */
 
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import Link from "next/link";
 
-import { ButtonLink } from "@/components/system/ui";
-import { PillNav, type PillNavItem } from "@/components/chrome/pill-nav";
+import { ButtonLink, cx } from "@/components/system/ui";
+import { BEAD } from "@/components/chrome/bead";
+import { PlacesNav, type PlaceItem } from "@/components/chrome/places-nav";
 import { AccountMenu } from "@/components/chrome/account/account-menu";
 import type { InboxPreviewItem } from "@/components/chrome/account/account-inbox";
 import { FlocWordmark } from "@/components/system/wordmark";
@@ -52,13 +52,12 @@ export function AppChrome({
   tripCount?: number;
   friendCount?: number;
 }) {
-  // Your signed-in surfaces, in one pill group. Discover sits among them —
-  // browsing is still one of the places you go.
-  const navItems: PillNavItem[] = [
-    { href: "/explore", label: "Explore" },
+  const navItems: PlaceItem[] = [
+    { href: "/explore", label: "Explore", glyph: "explore" },
     {
       href: "/trips",
       label: "Trips",
+      glyph: "trips",
       badge: inviteCount ? (
         <WaitingCount
           count={inviteCount}
@@ -69,6 +68,7 @@ export function AppChrome({
     {
       href: "/friends",
       label: "Friends",
+      glyph: "friends",
       badge: friendRequestCount ? (
         <WaitingCount
           count={friendRequestCount}
@@ -79,57 +79,43 @@ export function AppChrome({
   ];
 
   return (
-    <header className="sticky top-0 z-20 border-b border-rule bg-sheet/90 backdrop-blur">
-      {/* Flex, not a three-column grid: an `auto` grid track refuses to shrink
-          below its max-content, so at phone widths the pills grew past their
-          column and sat over the wordmark. Here the ends are content-sized and
-          unshrinkable, and the middle takes what is left — the track scrolls
-          inside it rather than pushing anything off the row. */}
-      <div className="relative mx-auto flex h-14 w-full max-w-[84rem] items-center gap-1.5 px-2 sm:gap-4 sm:px-6">
+    // The bar itself is see-through and lets clicks pass; only the beads catch them.
+    <header className="pointer-events-none sticky top-0 z-20 flex justify-center px-2 pb-1 pt-3 sm:px-4">
+      <div className="pointer-events-auto flex min-w-0 max-w-full items-center gap-1.5">
         <Link
           href="/"
           aria-label="Floc home"
-          className="flex shrink-0 items-center transition-opacity hover:opacity-70"
+          className={cx(BEAD, "shrink-0 px-3 transition-opacity hover:opacity-80")}
         >
           <FlocWordmark />
         </Link>
 
-        {/* Centred on the *bar*, not on what the two ends leave over: the ends
-            are never equal widths, so flow-centring sat the pills ~39px left of
-            true centre. Absolute only from `sm` up — on a phone there isn't the
-            room, and the pills must stay in flow so the row can shrink. */}
-        <div className="flex min-w-0 flex-1 justify-center sm:absolute sm:left-1/2 sm:w-auto sm:max-w-[calc(100%-22rem)] sm:flex-none sm:-translate-x-1/2">
-          {/* Explore is public, so it stays in the bar signed out — the one
-              surface a visitor can reach without an account. */}
-          <PillNav
-            label={user ? "Your surfaces" : "Browse"}
-            items={user ? navItems : navItems.filter((i) => i.href === "/explore")}
-          />
-        </div>
+        {/* Explore is public, so it stays in the bar signed out — the one
+            surface a visitor can reach without an account. */}
+        <PlacesNav
+          label={user ? "Your places" : "Browse"}
+          items={user ? navItems : navItems.filter((i) => i.href === "/explore")}
+        />
 
-        {/* `ml-auto`, because from `sm` up the middle leaves the flow and there
-            is nothing left to push the account controls to the right edge. */}
-        <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
-          {user ? (
-            <AccountMenu
-              user={user}
-              isPro={isPro}
-              unread={notificationCount}
-              latest={latest}
-              tripCount={tripCount}
-              friendCount={friendCount}
-            />
-          ) : (
-            <>
-              <ButtonLink href="/login" variant="ghost">
-                Log in
-              </ButtonLink>
-              <ButtonLink href="/signup" variant="primary">
-                Sign up
-              </ButtonLink>
-            </>
-          )}
-        </div>
+        {user ? (
+          <AccountMenu
+            user={user}
+            isPro={isPro}
+            unread={notificationCount}
+            latest={latest}
+            tripCount={tripCount}
+            friendCount={friendCount}
+          />
+        ) : (
+          <div className={cx(BEAD, "shrink-0 gap-1")}>
+            <ButtonLink href="/login" variant="ghost">
+              Log in
+            </ButtonLink>
+            <ButtonLink href="/signup" variant="primary">
+              Sign up
+            </ButtonLink>
+          </div>
+        )}
       </div>
     </header>
   );

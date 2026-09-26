@@ -23,12 +23,16 @@
     document.body.appendChild(bar);
     set(root.dataset.theme);
 
+    // Every prototype gets the wireframe sidebar as a drawer; the index draws its own.
     if (location.pathname !== "/") {
-      var home = document.createElement("a");
-      home.className = "wf-home";
-      home.href = "/";
-      home.innerHTML = '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M8.4 3.6 5 7l3.4 3.4"/></svg>All wireframes';
-      document.body.appendChild(home);
+      var css = document.createElement("link");
+      css.rel = "stylesheet";
+      css.href = "/_house/nav.css";
+      document.head.appendChild(css);
+      var js = document.createElement("script");
+      js.src = "/_house/nav.js";
+      js.onload = function () { WF.drawer(location.pathname.split("/")[1]); };
+      document.head.appendChild(js);
     }
   });
 })();

@@ -15,7 +15,9 @@ export type GlyphName =
   | "flight"
   | "pin"
   | "arrow"
-  | "train";
+  | "train"
+  | "plus"
+  | "link";
 
 const PATHS: Record<GlyphName, ReactNode> = {
   dates: (
@@ -71,6 +73,13 @@ const PATHS: Record<GlyphName, ReactNode> = {
     </>
   ),
   arrow: <path d="M2.4 7h9.2M8 3.4 11.6 7 8 10.6" />,
+  plus: <path d="M7 2.6v8.8M2.6 7h8.8" />,
+  link: (
+    <>
+      <path d="M6 8a2.6 2.6 0 0 0 3.7 0l2-2a2.6 2.6 0 0 0-3.7-3.7l-.9.9" />
+      <path d="M8 6a2.6 2.6 0 0 0-3.7 0l-2 2A2.6 2.6 0 0 0 6 11.7l.9-.9" />
+    </>
+  ),
   train: (
     <>
       <rect x="3" y="1.8" width="8" height="8.4" rx="1.8" />

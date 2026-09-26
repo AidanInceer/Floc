@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * The light / dark / auto switch (ticket 240): a three-segment pill on the same
- * recessed track as `PillNav`. Icons only since the account ticket — each still
+ * The light / dark / auto switch (ticket 240): a three-segment pill on a
+ * recessed `--sheet-3` track. Icons only since the account ticket — each still
  * names itself to a screen reader and on hover.
  *
  * The selected segment is painted by CSS keyed off `:root[data-theme-choice]`,
@@ -78,7 +78,7 @@ export function ThemeSwitch({ className }: { className?: string }) {
         className,
       )}
     >
-      {/* One sliding fill, exactly as PillNav does it, positioned by CSS keyed
+      {/* One sliding fill, positioned by CSS keyed
           off `<html>` so it is under the right segment in the first painted frame. */}
       <span
         aria-hidden

@@ -39,8 +39,8 @@ export const TOUR_SLIDES: TourSlide[] = [
     tab: "The plan",
     icon: "pin",
     tone: "red",
-    title: "A plan, not a schedule",
-    line: "Where you sleep each night, and the one thing each day. Or every hour, if that’s you.",
+    title: "The plan is the route",
+    line: "Where you sleep each night, drawn on the map as you go. The one thing each day, or every hour, if that’s you.",
     before: "what are we doing tuesday",
   },
   {
