@@ -6,6 +6,7 @@
  * Ticket 193: trips waiting on you are split off the top of the grid, whatever
  * the sort — the sort orders each half, it doesn't decide who blocks whom.
  */
+import { TEXT_CAPS } from "@floc/core/text/text";
 import Link from "next/link";
 
 import { requireUser } from "@/server/access";
@@ -365,7 +366,7 @@ function CreateTripForm({ friends }: { friends: Person[] }) {
     <form action={createTrip}>
       <Stack gap={4}>
         <Field label="Name">
-          <Input name="name" required />
+          <Input name="name" required maxLength={TEXT_CAPS.tripName} />
         </Field>
         {/* Optional — invites, doesn't add members. */}
         <Field label="Ask your friends along">

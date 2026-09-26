@@ -10,6 +10,7 @@
  * separator; a row per tag shows the shape it is saved in. `parseTagNames`
  * still normalises, so the phone never decides what a tag is.
  */
+import { TEXT_CAPS } from "@floc/core/text/text";
 import { MAX_TAGS, MAX_TAG_LENGTH } from "@floc/core/trip/tags";
 import { TRIP_COLORS, tripPastel, type TripColor } from "@floc/core/trip/trip-color";
 import { pastelOf, type Pastel } from "@floc/core/design/pastels";
@@ -200,7 +201,7 @@ export function TripEdit({
 
   return (
     <View style={{ paddingHorizontal: space.lg, paddingBottom: space.lg, gap: space.md }}>
-      <Field label="Trip name" value={name} onChangeText={onChangeName} autoFocus />
+      <Field label="Trip name" value={name} onChangeText={onChangeName} maxLength={TEXT_CAPS.tripName} autoFocus />
 
       <View style={{ gap: space.sm }}>
         <Label>Colour</Label>

@@ -500,6 +500,8 @@ export const webPort: FlocPort = {
       ownerId: d.ownerId,
       dayEventId: d.dayEventId,
       eventTitle: d.eventTitle,
+      dayId: d.dayId,
+      eventDayId: d.eventDayId,
     }));
   },
 

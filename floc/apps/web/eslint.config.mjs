@@ -74,7 +74,6 @@ const config = [
       "src/components/notes/note-thread.tsx",
       "src/components/social/place-picker.tsx",
       "src/components/map/travel-map.tsx",
-      "src/components/trip/trip-roster.tsx",
       "src/server/itinerary/weather.ts",
     ],
     rules: { "max-lines-per-function": "off", complexity: "off" },

@@ -223,6 +223,9 @@ describe("parking a file on an event", () => {
     const [file] = await webPort.listFiles(world.member, world.ours.id);
     expect(file.dayEventId).toBe(world.ours.eventId);
     expect(file.eventTitle).not.toBeNull();
+    // The event's day rides along, so the Overview can put the file on its stop.
+    expect(file.eventDayId).toBe(world.ours.dayId);
+    expect(file.dayId).toBeNull();
   });
 
   it("attaches a file that was already on the trip, and detaches it again", async () => {

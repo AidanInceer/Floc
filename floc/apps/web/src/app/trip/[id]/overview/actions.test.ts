@@ -193,6 +193,12 @@ describe("renaming and tagging", () => {
     expect((await tripRow(world.ours.id))?.name).toBe("Ours");
   });
 
+  it("caps a trip name at 50 characters", async () => {
+    expect(await renameTrip(form({ tripId: ours(), name: "x".repeat(51) }))).toEqual({ error: "That name is too long." });
+    await renameTrip(form({ tripId: ours(), name: "x".repeat(50) }));
+    expect((await tripRow(world.ours.id))?.name).toHaveLength(50);
+  });
+
   it("sets and clears the tags", async () => {
     await setTripTags(form({ tripId: ours(), tag: ["beach", "food"] }));
     expect((await tripRow(world.ours.id))?.tags).toHaveLength(2);

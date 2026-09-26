@@ -11,7 +11,7 @@
  * as if nothing happened. The zone below is the control, and it says what you
  * actually chose.
  */
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 
 import { uploadDocument } from "@/app/trip/[id]/files/actions";
 import { ActionForm, Sheet, SubmitButton } from "@/components/system/client-ui";
@@ -28,6 +28,7 @@ import {
   DOC_CATEGORY_LABELS,
   formatBytes,
   kindLabel,
+  type DocCategory,
 } from "@floc/core/documents/documents";
 
 export function DocumentUpload({
@@ -35,27 +36,40 @@ export function DocumentUpload({
   scope,
   className,
   dayEventId,
+  dayId,
+  category = "other",
+  trigger = "Upload",
+  title,
+  bareTrigger,
 }: {
   tripId: number;
   scope: "shared" | "private";
   className?: string;
   /** Lands the file straight on this event (ticket 322). */
   dayEventId?: number;
+  /** Lands the file on this day — a stop's stay, from Overview. */
+  dayId?: number;
+  category?: DocCategory;
+  trigger?: ReactNode;
+  title?: string;
+  bareTrigger?: boolean;
 }) {
   return (
     <Sheet
-      trigger="Upload"
-      title={dayEventId ? "Add a file to this event" : "Add a file"}
+      trigger={trigger}
+      title={title ?? (dayEventId ? "Add a file to this event" : "Add a file")}
       triggerClassName={className}
+      bareTrigger={bareTrigger}
     >
       <ActionForm action={uploadDocument.bind(null, tripId)}>
         {dayEventId ? (
           <input type="hidden" name="dayEventId" value={dayEventId} />
         ) : null}
+        {dayId ? <input type="hidden" name="dayId" value={dayId} /> : null}
         <FilePicker />
         <div className="mt-4 flex flex-wrap items-end gap-x-5 gap-y-3">
           <ScopeChoice initial={scope} />
-          <CategoryChoice />
+          <CategoryChoice initial={category} />
           <div className="ml-auto">
             <SubmitButton pendingLabel="Uploading…">Upload</SubmitButton>
           </div>
@@ -208,11 +222,11 @@ function ScopeChoice({ initial }: { initial: "shared" | "private" }) {
 }
 
 /** Five buckets, so a select — segments would wrap on a phone. Re-filed later from the row. */
-function CategoryChoice() {
+function CategoryChoice({ initial }: { initial: DocCategory }) {
   return (
     <label className="block">
       <span className={cx(LABEL, "mb-1.5")}>File under</span>
-      <Select name="category" defaultValue="other" className="!w-auto">
+      <Select name="category" defaultValue={initial} className="!w-auto">
         {DOC_CATEGORIES.map((c) => (
           <option key={c} value={c}>
             {DOC_CATEGORY_LABELS[c]}

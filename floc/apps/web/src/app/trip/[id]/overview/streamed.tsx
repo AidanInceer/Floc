@@ -1,35 +1,20 @@
 import type { ComponentProps, ReactNode } from "react";
 
-import { TripRoster } from "@/components/trip/trip-roster";
-import { DocumentsBlock } from "@/components/documents/documents-block";
+import { OverviewGroup } from "@/components/trip/overview/overview-group";
 import { TourSpotlight } from "@/components/tour/tour-spotlight";
 
-type RosterProps = ComponentProps<typeof TripRoster>;
-type RosterExtras = Pick<RosterProps, "friendStates" | "pendingInvitees" | "declinedInvitees" | "friends">;
+type GroupProps = ComponentProps<typeof OverviewGroup>;
+type GroupExtras = Pick<GroupProps, "friendStates" | "pendingInvitees" | "declinedInvitees" | "friends">;
 
-export function PanelPlaceholder({ tall }: { tall?: boolean }) {
-  return (
-    <div
-      aria-hidden
-      className={`${tall ? "h-64" : "h-40"} rounded-lg bg-sheet opacity-80 ring-1 ring-rule`}
-    />
-  );
+export function PanelPlaceholder() {
+  return <div aria-hidden className="m-5 h-24 rounded-lg bg-sheet-2 opacity-80" />;
 }
 
-export async function StreamedRoster({
+export async function StreamedGroup({
   extras,
   ...props
-}: Omit<RosterProps, keyof RosterExtras> & { extras: Promise<RosterExtras> }) {
-  return <TripRoster {...props} {...await extras} />;
-}
-
-export async function StreamedDocuments({
-  docs,
-  ...props
-}: Omit<ComponentProps<typeof DocumentsBlock>, "docs"> & {
-  docs: Promise<ComponentProps<typeof DocumentsBlock>["docs"]>;
-}) {
-  return <DocumentsBlock {...props} docs={await docs} />;
+}: Omit<GroupProps, keyof GroupExtras> & { extras: Promise<GroupExtras> }) {
+  return <OverviewGroup {...props} {...await extras} />;
 }
 
 // Why: the tour measures its targets on mount, so it waits for the streamed panels it lights.

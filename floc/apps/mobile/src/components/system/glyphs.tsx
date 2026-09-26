@@ -198,7 +198,7 @@ export function MoreGlyph({ color }: { color: string }) {
  * "attachment" in testing.
  */
 export function ShareGlyph({ color }: { color: string }) {
-  // The web's share mark (`trip-roster.tsx`): three nodes on two lines. Same
+  // The web's share mark (`overview-group.tsx`): three nodes on two lines. Same
   // drawing on both, so "share" is one picture, not two.
   return (
     <Svg width={16} height={16} viewBox="0 0 14 14" fill="none">

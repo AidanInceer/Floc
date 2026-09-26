@@ -3,7 +3,7 @@
  * tabs a guest has.
  *
  * ONE LINK, TWO AUDIENCES. This is the trip's own share link — the same token
- * `trip-roster.tsx` copies — not a second kind beside it. What changes is who
+ * Overview's Share trip copies — not a second kind beside it. What changes is who
  * is holding it: a member is sent to the real trip, and everybody else gets the
  * read-only copy under here.
  *

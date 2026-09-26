@@ -62,6 +62,9 @@ export async function uploadDocument(
   // id arrives as a hidden field.
   const onEvent = formData.get("dayEventId");
   const dayEventId = onEvent ? (await access.event(Number(onEvent))).id : null;
+  // Or onto a day — Overview's "Add stay in X" files the booking on that stop.
+  const onDay = formData.get("dayId");
+  const dayId = onDay && !dayEventId ? (await access.day(Number(onDay))).id : null;
 
   const storageKey = await putDocument(bytes, type);
 
@@ -78,6 +81,7 @@ export async function uploadDocument(
       mimeType: type.mimeType,
       sizeBytes: file.size,
       category: parseDocCategory(formData.get("category")),
+      dayId,
       dayEventId,
     });
   } catch (err) {

@@ -366,13 +366,6 @@ export function ErrorText({ children }: { children?: ReactNode }) {
 export const menuItemClass =
   "!block !w-full !rounded-sm !border-none !px-2.5 !py-1.5 !text-left !font-sans !text-sm !normal-case !tracking-normal !text-ink-soft hover:!bg-sheet-2 hover:!text-ink";
 
-/**
- * A rare verb that has to be reachable but must not compete: plain small text,
- * no pill, no accent. Same `!` reason as the menu rows above.
- */
-export const quietActionClass =
-  "!border-none !bg-transparent !px-0 !py-0 !font-sans !text-[11px] !normal-case !tracking-normal !text-ink-faint !underline !underline-offset-2 hover:!bg-transparent hover:!text-ink-soft";
-
 /** The same row, for the one verb you can't take back. */
 export const menuDangerItemClass =
   "!block !w-full !rounded-sm !border-none !bg-transparent !px-2.5 !py-1.5 !text-left !font-sans !text-sm !normal-case !tracking-normal !text-ink-soft hover:!bg-red-soft hover:!text-red";

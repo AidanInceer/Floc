@@ -175,6 +175,9 @@ export type TripFile = {
   dayEventId: number | null;
   // The event's own name, so a row says what it is for without a second read.
   eventTitle: string | null;
+  /** The day it sits on, directly or through its event — puts it on a stop (rule 3). */
+  dayId: number | null;
+  eventDayId: number | null;
 };
 
 export type { Comment } from "./port-comment";

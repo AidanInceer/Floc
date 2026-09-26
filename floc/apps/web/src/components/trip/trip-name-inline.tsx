@@ -12,6 +12,7 @@
  *
  * Still open to any member, not just an admin — see `renameTrip`.
  */
+import { TEXT_CAPS } from "@floc/core/text/text";
 import { titleCase } from "@floc/core/text/title-case";
 import { useActionState, useEffect, useRef, useState } from "react";
 
@@ -55,41 +56,40 @@ export function TripNameInline({
 
   if (!editing) {
     return (
-      <span className="inline-flex items-center gap-2">
-        <h1 className="font-display text-2xl font-semibold tracking-tight">
-          {titleCase(name)}
-        </h1>
-        {/* Icon-only (ticket 213): the pencil carries a bordered box at rest so
-            it still reads as a control on a hero of plain text. */}
-        <Button
+      <h1 className="min-w-0 font-display text-3xl font-semibold leading-[1.05] tracking-tight [overflow-wrap:anywhere]">
+        {/* The name is the control: click it to rename. The pencil is faint at
+            rest and full on hover, so touch still has something to aim at. */}
+        <button
           type="button"
-          variant="secondary"
           title="Rename trip"
-          aria-label="Rename trip"
           onClick={() => setEditing(true)}
-          className="!px-2 !py-1"
+          className="group/name max-w-full rounded-md text-left transition-colors hover:bg-sheet-2 hover:shadow-[0_0_0_4px_var(--sheet-2)]"
         >
-          <PencilIcon />
-        </Button>
-      </span>
+          {titleCase(name)}
+          <span className="ml-2 inline-grid align-middle text-ink-faint opacity-50 transition-opacity group-hover/name:opacity-100">
+            <PencilIcon />
+          </span>
+          <span className="sr-only">Rename trip</span>
+        </button>
+      </h1>
     );
   }
 
   return (
-    <form action={formAction} className="inline-flex flex-col gap-1">
+    <form action={formAction} className="flex w-full flex-col gap-1.5">
       {/* The visible heading is the input while editing, so the page keeps an
           <h1> for anything reading the outline. */}
       <h1 className="sr-only">{titleCase(name)}</h1>
-      <span className="flex items-center gap-1.5">
+      <span className="flex flex-wrap items-center gap-1.5">
         <input type="hidden" name="tripId" value={tripId} />
         <Input
           name="name"
           defaultValue={name}
-          maxLength={120}
+          maxLength={TEXT_CAPS.tripName}
           required
           autoFocus
           aria-label="Trip name"
-          className="w-48 !py-1 text-sm"
+          className="w-full min-w-0 !py-1 font-display !text-lg"
           // Escape backs out without saving — the same key that dismisses the
           // page's sheets and confirm dialogs.
           onKeyDown={(e) => {
