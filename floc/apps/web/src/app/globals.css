@@ -622,7 +622,7 @@
     scroll-snap-align: center;
     transition: opacity 0.4s var(--ease);
   }
-  .film-slide.is-resting { opacity: 0.55; }
+  .film-slide.is-resting { opacity: 0.55; cursor: pointer; }
   .film-text {
     position: relative;
     z-index: 1;
@@ -655,8 +655,9 @@
     .film-shot > * { zoom: 0.54; }
   }
   @media (max-width: 480px) {
+    .film-track { --slide: 80vw; --gap: 10px; }
     .film-shot { margin-left: 14px; }
-    .film-shot > * { zoom: 0.44; }
+    .film-shot > * { zoom: 0.42; }
   }
 
   /* "Borrow a trip to …": the place rolls in, the map flies to the route. */

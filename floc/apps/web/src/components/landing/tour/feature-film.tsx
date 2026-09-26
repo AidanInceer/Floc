@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { KeyboardEvent, PointerEvent, ReactNode, RefObject } from "react";
+import type { KeyboardEvent, MouseEvent, PointerEvent, ReactNode, RefObject } from "react";
 
 import { cx } from "@/components/system/ui";
 import { nearestSlide, stepSlide } from "@/lib/landing/carousel";
@@ -17,8 +17,6 @@ const TONE: Record<SlideTone, { slide: string; chip: string }> = {
   red: { slide: "bg-pastel-red text-pastel-red-ink", chip: "bg-pastel-red text-pastel-red-ink border-pastel-red-edge" },
   green: { slide: "bg-pastel-green text-pastel-green-ink", chip: "bg-pastel-green text-pastel-green-ink border-pastel-green-edge" },
 };
-const round =
-  "grid size-[42px] place-items-center rounded-full border border-rule-strong bg-sheet text-ink transition-colors hover:border-pen hover:text-pen disabled:opacity-40 disabled:hover:border-rule-strong disabled:hover:text-ink";
 
 function useFilm(count: number) {
   const track = useRef<HTMLDivElement>(null);
@@ -54,11 +52,14 @@ function useFilm(count: number) {
 // Touch and trackpads scroll natively; a mouse gets drag-to-scroll, then snaps one slide on.
 function useMouseDrag(track: RefObject<HTMLDivElement | null>, current: number, go: (i: number) => void) {
   const drag = useRef<{ x: number; left: number } | null>(null);
+  // A drag ends in a click on whatever slide it let go over; that click must not pick it.
+  const dragged = useRef(false);
   const [dragging, setDragging] = useState(false);
 
   const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
     if (e.pointerType !== "mouse" || e.button !== 0 || !track.current) return;
     drag.current = { x: e.clientX, left: track.current.scrollLeft };
+    dragged.current = false;
     setDragging(true);
   };
 
@@ -70,6 +71,7 @@ function useMouseDrag(track: RefObject<HTMLDivElement | null>, current: number, 
     const up = (e: globalThis.PointerEvent) => {
       const dx = drag.current ? e.clientX - drag.current.x : 0;
       drag.current = null;
+      dragged.current = Math.abs(dx) > 5;
       setDragging(false);
       go(Math.abs(dx) > 60 ? current + (dx < 0 ? 1 : -1) : current);
     };
@@ -81,13 +83,13 @@ function useMouseDrag(track: RefObject<HTMLDivElement | null>, current: number, 
     };
   }, [dragging, current, go, track]);
 
-  return { dragging, onPointerDown };
+  return { dragging, dragged, onPointerDown };
 }
 
 function SlideCard({ slide, index, count, active }: { slide: FilmSlide; index: number; count: number; active: boolean }) {
   return (
     <article
-      data-slide
+      data-slide={index}
       aria-roledescription="slide"
       aria-label={`${index + 1} of ${count}: ${slide.tab}`}
       className={cx("film-slide", TONE[slide.tone].slide, !active && "is-resting")}
@@ -119,7 +121,12 @@ function SlideCard({ slide, index, count, active }: { slide: FilmSlide; index: n
 /** "Everything in one place": a filmstrip of drawn trip pages, one feature a slide. */
 export function FeatureFilm({ slides }: { slides: FilmSlide[] }) {
   const { track, current, go } = useFilm(slides.length);
-  const { dragging, onPointerDown } = useMouseDrag(track, current, go);
+  const { dragging, dragged, onPointerDown } = useMouseDrag(track, current, go);
+
+  const onClick = (e: MouseEvent<HTMLDivElement>) => {
+    const picked = (e.target as HTMLElement).closest<HTMLElement>("[data-slide]")?.dataset.slide;
+    if (picked !== undefined && !dragged.current) go(Number(picked));
+  };
 
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.target !== e.currentTarget) return;
@@ -131,20 +138,7 @@ export function FeatureFilm({ slides }: { slides: FilmSlide[] }) {
 
   return (
     <div>
-      <div className="flex flex-wrap items-end justify-between gap-6">
-        <h2 className="text-[clamp(1.7rem,3.5vw,2.5rem)]">Everything in one place</h2>
-        <div className="flex items-center gap-2">
-          <span className="nums mr-2 text-xs text-ink-faint">
-            {current + 1} / {slides.length}
-          </span>
-          <button type="button" className={round} aria-label="Previous feature" disabled={current === 0} onClick={() => go(current - 1)}>
-            <Glyph name="arrow" className="rotate-180" />
-          </button>
-          <button type="button" className={round} aria-label="Next feature" disabled={current === slides.length - 1} onClick={() => go(current + 1)}>
-            <Glyph name="arrow" />
-          </button>
-        </div>
-      </div>
+      <h2 className="text-center text-[clamp(1.7rem,3.5vw,2.5rem)]">Everything in one place</h2>
       <div className="mt-6 flex flex-wrap justify-center gap-2 p-0.5">
         {slides.map((s, i) => (
           <button
@@ -169,6 +163,7 @@ export function FeatureFilm({ slides }: { slides: FilmSlide[] }) {
         aria-label="Features"
         onKeyDown={onKeyDown}
         onPointerDown={onPointerDown}
+        onClick={onClick}
         className={cx("film-track scroll-x-bare", dragging && "is-dragging")}
       >
         {slides.map((s, i) => (
