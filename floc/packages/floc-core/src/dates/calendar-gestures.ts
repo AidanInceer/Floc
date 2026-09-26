@@ -5,7 +5,7 @@
  * component keeps only the drawing and the dispatch.
  *
  * Times/dates stay strings (rule 10: no timezones); minutes are the working
- * unit on the clock, as in `lib/calendar.ts`.
+ * unit on the clock, as in `@floc/core/dates/calendar`.
  */
 import {
   NUDGE_MINUTES,
@@ -34,7 +34,7 @@ export function draggedPast(
 /**
  * Where a pointer drag lands an event. Move keeps the block under the cursor by
  * the offset it was grabbed at; resize drags the bottom edge alone. Both defer
- * the clamping/snapping to `lib/calendar.ts`.
+ * the clamping/snapping to `@floc/core/dates/calendar`.
  */
 export function eventLanding(
   span: Span,

@@ -36,8 +36,8 @@ export function MapPromptCard({
   return (
     <View
       style={{
-        backgroundColor: c.peri,
-        borderColor: c["peri-edge"],
+        backgroundColor: c["pastel-blue"],
+        borderColor: c["pastel-blue-edge"],
         borderWidth: StyleSheet.hairlineWidth,
         borderRadius: radius.lg,
         padding: space.lg,

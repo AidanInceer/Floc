@@ -5,10 +5,10 @@ import type { TourMessage, TourStop } from "./landing-content";
 export type TourPhase = { shown: number; typing: boolean; answered: boolean };
 
 const faces = [
-  { name: "P", tone: "bg-peri text-peri-ink" },
-  { name: "S", tone: "bg-mint text-mint-ink" },
-  { name: "J", tone: "bg-blush text-blush-ink" },
-  { name: "A", tone: "bg-butter text-butter-ink" },
+  { name: "P", tone: "bg-pastel-blue text-pastel-blue-ink" },
+  { name: "S", tone: "bg-pastel-green text-pastel-green-ink" },
+  { name: "J", tone: "bg-pastel-red text-pastel-red-ink" },
+  { name: "A", tone: "bg-pastel-yellow text-pastel-yellow-ink" },
 ];
 
 export function StopIcon({ stop, small }: { stop: TourStop; small?: boolean }) {

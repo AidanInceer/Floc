@@ -277,6 +277,65 @@ describe("money", () => {
     expect(after.expenses[0].description).toBe("Theirs");
   });
 
+  const bill = (patch: Partial<Parameters<typeof webPort.writeExpense>[2]> = {}) => ({
+    description: "Dinner",
+    amountMinor: 4000,
+    currency: "GBP" as const,
+    category: "food" as const,
+    splitType: "shares" as const,
+    paidBy: world.admin,
+    dayId: null,
+    notes: null,
+    splits: [
+      { userId: world.admin, owedAmountMinor: 2000 },
+      { userId: world.member, owedAmountMinor: 2000 },
+    ],
+    ...patch,
+  });
+
+  it("refuses a share for somebody who is not on the trip", async () => {
+    const splits = [
+      { userId: world.admin, owedAmountMinor: 2000 },
+      { userId: world.outsider, owedAmountMinor: 2000 },
+    ];
+    await expect(webPort.writeExpense(world.admin, world.ours.id, bill({ splits }))).rejects.toThrow(
+      /on the trip/,
+    );
+  });
+
+  it("refuses shares that do not add up, or a negative one", async () => {
+    const short = [{ userId: world.admin, owedAmountMinor: 100 }];
+    await expect(webPort.writeExpense(world.admin, world.ours.id, bill({ splits: short }))).rejects.toThrow(
+      /add up/,
+    );
+    const negative = [
+      { userId: world.admin, owedAmountMinor: 5000 },
+      { userId: world.member, owedAmountMinor: -1000 },
+    ];
+    await expect(
+      webPort.writeExpense(world.admin, world.ours.id, bill({ splits: negative })),
+    ).rejects.toThrow(/negative/);
+    expect((await webPort.loadLedger(world.admin, world.ours.id)).expenses).toEqual([]);
+  });
+
+  it("refuses a day from another trip", async () => {
+    await expect(
+      webPort.writeExpense(world.admin, world.ours.id, bill({ dayId: world.theirs.dayId })),
+    ).rejects.toThrow(/day/);
+  });
+
+  it("keeps a former member's share when the expense is edited", async () => {
+    await webPort.writeExpense(world.admin, world.ours.id, bill());
+    const [written] = (await webPort.loadLedger(world.admin, world.ours.id)).expenses;
+    await webPort.leaveTrip(world.member, world.ours.id);
+
+    await webPort.writeExpense(world.admin, world.ours.id, bill({ expenseId: written.id, description: "Supper" }));
+
+    const after = await webPort.loadLedger(world.admin, world.ours.id);
+    expect(after.expenses[0].description).toBe("Supper");
+    expect(after.splits.map((s) => s.userId).sort()).toEqual([world.admin, world.member].sort());
+  });
+
   it("lets only the payer or the receiver record a settlement", async () => {
     await webPort.joinByToken(world.outsider, "token-ours");
     const between = [

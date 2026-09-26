@@ -30,15 +30,6 @@ beforeEach(async () => {
   world = await seedScenario();
 });
 
-const verify = (userId: string) =>
-  db
-    .update(schema.user)
-    .set({ emailVerified: true })
-    .where(eq(schema.user.id, userId));
-
-const MAIL_ON = true;
-const MAIL_OFF = false;
-
 describe("the token", () => {
   it("opens the trip it belongs to", async () => {
     expect((await inviteTrip("token-ours"))?.id).toBe(world.ours.id);
@@ -61,58 +52,25 @@ describe("the token", () => {
 describe("who is looking", () => {
   it("is a stranger when nobody is signed in", async () => {
     signIn(null);
-    expect(await inviteViewer(world.ours.id, MAIL_ON)).toEqual({
-      kind: "stranger",
-    });
+    expect(await inviteViewer(world.ours.id)).toEqual({ kind: "stranger" });
   });
 
   it("is a member for somebody already on the trip", async () => {
     signIn(world.member);
-    expect(await inviteViewer(world.ours.id, MAIL_ON)).toEqual({
+    expect(await inviteViewer(world.ours.id)).toEqual({
       kind: "member",
       tripId: world.ours.id,
     });
   });
 
-  it("is a member before it is anything else, verified inbox or not", async () => {
-    // The admin's address is unverified in the seed, and it must not matter:
-    // they are already in, so there is nothing to gate.
-    signIn(world.admin);
-    expect(await inviteViewer(world.ours.id, MAIL_ON)).toMatchObject({
-      kind: "member",
-    });
-  });
-
-  it("is unverified for a signed-in stranger whose inbox is unconfirmed", async () => {
+  it("can join with an unconfirmed inbox — the link is the proof", async () => {
     signIn(world.outsider);
-    expect(await inviteViewer(world.ours.id, MAIL_ON)).toEqual({
-      kind: "unverified",
-      email: "u-outsider@example.test",
-    });
-  });
-
-  it("can join once the inbox is confirmed", async () => {
-    await verify(world.outsider);
-    signIn(world.outsider);
-
-    expect(await inviteViewer(world.ours.id, MAIL_ON)).toEqual({
-      kind: "canJoin",
-    });
-  });
-
-  it("can join with an unconfirmed inbox when no mail is set up", async () => {
-    // Rule 11: a gate on a link that could never arrive is a dead end.
-    signIn(world.outsider);
-    expect(await inviteViewer(world.ours.id, MAIL_OFF)).toEqual({
-      kind: "canJoin",
-    });
+    expect(await inviteViewer(world.ours.id)).toEqual({ kind: "canJoin" });
   });
 
   it("is not a member of a trip they are only looking at", async () => {
     signIn(world.member);
-    expect(await inviteViewer(world.theirs.id, MAIL_OFF)).toMatchObject({
-      kind: "canJoin",
-    });
+    expect(await inviteViewer(world.theirs.id)).toMatchObject({ kind: "canJoin" });
   });
 
   it("stops being a member once they are removed", async () => {
@@ -122,9 +80,7 @@ describe("who is looking", () => {
       .where(eq(schema.tripMembership.userId, world.member));
     signIn(world.member);
 
-    expect(await inviteViewer(world.ours.id, MAIL_OFF)).toMatchObject({
-      kind: "canJoin",
-    });
+    expect(await inviteViewer(world.ours.id)).toMatchObject({ kind: "canJoin" });
   });
 });
 

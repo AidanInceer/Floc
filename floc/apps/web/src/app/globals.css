@@ -75,24 +75,24 @@
   --pen-deep: #2b3b85; /* the pressed-harder hover ink, and blue text on pastel */
   --pen-2: #e7ebfa; /* the soft tint blue sits on */
 
-  /* Four pastels, one per domain (wash / ink): peri = dates, mint = money,
-     butter = notes and people, blush = route and places. THE ONLY PLACE THESE
+  /* Four pastels, one per domain (wash / ink): blue = dates, green = money,
+     yellow = notes and people, red = route and places. THE ONLY PLACE THESE
      SIX-DIGIT VALUES APPEAR — everything below aliases them. */
-  --peri: #dfe3ff;
-  --peri-ink: #33409b; /* 7.1:1 on peri */
-  --mint: #dcefe4;
-  --mint-ink: #1b6b4c; /* 5.4:1 on mint */
-  --butter: #fbeac8;
-  --butter-ink: #8a6412; /* 4.5:1 on butter */
-  --blush: #faddd6;
-  --blush-ink: #a34a31; /* 4.6:1 on blush */
+  --pastel-blue: #dfe3ff;
+  --pastel-blue-ink: #33409b; /* 7.1:1 on pastel-blue */
+  --pastel-green: #dcefe4;
+  --pastel-green-ink: #1b6b4c; /* 5.4:1 on mint */
+  --pastel-yellow: #fbeac8;
+  --pastel-yellow-ink: #8a6412; /* 4.5:1 on pastel-yellow */
+  --pastel-red: #faddd6;
+  --pastel-red-ink: #a34a31; /* 4.6:1 on pastel-red */
 
   /* One step darker than each wash, so a filled pill outlines on white rather
      than dissolving into it. */
-  --peri-edge: #c6d0f2;
-  --mint-edge: #c3e3d2;
-  --butter-edge: #efd9ae;
-  --blush-edge: #f0c7bc;
+  --pastel-blue-edge: #c6d0f2;
+  --pastel-green-edge: #c3e3d2;
+  --pastel-yellow-edge: #efd9ae;
+  --pastel-red-edge: #f0c7bc;
 
   /*
    * Status — the three-state semantics (done / open / needs action) applied
@@ -100,27 +100,27 @@
    * borrows the domain pastels. Every state carries a word too, so nothing is
    * told by colour alone (ticket 204).
    */
-  --highlight: var(--butter); /* open / marked up */
-  --highlight-2: #fdf4e1; /* the one paler butter — its own value, used alone */
-  --highlight-ink: var(--butter-ink);
-  --highlight-edge: var(--butter-edge);
-  --red: var(--blush-ink); /* needs action */
-  --red-2: var(--blush);
-  --red-edge: var(--blush-edge);
-  --green: var(--mint-ink); /* done */
-  --green-2: var(--mint);
-  --green-edge: var(--mint-edge);
-  --pen-edge: var(--peri-edge);
+  --highlight: var(--pastel-yellow); /* open / marked up */
+  --highlight-2: #fdf4e1; /* the one paler yellow — its own value, used alone */
+  --highlight-ink: var(--pastel-yellow-ink);
+  --highlight-edge: var(--pastel-yellow-edge);
+  --red: var(--pastel-red-ink); /* needs action */
+  --red-2: var(--pastel-red);
+  --red-edge: var(--pastel-red-edge);
+  --green: var(--pastel-green-ink); /* done */
+  --green-2: var(--pastel-green);
+  --green-edge: var(--pastel-green-edge);
+  --pen-edge: var(--pastel-blue-edge);
 
   /* A member's highlight and table colour on a notes page (#408): the tint, and the text on it. */
-  --tone-butter: var(--butter);
-  --tone-butter-ink: var(--ink);
-  --tone-blush: var(--blush);
-  --tone-blush-ink: var(--ink);
-  --tone-mint: var(--mint);
-  --tone-mint-ink: var(--ink);
-  --tone-peri: var(--peri);
-  --tone-peri-ink: var(--ink);
+  --tone-yellow: var(--pastel-yellow);
+  --tone-yellow-ink: var(--ink);
+  --tone-red: var(--pastel-red);
+  --tone-red-ink: var(--ink);
+  --tone-green: var(--pastel-green);
+  --tone-green-ink: var(--ink);
+  --tone-blue: var(--pastel-blue);
+  --tone-blue-ink: var(--ink);
 
   /* Quiet motion: a tiny lift on a soft shadow, nothing heavy. One easing curve
      for every interactive move — see the `.lift` utility, and the
@@ -171,14 +171,14 @@
    * domain pastels under a person's name; only 6–8 need values of their own,
    * because the palette runs out before the seats do. Every pair clears AA.
    */
-  --who-1: var(--peri);
-  --who-1-ink: var(--peri-ink);
-  --who-2: var(--blush);
-  --who-2-ink: var(--blush-ink);
-  --who-3: var(--butter);
-  --who-3-ink: var(--butter-ink);
-  --who-4: var(--mint);
-  --who-4-ink: var(--mint-ink);
+  --who-1: var(--pastel-blue);
+  --who-1-ink: var(--pastel-blue-ink);
+  --who-2: var(--pastel-red);
+  --who-2-ink: var(--pastel-red-ink);
+  --who-3: var(--pastel-yellow);
+  --who-3-ink: var(--pastel-yellow-ink);
+  --who-4: var(--pastel-green);
+  --who-4-ink: var(--pastel-green-ink);
   --who-5: var(--pen-2);
   --who-5-ink: var(--pen-deep);
   --who-6: #e4ecec;
@@ -225,30 +225,30 @@
   --pen-2: #24283a;
 
   /* The four pastels swap roles: the wash is only a hint, the ink carries the colour. */
-  --peri: #252a3d;
-  --peri-ink: #c3cbff;
-  --mint: #1f2e27;
-  --mint-ink: #9fe0c0;
-  --butter: #2f2a1e;
-  --butter-ink: #f2d596;
-  --blush: #302326;
-  --blush-ink: #f5b7a5;
+  --pastel-blue: #252a3d;
+  --pastel-blue-ink: #c3cbff;
+  --pastel-green: #1f2e27;
+  --pastel-green-ink: #9fe0c0;
+  --pastel-yellow: #2f2a1e;
+  --pastel-yellow-ink: #f2d596;
+  --pastel-red: #302326;
+  --pastel-red-ink: #f5b7a5;
 
   /* One step lighter than each wash here — an edge separates by lifting. */
-  --peri-edge: #39406a;
-  --mint-edge: #2f4a3d;
-  --butter-edge: #4a4230;
-  --blush-edge: #4c3438;
+  --pastel-blue-edge: #39406a;
+  --pastel-green-edge: #2f4a3d;
+  --pastel-yellow-edge: #4a4230;
+  --pastel-red-edge: #4c3438;
 
   /* A dark wash is too faint to mark words: highlights take the edge, and the ink carries the colour. */
-  --tone-butter: var(--butter-edge);
-  --tone-butter-ink: var(--butter-ink);
-  --tone-blush: var(--blush-edge);
-  --tone-blush-ink: var(--blush-ink);
-  --tone-mint: var(--mint-edge);
-  --tone-mint-ink: var(--mint-ink);
-  --tone-peri: var(--peri-edge);
-  --tone-peri-ink: var(--peri-ink);
+  --tone-yellow: var(--pastel-yellow-edge);
+  --tone-yellow-ink: var(--pastel-yellow-ink);
+  --tone-red: var(--pastel-red-edge);
+  --tone-red-ink: var(--pastel-red-ink);
+  --tone-green: var(--pastel-green-edge);
+  --tone-green-ink: var(--pastel-green-ink);
+  --tone-blue: var(--pastel-blue-edge);
+  --tone-blue-ink: var(--pastel-blue-ink);
 
   --highlight-2: #262219;
 
@@ -297,19 +297,19 @@
   --color-pen-soft: var(--pen-2);
   --color-pen-edge: var(--pen-edge);
 
-  /* The four domain pastels: bg-peri/text-peri-ink, mint, butter, blush. */
-  --color-peri: var(--peri);
-  --color-peri-ink: var(--peri-ink);
-  --color-peri-edge: var(--peri-edge);
-  --color-mint: var(--mint);
-  --color-mint-ink: var(--mint-ink);
-  --color-mint-edge: var(--mint-edge);
-  --color-butter: var(--butter);
-  --color-butter-ink: var(--butter-ink);
-  --color-butter-edge: var(--butter-edge);
-  --color-blush: var(--blush);
-  --color-blush-ink: var(--blush-ink);
-  --color-blush-edge: var(--blush-edge);
+  /* The four domain pastels: bg-pastel-blue/text-pastel-blue-ink, and green, yellow, red. */
+  --color-pastel-blue: var(--pastel-blue);
+  --color-pastel-blue-ink: var(--pastel-blue-ink);
+  --color-pastel-blue-edge: var(--pastel-blue-edge);
+  --color-pastel-green: var(--pastel-green);
+  --color-pastel-green-ink: var(--pastel-green-ink);
+  --color-pastel-green-edge: var(--pastel-green-edge);
+  --color-pastel-yellow: var(--pastel-yellow);
+  --color-pastel-yellow-ink: var(--pastel-yellow-ink);
+  --color-pastel-yellow-edge: var(--pastel-yellow-edge);
+  --color-pastel-red: var(--pastel-red);
+  --color-pastel-red-ink: var(--pastel-red-ink);
+  --color-pastel-red-edge: var(--pastel-red-edge);
 
   /* Pro's own ground: bg-pro, text-pro-gold, …. */
   --color-pro: var(--pro);

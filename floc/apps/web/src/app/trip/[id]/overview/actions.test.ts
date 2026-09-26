@@ -3,7 +3,7 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { db, schema } from "@/db";
 import { REDIRECT } from "@/test/setup";
-import { expectNotFound, migrateTestDb, resetDb, seedScenario, signIn, type Scenario } from "@/test/db";
+import { expectNotFound, migrateTestDb, resetDb, seedScenario, signIn, type Scenario, befriend } from "@/test/db";
 
 const { sendEmails } = vi.hoisted(() => ({ sendEmails: vi.fn() }));
 
@@ -81,6 +81,7 @@ describe("nudging", () => {
 
 describe("inviting (#312)", () => {
   it("lets a member invite friends by name, once each", async () => {
+    await befriend(world.member, world.outsider);
     signIn(world.member);
     await inviteFriends(form({ tripId: ours(), friendIds: [world.outsider, world.outsider, ""] }));
 

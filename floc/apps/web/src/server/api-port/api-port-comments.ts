@@ -18,6 +18,8 @@
  */
 import "server-only";
 
+import { Refusal } from "@floc/core/errors/refusal";
+
 import type { Comment, FlocPort, ReactionKind } from "@floc/api/port";
 import type { NoteRow } from "@floc/core/notes/notes";
 
@@ -128,7 +130,7 @@ export const commentsPort: CommentsPort = {
     if (!row) return;
 
     if (row.createdBy !== access.viewer.id) {
-      throw new Error("You can only delete your own comments.");
+      throw new Refusal("You can only delete your own comments.", "forbidden");
     }
 
     await softDeleteNoteAndReplies(row.id);

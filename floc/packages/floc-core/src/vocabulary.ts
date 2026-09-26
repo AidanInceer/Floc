@@ -30,3 +30,7 @@ export type SplitType = (typeof SPLIT_TYPES)[number];
 /** Three, fixed, in render order. Independent of each other — a note can carry all three. */
 export const REACTION_KINDS = ["heart", "up", "down"] as const;
 export type ReactionKind = (typeof REACTION_KINDS)[number];
+
+/** How somebody came to sign up — a `?via=` on the sign-up link. */
+export const SIGNUP_CHANNELS = ["whatsapp", "email", "link", "direct"] as const;
+export type SignupChannel = (typeof SIGNUP_CHANNELS)[number];

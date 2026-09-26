@@ -12,6 +12,7 @@
  */
 import { MAX_TAGS, MAX_TAG_LENGTH } from "@floc/core/trip/tags";
 import { TRIP_COLORS, tripPastel, type TripColor } from "@floc/core/trip/trip-color";
+import { pastelOf, type Pastel } from "@floc/core/design/pastels";
 import { TRIP_MARKS, TRIP_MARK_LABELS, type TripMark } from "@floc/core/trip/mark/trip-mark";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
 
@@ -54,11 +55,11 @@ function Swatch({
         width: 34,
         height: 34,
         borderRadius: radius.pill,
-        backgroundColor: c[color],
+        backgroundColor: c[pastelOf(color)],
         // The ring is the second signal; the swatch carries its colour's name
         // for anyone who cannot see it (#204).
         borderWidth: picked ? 2.5 : StyleSheet.hairlineWidth,
-        borderColor: picked ? c.ink : c[`${color}-edge`],
+        borderColor: picked ? c.ink : c[`${pastelOf(color)}-edge`],
       }}
     />
   );
@@ -75,7 +76,7 @@ function MarkGrid({
   mark,
   onChange,
 }: {
-  tone: TripColor;
+  tone: Pastel;
   mark: TripMark | null;
   onChange: (mark: TripMark | null) => void;
 }) {
@@ -217,7 +218,7 @@ export function TripEdit({
 
       <View style={{ gap: space.sm }}>
         <Label>Icon</Label>
-        <MarkGrid tone={tripPastel(color, tripId)} mark={mark} onChange={onChangeMark} />
+        <MarkGrid tone={pastelOf(tripPastel(color, tripId))} mark={mark} onChange={onChangeMark} />
       </View>
 
       <View style={{ gap: space.sm }}>

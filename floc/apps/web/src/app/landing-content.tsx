@@ -184,7 +184,7 @@ export type TourStop = {
 const tourStops: TourStop[] = [
   {
     icon: "notes",
-    tone: "bg-butter text-butter-ink",
+    tone: "bg-pastel-yellow text-pastel-yellow-ink",
     title: "Decide where, together",
     line: "One page the whole group writes on",
     chat: [
@@ -197,7 +197,7 @@ const tourStops: TourStop[] = [
   },
   {
     icon: "dates",
-    tone: "bg-peri text-peri-ink",
+    tone: "bg-pastel-blue text-pastel-blue-ink",
     title: "Group availability, sorted",
     line: "Shade your free days once",
     chat: [
@@ -224,7 +224,7 @@ const tourStops: TourStop[] = [
   },
   {
     icon: "days",
-    tone: "bg-peri text-peri-ink",
+    tone: "bg-pastel-blue text-pastel-blue-ink",
     title: "A plan, not a schedule",
     line: "Flexible or down to the minute",
     chat: [
@@ -237,7 +237,7 @@ const tourStops: TourStop[] = [
   },
   {
     icon: "files",
-    tone: "bg-blush text-blush-ink",
+    tone: "bg-pastel-red text-pastel-red-ink",
     title: "Tickets, filed",
     line: "Passes attached to the trip",
     proExtra: "Pro: extra trip storage, for every pass and scan",
@@ -251,7 +251,7 @@ const tourStops: TourStop[] = [
   },
   {
     icon: "packing",
-    tone: "bg-butter text-butter-ink",
+    tone: "bg-pastel-yellow text-pastel-yellow-ink",
     title: "Pack once, pack right",
     line: "What the group brings, what's on you",
     proExtra: "Pro: a list built from the forecast and the plan",
@@ -265,7 +265,7 @@ const tourStops: TourStop[] = [
   },
   {
     icon: "money",
-    tone: "bg-mint text-mint-ink",
+    tone: "bg-pastel-green text-pastel-green-ink",
     title: "Split the bill, not the group",
     line: "One number each",
     chat: [
@@ -278,7 +278,7 @@ const tourStops: TourStop[] = [
   },
   {
     icon: "book",
-    tone: "bg-peri text-peri-ink",
+    tone: "bg-pastel-blue text-pastel-blue-ink",
     title: "Memories you won't forget",
     line: "Still there in ten years",
     chat: [

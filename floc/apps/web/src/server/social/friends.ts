@@ -189,7 +189,7 @@ export async function listFriendsFor(viewerId: string): Promise<Person[]> {
   );
 }
 
-/** Ids only, no visibility judgement — that's `server/visibility.ts`'s call; mixing them grows a second, quieter permission model (ticket 145). */
+/** Ids only, no visibility judgement — that's `server/auth/visibility.ts`'s call; mixing them grows a second, quieter permission model (ticket 145). */
 export async function acceptedFriendIdsOf(ownerId: string): Promise<string[]> {
   const rows = await listFriendshipsFor(ownerId);
   return rows

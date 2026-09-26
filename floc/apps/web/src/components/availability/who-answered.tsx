@@ -40,7 +40,7 @@ export function WhoAnswered({
                   {days} {days === 1 ? "day" : "days"}
                 </span>
               ) : you ? (
-                <span className="font-mono text-[11px] text-butter-ink">Not yet</span>
+                <span className="font-mono text-[11px] text-pastel-yellow-ink">Not yet</span>
               ) : (
                 nudgeFor(m)
               )}

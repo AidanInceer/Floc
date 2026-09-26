@@ -205,7 +205,7 @@ function InviteList({ invites }: { invites: PendingInvite[] }) {
         {invites.map((invite) => (
           <div
             key={invite.tripId}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-peri-edge bg-peri px-4 py-3 text-ink"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-pastel-blue-edge bg-pastel-blue px-4 py-3 text-ink"
           >
             <div className="flex min-w-0 items-center gap-2.5">
               <Avatar name={invite.fromName} icon={invite.fromAvatarIcon} />

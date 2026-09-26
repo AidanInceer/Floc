@@ -5,7 +5,7 @@
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";
-import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
+import { migrateTestDb, resetDb, seedScenario, type Scenario, befriend } from "@/test/db";
 import { insertNote, softDeleteNoteAndReplies } from "@/server/notes/notes";
 import { insertNudge, removeMembership } from "@/server/trips/roster";
 import { inviteToTrip } from "@/server/trips/invites";
@@ -91,6 +91,7 @@ describe("the inbox", () => {
   });
 
   it("shows an invite to a trip you are not on yet, until the trip is deleted", async () => {
+    await befriend(world.admin, world.outsider);
     await inviteToTrip({ tripId: world.ours.id, fromUserId: world.admin, toUserIds: [world.outsider] });
     expect(await countUnread(world.outsider)).toBe(1);
 

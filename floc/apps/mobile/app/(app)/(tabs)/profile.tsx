@@ -38,7 +38,7 @@ import { IdentitySheet } from "@/components/auth/identity-sheet";
 import { MapPromptCard } from "@/components/map/map-prompt";
 import { MarkEditor } from "@/components/notes/mark-editor";
 import { FaceSheet } from "@/components/auth/face-sheet";
-import { ProfileFace, initialsOf } from "@/components/system/profile-face";
+import { ProfileFace } from "@/components/system/profile-face";
 import { Sheet } from "@/components/system/sheet";
 import { TravelMap } from "@/components/map/travel-map";
 import { VerifyEmailCard } from "@/components/auth/verify-email";
@@ -56,10 +56,10 @@ import {
   Row,
 } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
-import { signOut } from "@/lib/auth";
-import { forgetCachedNotes } from "@/lib/notes/live-cache";
+import { signOutHere } from "@/lib/sign-out";
 import { forgetThisPhone } from "@/lib/push/push";
 import { space } from "@/lib/theme";
+import { initials } from "@floc/core/people/initials";
 
 export default function Profile() {
   const queryClient = useQueryClient();
@@ -187,7 +187,7 @@ export default function Profile() {
             first
             quiet
             title="Sign out of this phone"
-            onPress={() => void forgetThisPhone().then(() => { forgetCachedNotes(); return signOut(); }).then(() => router.replace("/"))}
+            onPress={() => void forgetThisPhone().then(signOutHere).then(() => router.replace("/"))}
           />
         </DrawerGroup>
       </ScrollView>
@@ -208,7 +208,7 @@ export default function Profile() {
 
       <FaceSheet
         open={pickingFace}
-        initials={initialsOf(me.data.name)}
+        initials={initials(me.data.name)}
         icon={me.data.avatarIcon}
         onClose={() => setPickingFace(false)}
         onPick={(avatarIcon) => saveFace.mutate({ avatarIcon })}

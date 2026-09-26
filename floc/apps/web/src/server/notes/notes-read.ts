@@ -3,7 +3,7 @@
  * Days used to run and group the same join by hand, which is how they drifted
  * apart once replies and reactions arrived; one reader, two callers now
  * (ticket 06). Shape/formatting for the Client Component lives in
- * `lib/notes.ts`. Threads are one level deep, so this assembles the tree in
+ * `@floc/core/notes/notes`. Threads are one level deep, so this assembles the tree in
  * two passes and never recurses.
  */
 import "server-only";

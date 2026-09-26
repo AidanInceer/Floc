@@ -14,8 +14,8 @@ export function BookingTiles({ onOpen }: { onOpen: () => void }) {
   const { c } = useTheme();
   return (
     <View style={{ flexDirection: "row", gap: space.sm }}>
-      <Tile label="Flights" ground={c.peri} onPress={onOpen} icon={<PlaneGlyph color={c["peri-ink"]} />} />
-      <Tile label="Stays" ground={c.blush} onPress={onOpen} icon={<BedGlyph color={c["blush-ink"]} />} />
+      <Tile label="Flights" ground={c["pastel-blue"]} onPress={onOpen} icon={<PlaneGlyph color={c["pastel-blue-ink"]} />} />
+      <Tile label="Stays" ground={c["pastel-red"]} onPress={onOpen} icon={<BedGlyph color={c["pastel-red-ink"]} />} />
     </View>
   );
 }

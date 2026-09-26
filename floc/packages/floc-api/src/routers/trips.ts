@@ -7,12 +7,13 @@
  * the admin powers (rule 6) and soft delete (rule 8). None of that is
  * restated here; restating it is how two clients drift apart.
  */
+import { isIsoDate } from "@floc/core/dates/dates";
 import { z } from "zod";
 
 import { protectedProcedure, router, tripProcedure } from "../trpc";
 
 /** `YYYY-MM-DD` or nothing. A trip may have no dates and that is never an error (rule 9). */
-const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD.");
+const isoDate = z.string().refine(isIsoDate, "Use a real YYYY-MM-DD date.");
 const optionalDate = isoDate.nullable();
 
 const tripName = z.string().trim().min(1, "Give the trip a name.").max(120);

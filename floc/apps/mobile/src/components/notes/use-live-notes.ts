@@ -29,11 +29,11 @@ const NativeSocket = WebSocket as unknown as new (
 export function useNotesSocket(): HocuspocusProviderWebsocket | null {
   const [socket, setSocket] = useState<HocuspocusProviderWebsocket | null>(null);
   useEffect(() => {
-    const cookie = authClient.getCookie();
     // Why a subclass: the server reads the session cookie, and the provider builds its own socket.
+    // The cookie is read per connection, so a reconnect after the session renews sends the new one.
     class CookieSocket extends NativeSocket {
       constructor(url: string, protocols?: string | string[]) {
-        super(url, protocols, { headers: { Cookie: cookie } });
+        super(url, protocols, { headers: { Cookie: authClient.getCookie() } });
       }
     }
     const made = new HocuspocusProviderWebsocket({ url: liveNotesUrl(API_BASE_URL), WebSocketPolyfill: CookieSocket });

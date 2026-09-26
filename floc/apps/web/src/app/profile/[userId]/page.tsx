@@ -61,7 +61,7 @@ export default async function PublicProfilePage({
     >
       {/* The floor: name and picture, which anyone inside a ring always sees —
           a fully private profile still shows exactly these two. */}
-      <Panel className="bg-butter text-butter-ink">
+      <Panel className="bg-pastel-yellow text-pastel-yellow-ink">
         <div className="flex flex-wrap items-center gap-4">
           <Avatar name={profile.name} icon={profile.avatarIcon} size={64} />
           <div className="min-w-0">

@@ -8,7 +8,7 @@
  * Also owns soft-delete on every read and the `LIMITS.expenses` /
  * `expenseSplits` ceilings.
  *
- * Arithmetic lives in `lib/money.ts` (pure, tested) — this module only stores
+ * Arithmetic lives in `@floc/core/money/money` (pure, tested) — this module only stores
  * what that computed, keeping rule 1 (money is never a float) to one seam.
  */
 import "server-only";
@@ -83,10 +83,8 @@ export type ExpenseFields = {
 export type SplitRow = { userId: string; owedAmountMinor: number };
 
 /**
- * Writes an expense and its complete split set in one transaction. Pass
- * `expenseId` to replace, or omit to create. On update, old split rows are
- * deleted and new ones inserted in the same transaction — rule 7
- * (last-write-wins) applied to a parent with children.
+ * Why one transaction: an edit soft-deletes the old splits (rule 8) and writes
+ * the new ones together — last write wins (rule 7) across parent and children.
  */
 export async function writeExpense(args: {
   tripId: number;
@@ -111,7 +109,10 @@ export async function writeExpense(args: {
         .update(expense)
         .set({ ...fields, ...touch() })
         .where(eq(expense.id, id));
-      await tx.delete(expenseSplit).where(eq(expenseSplit.expenseId, id));
+      await tx
+        .update(expenseSplit)
+        .set({ deletedAt: new Date(), ...touch() })
+        .where(and(eq(expenseSplit.expenseId, id), isNull(expenseSplit.deletedAt)));
     }
 
     await tx.insert(expenseSplit).values(

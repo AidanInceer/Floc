@@ -143,6 +143,9 @@ export type Settlement = {
   toUserId: string;
   amountMinor: number;
   currency: Currency;
+  /** Cross-currency only (ticket 253): the debt this payment cleared, which is what moves the balance. */
+  clearsAmountMinor: number | null;
+  clearsCurrency: Currency | null;
 };
 
 export type Ledger = {

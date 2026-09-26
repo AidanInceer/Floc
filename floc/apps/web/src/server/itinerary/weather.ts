@@ -3,7 +3,7 @@
  * register and the Dates hourly curves.
  *
  * Open-Meteo needs no key, so the degrade path is "provider unreachable", not
- * "no credentials" — same shape as the geocoder (server/places.ts), rule 11.
+ * "no credentials" — same shape as the geocoder (server/itinerary/places.ts), rule 11.
  * Nothing is persisted (no timezone/forecast column, no ERD change); the fetch
  * is cached instead. `timezone=auto` returns local hours we only display, never
  * store (rule 10).

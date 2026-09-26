@@ -15,16 +15,7 @@ import { Image, StyleSheet, Text, View } from "react-native";
 import { useTheme } from "../system/theme";
 import { Body } from "../system/ui";
 import { fonts, radius, size, space } from "@/lib/theme";
-
-/** First letters of the first two words — the same rule the web's avatar uses. */
-export function initialsOf(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0]?.toUpperCase() ?? "")
-    .join("");
-}
+import { initials } from "@floc/core/people/initials";
 
 export function Face({ name, avatarIcon, size: box = 36 }: {
   name: string;
@@ -44,8 +35,8 @@ export function Face({ name, avatarIcon, size: box = 36 }: {
         width: box,
         height: box,
         borderRadius: radius.pill,
-        backgroundColor: c.peri,
-        borderColor: c["peri-edge"],
+        backgroundColor: c["pastel-blue"],
+        borderColor: c["pastel-blue-edge"],
         borderWidth: StyleSheet.hairlineWidth,
         alignItems: "center",
         justifyContent: "center",
@@ -53,12 +44,12 @@ export function Face({ name, avatarIcon, size: box = 36 }: {
     >
       <Text
         style={{
-          color: c["peri-ink"],
+          color: c["pastel-blue-ink"],
           fontFamily: fonts.display,
           fontSize: size.small,
         }}
       >
-        {initialsOf(name)}
+        {initials(name)}
       </Text>
     </View>
   );

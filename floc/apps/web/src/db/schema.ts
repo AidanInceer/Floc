@@ -11,6 +11,7 @@ import {
   COUNTRY_MARK_STATES,
   DAY_EVENT_TYPES,
   REACTION_KINDS,
+  SIGNUP_CHANNELS,
   SPLIT_TYPES,
   TRANSPORT_TYPES,
 } from "@floc/core/vocabulary";
@@ -56,51 +57,66 @@ export const user = sqliteTable("user", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(now),
 });
 
-export const session = sqliteTable("session", {
-  id: text("id").primaryKey(),
-  token: text("token").notNull().unique(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
-  ipAddress: text("ip_address"),
-  userAgent: text("user_agent"),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(now),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(now),
-});
+export const session = sqliteTable(
+  "session",
+  {
+    id: text("id").primaryKey(),
+    token: text("token").notNull().unique(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(now),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(now),
+  },
+  (t) => [index("session_user_idx").on(t.userId)],
+);
 
-export const account = sqliteTable("account", {
-  id: text("id").primaryKey(),
-  accountId: text("account_id").notNull(),
-  providerId: text("provider_id").notNull(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-  accessToken: text("access_token"),
-  refreshToken: text("refresh_token"),
-  idToken: text("id_token"),
-  accessTokenExpiresAt: integer("access_token_expires_at", {
-    mode: "timestamp",
-  }),
-  refreshTokenExpiresAt: integer("refresh_token_expires_at", {
-    mode: "timestamp",
-  }),
-  scope: text("scope"),
-  password: text("password"),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(now),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(now),
-});
+export const account = sqliteTable(
+  "account",
+  {
+    id: text("id").primaryKey(),
+    accountId: text("account_id").notNull(),
+    providerId: text("provider_id").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    accessToken: text("access_token"),
+    refreshToken: text("refresh_token"),
+    idToken: text("id_token"),
+    accessTokenExpiresAt: integer("access_token_expires_at", {
+      mode: "timestamp",
+    }),
+    refreshTokenExpiresAt: integer("refresh_token_expires_at", {
+      mode: "timestamp",
+    }),
+    scope: text("scope"),
+    password: text("password"),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(now),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(now),
+  },
+  (t) => [
+    index("account_user_idx").on(t.userId),
+    index("account_provider_idx").on(t.providerId, t.accountId),
+  ],
+);
 
-export const verification = sqliteTable("verification", {
-  id: text("id").primaryKey(),
-  identifier: text("identifier").notNull(),
-  value: text("value").notNull(),
-  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(now),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(now),
-});
+export const verification = sqliteTable(
+  "verification",
+  {
+    id: text("id").primaryKey(),
+    identifier: text("identifier").notNull(),
+    value: text("value").notNull(),
+    expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(now),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(now),
+  },
+  (t) => [index("verification_identifier_idx").on(t.identifier)],
+);
 
-// Re-exported from lib/currency.ts (ticket 115) so `@/db/schema` importers are unaffected.
+// Re-exported from @floc/core/money/currency (ticket 115) so `@/db/schema` importers are unaffected.
 export { CURRENCIES } from "@floc/core/money/currency";
 export type { Currency } from "@floc/core/money/currency";
 
@@ -122,10 +138,9 @@ export type {
   TransportType,
 } from "@floc/core/vocabulary";
 
-export const SIGNUP_CHANNELS = ["whatsapp", "email", "link", "direct"] as const;
-export type SignupChannel = (typeof SIGNUP_CHANNELS)[number];
+export { SIGNUP_CHANNELS, type SignupChannel } from "@floc/core/vocabulary";
 
-/** Nested visibility rings (ticket 46): `private` ⊂ `friends` ⊂ `trip_members`. Widest-last; compared in `src/lib/visibility.ts`. */
+/** Nested visibility rings (ticket 46): `private` ⊂ `friends` ⊂ `trip_members`. Widest-last; compared in `server/auth/visibility.ts`. */
 export const VISIBILITIES = ["private", "friends", "trip_members"] as const;
 export type Visibility = (typeof VISIBILITIES)[number];
 
@@ -143,10 +158,10 @@ export const userProfile = sqliteTable("user_profile", {
   homeCurrency: text("home_currency", { enum: CURRENCIES })
     .notNull()
     .default("GBP"),
-  /** Fixed set from `VIBE_TAGS` (src/lib/vibe-tags.ts) — was free text, fragmented matching (ticket 46). */
+  /** Fixed set from `VIBE_TAGS` (@floc/core/trip/vibe-tags) — was free text, fragmented matching (ticket 46). */
   vibeTags: text("vibe_tags", { mode: "json" }).$type<string[] | null>(),
   signupChannel: text("signup_channel", { enum: SIGNUP_CHANNELS }),
-  /** From `DIET_FLAGS` (src/lib/dietary.ts). Never shown on a profile — used only where it does work (restaurant picking). */
+  /** From `DIET_FLAGS` (@floc/core/people/dietary). Never shown on a profile — used only where it does work (restaurant picking). */
   dietFlags: text("diet_flags", { mode: "json" }).$type<string[] | null>(),
   dietaryNotes: text("dietary_notes"),
   /** One boolean for the whole record (ticket 46) — off by default. */
@@ -180,7 +195,7 @@ export const userProfile = sqliteTable("user_profile", {
     .default(true),
   /** First set when the tour is finished or skipped, never cleared — once per person, not per trip (#314). */
   tourSeenAt: integer("tour_seen_at", { mode: "timestamp" }),
-  // No theme column — light-only (ticket 07).
+  // No theme column: the choice lives in localStorage (AGENTS.md, UI and UX).
   /** The three switches #346 left: push, email, and date reminders. */
   notifyPush: integer("notify_push", { mode: "boolean" }).notNull().default(true),
   notifyEmail: integer("notify_email", { mode: "boolean" }).notNull().default(true),
@@ -207,7 +222,7 @@ export const exploreSave = sqliteTable(
 
 /**
  * Hand-painted countries only (ticket 95) — trip marks are derived on read
- * (src/lib/travel-map.ts), never stored; a row here always wins. Hard-deleted,
+ * (@floc/core/itinerary/travel-map), never stored; a row here always wins. Hard-deleted,
  * not soft: a tombstone would be indistinguishable from `none`.
  */
 export const userCountryMark = sqliteTable(
@@ -271,7 +286,7 @@ export const trip = sqliteTable(
     inviteToken: text("invite_token").notNull().unique(),
     /** A chosen mark from a fixed set (#318); null = the pastel alone. Never a URL — a cover image on a host we do not control carried the risk #157 took off a face. */
     mark: text("mark"),
-    /** Free-text, not a fixed set (ticket 71) — per-group private joke, normalised by src/lib/tags.ts. */
+    /** Free-text, not a fixed set (ticket 71) — per-group private joke, normalised by @floc/core/trip/tags. */
     tags: text("tags", { mode: "json" }).$type<string[] | null>(),
     /** Chosen pastel (ticket 213); null = the id-rotation default. Tags inherit it, so per-tag tones went. */
     colorKey: text("color_key"),
@@ -563,7 +578,7 @@ export const document = sqliteTable(
      * uploader can choose is a key the uploader can aim at another trip's file.
      */
     storageKey: text("storage_key").notNull(),
-    /** From the allow-list in `lib/documents.ts`; echoed by the serve route. */
+    /** From the allow-list in `@floc/core/documents/documents`; echoed by the serve route. */
     mimeType: text("mime_type").notNull(),
     sizeBytes: integer("size_bytes").notNull(),
     /** Which heading it files under. Changeable after upload — filing is a habit, not a fact. */
@@ -731,7 +746,7 @@ export const expense = sqliteTable(
     amountMinor: integer("amount_minor").notNull(),
     currency: text("currency", { enum: CURRENCIES }).notNull(),
     splitType: text("split_type", { enum: SPLIT_TYPES }).notNull(),
-    /** Fixed set from `EXPENSE_CATEGORIES` (src/lib/expense-category.ts) — filing only; the icon derives from it. */
+    /** Fixed set from `EXPENSE_CATEGORIES` (@floc/core/money/expense-category) — filing only; the icon derives from it. */
     category: text("category", { enum: EXPENSE_CATEGORIES })
       .notNull()
       .default(DEFAULT_CATEGORY),
@@ -744,7 +759,7 @@ export const expense = sqliteTable(
 /**
  * Snapshotted at creation, never recalculated, so it survives a member leaving
  * (ticket 04). Must sum to `expense.amount_minor` exactly — enforced in
- * src/lib/money.ts, not the schema.
+ * @floc/core/money/money, not the schema.
  */
 export const expenseSplit = sqliteTable(
   "expense_split",

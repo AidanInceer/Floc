@@ -4,11 +4,11 @@
  * the web stylesheet against, so the two UIs cannot disagree. Built once at module load — ~65
  * tokens per theme, and the map never changes (#288, #289).
  */
-import { resolveTokens, type Theme } from "@floc/core/design/tokens";
+import { resolveTokens, type Theme, type TokenName } from "@floc/core/design/tokens";
 
 export type { Theme };
 
-export type Palette = Record<string, string>;
+export type Palette = Record<TokenName, string>;
 
 const PALETTES: Record<Theme, Palette> = {
   light: resolveTokens("light"),

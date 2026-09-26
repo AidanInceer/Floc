@@ -12,16 +12,14 @@
  */
 import "server-only";
 
-import { headers } from "next/headers";
-
 import type { FlocPort, MySettings } from "@floc/api/port";
 
 import { parseDietFlags, readDietFlags } from "@floc/core/people/dietary";
 import { parseVibeTags, readVibeTags } from "@floc/core/trip/vibe-tags";
-import { auth, listLinkedAccounts, unlinkAccountById } from "@/server/auth/auth";
+import { listSignInMethods, unlinkSignIn } from "@/server/auth/sign-in-methods";
 import { refresh } from "@/server/freshness";
 import { ensureProfile, loadIdentity, updateProfileFields } from "@/server/auth/profile";
-import { handOverAndLeaveAllTrips } from "@/server/trips/roster";
+import { eraseAccount } from "@/server/auth/erase-account";
 import { markTourSeen, tourSeenAt } from "@/server/auth/tour";
 
 type SettingsPort = Pick<
@@ -54,7 +52,7 @@ export const settingsPort: SettingsPort = {
     const profile = await ensureProfile(viewerId);
     const [identity, linked] = await Promise.all([
       loadIdentity(viewerId),
-      listLinkedAccounts(viewerId),
+      listSignInMethods(viewerId),
     ]);
     // The session proved this id a moment ago; a missing row is the account
     // being deleted mid-request, not an ordinary state.
@@ -151,22 +149,13 @@ export const settingsPort: SettingsPort = {
   },
 
   async unlinkSignIn(viewerId, accountId) {
-    const linked = await listLinkedAccounts(viewerId);
     // Refused, not obeyed: without a method there is no way back in.
-    if (linked.length <= 1) return false;
-
-    const target = linked.find((a) => a.id === accountId);
-    if (!target) return false;
-
-    await unlinkAccountById(target.id);
+    if (await unlinkSignIn(viewerId, accountId)) return false;
     refresh({ kind: "accountSettings" });
     return true;
   },
 
   async deleteMyAccount(viewerId) {
-    // Order matters: hand over any trip this person solely admins first, so
-    // none is left admin-less, then let Better Auth cascade the user rows.
-    await handOverAndLeaveAllTrips(viewerId);
-    await auth.api.deleteUser({ headers: await headers(), body: {} });
+    await eraseAccount(viewerId);
   },
 };

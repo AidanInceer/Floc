@@ -18,7 +18,8 @@ import {
 import { setAvatarIcon } from "@/app/profile/actions";
 import { AvatarIconMark } from "@/components/system/avatar-icon";
 import { Sheet } from "@/components/system/client-ui";
-import { Avatar, cx, initials } from "@/components/system/ui";
+import { Avatar, cx } from "@/components/system/ui";
+import { initials } from "@floc/core/people/initials";
 
 function Cell({
   name,
@@ -61,7 +62,7 @@ export function FacePicker({
       title="Choose your icon"
       bareTrigger
       triggerLabel="Change your picture"
-      triggerClassName="rounded-full ring-offset-2 ring-offset-butter transition-shadow hover:ring-2 hover:ring-pen"
+      triggerClassName="rounded-full ring-offset-2 ring-offset-pastel-yellow transition-shadow hover:ring-2 hover:ring-pen"
       trigger={<Avatar name={name} icon={icon} size={64} />}
     >
       {/* Content-width columns, not 1fr: equal-fraction tracks are wider than

@@ -89,7 +89,7 @@ export default function Roster() {
                         only when they chose to share it (#46). */}
                     {m.dietary ? <Body tone="ink-2">{m.dietary}</Body> : null}
                   </View>
-                  {m.role === "admin" ? <Pill word="Admin" tone="peri" /> : null}
+                  {m.role === "admin" ? <Pill word="Admin" tone="pastel-blue" /> : null}
                 </View>
               </Pressable>
 

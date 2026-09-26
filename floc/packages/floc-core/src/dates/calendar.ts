@@ -56,7 +56,7 @@ export type TimedLike = {
   allDay: boolean;
 };
 
-/** Minute span on the clock, or null for all-day/no-start (see `lib/event-order.ts`). `open` = end is drawn, not known. */
+/** Minute span on the clock, or null for all-day/no-start (see `@floc/core/itinerary/event-order`). `open` = end is drawn, not known. */
 export function spanOf(
   event: TimedLike,
 ): { start: number; end: number; open: boolean } | null {

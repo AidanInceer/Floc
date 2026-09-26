@@ -4,7 +4,8 @@
  */
 import "server-only";
 
-import { and, desc, eq, gte, inArray, isNotNull, isNull, ne, notInArray, or, type SQL } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray, isNotNull, isNull, ne, notInArray, or, type SQL } from "drizzle-orm";
+import type { SQLiteSelect } from "drizzle-orm/sqlite-core";
 
 import { db } from "@/db";
 import {
@@ -21,22 +22,46 @@ import {
 import { COMMENT_KINDS, EXPENSE_KINDS, INBOX_KEEP_DAYS } from "@floc/core/notifications/rules";
 
 export function notificationRows(where: SQL | undefined, limit: number) {
-  return db
-    .select({
-      id: notification.id,
-      userId: notification.userId,
-      tripId: activity.tripId,
-      kind: activity.kind,
-      href: activity.href,
-      detail: activity.detail,
-      loud: notification.loud,
-      readAt: notification.readAt,
-      at: activity.lastModifiedAt,
-      tripName: trip.name,
-      actorName: user.name,
-      actorDisplayName: userProfile.displayName,
-    })
-    .from(notification)
+  return withSubjects(
+    db
+      .select({
+        id: notification.id,
+        userId: notification.userId,
+        tripId: activity.tripId,
+        kind: activity.kind,
+        href: activity.href,
+        detail: activity.detail,
+        loud: notification.loud,
+        readAt: notification.readAt,
+        at: activity.lastModifiedAt,
+        tripName: trip.name,
+        actorName: user.name,
+        actorDisplayName: userProfile.displayName,
+      })
+      .from(notification)
+      .$dynamic(),
+  )
+    .innerJoin(user, eq(user.id, activity.actorId))
+    .leftJoin(userProfile, eq(userProfile.userId, activity.actorId))
+    .where(where)
+    .orderBy(desc(activity.lastModifiedAt), desc(notification.id))
+    .limit(limit)
+    .all();
+}
+
+/** How many rows `notificationRows` would return, up to `cap`, counted in the database. */
+export async function countNotifications(where: SQL | undefined, cap: number): Promise<number> {
+  const visible = withSubjects(db.select({ id: notification.id }).from(notification).$dynamic())
+    .where(where)
+    .limit(cap)
+    .as("visible");
+  const [row] = await db.select({ n: count() }).from(visible);
+  return row?.n ?? 0;
+}
+
+/** The joins `stillVisible` reads: the activity, its trip, the reader's membership and the thing it is about. */
+function withSubjects<T extends SQLiteSelect>(query: T) {
+  return query
     .innerJoin(activity, eq(activity.id, notification.activityId))
     .leftJoin(trip, eq(trip.id, activity.tripId))
     .leftJoin(
@@ -52,13 +77,7 @@ export function notificationRows(where: SQL | undefined, limit: number) {
     .leftJoin(
       settlement,
       and(eq(settlement.id, activity.subjectId), eq(activity.kind, "settlement_recorded")),
-    )
-    .innerJoin(user, eq(user.id, activity.actorId))
-    .leftJoin(userProfile, eq(userProfile.userId, activity.actorId))
-    .where(where)
-    .orderBy(desc(activity.lastModifiedAt), desc(notification.id))
-    .limit(limit)
-    .all();
+    );
 }
 
 export function stillVisible() {

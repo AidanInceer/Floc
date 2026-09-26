@@ -284,10 +284,10 @@ function StateFlag({ label, bg, inline }: { label: string; bg: string; inline?: 
 // Written out as literal class strings so Tailwind generates each one.
 const SOON_ACCENT: Record<TripColor | "default", { ring: string; flag: string }> = {
   default: { ring: "shadow-[inset_0_0_0_2px_var(--highlight-ink)]", flag: "bg-highlight-ink" },
-  peri: { ring: "shadow-[inset_0_0_0_2px_var(--peri-ink)]", flag: "bg-peri-ink" },
-  mint: { ring: "shadow-[inset_0_0_0_2px_var(--mint-ink)]", flag: "bg-mint-ink" },
-  butter: { ring: "shadow-[inset_0_0_0_2px_var(--butter-ink)]", flag: "bg-butter-ink" },
-  blush: { ring: "shadow-[inset_0_0_0_2px_var(--blush-ink)]", flag: "bg-blush-ink" },
+  peri: { ring: "shadow-[inset_0_0_0_2px_var(--pastel-blue-ink)]", flag: "bg-pastel-blue-ink" },
+  mint: { ring: "shadow-[inset_0_0_0_2px_var(--pastel-green-ink)]", flag: "bg-pastel-green-ink" },
+  butter: { ring: "shadow-[inset_0_0_0_2px_var(--pastel-yellow-ink)]", flag: "bg-pastel-yellow-ink" },
+  blush: { ring: "shadow-[inset_0_0_0_2px_var(--pastel-red-ink)]", flag: "bg-pastel-red-ink" },
 };
 
 // The card's colour and its one-word state, kept out of the component so the
@@ -298,8 +298,8 @@ function cardLook(
 ): { skin: string; eyebrow: string; flag: string | null; soonFlag: string } {
   const eyebrow = tripListStage({ ...trip, needsYou: !past && trip.needsYou, archived: past });
   const happening = eyebrow === "Happening now";
-  // Why: the ring, not the butter wash, sets a soon or running trip apart from a
-  // card that merely rolls butter in the rotation; the flag carries the word.
+  // Why: the ring, not the yellow wash, sets a soon or running trip apart from a
+  // card that merely rolls yellow in the rotation; the flag carries the word.
   const until = eyebrow === "Planning" ? daysUntil(trip.startDate) : null;
   const upcoming = until !== null && until >= 0 && until <= 7;
   const flag = happening ? "Happening now" : upcoming ? "Upcoming" : null;

@@ -114,14 +114,14 @@ export function PackingSection<
               paddingVertical: space.md,
               paddingHorizontal: space.lg,
               borderRadius: radius.md,
-              backgroundColor: selecting ? c.mint : c["sheet-2"],
+              backgroundColor: selecting ? c["pastel-green"] : c["sheet-2"],
               borderWidth: StyleSheet.hairlineWidth,
-              borderColor: selecting ? c["mint-edge"] : c.rule,
+              borderColor: selecting ? c["pastel-green-edge"] : c.rule,
             }}
           >
             <Text
               style={{
-                color: selecting ? c["mint-ink"] : c.ink,
+                color: selecting ? c["pastel-green-ink"] : c.ink,
                 fontFamily: fonts.sansBold,
                 fontSize: size.body,
               }}

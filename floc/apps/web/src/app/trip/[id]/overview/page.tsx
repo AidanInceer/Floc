@@ -287,7 +287,7 @@ export default async function OverviewPage({
               footer={
                 <Link
                   href={`/trip/${tripId}/money`}
-                  className="flex items-baseline justify-between gap-3 rounded-b-lg bg-mint px-5 py-4 text-mint-ink transition-colors hover:bg-mint-edge"
+                  className="flex items-baseline justify-between gap-3 rounded-b-lg bg-pastel-green px-5 py-4 text-pastel-green-ink transition-colors hover:bg-pastel-green-edge"
                 >
                   <span className="min-w-0">
                     <span className="block font-display text-lg">Spending</span>

@@ -1,7 +1,7 @@
 /**
  * Money tab (ticket 16; re-modelled by the money overhaul). Splitwise-shaped:
  * balances are derived at read time from expenses − settlements (rule 04,
- * `computeBalances`), the page shows only the *simplified* transfers that
+ * `ledgerBalances`), the page shows only the *simplified* transfers that
  * square everyone up, and a merged activity feed of expenses and settlements
  * that any member can delete to revert. The top of the page is the viewer's
  * own two sides only — what they owe, what they are owed (#317) — and collapses
@@ -12,8 +12,8 @@ import type { Currency, ExpenseSplit } from "@/db/schema";
 import { CURRENCIES } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
 import { formatDate } from "@floc/core/dates/dates";
+import { ledgerBalances } from "@floc/core/money/ledger";
 import {
-  computeBalances,
   convertTotal,
   formatMoney,
   suggestSettlements,
@@ -24,7 +24,6 @@ import {
   type CurrencyTransfer,
   type YourSettleUp,
 } from "@floc/core/money/settle-up";
-import type { LedgerLine, LedgerSettlement } from "@floc/core/money/money";
 import { listDays } from "@/server/itinerary/itinerary";
 import {
   listExpenses,
@@ -103,25 +102,7 @@ export default async function MoneyPage({
 
   const dayById = new Map(days.map((d) => [d.id, d]));
 
-  const ledgerLines: LedgerLine[] = expenses.map((e) => ({
-    paidBy: e.paidBy,
-    currency: e.currency,
-    amountMinor: e.amountMinor,
-    splits: (splitsByExpense.get(e.id) ?? []).map((s) => ({
-      userId: s.userId,
-      owedAmountMinor: s.owedAmountMinor,
-    })),
-  }));
-  const ledgerSettlements: LedgerSettlement[] = settlements.map((s) => ({
-    from: s.fromUserId,
-    to: s.toUserId,
-    currency: s.currency,
-    amountMinor: s.amountMinor,
-    clearsCurrency: s.clearsCurrency,
-    clearsAmountMinor: s.clearsAmountMinor,
-  }));
-
-  const balances = computeBalances(ledgerLines, ledgerSettlements);
+  const balances = ledgerBalances({ expenses, splits, settlements });
   const active = CURRENCIES.filter((c) => Object.keys(balances[c]).length > 0);
 
   const formMembers: FormMember[] = access.members.map((m) => ({
@@ -225,8 +206,8 @@ function EmptyMoney({ addForm }: { addForm: React.ReactNode }) {
 
 function SettledBanner({ addForm }: { addForm: React.ReactNode }) {
   return (
-    <section className="rounded-lg bg-mint px-6 py-9 text-center text-mint-ink">
-      <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-sheet text-mint-ink">
+    <section className="rounded-lg bg-pastel-green px-6 py-9 text-center text-pastel-green-ink">
+      <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-sheet text-pastel-green-ink">
         <svg
           width={24}
           height={24}
@@ -336,7 +317,7 @@ function MySettleUp({
         <SectionHeading className="border-b border-rule pb-3">{title}</SectionHeading>
         {rows.length === 0 ? (
           <p className="flex min-h-[8rem] flex-col items-center justify-center gap-1 text-center">
-            <span className="font-display text-xl text-mint-ink">{empty}</span>
+            <span className="font-display text-xl text-pastel-green-ink">{empty}</span>
             <span className="text-sm text-ink-soft">
               {paying
                 ? "You have paid your share."

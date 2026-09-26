@@ -49,7 +49,7 @@ export function FileList({ files, showing }: { files: TripFileRow[]; showing: nu
           <Figure tone="ink-2">
             {DOC_CATEGORY_LABELS[file.category]} · {formatBytes(file.sizeBytes)}
           </Figure>
-          {file.ownerId ? <Pill word="Private" tone="peri" /> : null}
+          {file.ownerId ? <Pill word="Private" tone="pastel-blue" /> : null}
         </View>
       ))}
       {rest > 0 ? (

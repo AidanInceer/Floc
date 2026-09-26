@@ -14,11 +14,12 @@ import "server-only";
 import { and, asc, eq, inArray, isNull, not, sql } from "drizzle-orm";
 
 import { db } from "@/db";
-import { day, dayEvent, expense, place, trip } from "@/db/schema";
+import { day, dayEvent, document, expense, place, trip } from "@/db/schema";
 import type { DayEventType, TransportType } from "@/db/schema";
-import { addDays as addDaysToDate, dateRange } from "@floc/core/dates/dates";
+import { addDays as addDaysToDate, dateRange, isIsoDate } from "@floc/core/dates/dates";
+import { Refusal } from "@floc/core/errors/refusal";
 import { orderEvents } from "@floc/core/itinerary/event-order";
-import type { DayLoad } from "@floc/core/trip/trip-window";
+import { MAX_TRIP_DAYS, windowProblem, type DayLoad } from "@floc/core/trip/trip-window";
 import { capRequiredText, capText } from "@floc/core/text/text";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
@@ -60,7 +61,7 @@ export async function listDayIds(tripId: number): Promise<number[]> {
 
 /**
  * Every live day with its event count (ticket 140). Dates tab loads it once and
- * does the arithmetic client-side (`lib/trip-window.ts`) rather than a round
+ * does the arithmetic client-side (`@floc/core/trip/trip-window`) rather than a round
  * trip per drag.
  */
 export async function listDayLoads(tripId: number): Promise<DayLoad[]> {
@@ -87,13 +88,9 @@ export async function listDayLoads(tripId: number): Promise<DayLoad[]> {
  * the window, nothing outside it. An empty window removes every day ("Reset
  * dates") — callers confirm with the user first, per rule 7.
  *
- * Surplus days are **hard-deleted** (second exception to rule 8, same reason as
- * `ensureDays`): a soft-deleted row still occupies the `(trip, date)` unique
- * index, so soft-deleting a shrink's cut days would permanently block reusing
- * those dates. The three writes are spelled out rather than left to `ON
- * DELETE`, since FK enforcement is only a connection pragma — and expenses are
- * deliberately detached, not deleted, with their day (`expense.day_id` nullable
- * for this).
+ * Surplus days and their events are soft-deleted (rule 8); a date that comes
+ * back later is revived blank by `ensureDays`. Expenses and files are detached
+ * from the removed days, never removed with them.
  */
 export async function setTripWindow(
   tripId: number,
@@ -101,6 +98,8 @@ export async function setTripWindow(
   end: string | null,
   by: string,
 ): Promise<void> {
+  const problem = windowProblem(start, end);
+  if (problem) throw new Refusal(problem);
   const dates = dateRange(start, end);
 
   await db.transaction(async (tx) => {
@@ -109,13 +108,13 @@ export async function setTripWindow(
       .set({ startDate: start, endDate: end, ...touch() })
       .where(and(eq(trip.id, tripId), isNull(trip.deletedAt)));
 
-    // Unfiltered on deletedAt — same reason the delete is hard, below.
     const surplus = await tx
       .select({ id: day.id })
       .from(day)
       .where(
         and(
           eq(day.tripId, tripId),
+          isNull(day.deletedAt),
           dates.length ? not(inArray(day.date, dates)) : undefined,
         ),
       )
@@ -124,9 +123,24 @@ export async function setTripWindow(
 
     if (surplus.length) {
       const ids = surplus.map((d) => d.id);
+      const now = new Date();
+      const gone = { deletedAt: now, lastModifiedAt: now };
+      const events = await tx
+        .update(dayEvent)
+        .set(gone)
+        .where(and(inArray(dayEvent.dayId, ids), isNull(dayEvent.deletedAt)))
+        .returning({ id: dayEvent.id })
+        .all();
+      await tx.update(day).set(gone).where(inArray(day.id, ids));
+      // Money and files stay; they only lose the day they were filed under.
       await tx.update(expense).set({ dayId: null }).where(inArray(expense.dayId, ids));
-      await tx.delete(dayEvent).where(inArray(dayEvent.dayId, ids));
-      await tx.delete(day).where(inArray(day.id, ids));
+      await tx.update(document).set({ dayId: null }).where(inArray(document.dayId, ids));
+      if (events.length) {
+        await tx
+          .update(document)
+          .set({ dayEventId: null })
+          .where(inArray(document.dayEventId, events.map((e) => e.id)));
+      }
     }
 
     await ensureDays(tripId, dates, tx);
@@ -219,7 +233,7 @@ export async function listDaysWithEvents(tripId: number): Promise<DayWithEvents[
 
   return bounded(days, "days", `trip ${tripId}`).map((d) => ({
     ...d,
-    // order_index only breaks ties among untimed events — see lib/event-order.ts.
+    // order_index only breaks ties among untimed events — see @floc/core/itinerary/event-order.
     events: orderEvents(events.filter((e) => e.dayId === d.id)),
   }));
 }
@@ -334,23 +348,36 @@ export async function firstOvernightPlaceByTrip(
 }
 
 /**
- * Extends the trip by creating day rows for `dates` that don't have one.
- * Existence check deliberately unfiltered on `deletedAt` (rule 8 exception) —
- * a soft-deleted row still occupies the (trip, date) unique index.
+ * Gives the trip a live day for each of `dates`. Reaches past `deletedAt` (rule 8
+ * exception): a removed day still holds the (trip, date) unique index, so it is
+ * brought back blank — its old events and overnight stay gone.
  */
 export async function ensureDays(
   tripId: number,
   dates: string[],
-  run: Pick<Tx, "select" | "insert"> = db,
+  run: Pick<Tx, "select" | "insert" | "update"> = db,
 ): Promise<void> {
   if (dates.length === 0) return;
 
   const existing = await run
-    .select({ date: day.date })
+    .select({ id: day.id, date: day.date, deletedAt: day.deletedAt })
     .from(day)
     .where(and(eq(day.tripId, tripId), inArray(day.date, dates)))
     .limit(LIMITS.days)
     .all();
+
+  const removed = existing.filter((d) => d.deletedAt !== null).map((d) => d.id);
+  if (removed.length) {
+    const now = new Date();
+    await run
+      .update(dayEvent)
+      .set({ deletedAt: now, lastModifiedAt: now })
+      .where(and(inArray(dayEvent.dayId, removed), isNull(dayEvent.deletedAt)));
+    await run
+      .update(day)
+      .set({ deletedAt: null, overnightPlaceId: null, lastModifiedAt: now })
+      .where(inArray(day.id, removed));
+  }
 
   const covered = new Set(existing.map((d) => d.date));
   const missing = dates.filter((d) => !covered.has(d));
@@ -400,7 +427,7 @@ export async function softDeleteDay(dayId: number, by: string): Promise<void> {
 }
 
 /**
- * A day's events, ordered (`lib/event-order.ts`). Joins through `day` so a
+ * A day's events, ordered (`@floc/core/itinerary/event-order`). Joins through `day` so a
  * foreign `dayId` reads as an empty day rather than another group's itinerary
  * (ticket 104) — every reorder derives its write ids from this scoped read.
  */
@@ -551,11 +578,26 @@ export async function rescheduleEvent(
 }
 
 // Caller checks both days belong to the trip.
-export async function moveEventToDay(eventId: number, toDayId: number): Promise<void> {
-  await db
-    .update(dayEvent)
-    .set({ dayId: toDayId, ...touch() })
-    .where(eq(dayEvent.id, eventId));
+/** Why one transaction: a half-done move leaves the event on its new day with both days' order broken. */
+export async function moveEventToDay(
+  eventId: number,
+  toDayId: number,
+  order: { target: number[]; source: number[] },
+): Promise<void> {
+  await db.transaction(async (tx) => {
+    await tx
+      .update(dayEvent)
+      .set({ dayId: toDayId, ...touch() })
+      .where(and(eq(dayEvent.id, eventId), isNull(dayEvent.deletedAt)));
+    for (const ids of [order.target, order.source]) {
+      for (const [i, id] of ids.entries()) {
+        await tx
+          .update(dayEvent)
+          .set({ orderIndex: i })
+          .where(and(eq(dayEvent.id, id), isNull(dayEvent.deletedAt)));
+      }
+    }
+  });
 }
 
 export async function rebaseEventOrder(ids: number[]): Promise<void> {
@@ -585,6 +627,10 @@ export async function extendTripDays(
   count: number,
   by: string,
 ): Promise<void> {
+  if (!isIsoDate(afterDate) || !Number.isInteger(count) || count < 1) {
+    throw new Refusal("Pick a day and how many to add.");
+  }
+  if (count > MAX_TRIP_DAYS) throw new Refusal("Keep a trip to a year or less.");
   const dates: string[] = [];
   let cursor = afterDate;
   for (let i = 0; i < count; i++) {
@@ -595,6 +641,10 @@ export async function extendTripDays(
 
   const last = dates[dates.length - 1];
   const movesTheWindow = Boolean(target.startDate && target.endDate && last > target.endDate);
+  if (movesTheWindow) {
+    const problem = windowProblem(target.startDate, last);
+    if (problem) throw new Refusal(problem);
+  }
 
   await db.transaction(async (tx) => {
     await ensureDays(target.id, dates, tx);

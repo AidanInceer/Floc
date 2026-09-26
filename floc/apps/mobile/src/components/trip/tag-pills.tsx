@@ -9,6 +9,7 @@
  */
 import { readTags } from "@floc/core/trip/tags";
 import { tripPastel, type TripColor } from "@floc/core/trip/trip-color";
+import { pastelOf } from "@floc/core/design/pastels";
 import { StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "../system/theme";
@@ -28,7 +29,7 @@ export function TagPills({
   const words = readTags(tags);
   if (words.length === 0) return null;
 
-  const tone = tripPastel(color, tripId);
+  const tone = pastelOf(tripPastel(color, tripId));
 
   return (
     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.xs }}>

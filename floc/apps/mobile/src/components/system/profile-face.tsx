@@ -1,7 +1,7 @@
 /**
  * The card someone lands on when they open you (tickets 46, 201, 302).
  *
- * A PLAIN SHEET, NOT A PASTEL. The card carried the web's butter fill, but on
+ * A PLAIN SHEET, NOT A PASTEL. The card carried the web's yellow fill, but on
  * the phone it is the first thing under the title with nothing to contrast
  * against — so the colour read as a warning, not a welcome. The picture, the
  * name and the tags are enough to make it the page's subject.
@@ -23,22 +23,13 @@ import { AvatarIconMark } from "./avatar-icon";
 import { PenGlyph } from "./glyphs";
 import { useTheme } from "./theme";
 import { fonts, radius, size, space } from "@/lib/theme";
+import { initials } from "@floc/core/people/initials";
 
 const AVATAR = 60;
 
-/** First letters of the first two words — "Aidan Inceer" is AI, "Ada" is A. */
-export function initialsOf(name: string): string {
-  return name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word[0]?.toUpperCase() ?? "")
-    .join("");
-}
-
 function Face({ name, icon }: { name: string; icon: AvatarIcon | null }) {
   const { c } = useTheme();
-  // Hardcoded peri until #157: the card was the one place a person was not
+  // Hardcoded blue until #157: the card was the one place a person was not
   // their own colour, so you were a different person here than on the roster.
   const tone = whoTone(name);
   return (
@@ -64,7 +55,7 @@ function Face({ name, icon }: { name: string; icon: AvatarIcon | null }) {
             fontSize: size.heading,
           }}
         >
-          {initialsOf(name)}
+          {initials(name)}
         </Text>
       )}
     </View>

@@ -25,7 +25,10 @@ attachNotesLive(server, live, app.getUpgradeHandler());
 for (const signal of ["SIGINT", "SIGTERM"] as const) {
   process.on(signal, () => {
     live.flushPendingStores();
+    live.closeConnections();
     server.close(() => process.exit(0));
+    // Why: a socket that will not close holds `close` open; give the page stores time, then go.
+    setTimeout(() => process.exit(0), 10_000).unref();
   });
 }
 

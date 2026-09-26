@@ -4,7 +4,7 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { db, schema } from "@/db";
 import { inviteToTrip } from "@/server/trips/invites";
 import { REDIRECT } from "@/test/setup";
-import { migrateTestDb, resetDb, seedScenario, signIn, type Scenario } from "@/test/db";
+import { migrateTestDb, resetDb, seedScenario, signIn, type Scenario, befriend } from "@/test/db";
 
 import {
   acceptTripInvite,
@@ -46,6 +46,7 @@ describe("creating a trip", () => {
   beforeEach(() => signIn(world.admin));
 
   it("makes the creator admin, invites the ticked friends and opens the trip", async () => {
+    await befriend(world.admin, world.member);
     const created = createTrip(
       form({ name: "Rome", startDate: "2026-10-01", endDate: "", friendIds: [world.member, world.member] }),
     );
@@ -80,6 +81,7 @@ describe("creating a trip", () => {
 
 describe("answering an invite", () => {
   beforeEach(async () => {
+    await befriend(world.admin, world.outsider);
     await inviteToTrip({ tripId: world.ours.id, fromUserId: world.admin, toUserIds: [world.outsider] });
     signIn(world.outsider);
   });

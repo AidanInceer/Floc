@@ -64,8 +64,9 @@ import {
   softDeleteEvent,
   updateEventFields,
 } from "@/server/itinerary/itinerary";
+import { expenseRefusal } from "@/server/money/expense-check";
+import { Refusal } from "@floc/core/errors/refusal";
 import {
-  findLiveExpense,
   listExpenses,
   listSettlements,
   listSplits,
@@ -275,7 +276,7 @@ export const webPort: FlocPort = {
     const access = await scoped(viewerId, tripId);
     const line = await access.packingLine(lineId);
     const name = capRequiredText(label, "packingLabel");
-    if (!name) throw new Error("A thing to pack needs a name.");
+    if (!name) throw new Refusal("A thing to pack needs a name.");
     await renamePackingLineLabel(line.id, name);
     refresh({ kind: "packing", tripId });
   },
@@ -463,6 +464,8 @@ export const webPort: FlocPort = {
         toUserId: s.toUserId,
         amountMinor: s.amountMinor,
         currency: s.currency,
+        clearsAmountMinor: s.clearsAmountMinor,
+        clearsCurrency: s.clearsCurrency,
       })),
     };
   },
@@ -507,8 +510,8 @@ export const webPort: FlocPort = {
 
   // No trip to scope to: the picker searches before one is chosen. Signed in
   // is the whole gate, and the procedure has already insisted on that.
-  searchPlaces(_viewerId, query): Promise<PlaceHit[]> {
-    return geocode(query);
+  searchPlaces(viewerId, query): Promise<PlaceHit[]> {
+    return geocode(query, viewerId);
   },
 
   async setOvernight(viewerId, tripId, input) {
@@ -629,12 +632,15 @@ export const webPort: FlocPort = {
   },
 
   async writeExpense(viewerId, tripId, input: ExpenseInput & { expenseId?: number }) {
-    await scoped(viewerId, tripId);
-    // A stale id must not become an insert under a different trip.
-    if (input.expenseId !== undefined) {
-      const live = await findLiveExpense(tripId, input.expenseId);
-      if (!live) throw new Error("That expense is gone.");
-    }
+    const access = await scoped(viewerId, tripId);
+    const refusal = await expenseRefusal({
+      tripId,
+      memberIds: access.members.map((m) => m.userId),
+      expenseId: input.expenseId,
+      dayId: input.dayId,
+      draft: input,
+    });
+    if (refusal) throw new Refusal(refusal);
     await writeExpense({
       tripId,
       expenseId: input.expenseId,
@@ -660,10 +666,10 @@ export const webPort: FlocPort = {
     // write a debt against somebody who is not in the group at all.
     const onTrip = new Set(access.members.map((member) => member.userId));
     if (transfers.some((t) => !onTrip.has(t.fromUserId) || !onTrip.has(t.toUserId))) {
-      throw new Error("That person is not on this trip.");
+      throw new Refusal("That person is not on this trip.");
     }
     if (transfers.some((t) => viewerId !== t.fromUserId && viewerId !== t.toUserId)) {
-      throw new Error("Only the payer or receiver can record this.");
+      throw new Refusal("Only the payer or receiver can record this.", "forbidden");
     }
     await writeSettlements(tripId, viewerId, transfers);
     refresh({ kind: "money", tripId });

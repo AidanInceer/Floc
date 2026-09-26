@@ -1,6 +1,6 @@
 /**
  * `note` + `note_reaction` write half (ticket 108); reads are in
- * `server/notes-read.ts` — one aggregate split by direction, not by table.
+ * `server/notes/notes-read.ts` — one aggregate split by direction, not by table.
  *
  * Threads go through the polymorphic `note` table (scope + scope_id) rather
  * than a table per surface, since a note on a day and one on a day event are
@@ -12,7 +12,7 @@
  */
 import "server-only";
 
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, or } from "drizzle-orm";
 
 import { db } from "@/db";
 import { note, noteReaction } from "@/db/schema";
@@ -22,7 +22,7 @@ import { tripHref, threadTab } from "@floc/core/notifications/notification-href"
 import { touch } from "@/server/audit";
 import { recordActivity } from "@/server/notifications/activity";
 
-/** Re-exported from `lib/text.ts` (ticket 113) — predates the others' move there. */
+/** Re-exported from `@floc/core/text/text` (ticket 113) — predates the others' move there. */
 export const NOTE_BODY_MAX = TEXT_CAPS.noteBody;
 
 /** One live note of this trip's. Scoped by trip, so a foreign id reads as gone. */
@@ -104,15 +104,10 @@ export async function updateNoteBody(noteId: number, body: string): Promise<void
 
 /** Soft-deletes a comment and its replies in the same stamp — one level deep means no recursion, and a reply left orphaned answers nothing. */
 export async function softDeleteNoteAndReplies(noteId: number): Promise<void> {
-  const deletedAt = new Date();
   await db
     .update(note)
-    .set({ deletedAt, ...touch() })
-    .where(and(eq(note.id, noteId), isNull(note.deletedAt)));
-  await db
-    .update(note)
-    .set({ deletedAt, ...touch() })
-    .where(and(eq(note.parentId, noteId), isNull(note.deletedAt)));
+    .set({ deletedAt: new Date(), ...touch() })
+    .where(and(or(eq(note.id, noteId), eq(note.parentId, noteId)), isNull(note.deletedAt)));
 }
 
 /**

@@ -145,6 +145,22 @@ describe("sending pushes", () => {
     expect(sent).toHaveLength(1);
   });
 
+  it("marks sent what reached a phone, and sends again only what did not", async () => {
+    await registerPushToken(world.member, "ExponentPushToken[m]");
+    await registerPushToken(world.admin, "ExponentPushToken[a]");
+    await nudge();
+    await insertNudge({ tripId: world.ours.id, fromUserId: world.member, toUserId: world.admin, tab: "money", message: null });
+
+    await sendDuePushes(
+      async (messages) => ({ deadTokens: [], failed: messages.filter((m) => m.to === "ExponentPushToken[m]") }),
+      minutes(3),
+    );
+
+    const { sent, send } = sender();
+    await sendDuePushes(send, minutes(4));
+    expect(sent.map((m) => m.to)).toEqual(["ExponentPushToken[m]"]);
+  });
+
   it("sends once when two runs overlap", async () => {
     await registerPushToken(world.member, "ExponentPushToken[a]");
     await nudge();

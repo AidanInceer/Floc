@@ -3,7 +3,7 @@
  * its *when*. Undated opens here and is never an error (rules 4 and 9), and a
  * stop is derived from the days, never stored (rule 3).
  */
-import { computeBalances } from "@floc/core/money/money";
+import { ledgerBalances } from "@floc/core/money/ledger";
 import { spendHeadline } from "@floc/core/money/spend";
 import { groupStatuses, owingUserIds } from "@floc/core/trip/group/group-status";
 import { bookingPlan } from "@floc/core/trip/booking-links";
@@ -97,7 +97,7 @@ export default function Overview() {
           color={readTripColor(trip.data.colorKey)}
           tripId={tripId}
         />
-        {trip.data.archived ? <Pill word="Archived" tone="butter" /> : null}
+        {trip.data.archived ? <Pill word="Archived" tone="pastel-yellow" /> : null}
       </View>
 
       {/* Ideas first: before the dates exist it is the only live question here. */}
@@ -239,25 +239,7 @@ function statusesFor(
   const marked = new Set((availability ?? []).map((row) => row.userId));
   return groupStatuses({
     needDates: undated && availability ? trip.members.map((m) => m.userId).filter((id) => !marked.has(id)) : [],
-    owing: ledger ? owingUserIds(balancesFrom(ledger)) : [],
+    owing: ledger ? owingUserIds(ledgerBalances(ledger)) : [],
   });
 }
 
-function balancesFrom(ledger: Ledger) {
-  return computeBalances(
-    ledger.expenses.map((expense) => ({
-      paidBy: expense.paidBy,
-      currency: expense.currency,
-      amountMinor: expense.amountMinor,
-      splits: ledger.splits
-        .filter((split) => split.expenseId === expense.id)
-        .map((split) => ({ userId: split.userId, owedAmountMinor: split.owedAmountMinor })),
-    })),
-    ledger.settlements.map((settlement) => ({
-      from: settlement.fromUserId,
-      to: settlement.toUserId,
-      currency: settlement.currency,
-      amountMinor: settlement.amountMinor,
-    })),
-  );
-}

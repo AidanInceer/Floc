@@ -125,7 +125,7 @@ export default async function LandingPage() {
 
         {/* Illustrative sample, not a live query — one settled trip, so the
             hero shows the thing the page is selling rather than a mood board. */}
-        <aside className="lift rounded-lg bg-peri p-6 text-peri-ink sm:p-7">
+        <aside className="lift rounded-lg bg-pastel-blue p-6 text-pastel-blue-ink sm:p-7">
           <p className="typed text-current">One trip, one page</p>
           <div className="mt-3 flex items-baseline justify-between gap-4">
             <h2 className="text-xl">Sicily</h2>
@@ -190,7 +190,7 @@ export default async function LandingPage() {
             </ButtonLink>
           </div>
         </div>
-        <div className="lift rounded-lg bg-blush p-6 text-blush-ink">
+        <div className="lift rounded-lg bg-pastel-red p-6 text-pastel-red-ink">
           <p className="typed text-current">On the shelf</p>
           <div className="mt-4 flex flex-col gap-2.5">
             {[

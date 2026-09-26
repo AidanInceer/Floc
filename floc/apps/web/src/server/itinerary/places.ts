@@ -46,13 +46,17 @@ export type PlaceSearchResult = {
 
 /**
  * Serialises geocode calls into a single ≥1s-spaced queue (chain of promises,
- * not a timer). `queue`/`lastCall` are per-process (ticket 110) — two
- * serverless instances each hold their own 1/s, exceeding Nominatim's policy.
- * Acceptable at pre-MVP traffic (one warm instance); next step would be a
- * `place` lookup cache or a shared DB token bucket.
+ * not a timer). `queue`/`lastCall` are per-process (ticket 110), which holds
+ * while floc-web runs as one instance.
  */
 let queue: Promise<unknown> = Promise.resolve();
 let lastCall = 0;
+
+/** Why caps: at 1/s, one person typing fast would otherwise hold everyone else's search. */
+const MAX_WAITING = 10;
+const MAX_WAITING_EACH = 2;
+let waiting = 0;
+const waitingBy = new Map<string, number>();
 
 function throttle<T>(fn: () => Promise<T>): Promise<T> {
   const run = queue.then(async () => {
@@ -63,6 +67,22 @@ function throttle<T>(fn: () => Promise<T>): Promise<T> {
   });
   queue = run.catch(() => {}); // keep the chain alive if this call rejects
   return run;
+}
+
+/** Nominatim's policy asks for caching; a place's name does not move within a day. */
+const CACHE_MS = 24 * 60 * 60 * 1000;
+const CACHE_SIZE = 500;
+const cache = new Map<string, { at: number; hits: PlaceSearchResult[] }>();
+
+function cached(key: string): PlaceSearchResult[] | undefined {
+  const entry = cache.get(key);
+  if (!entry || Date.now() - entry.at > CACHE_MS) return undefined;
+  return entry.hits;
+}
+
+function remember(key: string, hits: PlaceSearchResult[]): void {
+  if (cache.size >= CACHE_SIZE) cache.delete(cache.keys().next().value as string);
+  cache.set(key, { at: Date.now(), hits });
 }
 
 type NominatimHit = {
@@ -76,9 +96,33 @@ type NominatimHit = {
   address?: { country_code?: string };
 };
 
-/** Unreachable/rate-limited/malformed → [] + warning, so the picker degrades to a typed name (rule 11) instead of throwing. */
-export async function searchPlaces(query: string): Promise<PlaceSearchResult[]> {
-  if (!query.trim()) return [];
+/**
+ * Unreachable/rate-limited/malformed → [] + warning, so the picker degrades to
+ * a typed name (rule 11) instead of throwing. A full queue answers [] at once.
+ */
+export async function searchPlaces(query: string, who = "anyone"): Promise<PlaceSearchResult[]> {
+  const key = query.trim().toLowerCase();
+  if (!key) return [];
+  const known = cached(key);
+  if (known) return known;
+  if (waiting >= MAX_WAITING || (waitingBy.get(who) ?? 0) >= MAX_WAITING_EACH) return [];
+
+  waiting += 1;
+  waitingBy.set(who, (waitingBy.get(who) ?? 0) + 1);
+  try {
+    const hits = await geocode(query);
+    if (hits) remember(key, hits);
+    return hits ?? [];
+  } finally {
+    waiting -= 1;
+    const left = (waitingBy.get(who) ?? 1) - 1;
+    if (left > 0) waitingBy.set(who, left);
+    else waitingBy.delete(who);
+  }
+}
+
+/** Null when the provider could not answer, so a failure is never cached. */
+async function geocode(query: string): Promise<PlaceSearchResult[] | null> {
 
   const url = new URL(NOMINATIM_SEARCH);
   url.searchParams.set("q", query);
@@ -101,15 +145,15 @@ export async function searchPlaces(query: string): Promise<PlaceSearchResult[]> 
     );
     if (!res.ok) {
       console.warn(`[geocoding] nominatim search failed: ${res.status}`);
-      return [];
+      return null;
     }
     hits = (await res.json()) as NominatimHit[];
   } catch (err) {
     console.warn(`[geocoding] nominatim unreachable — falling back to free text: ${String(err)}`);
-    return [];
+    return null;
   }
 
-  if (!Array.isArray(hits)) return [];
+  if (!Array.isArray(hits)) return null;
 
   return hits
     .map((h) => {

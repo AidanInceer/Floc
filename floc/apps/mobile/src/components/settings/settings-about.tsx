@@ -41,8 +41,8 @@ function TagPill({
       accessibilityLabel={tag}
       onPress={onPress}
       style={({ pressed }) => ({
-        backgroundColor: on ? c.peri : c.sheet,
-        borderColor: on ? c["peri-edge"] : c.rule,
+        backgroundColor: on ? c["pastel-blue"] : c.sheet,
+        borderColor: on ? c["pastel-blue-edge"] : c.rule,
         borderWidth: StyleSheet.hairlineWidth,
         borderRadius: radius.pill,
         paddingVertical: space.xs,
@@ -52,7 +52,7 @@ function TagPill({
     >
       <Text
         style={{
-          color: on ? c["peri-ink"] : c["ink-2"],
+          color: on ? c["pastel-blue-ink"] : c["ink-2"],
           fontFamily: on ? fonts.sansBold : fonts.sans,
           fontSize: size.small,
         }}

@@ -88,7 +88,7 @@ export function AvailabilityCalendar({
   /** Free trip: the mode is still offered, and says so instead (ticket 248). */
   weatherLocked?: boolean;
   save: (add: string[], remove: string[]) => Promise<void>;
-  saveDates: (start: string | null, end: string | null) => Promise<void>; // null/null clears
+  saveDates: (start: string | null, end: string | null) => Promise<{ error?: string }>;
 }) {
   const [view, setView] = useState<View>("mine");
   const [month, setMonth] = useState(firstMonth);
@@ -207,9 +207,11 @@ export function AvailabilityCalendar({
       setEdits({});
     });
 
+  const [datesProblem, setDatesProblem] = useState<string | null>(null);
   const onSaveDates = () =>
     startTransition(async () => {
-      await saveDates(range.start, rangeEnd);
+      const result = await saveDates(range.start, rangeEnd);
+      setDatesProblem(result.error ?? null);
       setArmedKey(null);
     });
 
@@ -413,6 +415,7 @@ export function AvailabilityCalendar({
                   ? "Change dates"
                   : "Set the dates"}
           </Button>
+          {datesProblem ? <p className="text-sm text-red">{datesProblem}</p> : null}
           {/* Always here, disabled when nothing to discard (ticket 133) —
               appearing/disappearing re-wrapped the key and moved the card edge. */}
           <Button
@@ -426,15 +429,15 @@ export function AvailabilityCalendar({
               only it has — status is never colour alone. */}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <LegendKey swatch="bg-green border-green" label="The trip" />
-            <LegendKey swatch="bg-mint border-mint-edge" label="All free" />
-            <LegendKey swatch="bg-blush border-blush-edge" label="Some free" />
+            <LegendKey swatch="bg-pastel-green border-pastel-green-edge" label="All free" />
+            <LegendKey swatch="bg-pastel-red border-pastel-red-edge" label="Some free" />
           </div>
         </div>
       ) : view === "mine" ? (
         <div className={footer}>
           {/* Status is never colour alone — the mark gets a word too. */}
           <span className="mr-auto">
-            <LegendKey swatch="bg-peri border-peri-edge" label="Days you can do" />
+            <LegendKey swatch="bg-pastel-blue border-pastel-blue-edge" label="Days you can do" />
           </span>
           <Button
             variant="primary"
@@ -451,8 +454,8 @@ export function AvailabilityCalendar({
       ) : view === "everyone" ? (
         /* A key, not a paragraph (ticket 76): swatch matches, not reads. */
         <div className={footer}>
-          <LegendKey swatch="bg-mint border-mint-edge" label="All free" />
-          <LegendKey swatch="bg-blush border-blush-edge" label="Some free" />
+          <LegendKey swatch="bg-pastel-green border-pastel-green-edge" label="All free" />
+          <LegendKey swatch="bg-pastel-red border-pastel-red-edge" label="Some free" />
           <LegendKey swatch="bg-sheet border-pen" label="The trip" />
         </div>
       ) : weather ? (

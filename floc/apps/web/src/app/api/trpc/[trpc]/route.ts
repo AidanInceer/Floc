@@ -3,7 +3,7 @@
  *
  * One handler, two callers. A browser arrives with the session cookie it
  * already had; a phone arrives with a bearer token (the `bearer` plugin in
- * `server/auth.ts`). Better Auth reads both off the same headers, so nothing
+ * `server/auth/auth.ts`). Better Auth reads both off the same headers, so nothing
  * here has to know which it is talking to — and there is exactly one session
  * model behind both.
  *
@@ -19,6 +19,7 @@ import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { webPort } from "@/server/api-port/api-port";
 import { auth } from "@/server/auth/auth";
 import { boundedRequest } from "@/server/http/request-body";
+import { withRequestScope } from "@/server/request-scope";
 
 /** libSQL over HTTP, and a session read per request — nothing here is static. */
 export const dynamic = "force-dynamic";
@@ -43,18 +44,20 @@ async function handler(req: Request) {
   if (!bounded) {
     return new Response("Request body is too large", { status: 413 });
   }
-  return fetchRequestHandler({
-    endpoint: "/api/trpc",
-    req: bounded,
-    router: appRouter,
-    createContext: () => createContext(req),
-    onError({ error, path }) {
-      if (error.code === "INTERNAL_SERVER_ERROR") {
-        // Database errors can include query parameters containing PII.
-        console.error(`tRPC ${path ?? "<no path>"}: ${error.code}`);
-      }
-    },
-  });
+  return withRequestScope(() =>
+    fetchRequestHandler({
+      endpoint: "/api/trpc",
+      req: bounded,
+      router: appRouter,
+      createContext: () => createContext(req),
+      onError({ error, path }) {
+        if (error.code === "INTERNAL_SERVER_ERROR") {
+          // Database errors can include query parameters containing PII.
+          console.error(`tRPC ${path ?? "<no path>"}: ${error.code}`);
+        }
+      },
+    }),
+  );
 }
 
 export { handler as GET, handler as POST };

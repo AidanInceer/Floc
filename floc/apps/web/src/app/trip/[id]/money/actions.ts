@@ -1,7 +1,7 @@
 "use server";
 
 // An expense write always rewrites expense + the whole expense_split set in
-// one transaction (writeExpense, server/money.ts) — last-write-wins, never a
+// one transaction (writeExpense, server/money/money.ts) — last-write-wins, never a
 // partial-row merge (ticket 12). Any member may add/edit/delete (ticket 01).
 import type { Currency } from "@/db/schema";
 import { capRequiredText, capText } from "@floc/core/text/text";
@@ -13,8 +13,8 @@ import {
 } from "@floc/core/money/expense-category";
 import type { ExpenseCategory } from "@floc/core/money/expense-category";
 import { requireTripAccess } from "@/server/access";
+import { expenseRefusal } from "@/server/money/expense-check";
 import {
-  findLiveExpense,
   findLiveSettlement,
   rewriteSettlement,
   softDeleteExpense,
@@ -26,8 +26,6 @@ import {
 import type { WritableSplitType } from "@floc/core/money/money";
 import {
   computeSplits,
-  formatMoney,
-  maxExpenseMinor,
   parseMoney,
   convertMinor,
   resolveWeightedSplit,
@@ -59,23 +57,15 @@ function parseSplit(
   return resolveWeightedSplit(amountMinor, rows, currency);
 }
 
-// Parses the amount and holds it to a sane, positive range — the arithmetic
-// ceiling in lib/money is a safety net, not a product limit.
 function readAmount(
   formData: FormData,
   currency: Currency,
 ): { amountMinor: number } | { error: string } {
-  let amountMinor: number;
   try {
-    amountMinor = parseMoney(String(formData.get("amount") ?? ""), currency);
+    return { amountMinor: parseMoney(String(formData.get("amount") ?? ""), currency) };
   } catch (err) {
     return { error: (err as Error).message };
   }
-  if (amountMinor <= 0) return { error: "Enter an amount above zero." };
-  if (amountMinor > maxExpenseMinor(currency)) {
-    return { error: `Keep an expense under ${formatMoney(maxExpenseMinor(currency), currency)}.` };
-  }
-  return { amountMinor };
 }
 
 function readExpenseFields(formData: FormData) {
@@ -92,12 +82,9 @@ function readExpenseFields(formData: FormData) {
   return { description, currency, paidBy, dayId, notes, category };
 }
 
-export async function addExpense(
-  _prev: ActionState,
-  formData: FormData,
-): Promise<ActionState> {
-  const tripId = Number(formData.get("tripId"));
-  const access = await requireTripAccess(tripId);
+// One path for add and edit: an edit replaces the split set whole, never merges (ticket 12).
+async function saveExpense(formData: FormData, expenseId?: number): Promise<ActionState> {
+  const access = await requireTripAccess(Number(formData.get("tripId")));
   const { description, currency, paidBy, dayId, notes, category } =
     readExpenseFields(formData);
 
@@ -106,8 +93,9 @@ export async function addExpense(
   if (!CURRENCIES.includes(currency)) return { error: "Pick a currency." };
 
   const parsed = readAmount(formData, currency);
-  if ("error" in parsed) return { error: parsed.error };
-  const amountMinor = parsed.amountMinor;
+  if ("error" in parsed) return parsed;
+  const { amountMinor } = parsed;
+  if (amountMinor <= 0) return { error: "Enter an amount above zero." };
 
   let splits;
   let splitType: WritableSplitType;
@@ -118,12 +106,19 @@ export async function addExpense(
   } catch (err) {
     return { error: (err as Error).message };
   }
-  if (splits.some((s) => s.owedAmountMinor < 0)) {
-    return { error: "A share can't be negative." };
-  }
+
+  const refusal = await expenseRefusal({
+    tripId: access.trip.id,
+    memberIds: access.members.map((m) => m.userId),
+    expenseId,
+    dayId,
+    draft: { paidBy, amountMinor, currency, splits },
+  });
+  if (refusal) return { error: refusal };
 
   await writeExpense({
     tripId: access.trip.id,
+    expenseId,
     createdBy: access.viewer.id,
     fields: { dayId, paidBy, description, amountMinor, currency, splitType, category, notes },
     splits,
@@ -133,51 +128,18 @@ export async function addExpense(
   return {};
 }
 
+export async function addExpense(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  return saveExpense(formData);
+}
+
 export async function updateExpense(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const tripId = Number(formData.get("tripId"));
-  const expenseId = Number(formData.get("expenseId"));
-  const access = await requireTripAccess(tripId);
-  const { description, currency, paidBy, dayId, notes, category } =
-    readExpenseFields(formData);
-
-  if (!description) return { error: "Give the expense a description." };
-  if (!paidBy) return { error: "Say who paid." };
-  if (!CURRENCIES.includes(currency)) return { error: "Pick a currency." };
-
-  const existing = await findLiveExpense(access.trip.id, expenseId);
-  if (!existing) return { error: "That expense no longer exists." };
-
-  const parsed = readAmount(formData, currency);
-  if ("error" in parsed) return { error: parsed.error };
-  const amountMinor = parsed.amountMinor;
-
-  let splits;
-  let splitType: WritableSplitType;
-  try {
-    const resolved = parseSplit(formData, amountMinor, currency);
-    splitType = resolved.splitType;
-    splits = computeSplits(amountMinor, splitType, resolved.participants);
-  } catch (err) {
-    return { error: (err as Error).message };
-  }
-  if (splits.some((s) => s.owedAmountMinor < 0)) {
-    return { error: "A share can't be negative." };
-  }
-
-  // Whole-expense last-write-wins: split set replaced, not merged (ticket 12).
-  await writeExpense({
-    tripId: access.trip.id,
-    expenseId: existing.id,
-    createdBy: access.viewer.id,
-    fields: { dayId, paidBy, description, amountMinor, currency, splitType, category, notes },
-    splits,
-  });
-
-  refresh({ kind: "money", tripId: access.trip.id });
-  return {};
+  return saveExpense(formData, Number(formData.get("expenseId")));
 }
 
 export async function deleteExpense(formData: FormData): Promise<void> {
@@ -230,6 +192,19 @@ async function readCrossPayment(
 
 type Access = Awaited<ReturnType<typeof requireTripAccess>>;
 
+/** Two different people, both on the trip, and the viewer one of them. */
+function partiesProblem(access: Access, fromUserId: string, toUserId: string): string | null {
+  if (!fromUserId || !toUserId || fromUserId === toUserId) {
+    return "A settlement is between two different people.";
+  }
+  const memberIds = new Set(access.members.map((m) => m.userId));
+  if (!memberIds.has(fromUserId) || !memberIds.has(toUserId)) return "Both people must be on the trip.";
+  if (access.viewer.id !== fromUserId && access.viewer.id !== toUserId) {
+    return "Only the payer or receiver can record this.";
+  }
+  return null;
+}
+
 // The record rules, shared by record and edit (#361).
 async function readTransfer(access: Access, formData: FormData): Promise<Transfer | { error: string }> {
   const fromUserId = String(formData.get("fromUserId") ?? "");
@@ -237,18 +212,8 @@ async function readTransfer(access: Access, formData: FormData): Promise<Transfe
   const currency = String(formData.get("currency") ?? "") as Currency;
 
   if (!CURRENCIES.includes(currency)) return { error: "Pick a currency." };
-  if (!fromUserId || !toUserId || fromUserId === toUserId) {
-    return { error: "A settlement is between two different people." };
-  }
-
-  const memberIds = new Set(access.members.map((m) => m.userId));
-  if (!memberIds.has(fromUserId) || !memberIds.has(toUserId)) {
-    return { error: "Both people must be on the trip." };
-  }
-  // Only a party to the transfer may record it.
-  if (access.viewer.id !== fromUserId && access.viewer.id !== toUserId) {
-    return { error: "Only the payer or receiver can record this." };
-  }
+  const partyProblem = partiesProblem(access, fromUserId, toUserId);
+  if (partyProblem) return { error: partyProblem };
 
   let amountMinor: number;
   try {

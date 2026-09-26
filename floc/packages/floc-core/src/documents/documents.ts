@@ -49,10 +49,10 @@ export const DOC_CATEGORY_LABELS: Record<DocCategory, string> = {
 
 /** One pastel per bucket, the same one-per-domain rule the rest of the app follows. */
 export const DOC_CATEGORY_SKINS: Record<DocCategory, string> = {
-  travel: "bg-blush text-blush-ink",
-  stay: "bg-peri text-peri-ink",
-  tickets: "bg-butter text-butter-ink",
-  admin: "bg-mint text-mint-ink",
+  travel: "bg-pastel-red text-pastel-red-ink",
+  stay: "bg-pastel-blue text-pastel-blue-ink",
+  tickets: "bg-pastel-yellow text-pastel-yellow-ink",
+  admin: "bg-pastel-green text-pastel-green-ink",
   other: "bg-sheet-3 text-ink-soft",
 };
 

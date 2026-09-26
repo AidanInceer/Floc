@@ -92,7 +92,7 @@ export function TripRoute({
 
   return (
     // White panel (ticket 207). The map is the one element on Overview with
-    // real colour of its own; a blush fill behind it clashed with the tiles,
+    // real colour of its own; a red fill behind it clashed with the tiles,
     // so the box the map sits in is now the same white as every other panel.
     <section className="flex flex-1 flex-col rounded-lg bg-sheet p-6 ring-1 ring-rule">
       {/* One heading, not an eyebrow over a title saying the same thing. */}

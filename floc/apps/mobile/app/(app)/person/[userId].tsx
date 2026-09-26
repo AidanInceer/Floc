@@ -82,7 +82,7 @@ export default function PersonProfile() {
           {p.vibeTags && p.vibeTags.length > 0 ? (
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.xs }}>
               {p.vibeTags.map((tag) => (
-                <Pill key={tag} word={tag} tone="peri" />
+                <Pill key={tag} word={tag} tone="pastel-blue" />
               ))}
             </View>
           ) : null}

@@ -9,7 +9,7 @@ import { and, eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";
-import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
+import { migrateTestDb, resetDb, seedScenario, type Scenario, befriend } from "@/test/db";
 import {
   acceptInvite,
   countPendingInvitesFor,
@@ -31,6 +31,8 @@ beforeAll(migrateTestDb);
 beforeEach(async () => {
   await resetDb();
   world = await seedScenario();
+  await befriend(world.admin, world.outsider);
+  await befriend(world.outsider, world.member);
 });
 
 const membership = (tripId: number, userId: string) =>
@@ -59,6 +61,20 @@ describe("the share link", () => {
   it("resolves a live trip", async () => {
     expect((await findTripByInviteToken("token-ours"))?.id).toBe(world.ours.id);
   });
+
+  it("resolves nothing once the trip is archived", async () => {
+    await setTripArchived(world.ours.id, true);
+    expect(await findTripByInviteToken("token-ours")).toBeUndefined();
+  });
+
+  it("lets nobody else in once the trip is full", async () => {
+    const extra = Array.from({ length: 98 }, (_, i) => `u-extra-${i}`);
+    await db.insert(schema.user).values(extra.map((id) => ({ id, name: id, email: `${id}@example.test` })));
+    await db.insert(schema.tripMembership).values(extra.map((userId) => ({ tripId: world.ours.id, userId })));
+
+    await expect(joinWithLink(world.ours.id, world.outsider)).rejects.toThrow("This trip is full.");
+    expect(await countMembers(world.ours.id)).toBe(100);
+  });
 });
 
 describe("asking someone by name", () => {
@@ -70,6 +86,12 @@ describe("asking someone by name", () => {
     ]);
     expect(await membership(world.ours.id, world.outsider)).toBeUndefined(); // being invited is not being in
     expect(await countMembers(world.ours.id)).toBe(2);
+  });
+
+  it("asks nobody who is not a friend", async () => {
+    await db.delete(schema.friendship);
+    expect(await ask([world.outsider])).toBe(0);
+    expect(await invitesFor(world.ours.id)).toEqual([]);
   });
 
   it("skips people already on the roster, and yourself", async () => {

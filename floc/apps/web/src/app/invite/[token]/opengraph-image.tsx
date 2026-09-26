@@ -27,7 +27,7 @@ const GROUND = colours.paper;
 const INK = colours.ink;
 const INK_SOFT = colours["ink-2"];
 const PEN = colours.pen;
-const BUTTER = colours.butter;
+const BUTTER = colours["pastel-yellow"];
 
 export default async function InviteOgImage({
   params,

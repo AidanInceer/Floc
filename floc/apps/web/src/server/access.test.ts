@@ -38,3 +38,11 @@ describe("requireGuest", () => {
     await expect(requireGuest("https://evil.example/steal")).rejects.toThrow(`${REDIRECT}:/trips`);
   });
 });
+
+describe("requireGuest with a protocol-relative target", () => {
+  it("does not follow //host, which a browser reads as another site", async () => {
+    signIn(world.member);
+    await expect(requireGuest("//evil.example/steal")).rejects.toThrow(`${REDIRECT}:/trips`);
+    await expect(requireGuest(String.raw`/\evil.example`)).rejects.toThrow(`${REDIRECT}:/trips`);
+  });
+});

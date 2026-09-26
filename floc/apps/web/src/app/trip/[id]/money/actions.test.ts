@@ -98,6 +98,21 @@ describe("adding an expense", () => {
     expect(await listExpenses(world.ours.id)).toEqual([]);
   });
 
+  it("refuses a payer or a sharer who is not on the trip", async () => {
+    expect((await addExpense({}, expenseForm({ paidBy: world.outsider }))).error).toMatch(/payer/);
+    expect(
+      (await addExpense({}, expenseForm({ participant: [world.admin, world.outsider] }))).error,
+    ).toMatch(/on the trip/);
+    expect(await listExpenses(world.ours.id)).toEqual([]);
+  });
+
+  it("refuses a day that is not a number or not on this trip", async () => {
+    expect((await addExpense({}, expenseForm({ dayId: "abc" }))).error).toMatch(/day/);
+    expect((await addExpense({}, expenseForm({ dayId: String(world.theirs.dayId) }))).error).toMatch(
+      /day/,
+    );
+  });
+
   it("refuses a pinned share bigger than the bill", async () => {
     const result = await addExpense({}, expenseForm({ [`pin_${world.member}`]: "40.00" }));
     expect(result.error).toBeTruthy();

@@ -36,7 +36,7 @@ import { bookingPlan } from "@floc/core/trip/booking-links";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { ScrollView, View } from "react-native";
+import { Alert, ScrollView, View } from "react-native";
 
 import { DatesWeather, forecastIndex } from "@/components/days/dates-weather";
 import { BookingPanel } from "@/components/trip/booking-panel";
@@ -56,6 +56,7 @@ import {
 import { trpc } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 import { space } from "@/lib/theme";
+import { windowWarning } from "@/lib/trip/window-change";
 
 /** Which of the four readings of the same grid is on screen. */
 type CalendarView = "mine" | "everyone" | "window" | "weather";
@@ -110,7 +111,7 @@ function cellLook(
 
   if (view === "mine") {
     return state.mineOn(date)
-      ? { ground: "mint", ink: "mint-ink", count: null, ringed: false }
+      ? { ground: "pastel-green", ink: "pastel-green-ink", count: null, ringed: false }
       : NOTHING;
   }
 
@@ -118,12 +119,12 @@ function cellLook(
     const free = state.counts.get(date)?.free ?? 0;
     if (free === 0) return NOTHING;
     return free === state.memberCount
-      ? { ground: "mint", ink: "mint-ink", count: free, ringed: false }
-      : { ground: "butter", ink: "butter-ink", count: free, ringed: false };
+      ? { ground: "pastel-green", ink: "pastel-green-ink", count: free, ringed: false }
+      : { ground: "pastel-yellow", ink: "pastel-yellow-ink", count: free, ringed: false };
   }
 
   return state.windowDays.has(date)
-    ? { ground: "peri", ink: "peri-ink", count: null, ringed: true }
+    ? { ground: "pastel-blue", ink: "pastel-blue-ink", count: null, ringed: true }
     : NOTHING;
 }
 
@@ -317,6 +318,16 @@ export default function Dates() {
     if (off.length > 0) saveMarks.mutate({ tripId, dates: off, available: false });
   }
 
+  function setWindow(startDate: string | null, endDate: string | null) {
+    const write = () => saveWindow.mutate({ tripId, startDate, endDate });
+    const warning = windowWarning(days.data, startDate, endDate);
+    if (!warning) return write();
+    Alert.alert(warning.title, "This can't be undone.", [
+      { text: "Cancel", style: "cancel" },
+      { text: warning.action, style: "destructive", onPress: write },
+    ]);
+  }
+
   return (
     <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }}>
       <View style={{ gap: space.xs }}>
@@ -361,10 +372,8 @@ export default function Dates() {
           ready={range.start !== null && range.end !== null}
           busy={saveWindow.isPending}
           dated={trip.data.startDate !== null}
-          onSet={() =>
-            saveWindow.mutate({ tripId, startDate: range.start, endDate: range.end })
-          }
-          onClear={() => saveWindow.mutate({ tripId, startDate: null, endDate: null })}
+          onSet={() => setWindow(range.start, range.end)}
+          onClear={() => setWindow(null, null)}
         />
       ) : null}
 

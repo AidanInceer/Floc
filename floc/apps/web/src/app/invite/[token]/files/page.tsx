@@ -10,7 +10,6 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { GuestDocuments } from "@/components/guest/guest-documents";
-import { emailConfigured } from "@/server/auth/email";
 import { guestDocuments } from "@/server/trips/guest-view";
 import { PageTitle } from "@/components/system/ui";
 import { DeadLink } from "@/components/guest/dead-link";
@@ -38,7 +37,7 @@ export default async function InviteFilesPage({
   const trip = await inviteTrip(token);
   if (!trip) return <DeadLink />;
 
-  const viewer = await inviteViewer(trip.id, emailConfigured());
+  const viewer = await inviteViewer(trip.id);
   // A member has the real Files tab, where everything opens.
   if (viewer.kind === "member") redirect(`/trip/${trip.id}/files`);
 

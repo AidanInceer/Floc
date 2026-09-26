@@ -7,7 +7,7 @@ import { eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";
-import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
+import { migrateTestDb, resetDb, seedScenario, type Scenario, befriend } from "@/test/db";
 import { insertNote } from "@/server/notes/notes";
 import { writeExpense, writeSettlement } from "@/server/money/money";
 import { claimPackingLine, insertPackingLine, softDeletePackingLine } from "@/server/packing/packing";
@@ -140,6 +140,7 @@ describe("each writer logs its change", () => {
   });
 
   it("an invite, loud for the person asked", async () => {
+    await befriend(world.admin, world.outsider);
     await inviteToTrip({ tripId: world.ours.id, fromUserId: world.admin, toUserIds: [world.outsider] });
     expect(await inboxOf(world.outsider)).toEqual([{ kind: "trip_invited", loud: true }]);
     expect(await inboxOf(world.member)).toEqual([]);
@@ -156,16 +157,17 @@ describe("each writer logs its change", () => {
 });
 
 describe("grouping", () => {
-  it("folds rapid edits by one person to one thing into one row, unread again", async () => {
+  it("folds rapid edits by one person to one thing into one row, and a row you have read stays read", async () => {
     const edit = () =>
       insertNudge({ tripId: world.ours.id, fromUserId: world.admin, toUserId: world.member, tab: "dates", message: null });
     await setTripWindow(world.ours.id, "2026-09-01", "2026-09-02", world.admin);
-    await db.update(schema.notification).set({ readAt: new Date() });
+    await db.update(schema.notification).set({ readAt: new Date(), seenAt: new Date() });
     await setTripWindow(world.ours.id, "2026-09-01", "2026-09-03", world.admin);
 
     expect(await activities()).toHaveLength(1);
     const [row] = await db.select().from(schema.notification).all();
-    expect(row.readAt).toBeNull();
+    expect(row.readAt).not.toBeNull();
+    expect(row.seenAt).not.toBeNull();
 
     await edit();
     await edit();

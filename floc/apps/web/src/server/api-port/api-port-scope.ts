@@ -9,6 +9,8 @@
  */
 import "server-only";
 
+import { Refusal } from "@floc/core/errors/refusal";
+
 import { findTripAccess, type TripAccess } from "@/server/access";
 
 /** Refusing is a thrown error, not a redirect — a route handler cannot catch `notFound()`. */
@@ -17,9 +19,8 @@ export async function scoped(
   tripId: number,
 ): Promise<TripAccess> {
   const access = await findTripAccess(tripId, viewerId);
-  // The router already resolved the trip once through `loadTrip`, so this only
-  // fires on a race — somebody kicked between the two reads. `cache()` makes
-  // the repeat read free within a request.
-  if (!access) throw new Error("No such trip.");
+  // The router already resolved the trip through `loadTrip`; the request memo
+  // makes this repeat free, so it only refuses on a race.
+  if (!access) throw new Refusal("No such trip.", "missing");
   return access;
 }

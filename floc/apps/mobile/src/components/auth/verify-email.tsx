@@ -1,10 +1,9 @@
 /**
- * "Confirm your email" on You (#no-ticket; the web's invite-page gate, #149).
+ * "Confirm your email" on You (#149).
  *
- * WHY IT IS SAID AT ALL. The house rule is that the drawing carries the
- * meaning and text only says what layout cannot — and the two exceptions are
- * what is missing and what the status is. An unconfirmed address is both: it
- * is invisible until you try to join a trip and are refused.
+ * WHY IT IS SAID AT ALL. An unconfirmed address is a missing fact and a
+ * status, the two things text may say. It matters: a later Google sign-in on
+ * an unconfirmed address drops the password, since nothing proved who set it.
  *
  * IT ASKS BETTER AUTH, NOT THE API. Resending is an auth operation on the
  * session's own account, so it goes through the same client that signed in.

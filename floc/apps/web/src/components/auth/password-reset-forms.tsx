@@ -46,7 +46,7 @@ export function RequestResetForm() {
 
   if (sent) {
     return (
-      <p className="rounded-md bg-mint px-3 py-2 text-sm text-mint-ink">
+      <p className="rounded-md bg-pastel-green px-3 py-2 text-sm text-pastel-green-ink">
         If that address has an account, a reset link is on its way. It expires
         within the hour.
       </p>

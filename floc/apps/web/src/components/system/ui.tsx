@@ -16,6 +16,7 @@ import { whoTone } from "@floc/core/people/who";
 
 import { AvatarIconMark } from "./avatar-icon";
 import type { TripColor } from "@floc/core/trip/trip-color";
+import { initials } from "@floc/core/people/initials";
 
 /**
  * The four domain pastels as a rotation, for the places where a pastel is
@@ -23,15 +24,15 @@ import type { TripColor } from "@floc/core/trip/trip-color";
  * the day track. Three pages each kept their own copy of these four strings in
  * three different orders (ticket 207); one array means a colour cycle looks the
  * same wherever it appears. Where a pastel does carry meaning — money is mint,
- * dates are peri — write the pair out at the call site instead.
+ * dates are blue — write the pair out at the call site instead.
  */
 // Keyed by the colour name so a *chosen* trip colour (ticket 213) maps to its
 // skin, while the values in order are still the decorative rotation below.
 export const PASTEL_BY_KEY = {
-  peri: "bg-peri text-peri-ink",
-  mint: "bg-mint text-mint-ink",
-  butter: "bg-butter text-butter-ink",
-  blush: "bg-blush text-blush-ink",
+  peri: "bg-pastel-blue text-pastel-blue-ink",
+  mint: "bg-pastel-green text-pastel-green-ink",
+  butter: "bg-pastel-yellow text-pastel-yellow-ink",
+  blush: "bg-pastel-red text-pastel-red-ink",
 } as const satisfies Record<TripColor, string>;
 
 export const PASTEL_SKINS = Object.values(PASTEL_BY_KEY);
@@ -199,15 +200,6 @@ export function EmptyState({
       {action ? <div className="mt-6 flex justify-center">{action}</div> : null}
     </div>
   );
-}
-
-export function initials(name: string) {
-  return name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase() ?? "")
-    .join("");
 }
 
 export function Avatar({

@@ -8,6 +8,9 @@
  */
 import "server-only";
 
+import { Refusal } from "@floc/core/errors/refusal";
+import { windowProblem } from "@floc/core/trip/trip-window";
+
 import { and, eq, isNotNull, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
@@ -106,6 +109,9 @@ export async function createTripWithAdmin(input: {
   /** What the first notes page starts with; blank when left out. */
   firstPage?: PageBlock[];
 }): Promise<number> {
+  // A start alone is a real answer at creation; a full window must be a valid one.
+  const problem = input.startDate && input.endDate ? windowProblem(input.startDate, input.endDate) : null;
+  if (problem) throw new Refusal(problem);
   const [created] = await db
     .insert(trip)
     .values({

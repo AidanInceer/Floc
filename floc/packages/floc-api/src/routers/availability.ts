@@ -5,12 +5,13 @@
  * writes somebody else's marks — answering for another person is not an admin power (rule 6), and
  * an admin who could would make the answer worthless.
  */
+import { isIsoDate } from "@floc/core/dates/dates";
 import { z } from "zod";
 
 import { router, tripProcedure } from "../trpc";
 
 // `YYYY-MM-DD`. No timezone and no offset ever crosses this wire (rule 10).
-const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD.");
+const isoDate = z.string().refine(isIsoDate, "Use a real YYYY-MM-DD date.");
 
 // Why: a cap against a malformed client asking for a million-row insert, not a limit anyone
 // paints into.

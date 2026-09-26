@@ -56,15 +56,15 @@ function Cell({
         gap: space.xs,
         paddingVertical: space.md,
         borderRadius: radius.md,
-        backgroundColor: on ? c.mint : "transparent",
+        backgroundColor: on ? c["pastel-green"] : "transparent",
         borderWidth: on ? 1.4 : StyleSheet.hairlineWidth,
-        borderColor: on ? c["mint-edge"] : c.rule,
+        borderColor: on ? c["pastel-green-edge"] : c.rule,
       }}
     >
-      <CategoryIcon category={category} color={on ? c["mint-ink"] : c["ink-2"]} size={20} />
+      <CategoryIcon category={category} color={on ? c["pastel-green-ink"] : c["ink-2"]} size={20} />
       <Text
         style={{
-          color: on ? c["mint-ink"] : c["ink-2"],
+          color: on ? c["pastel-green-ink"] : c["ink-2"],
           fontFamily: fonts.sans,
           fontSize: size.small,
         }}

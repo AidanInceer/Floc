@@ -21,7 +21,8 @@ export type PushMessage = {
   data: { href: string; ids: number[] };
 };
 
-export type PushSender = (messages: PushMessage[]) => Promise<{ deadTokens: string[] }>;
+/** `failed` are the messages that did not go; a throw means none did. */
+export type PushSender = (messages: PushMessage[]) => Promise<{ deadTokens: string[]; failed?: PushMessage[] }>;
 
 const PUSH: Channel = {
   claimKey: "pushClaimedAt",
@@ -75,15 +76,22 @@ export async function sendDuePushes(send: PushSender, now = new Date()): Promise
   }
   if (messages.length === 0) return 0;
 
-  let deadTokens: string[];
+  let result: Awaited<ReturnType<PushSender>>;
   try {
-    ({ deadTokens } = await send(messages));
+    result = await send(messages);
   } catch (error) {
     await release(PUSH, claimed);
     throw error;
   }
 
-  await markSent(PUSH, claimed, now);
+  // A notification with several phones counts as sent once any one of them got it.
+  const failed = new Set(result.failed ?? []);
+  const reached = new Set(messages.filter((m) => !failed.has(m)).flatMap((m) => m.data.ids));
+  await markSent(PUSH, claimed.filter((id) => reached.has(id)), now);
+  const unsent = claimed.filter((id) => !reached.has(id));
+  if (unsent.length > 0) await release(PUSH, unsent);
+
+  const { deadTokens } = result;
   if (deadTokens.length > 0) {
     await db
       .update(pushToken)

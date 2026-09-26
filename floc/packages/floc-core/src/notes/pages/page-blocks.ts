@@ -4,6 +4,7 @@
  * not nested lists, so a line keeps its place when it moves in or out.
  */
 import { isLinkKind, type LinkKind } from "./trip-links";
+import { safeHref } from "../../text/safe-href";
 
 export const TONES = ["butter", "blush", "mint", "peri"] as const;
 export type Tone = (typeof TONES)[number];
@@ -53,8 +54,10 @@ function readMark(raw: unknown): Mark | null {
     case "underline":
     case "strike":
       return { type: raw.type };
-    case "link":
-      return typeof raw.href === "string" ? { type: "link", href: raw.href } : null;
+    case "link": {
+      const href = typeof raw.href === "string" ? safeHref(raw.href) : null;
+      return href ? { type: "link", href } : null;
+    }
     case "highlight":
       return isTone(raw.tone) ? { type: "highlight", tone: raw.tone } : null;
     case "comment":

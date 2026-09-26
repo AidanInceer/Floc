@@ -3,7 +3,7 @@
  * enum, stage is a function of what data exists. Pure — no `db`, no React —
  * so it's testable; the page just renders what it's handed.
  */
-import { computeBalances } from "../money/money";
+import { ledgerBalances, type LedgerRows } from "../money/ledger";
 import type { Currency } from "../money/currency";
 import { countdownLabel, hasEnded } from "../dates/dates";
 import { owingUserIds } from "./group/group-status";
@@ -44,12 +44,7 @@ export type TripStateInput<M extends StateMember> = {
     userId: string;
     owedAmountMinor: number;
   }[];
-  settlements: {
-    fromUserId: string;
-    toUserId: string;
-    currency: Currency;
-    amountMinor: number;
-  }[];
+  settlements: LedgerRows["settlements"];
 };
 
 export type TripState<M extends StateMember> = {
@@ -98,29 +93,7 @@ export function tripStateFor<M extends StateMember>(
     : [];
   const viewerHasAvailability = !datesUnset || withAvailability.has(viewerId);
 
-  // Grouped once — was O(expenses × splits) via a filter-in-map on the hottest panel in the app.
-  const splitsByExpense = new Map<number, TripStateInput<M>["splits"]>();
-  for (const s of input.splits) {
-    splitsByExpense.set(s.expenseId, [...(splitsByExpense.get(s.expenseId) ?? []), s]);
-  }
-
-  const balances = computeBalances(
-    expenses.map((e) => ({
-      paidBy: e.paidBy,
-      currency: e.currency,
-      amountMinor: e.amountMinor,
-      splits: (splitsByExpense.get(e.id) ?? []).map((s) => ({
-        userId: s.userId,
-        owedAmountMinor: s.owedAmountMinor,
-      })),
-    })),
-    input.settlements.map((s) => ({
-      from: s.fromUserId,
-      to: s.toUserId,
-      currency: s.currency,
-      amountMinor: s.amountMinor,
-    })),
-  );
+  const balances = ledgerBalances(input);
 
   const money = owingUserIds(balances);
 

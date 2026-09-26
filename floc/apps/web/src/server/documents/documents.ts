@@ -5,7 +5,7 @@
  * One read serves both lists: shared rows and the viewer's own private rows
  * come back together, scoped in the query rather than filtered after, so
  * reading somebody else's private file is not expressible here (the shape
- * `server/packing.ts` uses for personal bags, ticket 220).
+ * `server/packing/packing.ts` uses for personal bags, ticket 220).
  */
 import "server-only";
 

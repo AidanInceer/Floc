@@ -1,9 +1,9 @@
 /**
- * The verified-inbox gate on joining a trip (ticket 149). Sign-in is never
- * blocked; landing in someone else's trip is, until the address is confirmed.
+ * Joining by link. The link is the credential: an unconfirmed inbox does not
+ * stop somebody who holds it, on the web or the phone.
  */
 import { and, eq, isNull } from "drizzle-orm";
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, signIn, type Scenario } from "@/test/db";
@@ -16,12 +16,6 @@ beforeAll(migrateTestDb);
 beforeEach(async () => {
   await resetDb();
   world = await seedScenario();
-  // The gate only exists when mail can actually be sent.
-  vi.stubEnv("RESEND_API_KEY", "test-key");
-});
-
-afterEach(() => {
-  vi.unstubAllEnvs();
 });
 
 const membershipRow = (tripId: number, userId: string) =>
@@ -37,51 +31,29 @@ const membershipRow = (tripId: number, userId: string) =>
     )
     .get();
 
-const setVerified = (userId: string, value: boolean) =>
-  db.update(schema.user).set({ emailVerified: value }).where(eq(schema.user.id, userId)).run();
-
-describe("join gate", () => {
-  it("sends an unverified user to the verify notice, and does not join them", async () => {
+describe("joining by link", () => {
+  it("lets somebody with an unconfirmed inbox join", async () => {
     signIn(world.outsider);
-    await setVerified(world.outsider, false);
-
-    await expect(joinTrip("token-ours")).rejects.toThrow(
-      "NEXT_REDIRECT:/invite/token-ours?verify=1",
-    );
-    expect(await membershipRow(world.ours.id, world.outsider)).toBeUndefined();
-  });
-
-  it("lets a verified user join", async () => {
-    signIn(world.outsider);
-    await setVerified(world.outsider, true);
 
     await expect(joinTrip("token-ours")).rejects.toThrow(
       `NEXT_REDIRECT:/trip/${world.ours.id}/overview`,
     );
     expect(await membershipRow(world.ours.id, world.outsider)).toBeDefined();
   });
-});
 
-describe("opening the link again", () => {
-  it("takes a current member to the trip, even before they confirm their email", async () => {
+  it("takes a current member straight to the trip", async () => {
     signIn(world.member);
-    await setVerified(world.member, false);
 
     await expect(joinTrip("token-ours")).rejects.toThrow(
       `NEXT_REDIRECT:/trip/${world.ours.id}/overview`,
     );
   });
-});
 
-describe("no mail provider", () => {
-  it("lets an unverified user join — the link could never arrive", async () => {
-    vi.stubEnv("RESEND_API_KEY", "");
-    signIn(world.outsider);
-    await setVerified(world.outsider, false);
+  it("sends a signed-out visitor to sign in, then back to the link", async () => {
+    signIn(null);
 
     await expect(joinTrip("token-ours")).rejects.toThrow(
-      `NEXT_REDIRECT:/trip/${world.ours.id}/overview`,
+      `NEXT_REDIRECT:/login?redirect=${encodeURIComponent("/invite/token-ours")}`,
     );
-    expect(await membershipRow(world.ours.id, world.outsider)).toBeDefined();
   });
 });

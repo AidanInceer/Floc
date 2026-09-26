@@ -41,6 +41,8 @@ beforeEach(async () => {
       return userId && !revokedSessions.has(userId) ? userId : null;
     },
     debounce: 0,
+    // Every message re-checks here, so a revocation shows at once; in use it shows within a minute.
+    recheckMs: 0,
   });
   server = createServer((_req, res) => res.end());
   attachNotesLive(server, live);

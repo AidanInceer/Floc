@@ -2,8 +2,9 @@
  * Notifications (#344) — the phone's half of `/inbox`. The server writes each
  * line, so a notification reads the same here as in a browser.
  */
-import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter, type Href } from "expo-router";
+import { useEffect } from "react";
 import { FlatList, Pressable, View } from "react-native";
 
 import { commentTime } from "@floc/core/notes/notes";
@@ -31,6 +32,16 @@ export default function Inbox() {
       if (href) router.push(phoneRoute(href) as Href);
     },
   });
+
+  // Why: the bell counts unseen, and arriving here is the seeing — as on the web (#403).
+  const unseen = useQuery(trpc.notifications.unread.queryOptions()).data ?? 0;
+  const { mutate: see } = useMutation({
+    ...trpc.notifications.seen.mutationOptions(),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: trpc.notifications.unread.queryKey() }),
+  });
+  useEffect(() => {
+    if (unseen > 0) see();
+  }, [unseen, see]);
 
   const readAll = useMutation({
     ...trpc.notifications.readAll.mutationOptions(),
@@ -77,7 +88,7 @@ export default function Inbox() {
             borderRadius: radius.md,
             borderWidth: 1,
             borderColor: c.rule,
-            backgroundColor: item.read ? c.sheet : c["pen-soft"],
+            backgroundColor: item.read ? c.sheet : c["pen-2"],
             opacity: pressed ? 0.7 : 1,
           })}
         >

@@ -16,7 +16,7 @@ export function SpendingStrip({
   onPress: () => void;
 }) {
   const { c } = useTheme();
-  const ink = c["mint-ink"];
+  const ink = c["pastel-green-ink"];
   return (
     <Pressable
       accessibilityRole="link"
@@ -29,7 +29,7 @@ export function SpendingStrip({
         gap: space.md,
         padding: space.md,
         borderRadius: radius.md,
-        backgroundColor: c.mint,
+        backgroundColor: c["pastel-green"],
         opacity: pressed ? 0.8 : 1,
       })}
     >

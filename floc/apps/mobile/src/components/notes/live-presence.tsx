@@ -3,15 +3,7 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "@/components/system/theme";
 import { fonts, radius } from "@/lib/theme";
-
-export function initials(name: string) {
-  return name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
-}
+import { initials } from "@floc/core/people/initials";
 
 export function PresenceRow({ people }: { people: PresentPerson[] }) {
   const { c } = useTheme();

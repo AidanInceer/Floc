@@ -21,7 +21,7 @@ import { countMembers, isLiveMember } from "@/server/trips/roster";
 import { listTripsFor } from "@/server/trips/trips";
 import { listExpenses, listSplits, namesForUsers } from "@/server/money/money";
 import { listFriendshipsFor, peopleByIds } from "@/server/social/friends";
-import { listLinkedAccounts } from "@/server/auth/profile";
+import { listSignInMethods } from "@/server/auth/sign-in-methods";
 
 let world: Scenario;
 
@@ -336,7 +336,7 @@ describe("settings' read", () => {
       { id: "acc-2", accountId: "a2", providerId: "credential", userId: world.member },
     ]);
 
-    const linked = await listLinkedAccounts(world.admin);
+    const linked = await listSignInMethods(world.admin);
     expect(linked).toEqual([{ id: "acc-1", providerId: "google" }]);
   });
 });

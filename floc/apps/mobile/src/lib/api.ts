@@ -18,10 +18,10 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       // Why: last-write-wins (rule 7) makes a screen only as fresh as its last read, so it
-      // re-reads on a tick. Fifteen seconds catches a trip deleted in a browser without turning a
-      // group of six into a load test; `refetchIntervalInBackground` stays off for a pocketed phone.
-      staleTime: 15_000,
-      refetchInterval: 15_000,
+      // re-reads on a tick. Tabs stay mounted and every mounted query polls, so the tick is
+      // slow; coming back to the app re-reads at once. Off for a pocketed phone.
+      staleTime: 30_000,
+      refetchInterval: 30_000,
       refetchOnWindowFocus: true,
       retry: 2,
     },

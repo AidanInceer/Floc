@@ -43,8 +43,8 @@ function groupMark(tally: number, memberCount: number): string {
   return tally === 0
     ? "text-ink-soft"
     : tally === memberCount
-      ? "bg-mint text-mint-ink"
-      : "bg-blush text-blush-ink";
+      ? "bg-pastel-green text-pastel-green-ink"
+      : "bg-pastel-red text-pastel-red-ink";
 }
 
 export function DayCell(props: DayCellProps) {
@@ -146,7 +146,7 @@ function paintLabel(p: DayCellProps, picking: boolean): string {
 // One fill per state, chosen in order: Tailwind can't be trusted to let a later
 // `bg-*` beat an earlier one in the same class list.
 function paintFill(p: DayCellProps, picking: boolean): string {
-  if (!picking) return p.free ? "bg-peri font-semibold text-peri-ink" : "text-ink";
+  if (!picking) return p.free ? "bg-pastel-blue font-semibold text-pastel-blue-ink" : "text-ink";
   // Start with no end: ringed, else a lone filled day read as a one-day trip.
   if (p.openEnd) return "bg-green font-semibold text-sheet inset-ring-2 inset-ring-pen";
   if (p.inRange) return "bg-green font-semibold text-sheet";

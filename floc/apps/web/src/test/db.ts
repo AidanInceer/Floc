@@ -159,6 +159,11 @@ export async function givePro(userId: string): Promise<void> {
   });
 }
 
+/** Accepted friends, both ways round — what asking someone onto a trip by name needs. */
+export async function befriend(a: string, b: string): Promise<void> {
+  await db.insert(schema.friendship).values({ userId: a, friendId: b, status: "accepted" });
+}
+
 // Rule 5: foreign and nonexistent ids get the same response, so "it threw
 // something" isn't good enough — assert this exact refusal.
 export async function expectNotFound(fn: () => Promise<unknown>): Promise<void> {

@@ -86,8 +86,6 @@ export async function recordActivity(tx: Tx, change: Change): Promise<void> {
   await tx
     .insert(notification)
     .values(recipients.map((r) => ({ activityId: activityId!, userId: r.userId, loud: r.loud })))
-    .onConflictDoUpdate({
-      target: [notification.activityId, notification.userId],
-      set: { readAt: null, ...touch() },
-    });
+    // Why: a row you have read stays read — a folded repeat must not light the bell again.
+    .onConflictDoUpdate({ target: [notification.activityId, notification.userId], set: touch() });
 }

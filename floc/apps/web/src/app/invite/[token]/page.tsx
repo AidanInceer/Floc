@@ -18,7 +18,6 @@ import { redirect } from "next/navigation";
 
 import { GuestGate } from "@/components/guest/guest-gate";
 import { GuestItinerary } from "@/components/guest/guest-itinerary";
-import { emailConfigured } from "@/server/auth/email";
 import { guestItinerary } from "@/server/trips/guest-view";
 import { formatDateRange } from "@floc/core/dates/dates";
 import { PageTitle } from "@/components/system/ui";
@@ -58,15 +57,15 @@ export default async function InvitePage({
   searchParams,
 }: {
   params: Promise<{ token: string }>;
-  searchParams: Promise<{ verify?: string }>;
+  searchParams: Promise<{ full?: string }>;
 }) {
   const { token } = await params;
-  const { verify } = await searchParams;
+  const { full } = await searchParams;
 
   const trip = await inviteTrip(token);
   if (!trip) return <DeadLink />;
 
-  const viewer = await inviteViewer(trip.id, emailConfigured());
+  const viewer = await inviteViewer(trip.id);
   // Already in: nothing here is worth showing them a read-only copy of.
   if (viewer.kind === "member") redirect(`/trip/${trip.id}/overview`);
 
@@ -78,7 +77,7 @@ export default async function InvitePage({
       tripName={trip.name}
       hostName={trip.hostName}
       controls={
-        <JoinControls token={token} viewer={viewer} verifyState={verify} />
+        <JoinControls token={token} viewer={viewer} full={full === "1"} />
       }
     >
       <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">

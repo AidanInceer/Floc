@@ -18,6 +18,7 @@ import "leaflet/dist/leaflet.css";
 
 import { COUNTRIES, countryName } from "@floc/core/people/countries";
 import { Input, cx } from "../system/ui";
+import { nextMark } from "@floc/core/itinerary/travel-map";
 
 export type MapState = "green" | "yellow";
 /** What a click asks for — the displayed state, not the stored row. */
@@ -28,18 +29,12 @@ const CLASS: Record<MapState, string> = {
   yellow: "country-yellow",
 };
 
-/** blank → yellow → green → blank. Want-to-go first: it's the commoner mark. */
-function cycle(current: MapState | undefined): NextState {
-  if (!current) return "yellow";
-  return current === "yellow" ? "green" : "blank";
-}
-
 export function TravelMap({
   states,
   editable = false,
   setMark,
 }: {
-  /** Country code → colour, trips and hand already merged by lib/travel-map.ts. */
+  /** Country code → colour, trips and hand already merged by @floc/core/itinerary/travel-map. */
   states: Record<string, MapState>;
   editable?: boolean;
   /** Server action. Required when `editable`. */
@@ -61,7 +56,7 @@ export function TravelMap({
 
   function paint(code: string) {
     if (!editable || !setMark) return;
-    const next = cycle(latest.current[code]);
+    const next = nextMark(latest.current[code]);
     setLocal((prev) => {
       const copy = { ...prev };
       if (next === "blank") delete copy[code];

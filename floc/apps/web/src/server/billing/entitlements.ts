@@ -16,12 +16,15 @@
  */
 import "server-only";
 
+import { Refusal } from "@floc/core/errors/refusal";
+
 import { and, eq, gt, inArray, isNull, or } from "drizzle-orm";
 import { cache } from "react";
 
 import { db } from "@/db";
 import { subscription, tripMembership } from "@/db/schema";
 import { allFeaturesFree } from "@/lib/env";
+import { requestMemo } from "@/server/request-scope";
 import { FEATURE_PLAN, planMeets } from "@floc/core/billing/plans";
 import type { FeatureKey, Plan, TargetOf } from "@floc/core/billing/plans";
 
@@ -59,7 +62,7 @@ function best(rows: { plan: Plan }[]): Plan {
   );
 }
 
-const planOfTrip = cache(async function planOfTrip(
+const tripPlanRow = cache(async function tripPlanRow(
   tripId: number,
 ): Promise<Plan> {
   const rows = await db
@@ -78,7 +81,7 @@ const planOfTrip = cache(async function planOfTrip(
   return best(rows);
 });
 
-const planOfUser = cache(async function planOfUser(
+const userPlanRow = cache(async function userPlanRow(
   userId: string,
 ): Promise<Plan> {
   const rows = await db
@@ -89,6 +92,9 @@ const planOfUser = cache(async function planOfUser(
 
   return best(rows);
 });
+
+const planOfTrip = (tripId: number) => requestMemo(`plan-trip:${tripId}`, () => tripPlanRow(tripId));
+const planOfUser = (userId: string) => requestMemo(`plan-user:${userId}`, () => userPlanRow(userId));
 
 /**
  * `target` is a trip id or a user id, decided by the feature's declared
@@ -118,6 +124,6 @@ export async function assertFeature<K extends FeatureKey>(
   target: TargetOf<K>,
 ): Promise<void> {
   if (!(await canUseFeature(feature, target))) {
-    throw new Error("That's a Floc Pro feature");
+    throw new Refusal("That's a Floc Pro feature.", "forbidden");
   }
 }

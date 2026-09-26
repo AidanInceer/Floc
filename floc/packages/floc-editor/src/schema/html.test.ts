@@ -78,3 +78,19 @@ describe("a page as HTML", () => {
     expect(back.child(2).attrs.header).toBe(true);
   });
 });
+
+describe("a link that would run a script", () => {
+  it("is dropped when pasted", () => {
+    const box = document.createElement("div");
+    box.innerHTML = '<p><a href="javascript:alert(1)">click</a></p>';
+    const back = PMDOMParser.fromSchema(schema).parse(box as unknown as HTMLElement);
+    expect(back.firstChild?.firstChild?.marks.map((mark) => mark.type.name)).toEqual([]);
+  });
+
+  it("is drawn with no href when it arrives some other way", () => {
+    const bad = schema.node("doc", null, [
+      schema.node("paragraph", null, [schema.text("x", [schema.mark("link", { href: "javascript:alert(1)" })])]),
+    ]);
+    expect(roundTrip(bad).html).not.toContain("javascript:");
+  });
+});

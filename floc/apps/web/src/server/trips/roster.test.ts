@@ -65,6 +65,20 @@ describe("the roster", () => {
     expect(row?.mapPromptAt).toBeNull(); // rejoining makes the travel-map question moot (ticket 95)
   });
 
+  it("brings a removed admin back as a member", async () => {
+    await removeMembership(world.ours.id, world.admin, world.member);
+
+    await addMember(world.ours.id, world.admin);
+
+    expect((await membership(world.ours.id, world.admin))?.role).toBe("member");
+  });
+
+  it("keeps a live admin an admin when they are added again", async () => {
+    await addMember(world.ours.id, world.admin);
+
+    expect((await membership(world.ours.id, world.admin))?.role).toBe("admin");
+  });
+
   it("leaves a kicked member's map prompt for them to answer", async () => {
     await removeMembership(world.ours.id, world.member, world.member);
     const row = await membership(world.ours.id, world.member);

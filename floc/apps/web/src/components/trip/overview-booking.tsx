@@ -13,8 +13,8 @@ export function OverviewBooking({ plan }: { plan: BookingPlan }) {
     <section className="rounded-lg bg-sheet p-5 ring-1 ring-rule">
       <h2 className="font-display text-lg">Get booking</h2>
       <div className="mt-3 flex flex-col gap-1.5">
-        <BookingRow label="Flights" tone="bg-peri text-peri-ink" icon={<PlaneIcon />} links={plan.flights} />
-        <BookingRow label="Stays" tone="bg-blush text-blush-ink" icon={<BedIcon />} links={stays} />
+        <BookingRow label="Flights" tone="bg-pastel-blue text-pastel-blue-ink" icon={<PlaneIcon />} links={plan.flights} />
+        <BookingRow label="Stays" tone="bg-pastel-red text-pastel-red-ink" icon={<BedIcon />} links={stays} />
       </div>
     </section>
   );

@@ -6,11 +6,11 @@ describe("pageCss", () => {
   it("declares every token for the theme, resolved, with the phone's own font stacks", () => {
     const light = pageCss("light");
     expect(light).toContain("--sheet: #ffffff;");
-    expect(light).toContain("--tone-butter: #fbeac8;");
+    expect(light).toContain("--tone-yellow: #fbeac8;");
     expect(light).toContain('--sans: "Instrument Sans", system-ui;');
     expect(light).toContain("--text-base: 15px;");
     expect(light).not.toContain("--font-body-face");
-    expect(pageCss("dark")).toContain("--tone-butter: #4a4230;");
+    expect(pageCss("dark")).toContain("--tone-yellow: #4a4230;");
   });
 
   it("names the font files it is given, and none it is not", () => {

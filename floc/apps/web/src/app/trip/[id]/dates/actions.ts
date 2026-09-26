@@ -1,9 +1,10 @@
 "use server";
 
 // Open to any member, not just admin — choosing when to go isn't one of
-// admin's three powers (rule 6). Committing a window also updates
-// server/itinerary.ts since the window decides which days exist (ticket 140).
-import { isIsoDate, readIsoDate } from "@floc/core/dates/dates";
+// the admin powers (rule 6). Committing a window also updates
+// server/itinerary/itinerary.ts since the window decides which days exist (ticket 140).
+import { isIsoDate } from "@floc/core/dates/dates";
+import { windowProblem } from "@floc/core/trip/trip-window";
 import { requireTripAccess } from "@/server/access";
 import { setTripWindow } from "@/server/itinerary/itinerary";
 import { clearAvailabilityFor, setAvailability } from "@/server/itinerary/availability";
@@ -50,18 +51,20 @@ export async function setTripDates(
   tripId: number,
   start: string | null,
   end: string | null,
-) {
-  const startDate = readIsoDate(start);
-  const endDate = readIsoDate(end);
-
-  if (!startDate || !endDate) throw new Error("Pick both a start and an end");
-  // Safe as a string compare only because both are known YYYY-MM-DD by here.
-  if (startDate > endDate) throw new Error("The end date is before the start");
+): Promise<{ error?: string }> {
+  const problem = start === null || end === null ? "Pick both a start and an end." : windowProblem(start, end);
+  if (problem) return { error: problem };
 
   const access = await requireTripAccess(tripId);
   // Window is the itinerary's extent (ticket 140): days in both windows keep
   // their events, days only in the old one go, days only in the new arrive blank.
-  await setTripWindow(access.trip.id, startDate, endDate, access.viewer.id);
+  await setTripWindow(access.trip.id, start, end, access.viewer.id);
+  return {};
+}
+
+// The best window is worked out from the group's own answers, so it is always a valid one.
+export async function applyBestWindow(tripId: number, start: string, end: string): Promise<void> {
+  await setTripDates(tripId, start, end);
 }
 
 // Back to undated — supported (rule 9), not an error state. No window means

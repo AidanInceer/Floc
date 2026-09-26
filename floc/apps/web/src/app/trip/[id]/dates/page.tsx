@@ -40,6 +40,7 @@ import {
   clearTripDates,
   saveAvailability,
   setTripDates,
+  applyBestWindow,
 } from "./actions";
 
 const MONTHS_SHOWN = 1; // one month, arrows page the rest
@@ -209,7 +210,7 @@ export default async function DatesPage({
                     ? { noun: bestNoun, label: windowCostLabel(bestCost!)! }
                     : null
                 }
-                apply={setTripDates.bind(null, tripId, best.start, best.end)}
+                apply={applyBestWindow.bind(null, tripId, best.start, best.end)}
               />
             </div>
           ) : null}

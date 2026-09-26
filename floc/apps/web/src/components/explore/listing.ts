@@ -4,10 +4,10 @@ import type { RouteMapStop } from "@/components/map/route-map";
 
 // Same families as the app's `region-tint.ts`, so a region is one colour on both.
 const REGION_SKIN: Record<Region, string> = {
-  Europe: "bg-peri text-peri-ink",
-  Africa: "bg-butter text-butter-ink",
-  Asia: "bg-blush text-blush-ink",
-  Americas: "bg-mint text-mint-ink",
+  Europe: "bg-pastel-blue text-pastel-blue-ink",
+  Africa: "bg-pastel-yellow text-pastel-yellow-ink",
+  Asia: "bg-pastel-red text-pastel-red-ink",
+  Americas: "bg-pastel-green text-pastel-green-ink",
   Oceania: "bg-pen-soft text-pen-deep",
 };
 

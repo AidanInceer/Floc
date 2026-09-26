@@ -11,7 +11,7 @@ import { activity, notification } from "@/db/schema";
 import { notificationText } from "@floc/core/notifications/notification-text";
 import { INBOX_PAGE, type ActivityKind } from "@floc/core/notifications/rules";
 import { touch } from "@/server/audit";
-import { notificationRows, stillVisible } from "@/server/notifications/visible";
+import { countNotifications, notificationRows, stillVisible } from "@/server/notifications/visible";
 
 type InboxItem = {
   id: number;
@@ -64,8 +64,7 @@ export async function listInbox(userId: string, cursor: string | null): Promise<
  * Capped: past 99 the bell says "99+", so counting further is wasted work.
  */
 export async function countUnread(userId: string): Promise<number> {
-  const rows = await notificationRows(and(visibleTo(userId), isNull(notification.seenAt)), 100);
-  return rows.length;
+  return countNotifications(and(visibleTo(userId), isNull(notification.seenAt)), 100);
 }
 
 /** Landing on the inbox: every row on screen has now been seen. */

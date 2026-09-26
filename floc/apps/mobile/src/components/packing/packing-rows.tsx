@@ -55,14 +55,14 @@ function SelectBox({ on }: { on: boolean }) {
         width: 22,
         height: 22,
         borderRadius: radius.sm,
-        backgroundColor: on ? c.mint : "transparent",
+        backgroundColor: on ? c["pastel-green"] : "transparent",
         borderWidth: 1.4,
-        borderColor: on ? c["mint-edge"] : c["rule"],
+        borderColor: on ? c["pastel-green-edge"] : c["rule"],
         alignItems: "center",
         justifyContent: "center",
       }}
     >
-      {on ? <TickGlyph color={c["mint-ink"]} /> : null}
+      {on ? <TickGlyph color={c["pastel-green-ink"]} /> : null}
     </View>
   );
 }

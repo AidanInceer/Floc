@@ -7,6 +7,8 @@
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import "server-only";
 
+import { Refusal } from "@floc/core/errors/refusal";
+
 import { and, eq, inArray, isNull, or } from "drizzle-orm";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
@@ -27,7 +29,9 @@ import {
 } from "@/db/schema";
 import { auth } from "@/server/auth/auth";
 import { bounded, LIMITS } from "@/server/limits";
+import { requestMemo } from "@/server/request-scope";
 import { dietarySummary, readDietFlags } from "@floc/core/people/dietary";
+import { localPath } from "@floc/core/text/local-path";
 import { whoTone } from "@floc/core/people/who";
 import type { TripRole } from "@/db/schema";
 
@@ -53,7 +57,7 @@ export async function requireUser(redirectTo?: string) {
  */
 export async function requireGuest(next?: string) {
   const session = await getSession();
-  if (session?.user) redirect(next && next.startsWith("/") ? next : "/trips");
+  if (session?.user) redirect(localPath(next, "/trips"));
 }
 
 export type TripAccess = {
@@ -66,8 +70,8 @@ export type TripAccess = {
    * Resolvers that can only produce rows belonging to *this* trip (ticket 106).
    * Binding a child id back to its trip used to be an unwritten obligation on
    * ~70 call sites; six forgot (ticket 104). These move the join inside so the
-   * unsafe form isn't expressible. Each returns the row or `notFound()` — same
-   * response as nonexistent, keeping child ids non-enumerable (rule 5) — and
+   * unsafe form isn't expressible. Each returns the row or the door's "not found" —
+   * same response as nonexistent, keeping child ids non-enumerable (rule 5) — and
    * filters `deletedAt` (rule 8).
    */
   day: (dayId: number) => Promise<typeof day.$inferSelect>;
@@ -155,7 +159,7 @@ export async function requireTripAccess(
       image: viewer.image ?? null,
     },
     members,
-    ...scopedTo(id, viewer.id),
+    ...scopedTo(id, viewer.id, notFound),
   };
 }
 
@@ -174,6 +178,10 @@ export async function findTripAccess(
   viewerId: string,
 ): Promise<TripAccess | null> {
   if (!Number.isInteger(tripId)) return null;
+  return requestMemo(`trip-access:${tripId}:${viewerId}`, () => loadFoundAccess(tripId, viewerId));
+}
+
+async function loadFoundAccess(tripId: number, viewerId: string): Promise<TripAccess | null> {
 
   const { membership, row, members } = await loadTripAccess(tripId, viewerId);
   if (!membership || !row) return null;
@@ -191,7 +199,7 @@ export async function findTripAccess(
     isAdmin: membership.role === "admin",
     viewer: { ...viewer, image: viewer.image ?? null },
     members,
-    ...scopedTo(tripId, viewerId),
+    ...scopedTo(tripId, viewerId, refuseMissing),
   };
 }
 
@@ -202,13 +210,11 @@ export async function findTripAccess(
  * its day rather than a direct column — the shape ticket 104 fixed by hand.
  */
 const resolveDay = cache(async (tripId: number, dayId: number) => {
-  const row = await db
+  return db
     .select()
     .from(day)
     .where(and(eq(day.id, dayId), eq(day.tripId, tripId), isNull(day.deletedAt)))
     .get();
-  if (!row) notFound();
-  return row;
 });
 
 const resolveEvent = cache(async (tripId: number, eventId: number) => {
@@ -225,8 +231,7 @@ const resolveEvent = cache(async (tripId: number, eventId: number) => {
       ),
     )
     .get();
-  if (!row) notFound();
-  return row.event;
+  return row?.event;
 });
 
 /**
@@ -237,7 +242,7 @@ const resolveEvent = cache(async (tripId: number, eventId: number) => {
  */
 const resolvePackingLine = cache(
   async (tripId: number, viewerId: string, lineId: number) => {
-    const row = await db
+    return db
       .select()
       .from(packingLine)
       .where(
@@ -252,8 +257,6 @@ const resolvePackingLine = cache(
         ),
       )
       .get();
-    if (!row) notFound();
-    return row;
   },
 );
 
@@ -264,7 +267,7 @@ const resolvePackingLine = cache(
  */
 const resolveDocument = cache(
   async (tripId: number, viewerId: string, documentId: number) => {
-    const row = await db
+    return db
       .select()
       .from(document)
       .where(
@@ -276,13 +279,11 @@ const resolveDocument = cache(
         ),
       )
       .get();
-    if (!row) notFound();
-    return row;
   },
 );
 
 const resolveExpense = cache(async (tripId: number, expenseId: number) => {
-  const row = await db
+  return db
     .select()
     .from(expense)
     .where(
@@ -293,32 +294,35 @@ const resolveExpense = cache(async (tripId: number, expenseId: number) => {
       ),
     )
     .get();
-  if (!row) notFound();
-  return row;
 });
 
 /** Deliberately doesn't check that `scope_id` points into the same trip — that invariant belongs to whoever writes the scope. */
 const resolveNote = cache(async (tripId: number, noteId: number) => {
-  const row = await db
+  return db
     .select()
     .from(note)
     .where(
       and(eq(note.id, noteId), eq(note.tripId, tripId), isNull(note.deletedAt)),
     )
     .get();
-  if (!row) notFound();
-  return row;
 });
 
-function scopedTo(tripId: number, viewerId: string) {
+/** How a door says "no such row": the web leaves through `notFound()`, the API refuses with a 404. */
+type Missing = () => never;
+
+const refuseMissing: Missing = () => {
+  throw new Refusal("That is not on this trip.", "missing");
+};
+
+function scopedTo(tripId: number, viewerId: string, missing: Missing) {
+  const found = async <T>(row: Promise<T | undefined>): Promise<T> => (await row) ?? missing();
   return {
-    day: (dayId: number) => resolveDay(tripId, dayId),
-    event: (eventId: number) => resolveEvent(tripId, eventId),
-    expense: (expenseId: number) => resolveExpense(tripId, expenseId),
-    note: (noteId: number) => resolveNote(tripId, noteId),
-    packingLine: (lineId: number) => resolvePackingLine(tripId, viewerId, lineId),
-    document: (documentId: number) =>
-      resolveDocument(tripId, viewerId, documentId),
+    day: (dayId: number) => found(resolveDay(tripId, dayId)),
+    event: (eventId: number) => found(resolveEvent(tripId, eventId)),
+    expense: (expenseId: number) => found(resolveExpense(tripId, expenseId)),
+    note: (noteId: number) => found(resolveNote(tripId, noteId)),
+    packingLine: (lineId: number) => found(resolvePackingLine(tripId, viewerId, lineId)),
+    document: (documentId: number) => found(resolveDocument(tripId, viewerId, documentId)),
   };
 }
 
@@ -416,6 +420,6 @@ export const listMembersFor = cache(async function listMembersFor(
 /** Admin-only powers (ticket 01 step 7): invite, kick, promote, archive/restore, delete. */
 export function assertAdmin(access: TripAccess): void {
   if (!access.isAdmin) {
-    throw new Error("Only a trip admin can do that");
+    throw new Refusal("Only a trip admin can do that.", "forbidden");
   }
 }

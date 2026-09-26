@@ -2,7 +2,7 @@
  * The client-safe half of discussion threads (v0.2 ticket 06): the shape of a
  * comment, and how its timestamp reads. `note-thread.tsx` is a Client
  * Component, so this file must never touch the database — the read lives in
- * `lib/notes-read.ts`, the same split as `lib/tabs.ts` vs `server/notes.ts`.
+ * `server/notes/notes-read.ts`.
  */
 
 import type { AvatarIcon } from "../people/avatar-icon";
