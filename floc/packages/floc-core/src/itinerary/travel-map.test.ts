@@ -1,12 +1,12 @@
 /**
- * The travel map's merge rules (ticket 95) — the pure half of lib/travel-map.ts.
+ * The travel map's merge rules (ticket 95) — the pure half of @floc/core/itinerary/travel-map.
  * Everything contentious about this feature is decided in `mergeMarks`, so it
  * is worth pinning down without a database.
  */
 import { describe, expect, it } from "vitest";
 
 import { readCountryCode } from "../people/countries";
-import { mergeMarks } from "./travel-map";
+import { mergeMarks, nextMark } from "./travel-map";
 
 describe("mergeMarks", () => {
   it("draws what the trips say when nothing is hand-painted", () => {
@@ -71,5 +71,13 @@ describe("readCountryCode", () => {
     // They come in as points rather than polygons — see build-countries.mjs.
     expect(readCountryCode("sg")).toBe("SG");
     expect(readCountryCode("mt")).toBe("MT");
+  });
+});
+
+describe("a tap on a country", () => {
+  it("goes blank, want to go, been, then blank again", () => {
+    expect(nextMark(undefined)).toBe("yellow");
+    expect(nextMark("yellow")).toBe("green");
+    expect(nextMark("green")).toBe("blank");
   });
 });

@@ -29,6 +29,7 @@ import { Body, Button, Card, Empty, Failed, Figure, IconButton, Label, Loading, 
 import { formatDateRange, splitEnded } from "@floc/core/dates/dates";
 import { tripListStage } from "@floc/core/trip/list-stage";
 import { readTripColor, tripPastel } from "@floc/core/trip/trip-color";
+import { pastelOf } from "@floc/core/design/pastels";
 import { readTripMark } from "@floc/core/trip/mark/trip-mark";
 import { TripMarkIcon } from "@/components/trip/trip-mark";
 
@@ -196,7 +197,7 @@ function TripRow({
   // The chosen colour, or the id rotation still filling in (#213). It is a
   // rail, not a wash: a card tinted edge to edge would fight the tag pills
   // wearing the same pastel.
-  const tone = tripPastel(readTripColor(trip.colorKey), trip.id);
+  const tone = pastelOf(tripPastel(readTripColor(trip.colorKey), trip.id));
   const mark = readTripMark(trip.mark);
   return (
     <Link href={{ pathname: "/trip/[id]", params: { id: trip.id } }} asChild>

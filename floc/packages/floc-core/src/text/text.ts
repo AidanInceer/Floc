@@ -9,7 +9,7 @@
 
 export const TEXT_CAPS = {
   /** Rejected rather than truncated — see `renameTrip`. */
-  tripName: 120,
+  tripName: 50,
   noteBody: 2000,
   /** The whole Notes doc as JSON (ticket 238). Rejected, never truncated — half a JSON blob is not a document. */
   noteDoc: 400_000,

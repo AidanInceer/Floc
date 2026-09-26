@@ -8,7 +8,10 @@
  */
 import "server-only";
 
-import { and, eq, isNotNull, isNull } from "drizzle-orm";
+import { Refusal } from "@floc/core/errors/refusal";
+import { windowProblem } from "@floc/core/trip/trip-window";
+
+import { and, count, eq, isNotNull, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { trip, tripMembership } from "@/db/schema";
@@ -69,6 +72,24 @@ export async function listTripsFor(
   }));
 }
 
+/** The Trips figure on the account menu: what /trips lists, counted. */
+export async function countTripsFor(userId: string): Promise<number> {
+  const row = await db
+    .select({ n: count() })
+    .from(tripMembership)
+    .innerJoin(trip, eq(trip.id, tripMembership.tripId))
+    .where(
+      and(
+        eq(tripMembership.userId, userId),
+        isNull(tripMembership.deletedAt),
+        isNull(trip.deletedAt),
+        isNull(trip.archivedAt),
+      ),
+    )
+    .get();
+  return row?.n ?? 0;
+}
+
 /** Only the viewer's own membership row: muting a trip quiets it for you, nobody else (#346). */
 export async function setTripMuted(tripId: number, userId: string, muted: boolean) {
   await db
@@ -106,6 +127,9 @@ export async function createTripWithAdmin(input: {
   /** What the first notes page starts with; blank when left out. */
   firstPage?: PageBlock[];
 }): Promise<number> {
+  // A start alone is a real answer at creation; a full window must be a valid one.
+  const problem = input.startDate && input.endDate ? windowProblem(input.startDate, input.endDate) : null;
+  if (problem) throw new Refusal(problem);
   const [created] = await db
     .insert(trip)
     .values({

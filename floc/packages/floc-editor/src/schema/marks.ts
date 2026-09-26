@@ -5,6 +5,7 @@
  */
 import { Mark } from "@tiptap/core";
 import { isTone } from "@floc/core/notes/pages/page-blocks";
+import { safeHref } from "@floc/core/text/safe-href";
 
 const notNormal = (element: HTMLElement) => (element.style.fontWeight === "normal" || element.style.fontWeight === "400" ? false : null);
 
@@ -57,8 +58,20 @@ export const Link = Mark.create({
   name: "link",
   inclusive: false,
   addAttributes: () => ({ href: { default: "" } }),
-  parseHTML: () => [{ tag: "a[href]", getAttrs: (element: HTMLElement) => ({ href: element.getAttribute("href") ?? "" }) }],
-  renderHTML: ({ HTMLAttributes }) => ["a", { href: HTMLAttributes.href as string, rel: "noopener noreferrer nofollow", target: "_blank" }, 0],
+  parseHTML: () => [
+    {
+      tag: "a[href]",
+      getAttrs: (element: HTMLElement) => {
+        const href = safeHref(element.getAttribute("href") ?? "");
+        return href ? { href } : false;
+      },
+    },
+  ],
+  // Why checked again here: a link can also arrive over the live socket, never through parseHTML.
+  renderHTML: ({ HTMLAttributes }) => {
+    const href = safeHref(String(HTMLAttributes.href ?? ""));
+    return ["a", { ...(href ? { href } : {}), rel: "noopener noreferrer nofollow", target: "_blank" }, 0];
+  },
 });
 
 export const Highlight = Mark.create({

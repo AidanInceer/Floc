@@ -82,10 +82,47 @@ describe("who may connect", () => {
   });
 });
 
+describe("checking a connection while it talks", () => {
+  it("re-checks at most once a minute, not on every keystroke", async () => {
+    let asked = 0;
+    const live = createNotesLive({
+      resolveUser: async () => {
+        asked += 1;
+        return world.member;
+      },
+      debounce: 0,
+    });
+    const documentName = pageDocumentName(world.ours.id, pageId);
+    const context = await authenticate(live, documentName);
+    asked = 0;
+
+    for (let i = 0; i < 5; i++) {
+      await live.hooks("beforeHandleMessage", { context, documentName, requestHeaders: new Headers() } as never);
+    }
+    expect(asked).toBe(0);
+
+    context.checkedAt = 0;
+    await live.hooks("beforeHandleMessage", { context, documentName, requestHeaders: new Headers() } as never);
+    expect(asked).toBe(1);
+  });
+
+  it("drops a member who has left once the check comes round", async () => {
+    const live = liveAs(world.member);
+    const documentName = pageDocumentName(world.ours.id, pageId);
+    const context = await authenticate(live, documentName);
+    await removeMembership(world.ours.id, world.member, world.admin);
+
+    context.checkedAt = 0;
+    await expect(
+      live.hooks("beforeHandleMessage", { context, documentName, requestHeaders: new Headers() } as never),
+    ).rejects.toThrow();
+  });
+});
+
 describe("loading and storing a page", () => {
   it("seeds the live doc from the page's body, stamped with an epoch", async () => {
     await db.update(tripPage).set({ body: serialisePage(lines("Kyoto in April")) }).where(eq(tripPage.id, pageId));
-    const conn = await liveAs(world.admin).openDirectConnection(pageDocumentName(world.ours.id, pageId), { userId: world.admin });
+    const conn = await liveAs(world.admin).openDirectConnection(pageDocumentName(world.ours.id, pageId), { userId: world.admin, checkedAt: Date.now() });
     expect(texts(readPageYjs(conn.document!))).toEqual(["Kyoto in April"]);
     expect(readEpoch(conn.document!)).not.toBeNull();
     await conn.disconnect();
@@ -93,7 +130,7 @@ describe("loading and storing a page", () => {
 
   it("stores the Yjs state and a readable body after a change, and reopens from the state", async () => {
     const name = pageDocumentName(world.ours.id, pageId);
-    const conn = await liveAs(world.admin).openDirectConnection(name, { userId: world.admin });
+    const conn = await liveAs(world.admin).openDirectConnection(name, { userId: world.admin, checkedAt: Date.now() });
     const epoch = readEpoch(conn.document!);
     await conn.transact((doc) => {
       const paragraph = new Y.XmlElement("paragraph");
@@ -107,7 +144,7 @@ describe("loading and storing a page", () => {
     expect(texts(parsePageBody(stored.body))).toEqual(["", "Pack sun cream"]);
     expect(await loadPageEpoch(pageId)).toBe(epoch);
 
-    const again = await liveAs(world.admin).openDirectConnection(name, { userId: world.admin });
+    const again = await liveAs(world.admin).openDirectConnection(name, { userId: world.admin, checkedAt: Date.now() });
     expect(texts(readPageYjs(again.document!))).toEqual(["", "Pack sun cream"]);
     await again.disconnect();
   });
@@ -137,8 +174,8 @@ describe("the page list channel", () => {
   it("tells open page lists that the list changed, and closes an archived page's editors", async () => {
     const live = liveAs(world.admin);
     const page = await spare();
-    await live.openDirectConnection(pagesDocumentName(world.ours.id), { userId: world.admin });
-    await live.openDirectConnection(pageDocumentName(world.ours.id, page), { userId: world.admin });
+    await live.openDirectConnection(pagesDocumentName(world.ours.id), { userId: world.admin, checkedAt: Date.now() });
+    await live.openDirectConnection(pageDocumentName(world.ours.id, page), { userId: world.admin, checkedAt: Date.now() });
     const said: string[] = [];
     const closed: string[] = [];
     const fake = (tag: string) => ({ context: { userId: world.member }, messageAddress: tag, send: () => said.push(tag), close: () => closed.push(tag) });
@@ -158,7 +195,7 @@ describe("removal kick", () => {
     const closed: string[] = [];
     const fake = (userId: string) => ({ context: { userId }, messageAddress: userId, send: () => {}, close: () => closed.push(userId) });
     for (const name of [pageDocumentName(world.ours.id, pageId), pagesDocumentName(world.ours.id)]) {
-      await live.openDirectConnection(name, { userId: world.admin });
+      await live.openDirectConnection(name, { userId: world.admin, checkedAt: Date.now() });
       live.documents.get(name)!.addConnection(fake(world.member) as never);
       live.documents.get(name)!.addConnection(fake(world.admin) as never);
     }

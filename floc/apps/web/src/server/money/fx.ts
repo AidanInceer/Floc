@@ -47,7 +47,7 @@ async function fetchRates(
   const symbols = CURRENCIES.filter((c) => c !== home);
   try {
     const url = `https://api.frankfurter.app/latest?base=${home}&symbols=${symbols.join(",")}`;
-    const res = await fetch(url, { next: { revalidate: DAY_SECONDS } });
+    const res = await fetch(url, { next: { revalidate: DAY_SECONDS }, signal: AbortSignal.timeout(5_000) });
     if (!res.ok) return null;
 
     const body = (await res.json()) as {
@@ -73,6 +73,14 @@ async function cacheRates(
   if (rows.length === 0) return;
 
   try {
+    // Why read first: a day's rates are written once, and every page view asks.
+    const known = await db
+      .select({ id: fxRate.id })
+      .from(fxRate)
+      .where(and(eq(fxRate.base, home), eq(fxRate.date, date)))
+      .limit(1)
+      .get();
+    if (known) return;
     await db.insert(fxRate).values(rows).onConflictDoNothing();
   } catch {
     // A cache that can't be written is still a working page (rule 11).

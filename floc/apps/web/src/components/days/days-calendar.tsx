@@ -463,7 +463,7 @@ export function DaysCalendar({
   const bandOverlay = bandSpan ?? pendingBand;
   const overlayIsDrag = bandSpan !== null;
 
-  /* The bars — the grouping itself lives in `lib/overnight-band.ts`. */
+  /* The bars — the grouping itself lives in `@floc/core/itinerary/overnight-band`. */
   const bandRuns = useMemo(
     () => runsOfBand(shownDays, days, bandOverlay, overlayIsDrag),
     [shownDays, days, bandOverlay, overlayIsDrag],

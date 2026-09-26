@@ -33,8 +33,8 @@
  * stored. Nothing here reads the device clock or a timezone.
  *
  * COLOUR COMES FROM THE CATEGORY, and from the same table the website reads —
- * `EVENT_CATEGORIES` in `@floc/core`. Blush is getting somewhere, peri is
- * doing something, butter is eating. Every block still says its title, so the
+ * `EVENT_CATEGORIES` in `@floc/core`. Red is getting somewhere, blue is
+ * doing something, yellow is eating. Every block still says its title, so the
  * colour is a second signal and never the only one (#204).
  *
  * AN OPEN-ENDED EVENT IS DRAWN, NOT INVENTED. `spanOf` gives it a nominal
@@ -49,6 +49,7 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { ClipGlyph, PenGlyph } from "../system/glyphs";
 import { useTheme } from "../system/theme";
 import { fonts, radius, size, space } from "@/lib/theme";
+import type { Pastel } from "@floc/core/design/pastels";
 
 /** One hour's height. Tall enough that a half-hour block is still a tappable target. */
 const HOUR = 52;
@@ -71,10 +72,10 @@ export type GridEvent = TimedLike & {
  * classes the browser resolves; there is no cascade here, so the token name is
  * read out of the class and looked up in the palette.
  */
-const GROUND: Record<DayEventType, string> = {
-  transport: "blush",
-  activity: "peri",
-  food: "butter",
+const GROUND: Record<DayEventType, Pastel> = {
+  transport: "pastel-red",
+  activity: "pastel-blue",
+  food: "pastel-yellow",
 };
 
 /**

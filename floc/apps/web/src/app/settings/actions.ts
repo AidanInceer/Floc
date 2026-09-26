@@ -1,15 +1,13 @@
 "use server";
 
-// Settings mutations: notification booleans, privacy flags, unlinking a
-// sign-in method, account deletion. No theme action — Floc is light-only.
-import { headers } from "next/headers";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { PAST_TRIPS_SHOW, VISIBILITIES } from "@/db/schema";
 import type { PastTripsShow, Visibility } from "@/db/schema";
 import { requireUser } from "@/server/access";
-import { auth, listLinkedAccounts, unlinkAccountById } from "@/server/auth/auth";
-import { handOverAndLeaveAllTrips } from "@/server/trips/roster";
+import { unlinkSignIn } from "@/server/auth/sign-in-methods";
+import { eraseAccount } from "@/server/auth/erase-account";
 import {
   ensureProfile,
   updateProfileFields,
@@ -54,22 +52,10 @@ export async function updatePrivacy(formData: FormData): Promise<{ error?: strin
   return {};
 }
 
-// Refuses to remove your last remaining sign-in method — otherwise the
-// account would have no way back in.
 export async function unlinkAccount(formData: FormData): Promise<{ error?: string }> {
   const viewer = await requireUser();
-  const accountId = String(formData.get("accountId") ?? "");
-
-  const linked = await listLinkedAccounts(viewer.id);
-
-  if (linked.length <= 1) {
-    return { error: "You can't unlink your last sign-in method." };
-  }
-
-  const target = linked.find((a) => a.id === accountId);
-  if (!target) return { error: "That sign-in method isn't linked." };
-
-  await unlinkAccountById(target.id);
+  const refusal = await unlinkSignIn(viewer.id, String(formData.get("accountId") ?? ""));
+  if (refusal) return { error: refusal };
 
   refresh({ kind: "accountSettings" });
   return {};
@@ -85,19 +71,15 @@ export async function updateNotifications(formData: FormData): Promise<void> {
   });
 }
 
-// Order: 1) auto-promote the earliest-joined remaining member of any trip
-// where the viewer is sole admin, so it isn't left admin-less; 2) soft-delete
-// the viewer's memberships; 3) Better Auth's delete cascades user/session/
-// account rows (the one hard delete here, on Better Auth's tables only).
-// Notes, day_events and expense_split rows are left untouched
-// and stay attributed to the "deleted user" placeholder (a display fallback,
-// not a rewrite of created_by/paid_by).
 export async function deleteAccount(): Promise<void> {
   const viewer = await requireUser();
 
-  await handOverAndLeaveAllTrips(viewer.id);
-
-  await auth.api.deleteUser({ headers: await headers(), body: {} });
+  await eraseAccount(viewer.id);
+  // Why: the cookie cache would keep a dead session readable for up to a minute.
+  const jar = await cookies();
+  for (const { name } of jar.getAll()) {
+    if (name.includes("better-auth.")) jar.delete(name);
+  }
 
   redirect("/login");
 }

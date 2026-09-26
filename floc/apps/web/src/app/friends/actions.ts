@@ -1,7 +1,7 @@
 "use server";
 
 /**
- * Friend request lifecycle (ticket 18). Writes live in `server/friends.ts`
+ * Friend request lifecycle (ticket 18). Writes live in `server/social/friends.ts`
  * (ticket 108); this file decides who may open a request and what the other
  * person is told.
  */

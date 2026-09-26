@@ -33,30 +33,16 @@ export function inviteAuthHrefs(token: string) {
 
 export type InviteViewer =
   | { kind: "stranger" }
-  | { kind: "unverified"; email: string }
   | { kind: "canJoin" }
   | { kind: "member"; tripId: number };
 
-/**
- * Why: not `cache()`d, unlike `inviteTrip` above — the answer depends on the
- * session, which is not one of the arguments, so memoising on
- * (trip, mailWorks) would be right only by accident.
- */
-export async function inviteViewer(
-  tripId: number,
-  mailWorks: boolean,
-): Promise<InviteViewer> {
+/** Why: not `cache()`d, unlike `inviteTrip` above — the answer depends on the session, which is not an argument. */
+export async function inviteViewer(tripId: number): Promise<InviteViewer> {
   const session = await getSession();
   if (!session?.user) return { kind: "stranger" };
 
   if (await isLiveMember(tripId, session.user.id)) {
     return { kind: "member", tripId };
-  }
-
-  // #149: joining is the one action gated on a verified inbox, and the gate is
-  // skipped when no mail provider is set — the link would never arrive.
-  if (!session.user.emailVerified && mailWorks) {
-    return { kind: "unverified", email: session.user.email };
   }
 
   return { kind: "canJoin" };

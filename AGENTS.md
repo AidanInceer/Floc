@@ -69,7 +69,7 @@ Never break these. Code comments cite them by number (`rule 5`), so keep the num
 5. **Trip access is enumeration-proof.** Load a trip only through `requireTripAccess` (web) or `tripProcedure` (API). A non-member gets the same answer as a trip that does not exist.
 6. **Exactly four admin powers:** remove a member, promote, delete or archive the trip, reset the invite link. Everything else, leaving included, is open to any member. Gate with `assertAdmin`.
 7. **Last write wins.** No optimistic locking; `last_modified_at` is for debugging only.
-8. **Soft-delete everywhere.** Every read *and write* filters `deleted_at IS NULL`. The few exceptions (`ensureDays`, `setTripWindow`, `addMember`) explain themselves in comments. A notes page a member archives is deleted for good after 7 days ([ADR-017](docs/adr/decisions.html#adr-017)).
+8. **Soft-delete everywhere.** Every read *and write* filters `deleted_at IS NULL`. The few exceptions (`ensureDays`, `addMember`) explain themselves in comments. A notes page a member archives is deleted for good after 7 days ([ADR-017](docs/adr/decisions.html#adr-017)).
 9. **A trip may have no dates.** `start_date` and `end_date` are nullable; undated is never an error.
 10. **No timezones.** Dates are `YYYY-MM-DD`; event times are local to the trip. Never store an offset.
 11. **Degrade, do not crash, without credentials.** A missing provider key (mail, Google, maps, stores) hides or reduces the feature — never a throw.

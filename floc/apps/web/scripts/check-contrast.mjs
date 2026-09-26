@@ -24,14 +24,14 @@ const PAIRS = [
   ["pen", "paper", AA_TEXT, "a link on the canvas"],
   ["pen-deep", "pen-2", AA_TEXT, "blue text on its own soft tint"],
   ["sheet", "pen", AA_TEXT, "white on the blue button"],
-  ["peri-ink", "peri", AA_TEXT, "ink on peri"],
-  ["mint-ink", "mint", AA_TEXT, "ink on mint"],
-  ["butter-ink", "butter", AA_TEXT, "ink on butter"],
-  ["blush-ink", "blush", AA_TEXT, "ink on blush"],
-  ["pen-deep", "peri", AA_TEXT, "blue text on peri"],
-  ["pen-deep", "mint", AA_TEXT, "blue text on mint"],
-  ["pen-deep", "butter", AA_TEXT, "blue text on butter"],
-  ["pen-deep", "blush", AA_TEXT, "blue text on blush"],
+  ["pastel-blue-ink", "pastel-blue", AA_TEXT, "ink on blue"],
+  ["pastel-green-ink", "pastel-green", AA_TEXT, "ink on green"],
+  ["pastel-yellow-ink", "pastel-yellow", AA_TEXT, "ink on yellow"],
+  ["pastel-red-ink", "pastel-red", AA_TEXT, "ink on red"],
+  ["pen-deep", "pastel-blue", AA_TEXT, "blue text on blue"],
+  ["pen-deep", "pastel-green", AA_TEXT, "blue text on green"],
+  ["pen-deep", "pastel-yellow", AA_TEXT, "blue text on yellow"],
+  ["pen-deep", "pastel-red", AA_TEXT, "blue text on red"],
   // Pro's own ground — it flips ground per theme, so it is checked
   // like any other surface rather than trusted for being deliberate.
   ["pro-ink", "pro", AA_TEXT, "text on the Pro ground"],
@@ -45,10 +45,10 @@ const PAIRS = [
   // does not apply — but a hairline nobody can see is still a bug.
   ["rule", "sheet", 1.05, "a hairline on a surface"],
   ["rule-2", "sheet", 1.3, "a stronger hairline on a surface"],
-  ["peri-edge", "peri", 1.1, "a pastel's own edge"],
-  ["mint-edge", "mint", 1.1, "a pastel's own edge"],
-  ["butter-edge", "butter", 1.1, "a pastel's own edge"],
-  ["blush-edge", "blush", 1.1, "a pastel's own edge"],
+  ["pastel-blue-edge", "pastel-blue", 1.1, "a pastel's own edge"],
+  ["pastel-green-edge", "pastel-green", 1.1, "a pastel's own edge"],
+  ["pastel-yellow-edge", "pastel-yellow", 1.1, "a pastel's own edge"],
+  ["pastel-red-edge", "pastel-red", 1.1, "a pastel's own edge"],
   ["pro-edge", "pro-2", 1.1, "a hairline on a Pro card"],
 ];
 

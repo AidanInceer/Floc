@@ -50,7 +50,7 @@ export default async function ProfilePage() {
     <AccountPage title="Your profile">
       {/* The face someone lands on when they click you, shown as they'd see
           it — the page's one moment of the visitor's view. */}
-      <Panel className="bg-butter text-butter-ink">
+      <Panel className="bg-pastel-yellow text-pastel-yellow-ink">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
           <FacePicker name={name} icon={profile.avatarIcon} />
           <div className="min-w-0">

@@ -54,7 +54,9 @@ export default function Join() {
       router.replace({ pathname: "/trip/[id]", params: { id: trip.id } });
       void askForPushOnce();
     },
-    onError: () => setProblem("That link doesn't work any more."),
+    // A refusal carries its own sentence, such as a full trip; anything else is a dead link.
+    onError: (error) =>
+      setProblem(error.data?.code === "BAD_REQUEST" ? error.message : "That link doesn't work any more."),
   });
 
   return (

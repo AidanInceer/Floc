@@ -26,7 +26,7 @@ const minorUnits = z
 
 const splitRow = z.object({
   userId: z.string().min(1),
-  owedAmountMinor: z.number().int("Money is integer minor units — never a float."),
+  owedAmountMinor: minorUnits,
 });
 
 export const moneyRouter = router({
@@ -41,7 +41,7 @@ export const moneyRouter = router({
         /** Absent creates; present rewrites that expense and its whole split set. */
         expenseId: z.number().int().positive().optional(),
         description: z.string().trim().min(1, "Say what it was for.").max(200),
-        amountMinor: minorUnits,
+        amountMinor: minorUnits.positive("Enter an amount above zero."),
         currency: z.enum(CURRENCIES),
         category: z.enum(EXPENSE_CATEGORIES),
         // `even` and `percentage` stay readable as old snapshots, but nothing
@@ -51,7 +51,7 @@ export const moneyRouter = router({
         /** Filed under an itinerary day, or under none. Never a timestamp (rule 10). */
         dayId: z.number().int().positive().nullable().default(null),
         notes: z.string().max(2000).nullable().default(null),
-        splits: z.array(splitRow).min(1, "Somebody has to owe something."),
+        splits: z.array(splitRow).min(1, "Somebody has to owe something.").max(100),
       }),
     )
     .mutation(async ({ ctx, input }) => {

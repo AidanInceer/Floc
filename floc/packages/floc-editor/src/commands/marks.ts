@@ -1,6 +1,7 @@
 /** The selection bar's marks, comment anchors, and the checklist tick (#408). */
 import type { Node } from "@tiptap/pm/model";
 import type { Command } from "@tiptap/pm/state";
+import { safeHref } from "@floc/core/text/safe-href";
 
 export function addComment(id: number): Command {
   return (state, dispatch) => {
@@ -38,13 +39,11 @@ export function commentAnchors(doc: Node): Map<number, number> {
   return anchors;
 }
 
-const SAFE_SCHEMES = /^(https?:|mailto:|tel:)/i;
-
 export function setLink(raw: string): Command {
   return (state, dispatch) => {
     const text = raw.trim();
-    const href = /^[a-z][a-z0-9+.-]*:/i.test(text) ? text : `https://${text}`;
-    if (!text || !SAFE_SCHEMES.test(href) || state.selection.empty) return false;
+    const href = safeHref(/^[a-z][a-z0-9+.-]*:/i.test(text) ? text : `https://${text}`);
+    if (!text || !href || state.selection.empty) return false;
     const { from, to } = state.selection;
     dispatch?.(state.tr.removeMark(from, to, state.schema.marks.link).addMark(from, to, state.schema.marks.link.create({ href })));
     return true;

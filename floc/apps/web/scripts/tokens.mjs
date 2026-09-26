@@ -1,7 +1,7 @@
 /**
  * Shared reader for the token blocks in src/app/globals.css — light, and
  * dark's overlay on top of it (ticket 240).
- * Aliases (`--red: var(--blush-ink)`) resolve to the hex they point at.
+ * Aliases (`--red: var(--pastel-red-ink)`) resolve to the hex they point at.
  */
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";

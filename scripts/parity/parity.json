@@ -218,8 +218,7 @@
       "mobile": "yes"
     },
     "notifications.seen": {
-      "mobile": "no",
-      "why": "The phone has an inbox but does not mark rows seen when it opens, so its bell empties only when a row is opened or Mark all as read is pressed."
+      "mobile": "yes"
     },
     "notifications.unread": {
       "mobile": "yes"

@@ -1,6 +1,6 @@
 /**
  * The travel map's pure half (ticket 95), importable from a Client Component
- * — queries live in `server/travel-map.ts` (ticket 107).
+ * — queries live in `server/itinerary/travel-map.ts` (ticket 107).
  *
  * Trip marks are derived on read, never stored: green is triggered by
  * `hasEnded`, i.e. time passing rather than a write, so there's no event to
@@ -56,4 +56,10 @@ export function mergeMarks(
 /** Green wins — see `mergeMarks`. Used while folding rows together. */
 export function strongest(a: MapState | undefined, b: MapState): MapState {
   return a === "green" || b === "green" ? "green" : "yellow";
+}
+
+/** What a tap does to a country: blank → yellow → green → blank. Want-to-go first: it's the commoner mark. */
+export function nextMark(current: MapState | undefined): MapState | "blank" {
+  if (!current) return "yellow";
+  return current === "yellow" ? "green" : "blank";
 }

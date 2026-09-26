@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";
@@ -18,7 +18,12 @@ const marks = (userId: string) =>
 
 const tripRow = () => db.select().from(schema.trip).where(eq(schema.trip.id, world.ours.id)).get();
 const days = () =>
-  db.select({ date: schema.day.date }).from(schema.day).where(eq(schema.day.tripId, world.ours.id)).orderBy(schema.day.date).all();
+  db
+    .select({ date: schema.day.date })
+    .from(schema.day)
+    .where(and(eq(schema.day.tripId, world.ours.id), isNull(schema.day.deletedAt)))
+    .orderBy(schema.day.date)
+    .all();
 
 beforeAll(migrateTestDb);
 beforeEach(async () => {
@@ -66,11 +71,10 @@ describe("the trip window", () => {
     expect(await days()).toEqual([{ date: "2026-10-01" }, { date: "2026-10-02" }, { date: "2026-10-03" }]);
   });
 
-  it("refuses half a window, or one that ends before it starts", async () => {
-    await expect(setTripDates(world.ours.id, "2026-10-01", null)).rejects.toThrow("Pick both a start and an end");
-    await expect(setTripDates(world.ours.id, "2026-10-03", "2026-10-01")).rejects.toThrow(
-      "The end date is before the start",
-    );
+  it("refuses half a window, one that ends before it starts, or one past a year, as a form error", async () => {
+    expect((await setTripDates(world.ours.id, "2026-10-01", null)).error).toMatch(/Pick both/);
+    expect((await setTripDates(world.ours.id, "2026-10-03", "2026-10-01")).error).toMatch(/before the start/);
+    expect((await setTripDates(world.ours.id, "2026-01-01", "2029-01-01")).error).toMatch(/year/);
     expect((await tripRow())?.startDate).toBeNull();
   });
 

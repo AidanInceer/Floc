@@ -22,13 +22,14 @@ import { PanResponder, StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "../system/theme";
 import { fonts, radius, size, space } from "@/lib/theme";
+import type { TokenName } from "@floc/core/design/tokens";
 
 /** How a single cell should read. The screen decides; this only draws. */
 export type CellLook = {
   /** Filled ground, or none. A token name, never a hex. */
-  ground: string | null;
+  ground: TokenName | null;
   /** Ink for the day number, when the ground needs a different one. */
-  ink: string | null;
+  ink: TokenName | null;
   /** A number under the day — how many people are free. Null draws nothing. */
   count: number | null;
   /** What the number means to a screen reader, when it is not a count of who is free. */

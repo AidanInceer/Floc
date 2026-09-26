@@ -10,11 +10,11 @@ import type { ReactNode } from "react";
 
 export function GuestCta({ controls }: { controls: ReactNode }) {
   return (
-    <div className="border-b border-rule bg-peri">
+    <div className="border-b border-rule bg-pastel-blue">
       {/* Stacks on a phone: side by side, the sentence was squeezed into a
           six-line column beside the buttons. */}
       <div className="mx-auto flex w-full max-w-[84rem] flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:px-6">
-        <p className="min-w-0 text-sm text-peri-ink sm:flex-1">
+        <p className="min-w-0 text-sm text-pastel-blue-ink sm:flex-1">
           You are viewing this trip, not on it. Joining, adding anything, or
           opening a file needs an account.
         </p>

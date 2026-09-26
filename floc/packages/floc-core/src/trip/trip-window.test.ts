@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { windowCost, windowCostLabel, windowCostNoun } from "./trip-window";
+import { MAX_TRIP_DAYS, windowCost, windowCostLabel, windowCostNoun, windowProblem } from "./trip-window";
 
 /** 1–7 Sep, with events only on the 6th and 7th. */
 const week = [
@@ -96,5 +96,27 @@ describe("windowCostLabel", () => {
 
   it("is null when there is nothing to confirm", () => {
     expect(windowCostLabel({ days: 0, events: 0 })).toBeNull();
+  });
+});
+
+describe("windowProblem", () => {
+  it("accepts no dates at all (rule 9) and a real window", () => {
+    expect(windowProblem(null, null)).toBeNull();
+    expect(windowProblem("2026-09-01", "2026-09-10")).toBeNull();
+  });
+
+  it("wants both ends, and real dates", () => {
+    expect(windowProblem("2026-09-01", null)).toMatch(/both/);
+    expect(windowProblem("2026-02-31", "2026-03-02")).toMatch(/both/);
+  });
+
+  it("refuses an end before the start", () => {
+    expect(windowProblem("2026-09-10", "2026-09-01")).toMatch(/before/);
+  });
+
+  it("refuses a window longer than a year", () => {
+    expect(windowProblem("2026-01-01", "2026-12-31")).toBeNull();
+    expect(windowProblem("2026-01-01", "2027-01-02")).toMatch(/year/);
+    expect(MAX_TRIP_DAYS).toBe(366);
   });
 });

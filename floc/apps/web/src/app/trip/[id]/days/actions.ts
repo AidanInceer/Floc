@@ -3,11 +3,11 @@
 /**
  * Day/day_event mutations (ticket 15). Open to all members, not admin-only
  * (ticket 01 step 7). Last-write-wins (ticket 12) — no version check.
- * SQL lives in `server/itinerary.ts` (ticket 108); nothing here imports `@/db`.
+ * SQL lives in `server/itinerary/itinerary.ts` (ticket 108); nothing here imports `@/db`.
  */
-import type { DayEventType, TransportType } from "@/db/schema";
+import { DAY_EVENT_TYPES, TRANSPORT_TYPES, type DayEventType, type TransportType } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
-import { resolveEventPlace } from "../place-actions";
+import { upsertPlace } from "@/server/itinerary/places";
 import { applyOvernight, type OvernightPlaceInput } from "@/server/itinerary/overnight";
 import { insertAt, permuteEventSlots } from "@floc/core/itinerary/event-order";
 import {
@@ -18,7 +18,6 @@ import {
   listEventSlots,
   moveEventToDay,
   rescheduleEvent as moveEventTo,
-  rebaseEventOrder,
   softDeleteDay,
   softDeleteEvent,
   updateEventFields,
@@ -41,7 +40,7 @@ export async function removeDay(tripId: number, dayId: number) {
 
 /**
  * Where the group sleeps, for a run of days (ticket 141). The rules live in
- * `server/overnight.ts` (ticket 308) so the phone reaches them through the API.
+ * `server/itinerary/overnight.ts` (ticket 308) so the phone reaches them through the API.
  */
 export async function setDayOvernight(
   tripId: number,
@@ -147,9 +146,10 @@ async function insertEventAt(
 
   // Event changes day first, so the target's re-base sees it there. No
   // locking, no rejection (rule 7).
-  await moveEventToDay(eventId, toDayId);
-  await rebaseEventOrder(target);
-  await rebaseEventOrder(source.filter((e) => e.id !== eventId).map((e) => e.id));
+  await moveEventToDay(eventId, toDayId, {
+    target,
+    source: source.filter((e) => e.id !== eventId).map((e) => e.id),
+  });
 
   refresh({ kind: "itinerary", tripId: access.trip.id });
 }
@@ -227,29 +227,40 @@ export async function submitEvent(tripId: number, formData: FormData) {
   // validation off. Drop it rather than write a nameless event.
   if (!title) return;
 
+  // Access first, so nobody off the trip can write a place row through here.
+  await requireTripAccess(tripId);
+  const fields = { ...readEventFields(formData), title, placeId: await placeFrom(formData) };
+
+  if (eventId) await updateEvent(tripId, eventId, fields);
+  else await addEvent(tripId, dayId, fields);
+}
+
+/** Every closed-set field is checked, not cast: a form is reachable without its page. */
+function readEventFields(formData: FormData) {
+  const rawType = String(formData.get("type") ?? "activity");
+  const rawTransport = String(formData.get("transportType") ?? "");
+  return {
+    type: DAY_EVENT_TYPES.includes(rawType as DayEventType) ? (rawType as DayEventType) : "activity",
+    transportType: TRANSPORT_TYPES.includes(rawTransport as TransportType)
+      ? (rawTransport as TransportType)
+      : null,
+    time: readClockTime(String(formData.get("time") ?? "")),
+    endTime: readClockTime(String(formData.get("endTime") ?? "")),
+    allDay: formData.get("allDay") === "on",
+    note: String(formData.get("note") ?? "") || null,
+  };
+}
+
+async function placeFrom(formData: FormData): Promise<number | null> {
+  const name = String(formData.get("placeName") ?? "");
+  if (!name.trim()) return null;
   const lat = formData.get("placeLat");
   const lng = formData.get("placeLng");
-  const placeId = await resolveEventPlace({
+  return upsertPlace({
     providerId: String(formData.get("placeProviderId") ?? "") || null,
-    name: String(formData.get("placeName") ?? ""),
+    name,
     lat: lat ? Number(lat) : null,
     lng: lng ? Number(lng) : null,
     countryCode: String(formData.get("placeCountryCode") ?? "") || null,
   });
-
-  const fields = {
-    type: String(formData.get("type") ?? "activity") as DayEventType,
-    title,
-    placeId,
-    transportType: (String(formData.get("transportType") ?? "") || null) as
-      | TransportType
-      | null,
-    time: String(formData.get("time") ?? "") || null,
-    endTime: String(formData.get("endTime") ?? "") || null,
-    allDay: formData.get("allDay") === "on",
-    note: String(formData.get("note") ?? "") || null,
-  };
-
-  if (eventId) await updateEvent(tripId, eventId, fields);
-  else await addEvent(tripId, dayId, fields);
 }

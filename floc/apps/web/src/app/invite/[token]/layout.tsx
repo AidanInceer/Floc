@@ -3,7 +3,7 @@
  * tabs a guest has.
  *
  * ONE LINK, TWO AUDIENCES. This is the trip's own share link — the same token
- * `trip-roster.tsx` copies — not a second kind beside it. What changes is who
+ * Overview's Share trip copies — not a second kind beside it. What changes is who
  * is holding it: a member is sent to the real trip, and everybody else gets the
  * read-only copy under here.
  *
@@ -15,7 +15,6 @@
 import type { ReactNode } from "react";
 
 import { GuestCta } from "@/components/guest/guest-cta";
-import { emailConfigured } from "@/server/auth/email";
 import { JoinControls } from "@/components/guest/join-controls";
 import { GuestTabs } from "@/components/guest/guest-tabs";
 import { inviteTrip, inviteViewer } from "./invite-access";
@@ -33,7 +32,7 @@ export default async function InviteLayout({
   // A dead token gets no chrome — the page under it draws the whole answer.
   if (!trip) return <>{children}</>;
 
-  const viewer = await inviteViewer(trip.id, emailConfigured());
+  const viewer = await inviteViewer(trip.id);
 
   // A member is on their way to the real trip; the bar and tabs would flash a
   // read-only copy of a trip they can actually edit.

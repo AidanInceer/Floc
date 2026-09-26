@@ -27,6 +27,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../system/theme";
 import { useTour, useTourTarget } from "../tour/tour-context";
 import { fonts, radius, size, space } from "@/lib/theme";
+import type { Pastel } from "@floc/core/design/pastels";
 
 export type Section = {
   /** The route to push, relative to the trip. `""` is the trip's own index. */
@@ -61,7 +62,7 @@ function BalanceChip({
   onPress,
 }: {
   text: string;
-  tone: string;
+  tone: Pastel;
   onPress: () => void;
 }) {
   const { c } = useTheme();
@@ -143,7 +144,7 @@ function TitleBar({
         {balance !== null ? (
           <BalanceChip
             text={balance}
-            tone={owing ? "blush" : "mint"}
+            tone={owing ? "pastel-red" : "pastel-green"}
             onPress={() => onGo("money")}
           />
         ) : null}

@@ -5,7 +5,7 @@ import { requireInProduction } from "../lib/env.ts";
 import * as schema from "./schema.ts";
 
 /**
- * Turso (libSQL) over HTTP — reachable from Vercel Functions with no raw TCP
+ * Turso (libSQL) over HTTP — reachable from any host with no raw TCP
  * (ticket 02). With no TURSO_DATABASE_URL set this falls back to a local file
  * database so the app runs before any account is provisioned — outside
  * production only. In production a missing URL is fatal at module load

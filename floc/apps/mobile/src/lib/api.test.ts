@@ -29,7 +29,7 @@ const { queryClient, trpc } = await import("./api");
 describe("the client", () => {
   it("re-reads a trip on a tick, and not in the background", () => {
     const { defaultOptions } = (queryClient as unknown as { options: { defaultOptions: { queries: Record<string, unknown> } } }).options;
-    expect(defaultOptions.queries).toMatchObject({ staleTime: 15_000, refetchInterval: 15_000 });
+    expect(defaultOptions.queries).toMatchObject({ staleTime: 30_000, refetchInterval: 30_000 });
     expect(defaultOptions.queries.refetchIntervalInBackground).toBeUndefined();
   });
 

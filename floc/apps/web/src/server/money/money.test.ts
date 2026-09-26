@@ -6,7 +6,7 @@
  * non-negotiable 2 — `expense_split` rows are snapshots, rewritten whole and
  * never merged — stops being a comment and starts being a property.
  */
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";
@@ -51,7 +51,7 @@ const splitsOf = (expenseId: number) =>
   db
     .select()
     .from(schema.expenseSplit)
-    .where(eq(schema.expenseSplit.expenseId, expenseId))
+    .where(and(eq(schema.expenseSplit.expenseId, expenseId), isNull(schema.expenseSplit.deletedAt)))
     .all();
 
 async function seedExpense(over: Partial<ExpenseFields> = {}) {
@@ -96,6 +96,9 @@ describe("writing an expense", () => {
     expect(splits).toHaveLength(1);
     expect(splits[0].userId).toBe(world.admin);
     expect((await expensesOf(world.ours.id))[0].description).toBe("Ferry, one way");
+    // The old snapshot is kept, marked gone (rule 8).
+    const all = await db.select().from(schema.expenseSplit).where(eq(schema.expenseSplit.expenseId, row.id)).all();
+    expect(all.length).toBeGreaterThan(1);
   });
 });
 

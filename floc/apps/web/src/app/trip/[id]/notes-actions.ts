@@ -1,9 +1,9 @@
 "use server";
 
-// Discussion threads, shared by every surface that has one (server/notes.ts
+// Discussion threads, shared by every surface that has one (server/notes/notes.ts
 // owns the table shape, ticket 108). Anyone posts; only the author edits or
 // deletes — removing someone else's words is not one of the admin powers.
-import { requireTripAccess } from "@/server/access";
+import { requireTripAccess, type TripAccess } from "@/server/access";
 import {
   findNote,
   insertNote,
@@ -13,8 +13,25 @@ import {
   updateNoteBody,
   NOTE_BODY_MAX,
 } from "@/server/notes/notes";
-import type { NoteScope, ReactionKind } from "@/db/schema";
+import { REACTION_KINDS, type NoteScope, type ReactionKind } from "@/db/schema";
 import { refresh } from "@/server/freshness";
+
+/** The thread's subject must be this trip's (rule 5). Pages comment through their own actions. */
+async function isOnTrip(access: TripAccess, scope: NoteScope, scopeId: number): Promise<boolean> {
+  if (!Number.isInteger(scopeId)) return false;
+  switch (scope) {
+    case "trip":
+      return scopeId === access.trip.id;
+    case "day":
+      return Boolean(await access.day(scopeId));
+    case "day_event":
+      return Boolean(await access.event(scopeId));
+    case "expense":
+      return Boolean(await access.expense(scopeId));
+    default:
+      return false;
+  }
+}
 
 export async function editNote(
   tripId: number,
@@ -50,6 +67,7 @@ export async function addNote(
   if (!body) return { error: "Write something first." };
 
   const access = await requireTripAccess(tripId);
+  if (!(await isOnTrip(access, scope, scopeId))) return { error: "That has gone." };
 
   let parentId: number | null = null;
   if (replyTo !== null) {
@@ -76,6 +94,7 @@ export async function react(
   noteId: number,
   kind: ReactionKind,
 ) {
+  if (!REACTION_KINDS.includes(kind)) return;
   const access = await requireTripAccess(tripId);
 
   const target = await findNote(access.trip.id, noteId);

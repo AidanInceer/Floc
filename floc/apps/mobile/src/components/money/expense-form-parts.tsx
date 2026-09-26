@@ -78,6 +78,8 @@ export type Initial = {
   dayId: number | null;
   notes: string;
   inOn: string[];
+  mode: Mode;
+  weights: Record<string, string>;
 };
 
 /** Everything the form is handed. */
@@ -119,9 +121,9 @@ export function Choice({
         paddingVertical: small ? space.xs : space.sm,
         paddingHorizontal: small ? space.sm : space.md,
         borderRadius: radius.pill,
-        backgroundColor: on ? c.mint : c["sheet-2"],
+        backgroundColor: on ? c["pastel-green"] : c["sheet-2"],
         borderWidth: 1,
-        borderColor: on ? c["mint-edge"] : c.rule,
+        borderColor: on ? c["pastel-green-edge"] : c.rule,
       }}
     >
       <Body tone={on ? "ink" : "ink-3"}>{label}</Body>
@@ -554,21 +556,29 @@ export function useFields(
   people: Person[],
   startCurrency: Currency,
 ) {
+  const start: Initial = {
+    description: "",
+    category: DEFAULT_CATEGORY,
+    amount: "",
+    paidBy: viewerId,
+    dayId: null,
+    notes: "",
+    inOn: people.map((person) => person.userId),
+    mode: "equally",
+    weights: {},
+    ...initial,
+  };
   const [currency, setCurrency] = useState<Currency>(startCurrency);
-  const [description, setDescription] = useState(initial?.description ?? "");
-  const [category, setCategory] = useState<ExpenseCategory>(
-    initial?.category ?? DEFAULT_CATEGORY,
-  );
-  const [amount, setAmount] = useState(initial?.amount ?? "");
-  const [paidBy, setPaidBy] = useState(initial?.paidBy ?? viewerId);
-  const [dayId, setDayId] = useState<number | null>(initial?.dayId ?? null);
-  const [notes, setNotes] = useState(initial?.notes ?? "");
-  const [mode, setMode] = useState<Mode>("equally");
-  const [weights, setWeights] = useState<Record<string, string>>({});
+  const [description, setDescription] = useState(start.description);
+  const [category, setCategory] = useState<ExpenseCategory>(start.category);
+  const [amount, setAmount] = useState(start.amount);
+  const [paidBy, setPaidBy] = useState(start.paidBy);
+  const [dayId, setDayId] = useState<number | null>(start.dayId);
+  const [notes, setNotes] = useState(start.notes);
+  const [mode, setMode] = useState<Mode>(start.mode);
+  const [weights, setWeights] = useState<Record<string, string>>(start.weights);
   const [problem, setProblem] = useState<string | null>(null);
-  const [inOn, setInOn] = useState<Set<string>>(
-    new Set(initial?.inOn ?? people.map((person) => person.userId)),
-  );
+  const [inOn, setInOn] = useState<Set<string>>(new Set(start.inOn));
 
   return {
     currency,

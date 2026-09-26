@@ -5,21 +5,20 @@
  * `trip_membership` row — packing's tier is packing's, and reads it from there.
  *
  * Leaving spans this table and the trip row and must not be split (ticket 108),
- * which is why `leaveTripAs` reaches into `trips.ts` to archive.
+ * so `leaveTripAs` writes both in one transaction.
  */
 import "server-only";
 
-import { and, count, eq, inArray, isNotNull, isNull, ne } from "drizzle-orm";
+import { and, count, eq, inArray, isNotNull, isNull, ne, sql } from "drizzle-orm";
 
 import { db } from "@/db";
-import { nudge, tripMembership } from "@/db/schema";
+import { nudge, trip, tripMembership } from "@/db/schema";
 import type { NudgeTab } from "@/db/schema";
 import { bounded, LIMITS } from "@/server/limits";
 import { tripHref } from "@floc/core/notifications/notification-href";
 import { touch } from "@/server/audit";
 import { kickFromTripNotes } from "@/server/notes/live/live-kick";
-import { recordActivity } from "@/server/notifications/activity";
-import { setTripArchived } from "@/server/trips/trips";
+import { recordActivity, type Tx } from "@/server/notifications/activity";
 
 /** Matches one live membership row. Every roster read and write goes through this. */
 export function liveMembership(tripId: number, userId: string) {
@@ -63,8 +62,14 @@ export async function addMember(tripId: number, userId: string): Promise<void> {
       .values({ tripId, userId, role: "member" })
       .onConflictDoUpdate({
         target: [tripMembership.tripId, tripMembership.userId],
-        // mapPromptAt clears: rejoining moots the "keep these countries?" question (ticket 95)
-        set: { deletedAt: null, mapPromptAt: null, lastModifiedAt: new Date() },
+        // mapPromptAt clears: rejoining moots the "keep these countries?" question (ticket 95).
+        // Why role resets on a revived row: a kicked admin must not walk back in as admin.
+        set: {
+          role: sql`CASE WHEN ${tripMembership.deletedAt} IS NULL THEN ${tripMembership.role} ELSE 'member' END`,
+          deletedAt: null,
+          mapPromptAt: null,
+          lastModifiedAt: new Date(),
+        },
       });
     await recordActivity(tx, {
       kind: "member_joined",
@@ -78,29 +83,31 @@ export async function addMember(tripId: number, userId: string): Promise<void> {
 }
 
 /** `mapPromptAt` parks the "keep these countries?" question for later (ticket 95) — leaving and being kicked leave the same mark since only they can answer it. */
+async function markRemoved(tx: Tx, tripId: number, userId: string, by: string): Promise<boolean> {
+  const gone = await tx
+    .update(tripMembership)
+    .set({ deletedAt: new Date(), mapPromptAt: new Date(), ...touch() })
+    .where(liveMembership(tripId, userId))
+    .returning({ userId: tripMembership.userId })
+    .all();
+  if (gone.length === 0) return false;
+  await recordActivity(tx, {
+    kind: "member_left",
+    tripId,
+    actorId: by,
+    subjectId: null,
+    href: tripHref(tripId, "overview"),
+    affected: [],
+  });
+  return true;
+}
+
 export async function removeMembership(
   tripId: number,
   userId: string,
   by: string,
 ): Promise<void> {
-  const removed = await db.transaction(async (tx) => {
-    const gone = await tx
-      .update(tripMembership)
-      .set({ deletedAt: new Date(), mapPromptAt: new Date(), ...touch() })
-      .where(liveMembership(tripId, userId))
-      .returning({ userId: tripMembership.userId })
-      .all();
-    if (gone.length === 0) return false;
-    await recordActivity(tx, {
-      kind: "member_left",
-      tripId,
-      actorId: by,
-      subjectId: null,
-      href: tripHref(tripId, "overview"),
-      affected: [],
-    });
-    return true;
-  });
+  const removed = await db.transaction((tx) => markRemoved(tx, tripId, userId, by));
   if (removed) kickFromTripNotes(tripId, userId);
 }
 
@@ -115,7 +122,7 @@ export async function setMemberRoleAdmin(
 }
 
 /**
- * Leaving (ticket 65) — succession and archiving applied together so they can't come apart.
+ * Leaving (ticket 65) — succession and archiving in the same transaction, so they can't come apart.
  * Last admin leaving with others remaining: admin passes to earliest-joined (succession, not
  * a fifth power — rule 6). Last member out archives, never deletes, the trip.
  */
@@ -128,20 +135,29 @@ export async function leaveTripAs(args: {
 }): Promise<void> {
   const { tripId, userId, isAdmin, archivedAt, others } = args;
 
-  await removeMembership(tripId, userId, userId);
+  const left = await db.transaction(async (tx) => {
+    if (!(await markRemoved(tx, tripId, userId, userId))) return false;
 
-  if (others.length === 0) {
-    if (!archivedAt) await setTripArchived(tripId, true);
-    return;
-  }
-
-  if (isAdmin && !others.some((m) => m.role === "admin")) {
-    const heir = others.reduce(
-      (earliest, m) => (m.joinedAt < earliest.joinedAt ? m : earliest),
-      others[0],
-    );
-    await setMemberRoleAdmin(tripId, heir.userId);
-  }
+    if (others.length === 0) {
+      if (!archivedAt) {
+        await tx
+          .update(trip)
+          .set({ archivedAt: new Date(), ...touch() })
+          .where(and(eq(trip.id, tripId), isNull(trip.deletedAt)));
+      }
+    } else if (isAdmin && !others.some((m) => m.role === "admin")) {
+      const heir = others.reduce(
+        (earliest, m) => (m.joinedAt < earliest.joinedAt ? m : earliest),
+        others[0],
+      );
+      await tx
+        .update(tripMembership)
+        .set({ role: "admin", ...touch() })
+        .where(liveMembership(tripId, heir.userId));
+    }
+    return true;
+  });
+  if (left) kickFromTripNotes(tripId, userId);
 }
 
 /**

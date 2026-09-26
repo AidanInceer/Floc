@@ -17,7 +17,7 @@ import { TripMarkPicker } from "@/components/trip/trip-mark-picker";
 import { tripPastel, type TripColor } from "@floc/core/trip/trip-color";
 import type { TripMark } from "@floc/core/trip/mark/trip-mark";
 import { archiveTrip, deleteTrip } from "@/app/trips/actions";
-import { leaveTrip } from "@/app/trip/[id]/overview/actions";
+import { leaveTrip, resetInviteLink } from "@/app/trip/[id]/overview/actions";
 
 export function TripMenu({
   tripId,
@@ -58,6 +58,23 @@ export function TripMenu({
           Leave trip
         </ConfirmSubmit>
       </form>
+
+      {/* Why: revoking cancels every copy already sent, so it is an admin power (#358). */}
+      {isAdmin ? (
+        <form action={resetInviteLink}>
+          <input type="hidden" name="tripId" value={tripId} />
+          <ConfirmSubmit
+            variant="ghost"
+            confirmVariant="danger"
+            message="Reset the invite link? The old link stops working for anyone still holding it. Everyone already on the trip stays."
+            confirmLabel="Reset the link"
+            pendingLabel="…"
+            className={menuItemClass}
+          >
+            Reset invite link
+          </ConfirmSubmit>
+        </form>
+      ) : null}
 
       {isAdmin && !archived ? (
         <form action={archiveTrip}>

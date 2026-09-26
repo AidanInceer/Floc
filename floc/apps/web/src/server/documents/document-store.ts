@@ -4,7 +4,7 @@
  * feature hides rather than throwing (rule 11).
  *
  * Deliberately the only file in the codebase that touches the filesystem, and
- * it knows nothing about trips or members — `server/documents.ts` owns who may
+ * it knows nothing about trips or members — `server/documents/documents.ts` owns who may
  * ask for a key, this owns what a key is worth.
  *
  * Known limit, stated in the ticket: one instance, one disk, no backups.

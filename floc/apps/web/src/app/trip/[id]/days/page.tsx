@@ -104,7 +104,7 @@ export default async function DaysPage({
           <EmptyState
             title="No days yet"
             action={
-              <form action={addDays.bind(null, trip.id, trip.startDate, 1)}>
+              <form action={addDays.bind(null, trip.id, addDaysToDate(trip.startDate, -1), 1)}>
                 <SubmitButton variant="primary">Add the first day</SubmitButton>
               </form>
             }

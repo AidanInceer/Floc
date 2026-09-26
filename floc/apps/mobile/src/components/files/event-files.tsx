@@ -94,7 +94,7 @@ export function EventFiles({ tripId, dayEventId }: { tripId: number; dayEventId:
               <Body bold>{file.name}</Body>
               <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
                 <Figure tone="ink-2">{DOC_CATEGORY_LABELS[file.category]}</Figure>
-                {file.ownerId ? <Pill word="Just you" tone="peri" /> : null}
+                {file.ownerId ? <Pill word="Just you" tone="pastel-blue" /> : null}
               </View>
             </View>
             <IconButton

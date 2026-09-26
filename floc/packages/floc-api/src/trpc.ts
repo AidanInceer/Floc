@@ -8,13 +8,17 @@
  * shape `requireTripAccess` gives the web pages, and for the same reason —
  * ticket 104 found six call sites that had forgotten the check by hand.
  */
+import { isRefusal, type RefusalKind } from "@floc/core/errors/refusal";
 import { initTRPC, TRPCError } from "@trpc/server";
-import { z } from "zod";
+import { z, ZodError } from "zod";
 
 import type { Context } from "./port";
 
 const t = initTRPC.context<Context>().create({
   errorFormatter({ shape, error }) {
+    if (error.cause instanceof ZodError) {
+      return { ...shape, message: error.cause.issues[0]?.message ?? "Check what you typed." };
+    }
     if (error.code !== "INTERNAL_SERVER_ERROR") return shape;
     return {
       ...shape,
@@ -26,11 +30,27 @@ const t = initTRPC.context<Context>().create({
 
 export const router = t.router;
 
+const REFUSAL_CODES: Record<RefusalKind, TRPCError["code"]> = {
+  invalid: "BAD_REQUEST",
+  missing: "NOT_FOUND",
+  forbidden: "FORBIDDEN",
+};
+
+/** A port's `Refusal` is a sentence for the person, so it leaves as a 4xx rather than a masked 500. */
+const answerRefusals = t.middleware(async ({ next }) => {
+  const result = await next();
+  if (!result.ok && isRefusal(result.error.cause)) {
+    const refusal = result.error.cause;
+    throw new TRPCError({ code: REFUSAL_CODES[refusal.kind], message: refusal.message, cause: refusal });
+  }
+  return result;
+});
+
 /** Anyone, signed in or not. Only health lives here. */
-export const publicProcedure = t.procedure;
+export const publicProcedure = t.procedure.use(answerRefusals);
 
 /** Signed in. Everything about a person's own trips starts here. */
-export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
+export const protectedProcedure = publicProcedure.use(({ ctx, next }) => {
   if (!ctx.viewer) {
     throw new TRPCError({ code: "UNAUTHORIZED", message: "Sign in first." });
   }

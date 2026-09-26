@@ -26,7 +26,7 @@ export function BestWindowCard({
       : `${window.free} of ${memberCount} free`;
 
   return (
-    <section className="flex items-center gap-3 rounded-md border border-mint-edge bg-mint px-4 py-3 text-mint-ink">
+    <section className="flex items-center gap-3 rounded-md border border-pastel-green-edge bg-pastel-green px-4 py-3 text-pastel-green-ink">
       <div className="min-w-0 flex-1">
         <p className="font-display text-base font-semibold">
           {formatDateRange(window.start, window.end)}

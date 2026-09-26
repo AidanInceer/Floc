@@ -40,8 +40,8 @@ export function OvernightRow({
         paddingVertical: space.sm,
         borderRadius: radius.md,
         borderWidth: StyleSheet.hairlineWidth,
-        borderColor: set ? c["mint-edge"] : c.rule,
-        backgroundColor: set ? c.mint : "transparent",
+        borderColor: set ? c["pastel-green-edge"] : c.rule,
+        backgroundColor: set ? c["pastel-green"] : "transparent",
       }}
     >
       <View style={{ flex: 1, gap: 2 }}>

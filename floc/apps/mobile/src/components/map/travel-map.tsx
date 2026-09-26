@@ -37,6 +37,7 @@ import { Body } from "../system/ui";
 import COUNTRY_SHAPES from "@/lib/countries-110m.json";
 import { paperStyle } from "@/lib/map";
 import { radius, space } from "@/lib/theme";
+import { nextMark } from "@floc/core/itinerary/travel-map";
 
 export type MapState = "green" | "yellow";
 /** What a tap asks for — the displayed state, not the stored row. */
@@ -49,12 +50,6 @@ const MIN_ZOOM = 0.6;
 const MAX_ZOOM = 6;
 /** Roughly centres the landmasses rather than the equator's empty ocean. */
 const OPENING: [number, number] = [8, 25];
-
-/** blank → yellow → green → blank. Want-to-go first: it's the commoner mark. */
-function cycle(current: MapState | undefined): NextState {
-  if (!current) return "yellow";
-  return current === "yellow" ? "green" : "blank";
-}
 
 /**
  * The shapes, with the ISO code moved from the feature id into a property.
@@ -140,7 +135,7 @@ export function TravelMap({
     const code = String(event.nativeEvent.features[0]?.properties?.code ?? "");
     if (!code) return;
 
-    const next = cycle(state[code]);
+    const next = nextMark(state[code]);
     setLocal((prev) => [
       ...prev.filter((mark) => mark.code !== code),
       ...(next === "blank" ? [] : [{ code, state: next }]),

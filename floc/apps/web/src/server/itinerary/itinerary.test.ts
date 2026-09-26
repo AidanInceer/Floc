@@ -82,6 +82,16 @@ describe("ensureDays", () => {
     expect(all).toHaveLength(1);
   });
 
+  it("brings a removed day back, blank", async () => {
+    await softDeleteDay(world.ours.dayId, world.admin);
+
+    await ensureDays(world.ours.id, ["2026-09-01"]);
+
+    const days = await listDays(world.ours.id);
+    expect(days.map((d) => d.date)).toEqual(["2026-09-01"]);
+    expect((await listDayLoads(world.ours.id))[0].events).toBe(0);
+  });
+
   it("is a no-op on no dates", async () => {
     await ensureDays(world.ours.id, []);
     expect(await listDayIds(world.ours.id)).toEqual([world.ours.dayId]);
@@ -113,17 +123,12 @@ describe("setTripWindow", () => {
     expect(await eventRow(world.ours.eventId)).toBeDefined();
   });
 
-  it("hard-deletes the days outside the window, with their events", async () => {
+  it("soft-deletes the days outside the window, with their events (rule 8)", async () => {
     await setTripWindow(world.ours.id, "2026-09-05", "2026-09-06", world.admin);
 
-    // Hard, not soft (2nd exception to rule 8) — a soft-deleted row would hold 1 Sep forever on the unique index.
-    const rows = await db
-      .select()
-      .from(schema.day)
-      .where(eq(schema.day.tripId, world.ours.id))
-      .all();
-    expect(rows.map((d) => d.date)).toEqual(["2026-09-05", "2026-09-06"]);
-    expect(await eventRow(world.ours.eventId)).toBeUndefined();
+    expect((await listDays(world.ours.id)).map((d) => d.date)).toEqual(["2026-09-05", "2026-09-06"]);
+    expect((await dayRow(world.ours.dayId))?.deletedAt).not.toBeNull();
+    expect((await eventRow(world.ours.eventId))?.deletedAt).not.toBeNull();
   });
 
   it("gives a blank day back when the window extends over a removed date", async () => {
@@ -132,7 +137,9 @@ describe("setTripWindow", () => {
 
     const days = await listDays(world.ours.id);
     expect(days).toHaveLength(6);
-    expect(await eventRow(world.ours.eventId)).toBeUndefined(); // blank: the plan doesn't come back with the date (ticket 83)
+    // Blank: the plan doesn't come back with the date (ticket 83).
+    expect((await eventRow(world.ours.eventId))?.deletedAt).not.toBeNull();
+    expect((await listDayLoads(world.ours.id)).every((d) => d.events === 0)).toBe(true);
   });
 
   it("keeps an expense and detaches it from the day it was spent on", async () => {
@@ -309,5 +316,27 @@ describe("trip scoping", () => {
         )
         .get(),
     ).toBeUndefined();
+  });
+});
+
+describe("the size of a window", () => {
+  it("refuses an end before the start rather than emptying the trip", async () => {
+    await expect(setTripWindow(world.ours.id, "2026-09-10", "2026-09-01", world.admin)).rejects.toThrow(
+      /before the start/,
+    );
+    expect(await listDayIds(world.ours.id)).toEqual([world.ours.dayId]);
+  });
+
+  it("refuses a window longer than a year", async () => {
+    await expect(setTripWindow(world.ours.id, "2026-01-01", "2030-01-01", world.admin)).rejects.toThrow(
+      /year/,
+    );
+  });
+
+  it("refuses to add days past a year, or a count that is not a count", async () => {
+    const trip = { id: world.ours.id, startDate: null, endDate: null };
+    await expect(extendTripDays(trip, "2026-09-01", 5000, world.admin)).rejects.toThrow(/year/);
+    await expect(extendTripDays(trip, "2026-09-01", 0, world.admin)).rejects.toThrow();
+    await expect(extendTripDays(trip, "not-a-date", 1, world.admin)).rejects.toThrow();
   });
 });

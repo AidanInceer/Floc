@@ -9,8 +9,8 @@
  * the rail rather than at the foot of a long scroll — it can't be reached on
  * the way to anything else.
  *
- * Still no theme picker (the app is light-only), no locale, no timezone and no
- * consent-capture UI.
+ * No locale, no timezone and no consent-capture UI. The theme choice lives in
+ * localStorage, not here.
  */
 import Link from "next/link";
 
@@ -33,7 +33,8 @@ import { requireUser } from "@/server/access";
 import { proPrices, subscriptionOf } from "@/server/billing/billing";
 import type { ProPrice } from "@/server/billing/billing";
 import { allFeaturesFree } from "@/lib/env";
-import { ensureProfile, listLinkedAccounts } from "@/server/auth/profile";
+import { ensureProfile } from "@/server/auth/profile";
+import { listSignInMethods } from "@/server/auth/sign-in-methods";
 import { BillingAction, ProUpgrade } from "@/components/auth/billing-buttons";
 import { isLive, renewalLabel } from "@floc/core/billing/subscription-copy";
 import {
@@ -96,7 +97,7 @@ const STORE_NAMES: Partial<Record<string, string>> = {
   play: "Google Play",
 };
 
-/** Widest ring last, matching the nesting in lib/visibility.ts. */
+/** Widest ring last, matching the nesting in server/auth/visibility.ts. */
 const RING_LABELS: Record<Visibility, string> = {
   private: "Only me",
   friends: "Friends",
@@ -127,7 +128,7 @@ export default async function SettingsPage({
 
   const [profile, linkedAccounts, subscription, prices] = await Promise.all([
     ensureProfile(viewer.id),
-    listLinkedAccounts(viewer.id),
+    listSignInMethods(viewer.id),
     subscriptionOf(viewer.id),
     // Someone sent here by a locked feature arrived to find out the cost
     // (ticket 279), so the panel quotes it rather than naming the plan.

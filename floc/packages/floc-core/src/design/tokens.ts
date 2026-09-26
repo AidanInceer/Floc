@@ -14,7 +14,7 @@
  * Order matters and is asserted: a declaration that moves is a real diff.
  *
  * DARK IS AN OVERLAY. It restates only the values that change, exactly as the
- * cascade sees it — which is why an alias (`--red: var(--blush-ink)`) needs no
+ * cascade sees it — which is why an alias (`--red: var(--pastel-red-ink)`) needs no
  * dark counterpart. `resolveTokens` flattens the two for a caller with no
  * cascade of its own.
  */
@@ -25,7 +25,7 @@ export type TokenValue = string;
 export type Theme = "light" | "dark";
 
 /** The light palette — the base every theme is an overlay on. */
-export const lightTokens: Readonly<Record<string, TokenValue>> = {
+export const lightTokens = {
   /* Ground and surfaces. Canvas is the page; white is every surface. */
   paper: "#fafafa",
   sheet: "#ffffff",
@@ -45,42 +45,42 @@ export const lightTokens: Readonly<Record<string, TokenValue>> = {
   "pen-2": "#e7ebfa",
 
   /* Four pastels, one per domain. The only place these values appear. */
-  peri: "#dfe3ff",
-  "peri-ink": "#33409b",
-  mint: "#dcefe4",
-  "mint-ink": "#1b6b4c",
-  butter: "#fbeac8",
-  "butter-ink": "#8a6412",
-  blush: "#faddd6",
-  "blush-ink": "#a34a31",
+  "pastel-blue": "#dfe3ff",
+  "pastel-blue-ink": "#33409b",
+  "pastel-green": "#dcefe4",
+  "pastel-green-ink": "#1b6b4c",
+  "pastel-yellow": "#fbeac8",
+  "pastel-yellow-ink": "#8a6412",
+  "pastel-red": "#faddd6",
+  "pastel-red-ink": "#a34a31",
 
-  "peri-edge": "#c6d0f2",
-  "mint-edge": "#c3e3d2",
-  "butter-edge": "#efd9ae",
-  "blush-edge": "#f0c7bc",
+  "pastel-blue-edge": "#c6d0f2",
+  "pastel-green-edge": "#c3e3d2",
+  "pastel-yellow-edge": "#efd9ae",
+  "pastel-red-edge": "#f0c7bc",
 
   /* Status — a separate NAME, never a separate hex. */
-  highlight: "var(--butter)",
+  highlight: "var(--pastel-yellow)",
   "highlight-2": "#fdf4e1",
-  "highlight-ink": "var(--butter-ink)",
-  "highlight-edge": "var(--butter-edge)",
-  red: "var(--blush-ink)",
-  "red-2": "var(--blush)",
-  "red-edge": "var(--blush-edge)",
-  green: "var(--mint-ink)",
-  "green-2": "var(--mint)",
-  "green-edge": "var(--mint-edge)",
-  "pen-edge": "var(--peri-edge)",
+  "highlight-ink": "var(--pastel-yellow-ink)",
+  "highlight-edge": "var(--pastel-yellow-edge)",
+  red: "var(--pastel-red-ink)",
+  "red-2": "var(--pastel-red)",
+  "red-edge": "var(--pastel-red-edge)",
+  green: "var(--pastel-green-ink)",
+  "green-2": "var(--pastel-green)",
+  "green-edge": "var(--pastel-green-edge)",
+  "pen-edge": "var(--pastel-blue-edge)",
 
   /* A member's highlight and table colour on a notes page (#408): the tint, and the text on it. */
-  "tone-butter": "var(--butter)",
-  "tone-butter-ink": "var(--ink)",
-  "tone-blush": "var(--blush)",
-  "tone-blush-ink": "var(--ink)",
-  "tone-mint": "var(--mint)",
-  "tone-mint-ink": "var(--ink)",
-  "tone-peri": "var(--peri)",
-  "tone-peri-ink": "var(--ink)",
+  "tone-yellow": "var(--pastel-yellow)",
+  "tone-yellow-ink": "var(--ink)",
+  "tone-red": "var(--pastel-red)",
+  "tone-red-ink": "var(--ink)",
+  "tone-green": "var(--pastel-green)",
+  "tone-green-ink": "var(--ink)",
+  "tone-blue": "var(--pastel-blue)",
+  "tone-blue-ink": "var(--ink)",
 
   ease: "cubic-bezier(0.2, 0.85, 0.3, 1)",
   "shadow-sm": "0 1px 2px rgb(20 20 26 / 0.05)",
@@ -107,14 +107,14 @@ export const lightTokens: Readonly<Record<string, TokenValue>> = {
   type: 'var(--font-data-face), "DM Mono", "Cascadia Mono", Consolas, "Courier New", monospace',
 
   /* Eight seats, assigned from the display name (`whoTone`), never a column. */
-  "who-1": "var(--peri)",
-  "who-1-ink": "var(--peri-ink)",
-  "who-2": "var(--blush)",
-  "who-2-ink": "var(--blush-ink)",
-  "who-3": "var(--butter)",
-  "who-3-ink": "var(--butter-ink)",
-  "who-4": "var(--mint)",
-  "who-4-ink": "var(--mint-ink)",
+  "who-1": "var(--pastel-blue)",
+  "who-1-ink": "var(--pastel-blue-ink)",
+  "who-2": "var(--pastel-red)",
+  "who-2-ink": "var(--pastel-red-ink)",
+  "who-3": "var(--pastel-yellow)",
+  "who-3-ink": "var(--pastel-yellow-ink)",
+  "who-4": "var(--pastel-green)",
+  "who-4-ink": "var(--pastel-green-ink)",
   "who-5": "var(--pen-2)",
   "who-5-ink": "var(--pen-deep)",
   "who-6": "#e4ecec",
@@ -123,10 +123,13 @@ export const lightTokens: Readonly<Record<string, TokenValue>> = {
   "who-7-ink": "#7a5a2b",
   "who-8": "#e9e7e2",
   "who-8-ink": "#5a564d",
-};
+} as const satisfies Record<string, TokenValue>;
+
+/** Every token name — the only keys a palette has. */
+export type TokenName = keyof typeof lightTokens;
 
 /** Dark, as an overlay on light. Same names, new values — never a new name. */
-export const darkTokens: Readonly<Record<string, TokenValue>> = {
+export const darkTokens: Readonly<Partial<Record<TokenName, TokenValue>>> = {
   /* Neutral grey, not blue-grey: a tinted ground fought every pastel on it. */
   paper: "#18181b",
   sheet: "#222226",
@@ -146,29 +149,29 @@ export const darkTokens: Readonly<Record<string, TokenValue>> = {
   "pen-2": "#24283a",
 
   /* The pastels swap roles: the wash is only a hint, the ink carries the colour. */
-  peri: "#252a3d",
-  "peri-ink": "#c3cbff",
-  mint: "#1f2e27",
-  "mint-ink": "#9fe0c0",
-  butter: "#2f2a1e",
-  "butter-ink": "#f2d596",
-  blush: "#302326",
-  "blush-ink": "#f5b7a5",
+  "pastel-blue": "#252a3d",
+  "pastel-blue-ink": "#c3cbff",
+  "pastel-green": "#1f2e27",
+  "pastel-green-ink": "#9fe0c0",
+  "pastel-yellow": "#2f2a1e",
+  "pastel-yellow-ink": "#f2d596",
+  "pastel-red": "#302326",
+  "pastel-red-ink": "#f5b7a5",
 
-  "peri-edge": "#39406a",
-  "mint-edge": "#2f4a3d",
-  "butter-edge": "#4a4230",
-  "blush-edge": "#4c3438",
+  "pastel-blue-edge": "#39406a",
+  "pastel-green-edge": "#2f4a3d",
+  "pastel-yellow-edge": "#4a4230",
+  "pastel-red-edge": "#4c3438",
 
   /* A dark wash is too faint to mark words: highlights take the edge, and the ink carries the colour. */
-  "tone-butter": "var(--butter-edge)",
-  "tone-butter-ink": "var(--butter-ink)",
-  "tone-blush": "var(--blush-edge)",
-  "tone-blush-ink": "var(--blush-ink)",
-  "tone-mint": "var(--mint-edge)",
-  "tone-mint-ink": "var(--mint-ink)",
-  "tone-peri": "var(--peri-edge)",
-  "tone-peri-ink": "var(--peri-ink)",
+  "tone-yellow": "var(--pastel-yellow-edge)",
+  "tone-yellow-ink": "var(--pastel-yellow-ink)",
+  "tone-red": "var(--pastel-red-edge)",
+  "tone-red-ink": "var(--pastel-red-ink)",
+  "tone-green": "var(--pastel-green-edge)",
+  "tone-green-ink": "var(--pastel-green-ink)",
+  "tone-blue": "var(--pastel-blue-edge)",
+  "tone-blue-ink": "var(--pastel-blue-ink)",
 
   "highlight-2": "#262219",
 
@@ -213,7 +216,7 @@ const ALIAS = /^var\(--([\w-]+)\)$/;
  * alias resolves to `undefined` and is dropped rather than throwing, so one bad
  * token can never take a screen down with it.
  */
-export function resolveTokens(theme: Theme = "light"): Record<string, string> {
+export function resolveTokens(theme: Theme = "light"): Record<TokenName, string> {
   const raw: Record<string, TokenValue> = { ...lightTokens };
   if (theme === "dark") Object.assign(raw, darkTokens);
 

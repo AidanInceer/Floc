@@ -1,7 +1,7 @@
 "use server";
 
-// Overview tab's who-may-do-what (ticket 13); the SQL lives in server/roster.ts,
-// server/invites.ts and server/trips.ts (ticket 242). Admin powers are
+// Overview tab's who-may-do-what (ticket 13); the SQL lives in server/trips/roster.ts,
+// server/trips/invites.ts and server/trips/trips.ts (ticket 242). Admin powers are
 // kick/promote/delete/re-lock (#312 took invite off the list, #358 added the fourth).
 import { redirect } from "next/navigation";
 

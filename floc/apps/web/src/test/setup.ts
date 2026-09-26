@@ -44,30 +44,13 @@ vi.mock("next/headers", () => ({
 }));
 
 /**
- * Who `requireUser` / `requireTripAccess` see. Set by `signIn()` in ./db.ts.
- * Stubbed at `auth.api.getSession` (Better Auth's request-cookie read, with
- * no request to read) rather than at `lib/access.ts` itself, which is the
- * thing most of these tests exist to check.
+ * Why stub `auth.api.getSession`, not `server/access.ts`: access is what most of
+ * these tests check. Set by `signIn()` in ./db.ts.
  */
 export const currentUser: { id: string | null } = { id: null };
 
 vi.mock("@/server/auth/auth", () => ({
   enabledProviders: { google: false, facebook: false },
-  // Real reads against the test database — the "you can't unlink your last
-  // method" rule is the caller's, and a stub returning [] would make it pass
-  // without ever being exercised.
-  listLinkedAccounts: async (userId: string) => {
-    const { db } = await import("@/db");
-    const { account } = await import("@/db/schema");
-    const { eq } = await import("drizzle-orm");
-    return db.select().from(account).where(eq(account.userId, userId)).all();
-  },
-  unlinkAccountById: async (accountId: string) => {
-    const { db } = await import("@/db");
-    const { account } = await import("@/db/schema");
-    const { eq } = await import("drizzle-orm");
-    await db.delete(account).where(eq(account.id, accountId));
-  },
   auth: {
     api: {
       getSession: async () => {

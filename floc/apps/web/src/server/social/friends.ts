@@ -189,12 +189,17 @@ export async function listFriendsFor(viewerId: string): Promise<Person[]> {
   );
 }
 
-/** Ids only, no visibility judgement — that's `server/visibility.ts`'s call; mixing them grows a second, quieter permission model (ticket 145). */
+/** Ids only, no visibility judgement — that's `server/auth/visibility.ts`'s call; mixing them grows a second, quieter permission model (ticket 145). */
 export async function acceptedFriendIdsOf(ownerId: string): Promise<string[]> {
   const rows = await listFriendshipsFor(ownerId);
   return rows
     .filter((r) => r.status === "accepted")
     .map((r) => (r.userId === ownerId ? r.friendId : r.userId));
+}
+
+/** A pair may hold a row in each direction, so count people, not rows. */
+export async function countFriendsFor(viewerId: string): Promise<number> {
+  return new Set(await acceptedFriendIdsOf(viewerId)).size;
 }
 
 /**

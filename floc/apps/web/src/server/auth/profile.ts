@@ -9,19 +9,8 @@ import "server-only";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
-import { account, user, userProfile } from "@/db/schema";
+import { user, userProfile } from "@/db/schema";
 import type { SignupChannel, UserProfile } from "@/db/schema";
-
-/** Sign-in methods on an account (ticket 118), for Settings to offer unlinking. Read-only — unlinking goes through the action's own last-credential guard. */
-export async function listLinkedAccounts(
-  userId: string,
-): Promise<{ id: string; providerId: string }[]> {
-  return db
-    .select({ id: account.id, providerId: account.providerId })
-    .from(account)
-    .where(eq(account.userId, userId))
-    .all();
-}
 
 export async function getProfile(
   userId: string,

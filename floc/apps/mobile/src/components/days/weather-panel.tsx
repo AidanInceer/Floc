@@ -11,11 +11,12 @@ import { useTheme } from "../system/theme";
 import { Body, Button, Figure, Label } from "../system/ui";
 import { HourlyCurve, type HourlyPoint } from "./hourly-curve";
 import { fonts, radius, size, space } from "@/lib/theme";
+import type { TokenName } from "@floc/core/design/tokens";
 
 export type ForecastDay = { date: string; condition: WeatherCondition; label: string; hi: number; lo: number };
 
 /** Ground and ink per condition — tokens, and always a word beside them (#204). */
-export const WEATHER_LOOK: Record<WeatherCondition, { ground: string; ink: string; word: string }> = {
+export const WEATHER_LOOK: Record<WeatherCondition, { ground: TokenName; ink: TokenName; word: string }> = {
   sun: { ground: "highlight", ink: "highlight-ink", word: "Sun" },
   part: { ground: "highlight-2", ink: "ink", word: "Sun and cloud" },
   cloud: { ground: "sheet-3", ink: "ink", word: "Cloud" },

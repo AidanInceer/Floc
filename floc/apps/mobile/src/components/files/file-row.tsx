@@ -64,7 +64,7 @@ export function FileRow({
           {uploaderName} · {DOC_CATEGORY_LABELS[category]}
         </Figure>
       </Pressable>
-      {own ? <Pill word="Private" tone="peri" /> : null}
+      {own ? <Pill word="Private" tone="pastel-blue" /> : null}
       <IconButton label={`What to do with ${name}`} onPress={onActions}>
         {(color) => <MoreGlyph color={color} />}
       </IconButton>

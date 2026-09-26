@@ -74,12 +74,18 @@ const config = [
       "src/components/notes/note-thread.tsx",
       "src/components/social/place-picker.tsx",
       "src/components/map/travel-map.tsx",
-      "src/components/trip/trip-roster.tsx",
       "src/server/itinerary/weather.ts",
-      "src/app/trip/**/page.tsx",
-      "src/app/trip/**/actions.ts",
     ],
     rules: { "max-lines-per-function": "off", complexity: "off" },
+  },
+  {
+    // 2026-09-26: named, where a `src/app/trip/**` wildcard used to exempt every trip page and action.
+    files: [
+      "src/app/trip/[[]id]/dates/page.tsx",
+      "src/app/trip/[[]id]/money/page.tsx",
+      "src/app/trip/[[]id]/packing/page.tsx",
+    ],
+    rules: { complexity: "off" },
   },
 
   // 2026-08-27: the schema of record crossed 600 lines adding `trip_note_doc`

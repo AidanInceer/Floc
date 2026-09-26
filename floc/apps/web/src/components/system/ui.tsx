@@ -16,6 +16,7 @@ import { whoTone } from "@floc/core/people/who";
 
 import { AvatarIconMark } from "./avatar-icon";
 import type { TripColor } from "@floc/core/trip/trip-color";
+import { initials } from "@floc/core/people/initials";
 
 /**
  * The four domain pastels as a rotation, for the places where a pastel is
@@ -23,15 +24,15 @@ import type { TripColor } from "@floc/core/trip/trip-color";
  * the day track. Three pages each kept their own copy of these four strings in
  * three different orders (ticket 207); one array means a colour cycle looks the
  * same wherever it appears. Where a pastel does carry meaning — money is mint,
- * dates are peri — write the pair out at the call site instead.
+ * dates are blue — write the pair out at the call site instead.
  */
 // Keyed by the colour name so a *chosen* trip colour (ticket 213) maps to its
 // skin, while the values in order are still the decorative rotation below.
 export const PASTEL_BY_KEY = {
-  peri: "bg-peri text-peri-ink",
-  mint: "bg-mint text-mint-ink",
-  butter: "bg-butter text-butter-ink",
-  blush: "bg-blush text-blush-ink",
+  peri: "bg-pastel-blue text-pastel-blue-ink",
+  mint: "bg-pastel-green text-pastel-green-ink",
+  butter: "bg-pastel-yellow text-pastel-yellow-ink",
+  blush: "bg-pastel-red text-pastel-red-ink",
 } as const satisfies Record<TripColor, string>;
 
 export const PASTEL_SKINS = Object.values(PASTEL_BY_KEY);
@@ -201,15 +202,6 @@ export function EmptyState({
   );
 }
 
-export function initials(name: string) {
-  return name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase() ?? "")
-    .join("");
-}
-
 export function Avatar({
   name,
   icon,
@@ -373,13 +365,6 @@ export function ErrorText({ children }: { children?: ReactNode }) {
  */
 export const menuItemClass =
   "!block !w-full !rounded-sm !border-none !px-2.5 !py-1.5 !text-left !font-sans !text-sm !normal-case !tracking-normal !text-ink-soft hover:!bg-sheet-2 hover:!text-ink";
-
-/**
- * A rare verb that has to be reachable but must not compete: plain small text,
- * no pill, no accent. Same `!` reason as the menu rows above.
- */
-export const quietActionClass =
-  "!border-none !bg-transparent !px-0 !py-0 !font-sans !text-[11px] !normal-case !tracking-normal !text-ink-faint !underline !underline-offset-2 hover:!bg-transparent hover:!text-ink-soft";
 
 /** The same row, for the one verb you can't take back. */
 export const menuDangerItemClass =

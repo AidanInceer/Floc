@@ -31,8 +31,7 @@ import { SettingsPrivacy, type Privacy } from "@/components/settings/settings-pr
 import { useTheme, type ThemeChoice } from "@/components/system/theme";
 import { Body, Dropdown, Failed, Label, Loading, Segmented, Toggle } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
-import { signOut } from "@/lib/auth";
-import { forgetCachedNotes } from "@/lib/notes/live-cache";
+import { signOutHere } from "@/lib/sign-out";
 import { proView } from "@/lib/billing/pro";
 import { aboutSummary, notificationSummary, privacySummary, tripsSummary } from "@/lib/settings/summary";
 import { MoonGlyph, SunGlyph } from "@/components/system/glyphs";
@@ -149,8 +148,7 @@ function SettingsPanels({
     ...trpc.settings.deleteAccount.mutationOptions(),
     onError,
     onSuccess: () => {
-      forgetCachedNotes();
-      return signOut().then(onSignedOut);
+      return signOutHere().then(onSignedOut);
     },
   });
 

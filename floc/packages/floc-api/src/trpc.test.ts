@@ -1,6 +1,8 @@
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { TRPCError } from "@trpc/server";
+import { Refusal } from "@floc/core/errors/refusal";
 import { expect, it } from "vitest";
+import { z } from "zod";
 
 import { publicProcedure, router } from "./trpc";
 import type { FlocPort } from "./port";
@@ -28,4 +30,37 @@ it("preserves intentional client-facing errors", async () => {
   const res = await errorResponse(new TRPCError({ code: "NOT_FOUND", message: "No such trip." }));
   expect(res.status).toBe(404);
   expect(await res.json()).toMatchObject({ error: { message: "No such trip." } });
+});
+
+it("answers a refusal as a 4xx carrying its own sentence", async () => {
+  const bad = await errorResponse(new Refusal("The shares must add up to the total."));
+  expect(bad.status).toBe(400);
+  expect(await bad.json()).toMatchObject({
+    error: { message: "The shares must add up to the total." },
+  });
+
+  const gone = await errorResponse(new Refusal("That is gone.", "missing"));
+  expect(gone.status).toBe(404);
+
+  const admin = await errorResponse(new Refusal("Only a trip admin can do that.", "forbidden"));
+  expect(admin.status).toBe(403);
+});
+
+it("answers bad input with the first rule it broke, not the raw list", async () => {
+  const res = await fetchRequestHandler({
+    endpoint: "/api/trpc",
+    req: new Request("http://localhost/api/trpc/probe", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ name: "" }),
+    }),
+    router: router({
+      probe: publicProcedure
+        .input(z.object({ name: z.string().min(1, "Give it a name.") }))
+        .mutation(() => null),
+    }),
+    createContext: () => ({ viewer: null, port: {} as FlocPort }),
+  });
+  expect(res.status).toBe(400);
+  expect(await res.json()).toMatchObject({ error: { message: "Give it a name." } });
 });

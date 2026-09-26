@@ -28,14 +28,14 @@ export type DocumentRowData = {
   eventTitle?: string | null;
 };
 
-/** Blush for a PDF, peri for an image — with the word, never the colour alone. */
+/** Red for a PDF, blue for an image — with the word, never the colour alone. */
 function KindChip({ mimeType }: { mimeType: string }) {
   const label = kindLabel(mimeType);
   return (
     <span
       className={cx(
         "inline-flex w-11 shrink-0 justify-center rounded-full px-2 py-0.5 text-xs font-semibold",
-        label === "PDF" ? "bg-blush text-blush-ink" : "bg-peri text-peri-ink",
+        label === "PDF" ? "bg-pastel-red text-pastel-red-ink" : "bg-pastel-blue text-pastel-blue-ink",
       )}
     >
       {label}

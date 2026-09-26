@@ -38,8 +38,8 @@ import { useTheme } from "./theme";
 
 /* ------------------------------------------------------------------ text */
 
-/** Every tone is a token name. `butter-ink` is here so text on a butter ground keeps its contrast (#204). */
-type TextTone = "ink" | "ink-2" | "ink-3" | "pen" | "red" | "green" | "butter-ink" | "peri-ink";
+/** Every tone is a token name. `pastel-yellow-ink` is here so text on a yellow ground keeps its contrast (#204). */
+type TextTone = "ink" | "ink-2" | "ink-3" | "pen" | "red" | "green" | "pastel-yellow-ink" | "pastel-blue-ink";
 
 export function Body({
   children,
@@ -313,10 +313,10 @@ function TextInputBox(props: TextInputProps) {
  */
 export function Pill({
   word,
-  tone = "peri",
+  tone = "pastel-blue",
 }: {
   word: string;
-  tone?: "peri" | "mint" | "butter" | "blush";
+  tone?: "pastel-blue" | "pastel-green" | "pastel-yellow" | "pastel-red";
 }) {
   const { c } = useTheme();
   return (
@@ -467,7 +467,7 @@ export function Screen({ children }: { children: ReactNode }) {
 export function IconButton({
   label,
   on,
-  onColor = "mint",
+  onColor = "pastel-green",
   tone = "quiet",
   disabled,
   children,
@@ -478,7 +478,7 @@ export function IconButton({
   /** Filled rather than outlined — the state is on. */
   on?: boolean;
   /** The pastel an "on" button wears. */
-  onColor?: "mint" | "peri" | "butter" | "blush";
+  onColor?: "pastel-green" | "pastel-blue" | "pastel-yellow" | "pastel-red";
   tone?: "quiet" | "danger";
   disabled?: boolean;
   children: (color: string) => ReactNode;

@@ -32,9 +32,9 @@ function Chip({ label, on, onPress }: { label: string; on: boolean; onPress: () 
         paddingVertical: space.xs,
         paddingHorizontal: space.md,
         borderRadius: radius.pill,
-        backgroundColor: on ? c.mint : c["sheet-2"],
+        backgroundColor: on ? c["pastel-green"] : c["sheet-2"],
         borderWidth: 1,
-        borderColor: on ? c["mint-edge"] : c.rule,
+        borderColor: on ? c["pastel-green-edge"] : c.rule,
       }}
     >
       {/* The word is the thing; the fill is a second signal, never the only one (#204). */}

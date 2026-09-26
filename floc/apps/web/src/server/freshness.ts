@@ -16,6 +16,7 @@ import "server-only";
 import { revalidatePath } from "next/cache";
 
 import type { NoteScope } from "@/db/schema";
+import { forgetRequestReads } from "@/server/request-scope";
 
 export type Fact =
   | { kind: "itinerary"; tripId: number }
@@ -133,6 +134,7 @@ export function pagesFor(facts: Fact[]): Target[] {
 
 /** Announce what changed. Everything else is this module's problem. */
 export function refresh(...facts: Fact[]): void {
+  forgetRequestReads();
   for (const target of pagesFor(facts)) {
     if (target.type) revalidatePath(target.path, target.type);
     else revalidatePath(target.path);

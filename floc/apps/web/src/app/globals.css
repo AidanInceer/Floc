@@ -75,24 +75,24 @@
   --pen-deep: #2b3b85; /* the pressed-harder hover ink, and blue text on pastel */
   --pen-2: #e7ebfa; /* the soft tint blue sits on */
 
-  /* Four pastels, one per domain (wash / ink): peri = dates, mint = money,
-     butter = notes and people, blush = route and places. THE ONLY PLACE THESE
+  /* Four pastels, one per domain (wash / ink): blue = dates, green = money,
+     yellow = notes and people, red = route and places. THE ONLY PLACE THESE
      SIX-DIGIT VALUES APPEAR — everything below aliases them. */
-  --peri: #dfe3ff;
-  --peri-ink: #33409b; /* 7.1:1 on peri */
-  --mint: #dcefe4;
-  --mint-ink: #1b6b4c; /* 5.4:1 on mint */
-  --butter: #fbeac8;
-  --butter-ink: #8a6412; /* 4.5:1 on butter */
-  --blush: #faddd6;
-  --blush-ink: #a34a31; /* 4.6:1 on blush */
+  --pastel-blue: #dfe3ff;
+  --pastel-blue-ink: #33409b; /* 7.1:1 on pastel-blue */
+  --pastel-green: #dcefe4;
+  --pastel-green-ink: #1b6b4c; /* 5.4:1 on mint */
+  --pastel-yellow: #fbeac8;
+  --pastel-yellow-ink: #8a6412; /* 4.5:1 on pastel-yellow */
+  --pastel-red: #faddd6;
+  --pastel-red-ink: #a34a31; /* 4.6:1 on pastel-red */
 
   /* One step darker than each wash, so a filled pill outlines on white rather
      than dissolving into it. */
-  --peri-edge: #c6d0f2;
-  --mint-edge: #c3e3d2;
-  --butter-edge: #efd9ae;
-  --blush-edge: #f0c7bc;
+  --pastel-blue-edge: #c6d0f2;
+  --pastel-green-edge: #c3e3d2;
+  --pastel-yellow-edge: #efd9ae;
+  --pastel-red-edge: #f0c7bc;
 
   /*
    * Status — the three-state semantics (done / open / needs action) applied
@@ -100,27 +100,27 @@
    * borrows the domain pastels. Every state carries a word too, so nothing is
    * told by colour alone (ticket 204).
    */
-  --highlight: var(--butter); /* open / marked up */
-  --highlight-2: #fdf4e1; /* the one paler butter — its own value, used alone */
-  --highlight-ink: var(--butter-ink);
-  --highlight-edge: var(--butter-edge);
-  --red: var(--blush-ink); /* needs action */
-  --red-2: var(--blush);
-  --red-edge: var(--blush-edge);
-  --green: var(--mint-ink); /* done */
-  --green-2: var(--mint);
-  --green-edge: var(--mint-edge);
-  --pen-edge: var(--peri-edge);
+  --highlight: var(--pastel-yellow); /* open / marked up */
+  --highlight-2: #fdf4e1; /* the one paler yellow — its own value, used alone */
+  --highlight-ink: var(--pastel-yellow-ink);
+  --highlight-edge: var(--pastel-yellow-edge);
+  --red: var(--pastel-red-ink); /* needs action */
+  --red-2: var(--pastel-red);
+  --red-edge: var(--pastel-red-edge);
+  --green: var(--pastel-green-ink); /* done */
+  --green-2: var(--pastel-green);
+  --green-edge: var(--pastel-green-edge);
+  --pen-edge: var(--pastel-blue-edge);
 
   /* A member's highlight and table colour on a notes page (#408): the tint, and the text on it. */
-  --tone-butter: var(--butter);
-  --tone-butter-ink: var(--ink);
-  --tone-blush: var(--blush);
-  --tone-blush-ink: var(--ink);
-  --tone-mint: var(--mint);
-  --tone-mint-ink: var(--ink);
-  --tone-peri: var(--peri);
-  --tone-peri-ink: var(--ink);
+  --tone-yellow: var(--pastel-yellow);
+  --tone-yellow-ink: var(--ink);
+  --tone-red: var(--pastel-red);
+  --tone-red-ink: var(--ink);
+  --tone-green: var(--pastel-green);
+  --tone-green-ink: var(--ink);
+  --tone-blue: var(--pastel-blue);
+  --tone-blue-ink: var(--ink);
 
   /* Quiet motion: a tiny lift on a soft shadow, nothing heavy. One easing curve
      for every interactive move — see the `.lift` utility, and the
@@ -171,14 +171,14 @@
    * domain pastels under a person's name; only 6–8 need values of their own,
    * because the palette runs out before the seats do. Every pair clears AA.
    */
-  --who-1: var(--peri);
-  --who-1-ink: var(--peri-ink);
-  --who-2: var(--blush);
-  --who-2-ink: var(--blush-ink);
-  --who-3: var(--butter);
-  --who-3-ink: var(--butter-ink);
-  --who-4: var(--mint);
-  --who-4-ink: var(--mint-ink);
+  --who-1: var(--pastel-blue);
+  --who-1-ink: var(--pastel-blue-ink);
+  --who-2: var(--pastel-red);
+  --who-2-ink: var(--pastel-red-ink);
+  --who-3: var(--pastel-yellow);
+  --who-3-ink: var(--pastel-yellow-ink);
+  --who-4: var(--pastel-green);
+  --who-4-ink: var(--pastel-green-ink);
   --who-5: var(--pen-2);
   --who-5-ink: var(--pen-deep);
   --who-6: #e4ecec;
@@ -225,30 +225,30 @@
   --pen-2: #24283a;
 
   /* The four pastels swap roles: the wash is only a hint, the ink carries the colour. */
-  --peri: #252a3d;
-  --peri-ink: #c3cbff;
-  --mint: #1f2e27;
-  --mint-ink: #9fe0c0;
-  --butter: #2f2a1e;
-  --butter-ink: #f2d596;
-  --blush: #302326;
-  --blush-ink: #f5b7a5;
+  --pastel-blue: #252a3d;
+  --pastel-blue-ink: #c3cbff;
+  --pastel-green: #1f2e27;
+  --pastel-green-ink: #9fe0c0;
+  --pastel-yellow: #2f2a1e;
+  --pastel-yellow-ink: #f2d596;
+  --pastel-red: #302326;
+  --pastel-red-ink: #f5b7a5;
 
   /* One step lighter than each wash here — an edge separates by lifting. */
-  --peri-edge: #39406a;
-  --mint-edge: #2f4a3d;
-  --butter-edge: #4a4230;
-  --blush-edge: #4c3438;
+  --pastel-blue-edge: #39406a;
+  --pastel-green-edge: #2f4a3d;
+  --pastel-yellow-edge: #4a4230;
+  --pastel-red-edge: #4c3438;
 
   /* A dark wash is too faint to mark words: highlights take the edge, and the ink carries the colour. */
-  --tone-butter: var(--butter-edge);
-  --tone-butter-ink: var(--butter-ink);
-  --tone-blush: var(--blush-edge);
-  --tone-blush-ink: var(--blush-ink);
-  --tone-mint: var(--mint-edge);
-  --tone-mint-ink: var(--mint-ink);
-  --tone-peri: var(--peri-edge);
-  --tone-peri-ink: var(--peri-ink);
+  --tone-yellow: var(--pastel-yellow-edge);
+  --tone-yellow-ink: var(--pastel-yellow-ink);
+  --tone-red: var(--pastel-red-edge);
+  --tone-red-ink: var(--pastel-red-ink);
+  --tone-green: var(--pastel-green-edge);
+  --tone-green-ink: var(--pastel-green-ink);
+  --tone-blue: var(--pastel-blue-edge);
+  --tone-blue-ink: var(--pastel-blue-ink);
 
   --highlight-2: #262219;
 
@@ -297,19 +297,19 @@
   --color-pen-soft: var(--pen-2);
   --color-pen-edge: var(--pen-edge);
 
-  /* The four domain pastels: bg-peri/text-peri-ink, mint, butter, blush. */
-  --color-peri: var(--peri);
-  --color-peri-ink: var(--peri-ink);
-  --color-peri-edge: var(--peri-edge);
-  --color-mint: var(--mint);
-  --color-mint-ink: var(--mint-ink);
-  --color-mint-edge: var(--mint-edge);
-  --color-butter: var(--butter);
-  --color-butter-ink: var(--butter-ink);
-  --color-butter-edge: var(--butter-edge);
-  --color-blush: var(--blush);
-  --color-blush-ink: var(--blush-ink);
-  --color-blush-edge: var(--blush-edge);
+  /* The four domain pastels: bg-pastel-blue/text-pastel-blue-ink, and green, yellow, red. */
+  --color-pastel-blue: var(--pastel-blue);
+  --color-pastel-blue-ink: var(--pastel-blue-ink);
+  --color-pastel-blue-edge: var(--pastel-blue-edge);
+  --color-pastel-green: var(--pastel-green);
+  --color-pastel-green-ink: var(--pastel-green-ink);
+  --color-pastel-green-edge: var(--pastel-green-edge);
+  --color-pastel-yellow: var(--pastel-yellow);
+  --color-pastel-yellow-ink: var(--pastel-yellow-ink);
+  --color-pastel-yellow-edge: var(--pastel-yellow-edge);
+  --color-pastel-red: var(--pastel-red);
+  --color-pastel-red-ink: var(--pastel-red-ink);
+  --color-pastel-red-edge: var(--pastel-red-edge);
 
   /* Pro's own ground: bg-pro, text-pro-gold, …. */
   --color-pro: var(--pro);
@@ -505,36 +505,206 @@
     display: none;
   }
 
-  /* The landing tour's play-time line: a dashed track, filled over one stop. */
-  .dash-track {
-    background: repeating-linear-gradient(90deg, var(--sheet-2) 0 6px, transparent 6px 10px);
+  /*
+   * The landing hero's trip pack. A slot holds each card's resting pose and
+   * never moves, so the hover area stays put while the card inside lifts —
+   * no flicker at the edges. The deal only fills backwards: a forwards fill
+   * would keep the animation in charge and the hover would snap, not ease.
+   */
+  .hero-pack {
+    --soft: cubic-bezier(0.22, 1, 0.36, 1);
+    position: relative;
+    width: 540px;
+    height: 490px;
+    max-width: 100%;
+    margin-inline: auto;
   }
-  .dash-fill {
-    width: 0;
-    background: repeating-linear-gradient(90deg, var(--rule) 0 6px, transparent 6px 10px);
-    animation: dash-fill linear forwards;
+  .hero-slot {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform: translate(var(--x), var(--y)) rotate(var(--r));
+    animation: hero-deal 1s var(--soft) backwards;
+    animation-delay: var(--d);
+    transition: z-index 0s 0.45s;
   }
-  @keyframes dash-fill {
-    to {
-      width: 100%;
-    }
+  .hero-slot:hover {
+    z-index: 20;
+    transition-delay: 0s;
   }
-  .rise-in {
-    animation: rise-in 0.35s var(--ease) both;
+  .hero-card {
+    border-radius: 20px;
+    box-shadow: var(--shadow-lift);
+    transition:
+      transform 0.55s var(--soft),
+      box-shadow 0.55s var(--soft);
   }
-  @keyframes rise-in {
+  .hero-slot:hover .hero-card {
+    transform: translateY(-10px) rotate(calc(var(--r) * -1)) scale(1.025);
+    box-shadow: var(--shadow-lift), var(--shadow-lift);
+  }
+  @keyframes hero-deal {
     from {
       opacity: 0;
-      transform: translateY(8px);
+      transform: translate(calc(var(--x) * 0.6 + 110px), calc(var(--y) * 0.6 + 130px)) rotate(0deg) scale(0.95);
+    }
+    35% {
+      opacity: 1;
     }
   }
-  .typing-dot {
-    animation: typing-dot 1s infinite;
+  .hero-slot-dates { --x: 18px; --y: 0px; --r: -6deg; --d: 0.1s; width: 240px; z-index: 2; }
+  .hero-slot-money { --x: 292px; --y: 18px; --r: 5deg; --d: 0.22s; width: 220px; z-index: 2; }
+  .hero-slot-ticket { --x: 68px; --y: 150px; --r: -1.5deg; --d: 0.34s; width: 404px; z-index: 3; }
+  .hero-slot-pack { --x: 346px; --y: 352px; --r: 4deg; --d: 0.46s; width: 176px; z-index: 4; }
+  .hero-route::before {
+    content: "";
+    position: absolute;
+    left: 12.5%;
+    right: 12.5%;
+    top: 6px;
+    border-top: 1.5px dashed var(--rule-2);
   }
-  @keyframes typing-dot {
-    50% {
-      opacity: 0.25;
+  /* The ticket's tear line, with a notch bitten out of each edge. */
+  .hero-perf {
+    position: relative;
+    margin: 0 18px;
+    border-top: 1.5px dashed var(--rule-2);
+  }
+  .hero-perf::before,
+  .hero-perf::after {
+    content: "";
+    position: absolute;
+    top: -12px;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: var(--paper);
+  }
+  .hero-perf::before { left: -30px; }
+  .hero-perf::after { right: -30px; }
+  @media (max-width: 620px) {
+    .hero-pack { zoom: 0.62; }
+  }
+
+  /*
+   * The landing filmstrip. The track spans the viewport and the open slide
+   * sits in the middle, so the slides either side peek in; the spacers let
+   * the first and last slides centre too. The drawn screen bleeds off each
+   * slide's foot.
+   */
+  .film-track {
+    --slide: min(1120px, 86vw);
+    --gap: 20px;
+    display: flex;
+    gap: var(--gap);
+    margin-top: 20px;
+    margin-inline: calc(50% - 50vw);
+    padding: 4px 0 24px;
+    scroll-snap-type: x mandatory;
+    cursor: grab;
+    user-select: none;
+  }
+  .film-track::before,
+  .film-track::after {
+    content: "";
+    flex: 0 0 max(0px, calc(50vw - var(--slide) / 2 - var(--gap)));
+  }
+  .film-track.is-dragging {
+    scroll-snap-type: none;
+    cursor: grabbing;
+  }
+  .film-slide {
+    position: relative;
+    flex: 0 0 var(--slide);
+    height: 580px;
+    border-radius: 28px;
+    overflow: hidden;
+    scroll-snap-align: center;
+    transition: opacity 0.4s var(--ease);
+  }
+  .film-slide.is-resting { opacity: 0.55; cursor: pointer; }
+  .film-text {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    width: 340px;
+    height: 100%;
+    padding: 44px 40px;
+  }
+  .film-was { margin-top: auto; }
+  .film-shot {
+    position: absolute;
+    left: 372px;
+    right: 44px;
+    top: 56px;
+    transition: transform 0.6s var(--ease);
+  }
+  .film-slide.is-resting .film-shot { transform: translateY(18px); }
+  /* Narrow: the text sits above, and the drawn screen shrinks to show its
+     full width rather than a cropped corner of it. */
+  @media (max-width: 860px) {
+    .film-track { --slide: 84vw; --gap: 12px; }
+    .film-slide { display: flex; flex-direction: column; height: auto; }
+    .film-text { width: auto; height: auto; padding: 26px 22px 0; }
+    .film-was { margin-top: 16px; }
+    .film-shot { position: relative; left: auto; right: auto; top: auto; margin: auto 0 -40px 20px; padding-top: 22px; }
+    .film-shot > * { width: 700px; zoom: 0.72; }
+  }
+  @media (max-width: 640px) {
+    .film-shot > * { zoom: 0.54; }
+  }
+  @media (max-width: 480px) {
+    .film-track { --slide: 80vw; --gap: 10px; }
+    .film-shot { margin-left: 14px; }
+    .film-shot > * { zoom: 0.42; }
+  }
+
+  /* "Borrow a trip to …": the place rolls in, the map flies to the route. */
+  .borrow-word {
+    display: inline-block;
+    margin-left: -0.12em;
+    padding: 0 0.12em;
+    border-radius: 0.14em;
+    animation: borrow-roll 0.55s var(--ease);
+  }
+  @keyframes borrow-roll {
+    from {
+      opacity: 0;
+      transform: translateY(0.35em);
+      clip-path: inset(0 0 100% 0);
     }
+  }
+  .borrow-map {
+    height: 260px;
+    background: var(--sheet-2);
+  }
+  .borrow-stop { animation: borrow-pop 0.4s var(--ease) both; }
+  @keyframes borrow-pop {
+    from { opacity: 0; transform: translateY(4px); }
+  }
+  /* A postage stamp: white ground, a dashed inner edge, a slight tilt. */
+  .borrow-stamp {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 70px;
+    height: 78px;
+    border-radius: 3px;
+    background: var(--sheet);
+    box-shadow: var(--shadow-sm);
+    line-height: 1;
+    transform: rotate(4deg);
+  }
+  .borrow-stamp::after {
+    content: "";
+    position: absolute;
+    inset: 4px;
+    border: 1.2px dashed currentColor;
+    border-radius: 2px;
+    opacity: 0.45;
   }
 
   /* Anything typed rather than written: labels, counts, dates, section heads. */
@@ -633,6 +803,32 @@
 
   :root[data-theme-choice="system"] .theme-indicator {
     transform: translateX(200%);
+  }
+
+  /*
+   * The account menu is a ticket: two halves with a notch cut from each side
+   * where they tear. Each half masks its own corners, so nothing measures.
+   * The edge is a drop-shadow, because a border or box-shadow would not
+   * follow the notches.
+   */
+  .account-ticket {
+    filter: drop-shadow(0 0 0.6px var(--rule-2)) drop-shadow(0 0 0.6px var(--rule-2))
+      drop-shadow(0 12px 14px color-mix(in srgb, black 16%, transparent));
+  }
+
+  .account-pass-top {
+    border-radius: 14px 14px 0 0;
+    mask:
+      radial-gradient(circle 8px at 0 100%, transparent 97%, black) left / 51% 100% no-repeat,
+      radial-gradient(circle 8px at 100% 100%, transparent 97%, black) right / 51% 100% no-repeat;
+  }
+
+  .account-pass-stub {
+    border-radius: 0 0 14px 14px;
+    overflow: hidden;
+    mask:
+      radial-gradient(circle 8px at 0 0, transparent 97%, black) left / 51% 100% no-repeat,
+      radial-gradient(circle 8px at 100% 0, transparent 97%, black) right / 51% 100% no-repeat;
   }
 }
 

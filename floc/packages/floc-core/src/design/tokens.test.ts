@@ -4,9 +4,9 @@ import { darkTokens, lightTokens, resolveColours, resolveTokens } from "./tokens
 
 describe("resolveTokens", () => {
   it("follows an alias to the value it points at", () => {
-    // --red is `var(--blush-ink)` and has no dark counterpart of its own.
-    expect(resolveTokens("light").red).toBe(lightTokens["blush-ink"]);
-    expect(resolveTokens("dark").red).toBe(darkTokens["blush-ink"]);
+    // --red is `var(--pastel-red-ink)` and has no dark counterpart of its own.
+    expect(resolveTokens("light").red).toBe(lightTokens["pastel-red-ink"]);
+    expect(resolveTokens("dark").red).toBe(darkTokens["pastel-red-ink"]);
   });
 
   it("overlays dark on light rather than replacing it", () => {

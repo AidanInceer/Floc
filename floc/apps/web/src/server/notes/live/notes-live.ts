@@ -15,7 +15,13 @@ import { onNotesKick } from "./live-kick";
 import { onPagesChanged } from "./live-ping";
 import { loadPageState, storePageState } from "./page-live-store";
 
-type LiveContext = { userId: string };
+type LiveContext = { userId: string; checkedAt: number };
+
+/**
+ * Why: a check per keystroke costs a session fetch and two queries. Removal and
+ * archive close the socket at once; this catches the rest, such as a session that ended.
+ */
+const RECHECK_MS = 60_000;
 
 const PAGES_CHANGED = "pages";
 
@@ -27,7 +33,9 @@ async function mayOpen(target: LiveDocument | null, userId: string): Promise<boo
 export function createNotesLive(options: {
   resolveUser: (headers: Headers) => Promise<string | null>;
   debounce?: number;
+  recheckMs?: number;
 }): Hocuspocus<LiveContext> {
+  const recheckMs = options.recheckMs ?? RECHECK_MS;
   const live: Hocuspocus<LiveContext> = new Hocuspocus<LiveContext>({
     quiet: true,
     debounce: options.debounce ?? 2_000,
@@ -38,13 +46,16 @@ export function createNotesLive(options: {
       if (!userId) throw new Error("Not signed in");
       if (!(await mayOpen(readDocumentName(documentName), userId))) throw new Error("Not found");
       context.userId = userId;
+      context.checkedAt = Date.now();
     },
 
     async beforeHandleMessage({ documentName, requestHeaders, context }) {
+      if (Date.now() - context.checkedAt < recheckMs) return;
       const userId = await options.resolveUser(requestHeaders);
       if (!userId || userId !== context.userId || !(await mayOpen(readDocumentName(documentName), userId))) {
         throw new Error("Not found");
       }
+      context.checkedAt = Date.now();
     },
 
     async onLoadDocument({ documentName, document }) {

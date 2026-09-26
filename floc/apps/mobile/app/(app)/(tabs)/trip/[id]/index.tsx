@@ -3,45 +3,33 @@
  * its *when*. Undated opens here and is never an error (rules 4 and 9), and a
  * stop is derived from the days, never stored (rule 3).
  */
-import { computeBalances } from "@floc/core/money/money";
 import { spendHeadline } from "@floc/core/money/spend";
-import { groupStatuses, owingUserIds } from "@floc/core/trip/group/group-status";
-import { bookingPlan } from "@floc/core/trip/booking-links";
-import { today } from "@floc/core/dates/dates";
-import { formatDateRange } from "@floc/core/dates/dates";
-import { readTripColor } from "@floc/core/trip/trip-color";
+import { groupStatuses } from "@floc/core/trip/group/group-status";
+import { transportModes, tripLegs } from "@floc/core/trip/overview/legs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ScrollView, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Alert, ScrollView, View } from "react-native";
 
-import { DayTrack } from "@/components/days/day-track";
 import { FileList } from "@/components/files/file-list";
 import { GroupActions } from "@/components/trip/group-actions";
 import { IdeasSection } from "@/components/trip/ideas/ideas-section";
+import { LegList } from "@/components/trip/leg-list";
+import { OverviewCard } from "@/components/trip/overview-card";
 import { RouteMap } from "@/components/map/route-map";
 import { RosterStrip } from "@/components/trip/roster-strip";
-import { BookingTiles } from "@/components/trip/booking-tiles";
-import { SpendingStrip } from "@/components/trip/spending-strip";
-import { TagPills } from "@/components/trip/tag-pills";
+import { TripSheet, draftFor, type TripDraft } from "@/components/trip/trip-sheet";
+import { QuietAction } from "@/components/system/text-controls";
 import { useTourTarget } from "@/components/tour/tour-context";
-import {
-  Body,
-  Card,
-  Failed,
-  Figure,
-  Label,
-  Loading,
-  Pill,
-} from "@/components/system/ui";
+import { Body, Card, Failed, Label, Loading } from "@/components/system/ui";
 import type { AppRouter } from "@floc/api/router";
 import type { inferRouterOutputs } from "@trpc/server";
 
 import { trpc } from "@/lib/api";
 import { inviteUrl } from "@/lib/config";
+import { useTripWrite } from "@/lib/trip/trip-write";
 import { space } from "@/lib/theme";
 
-/** The ledger as the API returns it — named once so the two helpers below agree. */
-type Ledger = inferRouterOutputs<AppRouter>["money"]["ledger"];
 type Outputs = inferRouterOutputs<AppRouter>;
 
 /** Overview shows the top of the pile; the rest is a count, and the Files screen. */
@@ -63,201 +51,161 @@ export default function Overview() {
   const invites = useQuery(trpc.invites.forTrip.queryOptions({ tripId }, { enabled: ready }));
   const availability = useQuery(trpc.availability.list.queryOptions({ tripId }, { enabled: ready }));
   const rosterTarget = useTourTarget("roster");
-  const queryClient = useQueryClient();
-  // Only the link changed, so only the query that carries it is refetched.
-  const resetLink = useMutation({
-    ...trpc.invites.resetLink.mutationOptions(),
-    onSuccess: () =>
-      queryClient.invalidateQueries({
-        queryKey: trpc.invites.forTrip.queryKey({ tripId }),
-      }),
-  });
+  const [draft, setDraft] = useState<TripDraft | null>(null);
 
   if (trip.isPending) return <Loading />;
   if (trip.isError) return <Failed onRetry={() => trip.refetch()} />;
 
   const go = (route: string) => router.push(`/trip/${tripId}/${route}` as never);
+  const openDay = (date: string) => router.push({ pathname: "/trip/[id]/days", params: { id: tripId, date } });
+  const legs = legsFrom(days.data, files.data);
+  const pinned = pinsFor(legs, places.data);
 
   return (
     <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.xl }}>
-      {/* No name here: the header carries it on every section, and printing it
-          again on one of the six said the same word twice for no reason. */}
-      <View style={{ gap: space.xs }}>
-        {/* Undated says so once. "Dates not set" here and "No dates set yet"
-            in the card below it was the same fact twice, and the card is the
-            one that can do something about it. */}
-        {trip.data.startDate ? (
-          <Figure tone="ink-2">{formatDateRange(trip.data.startDate, trip.data.endDate)}</Figure>
-        ) : null}
-        {/* Tags sit under the dates, as they do on the web's hero row. There
-            is no "add a tag" here — the header's sheet owns every edit to the
-            trip itself, so this is the reading half only (#71, #213). */}
-        <TagPills
-          tags={trip.data.tags}
-          color={readTripColor(trip.data.colorKey)}
-          tripId={tripId}
-        />
-        {trip.data.archived ? <Pill word="Archived" tone="butter" /> : null}
-      </View>
-
-      {/* Ideas first: before the dates exist it is the only live question here. */}
-      <IdeasSection tripId={tripId} datesUnset={!trip.data.startDate && !trip.data.endDate} />
-
-      <View style={{ gap: space.sm }}>
-        <Label>Where</Label>
-        <Card>
-          {places.isPending ? (
-            <Loading />
-          ) : places.isError ? (
-            <Failed onRetry={() => places.refetch()} />
-          ) : places.data.length === 0 ? (
-            <Body tone="ink-2">Nowhere on the map yet.</Body>
-          ) : (
-            <RouteMap places={places.data} />
-          )}
-        </Card>
-      </View>
-
-      <View ref={rosterTarget} style={{ gap: space.sm }}>
-        {/* "The group", as the web panel calls it — one name for one thing. */}
-        <Label>The group</Label>
-        <GroupCard
-          trip={trip.data}
-          link={invites.data ? inviteUrl(invites.data.token) : null}
-          availability={availability.data}
-          ledger={ledger.data}
-          isAdmin={trip.data.role === "admin"}
-          resetting={resetLink.isPending}
-          onInvite={() => router.push(`/trip/${tripId}/invite`)}
-          onResetLink={() => resetLink.mutate({ tripId })}
-          onMoney={() => go("money")}
-        />
-      </View>
-
-      <TripSection
-        days={days.data}
-        onOpen={(date) => router.push({ pathname: "/trip/[id]/days", params: { id: tripId, date } })}
+      <OverviewCard
+        trip={trip.data}
+        nights={days.data?.length ?? 0}
+        spend={ledger.data ? spendHeadline(ledger.data.expenses) : null}
+        onEdit={() => setDraft(draftFor(trip.data))}
+        onDates={() => go("dates")}
+        onGroup={() => go("roster")}
+        onMoney={() => go("money")}
       />
 
-      <BookingSection trip={trip.data} onOpen={() => go("dates")} />
-
-      <View style={{ gap: space.sm }}>
-        <Label>Files</Label>
+      {pinned.length > 0 ? (
         <Card>
-          {files.isPending ? (
-            <Loading />
-          ) : files.isError ? (
-            <Failed onRetry={() => files.refetch()} />
-          ) : files.data.length === 0 ? (
-            <Body tone="ink-2">No files yet.</Body>
-          ) : (
-            <FileList files={files.data} showing={FILES_SHOWN} />
-          )}
+          <RouteMap places={pinned} />
+        </Card>
+      ) : null}
+
+      {/* Ideas first while undated: before the dates exist it is the only live question here. */}
+      <IdeasSection tripId={tripId} datesUnset={!trip.data.startDate && !trip.data.endDate} />
+
+      <View ref={rosterTarget} style={{ gap: space.sm }}>
+        <Label>Who&apos;s going</Label>
+        <Card>
+          <GroupActions
+            link={invites.data ? inviteUrl(invites.data.token) : null}
+            onInvite={() => router.push(`/trip/${tripId}/invite`)}
+          />
+          <RosterStrip people={trip.data.members} statuses={statusesFor(trip.data, availability.data)} />
         </Card>
       </View>
+
+      <FilesSection files={files} />
+
+      {legs.length > 0 ? (
+        <View style={{ gap: space.sm }}>
+          <Label>Legs</Label>
+          <LegList legs={legs} onOpen={openDay} />
+        </View>
+      ) : null}
+
+      {draft !== null ? (
+        <EditSheet
+          trip={trip.data}
+          draft={draft}
+          onChange={setDraft}
+          onClose={() => setDraft(null)}
+          onGone={() => router.replace("/trips" as never)}
+        />
+      ) : null}
     </ScrollView>
   );
 }
 
-function TripSection({
-  days,
-  onOpen,
-}: {
-  days: Outputs["itinerary"]["days"] | undefined;
-  onOpen: (date: string) => void;
-}) {
-  if (!days || days.length === 0) return null;
-  return (
-    <View style={{ gap: space.sm }}>
-      <Label>The trip</Label>
-      <DayTrack days={days} onOpen={onOpen} />
-    </View>
-  );
+function legsFrom(days: Outputs["itinerary"]["days"] | undefined, files: Outputs["files"]["list"] | undefined) {
+  return tripLegs({
+    days: (days ?? []).map((d) => ({ dayId: d.id, date: d.date, overnightPlaceId: d.overnightPlaceId, placeName: d.overnightPlaceName })),
+    modes: transportModes(days ?? []),
+    files: files ?? [],
+  }).legs;
 }
 
-function GroupCard({
-  trip,
-  link,
-  availability,
-  ledger,
-  isAdmin,
-  resetting,
-  onInvite,
-  onResetLink,
-  onMoney,
-}: {
-  trip: Outputs["trips"]["get"];
-  link: string | null;
-  isAdmin: boolean;
-  resetting: boolean;
-  availability: Outputs["availability"]["list"] | undefined;
-  ledger: Ledger | undefined;
-  onInvite: () => void;
-  onResetLink: () => void;
-  onMoney: () => void;
-}) {
-  return (
-    <Card>
-      <GroupActions
-        link={link}
-        isAdmin={isAdmin}
-        resetting={resetting}
-        onInvite={onInvite}
-        onResetLink={onResetLink}
-      />
-      <RosterStrip people={trip.members} statuses={statusesFor(trip, availability, ledger)} />
-      <SpendingStrip
-        headline={ledger ? spendHeadline(ledger.expenses) : null}
-        count={ledger?.expenses.length ?? 0}
-        onPress={onMoney}
-      />
-    </Card>
-  );
+// Pins in leg order, so pin 2 is leg 2 — the web's map does the same.
+function pinsFor(legs: { placeId: number }[], places: Outputs["places"]["list"] | undefined) {
+  if (!places) return [];
+  return legs.length > 0 ? legs.flatMap((l) => places.filter((p) => p.id === l.placeId)) : places;
 }
 
-/** The web's rule: bookable while the dates are set and the trip is still ahead. */
-function BookingSection({ trip, onOpen }: { trip: Outputs["trips"]["get"]; onOpen: () => void }) {
-  const bookable =
-    bookingPlan({ trip, days: [], today: today(), adults: trip.members.length, prefill: false }) !== null;
-  if (!bookable) return null;
+function FilesSection({
+  files,
+}: {
+  files: { isPending: boolean; isError: boolean; data: Outputs["files"]["list"] | undefined; refetch: () => unknown };
+}) {
   return (
     <View style={{ gap: space.sm }}>
-      <Label>Get booking</Label>
+      <Label>Files</Label>
       <Card>
-        <BookingTiles onOpen={onOpen} />
+        {files.isPending ? (
+          <Loading />
+        ) : files.isError ? (
+          <Failed onRetry={() => files.refetch()} />
+        ) : !files.data || files.data.length === 0 ? (
+          <Body tone="ink-2">No tickets or bookings yet.</Body>
+        ) : (
+          <FileList files={files.data} showing={FILES_SHOWN} />
+        )}
       </Card>
     </View>
   );
 }
 
-function statusesFor(
-  trip: Outputs["trips"]["get"],
-  availability: Outputs["availability"]["list"] | undefined,
-  ledger: Ledger | undefined,
-) {
+/** The trip's own sheet — the same one the trips list opens — plus the invite link's reset, an admin power (#358). */
+function EditSheet({
+  trip,
+  draft,
+  onChange,
+  onClose,
+  onGone,
+}: {
+  trip: Outputs["trips"]["get"];
+  draft: TripDraft;
+  onChange: (draft: TripDraft) => void;
+  onClose: () => void;
+  onGone: () => void;
+}) {
+  const write = useTripWrite(trip.id, onGone);
+  const queryClient = useQueryClient();
+  const resetLink = useMutation({
+    ...trpc.invites.resetLink.mutationOptions(),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: trpc.invites.forTrip.queryKey({ tripId: trip.id }) }),
+  });
+
+  // A save that landed has nothing left to show.
+  useEffect(() => {
+    if (write.saved) onClose();
+  }, [write.saved, onClose]);
+
+  return (
+    <TripSheet trip={trip} draft={draft} onChange={onChange} onClose={onClose} write={write}>
+      {trip.role === "admin" ? (
+        <QuietAction
+          label={resetLink.isPending ? "Resetting…" : "Reset invite link"}
+          disabled={resetLink.isPending}
+          onPress={() =>
+            Alert.alert(
+              "Reset the invite link?",
+              "The old link stops working for anyone still holding it. Everyone already on the trip stays.",
+              [
+                { text: "Cancel", style: "cancel" },
+                { text: "Reset the link", style: "destructive", onPress: () => resetLink.mutate({ tripId: trip.id }) },
+              ],
+            )
+          }
+        />
+      ) : null}
+    </TripSheet>
+  );
+}
+
+// "Settling up" is the Money tab's to say; the group only waits on dates here.
+function statusesFor(trip: Outputs["trips"]["get"], availability: Outputs["availability"]["list"] | undefined) {
   const undated = !trip.startDate && !trip.endDate;
   const marked = new Set((availability ?? []).map((row) => row.userId));
   return groupStatuses({
     needDates: undated && availability ? trip.members.map((m) => m.userId).filter((id) => !marked.has(id)) : [],
-    owing: ledger ? owingUserIds(balancesFrom(ledger)) : [],
+    owing: [],
   });
-}
-
-function balancesFrom(ledger: Ledger) {
-  return computeBalances(
-    ledger.expenses.map((expense) => ({
-      paidBy: expense.paidBy,
-      currency: expense.currency,
-      amountMinor: expense.amountMinor,
-      splits: ledger.splits
-        .filter((split) => split.expenseId === expense.id)
-        .map((split) => ({ userId: split.userId, owedAmountMinor: split.owedAmountMinor })),
-    })),
-    ledger.settlements.map((settlement) => ({
-      from: settlement.fromUserId,
-      to: settlement.toUserId,
-      currency: settlement.currency,
-      amountMinor: settlement.amountMinor,
-    })),
-  );
 }

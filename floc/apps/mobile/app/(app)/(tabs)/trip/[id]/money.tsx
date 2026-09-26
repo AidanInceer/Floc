@@ -11,7 +11,7 @@
  * `parseMoney`, both from `@floc/core/money` — so the phone cannot round a
  * penny differently from the browser.
  *
- * BALANCES ARE DERIVED, NEVER FETCHED. `computeBalances` runs over the ledger
+ * BALANCES ARE DERIVED, NEVER FETCHED. `ledgerBalances` runs over the ledger
  * the API returned, and `yourSettleUp` keeps the viewer's own half of it
  * (#317). There is no balance column, because a stored balance is a second
  * source of truth about the same money.
@@ -21,7 +21,7 @@
  * expense from today's roster.
  *
  * SETTLING IS NOT AN ADMIN POWER (rule 6). Any member records a transfer, in
- * either direction — the three powers are kick, promote and archive.
+ * either direction — the four powers are remove, promote, delete or archive, and reset the link.
  */
 import { formatDate } from "@floc/core/dates/dates";
 import {
@@ -31,10 +31,10 @@ import {
 import {
   formatMoney,
   suggestSettlements,
-  computeBalances,
   toMajorInput,
 } from "@floc/core/money/money";
 import { CURRENCIES } from "@floc/core/money/currency";
+import { ledgerBalances } from "@floc/core/money/ledger";
 import {
   yourSettleUp,
   type CurrencyTotal,
@@ -44,7 +44,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { Alert, Pressable, ScrollView, View } from "react-native";
 
 import { CategoryIcon } from "@/components/system/category-icon";
 import {
@@ -68,6 +68,7 @@ import {
 import { trpc } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 import { ledgerCurrency } from "@/lib/balance";
+import { editStart, peopleOnExpense } from "@/lib/money/edit-start";
 import { space } from "@/lib/theme";
 import type { Ledger } from "@floc/api/port";
 
@@ -251,6 +252,10 @@ function expenseBeingEdited(
 
 /** A stored cost, as the form's starting values. */
 function formValues(ledger: Ledger, expense: Ledger["expenses"][number]) {
+  const start = editStart(
+    ledger.splits.filter((split) => split.expenseId === expense.id),
+    expense.currency,
+  );
   return {
     description: expense.description,
     // Guarded on the way in: `category` is a stored word and a row written
@@ -262,12 +267,7 @@ function formValues(ledger: Ledger, expense: Ledger["expenses"][number]) {
     paidBy: expense.paidBy,
     dayId: expense.dayId ?? null,
     notes: expense.notes ?? "",
-    inOn: ledger.splits
-      .filter(
-        (split) =>
-          split.expenseId === expense.id && split.owedAmountMinor !== 0,
-      )
-      .map((split) => split.userId),
+    ...start,
   };
 }
 
@@ -291,30 +291,26 @@ function groupByDay(
   return groups;
 }
 
-/** The viewer's own share of one expense, or null when they were not in on it. */
-function shareOf(
-  ledger: Ledger,
-  expenseId: number,
-  viewerId: string | undefined,
-): number | null {
-  if (!viewerId) return null;
-  const split = ledger.splits.find(
-    (s) => s.expenseId === expenseId && s.userId === viewerId,
+/** The viewer's own share of each expense, read once rather than once per row. */
+function sharesOf(ledger: Ledger, viewerId: string | undefined): Map<number, number> {
+  return new Map(
+    ledger.splits
+      .filter((split) => split.userId === viewerId)
+      .map((split) => [split.expenseId, split.owedAmountMinor]),
   );
-  return split ? split.owedAmountMinor : null;
 }
 
 /** Who paid, and what it cost you — one line under the description. */
 function shareLine(
-  ledger: Ledger,
+  shares: Map<number, number>,
   expense: Ledger["expenses"][number],
   me: string | undefined,
   nameOf: (userId: string) => string,
 ): string {
-  const share = shareOf(ledger, expense.id, me);
+  const share = shares.get(expense.id);
   const who =
     expense.paidBy === me ? "You paid" : `${nameOf(expense.paidBy)} paid`;
-  if (share === null) return `${who} · not yours`;
+  if (share === undefined) return `${who} · not yours`;
   return `${who} · your share ${formatMoney(share, expense.currency)}`;
 }
 
@@ -408,25 +404,7 @@ export default function Money() {
 
   // Who the viewer specifically owes, or is owed by. The same greedy matching
   // the web app shows, so both suggest the same transfers.
-  const book = computeBalances(
-    ledger.data.expenses.map((expense) => ({
-      paidBy: expense.paidBy,
-      currency: expense.currency,
-      amountMinor: expense.amountMinor,
-      splits: ledger.data.splits
-        .filter((split) => split.expenseId === expense.id)
-        .map((split) => ({
-          userId: split.userId,
-          owedAmountMinor: split.owedAmountMinor,
-        })),
-    })),
-    ledger.data.settlements.map((settlement) => ({
-      from: settlement.fromUserId,
-      to: settlement.toUserId,
-      currency: settlement.currency,
-      amountMinor: settlement.amountMinor,
-    })),
-  );
+  const book = ledgerBalances(ledger.data);
   // Why: a trip with euro dinners and pound flights has two books, and reading
   // only one made a real debt look like nothing owed (#317).
   const mine = yourSettleUp({
@@ -465,18 +443,32 @@ export default function Money() {
 
   /** One row per transfer — each really happened separately — sent as one call so they save together. */
   function settleSide(list: CurrencyTransfer[]) {
-    settle.mutate({
-      tripId,
-      transfers: list.map((transfer) => ({
-        fromUserId: transfer.from,
-        toUserId: transfer.to,
-        amountMinor: transfer.amountMinor,
-        currency: transfer.currency,
-      })),
-    });
+    const paying = list.every((transfer) => transfer.from === me);
+    // Why: this records real money as moved, so one stray tap must not do it.
+    Alert.alert(
+      paying ? "Record that you paid?" : "Record that you were paid?",
+      rowsOf(list, paying, nameOf).join(", "),
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Record",
+          onPress: () =>
+            settle.mutate({
+              tripId,
+              transfers: list.map((transfer) => ({
+                fromUserId: transfer.from,
+                toUserId: transfer.to,
+                amountMinor: transfer.amountMinor,
+                currency: transfer.currency,
+              })),
+            }),
+        },
+      ],
+    );
   }
 
   const editingExpense = expenseBeingEdited(shown, editing);
+  const myShares = sharesOf(snapshot, me);
 
   return (
     <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }}>
@@ -518,7 +510,18 @@ export default function Money() {
 
       {editingExpense ? (
         <ExpenseForm
-          people={members}
+          // Why: a new row must start a new form, or its fields keep the last row's values.
+          key={editingExpense.id}
+          people={peopleOnExpense(
+            members,
+            {
+              paidBy: editingExpense.paidBy,
+              splits: snapshot.splits.filter(
+                (split) => split.expenseId === editingExpense.id,
+              ),
+            },
+            nameOf,
+          )}
           days={dayOptions}
           viewerId={me ?? ""}
           currency={editingExpense.currency}
@@ -534,7 +537,7 @@ export default function Money() {
 
       <ExpenseList
         expenses={shown}
-        lineFor={(expense) => shareLine(ledger.data, expense, me, nameOf)}
+        lineFor={(expense) => shareLine(myShares, expense, me, nameOf)}
         dayLabel={(dayId) =>
           dayOptions.find((day) => day.id === dayId)?.label ?? "No day yet"
         }

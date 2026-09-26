@@ -1,9 +1,9 @@
-import { whoTone } from "../../people/who";
+import { whoTone, type WhoTone } from "../../people/who";
 
-export type LiveUser = { id: string; name: string; tone: string; color: string };
-export type PresentPerson = { id: string; name: string; tone: string };
+export type LiveUser = { id: string; name: string; tone: WhoTone; color: string };
+export type PresentPerson = { id: string; name: string; tone: WhoTone };
 
-const FALLBACK_TONE = "who-8";
+const FALLBACK_TONE: WhoTone = "who-8";
 
 export function liveUser(person: { id: string; name: string }): LiveUser {
   // Why a fixed hex: y-prosemirror warns on anything but #rrggbb, and a real
@@ -12,9 +12,9 @@ export function liveUser(person: { id: string; name: string }): LiveUser {
 }
 
 /** Another client's awareness is untrusted: its tone lands in a class name. */
-export function cursorTone(user: object): string {
+export function cursorTone(user: object): WhoTone {
   const tone = (user as { tone?: unknown }).tone;
-  return typeof tone === "string" && /^who-[1-8]$/.test(tone) ? tone : FALLBACK_TONE;
+  return typeof tone === "string" && /^who-[1-8]$/.test(tone) ? (tone as WhoTone) : FALLBACK_TONE;
 }
 
 type Remote = { user?: Record<string, unknown>; page?: unknown } | null;

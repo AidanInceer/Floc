@@ -105,6 +105,22 @@ describe("uploadDocument", () => {
   it("refuses a trip the viewer is not on", async () => {
     await expectNotFound(() => uploadDocument(world.theirs.id, form("shared")));
   });
+
+  it("lands a file on a day, for a stop's stay", async () => {
+    const data = form("shared", "flat.pdf", "stay");
+    data.set("dayId", String(world.ours.dayId));
+    await uploadDocument(world.ours.id, data);
+
+    const [doc] = await listDocuments(world.ours.id, world.member);
+    expect([doc.category, doc.dayId]).toEqual(["stay", world.ours.dayId]);
+  });
+
+  it("refuses a day from another trip", async () => {
+    const data = form("shared");
+    data.set("dayId", String(world.theirs.dayId));
+
+    await expectNotFound(() => uploadDocument(world.ours.id, data));
+  });
 });
 
 describe("removeDocument", () => {

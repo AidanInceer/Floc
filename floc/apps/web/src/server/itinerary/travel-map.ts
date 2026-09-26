@@ -1,5 +1,5 @@
 /**
- * The travel map's loaders (ticket 95) — queries behind `lib/travel-map.ts`,
+ * The travel map's loaders (ticket 95) — queries behind `@floc/core/itinerary/travel-map`,
  * which holds the shape/merge rules and the "derived on read, never stored"
  * decision. Only places the itinerary actually names count: somewhere merely
  * talked about in the Notes doc is not somewhere the group has been.

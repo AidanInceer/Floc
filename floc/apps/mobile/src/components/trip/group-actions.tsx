@@ -1,7 +1,7 @@
 /**
  * The two ways onto a trip, on the group itself (#no-ticket).
  *
- * SAME TWO THE WEB HAS, SAME PLACE. `trip-roster.tsx` puts "Invite friends"
+ * SAME TWO THE WEB HAS, SAME PLACE. `overview-group.tsx` puts "Invite friends"
  * and "Share trip" under "The group" heading, and says why sharing is not in
  * the trip menu: one job, one door. The phone had them behind a glyph in the
  * header, which was a second door and the less findable one — so the glyph
@@ -13,33 +13,26 @@
  * is a browser's habit on a device that does not need it.
  *
  * ANY MEMBER (#312). Inviting is not an admin power. Resetting the link is
- * (#358): handing it out is additive, cancelling every copy already sent is not.
+ * (#358), so it lives in the trip's sheet beside archive and delete.
  *
  * SHAPED LIKE THE WEB'S. Two controls sized to their words, secondary then
  * primary, with a rule under them and the people below it — the panel reads
  * the same on both. Half-width halves made two rare controls the heaviest
  * thing on the card.
  */
-import { Alert, Share, View } from "react-native";
+import { Share, View } from "react-native";
 
 import { ShareGlyph } from "../system/glyphs";
 import { Button, Divider } from "../system/ui";
-import { QuietAction } from "../system/text-controls";
 import { space } from "@/lib/theme";
 
 export function GroupActions({
   link,
-  isAdmin,
-  resetting,
   onInvite,
-  onResetLink,
 }: {
   /** The share link, or null while it loads. */
   link: string | null;
-  isAdmin: boolean;
-  resetting: boolean;
   onInvite: () => void;
-  onResetLink: () => void;
 }) {
   return (
     <View style={{ gap: space.md }}>
@@ -62,23 +55,6 @@ export function GroupActions({
           }}
         />
       </View>
-      {/* The web puts this in the same place, quiet, under the two buttons. */}
-      {isAdmin ? (
-        <QuietAction
-          label={resetting ? "Resetting…" : "Reset link"}
-          disabled={resetting}
-          onPress={() =>
-            Alert.alert(
-              "Reset the invite link?",
-              "The old link stops working for anyone still holding it. Everyone already on the trip stays.",
-              [
-                { text: "Cancel", style: "cancel" },
-                { text: "Reset the link", style: "destructive", onPress: onResetLink },
-              ],
-            )
-          }
-        />
-      ) : null}
       <Divider />
     </View>
   );

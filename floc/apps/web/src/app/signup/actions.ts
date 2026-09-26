@@ -11,8 +11,8 @@
 import type { SignupChannel } from "@/db/schema";
 import { getSession } from "@/server/access";
 import { ensureProfile } from "@/server/auth/profile";
+import { SIGNUP_CHANNELS } from "@floc/core/vocabulary";
 
-const VIA_VALUES = ["whatsapp", "email", "link", "direct"] as const;
 
 /** Records how someone arrived, once they have an account to hang it on. */
 export async function captureChannel(via: string): Promise<void> {
@@ -21,7 +21,7 @@ export async function captureChannel(via: string): Promise<void> {
 
   // Anything unrecognised is "direct" rather than a rejection: this is an
   // analytics-ish breadcrumb, and a bad `?via=` must never block a signup.
-  const channel = (VIA_VALUES as readonly string[]).includes(via)
+  const channel = (SIGNUP_CHANNELS as readonly string[]).includes(via)
     ? (via as SignupChannel)
     : "direct";
 

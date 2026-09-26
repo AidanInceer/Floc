@@ -9,7 +9,8 @@ import { and, eq, inArray, isNull, or } from "drizzle-orm";
 
 import { addDays } from "@floc/core/dates/dates";
 import { CURRENCIES } from "@floc/core/money/currency";
-import { computeBalances, formatMoney, suggestSettlements } from "@floc/core/money/money";
+import { ledgerBalances } from "@floc/core/money/ledger";
+import { formatMoney, suggestSettlements } from "@floc/core/money/money";
 import { tripHref } from "@floc/core/notifications/notification-href";
 import { reminderDay, remindersDue } from "@floc/core/notifications/reminders";
 import type { ReminderKind } from "@floc/core/notifications/rules";
@@ -54,10 +55,7 @@ async function debtors(tripId: number): Promise<Target[]> {
     listSplits(tripId),
     listSettlements(tripId),
   ]);
-  const book = computeBalances(
-    expenses.map((e) => ({ ...e, splits: splits.filter((s) => s.expenseId === e.id) })),
-    settlements.map((s) => ({ ...s, from: s.fromUserId, to: s.toUserId })),
-  );
+  const book = ledgerBalances({ expenses, splits, settlements });
   const transfers = CURRENCIES.flatMap((currency) =>
     suggestSettlements(book[currency] ?? {}).map((t) => ({ ...t, currency })),
   );

@@ -7,7 +7,7 @@
  * that number before the write. Pure: the calendar prices a window mid-drag,
  * and a round trip per pointer move isn't worth paying.
  */
-import { dateRange, type IsoDate } from "../dates/dates";
+import { dateRange, fromIsoDate, isIsoDate, type IsoDate } from "../dates/dates";
 
 /** One live day and how much is planned on it. */
 export type DayLoad = { date: IsoDate; events: number };
@@ -44,4 +44,16 @@ export function windowCostNoun(cost: WindowCost): string | null {
 export function windowCostLabel(cost: WindowCost): string | null {
   const noun = windowCostNoun(cost);
   return noun && `Remove ${noun}`;
+}
+
+/** Why: every day is a row, so a runaway window would write thousands of them. */
+export const MAX_TRIP_DAYS = 366;
+
+/** Null when the trip may take this window; both ends null clears it (rule 9). */
+export function windowProblem(start: unknown, end: unknown): string | null {
+  if (start === null && end === null) return null;
+  if (!isIsoDate(start) || !isIsoDate(end)) return "Pick both a start and an end.";
+  if (start > end) return "The end date is before the start.";
+  const days = (fromIsoDate(end).getTime() - fromIsoDate(start).getTime()) / 86_400_000 + 1;
+  return days > MAX_TRIP_DAYS ? "Keep a trip to a year or less." : null;
 }

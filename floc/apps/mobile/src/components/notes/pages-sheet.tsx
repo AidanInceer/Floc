@@ -37,7 +37,7 @@ function IconGrid({ current, onPick }: { current: PageIcon | null; onPick: (icon
   return (
     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.xs }}>
       {PAGE_ICONS.map((icon) => (
-        <IconButton key={icon} label={PAGE_ICON_LABELS[icon]} on={current === icon} onColor="peri" onPress={() => onPick(icon)}>
+        <IconButton key={icon} label={PAGE_ICON_LABELS[icon]} on={current === icon} onColor="pastel-blue" onPress={() => onPick(icon)}>
           {(ink) => <IconArtMark art={PAGE_ICON_ART[icon]} color={ink} size={18} />}
         </IconButton>
       ))}
@@ -107,7 +107,7 @@ function PageItem({ page, open, here, acting, onMore, onOpen }: {
         <Body tone={open || page.depth === 0 ? "ink" : "ink-2"}>{nameOf(page)}</Body>
       </Pressable>
       {here.length ? <PresenceRow people={here} /> : null}
-      <IconButton label={`${nameOf(page)} options`} on={acting} onColor="peri" onPress={onMore}>
+      <IconButton label={`${nameOf(page)} options`} on={acting} onColor="pastel-blue" onPress={onMore}>
         {(ink) => <MoreGlyph color={ink} />}
       </IconButton>
     </View>

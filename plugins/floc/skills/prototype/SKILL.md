@@ -30,7 +30,17 @@ The two branches produce very different artifacts — getting this wrong wastes 
 These override the generic rules above where they differ. The biggest one: **a prototype never touches the app, never gets a branch, never gets committed.** Work goes local → `develop` → `main`, nothing else.
 
 - **It lives in `floc/wireframe/`, which is gitignored.** One folder per prototype: `floc/wireframe/<issue>-<slug>/index.html` plus its own `.js` and `.css`. Nothing under `floc/apps/` or `floc/packages/` changes, so `verify`, lint, coverage and `fitness` never see it. No `prototype/*` branch, no `/floc:push`, no commit.
-- **It runs on the wireframe port.** `pnpm wireframe` (or `preview_start` with `wireframes`) serves `floc/wireframe/` on http://localhost:4100. The root lists every prototype. The server is `scripts/wireframe-server.mjs`.
+- **It runs on the wireframe port.** `pnpm wireframe` (or `preview_start` with `wireframes`) serves `floc/wireframe/` on http://localhost:4100. The root lists every prototype, grouped by the app page it is for. The server is `scripts/wireframe-server.mjs`.
+- **Label it in `<head>`, under `<title>`.** The root reads these; without them the prototype lands in "Not labelled".
+
+  ```html
+  <meta name="wf-page" content="Packing">                 <!-- the app page, as the user names it -->
+  <meta name="wf-route" content="/trip/[id]/packing">
+  <meta name="wf-status" content="Chosen: C">            <!-- Exploring · Chosen: X · Shipped 0.149.0 -->
+  <meta name="description" content="One line: what question this answers.">
+  ```
+
+  Update `wf-status` when the user picks a direction or it ships.
 - **Plain HTML, CSS and JS.** No build, no framework, no packages from a CDN. Every page links the house base:
 
   ```html

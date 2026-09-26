@@ -6,6 +6,7 @@
  * Ticket 193: trips waiting on you are split off the top of the grid, whatever
  * the sort — the sort orders each half, it doesn't decide who blocks whom.
  */
+import { TEXT_CAPS } from "@floc/core/text/text";
 import Link from "next/link";
 
 import { requireUser } from "@/server/access";
@@ -205,7 +206,7 @@ function InviteList({ invites }: { invites: PendingInvite[] }) {
         {invites.map((invite) => (
           <div
             key={invite.tripId}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-peri-edge bg-peri px-4 py-3 text-ink"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-pastel-blue-edge bg-pastel-blue px-4 py-3 text-ink"
           >
             <div className="flex min-w-0 items-center gap-2.5">
               <Avatar name={invite.fromName} icon={invite.fromAvatarIcon} />
@@ -365,7 +366,7 @@ function CreateTripForm({ friends }: { friends: Person[] }) {
     <form action={createTrip}>
       <Stack gap={4}>
         <Field label="Name">
-          <Input name="name" required />
+          <Input name="name" required maxLength={TEXT_CAPS.tripName} />
         </Field>
         {/* Optional — invites, doesn't add members. */}
         <Field label="Ask your friends along">

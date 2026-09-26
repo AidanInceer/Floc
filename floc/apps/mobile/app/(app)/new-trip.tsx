@@ -5,6 +5,7 @@
  * never guessed — a trip with no dates is a normal trip (rule 9), so the
  * fields are simply left empty and the API is told `null`.
  */
+import { TEXT_CAPS } from "@floc/core/text/text";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -38,7 +39,7 @@ export default function NewTrip() {
   return (
     <Screen>
       <View style={{ gap: space.md }}>
-        <Field label="Name" value={name} onChangeText={setName} autoFocus />
+        <Field label="Name" value={name} onChangeText={setName} maxLength={TEXT_CAPS.tripName} autoFocus />
         <Field
           label="Starts (YYYY-MM-DD, optional)"
           value={startDate}

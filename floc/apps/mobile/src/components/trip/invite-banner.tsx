@@ -47,7 +47,7 @@ export function InviteBanner({
       {invites.map((invite) => (
         <Card
           key={invite.tripId}
-          style={{ backgroundColor: c.peri, borderColor: c["peri-edge"], gap: space.md }}
+          style={{ backgroundColor: c["pastel-blue"], borderColor: c["pastel-blue-edge"], gap: space.md }}
         >
           <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
             {/* Who asked leads — an invite from somebody you do not recognise
@@ -55,7 +55,7 @@ export function InviteBanner({
             <Face name={invite.fromName} avatarIcon={invite.fromAvatarIcon} />
             <View style={{ flex: 1 }}>
               <Body bold>{invite.tripName}</Body>
-              <Body tone="peri-ink">{invite.fromName} asked you</Body>
+              <Body tone="pastel-blue-ink">{invite.fromName} asked you</Body>
               <Body tone="ink-2">{formatDateRange(invite.startDate, invite.endDate)}</Body>
             </View>
           </View>

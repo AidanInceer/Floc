@@ -3,7 +3,7 @@
  *
  * DERIVED, NEVER FETCHED. There is no balance column and no balance procedure,
  * because a stored balance is a second source of truth about the same money.
- * The arithmetic itself is `computeBalances` from `@floc/core/money` — the
+ * The arithmetic itself is `ledgerBalances` from `@floc/core/money` — the
  * same function the web app calls, so the two cannot disagree by a penny.
  *
  * MONEY IS NEVER A FLOAT (rule 1). `minor` is integer minor units all the way
@@ -14,7 +14,8 @@
  * asks for before a helper exists.
  */
 import { CURRENCIES, type Currency } from "@floc/core/money/currency";
-import { computeBalances, formatMoney } from "@floc/core/money/money";
+import { ledgerBalances } from "@floc/core/money/ledger";
+import { formatMoney } from "@floc/core/money/money";
 import type { Ledger } from "@floc/api/port";
 
 export type ViewerBalance = {
@@ -37,22 +38,7 @@ export function viewerBalance(
 ): ViewerBalance {
   if (!ledger || !viewerId) return SETTLED;
 
-  const balances = computeBalances(
-    ledger.expenses.map((expense) => ({
-      paidBy: expense.paidBy,
-      currency: expense.currency,
-      amountMinor: expense.amountMinor,
-      splits: ledger.splits
-        .filter((split) => split.expenseId === expense.id)
-        .map((split) => ({ userId: split.userId, owedAmountMinor: split.owedAmountMinor })),
-    })),
-    ledger.settlements.map((settlement) => ({
-      from: settlement.fromUserId,
-      to: settlement.toUserId,
-      currency: settlement.currency,
-      amountMinor: settlement.amountMinor,
-    })),
-  );
+  const balances = ledgerBalances(ledger);
 
   // Why: two currencies never add up, so each book says its own figure (#317).
   const books = CURRENCIES.map((currency) => ({

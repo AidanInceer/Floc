@@ -11,9 +11,9 @@ import { activity, notification } from "@/db/schema";
 import { notificationText } from "@floc/core/notifications/notification-text";
 import { INBOX_PAGE, type ActivityKind } from "@floc/core/notifications/rules";
 import { touch } from "@/server/audit";
-import { notificationRows, stillVisible } from "@/server/notifications/visible";
+import { countNotifications, notificationRows, stillVisible } from "@/server/notifications/visible";
 
-type InboxItem = {
+export type InboxItem = {
   id: number;
   kind: ActivityKind;
   text: string;
@@ -39,10 +39,8 @@ function parseCursor(cursor: string | null) {
   );
 }
 
-export async function listInbox(userId: string, cursor: string | null): Promise<InboxPage> {
-  const rows = await notificationRows(and(visibleTo(userId), parseCursor(cursor)), INBOX_PAGE);
-
-  const items = rows.map((r) => ({
+function toItem(r: Awaited<ReturnType<typeof notificationRows>>[number]): InboxItem {
+  return {
     id: r.id,
     kind: r.kind,
     text: notificationText(r.kind, { actor: r.actorDisplayName ?? r.actorName, trip: r.tripName, detail: r.detail }),
@@ -50,7 +48,13 @@ export async function listInbox(userId: string, cursor: string | null): Promise<
     loud: r.loud,
     read: r.readAt !== null,
     at: r.at,
-  }));
+  };
+}
+
+export async function listInbox(userId: string, cursor: string | null): Promise<InboxPage> {
+  const rows = await notificationRows(and(visibleTo(userId), parseCursor(cursor)), INBOX_PAGE);
+
+  const items = rows.map(toItem);
   const last = items.at(-1);
   return {
     items,
@@ -64,8 +68,13 @@ export async function listInbox(userId: string, cursor: string | null): Promise<
  * Capped: past 99 the bell says "99+", so counting further is wasted work.
  */
 export async function countUnread(userId: string): Promise<number> {
-  const rows = await notificationRows(and(visibleTo(userId), isNull(notification.seenAt)), 100);
-  return rows.length;
+  return countNotifications(and(visibleTo(userId), isNull(notification.seenAt)), 100);
+}
+
+/** The account menu's preview: the same set the count on the avatar counts, newest first. */
+export async function listUnseen(userId: string, limit: number): Promise<InboxItem[]> {
+  const rows = await notificationRows(and(visibleTo(userId), isNull(notification.seenAt)), limit);
+  return rows.map(toItem);
 }
 
 /** Landing on the inbox: every row on screen has now been seen. */

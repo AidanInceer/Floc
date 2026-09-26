@@ -4,7 +4,7 @@
  * The trip's link shelf (ticket 103), beside the trip thread in the Days pane.
  *
  * The table's shape, the `http`/`https` rule, the label cap and the ceiling all
- * live in `server/trip-links.ts`. What's left here is who may do what: adding
+ * live in `server/trips/trip-links.ts`. What's left here is who may do what: adding
  * is open to every member, because a group planner where only admins may share
  * the ferry timetable is not a group planner; removing follows the same rule
  * threads use — your own, or any admin's, so the shelf can't be filled with

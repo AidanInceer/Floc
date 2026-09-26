@@ -14,6 +14,7 @@
  */
 import { formatDateRange } from "@floc/core/dates/dates";
 import { readTripColor, tripPastel } from "@floc/core/trip/trip-color";
+import { pastelOf } from "@floc/core/design/pastels";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "expo-router";
 import { FlatList, Pressable, RefreshControl, View } from "react-native";
@@ -55,7 +56,7 @@ export default function ArchivedTrips() {
         }
         ListEmptyComponent={<Empty>Nothing archived.</Empty>}
         renderItem={({ item }) => {
-          const tone = tripPastel(readTripColor(item.colorKey), item.id);
+          const tone = pastelOf(tripPastel(readTripColor(item.colorKey), item.id));
           return (
             <Card style={{ borderLeftWidth: 4, borderLeftColor: c[tone] }}>
               <Link href={{ pathname: "/trip/[id]", params: { id: item.id } }} asChild>

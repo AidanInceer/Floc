@@ -15,6 +15,8 @@
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import "server-only";
 
+import { Refusal } from "@floc/core/errors/refusal";
+
 import { and, count, eq, inArray, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
@@ -23,7 +25,8 @@ import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
 import { refresh } from "@/server/freshness";
 import { ensureProfile } from "@/server/auth/profile";
-import { addMember, isLiveMember } from "@/server/trips/roster";
+import { addMember, countMembers, isLiveMember } from "@/server/trips/roster";
+import { acceptedFriendIdsOf } from "@/server/social/friends";
 import { recordActivity } from "@/server/notifications/activity";
 
 /* --------------------------------------------------------- the share link */
@@ -52,7 +55,8 @@ export async function findTripByInviteToken(
     .from(trip)
     .leftJoin(user, eq(user.id, trip.createdBy))
     .leftJoin(userProfile, eq(userProfile.userId, trip.createdBy))
-    .where(and(eq(trip.inviteToken, token), isNull(trip.deletedAt)))
+    // An archived trip is closed to new people, as its named invites are (ticket 146).
+    .where(and(eq(trip.inviteToken, token), isNull(trip.deletedAt), isNull(trip.archivedAt)))
     .get();
 
   if (!row) return undefined;
@@ -79,7 +83,7 @@ export type PendingInvite = {
   invitedAt: Date;
 };
 
-/** Already-on-roster ids are dropped, not rejected — a normal mistake, not worth failing the others over. */
+/** Anyone not a friend, or already on the roster, is dropped, not rejected — not worth failing the others over. */
 export async function inviteToTrip(args: {
   tripId: number;
   fromUserId: string;
@@ -87,7 +91,9 @@ export async function inviteToTrip(args: {
 }): Promise<number> {
   const { tripId, fromUserId } = args;
 
-  const wanted = [...new Set(args.toUserIds)].filter((id) => id !== fromUserId);
+  // Why friends only: the picker offers friends, and a crafted id must not reach a stranger's inbox.
+  const friends = new Set(await acceptedFriendIdsOf(fromUserId));
+  const wanted = [...new Set(args.toUserIds)].filter((id) => id !== fromUserId && friends.has(id));
   if (wanted.length === 0) return 0;
 
   const alreadyIn = await db
@@ -300,6 +306,8 @@ async function settleInvite(
  * behind would keep badging the chrome for a trip they are already on.
  */
 async function admit(tripId: number, userId: string): Promise<void> {
+  // Why: every roster read stops at the ceiling, so a member past it would silently vanish.
+  if ((await countMembers(tripId)) >= LIMITS.members) throw new Refusal("This trip is full.");
   await addMember(tripId, userId);
   await ensureProfile(userId);
   await settleInvite(tripId, userId, "accepted");
@@ -323,8 +331,7 @@ export async function acceptInvite(tripId: number, userId: string): Promise<bool
 
 /**
  * The share link redeemed. No pending row needed — anyone holding the token may
- * join (ticket 05); the caller checks the token resolves and the inbox is
- * verified (ticket 149) before getting here.
+ * join (ticket 05), confirmed inbox or not: the link is the credential.
  */
 export async function joinWithLink(tripId: number, userId: string): Promise<void> {
   if (await isLiveMember(tripId, userId)) return;

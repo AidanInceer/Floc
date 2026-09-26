@@ -3,13 +3,12 @@
  * can carry FKs to trips, profiles and consent.
  *
  * Ticket 06: Google + email/password at launch, Facebook is a fast-follow.
- * Auto-link only on a *verified* provider email matching an existing account.
- * Long rolling sessions, no re-authentication anywhere in v1.
+ * Long rolling sessions, no re-authentication anywhere in v1. Deleting an
+ * account is ours, not Better Auth's: `server/auth/erase-account.ts`.
  */
 import "server-only";
 
 import { expo } from "@better-auth/expo";
-import { eq } from "drizzle-orm";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { bearer } from "better-auth/plugins";
@@ -17,6 +16,7 @@ import { bearer } from "better-auth/plugins";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { requireInProduction } from "@/lib/env";
+import { dropUnprovenPassword } from "@/server/auth/link-guard";
 
 const googleConfigured =
   !!process.env.GOOGLE_CLIENT_ID && !!process.env.GOOGLE_CLIENT_SECRET;
@@ -69,11 +69,11 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
-    // Ticket 149: sign-in is *not* blocked on verification — only joining a
-    // trip is (see `requireVerifiedToJoin`). So a fresh password account can
-    // sign in and set itself up; it just can't land in someone else's trip
-    // until it has proven it owns the inbox.
+    // Sign-in is not blocked on verification (#149). A confirmed address only
+    // keeps the password when Google later links on — see `link-guard.ts`.
     requireEmailVerification: false,
+    // A reset proves the inbox; sessions opened with the old password must end.
+    revokeSessionsOnPasswordReset: true,
     // Single-use by construction (Better Auth consumes the token) and short,
     // since it is a bearer credential for the account.
     resetPasswordTokenExpiresIn: 60 * 60,
@@ -103,16 +103,26 @@ export const auth = betterAuth({
       }
     : {},
   account: {
+    // Google's access and refresh tokens are kept but never used, so at rest they are ciphertext.
+    encryptOAuthTokens: true,
     accountLinking: {
       enabled: true,
       // Safe only because Google reports verified emails; an unverified-email
       // collision is refused and the user is told to sign in as they first did.
       trustedProviders: ["google"],
-      // Defaults to true, which would require the *existing* password account
-      // to be verified first. With no mail provider that can never happen, so
-      // it locked people out of their own account (#149). Google has already
-      // proven the address; asking our side to prove it twice adds nothing.
+      // Defaults to true, which locked people out when no mail provider could
+      // confirm the address (#149). Instead an unconfirmed password is dropped
+      // when Google links on (`databaseHooks` below), which stops pre-hijack.
       requireLocalEmailVerified: false,
+    },
+  },
+  databaseHooks: {
+    account: {
+      create: {
+        after: async (created) => {
+          await dropUnprovenPassword(created.userId, created.providerId);
+        },
+      },
     },
   },
   session: {
@@ -128,25 +138,4 @@ export const auth = betterAuth({
       maxAge: 60,
     },
   },
-  user: {
-    deleteUser: {
-      // Soft in effect: content stays attributed to a placeholder and
-      // expense_split rows are frozen (ticket 06). See lib/account.ts.
-      enabled: true,
-    },
-  },
 });
-
-/**
- * Linked sign-in methods on an account, and the one way to remove one (ticket
- * 108). Better Auth owns `account`, so these sit beside its config; the rule
- * that you can't unlink your last credential belongs to the caller instead —
- * it's a message to a person, not a constraint on the row.
- */
-export async function listLinkedAccounts(userId: string) {
-  return db.select().from(schema.account).where(eq(schema.account.userId, userId)).all();
-}
-
-export async function unlinkAccountById(accountId: string): Promise<void> {
-  await db.delete(schema.account).where(eq(schema.account.id, accountId));
-}

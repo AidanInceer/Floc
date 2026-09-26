@@ -65,7 +65,7 @@ export default function PresetDetail() {
             {trip.country} · {trip.region}
           </Figure>
           <Body>{trip.summary}</Body>
-          {trip.editorial ? <Pill word="Floc's own" tone="peri" /> : null}
+          {trip.editorial ? <Pill word="Floc's own" tone="pastel-blue" /> : null}
         </View>
 
         <View style={{ gap: space.sm }}>

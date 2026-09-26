@@ -231,7 +231,7 @@ function SettlementRow({
   const party = viewerId === s.fromUserId || viewerId === s.toUserId;
   return (
     <li className="flex items-center gap-3 border-b border-rule py-3 last:border-b-0">
-      <span className="flex h-9 w-9 flex-none items-center justify-center rounded-md border border-mint-edge bg-mint text-mint-ink">
+      <span className="flex h-9 w-9 flex-none items-center justify-center rounded-md border border-pastel-green-edge bg-pastel-green text-pastel-green-ink">
         <svg
           width={18}
           height={18}
@@ -262,7 +262,7 @@ function SettlementRow({
           currency={s.currency}
           home={home}
           rate={rateFor(s.currency)}
-          className="nums text-sm font-medium text-mint-ink"
+          className="nums text-sm font-medium text-pastel-green-ink"
         />
         <Menu label={`Actions for ${label(s.fromUserId)} paid ${label(s.toUserId)}`}>
           {party ? (

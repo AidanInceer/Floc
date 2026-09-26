@@ -4,7 +4,7 @@
  * One day's slice of the clock (ticket 243, split from `days-calendar`): the
  * painted rules, the catcher that turns a click into a quarter hour, and the
  * blocks. Draws and forwards pointer/keyboard gestures — the rules for what
- * they mean live in `lib/calendar-gestures.ts`.
+ * they mean live in `@floc/core/dates/calendar-gestures`.
  */
 import { useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { EventMarkers } from "@/components/days/event-markers";

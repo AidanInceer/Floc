@@ -78,8 +78,8 @@ function Reactions({
               gap: space.xs,
               height: CHIP_HEIGHT,
               borderWidth: 1,
-              borderColor: mine ? c["peri-edge"] : c.rule,
-              backgroundColor: mine ? c.peri : "transparent",
+              borderColor: mine ? c["pastel-blue-edge"] : c.rule,
+              backgroundColor: mine ? c["pastel-blue"] : "transparent",
               borderRadius: radius.pill,
               paddingHorizontal: space.sm,
             }}
@@ -87,13 +87,13 @@ function Reactions({
             <ReactionGlyph
               kind={kind}
               mine={mine}
-              color={mine ? c["peri-ink"] : c["ink-2"]}
+              color={mine ? c["pastel-blue-ink"] : c["ink-2"]}
             />
             <Text
               numberOfLines={1}
               style={{
                 width: COUNT_WIDTH,
-                color: mine ? c["peri-ink"] : c["ink-2"],
+                color: mine ? c["pastel-blue-ink"] : c["ink-2"],
                 fontFamily: fonts.type,
                 fontSize: size.small,
                 fontVariant: ["tabular-nums"],

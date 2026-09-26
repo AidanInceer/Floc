@@ -13,8 +13,8 @@ import { signIn, signUp } from "@/lib/auth-client";
 import { isValidEmail, passwordWeakness } from "@floc/core/text/credentials";
 import { localPath } from "@floc/core/text/local-path";
 import { Button, ErrorText, Field, Input, Stack } from "@/components/system/ui";
+import { SIGNUP_CHANNELS } from "@floc/core/vocabulary";
 
-const VIA_VALUES = ["whatsapp", "email", "link", "direct"] as const;
 
 export function AuthForm({
   mode,
@@ -33,8 +33,8 @@ export function AuthForm({
   const params = useSearchParams();
   const redirectTo = localPath(params.get("redirect"), "/trips");
   const viaParam = params.get("via");
-  const via = (VIA_VALUES as readonly string[]).includes(viaParam ?? "")
-    ? (viaParam as (typeof VIA_VALUES)[number])
+  const via = (SIGNUP_CHANNELS as readonly string[]).includes(viaParam ?? "")
+    ? (viaParam as (typeof SIGNUP_CHANNELS)[number])
     : null;
 
   const justReset = params.get("reset") === "1";
@@ -126,7 +126,7 @@ export function AuthForm({
   return (
     <Stack gap={4}>
       {justReset ? (
-        <p className="rounded-md bg-mint px-3 py-2 text-sm text-mint-ink">
+        <p className="rounded-md bg-pastel-green px-3 py-2 text-sm text-pastel-green-ink">
           Your password is set. Sign in with it.
         </p>
       ) : null}

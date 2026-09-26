@@ -13,10 +13,10 @@ const PIECES = 18;
 
 // The four domain pastels and the pen, drawn from tokens — no new colour.
 const HUES = [
-  "var(--peri-edge)",
-  "var(--mint-edge)",
-  "var(--butter-edge)",
-  "var(--blush-edge)",
+  "var(--pastel-blue-edge)",
+  "var(--pastel-green-edge)",
+  "var(--pastel-yellow-edge)",
+  "var(--pastel-red-edge)",
   "var(--pen)",
 ];
 

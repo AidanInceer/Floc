@@ -15,9 +15,9 @@ import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 
 const STATE_PILL = {
-  friends: <Pill word="Friends" tone="mint" />,
-  outgoing: <Pill word="Asked" tone="peri" />,
-  incoming: <Pill word="Wants to be friends" tone="butter" />,
+  friends: <Pill word="Friends" tone="pastel-green" />,
+  outgoing: <Pill word="Asked" tone="pastel-blue" />,
+  incoming: <Pill word="Wants to be friends" tone="pastel-yellow" />,
 } as const;
 
 function Found({ person, onAsk, busy }: { person: FoundFriend; onAsk: () => void; busy: boolean }) {

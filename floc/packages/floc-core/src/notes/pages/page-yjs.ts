@@ -8,6 +8,7 @@ import * as Y from "yjs";
 
 import { EMPTY_PAGE, clampIndent, isTone, type Inline, type Mark, type PageBlock, type TableCell, type TextRun } from "./page-blocks";
 import { isLinkKind } from "./trip-links";
+import { safeHref } from "../../text/safe-href";
 
 export const PAGE_FRAGMENT = "page";
 
@@ -26,8 +27,10 @@ function markOf(key: string, value: unknown): Mark | null {
     case "underline":
     case "strike":
       return { type: name };
-    case "link":
-      return typeof attrs.href === "string" ? { type: "link", href: attrs.href } : null;
+    case "link": {
+      const href = typeof attrs.href === "string" ? safeHref(attrs.href) : null;
+      return href ? { type: "link", href } : null;
+    }
     case "highlight":
       return isTone(attrs.tone) ? { type: "highlight", tone: attrs.tone } : null;
     case "comment":

@@ -175,3 +175,28 @@ describe("saved packing lists", () => {
     expect(kit.name).toBe("Gym");
   });
 });
+
+describe("deleting an account", () => {
+  it("succeeds for somebody who created a trip and paid for things", async () => {
+    await webPort.writeExpense(world.admin, world.ours.id, {
+      dayId: null,
+      paidBy: world.admin,
+      description: "Ferry",
+      amountMinor: 4000,
+      currency: "GBP",
+      splitType: "even",
+      category: "transport",
+      notes: null,
+      splits: [
+        { userId: world.admin, owedAmountMinor: 2000 },
+        { userId: world.member, owedAmountMinor: 2000 },
+      ],
+    });
+
+    await webPort.deleteMyAccount(world.admin);
+
+    expect(await webPort.listTrips(world.admin, { archived: false })).toEqual([]);
+    const ledger = await webPort.loadLedger(world.member, world.ours.id);
+    expect(ledger.expenses).toHaveLength(1);
+  });
+});

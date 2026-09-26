@@ -8,7 +8,7 @@ describe("palette", () => {
     for (const theme of ["light", "dark"] as const) {
       const colours = palette(theme);
       expect(Object.keys(colours).length).toBeGreaterThan(0);
-      for (const token of ["peri", "ink", "sheet-3", "rule-2"]) {
+      for (const token of ["pastel-blue", "ink", "sheet-3", "rule-2"] as const) {
         expect(colours[token]).toBeTruthy();
         expect(colours[token]).not.toMatch(/var\(/);
       }
