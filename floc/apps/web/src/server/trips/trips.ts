@@ -11,7 +11,7 @@ import "server-only";
 import { Refusal } from "@floc/core/errors/refusal";
 import { windowProblem } from "@floc/core/trip/trip-window";
 
-import { and, eq, isNotNull, isNull } from "drizzle-orm";
+import { and, count, eq, isNotNull, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { trip, tripMembership } from "@/db/schema";
@@ -70,6 +70,24 @@ export async function listTripsFor(
     starred: starredAt !== null,
     muted: mutedAt !== null,
   }));
+}
+
+/** The Trips figure on the account menu: what /trips lists, counted. */
+export async function countTripsFor(userId: string): Promise<number> {
+  const row = await db
+    .select({ n: count() })
+    .from(tripMembership)
+    .innerJoin(trip, eq(trip.id, tripMembership.tripId))
+    .where(
+      and(
+        eq(tripMembership.userId, userId),
+        isNull(tripMembership.deletedAt),
+        isNull(trip.deletedAt),
+        isNull(trip.archivedAt),
+      ),
+    )
+    .get();
+  return row?.n ?? 0;
 }
 
 /** Only the viewer's own membership row: muting a trip quiets it for you, nobody else (#346). */

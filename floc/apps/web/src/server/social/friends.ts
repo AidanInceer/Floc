@@ -197,6 +197,11 @@ export async function acceptedFriendIdsOf(ownerId: string): Promise<string[]> {
     .map((r) => (r.userId === ownerId ? r.friendId : r.userId));
 }
 
+/** A pair may hold a row in each direction, so count people, not rows. */
+export async function countFriendsFor(viewerId: string): Promise<number> {
+  return new Set(await acceptedFriendIdsOf(viewerId)).size;
+}
+
 /**
  * Friend-of-a-friend chain, re-derived (ticket 145): viewer and target both
  * friends of `viaId`. Whether the viewer was allowed to see that list is a

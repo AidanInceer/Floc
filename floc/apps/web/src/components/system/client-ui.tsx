@@ -328,6 +328,7 @@ export function Menu({
   drop = "down",
   trigger,
   triggerClassName,
+  panelClassName,
 }: {
   /** Accessible name — say whose or what's menu this is. */
   label: string;
@@ -340,6 +341,8 @@ export function Menu({
   /** Defaults to the triple-dot. */
   trigger?: ReactNode;
   triggerClassName?: string;
+  /** Replaces the default panel look; position stays the menu's. */
+  panelClassName?: string;
 }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -407,7 +410,9 @@ export function Menu({
           onSubmit={() => setTimeout(() => setOpen(false), 0)}
           className={cx(
             // z-[1200]: above Leaflet's panes. w-max: sized to its longest verb, not a fixed width.
-            "absolute z-[1200] w-max min-w-[5rem] max-w-[14rem] rounded-md border border-rule-strong bg-sheet p-1 shadow-raised",
+            "absolute z-[1200]",
+            panelClassName ??
+              "w-max min-w-[5rem] max-w-[14rem] rounded-md border border-rule-strong bg-sheet p-1 shadow-raised",
             align === "right" ? "right-0" : "left-0",
             drop === "up" ? "bottom-full mb-1" : "mt-1",
           )}

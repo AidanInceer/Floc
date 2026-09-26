@@ -804,6 +804,32 @@
   :root[data-theme-choice="system"] .theme-indicator {
     transform: translateX(200%);
   }
+
+  /*
+   * The account menu is a ticket: two halves with a notch cut from each side
+   * where they tear. Each half masks its own corners, so nothing measures.
+   * The edge is a drop-shadow, because a border or box-shadow would not
+   * follow the notches.
+   */
+  .account-ticket {
+    filter: drop-shadow(0 0 0.6px var(--rule-2)) drop-shadow(0 0 0.6px var(--rule-2))
+      drop-shadow(0 12px 14px color-mix(in srgb, black 16%, transparent));
+  }
+
+  .account-pass-top {
+    border-radius: 14px 14px 0 0;
+    mask:
+      radial-gradient(circle 8px at 0 100%, transparent 97%, black) left / 51% 100% no-repeat,
+      radial-gradient(circle 8px at 100% 100%, transparent 97%, black) right / 51% 100% no-repeat;
+  }
+
+  .account-pass-stub {
+    border-radius: 0 0 14px 14px;
+    overflow: hidden;
+    mask:
+      radial-gradient(circle 8px at 0 0, transparent 97%, black) left / 51% 100% no-repeat,
+      radial-gradient(circle 8px at 100% 0, transparent 97%, black) right / 51% 100% no-repeat;
+  }
 }
 
 @layer components {

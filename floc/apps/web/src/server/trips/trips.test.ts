@@ -10,6 +10,7 @@ import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { findTripByInviteToken } from "@/server/trips/invites";
 import {
+  countTripsFor,
   createTripWithAdmin,
   resetInviteToken,
   setTripArchived,
@@ -161,5 +162,18 @@ describe("resetting the invite link", () => {
     await resetInviteToken(world.ours.id);
 
     expect((await tripRow(world.ours.id))?.inviteToken).toBe(before);
+  });
+});
+
+describe("countTripsFor", () => {
+  it("counts the live trips you are on, not archived or deleted ones", async () => {
+    expect(await countTripsFor(world.member)).toBe(1);
+    expect(await countTripsFor(world.outsider)).toBe(1);
+
+    await setTripArchived(world.ours.id, true);
+    expect(await countTripsFor(world.member)).toBe(0);
+
+    await softDeleteTrip(world.theirs.id);
+    expect(await countTripsFor(world.outsider)).toBe(0);
   });
 });

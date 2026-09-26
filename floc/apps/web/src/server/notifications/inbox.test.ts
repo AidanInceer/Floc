@@ -10,7 +10,7 @@ import { insertNote, softDeleteNoteAndReplies } from "@/server/notes/notes";
 import { insertNudge, removeMembership } from "@/server/trips/roster";
 import { inviteToTrip } from "@/server/trips/invites";
 import { softDeleteTrip } from "@/server/trips/trips";
-import { countUnread, listInbox, markAllRead, markInboxSeen, openNotification } from "@/server/notifications/inbox";
+import { countUnread, listInbox, listUnseen, markAllRead, markInboxSeen, openNotification } from "@/server/notifications/inbox";
 
 let world: Scenario;
 
@@ -114,5 +114,24 @@ describe("the inbox", () => {
     expect(second.items).toHaveLength(1);
     expect(second.next).toBeNull();
     expect(new Set([...first.items, ...second.items].map((i) => i.id)).size).toBe(51);
+  });
+});
+
+describe("the account menu's preview", () => {
+  it("shows the newest few you have not seen, up to the cap", async () => {
+    await nudge("dates");
+    await nudge("money");
+    await nudge("dates");
+
+    const shown = await listUnseen(world.member, 2);
+    expect(shown).toHaveLength(2);
+    expect(shown[0].id).toBeGreaterThan(shown[1].id);
+    expect(shown[0]).toMatchObject({ text: "Ada nudged you about Ours" });
+  });
+
+  it("empties once the inbox has been landed on", async () => {
+    await nudge();
+    await markInboxSeen(world.member);
+    expect(await listUnseen(world.member, 3)).toEqual([]);
   });
 });

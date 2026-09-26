@@ -12,12 +12,15 @@ import { getSession } from "@/server/access";
 import { subscriptionOf } from "@/server/billing/billing";
 import { allFeaturesFree } from "@/lib/env";
 import { isLive } from "@floc/core/billing/subscription-copy";
-import { countIncomingFriendRequests } from "@/server/social/friends";
+import { countFriendsFor, countIncomingFriendRequests } from "@/server/social/friends";
 import { countPendingInvitesFor } from "@/server/trips/invites";
-import { countUnread } from "@/server/notifications/inbox";
+import { countTripsFor } from "@/server/trips/trips";
+import { countUnread, listUnseen } from "@/server/notifications/inbox";
 import { getProfile } from "@/server/auth/profile";
 
 import "./globals.css";
+
+const ACCOUNT_MENU_PREVIEW = 3;
 
 // The three faces of the white-and-pastel direction (ticket 189): a characterful
 // display face for headings and figures, a plain body face for running text and
@@ -58,15 +61,19 @@ export default async function RootLayout({
   // friend request are the two things that arrive while you're elsewhere in the
   // app, so both have to be visible from anywhere. Counts, not the things
   // themselves — the answering happens on the page behind each link.
-  const [inviteCount, friendRequestCount, profile, proRow, notificationCount] = session?.user
-    ? await Promise.all([
-        countPendingInvitesFor(session.user.id),
-        countIncomingFriendRequests(session.user.id),
-        getProfile(session.user.id),
-        subscriptionOf(session.user.id),
-        countUnread(session.user.id),
-      ])
-    : [0, 0, undefined, null, 0];
+  const [inviteCount, friendRequestCount, profile, proRow, notificationCount, latest, tripCount, friendCount] =
+    session?.user
+      ? await Promise.all([
+          countPendingInvitesFor(session.user.id),
+          countIncomingFriendRequests(session.user.id),
+          getProfile(session.user.id),
+          subscriptionOf(session.user.id),
+          countUnread(session.user.id),
+          listUnseen(session.user.id, ACCOUNT_MENU_PREVIEW),
+          countTripsFor(session.user.id),
+          countFriendsFor(session.user.id),
+        ])
+      : [0, 0, undefined, null, 0, [], 0, 0];
 
   // The header must key the avatar off the same identity a roster does
   // (`displayName ?? name`), so the viewer is the same initials and colour
@@ -75,6 +82,7 @@ export default async function RootLayout({
     ? {
         id: session.user.id,
         name: profile?.displayName ?? session.user.name,
+        email: session.user.email,
         avatarIcon: profile?.avatarIcon ?? null,
       }
     : null;
@@ -97,6 +105,9 @@ export default async function RootLayout({
           inviteCount={inviteCount}
           friendRequestCount={friendRequestCount}
           notificationCount={notificationCount}
+          latest={latest}
+          tripCount={tripCount}
+          friendCount={friendCount}
           isPro={!allFeaturesFree() && proRow !== null && isLive(proRow)}
         />
         <main>{children}</main>

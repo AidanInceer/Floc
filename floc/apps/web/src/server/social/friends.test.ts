@@ -8,8 +8,9 @@ import { and, eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";
-import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
+import { befriend, migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import {
+  countFriendsFor,
   countIncomingFriendRequests,
   friendOfFriend,
   sharedTripIds,
@@ -255,5 +256,26 @@ describe("countIncomingFriendRequests", () => {
       origin: "request",
     });
     expect(await countIncomingFriendRequests(world.member)).toBe(0);
+  });
+});
+
+describe("countFriendsFor", () => {
+  it("counts accepted friends from either end, once each", async () => {
+    await befriend(world.admin, world.member);
+    await befriend(world.member, world.admin);
+    await befriend(world.outsider, world.member);
+
+    expect(await countFriendsFor(world.member)).toBe(2);
+    expect(await countFriendsFor(world.admin)).toBe(1);
+  });
+
+  it("leaves out a request nobody has answered", async () => {
+    await db.insert(schema.friendship).values({
+      userId: world.admin,
+      friendId: world.member,
+      status: "pending",
+      origin: "request",
+    });
+    expect(await countFriendsFor(world.member)).toBe(0);
   });
 });
