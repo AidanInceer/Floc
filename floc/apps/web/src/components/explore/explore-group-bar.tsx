@@ -32,7 +32,7 @@ export function ExploreGroupBar({
   onReset: () => void;
 }) {
   return (
-    <div className="z-10 border-b border-rule bg-paper/95 backdrop-blur lg:sticky lg:top-[57px]">
+    <div className="border-b border-rule bg-paper">
       <div className="mx-auto flex max-w-[76rem] flex-wrap items-center gap-x-4 gap-y-2.5 px-4 py-3 sm:px-6">
         {CONTROLS.map(({ key, label: name, options }) => (
           <div key={key} className="flex items-center gap-2">

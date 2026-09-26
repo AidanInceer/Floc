@@ -61,11 +61,11 @@ const FREE_DAYS = [11, 9, 14, 8, 12, 10];
 export function WhenScreen() {
   return (
     <ScreenFrame active="dates">
-      <div className="grid grid-cols-[1fr_180px] gap-[22px]">
+      <div className="grid grid-cols-[minmax(0,1fr)_180px] gap-[22px] max-[860px]:grid-cols-1">
         <div>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             <h4 className="font-display text-lg font-semibold">September 2027</h4>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-green-soft px-2.5 py-[3px] text-xs font-semibold text-green">
+            <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-green-soft px-2.5 py-[3px] text-xs font-semibold text-green">
               <Glyph name="check" className="size-3" /> 12–19 · all 6 free
             </span>
           </div>
@@ -91,7 +91,7 @@ export function WhenScreen() {
             })}
           </div>
         </div>
-        <div className="flex flex-col gap-2 pt-[38px]">
+        <div className="flex flex-col gap-2 pt-[38px] max-[860px]:hidden">
           {sampleGroup.map((p, i) => (
             <div key={p.name} className="grid grid-cols-[22px_1fr_auto] items-center gap-2">
               <Avatar name={p.name} tone={p.tone} size={22} />

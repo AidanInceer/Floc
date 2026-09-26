@@ -67,6 +67,7 @@
   --ink: #14141a; /* 18.4:1 on white */
   --ink-2: #63636f; /* 5.9:1 on white, 4.6:1 on the palest pastel */
   --ink-3: #6f6f7b; /* 5.0:1 on white, 4.6:1 on the canvas */
+  --phone-frame: var(--ink);
 
   /* Blue means "yours to do" and nothing else — actions, links, your own rows.
      `--pen` clears AA on white and on the canvas only (4.9 / 4.5); blue TEXT on
@@ -216,6 +217,7 @@
   --ink: #f0f0f3;
   --ink-2: #b8b8c1;
   --ink-3: #a2a2ac;
+  --phone-frame: var(--rule-2);
 
   /* Blue still means "yours to do". Lifted until it carries text on a dark
      surface; `--pen-deep` is now the *lighter* of the two, because on a dark
@@ -291,6 +293,7 @@
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-2);
   --color-ink-faint: var(--ink-3);
+  --color-phone-frame: var(--phone-frame);
 
   --color-pen: var(--pen);
   --color-pen-deep: var(--pen-deep);
@@ -652,8 +655,6 @@
     .closing-perf::after { top: auto; bottom: -30px; }
   }
 
-  .landing-faq summary::-webkit-details-marker { display: none; }
-
   /*
    * The landing filmstrip. The track spans the viewport and the open slide
    * sits in the middle, so the slides either side peek in. Repeated end cards
@@ -713,21 +714,30 @@
   .film-map .route-map-frame { border-radius: 14px; }
   /* Narrow: the text sits above, and the drawn screen shrinks to show its
      full width rather than a cropped corner of it. */
-  @media (max-width: 860px) {
+  @media (max-width: 1200px) {
     .film-track { --slide: 84vw; --gap: 12px; }
     .film-slide { display: flex; flex-direction: column; height: auto; }
     .film-text { width: auto; height: auto; padding: 26px 22px 0; }
     .film-was { margin-top: 16px; }
     .film-shot { position: relative; left: auto; right: auto; top: auto; margin: auto 0 -40px 20px; padding-top: 22px; }
-    .film-shot > * { width: 700px; zoom: 0.72; }
+    .film-shot > * { width: 700px; zoom: 0.9; }
+  }
+  @media (max-width: 860px) {
+    .film-shot > * { zoom: 0.85; }
   }
   @media (max-width: 640px) {
     .film-shot > * { zoom: 0.54; }
+  }
+  @media (min-width: 560px) and (max-width: 640px) {
+    .film-shot > * { zoom: 0.62; }
   }
   @media (max-width: 480px) {
     .film-track { --slide: 80vw; --gap: 10px; }
     .film-shot { margin-left: 14px; }
     .film-shot > * { zoom: 0.42; }
+  }
+  @media (max-width: 400px) {
+    .film-shot > * { zoom: 0.4; }
   }
 
   /* "Borrow a trip to …": the place rolls in, the map flies to the route. */

@@ -3,6 +3,12 @@ import { describe, expect, it } from "vitest";
 import { landingFaq } from "./faq";
 
 describe("landingFaq", () => {
+  it("distinguishes what Pro offers now from what is still to come", () => {
+    const pro = landingFaq({ sellingPro: true, monthly: "£3.99" }).find((q) => q.key === "pro");
+    expect(pro?.answer).toMatch(/Today, Pro adds/);
+    expect(pro?.answer).toMatch(/there’s plenty more to come/i);
+  });
+
   it("quotes the Pro price when Stripe has one", () => {
     const pro = landingFaq({ sellingPro: true, monthly: "£3.99" }).find((q) => q.key === "pro");
     expect(pro?.answer).toContain("£3.99 a month");

@@ -15,11 +15,11 @@ import { fileURLToPath } from "node:url";
 
 import { FlatCompat } from "@eslint/eslintrc";
 
-const compat = new FlatCompat({
-  baseDirectory: dirname(fileURLToPath(import.meta.url)),
-});
+const webRoot = dirname(fileURLToPath(import.meta.url));
+const compat = new FlatCompat({ baseDirectory: webRoot });
 
 const config = [
+  { settings: { next: { rootDir: webRoot } } },
   {
     ignores: [
       ".next/**",

@@ -66,10 +66,7 @@ export default async function FriendsPage() {
   }));
 
   return (
-    <AccountPage
-      eyebrow="Your people"
-      title="Friends"
-    >
+    <AccountPage title="Friends">
       {/* Requests come first, and the incoming ones are blue: they're the only
           thing on the page waiting on you. */}
       <Panel
@@ -139,14 +136,7 @@ export default async function FriendsPage() {
         <FindFriend />
       </Panel>
 
-      <Panel
-        title="Your friends"
-        aside={
-          acceptedPeople.length > 0 ? (
-            <Badge tone="neutral">{acceptedPeople.length}</Badge>
-          ) : null
-        }
-      >
+      <Panel title="Your friends">
         {acceptedPeople.length === 0 ? (
           <EmptyState title="No friends yet" />
         ) : (
@@ -173,7 +163,9 @@ export default async function FriendsPage() {
                 <form action={removeFriend}>
                   <input type="hidden" name="otherId" value={person.id} />
                   <ConfirmSubmit
-                    variant="danger"
+                    variant="ghost"
+                    confirmVariant="danger"
+                    className="!text-ink-soft hover:!bg-sheet-3 hover:!text-ink"
                     message={`Remove ${person.name} as a friend?`}
                     confirmLabel="Remove friend"
                   >

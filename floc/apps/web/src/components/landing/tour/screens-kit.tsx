@@ -1,97 +1,111 @@
+import { PackingCube } from "@/components/packing/packing-cube";
+import { PackingLane } from "@/components/packing/packing-lane";
+import { CategoryChip } from "@/components/documents/document-row";
 import { Avatar, cx } from "@/components/system/ui";
+import type { DocCategory } from "@floc/core/documents/documents";
 
-import { Glyph, type GlyphName } from "../landing-glyph";
+import { Glyph } from "../landing-glyph";
 import { jo, maya, sam, you, type SamplePerson } from "../sample-trip";
-import { FakeButton, ScreenFrame, muted, stayTone } from "./screen-frame";
+import { FakeButton, ScreenFrame } from "./screen-frame";
 
-const SHARED: { item: string; who: SamplePerson | null }[] = [
-  { item: "Speaker", who: sam },
-  { item: "Adapters ×3", who: jo },
-  { item: "Beach umbrella", who: maya },
-  { item: "Sun cream", who: you },
-  { item: "First-aid kit", who: null },
+const BAG = [
+  { heading: "Essentials", items: [{ item: "Passport", done: true }, { item: "Phone charger", done: false }, { item: "Sun hat", done: false }] },
+  { heading: "Clothes", items: [{ item: "Swimwear", done: true }, { item: "Walking shoes", done: true }, { item: "Etna jacket", done: false }] },
 ];
-const MINE = [
-  { item: "Passport", done: true },
-  { item: "Swimwear", done: true },
-  { item: "Walking shoes", done: true },
-  { item: "Phone charger", done: false },
-  { item: "Sun hat", done: false },
-  { item: "Etna jacket", done: false },
+const SHARED: { item: string; who: SamplePerson | null; category: string }[] = [
+  { item: "First-aid kit", who: null, category: "Essentials" },
+  { item: "Speaker", who: sam, category: "Accessories" },
+  { item: "Adapters ×3", who: jo, category: "Accessories" },
+  { item: "Beach umbrella", who: maya, category: "Accessories" },
+  { item: "Sun cream", who: you, category: "Toiletries" },
 ];
-const row = "flex items-center gap-2.5 border-b border-rule px-2.5 py-2";
-
-function ListHead({ title, count }: { title: string; count: string }) {
-  return (
-    <h5 className="mb-2 flex items-baseline justify-between font-display text-[15px] font-semibold">
-      {title} <span className="nums text-[11px] font-normal text-ink-faint">{count}</span>
-    </h5>
-  );
-}
+const CLAIMED = SHARED.filter((line): line is { item: string; who: SamplePerson; category: string } => line.who !== null);
 
 export function PackingScreen() {
   return (
     <ScreenFrame active="packing">
-      <div className="grid grid-cols-2 gap-6">
-        <div>
-          <ListHead title="Shared" count="4 of 5 claimed" />
-          {SHARED.map(({ item, who }) => (
-            <div key={item} className={cx(row, "justify-between")}>
-              <span>{item}</span>
-              {who ? (
-                <span className="inline-flex items-center gap-1.5 text-xs text-ink-soft">
-                  <Avatar name={who.name} tone={who.tone} size={20} />
-                  {who.name}
+      <div className="flex items-center gap-3">
+        <h4 className="font-display text-lg font-semibold">Your bag</h4>
+        <span className="nums text-[11px] text-ink-faint">3/6 packed</span>
+      </div>
+      <div className="mt-3 grid grid-cols-2 items-start gap-3">
+        {BAG.map((group) => (
+          <PackingCube key={group.heading} heading={group.heading} total={group.items.length} packed={group.items.filter((i) => i.done).length}>
+            {group.items.map(({ item, done }) => (
+              <li key={item} className="flex items-center gap-2.5 px-3 py-2">
+                <span className={cx("grid size-[18px] shrink-0 place-items-center rounded-[5px] border", done ? "border-green bg-green text-sheet" : "border-rule-strong")}>
+                  {done ? <Glyph name="check" className="size-3" /> : null}
                 </span>
-              ) : (
-                <FakeButton small>Claim</FakeButton>
-              )}
-            </div>
+                <span className={cx(done && "text-ink-faint line-through")}>{item}</span>
+              </li>
+            ))}
+          </PackingCube>
+        ))}
+      </div>
+      <div className="mt-5 flex items-center gap-3">
+        <h4 className="font-display text-lg font-semibold">Who&rsquo;s bringing what</h4>
+        <span className="nums text-[11px] text-ink-faint">4/5 claimed</span>
+      </div>
+      <div className="mt-3 grid grid-cols-2 items-start gap-3">
+        <PackingLane name="Up for grabs" count={1} open>
+          {SHARED.filter((line) => !line.who).map((line) => (
+            <li key={line.item} className="flex items-center gap-2 px-3 py-2">
+              <span className="min-w-0 flex-1 truncate">{line.item}</span>
+              <FakeButton small>I&rsquo;ll bring it</FakeButton>
+            </li>
           ))}
-        </div>
-        <div>
-          <ListHead title="Yours" count="3 of 6 packed" />
-          {MINE.map(({ item, done }) => (
-            <div key={item} className={row}>
-              <i
-                className={cx(
-                  "grid size-[18px] place-items-center rounded-[6px] border-[1.5px]",
-                  done ? "border-green bg-green text-sheet" : "border-rule-strong",
-                )}
-              >
-                {done ? <Glyph name="check" className="size-3" /> : null}
-              </i>
-              <span className={cx(done && "text-ink-faint line-through")}>{item}</span>
-            </div>
-          ))}
-        </div>
+        </PackingLane>
+        {CLAIMED.map((line) => (
+          <PackingLane key={line.item} name={line.who.name} count={1} avatar={<Avatar name={line.who.name} tone={line.who.tone} size={24} />}>
+            <li className="flex items-center gap-2 px-3 py-2">
+              <span className="min-w-0 flex-1 truncate">{line.item}</span>
+              <span className="text-[11px] text-ink-soft">{line.category}</span>
+            </li>
+          </PackingLane>
+        ))}
       </div>
     </ScreenFrame>
   );
 }
 
-const FILES: { icon: GlyphName; name: string; meta: string; tone: string }[] = [
-  { icon: "flight", name: "Flights LGW → PMO", meta: "Sun 12 Sep · 6 passes", tone: stayTone.blue },
-  { icon: "train", name: "Train to Taormina", meta: "Wed 15 Sep · 6 tickets", tone: stayTone.yellow },
-  { icon: "files", name: "Flat in Palermo", meta: "booking.pdf", tone: stayTone.red },
-  { icon: "files", name: "Car hire", meta: "voucher.pdf", tone: stayTone.green },
-  { icon: "pin", name: "Etna jeep tour", meta: "Thu 16 Sep · 6 tickets", tone: stayTone.yellow },
-  { icon: "flight", name: "Flights CTA → LGW", meta: "Sun 19 Sep · 6 passes", tone: stayTone.blue },
+const FILES: { name: string; category: DocCategory; kind: string; meta: string }[] = [
+  { name: "Flights LGW–PMO.pdf", category: "travel", kind: "PDF", meta: "Priya · 1.2 MB" },
+  { name: "Flat in Palermo.pdf", category: "stay", kind: "PDF", meta: "Sam · 840 KB" },
+  { name: "Train to Taormina.pdf", category: "tickets", kind: "PDF", meta: "Jo · 320 KB" },
+  { name: "Car hire.pdf", category: "travel", kind: "PDF", meta: "Alex · 580 KB" },
 ];
 
 export function TicketsScreen() {
   return (
     <ScreenFrame active="files">
-      <div className="grid grid-cols-3 gap-3">
-        {FILES.map((f) => (
-          <div key={f.name} className="flex flex-col gap-1 rounded-[14px] border border-rule bg-sheet p-3.5">
-            <span className={cx("mb-2 grid size-[34px] place-items-center rounded-[10px]", f.tone)}>
-              <Glyph name={f.icon} />
-            </span>
-            <b>{f.name}</b>
-            <span className={cx(muted, "nums text-[11px]")}>{f.meta}</span>
-          </div>
-        ))}
+      <div className="flex items-center gap-2 rounded-full border border-rule bg-sheet px-3 py-2">
+        <span className="rounded-full bg-ink px-3 py-1 text-xs text-sheet">All</span>
+        <span className="rounded-full border border-rule px-3 py-1 text-xs text-ink-soft">Travel · 2</span>
+        <span className="rounded-full border border-rule px-3 py-1 text-xs text-ink-soft">Stay · 1</span>
+        <span className="ml-auto"><FakeButton small>Upload</FakeButton></span>
+      </div>
+      <div className="mt-4 overflow-hidden rounded-[16px] border border-rule bg-sheet">
+        <div className="flex items-center gap-3 border-b border-rule bg-sheet-2 px-4 py-3">
+          <b className="font-display text-[15px]">Shared</b>
+          <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-faint">Everyone on the trip</span>
+        </div>
+        <div className="divide-y divide-rule">
+          {FILES.map((file) => (
+            <div key={file.name} className="flex items-center gap-3 px-4 py-3">
+              <span className="w-11 shrink-0 rounded-full bg-pastel-red px-2 py-0.5 text-center text-xs font-semibold text-pastel-red-ink">{file.kind}</span>
+              <b className="min-w-0 flex-1 truncate text-sm text-pen">{file.name}</b>
+              <CategoryChip category={file.category} />
+              <span className="nums shrink-0 text-xs text-ink-soft">{file.meta}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="mt-4 overflow-hidden rounded-[16px] border border-rule bg-sheet">
+        <div className="flex items-center gap-3 border-b border-rule bg-sheet-2 px-4 py-3">
+          <b className="font-display text-[15px]">Yours</b>
+          <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-faint">Only you can see these</span>
+        </div>
+        <div className="px-4 py-3 text-sm text-ink-soft">Nothing of your own yet.</div>
       </div>
     </ScreenFrame>
   );

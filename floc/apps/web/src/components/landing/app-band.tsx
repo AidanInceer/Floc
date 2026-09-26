@@ -7,7 +7,7 @@ import { MoneyScreen, TodayScreen } from "./phone-screens";
 
 function Phone({ className, children }: { className?: string; children: ReactNode }) {
   return (
-    <div className={cx("absolute h-[560px] w-[290px] rounded-[42px] bg-ink p-2.5 shadow-lifted", className)}>
+    <div className={cx("absolute h-[560px] w-[290px] rounded-[42px] bg-phone-frame p-2.5 shadow-lifted", className)}>
       <div className="flex h-full flex-col gap-1.5 overflow-hidden rounded-[33px] bg-paper px-4 pb-4 pt-9">{children}</div>
     </div>
   );
@@ -27,12 +27,12 @@ function Store({ name }: { name: string }) {
 export function AppBand() {
   return (
     <section className="overflow-hidden px-4 py-24 sm:px-6">
-      <div className="mx-auto grid max-w-[72rem] items-center gap-16 md:grid-cols-2">
+      <div className="mx-auto grid max-w-[72rem] items-center gap-16 md:grid-cols-2 xl:grid-cols-[580px_minmax(0,1fr)]">
         <div className="relative h-[580px]" role="img" aria-label="Floc on a phone: today's plan in Cefalù, and what you owe">
           <Phone className="left-0 top-2.5 z-[2] -rotate-[4deg]">
             <TodayScreen />
           </Phone>
-          <Phone className="left-[272px] top-[50px] rotate-[5deg] max-lg:hidden">
+          <Phone className="left-[272px] top-[50px] hidden rotate-[5deg] xl:block">
             <MoneyScreen />
           </Phone>
         </div>
@@ -49,7 +49,7 @@ export function AppBand() {
             <div className="mt-7 flex items-start gap-3 rounded-lg border border-rule bg-sheet px-[18px] py-4 text-sm text-ink-soft">
               <Glyph name="link" className="mt-[3px] size-[14px] shrink-0" />
               <p>
-                <b className="text-ink">Got a link from a friend?</b> Open it. You&rsquo;ll see the trip before you make an account.
+                <b className="text-ink">Got a trip link?</b> Preview it before signing up.
               </p>
             </div>
           </div>

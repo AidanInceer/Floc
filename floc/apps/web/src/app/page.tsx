@@ -65,15 +65,16 @@ export default async function LandingPage() {
         {/* ── hero ─────────────────────────────────────────────────────── */}
         <section className="mx-auto max-w-[60rem] px-4 pt-12 text-center sm:px-6 sm:pt-16">
           <h1 className="font-display text-[clamp(2.8rem,7.4vw,6rem)] font-semibold leading-none tracking-[-0.04em]">
-            Group trip planning,{" "}
+            Trip Planning
+            <br />
             <ConfettiWord>
-              <span className="hl hl-loose hl-green">sorted</span>
+              <span className="hl hl-loose hl-green">Sorted</span>
             </ConfettiWord>
             .
           </h1>
           <p className="mx-auto mt-6 max-w-[44ch] text-md text-ink-soft">
-            One page your whole group can edit: where you&rsquo;re going, the
-            days everyone can make, the route, and who owes who.
+            Keep the destination, dates, route and costs in one place. Plan on your own,
+            or with everyone who&rsquo;s coming.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <ButtonLink href={start} variant="primary" className="px-6 py-3 text-[12px]">

@@ -17,17 +17,17 @@ const DAYS = [
 export function PlanScreen() {
   return (
     <ScreenFrame active="days">
-      <div className="grid grid-cols-[1fr_280px] gap-5">
-        <div className="flex flex-col gap-1.5">
+      <div className="grid grid-cols-[minmax(0,1fr)_280px] gap-5 max-[860px]:flex max-[860px]:flex-col">
+        <div className="flex min-w-0 flex-col gap-1.5">
           {DAYS.map((d) => (
-            <div key={d.day} className="grid grid-cols-[58px_92px_1fr] items-center gap-2.5 rounded-[10px] border border-rule px-2.5 py-2">
+            <div key={d.day} className="grid grid-cols-[58px_92px_minmax(0,1fr)] items-center gap-2.5 rounded-[10px] border border-rule px-2.5 py-2">
               <span className="nums text-[11px] text-ink-faint">{d.day}</span>
               <span className={cx("w-fit rounded-full px-[9px] py-[3px] text-[11px] font-semibold", d.tone)}>{d.stay}</span>
-              <span>{d.what}</span>
+              <span className="min-w-0 truncate">{d.what}</span>
             </div>
           ))}
         </div>
-        <div className="film-map">
+        <div className="film-map max-[860px]:order-first max-[860px]:h-[340px]">
           <RouteMap stops={sampleStops} missing={[]} fill />
         </div>
       </div>
@@ -54,39 +54,39 @@ const EXPENSES = [
 export function MoneyScreen() {
   return (
     <ScreenFrame active="money">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="rounded-[14px] bg-pen-soft p-[18px] text-pen-deep">
+      <div className="grid grid-cols-2 gap-4 max-[860px]:grid-cols-1">
+        <div className="min-w-0 rounded-[14px] bg-pen-soft p-[18px] text-pen-deep">
           <p className="text-xs">You owe</p>
-          <p className="mb-3.5 mt-1.5 flex items-center gap-2.5 font-display text-2xl font-semibold">
+          <p className="mb-3.5 mt-1.5 flex flex-wrap items-center gap-2.5 font-display text-2xl font-semibold">
             <Avatar name={priya.name} tone={priya.tone} size={30} /> Priya
             <span className="nums ml-auto text-[26px]">£42.50</span>
           </p>
           <FakeButton>Mark as paid</FakeButton>
         </div>
-        <div className="row-span-2 flex flex-col gap-1.5">
+        <div className="row-span-2 flex min-w-0 flex-col gap-1.5 max-[860px]:row-auto">
           {BALANCES.map((b) => (
             <div
               key={b.who.name}
               className={cx(
-                "grid grid-cols-[20px_1fr_auto] items-center gap-2 rounded-[10px] px-2.5 py-[7px]",
+                "grid grid-cols-[20px_minmax(0,1fr)_auto] items-center gap-2 rounded-[10px] px-2.5 py-[7px]",
                 b.who === you ? "bg-pen-soft font-semibold text-pen-deep" : "bg-sheet-2",
               )}
             >
               <Avatar name={b.who.name} tone={b.who.tone} size={20} />
-              <span>{b.who.name}</span>
+              <span className="min-w-0 truncate">{b.who.name}</span>
               <span className={cx("nums", b.up && "text-green")}>{b.amount}</span>
             </div>
           ))}
         </div>
-        <div className="flex flex-col gap-1">
+        <div className="flex min-w-0 flex-col gap-1">
           {EXPENSES.map((e) => (
-            <div key={e.what} className="flex items-center justify-between border-b border-rule px-0.5 py-[7px]">
-              <span>
+            <div key={e.what} className="flex items-center justify-between gap-2 border-b border-rule px-0.5 py-[7px]">
+              <span className="min-w-0">
                 <b>{e.what}</b>
                 <br />
                 <span className={muted}>{e.who.name} paid · split 6 ways</span>
               </span>
-              <span className="nums">{e.cost}</span>
+              <span className="nums shrink-0">{e.cost}</span>
             </div>
           ))}
         </div>

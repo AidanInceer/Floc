@@ -1,12 +1,6 @@
 "use client";
 
-/**
- * A word that throws a small burst of confetti when you point at it. Only the
- * hero's "sorted" uses it — the one place a flourish is the point.
- *
- * Hand-rolled rather than a library: it is ~20 spans and one keyframe, and a
- * confetti package would be several kB of shared First Load JS for a hover.
- */
+// Why: the hero's small flourish does not warrant a motion dependency.
 import { useCallback, useRef, useState } from "react";
 
 const PIECES = 18;
