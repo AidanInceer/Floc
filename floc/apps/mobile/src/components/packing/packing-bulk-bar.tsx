@@ -8,8 +8,6 @@
  * IT SAYS THE NUMBER. "Remove" alone, over a list you have scrolled away from,
  * does not tell you what is about to go.
  *
- * EMPTYING THE LIST LIVES HERE TOO. It is the same job at a different scale,
- * and it names its list and its count for the same reason.
  */
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -21,19 +19,15 @@ import { space } from "@/lib/theme";
 export function PackingBulkBar({
   listName,
   picked,
-  total,
   busy,
   onRemove,
-  onEmpty,
   onDone,
 }: {
   /** Named, so the wrong list cannot be emptied by accident. */
   listName: string;
   picked: number;
-  total: number;
   busy: boolean;
   onRemove: () => void;
-  onEmpty: () => void;
   onDone: () => void;
 }) {
   const { c } = useTheme();
@@ -72,14 +66,6 @@ export function PackingBulkBar({
           <Button label="Done" variant="quiet" onPress={onDone} />
         </View>
       </View>
-      {/* The whole-list press is last and says its size — it is the one here
-          that cannot be undone a row at a time. */}
-      <Button
-        label={`Empty ${listName} (${total})`}
-        variant="quiet"
-        busy={busy}
-        onPress={onEmpty}
-      />
     </View>
   );
 }

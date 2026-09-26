@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { KeyboardEvent, MouseEvent, PointerEvent, ReactNode, RefObject } from "react";
 
 import { cx } from "@/components/system/ui";
-import { nearestSlide, stepSlide } from "@/lib/landing/carousel";
+import { filmPosition, nearestSlide } from "@/lib/landing/carousel";
 
 import { Glyph } from "../landing-glyph";
 import type { SlideTone, TourSlide } from "./tour-slides";
@@ -29,36 +29,53 @@ function useFilm(count: number) {
   }, []);
 
   const go = useCallback(
-    (i: number) => {
+    (i: number, from = current) => {
       const node = track.current;
-      if (!node) return;
+      if (!node || count === 0) return;
       const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
-      node.scrollTo({ left: starts()[stepSlide(i, 0, count)] ?? 0, behavior: still ? "auto" : "smooth" });
+      node.scrollTo({ left: starts()[filmPosition(from, i, count)] ?? 0, behavior: still ? "auto" : "smooth" });
     },
-    [count, starts],
+    [count, current, starts],
   );
+
+  useLayoutEffect(() => {
+    const node = track.current;
+    if (node && count > 0) node.scrollLeft = starts()[1] ?? 0;
+  }, [count, starts]);
 
   useEffect(() => {
     const node = track.current;
     if (!node) return;
-    const sync = () => setCurrent(nearestSlide(starts(), node.scrollLeft));
+    const sync = () => {
+      const physical = nearestSlide(starts(), node.scrollLeft);
+      setCurrent(physical === 0 ? count - 1 : physical === count + 1 ? 0 : physical - 1);
+    };
+    const settle = () => {
+      const physical = nearestSlide(starts(), node.scrollLeft);
+      if (physical === 0) node.scrollLeft = starts()[count] ?? 0;
+      if (physical === count + 1) node.scrollLeft = starts()[1] ?? 0;
+    };
     node.addEventListener("scroll", sync, { passive: true });
-    return () => node.removeEventListener("scroll", sync);
-  }, [starts]);
+    node.addEventListener("scrollend", settle);
+    return () => {
+      node.removeEventListener("scroll", sync);
+      node.removeEventListener("scrollend", settle);
+    };
+  }, [count, starts]);
 
   return { track, current, go };
 }
 
 // Touch and trackpads scroll natively; a mouse gets drag-to-scroll, then snaps one slide on.
-function useMouseDrag(track: RefObject<HTMLDivElement | null>, current: number, go: (i: number) => void) {
-  const drag = useRef<{ x: number; left: number } | null>(null);
+function useMouseDrag(track: RefObject<HTMLDivElement | null>, current: number, go: (i: number, from?: number) => void) {
+  const drag = useRef<{ x: number; left: number; index: number } | null>(null);
   // A drag ends in a click on whatever slide it let go over; that click must not pick it.
   const dragged = useRef(false);
   const [dragging, setDragging] = useState(false);
 
   const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
     if (e.pointerType !== "mouse" || e.button !== 0 || !track.current) return;
-    drag.current = { x: e.clientX, left: track.current.scrollLeft };
+    drag.current = { x: e.clientX, left: track.current.scrollLeft, index: current };
     dragged.current = false;
     setDragging(true);
   };
@@ -70,10 +87,11 @@ function useMouseDrag(track: RefObject<HTMLDivElement | null>, current: number, 
     };
     const up = (e: globalThis.PointerEvent) => {
       const dx = drag.current ? e.clientX - drag.current.x : 0;
+      const from = drag.current?.index ?? current;
       drag.current = null;
       dragged.current = Math.abs(dx) > 5;
       setDragging(false);
-      go(Math.abs(dx) > 60 ? current + (dx < 0 ? 1 : -1) : current);
+      go(Math.abs(dx) > 60 ? from + (dx < 0 ? 1 : -1) : from, from);
     };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up, { once: true });
@@ -86,10 +104,11 @@ function useMouseDrag(track: RefObject<HTMLDivElement | null>, current: number, 
   return { dragging, dragged, onPointerDown };
 }
 
-function SlideCard({ slide, index, count, active }: { slide: FilmSlide; index: number; count: number; active: boolean }) {
+function SlideCard({ slide, index, count, active, duplicate }: { slide: FilmSlide; index: number; count: number; active: boolean; duplicate?: boolean }) {
   return (
     <article
       data-slide={index}
+      aria-hidden={duplicate || undefined}
       aria-roledescription="slide"
       aria-label={`${index + 1} of ${count}: ${slide.tab}`}
       className={cx("film-slide", TONE[slide.tone].slide, !active && "is-resting")}
@@ -122,6 +141,9 @@ function SlideCard({ slide, index, count, active }: { slide: FilmSlide; index: n
 export function FeatureFilm({ slides }: { slides: FilmSlide[] }) {
   const { track, current, go } = useFilm(slides.length);
   const { dragging, dragged, onPointerDown } = useMouseDrag(track, current, go);
+  const first = slides[0];
+  const last = slides[slides.length - 1];
+  const film = first && last ? [last, ...slides, first] : [];
 
   const onClick = (e: MouseEvent<HTMLDivElement>) => {
     const picked = (e.target as HTMLElement).closest<HTMLElement>("[data-slide]")?.dataset.slide;
@@ -166,9 +188,10 @@ export function FeatureFilm({ slides }: { slides: FilmSlide[] }) {
         onClick={onClick}
         className={cx("film-track scroll-x-bare", dragging && "is-dragging")}
       >
-        {slides.map((s, i) => (
-          <SlideCard key={s.key} slide={s} index={i} count={slides.length} active={i === current} />
-        ))}
+        {film.map((s, physical) => {
+          const index = physical === 0 ? slides.length - 1 : physical === slides.length + 1 ? 0 : physical - 1;
+          return <SlideCard key={`${s.key}-${physical}`} slide={s} index={index} count={slides.length} active={index === current} duplicate={physical === 0 || physical === slides.length + 1} />;
+        })}
       </div>
     </div>
   );

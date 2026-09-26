@@ -1,12 +1,5 @@
-/**
- * /trips — post-login home (ticket 05; reskinned 193). Non-archived trips the
- * viewer is a member of. Sort (ticket 70) lives in the URL, not state,
- * so the page stays a server component and a view is linkable.
- *
- * Ticket 193: trips waiting on you are split off the top of the grid, whatever
- * the sort — the sort orders each half, it doesn't decide who blocks whom.
- */
 import { TEXT_CAPS } from "@floc/core/text/text";
+import { arrangeTripsHome } from "@floc/core/trip/trips-home";
 import Link from "next/link";
 
 import { requireUser } from "@/server/access";
@@ -26,22 +19,10 @@ import {
 import { Sheet, SubmitButton } from "@/components/system/client-ui";
 import { FriendPicker } from "@/components/social/friend-picker";
 import { FlockChevron } from "@/components/system/flock-chevron";
-import { SortIcon } from "@/components/system/list-control-icons";
-import { PillChoice } from "@/components/system/pill-choice";
-import { TripCard } from "@/components/trip/trip-card";
 import type { TripCardData } from "@/components/trip/trip-card";
+import { TripFeature } from "@/components/trip/trip-feature";
+import { TripShelfCard } from "@/components/trip/trip-shelf-card";
 import { acceptTripInvite, createTrip, declineTripInvite } from "./actions";
-
-const SORTS = {
-  date: "Date",
-  place: "Place",
-  name: "Name",
-} as const;
-type Sort = keyof typeof SORTS;
-
-function readSort(value: string | string[] | undefined): Sort {
-  return typeof value === "string" && value in SORTS ? (value as Sort) : "date";
-}
 
 export const metadata = { title: "My trips" };
 
@@ -51,8 +32,6 @@ export default async function TripsPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  const sort = readSort(params.sort);
-  const view = params.view === "list" ? "list" : "grid";
   const tag = typeof params.tag === "string" ? params.tag.trim().toLowerCase() : "";
 
   const viewer = await requireUser("/trips");
@@ -64,13 +43,13 @@ export default async function TripsPage({
   ]);
 
   const cards = cardRows.map((c) => c.card);
-  const sorted = sortCards(
+  const ordered = orderCards(
     tag ? cards.filter((card) => card.tags?.some((value) => value.toLowerCase() === tag)) : cards,
-    sort,
   );
   // A finished trip is still yours, so it is folded away rather than dropped —
   // archiving is the other thing, and it is a decision someone has to make.
-  const { live, ended } = splitEnded(sorted);
+  const { live, ended } = splitEnded(ordered);
+  const { featured, later, undated } = arrangeTripsHome(live);
 
   return (
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
@@ -90,18 +69,6 @@ export default async function TripsPage({
 
       {invites.length > 0 ? <InviteList invites={invites} /> : null}
 
-      {cards.length > 1 ? (
-        <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3">
-          <PillChoice
-            icon={<SortIcon />}
-            label="Sort trips"
-            current={sort}
-            options={(Object.keys(SORTS) as Sort[]).map((key) => ({ key, label: SORTS[key], href: hrefFor({ sort: key, view, tag }) }))}
-          />
-          <ViewToggle sort={sort} view={view} tag={tag} />
-        </div>
-      ) : null}
-
       {live.length === 0 ? (
         <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <NewTripTile friends={friends} first={cards.length === 0} />
@@ -115,38 +82,48 @@ export default async function TripsPage({
           </Link>
         </p>
       ) : null}
-      {live.length === 0 ? null : (
-        <TripGrid trips={live} view={view} className="mt-8" />
-      )}
+      {featured ? <TripFeature trip={featured} /> : null}
 
-      {ended.length > 0 ? <PastTrips trips={ended} view={view} /> : null}
+      {later.length > 0 ? (
+        <section className="mt-9">
+          <h2 className="typed">Later</h2>
+          <TripGrid trips={later} className="mt-3" />
+        </section>
+      ) : null}
+
+      {undated.length > 0 ? (
+        <section className="mt-9">
+          <h2 className="typed">No dates yet</h2>
+          <TripGrid trips={undated} className="mt-3" newTrip={friends} />
+        </section>
+      ) : null}
+
+      {live.length > 0 && undated.length === 0 ? (
+        <ul className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <NewTripTile friends={friends} />
+        </ul>
+      ) : null}
+
+      {ended.length > 0 ? <PastTrips trips={ended} /> : null}
     </div>
   );
 }
 
 function TripGrid({
   trips,
-  view,
   className,
+  newTrip,
+  past,
 }: {
   trips: TripCardData[];
-  view: "grid" | "list";
   className?: string;
+  newTrip?: Person[];
+  past?: boolean;
 }) {
   return (
-    <ul
-      className={cx(
-        className,
-        view === "list"
-          ? "flex flex-col gap-3"
-          // Flex, not grid, so a part-filled last row centres instead of
-          // hanging left; the widths restate the 1/2/3 columns it replaces.
-          : "flex flex-wrap justify-center gap-4 [&>li]:w-full sm:[&>li]:w-[calc((100%-1rem)/2)] lg:[&>li]:w-[calc((100%-2rem)/3)]",
-      )}
-    >
-      {trips.map((t) => (
-        <TripCard key={t.id} trip={t} href={`/trip/${t.id}/overview`} layout={view} />
-      ))}
+    <ul className={cx(className, "grid gap-3 sm:grid-cols-2 lg:grid-cols-3")}>
+      {trips.map((t) => <TripShelfCard key={t.id} trip={t} past={past} />)}
+      {newTrip ? <NewTripTile friends={newTrip} /> : null}
     </ul>
   );
 }
@@ -156,14 +133,14 @@ function TripGrid({
  * no state, so the page stays a server component; the flock chevron is the
  * product's one disclosure mark (see [[flock-chevron]]).
  */
-function PastTrips({ trips, view }: { trips: TripCardData[]; view: "grid" | "list" }) {
+function PastTrips({ trips }: { trips: TripCardData[] }) {
   return (
     <details className="past-trips mt-10">
       <summary className="mx-auto flex w-fit cursor-pointer list-none items-center gap-2 text-ink-soft transition-colors hover:text-ink [&::-webkit-details-marker]:hidden">
         <FlockChevron size={12} className="past-trips-chevron shrink-0" />
         <span className="typed text-current">Past trips · {trips.length}</span>
       </summary>
-      <TripGrid trips={trips} view={view} className="mt-5" />
+      <TripGrid trips={trips} className="mt-5" past />
     </details>
   );
 }
@@ -188,7 +165,7 @@ function NewTripTile({ friends, first }: { friends: Person[]; first?: boolean })
           </span>
         }
         title="Start a trip"
-        triggerClassName="lift flex min-h-[15rem] w-full flex-col justify-center rounded-lg bg-sheet p-6 text-left shadow-[inset_0_0_0_2px_var(--rule)] hover:shadow-[inset_0_0_0_2px_var(--pen)]"
+        triggerClassName="lift flex min-h-40 w-full flex-col justify-center rounded-lg bg-sheet p-4 text-left shadow-[inset_0_0_0_1px_var(--rule-2)] hover:shadow-[inset_0_0_0_1px_var(--pen)]"
       >
         <CreateTripForm friends={friends} />
       </Sheet>
@@ -243,107 +220,7 @@ function InviteList({ invites }: { invites: PendingInvite[] }) {
   );
 }
 
-function hrefFor({
-  sort,
-  view,
-  tag,
-}: {
-  sort: Sort;
-  view?: "grid" | "list";
-  tag?: string;
-}) {
-  const query = new URLSearchParams();
-  if (sort !== "date") query.set("sort", sort);
-  if (view === "list") query.set("view", view);
-  if (tag) query.set("tag", tag);
-  const q = query.toString();
-  return q ? `/trips?${q}` : "/trips";
-}
-
-// Grid/list switch, right-aligned on the controls row. Two icon links (the
-// current one filled), in the app's own line-art — no icon font (CLAUDE.md).
-function ViewToggle({
-  sort,
-  view,
-  tag,
-}: {
-  sort: Sort;
-  view: "grid" | "list";
-  tag: string;
-}) {
-  const opts = [
-    {
-      key: "grid" as const,
-      label: "Grid view",
-      icon: (
-        <svg viewBox="0 0 14 14" width="14" height="14" fill="currentColor" aria-hidden>
-          <rect x="1" y="1" width="5" height="5" rx="1.2" />
-          <rect x="8" y="1" width="5" height="5" rx="1.2" />
-          <rect x="1" y="8" width="5" height="5" rx="1.2" />
-          <rect x="8" y="8" width="5" height="5" rx="1.2" />
-        </svg>
-      ),
-    },
-    {
-      key: "list" as const,
-      label: "List view",
-      icon: (
-        <svg
-          viewBox="0 0 14 14"
-          width="14"
-          height="14"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={1.2}
-          strokeLinecap="round"
-          aria-hidden
-        >
-          <path d="M2 3.5h10M2 7h10M2 10.5h10" />
-        </svg>
-      ),
-    },
-  ];
-  return (
-    <div className="ml-auto flex items-center gap-1 rounded-full bg-sheet-3 p-1">
-      {opts.map((o) => (
-        <Link
-          key={o.key}
-          href={hrefFor({ sort, view: o.key, tag })}
-          aria-label={o.label}
-          aria-current={o.key === view ? "true" : undefined}
-          className={cx(
-            "flex size-8 items-center justify-center rounded-full transition-colors",
-            o.key === view
-              ? "bg-ink text-sheet"
-              : "text-ink-soft hover:bg-sheet hover:text-ink",
-          )}
-        >
-          {o.icon}
-        </Link>
-      ))}
-    </div>
-  );
-}
-
-/** `date` (default) is the only order that splits ended/upcoming; others are flat A-Z. */
-function sortCards(cards: TripCardData[], sort: Sort): TripCardData[] {
-  const byName = (a: TripCardData, b: TripCardData) =>
-    a.name.localeCompare(b.name, "en-GB", { sensitivity: "base" });
-
-  if (sort === "name") return [...cards].sort(byName);
-
-  if (sort === "place") {
-    return [...cards].sort((a, b) => {
-      if (a.where && b.where) {
-        const byPlace = a.where.localeCompare(b.where, "en-GB", { sensitivity: "base" });
-        return byPlace !== 0 ? byPlace : byName(a, b);
-      }
-      if (a.where) return -1;
-      if (b.where) return 1;
-      return byName(a, b);
-    });
-  }
-
+function orderCards(cards: TripCardData[]): TripCardData[] {
   const ended = cards.filter((c) => hasEnded(c.endDate));
   const upcoming = cards.filter((c) => !hasEnded(c.endDate));
 

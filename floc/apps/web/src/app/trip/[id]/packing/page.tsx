@@ -1,8 +1,3 @@
-/**
- * Packing tab (ticket 219, extended by 220). Layout B — the group's gear on
- * top, your own bag underneath, both full-width, so the page reads the same
- * top-to-bottom on a phone as on a desk.
- */
 import { requireTripAccess } from "@/server/access";
 import { canUseFeature } from "@/server/billing/entitlements";
 import { getPackSettings } from "@/server/packing/packing";
@@ -18,38 +13,33 @@ import {
 import { listPackingKits } from "@/server/packing/packing-kits";
 import { ensureProfile } from "@/server/auth/profile";
 import {
-  PACK_SORTS,
   PACK_TIERS,
   PACK_TIER_LABELS,
   packingStatus,
-  parseCategoryFilter,
-  parsePackSort,
   resolvePackTier,
   viewPackingLines,
 } from "@floc/core/packing/packing";
-import type { PackCategory, PackSort } from "@floc/core/packing/packing";
+import { arrangePackingLanes } from "@floc/core/packing/packing-lanes";
 import {
   CategorySelect,
   PackingBulkBar,
   PackingKitMenu,
-  PackingListFilters,
 } from "@/components/packing/packing-controls";
 import {
-  PackingCard,
-  PackingCardEmpty,
   PackingCount,
-  PackingGroup,
   SegmentedField,
   segmentOff,
   segmentOn,
   segmentShape,
 } from "@/components/packing/packing-card";
+import { PackingCube } from "@/components/packing/packing-cube";
+import { PackingLane } from "@/components/packing/packing-lane";
+import { PackingClaimCard } from "@/components/packing/packing-claim-card";
 import Link from "next/link";
-import { cx, PageTitle } from "@/components/system/ui";
+import { Avatar, cx, PageTitle } from "@/components/system/ui";
 import { SubmitButton } from "@/components/system/client-ui";
-import { PackingLineRow } from "@/components/packing/packing-line-row";
 import { PersonalPackingRow } from "@/components/packing/packing-personal-row";
-import type { PackingClaimant } from "@/components/packing/packing-line-row";
+import type { PackingClaimant } from "@/components/packing/packing-claim-card";
 import {
   addPackingLine,
   addPersonalPackingLine,
@@ -65,44 +55,6 @@ import {
   resetPackingList,
   applyPackingKit,
 } from "./actions";
-
-/** The shared list shows no count, so ordering by one would sort by something invisible. */
-const SHARED_SORTS: readonly PackSort[] = ["category", "name"];
-
-type View = {
-  sort: PackSort;
-  category: PackCategory | "all";
-  /** Tick boxes on the rows — a mode, so a list you are only reading stays clean. */
-  select: boolean;
-};
-
-/**
- * One control changes, the rest stay put — a filter and a sort that reset each
- * other are two controls fighting. Both lists' views live in one query string,
- * prefixed, so ordering your bag never reorders the group's.
- */
-function hrefBuilder(
-  path: string,
-  prefix: "shared" | "bag",
-  mine: View,
-  other: Record<string, string>,
-) {
-  return (patch: {
-    sort?: PackSort;
-    category?: PackCategory | "all";
-    select?: boolean;
-  }) => {
-    const next = new URLSearchParams(other);
-    const sort = patch.sort ?? mine.sort;
-    const category = patch.category ?? mine.category;
-    const select = patch.select ?? mine.select;
-    if (sort !== "category") next.set(`${prefix}Sort`, sort);
-    if (category !== "all") next.set(`${prefix}Cat`, category);
-    if (select) next.set(`${prefix}Pick`, "1");
-    const query = next.toString();
-    return query ? `${path}?${query}` : path;
-  };
-}
 
 export const metadata = { title: "Packing" };
 
@@ -132,34 +84,15 @@ export default async function PackingPage({
   const tier = resolvePackTier(packSettings.tier, profile.packTier);
 
   const path = `/trip/${tripId}/packing`;
-  const sharedView: View = {
-    sort: parsePackSort(query.sharedSort, SHARED_SORTS),
-    category: parseCategoryFilter(query.sharedCat),
-    select: query.sharedPick === "1",
+  const sharedSelecting = query.sharedPick === "1";
+  const bagSelecting = query.bagPick === "1";
+  const selectHref = (bag: boolean, select: boolean) => {
+    const next = new URLSearchParams();
+    if (bag ? select : bagSelecting) next.set("bagPick", "1");
+    if (bag ? sharedSelecting : select) next.set("sharedPick", "1");
+    const suffix = next.toString();
+    return suffix ? `${path}?${suffix}` : path;
   };
-  const bagView: View = {
-    sort: parsePackSort(query.bagSort, PACK_SORTS),
-    category: parseCategoryFilter(query.bagCat),
-    select: query.bagPick === "1",
-  };
-  // Each list keeps the other's controls in the query string, so ordering your
-  // bag never quietly reorders the group's.
-  const keep = (prefix: "shared" | "bag", view: View) =>
-    Object.fromEntries(
-      [
-        view.sort !== "category" ? [`${prefix}Sort`, view.sort] : null,
-        view.category !== "all" ? [`${prefix}Cat`, view.category] : null,
-        view.select ? [`${prefix}Pick`, "1"] : null,
-      ].filter((e): e is [string, string] => e !== null),
-    );
-
-  const sharedGroups = viewPackingLines(lines, sharedView);
-  const sharedHref = hrefBuilder(
-    path,
-    "shared",
-    sharedView,
-    keep("bag", bagView),
-  );
 
   // Seeded here rather than behind a button because that's what the profile
   // setting asks for (ticket 221). The flag is the fill's own one-shot mark,
@@ -186,21 +119,10 @@ export default async function PackingPage({
     mine = await listPersonalPackingLines(tripId, access.viewer.id);
   }
 
-  const bagGroups = viewPackingLines(mine, bagView);
-  const bagHref = hrefBuilder(path, "bag", bagView, keep("shared", sharedView));
+  const bagGroups = viewPackingLines(mine, { sort: "category", category: "all" });
 
   // One person, one avatar colour across every tab.
   const toneOf = new Map(access.members.map((m) => [m.userId, m.tone]));
-
-  // What a claim of the viewer's own looks like, so a row can draw one before
-  // the server confirms it. The avatar comes off the profile, not the roster:
-  // that is where `listPackingClaims` reads it, and drawing the other one makes
-  // the pill flip from photo to initials the moment the server answers.
-  const viewerClaimant = {
-    name: access.viewer.name,
-    avatarIcon: profile.avatarIcon,
-    tone: toneOf.get(access.viewer.id),
-  };
 
   const claimsByLine = new Map<number, PackingClaimant[]>();
   for (const c of claims) {
@@ -219,9 +141,21 @@ export default async function PackingPage({
     (l) => packingStatus(claimsByLine.get(l.id) ?? []) === "packed",
   ).length;
   const bagPacked = mine.filter((l) => l.packedAt !== null).length;
+  const sharedItems = lines.map((line) => ({
+    ...line,
+    claims: claimsByLine.get(line.id) ?? [],
+  }));
+  const lanes = arrangePackingLanes(sharedItems, access.members);
+  const memberIds = new Set(access.members.map((member) => member.userId));
+  const cardActions = {
+    claim: setPackingClaim,
+    pack: setPackingPacked,
+    remove: removePackingLine,
+    rename: renamePackingLine,
+  };
 
-  const addBox = (label: string) => (
-    <label className="min-w-0 flex-1">
+  const addBox = (label: string, fullWidth = false) => (
+    <label className={fullWidth ? "min-w-0 basis-full" : "min-w-0 basis-full flex-1 sm:basis-auto"}>
       <span className="sr-only">{label}</span>
       <input
         name="label"
@@ -323,157 +257,47 @@ export default async function PackingPage({
         </p>
       </section>
 
-      <section>
-        <PackingCard
-          header={
-            <>
-              <h2 className="typed !mb-0">Shared</h2>
-              <PackingCount total={lines.length} packed={sharedPacked} />
-              {lines.length > 0 ? (
-                <PackingListFilters
-                  hrefFor={sharedHref}
-                  sort={sharedView.sort}
-                  category={sharedView.category}
-                  sorts={SHARED_SORTS}
-                />
-              ) : null}
-            </>
-          }
-          tools={
-            <form
-              action={addPackingLine.bind(null, tripId)}
-              className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3"
-            >
-              {addBox("Add something to pack")}
-              <CategorySelect />
-              <SubmitButton pendingLabel="Adding…" className="shrink-0">
-                <span className="sm:hidden">Add</span>
-                <span className="hidden sm:inline">Add to the list</span>
-              </SubmitButton>
-            </form>
-          }
-          footer={
-            sharedGroups.length > 0 ? (
-              /* Gated on what's on screen, not on what the list holds: a bar
-                 offering to clear rows a filter is hiding is one press from
-                 losing something you can't see. */
-              <PackingBulkBar
-                formId="shared-bulk"
-                selecting={sharedView.select}
-                selectHref={sharedHref({ select: true })}
-                doneHref={sharedHref({ select: false })}
-                removeSelected={removePackingLines.bind(null, tripId)}
-                reset={resetPackingList.bind(null, tripId, false)}
-                resetMessage="Clear the whole shared list for everyone — including anything a filter is hiding?"
-              />
-            ) : undefined
-          }
-        >
-          {lines.length === 0 ? (
-            <PackingCardEmpty title="No shared packing yet.">
-              The gear one of you brings for everyone — a speaker, a kettle, the
-              first-aid kit.
-            </PackingCardEmpty>
-          ) : sharedGroups.length === 0 ? (
-            <PackingCardEmpty title="Nothing in that category.">
-              The shared list has lines, just none filed here.
-            </PackingCardEmpty>
-          ) : (
-            sharedGroups.map((group) => (
-              <PackingGroup
-                key={group.key}
-                heading={group.heading}
-                count={group.lines.length}
-                pinned={sharedView.select}
-              >
-                {group.lines.map((line) => (
-                  <PackingLineRow
-                    key={line.id}
-                    tripId={tripId}
-                    lineId={line.id}
-                    label={line.label}
-                    selectFormId={sharedView.select ? "shared-bulk" : null}
-                    claimants={claimsByLine.get(line.id) ?? []}
-                    viewerId={access.viewer.id}
-                    viewer={viewerClaimant}
-                    setClaim={setPackingClaim}
-                    setPacked={setPackingPacked}
-                    remove={removePackingLine}
-                    rename={renamePackingLine}
-                  />
-                ))}
-              </PackingGroup>
-            ))
-          )}
-        </PackingCard>
-      </section>
-
-      <section>
-        <PackingCard
-          header={
-            <>
-              <h2 className="typed !mb-0">Your bag</h2>
-              <PackingCount total={mine.length} packed={bagPacked} />
-
-              <PackingKitMenu
-                kits={kits}
-                apply={applyPackingKit.bind(null, tripId)}
-              />
-
-              {mine.length > 0 ? (
-                <PackingListFilters
-                  hrefFor={bagHref}
-                  sort={bagView.sort}
-                  category={bagView.category}
-                  sorts={PACK_SORTS}
-                />
-              ) : null}
-            </>
-          }
-          tools={
-            <>
-              <form
-                action={addPersonalPackingLine.bind(null, tripId)}
-                className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3"
-              >
-                {addBox("Add something to your bag")}
-                <CategorySelect />
-                <SubmitButton pendingLabel="Adding…" className="shrink-0">
-                  <span className="sm:hidden">Add</span>
-                  <span className="hidden sm:inline">Add to my bag</span>
-                </SubmitButton>
-              </form>
-            </>
-          }
-          footer={
-            bagGroups.length > 0 ? (
+      <section className="mt-9">
+        <header className="flex flex-wrap items-center gap-3">
+          <h2 className="text-2xl">Your bag</h2>
+          <PackingCount total={mine.length} packed={bagPacked} />
+          <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+            <PackingKitMenu kits={kits} apply={applyPackingKit.bind(null, tripId)} />
+            {mine.length > 0 ? (
               <PackingBulkBar
                 formId="bag-bulk"
-                selecting={bagView.select}
-                selectHref={bagHref({ select: true })}
-                doneHref={bagHref({ select: false })}
+                selecting={bagSelecting}
+                selectHref={selectHref(true, true)}
+                doneHref={selectHref(true, false)}
                 removeSelected={removePackingLines.bind(null, tripId)}
                 reset={resetPackingList.bind(null, tripId, true)}
-                resetMessage="Clear your whole bag, including anything a filter is hiding? The shared list stays."
+                resetMessage="Clear your whole bag? The shared list stays."
               />
-            ) : undefined
-          }
+            ) : null}
+          </div>
+        </header>
+
+        <form
+          action={addPersonalPackingLine.bind(null, tripId)}
+          className="mt-4 flex flex-wrap items-center gap-2 rounded-lg border border-rule bg-sheet p-3"
         >
-          {mine.length === 0 ? (
-            <PackingCardEmpty title="Start your bag.">
-              Add the first thing above. Only you can see this list.
-            </PackingCardEmpty>
-          ) : bagGroups.length === 0 ? (
-            <PackingCardEmpty title="Nothing in that category.">
-              Your bag has lines, just none filed here.
-            </PackingCardEmpty>
-          ) : (
-            bagGroups.map((group) => (
-              <PackingGroup
+          {addBox("Add something to your bag")}
+          <CategorySelect />
+          <SubmitButton pendingLabel="Adding…" className="shrink-0">Add to my bag</SubmitButton>
+        </form>
+
+        {bagGroups.length === 0 ? (
+          <p className="mt-4 text-sm text-ink-soft">
+            Start your bag above. Only you can see this list.
+          </p>
+        ) : (
+          <div className="mt-4 grid items-start gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {bagGroups.map((group) => (
+              <PackingCube
                 key={group.key}
-                heading={group.heading}
-                count={group.lines.length}
-                pinned={bagView.select}
+                heading={group.heading ?? "All items"}
+                total={group.lines.length}
+                packed={group.lines.filter((line) => line.packedAt !== null).length}
               >
                 {group.lines.map((line) => (
                   <PersonalPackingRow
@@ -481,19 +305,107 @@ export default async function PackingPage({
                     tripId={tripId}
                     lineId={line.id}
                     label={line.label}
-                    selectFormId={bagView.select ? "bag-bulk" : null}
+                    selectFormId={bagSelecting ? "bag-bulk" : null}
                     quantity={line.quantity}
                     packedAt={line.packedAt}
                     setPacked={setPersonalPackingPacked}
                     step={stepPersonalPackingQuantity}
                     remove={removePackingLine}
                     rename={renamePackingLine}
+                    compact
                   />
                 ))}
-              </PackingGroup>
-            ))
-          )}
-        </PackingCard>
+              </PackingCube>
+            ))}
+          </div>
+        )}
+
+      </section>
+
+      <section className="mt-10">
+        <header className="flex flex-wrap items-center gap-3">
+          <h2 className="text-2xl">Who’s bringing what</h2>
+          <PackingCount total={lines.length} packed={sharedPacked} />
+          {lines.length > 0 ? (
+            <div className="ml-auto">
+              <PackingBulkBar
+                formId="shared-bulk"
+                selecting={sharedSelecting}
+                selectHref={selectHref(false, true)}
+                doneHref={selectHref(false, false)}
+                removeSelected={removePackingLines.bind(null, tripId)}
+                reset={resetPackingList.bind(null, tripId, false)}
+                resetMessage="Clear the whole shared list for everyone?"
+              />
+            </div>
+          ) : null}
+        </header>
+
+        <div className="mt-4 grid items-start gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <PackingLane name="Up for grabs" count={lanes.open.length} open add={
+            <form action={addPackingLine.bind(null, tripId)} className="flex flex-wrap items-center gap-2">
+              {addBox("Add something for everyone", true)}
+              <CategorySelect />
+              <SubmitButton pendingLabel="Adding…" className="shrink-0 !px-3">Add to group</SubmitButton>
+            </form>
+          }>
+            {lanes.open.map((line) => (
+              <PackingClaimCard
+                key={line.id}
+                tripId={tripId}
+                line={line}
+                claimants={line.claims}
+                personId={null}
+                viewerId={access.viewer.id}
+                selectFormId={sharedSelecting ? "shared-bulk" : null}
+                actions={cardActions}
+              />
+            ))}
+          </PackingLane>
+
+          {lanes.people.map(({ member, lines: memberLines }) => (
+            <PackingLane
+              key={member.userId}
+              name={member.userId === access.viewer.id ? "You" : member.name}
+              count={memberLines.length}
+              packed={memberLines.filter((line) =>
+                Boolean(line.claims.find((claim) => claim.userId === member.userId)?.packedAt),
+              ).length}
+              avatar={<Avatar name={member.name} icon={member.avatarIcon} tone={member.tone} size={24} />}
+            >
+              {memberLines.map((line) => (
+                <PackingClaimCard
+                  key={line.id}
+                  tripId={tripId}
+                  line={line}
+                  claimants={line.claims}
+                  personId={member.userId}
+                  viewerId={access.viewer.id}
+                  selectFormId={sharedSelecting && line.claims[0]?.userId === member.userId ? "shared-bulk" : null}
+                  actions={cardActions}
+                />
+              ))}
+            </PackingLane>
+          ))}
+
+          {lanes.former.length > 0 ? (
+            <PackingLane name="Past members" count={lanes.former.length}>
+              {lanes.former.map((line) => (
+                <PackingClaimCard
+                  key={line.id}
+                  tripId={tripId}
+                  line={line}
+                  claimants={line.claims}
+                  personId={null}
+                  viewerId={access.viewer.id}
+                  selectFormId={sharedSelecting && !memberIds.has(line.claims[0]?.userId ?? "") ? "shared-bulk" : null}
+                  actions={cardActions}
+                />
+              ))}
+            </PackingLane>
+          ) : null}
+        </div>
+
       </section>
     </div>
   );
