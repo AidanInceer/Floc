@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { nearestSlide, stepSlide } from "./carousel";
+import { filmPosition, nearestSlide, stepSlide } from "./carousel";
 
 describe("nearestSlide", () => {
   const starts = [0, 1000, 2000, 3000];
@@ -21,8 +21,19 @@ describe("stepSlide", () => {
     expect(stepSlide(2, -1, 6)).toBe(1);
   });
 
-  it("stops at the ends rather than wrapping", () => {
-    expect(stepSlide(5, 1, 6)).toBe(5);
-    expect(stepSlide(0, -1, 6)).toBe(0);
+  it("wraps between the first and last slides", () => {
+    expect(stepSlide(5, 1, 6)).toBe(0);
+    expect(stepSlide(0, -1, 6)).toBe(5);
+  });
+});
+
+describe("filmPosition", () => {
+  it("uses the neighbouring copy across each seam", () => {
+    expect(filmPosition(0, 5, 6)).toBe(0);
+    expect(filmPosition(5, 0, 6)).toBe(7);
+  });
+
+  it("uses the real slide for other jumps", () => {
+    expect(filmPosition(1, 4, 6)).toBe(5);
   });
 });

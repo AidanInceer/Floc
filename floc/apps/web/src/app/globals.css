@@ -588,9 +588,9 @@
 
   /*
    * The landing filmstrip. The track spans the viewport and the open slide
-   * sits in the middle, so the slides either side peek in; the spacers let
-   * the first and last slides centre too. The drawn screen bleeds off each
-   * slide's foot.
+   * sits in the middle, so the slides either side peek in. Repeated end cards
+   * keep both sides filled as the strip wraps. The drawn screen bleeds off
+   * each slide's foot.
    */
   .film-track {
     --slide: min(1120px, 86vw);

@@ -19,7 +19,7 @@ import { PackingStepper } from "@/components/packing/packing-quantity";
 
 /**
  * One thing in your own bag (ticket 220). A separate component from
- * `PackingLineRow` rather than a mode of it: nobody claims your socks, so the
+ * a shared claim card: nobody claims your socks, so the
  * claim verb, the avatars and the three-way status all go, and what is left is
  * a plain checklist row with a count on it.
  *
@@ -40,6 +40,7 @@ export function PersonalPackingRow({
   step,
   remove,
   rename,
+  compact = false,
 }: {
   tripId: number;
   lineId: number;
@@ -52,6 +53,7 @@ export function PersonalPackingRow({
   step: (tripId: number, lineId: number, formData: FormData) => Promise<void>;
   remove: (tripId: number, lineId: number) => Promise<void>;
   rename: (tripId: number, lineId: number, label: string) => Promise<{ error?: string }>;
+  compact?: boolean;
 }) {
   const [packed, showPacked] = useOptimistic(packedAt !== null);
   // A reducer, not a set value: two clicks before the first render commits both
@@ -100,11 +102,13 @@ export function PersonalPackingRow({
         />
       </span>
 
-      <span className="hidden shrink-0 sm:block">
-        <Badge tone={packed ? "agreed" : "open"} className="whitespace-nowrap">
-          {packed ? "Packed" : "Not packed"}
-        </Badge>
-      </span>
+      {!compact ? (
+        <span className="hidden shrink-0 sm:block">
+          <Badge tone={packed ? "agreed" : "open"} className="whitespace-nowrap">
+            {packed ? "Packed" : "Not packed"}
+          </Badge>
+        </span>
+      ) : null}
 
       <PackingStepper
         shown={shown}

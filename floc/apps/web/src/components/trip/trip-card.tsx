@@ -1,5 +1,5 @@
 /**
- * Shared trip tile for /trips and /trips/archived (ticket 17; reskinned 193).
+ * Trip tile for /trips/archived (ticket 17; reskinned 193).
  * Server component — actions are passed in as slots so callers can wire
  * admin-only buttons without this file knowing about archive/restore/delete.
  *
@@ -117,7 +117,7 @@ export function TripCard({
             ) : null}
           </>
         ) : (
-          <LiveActions trip={trip} />
+          <TripCardActions trip={trip} />
         )}
       </div>
     </li>
@@ -178,7 +178,7 @@ function CardBody({
   );
 }
 
-function LiveActions({ trip }: { trip: TripCardData }) {
+export function TripCardActions({ trip }: { trip: TripCardData }) {
   const isAdmin = trip.role === "admin";
   return (
     <div className="pointer-events-auto ml-auto flex items-center gap-1.5">

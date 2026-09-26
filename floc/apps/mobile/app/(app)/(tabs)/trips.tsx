@@ -15,10 +15,11 @@
  * a slow tick while you are looking at it (see `api.ts`).
  */
 import { titleCase } from "@floc/core/text/title-case";
+import { arrangeTripsHome } from "@floc/core/trip/trips-home";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { FlatList, Pressable, RefreshControl, View } from "react-native";
+import { FlatList, Pressable, RefreshControl, Text, View } from "react-native";
 
 import { FlockChevronGlyph, MoreGlyph, StarGlyph } from "@/components/system/glyphs";
 import { InviteBanner } from "@/components/trip/invite-banner";
@@ -26,7 +27,7 @@ import { TagPills } from "@/components/trip/tag-pills";
 import { useTheme } from "@/components/system/theme";
 import { TripSheet, draftFor, type TripDraft } from "@/components/trip/trip-sheet";
 import { Body, Button, Card, Empty, Failed, Figure, IconButton, Label, Loading, Toggle } from "@/components/system/ui";
-import { formatDateRange, splitEnded } from "@floc/core/dates/dates";
+import { countdownLabel, formatDateRange, fromIsoDate, splitEnded } from "@floc/core/dates/dates";
 import { tripListStage } from "@floc/core/trip/list-stage";
 import { readTripColor, tripPastel } from "@floc/core/trip/trip-color";
 import { pastelOf } from "@floc/core/design/pastels";
@@ -38,7 +39,7 @@ import type { inferRouterOutputs } from "@trpc/server";
 
 import { trpc } from "@/lib/api";
 import { useTripWrite } from "@/lib/trip/trip-write";
-import { space } from "@/lib/theme";
+import { fonts, radius, space } from "@/lib/theme";
 
 /** One row of `trips.list`, named so the card, its menu and its writes agree on the shape. */
 type TripCard = inferRouterOutputs<AppRouter>["trips"]["list"][number];
@@ -83,11 +84,18 @@ export default function Trips() {
   if (trips.isError) return <Failed onRetry={() => trips.refetch()} />;
 
   const { live, ended } = splitEnded(trips.data);
+  const ordered = [...live].sort((a, b) =>
+    a.startDate && b.startDate
+      ? a.startDate.localeCompare(b.startDate)
+      : a.startDate ? -1 : b.startDate ? 1 : 0,
+  );
+  const { featured, later, undated } = arrangeTripsHome(ordered);
+  const rows = [...later, ...undated];
 
   return (
     <View style={{ flex: 1, backgroundColor: c.paper }}>
       <FlatList
-        data={live}
+        data={rows}
         keyExtractor={(t) => String(t.id)}
         contentContainerStyle={{ padding: space.lg, gap: space.md }}
         refreshControl={
@@ -99,13 +107,18 @@ export default function Trips() {
           />
         }
         ListHeaderComponent={
-          <InviteBanner
-            invites={invites.data ?? []}
-            busy={accept.isPending || decline.isPending}
-            onAnswer={(tripId, join) =>
-              join ? accept.mutate({ tripId }) : decline.mutate({ tripId })
-            }
-          />
+          <View style={{ gap: space.lg }}>
+            <InviteBanner
+              invites={invites.data ?? []}
+              busy={accept.isPending || decline.isPending}
+              onAnswer={(tripId, join) =>
+                join ? accept.mutate({ tripId }) : decline.mutate({ tripId })
+              }
+            />
+            {featured ? (
+              <FeaturedTrip trip={featured} onMenu={setChosen} onStar={toggleStar} />
+            ) : null}
+          </View>
         }
         ListEmptyComponent={
           trips.data.length === 0 ? (
@@ -120,57 +133,22 @@ export default function Trips() {
             </View>
           ) : null
         }
-        renderItem={({ item }) => (
-          <TripRow trip={item} onMenu={setChosen} onStar={toggleStar} />
+        renderItem={({ item, index }) => (
+          <View style={{ gap: space.sm }}>
+            {index === 0 && later.length > 0 ? <Label>Later</Label> : null}
+            {index === later.length && undated.length > 0 ? <Label>No dates yet</Label> : null}
+            <TripRow trip={item} onMenu={setChosen} onStar={toggleStar} />
+          </View>
         )}
         ListFooterComponent={
-          <View style={{ gap: space.sm, paddingTop: space.lg }}>
-            {ended.length > 0 ? (
-              <View style={{ gap: space.md, paddingBottom: space.md }}>
-                <Pressable
-                  onPress={() => setShowPast((open) => !open)}
-                  accessibilityRole="button"
-                  accessibilityState={{ expanded: showPast }}
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: space.sm,
-                    paddingVertical: space.sm,
-                  }}
-                >
-                  <FlockChevronGlyph color={c["ink-2"]} open={showPast} />
-                  <Figure tone="ink-2">{`Past trips · ${ended.length}`}</Figure>
-                </Pressable>
-                {showPast
-                  ? ended.map((t) => (
-                      <TripRow key={t.id} trip={t} onMenu={setChosen} onStar={toggleStar} />
-                    ))
-                  : null}
-              </View>
-            ) : null}
-            {trips.data.length > 0 ? (
-              <Button label="New trip" onPress={() => router.push("/(app)/new-trip")} />
-            ) : null}
-            {/* Two rare, short jobs on one line — three stacked bars gave a
-                once-a-month button the same shout as the one you came for. */}
-            <View style={{ flexDirection: "row", gap: space.sm }}>
-              <View style={{ flex: 1 }}>
-                <Button
-                  label="Join with a link"
-                  variant="quiet"
-                  onPress={() => router.push("/(app)/join")}
-                />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Button
-                  label="Archived"
-                  variant="quiet"
-                  onPress={() => router.push("/(app)/archived")}
-                />
-              </View>
-            </View>
-          </View>
+          <TripListFooter
+            ended={ended}
+            showPast={showPast}
+            onTogglePast={() => setShowPast((open) => !open)}
+            onMenu={setChosen}
+            onStar={toggleStar}
+            hasTrips={trips.data.length > 0}
+          />
         }
       />
 
@@ -194,21 +172,17 @@ function TripRow({
   onStar: (trip: TripCard) => void;
 }) {
   const { c } = useTheme();
-  // The chosen colour, or the id rotation still filling in (#213). It is a
-  // rail, not a wash: a card tinted edge to edge would fight the tag pills
-  // wearing the same pastel.
   const tone = pastelOf(tripPastel(readTripColor(trip.colorKey), trip.id));
   const mark = readTripMark(trip.mark);
   return (
     <Link href={{ pathname: "/trip/[id]", params: { id: trip.id } }} asChild>
       <Pressable>
-        <Card style={{ borderLeftWidth: 4, borderLeftColor: c[tone] }}>
+        <Card>
           <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
             <View style={{ flex: 1, gap: space.xs }}>
-              {/* The mark rides on the stage line, as it does on the web card:
-                  the rail already carries the trip's colour, so a tile of the
-                  same pastel would say it twice (#318). */}
+              {/* The mark rides on the stage line; the swatch carries colour (#318). */}
               <View style={{ flexDirection: "row", alignItems: "center", gap: space.xs }}>
+                <View style={{ width: 10, height: 10, borderRadius: 3, backgroundColor: c[tone], borderWidth: 1, borderColor: c[`${tone}-edge`] }} />
                 {mark ? <TripMarkIcon mark={mark} color={c[`${tone}-ink`]} size={14} /> : null}
                 <Label>{tripListStage(trip)}</Label>
               </View>
@@ -241,6 +215,130 @@ function TripRow({
             }}
           >
             <TagPills tags={trip.tags} color={readTripColor(trip.colorKey)} tripId={trip.id} />
+          </View>
+        </Card>
+      </Pressable>
+    </Link>
+  );
+}
+
+function TripListFooter({
+  ended,
+  showPast,
+  onTogglePast,
+  onMenu,
+  onStar,
+  hasTrips,
+}: {
+  ended: TripCard[];
+  showPast: boolean;
+  onTogglePast: () => void;
+  onMenu: (trip: TripCard) => void;
+  onStar: (trip: TripCard) => void;
+  hasTrips: boolean;
+}) {
+  const router = useRouter();
+  const { c } = useTheme();
+  return (
+    <View style={{ gap: space.sm, paddingTop: space.lg }}>
+      {ended.length > 0 ? (
+        <View style={{ gap: space.md, paddingBottom: space.md }}>
+          <Pressable
+            onPress={onTogglePast}
+            accessibilityRole="button"
+            accessibilityState={{ expanded: showPast }}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: space.sm,
+              paddingVertical: space.sm,
+            }}
+          >
+            <FlockChevronGlyph color={c["ink-2"]} open={showPast} />
+            <Figure tone="ink-2">{`Past trips · ${ended.length}`}</Figure>
+          </Pressable>
+          {showPast
+            ? ended.map((t) => (
+                <TripRow key={t.id} trip={t} onMenu={onMenu} onStar={onStar} />
+              ))
+            : null}
+        </View>
+      ) : null}
+      {hasTrips ? <Button label="New trip" onPress={() => router.push("/(app)/new-trip")} /> : null}
+      <View style={{ flexDirection: "row", gap: space.sm }}>
+        <View style={{ flex: 1 }}>
+          <Button label="Join with a link" variant="quiet" onPress={() => router.push("/(app)/join")} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Button label="Archived" variant="quiet" onPress={() => router.push("/(app)/archived")} />
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function FeaturedTrip({
+  trip,
+  onMenu,
+  onStar,
+}: {
+  trip: TripCard;
+  onMenu: (trip: TripCard) => void;
+  onStar: (trip: TripCard) => void;
+}) {
+  const { c } = useTheme();
+  if (!trip.startDate) return null;
+
+  const tone = pastelOf(tripPastel(readTripColor(trip.colorKey), trip.id));
+  const date = fromIsoDate(trip.startDate);
+  const month = date.toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" });
+  const status = tripListStage(trip) === "Happening now"
+    ? "Happening now"
+    : `Next up${countdownLabel(trip.startDate) ? ` · ${countdownLabel(trip.startDate)}` : ""}`;
+
+  return (
+    <Link href={{ pathname: "/trip/[id]", params: { id: trip.id } }} asChild>
+      <Pressable>
+        <Card style={{ flexDirection: "row", gap: space.md, padding: space.lg }}>
+          <View
+            style={{
+              width: 64,
+              height: 64,
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: radius.sm,
+              borderWidth: 1,
+              borderColor: c[`${tone}-edge`],
+              backgroundColor: c[tone],
+            }}
+          >
+            <Text style={{ fontFamily: fonts.type, fontSize: 28, lineHeight: 32, color: c[`${tone}-ink`] }}>
+              {date.getUTCDate()}
+            </Text>
+            <Text style={{ fontFamily: fonts.type, fontSize: 11, color: c[`${tone}-ink`] }}>
+              {month.toUpperCase()}
+            </Text>
+          </View>
+          <View style={{ flex: 1, gap: space.xs }}>
+            <Label>{status}</Label>
+            <Text style={{ fontFamily: fonts.display, fontSize: 23, lineHeight: 26, color: c.ink }}>
+              {titleCase(trip.name)}
+            </Text>
+            <Figure tone="ink-2">{formatDateRange(trip.startDate, trip.endDate)}</Figure>
+            <View style={{ flexDirection: "row", gap: space.sm, marginTop: space.sm }}>
+              <IconButton label={`More for ${trip.name}`} onPress={() => onMenu(trip)}>
+                {(colour) => <MoreGlyph color={colour} />}
+              </IconButton>
+              <IconButton
+                label={trip.starred ? `Unstar ${trip.name}` : `Star ${trip.name}`}
+                on={trip.starred}
+                onColor={tone}
+                onPress={() => onStar(trip)}
+              >
+                {(colour) => <StarGlyph color={colour} on={trip.starred} />}
+              </IconButton>
+            </View>
           </View>
         </Card>
       </Pressable>

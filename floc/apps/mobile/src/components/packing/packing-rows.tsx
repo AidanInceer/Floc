@@ -124,6 +124,7 @@ export function SharedRow({
   onPacked,
   onRemove,
   onRename,
+  laneUserId,
 }: {
   line: SharedLine;
   viewerId: string | undefined;
@@ -134,19 +135,24 @@ export function SharedRow({
   onPacked: (packed: boolean) => void;
   onRemove: () => void;
   onRename: (label: string) => Promise<unknown>;
+  laneUserId?: string | null;
 }) {
   const mine = line.claims.find((claim) => claim.userId === viewerId);
+  const laneClaim = laneUserId ? line.claims.find((claim) => claim.userId === laneUserId) : null;
   // Names only. Whether it is packed is already the status beside them, and
   // "Packed · Aidan (packed)" says it twice.
   const bringing = line.claims.map((claim) => claim.name).join(", ");
-  const said = [
-    packingStatusLabel(
-      line.claims.map((claim) => ({ packedAt: claim.packed ? SOME_TIME : null })),
-    ),
-    bringing,
-  ]
-    .filter(Boolean)
-    .join(" · ");
+  const said = laneClaim
+    ? [
+        laneClaim.packed ? "Packed" : "Not packed",
+        line.claims.length > 1
+          ? `with ${line.claims.filter((claim) => claim.userId !== laneUserId).map((claim) => claim.name).join(", ")}`
+          : "",
+      ].filter(Boolean).join(" · ")
+    : [
+        packingStatusLabel(line.claims.map((claim) => ({ packedAt: claim.packed ? SOME_TIME : null }))),
+        bringing,
+      ].filter(Boolean).join(" · ");
 
   if (selecting) {
     return (
@@ -165,7 +171,7 @@ export function SharedRow({
           whether it is done. The slot is held even when there is nothing to
           tick, so every label starts in the same column. */}
       <View style={{ width: TICK_SLOT }}>
-        {mine ? (
+        {mine && (!laneUserId || laneUserId === viewerId) ? (
           <IconButton
             label={mine.packed ? "Packed — undo" : "I've packed it"}
             on={mine.packed}

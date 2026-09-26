@@ -22,6 +22,7 @@ import { Sheet } from "@/components/system/sheet";
 import {
   Body,
   Button,
+  Card,
   Dropdown,
   Empty,
   Failed,
@@ -80,7 +81,7 @@ export default function Kits() {
   return (
     <>
       <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }}>
-        <View style={{ gap: space.sm }}>
+        <Card>
           <Label>Start a list</Label>
           <Field label="Name" value={name} placeholder="Photography" onChangeText={setName} />
           <Button
@@ -92,10 +93,10 @@ export default function Kits() {
           {capped ? <Body tone="red">That&apos;s as many lists as you can save.</Body> : null}
           {/* What a saved list is *for* is the one thing the rows cannot show. */}
           <Body tone="ink-3">
-            Kit you take again and again. Copy one into your bag on any trip and edit it there —
-            the trip never changes what&apos;s saved here.
+            Keep the things you take again and again. Add a list to any trip&apos;s bag,
+            then tailor it for that trip.
           </Body>
-        </View>
+        </Card>
 
         {kits.data.length === 0 ? <Empty>No saved lists yet.</Empty> : null}
 
