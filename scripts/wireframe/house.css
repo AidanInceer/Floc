@@ -84,6 +84,15 @@ a { color: var(--pen); }
 }
 .wf-theme button[aria-pressed="true"] { background: var(--paper); color: var(--ink); opacity: 1; }
 
+.wf-home {
+  position: fixed; left: 16px; bottom: 16px; z-index: 1000;
+  display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px 7px 10px; border-radius: 999px;
+  background: var(--ink); color: var(--paper); box-shadow: var(--shadow-lift); text-decoration: none;
+  font-family: var(--type); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+}
+.wf-home:hover { background: var(--pen); }
+.wf-home svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+
 .wf-index { max-width: 52rem; margin: 56px auto 96px; padding: 0 24px; }
 .wf-lede { margin-top: 6px; color: var(--ink-3); font-size: var(--text-sm); }
 .wf-group { margin-top: 40px; }

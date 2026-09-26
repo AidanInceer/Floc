@@ -22,5 +22,13 @@
     });
     document.body.appendChild(bar);
     set(root.dataset.theme);
+
+    if (location.pathname !== "/") {
+      var home = document.createElement("a");
+      home.className = "wf-home";
+      home.href = "/";
+      home.innerHTML = '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M8.4 3.6 5 7l3.4 3.4"/></svg>All wireframes';
+      document.body.appendChild(home);
+    }
   });
 })();
