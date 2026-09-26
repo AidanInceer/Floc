@@ -70,8 +70,8 @@ export function groupRange(groupSize: string): { min: number; max: number } | nu
   return low && high ? { min: Number(low), max: Number(high[0]) } : null;
 }
 
-const SIZE_PROBE: Record<ExploreAnswers["size"], number> = { "2-4": 3, "5-8": 6, "9+": 10 };
-const SEASON: Record<ExploreAnswers["when"], number[]> = {
+export const SIZE_PROBE: Record<ExploreAnswers["size"], number> = { "2-4": 3, "5-8": 6, "9+": 10 };
+export const SEASON: Record<ExploreAnswers["when"], number[]> = {
   spring: [3, 4, 5],
   summer: [6, 7, 8],
   autumn: [9, 10, 11],
@@ -80,7 +80,7 @@ const SEASON: Record<ExploreAnswers["when"], number[]> = {
 
 // Why: listings mix GBP and EUR; the bands are rough enough that minor units
 // compare directly rather than pulling in a rate for a quiz.
-function costFits(priceMinor: number, cost: ExploreAnswers["cost"]): boolean {
+export function costFits(priceMinor: number, cost: ExploreAnswers["cost"]): boolean {
   if (cost === "under-500") return priceMinor < 50000;
   if (cost === "more") return priceMinor > 100000;
   return priceMinor >= 50000 && priceMinor <= 100000;

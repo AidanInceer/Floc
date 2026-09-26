@@ -16,6 +16,7 @@ import { BorrowTrip } from "@/components/landing/borrow-trip";
 import { AppBand } from "@/components/landing/app-band";
 import { ClosingTicket } from "@/components/landing/closing-ticket";
 import { HeroDeck } from "@/components/landing/hero-deck";
+import { Shore } from "@/components/landing/shore";
 import { LandingFaq } from "@/components/landing/landing-faq";
 import { FeatureFilm } from "@/components/landing/tour/feature-film";
 import { shotFor } from "@/components/landing/tour/tour-shots";
@@ -58,38 +59,41 @@ export default async function LandingPage() {
   const { start, inspire } = destinations(signedIn);
 
   return (
-    <div className="pt-6 sm:pt-10">
-      {/* ── hero ─────────────────────────────────────────────────────── */}
-      <section className="mx-auto max-w-[60rem] px-4 pt-12 text-center sm:px-6 sm:pt-16">
-        <h1 className="font-display text-[clamp(2.8rem,7.4vw,6rem)] font-semibold leading-none tracking-[-0.04em]">
-          Group trip planning,{" "}
-          <ConfettiWord>
-            <span className="hl hl-loose hl-green">sorted</span>
-          </ConfettiWord>
-          .
-        </h1>
-        <p className="mx-auto mt-6 max-w-[44ch] text-md text-ink-soft">
-          One page your whole group can edit: where you&rsquo;re going, the
-          days everyone can make, the route, and who owes who.
-        </p>
-        <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <ButtonLink href={start} variant="primary" className="px-6 py-3 text-[12px]">
-            {signedIn ? "Get planning!" : "Start a trip — free"}
-          </ButtonLink>
-          <ButtonLink href={inspire} variant="secondary" className="px-6 py-3 text-[12px]">
-            See example trips
-          </ButtonLink>
-        </div>
-      </section>
+    <div>
+      <div className="bg-sheet pb-4 pt-6 sm:pt-10">
+        {/* ── hero ─────────────────────────────────────────────────────── */}
+        <section className="mx-auto max-w-[60rem] px-4 pt-12 text-center sm:px-6 sm:pt-16">
+          <h1 className="font-display text-[clamp(2.8rem,7.4vw,6rem)] font-semibold leading-none tracking-[-0.04em]">
+            Group trip planning,{" "}
+            <ConfettiWord>
+              <span className="hl hl-loose hl-green">sorted</span>
+            </ConfettiWord>
+            .
+          </h1>
+          <p className="mx-auto mt-6 max-w-[44ch] text-md text-ink-soft">
+            One page your whole group can edit: where you&rsquo;re going, the
+            days everyone can make, the route, and who owes who.
+          </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <ButtonLink href={start} variant="primary" className="px-6 py-3 text-[12px]">
+              {signedIn ? "Get planning!" : "Start a trip — free"}
+            </ButtonLink>
+            <ButtonLink href={inspire} variant="secondary" className="px-6 py-3 text-[12px]">
+              See example trips
+            </ButtonLink>
+          </div>
+        </section>
 
-      {/* Illustrative sample, not a live query — one Sicily trip settling. */}
-      <div className="mt-16">
-        <HeroDeck />
+        {/* Illustrative sample, not a live query — one Sicily trip settling. */}
+        <div className="mt-16">
+          <HeroDeck />
+        </div>
       </div>
+      <Shore className="-mt-px fill-sheet" />
 
       <div className="mx-auto w-full max-w-[84rem] px-4 sm:px-6">
         {/* ── feature summary ────────────────────────────────────────── */}
-        <section className="mt-24">
+        <section className="mt-16">
           <FeatureFilm slides={tourSlides(sellingPro).map((s) => ({ ...s, shot: shotFor(s.key) }))} />
         </section>
 

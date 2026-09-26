@@ -7,8 +7,7 @@ import { DEFAULT_ANSWERS } from "@floc/core/trip/explore/explore-match";
 import { readExploreSort, sortPresetTrips } from "@floc/core/trip/explore/explore-sort";
 import { PRESET_TRIPS, REGIONS, type Region } from "@floc/core/trip/explore/preset-trips";
 
-import { ExploreRows } from "@/components/explore/explore-rows";
-import { ExploreTop } from "@/components/explore/explore-top";
+import { ExploreFront } from "@/components/explore/explore-front";
 import { getSession } from "@/server/access";
 import { loadAnswers } from "@/server/explore/explore-answers";
 import { loadExploreRates } from "@/server/explore/explore-rates";
@@ -37,16 +36,21 @@ export default async function ExplorePage({
   const shown = sortPresetTrips(inRegion, sort, rates);
 
   return (
-    <div className="mx-auto w-full max-w-[76rem] px-4 pb-20 pt-6 sm:px-6">
-      <ExploreTop signedIn={!!userId} initialAnswers={answers ?? DEFAULT_ANSWERS} />
-      <ExploreRows trips={shown} region={active} sort={sort} signedIn={!!userId} showAll={params.all === "1"} />
-
-      <p className="mt-10 border-t border-rule pt-5 text-xs text-ink-faint">
-        These listings are illustrative and not bookable. Operator names are
-        placeholders used to show what a listing would look like — Floc has
-        no partnership with any of them, and nothing on this page is paid
-        placement.
-      </p>
+    <div className="pb-20">
+      <ExploreFront
+        trips={shown}
+        view={{ region: active, sort, showAll: params.all === "1" }}
+        signedIn={!!userId}
+        initialAnswers={answers ?? DEFAULT_ANSWERS}
+      />
+      <div className="mx-auto max-w-[76rem] px-4 sm:px-6">
+        <p className="mt-10 border-t border-rule pt-5 text-xs text-ink-faint">
+          These listings are illustrative and not bookable. Operator names are
+          placeholders used to show what a listing would look like — Floc has
+          no partnership with any of them, and nothing on this page is paid
+          placement.
+        </p>
+      </div>
     </div>
   );
 }

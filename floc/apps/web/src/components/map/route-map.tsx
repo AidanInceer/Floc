@@ -36,6 +36,7 @@ export function RouteMap({
   stops,
   missing,
   fill,
+  still,
 }: {
   stops: RouteMapStop[];
   /** Stops with no coordinates — named so the omission is never silent. */
@@ -43,6 +44,8 @@ export function RouteMap({
   /** Grow to fill the parent's height instead of the fixed 450px — lets a
       short-trip map use the panel's spare space rather than leaving a void. */
   fill?: boolean;
+  /** A picture of the route: no pan, zoom or wheel. */
+  still?: boolean;
 }) {
   const host = useRef<HTMLDivElement>(null);
 
@@ -61,6 +64,9 @@ export function RouteMap({
         attributionControl: true,
         // Off until the map is clicked — see the note at the top.
         scrollWheelZoom: false,
+        ...(still
+          ? { dragging: false, zoomControl: false, doubleClickZoom: false, boxZoom: false, keyboard: false, touchZoom: false }
+          : {}),
       });
 
       // Leaflet's own "Leaflet" prefix is not a licence condition (BSD-2, the
@@ -80,7 +86,7 @@ export function RouteMap({
         if (engaged) map?.scrollWheelZoom.enable();
       };
       const disarmWheel = () => map?.scrollWheelZoom.disable();
-      map.on("click", armWheel);
+      if (!still) map.on("click", armWheel);
       el.addEventListener("mouseenter", rearmWheel);
       el.addEventListener("mouseleave", disarmWheel);
 
@@ -148,7 +154,7 @@ export function RouteMap({
       cleanup();
       map?.remove();
     };
-  }, [stops]);
+  }, [stops, still]);
 
   if (stops.length === 0) return null;
 
@@ -160,7 +166,7 @@ export function RouteMap({
           className="route-map-canvas"
           // Fill mode: take the flexed frame's height, with a floor so a short
           // panel never collapses the map. Fixed 450px otherwise (globals.css).
-          style={fill ? { height: "100%", minHeight: 340 } : undefined}
+          style={fill ? { height: "100%", minHeight: still ? 0 : 340 } : undefined}
         />
         <div aria-hidden className="route-map-wash" />
         <div aria-hidden className="route-map-vignette" />

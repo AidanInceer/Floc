@@ -1001,33 +1001,52 @@
   overflow: visible;
 }
 
-/* Explore's world map: one numbered pin per lead listing. */
-.route-map-frame .explore-pin span {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
+/* Explore's world map: a dot per listing, named on hover and when picked. */
+.route-map-frame .explore-pin i {
+  display: block;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  border: 1.5px solid var(--ink);
+  border: 2px solid var(--pen);
+  background: var(--sheet);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.25s var(--ease), background-color 0.25s var(--ease);
+}
+.route-map-frame .explore-pin span {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  translate: 0 -50%;
+  white-space: nowrap;
+  padding: 2px 7px;
+  border-radius: 6px;
   background: var(--sheet);
   color: var(--ink);
-  font-family: var(--type);
-  font-size: 11px;
+  font-size: 12px;
   box-shadow: var(--shadow-sm);
-  transition: transform 0.2s var(--ease);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s var(--ease);
 }
-
-.route-map-frame .explore-pin:hover span,
-.route-map-frame .explore-pin.is-picked span {
-  transform: scale(1.18);
+.route-map-frame .explore-pin:hover i,
+.route-map-frame .explore-pin.is-picked i {
+  transform: scale(1.3);
   background: var(--pen);
-  border-color: var(--pen);
-  color: var(--paper);
 }
-
+.route-map-frame .explore-pin:hover span,
+.route-map-frame .explore-pin.is-picked span { opacity: 1; }
+.route-map-frame .explore-pin.is-picked span { font-weight: 600; }
+.route-map-frame .explore-pin:hover,
 .route-map-frame .explore-pin.is-picked {
   z-index: 1000 !important;
 }
+
+.explore-postcard { animation: postcard-in 0.6s var(--ease) both; }
+@keyframes postcard-in { from { opacity: 0; translate: 0 14px; } }
+@media (prefers-reduced-motion: reduce) { .explore-postcard { animation: none; } }
+
+/* Why: the footer is shared by every page; only on the landing page does the closing band's blue run on through it. */
+body:has(.closing-ticket) .site-footer { margin-top: 0; border-top: 0; background: var(--pastel-blue); }
 
 /* The landing page's route timeline uses `.route-pin` too, and its filled
    centre dot is a bare `::after` — harmless while the map pin was solid pen,
