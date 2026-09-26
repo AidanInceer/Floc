@@ -17,7 +17,7 @@ describe("borrowCards", () => {
     const [japan] = borrowCards(PRESET_TRIPS, ["japan-golden-route"]);
     expect(japan.place).toBe("Japan");
     expect(japan.stops.map((s) => s.name)).toEqual(["Tokyo", "Hakone", "Kyoto", "Osaka"]);
-    expect(japan.stops.reduce((n, s) => n + s.nights, 0)).toBe(japan.nights);
+    expect(japan.stops.map((s) => s.nights)).toEqual([4, 1, 3, 2]);
   });
 
   it("prices through the money formatter", () => {

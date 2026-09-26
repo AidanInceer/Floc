@@ -505,73 +505,130 @@
     display: none;
   }
 
+  /* Every band heading on the front door is one size — about half the hero's (ADR-019). */
+  .band-title {
+    font-size: clamp(2.2rem, 4.4vw, 3.4rem);
+    line-height: 1.04;
+    letter-spacing: -0.03em;
+  }
+
   /*
-   * The landing hero's trip pack. A slot holds each card's resting pose and
-   * never moves, so the hover area stays put while the card inside lifts —
-   * no flicker at the edges. The deal only fills backwards: a forwards fill
-   * would keep the animation in charge and the hover would snap, not ease.
+   * The landing hero's scene (ADR-019): one Sicily trip fanned across the full
+   * width, bleeding off both edges. A slot holds each card's resting pose and
+   * never moves, so the hover area stays put while the card inside lifts. The
+   * deal only fills backwards: a forwards fill would keep the animation in
+   * charge and the hover would snap, not ease. The beats (`is-*`) are set by
+   * `useScene`; with no script the deck rests on its opening state.
    */
-  .hero-pack {
+  .hero-deck {
     --soft: cubic-bezier(0.22, 1, 0.36, 1);
     position: relative;
-    width: 540px;
-    height: 490px;
-    max-width: 100%;
-    margin-inline: auto;
+    height: 470px;
+    overflow: hidden;
   }
-  .hero-slot {
+  .deck-slot {
     position: absolute;
-    left: 0;
-    top: 0;
+    left: 50%;
+    top: 20px;
     transform: translate(var(--x), var(--y)) rotate(var(--r));
-    animation: hero-deal 1s var(--soft) backwards;
+    animation: deck-deal 0.7s var(--soft) backwards;
     animation-delay: var(--d);
     transition: z-index 0s 0.45s;
   }
-  .hero-slot:hover {
+  .deck-slot:hover {
     z-index: 20;
     transition-delay: 0s;
   }
-  .hero-card {
+  .deck-card {
     border-radius: 20px;
     box-shadow: var(--shadow-lift);
-    transition:
-      transform 0.55s var(--soft),
-      box-shadow 0.55s var(--soft);
+    transition: transform 0.55s var(--soft);
   }
-  .hero-slot:hover .hero-card {
-    transform: translateY(-10px) rotate(calc(var(--r) * -1)) scale(1.025);
-    box-shadow: var(--shadow-lift), var(--shadow-lift);
-  }
-  @keyframes hero-deal {
+  .deck-slot:hover .deck-card { transform: translateY(-10px); }
+  @keyframes deck-deal {
     from {
       opacity: 0;
-      transform: translate(calc(var(--x) * 0.6 + 110px), calc(var(--y) * 0.6 + 130px)) rotate(0deg) scale(0.95);
-    }
-    35% {
-      opacity: 1;
+      transform: translate(var(--x), calc(var(--y) + 16px)) rotate(var(--r));
     }
   }
-  .hero-slot-dates { --x: 18px; --y: 0px; --r: -6deg; --d: 0.1s; width: 240px; z-index: 2; }
-  .hero-slot-money { --x: 292px; --y: 18px; --r: 5deg; --d: 0.22s; width: 220px; z-index: 2; }
-  .hero-slot-ticket { --x: 68px; --y: 150px; --r: -1.5deg; --d: 0.34s; width: 404px; z-index: 3; }
-  .hero-slot-pack { --x: 346px; --y: 352px; --r: 4deg; --d: 0.46s; width: 176px; z-index: 4; }
-  .hero-route::before {
+  /* Mirrored about the ticket: each card's twin sits the same distance out, tilted the other way. */
+  .deck-votes { --x: -776px; --y: 120px; --r: -5deg; --d: 0s; width: 250px; }
+  .deck-dates { --x: -510px; --y: 10px; --r: -3deg; --d: 0.08s; width: 250px; z-index: 2; }
+  .deck-ticket { --x: -250px; --y: 40px; --r: 0deg; --d: 0.16s; width: 500px; z-index: 3; }
+  .deck-money { --x: 260px; --y: 10px; --r: 3deg; --d: 0.24s; width: 250px; z-index: 2; }
+  .deck-pack { --x: 530px; --y: 120px; --r: 5deg; --d: 0.32s; width: 250px; }
+  @media (max-width: 900px) {
+    .hero-deck { height: 540px; }
+    .deck-votes, .deck-pack { display: none; }
+    .deck-ticket { --x: -170px; width: 340px; }
+    .deck-dates { --x: -190px; --y: 270px; }
+    .deck-money { --x: 0px; --y: 290px; }
+  }
+
+  .deck-swap { display: inline-grid; }
+  .deck-swap > * {
+    grid-area: 1 / 1;
+    transition: opacity 0.3s var(--ease), transform 0.4s var(--soft);
+  }
+  .deck-swap > :last-child { opacity: 0; transform: translateY(8px); }
+  .deck-swap.is-on > :first-child { opacity: 0; transform: translateY(-8px); }
+  .deck-swap.is-on > :last-child { opacity: 1; transform: none; }
+
+  .deck-track {
+    height: 8px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: color-mix(in srgb, currentColor 14%, transparent);
+  }
+  .deck-bar {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: currentColor;
+    transform-origin: left;
+    transform: scaleX(var(--w));
+    transition: transform 0.7s var(--soft);
+  }
+  .deck-day {
+    background: color-mix(in srgb, var(--pen) var(--heat), transparent);
+    transition: background-color 0.4s var(--ease), color 0.4s var(--ease);
+    transition-delay: var(--delay);
+  }
+  .deck-day.is-picked { background: var(--pen); color: var(--sheet); }
+
+  .deck-stamp {
+    opacity: 0;
+    transform: scale(1.5) rotate(-8deg);
+    transition: opacity 0.35s var(--soft), transform 0.5s var(--soft);
+  }
+  .deck-stamp.is-on { opacity: 1; transform: rotate(-4deg); }
+
+  /* The route line draws left to right, then each stop lights in turn. */
+  .deck-route::before {
     content: "";
     position: absolute;
     left: 12.5%;
     right: 12.5%;
     top: 6px;
-    border-top: 1.5px dashed var(--rule-2);
+    border-top: 1.5px dashed var(--pen);
+    clip-path: inset(0 100% 0 0);
+    transition: clip-path 1.2s var(--soft);
   }
-  /* The ticket's tear line, with a notch bitten out of each edge. */
-  .hero-perf {
+  .deck-route.is-drawn::before { clip-path: inset(0); }
+  .deck-stop { opacity: 0.3; transition: opacity 0.3s var(--ease); transition-delay: var(--delay); }
+  .deck-route.is-drawn .deck-stop { opacity: 1; }
+
+  /* A ticket's tear line, with a notch bitten out of each edge. */
+  .deck-perf,
+  .closing-perf {
     position: relative;
     margin: 0 18px;
     border-top: 1.5px dashed var(--rule-2);
   }
-  .hero-perf::before,
-  .hero-perf::after {
+  .deck-perf::before,
+  .deck-perf::after,
+  .closing-perf::before,
+  .closing-perf::after {
     content: "";
     position: absolute;
     top: -12px;
@@ -580,11 +637,22 @@
     border-radius: 999px;
     background: var(--paper);
   }
-  .hero-perf::before { left: -30px; }
-  .hero-perf::after { right: -30px; }
-  @media (max-width: 620px) {
-    .hero-pack { zoom: 0.62; }
+  .deck-perf::before,
+  .closing-perf::before { left: -30px; }
+  .deck-perf::after,
+  .closing-perf::after { right: -30px; }
+  /* The closing ticket sits on the blue band, so its notches are blue. */
+  .closing-perf::before,
+  .closing-perf::after { background: var(--pastel-blue); }
+  @media (min-width: 768px) {
+    .closing-perf { margin: 18px 0; border-top: 0; border-left: 1.5px dashed var(--rule-2); }
+    .closing-perf::before,
+    .closing-perf::after { left: -12px; right: auto; }
+    .closing-perf::before { top: -30px; }
+    .closing-perf::after { top: auto; bottom: -30px; }
   }
+
+  .landing-faq summary::-webkit-details-marker { display: none; }
 
   /*
    * The landing filmstrip. The track spans the viewport and the open slide
@@ -641,6 +709,8 @@
     transition: transform 0.6s var(--ease);
   }
   .film-slide.is-resting .film-shot { transform: translateY(18px); }
+  /* The plan slide's live route map: as tall as the week beside it. */
+  .film-map .route-map-frame { border-radius: 14px; }
   /* Narrow: the text sits above, and the drawn screen shrinks to show its
      full width rather than a cropped corner of it. */
   @media (max-width: 860px) {
@@ -683,30 +753,6 @@
   @keyframes borrow-pop {
     from { opacity: 0; transform: translateY(4px); }
   }
-  /* A postage stamp: white ground, a dashed inner edge, a slight tilt. */
-  .borrow-stamp {
-    position: relative;
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 70px;
-    height: 78px;
-    border-radius: 3px;
-    background: var(--sheet);
-    box-shadow: var(--shadow-sm);
-    line-height: 1;
-    transform: rotate(4deg);
-  }
-  .borrow-stamp::after {
-    content: "";
-    position: absolute;
-    inset: 4px;
-    border: 1.2px dashed currentColor;
-    border-radius: 2px;
-    opacity: 0.45;
-  }
-
   /* Anything typed rather than written: labels, counts, dates, section heads. */
   .typed {
     font-family: var(--type);

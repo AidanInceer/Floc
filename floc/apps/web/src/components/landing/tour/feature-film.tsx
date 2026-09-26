@@ -75,6 +75,8 @@ function useMouseDrag(track: RefObject<HTMLDivElement | null>, current: number, 
 
   const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
     if (e.pointerType !== "mouse" || e.button !== 0 || !track.current) return;
+    // The plan slide carries a live map; dragging it pans the map, not the film.
+    if ((e.target as HTMLElement).closest(".leaflet-container")) return;
     drag.current = { x: e.clientX, left: track.current.scrollLeft, index: current };
     dragged.current = false;
     setDragging(true);
@@ -160,7 +162,7 @@ export function FeatureFilm({ slides }: { slides: FilmSlide[] }) {
 
   return (
     <div>
-      <h2 className="text-center text-[clamp(1.7rem,3.5vw,2.5rem)]">Everything in one place</h2>
+      <h2 className="band-title text-center">Everything in one place</h2>
       <div className="mt-6 flex flex-wrap justify-center gap-2 p-0.5">
         {slides.map((s, i) => (
           <button

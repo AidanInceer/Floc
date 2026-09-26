@@ -5,6 +5,7 @@ import Link from "next/link";
 import { requireUser } from "@/server/access";
 import { listFriendsFor, type Person } from "@/server/social/friends";
 import { listPendingInvitesFor, type PendingInvite } from "@/server/trips/invites";
+import { newTripName } from "@/lib/landing/start-trip";
 import { loadTripCards } from "./cards";
 import { formatDateRange, hasEnded, splitEnded } from "@floc/core/dates/dates";
 import {
@@ -33,6 +34,7 @@ export default async function TripsPage({
 }) {
   const params = await searchParams;
   const tag = typeof params.tag === "string" ? params.tag.trim().toLowerCase() : "";
+  const asked = newTripName(params.new);
 
   const viewer = await requireUser("/trips");
 
@@ -61,8 +63,8 @@ export default async function TripsPage({
           <ButtonLink href="/trips/archived" variant="ghost">
             Archived
           </ButtonLink>
-          <Sheet trigger="New trip" title="Start a trip">
-            <CreateTripForm friends={friends} />
+          <Sheet trigger="New trip" title="Start a trip" defaultOpen={asked !== null}>
+            <CreateTripForm friends={friends} name={asked ?? ""} />
           </Sheet>
         </div>
       </header>
@@ -238,12 +240,12 @@ function orderCards(cards: TripCardData[]): TripCardData[] {
   return [...upcoming, ...ended];
 }
 
-function CreateTripForm({ friends }: { friends: Person[] }) {
+function CreateTripForm({ friends, name = "" }: { friends: Person[]; name?: string }) {
   return (
     <form action={createTrip}>
       <Stack gap={4}>
         <Field label="Name">
-          <Input name="name" required maxLength={TEXT_CAPS.tripName} />
+          <Input name="name" required maxLength={TEXT_CAPS.tripName} defaultValue={name} />
         </Field>
         {/* Optional — invites, doesn't add members. */}
         <Field label="Ask your friends along">

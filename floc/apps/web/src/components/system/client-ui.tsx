@@ -90,6 +90,7 @@ export function Sheet({
   triggerLabel,
   keepOpenOnSubmit,
   bareTrigger,
+  defaultOpen,
 }: {
   trigger: ReactNode;
   title: string;
@@ -108,6 +109,8 @@ export function Sheet({
   /** Skip the pill-button chrome entirely — for a trigger that *is* a surface,
       like the "start a trip" tile in the /trips grid (ticket 193). */
   bareTrigger?: boolean;
+  /** Open on arrival — a link that asked for this sheet (the landing's closing ticket). */
+  defaultOpen?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(false);
@@ -125,6 +128,12 @@ export function Sheet({
     dialog.addEventListener("close", onClose);
     return () => dialog.removeEventListener("close", onClose);
   }, []);
+
+  useEffect(() => {
+    if (!defaultOpen || ref.current?.open) return;
+    ref.current?.showModal();
+    setOpen(true);
+  }, [defaultOpen]);
 
   return (
     <>

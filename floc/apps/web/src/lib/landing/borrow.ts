@@ -7,7 +7,6 @@ export type BorrowCard = {
   id: string;
   place: string;
   title: string;
-  nights: number;
   price: string;
   stops: BorrowStop[];
 };
@@ -22,7 +21,6 @@ export function borrowCards(trips: PresetTrip[], ids: string[]): BorrowCard[] {
         id: trip.id,
         place: trip.country,
         title: trip.title,
-        nights: trip.nights,
         price: formatMoney(trip.priceFromMinor, trip.currency),
         stops: trip.legs.flatMap((l) => (l.kind === "base" ? [{ name: l.place, nights: l.nights, lat: l.lat, lng: l.lng }] : [])),
       },
