@@ -42,7 +42,8 @@
       "runtimeArgs": [
         "scripts/wireframe-server.mjs"
       ],
-      "port": 4100
+      "port": 4100,
+      "autoPort": true
     }
   ]
 }

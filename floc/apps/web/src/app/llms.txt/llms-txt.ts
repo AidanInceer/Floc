@@ -1,6 +1,6 @@
 import { LEGAL_LINKS } from "@/components/chrome/legal-links";
 
-import { tourFor } from "../landing-content";
+import { tourSlides } from "@/components/landing/tour/tour-slides";
 
 const PAGES = [
   { href: "/", label: "Home", about: "what Floc does, walked through one trip" },
@@ -23,7 +23,7 @@ export function llmsTxt(origin: string): string {
     "",
     "## Features",
     "",
-    ...tourFor(false).map((s) => `- ${s.title}: ${s.detail}`),
+    ...tourSlides(false).map((s) => `- ${s.title}: ${s.line}`),
     "",
     "## Optional",
     "",

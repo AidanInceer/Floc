@@ -11,11 +11,28 @@ import type { ProPrice } from "@/server/billing/billing";
 import { allFeaturesFree } from "@/lib/env";
 import { formatMoney } from "@floc/core/money/money";
 import { isLive } from "@floc/core/billing/subscription-copy";
+import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import { ButtonLink } from "@/components/system/ui";
 import { RouteMap } from "@/components/map/route-map";
 import { ConfettiWord } from "@/components/system/confetti-word";
-import { Glyph, sampleStops, tourFor } from "./landing-content";
-import { LandingTour } from "./landing-tour";
+import { BorrowTrip } from "@/components/landing/borrow-trip";
+import { HeroPack } from "@/components/landing/hero-pack";
+import { Glyph } from "@/components/landing/landing-glyph";
+import { sampleStops } from "@/components/landing/sample-trip";
+import { FeatureFilm } from "@/components/landing/tour/feature-film";
+import { shotFor } from "@/components/landing/tour/tour-shots";
+import { tourSlides } from "@/components/landing/tour/tour-slides";
+import { borrowCards } from "@/lib/landing/borrow";
+
+// The Explore listings the landing page rolls through, in this order.
+const BORROW_IDS = [
+  "japan-golden-route",
+  "andalusia-road-trip",
+  "iceland-ring-road",
+  "morocco-atlas-sahara",
+  "vietnam-north-to-south",
+  "new-zealand-south-island",
+];
 
 /**
  * Where every call to action on the page lands. Signed out, most of the
@@ -68,15 +85,6 @@ function SectionHead({
   );
 }
 
-function StubRow({ k, children }: { k: string; children: ReactNode }) {
-  return (
-    <div className="flex items-center justify-between gap-4 rounded-lg bg-sheet/60 px-4 py-3">
-      <span className="text-sm opacity-80">{k}</span>
-      {children}
-    </div>
-  );
-}
-
 export default async function LandingPage() {
   const session = await getSession();
   // One start destination, reused by every call to action on the page. Signed
@@ -98,7 +106,7 @@ export default async function LandingPage() {
   return (
     <div className="mx-auto w-full max-w-[84rem] px-4 pt-6 sm:px-6 sm:pt-10">
       {/* ── hero ─────────────────────────────────────────────────────── */}
-      <section className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.82fr)] lg:gap-16">
+      <section className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
         <div>
           <h1 className="font-display text-[clamp(2.4rem,5.4vw,4rem)] font-semibold leading-[1.04] tracking-[-0.03em]">
             Group trip planning,{" "}
@@ -125,44 +133,12 @@ export default async function LandingPage() {
 
         {/* Illustrative sample, not a live query — one settled trip, so the
             hero shows the thing the page is selling rather than a mood board. */}
-        <aside className="lift rounded-lg bg-pastel-blue p-6 text-pastel-blue-ink sm:p-7">
-          <p className="typed text-current">One trip, one page</p>
-          <div className="mt-3 flex items-baseline justify-between gap-4">
-            <h2 className="text-xl">Sicily</h2>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-pen px-3 py-1 font-display text-xs font-semibold text-sheet">
-              <Glyph name="check" className="size-[11px]" />
-              Agreed
-            </span>
-          </div>
-          <p className="font-mono text-xs opacity-70">late Sept</p>
-
-          <div className="mt-5 flex flex-col gap-2.5">
-            <StubRow k="Dates">
-              <span className="nums text-sm">12–19 Sep</span>
-            </StubRow>
-            <StubRow k="Route">
-              <span className="nums text-sm">3 stops · 7 nights</span>
-            </StubRow>
-            <StubRow k="Money">
-              <span className="nums text-sm">£177 each</span>
-            </StubRow>
-            <StubRow k="Who">
-              <span className="nums text-sm">6 in, all paid up</span>
-            </StubRow>
-          </div>
-
-          <p className="mt-5 text-sm opacity-80">
-            Everything the group has agreed, in one place.
-          </p>
-        </aside>
+        <HeroPack />
       </section>
 
       {/* ── feature summary ──────────────────────────────────────────── */}
       <section className="mt-24">
-        <SectionHead title="Everything in one place" />
-        <div className="mt-10">
-          <LandingTour stops={tourFor(sellingPro)} />
-        </div>
+        <FeatureFilm slides={tourSlides(sellingPro).map((s) => ({ ...s, shot: shotFor(s.key) }))} />
       </section>
 
       {/* ── the sample map ───────────────────────────────────────────── */}
@@ -175,41 +151,8 @@ export default async function LandingPage() {
       </section>
 
       {/* ── explore CTA ──────────────────────────────────────────────── */}
-      <section className="mt-24 grid items-center gap-10 md:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)]">
-        <div>
-          <h2 className="text-[clamp(1.5rem,3vw,2.1rem)]">
-            Borrow a trip someone has already worked out.
-          </h2>
-          <p className="mt-4 text-ink-soft">
-            Explore is a shelf of finished routes — real stops, real nights,
-            real costs. Find one you like and start your own from it.
-          </p>
-          <div className="mt-6">
-            <ButtonLink href={inspire} variant="primary">
-              Explore trips
-            </ButtonLink>
-          </div>
-        </div>
-        <div className="lift rounded-lg bg-pastel-red p-6 text-pastel-red-ink">
-          <p className="typed text-current">On the shelf</p>
-          <div className="mt-4 flex flex-col gap-2.5">
-            {[
-              { k: "Sicily", v: "7 nights · 4 stops" },
-              { k: "Porto", v: "4 nights · 2 stops" },
-              { k: "Andalucía", v: "9 nights · 5 stops" },
-            ].map((t) => (
-              <div
-                key={t.k}
-                className="flex items-baseline justify-between gap-4 rounded-md bg-sheet/60 px-4 py-3 text-sm"
-              >
-                <span className="font-display font-semibold tracking-tight">
-                  {t.k}
-                </span>
-                <span className="nums text-xs opacity-75">{t.v}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+      <section className="mt-24">
+        <BorrowTrip cards={borrowCards(PRESET_TRIPS, BORROW_IDS)} signedIn={Boolean(session?.user)} explore={inspire} />
       </section>
 
       {/* ── invite band (closing) ────────────────────────────────────── */}

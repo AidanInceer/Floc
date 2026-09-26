@@ -8,7 +8,7 @@ import { darkTokens, fontStacks, lightTokens } from "../floc/packages/floc-core/
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "..", "floc", "wireframe");
 const house = path.resolve(here, "wireframe");
-const port = Number(process.env.FLOC_WIREFRAME_PORT || 4100);
+const port = Number(process.env.FLOC_WIREFRAME_PORT || process.env.PORT || 4100);
 const mime = { ".html": "text/html", ".css": "text/css", ".js": "text/javascript", ".mjs": "text/javascript", ".svg": "image/svg+xml", ".json": "application/json", ".png": "image/png" };
 
 const declare = (tokens) => Object.entries(tokens).map(([name, value]) => `  --${name}: ${value};`).join("\n");

@@ -505,36 +505,205 @@
     display: none;
   }
 
-  /* The landing tour's play-time line: a dashed track, filled over one stop. */
-  .dash-track {
-    background: repeating-linear-gradient(90deg, var(--sheet-2) 0 6px, transparent 6px 10px);
+  /*
+   * The landing hero's trip pack. A slot holds each card's resting pose and
+   * never moves, so the hover area stays put while the card inside lifts —
+   * no flicker at the edges. The deal only fills backwards: a forwards fill
+   * would keep the animation in charge and the hover would snap, not ease.
+   */
+  .hero-pack {
+    --soft: cubic-bezier(0.22, 1, 0.36, 1);
+    position: relative;
+    width: 540px;
+    height: 490px;
+    max-width: 100%;
+    margin-inline: auto;
   }
-  .dash-fill {
-    width: 0;
-    background: repeating-linear-gradient(90deg, var(--rule) 0 6px, transparent 6px 10px);
-    animation: dash-fill linear forwards;
+  .hero-slot {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform: translate(var(--x), var(--y)) rotate(var(--r));
+    animation: hero-deal 1s var(--soft) backwards;
+    animation-delay: var(--d);
+    transition: z-index 0s 0.45s;
   }
-  @keyframes dash-fill {
-    to {
-      width: 100%;
-    }
+  .hero-slot:hover {
+    z-index: 20;
+    transition-delay: 0s;
   }
-  .rise-in {
-    animation: rise-in 0.35s var(--ease) both;
+  .hero-card {
+    border-radius: 20px;
+    box-shadow: var(--shadow-lift);
+    transition:
+      transform 0.55s var(--soft),
+      box-shadow 0.55s var(--soft);
   }
-  @keyframes rise-in {
+  .hero-slot:hover .hero-card {
+    transform: translateY(-10px) rotate(calc(var(--r) * -1)) scale(1.025);
+    box-shadow: var(--shadow-lift), var(--shadow-lift);
+  }
+  @keyframes hero-deal {
     from {
       opacity: 0;
-      transform: translateY(8px);
+      transform: translate(calc(var(--x) * 0.6 + 110px), calc(var(--y) * 0.6 + 130px)) rotate(0deg) scale(0.95);
+    }
+    35% {
+      opacity: 1;
     }
   }
-  .typing-dot {
-    animation: typing-dot 1s infinite;
+  .hero-slot-dates { --x: 18px; --y: 0px; --r: -6deg; --d: 0.1s; width: 240px; z-index: 2; }
+  .hero-slot-money { --x: 292px; --y: 18px; --r: 5deg; --d: 0.22s; width: 220px; z-index: 2; }
+  .hero-slot-ticket { --x: 68px; --y: 150px; --r: -1.5deg; --d: 0.34s; width: 404px; z-index: 3; }
+  .hero-slot-pack { --x: 346px; --y: 352px; --r: 4deg; --d: 0.46s; width: 176px; z-index: 4; }
+  .hero-route::before {
+    content: "";
+    position: absolute;
+    left: 12.5%;
+    right: 12.5%;
+    top: 6px;
+    border-top: 1.5px dashed var(--rule-2);
   }
-  @keyframes typing-dot {
-    50% {
-      opacity: 0.25;
+  /* The ticket's tear line, with a notch bitten out of each edge. */
+  .hero-perf {
+    position: relative;
+    margin: 0 18px;
+    border-top: 1.5px dashed var(--rule-2);
+  }
+  .hero-perf::before,
+  .hero-perf::after {
+    content: "";
+    position: absolute;
+    top: -12px;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: var(--paper);
+  }
+  .hero-perf::before { left: -30px; }
+  .hero-perf::after { right: -30px; }
+  @media (max-width: 620px) {
+    .hero-pack { zoom: 0.62; }
+  }
+
+  /*
+   * The landing filmstrip. The track spans the viewport and the open slide
+   * sits in the middle, so the slides either side peek in; the spacers let
+   * the first and last slides centre too. The drawn screen bleeds off each
+   * slide's foot.
+   */
+  .film-track {
+    --slide: min(1120px, 86vw);
+    --gap: 20px;
+    display: flex;
+    gap: var(--gap);
+    margin-top: 20px;
+    margin-inline: calc(50% - 50vw);
+    padding: 4px 0 24px;
+    scroll-snap-type: x mandatory;
+    cursor: grab;
+    user-select: none;
+  }
+  .film-track::before,
+  .film-track::after {
+    content: "";
+    flex: 0 0 max(0px, calc(50vw - var(--slide) / 2 - var(--gap)));
+  }
+  .film-track.is-dragging {
+    scroll-snap-type: none;
+    cursor: grabbing;
+  }
+  .film-slide {
+    position: relative;
+    flex: 0 0 var(--slide);
+    height: 580px;
+    border-radius: 28px;
+    overflow: hidden;
+    scroll-snap-align: center;
+    transition: opacity 0.4s var(--ease);
+  }
+  .film-slide.is-resting { opacity: 0.55; }
+  .film-text {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    width: 340px;
+    height: 100%;
+    padding: 44px 40px;
+  }
+  .film-was { margin-top: auto; }
+  .film-shot {
+    position: absolute;
+    left: 372px;
+    right: 44px;
+    top: 56px;
+    transition: transform 0.6s var(--ease);
+  }
+  .film-slide.is-resting .film-shot { transform: translateY(18px); }
+  /* Narrow: the text sits above, and the drawn screen shrinks to show its
+     full width rather than a cropped corner of it. */
+  @media (max-width: 860px) {
+    .film-track { --slide: 84vw; --gap: 12px; }
+    .film-slide { display: flex; flex-direction: column; height: auto; }
+    .film-text { width: auto; height: auto; padding: 26px 22px 0; }
+    .film-was { margin-top: 16px; }
+    .film-shot { position: relative; left: auto; right: auto; top: auto; margin: auto 0 -40px 20px; padding-top: 22px; }
+    .film-shot > * { width: 700px; zoom: 0.72; }
+  }
+  @media (max-width: 640px) {
+    .film-shot > * { zoom: 0.54; }
+  }
+  @media (max-width: 480px) {
+    .film-shot { margin-left: 14px; }
+    .film-shot > * { zoom: 0.44; }
+  }
+
+  /* "Borrow a trip to …": the place rolls in, the map flies to the route. */
+  .borrow-word {
+    display: inline-block;
+    margin-left: -0.12em;
+    padding: 0 0.12em;
+    border-radius: 0.14em;
+    animation: borrow-roll 0.55s var(--ease);
+  }
+  @keyframes borrow-roll {
+    from {
+      opacity: 0;
+      transform: translateY(0.35em);
+      clip-path: inset(0 0 100% 0);
     }
+  }
+  .borrow-map {
+    height: 260px;
+    background: var(--sheet-2);
+  }
+  .borrow-stop { animation: borrow-pop 0.4s var(--ease) both; }
+  @keyframes borrow-pop {
+    from { opacity: 0; transform: translateY(4px); }
+  }
+  /* A postage stamp: white ground, a dashed inner edge, a slight tilt. */
+  .borrow-stamp {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 70px;
+    height: 78px;
+    border-radius: 3px;
+    background: var(--sheet);
+    box-shadow: var(--shadow-sm);
+    line-height: 1;
+    transform: rotate(4deg);
+  }
+  .borrow-stamp::after {
+    content: "";
+    position: absolute;
+    inset: 4px;
+    border: 1.2px dashed currentColor;
+    border-radius: 2px;
+    opacity: 0.45;
   }
 
   /* Anything typed rather than written: labels, counts, dates, section heads. */
