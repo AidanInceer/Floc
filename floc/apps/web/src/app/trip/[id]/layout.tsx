@@ -2,7 +2,7 @@
  * The persistent trip bar (ticket 05; flattened 209). Overview is both the
  * default tab and the trip's landing — there is no separate dashboard route.
  *
- * ONE row: the tab pills centred, the trip menu hard right.
+ * ONE row: the tabs centred, the trip menu hard right.
  * The trip's name, dates and badges are not here — they are the Overview
  * hero's, and printing them twice a hand's width apart was ticket 89.
  */
@@ -51,18 +51,16 @@ export default async function TripLayout({
       {/* ONE ROW, not three (ticket 209). The controls used to
           sit on their own line above the tabs, which stacked a header, a
           controls row and a tab row on top of each other before any content.
-          Same three-column grid as the app header: tabs centred, the people
-          and the menu hard right, nothing on the left. */}
+          Three columns: tabs centred, the menu hard right, nothing on the left. */}
       <div className="bg-paper">
         {/* Same width as `Page wide` and the header bar — see the note in
             `components/ui.tsx`. */}
-        {/* Narrow: one flex row, the track scrolling under a pinned right
-            cluster. Wide: three columns, so the pills centre on the PAGE and
-            not on the space the avatars leave over. */}
-        <div className="mx-auto flex w-full max-w-[84rem] items-center gap-1 px-4 py-4 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:gap-3 sm:px-6">
-          {/* Nothing goes on the left. The column is there so the pills land on
-              the centre of the page and line up with the header's group above,
-              rather than on the middle of what the avatars leave over. */}
+        {/* Narrow: one flex row, the tabs scrolling under a pinned right
+            cluster. Wide: three columns, so the tabs centre on the PAGE and
+            not on the space the menu leaves over. */}
+        <div className="mx-auto flex w-full max-w-[84rem] items-center gap-1 px-4 py-2.5 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:gap-3 sm:px-6">
+          {/* Nothing goes on the left. The column is there so the tabs land on
+              the centre of the page, under the top bar's beads. */}
           <div className="hidden sm:block" />
           <TripTabs tripId={trip.id} tabs={TABS} />
           {/* No faces here (#325 feedback). Who is going is the Overview

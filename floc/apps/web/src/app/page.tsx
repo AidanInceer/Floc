@@ -60,7 +60,8 @@ export default async function LandingPage() {
 
   return (
     <div>
-      <div className="bg-sheet pb-4 pt-6 sm:pt-10">
+      {/* Up behind the top bar's beads (-mt-15 is the bar's height), so the bar has no band of its own. */}
+      <div className="-mt-15 bg-sheet pb-4 pt-21 sm:pt-25">
         {/* ── hero ─────────────────────────────────────────────────────── */}
         <section className="mx-auto max-w-[60rem] px-4 pt-12 text-center sm:px-6 sm:pt-16">
           <h1 className="font-display text-[clamp(2.8rem,7.4vw,6rem)] font-semibold leading-none tracking-[-0.04em]">

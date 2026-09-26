@@ -11,9 +11,10 @@
  * there is no "More" reinventing the drawer. It scrolls anyway, because a
  * longer trip name or a larger type size can push a word off the edge.
  *
- * A RAIL, NOT A TAB BAR. Underline and weight, no pills and no fill — the
- * bottom bar is the app's navigation and this is one level below it. Two
- * things that look equally important is the confusion #299 was avoiding.
+ * A RAIL, NOT A TAB BAR. Each section is its mark and its word, as on the
+ * web; the current mark sits in the small blue tile the web uses, and its word
+ * goes ink and bold. No pills and no fill around the word — the bottom bar is
+ * the app's navigation and this is one level below it.
  *
  * PLANNING ORDER (see the trip layout). Not alphabetical, not by traffic.
  */
@@ -26,6 +27,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useTheme } from "../system/theme";
 import { useTour, useTourTarget } from "../tour/tour-context";
+import { SectionGlyph } from "./section-glyph";
 import { fonts, radius, size, space } from "@/lib/theme";
 import type { Pastel } from "@floc/core/design/pastels";
 
@@ -171,14 +173,22 @@ function RailItem({
       accessibilityState={{ selected: on }}
       onPress={() => onGo(section.route)}
       onLayout={(event) => onX(event.nativeEvent.layout.x)}
-      style={{
-        paddingBottom: space.md,
-        borderBottomWidth: 2,
-        borderBottomColor: on ? c.pen : "transparent",
-      }}
+      style={{ paddingBottom: space.md }}
     >
-      {/* Why: the tour lights the label, not the tab's underline padding (#315). */}
-      <View ref={target}>
+      {/* Why: the tour lights the label, not the rail's bottom padding (#315). */}
+      <View ref={target} style={{ flexDirection: "row", alignItems: "center", gap: space.xs }}>
+        <View
+          style={{
+            width: 24,
+            height: 24,
+            borderRadius: 7,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: on ? c["pen-2"] : "transparent",
+          }}
+        >
+          <SectionGlyph route={section.route} color={on ? c["pen-deep"] : c["ink-3"]} />
+        </View>
         <Text
           style={{
             color: on ? c.ink : c["ink-2"],

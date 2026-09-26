@@ -35,12 +35,12 @@ export function AccountMenu({
   return (
     <Menu
       label={unread ? `Account, ${shown} new notifications` : "Account"}
-      triggerClassName="inline-flex items-center gap-2 rounded-full border border-rule-strong bg-sheet py-1 pl-1 pr-2 text-ink-faint hover:bg-sheet-2 data-[open=true]:bg-sheet-2"
+      triggerClassName="inline-flex h-11 items-center gap-2 rounded-full bg-sheet pl-1.5 pr-3 text-ink-faint shadow-[inset_0_0_0_1px_var(--rule),var(--shadow-sm)] hover:bg-sheet-2 data-[open=true]:bg-sheet-2"
       panelClassName="account-ticket right-0 mt-2 w-[19rem] max-w-[calc(100vw-1rem)]"
       trigger={
         <>
           <span className="relative inline-flex">
-            <Avatar name={user.name} icon={user.avatarIcon} size={26} />
+            <Avatar name={user.name} icon={user.avatarIcon} size={32} />
             {unread ? (
               <span
                 aria-hidden

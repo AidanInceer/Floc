@@ -15,17 +15,21 @@
  * THE MARKS ARE PEN, THE WORDS ARE INK. Every glyph is full `pen`, on or off
  * — a dimmed inactive mark was tried and read as three disabled buttons. Which
  * tab you are on is said by the word underneath going from `ink-3` to `ink`,
- * which is the signal that works without colour anyway (#204).
+ * which is the signal that works without colour anyway (#204), and by the
+ * small blue tile the current mark sits in — the web's top bar says it the same way.
  */
-import { Tabs } from "expo-router";
+import { Tabs, usePathname } from "expo-router";
 
 import { Bell } from "@/components/notifications/bell";
 import { ExploreIcon, TripsIcon, YouIcon } from "@/components/system/tab-icons";
 import { useTheme } from "@/components/system/theme";
+import { TabTile } from "@/components/system/tab-tile";
 import { fonts, size } from "@/lib/theme";
 
 export default function TabsLayout() {
   const { c } = useTheme();
+  // A trip is its own hidden screen, so the bar thinks no tab is focused; it is still one of your Trips.
+  const inTrip = usePathname().startsWith("/trip/");
   return (
     <Tabs
       screenOptions={{
@@ -44,7 +48,7 @@ export default function TabsLayout() {
         name="explore"
         options={{
           title: "Explore",
-          tabBarIcon: () => <ExploreIcon color={c.pen} />,
+          tabBarIcon: ({ focused }) => <TabTile on={focused} mark={(color) => <ExploreIcon color={color} />} />,
           // Explore has its own stack now (list, then one listing), and that
           // stack draws the header — without this there are two.
           headerShown: false,
@@ -54,7 +58,7 @@ export default function TabsLayout() {
         name="trips"
         options={{
           title: "Trips",
-          tabBarIcon: () => <TripsIcon color={c.pen} />,
+          tabBarIcon: ({ focused }) => <TabTile on={focused || inTrip} mark={(color) => <TripsIcon color={color} />} />,
         }}
       />
       {/* Settings and Saved lists are NOT hidden tabs. A hidden tab is still a
@@ -65,7 +69,7 @@ export default function TabsLayout() {
         name="profile"
         options={{
           title: "You",
-          tabBarIcon: () => <YouIcon color={c.pen} />,
+          tabBarIcon: ({ focused }) => <TabTile on={focused} mark={(color) => <YouIcon color={color} />} />,
         }}
       />
       {/* A trip lives under the Trips tab so the bar survives opening one; it

@@ -454,10 +454,8 @@ const useIsoLayoutEffect =
   typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 /**
- * A controlled sibling of `PillNav` for a form choice rather than navigation
- * (money overhaul): same recessed `--sheet-3` track and single sliding ink
- * indicator, but it toggles a value instead of following the route. One shared
- * pill language across the app — nav and in-form segmented controls alike.
+ * A segmented control for a form choice (money overhaul): a recessed
+ * `--sheet-3` track and one sliding ink indicator, toggling a value.
  */
 export function PillToggle<T extends string>({
   label,

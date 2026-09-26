@@ -54,11 +54,12 @@ export function ExploreFront({
   return (
     <>
       <h1 className="sr-only">Explore</h1>
-      <section ref={band} className="relative scroll-mt-14 bg-sheet-2">
-        <div className="h-[22rem] lg:absolute lg:inset-0 lg:h-auto">
+      {/* The map runs up behind the top bar's beads; -mt-15 is the bar's height. */}
+      <section ref={band} className="relative -mt-15 scroll-mt-14 bg-sheet-2">
+        <div className="h-[25.75rem] lg:absolute lg:inset-0 lg:h-auto">
           <ExploreAtlas picked={trip.id} onPick={setPicked} />
         </div>
-        <div className="pointer-events-none relative mx-auto flex max-w-[90rem] justify-end px-4 py-6 sm:px-6 lg:min-h-[640px] lg:py-8">
+        <div className="pointer-events-none relative mx-auto flex max-w-[90rem] justify-end px-4 pb-6 pt-21 sm:px-6 lg:min-h-[700px] lg:pb-8 lg:pt-23">
           <div className="pointer-events-auto w-full lg:w-[25rem]">
             <ExplorePostcard trip={trip} signedIn={signedIn} />
           </div>
