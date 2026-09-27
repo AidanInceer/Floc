@@ -2,6 +2,6 @@
   "$schema": "https://railway.com/railway.schema.json",
   "deploy": {
     "preDeployCommand": "node floc/apps/web/scripts/migrate.mjs",
-    "startCommand": "pnpm --filter floc-web start"
+    "startCommand": "sh -c 'cd floc/apps/web && exec node --experimental-strip-types --import ./scripts/alias-loader-register.mjs server.ts'"
   }
 }
