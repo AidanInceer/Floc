@@ -17,7 +17,16 @@ export type GlyphName =
   | "arrow"
   | "train"
   | "plus"
-  | "link";
+  | "link"
+  | "weather"
+  | "mail"
+  | "receipt"
+  | "offline"
+  | "keep"
+  | "agent"
+  | "live"
+  | "local"
+  | "extension";
 
 const PATHS: Record<GlyphName, ReactNode> = {
   dates: (
@@ -84,6 +93,56 @@ const PATHS: Record<GlyphName, ReactNode> = {
     <>
       <rect x="3" y="1.8" width="8" height="8.4" rx="1.8" />
       <path d="M3 6.4h8M5 12.2l1-2M9 12.2l-1-2" />
+    </>
+  ),
+  weather: (
+    <>
+      <circle cx="5.1" cy="4.7" r="2" />
+      <path d="M5.1 1.2v.8M5.1 7.4v.8M1.6 4.7h.8M7.8 4.7h.8" />
+      <path d="M6.2 11.9a2.4 2.4 0 0 1 .3-4.8 3.1 3.1 0 0 1 5.8 1.2 1.9 1.9 0 0 1-.5 3.6Z" />
+    </>
+  ),
+  mail: (
+    <>
+      <rect x="1.8" y="3" width="10.4" height="8" rx="1.4" />
+      <path d="M2.2 3.6 7 7.6l4.8-4" />
+    </>
+  ),
+  receipt: (
+    <>
+      <path d="M3 1.8h8v10.4l-1.6-1-1.2 1-1.2-1-1.2 1-1.2-1L3 12.2Z" />
+      <path d="M5 5h4M5 7.2h4M5 9.2h2" />
+    </>
+  ),
+  offline: (
+    <>
+      <path d="M5 5.2a3.4 3.4 0 0 1 5.6 1.5 2.3 2.3 0 0 1-.2 4.5" />
+      <path d="M3.3 7.4a2 2 0 0 0 .9 3.8h4.2M2 2l10 10" />
+    </>
+  ),
+  keep: <path d="M3.4 1.8h7.2v10.4L7 9.8l-3.6 2.4Z" />,
+  agent: (
+    <>
+      <path d="M2 3.4a1.4 1.4 0 0 1 1.4-1.4h7.2A1.4 1.4 0 0 1 12 3.4v5a1.4 1.4 0 0 1-1.4 1.4H6.2L3.4 12V9.8A1.4 1.4 0 0 1 2 8.4Z" />
+      <path d="M7 4.2l.5 1.2 1.2.5-1.2.5L7 7.6l-.5-1.2-1.2-.5 1.2-.5Z" />
+    </>
+  ),
+  live: (
+    <>
+      <circle cx="7" cy="7" r="1.6" />
+      <path d="M4.2 4.2a4 4 0 0 0 0 5.6M9.8 4.2a4 4 0 0 1 0 5.6M2.6 2.6a6.2 6.2 0 0 0 0 8.8M11.4 2.6a6.2 6.2 0 0 1 0 8.8" />
+    </>
+  ),
+  local: (
+    <>
+      <circle cx="7" cy="7" r="5.2" />
+      <path d="M9.2 4.8 8 8 4.8 9.2 6 6Z" />
+    </>
+  ),
+  extension: (
+    <>
+      <rect x="1.8" y="2.4" width="10.4" height="9.2" rx="1.4" />
+      <path d="M1.8 5h10.4M3.6 3.7h.1M5 3.7h.1M5.2 8.2 6.6 9.4 9 7" />
     </>
   ),
 };

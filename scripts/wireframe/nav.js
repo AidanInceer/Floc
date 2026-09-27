@@ -8,6 +8,7 @@ window.WF = (function () {
     ["In a trip", ["Trip", "Trip overview", "Dates", "Days", "Money", "Packing", "Trip notes", "Files"]],
     ["Design playground", ["Concept art", "Logos", "Type & fonts"]],
   ];
+  var PLAYGROUND = "Design playground";
   var TONES = { shipped: "Shipped", chosen: "Chosen", exploring: "Exploring", parked: "Parked" };
 
   function esc(s) {
@@ -16,6 +17,7 @@ window.WF = (function () {
   function cap(s) { return s ? s[0].toUpperCase() + s.slice(1) : s; }
 
   function shortName(title) {
+    title = title.replace(/ · Floc wireframes$/, "");
     var parts = title.split(" · ");
     return cap((parts.length > 1 ? parts.slice(1).join(" · ") : title).replace(/^#\d+\s*/, ""));
   }
@@ -49,7 +51,7 @@ window.WF = (function () {
     var out = SECTIONS.map(function (s) { return { name: s[0], pages: s[1].map(function (p) { return { name: p, items: [] }; }) }; });
     out.push({ name: "Other", pages: [] });
     items.forEach(function (it) {
-      var section = it.area === "design" ? "Design playground" : (known[it.page] || "Other");
+      var section = it.area === "design" ? PLAYGROUND : (known[it.page] || "Other");
       var sec = out.find(function (s) { return s.name === section; });
       var page = sec.pages.find(function (p) { return p.name === it.page; });
       if (!page) { page = { name: it.page, items: [] }; sec.pages.push(page); }
@@ -63,10 +65,11 @@ window.WF = (function () {
     return out.filter(function (s) { return s.pages.length; });
   }
 
-  // "open" is the default view: what is still being explored, or chosen and not yet built.
+  // "exploring" is the default view. "open" adds what is chosen and not yet built. The open prototype always shows.
   function matches(it, q, tone, current) {
-    if (tone === "open" && it.tone !== "exploring" && it.tone !== "chosen" && it.folder !== current) return false;
-    if (tone && tone !== "all" && tone !== "open" && it.tone !== tone) return false;
+    var keep = it.folder === current;
+    if (tone === "open" && it.tone !== "exploring" && it.tone !== "chosen" && !keep) return false;
+    if (tone && tone !== "all" && tone !== "open" && it.tone !== tone && !keep) return false;
     if (!q) return true;
     return [it.name, it.title, it.page, it.route, it.about, it.folder, it.raw].join(" ").toLowerCase().indexOf(q) !== -1;
   }
@@ -81,8 +84,15 @@ window.WF = (function () {
   }
   function treeHtml(sections, current) {
     if (!sections.length) return '<p class="wf-none">Nothing matches.</p>';
-    return sections.map(function (s) {
-      return '<p class="wf-sec typed">' + esc(s.name) + "</p>" + s.pages.map(function (p) {
+    var app = sections.filter(function (s) { return s.name !== PLAYGROUND; });
+    var play = sections.filter(function (s) { return s.name === PLAYGROUND; });
+    return (app.length ? '<div class="wf-tree-app"><p class="wf-zone typed">App pages</p>' + app.map(function (s) { return sectionHtml(s, current); }).join("") + "</div>" : "") +
+      (play.length ? '<div class="wf-tree-play"><p class="wf-zone typed">Design playground</p>' + play[0].pages.map(function (p) { return pageHtml(p, current); }).join("") + "</div>" : "");
+  }
+  function sectionHtml(s, current) {
+    return '<div class="wf-group"><p class="wf-sec">' + esc(s.name) + "</p>" + s.pages.map(function (p) { return pageHtml(p, current); }).join("") + "</div>";
+  }
+  function pageHtml(p, current) {
         return '<details open><summary><span>' + esc(p.name) + '</span><span class="wf-n nums">' + p.items.length + "</span></summary><ul>" +
           p.items.map(function (it) {
             var cur = it.folder === current ? ' aria-current="page"' : "";
@@ -90,8 +100,6 @@ window.WF = (function () {
               '<span class="wf-dot wf-' + it.tone + '" aria-hidden="true"></span><span class="wf-nm">' + esc(it.name) + "</span>" +
               '<span class="wf-sr">' + esc(it.tag) + "</span></a></li>";
           }).join("") + "</ul></details>";
-      }).join("");
-    }).join("");
   }
 
   // Draws the sidebar into el and keeps the tree in step with the filter box.
@@ -139,19 +147,19 @@ window.WF = (function () {
     panel.setAttribute("aria-label", "Wireframes");
     document.body.append(controls, shade, panel);
     var ready = null;
-    var tone = "open";
+    var tone = "exploring";
     function open() {
       ready = ready || load().then(function (items) {
         var foot = document.createElement("button");
         foot.type = "button";
         foot.className = "wf-more";
-        var hidden = items.filter(function (it) { return !matches(it, "", "open", current); }).length;
+        var hidden = items.filter(function (it) { return !matches(it, "", "exploring", current); }).length;
         var s = sidebar(panel, items, {
           current: current,
           tone: function () { return tone; },
-          onRedraw: function () { foot.textContent = tone === "open" ? "Show shipped and parked (" + hidden + ")" : "Hide shipped and parked"; },
+          onRedraw: function () { foot.textContent = tone === "exploring" ? "Show chosen, shipped and parked (" + hidden + ")" : "Only exploring"; },
         });
-        foot.addEventListener("click", function () { tone = tone === "open" ? "all" : "open"; s.redraw(); });
+        foot.addEventListener("click", function () { tone = tone === "exploring" ? "all" : "exploring"; s.redraw(); });
         panel.appendChild(foot);
         s.redraw();
         return s;

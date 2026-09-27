@@ -29,7 +29,7 @@ export function AppBand() {
     <section className="overflow-hidden px-4 py-24 sm:px-6">
       <div className="mx-auto grid max-w-[72rem] items-center gap-16 md:grid-cols-2 xl:grid-cols-[580px_minmax(0,1fr)]">
         <div className="relative h-[580px]" role="img" aria-label="Floc on a phone: today's plan in Cefalù, and what you owe">
-          <Phone className="left-0 top-2.5 z-[2] -rotate-[4deg]">
+          <Phone className="left-5 top-2.5 z-[2] md:left-0 -rotate-[4deg]">
             <TodayScreen />
           </Phone>
           <Phone className="left-[272px] top-[50px] hidden rotate-[5deg] xl:block">
@@ -46,7 +46,7 @@ export function AppBand() {
               <Store name="App Store" />
               <Store name="Google Play" />
             </div>
-            <div className="mt-7 flex items-start gap-3 rounded-lg border border-rule bg-sheet px-[18px] py-4 text-sm text-ink-soft">
+            <div className="mx-auto mt-7 flex w-fit items-start gap-3 rounded-lg border border-rule bg-sheet px-[18px] py-4 text-sm text-ink-soft">
               <Glyph name="link" className="mt-[3px] size-[14px] shrink-0" />
               <p>
                 <b className="text-ink">Got a trip link?</b> Preview it before signing up.

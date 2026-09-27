@@ -18,6 +18,7 @@ import { ClosingTicket } from "@/components/landing/closing-ticket";
 import { HeroDeck } from "@/components/landing/hero-deck";
 import { Shore } from "@/components/landing/shore";
 import { LandingFaq } from "@/components/landing/landing-faq";
+import { ProBand } from "@/components/landing/pro-tour/pro-band";
 import { FeatureFilm } from "@/components/landing/tour/feature-film";
 import { shotFor } from "@/components/landing/tour/tour-shots";
 import { tourSlides } from "@/components/landing/tour/tour-slides";
@@ -52,10 +53,11 @@ function monthlyPrice(prices: ProPrice[]): string | null {
 export default async function LandingPage() {
   const session = await getSession();
   const signedIn = Boolean(session?.user);
-  // Pro is sold in the FAQ, after the proof (ADR-019). With Pro switched off
-  // the question is not asked, so Stripe's prices are not worth fetching.
+  // Pro is sold after the proof (ADR-019), in its own band and the FAQ. With Pro
+  // switched off neither shows, so Stripe's prices are not worth fetching.
   const sellingPro = !allFeaturesFree();
   const prices = sellingPro ? await proPrices() : [];
+  const monthly = monthlyPrice(prices);
   const { start, inspire } = destinations(signedIn);
 
   return (
@@ -104,9 +106,16 @@ export default async function LandingPage() {
           <BorrowTrip cards={borrowCards(PRESET_TRIPS, BORROW_IDS)} signedIn={signedIn} explore={inspire} />
         </section>
 
+        {/* ── pro ──────────────────────────────────────────────────────── */}
+        {sellingPro && (
+          <section className="mt-24">
+            <ProBand monthly={monthly} signedIn={signedIn} />
+          </section>
+        )}
+
         {/* ── questions ──────────────────────────────────────────────── */}
         <section className="my-24">
-          <LandingFaq items={landingFaq({ sellingPro, monthly: monthlyPrice(prices) })} />
+          <LandingFaq items={landingFaq({ sellingPro, monthly })} />
         </section>
       </div>
 

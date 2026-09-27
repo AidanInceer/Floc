@@ -25,3 +25,21 @@ describe("borrowCards", () => {
     expect(japan.price).toBe("£1,850.00");
   });
 });
+
+describe("borrowCards legs", () => {
+  it("hangs each move on the stop it arrives at", () => {
+    const [iceland] = borrowCards(PRESET_TRIPS, ["iceland-ring-road"]);
+    expect(iceland.stops.map((s) => s.hop ?? null)).toEqual([
+      null,
+      { mode: "car", detail: "3h" },
+      null,
+      { mode: "car", detail: "4h" },
+      null,
+    ]);
+  });
+
+  it("carries the trip's total nights", () => {
+    const [iceland] = borrowCards(PRESET_TRIPS, ["iceland-ring-road"]);
+    expect(iceland.nights).toBe(7);
+  });
+});

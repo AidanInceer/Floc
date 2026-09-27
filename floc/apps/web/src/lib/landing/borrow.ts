@@ -1,12 +1,21 @@
 import { formatMoney } from "@floc/core/money/money";
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
+import type { TransportType } from "@floc/core/vocabulary";
 
-type BorrowStop = { name: string; nights: number; lat: number; lng: number };
+/** `hop` is the move that arrives at this stop, if the listing names one. */
+export type BorrowStop = {
+  name: string;
+  nights: number;
+  lat: number;
+  lng: number;
+  hop?: { mode: TransportType; detail: string };
+};
 
 export type BorrowCard = {
   id: string;
   place: string;
   title: string;
+  nights: number;
   price: string;
   stops: BorrowStop[];
 };
@@ -21,9 +30,24 @@ export function borrowCards(trips: PresetTrip[], ids: string[]): BorrowCard[] {
         id: trip.id,
         place: trip.country,
         title: trip.title,
+        nights: trip.nights,
         price: formatMoney(trip.priceFromMinor, trip.currency),
-        stops: trip.legs.flatMap((l) => (l.kind === "base" ? [{ name: l.place, nights: l.nights, lat: l.lat, lng: l.lng }] : [])),
+        stops: stopsOf(trip),
       },
     ];
   });
+}
+
+function stopsOf(trip: PresetTrip): BorrowStop[] {
+  const stops: BorrowStop[] = [];
+  let hop: BorrowStop["hop"];
+  for (const leg of trip.legs) {
+    if (leg.kind === "hop") {
+      hop = { mode: leg.mode, detail: leg.detail };
+      continue;
+    }
+    stops.push({ name: leg.place, nights: leg.nights, lat: leg.lat, lng: leg.lng, ...(hop && { hop }) });
+    hop = undefined;
+  }
+  return stops;
 }
