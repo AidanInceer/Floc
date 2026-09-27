@@ -373,6 +373,8 @@
     font-size: var(--text-base);
     line-height: 1.55;
     -webkit-font-smoothing: antialiased;
+    /* Why: a phone must never swipe sideways onto blank page; `clip`, unlike `hidden`, keeps sticky headers working. */
+    overflow-x: clip;
   }
 
   /*
@@ -582,16 +584,16 @@
       height: auto;
       overflow: visible;
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px 10px;
-      max-width: 560px;
-      margin: 0 auto;
-      padding: 0 14px 12px;
+      grid-template-columns: minmax(14px, 1fr) minmax(0, 261px) 10px minmax(0, 261px) minmax(14px, 1fr);
+      gap: 14px 0;
+      padding-bottom: 12px;
     }
     .deck-flight { grid-column: 1 / -1; }
+    .deck-votes, .deck-money { grid-column: 2; }
+    .deck-dates, .deck-pack { grid-column: 4; }
     .deck-slot { position: static; width: auto; transform: rotate(var(--r)); }
     .deck-slot:hover .deck-card { transform: none; }
-    .deck-ticket { grid-column: 1 / -1; order: -1; --r: 0deg; }
+    .deck-ticket { grid-column: 2 / 5; order: -1; --r: 0deg; }
     .deck-votes { --r: -1.5deg; }
     .deck-dates { --r: 1.5deg; }
     .deck-money { --r: -1.5deg; }
@@ -645,7 +647,7 @@
       order: -2;
       position: relative;
       height: 64px;
-      margin: 0 -14px -6px;
+      margin-bottom: -6px;
       overflow: clip;
     }
     .deck-plane svg { width: 26px; height: 26px; }
@@ -936,7 +938,7 @@
   .borrow-card[data-pos="left"]:hover, .borrow-card[data-pos="right"]:hover { box-shadow: var(--shadow-lift); }
   @media (max-width: 860px) {
     .borrow-stage { height: 390px; }
-    .borrow-card[data-pos="left"], .borrow-card[data-pos="right"] { opacity: 0; pointer-events: none; }
+    .borrow-card[data-pos="left"], .borrow-card[data-pos="right"] { transform: translateX(-50%) translateY(30px) scale(0.84); opacity: 0; pointer-events: none; }
   }
   @media (prefers-reduced-motion: reduce) {
     .borrow-roll { animation: none; }
@@ -944,6 +946,7 @@
   }
 
   /* The Pro tour: a dashed trip line, inked in pen up to the stage on show. */
+  .pro-steps { position: relative; }
   .pro-steps::before, .pro-steps::after { content: ""; position: absolute; top: 10px; left: 12.5%; height: 4px; border-radius: 4px; }
   .pro-steps::before { right: 12.5%; background: repeating-linear-gradient(90deg, var(--rule-2) 0 10px, transparent 10px 16px); }
   .pro-steps::after { width: calc(75% * var(--at) / (var(--n) - 1)); background: var(--pen); transition: width 0.6s var(--ease); }
