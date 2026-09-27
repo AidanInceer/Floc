@@ -12,6 +12,7 @@ import { formatMoney } from "@floc/core/money/money";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import { ButtonLink } from "@/components/system/ui";
 import { BorrowTrip } from "@/components/landing/borrow-trip";
+import { AgentBand } from "@/components/landing/agent/agent-band";
 import { AppBand } from "@/components/landing/app-band";
 import { ClosingTicket } from "@/components/landing/closing-ticket";
 import { HeroDeck } from "@/components/landing/hero/hero-deck";
@@ -96,6 +97,11 @@ export default async function LandingPage() {
         {/* ── feature summary ────────────────────────────────────────── */}
         <section className="mt-16">
           <FeatureFilm slides={tourSlides(sellingPro).map((s) => ({ ...s, shot: shotFor(s.key) }))} />
+        </section>
+
+        {/* ── pocket agent ───────────────────────────────────────────── */}
+        <section className="mt-24">
+          <AgentBand sellingPro={sellingPro} />
         </section>
 
         {/* ── explore ────────────────────────────────────────────────── */}

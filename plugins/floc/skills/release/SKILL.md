@@ -1,13 +1,39 @@
 ---
 name: release
-description: Batch develop into main for AidanInceer/Floc — PR with a merge commit, merged once checks are green (asks only on a ticket that will not close or a schema migration), then check tickets closed, develop synced and Railway deployed. Use when the user says /floc:release, "release", "ship to main", or "deploy".
+description: Batch develop into main for AidanInceer/Floc — first pushes any local work through /floc:push, then a PR with a merge commit, merged once checks are green (asks only on a ticket that will not close or a schema migration), then check tickets closed, develop synced and Railway deployed. Use when the user says /floc:release, "release", "ship to main", "deploy", or "get this live".
 ---
 
 # release
 
-`develop` → `main` as one PR, merged with a **merge commit**. A merge to `main`
-deploys production on Railway. The user's standing yes: merge as soon as the PR
-checks are green — do not stop to ask.
+Local work → `develop` → `main`, in one call. `develop` → `main` is one PR,
+merged with a **merge commit**. A merge to `main` deploys production on
+Railway. The user's standing yes: merge as soon as the PR checks are green —
+do not stop to ask.
+
+## 0. Push local work first
+
+```bash
+git status --porcelain
+git fetch origin
+git log --oneline origin/develop..develop
+```
+
+Both empty → go to step 1.
+
+Otherwise the user wants this work live too. Run [`/floc:push`](../push/SKILL.md)
+in full, inline, with these changes — do not stop to ask between the two:
+
+- **Type and issue:** pick them as push says; do not ask. No ticket in this
+  session and none in chat → `#no-ticket`.
+- **Babysit:** do not spawn the background babysitter. Step 2 watches the
+  pushed SHA in the foreground.
+- **Sonar check:** skip it. Step 6 gates the PR.
+- **Report:** no separate push report. Its lines join the release report.
+
+Push stops (unexpected file, red verify it cannot fix, `land` refuses) → the
+release stops too. Say why.
+
+Not on `develop` → stop and say so; never release from another branch.
 
 ## 1. Is there anything to release
 
@@ -16,8 +42,8 @@ git fetch origin
 git log --oneline origin/main..origin/develop
 ```
 
-Empty → say so and stop. Local `develop` ahead of `origin/develop` → stop; that
-work is not pushed (`/floc:push`).
+Empty → say so and stop. Local `develop` still ahead of `origin/develop` after
+step 0 → stop; say what did not push.
 
 ## 2. `develop` is green
 
@@ -25,6 +51,9 @@ work is not pushed (`/floc:push`).
 git rev-parse origin/develop
 node scripts/ci-watch.mjs <sha>
 ```
+
+After a push in step 0, this is the pushed SHA — CI has only just started, so
+expect a wait.
 
 Exit `2` → run again. Exit `1` → run `floc:ci-babysit` on that SHA (in a worktree, not in the background) and carry on once it reports green; stop if it could not fix it. Never release red.
 
@@ -150,7 +179,8 @@ Merge SHA: `gh pr view <n> --repo AidanInceer/Floc --json mergeCommit --jq .merg
 
 ## Report
 
-Version, PR URL, merge SHA, tickets closed (and any still open), migrations
+Pushed in step 0 (subject line, `verify` result, SHA — or "nothing local"),
+version, PR URL, merge SHA, tickets closed (and any still open), migrations
 shipped, deploy state, wireframes tagged shipped, CI being watched.
 
 ## Never

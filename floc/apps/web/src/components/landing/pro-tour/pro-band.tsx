@@ -42,7 +42,7 @@ export function ProBand({ monthly, signedIn }: { monthly: string | null; signedI
     <div>
       <div className="text-center">
         <p className="typed">Pro</p>
-        <h2 className="band-title mt-2">Watch Pro work through a trip.</h2>
+        <h2 className="band-title mt-2">How Pro helps for every stage.</h2>
       </div>
       <ProTour />
       <ProPitch monthly={monthly} href={signedIn ? "/settings?section=billing" : "/signup"} />
