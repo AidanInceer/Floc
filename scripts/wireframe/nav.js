@@ -6,6 +6,7 @@ window.WF = (function () {
     ["Every page", ["Top bar", "Account menu"]],
     ["Browsing", ["Explore", "My trips", "Friends"]],
     ["In a trip", ["Trip", "Trip overview", "Dates", "Days", "Money", "Packing", "Trip notes", "Files"]],
+    ["Design playground", ["Concept art", "Logos", "Type & fonts"]],
   ];
   var TONES = { shipped: "Shipped", chosen: "Chosen", exploring: "Exploring", parked: "Parked" };
 
@@ -35,6 +36,7 @@ window.WF = (function () {
       var s = status(p.status);
       return {
         folder: p.folder, title: p.title, name: shortName(p.title), page: p.page || "Not labelled", route: p.route,
+        area: p.area === "design" ? "design" : "wireframes", picked: p.picked ? new Date(p.picked) : null,
         about: p.about, raw: p.status, tone: s.tone, tag: s.tag, note: s.note, changed: new Date(p.changed),
       };
     });
@@ -47,7 +49,8 @@ window.WF = (function () {
     var out = SECTIONS.map(function (s) { return { name: s[0], pages: s[1].map(function (p) { return { name: p, items: [] }; }) }; });
     out.push({ name: "Other", pages: [] });
     items.forEach(function (it) {
-      var sec = out.find(function (s) { return s.name === (known[it.page] || "Other"); });
+      var section = it.area === "design" ? "Design playground" : (known[it.page] || "Other");
+      var sec = out.find(function (s) { return s.name === section; });
       var page = sec.pages.find(function (p) { return p.name === it.page; });
       if (!page) { page = { name: it.page, items: [] }; sec.pages.push(page); }
       page.items.push(it);
@@ -114,19 +117,27 @@ window.WF = (function () {
     return fetch("/_house/list.json").then(function (r) { return r.json(); }).then(shape);
   }
 
-  // Inside a prototype: a button bottom-left opens the same sidebar over the page.
+  // Inside a prototype: bottom-left controls open the browser or return to its index.
   function drawer(current) {
     var btn = document.createElement("button");
     btn.type = "button";
     btn.className = "wf-open";
     btn.setAttribute("aria-expanded", "false");
     btn.innerHTML = '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 3.5h10M2 7h10M2 10.5h10"/></svg>Wireframes';
+    var controls = document.createElement("div");
+    controls.className = "wf-controls";
+    controls.appendChild(btn);
+    var home = document.createElement("a");
+    home.className = "wf-home-link";
+    home.href = "/";
+    home.innerHTML = '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M11.5 7H2.5m0 0 3.2-3.2M2.5 7l3.2 3.2"/></svg>Home';
+    controls.appendChild(home);
     var shade = document.createElement("div");
     shade.className = "wf-shade";
     var panel = document.createElement("aside");
     panel.className = "wf-side wf-drawer";
     panel.setAttribute("aria-label", "Wireframes");
-    document.body.append(btn, shade, panel);
+    document.body.append(controls, shade, panel);
     var ready = null;
     var tone = "open";
     function open() {

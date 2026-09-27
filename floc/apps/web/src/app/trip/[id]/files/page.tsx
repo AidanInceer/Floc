@@ -1,11 +1,8 @@
 /**
- * The Documents page (ticket 239, wireframe v3b). Shaped like Packing: two
- * stacked cards — the group's files, then your own — rather than a table with
- * a filter rail beside it.
- *
- * One filter bar and row chips rather than Packing's per-list controls and
- * heading strips: a documents list is a dozen rows, not hundreds, so both would
- * cost more than they organise.
+ * The Documents page (ticket 239; workspace choices C). Shared and Yours side
+ * by side on a desk, stacked on a phone, under one filter row — a documents
+ * list is a dozen rows, not hundreds, so per-list controls would cost more
+ * than they organise.
  */
 import Link from "next/link";
 
@@ -25,9 +22,8 @@ import { DocumentRow } from "@/components/documents/document-row";
 import { DocumentFiling } from "@/components/documents/document-filing";
 import { DocumentUpload } from "@/components/documents/document-upload";
 import { DocumentRenameForm } from "@/components/documents/document-rename";
-import { ConfirmSubmit, Sheet } from "@/components/system/client-ui";
-import { cx, PageTitle } from "@/components/system/ui";
-import { FlockChevron } from "@/components/system/flock-chevron";
+import { ConfirmSubmit, Menu, Sheet } from "@/components/system/client-ui";
+import { cx, menuDangerItemClass, menuItemClass, PageTitle } from "@/components/system/ui";
 import { removeDocument, renameDocument } from "./actions";
 
 export const metadata = { title: "Files" };
@@ -49,8 +45,7 @@ export default async function FilesPage({
     ? await Promise.all([listDocuments(tripId, viewerId), storageUsage(tripId)])
     : [[], null];
 
-  const keep = (d: TripDocument) =>
-    category === "all" || d.category === category;
+  const keep = (d: TripDocument) => category === "all" || d.category === category;
   const shared = docs.filter((d) => d.ownerId === null && keep(d));
   const mine = docs.filter((d) => d.ownerId !== null && keep(d));
 
@@ -65,15 +60,15 @@ export default async function FilesPage({
         // Rule 11: say what is missing rather than offering an upload that
         // cannot land anywhere.
         <p className="mt-6 rounded-xl border border-rule bg-sheet px-4 py-8 text-center text-sm text-ink-soft">
-          File storage isn&rsquo;t set up yet, so there is nowhere to put a
-          document. Nothing else on the trip is affected.
+          File storage isn&rsquo;t set up yet, so there is nowhere to put a document. Nothing else
+          on the trip is affected.
         </p>
       ) : (
         <>
           {/* The pills scroll rather than wrap: wrapping dropped Upload onto a
               second line at phone width, where it read as a stray button. */}
-          <div className="mt-5 flex items-center gap-2 rounded-full border border-rule bg-sheet px-3 py-2.5">
-            <div className="scroll-x-bare flex min-w-0 flex-1 items-center gap-2">
+          <div className="mt-5 flex items-center justify-between gap-3">
+            <div className="scroll-x-bare flex min-w-0 flex-1 items-center gap-1">
               <FilterPill href={href("all")} on={category === "all"}>
                 All
               </FilterPill>
@@ -94,31 +89,31 @@ export default async function FilesPage({
             </span>
           </div>
 
-          <FileCard
-            title="Shared"
-            note="Everyone on the trip"
-            empty={
-              category === "all"
-                ? "Add the first file with Upload — bookings and tickets go here."
-                : "Nothing shared is filed here."
-            }
-            docs={shared}
-            tripId={tripId}
-            viewerId={viewerId}
-          />
+          <div className="mt-5 grid items-start gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(19rem,1fr)] lg:gap-4">
+            <FileCard
+              title="Shared"
+              note="Everyone on the trip"
+              empty={
+                category === "all"
+                  ? "Add the first file with Upload — bookings and tickets go here."
+                  : "Nothing shared is filed here."
+              }
+              docs={shared}
+              tripId={tripId}
+              viewerId={viewerId}
+            />
 
-          <FileCard
-            title="Yours"
-            note="Only you can see these"
-            empty={
-              category === "all"
-                ? "Nothing of your own yet."
-                : "Nothing of yours is filed here."
-            }
-            docs={mine}
-            tripId={tripId}
-            viewerId={viewerId}
-          />
+            <FileCard
+              title="Yours"
+              note="Only you can see these"
+              empty={
+                category === "all" ? "Nothing of your own yet." : "Nothing of yours is filed here."
+              }
+              docs={mine}
+              tripId={tripId}
+              viewerId={viewerId}
+            />
+          </div>
 
           {space ? <StorageMeter {...space} /> : null}
         </>
@@ -142,61 +137,60 @@ function FileCard({
   tripId: number;
   viewerId: string;
 }) {
-  // No `overflow-hidden` on the card, unlike Packing's: a row's re-file menu
-  // opens inside it, and clipping the frame clips the menu. The summary rounds
-  // its own top corners instead.
+  // No `overflow-hidden` on the card: a row's re-file menu opens inside it,
+  // and clipping the frame clips the menu.
   return (
-    <details
-      open
-      className="group/card mt-6 rounded-xl border border-rule bg-sheet"
-    >
-      <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-4 gap-y-2 rounded-t-xl border-b border-rule bg-sheet-2 px-4 py-3 [&::-webkit-details-marker]:hidden">
-        <FlockChevron
-          size={11}
-          className="shrink-0 -rotate-90 text-ink-faint transition-transform group-open/card:rotate-0"
-        />
-        <h2 className="font-display text-base font-semibold">{title}</h2>
-        <span className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-faint">
-          {note}
-        </span>
-      </summary>
-
-      {docs.length === 0 ? (
-        <p className="px-4 py-8 text-center text-sm text-ink-soft">{empty}</p>
-      ) : (
-        <ul className="divide-y divide-rule">
-          {docs.map((doc) => (
-            <DocumentRow
-              key={doc.id}
-              tripId={tripId}
-              doc={doc}
-              mine={doc.uploadedBy === viewerId}
-              filing={
-                <DocumentFiling
-                  tripId={tripId}
-                  documentId={doc.id}
-                  category={doc.category}
-                />
-              }
-            >
-              <Sheet trigger="Rename" title="Rename file" triggerVariant="ghost" keepOpenOnSubmit>
-                <DocumentRenameForm name={doc.name} rename={renameDocument.bind(null, tripId, doc.id)} />
-              </Sheet>
-              <form action={removeDocument.bind(null, tripId, doc.id)}>
-                <ConfirmSubmit
-                  variant="ghost"
-                  confirmVariant="danger"
-                  confirmLabel="Remove it"
-                  message="Remove this file? It goes for everyone who could see it."
-                >
-                  Remove
-                </ConfirmSubmit>
-              </form>
-            </DocumentRow>
-          ))}
-        </ul>
-      )}
-    </details>
+    <section className="min-w-0">
+      <header className="mb-2 flex items-baseline gap-2.5">
+        <h2 className="font-display text-[1.05rem] font-semibold">{title}</h2>
+        <span className="text-xs text-ink-soft">{note}</span>
+      </header>
+      <div className="rounded-2xl border border-rule bg-sheet">
+        {docs.length === 0 ? (
+          <p className="px-4 py-6 text-center text-sm text-ink-soft">{empty}</p>
+        ) : (
+          <ul className="divide-y divide-rule">
+            {docs.map((doc) => (
+              <DocumentRow
+                key={doc.id}
+                tripId={tripId}
+                doc={doc}
+                mine={doc.uploadedBy === viewerId}
+                filing={
+                  <DocumentFiling tripId={tripId} documentId={doc.id} category={doc.category} />
+                }
+              >
+                <Menu label={`More for ${doc.name}`}>
+                  <Sheet
+                    bareTrigger
+                    trigger="Rename"
+                    title="Rename file"
+                    triggerClassName={menuItemClass}
+                    keepOpenOnSubmit
+                  >
+                    <DocumentRenameForm
+                      name={doc.name}
+                      rename={renameDocument.bind(null, tripId, doc.id)}
+                    />
+                  </Sheet>
+                  <form action={removeDocument.bind(null, tripId, doc.id)}>
+                    <ConfirmSubmit
+                      variant="ghost"
+                      confirmVariant="danger"
+                      confirmLabel="Remove it"
+                      message="Remove this file? It goes for everyone who could see it."
+                      className={menuDangerItemClass}
+                    >
+                      Remove
+                    </ConfirmSubmit>
+                  </form>
+                </Menu>
+              </DocumentRow>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -213,10 +207,10 @@ function FilterPill({
     <Link
       href={href}
       className={cx(
-        "shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm transition-colors",
+        "shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs transition-colors",
         on
-          ? "bg-ink text-sheet"
-          : "border border-rule text-ink-soft hover:text-ink",
+          ? "border-ink bg-ink text-sheet"
+          : "border-transparent text-ink-soft hover:border-rule-strong hover:text-ink",
       )}
     >
       {children}

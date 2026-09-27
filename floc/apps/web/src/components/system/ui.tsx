@@ -343,6 +343,16 @@ export function Textarea({ className, ...props }: ComponentProps<"textarea">) {
   );
 }
 
+/** The verb bar along the bottom of a `flush` or `split` Sheet. `note` sits opposite the button. */
+export function SheetFooter({ note, children }: { note?: ReactNode; children: ReactNode }) {
+  return (
+    <footer className="flex items-center justify-between gap-3 border-t border-rule bg-sheet-2 px-4 py-3">
+      <span className="text-xs text-ink-soft">{note}</span>
+      {children}
+    </footer>
+  );
+}
+
 export function Select({ className, ...props }: ComponentProps<"select">) {
   return <select {...props} className={cx(fieldBase, className)} />;
 }

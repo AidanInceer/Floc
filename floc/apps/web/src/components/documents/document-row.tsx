@@ -34,8 +34,10 @@ function KindChip({ mimeType }: { mimeType: string }) {
   return (
     <span
       className={cx(
-        "inline-flex w-11 shrink-0 justify-center rounded-full px-2 py-0.5 text-xs font-semibold",
-        label === "PDF" ? "bg-pastel-red text-pastel-red-ink" : "bg-pastel-blue text-pastel-blue-ink",
+        "inline-flex w-10 shrink-0 justify-center rounded-full py-0.5 font-mono text-[10px]",
+        label === "PDF"
+          ? "bg-pastel-red text-pastel-red-ink"
+          : "bg-pastel-blue text-pastel-blue-ink",
       )}
     >
       {label}
@@ -73,36 +75,36 @@ export function DocumentRow({
   /** Anything else that acts on the row — removal, on the Files page. */
   children?: React.ReactNode;
 }) {
-  // Two lines on a phone, one on a desk. Left to `flex-wrap`, the last control
-  // is the one that drops — every row grew a line holding nothing but "Remove".
   return (
-    <li className="flex flex-col gap-1.5 px-4 py-2.5 sm:flex-row sm:items-center sm:gap-3">
-      <div className="flex min-w-0 items-center gap-3 sm:flex-1">
-        <KindChip mimeType={doc.mimeType} />
+    <li className="flex min-h-14 items-center gap-2.5 px-3 py-2">
+      <KindChip mimeType={doc.mimeType} />
+      <div className="flex min-w-0 flex-1 flex-col leading-snug">
         <a
           href={`/trip/${tripId}/files/${doc.id}/raw`}
           target="_blank"
           rel="noopener noreferrer"
-          className="min-w-0 flex-1 truncate text-sm font-semibold text-pen hover:underline"
+          className="truncate text-sm font-medium text-pen hover:underline"
         >
           {doc.name}
         </a>
-      </div>
-      <div className="flex items-center gap-3 pl-14 sm:pl-0">
-        {filing ?? <CategoryChip category={doc.category} />}
-        {doc.dayEventId ? (
-          <Link
-            href={`/trip/${tripId}/days?event=${doc.dayEventId}`}
-            className="shrink-0 truncate text-xs text-pen hover:underline"
-          >
-            on {doc.eventTitle ?? "an event"}
-          </Link>
-        ) : null}
-        <span className="nums shrink-0 text-xs text-ink-soft">
+        <span className="nums truncate text-xs text-ink-soft">
           {mine ? "You" : doc.uploaderName} &middot; {formatBytes(doc.sizeBytes)}
+          {doc.dayEventId ? (
+            <>
+              {" "}
+              &middot;{" "}
+              <Link
+                href={`/trip/${tripId}/days?event=${doc.dayEventId}`}
+                className="text-pen hover:underline"
+              >
+                on {doc.eventTitle ?? "an event"}
+              </Link>
+            </>
+          ) : null}
         </span>
-        {children}
       </div>
+      {filing ?? <CategoryChip category={doc.category} />}
+      {children}
     </li>
   );
 }

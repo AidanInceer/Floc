@@ -508,6 +508,12 @@
     display: none;
   }
 
+  /* A vertical scroll area inside a sheet: a hairline bar, no arrows. */
+  .scroll-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--rule-2) transparent;
+  }
+
   /* Every band heading on the front door is one size — about half the hero's (ADR-019). */
   .band-title {
     font-size: clamp(2.2rem, 4.4vw, 3.4rem);

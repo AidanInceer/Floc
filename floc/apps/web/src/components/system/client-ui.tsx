@@ -91,6 +91,7 @@ export function Sheet({
   keepOpenOnSubmit,
   bareTrigger,
   defaultOpen,
+  body = "padded",
 }: {
   trigger: ReactNode;
   title: string;
@@ -111,6 +112,8 @@ export function Sheet({
   bareTrigger?: boolean;
   /** Open on arrival — a link that asked for this sheet (the landing's closing ticket). */
   defaultOpen?: boolean;
+  /** `flush` and `split` leave padding to the content, so it can run a `SheetFooter` edge to edge; `split` also widens for two columns. */
+  body?: "padded" | "flush" | "split";
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(false);
@@ -167,13 +170,23 @@ export function Sheet({
       <dialog
         ref={ref}
         aria-labelledby={labelId}
-        className="m-0 max-h-[90dvh] w-full max-w-lg overflow-y-auto bg-transparent p-0 backdrop:bg-black/40 sm:m-auto"
+        className={cx(
+          "m-0 max-h-[90dvh] w-full bg-transparent p-0 backdrop:bg-black/40 sm:m-auto",
+          // Flush bodies scroll inside the card, so a footer stays pinned and there is one scrollbar, not two.
+          body === "padded" ? "overflow-y-auto" : "overflow-hidden",
+          body === "split" ? "max-w-[44rem]" : "max-w-lg",
+        )}
         style={{ marginTop: "auto" }}
         onClick={(e) => {
           if (e.target === ref.current) close();
         }}
       >
-        <Card className="rounded-b-none bg-sheet sm:rounded-sm">
+        <Card
+          className={cx(
+            "rounded-b-none bg-sheet sm:rounded-sm",
+            body !== "padded" && "flex max-h-[90dvh] flex-col overflow-hidden",
+          )}
+        >
           <div className="flex items-center justify-between border-b border-dotted border-rule-strong px-4 py-3">
             <h2 id={labelId} className="font-display text-base font-semibold">
               {title}
@@ -189,7 +202,9 @@ export function Sheet({
           </div>
           {/* Submit dismisses the sheet unless keepOpenOnSubmit. */}
           <div
-            className="p-4"
+            className={
+              body === "padded" ? "p-4" : "scroll-thin flex min-h-0 flex-1 flex-col overflow-y-auto"
+            }
             onSubmit={keepOpenOnSubmit ? undefined : () => setTimeout(close, 0)}
           >
             <SheetCloseContext.Provider value={close}>

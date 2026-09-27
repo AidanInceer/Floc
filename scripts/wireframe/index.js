@@ -7,13 +7,17 @@
   var items = [];
   var esc = WF.esc;
 
-  function day(d) { return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" }); }
+  function day(d) {
+    return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", ...(d.getFullYear() === new Date().getFullYear() ? {} : { year: "numeric" }) });
+  }
 
   function card(it) {
+    var picked = it.tone === "chosen" ? (it.picked || it.changed) : null;
     return '<li><a class="wf-card2" href="/' + esc(it.folder) + '/">' +
-      '<span class="wf-card2-head"><b>' + esc(it.name) + '</b><span class="wf-tag wf-' + it.tone + '"' + (it.note ? ' title="' + esc(it.raw) + '"' : "") + ">" + esc(it.tag) + "</span></span>" +
-      (it.about ? '<span class="wf-about2">' + esc(it.about) + "</span>" : "") +
-      '<span class="wf-foot typed">' + esc(it.folder) + " · " + day(it.changed) + (it.note ? " · " + esc(it.note) : "") + "</span></a></li>";
+      '<b class="wf-card2-name">' + esc(it.name) + '</b>' +
+      '<span class="wf-tag wf-' + it.tone + '">' + esc(it.tag) + "</span>" +
+      (picked ? '<span class="wf-picked">Picked ' + day(picked) + "</span>" : "") +
+      "</a></li>";
   }
 
   function filters() {
@@ -32,16 +36,43 @@
     return '<div class="wf-tones" role="group" aria-label="Show">' + lead + '<span class="wf-rule" aria-hidden="true"></span>' + rest + "</div>";
   }
 
-  function body() {
-    var shown = items.filter(function (it) { return WF.matches(it, query, tone); });
-    var sections = WF.group(shown);
-    if (!sections.length) return '<p class="wf-none">No wireframe matches' + (query ? " “" + esc(query) + "”" : "") + ".</p>";
+  function visibleItems() {
+    return items.filter(function (it) { return WF.matches(it, query, tone); });
+  }
+
+  function wireframeBody(shown) {
+    var sections = WF.group(shown.filter(function (it) { return it.area !== "design"; }));
+    if (!sections.length) return '<p class="wf-none">No wireframes match' + (query ? " “" + esc(query) + "”" : "") + ".</p>";
     return sections.map(function (s) {
       return '<section class="wf-sec2"><p class="typed">' + esc(s.name) + "</p>" + s.pages.map(function (p) {
         return '<div class="wf-page" id="' + WF.slug(p.name) + '"><h2>' + esc(p.name) + (p.route ? " <code>" + esc(p.route) + "</code>" : "") + "</h2>" +
           '<ul class="wf-cards">' + p.items.map(card).join("") + "</ul></div>";
       }).join("") + "</section>";
     }).join("");
+  }
+
+  function playgroundBody(shown) {
+    var categories = ["Concept art", "Logos", "Type & fonts"];
+    var all = items.filter(function (it) { return it.area === "design"; });
+    var design = shown.filter(function (it) { return it.area === "design"; });
+    if (!design.length && (query || tone !== "open") && all.length) {
+      return '<p class="wf-none">No design studies match' + (query ? " “" + esc(query) + "”" : "") + ".</p>";
+    }
+    var groups = categories.map(function (category) {
+      var existing = all.filter(function (it) { return it.page === category; });
+      var matches = design.filter(function (it) { return it.page === category; });
+      if (!existing.length) return '<section class="wf-playground-slot"><h3>' + esc(category) + '</h3><p class="wf-empty-slot">No studies yet</p></section>';
+      if (!matches.length) return "";
+      return '<section class="wf-playground-slot"><h3>' + esc(category) + '</h3><ul class="wf-cards">' + matches.map(card).join("") + "</ul></section>";
+    }).join("");
+    var other = design.filter(function (it) { return categories.indexOf(it.page) === -1; });
+    if (other.length) groups += '<section class="wf-playground-slot"><h3>Other studies</h3><ul class="wf-cards">' + other.map(card).join("") + "</ul></section>";
+    return '<div class="wf-playground-grid">' + groups + "</div>";
+  }
+
+  function body() {
+    var shown = visibleItems();
+    return wireframeBody(shown) + '<section class="wf-playground" id="design-playground"><header class="wf-playground-head"><h2>Design playground</h2></header>' + playgroundBody(shown) + "</section>";
   }
 
   function draw() {

@@ -2,9 +2,8 @@
 
 /**
  * The upload control (ticket 239) — a sheet holding a file picker and the two
- * decisions that go with it: who sees it, and what it files under. Both sit on
- * one line beside the verb, because each is a single small control and stacking
- * them left the sheet mostly empty.
+ * decisions that go with it: who sees it, and what it files under. File first,
+ * then both choices side by side in one row, the verb in the footer bar.
  *
  * The native `<input type="file">` is hidden rather than styled: it renders as
  * "Choose file · No file chosen" and keeps that label after a pick, which reads
@@ -21,7 +20,7 @@ import {
   segmentOn,
   segmentShape,
 } from "@/components/packing/packing-card";
-import { Select, cx } from "@/components/system/ui";
+import { Select, SheetFooter, cx } from "@/components/system/ui";
 import {
   DOCUMENT_ACCEPT,
   DOC_CATEGORIES,
@@ -60,27 +59,27 @@ export function DocumentUpload({
       title={title ?? (dayEventId ? "Add a file to this event" : "Add a file")}
       triggerClassName={className}
       bareTrigger={bareTrigger}
+      body="flush"
     >
       <ActionForm action={uploadDocument.bind(null, tripId)}>
-        {dayEventId ? (
-          <input type="hidden" name="dayEventId" value={dayEventId} />
-        ) : null}
+        {dayEventId ? <input type="hidden" name="dayEventId" value={dayEventId} /> : null}
         {dayId ? <input type="hidden" name="dayId" value={dayId} /> : null}
-        <FilePicker />
-        <div className="mt-4 flex flex-wrap items-end gap-x-5 gap-y-3">
-          <ScopeChoice initial={scope} />
-          <CategoryChoice initial={category} />
-          <div className="ml-auto">
-            <SubmitButton pendingLabel="Uploading…">Upload</SubmitButton>
+        <div className="p-5">
+          <FilePicker />
+          <div className="mt-5 grid gap-4 min-[480px]:grid-cols-2 min-[480px]:items-end">
+            <ScopeChoice initial={scope} />
+            <CategoryChoice initial={category} />
           </div>
         </div>
+        <SheetFooter>
+          <SubmitButton pendingLabel="Uploading…">Upload</SubmitButton>
+        </SheetFooter>
       </ActionForm>
     </Sheet>
   );
 }
 
-const LABEL =
-  "block font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-soft";
+const LABEL = "block font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-soft";
 
 function FilePicker() {
   const input = useRef<HTMLInputElement>(null);
@@ -134,7 +133,7 @@ function FilePicker() {
           accept(e.dataTransfer.files);
         }}
         className={cx(
-          "flex w-full items-center gap-3 rounded-lg border px-4 py-4 text-left",
+          "flex min-h-[8.5rem] w-full flex-col items-center justify-center gap-1 rounded-xl border p-4 text-center",
           "transition-[background-color,border-color,transform] duration-[.22s] ease-[cubic-bezier(.2,.85,.3,1)]",
           // Pressing it opens the OS picker, which takes a moment — without a
           // pressed state the click reads as having missed.
@@ -150,31 +149,27 @@ function FilePicker() {
             : "border-dashed border-rule-strong hover:border-pen hover:bg-sheet-2",
         )}
       >
-        {picked ? (
-          <>
-            <span className="shrink-0 rounded-full bg-sheet px-2 py-0.5 text-xs font-semibold">
-              {kindLabel(picked.type)}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-semibold">
-                {picked.name}
-              </span>
-              <span className="nums block text-xs text-ink-soft">
-                {formatBytes(picked.size)}
-              </span>
-            </span>
-            <span className="shrink-0 text-sm text-pen">Change</span>
-          </>
-        ) : (
-          <span className="flex-1">
-            <span className="block text-sm font-semibold text-pen">
-              {over ? "Drop it here" : "Choose a file"}
-            </span>
-            <span className="block text-xs text-ink-soft">
-              PDF or image, up to 8 MB
-            </span>
-          </span>
-        )}
+        <svg
+          viewBox="0 0 14 14"
+          width={18}
+          height={18}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.2}
+          strokeLinecap="round"
+          aria-hidden
+          className="mb-1 text-pen"
+        >
+          <path d="M7 3v8M3 7h8" />
+        </svg>
+        <span className="max-w-full break-words text-sm font-medium text-pen">
+          {picked ? picked.name : over ? "Drop it here" : "Choose a file"}
+        </span>
+        <span className="nums text-xs text-ink-soft">
+          {picked
+            ? `${kindLabel(picked.type)} · ${formatBytes(picked.size)} · Change`
+            : "PDF or image · up to 8 MB"}
+        </span>
       </button>
     </div>
   );
@@ -188,7 +183,7 @@ function ScopeChoice({ initial }: { initial: "shared" | "private" }) {
   const [scope, setScope] = useState(initial);
 
   return (
-    <fieldset>
+    <fieldset className="min-w-0">
       <legend className={cx(LABEL, "mb-1.5")}>Who can see it</legend>
       <SegmentedField>
         {(
@@ -201,7 +196,7 @@ function ScopeChoice({ initial }: { initial: "shared" | "private" }) {
             key={value}
             className={cx(
               segmentShape,
-              "cursor-pointer",
+              "flex-1 cursor-pointer py-1.5 text-center",
               scope === value ? segmentOn : segmentOff,
             )}
           >
@@ -226,7 +221,7 @@ function CategoryChoice({ initial }: { initial: DocCategory }) {
   return (
     <label className="block">
       <span className={cx(LABEL, "mb-1.5")}>File under</span>
-      <Select name="category" defaultValue={initial} className="!w-auto">
+      <Select name="category" defaultValue={initial}>
         {DOC_CATEGORIES.map((c) => (
           <option key={c} value={c}>
             {DOC_CATEGORY_LABELS[c]}
