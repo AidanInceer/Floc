@@ -5,7 +5,7 @@ import { PRESET_TRIPS, type PresetTrip } from "@floc/core/trip/explore/preset-tr
 import { useRef, useState } from "react";
 
 import { rememberFilter } from "@/app/explore/actions";
-import { ExploreAtlas } from "@/components/explore/explore-atlas";
+import { ExploreAtlas, type AtlasRoute } from "@/components/explore/atlas/explore-atlas";
 import { ExploreFilterBar } from "@/components/explore/explore-filter-bar";
 import { ExploreForYou } from "@/components/explore/explore-for-you";
 import { ExplorePostcard } from "@/components/explore/explore-postcard";
@@ -26,8 +26,10 @@ export function ExploreFront({
   initialFilter: ExploreFilter;
 }) {
   const [picked, setPicked] = useState(PRESET_TRIPS[0].id);
+  const [route, setRoute] = useState<AtlasRoute | null>(null);
   const [filter, setFilter] = useState(initialFilter);
   const band = useRef<HTMLElement>(null);
+  const card = useRef<HTMLDivElement>(null);
   const pendingSave = useRef<ReturnType<typeof setTimeout>>(undefined);
   const trip = PRESET_TRIPS.find((t) => t.id === picked) ?? PRESET_TRIPS[0];
   const picks = forYou(PRESET_TRIPS, filter, FOR_YOU_COUNT);
@@ -40,8 +42,13 @@ export function ExploreFront({
     pendingSave.current = setTimeout(() => void rememberFilter(next), 400);
   };
 
-  const pickFromList = (id: string) => {
+  const pickOnMap = (id: string) => {
     setPicked(id);
+    setRoute((r) => ({ id, n: (r?.n ?? 0) + 1 }));
+  };
+
+  const pickFromList = (id: string) => {
+    pickOnMap(id);
     const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
     band.current?.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
   };
@@ -52,10 +59,10 @@ export function ExploreFront({
       {/* The map runs up behind the top bar's beads; -mt-15 is the bar's height. */}
       <section ref={band} className="relative -mt-15 scroll-mt-14 bg-sheet-2">
         <div className="h-[25.75rem] lg:absolute lg:inset-0 lg:h-auto">
-          <ExploreAtlas picked={trip.id} onPick={setPicked} />
+          <ExploreAtlas picked={trip.id} route={route} card={card} onPick={pickOnMap} onWorld={() => setRoute(null)} />
         </div>
         <div className="pointer-events-none relative mx-auto flex max-w-[90rem] justify-end px-4 pb-6 pt-21 sm:px-6 lg:min-h-[700px] lg:pb-8 lg:pt-23">
-          <div className="pointer-events-auto w-full lg:w-[25rem]">
+          <div ref={card} className="pointer-events-auto w-full lg:w-[25rem]">
             <ExplorePostcard trip={trip} signedIn={signedIn} />
           </div>
         </div>

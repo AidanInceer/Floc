@@ -15,17 +15,10 @@ import { useEffect, useRef } from "react";
 
 import "leaflet/dist/leaflet.css";
 
+import { routePin, type RouteMapStop } from "@/components/map/route-pin";
 import { MAX_ZOOM, TILE_ATTRIBUTION, TILE_URL } from "@/lib/map";
 
-export type RouteMapStop = {
-  /** Position in the FULL stop list, 1-based — so a pin's number matches its card. */
-  no: number;
-  name: string;
-  /** Days the itinerary spends here — the yellow badge on the pin (ticket 69). */
-  days: number;
-  lat: number;
-  lng: number;
-};
+export type { RouteMapStop } from "@/components/map/route-pin";
 
 /** Zoom used when there is a single point to show — a town, not a country. */
 const SINGLE_STOP_ZOOM = 9;
@@ -106,22 +99,7 @@ export function RouteMap({
         }).addTo(map);
       }
 
-      for (const s of stops) {
-        L.marker([s.lat, s.lng], {
-          keyboard: false,
-          icon: L.divIcon({
-            className: "route-pin",
-            // "2 days", not "2d" (ticket 82) — an abbreviation only the map used read as a code.
-            html: `<span>${s.no}</span><b class="day-pill route-pin-days">${s.days} ${
-              s.days === 1 ? "day" : "days"
-            }</b>`,
-            iconSize: [26, 26],
-            iconAnchor: [13, 13],
-          }),
-          title: `${s.no}. ${s.name} — ${s.days} ${s.days === 1 ? "day" : "days"}`,
-          alt: `Stop ${s.no}: ${s.name}, ${s.days} ${s.days === 1 ? "day" : "days"}`,
-        }).addTo(map);
-      }
+      for (const s of stops) routePin(L, s).addTo(map);
 
       // Container often measures zero at init inside a flex/grid page; re-fit
       // once laid out and on resize, or fitBounds lands on the centroid at max zoom.

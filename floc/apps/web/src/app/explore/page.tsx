@@ -4,7 +4,7 @@
  * the reason to make an account is on this page; starting a trip needs one.
  */
 import { DEFAULT_FILTER } from "@floc/core/trip/explore/explore-filter";
-import { readExploreSort, sortPresetTrips } from "@floc/core/trip/explore/explore-sort";
+import { readExploreSort, sortDirection, sortPresetTrips } from "@floc/core/trip/explore/explore-sort";
 import { PRESET_TRIPS, REGIONS, type Region } from "@floc/core/trip/explore/preset-trips";
 
 import { ExploreFront } from "@/components/explore/explore-front";
@@ -29,7 +29,7 @@ export default async function ExplorePage({
   const sort = readExploreSort(params.sort);
   const [filter, rates] = await Promise.all([
     userId ? loadFilter(userId) : null,
-    sort === "price" ? loadExploreRates(userId) : null,
+    sortDirection(sort, "price") ? loadExploreRates(userId) : null,
   ]);
   const active = isRegion(params.region) ? params.region : null;
   const inRegion = active ? PRESET_TRIPS.filter((t) => t.region === active) : PRESET_TRIPS;
