@@ -793,6 +793,34 @@
     .borrow-card { transition: none; }
   }
 
+  /* The Pro tour: a dashed trip line, inked in pen up to the stage on show. */
+  .pro-steps::before, .pro-steps::after { content: ""; position: absolute; top: 10px; left: 12.5%; height: 4px; border-radius: 4px; }
+  .pro-steps::before { right: 12.5%; background: repeating-linear-gradient(90deg, var(--rule-2) 0 10px, transparent 10px 16px); }
+  .pro-steps::after { width: calc(75% * var(--at) / (var(--n) - 1)); background: var(--pen); transition: width 0.6s var(--ease); }
+  @media (max-width: 639px) {
+    /* Why: on a phone the notes run past the screen, so the stages stay in reach under the top bar. */
+    .pro-steps {
+      position: sticky; top: 3.75rem; z-index: 10; padding: 10px 0 8px;
+      background: var(--paper); box-shadow: 0 0 0 100vmax var(--paper); clip-path: inset(0 -100vmax);
+    }
+    .pro-steps::before, .pro-steps::after { top: 20px; }
+  }
+  .pro-rise { animation: pro-rise 0.5s var(--ease) var(--delay, 0s) both; }
+  @keyframes pro-rise { from { opacity: 0; translate: 0 10px; } }
+  .pro-pulse { animation: pro-pulse 1.6s infinite; }
+  @keyframes pro-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--pastel-green-ink) 50%, transparent); }
+    50% { box-shadow: 0 0 0 5px transparent; }
+  }
+  .pro-wires path { fill: none; stroke: var(--pro-edge); stroke-width: 1.4; }
+  .pro-wires circle { fill: var(--pro-gold); }
+  .pro-wires [data-soon] path { stroke: var(--ink-3); stroke-dasharray: 3 4; }
+  .pro-wires [data-soon] circle { fill: var(--ink-3); }
+  @media (prefers-reduced-motion: reduce) {
+    .pro-rise, .pro-pulse { animation: none; }
+    .pro-steps::after { transition: none; }
+  }
+
   /* Nights laid end to end: one notch between nights, the fill in pen. */
   .nights-bar {
     position: relative;
