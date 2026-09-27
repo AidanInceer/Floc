@@ -17,18 +17,25 @@ gh issue list --repo AidanInceer/Floc --state open --search "Priority in:title" 
 
 If the stack is missing or empty, say so and point at `/floc:prioritise-tickets`.
 
+The stack is split into phases (`### Phase N — …` headings, one `phase:N` label per ticket). Numbering runs through every phase. The **current phase** is the lowest phase that still has a ticket in the stack.
+
 ### 2. Walk down to the first startable ticket
 
-Starting at the top, skip a ticket if any of these hold — and say which and why:
+Walk the current phase only, from the top. Skip a ticket if any of these hold — and say which and why:
 
 - It is labelled `on-develop` or `future-work` → it should not be in the stack. Remove that line from the stack body and carry on down.
 - It is closed → remove the line, carry on.
-- It is labelled `grilling` → it needs grilling before it can be built. Offer the user: grill it now (`/floc:grill`), or skip it. The grill writes decisions and acceptance criteria into the ticket and keeps it one ticket; then build it here. Only if the user asks for a split, run `/floc:to-tickets` with this ticket's number — it tags this parent `on-develop` and pops it off the stack.
 - Its `## Blocked by` names an issue that is still open and not `on-develop` → report the blocker and move to the next ticket.
+
+A ticket labelled `grilling` is **startable**. The label is intentional: it is the alignment step with Aidan before the build, not a defect. Start it with `/floc:grill`. The grill writes decisions and acceptance criteria into the ticket and keeps it one ticket; then build it here. Never offer to skip it for being `grilling`, and never flag the label as a problem. Only if the user asks for a split, run `/floc:to-tickets` with this ticket's number — it tags this parent `on-develop` and pops it off the stack.
+
+**Phase gate.** If nothing in the current phase is startable, say so, name what blocks each ticket, and ask before taking a ticket from the next phase. Never cross a phase silently.
+
+A ticket in the stack with no `phase:N` label, or whose label does not match its heading → report it and point at `/floc:prioritise-tickets`. Do not guess its phase.
 
 ### 3. Confirm
 
-Show the user the ticket: number, title, type label, what it delivers, acceptance criteria, blocked-by.
+Show the user the ticket: number, title, phase, type label, what it delivers, acceptance criteria, blocked-by.
 
 **Auto** — start without asking when the ticket has acceptance criteria and the user said `auto`, "just do it", or asked for several tickets. Otherwise ask to confirm.
 
@@ -55,10 +62,10 @@ verify, the `on-develop` label and popping the stack.
 
 ### 6. Report back
 
-Ticket number and title, what was built, the `/floc:push` result, and what is now on top of the stack.
+Ticket number and title, what was built, the `/floc:push` result, and what is now on top of the stack. If that pop emptied the current phase, say the next phase starts now.
 
 ## Constraints
 
-- Only ever take from the top. Never reorder here — that is `/floc:prioritise-tickets`.
+- Only ever take from the top of the current phase. Never reorder or re-phase here — that is `/floc:prioritise-tickets`.
 - Never close the issue by hand. `Closes` fires when `develop` reaches `main`.
 - Never pick up the `Priority` issue itself.
