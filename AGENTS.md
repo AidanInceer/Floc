@@ -131,7 +131,7 @@ Payments between members, POI data and reviews, flight *booking* (deep links onl
 ## Workflow
 
 - **Branches.** Two long-lived branches, no feature branches. Work lands on `develop` through `/floc:push` and goes to `main` in batches through `/floc:release`. A hotfix commits straight to `main`; a feature never does.
-- **Commits, labels and the Priority stack** are owned by the skills: `/floc:push` (subject, version bump, `Closes`, `on-develop`), `/floc:prioritise-tickets` (labels, stack), `/floc:to-tickets` (blocked-by edges). Never borrow an issue number.
+- **Commits, labels and the Priority stack** are owned by the skills: `/floc:push` (subject, version bump, `Closes`, `on-develop`), `/floc:prioritise-tickets` (labels, phases, stack), `/floc:to-tickets` (blocked-by edges). Never borrow an issue number.
 - **Docs are HTML, not markdown** — edit the page.
 - **Docs move with the code, in the same commit.** Before `/floc:push`, ask which page the diff makes untrue. `/floc:sync-docs` maps each kind of change to its page and runs `pnpm docs:check`.
 - **Deploy is Railway** via `railway.json` (runs the migration, starts `floc-web`). A push to `main` deploys. Env vars live in Railway's Variables tab, never in the repo.
@@ -163,11 +163,13 @@ Issues and PRDs are GitHub issues, driven with `gh`. The skills are the `floc` p
 | `/floc:prototype` | Throwaway code that answers one question, in gitignored `floc/wireframe/`, served on :4100 by `pnpm wireframe`. Never in the app, never on a branch, never committed. |
 | `/floc:feedback` | Turns what you noticed in a build into tickets, names why it drifted, and fixes the mission page or the decision log. |
 | `/floc:to-tickets` | Slices a plan into tracer-bullet issues with blocking edges. |
-| `/floc:prioritise-tickets` | Puts unprioritised open issues into the `Priority` stack, fixes type labels. |
-| `/floc:pickup-ticket` | Takes the top startable ticket and works it to a pushed `develop` commit. |
+| `/floc:prioritise-tickets` | Puts unprioritised open issues into the phased `Priority` stack, fixes type and phase labels. |
+| `/floc:pickup-ticket` | Takes the top startable ticket in the current phase and works it to a pushed `develop` commit. |
 | `/floc:seed-dev-db` | Loads dev scenarios A and B next to existing data. |
 | `/floc:reset-dev-db` | Backs up, wipes `local.db` and uploads, reseeds with fixed ids, signs back in. |
 
 Agent `floc:ci-babysit` watches CI for one commit, and on red fixes it on `develop`, pushes and watches again (three tries, never weakening a check). `/floc:push` and `/floc:release` start it in the background, in its own worktree.
+
+**Phases.** The `Priority` stack runs in three phases, one `phase:N` label per ticket: 1 product complete, 2 go-live readiness, 3 after go-live. A phase finishes before the next starts. `grilling` is intentional — the alignment step with Aidan before a build.
 
 **Loop:** idea → `/floc:grill` → `/floc:to-tickets` → `/floc:prioritise-tickets` → `/floc:pickup-ticket` → `/floc:push` → `/floc:release` → `/floc:feedback`.

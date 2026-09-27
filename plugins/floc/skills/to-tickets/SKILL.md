@@ -41,6 +41,7 @@ Give each ticket its **blocking edges** — which tickets must complete before i
 Present the breakdown as a numbered list. For each ticket show:
 
 - **Title** — short descriptive name, already prefixed with its feature category (`money:`, `platform:`, `explore:` …) so `/floc:prioritise-tickets` has nothing to re-title
+- **Phase** — `phase:1` product complete, `phase:2` go-live readiness, or `phase:3` after go-live (see [Phases](../prioritise-tickets/SKILL.md#phases)). A child ticket takes its parent's phase. A ticket is never in an earlier phase than a ticket it is blocked by
 - **Blocked by** — which other tickets gate it (or "none")
 - **Delivers** — the end-to-end behaviour, from the user's perspective
 
@@ -59,7 +60,9 @@ Create approved tickets in `AidanInceer/Floc`, in dependency order (blockers fir
 
 **Approval can arrive sideways.** "Yes, create those" tacked onto the front of another command still counts. Do not re-ask.
 
-Apply the type label at creation — `--label "type:feat" | "type:fix" | "type:refinement"` — every ticket, no exceptions. A research or prototype ticket carries its `wayfinder:*` label **and** a type label. Leaving the type off pushes the work onto `/floc:prioritise-tickets`.
+Apply the type label and the phase label at creation — `--label "type:feat" | "type:fix" | "type:refinement"` and `--label "phase:1" | "phase:2" | "phase:3"` — every ticket, no exceptions. A research or prototype ticket carries its `wayfinder:*` label **and** a type label. Leaving either off pushes the work onto `/floc:prioritise-tickets`.
+
+`grilling` is intentional — the alignment step with Aidan before the build. Keep it on a split-off child only if a decision in it is still open.
 
 ```bash
 gh issue create \
@@ -98,7 +101,7 @@ Skip this only if the user says the parent still holds work of its own.
 
 ### 6. Report back
 
-List every created issue: number, title, type label, blocking edges. Then remind the user to run `/floc:prioritise-tickets` — until they do, the new tickets are not in the `Priority` stack and `/floc:pickup-ticket` will not see them.
+List every created issue: number, title, phase, type label, blocking edges. Then remind the user to run `/floc:prioritise-tickets` — until they do, the new tickets are not in the `Priority` stack and `/floc:pickup-ticket` will not see them.
 
 ## Constraints
 
@@ -106,5 +109,5 @@ List every created issue: number, title, type label, blocking edges. Then remind
 - Issues live in `AidanInceer/Floc`, not the hub repo.
 - Blocked-by edges go in the body under `## Blocked by` as `#<n>`, never as a label — `/floc:prioritise-tickets` and `/floc:pickup-ticket` read them from there.
 - Never touch the `Priority` issue from this skill, except to pop a retired parent (step 5b).
-- Every created ticket gets a category-prefixed title and exactly one `type:` label at creation.
+- Every created ticket gets a category-prefixed title, exactly one `type:` label and exactly one `phase:` label at creation.
 - Never build a ticket on an unverified claim about the current codebase.

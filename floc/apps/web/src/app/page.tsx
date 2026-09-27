@@ -15,7 +15,7 @@ import { ConfettiWord } from "@/components/system/confetti-word";
 import { BorrowTrip } from "@/components/landing/borrow-trip";
 import { AppBand } from "@/components/landing/app-band";
 import { ClosingTicket } from "@/components/landing/closing-ticket";
-import { HeroDeck } from "@/components/landing/hero-deck";
+import { HeroDeck } from "@/components/landing/hero/hero-deck";
 import { Shore } from "@/components/landing/shore";
 import { LandingFaq } from "@/components/landing/landing-faq";
 import { ProBand } from "@/components/landing/pro-tour/pro-band";

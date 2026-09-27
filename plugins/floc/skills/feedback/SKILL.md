@@ -43,7 +43,8 @@ Only ask when the cause or the wanted result is unclear. Use the
 
 One ticket per point, unless two points are one change. Follow the
 `/floc:to-tickets` issue shape and rules (category-prefixed title, exactly one
-type label: `type:fix` for **Bug**, else `type:refinement`). Add to the body:
+type label: `type:fix` for **Bug**, else `type:refinement`; exactly one phase
+label, the phase of the ticket that built it). Add to the body:
 
 ```
 ## Feedback
@@ -54,7 +55,7 @@ Cause: <Bug | Unsaid | Wrong call | Changed mind> — <one line>
 Built by: #<ticket> (<commit short sha>)
 ```
 
-Then run `/floc:prioritise-tickets` so they enter the stack.
+Then run `/floc:prioritise-tickets` so they enter the stack in the right phase.
 
 ## 5. Fix the source
 

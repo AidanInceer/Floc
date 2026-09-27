@@ -1,11 +1,11 @@
 ---
 name: prioritise-tickets
-description: Order and tag every unprioritised open issue in AidanInceer/Floc, prefix each title with its feature category, and write the result to the Priority stack issue. Use when the user wants to prioritise the backlog, groom ticket order, or fix ticket labels and titles.
+description: Order and tag every unprioritised open issue in AidanInceer/Floc, give each a phase, prefix each title with its feature category, and write the result to the phased Priority stack issue. Use when the user wants to prioritise the backlog, groom ticket order, or fix ticket labels and titles.
 ---
 
 # prioritise-tickets
 
-Put every open Floc issue into one ordered stack, and make sure each one carries the right labels.
+Put every open Floc issue into one ordered stack, split into phases, and make sure each one carries the right labels.
 
 The order lives in a single GitHub issue titled **`Priority`** in `AidanInceer/Floc`. Its body is the stack — **top line = next ticket to pick up**.
 
@@ -28,11 +28,43 @@ Top = next to pick up. Maintained by \`/floc:prioritise-tickets\`. Consumed by \
 1. _(empty)_"
 ```
 
-Body format — one line per ticket, highest priority first:
+Body format — a short header, then one section per phase in phase order. One line per ticket, highest priority first. **Numbering runs through every phase** (phase 2 carries on from phase 1's last number) — `/floc:push` pops a line and renumbers the whole body, and `/floc:pickup-ticket` reads it top down.
 
 ```
+### Phase 1 — product complete
+
+Every feature Floc must have before real users.
+
 1. #123 — money: Short title  `type:feat`
 2. #98  — map: Short title  `type:fix` (blocked by #123)
+
+### Phase 2 — go-live readiness
+
+Legal, billing, operations and growth.
+
+3. #140 — legal: Short title  `type:feat`
+```
+
+Keep every phase heading, even when its list is empty (write `_(empty)_` under it).
+
+## Phases
+
+Every ticket in the stack sits in exactly one phase and carries the matching label. Work finishes a phase before it starts the next.
+
+| Label | Phase | Holds |
+|---|---|---|
+| `phase:1` | Product complete | Every feature Floc must have before real users: product features, collaboration, AI, platform, agent surfaces. |
+| `phase:2` | Go-live readiness | What must be true to take real users and money: legal, billing, pricing, ops, hosting, growth and launch pages. |
+| `phase:3` | After go-live | Work that needs real users first: A/B testing, product analytics, new Pro features, refinements from real feedback. |
+
+Derive the phase from the ticket body, as with the category. Ask only when a ticket fits two phases equally, and batch those questions with the Step A questions. A ticket is never in an earlier phase than a ticket it is blocked by — flag that the same way as a blocking violation.
+
+Create a missing phase label once:
+
+```bash
+gh label create "phase:1" --repo AidanInceer/Floc --color 0e8a16 --description "Product complete: every feature before real users"
+gh label create "phase:2" --repo AidanInceer/Floc --color 5319e7 --description "Go-live readiness: legal, billing, ops, growth"
+gh label create "phase:3" --repo AidanInceer/Floc --color c5def5 --description "After go-live: experiments, analytics, Pro, refinements"
 ```
 
 ## Title categories
@@ -62,7 +94,7 @@ Categories come from the app's own routes and server modules (`floc/apps/web/src
 | `platform` | what the device and runtime can do: offline, OS integration (share extension), concurrency |
 | `legal` | terms, privacy, cookie consent, a person's data rights, compliance |
 | `ops` | running the service: hosting, scale, go-live, support channels |
-| `growth` | public pages found by search and shared: SEO, metadata, marketing site |
+| `growth` | public pages found by search and shared (SEO, metadata, marketing site), experiments and product analytics |
 | `agents` | machine readers: llms.txt, MCP, agent-facing surfaces |
 | `ux` | design passes that span many screens |
 | `docs` | the `docs/` site, no app code |
@@ -77,14 +109,15 @@ Never double-prefix. If a title already starts with `<something>: `, replace tha
 
 ## Labels
 
-Every prioritised ticket must end up with exactly one **type** label, plus any state labels that apply.
+Every prioritised ticket must end up with exactly one **type** label, exactly one **phase** label, plus any state labels that apply.
 
 | Label | Meaning |
 |---|---|
 | `type:feat` | new behaviour |
 | `type:fix` | something is broken |
 | `type:refinement` | reshape or polish existing behaviour |
-| `grilling` | needs the user grilled (`/floc:grill`) before it can be built — **does not affect priority** |
+| `phase:1` · `phase:2` · `phase:3` | which phase the ticket belongs to — see [Phases](#phases) |
+| `grilling` | intentional: the alignment step with Aidan (`/floc:grill`) before the build — **does not affect priority or phase**, never a problem to flag |
 | `future-work` | parked on purpose — **not** in the stack |
 | `on-develop` | built, merged to `develop`, waiting on the batch to `main` — **not** in the stack. Also set on a parent split into child tickets (`## Split into` in its body); `/floc:release` closes it when all children close |
 
@@ -110,6 +143,8 @@ gh issue list --repo AidanInceer/Floc --state open --limit 200 --json number,tit
 
 Read the `Priority` issue body. A ticket is **unprioritised** if it is open, is not the `Priority` issue itself, is not labelled `future-work` or `on-develop`, and does not already appear in the stack.
 
+Also check the tickets already in the stack: each must carry one `phase:N` label that matches the section it sits in. Fix a missing label from its section; report a mismatch.
+
 Report the count before starting. If zero, say so and stop.
 
 ### 2. Categorise every title first
@@ -132,12 +167,12 @@ Before proposing anything, scan the request for references you cannot resolve to
 
 One table, every unprioritised ticket plus every ticket already in the stack, in your proposed order:
 
-| # | Ticket | Type | Notes |
-|---|---|---|---|
-| 1 | **#264** platform: Rename the product | refinement | new |
-| 2 | #253 money: Multi-currency | refinement | |
+| # | Phase | Ticket | Type | Notes |
+|---|---|---|---|---|
+| 1 | 1 | **#264** platform: Rename the product | refinement | new |
+| 2 | 1 | #253 money: Multi-currency | refinement | |
 
-Mark new tickets in bold, carry blocking edges in Notes, and flag any ticket missing a type label. Below the table, give a short reason for the positions you actually made a judgement call on — not one line per row.
+Group rows by phase, in phase order. Mark new tickets in bold, carry blocking edges in Notes, and flag any ticket missing a type label. A new ticket goes at the end of its phase unless its body argues for higher. Below the table, give a short reason for the positions you actually made a judgement call on — not one line per row.
 
 Say plainly that it is a draft and nothing is written yet.
 
@@ -165,7 +200,10 @@ Derive the type yourself and apply it. Only ask when a ticket genuinely reads as
 
 ```bash
 gh issue edit <n> --repo AidanInceer/Floc --add-label "type:feat"
+gh issue edit <n> --repo AidanInceer/Floc --add-label "phase:1"
 ```
+
+When the user moves a ticket to another phase, swap its label: `--remove-label phase:1 --add-label phase:2`.
 
 If the user says a ticket should be parked instead, label it `future-work` and leave it out of the stack.
 
@@ -185,7 +223,7 @@ gh issue edit <priority-issue-number> --repo AidanInceer/Floc --body-file <file>
 
 - How many titles were recategorised.
 - How many tickets were placed, and how many were parked.
-- The top 5 of the new stack.
+- How many tickets each phase holds, and the top 3 of the current phase.
 - Which positions the user confirmed, and which are still your draft.
 - Any labels changed.
 - Any blocking violations you flagged.
@@ -198,5 +236,6 @@ gh issue edit <priority-issue-number> --repo AidanInceer/Floc --body-file <file>
 - Never use `AskUserQuestion` here — every question is plain text in the response body.
 - Never walk the stack one position at a time unless the user asks for it. Show the whole order and take edits in one reply.
 - Tickets already in the stack keep their relative order by default.
-- Never let `grilling` push a ticket down. Grilling is a state, not a priority.
+- Never let `grilling` push a ticket down. Grilling is an intentional alignment step, not a priority or a problem.
+- Every ticket in the stack has exactly one `phase:N` label, matching its section. Numbering runs through all phases.
 - Category prefixes are applied agentically, never one question per ticket.
