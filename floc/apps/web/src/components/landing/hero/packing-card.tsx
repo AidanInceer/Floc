@@ -30,7 +30,7 @@ function Reel({ spins, end, seconds, className }: { spins: string[]; end: string
 /** Packing spins like a slot machine, one reel per row, and lands on who brings what. */
 export function PackingCard({ step }: { step: number }) {
   return (
-    <div className="deck-card bg-pastel-yellow px-5 py-[18px] text-pastel-yellow-ink">
+    <div className="deck-card bg-pastel-red px-5 py-[18px] text-pastel-red-ink">
       <div className="flex items-center justify-between gap-2">
         <span className={kicker}>Packing</span>
         <Swap
