@@ -746,29 +746,112 @@
     .film-shot > * { zoom: 0.4; }
   }
 
-  /* "Borrow a trip to …": the place rolls in, the map flies to the route. */
+  /* "Borrow a trip to …": a fan of finished routes. The place rolls in on its
+     pastel; the front card's bar and map line run on one clock (use-journey). */
   .borrow-word {
     display: inline-block;
-    margin-left: -0.12em;
-    padding: 0 0.12em;
+    margin-inline: -0.1em;
+    padding: 0 0.1em;
     border-radius: 0.14em;
-    animation: borrow-roll 0.55s var(--ease);
+  }
+  .borrow-roll {
+    display: inline-block;
+    animation: borrow-roll 0.5s var(--ease) both;
   }
   @keyframes borrow-roll {
-    from {
-      opacity: 0;
-      transform: translateY(0.35em);
-      clip-path: inset(0 0 100% 0);
-    }
+    from { opacity: 0; transform: translateY(0.22em); }
   }
-  .borrow-map {
-    height: 260px;
+  .borrow-stage {
+    position: relative;
+    height: 470px;
+    margin-top: 44px;
+  }
+  .borrow-card {
+    position: absolute;
+    left: 50%;
+    top: 10px;
+    width: min(470px, 100%);
+    padding: 22px 22px 20px;
+    text-align: left;
+    background: var(--sheet);
+    border: 1px solid var(--rule);
+    border-radius: 22px;
+    box-shadow: var(--shadow);
+    transition: transform 0.7s var(--ease), opacity 0.5s var(--ease), box-shadow 0.5s;
+  }
+  .borrow-card[data-pos="front"] { transform: translateX(-50%); z-index: 3; box-shadow: var(--shadow-lift); }
+  .borrow-card[data-pos="left"] { transform: translateX(calc(-50% - 270px)) translateY(22px) rotate(-6deg) scale(0.9); z-index: 2; cursor: pointer; }
+  .borrow-card[data-pos="right"] { transform: translateX(calc(-50% + 270px)) translateY(22px) rotate(6deg) scale(0.9); z-index: 2; cursor: pointer; }
+  .borrow-card[data-pos="back"] { transform: translateX(-50%) translateY(30px) scale(0.84); opacity: 0; z-index: 1; pointer-events: none; }
+  .borrow-card[data-pos="left"]:hover, .borrow-card[data-pos="right"]:hover { box-shadow: var(--shadow-lift); }
+  @media (max-width: 860px) {
+    .borrow-stage { height: 390px; }
+    .borrow-card[data-pos="left"], .borrow-card[data-pos="right"] { opacity: 0; pointer-events: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .borrow-roll { animation: none; }
+    .borrow-card { transition: none; }
+  }
+
+  /* Nights laid end to end: one notch between nights, the fill in pen. */
+  .nights-bar {
+    position: relative;
+    height: 8px;
+    border-radius: 99px;
+    background: var(--rule);
+    overflow: hidden;
+  }
+  .nights-bar i {
+    position: absolute;
+    inset: 0;
+    background: var(--pen);
+    transform-origin: left;
+  }
+  .nights-bar::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(to right, transparent 0 calc(100% / var(--n) - 2px), var(--sheet) calc(100% / var(--n) - 2px) calc(100% / var(--n)));
+  }
+
+  /* A still crop of the map, quietened like the Route map's tiles. */
+  .still-map {
+    position: relative;
+    margin-top: 12px;
+    border-radius: 14px;
+    overflow: hidden;
     background: var(--sheet-2);
+    box-shadow: inset 0 0 0 1px var(--rule);
+    isolation: isolate;
   }
-  .borrow-stop { animation: borrow-pop 0.4s var(--ease) both; }
-  @keyframes borrow-pop {
-    from { opacity: 0; transform: translateY(4px); }
+  .still-map-tiles {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    filter: saturate(0.42) brightness(1.06) contrast(0.9);
   }
+  .still-map-tiles::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--sheet);
+    opacity: 0.32;
+  }
+  .still-map-line {
+    fill: none;
+    stroke: var(--pen);
+    stroke-width: 2.25;
+    stroke-dasharray: 6 5;
+    stroke-linecap: round;
+  }
+  .still-map-pin {
+    fill: var(--sheet);
+    stroke: var(--pen);
+    stroke-width: 2;
+    transition: opacity 0.25s var(--ease);
+  }
+  .still-map-pin-first { fill: var(--pen); }
+
   /* Anything typed rather than written: labels, counts, dates, section heads. */
   .typed {
     font-family: var(--type);
@@ -969,6 +1052,15 @@
      made rather than chosen: invert, then turn the hues back the right way. */
   filter: invert(0.85) hue-rotate(180deg) saturate(1) brightness(2.4)
     contrast(0.7);
+}
+
+:root[data-theme="dark"] .still-map-tiles {
+  /* Softer than the Route map's dark filter: a small card at full invert read teal. */
+  filter: invert(0.92) hue-rotate(180deg) saturate(0.35) brightness(0.95) contrast(0.9);
+}
+
+:root[data-theme="dark"] .still-map-tiles::after {
+  opacity: 0.18;
 }
 
 :root[data-theme="dark"] .route-map-frame .route-map-wash {

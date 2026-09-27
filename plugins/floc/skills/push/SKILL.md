@@ -104,6 +104,12 @@ After the push, `land` labels the issue `on-develop` and pops its line off the
 reaches `main` (`/floc:release`), so the issue stays open until then. A `!!`
 from this step means do that part by hand with the command it prints.
 
+**Wireframe tag.** If this commit builds a chosen prototype, set its tag. Find it with
+`Select-String -Path floc/wireframe/*/index.html -Pattern 'wf-status" content="Chosen'`
+and match on `wf-route` or on the prototype the work came from. Set
+`wf-status` to `Chosen: <key>, on develop <version>`. `floc/wireframe/` is gitignored, so
+this is outside the commit. Rules: [prototype](../prototype/SKILL.md#the-tag-follows-the-work).
+
 ## 4. Babysit CI
 
 `land` prints the pushed SHA. Spawn the babysitter **in the background, in its
