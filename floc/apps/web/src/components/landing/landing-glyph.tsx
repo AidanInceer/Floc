@@ -26,7 +26,10 @@ export type GlyphName =
   | "agent"
   | "live"
   | "local"
-  | "extension";
+  | "extension"
+  | "stay"
+  | "eat"
+  | "send";
 
 const PATHS: Record<GlyphName, ReactNode> = {
   dates: (
@@ -145,6 +148,9 @@ const PATHS: Record<GlyphName, ReactNode> = {
       <path d="M1.8 5h10.4M3.6 3.7h.1M5 3.7h.1M5.2 8.2 6.6 9.4 9 7" />
     </>
   ),
+  stay: <path d="M1.8 11.6V3.4M1.8 8.4h10.4v3.2M1.8 6.4h3.4a1.6 1.6 0 0 1 1.6 1.6v.4M8.2 6.2h2.4a1.6 1.6 0 0 1 1.6 1.6v.6" />,
+  eat: <path d="M3.6 1.8v4.4a1.4 1.4 0 0 0 2.8 0V1.8M5 6.6v5.6M10.2 12.2V1.8c-1.4.6-2.2 2.2-2.2 4.2 0 1.2.6 1.8 2.2 1.8" />,
+  send: <path d="M7 11.6V2.6M3.2 6.2 7 2.4l3.8 3.8" />,
 };
 
 export function Glyph({

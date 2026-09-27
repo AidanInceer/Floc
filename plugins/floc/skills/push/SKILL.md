@@ -9,6 +9,9 @@ Local work → `develop`, in one commit, with `verify` green. There is **no
 pre-push hook**, so nothing else catches what this skill misses. The rules for
 commits and ticket state live **here**, not in `CLAUDE.md`.
 
+`/floc:release` runs this skill as its step 0 when there is local work, and
+changes step 4 and the report — follow its rules when called from there.
+
 `scripts/push.mjs` does the mechanical half. This file covers what a script
 cannot judge: an unexpected diff, the commit message, and the issue number.
 
@@ -160,3 +163,4 @@ of the work, say so. Nothing else.
 - **`.next` poisoned** (`EINVAL: readlink`, bad chunks):
   `pnpm --filter floc-web run clean:next`, then restart `floc-web`.
 - **`develop` → `main` is `/floc:release`.** This skill never touches `main`.
+  To push and deploy in one go, call `/floc:release` — it runs push first.
