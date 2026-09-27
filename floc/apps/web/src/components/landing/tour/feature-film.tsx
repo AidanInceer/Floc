@@ -4,7 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import type { KeyboardEvent, MouseEvent, PointerEvent, ReactNode, RefObject } from "react";
 
 import { cx } from "@/components/system/ui";
-import { filmPosition, nearestSlide } from "@/lib/landing/carousel";
+import { FILM_COPIES, nearestCopy, nearestSlide, recentre } from "@/lib/landing/carousel";
 
 import { Glyph } from "../landing-glyph";
 import type { SlideTone, TourSlide } from "./tour-slides";
@@ -18,57 +18,83 @@ const TONE: Record<SlideTone, { slide: string; chip: string }> = {
   green: { slide: "bg-pastel-green text-pastel-green-ink", chip: "bg-pastel-green text-pastel-green-ink border-pastel-green-edge" },
 };
 
-function useFilm(count: number) {
+type Film = {
+  track: RefObject<HTMLDivElement | null>;
+  current: number;
+  go: (i: number) => void;
+  here: () => number;
+  glide: (physical: number) => void;
+  held: RefObject<boolean>;
+};
+
+function useFilm(count: number): Film {
   const track = useRef<HTMLDivElement>(null);
   const [current, setCurrent] = useState(0);
+  // A drag moves scrollLeft itself; re-centring under it would fight the pointer.
+  const held = useRef(false);
 
   const starts = useCallback(() => {
-    const slides = [...(track.current?.querySelectorAll<HTMLElement>("[data-slide]") ?? [])];
+    const slides = [...(track.current?.querySelectorAll<HTMLElement>("[data-physical]") ?? [])];
     const first = slides[0]?.offsetLeft ?? 0;
     return slides.map((s) => s.offsetLeft - first);
   }, []);
 
-  const go = useCallback(
-    (i: number, from = current) => {
+  const here = useCallback(() => nearestSlide(starts(), track.current?.scrollLeft ?? 0), [starts]);
+
+  const settle = useCallback(() => {
+    const node = track.current;
+    if (!node || held.current || count === 0) return;
+    const physical = here();
+    const middle = recentre(physical, count);
+    if (middle !== physical) node.scrollLeft = starts()[middle] ?? 0;
+  }, [count, here, starts]);
+
+  const glide = useCallback(
+    (physical: number) => {
       const node = track.current;
-      if (!node || count === 0) return;
+      const left = starts()[physical];
+      if (!node || left === undefined) return;
+      // Already there: no scroll runs, so no scrollend comes to re-centre it.
+      if (Math.abs(node.scrollLeft - left) < 1) return settle();
       const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
-      node.scrollTo({ left: starts()[filmPosition(from, i, count)] ?? 0, behavior: still ? "auto" : "smooth" });
+      node.scrollTo({ left, behavior: still ? "auto" : "smooth" });
     },
-    [count, current, starts],
+    [settle, starts],
   );
+
+  const go = useCallback((i: number) => glide(nearestCopy(here(), i, count)), [count, glide, here]);
 
   useLayoutEffect(() => {
     const node = track.current;
-    if (node && count > 0) node.scrollLeft = starts()[1] ?? 0;
+    if (node && count > 0) node.scrollLeft = starts()[count] ?? 0;
   }, [count, starts]);
 
   useEffect(() => {
     const node = track.current;
-    if (!node) return;
+    if (!node || count === 0) return;
+    let quiet: ReturnType<typeof setTimeout> | undefined;
+    const hasScrollEnd = "onscrollend" in window;
     const sync = () => {
-      const physical = nearestSlide(starts(), node.scrollLeft);
-      setCurrent(physical === 0 ? count - 1 : physical === count + 1 ? 0 : physical - 1);
-    };
-    const settle = () => {
-      const physical = nearestSlide(starts(), node.scrollLeft);
-      if (physical === 0) node.scrollLeft = starts()[count] ?? 0;
-      if (physical === count + 1) node.scrollLeft = starts()[1] ?? 0;
+      setCurrent(here() % count);
+      if (hasScrollEnd) return;
+      clearTimeout(quiet);
+      quiet = setTimeout(settle, 150);
     };
     node.addEventListener("scroll", sync, { passive: true });
     node.addEventListener("scrollend", settle);
     return () => {
+      clearTimeout(quiet);
       node.removeEventListener("scroll", sync);
       node.removeEventListener("scrollend", settle);
     };
-  }, [count, starts]);
+  }, [count, here, settle]);
 
-  return { track, current, go };
+  return { track, current, go, here, glide, held };
 }
 
 // Touch and trackpads scroll natively; a mouse gets drag-to-scroll, then snaps one slide on.
-function useMouseDrag(track: RefObject<HTMLDivElement | null>, current: number, go: (i: number, from?: number) => void) {
-  const drag = useRef<{ x: number; left: number; index: number } | null>(null);
+function useMouseDrag({ track, here, glide, held }: Film) {
+  const drag = useRef<{ x: number; left: number; from: number } | null>(null);
   // A drag ends in a click on whatever slide it let go over; that click must not pick it.
   const dragged = useRef(false);
   const [dragging, setDragging] = useState(false);
@@ -77,8 +103,9 @@ function useMouseDrag(track: RefObject<HTMLDivElement | null>, current: number, 
     if (e.pointerType !== "mouse" || e.button !== 0 || !track.current) return;
     // The plan slide carries a live map; dragging it pans the map, not the film.
     if ((e.target as HTMLElement).closest(".leaflet-container")) return;
-    drag.current = { x: e.clientX, left: track.current.scrollLeft, index: current };
+    drag.current = { x: e.clientX, left: track.current.scrollLeft, from: here() };
     dragged.current = false;
+    held.current = true;
     setDragging(true);
   };
 
@@ -89,11 +116,12 @@ function useMouseDrag(track: RefObject<HTMLDivElement | null>, current: number, 
     };
     const up = (e: globalThis.PointerEvent) => {
       const dx = drag.current ? e.clientX - drag.current.x : 0;
-      const from = drag.current?.index ?? current;
+      const from = drag.current?.from ?? here();
       drag.current = null;
       dragged.current = Math.abs(dx) > 5;
+      held.current = false;
       setDragging(false);
-      go(Math.abs(dx) > 60 ? from + (dx < 0 ? 1 : -1) : from, from);
+      glide(Math.abs(dx) > 60 ? from + (dx < 0 ? 1 : -1) : from);
     };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up, { once: true });
@@ -101,15 +129,16 @@ function useMouseDrag(track: RefObject<HTMLDivElement | null>, current: number, 
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
     };
-  }, [dragging, current, go, track]);
+  }, [dragging, glide, held, here, track]);
 
   return { dragging, dragged, onPointerDown };
 }
 
-function SlideCard({ slide, index, count, active, duplicate }: { slide: FilmSlide; index: number; count: number; active: boolean; duplicate?: boolean }) {
+function SlideCard({ slide, index, physical, count, active, duplicate }: { slide: FilmSlide; index: number; physical: number; count: number; active: boolean; duplicate?: boolean }) {
   return (
     <article
       data-slide={index}
+      data-physical={physical}
       aria-hidden={duplicate || undefined}
       aria-roledescription="slide"
       aria-label={`${index + 1} of ${count}: ${slide.tab}`}
@@ -141,11 +170,11 @@ function SlideCard({ slide, index, count, active, duplicate }: { slide: FilmSlid
 
 /** "Everything in one place": a filmstrip of drawn trip pages, one feature a slide. */
 export function FeatureFilm({ slides }: { slides: FilmSlide[] }) {
-  const { track, current, go } = useFilm(slides.length);
-  const { dragging, dragged, onPointerDown } = useMouseDrag(track, current, go);
-  const first = slides[0];
-  const last = slides[slides.length - 1];
-  const film = first && last ? [last, ...slides, first] : [];
+  const film = useFilm(slides.length);
+  const { track, current, go } = film;
+  const { dragging, dragged, onPointerDown } = useMouseDrag(film);
+  const count = slides.length;
+  const copies = Array.from({ length: FILM_COPIES }, () => slides).flat();
 
   const onClick = (e: MouseEvent<HTMLDivElement>) => {
     const picked = (e.target as HTMLElement).closest<HTMLElement>("[data-slide]")?.dataset.slide;
@@ -190,9 +219,9 @@ export function FeatureFilm({ slides }: { slides: FilmSlide[] }) {
         onClick={onClick}
         className={cx("film-track scroll-x-bare", dragging && "is-dragging")}
       >
-        {film.map((s, physical) => {
-          const index = physical === 0 ? slides.length - 1 : physical === slides.length + 1 ? 0 : physical - 1;
-          return <SlideCard key={`${s.key}-${physical}`} slide={s} index={index} count={slides.length} active={index === current} duplicate={physical === 0 || physical === slides.length + 1} />;
+        {copies.map((s, physical) => {
+          const index = physical % count;
+          return <SlideCard key={`${s.key}-${physical}`} slide={s} index={index} physical={physical} count={count} active={index === current} duplicate={recentre(physical, count) !== physical} />;
         })}
       </div>
     </div>

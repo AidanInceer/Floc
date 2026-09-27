@@ -53,9 +53,9 @@ describe("themeBootstrap", () => {
     expect(run(null, false)).toMatchObject({ theme: "light", themeChoice: "system" });
   });
 
-  it("is auto when signed out, whatever is stored", () => {
-    expect(run("light", true, false)).toMatchObject({ theme: "dark", themeChoice: "system" });
-    expect(run("dark", false, false)).toMatchObject({ theme: "light", themeChoice: "system" });
+  it("is light when signed out, whatever is stored or the browser prefers", () => {
+    expect(run("dark", true, false)).toMatchObject({ theme: "light", themeChoice: "light" });
+    expect(run(null, true, false)).toMatchObject({ theme: "light", themeChoice: "light" });
   });
 
   it("reads the key storeTheme writes", () => {

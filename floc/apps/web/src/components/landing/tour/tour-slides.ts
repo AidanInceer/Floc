@@ -14,15 +14,15 @@ export type TourSlide = {
   proExtra?: string;
 };
 
-// In trip order: picking a place, then the week, the days, the bills, the bags and the passes.
+// In trip order: picking a place, then the week, the days, the bills, the bags, the notes and the passes.
 export const TOUR_SLIDES: TourSlide[] = [
   {
     key: "where",
     tab: "Where",
-    icon: "notes",
+    icon: "local",
     tone: "yellow",
     title: "Decide where, together",
-    line: "One page for the shortlist, the links and the vote.",
+    line: "Everyone puts up an idea. The group votes one to the top.",
     before: "i sent a link last week somewhere",
   },
   {
@@ -61,6 +61,15 @@ export const TOUR_SLIDES: TourSlide[] = [
     line: "Claim the shared things. Nothing doubles up, nothing gets left.",
     before: "who’s bringing the speaker",
     proExtra: "Pro: a list built from the forecast and the plan",
+  },
+  {
+    key: "notes",
+    tab: "Notes",
+    icon: "notes",
+    tone: "green",
+    title: "Write it down together",
+    line: "A page for the restaurants, the day trips, the house rules. Everyone writes at once.",
+    before: "where was that restaurant list",
   },
   {
     key: "tickets",

@@ -830,7 +830,7 @@
     top: 56px;
     transition: transform 0.6s var(--ease);
   }
-  .film-slide.is-resting .film-shot { transform: translateY(18px); }
+  .film-slide.is-resting .film-shot { transform: translateY(22px); }
   /* The plan slide's live route map: as tall as the week beside it. */
   .film-map .route-map-frame { border-radius: 14px; }
   /* Narrow: the text sits above, and the drawn screen shrinks to show its
