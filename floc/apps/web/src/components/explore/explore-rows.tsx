@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ExploreAnswers } from "@floc/core/trip/explore/explore-match";
+import type { ExploreFilter } from "@floc/core/trip/explore/explore-filter";
 import { EXPLORE_SORTS, type ExploreSort } from "@floc/core/trip/explore/explore-sort";
 import { PRESET_TRIPS, REGIONS, type PresetTrip, type Region } from "@floc/core/trip/explore/preset-trips";
 
@@ -27,12 +27,12 @@ export type ExploreView = { region: Region | null; sort: ExploreSort; showAll: b
 export function ExploreRows({
   trips,
   view,
-  answers,
+  filter,
   signedIn,
 }: {
   trips: PresetTrip[];
   view: ExploreView;
-  answers: ExploreAnswers;
+  filter: ExploreFilter;
   signedIn: boolean;
 }) {
   const { region, sort, showAll } = view;
@@ -42,7 +42,7 @@ export function ExploreRows({
     <section className="mt-16">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
-          <h2 className="text-[clamp(1.6rem,3vw,2.3rem)] tracking-[-0.03em]">Everything else</h2>
+          <h2 className="text-[clamp(1.6rem,3vw,2.3rem)] tracking-[-0.03em]">All trips</h2>
           <nav aria-label="Sort trips" className="inline-flex gap-0.5 rounded-xl bg-sheet-2 p-[3px]">
             {(Object.keys(EXPLORE_SORTS) as ExploreSort[]).map((s) => (
               <Link
@@ -84,7 +84,7 @@ export function ExploreRows({
         <span className="w-[26px]" />
       </div>
       <ul className="border-t border-rule">
-        <ExploreRowList trips={shown} answers={answers} signedIn={signedIn} row={row} tag={tag} />
+        <ExploreRowList trips={shown} filter={filter} signedIn={signedIn} row={row} tag={tag} />
         <li className="mt-3 grid min-h-[3.25rem] grid-cols-[5.5rem_minmax(0,1fr)_auto] items-center gap-3 rounded-lg border-[1.5px] border-dashed border-rule-strong px-1 py-2.5 md:grid-cols-[7.5rem_minmax(0,1fr)_auto] md:gap-4">
           <span className={`${tag} border border-dashed border-rule-strong text-ink-soft`}>Anywhere</span>
           <p className="min-w-0 truncate">

@@ -473,6 +473,52 @@
     display: none;
   }
 
+  /*
+   * A slider drawn by hand so one and two thumbs look the same: the inputs
+   * are see-through over a track, and only the thumbs take the pointer, so
+   * two inputs can share one track.
+   */
+  .slider input[type="range"] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    margin: 0;
+    appearance: none;
+    background: transparent;
+    pointer-events: none;
+  }
+
+  .slider input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    background: var(--sheet);
+    border: 1.5px solid var(--ink);
+    cursor: pointer;
+    pointer-events: auto;
+  }
+
+  .slider input[type="range"]::-moz-range-thumb {
+    width: 11px;
+    height: 11px;
+    border-radius: 999px;
+    background: var(--sheet);
+    border: 1.5px solid var(--ink);
+    cursor: pointer;
+    pointer-events: auto;
+  }
+
+  .slider input[type="range"]:focus-visible::-webkit-slider-thumb {
+    outline: 2px solid var(--pen);
+    outline-offset: 2px;
+  }
+
+  .slider input[type="range"]:focus-visible::-moz-range-thumb {
+    outline: 2px solid var(--pen);
+    outline-offset: 2px;
+  }
+
   /* A vertical scroll area inside a sheet: a hairline bar, no arrows. */
   .scroll-thin {
     scrollbar-width: thin;

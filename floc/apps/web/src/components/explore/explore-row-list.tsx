@@ -1,8 +1,7 @@
 "use client";
 
 import { formatMoney } from "@floc/core/money/money";
-import { fitCheck } from "@floc/core/trip/explore/explore-fit";
-import type { ExploreAnswers } from "@floc/core/trip/explore/explore-match";
+import { filterCheck, type ExploreFilter } from "@floc/core/trip/explore/explore-filter";
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 import { useState } from "react";
 
@@ -12,13 +11,13 @@ import { cx } from "@/components/system/ui";
 
 export function ExploreRowList({
   trips,
-  answers,
+  filter,
   signedIn,
   row,
   tag,
 }: {
   trips: PresetTrip[];
-  answers: ExploreAnswers;
+  filter: ExploreFilter;
   signedIn: boolean;
   row: string;
   tag: string;
@@ -28,7 +27,7 @@ export function ExploreRowList({
     <>
       {trips.map((trip) => {
         const open = openId === trip.id;
-        const { misses } = fitCheck(trip, answers);
+        const { misses } = filterCheck(trip, filter);
         return (
           <li key={trip.id}>
             <button

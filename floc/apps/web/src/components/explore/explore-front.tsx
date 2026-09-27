@@ -1,48 +1,43 @@
 "use client";
 
-import { bestFits, goodFitCount } from "@floc/core/trip/explore/explore-fit";
-import { DEFAULT_ANSWERS, type ExploreAnswers } from "@floc/core/trip/explore/explore-match";
+import { forYou, type ExploreFilter } from "@floc/core/trip/explore/explore-filter";
 import { PRESET_TRIPS, type PresetTrip } from "@floc/core/trip/explore/preset-trips";
 import { useRef, useState } from "react";
 
-import { rememberAnswers } from "@/app/explore/actions";
+import { rememberFilter } from "@/app/explore/actions";
 import { ExploreAtlas } from "@/components/explore/explore-atlas";
-import { ExploreBest } from "@/components/explore/explore-best";
-import { ExploreGroupBar } from "@/components/explore/explore-group-bar";
+import { ExploreFilterBar } from "@/components/explore/explore-filter-bar";
+import { ExploreForYou } from "@/components/explore/explore-for-you";
 import { ExplorePostcard } from "@/components/explore/explore-postcard";
 import { ExploreRows, type ExploreView } from "@/components/explore/explore-rows";
 
-const BEST_COUNT = 3;
+const FOR_YOU_COUNT = 5;
 
-const sameAnswers = (a: ExploreAnswers, b: ExploreAnswers) =>
-  a.size === b.size && a.when === b.when && a.cost === b.cost && a.pace === b.pace && a.nights === b.nights;
-
-/** Explore, top to bottom: the map and its postcard, the group's answers, the best three, then the rest. */
+/** Explore, top to bottom: the map and its postcard, the group's sliders, the picks for you, then every trip. */
 export function ExploreFront({
   trips,
   view,
   signedIn,
-  initialAnswers,
+  initialFilter,
 }: {
   trips: PresetTrip[];
   view: ExploreView;
   signedIn: boolean;
-  initialAnswers: ExploreAnswers;
+  initialFilter: ExploreFilter;
 }) {
   const [picked, setPicked] = useState(PRESET_TRIPS[0].id);
-  const [answers, setAnswers] = useState(initialAnswers);
+  const [filter, setFilter] = useState(initialFilter);
   const band = useRef<HTMLElement>(null);
   const pendingSave = useRef<ReturnType<typeof setTimeout>>(undefined);
   const trip = PRESET_TRIPS.find((t) => t.id === picked) ?? PRESET_TRIPS[0];
-  const best = bestFits(PRESET_TRIPS, answers, BEST_COUNT);
-  const bestIds = new Set(best.map((t) => t.id));
+  const picks = forYou(PRESET_TRIPS, filter, FOR_YOU_COUNT);
 
-  const answer = (next: ExploreAnswers) => {
-    setAnswers(next);
+  const change = (next: ExploreFilter) => {
+    setFilter(next);
     if (!signedIn) return;
     // Why: a dragged slider fires on every step; save the last one only.
     clearTimeout(pendingSave.current);
-    pendingSave.current = setTimeout(() => void rememberAnswers(next), 400);
+    pendingSave.current = setTimeout(() => void rememberFilter(next), 400);
   };
 
   const pickFromList = (id: string) => {
@@ -66,17 +61,11 @@ export function ExploreFront({
         </div>
       </section>
 
-      <ExploreGroupBar
-        answers={answers}
-        goodFits={goodFitCount(PRESET_TRIPS, answers)}
-        changed={!sameAnswers(answers, DEFAULT_ANSWERS)}
-        onAnswer={answer}
-        onReset={() => answer(DEFAULT_ANSWERS)}
-      />
+      <ExploreFilterBar filter={filter} onChange={change} />
 
       <div className="mx-auto w-full max-w-[76rem] px-4 sm:px-6">
-        <ExploreBest trips={best} answers={answers} onPick={pickFromList} />
-        <ExploreRows trips={trips.filter((t) => !bestIds.has(t.id))} view={view} answers={answers} signedIn={signedIn} />
+        <ExploreForYou trips={picks} filter={filter} onPick={pickFromList} />
+        <ExploreRows trips={trips} view={view} filter={filter} signedIn={signedIn} />
       </div>
     </>
   );
