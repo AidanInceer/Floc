@@ -437,43 +437,6 @@
     z-index: 10;
   }
 
-  /*
-   * The hero's hover confetti (`ConfettiWord`). The overlay never takes the
-   * pointer, or the burst would re-fire on every piece that crossed the cursor.
-   */
-  .confetti {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    overflow: visible;
-  }
-  .confetti i {
-    position: absolute;
-    top: 12%;
-    display: block;
-    opacity: 0;
-    animation: confetti-throw 0.9s cubic-bezier(0.15, 0.75, 0.35, 1) forwards;
-  }
-  /* Up and out, then let it fall — one keyframe, no physics. */
-  @keyframes confetti-throw {
-    0% {
-      opacity: 0;
-      transform: translate(0, 0) rotate(0deg) scale(0.4);
-    }
-    12% {
-      opacity: 1;
-    }
-    55% {
-      transform: translate(calc(var(--dx) * 0.8), var(--dy))
-        rotate(calc(var(--rot) * 0.6)) scale(1);
-    }
-    100% {
-      opacity: 0;
-      transform: translate(var(--dx), calc(var(--dy) * -0.35))
-        rotate(var(--rot)) scale(0.9);
-    }
-  }
-
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -1040,48 +1003,6 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--ink-3);
-  }
-
-  /*
-   * A highlighter stroke through a word, per paper.html's `h1 u`. A gradient
-   * band rather than a background fill or an `::after` bar, so it sits *behind
-   * the glyphs*, follows the text if the line wraps, and needs no positioning
-   * — the two things a positioned bar gets wrong.
-   *
-   * `--hl-stroke` is the pen colour, so a second highlighter is a one-line
-   * modifier rather than a duplicated gradient.
-   */
-  .hl {
-    --hl-stroke: var(--highlight);
-    text-decoration: none;
-    background-image: linear-gradient(
-      180deg,
-      transparent 18%,
-      var(--hl-stroke) 18% 97%,
-      transparent 97%
-    );
-  }
-
-  .hl-green {
-    --hl-stroke: var(--green-edge);
-  }
-
-  /*
-   * A looser highlighter — a low, thin swipe rather than a solid band behind
-   * the whole word. Sits near the baseline and leaves the glyphs mostly clear,
-   * so the hero reads as a quick pen stroke, not a filled block.
-   */
-  .hl-loose {
-    background-repeat: no-repeat;
-    background-position: 0 92%;
-    background-size: 100% 34%;
-    background-image: linear-gradient(
-      180deg,
-      transparent 0%,
-      var(--hl-stroke) 22%,
-      var(--hl-stroke) 78%,
-      transparent 100%
-    );
   }
 
   /*

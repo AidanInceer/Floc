@@ -11,11 +11,11 @@ import { allFeaturesFree } from "@/lib/env";
 import { formatMoney } from "@floc/core/money/money";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import { ButtonLink } from "@/components/system/ui";
-import { ConfettiWord } from "@/components/system/confetti-word";
 import { BorrowTrip } from "@/components/landing/borrow-trip";
 import { AppBand } from "@/components/landing/app-band";
 import { ClosingTicket } from "@/components/landing/closing-ticket";
 import { HeroDeck } from "@/components/landing/hero/hero-deck";
+import { TypedWord } from "@/components/landing/hero/typed-word";
 import { Shore } from "@/components/landing/shore";
 import { LandingFaq } from "@/components/landing/landing-faq";
 import { ProBand } from "@/components/landing/pro-tour/pro-band";
@@ -67,12 +67,9 @@ export default async function LandingPage() {
         {/* ── hero ─────────────────────────────────────────────────────── */}
         <section className="mx-auto max-w-[60rem] px-4 pt-12 text-center sm:px-6 sm:pt-16">
           <h1 className="font-display text-[clamp(2.8rem,7.4vw,6rem)] font-semibold leading-none tracking-[-0.04em]">
-            Trip Planning
-            <br />
-            <ConfettiWord>
-              <span className="hl hl-loose hl-green">Sorted</span>
-            </ConfettiWord>
-            .
+            <span className="sr-only">Trip planning, sorted.</span>
+            <span aria-hidden="true">Trip planning,</span>
+            <TypedWord />
           </h1>
           <p className="mx-auto mt-6 max-w-[44ch] text-md text-ink-soft">
             Keep the destination, dates, route and costs in one place. Plan on your own,
