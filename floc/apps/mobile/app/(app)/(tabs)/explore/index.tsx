@@ -8,7 +8,7 @@ import {
   rankMatches,
   type ExploreAnswers,
 } from "@floc/core/trip/explore/explore-match";
-import { DEFAULT_EXPLORE_SORT, sortPresetTrips, type ExploreSort } from "@floc/core/trip/explore/explore-sort";
+import { DEFAULT_EXPLORE_SORT, sortDirection, sortPresetTrips, type ExploreSort } from "@floc/core/trip/explore/explore-sort";
 import { PRESET_TRIPS, type Region } from "@floc/core/trip/explore/preset-trips";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
@@ -44,7 +44,7 @@ export default function Explore() {
   const [region, setRegion] = useState<RegionChoice>(null);
   const [showAll, setShowAll] = useState(false);
   const [sort, setSort] = useState<ExploreSort>(DEFAULT_EXPLORE_SORT);
-  const rates = useQuery({ ...trpc.explore.rates.queryOptions(), enabled: sort === "price" });
+  const rates = useQuery({ ...trpc.explore.rates.queryOptions(), enabled: sortDirection(sort, "price") !== null });
 
   useEffect(() => {
     if (state.data?.answers) setAnswers(state.data.answers);

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { WhenScreen, WhereScreen } from "./screens-decide";
 import { PackingScreen, TicketsScreen } from "./screens-kit";
+import { NotesScreen } from "./screens-notes";
 import { MoneyScreen, PlanScreen } from "./screens-trip";
 
 const SHOTS: Record<string, () => ReactNode> = {
@@ -11,6 +12,7 @@ const SHOTS: Record<string, () => ReactNode> = {
   money: MoneyScreen,
   packing: PackingScreen,
   tickets: TicketsScreen,
+  notes: NotesScreen,
 };
 
 /** Drawn on the server, so the carousel ships no screen markup in its bundle. */

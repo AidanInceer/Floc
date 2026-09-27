@@ -3,13 +3,13 @@
  * editorial: nothing bookable (see docs/partner-trips.html). Public, because
  * the reason to make an account is on this page; starting a trip needs one.
  */
-import { DEFAULT_ANSWERS } from "@floc/core/trip/explore/explore-match";
-import { readExploreSort, sortPresetTrips } from "@floc/core/trip/explore/explore-sort";
+import { DEFAULT_FILTER } from "@floc/core/trip/explore/explore-filter";
+import { readExploreSort, sortDirection, sortPresetTrips } from "@floc/core/trip/explore/explore-sort";
 import { PRESET_TRIPS, REGIONS, type Region } from "@floc/core/trip/explore/preset-trips";
 
 import { ExploreFront } from "@/components/explore/explore-front";
 import { getSession } from "@/server/access";
-import { loadAnswers } from "@/server/explore/explore-answers";
+import { loadFilter } from "@/server/explore/explore-filter";
 import { loadExploreRates } from "@/server/explore/explore-rates";
 
 function isRegion(value: string | undefined): value is Region {
@@ -27,9 +27,9 @@ export default async function ExplorePage({
   const userId = session?.user?.id ?? null;
   const params = await searchParams;
   const sort = readExploreSort(params.sort);
-  const [answers, rates] = await Promise.all([
-    userId ? loadAnswers(userId) : null,
-    sort === "price" ? loadExploreRates(userId) : null,
+  const [filter, rates] = await Promise.all([
+    userId ? loadFilter(userId) : null,
+    sortDirection(sort, "price") ? loadExploreRates(userId) : null,
   ]);
   const active = isRegion(params.region) ? params.region : null;
   const inRegion = active ? PRESET_TRIPS.filter((t) => t.region === active) : PRESET_TRIPS;
@@ -41,7 +41,7 @@ export default async function ExplorePage({
         trips={shown}
         view={{ region: active, sort, showAll: params.all === "1" }}
         signedIn={!!userId}
-        initialAnswers={answers ?? DEFAULT_ANSWERS}
+        initialFilter={filter ?? DEFAULT_FILTER}
       />
       <div className="mx-auto max-w-[76rem] px-4 sm:px-6">
         <p className="mt-10 border-t border-rule pt-5 text-xs text-ink-faint">

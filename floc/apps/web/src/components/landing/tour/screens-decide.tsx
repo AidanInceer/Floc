@@ -1,54 +1,68 @@
-import { Avatar, AvatarRow, cx } from "@/components/system/ui";
+import { Avatar, cx } from "@/components/system/ui";
 
 import { Glyph } from "../landing-glyph";
-import { alex, jo, kit, maya, priya, sam, sampleGroup } from "../sample-trip";
-import { ScreenFrame, muted } from "./screen-frame";
+import { alex, jo, kit, priya, sampleGroup } from "../sample-trip";
+import { FakeButton, ScreenFrame } from "./screen-frame";
 
-const VOTES = [
-  { place: "Sicily", why: "Food, beaches, one flight", who: [priya, sam, jo, alex, maya] },
-  { place: "Sardinia", why: "Quieter, better sea", who: [kit, alex] },
-  { place: "Puglia", why: "Cheap in September", who: [jo] },
+const IDEAS = [
+  { title: "Sicily: food, beaches, one flight", by: priya, when: "2d ago", votes: 5, mine: true },
+  { title: "Sardinia, for the quieter sea", by: kit, when: "2d ago", votes: 2, mine: false },
+  { title: "Puglia, cheap in September", by: jo, when: "1d ago", votes: 1, mine: false },
+  { title: "Lisbon and the coast", by: alex, when: "5h ago", votes: 1, mine: false },
 ];
-const head = "border-b border-rule px-2.5 pb-2 text-left font-mono text-[10px] font-normal uppercase tracking-[0.08em] text-ink-faint";
+
+function UpGlyph() {
+  return (
+    <svg viewBox="0 0 14 14" width={13} height={13} fill="none" stroke="currentColor" strokeWidth={1.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M7 11.2V3.2M3.6 6.6 7 3.2l3.4 3.4" />
+    </svg>
+  );
+}
 
 export function WhereScreen() {
   return (
-    <ScreenFrame active="notes">
-      <h4 className="font-display text-[22px] font-semibold tracking-[-0.015em]">Where should we go?</h4>
-      <p className={cx(muted, "mt-1")}>Add a place, say why, vote with your face.</p>
-      <table className="mt-4 w-full border-collapse">
-        <thead>
-          <tr>
-            <th className={head}>Place</th>
-            <th className={head}>Why</th>
-            <th className={head}>Votes</th>
-          </tr>
-        </thead>
-        <tbody>
-          {VOTES.map((v, i) => (
-            <tr key={v.place} className={cx(i === 0 && "bg-highlight-soft")}>
-              <td className="border-b border-rule p-2.5 font-semibold">{v.place}</td>
-              <td className="border-b border-rule p-2.5">{v.why}</td>
-              <td className="border-b border-rule p-2.5">
-                <AvatarRow people={v.who} size={20} />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <div className="mt-4 flex items-center gap-2.5 rounded-[12px] border border-rule px-3 py-2.5">
-        <Glyph name="notes" />
-        <span>
-          <b>A week in eastern Sicily</b>
-          <br />
-          <span className={muted}>Pasted by Priya · 3 comments</span>
-        </span>
-      </div>
-      <div className="mt-3 flex w-fit items-center gap-2 rounded-[12px] bg-pastel-red px-3 py-2">
-        <Avatar name={jo.name} tone={jo.tone} size={20} />
-        <span>
-          <b>Jo</b> Sicily gets my vote. Etna is non-negotiable.
-        </span>
+    <ScreenFrame active="overview">
+      <div className="overflow-hidden rounded-xl border border-rule bg-sheet">
+        <div className="flex items-center gap-3 px-4 py-3">
+          <svg viewBox="0 0 14 14" width={14} height={14} fill="none" stroke="currentColor" strokeWidth={1.2} strokeLinecap="round" strokeLinejoin="round" className="rotate-90 text-ink-faint" aria-hidden>
+            <path d="M5 2.5 10 7l-5 4.5" />
+          </svg>
+          <h4 className="font-display text-lg">Ideas</h4>
+          <span className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-faint">{IDEAS.length} ideas</span>
+        </div>
+        <div className="border-t border-rule px-4 pb-4 pt-3">
+          <div className="flex items-center gap-3">
+            <span className="flex rounded-full border border-rule p-0.5 text-xs">
+              <span className="rounded-full bg-ink px-3 py-1 text-paper">Most votes</span>
+              <span className="px-3 py-1 text-ink-soft">Newest</span>
+            </span>
+            <span className="flex-1 rounded-[10px] border border-rule px-3 py-[7px] text-ink-faint">Lisbon, a week in September…</span>
+            <FakeButton>Add</FakeButton>
+          </div>
+          <ul className="mt-3 grid grid-cols-2 gap-2.5">
+            {IDEAS.map((idea, i) => (
+              <li key={idea.title} className={cx("flex flex-col gap-3 rounded-lg border border-rule bg-sheet p-3.5", i === 0 && "bg-highlight-soft")}>
+                <p className="text-[15px] leading-snug">{idea.title}</p>
+                <div className="mt-auto flex items-center gap-2">
+                  <Avatar name={idea.by.name} tone={idea.by.tone} size={22} />
+                  <span className="truncate text-xs text-ink-soft">
+                    {idea.by.name} · {idea.when}
+                  </span>
+                  <span className="flex-1" />
+                  <span
+                    className={cx(
+                      "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs",
+                      idea.mine ? "border-green-edge bg-green-soft text-green" : "border-rule text-ink-soft",
+                    )}
+                  >
+                    <UpGlyph />
+                    <span className="nums">{idea.votes}</span>
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </ScreenFrame>
   );

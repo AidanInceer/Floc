@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_EXPLORE_SORT, FIXED_RATES_TO_GBP, readExploreSort, sortPresetTrips } from "./explore-sort";
+import { DEFAULT_EXPLORE_SORT, FIXED_RATES_TO_GBP, flipSort, readExploreSort, sortDirection, sortPresetTrips } from "./explore-sort";
 import type { PresetTrip } from "./preset-trip-types";
 import { PRESET_TRIPS } from "./preset-trips";
 
@@ -19,7 +19,34 @@ describe("readExploreSort", () => {
     expect(DEFAULT_EXPLORE_SORT).toBe("price");
     expect(readExploreSort(undefined)).toBe("price");
     expect(readExploreSort("cheapest")).toBe("price");
-    expect(readExploreSort(["az"])).toBe("price");
+    expect(readExploreSort(["longest"])).toBe("price");
+  });
+
+  it("no longer knows a–z", () => {
+    expect(readExploreSort("az")).toBe("price");
+  });
+});
+
+describe("flipSort", () => {
+  it("starts a new column low to high", () => {
+    expect(flipSort("price", "nights")).toBe("shortest");
+    expect(flipSort("longest", "price")).toBe("price");
+  });
+
+  it("turns the sorted column around", () => {
+    expect(flipSort("price", "price")).toBe("price-desc");
+    expect(flipSort("price-desc", "price")).toBe("price");
+    expect(flipSort("shortest", "nights")).toBe("longest");
+    expect(flipSort("longest", "nights")).toBe("shortest");
+  });
+});
+
+describe("sortDirection", () => {
+  it("says which way a column runs, or nothing when it is not the sort", () => {
+    expect(sortDirection("price", "price")).toBe("up");
+    expect(sortDirection("price-desc", "price")).toBe("down");
+    expect(sortDirection("longest", "nights")).toBe("down");
+    expect(sortDirection("longest", "price")).toBeNull();
   });
 });
 
@@ -36,9 +63,6 @@ describe("sortPresetTrips", () => {
     expect(ids(sortPresetTrips([short, mid, long], "longest", null))).toEqual(["a-long", "c-mid", "b-short"]);
   });
 
-  it("orders by title for a–z", () => {
-    expect(ids(sortPresetTrips([mid, short, long], "az", null))).toEqual(["a-long", "b-short", "c-mid"]);
-  });
 
   it("breaks ties by title", () => {
     const x = trip("x", { nights: 5 });
@@ -59,6 +83,10 @@ describe("sortPresetTrips", () => {
     it("compares across currencies with live rates", () => {
       expect(ids(sortPresetTrips([pounds, euros], "price", { GBP: 1, EUR: 0.9 }))).toEqual(["euros", "pounds"]);
       expect(ids(sortPresetTrips([euros, pounds], "price", { GBP: 1, EUR: 0.95 }))).toEqual(["pounds", "euros"]);
+    });
+
+    it("puts the dearest first for price-desc", () => {
+      expect(ids(sortPresetTrips([euros, pounds], "price-desc", { GBP: 1, EUR: 0.9 }))).toEqual(["pounds", "euros"]);
     });
 
     it("uses fixed rates when there are none", () => {

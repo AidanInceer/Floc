@@ -48,7 +48,6 @@ const EXPENSES = [
   { what: "Flat in Palermo", who: priya, cost: "£960.00" },
   { what: "Car hire", who: sam, cost: "£102.00" },
   { what: "Thursday dinner", who: jo, cost: "£138.60" },
-  { what: "Ferry to the caves", who: alex, cost: "£72.00" },
 ];
 
 export function MoneyScreen() {

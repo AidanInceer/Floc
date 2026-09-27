@@ -16,14 +16,14 @@ import { createTripWithAdmin } from "@/server/trips/trips";
 import { ensureProfile } from "@/server/auth/profile";
 import { refresh } from "@/server/freshness";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
-import { readAnswers } from "@floc/core/trip/explore/explore-match";
-import { saveAnswers } from "@/server/explore/explore-answers";
+import { readFilter } from "@floc/core/trip/explore/explore-filter";
+import { saveFilter } from "@/server/explore/explore-filter";
 
-// No refresh: the page already holds the answers it just sent.
-export async function rememberAnswers(value: unknown): Promise<void> {
+// No refresh: the page already holds the filter it just sent.
+export async function rememberFilter(value: unknown): Promise<void> {
   const viewer = await requireUser("/explore");
-  const answers = readAnswers(value);
-  if (answers) await saveAnswers(viewer.id, answers);
+  const filter = readFilter(value);
+  if (filter) await saveFilter(viewer.id, filter);
 }
 
 export async function startTripFromPreset(formData: FormData): Promise<void> {

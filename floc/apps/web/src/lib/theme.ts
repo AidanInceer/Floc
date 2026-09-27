@@ -34,9 +34,10 @@ export function storeChoice(choice: ThemeChoice) {
 
 /**
  * Why: runs before any bundle so a dark reload never flashes light, and lights
- * the switch before hydration. Signed out there is no switch, so stored is ignored.
+ * the switch before hydration. Signed out there is no switch, so the front door is
+ * always light, whatever is stored or the device prefers.
  */
 export function themeBootstrap(signedIn: boolean): string {
-  const read = signedIn ? `localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)})` : "null";
+  const read = signedIn ? `localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)})` : JSON.stringify("light");
   return `(function(){var r=document.documentElement;try{var c=${read};if(c!=="light"&&c!=="dark"){c="system"}r.dataset.themeChoice=c;r.dataset.theme=c==="system"?(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):c}catch(e){r.dataset.themeChoice="system";r.dataset.theme="light"}})()`;
 }

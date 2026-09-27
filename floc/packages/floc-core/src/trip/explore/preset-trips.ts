@@ -10,7 +10,7 @@ export type { PresetTrip, Region } from "./preset-trip-types";
 const LEAD_TRIPS: PresetTrip[] = [
   {
     id: "amalfi-slow-week",
-    title: "Amalfi coast, slowly",
+    title: "Amalfi coast",
     operator: "Floc editorial",
     editorial: true,
     region: "Europe",
@@ -39,7 +39,7 @@ const LEAD_TRIPS: PresetTrip[] = [
   },
   {
     id: "scottish-highlands-bothy",
-    title: "Highlands walking week",
+    title: "Highlands walking",
     operator: "Floc editorial",
     editorial: true,
     region: "Europe",
@@ -116,7 +116,7 @@ const LEAD_TRIPS: PresetTrip[] = [
   },
   {
     id: "japan-golden-route",
-    title: "Japan in ten days",
+    title: "Tokyo to Osaka",
     operator: "Inside Japan Tours",
     region: "Asia",
     country: "Japan",
@@ -226,7 +226,7 @@ const LEAD_TRIPS: PresetTrip[] = [
   },
   {
     id: "vietnam-north-to-south",
-    title: "Vietnam, north to south",
+    title: "Vietnam north to south",
     operator: "G Adventures",
     region: "Asia",
     country: "Vietnam",
@@ -254,7 +254,7 @@ const LEAD_TRIPS: PresetTrip[] = [
   },
   {
     id: "new-zealand-south-island",
-    title: "South Island campervan loop",
+    title: "South Island campervan",
     operator: "Flash Pack",
     region: "Oceania",
     country: "New Zealand",

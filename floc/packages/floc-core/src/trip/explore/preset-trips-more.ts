@@ -8,7 +8,7 @@ export const MORE_PRESET_TRIPS: PresetTrip[] = [
   {
     ...editorial,
     id: "kenya-mara-and-coast",
-    title: "Masai Mara and the coast",
+    title: "Kenya safari and coast",
     region: "Africa",
     country: "Kenya",
     nights: 8,
@@ -48,7 +48,7 @@ export const MORE_PRESET_TRIPS: PresetTrip[] = [
   {
     ...editorial,
     id: "zanzibar-slow-week",
-    title: "Zanzibar, mostly the beach",
+    title: "Zanzibar beaches",
     region: "Africa",
     country: "Tanzania",
     nights: 7,
@@ -85,7 +85,7 @@ export const MORE_PRESET_TRIPS: PresetTrip[] = [
   {
     ...editorial,
     id: "thailand-andaman-islands",
-    title: "Bangkok and the Andaman islands",
+    title: "Bangkok and Thai islands",
     region: "Asia",
     country: "Thailand",
     nights: 10,
@@ -105,7 +105,7 @@ export const MORE_PRESET_TRIPS: PresetTrip[] = [
   {
     ...editorial,
     id: "bali-villa-week",
-    title: "Bali, one villa at a time",
+    title: "Bali, Ubud and Canggu",
     region: "Asia",
     country: "Indonesia",
     nights: 8,
@@ -165,7 +165,7 @@ export const MORE_PRESET_TRIPS: PresetTrip[] = [
   {
     ...editorial,
     id: "peru-sacred-valley",
-    title: "Cusco, Sacred Valley and Machu Picchu",
+    title: "Cusco and Machu Picchu",
     region: "Americas",
     country: "Peru",
     nights: 7,
@@ -202,7 +202,7 @@ export const MORE_PRESET_TRIPS: PresetTrip[] = [
   {
     ...editorial,
     id: "costa-rica-volcano-and-coast",
-    title: "Costa Rica, volcano to coast",
+    title: "Costa Rica volcanoes and coast",
     region: "Americas",
     country: "Costa Rica",
     nights: 8,
@@ -258,7 +258,7 @@ export const MORE_PRESET_TRIPS: PresetTrip[] = [
   {
     ...editorial,
     id: "fiji-yasawa-islands",
-    title: "Fiji's Yasawa islands",
+    title: "Fiji island lodges",
     region: "Oceania",
     country: "Fiji",
     nights: 7,
@@ -276,7 +276,7 @@ export const MORE_PRESET_TRIPS: PresetTrip[] = [
   {
     ...editorial,
     id: "new-zealand-north-island",
-    title: "North Island geothermal loop",
+    title: "North Island road trip",
     region: "Oceania",
     country: "New Zealand",
     nights: 7,

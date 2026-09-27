@@ -30,7 +30,7 @@ export function ScreenFrame({ active, children }: { active: TabState["key"]; chi
           </span>
         ))}
       </div>
-      <div className="min-h-[420px] px-[22px] pb-[60px] pt-5">{children}</div>
+      <div className="h-[420px] overflow-hidden px-[22px] pb-[60px] pt-5">{children}</div>
     </div>
   );
 }

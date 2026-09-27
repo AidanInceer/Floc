@@ -55,7 +55,7 @@ export function PackingScreen() {
             </li>
           ))}
         </PackingLane>
-        {CLAIMED.map((line) => (
+        {CLAIMED.slice(0, 1).map((line) => (
           <PackingLane key={line.item} name={line.who.name} count={1} avatar={<Avatar name={line.who.name} tone={line.who.tone} size={24} />}>
             <li className="flex items-center gap-2 px-3 py-2">
               <span className="min-w-0 flex-1 truncate">{line.item}</span>
@@ -99,13 +99,6 @@ export function TicketsScreen() {
             </div>
           ))}
         </div>
-      </div>
-      <div className="mt-4 overflow-hidden rounded-[16px] border border-rule bg-sheet">
-        <div className="flex items-center gap-3 border-b border-rule bg-sheet-2 px-4 py-3">
-          <b className="font-display text-[15px]">Yours</b>
-          <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-faint">Only you can see these</span>
-        </div>
-        <div className="px-4 py-3 text-sm text-ink-soft">Nothing of your own yet.</div>
       </div>
     </ScreenFrame>
   );
