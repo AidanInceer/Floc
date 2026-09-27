@@ -35,8 +35,10 @@ async function readPrototype(entry) {
     folder: entry.name,
     title: html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.trim() || entry.name,
     page: meta(html, "wf-page"),
+    area: meta(html, "wf-area"),
     route: meta(html, "wf-route"),
     status: meta(html, "wf-status"),
+    picked: meta(html, "wf-picked"),
     about: meta(html, "description"),
     changed: mtime.toISOString(),
   };

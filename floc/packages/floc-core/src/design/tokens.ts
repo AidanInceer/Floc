@@ -38,6 +38,7 @@ export const lightTokens = {
   ink: "#14141a",
   "ink-2": "#63636f",
   "ink-3": "#6f6f7b",
+  "phone-frame": "var(--ink)",
 
   /* Blue means "yours to do" and nothing else. */
   pen: "#4e68d8",
@@ -142,6 +143,7 @@ export const darkTokens: Readonly<Partial<Record<TokenName, TokenValue>>> = {
   ink: "#f0f0f3",
   "ink-2": "#b8b8c1",
   "ink-3": "#a2a2ac",
+  "phone-frame": "var(--rule-2)",
 
   /* On a dark ground "pressed harder" reads as brighter, not darker. */
   pen: "#9aabff",

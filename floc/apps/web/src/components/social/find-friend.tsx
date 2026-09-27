@@ -5,7 +5,7 @@ import type { FoundFriend, FriendSearch } from "@floc/api/port";
 
 import { findFriends, requestFriendById, requestFriendByCode } from "@/app/friends/actions";
 import { PersonRow } from "@/components/auth/account-ui";
-import { Avatar, Badge, Button, Input } from "@/components/system/ui";
+import { Avatar, Badge } from "@/components/system/ui";
 import { SubmitButton } from "@/components/system/client-ui";
 
 const STATE_BADGE = {
@@ -103,23 +103,38 @@ export function FindFriend() {
 
   return (
     <div className="flex flex-col gap-3">
+      {/* One field, submitted with Enter — the form's implicit submit, so there is no Find button to aim at. */}
       <form
-        className="flex gap-2"
+        className="flex h-10 items-center gap-2 rounded-full border border-rule-strong bg-sheet px-3 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-pen"
         onSubmit={(event) => {
           event.preventDefault();
           search(query);
         }}
       >
-        <Input
-          aria-label="Name or friend code"
-          placeholder="Name or friend code"
+        <svg
+          viewBox="0 0 14 14"
+          width={13}
+          height={13}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.2}
+          strokeLinecap="round"
+          aria-hidden
+          className="shrink-0 text-ink-soft"
+        >
+          <circle cx="6" cy="6" r="3.8" />
+          <path d="M8.8 8.8L12 12" />
+        </svg>
+        <input
+          type="search"
+          aria-label="Find someone by name or code"
+          placeholder="Find someone by name or code"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           autoComplete="off"
+          className="min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-ink-faint"
         />
-        <Button type="submit" variant="primary" disabled={pending}>
-          {pending ? "Finding…" : "Find"}
-        </Button>
+        {pending ? <span className="shrink-0 text-xs text-ink-soft">Finding…</span> : null}
       </form>
       {result ? (
         <Results

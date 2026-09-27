@@ -13,14 +13,17 @@ import {
   syncCompletedCoTripFriendships,
   type Person,
 } from "@/server/social/friends";
-import { AccountPage, Panel, PersonRow } from "@/components/auth/account-ui";
-import { Avatar, Badge, EmptyState } from "@/components/system/ui";
-import { ConfirmSubmit, CopyLink, SubmitButton } from "@/components/system/client-ui";
+import { Avatar, EmptyState, PageTitle, menuDangerItemClass } from "@/components/system/ui";
+import { ConfirmSubmit, CopyLink, Menu, SubmitButton } from "@/components/system/client-ui";
 import { PersonLink } from "@/components/social/person-link";
 import { FindFriend } from "@/components/social/find-friend";
 import { friendCodeFor } from "@/server/social/friend-code";
 
-const UNKNOWN = (id: string): Person => ({ id, name: "Someone", avatarIcon: null });
+const UNKNOWN = (id: string): Person => ({
+  id,
+  name: "Someone",
+  avatarIcon: null,
+});
 
 export const metadata = { title: "Friends" };
 
@@ -31,14 +34,10 @@ export default async function FriendsPage() {
   // into a friendship the next time either party loads this page.
   await syncCompletedCoTripFriendships(viewer.id);
 
-  const [rows, code] = await Promise.all([
-    listFriendshipsFor(viewer.id),
-    friendCodeFor(viewer.id),
-  ]);
+  const [rows, code] = await Promise.all([listFriendshipsFor(viewer.id), friendCodeFor(viewer.id)]);
   const { accepted, incoming, outgoing } = splitFriendships(rows, viewer.id);
 
-  const otherIdOf = (r: (typeof rows)[number]) =>
-    r.userId === viewer.id ? r.friendId : r.userId;
+  const otherIdOf = (r: (typeof rows)[number]) => (r.userId === viewer.id ? r.friendId : r.userId);
 
   // Every face on the page in one query, rather than one per row — this was an
   // await inside a `.map`, so a hundred friends was a hundred serial round
@@ -65,126 +64,130 @@ export default async function FriendsPage() {
     person: personFor(r.friendId),
   }));
 
+  const requests = incomingPeople.length + outgoingPeople.length;
+
   return (
-    <AccountPage
-      eyebrow="Your people"
-      title="Friends"
-    >
-      {/* Requests come first, and the incoming ones are blue: they're the only
-          thing on the page waiting on you. */}
-      <Panel
-        title="Requests"
-        className={incomingPeople.length > 0 ? "bg-pen-soft text-pen-deep" : undefined}
-      >
-        {incomingPeople.length === 0 && outgoingPeople.length === 0 ? (
-          <EmptyState title="No requests yet" />
-        ) : (
-          <ul className="flex flex-col gap-2">
+    <div className="mx-auto w-full max-w-[41.25rem] px-4 pb-20 pt-6">
+      <PageTitle>Friends</PageTitle>
+
+      {/* Requests lead because they are the only thing here waiting on you; none, no strip. */}
+      {requests > 0 ? (
+        <section className="mt-6">
+          <h2 className="flex items-center gap-2 text-sm font-medium">
+            Requests
+            <span className="nums inline-grid size-5 place-items-center rounded-full bg-pen-soft font-mono text-xs text-pen-deep">
+              {requests}
+            </span>
+          </h2>
+          <ul className="mt-1.5">
             {incomingPeople.map(({ requesterId, person }) => (
-              <PersonRow key={requesterId} className="bg-sheet">
-                <div className="flex min-w-0 items-center gap-2">
-                  <Avatar name={person.name} icon={person.avatarIcon} />
-                  <span className="min-w-0 truncate text-sm text-ink">
-                    {person.name}
-                  </span>
-                  <Badge tone="open">wants to be friends</Badge>
-                </div>
-                <div className="flex gap-2">
-                  <form action={acceptFriend}>
-                    <input type="hidden" name="requesterId" value={requesterId} />
-                    <SubmitButton variant="primary" pendingLabel="Accepting…">
-                      Accept
-                    </SubmitButton>
-                  </form>
-                  <form action={declineFriend}>
-                    <input type="hidden" name="requesterId" value={requesterId} />
-                    <SubmitButton variant="secondary" pendingLabel="Declining…">
-                      Decline
-                    </SubmitButton>
-                  </form>
-                </div>
-              </PersonRow>
+              <FriendRow key={requesterId} person={person} note="Wants to be friends">
+                <form action={acceptFriend}>
+                  <input type="hidden" name="requesterId" value={requesterId} />
+                  <SubmitButton variant="primary" pendingLabel="Accepting…" className={SMALL}>
+                    Accept
+                  </SubmitButton>
+                </form>
+                <form action={declineFriend}>
+                  <input type="hidden" name="requesterId" value={requesterId} />
+                  <SubmitButton variant="secondary" pendingLabel="Declining…" className={SMALL}>
+                    Decline
+                  </SubmitButton>
+                </form>
+              </FriendRow>
             ))}
             {outgoingPeople.map(({ targetId, person }) => (
-              <PersonRow key={targetId} className="bg-sheet">
-                <div className="flex min-w-0 items-center gap-2">
-                  <Avatar name={person.name} icon={person.avatarIcon} />
-                  <span className="min-w-0 truncate text-sm text-ink">
-                    {person.name}
-                  </span>
-                  <Badge tone="neutral">requested — pending</Badge>
-                </div>
+              <FriendRow key={targetId} person={person} note="Requested · pending">
                 <form action={cancelRequest}>
                   <input type="hidden" name="targetId" value={targetId} />
-                  <SubmitButton variant="secondary" pendingLabel="Cancelling…">
+                  <SubmitButton variant="secondary" pendingLabel="Cancelling…" className={SMALL}>
                     Cancel
                   </SubmitButton>
                 </form>
-              </PersonRow>
+              </FriendRow>
             ))}
           </ul>
-        )}
-      </Panel>
+        </section>
+      ) : null}
 
-      <Panel
-        title="Find someone"
-        aside={
-          <span className="flex items-center gap-2">
-            <span className="typed">Your code</span>
-            <span className="font-mono text-sm text-ink">{code}</span>
-            <CopyLink value={code} label="Copy" variant="ghost" />
-          </span>
-        }
-      >
-        <FindFriend />
-      </Panel>
+      <div className="my-6 flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
+        <div className="min-w-0 flex-1">
+          <FindFriend />
+        </div>
+        <span className="flex h-10 shrink-0 items-center justify-end gap-2 whitespace-nowrap text-xs">
+          <span className="text-ink-soft">Your code</span>
+          <span className="font-mono text-ink">{code}</span>
+          <CopyLink value={code} label="Copy" variant="secondary" />
+        </span>
+      </div>
 
-      <Panel
-        title="Your friends"
-        aside={
-          acceptedPeople.length > 0 ? (
-            <Badge tone="neutral">{acceptedPeople.length}</Badge>
-          ) : null
-        }
-      >
-        {acceptedPeople.length === 0 ? (
-          <EmptyState title="No friends yet" />
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {acceptedPeople.map(({ person, metOn }) => (
-              <PersonRow key={person.id}>
-                <div className="flex min-w-0 items-center gap-2">
-                  {/* Accepted friends only — a pending request doesn't put you
-                      in anyone's ring yet, so the link would 404 (ticket 46). */}
-                  <PersonLink
-                    userId={person.id}
-                    name={person.name}
-                    avatarIcon={person.avatarIcon}
-                  />
-                  <div className="min-w-0">
-                    <p className="truncate text-sm">{person.name}</p>
-                    {/* Quiet distinction (ticket 18): auto-added friends get a
-                        caption, not a loud badge, naming the trip if known. */}
-                    {metOn ? (
-                      <p className="text-xs text-ink-faint">Met on {metOn}</p>
-                    ) : null}
-                  </div>
-                </div>
+      <div className="mt-7 flex items-baseline justify-between gap-3">
+        <h2 className="text-[0.95rem] font-semibold">Your friends</h2>
+        <span className="nums font-mono text-xs text-ink-soft">{acceptedPeople.length}</span>
+      </div>
+      {acceptedPeople.length === 0 ? (
+        <EmptyState title="No friends yet" />
+      ) : (
+        <ul className="mt-2.5 border-t border-rule">
+          {acceptedPeople.map(({ person, metOn }) => (
+            // Accepted friends only link through — a pending request doesn't put you in anyone's ring yet (ticket 46).
+            <FriendRow
+              key={person.id}
+              person={person}
+              note={metOn ? `Met on ${metOn}` : null}
+              linked
+            >
+              <Menu label={`More for ${person.name}`}>
                 <form action={removeFriend}>
                   <input type="hidden" name="otherId" value={person.id} />
                   <ConfirmSubmit
-                    variant="danger"
+                    variant="ghost"
                     message={`Remove ${person.name} as a friend?`}
                     confirmLabel="Remove friend"
+                    className={menuDangerItemClass}
                   >
-                    Remove
+                    Remove friend
                   </ConfirmSubmit>
                 </form>
-              </PersonRow>
-            ))}
-          </ul>
-        )}
-      </Panel>
-    </AccountPage>
+              </Menu>
+            </FriendRow>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+const SMALL = "!min-h-0 !px-2.5 !py-1 !text-xs";
+
+function FriendRow({
+  person,
+  note,
+  linked,
+  children,
+}: {
+  person: Person;
+  note?: string | null;
+  linked?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <li className="flex min-h-15 items-center gap-3 border-b border-rule px-1 py-2">
+      {linked ? (
+        <PersonLink
+          userId={person.id}
+          name={person.name}
+          avatarIcon={person.avatarIcon}
+          size={34}
+        />
+      ) : (
+        <Avatar name={person.name} icon={person.avatarIcon} size={34} />
+      )}
+      <div className="flex min-w-0 flex-1 flex-col leading-snug">
+        <span className="truncate text-sm font-medium">{person.name}</span>
+        {note ? <span className="text-xs text-ink-soft">{note}</span> : null}
+      </div>
+      <div className="flex shrink-0 items-center gap-1.5">{children}</div>
+    </li>
   );
 }

@@ -23,7 +23,7 @@ export function ScreenFrame({ active, children }: { active: TabState["key"]; chi
         </span>
         <AvatarRow people={sampleGroup} max={6} size={22} />
       </div>
-      <div className="flex gap-1 border-b border-rule px-3.5 pb-3">
+      <div className="flex gap-2 border-b border-rule px-3.5 pb-3">
         {TABS.map((t) => (
           <span key={t.key} className={cx("rounded-full px-[11px] py-[5px] text-xs", t.key === active ? "bg-ink text-paper" : "text-ink-faint")}>
             {t.label}

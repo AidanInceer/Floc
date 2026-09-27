@@ -1,4 +1,3 @@
-import { TEXT_CAPS } from "@floc/core/text/text";
 import { arrangeTripsHome } from "@floc/core/trip/trips-home";
 import Link from "next/link";
 
@@ -8,21 +7,13 @@ import { listPendingInvitesFor, type PendingInvite } from "@/server/trips/invite
 import { newTripName } from "@/lib/landing/start-trip";
 import { loadTripCards } from "./cards";
 import { formatDateRange, hasEnded, splitEnded } from "@floc/core/dates/dates";
-import {
-  Avatar,
-  ButtonLink,
-  Field,
-  Input,
-  Stack,
-  cx,
-  PageTitle,
-} from "@/components/system/ui";
+import { Avatar, ButtonLink, Stack, cx, PageTitle } from "@/components/system/ui";
 import { Sheet, SubmitButton } from "@/components/system/client-ui";
-import { FriendPicker } from "@/components/social/friend-picker";
 import { FlockChevron } from "@/components/system/flock-chevron";
 import type { TripCardData } from "@/components/trip/trip-card";
 import { TripFeature } from "@/components/trip/trip-feature";
 import { TripShelfCard } from "@/components/trip/trip-shelf-card";
+import { NewTripForm } from "@/components/trip/new-trip-form";
 import { acceptTripInvite, createTrip, declineTripInvite } from "./actions";
 
 export const metadata = { title: "My trips" };
@@ -63,8 +54,8 @@ export default async function TripsPage({
           <ButtonLink href="/trips/archived" variant="ghost">
             Archived
           </ButtonLink>
-          <Sheet trigger="New trip" title="Start a trip" defaultOpen={asked !== null}>
-            <CreateTripForm friends={friends} name={asked ?? ""} />
+          <Sheet trigger="New trip" title="Start a trip" body="split" defaultOpen={asked !== null}>
+            <NewTripForm action={createTrip} friends={friends} name={asked ?? ""} />
           </Sheet>
         </div>
       </header>
@@ -124,7 +115,9 @@ function TripGrid({
 }) {
   return (
     <ul className={cx(className, "grid gap-3 sm:grid-cols-2 lg:grid-cols-3")}>
-      {trips.map((t) => <TripShelfCard key={t.id} trip={t} past={past} />)}
+      {trips.map((t) => (
+        <TripShelfCard key={t.id} trip={t} past={past} />
+      ))}
       {newTrip ? <NewTripTile friends={newTrip} /> : null}
     </ul>
   );
@@ -155,9 +148,7 @@ function NewTripTile({ friends, first }: { friends: Person[]; first?: boolean })
         bareTrigger
         trigger={
           <span className="block text-left">
-            <span className="typed text-current">
-              {first ? "No trips yet" : "One more"}
-            </span>
+            <span className="typed text-current">{first ? "No trips yet" : "One more"}</span>
             <span className="mt-1 block font-display text-2xl font-semibold tracking-tight text-ink">
               Start a trip
             </span>
@@ -167,9 +158,10 @@ function NewTripTile({ friends, first }: { friends: Person[]; first?: boolean })
           </span>
         }
         title="Start a trip"
+        body="split"
         triggerClassName="lift flex min-h-40 w-full flex-col justify-center rounded-lg bg-sheet p-4 text-left shadow-[inset_0_0_0_1px_var(--rule-2)] hover:shadow-[inset_0_0_0_1px_var(--pen)]"
       >
-        <CreateTripForm friends={friends} />
+        <NewTripForm action={createTrip} friends={friends} />
       </Sheet>
     </li>
   );
@@ -238,25 +230,4 @@ function orderCards(cards: TripCardData[]): TripCardData[] {
   });
 
   return [...upcoming, ...ended];
-}
-
-function CreateTripForm({ friends, name = "" }: { friends: Person[]; name?: string }) {
-  return (
-    <form action={createTrip}>
-      <Stack gap={4}>
-        <Field label="Name">
-          <Input name="name" required maxLength={TEXT_CAPS.tripName} defaultValue={name} />
-        </Field>
-        {/* Optional — invites, doesn't add members. */}
-        <Field label="Ask your friends along">
-          <FriendPicker
-            friends={friends}
-            emptyNote="No friends yet — share the trip link once it exists."
-          />
-        </Field>
-        {/* No date fields — rule 9: undated is the normal path. */}
-        <SubmitButton pendingLabel="Creating…">Create trip</SubmitButton>
-      </Stack>
-    </form>
-  );
 }

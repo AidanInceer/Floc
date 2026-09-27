@@ -6,8 +6,9 @@ export function landingFaq({ sellingPro, monthly }: { sellingPro: boolean; month
     key: "pro",
     question: "What does Pro add?",
     answer:
-      "The weather on your dates, a packing list built from the forecast and the plan, booking searches filled in with your place and dates, and more room for tickets. One person on Pro opens it for the whole trip" +
-      (monthly ? `, for ${monthly} a month.` : "."),
+      "Today, Pro adds weather for your dates, a packing list built from the forecast and your plan, pre-filled flight and stay searches, and more room for tickets. One Pro subscription covers the whole trip" +
+      (monthly ? ` for ${monthly} a month.` : ".") +
+      " This is just the start — there’s plenty more to come.",
   };
   return [
     {

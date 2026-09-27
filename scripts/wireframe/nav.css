@@ -81,28 +81,41 @@
 .wf-page { margin-top: 14px; scroll-margin-top: 24px; }
 .wf-page h2 { display: flex; align-items: baseline; gap: 12px; font-size: var(--text-lg); margin-bottom: 10px; }
 .wf-page h2 code { font-family: var(--type); font-size: 12px; font-weight: 400; color: var(--ink-3); }
-.wf-cards { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr)); gap: 10px; }
+.wf-cards { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--rule); }
+.wf-cards li + li { border-top: 1px solid var(--rule); }
 .wf-card2 {
-  display: flex; flex-direction: column; gap: 6px; height: 100%; padding: 14px 16px; border-radius: 12px;
-  background: var(--sheet); box-shadow: inset 0 0 0 1px var(--rule); color: var(--ink); text-decoration: none; transition: box-shadow .15s;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 12px 20px;
+  min-height: 52px; padding: 9px 12px; color: var(--ink); text-decoration: none; transition: background .15s;
 }
-.wf-card2:hover { box-shadow: inset 0 0 0 1px var(--pen); }
-.wf-card2-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-.wf-card2-head b { font-family: var(--display); font-weight: 600; font-size: var(--text-md); letter-spacing: -0.01em; line-height: 1.25; }
-.wf-about2 { font-size: var(--text-sm); color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.wf-foot { margin-top: auto; padding-top: 4px; font-size: 10.5px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.wf-card2:hover { background: var(--sheet-2); }
+.wf-card2-name { min-width: 0; font-family: var(--display); font-weight: 600; font-size: var(--text-base); letter-spacing: -0.01em; line-height: 1.25; }
+.wf-picked { color: var(--ink-3); font-family: var(--type); font-size: 11px; white-space: nowrap; }
 .wf-hint { margin-top: 48px; }
+.wf-playground { margin-top: 64px; padding-top: 24px; border-top: 2px solid var(--rule-2); }
+.wf-playground-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 20px; }
+.wf-playground-head h2 { font-size: var(--text-2xl); }
+.wf-playground-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.wf-playground-slot { min-width: 0; }
+.wf-playground-slot h3 { padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px solid var(--rule); font-size: var(--text-md); }
+.wf-playground-slot .wf-cards { border-top: 0; }
+.wf-playground-slot .wf-card2 { grid-template-columns: minmax(0, 1fr) auto; padding: 9px 0; }
+.wf-playground-slot .wf-picked { grid-column: 1 / -1; }
+.wf-empty-slot { padding: 10px 0; color: var(--ink-3); font-size: var(--text-sm); }
 
 /* The drawer, and its button */
-.wf-open {
+.wf-controls {
   position: fixed; left: 16px; bottom: 16px; z-index: 1001;
+  display: flex; align-items: center; gap: 6px;
+}
+.wf-open, .wf-home-link {
   display: inline-flex; align-items: center; gap: 7px; padding: 7px 14px 7px 11px; border-radius: 999px;
   background: var(--ink); color: var(--paper); box-shadow: var(--shadow-lift);
-  font-family: var(--type); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+  font-family: var(--type); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; text-decoration: none;
 }
-.wf-open:hover { background: var(--pen); }
-.wf-open svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; }
-.wf-open-index { display: none; }
+.wf-open:hover, .wf-home-link:hover { background: var(--pen); color: var(--paper); }
+.wf-open svg, .wf-home-link svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.wf-home-link { background: var(--sheet); color: var(--ink); border: 1px solid var(--rule-2); }
+.wf-open-index { position: fixed; left: 16px; bottom: 16px; z-index: 1001; display: none; }
 .wf-shade { position: fixed; inset: 0; z-index: 1002; background: var(--ink); opacity: 0; pointer-events: none; transition: opacity .2s; }
 .wf-drawer {
   position: fixed; top: 0; left: 0; bottom: 0; z-index: 1003; box-shadow: var(--shadow-lift);
@@ -119,6 +132,9 @@
   .wf-home-page.wf-drawer-open > .wf-side { transform: none; }
   .wf-open-index { display: inline-flex; }
   .wf-main { padding: 28px 18px 100px; }
+  .wf-playground-grid { grid-template-columns: 1fr; gap: 18px; }
+  .wf-card2 { grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; }
+  .wf-picked { grid-column: 1 / -1; }
 }
 @media (prefers-reduced-motion: reduce) {
   .wf-drawer, .wf-home-page > .wf-side, .wf-shade { transition: none; }
