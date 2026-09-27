@@ -4,10 +4,11 @@
  * (ticket 187): each stop wears the pastel its trip tab owns, so the marketing
  * page and the product teach one colour language.
  */
+import type { Metadata } from "next";
 import { getSession } from "@/server/access";
 import { proPrices } from "@/server/billing/billing";
 import type { ProPrice } from "@/server/billing/billing";
-import { allFeaturesFree } from "@/lib/env";
+import { allFeaturesFree, appUrl } from "@/lib/env";
 import { formatMoney } from "@floc/core/money/money";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import { ButtonLink } from "@/components/system/ui";
@@ -25,6 +26,24 @@ import { shotFor } from "@/components/landing/tour/tour-shots";
 import { tourSlides } from "@/components/landing/tour/tour-slides";
 import { borrowCards } from "@/lib/landing/borrow";
 import { landingFaq } from "@/lib/landing/faq";
+
+export const metadata: Metadata = {
+  metadataBase: new URL(appUrl()),
+  openGraph: {
+    type: "website",
+    siteName: "Floc",
+    title: "Floc — plan a trip with the group",
+    description:
+      "Floc keeps a group trip in one place: the notes, the route, the days, and who owes who.",
+    images: [{
+      url: "/floc-hero.png",
+      width: 1246,
+      height: 848,
+      alt: "Trip planning, sorted. Floc's Sicily example trip, with destination votes, dates, shared costs and packing.",
+    }],
+  },
+  twitter: { card: "summary_large_image" },
+};
 
 // The Explore listings the landing page rolls through, in this order.
 const BORROW_IDS = [
