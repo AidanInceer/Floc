@@ -2,7 +2,7 @@
 (function () {
   var main = document.getElementById("wf-main");
   var side = document.getElementById("wf-side");
-  var tone = "open";
+  var tone = "exploring";
   var query = "";
   var items = [];
   var esc = WF.esc;
@@ -31,8 +31,8 @@
       return '<button type="button" data-tone="' + k + '" aria-pressed="' + (k === tone) + '"' + (k === "open" ? ' title="Exploring, or chosen and not built yet"' : "") + ">" +
         (LABEL[k] ? "" : '<span class="wf-dot wf-' + k + '" aria-hidden="true"></span>') + (LABEL[k] || WF.TONES[k]) + ' <span class="nums">' + counts[k] + "</span></button>";
     };
-    var lead = ["open", "all"].map(btn).join("");
-    var rest = ["exploring", "chosen", "shipped", "parked"].filter(function (k) { return counts[k]; }).map(btn).join("");
+    var lead = ["exploring", "open", "all"].map(btn).join("");
+    var rest = ["chosen", "shipped", "parked"].filter(function (k) { return counts[k]; }).map(btn).join("");
     return '<div class="wf-tones" role="group" aria-label="Show">' + lead + '<span class="wf-rule" aria-hidden="true"></span>' + rest + "</div>";
   }
 
@@ -72,7 +72,8 @@
 
   function body() {
     var shown = visibleItems();
-    return wireframeBody(shown) + '<section class="wf-playground" id="design-playground"><header class="wf-playground-head"><h2>Design playground</h2></header>' + playgroundBody(shown) + "</section>";
+    return '<section class="wf-app-zone"><p class="wf-zone typed">App pages</p>' + wireframeBody(shown) + "</section>" +
+      '<section class="wf-playground" id="design-playground"><p class="wf-zone typed">Design playground</p><header class="wf-playground-head"><h2>Studies not tied to a page</h2></header>' + playgroundBody(shown) + "</section>";
   }
 
   function draw() {

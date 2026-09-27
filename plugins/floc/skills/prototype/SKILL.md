@@ -53,7 +53,16 @@ These override the generic rules above where they differ. The biggest one: **a p
 - **Realistic data, in the file.** A static page cannot reach the database. Write believable trips, people and plans in the prototype's own JS, shaped like scenario A (`/floc:seed-dev-db` shows what that holds). Real words, never lorem ipsum.
 - **Interactive beats pretty.** The user clicks and types in it to learn how it feels. State lives in memory; a reload starts over.
 - **Variants.** Several answers to one question → `?variant=` on the same page, cycled by a small bar at the bottom centre. One agreed direction that the grill keeps changing → one page, edited round by round. How the rounds run: [Rounds](#rounds).
-- **UI, phone.** Draw the phone as a 390×844 frame on the same page, when the question is phone-specific. Otherwise the web answer carries over through the [visual language](../../../../docs/design/visual-language.html).
+- **Web and mobile web, every variant.** Every variant must work and read clearly at desktop width (1280) and phone width (375), in the same page. Do not just let it shrink: plan the narrow layout on purpose.
+  - Stack side-by-side parts, and put the thing that matters first.
+  - A wide device (a browser window, a map) may become a phone on a narrow screen.
+  - Lines, hover and side notes do not survive a phone. Replace them with something visible, such as numbered badges that pair a note with its row.
+  - No sideways scroll: `scrollWidth` equals the screen width.
+  - Nothing swaps itself out while someone is reading it on a phone (no autoplay there).
+  - Controls stay in reach, for example a sticky stepper.
+
+  Shoot both widths, in light and dark. A variant that fails at 375 is not done.
+- **UI, phone app.** Draw the phone as a 390×844 frame on the same page, when the question is phone-specific. Otherwise the web answer carries over through the [visual language](../../../../docs/design/visual-language.html).
 - **Logic.** A TUI in `floc/wireframe/<issue>-<slug>/tui.ts`, run with `node <file>.ts`. It may import pure modules from `@floc/core` by relative path; it never writes them.
 - **Hand it over with proof.** Screenshot with Playwright, not the browser pane (the pane is too small, and its screenshots time out). Put a short script in `floc/wireframe/<folder>/_shots/`, run it from the prototype folder, and write the images to that same `_shots/`. `_landing/shoot.mjs` is the pattern: path, out, theme, wait, width, height, and `SCROLL`/`CLICK` env vars. Collect page errors in the script and report them. Send light and dark with `SendUserFile`, plus the moment that matters (mid-animation, a narrow width). Give the user the URL with `?variant=`.
 - **Capture the verdict on the ticket.** Add `## Prototype verdict` to the issue body: the question, the answer, why, and the folder name. Remove the `wayfinder:prototype` label. The folder stays on the user's disk as the source; `/floc:implement-feature` rebuilds the answer properly, test-first. Open decisions left → `/floc:grill`.
