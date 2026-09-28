@@ -4,15 +4,14 @@ import type { GlyphName } from "../landing-glyph";
 
 export const FEATURE_GLYPH: Record<ProFeatureKey, GlyphName> = {
   weather: "weather",
-  packing: "packing",
+  local: "eat",
   search: "flight",
-  files: "files",
-  agent: "agent",
-  live: "live",
-  local: "local",
-  extension: "extension",
+  save: "extension",
   forward: "mail",
+  live: "live",
+  packing: "packing",
   receipt: "receipt",
   offline: "offline",
   keep: "keep",
+  files: "files",
 };

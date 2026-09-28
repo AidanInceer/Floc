@@ -6,26 +6,26 @@ import { ProTour } from "./pro-tour";
 /** `monthly` is Stripe's formatted price; null when it cannot be read, so Pro sells without a figure. */
 function ProPitch({ monthly, href }: { monthly: string | null; href: string }) {
   return (
-    <div className="mt-10 grid items-center gap-6 rounded-3xl border border-pro-edge bg-pro px-6 py-[22px] text-pro-ink md:grid-cols-[auto_minmax(0,1fr)_auto] md:px-[26px]">
+    <div className="mt-9 grid items-center gap-4 rounded-3xl border border-rule bg-sheet p-4 shadow-raised md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-6 md:px-6 md:py-[18px]">
       <span
         aria-hidden
-        className="grid size-[74px] place-items-center content-center gap-0.5 rounded-full border-[1.5px] border-pro-edge bg-pro-2 text-pro-gold outline-1 outline-offset-4 outline-pro-edge outline-dashed"
+        className="hidden size-[60px] place-items-center content-center gap-0.5 rounded-full border-[1.5px] border-rule-strong text-pro-gold outline-1 outline-offset-4 outline-rule-strong outline-dashed md:grid"
       >
-        <Glyph name="star" className="size-[18px] fill-current" />
+        <Glyph name="star" className="size-[15px] fill-current" />
         <b className="font-mono text-[11px] uppercase tracking-[0.12em]">Pro</b>
       </span>
       <div>
         <h3 className="font-display text-xl font-semibold tracking-tight">One Pro covers the whole trip.</h3>
-        <p className="mt-1 max-w-[60ch] text-pro-ink-soft">
+        <p className="mt-1 max-w-[60ch] text-ink-soft">
           Whoever gets it, everyone on that trip gets the extras. The vote, dates, route, money and packing stay free.
         </p>
       </div>
-      <div className="flex items-center justify-between gap-[18px]">
+      <div className="flex items-center justify-between gap-[18px] border-t border-rule pt-3.5 md:border-0 md:pt-0">
         {monthly && (
           <p className="text-sm leading-snug md:text-right">
             <span className="nums text-lg font-medium">{monthly}</span> a month
             <br />
-            <span className="text-pro-ink-soft">Cancel any time</span>
+            <span className="text-ink-faint">Cancel any time</span>
           </p>
         )}
         <Link href={href} className="lift rounded-full bg-pro-gold px-6 py-3 text-sm font-semibold text-pro">
@@ -36,13 +36,15 @@ function ProPitch({ monthly, href }: { monthly: string | null; href: string }) {
   );
 }
 
-/** What Pro adds today and what is coming to it, shown across one sample trip. */
+/** The same sample trip without and with Pro, stage by stage. Some of it is still coming, which the tag says once. */
 export function ProBand({ monthly, signedIn }: { monthly: string | null; signedIn: boolean }) {
   return (
     <div>
-      <div className="text-center">
-        <p className="typed">Pro</p>
-        <h2 className="band-title mt-2">How Pro helps for every stage.</h2>
+      <div className="grid justify-items-center text-center">
+        <p className="rounded-full border border-dashed border-rule-strong px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.06em] text-ink-faint">
+          Coming soon to Pro
+        </p>
+        <h2 className="band-title mt-2.5">How Pro helps at every stage.</h2>
       </div>
       <ProTour />
       <ProPitch monthly={monthly} href={signedIn ? "/settings?section=billing" : "/signup"} />

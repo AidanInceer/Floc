@@ -7,7 +7,7 @@ export function ProStepper({ stages, at, onPick }: { stages: ProStage[]; at: num
   return (
     <ol
       aria-label="Stages of a trip"
-      className="pro-steps mx-auto mt-9 grid max-w-[56rem] grid-cols-4"
+      className="pro-steps mx-auto mt-7 grid max-w-[56rem] grid-cols-4"
       style={{ "--at": at, "--n": stages.length } as CSSProperties}
     >
       {stages.map((stage, i) => (

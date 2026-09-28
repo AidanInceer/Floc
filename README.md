@@ -45,7 +45,7 @@ pnpm verify   # everything CI runs — safe with the dev server up
 
 - [`AGENTS.md`](AGENTS.md) — the rules of the codebase (`CLAUDE.md` imports it)
 - [`docs/index.html`](docs/index.html) — all documentation
-- [approach](docs/design/approach.html) · [visual language](docs/design/visual-language.html) · [architecture](docs/architecture/architecture.html) · [ERD](docs/architecture/data-model/erd.html)
+- [approach](docs/design/index.html) · [visual language](docs/design/visual-language.html) · [architecture](docs/engineering/index.html) · [ERD](docs/engineering/data-model.html)
 - [`learnings.md`](learnings.md) — pitfalls already paid for
 
 ## Conventions

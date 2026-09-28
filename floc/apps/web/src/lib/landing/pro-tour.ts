@@ -1,120 +1,48 @@
-// Illustrative sample, not a live query: what Pro does across one Sicily trip,
-// today and next. `inPro` must match the FAQ's "What does Pro add?" answer.
+// Illustrative sample, not a live query: one Sicily trip, the same page without and with Pro.
+// The travel agent has its own band, so it is not here.
 
 export type ProFeatureKey =
   | "weather"
-  | "packing"
-  | "search"
-  | "files"
-  | "agent"
-  | "live"
   | "local"
-  | "extension"
+  | "search"
+  | "save"
   | "forward"
+  | "live"
+  | "packing"
   | "receipt"
   | "offline"
-  | "keep";
+  | "keep"
+  | "files";
 
-export type ProFeature = { key: ProFeatureKey; title: string; line: string; inPro: boolean };
+/** The domain pastel of what the feature touches: gold says Pro did it, the pastel says where. */
+type ProTone = "blue" | "green" | "yellow" | "red";
 
-const feature = (key: ProFeatureKey, inPro: boolean, title: string, line: string): ProFeature => ({ key, title, line, inPro });
+export type ProFeature = { title: string; tone: ProTone; row: string; free: string; pro: string };
+
+const feature = (title: string, tone: ProTone, row: string, free: string, pro: string): ProFeature => ({ title, tone, row, free, pro });
 
 export const PRO_FEATURES: Record<ProFeatureKey, ProFeature> = {
-  weather: feature("weather", true, "Weather for your dates", "The forecast for each stop, on the days you’re there."),
-  packing: feature("packing", true, "Packing from the forecast", "A list built from the weather and the plan."),
-  search: feature("search", true, "Flights and stays, pre-filled", "Searches open with your dates, airports and headcount."),
-  files: feature("files", true, "Room for every ticket", "More trip storage for passes, scans and bookings."),
-  agent: feature("agent", false, "A travel agent in your pocket", "Ask it anything about the trip. It knows the plan, the group and what’s left to do."),
-  live: feature("live", false, "Live trip mode", "On the day, the trip shows what’s next: when to leave, which platform, who has the tickets."),
-  local: feature("local", false, "Local picks", "Places near where you sleep each night, picked for your group and the weather."),
-  extension: feature("extension", false, "Save from any booking site", "A browser button that sends the stay or flight you’re looking at to the trip."),
-  forward: feature("forward", false, "Forward a booking", "Send the confirmation email to the trip. It lands on the right day."),
-  receipt: feature("receipt", false, "Snap the bill", "Photograph a receipt. The amount and the split fill themselves in."),
-  offline: feature("offline", false, "Works with no signal", "The whole trip on your phone, up a mountain or on the plane."),
-  keep: feature("keep", false, "The trip, kept", "Afterwards: the route, the days and the total on one page."),
+  weather: feature("Weather on your dates", "blue", "12–19 Sep", "7 nights", "Palermo 27° · Etna 14°"),
+  local: feature("Local picks", "yellow", "Cefalù", "2 nights", "Da Nino · 4 min walk"),
+  search: feature("Flights pre-filled", "red", "Flights home", "Not booked", "PMO → LGW · 19 Sep · 6"),
+  save: feature("Save from any site", "yellow", "Stay in Cefalù", "Paste a link", "Hotel Kalura · £412"),
+  forward: feature("Forward a booking", "blue", "Day 4", "Add a time", "Train to Taormina · 10:12"),
+  live: feature("Live trip mode", "blue", "Next", "Day 3 · Cefalù", "Train in 20 min · Platform 3"),
+  packing: feature("Packing from the forecast", "yellow", "Packing", "14 things", "Light jumper for Etna, added"),
+  receipt: feature("Snap the bill", "green", "Dinner", "Enter an amount", "€84.00 · €14.00 each"),
+  offline: feature("Works with no signal", "red", "No signal", "Can’t load tickets", "9 tickets saved"),
+  keep: feature("The trip, kept", "blue", "Sicily", "12–19 Sep", "Kept · 7 nights · 4 stops"),
+  files: feature("Room for every ticket", "red", "Tickets", "Storage full", "9 files, room to spare"),
 };
 
-export type ProRow = { key: ProFeatureKey; title: string; detail: string; action?: string };
-
-export type ProStage = {
-  name: string;
-  what: string;
-  /** The trip tab the web page has open at this stage. */
-  tab: string;
-  /** The web page's heading; the phone shows `title`. */
-  page: string;
-  over: string;
-  title: string;
-  banner?: { key: ProFeatureKey; text: string };
-  rows: ProRow[];
-};
-
-export const PRO_TABS = ["Where", "When", "The plan", "Money", "Packing", "Tickets"];
+export type ProStage = { name: string; what: string; keys: ProFeatureKey[] };
 
 export const PRO_STAGES: ProStage[] = [
-  {
-    name: "Deciding",
-    what: "Where and when",
-    tab: "When",
-    page: "Sicily",
-    over: "Sicily · 12–19 Sep",
-    title: "Where and when",
-    rows: [
-      { key: "agent", title: "Ask Floc", detail: "“Which week is driest?” Week of 12 Sep." },
-      { key: "weather", title: "Weather for 12–19 Sep", detail: "Palermo 27° · Cefalù 26° · Etna 14°" },
-      { key: "local", title: "Near Cefalù", detail: "Da Nino · lunch · 4 min walk" },
-    ],
-  },
-  {
-    name: "Booking",
-    what: "Getting it locked in",
-    tab: "Tickets",
-    page: "Sicily",
-    over: "Sicily · 12–19 Sep",
-    title: "Getting there",
-    rows: [
-      { key: "search", title: "Flights home", detail: "PMO → LGW · Sun 19 Sep · 6", action: "Search" },
-      { key: "extension", title: "Hotel Kalura", detail: "Saved from booking.com · £412" },
-      { key: "forward", title: "Train to Taormina", detail: "From Sam’s email · Day 4, 10:12" },
-    ],
-  },
-  {
-    name: "Away",
-    what: "On the trip",
-    tab: "The plan",
-    page: "Sicily · Cefalù",
-    over: "Day 3 · Tue 14 Sep",
-    title: "Cefalù",
-    banner: { key: "live", text: "Next: train in 20 min · Platform 3" },
-    rows: [
-      { key: "packing", title: "Packing", detail: "Light jumper for Etna" },
-      { key: "files", title: "Tickets", detail: "9 files · the train pass is on top" },
-      { key: "offline", title: "No signal", detail: "Everything saved" },
-      { key: "receipt", title: "Dinner, Sam paid", detail: "Scanned · €84.00 · €14.00 each" },
-    ],
-  },
-  {
-    name: "Home again",
-    what: "After",
-    tab: "The plan",
-    page: "Sicily",
-    over: "September 2026",
-    title: "Sicily, kept",
-    rows: [
-      { key: "keep", title: "The trip", detail: "7 nights · 4 stops · 6 people" },
-      { key: "agent", title: "Ask Floc", detail: "“What did we spend on food?” £96 each." },
-    ],
-  },
+  { name: "Deciding", what: "Where and when", keys: ["weather", "local"] },
+  { name: "Booking", what: "Getting it locked in", keys: ["search", "save", "forward"] },
+  { name: "Away", what: "On the trip", keys: ["live", "packing", "receipt", "offline"] },
+  { name: "Home again", what: "After", keys: ["keep", "files"] },
 ];
-
-export type StageNote = { key: ProFeatureKey; n: number; inPro: boolean };
-
-/** The notes beside a stage, one per feature it shows. Numbers pair each note with its row once the lines hide. */
-export function stageNotes(stage: ProStage): StageNote[] {
-  const keys = [...new Set([...(stage.banner ? [stage.banner.key] : []), ...stage.rows.map((r) => r.key)])];
-  const ordered = [...keys.filter((k) => PRO_FEATURES[k].inPro), ...keys.filter((k) => !PRO_FEATURES[k].inPro)];
-  return ordered.map((key, i) => ({ key, n: i + 1, inPro: PRO_FEATURES[key].inPro }));
-}
 
 /** Front-door scenes play once and rest (ADR-019), so the tour stops on the last stage. */
 export function nextStage(at: number, count: number): number | null {

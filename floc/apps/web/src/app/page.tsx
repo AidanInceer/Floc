@@ -118,11 +118,6 @@ export default async function LandingPage() {
           <FeatureFilm slides={tourSlides(sellingPro).map((s) => ({ ...s, shot: shotFor(s.key) }))} />
         </section>
 
-        {/* ── pocket agent ───────────────────────────────────────────── */}
-        <section className="mt-24">
-          <AgentBand sellingPro={sellingPro} />
-        </section>
-
         {/* ── explore ────────────────────────────────────────────────── */}
         <section className="mt-24">
           <BorrowTrip cards={borrowCards(PRESET_TRIPS, BORROW_IDS)} signedIn={signedIn} explore={inspire} />
@@ -134,6 +129,11 @@ export default async function LandingPage() {
             <ProBand monthly={monthly} signedIn={signedIn} />
           </section>
         )}
+
+        {/* ── pocket agent ───────────────────────────────────────────── */}
+        <section className="mt-24">
+          <AgentBand sellingPro={sellingPro} origin={appUrl()} />
+        </section>
 
         {/* ── questions ──────────────────────────────────────────────── */}
         <section className="my-24">

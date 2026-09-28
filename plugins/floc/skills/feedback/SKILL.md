@@ -22,8 +22,8 @@ For each point, find the facts yourself:
   emulator if the dev loop is up.
 - The ticket that built it: `git log --grep`, then `gh issue view <n>`. Read
   its `## Decisions`, `## What you'll see` and `## Acceptance criteria`.
-- [Mission and values](../../../../docs/mission.html) and the
-  [decision log](../../../../docs/adr/decisions.html).
+- [Mission and values](../../../../docs/foundation/mission.html) and the
+  [decision log](../../../../docs/foundation/decisions.html).
 
 ## 3. Name the cause
 
@@ -60,8 +60,8 @@ Then run `/floc:prioritise-tickets` so they enter the stack in the right phase.
 ## 5. Fix the source
 
 For every cause except **Bug**, edit
-[mission and values](../../../../docs/mission.html) or the
-[decision log](../../../../docs/adr/decisions.html) now, as the table says.
+[mission and values](../../../../docs/foundation/mission.html) or the
+[decision log](../../../../docs/foundation/decisions.html) now, as the table says.
 Show the user the new rule or record in one line each.
 
 ## Report

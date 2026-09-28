@@ -29,9 +29,17 @@ export type GlyphName =
   | "extension"
   | "stay"
   | "eat"
-  | "send";
+  | "send"
+  | "copy"
+  | "grip";
 
 const PATHS: Record<GlyphName, ReactNode> = {
+  copy: (
+    <>
+      <rect x="4.4" y="4.4" width="7.8" height="7.8" rx="1.4" />
+      <path d="M9.6 4.4V3a1.2 1.2 0 0 0-1.2-1.2H3A1.2 1.2 0 0 0 1.8 3v5.4A1.2 1.2 0 0 0 3 9.6h1.4" />
+    </>
+  ),
   dates: (
     <>
       <rect x="1.8" y="2.8" width="10.4" height="9.4" rx="1.6" />
@@ -151,6 +159,7 @@ const PATHS: Record<GlyphName, ReactNode> = {
   stay: <path d="M1.8 11.6V3.4M1.8 8.4h10.4v3.2M1.8 6.4h3.4a1.6 1.6 0 0 1 1.6 1.6v.4M8.2 6.2h2.4a1.6 1.6 0 0 1 1.6 1.6v.6" />,
   eat: <path d="M3.6 1.8v4.4a1.4 1.4 0 0 0 2.8 0V1.8M5 6.6v5.6M10.2 12.2V1.8c-1.4.6-2.2 2.2-2.2 4.2 0 1.2.6 1.8 2.2 1.8" />,
   send: <path d="M7 11.6V2.6M3.2 6.2 7 2.4l3.8 3.8" />,
+  grip: <path d="M5.4 4.4 3 7l2.4 2.6M8.6 4.4 11 7l-2.4 2.6" />,
 };
 
 export function Glyph({

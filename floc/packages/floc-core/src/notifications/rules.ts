@@ -1,6 +1,6 @@
 /**
  * Who hears about a change, and how loudly (#344). The approach is
- * docs/architecture/notifications.html.
+ * docs/product/notifications/index.html.
  */
 
 export const ACTIVITY_KINDS = [
