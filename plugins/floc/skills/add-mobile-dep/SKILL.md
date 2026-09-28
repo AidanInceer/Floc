@@ -71,8 +71,8 @@ against the old routes.
   [`SHIPPING.md`](../../../../floc/apps/mobile/SHIPPING.md). Say so in the
   report.
 - A new outside service or permission → the
-  [multi-platform](../../../../docs/architecture/multi-platform.html) page and,
-  if it touches personal data, [security](../../../../docs/architecture/security.html).
+  [multi-platform](../../../../docs/engineering/platforms.html) page and,
+  if it touches personal data, [security](../../../../docs/engineering/security.html).
 
 ## Failures that look worse than they are
 

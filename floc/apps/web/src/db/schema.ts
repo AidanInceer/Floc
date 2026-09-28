@@ -1,5 +1,5 @@
 /**
- * The schema of record — SQLite/libSQL via Drizzle. Mirrors docs/architecture/data-model/erd.html.
+ * The schema of record — SQLite/libSQL via Drizzle. Mirrors docs/engineering/data-model.html.
  *
  * Every application table carries id, created_at, deleted_at (soft-delete) and last_modified_at.
  * `last_modified_at` is debugging only — no optimistic locking (#12). Better Auth's `user`,

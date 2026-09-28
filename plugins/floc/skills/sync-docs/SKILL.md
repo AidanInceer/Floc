@@ -24,22 +24,23 @@ Include untracked files. If the user named a commit range, diff that instead.
 
 | The diff touches | Update |
 |---|---|
-| `db/schema.ts` | [ERD](../../../../docs/architecture/data-model/erd.html) block and relationships, and "Data model shape" in [architecture](../../../../docs/architecture/architecture.html) |
-| Layers, seams, auth, money, trip state, files, deploy | [architecture](../../../../docs/architecture/architecture.html) |
-| Trip access, roles, `assertAdmin`, a new door into a trip | [access](../../../../docs/architecture/access.html) |
-| PII, tokens, signed links, webhooks, cookies, browser storage | [security](../../../../docs/architecture/security.html) (and `/privacy` in code) |
-| A tRPC procedure | [API map](../../../../docs/architecture/api.html) |
-| An env var, `railway.json`, a production fix | [runbook](../../../../docs/architecture/operations.html) |
-| `.github/workflows/`, `scripts/verify.sh` | [CI](../../../../docs/architecture/ci.html) |
-| Workflow, a skill or agent | [lifecycle](../../../../docs/architecture/lifecycle.html) and the skill table in `AGENTS.md` |
-| The web/app split, `parity.json` | [multi-platform](../../../../docs/architecture/multi-platform.html) |
-| Notifications, reminders, the cron | [notifications](../../../../docs/architecture/notifications.html) |
-| A feature's behaviour | its page in `docs/product/domains/` |
-| A Pro gate (`FEATURE_PLAN`) | [Pro tier](../../../../docs/product/monetisation/pro-tier.html) |
+| `db/schema.ts` | [ERD](../../../../docs/engineering/data-model.html) block, relationships and "Tables by feature"; "Data model shape" in [architecture](../../../../docs/engineering/index.html); the feature page's *Built on* |
+| Layers, seams, trip state, deploy | [architecture](../../../../docs/engineering/index.html) |
+| Sign-in, sessions, Better Auth | [security](../../../../docs/engineering/security.html#auth) |
+| Trip access, roles, `assertAdmin`, a new door into a trip | [access](../../../../docs/engineering/access.html) |
+| PII, tokens, signed links, webhooks, cookies, browser storage | [security](../../../../docs/engineering/security.html) (and `/privacy` in code) |
+| A tRPC procedure | [API map](../../../../docs/engineering/api.html) |
+| An env var, `railway.json`, a production fix | [runbook](../../../../docs/engineering/operations.html) |
+| `.github/workflows/`, `scripts/verify.sh` | [CI](../../../../docs/engineering/ci.html) |
+| Workflow, a skill or agent | [lifecycle](../../../../docs/process/lifecycle.html) and the skill table in `AGENTS.md` |
+| The web/app split, `parity.json` | [multi-platform](../../../../docs/engineering/platforms.html) |
+| Notifications, reminders, the cron | [notifications](../../../../docs/product/notifications/index.html) |
+| A feature's behaviour or build (money maths, the notes socket, file storage, billing) | its folder, `docs/product/<feature>/` — the rules, *How it works*, and *Built on* |
+| A Pro gate (`FEATURE_PLAN`) | [Pro tier](../../../../docs/product/pro/index.html) |
 | A token, component or UI rule | [visual language](../../../../docs/design/visual-language.html) |
-| What Floc is or is not for | [mission and values](../../../../docs/mission.html) |
-| A decision other features must follow | [decision log](../../../../docs/adr/decisions.html) — a new record, never an edit |
-| A domain word | [vocabulary](../../../../docs/vocab.html) and `floc/CONTEXT.md` |
+| What Floc is or is not for | [mission and values](../../../../docs/foundation/mission.html) |
+| A decision other features must follow | [decision log](../../../../docs/foundation/decisions.html) — a new record, never an edit |
+| A domain word | [vocabulary](../../../../docs/foundation/vocab.html) and `floc/CONTEXT.md` |
 
 Nothing matches → say "no doc change needed" and stop.
 
@@ -49,7 +50,7 @@ Read the page before you edit it. Change only what the diff makes untrue.
 
 - **HTML is the source.** No markdown copy exists to regenerate from.
 - **Plain words.** Short sentences, active voice, present tense — the
-  [vocabulary](../../../../docs/vocab.html) voice. Say what is true now, not
+  [vocabulary](../../../../docs/foundation/vocab.html) voice. Say what is true now, not
   how it got there; a ticket number (`#285`) carries the history.
 - **Name real files.** Grep that a path still exists before you write it.
 - **Most pages are CRLF.** An edit keyed on LF finds nothing. Normalise,
@@ -58,8 +59,11 @@ Read the page before you edit it. Change only what the diff makes untrue.
   empty `class=""`, `contenteditable`.
 
 **New page** → copy the shell of a sibling (`data-root` is the path back to
-`docs/`, `data-page` is its id), add a `TREE` entry in `docs/assets/nav.js`,
-and link it from `docs/index.html`. A page missing from `TREE` is unreachable.
+`docs/`, `data-page` is its id). Add a `TREE` entry in `docs/assets/nav.js`
+with a `blurb`, and `related` ids and `adr` numbers where they fit — the
+breadcrumb, hub cards and footer links come from it. A new feature is a folder
+`docs/product/<feature>/` whose `index.html` has *Rules* and *Built on*. Layout
+rules: [editing these docs](../../../../docs/process/editing-docs.html).
 
 **Moved page** → fix every link to it: grep `docs/`, `AGENTS.md` and
 `plugins/`.
@@ -74,8 +78,9 @@ pnpm docs:check
 ```
 
 It fails on a schema table missing from the ERD, a procedure missing from the
-API map, or a broken link in `docs/` or `AGENTS.md`. It cannot see stale
-prose — that part is yours.
+API map, a broken link or anchor in `docs/` or `AGENTS.md`, a page missing from
+`TREE`, a bad `related` id or `adr` number, or a feature page without *Built on*.
+It cannot see stale prose — that part is yours.
 
 ## Report
 

@@ -13,7 +13,7 @@ docs lie.
 ## 1. Check it against the invariants
 
 Read "Data model shape" in
-[architecture](../../../../docs/architecture/architecture.html). Refuse, or
+[architecture](../../../../docs/engineering/index.html). Refuse, or
 ask, before you add:
 
 - a `stop` table or a lifecycle/status column — both are derived from data;
@@ -72,12 +72,14 @@ step 3 usually means the migration and `schema.ts` disagree.
 
 ## 6. Update the docs
 
-- [ERD](../../../../docs/architecture/data-model/erd.html): the table's block,
-  its relationships, and a line in the cardinality table for a new table.
+- [ERD](../../../../docs/engineering/data-model.html): the table's block,
+  its relationships, a line in the cardinality table, and a row in
+  "Tables by feature" (`id="table-<name>"`, linked to its feature) for a new table.
+- The feature page's *Built on* (`docs/product/<feature>/index.html`).
 - "Data model shape" in
-  [architecture](../../../../docs/architecture/architecture.html) if the new
+  [architecture](../../../../docs/engineering/index.html) if the new
   table is one a reader needs to see.
-- `pnpm docs:check` — it fails on a table missing from the ERD.
+- `pnpm docs:check` — it fails on a table missing from the ERD or from "Tables by feature".
 
 `/floc:sync-docs` covers the rest of the diff.
 

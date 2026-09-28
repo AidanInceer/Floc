@@ -11,7 +11,7 @@ Interview the user about the plan until you both understand it the same way. Wal
 
 Before the first question, find the facts yourself:
 
-- [Mission and values](../../../../docs/mission.html) and the [decision log](../../../../docs/adr/decisions.html). What Floc is for, and what is already decided. Do not ask again what a record already settles.
+- [Mission and values](../../../../docs/foundation/mission.html) and the [decision log](../../../../docs/foundation/decisions.html). What Floc is for, and what is already decided. Do not ask again what a record already settles.
 - The ticket, if there is one: `gh issue view <n> --repo AidanInceer/Floc`.
 - `AGENTS.md` (Invariants, Conventions, UI and UX), `floc/CONTEXT.md`, `learnings.md`.
 - The `docs/` pages and the code the plan touches.
@@ -64,7 +64,7 @@ When every branch is settled (or taken on recommendation), and there is a ticket
 1. Add `## Decisions` to the ticket body: one line per decision. Mark any decision taken on recommendation without an answer from the user with `(recommended)`.
 2. Add `## What you'll see`: the lines from step 3, as agreed.
 3. Add `## Acceptance criteria`: checkable lines that `/floc:implement-feature` can test against.
-4. **Decision log.** Each decision that outlives this ticket — a rule other features must follow — gets a record in [decisions](../../../../docs/adr/decisions.html): next number, status `Accepted` (or `Proposed` if it still waits on something). Add to [mission and values](../../../../docs/mission.html) only when the user states what Floc is or is not for.
+4. **Decision log.** Each decision that outlives this ticket — a rule other features must follow — gets a record in [decisions](../../../../docs/foundation/decisions.html): next number, status `Accepted` (or `Proposed` if it still waits on something). Add to [mission and values](../../../../docs/foundation/mission.html) only when the user states what Floc is or is not for.
 5. Remove the label: `gh issue edit <n> --repo AidanInceer/Floc --remove-label grilling`.
 
 With no ticket, give the decisions and criteria in chat.

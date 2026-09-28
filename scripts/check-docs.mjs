@@ -1,7 +1,8 @@
 /**
  * Why: catches only the doc drift a machine can see — a table missing from the
- * ERD, a procedure missing from the API map, a link that points nowhere. Stale
- * prose is still on the person changing the code (CLAUDE.md, Workflow).
+ * ERD, a procedure missing from the API map, a link or anchor that points nowhere,
+ * a page the sidebar cannot reach. Stale prose is still on the person changing
+ * the code (CLAUDE.md, Workflow). Layout rules: docs/process/editing-docs.html.
  */
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
@@ -24,7 +25,7 @@ const failures = [];
 
 function checkErd() {
   const schema = read("floc/apps/web/src/db/schema.ts");
-  const erd = read("docs/architecture/data-model/erd.html");
+  const erd = read("docs/engineering/data-model.html");
   const tables = [...schema.matchAll(/Table\(\s*"([a-z_]+)"/g)].map((m) => m[1]);
   for (const table of tables) {
     if (AUTH_TABLES.has(table)) continue;
@@ -37,7 +38,7 @@ function checkErd() {
 
 function checkApiMap() {
   const { procedures } = JSON.parse(read("scripts/parity/parity.json"));
-  const page = read("docs/architecture/api.html");
+  const page = read("docs/engineering/api.html");
   const names = Object.keys(procedures);
   for (const name of names) {
     if (!page.includes(`<code>${name}</code>`)) {
@@ -60,7 +61,11 @@ const EXTERNAL = /^(https?:|mailto:|data:|javascript:|#)/;
 function checkTarget(from, href, label) {
   if (!href || EXTERNAL.test(href)) return;
   const target = resolve(dirname(from), decodeURI(href.split(/[?#]/)[0]));
-  if (!existsSync(target)) failures.push(`${label}: broken link "${href}"`);
+  if (!existsSync(target)) return failures.push(`${label}: broken link "${href}"`);
+  const anchor = href.split("#")[1];
+  if (anchor && target.endsWith(".html") && !readFileSync(target, "utf8").includes(`id="${anchor}"`)) {
+    failures.push(`${label}: no anchor "#${anchor}" in "${href}"`);
+  }
 }
 
 function checkLinks() {
@@ -84,7 +89,45 @@ function checkLinks() {
   return pages.length;
 }
 
+// Why: these folders are working space, deliberately kept out of the sidebar.
+const UNINDEXED = ["private/", "mockups/", "design/prototypes/", "input/", "samples/"];
+
+function checkTree() {
+  const nav = read("docs/assets/nav.js");
+  const ids = new Set([...nav.matchAll(/id: '([^']+)'/g)].map((m) => m[1]));
+  const hrefs = new Set([...nav.matchAll(/href: '([^']+)'/g)].map((m) => m[1]));
+  for (const m of nav.matchAll(/related: \[([^\]]*)\]/g)) {
+    for (const id of m[1].match(/[a-z0-9-]+/g) || []) {
+      if (!ids.has(id)) failures.push(`nav.js: related id "${id}" is not a page`);
+    }
+  }
+  const decisions = read("docs/foundation/decisions.html");
+  for (const m of nav.matchAll(/adr: \[([^\]]*)\]/g)) {
+    for (const n of m[1].match(/\d+/g) || []) {
+      if (!decisions.includes(`id="adr-${n.padStart(3, "0")}"`)) failures.push(`nav.js: ADR ${n} is not in the decision log`);
+    }
+  }
+  for (const page of htmlFiles(DOCS)) {
+    const path = relative(DOCS, page).split(sep).join("/");
+    if (UNINDEXED.some((dir) => path.startsWith(dir))) continue;
+    if (!hrefs.has(path)) failures.push(`${path}: not in TREE in nav.js, so the sidebar cannot reach it`);
+  }
+}
+
+function checkFeaturePages() {
+  const product = join(DOCS, "product");
+  for (const name of readdirSync(product)) {
+    const index = join(product, name, "index.html");
+    if (!existsSync(index)) continue;
+    if (!readFileSync(index, "utf8").includes(`<h2 id="built-on">`)) {
+      failures.push(`product/${name}/index.html: no "Built on" section`);
+    }
+  }
+}
+
 const tables = checkErd();
+checkTree();
+checkFeaturePages();
 const procedures = checkApiMap();
 const pages = checkLinks();
 

@@ -1,7 +1,8 @@
 import { AgentScene } from "./agent-scene";
+import { WhileYouWait } from "./while-you-wait";
 
-/** The pocket travel agent: not built yet, so the band says it is coming. */
-export function AgentBand({ sellingPro }: { sellingPro: boolean }) {
+/** The pocket travel agent: not built yet, so the band says it is coming, and offers the assistants people already use. */
+export function AgentBand({ sellingPro, origin }: { sellingPro: boolean; origin: string }) {
   return (
     <div>
       <div className="text-center">
@@ -13,6 +14,7 @@ export function AgentBand({ sellingPro }: { sellingPro: boolean }) {
       <div className="mt-12">
         <AgentScene />
       </div>
+      <WhileYouWait origin={origin} />
     </div>
   );
 }
