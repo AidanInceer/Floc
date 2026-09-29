@@ -208,6 +208,7 @@ export function Button({
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={label}
       accessibilityState={{ disabled: !!off, busy: !!busy }}
       onPress={onPress}
       disabled={off}
@@ -215,7 +216,7 @@ export function Button({
         backgroundColor: ground,
         borderWidth: 1,
         borderColor: edge,
-        borderRadius: radius.md,
+        borderRadius: radius.pill,
         paddingVertical: small ? space.sm : space.md,
         paddingHorizontal: small ? space.md : space.lg,
         flexDirection: "row",
@@ -226,23 +227,18 @@ export function Button({
         opacity: off ? 0.5 : pressed ? 0.85 : 1,
       })}
     >
-      {busy ? (
-        <ActivityIndicator color={ink} />
-      ) : (
-        <>
-          {icon ? icon(ink) : null}
-          <Text
-          numberOfLines={1}
-          style={{
-            color: ink,
-            fontFamily: fonts.sansBold,
-            fontSize: small ? size.small : size.body,
-          }}
-        >
-            {label}
-          </Text>
-        </>
-      )}
+      {busy ? <ActivityIndicator color={ink} accessible={false} /> : icon?.(ink)}
+      <Text
+        numberOfLines={1}
+        style={{
+          color: ink,
+          fontFamily: fonts.sansBold,
+          fontSize: small ? size.small : size.body,
+          flexShrink: 1,
+        }}
+      >
+        {label}
+      </Text>
     </Pressable>
   );
 }

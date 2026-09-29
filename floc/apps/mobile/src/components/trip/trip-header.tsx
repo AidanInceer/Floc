@@ -26,6 +26,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useTheme } from "../system/theme";
+import { useReducedMotion } from "../system/use-reduced-motion";
 import { useTour, useTourTarget } from "../tour/tour-context";
 import { SectionGlyph } from "./section-glyph";
 import { fonts, radius, size, space } from "@/lib/theme";
@@ -223,6 +224,7 @@ export function TripHeader({
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
   const rail = useRef<ScrollView>(null);
+  const reducedMotion = useReducedMotion();
   const railX = useRef(new Map<string, number>());
   const tour = useTour();
   const lit = tour?.active;
@@ -230,8 +232,8 @@ export function TripHeader({
   // Why: the rail scrolls sideways, so a tour stop off the edge is brought into view first (#315).
   useEffect(() => {
     const x = lit ? railX.current.get(lit) : undefined;
-    if (x !== undefined) rail.current?.scrollTo({ x: Math.max(0, x - space.lg * 3), animated: true });
-  }, [lit]);
+    if (x !== undefined) rail.current?.scrollTo({ x: Math.max(0, x - space.lg * 3), animated: reducedMotion === false });
+  }, [lit, reducedMotion]);
 
   return (
     <View

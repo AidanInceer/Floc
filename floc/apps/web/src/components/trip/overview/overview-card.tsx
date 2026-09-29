@@ -106,7 +106,7 @@ export function OverviewCard({
         <Link href={`/trip/${trip.id}/money`} className="flex items-baseline gap-2.5 border-b border-rule py-3 text-sm text-ink-soft hover:text-ink">
           {spent ? (
             <>
-              <span className="nums font-display text-lg text-pastel-green-ink">{spent}</span>
+              <span className="nums text-lg text-pastel-green-ink">{spent}</span>
               spent
             </>
           ) : (

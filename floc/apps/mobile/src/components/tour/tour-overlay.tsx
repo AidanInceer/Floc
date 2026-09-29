@@ -8,6 +8,7 @@ import { Modal, StyleSheet, useWindowDimensions, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
 import { useTheme } from "../system/theme";
+import { useReducedMotion } from "../system/use-reduced-motion";
 import { Body, Button, Label } from "../system/ui";
 import { useTour } from "./tour-context";
 import { radius, space } from "@/lib/theme";
@@ -86,6 +87,7 @@ function Dim({ rect }: { rect: Rect | null }) {
 
 export function TourOverlay({ onDone }: { onDone: () => void }) {
   const { c } = useTheme();
+  const reducedMotion = useReducedMotion();
   const { height } = useWindowDimensions();
   const tour = useTour();
   const [stops, setStops] = useState<TourStop[] | null>(null);
@@ -116,7 +118,7 @@ export function TourOverlay({ onDone }: { onDone: () => void }) {
   const cardTop = below + 200 < height ? below : Math.max(space.lg, (rect?.y ?? height) - 200 - space.md);
 
   return (
-    <Modal visible transparent statusBarTranslucent animationType="fade" onRequestClose={() => move("skip")}>
+    <Modal visible transparent statusBarTranslucent animationType={reducedMotion === false ? "fade" : "none"} onRequestClose={() => move("skip")}>
       <Dim rect={rect} />
       <View
         style={{

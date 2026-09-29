@@ -19,11 +19,12 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ThemeProvider, useTheme } from "@/components/system/theme";
 import { LaunchCurtain } from "@/components/system/launch";
+import { useReducedMotion } from "@/components/system/use-reduced-motion";
 import { FlocWordmark } from "@/components/system/wordmark";
 import { queryClient } from "@/lib/api";
 import { useSession } from "@/lib/auth";
@@ -47,11 +48,13 @@ const DEEP_LINKED = ["reset-password", "verified"];
 
 function Routes() {
   const { c, theme } = useTheme();
+  const reducedMotion = useReducedMotion();
   const [facesLoaded] = useFonts(FACES);
   const { data: session, isPending } = useSession();
   const segments = useSegments();
   const router = useRouter();
   const [launched, setLaunched] = useState(false);
+  const finishLaunch = useCallback(() => setLaunched(true), []);
 
   const signedIn = !!session?.user;
   const inApp = segments[0] === "(app)";
@@ -80,6 +83,7 @@ function Routes() {
       {ready && (
         <Stack
           screenOptions={{
+            animation: reducedMotion === false ? "default" : "none",
             // One surface, not two. A sheet-coloured bar over a paper screen
             // draws a tone step, and the hairline under it drew a second line
             // across a screen that is a single column of controls.
@@ -102,7 +106,7 @@ function Routes() {
           <Stack.Screen name="(app)" options={{ headerShown: false }} />
         </Stack>
       )}
-      {!launched && <LaunchCurtain ready={ready} onDone={() => setLaunched(true)} />}
+      {!launched && <LaunchCurtain ready={ready} onDone={finishLaunch} />}
     </>
   );
 }

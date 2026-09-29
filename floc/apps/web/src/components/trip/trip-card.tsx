@@ -107,7 +107,7 @@ export function TripCard({
             which is where colour, rename, archive and delete now live. */}
         {past ? (
           <>
-            <span className="ml-auto font-mono text-[11.5px] opacity-70">
+            <span className="ml-auto font-mono text-[11.5px]">
               {trip.role === "admin" ? "Admin" : "Member"}
             </span>
             {actions ? (
@@ -160,7 +160,7 @@ function CardBody({
           list && "flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 sm:contents",
         )}
       >
-        <p className={cx("nums text-xs opacity-75", list ? ON_NAME_LINE.dates : "mt-1.5")}>
+        <p className={cx("nums text-xs", list ? ON_NAME_LINE.dates : "mt-1.5")}>
           {formatDateRange(trip.startDate, trip.endDate)}
           {trip.where && !list ? <> · {trip.where}</> : null}
         </p>
@@ -169,7 +169,7 @@ function CardBody({
             <span aria-hidden className="text-xs opacity-50 sm:hidden">
               ·
             </span>
-            <p className={cx("truncate text-xs opacity-75", ON_NAME_LINE.place)}>{trip.where}</p>
+            <p className={cx("truncate text-xs", ON_NAME_LINE.place)}>{trip.where}</p>
           </>
         ) : null}
       </span>
