@@ -4,6 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import type { KeyboardEvent, MouseEvent, PointerEvent, ReactNode, RefObject } from "react";
 
 import { cx } from "@/components/system/ui";
+import { useTrackDrag } from "@/components/system/interaction/use-track-drag";
 import { FILM_COPIES, nearestCopy, nearestSlide, recentre } from "@/lib/landing/carousel";
 
 import { Glyph } from "../landing-glyph";
@@ -92,48 +93,6 @@ function useFilm(count: number): Film {
   return { track, current, go, here, glide, held };
 }
 
-// Touch and trackpads scroll natively; a mouse gets drag-to-scroll, then snaps one slide on.
-function useMouseDrag({ track, here, glide, held }: Film) {
-  const drag = useRef<{ x: number; left: number; from: number } | null>(null);
-  // A drag ends in a click on whatever slide it let go over; that click must not pick it.
-  const dragged = useRef(false);
-  const [dragging, setDragging] = useState(false);
-
-  const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
-    if (e.pointerType !== "mouse" || e.button !== 0 || !track.current) return;
-    // The plan slide carries a live map; dragging it pans the map, not the film.
-    if ((e.target as HTMLElement).closest(".leaflet-container")) return;
-    drag.current = { x: e.clientX, left: track.current.scrollLeft, from: here() };
-    dragged.current = false;
-    held.current = true;
-    setDragging(true);
-  };
-
-  useEffect(() => {
-    if (!dragging) return;
-    const move = (e: globalThis.PointerEvent) => {
-      if (drag.current && track.current) track.current.scrollLeft = drag.current.left - (e.clientX - drag.current.x);
-    };
-    const up = (e: globalThis.PointerEvent) => {
-      const dx = drag.current ? e.clientX - drag.current.x : 0;
-      const from = drag.current?.from ?? here();
-      drag.current = null;
-      dragged.current = Math.abs(dx) > 5;
-      held.current = false;
-      setDragging(false);
-      glide(Math.abs(dx) > 60 ? from + (dx < 0 ? 1 : -1) : from);
-    };
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", up, { once: true });
-    return () => {
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", up);
-    };
-  }, [dragging, glide, held, here, track]);
-
-  return { dragging, dragged, onPointerDown };
-}
-
 function SlideCard({ slide, index, physical, count, active, duplicate }: { slide: FilmSlide; index: number; physical: number; count: number; active: boolean; duplicate?: boolean }) {
   return (
     <article
@@ -172,13 +131,23 @@ function SlideCard({ slide, index, physical, count, active, duplicate }: { slide
 export function FeatureFilm({ slides }: { slides: FilmSlide[] }) {
   const film = useFilm(slides.length);
   const { track, current, go } = film;
-  const { dragging, dragged, onPointerDown } = useMouseDrag(film);
+  const drag = useTrackDrag({
+    track,
+    here: film.here,
+    onRelease: ({ from, direction }) => film.glide(from + direction),
+    onDragging: (active) => { film.held.current = active; },
+  });
+  const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    // The plan slide carries a live map; dragging it pans the map, not the film.
+    if ((event.target as HTMLElement).closest(".leaflet-container")) return;
+    drag.onPointerDown(event);
+  };
   const count = slides.length;
   const copies = Array.from({ length: FILM_COPIES }, () => slides).flat();
 
   const onClick = (e: MouseEvent<HTMLDivElement>) => {
     const picked = (e.target as HTMLElement).closest<HTMLElement>("[data-slide]")?.dataset.slide;
-    if (picked !== undefined && !dragged.current) go(Number(picked));
+    if (picked !== undefined) go(Number(picked));
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
@@ -217,7 +186,8 @@ export function FeatureFilm({ slides }: { slides: FilmSlide[] }) {
         onKeyDown={onKeyDown}
         onPointerDown={onPointerDown}
         onClick={onClick}
-        className={cx("film-track scroll-x-bare", dragging && "is-dragging")}
+        onClickCapture={drag.onClickCapture}
+        className={cx("film-track scroll-x-bare", drag.dragging && "is-dragging")}
       >
         {copies.map((s, physical) => {
           const index = physical % count;
