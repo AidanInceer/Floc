@@ -132,7 +132,7 @@ export default async function LandingPage() {
 
         {/* ── pocket agent ───────────────────────────────────────────── */}
         <section className="mt-24">
-          <AgentBand sellingPro={sellingPro} origin={appUrl()} />
+          <AgentBand origin={appUrl()} />
         </section>
 
         {/* ── questions ──────────────────────────────────────────────── */}
