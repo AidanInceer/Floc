@@ -156,7 +156,7 @@ function Line({ label, figure, onPress }: { label: string; figure?: string | nul
       })}
     >
       {figure ? (
-        <Text style={{ color: c["pastel-green-ink"], fontFamily: fonts.display, fontSize: size.heading, fontVariant: ["tabular-nums"] }}>
+        <Text style={{ color: c["pastel-green-ink"], fontFamily: fonts.type, fontSize: size.heading, fontVariant: ["tabular-nums"] }}>
           {figure}
         </Text>
       ) : null}

@@ -23,6 +23,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } f
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useTheme } from "./theme";
+import { useReducedMotion } from "./use-reduced-motion";
 import { radius, space } from "@/lib/theme";
 
 export function Sheet({
@@ -35,10 +36,11 @@ export function Sheet({
   children: ReactNode;
 }) {
   const { c } = useTheme();
+  const reducedMotion = useReducedMotion();
   const { height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   return (
-    <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={open} transparent animationType={reducedMotion === false ? "fade" : "none"} onRequestClose={onClose}>
       <View style={{ flex: 1, justifyContent: "flex-end" }}>
         <Pressable
           accessibilityRole="button"

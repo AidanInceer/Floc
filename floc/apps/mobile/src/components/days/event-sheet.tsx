@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CrossGlyph } from "../system/glyphs";
 import { useTheme } from "../system/theme";
+import { useReducedMotion } from "../system/use-reduced-motion";
 import { Heading, IconButton } from "../system/ui";
 import { space } from "@/lib/theme";
 
@@ -30,12 +31,13 @@ export function EventSheet({
   children: ReactNode;
 }) {
   const { c } = useTheme();
+  const reducedMotion = useReducedMotion();
   // A `Modal` sits outside the screen's safe area, so the title lands under
   // the clock unless it is inset itself.
   const insets = useSafeAreaInsets();
 
   return (
-    <Modal visible={open} animationType="slide" onRequestClose={onClose}>
+    <Modal visible={open} animationType={reducedMotion === false ? "slide" : "none"} onRequestClose={onClose}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1, backgroundColor: c.paper }}

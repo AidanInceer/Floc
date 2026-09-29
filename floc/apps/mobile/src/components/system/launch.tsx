@@ -23,6 +23,7 @@ import { Animated, Easing, StyleSheet, useWindowDimensions } from "react-native"
 import Svg, { Path } from "react-native-svg";
 
 import { useTheme } from "./theme";
+import { useReducedMotion } from "./use-reduced-motion";
 
 const EXIT_MS = 460;
 /** The chevron block, as a share of the screen width. See the note above. */
@@ -32,6 +33,7 @@ const VIEWBOX_SLACK = 26 / 21.2;
 
 export function LaunchCurtain({ ready, onDone }: { ready: boolean; onDone: () => void }) {
   const { c } = useTheme();
+  const reducedMotion = useReducedMotion();
   const { width, height } = useWindowDimensions();
   const lift = useRef(new Animated.Value(0)).current;
   const paper = useRef(new Animated.Value(1)).current;
@@ -39,8 +41,12 @@ export function LaunchCurtain({ ready, onDone }: { ready: boolean; onDone: () =>
   const markWidth = width * MARK_FRACTION * VIEWBOX_SLACK;
 
   useEffect(() => {
-    if (!ready) return;
-    Animated.parallel([
+    if (!ready || reducedMotion === null) return;
+    if (reducedMotion) {
+      onDone();
+      return;
+    }
+    const exit = Animated.parallel([
       Animated.timing(lift, {
         toValue: 1,
         duration: EXIT_MS,
@@ -55,8 +61,10 @@ export function LaunchCurtain({ ready, onDone }: { ready: boolean; onDone: () =>
         easing: Easing.out(Easing.quad),
         useNativeDriver: true,
       }),
-    ]).start(({ finished }) => finished && onDone());
-  }, [ready, lift, paper, onDone]);
+    ]);
+    exit.start(({ finished }) => finished && onDone());
+    return () => exit.stop();
+  }, [ready, reducedMotion, lift, paper, onDone]);
 
   return (
     <Animated.View

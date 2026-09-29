@@ -7,6 +7,7 @@ import { Stack, useRouter, type Href } from "expo-router";
 import { useEffect } from "react";
 
 import { useTheme } from "@/components/system/theme";
+import { useReducedMotion } from "@/components/system/use-reduced-motion";
 import { client, queryClient, trpc } from "@/lib/api";
 import { registerThisPhone } from "@/lib/push/push";
 import { pushTap } from "@/lib/push/push-tap";
@@ -32,10 +33,12 @@ function usePushTaps() {
 
 export default function AppLayout() {
   const { c } = useTheme();
+  const reducedMotion = useReducedMotion();
   usePushTaps();
   return (
     <Stack
       screenOptions={{
+        animation: reducedMotion === false ? "default" : "none",
         headerStyle: { backgroundColor: c.sheet },
         headerTintColor: c.ink,
         headerShadowVisible: false,

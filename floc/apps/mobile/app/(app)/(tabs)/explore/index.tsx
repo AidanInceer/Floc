@@ -14,6 +14,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, View } from "react-native";
+import { useReducedMotion } from "@/components/system/use-reduced-motion";
 
 import { ExploreCard } from "@/components/explore/explore-card";
 import { ExploreMap } from "@/components/explore/explore-map";
@@ -36,6 +37,7 @@ export default function Explore() {
   const router = useRouter();
   const { c } = useTheme();
   const scroll = useRef<ScrollView>(null);
+  const reducedMotion = useReducedMotion();
   const pendingSave = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const state = useQuery(trpc.explore.get.queryOptions());
@@ -74,7 +76,7 @@ export default function Explore() {
 
   const pickFromMatch = (id: string) => {
     setPicked(id);
-    scroll.current?.scrollTo({ y: 0, animated: true });
+    scroll.current?.scrollTo({ y: 0, animated: reducedMotion === false });
   };
 
   return (

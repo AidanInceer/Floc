@@ -24,7 +24,7 @@ export function SiteFooter() {
             </Link>
           ))}
         </nav>
-        <span className="ml-auto font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft opacity-70">
+        <span className="ml-auto font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
           United Kingdom
         </span>
       </div>
