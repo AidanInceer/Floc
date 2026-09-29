@@ -16,7 +16,6 @@ const blank = "w-fit border-b-[1.5px] border-dashed border-rule-strong pb-[3px] 
 export function ClosingTicket({ signedIn }: { signedIn: boolean }) {
   const router = useRouter();
   const [dest, setDest] = useState("");
-  const place = dest.trim();
   const href = startTripHref(signedIn, dest);
   return (
     <>
@@ -58,10 +57,9 @@ export function ClosingTicket({ signedIn }: { signedIn: boolean }) {
             </div>
           </div>
           <div className="closing-perf" />
-          <div className="flex flex-col items-start justify-center gap-3.5 px-6 py-7">
-            <span className={kicker}>Admit the group</span>
+          <div className="flex flex-col items-center justify-center gap-3.5 px-6 py-7">
             <ButtonLink href={href} variant="primary" className="whitespace-nowrap px-6 py-3 text-[12px]">
-              {place ? `Start ${place} — free` : "Start this trip — free"}
+              Start this trip
             </ButtonLink>
             <span className="nums text-[13px] text-ink-faint">Free for the whole group</span>
           </div>

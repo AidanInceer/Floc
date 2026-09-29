@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, type ReactNode } from "react";
 
 import { Avatar, cx } from "@/components/system/ui";
 import type { MarkId, TypedPrompt } from "@/lib/landing/agent/agent-prompt";
@@ -19,11 +19,10 @@ const MARK_TONE: Record<MarkId, string> = {
 type Props = {
   t: number;
   prompt: TypedPrompt;
-  sentAt: number;
-  pressedUntil: number;
-  doneAt: number;
+  timing: { sentAt: number; pressedUntil: number; doneAt: number };
   /** The asks lit so far; none when the scene plays as lanes. */
   lit: (mark: MarkId) => boolean;
+  children?: ReactNode;
 };
 
 function State({ t, sentAt, doneAt }: { t: number; sentAt: number; doneAt: number }) {
@@ -40,7 +39,7 @@ function State({ t, sentAt, doneAt }: { t: number; sentAt: number; doneAt: numbe
 }
 
 /** Priya's brief to Floc, typing itself one key at a time. Every key is laid out from the start, so nothing reflows as it types. */
-export function AskCard({ t, prompt, sentAt, pressedUntil, doneAt, lit }: Props) {
+export function AskCard({ t, prompt, timing: { sentAt, pressedUntil, doneAt }, lit, children }: Props) {
   const chars = prompt.lines.flat().flatMap((p) => p.chars);
   const typing = t >= (chars[0]?.at ?? 0) && t < prompt.endMs;
   const lastOn = typing ? chars.filter((c) => c.at <= t).at(-1) : undefined;
@@ -79,9 +78,9 @@ export function AskCard({ t, prompt, sentAt, pressedUntil, doneAt, lit }: Props)
           <Avatar name={priya.name} tone={priya.tone} size={22} />
           {priya.name}
         </span>
-        <span className={cx("agent-send grid size-[34px] place-items-center rounded-full", send)}>
+        {children ?? <span className={cx("agent-send grid size-[34px] place-items-center rounded-full", send)}>
           <Glyph name="send" className="size-[15px]" />
-        </span>
+        </span>}
       </div>
     </div>
   );

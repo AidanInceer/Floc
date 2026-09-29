@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { Glyph } from "../landing-glyph";
 import { ProTour } from "./pro-tour";
+import { ComingSoonTag } from "../coming-soon-tag";
 
 /** `monthly` is Stripe's formatted price; null when it cannot be read, so Pro sells without a figure. */
 function ProPitch({ monthly, href }: { monthly: string | null; href: string }) {
@@ -41,10 +42,8 @@ export function ProBand({ monthly, signedIn }: { monthly: string | null; signedI
   return (
     <div>
       <div className="grid justify-items-center text-center">
-        <p className="rounded-full border border-dashed border-rule-strong px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.06em] text-ink-faint">
-          Coming soon to Pro
-        </p>
-        <h2 className="band-title mt-2.5">How Pro helps at every stage.</h2>
+        <ComingSoonTag />
+        <h2 className="band-title mt-3">How Pro helps at every stage.</h2>
       </div>
       <ProTour />
       <ProPitch monthly={monthly} href={signedIn ? "/settings?section=billing" : "/signup"} />

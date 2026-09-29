@@ -1,9 +1,5 @@
 import type { Metadata } from "next";
-import {
-  Bricolage_Grotesque,
-  DM_Mono,
-  Instrument_Sans,
-} from "next/font/google";
+import localFont from "next/font/local";
 
 import { AppChrome } from "@/components/chrome/app-chrome";
 import { SiteFooter } from "@/components/chrome/site-footer";
@@ -19,29 +15,37 @@ import { countUnread, listUnseen } from "@/server/notifications/inbox";
 import { getProfile } from "@/server/auth/profile";
 
 import "./globals.css";
+import "./fonts/extended.css";
 
 const ACCOUNT_MENU_PREVIEW = 3;
 
 // The three faces of the white-and-pastel direction (ticket 189): a characterful
 // display face for headings and figures, a plain body face for running text and
 // controls, and a mono for dates, times, amounts and small uppercase labels.
-// Self-hosted through next/font — no flash of the wrong face. The handwriting
-// face is retired; it belonged to the notebook look.
-const display = Bricolage_Grotesque({
-  subsets: ["latin"],
+// Why: bundled WOFF2 files keep dev and builds independent of Google Fonts downloads.
+const display = localFont({
+  src: "./fonts/bricolage-grotesque-latin.woff2",
   variable: "--font-display-face",
-  weight: ["500", "600", "700"],
+  weight: "500 700",
+  style: "normal",
+  adjustFontFallback: false,
 });
 
-const body = Instrument_Sans({
-  subsets: ["latin"],
+const body = localFont({
+  src: "./fonts/instrument-sans-latin.woff2",
   variable: "--font-body-face",
+  weight: "400 700",
+  style: "normal",
+  adjustFontFallback: false,
 });
 
-const mono = DM_Mono({
-  subsets: ["latin"],
+const mono = localFont({
+  src: [
+    { path: "./fonts/dm-mono-regular-latin.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/dm-mono-medium-latin.woff2", weight: "500", style: "normal" },
+  ],
   variable: "--font-data-face",
-  weight: ["400", "500"],
+  adjustFontFallback: false,
 });
 
 export const metadata: Metadata = {
