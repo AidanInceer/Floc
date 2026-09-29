@@ -1,0 +1,25 @@
+version = 1
+name = "floc"
+
+[setup]
+script = ""
+
+[[actions]]
+name = "Web"
+icon = "run"
+command = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/codex-launch.ps1 web"
+
+[[actions]]
+name = "Mobile / Metro"
+icon = "run"
+command = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/codex-launch.ps1 metro"
+
+[[actions]]
+name = "Docs"
+icon = "run"
+command = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/codex-launch.ps1 docs"
+
+[[actions]]
+name = "Wireframes"
+icon = "run"
+command = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/codex-launch.ps1 wireframes"
