@@ -20,18 +20,12 @@ function measure(sheet: HTMLElement) {
   sheet.style.setProperty("--rise", `${riseFrom({ barTop, sheetTop, viewport: innerHeight })}px`);
 }
 
-function lockScroll(sheet: HTMLElement) {
-  const gutter = innerWidth - document.documentElement.clientWidth;
+// Why: html keeps its scrollbar gutter when locked (scrollbar-gutter: stable), so the page and the sheet share one width.
+function lockScroll() {
   const root = document.documentElement.style;
-  const body = document.body.style;
-  const before = { overflow: root.overflow, padding: body.paddingRight };
-  sheet.style.setProperty("--gutter", `${gutter}px`);
+  const before = root.overflow;
   root.overflow = "hidden";
-  body.paddingRight = `${gutter}px`;
-  return () => {
-    root.overflow = before.overflow;
-    body.paddingRight = before.padding;
-  };
+  return () => { root.overflow = before; };
 }
 
 /** The legal pages over whatever page opened them. Closing slides back into the footer, then steps back in history. */
@@ -44,7 +38,7 @@ export function LegalSheet({ children }: { children: ReactNode }) {
   useLayoutEffect(() => {
     const sheet = ref.current!;
     const opener = document.activeElement as HTMLElement | null;
-    const unlock = lockScroll(sheet);
+    const unlock = lockScroll();
     measure(sheet);
     sheet.showModal();
     sheet.querySelector<HTMLElement>(".legal-sheet-bar [aria-current]")?.focus({ preventScroll: true });

@@ -39,8 +39,6 @@
   }
   .legal-sheet[data-open] .legal-sheet-panel { transform: none; }
   .legal-sheet-body { flex: 1; overflow-y: auto; overscroll-behavior: contain; }
-  /* Why: the page behind lost its scrollbar; the same inset keeps the bar's links over the footer's. */
-  .legal-sheet-panel > * { padding-right: var(--gutter, 0px); }
 
   /* The bar wears the footer's ground: the blue closing band on the front door, the page elsewhere. */
   .legal-sheet-bar { flex-shrink: 0; background: var(--paper); border-bottom: 1px solid var(--rule); }
