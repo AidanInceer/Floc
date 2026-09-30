@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { LEGAL_LINKS } from "@/components/chrome/legal-links";
+import { LegalFooterLinks } from "@/components/chrome/legal-footer-links";
 import { FlocWordmark } from "@/components/system/wordmark";
 
 export function SiteFooter() {
@@ -10,20 +10,7 @@ export function SiteFooter() {
         <Link href="/" aria-label="Floc home">
           <FlocWordmark />
         </Link>
-        <nav
-          aria-label="Legal"
-          className="flex flex-wrap items-center gap-x-5 gap-y-2"
-        >
-          {LEGAL_LINKS.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft hover:text-ink"
-            >
-              {label}
-            </Link>
-          ))}
-        </nav>
+        <LegalFooterLinks />
         <span className="ml-auto font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
           United Kingdom
         </span>

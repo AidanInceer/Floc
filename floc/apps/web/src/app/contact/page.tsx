@@ -1,7 +1,7 @@
-import { LegalPlaceholder } from "@/components/chrome/legal-placeholder";
+import { LegalPage } from "@/components/chrome/legal-page";
 
 export const metadata = { title: "Contact" };
 
 export default function ContactPage() {
-  return <LegalPlaceholder title="Contact" />;
+  return <LegalPage href="/contact" />;
 }

@@ -1,7 +1,7 @@
-import { LegalPlaceholder } from "@/components/chrome/legal-placeholder";
+import { LegalPage as LegalNotebookPage } from "@/components/chrome/legal-page";
 
 export const metadata = { title: "Legal" };
 
 export default function LegalPage() {
-  return <LegalPlaceholder title="Legal" />;
+  return <LegalNotebookPage href="/legal" />;
 }

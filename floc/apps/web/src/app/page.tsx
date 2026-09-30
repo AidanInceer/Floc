@@ -135,12 +135,11 @@ export default async function LandingPage() {
           <AgentBand origin={appUrl()} />
         </section>
 
-        {/* ── questions ──────────────────────────────────────────────── */}
-        <section className="my-24">
-          <LandingFaq items={landingFaq({ sellingPro, monthly })} />
-        </section>
       </div>
 
+      <section className="mt-24">
+        <LandingFaq items={landingFaq({ sellingPro, monthly })} />
+      </section>
       <AppBand />
       <ClosingTicket signedIn={signedIn} />
     </div>

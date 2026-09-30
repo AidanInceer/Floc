@@ -50,7 +50,7 @@
       "postcss": "^8.5.18",
       "js-yaml": "^4.3.2",
       "nanoid": "^3.3.17",
-      "brace-expansion": "^5.0.9",
+      "brace-expansion": "^5.0.11",
       "glob>minimatch": "^10.0.1",
       "esbuild": "^0.25.0",
       "uuid": "^11.1.1",
