@@ -4,6 +4,7 @@ import type { JourneyFrame } from "@/lib/landing/journey";
 import { routePath } from "@/lib/landing/journey";
 import type { RouteCrop } from "@/lib/landing/route-crop";
 import { STILL_TILE_CREDITS, stillTileUrl } from "@/lib/map";
+import "./still-route-map.css";
 
 const TILE = 256;
 const pct = (n: number, of: number) => `${((n / of) * 100).toFixed(3)}%`;

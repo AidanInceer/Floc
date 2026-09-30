@@ -1,0 +1,92 @@
+@layer components {
+  .legal-notebook-dialog {
+    position: fixed;
+    inset: auto 0 24px;
+    margin: auto;
+    width: min(1100px, calc(100% - 48px));
+    height: min(720px, calc(100dvh - 64px));
+    max-width: none;
+    max-height: none;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--rule-2);
+    border-radius: 24px;
+    background: var(--sheet);
+    color: var(--ink);
+    box-shadow: var(--shadow-lift);
+  }
+  .legal-notebook-dialog::backdrop { background: color-mix(in srgb, var(--ink) 16%, transparent); }
+  .legal-notebook-dialog[open] { animation: legal-notebook-in .35s var(--ease); }
+  @keyframes legal-notebook-in {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .legal-notebook-route {
+    width: min(1100px, calc(100% - 32px));
+    height: min(720px, max(480px, calc(100dvh - 160px)));
+    margin: 32px auto;
+    overflow: hidden;
+    border: 1px solid var(--rule-2);
+    border-radius: 24px;
+    background: var(--sheet);
+    box-shadow: var(--shadow);
+  }
+  .legal-notebook { height: 100%; display: flex; flex-direction: column; }
+  .legal-notebook-top {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 68px;
+    padding: 14px 28px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .legal-notebook-tab {
+    padding: 8px 16px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    color: var(--ink-2);
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .legal-notebook-tab:hover { background: var(--sheet-2); }
+  .legal-notebook-tab[aria-current="page"] { border-color: var(--rule-2); color: var(--ink); }
+  .legal-notebook-spread { display: grid; grid-template-columns: 355px minmax(0,1fr); flex: 1; min-height: 0; }
+  .legal-notebook-cover {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    padding: 50px 34px 30px;
+    overflow-y: auto;
+    border-right: 1px solid var(--rule-2);
+    background: var(--sheet-2);
+  }
+  .legal-notebook-cover h1 { font-size: 44px; }
+  .legal-notebook-index { display: flex; flex-direction: column; }
+  .legal-notebook-index a { display: flex; align-items: center; gap: 12px; padding: 12px 0; color: var(--ink-2); font-size: 13px; }
+  .legal-notebook-index a:hover, .legal-notebook-index a[aria-current="page"] { color: var(--pen); }
+  .legal-notebook-page { min-height: 0; overflow-y: auto; background: var(--sheet); }
+
+  @media (max-width: 900px) {
+    .legal-notebook-spread { grid-template-columns: 280px minmax(0,1fr); }
+    .legal-notebook-cover { padding-inline: 26px; }
+    .legal-notebook-cover h1 { font-size: 36px; }
+  }
+
+  @media (max-width: 600px) {
+    .legal-notebook-dialog { inset: 16px 8px; width: calc(100% - 16px); height: calc(100dvh - 32px); border-radius: 18px; }
+    .legal-notebook-route { border-radius: 18px; margin-block: 20px; }
+    .legal-notebook-top { min-height: 60px; padding: 10px 14px; gap: 7px; }
+    .legal-notebook-tab { padding: 8px 9px; font-size: 11px; }
+    .legal-notebook-spread { display: flex; flex-direction: column; }
+    .legal-notebook-cover { flex-shrink: 0; padding: 32px 20px 22px; border-right: 0; border-bottom: 1px solid var(--rule-2); }
+    .legal-notebook-cover h1 { font-size: 31px; }
+    .legal-notebook-index, .legal-notebook-cover > svg { display: none; }
+    .legal-notebook-page { flex: 1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .legal-notebook-dialog[open] { animation: none; }
+  }
+}

@@ -25,6 +25,7 @@ import {
 import { PagePanel } from "./page-panel";
 import { PageRail, type RailActions, type RailArchived, type RailPage } from "./page-rail";
 import { useNotesSocket, usePageList } from "./use-live-notes";
+import "./notes-workspace.css";
 
 export function NotesWorkspace({ tripId, pages, archived, openId, epoch, viewer, links, threads, now }: {
   tripId: number;

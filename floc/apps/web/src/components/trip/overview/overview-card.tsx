@@ -12,6 +12,7 @@ import { TripMarkIcon } from "@/components/trip/trip-mark";
 import { TripNameInline } from "@/components/trip/trip-name-inline";
 import { TagChips } from "@/components/trip/overview/tag-chips";
 import { renameTrip } from "@/app/trip/[id]/overview/actions";
+import { PencilIcon } from "@/components/system/icons";
 
 const BAND: Record<TripColor, string> = {
   peri: "border-t-pastel-blue",
@@ -89,7 +90,7 @@ export function OverviewCard({
           title={trip.startDate ? "Change dates" : "Pick dates"}
           className="grid size-6 place-items-center rounded-full text-ink-faint hover:bg-sheet-2 hover:text-ink"
         >
-          <PencilIcon />
+          <PencilIcon size={12} />
         </Link>
       </p>
       {soon ? <p className="font-display text-lg text-pastel-blue-ink">{soon.charAt(0).toUpperCase() + soon.slice(1)}</p> : null}
@@ -129,13 +130,5 @@ function Stamp({ trip }: { trip: OverviewTrip }) {
         </span>
       ) : null}
     </>
-  );
-}
-
-function PencilIcon() {
-  return (
-    <svg viewBox="0 0 14 14" width={12} height={12} fill="none" stroke="currentColor" strokeWidth={1.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M9.6 2.4l2 2-7 7-2.6.6.6-2.6z" />
-    </svg>
   );
 }

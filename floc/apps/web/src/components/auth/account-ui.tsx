@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 
 import { FlockChevron } from "@/components/system/flock-chevron";
 import { cx, PageTitle } from "@/components/system/ui";
+import "./account-ui.css";
 
 export function AccountPage({
   eyebrow,

@@ -1,0 +1,22 @@
+@layer components {
+  /* Nights laid end to end: one notch between nights, the fill in pen. */
+  .nights-bar {
+    position: relative;
+    height: 8px;
+    border-radius: 99px;
+    background: var(--rule);
+    overflow: hidden;
+  }
+  .nights-bar i {
+    position: absolute;
+    inset: 0;
+    background: var(--pen);
+    transform-origin: left;
+  }
+  .nights-bar::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(to right, transparent 0 calc(100% / var(--n) - 2px), var(--sheet) calc(100% / var(--n) - 2px) calc(100% / var(--n)));
+  }
+}

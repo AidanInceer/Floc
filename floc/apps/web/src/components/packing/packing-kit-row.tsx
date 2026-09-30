@@ -4,7 +4,8 @@ import { useOptimistic } from "react";
 
 import { cx } from "@/components/system/ui";
 import { ConfirmSubmit } from "@/components/system/client-ui";
-import { CrossGlyph, squareButton } from "@/components/packing/packing-glyphs";
+import { squareButton } from "@/components/packing/packing-glyphs";
+import { CrossIcon } from "@/components/system/icons";
 import { PackingStepper } from "@/components/packing/packing-quantity";
 import { clampPackQuantity } from "@floc/core/packing/packing";
 
@@ -70,7 +71,7 @@ export function PackingKitRow({
             "!text-ink-faint hover:!bg-red-soft hover:!text-red",
           )}
         >
-          <CrossGlyph />
+          <CrossIcon />
         </ConfirmSubmit>
       </form>
     </li>

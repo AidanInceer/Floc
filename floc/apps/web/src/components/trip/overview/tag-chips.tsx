@@ -6,6 +6,7 @@ import { useState } from "react";
 import { MAX_TAGS, MAX_TAG_LENGTH } from "@floc/core/trip/tags";
 import { setTripTags } from "@/app/trip/[id]/overview/actions";
 import { cx } from "@/components/system/ui";
+import { PlusIcon } from "@/components/system/icons";
 
 export function TagChips({
   tripId,
@@ -75,18 +76,10 @@ export function TagChips({
           onClick={() => setAdding(true)}
           className="inline-flex items-center gap-1 rounded-full border border-dashed border-rule-strong px-2.5 py-0.5 text-xs text-ink-soft transition-colors hover:border-ink-faint hover:text-ink"
         >
-          <PlusIcon />
+          <PlusIcon size={11} />
           {tags.length > 0 ? "Tag" : "Add a tag"}
         </button>
       ) : null}
     </div>
-  );
-}
-
-function PlusIcon() {
-  return (
-    <svg viewBox="0 0 14 14" width={11} height={11} fill="none" stroke="currentColor" strokeWidth={1.2} strokeLinecap="round" aria-hidden="true">
-      <path d="M7 2.8v8.4M2.8 7h8.4" />
-    </svg>
   );
 }

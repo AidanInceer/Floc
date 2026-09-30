@@ -31,6 +31,7 @@ import {
   Field,
   FieldGroup,
   Input,
+  PickOption,
   Select,
   Stack,
   Textarea,
@@ -238,27 +239,25 @@ export function ExpenseForm({
                     {EXPENSE_CATEGORIES.map((c) => {
                       const on = c === category;
                       return (
-                        <button
+                        <PickOption
                           key={c}
-                          type="button"
+                          label={CATEGORY_LABELS[c]}
+                          picked={on}
                           onClick={() => {
                             setCategory(c);
                             setPickerOpen(false);
                             pickerTrigger.current?.focus();
                           }}
                           autoFocus={on}
-                          aria-pressed={on}
-                          title={CATEGORY_LABELS[c]}
                           className={cx(
-                            "flex h-9 w-9 items-center justify-center rounded-md border transition-colors",
+                            "flex h-9 w-9 items-center justify-center rounded-md border",
                             on
                               ? "border-pen-edge bg-pen-soft text-pen-deep"
                               : "border-rule bg-sheet-2 text-ink-soft hover:text-ink",
                           )}
                         >
                           <CategoryIcon category={c} />
-                          <span className="sr-only">{CATEGORY_LABELS[c]}</span>
-                        </button>
+                        </PickOption>
                       );
                     })}
                   </div>

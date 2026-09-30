@@ -1,0 +1,34 @@
+@layer components {
+  /*
+   * The lit segment of the theme switch (ticket 240). Keyed off `<html>`'s own
+   * attribute rather than a React class, so the correct half is lit in the
+   * first painted frame — the switch is the one control that must be right
+   * before hydration, because it is the thing that says which theme you are in.
+   *
+   * A lifted sheet segment on a sheet-3 track, with a shadow and words: the
+   * black fill it replaced was the heaviest thing in the account menu, and the
+   * shadow is what stops white-on-white reading as unchosen.
+   */
+  .theme-choice {
+    color: var(--ink-soft);
+  }
+
+  .theme-choice:hover {
+    color: var(--ink);
+  }
+
+  :root[data-theme-choice="light"] .theme-choice[data-choice="light"],
+  :root[data-theme-choice="dark"] .theme-choice[data-choice="dark"],
+  :root[data-theme-choice="system"] .theme-choice[data-choice="system"] {
+    color: var(--ink);
+  }
+
+  /* The fill slides rather than reappears: light, dark, auto. */
+  :root[data-theme-choice="dark"] .theme-indicator {
+    transform: translateX(100%);
+  }
+
+  :root[data-theme-choice="system"] .theme-indicator {
+    transform: translateX(200%);
+  }
+}

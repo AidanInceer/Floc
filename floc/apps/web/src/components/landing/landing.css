@@ -1,0 +1,46 @@
+/* Shared by the landing bands: the band heading, and a ticket's tear line (hero ticket and closing ticket). */
+@layer components {
+  /* Every band heading on the front door is one size — about half the hero's (ADR-019). */
+  .band-title {
+    font-size: clamp(2.2rem, 4.4vw, 3.4rem);
+    line-height: 1.04;
+    letter-spacing: -0.03em;
+  }
+
+  /* A ticket's tear line, with a notch bitten out of each edge. */
+  .deck-perf,
+  .closing-perf {
+    position: relative;
+    margin: 0 18px;
+    border-top: 1.5px dashed var(--rule-2);
+  }
+  .deck-perf::before,
+  .deck-perf::after,
+  .closing-perf::before,
+  .closing-perf::after {
+    content: "";
+    position: absolute;
+    top: -12px;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: var(--paper);
+  }
+  .deck-perf::before,
+  .closing-perf::before { left: -30px; }
+  .deck-perf::after,
+  .closing-perf::after { right: -30px; }
+  /* The closing ticket sits on the blue band, so its notches are blue. */
+  .closing-perf::before,
+  .closing-perf::after { background: var(--pastel-blue); }
+  @media (min-width: 768px) {
+    .closing-perf { margin: 18px 0; border-top: 0; border-left: 1.5px dashed var(--rule-2); }
+    .closing-perf::before,
+    .closing-perf::after { left: -12px; right: auto; }
+    .closing-perf::before { top: -30px; }
+    .closing-perf::after { top: auto; bottom: -30px; }
+  }
+}
+
+/* Why: the footer is shared by every page; only on the landing page does the closing band's blue run on through it. */
+body:has(.closing-ticket) .site-footer { margin-top: 0; border-top: 0; background: var(--pastel-blue); }

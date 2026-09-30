@@ -1,0 +1,48 @@
+@layer components {
+  /* "Borrow a trip to …": a fan of finished routes. The place rolls in on its
+     pastel; the front card's bar and map line run on one clock (use-journey). */
+  .borrow-word {
+    display: inline-block;
+    margin-inline: -0.1em;
+    padding: 0 0.1em;
+    border-radius: 0.14em;
+  }
+  .borrow-roll {
+    display: inline-block;
+    animation: borrow-roll 0.5s var(--ease) both;
+  }
+  @keyframes borrow-roll {
+    from { opacity: 0; transform: translateY(0.22em); }
+  }
+  .borrow-stage {
+    position: relative;
+    height: 470px;
+    margin-top: 44px;
+  }
+  .borrow-card {
+    position: absolute;
+    left: 50%;
+    top: 10px;
+    width: min(470px, 100%);
+    padding: 22px 22px 20px;
+    text-align: left;
+    background: var(--sheet);
+    border: 1px solid var(--rule);
+    border-radius: 22px;
+    box-shadow: var(--shadow);
+    transition: transform 0.7s var(--ease), opacity 0.5s var(--ease), box-shadow 0.5s;
+  }
+  .borrow-card[data-pos="front"] { transform: translateX(-50%); z-index: 3; box-shadow: var(--shadow-lift); }
+  .borrow-card[data-pos="left"] { transform: translateX(calc(-50% - 270px)) translateY(22px) rotate(-6deg) scale(0.9); z-index: 2; cursor: pointer; }
+  .borrow-card[data-pos="right"] { transform: translateX(calc(-50% + 270px)) translateY(22px) rotate(6deg) scale(0.9); z-index: 2; cursor: pointer; }
+  .borrow-card[data-pos="back"] { transform: translateX(-50%) translateY(30px) scale(0.84); opacity: 0; z-index: 1; pointer-events: none; }
+  .borrow-card[data-pos="left"]:hover, .borrow-card[data-pos="right"]:hover { box-shadow: var(--shadow-lift); }
+  @media (max-width: 860px) {
+    .borrow-stage { height: 390px; }
+    .borrow-card[data-pos="left"], .borrow-card[data-pos="right"] { transform: translateX(-50%) translateY(30px) scale(0.84); opacity: 0; pointer-events: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .borrow-roll { animation: none; }
+    .borrow-card { transition: none; }
+  }
+}

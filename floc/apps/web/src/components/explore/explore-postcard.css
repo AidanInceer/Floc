@@ -1,0 +1,5 @@
+.explore-postcard { animation: postcard-in 0.6s var(--ease) both; }
+@keyframes postcard-in { from { opacity: 0; translate: 0 14px; } }
+@media (prefers-reduced-motion: reduce) {
+  .explore-postcard { animation: none; }
+}

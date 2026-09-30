@@ -14,6 +14,7 @@ import { MoneyCard } from "./money-card";
 import { PackingCard } from "./packing-card";
 import { Swap } from "./swap";
 import { VotesCard } from "./votes-card";
+import "./hero.css";
 
 // How busy each September day was before the group settled — shading only.
 const HEAT = [2, 3, 1, 2, 4, 3, 2, 3, 4, 5, 4, 5, 5, 5, 5, 5, 5, 5, 5, 3, 2, 4, 3, 1, 2, 3, 2, 1, 2, 3];

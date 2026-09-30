@@ -19,6 +19,7 @@ import "leaflet/dist/leaflet.css";
 import { COUNTRIES, countryName } from "@floc/core/people/countries";
 import { Input, cx } from "../system/ui";
 import { nextMark } from "@floc/core/itinerary/travel-map";
+import "./travel-map.css";
 
 export type MapState = "green" | "yellow";
 /** What a click asks for — the displayed state, not the stored row. */

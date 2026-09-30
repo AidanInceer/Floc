@@ -8,8 +8,10 @@ import { Menu } from "@/components/system/client-ui";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { AccountPass } from "@/components/chrome/account/account-pass";
 import { AccountInbox, type InboxPreviewItem } from "@/components/chrome/account/account-inbox";
-import { ChevronIcon, ListIcon, PersonIcon, SlidersIcon } from "@/components/chrome/account/account-icons";
+import { ListIcon, PersonIcon, SlidersIcon } from "@/components/chrome/account/account-icons";
+import { ChevronIcon } from "@/components/system/icons";
 import { ThemeSwitch } from "@/components/chrome/account/theme-switch";
+import "./account-menu.css";
 
 const tileClass =
   "flex flex-col items-center gap-1.5 rounded-[10px] border border-rule px-1 pb-2 pt-2.5 text-xs text-ink hover:border-rule-strong hover:bg-sheet-2";
@@ -51,7 +53,7 @@ export function AccountMenu({
             ) : null}
           </span>
           <span className="hidden text-sm text-ink-soft sm:inline">{firstName}</span>
-          <ChevronIcon />
+          <ChevronIcon direction="down" size={12} />
         </>
       }
     >

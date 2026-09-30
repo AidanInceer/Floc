@@ -7,7 +7,8 @@
  */
 import { cx } from "@/components/system/ui";
 import { MAX_PACK_QUANTITY, MIN_PACK_QUANTITY } from "@floc/core/packing/packing";
-import { MinusGlyph, PlusGlyph, tickBoxBase } from "@/components/packing/packing-glyphs";
+import { tickBoxBase } from "@/components/packing/packing-glyphs";
+import { MinusIcon, PlusIcon } from "@/components/system/icons";
 
 export function PackingStepper({
   shown,
@@ -34,14 +35,14 @@ export function PackingStepper({
         label={`One fewer ${label}`}
         disabled={shown <= MIN_PACK_QUANTITY}
       >
-        <MinusGlyph />
+        <MinusIcon />
       </StepButton>
       <StepButton
         value="1"
         label={`One more ${label}`}
         disabled={shown >= MAX_PACK_QUANTITY}
       >
-        <PlusGlyph />
+        <PlusIcon />
       </StepButton>
     </form>
   );

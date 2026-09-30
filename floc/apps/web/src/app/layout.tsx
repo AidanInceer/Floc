@@ -1,3 +1,7 @@
+// Why: first, so Tailwind names its layer order before a component's stylesheet can declare `components` below `base`.
+import "./globals.css";
+import "./fonts/extended.css";
+
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 
@@ -13,9 +17,6 @@ import { countPendingInvitesFor } from "@/server/trips/invites";
 import { countTripsFor } from "@/server/trips/trips";
 import { countUnread, listUnseen } from "@/server/notifications/inbox";
 import { getProfile } from "@/server/auth/profile";
-
-import "./globals.css";
-import "./fonts/extended.css";
 
 const ACCOUNT_MENU_PREVIEW = 3;
 

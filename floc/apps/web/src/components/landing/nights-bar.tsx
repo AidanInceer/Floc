@@ -1,6 +1,7 @@
 import { TravelModeIcon } from "@/components/map/travel-mode-icon";
 import type { BorrowStop } from "@/lib/landing/borrow";
 import type { JourneyFrame } from "@/lib/landing/journey";
+import "./nights-bar.css";
 
 const MODE_WORD = { flight: "Fly", train: "Train", car: "Drive", ferry: "Ferry", other: "Travel" } as const;
 

@@ -1,11 +1,11 @@
 /**
  * The row of pastel swatches that sets a trip's colour (ticket 213). One tiny
  * form per swatch so it works without JavaScript and posts exactly one value;
- * the picked one carries a ring. Lives inside the trip menus, on the card and
+ * the picked one carries the pen ring. Lives inside the trip menus, on the card and
  * in the header, so both change the colour the same way.
  */
 import { TRIP_COLORS, type TripColor } from "@floc/core/trip/trip-color";
-import { PASTEL_BY_KEY, cx } from "@/components/system/ui";
+import { PASTEL_BY_KEY, PickOption, cx } from "@/components/system/ui";
 import { setTripColor } from "@/app/trips/actions";
 
 export function TripColorPicker({
@@ -25,15 +25,11 @@ export function TripColorPicker({
             <form key={color} action={setTripColor}>
               <input type="hidden" name="tripId" value={tripId} />
               <input type="hidden" name="color" value={color} />
-              <button
+              <PickOption
                 type="submit"
-                aria-label={color}
-                aria-pressed={picked}
-                className={cx(
-                  "lift size-6 rounded-full ring-1 ring-inset ring-ink/10",
-                  PASTEL_BY_KEY[color],
-                  picked && "outline outline-2 outline-offset-2 outline-ink",
-                )}
+                label={color}
+                picked={picked}
+                className={cx("size-6 rounded-full ring-1 ring-inset ring-ink/10", PASTEL_BY_KEY[color])}
               />
             </form>
           );

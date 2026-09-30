@@ -1,0 +1,195 @@
+@layer components {
+  /*
+   * The Route map (ticket 08; repainted for the white-and-pastel language,
+   * ticket 207). Was ink-on-cream: a sepia filter plus a ruled paper wash,
+   * which belonged to the retired notebook look and fought every white panel
+   * around it.
+   *
+   * Now the tiles are only desaturated and lightened until they read as a
+   * quiet grey-green ground the pastel pins can sit on. No ruled lines, no
+   * sepia, no second tile provider — still plain OpenStreetMap, still
+   * Leaflet's own attribution control.
+   */
+  .route-map-frame {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    background: var(--sheet);
+  }
+
+  /* 450px, up from the original 300 (ticket 81) — at 300 a multi-country route
+     fitted to bounds left every pin in the middle third of the frame. The
+     narrow-viewport step keeps the map from eating a phone screen whole: the
+     stop cards under it have to stay visible without a scroll. */
+  .route-map-canvas {
+    height: 450px;
+    width: 100%;
+    background: var(--sheet-2);
+  }
+
+  @media (max-width: 640px) {
+    .route-map-canvas {
+      height: 340px;
+    }
+  }
+
+  /* Desaturated so a Route map reads as part of the panel it sits in. */
+  .route-map-frame .leaflet-tile-pane {
+    filter: saturate(0.42) brightness(1.06) contrast(0.9);
+  }
+
+  /* z-index 400+ puts these above Leaflet's own panes but below its controls
+     (attribution and zoom live at 800+), which must stay clickable.
+
+     One flat wash of the page's own canvas colour, multiplied over the tiles.
+     It ties the map to the panel it sits in without printing anything on it. */
+  .route-map-wash {
+    position: absolute;
+    inset: 0;
+    z-index: 400;
+    pointer-events: none;
+    background: var(--sheet-2);
+    mix-blend-mode: multiply;
+    opacity: 0.5;
+  }
+
+  /* A hairline inside the frame, and the faintest lift of white at the edges
+     so pins near the border still separate from the tiles. */
+  .route-map-vignette {
+    position: absolute;
+    inset: 0;
+    z-index: 401;
+    pointer-events: none;
+    box-shadow:
+      inset 0 0 0 1px var(--rule),
+      inset 0 0 26px 6px var(--vignette);
+  }
+}
+
+:root[data-theme="dark"] .route-map-frame .leaflet-tile-pane {
+  /* OpenStreetMap ships one artwork and it is a light one, so dark has to be
+     made rather than chosen: invert, then turn the hues back the right way. */
+  filter: invert(0.85) hue-rotate(180deg) saturate(1) brightness(2.4)
+    contrast(0.7);
+}
+
+:root[data-theme="dark"] .route-map-frame .route-map-wash {
+  /* Multiply over an already-dark tile crushes it to black, and the wash is
+     what took the place names down with it. */
+  mix-blend-mode: normal;
+  opacity: 0.1;
+}
+
+/*
+ * Leaflet's own stylesheet is imported by components/route-map.tsx and is
+ * UNLAYERED, and an unlayered rule beats any layered one no matter the
+ * specificity — so these overrides must sit outside @layer too, or Leaflet
+ * wins and the pins lose their numbers. Everything here is scoped to
+ * `.route-map-frame`, so it can't leak onto any other map.
+ */
+/* Set here rather than as a Leaflet `color` option — Leaflet writes that out
+   as an SVG presentation attribute, where var() does not resolve. */
+.route-line {
+  stroke: var(--pen);
+  fill: none;
+  opacity: 0.85;
+}
+
+/* A numbered pin, drawn hollow (ticket 69): a ring of pen with the number in
+   ink inside, not a solid disc with the number knocked out. Two reasons — a
+   filled disc at 26px lost the number against the map's dark features, and the
+   ring reads as a ring drawn on the paper rather than as a UI marker.
+
+   The fill is paper rather than `transparent`, because the tiles run straight
+   under the digit otherwise. It must also outrank Leaflet's
+   `.leaflet-marker-icon { display: block }`. */
+.route-map-frame .route-pin {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 2px solid var(--pen);
+  background: var(--sheet);
+  color: var(--pen);
+  font-family: var(--type);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  box-shadow: var(--shadow-sm);
+  /* The day badge hangs off the corner. */
+  overflow: visible;
+}
+
+/* The landing page's route timeline uses `.route-pin` too, and its filled
+   centre dot is a bare `::after` — harmless while the map pin was solid pen,
+   but it paints straight over the number now the pin is hollow. Cancelled
+   here rather than renamed: both are pins on a route, and only the map's
+   needs to show anything inside it. */
+.route-map-frame .route-pin::after {
+  content: none;
+}
+
+/* How many days the itinerary spends at this stop — the highlighter yellow,
+   the same pen the app uses everywhere for "open"/marked-up.
+
+   One pill, two places (ticket 82): the map pin's corner badge and the Route
+   spine's left rail say the same thing about the same stop, so they are the
+   same drawing. The base class carries the look; `.route-pin-days` only adds
+   the pin-corner positioning. */
+.day-pill {
+  display: inline-block;
+  padding: 0 5px;
+  border: 1px solid var(--highlight-edge);
+  border-radius: 999px;
+  background: var(--highlight);
+  color: var(--highlight-ink);
+  font-family: var(--type);
+  /* Was 9px, which is below the size the rest of the app will go to and the
+     smallest thing on any screen (ticket 204). 10px matches `.typed`'s floor. */
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 15px;
+  text-align: center;
+  white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Sits directly above the pin, centred. It hung off the top-right corner while
+   it read "2d"; spelled out as "2 days" it is wider than the pin itself, so
+   the corner anchor pushed it back across the number underneath (ticket 82).
+   Above and centred, it clears the ring at any width. */
+.route-map-frame .route-pin-days {
+  position: absolute;
+  bottom: calc(100% + 3px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.route-map-frame .leaflet-container {
+  font-family: var(--type);
+  font-size: 10px;
+  background: var(--sheet-2);
+}
+
+/* `.leaflet-container` is in the selector to outrank Leaflet's own rule for
+   this control, which is equally specific and loads after globals.css. */
+.route-map-frame .leaflet-container .leaflet-control-attribution {
+  background: var(--sheet);
+  color: var(--ink-3);
+}
+
+.route-map-frame .leaflet-control-attribution a {
+  color: var(--pen);
+}
+
+/* Leaflet's zoom control is white-on-white against the cream page. */
+.route-map-frame .leaflet-bar a {
+  background: var(--sheet);
+  color: var(--ink-2);
+  border-bottom-color: var(--rule);
+}
+
+.route-map-frame .leaflet-bar a:hover {
+  background: var(--sheet-2);
+}

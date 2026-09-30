@@ -25,18 +25,12 @@ import {
   PackingBulkBar,
   PackingKitMenu,
 } from "@/components/packing/packing-controls";
-import {
-  PackingCount,
-  SegmentedField,
-  segmentOff,
-  segmentOn,
-  segmentShape,
-} from "@/components/packing/packing-card";
+import { PackingCount } from "@/components/packing/packing-card";
 import { PackingCube } from "@/components/packing/packing-cube";
 import { PackingLane } from "@/components/packing/packing-lane";
 import { PackingClaimCard } from "@/components/packing/packing-claim-card";
 import Link from "next/link";
-import { Avatar, cx, PageTitle } from "@/components/system/ui";
+import { Avatar, PageTitle, Segmented, segmentClass } from "@/components/system/ui";
 import { SubmitButton } from "@/components/system/client-ui";
 import { PersonalPackingRow } from "@/components/packing/packing-personal-row";
 import type { PackingClaimant } from "@/components/packing/packing-claim-card";
@@ -181,7 +175,7 @@ export default async function PackingPage({
           {/* Each segment is its own submit — picking a tier is the whole
               interaction, so there is nothing left for a Save button. */}
           <form action={setTripPackTier.bind(null, tripId)}>
-            <SegmentedField>
+            <Segmented>
               {PACK_TIERS.map((t) => (
                 <button
                   key={t}
@@ -189,16 +183,12 @@ export default async function PackingPage({
                   name="packTier"
                   value={t}
                   aria-pressed={t === tier}
-                  className={cx(
-                    segmentShape,
-                    t === tier ? segmentOn : segmentOff,
-                    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pen",
-                  )}
+                  className={segmentClass(t === tier)}
                 >
                   {PACK_TIER_LABELS[t]}
                 </button>
               ))}
-            </SegmentedField>
+            </Segmented>
           </form>
 
           {/* Additive, so the label promises a top-up rather than a rebuild —

@@ -9,6 +9,7 @@ import type { BorrowCard as Card } from "@/lib/landing/borrow";
 
 import { BorrowCard, type FanPos } from "./borrow-card";
 import { Glyph } from "./landing-glyph";
+import "./borrow-trip.css";
 
 const TONES = [
   "bg-pastel-red text-pastel-red-ink",

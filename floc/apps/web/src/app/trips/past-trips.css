@@ -1,0 +1,10 @@
+@layer components {
+  /* Past trips: the flock points down at what it opens, and up once open. */
+  .past-trips-chevron {
+    transition: rotate 0.22s cubic-bezier(0.2, 0.85, 0.3, 1);
+  }
+
+  details[open] > summary .past-trips-chevron {
+    rotate: 180deg;
+  }
+}

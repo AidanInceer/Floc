@@ -6,6 +6,7 @@ import type { MouseEvent } from "react";
 import { DialogClose } from "@/components/system/dialog";
 import { ButtonLink } from "@/components/system/ui";
 import { LEGAL_LINKS, type LegalHref } from "./legal-links";
+import "./legal-notebook.css";
 
 export function LegalNotebook({ href, onNavigate, onClose }: {
   href: LegalHref;

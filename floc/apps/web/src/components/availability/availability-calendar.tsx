@@ -38,6 +38,7 @@ import {
   type DayLoad,
 } from "@floc/core/trip/trip-window";
 import type { DailyForecast, TripForecast } from "@/server/itinerary/weather";
+import { ChevronIcon } from "@/components/system/icons";
 
 type ViewOption = { value: View; label: ReactNode };
 
@@ -290,7 +291,7 @@ export function AvailabilityCalendar({
             aria-label="Earlier months"
             onClick={() => setMonth(addMonths(month, -1))}
           >
-            <MonthArrow direction="back" />
+            <ChevronIcon direction="left" />
           </Button>
           <p className="flex-1 text-center font-display font-semibold">{formatMonth(month)}</p>
           <Button
@@ -299,7 +300,7 @@ export function AvailabilityCalendar({
             aria-label="Later months"
             onClick={() => setMonth(addMonths(month, 1))}
           >
-            <MonthArrow direction="forward" />
+            <ChevronIcon direction="right" />
           </Button>
         </div>
 
@@ -482,23 +483,5 @@ export function AvailabilityCalendar({
       ) : null}
       </div>
     </div>
-  );
-}
-
-function MonthArrow({ direction }: { direction: "back" | "forward" }) {
-  return (
-    <svg
-      width={13}
-      height={13}
-      viewBox="0 0 14 14"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.6}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d={direction === "back" ? "M8.5 3 4.5 7l4 4" : "M5.5 3l4 4-4 4"} />
-    </svg>
   );
 }

@@ -25,6 +25,7 @@ import {
   storeChoice,
   type ThemeChoice,
 } from "@/lib/theme";
+import "./theme-switch.css";
 
 const LABELS: Record<ThemeChoice, string> = {
   light: "Light",

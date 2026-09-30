@@ -5,6 +5,7 @@ import { PRO_STAGES } from "@/lib/landing/pro-tour";
 import { ProStepper } from "./pro-stepper";
 import { ProWiper } from "./pro-wiper";
 import { useStageTour } from "./use-stage-tour";
+import "./pro-tour.css";
 
 export function ProTour() {
   const { ref, at, mode, pick, hold } = useStageTour(PRO_STAGES.length);

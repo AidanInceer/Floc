@@ -6,6 +6,7 @@ import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 import { startTripFromPreset } from "@/app/explore/actions";
 import { SubmitButton } from "@/components/system/client-ui";
 import { ButtonLink } from "@/components/system/ui";
+import "./explore-postcard.css";
 
 const kicker = "font-mono text-[10.5px] uppercase tracking-[0.08em] text-ink-faint";
 

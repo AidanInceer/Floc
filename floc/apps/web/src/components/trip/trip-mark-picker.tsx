@@ -9,7 +9,7 @@
  */
 import { TRIP_MARKS, TRIP_MARK_LABELS, type TripMark } from "@floc/core/trip/mark/trip-mark";
 import type { TripColor } from "@floc/core/trip/trip-color";
-import { PASTEL_BY_KEY, cx } from "@/components/system/ui";
+import { PASTEL_BY_KEY, PickOption, cx } from "@/components/system/ui";
 import { TripMarkIcon } from "@/components/trip/trip-mark";
 import { setTripMark } from "@/app/trips/actions";
 
@@ -33,19 +33,17 @@ export function TripMarkPicker({
             <form key={mark} action={setTripMark}>
               <input type="hidden" name="tripId" value={tripId} />
               <input type="hidden" name="mark" value={picked ? "" : mark} />
-              <button
+              <PickOption
                 type="submit"
-                aria-label={TRIP_MARK_LABELS[mark]}
-                aria-pressed={picked}
+                label={TRIP_MARK_LABELS[mark]}
+                picked={picked}
                 className={cx(
-                  "lift grid size-8 place-items-center rounded-md ring-1 ring-inset",
-                  picked
-                    ? cx(PASTEL_BY_KEY[tone], "ring-current")
-                    : "text-ink-2 ring-rule hover:text-ink",
+                  "grid size-8 place-items-center rounded-md ring-1 ring-inset",
+                  picked ? cx(PASTEL_BY_KEY[tone], "ring-transparent") : "text-ink-2 ring-rule hover:text-ink",
                 )}
               >
                 <TripMarkIcon mark={mark} size={17} />
-              </button>
+              </PickOption>
             </form>
           );
         })}

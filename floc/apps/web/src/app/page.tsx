@@ -26,6 +26,7 @@ import { shotFor } from "@/components/landing/tour/tour-shots";
 import { tourSlides } from "@/components/landing/tour/tour-slides";
 import { borrowCards } from "@/lib/landing/borrow";
 import { landingFaq } from "@/lib/landing/faq";
+import "@/components/landing/landing.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl()),

@@ -7,7 +7,8 @@ import { TEXT_CAPS } from "@floc/core/text/text";
 import { ConfirmSubmit, Menu, SubmitButton } from "@/components/system/client-ui";
 import { InlineRename } from "@/components/system/inline-rename";
 import { menuDangerItemClass, menuItemClass } from "@/components/system/ui";
-import { CheckGlyph, SelectLineBox, tickBoxBase, tickBoxClass } from "@/components/packing/packing-glyphs";
+import { SelectLineBox, tickBoxBase, tickBoxClass } from "@/components/packing/packing-glyphs";
+import { CheckIcon } from "@/components/system/icons";
 
 export type PackingClaimant = {
   userId: string;
@@ -71,7 +72,7 @@ export function PackingClaimCard({
               aria-label={packed ? `Unpack ${line.label}` : `Mark ${line.label} packed`}
               className={`${tickBoxBase} ${tickBoxClass(packed)}`}
             >
-              <CheckGlyph />
+              <CheckIcon />
             </button>
           </form>
         ) : null}
