@@ -57,8 +57,10 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({
   children,
+  modal,
 }: {
   children: React.ReactNode;
+  modal: React.ReactNode;
 }) {
   const session = await getSession();
 
@@ -117,6 +119,7 @@ export default async function RootLayout({
         />
         <main>{children}</main>
         <SiteFooter />
+        {modal}
       </body>
     </html>
   );

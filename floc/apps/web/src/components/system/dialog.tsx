@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
-import { CrossIcon } from "./icons";
-import { Button } from "./ui";
 
 export function Dialog({ open, onClose, title, className, children }: {
   open: boolean;
@@ -44,10 +42,3 @@ export function Dialog({ open, onClose, title, className, children }: {
   );
 }
 
-export function DialogClose({ onClick }: { onClick: () => void }) {
-  return (
-    <Button variant="secondary" className="size-10 shrink-0" style={{ padding: 0 }} onClick={onClick} aria-label="Close">
-      <CrossIcon size={14} />
-    </Button>
-  );
-}

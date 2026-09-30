@@ -1,4 +1,4 @@
-import { LEGAL_LINKS } from "@/components/chrome/legal-links";
+import { LEGAL_LINKS } from "@/lib/legal/legal-links";
 
 import { tourSlides } from "@/components/landing/tour/tour-slides";
 
