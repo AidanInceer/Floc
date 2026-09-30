@@ -1,7 +1,7 @@
-import { LegalPlaceholder } from "@/components/chrome/legal-placeholder";
+import { LegalPage } from "@/components/chrome/legal-page";
 
 export const metadata = { title: "Sitemap" };
 
 export default function SitemapPage() {
-  return <LegalPlaceholder title="Sitemap" />;
+  return <LegalPage href="/sitemap" />;
 }

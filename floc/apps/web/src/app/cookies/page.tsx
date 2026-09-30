@@ -1,7 +1,7 @@
-import { LegalPlaceholder } from "@/components/chrome/legal-placeholder";
+import { LegalPage } from "@/components/chrome/legal-page";
 
 export const metadata = { title: "Cookies" };
 
 export default function CookiesPage() {
-  return <LegalPlaceholder title="Cookies" />;
+  return <LegalPage href="/cookies" />;
 }

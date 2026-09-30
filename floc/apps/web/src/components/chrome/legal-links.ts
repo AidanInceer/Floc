@@ -6,3 +6,5 @@ export const LEGAL_LINKS = [
   { href: "/contact", label: "Contact" },
   { href: "/sitemap", label: "Sitemap" },
 ] as const;
+
+export type LegalHref = (typeof LEGAL_LINKS)[number]["href"];
