@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo } from "react";
 
 import { startTripFromPreset } from "@/app/explore/actions";
 import { SubmitButton } from "@/components/system/client-ui";
-import { ButtonLink, cx } from "@/components/system/ui";
+import { Button, ButtonLink, cx } from "@/components/system/ui";
 import type { BorrowCard as Card } from "@/lib/landing/borrow";
 
-import { BorrowCard, type FanPos } from "./borrow-card";
+import { useSpinGlobe } from "./globe/use-spin-globe";
 import { Glyph } from "./landing-glyph";
 import "./borrow-trip.css";
 
@@ -17,13 +17,10 @@ const TONES = [
   "bg-pastel-blue text-pastel-blue-ink",
   "bg-pastel-green text-pastel-green-ink",
 ];
+const tone = (index: number) => TONES[index % TONES.length];
 
-function fanPos(k: number, index: number, n: number): FanPos {
-  const rel = (k - index + n) % n;
-  if (rel === 0) return "front";
-  if (rel === 1) return "right";
-  return rel === n - 1 ? "left" : "back";
-}
+// Every route on the globe leaves from here.
+const LONDON = { lat: 51.507, lng: -0.128 };
 
 function StartButton({ card, signedIn }: { card: Card; signedIn: boolean }) {
   const label = (
@@ -33,68 +30,73 @@ function StartButton({ card, signedIn }: { card: Card; signedIn: boolean }) {
   );
   if (!signedIn) {
     return (
-      <ButtonLink href="/signup" variant="primary">
+      <ButtonLink href="/signup" variant="ghost" className="borrow-start">
         {label}
       </ButtonLink>
     );
   }
   return (
-    <form action={startTripFromPreset}>
+    <form action={startTripFromPreset} className="borrow-start">
       <input type="hidden" name="presetId" value={card.id} />
-      <SubmitButton pendingLabel="Starting…">{label}</SubmitButton>
+      <SubmitButton variant="ghost" pendingLabel="Starting…">
+        {label}
+      </SubmitButton>
     </form>
   );
 }
 
-function StepButton({ label, onClick, back }: { label: string; onClick: () => void; back?: boolean }) {
+function Chip({ card, index, current, onPick }: { card: Card; index: number; current: boolean; onPick: () => void }) {
   return (
-    <button
-      type="button"
-      aria-label={label}
-      onClick={onClick}
-      className="grid size-9 place-items-center rounded-full border border-rule-strong bg-sheet transition-colors hover:border-pen"
-    >
-      <Glyph name="arrow" className={back ? "rotate-180" : undefined} />
-    </button>
+    <li>
+      <button type="button" className="borrow-chip" aria-current={current} onClick={onPick}>
+        <span className={cx("typed rounded-md px-[7px] py-px text-[10px]", tone(index))}>{card.place}</span>
+        <b className="borrow-chip-title">{card.title}</b>
+        <span className="nums text-ink-faint">
+          {card.nights} nights · from {card.price}
+        </span>
+      </button>
+    </li>
   );
 }
 
-/** "Borrow a trip to …": the Explore shelf as a fan of finished routes, one in front. */
+/** "Borrow a trip to …": the Explore shelf on a globe. Pick a trip, turn the globe or spin it; the plane flies there. */
 export function BorrowTrip({ cards, signedIn, explore }: { cards: Card[]; signedIn: boolean; explore: string }) {
-  const [index, setIndex] = useState(0);
-  const n = cards.length;
-  if (n === 0) return null;
-  const card = cards[index];
-  const step = (by: number) => setIndex((i) => (i + by + n) % n);
+  const places = useMemo(() => cards.flatMap((c) => (c.stops[0] ? [{ lat: c.stops[0].lat, lng: c.stops[0].lng }] : [])), [cards]);
+  const { canvas, lit, show, spin } = useSpinGlobe(LONDON, places);
+  const card = cards[lit];
+  if (!card || places.length !== cards.length) return null;
+  const half = Math.ceil(cards.length / 2);
+  const chips = (from: number, to: number) =>
+    cards.slice(from, to).map((c, k) => <Chip key={c.id} card={c} index={from + k} current={from + k === lit} onPick={() => show(from + k)} />);
 
   return (
     <div className="text-center">
       <h2 className="band-title">
         Borrow a trip to{" "}
-        <span aria-live="polite" className={cx("borrow-word transition-colors duration-500", TONES[index % TONES.length])}>
+        <span aria-live="polite" className={cx("borrow-word transition-colors duration-500", tone(lit))}>
           <span key={card.id} className="borrow-roll">
             {card.place}
           </span>
         </span>
       </h2>
       <p className="mx-auto mt-3.5 max-w-[40ch] text-md text-ink-soft">A finished route to start from. Change anything.</p>
-      <div className="borrow-stage">
-        {cards.map((c, k) => (
-          <BorrowCard key={c.id} card={c} pos={fanPos(k, index, n)} onPick={() => setIndex(k)} />
-        ))}
-      </div>
-      <div className="mb-6 mt-2 inline-flex items-center gap-3.5 text-sm text-ink-soft">
-        <StepButton label="Previous trip" back onClick={() => step(-1)} />
-        <span className="nums">
-          {index + 1} of {n}
-        </span>
-        <StepButton label="Next trip" onClick={() => step(1)} />
-      </div>
-      <div className="flex flex-wrap justify-center gap-3">
-        <StartButton card={card} signedIn={signedIn} />
-        <ButtonLink href={explore} variant="ghost">
-          See every trip
-        </ButtonLink>
+      <div className="borrow-spin">
+        <ul className="borrow-list" data-side="left">
+          {chips(0, half)}
+        </ul>
+        <canvas ref={canvas} className="borrow-globe" role="img" aria-label="A globe. Drag to turn it, or flick it to spin." />
+        <ul className="borrow-list" data-side="right">
+          {chips(half, cards.length)}
+        </ul>
+        <div className="borrow-bar">
+          <Button onClick={spin} className="borrow-go">
+            Spin for me
+          </Button>
+          <ButtonLink href={explore} variant="primary" className="borrow-every px-6 py-3 text-[12px]">
+            See every trip
+          </ButtonLink>
+          <StartButton card={card} signedIn={signedIn} />
+        </div>
       </div>
     </div>
   );

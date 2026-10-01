@@ -1,6 +1,10 @@
 export const TRAIL_W = 1000;
 export const TRAIL_H = 400;
 
+/** The plane, nose to the right, in a 24 × 24 box. */
+export const PLANE_D =
+  "M23 12c0-1-1-1.4-2-1.4h-6L9.5 3h-2l3 7.6H5L3.2 8H1.6l1 4-1 4h1.6L5 13.4h5.5l-3 7.6h2l5.5-7.6h6c1 0 2-.4 2-1.4Z";
+
 // One quadratic curve, in the trail's viewBox units. It runs past both edges so the plane starts and ends off screen.
 const START = { x: -40, y: 300 };
 const BEND = { x: 500, y: -40 };

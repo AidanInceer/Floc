@@ -3,7 +3,7 @@ import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 import type { TransportType } from "@floc/core/vocabulary";
 
 /** `hop` is the move that arrives at this stop, if the listing names one. */
-export type BorrowStop = {
+type BorrowStop = {
   name: string;
   nights: number;
   lat: number;

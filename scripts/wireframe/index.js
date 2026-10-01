@@ -32,7 +32,7 @@
         (LABEL[k] ? "" : '<span class="wf-dot wf-' + k + '" aria-hidden="true"></span>') + (LABEL[k] || WF.TONES[k]) + ' <span class="nums">' + counts[k] + "</span></button>";
     };
     var lead = ["exploring", "open", "all"].map(btn).join("");
-    var rest = ["chosen", "shipped", "parked"].filter(function (k) { return counts[k]; }).map(btn).join("");
+    var rest = ["chosen", "experiment", "shipped", "parked"].filter(function (k) { return counts[k]; }).map(btn).join("");
     return '<div class="wf-tones" role="group" aria-label="Show">' + lead + '<span class="wf-rule" aria-hidden="true"></span>' + rest + "</div>";
   }
 

@@ -1,5 +1,5 @@
 // The variant list every prototype shares: all options in one panel on the right, grouped by round, newest round first.
-// list: [{ key, name, code?, round? }]. code is what a person calls it ("H2", "I3a"); key is what the page renders.
+// list: [{ key, name, code?, round?, tag? }]. tag marks one variant, e.g. "Experiment". code is what a person calls it ("H2", "I3a"); key is what the page renders.
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 const STORE = "wf-variants-open";
@@ -40,7 +40,7 @@ export function mountVariants(list, { current, onPick }) {
       `<ul>${g.items.map((v) => {
         const code = v.code || v.key;
         const isPick = picked && code === picked;
-        return `<li><button type="button" data-i="${v.i}"><b class="nums">${esc(code)}</b><span>${esc(v.name)}</span>${isPick ? '<em class="typed">Picked</em>' : ""}</button></li>`;
+        return `<li><button type="button" data-i="${v.i}"><b class="nums">${esc(code)}</b><span>${esc(v.name)}</span>${isPick ? '<em class="typed">Picked</em>' : ""}${v.tag ? `<em class="typed">${esc(v.tag)}</em>` : ""}</button></li>`;
       }).join("")}</ul>`).join("") +
     `<p class="wf-vars-keys typed">← → to step</p></div>`;
   document.body.appendChild(panel);
