@@ -182,7 +182,7 @@
     },
     "me.rename": {
       "mobile": "wontfix",
-      "why": "The app renames you through settings.identity, which writes the name and the picture together \u2014 the same sheet, one write. A second procedure that writes half of that would be a second way to do one job."
+      "why": "The app renames you through settings.identity, which writes the name and the picture together — the same sheet, one write. A second procedure that writes half of that would be a second way to do one job."
     },
     "me.setMark": {
       "mobile": "yes"
@@ -390,6 +390,12 @@
       "path": "floc/apps/web/src/app/signup",
       "status": "wontfix",
       "why": "Creating an account, asking for a reset link and setting a new password are all on the phone now, against the same Better Auth instance; the reset and confirmation mails redirect to floc:// so they land back in the app. What stays web-only is the /signup page itself, which a phone install has no link to and no ?via= channel to record."
+    },
+    {
+      "id": "explore-trip-page",
+      "path": "floc/apps/web/src/app/explore/[slug]",
+      "status": "planned",
+      "why": "The page for one Explore listing (#335) is built on the web first, as the groundwork: the data shape in @floc/core is shared, but only one listing has its days written. The phone keeps its listing sheet until the pages are written and the copy carries the days across."
     }
   ]
 }

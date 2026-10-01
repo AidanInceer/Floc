@@ -57,6 +57,7 @@ export function ExplorePostcard({ trip, signedIn }: { trip: PresetTrip; signedIn
             Sign up to start
           </ButtonLink>
         )}
+        <ButtonLink href={`/explore/${trip.id}`}>See the full trip</ButtonLink>
         <span className="text-xs text-ink-faint">Free. You can change every part.</span>
       </div>
     </article>

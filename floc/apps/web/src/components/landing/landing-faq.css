@@ -2,7 +2,6 @@
   .landing-faq-ground { background: var(--sheet-2); }
   .landing-faq-wrap { max-width: 1160px; margin-inline: auto; padding: 64px 28px 72px; }
   .landing-faq-intro { display: flex; justify-content: space-between; gap: 40px; margin-bottom: 48px; }
-  .landing-faq-intro > p { color: var(--ink-2); font-size: 15px; line-height: 1.65; }
   .landing-faq-scene { position: relative; display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 30px; align-items: start; padding-block: 12px; }
   .landing-faq-route { position: absolute; top: 46%; left: 4%; right: 4%; height: 100px; border: 1px dashed var(--rule-2); border-radius: 50%; pointer-events: none; }
   .landing-faq-object { z-index: 1; grid-column: span 2; overflow: hidden; }
@@ -36,7 +35,6 @@
   .landing-faq-plus { flex-shrink: 0; color: var(--pen); font-size: 22px; line-height: 1; transition: transform .22s var(--ease); }
   .landing-faq-detail[open] .landing-faq-plus { transform: rotate(45deg); }
   .landing-faq-detail > p { padding: 0 22px 24px; color: var(--ink-2); font-size: 14px; line-height: 1.65; }
-  .landing-faq-example { display: block; margin-top: 25px; color: var(--ink-2); font-size: 10px; }
 
   @media (max-width: 1000px) {
     .landing-faq-scene { gap: 22px; }
@@ -47,7 +45,6 @@
   @media (max-width: 650px) {
     .landing-faq-wrap { padding: 42px 22px 48px; }
     .landing-faq-intro { display: block; margin-bottom: 26px; }
-    .landing-faq-intro > p { margin-top: 15px; font-size: 13px; }
     .landing-faq-scene { grid-template-columns: 1fr; padding: 6px 4px; }
     .landing-faq-object, .landing-faq-scene[data-count="4"] > .landing-faq-object { grid-column: auto; }
     .landing-faq-account { margin-top: 0; }
@@ -56,7 +53,6 @@
     .landing-faq-stops, .landing-faq-stops > span { gap: 6px; font-size: 10px; }
     .landing-faq-detail > summary { min-height: 76px; font-size: 19px; padding: 20px; }
     .landing-faq-detail > p { padding-inline: 20px; font-size: 13px; }
-    .landing-faq-example { font-size: 9px; }
   }
 
   @media (prefers-reduced-motion: reduce) {

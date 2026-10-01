@@ -38,7 +38,10 @@ export function ExploreRowDrawer({ trip, signedIn }: { trip: PresetTrip; signedI
         <p className="nums text-[13px]">
           {trip.nights} nights · {trip.groupSize} · {formatMoney(trip.priceFromMinor, trip.currency)} pp
         </p>
-        <div className="mt-auto">
+        <div className="mt-auto grid grid-cols-2 gap-2">
+          <ButtonLink href={`/explore/${trip.id}`} className="w-full">
+            See the full trip
+          </ButtonLink>
           {signedIn ? (
             <form action={startTripFromPreset}>
               <input type="hidden" name="presetId" value={trip.id} />

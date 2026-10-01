@@ -45,10 +45,7 @@ export function WhileYouWait({ origin }: { origin: string }) {
           rows={3}
           className="mb-2.5 mt-1.5 block min-h-[4.8em] w-full resize-none border-0 bg-transparent p-0 text-[15px] leading-[1.6] text-ink [field-sizing:content] placeholder:text-ink-faint focus:outline-none"
         />
-        <div className="flex flex-col gap-2.5 border-t border-dashed border-rule-strong pt-2.5 sm:flex-row sm:items-center sm:gap-4">
-          <span className="flex-1 text-xs text-ink-faint">
-            Lay it out day by day, with where we sleep each night, so we can add it to our Floc trip.
-          </span>
+        <div className="flex justify-end border-t border-dashed border-rule-strong pt-2.5">
           <Button type="button" onClick={copy} className="shrink-0">
             <Glyph name={copied ? "check" : "copy"} className={copied ? "size-3 text-green" : "size-3"} />
             {copied ? "Copied" : "Copy brief"}
@@ -56,10 +53,6 @@ export function WhileYouWait({ origin }: { origin: string }) {
         </div>
       </div>
       <AssistantRail brief={brief} />
-      <p className="mt-2.5 text-center text-xs text-ink-faint">
-        Each opens with your brief already in. Floc isn’t linked to these companies. Names and logos belong to their
-        owners.
-      </p>
     </div>
   );
 }
