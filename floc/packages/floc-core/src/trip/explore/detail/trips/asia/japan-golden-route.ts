@@ -1,4 +1,4 @@
-import type { PresetDetail } from "../preset-detail-types";
+import type { PresetDetail } from "../../preset-detail-types";
 
 export const JAPAN_GOLDEN_ROUTE: PresetDetail = {
   stops: [

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 
 import type { LatLng } from "@/lib/landing/globe/sphere";
 import { watchFirstView } from "@/lib/landing/scene/scene-start";
@@ -9,6 +9,11 @@ import { spinGlobe } from "./spin-globe";
 
 type Outline = { features: { geometry: { type: string; coordinates: number[][][] | number[][][][] } }[] };
 
+export type Globe = NonNullable<ReturnType<typeof spinGlobe>>;
+
+/** What the band does when the globe reports back. A ref, so the globe is not rebuilt when a handler changes. */
+export type GlobeEvents = { onSettle?: (index: number) => void; onWay?: (state: "open" | "shut") => void };
+
 const outerRings = (geo: Outline) =>
   geo.features.flatMap(({ geometry: g }) => {
     if (g.type === "Polygon") return [(g.coordinates as number[][][])[0]!];
@@ -16,14 +21,22 @@ const outerRings = (geo: Outline) =>
   });
 
 /** Runs the globe on a canvas. `lit` is the place it is on, or passing while it spins. */
-export function useSpinGlobe(home: LatLng, places: LatLng[]) {
+export function useSpinGlobe(home: LatLng, places: LatLng[], events: RefObject<GlobeEvents>) {
   const canvas = useRef<HTMLCanvasElement>(null);
-  const globe = useRef<ReturnType<typeof spinGlobe>>(null);
+  const globe = useRef<Globe | null>(null);
   const [lit, setLit] = useState(0);
 
   useEffect(() => {
     const node = canvas.current;
-    const g = node && spinGlobe(node, { home, places, onLight: setLit });
+    const g =
+      node &&
+      spinGlobe(node, {
+        home,
+        places,
+        onLight: setLit,
+        onSettle: (i) => events.current.onSettle?.(i),
+        onWay: (state) => events.current.onWay?.(state),
+      });
     if (!node || !g) return;
     globe.current = g;
     let live = true;
@@ -54,7 +67,7 @@ export function useSpinGlobe(home: LatLng, places: LatLng[]) {
       g.stop();
       globe.current = null;
     };
-  }, [home, places]);
+  }, [home, places, events]);
 
-  return { canvas, lit, show: (i: number) => globe.current?.show(i), spin: () => globe.current?.spin() };
+  return { canvas, lit, globe };
 }

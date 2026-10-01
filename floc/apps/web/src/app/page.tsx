@@ -24,7 +24,7 @@ import { ProBand } from "@/components/landing/pro-tour/pro-band";
 import { FeatureFilm } from "@/components/landing/tour/feature-film";
 import { shotFor } from "@/components/landing/tour/tour-shots";
 import { tourSlides } from "@/components/landing/tour/tour-slides";
-import { borrowCards } from "@/lib/landing/borrow";
+import { borrowCards, leadFirst } from "@/lib/landing/borrow";
 import { landingFaq } from "@/lib/landing/faq";
 import "@/components/landing/landing.css";
 
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image" },
 };
 
-// The Explore listings the landing page rolls through, in this order.
+// The Explore listings the Borrow band opens on, in this order; every other listing waits behind them.
 const BORROW_IDS = [
   "japan-golden-route",
   "andalusia-road-trip",
@@ -121,7 +121,7 @@ export default async function LandingPage() {
 
         {/* ── explore ────────────────────────────────────────────────── */}
         <section className="mt-24">
-          <BorrowTrip cards={borrowCards(PRESET_TRIPS, BORROW_IDS)} signedIn={signedIn} explore={inspire} />
+          <BorrowTrip cards={borrowCards(PRESET_TRIPS, leadFirst(PRESET_TRIPS, BORROW_IDS))} signedIn={signedIn} explore={inspire} />
         </section>
 
         {/* ── pro ──────────────────────────────────────────────────────── */}

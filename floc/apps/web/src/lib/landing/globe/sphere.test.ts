@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { apart, facing, greatCircle, limbRing, nearest, project, shortest, turn } from "./sphere";
+import { apart, faced, facing, greatCircle, limbRing, nearest, project, shortest, turn } from "./sphere";
 
 const LONDON = { lat: 51.507, lng: -0.128 };
 const TOKYO = { lat: 35.676, lng: 139.65 };
@@ -62,6 +62,15 @@ describe("facing", () => {
   it("keeps the view inside the band where the land reads well", () => {
     expect(facing({ lat: 80, lng: 0 }).lat).toBe(55);
     expect(facing({ lat: -80, lng: 0 }).lat).toBe(-50);
+  });
+});
+
+describe("faced", () => {
+  it("names the place a view was turned to", () => {
+    const hanoi = { lat: 21.028, lng: 105.804 };
+    const back = faced(facing(hanoi));
+    expect(back.lat).toBeCloseTo(hanoi.lat);
+    expect(back.lng).toBeCloseTo(hanoi.lng);
   });
 });
 

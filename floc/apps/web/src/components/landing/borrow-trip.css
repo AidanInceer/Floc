@@ -1,6 +1,7 @@
 @layer components {
-  /* "Borrow a trip to …": the Explore shelf on a globe. The place rolls in on its
-     pastel; the globe and its plane are drawn on a canvas (globe/spin-globe). */
+  /* "Borrow a trip to …": every Explore listing on a globe, six of them on tiles. The place
+     rolls in on its pastel; the globe and its plane are drawn on a canvas (globe/spin-globe). */
+  .borrow { overflow-x: clip; }
   .borrow-word {
     display: inline-block;
     margin-inline: -0.1em;
@@ -14,31 +15,56 @@
   @keyframes borrow-roll {
     from { opacity: 0; transform: translateY(0.22em); }
   }
-  .borrow-spin {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 420px) minmax(0, 1fr);
-    align-items: center;
-    gap: 26px 36px;
-    max-width: 70rem;
+
+  /* Why: everything that moves when a trip opens reads --deep (0 the globe, 1 the map of one
+     trip), which the globe's own clock sets (globe/way-in). Nothing here runs on a second timer. */
+  .borrow-stage {
+    --deep: 0;
+    --deep-h: 560px;
+    /* The globe gives way before the tiles do on a screen too narrow for both. */
+    --globe: clamp(220px, 100cqw - 632px, 420px);
+    container-type: inline-size;
+    max-width: 67rem;
     margin: 36px auto 0;
   }
+  .borrow-scene {
+    position: relative;
+    height: calc(var(--globe) + (var(--deep-h) - var(--globe)) * var(--deep));
+  }
   .borrow-list {
+    position: absolute;
+    top: 50%;
     display: flex;
     flex-direction: column;
     gap: 14px;
+    opacity: calc(1 - var(--deep) * 3);
   }
-  .borrow-list[data-side="left"] { align-items: flex-end; }
-  .borrow-list[data-side="right"] { align-items: flex-start; }
-  /* The middle chip steps out, so the two columns follow the globe's curve. */
+  .borrow-list[data-side="left"] {
+    right: calc(50% + var(--globe) / 2 + 36px);
+    align-items: flex-end;
+    translate: calc(-70px * var(--deep)) -50%;
+  }
+  .borrow-list[data-side="right"] {
+    left: calc(50% + var(--globe) / 2 + 36px);
+    align-items: flex-start;
+    translate: calc(70px * var(--deep)) -50%;
+  }
+  /* The middle tile steps out, so the two columns follow the globe's curve. */
   .borrow-list[data-side="left"] li:nth-child(2) { translate: -30px 0; }
   .borrow-list[data-side="right"] li:nth-child(2) { translate: 30px 0; }
+
+  .borrow-tile { position: relative; }
+  /* Why: a tile's words change, so every tile is the height of a two-line title; else the columns jump as they roll. */
   .borrow-chip {
+    position: relative;
     display: flex;
     flex-direction: column;
+    justify-content: center;
     align-items: flex-start;
-    gap: 4px;
     width: 250px;
+    height: 104px;
     padding: 12px 14px 13px;
+    overflow: hidden;
     text-align: left;
     font-size: 11.5px;
     background: var(--sheet);
@@ -49,46 +75,344 @@
   }
   .borrow-chip:hover { border-color: var(--pastel-blue-edge); }
   .borrow-chip[aria-current="true"] { border-color: var(--pen); box-shadow: var(--shadow-lift); scale: 1.05; }
+  .borrow-chip:disabled { border-color: var(--rule); box-shadow: none; }
   .borrow-chip-title {
     font-size: 18px;
     font-weight: 600;
     line-height: 1.15;
     letter-spacing: -0.02em;
   }
+  /* A calm reel: the old words leave below as the new ones arrive from above, on the same slow curve. */
+  .borrow-face {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    width: 100%;
+  }
+  .borrow-face[data-kind="tick"] { opacity: 0.55; animation: borrow-reel 0.34s var(--ease) both; }
+  .borrow-face[data-kind="land"] { animation: borrow-reel 0.6s var(--ease) both; }
+  .borrow-face[data-kind="in"] { animation: borrow-reel 0.5s var(--ease) both; }
+  .borrow-face[data-kind="out"] {
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    top: 50%;
+    width: auto;
+    translate: 0 -50%;
+    animation: borrow-reel-out 0.34s var(--ease) both;
+  }
+  .borrow-face[data-dim] { opacity: 0.55; }
+  @keyframes borrow-reel {
+    from { opacity: 0; transform: translateY(-42%); }
+  }
+  @keyframes borrow-reel-out {
+    to { opacity: 0; transform: translateY(42%); }
+  }
+
+  .borrow-deeper {
+    position: absolute;
+    right: 9px;
+    bottom: 9px;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    color: var(--ink-2);
+    background: var(--sheet);
+    border: 1px solid var(--rule-2);
+    border-radius: 999px;
+    transition: border-color 0.18s var(--ease), color 0.18s var(--ease), background-color 0.18s var(--ease), translate 0.3s var(--ease), opacity 0.2s var(--ease);
+  }
+  /* The lit tile is drawn 5% larger, so its button steps out with the corner. */
+  .borrow-chip[aria-current="true"] + .borrow-deeper { translate: 5px 2px; color: var(--pen); border-color: var(--pen); }
+  .borrow-tile .borrow-deeper:hover,
+  .borrow-tile .borrow-deeper:focus-visible { color: var(--sheet); background: var(--pen); border-color: var(--pen); }
+  .borrow-deeper:disabled { opacity: 0; }
+
+  /* The globe's box: a circle that opens into a wide rounded panel. The canvas fills it. */
+  .borrow-globe-box {
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    left: 50%;
+    width: calc(var(--globe) + (100% - var(--globe)) * var(--deep));
+    height: 100%;
+    overflow: hidden;
+    translate: -50% 0;
+    border-radius: calc(var(--globe) / 2 - (var(--globe) / 2 - 28px) * var(--deep));
+    box-shadow: var(--shadow-lift);
+  }
   .borrow-globe {
     display: block;
     width: 100%;
-    aspect-ratio: 1;
-    border-radius: 50%;
-    box-shadow: var(--shadow-lift);
+    height: 100%;
     cursor: grab;
     /* Why: pan-y leaves a vertical swipe to the page, so the globe never traps a phone's scroll. */
     touch-action: pan-y;
   }
   .borrow-globe:active { cursor: grabbing; }
-  /* See every trip holds the centre whatever the length of the place name beside it. */
+  .borrow-back {
+    position: absolute;
+    left: 16px;
+    top: 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px 9px 12px;
+    font-family: var(--type);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink);
+    background: var(--sheet);
+    border: 1px solid var(--rule-2);
+    border-radius: 999px;
+    box-shadow: var(--shadow-sm);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s var(--ease), border-color 0.18s var(--ease), color 0.18s var(--ease);
+  }
+  .borrow-back:hover { color: var(--pen); border-color: var(--pen); }
+  .borrow-stage[data-on] .borrow-back { opacity: 1; pointer-events: auto; }
+
+  /* The open trip's stops. The globe moves each pin; the trip's own pin hands over to them as the map opens. */
+  .borrow-pins {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: calc((var(--deep) - 0.6) * 3.4);
+  }
+  .borrow-pin {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 0;
+    height: 0;
+    pointer-events: auto;
+  }
+  .borrow-pin b {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    translate: -50% -50%;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+    color: var(--pen);
+    background: var(--sheet);
+    border-radius: 999px;
+    box-shadow: 0 0 0 1.5px var(--pen);
+  }
+  .borrow-pin[aria-current="true"] b { color: var(--sheet); background: var(--pen); box-shadow: 0 0 0 2.5px var(--sheet); }
+  .borrow-pin i {
+    position: absolute;
+    padding: 3px 10px;
+    font-size: 12.5px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 1.4;
+    white-space: nowrap;
+    color: var(--ink);
+    background: var(--sheet);
+    border: 1px solid var(--rule-2);
+    border-radius: 999px;
+    box-shadow: var(--shadow-sm);
+    opacity: 0;
+    transition: opacity 0.3s var(--ease);
+  }
+  .borrow-pin[data-side="r"] i { left: 18px; top: 0; translate: 0 -50%; }
+  .borrow-pin[data-side="l"] i { right: 18px; top: 0; translate: 0 -50%; }
+  .borrow-pin[data-side="t"] i { left: 0; bottom: 18px; translate: -50% 0; }
+  .borrow-pin[data-side="b"] i { left: 0; top: 18px; translate: -50% 0; }
+  .borrow-stage[data-on] .borrow-pin[aria-current="true"] i { opacity: 1; }
+
+  /* The rail: the open trip stop by stop, over the right of the map. */
+  .borrow-panel {
+    position: absolute;
+    z-index: 2;
+    top: 16px;
+    right: 16px;
+    bottom: 16px;
+    width: 320px;
+    text-align: left;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s var(--ease);
+  }
+  .borrow-stage[data-on] .borrow-panel { opacity: 1; pointer-events: auto; }
+  .borrow-rail {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    height: 100%;
+    padding: 18px 18px 16px;
+    overflow-y: auto;
+    background: var(--sheet);
+    border-radius: 22px;
+    box-shadow: var(--shadow-lift);
+  }
+  .borrow-rail-title {
+    margin-top: 7px;
+    font-family: var(--display);
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+  }
+  .borrow-pager {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    margin-top: 14px;
+    font-size: 12px;
+    text-align: center;
+    color: var(--ink-2);
+  }
+  .borrow-pager button {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    color: var(--ink);
+    border: 1px solid var(--rule-2);
+    border-radius: 999px;
+    transition: border-color 0.18s var(--ease), color 0.18s var(--ease), opacity 0.18s var(--ease);
+  }
+  .borrow-pager button:hover:not(:disabled) { color: var(--pen); border-color: var(--pen); }
+  .borrow-pager button:disabled { opacity: 0.35; }
+  .borrow-steps {
+    display: grid;
+    gap: 2px;
+    width: 100%;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1.5px dashed var(--rule-2);
+  }
+  .borrow-steps button {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    width: calc(100% + 16px);
+    margin-inline: -8px;
+    padding: 7px 8px;
+    font-size: 13.5px;
+    text-align: left;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    transition: background-color 0.18s var(--ease), border-color 0.18s var(--ease);
+  }
+  .borrow-steps button:hover { border-color: var(--pastel-blue-edge); }
+  .borrow-steps button[aria-current="true"] { background: var(--pastel-blue); border-color: var(--pastel-blue-edge); }
+  .borrow-steps b {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--pen);
+    background: var(--sheet);
+    border-radius: 999px;
+    box-shadow: inset 0 0 0 1.5px var(--pen);
+  }
+  .borrow-steps button[aria-current="true"] b { color: var(--sheet); background: var(--pen); }
+  .borrow-steps span { display: flex; flex-direction: column; min-width: 0; }
+  .borrow-steps strong { font-weight: 600; }
+  .borrow-steps small { font-size: 11.5px; color: var(--ink-3); }
+  .borrow-steps em { font-size: 11.5px; font-style: normal; white-space: nowrap; color: var(--ink-3); }
+  .borrow-acts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    width: 100%;
+    margin-top: auto;
+    padding-top: 16px;
+  }
+
+  /* See every trip holds the centre whatever the length of the place name beside it. The bar folds away as a trip opens. */
   .borrow-bar {
-    grid-column: 1 / -1;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
     gap: 12px;
+    max-height: calc(64px * (1 - var(--deep)));
+    margin-top: calc(26px * (1 - var(--deep)));
+    opacity: calc(1 - var(--deep) * 3);
   }
+  .borrow-stage[data-deep] .borrow-bar { overflow: hidden; }
   .borrow-go { justify-self: end; }
   .borrow-start { justify-self: start; white-space: nowrap; }
+
   @media (max-width: 900px) {
-    .borrow-spin { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 34px; }
-    .borrow-globe { grid-column: 1 / -1; order: -2; justify-self: center; max-width: 320px; }
-    .borrow-bar { order: -1; grid-template-columns: auto auto; justify-content: center; margin: 10px 0 12px; }
-    .borrow-every { grid-column: 1 / -1; justify-self: center; order: -1; }
+    /* A phone: the globe on top grows into the map; the tiles under it fold away and the rail takes their place. */
+    .borrow-stage {
+      --globe: min(320px, 100cqw);
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 10px;
+      row-gap: calc(10px * (1 - var(--deep)));
+      margin-top: 34px;
+    }
+    .borrow-scene,
     .borrow-list { display: contents; }
     .borrow-list[data-side] li:nth-child(2) { translate: none; }
-    .borrow-chip { width: 100%; height: 100%; padding: 10px 12px 11px; border-radius: 16px; font-size: 10px; }
+    .borrow-tile { height: calc(116px * (1 - var(--deep))); opacity: calc(1 - var(--deep) * 3); }
+    .borrow-stage[data-deep] .borrow-tile { overflow: hidden; }
+    /* Why: on a phone the nights and price line wraps too, so the tile is taller. */
+    .borrow-chip { width: 100%; height: 116px; padding: 10px 12px 11px; border-radius: 16px; font-size: 10px; }
     .borrow-chip-title { font-size: 14.5px; }
     .borrow-chip[aria-current="true"] { scale: 1; }
+    .borrow-chip[aria-current="true"] + .borrow-deeper { translate: none; }
+    .borrow-face[data-kind="out"] { left: 12px; right: 12px; }
+    .borrow-deeper { right: 7px; bottom: 7px; width: 36px; height: 36px; }
+    .borrow-globe-box {
+      position: relative;
+      left: auto;
+      grid-column: 1 / -1;
+      order: -3;
+      justify-self: center;
+      height: calc(var(--globe) + (var(--deep-h) - var(--globe)) * var(--deep));
+      translate: none;
+    }
+    .borrow-back { left: 12px; top: 12px; }
+    /* Why: with 25 trips the place can be long ("South Africa"), so Start from takes its own row when it does not fit beside Spin for me. */
+    .borrow-bar {
+      grid-column: 1 / -1;
+      order: -2;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-height: calc(120px * (1 - var(--deep)));
+      margin: calc(10px * (1 - var(--deep))) 0 calc(12px * (1 - var(--deep)));
+    }
+    .borrow-bar::before { content: ""; order: -1; flex-basis: 100%; }
+    .borrow-every { order: -2; }
+    .borrow-panel {
+      position: static;
+      grid-column: 1 / -1;
+      order: -1;
+      display: none;
+      width: auto;
+      margin-top: 12px;
+    }
+    .borrow-stage[data-on] .borrow-panel { display: block; animation: borrow-roll 0.35s var(--ease) both; }
+    .borrow-rail { height: auto; overflow: visible; }
+    .borrow-acts { margin-top: 0; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .borrow-roll { animation: none; }
+    .borrow-roll,
+    .borrow-face,
+    .borrow-stage[data-on] .borrow-panel { animation: none; }
+    /* Why: with no animation the old words never report that they have gone. */
+    .borrow-face[data-kind="out"] { display: none; }
     .borrow-chip { transition: none; }
   }
 }

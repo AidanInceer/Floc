@@ -31,18 +31,18 @@ describe("API_BASE_URL", () => {
 
   it("falls back to production in development with no Metro host", async () => {
     const config = await load({ dev: true });
-    expect(config.API_BASE_URL).toBe("https://floc.app");
+    expect(config.API_BASE_URL).toBe("https://floc.live");
   });
 
   it("is production in a store build, whatever Metro says", async () => {
     const config = await load({ dev: false, hostUri: "10.0.0.2:8081" });
-    expect(config.API_BASE_URL).toBe("https://floc.app");
+    expect(config.API_BASE_URL).toBe("https://floc.live");
   });
 });
 
 describe("inviteUrl", () => {
   it("builds the link from the token alone", async () => {
     const config = await load({ dev: false });
-    expect(config.inviteUrl("abc123")).toBe("https://floc.app/invite/abc123");
+    expect(config.inviteUrl("abc123")).toBe("https://floc.live/invite/abc123");
   });
 });

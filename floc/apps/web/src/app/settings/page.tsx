@@ -414,10 +414,10 @@ export default async function SettingsPage({
                 <p className="text-sm text-ink-soft">
                   Want a copy of your data? Email{" "}
                   <a
-                    href="mailto:support@floc.example"
+                    href="mailto:support@floc.live"
                     className="text-pen underline underline-offset-2 hover:text-pen-deep"
                   >
-                    support@floc.example
+                    support@floc.live
                   </a>{" "}
                   — there&rsquo;s no self-serve export in v1.
                 </p>
