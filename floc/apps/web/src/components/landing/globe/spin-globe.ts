@@ -116,7 +116,8 @@ export function spinGlobe(canvas: HTMLCanvasElement, { home, places, onLight }: 
     show: (i: number) => show(i),
     /** Two full turns, then a place other than the one it is on. */
     spin() {
-      const pick = (at + 1 + Math.floor(Math.random() * (places.length - 1))) % places.length;
+      const roll = crypto.getRandomValues(new Uint32Array(1))[0]!;
+      const pick = (at + 1 + (roll % Math.max(1, places.length - 1))) % places.length;
       show(pick, 2800, 2, easeOut);
     },
     start(reduced: boolean) {
