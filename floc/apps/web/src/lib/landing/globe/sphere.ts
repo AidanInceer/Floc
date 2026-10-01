@@ -16,7 +16,10 @@ export const apart = (a: LatLng, b: LatLng) =>
 // Why: the view sits west of the place and nearer the equator, so the route from London shows with it.
 export const facing = (p: LatLng): LatLng => ({ lng: p.lng - 18, lat: clamp(p.lat * 0.75 + 8, -50, 55) });
 
-export const nearest = (view: LatLng, places: LatLng[]) =>
+/** The place a view is turned to: `facing`, the other way round. */
+export const faced = (view: LatLng): LatLng => ({ lng: view.lng + 18, lat: (view.lat - 8) / 0.75 });
+
+export const nearest =(view: LatLng, places: LatLng[]) =>
   places.reduce((best, p, i) => (apart(view, facing(p)) < apart(view, facing(places[best]!)) ? i : best), 0);
 
 /** The view at `e` (0–1) of a turn from one view to another, with whole extra `turns` for a spin. */

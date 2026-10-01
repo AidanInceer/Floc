@@ -15,6 +15,8 @@ export type GlyphName =
   | "flight"
   | "pin"
   | "arrow"
+  | "back"
+  | "expand"
   | "train"
   | "plus"
   | "link"
@@ -93,6 +95,8 @@ const PATHS: Record<GlyphName, ReactNode> = {
     </>
   ),
   arrow: <path d="M2.4 7h9.2M8 3.4 11.6 7 8 10.6" />,
+  back: <path d="M11.6 7H2.4M6 3.4 2.4 7 6 10.6" />,
+  expand: <path d="M8.4 2.4h3.2v3.2M11.6 2.4 8 6M5.6 11.6H2.4V8.4M2.4 11.6 6 8" />,
   plus: <path d="M7 2.6v8.8M2.6 7h8.8" />,
   link: (
     <>

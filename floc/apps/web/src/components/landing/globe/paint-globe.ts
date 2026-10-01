@@ -1,8 +1,14 @@
 import { limbRing, project, shortest, type LatLng } from "@/lib/landing/globe/sphere";
 import { PLANE_D } from "@/lib/landing/hero/flight-path";
 
+import { globeMarks } from "./paint-marks";
+
 const RAD = Math.PI / 180;
 const PLANE_SCALE = 0.92;
+
+type Box = { w: number; h: number };
+/** Where the sphere sits in the canvas. Left out, it fills the canvas; the way in to a trip makes it far larger. */
+type Fit = (box: Box) => { R: number; cx: number; cy: number } | undefined;
 
 /** Draws the paper globe on a canvas, in the theme's tokens. Each call takes the view to draw from. */
 export function globePainter(canvas: HTMLCanvasElement) {
@@ -17,14 +23,15 @@ export function globePainter(canvas: HTMLCanvasElement) {
     return { x: cx + R * q.x, y: cy - R * q.y, z: q.z };
   };
 
-  function size() {
+  function size(fit?: Fit) {
     const [w, h] = [canvas.clientWidth, canvas.clientHeight];
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     const [pw, ph] = [Math.round(w * dpr), Math.round(h * dpr)];
     if (canvas.width !== pw || canvas.height !== ph) [canvas.width, canvas.height] = [pw, ph];
     ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx!.clearRect(0, 0, w, h);
-    [R, cx, cy] = [Math.min(w, h) / 2 - 2, w / 2, h / 2];
+    const frame = fit?.({ w, h }) ?? { R: Math.min(w, h) / 2 - 2, cx: w / 2, cy: h / 2 };
+    [R, cx, cy] = [frame.R, frame.cx, frame.cy];
     const css = getComputedStyle(canvas);
     ink.pen = css.getPropertyValue("--pen");
     ink.sheet = css.getPropertyValue("--sheet");
@@ -59,9 +66,12 @@ export function globePainter(canvas: HTMLCanvasElement) {
   }
 
   return {
+    ...globeMarks({ ctx, ink, at }),
     radius: () => R,
-    base(view: LatLng, land: number[][][]) {
-      size();
+    box: (): Box => ({ w: canvas.clientWidth, h: canvas.clientHeight }),
+    place: at,
+    base(view: LatLng, land: number[][][], fit?: Fit) {
+      size(fit);
       ctx.fillStyle = ink.sea;
       disc(true);
       ctx.fillStyle = ink.sheet;
