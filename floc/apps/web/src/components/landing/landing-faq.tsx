@@ -19,7 +19,6 @@ export function LandingFaq({ items }: { items: FaqItem[] }) {
       <div className="landing-faq-wrap">
         <div className="landing-faq-intro">
           <h2 className="band-title" id="landing-faq-heading">Before you ask</h2>
-          <p>The same Sicily trip.<br />A few things cleared up.</p>
         </div>
         <div className="landing-faq-scene" data-count={items.length} role="group" aria-labelledby="landing-faq-heading">
           <div className="landing-faq-route" aria-hidden="true" />
@@ -33,7 +32,6 @@ export function LandingFaq({ items }: { items: FaqItem[] }) {
             </Card>
           ))}
         </div>
-        <span className="landing-faq-example">Illustrative trip · answers describe the current product</span>
       </div>
     </div>
   );
