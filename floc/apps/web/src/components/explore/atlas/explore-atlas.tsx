@@ -4,12 +4,14 @@ import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import { useEffect, useRef, type RefObject } from "react";
 
 import "leaflet/dist/leaflet.css";
+import "@/components/map/route-map.css";
 
 import { clearOf, openArea } from "@/components/explore/atlas/atlas-frame";
 import { firstBase } from "@/components/explore/listing";
 import { FLY_S, still, useRouteFlight } from "@/components/explore/atlas/use-route-flight";
 import { worldControl } from "@/components/explore/atlas/world-control";
 import { MAX_ZOOM, TILE_ATTRIBUTION, TILE_URL } from "@/lib/map";
+import "./explore-atlas.css";
 
 /** The trip whose route the map draws; `n` goes up on each pick, so picking it again draws it again. */
 export type AtlasRoute = { id: string; n: number };

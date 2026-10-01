@@ -6,8 +6,6 @@
  * dispatch — no gesture logic lives here.
  */
 import {
-  useEffect,
-  useRef,
   useState,
   useTransition,
   type CSSProperties,
@@ -19,7 +17,8 @@ import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerE
 
 import { EventForm, type PlaceSearch } from "@/components/days/event-form";
 import { DayColumn } from "@/components/days/days-calendar-column";
-import { Button, cx } from "@/components/system/ui";
+import { Dialog } from "@/components/system/dialog";
+import { Button, Segmented, cx, segmentClass } from "@/components/system/ui";
 import {
   HOUR_PX,
   OUTSIDE_DAY_CLASS,
@@ -85,22 +84,19 @@ export function CalendarToolbar({
 
       <div className="flex-1" />
 
-      <div className="inline-flex overflow-hidden rounded-full border border-rule-strong">
+      <Segmented>
         {(["day", "week"] as const).map((option) => (
           <button
             key={option}
             type="button"
             aria-pressed={effectiveView === option}
             onClick={() => setView(option)}
-            className={cx(
-              "px-3 py-1 font-mono text-[11px] uppercase tracking-[0.06em] transition-colors disabled:opacity-50",
-              effectiveView === option ? "bg-pen text-sheet" : "bg-sheet text-ink-soft hover:bg-sheet-2",
-            )}
+            className={segmentClass(effectiveView === option)}
           >
             {option === "day" ? "Day" : "Week"}
           </button>
         ))}
-      </div>
+      </Segmented>
     </div>
   );
 }
@@ -321,6 +317,8 @@ export function CalendarGrid({
   );
 }
 
+const CALENDAR_DIALOG = "m-auto w-full max-w-lg rounded-lg bg-sheet p-0 text-ink shadow-card backdrop:bg-black/40";
+
 /**
  * The event modal (ticket 321) — one centred sheet holding the event's facts
  * and its comment thread. Replaced the side pane and its Event/Trip-notes
@@ -336,23 +334,8 @@ export function EventModal({
   onClose: () => void;
   panel: ReactNode;
 }) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    if (open && !dialog.open) dialog.showModal();
-    if (!open && dialog.open) dialog.close();
-  }, [open]);
-
   return (
-    <dialog
-      ref={dialogRef}
-      onClose={onClose}
-      onClick={(ev) => {
-        if (ev.target === dialogRef.current) onClose();
-      }}
-      className="m-auto w-full max-w-lg rounded-lg bg-sheet p-0 text-ink shadow-card backdrop:bg-black/30"
-    >
+    <Dialog open={open} onClose={onClose} title="Event" className={CALENDAR_DIALOG}>
       {open ? (
         <>
           <div className="flex items-center justify-end border-b border-rule bg-sheet-2 px-3 py-2">
@@ -369,7 +352,7 @@ export function EventModal({
           <div className="max-h-[75vh] overflow-y-auto p-4">{panel}</div>
         </>
       ) : null}
-    </dialog>
+    </Dialog>
   );
 }
 
@@ -386,23 +369,8 @@ export function AddEventDialog({
   searchPlaces: PlaceSearch;
   onClose: () => void;
 }) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    if (adding && !dialog.open) dialog.showModal();
-    if (!adding && dialog.open) dialog.close();
-  }, [adding]);
-
   return (
-    <dialog
-      ref={dialogRef}
-      onClose={onClose}
-      onClick={(ev) => {
-        if (ev.target === dialogRef.current) onClose();
-      }}
-      className="m-auto w-full max-w-lg rounded-lg bg-sheet p-0 text-ink shadow-card backdrop:bg-black/30"
-    >
+    <Dialog open={adding !== null} onClose={onClose} title="Add an event" className={CALENDAR_DIALOG}>
       {adding ? (
         <>
           <div className="flex items-center justify-between border-b border-rule px-4 py-3">
@@ -435,6 +403,6 @@ export function AddEventDialog({
           </div>
         </>
       ) : null}
-    </dialog>
+    </Dialog>
   );
 }

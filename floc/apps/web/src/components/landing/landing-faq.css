@@ -1,0 +1,65 @@
+@layer components {
+  .landing-faq-ground { background: var(--sheet-2); }
+  .landing-faq-wrap { max-width: 1160px; margin-inline: auto; padding: 64px 28px 72px; }
+  .landing-faq-intro { display: flex; justify-content: space-between; gap: 40px; margin-bottom: 48px; }
+  .landing-faq-intro > p { color: var(--ink-2); font-size: 15px; line-height: 1.65; }
+  .landing-faq-scene { position: relative; display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 30px; align-items: start; padding-block: 12px; }
+  .landing-faq-route { position: absolute; top: 46%; left: 4%; right: 4%; height: 100px; border: 1px dashed var(--rule-2); border-radius: 50%; pointer-events: none; }
+  .landing-faq-object { z-index: 1; grid-column: span 2; overflow: hidden; }
+  .landing-faq-free { grid-column: span 3; transform: rotate(-2deg); }
+  .landing-faq-account { grid-column: span 3; transform: rotate(2deg); margin-top: 24px; }
+  .landing-faq-booking { transform: rotate(-2deg); }
+  .landing-faq-pro { transform: rotate(2deg); }
+  .landing-faq-scene[data-count="4"] > .landing-faq-object { grid-column: span 3; }
+  .landing-faq-preview { padding: 22px 26px; min-height: 144px; }
+  .landing-faq-stops { display: flex; align-items: center; gap: 10px; margin-top: 23px; font-size: 12px; }
+  .landing-faq-stops > span { display: flex; flex: 1; align-items: center; gap: 10px; white-space: nowrap; }
+  .landing-faq-stops > span:not(:last-child)::after { content: ''; flex: 1; min-width: 8px; border-top: 1px dashed currentColor; }
+  .landing-faq-stops > span:last-child { flex: none; }
+  .landing-faq-detail { border-top: 1px dashed var(--rule-2); }
+  .landing-faq-detail > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 86px;
+    padding: 19px 22px;
+    list-style: none;
+    cursor: pointer;
+    font-family: var(--display);
+    font-size: 19px;
+    line-height: 1.2;
+    letter-spacing: -.025em;
+  }
+  .landing-faq-detail > summary::-webkit-details-marker { display: none; }
+  .landing-faq-detail > summary:hover { color: var(--pen-deep); }
+  .landing-faq-plus { flex-shrink: 0; color: var(--pen); font-size: 22px; line-height: 1; transition: transform .22s var(--ease); }
+  .landing-faq-detail[open] .landing-faq-plus { transform: rotate(45deg); }
+  .landing-faq-detail > p { padding: 0 22px 24px; color: var(--ink-2); font-size: 14px; line-height: 1.65; }
+  .landing-faq-example { display: block; margin-top: 25px; color: var(--ink-2); font-size: 10px; }
+
+  @media (max-width: 1000px) {
+    .landing-faq-scene { gap: 22px; }
+    .landing-faq-preview { padding: 20px; }
+    .landing-faq-detail > summary { padding: 18px; font-size: 17px; }
+    .landing-faq-detail > p { padding-inline: 18px; }
+  }
+  @media (max-width: 650px) {
+    .landing-faq-wrap { padding: 42px 22px 48px; }
+    .landing-faq-intro { display: block; margin-bottom: 26px; }
+    .landing-faq-intro > p { margin-top: 15px; font-size: 13px; }
+    .landing-faq-scene { grid-template-columns: 1fr; padding: 6px 4px; }
+    .landing-faq-object, .landing-faq-scene[data-count="4"] > .landing-faq-object { grid-column: auto; }
+    .landing-faq-account { margin-top: 0; }
+    .landing-faq-route { left: 50%; top: 4%; bottom: 4%; width: 0; height: auto; border: 0; border-left: 1px dashed var(--rule-2); }
+    .landing-faq-preview { padding: 22px; min-height: 132px; }
+    .landing-faq-stops, .landing-faq-stops > span { gap: 6px; font-size: 10px; }
+    .landing-faq-detail > summary { min-height: 76px; font-size: 19px; padding: 20px; }
+    .landing-faq-detail > p { padding-inline: 20px; font-size: 13px; }
+    .landing-faq-example { font-size: 9px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .landing-faq-plus { transition: none; }
+  }
+}

@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { watchFirstView } from "@/lib/landing/scene/scene-start";
+
 /**
  * A front-door scene (ADR-019): the beats play once, the first time the stage is
  * on screen, then it rests on the last one. Reduced motion goes straight there.
@@ -15,19 +17,14 @@ export function useScene<T extends Element>(beatsMs: readonly number[]) {
     const node = ref.current;
     if (!node) return;
     const timers: number[] = [];
-    const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const seen = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry?.isIntersecting) return;
-        seen.disconnect();
+    const stop = watchFirstView(node, {
+      onStart: ({ still }) => {
         if (still) setStep(beatsMs.length);
         else beatsMs.forEach((ms, i) => timers.push(window.setTimeout(() => setStep(i + 1), ms)));
       },
-      { threshold: 0.35 },
-    );
-    seen.observe(node);
+    });
     return () => {
-      seen.disconnect();
+      stop();
       timers.forEach(clearTimeout);
     };
   }, [beatsMs]);

@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import "./explore-slider.css";
 
 type Bounds = { min: number; max: number; step?: number };
 

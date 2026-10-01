@@ -14,6 +14,7 @@
 import { useEffect, useRef } from "react";
 
 import "leaflet/dist/leaflet.css";
+import "./route-map.css";
 
 import { routePin, type RouteMapStop } from "@/components/map/route-pin";
 import { MAX_ZOOM, TILE_ATTRIBUTION, TILE_URL } from "@/lib/map";

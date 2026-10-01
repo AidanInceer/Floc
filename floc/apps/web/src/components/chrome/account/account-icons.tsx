@@ -1,23 +1,4 @@
-import type { ReactNode } from "react";
-
-function Line({ children, size = 13 }: { children: ReactNode; size?: number }) {
-  return (
-    <svg
-      aria-hidden
-      viewBox="0 0 14 14"
-      width={size}
-      height={size}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="shrink-0"
-    >
-      {children}
-    </svg>
-  );
-}
+import { LineIcon as Line } from "@/components/system/icons";
 
 export function PersonIcon() {
   return (
@@ -54,13 +35,6 @@ export function SignOutIcon() {
   );
 }
 
-export function ChevronIcon() {
-  return (
-    <Line size={12}>
-      <path d="M4.2 5.6 7 8.4l2.8-2.8" />
-    </Line>
-  );
-}
 
 export function SunIcon() {
   return (

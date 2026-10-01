@@ -1,6 +1,7 @@
 import type { FaqItem } from "@/lib/landing/faq";
 import { Card, cx } from "@/components/system/ui";
 import { FaqObject } from "./faq-object";
+import "./landing-faq.css";
 
 const skins: Record<string,string> = {
   free: "landing-faq-free",

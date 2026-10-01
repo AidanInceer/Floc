@@ -18,7 +18,7 @@ import {
 import { setAvatarIcon } from "@/app/profile/actions";
 import { AvatarIconMark } from "@/components/system/avatar-icon";
 import { Sheet } from "@/components/system/client-ui";
-import { Avatar, cx } from "@/components/system/ui";
+import { Avatar, PickOption } from "@/components/system/ui";
 import { initials } from "@floc/core/people/initials";
 
 function Cell({
@@ -34,18 +34,14 @@ function Cell({
   return (
     <form action={setAvatarIcon}>
       <input type="hidden" name="avatarIcon" value={icon ?? ""} />
-      <button
+      <PickOption
         type="submit"
-        title={label}
-        aria-label={label}
-        aria-pressed={selected}
-        className={cx(
-          "inline-flex size-11 items-center justify-center rounded-full border bg-sheet-2 font-mono text-sm font-semibold text-ink-soft transition-shadow hover:ring-2 hover:ring-pen",
-          selected ? "border-pen ring-2 ring-pen" : "border-rule-strong",
-        )}
+        label={label}
+        picked={selected}
+        className="inline-flex size-11 items-center justify-center rounded-full border border-rule-strong bg-sheet-2 font-mono text-sm font-semibold text-ink-soft"
       >
         {icon ? <AvatarIconMark icon={icon} size={20} /> : initials(name)}
-      </button>
+      </PickOption>
     </form>
   );
 }

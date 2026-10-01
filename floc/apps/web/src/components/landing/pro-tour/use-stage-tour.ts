@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { watchFirstView } from "@/lib/landing/scene/scene-start";
 import { nextStage } from "@/lib/landing/pro-tour";
 
 import type { WipeMode } from "./use-wipe";
@@ -21,20 +22,17 @@ export function useStageTour(count: number) {
 
   useEffect(() => {
     const node = ref.current;
-    if (!node || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    setMode("armed");
-    const wide = matchMedia("(min-width: 64rem)").matches;
-    const seen = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry?.isIntersecting) return;
-        seen.disconnect();
-        setMode("sweep");
-        setPlaying(wide);
+    if (!node) return;
+    return watchFirstView(node, {
+      onArm: ({ still }) => {
+        if (!still) setMode("armed");
       },
-      { threshold: 0.35 },
-    );
-    seen.observe(node);
-    return () => seen.disconnect();
+      onStart: ({ still }) => {
+        if (still) return;
+        setMode("sweep");
+        setPlaying(matchMedia("(min-width: 64rem)").matches);
+      },
+    });
   }, []);
 
   useEffect(() => {

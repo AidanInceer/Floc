@@ -1,0 +1,61 @@
+@layer components {
+  /* The Pro tour: a dashed trip line, inked in pen up to the stage on show. */
+  .pro-steps { position: relative; }
+  .pro-steps::before, .pro-steps::after { content: ""; position: absolute; top: 10px; left: 12.5%; height: 4px; border-radius: 4px; }
+  .pro-steps::before { right: 12.5%; background: repeating-linear-gradient(90deg, var(--rule-2) 0 10px, transparent 10px 16px); }
+  .pro-steps::after { width: calc(75% * var(--at) / (var(--n) - 1)); background: var(--pen); transition: width 0.6s var(--ease); }
+
+  /* The free | Pro wiper. Gold says Pro did it; the row's pastel says which part of the trip it touched. */
+  .pro-wipe, .pro-item { --bounce: cubic-bezier(0.34, 1.56, 0.5, 1); }
+  :is(.pro-row, .pro-item)[data-tone="blue"] { --t: var(--pastel-blue); --t-ink: var(--pastel-blue-ink); }
+  :is(.pro-row, .pro-item)[data-tone="green"] { --t: var(--pastel-green); --t-ink: var(--pastel-green-ink); }
+  :is(.pro-row, .pro-item)[data-tone="yellow"] { --t: var(--pastel-yellow); --t-ink: var(--pastel-yellow-ink); }
+  :is(.pro-row, .pro-item)[data-tone="red"] { --t: var(--pastel-red); --t-ink: var(--pastel-red-ink); }
+  .pro-tile {
+    display: grid; place-items: center; width: 28px; height: 28px; flex-shrink: 0; border-radius: 9px;
+    background: var(--sheet-2); color: var(--ink-3); transition: background-color 0.3s var(--ease), color 0.3s var(--ease);
+  }
+  .pro-layer { background: var(--sheet-2); }
+  .pro-layer[data-layer="pro"] { background: var(--sheet); clip-path: inset(0 calc((1 - var(--x)) * 100%) 0 0); }
+  .pro-layer[data-layer="pro"] .pro-tile { background: var(--t); color: var(--t-ink); }
+  .pro-val { justify-self: end; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; color: var(--ink-3); }
+  .pro-layer[data-layer="pro"] .pro-val { color: var(--t-ink); font-weight: 500; }
+  .pro-row { z-index: 0; }
+  .pro-layer[data-layer="pro"] .pro-row::before {
+    content: ""; position: absolute; inset: 4px -8px; z-index: -1; border-radius: 10px; background: var(--t); opacity: 0;
+  }
+  .pro-row[data-lit]::before { animation: pro-hit 0.7s var(--ease) both; }
+  .pro-row[data-lit] .pro-tile { animation: pro-pop 0.55s var(--bounce) both; }
+  .pro-row[data-lit] .pro-val { animation: pro-val 0.55s var(--bounce) 0.06s both; }
+  .pro-row[data-lit] .pro-star { animation: pro-star 0.6s var(--bounce) 0.12s both; }
+  .pro-row:not([data-lit]) .pro-star { opacity: 0; }
+  .pro-wipe-bar { left: calc(var(--x) * 100%); }
+  .pro-wipe-bar::before { content: ""; position: absolute; left: -1.5px; top: 0; bottom: 0; width: 3px; background: var(--pro-gold); }
+  .pro-tag {
+    position: absolute; top: -28px; display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: 99px; white-space: nowrap;
+    font-family: var(--type); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; transition: opacity 0.2s var(--ease);
+  }
+  .pro-tag-pro { right: 8px; background: var(--pro-gold); color: var(--pro); }
+  .pro-tag-free { left: 8px; background: var(--sheet-3); color: var(--ink-2); }
+  .pro-wipe[data-start] .pro-tag-pro, .pro-wipe[data-end] .pro-tag-free { opacity: 0; }
+  .pro-grip:focus-visible { outline: 2px solid var(--pen); outline-offset: 3px; }
+  .pro-item {
+    border: 1px dashed var(--rule-2); color: var(--ink-3);
+    transition: background-color 0.3s var(--ease), border-color 0.3s var(--ease), color 0.3s var(--ease);
+  }
+  .pro-item[data-lit] { border-style: solid; background: var(--sheet); color: var(--ink); animation: pro-lift 0.5s var(--bounce) both; }
+  .pro-item[data-lit] .pro-tile { background: var(--t); color: var(--t-ink); animation: pro-pop 0.5s var(--bounce) both; }
+  .pro-item .pro-star { opacity: 0; transform: scale(0.2) rotate(-90deg); transition: opacity 0.25s var(--ease), transform 0.5s var(--bounce); }
+  .pro-item[data-lit] .pro-star { opacity: 1; transform: none; }
+  @keyframes pro-hit { 0% { opacity: 0; transform: scaleX(0.9); } 35% { opacity: 1; transform: scaleX(1.02); } 100% { opacity: 0.55; transform: none; } }
+  @keyframes pro-pop { 0% { transform: scale(0.6); } 60% { transform: scale(1.18); } 100% { transform: none; } }
+  @keyframes pro-val { 0% { opacity: 0.2; transform: translateX(10px) scale(0.92); } 100% { opacity: 1; transform: none; } }
+  @keyframes pro-star { 0% { opacity: 0; transform: scale(0.2) rotate(-90deg); } 100% { opacity: 1; transform: none; } }
+  @keyframes pro-lift { 0% { transform: scale(0.94); } 60% { transform: scale(1.04); } 100% { transform: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .pro-steps::after, .pro-item, .pro-item .pro-star { transition: none; }
+    .pro-row[data-lit]::before, .pro-row[data-lit] .pro-tile, .pro-row[data-lit] .pro-val, .pro-row[data-lit] .pro-star,
+    .pro-item[data-lit], .pro-item[data-lit] .pro-tile { animation: none; }
+    .pro-layer[data-layer="pro"] .pro-row[data-lit]::before { opacity: 0.55; }
+  }
+}

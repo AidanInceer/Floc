@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { Avatar, cx } from "@/components/system/ui";
 import { ProStar } from "@/components/system/pro-star";
+import "./account-menu.css";
 
 function Field({ href, label, children }: { href: string; label: string; children: React.ReactNode }) {
   return (

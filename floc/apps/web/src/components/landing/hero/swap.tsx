@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { cx } from "@/components/system/ui";
+import "./hero.css";
 
 /** A figure that changes slides the old value out and the new one in — never counts. */
 export function Swap({ on, from, to, className }: { on: boolean; from: ReactNode; to: ReactNode; className?: string }) {

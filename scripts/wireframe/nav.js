@@ -9,7 +9,7 @@ window.WF = (function () {
     ["Design playground", ["Concept art", "Logos", "Type & fonts"]],
   ];
   var PLAYGROUND = "Design playground";
-  var TONES = { shipped: "Shipped", chosen: "Chosen", exploring: "Exploring", parked: "Parked" };
+  var TONES = { shipped: "Shipped", chosen: "Chosen", exploring: "Exploring", experiment: "Experiment", parked: "Parked" };
 
   function esc(s) {
     return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; });
@@ -29,6 +29,8 @@ window.WF = (function () {
     var pick = (rest.match(/^([A-Z0-9+ ]{1,7})(?:,|$)/) || [])[1];
     if (word === "shipped") return { tone: "shipped", tag: "Shipped", note: rest };
     if (word === "chosen") return { tone: "chosen", tag: "Chosen" + (pick ? " " + pick.trim() : ""), note: pick ? rest.slice(pick.length).replace(/^,\s*/, "") : rest };
+    // Kept to try on real visitors later, as an A/B test: not picked, not dropped.
+    if (word === "experiment") return { tone: "experiment", tag: "Experiment", note: rest };
     if (word === "parked" || word === "explored") return { tone: "parked", tag: cap(word) + (pick ? " " + pick.trim() : ""), note: pick ? rest.slice(pick.length).replace(/^,\s*/, "") : rest };
     return { tone: "exploring", tag: "Exploring", note: rest };
   }
@@ -157,7 +159,7 @@ window.WF = (function () {
         var s = sidebar(panel, items, {
           current: current,
           tone: function () { return tone; },
-          onRedraw: function () { foot.textContent = tone === "exploring" ? "Show chosen, shipped and parked (" + hidden + ")" : "Only exploring"; },
+          onRedraw: function () { foot.textContent = tone === "exploring" ? "Show chosen, experiments, shipped and parked (" + hidden + ")" : "Only exploring"; },
         });
         foot.addEventListener("click", function () { tone = tone === "exploring" ? "all" : "exploring"; s.redraw(); });
         panel.appendChild(foot);

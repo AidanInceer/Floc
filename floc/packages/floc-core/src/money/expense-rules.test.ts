@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { expenseProblem, type ExpenseDraft } from "./expense-rules";
+import { expenseFieldsProblem, expenseProblem, transferPartiesProblem, type ExpenseDraft } from "./expense-rules";
 
 const people = new Set(["ada", "mo"]);
 
@@ -69,5 +69,41 @@ describe("an expense that may be written", () => {
 
   it("refuses an expense nobody owes", () => {
     expect(expenseProblem(draft({ splits: [] }), people)).toMatch(/Somebody/);
+  });
+});
+
+describe("an expense's own fields", () => {
+  const fields = { description: "Dinner", paidBy: "ada", currency: "GBP" };
+
+  it("passes when everything is filled in", () => {
+    expect(expenseFieldsProblem(fields)).toBeNull();
+  });
+
+  it.each([
+    ["no description", { description: "" }, "Give the expense a description."],
+    ["no payer", { paidBy: "" }, "Say who paid."],
+    ["an unknown currency", { currency: "XXX" }, "Pick a currency."],
+  ])("refuses %s", (_, patch, message) => {
+    expect(expenseFieldsProblem({ ...fields, ...patch })).toBe(message);
+  });
+});
+
+describe("who a settlement may be between", () => {
+  const trip = new Set(["ada", "mo", "kim"]);
+
+  it("passes for two members when the viewer is one of them", () => {
+    expect(transferPartiesProblem(trip, "ada", "mo", "ada")).toBeNull();
+  });
+
+  it("refuses a person settling with themselves", () => {
+    expect(transferPartiesProblem(trip, "ada", "ada", "ada")).toMatchObject({ message: "A settlement is between two different people.", kind: "invalid" });
+  });
+
+  it("refuses someone who is not on the trip", () => {
+    expect(transferPartiesProblem(trip, "ada", "ada", "zed")).toMatchObject({ message: "Both people must be on the trip.", kind: "invalid" });
+  });
+
+  it("refuses a viewer who is neither side", () => {
+    expect(transferPartiesProblem(trip, "kim", "ada", "mo")).toMatchObject({ message: "Only the payer or receiver can record this.", kind: "forbidden" });
   });
 });

@@ -245,6 +245,30 @@ describe("what the input rules refuse", () => {
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 
+  it.each([
+    ["no description", { description: " " }, "Give the expense a description."],
+    ["no amount", { amountMinor: 0 }, "Enter an amount above zero."],
+    ["no payer", { paidBy: "" }, "Say who paid."],
+    ["no shares", { splits: [] }, "Somebody has to owe something."],
+  ])("refuses an expense with %s in the web form's words", async (_, patch, sentence) => {
+    const { caller: ana } = caller("u1");
+    const refused = await ana.money
+      .write({
+        tripId: 1,
+        description: "Coffee",
+        amountMinor: 350,
+        currency: "EUR",
+        category: "drinks",
+        splitType: "shares",
+        paidBy: "u1",
+        splits: [{ userId: "u1", owedAmountMinor: 350 }],
+        ...patch,
+      })
+      .catch((e: unknown) => e as Error);
+    expect(refused).toMatchObject({ code: "BAD_REQUEST" });
+    expect((refused as Error).message).toContain(sentence);
+  });
+
   it("refuses an expense with no splits, so a snapshot is never empty (rule 2)", async () => {
     const { caller: ana } = caller("u1");
     await expect(

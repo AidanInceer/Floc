@@ -1,0 +1,60 @@
+@layer components {
+  .legal-sheet {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+  }
+  .legal-sheet::backdrop { background: transparent; }
+  .legal-sheet-dim {
+    position: absolute;
+    inset: 0;
+    background: color-mix(in srgb, var(--ink) 22%, transparent);
+    opacity: 0;
+    transition: opacity 0.48s var(--ease);
+  }
+  .legal-sheet[data-open] .legal-sheet-dim { opacity: 1; }
+  .legal-sheet-panel {
+    position: absolute;
+    top: 3.5rem;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 28px 28px 0 0;
+    background: var(--sheet);
+    box-shadow: var(--shadow-lift);
+    transform: translateY(var(--rise, 100vh));
+    transition: transform 0.48s var(--ease);
+  }
+  .legal-sheet[data-open] .legal-sheet-panel { transform: none; }
+  .legal-sheet-body { flex: 1; overflow-y: auto; overscroll-behavior: contain; }
+
+  /* The bar wears the footer's ground: the blue closing band on the front door, the page elsewhere. */
+  .legal-sheet-bar { flex-shrink: 0; background: var(--paper); border-bottom: 1px solid var(--rule); }
+  body:has(.closing-ticket) .legal-sheet-bar { background: var(--pastel-blue); border-bottom-color: var(--pastel-blue-edge); }
+
+  .legal-page {
+    width: min(84rem, calc(100% - 32px));
+    margin: 24px auto 0;
+    overflow: hidden;
+    border: 1px solid var(--rule);
+    border-radius: 28px;
+    background: var(--sheet);
+    box-shadow: var(--shadow);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .legal-sheet-dim, .legal-sheet-panel { transition: none; }
+  }
+}

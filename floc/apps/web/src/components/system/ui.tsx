@@ -180,6 +180,43 @@ export function LegendKey({ swatch, label }: { swatch: string; label: string }) 
   );
 }
 
+/** The compact two- or three-way choice (ticket 239): mono words, the chosen one in pen. Each child is a button or a label round an `sr-only` radio, drawn with `segmentClass`. */
+export function Segmented({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex items-center rounded-full border border-rule-strong bg-sheet p-0.5">
+      {children}
+    </div>
+  );
+}
+
+// `focus-within`, not `focus-visible`: a segment is sometimes a label wrapping an
+// `sr-only` radio, and the ring has to land on the shape, not the hidden input.
+export const segmentClass = (on: boolean): string =>
+  cx(
+    "rounded-full px-2 py-1 font-mono text-[10.5px] uppercase tracking-[0.06em] transition-colors sm:px-3 focus-within:outline focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-pen",
+    on ? "bg-pen text-sheet" : "text-ink-soft hover:bg-sheet-2 hover:text-ink",
+  );
+
+/** One choice in a grid of them — a colour, a mark, a face, a category. The picked one wears the pen ring, so every picker says "this one" the same way. */
+export function PickOption({
+  picked,
+  label,
+  className,
+  type = "button",
+  ...props
+}: Omit<ComponentProps<"button">, "aria-pressed" | "aria-label"> & { picked: boolean; label: string }) {
+  return (
+    <button
+      {...props}
+      type={type}
+      aria-pressed={picked}
+      aria-label={label}
+      title={label}
+      className={cx("lift", picked && "outline outline-2 outline-offset-2 outline-pen", className)}
+    />
+  );
+}
+
 export function EmptyState({
   title,
   children,

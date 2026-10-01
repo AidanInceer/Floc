@@ -8,13 +8,12 @@ import { ConfirmSubmit } from "@/components/system/client-ui";
 import { InlineRename } from "@/components/system/inline-rename";
 import { TEXT_CAPS } from "@floc/core/text/text";
 import {
-  CheckGlyph,
-  CrossGlyph,
   SelectLineBox,
   squareButton,
   tickBoxBase,
   tickBoxClass,
 } from "@/components/packing/packing-glyphs";
+import { CheckIcon, CrossIcon } from "@/components/system/icons";
 import { PackingStepper } from "@/components/packing/packing-quantity";
 
 /**
@@ -83,7 +82,7 @@ export function PersonalPackingRow({
           aria-label={packed ? `Unpack ${label}` : `Mark ${label} packed`}
           className={cx(tickBoxBase, tickBoxClass(packed))}
         >
-          <CheckGlyph />
+          <CheckIcon />
         </button>
       </form>
 
@@ -134,7 +133,7 @@ export function PersonalPackingRow({
             "!text-ink-faint hover:!bg-red-soft hover:!text-red",
           )}
         >
-          <CrossGlyph />
+          <CrossIcon />
         </ConfirmSubmit>
       </form>
     </li>

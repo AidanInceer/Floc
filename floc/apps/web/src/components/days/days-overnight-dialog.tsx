@@ -5,9 +5,10 @@
  * the whole gesture for anyone who can't drag; the last-day field does a
  * fortnight in one keystroke.
  */
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 
 import { PlacePicker, type PlacePickerResult } from "@/components/social/place-picker";
+import { Dialog } from "@/components/system/dialog";
 import { Button, Field, Input } from "@/components/system/ui";
 import {
   describeSpan,
@@ -40,13 +41,8 @@ export function OvernightDialog({
   onSave: (end: string, place: OvernightPlace) => void;
   onClear: () => void;
 }) {
-  const ref = useRef<HTMLDialogElement>(null);
   const [pick, setPick] = useState<PlacePickerResult | null>(null);
   const [end, setEnd] = useState(span.end);
-
-  useEffect(() => {
-    if (!ref.current?.open) ref.current?.showModal();
-  }, []);
 
   const save = () => {
     // An untouched picker means the span keeps the place it already had — the
@@ -67,13 +63,11 @@ export function OvernightDialog({
   };
 
   return (
-    <dialog
-      ref={ref}
+    <Dialog
+      open
       onClose={onClose}
-      onClick={(ev) => {
-        if (ev.target === ref.current) onClose();
-      }}
-      className="m-auto w-full max-w-md rounded-lg bg-sheet p-0 text-ink shadow-card backdrop:bg-black/30"
+      title={`Overnight — ${describeSpan(days, span)}`}
+      className="m-auto w-full max-w-md rounded-lg bg-sheet p-0 text-ink shadow-card backdrop:bg-black/40"
     >
       <div className="flex items-center justify-between border-b border-rule px-4 py-3">
         <h2 className="font-display text-base font-semibold">
@@ -139,6 +133,6 @@ export function OvernightDialog({
           <p className="text-[11px] text-ink-faint">{OFFSITE_NOTE}</p>
         </div>
       ) : null}
-    </dialog>
+    </Dialog>
   );
 }

@@ -38,19 +38,3 @@ export const TILE_ATTRIBUTION = MAPTILER_KEY
 
 /** OSM tiles top out at 19; MapTiler goes higher, but 19 is plenty here. */
 export const MAX_ZOOM = 19;
-
-/**
- * Why: a still map (landing borrow cards) cannot be zoomed, so its labels must read as they are.
- * MapTiler's `streets-v2` raster paints them in English (Tokyo, not 東京); no key → OSM in local script, rule 11.
- */
-export function stillTileUrl(zoom: number, x: number, y: number): string {
-  return MAPTILER_KEY
-    ? `https://api.maptiler.com/maps/streets-v2/256/${zoom}/${x}/${y}@2x.png?key=${MAPTILER_KEY}`
-    : `https://tile.openstreetmap.org/${zoom}/${x}/${y}.png`;
-}
-
-const OSM_CREDIT = { name: "OpenStreetMap contributors", href: "https://www.openstreetmap.org/copyright" };
-
-export const STILL_TILE_CREDITS = MAPTILER_KEY
-  ? [{ name: "MapTiler", href: "https://www.maptiler.com/copyright/" }, OSM_CREDIT]
-  : [OSM_CREDIT];

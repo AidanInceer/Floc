@@ -18,6 +18,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 
 import { Button, ErrorText, Input } from "@/components/system/ui";
 import { SubmitButton } from "@/components/system/client-ui";
+import { PencilIcon } from "@/components/system/icons";
 
 type RenameState = { error?: string; saved?: number };
 
@@ -105,24 +106,5 @@ export function TripNameInline({
       </span>
       {state.error ? <ErrorText>{state.error}</ErrorText> : null}
     </form>
-  );
-}
-
-function PencilIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="13"
-      height="13"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M4 20h4L20 8l-4-4L4 16v4Z" />
-      <path d="M14.5 5.5 18.5 9.5" />
-    </svg>
   );
 }

@@ -15,6 +15,7 @@ import { TripFeature } from "@/components/trip/trip-feature";
 import { TripShelfCard } from "@/components/trip/trip-shelf-card";
 import { NewTripForm } from "@/components/trip/new-trip-form";
 import { acceptTripInvite, createTrip, declineTripInvite } from "./actions";
+import "./past-trips.css";
 
 export const metadata = { title: "My trips" };
 

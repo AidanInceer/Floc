@@ -1,8 +1,4 @@
-/**
- * The two marks and the one button shape both packing rows share (tickets 219,
- * 220). Hand-drawn line art on a 14×14 box like every other icon here — no
- * icon font, no emoji.
- */
+/** The button shapes both packing rows share (tickets 219, 220); their marks come from `system/icons`. */
 
 // `!` throughout to beat buttonBase's pill padding — Tailwind v4 specificity is
 // stylesheet order, not class-list order (same trick as `menuItemClass`).
@@ -20,74 +16,6 @@ export const tickBoxClass = (packed: boolean): string =>
 
 export const tickBoxBase =
   "inline-flex size-6 shrink-0 items-center justify-center rounded-full border sm:size-7";
-
-export function CheckGlyph() {
-  return (
-    <svg
-      width={13}
-      height={13}
-      viewBox="0 0 14 14"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.25}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M2.5 7.5 5.5 10.5 11.5 3.5" />
-    </svg>
-  );
-}
-export function CrossGlyph() {
-  return (
-    <svg
-      width={13}
-      height={13}
-      viewBox="0 0 14 14"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.25}
-      strokeLinecap="round"
-      aria-hidden
-    >
-      <path d="M3.5 3.5 10.5 10.5M10.5 3.5 3.5 10.5" />
-    </svg>
-  );
-}
-
-export function MinusGlyph() {
-  return (
-    <svg
-      width={13}
-      height={13}
-      viewBox="0 0 14 14"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.25}
-      strokeLinecap="round"
-      aria-hidden
-    >
-      <path d="M3.5 7h7" />
-    </svg>
-  );
-}
-
-export function PlusGlyph() {
-  return (
-    <svg
-      width={13}
-      height={13}
-      viewBox="0 0 14 14"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.25}
-      strokeLinecap="round"
-      aria-hidden
-    >
-      <path d="M3.5 7h7M7 3.5v7" />
-    </svg>
-  );
-}
 
 /**
  * The select box on a row (ticket 229). A real checkbox, associated to the bulk

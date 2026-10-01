@@ -1,0 +1,94 @@
+@layer components {
+  /* "Borrow a trip to …": the Explore shelf on a globe. The place rolls in on its
+     pastel; the globe and its plane are drawn on a canvas (globe/spin-globe). */
+  .borrow-word {
+    display: inline-block;
+    margin-inline: -0.1em;
+    padding: 0 0.1em;
+    border-radius: 0.14em;
+  }
+  .borrow-roll {
+    display: inline-block;
+    animation: borrow-roll 0.5s var(--ease) both;
+  }
+  @keyframes borrow-roll {
+    from { opacity: 0; transform: translateY(0.22em); }
+  }
+  .borrow-spin {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 420px) minmax(0, 1fr);
+    align-items: center;
+    gap: 26px 36px;
+    max-width: 70rem;
+    margin: 36px auto 0;
+  }
+  .borrow-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .borrow-list[data-side="left"] { align-items: flex-end; }
+  .borrow-list[data-side="right"] { align-items: flex-start; }
+  /* The middle chip steps out, so the two columns follow the globe's curve. */
+  .borrow-list[data-side="left"] li:nth-child(2) { translate: -30px 0; }
+  .borrow-list[data-side="right"] li:nth-child(2) { translate: 30px 0; }
+  .borrow-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    width: 250px;
+    padding: 12px 14px 13px;
+    text-align: left;
+    font-size: 11.5px;
+    background: var(--sheet);
+    border: 1.5px solid transparent;
+    border-radius: 18px;
+    box-shadow: var(--shadow-sm);
+    transition: border-color 0.18s var(--ease), box-shadow 0.18s var(--ease), scale 0.3s var(--ease);
+  }
+  .borrow-chip:hover { border-color: var(--pastel-blue-edge); }
+  .borrow-chip[aria-current="true"] { border-color: var(--pen); box-shadow: var(--shadow-lift); scale: 1.05; }
+  .borrow-chip-title {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+  .borrow-globe {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    box-shadow: var(--shadow-lift);
+    cursor: grab;
+    /* Why: pan-y leaves a vertical swipe to the page, so the globe never traps a phone's scroll. */
+    touch-action: pan-y;
+  }
+  .borrow-globe:active { cursor: grabbing; }
+  /* See every trip holds the centre whatever the length of the place name beside it. */
+  .borrow-bar {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+  }
+  .borrow-go { justify-self: end; }
+  .borrow-start { justify-self: start; white-space: nowrap; }
+  @media (max-width: 900px) {
+    .borrow-spin { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 34px; }
+    .borrow-globe { grid-column: 1 / -1; order: -2; justify-self: center; max-width: 320px; }
+    .borrow-bar { order: -1; grid-template-columns: auto auto; justify-content: center; margin: 10px 0 12px; }
+    .borrow-every { grid-column: 1 / -1; justify-self: center; order: -1; }
+    .borrow-list { display: contents; }
+    .borrow-list[data-side] li:nth-child(2) { translate: none; }
+    .borrow-chip { width: 100%; height: 100%; padding: 10px 12px 11px; border-radius: 16px; font-size: 10px; }
+    .borrow-chip-title { font-size: 14.5px; }
+    .borrow-chip[aria-current="true"] { scale: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .borrow-roll { animation: none; }
+    .borrow-chip { transition: none; }
+  }
+}

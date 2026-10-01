@@ -6,6 +6,7 @@ import type { LaneRow } from "@/lib/landing/agent/agent-lanes";
 import { Swap } from "../hero/swap";
 import { Glyph, type GlyphName } from "../landing-glyph";
 import { sampleGroup, sampleStops } from "../sample-trip";
+import "../hero/hero.css";
 
 const ROWS: { row: LaneRow; glyph: GlyphName; name: string; count: string }[] = [
   { row: "booked", glyph: "stay", name: "Booked", count: "8" },

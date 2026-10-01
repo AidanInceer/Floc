@@ -14,13 +14,7 @@ import { useRef, useState, type ReactNode } from "react";
 
 import { uploadDocument } from "@/app/trip/[id]/files/actions";
 import { ActionForm, Sheet, SubmitButton } from "@/components/system/client-ui";
-import {
-  SegmentedField,
-  segmentOff,
-  segmentOn,
-  segmentShape,
-} from "@/components/packing/packing-card";
-import { Select, SheetFooter, cx } from "@/components/system/ui";
+import { Segmented, Select, SheetFooter, cx, segmentClass } from "@/components/system/ui";
 import {
   DOCUMENT_ACCEPT,
   DOC_CATEGORIES,
@@ -185,7 +179,7 @@ function ScopeChoice({ initial }: { initial: "shared" | "private" }) {
   return (
     <fieldset className="min-w-0">
       <legend className={cx(LABEL, "mb-1.5")}>Who can see it</legend>
-      <SegmentedField>
+      <Segmented>
         {(
           [
             ["shared", "Everyone"],
@@ -194,11 +188,7 @@ function ScopeChoice({ initial }: { initial: "shared" | "private" }) {
         ).map(([value, label]) => (
           <label
             key={value}
-            className={cx(
-              segmentShape,
-              "flex-1 cursor-pointer py-1.5 text-center",
-              scope === value ? segmentOn : segmentOff,
-            )}
+            className={cx(segmentClass(scope === value), "flex-1 cursor-pointer py-1.5 text-center")}
           >
             <input
               type="radio"
@@ -211,7 +201,7 @@ function ScopeChoice({ initial }: { initial: "shared" | "private" }) {
             {label}
           </label>
         ))}
-      </SegmentedField>
+      </Segmented>
     </fieldset>
   );
 }

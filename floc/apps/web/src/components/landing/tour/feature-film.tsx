@@ -9,6 +9,7 @@ import { FILM_COPIES, nearestCopy, nearestSlide, recentre } from "@/lib/landing/
 
 import { Glyph } from "../landing-glyph";
 import type { SlideTone, TourSlide } from "./tour-slides";
+import "./feature-film.css";
 
 export type FilmSlide = TourSlide & { shot: ReactNode };
 

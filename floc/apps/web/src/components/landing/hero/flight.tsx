@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-import { flightPoint, TRAIL_D, TRAIL_H, TRAIL_W } from "@/lib/landing/hero/flight-path";
+import { flightPoint, PLANE_D, TRAIL_D, TRAIL_H, TRAIL_W } from "@/lib/landing/hero/flight-path";
 
 import { FLIGHT_MS } from "./beats";
 
@@ -43,7 +43,7 @@ export function Flight({ flying }: { flying: boolean }) {
       </svg>
       <span ref={plane} className="deck-plane">
         <svg viewBox="0 0 24 24">
-          <path d="M23 12c0-1-1-1.4-2-1.4h-6L9.5 3h-2l3 7.6H5L3.2 8H1.6l1 4-1 4h1.6L5 13.4h5.5l-3 7.6h2l5.5-7.6h6c1 0 2-.4 2-1.4Z" />
+          <path d={PLANE_D} />
         </svg>
       </span>
     </div>

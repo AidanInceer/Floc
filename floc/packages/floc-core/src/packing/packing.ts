@@ -79,6 +79,8 @@ export function resolvePackTier(
  * Floored at 1 because zero of a thing is a removal, which the row already has
  * a button for.
  */
+export const NO_PACK_LABEL = "A thing to pack needs a name.";
+
 export const MIN_PACK_QUANTITY = 1;
 export const MAX_PACK_QUANTITY = 99;
 

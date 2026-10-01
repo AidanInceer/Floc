@@ -1,6 +1,7 @@
 import { AgentScene } from "./agent-scene";
 import { WhileYouWait } from "./while-you-wait";
 import { ComingSoonTag } from "../coming-soon-tag";
+import "./agent.css";
 
 /** The pocket travel agent: not built yet, so the band says it is coming, and offers the assistants people already use. */
 export function AgentBand({ origin }: { origin: string }) {

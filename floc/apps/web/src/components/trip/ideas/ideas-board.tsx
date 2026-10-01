@@ -14,6 +14,7 @@ import {
   type IdeaRow,
   type IdeaSort,
 } from "@floc/core/trip/ideas";
+import { ArrowUpIcon, CrossIcon } from "@/components/system/icons";
 
 const SORT_KEY = "floc:ideas-sort";
 
@@ -101,7 +102,7 @@ function IdeaCard({ tripId, idea }: { tripId: number; idea: IdeaRow }) {
             aria-label={`${idea.mine ? "Take back your vote for" : "Vote for"} “${idea.title}” — ${voteLabel(idea.votes, idea.mine)}`}
             className={cx("!px-3", idea.mine && "!border-green-edge !bg-green-soft !text-green")}
           >
-            <ArrowGlyph />
+            <ArrowUpIcon />
             <span className="nums">{idea.votes}</span>
           </Button>
         </form>
@@ -114,7 +115,7 @@ function IdeaCard({ tripId, idea }: { tripId: number; idea: IdeaRow }) {
             aria-label={`Remove “${idea.title}”`}
             className="!px-2 !text-red hover:!bg-red-soft hover:!text-red"
           >
-            <CrossGlyph />
+            <CrossIcon />
           </Button>
         </form>
       </div>
@@ -122,31 +123,3 @@ function IdeaCard({ tripId, idea }: { tripId: number; idea: IdeaRow }) {
   );
 }
 
-const glyph = {
-  viewBox: "0 0 14 14",
-  width: 13,
-  height: 13,
-  fill: "none",
-  stroke: "currentColor",
-  strokeWidth: 1.2,
-  strokeLinecap: "round",
-  strokeLinejoin: "round",
-  "aria-hidden": true,
-} as const;
-
-function ArrowGlyph() {
-  return (
-    <svg {...glyph}>
-      <path d="M7 11.2V3.2M3.6 6.6 7 3.2l3.4 3.4" />
-    </svg>
-  );
-}
-
-// The app draws the same cross for the same job — one mark, both surfaces.
-function CrossGlyph() {
-  return (
-    <svg {...glyph}>
-      <path d="M3.8 3.8l6.4 6.4M10.2 3.8l-6.4 6.4" />
-    </svg>
-  );
-}

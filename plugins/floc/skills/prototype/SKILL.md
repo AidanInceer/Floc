@@ -88,6 +88,7 @@ What has worked, round by round, on the landing wireframes:
 | Built, or a new round added | `Exploring: A–I` | |
 | The user picks one | `Chosen: G2` | Add `<meta name="wf-picked" content="YYYY-MM-DD">`. Set sibling folders that asked the same question to `Parked: <why>, chosen in <folder>`. |
 | A direction is dropped for now | `Parked: D, <why>` | |
+| Kept to try on real visitors later, as an A/B test | `Experiment: I1, I2, <what it would test>` | Not picked and not dropped. List only the kept variants in the page. |
 | `/floc:push` lands the build on `develop` | `Chosen: G2, on develop <version>` | `/floc:push` does this. |
 | `/floc:release` deploys it | `Shipped <version>` (`Shipped <version> as G2` if it had variants) | `/floc:release` does this after the deploy reports `success`. |
 

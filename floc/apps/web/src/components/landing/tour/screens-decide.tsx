@@ -3,6 +3,7 @@ import { Avatar, cx } from "@/components/system/ui";
 import { Glyph } from "../landing-glyph";
 import { alex, jo, kit, priya, sampleGroup } from "../sample-trip";
 import { FakeButton, ScreenFrame } from "./screen-frame";
+import { ArrowUpIcon } from "@/components/system/icons";
 
 const IDEAS = [
   { title: "Sicily: food, beaches, one flight", by: priya, when: "2d ago", votes: 5, mine: true },
@@ -10,14 +11,6 @@ const IDEAS = [
   { title: "Puglia, cheap in September", by: jo, when: "1d ago", votes: 1, mine: false },
   { title: "Lisbon and the coast", by: alex, when: "5h ago", votes: 1, mine: false },
 ];
-
-function UpGlyph() {
-  return (
-    <svg viewBox="0 0 14 14" width={13} height={13} fill="none" stroke="currentColor" strokeWidth={1.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M7 11.2V3.2M3.6 6.6 7 3.2l3.4 3.4" />
-    </svg>
-  );
-}
 
 export function WhereScreen() {
   return (
@@ -55,7 +48,7 @@ export function WhereScreen() {
                       idea.mine ? "border-green-edge bg-green-soft text-green" : "border-rule text-ink-soft",
                     )}
                   >
-                    <UpGlyph />
+                    <ArrowUpIcon />
                     <span className="nums">{idea.votes}</span>
                   </span>
                 </div>

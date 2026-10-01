@@ -6,6 +6,7 @@ import type { MarkBeat } from "@/lib/landing/agent/agent-timeline";
 import { Swap } from "../hero/swap";
 import { Glyph } from "../landing-glyph";
 import { sam, sampleStops } from "../sample-trip";
+import "../hero/hero.css";
 
 // Illustrative sample, not a live query — what Floc made of each ask in Priya's brief.
 const WEEK = [["S", 12, 27], ["M", 13, 28], ["T", 14, 26], ["W", 15, 25], ["T", 16, 14], ["F", 17, 26], ["S", 18, 26], ["S", 19, 25]] as const;
