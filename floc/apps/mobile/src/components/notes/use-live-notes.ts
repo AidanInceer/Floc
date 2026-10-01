@@ -6,17 +6,17 @@
  */
 import { HocuspocusProvider, HocuspocusProviderWebsocket } from "@hocuspocus/provider";
 import { pageDocumentName, pagesDocumentName } from "@floc/core/notes/live/live-names";
-import { liveUser, peopleByPage, presentPeople, type PresentPerson } from "@floc/core/notes/live/live-presence";
-import { liveStatus, type LiveStatus } from "@floc/core/notes/live/live-status";
+import { type PresentPerson } from "@floc/core/notes/live/live-presence";
+import { openLivePage, openPageList, type LivePageState, type PageListSession } from "@floc/core/notes/live/live-session";
+import { type LiveStatus } from "@floc/core/notes/live/live-status";
 import { useEffect, useState } from "react";
 import * as Y from "yjs";
 
 import { authClient } from "@/lib/auth";
 import { API_BASE_URL } from "@/lib/config";
-import { readCachedNotes, writeCachedNotes } from "@/lib/notes/live-cache";
+import { fileCache } from "@/lib/notes/live-cache";
 import { liveNotesUrl } from "@/lib/notes/live-url";
 
-const CACHE_AFTER_MS = 500;
 const TOKEN = "session";
 
 // Why the cast: the DOM typings know two arguments; React Native takes headers as a third.
@@ -48,37 +48,33 @@ export function useNotesSocket(): HocuspocusProviderWebsocket | null {
 
 type Viewer = { id: string; name: string } | null;
 
+const attach = (provider: HocuspocusProvider) => {
+  provider.attach();
+  return provider;
+};
+
 /** Who has which page open, and a call whenever anyone changes the list or its comments. */
 export function usePageList(socket: HocuspocusProviderWebsocket | null, tripId: number, openPage: number | null, viewer: Viewer, onChanged: () => void) {
-  const [provider, setProvider] = useState<HocuspocusProvider | null>(null);
+  const [session, setSession] = useState<PageListSession | null>(null);
   const [byPage, setByPage] = useState(new Map<number, PresentPerson[]>());
 
   useEffect(() => {
     if (!socket || !Number.isFinite(tripId)) return;
-    const made = new HocuspocusProvider({ websocketProvider: socket, name: pagesDocumentName(tripId), token: TOKEN });
-    made.attach();
-    const awareness = made.awareness;
-    const update = () => {
-      const states = new Map([...(awareness?.getStates() ?? new Map<number, unknown>())].filter(([client]) => client !== awareness?.clientID));
-      setByPage(peopleByPage(states));
-    };
-    awareness?.on("change", update);
-    made.on("stateless", ({ payload }: { payload: string }) => {
-      if (payload === "pages") onChanged();
+    const made = openPageList({
+      connect: () => attach(new HocuspocusProvider({ websocketProvider: socket, name: pagesDocumentName(tripId), token: TOKEN })),
+      onPeople: setByPage,
+      onChanged,
     });
-    setProvider(made);
+    setSession(made);
     return () => {
-      awareness?.off("change", update);
-      made.destroy();
-      setProvider(null);
+      made.close();
+      setSession(null);
     };
   }, [socket, tripId, onChanged]);
 
   useEffect(() => {
-    if (!provider?.awareness || !viewer) return;
-    provider.awareness.setLocalStateField("user", liveUser(viewer));
-    provider.awareness.setLocalStateField("page", openPage);
-  }, [provider, openPage, viewer]);
+    if (viewer) session?.announce(viewer, openPage);
+  }, [session, openPage, viewer]);
 
   return byPage;
 }
@@ -87,51 +83,26 @@ export type LivePage = { name: string; doc: Y.Doc; provider: HocuspocusProvider;
 
 export function useLivePage(socket: HocuspocusProviderWebsocket | null, tripId: number, pageId: number | null): LivePage | null {
   const [live, setLive] = useState<{ name: string; doc: Y.Doc; provider: HocuspocusProvider } | null>(null);
-  const [status, setStatus] = useState<LiveStatus>("saving");
-  const [people, setPeople] = useState<PresentPerson[]>([]);
+  const [state, setState] = useState<LivePageState>({ status: "saving", people: [] });
 
   useEffect(() => {
     if (!socket || pageId === null) return;
     const name = pageDocumentName(tripId, pageId);
-    const doc = new Y.Doc();
-    const cached = readCachedNotes(name);
-    if (cached) Y.applyUpdate(doc, cached);
-    const provider = new HocuspocusProvider({ websocketProvider: socket, name, document: doc, token: TOKEN });
-    provider.attach();
-
-    let failed = false;
-    const update = () =>
-      setStatus(liveStatus({ connected: socket.status === "connected", synced: provider.isSynced, unsynced: provider.unsyncedChanges, failed }));
-    const who = () => setPeople(presentPeople(provider.awareness?.getStates() ?? new Map()));
-    provider.on("status", update);
-    socket.on("status", update);
-    provider.on("synced", update);
-    provider.on("unsyncedChanges", update);
-    provider.on("authenticationFailed", () => {
-      failed = true;
-      update();
+    const session = openLivePage({
+      name,
+      // Why the name: the phone cannot learn the page's epoch before it connects, so it keeps one cache per page.
+      cacheKey: name,
+      socket,
+      cache: fileCache,
+      connect: (doc) => attach(new HocuspocusProvider({ websocketProvider: socket, name, document: doc, token: TOKEN })),
+      onChange: setState,
     });
-    provider.awareness?.on("change", who);
-
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const keep = () => {
-      clearTimeout(timer);
-      timer = setTimeout(() => writeCachedNotes(name, Y.encodeStateAsUpdate(doc)), CACHE_AFTER_MS);
-    };
-    doc.on("update", keep);
-
-    setLive({ name, doc, provider });
+    setLive({ name, doc: session.doc, provider: session.provider });
     return () => {
-      clearTimeout(timer);
-      doc.off("update", keep);
-      writeCachedNotes(name, Y.encodeStateAsUpdate(doc));
-      socket.off("status", update);
-      provider.awareness?.off("change", who);
-      provider.destroy();
-      doc.destroy();
+      session.close();
       setLive(null);
     };
   }, [socket, tripId, pageId]);
 
-  return live && { ...live, status, people };
+  return live && { ...live, ...state };
 }

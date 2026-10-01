@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import * as Y from "yjs";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const disk = new Map<string, Uint8Array>();
 
@@ -32,13 +33,17 @@ vi.mock("expo-file-system", () => {
     write(bytes: Uint8Array) {
       disk.set(this.uri, bytes);
     }
+    delete() {
+      disk.delete(this.uri);
+    }
   }
   return { Directory, File, Paths: { document: "doc" } };
 });
 
-const { forgetCachedNotes, readCachedNotes, writeCachedNotes } = await import("./live-cache");
+const { fileCache, forgetCachedNotes, readCachedNotes, writeCachedNotes } = await import("./live-cache");
 
 beforeEach(() => disk.clear());
+afterEach(() => vi.useRealTimers());
 
 describe("the notes pages kept on the phone", () => {
   it("reads back what was written, per page", () => {
@@ -58,5 +63,40 @@ describe("the notes pages kept on the phone", () => {
     forgetCachedNotes();
     expect(readCachedNotes("trip-page:1:4")).toBeNull();
     expect(() => forgetCachedNotes()).not.toThrow();
+  });
+});
+
+describe("the phone's page cache", () => {
+  const key = "trip-page:1:4";
+
+  it("starts a doc from what was kept under the key", () => {
+    const kept = new Y.Doc();
+    kept.getText("t").insert(0, "offline edit");
+    writeCachedNotes(key, Y.encodeStateAsUpdate(kept));
+    const doc = new Y.Doc();
+    fileCache.open(key, doc);
+    expect(doc.getText("t").toString()).toBe("offline edit");
+  });
+
+  it("saves a change shortly after it happens", () => {
+    vi.useFakeTimers();
+    const doc = new Y.Doc();
+    fileCache.open(key, doc);
+    doc.getText("t").insert(0, "typed");
+    expect(readCachedNotes(key)).toBeNull();
+    vi.advanceTimersByTime(600);
+    const back = new Y.Doc();
+    Y.applyUpdate(back, readCachedNotes(key)!);
+    expect(back.getText("t").toString()).toBe("typed");
+  });
+
+  it("saves the latest state when closed before the delay passes", () => {
+    vi.useFakeTimers();
+    const doc = new Y.Doc();
+    const handle = fileCache.open(key, doc);
+    doc.getText("t").insert(0, "last words");
+    handle.destroy();
+    expect(readCachedNotes(key)).not.toBeNull();
+    vi.advanceTimersByTime(600);
   });
 });

@@ -25,7 +25,7 @@
  * because it does not need one: the bag on screen is already the list, so
  * `saveKit` names it. Editing the contents of a saved kit stays a desk job.
  */
-import { PACK_CATEGORIES, PACK_TIERS } from "@floc/core/packing/packing";
+import { NO_PACK_LABEL, PACK_CATEGORIES, PACK_TIERS } from "@floc/core/packing/packing";
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { z } from "zod";
 
@@ -36,7 +36,7 @@ const lineId = z.number().int().positive();
 const label = z
   .string()
   .trim()
-  .min(1, "A thing to pack needs a name.")
+  .min(1, NO_PACK_LABEL)
   .max(TEXT_CAPS.packingLabel, "That name is too long.");
 
 /** Matches the host's `LIMITS.packingLines` — a list cannot offer more than it holds. */

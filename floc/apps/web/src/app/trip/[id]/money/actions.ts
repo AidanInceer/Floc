@@ -13,16 +13,14 @@ import {
 } from "@floc/core/money/expense-category";
 import type { ExpenseCategory } from "@floc/core/money/expense-category";
 import { requireTripAccess } from "@/server/access";
-import { expenseRefusal } from "@/server/money/expense-check";
+import { expenseFieldsProblem, transferPartiesProblem } from "@floc/core/money/expense-rules";
 import {
   findLiveSettlement,
   rewriteSettlement,
-  softDeleteExpense,
   softDeleteSettlement,
-  writeExpense,
-  writeSettlement,
   type Transfer,
 } from "@/server/money/money";
+import { recordTransfers, removeExpense, saveExpense } from "@/server/money/money-save";
 import type { WritableSplitType } from "@floc/core/money/money";
 import {
   computeSplits,
@@ -83,14 +81,13 @@ function readExpenseFields(formData: FormData) {
 }
 
 // One path for add and edit: an edit replaces the split set whole, never merges (ticket 12).
-async function saveExpense(formData: FormData, expenseId?: number): Promise<ActionState> {
+async function submitExpense(formData: FormData, expenseId?: number): Promise<ActionState> {
   const access = await requireTripAccess(Number(formData.get("tripId")));
   const { description, currency, paidBy, dayId, notes, category } =
     readExpenseFields(formData);
 
-  if (!description) return { error: "Give the expense a description." };
-  if (!paidBy) return { error: "Say who paid." };
-  if (!CURRENCIES.includes(currency)) return { error: "Pick a currency." };
+  const fieldsProblem = expenseFieldsProblem({ description, paidBy, currency });
+  if (fieldsProblem) return { error: fieldsProblem };
 
   const parsed = readAmount(formData, currency);
   if ("error" in parsed) return parsed;
@@ -107,39 +104,33 @@ async function saveExpense(formData: FormData, expenseId?: number): Promise<Acti
     return { error: (err as Error).message };
   }
 
-  const refusal = await expenseRefusal({
-    tripId: access.trip.id,
-    memberIds: access.members.map((m) => m.userId),
+  const refusal = await saveExpense(access, {
     expenseId,
+    description,
+    amountMinor,
+    currency,
+    category,
+    splitType,
+    paidBy,
     dayId,
-    draft: { paidBy, amountMinor, currency, splits },
-  });
-  if (refusal) return { error: refusal };
-
-  await writeExpense({
-    tripId: access.trip.id,
-    expenseId,
-    createdBy: access.viewer.id,
-    fields: { dayId, paidBy, description, amountMinor, currency, splitType, category, notes },
+    notes,
     splits,
   });
-
-  refresh({ kind: "money", tripId: access.trip.id });
-  return {};
+  return refusal ? { error: refusal.message } : {};
 }
 
 export async function addExpense(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  return saveExpense(formData);
+  return submitExpense(formData);
 }
 
 export async function updateExpense(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  return saveExpense(formData, Number(formData.get("expenseId")));
+  return submitExpense(formData, Number(formData.get("expenseId")));
 }
 
 export async function deleteExpense(formData: FormData): Promise<void> {
@@ -147,9 +138,7 @@ export async function deleteExpense(formData: FormData): Promise<void> {
   const expenseId = Number(formData.get("expenseId"));
   const access = await requireTripAccess(tripId);
 
-  await softDeleteExpense(access.trip.id, expenseId);
-
-  refresh({ kind: "money", tripId: access.trip.id });
+  await removeExpense(access, expenseId);
 }
 
 /**
@@ -192,19 +181,6 @@ async function readCrossPayment(
 
 type Access = Awaited<ReturnType<typeof requireTripAccess>>;
 
-/** Two different people, both on the trip, and the viewer one of them. */
-function partiesProblem(access: Access, fromUserId: string, toUserId: string): string | null {
-  if (!fromUserId || !toUserId || fromUserId === toUserId) {
-    return "A settlement is between two different people.";
-  }
-  const memberIds = new Set(access.members.map((m) => m.userId));
-  if (!memberIds.has(fromUserId) || !memberIds.has(toUserId)) return "Both people must be on the trip.";
-  if (access.viewer.id !== fromUserId && access.viewer.id !== toUserId) {
-    return "Only the payer or receiver can record this.";
-  }
-  return null;
-}
-
 // The record rules, shared by record and edit (#361).
 async function readTransfer(access: Access, formData: FormData): Promise<Transfer | { error: string }> {
   const fromUserId = String(formData.get("fromUserId") ?? "");
@@ -212,8 +188,13 @@ async function readTransfer(access: Access, formData: FormData): Promise<Transfe
   const currency = String(formData.get("currency") ?? "") as Currency;
 
   if (!CURRENCIES.includes(currency)) return { error: "Pick a currency." };
-  const partyProblem = partiesProblem(access, fromUserId, toUserId);
-  if (partyProblem) return { error: partyProblem };
+  const partyProblem = transferPartiesProblem(
+    new Set(access.members.map((m) => m.userId)),
+    access.viewer.id,
+    fromUserId,
+    toUserId,
+  );
+  if (partyProblem) return { error: partyProblem.message };
 
   let amountMinor: number;
   try {
@@ -256,9 +237,8 @@ export async function recordSettlement(
   const transfer = await readTransfer(access, formData);
   if ("error" in transfer) return transfer;
 
-  await writeSettlement({ tripId: access.trip.id, createdBy: access.viewer.id, ...transfer });
-  refresh({ kind: "money", tripId: access.trip.id });
-  return {};
+  const refusal = await recordTransfers(access, [transfer]);
+  return refusal ? { error: refusal.message } : {};
 }
 
 // A party to the recorded payment may correct it; last write wins (#361).

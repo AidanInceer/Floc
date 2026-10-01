@@ -14,6 +14,7 @@
  */
 import { CURRENCIES } from "@floc/core/money/currency";
 import { EXPENSE_CATEGORIES } from "@floc/core/money/expense-category";
+import { NO_AMOUNT, NO_DESCRIPTION, NO_PAYER, NO_SHARES } from "@floc/core/money/expense-rules";
 import { WRITABLE_SPLIT_TYPES } from "@floc/core/money/money";
 import { z } from "zod";
 
@@ -40,18 +41,18 @@ export const moneyRouter = router({
       z.object({
         /** Absent creates; present rewrites that expense and its whole split set. */
         expenseId: z.number().int().positive().optional(),
-        description: z.string().trim().min(1, "Say what it was for.").max(200),
-        amountMinor: minorUnits.positive("Enter an amount above zero."),
+        description: z.string().trim().min(1, NO_DESCRIPTION).max(200),
+        amountMinor: minorUnits.positive(NO_AMOUNT),
         currency: z.enum(CURRENCIES),
         category: z.enum(EXPENSE_CATEGORIES),
         // `even` and `percentage` stay readable as old snapshots, but nothing
         // writes them any more (#117) — so the wire cannot ask for one.
         splitType: z.enum(WRITABLE_SPLIT_TYPES),
-        paidBy: z.string().min(1),
+        paidBy: z.string().min(1, NO_PAYER),
         /** Filed under an itinerary day, or under none. Never a timestamp (rule 10). */
         dayId: z.number().int().positive().nullable().default(null),
         notes: z.string().max(2000).nullable().default(null),
-        splits: z.array(splitRow).min(1, "Somebody has to owe something.").max(100),
+        splits: z.array(splitRow).min(1, NO_SHARES).max(100),
       }),
     )
     .mutation(async ({ ctx, input }) => {

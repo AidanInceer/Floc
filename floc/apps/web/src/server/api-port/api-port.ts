@@ -64,16 +64,8 @@ import {
   softDeleteEvent,
   updateEventFields,
 } from "@/server/itinerary/itinerary";
-import { expenseRefusal } from "@/server/money/expense-check";
-import { Refusal } from "@floc/core/errors/refusal";
-import {
-  listExpenses,
-  listSettlements,
-  listSplits,
-  softDeleteExpense,
-  writeExpense,
-  writeSettlements,
-} from "@/server/money/money";
+import { listExpenses, listSettlements, listSplits } from "@/server/money/money";
+import { recordTransfers, removeExpense, saveExpense } from "@/server/money/money-save";
 import { listAvailability, setAvailability } from "@/server/itinerary/availability";
 import { listDocuments } from "@/server/documents/documents";
 import { bulletPage } from "@floc/core/notes/pages/page-blocks";
@@ -84,35 +76,23 @@ import {
   loadIdentity,
   updateProfileFields,
 } from "@/server/auth/profile";
+import { getPackTier, listPackingClaims, listPackingLines, listPersonalPackingLines } from "@/server/packing/packing";
 import {
-  claimPackingLine,
-  insertPackingLine,
-  insertPersonalPackingLine,
-  listPackingClaims,
-  listPackingLines,
-  listPersonalPackingLines,
-  getPackTier,
-  setPackTier,
-  softDeletePackingLines,
-  softDeleteWholeList,
-  setClaimPacked,
-  setPersonalPacked,
-  softDeletePackingLine,
-  renamePackingLineLabel,
-  stepPersonalQuantity,
-  unclaimPackingLine,
-} from "@/server/packing/packing";
-import {
-  listPackingKits,
-  applyPackingKitToBag,
-  insertPackingKit,
-  insertPackingKitItem,
-  softDeletePackingKit,
-} from "@/server/packing/packing-kits";
-import { fillPersonalBag, packingPlanFor } from "@/server/packing/packing-generator";
-import { canUseFeature, assertFeature } from "@/server/billing/entitlements";
+  addLine,
+  applyKit,
+  fillBag,
+  removeLine,
+  removeLines,
+  renameLine,
+  resetList,
+  setClaim,
+  setPacked,
+  setTier,
+  stepQuantity,
+} from "@/server/packing/packing-save";
+import { insertPackingKit, insertPackingKitItem, listPackingKits, softDeletePackingKit } from "@/server/packing/packing-kits";
+import { canUseFeature } from "@/server/billing/entitlements";
 import { resolvePackTier } from "@floc/core/packing/packing";
-import { capRequiredText } from "@floc/core/text/text";
 import { readVibeTags } from "@floc/core/trip/vibe-tags";
 import { pastTripsFor } from "@/server/auth/visibility";
 import { travelMapFor } from "@/server/itinerary/travel-map";
@@ -225,114 +205,49 @@ export const webPort: FlocPort = {
   },
 
   async addPackingLine(viewerId, tripId, input) {
-    await scoped(viewerId, tripId);
-    // Author and owner are the same person by construction on a personal line
-    // — there is no way to add to somebody else's bag from here (#220).
-    if (input.mine) await insertPersonalPackingLine(tripId, viewerId, input.label, input.category);
-    else await insertPackingLine(tripId, viewerId, input.label, input.category);
-    refresh({ kind: "packing", tripId });
+    const refusal = await addLine(await scoped(viewerId, tripId), input);
+    if (refusal) throw refusal;
   },
 
   async claimPackingLine(viewerId, tripId, lineId, claimed) {
-    const access = await scoped(viewerId, tripId);
-    // Resolved through the same resolver the web action uses: a line on
-    // another trip, or somebody else's personal line, never resolves at all.
-    const line = await access.packingLine(lineId);
-    if (claimed) await claimPackingLine(line.id, viewerId);
-    else await unclaimPackingLine(line.id, viewerId);
-    refresh({ kind: "packing", tripId });
+    await setClaim(await scoped(viewerId, tripId), lineId, claimed);
   },
 
   async setPackingPacked(viewerId, tripId, lineId, packed) {
-    const access = await scoped(viewerId, tripId);
-    const line = await access.packingLine(lineId);
-    // Which list it is on decides which row carries the tick: a shared line's
-    // tick belongs to your claim, a personal line's to the line itself.
-    if (line.ownerId === null) await setClaimPacked(line.id, viewerId, packed);
-    else await setPersonalPacked(line.id, viewerId, packed);
-    refresh({ kind: "packing", tripId });
+    await setPacked(await scoped(viewerId, tripId), lineId, packed);
   },
 
   async stepPackingQuantity(viewerId, tripId, lineId, delta) {
-    const access = await scoped(viewerId, tripId);
-    // `packingLine` resolves a personal line only for its owner, so a bag that
-    // is not yours does not exist to this call.
-    const line = await access.packingLine(lineId);
-    await stepPersonalQuantity(line.id, viewerId, delta);
-    refresh({ kind: "packing", tripId });
+    await stepQuantity(await scoped(viewerId, tripId), lineId, delta);
   },
 
   async removePackingLine(viewerId, tripId, lineId) {
-    const access = await scoped(viewerId, tripId);
-    // A shared line is anyone's to drop — the list is the group's, and one
-    // nobody wants should not outlive whoever typed it. A personal one only
-    // ever resolves for its owner, so this is already scoped.
-    const line = await access.packingLine(lineId);
-    await softDeletePackingLine(line.id, viewerId);
-    refresh({ kind: "packing", tripId });
+    await removeLine(await scoped(viewerId, tripId), lineId);
   },
 
   async renamePackingLine(viewerId, tripId, lineId, label) {
-    const access = await scoped(viewerId, tripId);
-    const line = await access.packingLine(lineId);
-    const name = capRequiredText(label, "packingLabel");
-    if (!name) throw new Refusal("A thing to pack needs a name.");
-    await renamePackingLineLabel(line.id, name);
-    refresh({ kind: "packing", tripId });
+    const refusal = await renameLine(await scoped(viewerId, tripId), lineId, label);
+    if (refusal) throw refusal;
   },
 
   async removePackingLines(viewerId, tripId, lineIds) {
-    const access = await scoped(viewerId, tripId);
-    // One resolve per id, not a filtered `IN`: the bulk shape is a convenience
-    // for the person, never a way round the per-line check (#229). A set
-    // holding somebody else's personal line throws whole.
-    const lines = await Promise.all(lineIds.map((id) => access.packingLine(id)));
-    await softDeletePackingLines(lines.map((line) => line.id), viewerId);
-    refresh({ kind: "packing", tripId });
+    await removeLines(await scoped(viewerId, tripId), lineIds);
   },
 
   async resetPackingList(viewerId, tripId, mine) {
-    await scoped(viewerId, tripId);
-    // The scope is decided here and applied in the SQL, so "clear my bag"
-    // cannot be spelled as "clear someone else's".
-    await softDeleteWholeList(tripId, mine ? viewerId : null, viewerId);
-    refresh({ kind: "packing", tripId });
+    await resetList(await scoped(viewerId, tripId), mine);
   },
 
   async setPackTier(viewerId, tripId, tier) {
-    await scoped(viewerId, tripId);
-    // The membership row, not the profile — Light for one weekend must not
-    // become the default everywhere (#220).
-    await setPackTier(tripId, viewerId, tier);
-    refresh({ kind: "packing", tripId });
+    await setTier(await scoped(viewerId, tripId), tier);
   },
 
   async fillMyBag(viewerId, tripId) {
-    const access = await scoped(viewerId, tripId);
-    // Pro buys the action, never the data (#248): a bag already filled stays
-    // readable and editable after Pro lapses.
-    await assertFeature("packing.autoGenerate", tripId);
-
-    const [perTrip, profile] = await Promise.all([
-      getPackTier(tripId, viewerId),
-      ensureProfile(viewerId),
-    ]);
-    // Re-resolved rather than trusted from the client: the screen that drew the
-    // button may be a stale tab.
-    await fillPersonalBag({
-      tripId,
-      ownerId: viewerId,
-      tier: resolvePackTier(perTrip, profile.packTier),
-      plan: await packingPlanFor(access.trip),
-    });
-    refresh({ kind: "packing", tripId });
+    await fillBag(await scoped(viewerId, tripId));
   },
 
   async applyPackingKit(viewerId, tripId, kitId) {
-    await scoped(viewerId, tripId);
-    // Resolved by owner inside, so another account's kit is not addressable.
-    await applyPackingKitToBag({ tripId, ownerId: viewerId, kitId });
-    refresh({ kind: "packing", tripId });
+    await applyKit(await scoped(viewerId, tripId), kitId);
   },
 
   async savePackingKit(viewerId, tripId, name): Promise<boolean> {
@@ -634,53 +549,17 @@ export const webPort: FlocPort = {
   },
 
   async writeExpense(viewerId, tripId, input: ExpenseInput & { expenseId?: number }) {
-    const access = await scoped(viewerId, tripId);
-    const refusal = await expenseRefusal({
-      tripId,
-      memberIds: access.members.map((m) => m.userId),
-      expenseId: input.expenseId,
-      dayId: input.dayId,
-      draft: input,
-    });
-    if (refusal) throw new Refusal(refusal);
-    await writeExpense({
-      tripId,
-      expenseId: input.expenseId,
-      createdBy: viewerId,
-      fields: {
-        dayId: input.dayId,
-        paidBy: input.paidBy,
-        description: input.description,
-        amountMinor: input.amountMinor,
-        currency: input.currency,
-        splitType: input.splitType,
-        category: input.category,
-        notes: input.notes,
-      },
-      splits: input.splits,
-    });
-    refresh({ kind: "money", tripId });
+    const refusal = await saveExpense(await scoped(viewerId, tripId), input);
+    if (refusal) throw refusal;
   },
 
   async settleUp(viewerId, tripId, transfers) {
-    const access = await scoped(viewerId, tripId);
-    // Both ends must be on this trip. Without the check, a crafted id would
-    // write a debt against somebody who is not in the group at all.
-    const onTrip = new Set(access.members.map((member) => member.userId));
-    if (transfers.some((t) => !onTrip.has(t.fromUserId) || !onTrip.has(t.toUserId))) {
-      throw new Refusal("That person is not on this trip.");
-    }
-    if (transfers.some((t) => viewerId !== t.fromUserId && viewerId !== t.toUserId)) {
-      throw new Refusal("Only the payer or receiver can record this.", "forbidden");
-    }
-    await writeSettlements(tripId, viewerId, transfers);
-    refresh({ kind: "money", tripId });
+    const refusal = await recordTransfers(await scoped(viewerId, tripId), transfers);
+    if (refusal) throw refusal;
   },
 
   async deleteExpense(viewerId, tripId, expenseId) {
-    await scoped(viewerId, tripId);
-    await softDeleteExpense(tripId, expenseId);
-    refresh({ kind: "money", tripId });
+    await removeExpense(await scoped(viewerId, tripId), expenseId);
   },
 
   async addEvent(viewerId, tripId, dayId, input) {

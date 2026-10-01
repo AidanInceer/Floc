@@ -1,51 +1,40 @@
 "use server";
 
 // Server actions for the packing tab — the shared list (ticket 219) and the
-// personal one (ticket 220). Every line is resolved through
-// `access.packingLine`, which refuses another member's personal line the same
-// way it refuses a nonexistent id.
-import {
-  parsePackCategory,
-  parsePackTier,
-  parseQuantityStep,
-  resolvePackTier,
-} from "@floc/core/packing/packing";
-import { capRequiredText } from "@floc/core/text/text";
+// personal one (ticket 220). Each reads the form and calls `server/packing/packing-save`,
+// the same writes the phone reaches through the port.
+import { parsePackCategory, parsePackTier, parseQuantityStep } from "@floc/core/packing/packing";
 import { requireTripAccess } from "@/server/access";
-import { assertFeature } from "@/server/billing/entitlements";
 import { LIMITS } from "@/server/limits";
-import { ensureProfile } from "@/server/auth/profile";
-import { getPackTier, setPackTier } from "@/server/packing/packing";
-import { fillPersonalBag, packingPlanFor } from "@/server/packing/packing-generator";
-import { applyPackingKitToBag } from "@/server/packing/packing-kits";
 import {
-  claimPackingLine,
-  insertPackingLine,
-  insertPersonalPackingLine,
-  renamePackingLineLabel,
-  setClaimPacked,
-  setPersonalPacked,
-  stepPersonalQuantity,
-  softDeletePackingLine,
-  softDeletePackingLines,
-  softDeleteWholeList,
-  unclaimPackingLine,
-} from "@/server/packing/packing";
-import { refresh } from "@/server/freshness";
+  addLine,
+  applyKit,
+  fillBag,
+  removeLine,
+  removeLines,
+  renameLine,
+  resetList,
+  setClaim,
+  setPacked,
+  setTier,
+  stepQuantity,
+} from "@/server/packing/packing-save";
+
+async function addFromForm(tripId: number, formData: FormData, mine: boolean) {
+  const refusal = await addLine(await requireTripAccess(tripId), {
+    label: formData.get("label"),
+    category: parsePackCategory(formData.get("category")),
+    mine,
+  });
+  if (refusal) throw refusal;
+}
 
 export async function addPackingLine(tripId: number, formData: FormData) {
-  const access = await requireTripAccess(tripId);
-  const label = capRequiredText(formData.get("label"), "packingLabel");
-  if (!label) throw new Error("A thing to pack needs a name");
+  await addFromForm(tripId, formData, false);
+}
 
-  await insertPackingLine(
-    access.trip.id,
-    access.viewer.id,
-    label,
-    parsePackCategory(formData.get("category")),
-  );
-
-  refresh({ kind: "packing", tripId: access.trip.id });
+export async function addPersonalPackingLine(tripId: number, formData: FormData) {
+  await addFromForm(tripId, formData, true);
 }
 
 export async function renamePackingLine(
@@ -53,206 +42,58 @@ export async function renamePackingLine(
   lineId: number,
   rawLabel: string,
 ): Promise<{ error?: string }> {
-  const access = await requireTripAccess(tripId);
-  const line = await access.packingLine(lineId);
-  const label = capRequiredText(rawLabel, "packingLabel");
-  if (!label) return { error: "A thing to pack needs a name." };
-
-  await renamePackingLineLabel(line.id, label);
-
-  refresh({ kind: "packing", tripId: access.trip.id });
-  return {};
+  const refusal = await renameLine(await requireTripAccess(tripId), lineId, rawLabel);
+  return refusal ? { error: refusal.message } : {};
 }
 
-// Both lists, with the resolver drawing the line: a shared line is anyone's to
-// drop (the list is the group's, and one nobody wants shouldn't outlive
-// whoever typed it), while a personal one only ever resolves for its owner.
 export async function removePackingLine(tripId: number, lineId: number) {
-  const access = await requireTripAccess(tripId);
-  const line = await access.packingLine(lineId);
-
-  await softDeletePackingLine(line.id, access.viewer.id);
-
-  refresh({ kind: "packing", tripId: access.trip.id });
+  await removeLine(await requireTripAccess(tripId), lineId);
 }
 
-// Claiming is open by design: anyone may claim any line, and several people
-// may claim the same one — two of you bringing sun cream is a real answer.
-export async function setPackingClaim(
-  tripId: number,
-  lineId: number,
-  claimed: boolean,
-) {
-  const access = await requireTripAccess(tripId);
-  const line = await access.packingLine(lineId);
-
-  if (claimed) await claimPackingLine(line.id, access.viewer.id);
-  else await unclaimPackingLine(line.id, access.viewer.id);
-
-  refresh({ kind: "packing", tripId: access.trip.id });
+export async function setPackingClaim(tripId: number, lineId: number, claimed: boolean) {
+  await setClaim(await requireTripAccess(tripId), lineId, claimed);
 }
 
-// Only your own claim. The write is scoped to (line, viewer), so ticking
-// someone else's is not expressible rather than merely refused.
-export async function setPackingPacked(
-  tripId: number,
-  lineId: number,
-  packed: boolean,
-) {
-  const access = await requireTripAccess(tripId);
-  const line = await access.packingLine(lineId);
-
-  await setClaimPacked(line.id, access.viewer.id, packed);
-
-  refresh({ kind: "packing", tripId: access.trip.id });
+export async function setPackingPacked(tripId: number, lineId: number, packed: boolean) {
+  await setPacked(await requireTripAccess(tripId), lineId, packed);
 }
 
-export async function addPersonalPackingLine(tripId: number, formData: FormData) {
-  const access = await requireTripAccess(tripId);
-  const label = capRequiredText(formData.get("label"), "packingLabel");
-  if (!label) throw new Error("A thing to pack needs a name");
-
-  await insertPersonalPackingLine(
-    access.trip.id,
-    access.viewer.id,
-    label,
-    parsePackCategory(formData.get("category")),
-  );
-
-  refresh({ kind: "packing", tripId: access.trip.id });
+export async function setPersonalPackingPacked(tripId: number, lineId: number, packed: boolean) {
+  await setPacked(await requireTripAccess(tripId), lineId, packed);
 }
 
-// The resolver has already refused anything that isn't shared or yours, and
-// the write is scoped to (line, viewer) on top — a shared line can't pick up a
-// personal tick even if one were somehow reached.
-export async function setPersonalPackingPacked(
-  tripId: number,
-  lineId: number,
-  packed: boolean,
-) {
-  const access = await requireTripAccess(tripId);
-  const line = await access.packingLine(lineId);
-
-  await setPersonalPacked(line.id, access.viewer.id, packed);
-
-  refresh({ kind: "packing", tripId: access.trip.id });
-}
-
-// A step, not a number: the row offers plus and minus, so the only two values
-// worth accepting are the two it can send. The clamp lives in the SQL.
-export async function stepPersonalPackingQuantity(
-  tripId: number,
-  lineId: number,
-  formData: FormData,
-) {
-  const access = await requireTripAccess(tripId);
-  const line = await access.packingLine(lineId);
+// A step, not a number: the row offers plus and minus, so those are the only two values accepted.
+export async function stepPersonalPackingQuantity(tripId: number, lineId: number, formData: FormData) {
   const delta = parseQuantityStep(formData.get("step"));
   if (!delta) throw new Error("That isn't a quantity step");
-
-  await stepPersonalQuantity(line.id, access.viewer.id, delta);
-
-  refresh({ kind: "packing", tripId: access.trip.id });
+  await stepQuantity(await requireTripAccess(tripId), lineId, delta);
 }
 
-// This trip only. Writing the membership rather than the profile is the whole
-// point: Light for one weekend must not become your default everywhere.
 export async function setTripPackTier(tripId: number, formData: FormData) {
-  const access = await requireTripAccess(tripId);
   const tier = parsePackTier(formData.get("packTier"));
   if (!tier) throw new Error("That isn't a packing style");
-
-  await setPackTier(access.trip.id, access.viewer.id, tier);
-
-  refresh({ kind: "packing", tripId: access.trip.id });
+  await setTier(await requireTripAccess(tripId), tier);
 }
 
-/**
- * Fill the bag from the trip's length, weather and tier (ticket 221). Always an
- * explicit press, and always additive — pressing it after a tier or date change
- * tops the list up rather than replacing it, so nothing you've edited is at
- * risk. The tier is re-resolved here rather than trusted from the form: the
- * page that rendered the button may be a stale tab.
- */
 export async function fillMyPackingList(tripId: number) {
-  const access = await requireTripAccess(tripId);
-  // Pro buys the *action*, never the data (ticket 248): a list already
-  // generated stays visible and editable after Pro lapses.
-  await assertFeature("packing.autoGenerate", access.trip.id);
-
-  const [perTrip, profile] = await Promise.all([
-    getPackTier(access.trip.id, access.viewer.id),
-    ensureProfile(access.viewer.id),
-  ]);
-
-  await fillPersonalBag({
-    tripId: access.trip.id,
-    ownerId: access.viewer.id,
-    tier: resolvePackTier(perTrip, profile.packTier),
-    plan: await packingPlanFor(access.trip),
-  });
-
-  refresh({ kind: "packing", tripId: access.trip.id });
+  await fillBag(await requireTripAccess(tripId));
 }
 
-/**
- * Remove everything ticked, in one press (ticket 229). Every id is still
- * resolved through `access.packingLine` one at a time — the bulk shape is a
- * convenience for the person, never a way round the per-line check, so a set
- * containing somebody else's personal line is refused whole rather than
- * quietly filtered down to the allowed part.
- */
+// Why the cap: the tick boxes can only offer what a list holds, so more came from a
+// hand-made POST asking for one round trip per id (ticket 229).
 export async function removePackingLines(tripId: number, formData: FormData) {
-  const access = await requireTripAccess(tripId);
-
-  // Capped like every read of this table: the tick boxes can only ever offer
-  // what a list holds, so anything past that came from a hand-made POST and is
-  // a request to open one round-trip per id.
   const ids = formData
     .getAll("lineId")
     .map((v) => Number(v))
     .filter((n) => Number.isInteger(n) && n > 0)
     .slice(0, LIMITS.packingLines);
-  if (ids.length === 0) return;
-
-  const lines = await Promise.all(ids.map((id) => access.packingLine(id)));
-
-  await softDeletePackingLines(lines.map((l) => l.id), access.viewer.id);
-
-  refresh({ kind: "packing", tripId: access.trip.id });
+  await removeLines(await requireTripAccess(tripId), ids);
 }
 
-/**
- * Wipe a whole list. `mine` picks which one, and it is the only input — the
- * scope is decided here and applied in the SQL, so "clear my bag" can never be
- * spelled as "clear someone else's". The shared list is the group's, so anyone
- * on the trip may reset it, exactly as anyone may remove a single line from it.
- */
-export async function resetPackingList(
-  tripId: number,
-  mine: boolean,
-) {
-  const access = await requireTripAccess(tripId);
-
-  await softDeleteWholeList(access.trip.id, mine ? access.viewer.id : null, access.viewer.id);
-
-  refresh({ kind: "packing", tripId: access.trip.id });
+export async function resetPackingList(tripId: number, mine: boolean) {
+  await resetList(await requireTripAccess(tripId), mine);
 }
 
-/**
- * Copy one of your saved lists into your bag on this trip (ticket 230).
- * Additive and idempotent — a label already in the bag is left as it is, so
- * pressing it twice never doubles a row you had already tuned. The kit is
- * resolved by owner, so another account's list is not addressable here.
- */
 export async function applyPackingKit(tripId: number, kitId: number) {
-  const access = await requireTripAccess(tripId);
-
-  await applyPackingKitToBag({
-    tripId: access.trip.id,
-    ownerId: access.viewer.id,
-    kitId,
-  });
-
-  refresh({ kind: "packing", tripId: access.trip.id });
+  await applyKit(await requireTripAccess(tripId), kitId);
 }
