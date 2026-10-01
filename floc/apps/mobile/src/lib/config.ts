@@ -13,7 +13,7 @@
  */
 import Constants from "expo-constants";
 
-const PRODUCTION = "https://floc.app";
+const PRODUCTION = "https://floc.live";
 
 /**
  * `hostUri` is the machine the Metro bundler is running on — the developer's

@@ -53,9 +53,9 @@ screen the reviewer cannot reach.
 Both stores require a **live, public** privacy policy URL before review, and
 Apple additionally requires terms if there is any paid tier.
 
-- Privacy policy: `https://floc.app/privacy`
-- Terms: `https://floc.app/terms`
-- Support URL: `https://floc.app/support` (Apple requires one; a mailto is not
+- Privacy policy: `https://floc.live/privacy`
+- Terms: `https://floc.live/terms`
+- Support URL: `https://floc.live/support` (Apple requires one; a mailto is not
   enough)
 
 Ticket 270 owns writing them. This ticket only records that submission is

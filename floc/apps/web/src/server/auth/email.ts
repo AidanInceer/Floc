@@ -44,7 +44,7 @@ function resend(key: string) {
 
 async function deliver(email: OutboundEmail): Promise<void> {
   const html = renderShell(email);
-  const from = process.env.EMAIL_FROM ?? "Floc <no-reply@floc.example>";
+  const from = process.env.EMAIL_FROM ?? "Floc <no-reply@floc.live>";
   const key = process.env.RESEND_API_KEY;
 
   if (!key) {

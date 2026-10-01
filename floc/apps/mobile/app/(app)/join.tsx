@@ -69,7 +69,7 @@ export default function Join() {
           autoCapitalize="none"
           autoCorrect={false}
           autoFocus
-          placeholder="https://floc.app/invite/…"
+          placeholder="https://floc.live/invite/…"
         />
         {preview.data ? (
           <Card>

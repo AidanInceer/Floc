@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { appLinkPath } from "./app-link";
 
-const host = "floc.up.railway.app";
+const host = "floc.live";
 
 describe("appLinkPath", () => {
   it("opens a website link to a trip at the phone's own route", () => {
