@@ -49,10 +49,10 @@ export const metadata: Metadata = {
 // The Explore listings the Borrow band opens on, in this order; every other listing waits behind them.
 const BORROW_IDS = [
   "japan-golden-route",
-  "andalusia-road-trip",
+  "hanoi-to-bangkok",
   "iceland-ring-road",
   "morocco-atlas-sahara",
-  "vietnam-north-to-south",
+  "cape-to-victoria-falls",
   "new-zealand-south-island",
 ];
 

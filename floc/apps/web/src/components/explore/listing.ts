@@ -28,6 +28,13 @@ export function landFor(trip: PresetTrip): string {
   return REGION_LAND[trip.region];
 }
 
+const REGION_TONE: Record<Region, string> = { Europe: "blue", Africa: "yellow", Asia: "red", Americas: "green", Oceania: "blue" };
+
+/** The region's colour as a token family (`--tone-red`), for a map drawn on a canvas. */
+export function toneOf(trip: PresetTrip): string {
+  return REGION_TONE[trip.region];
+}
+
 function legLine(leg: PresetTrip["legs"][number]): string {
   if (leg.kind === "hop") return `${leg.place} · ${leg.detail}`;
   return `${leg.place} · ${leg.nights} ${leg.nights === 1 ? "night" : "nights"}`;

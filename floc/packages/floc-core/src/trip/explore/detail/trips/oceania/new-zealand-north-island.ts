@@ -1,126 +1,72 @@
+import { day } from "../../day";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const NEW_ZEALAND_NORTH_ISLAND: PresetDetail = {
   stops: [
     {
       place: "Auckland",
-      summary: "A volcano at sunset, the harbour and a ferry across it.",
+      summary: "The harbour city, and a ferry to Waiheke.",
       days: [
-        {
-          title: "Land, then Mount Eden",
-          items: [
-            { time: "14:00", text: "Airport to the hotel" },
-            { time: "17:30", text: "Mount Eden summit for the sunset" },
-            { time: "19:30", text: "Dinner in Ponsonby" },
-          ],
-        },
-        {
-          title: "Domain and Devonport",
-          items: [
-            { time: "09:00", text: "Auckland Museum in the Domain" },
-            { time: "12:30", text: "Ferry to Devonport, 12 minutes" },
-            { time: "15:00", text: "Walk to North Head" },
-          ],
-        },
+        day("Land in Auckland", ["14:00 Airport to the waterfront", "17:00 Sky Tower at sunset", "19:30 Dinner at the Viaduct"]),
+        day("Waiheke", ["10:00 Ferry to Waiheke island", "12:30 Lunch at a vineyard", "17:00 Back in the city"]),
+      ],
+    },
+    {
+      place: "Bay of Islands",
+      summary: "Boats among 144 islands, and Waitangi.",
+      days: [
+        day("North to the bay", ["09:00 Pick up the car, drive north, about 3h 30", "14:00 Waitangi treaty grounds", "18:00 Dinner in Paihia"]),
+        day("The Hole in the Rock", ["09:00 Boat out to the Hole in the Rock", "14:00 Ferry to Russell", "17:00 ~ Free evening."]),
+      ],
+    },
+    {
+      place: "Coromandel",
+      summary: "Cathedral Cove and a hot spring dug in the sand.",
+      days: [
+        day("Down to the Coromandel", ["09:00 Drive to Whitianga, about 5h", "16:00 Walk on Buffalo beach", "19:00 Fish and chips"]),
+        day("Cove and hot beach", ["08:00 Walk to Cathedral Cove", "13:00 Hot Water Beach at low tide", "17:00 ~ Free evening."], "Hot Water Beach at low tide"),
       ],
     },
     {
       place: "Rotorua",
-      summary: "Glow worm caves on the way, then steam, forest and hot pools after dark.",
+      summary: "Steam, mud pools, a hāngī, and the glow worms of Waitomo.",
       days: [
-        {
-          title: "South by Waitomo",
-          highlight: "Waitomo glow worms",
-          items: [
-            { time: "08:00", text: "Drive south from Auckland, 2 hours 30 to Waitomo" },
-            { time: "10:30", text: "Waitomo glow worm caves" },
-            { time: "13:00", text: "Drive on to Rotorua, about 2 hours" },
-            { time: "17:30", text: "Kuirau Park, steam in the middle of town" },
-          ],
-        },
-        {
-          title: "Geothermal day, hot pools at night",
-          highlight: "Hot pools at night",
-          items: [
-            { time: "09:00", text: "Wai-O-Tapu thermal area" },
-            { time: "13:00", text: "Walk in the Redwoods forest" },
-            { time: "15:30", text: "Empty on purpose. The group splits up.", free: true },
-            { time: "20:00", text: "Lakeside hot pools after dark" },
-          ],
-        },
+        day("To Rotorua", ["09:00 Drive to Rotorua, about 3h", "14:00 Wai-O-Tapu thermal park", "18:00 Hāngī and a Māori cultural evening"]),
+        day("Waitomo", ["08:30 Drive to Waitomo, 2h", "11:00 Glow worm caves by boat", "17:00 Back in Rotorua, then the hot pools"], "Waitomo's glow worms"),
       ],
     },
     {
-      place: "Taupō",
-      summary: "The lake house, the falls and a long day on the volcano.",
+      place: "Tongariro",
+      summary: "The alpine crossing over the volcanoes.",
       days: [
-        {
-          title: "To the lake, then nothing",
-          items: [
-            { time: "09:30", text: "Drive to Taupō, 1 hour" },
-            { time: "11:30", text: "Huka Falls walk" },
-            { time: "14:00", text: "Empty on purpose. Lake house, lake, nothing planned.", free: true },
-          ],
-        },
-        {
-          title: "Tongariro crossing",
-          highlight: "Tongariro alpine crossing",
-          items: [
-            { time: "06:00", text: "Shuttle to the Mangatepopo start" },
-            { time: "07:30", text: "Tongariro alpine crossing, 19 km, 6 to 8 hours" },
-            { time: "15:30", text: "End at Ketetahi, shuttle back to Taupō" },
-          ],
-        },
-        {
-          title: "Rock carvings and craters",
-          items: [
-            { time: "10:00", text: "Boat to the Māori rock carvings at Mine Bay" },
-            { time: "13:00", text: "Craters of the Moon walk" },
-            { time: "18:30", text: "Last dinner at the lake house" },
-          ],
-        },
-        {
-          title: "Home from Auckland",
-          items: [
-            { time: "09:00", text: "Drive to Auckland airport, about 4 hours 30" },
-            { time: "14:00", text: "Return the car" },
-            { time: "16:30", text: "Flight home" },
-          ],
-        },
+        day("To the volcanoes", ["09:00 Drive south by Lake Taupō, about 2h 30", "13:00 Huka falls", "18:00 Dinner in National Park village"]),
+        day("The crossing", ["06:30 Shuttle to the start", "07:00 Walk the Tongariro alpine crossing, 19 km", "16:00 Pick-up at the far end"], "The Tongariro alpine crossing"),
+      ],
+    },
+    {
+      place: "Wellington",
+      summary: "The capital: Te Papa, the waterfront and good coffee.",
+      days: [
+        day("South to Wellington", ["09:00 Drive south, about 4h 30", "15:00 Cable car up the hill", "19:00 Dinner on Cuba street"]),
+        day("Te Papa", ["10:00 Te Papa museum", "14:00 ~ Free afternoon.", "18:00 Mount Victoria for sunset"]),
+        day("Home from Wellington", ["09:00 Return the car", "11:00 Flight home via Auckland"]),
       ],
     },
   ],
   inPlan: [
-    { value: "7", label: "nights, all planned" },
-    { value: "2", label: "drives" },
-    { value: "24", label: "places, with times" },
-    { value: "2", label: "empty afternoons" },
+    { value: "12", label: "nights, all planned" },
+    { value: "6", label: "stops" },
+    { value: "1", label: "alpine crossing" },
+    { value: "2", label: "boat days" },
   ],
   advice: [
-    {
-      topic: "before",
-      title: "Before you go",
-      lines: ["Check the entry rules for your passport.", "Book the Waitomo caves and the crossing shuttle early."],
-    },
-    {
-      topic: "transport",
-      title: "Driving",
-      lines: ["New Zealand drives on the left. Share the driving on the long days.", "Roads are slower than the map suggests. Add time."],
-    },
-    {
-      topic: "weather",
-      title: "Mountain weather",
-      lines: ["The crossing can shut in high wind or cloud. Keep a spare day.", "Bring a warm layer, a rain jacket and a hat, even in summer."],
-    },
-    {
-      topic: "customs",
-      title: "Biosecurity",
-      lines: ["New Zealand checks food, boots and outdoor gear at the border.", "Clean your boots and declare anything you are unsure about."],
-    },
+    { topic: "before", title: "Before you go", lines: ["Most passports need an NZeTA before you fly.", "Book the Tongariro shuttle. Check the weather the night before."] },
+    { topic: "transport", title: "Driving", lines: ["Drive on the left. Roads are slower than the map says."] },
+    { topic: "health", title: "The crossing", lines: ["Nineteen kilometres with a steep climb. Bring water, food and layers."] },
+    { topic: "customs", title: "Biosecurity", lines: ["Declare food and clean your boots before you land."] },
   ],
   goodToKnow: [
-    { label: "Pace", text: "Steady. Three stops in seven nights and two drives." },
-    { label: "Walking", text: "One hard day: the crossing. The rest is easy." },
-    { label: "Driving", text: "About 4 hours 30 on the first drive, 1 hour on the second." },
+    { label: "Pace", text: "Steady. Six stops, one long walk." },
+    { label: "Tides", text: "Hot Water Beach works only at low tide. The plan follows it." },
   ],
 };

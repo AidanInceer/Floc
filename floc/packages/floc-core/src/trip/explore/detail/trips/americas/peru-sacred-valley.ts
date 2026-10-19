@@ -1,128 +1,69 @@
+import { day } from "../../day";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const PERU_SACRED_VALLEY: PresetDetail = {
   stops: [
     {
-      place: "Cusco",
-      summary: "Three slow days to get used to the height.",
+      place: "Lima",
+      summary: "Ceviche, the cliffs of Miraflores and a slow start.",
       days: [
-        {
-          title: "Land and rest",
-          items: [
-            { time: "10:00", text: "Flight into Cusco from Lima" },
-            { time: "12:00", text: "Hotel, water and a slow lunch" },
-            { time: "16:00", text: "Short walk around the main square" },
-            { time: "19:00", text: "Early dinner" },
-          ],
-        },
-        {
-          title: "Old Cusco, then rest",
-          items: [
-            { time: "09:30", text: "Qorikancha, the Inca temple under the convent" },
-            { time: "12:00", text: "San Pedro market" },
-            { time: "14:30", text: "Empty on purpose. Rest at the hotel.", free: true },
-          ],
-        },
-        {
-          title: "Ruins above the city",
-          items: [
-            { time: "09:00", text: "Sacsayhuaman" },
-            { time: "11:30", text: "Qenqo" },
-            { time: "15:00", text: "Coffee and craft shops in San Blas" },
-          ],
-        },
+        day("Land in Lima", ["14:00 Airport to Miraflores", "17:00 The cliff walk at sunset", "20:00 Pisco sour and dinner"]),
+        day("Lima", ["10:00 The old centre", "13:00 Ceviche for lunch", "16:00 Barranco's bridge and murals"]),
+      ],
+    },
+    {
+      place: "Cusco",
+      summary: "Two quiet days to get used to the height.",
+      days: [
+        day("Up to Cusco", ["08:00 Flight, 1h 20", "11:00 Coca tea and a rest", "16:00 The main square, slowly"]),
+        day("Inca Cusco", ["09:00 Qorikancha", "11:00 Saqsaywaman above the town", "15:00 ~ Free afternoon."]),
       ],
     },
     {
       place: "Sacred Valley",
-      summary: "A market, terraces, salt pans and an Inca fortress.",
+      summary: "Markets, salt pans and the terraces of Moray.",
       days: [
-        {
-          title: "Down to the valley",
-          highlight: "Pisac market",
-          items: [
-            { time: "09:00", text: "Drive from Cusco to Pisac, about 45 minutes" },
-            { time: "10:00", text: "Pisac market" },
-            { time: "13:30", text: "Lunch in the valley" },
-            { time: "16:00", text: "Settle in at the hotel" },
-          ],
-        },
-        {
-          title: "Moray and the salt pans",
-          highlight: "Moray and the salt pans",
-          items: [
-            { time: "09:00", text: "Moray, the circular terraces" },
-            { time: "11:30", text: "Maras salt pans" },
-            { time: "14:00", text: "Empty on purpose. The group splits up.", free: true },
-          ],
-        },
-        {
-          title: "Ollantaytambo",
-          items: [
-            { time: "09:00", text: "Ollantaytambo fortress and terraces" },
-            { time: "12:30", text: "Lunch in the old town" },
-            { time: "17:00", text: "Pack a small bag for the train. Leave the rest at the hotel." },
-          ],
-        },
+        day("Down to the valley", ["09:00 Pisac market", "13:00 Lunch in the valley", "16:00 Pisac ruins"], "Markets of the Sacred Valley"),
+        day("Moray and the salt pans", ["09:00 The terraces of Moray", "12:00 The Maras salt pans", "16:00 Ollantaytambo's fortress"]),
       ],
     },
     {
       place: "Aguas Calientes",
-      summary: "One night below the citadel, then first entry.",
+      summary: "The train along the river to the foot of Machu Picchu.",
+      days: [day("The train to Machu Picchu", ["12:00 Train from Ollantaytambo, 1h 45", "15:00 Arrive in Aguas Calientes", "17:00 Hot springs"])],
+    },
+    {
+      place: "Cusco",
+      summary: "Machu Picchu at opening, then back to Cusco by train.",
       days: [
-        {
-          title: "Train to Aguas Calientes",
-          items: [
-            { time: "10:00", text: "Train from Ollantaytambo, about 1h 45" },
-            { time: "12:30", text: "Lunch in town" },
-            { time: "15:00", text: "Walk by the river" },
-            { time: "19:00", text: "Early dinner" },
-          ],
-        },
-        {
-          title: "Machu Picchu at first entry",
-          highlight: "Machu Picchu first entry",
-          items: [
-            { time: "05:30", text: "Queue for the first bus up" },
-            { time: "06:00", text: "Machu Picchu, first entry" },
-            { time: "11:30", text: "Bus down to town" },
-            { time: "14:30", text: "Train and road back to Cusco for the flight home" },
-          ],
-        },
+        day("Machu Picchu", ["05:30 First bus up", "06:00 Machu Picchu at opening, with a guide", "14:30 Train back to Cusco, 3h 30"], "Machu Picchu at opening"),
+        day("Cusco, free", ["10:00 ~ Free day. San Pedro market, or rest.", "19:00 Dinner in San Blas"]),
+      ],
+    },
+    {
+      place: "Puno",
+      summary: "Over the altiplano to the reed islands of Lake Titicaca.",
+      days: [
+        day("Over the altiplano", ["07:00 Bus to Puno, about 7h with stops", "15:00 Arrive by the lake", "19:00 Dinner"]),
+        day("The lake", ["08:00 Boat to the Uros reed islands", "11:00 Taquile island", "17:00 Back in Puno"], "The reed islands of Titicaca"),
+        day("Home from Juliaca", ["09:00 Drive to Juliaca airport", "12:00 Flight to Lima, connect home"]),
       ],
     },
   ],
   inPlan: [
-    { value: "7", label: "nights, all planned" },
-    { value: "2", label: "rides between stops" },
-    { value: "26", label: "places, with times" },
-    { value: "2", label: "empty afternoons" },
+    { value: "11", label: "nights, all planned" },
+    { value: "6", label: "stops" },
+    { value: "2", label: "train rides" },
+    { value: "3", label: "Inca sites" },
   ],
   advice: [
-    {
-      topic: "before",
-      title: "Before you go",
-      lines: ["Check the entry rules for your passport.", "Machu Picchu tickets are timed and sell out. Buy them first, then the train."],
-    },
-    {
-      topic: "health",
-      title: "The height",
-      lines: ["Cusco sits at about 3,400 m. Go slowly, drink water and skip alcohol on day one.", "Ask a doctor about altitude before you fly."],
-    },
-    {
-      topic: "transport",
-      title: "The train",
-      lines: ["Bags on the train have a small weight limit.", "Take one small bag to Aguas Calientes and leave the rest."],
-    },
-    {
-      topic: "weather",
-      title: "Cold nights",
-      lines: ["Dry season is sunny by day and cold at night.", "Pack layers, a rain jacket and sun cream."],
-    },
+    { topic: "before", title: "Before you go", lines: ["Machu Picchu tickets and trains sell out. They are booked with the trip.", "Carry your passport. Machu Picchu checks it."] },
+    { topic: "health", title: "Altitude", lines: ["Cusco and Puno are high. Take the first days slowly and drink water.", "Talk to a doctor if you have heart or lung trouble."] },
+    { topic: "money", title: "Money", lines: ["Carry soles for markets.", "Tip guides and drivers at the end."] },
+    { topic: "weather", title: "Weather", lines: ["April to October is dry. Nights in the Andes are cold."] },
   ],
   goodToKnow: [
-    { label: "Altitude", text: "Cusco is about 3,400 m. The valley is lower, around 2,800 m." },
-    { label: "Pace", text: "Gentle at first, then an early start on the last day." },
-    { label: "Walking", text: "Steps and slopes at every ruin. Good shoes help." },
+    { label: "Pace", text: "Slow at first for the height, then steady." },
+    { label: "Early starts", text: "05:30 for Machu Picchu, worth it." },
   ],
 };

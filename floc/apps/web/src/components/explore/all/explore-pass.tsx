@@ -8,7 +8,7 @@ import { startTripFromPreset } from "@/app/explore/actions";
 import { tagClass } from "@/components/explore/all/explore-tile";
 import { RouteRail } from "@/components/explore/all/route-rail";
 import { skinFor } from "@/components/explore/listing";
-import { OutlineMap } from "@/components/explore/outline/outline-map";
+import { PassMap } from "@/components/explore/outline/pass-map";
 import { SubmitButton } from "@/components/system/client-ui";
 import { CheckIcon } from "@/components/system/icons";
 import { ButtonLink, cx } from "@/components/system/ui";
@@ -36,7 +36,7 @@ export function ExplorePass({
   return (
     <article className={cx("overflow-hidden bg-sheet", !inSheet && "rounded-[22px] shadow-lifted")}>
       <div className={cx("bg-sheet-2", inSheet ? "aspect-[343/190]" : "aspect-[2/1]")}>
-        <OutlineMap trip={trip} size={inSheet ? "sheet" : "pass"} named />
+        <PassMap trip={trip} />
       </div>
       <div className="flex flex-col gap-2.5 px-5 pb-[18px] pt-4">
         <span className={cx(tagClass, skinFor(trip))}>{trip.country}</span>

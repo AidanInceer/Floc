@@ -42,11 +42,11 @@ function routeSamples(pins: Point[]): Point[] {
 
 /**
  * Where each stop's tag goes, as the offset of its top-left corner from the pin.
- * A tag keeps clear of every pin, of the tags before it and of the clear part's edge, and off the line where it can.
+ * A tag keeps clear of every pin, of the tags before it, of any `avoid` box and of the clear part's edge, and off the line where it can.
  * A tag depends only on the pins and the tags before it, so adding the next one never moves the ones shown.
  */
-export function placeTags(pins: Point[], sizes: Size[], view: Box, route: Point[] = pins): Point[] {
-  const blocks = pins.map(pinBox);
+export function placeTags(pins: Point[], sizes: Size[], view: Box, route: Point[] = pins, avoid: Box[] = []): Point[] {
+  const blocks = [...pins.map(pinBox), ...avoid];
   const line = routeSamples(route);
   const placed: Box[] = [];
   return sizes.map((size, i) => {

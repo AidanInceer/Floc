@@ -14,54 +14,59 @@ import {
 } from "./explore-filter";
 import { PRESET_TRIPS, type PresetTrip } from "./preset-trips";
 
-const byId = (id: string) => PRESET_TRIPS.find((t) => t.id === id) as PresetTrip;
+// Listings made for the test, so the checks do not move when the real listings change.
+const listing = (over: Partial<PresetTrip>): PresetTrip => ({ ...PRESET_TRIPS[0], ...over });
+const SEASIDE = listing({ groupSize: "4–8 people", priceFromMinor: 74000, currency: "EUR", bestMonths: "May, June, September", nights: 7 });
+const SMALL = listing({ groupSize: "4–6 people", priceFromMinor: 32000, currency: "GBP", bestMonths: "May, June, September", nights: 5 });
+const DEAR = listing({ groupSize: "2–6 people", priceFromMinor: 185000, currency: "GBP", bestMonths: "March to May, October, November", nights: 10 });
+const MIX = [DEAR, SMALL, SEASIDE];
 const summer: ExploreFilter = { people: 6, fromMonth: 6, toMonth: 8, priceMin: 500, priceMax: 1000, nights: 14 };
 
 describe("filterCheck", () => {
   it("names every slider a listing fits", () => {
-    expect(filterCheck(byId("amalfi-slow-week"), summer)).toEqual({
+    expect(filterCheck(SEASIDE, summer)).toEqual({
       fits: ["Fits 6", "Jun–Aug", "In budget"],
       misses: [],
     });
   });
 
   it("gives the listing's group range when the group does not fit", () => {
-    expect(filterCheck(byId("scottish-highlands-bothy"), { ...summer, people: 10 }).misses).toContain("For 4–6");
+    expect(filterCheck(SMALL, { ...summer, people: 10 }).misses).toContain("For 4–6");
   });
 
   it("reads the top of the group slider as that many or more", () => {
     const top = { ...summer, people: FILTER.people.max };
-    expect(filterCheck(byId("amalfi-slow-week"), top).misses).toContain("For 4–8");
+    expect(filterCheck(SEASIDE, top).misses).toContain("For 4–8");
   });
 
   it("names the listing's best months when the window misses them", () => {
-    expect(filterCheck(byId("japan-golden-route"), summer).misses).toContain("Best March to May, October, November");
+    expect(filterCheck(DEAR, summer).misses).toContain("Best March to May, October, November");
   });
 
   it("says nothing about months when the window is the whole year", () => {
-    const { fits, misses } = filterCheck(byId("japan-golden-route"), { ...summer, fromMonth: 1, toMonth: 12 });
+    const { fits, misses } = filterCheck(DEAR, { ...summer, fromMonth: 1, toMonth: 12 });
     expect([...fits, ...misses].some((w) => w.startsWith("Best ") || w.includes("–Dec"))).toBe(false);
   });
 
   it("names one month on its own", () => {
-    expect(filterCheck(byId("amalfi-slow-week"), { ...summer, fromMonth: 6, toMonth: 6 }).fits).toContain("Jun");
+    expect(filterCheck(SEASIDE, { ...summer, fromMonth: 6, toMonth: 6 }).fits).toContain("Jun");
   });
 
   it("calls a listing over the top of the budget over budget", () => {
-    expect(filterCheck(byId("japan-golden-route"), summer).misses).toContain("Over budget");
+    expect(filterCheck(DEAR, summer).misses).toContain("Over budget");
   });
 
   it("calls a listing under the bottom of the budget under budget", () => {
-    expect(filterCheck(byId("scottish-highlands-bothy"), summer).misses).toContain("Under budget");
+    expect(filterCheck(SMALL, summer).misses).toContain("Under budget");
   });
 
   it("has no budget ceiling at the top of the price slider", () => {
     const open = { ...summer, priceMax: FILTER.price.max };
-    expect(filterCheck(byId("japan-golden-route"), open).misses).not.toContain("Over budget");
+    expect(filterCheck(DEAR, open).misses).not.toContain("Over budget");
   });
 
   it("names the length when a listing runs past the longest trip", () => {
-    expect(filterCheck(byId("amalfi-slow-week"), { ...summer, nights: 5 }).misses).toContain("7 nights");
+    expect(filterCheck(SEASIDE, { ...summer, nights: 5 }).misses).toContain("7 nights");
   });
 });
 
@@ -73,7 +78,7 @@ describe("forYou", () => {
   });
 
   it("puts listings that miss nothing first", () => {
-    const picks = forYou(PRESET_TRIPS, summer, 5);
+    const picks = forYou(MIX, summer, 5);
     const misses = picks.map((t) => filterCheck(t, summer).misses.length);
     expect(misses).toEqual([...misses].sort((a, b) => a - b));
     expect(picks[0] && filterCheck(picks[0], summer).misses).toEqual([]);

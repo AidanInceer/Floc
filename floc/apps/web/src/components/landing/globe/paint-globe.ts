@@ -23,6 +23,40 @@ function landInSight(view: LatLng, land: number[][][], R: number, [cx, cy]: numb
 }
 /** Where the sphere sits in the canvas. Left out, it fills the canvas; the way in to a trip makes it far larger. */
 type Fit = (box: Box) => { R: number; cx: number; cy: number } | undefined;
+/** Countries to fill in a region's colour (`tone`, as in `--tone-red`), faded in by `alpha`. */
+export type Tint = { rings: ReadonlySet<number[][]>; tone: string; alpha: number };
+
+function readInk(canvas: HTMLCanvasElement, ink: Record<"pen" | "sheet" | "sea" | "edge", string>) {
+  const css = getComputedStyle(canvas);
+  [ink.pen, ink.sheet, ink.sea, ink.edge] = ["--pen", "--sheet", "--pastel-blue", "--pastel-blue-edge"].map((name) => css.getPropertyValue(name));
+}
+
+// Why: Europe's tint is the sea's own blue, so with a trip open the sea greys over, as it is on the outline maps.
+function greySea(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, tint: Tint, sea: () => void) {
+  ctx.save();
+  ctx.globalAlpha = tint.alpha;
+  ctx.fillStyle = getComputedStyle(canvas).getPropertyValue("--sheet-3");
+  sea();
+  ctx.restore();
+}
+
+/**
+ * The land, through `draw`, which paints one ring: the tinted countries first, then every other ring over them.
+ * Why: the outline data draws Western Sahara inside Morocco's own shape as well as on its own, so the tint must
+ * stop where the other shape's border is drawn.
+ */
+function lands(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, rings: number[][][], tint: Tint | undefined, draw: (ring: number[][]) => void) {
+  const own = tint ? rings.filter((ring) => tint.rings.has(ring)) : [];
+  for (const ring of own) draw(ring);
+  if (tint && tint.alpha > 0) {
+    ctx.save();
+    ctx.globalAlpha = tint.alpha;
+    ctx.fillStyle = getComputedStyle(canvas).getPropertyValue(`--tone-${tint.tone}`);
+    for (const ring of own) draw(ring);
+    ctx.restore();
+  }
+  for (const ring of rings) if (!tint?.rings.has(ring)) draw(ring);
+}
 
 /** Draws the paper globe on a canvas, in the theme's tokens. Each call takes the view to draw from. */
 export function globePainter(canvas: HTMLCanvasElement) {
@@ -46,11 +80,7 @@ export function globePainter(canvas: HTMLCanvasElement) {
     ctx!.clearRect(0, 0, w, h);
     const frame = fit?.({ w, h }) ?? { R: Math.min(w, h) / 2 - 2, cx: w / 2, cy: h / 2 };
     [R, cx, cy] = [frame.R, frame.cx, frame.cy];
-    const css = getComputedStyle(canvas);
-    ink.pen = css.getPropertyValue("--pen");
-    ink.sheet = css.getPropertyValue("--sheet");
-    ink.sea = css.getPropertyValue("--pastel-blue");
-    ink.edge = css.getPropertyValue("--pastel-blue-edge");
+    readInk(canvas, ink);
   }
 
   function disc(fill: boolean) {
@@ -84,14 +114,15 @@ export function globePainter(canvas: HTMLCanvasElement) {
     radius: () => R,
     box: (): Box => ({ w: canvas.clientWidth, h: canvas.clientHeight }),
     place: at,
-    base(view: LatLng, land: number[][][], fit?: Fit) {
+    base(view: LatLng, land: number[][][], fit?: Fit, tint?: Tint) {
       size(fit);
       ctx.fillStyle = ink.sea;
       disc(true);
+      if (tint && tint.alpha > 0) greySea(ctx, canvas, tint, () => disc(true));
       ctx.fillStyle = ink.sheet;
       ctx.strokeStyle = ink.edge;
       ctx.lineWidth = 0.8;
-      for (const ring of landInSight(view, land, R, [cx, cy], canvas)) landRing(view, ring);
+      lands(ctx, canvas, landInSight(view, land, R, [cx, cy], canvas), tint, (ring) => landRing(view, ring));
       ctx.lineWidth = 1.5;
       disc(false);
     },

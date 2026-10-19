@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { landFrom, landFromPacked, onLand } from "./land";
+import { codesAt, landFrom, landFromPacked, onLand } from "./land";
 
 const square = (x: number, y: number, side: number) => [[x, y], [x + side, y], [x + side, y + side], [x, y + side], [x, y]];
 
@@ -43,5 +43,22 @@ describe("onLand", () => {
 
   it("is false for a stop in the sea", () => {
     expect(onLand(land, { lat: 40, lng: 3 })).toBe(false);
+  });
+});
+
+describe("codesAt", () => {
+  const land = landFrom({
+    features: [
+      { id: "ES", geometry: { type: "Polygon", coordinates: [square(-9, 36, 8)] } },
+      { id: "FR", geometry: { type: "Polygon", coordinates: [square(-1, 44, 8)] } },
+    ],
+  });
+
+  it("finds the country each place stands in, once each", () => {
+    expect(codesAt(land, [{ lat: 40, lng: -4 }, { lat: 41, lng: -3 }, { lat: 47, lng: 2 }])).toEqual(new Set(["ES", "FR"]));
+  });
+
+  it("leaves out a place in the sea", () => {
+    expect(codesAt(land, [{ lat: 30, lng: -20 }])).toEqual(new Set());
   });
 });

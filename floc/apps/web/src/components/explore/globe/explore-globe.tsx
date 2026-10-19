@@ -1,12 +1,10 @@
 "use client";
 
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
-import { useCallback, useEffect, useMemo, useRef, type RefObject } from "react";
+import { useCallback, useEffect, useRef, type RefObject } from "react";
 
 import { openArea } from "@/components/explore/atlas/atlas-frame";
-import { visitsOf } from "@/components/explore/atlas/route-visits";
-import { firstBase, routeStops } from "@/components/explore/listing";
-import { cx } from "@/components/system/ui";
+import { firstBase, routeParts } from "@/components/explore/listing";
 
 import { useAtlasGlobe } from "./use-atlas-globe";
 import "./explore-globe.css";
@@ -38,24 +36,23 @@ export function ExploreGlobe({
     () => openArea(host.current?.getBoundingClientRect() ?? new DOMRect(), card.current?.getBoundingClientRect() ?? null),
     [card],
   );
-  const { canvas, flags, stops, globe } = useAtlasGlobe(LONDON, PLACES, clear);
+  const { canvas, flags, globe, openTrip } = useAtlasGlobe(LONDON, PLACES, clear);
   const at = PRESET_TRIPS.findIndex((t) => t.id === picked);
   const routed = route ? PRESET_TRIPS.find((t) => t.id === route.id) : undefined;
-  const visits = useMemo(() => (routed ? visitsOf(routeStops(routed)) : []), [routed]);
 
   useEffect(() => {
     if (at >= 0) globe.current?.show(at);
   }, [at, globe]);
 
   useEffect(() => {
-    if (routed) globe.current?.open(routeStops(routed));
+    if (routed) openTrip(routed);
     else globe.current?.close();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `route` is new on every pick, so the same trip draws again
   }, [route]);
 
   return (
     <div ref={host} className="explore-atlas relative h-full overflow-hidden">
-      <canvas ref={canvas} className="explore-globe" role="img" aria-label="A globe with a pin on every trip. Drag to turn it." />
+      <canvas ref={canvas} className="explore-globe" role="img" aria-label={routed ? `A map of ${routed.title}` : "A globe with a pin on every trip. Drag to turn it."} />
       <div ref={flags} className="explore-flags" inert={route !== null}>
         {PRESET_TRIPS.map((trip) => (
           <button key={trip.id} type="button" className="explore-pin" aria-pressed={trip.id === picked} aria-label={`${trip.title}, ${trip.nights} nights`} onClick={() => onPick(trip.id)}>
@@ -64,17 +61,13 @@ export function ExploreGlobe({
           </button>
         ))}
       </div>
-      <div ref={stops} className="explore-flags">
-        {visits.map((visit) => (
-          <div key={visit.label} hidden role="img" aria-label={`Stop ${visit.label}: ${visit.first.name}, ${visit.days}`} className={cx("route-pin nums", visit.stops.length > 1 && "is-twice")}>
-            <span>{visit.label}</span>
-            <div className="route-tag">
-              <b className="rounded-full border border-highlight-edge bg-highlight px-[5px] font-mono text-[10px] font-bold leading-[15px] text-highlight-ink">{visit.days}</b>
-              <em>{visit.first.name}</em>
-            </div>
-          </div>
-        ))}
-      </div>
+      {routed ? (
+        <ol className="sr-only" aria-label={`The route of ${routed.title}`}>
+          {routeParts(routed).map((part, i) => (
+            <li key={i}>{part.kind === "stay" ? part.place : `${part.mode}, ${part.text}`}</li>
+          ))}
+        </ol>
+      ) : null}
       {route ? (
         <button type="button" onClick={onWorld} className="atlas-world">
           <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.2} strokeLinecap="round" aria-hidden>

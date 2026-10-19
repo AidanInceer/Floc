@@ -1,142 +1,64 @@
+import { day } from "../../day";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const PATAGONIA_W_TREK: PresetDetail = {
   stops: [
     {
-      place: "Puerto Natales",
-      summary: "Two days to arrive, check the kit and rest before the walk.",
+      place: "El Calafate",
+      summary: "The lake town, and the Perito Moreno glacier.",
       days: [
-        {
-          title: "Arrive in Natales",
-          items: [
-            { time: "12:00", text: "Bus from Punta Arenas airport, about 3 hours" },
-            { time: "16:30", text: "Check in and walk the waterfront" },
-            { time: "19:00", text: "Dinner in town" },
-          ],
-        },
-        {
-          title: "Kit check, then nothing",
-          items: [
-            { time: "09:30", text: "Pack check and last supplies" },
-            { time: "12:00", text: "Drive to the Milodon cave, about 30 minutes" },
-            { time: "15:00", text: "Empty on purpose. Rest your legs.", free: true },
-          ],
-        },
+        day("Land in El Calafate", ["14:00 Airport to the town", "17:00 Walk to Laguna Nimez", "20:00 Patagonian lamb"]),
+        day("Perito Moreno", ["08:30 Drive to the glacier", "10:00 The walkways facing the ice", "13:00 Boat to the face", "17:00 Back in town"], "The Perito Moreno glacier"),
       ],
+    },
+    {
+      place: "El Chaltén",
+      summary: "Three days of walking under Fitz Roy.",
+      days: [
+        day("North to El Chaltén", ["09:00 Drive to El Chaltén, about 3h", "14:00 Walk to the condor viewpoint", "19:00 Dinner in the village"]),
+        day("Laguna de los Tres", ["07:00 Walk to Laguna de los Tres, about 10 hours", "18:00 Back in town"], "Laguna de los Tres under Fitz Roy"),
+        day("Laguna Torre", ["09:00 Walk to Laguna Torre", "16:00 ~ Free evening."]),
+      ],
+    },
+    {
+      place: "Puerto Natales",
+      summary: "Over the border to Chile, a night to pack for the W.",
+      days: [day("Over the border", ["07:00 Bus to Puerto Natales, about 8h", "16:00 Arrive in Chile", "19:00 Briefing and dinner"])],
     },
     {
       place: "Refugios on the W",
-      summary: "Four walking days along the W, a refugio bed each night.",
+      summary: "The W trek in Torres del Paine, refugio to refugio.",
       days: [
-        {
-          title: "Into the park, to Chileno",
-          items: [
-            { time: "07:00", text: "Bus from Puerto Natales into the park" },
-            { time: "10:30", text: "Park entry at Laguna Amarga" },
-            { time: "12:00", text: "Walk from Las Torres to the Chileno refugio" },
-            { time: "18:30", text: "Dinner at the refugio" },
-          ],
-        },
-        {
-          title: "The Towers at sunrise",
-          highlight: "Base of the Towers at sunrise",
-          items: [
-            { time: "04:00", text: "Head-torch climb to the Base of the Towers" },
-            { time: "06:00", text: "Sunrise on the three towers" },
-            { time: "11:00", text: "Walk along Lago Nordenskjöld to Los Cuernos" },
-            { time: "18:30", text: "Dinner at the refugio" },
-          ],
-        },
-        {
-          title: "Up the French valley",
-          highlight: "French valley",
-          items: [
-            { time: "08:30", text: "Walk from Los Cuernos to Italiano camp" },
-            { time: "11:30", text: "Up the French valley to the lookout" },
-            { time: "15:30", text: "Along the lake to Paine Grande" },
-            { time: "19:00", text: "Dinner at the refugio" },
-          ],
-        },
-        {
-          title: "Grey glacier and back",
-          highlight: "Grey glacier lookout",
-          items: [
-            { time: "08:00", text: "Walk north along Lago Grey" },
-            { time: "11:30", text: "Grey glacier lookout" },
-            { time: "14:30", text: "Walk back to Paine Grande" },
-          ],
-        },
+        day("Into the park", ["08:00 Bus to the park, 2h", "11:00 Catamaran across Lago Pehoé", "13:00 Walk to Grey glacier"], "The W trek, refugio to refugio"),
+        day("French valley", ["08:00 Walk up the French valley", "17:00 Refugio dinner"]),
+        day("To the base of the towers", ["08:00 Walk east along Lago Nordenskjöld", "16:00 Refugio Chileno"]),
+        day("The towers at dawn", ["04:30 Climb to the base of the towers for sunrise", "11:00 Down to the hotel Las Torres", "14:00 ~ Free afternoon."]),
       ],
     },
     {
       place: "Puerto Natales",
-      summary: "Hot showers, a rest day and a boat up Last Hope Sound.",
+      summary: "Two nights to rest the legs.",
       days: [
-        {
-          title: "Out of the park",
-          items: [
-            { time: "09:30", text: "Catamaran across Lago Pehoé" },
-            { time: "10:30", text: "Bus to Puerto Natales" },
-            { time: "15:00", text: "Showers, then the town" },
-            { time: "19:30", text: "Dinner in town" },
-          ],
-        },
-        {
-          title: "A slow day",
-          items: [
-            { time: "10:00", text: "Slow start and a waterfront walk" },
-            { time: "13:00", text: "Lunch in town" },
-            { time: "15:00", text: "Empty on purpose. The group splits up.", free: true },
-          ],
-        },
-        {
-          title: "Last Hope Sound by boat",
-          items: [
-            { time: "08:30", text: "Boat up Last Hope Sound to the Balmaceda glacier" },
-            { time: "13:00", text: "Lunch on the shore and a short walk to the Serrano glacier" },
-            { time: "16:30", text: "Back in Puerto Natales" },
-          ],
-        },
-        {
-          title: "Home from Punta Arenas",
-          items: [
-            { time: "08:00", text: "Bus to Punta Arenas airport, about 3 hours" },
-            { time: "14:00", text: "Flight out of Punta Arenas" },
-          ],
-        },
+        day("Out of the park", ["09:00 Boat and bus back, about 3h", "14:00 Hot shower, long lunch", "19:00 Dinner"]),
+        day("Puerto Natales, free", ["10:00 ~ Nothing planned.", "19:00 Last dinner together"]),
+        day("Home from Punta Arenas", ["07:00 Bus to Punta Arenas, about 3h", "13:00 Flight to Santiago, connect home"]),
       ],
     },
   ],
   inPlan: [
-    { value: "9", label: "nights, all planned" },
-    { value: "2", label: "rides" },
-    { value: "31", label: "places, with times" },
-    { value: "2", label: "empty afternoons" },
+    { value: "12", label: "nights, all planned" },
+    { value: "2", label: "countries" },
+    { value: "4", label: "nights on the trail" },
+    { value: "6", label: "walking days" },
   ],
   advice: [
-    {
-      topic: "before",
-      title: "Before you go",
-      lines: ["Check the entry rules for your passport.", "Be honest about fitness. Train with a loaded pack."],
-    },
-    {
-      topic: "money",
-      title: "Money",
-      lines: ["Cards work in Puerto Natales.", "Carry some cash for snacks and extras inside the park."],
-    },
-    {
-      topic: "weather",
-      title: "Wind and layers",
-      lines: ["The wind is strong and the weather turns fast.", "Pack waterproofs, warm layers and a hat, even in summer."],
-    },
-    {
-      topic: "customs",
-      title: "Leave no trace",
-      lines: ["Carry out all rubbish.", "Open fires are not allowed in the park."],
-    },
+    { topic: "before", title: "Before you go", lines: ["Refugios on the W are booked months ahead. They come with the trip.", "Bring broken-in boots and walking poles."] },
+    { topic: "weather", title: "Weather", lines: ["Wind, sun and rain in one hour. Pack layers and a waterproof.", "November to March is the walking season."] },
+    { topic: "money", title: "Money", lines: ["Argentina and Chile have their own pesos. Cards work in towns.", "Carry some cash for the refugios' bars."] },
+    { topic: "health", title: "On the trail", lines: ["Long days. Train for eight to ten hours of walking before you go."] },
   ],
   goodToKnow: [
-    { label: "Pace", text: "Slow at the ends, hard in the middle. Four walking days." },
-    { label: "Walking", text: "The longest day is Grey glacier out and back, about 22 km." },
+    { label: "Pace", text: "Hard. Six walking days, the longest about ten hours." },
+    { label: "Sleep", text: "Refugios are shared rooms with bunks." },
   ],
 };

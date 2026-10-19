@@ -12,63 +12,54 @@ const land = landFrom({
   ],
 });
 const tile = { width: 240, height: 170 };
-const seville = { place: "Seville", lat: 37.4, lng: -6 };
-const cordoba = { place: "Córdoba", lat: 37.9, lng: -4.8 };
-const granada = { place: "Granada", lat: 37.2, lng: -3.6 };
+const seville = { lat: 37.4, lng: -6 };
+const granada = { lat: 37.2, lng: -3.6 };
+const ES = new Set(["ES"]);
 
 describe("drawOutline", () => {
   it("draws the trip's country apart from the land around it, and leaves out land that is off the drawing", () => {
-    const d = drawOutline([seville, granada], "ES", land, tile, false);
+    const d = drawOutline([seville, granada], ES, land, tile);
     expect(d.home).toMatch(/^M.*Z$/);
     expect(d.other).toMatch(/^M.*Z$/);
     expect(d.other.match(/Z/g)).toHaveLength(1);
   });
 
-  it("pins each stop in the order it is visited and runs the route through them", () => {
-    const d = drawOutline([seville, cordoba, granada], "ES", land, tile, false);
-    expect(d.pins.map((p) => p.label)).toEqual(["1", "2", "3"]);
-    expect(d.way.match(/L/g)).toHaveLength(2);
-    expect(d.pins[0]!.x).toBeLessThan(d.pins[2]!.x);
+  it("fills every country the trip passes through", () => {
+    const d = drawOutline([seville, granada], new Set(["ES", "PT"]), land, tile);
+    expect(d.home.match(/Z/g)).toHaveLength(2);
+    expect(d.other).toBe("");
   });
 
-  it("gives one pin to a place the route comes back to", () => {
-    const d = drawOutline([seville, granada, { ...seville }], "ES", land, tile, false);
-    expect(d.pins.map((p) => p.label)).toEqual(["1·3", "2"]);
-    expect(d.way.match(/L/g)).toHaveLength(2);
-  });
-
-  it("draws no route for a single stop", () => {
-    expect(drawOutline([seville], "ES", land, tile, false).way).toBe("");
-  });
-
-  it("keeps pins that share a spot on the drawing from covering each other", () => {
-    const d = drawOutline([seville, { place: "Triana", lat: 37.41, lng: -6.01 }], "ES", land, tile, false);
-    expect(Math.hypot(d.pins[0]!.x - d.pins[1]!.x, d.pins[0]!.y - d.pins[1]!.y)).toBeGreaterThanOrEqual(9.5);
-  });
-
-  it("puts a patch of land under a stop the coarse outline leaves in the sea", () => {
-    const d = drawOutline([seville, { place: "Ibiza", lat: 39, lng: 1.4 }], "ES", land, tile, false);
-    expect(d.islets).toHaveLength(1);
-    expect(d.islets[0]!.x).toBeCloseTo(d.pins[1]!.x);
-  });
-
-  it("names the stops only on the large drawing, each name inside the drawing", () => {
-    expect(drawOutline([seville, granada], "ES", land, tile, false).names).toEqual([]);
-    const size = { width: 432, height: 216 };
-    const d = drawOutline([seville, cordoba, granada], "ES", land, size, true);
-    expect(d.names.map((n) => n.text)).toEqual(["Seville", "Córdoba", "Granada"]);
-    for (const n of d.names) {
-      expect(n.x).toBeGreaterThan(0);
-      expect(n.x).toBeLessThan(size.width);
-      expect(n.y).toBeGreaterThan(0);
-      expect(n.y).toBeLessThan(size.height);
+  it("gives a frame that puts the stops on the drawing, west to east", () => {
+    const { frame } = drawOutline([seville, granada], ES, land, tile);
+    const [a, b] = [frame!.point(seville), frame!.point(granada)];
+    expect(a.x).toBeLessThan(b.x);
+    for (const p of [a, b]) {
+      expect(p.x).toBeGreaterThan(0);
+      expect(p.x).toBeLessThan(tile.width);
     }
   });
 
-  it("still draws the route when the outline has not loaded", () => {
-    const d = drawOutline([seville, granada], "ES", [], tile, false);
+  it("draws nothing for a trip with no stops", () => {
+    expect(drawOutline([], ES, land, tile)).toEqual({ home: "", other: "", islets: [], frame: null });
+  });
+
+  it("puts a patch of land under a stop the coarse outline leaves in the sea", () => {
+    const ibiza = { lat: 39, lng: 1.4 };
+    const d = drawOutline([seville, ibiza], ES, land, tile);
+    expect(d.islets).toHaveLength(1);
+    expect(d.islets[0]!.x).toBeCloseTo(d.frame!.point(ibiza).x, 0);
+  });
+
+  it("puts no patch under a town on the shore, whose coast is already in reach of its mark", () => {
+    const cadiz = { lat: 35.95, lng: -5 };
+    expect(drawOutline([seville, cadiz], ES, land, tile).islets).toEqual([]);
+  });
+
+  it("still gives a frame when the outline has not loaded", () => {
+    const d = drawOutline([seville, granada], ES, [], tile);
     expect(d.home).toBe("");
-    expect(d.pins).toHaveLength(2);
     expect(d.islets).toEqual([]);
+    expect(d.frame).not.toBeNull();
   });
 });
