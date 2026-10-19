@@ -21,7 +21,7 @@ const len = (a: Point) => Math.hypot(a.x, a.y);
 const unit = (a: Point): Point => mul(a, 1 / (len(a) || 1));
 const turn = (a: Point, t: number): Point => ({ x: a.x * Math.cos(t) - a.y * Math.sin(t), y: a.x * Math.sin(t) + a.y * Math.cos(t) });
 const onGround = (mode: Mode) => !mode || !(mode in ARC);
-const middle = (ps: readonly Point[]): Point => mul(ps.reduce(add, { x: 0, y: 0 }), 1 / ps.length);
+const middle = (ps: readonly Point[]): Point => mul(ps.reduce((sum, p) => add(sum, p), { x: 0, y: 0 }), 1 / ps.length);
 
 function cubic(p0: Point, c1: Point, c2: Point, p1: Point, n: number): Point[] {
   return Array.from({ length: n + 1 }, (_, i) => {
