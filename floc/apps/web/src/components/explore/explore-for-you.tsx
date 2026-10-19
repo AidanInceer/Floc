@@ -1,19 +1,11 @@
 "use client";
 
-import { formatMoney } from "@floc/core/money/money";
 import { filterCheck, type ExploreFilter } from "@floc/core/trip/explore/explore-filter";
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
-import dynamic from "next/dynamic";
-import { useMemo } from "react";
 
-import { routeStops } from "@/components/explore/listing";
+import { ExploreTile } from "@/components/explore/all/explore-tile";
 import { useCardTrack } from "@/components/explore/use-card-track";
 import { cx } from "@/components/system/ui";
-
-const RouteMap = dynamic(() => import("@/components/map/route-map").then((m) => m.RouteMap), {
-  ssr: false,
-  loading: () => <div className="h-full bg-sheet-2" />,
-});
 
 const tick = (
   <svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.25} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -22,34 +14,17 @@ const tick = (
 );
 
 function PickTile({ trip, rank, filter, onPick }: { trip: PresetTrip; rank: number; filter: ExploreFilter; onPick: (presetId: string) => void }) {
-  const stops = useMemo(() => routeStops(trip), [trip]);
   return (
-    <button
-      type="button"
-      onClick={() => onPick(trip.id)}
-      className="lift flex h-full w-full flex-col overflow-hidden rounded-[18px] bg-sheet text-left shadow-[var(--shadow)]"
-    >
-      <span aria-hidden className="pointer-events-none block h-[150px] [&_.route-map-frame]:rounded-none [&_.route-map-frame]:border-0">
-        <RouteMap stops={stops} missing={[]} fill still />
+    <ExploreTile trip={trip} onPick={onPick} rank={rank} wide>
+      <span className="mt-1 flex flex-wrap gap-x-2.5 gap-y-1">
+        {filterCheck(trip, filter).fits.map((f) => (
+          <span key={f} className="inline-flex items-center gap-1 text-xs text-green">
+            {tick}
+            {f}
+          </span>
+        ))}
       </span>
-      <span className="flex flex-col gap-1 px-4 pb-4 pt-3.5">
-        <b className="font-display text-lg font-semibold tracking-[-0.02em]">
-          <span className="nums mr-2 text-ink-faint">{rank}</span>
-          {trip.title}
-        </b>
-        <span className="nums text-[11.5px] text-ink-faint">
-          {trip.country} · {trip.nights} nights · from {formatMoney(trip.priceFromMinor, trip.currency)}
-        </span>
-        <span className="mt-1.5 flex flex-wrap gap-x-2.5 gap-y-1">
-          {filterCheck(trip, filter).fits.map((f) => (
-            <span key={f} className="inline-flex items-center gap-1 text-xs text-green">
-              {tick}
-              {f}
-            </span>
-          ))}
-        </span>
-      </span>
-    </button>
+    </ExploreTile>
   );
 }
 

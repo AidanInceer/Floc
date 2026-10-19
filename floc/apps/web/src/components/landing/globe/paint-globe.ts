@@ -1,4 +1,4 @@
-import { limbRing, project, shortest, type LatLng } from "@/lib/landing/globe/sphere";
+import { arc, capOf, limbRing, project, shortest, sightOf, type LatLng } from "@/lib/landing/globe/sphere";
 import { PLANE_D } from "@/lib/landing/hero/flight-path";
 
 import { globeMarks } from "./paint-marks";
@@ -7,6 +7,20 @@ const RAD = Math.PI / 180;
 const PLANE_SCALE = 0.92;
 
 type Box = { w: number; h: number };
+
+// Why: zoomed in, most land is off the canvas; skipping it keeps a 1:50m coast cheap on every frame of a zoom.
+const caps = new WeakMap<number[][], ReturnType<typeof capOf>>();
+function inSight(view: LatLng, ring: number[][], sight: number) {
+  let cap = caps.get(ring);
+  if (!cap) caps.set(ring, (cap = capOf(ring)));
+  return arc(view, cap.centre) <= sight + cap.reach;
+}
+
+/** The land that can show on the canvas, with the sphere's middle at (cx, cy): the furthest corner sets how far round it sees. */
+function landInSight(view: LatLng, land: number[][][], R: number, [cx, cy]: number[], { clientWidth: w, clientHeight: h }: HTMLCanvasElement) {
+  const sight = sightOf(R, Math.hypot(Math.max(Math.abs(cx!), Math.abs(w - cx!)), Math.max(Math.abs(cy!), Math.abs(h - cy!))));
+  return land.filter((ring) => inSight(view, ring, sight));
+}
 /** Where the sphere sits in the canvas. Left out, it fills the canvas; the way in to a trip makes it far larger. */
 type Fit = (box: Box) => { R: number; cx: number; cy: number } | undefined;
 
@@ -77,7 +91,7 @@ export function globePainter(canvas: HTMLCanvasElement) {
       ctx.fillStyle = ink.sheet;
       ctx.strokeStyle = ink.edge;
       ctx.lineWidth = 0.8;
-      for (const ring of land) landRing(view, ring);
+      for (const ring of landInSight(view, land, R, [cx, cy], canvas)) landRing(view, ring);
       ctx.lineWidth = 1.5;
       disc(false);
     },

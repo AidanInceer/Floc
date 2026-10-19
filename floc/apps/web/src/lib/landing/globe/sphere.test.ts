@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { apart, faced, facing, greatCircle, limbRing, nearest, project, shortest, turn } from "./sphere";
+import { apart, arc, capOf, sightOf, faced, facing, greatCircle, limbRing, nearest, project, shortest, turn } from "./sphere";
 
 const LONDON = { lat: 51.507, lng: -0.128 };
 const TOKYO = { lat: 35.676, lng: 139.65 };
@@ -118,5 +118,39 @@ describe("limbRing", () => {
     // Two crossings and the two hidden corners.
     expect(onEdge).toHaveLength(4);
     expect(ring.filter((p) => "x" in p)).toHaveLength(2);
+  });
+});
+
+describe("arc", () => {
+  it("is the angle between two places, in degrees", () => {
+    expect(arc({ lat: 0, lng: 0 }, { lat: 0, lng: 90 })).toBeCloseTo(90);
+    expect(arc({ lat: 0, lng: 170 }, { lat: 0, lng: -170 })).toBeCloseTo(20);
+  });
+});
+
+describe("capOf", () => {
+  it("is the middle of a ring and how far its furthest point is from it", () => {
+    const cap = capOf([[-10, -10], [10, -10], [10, 10], [-10, 10], [-10, -10]]);
+    expect(cap.centre.lat).toBeCloseTo(0);
+    expect(cap.centre.lng).toBeCloseTo(0);
+    expect(cap.reach).toBeCloseTo(arc({ lat: 0, lng: 0 }, { lat: 10, lng: 10 }));
+  });
+
+  it("finds the middle of a ring across the date line", () => {
+    expect(Math.abs(capOf([[175, -1], [-175, -1], [-175, 1], [175, 1], [175, -1]]).centre.lng)).toBeCloseTo(180);
+  });
+
+  it("reaches the whole globe when the ring has no middle", () => {
+    expect(capOf([[0, 0], [90, 0], [180, 0], [-90, 0], [0, 0]]).reach).toBe(180);
+  });
+});
+
+describe("sightOf", () => {
+  it("is the whole face when the canvas reaches past the globe's edge", () => {
+    expect(sightOf(300, 400)).toBe(90);
+  });
+
+  it("narrows as the globe grows past the canvas", () => {
+    expect(sightOf(2000, 1000)).toBeCloseTo(30);
   });
 });

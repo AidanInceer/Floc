@@ -88,3 +88,22 @@ export function limbRing(view: LatLng, ring: number[][]): Limb[] | null {
   });
   return out;
 }
+
+const dot = (p: number[], q: number[]) => p[0]! * q[0]! + p[1]! * q[1]! + p[2]! * q[2]!;
+
+/** The angle between two places, in degrees, the short way over the globe. */
+export const arc = (a: LatLng, b: LatLng) => Math.acos(clamp(dot(unit(a), unit(b)), -1, 1)) / RAD;
+
+/** A circle on the globe that holds a whole land outline: its middle, and the angle out to its furthest point. */
+export function capOf(ring: number[][]): { centre: LatLng; reach: number } {
+  const points = ring.slice(0, -1).map(([lng, lat]) => ({ lng: lng!, lat: lat! }));
+  const sum = [0, 0, 0];
+  for (const v of points.map(unit)) [0, 1, 2].forEach((k) => (sum[k]! += v[k]!));
+  const length = Math.hypot(sum[0]!, sum[1]!, sum[2]!);
+  if (length < points.length * 1e-3) return { centre: { lat: 0, lng: 0 }, reach: 180 };
+  const centre = { lat: Math.asin(sum[2]! / length) / RAD, lng: Math.atan2(sum[1]!, sum[0]!) / RAD };
+  return { centre, reach: points.reduce((most, p) => Math.max(most, arc(centre, p)), 0) };
+}
+
+/** How far from the view, in degrees, the globe shows within `far` px of its middle; 90 when the whole face is in. */
+export const sightOf = (radius: number, far: number) => (far >= radius ? 90 : Math.asin(far / radius) / RAD);
