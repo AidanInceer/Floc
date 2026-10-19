@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 
-import { landFrom, landFromPacked, type Geo, type Packed, type Piece } from "./land";
+import type { Packed } from "@/lib/land/pack-land";
+
+import { landFrom, landFromPacked, type Geo, type Piece } from "./land";
 
 /** `world` is the coarse 1:110m outline for the whole globe; `fine` is 1:50m, for a country up close. */
 export type Detail = "world" | "fine";

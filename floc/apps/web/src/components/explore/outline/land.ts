@@ -1,3 +1,5 @@
+import type { Packed } from "@/lib/land/pack-land";
+
 export type Spot = { lat: number; lng: number };
 export type Box = { west: number; south: number; east: number; north: number };
 /** One closed shape of land: a mainland or an island, as `[lng, lat]` points. */
@@ -26,9 +28,6 @@ export function landFrom(geo: Geo): Piece[] {
   });
 }
 
-/** Each country's rings as whole hundredths of a degree: the first point, then the step to each next one. */
-export type Packed = Record<string, number[][]>;
-
 function unpack(flat: number[]): number[][] {
   const ring: number[][] = [];
   let [x, y] = [0, 0];
@@ -40,7 +39,7 @@ function unpack(flat: number[]): number[][] {
   return ring;
 }
 
-/** The 1:50m outline, packed by `scripts/build-countries.mjs` to a third of its GeoJSON size. */
+/** The 1:50m outline, packed by `packLand` to a third of its GeoJSON size. */
 export function landFromPacked(packed: Packed): Piece[] {
   return Object.entries(packed).flatMap(([code, rings]) =>
     rings.map((flat) => {
