@@ -62,3 +62,11 @@ function inRing({ lat, lng }: Spot, ring: number[][]): boolean {
 export function onLand(land: readonly Piece[], spot: Spot): boolean {
   return land.some((piece) => inRing(spot, piece.ring));
 }
+
+const within = ({ lat, lng }: Spot, b: Box) => lng >= b.west && lng <= b.east && lat >= b.south && lat <= b.north;
+
+/** The countries a set of places stand in. A place in the sea, or on a shore the outline misses, adds none. */
+export function codesAt(land: readonly Piece[], spots: readonly Spot[]): Set<string> {
+  const codes = spots.map((spot) => land.find((piece) => within(spot, piece.box) && inRing(spot, piece.ring))?.code);
+  return new Set(codes.filter((code): code is string => Boolean(code)));
+}

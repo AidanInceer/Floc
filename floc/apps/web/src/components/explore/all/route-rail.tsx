@@ -2,20 +2,13 @@ import type { TransportType } from "@floc/core/vocabulary";
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 
 import { routeParts } from "@/components/explore/listing";
+import { MODE_PATHS } from "@/components/explore/route/mode-paths";
 import { LineIcon } from "@/components/system/icons";
-
-const MODE: Record<TransportType, string[]> = {
-  flight: ["M12.4 2.4 6.2 8.6M12.4 2.4l-4 9.8-2.2-3.6-3.6-2.2Z"],
-  train: ["M4.8 1.8h4.4A1.8 1.8 0 0 1 11 3.6v4.8a1.8 1.8 0 0 1-1.8 1.8H4.8A1.8 1.8 0 0 1 3 8.4V3.6a1.8 1.8 0 0 1 1.8-1.8Z", "M3 6.4h8M5 12.2l1-2M9 12.2l-1-2"],
-  car: ["M2 9.4V7.2l1.3-3a1 1 0 0 1 .9-.6h5.6a1 1 0 0 1 .9.6l1.3 3v2.2H2ZM2 7.2h10", "M4.4 9.9a1 1 0 1 0 0 2 1 1 0 0 0 0-2ZM9.6 9.9a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"],
-  ferry: ["M2.2 8.2h9.6l-1.4 3H3.6ZM4.2 8.2V5.4h5.6v2.8M7 5.4V2.6"],
-  other: ["M2.4 7h9.2M8 3.4 11.6 7 8 10.6"],
-};
 
 function ModeIcon({ mode, className }: { mode: TransportType; className?: string }) {
   return (
     <LineIcon className={className}>
-      {MODE[mode].map((d) => (
+      {MODE_PATHS[mode].map((d) => (
         <path key={d} d={d} />
       ))}
     </LineIcon>

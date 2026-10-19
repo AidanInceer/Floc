@@ -17,7 +17,7 @@ export function TripHero({ trip, figures }: { trip: PresetTrip; figures: PresetF
   ];
   return (
     <section className="grid items-center gap-6 lg:grid-cols-[1.08fr_1fr] lg:gap-12">
-      <TripMap stops={stops} />
+      <TripMap trip={trip} />
       <div>
         <p className="typed">
           <Link href="/explore" className="hover:text-ink">

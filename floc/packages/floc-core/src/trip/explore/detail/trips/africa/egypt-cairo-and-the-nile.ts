@@ -1,131 +1,55 @@
+import { day } from "../../day";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const EGYPT_CAIRO_AND_THE_NILE: PresetDetail = {
   stops: [
     {
       place: "Cairo",
-      summary: "The bazaar, then the pyramids at opening time.",
+      summary: "The pyramids early, the museum and the old city.",
       days: [
-        {
-          title: "Land and the bazaar",
-          items: [
-            { time: "10:00", text: "Land in Cairo, transfer to the hotel" },
-            { time: "13:30", text: "Khan el-Khalili bazaar and lunch" },
-            { time: "17:00", text: "Sunset in Al-Azhar park" },
-          ],
-        },
-        {
-          title: "Pyramids at opening",
-          highlight: "Giza before the crowds",
-          items: [
-            { time: "08:00", text: "Pyramids of Giza as the gates open" },
-            { time: "11:30", text: "Step pyramid at Saqqara" },
-            { time: "15:30", text: "Early dinner, bags out for the morning flight" },
-          ],
-        },
+        day("Land in Cairo", ["15:00 Airport to the hotel at Giza", "18:30 Sound and light at the pyramids", "20:30 Dinner"]),
+        day("Giza before the crowds", ["07:00 The pyramids at opening", "10:00 The Sphinx", "14:00 The Grand Egyptian Museum"], "Giza before the crowds"),
+        day("Old Cairo", ["09:00 Coptic Cairo", "12:00 The citadel", "16:00 Khan el-Khalili bazaar", "19:30 Koshari for dinner"]),
       ],
     },
     {
-      place: "Nile cruise from Luxor",
-      summary: "Four nights on a boat, a temple most mornings and a sun deck in between.",
+      place: "Luxor",
+      summary: "The temples of Karnak and the tombs of the Valley of the Kings.",
       days: [
-        {
-          title: "Fly to Luxor",
-          items: [
-            { time: "08:00", text: "Flight from Cairo to Luxor, about 1 hour" },
-            { time: "12:00", text: "Board the boat and have lunch" },
-            { time: "15:30", text: "Karnak temple" },
-            { time: "19:00", text: "Luxor temple, lit at night" },
-          ],
-        },
-        {
-          title: "Valley of the Kings",
-          highlight: "Valley of the Kings",
-          items: [
-            { time: "06:30", text: "Valley of the Kings, before the heat" },
-            { time: "09:30", text: "Hatshepsut's temple at Deir el-Bahari" },
-            { time: "12:30", text: "Sail south from Luxor" },
-            { time: "14:30", text: "Empty on purpose. Sun deck, no stops.", free: true },
-          ],
-        },
-        {
-          title: "Edfu and Kom Ombo",
-          items: [
-            { time: "07:30", text: "Edfu temple by horse carriage" },
-            { time: "11:00", text: "Sail on to Kom Ombo" },
-            { time: "16:30", text: "Kom Ombo temple at dusk" },
-          ],
-        },
-        {
-          title: "Sail to Aswan",
-          items: [
-            { time: "09:00", text: "Sail through the Nile valley to Aswan" },
-            { time: "13:00", text: "Dock in Aswan, lunch on board" },
-            { time: "19:00", text: "Last dinner on the boat" },
-          ],
-        },
+        day("Fly to Luxor", ["08:00 Flight, 1h", "11:00 Board the boat", "15:00 Karnak temple", "19:00 Luxor temple lit up"]),
+        day("The west bank", ["06:00 Balloon over the west bank, if you like", "08:30 The Valley of the Kings", "12:00 Hatshepsut's temple", "16:00 ~ Free afternoon on deck."], "The Valley of the Kings"),
+      ],
+    },
+    {
+      place: "Edfu",
+      summary: "On the river: Edfu's temple, then Kom Ombo and its crocodiles.",
+      days: [
+        day("Sailing south", ["09:00 Through the lock at Esna", "13:00 Lunch on deck", "18:00 Sunset on the river"]),
+        day("Edfu and Kom Ombo", ["07:00 Edfu temple by horse cart", "12:00 Sail on", "17:00 Kom Ombo and the crocodile museum"]),
       ],
     },
     {
       place: "Aswan",
-      summary: "An island temple, a sail at dusk and the early trip to Abu Simbel.",
+      summary: "Felucca at dusk, a Nubian village and Abu Simbel at dawn.",
       days: [
-        {
-          title: "Philae and the felucca",
-          highlight: "Felucca at dusk in Aswan",
-          items: [
-            { time: "08:00", text: "Leave the boat, bags to the hotel" },
-            { time: "10:00", text: "Philae temple by motorboat" },
-            { time: "13:00", text: "Lunch by the river" },
-            { time: "17:00", text: "Felucca around Elephantine island at dusk" },
-          ],
-        },
-        {
-          title: "Abu Simbel, then nothing",
-          items: [
-            { time: "04:00", text: "Leave in the convoy for Abu Simbel, about 3 hours" },
-            { time: "07:00", text: "The temples of Abu Simbel" },
-            { time: "12:30", text: "Back in Aswan" },
-            { time: "15:00", text: "Empty on purpose. Sleep.", free: true },
-          ],
-        },
-        {
-          title: "Home from Aswan",
-          items: [
-            { time: "09:00", text: "Transfer to Aswan airport" },
-            { time: "12:00", text: "Flight to Cairo, then home" },
-          ],
-        },
+        day("Into Aswan", ["09:00 Philae temple", "13:00 Leave the boat", "17:00 Felucca at dusk"]),
+        day("Abu Simbel", ["04:00 Drive to Abu Simbel, about 3h 30", "08:00 The temples of Ramses and Nefertari", "15:00 Back in Aswan"], "Abu Simbel at dawn"),
+        day("Nubian village", ["10:00 Boat to a Nubian village", "13:00 Lunch with a family", "17:00 ~ Free evening."]),
+        day("Home via Cairo", ["09:00 Flight to Cairo", "14:00 Connect home"]),
       ],
     },
   ],
   inPlan: [
-    { value: "8", label: "nights, all planned" },
-    { value: "2", label: "rides, one flight and one boat" },
-    { value: "28", label: "places, with times" },
-    { value: "2", label: "empty afternoons" },
+    { value: "10", label: "nights, all planned" },
+    { value: "4", label: "nights on the river" },
+    { value: "7", label: "temples and tombs" },
+    { value: "1", label: "flight" },
   ],
   advice: [
-    {
-      topic: "before",
-      title: "Before you go",
-      lines: ["Check the entry rules for your passport.", "Book the boat early for October to April."],
-    },
-    {
-      topic: "money",
-      title: "Small notes",
-      lines: ["Carry small notes for tips. Staff, guides and drivers expect them.", "Agree a price before a ride, a felucca or a bazaar buy."],
-    },
-    {
-      topic: "customs",
-      title: "Dress",
-      lines: ["Cover shoulders and knees at mosques and in the old districts.", "A light scarf helps. Take shoes off at mosque doors."],
-    },
-    {
-      topic: "health",
-      title: "Water and sun",
-      lines: ["Drink bottled water and avoid ice you cannot vouch for.", "Hat, sunscreen and a stomach remedy go in the bag."],
-    },
+    { topic: "before", title: "Before you go", lines: ["Most passports need a visa. Buy the e-visa before you fly.", "Book Abu Simbel's early convoy with the boat."] },
+    { topic: "money", title: "Money", lines: ["Carry small notes for tips. Tipping is expected almost everywhere.", "Cards work in hotels and big shops."] },
+    { topic: "customs", title: "Customs", lines: ["Cover shoulders and knees at mosques and in the old city.", "Ask before you photograph people."] },
+    { topic: "health", title: "Heat and water", lines: ["Drink bottled water and wear a hat at the sites.", "Midday is hot even in winter."] },
   ],
   goodToKnow: [
     { label: "Pace", text: "Full. A temple most mornings, then a 04:00 start for Abu Simbel." },

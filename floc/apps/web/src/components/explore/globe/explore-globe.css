@@ -75,55 +75,6 @@
 .explore-pin:hover,
 .explore-pin[aria-pressed="true"] { z-index: 2; }
 
-/* A numbered stop of the open route: a ring of pen on paper, the same pin as the trip's own Route map. */
-.explore-atlas .route-pin {
-  position: absolute;
-  left: 0;
-  top: 0;
-  display: grid;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  margin: -13px 0 0 -13px;
-  border-radius: 50%;
-  border: 2px solid var(--pen);
-  background: var(--sheet);
-  color: var(--pen);
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1;
-  box-shadow: var(--shadow-sm);
-  animation: stop-in 0.5s var(--ease) both;
-}
-/* A place the route comes back to: "1·3" in the one pin. */
-.explore-atlas .route-pin.is-twice { font-size: 10px; letter-spacing: -0.02em; }
-
-/* A stop's days and name, placed round its pin by `placeNames`. */
-.explore-atlas .route-tag {
-  position: absolute;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  /* Why: an absolute box inside a 26px pin shrinks to the pin's width and cuts the name off. */
-  width: max-content;
-  padding: 2px 7px 2px 3px;
-  border-radius: 6px;
-  background: var(--sheet);
-  color: var(--ink);
-  font-family: var(--sans);
-  font-size: 12px;
-  font-weight: 400;
-  white-space: nowrap;
-  box-shadow: var(--shadow-sm);
-  animation: tag-in 0.45s 0.15s var(--ease) both;
-}
-.explore-atlas .route-tag em { font-style: normal; }
-
-/* `scale` and `translate`, not `transform`: the globe places a pin with its transform. */
-/* A stop grows out of the tip of the line; its name follows. A small start size reads as growth, a large one as a pop. */
-@keyframes stop-in { from { opacity: 0; scale: 0.2; } 60% { opacity: 1; } }
-@keyframes tag-in { from { opacity: 0; translate: -6px 0; } }
-
 .explore-atlas .atlas-world {
   position: absolute;
   left: 12px;
@@ -143,8 +94,6 @@
 .explore-atlas .atlas-world:hover { color: var(--ink); border-color: var(--pen); }
 
 @media (prefers-reduced-motion: reduce) {
-  .explore-atlas .route-pin,
-  .explore-atlas .route-tag { animation: none; }
   .explore-pin i,
   .explore-pin span { transition: none; }
 }

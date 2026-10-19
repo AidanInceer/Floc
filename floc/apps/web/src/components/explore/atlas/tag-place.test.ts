@@ -59,4 +59,12 @@ describe("placeTags", () => {
   it("places only the tags it is given sizes for", () => {
     expect(placeTags([{ x: 0, y: 0 }, { x: 300, y: 0 }], [], WIDE)).toEqual([]);
   });
+
+  it("keeps clear of a box it is told to avoid, as a mark on the line", () => {
+    const name = { width: 40, height: 12 };
+    const [free] = placeTags([{ x: 0, y: 0 }], [name], WIDE);
+    const mark = { left: free!.x, top: free!.y, right: free!.x + 40, bottom: free!.y + 12 };
+    const [moved] = placeTags([{ x: 0, y: 0 }], [name], WIDE, undefined, [mark]);
+    expect(moved).not.toEqual(free);
+  });
 });

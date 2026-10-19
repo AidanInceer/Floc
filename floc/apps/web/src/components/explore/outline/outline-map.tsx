@@ -4,30 +4,36 @@ import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 import { useMemo } from "react";
 
 import { landFor } from "@/components/explore/listing";
-import { cx } from "@/components/system/ui";
+import { lineFor } from "@/components/explore/route/route-ink";
+import type { Point } from "@/lib/explore/route/curves";
+import { routeShape } from "@/lib/explore/route/route-shape";
+import { tripRoute } from "@/lib/explore/route/trip-route";
 
-import { outlineCode } from "./country";
+import { tripCodes } from "./country";
 import { drawOutline } from "./drawing";
 import { useLand } from "./use-land";
 
-// Why: a name is set at 12px, so each place the map goes has a drawing at the size it is shown.
-const SIZES = {
+// Why: each place a tile goes has a drawing at the size it is shown, so a line keeps its width.
+const OUTLINE_SIZES = {
   tile: { width: 240, height: 170 },
   pass: { width: 432, height: 216 },
-  sheet: { width: 343, height: 190 },
 } as const;
 
-const PIN = "fill-sheet stroke-pen";
+const LINE = 1.5;
+const pathOf = (pts: Point[]) => `M${pts.map((p) => `${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join("L")}`;
 
 /**
- * A listing's route on the outline of its country. No tile layer: the shapes come from `public/land-50m.json`.
- * `named` numbers the pins and writes each place beside its pin.
+ * A listing's route on the outline of its countries, small, for a tile: the line in the map's own style (patterned by how you
+ * travel), the start and the end in ink, no names. No tile layer: the shapes come from `public/land-50m.json`.
  */
-export function OutlineMap({ trip, size, named = false }: { trip: PresetTrip; size: keyof typeof SIZES; named?: boolean }) {
+export function OutlineMap({ trip, size }: { trip: PresetTrip; size: "tile" | "pass" }) {
   const land = useLand("fine");
-  const box = SIZES[size];
-  const stops = useMemo(() => trip.legs.flatMap((leg) => (leg.kind === "base" ? [leg] : [])), [trip]);
-  const d = useMemo(() => drawOutline(stops, outlineCode(trip.country) ?? "", land, box, named), [stops, trip.country, land, box, named]);
+  const box = OUTLINE_SIZES[size];
+  const route = useMemo(() => tripRoute(trip), [trip]);
+  const d = useMemo(() => drawOutline(route.stops, tripCodes(trip.country, route.stops, land), land, box), [route, trip.country, land, box]);
+  const shape = useMemo(() => (d.frame ? routeShape(route, d.frame.point, { samples: 22, loop: 15, least: Infinity }) : null), [route, d.frame]);
+  // Why: at tile size a day trip's loop crowds its stop's mark into a smudge; the pass draws them.
+  const pieces = useMemo(() => shape?.pieces.filter((p) => p.kind !== "loop") ?? [], [shape]);
   const home = landFor(trip);
 
   return (
@@ -35,32 +41,33 @@ export function OutlineMap({ trip, size, named = false }: { trip: PresetTrip; si
       viewBox={`0 0 ${box.width} ${box.height}`}
       preserveAspectRatio="xMidYMid slice"
       role="img"
-      aria-label={`${stops.map((s) => s.place).join(", ")}, ${trip.country}`}
+      aria-label={`${route.stops.map((s) => s.place).join(", ")}, ${trip.country}`}
       className="block size-full"
     >
+      {/* Why: the trip's countries go under the rest, so where two shapes overlap (Morocco and Western Sahara) the drawn border wins. */}
+      <path d={d.home} className={home} />
       <path d={d.other} strokeWidth={0.75} className="fill-sheet-3 stroke-rule-strong" />
       {d.islets.map((islet) => (
         <circle key={`${islet.x} ${islet.y}`} cx={islet.x} cy={islet.y} r={islet.r} className={home} />
       ))}
-      <path d={d.home} className={home} />
-      {d.way ? <path d={d.way} fill="none" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className="stroke-pen opacity-85" /> : null}
-      {d.pins.map((pin) =>
-        named ? (
-          <g key={pin.label}>
-            <circle cx={pin.x} cy={pin.y} r={9} strokeWidth={2} className={PIN} />
-            <text x={pin.x} y={pin.y + 3.6} textAnchor="middle" className={cx("nums fill-pen font-semibold", pin.label.length > 2 ? "text-[7.5px]" : "text-[10.5px]")}>
-              {pin.label}
-            </text>
-          </g>
-        ) : (
-          <circle key={pin.label} cx={pin.x} cy={pin.y} r={4.2} strokeWidth={2} className={PIN} />
-        ),
-      )}
-      {d.names.map((name) => (
-        <text key={name.text} x={name.x} y={name.y} strokeWidth={3} strokeLinejoin="round" paintOrder="stroke" className="fill-ink stroke-sheet text-[12px] font-medium">
-          {name.text}
-        </text>
-      ))}
+      {shape ? (
+        <g fill="none" strokeLinejoin="round">
+          {pieces.map((p, k) =>
+            p.mode === "flight" ? null : <path key={`case-${k}`} d={pathOf(p.px)} strokeWidth={5} strokeLinecap="round" className="stroke-sheet" />,
+          )}
+          {pieces.map((p, k) => {
+            const look = lineFor(p.mode, LINE);
+            return <path key={`line-${k}`} d={pathOf(p.px)} strokeWidth={look.width} strokeDasharray={look.dash.join(" ") || undefined} strokeLinecap={look.cap} className="stroke-ink" />;
+          })}
+          {shape.stops.map((s, k) =>
+            !s.named ? null : s.role === "mid" ? (
+              <circle key={k} cx={s.px.x} cy={s.px.y} r={3} strokeWidth={1.3} className="fill-sheet stroke-ink" />
+            ) : (
+              <circle key={k} cx={s.px.x} cy={s.px.y} r={4.6} strokeWidth={1.5} className="fill-ink stroke-sheet" />
+            ),
+          )}
+        </g>
+      ) : null}
     </svg>
   );
 }

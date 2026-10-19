@@ -1,147 +1,67 @@
+import { day } from "../../day";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const THAILAND_ANDAMAN_ISLANDS: PresetDetail = {
   stops: [
     {
       place: "Bangkok",
-      summary: "Street food, the river and the old palace before the islands.",
+      summary: "Temples, the river, Chinatown, then the sleeper north.",
       days: [
-        {
-          title: "Land, then Chinatown",
-          highlight: "Street food in Chinatown",
-          items: [
-            { time: "15:00", text: "Airport to the hotel" },
-            { time: "17:00", text: "Chao Phraya river boat" },
-            { time: "19:00", text: "Yaowarat, Chinatown street food stall to stall" },
-          ],
-        },
-        {
-          title: "Palace and temples",
-          items: [
-            { time: "08:30", text: "Grand Palace, early before the heat" },
-            { time: "11:00", text: "Wat Pho and the reclining Buddha" },
-            { time: "14:00", text: "Jim Thompson House" },
-            { time: "19:30", text: "Dinner in the old town" },
-          ],
-        },
+        day("Land and Chinatown", ["14:00 Airport train to the hotel by the river", "17:30 Wat Arun at sunset", "19:30 Street food on Yaowarat road"], "Street food in Chinatown"),
+        day("Palace, then the sleeper", ["08:30 The Grand Palace and Wat Pho", "12:30 Boat up the Chao Phraya", "18:10 Sleeper train north from Krung Thep Aphiwat"], "Sleeper train to Chiang Mai"),
+      ],
+    },
+    {
+      place: "Chiang Mai",
+      summary: "The old city, the mountain temple and a morning with elephants that are not ridden.",
+      days: [
+        day("Off the train", ["07:00 Arrive in Chiang Mai", "10:00 Old city temples by bike", "18:00 Sunday walking street"]),
+        day("Elephants, kindly", ["08:00 An elephant sanctuary, no riding", "15:00 Back for a massage", "19:00 Khao soi for dinner"]),
+        day("Doi Suthep", ["08:00 Up to Wat Doi Suthep", "12:00 Nimman cafés", "14:00 ~ Free afternoon."]),
       ],
     },
     {
       place: "Railay",
-      summary: "Limestone cliffs, a beach you reach only by boat and long days on the water.",
+      summary: "Cliffs, long-tails and no road in.",
       days: [
-        {
-          title: "Fly south, then the boat",
-          items: [
-            { time: "08:30", text: "Flight from Bangkok to Krabi" },
-            { time: "12:00", text: "Long-tail boat from Ao Nang to Railay" },
-            { time: "16:00", text: "First swim at Phra Nang beach" },
-          ],
-        },
-        {
-          title: "Four islands by long-tail",
-          highlight: "Four islands by long-tail",
-          items: [
-            { time: "09:00", text: "Hire a long-tail boat for the day" },
-            { time: "11:00", text: "Snorkelling off the islands" },
-            { time: "13:00", text: "Lunch on a beach" },
-          ],
-        },
-        {
-          title: "Viewpoint, then sunset",
-          highlight: "Sunset from Railay west",
-          items: [
-            { time: "08:00", text: "Railay viewpoint, a short steep climb" },
-            { time: "14:00", text: "Empty on purpose. The group splits up.", free: true },
-            { time: "17:30", text: "Sunset on Railay West beach" },
-          ],
-        },
-        {
-          title: "Rock and water",
-          items: [
-            { time: "09:00", text: "Beginner climbing lesson on the cliffs" },
-            { time: "12:30", text: "Lunch on Railay East" },
-            { time: "15:00", text: "Kayaks from Railay West" },
-          ],
-        },
+        day("South to the sea", ["10:00 Flight to Krabi, 2h", "14:00 Long-tail to Railay", "18:00 Sunset from Railay west"], "Sunset from Railay west"),
+        day("Four islands", ["09:00 Long-tail to Poda, Chicken and Tup islands", "13:00 Lunch on the sand", "16:00 Back for a swim at Phra Nang"], "Four islands by long-tail"),
+        day("Cliffs", ["08:00 Climbing lesson on the limestone", "13:00 ~ Free afternoon.", "19:00 Dinner on the beach"]),
+      ],
+    },
+    {
+      place: "Koh Phi Phi",
+      summary: "Maya Bay by boat and a hike to the viewpoint.",
+      days: [
+        day("Ferry to Phi Phi", ["10:30 Ferry from Railay, 1h 30", "14:00 Walk to Long Beach", "17:30 Viewpoint for sunset"]),
+        day("Maya Bay", ["07:00 Boat to Maya Bay before the crowds", "10:00 Snorkel at Pileh lagoon", "15:00 ~ Free afternoon."]),
       ],
     },
     {
       place: "Koh Lanta",
-      summary: "Long quiet beaches, an old fishing town and a day on the water.",
+      summary: "The quiet island to finish: long beaches and nothing to do.",
       days: [
-        {
-          title: "Boat to Koh Lanta",
-          items: [
-            { time: "10:00", text: "Boat from Railay to Koh Lanta" },
-            { time: "13:30", text: "Lunch on the west coast" },
-            { time: "16:00", text: "Swim at Klong Dao beach" },
-          ],
-        },
-        {
-          title: "Old Town",
-          items: [
-            { time: "09:30", text: "Lanta Old Town, the stilt houses on the water" },
-            { time: "12:30", text: "Seafood lunch on the pier" },
-            { time: "16:30", text: "Long Beach for sunset" },
-          ],
-        },
-        {
-          title: "Park and beach",
-          items: [
-            { time: "09:00", text: "Mu Ko Lanta national park and the lighthouse" },
-            { time: "12:00", text: "Lunch near the park gate" },
-            { time: "14:00", text: "Empty on purpose. The group splits up.", free: true },
-          ],
-        },
-        {
-          title: "Snorkelling day",
-          items: [
-            { time: "08:30", text: "Boat trip to the reefs south of the island" },
-            { time: "12:30", text: "Lunch on board" },
-            { time: "19:00", text: "Last dinner on the beach" },
-          ],
-        },
-        {
-          title: "Home from Krabi",
-          items: [
-            { time: "09:00", text: "Minivan to Krabi airport" },
-            { time: "14:00", text: "Flight home" },
-          ],
-        },
+        day("Over to Lanta", ["11:00 Ferry to Koh Lanta, 1h 30", "15:00 Check in on Kantiang bay", "18:00 Sunset drinks"]),
+        day("Mu Ko Lanta park", ["09:00 Scooter to the national park", "13:00 Lunch at Bamboo bay", "16:00 Swim"]),
+        day("Lanta, free", ["10:00 ~ Nothing planned at all.", "19:00 Last dinner on the sand"]),
+        day("Home", ["08:00 Minivan and ferry to Krabi airport", "13:00 Flight home via Bangkok"]),
       ],
     },
   ],
   inPlan: [
-    { value: "10", label: "nights, all planned" },
-    { value: "2", label: "rides" },
-    { value: "31", label: "places, with times" },
-    { value: "2", label: "empty afternoons" },
+    { value: "13", label: "nights, all planned" },
+    { value: "5", label: "stops" },
+    { value: "3", label: "boat rides" },
+    { value: "1", label: "night train" },
   ],
   advice: [
-    {
-      topic: "before",
-      title: "Before you go",
-      lines: ["Check the entry rules for your passport.", "Book the Krabi flight and the island boat for the same day."],
-    },
-    {
-      topic: "customs",
-      title: "Temples",
-      lines: ["Cover shoulders and knees in the Grand Palace and Wat Pho.", "Shoes off before you enter a temple hall."],
-    },
-    {
-      topic: "weather",
-      title: "Sea and weather",
-      lines: ["November to April is the dry season. Seas are calm.", "Boats can stop in rough weather. Keep a spare day."],
-    },
-    {
-      topic: "health",
-      title: "Sun and water",
-      lines: ["Use reef-safe sun cream and drink bottled water.", "Check your travel insurance covers boats and climbing."],
-    },
+    { topic: "before", title: "Before you go", lines: ["Check the entry rules for your passport.", "Book the sleeper early. Lower berths go first."] },
+    { topic: "customs", title: "Temples", lines: ["Cover shoulders and knees in the Grand Palace and Wat Pho.", "Shoes off before you enter a temple hall."] },
+    { topic: "weather", title: "Sea and weather", lines: ["November to April is the dry season. Seas are calm.", "Boats can stop in rough weather. Keep a spare day."] },
+    { topic: "health", title: "Sun and water", lines: ["Use reef-safe sun cream and drink bottled water.", "Check your travel insurance covers boats and climbing."] },
   ],
   goodToKnow: [
-    { label: "Pace", text: "Slow after Bangkok. Two moves in ten nights." },
+    { label: "Pace", text: "Busy in Bangkok and Chiang Mai, then slow on the islands." },
     { label: "Boats", text: "Railay has no road. Long-tails run in daylight." },
   ],
 };

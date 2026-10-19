@@ -12,7 +12,11 @@ import {
 } from "./explore-match";
 import { PRESET_TRIPS, type PresetTrip } from "./preset-trips";
 
-const byId = (id: string) => PRESET_TRIPS.find((t) => t.id === id) as PresetTrip;
+// Listings made for the test, so the scores do not move when the real listings change.
+const listing = (over: Partial<PresetTrip>): PresetTrip => ({ ...PRESET_TRIPS[0], ...over });
+const SEASIDE = listing({ groupSize: "4–8 people", priceFromMinor: 74000, currency: "EUR", bestMonths: "May, June, September", nights: 7 });
+const DEAR = listing({ groupSize: "2–6 people", priceFromMinor: 185000, currency: "GBP", bestMonths: "March to May, October, November", nights: 10 });
+const SUMMER_ONLY = listing({ bestMonths: "June to August" });
 
 describe("monthsOf", () => {
   it("reads a list of months", () => {
@@ -45,8 +49,8 @@ describe("matchScore", () => {
   const answers: ExploreAnswers = { size: "5-8", when: "summer", cost: "500-1000", pace: "base", nights: 7 };
 
   it("scores a listing that fits every answer above one that fits none", () => {
-    const fits = matchScore(byId("amalfi-slow-week"), answers);
-    const misses = matchScore(byId("japan-golden-route"), answers);
+    const fits = matchScore(SEASIDE, answers);
+    const misses = matchScore(DEAR, answers);
     expect(fits).toBeGreaterThan(misses);
   });
 
@@ -55,8 +59,8 @@ describe("matchScore", () => {
   });
 
   it("counts any month when the group is not sure", () => {
-    const sure = matchScore(byId("iceland-ring-road"), { ...answers, when: "spring" });
-    const unsure = matchScore(byId("iceland-ring-road"), { ...answers, when: "any" });
+    const sure = matchScore(SUMMER_ONLY, { ...answers, when: "spring" });
+    const unsure = matchScore(SUMMER_ONLY, { ...answers, when: "any" });
     expect(unsure).toBeGreaterThan(sure);
   });
 });
@@ -83,7 +87,7 @@ describe("mapPicks", () => {
 
 describe("rankMatches length", () => {
   it("leaves out listings longer than the chosen length", () => {
-    const ranked = rankMatches(PRESET_TRIPS, { ...DEFAULT_ANSWERS, nights: 7 }, PRESET_TRIPS.length);
+    const ranked = rankMatches([SEASIDE, DEAR], { ...DEFAULT_ANSWERS, nights: 7 }, 2);
     expect(ranked.length).toBeGreaterThan(0);
     for (const { trip } of ranked) expect(trip.nights, trip.id).toBeLessThanOrEqual(7);
   });

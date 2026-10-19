@@ -1,142 +1,67 @@
+import { day } from "../../day";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const ICELAND_RING_ROAD: PresetDetail = {
   stops: [
     {
       place: "Reykjavík",
-      summary: "Land, collect the car and see the city before the road.",
-      days: [
-        {
-          title: "Land and the old harbour",
-          items: [
-            { time: "08:00", text: "Land at Keflavík and collect the car" },
-            { time: "10:30", text: "Hallgrímskirkja tower and the old harbour" },
-            { time: "14:00", text: "Empty on purpose. The group splits up.", free: true },
-            { time: "19:00", text: "Dinner in the city centre" },
-          ],
-        },
-      ],
+      summary: "Pick up the car, then the Golden Circle on the way out.",
+      days: [day("Land and the Golden Circle", ["09:00 Keflavík, pick up the car", "11:00 Þingvellir, between the plates", "14:00 Geysir and Gullfoss", "19:00 Dinner in Reykjavík"])],
     },
     {
       place: "Vík",
-      summary: "Waterfalls and black sand along the south coast.",
-      days: [
-        {
-          title: "Waterfalls and black sand",
-          items: [
-            { time: "08:30", text: "Drive east along the south coast" },
-            { time: "10:30", text: "Seljalandsfoss, walk behind the fall" },
-            { time: "12:00", text: "Skógafoss" },
-            { time: "15:00", text: "Reynisfjara black sand beach" },
-          ],
-        },
-      ],
+      summary: "Waterfalls and the black beach on the south coast.",
+      days: [day("The south coast", ["09:00 Drive east on Route 1", "11:00 Seljalandsfoss, walk behind it", "13:00 Skógafoss", "17:00 Reynisfjara black beach"])],
     },
     {
       place: "Höfn",
-      summary: "Ice, a glacier lagoon and a quiet day by the mountains.",
+      summary: "The glacier lagoon, the diamond beach and a walk on the ice.",
       days: [
-        {
-          title: "Glacier lagoon",
-          highlight: "Jökulsárlón glacier lagoon",
-          items: [
-            { time: "08:30", text: "Drive east across the lava fields" },
-            { time: "11:00", text: "Svartifoss walk at Skaftafell" },
-            { time: "14:00", text: "Jökulsárlón glacier lagoon" },
-            { time: "16:30", text: "Diamond beach, then on to Höfn" },
-          ],
-        },
-        {
-          title: "Vestrahorn, then nothing",
-          items: [
-            { time: "09:00", text: "Stokksnes beach under Vestrahorn" },
-            { time: "12:30", text: "Seafood lunch in Höfn" },
-            { time: "15:00", text: "Empty on purpose. The group splits up.", free: true },
-          ],
-        },
+        day("To the glacier lagoon", ["09:00 Drive east through the lava fields", "13:00 Jökulsárlón glacier lagoon", "15:00 Diamond beach", "19:00 Langoustine in Höfn"], "Jökulsárlón glacier lagoon"),
+        day("On the ice", ["09:30 Guided glacier walk at Skaftafell", "14:00 Svartifoss", "17:00 ~ Free evening."]),
       ],
+    },
+    {
+      place: "Seyðisfjörður",
+      summary: "One night in the east fjords, in a village at the end of the road.",
+      days: [day("The east fjords", ["09:00 Coast road north through the fjords", "14:00 Over the pass to Seyðisfjörður", "17:00 The rainbow street and the blue church"])],
     },
     {
       place: "Mývatn",
-      summary: "Steam fields, hot water and the Diamond Circle.",
+      summary: "Craters, lava and hot water: the Diamond Circle.",
       days: [
-        {
-          title: "East fjords, then steam",
-          items: [
-            { time: "08:00", text: "Long drive through the east fjords, about 5h 30" },
-            { time: "12:30", text: "Lunch in Egilsstaðir" },
-            { time: "16:00", text: "Hverir steam fields" },
-            { time: "20:00", text: "Mývatn Nature Baths in the evening light" },
-          ],
-        },
-        {
-          title: "The Diamond Circle",
-          highlight: "Mývatn and the Diamond Circle",
-          items: [
-            { time: "09:00", text: "Dettifoss" },
-            { time: "11:30", text: "Ásbyrgi canyon" },
-            { time: "14:00", text: "Húsavík harbour" },
-            { time: "17:00", text: "Goðafoss on the way back" },
-          ],
-        },
+        day("Over the highlands", ["09:00 Drive west across the plateau", "12:00 Dettifoss, the loudest waterfall", "17:00 Mývatn nature baths"], "Mývatn and the Diamond Circle"),
+        day("Around the lake", ["09:00 Hverir mud pots", "11:00 Krafla's crater", "14:00 Dimmuborgir lava walk", "17:00 ~ Free evening."]),
       ],
     },
     {
+      place: "Akureyri",
+      summary: "The north's small town, with Goðafoss on the way and whales in the fjord.",
+      days: [day("Goðafoss and whales", ["09:00 Goðafoss", "13:00 Whale watching from Akureyri", "19:00 Dinner in town"])],
+    },
+    {
       place: "Snæfellsnes",
-      summary: "A long drive west, then the peninsula and the road to the airport.",
+      summary: "The peninsula on the way back, then home.",
       days: [
-        {
-          title: "West along the north coast",
-          items: [
-            { time: "08:30", text: "Drive west by Akureyri, about 6h with stops" },
-            { time: "12:00", text: "Lunch in Akureyri" },
-            { time: "18:30", text: "Kirkjufell in the evening light" },
-          ],
-        },
-        {
-          title: "The peninsula, then home",
-          highlight: "Snæfellsnes on the way back",
-          items: [
-            { time: "09:00", text: "Coast walk from Arnarstapi to Hellnar" },
-            { time: "11:30", text: "Djúpalónssandur beach" },
-            { time: "14:30", text: "Drive to Keflavík airport, about 3h" },
-            { time: "20:00", text: "Flight home" },
-          ],
-        },
+        day("The long drive west", ["08:30 Drive to Snæfellsnes, about 5h", "15:00 Kirkjufell", "17:00 Arnarstapi cliffs"], "Snæfellsnes on the way back"),
+        day("Home", ["09:00 Drive to Keflavík, about 2h 30", "12:00 Return the car", "14:00 Flight home"]),
       ],
     },
   ],
   inPlan: [
-    { value: "7", label: "nights, all planned" },
-    { value: "4", label: "drives" },
-    { value: "28", label: "places, with times" },
-    { value: "2", label: "empty afternoons" },
+    { value: "9", label: "nights, all planned" },
+    { value: "7", label: "stops" },
+    { value: "1", label: "whole loop of Route 1" },
+    { value: "2", label: "hot baths" },
   ],
   advice: [
-    {
-      topic: "before",
-      title: "Before you go",
-      lines: ["Check the entry rules for your passport.", "Read safetravel.is before you set off."],
-    },
-    {
-      topic: "money",
-      title: "Money",
-      lines: ["Cards work almost everywhere, even for a coffee.", "Fuel pumps in the north may need a card with a PIN."],
-    },
-    {
-      topic: "transport",
-      title: "The road",
-      lines: ["Check road.is each morning for closures.", "Fill up when you can. Petrol stations are far apart in the east."],
-    },
-    {
-      topic: "weather",
-      title: "Wind and waves",
-      lines: ["Hold the car door with both hands. Wind can bend it.", "Stay well back from the surf at Reynisfjara."],
-    },
+    { topic: "before", title: "Before you go", lines: ["Book guesthouses early. The east has very few beds.", "Check road.is each morning for closures."] },
+    { topic: "transport", title: "Driving", lines: ["Fill up when you can. Fuel stations are far apart in the east.", "Never stop on the road for a photo. Use the lay-bys."] },
+    { topic: "weather", title: "Weather", lines: ["It changes by the hour. Pack a waterproof and layers.", "Midnight sun in June and July. Bring an eye mask."] },
+    { topic: "money", title: "Money", lines: ["Cards work almost everywhere. You may never need cash.", "Food is dear. Supermarket picnics save a lot."] },
   ],
   goodToKnow: [
-    { label: "Pace", text: "Fast. A new base on most nights." },
-    { label: "Driving", text: "Long days at the wheel, up to 5h 30. Share the driving." },
-    { label: "Daylight", text: "Light until late in summer, so late stops are easy." },
+    { label: "Pace", text: "On the move. Most days are a drive of three to five hours." },
+    { label: "Driving", text: "One car for the group. Share the wheel." },
   ],
 };

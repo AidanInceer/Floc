@@ -10,7 +10,7 @@ export type RouteMapStop = {
   lng: number;
 };
 
-export const dayWord = (days: number) => `${days} ${days === 1 ? "day" : "days"}`;
+const dayWord = (days: number) => `${days} ${days === 1 ? "day" : "days"}`;
 
 /** A numbered stop, with its days hanging off the corner unless something else shows them. */
 export function routePin(L: typeof Leaflet, s: RouteMapStop, withDays = true): Leaflet.Marker {

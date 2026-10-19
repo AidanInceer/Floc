@@ -42,6 +42,17 @@ export function project(view: LatLng, p: LatLng) {
   return { x, y, z };
 }
 
+/** The place at point (x, y) of the unit disc seen from `view`: `project`, the other way round. A point off the disc is held to its edge. */
+export function unproject(view: LatLng, x: number, y: number): LatLng {
+  const rho = Math.hypot(x, y);
+  if (rho < 1e-12) return view;
+  const c = Math.asin(Math.min(1, rho));
+  const [f0, sc, cc] = [view.lat * RAD, Math.sin(c), Math.cos(c)];
+  const lat = Math.asin(clamp(cc * Math.sin(f0) + (y * sc * Math.cos(f0)) / rho, -1, 1)) / RAD;
+  const lng = view.lng + Math.atan2(x * sc, rho * cc * Math.cos(f0) - y * sc * Math.sin(f0)) / RAD;
+  return { lat, lng: shortest(lng) };
+}
+
 const unit = ({ lat, lng }: LatLng) => [
   Math.cos(lat * RAD) * Math.cos(lng * RAD),
   Math.cos(lat * RAD) * Math.sin(lng * RAD),

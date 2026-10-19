@@ -15,9 +15,25 @@ describe("preset trip shape", () => {
     }
   });
 
-  it("lists at least five trips in every region", () => {
+  it("lists five trips in every region", () => {
     for (const region of REGIONS) {
-      expect(PRESET_TRIPS.filter((t) => t.region === region).length, region).toBeGreaterThanOrEqual(5);
+      expect(PRESET_TRIPS.filter((t) => t.region === region).length, region).toBe(5);
+    }
+  });
+
+  it("runs every trip a week or more and no more than 25 nights", () => {
+    for (const preset of PRESET_TRIPS) {
+      expect(preset.nights, preset.id).toBeGreaterThanOrEqual(7);
+      expect(preset.nights, preset.id).toBeLessThanOrEqual(25);
+    }
+  });
+
+  // The map draws each leg by how you travel it, so a stop reached with no hop before it would have no way to draw.
+  it("reaches every stop after the first by a hop", () => {
+    for (const preset of PRESET_TRIPS) {
+      preset.legs.forEach((leg, i) => {
+        if (leg.kind === "base" && i > 0) expect(preset.legs[i - 1].kind, `${preset.id}: ${leg.place}`).toBe("hop");
+      });
     }
   });
 
