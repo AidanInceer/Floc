@@ -12,7 +12,7 @@ const SPOKEN: Record<SortColumn, Record<"up" | "down", string>> = {
 };
 const ARROW = { up: "M7 11V3M4 6l3-3 3 3", down: "M7 3v8M4 8l3 3 3-3", none: "M5 5.5l2-2 2 2M5 8.5l2 2 2-2" };
 
-export function ExploreSortHead({ sort, region, showAll, grid }: { sort: ExploreSort; region: Region | null; showAll: boolean; grid: string }) {
+export function ExploreSortHead({ sort, region, showAll }: { sort: ExploreSort; region: Region | null; showAll: boolean }) {
   const head = (column: SortColumn) => {
     const now = sortDirection(sort, column);
     const next = flipSort(sort, column);
@@ -22,7 +22,7 @@ export function ExploreSortHead({ sort, region, showAll, grid }: { sort: Explore
         scroll={false}
         aria-label={`${LABEL[column]}, ${SPOKEN[column][sortDirection(next, column) ?? "up"]}`}
         className={cx(
-          "typed inline-flex items-center justify-end gap-1 transition-colors",
+          "typed inline-flex items-center gap-1 transition-colors",
           now ? "text-ink" : "text-ink-soft hover:text-ink",
         )}
       >
@@ -34,12 +34,9 @@ export function ExploreSortHead({ sort, region, showAll, grid }: { sort: Explore
     );
   };
   return (
-    <nav aria-label="Sort trips" className={cx("flex justify-end gap-5 px-1 py-1 md:grid", grid)}>
-      <span className="hidden md:block" />
-      <span className="hidden md:block" />
+    <nav aria-label="Sort trips" className="flex gap-5 md:justify-end">
       {head("nights")}
       {head("price")}
-      <span className="w-[26px]" />
     </nav>
   );
 }

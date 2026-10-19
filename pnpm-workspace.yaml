@@ -25,8 +25,8 @@ overrides:
   vitest: ^3.2.6
   vite: ^6.4.3
   # GHSA-rgj7-g3m4-5g8c — libheif flaws reached through the bundled binary.
-  # Patched in 0.35.4; the floor sat at ^0.35.0 and resolved to 0.35.3.
-  sharp: ^0.35.4
+  # Patched in 0.35.4; GHSA-wq5f-xc86-pv6w (librsvg) moved the floor to 0.35.5.
+  sharp: ^0.35.5
   postcss: ^8.5.18
   # GHSA-2883-xcg3-v3hh — maxTotalMergeKeys does not bound CPU on empty merge
   # sources, so a crafted document still burns the parser. Reached through
@@ -45,6 +45,12 @@ overrides:
   # they are pinned forward like every other entry rather than ignored below.
   uuid: ^11.1.1
   decode-uri-component: ^0.5.0
+  # GHSA-68fv-2mgg-jv7q, GHSA-vc2v-76pw-4v95, GHSA-5gmw-xhrv-c9v3, GHSA-85c8-ppgw-ccpr and
+  # GHSA-pqg4-j6r4-53mv — all transitive (Vitest, Expo's CLI, Metro); pinned to the patched floors.
+  source-map-js: ^1.2.2
+  compression: ^1.8.2
+  tinypool: ^2.1.2
+  shell-quote: ^1.11.0
 
 # The one thing an override cannot answer: an advisory with NO patched version.
 #
@@ -61,3 +67,8 @@ auditConfig:
   ignoreGhsas:
     - GHSA-w3rx-r6r6-pgpr # image-size: ICNS parser infinite loop (DoS)
     - GHSA-5p2g-fcmc-qvqq # image-size: JXL/HEIF parser infinite loops (DoS)
+    # Same case, 2026-10-19: no patched version ('<0.0.0'), not in the built web app.
+    # node-forge comes only through @expo/cli's code-signing certificates; braces
+    # only through Metro's file map and eslint-config-next. Delete when either fixes.
+    - GHSA-86w9-cpqp-85rv # node-forge, via @expo/cli
+    - GHSA-vfj7-8cjw-p6xm # braces, via Metro and ESLint

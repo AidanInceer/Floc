@@ -10,6 +10,13 @@ type Brush = {
 /** The small marks drawn over the globe: a trip with no tile, the pulse of a pin, a route between stops. */
 export function globeMarks({ ctx, ink, at }: Brush) {
   return {
+    /** Draws through `draw` at `alpha`, for marks that leave as a map goes in. */
+    faded(alpha: number, draw: () => void) {
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      draw();
+      ctx.restore();
+    },
     spot(view: LatLng, p: LatLng) {
       const q = at(view, p);
       if (q.z < 0.05) return;
