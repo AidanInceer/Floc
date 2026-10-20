@@ -3,22 +3,17 @@ import "server-only";
 import type { FlocPort } from "@floc/api/port";
 
 import { refresh } from "@/server/freshness";
-import { loadExploreRates } from "@/server/explore/explore-rates";
-import { loadAnswers, saveAnswers } from "@/server/explore/explore-answers";
+import { loadFinder, saveFinder } from "@/server/explore/explore-finder";
 
-type ExplorePort = Pick<FlocPort, "loadExplore" | "setExploreAnswers" | "loadExploreRates">;
+type ExplorePort = Pick<FlocPort, "loadExplore" | "setExploreFinder">;
 
 export const explorePort: ExplorePort = {
   async loadExplore(viewerId) {
-    return { answers: await loadAnswers(viewerId) };
+    return { finder: await loadFinder(viewerId) };
   },
 
-  async setExploreAnswers(viewerId, answers) {
-    await saveAnswers(viewerId, answers);
+  async setExploreFinder(viewerId, finder) {
+    await saveFinder(viewerId, finder);
     refresh({ kind: "explore" });
-  },
-
-  loadExploreRates(viewerId) {
-    return loadExploreRates(viewerId);
   },
 };

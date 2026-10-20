@@ -1,5 +1,5 @@
 import { Camera, Map, Marker, type LngLat } from "@maplibre/maplibre-react-native";
-import { mapPicks } from "@floc/core/trip/explore/explore-match";
+import { mapPicks } from "@floc/core/trip/explore/map-picks";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 

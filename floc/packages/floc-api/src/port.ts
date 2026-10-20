@@ -22,8 +22,7 @@ import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import type { Currency } from "@floc/core/money/currency";
 import type { DocCategory } from "@floc/core/documents/documents";
 import type { ExpenseCategory } from "@floc/core/money/expense-category";
-import type { ExploreAnswers } from "@floc/core/trip/explore/explore-match";
-import type { RatesToHome } from "@floc/core/trip/explore/explore-sort";
+import type { Finder } from "@floc/core/trip/explore/finder/finder";
 import type { WeatherCondition } from "@floc/core/itinerary/weather";
 import type { PackCategory, PackTier } from "@floc/core/packing/packing";
 import type { DayEventType, ReactionKind, SplitType, TransportType } from "@floc/core/vocabulary";
@@ -33,9 +32,9 @@ import type { PagesPort } from "./port-pages";
 
 export type { Currency, DayEventType, DocCategory, ExpenseCategory, ReactionKind, SplitType, TransportType };
 
-export type { ExploreAnswers };
+export type { Finder };
 
-export type ExploreState = { answers: ExploreAnswers | null };
+export type ExploreState = { finder: Finder | null };
 
 export type TripRole = "admin" | "member";
 
@@ -914,11 +913,9 @@ export type FlocPort = {
    */
   startTripFromPreset(viewerId: string, presetId: string): Promise<{ id: number } | null>;
 
-  /** Your last Explore quiz answers — null means never asked. */
+  /** Your last Explore finder — null means never set. */
   loadExplore(viewerId: string): Promise<ExploreState>;
-  setExploreAnswers(viewerId: string, answers: ExploreAnswers): Promise<void>;
-  /** Home-currency multipliers for the Price sort — null when neither the provider nor the cache has any. */
-  loadExploreRates(viewerId: string): Promise<RatesToHome | null>;
+  setExploreFinder(viewerId: string, finder: Finder): Promise<void>;
 
   updateTrip(viewerId: string, tripId: number, patch: TripPatch): Promise<void>;
 

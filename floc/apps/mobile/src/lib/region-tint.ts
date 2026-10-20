@@ -22,10 +22,3 @@ export const REGION_TINT: Record<Region, Tint> = {
   Americas: { fill: "pastel-green", edge: "pastel-green-edge", ink: "pastel-green-ink" },
   Oceania: { fill: "pen-2", edge: "pen-edge", ink: "pen-deep" },
 };
-
-/**
- * "All" is not a region and must not borrow one's colour — a green All beside
- * a green Americas would read as the same filter twice. It goes darker rather
- * than coloured, which is the same "this one is chosen" signal without a claim.
- */
-export const ALL_TINT: Tint = { fill: "sheet-3", edge: "rule-2", ink: "ink" };

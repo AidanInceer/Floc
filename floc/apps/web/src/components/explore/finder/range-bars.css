@@ -16,8 +16,8 @@
 
   .slider input[type="range"]::-webkit-slider-thumb {
     appearance: none;
-    width: 14px;
-    height: 14px;
+    width: 18px;
+    height: 18px;
     border-radius: 999px;
     background: var(--sheet);
     border: 1.5px solid var(--ink);
@@ -26,8 +26,8 @@
   }
 
   .slider input[type="range"]::-moz-range-thumb {
-    width: 11px;
-    height: 11px;
+    width: 15px;
+    height: 15px;
     border-radius: 999px;
     background: var(--sheet);
     border: 1.5px solid var(--ink);

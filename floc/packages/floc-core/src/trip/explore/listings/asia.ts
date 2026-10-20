@@ -28,6 +28,9 @@ export const ASIA: PresetTrip[] = [
     ],
     highlights: ["Shinkansen to Kyoto", "A night in a Hakone ryokan", "Miyajima's gate at high tide"],
     bestMonths: "March to May, October, November",
+    interests: ["Food", "Cities", "History"],
+    landscape: ["Mountains"],
+    effort: "Easy",
   },
   {
     id: "hanoi-to-bangkok",
@@ -60,6 +63,9 @@ export const ASIA: PresetTrip[] = [
     ],
     highlights: ["A day on Halong Bay", "The night train to Hue", "Angkor Wat at sunrise"],
     bestMonths: "November to March",
+    interests: ["Food", "History", "Cities"],
+    landscape: ["Coast"],
+    effort: "Moderate",
   },
   {
     id: "thailand-andaman-islands",
@@ -87,6 +93,9 @@ export const ASIA: PresetTrip[] = [
     ],
     highlights: ["Sleeper train to Chiang Mai", "Four islands by long-tail", "Sunset from Railay west"],
     bestMonths: "November to April",
+    interests: ["Beaches", "Food"],
+    landscape: ["Coast"],
+    effort: "Easy",
   },
   {
     id: "rajasthan-forts-and-palaces",
@@ -117,6 +126,9 @@ export const ASIA: PresetTrip[] = [
     ],
     highlights: ["The Taj Mahal at sunrise", "Mehrangarh fort above the blue city", "A boat on Lake Pichola"],
     bestMonths: "October to March",
+    interests: ["History", "Cities"],
+    landscape: ["Desert"],
+    effort: "Easy",
   },
   {
     id: "sri-lanka-road-and-rail",
@@ -146,5 +158,8 @@ export const ASIA: PresetTrip[] = [
     ],
     highlights: ["Sigiriya rock at first light", "The train from Kandy to Ella", "Leopards in Yala"],
     bestMonths: "December to April",
+    interests: ["Wildlife", "History", "Hiking"],
+    landscape: ["Rainforest", "Mountains"],
+    effort: "Moderate",
   },
 ];

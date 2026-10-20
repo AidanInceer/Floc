@@ -1,58 +1,47 @@
 /**
- * Explore — the web's map, match and list, cut back to one scroll. The
- * listings are static `@floc/core` data; only the answers and starting a trip
- * reach the server.
+ * Explore — the web's map and finder, cut back to one scroll: the filters open
+ * in a sheet, and the trips are rows. The listings are static `@floc/core`
+ * data; only the finder and starting a trip reach the server.
  */
-import {
-  DEFAULT_ANSWERS,
-  rankMatches,
-  type ExploreAnswers,
-} from "@floc/core/trip/explore/explore-match";
-import { DEFAULT_EXPLORE_SORT, sortDirection, sortPresetTrips, type ExploreSort } from "@floc/core/trip/explore/explore-sort";
-import { PRESET_TRIPS, type Region } from "@floc/core/trip/explore/preset-trips";
+import { EMPTY_FINDER, finderCounts, type Finder } from "@floc/core/trip/explore/finder/finder";
+import { rankTrips, type FinderSort } from "@floc/core/trip/explore/finder/finder-rank";
+import { finderPills } from "@floc/core/trip/explore/finder/finder-words";
+import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, View } from "react-native";
-import { useReducedMotion } from "@/components/system/use-reduced-motion";
 
 import { ExploreCard } from "@/components/explore/explore-card";
 import { ExploreMap } from "@/components/explore/explore-map";
-import { ExploreMatches } from "@/components/explore/explore-matches";
-import { ExploreQuiz } from "@/components/explore/explore-quiz";
-import { SortChips } from "@/components/explore/sort-chips";
+import { FinderBar } from "@/components/explore/finder/finder-bar";
+import { FinderSheet } from "@/components/explore/finder/finder-sheet";
 import { PresetRow } from "@/components/packing/preset-row";
-import { RegionChips, type RegionChoice } from "@/components/map/region-chips";
 import { useTheme } from "@/components/system/theme";
-import { Body, Heading } from "@/components/system/ui";
+import { Body, Empty, Heading, SearchField } from "@/components/system/ui";
 import { TextLink } from "@/components/system/text-controls";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 
-const AVAILABLE: Region[] = [...new Set(PRESET_TRIPS.map((trip) => trip.region))];
-const MATCH_COUNT = 5;
 const ROW_LIMIT = 10;
 
 export default function Explore() {
   const router = useRouter();
   const { c } = useTheme();
-  const scroll = useRef<ScrollView>(null);
-  const reducedMotion = useReducedMotion();
   const pendingSave = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const state = useQuery(trpc.explore.get.queryOptions());
   const [picked, setPicked] = useState(PRESET_TRIPS[0].id);
-  const [answers, setAnswers] = useState<ExploreAnswers>(DEFAULT_ANSWERS);
-  const [region, setRegion] = useState<RegionChoice>(null);
+  const [finder, setFinder] = useState<Finder>(EMPTY_FINDER);
+  const [sort, setSort] = useState<FinderSort>("match");
+  const [sheet, setSheet] = useState(false);
   const [showAll, setShowAll] = useState(false);
-  const [sort, setSort] = useState<ExploreSort>(DEFAULT_EXPLORE_SORT);
-  const rates = useQuery({ ...trpc.explore.rates.queryOptions(), enabled: sortDirection(sort, "price") !== null });
 
   useEffect(() => {
-    if (state.data?.answers) setAnswers(state.data.answers);
-  }, [state.data?.answers]);
+    if (state.data?.finder) setFinder(state.data.finder);
+  }, [state.data?.finder]);
 
-  const remember = useMutation(trpc.explore.setAnswers.mutationOptions());
+  const remember = useMutation(trpc.explore.setFinder.mutationOptions());
   const start = useMutation({
     ...trpc.trips.startFromPreset.mutationOptions(),
     onSuccess: (result) => {
@@ -61,29 +50,24 @@ export default function Explore() {
   });
 
   const trip = PRESET_TRIPS.find((t) => t.id === picked) ?? PRESET_TRIPS[0];
-  const matches = useMemo(() => rankMatches(PRESET_TRIPS, answers, MATCH_COUNT), [answers]);
-  const listings = useMemo(
-    () => sortPresetTrips(region === null ? PRESET_TRIPS : PRESET_TRIPS.filter((t) => t.region === region), sort, rates.data ?? null),
-    [region, sort, rates.data],
-  );
+  const rows = useMemo(() => rankTrips(PRESET_TRIPS, finder, sort, null), [finder, sort]);
+  const counts = useMemo(() => finderCounts(PRESET_TRIPS, finder), [finder]);
+  const pills = finderPills(finder);
 
-  const answer = (next: ExploreAnswers) => {
-    setAnswers(next);
-    // Why: taps on the stepper come fast; save the last one only.
+  const change = (next: Finder) => {
+    setFinder(next);
+    setShowAll(false);
+    // Why: a dragged thumb fires on every step; save the last one only.
     clearTimeout(pendingSave.current);
     pendingSave.current = setTimeout(() => remember.mutate(next), 400);
   };
-
-  const pickFromMatch = (id: string) => {
-    setPicked(id);
-    scroll.current?.scrollTo({ y: 0, animated: reducedMotion === false });
-  };
+  const open = (id: string) => router.push({ pathname: "/explore/[preset]", params: { preset: id } });
 
   return (
     <ScrollView
-      ref={scroll}
       style={{ flex: 1, backgroundColor: c.paper }}
       contentContainerStyle={{ paddingVertical: space.lg, gap: space.xl }}
+      keyboardShouldPersistTaps="handled"
     >
       <View style={{ paddingHorizontal: space.lg, gap: space.md }}>
         <ExploreMap picked={trip.id} onPick={setPicked} />
@@ -91,42 +75,44 @@ export default function Explore() {
           trip={trip}
           starting={start.isPending}
           onStart={() => start.mutate({ presetId: trip.id })}
-          onOpen={() => router.push({ pathname: "/explore/[preset]", params: { preset: trip.id } })}
+          onOpen={() => open(trip.id)}
         />
       </View>
 
-      <View style={{ paddingHorizontal: space.lg, gap: space.md }}>
-        <Heading>Find the one for your group</Heading>
-        <ExploreQuiz answers={answers} onAnswer={answer} />
-        <ExploreMatches matches={matches} onPick={pickFromMatch} />
-      </View>
-
       <View style={{ gap: space.md }}>
-        <View style={{ paddingHorizontal: space.lg }}>
+        <View style={{ paddingHorizontal: space.lg, gap: space.md }}>
           <Heading>All trips</Heading>
+          <SearchField placeholder="Search a place, country or tag" value={finder.q} onChangeText={(q) => change({ ...finder, q })} />
         </View>
-        <RegionChips available={AVAILABLE} value={region} onChange={(next) => {
-          setRegion(next);
-          setShowAll(false);
-        }} />
-        <SortChips value={sort} onChange={setSort} />
+        <FinderBar
+          shown={rows.length}
+          set={pills.length + finder.likes.length}
+          pills={pills.map((p) => ({ id: p.id, label: p.label, onClear: () => change(p.clear) }))}
+          sort={sort}
+          onSort={setSort}
+          onOpen={() => setSheet(true)}
+        />
         <View style={{ paddingHorizontal: space.lg, gap: space.sm }}>
-          {(showAll ? listings : listings.slice(0, ROW_LIMIT)).map((item) => (
-            <PresetRow
-              key={item.id}
-              trip={item}
-              onOpen={() => router.push({ pathname: "/explore/[preset]", params: { preset: item.id } })}
-            />
+          {rows.length === 0 ? <Empty>No trip fits all of that. Remove a filter.</Empty> : null}
+          {(showAll ? rows : rows.slice(0, ROW_LIMIT)).map((row) => (
+            <PresetRow key={row.trip.id} trip={row.trip} note={row.hits.join(" · ")} onOpen={() => open(row.trip.id)} />
           ))}
-          {listings.length > ROW_LIMIT ? (
-            <TextLink
-              label={showAll ? "Show fewer" : `Show ${listings.length - ROW_LIMIT} more`}
-              onPress={() => setShowAll(!showAll)}
-            />
+          {rows.length > ROW_LIMIT ? (
+            <TextLink label={showAll ? "Show fewer" : `Show ${rows.length - ROW_LIMIT} more`} onPress={() => setShowAll(!showAll)} />
           ) : null}
           <Body tone="ink-3">Ideas to start a trip from. Nothing is booked or paid for.</Body>
         </View>
       </View>
+
+      <FinderSheet
+        open={sheet}
+        onClose={() => setSheet(false)}
+        onClear={() => change(EMPTY_FINDER)}
+        finder={finder}
+        counts={counts}
+        shown={rows.length}
+        onChange={change}
+      />
     </ScrollView>
   );
 }

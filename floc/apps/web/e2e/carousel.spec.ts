@@ -33,23 +33,3 @@ test("the feature film snaps one slide and loops through its middle copy", async
     return Math.abs(el.scrollLeft - (slides[slides.length / 3].offsetLeft - first));
   })).toBeLessThan(2);
 });
-
-test("recommendations snap near the release, stop at edges and remain clickable", async ({ page }) => {
-  await page.goto("/explore");
-  const picks = page.getByLabel("For you", { exact: true });
-  const track = picks.locator("ol");
-  await track.scrollIntoViewIfNeeded();
-  await expect.poll(() => track.evaluate((el) => el.scrollLeft)).toBeLessThan(12);
-  const before = await page.evaluate(() => window.scrollY);
-  await drag(page, track, 650);
-  await expect.poll(() => track.evaluate((el) => el.scrollLeft)).toBeGreaterThan(400);
-  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(before);
-
-  const next = picks.getByRole("button", { name: "Next", exact: true });
-  for (let step = 0; step < 5 && await next.isEnabled(); step++) await next.click();
-  await expect(next).toBeDisabled();
-  await drag(page, track, 100);
-  await expect(next).toBeDisabled();
-  await track.getByRole("button").last().click();
-  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(before);
-});
