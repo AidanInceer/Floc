@@ -31,6 +31,9 @@ export const OCEANIA: PresetTrip[] = [
     ],
     highlights: ["Stargazing at Tekapo", "Milford Sound before the coaches", "The TranzAlpine over Arthur's Pass"],
     bestMonths: "November to March",
+    interests: ["Hiking"],
+    landscape: ["Mountains", "Coast"],
+    effort: "Moderate",
   },
   {
     id: "new-zealand-north-island",
@@ -61,6 +64,9 @@ export const OCEANIA: PresetTrip[] = [
     ],
     highlights: ["Hot Water Beach at low tide", "Waitomo's glow worms", "The Tongariro alpine crossing"],
     bestMonths: "November to April",
+    interests: ["Hiking", "Beaches"],
+    landscape: ["Coast"],
+    effort: "Easy",
   },
   {
     id: "sydney-to-cairns",
@@ -91,6 +97,9 @@ export const OCEANIA: PresetTrip[] = [
     ],
     highlights: ["Whitehaven Beach by boat", "Snorkelling the outer reef", "Sunrise at Cape Byron"],
     bestMonths: "April, May, September to November",
+    interests: ["Beaches", "Cities", "Wildlife"],
+    landscape: ["Coast", "Rainforest"],
+    effort: "Easy",
   },
   {
     id: "great-ocean-road-and-uluru",
@@ -120,6 +129,9 @@ export const OCEANIA: PresetTrip[] = [
     ],
     highlights: ["The Twelve Apostles at sunset", "Barossa cellar doors", "Uluru at first light"],
     bestMonths: "March to May, September to November",
+    interests: ["Food", "Hiking"],
+    landscape: ["Coast", "Desert"],
+    effort: "Easy",
   },
   {
     id: "fiji-yasawa-islands",
@@ -147,5 +159,8 @@ export const OCEANIA: PresetTrip[] = [
     ],
     highlights: ["Snorkelling with manta rays", "A lovo feast in a Yasawa village", "Shark dive in Beqa lagoon"],
     bestMonths: "May to October",
+    interests: ["Beaches"],
+    landscape: ["Coast"],
+    effort: "Easy",
   },
 ];

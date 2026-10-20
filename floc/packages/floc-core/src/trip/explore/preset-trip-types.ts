@@ -1,5 +1,6 @@
 import type { Currency } from "../../money/currency";
 import type { TransportType } from "../../vocabulary";
+import type { Effort, Interest, Landscape } from "./finder/tag-groups";
 
 /**
  * Ticket 194: a listing is shown by its *shape* — where you sleep and how you
@@ -30,6 +31,10 @@ export type PresetTrip = {
   legs: PresetLeg[];
   highlights: string[];
   bestMonths: string;
+  /** What the trip is for and what it passes through, as Explore's finder ranks them. */
+  interests: Interest[];
+  landscape: Landscape[];
+  effort: Effort;
 };
 
 export const REGIONS = [

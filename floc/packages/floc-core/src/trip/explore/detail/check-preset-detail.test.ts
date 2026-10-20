@@ -22,6 +22,9 @@ const trip: PresetTrip = {
   ],
   highlights: [],
   bestMonths: "April, May",
+  interests: ["Food"],
+  landscape: ["Coast"],
+  effort: "Easy",
 };
 
 const day = (title = "A day"): PresetDay => ({ title, items: [{ time: "09:00", text: "Breakfast" }, { time: "13:30", text: "Lunch" }] });

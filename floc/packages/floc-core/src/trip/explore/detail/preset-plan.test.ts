@@ -23,6 +23,9 @@ const trip: PresetTrip = {
   ],
   highlights: ["The Mezquita"],
   bestMonths: "April, May",
+  interests: ["Food"],
+  landscape: ["Coast"],
+  effort: "Easy",
 };
 
 const day = (title: string, highlight?: string) => ({ title, items: [{ time: "10:00", text: title }], ...(highlight ? { highlight } : {}) });

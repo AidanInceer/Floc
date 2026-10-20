@@ -70,9 +70,8 @@ function fakePort(overrides: Partial<FlocPort> = {}): FlocPort {
     loadLedger: vi.fn().mockResolvedValue({ expenses: [], splits: [], settlements: [] }),
     createTrip: vi.fn().mockResolvedValue({ id: 2 }),
     startTripFromPreset: vi.fn().mockResolvedValue({ id: 3 }),
-    loadExplore: vi.fn().mockResolvedValue({ answers: null }),
-    setExploreAnswers: vi.fn().mockResolvedValue(undefined),
-    loadExploreRates: vi.fn().mockResolvedValue({ GBP: 1, EUR: 0.85 }),
+    loadExplore: vi.fn().mockResolvedValue({ finder: null }),
+    setExploreFinder: vi.fn().mockResolvedValue(undefined),
     updateTrip: vi.fn().mockResolvedValue(undefined),
     archiveTrip: vi.fn().mockResolvedValue(undefined),
     leaveTrip: vi.fn().mockResolvedValue(undefined),
@@ -165,36 +164,38 @@ describe("the tour (#314)", () => {
 });
 
 describe("explore", () => {
-  it("saves answers only for the caller", async () => {
+  const finder = {
+    q: "",
+    regions: ["Asia" as const],
+    months: [5],
+    nights: { min: 9, max: 14 },
+    price: { unit: "trip" as const, min: null, max: 2000 },
+    likes: ["Food" as const],
+  };
+
+  it("saves the finder only for the caller", async () => {
     const { caller: ana, port } = caller("u1");
-    await ana.explore.setAnswers({ size: "2-4", when: "any", cost: "more", pace: "move", nights: 7 });
-    expect(port.setExploreAnswers).toHaveBeenCalledWith("u1", {
-      size: "2-4",
-      when: "any",
-      cost: "more",
-      pace: "move",
-      nights: 7,
-    });
+    await ana.explore.setFinder(finder);
+    expect(port.setExploreFinder).toHaveBeenCalledWith("u1", finder);
   });
 
-  it("refuses an answer the quiz never offers", async () => {
+  it("refuses a region or a tag the finder never offers", async () => {
     const { caller: ana, port } = caller("u1");
-    await expect(
-      ana.explore.setAnswers({ size: "40" as "2-4", when: "any", cost: "more", pace: "move", nights: 7 }),
-    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
-    expect(port.setExploreAnswers).not.toHaveBeenCalled();
+    await expect(ana.explore.setFinder({ ...finder, regions: ["Mars" as "Asia"] })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(ana.explore.setFinder({ ...finder, likes: ["Karaoke" as "Food"] })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    expect(port.setExploreFinder).not.toHaveBeenCalled();
   });
 
-  it("reads rates into the caller's home currency", async () => {
+  it("drops a price range off the scale rather than saving it", async () => {
     const { caller: ana, port } = caller("u1");
-    await expect(ana.explore.rates()).resolves.toEqual({ GBP: 1, EUR: 0.85 });
-    expect(port.loadExploreRates).toHaveBeenCalledWith("u1");
+    await ana.explore.setFinder({ ...finder, price: { unit: "night", min: null, max: 2000 } });
+    expect(port.setExploreFinder).toHaveBeenCalledWith("u1", { ...finder, price: { unit: "night", min: null, max: null } });
   });
 
   it("refuses a signed-out caller", async () => {
     const { caller: anon } = caller(null);
-    await expect(anon.explore.rates()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
     await expect(anon.explore.get()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+    await expect(anon.explore.setFinder(finder)).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 });
 

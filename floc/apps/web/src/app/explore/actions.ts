@@ -16,14 +16,14 @@ import { createTripWithAdmin } from "@/server/trips/trips";
 import { ensureProfile } from "@/server/auth/profile";
 import { refresh } from "@/server/freshness";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
-import { readFilter } from "@floc/core/trip/explore/explore-filter";
-import { saveFilter } from "@/server/explore/explore-filter";
+import { readFinder } from "@floc/core/trip/explore/finder/finder-read";
+import { saveFinder } from "@/server/explore/explore-finder";
 
-// No refresh: the page already holds the filter it just sent.
-export async function rememberFilter(value: unknown): Promise<void> {
+// No refresh: the page already holds the finder it just sent.
+export async function rememberFinder(value: unknown): Promise<void> {
   const viewer = await requireUser("/explore");
-  const filter = readFilter(value);
-  if (filter) await saveFilter(viewer.id, filter);
+  const finder = readFinder(value);
+  if (finder) await saveFinder(viewer.id, finder);
 }
 
 export async function startTripFromPreset(formData: FormData): Promise<void> {

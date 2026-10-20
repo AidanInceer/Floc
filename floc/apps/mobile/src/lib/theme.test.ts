@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ALL_TINT, REGION_TINT } from "./region-tint";
+import { REGION_TINT } from "./region-tint";
 import { palette, radius, space } from "./theme";
 
 describe("palette", () => {
@@ -23,9 +23,9 @@ describe("palette", () => {
     expect(palette("light")).toBe(palette("light"));
   });
 
-  it("names only tokens the palette has, for every region and for All", () => {
+  it("names only tokens the palette has, for every region", () => {
     const colours = palette("light");
-    for (const tint of [...Object.values(REGION_TINT), ALL_TINT]) {
+    for (const tint of Object.values(REGION_TINT)) {
       for (const token of Object.values(tint)) expect(colours).toHaveProperty(token);
     }
   });

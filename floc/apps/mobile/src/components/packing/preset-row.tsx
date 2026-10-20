@@ -12,7 +12,8 @@ import { useTheme } from "../system/theme";
 import { REGION_TINT } from "@/lib/region-tint";
 import { fonts, radius, size, space } from "@/lib/theme";
 
-export function PresetRow({ trip, onOpen }: { trip: PresetTrip; onOpen: () => void }) {
+/** `note` is a short line under the title: the tags you like that this trip has. */
+export function PresetRow({ trip, note, onOpen }: { trip: PresetTrip; note?: string; onOpen: () => void }) {
   const { c } = useTheme();
   const tint = REGION_TINT[trip.region];
 
@@ -55,9 +56,16 @@ export function PresetRow({ trip, onOpen }: { trip: PresetTrip; onOpen: () => vo
           {trip.country}
         </Text>
       </View>
-      <Text numberOfLines={1} style={{ flex: 1, color: c.ink, fontFamily: fonts.sansBold, fontSize: size.body }}>
-        {trip.title}
-      </Text>
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text numberOfLines={1} style={{ color: c.ink, fontFamily: fonts.sansBold, fontSize: size.body }}>
+          {trip.title}
+        </Text>
+        {note ? (
+          <Text numberOfLines={1} style={{ color: c["ink-3"], fontFamily: fonts.sans, fontSize: size.small }}>
+            {note}
+          </Text>
+        ) : null}
+      </View>
       <View style={{ transform: [{ rotate: "-90deg" }] }}>
         <ChevronGlyph color={c["ink-3"]} />
       </View>

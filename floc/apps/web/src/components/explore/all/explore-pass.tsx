@@ -1,7 +1,8 @@
 "use client";
 
 import { formatMoney } from "@floc/core/money/money";
-import { filterCheck, type ExploreFilter } from "@floc/core/trip/explore/explore-filter";
+import type { TripTag } from "@floc/core/trip/explore/finder/tag-groups";
+import { tagsOf } from "@floc/core/trip/explore/finder/trip-tags";
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 
 import { startTripFromPreset } from "@/app/explore/actions";
@@ -14,24 +15,24 @@ import { CheckIcon } from "@/components/system/icons";
 import { ButtonLink, cx } from "@/components/system/ui";
 
 const label = "font-mono text-[10.5px] uppercase tracking-[0.08em] text-ink-faint";
-export const missChip = "rounded-full border border-rule-strong px-2 py-px text-[11.5px] text-ink-faint";
+const tagChip = "inline-flex items-center gap-1 rounded-full border border-rule-strong px-2 py-px text-[11.5px]";
 // Why: the tear's notches are the page showing through, so they take the colour of what is behind the pass.
 const notch = "absolute -top-[9px] size-[18px] rounded-full";
 
 /** One listing in full, as a pass: map, what it is, the route, then a stub with the figures and the two ways on. */
 export function ExplorePass({
   trip,
-  filter,
+  likes,
   signedIn,
   inSheet = false,
 }: {
   trip: PresetTrip;
-  filter: ExploreFilter;
+  /** The tags you like; the pass ticks the ones this trip has. */
+  likes: TripTag[];
   signedIn: boolean;
   /** On a phone the pass is the body of a sheet: no card of its own, and the narrower drawing. */
   inSheet?: boolean;
 }) {
-  const { fits, misses } = filterCheck(trip, filter);
   const behind = inSheet ? "bg-sheet-3" : "bg-paper";
   return (
     <article className={cx("overflow-hidden bg-sheet", !inSheet && "rounded-[22px] shadow-lifted")}>
@@ -41,16 +42,11 @@ export function ExplorePass({
       <div className="flex flex-col gap-2.5 px-5 pb-[18px] pt-4">
         <span className={cx(tagClass, skinFor(trip))}>{trip.country}</span>
         <h3 className="text-2xl leading-tight tracking-[-0.025em]">{trip.title}</h3>
-        <p className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-          {fits.map((fit) => (
-            <span key={fit} className="inline-flex items-center gap-1 text-xs text-green">
-              <CheckIcon size={11} />
-              {fit}
-            </span>
-          ))}
-          {misses.map((miss) => (
-            <span key={miss} className={missChip}>
-              {miss}
+        <p className="flex flex-wrap items-center gap-1">
+          {tagsOf(trip).map((tag) => (
+            <span key={tag} className={cx(tagChip, likes.includes(tag) ? "border-green-edge text-green" : "text-ink-soft")}>
+              {likes.includes(tag) ? <CheckIcon size={10} /> : null}
+              {tag}
             </span>
           ))}
         </p>

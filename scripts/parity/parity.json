@@ -30,10 +30,7 @@
     "explore.get": {
       "mobile": "yes"
     },
-    "explore.rates": {
-      "mobile": "yes"
-    },
-    "explore.setAnswers": {
+    "explore.setFinder": {
       "mobile": "yes"
     },
     "files.attach": {

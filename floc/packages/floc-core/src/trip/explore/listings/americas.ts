@@ -26,6 +26,9 @@ export const AMERICAS: PresetTrip[] = [
     ],
     highlights: ["Chichén Itzá at opening", "Swimming in cenotes", "The lagoon of seven colours"],
     bestMonths: "December to April",
+    interests: ["History", "Beaches"],
+    landscape: ["Coast", "Rainforest"],
+    effort: "Easy",
   },
   {
     id: "costa-rica-volcano-and-coast",
@@ -53,6 +56,9 @@ export const AMERICAS: PresetTrip[] = [
     ],
     highlights: ["Turtles nesting at Tortuguero", "Hot springs under Arenal", "Cloud forest bridges at Monteverde"],
     bestMonths: "December to April",
+    interests: ["Wildlife", "Beaches", "Hiking"],
+    landscape: ["Rainforest", "Coast"],
+    effort: "Moderate",
   },
   {
     id: "boston-to-savannah",
@@ -88,6 +94,9 @@ export const AMERICAS: PresetTrip[] = [
     ],
     highlights: ["Lobster rolls on the Cape", "Skyline Drive through the Blue Ridge", "Savannah's squares under the oaks"],
     bestMonths: "May, June, September, October",
+    interests: ["Food", "Cities", "History"],
+    landscape: ["Coast"],
+    effort: "Easy",
   },
   {
     id: "peru-sacred-valley",
@@ -117,6 +126,9 @@ export const AMERICAS: PresetTrip[] = [
     ],
     highlights: ["Machu Picchu at opening", "Markets of the Sacred Valley", "The reed islands of Titicaca"],
     bestMonths: "April to October",
+    interests: ["History", "Hiking"],
+    landscape: ["Mountains"],
+    effort: "Tough",
   },
   {
     id: "patagonia-w-trek",
@@ -144,5 +156,8 @@ export const AMERICAS: PresetTrip[] = [
     ],
     highlights: ["The Perito Moreno glacier", "Laguna de los Tres under Fitz Roy", "The W trek, refugio to refugio"],
     bestMonths: "November to March",
+    interests: ["Hiking"],
+    landscape: ["Mountains"],
+    effort: "Tough",
   },
 ];

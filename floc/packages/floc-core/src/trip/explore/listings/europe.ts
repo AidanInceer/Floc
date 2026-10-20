@@ -31,6 +31,9 @@ export const EUROPE: PresetTrip[] = [
     ],
     highlights: ["Jökulsárlón glacier lagoon", "Mývatn and the Diamond Circle", "Snæfellsnes on the way back"],
     bestMonths: "June to August",
+    interests: ["Hiking"],
+    landscape: ["Mountains", "Coast"],
+    effort: "Moderate",
   },
   {
     id: "italy-by-rail",
@@ -63,6 +66,9 @@ export const EUROPE: PresetTrip[] = [
     ],
     highlights: ["The Uffizi at opening time", "Path of the Gods, walked downhill", "A day on Capri"],
     bestMonths: "April to June, September",
+    interests: ["Food", "History", "Cities"],
+    landscape: ["Coast", "Countryside"],
+    effort: "Easy",
   },
   {
     id: "porto-to-seville",
@@ -91,6 +97,9 @@ export const EUROPE: PresetTrip[] = [
     ],
     highlights: ["Port lodges and the Douro", "Sintra's palaces", "A tapas crawl in Triana"],
     bestMonths: "April to June, September, October",
+    interests: ["Food", "Cities"],
+    landscape: ["Countryside"],
+    effort: "Easy",
   },
   {
     id: "croatia-and-montenegro",
@@ -118,6 +127,9 @@ export const EUROPE: PresetTrip[] = [
     ],
     highlights: ["Krka's waterfalls", "Island to island by fast ferry", "Dubrovnik's walls at dusk"],
     bestMonths: "May, June, September",
+    interests: ["Beaches", "History"],
+    landscape: ["Coast"],
+    effort: "Easy",
   },
   {
     id: "scottish-highlands-and-skye",
@@ -146,5 +158,8 @@ export const EUROPE: PresetTrip[] = [
     ],
     highlights: ["Glencoe's three sisters", "The Old Man of Storr", "Applecross by the Bealach na Bà"],
     bestMonths: "May, June, September",
+    interests: ["Hiking"],
+    landscape: ["Mountains", "Coast"],
+    effort: "Moderate",
   },
 ];

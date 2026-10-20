@@ -28,6 +28,9 @@ export const AFRICA: PresetTrip[] = [
     ],
     highlights: ["Imlil valley trek with a local guide", "A night under canvas in the dunes", "Lost in the Fes medina"],
     bestMonths: "March to May, October",
+    interests: ["Hiking", "Food"],
+    landscape: ["Mountains", "Desert"],
+    effort: "Moderate",
   },
   {
     id: "egypt-cairo-and-the-nile",
@@ -54,6 +57,9 @@ export const AFRICA: PresetTrip[] = [
     ],
     highlights: ["Giza before the crowds", "The Valley of the Kings", "Abu Simbel at dawn"],
     bestMonths: "October to April",
+    interests: ["History"],
+    landscape: ["Desert"],
+    effort: "Easy",
   },
   {
     id: "cape-to-victoria-falls",
@@ -87,6 +93,9 @@ export const AFRICA: PresetTrip[] = [
     ],
     highlights: ["Dune 45 at sunrise", "A mokoro through the Okavango", "The spray of Victoria Falls"],
     bestMonths: "May to October",
+    interests: ["Wildlife"],
+    landscape: ["Savannah", "Coast"],
+    effort: "Tough",
   },
   {
     id: "masai-mara-to-zanzibar",
@@ -115,6 +124,9 @@ export const AFRICA: PresetTrip[] = [
     ],
     highlights: ["Dawn game drives in the Mara", "Down into the Ngorongoro crater", "Stone Town's spice market"],
     bestMonths: "June to October",
+    interests: ["Wildlife", "Beaches"],
+    landscape: ["Savannah", "Coast"],
+    effort: "Moderate",
   },
   {
     id: "uganda-and-rwanda",
@@ -145,5 +157,8 @@ export const AFRICA: PresetTrip[] = [
     ],
     highlights: ["An hour with mountain gorillas", "Chimps in Kibale forest", "The top of Murchison Falls"],
     bestMonths: "June to September, December to February",
+    interests: ["Wildlife", "Hiking"],
+    landscape: ["Rainforest", "Mountains"],
+    effort: "Tough",
   },
 ];
