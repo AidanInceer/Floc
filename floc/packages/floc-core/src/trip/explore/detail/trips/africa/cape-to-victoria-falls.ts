@@ -22,7 +22,7 @@ export const CAPE_TO_VICTORIA_FALLS: PresetDetail = {
       summary: "The red dunes and the dead trees of Deadvlei.",
       days: [
         day("South to the dunes", ["08:00 Drive south, about 5h", "15:00 Sesriem canyon", "18:00 Sunset over the desert"]),
-        day("Dune 45 at sunrise", ["05:00 Into the park at the gate", "06:00 Climb Dune 45 for sunrise", "09:00 Walk to Deadvlei", "15:00 ~ Free afternoon at camp."], "Dune 45 at sunrise"),
+        day("Dune 45 at sunrise", ["05:00 Into the park at the gate", "06:00 * Climb Dune 45 for sunrise", "09:00 Walk to Deadvlei", "15:00 ~ Free afternoon at camp."], "Dune 45 at sunrise"),
       ],
     },
     {
@@ -47,7 +47,7 @@ export const CAPE_TO_VICTORIA_FALLS: PresetDetail = {
       summary: "A camp on the water, by mokoro and on foot.",
       days: [
         day("Fly to the delta", ["09:00 Light aircraft to the delta, 2h 30", "15:00 First mokoro out", "19:00 Dinner by the fire"]),
-        day("Mokoro", ["06:30 Mokoro through the channels", "11:00 Back at camp", "16:00 Walk on an island"], "A mokoro through the Okavango"),
+        day("Mokoro", ["06:30 * Mokoro through the channels", "11:00 Back at camp", "16:00 Walk on an island"], "A mokoro through the Okavango"),
         day("The delta on foot", ["06:00 Bush walk with a tracker", "12:00 ~ Free afternoon.", "17:00 Sundowners on the water"]),
       ],
     },
@@ -63,7 +63,7 @@ export const CAPE_TO_VICTORIA_FALLS: PresetDetail = {
       place: "Victoria Falls",
       summary: "The falls, the gorge and a last sunset on the Zambezi.",
       days: [
-        day("Over the border", ["09:00 Drive to Victoria Falls, 1h 30", "14:00 Walk the falls, in the spray", "18:00 Dinner at the hotel"], "The spray of Victoria Falls"),
+        day("Over the border", ["09:00 Drive to Victoria Falls, 1h 30", "14:00 * Walk the falls, in the spray", "18:00 Dinner at the hotel"], "The spray of Victoria Falls"),
         day("The gorge", ["09:00 Helicopter over the falls, if you like", "13:00 ~ Free afternoon.", "16:30 Sunset cruise on the Zambezi"]),
         day("Home from Victoria Falls", ["10:00 Airport", "13:00 Flight home via Johannesburg"]),
       ],

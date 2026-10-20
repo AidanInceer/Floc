@@ -24,7 +24,7 @@ export const NEW_ZEALAND_NORTH_ISLAND: PresetDetail = {
       summary: "Cathedral Cove and a hot spring dug in the sand.",
       days: [
         day("Down to the Coromandel", ["09:00 Drive to Whitianga, about 5h", "16:00 Walk on Buffalo beach", "19:00 Fish and chips"]),
-        day("Cove and hot beach", ["08:00 Walk to Cathedral Cove", "13:00 Hot Water Beach at low tide", "17:00 ~ Free evening."], "Hot Water Beach at low tide"),
+        day("Cove and hot beach", ["08:00 Walk to Cathedral Cove", "13:00 * Hot Water Beach at low tide", "17:00 ~ Free evening."], "Hot Water Beach at low tide"),
       ],
     },
     {
@@ -32,7 +32,7 @@ export const NEW_ZEALAND_NORTH_ISLAND: PresetDetail = {
       summary: "Steam, mud pools, a hāngī, and the glow worms of Waitomo.",
       days: [
         day("To Rotorua", ["09:00 Drive to Rotorua, about 3h", "14:00 Wai-O-Tapu thermal park", "18:00 Hāngī and a Māori cultural evening"]),
-        day("Waitomo", ["08:30 Drive to Waitomo, 2h", "11:00 Glow worm caves by boat", "17:00 Back in Rotorua, then the hot pools"], "Waitomo's glow worms"),
+        day("Waitomo", ["08:30 Drive to Waitomo, 2h", "11:00 * Glow worm caves by boat", "17:00 Back in Rotorua, then the hot pools"], "Waitomo's glow worms"),
       ],
     },
     {
@@ -40,7 +40,7 @@ export const NEW_ZEALAND_NORTH_ISLAND: PresetDetail = {
       summary: "The alpine crossing over the volcanoes.",
       days: [
         day("To the volcanoes", ["09:00 Drive south by Lake Taupō, about 2h 30", "13:00 Huka falls", "18:00 Dinner in National Park village"]),
-        day("The crossing", ["06:30 Shuttle to the start", "07:00 Walk the Tongariro alpine crossing, 19 km", "16:00 Pick-up at the far end"], "The Tongariro alpine crossing"),
+        day("The crossing", ["06:30 Shuttle to the start", "07:00 * Walk the Tongariro alpine crossing, 19 km", "16:00 Pick-up at the far end"], "The Tongariro alpine crossing"),
       ],
     },
     {

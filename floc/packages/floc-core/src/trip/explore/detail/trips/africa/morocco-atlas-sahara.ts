@@ -16,7 +16,7 @@ export const MOROCCO_ATLAS_SAHARA: PresetDetail = {
       summary: "Two nights in a Berber village under Toubkal.",
       days: [
         day("Up into the High Atlas", ["09:00 Drive to Imlil by Asni, about 2 hours", "12:30 Lunch in the village", "15:00 Easy walk to Aroumd and back"]),
-        day("The valley on foot", ["08:30 Set off with the local guide", "12:30 Picnic lunch above the river", "16:00 Back in Imlil for mint tea"], "Imlil valley trek with a local guide"),
+        day("The valley on foot", ["08:30 * Set off with the local guide", "12:30 Picnic lunch above the river", "16:00 Back in Imlil for mint tea"], "Imlil valley trek with a local guide"),
       ],
     },
     {
@@ -32,14 +32,14 @@ export const MOROCCO_ATLAS_SAHARA: PresetDetail = {
     {
       place: "Erg Chebbi",
       summary: "Camels at sunset and a night under canvas in the dunes.",
-      days: [day("Into the dunes", ["09:00 Todra gorge on foot", "13:00 Drive on to Merzouga", "17:00 Camels into the dunes", "20:00 Dinner and drums at the camp"], "A night under canvas in the dunes")],
+      days: [day("Into the dunes", ["09:00 Todra gorge on foot", "13:00 Drive on to Merzouga", "17:00 * Camels into the dunes", "20:00 Dinner and drums at the camp"], "A night under canvas in the dunes")],
     },
     {
       place: "Fes",
       summary: "The long drive north, then the oldest medina in the world.",
       days: [
         day("North to Fes", ["06:00 Sunrise from the dune", "08:00 Drive north through the Middle Atlas, about 8h", "18:00 Arrive in Fes"]),
-        day("The medina", ["09:00 Fes el-Bali with a guide", "12:00 The tanneries from a terrace", "15:00 ~ Free afternoon.", "19:30 Dinner in a palace riad"], "Lost in the Fes medina"),
+        day("The medina", ["09:00 * Fes el-Bali with a guide", "12:00 The tanneries from a terrace", "15:00 ~ Free afternoon.", "19:30 Dinner in a palace riad"], "Lost in the Fes medina"),
         day("Fes, slow", ["10:00 Hammam", "13:00 Lunch at the Batha", "16:00 The Merenid tombs at sunset"]),
         day("Home from Fes", ["09:00 Airport", "11:00 Flight home"]),
       ],

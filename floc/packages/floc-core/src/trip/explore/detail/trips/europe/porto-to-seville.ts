@@ -8,7 +8,7 @@ export const PORTO_TO_SEVILLE: PresetDetail = {
       summary: "The Ribeira, the port lodges and a day up the Douro.",
       days: [
         day("Land in Porto", ["13:00 Metro from the airport", "16:00 Walk down to the Ribeira", "19:00 Port tasting across the river in Gaia"]),
-        day("The Douro valley", ["09:00 Drive up the valley", "12:00 Lunch at a quinta among the vines", "15:00 Boat on the river", "19:30 Back in Porto"], "Port lodges and the Douro"),
+        day("The Douro valley", ["09:00 Drive up the valley", "12:00 Lunch at a quinta among the vines", "15:00 * Boat on the river", "19:30 Back in Porto"], "Port lodges and the Douro"),
       ],
     },
     {
@@ -17,7 +17,7 @@ export const PORTO_TO_SEVILLE: PresetDetail = {
       days: [
         day("Train to Lisbon", ["10:00 Alfa Pendular, about 3h", "15:00 Tram 28 through the Alfama", "20:00 Fado in a small bar"]),
         day("Belém", ["09:30 Jerónimos monastery", "11:30 Custard tarts at the source", "15:00 ~ Free afternoon.", "19:00 Sunset at a miradouro"]),
-        day("Sintra", ["09:00 Train to Sintra", "10:00 Pena palace", "13:00 Quinta da Regaleira", "17:00 Cabo da Roca"], "Sintra's palaces"),
+        day("Sintra", ["09:00 Train to Sintra", "10:00 * Pena palace", "13:00 Quinta da Regaleira", "17:00 Cabo da Roca"], "Sintra's palaces"),
       ],
     },
     {
@@ -39,7 +39,7 @@ export const PORTO_TO_SEVILLE: PresetDetail = {
       summary: "Over the border to the Alcázar, the cathedral and Triana.",
       days: [
         day("Into Spain", ["10:00 Drive to Seville, about 3h 30", "15:00 Drop the car", "18:00 Plaza de España", "21:00 Flamenco"]),
-        day("Alcázar and Triana", ["09:30 The Alcázar", "12:30 The cathedral and the Giralda", "20:00 A tapas crawl in Triana"], "A tapas crawl in Triana"),
+        day("Alcázar and Triana", ["09:30 The Alcázar", "12:30 The cathedral and the Giralda", "20:00 * A tapas crawl in Triana"], "A tapas crawl in Triana"),
         day("Seville, free", ["10:00 ~ Nothing planned.", "19:00 Las Setas at sunset"]),
         day("Home from Seville", ["09:00 Taxi to the airport", "11:00 Flight home"]),
       ],

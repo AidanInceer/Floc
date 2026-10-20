@@ -17,6 +17,13 @@ describe("day", () => {
     expect(day("Nothing", ["14:00 ~ Empty on purpose."]).items).toEqual([{ time: "14:00", text: "Empty on purpose.", free: true }]);
   });
 
+  it("marks a line that starts with a star as the one the day's highlight is about", () => {
+    expect(day("Valley", ["08:30 * Set off with the guide", "12:30 Picnic"], "The valley trek").items).toEqual([
+      { time: "08:30", text: "Set off with the guide", highlight: true },
+      { time: "12:30", text: "Picnic" },
+    ]);
+  });
+
   it("names the day's one highlight when it has one", () => {
     expect(day("Dawn", ["06:00 The gates"], "Fushimi Inari at dawn").highlight).toBe("Fushimi Inari at dawn");
   });

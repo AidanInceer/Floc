@@ -75,6 +75,18 @@ describe("checkPresetDetail", () => {
     expect(problems).toEqual(['day 1: "9am" is not HH:MM', "day 1: 11:00 comes after 14:00"]);
   });
 
+  it("wants a highlight pinned to exactly one of its day's lines", () => {
+    const unpinned: PresetDay = { ...day(), highlight: "Tapas crawl" };
+    const twice: PresetDay = { title: "Twice", highlight: "Tapas crawl", items: [{ time: "09:00", text: "x", highlight: true }, { time: "13:00", text: "x", highlight: true }] };
+    const stray: PresetDay = { title: "Stray", items: [{ time: "09:00", text: "x", highlight: true }] };
+    const problems = checkPresetDetail(trip, withStops([{ ...good.stops[0], days: [unpinned, twice] }, { ...good.stops[1], days: [stray, day()] }]));
+    expect(problems).toEqual([
+      "day 1: highlight is on no line, mark one with *",
+      "day 2: highlight is on 2 lines, mark one",
+      "day 3: a line is marked * but the day has no highlight",
+    ]);
+  });
+
   it("wants a summary on every stop", () => {
     expect(checkPresetDetail(trip, withStops([{ ...good.stops[0], summary: "" }, good.stops[1]]))).toEqual(["Seville has no summary"]);
   });

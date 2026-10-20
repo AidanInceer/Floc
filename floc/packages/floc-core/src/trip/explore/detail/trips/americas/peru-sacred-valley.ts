@@ -23,7 +23,7 @@ export const PERU_SACRED_VALLEY: PresetDetail = {
       place: "Sacred Valley",
       summary: "Markets, salt pans and the terraces of Moray.",
       days: [
-        day("Down to the valley", ["09:00 Pisac market", "13:00 Lunch in the valley", "16:00 Pisac ruins"], "Markets of the Sacred Valley"),
+        day("Down to the valley", ["09:00 * Pisac market", "13:00 Lunch in the valley", "16:00 Pisac ruins"], "Markets of the Sacred Valley"),
         day("Moray and the salt pans", ["09:00 The terraces of Moray", "12:00 The Maras salt pans", "16:00 Ollantaytambo's fortress"]),
       ],
     },
@@ -36,7 +36,7 @@ export const PERU_SACRED_VALLEY: PresetDetail = {
       place: "Cusco",
       summary: "Machu Picchu at opening, then back to Cusco by train.",
       days: [
-        day("Machu Picchu", ["05:30 First bus up", "06:00 Machu Picchu at opening, with a guide", "14:30 Train back to Cusco, 3h 30"], "Machu Picchu at opening"),
+        day("Machu Picchu", ["05:30 First bus up", "06:00 * Machu Picchu at opening, with a guide", "14:30 Train back to Cusco, 3h 30"], "Machu Picchu at opening"),
         day("Cusco, free", ["10:00 ~ Free day. San Pedro market, or rest.", "19:00 Dinner in San Blas"]),
       ],
     },
@@ -45,7 +45,7 @@ export const PERU_SACRED_VALLEY: PresetDetail = {
       summary: "Over the altiplano to the reed islands of Lake Titicaca.",
       days: [
         day("Over the altiplano", ["07:00 Bus to Puno, about 7h with stops", "15:00 Arrive by the lake", "19:00 Dinner"]),
-        day("The lake", ["08:00 Boat to the Uros reed islands", "11:00 Taquile island", "17:00 Back in Puno"], "The reed islands of Titicaca"),
+        day("The lake", ["08:00 * Boat to the Uros reed islands", "11:00 Taquile island", "17:00 Back in Puno"], "The reed islands of Titicaca"),
         day("Home from Juliaca", ["09:00 Drive to Juliaca airport", "12:00 Flight to Lima, connect home"]),
       ],
     },

@@ -8,7 +8,7 @@ export const EGYPT_CAIRO_AND_THE_NILE: PresetDetail = {
       summary: "The pyramids early, the museum and the old city.",
       days: [
         day("Land in Cairo", ["15:00 Airport to the hotel at Giza", "18:30 Sound and light at the pyramids", "20:30 Dinner"]),
-        day("Giza before the crowds", ["07:00 The pyramids at opening", "10:00 The Sphinx", "14:00 The Grand Egyptian Museum"], "Giza before the crowds"),
+        day("Giza before the crowds", ["07:00 * The pyramids at opening", "10:00 The Sphinx", "14:00 The Grand Egyptian Museum"], "Giza before the crowds"),
         day("Old Cairo", ["09:00 Coptic Cairo", "12:00 The citadel", "16:00 Khan el-Khalili bazaar", "19:30 Koshari for dinner"]),
       ],
     },
@@ -17,7 +17,7 @@ export const EGYPT_CAIRO_AND_THE_NILE: PresetDetail = {
       summary: "The temples of Karnak and the tombs of the Valley of the Kings.",
       days: [
         day("Fly to Luxor", ["08:00 Flight, 1h", "11:00 Board the boat", "15:00 Karnak temple", "19:00 Luxor temple lit up"]),
-        day("The west bank", ["06:00 Balloon over the west bank, if you like", "08:30 The Valley of the Kings", "12:00 Hatshepsut's temple", "16:00 ~ Free afternoon on deck."], "The Valley of the Kings"),
+        day("The west bank", ["06:00 Balloon over the west bank, if you like", "08:30 * The Valley of the Kings", "12:00 Hatshepsut's temple", "16:00 ~ Free afternoon on deck."], "The Valley of the Kings"),
       ],
     },
     {
@@ -33,7 +33,7 @@ export const EGYPT_CAIRO_AND_THE_NILE: PresetDetail = {
       summary: "Felucca at dusk, a Nubian village and Abu Simbel at dawn.",
       days: [
         day("Into Aswan", ["09:00 Philae temple", "13:00 Leave the boat", "17:00 Felucca at dusk"]),
-        day("Abu Simbel", ["04:00 Drive to Abu Simbel, about 3h 30", "08:00 The temples of Ramses and Nefertari", "15:00 Back in Aswan"], "Abu Simbel at dawn"),
+        day("Abu Simbel", ["04:00 Drive to Abu Simbel, about 3h 30", "08:00 * The temples of Ramses and Nefertari", "15:00 Back in Aswan"], "Abu Simbel at dawn"),
         day("Nubian village", ["10:00 Boat to a Nubian village", "13:00 Lunch with a family", "17:00 ~ Free evening."]),
         day("Home via Cairo", ["09:00 Flight to Cairo", "14:00 Connect home"]),
       ],

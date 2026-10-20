@@ -17,7 +17,7 @@ export const SYDNEY_TO_CAIRNS: PresetDetail = {
       summary: "Surf, the lighthouse at dawn and a slower pace.",
       days: [
         day("Fly north", ["09:00 Flight to Ballina, 1h 30", "12:00 Drive to Byron Bay", "16:00 Surf lesson at the Pass"]),
-        day("Cape Byron", ["05:45 Sunrise at Cape Byron", "09:00 Breakfast in town", "12:00 ~ Free afternoon."], "Sunrise at Cape Byron"),
+        day("Cape Byron", ["05:45 * Sunrise at Cape Byron", "09:00 Breakfast in town", "12:00 ~ Free afternoon."], "Sunrise at Cape Byron"),
         day("Hinterland", ["10:00 Drive to the hinterland waterfalls", "13:00 Lunch in Bangalow", "17:00 Sunset drinks"]),
       ],
     },
@@ -34,7 +34,7 @@ export const SYDNEY_TO_CAIRNS: PresetDetail = {
       summary: "The gateway to the Whitsundays, and a sail to Whitehaven.",
       days: [
         day("Fly to the Whitsundays", ["10:00 Flight from the Sunshine Coast, 1h 45", "15:00 The lagoon", "18:00 Sunset on the marina"]),
-        day("Whitehaven", ["08:00 Sail to Whitehaven Beach", "11:00 Hill Inlet lookout", "16:00 Back in Airlie"], "Whitehaven Beach by boat"),
+        day("Whitehaven", ["08:00 * Sail to Whitehaven Beach", "11:00 Hill Inlet lookout", "16:00 Back in Airlie"], "Whitehaven Beach by boat"),
         day("Airlie, free", ["10:00 ~ Nothing planned.", "19:00 Dinner"]),
       ],
     },
@@ -43,7 +43,7 @@ export const SYDNEY_TO_CAIRNS: PresetDetail = {
       summary: "The outer reef, the rainforest and the end of the line.",
       days: [
         day("Fly to Cairns", ["10:00 Flight, 1h 30", "15:00 The esplanade lagoon", "19:00 Dinner by the water"]),
-        day("The outer reef", ["08:00 Boat to the outer reef", "11:00 Snorkel or dive", "17:00 Back in Cairns"], "Snorkelling the outer reef"),
+        day("The outer reef", ["08:00 Boat to the outer reef", "11:00 * Snorkel or dive", "17:00 Back in Cairns"], "Snorkelling the outer reef"),
         day("Daintree", ["08:00 Drive to the Daintree", "12:00 River cruise for crocodiles", "15:00 Cape Tribulation"]),
         day("Kuranda", ["09:00 Scenic railway to Kuranda", "14:00 Skyrail back down", "17:00 ~ Free evening."]),
         day("Home from Cairns", ["09:00 Airport", "11:00 Flight home via Sydney"]),

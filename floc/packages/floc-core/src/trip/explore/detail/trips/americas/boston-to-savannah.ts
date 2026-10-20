@@ -15,7 +15,7 @@ export const BOSTON_TO_SAVANNAH: PresetDetail = {
       place: "Cape Cod",
       summary: "Dunes, lighthouses and lobster rolls.",
       days: [
-        day("Out to the Cape", ["10:00 Pick up the car, drive to the Cape", "13:00 Lobster rolls in Chatham", "17:00 Lighthouse beach"], "Lobster rolls on the Cape"),
+        day("Out to the Cape", ["10:00 Pick up the car, drive to the Cape", "13:00 * Lobster rolls in Chatham", "17:00 Lighthouse beach"], "Lobster rolls on the Cape"),
         day("Provincetown", ["09:00 Drive to the tip of the Cape", "11:00 Whale watching", "16:00 ~ Free afternoon in Provincetown."]),
       ],
     },
@@ -51,7 +51,7 @@ export const BOSTON_TO_SAVANNAH: PresetDetail = {
       summary: "The Blue Ridge, by Skyline Drive.",
       days: [
         day("To the mountains", ["09:00 Pick up a car, drive west, about 2h", "13:00 Luray caverns", "17:00 Cabin in the hills"]),
-        day("Skyline Drive", ["08:00 Skyline Drive south", "11:00 Walk to Dark Hollow falls", "16:00 ~ Free evening."], "Skyline Drive through the Blue Ridge"),
+        day("Skyline Drive", ["08:00 * Skyline Drive south", "11:00 Walk to Dark Hollow falls", "16:00 ~ Free evening."], "Skyline Drive through the Blue Ridge"),
       ],
     },
     {
@@ -66,7 +66,7 @@ export const BOSTON_TO_SAVANNAH: PresetDetail = {
       place: "Savannah",
       summary: "Squares under the oaks to finish.",
       days: [
-        day("To Savannah", ["10:00 Drive to Savannah, about 2h", "14:00 Walk the squares", "19:00 Dinner on River street"], "Savannah's squares under the oaks"),
+        day("To Savannah", ["10:00 Drive to Savannah, about 2h", "14:00 * Walk the squares", "19:00 Dinner on River street"], "Savannah's squares under the oaks"),
         day("Savannah, slow", ["09:00 Bonaventure cemetery", "13:00 Lunch at a family table", "15:00 ~ Free afternoon."]),
         day("Home from Savannah", ["09:00 Return the car", "11:00 Flight home"]),
       ],

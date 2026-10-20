@@ -5,13 +5,13 @@
  * `buildPresetPlan` fills what it can from the legs.
  */
 
-/** Local to the trip, "HH:MM" (rule 10). `free` marks time left empty on purpose. */
-export type PresetDayItem = { time: string; text: string; free?: true };
+/** Local to the trip, "HH:MM" (rule 10). `free` marks time left empty on purpose; `highlight` the line the day's highlight is about. */
+export type PresetDayItem = { time: string; text: string; free?: true; highlight?: true };
 
 export type PresetDay = {
   title: string;
   items: PresetDayItem[];
-  /** A short name for the one thing this day is for. Shown on the day and on its stop. */
+  /** A short name for the one thing this day is for. Shown on the day, and pinned to one of its lines. */
   highlight?: string;
 };
 

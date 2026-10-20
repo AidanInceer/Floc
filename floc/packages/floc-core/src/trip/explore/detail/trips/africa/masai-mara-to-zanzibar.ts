@@ -13,7 +13,7 @@ export const MASAI_MARA_TO_ZANZIBAR: PresetDetail = {
       summary: "Three dawns in the Mara, and the river if the herds are crossing.",
       days: [
         day("Fly into the Mara", ["08:00 Light aircraft, 1h", "11:00 Lunch at camp", "16:00 First game drive"]),
-        day("The river", ["06:00 Dawn game drive", "10:00 Wait at the Mara river for a crossing", "17:00 Sundowners on a ridge"], "Dawn game drives in the Mara"),
+        day("The river", ["06:00 * Dawn game drive", "10:00 Wait at the Mara river for a crossing", "17:00 Sundowners on a ridge"], "Dawn game drives in the Mara"),
         day("A Maasai village", ["06:00 Dawn game drive", "11:00 Visit a Maasai village", "15:00 ~ Free afternoon at camp."]),
       ],
     },
@@ -31,7 +31,7 @@ export const MASAI_MARA_TO_ZANZIBAR: PresetDetail = {
       summary: "Down into the crater, the world's largest unbroken caldera.",
       days: [
         day("To the crater rim", ["08:00 Drive to Ngorongoro, about 4h", "13:00 Olduvai gorge", "18:00 Sunset on the rim"]),
-        day("Into the crater", ["06:00 Down into the crater at first light", "12:00 Lunch by the hippo pool", "16:00 Back up to the rim"], "Down into the Ngorongoro crater"),
+        day("Into the crater", ["06:00 * Down into the crater at first light", "12:00 Lunch by the hippo pool", "16:00 Back up to the rim"], "Down into the Ngorongoro crater"),
       ],
     },
     {
@@ -39,7 +39,7 @@ export const MASAI_MARA_TO_ZANZIBAR: PresetDetail = {
       summary: "The old trading town of Zanzibar: doors, spice and the sea.",
       days: [
         day("Fly to Zanzibar", ["09:00 Drive to Arusha airport", "12:00 Flight to Zanzibar, 1h 30", "18:00 Forodhani night market"]),
-        day("Spice and Stone Town", ["09:00 A spice farm", "14:00 Walk Stone Town's lanes and doors", "18:00 Sunset dhow"], "Stone Town's spice market"),
+        day("Spice and Stone Town", ["09:00 A spice farm", "14:00 * Walk Stone Town's lanes and doors", "18:00 Sunset dhow"], "Stone Town's spice market"),
       ],
     },
     {

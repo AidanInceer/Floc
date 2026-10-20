@@ -12,7 +12,7 @@ export const NEW_ZEALAND_SOUTH_ISLAND: PresetDetail = {
       place: "Lake Tekapo",
       summary: "The blue lake, the little church and the darkest sky.",
       days: [
-        day("Across the plains", ["09:00 Drive to Tekapo, about 3h", "13:00 Church of the Good Shepherd", "21:30 Stargazing on Mount John"], "Stargazing at Tekapo"),
+        day("Across the plains", ["09:00 Drive to Tekapo, about 3h", "13:00 Church of the Good Shepherd", "21:30 * Stargazing on Mount John"], "Stargazing at Tekapo"),
         day("Tekapo", ["09:00 Walk up Mount John", "13:00 ~ Free afternoon.", "18:00 Hot pools"]),
       ],
     },
@@ -34,7 +34,7 @@ export const NEW_ZEALAND_SOUTH_ISLAND: PresetDetail = {
       summary: "The adventure town, and a day at Milford Sound.",
       days: [
         day("To Queenstown", ["10:00 Drive over the Crown range, 1h", "13:00 Arrowtown", "18:00 Gondola for sunset"]),
-        day("Milford Sound", ["07:00 Drive to Milford Sound", "11:00 Cruise the sound", "18:00 Back in Queenstown"], "Milford Sound before the coaches"),
+        day("Milford Sound", ["07:00 Drive to Milford Sound", "11:00 * Cruise the sound", "18:00 Back in Queenstown"], "Milford Sound before the coaches"),
         day("Queenstown, free", ["10:00 ~ Free day. Jet boat, bungy or the lake.", "19:00 Dinner in town"]),
       ],
     },
@@ -50,7 +50,7 @@ export const NEW_ZEALAND_SOUTH_ISLAND: PresetDetail = {
       place: "Christchurch",
       summary: "Back over the Alps on the TranzAlpine.",
       days: [
-        day("The TranzAlpine", ["08:00 Drive to Greymouth, return the van", "13:45 TranzAlpine over Arthur's Pass", "18:30 Into Christchurch"], "The TranzAlpine over Arthur's Pass"),
+        day("The TranzAlpine", ["08:00 Drive to Greymouth, return the van", "13:45 * TranzAlpine over Arthur's Pass", "18:30 Into Christchurch"], "The TranzAlpine over Arthur's Pass"),
         day("Christchurch, free", ["10:00 ~ Nothing planned.", "19:00 Last dinner"]),
         day("Home from Christchurch", ["09:00 Airport", "11:00 Flight home"]),
       ],

@@ -20,7 +20,7 @@ export const GREAT_OCEAN_ROAD_AND_ULURU: PresetDetail = {
     {
       place: "Port Campbell",
       summary: "Koalas, rainforest and the Twelve Apostles.",
-      days: [day("To the Apostles", ["09:00 Koalas at Kennett river", "12:00 Rainforest at Maits Rest", "18:30 The Twelve Apostles at sunset"], "The Twelve Apostles at sunset")],
+      days: [day("To the Apostles", ["09:00 Koalas at Kennett river", "12:00 Rainforest at Maits Rest", "18:30 * The Twelve Apostles at sunset"], "The Twelve Apostles at sunset")],
     },
     {
       place: "Grampians",
@@ -35,7 +35,7 @@ export const GREAT_OCEAN_ROAD_AND_ULURU: PresetDetail = {
       summary: "A calm city, and a day in the Barossa.",
       days: [
         day("West to Adelaide", ["09:00 Drive to Adelaide, about 5h", "16:00 Return the car", "19:00 Central market dinner"]),
-        day("The Barossa", ["09:30 Drive to the Barossa", "11:00 Cellar doors", "13:00 Long lunch at a winery", "18:00 Back in Adelaide"], "Barossa cellar doors"),
+        day("The Barossa", ["09:30 Drive to the Barossa", "11:00 * Cellar doors", "13:00 Long lunch at a winery", "18:00 Back in Adelaide"], "Barossa cellar doors"),
       ],
     },
     {
@@ -43,7 +43,7 @@ export const GREAT_OCEAN_ROAD_AND_ULURU: PresetDetail = {
       summary: "The red centre: the rock, Kata Tjuta and the stars.",
       days: [
         day("Fly to the centre", ["10:00 Flight to Uluru, 2h", "15:00 Base walk", "18:30 Sunset at the rock"]),
-        day("Sunrise and Kata Tjuta", ["05:30 Uluru at first light", "09:00 Cultural centre", "15:00 Valley of the Winds at Kata Tjuta"], "Uluru at first light"),
+        day("Sunrise and Kata Tjuta", ["05:30 * Uluru at first light", "09:00 Cultural centre", "15:00 Valley of the Winds at Kata Tjuta"], "Uluru at first light"),
         day("Field of light", ["10:00 ~ Free day.", "19:30 Dinner under the stars", "21:00 Field of Light"]),
         day("Home from Uluru", ["11:00 Flight to Sydney", "16:00 Connect home"]),
       ],

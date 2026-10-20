@@ -7,8 +7,8 @@ export const THAILAND_ANDAMAN_ISLANDS: PresetDetail = {
       place: "Bangkok",
       summary: "Temples, the river, Chinatown, then the sleeper north.",
       days: [
-        day("Land and Chinatown", ["14:00 Airport train to the hotel by the river", "17:30 Wat Arun at sunset", "19:30 Street food on Yaowarat road"], "Street food in Chinatown"),
-        day("Palace, then the sleeper", ["08:30 The Grand Palace and Wat Pho", "12:30 Boat up the Chao Phraya", "18:10 Sleeper train north from Krung Thep Aphiwat"], "Sleeper train to Chiang Mai"),
+        day("Land and Chinatown", ["14:00 Airport train to the hotel by the river", "17:30 Wat Arun at sunset", "19:30 * Street food on Yaowarat road"], "Street food in Chinatown"),
+        day("Palace, then the sleeper", ["08:30 The Grand Palace and Wat Pho", "12:30 Boat up the Chao Phraya", "18:10 * Sleeper train north from Krung Thep Aphiwat"], "Sleeper train to Chiang Mai"),
       ],
     },
     {
@@ -24,8 +24,8 @@ export const THAILAND_ANDAMAN_ISLANDS: PresetDetail = {
       place: "Railay",
       summary: "Cliffs, long-tails and no road in.",
       days: [
-        day("South to the sea", ["10:00 Flight to Krabi, 2h", "14:00 Long-tail to Railay", "18:00 Sunset from Railay west"], "Sunset from Railay west"),
-        day("Four islands", ["09:00 Long-tail to Poda, Chicken and Tup islands", "13:00 Lunch on the sand", "16:00 Back for a swim at Phra Nang"], "Four islands by long-tail"),
+        day("South to the sea", ["10:00 Flight to Krabi, 2h", "14:00 Long-tail to Railay", "18:00 * Sunset from Railay west"], "Sunset from Railay west"),
+        day("Four islands", ["09:00 * Long-tail to Poda, Chicken and Tup islands", "13:00 Lunch on the sand", "16:00 Back for a swim at Phra Nang"], "Four islands by long-tail"),
         day("Cliffs", ["08:00 Climbing lesson on the limestone", "13:00 ~ Free afternoon.", "19:00 Dinner on the beach"]),
       ],
     },

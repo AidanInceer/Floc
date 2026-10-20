@@ -21,7 +21,7 @@ export const RAJASTHAN_FORTS_AND_PALACES: PresetDetail = {
       place: "Jaipur",
       summary: "The pink city: the Amber fort, the wind palace and the bazaars.",
       days: [
-        day("Taj at sunrise, then west", ["06:00 The Taj Mahal at sunrise", "09:30 Breakfast, then the drive to Jaipur", "13:00 Fatehpur Sikri on the way", "19:00 Dinner in the pink city"], "The Taj Mahal at sunrise"),
+        day("Taj at sunrise, then west", ["06:00 * The Taj Mahal at sunrise", "09:30 Breakfast, then the drive to Jaipur", "13:00 Fatehpur Sikri on the way", "19:00 Dinner in the pink city"], "The Taj Mahal at sunrise"),
         day("Amber fort", ["08:00 Amber fort before the heat", "13:00 Lunch", "15:00 City palace and Jantar Mantar", "18:00 Hawa Mahal from a rooftop café"]),
         day("Bazaars and block printing", ["09:00 Block printing workshop in Bagru", "14:00 Johari bazaar", "19:00 Dinner at a haveli"]),
       ],
@@ -39,7 +39,7 @@ export const RAJASTHAN_FORTS_AND_PALACES: PresetDetail = {
       summary: "The blue city under Mehrangarh.",
       days: [
         day("To the blue city", ["08:30 Drive to Jodhpur, about 4h 30", "15:00 Walk the blue lanes", "18:30 Sunset by the stepwell"]),
-        day("Mehrangarh", ["08:30 Mehrangarh fort", "11:30 Zipline over the walls, if you like", "14:00 Jaswant Thada", "19:00 Dinner looking up at the fort"], "Mehrangarh fort above the blue city"),
+        day("Mehrangarh", ["08:30 * Mehrangarh fort", "11:30 Zipline over the walls, if you like", "14:00 Jaswant Thada", "19:00 Dinner looking up at the fort"], "Mehrangarh fort above the blue city"),
       ],
     },
     {
@@ -47,7 +47,7 @@ export const RAJASTHAN_FORTS_AND_PALACES: PresetDetail = {
       summary: "Lakes, palaces and a fort on the hills for the last days.",
       days: [
         day("Ranakpur on the way", ["08:00 Drive towards Udaipur", "11:00 The marble Jain temple at Ranakpur", "17:00 Arrive in Udaipur"]),
-        day("Palace and lake", ["09:00 City palace", "16:30 Boat on Lake Pichola", "19:30 Dinner by the water"], "A boat on Lake Pichola"),
+        day("Palace and lake", ["09:00 City palace", "16:30 * Boat on Lake Pichola", "19:30 Dinner by the water"], "A boat on Lake Pichola"),
         day("Kumbhalgarh", ["08:00 Drive to Kumbhalgarh, about 2h", "10:30 Walk the great wall", "17:00 Back in Udaipur"]),
         day("Home from Udaipur", ["09:00 Flight to Delhi", "14:00 Connect home"]),
       ],

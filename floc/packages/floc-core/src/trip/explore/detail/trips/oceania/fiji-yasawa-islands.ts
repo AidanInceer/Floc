@@ -21,8 +21,8 @@ export const FIJI_YASAWA_ISLANDS: PresetDetail = {
       summary: "Four nights up the Yasawa chain: reef, villages and caves.",
       days: [
         day("Up the chain", ["09:30 Yasawa Flyer north, about 3h", "14:00 Check in on Nacula", "18:00 Sunset from the hill"]),
-        day("Manta rays", ["08:00 Snorkel with manta rays, in season", "13:00 Lunch", "15:00 ~ Free afternoon."], "Snorkelling with manta rays"),
-        day("The village", ["10:00 Visit a Yasawa village with the chief's permission", "13:00 Kava ceremony", "19:00 Lovo feast"], "A lovo feast in a Yasawa village"),
+        day("Manta rays", ["08:00 * Snorkel with manta rays, in season", "13:00 Lunch", "15:00 ~ Free afternoon."], "Snorkelling with manta rays"),
+        day("The village", ["10:00 Visit a Yasawa village with the chief's permission", "13:00 Kava ceremony", "19:00 * Lovo feast"], "A lovo feast in a Yasawa village"),
         day("Sawa-i-Lau caves", ["09:00 Boat to the Sawa-i-Lau caves", "11:00 Swim in the cave", "16:00 ~ Free evening."]),
       ],
     },
@@ -39,7 +39,7 @@ export const FIJI_YASAWA_ISLANDS: PresetDetail = {
       summary: "Fiji's adventure town: sharks, rivers and rafting.",
       days: [
         day("To Pacific Harbour", ["10:00 Drive east, 1h 30", "14:00 River safari", "19:00 Dinner"]),
-        day("Beqa lagoon", ["07:30 Shark dive in Beqa lagoon", "13:00 Lunch", "15:00 ~ Free afternoon."], "Shark dive in Beqa lagoon"),
+        day("Beqa lagoon", ["07:30 * Shark dive in Beqa lagoon", "13:00 Lunch", "15:00 ~ Free afternoon."], "Shark dive in Beqa lagoon"),
         day("Home from Nadi", ["07:00 Drive to Nadi airport, about 2h 30", "12:00 Flight home"]),
       ],
     },
