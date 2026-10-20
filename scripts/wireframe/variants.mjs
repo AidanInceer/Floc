@@ -5,9 +5,10 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&l
 const STORE = "wf-variants-open";
 
 // Why: the pick lives in the prototype's wf-status meta ("Shipped 0.157.0 as G2", "Chosen: C"), so the panel reads it rather than asking every page to repeat it.
+// "Exploring: A–G" and "Parked: D, …" name variants that were not picked, so they never mark one.
 function pickedCode() {
   const raw = document.querySelector('meta[name="wf-status"]')?.content || "";
-  return raw.match(/(?:\bas|Chosen:|Liked:|Exploring:|Parked:)\s*([A-Z][0-9]?[a-z]?)\b/)?.[1] || "";
+  return raw.match(/(?:\bas|Chosen:|Liked:)\s*([A-Z][0-9]?[a-z]?)\b/)?.[1] || "";
 }
 
 function rounds(list) {
