@@ -17,7 +17,7 @@ export const ICELAND_RING_ROAD: PresetDetail = {
       place: "Höfn",
       summary: "The glacier lagoon, the diamond beach and a walk on the ice.",
       days: [
-        day("To the glacier lagoon", ["09:00 Drive east through the lava fields", "13:00 Jökulsárlón glacier lagoon", "15:00 Diamond beach", "19:00 Langoustine in Höfn"], "Jökulsárlón glacier lagoon"),
+        day("To the glacier lagoon", ["09:00 Drive east through the lava fields", "13:00 * Jökulsárlón glacier lagoon", "15:00 Diamond beach", "19:00 Langoustine in Höfn"], "Jökulsárlón glacier lagoon"),
         day("On the ice", ["09:30 Guided glacier walk at Skaftafell", "14:00 Svartifoss", "17:00 ~ Free evening."]),
       ],
     },
@@ -30,7 +30,7 @@ export const ICELAND_RING_ROAD: PresetDetail = {
       place: "Mývatn",
       summary: "Craters, lava and hot water: the Diamond Circle.",
       days: [
-        day("Over the highlands", ["09:00 Drive west across the plateau", "12:00 Dettifoss, the loudest waterfall", "17:00 Mývatn nature baths"], "Mývatn and the Diamond Circle"),
+        day("Over the highlands", ["09:00 Drive west across the plateau", "12:00 Dettifoss, the loudest waterfall", "17:00 * Mývatn nature baths"], "Mývatn and the Diamond Circle"),
         day("Around the lake", ["09:00 Hverir mud pots", "11:00 Krafla's crater", "14:00 Dimmuborgir lava walk", "17:00 ~ Free evening."]),
       ],
     },
@@ -43,7 +43,7 @@ export const ICELAND_RING_ROAD: PresetDetail = {
       place: "Snæfellsnes",
       summary: "The peninsula on the way back, then home.",
       days: [
-        day("The long drive west", ["08:30 Drive to Snæfellsnes, about 5h", "15:00 Kirkjufell", "17:00 Arnarstapi cliffs"], "Snæfellsnes on the way back"),
+        day("The long drive west", ["08:30 * Drive to Snæfellsnes, about 5h", "15:00 Kirkjufell", "17:00 Arnarstapi cliffs"], "Snæfellsnes on the way back"),
         day("Home", ["09:00 Drive to Keflavík, about 2h 30", "12:00 Return the car", "14:00 Flight home"]),
       ],
     },

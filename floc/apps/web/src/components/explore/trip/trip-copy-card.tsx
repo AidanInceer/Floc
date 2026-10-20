@@ -4,7 +4,6 @@ import type { PlanStop } from "@floc/core/trip/explore/detail/preset-plan";
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 
 import { startTripFromPreset } from "@/app/explore/actions";
-import type { RegionTone } from "@/components/explore/trip/region-tone";
 import { CopyIcon } from "@/components/explore/trip/trip-glyphs";
 import { SubmitButton } from "@/components/system/client-ui";
 import { CheckIcon, ChevronIcon } from "@/components/system/icons";
@@ -30,39 +29,40 @@ function CopyAction({ tripId, signedIn, className }: { tripId: string; signedIn:
   );
 }
 
-function DayStrip({ stops, now, onJump, tone }: { stops: PlanStop[]; now: number; onJump: (day: number) => void; tone: RegionTone }) {
-  const days = stops.flatMap((s) => s.days.map((d) => ({ n: d.n, place: s.place })));
-  const here = days.find((d) => d.n === now);
+function OpenDays({ stops, open, onJump }: { stops: PlanStop[]; open: number[]; onJump: (day: number) => void }) {
+  const total = stops.reduce((sum, s) => sum + s.days.length, 0);
   return (
     <div className="mt-3.5 border-t border-dashed border-rule-strong pt-3.5">
       <p className="typed">
-        You are on day <b className="font-medium text-ink">{now}</b> of {days.length}
-        {here ? (
-          <>
-            {" "}
-            · <b className="font-medium text-ink">{here.place}</b>
-          </>
-        ) : null}
+        Open <b className="font-medium text-ink">{open.length}</b> of {total} days
       </p>
-      <ol className="mt-2 grid gap-[3px]" style={{ gridTemplateColumns: `repeat(${Math.min(days.length, 11)}, minmax(0, 1fr))` }} aria-label="Jump to a day">
-        {days.map((d) => (
-          <li key={d.n}>
-            <button
-              type="button"
-              onClick={() => onJump(d.n)}
-              aria-label={`Day ${d.n}, ${d.place}`}
-              aria-current={d.n === now}
-              className={cx(
-                "nums h-[30px] w-full rounded-sm border text-xs transition-opacity",
-                tone.mark,
-                d.n === now ? cx(tone.ring, "ring-[1.5px] ring-offset-2 ring-offset-sheet") : "opacity-60 hover:opacity-90",
-              )}
-            >
-              {d.n}
-            </button>
-          </li>
-        ))}
-      </ol>
+      <ul className="mt-2.5 grid gap-2" aria-label="Open a day">
+        {stops
+          .filter((s) => s.days.length > 0)
+          .map((s) => (
+            <li key={s.no} className="grid grid-cols-[7.5rem_minmax(0,1fr)] items-center gap-2">
+              <span className="truncate text-sm text-ink-soft">{s.place}</span>
+              <span className="flex flex-wrap gap-1">
+                {s.days.map((d) => (
+                  <button
+                    key={d.n}
+                    type="button"
+                    onClick={() => onJump(d.n)}
+                    aria-label={`Day ${d.n}, ${s.place}${d.highlight ? `, highlight: ${d.highlight}` : ""}`}
+                    aria-pressed={open.includes(d.n)}
+                    className={cx(
+                      "nums relative h-7 min-w-7 rounded-sm border px-1.5 text-xs",
+                      open.includes(d.n) ? "border-ink bg-ink text-sheet" : "border-rule-strong bg-sheet text-ink-soft hover:border-ink-faint hover:text-ink",
+                      d.highlight && "after:absolute after:-right-[3px] after:-top-[3px] after:size-[7px] after:rounded-full after:border-[1.5px] after:border-sheet after:bg-highlight-ink",
+                    )}
+                  >
+                    {d.n}
+                  </button>
+                ))}
+              </span>
+            </li>
+          ))}
+      </ul>
     </div>
   );
 }
@@ -70,23 +70,21 @@ function DayStrip({ stops, now, onJump, tone }: { stops: PlanStop[]; now: number
 export function TripCopyCard({
   trip,
   stops,
-  now,
+  open,
   onJump,
   signedIn,
-  tone,
 }: {
   trip: PresetTrip;
   stops: PlanStop[];
-  now: number;
+  open: number[];
   onJump: (day: number) => void;
   signedIn: boolean;
-  tone: RegionTone;
 }) {
   return (
     <aside className="rounded-lg border border-rule-strong bg-sheet p-5 shadow-raised lg:sticky lg:top-20">
       <p className="typed">Make it yours</p>
       <h2 className="mt-1.5 text-xl">Copy this trip</h2>
-      {now > 0 ? <DayStrip stops={stops} now={now} onJump={onJump} tone={tone} /> : null}
+      {stops.some((s) => s.days.length > 0) ? <OpenDays stops={stops} open={open} onJump={onJump} /> : null}
       <CopyAction tripId={trip.id} signedIn={signedIn} className="mt-4 w-full" />
       <p className="mt-2.5 text-center text-xs text-ink-faint">Free. Nothing is booked.</p>
       <details className="group mt-3.5 border-t border-dashed border-rule-strong pt-3">

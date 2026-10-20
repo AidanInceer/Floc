@@ -13,7 +13,7 @@ export const UGANDA_AND_RWANDA: PresetDetail = {
       summary: "The Nile forced through a gap seven metres wide.",
       days: [
         day("North to Murchison", ["07:00 Drive north, about 5h", "12:30 Rhinos on foot at Ziwa", "17:00 Arrive at the lodge"]),
-        day("The falls", ["07:00 Game drive north of the Nile", "14:00 Boat up to the foot of the falls", "16:30 Walk to the top"], "The top of Murchison Falls"),
+        day("The falls", ["07:00 Game drive north of the Nile", "14:00 Boat up to the foot of the falls", "16:30 * Walk to the top"], "The top of Murchison Falls"),
       ],
     },
     {
@@ -21,7 +21,7 @@ export const UGANDA_AND_RWANDA: PresetDetail = {
       summary: "The forest with the most chimpanzees in East Africa.",
       days: [
         day("South to Kibale", ["07:00 Drive south, about 6h", "15:00 Walk the crater lakes", "19:00 Dinner at the lodge"]),
-        day("Chimpanzees", ["08:00 Chimp tracking in the forest", "14:00 Bigodi swamp walk", "17:00 ~ Free evening."], "Chimps in Kibale forest"),
+        day("Chimpanzees", ["08:00 * Chimp tracking in the forest", "14:00 Bigodi swamp walk", "17:00 ~ Free evening."], "Chimps in Kibale forest"),
       ],
     },
     {
@@ -37,7 +37,7 @@ export const UGANDA_AND_RWANDA: PresetDetail = {
       summary: "The impenetrable forest, and an hour with mountain gorillas.",
       days: [
         day("Into the forest", ["08:00 Drive to Bwindi, about 4h", "14:00 Walk to the waterfall", "19:00 Briefing for the morning"]),
-        day("Gorillas", ["07:30 Gorilla tracking with the rangers", "12:00 One hour with the family", "16:00 Back at the lodge"], "An hour with mountain gorillas"),
+        day("Gorillas", ["07:30 Gorilla tracking with the rangers", "12:00 * One hour with the family", "16:00 Back at the lodge"], "An hour with mountain gorillas"),
       ],
     },
     {

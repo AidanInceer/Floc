@@ -16,13 +16,13 @@ export const JAPAN_GOLDEN_ROUTE: PresetDetail = {
     {
       place: "Hakone",
       summary: "The open-air museum and one night in a ryokan.",
-      days: [day("Into the hills", ["09:40 Romancecar from Shinjuku", "13:00 Hakone open-air museum", "18:30 Ryokan dinner, then the hot spring"], "A night in a Hakone ryokan")],
+      days: [day("Into the hills", ["09:40 Romancecar from Shinjuku", "13:00 Hakone open-air museum", "18:30 * Ryokan dinner, then the hot spring"], "A night in a Hakone ryokan")],
     },
     {
       place: "Kyoto",
       summary: "The bullet train, the gates at dawn, the bamboo grove and a day with the deer in Nara.",
       days: [
-        day("Lake Ashi, then the bullet train", ["09:00 Boat across Lake Ashi, Fuji if it is clear", "13:10 Shinkansen from Odawara to Kyoto", "19:00 Dinner on Pontocho"], "Shinkansen to Kyoto"),
+        day("Lake Ashi, then the bullet train", ["09:00 Boat across Lake Ashi, Fuji if it is clear", "13:10 * Shinkansen from Odawara to Kyoto", "19:00 Dinner on Pontocho"], "Shinkansen to Kyoto"),
         day("Fushimi Inari at dawn", ["06:00 The gates before the crowds", "12:00 Nishiki market, lunch as you walk", "18:00 Gion at lantern time"]),
         day("Nara and its deer", ["09:00 Train to Nara, 45 minutes", "10:00 Todai-ji and the great Buddha", "13:00 The deer park and Kasuga shrine", "18:30 Back in Kyoto for dinner"]),
         day("Bamboo, then nothing", ["08:30 Arashiyama bamboo grove and Tenryu-ji", "12:00 Tofu lunch by the river", "14:00 ~ Empty on purpose. The group splits up."]),
@@ -33,7 +33,7 @@ export const JAPAN_GOLDEN_ROUTE: PresetDetail = {
       summary: "The peace park, okonomiyaki, and the floating gate at Miyajima.",
       days: [
         day("West to Hiroshima", ["09:30 Kinkaku-ji on the way out", "13:00 Shinkansen to Hiroshima", "15:30 Peace park and museum", "19:00 Okonomiyaki, layered on the hot plate"]),
-        day("Miyajima", ["08:30 Ferry to Miyajima", "10:00 The gate at high tide", "13:00 Ropeway up Mount Misen", "18:00 Back on the mainland"], "Miyajima's gate at high tide"),
+        day("Miyajima", ["08:30 Ferry to Miyajima", "10:00 * The gate at high tide", "13:00 Ropeway up Mount Misen", "18:00 Back on the mainland"], "Miyajima's gate at high tide"),
       ],
     },
     {

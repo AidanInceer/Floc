@@ -8,7 +8,7 @@ export const PATAGONIA_W_TREK: PresetDetail = {
       summary: "The lake town, and the Perito Moreno glacier.",
       days: [
         day("Land in El Calafate", ["14:00 Airport to the town", "17:00 Walk to Laguna Nimez", "20:00 Patagonian lamb"]),
-        day("Perito Moreno", ["08:30 Drive to the glacier", "10:00 The walkways facing the ice", "13:00 Boat to the face", "17:00 Back in town"], "The Perito Moreno glacier"),
+        day("Perito Moreno", ["08:30 Drive to the glacier", "10:00 * The walkways facing the ice", "13:00 Boat to the face", "17:00 Back in town"], "The Perito Moreno glacier"),
       ],
     },
     {
@@ -16,7 +16,7 @@ export const PATAGONIA_W_TREK: PresetDetail = {
       summary: "Three days of walking under Fitz Roy.",
       days: [
         day("North to El Chaltén", ["09:00 Drive to El Chaltén, about 3h", "14:00 Walk to the condor viewpoint", "19:00 Dinner in the village"]),
-        day("Laguna de los Tres", ["07:00 Walk to Laguna de los Tres, about 10 hours", "18:00 Back in town"], "Laguna de los Tres under Fitz Roy"),
+        day("Laguna de los Tres", ["07:00 * Walk to Laguna de los Tres, about 10 hours", "18:00 Back in town"], "Laguna de los Tres under Fitz Roy"),
         day("Laguna Torre", ["09:00 Walk to Laguna Torre", "16:00 ~ Free evening."]),
       ],
     },
@@ -29,7 +29,7 @@ export const PATAGONIA_W_TREK: PresetDetail = {
       place: "Refugios on the W",
       summary: "The W trek in Torres del Paine, refugio to refugio.",
       days: [
-        day("Into the park", ["08:00 Bus to the park, 2h", "11:00 Catamaran across Lago Pehoé", "13:00 Walk to Grey glacier"], "The W trek, refugio to refugio"),
+        day("Into the park", ["08:00 Bus to the park, 2h", "11:00 Catamaran across Lago Pehoé", "13:00 * Walk to Grey glacier"], "The W trek, refugio to refugio"),
         day("French valley", ["08:00 Walk up the French valley", "17:00 Refugio dinner"]),
         day("To the base of the towers", ["08:00 Walk east along Lago Nordenskjöld", "16:00 Refugio Chileno"]),
         day("The towers at dawn", ["04:30 Climb to the base of the towers for sunrise", "11:00 Down to the hotel Las Torres", "14:00 ~ Free afternoon."]),

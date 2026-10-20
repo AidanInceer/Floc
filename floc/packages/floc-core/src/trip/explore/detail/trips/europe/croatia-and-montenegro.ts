@@ -8,14 +8,14 @@ export const CROATIA_AND_MONTENEGRO: PresetDetail = {
       summary: "A palace town, and the waterfalls at Krka.",
       days: [
         day("Land in Split", ["13:00 Airport to the old town", "16:00 Diocletian's palace", "19:30 Dinner on the Riva"]),
-        day("Krka", ["08:30 Drive to Krka national park", "10:00 The boardwalks and the falls", "16:00 Back in Split for a swim"], "Krka's waterfalls"),
+        day("Krka", ["08:30 Drive to Krka national park", "10:00 * The boardwalks and the falls", "16:00 Back in Split for a swim"], "Krka's waterfalls"),
       ],
     },
     {
       place: "Hvar",
       summary: "Lavender, a fortress above the harbour and the Pakleni islands.",
       days: [
-        day("Ferry to Hvar", ["10:00 Fast ferry, 1h", "14:00 Climb to the fortress", "19:00 Dinner in the old town"], "Island to island by fast ferry"),
+        day("Ferry to Hvar", ["10:00 * Fast ferry, 1h", "14:00 Climb to the fortress", "19:00 Dinner in the old town"], "Island to island by fast ferry"),
         day("The Pakleni islands", ["10:00 Water taxi to the Pakleni islands", "13:00 Lunch at a konoba on the beach", "17:00 ~ Free evening."]),
       ],
     },
@@ -31,7 +31,7 @@ export const CROATIA_AND_MONTENEGRO: PresetDetail = {
       place: "Dubrovnik",
       summary: "The walls, the cable car and a day on the Elaphiti islands.",
       days: [
-        day("Into Dubrovnik", ["10:00 Ferry, about 2h", "15:00 Check in", "18:00 The walls at dusk"], "Dubrovnik's walls at dusk"),
+        day("Into Dubrovnik", ["10:00 Ferry, about 2h", "15:00 Check in", "18:00 * The walls at dusk"], "Dubrovnik's walls at dusk"),
         day("Kayak and cable car", ["09:00 Sea kayak round Lokrum", "14:00 ~ Free afternoon.", "18:30 Cable car up Mount Srđ"]),
         day("The Elaphiti islands", ["10:00 Boat to Koločep, Lopud and Šipan", "17:00 Back in Dubrovnik", "20:00 Last dinner in Croatia"]),
       ],

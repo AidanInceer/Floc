@@ -17,7 +17,14 @@ function dayProblems(day: PresetDay, n: number): string[] {
     if (item.time < last) problems.push(`day ${n}: ${item.time} comes after ${last}`);
     last = item.time;
   }
-  return problems;
+  return [...problems, ...highlightProblems(day, n)];
+}
+
+function highlightProblems(day: PresetDay, n: number): string[] {
+  const marked = day.items.filter((i) => i.highlight).length;
+  if (!day.highlight) return marked ? [`day ${n}: a line is marked * but the day has no highlight`] : [];
+  if (marked === 0) return [`day ${n}: highlight is on no line, mark one with *`];
+  return marked > 1 ? [`day ${n}: highlight is on ${marked} lines, mark one`] : [];
 }
 
 /** What is wrong with a hand-written detail, in words its author can act on. Empty when it fits the listing. */

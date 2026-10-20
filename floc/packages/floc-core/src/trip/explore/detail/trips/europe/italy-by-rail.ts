@@ -16,7 +16,7 @@ export const ITALY_BY_RAIL: PresetDetail = {
       summary: "The Uffizi, the Duomo, Oltrarno and a day in Siena.",
       days: [
         day("Fast train to Florence", ["10:00 Frecciarossa, about 2h 15", "14:00 The Duomo and its dome", "19:30 Bistecca in Santo Spirito"]),
-        day("The Uffizi", ["08:15 The Uffizi at opening time", "13:00 Lunch in Mercato Centrale", "18:00 Piazzale Michelangelo for sunset"], "The Uffizi at opening time"),
+        day("The Uffizi", ["08:15 * The Uffizi at opening time", "13:00 Lunch in Mercato Centrale", "18:00 Piazzale Michelangelo for sunset"], "The Uffizi at opening time"),
         day("Siena", ["09:00 Drive to Siena", "11:00 Il Campo and the cathedral", "16:00 A Chianti winery on the way back"]),
       ],
     },
@@ -47,8 +47,8 @@ export const ITALY_BY_RAIL: PresetDetail = {
       summary: "A terrace on the Amalfi coast, the Path of the Gods and a day on Capri.",
       days: [
         day("By sea to Positano", ["10:00 Ferry from Naples, about 1h 30", "14:00 Check in, then swim", "20:00 Dinner on the terrace"]),
-        day("Path of the Gods", ["08:30 Bus to Bomerano", "09:00 Walk the Path of the Gods downhill", "14:00 Lunch in Nocelle"], "Path of the Gods, walked downhill"),
-        day("Capri", ["09:00 Ferry to Capri", "11:00 Boat round the island", "14:00 Anacapri and Monte Solaro"], "A day on Capri"),
+        day("Path of the Gods", ["08:30 Bus to Bomerano", "09:00 * Walk the Path of the Gods downhill", "14:00 Lunch in Nocelle"], "Path of the Gods, walked downhill"),
+        day("Capri", ["09:00 Ferry to Capri", "11:00 * Boat round the island", "14:00 Anacapri and Monte Solaro"], "A day on Capri"),
         day("Home from Naples", ["08:00 Driver to Naples airport", "12:00 Flight home"]),
       ],
     },

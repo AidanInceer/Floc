@@ -8,14 +8,14 @@ export const HANOI_TO_BANGKOK: PresetDetail = {
       summary: "The old quarter on foot, and a day among the limestone of Halong Bay.",
       days: [
         day("Land in the old quarter", ["14:00 Noi Bai to the hotel by Hoan Kiem lake", "17:00 Walk the 36 streets", "19:00 Street food tour, plastic stools and bun cha"]),
-        day("A day on Halong Bay", ["07:30 Road to Halong, about 2h 30", "11:00 Boat out among the karsts", "14:00 Kayak into a lagoon", "21:30 The night train south from Hanoi"], "A day on Halong Bay"),
+        day("A day on Halong Bay", ["07:30 Road to Halong, about 2h 30", "11:00 * Boat out among the karsts", "14:00 Kayak into a lagoon", "21:30 The night train south from Hanoi"], "A day on Halong Bay"),
       ],
     },
     {
       place: "Hue",
       summary: "The citadel and the royal tombs on the Perfume river.",
       days: [
-        day("Off the night train", ["09:00 Arrive in Hue, breakfast and a nap", "14:00 The imperial citadel", "18:30 Royal-style dinner"], "The night train to Hue"),
+        day("Off the night train", ["09:00 * Arrive in Hue, breakfast and a nap", "14:00 The imperial citadel", "18:30 Royal-style dinner"], "The night train to Hue"),
         day("Tombs by boat", ["08:30 Dragon boat up the Perfume river", "10:00 Thien Mu pagoda", "13:00 Tomb of Tu Duc", "16:00 Tomb of Khai Dinh"]),
       ],
     },
@@ -49,7 +49,7 @@ export const HANOI_TO_BANGKOK: PresetDetail = {
       summary: "Three days of temples, Angkor Wat at sunrise, and a floating village.",
       days: [
         day("North to Siem Reap", ["08:00 Bus to Siem Reap, about 6h", "17:00 Pub Street and the night market"]),
-        day("Angkor Wat at sunrise", ["04:45 Tuk-tuk to Angkor Wat", "05:45 Sunrise over the towers", "09:00 Angkor Thom and the faces of the Bayon", "13:00 Ta Prohm and its trees"], "Angkor Wat at sunrise"),
+        day("Angkor Wat at sunrise", ["04:45 Tuk-tuk to Angkor Wat", "05:45 * Sunrise over the towers", "09:00 Angkor Thom and the faces of the Bayon", "13:00 Ta Prohm and its trees"], "Angkor Wat at sunrise"),
         day("The lake and the circus", ["09:00 Floating village on Tonle Sap", "14:00 ~ Free afternoon.", "19:00 Phare, the Cambodian circus"]),
       ],
     },

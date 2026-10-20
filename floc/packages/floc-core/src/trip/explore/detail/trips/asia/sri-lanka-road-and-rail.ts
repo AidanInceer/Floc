@@ -13,7 +13,7 @@ export const SRI_LANKA_ROAD_AND_RAIL: PresetDetail = {
       summary: "The lion rock at first light, and the old city of Polonnaruwa.",
       days: [
         day("Into the dry zone", ["08:00 Drive north, about 4h", "13:00 Dambulla cave temples", "18:00 Village dinner"]),
-        day("Sigiriya and Polonnaruwa", ["06:30 Climb Sigiriya rock before the heat", "12:00 Lunch", "14:00 The ruins of Polonnaruwa by bike"], "Sigiriya rock at first light"),
+        day("Sigiriya and Polonnaruwa", ["06:30 * Climb Sigiriya rock before the heat", "12:00 Lunch", "14:00 The ruins of Polonnaruwa by bike"], "Sigiriya rock at first light"),
       ],
     },
     {
@@ -28,7 +28,7 @@ export const SRI_LANKA_ROAD_AND_RAIL: PresetDetail = {
       place: "Ella",
       summary: "The blue train through the tea, and walks above the valley.",
       days: [
-        day("The hill line", ["08:45 Train to Ella, about 7h through the tea", "16:00 Arrive in Ella", "19:00 Dinner in the village"], "The train from Kandy to Ella"),
+        day("The hill line", ["08:45 * Train to Ella, about 7h through the tea", "16:00 Arrive in Ella", "19:00 Dinner in the village"], "The train from Kandy to Ella"),
         day("Little Adam's peak", ["06:30 Walk up Little Adam's peak", "10:00 Nine Arches bridge", "14:00 Tea factory tour"]),
       ],
     },
@@ -37,7 +37,7 @@ export const SRI_LANKA_ROAD_AND_RAIL: PresetDetail = {
       summary: "Two game drives in the park with the most leopards.",
       days: [
         day("Down to the plains", ["09:00 Drive to Yala, about 2h 30", "14:30 Afternoon game drive", "19:30 Dinner at the camp"]),
-        day("Leopards", ["05:30 Dawn game drive", "11:00 Back at camp", "15:00 ~ Free afternoon by the pool."], "Leopards in Yala"),
+        day("Leopards", ["05:30 * Dawn game drive", "11:00 Back at camp", "15:00 ~ Free afternoon by the pool."], "Leopards in Yala"),
       ],
     },
     {

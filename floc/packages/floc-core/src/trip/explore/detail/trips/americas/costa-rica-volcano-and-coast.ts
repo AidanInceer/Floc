@@ -12,7 +12,7 @@ export const COSTA_RICA_VOLCANO_AND_COAST: PresetDetail = {
       place: "Tortuguero",
       summary: "Canals, a village with no roads and turtles on the beach.",
       days: [
-        day("By road and river", ["06:30 Bus to the river landing", "10:30 Boat up the canals", "20:00 Turtle walk on the beach, in season"], "Turtles nesting at Tortuguero"),
+        day("By road and river", ["06:30 Bus to the river landing", "10:30 Boat up the canals", "20:00 * Turtle walk on the beach, in season"], "Turtles nesting at Tortuguero"),
         day("The canals", ["06:00 Canoe through the canals", "10:00 Village walk", "14:00 ~ Free afternoon."]),
       ],
     },
@@ -20,7 +20,7 @@ export const COSTA_RICA_VOLCANO_AND_COAST: PresetDetail = {
       place: "La Fortuna",
       summary: "Arenal volcano, hanging bridges and hot springs.",
       days: [
-        day("To Arenal", ["07:00 Boat back, then the drive to La Fortuna", "15:00 Check in under the volcano", "19:00 Hot springs at night"], "Hot springs under Arenal"),
+        day("To Arenal", ["07:00 Boat back, then the drive to La Fortuna", "15:00 Check in under the volcano", "19:00 * Hot springs at night"], "Hot springs under Arenal"),
         day("Bridges and falls", ["07:30 Arenal hanging bridges", "12:00 La Fortuna waterfall", "16:00 ~ Free afternoon."]),
         day("The volcano", ["08:00 Walk the 1968 lava trail", "13:00 Lunch", "15:00 Kayak on Lake Arenal"]),
       ],
@@ -30,7 +30,7 @@ export const COSTA_RICA_VOLCANO_AND_COAST: PresetDetail = {
       summary: "The cloud forest: bridges, quetzals and a night walk.",
       days: [
         day("Up to the cloud forest", ["09:00 Drive round the lake to Monteverde, about 3h", "15:00 Coffee farm tour", "18:30 Night walk"]),
-        day("Cloud forest", ["07:00 Monteverde reserve with a guide", "12:00 Lunch in Santa Elena", "14:00 Sky bridges"], "Cloud forest bridges at Monteverde"),
+        day("Cloud forest", ["07:00 Monteverde reserve with a guide", "12:00 Lunch in Santa Elena", "14:00 * Sky bridges"], "Cloud forest bridges at Monteverde"),
       ],
     },
     {
