@@ -10,6 +10,8 @@ export function Dialog({ open, onClose, title, className, children }: {
   children: ReactNode;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  // Why: Strict Mode runs the effect's cleanup once on mount; its close() must not read as the user closing it.
+  const closingQuietly = useRef(false);
 
   useEffect(() => {
     const dialog = ref.current;
@@ -18,7 +20,10 @@ export function Dialog({ open, onClose, title, className, children }: {
     document.body.style.overflow = "hidden";
     dialog.showModal();
     return () => {
-      dialog.close();
+      if (dialog.open) {
+        closingQuietly.current = true;
+        dialog.close();
+      }
       document.body.style.overflow = overflow;
     };
   }, [open]);
@@ -29,7 +34,10 @@ export function Dialog({ open, onClose, title, className, children }: {
       aria-label={title}
       className={className}
       onCancel={(event) => { event.preventDefault(); onClose(); }}
-      onClose={onClose}
+      onClose={() => {
+        if (closingQuietly.current) closingQuietly.current = false;
+        else onClose();
+      }}
       onClick={(event) => {
         if (event.target !== ref.current) return;
         const rect = event.currentTarget.getBoundingClientRect();

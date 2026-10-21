@@ -23,7 +23,7 @@ neverBuiltDependencies:
 # patched floor the advisory itself names.
 overrides:
   vitest: ^3.2.6
-  vite: ^6.4.3
+  vite: ^6.4.4
   # GHSA-rgj7-g3m4-5g8c — libheif flaws reached through the bundled binary.
   # Patched in 0.35.4; GHSA-wq5f-xc86-pv6w (librsvg) moved the floor to 0.35.5.
   sharp: ^0.35.5

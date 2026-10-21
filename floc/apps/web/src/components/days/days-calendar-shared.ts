@@ -9,13 +9,17 @@ import type { BandSpan } from "@floc/core/itinerary/overnight-band";
 /** Pixels per hour. Tall enough that a 15-minute block is still a target. */
 export const HOUR_PX = 56;
 
-/** Wide enough for `00:00`, and for the band's own label (ticket 141). */
-export const GUTTER_PX = 66;
+/** Two or more empty hours in a row draw as one bar this tall. */
+export const FOLD_PX = 30;
 
-/** A day column never gets thinner than this; the grid scrolls instead. */
-export const COLUMN_MIN_PX = { week: 120, day: 240 } as const;
+/** The gutter, the day before, the focus day, the day after (B5). The neighbours shrink to slivers on a phone. */
+export const FOCUS_COLUMNS =
+  "[--days-gutter:44px] [--days-side:38px] sm:[--days-gutter:60px] sm:[--days-side:11rem]";
+export const FOCUS_TEMPLATE = "var(--days-gutter) var(--days-side) minmax(0, 1fr) var(--days-side)";
 
-export const OUTSIDE_DAY_CLASS = "bg-sheet-2/65";
+/** A slot with no trip day in it: before the first day or after the last. */
+export const OUTSIDE_DAY_CLASS =
+  "bg-[repeating-linear-gradient(135deg,var(--color-sheet-2)_0_6px,var(--color-sheet)_6px_12px)]";
 
 /** How close to the calendar's edge a drag has to get before the page turns. */
 export const EDGE_PX = 44;
@@ -26,13 +30,13 @@ export type CalendarDay = {
   weekday: string;
   dayOfMonth: string;
   longLabel: string;
+  /** "Sat 4 Sep", where the long one won't fit. */
+  shortLabel: string;
   /** Null is a real answer: nobody has decided yet. */
   overnightPlaceName: string | null;
   /** Sent back on extend, so a stay keeps its geocoded `place` row. */
   overnightPlaceId: number | null;
-  /** 0 = Monday. */
-  weekdayIndex: number;
-  /** Padding for the Monday–Sunday frame; no `day` row behind it. */
+  /** A cap beside the first or last day; no `day` row behind it. */
   outside: boolean;
   isToday: boolean;
 };
@@ -49,6 +53,8 @@ export type CalendarEvent = {
   endTime: string | null;
   allDay: boolean;
   hasNote: boolean;
+  /** The focus day prints the start of it on the block. */
+  note: string | null;
   /** Files parked on it (ticket 324) — the block wears a clip. */
   hasFiles: boolean;
   commentCount: number;

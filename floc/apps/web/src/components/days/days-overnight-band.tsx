@@ -9,6 +9,7 @@
 import { type CSSProperties, type PointerEvent as ReactPointerEvent, type RefObject } from "react";
 
 import { cx } from "@/components/system/ui";
+import { BedIcon } from "@/components/days/days-glyphs";
 import {
   OUTSIDE_DAY_CLASS,
   describeSpan,
@@ -50,12 +51,9 @@ export function OvernightBandRow({
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
     >
-      {/* Not `.typed`: at 11px it ran under the rule, wider than the clock
-          column it shares. Same mono face, sized for "00:00". */}
-      <div className="sticky left-0 z-20 flex items-center justify-end border-r border-rule bg-sheet px-1.5 py-1.5">
-        <span className="font-mono text-[9px] uppercase tracking-[0.02em] text-ink-faint">
-          Overnight
-        </span>
+      <div className="flex items-center justify-end border-r border-rule bg-sheet px-2 py-1.5 text-ink-faint" title="Overnight">
+        <BedIcon />
+        <span className="sr-only">Overnight</span>
       </div>
 
       {bandRuns.map((run) => (

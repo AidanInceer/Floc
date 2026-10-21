@@ -1,5 +1,5 @@
 /**
- * Days page (ticket 15, re-imagined as a calendar by ticket 103). The only
+ * Days page (ticket 15, re-imagined as a calendar by ticket 103, a focus day since B5). The only
  * route over the `day` + `day_event` dataset — Route was retired by ticket
  * 142, its map/stop-list now at the foot of Overview, and the overnight place
  * is set here on the band above the clock (ticket 141).
@@ -38,7 +38,7 @@ import {
 import { EventFiles } from "@/components/documents/event-files";
 import type { FileChoice } from "@/components/documents/attach-existing";
 import { EventForm } from "@/components/days/event-form";
-import { Badge, ButtonLink, EmptyState, PageTitle } from "@/components/system/ui";
+import { Badge, ButtonLink, EmptyState, PageTitle, menuDangerItemClass } from "@/components/system/ui";
 import { appUrl } from "@/lib/env";
 import { mintCalendarToken } from "@/server/itinerary/calendar-link";
 import { EVENT_CATEGORIES } from "@floc/core/itinerary/event-categories";
@@ -137,19 +137,12 @@ export default async function DaysPage({
     weekday: partOf(d.date, { weekday: "short" }),
     dayOfMonth: partOf(d.date, { day: "numeric" }),
     longLabel: partOf(d.date, { weekday: "long", day: "numeric", month: "long" }),
+    shortLabel: partOf(d.date, { weekday: "short", day: "numeric", month: "short" }),
     overnightPlaceName: d.overnightPlaceName,
     overnightPlaceId: d.overnightPlaceId,
-    // Monday-first, because the calendar's weeks are. `getUTCDay` is Sunday-0
-    // and has to be rotated; UTC for the same reason every other read here is
-    // (rule 10).
-    weekdayIndex: (fromIsoDate(d.date).getUTCDay() + 6) % 7,
     outside: false,
     isToday: d.date === now,
   }));
-
-  // Pad the ends out to whole Monday–Sunday weeks (ticket 103) — a week
-  // starting on the trip's first day would read as Wed–Tue.
-  const framedDays = frameWeeks(calendarDays);
 
   const calendarEvents: CalendarEvent[] = [];
   const panels: Record<number, ReactNode> = {};
@@ -173,6 +166,7 @@ export default async function DaysPage({
         endTime: event.endTime,
         allDay: event.allDay,
         hasNote: Boolean(event.note),
+        note: event.note,
         hasFiles: (filesByEvent.get(event.id) ?? []).length > 0,
         // Replies count too — the block says how much conversation is in there.
         commentCount: (notesByEvent.get(event.id) ?? []).reduce(
@@ -207,6 +201,7 @@ export default async function DaysPage({
         <ConfirmSubmit
           message="Remove this day? Its events go with it."
           variant="ghost"
+          className={menuDangerItemClass}
         >
           Remove day
         </ConfirmSubmit>
@@ -228,7 +223,7 @@ export default async function DaysPage({
 
       <div className="mt-8">
       <DaysCalendar
-        days={framedDays}
+        days={calendarDays}
         events={calendarEvents}
         panels={panels}
         removeDayControls={removeDayControls}
@@ -245,42 +240,6 @@ export default async function DaysPage({
       </div>
     </div>
   );
-}
-
-/**
- * Pads a run of trip days out to whole Monday–Sunday weeks. Padding days carry
- * real dates (or the head numbers would jump) and `outside: true`, the
- * calendar's instruction to draw them shaded and refuse everything. Negative
- * ids mean nothing beyond "not a row".
- */
-function frameWeeks(days: CalendarDay[]): CalendarDay[] {
-  if (days.length === 0) return days;
-
-  const filler = (date: string, index: number): CalendarDay => ({
-    id: -index - 1,
-    date,
-    weekday: partOf(date, { weekday: "short" }),
-    dayOfMonth: partOf(date, { day: "numeric" }),
-    longLabel: partOf(date, { weekday: "long", day: "numeric", month: "long" }),
-    overnightPlaceName: null,
-    overnightPlaceId: null,
-    weekdayIndex: (fromIsoDate(date).getUTCDay() + 6) % 7,
-    outside: true,
-    isToday: false,
-  });
-
-  const before: CalendarDay[] = [];
-  for (let i = 1; i <= days[0].weekdayIndex; i++) {
-    before.unshift(filler(addDaysToDate(days[0].date, -i), before.length));
-  }
-
-  const after: CalendarDay[] = [];
-  const last = days[days.length - 1];
-  for (let i = 1; i <= 6 - last.weekdayIndex; i++) {
-    after.push(filler(addDaysToDate(last.date, i), before.length + after.length));
-  }
-
-  return [...before, ...days, ...after];
 }
 
 /** One date, formatted for a column head. UTC throughout (rule 10) — read in

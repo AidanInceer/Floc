@@ -2,147 +2,82 @@
 
 /**
  * The Days calendar's chrome (ticket 243, split from `days-calendar`): the
- * toolbar, the event modal, and the add-event dialog. All drawing and
+ * toolbar, the all-day strip, the clock, the event modal and the add dialog. All drawing and
  * dispatch — no gesture logic lives here.
  */
 import {
   useState,
-  useTransition,
+  type ComponentProps,
   type CSSProperties,
   type ReactNode,
 } from "react";
-import { EventMarkers } from "@/components/days/event-markers";
-
-import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
 
 import { EventForm, type PlaceSearch } from "@/components/days/event-form";
-import { DayColumn } from "@/components/days/days-calendar-column";
+import { EventMarkers } from "@/components/days/event-markers";
+import { DayColumn, type ColumnVariant } from "@/components/days/days-calendar-column";
+import { FoldIcon } from "@/components/days/days-glyphs";
 import { Dialog } from "@/components/system/dialog";
-import { Button, Segmented, cx, segmentClass } from "@/components/system/ui";
+import { ChevronIcon, PlusIcon } from "@/components/system/icons";
+import { Button, cx } from "@/components/system/ui";
 import {
-  HOUR_PX,
   OUTSIDE_DAY_CLASS,
   type CalendarDay,
   type CalendarEvent,
-  type Landing,
 } from "@/components/days/days-calendar-shared";
 import { EVENT_CATEGORIES } from "@floc/core/itinerary/event-categories";
 import { spanOf, toHhmm, toMinutes } from "@floc/core/dates/calendar";
+import type { ClockLayout } from "@floc/core/dates/clock-fold";
 
-export function CalendarToolbar({
-  hasToday,
-  onToday,
-  goPrev,
-  goNext,
-  canPrev,
-  canNext,
-  rangeLabel,
-  effectiveView,
-  setView,
-}: {
+export type DayStepper = {
   hasToday: boolean;
   onToday: () => void;
   goPrev: () => void;
   goNext: () => void;
   canPrev: boolean;
   canNext: boolean;
+};
+
+export function CalendarToolbar({
+  nav,
+  rangeLabel,
+  unfold,
+  onToggleFold,
+  onAdd,
+}: {
+  nav: DayStepper;
   rangeLabel: string;
-  effectiveView: "day" | "week";
-  setView: (view: "day" | "week") => void;
+  unfold: boolean;
+  onToggleFold: () => void;
+  onAdd: () => void;
 }) {
+  const step = "!size-8 !p-0";
   return (
-    <div className="flex flex-wrap items-center gap-2 border-b border-rule bg-sheet-2 px-3 py-2.5">
-      <Button onClick={onToday} disabled={!hasToday} title={hasToday ? undefined : "The trip isn't running today"}>
+    <div className="flex flex-wrap items-center gap-2 border-b border-rule px-3 py-2.5">
+      <Button onClick={nav.onToday} disabled={!nav.hasToday} title={nav.hasToday ? undefined : "The trip isn't running today"}>
         Today
       </Button>
-      <div className="flex gap-1">
-        <Button
-          onClick={goPrev}
-          disabled={!canPrev}
-          aria-label="Earlier days"
-          title={canPrev ? "Earlier days" : "The trip starts here"}
-          className="!px-2.5 text-[15px] leading-none"
-        >
-          ‹
-        </Button>
-        <Button
-          onClick={goNext}
-          disabled={!canNext}
-          aria-label="Later days"
-          title={canNext ? "Later days" : "The trip ends here"}
-          className="!px-2.5 text-[15px] leading-none"
-        >
-          ›
-        </Button>
-      </div>
-      {/* Announced, not drawn: the column heads below already say which day you
-          are on, so printing it again cost a row and said nothing. Live so the
-          arrows still report where they landed. */}
+      <Button onClick={nav.goPrev} disabled={!nav.canPrev} aria-label="Day before" title={nav.canPrev ? "Day before" : "The trip starts here"} className={step}>
+        <ChevronIcon direction="left" />
+      </Button>
+      <Button onClick={nav.goNext} disabled={!nav.canNext} aria-label="Day after" title={nav.canNext ? "Day after" : "The trip ends here"} className={step}>
+        <ChevronIcon direction="right" />
+      </Button>
+      {/* Announced, not drawn: the focus head already says which day you are
+          on. Live so the arrows still report where they landed. */}
       <p className="sr-only" aria-live="polite">
         {rangeLabel}
       </p>
 
       <div className="flex-1" />
 
-      <Segmented>
-        {(["day", "week"] as const).map((option) => (
-          <button
-            key={option}
-            type="button"
-            aria-pressed={effectiveView === option}
-            onClick={() => setView(option)}
-            className={segmentClass(effectiveView === option)}
-          >
-            {option === "day" ? "Day" : "Week"}
-          </button>
-        ))}
-      </Segmented>
-    </div>
-  );
-}
-
-export function DayHeads({
-  shownDays,
-  landingDayId,
-  effectiveView,
-  removeDayControls,
-  rowStyle,
-}: {
-  shownDays: CalendarDay[];
-  landingDayId: number | null;
-  effectiveView: "day" | "week";
-  removeDayControls: Record<number, ReactNode>;
-  rowStyle: CSSProperties;
-}) {
-  return (
-    <div style={rowStyle} className="border-b border-rule bg-sheet">
-      <div className="sticky left-0 z-20 border-r border-rule bg-sheet" />
-      {shownDays.map((day) => (
-        <div
-          key={day.id}
-          className={cx(
-            "border-l border-rule px-2 py-1.5 text-center first:border-l-0",
-            // A day the trip doesn't cover is dimmed in the head as well as in
-            // the column, so the two read as one thing.
-            day.outside && `${OUTSIDE_DAY_CLASS} text-ink-faint`,
-            // Today is the whole head, filled — a pill around just the number
-            // moved that column's date to a different height.
-            day.isToday && "bg-pen text-sheet",
-            landingDayId === day.id && "bg-pen-soft",
-          )}
-        >
-          <p className={cx("typed", day.isToday && "text-sheet/80")}>{day.weekday}</p>
-          <p className="nums text-lg font-semibold">
-            {day.dayOfMonth}
-            {/* Colour is never the only signal (CLAUDE.md) — the word is here
-                for anyone who can't see the fill. */}
-            {day.isToday ? <span className="sr-only"> — today</span> : null}
-          </p>
-          {effectiveView === "day" ? (
-            <div className="mt-1 flex justify-center">{removeDayControls[day.id]}</div>
-          ) : null}
-        </div>
-      ))}
+      <Button variant="ghost" onClick={onToggleFold} aria-pressed={unfold} className="max-sm:order-last max-sm:basis-full max-sm:!justify-start">
+        <FoldIcon />
+        {unfold ? "Fold empty hours" : "Every hour"}
+      </Button>
+      <Button variant="primary" onClick={onAdd}>
+        <PlusIcon size={12} />
+        Add event
+      </Button>
     </div>
   );
 }
@@ -151,36 +86,36 @@ export function DayHeads({
 // above the clock, rather than inventing a time. Owns its own drag state — the
 // all-day drag is a day change (`moveEventToDay`), never a reschedule.
 export function AllDayStrip({
-  shownDays,
+  slots,
+  focusId,
   events,
   rowStyle,
   selected,
   onSelect,
-  moveEventToDay,
-  say,
+  onMove,
 }: {
-  shownDays: CalendarDay[];
+  slots: CalendarDay[];
+  focusId: number;
   events: CalendarEvent[];
   rowStyle: CSSProperties;
   selected: number | null;
   onSelect: (id: number) => void;
-  moveEventToDay: (eventId: number, fromDayId: number, toDayId: number) => Promise<void>;
-  say: (message: string) => void;
+  /** All-day has no time to drop, so this is a change of day only. */
+  onMove: (event: CalendarEvent, to: CalendarDay) => void;
 }) {
   const [dragId, setDragId] = useState<number | null>(null);
   const [overDay, setOverDay] = useState<number | null>(null);
-  const [, startTransition] = useTransition();
 
   return (
     <div style={rowStyle} className="border-b border-rule bg-sheet-2">
       {/* Not `.typed`: "All day" wrapped to two lines in a gutter sized for
           "00:00" at that size. */}
-      <div className="sticky left-0 z-20 flex items-center justify-end border-r border-rule bg-sheet-2 px-1.5 py-1.5">
+      <div className="flex items-center justify-end border-r border-rule bg-sheet-2 px-1 py-1.5 sm:px-1.5">
         <span className="whitespace-nowrap font-mono text-[9px] uppercase tracking-[0.02em] text-ink-faint">
           All day
         </span>
       </div>
-      {shownDays.map((day) => (
+      {slots.map((day) => (
         <div
           key={day.id}
           onDragOver={(ev) => {
@@ -195,14 +130,11 @@ export function AllDayStrip({
             setDragId(null);
             setOverDay(null);
             if (!moving || moving.dayId === day.id || day.outside) return;
-            startTransition(async () => {
-              await moveEventToDay(moving.id, moving.dayId, day.id);
-            });
-            say(`${moving.title} moved to ${day.longLabel}.`);
+            onMove(moving, day);
           }}
           className={cx(
-            "grid min-h-8 content-start gap-1 border-l border-rule p-1 first:border-l-0",
-            day.outside && OUTSIDE_DAY_CLASS,
+            "grid min-h-8 min-w-0 content-start gap-1 border-l border-rule p-1",
+            day.outside ? OUTSIDE_DAY_CLASS : day.id === focusId && "bg-sheet",
             overDay === day.id && "bg-pen-soft",
           )}
         >
@@ -222,13 +154,16 @@ export function AllDayStrip({
                 aria-pressed={selected === event.id}
                 aria-label={`${event.title}, all day, ${day.longLabel}`}
                 className={cx(
-                  "truncate rounded-md border border-l-4 px-1.5 py-0.5 text-left text-xs",
+                  "min-h-5 truncate rounded-md border border-l-4 px-1.5 py-0.5 text-left text-xs",
                   EVENT_CATEGORIES[event.type].block,
                   selected === event.id && "outline-2 outline-ink",
                 )}
               >
-                {event.title}
-                <EventMarkers hasNote={event.hasNote} hasFiles={event.hasFiles} />
+                {/* Why: a neighbour on a phone is a 38px sliver; its chips keep their colour and drop the words. */}
+                <span className={cx(day.id !== focusId && "max-sm:hidden")}>
+                  {event.title}
+                  <EventMarkers hasNote={event.hasNote} hasFiles={event.hasFiles} />
+                </span>
               </button>
             ))}
         </div>
@@ -237,82 +172,74 @@ export function AllDayStrip({
   );
 }
 
-// The clock: the sticky hour gutter and a column per day. An hour's label
-// centres *on* its line, so the row is inset by half a label — otherwise the
-// first hour reads as hidden behind the all-day strip.
+// The clock: the hour gutter, a column per slot, and one layer over the
+// columns for the hour rules and the folded hours. An hour's label centres
+// *on* its line, so the row is inset by half a label.
 export function CalendarGrid({
   gridRef,
   rowStyle,
-  gridHeight,
-  startHour,
-  endHour,
-  shownDays,
-  events,
-  selected,
-  landing,
-  nowMinutes,
-  minutesToY,
-  yToMinutes,
-  onAdd,
-  onPointerDown,
-  onPointerMove,
-  onPointerUp,
-  onKeyDown,
+  clock,
+  slots,
+  focusId,
+  column,
+  onToggleFold,
 }: {
   gridRef: React.RefObject<HTMLDivElement | null>;
   rowStyle: CSSProperties;
-  gridHeight: number;
-  startHour: number;
-  endHour: number;
-  shownDays: CalendarDay[];
-  events: CalendarEvent[];
-  selected: number | null;
-  landing: Landing | null;
-  nowMinutes: number | null;
-  minutesToY: (m: number) => number;
-  yToMinutes: (y: number) => number;
-  onAdd: (dayId: number, minutes: number) => void;
-  onPointerDown: (ev: ReactPointerEvent<HTMLElement>, event: CalendarEvent, mode: "move" | "resize") => void;
-  onPointerMove: (ev: ReactPointerEvent<HTMLElement>, event: CalendarEvent) => void;
-  onPointerUp: (event: CalendarEvent) => void;
-  onKeyDown: (ev: ReactKeyboardEvent<HTMLElement>, event: CalendarEvent) => void;
+  clock: ClockLayout;
+  slots: CalendarDay[];
+  focusId: number;
+  /** Everything a column needs besides its day: the parent's state and gestures. */
+  column: (day: CalendarDay, variant: ColumnVariant) => ComponentProps<typeof DayColumn>;
+  onToggleFold: () => void;
 }) {
+  const last = clock.segments[clock.segments.length - 1];
+  const marks = [...clock.segments.map((s) => ({ y: s.y, minute: s.from })), { y: clock.height, minute: last.to }];
   return (
-    <div style={rowStyle} ref={gridRef} className="mt-2.5 mb-2.5">
-      <div className="sticky left-0 z-20 border-r border-rule bg-sheet" style={{ height: gridHeight }}>
-        <div className="relative h-full">
-          {Array.from({ length: endHour - startHour + 1 }, (_, i) => (
-            <span
-              key={i}
-              // Not `.typed`: at 11px the clock was the smallest text on a page
-              // it's meant to be read off.
-              className="nums absolute right-2 -translate-y-1/2 text-[13px] tracking-[0.02em] text-ink-soft"
-              style={{ top: i * HOUR_PX }}
-            >
-              {String((startHour + i) % 24).padStart(2, "0")}:00
-            </span>
-          ))}
-        </div>
+    <div style={rowStyle} ref={gridRef} className="relative my-2.5">
+      <div className="relative border-r border-rule bg-sheet" style={{ height: clock.height }}>
+        {marks.map(({ y, minute }) => (
+          <span
+            key={minute}
+            // Not `.typed`: at 11px the clock was the smallest text on a page
+            // it's meant to be read off.
+            className="nums absolute right-1.5 -translate-y-1/2 text-[11px] tracking-[0.02em] text-ink-soft sm:right-2 sm:text-[13px]"
+            style={{ top: y }}
+          >
+            {toHhmm(minute % (24 * 60))}
+          </span>
+        ))}
       </div>
 
-      {shownDays.map((day) => (
-        <DayColumn
-          key={day.id}
-          day={day}
-          height={gridHeight}
-          events={events.filter((e) => e.dayId === day.id && spanOf(e))}
-          selected={selected}
-          landing={landing}
-          nowMinutes={day.isToday ? nowMinutes : null}
-          minutesToY={minutesToY}
-          yToMinutes={yToMinutes}
-          onAdd={onAdd}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onKeyDown={onKeyDown}
-        />
+      {slots.map((day) => (
+        <DayColumn key={day.id} {...column(day, day.id === focusId ? "focus" : "side")} />
       ))}
+
+      <div className="pointer-events-none absolute inset-y-0 right-0 left-[var(--days-gutter)]">
+        {marks.map(({ y, minute }) => (
+          <i key={minute} className="absolute inset-x-0 z-[1] border-t border-rule" style={{ top: y }} />
+        ))}
+        {clock.segments
+          .filter((s) => s.folded)
+          .map((s) => (
+            <button
+              key={s.from}
+              type="button"
+              onClick={onToggleFold}
+              aria-label={`${toHhmm(s.from)} to ${toHhmm(s.to)}, nothing planned. Show every hour`}
+              className="pointer-events-auto absolute inset-x-0 z-[3] flex items-center justify-center gap-2 border-y border-dashed border-rule-strong bg-sheet-2 text-xs text-ink-soft transition-colors hover:text-pen"
+              style={{ top: s.y, height: s.height }}
+            >
+              <FoldIcon size={12} />
+              <span>
+                <span className="nums">
+                  {toHhmm(s.from)} – {toHhmm(s.to)}
+                </span>{" "}
+                nothing planned
+              </span>
+            </button>
+          ))}
+      </div>
     </div>
   );
 }
@@ -363,7 +290,7 @@ export function AddEventDialog({
   searchPlaces,
   onClose,
 }: {
-  adding: { dayId: number; time: string } | null;
+  adding: { dayId: number; time: string; endTime?: string } | null;
   days: CalendarDay[];
   submitEvent: (formData: FormData) => Promise<void>;
   searchPlaces: PlaceSearch;
@@ -397,7 +324,7 @@ export function AddEventDialog({
                 time: adding.time,
                 // An hour long by default — the commonest answer, and the bottom
                 // edge is right there if it's wrong.
-                endTime: toHhmm(Math.min((toMinutes(adding.time) ?? 540) + 60, 24 * 60)),
+                endTime: adding.endTime ?? toHhmm(Math.min((toMinutes(adding.time) ?? 540) + 60, 24 * 60)),
               }}
             />
           </div>
