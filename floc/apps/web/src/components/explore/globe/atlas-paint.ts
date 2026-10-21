@@ -1,4 +1,4 @@
-import type { globePainter } from "@/components/landing/globe/paint-globe";
+import type { globePainter } from "@/components/globe/paint-globe";
 import type { LatLng } from "@/lib/landing/globe/sphere";
 
 type Painter = NonNullable<ReturnType<typeof globePainter>>;

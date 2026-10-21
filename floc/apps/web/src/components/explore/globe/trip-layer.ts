@@ -2,14 +2,13 @@ import type { Box } from "@/components/explore/atlas/tag-place";
 import { paintRoute, type RouteFrame } from "@/components/explore/route/paint-route";
 import { readInk } from "@/components/explore/route/route-ink";
 import { nameRoute, tagWidth, type Name } from "@/components/explore/route/route-names";
-import type { globePainter, Tint } from "@/components/landing/globe/paint-globe";
-import { followPen, glideTo, penLook, type Timeline } from "@/lib/explore/route/follow-pen";
-import { fitRoute } from "@/lib/explore/route/fit-route";
+import type { globePainter, Tint } from "@/components/globe/paint-globe";
+import { followPen, glideTo, markFade, penLook, type Timeline } from "@/lib/explore/route/follow-pen";
+import { frameRoute } from "@/lib/explore/route/fit-route";
 import { sphere, type Pose } from "@/lib/explore/route/glide";
 import { penPoints, routeShape, type Shape } from "@/lib/explore/route/route-shape";
 import type { TripRoute } from "@/lib/explore/route/trip-route";
-import { easeOut } from "@/lib/landing/globe/flight";
-import { project, unproject, type LatLng } from "@/lib/landing/globe/sphere";
+import { unproject, type LatLng } from "@/lib/landing/globe/sphere";
 
 import type { Fit } from "./dome";
 
@@ -20,12 +19,7 @@ export type TripTint = { rings: ReadonlySet<number[][]>; tone: string };
 type Built = { shape: Shape; pieces: LatLng[][]; stops: LatLng[]; names: Name[]; look: (g: number) => LatLng; length: number; pose: Pose<LatLng>; tint: TripTint };
 type Run = { tl: Timeline<LatLng>; t0: number; closing: boolean; fromDome: boolean };
 
-// Why: with the 1:50m outline and the trip's countries filled in, an inland trip still has coasts and borders in view this close.
-const CLOSEST = { wide: 9000, narrow: 7000 };
-const NARROW_BELOW = 600;
-const ROOM = { wide: { x: 74, y: 44 }, narrow: { x: 46, y: 34 } };
 const FOOT = 36;
-const FADE_MS = 300;
 const PINS_GONE_MS = 450;
 const clamp = (v: number) => Math.min(1, Math.max(0, v));
 
@@ -42,15 +36,9 @@ export function tripLayer(canvas: HTMLCanvasElement, paint: Painter) {
   let open: { route: TripRoute; tint: TripTint } | null = null;
 
   function build(route: TripRoute, tint: TripTint, clear: Box): Built {
-    const W = clear.right - clear.left;
-    const narrow = W < NARROW_BELOW;
     // Why: the band fades into the page at its foot, and "Every trip" sits there, so a name there would be lost.
-    const { view, R } = fitRoute(route, { ...clear, bottom: clear.bottom - FOOT }, narrow ? ROOM.narrow : ROOM.wide, narrow ? CLOSEST.narrow : CLOSEST.wide);
-    const fit = { R, cx: (clear.left + clear.right) / 2, cy: (clear.top + clear.bottom - FOOT) / 2 };
-    const at = (s: LatLng) => {
-      const q = project(view, s);
-      return { x: fit.cx + R * q.x, y: fit.cy - R * q.y };
-    };
+    const fit = frameRoute(route, clear, FOOT);
+    const { view, R, at } = fit;
     const back = (p: { x: number; y: number }) => unproject(view, (p.x - fit.cx) / R, (fit.cy - p.y) / R);
     const shape = routeShape(route, at, { samples: 40, loop: 44, least: 60, tagWidth: width });
     return {
@@ -60,7 +48,7 @@ export function tripLayer(canvas: HTMLCanvasElement, paint: Painter) {
       names: nameRoute(ctx, shape, ink, clear),
       look: penLook(sphere, penPoints(shape, 240).map(back)),
       length: shape.pieces.reduce((sum, p) => sum + p.len, 0),
-      pose: poseOf(fit, view, W),
+      pose: poseOf(fit, view, clear.right - clear.left),
       tint,
     };
   }
@@ -113,7 +101,7 @@ export function tripLayer(canvas: HTMLCanvasElement, paint: Painter) {
       }
       if (!trip) return;
       const live = run;
-      const seen = live ? (at: number) => easeOut(clamp((t - live.tl.passes(at)) / FADE_MS)) : () => 1;
+      const seen = live ? markFade(live.tl, t) : () => 1;
       paintRoute(ctx, trip.shape, frameOf(trip, view, live ? live.tl.drawn(t) : 1, seen), ink, trip.names, width);
     },
     /** New theme or new size: read the tokens again and, with no move running, build the open trip again for the clear part. */

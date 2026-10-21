@@ -4,7 +4,7 @@ import type { Point } from "@/components/explore/atlas/tag-place";
 import { cut, type Shape } from "@/lib/explore/route/route-shape";
 
 import { MODE_PATHS, UNSET_PATHS } from "./mode-paths";
-import { lineFor, type RouteInk } from "./route-ink";
+import { lineFor, ROUTE_SIZE, type RouteInk } from "./route-ink";
 import { fonts, PILL, TAG, tagBox, type Name } from "./route-names";
 
 /**
@@ -13,8 +13,7 @@ import { fonts, PILL, TAG, tagBox, type Name } from "./route-names";
  */
 export type RouteFrame = { pieces: Point[][]; stops: Point[]; drawn: number; seen: (at: number) => number; alpha: number };
 
-const LINE = 1.9;
-const CASE = 7;
+const { line: LINE, edge: EDGE, mid: MID, end: END } = ROUTE_SIZE.map;
 const PATHS = new Map<string, Path2D>();
 const path = (d: string) => PATHS.get(d) ?? PATHS.set(d, new Path2D(d)).get(d)!;
 
@@ -68,7 +67,7 @@ function lines(ctx: CanvasRenderingContext2D, shape: Shape, drawn: Point[][], in
   ctx.strokeStyle = ink.sheet;
   ctx.setLineDash([]);
   ctx.lineCap = "round";
-  ctx.lineWidth = CASE;
+  ctx.lineWidth = EDGE;
   drawn.forEach((pts, k) => {
     if (shape.pieces[k]!.mode !== "flight") stroke(ctx, pts);
   });
@@ -112,8 +111,8 @@ function stops(ctx: CanvasRenderingContext2D, shape: Shape, f: RouteFrame, ink: 
     if (seen <= 0) continue;
     ctx.globalAlpha = f.alpha * Math.min(1, seen * 2);
     const grow = 0.55 + 0.45 * seen;
-    if (s.role === "mid") dot(ctx, f.stops[k]!, 4.4 * grow, ink.sheet, ink.ink, 1.8);
-    else dot(ctx, f.stops[k]!, 6.5 * grow, ink.ink, ink.sheet, 2);
+    if (s.role === "mid") dot(ctx, f.stops[k]!, MID.r * grow, ink.sheet, ink.ink, MID.ring);
+    else dot(ctx, f.stops[k]!, END.r * grow, ink.ink, ink.sheet, END.ring);
   }
   ctx.globalAlpha = f.alpha;
 }

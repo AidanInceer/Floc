@@ -1,5 +1,6 @@
 import { formatMoney } from "../../../money/money";
 import type { TransportType } from "../../../vocabulary";
+import { stopsOf } from "../listing-stops";
 import type { PresetTrip } from "../preset-trip-types";
 import type { PresetAdvice, PresetDay, PresetDetail, PresetFact, PresetFigure } from "./preset-detail-types";
 
@@ -28,33 +29,19 @@ export type PresetPlan = {
   detailed: boolean;
 };
 
-type Leg = PresetTrip["legs"][number];
-type Hop = Extract<Leg, { kind: "hop" }>;
-
 const count = (n: number, one: string, many: string): PresetFigure => ({ value: String(n), label: n === 1 ? one : many });
 
-function routeStops(legs: Leg[]): PlanStop[] {
-  const stops: PlanStop[] = [];
-  let pending: Hop | null = null;
-  for (const leg of legs) {
-    if (leg.kind === "hop") {
-      if (pending) stops.at(-1)?.sideTrips.push(sideTrip(pending));
-      pending = leg;
-      continue;
-    }
-    const before = stops.at(-1);
+function routeStops(trip: PresetTrip): PlanStop[] {
+  return stopsOf(trip).map((stop, i, all) => {
+    const before = all[i - 1];
     const arrive: PlanArrival | null =
-      pending && before
-        ? { mode: pending.mode, detail: pending.detail, from: before.place, via: pending.place === leg.place ? null : pending.place }
+      stop.arrive && before
+        ? { mode: stop.arrive.mode, detail: stop.arrive.detail, from: before.place, via: stop.arrive.place === stop.place ? null : stop.arrive.place }
         : null;
-    stops.push({ no: stops.length + 1, place: leg.place, nights: leg.nights, arrive, sideTrips: [], summary: null, days: [], highlights: [] });
-    pending = null;
-  }
-  if (pending) stops.at(-1)?.sideTrips.push(sideTrip(pending));
-  return stops;
+    const sideTrips = stop.dayOuts.map((out) => `${out.place} · ${out.detail}`);
+    return { no: i + 1, place: stop.place, nights: stop.nights, arrive, sideTrips, summary: null, days: [], highlights: [] };
+  });
 }
-
-const sideTrip = (hop: Hop) => `${hop.place} · ${hop.detail}`;
 
 function derivedFigures(trip: PresetTrip, stops: PlanStop[]): PresetFigure[] {
   const rides = stops.filter((s) => s.arrive).length;
@@ -77,7 +64,7 @@ function derivedFacts(trip: PresetTrip): PresetFact[] {
 
 /** Everything the page for one listing draws. Never throws on thin or mismatched detail — it shows less. */
 export function buildPresetPlan(trip: PresetTrip, detail: PresetDetail | null): PresetPlan {
-  const stops = routeStops(trip.legs);
+  const stops = routeStops(trip);
   let n = 0;
   for (const [i, stop] of stops.entries()) {
     const written = detail?.stops[i];

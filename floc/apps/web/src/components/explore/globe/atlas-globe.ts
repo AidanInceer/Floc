@@ -1,7 +1,8 @@
 import type { Box } from "@/components/explore/atlas/tag-place";
-import { globeDrag } from "@/components/landing/globe/globe-drag";
-import { globeTurn } from "@/components/landing/globe/globe-turn";
-import { globePainter } from "@/components/landing/globe/paint-globe";
+import { frameLoop } from "@/components/globe/frame-loop";
+import { globeDrag } from "@/components/globe/globe-drag";
+import { globeTurn } from "@/components/globe/globe-turn";
+import { globePainter } from "@/components/globe/paint-globe";
 import type { TripRoute } from "@/lib/explore/route/trip-route";
 import { flightAt, flightMs } from "@/lib/landing/globe/flight";
 import { greatCircle, type LatLng } from "@/lib/landing/globe/sphere";
@@ -20,10 +21,12 @@ const LANDED = { route: 1, landing: 1, done: true };
 export function atlasGlobe(canvas: HTMLCanvasElement, { home, places, flags, clear }: Scene) {
   const paint = globePainter(canvas);
   if (!paint || places.length === 0) return null;
+  const loop = frameLoop(step);
+  const wake = loop.wake;
   const face = globeTurn(() => face.halt());
   const trips = tripLayer(canvas, paint);
   let land = { world: [] as number[][][], fine: [] as number[][][] };
-  let [at, takeoff, then, frame, world] = [0, 0, 0, 0, 1];
+  let [at, takeoff, world] = [0, 0, 1];
   let still = false;
   let moving: Fit | null = null;
   let path = greatCircle(home, places[0]!);
@@ -56,10 +59,7 @@ export function atlasGlobe(canvas: HTMLCanvasElement, { home, places, flags, cle
     return flightAt(takeoff, now, flightMs(home, places[at]!));
   }
 
-  function step() {
-    const now = performance.now();
-    const dt = Math.min(50, now - then);
-    then = now;
+  function step(now: number, dt: number) {
     const move = trips.advance(now, still);
     world = move.world;
     moving = move.pose ? fitOf(move.pose, width()) : null;
@@ -73,13 +73,7 @@ export function atlasGlobe(canvas: HTMLCanvasElement, { home, places, flags, cle
     trips.draw(view);
     moveFlags(paint!, flags, places, view, world);
     const busy = [drag.held(), face.moving(), trips.running(), !f.done];
-    frame = busy.some(Boolean) ? requestAnimationFrame(step) : 0;
-  }
-
-  function wake() {
-    if (frame) return;
-    then = performance.now();
-    frame = requestAnimationFrame(step);
+    return busy.some(Boolean);
   }
 
   return {
@@ -116,7 +110,7 @@ export function atlasGlobe(canvas: HTMLCanvasElement, { home, places, flags, cle
       wake();
     },
     stop() {
-      cancelAnimationFrame(frame);
+      loop.stop();
       canvas.removeEventListener("click", trips.skip);
       drag.stop();
     },

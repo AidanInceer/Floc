@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { codesAt, landFrom, landFromPacked, onLand } from "./land";
+import { codesAt, landFrom, landFromPacked, onLand, ringsIn } from "./land";
 
 const square = (x: number, y: number, side: number) => [[x, y], [x + side, y], [x + side, y + side], [x, y + side], [x, y]];
 
@@ -60,5 +60,19 @@ describe("codesAt", () => {
 
   it("leaves out a place in the sea", () => {
     expect(codesAt(land, [{ lat: 30, lng: -20 }])).toEqual(new Set());
+  });
+});
+
+describe("ringsIn", () => {
+  const spain = { code: "ES", ring: square(-9, 36, 8), box: { west: -9, south: 36, east: -1, north: 44 } };
+  const fineSpain = { ...spain, ring: square(-9.1, 36, 8) };
+  const france = { code: "FR", ring: square(-4, 43, 10), box: { west: -4, south: 43, east: 6, north: 53 } };
+
+  it("gives the outline of every country named, from both outlines", () => {
+    expect(ringsIn([spain, france], [fineSpain], new Set(["ES"]))).toEqual(new Set([spain.ring, fineSpain.ring]));
+  });
+
+  it("gives nothing for a country the outlines do not hold", () => {
+    expect(ringsIn([spain], [], new Set(["PT"])).size).toBe(0);
   });
 });

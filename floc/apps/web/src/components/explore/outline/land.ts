@@ -70,3 +70,8 @@ export function codesAt(land: readonly Piece[], spots: readonly Spot[]): Set<str
   const codes = spots.map((spot) => land.find((piece) => within(spot, piece.box) && inRing(spot, piece.ring))?.code);
   return new Set(codes.filter((code): code is string => Boolean(code)));
 }
+
+/** The outline of each country in `codes`, from both outlines, for a globe to fill in. */
+export function ringsIn(world: readonly Piece[], fine: readonly Piece[], codes: ReadonlySet<string>): Set<number[][]> {
+  return new Set([...world, ...fine].filter((piece) => codes.has(piece.code)).map((piece) => piece.ring));
+}

@@ -1,11 +1,10 @@
 import { paintRoute } from "@/components/explore/route/paint-route";
 import { readInk } from "@/components/explore/route/route-ink";
 import { nameRoute, tagWidth } from "@/components/explore/route/route-names";
-import { followPen, penLook } from "@/lib/explore/route/follow-pen";
+import { followPen, markFade, penLook } from "@/lib/explore/route/follow-pen";
 import { plane, type Pose } from "@/lib/explore/route/glide";
 import { penPoints, routeShape } from "@/lib/explore/route/route-shape";
 import type { TripRoute } from "@/lib/explore/route/trip-route";
-import { easeOut } from "@/lib/landing/globe/flight";
 
 import type { Frame, Size } from "./frame";
 
@@ -13,9 +12,6 @@ type Point = { x: number; y: number };
 /** The land as the outline drawing cut it, in the drawing's px. */
 type Land = { home: string; other: string; islets: (Point & { r: number })[] };
 type Scene = { route: TripRoute; land: Land; frame: Frame; box: Size; tone: string; moving: boolean };
-
-const FADE_MS = 300;
-const clamp = (v: number) => Math.min(1, Math.max(0, v));
 
 /**
  * The pass's map on a canvas: the outline drawing, with the route in Explore's map style. A new pick plays the globe's move
@@ -65,8 +61,7 @@ export function passCanvas(canvas: HTMLCanvasElement, { route, land, frame, box,
       ctx!.fill();
     }
     ctx!.restore();
-    const seen = (at: number) => easeOut(clamp((t - tl.passes(at)) / FADE_MS));
-    paintRoute(ctx!, shape, { pieces: shape.pieces.map((p) => p.px.map(move)), stops: shape.stops.map((st) => move(st.px)), drawn: tl.drawn(t), seen, alpha: 1 }, ink, names, width);
+    paintRoute(ctx!, shape, { pieces: shape.pieces.map((p) => p.px.map(move)), stops: shape.stops.map((st) => move(st.px)), drawn: tl.drawn(t), seen: markFade(tl, t), alpha: 1 }, ink, names, width);
   }
 
   function step(now: number) {

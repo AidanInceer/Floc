@@ -6,7 +6,9 @@ import { useCallback, useEffect, useRef } from "react";
 import type { Box } from "@/components/explore/atlas/tag-place";
 import { toneOf } from "@/components/explore/listing";
 import { tripCodes } from "@/components/explore/outline/country";
+import { ringsIn } from "@/components/explore/outline/land";
 import { useLand } from "@/components/explore/outline/use-land";
+import { watchRedraw } from "@/components/globe/watch-redraw";
 import { tripRoute } from "@/lib/explore/route/trip-route";
 import type { LatLng } from "@/lib/landing/globe/sphere";
 
@@ -38,13 +40,9 @@ export function useAtlasGlobe(home: LatLng, places: LatLng[], clear: () => Box) 
     globe.current = g;
     g.setLand(rings.current.world, rings.current.fine);
     g.start(matchMedia(STILL).matches);
-    const resized = new ResizeObserver(g.redraw);
-    resized.observe(node);
-    const themed = new MutationObserver(g.redraw);
-    themed.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    const stopRedraw = watchRedraw(node, g.redraw);
     return () => {
-      resized.disconnect();
-      themed.disconnect();
+      stopRedraw();
       g.stop();
       globe.current = null;
     };
@@ -59,9 +57,8 @@ export function useAtlasGlobe(home: LatLng, places: LatLng[], clear: () => Box) 
   const openTrip = useCallback(
     (trip: PresetTrip) => {
       const route = tripRoute(trip);
-      const codes = tripCodes(trip.country, route.stops, fine);
-      const shapes = new Set([...world, ...fine].filter((piece) => codes.has(piece.code)).map((piece) => piece.ring));
-      globe.current?.open(route, { rings: shapes, tone: toneOf(trip) });
+      const rings = ringsIn(world, fine, tripCodes(trip.country, route.stops, fine));
+      globe.current?.open(route, { rings, tone: toneOf(trip) });
     },
     [world, fine],
   );

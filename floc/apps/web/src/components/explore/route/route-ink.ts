@@ -17,3 +17,12 @@ export function lineFor(mode: TransportType | null, w: number): { width: number;
   if (!mode) return { width: w * 0.75, dash: [w * 1.1, w * 2.2], cap: "round" };
   return { width: w, dash: [], cap: "round" };
 }
+
+type Dot = { r: number; ring: number };
+export type RouteSize = { line: number; edge: number; mid: Dot; end: Dot };
+
+/** Every size a route is drawn at: `map` on a canvas (the globes, the pass), `tile` in the SVG outline. Side by side so a change to one is weighed against the other. */
+export const ROUTE_SIZE: Record<"map" | "tile", RouteSize> = {
+  map: { line: 1.9, edge: 7, mid: { r: 4.4, ring: 1.8 }, end: { r: 6.5, ring: 2 } },
+  tile: { line: 1.5, edge: 5, mid: { r: 3, ring: 1.3 }, end: { r: 4.6, ring: 1.5 } },
+};

@@ -1,4 +1,5 @@
 import { formatMoney } from "@floc/core/money/money";
+import { stopsOf } from "@floc/core/trip/explore/listing-stops";
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 import { View } from "react-native";
 
@@ -16,7 +17,7 @@ export function ExploreCard({
   onStart: () => void;
   onOpen: () => void;
 }) {
-  const bases = trip.legs.filter((l) => l.kind === "base").map((l) => l.place);
+  const bases = stopsOf(trip).map((stop) => stop.place);
 
   return (
     <Card>

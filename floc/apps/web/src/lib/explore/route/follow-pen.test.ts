@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { followPen, glideTo, penLook } from "./follow-pen";
+import { followPen, glideTo, markFade, penLook } from "./follow-pen";
 import { plane } from "./glide";
 
 const line = Array.from({ length: 11 }, (_, i) => ({ x: i * 100, y: 0 }));
@@ -72,5 +72,20 @@ describe("glideTo", () => {
     expect(back.old(0)).toBe(1);
     expect(back.old(back.ms)).toBe(0);
     expect(back.drawn(back.ms)).toBe(0);
+  });
+});
+
+describe("markFade", () => {
+  const passes = { passes: (at: number) => at * 1000 };
+
+  it("hides a mark until the pen reaches it", () => {
+    expect(markFade(passes, 400)(0.5)).toBe(0);
+  });
+
+  it("fades a mark in over the 300 ms after the pen passes it", () => {
+    const half = markFade(passes, 650)(0.5);
+    expect(half).toBeGreaterThan(0.5);
+    expect(half).toBeLessThan(1);
+    expect(markFade(passes, 800)(0.5)).toBe(1);
   });
 });

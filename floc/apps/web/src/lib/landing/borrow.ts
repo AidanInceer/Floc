@@ -1,4 +1,5 @@
 import { formatMoney } from "@floc/core/money/money";
+import { stopsOf } from "@floc/core/trip/explore/listing-stops";
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 import type { TransportType } from "@floc/core/vocabulary";
 
@@ -54,15 +55,14 @@ export const hopWords = ({ mode, detail }: Hop) =>
 export const nightsWords = (n: number) => `${n} ${n === 1 ? "night" : "nights"}`;
 
 function routeOf(trip: PresetTrip): Pick<BorrowCard, "stops" | "also"> {
-  const stops: BorrowStop[] = [];
-  let hop: (Hop & { place: string }) | undefined;
-  for (const leg of trip.legs) {
-    if (leg.kind === "hop") {
-      hop = { place: leg.place, mode: leg.mode, detail: leg.detail };
-      continue;
-    }
-    stops.push({ name: leg.place, nights: leg.nights, lat: leg.lat, lng: leg.lng, ...(hop && { hop: { mode: hop.mode, detail: hop.detail } }) });
-    hop = undefined;
-  }
-  return hop ? { stops, also: hop } : { stops };
+  const all = stopsOf(trip);
+  const stops = all.map(({ place, nights, lat, lng, arrive }) => ({
+    name: place,
+    nights,
+    lat,
+    lng,
+    ...(arrive && { hop: { mode: arrive.mode, detail: arrive.detail } }),
+  }));
+  const also = all.at(-1)?.dayOuts.at(-1);
+  return also ? { stops, also } : { stops };
 }

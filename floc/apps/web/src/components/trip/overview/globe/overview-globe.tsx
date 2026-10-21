@@ -4,9 +4,10 @@ import type { OverviewRoute } from "@floc/core/trip/overview/route";
 import type { TripColor } from "@floc/core/trip/trip-color";
 import { useEffect, useRef } from "react";
 
-import { codesAt } from "@/components/explore/outline/land";
+import { codesAt, ringsIn } from "@/components/explore/outline/land";
 import { useLand } from "@/components/explore/outline/use-land";
-import { globePainter } from "@/components/landing/globe/paint-globe";
+import { globePainter } from "@/components/globe/paint-globe";
+import { watchRedraw } from "@/components/globe/watch-redraw";
 
 import { clearArea } from "./clear-area";
 import { drawStillRoute, TONE } from "./still-route";
@@ -27,7 +28,7 @@ export function OverviewGlobe({ route, tone, label }: { route: OverviewRoute; to
     if (!box || !node || !paint) return;
     // Why: a place saved before ticket 95 has no country stored, so the outline says where it stands.
     const codes = new Set([...route.countries, ...codesAt(fine, route.uncoded)]);
-    const tint = { rings: new Set([...world, ...fine].filter((p) => codes.has(p.code)).map((p) => p.ring)), tone: TONE[tone], alpha: 1 };
+    const tint = { rings: ringsIn(world, fine, codes), tone: TONE[tone], alpha: 1 };
     const land = { world: world.map((p) => p.ring), fine: fine.map((p) => p.ring) };
     const draw = () => {
       const card = box.closest("[data-overview-band]")?.querySelector("[data-overview-card]");
@@ -35,14 +36,7 @@ export function OverviewGlobe({ route, tone, label }: { route: OverviewRoute; to
     };
     draw();
     void document.fonts.ready.then(draw);
-    const resized = new ResizeObserver(draw);
-    resized.observe(box);
-    const themed = new MutationObserver(draw);
-    themed.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-    return () => {
-      resized.disconnect();
-      themed.disconnect();
-    };
+    return watchRedraw(box, draw);
   }, [route, tone, world, fine]);
 
   return (
