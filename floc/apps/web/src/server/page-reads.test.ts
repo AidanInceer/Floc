@@ -13,7 +13,7 @@ import {
   firstOvernightPlaceByTrip,
   listDaysWithEvents,
   listRouteDays,
-  transportModesByDay,
+  transportByDay,
 } from "@/server/itinerary/itinerary";
 import { listAvailability } from "@/server/itinerary/availability";
 import { findTripByInviteToken } from "@/server/trips/invites";
@@ -31,10 +31,10 @@ beforeEach(async () => {
   world = await seedScenario();
 });
 
-async function makePlace(name: string, lat?: number, lng?: number) {
+async function makePlace(name: string, lat?: number, lng?: number, countryCode?: string) {
   const row = await db
     .insert(schema.place)
-    .values({ name, lat: lat ?? null, lng: lng ?? null })
+    .values({ name, lat: lat ?? null, lng: lng ?? null, countryCode: countryCode ?? null })
     .returning({ id: schema.place.id })
     .get();
   return row.id;
@@ -105,7 +105,7 @@ describe("the itinerary's reads", () => {
   });
 
   it("carries the overnight place and its coordinates onto the route", async () => {
-    const placeId = await makePlace("Lisbon", 38.72, -9.14);
+    const placeId = await makePlace("Lisbon", 38.72, -9.14, "PT");
     await db
       .update(schema.day)
       .set({ overnightPlaceId: placeId })
@@ -114,6 +114,7 @@ describe("the itinerary's reads", () => {
     const [day] = await listRouteDays(world.ours.id);
     expect(day.placeName).toBe("Lisbon");
     expect(day.lat).toBe(38.72);
+    expect(day.countryCode).toBe("PT");
   });
 
   it("takes the first transport event of a day as its leg's mode", async () => {
@@ -134,9 +135,19 @@ describe("the itinerary's reads", () => {
       },
     ]);
 
-    const modes = await transportModesByDay(world.ours.id);
-    expect(modes.get(world.ours.dayId)).toBe("car");
-    expect(await transportModesByDay(world.theirs.id)).toEqual(new Map());
+    const hops = await transportByDay(world.ours.id);
+    expect(hops.get(world.ours.dayId)?.mode).toBe("car");
+    expect(await transportByDay(world.theirs.id)).toEqual(new Map());
+  });
+
+  it("carries the first transport event's start and end with its mode", async () => {
+    await db.insert(schema.dayEvent).values([
+      { dayId: world.ours.dayId, type: "transport" as const, title: "Train to Lisbon", transportType: "train" as const, time: "09:10", endTime: "12:05", orderIndex: 1 },
+      { dayId: world.ours.dayId, type: "transport" as const, title: "Taxi", transportType: "car" as const, time: "12:30", orderIndex: 2 },
+    ]);
+
+    const hops = await transportByDay(world.ours.id);
+    expect(hops.get(world.ours.dayId)).toEqual({ mode: "train", time: "09:10", endTime: "12:05" });
   });
 
   it("derives where each trip is from its earliest overnight place", async () => {

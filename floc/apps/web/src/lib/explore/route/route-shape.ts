@@ -71,9 +71,12 @@ function bulgeOf(kind: Piece["kind"], px: Point[], mid: number): Point {
 }
 
 function markOf(kind: Piece["kind"], mode: Piece["mode"], time: string, px: Point[], { least, tagWidth }: Options): Mark {
-  if (kind === "loop" || !mode) return null;
+  if (kind === "loop" || (!mode && !time)) return null;
   const room = Math.hypot(px.at(-1)!.x - px[0]!.x, px.at(-1)!.y - px[0]!.y);
   if (room < least) return null;
+  // Why: a leg with no mode has only its words to say so, so it never shrinks to a bare mark.
+  if (!mode) return "full";
+  if (!time) return "icon";
   return !tagWidth || room >= tagWidth(time) + TAG_ROOM ? "full" : "icon";
 }
 
