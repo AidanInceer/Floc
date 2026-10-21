@@ -69,6 +69,25 @@ describe("routeShape", () => {
     expect(routeShape(route, at, OPTS).pieces[1]!.mark).toBe("full");
   });
 
+  it("writes the words on a leg with no way to travel set, never a bare mark", () => {
+    const route: TripRoute = {
+      stops: [{ place: "A", lat: 0, lng: 0 }, { place: "B", lat: 0, lng: 6 }, { place: "C", lat: 0, lng: 6.5 }],
+      moves: [{ mode: null, time: "Not set" }, { mode: null, time: "Not set" }],
+      outs: [],
+    };
+    const shape = routeShape(route, at, { ...OPTS, tagWidth: () => 200 });
+    expect(shape.pieces.map((p) => p.mark)).toEqual(["full", null]);
+  });
+
+  it("shows only the mode on a leg with no time to write", () => {
+    const route: TripRoute = {
+      stops: [{ place: "A", lat: 0, lng: 0 }, { place: "B", lat: 0, lng: 10 }],
+      moves: [{ mode: "car", time: "" }],
+      outs: [],
+    };
+    expect(routeShape(route, at, OPTS).pieces[0]!.mark).toBe("icon");
+  });
+
   it("finds the outside of each bend, for the mark to sit on", () => {
     const shape = routeShape(trip("RAIL"), at, OPTS);
     for (const p of shape.pieces) expect(Math.hypot(p.bulge.x, p.bulge.y)).toBeCloseTo(1);

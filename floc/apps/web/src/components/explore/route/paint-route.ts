@@ -3,7 +3,7 @@ import type { TransportType } from "@floc/core/vocabulary";
 import type { Point } from "@/components/explore/atlas/tag-place";
 import { cut, type Shape } from "@/lib/explore/route/route-shape";
 
-import { MODE_PATHS } from "./mode-paths";
+import { MODE_PATHS, UNSET_PATHS } from "./mode-paths";
 import { lineFor, type RouteInk } from "./route-ink";
 import { fonts, PILL, TAG, tagBox, type Name } from "./route-names";
 
@@ -37,7 +37,7 @@ function dot(ctx: CanvasRenderingContext2D, p: Point, r: number, fill: string, r
   ctx.stroke();
 }
 
-function modeIcon(ctx: CanvasRenderingContext2D, mode: TransportType, at: Point, px: number, colour: string) {
+function modeIcon(ctx: CanvasRenderingContext2D, mode: TransportType | null, at: Point, px: number, colour: string) {
   ctx.save();
   ctx.translate(at.x - px / 2, at.y - px / 2);
   ctx.scale(px / 14, px / 14);
@@ -46,7 +46,7 @@ function modeIcon(ctx: CanvasRenderingContext2D, mode: TransportType, at: Point,
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   ctx.setLineDash([]);
-  for (const d of MODE_PATHS[mode]) ctx.stroke(path(d));
+  for (const d of mode ? MODE_PATHS[mode] : UNSET_PATHS) ctx.stroke(path(d));
   ctx.restore();
 }
 
@@ -88,13 +88,13 @@ function lines(ctx: CanvasRenderingContext2D, shape: Shape, drawn: Point[][], in
 function tags(ctx: CanvasRenderingContext2D, shape: Shape, f: RouteFrame, ink: RouteInk, width: (time: string) => number) {
   shape.pieces.forEach((p, k) => {
     const seen = f.seen((p.a + p.b) / 2);
-    if (!p.mark || !p.mode || seen <= 0) return;
+    if (!p.mark || seen <= 0) return;
     const w = p.mark === "full" ? width(p.time) : TAG.h + 6;
     const at = f.pieces[k]![p.mid]!;
     const box = tagBox(p, { x: Math.round(at.x), y: Math.round(at.y) }, w);
     ctx.globalAlpha = f.alpha * seen;
     pill(ctx, box.left, box.top, w, TAG.h, ink.sheet, ink.rule);
-    modeIcon(ctx, p.mode, { x: box.left + (p.mark === "full" ? 13 : w / 2), y: box.top + TAG.h / 2 }, 12, ink.ink);
+    modeIcon(ctx, p.mode, { x: box.left + (p.mark === "full" ? 13 : w / 2), y: box.top + TAG.h / 2 }, 12, p.mode ? ink.ink : ink.ink2);
     if (p.mark === "full") {
       ctx.font = fonts(ink).time;
       ctx.fillStyle = ink.ink2;

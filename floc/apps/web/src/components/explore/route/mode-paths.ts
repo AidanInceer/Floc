@@ -8,3 +8,6 @@ export const MODE_PATHS: Record<TransportType, string[]> = {
   ferry: ["M2.2 8.2h9.6l-1.4 3H3.6ZM4.2 8.2V5.4h5.6v2.8M7 5.4V2.6"],
   other: ["M2.4 7h9.2M8 3.4 11.6 7 8 10.6"],
 };
+
+/** A leg whose way to travel nobody has set yet: a question mark. */
+export const UNSET_PATHS = ["M5.2 5.3a1.8 1.8 0 1 1 2.6 1.6c-.5.3-.8.6-.8 1.2v.5", "M7 10.3v.2"];

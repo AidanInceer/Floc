@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { requireTripAccess } from "@/server/access";
 import { listDocuments } from "@/server/documents/documents";
 import { documentsEnabled } from "@/server/documents/document-store";
-import { listDays, listRouteDays, transportModesByDay } from "@/server/itinerary/itinerary";
+import { listDays, listRouteDays, transportByDay } from "@/server/itinerary/itinerary";
 import { listAvailability } from "@/server/itinerary/availability";
 import { listIdeas } from "@/server/ideas/ideas-read";
 import { listDeclinedInvitees, listPendingInvitees } from "@/server/trips/invites";
@@ -23,6 +23,7 @@ import { readTags } from "@floc/core/trip/tags";
 import { today } from "@floc/core/dates/dates";
 import { stayLinks } from "@floc/core/trip/booking-links";
 import { tripLegs } from "@floc/core/trip/overview/legs";
+import { overviewRoute } from "@floc/core/trip/overview/route";
 import { IdeasPanel } from "@/components/trip/ideas/ideas-panel";
 import { OverviewCard } from "@/components/trip/overview/overview-card";
 import { OverviewFiles } from "@/components/trip/overview/overview-files";
@@ -52,7 +53,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
     friends,
   }));
 
-  const [availabilityRows, expenseRows, dayRows, splitRows, settlementRows, routeDays, modes, tourSeen, prefill, ideas, docs] =
+  const [availabilityRows, expenseRows, dayRows, splitRows, settlementRows, routeDays, transport, tourSeen, prefill, ideas, docs] =
     await Promise.all([
       listAvailability(tripId),
       listExpenses(tripId),
@@ -60,7 +61,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
       listSplits(tripId),
       listSettlements(tripId),
       listRouteDays(tripId),
-      transportModesByDay(tripId),
+      transportByDay(tripId),
       tourSeenAt(viewer.id),
       canUseFeature("booking.prefill", tripId),
       listIdeas(tripId, viewer.id),
@@ -80,7 +81,9 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
     settlements: settlementRows,
   });
 
+  const modes = new Map([...transport].map(([dayId, t]) => [dayId, t.mode]));
   const { legs, wholeTrip } = tripLegs({ days: routeDays, modes, files: docs });
+  const route = overviewRoute({ legs, days: routeDays, hops: transport });
   // Stay searches only while the trip is still ahead — nobody books last night's hotel.
   const ahead = trip.startDate !== null && today() < trip.startDate;
   const stays = new Map(
@@ -97,25 +100,28 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
 
   return (
     <div className="mx-auto flex w-full max-w-[72rem] flex-col gap-7 px-4 pb-20 pt-6 sm:px-6">
-      <section className="grid rounded-xl bg-sheet shadow-raised ring-1 ring-rule lg:grid-cols-[minmax(0,1fr)_21rem]">
-        <OverviewMap tripId={tripId} legs={legs} days={routeDays} datesUnset={datesUnset} />
-        <OverviewCard
-          trip={{
-            id: tripId,
-            name: trip.name,
-            startDate: trip.startDate,
-            endDate: trip.endDate,
-            archived: Boolean(trip.archivedAt),
-            color,
-            tone,
-            mark: readTripMark(trip.mark),
-            tags: readTags(trip.tags),
-            // Same count as the legs: a day with a bed is a night (stops.ts).
-            nights: routeDays.length,
-          }}
-          going={members}
-          spent={spend ? formatMoney(spend.total, spend.currency) : null}
-        />
+      {/* Why: the card floats over the globe on a wide screen, as on Explore; the map keeps its route clear of it (clear-area.ts). */}
+      <section data-overview-band className="relative grid rounded-xl bg-sheet-2 shadow-raised ring-1 ring-rule lg:min-h-[34rem] lg:grid-cols-[minmax(0,1fr)_23.5rem]">
+        <OverviewMap tripId={tripId} route={route} tone={tone} datesUnset={datesUnset} />
+        <div data-overview-card className="relative z-10 rounded-b-xl bg-sheet lg:col-start-2 lg:m-5 lg:self-start lg:rounded-xl lg:shadow-lift lg:ring-1 lg:ring-rule">
+          <OverviewCard
+            trip={{
+              id: tripId,
+              name: trip.name,
+              startDate: trip.startDate,
+              endDate: trip.endDate,
+              archived: Boolean(trip.archivedAt),
+              color,
+              tone,
+              mark: readTripMark(trip.mark),
+              tags: readTags(trip.tags),
+              // Same count as the legs: a day with a bed is a night (stops.ts).
+              nights: routeDays.length,
+            }}
+            going={members}
+            spent={spend ? formatMoney(spend.total, spend.currency) : null}
+          />
+        </div>
       </section>
 
       <IdeasPanel tripId={tripId} ideas={ideas} datesUnset={datesUnset} />

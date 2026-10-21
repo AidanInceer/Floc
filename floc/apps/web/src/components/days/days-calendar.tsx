@@ -1,9 +1,10 @@
 "use client";
 
 /**
- * Days as a calendar (ticket 103) — hours down, days across, events as blocks.
- * Owns geometry/gestures only; `days/page.tsx` owns the content (the event
- * modal's panel) as server-rendered nodes, since those are full of Server Actions.
+ * Days as a focus day (ticket 103, redrawn as B5): the trip's days grouped by
+ * stop on top, then one day drawn wide with the day before and after beside
+ * it, and empty hours folded. Owns geometry/gestures only; `days/page.tsx`
+ * owns the content (the event modal's panel) as server-rendered nodes.
  */
 
 import {
@@ -20,49 +21,36 @@ import {
 } from "react";
 
 import type { PlaceSearch } from "@/components/days/event-form";
+import { cx } from "@/components/system/ui";
 import {
   AddEventDialog,
   AllDayStrip,
   CalendarGrid,
   CalendarToolbar,
-  DayHeads,
   EventModal,
 } from "@/components/days/days-calendar-chrome";
+import type { ColumnVariant } from "@/components/days/days-calendar-column";
+import { FocusHeads, type FocusFacts } from "@/components/days/days-focus-heads";
 import { OvernightBandRow } from "@/components/days/days-overnight-band";
 import { OvernightDialog } from "@/components/days/days-overnight-dialog";
+import { StopStrip } from "@/components/days/days-stop-strip";
+import { useOvernightBand } from "@/components/days/use-overnight-band";
 import {
-  COLUMN_MIN_PX,
-  EDGE_PX,
-  GUTTER_PX,
+  FOCUS_COLUMNS,
+  FOCUS_TEMPLATE,
+  FOLD_PX,
   HOUR_PX,
   describeSpan,
-  type BandDrag,
   type CalendarDay,
   type CalendarEvent,
   type Landing,
   type OvernightPlace,
 } from "@/components/days/days-calendar-shared";
-import {
-  LAST_START_MINUTE,
-  clamp,
-  formatSpan,
-  gridWindow,
-  snap,
-  spanOf,
-  toHhmm,
-} from "@floc/core/dates/calendar";
-import {
-  draggedPast,
-  eventKeyGesture,
-  eventLanding,
-  rangeFromAnchor,
-  resolveBandRelease,
-} from "@floc/core/dates/calendar-gestures";
-import {
-  bandRuns as runsOfBand,
-  uncoveredBy,
-  type BandSpan,
-} from "@floc/core/itinerary/overnight-band";
+import { LAST_START_MINUTE, clamp, formatSpan, snap, spanOf, toHhmm } from "@floc/core/dates/calendar";
+import { draggedPast, eventKeyGesture, eventLanding } from "@floc/core/dates/calendar-gestures";
+import { foldedClock, minuteAt, yAt } from "@floc/core/dates/clock-fold";
+import { addDays } from "@floc/core/dates/dates";
+import { runBoundsAt } from "@floc/core/itinerary/overnight-band";
 
 export type { CalendarDay, CalendarEvent, OvernightPlace } from "@/components/days/days-calendar-shared";
 
@@ -76,6 +64,37 @@ type Drag = {
   startY: number;
   moved: boolean;
 };
+
+type Adding = { dayId: number; time: string; endTime?: string };
+
+/** A slot past either end of the trip. Negative ids mean nothing beyond "not a row". */
+const cap = (id: number, date: string): CalendarDay => ({
+  id,
+  date,
+  weekday: "",
+  dayOfMonth: "",
+  longLabel: "",
+  shortLabel: "",
+  overnightPlaceName: null,
+  overnightPlaceId: null,
+  outside: true,
+  isToday: false,
+});
+
+function focusFacts(days: CalendarDay[], index: number, events: CalendarEvent[]): FocusFacts {
+  const day = days[index];
+  const run = runBoundsAt(days, day.date, day.overnightPlaceId);
+  const runDays = days.filter((d) => d.date >= run.start && d.date <= run.end);
+  return {
+    day,
+    dayNumber: index + 1,
+    tripLength: days.length,
+    stay: day.overnightPlaceName
+      ? { placeName: day.overnightPlaceName, night: runDays.indexOf(day) + 1, nights: runDays.length }
+      : null,
+    eventCount: events.filter((e) => e.dayId === day.id).length,
+  };
+}
 
 export function DaysCalendar({
   days,
@@ -125,13 +144,13 @@ export function DaysCalendar({
     days.findIndex((d) => d.isToday),
   );
 
-  const [view, setView] = useState<"day" | "week">("week");
   const initialIndex = days.findIndex((d) => d.date === initialDate);
   const [anchor, setAnchor] = useState(
     initialIndex >= 0 ? initialIndex : todayIndex,
   );
+  const [unfold, setUnfold] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
-  const [adding, setAdding] = useState<{ dayId: number; time: string } | null>(null);
+  const [adding, setAdding] = useState<Adding | null>(null);
   const [announcement, setAnnouncement] = useState("");
 
   // Held locally until fresh server props confirm it, so the block doesn't
@@ -141,7 +160,6 @@ export function DaysCalendar({
   const [, startTransition] = useTransition();
 
   const gridRef = useRef<HTMLDivElement>(null);
-  /** What a band drag measures its edges against. */
   const scrollerRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<Drag | null>(null);
 
@@ -192,38 +210,52 @@ export function DaysCalendar({
     });
   }, [events]);
 
+  const committed = useMemo(
+    () =>
+      events.map((event) => {
+        const pending = optimistic.get(event.id);
+        return pending ? { ...event, dayId: pending.dayId, time: pending.time, endTime: pending.endTime } : event;
+      }),
+    [events, optimistic],
+  );
+
   // A same-column drag previews live on the block itself. Cross-column isn't:
   // re-parenting would unmount the node and drop the pointer capture the drag
   // depends on. Shows a drop line in the target column instead.
-  const shown = useMemo(() => {
-    const live = events.map((event) => {
-      const pending = optimistic.get(event.id);
-      const base = pending
-        ? { ...event, dayId: pending.dayId, time: pending.time, endTime: pending.endTime }
-        : event;
-      return landing?.eventId === event.id && landing.dayId === base.dayId
-        ? { ...base, time: landing.time, endTime: landing.endTime }
-        : base;
+  const shown = useMemo(
+    () =>
+      committed.map((event) =>
+        landing?.eventId === event.id && landing.dayId === event.dayId
+          ? { ...event, time: landing.time, endTime: landing.endTime }
+          : event,
+      ),
+    [committed, landing],
+  );
+
+  const focusIndex = clamp(anchor, 0, days.length - 1);
+  const focus = days[focusIndex];
+  const slots = useMemo(
+    () => [
+      days[focusIndex - 1] ?? cap(-1, addDays(days[focusIndex].date, -1)),
+      days[focusIndex],
+      days[focusIndex + 1] ?? cap(-2, addDays(days[focusIndex].date, 1)),
+    ],
+    [days, focusIndex],
+  );
+
+  // Laid out from what is written, not the drag in progress: a fold opening
+  // under the pointer would move the very hour it is aiming at.
+  const clock = useMemo(() => {
+    const ids = new Set(slots.filter((d) => !d.outside).map((d) => d.id));
+    const spans = committed.flatMap((e) => {
+      const span = ids.has(e.dayId) ? spanOf(e) : null;
+      return span ? [span] : [];
     });
-    return live;
-  }, [events, optimistic, landing]);
+    return foldedClock(spans, { hourPx: HOUR_PX, foldPx: FOLD_PX, unfold });
+  }, [committed, slots, unfold]);
 
-  const { startHour, endHour } = useMemo(() => gridWindow(shown), [shown]);
-  const gridHeight = (endHour - startHour) * HOUR_PX;
-  const minuteFloor = startHour * 60;
-
-  const minutesToY = useCallback(
-    (m: number) => ((m - minuteFloor) / 60) * HOUR_PX,
-    [minuteFloor],
-  );
-  const yToMinutes = useCallback(
-    (y: number) => minuteFloor + (y / HOUR_PX) * 60,
-    [minuteFloor],
-  );
-
-  // Week stays offered at every width (mobile included): a narrow screen scrolls
-  // the seven columns sideways rather than being dropped to Day for you.
-  const effectiveView = view;
+  const minutesToY = useCallback((m: number) => yAt(clock, m), [clock]);
+  const yToMinutes = useCallback((y: number) => minuteAt(clock, y), [clock]);
 
   // Read after mount, never during render: a time rendered on both sides is a
   // hydration mismatch waiting for the turn of an hour.
@@ -249,7 +281,7 @@ export function DaysCalendar({
   );
 
   /** Which day column the pointer is over. Horizontal position decides it. */
-  const columnAt = (x: number) => {
+  const columnAt = useCallback((x: number) => {
     const columns = gridRef.current?.querySelectorAll<HTMLElement>("[data-day-column]");
     if (!columns) return null;
     for (const column of columns) {
@@ -259,6 +291,48 @@ export function DaysCalendar({
       }
     }
     return null;
+  }, []);
+
+  const step = useCallback(
+    (by: -1 | 1) => setAnchor((a) => clamp(a + by, 0, days.length - 1)),
+    [days.length],
+  );
+  const goTo = (dayId: number) => {
+    const index = days.findIndex((d) => d.id === dayId);
+    if (index >= 0) setAnchor(index);
+  };
+
+  const band = useOvernightBand({ days, slots, setOvernight, say, columnAt, scrollerRef, step });
+
+  // The pane is the selection, not a switch of its own (ticket 138).
+  // `keptSelection` is how the click that made the selection survives the
+  // deselect handler it bubbles into.
+  const keptSelection = useRef(false);
+
+  const select = (id: number) => {
+    keptSelection.current = true;
+    setSelected(id);
+  };
+
+  const onCalendarClick = () => {
+    if (keptSelection.current) {
+      keptSelection.current = false;
+      return;
+    }
+    setSelected(null);
+  };
+
+  const openAdd = (dayId: number, minutes: number, endMinutes?: number) => {
+    setAdding({
+      dayId,
+      time: toHhmm(clamp(snap(minutes), 0, LAST_START_MINUTE)),
+      endTime: endMinutes === undefined ? undefined : toHhmm(endMinutes),
+    });
+  };
+
+  const openBandDialog = (span: Parameters<typeof band.setBanding>[0]) => {
+    keptSelection.current = true;
+    band.setBanding(span);
   };
 
   const onBlockPointerDown = (
@@ -269,13 +343,13 @@ export function DaysCalendar({
     if (ev.button !== 0) return;
     const span = spanOf(event);
     if (!span) return;
-    // Measured on the block, which is `currentTarget` for a move and the grip
-    // for a resize — where a resize doesn't use the offset at all.
-    const rect = ev.currentTarget.getBoundingClientRect();
+    // Measured against the column, not the block: with hours folded, a
+    // height inside the block no longer maps to minutes on its own.
+    const column = columnAt(ev.clientX);
     dragRef.current = {
       eventId: event.id,
       mode,
-      grabOffset: snap(yToMinutes(ev.clientY - rect.top) - minuteFloor),
+      grabOffset: column ? snap(yToMinutes(ev.clientY - column.top)) - span.start : 0,
       startX: ev.clientX,
       startY: ev.clientY,
       moved: false,
@@ -361,330 +435,106 @@ export function DaysCalendar({
 
     const from = days.findIndex((d) => d.id === event.dayId);
     const to = days[from + gesture.step];
-    // Off the end of the trip, or onto a padding column: both are "there is no
-    // day there", and both simply refuse.
-    if (!to || to.outside) return;
+    // Off the end of the trip: there is no day there, so it simply refuses.
+    if (!to) return;
     commit({ eventId: event.id, dayId: to.id, time: gesture.time, endTime: gesture.endTime });
     say(`${event.title} moved to ${to.longLabel}.`);
   };
 
-  // `bandSpan` is the drag in progress, drawn dashed and written to nothing.
-  // `pendingBand` is a write that's gone but whose props haven't come back yet,
-  // so the bar doesn't flicker to the old answer in between (rule 7).
-  // `banding` is the dialog: the span it opened on.
-  const bandRowRef = useRef<HTMLDivElement>(null);
-  const bandDragRef = useRef<BandDrag | null>(null);
-  const [bandSpan, setBandSpan] = useState<BandSpan | null>(null);
-  const [pendingBand, setPendingBand] = useState<BandSpan | null>(null);
-  const [banding, setBanding] = useState<BandSpan | null>(null);
-  /** -1 or 1 while a drag is held at an edge; the page turns on a timer. */
-  const [edgePage, setEdgePage] = useState<-1 | 0 | 1>(0);
-
-  // The pane is the selection, not a switch of its own (ticket 138).
-  // `keptSelection` is how the click that made the selection survives the
-  // deselect handler it bubbles into.
-  const keptSelection = useRef(false);
-
-  const select = (id: number) => {
-    keptSelection.current = true;
-    setSelected(id);
-  };
-
-  const onCalendarClick = () => {
-    if (keptSelection.current) {
-      keptSelection.current = false;
-      return;
-    }
-    setSelected(null);
-  };
-
-  const openAdd = (dayId: number, minutes: number) => {
-    setAdding({ dayId, time: toHhmm(clamp(snap(minutes), 0, LAST_START_MINUTE)) });
-  };
-
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    if (adding && !dialog.open) dialog.showModal();
-    if (!adding && dialog.open) dialog.close();
-  }, [adding]);
-
-  // A week is a *calendar* week, Monday to Sunday — not seven days counted from
-  // wherever the trip starts, or the columns would say Wed–Tue. The first and
-  // last pages of a trip are therefore short.
-  const pages = useMemo(() => {
-    // Day view never lands on a padding day: there is nothing there to show.
-    if (effectiveView === "day") return days.filter((d) => !d.outside).map((d) => [d]);
-    const weeks: CalendarDay[][] = [];
-    for (const day of days) {
-      if (weeks.length === 0 || day.weekdayIndex === 0) weeks.push([day]);
-      else weeks[weeks.length - 1].push(day);
-    }
-    return weeks;
-  }, [days, effectiveView]);
-
-  // The anchor stays a *day*, so switching between Day and Week keeps you where
-  // you were rather than jumping to whichever page number matched.
-  const anchorDay = days[clamp(anchor, 0, days.length - 1)];
-  const pageIndex = Math.max(
-    0,
-    pages.findIndex((page) => page.some((d) => d.id === anchorDay?.id)),
-  );
-  // Memoised because the band's runs are derived from it: a fresh `[]` every
-  // render would rebuild them every render.
-  const shownDays = useMemo(() => pages[pageIndex] ?? [], [pages, pageIndex]);
-
-  const goTo = (page: CalendarDay[] | undefined) => {
-    if (page?.[0]) setAnchor(days.findIndex((d) => d.id === page[0].id));
-  };
-  const goPrev = () => goTo(pages[pageIndex - 1]);
-  const goNext = () => goTo(pages[pageIndex + 1]);
-
-  // The arrows grey out at the ends of the trip rather than disappearing —
-  // a control that leaves reshuffles the toolbar under the cursor mid-page.
-  const canPrev = pageIndex > 0;
-  const canNext = pageIndex < pages.length - 1;
-
-  // The trip's range on this page, not the padded frame's.
-  const labelled = shownDays.filter((d) => !d.outside);
-  const rangeLabel =
-    labelled.length === 1
-      ? labelled[0].longLabel
-      : `${labelled[0]?.longLabel} – ${labelled[labelled.length - 1]?.longLabel}`;
-
-  const tripDays = useMemo(() => days.filter((d) => !d.outside), [days]);
-  const dateOfDay = useCallback(
-    (dayId: number) => days.find((d) => d.id === dayId)?.date ?? null,
-    [days],
-  );
-
-  /** The place a day shows *right now*, drag and pending write included. */
-  const bandOverlay = bandSpan ?? pendingBand;
-  const overlayIsDrag = bandSpan !== null;
-
-  /* The bars — the grouping itself lives in `@floc/core/itinerary/overnight-band`. */
-  const bandRuns = useMemo(
-    () => runsOfBand(shownDays, days, bandOverlay, overlayIsDrag),
-    [shownDays, days, bandOverlay, overlayIsDrag],
-  );
-
-  /* A write is confirmed when the props say what the overlay was claiming. */
-  useEffect(() => {
-    setPendingBand((pending) => {
-      if (!pending) return pending;
-      const covered = days.filter(
-        (d) => !d.outside && d.date >= pending.start && d.date <= pending.end,
-      );
-      const emptied = days.filter(
-        (d) =>
-          !d.outside &&
-          pending.uncovered?.some(([from, to]) => d.date >= from && d.date <= to),
-      );
-      const landed =
-        covered.length > 0 &&
-        covered.every((d) => d.overnightPlaceId === pending.placeId) &&
-        emptied.every((d) => d.overnightPlaceId === null);
-      return landed ? null : pending;
+  const moveAllDay = (event: CalendarEvent, to: CalendarDay) => {
+    startTransition(async () => {
+      await moveEventToDay(event.id, event.dayId, to.id);
     });
-  }, [days]);
-
-  // A drag held at the edge turns the page and keeps going — a stay of ten
-  // nights doesn't fit in a calendar week.
-  useEffect(() => {
-    if (edgePage === 0) return;
-    const timer = setInterval(() => {
-      // A release the row never saw (the pointer left the window, the tab lost
-      // it) must not leave the calendar turning pages by itself.
-      if (!bandDragRef.current) return setEdgePage(0);
-      const target = pages[pageIndex + edgePage];
-      if (target?.[0]) setAnchor(days.findIndex((d) => d.id === target[0].id));
-    }, 550);
-    return () => clearInterval(timer);
-  }, [edgePage, pageIndex, pages, days]);
-
-  const commitBand = useCallback(
-    (span: BandSpan, place: OvernightPlace | null, cleared: [string, string][]) => {
-      /*
-       * The overlay can only stand in for an answer whose id is already known —
-       * a clear, or an extend of a run that has one. A place picked from the
-       * search has no row until the server makes it, so there is no id to hold
-       * the days against, and an overlay that can never match what comes back
-       * is one that never lifts. That write waits for its props like any other.
-       */
-      setPendingBand(
-        place === null
-          ? { ...span, placeId: null, placeName: null, uncovered: cleared }
-          : "placeId" in place
-            ? { ...span, placeId: place.placeId, uncovered: cleared }
-            : null,
-      );
-      startTransition(async () => {
-        // The days that fell out of a shrinking run go first: they are the same
-        // column, and writing the survivors first would leave the run briefly
-        // claiming days it has just lost.
-        for (const [from, to] of cleared) await setOvernight(from, to, null);
-        await setOvernight(span.start, span.end, place);
-      });
-    },
-    [setOvernight],
-  );
-
-  const openBandDialog = (span: BandSpan) => {
-    keptSelection.current = true;
-    setBanding(span);
-  };
-
-  const startBandDrag = (ev: ReactPointerEvent<HTMLElement>, drag: BandDrag) => {
-    if (ev.button !== 0) return;
-    bandDragRef.current = drag;
-    // Never inherit the last drag's edge: a page turning under a gesture that
-    // has only just started aims it at days nobody pointed at.
-    setEdgePage(0);
-    // Captured on the row, never on the cell: the page turns mid-drag and the
-    // cell you pressed is unmounted with it, taking the capture with it.
-    bandRowRef.current?.setPointerCapture(ev.pointerId);
-  };
-
-  const onBandPointerMove = (ev: ReactPointerEvent<HTMLElement>) => {
-    const drag = bandDragRef.current;
-    if (!drag) return;
-    // A few pixels of slop, so a press with an unsteady hand stays a press.
-    if (!drag.moved && !draggedPast(ev.clientX - drag.startX, 0)) return;
-    drag.moved = true;
-
-    const hit = columnAt(ev.clientX);
-    const date = hit ? dateOfDay(hit.dayId) : null;
-    if (date) {
-      const { start, end } = rangeFromAnchor(drag.anchorDate, date);
-      drag.span = {
-        start,
-        end,
-        placeId: drag.placeId,
-        placeName: drag.placeName,
-        uncovered: uncoveredBy(drag, { start, end }),
-      };
-      setBandSpan(drag.span);
-    }
-
-    const box = scrollerRef.current?.getBoundingClientRect();
-    if (!box) return;
-    setEdgePage(
-      ev.clientX > box.right - EDGE_PX ? 1 : ev.clientX < box.left + EDGE_PX ? -1 : 0,
-    );
-  };
-
-  const onBandPointerUp = () => {
-    const drag = bandDragRef.current;
-    bandDragRef.current = null;
-    const span = drag?.span ?? null;
-    setBandSpan(null);
-    setEdgePage(0);
-    if (!drag) return;
-
-    // What the release means — a click opens the dialog on its day, a paint asks
-    // for a place, an extend of a placed run commits — lives in the gesture lib.
-    const release = resolveBandRelease(drag, span);
-    if (release.kind === "dialog") {
-      openBandDialog(release.span);
-      return;
-    }
-    commitBand(release.span, { placeId: release.placeId }, release.uncovered);
-    say(`${drag.placeName ?? "Overnight place"} now ${describeSpan(days, release.span)}.`);
+    say(`${event.title} moved to ${to.longLabel}.`);
   };
 
   const selectedEvent = selected === null ? null : events.find((e) => e.id === selected);
-
-  // Gutter plus a floor per column — not `max-content`, which let one long
-  // all-day pill's content vote on the column's width instead of truncating.
-  const frameMinWidth = GUTTER_PX + shownDays.length * COLUMN_MIN_PX[effectiveView];
-
-  const rowStyle: CSSProperties = {
-    display: "grid",
-    gridTemplateColumns: `${GUTTER_PX}px repeat(${shownDays.length}, minmax(${COLUMN_MIN_PX[effectiveView]}px, 1fr))`,
-    minWidth: frameMinWidth,
+  const rowStyle: CSSProperties = { display: "grid", gridTemplateColumns: FOCUS_TEMPLATE };
+  const gestures = {
+    onPointerDown: onBlockPointerDown,
+    onPointerMove: onBlockPointerMove,
+    onPointerUp: onBlockPointerUp,
+    onKeyDown: onBlockKeyDown,
   };
+  const column = (day: CalendarDay, variant: ColumnVariant) => ({
+    day,
+    variant,
+    clock,
+    events: shown.filter((e) => e.dayId === day.id && spanOf(e)),
+    selected,
+    landing,
+    nowMinutes: day.isToday ? nowMinutes : null,
+    minutesToY,
+    yToMinutes,
+    onAdd: openAdd,
+    gestures,
+  });
 
   return (
-    <div className="overflow-hidden rounded-lg bg-sheet">
+    <div className={cx("overflow-hidden rounded-lg bg-sheet", FOCUS_COLUMNS)}>
+      <StopStrip days={days} focusId={focus.id} onGoTo={goTo} onStop={openBandDialog} />
+
       <CalendarToolbar
-        hasToday={hasToday}
-        onToday={() => setAnchor(todayIndex)}
-        goPrev={goPrev}
-        goNext={goNext}
-        canPrev={canPrev}
-        canNext={canNext}
-        rangeLabel={rangeLabel}
-        effectiveView={effectiveView}
-        setView={setView}
+        nav={{
+          hasToday,
+          onToday: () => setAnchor(todayIndex),
+          goPrev: () => step(-1),
+          goNext: () => step(1),
+          canPrev: focusIndex > 0,
+          canNext: focusIndex < days.length - 1,
+        }}
+        rangeLabel={focus.longLabel}
+        unfold={unfold}
+        onToggleFold={() => setUnfold((v) => !v)}
+        onAdd={() => openAdd(focus.id, 9 * 60)}
       />
 
-      <div className="grid grid-cols-1">
-        <div role="presentation" onClick={onCalendarClick} className="min-w-0">
-          {/* ONE scroll container for both axes — load-bearing. `position:
-              sticky` resolves against the nearest scrolling ancestor, so
-              separate horizontal/vertical scrollers would leave the gutter
-              pinned to a box that never moves sideways. */}
-          <div ref={scrollerRef} className="max-h-[70vh] overflow-auto" style={{ scrollPaddingTop: headHeight }}>
-            {/* One wrapper owns every calendar row so the head, band, all-day
-                strip and grid share the same `1fr` space and stay aligned. */}
-            <div className="w-full" style={{ minWidth: frameMinWidth }}>
-            <div ref={headRef} className="sticky top-0 z-30 shadow-raised">
-            <DayHeads
-              shownDays={shownDays}
-              landingDayId={landing?.dayId ?? null}
-              effectiveView={effectiveView}
-              removeDayControls={removeDayControls}
+      <div role="presentation" onClick={onCalendarClick} className="min-w-0">
+        <div ref={scrollerRef} className="max-h-[70vh] overflow-y-auto" style={{ scrollPaddingTop: headHeight }}>
+          <div ref={headRef} className="sticky top-0 z-30 shadow-raised">
+            <FocusHeads
+              slots={slots}
+              focus={focusFacts(days, focusIndex, events)}
               rowStyle={rowStyle}
+              onGoTo={goTo}
+              onAdd={() => openAdd(focus.id, 9 * 60)}
+              removeControl={removeDayControls[focus.id]}
             />
 
             <OvernightBandRow
-              bandRuns={bandRuns}
+              bandRuns={band.runs}
               days={days}
               rowStyle={rowStyle}
-              rowRef={bandRowRef}
-              onPointerMove={onBandPointerMove}
-              onPointerUp={onBandPointerUp}
-              startBandDrag={startBandDrag}
+              rowRef={band.rowRef}
+              onPointerMove={band.onPointerMove}
+              onPointerUp={band.onPointerUp}
+              startBandDrag={band.startDrag}
               openBandDialog={openBandDialog}
               columnAt={columnAt}
-              dateOfDay={dateOfDay}
+              dateOfDay={band.dateOfDay}
             />
 
             <AllDayStrip
-              shownDays={shownDays}
+              slots={slots}
+              focusId={focus.id}
               events={shown}
               rowStyle={rowStyle}
               selected={selected}
               onSelect={select}
-              moveEventToDay={moveEventToDay}
-              say={say}
+              onMove={moveAllDay}
             />
-            </div>
-
-            <CalendarGrid
-              gridRef={gridRef}
-              rowStyle={rowStyle}
-              gridHeight={gridHeight}
-              startHour={startHour}
-              endHour={endHour}
-              shownDays={shownDays}
-              events={shown}
-              selected={selected}
-              landing={landing}
-              nowMinutes={nowMinutes}
-              minutesToY={minutesToY}
-              yToMinutes={yToMinutes}
-              onAdd={openAdd}
-              onPointerDown={onBlockPointerDown}
-              onPointerMove={onBlockPointerMove}
-              onPointerUp={onBlockPointerUp}
-              onKeyDown={onBlockKeyDown}
-            />
-            </div>
           </div>
-        </div>
 
+          <CalendarGrid
+            gridRef={gridRef}
+            rowStyle={rowStyle}
+            clock={clock}
+            slots={slots}
+            focusId={focus.id}
+            column={column}
+            onToggleFold={() => setUnfold((v) => !v)}
+          />
+        </div>
       </div>
 
       <EventModal
@@ -707,27 +557,28 @@ export function DaysCalendar({
         onClose={() => setAdding(null)}
       />
 
-      {banding ? (
+      {band.banding ? (
         <OvernightDialog
-          span={banding}
-          days={tripDays}
+          span={band.banding}
+          days={days}
           searchPlaces={searchPlaces}
           groupSize={groupSize}
           bookingPrefill={bookingPrefill}
-          onClose={() => setBanding(null)}
+          onClose={() => band.setBanding(null)}
           onSave={(end, place) => {
-            const span = { ...banding, end };
-            setBanding(null);
-            commitBand(span, place, []);
+            const span = { ...band.banding!, end };
+            band.setBanding(null);
+            band.commit(span, place, []);
             say(
-              `${"name" in place ? place.name : (banding.placeName ?? "Overnight place")} now ` +
+              `${"name" in place ? place.name : (span.placeName ?? "Overnight place")} now ` +
                 `${describeSpan(days, span)}.`,
             );
           }}
           onClear={() => {
-            setBanding(null);
-            commitBand({ ...banding, placeId: null, placeName: null }, null, []);
-            say(`No overnight place for ${describeSpan(days, banding)}.`);
+            const span = band.banding!;
+            band.setBanding(null);
+            band.commit({ ...span, placeId: null, placeName: null }, null, []);
+            say(`No overnight place for ${describeSpan(days, span)}.`);
           }}
         />
       ) : null}

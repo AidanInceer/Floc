@@ -245,6 +245,7 @@ export type RouteDay = {
   placeName: string | null;
   lat: number | null;
   lng: number | null;
+  countryCode: string | null;
 };
 
 /** Days with where they're slept, in date order (rule 3: a stop is never stored). */
@@ -257,6 +258,7 @@ export async function listRouteDays(tripId: number): Promise<RouteDay[]> {
       placeName: place.name,
       lat: place.lat,
       lng: place.lng,
+      countryCode: place.countryCode,
     })
     .from(day)
     .leftJoin(place, eq(place.id, day.overnightPlaceId))
@@ -285,16 +287,16 @@ export async function listOvernightPlaces(
   return bounded(rows, "days", `trip ${tripId} overnight places`);
 }
 
+export type DayTransport = { mode: TransportType; time: string | null; endTime: string | null };
+
 /**
- * The travel mode of each day's first transport event, by day id (ticket 78).
+ * Each day's first transport event, by day id (ticket 78): its mode, and its start and end for the Overview map's tags.
  * No route to store a mode on, so it's read off day events; first event of the
  * day wins (a taxi-then-ferry day reads as one leg, started by the earliest).
  */
-export async function transportModesByDay(
-  tripId: number,
-): Promise<Map<number, TransportType>> {
+export async function transportByDay(tripId: number): Promise<Map<number, DayTransport>> {
   const rows = await db
-    .select({ dayId: dayEvent.dayId, transportType: dayEvent.transportType })
+    .select({ dayId: dayEvent.dayId, transportType: dayEvent.transportType, time: dayEvent.time, endTime: dayEvent.endTime })
     .from(dayEvent)
     .innerJoin(day, eq(day.id, dayEvent.dayId))
     .where(
@@ -309,9 +311,9 @@ export async function transportModesByDay(
     .limit(LIMITS.days * LIMITS.eventsPerDay)
     .all();
 
-  const byDay = new Map<number, TransportType>();
+  const byDay = new Map<number, DayTransport>();
   for (const r of rows) {
-    if (r.transportType && !byDay.has(r.dayId)) byDay.set(r.dayId, r.transportType);
+    if (r.transportType && !byDay.has(r.dayId)) byDay.set(r.dayId, { mode: r.transportType, time: r.time, endTime: r.endTime });
   }
   return byDay;
 }

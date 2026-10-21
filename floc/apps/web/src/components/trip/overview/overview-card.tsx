@@ -54,7 +54,7 @@ export function OverviewCard({
 }) {
   const soon = countdownLabel(trip.startDate);
   return (
-    <aside className={cx("relative flex min-w-0 flex-col gap-1.5 border-t-[6px] p-6 pt-5", BAND[trip.tone])}>
+    <aside className={cx("relative flex min-w-0 flex-col gap-1.5 rounded-[inherit] border-t-[6px] p-6 pt-5", BAND[trip.tone])}>
       <div className="absolute right-5 top-5">
         <Menu
           label="Colour and mark"
