@@ -15,6 +15,7 @@
  * your own; no operator is a partner and no money moves.
  */
 import { formatMoney } from "@floc/core/money/money";
+import { stopsOf } from "@floc/core/trip/explore/listing-stops";
 import { PRESET_TRIPS, type PresetTrip } from "@floc/core/trip/explore/preset-trips";
 import { useMutation } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
@@ -28,9 +29,7 @@ import { space } from "@/lib/theme";
 
 /** A listing's bases as map pins — pin number matches base order, as on the web. */
 function bases(trip: PresetTrip) {
-  return trip.legs
-    .filter((leg) => leg.kind === "base")
-    .map((leg, index) => ({ id: index, name: leg.place, lat: leg.lat, lng: leg.lng }));
+  return stopsOf(trip).map((stop, index) => ({ id: index, name: stop.place, lat: stop.lat, lng: stop.lng }));
 }
 
 export default function PresetDetail() {

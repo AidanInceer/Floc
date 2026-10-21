@@ -26,6 +26,7 @@ import { touch } from "@/server/audit";
 import { refresh } from "@/server/freshness";
 import { recordActivity, type Tx } from "@/server/notifications/activity";
 import { tripHref } from "@floc/core/notifications/notification-href";
+import type { TripPatch } from "@/server/trips/trips";
 
 export function moveItem<T>(items: T[], from: number, to: number): T[] {
   if (from === to || from < 0 || to < 0 || from >= items.length || to >= items.length) {
@@ -97,6 +98,7 @@ export async function setTripWindow(
   start: string | null,
   end: string | null,
   by: string,
+  fields: Omit<TripPatch, "startDate" | "endDate"> = {},
 ): Promise<void> {
   const problem = windowProblem(start, end);
   if (problem) throw new Refusal(problem);
@@ -105,7 +107,7 @@ export async function setTripWindow(
   await db.transaction(async (tx) => {
     await tx
       .update(trip)
-      .set({ startDate: start, endDate: end, ...touch() })
+      .set({ ...fields, startDate: start, endDate: end, ...touch() })
       .where(and(eq(trip.id, tripId), isNull(trip.deletedAt)));
 
     const surplus = await tx

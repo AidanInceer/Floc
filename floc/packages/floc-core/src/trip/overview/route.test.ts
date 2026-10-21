@@ -111,7 +111,6 @@ describe("overviewRoute", () => {
     const route = overviewRoute({ legs: [leg(1, 1, "Porto", 10)], days: [PORTO], hops: new Map() });
 
     expect(route.moves).toEqual([]);
-    expect(route.outs).toEqual([]);
   });
 });
 

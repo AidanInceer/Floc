@@ -17,8 +17,8 @@ const SOURCES = {
 const loaded: Partial<Record<Detail, readonly Piece[]>> = {};
 const pending: Partial<Record<Detail, Promise<readonly Piece[]>>> = {};
 
-// Why: every map on the page draws from the same file, so each is fetched once and shared.
-function load(detail: Detail): Promise<readonly Piece[]> {
+// Why: every map and globe on the site draws from the same file, so each is fetched once and shared.
+export function loadLand(detail: Detail): Promise<readonly Piece[]> {
   const { url, read } = SOURCES[detail];
   pending[detail] ??= fetch(url)
     .then((res) => (res.ok ? res.json() : null))
@@ -33,7 +33,7 @@ export function useLand(detail: Detail): readonly Piece[] {
   useEffect(() => {
     if (loaded[detail]) return;
     let live = true;
-    void load(detail).then((pieces) => {
+    void loadLand(detail).then((pieces) => {
       if (live) setLand(pieces);
     });
     return () => {

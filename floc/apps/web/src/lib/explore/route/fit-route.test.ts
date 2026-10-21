@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { project } from "@/lib/landing/globe/sphere";
 import { ONE_STOP, RAIL } from "@/test/route-listings";
 
-import { fitRoute } from "./fit-route";
+import { fitRoute, frameRoute } from "./fit-route";
 import { tripRoute } from "./trip-route";
 
 const LISTINGS = { RAIL, ONE_STOP };
@@ -38,5 +38,38 @@ describe("fitRoute", () => {
     const { view } = fitRoute(route("ONE_STOP"), BOX, ROOM, 3000);
     expect(view.lat).toBeCloseTo(40.611);
     expect(view.lng).toBeCloseTo(14.529);
+  });
+});
+
+describe("frameRoute", () => {
+  const WIDE = { left: 0, top: 0, right: 900, bottom: 500 };
+  const NARROW = { left: 0, top: 0, right: 400, bottom: 500 };
+
+  it("puts the route's middle at the middle of the clear part", () => {
+    const frame = frameRoute(route("RAIL"), WIDE);
+    expect(frame.at(frame.view)).toEqual({ x: 450, y: 250 });
+  });
+
+  it("keeps the band's foot clear, raising the middle by half of it", () => {
+    const frame = frameRoute(route("RAIL"), WIDE, 36);
+    expect(frame.at(frame.view)).toEqual({ x: 450, y: 232 });
+  });
+
+  it("goes closer on a narrow screen than the wide room allows", () => {
+    const one = route("ONE_STOP");
+    expect(frameRoute(one, WIDE).R).toBe(9000);
+    expect(frameRoute(one, NARROW).R).toBe(7000);
+  });
+
+  it("keeps every stop inside the clear part", () => {
+    const rail = route("RAIL");
+    const frame = frameRoute(rail, WIDE);
+    for (const stop of rail.stops) {
+      const p = frame.at(stop);
+      expect(p.x).toBeGreaterThan(0);
+      expect(p.x).toBeLessThan(900);
+      expect(p.y).toBeGreaterThan(0);
+      expect(p.y).toBeLessThan(500);
+    }
   });
 });

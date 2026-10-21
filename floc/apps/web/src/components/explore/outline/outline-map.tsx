@@ -4,7 +4,7 @@ import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 import { useMemo } from "react";
 
 import { landFor } from "@/components/explore/listing";
-import { lineFor } from "@/components/explore/route/route-ink";
+import { lineFor, ROUTE_SIZE } from "@/components/explore/route/route-ink";
 import type { Point } from "@/lib/explore/route/curves";
 import { routeShape } from "@/lib/explore/route/route-shape";
 import { tripRoute } from "@/lib/explore/route/trip-route";
@@ -19,7 +19,7 @@ const OUTLINE_SIZES = {
   pass: { width: 432, height: 216 },
 } as const;
 
-const LINE = 1.5;
+const { line: LINE, edge: EDGE, mid: MID, end: END } = ROUTE_SIZE.tile;
 const pathOf = (pts: Point[]) => `M${pts.map((p) => `${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join("L")}`;
 
 /**
@@ -53,7 +53,7 @@ export function OutlineMap({ trip, size }: { trip: PresetTrip; size: "tile" | "p
       {shape ? (
         <g fill="none" strokeLinejoin="round">
           {pieces.map((p, k) =>
-            p.mode === "flight" ? null : <path key={`case-${k}`} d={pathOf(p.px)} strokeWidth={5} strokeLinecap="round" className="stroke-sheet" />,
+            p.mode === "flight" ? null : <path key={`case-${k}`} d={pathOf(p.px)} strokeWidth={EDGE} strokeLinecap="round" className="stroke-sheet" />,
           )}
           {pieces.map((p, k) => {
             const look = lineFor(p.mode, LINE);
@@ -61,9 +61,9 @@ export function OutlineMap({ trip, size }: { trip: PresetTrip; size: "tile" | "p
           })}
           {shape.stops.map((s, k) =>
             !s.named ? null : s.role === "mid" ? (
-              <circle key={k} cx={s.px.x} cy={s.px.y} r={3} strokeWidth={1.3} className="fill-sheet stroke-ink" />
+              <circle key={k} cx={s.px.x} cy={s.px.y} r={MID.r} strokeWidth={MID.ring} className="fill-sheet stroke-ink" />
             ) : (
-              <circle key={k} cx={s.px.x} cy={s.px.y} r={4.6} strokeWidth={1.5} className="fill-ink stroke-sheet" />
+              <circle key={k} cx={s.px.x} cy={s.px.y} r={END.r} strokeWidth={END.ring} className="fill-ink stroke-sheet" />
             ),
           )}
         </g>

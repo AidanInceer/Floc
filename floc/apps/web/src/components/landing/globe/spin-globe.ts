@@ -1,10 +1,11 @@
 import { easeInOut, easeOut, flightAt, flightMs } from "@/lib/landing/globe/flight";
 import { faced, facing, greatCircle, nearest, type LatLng } from "@/lib/landing/globe/sphere";
 
-import { globeDrag } from "./globe-drag";
+import { frameLoop } from "@/components/globe/frame-loop";
+import { globeDrag } from "@/components/globe/globe-drag";
 import { drawPins } from "./globe-pins";
-import { globeTurn } from "./globe-turn";
-import { globePainter } from "./paint-globe";
+import { globeTurn } from "@/components/globe/globe-turn";
+import { globePainter } from "@/components/globe/paint-globe";
 import { wayIn, type WayDom } from "./way-in";
 
 const LANDED = { route: 1, landing: 1, done: true };
@@ -26,6 +27,8 @@ type Scene = {
 export function spinGlobe(canvas: HTMLCanvasElement, { home, places, onLight, onSettle, onWay }: Scene) {
   const paint = globePainter(canvas);
   if (!paint || places.length === 0) return null;
+  const loop = frameLoop(step);
+  const wake = loop.wake;
   const way = wayIn(paint, onWay);
   const face = globeTurn(() => settle(800));
   const paths = places.map((p) => greatCircle(home, p));
@@ -33,7 +36,7 @@ export function spinGlobe(canvas: HTMLCanvasElement, { home, places, onLight, on
   let hand: number[] = [];
   let [started, still] = [false, false];
   let [at, lit, held] = [0, -1, -1];
-  let [takeoff, then, frame] = [0, 0, 0];
+  let takeoff = 0;
 
   function light(i: number) {
     if (i === lit) return;
@@ -80,10 +83,7 @@ export function spinGlobe(canvas: HTMLCanvasElement, { home, places, onLight, on
     return flightAt(takeoff, now, flightMs(home, places[at]!));
   }
 
-  function step() {
-    const now = performance.now();
-    const dt = Math.min(50, now - then);
-    then = now;
+  function step(now: number, dt: number) {
     way.advance(now);
     if (!drag.held()) face.advance(now, dt);
     const view = face.view();
@@ -99,13 +99,7 @@ export function spinGlobe(canvas: HTMLCanvasElement, { home, places, onLight, on
     way.draw(view);
     const flying = started && settled && !f.done;
     const busy = [drag.held(), face.moving(), way.moving(), pulsing >= 0 && !still, flying];
-    frame = busy.some(Boolean) ? requestAnimationFrame(step) : 0;
-  }
-
-  function wake() {
-    if (frame) return;
-    then = performance.now();
-    frame = requestAnimationFrame(step);
+    return busy.some(Boolean);
   }
 
   light(0);
@@ -147,7 +141,7 @@ export function spinGlobe(canvas: HTMLCanvasElement, { home, places, onLight, on
     },
     redraw: wake,
     stop() {
-      cancelAnimationFrame(frame);
+      loop.stop();
       drag.stop();
     },
   };

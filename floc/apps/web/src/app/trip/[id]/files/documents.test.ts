@@ -7,6 +7,9 @@ import { mkdtemp, readdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { sql } from "drizzle-orm";
+import { db } from "@/db";
+import { webPort } from "@/server/api-port/api-port";
 
 import {
   expectNotFound,
@@ -62,6 +65,24 @@ function form(
 }
 
 describe("uploadDocument", () => {
+  it.each(["web", "API"])("cleans up the bytes when a %s upload cannot save its row", async (door) => {
+    await db.run(sql`CREATE TRIGGER refuse_document BEFORE INSERT ON document
+      BEGIN SELECT RAISE(ABORT, 'Document storage failed'); END`);
+    try {
+      const upload = door === "web"
+        ? uploadDocument(world.ours.id, form("shared"))
+        : webPort.uploadFile(world.member, world.ours.id, {
+          name: "booking.pdf", mimeType: "application/pdf", category: "travel", shared: true,
+          contentBase64: Buffer.from("%PDF-1.7").toString("base64"),
+        });
+      await expect(upload).rejects.toThrow();
+      expect(await listDocuments(world.ours.id, world.member)).toEqual([]);
+      expect(await readdir(process.env.FLOC_FILES_DIR!)).toEqual([]);
+    } finally {
+      await db.run(sql`DROP TRIGGER refuse_document`);
+    }
+  });
+
   it("shares a file with the trip", async () => {
     await uploadDocument(world.ours.id, form("shared"));
 

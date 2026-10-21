@@ -7,20 +7,17 @@
  */
 import { DAY_EVENT_TYPES, TRANSPORT_TYPES, type DayEventType, type TransportType } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
-import { upsertPlace } from "@/server/itinerary/places";
+import { removeEvent, saveEvent } from "@/server/itinerary/event-save";
 import { applyOvernight, type OvernightPlaceInput } from "@/server/itinerary/overnight";
 import { insertAt, permuteEventSlots } from "@floc/core/itinerary/event-order";
 import {
   applyEventSlots,
   extendTripDays,
-  insertEvent,
   listDayIds,
   listEventSlots,
   moveEventToDay,
   rescheduleEvent as moveEventTo,
   softDeleteDay,
-  softDeleteEvent,
-  updateEventFields,
   type EventFields,
 } from "@/server/itinerary/itinerary";
 import { refresh } from "@/server/freshness";
@@ -55,10 +52,7 @@ export async function setDayOvernight(
 }
 
 export async function addEvent(tripId: number, dayId: number, input: EventFields) {
-  const access = await requireTripAccess(tripId);
-  const target = await access.day(dayId);
-  await insertEvent(target.id, input);
-  refresh({ kind: "itinerary", tripId: access.trip.id });
+  await saveEvent(await requireTripAccess(tripId), { dayId }, input);
 }
 
 export async function updateEvent(
@@ -66,17 +60,11 @@ export async function updateEvent(
   eventId: number,
   input: EventFields,
 ) {
-  const access = await requireTripAccess(tripId);
-  const target = await access.event(eventId);
-  await updateEventFields(target.id, input);
-  refresh({ kind: "itinerary", tripId: access.trip.id });
+  await saveEvent(await requireTripAccess(tripId), { eventId }, input);
 }
 
 export async function deleteEvent(tripId: number, eventId: number) {
-  const access = await requireTripAccess(tripId);
-  const target = await access.event(eventId);
-  await softDeleteEvent(target.id);
-  refresh({ kind: "itinerary", tripId: access.trip.id });
+  await removeEvent(await requireTripAccess(tripId), eventId);
 }
 
 /**
@@ -227,12 +215,9 @@ export async function submitEvent(tripId: number, formData: FormData) {
   // validation off. Drop it rather than write a nameless event.
   if (!title) return;
 
-  // Access first, so nobody off the trip can write a place row through here.
-  await requireTripAccess(tripId);
-  const fields = { ...readEventFields(formData), title, placeId: await placeFrom(formData) };
-
-  if (eventId) await updateEvent(tripId, eventId, fields);
-  else await addEvent(tripId, dayId, fields);
+  const access = await requireTripAccess(tripId);
+  await saveEvent(access, eventId ? { eventId } : { dayId },
+    { ...readEventFields(formData), title }, placeFrom(formData));
 }
 
 /** Every closed-set field is checked, not cast: a form is reachable without its page. */
@@ -251,16 +236,16 @@ function readEventFields(formData: FormData) {
   };
 }
 
-async function placeFrom(formData: FormData): Promise<number | null> {
+function placeFrom(formData: FormData) {
   const name = String(formData.get("placeName") ?? "");
   if (!name.trim()) return null;
   const lat = formData.get("placeLat");
   const lng = formData.get("placeLng");
-  return upsertPlace({
+  return {
     providerId: String(formData.get("placeProviderId") ?? "") || null,
     name,
     lat: lat ? Number(lat) : null,
     lng: lng ? Number(lng) : null,
     countryCode: String(formData.get("placeCountryCode") ?? "") || null,
-  });
+  };
 }

@@ -85,3 +85,10 @@ export function glideTo<C>(space: Space<C>, from: Pose<C>, to: Pose<C>): Timelin
     old: (t) => 1 - easeOut(clamp(t / (ms * 0.35))),
   };
 }
+
+const FADE_MS = 300;
+
+/** How far in each mark is at `t`: a stop, a tag or a name fades in over 300 ms once the pen has passed it. */
+export function markFade(tl: Pick<Timeline<unknown>, "passes">, t: number): (at: number) => number {
+  return (at) => easeOut(clamp((t - tl.passes(at)) / FADE_MS));
+}

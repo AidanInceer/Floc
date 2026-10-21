@@ -1,3 +1,4 @@
+import { stopsOf } from "../listing-stops";
 import type { PresetTrip } from "../preset-trip-types";
 import type { PresetDay, PresetDetail } from "./preset-detail-types";
 import { DERIVED_FACT_LABELS } from "./preset-plan";
@@ -29,7 +30,7 @@ function highlightProblems(day: PresetDay, n: number): string[] {
 
 /** What is wrong with a hand-written detail, in words its author can act on. Empty when it fits the listing. */
 export function checkPresetDetail(trip: PresetTrip, detail: PresetDetail): string[] {
-  const bases = trip.legs.flatMap((l) => (l.kind === "base" ? [l] : []));
+  const bases = stopsOf(trip);
   if (detail.stops.length !== bases.length) return [`${bases.length} bases in the listing, ${detail.stops.length} stops written`];
 
   const problems: string[] = [];

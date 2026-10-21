@@ -1,4 +1,5 @@
 import { Camera, Map, Marker, type LngLat } from "@maplibre/maplibre-react-native";
+import { stopsOf } from "@floc/core/trip/explore/listing-stops";
 import { mapPicks } from "@floc/core/trip/explore/map-picks";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -13,8 +14,8 @@ const PIN = 28;
 const PICKS = mapPicks(PRESET_TRIPS, 2);
 
 function firstBase(tripIndex: number): LngLat {
-  const base = PICKS[tripIndex].legs.find((l) => l.kind === "base");
-  return base && base.kind === "base" ? [base.lng, base.lat] : [0, 0];
+  const base = stopsOf(PICKS[tripIndex])[0];
+  return base ? [base.lng, base.lat] : [0, 0];
 }
 
 const POINTS = PICKS.map((_, i) => firstBase(i));

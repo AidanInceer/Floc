@@ -90,7 +90,7 @@ export function routeShape(route: TripRoute, at: (spot: { lat: number; lng: numb
   const centre = P.reduce((s, p) => ({ x: s.x + p.x / P.length, y: s.y + p.y / P.length }), { x: 0, y: 0 });
   const raw: Omit<Piece, "cum" | "len" | "a" | "b" | "mid" | "bulge" | "mark">[] = [];
   P.forEach((p, i) => {
-    for (const out of route.outs.filter((o) => o.at === i)) {
+    for (const out of (route.outs ?? []).filter((o) => o.at === i)) {
       let away = sub(p, centre);
       if (Math.hypot(away.x, away.y) < 1) away = { x: 0, y: -1 };
       raw.push({ kind: "loop", mode: out.mode, time: "", name: out.place, to: i, px: loopCurve(p, away, options.loop, options.samples) });

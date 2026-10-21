@@ -1,10 +1,11 @@
+import { stopsOf } from "../listing-stops";
 import type { PresetTrip } from "../preset-trip-types";
 import type { TransportType } from "../../../vocabulary";
 import type { TripTag } from "./tag-groups";
 
-// Why: a hop with no base after it is a day trip; it goes nowhere new, so it says nothing about getting around.
+// Why: a day out goes nowhere new, so it says nothing about getting around.
 function movesOf(trip: PresetTrip): TransportType[] {
-  return trip.legs.flatMap((leg, i) => (leg.kind === "hop" && trip.legs[i + 1]?.kind === "base" ? [leg.mode] : []));
+  return stopsOf(trip).flatMap((stop) => (stop.arrive ? [stop.arrive.mode] : []));
 }
 
 function travelOf(moves: TransportType[]): TripTag[] {

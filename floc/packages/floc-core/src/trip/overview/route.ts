@@ -16,8 +16,6 @@ export type OverviewRoute = {
   stops: (Spot & { place: string })[];
   /** `moves[k]` goes from `stops[k]` to `stops[k + 1]`. A leg with no transport event has no mode and says so. */
   moves: { mode: TransportType | null; time: string }[];
-  /** No day trips on a group's own route; the shape the Explore map reads still asks for them. */
-  outs: [];
   /** ISO codes of the countries the stops stand in, first seen first. */
   countries: string[];
   /** Stops whose place has no country stored, for the map to look up from the land outline. */
@@ -48,7 +46,7 @@ export function overviewRoute({
   hops: ReadonlyMap<number, HopTimes>;
 }): OverviewRoute {
   const pins = new Map(days.map((d) => [d.overnightPlaceId, d]));
-  const route: OverviewRoute = { stops: [], moves: [], outs: [], countries: [], uncoded: [], missing: [] };
+  const route: OverviewRoute = { stops: [], moves: [], countries: [], uncoded: [], missing: [] };
   for (const leg of legs) {
     const pin = pins.get(leg.placeId);
     if (!pin || pin.lat === null || pin.lng === null) {

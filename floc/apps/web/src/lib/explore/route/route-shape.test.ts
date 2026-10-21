@@ -37,6 +37,11 @@ describe("routeShape", () => {
     expect(shape.stops.at(-1)!.named).toBe(false);
   });
 
+  it("draws a group's own route, which lists no day outs, as legs only", () => {
+    const { stops, moves } = trip("RAIL");
+    expect(routeShape({ stops, moves }, at, OPTS).pieces.map((p) => p.kind)).toEqual(["leg", "leg", "leg"]);
+  });
+
   it("draws a day out as a loop from its stop", () => {
     const shape = routeShape(trip("ONE_STOP"), at, OPTS);
     expect(shape.pieces).toHaveLength(1);

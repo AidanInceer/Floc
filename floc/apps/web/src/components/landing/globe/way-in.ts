@@ -1,7 +1,7 @@
 import { deepFrame, flagSide, frameAt, nudges, pinsOf, roomIn, tweenAt, zoomFor, type StopPin } from "@/lib/landing/globe/deep";
 import { greatCircle, type LatLng } from "@/lib/landing/globe/sphere";
 
-import type { globePainter } from "./paint-globe";
+import type { globePainter } from "@/components/globe/paint-globe";
 
 type Painter = NonNullable<ReturnType<typeof globePainter>>;
 type Tween = { from: number; to: number; t0: number; ms: number };

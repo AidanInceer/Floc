@@ -23,3 +23,23 @@ export function fitRoute(route: TripRoute, box: Box, room: { x: number; y: numbe
   const [w, h] = [box.right - box.left - 2 * room.x, box.bottom - box.top - 2 * room.y];
   return { view, R: Math.min(w / Math.max(x1 - x0, 1e-9), h / Math.max(y1 - y0, 1e-9), closest) };
 }
+
+// Why: with the 1:50m outline and the trip's countries filled in, an inland trip still has coasts and borders in view this close.
+const CLOSEST = { wide: 9000, narrow: 7000 };
+const NARROW_BELOW = 600;
+const ROOM = { wide: { x: 74, y: 44 }, narrow: { x: 46, y: 34 } };
+
+export type RouteFraming = { view: LatLng; R: number; cx: number; cy: number; at: (s: LatLng) => { x: number; y: number } };
+
+/** How every globe frames a route in the part of the band left `clear`, so it reads the same on Explore and on a trip. `foot` px at the bottom stay empty. */
+export function frameRoute(route: TripRoute, clear: Box, foot = 0): RouteFraming {
+  const narrow = clear.right - clear.left < NARROW_BELOW;
+  const box = { ...clear, bottom: clear.bottom - foot };
+  const { view, R } = fitRoute(route, box, narrow ? ROOM.narrow : ROOM.wide, narrow ? CLOSEST.narrow : CLOSEST.wide);
+  const [cx, cy] = [(box.left + box.right) / 2, (box.top + box.bottom) / 2];
+  const at = (s: LatLng) => {
+    const q = project(view, s);
+    return { x: cx + R * q.x, y: cy - R * q.y };
+  };
+  return { view, R, cx, cy, at };
+}

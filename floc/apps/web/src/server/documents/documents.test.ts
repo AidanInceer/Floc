@@ -1,6 +1,5 @@
 /**
- * A document can belong to a day or an event (ticket 320), and the Days page
- * reads every event's files in one go (tickets 322, 324).
+ * A document can belong to a day or an event (ticket 320).
  *
  * The event join is the sharp edge: a member's private file must not leak to
  * another member through it, and soft-deleting the event must unattach the
@@ -13,7 +12,6 @@ import { db } from "@/db";
 import { dayEvent, document } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import {
-  byEvent,
   insertDocument,
   listDocuments,
   placeDocument,
@@ -32,7 +30,7 @@ const base = {
 /** What the event modal shows one viewer. */
 async function filesOn(eventId: number, viewerId: string) {
   const all = await listDocuments(world.ours.id, viewerId);
-  return byEvent(all).get(eventId) ?? [];
+  return all.filter((doc) => doc.dayEventId === eventId);
 }
 
 beforeAll(migrateTestDb);

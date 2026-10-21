@@ -2,23 +2,17 @@
 
 import { useEffect, useRef, useState, type RefObject } from "react";
 
+import { loadLand } from "@/components/explore/outline/use-land";
+import { watchRedraw } from "@/components/globe/watch-redraw";
 import type { LatLng } from "@/lib/landing/globe/sphere";
 import { watchFirstView } from "@/lib/landing/scene/scene-start";
 
 import { spinGlobe } from "./spin-globe";
 
-type Outline = { features: { geometry: { type: string; coordinates: number[][][] | number[][][][] } }[] };
-
 export type Globe = NonNullable<ReturnType<typeof spinGlobe>>;
 
 /** What the band does when the globe reports back. A ref, so the globe is not rebuilt when a handler changes. */
 export type GlobeEvents = { onSettle?: (index: number) => void; onWay?: (state: "open" | "shut") => void };
-
-const outerRings = (geo: Outline) =>
-  geo.features.flatMap(({ geometry: g }) => {
-    if (g.type === "Polygon") return [(g.coordinates as number[][][])[0]!];
-    return g.type === "MultiPolygon" ? (g.coordinates as number[][][][]).map((poly) => poly[0]!) : [];
-  });
 
 /** Runs the globe on a canvas. `lit` is the place it is on, or passing while it spins. */
 export function useSpinGlobe(home: LatLng, places: LatLng[], events: RefObject<GlobeEvents>) {
@@ -46,24 +40,19 @@ export function useSpinGlobe(home: LatLng, places: LatLng[], events: RefObject<G
       ([entry]) => {
         if (!entry?.isIntersecting) return;
         near.disconnect();
-        fetch("/countries-110m.geojson")
-          .then((r) => r.json())
-          .then((geo: Outline) => live && g.setLand(outerRings(geo)))
-          .catch(() => {});
+        void loadLand("world").then((pieces) => {
+          if (live && pieces.length > 0) g.setLand(pieces.map((piece) => piece.ring));
+        });
       },
       { rootMargin: "800px 0px" },
     );
     near.observe(node);
-    const resized = new ResizeObserver(g.redraw);
-    resized.observe(node);
-    const themed = new MutationObserver(g.redraw);
-    themed.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    const stopRedraw = watchRedraw(node, g.redraw);
     return () => {
       live = false;
       stopWatch();
       near.disconnect();
-      resized.disconnect();
-      themed.disconnect();
+      stopRedraw();
       g.stop();
       globe.current = null;
     };

@@ -16,7 +16,6 @@ import "server-only";
 
 import type {
   Availability,
-  EventInput,
   ExpenseInput,
   FlocPort,
   Me,
@@ -33,9 +32,7 @@ import type {
 } from "@floc/api/port";
 
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
-import { readTripMark } from "@floc/core/trip/mark/trip-mark";
-import { parseTagNames } from "@floc/core/trip/tags";
-import { readTripColor } from "@floc/core/trip/trip-color";
+import { saveTrip } from "@/server/trips/trip-save";
 
 import { assertAdmin, findTripAccess, type TripAccess } from "@/server/access";
 import { scoped } from "@/server/api-port/api-port-scope";
@@ -58,13 +55,10 @@ import { refresh } from "@/server/freshness";
 import { emailConfigured } from "@/server/auth/email";
 import { findTripByInviteToken, joinWithLink } from "@/server/trips/invites";
 import {
-  insertEvent,
   listDaysWithEvents,
-  setTripWindow,
-  softDeleteEvent,
-  updateEventFields,
 } from "@/server/itinerary/itinerary";
 import { listExpenses, listSettlements, listSplits } from "@/server/money/money";
+import { removeEvent, saveEvent } from "@/server/itinerary/event-save";
 import { recordTransfers, removeExpense, saveExpense } from "@/server/money/money-save";
 import { listAvailability, setAvailability } from "@/server/itinerary/availability";
 import { listDocuments } from "@/server/documents/documents";
@@ -105,7 +99,6 @@ import {
   setTripMuted,
   setTripStarred,
   softDeleteTrip,
-  updateTrip,
 } from "@/server/trips/trips";
 
 function toDetail(access: TripAccess, bookingPrefill: boolean): TripDetail {
@@ -129,19 +122,6 @@ function toDetail(access: TripAccess, bookingPrefill: boolean): TripDetail {
       tone: m.tone,
       dietary: m.dietary,
     })),
-  };
-}
-
-/** `EventFields` and the wire's `EventInput` differ only in what is optional, so this is a widening. */
-function toEventFields(input: EventInput) {
-  return {
-    type: input.type,
-    title: input.title,
-    transportType: input.transportType,
-    time: input.time,
-    endTime: input.endTime,
-    allDay: input.allDay,
-    note: input.note,
   };
 }
 
@@ -467,28 +447,7 @@ export const webPort: FlocPort = {
   },
 
   async updateTrip(viewerId, tripId, patch: TripPatch) {
-    await scoped(viewerId, tripId);
-    // `tags: null` clears on the wire, but the column's patch type says
-    // `string[]`, so an explicit clear becomes an empty list.
-    const { tags, startDate, endDate, colorKey, mark, ...rest } = patch;
-    await updateTrip(tripId, {
-      ...rest,
-      ...(colorKey !== undefined ? { colorKey: readTripColor(colorKey) } : {}),
-      ...(mark !== undefined ? { mark: readTripMark(mark) } : {}),
-      ...(tags !== undefined ? { tags: parseTagNames(tags ?? []) } : {}),
-    });
-    // Why: dates go through the same window write as the web's Dates tab, so
-    // the days follow (ticket 140) and the group hears about it (#344).
-    if (startDate !== undefined || endDate !== undefined) {
-      const current = await scoped(viewerId, tripId);
-      await setTripWindow(
-        tripId,
-        startDate === undefined ? current.trip.startDate : startDate,
-        endDate === undefined ? current.trip.endDate : endDate,
-        viewerId,
-      );
-    }
-    refresh({ kind: "tripHeader", tripId }, { kind: "tripList" });
+    await saveTrip(await scoped(viewerId, tripId), patch);
   },
 
   async archiveTrip(viewerId, tripId, archived) {
@@ -563,24 +522,14 @@ export const webPort: FlocPort = {
   },
 
   async addEvent(viewerId, tripId, dayId, input) {
-    const access = await scoped(viewerId, tripId);
-    // Binds the day to this trip — the resolver 404s one belonging to another.
-    const day = await access.day(dayId);
-    await insertEvent(day.id, toEventFields(input));
-    refresh({ kind: "itinerary", tripId });
+    await saveEvent(await scoped(viewerId, tripId), { dayId }, input);
   },
 
   async updateEvent(viewerId, tripId, eventId, input) {
-    const access = await scoped(viewerId, tripId);
-    const event = await access.event(eventId);
-    await updateEventFields(event.id, toEventFields(input));
-    refresh({ kind: "itinerary", tripId });
+    await saveEvent(await scoped(viewerId, tripId), { eventId }, input);
   },
 
   async deleteEvent(viewerId, tripId, eventId) {
-    const access = await scoped(viewerId, tripId);
-    const event = await access.event(eventId);
-    await softDeleteEvent(event.id);
-    refresh({ kind: "itinerary", tripId });
+    await removeEvent(await scoped(viewerId, tripId), eventId);
   },
 };

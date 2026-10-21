@@ -17,6 +17,18 @@ import type { DocCategory } from "@floc/core/documents/documents";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
 
+const visibleTo = (tripId: number, viewerId: string) => and(
+  eq(document.tripId, tripId), isNull(document.deletedAt),
+  or(isNull(document.ownerId), eq(document.ownerId, viewerId)),
+);
+
+export async function eventsWithDocuments(tripId: number, viewerId: string): Promise<Set<number>> {
+  const rows = await db.selectDistinct({ eventId: dayEvent.id }).from(document)
+    .innerJoin(dayEvent, and(eq(dayEvent.id, document.dayEventId), isNull(dayEvent.deletedAt)))
+    .where(visibleTo(tripId, viewerId)).limit(LIMITS.documents).all();
+  return new Set(rows.map((row) => row.eventId));
+}
+
 export type TripDocument = {
   id: number;
   name: string;
@@ -68,13 +80,7 @@ export async function listDocuments(
       and(eq(dayEvent.id, document.dayEventId), isNull(dayEvent.deletedAt)),
     )
     .leftJoin(userProfile, eq(userProfile.userId, document.uploadedBy))
-    .where(
-      and(
-        eq(document.tripId, tripId),
-        isNull(document.deletedAt),
-        or(isNull(document.ownerId), eq(document.ownerId, viewerId)),
-      ),
-    )
+    .where(visibleTo(tripId, viewerId))
     .orderBy(desc(document.createdAt), desc(document.id))
     .limit(LIMITS.documents)
     .all();
@@ -94,21 +100,6 @@ export async function listDocuments(
     eventTitle: r.eventTitle,
     eventDayId: r.eventDayId,
   }));
-}
-
-/**
- * The trip's files grouped by the event they sit on (tickets 322, 324). One
- * read, not one per block — the Days page needs every event's files at once.
- */
-export function byEvent(docs: TripDocument[]): Map<number, TripDocument[]> {
-  const out = new Map<number, TripDocument[]>();
-  for (const doc of docs) {
-    if (doc.dayEventId === null) continue;
-    const run = out.get(doc.dayEventId);
-    if (run) run.push(doc);
-    else out.set(doc.dayEventId, [doc]);
-  }
-  return out;
 }
 
 /**
