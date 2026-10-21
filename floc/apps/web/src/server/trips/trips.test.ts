@@ -3,7 +3,7 @@
  * tested against the module directly, since the patch semantics and the
  * archive/delete distinction are its properties, not a caller's.
  */
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";
@@ -12,6 +12,7 @@ import { findTripByInviteToken } from "@/server/trips/invites";
 import {
   countTripsFor,
   createTripWithAdmin,
+  listTripsFor,
   resetInviteToken,
   setTripArchived,
   softDeleteTrip,
@@ -42,6 +43,20 @@ const membership = (tripId: number, userId: string) =>
     .get();
 
 describe("creating a trip", () => {
+  it("leaves no trip behind when its first notes page cannot be written", async () => {
+    const before = await listTripsFor(world.admin, { archived: false });
+    await db.run(sql`CREATE TRIGGER refuse_first_page BEFORE INSERT ON trip_page
+      BEGIN SELECT RAISE(ABORT, 'Page storage failed'); END`);
+    try {
+      await expect(createTripWithAdmin({
+        name: "Faroes", startDate: null, endDate: null, createdBy: world.admin,
+      })).rejects.toThrow();
+      expect(await listTripsFor(world.admin, { archived: false })).toEqual(before);
+    } finally {
+      await db.run(sql`DROP TRIGGER refuse_first_page`);
+    }
+  });
+
   it("makes the creator an admin and mints an unguessable token", async () => {
     const id = await createTripWithAdmin({
       name: "Faroes",

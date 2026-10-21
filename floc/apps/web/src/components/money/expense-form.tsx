@@ -4,18 +4,16 @@
 // everyone holds shares of the cost, anyone can be pinned to a fixed amount
 // instead, the rest spread over remaining shares. Excluding someone removes
 // them as a participant entirely (direction A) rather than pinning to zero.
-// The readout mirrors resolveWeightedSplit + computeSplits (remainder pennies
-// included) so it doesn't disagree with what the server actually saves.
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 
 import type { ActionState } from "@/app/trip/[id]/money/actions";
 import {
   formatMoney,
-  maxExpenseMinor,
   sanitizeAmountInput,
   toMajorInput,
 } from "@floc/core/money/money";
-import { CURRENCIES, currencySymbol, minorPerMajor } from "@floc/core/money/currency";
+import { CURRENCIES, currencySymbol } from "@floc/core/money/currency";
+import { previewExpenseSplit } from "@floc/core/money/expense-preview";
 import type { Currency, SplitType } from "@/db/schema";
 import {
   CATEGORY_LABELS,
@@ -137,17 +135,6 @@ export function ExpenseForm({
     return initial;
   });
 
-  const amountMinor = useMemo(() => {
-    const n = Number(amount.replace(/[^\d.-]/g, ""));
-    if (!Number.isFinite(n)) return 0;
-    // Clamp so a pasted 20-digit number can't blow up the readout; the action
-    // is still the gate that refuses it.
-    return Math.max(
-      0,
-      Math.min(Math.round(n * minorPerMajor(currency)), maxExpenseMinor(currency)),
-    );
-  }, [amount, currency]);
-
   const participants = members.filter((m) => checked.has(m.userId));
   const row = (userId: string) => rows[userId] ?? { shares: 1, pin: "" };
 
@@ -175,14 +162,15 @@ export function ExpenseForm({
 
   const preview = useMemo(
     () =>
-      previewSplit(
-        amountMinor,
+      previewExpenseSplit(
+        amount,
         participants.map((p) => rowFor(p.userId)),
         currency,
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [amountMinor, rows, checked, members, mode, currency],
+    [amount, rows, checked, members, mode, currency],
   );
+  const { amountMinor } = preview;
 
   const unbalanced = amountMinor > 0 && participants.length > 0 && preview.leftover !== 0;
 
@@ -521,74 +509,4 @@ export function ExpenseForm({
       </Stack>
     </form>
   );
-}
-
-// Readout only, mirrors resolveWeightedSplit + computeSplits: pins come off
-// the top, the rest spreads by shares, odd penny to the largest fractions.
-// Keeps a money box to digits and a single decimal point — no minus sign, no
-// letters. The server still validates; this just stops nonsense being typed.
-function previewSplit(
-  amountMinor: number,
-  rows: { userId: string; shares: number; pin: string }[],
-  currency: Currency,
-): {
-  amounts: Record<string, number>;
-  allocated: number;
-  leftover: number;
-  evenEach: number | null; // set only in the plain even case
-} {
-  const amounts: Record<string, number> = {};
-  if (rows.length === 0) return { amounts, allocated: 0, leftover: amountMinor, evenEach: null };
-
-  const parsed = rows.map((r) => {
-    const pin = r.pin.trim();
-    const n = pin === "" ? null : Number(pin.replace(/[^\d.-]/g, ""));
-    return {
-      userId: r.userId,
-      shares: r.shares,
-      pinnedMinor:
-        n === null || !Number.isFinite(n)
-          ? null
-          : Math.round(n * minorPerMajor(currency)),
-    };
-  });
-
-  const pinnedTotal = parsed.reduce((sum, r) => sum + (r.pinnedMinor ?? 0), 0);
-  const remainder = amountMinor - pinnedTotal;
-  const unpinned = parsed.filter((r) => r.pinnedMinor === null);
-  const shareTotal = unpinned.reduce((sum, r) => sum + r.shares, 0);
-
-  for (const r of parsed) if (r.pinnedMinor !== null) amounts[r.userId] = r.pinnedMinor;
-
-  if (remainder > 0 && shareTotal > 0) {
-    const exact = unpinned.map((r) => (remainder * r.shares) / shareTotal);
-    const floors = exact.map(Math.floor);
-    let pennies = remainder - floors.reduce((a, b) => a + b, 0);
-    const order = exact
-      .map((value, i) => ({ i, frac: value - floors[i] }))
-      .sort((a, b) => b.frac - a.frac || a.i - b.i);
-    for (const { i } of order) {
-      if (pennies <= 0) break;
-      floors[i] += 1;
-      pennies -= 1;
-    }
-    unpinned.forEach((r, i) => {
-      amounts[r.userId] = floors[i];
-    });
-  } else {
-    for (const r of unpinned) amounts[r.userId] = 0;
-  }
-
-  const allocated = Object.values(amounts).reduce((a, b) => a + b, 0);
-  const isEven =
-    pinnedTotal === 0 &&
-    unpinned.length === parsed.length &&
-    parsed.every((r) => r.shares === parsed[0].shares && r.shares > 0);
-
-  return {
-    amounts,
-    allocated,
-    leftover: amountMinor - allocated,
-    evenEach: isEven && parsed.length > 0 ? amounts[parsed[0].userId] : null,
-  };
 }

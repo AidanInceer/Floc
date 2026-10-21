@@ -130,25 +130,26 @@ export async function createTripWithAdmin(input: {
   // A start alone is a real answer at creation; a full window must be a valid one.
   const problem = input.startDate && input.endDate ? windowProblem(input.startDate, input.endDate) : null;
   if (problem) throw new Refusal(problem);
-  const [created] = await db
-    .insert(trip)
-    .values({
-      name: input.name,
-      startDate: input.startDate,
-      endDate: input.endDate,
-      createdBy: input.createdBy,
-      inviteToken: crypto.randomUUID(), // unguessable, never derived from id (ticket 05)
-    })
-    .returning({ id: trip.id });
+  return db.transaction(async (tx) => {
+    const [created] = await tx
+      .insert(trip)
+      .values({
+        name: input.name,
+        startDate: input.startDate,
+        endDate: input.endDate,
+        createdBy: input.createdBy,
+        inviteToken: crypto.randomUUID(),
+      })
+      .returning({ id: trip.id });
 
-  await db.insert(tripMembership).values({
-    tripId: created.id,
-    userId: input.createdBy,
-    role: "admin",
+    await tx.insert(tripMembership).values({
+      tripId: created.id,
+      userId: input.createdBy,
+      role: "admin",
+    });
+    await insertFirstPage(tx, created.id, input.createdBy, input.firstPage);
+    return created.id;
   });
-  await insertFirstPage(db, created.id, input.createdBy, input.firstPage);
-
-  return created.id;
 }
 
 /**

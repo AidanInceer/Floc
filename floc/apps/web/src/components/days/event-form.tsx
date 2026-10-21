@@ -4,7 +4,7 @@
 // no submit button, saves on change. dayId/eventId ride as hidden fields since
 // the client picked them; submitEvent re-checks (rule 5).
 
-import { useCallback, useRef, type ComponentProps } from "react";
+import { useCallback, useEffect, useRef, type ComponentProps } from "react";
 import { useFormStatus } from "react-dom";
 
 import { SubmitButton } from "@/components/system/client-ui";
@@ -43,16 +43,24 @@ export function EventForm({
 }) {
   const formRef = useRef<HTMLFormElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dirty = useRef(false);
+
+  useEffect(() => () => {
+    if (timer.current) clearTimeout(timer.current);
+  }, []);
 
   const save = useCallback(() => {
     if (timer.current) clearTimeout(timer.current);
+    if (!dirty.current) return;
+    dirty.current = false;
     formRef.current?.requestSubmit();
   }, []);
   const saveSoon = useCallback(() => {
     if (!autosave) return;
+    dirty.current = true;
     if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => formRef.current?.requestSubmit(), 700);
-  }, [autosave]);
+    timer.current = setTimeout(save, 700);
+  }, [autosave, save]);
 
   // Name first (ticket 74): the thought before the paperwork, and the form's
   // one required field is the first thing you meet.
@@ -86,7 +94,7 @@ export function EventForm({
           label="Place (optional)"
           defaultName={defaults.placeName ?? ""}
           search={searchPlaces}
-          onSelect={autosave ? save : undefined}
+          onSelect={autosave ? () => { dirty.current = true; save(); } : undefined}
         />
         {/* step={60}: a quarter-hour picker quietly rounded 10:50 to 10:45. */}
         <EventTimeFields

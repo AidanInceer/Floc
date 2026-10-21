@@ -9,6 +9,7 @@
  * A rule with two enforcement paths needs a test on both.
  */
 import { parseTagNames } from "@floc/core/trip/tags";
+import { sql } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";
@@ -179,6 +180,42 @@ describe("joining", () => {
 });
 
 describe("creating and patching a trip", () => {
+  it("keeps the old name when a combined name and date edit is refused", async () => {
+    await expect(webPort.updateTrip(world.member, world.ours.id, {
+      name: "Should not save", startDate: "2026-09-10", endDate: "2026-09-01",
+    })).rejects.toThrow();
+    expect((await webPort.loadTrip(world.member, world.ours.id))?.name).toBe("Ours");
+  });
+
+  it("rolls back the whole edit if an itinerary write fails", async () => {
+    const before = await webPort.listDays(world.member, world.ours.id);
+    await db.run(sql`CREATE TRIGGER refuse_day BEFORE INSERT ON day
+      BEGIN SELECT RAISE(ABORT, 'Day storage failed'); END`);
+    try {
+      await expect(webPort.updateTrip(world.member, world.ours.id, {
+        name: "Should not save", startDate: "2026-09-10", endDate: "2026-09-12", tags: ["beach"],
+      })).rejects.toThrow();
+      expect(await webPort.loadTrip(world.member, world.ours.id)).toMatchObject({
+        name: "Ours", startDate: null, endDate: null, tags: null,
+      });
+      expect(await webPort.listDays(world.member, world.ours.id)).toEqual(before);
+    } finally {
+      await db.run(sql`DROP TRIGGER refuse_day`);
+    }
+  });
+
+  it("saves metadata and dates together while preserving an omitted end date", async () => {
+    await webPort.updateTrip(world.member, world.ours.id, {
+      name: "Portugal", startDate: "2026-09-01", endDate: "2026-09-03",
+    });
+    await webPort.updateTrip(world.member, world.ours.id, { startDate: "2026-09-02", tags: ["beach"] });
+    expect(await webPort.loadTrip(world.member, world.ours.id)).toMatchObject({
+      name: "Portugal", startDate: "2026-09-02", endDate: "2026-09-03", tags: ["beach"],
+    });
+    expect((await webPort.listDays(world.member, world.ours.id)).map((day) => day.date))
+      .toEqual(["2026-09-02", "2026-09-03"]);
+  });
+
   it("makes the creator an admin", async () => {
     const { id } = await webPort.createTrip(world.member, {
       name: "Faroes",

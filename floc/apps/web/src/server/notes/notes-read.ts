@@ -8,23 +8,32 @@
  */
 import "server-only";
 
-import { and, asc, eq, isNull } from "drizzle-orm";
+import { and, asc, count, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { note, noteReaction, user, userProfile, type NoteScope } from "@/db/schema";
 import { emptyReactions, type NoteRow, type Reactions } from "@floc/core/notes/notes";
+
+export async function eventCommentCounts(tripId: number): Promise<Map<number, number>> {
+  const rows = await db.select({ scopeId: note.scopeId, count: count() }).from(note)
+    .where(and(eq(note.tripId, tripId), eq(note.scope, "day_event"), isNull(note.deletedAt), isNull(note.resolvedAt)))
+    .groupBy(note.scopeId).all();
+  return new Map(rows.flatMap((row) => row.scopeId === null ? [] : [[row.scopeId, row.count]]));
+}
 
 export async function loadThreads({
   tripId,
   scope,
   viewerId,
   toneOf,
+  scopeId,
 }: {
   tripId: number;
   scope: NoteScope;
   viewerId: string;
   /** Trip roster tones, so one person is one colour across every tab. */
   toneOf: Map<string, string | undefined>;
+  scopeId?: number;
 }): Promise<Map<number, NoteRow[]>> {
   const byScope = new Map<number, NoteRow[]>();
 
@@ -38,6 +47,7 @@ export async function loadThreads({
   const scoped = and(
     eq(note.tripId, tripId),
     eq(note.scope, scope),
+    scopeId === undefined ? undefined : eq(note.scopeId, scopeId),
     isNull(note.deletedAt),
     isNull(note.resolvedAt),
   );

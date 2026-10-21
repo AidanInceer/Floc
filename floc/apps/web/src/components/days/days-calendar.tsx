@@ -19,6 +19,7 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import type { PlaceSearch } from "@/components/days/event-form";
 import { cx } from "@/components/system/ui";
@@ -99,7 +100,7 @@ function focusFacts(days: CalendarDay[], index: number, events: CalendarEvent[])
 export function DaysCalendar({
   days,
   events,
-  panels,
+  panel,
   removeDayControls,
   submitEvent,
   rescheduleEvent,
@@ -113,8 +114,7 @@ export function DaysCalendar({
 }: {
   days: CalendarDay[];
   events: CalendarEvent[];
-  /** Server-rendered detail panel per event id. */
-  panels: Record<number, ReactNode>;
+  panel: { eventId: number; content: ReactNode } | null;
   removeDayControls: Record<number, ReactNode>;
   submitEvent: (formData: FormData) => Promise<void>;
   rescheduleEvent: (
@@ -138,6 +138,9 @@ export function DaysCalendar({
   groupSize: number;
   bookingPrefill: boolean;
 }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const hasToday = days.some((d) => d.isToday);
   const todayIndex = Math.max(
     0,
@@ -149,7 +152,7 @@ export function DaysCalendar({
     initialIndex >= 0 ? initialIndex : todayIndex,
   );
   const [unfold, setUnfold] = useState(false);
-  const [selected, setSelected] = useState<number | null>(null);
+  const [selected, setSelected] = useState<number | null>(openEventId ?? null);
   const [adding, setAdding] = useState<Adding | null>(null);
   const [announcement, setAnnouncement] = useState("");
 
@@ -181,7 +184,12 @@ export function DaysCalendar({
   // so re-running would reopen the modal every time they close it.
   const arrivedOn = useRef<number | null>(null);
   useEffect(() => {
-    if (openEventId == null || arrivedOn.current === openEventId) return;
+    if (openEventId == null) {
+      arrivedOn.current = null;
+      setSelected(null);
+      return;
+    }
+    if (arrivedOn.current === openEventId) return;
     arrivedOn.current = openEventId;
     const event = events.find((e) => e.id === openEventId);
     if (!event) return;
@@ -312,6 +320,16 @@ export function DaysCalendar({
   const select = (id: number) => {
     keptSelection.current = true;
     setSelected(id);
+    const query = new URLSearchParams(searchParams.toString());
+    query.set("event", String(id));
+    router.replace(`${pathname}?${query}`, { scroll: false });
+  };
+
+  const closeEvent = () => {
+    setSelected(null);
+    const query = new URLSearchParams(searchParams.toString());
+    query.delete("event");
+    router.replace(query.size ? `${pathname}?${query}` : pathname, { scroll: false });
   };
 
   const onCalendarClick = () => {
@@ -319,7 +337,7 @@ export function DaysCalendar({
       keptSelection.current = false;
       return;
     }
-    setSelected(null);
+    if (selected !== null) closeEvent();
   };
 
   const openAdd = (dayId: number, minutes: number, endMinutes?: number) => {
@@ -539,8 +557,8 @@ export function DaysCalendar({
 
       <EventModal
         open={selectedEvent != null}
-        onClose={() => setSelected(null)}
-        panel={selectedEvent ? panels[selectedEvent.id] : null}
+        onClose={closeEvent}
+        panel={panel?.eventId === selected ? panel.content : <p role="status" className="p-4 text-sm text-ink-soft">Loading event…</p>}
       />
 
       {/* Every gesture says what it did: a drag that reports itself only

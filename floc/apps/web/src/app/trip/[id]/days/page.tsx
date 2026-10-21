@@ -6,7 +6,7 @@
  *
  * `components/days-calendar.tsx` is a Client Component owning geometry and
  * gestures; this stays a Server Component owning every Server Action — the
- * event modal's panel, adding/removing a day — passed over as pre-rendered
+ * selected event's panel, adding/removing a day — passed over as pre-rendered
  * nodes so mutations stay on the server.
  *
  * Notes hang off *events*, not days (a free-text per-day box had no clear use);
@@ -16,8 +16,6 @@
  * with the word always present too — colour is never the only signal. A
  * flight event offers a Google Flights deep link only (ticket 10).
  */
-import type { ReactNode } from "react";
-
 import {
   addDays,
   deleteEvent,
@@ -45,9 +43,8 @@ import { EVENT_CATEGORIES } from "@floc/core/itinerary/event-categories";
 import { NoteThread, type NoteRow } from "@/components/notes/note-thread";
 import { requireTripAccess } from "@/server/access";
 import { canUseFeature } from "@/server/billing/entitlements";
-import { listDaysWithEvents, type DayEventRow } from "@/server/itinerary/itinerary";
-import { loadThreads } from "@/server/notes/notes-read";
-import { byEvent, listDocuments } from "@/server/documents/documents";
+import type { DayEventRow } from "@/server/itinerary/itinerary";
+import { loadCalendar } from "@/server/itinerary/calendar-read";
 import type { TripDocument } from "@/server/documents/documents";
 import { documentsEnabled } from "@/server/documents/document-store";
 import { addDays as addDaysToDate, fromIsoDate, today } from "@floc/core/dates/dates";
@@ -66,28 +63,13 @@ export default async function DaysPage({
   const access = await requireTripAccess(id, `/trip/${id}/days`);
   const { trip, viewer, members } = access;
 
-  // One person, one colour across every tab.
-  const toneOf = new Map(members.map((m) => [m.userId, m.tone]));
-
-  // Two independent reads that go out together (ticket 118). Trip-wide talk
-  // moved to the Notes page (ticket 321), so the days route no longer reads
-  // the trip thread or its links.
-  const [days, notesByEvent, docs, bookingPrefill] = await Promise.all([
-    listDaysWithEvents(trip.id),
-    loadThreads({ tripId: trip.id, scope: "day_event", viewerId: viewer.id, toneOf }),
-    documentsEnabled() ? listDocuments(trip.id, viewer.id) : [],
-    canUseFeature("booking.prefill", trip.id),
-  ]);
-
-  // One read for every block's files (tickets 322, 324), not one per event.
-  const filesByEvent = byEvent(docs);
-  const loose: FileChoice[] = docs
-    .filter((d) => d.dayEventId === null)
-    .map((d) => ({ id: d.id, name: d.name }));
-
-  // Arrives from a file's "on [event]" tag (ticket 323).
   const query = await searchParams;
   const openEventId = Number(query.event) || null;
+  const [calendar, bookingPrefill] = await Promise.all([
+    loadCalendar(access, openEventId),
+    canUseFeature("booking.prefill", trip.id),
+  ]);
+  const { days, commentCounts, fileEventIds, selected } = calendar;
 
   if (days.length === 0) {
     // Two empty states (ticket 126): an undated trip is sent to Dates rather
@@ -145,11 +127,7 @@ export default async function DaysPage({
   }));
 
   const calendarEvents: CalendarEvent[] = [];
-  const panels: Record<number, ReactNode> = {};
-
-  for (const [index, d] of days.entries()) {
-    const previousPlace = index > 0 ? days[index - 1].overnightPlaceName : null;
-
+  for (const d of days) {
     for (const event of d.events) {
       const category = EVENT_CATEGORIES[event.type];
       calendarEvents.push({
@@ -167,30 +145,9 @@ export default async function DaysPage({
         allDay: event.allDay,
         hasNote: Boolean(event.note),
         note: event.note,
-        hasFiles: (filesByEvent.get(event.id) ?? []).length > 0,
-        // Replies count too — the block says how much conversation is in there.
-        commentCount: (notesByEvent.get(event.id) ?? []).reduce(
-          (n, run) => n + 1 + run.replies.length,
-          0,
-        ),
+        hasFiles: fileEventIds.has(event.id),
+        commentCount: commentCounts.get(event.id) ?? 0,
       });
-
-      panels[event.id] = (
-        <EventPanel
-          tripId={trip.id}
-          dayId={d.id}
-          date={d.date}
-          event={event}
-          originPlaceName={previousPlace}
-          destinationPlaceName={d.overnightPlaceName}
-          notes={notesByEvent.get(event.id) ?? []}
-          files={filesByEvent.get(event.id) ?? []}
-          loose={loose}
-          filesEnabled={documentsEnabled()}
-          viewerId={viewer.id}
-          bookingPrefill={bookingPrefill}
-        />
-      );
     }
   }
 
@@ -225,14 +182,30 @@ export default async function DaysPage({
       <DaysCalendar
         days={calendarDays}
         events={calendarEvents}
-        panels={panels}
+        panel={selected ? {
+          eventId: selected.event.id,
+          content: <EventPanel
+            tripId={trip.id}
+            dayId={selected.day.id}
+            date={selected.day.date}
+            event={selected.event}
+            originPlaceName={days[days.indexOf(selected.day) - 1]?.overnightPlaceName ?? null}
+            destinationPlaceName={selected.day.overnightPlaceName}
+            notes={selected.notes}
+            files={selected.files}
+            loose={selected.loose}
+            filesEnabled={documentsEnabled()}
+            viewerId={viewer.id}
+            bookingPrefill={bookingPrefill}
+          />,
+        } : null}
         removeDayControls={removeDayControls}
         submitEvent={submitEvent.bind(null, trip.id)}
         rescheduleEvent={rescheduleEvent.bind(null, trip.id)}
         moveEventToDay={moveEventToAnotherDay.bind(null, trip.id)}
         setOvernight={setDayOvernight.bind(null, trip.id)}
         searchPlaces={searchPlacesAction}
-        openEventId={openEventId}
+        openEventId={selected?.event.id ?? null}
         initialDate={query.date}
         groupSize={members.length}
         bookingPrefill={bookingPrefill}
