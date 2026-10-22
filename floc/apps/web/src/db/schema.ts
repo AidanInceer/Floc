@@ -161,10 +161,10 @@ export const userProfile = sqliteTable("user_profile", {
   /** Fixed set from `VIBE_TAGS` (@floc/core/trip/vibe-tags) — was free text, fragmented matching (ticket 46). */
   vibeTags: text("vibe_tags", { mode: "json" }).$type<string[] | null>(),
   signupChannel: text("signup_channel", { enum: SIGNUP_CHANNELS }),
-  /** From `DIET_FLAGS` (@floc/core/people/dietary). Never shown on a profile — used only where it does work (restaurant picking). */
+  // Why: dietary was taken out of the product (2026-10-22). Nothing reads or
+  // writes these three; they stay, cleared on erase, until a drop migration is agreed.
   dietFlags: text("diet_flags", { mode: "json" }).$type<string[] | null>(),
   dietaryNotes: text("dietary_notes"),
-  /** One boolean for the whole record (ticket 46) — off by default. */
   shareDietary: integer("share_dietary", { mode: "boolean" })
     .notNull()
     .default(false),

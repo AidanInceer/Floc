@@ -1,27 +1,11 @@
-/**
- * About you — vibe tags and dietary (tickets 46, 236, on the phone).
- *
- * TAGS ARE PICKED, NOT TYPED. The seed list is short enough to lay out whole,
- * so there is no picker sheet and no search: ten pills, tap to turn one on.
- * Tapping is the write.
- *
- * DIETARY IS NEVER ON YOUR PROFILE. It surfaces where it does work — a trip
- * deciding where to eat — which is the one thing the layout cannot say, so it
- * is the one line of text here.
- *
- * THE NOTE SAVES WHEN YOU LEAVE IT. Free text is the only control on this
- * screen that cannot save per keystroke, so it saves on blur rather than
- * growing the screen's only Save button.
- */
-import { DIET_FLAGS, MAX_DIETARY_NOTES } from "@floc/core/people/dietary";
+// Why: the seed list is short enough to lay out whole, so no picker sheet and
+// no search — ten pills, and tapping one is the write (#46, #236).
 import { VIBE_TAGS } from "@floc/core/trip/vibe-tags";
 import { StyleSheet, Pressable, Text, View } from "react-native";
 
 import { useTheme } from "../system/theme";
-import { Body, Field, Label, Toggle } from "../system/ui";
+import { Label } from "../system/ui";
 import { fonts, radius, size, space } from "@/lib/theme";
-
-export type Dietary = { flags: string[]; notes: string; share: boolean };
 
 /** One tag, on or off. Filled when on, and the word is always there (#204). */
 function TagPill({
@@ -85,58 +69,6 @@ export function SettingsVibeTags({
           />
         ))}
       </View>
-    </View>
-  );
-}
-
-export function SettingsDietary({
-  dietary,
-  onChange,
-  onCommitNotes,
-}: {
-  dietary: Dietary;
-  /** Fires on every switch — a switch is the answer, so it is the write. */
-  onChange: (next: Dietary) => void;
-  /** Fires when the free text loses focus, which is the only moment it is finished. */
-  onCommitNotes: () => void;
-}) {
-  return (
-    <View style={{ gap: space.sm }}>
-      <Label>Dietary</Label>
-      <Body tone="ink-3">
-        Never on your profile. It shows up on a trip working out where to eat.
-      </Body>
-
-      {Object.entries(DIET_FLAGS).map(([value, label]) => (
-        <Toggle
-          key={value}
-          label={label}
-          value={dietary.flags.includes(value)}
-          onChange={(on) =>
-            onChange({
-              ...dietary,
-              flags: on
-                ? [...dietary.flags, value]
-                : dietary.flags.filter((f) => f !== value),
-            })
-          }
-        />
-      ))}
-
-      <Field
-        label="Allergies and intolerances"
-        value={dietary.notes}
-        maxLength={MAX_DIETARY_NOTES}
-        multiline
-        onChangeText={(notes) => onChange({ ...dietary, notes })}
-        onBlur={onCommitNotes}
-      />
-
-      <Toggle
-        label="Share this with people I'm on a trip with"
-        value={dietary.share}
-        onChange={(share) => onChange({ ...dietary, share })}
-      />
     </View>
   );
 }

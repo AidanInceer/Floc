@@ -30,7 +30,6 @@ import {
 import { auth } from "@/server/auth/auth";
 import { bounded, LIMITS } from "@/server/limits";
 import { requestMemo } from "@/server/request-scope";
-import { dietarySummary, readDietFlags } from "@floc/core/people/dietary";
 import { localPath } from "@floc/core/text/local-path";
 import { whoTone } from "@floc/core/people/who";
 import type { TripRole } from "@/db/schema";
@@ -91,8 +90,6 @@ export type TripMember = {
   joinedAt: Date;
   /** Roster-position colour (ticket 11) — pass through rather than letting `Avatar` hash the name. */
   tone: string;
-  /** Never on a profile page — a functional attribute a group picking where to eat needs (ticket 46). */
-  dietary: string | null;
 };
 
 /**
@@ -339,9 +336,6 @@ function memberQuery() {
       image: user.image,
       displayName: userProfile.displayName,
       avatarIcon: userProfile.avatarIcon,
-      dietFlags: userProfile.dietFlags,
-      dietaryNotes: userProfile.dietaryNotes,
-      shareDietary: userProfile.shareDietary,
     })
     .from(tripMembership)
     .innerJoin(user, eq(user.id, tripMembership.userId))
@@ -360,9 +354,6 @@ function toRoster(rows: MemberRow[]): TripMember[] {
       email: r.email,
       avatarIcon: r.avatarIcon,
       joinedAt: r.joinedAt,
-      dietary: r.shareDietary
-        ? dietarySummary(readDietFlags(r.dietFlags), r.dietaryNotes)
-        : null,
     }))
     // Earliest-joined first, same order sole-admin promotion uses (ticket 06).
     .sort(

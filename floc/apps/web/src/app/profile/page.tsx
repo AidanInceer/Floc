@@ -2,12 +2,12 @@
  * Your own profile (ticket 46; redesigned 201, reordered 236).
  *
  * The two faces split here: this page is what you *curate* — name, picture,
- * vibe tags, dietary, home currency. Everything about who can see it, plus
+ * vibe tags, home currency. Everything about who can see it, plus
  * email, notifications and deleting the account, moved to /settings.
  *
  * Face first: the card someone lands on, then what you've actually done (map,
  * trips). Only your name and picture are edited here — vibe tags, packing,
- * dietary and your home currency all moved to /settings, so this page reads as
+ * and your home currency all moved to /settings, so this page reads as
  * a profile rather than as a settings form (ticket 236).
  */
 

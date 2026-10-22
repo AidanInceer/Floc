@@ -7,8 +7,8 @@
  * and never re-derives a permission: a hidden attribute arrives as `null`, not
  * as a value with a flag beside it.
  *
- * Deliberately absent: email, dietary and home currency (functional
- * attributes, they surface where they do work), and any way into a past trip —
+ * Deliberately absent: email and home currency (functional attributes,
+ * they surface where they do work), and any way into a past trip —
  * that's #52/#53, and the roster would name third parties who never consented
  * to appear here.
  */

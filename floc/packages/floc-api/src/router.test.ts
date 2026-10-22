@@ -27,7 +27,6 @@ const TRIP: TripDetail = {
       email: "ana@example.com",
       avatarIcon: null,
       tone: "who-1",
-      dietary: null,
     },
   ],
   bookingPrefill: false,

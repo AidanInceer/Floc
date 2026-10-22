@@ -20,7 +20,8 @@ export function fitRoute(route: TripRoute, box: Box, room: { x: number; y: numbe
   const [xs, ys] = [pts.map((p) => p.x), pts.map((p) => p.y)];
   const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
   const view = unproject(mid, (x0 + x1) / 2, -(y0 + y1) / 2);
-  const [w, h] = [box.right - box.left - 2 * room.x, box.bottom - box.top - 2 * room.y];
+  // Why: a box narrower than the room (a card filling the band, a hidden tab) would give a negative radius, and canvas `arc` throws on one.
+  const [w, h] = [Math.max(box.right - box.left - 2 * room.x, 1), Math.max(box.bottom - box.top - 2 * room.y, 1)];
   return { view, R: Math.min(w / Math.max(x1 - x0, 1e-9), h / Math.max(y1 - y0, 1e-9), closest) };
 }
 

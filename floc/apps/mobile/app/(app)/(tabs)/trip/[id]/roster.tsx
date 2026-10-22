@@ -85,9 +85,6 @@ export default function Roster() {
                   />
                   <View style={{ flex: 1, gap: space.xs }}>
                     <Body bold>{m.name}</Body>
-                    {/* A functional attribute for a group picking dinner — shown
-                        only when they chose to share it (#46). */}
-                    {m.dietary ? <Body tone="ink-2">{m.dietary}</Body> : null}
                   </View>
                   {m.role === "admin" ? <Pill word="Admin" tone="pastel-blue" /> : null}
                 </View>

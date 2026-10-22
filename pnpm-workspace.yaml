@@ -51,6 +51,9 @@ overrides:
   compression: ^1.8.2
   tinypool: ^2.1.2
   shell-quote: ^1.11.0
+  # GHSA-2464-fhr4-w9xw (critical) and GHSA-p3m5-59mp-jv5r — the web app's own Next,
+  # and the copy better-auth pulls in for the phone; patched in 15.5.28.
+  next: ^15.5.28
 
 # The one thing an override cannot answer: an advisory with NO patched version.
 #

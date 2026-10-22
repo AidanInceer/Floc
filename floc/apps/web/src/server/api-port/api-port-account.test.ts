@@ -54,19 +54,6 @@ describe("settings", () => {
     expect(settings.vibeTags).toEqual(["hiking"]);
   });
 
-  it("moves the diets, the note and the sharing switch together", async () => {
-    await webPort.updateDietary(world.member, {
-      flags: ["vegan"],
-      notes: "severe nut allergy",
-      share: true,
-    });
-
-    const settings = await webPort.loadMySettings(world.member);
-    expect(settings.dietFlags).toEqual(["vegan"]);
-    expect(settings.dietaryNotes).toBe("severe nut allergy");
-    expect(settings.shareDietary).toBe(true);
-  });
-
   it("keeps the three notification switches, all on until changed (#346)", async () => {
     const before = await webPort.loadMySettings(world.member);
     expect([before.notifyPush, before.notifyEmail, before.notifyReminders]).toEqual([true, true, true]);

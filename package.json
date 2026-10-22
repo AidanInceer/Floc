@@ -58,7 +58,8 @@
       "source-map-js": "^1.2.2",
       "compression": "^1.8.2",
       "tinypool": "^2.1.2",
-      "shell-quote": "^1.11.0"
+      "shell-quote": "^1.11.0",
+      "next": "^15.5.28"
     },
     "auditConfig": {
       "//": "image-size has NO patched version (advisories say '<0.0.0') and is reached only through Metro, Expo's bundler — a developer-machine build tool, not the shipped app or any server. Scoped to these GHSAs so every other finding still fails the gate. Revisit when image-size publishes a fix; see pnpm-workspace.yaml. node-forge (via @expo/cli) and braces (via Metro and eslint-config-next) are the same case: no patched version, not in the built web app.",

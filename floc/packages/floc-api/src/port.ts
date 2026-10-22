@@ -70,8 +70,6 @@ export type TripMember = {
   avatarIcon: AvatarIcon | null;
   /** Roster seat colour, assigned from the name — a token name, not a hex. */
   tone: string;
-  /** Null unless the member chose to share it. Never on a profile — it is for the group picking dinner. */
-  dietary: string | null;
 };
 
 /** One trip and everything a client needs before it can render any tab of it. */
@@ -344,11 +342,6 @@ export type MySettings = {
   visibilityFriends: Visibility;
   pastTripsShow: PastTripsShow;
   vibeTags: string[];
-  /** Values from `DIET_FLAGS`, already guarded on the host. */
-  dietFlags: string[];
-  dietaryNotes: string | null;
-  /** One switch for the whole record — you cannot publish half a dietary record. */
-  shareDietary: boolean;
   /** The default a new trip starts from, never a trip's own choice (ticket 220). */
   packTier: PackTier;
   packAutoGenerate: boolean;
@@ -602,7 +595,7 @@ export type FlocPort = {
    *
    * `been` and `wantToGo` are the travel map's counts, derived on read from the
    * trips they are on — never stored, so they cannot go stale. Only what the
-   * phone's profile draws is here; the web's vibe tags, dietary and visibility
+   * phone's profile draws is here; the web's vibe tags and visibility
    * settings stay on the web, where they are edited.
    */
   loadMe(viewerId: string): Promise<Me>;
@@ -750,12 +743,6 @@ export type FlocPort = {
 
   /** Seed-only on the host as well as in the UI — a hand-made call must not invent a tag. */
   updateVibeTags(viewerId: string, tags: string[]): Promise<void>;
-
-  /** All three at once: the sharing switch reads as part of the fact itself. */
-  updateDietary(
-    viewerId: string,
-    input: { flags: string[]; notes: string | null; share: boolean },
-  ): Promise<void>;
 
   /** Defaults, never a trip's choice — editing here leaves a tuned trip alone (ticket 220). */
   updatePackingDefaults(

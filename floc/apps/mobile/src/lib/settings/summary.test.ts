@@ -25,16 +25,13 @@ describe("privacySummary", () => {
 });
 
 describe("aboutSummary", () => {
-  it("counts tags and diets", () => {
-    expect(aboutSummary(3, 1)).toBe("3 tags · 1 diet");
+  it("counts tags", () => {
+    expect(aboutSummary(3)).toBe("3 tags");
+    expect(aboutSummary(1)).toBe("1 tag");
   });
 
-  it("drops a part that is empty", () => {
-    expect(aboutSummary(1, 0)).toBe("1 tag");
-  });
-
-  it("says none set when both are empty", () => {
-    expect(aboutSummary(0, 0)).toBe("None set");
+  it("says none set when there are none", () => {
+    expect(aboutSummary(0)).toBe("None set");
   });
 });
 

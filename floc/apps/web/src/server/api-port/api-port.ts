@@ -120,7 +120,6 @@ function toDetail(access: TripAccess, bookingPrefill: boolean): TripDetail {
       email: m.email,
       avatarIcon: m.avatarIcon,
       tone: m.tone,
-      dietary: m.dietary,
     })),
   };
 }
