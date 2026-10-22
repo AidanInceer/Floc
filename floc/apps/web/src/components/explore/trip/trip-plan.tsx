@@ -12,7 +12,7 @@ import { Button, SectionHeading } from "@/components/system/ui";
 
 const calm = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-export function TripPlan({ trip, plan, signedIn }: { trip: PresetTrip; plan: PresetPlan; signedIn: boolean }) {
+export function TripPlan({ trip, plan, signedIn, startOpen }: { trip: PresetTrip; plan: PresetPlan; signedIn: boolean; startOpen?: boolean }) {
   const tone = regionTone(trip.region);
   const [open, setOpen] = useState<number[]>(plan.detailed ? [1] : []);
   const [jump, setJump] = useState<number | null>(null);
@@ -60,7 +60,7 @@ export function TripPlan({ trip, plan, signedIn }: { trip: PresetTrip; plan: Pre
           Back to top
         </button>
       </section>
-      <TripCopyCard trip={trip} stops={plan.stops} open={open} onJump={jumpTo} signedIn={signedIn} />
+      <TripCopyCard trip={trip} stops={plan.stops} open={open} onJump={jumpTo} signedIn={signedIn} startOpen={startOpen} />
       <TripCopyBar trip={trip} signedIn={signedIn} />
     </div>
   );

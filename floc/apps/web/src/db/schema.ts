@@ -161,13 +161,6 @@ export const userProfile = sqliteTable("user_profile", {
   /** Fixed set from `VIBE_TAGS` (@floc/core/trip/vibe-tags) — was free text, fragmented matching (ticket 46). */
   vibeTags: text("vibe_tags", { mode: "json" }).$type<string[] | null>(),
   signupChannel: text("signup_channel", { enum: SIGNUP_CHANNELS }),
-  /** From `DIET_FLAGS` (@floc/core/people/dietary). Never shown on a profile — used only where it does work (restaurant picking). */
-  dietFlags: text("diet_flags", { mode: "json" }).$type<string[] | null>(),
-  dietaryNotes: text("dietary_notes"),
-  /** One boolean for the whole record (ticket 46) — off by default. */
-  shareDietary: integer("share_dietary", { mode: "boolean" })
-    .notNull()
-    .default(false),
   /** Profile-wide switch: hides every display attribute, falls back to the name. */
   isPrivate: integer("is_private", { mode: "boolean" }).notNull().default(false),
   visibilityVibeTags: text("visibility_vibe_tags", { enum: VISIBILITIES })

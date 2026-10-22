@@ -1,4 +1,5 @@
 import { day } from "../../day";
+import { at, swap } from "../../ideas";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const JAPAN_GOLDEN_ROUTE: PresetDetail = {
@@ -62,4 +63,35 @@ export const JAPAN_GOLDEN_ROUTE: PresetDetail = {
     { label: "Pace", text: "On the move. Five stops in thirteen nights." },
     { label: "Walking", text: "A lot, mostly flat. One 06:00 start." },
   ],
+  ideas: {
+    atStops: [
+      at("Tokyo", [
+        ["teamLab digital art", "Relaxed", "Mid"],
+        ["Breakfast at Tsukiji outer market", "Relaxed", "Low"],
+        ["Nikko's shrines for the day", "Steady", "Mid"],
+      ]),
+      at("Hakone", [
+        ["Hakone open-air museum", "Relaxed", "Mid"],
+        ["Pirate ship across Lake Ashi", "Relaxed", "Low"],
+      ]),
+      at("Kyoto", [
+        ["Fushimi Inari at dawn", "Active", "Free"],
+        ["Tea ceremony", "Relaxed", "Mid"],
+        ["Nara and its deer for the day", "Steady", "Low"],
+      ]),
+      at("Hiroshima", [
+        ["Okonomiyaki at Okonomimura", "Relaxed", "Low"],
+        ["Climb Mount Misen on Miyajima", "Active", "Low"],
+      ]),
+      at("Osaka", [
+        ["Dōtonbori street food at night", "Relaxed", "Low"],
+        ["Osaka castle park", "Relaxed", "Low"],
+        ["Universal Studios", "Steady", "High"],
+      ]),
+    ],
+    otherStops: [
+      swap("Kanazawa", 2, "Hakone", "Kenroku-en garden, the geisha quarter and fresh seafood."),
+      swap("Takayama", 2, "Hiroshima", "An old merchant town in the Alps, and the farmhouses of Shirakawa-go."),
+    ],
+  },
 };

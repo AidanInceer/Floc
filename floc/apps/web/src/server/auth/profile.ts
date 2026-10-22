@@ -38,7 +38,7 @@ export async function ensureProfile(
 /**
  * Writes a patch of profile fields (ticket 108) — one function rather than one
  * per form section, since the shared `last_modified_at` stamp is the only rule
- * they share. Validation (`parseDietFlags`, `parseVibeTags`, currency) is pure
+ * they share. Validation (`parseVibeTags`, currency) is pure
  * and lives in `lib/`; the action calls it before this ever sees a value.
  */
 export async function updateProfileFields(

@@ -1,4 +1,5 @@
 import { day } from "../../day";
+import { at, swap } from "../../ideas";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const GREAT_OCEAN_ROAD_AND_ULURU: PresetDetail = {
@@ -65,4 +66,38 @@ export const GREAT_OCEAN_ROAD_AND_ULURU: PresetDetail = {
     { label: "Pace", text: "Steady. A road trip, then a flight to the centre." },
     { label: "Early starts", text: "Sunrise at Uluru means 05:30." },
   ],
+  ideas: {
+    atStops: [
+      at("Melbourne", [
+        ["NGV and Federation Square", "Relaxed", "Free"],
+        ["AFL at the MCG", "Relaxed", "Mid"],
+        ["Yarra Valley wineries for the day", "Relaxed", "High"],
+      ]),
+      at("Lorne", [
+        ["Walk to Erskine falls", "Steady", "Free"],
+        ["Surf lesson at Anglesea", "Active", "Mid"],
+      ]),
+      at("Port Campbell", [
+        ["Down the Gibson Steps to the beach", "Steady", "Free"],
+        ["Helicopter over the Apostles", "Relaxed", "High"],
+      ]),
+      at("Grampians", [
+        ["Mackenzie falls", "Steady", "Free"],
+        ["Rock climbing at Mount Arapiles", "Active", "Mid"],
+      ]),
+      at("Adelaide", [
+        ["Swim with dolphins off Glenelg", "Steady", "High"],
+        ["McLaren Vale wineries", "Relaxed", "Mid"],
+      ]),
+      at("Uluru", [
+        ["Camel ride at sunrise", "Relaxed", "Mid"],
+        ["Ranger-led Mala walk", "Steady", "Free"],
+        ["Helicopter over Kata Tjuta", "Relaxed", "High"],
+      ]),
+    ],
+    otherStops: [
+      swap("Kangaroo Island", 2, "Grampians", "Sea lions, wild koalas and the Remarkable Rocks."),
+      swap("Kings Canyon", 1, "Uluru", "The rim walk above sheer red walls, a drive from the rock."),
+    ],
+  },
 };

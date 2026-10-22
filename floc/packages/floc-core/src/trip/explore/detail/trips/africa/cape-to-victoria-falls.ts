@@ -1,4 +1,5 @@
 import { day } from "../../day";
+import { at, swap } from "../../ideas";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const CAPE_TO_VICTORIA_FALLS: PresetDetail = {
@@ -85,4 +86,48 @@ export const CAPE_TO_VICTORIA_FALLS: PresetDetail = {
     { label: "Pace", text: "Long. Eight stops, early starts for the game drives." },
     { label: "Driving", text: "Four drives of four to five hours in Namibia." },
   ],
+  ideas: {
+    atStops: [
+      at("Cape Town", [
+        ["Table Mountain on foot, up Platteklip Gorge", "Active", "Free"],
+        ["Penguins at Boulders Beach", "Relaxed", "Low"],
+        ["Kirstenbosch garden and its treetop walkway", "Relaxed", "Low"],
+      ]),
+      at("Windhoek", [
+        ["Craft centre on Tal Street", "Relaxed", "Free"],
+        ["Game dinner at Joe's Beerhouse", "Relaxed", "Mid"],
+      ]),
+      at("Sossusvlei", [
+        ["Climb Big Daddy dune", "Active", "Low"],
+        ["Scenic flight over the dunes", "Relaxed", "High"],
+        ["Walk Sesriem canyon", "Steady", "Free"],
+      ]),
+      at("Swakopmund", [
+        ["Sandboarding on the dunes", "Active", "Mid"],
+        ["Kayak with seals at Walvis Bay", "Steady", "Mid"],
+        ["Living desert tour", "Steady", "Mid"],
+      ]),
+      at("Etosha", [
+        ["Night drive from the camp", "Relaxed", "Mid"],
+        ["Okaukuejo waterhole after dark", "Relaxed", "Free"],
+      ]),
+      at("Okavango Delta", [
+        ["Island walk with a guide", "Steady", "Mid"],
+        ["Helicopter over the delta", "Relaxed", "High"],
+      ]),
+      at("Chobe", [
+        ["Sunset boat on the Chobe river", "Relaxed", "Mid"],
+        ["Tiger fishing on the river", "Relaxed", "Mid"],
+      ]),
+      at("Victoria Falls", [
+        ["Devil's Pool on the lip of the falls, in low water", "Active", "High"],
+        ["Rafting the Zambezi gorges", "Active", "High"],
+        ["High tea at the Victoria Falls Hotel", "Relaxed", "Mid"],
+      ]),
+    ],
+    otherStops: [
+      swap("Damaraland", 2, "Swakopmund", "Desert elephants, the Twyfelfontein rock engravings and big empty country."),
+      swap("Hwange", 2, "Chobe", "Zimbabwe's biggest park, with large elephant herds at the pans."),
+    ],
+  },
 };

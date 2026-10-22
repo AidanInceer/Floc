@@ -1,4 +1,5 @@
 import { day } from "../../day";
+import { at, swap } from "../../ideas";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const EGYPT_CAIRO_AND_THE_NILE: PresetDetail = {
@@ -56,4 +57,31 @@ export const EGYPT_CAIRO_AND_THE_NILE: PresetDetail = {
     { label: "Heat", text: "Midday is hot even in winter. The big sites are early for that reason." },
     { label: "Walking", text: "A lot, on uneven stone." },
   ],
+  ideas: {
+    atStops: [
+      at("Cairo", [
+        ["Coptic Cairo and the Hanging Church", "Relaxed", "Low"],
+        ["Khan el-Khalili bazaar at night", "Relaxed", "Low"],
+        ["Saqqara and the Step Pyramid", "Steady", "Mid"],
+      ]),
+      at("Luxor", [
+        ["Hot-air balloon over the West Bank at dawn", "Relaxed", "High"],
+        ["Cycle the West Bank villages", "Active", "Low"],
+        ["Luxor temple lit up after dark", "Relaxed", "Low"],
+      ]),
+      at("Edfu", [
+        ["Horse carriage to the Temple of Horus", "Relaxed", "Low"],
+        ["Kom Ombo temple and its crocodile museum", "Relaxed", "Low"],
+      ]),
+      at("Aswan", [
+        ["Felucca to the botanical garden on Kitchener's Island", "Relaxed", "Low"],
+        ["A Nubian village on the west bank", "Relaxed", "Low"],
+        ["Abu Simbel for the day", "Steady", "High"],
+      ]),
+    ],
+    otherStops: [
+      swap("Alexandria", 2, "Edfu", "The new library, the Corniche and fish by the sea."),
+      swap("Hurghada", 3, "Aswan", "Snorkel and dive on the Red Sea reefs after the temples."),
+    ],
+  },
 };

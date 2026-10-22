@@ -3,13 +3,12 @@
 import type { PlanStop } from "@floc/core/trip/explore/detail/preset-plan";
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 
-import { startTripFromPreset } from "@/app/explore/actions";
+import { CopySheet } from "@/components/explore/copy/copy-sheet";
 import { CopyIcon } from "@/components/explore/trip/trip-glyphs";
-import { SubmitButton } from "@/components/system/client-ui";
 import { CheckIcon, ChevronIcon } from "@/components/system/icons";
 import { ButtonLink, cx } from "@/components/system/ui";
 
-function CopyAction({ tripId, signedIn, className }: { tripId: string; signedIn: boolean; className?: string }) {
+function CopyAction({ trip, signedIn, className, defaultOpen }: { trip: PresetTrip; signedIn: boolean; className?: string; defaultOpen?: boolean }) {
   if (!signedIn) {
     return (
       <ButtonLink href="/signup" variant="primary" className={className}>
@@ -19,15 +18,21 @@ function CopyAction({ tripId, signedIn, className }: { tripId: string; signedIn:
     );
   }
   return (
-    <form action={startTripFromPreset} className={className}>
-      <input type="hidden" name="presetId" value={tripId} />
-      <SubmitButton pendingLabel="Copying…" className="w-full">
-        <CopyIcon />
-        Copy to my trips
-      </SubmitButton>
-    </form>
+    <CopySheet trip={trip} className={className} defaultOpen={defaultOpen}>
+      <CopyIcon />
+      Copy to my trips
+    </CopySheet>
   );
 }
+
+const COMES_ACROSS = [
+  "Dates, from the month you pick",
+  "The days and stops",
+  "The travel between stops",
+  "Each day's events, if you want them",
+  "An Ideas page, if you want it",
+  "The highlights, as a notes page",
+];
 
 function OpenDays({ stops, open, onJump }: { stops: PlanStop[]; open: number[]; onJump: (day: number) => void }) {
   const total = stops.reduce((sum, s) => sum + s.days.length, 0);
@@ -73,19 +78,22 @@ export function TripCopyCard({
   open,
   onJump,
   signedIn,
+  startOpen,
 }: {
   trip: PresetTrip;
   stops: PlanStop[];
   open: number[];
   onJump: (day: number) => void;
   signedIn: boolean;
+  /** The copy sheet opens on arrival: the landing page's "Start" sent you here. */
+  startOpen?: boolean;
 }) {
   return (
     <aside className="rounded-lg border border-rule-strong bg-sheet p-5 shadow-raised lg:sticky lg:top-20">
       <p className="typed">Make it yours</p>
       <h2 className="mt-1.5 text-xl">Copy this trip</h2>
       {stops.some((s) => s.days.length > 0) ? <OpenDays stops={stops} open={open} onJump={onJump} /> : null}
-      <CopyAction tripId={trip.id} signedIn={signedIn} className="mt-4 w-full" />
+      <CopyAction trip={trip} signedIn={signedIn} className="mt-4 w-full" defaultOpen={startOpen} />
       <p className="mt-2.5 text-center text-xs text-ink-faint">Free. Nothing is booked.</p>
       <details className="group mt-3.5 border-t border-dashed border-rule-strong pt-3">
         <summary className="flex cursor-pointer list-none items-center justify-between text-sm text-ink-soft [&::-webkit-details-marker]:hidden">
@@ -93,14 +101,14 @@ export function TripCopyCard({
           <ChevronIcon direction="down" size={14} className="text-ink-faint group-open:rotate-180" />
         </summary>
         <ul className="mt-2.5 grid gap-1.5 text-sm">
-          {["The trip name", "The highlights, as a notes page"].map((line) => (
+          {COMES_ACROSS.map((line) => (
             <li key={line} className="flex items-start gap-2.5">
               <CheckIcon className="mt-1 text-green" />
               {line}
             </li>
           ))}
         </ul>
-        <p className="mt-2 text-xs text-ink-faint">You bring the dates, the people and the money.</p>
+        <p className="mt-2 text-xs text-ink-faint">Pick &ldquo;Decide later&rdquo; and only the name and highlights come across. You bring the people and the money.</p>
       </details>
     </aside>
   );
@@ -114,7 +122,7 @@ export function TripCopyBar({ trip, signedIn }: { trip: PresetTrip; signedIn: bo
         <b className="truncate font-semibold">{trip.title}</b>
         <span className="nums text-[11.5px] text-ink-soft">{trip.nights} nights</span>
       </span>
-      <CopyAction tripId={trip.id} signedIn={signedIn} className="shrink-0" />
+      <CopyAction trip={trip} signedIn={signedIn} className="shrink-0" />
     </div>
   );
 }

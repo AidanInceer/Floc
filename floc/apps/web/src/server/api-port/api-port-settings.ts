@@ -14,7 +14,6 @@ import "server-only";
 
 import type { FlocPort, MySettings } from "@floc/api/port";
 
-import { parseDietFlags, readDietFlags } from "@floc/core/people/dietary";
 import { parseVibeTags, readVibeTags } from "@floc/core/trip/vibe-tags";
 import { listSignInMethods, unlinkSignIn } from "@/server/auth/sign-in-methods";
 import { refresh } from "@/server/freshness";
@@ -29,7 +28,6 @@ type SettingsPort = Pick<
   | "updateAvatarIcon"
   | "updatePrivacy"
   | "updateVibeTags"
-  | "updateDietary"
   | "updatePackingDefaults"
   | "updateHomeCurrency"
   | "updateNotifications"
@@ -68,9 +66,6 @@ export const settingsPort: SettingsPort = {
       visibilityFriends: profile.visibilityFriends,
       pastTripsShow: profile.pastTripsShow,
       vibeTags: readVibeTags(profile.vibeTags),
-      dietFlags: readDietFlags(profile.dietFlags),
-      dietaryNotes: profile.dietaryNotes,
-      shareDietary: profile.shareDietary,
       packTier: profile.packTier,
       packAutoGenerate: profile.packAutoGenerate,
       homeCurrency: profile.homeCurrency,
@@ -110,17 +105,6 @@ export const settingsPort: SettingsPort = {
     // where the write is.
     const picked = parseVibeTags(tags);
     await updateProfileFields(viewerId, { vibeTags: picked.length ? picked : null });
-    refresh({ kind: "profile" });
-  },
-
-  async updateDietary(viewerId, input) {
-    await ensureProfile(viewerId);
-    const flags = parseDietFlags(input.flags);
-    await updateProfileFields(viewerId, {
-      dietFlags: flags.length ? flags : null,
-      dietaryNotes: input.notes,
-      shareDietary: input.share,
-    });
     refresh({ kind: "profile" });
   },
 

@@ -14,7 +14,7 @@ import { TripKnow } from "@/components/explore/trip/trip-know";
 import { TripPlan } from "@/components/explore/trip/trip-plan";
 import { getSession } from "@/server/access";
 
-type Props = { params: Promise<{ slug: string }> };
+type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ start?: string | string[] }> };
 
 const findTrip = (slug: string) => PRESET_TRIPS.find((t) => t.id === slug);
 
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return trip ? { title: `${trip.title} · Explore`, description: trip.summary } : {};
 }
 
-export default async function ExploreTripPage({ params }: Props) {
+export default async function ExploreTripPage({ params, searchParams }: Props) {
   const trip = findTrip((await params).slug);
   if (!trip) notFound();
   const session = await getSession();
@@ -32,7 +32,7 @@ export default async function ExploreTripPage({ params }: Props) {
   return (
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-32 pt-6 sm:px-6 lg:pb-24">
       <TripHero trip={trip} figures={plan.inPlan} />
-      <TripPlan trip={trip} plan={plan} signedIn={!!session?.user?.id} />
+      <TripPlan trip={trip} plan={plan} signedIn={!!session?.user?.id} startOpen={(await searchParams).start !== undefined} />
       <TripKnow advice={plan.advice} facts={plan.goodToKnow} />
       <p className="mt-10 border-t border-rule pt-5 text-xs text-ink-faint">
         This listing is illustrative and not bookable. The operator name is a placeholder — Floc has no partnership with it, and nothing on this page is

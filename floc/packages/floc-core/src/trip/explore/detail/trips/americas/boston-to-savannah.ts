@@ -1,4 +1,5 @@
 import { day } from "../../day";
+import { at, swap } from "../../ideas";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const BOSTON_TO_SAVANNAH: PresetDetail = {
@@ -87,4 +88,51 @@ export const BOSTON_TO_SAVANNAH: PresetDetail = {
     { label: "Pace", text: "On the move. Nine stops, one long driving day." },
     { label: "Driving", text: "Most drives are two or three hours." },
   ],
+  ideas: {
+    atStops: [
+      at("Boston", [
+        ["Walk the Freedom Trail", "Steady", "Free"],
+        ["A game or a tour at Fenway Park", "Relaxed", "Mid"],
+        ["Harvard and Cambridge", "Relaxed", "Free"],
+      ]),
+      at("Cape Cod", [
+        ["Whale watching from Provincetown", "Relaxed", "Mid"],
+        ["Cycle the Cape Cod Rail Trail", "Active", "Low"],
+      ]),
+      at("Newport", [
+        ["Cliff Walk past the mansions", "Steady", "Free"],
+        ["Inside The Breakers", "Relaxed", "Mid"],
+      ]),
+      at("New York", [
+        ["Walk the High Line", "Steady", "Free"],
+        ["Staten Island ferry for the skyline", "Relaxed", "Free"],
+        ["A Broadway show", "Relaxed", "High"],
+      ]),
+      at("Philadelphia", [
+        ["Reading Terminal Market", "Relaxed", "Low"],
+        ["Liberty Bell and Independence Hall", "Relaxed", "Free"],
+      ]),
+      at("Washington", [
+        ["Smithsonian museums, all free", "Relaxed", "Free"],
+        ["Cycle the monuments at night", "Steady", "Low"],
+      ]),
+      at("Shenandoah", [
+        ["Hike Old Rag", "Active", "Low"],
+        ["Luray caverns", "Relaxed", "Mid"],
+      ]),
+      at("Charleston", [
+        ["Rainbow Row and the Battery", "Relaxed", "Free"],
+        ["Boat to Fort Sumter", "Relaxed", "Mid"],
+        ["A Lowcountry boil", "Relaxed", "Mid"],
+      ]),
+      at("Savannah", [
+        ["Bonaventure cemetery", "Relaxed", "Free"],
+        ["Tybee Island beach", "Relaxed", "Free"],
+      ]),
+    ],
+    otherStops: [
+      swap("Asheville", 2, "Shenandoah", "Blue Ridge Parkway drives, the Biltmore estate and craft beer."),
+      swap("Annapolis", 1, "Philadelphia", "A sailing town on Chesapeake Bay: crabs and the naval academy."),
+    ],
+  },
 };

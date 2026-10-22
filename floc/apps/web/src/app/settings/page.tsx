@@ -24,11 +24,10 @@ import {
 // with the rest of the switches rather than on the profile page (ticket 236).
 import {
   updateCurrency,
-  updateDietary,
   updatePacking,
   updateVibeTags,
 } from "@/app/profile/actions";
-import type { Subscription, Visibility } from "@/db/schema";
+import type { Subscription } from "@/db/schema";
 import { requireUser } from "@/server/access";
 import { proPrices, subscriptionOf } from "@/server/billing/billing";
 import type { ProPrice } from "@/server/billing/billing";
@@ -36,6 +35,7 @@ import { allFeaturesFree } from "@/lib/env";
 import { ensureProfile } from "@/server/auth/profile";
 import { listSignInMethods } from "@/server/auth/sign-in-methods";
 import { BillingAction, ProUpgrade } from "@/components/auth/billing-buttons";
+import { PrivacyFields } from "@/components/auth/privacy-fields";
 import { isLive, renewalLabel } from "@floc/core/billing/subscription-copy";
 import {
   AccountPage,
@@ -44,14 +44,13 @@ import {
   PersonRow,
   ToggleRow,
 } from "@/components/auth/account-ui";
-import { Field, Input, Select, Stack, Textarea, cx } from "@/components/system/ui";
+import { Field, Input, Select, Stack, cx } from "@/components/system/ui";
 import {
   ActionForm,
   ConfirmSubmit,
   SubmitButton,
 } from "@/components/system/client-ui";
 import { VibePicker } from "@/components/trip/vibe-picker";
-import { DIET_FLAGS, MAX_DIETARY_NOTES, readDietFlags } from "@floc/core/people/dietary";
 import { PACK_TIERS, PACK_TIER_LABELS } from "@floc/core/packing/packing";
 import { readVibeTags } from "@floc/core/trip/vibe-tags";
 
@@ -97,18 +96,6 @@ const STORE_NAMES: Partial<Record<string, string>> = {
   play: "Google Play",
 };
 
-/** Widest ring last, matching the nesting in server/auth/visibility.ts. */
-const RING_LABELS: Record<Visibility, string> = {
-  private: "Only me",
-  friends: "Friends",
-  trip_members: "Friends and travelled with",
-};
-
-/** The same three pills under every attribute, in the same order each time. */
-const RING_OPTIONS = (
-  Object.entries(RING_LABELS) as [Visibility, string][]
-).map(([value, label]) => ({ value, label }));
-
 export const metadata = { title: "Settings" };
 
 export default async function SettingsPage({
@@ -136,7 +123,6 @@ export default async function SettingsPage({
   ]);
 
   const vibeTags = readVibeTags(profile.vibeTags);
-  const dietFlags = readDietFlags(profile.dietFlags);
 
   return (
     <AccountPage title="Settings">
@@ -148,47 +134,14 @@ export default async function SettingsPage({
             <Panel title="Who can see your profile">
               <ActionForm action={updatePrivacy}>
                 <Stack gap={4}>
-                  {/* The profile-wide override sits above the per-attribute
-                      rings, because when it's on they don't apply (ticket 46). */}
-                  <ToggleRow
-                    name="isPrivate"
-                    label="Make my whole profile private"
-                    hint="People can still click your face — they'll see your name, and nothing else."
-                    defaultChecked={profile.isPrivate}
-                  />
-
-                  <hr className="border-rule" />
-
-                  <PillChoice
-                    name="visibilityVibeTags"
-                    label="Vibe tags"
-                    value={profile.visibilityVibeTags}
-                    options={RING_OPTIONS}
-                  />
-
-                  <PillChoice
-                    name="visibilityTravelMap"
-                    label="Travel map"
-                    value={profile.visibilityTravelMap}
-                    options={RING_OPTIONS}
-                  />
-
-                  <PillChoice
-                    name="visibilityFriends"
-                    label="Your friends list"
-                    hint="Anyone who's made their own profile private stays off it whatever you choose."
-                    value={profile.visibilityFriends}
-                    options={RING_OPTIONS}
-                  />
-
-                  <PillChoice
-                    name="pastTripsShow"
-                    label="Past trips"
-                    value={profile.pastTripsShow}
-                    options={[
-                      { value: "all", label: "All of them" },
-                      { value: "latest", label: "Most recent only" },
-                    ]}
+                  <PrivacyFields
+                    isPrivate={profile.isPrivate}
+                    rings={{
+                      visibilityVibeTags: profile.visibilityVibeTags,
+                      visibilityTravelMap: profile.visibilityTravelMap,
+                      visibilityFriends: profile.visibilityFriends,
+                    }}
+                    pastTripsLatest={profile.pastTripsShow === "latest"}
                   />
 
                   <div className="flex justify-end">
@@ -202,64 +155,18 @@ export default async function SettingsPage({
           ) : null}
 
           {current === "about-you" ? (
-            <Stack gap={4}>
-              <Panel title="Vibe tags">
-                <ActionForm action={updateVibeTags}>
-                  <Stack gap={4}>
-                    <VibePicker selected={vibeTags} />
-                    <div>
-                      <SubmitButton variant="primary" pendingLabel="Saving…">
-                        Save vibe tags
-                      </SubmitButton>
-                    </div>
-                  </Stack>
-                </ActionForm>
-              </Panel>
-
-              <Panel
-                title="Dietary"
-                hint="Never shown on your profile page — this surfaces where it does work, on a trip deciding where to eat."
-              >
-                <ActionForm action={updateDietary}>
-                  <Stack gap={4}>
-                    <div>
-                      <span className="typed mb-3 block">Diets</span>
-                      <Stack gap={3}>
-                        {Object.entries(DIET_FLAGS).map(([value, label]) => (
-                          <ToggleRow
-                            key={value}
-                            name="dietFlag"
-                            value={value}
-                            label={label}
-                            defaultChecked={dietFlags.includes(value as never)}
-                          />
-                        ))}
-                      </Stack>
-                    </div>
-                    <Field label="Allergies and intolerances">
-                      <Textarea
-                        name="dietaryNotes"
-                        defaultValue={profile.dietaryNotes ?? ""}
-                        maxLength={MAX_DIETARY_NOTES}
-                      />
-                    </Field>
-                    {/* One switch for the whole record — you can't publish half
-                        a dietary record (ticket 46). */}
-                    <ToggleRow
-                      name="shareDietary"
-                      label="Share this with people I'm on a trip with"
-                      hint="All of it or none of it — the diets and the free text move together."
-                      defaultChecked={profile.shareDietary}
-                    />
-                    <div>
-                      <SubmitButton variant="primary" pendingLabel="Saving…">
-                        Save dietary
-                      </SubmitButton>
-                    </div>
-                  </Stack>
-                </ActionForm>
-              </Panel>
-            </Stack>
+            <Panel title="Vibe tags">
+              <ActionForm action={updateVibeTags}>
+                <Stack gap={4}>
+                  <VibePicker selected={vibeTags} />
+                  <div>
+                    <SubmitButton variant="primary" pendingLabel="Saving…">
+                      Save vibe tags
+                    </SubmitButton>
+                  </div>
+                </Stack>
+              </ActionForm>
+            </Panel>
           ) : null}
 
           {current === "trips" ? (

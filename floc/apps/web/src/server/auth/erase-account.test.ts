@@ -18,7 +18,6 @@ beforeEach(async () => {
   await db.insert(schema.userProfile).values({
     userId: world.member,
     displayName: "Mo Rahman",
-    dietaryNotes: "nut allergy",
     friendCode: "MO-1234",
   });
   await db.insert(schema.account).values({
@@ -69,7 +68,6 @@ describe("erasing an account", () => {
       .where(eq(schema.userProfile.userId, world.member))
       .get();
     expect(profile?.displayName).toBeNull();
-    expect(profile?.dietaryNotes).toBeNull();
     expect(profile?.friendCode).toBeNull();
   });
 

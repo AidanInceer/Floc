@@ -25,7 +25,7 @@ import { ScrollView, View } from "react-native";
 
 import { ProSection } from "@/components/billing/pro-section";
 import { SettingsAccount, SettingsDelete } from "@/components/settings/settings-account";
-import { SettingsDietary, SettingsVibeTags, type Dietary } from "@/components/settings/settings-about";
+import { SettingsVibeTags } from "@/components/settings/settings-about";
 import { Drawer, DrawerGroup } from "@/components/system/drawer";
 import { SettingsPrivacy, type Privacy } from "@/components/settings/settings-privacy";
 import { useTheme, type ThemeChoice } from "@/components/system/theme";
@@ -109,11 +109,6 @@ function SettingsPanels({
     pastTripsShow: settings.pastTripsShow,
   });
   const [tags, setTags] = useState<string[]>(settings.vibeTags);
-  const [dietary, setDietary] = useState<Dietary>({
-    flags: settings.dietFlags,
-    notes: settings.dietaryNotes ?? "",
-    share: settings.shareDietary,
-  });
   const [tier, setTier] = useState<PackTier>(settings.packTier);
   const [autoFill, setAutoFill] = useState(settings.packAutoGenerate);
   const [currency, setCurrency] = useState(settings.homeCurrency);
@@ -135,7 +130,6 @@ function SettingsPanels({
 
   const savePrivacy = useMutation({ ...trpc.settings.privacy.mutationOptions(), onError, onSuccess });
   const saveTags = useMutation({ ...trpc.settings.vibeTags.mutationOptions(), onError, onSuccess });
-  const saveDietary = useMutation({ ...trpc.settings.dietary.mutationOptions(), onError, onSuccess });
   const savePacking = useMutation({ ...trpc.settings.packing.mutationOptions(), onError, onSuccess });
   const saveCurrency = useMutation({ ...trpc.settings.currency.mutationOptions(), onError, onSuccess });
   const saveNotify = useMutation({
@@ -174,35 +168,13 @@ function SettingsPanels({
           />
         </Drawer>
 
-        <Drawer title="About you" summary={aboutSummary(tags.length, dietary.flags.length)}>
+        <Drawer title="About you" summary={aboutSummary(tags.length)}>
           <SettingsVibeTags
             tags={tags}
             onChange={(next) => {
               setTags(next);
               saveTags.mutate({ tags: next as never });
             }}
-          />
-          <SettingsDietary
-            dietary={dietary}
-            onChange={(next) => {
-              setDietary(next);
-              // The free text is the one field that would fire per keystroke, so
-              // it waits for the blur below; everything else writes now.
-              if (next.notes === dietary.notes) {
-                saveDietary.mutate({
-                  flags: next.flags as never,
-                  notes: next.notes || null,
-                  share: next.share,
-                });
-              }
-            }}
-            onCommitNotes={() =>
-              saveDietary.mutate({
-                flags: dietary.flags as never,
-                notes: dietary.notes || null,
-                share: dietary.share,
-              })
-            }
           />
         </Drawer>
       </DrawerGroup>

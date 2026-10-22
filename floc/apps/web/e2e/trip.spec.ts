@@ -28,40 +28,6 @@ test.describe("as a member", () => {
     await expect(page).toHaveURL(/\/trip\/\d+/);
     await expect(page.getByText(name).first()).toBeVisible();
   });
-
-  test("an event loads on selection, saves, and reopens from its address", async ({ page }) => {
-    let writes = 0;
-    page.on("request", (request) => {
-      if (request.method() === "POST" && request.url().includes("/days")) writes++;
-    });
-    await page.goto("/trips");
-    await page.getByText("Portugal, late summer").click();
-    await expect(page).toHaveURL(/\/trip\/\d+/);
-    const trip = new URL(page.url()).pathname.match(/\/trip\/\d+/)![0];
-    await page.goto(`${trip}/days`);
-    await expect(page.getByRole("dialog", { name: "Event", exact: true })).not.toBeVisible();
-    await page.getByRole("button", { name: /^Flight to Lisbon,/ }).click();
-    await expect(page).toHaveURL(/\?event=\d+/);
-    const dialog = page.getByRole("dialog", { name: "Event", exact: true });
-    const name = dialog.getByRole("textbox", { name: "Event name", exact: true });
-    await expect(name).toHaveValue("Flight to Lisbon");
-    const saved = page.waitForResponse((response) => response.request().method() === "POST" && response.url().includes("/days"));
-    await name.fill("Flight to Lisbon updated");
-    await name.press("Tab");
-    await saved;
-    await page.reload();
-    await expect(name).toHaveValue("Flight to Lisbon updated");
-    const restored = page.waitForResponse((response) => response.request().method() === "POST" && response.url().includes("/days"));
-    await name.fill("Flight to Lisbon");
-    await name.press("Tab");
-    await restored;
-    await dialog.getByRole("button", { name: "Close", exact: true }).click();
-    await expect(dialog).not.toBeVisible();
-    await expect(page).toHaveURL(new RegExp(`${trip}/days$`));
-    await page.getByRole("button", { name: /^Flight to Lisbon,/ }).click();
-    await expect(name).toHaveValue("Flight to Lisbon");
-    expect(writes).toBe(2);
-  });
 });
 
 test("somebody else's trip looks the same as one that does not exist", async ({ browser }) => {

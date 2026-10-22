@@ -19,9 +19,8 @@ export function privacySummary(privacy: Privacy): string {
 
 const counted = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
-export function aboutSummary(tags: number, diets: number): string {
-  const parts = [tags ? counted(tags, "tag") : null, diets ? counted(diets, "diet") : null];
-  return parts.filter(Boolean).join(" · ") || "None set";
+export function aboutSummary(tags: number): string {
+  return tags ? counted(tags, "tag") : "None set";
 }
 
 export function tripsSummary(packingStyle: string, currency: string): string {

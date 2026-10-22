@@ -12,6 +12,7 @@ import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, View } from "react-native";
 
+import { CopySheet } from "@/components/explore/copy-sheet";
 import { ExploreCard } from "@/components/explore/explore-card";
 import { ExploreMap } from "@/components/explore/explore-map";
 import { FinderBar } from "@/components/explore/finder/finder-bar";
@@ -36,6 +37,7 @@ export default function Explore() {
   const [sort, setSort] = useState<FinderSort>("match");
   const [sheet, setSheet] = useState(false);
   const [showAll, setShowAll] = useState(false);
+  const [copying, setCopying] = useState(false);
 
   useEffect(() => {
     if (state.data?.finder) setFinder(state.data.finder);
@@ -45,7 +47,9 @@ export default function Explore() {
   const start = useMutation({
     ...trpc.trips.startFromPreset.mutationOptions(),
     onSuccess: (result) => {
-      if (result) router.push({ pathname: "/trip/[id]", params: { id: result.id } });
+      if (!result) return;
+      setCopying(false);
+      router.push({ pathname: "/trip/[id]", params: { id: result.id } });
     },
   });
 
@@ -74,7 +78,7 @@ export default function Explore() {
         <ExploreCard
           trip={trip}
           starting={start.isPending}
-          onStart={() => start.mutate({ presetId: trip.id })}
+          onStart={() => setCopying(true)}
           onOpen={() => open(trip.id)}
         />
       </View>
@@ -104,6 +108,15 @@ export default function Explore() {
         </View>
       </View>
 
+      <CopySheet
+        key={trip.id}
+        trip={trip}
+        open={copying}
+        busy={start.isPending}
+        error={start.isError ? start.error.message : null}
+        onClose={() => setCopying(false)}
+        onStart={(choice) => start.mutate(choice)}
+      />
       <FinderSheet
         open={sheet}
         onClose={() => setSheet(false)}

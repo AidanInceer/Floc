@@ -1,4 +1,5 @@
 import { day } from "../../day";
+import { at, swap } from "../../ideas";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const CROATIA_AND_MONTENEGRO: PresetDetail = {
@@ -61,4 +62,33 @@ export const CROATIA_AND_MONTENEGRO: PresetDetail = {
     { label: "Pace", text: "Steady. A boat every second day." },
     { label: "Walking", text: "Old towns are steep stone streets and steps." },
   ],
+  ideas: {
+    atStops: [
+      at("Split", [
+        ["Marjan hill", "Steady", "Free"],
+        ["Krka waterfalls for the day", "Steady", "Mid"],
+      ]),
+      at("Hvar", [
+        ["Water taxi to the Pakleni islands", "Relaxed", "Mid"],
+        ["Lavender fields and Stari Grad", "Relaxed", "Low"],
+      ]),
+      at("Korčula", [
+        ["Moreška sword dance", "Relaxed", "Low"],
+        ["Cycle to the vineyards at Lumbarda", "Steady", "Low"],
+      ]),
+      at("Dubrovnik", [
+        ["Sea kayak round Lokrum", "Active", "Mid"],
+        ["Cable car up Mount Srđ", "Relaxed", "Mid"],
+        ["Boat to Cavtat", "Relaxed", "Low"],
+      ]),
+      at("Kotor", [
+        ["Climb the walls to San Giovanni fort", "Active", "Low"],
+        ["Boat to Our Lady of the Rocks", "Relaxed", "Low"],
+      ]),
+    ],
+    otherStops: [
+      swap("Vis", 2, "Hvar", "A far island with the Blue Cave and quiet coves."),
+      swap("Mostar", 1, "Kotor", "The old bridge and its divers, in Bosnia and Herzegovina."),
+    ],
+  },
 };

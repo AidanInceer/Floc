@@ -22,6 +22,7 @@ import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import type { Currency } from "@floc/core/money/currency";
 import type { DocCategory } from "@floc/core/documents/documents";
 import type { ExpenseCategory } from "@floc/core/money/expense-category";
+import type { CopyChoice } from "@floc/core/trip/explore/copy/copy-choice";
 import type { Finder } from "@floc/core/trip/explore/finder/finder";
 import type { WeatherCondition } from "@floc/core/itinerary/weather";
 import type { PackCategory, PackTier } from "@floc/core/packing/packing";
@@ -70,8 +71,6 @@ export type TripMember = {
   avatarIcon: AvatarIcon | null;
   /** Roster seat colour, assigned from the name — a token name, not a hex. */
   tone: string;
-  /** Null unless the member chose to share it. Never on a profile — it is for the group picking dinner. */
-  dietary: string | null;
 };
 
 /** One trip and everything a client needs before it can render any tab of it. */
@@ -344,11 +343,6 @@ export type MySettings = {
   visibilityFriends: Visibility;
   pastTripsShow: PastTripsShow;
   vibeTags: string[];
-  /** Values from `DIET_FLAGS`, already guarded on the host. */
-  dietFlags: string[];
-  dietaryNotes: string | null;
-  /** One switch for the whole record — you cannot publish half a dietary record. */
-  shareDietary: boolean;
   /** The default a new trip starts from, never a trip's own choice (ticket 220). */
   packTier: PackTier;
   packAutoGenerate: boolean;
@@ -602,7 +596,7 @@ export type FlocPort = {
    *
    * `been` and `wantToGo` are the travel map's counts, derived on read from the
    * trips they are on — never stored, so they cannot go stale. Only what the
-   * phone's profile draws is here; the web's vibe tags, dietary and visibility
+   * phone's profile draws is here; the web's vibe tags and visibility
    * settings stay on the web, where they are edited.
    */
   loadMe(viewerId: string): Promise<Me>;
@@ -750,12 +744,6 @@ export type FlocPort = {
 
   /** Seed-only on the host as well as in the UI — a hand-made call must not invent a tag. */
   updateVibeTags(viewerId: string, tags: string[]): Promise<void>;
-
-  /** All three at once: the sharing switch reads as part of the fact itself. */
-  updateDietary(
-    viewerId: string,
-    input: { flags: string[]; notes: string | null; share: boolean },
-  ): Promise<void>;
 
   /** Defaults, never a trip's choice — editing here leaves a tuned trip alone (ticket 220). */
   updatePackingDefaults(
@@ -905,13 +893,10 @@ export type FlocPort = {
   createTrip(viewerId: string, input: NewTrip): Promise<{ id: number }>;
 
   /**
-   * Starts a trip from an Explore listing (ticket 302's bottom bar needs the
-   * Explore seat to actually do something). Copied, never linked: the new trip
-   * keeps no id back to the listing, so editing one never touches the other.
-   * Null when the listing has been retired since it was drawn — degrade, don't
-   * crash (rule 11).
+   * Starts a trip from an Explore listing (ADR-025), copied, never linked.
+   * Null when the listing has been retired since it was drawn (rule 11).
    */
-  startTripFromPreset(viewerId: string, presetId: string): Promise<{ id: number } | null>;
+  startTripFromPreset(viewerId: string, choice: CopyChoice): Promise<{ id: number } | null>;
 
   /** Your last Explore finder — null means never set. */
   loadExplore(viewerId: string): Promise<ExploreState>;

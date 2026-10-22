@@ -80,7 +80,7 @@ in availability.
 
 | Person | Email | Profile | Relation to you |
 |---|---|---|---|
-| Nadia Haddad | `nadia@b.seed.floc.test` | Open; diet note | Friend |
+| Nadia Haddad | `nadia@b.seed.floc.test` | Open | Friend |
 | Callum Reid | `callum@b.seed.floc.test` | Mixed rings | Friend |
 | Mei Tanaka | `mei@b.seed.floc.test` | Open; vegan | Friend; sent the Tokyo invite |
 | Jonas Berg | `jonas@b.seed.floc.test` | Private | Friend |
@@ -111,8 +111,7 @@ Every seeded account uses the password `seed-password`.
   correct.
 - **Removing a scenario also removes any trip a seed person is on**, including one
   the user made and invited them to. Warn before `--reset` if the user has done that.
-- **Vibe tags must come from `VIBE_TAGS`**, and diet flags from `DIET_FLAGS`, in
-  `@floc/core`. A tag outside that list is dropped when read, so it never shows.
+- **Vibe tags must come from `VIBE_TAGS`** in `@floc/core`. A tag outside that list is dropped when read, so it never shows.
   `Profile` in `profiles.ts` is typed to stop this.
 - **Rebuilding a scenario signs its people out**, because their rows are
   recreated. Your own session survives a plain seed.

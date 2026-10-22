@@ -5,12 +5,11 @@ import type { TripTag } from "@floc/core/trip/explore/finder/tag-groups";
 import { tagsOf } from "@floc/core/trip/explore/finder/trip-tags";
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 
-import { startTripFromPreset } from "@/app/explore/actions";
 import { tagClass } from "@/components/explore/all/explore-tile";
+import { CopySheet } from "@/components/explore/copy/copy-sheet";
 import { RouteRail } from "@/components/explore/all/route-rail";
 import { skinFor } from "@/components/explore/listing";
 import { PassMap } from "@/components/explore/outline/pass-map";
-import { SubmitButton } from "@/components/system/client-ui";
 import { CheckIcon } from "@/components/system/icons";
 import { ButtonLink, cx } from "@/components/system/ui";
 
@@ -79,12 +78,9 @@ export function ExplorePass({
             See the full trip
           </ButtonLink>
           {signedIn ? (
-            <form action={startTripFromPreset}>
-              <input type="hidden" name="presetId" value={trip.id} />
-              <SubmitButton pendingLabel="Starting…" className="w-full">
-                Start this trip
-              </SubmitButton>
-            </form>
+            <CopySheet trip={trip} className="w-full">
+              Start this trip
+            </CopySheet>
           ) : (
             <ButtonLink href="/signup" variant="primary" className="w-full">
               Sign up to start

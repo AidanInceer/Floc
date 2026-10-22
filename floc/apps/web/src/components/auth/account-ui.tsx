@@ -214,6 +214,7 @@ export function ToggleRow({
   hint,
   value,
   defaultChecked,
+  disabled,
 }: {
   name: string;
   label: string;
@@ -221,32 +222,27 @@ export function ToggleRow({
   /** Set when several rows share one `name` and post as a set. */
   value?: string;
   defaultChecked: boolean;
+  disabled?: boolean;
 }) {
   return (
-    <label
-      className={cx(
-        "flex cursor-pointer items-start gap-4",
-        hint ? "justify-between" : "justify-start",
-      )}
-    >
-      {/* A bare label gets a fixed column rather than the whole row, so the
-          switch sits next to its words instead of an arm's length away —
-          the shared width still lines a stack of switches up. A row with a
-          hint keeps the full width, because the hint needs it. */}
-      <span className={cx("min-w-0", hint ? "flex-1" : "flex-1 sm:w-[16rem] sm:flex-none")}>
-        <span className="block text-sm">{label}</span>
-        {hint ? (
-          <span className="mt-0.5 block text-xs text-ink-faint">{hint}</span>
-        ) : null}
-      </span>
+    // Why: the switch leads its words. At the far end of a wide panel it read
+    // as belonging to whichever row the eye landed on.
+    <label className={cx("flex items-start gap-3", disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer")}>
       <input
         type="checkbox"
         name={name}
         value={value}
         defaultChecked={defaultChecked}
+        disabled={disabled}
         className="peer sr-only"
       />
       <span className="switch-track" aria-hidden />
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm">{label}</span>
+        {hint ? (
+          <span className="mt-0.5 block text-xs text-ink-faint">{hint}</span>
+        ) : null}
+      </span>
     </label>
   );
 }

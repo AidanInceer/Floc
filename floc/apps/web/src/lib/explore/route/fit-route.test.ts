@@ -34,6 +34,12 @@ describe("fitRoute", () => {
     expect(fitRoute(route("ONE_STOP"), BOX, ROOM, 3000).R).toBe(3000);
   });
 
+  it("never returns a negative radius when the box is smaller than the room", () => {
+    const tiny = { left: 0, top: 0, right: 80, bottom: 50 };
+    expect(fitRoute(route("ONE_STOP"), tiny, ROOM, 3000).R).toBeGreaterThan(0);
+    expect(fitRoute(route("RAIL"), tiny, ROOM, 3000).R).toBeGreaterThan(0);
+  });
+
   it("looks at the middle of a one-stop trip", () => {
     const { view } = fitRoute(route("ONE_STOP"), BOX, ROOM, 3000);
     expect(view.lat).toBeCloseTo(40.611);

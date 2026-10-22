@@ -1,4 +1,5 @@
 import { day } from "../../day";
+import { at, swap } from "../../ideas";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const SYDNEY_TO_CAIRNS: PresetDetail = {
@@ -65,4 +66,35 @@ export const SYDNEY_TO_CAIRNS: PresetDetail = {
     { label: "Pace", text: "Steady. Five stops, three short flights." },
     { label: "Driving", text: "One car from Byron to Noosa. Flights do the long hops." },
   ],
+  ideas: {
+    atStops: [
+      at("Sydney", [
+        ["Bondi to Coogee walk", "Steady", "Free"],
+        ["Climb the Harbour Bridge", "Active", "High"],
+        ["Ferry to Manly", "Relaxed", "Low"],
+      ]),
+      at("Byron Bay", [
+        ["Lighthouse walk at sunrise", "Steady", "Free"],
+        ["Surf lesson", "Active", "Mid"],
+        ["Kayak with dolphins", "Steady", "Mid"],
+      ]),
+      at("Noosa", [
+        ["Noosa national park coast walk", "Steady", "Free"],
+        ["Canoe the Everglades", "Steady", "Mid"],
+      ]),
+      at("Airlie Beach", [
+        ["Scenic flight over Heart Reef", "Relaxed", "High"],
+        ["Two nights under sail in the Whitsundays", "Relaxed", "High"],
+      ]),
+      at("Cairns", [
+        ["The Daintree and Cape Tribulation", "Steady", "Mid"],
+        ["Kuranda by scenic railway and Skyrail", "Relaxed", "Mid"],
+        ["Dive the outer reef", "Steady", "High"],
+      ]),
+    ],
+    otherStops: [
+      swap("K'gari (Fraser Island)", 2, "Noosa", "4x4 on the sand, Lake McKenzie and the Maheno wreck."),
+      swap("Magnetic Island", 2, "Airlie Beach", "Wild koalas, bays to snorkel and the Forts walk."),
+    ],
+  },
 };

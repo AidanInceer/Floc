@@ -1,4 +1,5 @@
 import { day } from "../../day";
+import { at, swap } from "../../ideas";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const MASAI_MARA_TO_ZANZIBAR: PresetDetail = {
@@ -69,4 +70,40 @@ export const MASAI_MARA_TO_ZANZIBAR: PresetDetail = {
     { label: "Pace", text: "Early starts on safari, then slow on the beach." },
     { label: "Driving", text: "One long drive to the crater. Roads are rough." },
   ],
+  ideas: {
+    atStops: [
+      at("Nairobi", [
+        ["Giraffe Centre", "Relaxed", "Low"],
+        ["Elephant orphans at the Sheldrick trust, 11:00", "Relaxed", "Low"],
+        ["Nairobi National Park at dawn", "Relaxed", "Mid"],
+      ]),
+      at("Masai Mara", [
+        ["Balloon over the Mara at sunrise", "Relaxed", "High"],
+        ["Walking safari with a ranger", "Steady", "Mid"],
+        ["A Maasai village", "Relaxed", "Low"],
+      ]),
+      at("Serengeti", [
+        ["A full day following the herds", "Relaxed", "Mid"],
+        ["Bush dinner under the stars", "Relaxed", "High"],
+      ]),
+      at("Ngorongoro", [
+        ["Walk on the crater rim with a ranger", "Steady", "Mid"],
+        ["Coffee farm at Karatu", "Relaxed", "Low"],
+      ]),
+      at("Stone Town", [
+        ["Spice farm tour", "Relaxed", "Low"],
+        ["Giant tortoises on Prison Island", "Relaxed", "Low"],
+        ["Forodhani night food market", "Relaxed", "Low"],
+      ]),
+      at("Paje", [
+        ["Kitesurf lesson", "Active", "Mid"],
+        ["Snorkel at Mnemba atoll", "Steady", "Mid"],
+        ["Red colobus monkeys in Jozani forest", "Steady", "Low"],
+      ]),
+    ],
+    otherStops: [
+      swap("Lake Manyara", 1, "Ngorongoro", "Tree-climbing lions, flamingos and a forest drive."),
+      swap("Nungwi", 3, "Paje", "The north tip: swimming at any tide and dhow sunsets."),
+    ],
+  },
 };

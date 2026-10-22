@@ -8,7 +8,6 @@ import type { Currency } from "@/db/schema";
 import { requireUser } from "@/server/access";
 import { parseAvatarIcon } from "@floc/core/people/avatar-icon";
 import { readCountryCode } from "@floc/core/people/countries";
-import { MAX_DIETARY_NOTES, parseDietFlags } from "@floc/core/people/dietary";
 import { capText } from "@floc/core/text/text";
 import { parsePackTier } from "@floc/core/packing/packing";
 import { clearMapPrompt, hasPendingMapPrompt } from "@/server/trips/roster";
@@ -74,28 +73,6 @@ export async function updateVibeTags(formData: FormData): Promise<{ error?: stri
   const picked = parseVibeTags(formData.getAll("vibeTag").map(String));
 
   await updateProfileFields(viewer.id, { vibeTags: picked.length ? picked : null });
-
-  refresh({ kind: "profile" });
-  return {};
-}
-
-// `shareDietary` is saved here, not with the other privacy flags on
-// /settings — it reads as part of the fact itself and covers the whole
-// record at once; you can't publish half a dietary record.
-export async function updateDietary(formData: FormData): Promise<{ error?: string }> {
-  const viewer = await requireUser();
-  await ensureProfile(viewer.id);
-
-  const flags = parseDietFlags(formData.getAll("dietFlag").map(String));
-  const notes = String(formData.get("dietaryNotes") ?? "")
-    .trim()
-    .slice(0, MAX_DIETARY_NOTES);
-
-  await updateProfileFields(viewer.id, {
-    dietFlags: flags.length ? flags : null,
-    dietaryNotes: notes || null,
-    shareDietary: formData.get("shareDietary") === "on",
-  });
 
   refresh({ kind: "profile" });
   return {};

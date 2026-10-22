@@ -20,6 +20,7 @@ import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
 import { kickFromTripNotes } from "@/server/notes/live/live-kick";
 import { insertFirstPage } from "@/server/notes/pages/page-first";
+import type { Tx } from "@/server/notifications/activity";
 import type { PageBlock } from "@floc/core/notes/pages/page-blocks";
 
 export type TripListRow = {
@@ -118,38 +119,42 @@ export async function setTripStarred(tripId: number, userId: string, starred: bo
     );
 }
 
-/** Smallest thing that exists at creation (ticket 01). */
-export async function createTripWithAdmin(input: {
+export type NewTripRow = {
   name: string;
   startDate: string | null;
   endDate: string | null;
   createdBy: string;
   /** What the first notes page starts with; blank when left out. */
   firstPage?: PageBlock[];
-}): Promise<number> {
+};
+
+/** Smallest thing that exists at creation (ticket 01), inside the caller's transaction. */
+export async function insertTripWithAdmin(tx: Tx, input: NewTripRow): Promise<number> {
   // A start alone is a real answer at creation; a full window must be a valid one.
   const problem = input.startDate && input.endDate ? windowProblem(input.startDate, input.endDate) : null;
   if (problem) throw new Refusal(problem);
-  return db.transaction(async (tx) => {
-    const [created] = await tx
-      .insert(trip)
-      .values({
-        name: input.name,
-        startDate: input.startDate,
-        endDate: input.endDate,
-        createdBy: input.createdBy,
-        inviteToken: crypto.randomUUID(),
-      })
-      .returning({ id: trip.id });
+  const [created] = await tx
+    .insert(trip)
+    .values({
+      name: input.name,
+      startDate: input.startDate,
+      endDate: input.endDate,
+      createdBy: input.createdBy,
+      inviteToken: crypto.randomUUID(),
+    })
+    .returning({ id: trip.id });
 
-    await tx.insert(tripMembership).values({
-      tripId: created.id,
-      userId: input.createdBy,
-      role: "admin",
-    });
-    await insertFirstPage(tx, created.id, input.createdBy, input.firstPage);
-    return created.id;
+  await tx.insert(tripMembership).values({
+    tripId: created.id,
+    userId: input.createdBy,
+    role: "admin",
   });
+  await insertFirstPage(tx, created.id, input.createdBy, input.firstPage);
+  return created.id;
+}
+
+export async function createTripWithAdmin(input: NewTripRow): Promise<number> {
+  return db.transaction((tx) => insertTripWithAdmin(tx, input));
 }
 
 /**

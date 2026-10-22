@@ -1,18 +1,10 @@
 /**
- * What a seeded profile shows, and to whom (#no-ticket).
- *
- * There is no "public" in Floc: the widest ring is `trip_members`, and a
- * stranger never reaches a profile at all (visibility.ts). So the presets
- * below are the rings you can actually stand in — open to anyone you travel
- * with, friends only, private, and a mix — and the scenarios hand them out so
- * each one has somebody wearing it.
- *
- * Vibe tags and diet flags come from the closed sets in `@floc/core`. A tag
- * outside `VIBE_TAGS` is silently dropped on read, which is how the old seed's
- * "food and markets" never showed up anywhere.
+ * Why: there is no "public" in Floc — the widest ring is `trip_members` and a
+ * stranger never reaches a profile — so the presets below are the rings you can
+ * actually stand in, and the scenarios give each one somebody wearing it. A vibe
+ * tag outside `VIBE_TAGS` is dropped on read, so it never shows.
  */
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
-import type { DietFlag } from "@floc/core/people/dietary";
 import type { VIBE_TAGS } from "@floc/core/trip/vibe-tags";
 
 type VibeTag = (typeof VIBE_TAGS)[number];
@@ -31,7 +23,6 @@ export type Profile = {
   vibes: VibeTag[];
   currency: "GBP" | "EUR" | "USD";
   rings: Rings;
-  diet?: { flags: DietFlag[]; notes?: string; shared: boolean };
   /** ISO alpha-2. Green = been, yellow = want to go. Trips add their own greens on read. */
   map?: { green?: string[]; yellow?: string[] };
 };

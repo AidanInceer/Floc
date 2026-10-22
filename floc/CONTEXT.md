@@ -67,3 +67,20 @@ own icon set. Never an emoji.
 
 **Archived page** — a page a member has archived. It can be restored for 7
 days, then it is deleted for good, with its sub-pages and comments.
+
+## Explore
+
+**Listing** — one ready-made trip on Explore: its stops, travel, days and best
+months. Static content in `@floc/core`, never a database row.
+
+**Copy** (*start this trip*) — makes a new trip from a listing. A snapshot: no
+link back, so editing one never changes the other. With a start month it brings
+the days, stops, travel and (optionally) events; with *Decide later* it is an
+undated trip with the highlights page only.
+
+**Start month** — a best month picked when copying. The trip starts on the 1st
+of the next such month still ahead and runs for the listing's nights.
+
+**Ideas page** — an optional notes page a copy adds. *At your stops*: other
+things to do at each stop, with pace and cost. *Other stops*: places to swap
+in, how many nights, and what to do there.

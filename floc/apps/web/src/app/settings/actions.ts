@@ -3,8 +3,8 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { PAST_TRIPS_SHOW, VISIBILITIES } from "@/db/schema";
-import type { PastTripsShow, Visibility } from "@/db/schema";
+import { VISIBILITIES } from "@/db/schema";
+import type { Visibility } from "@/db/schema";
 import { requireUser } from "@/server/access";
 import { unlinkSignIn } from "@/server/auth/sign-in-methods";
 import { eraseAccount } from "@/server/auth/erase-account";
@@ -29,14 +29,7 @@ export async function updatePrivacy(formData: FormData): Promise<{ error?: strin
   const vibeTags = ring("visibilityVibeTags");
   const travelMap = ring("visibilityTravelMap");
   const friends = ring("visibilityFriends");
-  const show = String(formData.get("pastTripsShow") ?? "");
-
-  if (
-    !vibeTags ||
-    !travelMap ||
-    !friends ||
-    !PAST_TRIPS_SHOW.includes(show as PastTripsShow)
-  ) {
+  if (!vibeTags || !travelMap || !friends) {
     return { error: "That isn't one of the visibility options." };
   }
 
@@ -45,7 +38,7 @@ export async function updatePrivacy(formData: FormData): Promise<{ error?: strin
     visibilityVibeTags: vibeTags,
     visibilityTravelMap: travelMap,
     visibilityFriends: friends,
-    pastTripsShow: show as PastTripsShow,
+    pastTripsShow: formData.get("pastTripsLatest") === "on" ? "latest" : "all",
   });
 
   refresh({ kind: "profile" });

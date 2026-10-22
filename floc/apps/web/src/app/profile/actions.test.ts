@@ -12,7 +12,6 @@ import {
   setAvatarIcon,
   setCountryMark,
   updateCurrency,
-  updateDietary,
   updateIdentity,
   updatePacking,
   updateVibeTags,
@@ -74,14 +73,6 @@ describe("the profile", () => {
 
     await updateVibeTags(form({}));
     expect((await profile())?.vibeTags).toBeNull();
-  });
-
-  it("saves the dietary record as one", async () => {
-    await updateDietary(form({ dietFlag: ["vegan", "nonsense"], dietaryNotes: "  nut allergy  ", shareDietary: "on" }));
-    expect(await profile()).toMatchObject({ dietFlags: ["vegan"], dietaryNotes: "nut allergy", shareDietary: true });
-
-    await updateDietary(form({}));
-    expect(await profile()).toMatchObject({ dietFlags: null, dietaryNotes: null, shareDietary: false });
   });
 
   it("saves packing defaults and refuses an unknown style", async () => {

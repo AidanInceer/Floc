@@ -1,4 +1,5 @@
 import { day } from "../../day";
+import { at, swap } from "../../ideas";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const MOROCCO_ATLAS_SAHARA: PresetDetail = {
@@ -61,4 +62,38 @@ export const MOROCCO_ATLAS_SAHARA: PresetDetail = {
     { label: "Pace", text: "On the move after Imlil. Four one-night stops in a row." },
     { label: "Walking", text: "One full day on foot in the valley. Paths are rocky." },
   ],
+  ideas: {
+    atStops: [
+      at("Marrakech", [
+        ["Majorelle garden, first thing", "Relaxed", "Low"],
+        ["Cooking class with a market shop", "Steady", "Mid"],
+        ["Hammam and scrub", "Relaxed", "Mid"],
+      ]),
+      at("Imlil", [
+        ["Walk to Kasbah du Toubkal for mint tea", "Steady", "Free"],
+        ["Mule trek to Aroumd village", "Steady", "Low"],
+      ]),
+      at("Aït Benhaddou", [
+        ["Climb to the granary at sunset", "Steady", "Free"],
+        ["Telouet kasbah on the old caravan road", "Relaxed", "Low"],
+      ]),
+      at("Dades gorge", [
+        ["Walk the Todra gorge", "Steady", "Free"],
+        ["Scramble through the Monkey Fingers rocks", "Active", "Free"],
+      ]),
+      at("Erg Chebbi", [
+        ["Sandboard the dunes", "Active", "Low"],
+        ["Gnawa music at Khamlia", "Relaxed", "Low"],
+      ]),
+      at("Fes", [
+        ["Chouara tannery from a terrace", "Relaxed", "Low"],
+        ["Volubilis and Meknes for the day", "Steady", "Mid"],
+        ["Pottery and zellige workshop", "Relaxed", "Mid"],
+      ]),
+    ],
+    otherStops: [
+      swap("Chefchaouen", 2, "Fes", "The blue town in the Rif, with a walk up to the Spanish mosque."),
+      swap("Essaouira", 2, "Marrakech", "Sea air, the port, the ramparts and grilled fish."),
+    ],
+  },
 };

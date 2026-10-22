@@ -75,9 +75,6 @@ async function upsertAccount(args: {
     homeCurrency: profile.currency,
     vibeTags: profile.vibes,
     signupChannel: "direct" as const,
-    dietFlags: profile.diet?.flags ?? [],
-    dietaryNotes: profile.diet?.notes ?? null,
-    shareDietary: profile.diet?.shared ?? false,
     ...profile.rings,
   };
   await db

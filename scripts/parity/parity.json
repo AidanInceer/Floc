@@ -320,9 +320,6 @@
     "settings.deleteAccount": {
       "mobile": "yes"
     },
-    "settings.dietary": {
-      "mobile": "yes"
-    },
     "settings.face": {
       "mobile": "yes"
     },

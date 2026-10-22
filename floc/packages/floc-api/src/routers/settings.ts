@@ -1,14 +1,14 @@
 /**
- * Settings — what you configure, as against what you curate (tickets 07, 46, 236).
+ * Settings — what you configure, as against what you curate (#7, #46, #236).
  *
  * ONE READ, MANY WRITES. `get` hands back the whole record because it *is* one
  * row and one screen; each write names one panel because saving privacy
- * alongside dietary would blank whichever half the open editor did not carry.
+ * alongside vibe tags would blank whichever half the open editor did not carry.
  * That is the web's split, kept exactly.
  *
  * VALIDATE AT THE DOOR. Every enum is re-checked here from `@floc/core`, not
  * trusted from the client: a phone is not a trusted caller, and the seed lists
- * (vibe tags, diets, currencies, rings) are the whole guard against a
+ * (vibe tags, currencies, rings) are the whole guard against a
  * hand-made call inventing a value the web app could never send.
  *
  * THE ACCOUNT PANEL IS NOT THE PROFILE. Email comes from whichever provider
@@ -19,7 +19,6 @@
 
 import { AVATAR_ICONS } from "@floc/core/people/avatar-icon";
 import { CURRENCIES } from "@floc/core/money/currency";
-import { DIET_FLAGS, MAX_DIETARY_NOTES } from "@floc/core/people/dietary";
 import { PACK_TIERS } from "@floc/core/packing/packing";
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { VIBE_TAGS } from "@floc/core/trip/vibe-tags";
@@ -29,8 +28,6 @@ import { protectedProcedure, router } from "../trpc";
 
 /** The three rings, in the order they nest. Widest last. */
 const visibility = z.enum(["private", "friends", "trip_members"]);
-
-const dietFlag = z.enum(Object.keys(DIET_FLAGS) as [string, ...string[]]);
 
 export const settingsRouter = router({
   get: protectedProcedure.query(({ ctx }) => ctx.port.loadMySettings(ctx.viewer.id)),
@@ -80,23 +77,6 @@ export const settingsRouter = router({
     .input(z.object({ tags: z.array(z.enum(VIBE_TAGS)).max(VIBE_TAGS.length) }))
     .mutation(async ({ ctx, input }) => {
       await ctx.port.updateVibeTags(ctx.viewer.id, [...input.tags]);
-    }),
-
-  /** All three together: you cannot publish half a dietary record. */
-  dietary: protectedProcedure
-    .input(
-      z.object({
-        flags: z.array(dietFlag).max(Object.keys(DIET_FLAGS).length),
-        notes: z.string().trim().max(MAX_DIETARY_NOTES).nullable(),
-        share: z.boolean(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      await ctx.port.updateDietary(ctx.viewer.id, {
-        flags: [...input.flags],
-        notes: input.notes || null,
-        share: input.share,
-      });
     }),
 
   /** Where a new trip starts. A trip that has chosen for itself ignores this (ticket 220). */

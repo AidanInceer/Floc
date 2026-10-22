@@ -27,7 +27,6 @@ const TRIP: TripDetail = {
       email: "ana@example.com",
       avatarIcon: null,
       tone: "who-1",
-      dietary: null,
     },
   ],
   bookingPrefill: false,
@@ -115,6 +114,25 @@ describe("being signed in", () => {
     const { caller: ana, port } = caller("u1");
     await ana.trips.list({ archived: false });
     expect(port.listTrips).toHaveBeenCalledWith("u1", { archived: false });
+  });
+});
+
+describe("starting a trip from a listing", () => {
+  it("reads a bare listing id as the undated copy an older app asks for", async () => {
+    const { caller: ana, port } = caller("u1");
+    await ana.trips.startFromPreset({ presetId: "japan-golden-route" });
+    expect(port.startTripFromPreset).toHaveBeenCalledWith("u1", { presetId: "japan-golden-route", month: null, ideas: true, events: true });
+  });
+
+  it("passes the month and both switches through", async () => {
+    const { caller: ana, port } = caller("u1");
+    await ana.trips.startFromPreset({ presetId: "japan-golden-route", month: 4, ideas: false, events: true });
+    expect(port.startTripFromPreset).toHaveBeenCalledWith("u1", { presetId: "japan-golden-route", month: 4, ideas: false, events: true });
+  });
+
+  it("refuses a month that is not one", async () => {
+    const { caller: ana } = caller("u1");
+    await expect(ana.trips.startFromPreset({ presetId: "x", month: 13 })).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 });
 
