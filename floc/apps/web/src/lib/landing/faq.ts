@@ -1,4 +1,5 @@
-export type FaqItem = { key: string; question: string; answer: string };
+export type FaqKey = "free" | "account" | "booking" | "money" | "pro";
+export type FaqItem = { key: FaqKey; question: string; answer: string };
 
 /** `monthly` is Stripe's formatted price; null when it cannot be read, so Pro sells without a figure. */
 export function landingFaq({ sellingPro, monthly }: { sellingPro: boolean; monthly: string | null }): FaqItem[] {

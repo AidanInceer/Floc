@@ -33,7 +33,8 @@ export type GlyphName =
   | "eat"
   | "send"
   | "copy"
-  | "close";
+  | "close"
+  | "people";
 
 const PATHS: Record<GlyphName, ReactNode> = {
   copy: (
@@ -164,6 +165,12 @@ const PATHS: Record<GlyphName, ReactNode> = {
   eat: <path d="M3.6 1.8v4.4a1.4 1.4 0 0 0 2.8 0V1.8M5 6.6v5.6M10.2 12.2V1.8c-1.4.6-2.2 2.2-2.2 4.2 0 1.2.6 1.8 2.2 1.8" />,
   send: <path d="M7 11.6V2.6M3.2 6.2 7 2.4l3.8 3.8" />,
   close: <path d="M4 4l6 6M10 4l-6 6" />,
+  people: (
+    <>
+      <circle cx="5.2" cy="5" r="2" />
+      <path d="M1.8 11.4c0-1.9 1.5-3 3.4-3s3.4 1.1 3.4 3M9.4 3.3a2 2 0 0 1 0 3.9M9.8 8.6c1.5.2 2.6 1.2 2.6 2.8" />
+    </>
+  ),
 };
 
 export function Glyph({
