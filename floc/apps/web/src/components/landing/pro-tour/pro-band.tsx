@@ -37,7 +37,7 @@ function ProPitch({ monthly, href }: { monthly: string | null; href: string }) {
   );
 }
 
-/** The same sample trip without and with Pro, stage by stage. Some of it is still coming, which the tag says once. */
+/** The sample trip planned in eleven tabs; each closes onto the job Pro does. Some of it is still coming, which the tag says once. */
 export function ProBand({ monthly, signedIn }: { monthly: string | null; signedIn: boolean }) {
   return (
     <div>
