@@ -1,4 +1,5 @@
 import { day } from "../../day";
+import { at, swap } from "../../ideas";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const HANOI_TO_BANGKOK: PresetDetail = {
@@ -79,4 +80,44 @@ export const HANOI_TO_BANGKOK: PresetDetail = {
     { label: "Pace", text: "On the move. Seven stops, two long bus days." },
     { label: "Early starts", text: "One 04:45 start for Angkor Wat, worth it." },
   ],
+  ideas: {
+    atStops: [
+      at("Hanoi", [
+        ["Street food walk in the Old Quarter", "Relaxed", "Low"],
+        ["Water puppet show", "Relaxed", "Low"],
+        ["Temple of Literature", "Relaxed", "Low"],
+      ]),
+      at("Hue", [
+        ["Cycle out to the royal tombs", "Active", "Low"],
+        ["Dragon boat on the Perfume river", "Relaxed", "Low"],
+      ]),
+      at("Hoi An", [
+        ["Have clothes made by a tailor", "Relaxed", "Mid"],
+        ["Cycle to An Bang beach", "Steady", "Free"],
+        ["Basket boat in the coconut palms", "Relaxed", "Low"],
+      ]),
+      at("Ho Chi Minh City", [
+        ["Cu Chi tunnels", "Steady", "Mid"],
+        ["Mekong delta for the day", "Relaxed", "Mid"],
+      ]),
+      at("Phnom Penh", [
+        ["Royal Palace", "Relaxed", "Low"],
+        ["Sunset boat on the Mekong", "Relaxed", "Low"],
+      ]),
+      at("Siem Reap", [
+        ["Cycle the temples beyond Angkor Wat", "Active", "Low"],
+        ["Phare circus", "Relaxed", "Mid"],
+        ["Floating village on Tonlé Sap", "Relaxed", "Mid"],
+      ]),
+      at("Bangkok", [
+        ["Chao Phraya by express boat", "Relaxed", "Low"],
+        ["Chatuchak weekend market", "Relaxed", "Low"],
+        ["Thai massage at Wat Pho", "Relaxed", "Low"],
+      ]),
+    ],
+    otherStops: [
+      swap("Ha Long Bay", 2, "Hue", "A night on a junk among the limestone islands."),
+      swap("Kampot", 2, "Phnom Penh", "Pepper farms, the river and Bokor mountain."),
+    ],
+  },
 };

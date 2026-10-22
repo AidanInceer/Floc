@@ -9,6 +9,8 @@ export type ListingStop = {
   nights: number;
   lat: number;
   lng: number;
+  /** Set only where the listing crosses borders. */
+  country?: string;
   /** The hop right before this base. On the first stop it is how the trip starts, if the listing says. */
   arrive: ListingMove | null;
   dayOuts: ListingMove[];
@@ -21,7 +23,7 @@ export function stopsOf(trip: PresetTrip): ListingStop[] {
     if (leg.kind === "base") {
       const before = trip.legs[i - 1];
       const arrive = before?.kind === "hop" ? { place: before.place, mode: before.mode, detail: before.detail } : null;
-      stops.push({ place: leg.place, nights: leg.nights, lat: leg.lat, lng: leg.lng, arrive, dayOuts: [] });
+      stops.push({ place: leg.place, nights: leg.nights, lat: leg.lat, lng: leg.lng, ...(leg.country ? { country: leg.country } : {}), arrive, dayOuts: [] });
     } else if (trip.legs[i + 1]?.kind !== "base") {
       stops.at(-1)?.dayOuts.push({ place: leg.place, mode: leg.mode, detail: leg.detail });
     }

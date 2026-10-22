@@ -214,6 +214,7 @@ export function ToggleRow({
   hint,
   value,
   defaultChecked,
+  disabled,
 }: {
   name: string;
   label: string;
@@ -221,16 +222,18 @@ export function ToggleRow({
   /** Set when several rows share one `name` and post as a set. */
   value?: string;
   defaultChecked: boolean;
+  disabled?: boolean;
 }) {
   return (
     // Why: the switch leads its words. At the far end of a wide panel it read
     // as belonging to whichever row the eye landed on.
-    <label className="flex cursor-pointer items-start gap-3">
+    <label className={cx("flex items-start gap-3", disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer")}>
       <input
         type="checkbox"
         name={name}
         value={value}
         defaultChecked={defaultChecked}
+        disabled={disabled}
         className="peer sr-only"
       />
       <span className="switch-track" aria-hidden />

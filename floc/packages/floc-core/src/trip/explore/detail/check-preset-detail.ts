@@ -1,5 +1,6 @@
 import { stopsOf } from "../listing-stops";
 import type { PresetTrip } from "../preset-trip-types";
+import { checkIdeas } from "./check-ideas";
 import type { PresetDay, PresetDetail } from "./preset-detail-types";
 import { DERIVED_FACT_LABELS } from "./preset-plan";
 
@@ -48,5 +49,5 @@ export function checkPresetDetail(trip: PresetTrip, detail: PresetDetail): strin
   for (const fact of detail.goodToKnow) {
     if (DERIVED_FACT_LABELS.includes(fact.label)) problems.push(`"${fact.label}" comes from the listing, do not repeat it`);
   }
-  return problems;
+  return [...problems, ...checkIdeas(bases, detail.ideas)];
 }

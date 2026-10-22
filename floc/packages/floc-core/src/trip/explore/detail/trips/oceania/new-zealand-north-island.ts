@@ -1,4 +1,5 @@
 import { day } from "../../day";
+import { at, swap } from "../../ideas";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const NEW_ZEALAND_NORTH_ISLAND: PresetDetail = {
@@ -69,4 +70,40 @@ export const NEW_ZEALAND_NORTH_ISLAND: PresetDetail = {
     { label: "Pace", text: "Steady. Six stops, one long walk." },
     { label: "Tides", text: "Hot Water Beach works only at low tide. The plan follows it." },
   ],
+  ideas: {
+    atStops: [
+      at("Auckland", [
+        ["Waiheke island wineries", "Relaxed", "Mid"],
+        ["Rangitoto summit walk", "Active", "Low"],
+        ["SkyJump off the Sky Tower", "Active", "High"],
+      ]),
+      at("Bay of Islands", [
+        ["Hole in the Rock cruise", "Relaxed", "Mid"],
+        ["Waitangi treaty grounds", "Relaxed", "Mid"],
+        ["A day under sail", "Relaxed", "Mid"],
+      ]),
+      at("Coromandel", [
+        ["Dig a pool at Hot Water Beach, at low tide", "Relaxed", "Free"],
+        ["Kayak to Cathedral Cove", "Active", "Mid"],
+      ]),
+      at("Rotorua", [
+        ["Mountain bike in the Redwoods", "Active", "Mid"],
+        ["Hāngī and a Māori cultural evening", "Relaxed", "Mid"],
+        ["Polynesian Spa", "Relaxed", "Mid"],
+      ]),
+      at("Tongariro", [
+        ["Taranaki falls track", "Steady", "Free"],
+        ["Jet boat to Huka falls at Taupō", "Relaxed", "High"],
+      ]),
+      at("Wellington", [
+        ["Te Papa museum", "Relaxed", "Free"],
+        ["Zealandia sanctuary at night", "Steady", "Mid"],
+        ["Cable car and the botanic garden", "Relaxed", "Low"],
+      ]),
+    ],
+    otherStops: [
+      swap("Waitomo", 1, "Coromandel", "Glow-worm caves, by boat or by black-water rafting."),
+      swap("Napier", 2, "Tongariro", "Art deco streets and the Hawke's Bay wineries."),
+    ],
+  },
 };

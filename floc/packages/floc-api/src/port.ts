@@ -22,6 +22,7 @@ import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import type { Currency } from "@floc/core/money/currency";
 import type { DocCategory } from "@floc/core/documents/documents";
 import type { ExpenseCategory } from "@floc/core/money/expense-category";
+import type { CopyChoice } from "@floc/core/trip/explore/copy/copy-choice";
 import type { Finder } from "@floc/core/trip/explore/finder/finder";
 import type { WeatherCondition } from "@floc/core/itinerary/weather";
 import type { PackCategory, PackTier } from "@floc/core/packing/packing";
@@ -892,13 +893,10 @@ export type FlocPort = {
   createTrip(viewerId: string, input: NewTrip): Promise<{ id: number }>;
 
   /**
-   * Starts a trip from an Explore listing (ticket 302's bottom bar needs the
-   * Explore seat to actually do something). Copied, never linked: the new trip
-   * keeps no id back to the listing, so editing one never touches the other.
-   * Null when the listing has been retired since it was drawn — degrade, don't
-   * crash (rule 11).
+   * Starts a trip from an Explore listing (ADR-025), copied, never linked.
+   * Null when the listing has been retired since it was drawn (rule 11).
    */
-  startTripFromPreset(viewerId: string, presetId: string): Promise<{ id: number } | null>;
+  startTripFromPreset(viewerId: string, choice: CopyChoice): Promise<{ id: number } | null>;
 
   /** Your last Explore finder — null means never set. */
   loadExplore(viewerId: string): Promise<ExploreState>;

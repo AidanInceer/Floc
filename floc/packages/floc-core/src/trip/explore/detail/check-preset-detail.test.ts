@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { PresetTrip } from "../preset-trip-types";
 import { checkPresetDetail } from "./check-preset-detail";
+import { at, swap } from "./ideas";
 import type { PresetDay, PresetDetail } from "./preset-detail-types";
 
 const trip: PresetTrip = {
@@ -37,6 +38,13 @@ const good: PresetDetail = {
   inPlan: [{ value: "8", label: "places, with times" }],
   advice: [{ topic: "money", title: "Money", lines: ["Carry some cash."] }],
   goodToKnow: [{ label: "Pace", text: "Slow." }],
+  ideas: {
+    atStops: [
+      at("Seville", [["Flamenco in Triana", "Relaxed", "Mid"], ["Kayak the Guadalquivir", "Active", "Low"]]),
+      at("Córdoba", [["The patios in May", "Relaxed", "Free"], ["Baths at Hammam Al Ándalus", "Relaxed", "Mid"]]),
+    ],
+    otherStops: [swap("Granada", 2, "Córdoba", "The Alhambra and the Albaicín.")],
+  },
 };
 
 const withStops = (stops: PresetDetail["stops"]): PresetDetail => ({ ...good, stops });
@@ -104,5 +112,24 @@ describe("checkPresetDetail", () => {
       goodToKnow: [{ label: "Cost", text: "Cheap." }],
     });
     expect(problems).toEqual(['advice "Money" has no lines', '"Cost" comes from the listing, do not repeat it']);
+  });
+
+  it("names a stop with too few ideas, a list for no stop, and a swap for no stop", () => {
+    const ideas = {
+      atStops: [at("Seville", [["Flamenco", "Relaxed", "Mid"]]), at("Granada", [["Alhambra", "Steady", "Mid"], ["Tea", "Relaxed", "Low"]])],
+      otherStops: [swap("Ronda", 0, "Malaga", "")],
+    } satisfies PresetDetail["ideas"];
+    expect(checkPresetDetail(trip, { ...good, ideas })).toEqual([
+      "ideas: Seville has 1, wants 2 or more",
+      "ideas: Córdoba wants one list, has 0",
+      'ideas: "Granada" is not a stop',
+      'ideas: Ronda is instead of "Malaga", not a stop',
+      "ideas: Ronda wants 1 night or more",
+      "ideas: Ronda says nothing to do",
+    ]);
+  });
+
+  it("wants at least one other stop", () => {
+    expect(checkPresetDetail(trip, { ...good, ideas: { ...good.ideas, otherStops: [] } })).toEqual(["ideas: no other stops"]);
   });
 });

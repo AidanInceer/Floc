@@ -6,6 +6,12 @@ export function startTripHref(signedIn: boolean, typed: string): string {
   return signedIn ? trips : `/signup?redirect=${encodeURIComponent(trips)}`;
 }
 
+/** Where the landing's "Start from Japan" sends you: that listing on Explore with the copy sheet open (ADR-025). */
+export function listingStartHref(signedIn: boolean, listingId: string): string {
+  const listing = `/explore/${encodeURIComponent(listingId)}?start=1`;
+  return signedIn ? listing : `/signup?redirect=${encodeURIComponent(listing)}`;
+}
+
 /** `?new=` on My trips: null means no sheet; a string (maybe empty) opens it with that name. */
 export function newTripName(raw: string | string[] | undefined): string | null {
   const value = Array.isArray(raw) ? raw[0] : raw;

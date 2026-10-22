@@ -38,6 +38,7 @@ const detail: PresetDetail = {
   inPlan: [{ value: "9", label: "places, with times" }],
   advice: [{ topic: "money", title: "Money", lines: ["Carry some cash."] }],
   goodToKnow: [{ label: "Pace", text: "Slow." }],
+  ideas: { atStops: [], otherStops: [] },
 };
 
 describe("buildPresetPlan without detail", () => {

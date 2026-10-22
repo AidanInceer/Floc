@@ -31,7 +31,7 @@ import type {
   PlaceHit,
 } from "@floc/api/port";
 
-import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
+import { copyListing } from "@/server/explore/listing-copy";
 import { saveTrip } from "@/server/trips/trip-save";
 
 import { assertAdmin, findTripAccess, type TripAccess } from "@/server/access";
@@ -62,7 +62,6 @@ import { removeEvent, saveEvent } from "@/server/itinerary/event-save";
 import { recordTransfers, removeExpense, saveExpense } from "@/server/money/money-save";
 import { listAvailability, setAvailability } from "@/server/itinerary/availability";
 import { listDocuments } from "@/server/documents/documents";
-import { bulletPage } from "@floc/core/notes/pages/page-blocks";
 import { listTripPlaces, searchPlaces as geocode } from "@/server/itinerary/places";
 import { applyOvernight } from "@/server/itinerary/overnight";
 import {
@@ -426,21 +425,10 @@ export const webPort: FlocPort = {
     return { id };
   },
 
-  async startTripFromPreset(viewerId, presetId) {
-    const preset = PRESET_TRIPS.find((listing) => listing.id === presetId);
-    // A listing can be retired between drawing and tapping — null, not a throw.
-    if (!preset) return null;
-
+  async startTripFromPreset(viewerId, choice) {
     await ensureProfile(viewerId);
-    const id = await createTripWithAdmin({
-      name: preset.title,
-      // `bestMonths` is deliberately not applied: dates come from the group's
-      // own availability overlap, and an undated trip is never wrong (rule 9).
-      startDate: null,
-      endDate: null,
-      createdBy: viewerId,
-      firstPage: bulletPage(preset.highlights),
-    });
+    const id = await copyListing(viewerId, choice);
+    if (id === null) return null;
     refresh({ kind: "tripList" });
     return { id };
   },

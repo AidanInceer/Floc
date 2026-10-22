@@ -1,4 +1,5 @@
 import { day } from "../../day";
+import { at, swap } from "../../ideas";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const ICELAND_RING_ROAD: PresetDetail = {
@@ -64,4 +65,41 @@ export const ICELAND_RING_ROAD: PresetDetail = {
     { label: "Pace", text: "On the move. Most days are a drive of three to five hours." },
     { label: "Driving", text: "One car for the group. Share the wheel." },
   ],
+  ideas: {
+    atStops: [
+      at("Reykjavík", [
+        ["Sky Lagoon", "Relaxed", "High"],
+        ["Up the Hallgrímskirkja tower", "Relaxed", "Low"],
+      ]),
+      at("Vík", [
+        ["Glacier walk on Sólheimajökull", "Active", "High"],
+        ["Puffins at Dyrhólaey, in summer", "Relaxed", "Free"],
+      ]),
+      at("Höfn", [
+        ["Ice cave tour, in winter", "Steady", "High"],
+        ["Langoustine dinner", "Relaxed", "High"],
+        ["Stokksnes beach under Vestrahorn", "Relaxed", "Low"],
+      ]),
+      at("Seyðisfjörður", [
+        ["Walk to Gufufoss", "Steady", "Free"],
+        ["Kayak on the fjord", "Steady", "Mid"],
+      ]),
+      at("Mývatn", [
+        ["Mývatn nature baths", "Relaxed", "Mid"],
+        ["Walk the Hverfjall crater rim", "Active", "Free"],
+      ]),
+      at("Akureyri", [
+        ["Whale watching from Húsavík", "Relaxed", "High"],
+        ["Forest Lagoon", "Relaxed", "Mid"],
+      ]),
+      at("Snæfellsnes", [
+        ["Coast path from Arnarstapi to Hellnar", "Steady", "Free"],
+        ["Vatnshellir lava tube", "Steady", "Mid"],
+      ]),
+    ],
+    otherStops: [
+      swap("Westfjords", 3, "Snæfellsnes", "Long fjords, Dynjandi falls and the Látrabjarg bird cliffs."),
+      swap("Landmannalaugar", 1, "Vík", "Coloured hills and a hot river, in summer only, by 4x4 bus."),
+    ],
+  },
 };

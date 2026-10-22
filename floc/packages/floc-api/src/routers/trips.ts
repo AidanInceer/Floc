@@ -38,15 +38,19 @@ export const tripsRouter = router({
     .mutation(({ ctx, input }) => ctx.port.createTrip(ctx.viewer.id, input)),
 
   /**
-   * Starts a trip from an Explore listing. The listing itself is static data in
-   * `@floc/core/preset-trips`, which both clients read directly — only the
-   * writing needs a server, so only the writing is here.
+   * ADR-025. Only the write is here: both clients read the listing from `@floc/core`.
+   * Why the defaults: an older app sends only the listing and gets the undated copy.
    */
   startFromPreset: protectedProcedure
-    .input(z.object({ presetId: z.string().min(1) }))
-    .mutation(({ ctx, input }) =>
-      ctx.port.startTripFromPreset(ctx.viewer.id, input.presetId),
-    ),
+    .input(
+      z.object({
+        presetId: z.string().min(1),
+        month: z.number().int().min(1).max(12).nullable().default(null),
+        ideas: z.boolean().default(true),
+        events: z.boolean().default(true),
+      }),
+    )
+    .mutation(({ ctx, input }) => ctx.port.startTripFromPreset(ctx.viewer.id, input)),
 
   update: tripProcedure
     .input(

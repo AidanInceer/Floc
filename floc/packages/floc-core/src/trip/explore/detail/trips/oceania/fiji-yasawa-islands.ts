@@ -1,4 +1,5 @@
 import { day } from "../../day";
+import { at, swap } from "../../ideas";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const FIJI_YASAWA_ISLANDS: PresetDetail = {
@@ -60,4 +61,34 @@ export const FIJI_YASAWA_ISLANDS: PresetDetail = {
     { label: "Pace", text: "Slow. Island time." },
     { label: "Boats", text: "The Yasawa Flyer runs once a day. Moves follow its timetable." },
   ],
+  ideas: {
+    atStops: [
+      at("Nadi", [
+        ["Garden of the Sleeping Giant", "Relaxed", "Low"],
+        ["Mud pool and hot springs at Sabeto", "Relaxed", "Low"],
+      ]),
+      at("Mamanuca islands", [
+        ["Cloud 9 floating bar", "Relaxed", "Mid"],
+        ["Snorkel off Malolo", "Relaxed", "Low"],
+      ]),
+      at("Yasawa islands", [
+        ["Swim with manta rays, in season", "Steady", "Mid"],
+        ["Sawa-i-Lau caves", "Steady", "Mid"],
+        ["Village visit and kava", "Relaxed", "Low"],
+      ]),
+      at("Coral Coast", [
+        ["Sigatoka sand dunes", "Steady", "Low"],
+        ["Kula wild adventure park", "Relaxed", "Mid"],
+      ]),
+      at("Pacific Harbour", [
+        ["Shark dive in Beqa lagoon", "Active", "High"],
+        ["Rafting the Upper Navua", "Active", "High"],
+        ["Beqa firewalkers", "Relaxed", "Mid"],
+      ]),
+    ],
+    otherStops: [
+      swap("Taveuni", 3, "Coral Coast", "The garden island: Bouma falls and the Rainbow Reef."),
+      swap("Suva", 1, "Pacific Harbour", "Fiji's capital, its museum and the big market."),
+    ],
+  },
 };

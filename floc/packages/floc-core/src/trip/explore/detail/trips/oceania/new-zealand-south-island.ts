@@ -1,4 +1,5 @@
 import { day } from "../../day";
+import { at, swap } from "../../ideas";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const NEW_ZEALAND_SOUTH_ISLAND: PresetDetail = {
@@ -72,4 +73,39 @@ export const NEW_ZEALAND_SOUTH_ISLAND: PresetDetail = {
     { label: "Pace", text: "On the move. Seven stops, some long drives." },
     { label: "Walking", text: "One steep climb, Roys Peak, and it is optional." },
   ],
+  ideas: {
+    atStops: [
+      at("Christchurch", [
+        ["Punting on the Avon", "Relaxed", "Mid"],
+        ["Akaroa on Banks Peninsula", "Steady", "Low"],
+        ["Gondola up the Port Hills", "Relaxed", "Mid"],
+      ]),
+      at("Lake Tekapo", [
+        ["Stargazing at Mount John", "Relaxed", "Mid"],
+        ["Tekapo Springs hot pools", "Relaxed", "Mid"],
+      ]),
+      at("Aoraki / Mount Cook", [
+        ["Boat on the Tasman glacier lake", "Relaxed", "High"],
+        ["Ski plane onto the glacier", "Relaxed", "High"],
+        ["Sealy Tarns track", "Active", "Free"],
+      ]),
+      at("Wanaka", [
+        ["Roys Peak", "Active", "Free"],
+        ["Canyoning", "Active", "High"],
+      ]),
+      at("Queenstown", [
+        ["Bungy at Kawarau bridge", "Active", "High"],
+        ["Milford Sound for the day", "Relaxed", "High"],
+        ["Arrowtown's gold-rush lanes", "Relaxed", "Free"],
+      ]),
+      at("Franz Josef", [
+        ["Heli-hike on the glacier", "Active", "High"],
+        ["Hot pools in the rainforest", "Relaxed", "Mid"],
+      ]),
+    ],
+    otherStops: [
+      swap("Kaikōura", 2, "Lake Tekapo", "Whales, dolphins and crayfish on the coast."),
+      swap("Abel Tasman", 3, "Franz Josef", "Golden bays to kayak and a coast track to walk."),
+    ],
+  },
 };

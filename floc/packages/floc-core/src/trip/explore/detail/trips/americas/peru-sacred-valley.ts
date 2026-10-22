@@ -1,4 +1,5 @@
 import { day } from "../../day";
+import { at, swap } from "../../ideas";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const PERU_SACRED_VALLEY: PresetDetail = {
@@ -66,4 +67,34 @@ export const PERU_SACRED_VALLEY: PresetDetail = {
     { label: "Pace", text: "Slow at first for the height, then steady." },
     { label: "Early starts", text: "05:30 for Machu Picchu, worth it." },
   ],
+  ideas: {
+    atStops: [
+      at("Lima", [
+        ["Barranco's murals and bars", "Relaxed", "Low"],
+        ["Paraglide off the Miraflores cliffs", "Active", "Mid"],
+        ["Ceviche class", "Relaxed", "Mid"],
+      ]),
+      at("Cusco", [
+        ["San Pedro market", "Relaxed", "Low"],
+        ["Rainbow Mountain for the day", "Active", "Mid"],
+        ["Sacsayhuamán on foot", "Steady", "Low"],
+      ]),
+      at("Sacred Valley", [
+        ["Moray and the Maras salt pans", "Steady", "Mid"],
+        ["Pisac market and ruins", "Steady", "Low"],
+      ]),
+      at("Aguas Calientes", [
+        ["Climb Huayna Picchu, booked ahead", "Active", "Mid"],
+        ["The hot springs", "Relaxed", "Low"],
+      ]),
+      at("Puno", [
+        ["Taquile island", "Steady", "Mid"],
+        ["Sillustani tombs at sunset", "Relaxed", "Low"],
+      ]),
+    ],
+    otherStops: [
+      swap("Arequipa and the Colca canyon", 3, "Puno", "A white-stone city, then condors over one of the deepest canyons."),
+      swap("Paracas", 2, "Lima", "Boats to the Ballestas islands and the Huacachina dunes."),
+    ],
+  },
 };

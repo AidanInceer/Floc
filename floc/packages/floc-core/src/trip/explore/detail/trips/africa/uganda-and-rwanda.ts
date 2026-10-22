@@ -1,4 +1,5 @@
 import { day } from "../../day";
+import { at, swap } from "../../ideas";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const UGANDA_AND_RWANDA: PresetDetail = {
@@ -71,4 +72,40 @@ export const UGANDA_AND_RWANDA: PresetDetail = {
     { label: "Pace", text: "Long drives between the parks." },
     { label: "Walking", text: "Gorilla tracking can mean hours on steep, muddy slopes." },
   ],
+  ideas: {
+    atStops: [
+      at("Entebbe", [
+        ["Botanical gardens on the lake", "Relaxed", "Free"],
+        ["Shoebills by canoe in Mabamba swamp", "Relaxed", "Mid"],
+      ]),
+      at("Murchison Falls", [
+        ["Hike to the top of the falls", "Active", "Low"],
+        ["Rhino tracking at Ziwa on the way", "Steady", "Mid"],
+      ]),
+      at("Kibale", [
+        ["Bigodi wetland walk", "Steady", "Low"],
+        ["Crater lakes walk near Fort Portal", "Steady", "Low"],
+      ]),
+      at("Queen Elizabeth", [
+        ["Tree-climbing lions in Ishasha", "Relaxed", "Mid"],
+        ["Chimps in Kyambura gorge", "Active", "Mid"],
+      ]),
+      at("Bwindi", [
+        ["Batwa community walk", "Steady", "Low"],
+        ["Waterfall trail in the forest", "Steady", "Low"],
+      ]),
+      at("Lake Bunyonyi", [
+        ["Dugout canoe between the islands", "Steady", "Low"],
+        ["Swim off the jetty", "Relaxed", "Free"],
+      ]),
+      at("Kigali", [
+        ["Kimironko market and a tailor", "Relaxed", "Low"],
+        ["Inema arts centre", "Relaxed", "Free"],
+      ]),
+    ],
+    otherStops: [
+      swap("Volcanoes National Park", 2, "Lake Bunyonyi", "Golden monkeys, Dian Fossey's grave and gorillas on the Rwandan side."),
+      swap("Lake Kivu", 2, "Kigali", "A lake beach at Gisenyi, boat trips and coffee on the shore."),
+    ],
+  },
 };

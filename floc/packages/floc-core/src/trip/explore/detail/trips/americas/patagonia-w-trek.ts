@@ -1,4 +1,5 @@
 import { day } from "../../day";
+import { at, swap } from "../../ideas";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const PATAGONIA_W_TREK: PresetDetail = {
@@ -61,4 +62,29 @@ export const PATAGONIA_W_TREK: PresetDetail = {
     { label: "Pace", text: "Hard. Six walking days, the longest about ten hours." },
     { label: "Sleep", text: "Refugios are shared rooms with bunks." },
   ],
+  ideas: {
+    atStops: [
+      at("El Calafate", [
+        ["Big ice trek on Perito Moreno", "Active", "High"],
+        ["Birds at Laguna Nimez", "Relaxed", "Low"],
+      ]),
+      at("El Chaltén", [
+        ["Loma del Pliegue Tumbado viewpoint", "Active", "Free"],
+        ["Chorrillo del Salto waterfall", "Relaxed", "Free"],
+        ["Kayak at Lago del Desierto", "Steady", "Mid"],
+      ]),
+      at("Puerto Natales", [
+        ["Milodon cave", "Relaxed", "Low"],
+        ["Kayak the Última Esperanza fjord", "Steady", "Mid"],
+      ]),
+      at("Refugios on the W", [
+        ["Ice hike on Grey glacier", "Active", "High"],
+        ["Kayak among the icebergs on Lago Grey", "Steady", "High"],
+      ]),
+    ],
+    otherStops: [
+      swap("Ushuaia", 3, "El Calafate", "The end of the world: boats on the Beagle Channel and Tierra del Fuego park."),
+      swap("Punta Arenas", 2, "Puerto Natales", "A boat to the penguin colony on Magdalena island."),
+    ],
+  },
 };

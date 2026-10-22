@@ -1,4 +1,5 @@
 import { day } from "../../day";
+import { at, swap } from "../../ideas";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const THAILAND_ANDAMAN_ISLANDS: PresetDetail = {
@@ -64,4 +65,34 @@ export const THAILAND_ANDAMAN_ISLANDS: PresetDetail = {
     { label: "Pace", text: "Busy in Bangkok and Chiang Mai, then slow on the islands." },
     { label: "Boats", text: "Railay has no road. Long-tails run in daylight." },
   ],
+  ideas: {
+    atStops: [
+      at("Bangkok", [
+        ["Floating market at Amphawa", "Relaxed", "Low"],
+        ["Muay Thai fight night", "Relaxed", "Mid"],
+      ]),
+      at("Chiang Mai", [
+        ["Elephant sanctuary, no riding", "Steady", "Mid"],
+        ["Doi Suthep temple", "Steady", "Low"],
+        ["Sunday walking street market", "Relaxed", "Low"],
+      ]),
+      at("Railay", [
+        ["Rock climbing lesson", "Active", "Mid"],
+        ["Kayak the mangroves", "Steady", "Low"],
+      ]),
+      at("Koh Phi Phi", [
+        ["Hike to the viewpoint", "Active", "Low"],
+        ["Snorkel trip to Bamboo island", "Relaxed", "Mid"],
+      ]),
+      at("Koh Lanta", [
+        ["Old Town on the east coast", "Relaxed", "Free"],
+        ["Dive trip to Koh Haa", "Steady", "High"],
+        ["Mu Ko Lanta national park", "Steady", "Low"],
+      ]),
+    ],
+    otherStops: [
+      swap("Pai", 2, "Chiang Mai", "A mountain valley of hot springs, canyons and slow evenings."),
+      swap("Koh Yao Noi", 2, "Koh Phi Phi", "A quiet island in Phang Nga Bay, facing the karsts."),
+    ],
+  },
 };

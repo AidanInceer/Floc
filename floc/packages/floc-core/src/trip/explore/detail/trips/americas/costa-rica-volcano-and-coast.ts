@@ -1,4 +1,5 @@
 import { day } from "../../day";
+import { at, swap } from "../../ideas";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const COSTA_RICA_VOLCANO_AND_COAST: PresetDetail = {
@@ -60,4 +61,34 @@ export const COSTA_RICA_VOLCANO_AND_COAST: PresetDetail = {
     { label: "Pace", text: "Steady. Five stops, one long travel day to Tortuguero." },
     { label: "Wildlife", text: "Guides find far more than you will. Book them." },
   ],
+  ideas: {
+    atStops: [
+      at("San José", [
+        ["Central market", "Relaxed", "Low"],
+        ["Pre-Columbian Gold Museum", "Relaxed", "Low"],
+      ]),
+      at("Tortuguero", [
+        ["Turtle nesting walk at night, in season", "Steady", "Mid"],
+        ["Kayak the canals at dawn", "Steady", "Mid"],
+      ]),
+      at("La Fortuna", [
+        ["Hike down to La Fortuna waterfall", "Active", "Low"],
+        ["Canyoning", "Active", "High"],
+        ["Hot springs at night", "Relaxed", "Mid"],
+      ]),
+      at("Monteverde", [
+        ["Night walk for frogs and sloths", "Steady", "Mid"],
+        ["Zip line over the cloud forest", "Active", "High"],
+      ]),
+      at("Manuel Antonio", [
+        ["Surf lesson", "Active", "Mid"],
+        ["Catamaran and snorkel", "Relaxed", "High"],
+        ["Kayak the Damas island mangroves", "Steady", "Mid"],
+      ]),
+    ],
+    otherStops: [
+      swap("Rincón de la Vieja", 2, "Monteverde", "Mud pots, waterfalls and hot rivers on a quiet volcano."),
+      swap("Santa Teresa", 3, "Manuel Antonio", "A surf and yoga town on the Nicoya peninsula."),
+    ],
+  },
 };

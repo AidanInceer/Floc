@@ -11,7 +11,8 @@ import type { Effort, Interest, Landscape } from "./finder/tag-groups";
  * base carries its own `lat`/`lng`; a `hop` still carries none.
  */
 type PresetLeg =
-  | { kind: "base"; place: string; nights: number; lat: number; lng: number }
+  /** `country` (ISO alpha-2) only where the listing crosses borders; otherwise it is the listing's own. */
+  | { kind: "base"; place: string; nights: number; lat: number; lng: number; country?: string }
   | { kind: "hop"; place: string; mode: TransportType; detail: string };
 
 export type PresetTrip = {

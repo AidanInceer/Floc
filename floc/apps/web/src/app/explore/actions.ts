@@ -1,21 +1,17 @@
 "use server";
 
 /**
- * Starts a trip from an Explore listing: new trip named after the listing,
- * its highlights seeded into the trip's Notes doc as bullets, nothing else
- * — the group still decides. Copied, not linked: no listing id or FK back to
- * `PRESET_TRIPS`, so editing the trip never touches the listing and vice
- * versa. `bestMonths` is deliberately not applied — dates come from the
- * group's own availability overlap (rule 9).
+ * Starts a trip from an Explore listing (ADR-025): the month, ideas and events
+ * picked in the copy sheet. Copied, not linked: no listing id or FK back to
+ * `PRESET_TRIPS`, so editing the trip never touches the listing and vice versa.
  */
 import { redirect } from "next/navigation";
 
 import { requireUser } from "@/server/access";
-import { bulletPage } from "@floc/core/notes/pages/page-blocks";
-import { createTripWithAdmin } from "@/server/trips/trips";
+import { readCopyForm } from "@floc/core/trip/explore/copy/copy-choice";
+import { copyListing } from "@/server/explore/listing-copy";
 import { ensureProfile } from "@/server/auth/profile";
 import { refresh } from "@/server/freshness";
-import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import { readFinder } from "@floc/core/trip/explore/finder/finder-read";
 import { saveFinder } from "@/server/explore/explore-finder";
 
@@ -28,20 +24,10 @@ export async function rememberFinder(value: unknown): Promise<void> {
 
 export async function startTripFromPreset(formData: FormData): Promise<void> {
   const viewer = await requireUser("/explore");
-  const presetId = String(formData.get("presetId") ?? "");
-  const preset = PRESET_TRIPS.find((p) => p.id === presetId);
-  // A listing can be retired between render and click — degrade, don't crash.
-  if (!preset) redirect("/explore");
-
   await ensureProfile(viewer.id);
-
-  const tripId = await createTripWithAdmin({
-    name: preset.title,
-    startDate: null,
-    endDate: null,
-    createdBy: viewer.id,
-    firstPage: bulletPage(preset.highlights),
-  });
+  const tripId = await copyListing(viewer.id, readCopyForm(formData));
+  // A listing can be retired between render and click — degrade, don't crash.
+  if (tripId === null) redirect("/explore");
 
   refresh({ kind: "tripList" });
   redirect(`/trip/${tripId}/overview`);

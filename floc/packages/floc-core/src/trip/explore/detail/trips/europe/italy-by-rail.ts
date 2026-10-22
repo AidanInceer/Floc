@@ -1,4 +1,5 @@
 import { day } from "../../day";
+import { at, swap } from "../../ideas";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const ITALY_BY_RAIL: PresetDetail = {
@@ -69,4 +70,40 @@ export const ITALY_BY_RAIL: PresetDetail = {
     { label: "Pace", text: "On the move. Six stops, every move by train or boat." },
     { label: "Walking", text: "A lot, and the coast is all steps." },
   ],
+  ideas: {
+    atStops: [
+      at("Venice", [
+        ["Burano and Murano", "Relaxed", "Low"],
+        ["Rowing lesson on the lagoon", "Active", "Mid"],
+        ["Cicchetti crawl", "Relaxed", "Low"],
+      ]),
+      at("Florence", [
+        ["Climb the Duomo", "Active", "Mid"],
+        ["Sunset at Piazzale Michelangelo", "Relaxed", "Free"],
+        ["A day in Chianti", "Relaxed", "High"],
+      ]),
+      at("Cinque Terre", [
+        ["Kayak along the coast", "Active", "Mid"],
+        ["Boat between the villages", "Relaxed", "Low"],
+      ]),
+      at("Rome", [
+        ["The Appian Way by bike", "Active", "Low"],
+        ["Trastevere food walk", "Relaxed", "Mid"],
+        ["Borghese gallery, booked ahead", "Relaxed", "Mid"],
+      ]),
+      at("Naples", [
+        ["Pompeii", "Steady", "Mid"],
+        ["Underground Naples", "Relaxed", "Low"],
+      ]),
+      at("Positano", [
+        ["Path of the Gods", "Active", "Free"],
+        ["Boat to Capri", "Relaxed", "High"],
+        ["Ravello's gardens", "Relaxed", "Low"],
+      ]),
+    ],
+    otherStops: [
+      swap("Bologna", 2, "Florence", "The food capital: pasta classes and miles of arcades."),
+      swap("Lake Como", 2, "Cinque Terre", "Villas, ferries between the towns and mountain walks."),
+    ],
+  },
 };

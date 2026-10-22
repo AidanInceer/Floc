@@ -1,4 +1,5 @@
 import { day } from "../../day";
+import { at, swap } from "../../ideas";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const SCOTTISH_HIGHLANDS_AND_SKYE: PresetDetail = {
@@ -60,4 +61,34 @@ export const SCOTTISH_HIGHLANDS_AND_SKYE: PresetDetail = {
     { label: "Pace", text: "Steady. One car, drives of two to three hours." },
     { label: "Walking", text: "Most days have a walk. None needs a summit." },
   ],
+  ideas: {
+    atStops: [
+      at("Edinburgh", [
+        ["Arthur's Seat", "Active", "Free"],
+        ["Whisky tasting", "Relaxed", "Mid"],
+        ["Underground vaults tour", "Relaxed", "Mid"],
+      ]),
+      at("Glencoe", [
+        ["Lost Valley walk", "Active", "Free"],
+        ["Jacobite steam train to Mallaig", "Relaxed", "High"],
+      ]),
+      at("Isle of Skye", [
+        ["Quiraing loop", "Active", "Free"],
+        ["Fairy Pools", "Steady", "Free"],
+        ["Talisker distillery", "Relaxed", "Mid"],
+      ]),
+      at("Torridon", [
+        ["Beinn Eighe mountain trail", "Active", "Free"],
+        ["Over the pass to Applecross", "Relaxed", "Free"],
+      ]),
+      at("Inverness", [
+        ["Boat on Loch Ness", "Relaxed", "Mid"],
+        ["Culloden battlefield", "Relaxed", "Low"],
+      ]),
+    ],
+    otherStops: [
+      swap("Cairngorms", 2, "Torridon", "Forest walks, reindeer and the Speyside distilleries."),
+      swap("Isle of Mull", 2, "Glencoe", "Tobermory, eagles, and a boat to Staffa and its puffins."),
+    ],
+  },
 };

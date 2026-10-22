@@ -16,22 +16,34 @@ Before the first question, find the facts yourself:
 - `AGENTS.md` (Invariants, Conventions, UI and UX), `floc/CONTEXT.md`, `learnings.md`.
 - The `docs/` pages and the code the plan touches.
 
-Never ask something the code, docs or tools can answer — look it up. The *decisions* are the user's. If an option breaks an invariant, say which one by number (`rule 8`). In each `Why:`, name the value or ADR the recommendation rests on, if one does.
+Never ask something the code, docs or tools can answer — look it up. The *decisions* are the user's. If an option breaks an invariant, say which one by number (`rule 8`). In each **Recommended** line, name the value or ADR the recommendation rests on, if one does.
 
 ## 2. Ask in rounds of 2–4
 
 Ask 2–4 questions per message, numbered so the user can answer by number. Wait for the answers before the next round. Put only questions in a round that do not depend on each other; a question whose options hang on an open answer waits for a later round.
 
-Each question has this shape and nothing more:
+Each question has this shape and nothing more. Put a ruled line (`---`) before every question, so each one stands apart when the user scans:
 
 ```
-Q<n>. <The question, one or two lines. For a hard topic, a short example.>
+---
 
-1. <Option> — recommended
+**Q<n>. <The question, one or two lines.>**
+
+<For a hard topic, a short example.>
+
+1. <Option> — **recommended**
 2. <Option>
 3. <Option>
 
-Why: <one to three lines on why the recommended option wins.>
+**Recommended: <n>.** <one to three lines on why it wins.>
+```
+
+End the round with a ruled line and one line of your picks, so the user can agree to all at once:
+
+```
+---
+
+**My picks:** Q1 → 1 · Q2 → 1 · Q3 → 2
 ```
 
 No running summary, no list of settled or open questions between rounds.

@@ -1,4 +1,5 @@
 import { day } from "../../day";
+import { at, swap } from "../../ideas";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const PORTO_TO_SEVILLE: PresetDetail = {
@@ -61,4 +62,35 @@ export const PORTO_TO_SEVILLE: PresetDetail = {
     { label: "Pace", text: "Steady. Two cities, then the car for the south." },
     { label: "Late nights", text: "Spain eats at 21:00 or later." },
   ],
+  ideas: {
+    atStops: [
+      at("Porto", [
+        ["Port tasting in a Gaia lodge", "Relaxed", "Mid"],
+        ["Douro valley by train", "Relaxed", "Mid"],
+        ["Surf at Matosinhos", "Active", "Mid"],
+      ]),
+      at("Lisbon", [
+        ["Sintra's palaces", "Steady", "Mid"],
+        ["Fado in Alfama", "Relaxed", "Mid"],
+        ["Tram 28, early", "Relaxed", "Low"],
+      ]),
+      at("Évora", [
+        ["Chapel of Bones", "Relaxed", "Low"],
+        ["A wine estate in the Alentejo", "Relaxed", "Mid"],
+      ]),
+      at("Lagos", [
+        ["Kayak into the Ponta da Piedade grottoes", "Active", "Mid"],
+        ["Seven Hanging Valleys walk", "Active", "Free"],
+      ]),
+      at("Seville", [
+        ["Flamenco in Triana", "Relaxed", "Mid"],
+        ["Kayak on the Guadalquivir", "Steady", "Low"],
+        ["Córdoba for the day", "Steady", "Mid"],
+      ]),
+    ],
+    otherStops: [
+      swap("Coimbra", 1, "Évora", "An old university town with a baroque library."),
+      swap("Cádiz", 2, "Lagos", "An old port almost out at sea, with beaches and fried fish."),
+    ],
+  },
 };

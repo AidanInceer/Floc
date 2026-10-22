@@ -19,8 +19,10 @@ import { stopsOf } from "@floc/core/trip/explore/listing-stops";
 import { PRESET_TRIPS, type PresetTrip } from "@floc/core/trip/explore/preset-trips";
 import { useMutation } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useState } from "react";
 import { ScrollView, View } from "react-native";
 
+import { CopySheet } from "@/components/explore/copy-sheet";
 import { PresetRoute } from "@/components/packing/preset-route";
 import { RouteMapFrame } from "@/components/map/route-map";
 import { Body, Button, Card, Empty, Figure, Label, Pill } from "@/components/system/ui";
@@ -36,13 +38,16 @@ export default function PresetDetail() {
   const { preset } = useLocalSearchParams<{ preset: string }>();
   const router = useRouter();
   const trip = PRESET_TRIPS.find((candidate) => candidate.id === preset);
+  const [sheet, setSheet] = useState(false);
 
   const start = useMutation({
     ...trpc.trips.startFromPreset.mutationOptions(),
     onSuccess: (result) => {
       // Null means the listing has gone since it was drawn — stay put rather
       // than navigate nowhere (rule 11).
-      if (result) router.replace({ pathname: "/trip/[id]", params: { id: result.id } });
+      if (!result) return;
+      setSheet(false);
+      router.replace({ pathname: "/trip/[id]", params: { id: result.id } });
     },
   });
 
@@ -113,12 +118,7 @@ export default function PresetDetail() {
         </View>
 
         <View style={{ gap: space.sm }}>
-          <Button
-            label="Start this trip"
-            busy={start.isPending}
-            onPress={() => start.mutate({ presetId: trip.id })}
-          />
-          {start.isError ? <Body tone="red">{start.error.message}</Body> : null}
+          <Button label="Start this trip" onPress={() => setSheet(true)} />
           {/* What starting actually does is the one thing the button cannot say. */}
           <Body tone="ink-3">
             This copies the shape into a trip of your own. Nothing is booked and no operator here is
@@ -126,6 +126,14 @@ export default function PresetDetail() {
           </Body>
         </View>
       </ScrollView>
+      <CopySheet
+        trip={trip}
+        open={sheet}
+        busy={start.isPending}
+        error={start.isError ? start.error.message : null}
+        onClose={() => setSheet(false)}
+        onStart={(choice) => start.mutate(choice)}
+      />
     </>
   );
 }

@@ -1,4 +1,5 @@
 import { day } from "../../day";
+import { at, swap } from "../../ideas";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const RAJASTHAN_FORTS_AND_PALACES: PresetDetail = {
@@ -70,4 +71,39 @@ export const RAJASTHAN_FORTS_AND_PALACES: PresetDetail = {
     { label: "Driving", text: "Four drives of three to five hours." },
     { label: "Walking", text: "Forts mean ramps and steps. Wear good shoes." },
   ],
+  ideas: {
+    atStops: [
+      at("Delhi", [
+        ["Rickshaw through Old Delhi to Jama Masjid", "Relaxed", "Low"],
+        ["Humayun's tomb", "Relaxed", "Low"],
+        ["Street food walk in Chandni Chowk", "Relaxed", "Low"],
+      ]),
+      at("Agra", [
+        ["The Taj at sunset from Mehtab Bagh", "Relaxed", "Low"],
+        ["Fatehpur Sikri on the way", "Steady", "Low"],
+      ]),
+      at("Jaipur", [
+        ["Hot-air balloon at dawn", "Relaxed", "High"],
+        ["Block printing at Bagru", "Relaxed", "Low"],
+        ["Nahargarh fort at sunset", "Steady", "Low"],
+      ]),
+      at("Pushkar", [
+        ["Walk up to Savitri temple", "Active", "Free"],
+        ["Camel ride at sunset", "Relaxed", "Low"],
+      ]),
+      at("Jodhpur", [
+        ["Zip line at Mehrangarh", "Active", "Mid"],
+        ["Toorji stepwell and the blue lanes", "Relaxed", "Free"],
+      ]),
+      at("Udaipur", [
+        ["Cooking class", "Relaxed", "Low"],
+        ["Boat on Lake Pichola", "Relaxed", "Low"],
+        ["Monsoon Palace at sunset", "Relaxed", "Low"],
+      ]),
+    ],
+    otherStops: [
+      swap("Ranthambore", 2, "Pushkar", "Tiger safaris in a park with a ruined fort."),
+      swap("Jaisalmer", 2, "Jodhpur", "A golden fort in the Thar desert, and a night in the dunes."),
+    ],
+  },
 };

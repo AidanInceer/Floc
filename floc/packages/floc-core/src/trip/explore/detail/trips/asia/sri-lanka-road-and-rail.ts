@@ -1,4 +1,5 @@
 import { day } from "../../day";
+import { at, swap } from "../../ideas";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const SRI_LANKA_ROAD_AND_RAIL: PresetDetail = {
@@ -67,4 +68,39 @@ export const SRI_LANKA_ROAD_AND_RAIL: PresetDetail = {
     { label: "Pace", text: "Steady. Six stops, one day on the train." },
     { label: "Early starts", text: "Sigiriya, Yala and the whales all start before 07:00." },
   ],
+  ideas: {
+    atStops: [
+      at("Colombo", [
+        ["Galle Face Green at sunset", "Relaxed", "Free"],
+        ["Pettah market", "Relaxed", "Low"],
+      ]),
+      at("Sigiriya", [
+        ["Pidurangala rock at sunrise", "Active", "Low"],
+        ["Elephants at Minneriya", "Relaxed", "Mid"],
+        ["Polonnaruwa by bike", "Active", "Low"],
+      ]),
+      at("Kandy", [
+        ["Royal botanic gardens at Peradeniya", "Relaxed", "Low"],
+        ["Kandyan dance show", "Relaxed", "Low"],
+      ]),
+      at("Ella", [
+        ["Little Adam's Peak", "Steady", "Free"],
+        ["Nine Arch Bridge", "Steady", "Free"],
+        ["Ravana falls", "Relaxed", "Free"],
+      ]),
+      at("Yala", [
+        ["Bundala bird park", "Relaxed", "Mid"],
+        ["Evening puja at Kataragama", "Relaxed", "Free"],
+      ]),
+      at("Galle", [
+        ["The fort walls at sunset", "Relaxed", "Free"],
+        ["Whale watching from Mirissa", "Relaxed", "Mid"],
+        ["Surf lesson at Weligama", "Active", "Mid"],
+      ]),
+    ],
+    otherStops: [
+      swap("Nuwara Eliya", 1, "Kandy", "Tea estates, cool hills and Horton Plains at dawn."),
+      swap("Trincomalee", 3, "Galle", "East coast beaches, with dolphins and whales in season."),
+    ],
+  },
 };

@@ -3,9 +3,8 @@
 import { formatMoney } from "@floc/core/money/money";
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 
-import { startTripFromPreset } from "@/app/explore/actions";
+import { CopySheet } from "@/components/explore/copy/copy-sheet";
 import { countryNames } from "@/components/explore/outline/country";
-import { SubmitButton } from "@/components/system/client-ui";
 import { ButtonLink } from "@/components/system/ui";
 import "./explore-postcard.css";
 
@@ -49,10 +48,7 @@ export function ExplorePostcard({ trip, signedIn }: { trip: PresetTrip; signedIn
       </ul>
       <div className="mt-auto flex flex-wrap items-center gap-3.5">
         {signedIn ? (
-          <form action={startTripFromPreset}>
-            <input type="hidden" name="presetId" value={trip.id} />
-            <SubmitButton pendingLabel="Starting…">Start this trip</SubmitButton>
-          </form>
+          <CopySheet trip={trip}>Start this trip</CopySheet>
         ) : (
           <ButtonLink href="/signup" variant="primary">
             Sign up to start

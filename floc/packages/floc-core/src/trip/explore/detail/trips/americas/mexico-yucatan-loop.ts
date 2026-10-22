@@ -1,4 +1,5 @@
 import { day } from "../../day";
+import { at, swap } from "../../ideas";
 import type { PresetDetail } from "../../preset-detail-types";
 
 export const MEXICO_YUCATAN_LOOP: PresetDetail = {
@@ -55,4 +56,30 @@ export const MEXICO_YUCATAN_LOOP: PresetDetail = {
     { label: "Pace", text: "Steady. One car, short drives except the last." },
     { label: "Early starts", text: "Ruins at opening, before the heat and the coaches." },
   ],
+  ideas: {
+    atStops: [
+      at("Tulum", [
+        ["Cycle to Gran Cenote", "Steady", "Low"],
+        ["Snorkel with turtles at Akumal", "Steady", "Low"],
+        ["Sian Ka'an reserve by boat", "Relaxed", "High"],
+      ]),
+      at("Valladolid", [
+        ["Ek Balam ruins, quieter than Chichén Itzá", "Steady", "Low"],
+        ["Swim in Cenote Suytun", "Relaxed", "Low"],
+      ]),
+      at("Mérida", [
+        ["Evening music in the squares", "Relaxed", "Free"],
+        ["Uxmal ruins", "Steady", "Mid"],
+        ["Flamingos at Celestún", "Relaxed", "Mid"],
+      ]),
+      at("Bacalar", [
+        ["Paddleboard the lagoon at sunrise", "Steady", "Low"],
+        ["Swim at Cenote Azul", "Relaxed", "Low"],
+      ]),
+    ],
+    otherStops: [
+      swap("Isla Holbox", 2, "Tulum", "No cars, sandbars, and whale sharks in summer."),
+      swap("Campeche", 2, "Bacalar", "A walled colonial port, pastel streets and the Edzná ruins."),
+    ],
+  },
 };

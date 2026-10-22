@@ -33,9 +33,24 @@ export type PresetAdvice = { topic: AdviceTopic; title: string; lines: string[] 
 /** A row under "Good to know". Group, season and cost are added from the listing — do not repeat them. */
 export type PresetFact = { label: string; text: string };
 
+export const IDEA_PACES = ["Relaxed", "Steady", "Active"] as const;
+export type IdeaPace = (typeof IDEA_PACES)[number];
+export const IDEA_COSTS = ["Free", "Low", "Mid", "High"] as const;
+export type IdeaCost = (typeof IDEA_COSTS)[number];
+
+export type PresetIdea = { text: string; pace: IdeaPace; cost: IdeaCost };
+/** Other things to do at one stop of the listing, by its `place`. */
+export type PresetStopIdeas = { place: string; ideas: PresetIdea[] };
+/** A place to swap in for one of the listing's stops (`instead`), for `nights` nights. */
+export type PresetSwap = { place: string; nights: number; instead: string; what: string };
+
+/** What the Ideas page of a copy holds (ADR-025). */
+export type PresetIdeas = { atStops: PresetStopIdeas[]; otherStops: PresetSwap[] };
+
 export type PresetDetail = {
   stops: PresetStopDetail[];
   inPlan: PresetFigure[];
   advice: PresetAdvice[];
   goodToKnow: PresetFact[];
+  ideas: PresetIdeas;
 };
