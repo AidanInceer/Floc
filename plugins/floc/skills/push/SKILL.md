@@ -26,7 +26,8 @@ pnpm push:preflight <feat|fix|docs|refactor|chore|test>
 
 The script, in order:
 
-1. Refuses unless on `develop`.
+1. Refuses unless on `develop` — or in a linked worktree, where the throwaway
+   branch lands on `develop` by `git push origin HEAD:develop`.
 2. Fetches, and refuses if `origin/develop` moved. Fix:
    `git pull --rebase --autostash origin develop`, then preflight again.
 3. Warns `!!` on local commits not yet pushed. One commit per ticket — say so
@@ -82,8 +83,11 @@ Not from a branch name, an old commit, or a guess. None → `#no-ticket`.
 Write the message to a file in the scratchpad, then:
 
 ```bash
-pnpm push:land --message-file <path>
+pnpm push:land --message-file <path> [--only <path>...]
 ```
+
+`--only` stages exactly those paths instead of `git add -A`. Use it whenever the
+checkout holds changes from another piece of work; `land` reports what it left out.
 
 ```
 <version> #<issue>: <type>: <description>

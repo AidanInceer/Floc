@@ -20,7 +20,9 @@ detail blocks correct work.
 
 Confirm web (`:3000`) and app (Metro `:8081` + emulator) answer. If either is
 down, use the `/floc:run` skill to bring the loop up and **prove** each piece
-answers. Do not assume a started process is a working one.
+answers. Do not assume a started process is a working one. A feature that touches
+`floc/apps/mobile` or `@floc/api` is not checked until the app has been seen on
+the emulator; if it cannot be started, say so on the first line of the report.
 
 ## 3. Read before you build
 

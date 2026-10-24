@@ -132,6 +132,7 @@ Payments between members, POI data and reviews, flight *booking* (deep links onl
 
 ## Workflow
 
+- **Parallel sessions.** A second session while one is running starts in its own worktree. Its throwaway branch is local only; `/floc:push` lands the commit on `develop` (`HEAD:develop`). In a shared checkout, `push:land --only <paths>` stages one piece of work.
 - **Branches.** Two long-lived branches, no feature branches. Work lands on `develop` through `/floc:push` and goes to `main` in batches through `/floc:release`. A hotfix commits straight to `main`; a feature never does.
 - **Commits, labels and the Priority stack** are owned by the skills: `/floc:push` (subject, version bump, `Closes`, `on-develop`), `/floc:prioritise-tickets` (labels, phases, stack), `/floc:to-tickets` (blocked-by edges). Never borrow an issue number.
 - **Docs are HTML, not markdown** — edit the page.
