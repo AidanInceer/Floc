@@ -8,6 +8,7 @@ import { useState } from "react";
 import { ExploreTile, tagClass } from "@/components/explore/all/explore-tile";
 import { linkClass } from "@/components/explore/finder/finder-chip";
 import { CheckIcon } from "@/components/system/icons";
+import { FlockChevron } from "@/components/system/flock-chevron";
 import { ButtonLink, cx } from "@/components/system/ui";
 
 // Twelve tiles fill four rows of three, or six of two.
@@ -47,7 +48,7 @@ function Tags({ on = [], off = [], plain = [] }: { on?: TripTag[]; off?: TripTag
 
 function OwnTile({ signedIn }: { signedIn: boolean }) {
   return (
-    <li className="flex min-h-40 flex-col items-start justify-center gap-1.5 rounded-[18px] border-[1.5px] border-dashed border-rule-strong p-4">
+    <li className="col-span-full flex min-h-32 flex-col items-center justify-center text-center gap-1.5 rounded-[18px] border-[1.5px] border-dashed border-rule-strong p-4">
       <span className={cx(tagClass, "border border-dashed border-rule-strong text-ink-soft")}>Anywhere</span>
       <strong className="font-display text-base font-semibold tracking-[-0.02em]">Your own</strong>
       <p className="text-[13px] text-ink-soft">No dates, no destination. See who agrees.</p>
@@ -125,6 +126,7 @@ export function FinderResults({
       {rows.length > TILE_LIMIT ? (
         <button type="button" onClick={() => setAll(!all)} className="mx-auto mt-5 flex w-fit flex-col items-center gap-1 text-ink-soft hover:text-ink">
           <span className="typed">{all ? "Show fewer" : `Show ${rows.length - TILE_LIMIT} more`}</span>
+          <FlockChevron size={12} className={cx("transition-transform", all && "rotate-180")} />
         </button>
       ) : null}
     </>

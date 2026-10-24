@@ -8,7 +8,7 @@ import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import { useMemo, useRef, useState } from "react";
 
 import { rememberFinder } from "@/app/explore/actions";
-import { FinderBar } from "@/components/explore/finder/finder-bar";
+import { FinderBar, SortPicker } from "@/components/explore/finder/finder-bar";
 import { FinderRail } from "@/components/explore/finder/finder-rail";
 import { FinderResults } from "@/components/explore/finder/finder-results";
 import { TripPassDialog } from "@/components/explore/finder/trip-pass-dialog";
@@ -61,34 +61,29 @@ export function ExploreFinder({ signedIn, initialFinder }: { signedIn: boolean; 
     <section className="mx-auto mt-14 w-full max-w-[76rem] px-4 sm:px-6">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-[clamp(1.6rem,3vw,2.3rem)] tracking-[-0.03em]">All trips</h2>
-        <label className="flex min-h-11 w-full items-center gap-2.5 rounded-full border border-rule-strong bg-sheet px-4 sm:max-w-[26rem]">
-          <LineIcon className="text-ink-faint">
-            <circle cx="6.2" cy="6.2" r="3.8" />
-            <path d="m9 9 3 3" />
-          </LineIcon>
-          <input
-            type="search"
-            value={finder.q}
-            onChange={(e) => change({ ...finder, q: e.target.value })}
-            placeholder="Search a place, country or tag"
-            aria-label="Search trips"
-            className="w-full bg-transparent text-sm outline-none placeholder:text-ink-faint"
-          />
-        </label>
+        <div className="flex w-full items-center gap-2 sm:max-w-[34rem]">
+          <label className="flex min-h-11 w-full items-center gap-2.5 rounded-full border border-rule-strong bg-sheet px-4">
+            <LineIcon className="text-ink-faint">
+              <circle cx="6.2" cy="6.2" r="3.8" />
+              <path d="m9 9 3 3" />
+            </LineIcon>
+            <input
+              type="search"
+              value={finder.q}
+              onChange={(e) => change({ ...finder, q: e.target.value })}
+              aria-label="Search trips"
+              className="w-full bg-transparent text-sm outline-none placeholder:text-ink-faint"
+            />
+          </label>
+          <SortPicker sort={sort} onSort={setSort} />
+        </div>
       </div>
       <div className="grid items-start gap-7 lg:grid-cols-[17.5rem_minmax(0,1fr)]">
         <aside aria-label="Filters" className="hidden lg:block">
           <FinderRail {...rail} />
         </aside>
         <div ref={top} className="scroll-mt-20">
-          <FinderBar
-            shown={rows.length}
-            set={finderPills(finder).length + finder.likes.length}
-            pills={pills}
-            sort={sort}
-            onSort={setSort}
-            onOpen={() => setSheet(true)}
-          />
+          <FinderBar shown={rows.length} set={finderPills(finder).length + finder.likes.length} pills={pills} onOpen={() => setSheet(true)} />
           <FinderResults rows={rows} likes={finder.likes} split={sort === "match" && !like && finder.likes.length > 0} signedIn={signedIn} onPick={setOpen} onLike={moreLike} />
         </div>
       </div>
