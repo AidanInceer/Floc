@@ -311,7 +311,7 @@ export default function Money() {
     queryClient.invalidateQueries({
       queryKey: trpc.money.ledger.queryKey({ tripId }),
     });
-    queryClient.invalidateQueries({ queryKey: trpc.money.pairs.queryKey({ tripId }) });
+    void queryClient.invalidateQueries({ queryKey: trpc.money.pairs.queryKey({ tripId }) });
   };
   const failed = (error: { message: string }) => setProblem(error.message);
 
