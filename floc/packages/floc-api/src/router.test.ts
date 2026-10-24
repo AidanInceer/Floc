@@ -61,6 +61,7 @@ function fakePort(overrides: Partial<FlocPort> = {}): FlocPort {
     ),
     listDays: vi.fn().mockResolvedValue([]),
     listAvailability: vi.fn().mockResolvedValue([]),
+    listTripGuests: vi.fn().mockResolvedValue([{ id: "g1", name: "Kit" }]),
     setAvailability: vi.fn().mockResolvedValue(undefined),
     listFiles: vi.fn().mockResolvedValue([]),
     listPlaces: vi.fn().mockResolvedValue([]),
@@ -439,6 +440,17 @@ describe("availability (ticket 297)", () => {
     await expect(
       ana.availability.set({ tripId: 1, dates: [], available: true }),
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  it("lists the guests who answered on the invite link, by name only (#442)", async () => {
+    const { caller: ana, port } = caller("u1");
+    expect(await ana.availability.guests({ tripId: 1 })).toEqual([{ id: "g1", name: "Kit" }]);
+    expect(port.listTripGuests).toHaveBeenCalledWith("u1", 1);
+  });
+
+  it("hides the trip's guests from somebody not on the trip", async () => {
+    const { caller: ana } = caller("u1");
+    await expect(ana.availability.guests({ tripId: 2 })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
   it("hides the group's marks from somebody not on the trip", async () => {

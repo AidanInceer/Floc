@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ideasTucked, readIdeaSort, sortIdeas, voteLabel, type IdeaRow } from "./ideas";
+import { ideasTucked, readIdeaSort, sortIdeas, steadyOrder, voteLabel, type IdeaRow } from "./ideas";
 
 const idea = (id: number, votes: number): IdeaRow => ({
   id,
@@ -75,5 +75,15 @@ describe("ideasTucked", () => {
 
   it("tucks them away while the trip is under way", () => {
     expect(ideasTucked({ days: [night(null)], today: true })).toBe(true);
+  });
+});
+
+describe("steadyOrder", () => {
+  it("keeps the order a reader first saw, whatever the votes do", () => {
+    expect(steadyOrder([3, 1, 2], [1, 2, 3])).toEqual([3, 1, 2]);
+  });
+
+  it("puts a new idea first and drops a removed one", () => {
+    expect(steadyOrder([3, 1, 2], [2, 4, 3])).toEqual([4, 3, 2]);
   });
 });

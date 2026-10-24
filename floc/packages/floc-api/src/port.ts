@@ -20,7 +20,7 @@
 
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import type { Currency } from "@floc/core/money/currency";
-import type { PairRow } from "@floc/core/money/pair-settle";
+import type { SettleRow } from "@floc/core/money/group-settle";
 import type { DocCategory } from "@floc/core/documents/documents";
 import type { ExpenseCategory } from "@floc/core/money/expense-category";
 import type { CopyChoice } from "@floc/core/trip/explore/copy/copy-choice";
@@ -148,7 +148,7 @@ export type Settlement = {
   clearsCurrency: Currency | null;
 };
 
-export type PairSettleUp = { rows: PairRow[]; rateDate: string | null };
+export type SettleUp = { rows: SettleRow[]; rateDate: string | null };
 
 export type Ledger = {
   expenses: Expense[];
@@ -841,8 +841,8 @@ export type FlocPort = {
 
   loadLedger(viewerId: string, tripId: number): Promise<Ledger>;
 
-  /** The viewer's settle-up, one row per person, netted across currencies in the payer's home currency (#461). */
-  loadPairs(viewerId: string, tripId: number): Promise<PairSettleUp>;
+  /** The group's fewest payments across currencies, each in the viewer's home currency (#463). */
+  loadPairs(viewerId: string, tripId: number): Promise<SettleUp>;
 
   /** Newest first. Somebody else's private file is never in the result (ticket 296). */
   listFiles(viewerId: string, tripId: number): Promise<TripFile[]>;
@@ -877,6 +877,9 @@ export type FlocPort = {
 
   /** Everyone's marks on the trip, `false` rows included (ticket 297). */
   listAvailability(viewerId: string, tripId: number): Promise<Availability[]>;
+
+  /** People on the invite link who answered with a name and no account (#442, ADR-029). Not members; read-only here. */
+  listTripGuests(viewerId: string, tripId: number): Promise<{ id: string; name: string }[]>;
 
   /** Null forecast on a free trip, however it asks — the gate is on the read (#248). */
   loadTripForecast(viewerId: string, tripId: number): Promise<TripForecastView>;
@@ -942,7 +945,7 @@ export type FlocPort = {
 
   deleteExpense(viewerId: string, tripId: number, expenseId: number): Promise<void>;
 
-  /** Records the one payment that clears everything between the viewer and one person, recomputed server-side (#461). */
+  /** Records the viewer's one payment with one person, recomputed server-side (#461, #463). */
   settlePair(viewerId: string, tripId: number, otherUserId: string): Promise<void>;
 
   /**

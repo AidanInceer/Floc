@@ -14,7 +14,7 @@ import "server-only";
 
 import { cache } from "react";
 
-import { getSession } from "@/server/access";
+import { getInviteGuest, getSession } from "@/server/access";
 import { findTripByInviteToken } from "@/server/trips/invites";
 import { isLiveMember } from "@/server/trips/roster";
 
@@ -31,15 +31,24 @@ export function inviteAuthHrefs(token: string) {
   };
 }
 
+/** The token a sign-up will return to, so the page can name the trip it is joining. */
+export function inviteTokenIn(redirect: string | undefined): string | null {
+  return /^\/invite\/([^/?#]+)$/.exec(redirect ?? "")?.[1] ?? null;
+}
+
 export type InviteViewer =
   | { kind: "stranger" }
+  | { kind: "guest"; id: string; name: string }
   | { kind: "canJoin" }
   | { kind: "member"; tripId: number };
 
 /** Why: not `cache()`d, unlike `inviteTrip` above — the answer depends on the session, which is not an argument. */
 export async function inviteViewer(tripId: number): Promise<InviteViewer> {
   const session = await getSession();
-  if (!session?.user) return { kind: "stranger" };
+  if (!session?.user) {
+    const guest = await getInviteGuest();
+    return guest ? { kind: "guest", ...guest } : { kind: "stranger" };
+  }
 
   if (await isLiveMember(tripId, session.user.id)) {
     return { kind: "member", tripId };

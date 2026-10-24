@@ -9,12 +9,13 @@ import { headers } from "next/headers";
 
 import { appUrl } from "@/lib/env";
 import { auth } from "@/server/auth/auth";
+import { memberSession } from "@/server/auth/member-session";
 import { portalUrlFor, subscriptionOf } from "@/server/billing/billing";
 
 export const runtime = "nodejs";
 
 export async function POST(): Promise<Response> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = memberSession(await auth.api.getSession({ headers: await headers() }));
   if (!session?.user) return refuse(401, "Sign in first");
 
   const row = await subscriptionOf(session.user.id);

@@ -18,6 +18,7 @@ import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 
 import { webPort } from "@/server/api-port/api-port";
 import { auth } from "@/server/auth/auth";
+import { memberSession } from "@/server/auth/member-session";
 import { boundedRequest } from "@/server/http/request-body";
 import { withRequestScope } from "@/server/request-scope";
 
@@ -25,7 +26,7 @@ import { withRequestScope } from "@/server/request-scope";
 export const dynamic = "force-dynamic";
 
 async function createContext(req: Request): Promise<Context> {
-  const session = await auth.api.getSession({ headers: req.headers });
+  const session = memberSession(await auth.api.getSession({ headers: req.headers }));
   return {
     viewer: session?.user
       ? {

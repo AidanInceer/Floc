@@ -9,6 +9,7 @@ import { requireTripAccess } from "@/server/access";
 import { setTripWindow } from "@/server/itinerary/itinerary";
 import { clearAvailabilityFor, setAvailability } from "@/server/itinerary/availability";
 import { refresh } from "@/server/freshness";
+import { removeGuest } from "@/server/guests/guests";
 
 // Client-provided, so checked not trusted; isIsoDate rejects impossible
 // well-shaped dates like 2026-02-31 (ticket 113).
@@ -80,4 +81,12 @@ export async function clearMyAvailability(tripId: number) {
   await clearAvailabilityFor(access.trip.id, access.viewer.id);
 
   refresh({ kind: "tripDates", tripId: access.trip.id });
+}
+
+// A guest is not a member, so this is not "remove a member": any member may do it (rule 6, ADR-029).
+export async function removeTripGuest(tripId: number, guestId: string) {
+  const access = await requireTripAccess(tripId);
+  await removeGuest(access.trip.id, String(guestId));
+
+  refresh({ kind: "tripDates", tripId: access.trip.id }, { kind: "tripOverview", tripId: access.trip.id });
 }

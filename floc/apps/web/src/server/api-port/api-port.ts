@@ -60,9 +60,10 @@ import {
 } from "@/server/itinerary/itinerary";
 import { listExpenses, listSettlements, listSplits } from "@/server/money/money";
 import { removeEvent, saveEvent } from "@/server/itinerary/event-save";
-import { pairSettleUpFor, settlePairFor } from "@/server/money/pair-settle-up";
+import { settleUpFor, settleWithFor } from "@/server/money/settle-up";
 import { recordTransfers, removeExpense, saveExpense } from "@/server/money/money-save";
 import { listAvailability, setAvailability } from "@/server/itinerary/availability";
+import { listGuests } from "@/server/guests/guests";
 import { listDocuments } from "@/server/documents/documents";
 import { listTripPlaces, searchPlaces as geocode } from "@/server/itinerary/places";
 import { applyOvernight } from "@/server/itinerary/overnight";
@@ -371,6 +372,11 @@ export const webPort: FlocPort = {
     return listAvailability(tripId);
   },
 
+  async listTripGuests(viewerId, tripId) {
+    await scoped(viewerId, tripId);
+    return listGuests(tripId);
+  },
+
   async setAvailability(viewerId, tripId, dates, available) {
     await scoped(viewerId, tripId);
     // The viewer id goes straight down as the row's owner, so there is no path
@@ -509,11 +515,11 @@ export const webPort: FlocPort = {
 
   async loadPairs(viewerId, tripId) {
     await scoped(viewerId, tripId);
-    return pairSettleUpFor(tripId, viewerId);
+    return settleUpFor(tripId, viewerId);
   },
 
   async settlePair(viewerId, tripId, otherUserId) {
-    const refusal = await settlePairFor(await scoped(viewerId, tripId), otherUserId);
+    const refusal = await settleWithFor(await scoped(viewerId, tripId), otherUserId);
     if (refusal) throw refusal;
   },
 

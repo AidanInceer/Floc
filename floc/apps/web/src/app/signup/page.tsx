@@ -7,24 +7,29 @@ import Link from "next/link";
 
 import { AuthForm } from "@/components/auth/auth-form";
 import { AuthShell, authLinkClass } from "@/components/auth/auth-shell";
-import { requireGuest } from "@/server/access";
+import { inviteTokenIn, inviteTrip } from "@/app/invite/[token]/invite-access";
+import { getInviteGuest, requireGuest } from "@/server/access";
 import { enabledProviders } from "@/server/auth/auth";
 import { captureChannel } from "./actions";
 
 export const metadata = { title: "Sign up" };
 
-export default async function SignupPage() {
+export default async function SignupPage({ searchParams }: { searchParams: Promise<{ redirect?: string }> }) {
   await requireGuest();
+  const { redirect } = await searchParams;
+  const token = inviteTokenIn(redirect);
+  const [trip, guest] = await Promise.all([token ? inviteTrip(token) : null, getInviteGuest()]);
+  const loginHref = trip ? `/login?redirect=${encodeURIComponent(redirect!)}` : "/login";
 
   return (
     <AuthShell
-      eyebrow="First time here"
-      title="Create an account"
-      blurb="Takes a minute. No credit card, no app to install."
+      eyebrow={trip?.hostName ? `${trip.hostName} shared a trip` : "First time here"}
+      title={trip ? `Join ${trip.name}` : "Create an account"}
+      blurb={guest && trip ? "Your votes and dates come with you." : "Takes a minute. No credit card, no app to install."}
       footer={
         <>
           Already have an account?{" "}
-          <Link href="/login" className={authLinkClass}>
+          <Link href={loginHref} className={authLinkClass}>
             Sign in
           </Link>
         </>

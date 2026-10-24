@@ -23,7 +23,7 @@ export function landingFaq({ sellingPro, monthly }: { sellingPro: boolean; month
       key: "account",
       question: "Does everyone need an account?",
       answer:
-        "Not to look. The invite link shows the plan before anyone signs up. To vote, add a cost or claim the speaker, each person makes a free account.",
+        "No. Anyone with the invite link can vote on ideas and mark their dates with just a name. To add a cost, claim gear or see who is coming, make a free account.",
     },
     {
       key: "booking",

@@ -5,8 +5,8 @@
  * One component rather than two copies: each state a visitor can be in has
  * one right control, and having them in two places is how the two drift.
  *
- * `compact` is the bar's version. Same controls, no explaining sentence — the
- * bar already says what a guest cannot do here.
+ * `compact` is the bar's version: sign-up leads there, and joining carries no
+ * explaining sentence. In the sheet, the name comes first and both are second.
  */
 import { ButtonLink } from "@/components/system/ui";
 import { SubmitButton } from "@/components/system/client-ui";
@@ -30,14 +30,14 @@ export function JoinControls({
 }) {
   const { signUpHref, signInHref } = inviteAuthHrefs(token);
 
-  if (viewer.kind === "stranger") {
+  if (viewer.kind === "stranger" || viewer.kind === "guest") {
     return (
-      <div className="flex flex-wrap items-center gap-2">
-        <ButtonLink variant="primary" href={signUpHref}>
-          Sign up to join
+      <div className={compact ? "grid grid-cols-2 gap-2 sm:flex" : "grid grid-cols-2 gap-2"}>
+        <ButtonLink variant={compact ? "primary" : "secondary"} href={signUpHref}>
+          Sign up
         </ButtonLink>
         <ButtonLink variant="secondary" href={signInHref}>
-          I have an account
+          Log in
         </ButtonLink>
       </div>
     );

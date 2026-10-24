@@ -8,6 +8,7 @@ import { headers } from "next/headers";
 
 import { appUrl } from "@/lib/env";
 import { auth } from "@/server/auth/auth";
+import { memberSession } from "@/server/auth/member-session";
 import {
   BILLING_INTERVALS,
   customerFor,
@@ -22,7 +23,7 @@ export async function POST(request: Request): Promise<Response> {
   const api = stripe();
   if (!api) return refuse(503, "Billing is not configured");
 
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = memberSession(await auth.api.getSession({ headers: await headers() }));
   if (!session?.user) return refuse(401, "Sign in first");
 
   const interval = await readInterval(request);

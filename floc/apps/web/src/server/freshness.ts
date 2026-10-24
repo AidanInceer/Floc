@@ -33,6 +33,7 @@ export type Fact =
   | { kind: "notesPages"; tripId: number }
   | { kind: "tripList" }
   | { kind: "invites" }
+  | { kind: "invitePage"; token: string }
   | { kind: "profile" }
   | { kind: "accountSettings" }
   | { kind: "profileTrips" }
@@ -80,6 +81,7 @@ const PAGES: Pages = {
   notesPages: ({ tripId }) => [{ path: `/trip/${tripId}/notes` }],
   tripList: () => [{ path: "/trips" }, { path: "/trips/archived" }],
   invites: () => [{ path: "/trips" }],
+  invitePage: ({ token }) => [{ path: `/invite/${token}` }],
   profile: () => [{ path: "/profile" }, { path: "/settings" }],
   // Sign-in methods and notification prefs live only on Settings.
   accountSettings: () => [{ path: "/settings" }],

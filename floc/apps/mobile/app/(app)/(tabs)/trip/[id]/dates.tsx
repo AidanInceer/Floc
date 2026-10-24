@@ -163,6 +163,16 @@ function answeredLine(
   return `Still to answer: ${waiting.map((member) => member.name).join(", ")}.`;
 }
 
+function headcount(members: unknown[], guests: unknown[] | undefined): number {
+  return members.length + (guests?.length ?? 0);
+}
+
+/** Guests answered on the invite link (#442): named, marked as guests, and managed on the web. */
+function GuestsLine({ guests }: { guests: { name: string }[] | undefined }) {
+  if (!guests || guests.length === 0) return null;
+  return <Body tone="ink-2">{`Guests: ${guests.map((g) => g.name).join(", ")}.`}</Body>;
+}
+
 function MinePanel({
   unsaved,
   busy,
@@ -243,6 +253,7 @@ export default function Dates() {
 
   const trip = useQuery(trpc.trips.get.queryOptions({ tripId }, { enabled: ready }));
   const rows = useQuery(trpc.availability.list.queryOptions({ tripId }, { enabled: ready }));
+  const guests = useQuery(trpc.availability.guests.queryOptions({ tripId }, { enabled: ready }));
   const weather = useQuery(trpc.itinerary.forecast.queryOptions({ tripId }, { enabled: ready }));
   const days = useQuery(trpc.itinerary.days.queryOptions({ tripId }, { enabled: ready }));
 
@@ -305,7 +316,8 @@ export default function Dates() {
     cellLook(view, date, {
       mineOn,
       counts: tally(rows.data),
-      memberCount: trip.data.members.length,
+      // Guests' marks are in the counts (#442), so they are in the headcount too.
+      memberCount: headcount(trip.data.members, guests.data),
       windowDays,
       forecast: forecastByDate,
     });
@@ -381,6 +393,7 @@ export default function Dates() {
           <View style={{ gap: space.sm }}>
             <Label>Who has answered</Label>
             <Body tone="ink-2">{answeredLine(trip.data.members, rows.data)}</Body>
+            <GuestsLine guests={guests.data} />
           </View>
         ) : null}
 

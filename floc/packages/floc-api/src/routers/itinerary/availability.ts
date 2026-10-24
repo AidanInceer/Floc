@@ -22,6 +22,8 @@ export const availabilityRouter = router({
     ctx.port.listAvailability(ctx.viewer.id, input.tripId),
   ),
 
+  guests: tripProcedure.query(({ ctx, input }) => ctx.port.listTripGuests(ctx.viewer.id, input.tripId)),
+
   set: tripProcedure
     .input(
       z.object({

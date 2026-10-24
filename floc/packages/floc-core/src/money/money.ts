@@ -354,8 +354,8 @@ export function suggestSettlements(
  * Display-only sum of one member's books in a single currency (ticket 253).
  * Each row is converted and rounded on its own, then the rounded rows are
  * added — so the figure always matches the rows printed beside it, at the cost
- * of a possible minor unit of drift from a directly-converted total. That is
- * what the `≈` is for. Nothing here is ever stored.
+ * of a possible minor unit of drift from a directly-converted total. Nothing
+ * here is ever stored.
  */
 export function convertTotal(
   perCurrency: { currency: Currency; amountMinor: number }[],

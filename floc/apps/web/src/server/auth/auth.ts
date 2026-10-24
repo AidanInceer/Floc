@@ -11,7 +11,8 @@ import "server-only";
 import { expo } from "@better-auth/expo";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { bearer } from "better-auth/plugins";
+import { nextCookies } from "better-auth/next-js";
+import { anonymous, bearer } from "better-auth/plugins";
 
 import { db } from "@/db";
 import * as schema from "@/db/schema";
@@ -46,7 +47,22 @@ export const auth = betterAuth({
    * Nothing about the browser's session changes — it still uses the cookie it
    * always did, and signing out on a phone leaves it alone.
    */
-  plugins: [bearer(), expo()],
+  plugins: [
+    bearer(),
+    expo(),
+    // Guests on an invite link (#442, ADR-029). Their answers move to the account before the plugin deletes the guest row.
+    anonymous({
+      emailDomainName: "guest.floc.invalid",
+      async onLinkAccount({ anonymousUser, newUser }) {
+        const { adoptGuest } = await import("@/server/guests/guest-adopt");
+        await adoptGuest(anonymousUser.user.id, newUser.user.id);
+      },
+    }),
+    // Why last: it sets the cookie when a Server Action starts a guest session, and must see every other plugin's headers.
+    nextCookies(),
+  ],
+  // A guest starts only through the invite page's action, which checks the trip's cap and the caller's address first.
+  disabledPaths: ["/sign-in/anonymous"],
   // A phone reaches a dev server by LAN address, never `localhost`, so that
   // origin has to be trusted too or sign-in hangs (ticket 289). Unset in
   // production, where `baseURL` is already the real origin.
