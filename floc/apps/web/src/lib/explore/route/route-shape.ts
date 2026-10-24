@@ -1,19 +1,19 @@
 import type { TransportType } from "@floc/core/vocabulary";
 
-import { legCurves, loopCurve, type Point } from "./curves";
+import { legCurves, spurCurve, type Point } from "./curves";
 import type { RouteStop, TripRoute } from "./trip-route";
 
 type Role = "start" | "end" | "both" | "mid";
-/** What a leg carries: its mode and time, its mode only, or nothing when it is too short to hold either. */
+/** What a leg carries: its mode as an icon, its words when it has no mode, or nothing when it is too short to hold either. */
 type Mark = "full" | "icon" | null;
 /** A stop: `arrive` is how far along the whole route the pen is when it gets there, 0 to 1. */
-type ShapeStop = { place: string; px: Point; role: Role; named: boolean; arrive: number };
+type ShapeStop = { place: string; nights: number; px: Point; role: Role; named: boolean; arrive: number };
 /**
- * One stretch the pen draws: a leg to the next stop, or a day out's loop. `a` and `b` are where it starts and ends
+ * One stretch the pen draws: a leg to the next stop, or a day out there and back. `a` and `b` are where it starts and ends
  * along the whole route; `mid` is the point halfway along it; `bulge` points to the outside of its bend.
  */
 export type Piece = {
-  kind: "leg" | "loop";
+  kind: "leg" | "out";
   mode: TransportType | null;
   time: string;
   name: string;
@@ -29,11 +29,8 @@ export type Piece = {
 };
 export type Shape = { stops: ShapeStop[]; pieces: Piece[] };
 
-/** `least` is the shortest leg, in px, that holds a mark; `tagWidth` the px a leg's time takes, where the map writes it. */
-type Options = { samples: number; loop: number; least: number; tagWidth?: (time: string) => number };
-
-// Why: a tag that fills its leg covers the stops at both ends.
-const TAG_ROOM = 40;
+/** `out` is how far a day out reaches, in px; `least` the shortest leg that holds a mark. */
+type Options = { samples: number; out: number; least: number };
 
 const sub = (a: Point, b: Point): Point => ({ x: a.x - b.x, y: a.y - b.y });
 const unit = (a: Point): Point => {
@@ -63,25 +60,24 @@ function lengths(px: Point[]): number[] {
 
 function bulgeOf(kind: Piece["kind"], px: Point[], mid: number): Point {
   const [a, b, m] = [px[0]!, px.at(-1)!, px[mid]!];
-  if (kind === "loop") return unit(sub(m, a));
+  if (kind === "out") return unit(sub(m, a));
   const off = sub(m, { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
   if (Math.hypot(off.x, off.y) > 2) return unit(off);
   const tan = unit(sub(px[mid + 1]!, px[mid - 1]!));
   return { x: -tan.y, y: tan.x };
 }
 
-function markOf(kind: Piece["kind"], mode: Piece["mode"], time: string, px: Point[], { least, tagWidth }: Options): Mark {
-  if (kind === "loop" || (!mode && !time)) return null;
+function markOf(kind: Piece["kind"], mode: Piece["mode"], time: string, px: Point[], { least }: Options): Mark {
+  if (kind === "out" || (!mode && !time)) return null;
   const room = Math.hypot(px.at(-1)!.x - px[0]!.x, px.at(-1)!.y - px[0]!.y);
   if (room < least) return null;
   // Why: a leg with no mode has only its words to say so, so it never shrinks to a bare mark.
   if (!mode) return "full";
-  if (!time) return "icon";
-  return !tagWidth || room >= tagWidth(time) + TAG_ROOM ? "full" : "icon";
+  return "icon";
 }
 
 /**
- * A listing's route as the pen draws it, in px where `at` puts each place: a day out's loop comes right after its stop,
+ * A listing's route as the pen draws it, in px where `at` puts each place: a day out comes right after its stop,
  * then the leg on to the next stop.
  */
 export function routeShape(route: TripRoute, at: (spot: { lat: number; lng: number }) => Point, options: Options): Shape {
@@ -93,7 +89,7 @@ export function routeShape(route: TripRoute, at: (spot: { lat: number; lng: numb
     for (const out of (route.outs ?? []).filter((o) => o.at === i)) {
       let away = sub(p, centre);
       if (Math.hypot(away.x, away.y) < 1) away = { x: 0, y: -1 };
-      raw.push({ kind: "loop", mode: out.mode, time: "", name: out.place, to: i, px: loopCurve(p, away, options.loop, options.samples) });
+      raw.push({ kind: "out", mode: out.mode, time: "", name: out.place, to: i, px: spurCurve(p, away, options.out, options.samples) });
     }
     const move = route.moves[i];
     if (i < legs.length) raw.push({ kind: "leg", mode: move?.mode ?? null, time: move?.time ?? "", name: "", to: i + 1, px: legs[i]! });
@@ -115,6 +111,7 @@ export function routeShape(route: TripRoute, at: (spot: { lat: number; lng: numb
     pieces,
     stops: route.stops.map((s, i) => ({
       place: s.place,
+      nights: s.nights ?? 0,
       px: P[i]!,
       ...roles[i]!,
       arrive: i === 0 ? 0 : pieces.find((p) => p.kind === "leg" && p.to === i)!.b,

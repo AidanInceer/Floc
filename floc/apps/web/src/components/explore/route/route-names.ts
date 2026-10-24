@@ -3,18 +3,14 @@ import type { Piece, Shape } from "@/lib/explore/route/route-shape";
 
 import type { RouteInk } from "./route-ink";
 
-/** A name on the map, held to a stop or to the tip of a day out's loop. The start and the end are pills. */
-export type Name = { of: "stop" | "loop"; k: number; text: string; caption: string; pill: "filled" | "open" | null; w: number; h: number; a: number; dx: number; dy: number };
+/** A name on the map, held to a stop or to the tip of a day out. A stop with nights has them written small beneath, in `sub`. */
+export type Name = { of: "stop" | "out"; k: number; text: string; sub: string; w: number; h: number; dx: number; dy: number };
 
-const CAPTION = { start: "Start", end: "End", both: "Start and end", mid: "" } as const;
 export const TAG = { h: 20, gap: 18 };
-export const PILL = { h: 22, pad: 9, gap: 6, end: 10 };
 
 export const fonts = (ink: RouteInk) => ({
-  caption: `500 8px ${ink.type}`,
-  pill: `600 13px ${ink.display}`,
-  stop: `500 12px ${ink.sans}`,
-  loop: `italic 400 11.5px ${ink.sans}`,
+  stop: `600 12.5px ${ink.display}`,
+  out: `italic 400 11.5px ${ink.sans}`,
   time: `500 10px ${ink.type}`,
 });
 
@@ -43,17 +39,14 @@ export function nameRoute(ctx: CanvasRenderingContext2D, shape: Shape, ink: Rout
   const pins: Point[] = [];
   shape.stops.forEach((s, k) => {
     if (!s.named) return;
-    const caption = CAPTION[s.role].toUpperCase();
-    if (caption) {
-      const a = measure(ctx, f.caption, caption) + caption.length * 0.6;
-      const w = PILL.pad + a + PILL.gap + measure(ctx, f.pill, s.place) + PILL.end;
-      names.push({ of: "stop", k, text: s.place, caption, pill: s.role === "end" ? "open" : "filled", w, h: PILL.h, a });
-    } else names.push({ of: "stop", k, text: s.place, caption, pill: null, w: measure(ctx, f.stop, s.place), h: 15, a: 0 });
+    const sub = s.nights > 0 ? `${s.nights} night${s.nights === 1 ? "" : "s"}` : "";
+    const w = Math.max(measure(ctx, f.stop, s.place), sub ? measure(ctx, f.out, sub) : 0);
+    names.push({ of: "stop", k, text: s.place, sub, w, h: sub ? 28 : 15 });
     pins.push(s.px);
   });
   shape.pieces.forEach((p, k) => {
-    if (p.kind !== "loop") return;
-    names.push({ of: "loop", k, text: p.name, caption: "", pill: null, w: measure(ctx, f.loop, p.name), h: 14, a: 0 });
+    if (p.kind !== "out") return;
+    names.push({ of: "out", k, text: p.name, sub: "", w: measure(ctx, f.out, p.name), h: 14 });
     pins.push(p.px[p.mid]!);
   });
   const avoid = shape.pieces.flatMap((p) => (p.mark ? [tagBox(p, p.px[p.mid]!, p.mark === "full" ? width(p.time) : TAG.h + 6)] : []));

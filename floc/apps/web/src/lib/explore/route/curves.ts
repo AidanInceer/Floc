@@ -82,9 +82,11 @@ export function legCurves(stops: readonly Point[], modes: readonly Mode[], n: nu
   });
 }
 
-/** A day out: a loop that leaves `at` in the direction `away`, reaches about `size` px and comes back. */
-export function loopCurve(at: Point, away: Point, size: number, n: number): Point[] {
-  const dir = unit(away);
-  const reach = size * 1.26;
-  return cubic(at, add(at, mul(turn(dir, 0.6), reach)), add(at, mul(turn(dir, -0.6), reach)), at, n);
+/** A day out: straight out from the stop the way it is sent, `size` px, and back the same way. The tip is the middle point. */
+export function spurCurve(at: Point, away: Point, size: number, n: number): Point[] {
+  const tip = add(at, mul(unit(away), size));
+  return Array.from({ length: n + 1 }, (_, i) => {
+    const t = 1 - Math.abs(1 - (2 * i) / n);
+    return add(at, mul(sub(tip, at), t));
+  });
 }

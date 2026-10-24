@@ -13,7 +13,8 @@ type RouteLeg = { placeId: number; placeName: string; days: { dayId: number }[];
 type Spot = { lat: number; lng: number };
 
 export type OverviewRoute = {
-  stops: (Spot & { place: string })[];
+  /** `nights` is the days the group sleeps there (rule 3). */
+  stops: (Spot & { place: string; nights: number })[];
   /** `moves[k]` goes from `stops[k]` to `stops[k + 1]`. A leg with no transport event has no mode and says so. */
   moves: { mode: TransportType | null; time: string }[];
   /** ISO codes of the countries the stops stand in, first seen first. */
@@ -58,7 +59,7 @@ export function overviewRoute({
       const hop = leg.days[0] ? hops.get(leg.days[0].dayId) : undefined;
       route.moves.push(leg.mode ? { mode: leg.mode, time: hop ? hopLength(hop.time, hop.endTime) : "" } : { mode: null, time: NOT_SET });
     }
-    route.stops.push({ place: leg.placeName, ...spot });
+    route.stops.push({ place: leg.placeName, ...spot, nights: leg.days.length });
     if (!pin.countryCode) route.uncoded.push(spot);
     else if (!route.countries.includes(pin.countryCode)) route.countries.push(pin.countryCode);
   }

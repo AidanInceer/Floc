@@ -16,8 +16,12 @@ const IN_A_BIG_COUNTRY = 11;
 const SHORE = 0.6;
 const LAND_MARGIN = 1.12;
 const ROUTE_MARGIN = 1.5;
-/** A stop stays inside the middle 76% of the drawing. */
-const REACH = 0.38;
+/** A stop stays inside the middle 68% of the drawing. */
+const REACH = 0.34;
+/** The two closest stops sit at least this share of the drawing's height apart, so each mark and the line between them can be seen. */
+const APART = 0.2;
+/** The most a route is zoomed in on to hold its closest stops apart: a town and its neighbour. */
+const TIGHTEST = 0.3;
 
 const area = (b: Box) => (b.east - b.west) * (b.north - b.south);
 const clamp = (value: number, low: number, high: number) => Math.min(Math.max(value, low), high);
@@ -36,6 +40,18 @@ function routeBox(stops: readonly Spot[]): Box {
   return { west: Math.min(...lngs), south: Math.min(...lats), east: Math.max(...lngs), north: Math.max(...lats) };
 }
 
+/** The distance, in degrees of latitude, between the two closest stops that are not the same place; 0 when there are not two. */
+function closest(stops: readonly Spot[], squeeze: number): number {
+  let least = Infinity;
+  stops.forEach((a, i) => {
+    for (const b of stops.slice(i + 1)) {
+      const apart = Math.hypot(a.lat - b.lat, (a.lng - b.lng) * squeeze);
+      if (apart > 1e-6) least = Math.min(least, apart);
+    }
+  });
+  return least === Infinity ? 0 : least;
+}
+
 /** Why: a reader knows a country by its whole shape, so the frame is the landmass when it fits and the route only when it does not. */
 export function frameFor(stops: readonly Spot[], home: Piece | undefined, size: Size): Frame {
   const route = routeBox(stops);
@@ -52,6 +68,12 @@ export function frameFor(stops: readonly Spot[], home: Piece | undefined, size: 
     centre = { lng: (home.box.west + home.box.east) / 2, lat: (home.box.south + home.box.north) / 2 };
   }
   high = Math.max(high, needs(route) * ROUTE_MARGIN, SMALLEST);
+  const gap = closest(stops, squeeze);
+  // Why: a country-sized frame puts stops a few miles apart on top of each other; zoom in until they part, but never past the whole route.
+  if (gap > 0 && gap / high < APART) {
+    high = Math.min(high, Math.max(gap / APART, needs(route) * ROUTE_MARGIN, TIGHTEST));
+    centre = middle;
+  }
 
   const wide = (high * across) / squeeze;
   centre = {

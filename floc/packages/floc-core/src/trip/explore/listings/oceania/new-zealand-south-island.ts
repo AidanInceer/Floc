@@ -1,0 +1,35 @@
+import { defineTrip } from "../../define-trip";
+
+export const newZealandSouthIsland = defineTrip({
+  id: "new-zealand-south-island",
+  title: "South Island loop",
+  operator: "Flash Pack",
+  region: "Oceania",
+  country: "New Zealand",
+  groupSize: "4–10 people",
+  priceFromMinor: 289000,
+  currency: "GBP",
+  summary:
+    "From Christchurch to the dark skies of Tekapo, Aoraki, Wanaka and Queenstown with a day at Milford Sound, up the west coast to the glaciers, and back over Arthur's Pass by train.",
+  legs: [
+    { kind: "base", place: "Christchurch", nights: 1, lat: -43.532, lng: 172.637 },
+    { kind: "hop", place: "Lake Tekapo", mode: "car", detail: "3h" },
+    { kind: "base", place: "Lake Tekapo", nights: 2, lat: -44.004, lng: 170.477 },
+    { kind: "hop", place: "Aoraki / Mount Cook", mode: "car", detail: "1h 15" },
+    { kind: "base", place: "Aoraki / Mount Cook", nights: 1, lat: -43.735, lng: 170.096 },
+    { kind: "hop", place: "Wanaka", mode: "car", detail: "2h 30" },
+    { kind: "base", place: "Wanaka", nights: 2, lat: -44.703, lng: 169.132 },
+    { kind: "hop", place: "Queenstown", mode: "car", detail: "1h" },
+    { kind: "base", place: "Queenstown", nights: 3, lat: -45.031, lng: 168.663 },
+    { kind: "hop", place: "Milford Sound", mode: "car", detail: "day trip" },
+    { kind: "hop", place: "Franz Josef", mode: "car", detail: "5h 30" },
+    { kind: "base", place: "Franz Josef", nights: 2, lat: -43.389, lng: 170.183 },
+    { kind: "hop", place: "Christchurch", mode: "train", detail: "5h, the TranzAlpine" },
+    { kind: "base", place: "Christchurch", nights: 2, lat: -43.532, lng: 172.637 },
+  ],
+  highlights: ["Stargazing at Tekapo", "Milford Sound before the coaches", "The TranzAlpine over Arthur's Pass"],
+  bestMonths: "November to March",
+  interests: ["Hiking"],
+  landscape: ["Mountains", "Coast"],
+  effort: "Moderate",
+});

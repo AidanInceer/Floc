@@ -1,0 +1,37 @@
+import { defineTrip } from "../../define-trip";
+
+export const capeToVictoriaFalls = defineTrip({
+  id: "cape-to-victoria-falls",
+  title: "Cape Town to Victoria Falls",
+  operator: "Exodus Adventure Travels",
+  region: "Africa",
+  country: "South Africa, Namibia, Botswana, Zimbabwe",
+  groupSize: "6–12 people",
+  priceFromMinor: 395000,
+  currency: "GBP",
+  summary:
+    "Table Mountain and the Cape, the red dunes of Sossusvlei, the coast at Swakopmund, Etosha's waterholes, a mokoro in the Okavango, elephants at Chobe and the spray of the falls to end.",
+  legs: [
+    { kind: "base", place: "Cape Town", nights: 3, lat: -33.925, lng: 18.424, country: "ZA" },
+    { kind: "hop", place: "Cape Point", mode: "car", detail: "day trip" },
+    { kind: "hop", place: "Windhoek", mode: "flight", detail: "2h" },
+    { kind: "base", place: "Windhoek", nights: 1, lat: -22.56, lng: 17.066, country: "NA" },
+    { kind: "hop", place: "Sossusvlei", mode: "car", detail: "5h" },
+    { kind: "base", place: "Sossusvlei", nights: 2, lat: -24.733, lng: 15.293, country: "NA" },
+    { kind: "hop", place: "Swakopmund", mode: "car", detail: "4h 30" },
+    { kind: "base", place: "Swakopmund", nights: 2, lat: -22.678, lng: 14.527, country: "NA" },
+    { kind: "hop", place: "Etosha", mode: "car", detail: "5h" },
+    { kind: "base", place: "Etosha", nights: 3, lat: -19.18, lng: 15.917, country: "NA" },
+    { kind: "hop", place: "Okavango Delta", mode: "flight", detail: "2h 30" },
+    { kind: "base", place: "Okavango Delta", nights: 3, lat: -19.3, lng: 22.9, country: "BW" },
+    { kind: "hop", place: "Chobe", mode: "flight", detail: "1h" },
+    { kind: "base", place: "Chobe", nights: 2, lat: -17.817, lng: 25.15, country: "BW" },
+    { kind: "hop", place: "Victoria Falls", mode: "car", detail: "1h 30" },
+    { kind: "base", place: "Victoria Falls", nights: 2, lat: -17.932, lng: 25.831, country: "ZW" },
+  ],
+  highlights: ["Dune 45 at sunrise", "A mokoro through the Okavango", "The spray of Victoria Falls"],
+  bestMonths: "May to October",
+  interests: ["Wildlife"],
+  landscape: ["Savannah", "Coast"],
+  effort: "Tough",
+});

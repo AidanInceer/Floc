@@ -1,10 +1,10 @@
-// Static listings for the Explore mockup, five a region: no partner backend; operator names are illustrative.
+// Static listings for Explore, one file per trip in `listings/<region>/` (`pnpm explore:new` adds one): no partner backend; operator names are illustrative.
 // See docs/product/explore/partner-trips.html. Money is minor units (rule 1); format with `formatMoney`.
-import { AFRICA } from "./listings/africa";
-import { AMERICAS } from "./listings/americas";
-import { ASIA } from "./listings/asia";
-import { EUROPE } from "./listings/europe";
-import { OCEANIA } from "./listings/oceania";
+import { AFRICA } from "./listings/africa/index";
+import { AMERICAS } from "./listings/americas/index";
+import { ASIA } from "./listings/asia/index";
+import { EUROPE } from "./listings/europe/index";
+import { OCEANIA } from "./listings/oceania/index";
 import type { PresetTrip } from "./preset-trip-types";
 
 export { REGIONS } from "./preset-trip-types";

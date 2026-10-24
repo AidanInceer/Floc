@@ -1,0 +1,35 @@
+import { defineTrip } from "../../define-trip";
+
+export const icelandRingRoad = defineTrip({
+  id: "iceland-ring-road",
+  title: "Iceland ring road",
+  operator: "Intrepid Travel",
+  region: "Europe",
+  country: "Iceland",
+  groupSize: "2–8 people",
+  priceFromMinor: 185000,
+  currency: "GBP",
+  summary:
+    "The whole ring, anticlockwise: waterfalls on the south coast, the glacier lagoon, a night in the east fjords, Mývatn and Akureyri, then Snæfellsnes on the way back. Car and guesthouses included.",
+  legs: [
+    { kind: "base", place: "Reykjavík", nights: 1, lat: 64.146, lng: -21.942 },
+    { kind: "hop", place: "Golden Circle", mode: "car", detail: "day drive" },
+    { kind: "hop", place: "Vík", mode: "car", detail: "3h" },
+    { kind: "base", place: "Vík", nights: 1, lat: 63.418, lng: -19.006 },
+    { kind: "hop", place: "Höfn", mode: "car", detail: "3h 30" },
+    { kind: "base", place: "Höfn", nights: 2, lat: 64.256, lng: -15.208 },
+    { kind: "hop", place: "Seyðisfjörður", mode: "car", detail: "4h" },
+    { kind: "base", place: "Seyðisfjörður", nights: 1, lat: 65.26, lng: -14.01 },
+    { kind: "hop", place: "Mývatn", mode: "car", detail: "2h 30" },
+    { kind: "base", place: "Mývatn", nights: 2, lat: 65.603, lng: -16.996 },
+    { kind: "hop", place: "Akureyri", mode: "car", detail: "1h 15" },
+    { kind: "base", place: "Akureyri", nights: 1, lat: 65.683, lng: -18.09 },
+    { kind: "hop", place: "Snæfellsnes", mode: "car", detail: "5h" },
+    { kind: "base", place: "Snæfellsnes", nights: 1, lat: 64.912, lng: -23.283 },
+  ],
+  highlights: ["Jökulsárlón glacier lagoon", "Mývatn and the Diamond Circle", "Snæfellsnes on the way back"],
+  bestMonths: "June to August",
+  interests: ["Hiking"],
+  landscape: ["Mountains", "Coast"],
+  effort: "Moderate",
+});

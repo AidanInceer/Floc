@@ -29,7 +29,7 @@ export function drawStillRoute(
   const near = land.fine.length > 0 && fineAt(fit, domeFit(paint.box().w, clear));
   paint.base(fit.view, near ? land.fine : land.world, () => fit, tint);
 
-  const shape = routeShape(route, fit.at, { samples: 40, loop: 44, least: 60, tagWidth: width });
+  const shape = routeShape(route, fit.at, { samples: 40, out: 44, least: 60 });
   const frame = { pieces: shape.pieces.map((p) => p.px), stops: shape.stops.map((s) => s.px), drawn: 1, seen: () => 1, alpha: 1 };
   paintRoute(ctx, shape, frame, ink, nameRoute(ctx, shape, ink, clear), width);
   return fit;

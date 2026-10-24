@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { legCurves, loopCurve, type Point } from "./curves";
+import { legCurves, spurCurve, type Point } from "./curves";
 
 const off = (p: Point, a: Point, b: Point) => {
   const [dx, dy] = [b.x - a.x, b.y - a.y];
@@ -55,18 +55,17 @@ describe("legCurves", () => {
   });
 });
 
-describe("loopCurve", () => {
+describe("spurCurve", () => {
   it("leaves the stop and comes back to it", () => {
-    const loop = loopCurve({ x: 10, y: 10 }, { x: 0, y: -1 }, 40, 24);
-    expect(loop[0]).toEqual({ x: 10, y: 10 });
-    expect(loop.at(-1)!.x).toBeCloseTo(10);
-    expect(loop.at(-1)!.y).toBeCloseTo(10);
+    const spur = spurCurve({ x: 10, y: 10 }, { x: 0, y: -1 }, 40, 24);
+    expect(spur[0]).toEqual({ x: 10, y: 10 });
+    expect(spur.at(-1)!.x).toBeCloseTo(10);
+    expect(spur.at(-1)!.y).toBeCloseTo(10);
   });
 
-  it("reaches out the way it is sent, about as far as asked", () => {
-    const loop = loopCurve({ x: 0, y: 0 }, { x: 0, y: -1 }, 40, 24);
-    const tip = loop[12]!;
-    expect(tip.y).toBeLessThan(-30);
-    expect(Math.abs(tip.x)).toBeLessThan(1);
+  it("goes out and back on one straight line, as far as asked, its tip halfway", () => {
+    const spur = spurCurve({ x: 0, y: 0 }, { x: 0, y: -1 }, 40, 24);
+    for (const p of spur) expect(Math.abs(p.x)).toBeLessThan(1e-9);
+    expect(spur[12]!.y).toBeCloseTo(-40);
   });
 });

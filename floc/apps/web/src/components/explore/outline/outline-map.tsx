@@ -20,6 +20,8 @@ const OUTLINE_SIZES = {
 } as const;
 
 const { line: LINE, edge: EDGE, mid: MID, end: END } = ROUTE_SIZE.tile;
+// Why: server and client can differ in the last digit of a float, which React reports as a hydration mismatch.
+const tenth = (n: number) => Math.round(n * 10) / 10;
 const pathOf = (pts: Point[]) => `M${pts.map((p) => `${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join("L")}`;
 
 /**
@@ -31,9 +33,9 @@ export function OutlineMap({ trip, size }: { trip: PresetTrip; size: "tile" | "p
   const box = OUTLINE_SIZES[size];
   const route = useMemo(() => tripRoute(trip), [trip]);
   const d = useMemo(() => drawOutline(route.stops, tripCodes(trip.country, route.stops, land), land, box), [route, trip.country, land, box]);
-  const shape = useMemo(() => (d.frame ? routeShape(route, d.frame.point, { samples: 22, loop: 15, least: Infinity }) : null), [route, d.frame]);
-  // Why: at tile size a day trip's loop crowds its stop's mark into a smudge; the pass draws them.
-  const pieces = useMemo(() => shape?.pieces.filter((p) => p.kind !== "loop") ?? [], [shape]);
+  const shape = useMemo(() => (d.frame ? routeShape(route, d.frame.point, { samples: 22, out: 15, least: Infinity }) : null), [route, d.frame]);
+  // Why: at tile size a day trip's spur crowds its stop's mark into a smudge; the pass draws them.
+  const pieces = useMemo(() => shape?.pieces.filter((p) => p.kind !== "out") ?? [], [shape]);
   const home = landFor(trip);
 
   return (
@@ -61,9 +63,9 @@ export function OutlineMap({ trip, size }: { trip: PresetTrip; size: "tile" | "p
           })}
           {shape.stops.map((s, k) =>
             !s.named ? null : s.role === "mid" ? (
-              <circle key={k} cx={s.px.x} cy={s.px.y} r={MID.r} strokeWidth={MID.ring} className="fill-sheet stroke-ink" />
+              <circle key={k} cx={tenth(s.px.x)} cy={tenth(s.px.y)} r={MID.r} strokeWidth={MID.ring} className="fill-sheet stroke-ink" />
             ) : (
-              <circle key={k} cx={s.px.x} cy={s.px.y} r={END.r} strokeWidth={END.ring} className="fill-ink stroke-sheet" />
+              <circle key={k} cx={tenth(s.px.x)} cy={tenth(s.px.y)} r={END.r} strokeWidth={END.ring} className="fill-ink stroke-sheet" />
             ),
           )}
         </g>

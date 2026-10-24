@@ -77,9 +77,9 @@ describe("finderCounts", () => {
 
   it("counts listings per night, the longest in the top bar", () => {
     const counts = finderCounts([...ALL, listing({ nights: 30 })], EMPTY_FINDER);
-    expect(counts.nights).toHaveLength(17);
-    expect(counts.nights[10 - 5]).toBe(1);
-    expect(counts.nights[16]).toBe(1);
+    expect(counts.nights).toHaveLength(19);
+    expect(counts.nights[10 - 3]).toBe(1);
+    expect(counts.nights[18]).toBe(1);
   });
 
   it("counts listings per price band, the dearest in the top bar", () => {
@@ -98,7 +98,7 @@ describe("changing the finder", () => {
 
   it("sets a nights range, and none when it spans the scale", () => {
     expect(withNights(EMPTY_FINDER, 12, 9).nights).toEqual({ min: 9, max: 12 });
-    expect(withNights(EMPTY_FINDER, 5, 21).nights).toBeNull();
+    expect(withNights(EMPTY_FINDER, 3, 21).nights).toBeNull();
   });
 
   it("sets a price range, with no floor at 0 and no ceiling at the top", () => {
