@@ -5,6 +5,7 @@ import { canUseFeature } from "@/server/billing/entitlements";
 import { listDayLoads, listRouteDays } from "@/server/itinerary/itinerary";
 import { bookingPlan } from "@floc/core/trip/booking-links";
 import { today } from "@floc/core/dates/dates";
+import { datesMoment } from "@floc/core/dates/dates-moment";
 import { BookingCard } from "@/components/booking/booking-card";
 import { getTripForecast } from "@/server/itinerary/weather";
 import { bestWindow, monthOf, thisMonth } from "@floc/core/dates/availability";
@@ -31,6 +32,7 @@ import {
   SubmitButton,
 } from "@/components/system/client-ui";
 import { DatesBoard } from "@/components/availability/dates-board";
+import { DatesFold } from "@/components/availability/dates-fold";
 import { BestWindowCard } from "@/components/availability/best-window-card";
 import { WhoAnswered } from "@/components/availability/who-answered";
 import { NUDGE_TABS } from "@/db/schema";
@@ -93,6 +95,7 @@ export default async function DatesPage({
           : thisMonth();
 
   const hasDates = !!trip.startDate && !!trip.endDate;
+  const moment = datesMoment(trip, today());
 
   // "Reset dates" cost: an empty window keeps no day, so this is the whole
   // itinerary (ticket 140). Null when there's nothing on it.
@@ -126,6 +129,42 @@ export default async function DatesPage({
       apply={applyBestWindow.bind(null, tripId, best.start, best.end)}
     />
   ) : null;
+
+  const board = (
+    <DatesBoard
+      firstMonth={firstMonth}
+      mine={mine}
+      tallies={tallies}
+      memberCount={members.length}
+      tripStart={trip.startDate}
+      tripEnd={trip.endDate}
+      dayLoads={dayLoads}
+      weather={forecast}
+      weatherLocked={!weatherPro}
+      waitingOn={waitingOn}
+      bestWindow={best}
+      slots={{
+        faces: <AvatarRow people={answered} size={20} max={4} />,
+        best: bestCard,
+        who: (
+          <WhoAnswered
+            members={members}
+            marked={marked}
+            viewerId={viewer.id}
+            nudgeFor={(m) => <NudgeSheet tripId={tripId} member={m} />}
+          />
+        ),
+        trip: <TripBlock start={trip.startDate} end={trip.endDate} />,
+        locked: (
+          <p className="p-4 text-sm text-ink-soft">
+            The weather on each of the trip&apos;s days comes with Floc Pro.
+          </p>
+        ),
+      }}
+      save={saveAvailability.bind(null, tripId)}
+      saveDates={setTripDates.bind(null, tripId)}
+    />
+  );
 
   return (
     <div className="mx-auto w-full max-w-[70rem] px-4 pb-20 pt-6 sm:px-6">
@@ -185,41 +224,13 @@ export default async function DatesPage({
         </Menu>
       </header>
 
-      <div className="mt-6">
-        <DatesBoard
-          firstMonth={firstMonth}
-          mine={mine}
-          tallies={tallies}
-          memberCount={members.length}
-          tripStart={trip.startDate}
-          tripEnd={trip.endDate}
-          dayLoads={dayLoads}
-          weather={forecast}
-          weatherLocked={!weatherPro}
-          waitingOn={waitingOn}
-          bestWindow={best}
-          slots={{
-            faces: <AvatarRow people={answered} size={20} max={4} />,
-            best: bestCard,
-            who: (
-              <WhoAnswered
-                members={members}
-                marked={marked}
-                viewerId={viewer.id}
-                nudgeFor={(m) => <NudgeSheet tripId={tripId} member={m} />}
-              />
-            ),
-            trip: <TripBlock start={trip.startDate} end={trip.endDate} />,
-            locked: (
-              <p className="p-4 text-sm text-ink-soft">
-                The weather on each of the trip&apos;s days comes with Floc Pro.
-              </p>
-            ),
-          }}
-          save={saveAvailability.bind(null, tripId)}
-          saveDates={setTripDates.bind(null, tripId)}
-        />
-      </div>
+      {moment === "finding" ? (
+        <div className="mt-6">{board}</div>
+      ) : (
+        <div className="mt-4">
+          <DatesFold quiet={moment === "started"}>{board}</DatesFold>
+        </div>
+      )}
       {booking ? (
         <div className="mt-4">
           <BookingCard tripId={tripId} plan={booking} />
@@ -278,7 +289,6 @@ function NudgeSheet({
           <Field label="Message (optional)">
             <Textarea
               name="message"
-              placeholder={`e.g. "Can you mark your days before the weekend?"`}
             />
           </Field>
           <SubmitButton pendingLabel="Sending…">Send nudge</SubmitButton>
