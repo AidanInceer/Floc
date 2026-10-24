@@ -58,7 +58,7 @@ function oriented(legs: Leg[], a: string, b: string, ctx: Rated): Payment {
 function byPair(ctx: Rated): Payment[] {
   const pairs = new Map<string, Leg[]>();
   for (const leg of perCurrency(ctx.balances)) {
-    const key = [leg.from, leg.to].sort().join(" ");
+    const key = [leg.from, leg.to].sort((a, b) => a.localeCompare(b)).join(" ");
     pairs.set(key, [...(pairs.get(key) ?? []), leg]);
   }
   return [...pairs.values()].map((legs) => oriented(legs, legs[0].from, legs[0].to, ctx));
