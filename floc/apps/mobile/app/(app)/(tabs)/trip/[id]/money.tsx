@@ -28,19 +28,8 @@ import {
   DEFAULT_CATEGORY,
   isExpenseCategory,
 } from "@floc/core/money/expense-category";
-import {
-  formatMoney,
-  suggestSettlements,
-  toMajorInput,
-} from "@floc/core/money/money";
-import { CURRENCIES } from "@floc/core/money/currency";
-import { ledgerBalances } from "@floc/core/money/ledger";
-import {
-  yourSettleUp,
-  type CurrencyTotal,
-  type CurrencyTransfer,
-  type YourSettleUp,
-} from "@floc/core/money/settle-up";
+import { formatMoney, toMajorInput } from "@floc/core/money/money";
+import type { PairRow } from "@floc/core/money/pair-settle";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
@@ -77,24 +66,28 @@ type Editing =
   { kind: "none" } | { kind: "add" } | { kind: "edit"; expenseId: number };
 
 /**
- * The top of the screen: your two sides, or one panel saying you are square.
- * Being square is the viewer's own state — two other people can still owe each
- * other and that is not this reader's news (#317).
+ * The top of the screen: one row per person you owe or are owed by, each settled in one payment even when the
+ * debts run in two currencies (#461). Being square is the viewer's own state (#317).
  */
 function MoneyTop({
-  mine,
+  pairs,
+  viewerId,
   nameOf,
   busy,
   onSettle,
 }: {
-  mine: YourSettleUp;
+  pairs: { rows: PairRow[] } | undefined;
+  viewerId: string | undefined;
   nameOf: (userId: string) => string;
   busy: boolean;
-  onSettle: (list: CurrencyTransfer[]) => void;
+  onSettle: (row: PairRow) => void;
 }) {
   const [showOwed, setShowOwed] = useState(false);
+  const rows = pairs?.rows ?? [];
+  const owe = rows.filter((r) => r.payer === viewerId);
+  const owed = rows.filter((r) => r.payee === viewerId);
 
-  if (mine.settled) {
+  if (rows.length === 0) {
     return (
       <Card>
         <View style={{ gap: space.xs, alignItems: "center" }}>
@@ -105,36 +98,20 @@ function MoneyTop({
     );
   }
 
+  const line = (row: PairRow, paying: boolean) => (
+    <View key={row.other} style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
+      <View style={{ flex: 1, gap: 2 }}>
+        <Figure tone={paying ? "red" : "green"}>{formatMoney(row.amountMinor, row.currency)}</Figure>
+        <Body tone="ink-2">{paying ? `to ${nameOf(row.other)}` : `from ${nameOf(row.other)}`}</Body>
+      </View>
+      <Button label="Settle up" variant={paying ? "primary" : "quiet"} fit="small" busy={busy} onPress={() => onSettle(row)} />
+    </View>
+  );
+
   return (
     <Card style={{ gap: space.sm }}>
       <Label>You owe</Label>
-      {mine.owe.length === 0 ? (
-        <Body tone="ink-2">Nothing to pay — you have paid your share.</Body>
-      ) : (
-        <>
-          {mine.owe.map((transfer) => (
-            <View
-              key={`${transfer.to}-${transfer.currency}`}
-              style={{
-                flexDirection: "row",
-                alignItems: "baseline",
-                justifyContent: "space-between",
-                gap: space.sm,
-              }}
-            >
-              <Figure tone="red">
-                {formatMoney(transfer.amountMinor, transfer.currency)}
-              </Figure>
-              <Body tone="ink-2">to {nameOf(transfer.to)}</Body>
-            </View>
-          ))}
-          <Button
-            label="Settle up"
-            busy={busy}
-            onPress={() => onSettle(mine.owe)}
-          />
-        </>
-      )}
+      {owe.length === 0 ? <Body tone="ink-2">Nothing to pay — you have paid your share.</Body> : owe.map((r) => line(r, true))}
 
       <Divider />
 
@@ -142,35 +119,24 @@ function MoneyTop({
       <Pressable
         accessibilityRole="button"
         onPress={() => setShowOwed((open) => !open)}
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: space.sm,
-        }}
+        style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.sm }}
       >
         <Body tone="ink-2">You are owed</Body>
-        <Figure tone="green">{totalOf(mine.owedTotals) ?? "nothing"}</Figure>
+        <Body tone="ink-2">{owed.length === 0 ? "nothing" : `${owed.length} ${owed.length === 1 ? "person" : "people"}`}</Body>
       </Pressable>
-
-      {showOwed && mine.owed.length > 0 ? (
-        <>
-          {rowsOf(mine.owed, false, nameOf).map((row) => (
-            <Body key={row} tone="ink-3">
-              {row}
-            </Body>
-          ))}
-          <Button
-            label="Mark paid"
-            variant="quiet"
-            fit="small"
-            busy={busy}
-            onPress={() => onSettle(mine.owed)}
-          />
-        </>
-      ) : null}
+      {showOwed ? owed.map((r) => line(r, false)) : null}
     </Card>
   );
+}
+
+/** What one payment clears, for the confirm before it is recorded. */
+function clearsLine(row: PairRow, viewerId: string, nameOf: (userId: string) => string): string {
+  return row.parts
+    .map((p) => {
+      const amount = formatMoney(p.clearsAmountMinor ?? p.amountMinor, p.clearsCurrency ?? p.currency);
+      return p.fromUserId === viewerId ? `${amount} you owe ${nameOf(p.toUserId)}` : `${amount} ${nameOf(p.fromUserId)} owes you`;
+    })
+    .join("\n");
 }
 
 /**
@@ -314,26 +280,6 @@ function shareLine(
   return `${who} · your share ${formatMoney(share, expense.currency)}`;
 }
 
-/** One line per person on a side, naming the other party. */
-function rowsOf(
-  list: CurrencyTransfer[],
-  paying: boolean,
-  nameOf: (userId: string) => string,
-): string[] {
-  return list.map(
-    (transfer) =>
-      `${nameOf(paying ? transfer.to : transfer.from)} ${formatMoney(transfer.amountMinor, transfer.currency)}`,
-  );
-}
-
-/** Two currencies never add up, so each keeps its own figure (ticket 253). */
-function totalOf(totals: CurrencyTotal[]): string | null {
-  if (totals.length === 0) return null;
-  return totals
-    .map((total) => formatMoney(total.amountMinor, total.currency))
-    .join(" · ");
-}
-
 export default function Money() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const tripId = Number(id);
@@ -352,6 +298,7 @@ export default function Money() {
   const ledger = useQuery(
     trpc.money.ledger.queryOptions({ tripId }, { enabled: ready }),
   );
+  const pairs = useQuery(trpc.money.pairs.queryOptions({ tripId }, { enabled: ready }));
   // For "which day". An undated trip returns none, which is not an error
   // (rule 9) — the form simply stops asking.
   const itinerary = useQuery(
@@ -364,6 +311,7 @@ export default function Money() {
     queryClient.invalidateQueries({
       queryKey: trpc.money.ledger.queryKey({ tripId }),
     });
+    queryClient.invalidateQueries({ queryKey: trpc.money.pairs.queryKey({ tripId }) });
   };
   const failed = (error: { message: string }) => setProblem(error.message);
 
@@ -378,7 +326,7 @@ export default function Money() {
     onError: failed,
   });
   const settle = useMutation({
-    ...trpc.money.settle.mutationOptions(),
+    ...trpc.money.settlePair.mutationOptions(),
     onSuccess: done,
     onError: failed,
   });
@@ -402,20 +350,6 @@ export default function Money() {
 
   const currency = ledgerCurrency(ledger.data);
 
-  // Who the viewer specifically owes, or is owed by. The same greedy matching
-  // the web app shows, so both suggest the same transfers.
-  const book = ledgerBalances(ledger.data);
-  // Why: a trip with euro dinners and pound flights has two books, and reading
-  // only one made a real debt look like nothing owed (#317).
-  const mine = yourSettleUp({
-    transfers: CURRENCIES.flatMap((inCurrency) =>
-      suggestSettlements(book[inCurrency] ?? {}).map((transfer) => ({
-        ...transfer,
-        currency: inCurrency,
-      })),
-    ),
-    viewerId: me ?? "",
-  });
   // Every expense, always. There was a two-way switch here; it earned its
   // removal — a trip splits money between *people*, not between "mine" and
   // "everyone", and every line on this list is already labelled with the
@@ -441,28 +375,16 @@ export default function Money() {
     });
   }
 
-  /** One row per transfer — each really happened separately — sent as one call so they save together. */
-  function settleSide(list: CurrencyTransfer[]) {
-    const paying = list.every((transfer) => transfer.from === me);
+  function settleRow(row: PairRow) {
+    const paying = row.payer === me;
+    const amount = formatMoney(row.amountMinor, row.currency);
     // Why: this records real money as moved, so one stray tap must not do it.
     Alert.alert(
-      paying ? "Record that you paid?" : "Record that you were paid?",
-      rowsOf(list, paying, nameOf).join(", "),
+      paying ? `Pay ${nameOf(row.other)} ${amount}?` : `${nameOf(row.other)} paid you ${amount}?`,
+      `Clears:\n${clearsLine(row, me ?? "", nameOf)}`,
       [
         { text: "Cancel", style: "cancel" },
-        {
-          text: "Record",
-          onPress: () =>
-            settle.mutate({
-              tripId,
-              transfers: list.map((transfer) => ({
-                fromUserId: transfer.from,
-                toUserId: transfer.to,
-                amountMinor: transfer.amountMinor,
-                currency: transfer.currency,
-              })),
-            }),
-        },
+        { text: "Record", onPress: () => settle.mutate({ tripId, otherUserId: row.other }) },
       ],
     );
   }
@@ -474,10 +396,11 @@ export default function Money() {
     <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }}>
       {snapshot.expenses.length > 0 ? (
         <MoneyTop
-          mine={mine}
+          pairs={pairs.data}
+          viewerId={me}
           nameOf={nameOf}
           busy={settle.isPending}
-          onSettle={settleSide}
+          onSettle={settleRow}
         />
       ) : null}
 

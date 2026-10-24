@@ -6,7 +6,7 @@
  */
 import type { Currency, Expense, ExpenseSplit, Settlement } from "@/db/schema";
 import { formatDate, toIsoDate } from "@floc/core/dates/dates";
-import { formatTicker } from "@floc/core/money/money";
+import { formatMoney } from "@floc/core/money/money";
 import { menuDangerItemClass, menuItemClass } from "@/components/system/ui";
 import { ConfirmSubmit, Menu, Sheet } from "@/components/system/client-ui";
 import { CategoryIcon } from "@/components/system/category-icon";
@@ -47,6 +47,8 @@ type FeedItem =
 
 export function ActivityFeed(props: {
   collapsed: boolean;
+  /** Add expense, at the right of the heading. */
+  action?: React.ReactNode;
   tripId: number;
   viewerId: string;
   expenses: Expense[];
@@ -107,7 +109,10 @@ export function ActivityFeed(props: {
 
   return (
     <section className="rounded-lg bg-sheet p-6">
-      <h2 className="border-b border-rule pb-3 text-xl">Activity</h2>
+      <div className="flex items-center justify-between gap-4 border-b border-rule pb-3">
+        <h2 className="text-xl">Activity</h2>
+        {props.action}
+      </div>
       {rows}
     </section>
   );
@@ -252,7 +257,7 @@ function SettlementRow({
         </p>
         <p className="mt-0.5 truncate text-xs text-ink-soft">
           {s.clearsCurrency && s.clearsAmountMinor !== null
-            ? `Cash · cleared ${formatTicker(s.clearsAmountMinor, s.clearsCurrency)} at ${s.fxRate?.toFixed(4)}${s.fxRateDate ? `, ${formatDate(s.fxRateDate)}` : ""}`
+            ? `Cash · cleared ${formatMoney(s.clearsAmountMinor, s.clearsCurrency)} at ${s.fxRate?.toFixed(4)}${s.fxRateDate ? `, ${formatDate(s.fxRateDate)}` : ""}`
             : `Cash · ${formatDate(toIsoDate(s.createdAt))}`}
         </p>
       </div>

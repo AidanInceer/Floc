@@ -80,6 +80,8 @@ function fakePort(overrides: Partial<FlocPort> = {}): FlocPort {
     writeExpense: vi.fn().mockResolvedValue(undefined),
     deleteExpense: vi.fn().mockResolvedValue(undefined),
     settleUp: vi.fn().mockResolvedValue(undefined),
+    loadPairs: vi.fn().mockResolvedValue({ rows: [], rateDate: null }),
+    settlePair: vi.fn().mockResolvedValue(undefined),
     addEvent: unused,
     updateEvent: unused,
     deleteEvent: unused,
@@ -313,6 +315,14 @@ describe("what the input rules refuse", () => {
     await ana.money.settle({ tripId: 1, transfers });
     expect(port.settleUp).toHaveBeenCalledTimes(1);
     expect(port.settleUp).toHaveBeenCalledWith("u1", 1, transfers);
+  });
+
+  it("reads the viewer's settle-up one row per person, and settles one person in one call (#461)", async () => {
+    const { caller: ana, port } = caller("u1");
+    expect(await ana.money.pairs({ tripId: 1 })).toEqual({ rows: [], rateDate: null });
+    expect(port.loadPairs).toHaveBeenCalledWith("u1", 1);
+    await ana.money.settlePair({ tripId: 1, otherUserId: "u2" });
+    expect(port.settlePair).toHaveBeenCalledWith("u1", 1, "u2");
   });
 
   it("refuses a settle-up with no transfers", async () => {

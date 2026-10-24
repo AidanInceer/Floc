@@ -219,3 +219,29 @@ export function SettlementEditForm({
     </form>
   );
 }
+
+/** One payment that clears every currency between two people (#461). The server recomputes it; the form only names the person. */
+export function PairSettleForm({
+  tripId,
+  otherUserId,
+  summary,
+  action,
+}: {
+  tripId: number;
+  otherUserId: string;
+  summary: React.ReactNode;
+  action: SettlementAction;
+}) {
+  const { state, submit } = useSheetForm(action);
+  return (
+    <form action={submit}>
+      <input type="hidden" name="tripId" value={tripId} />
+      <input type="hidden" name="otherUserId" value={otherUserId} />
+      <Stack gap={3}>
+        {summary}
+        {state.error ? <ErrorText>{state.error}</ErrorText> : null}
+        <SubmitButton pendingLabel="Saving…">Mark as paid</SubmitButton>
+      </Stack>
+    </form>
+  );
+}

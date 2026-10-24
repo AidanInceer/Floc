@@ -7,7 +7,6 @@ import {
   convertTotal,
   crossRate,
   formatMoney,
-  formatTicker,
   isAllSettled,
   maxExpenseMinor,
   parseMoney,
@@ -26,9 +25,6 @@ describe("formatMoney / parseMoney", () => {
     expect(parseMoney("0.05", "GBP")).toBe(5);
     expect(formatMoney(1234, "GBP")).toBe("£12.34");
     expect(formatMoney(120000, "EUR")).toBe("€1,200.00");
-    // Ticker form for the convert control: ISO code, not a symbol.
-    expect(formatTicker(1234, "GBP")).toBe("GBP 12.34");
-    expect(formatTicker(560000, "USD")).toBe("USD 5,600.00");
     // `$` names seven currencies in the list, so USD prints its code (ticket 253).
     expect(formatMoney(1234, "USD")).toBe("USD 12.34");
     expect(formatMoney(-500, "USD")).toBe("−USD 5.00");
@@ -339,7 +335,6 @@ describe("the awkward halves of the money helpers", () => {
 describe("zero-decimal currencies", () => {
   it("formats and parses without a decimal point", () => {
     expect(formatMoney(5600, "JPY")).toBe("JPY 5,600");
-    expect(formatTicker(5600, "JPY")).toBe("JPY 5,600");
     expect(parseMoney("5600", "JPY")).toBe(5600);
     expect(parseMoney("¥5,600", "JPY")).toBe(5600);
     // A typed "5600.00" is a mistake, not a hundredfold amount.

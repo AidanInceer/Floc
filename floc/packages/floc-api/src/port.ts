@@ -20,6 +20,7 @@
 
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import type { Currency } from "@floc/core/money/currency";
+import type { PairRow } from "@floc/core/money/pair-settle";
 import type { DocCategory } from "@floc/core/documents/documents";
 import type { ExpenseCategory } from "@floc/core/money/expense-category";
 import type { CopyChoice } from "@floc/core/trip/explore/copy/copy-choice";
@@ -146,6 +147,8 @@ export type Settlement = {
   clearsAmountMinor: number | null;
   clearsCurrency: Currency | null;
 };
+
+export type PairSettleUp = { rows: PairRow[]; rateDate: string | null };
 
 export type Ledger = {
   expenses: Expense[];
@@ -838,6 +841,9 @@ export type FlocPort = {
 
   loadLedger(viewerId: string, tripId: number): Promise<Ledger>;
 
+  /** The viewer's settle-up, one row per person, netted across currencies in the payer's home currency (#461). */
+  loadPairs(viewerId: string, tripId: number): Promise<PairSettleUp>;
+
   /** Newest first. Somebody else's private file is never in the result (ticket 296). */
   listFiles(viewerId: string, tripId: number): Promise<TripFile[]>;
 
@@ -935,6 +941,9 @@ export type FlocPort = {
   ): Promise<void>;
 
   deleteExpense(viewerId: string, tripId: number, expenseId: number): Promise<void>;
+
+  /** Records the one payment that clears everything between the viewer and one person, recomputed server-side (#461). */
+  settlePair(viewerId: string, tripId: number, otherUserId: string): Promise<void>;
 
   /**
    * Records a transfer that has already happened off-app (ticket 300).

@@ -19,7 +19,9 @@ vi.mock("@/server/auth/email", async (importOriginal) => ({
 
 import { computeBalances } from "@floc/core/money/money";
 
-import { addExpense, deleteExpense, deleteSettlement, editSettlement, recordSettlement, updateExpense } from "./actions";
+import { ledgerBalances } from "@floc/core/money/ledger";
+
+import { addExpense, deleteExpense, deleteSettlement, editSettlement, recordSettlement, settlePair, updateExpense } from "./actions";
 
 let world: Scenario;
 
@@ -324,5 +326,38 @@ describe("recording a settlement", () => {
     await deleteSettlement(form({ tripId, settlementId: String(row.id) }));
 
     expect(await listSettlements(world.ours.id)).toEqual([]);
+  });
+});
+
+describe("settling up with one person across currencies (#461)", () => {
+  const balancesBy = async () => {
+    const [expenses, splits, settlements] = await Promise.all([
+      listExpenses(world.ours.id),
+      listSplits(world.ours.id),
+      listSettlements(world.ours.id),
+    ]);
+    return ledgerBalances({ expenses, splits, settlements });
+  };
+
+  it("clears every currency between the two of them in one payment, in the payer's home currency", async () => {
+    // The member owes the admin £15 and the admin owes the member €10.
+    expect(await addExpense({}, expenseForm())).toEqual({});
+    signIn(world.member);
+    expect(await addExpense({}, expenseForm({ paidBy: world.member, currency: "EUR", amount: "20.00" }))).toEqual({});
+    getHomeRates.mockResolvedValue({ toHome: { EUR: 0.85 }, date: "2026-10-24" });
+
+    expect(await settlePair({}, form({ tripId: String(world.ours.id), otherUserId: world.admin }))).toEqual({});
+
+    const rows = await listSettlements(world.ours.id);
+    expect(rows).toHaveLength(2);
+    expect(rows.every((r) => r.currency === "GBP")).toBe(true);
+    const after = await balancesBy();
+    expect([after.GBP[world.member] ?? 0, after.EUR[world.member] ?? 0]).toEqual([0, 0]);
+  });
+
+  it("says so when there is nothing to settle with that person", async () => {
+    expect(await settlePair({}, form({ tripId: String(world.ours.id), otherUserId: world.member }))).toEqual({
+      error: "Nothing to settle with them.",
+    });
   });
 });

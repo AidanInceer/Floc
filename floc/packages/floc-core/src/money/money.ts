@@ -43,12 +43,6 @@ export function formatMoney(amountMinor: number, currency: Currency): string {
   return amountMinor < 0 ? `−${body}` : body;
 }
 
-/** ISO-ticker form — "GBP 12.34", "JPY 5600" — for the convert control, where the code, not a symbol, is the point. */
-export function formatTicker(amountMinor: number, currency: Currency): string {
-  const body = `${currency} ${decimalString(amountMinor, currency)}`;
-  return amountMinor < 0 ? `−${body}` : body;
-}
-
 /** Minor units → the bare decimal a form box edits — "12.34", "5600". No grouping, no symbol. */
 export function toMajorInput(amountMinor: number, currency: Currency): string {
   return (amountMinor / minorPerMajor(currency)).toFixed(minorUnitExponent(currency));

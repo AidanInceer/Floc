@@ -7,7 +7,6 @@ import type { Currency } from "@/db/schema";
 import {
   convertMinor,
   formatMoney,
-  formatTicker,
 } from "@floc/core/money/money";
 
 function SwapGlyph() {
@@ -74,7 +73,7 @@ export function ConvertAmount({
         key={showHome ? "home" : "orig"}
         style={{ animation: "fadeSwap .18s ease" }}
       >
-        {formatTicker(
+        {formatMoney(
           showHome ? homeMinor : amountMinor,
           showHome ? home : currency,
         )}
