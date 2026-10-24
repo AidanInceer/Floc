@@ -11,10 +11,10 @@
  * `parseMoney`, both from `@floc/core/money` — so the phone cannot round a
  * penny differently from the browser.
  *
- * BALANCES ARE DERIVED, NEVER FETCHED. `ledgerBalances` runs over the ledger
- * the API returned, and `yourSettleUp` keeps the viewer's own half of it
- * (#317). There is no balance column, because a stored balance is a second
- * source of truth about the same money.
+ * BALANCES ARE DERIVED, NEVER STORED. The server works out the group's
+ * payments from the ledger with its rates (#463) and the phone shows them.
+ * There is no balance column, because a stored balance is a second source of
+ * truth about the same money.
  *
  * SPLITS ARE SNAPSHOTS (rule 2). An edit sends the whole split set and the API
  * rewrites expense and splits together. Nothing here recalculates an old
@@ -29,7 +29,7 @@ import {
   isExpenseCategory,
 } from "@floc/core/money/expense-category";
 import { formatMoney, toMajorInput } from "@floc/core/money/money";
-import type { PairRow } from "@floc/core/money/pair-settle";
+import type { SettleRow } from "@floc/core/money/group-settle";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
@@ -66,43 +66,43 @@ type Editing =
   { kind: "none" } | { kind: "add" } | { kind: "edit"; expenseId: number };
 
 /**
- * The top of the screen: one row per person you owe or are owed by, each settled in one payment even when the
- * debts run in two currencies (#461). Being square is the viewer's own state (#317).
+ * The top of the screen: the group's fewest payments, in your currency (#463). Yours first, large, each settled in
+ * one payment; then, small, the payments between other people, which only those two can mark paid.
  */
 function MoneyTop({
-  pairs,
+  rows = [],
   viewerId,
   nameOf,
   busy,
   onSettle,
 }: {
-  pairs: { rows: PairRow[] } | undefined;
+  rows: SettleRow[] | undefined;
   viewerId: string | undefined;
   nameOf: (userId: string) => string;
   busy: boolean;
-  onSettle: (row: PairRow) => void;
+  onSettle: (row: SettleRow) => void;
 }) {
   const [showOwed, setShowOwed] = useState(false);
-  const rows = pairs?.rows ?? [];
   const owe = rows.filter((r) => r.payer === viewerId);
   const owed = rows.filter((r) => r.payee === viewerId);
+  const others = rows.filter((r) => r.payer !== viewerId && r.payee !== viewerId);
 
   if (rows.length === 0) {
     return (
       <Card>
         <View style={{ gap: space.xs, alignItems: "center" }}>
           <Heading>All settled up</Heading>
-          <Body tone="ink-2">You are square with everyone on this trip.</Body>
+          <Body tone="ink-2">Everyone on this trip is square.</Body>
         </View>
       </Card>
     );
   }
 
-  const line = (row: PairRow, paying: boolean) => (
-    <View key={row.other} style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
+  const line = (row: SettleRow, paying: boolean) => (
+    <View key={`${row.payer}-${row.payee}`} style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
       <View style={{ flex: 1, gap: 2 }}>
         <Figure tone={paying ? "red" : "green"}>{formatMoney(row.amountMinor, row.currency)}</Figure>
-        <Body tone="ink-2">{paying ? `to ${nameOf(row.other)}` : `from ${nameOf(row.other)}`}</Body>
+        <Body tone="ink-2">{paying ? `to ${nameOf(row.payee)}` : `from ${nameOf(row.payer)}`}</Body>
       </View>
       <Button label="Settle up" variant={paying ? "primary" : "quiet"} fit="small" busy={busy} onPress={() => onSettle(row)} />
     </View>
@@ -125,12 +125,25 @@ function MoneyTop({
         <Body tone="ink-2">{owed.length === 0 ? "nothing" : `${owed.length} ${owed.length === 1 ? "person" : "people"}`}</Body>
       </Pressable>
       {showOwed ? owed.map((r) => line(r, false)) : null}
+
+      {others.length > 0 ? (
+        <>
+          <Divider />
+          <Label>Between the others</Label>
+          {others.map((r) => (
+            <View key={`${r.payer}-${r.payee}`} style={{ flexDirection: "row", justifyContent: "space-between", gap: space.sm }}>
+              <Body tone="ink-3">{`${nameOf(r.payer)} owes ${nameOf(r.payee)}`}</Body>
+              <Body tone="ink-3">{formatMoney(r.amountMinor, r.currency)}</Body>
+            </View>
+          ))}
+        </>
+      ) : null}
     </Card>
   );
 }
 
 /** What one payment clears, for the confirm before it is recorded. */
-function clearsLine(row: PairRow, viewerId: string, nameOf: (userId: string) => string): string {
+function clearsLine(row: SettleRow, viewerId: string, nameOf: (userId: string) => string): string {
   return row.parts
     .map((p) => {
       const amount = formatMoney(p.clearsAmountMinor ?? p.amountMinor, p.clearsCurrency ?? p.currency);
@@ -375,16 +388,17 @@ export default function Money() {
     });
   }
 
-  function settleRow(row: PairRow) {
+  function settleRow(row: SettleRow) {
     const paying = row.payer === me;
+    const other = paying ? row.payee : row.payer;
     const amount = formatMoney(row.amountMinor, row.currency);
     // Why: this records real money as moved, so one stray tap must not do it.
     Alert.alert(
-      paying ? `Pay ${nameOf(row.other)} ${amount}?` : `${nameOf(row.other)} paid you ${amount}?`,
+      paying ? `Pay ${nameOf(other)} ${amount}?` : `${nameOf(other)} paid you ${amount}?`,
       `Clears:\n${clearsLine(row, me ?? "", nameOf)}`,
       [
         { text: "Cancel", style: "cancel" },
-        { text: "Record", onPress: () => settle.mutate({ tripId, otherUserId: row.other }) },
+        { text: "Record", onPress: () => settle.mutate({ tripId, otherUserId: other }) },
       ],
     );
   }
@@ -396,7 +410,7 @@ export default function Money() {
     <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }}>
       {snapshot.expenses.length > 0 ? (
         <MoneyTop
-          pairs={pairs.data}
+          rows={pairs.data?.rows}
           viewerId={me}
           nameOf={nameOf}
           busy={settle.isPending}

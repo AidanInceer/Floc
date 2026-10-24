@@ -329,7 +329,7 @@ describe("recording a settlement", () => {
   });
 });
 
-describe("settling up with one person across currencies (#461)", () => {
+describe("settling up with one person across currencies (#461, #463)", () => {
   const balancesBy = async () => {
     const [expenses, splits, settlements] = await Promise.all([
       listExpenses(world.ours.id),
@@ -344,7 +344,8 @@ describe("settling up with one person across currencies (#461)", () => {
     expect(await addExpense({}, expenseForm())).toEqual({});
     signIn(world.member);
     expect(await addExpense({}, expenseForm({ paidBy: world.member, currency: "EUR", amount: "20.00" }))).toEqual({});
-    getHomeRates.mockResolvedValue({ toHome: { EUR: 0.85 }, date: "2026-10-24" });
+    // Settle-up prices everything from the euro (#463): £1 is €1/0.85.
+    getHomeRates.mockResolvedValue({ toHome: { EUR: 1, GBP: 1 / 0.85 }, date: "2026-10-24" });
 
     expect(await settlePair({}, form({ tripId: String(world.ours.id), otherUserId: world.admin }))).toEqual({});
 

@@ -8,15 +8,15 @@ import "server-only";
 import { and, eq, inArray, isNull, or } from "drizzle-orm";
 
 import { addDays } from "@floc/core/dates/dates";
-import { CURRENCIES } from "@floc/core/money/currency";
-import { ledgerBalances } from "@floc/core/money/ledger";
-import { formatMoney, suggestSettlements } from "@floc/core/money/money";
+import { paidIn } from "@floc/core/money/group-settle";
+import { formatMoney } from "@floc/core/money/money";
 import { tripHref } from "@floc/core/notifications/notification-href";
 import { reminderDay, remindersDue } from "@floc/core/notifications/reminders";
 import type { ReminderKind } from "@floc/core/notifications/rules";
 import { db } from "@/db";
 import { activity, notification, reminder, trip, tripMembership, userProfile } from "@/db/schema";
 import { listExpenses, listSettlements, listSplits, namesForUsers } from "@/server/money/money";
+import { settleUpFrom } from "@/server/money/settle-up";
 
 type Target = { userId: string; detail: string | null };
 
@@ -48,21 +48,21 @@ async function listeners(tripId: number): Promise<string[]> {
   return rows.filter((r) => r.on !== false).map((r) => r.userId);
 }
 
-/** Who still owes, and "Sam £40.00, Ada €12.00" for each of them. */
+/** Who still owes, and "Sam £40.00, Ada €12.00" for each of them: Money's payments, in the payer's currency (#463). */
 async function debtors(tripId: number): Promise<Target[]> {
   const [expenses, splits, settlements] = await Promise.all([
     listExpenses(tripId),
     listSplits(tripId),
     listSettlements(tripId),
   ]);
-  const book = ledgerBalances({ expenses, splits, settlements });
-  const transfers = CURRENCIES.flatMap((currency) =>
-    suggestSettlements(book[currency] ?? {}).map((t) => ({ ...t, currency })),
-  );
-  const names = new Map((await namesForUsers([...new Set(transfers.map((t) => t.to))])).map((n) => [n.id, n.name]));
+  if (expenses.length === 0) return [];
+  // Why: what a payer hands over does not depend on who looks, so any viewer will do.
+  const { rows } = await settleUpFrom({ ledger: { expenses, splits, settlements }, viewerId: expenses[0].paidBy });
+  const names = new Map((await namesForUsers([...new Set(rows.map((r) => r.payee))])).map((n) => [n.id, n.name]));
   const owed = new Map<string, string[]>();
-  for (const t of transfers) {
-    owed.set(t.from, [...(owed.get(t.from) ?? []), `${names.get(t.to) ?? "someone"} ${formatMoney(t.amountMinor, t.currency)}`]);
+  for (const row of rows) {
+    const paid = paidIn(row);
+    owed.set(row.payer, [...(owed.get(row.payer) ?? []), `${names.get(row.payee) ?? "someone"} ${formatMoney(paid.amountMinor, paid.currency)}`]);
   }
   return [...owed].map(([userId, parts]) => ({ userId, detail: parts.join(", ") }));
 }

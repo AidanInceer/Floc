@@ -1,68 +1,36 @@
 import { describe, expect, it } from "vitest";
 
-import { computeBalances } from "./money";
+import type { SettleRow } from "./group-settle";
 import { positionLines, yourPosition } from "./position";
 
-const noRates = () => null;
-const eurInGbp = (c: string) => (c === "EUR" ? 0.85 : null);
-
-function balances(entries: { currency: "GBP" | "EUR"; paidBy: string; owed: Record<string, number> }[]) {
-  return computeBalances(
-    entries.map((e) => ({
-      paidBy: e.paidBy,
-      currency: e.currency,
-      amountMinor: Object.values(e.owed).reduce((a, b) => a + b, 0),
-      splits: Object.entries(e.owed).map(([userId, owedAmountMinor]) => ({ userId, owedAmountMinor })),
-    })),
-  );
-}
+const row = (payer: string, payee: string, amountMinor: number, currency: "GBP" | "EUR" = "GBP"): SettleRow => ({
+  payer,
+  payee,
+  currency,
+  amountMinor,
+  netted: false,
+  parts: [],
+});
 
 describe("yourPosition", () => {
-  it("is square when the viewer is in no balance", () => {
-    const b = balances([{ currency: "GBP", paidBy: "sam", owed: { sam: 500, jo: 500 } }]);
-    expect(yourPosition({ balances: b, viewerId: "me", home: "GBP", rateFor: noRates })).toEqual({ kind: "square" });
+  it("is square when none of the rows are the viewer's", () => {
+    expect(yourPosition([row("jo", "sam", 500)], "me")).toEqual({ kind: "square" });
   });
 
-  it("nets what you owe against what you are owed in your home currency", () => {
-    const b = balances([
-      { currency: "GBP", paidBy: "sam", owed: { sam: 1000, me: 1000 } },
-      { currency: "GBP", paidBy: "me", owed: { me: 400, sam: 400 } },
-    ]);
-    expect(yourPosition({ balances: b, viewerId: "me", home: "GBP", rateFor: noRates })).toEqual({
+  it("adds what you are owed and takes off what you owe", () => {
+    expect(yourPosition([row("me", "priya", 3682), row("sofia", "me", 1000), row("sofia", "priya", 8033)], "me")).toEqual({
       kind: "net",
       currency: "GBP",
-      amountMinor: -600,
-      approx: false,
+      amountMinor: -2682,
     });
   });
 
   it("is square when what you owe and are owed cancel out", () => {
-    const b = balances([
-      { currency: "GBP", paidBy: "sam", owed: { sam: 1000, me: 1000 } },
-      { currency: "GBP", paidBy: "me", owed: { me: 1000, sam: 1000 } },
-    ]);
-    expect(yourPosition({ balances: b, viewerId: "me", home: "GBP", rateFor: noRates })).toEqual({ kind: "square" });
+    expect(yourPosition([row("me", "sam", 1000), row("jo", "me", 1000)], "me")).toEqual({ kind: "square" });
   });
 
-  it("converts other currencies into your home currency, marked approximate", () => {
-    const b = balances([
-      { currency: "GBP", paidBy: "priya", owed: { priya: 12000, me: 12000 } },
-      { currency: "EUR", paidBy: "me", owed: { me: 10000, priya: 10000 } },
-    ]);
-    expect(yourPosition({ balances: b, viewerId: "me", home: "GBP", rateFor: eurInGbp })).toEqual({
-      kind: "net",
-      currency: "GBP",
-      amountMinor: -12000 + 8500,
-      approx: true,
-    });
-  });
-
-  it("keeps one row per currency when a rate is missing", () => {
-    const b = balances([
-      { currency: "GBP", paidBy: "priya", owed: { priya: 12000, me: 12000 } },
-      { currency: "EUR", paidBy: "me", owed: { me: 10000, priya: 10000 } },
-    ]);
-    expect(yourPosition({ balances: b, viewerId: "me", home: "GBP", rateFor: noRates })).toEqual({
+  it("keeps one row per currency when the rows came without a rate", () => {
+    expect(yourPosition([row("me", "priya", 12000, "GBP"), row("priya", "me", 10000, "EUR")], "me")).toEqual({
       kind: "per-currency",
       rows: [
         { currency: "EUR", amountMinor: 10000 },
@@ -77,9 +45,9 @@ describe("positionLines", () => {
     expect(positionLines({ kind: "square" })).toEqual([{ label: "All square", figure: null }]);
   });
 
-  it("names the side and marks a converted figure approximate", () => {
-    expect(positionLines({ kind: "net", currency: "GBP", amountMinor: -3500, approx: true })).toEqual([
-      { label: "You owe", figure: "≈ £35.00" },
+  it("names the side, with no mark on a converted figure", () => {
+    expect(positionLines({ kind: "net", currency: "GBP", amountMinor: -3500 })).toEqual([
+      { label: "You owe", figure: "£35.00" },
     ]);
   });
 
