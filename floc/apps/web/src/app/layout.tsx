@@ -50,7 +50,7 @@ const mono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: { default: "Floc — plan a trip with the group", template: "%s · Floc" },
+  title: { default: "Floc — Trip planning, sorted.", template: "%s · Floc" },
   description:
     "Floc keeps a group trip in one place: the notes, the route, the days, and who owes who.",
 };
