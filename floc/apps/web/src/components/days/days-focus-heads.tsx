@@ -18,7 +18,7 @@ export type FocusFacts = {
   /** 1-based. */
   dayNumber: number;
   tripLength: number;
-  stay: { placeName: string; night: number; nights: number } | null;
+  stay: { placeName: string; night: number | null; nights: number } | null;
   eventCount: number;
 };
 
@@ -94,7 +94,7 @@ function FocusHead({
           <span className="max-sm:hidden">
             {" · "}
             {stay ? (
-              `${shortPlace(stay.placeName)}, night ${stay.night} of ${stay.nights}`
+              `${shortPlace(stay.placeName)}, ${stay.night === null ? "day home" : `night ${stay.night} of ${stay.nights}`}`
             ) : (
               <span className="text-highlight-ink">No overnight place</span>
             )}

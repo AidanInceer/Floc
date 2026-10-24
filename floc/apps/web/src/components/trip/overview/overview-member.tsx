@@ -126,7 +126,7 @@ function NudgeSheet({ tripId, member }: { tripId: number; member: TripMember }) 
             </Select>
           </Field>
           <Field label="Message (optional)">
-            <Textarea name="message" placeholder={`e.g. "Can you put your dates in before the weekend?"`} />
+            <Textarea name="message" />
           </Field>
           <SubmitButton pendingLabel="Sending…">Send nudge</SubmitButton>
         </Stack>

@@ -60,6 +60,7 @@ import {
 } from "@/server/itinerary/itinerary";
 import { listExpenses, listSettlements, listSplits } from "@/server/money/money";
 import { removeEvent, saveEvent } from "@/server/itinerary/event-save";
+import { pairSettleUpFor, settlePairFor } from "@/server/money/pair-settle-up";
 import { recordTransfers, removeExpense, saveExpense } from "@/server/money/money-save";
 import { listAvailability, setAvailability } from "@/server/itinerary/availability";
 import { listDocuments } from "@/server/documents/documents";
@@ -503,6 +504,16 @@ export const webPort: FlocPort = {
 
   async settleUp(viewerId, tripId, transfers) {
     const refusal = await recordTransfers(await scoped(viewerId, tripId), transfers);
+    if (refusal) throw refusal;
+  },
+
+  async loadPairs(viewerId, tripId) {
+    await scoped(viewerId, tripId);
+    return pairSettleUpFor(tripId, viewerId);
+  },
+
+  async settlePair(viewerId, tripId, otherUserId) {
+    const refusal = await settlePairFor(await scoped(viewerId, tripId), otherUserId);
     if (refusal) throw refusal;
   },
 

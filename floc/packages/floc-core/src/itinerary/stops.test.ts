@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { deriveStops, placedStops, type StopDayInput } from "./stops";
+import { deriveStops, nightsLabel, placedStops, type StopDayInput } from "./stops";
 
 function day(
   dayId: number,
@@ -29,9 +29,19 @@ describe("deriveStops", () => {
       placeName: "Rome",
       startDate: "2026-06-01",
       endDate: "2026-06-03",
-      nights: 3,
+      nights: 2,
       dayIds: [1, 2, 3],
     });
+  });
+
+  it("counts no night on the trip's last day, the day home, as the Dates page does", () => {
+    const stops = deriveStops([
+      day(1, "2026-10-24", 10, "Lisbon"),
+      day(2, "2026-10-25", 20, "Lagos"),
+      day(3, "2026-10-26", 20, "Lagos"),
+      day(4, "2026-10-27", 20, "Lagos"),
+    ]);
+    expect(stops.map((s) => s.nights)).toEqual([1, 2]);
   });
 
   it("splits into two stops when the overnight place changes", () => {
@@ -105,5 +115,11 @@ describe("placedStops", () => {
       day(2, "2026-09-02", null, null),
     ]);
     expect(placedStops(stops)).toEqual([]);
+  });
+});
+
+describe("nightsLabel", () => {
+  it("names a stop by its nights, and a stop on the last day only as the day home", () => {
+    expect([0, 1, 4].map(nightsLabel)).toEqual(["Day home", "1 night", "4 nights"]);
   });
 });

@@ -164,6 +164,7 @@ Issues and PRDs are GitHub issues, driven with `gh`. The skills are the `floc` p
 | `/floc:tdd` | Red → green loop: what a good test is, where it goes, the anti-patterns. |
 | `/floc:prototype` | Throwaway code that answers one question, in gitignored `floc/wireframe/`, served on :4100 by `pnpm wireframe`. Never in the app, never on a branch, never committed. |
 | `/floc:feedback` | Turns what you noticed in a build into tickets, names why it drifted, and fixes the mission page or the decision log. |
+| `/floc:audit` | Walks the running website at 1280 and 375 and reports what is untrue, broken, off-rule or missing against the mission. Files nothing unless asked. |
 | `/floc:improve-codebase-architecture` | Finds where one idea is written in many files, writes a plain-English review to `docs/private/`, then grills the pick. |
 | `/floc:to-tickets` | Slices a plan into tracer-bullet issues with blocking edges. |
 | `/floc:prioritise-tickets` | Puts unprioritised open issues into the phased `Priority` stack, fixes type and phase labels. |

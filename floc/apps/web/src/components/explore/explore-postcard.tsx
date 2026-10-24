@@ -4,7 +4,7 @@ import { formatMoney } from "@floc/core/money/money";
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 
 import { CopySheet } from "@/components/explore/copy/copy-sheet";
-import { countryNames } from "@/components/explore/outline/country";
+import { PostcardStamp } from "@/components/explore/postcard-stamp";
 import { ButtonLink } from "@/components/system/ui";
 import "./explore-postcard.css";
 
@@ -20,11 +20,7 @@ export function ExplorePostcard({ trip, signedIn }: { trip: PresetTrip; signedIn
           </span>
           <h2 className="mt-2 text-[30px] leading-none tracking-[-0.03em]">{trip.title}</h2>
         </div>
-        <div className="flex w-[74px] shrink-0 rotate-3 flex-col rounded-md border-[1.5px] border-dashed border-rule-strong bg-sheet px-1.5 py-2 text-center font-mono text-[9.5px] uppercase tracking-[0.08em] text-ink-soft">
-          <span className="truncate">{countryNames(trip.country).length > 1 ? trip.region : trip.country}</span>
-          <b className="nums font-display text-[28px] font-semibold normal-case leading-[1.1] tracking-[-0.03em] text-ink">{trip.nights}</b>
-          <span>nights</span>
-        </div>
+        <PostcardStamp trip={trip} />
       </div>
       <p className="text-md leading-normal">{trip.summary}</p>
       <dl className="flex flex-col text-[13px]">

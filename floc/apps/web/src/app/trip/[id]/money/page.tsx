@@ -13,17 +13,8 @@ import { CURRENCIES } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
 import { formatDate } from "@floc/core/dates/dates";
 import { ledgerBalances } from "@floc/core/money/ledger";
-import {
-  convertTotal,
-  formatMoney,
-  suggestSettlements,
-} from "@floc/core/money/money";
-import {
-  yourSettleUp,
-  type CurrencyTotal,
-  type CurrencyTransfer,
-  type YourSettleUp,
-} from "@floc/core/money/settle-up";
+import { suggestSettlements } from "@floc/core/money/money";
+import { yourSettleUp, type CurrencyTransfer } from "@floc/core/money/settle-up";
 import { listDays } from "@/server/itinerary/itinerary";
 import {
   listExpenses,
@@ -36,11 +27,14 @@ import { getHomeRates } from "@/server/money/fx";
 import { Avatar, PageTitle, EmptyState, SectionHeading } from "@/components/system/ui";
 import { Sheet } from "@/components/system/client-ui";
 import { ConvertAmount } from "@/components/money/money-client";
-import { SettleUpForm } from "@/components/money/settlement-form";
+import { pairSettleUpFrom, type PairSettleUp } from "@/server/money/pair-settle-up";
+import type { PairRow } from "@floc/core/money/pair-settle";
+import { formatMoney } from "@floc/core/money/money";
+import { PairSettleForm, SettleUpForm } from "@/components/money/settlement-form";
 import { ActivityFeed } from "@/components/money/money-activity";
 import { ExpenseForm } from "@/components/money/expense-form";
 import type { FormDay, FormMember } from "@/components/money/expense-form";
-import { addExpense, recordSettlement } from "./actions";
+import { addExpense, recordSettlement, settlePair } from "./actions";
 
 export const metadata = { title: "Money" };
 
@@ -134,16 +128,12 @@ export default async function MoneyPage({
     suggestSettlements(balances[currency]).map((s) => ({ ...s, currency })),
   );
   const mine = yourSettleUp({ transfers, viewerId });
+  const pairs = await pairSettleUpFrom({ ledger: { expenses, splits, settlements }, viewerId, base: homeCurrency, rates });
 
   return (
     <div className="mx-auto w-full max-w-[64rem] px-4 pb-20 pt-6 sm:px-6">
       <header className="flex flex-wrap items-end justify-between gap-6">
         <PageTitle>Money</PageTitle>
-        {hasActivity ? (
-          <Sheet trigger="Add expense" title="Expense" keepOpenOnSubmit>
-            {addForm}
-          </Sheet>
-        ) : null}
       </header>
 
       {!hasActivity ? (
@@ -155,7 +145,8 @@ export default async function MoneyPage({
           ) : (
             <MySettleUp
               tripId={tripId}
-              mine={mine}
+              viewerId={viewerId}
+              pairs={pairs}
               label={label}
               tone={tone}
               home={homeCurrency}
@@ -165,6 +156,11 @@ export default async function MoneyPage({
 
           <ActivityFeed
             collapsed={mine.settled}
+            action={
+              <Sheet trigger="Add expense" title="Expense" keepOpenOnSubmit>
+                {addForm}
+              </Sheet>
+            }
             tripId={tripId}
             viewerId={viewerId}
             expenses={expenses}
@@ -247,21 +243,25 @@ function SettledBanner({ addForm }: { addForm: React.ReactNode }) {
  */
 function MySettleUp({
   tripId,
-  mine,
+  viewerId,
+  pairs,
   label,
   tone,
   home,
   rateFor,
 }: {
   tripId: number;
-  mine: YourSettleUp;
+  viewerId: string;
+  pairs: PairSettleUp;
   label: (userId: string) => string;
   tone: (userId: string) => string | undefined;
   home: Currency;
   rateFor: (currency: Currency) => number | null;
 }) {
-  const row = (t: CurrencyTransfer, paying: boolean) => {
-    const other = paying ? t.to : t.from;
+  const row = (pair: PairRow) => {
+    const paying = pair.payer === viewerId;
+    const other = pair.other;
+    const t = { from: pair.payer, to: pair.payee, currency: pair.currency, amountMinor: pair.amountMinor };
     return (
       <li
         key={`${t.from}-${t.to}-${t.currency}`}
@@ -272,29 +272,37 @@ function MySettleUp({
           <span className="text-sm">{label(other)}</span>
         </span>
         <span className="flex items-center gap-3">
-          <ConvertAmount
-            amountMinor={t.amountMinor}
-            currency={t.currency}
-            home={home}
-            rate={rateFor(t.currency)}
-            className="nums text-sm font-medium"
-          />
-          <Sheet
-            trigger={paying ? "Settle up" : "Mark paid"}
-            title="Settle up"
-            triggerVariant={paying ? "primary" : "secondary"}
-            keepOpenOnSubmit
-          >
-            <SettleUpForm
-              tripId={tripId}
-              fromUserId={t.from}
-              toUserId={t.to}
-              fromName={label(t.from)}
-              toName={label(t.to)}
-              currency={t.currency}
+          {pair.netted ? (
+            <span className="nums text-sm font-medium">{formatMoney(pair.amountMinor, pair.currency)}</span>
+          ) : (
+            <ConvertAmount
               amountMinor={t.amountMinor}
-              action={recordSettlement}
+              currency={t.currency}
+              home={home}
+              rate={rateFor(t.currency)}
+              className="nums text-sm font-medium"
             />
+          )}
+          <Sheet trigger="Settle up" title="Settle up" triggerVariant={paying ? "primary" : "secondary"} keepOpenOnSubmit>
+            {pair.netted ? (
+              <PairSettleForm
+                tripId={tripId}
+                otherUserId={other}
+                summary={<PairSummary pair={pair} viewerId={viewerId} rateDate={pairs.rateDate} label={label} />}
+                action={settlePair}
+              />
+            ) : (
+              <SettleUpForm
+                tripId={tripId}
+                fromUserId={t.from}
+                toUserId={t.to}
+                fromName={label(t.from)}
+                toName={label(t.to)}
+                currency={t.currency}
+                amountMinor={t.amountMinor}
+                action={recordSettlement}
+              />
+            )}
           </Sheet>
         </span>
       </li>
@@ -304,14 +312,9 @@ function MySettleUp({
   const column = (
     title: string,
     empty: string,
-    rows: CurrencyTransfer[],
-    totals: CurrencyTotal[],
+    rows: PairRow[],
     paying: boolean,
   ) => {
-    // Two currencies never add up, so each keeps its own figure and the home
-    // total underneath is a preview, marked `≈` (ticket 253).
-    const approx =
-      totals.length > 1 ? convertTotal(totals, home, rateFor) : null;
     return (
       <section className="rounded-lg bg-sheet p-6">
         <SectionHeading className="border-b border-rule pb-3">{title}</SectionHeading>
@@ -326,23 +329,8 @@ function MySettleUp({
           </p>
         ) : (
           <>
-            <p className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              {totals.map((total) => (
-                <span
-                  key={total.currency}
-                  className="nums font-display text-2xl"
-                >
-                  {formatMoney(total.amountMinor, total.currency)}
-                </span>
-              ))}
-              {approx !== null ? (
-                <span className="nums text-sm text-ink-soft">
-                  &asymp; {formatMoney(approx, home)}
-                </span>
-              ) : null}
-            </p>
             <ul className="mt-2 flex flex-col">
-              {rows.map((t) => row(t, paying))}
+              {rows.map(row)}
             </ul>
           </>
         )}
@@ -352,14 +340,52 @@ function MySettleUp({
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      {column("You owe", "All square", mine.owe, mine.oweTotals, true)}
-      {column(
-        "You are owed",
-        "Nothing to chase",
-        mine.owed,
-        mine.owedTotals,
-        false,
-      )}
+      {column("You owe", "All square", pairs.rows.filter((p) => p.payer === viewerId), true)}
+      {column("You are owed", "Nothing to chase", pairs.rows.filter((p) => p.payee === viewerId), false)}
+    </div>
+  );
+}
+
+/** One netted payment as a receipt (#461): the figure and who it goes to, each debt it clears, then the rate (#253 keeps it beside the number). */
+function PairSummary({ pair, viewerId, rateDate, label }: { pair: PairRow; viewerId: string; rateDate: string | null; label: (userId: string) => string }) {
+  const youPay = pair.payer === viewerId;
+  const other = label(pair.other);
+  const lines = [...pair.parts]
+    .sort((a, b) => Number(b.fromUserId === pair.payer) - Number(a.fromUserId === pair.payer))
+    .map((p) => {
+      const owedBy = p.fromUserId === viewerId ? `You owe ${other}` : `${other} owes you`;
+      const sign = p.fromUserId === pair.payer ? "" : "−";
+      const cleared = formatMoney(p.clearsAmountMinor ?? p.amountMinor, p.clearsCurrency ?? p.currency);
+      const inPay = p.clearsCurrency ? formatMoney(p.amountMinor, p.currency) : null;
+      return { key: `${p.fromUserId}-${p.clearsCurrency ?? p.currency}`, owedBy, figure: `${sign}${cleared}`, inPay: inPay && `${sign}${inPay}` };
+    });
+  const rated = pair.parts.find((p) => p.fxRate && p.clearsCurrency);
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="text-center">
+        <p className="nums font-display text-4xl tracking-tight">{formatMoney(pair.amountMinor, pair.currency)}</p>
+        <p className="mt-1 text-sm text-ink-soft">{youPay ? `from you to ${other}` : `from ${other} to you`}</p>
+      </div>
+      <dl className="rounded-lg bg-sheet-2 px-4 py-1 text-sm">
+        {lines.map((l) => (
+          <div key={l.key} className="flex items-baseline justify-between gap-4 border-b border-rule py-2.5">
+            <dt className="text-ink-soft">{l.owedBy}</dt>
+            <dd className="nums text-right">
+              {l.figure}
+              {l.inPay ? <span className="block text-xs text-ink-faint">{l.inPay}</span> : null}
+            </dd>
+          </div>
+        ))}
+        <div className="flex items-baseline justify-between gap-4 py-2.5 font-medium">
+          <dt>{youPay ? "You pay" : `${other} pays`}</dt>
+          <dd className="nums">{formatMoney(pair.amountMinor, pair.currency)}</dd>
+        </div>
+      </dl>
+      {rated ? (
+        <p className="text-center text-xs text-ink-faint">
+          {rateDate ? `Rate on ${formatDate(rateDate, { weekday: false })}: ` : "Rate: "}1 {pair.currency} = {rated.fxRate!.toFixed(4)} {rated.clearsCurrency}
+        </p>
+      ) : null}
     </div>
   );
 }

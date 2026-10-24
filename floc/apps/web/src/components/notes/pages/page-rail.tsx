@@ -41,7 +41,6 @@ function RenameField({ page, onDone }: { page: RailPage; onDone: (title: string 
       ref={input}
       className="notes-rename"
       value={value}
-      placeholder="Untitled"
       aria-label="Page name"
       onFocus={(event) => event.currentTarget.select()}
       onChange={(event) => setValue(event.target.value)}

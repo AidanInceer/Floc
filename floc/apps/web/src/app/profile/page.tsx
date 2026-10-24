@@ -143,7 +143,6 @@ export default async function ProfilePage() {
                 <Input
                   name="displayName"
                   defaultValue={profile.displayName ?? viewer.name}
-                  placeholder={viewer.name}
                 />
               </Field>
               <div>

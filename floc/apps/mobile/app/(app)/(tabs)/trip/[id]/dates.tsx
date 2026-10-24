@@ -32,10 +32,11 @@ import {
 } from "@floc/core/dates/availability";
 import { paintRange, pickedRange } from "@floc/core/dates/calendar-gestures";
 import { dateRange, formatDateRange, today } from "@floc/core/dates/dates";
+import { datesMoment, type DatesMoment } from "@floc/core/dates/dates-moment";
 import { bookingPlan } from "@floc/core/trip/booking-links";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Alert, ScrollView, View } from "react-native";
 
 import { DatesWeather, forecastIndex } from "@/components/days/dates-weather";
@@ -214,6 +215,22 @@ function WindowPanel({
   );
 }
 
+/** #459: once the trip has dates, finding them folds away until someone wants to change them. */
+function DatesFold({ moment, children }: { moment: DatesMoment; children: ReactNode }) {
+  const [changing, setChanging] = useState(false);
+  if (moment === "finding") return children;
+  return (
+    <>
+      <Button
+        label={changing ? "Done" : "Change the dates"}
+        variant={moment === "started" || changing ? "quiet" : undefined}
+        onPress={() => setChanging(!changing)}
+      />
+      {changing ? children : null}
+    </>
+  );
+}
+
 export default function Dates() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const tripId = Number(id);
@@ -337,54 +354,57 @@ export default function Dates() {
         </Figure>
       </View>
 
-      <Segmented options={forecast.offered ? WITH_WEATHER : VIEWS} value={view} onChange={setView} />
+      <DatesFold moment={datesMoment(trip.data, today())}>
+        <Segmented options={forecast.offered ? WITH_WEATHER : VIEWS} value={view} onChange={setView} />
 
-      <Card>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
-          <Button label="‹" onPress={() => setMonth(addMonths(shown, -1))} variant="quiet" />
-          <View style={{ flex: 1, alignItems: "center" }}>
-            <Body bold>{formatMonth(shown)}</Body>
+        <Card>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
+            <Button label="‹" onPress={() => setMonth(addMonths(shown, -1))} variant="quiet" />
+            <View style={{ flex: 1, alignItems: "center" }}>
+              <Body bold>{formatMonth(shown)}</Body>
+            </View>
+            <Button label="›" onPress={() => setMonth(addMonths(shown, 1))} variant="quiet" />
           </View>
-          <Button label="›" onPress={() => setMonth(addMonths(shown, 1))} variant="quiet" />
-        </View>
 
-        <MonthGrid month={shown} look={look} onPaint={paint} onRelease={() => {}} />
-      </Card>
+          <MonthGrid month={shown} look={look} onPaint={paint} onRelease={() => {}} />
+        </Card>
 
-      {view === "mine" ? (
-        <MinePanel
-          unsaved={Object.keys(edits).length > 0}
-          busy={saveMarks.isPending}
-          onSave={saveEdits}
-        />
-      ) : null}
+        {view === "mine" ? (
+          <MinePanel
+            unsaved={Object.keys(edits).length > 0}
+            busy={saveMarks.isPending}
+            onSave={saveEdits}
+          />
+        ) : null}
 
-      {view === "everyone" ? (
-        <View style={{ gap: space.sm }}>
-          <Label>Who has answered</Label>
-          <Body tone="ink-2">{answeredLine(trip.data.members, rows.data)}</Body>
-        </View>
-      ) : null}
+        {view === "everyone" ? (
+          <View style={{ gap: space.sm }}>
+            <Label>Who has answered</Label>
+            <Body tone="ink-2">{answeredLine(trip.data.members, rows.data)}</Body>
+          </View>
+        ) : null}
 
-      {view === "window" ? (
-        <WindowPanel
-          halfMade={range.start !== null && range.end === null}
-          ready={range.start !== null && range.end !== null}
-          busy={saveWindow.isPending}
-          dated={trip.data.startDate !== null}
-          onSet={() => setWindow(range.start, range.end)}
-          onClear={() => setWindow(null, null)}
-        />
-      ) : null}
+        {view === "window" ? (
+          <WindowPanel
+            halfMade={range.start !== null && range.end === null}
+            ready={range.start !== null && range.end !== null}
+            busy={saveWindow.isPending}
+            dated={trip.data.startDate !== null}
+            onSet={() => setWindow(range.start, range.end)}
+            onClear={() => setWindow(null, null)}
+          />
+        ) : null}
 
-      {view === "weather" ? (
-        <DatesWeather
-          view={weather.data}
-          byDate={forecastByDate}
-          openDay={openDay}
-          onSeePro={() => router.push("/settings")}
-        />
-      ) : null}
+        {view === "weather" ? (
+          <DatesWeather
+            view={weather.data}
+            byDate={forecastByDate}
+            openDay={openDay}
+            onSeePro={() => router.push("/settings")}
+          />
+        ) : null}
+
+      </DatesFold>
 
       {booking ? (
         <BookingPanel plan={booking} onOpenDays={() => router.push(`/trip/${tripId}/days`)} />

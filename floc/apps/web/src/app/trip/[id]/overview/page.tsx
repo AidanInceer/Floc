@@ -13,15 +13,18 @@ import { listExpenses, listSettlements, listSplits } from "@/server/money/money"
 import { tourSeenAt } from "@/server/auth/tour";
 import { absoluteUrl } from "@/server/auth/email";
 import { canUseFeature } from "@/server/billing/entitlements";
+import { getProfile } from "@/server/auth/profile";
+import { getHomeRates } from "@/server/money/fx";
 import { friendStatesFor, listFriendsFor } from "@/server/social/friends";
 import { shouldStartTour, tourStopsFor } from "@floc/core/trip/tour";
-import { formatMoney } from "@floc/core/money/money";
-import { spendHeadline } from "@floc/core/money/spend";
+import { CURRENCIES, type Currency } from "@floc/core/money/currency";
+import { ledgerBalances, type LedgerRows } from "@floc/core/money/ledger";
+import { yourPosition, type Position } from "@floc/core/money/position";
 import { tripStateFor } from "@floc/core/trip/trip-state";
 import { readTripColor, tripPastel } from "@floc/core/trip/trip-color";
 import { readTripMark } from "@floc/core/trip/mark/trip-mark";
 import { readTags } from "@floc/core/trip/tags";
-import { today } from "@floc/core/dates/dates";
+import { nightsBetween, today } from "@floc/core/dates/dates";
 import { stayLinks } from "@floc/core/trip/booking-links";
 import { tripLegs } from "@floc/core/trip/overview/legs";
 import { ideasTucked } from "@floc/core/trip/ideas";
@@ -37,7 +40,9 @@ import { OverviewMap } from "@/components/trip/overview/overview-map";
 import { RefreshWhileLive } from "@/components/trip/overview/route/refresh-while-live";
 import { RouteLegend } from "@/components/trip/overview/route/route-legend";
 import { TodayBlock } from "@/components/trip/overview/today/today-block";
+import { LeftToSort } from "@/components/trip/overview/left-to-sort";
 import { deleteMyRoute } from "./actions";
+import { leftToSortFor } from "./left-to-sort-for";
 import { PanelPlaceholder, StreamedGroup, TourWhenReady } from "./streamed";
 
 export const metadata = { title: "Overview" };
@@ -63,7 +68,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
   }));
 
   const now = today();
-  const [availabilityRows, expenseRows, dayRows, splitRows, settlementRows, routeDays, transport, tourSeen, prefill, ideas, docs, tracks] =
+  const [availabilityRows, expenseRows, dayRows, splitRows, settlementRows, routeDays, transport, tourSeen, prefill, ideas, docs, tracks, profile] =
     await Promise.all([
       listAvailability(tripId),
       listExpenses(tripId),
@@ -78,6 +83,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
       // Rule 11: no storage volume, no files — and no query for them.
       files ? listDocuments(tripId, viewer.id) : Promise.resolve([]),
       groupRoutes(access, now),
+      getProfile(viewer.id),
     ]);
 
   const { datesUnset, unresolved } = tripStateFor({
@@ -105,16 +111,27 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
         ])
       : [],
   );
-  const spend = spendHeadline(expenseRows);
+  const position = expenseRows.length === 0 ? null : await viewerPosition(expenseRows, splitRows, settlementRows, viewer.id, profile?.homeCurrency ?? "GBP");
   const color = readTripColor(trip.colorKey);
   const tone = tripPastel(color, tripId);
   const plan = todayPlan({ trip, days: dayRows, files: docs, today: now });
   const tucked = ideasTucked({ days: routeDays, today: plan !== null });
+  const sortList = await leftToSortFor(tripId, {
+    trip,
+    today: now,
+    viewerId: viewer.id,
+    members: members.map((m) => ({ userId: m.userId, name: m.name })),
+    markedUserIds: [...new Set(availabilityRows.filter((r) => r.available).map((r) => r.userId))],
+    ideas,
+    ledger: { expenses: expenseRows, splits: splitRows, settlements: settlementRows },
+    legs,
+  });
 
   return (
     <div className="mx-auto flex w-full max-w-[72rem] flex-col gap-7 px-4 pb-20 pt-6 sm:px-6">
       {plan ? <TodayBlock tripId={tripId} plan={plan} /> : null}
       {underway(trip, now) ? <RefreshWhileLive /> : null}
+      <LeftToSort tripId={tripId} open={sortList.open} sorted={sortList.sorted} />
       {/* Why: the card floats over the globe on a wide screen, as on Explore; the map keeps its route clear of it (clear-area.ts). */}
       <section className="rounded-xl bg-sheet shadow-raised ring-1 ring-rule">
         <div data-overview-band className="relative grid rounded-t-xl bg-sheet-2 lg:min-h-[34rem] lg:grid-cols-[minmax(0,1fr)_23.5rem]">
@@ -138,10 +155,9 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
                 tone,
                 mark: readTripMark(trip.mark),
                 tags: readTags(trip.tags),
-                // Same count as the legs: a day with a bed is a night (stops.ts).
-                nights: routeDays.length,
+                nights: trip.startDate && trip.endDate ? nightsBetween(trip.startDate, trip.endDate) : 0,
               }}
-              spent={spend ? formatMoney(spend.total, spend.currency) : null}
+              position={position}
             ideas={tucked ? <IdeasRow tripId={tripId} ideas={ideas} /> : null}
             />
           </div>
@@ -173,4 +189,18 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
       ) : null}
     </div>
   );
+}
+
+async function viewerPosition(
+  expenses: LedgerRows["expenses"],
+  splits: LedgerRows["splits"],
+  settlements: LedgerRows["settlements"],
+  viewerId: string,
+  home: Currency,
+): Promise<Position> {
+  const balances = ledgerBalances({ expenses, splits, settlements });
+  // Why: the rates call can take seconds; ask only when a balance is in another currency.
+  const foreign = CURRENCIES.some((c) => c !== home && (balances[c][viewerId] ?? 0) !== 0);
+  const rates = foreign ? await getHomeRates(home) : null;
+  return yourPosition({ balances, viewerId, home, rateFor: (currency) => rates?.toHome[currency] || null });
 }

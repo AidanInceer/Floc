@@ -255,7 +255,6 @@ export function ExpenseForm({
             <Input
               name="description"
               defaultValue={expense?.description}
-              placeholder="Expense description"
               aria-label="Description"
               className="flex-1"
               required
@@ -303,7 +302,6 @@ export function ExpenseForm({
                 inputMode="decimal"
                 value={amount}
                 onChange={(e) => setAmount(sanitizeAmountInput(e.target.value, currency))}
-                placeholder="0.00"
                 maxLength={12}
                 required
                 aria-label="Amount"
@@ -428,7 +426,6 @@ export function ExpenseForm({
                             onChange={(e) =>
                               setRow(m.userId, { pin: sanitizeAmountInput(e.target.value, currency) })
                             }
-                            placeholder="0.00"
                             aria-label={`Amount for ${m.name}`}
                             className="!w-20 text-right"
                             inputMode="decimal"

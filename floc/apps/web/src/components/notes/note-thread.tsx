@@ -225,7 +225,7 @@ function Composer({
   scope,
   scopeId,
   replyTo,
-  placeholder,
+  fieldLabel,
   label,
   variant,
   onDone,
@@ -235,7 +235,7 @@ function Composer({
   scope: NoteScope;
   scopeId: number;
   replyTo: number | null;
-  placeholder: string;
+  fieldLabel: string;
   label: string;
   variant: "primary" | "secondary";
   onDone?: () => void;
@@ -247,7 +247,7 @@ function Composer({
         name="body"
         rows={2}
         maxLength={2000}
-        placeholder={placeholder}
+        aria-label={fieldLabel}
         className="min-h-0 text-sm"
         autoFocus={autoFocus}
       />
@@ -343,7 +343,7 @@ function Run({
             scope={scope}
             scopeId={scopeId}
             replyTo={note.id}
-            placeholder={`Reply to ${note.authorName}…`}
+            fieldLabel={`Reply to ${note.authorName}`}
             label="Reply"
             variant="primary"
             autoFocus
@@ -402,7 +402,6 @@ export function NoteThread({
   scopeId,
   notes,
   viewerId,
-  placeholder = "Add a comment…",
   toolbar,
 }: {
   tripId: number;
@@ -410,7 +409,6 @@ export function NoteThread({
   scopeId: number;
   notes: NoteRow[];
   viewerId: string;
-  placeholder?: string;
   /** The owning card's own controls, so they share the thread's header row
       rather than stacking above it (ticket 233). */
   toolbar?: ReactNode;
@@ -455,7 +453,7 @@ export function NoteThread({
           scope={scope}
           scopeId={scopeId}
           replyTo={null}
-          placeholder={placeholder}
+          fieldLabel="Comment"
           label="Add comment"
           variant={notes.length === 0 ? "primary" : "secondary"}
         />

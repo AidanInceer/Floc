@@ -149,7 +149,7 @@ function Thread({ thread, anchor, me, onClose, onReply, onResolve }: {
       </ul>
       <form onSubmit={(event) => { void send(event); }}>
         <Face person={me} size={22} />
-        <input autoFocus value={value} onChange={(event) => { setValue(event.target.value); setError(null); }} placeholder="Reply" aria-label="Reply" aria-invalid={error ? true : undefined} />
+        <input autoFocus value={value} onChange={(event) => { setValue(event.target.value); setError(null); }} aria-label="Reply" aria-invalid={error ? true : undefined} />
         <button type="submit" className="fe-tool fe-send" aria-label="Reply" title="Reply"><Icon name="send" /></button>
       </form>
       {error ? <p className="fe-error" role="alert">{error}</p> : null}

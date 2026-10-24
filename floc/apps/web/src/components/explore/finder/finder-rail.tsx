@@ -60,16 +60,16 @@ export function FinderRail({
       <Section title="Where">
         <WhereFacet {...facet} />
       </Section>
-      <Section title="When you can go">
+      <Section title="Dates">
         <WhenFacet {...facet} />
       </Section>
-      <Section title="How long">
+      <Section title="Duration">
         <LengthFacet {...facet} />
       </Section>
-      <Section title="Price each">
+      <Section title="Price">
         <PriceFacet {...facet} />
       </Section>
-      <p className={group}>What you like</p>
+      <p className={group}>Tags</p>
       <div className="pt-2.5">
         <LikeCloud finder={finder} onChange={onChange} />
       </div>

@@ -219,7 +219,6 @@ export function TravelMap({
           <Input
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            placeholder="Find a country…"
             aria-label="Find a country"
             autoComplete="off"
           />

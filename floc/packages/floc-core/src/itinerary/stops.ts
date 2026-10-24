@@ -18,7 +18,7 @@ export type Stop = {
   placeName: string | null;
   startDate: string;
   endDate: string;
-  /** Nights spent at this stop — one less than day count for a single day. */
+  /** Nights spent at this stop: one per day, except the trip's last day. */
   nights: number;
   dayIds: number[];
 };
@@ -31,6 +31,11 @@ export type Stop = {
  */
 export function placedStops(stops: Stop[]): Stop[] {
   return stops.filter((s) => s.placeId !== null);
+}
+
+export function nightsLabel(nights: number): string {
+  if (nights === 0) return "Day home";
+  return nights === 1 ? "1 night" : `${nights} nights`;
 }
 
 // Callers must pass days pre-sorted by date ascending; this does not sort.
@@ -54,10 +59,10 @@ export function deriveStops(days: StopDayInput[]): Stop[] {
     });
   }
 
-  for (const s of stops) {
-    // N days = N nights (not N-1): the last day's overnight still counts.
-    s.nights = s.dayIds.length;
-  }
+  for (const s of stops) s.nights = s.dayIds.length;
+  // Why: the trip's last day is the day home, so its bed is no night — the same count as nightsBetween on Dates.
+  const last = stops[stops.length - 1];
+  if (last) last.nights -= 1;
 
   return stops;
 }

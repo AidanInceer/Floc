@@ -196,7 +196,14 @@
     "money.ledger": {
       "mobile": "yes"
     },
+    "money.pairs": {
+      "mobile": "yes"
+    },
     "money.settle": {
+      "mobile": "wontfix",
+      "why": "The app now settles one person at a time through money.settlePair, which nets currencies on the server (#461). This stays for phone builds already installed, which still send raw transfers."
+    },
+    "money.settlePair": {
       "mobile": "yes"
     },
     "money.write": {

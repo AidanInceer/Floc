@@ -6,11 +6,11 @@
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import "server-only";
 
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 
 import { db } from "@/db";
 import { user, userProfile } from "@/db/schema";
-import type { SignupChannel, UserProfile } from "@/db/schema";
+import type { Currency, SignupChannel, UserProfile } from "@/db/schema";
 
 export async function getProfile(
   userId: string,
@@ -86,4 +86,16 @@ export async function loadIdentity(
     emailVerified: row.emailVerified,
     avatarIcon: row.avatarIcon,
   };
+}
+
+/** Each person's home currency; a person with no profile yet reads as GBP, as their own pages do. */
+export async function homeCurrenciesFor(userIds: string[]): Promise<Map<string, Currency>> {
+  if (userIds.length === 0) return new Map();
+  const rows = await db
+    .select({ userId: userProfile.userId, home: userProfile.homeCurrency })
+    .from(userProfile)
+    .where(inArray(userProfile.userId, userIds))
+    .all();
+  const found = new Map(rows.map((r) => [r.userId, r.home ?? "GBP"] as const));
+  return new Map(userIds.map((id) => [id, found.get(id) ?? "GBP"]));
 }

@@ -329,7 +329,6 @@ function EventPanel({
           scopeId={event.id}
           notes={notes}
           viewerId={viewerId}
-          placeholder="Anything the group should know about this?"
         />
       </div>
     </div>

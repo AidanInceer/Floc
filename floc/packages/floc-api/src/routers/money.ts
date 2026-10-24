@@ -86,6 +86,16 @@ export const moneyRouter = router({
       await ctx.port.settleUp(ctx.viewer.id, input.tripId, input.transfers);
     }),
 
+  /** One row per person you owe or are owed by, netted across currencies (#461). The server holds the rates. */
+  pairs: tripProcedure.query(({ ctx, input }) => ctx.port.loadPairs(ctx.viewer.id, input.tripId)),
+
+  /** Settles everything with one person in one payment; the amounts are recomputed, never taken from the phone. */
+  settlePair: tripProcedure
+    .input(z.object({ otherUserId: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.port.settlePair(ctx.viewer.id, input.tripId, input.otherUserId);
+    }),
+
   deleteExpense: tripProcedure
     .input(z.object({ expenseId: z.number().int().positive() }))
     .mutation(async ({ ctx, input }) => {

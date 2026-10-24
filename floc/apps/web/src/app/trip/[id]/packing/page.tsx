@@ -155,7 +155,6 @@ export default async function PackingPage({
         name="label"
         required
         maxLength={200}
-        placeholder="Something to pack…"
         className="w-full rounded-md border border-rule bg-sheet px-4 py-2.5 text-sm placeholder:text-ink-faint focus-visible:border-pen"
       />
     </label>

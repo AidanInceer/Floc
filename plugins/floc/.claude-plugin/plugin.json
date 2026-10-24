@@ -1,8 +1,8 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "floc",
-  "version": "0.8.2",
-  "description": "Floc's own skills: grilling, prototypes, TDD, tickets, run, push, release, schema changes, mobile deps, docs, the dev database and architecture reviews.",
+  "version": "0.9.0",
+  "description": "Floc's own skills: grilling, prototypes, TDD, site audits, tickets, run, push, release, schema changes, mobile deps, docs, the dev database and architecture reviews.",
   "author": {
     "name": "Aidan Inceer"
   },
@@ -11,6 +11,7 @@
     "./skills/tdd",
     "./skills/prototype",
     "./skills/feedback",
+    "./skills/audit",
     "./skills/to-tickets",
     "./skills/prioritise-tickets",
     "./skills/pickup-ticket",
