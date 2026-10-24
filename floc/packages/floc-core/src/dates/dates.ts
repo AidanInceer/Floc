@@ -96,6 +96,12 @@ export function formatDate(
   });
 }
 
+/** A day as a small calendar tile reads it: "Fri" over 23. */
+export function dayParts(date: IsoDate): { weekday: string; day: number } {
+  const weekday = fromIsoDate(date).toLocaleDateString("en-GB", { weekday: "short", timeZone: "UTC" });
+  return { weekday, day: Number(date.slice(8, 10)) };
+}
+
 export function formatDateRange(
   start: IsoDate | null,
   end: IsoDate | null,

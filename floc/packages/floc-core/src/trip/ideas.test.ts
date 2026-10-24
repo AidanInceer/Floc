@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { readIdeaSort, sortIdeas, voteLabel, type IdeaRow } from "./ideas";
+import { ideasTucked, readIdeaSort, sortIdeas, voteLabel, type IdeaRow } from "./ideas";
 
 const idea = (id: number, votes: number): IdeaRow => ({
   id,
@@ -58,5 +58,22 @@ describe("voteLabel", () => {
 
   it("says when the vote is yours", () => {
     expect(voteLabel(3, true)).toBe("3 votes, yours included");
+  });
+});
+
+describe("ideasTucked", () => {
+  const night = (overnightPlaceId: number | null) => ({ overnightPlaceId });
+
+  it("keeps the ideas out while no night has a place", () => {
+    expect(ideasTucked({ days: [night(null), night(null)], today: false })).toBe(false);
+    expect(ideasTucked({ days: [], today: false })).toBe(false);
+  });
+
+  it("tucks them away once any night has a place", () => {
+    expect(ideasTucked({ days: [night(null), night(7)], today: false })).toBe(true);
+  });
+
+  it("tucks them away while the trip is under way", () => {
+    expect(ideasTucked({ days: [night(null)], today: true })).toBe(true);
   });
 });

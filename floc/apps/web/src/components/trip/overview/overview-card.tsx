@@ -1,11 +1,11 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 import type { TripColor } from "@floc/core/trip/trip-color";
 import type { TripMark } from "@floc/core/trip/mark/trip-mark";
 import { countdownLabel, formatDateRange } from "@floc/core/dates/dates";
 import { Menu } from "@/components/system/client-ui";
-import { AvatarRow, Badge, PASTEL_BY_KEY, cx } from "@/components/system/ui";
-import type { AvatarIcon } from "@floc/core/people/avatar-icon";
+import { Badge, PASTEL_BY_KEY, cx } from "@/components/system/ui";
 import { TripColorPicker } from "@/components/trip/trip-color-picker";
 import { TripMarkPicker } from "@/components/trip/trip-mark-picker";
 import { TripMarkIcon } from "@/components/trip/trip-mark";
@@ -44,13 +44,14 @@ export type OverviewTrip = {
 
 export function OverviewCard({
   trip,
-  going,
   spent,
+  ideas,
 }: {
   trip: OverviewTrip;
-  going: { name: string; avatarIcon: AvatarIcon | null; tone?: string }[];
   /** The top-line total, already formatted; null while nothing is logged. */
   spent: string | null;
+  /** The ideas row, once the plan has a shape (ideasTucked). */
+  ideas?: ReactNode;
 }) {
   const soon = countdownLabel(trip.startDate);
   return (
@@ -60,7 +61,7 @@ export function OverviewCard({
           label="Colour and mark"
           trigger={<Stamp trip={trip} />}
           triggerClassName={cx(
-            "grid h-[70px] w-[60px] rotate-[4deg] place-items-center content-center gap-1 rounded-md outline-2 outline-offset-[3px] outline-dotted",
+            "group/stamp relative grid h-[70px] w-[60px] rotate-[4deg] place-items-center content-center gap-1 rounded-md outline-2 outline-offset-[3px] outline-dotted transition-transform duration-200 hover:rotate-0 hover:scale-105 hover:outline-solid focus-visible:rotate-0 data-[open=true]:rotate-0",
             PASTEL_BY_KEY[trip.tone],
             EDGE[trip.tone],
           )}
@@ -100,10 +101,6 @@ export function OverviewCard({
       </div>
 
       <div className="mt-4 border-t border-rule">
-        <a href="#the-group" className="flex items-center gap-2.5 border-b border-rule py-3 text-sm text-ink-soft hover:text-ink">
-          <AvatarRow people={going} max={5} size={26} />
-          {going.length === 1 ? "Just you" : `${going.length} going`}
-        </a>
         <Link href={`/trip/${trip.id}/money`} className="flex items-baseline gap-2.5 border-b border-rule py-3 text-sm text-ink-soft hover:text-ink">
           {spent ? (
             <>
@@ -114,6 +111,7 @@ export function OverviewCard({
             "Nothing spent yet"
           )}
         </Link>
+        {ideas}
       </div>
     </aside>
   );
@@ -123,6 +121,9 @@ function Stamp({ trip }: { trip: OverviewTrip }) {
   const [, month, day] = trip.startDate?.split("-") ?? [];
   return (
     <>
+      <span className="absolute -bottom-2.5 -right-2.5 grid size-6 place-items-center rounded-full bg-sheet text-ink-soft opacity-0 shadow-lift ring-1 ring-rule transition-opacity group-hover/stamp:opacity-100 group-focus-visible/stamp:opacity-100 group-data-[open=true]/stamp:opacity-100">
+        <PencilIcon size={11} />
+      </span>
       {trip.mark ? <TripMarkIcon mark={trip.mark} size={24} /> : <span className="size-6" />}
       {trip.startDate ? (
         <span className="nums text-[9px] tracking-[0.08em]">

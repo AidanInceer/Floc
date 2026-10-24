@@ -5,15 +5,16 @@
  * a *type* — no runtime code crosses to the phone, so nothing server-side can
  * end up in a bundle that ships to a device.
  */
-import { availabilityRouter } from "./routers/availability";
+import { availabilityRouter } from "./routers/itinerary/availability";
 import { billingRouter } from "./routers/billing";
 import { commentsRouter } from "./routers/comments";
 import { exploreRouter } from "./routers/explore";
 import { filesRouter } from "./routers/files";
+import { routeRouter } from "./routers/itinerary/route";
 import { friendsRouter } from "./routers/friends";
-import { ideasRouter } from "./routers/ideas";
+import { ideasRouter } from "./routers/itinerary/ideas";
 import { invitesRouter } from "./routers/invites";
-import { itineraryRouter } from "./routers/itinerary";
+import { itineraryRouter } from "./routers/itinerary/itinerary";
 import { kitsRouter } from "./routers/kits";
 import { meRouter } from "./routers/me";
 import { moneyRouter } from "./routers/money";
@@ -21,7 +22,7 @@ import { notificationsRouter } from "./routers/notifications";
 import { packingRouter } from "./routers/packing";
 import { pagesRouter } from "./routers/notes/pages";
 import { peopleRouter } from "./routers/people";
-import { placesRouter } from "./routers/places";
+import { placesRouter } from "./routers/itinerary/places";
 import { rosterRouter } from "./routers/roster";
 import { settingsRouter } from "./routers/settings";
 import { tripsRouter } from "./routers/trips";
@@ -43,6 +44,7 @@ export const appRouter = router({
   people: peopleRouter,
   invites: invitesRouter,
   files: filesRouter,
+  route: routeRouter,
   comments: commentsRouter,
   pages: pagesRouter,
   packing: packingRouter,

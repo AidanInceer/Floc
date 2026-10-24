@@ -31,7 +31,17 @@
       "expo-web-browser",
       "@maplibre/maplibre-react-native",
       "expo-iap",
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Floc records your route on a trip only when you switch it on, every 5 minutes, and only between the trip's dates.",
+          "locationWhenInUsePermission": "Floc records your route on a trip only when you switch it on.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true,
+          "isIosBackgroundLocationEnabled": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

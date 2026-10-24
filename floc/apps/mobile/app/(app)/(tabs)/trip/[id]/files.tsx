@@ -25,6 +25,7 @@ import { AddFile } from "@/components/files/add-file";
 import { FileActions } from "@/components/files/file-actions";
 import { FileFilters, type FileFilter } from "@/components/files/file-filter";
 import { FileRow } from "@/components/files/file-row";
+import { InboxAddress } from "@/components/files/inbox-address";
 import { StorageMeter } from "@/components/files/storage-meter";
 import { openFileNatively } from "@/components/files/open-file";
 import { Sheet } from "@/components/system/sheet";
@@ -102,6 +103,8 @@ export default function Files() {
       style={{ backgroundColor: c.paper }}
       contentContainerStyle={{ padding: space.lg, gap: space.lg }}
     >
+      <InboxAddress tripId={tripId} />
+
       <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
         <View style={{ flex: 1, minWidth: 0 }}>
           <FileFilters counts={counts} value={filter} onChange={setFilter} />

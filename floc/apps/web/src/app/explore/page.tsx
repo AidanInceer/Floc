@@ -19,14 +19,6 @@ export default async function ExplorePage() {
   return (
     <div className="pb-20">
       <ExploreFront signedIn={!!userId} initialFinder={finder ?? EMPTY_FINDER} />
-      <div className="mx-auto max-w-[76rem] px-4 sm:px-6">
-        <p className="mt-10 border-t border-rule pt-5 text-xs text-ink-faint">
-          These listings are illustrative and not bookable. Operator names are
-          placeholders used to show what a listing would look like — Floc has
-          no partnership with any of them, and nothing on this page is paid
-          placement.
-        </p>
-      </div>
     </div>
   );
 }

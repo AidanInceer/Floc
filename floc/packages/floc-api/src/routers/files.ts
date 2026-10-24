@@ -29,6 +29,11 @@ export const filesRouter = router({
   /** False means no volume is mounted — the client hides the upload rather than offering one that throws (rule 11). */
   canUpload: tripProcedure.query(({ ctx }) => ctx.port.filesWritable()),
 
+  /** The trip's forwarding address for bookings (#328); null hides it. */
+  inboxAddress: tripProcedure.query(({ ctx, input }) =>
+    ctx.port.fileInboxAddress(ctx.viewer.id, input.tripId),
+  ),
+
   upload: tripProcedure
     .input(
       z.object({

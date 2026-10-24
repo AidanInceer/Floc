@@ -30,6 +30,7 @@ import type { DayEventType, ReactionKind, SplitType, TransportType } from "@floc
 
 import type { Comment } from "./port-comment";
 import type { PagesPort } from "./port-pages";
+import type { RoutePort } from "./port-route";
 
 export type { Currency, DayEventType, DocCategory, ExpenseCategory, ReactionKind, SplitType, TransportType };
 
@@ -179,6 +180,7 @@ export type TripFile = {
 };
 
 export type { Comment } from "./port-comment";
+export type { GroupRoute, Position } from "./port-route";
 
 // One idea for the trip, with its tally. `createdAt` is an instant, as a string — a `Date` does
 // not survive JSON.
@@ -1011,6 +1013,9 @@ export type FlocPort = {
   /** False when no volume is mounted — the client hides the upload rather than offering one that throws (rule 11). */
   filesWritable(): boolean;
 
+  /** Where a member forwards a booking (#328). Null when inbound mail or file storage is not set up (rule 11). */
+  fileInboxAddress(viewerId: string, tripId: number): Promise<string | null>;
+
   /**
    * One event's thread, oldest first, replies nested one level under their
    * parent. Scoped to the event rather than the trip: a phone opens one modal
@@ -1149,7 +1154,8 @@ export type FlocPort = {
 
   /** Stop pushing to this phone. Only its owner can. */
   forgetPushToken(viewerId: string, token: string): Promise<void>;
-} & PagesPort;
+} & PagesPort &
+  RoutePort;
 
 export type NotificationItem = {
   id: number;

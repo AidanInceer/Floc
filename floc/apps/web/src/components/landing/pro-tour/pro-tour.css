@@ -7,7 +7,7 @@
   :is(.pro-fav, .pro-tile)[data-tone="red"] { --t: var(--pastel-red); --t-ink: var(--pastel-red-ink); }
 
   .pro-browser {
-    overflow: hidden; border: 1px solid var(--rule-2); border-radius: 18px;
+    position: relative; overflow: hidden; border: 1px solid var(--rule-2); border-radius: 18px;
     background: var(--sheet); box-shadow: var(--shadow-lift);
   }
   .pro-strip { display: flex; align-items: flex-end; gap: 10px; padding: 9px 12px 0; background: var(--sheet-3); }
@@ -48,7 +48,7 @@
     font-family: var(--type); font-size: 12px;
   }
   .pro-ghost {
-    position: fixed; z-index: 60; margin: 0; max-width: none; flex: none; pointer-events: none;
+    position: absolute; z-index: 60; margin: 0; max-width: none; flex: none; pointer-events: none;
     border: 1px solid var(--pro-edge); border-radius: 10px; background: var(--sheet); box-shadow: var(--shadow-lift); color: var(--ink);
   }
 

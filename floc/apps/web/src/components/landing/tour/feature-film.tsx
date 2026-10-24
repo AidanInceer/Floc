@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import type { KeyboardEvent, MouseEvent, PointerEvent, ReactNode, RefObject } from "react";
+import type { KeyboardEvent, MouseEvent, ReactNode, RefObject } from "react";
 
 import { cx } from "@/components/system/ui";
 import { useTrackDrag } from "@/components/system/interaction/use-track-drag";
@@ -138,11 +138,6 @@ export function FeatureFilm({ slides }: { slides: FilmSlide[] }) {
     onRelease: ({ from, direction }) => film.glide(from + direction),
     onDragging: (active) => { film.held.current = active; },
   });
-  const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    // The plan slide carries a live map; dragging it pans the map, not the film.
-    if ((event.target as HTMLElement).closest(".leaflet-container")) return;
-    drag.onPointerDown(event);
-  };
   const count = slides.length;
   const copies = Array.from({ length: FILM_COPIES }, () => slides).flat();
 
@@ -185,7 +180,7 @@ export function FeatureFilm({ slides }: { slides: FilmSlide[] }) {
         aria-roledescription="carousel"
         aria-label="Features"
         onKeyDown={onKeyDown}
-        onPointerDown={onPointerDown}
+        onPointerDown={drag.onPointerDown}
         onClick={onClick}
         onClickCapture={drag.onClickCapture}
         className={cx("film-track scroll-x-bare", drag.dragging && "is-dragging")}

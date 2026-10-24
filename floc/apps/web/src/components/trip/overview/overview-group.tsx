@@ -1,16 +1,13 @@
-// Who's going: one chip per person; everything done *to* someone sits behind their chip (ticket 125).
-import Link from "next/link";
-
-import { Avatar, Field, Select, Stack, Textarea, cx, menuDangerItemClass, menuItemClass } from "@/components/system/ui";
-import { ConfirmSubmit, CopyLink, Menu, Sheet, SubmitButton } from "@/components/system/client-ui";
-import { FriendButton } from "@/components/social/friend-button";
+// Who's going, in one line: faces, a count and names. The faces open the full list.
+import { goingNames, goingNotes } from "@floc/core/trip/overview/going";
+import { AvatarRow, SheetFooter, Stack } from "@/components/system/ui";
+import { CopyLink, Sheet, SubmitButton } from "@/components/system/client-ui";
 import { FriendPicker } from "@/components/social/friend-picker";
+import { InviteeRow, MemberRow } from "@/components/trip/overview/overview-member";
 import type { FriendState, Person } from "@/server/social/friends";
 import type { PendingInvitee } from "@/server/trips/invites";
 import type { TripMember } from "@/server/access";
-import { NUDGE_TABS } from "@/db/schema";
-import { TAB_LABELS } from "@/lib/tabs";
-import { inviteFriends, kickMember, promoteMember, sendNudge } from "@/app/trip/[id]/overview/actions";
+import { inviteFriends } from "@/app/trip/[id]/overview/actions";
 
 type Props = {
   tripId: number;
@@ -27,143 +24,62 @@ type Props = {
 };
 
 export function OverviewGroup(props: Props) {
-  const { members, pendingInvitees, declinedInvitees } = props;
   return (
-    <section id="the-group" data-tour="roster" className="flex min-w-0 scroll-mt-24 flex-col gap-3 p-5">
-      <div className="flex flex-wrap items-center gap-2">
-        <h2 className="flex items-center gap-2 font-display text-lg">
-          Who&rsquo;s going
-          <span className="nums text-xs font-normal text-ink-faint">{members.length}</span>
-        </h2>
-        <span className="ml-auto flex flex-wrap items-center gap-2">
-          <InviteSheet {...props} />
-          <CopyLink value={props.inviteUrl} label="Share trip" variant="primary" icon={<ShareIcon />} />
-        </span>
-      </div>
-      <ul className="flex flex-wrap items-center gap-1.5">
-        {members.map((m) => (
-          <li key={m.userId}>
-            <MemberChip {...props} member={m} />
-          </li>
-        ))}
-        {pendingInvitees.map((p) => (
-          <li key={p.userId}>
-            <InviteeChip person={p} word="Invited" />
-          </li>
-        ))}
-        {declinedInvitees.map((p) => (
-          <li key={p.userId}>
-            <InviteeChip person={p} word="Declined" />
-          </li>
-        ))}
-      </ul>
+    <section id="the-group" data-tour="roster" className="flex min-w-0 scroll-mt-24 flex-wrap items-center gap-3">
+      <h2 className="sr-only">Who&rsquo;s going</h2>
+      <RosterSheet {...props} />
+      <InviteSheet {...props} />
     </section>
   );
 }
 
-const chip =
-  "inline-flex items-center gap-2 rounded-full border border-rule bg-sheet py-[3px] pl-[3px] pr-3 text-sm text-ink";
-const word = "font-mono text-[10px] uppercase tracking-[0.06em]";
-
-function MemberChip({
-  tripId,
-  viewerId,
-  isAdmin,
-  friendStates,
-  needDates,
-  member: m,
-}: Props & { member: TripMember }) {
-  const you = m.userId === viewerId;
+function RosterSheet({ tripId, viewerId, members, isAdmin, inviteUrl, friendStates, pendingInvitees, declinedInvitees, needDates }: Props) {
+  const going = `${members.length} going`;
+  const notes = goingNotes({
+    toAddDates: members.filter((m) => needDates.has(m.userId)).length,
+    invited: pendingInvitees.length,
+  });
   return (
-    <Menu
-      label={`${m.name}${you ? " (you)" : ""}`}
-      align="left"
-      triggerClassName={cx(chip, "lift hover:border-rule-strong")}
+    <Sheet
+      bareTrigger
+      title={going}
+      body="flush"
+      triggerClassName="lift flex min-w-0 items-center gap-3 rounded-full py-1 pl-1 pr-3 text-left hover:bg-sheet-2 max-md:flex-[1_1_100%]"
       trigger={
         <>
-          <Avatar name={m.name} icon={m.avatarIcon} size={22} tone={m.tone} />
-          {m.name.split(" ")[0]}
-          {you ? <span className="text-ink-faint">you</span> : null}
-          {m.role === "admin" ? <span className={cx(word, "text-pen-deep")}>Admin</span> : null}
-          {needDates.has(m.userId) ? <span className={cx(word, "text-highlight-ink")}>Dates to add</span> : null}
+          <AvatarRow people={members.map((m) => ({ name: m.name, avatarIcon: m.avatarIcon, tone: m.tone }))} max={5} size={32} />
+          <span className="grid min-w-0 leading-tight">
+            <span className="font-display text-base font-semibold text-ink">{going}</span>
+            <span className="truncate text-sm text-ink-soft max-md:whitespace-normal">
+              {goingNames(members.map((m) => m.name.split(" ")[0]))}
+              {notes.length ? <span className="text-highlight-ink"> · {notes.join(" · ")}</span> : null}
+            </span>
+          </span>
         </>
       }
     >
-      <p className="border-b border-rule px-2.5 pb-2 pt-1.5 font-display text-sm font-semibold text-ink">{m.name}</p>
-      <Link href={you ? "/profile" : `/profile/${m.userId}`} className={menuItemClass}>
-        {you ? "Your profile" : "View profile"}
-      </Link>
-      {you ? null : (
-        <>
-          <NudgeSheet tripId={tripId} member={m} />
-          <div className="px-2.5 py-1.5">
-            <FriendButton userId={m.userId} name={m.name} state={friendStates.get(m.userId) ?? "none"} compact />
-          </div>
-          {/* Gated server-side; this is presentation only (rule 6). */}
-          {isAdmin && m.role !== "admin" ? (
-            <form action={promoteMember}>
-              <input type="hidden" name="tripId" value={tripId} />
-              <input type="hidden" name="userId" value={m.userId} />
-              <SubmitButton variant="ghost" pendingLabel="…" className={menuItemClass}>
-                Make admin
-              </SubmitButton>
-            </form>
-          ) : null}
-          {isAdmin ? (
-            <form action={kickMember}>
-              <input type="hidden" name="tripId" value={tripId} />
-              <input type="hidden" name="userId" value={m.userId} />
-              <ConfirmSubmit
-                variant="ghost"
-                message={`Remove ${m.name} from this trip? Anything they've already posted stays on the board.`}
-                confirmLabel="Remove them"
-                pendingLabel="…"
-                className={menuDangerItemClass}
-              >
-                Remove from trip
-              </ConfirmSubmit>
-            </form>
-          ) : null}
-        </>
-      )}
-    </Menu>
-  );
-}
-
-function InviteeChip({ person, word: status }: { person: PendingInvitee; word: string }) {
-  return (
-    <span className={cx(chip, "border-dashed text-ink-soft")}>
-      <span className="opacity-60">
-        <Avatar name={person.name} icon={person.avatarIcon} size={22} />
-      </span>
-      {person.name.split(" ")[0]}
-      <span className={cx(word, "text-ink-faint")}>{status}</span>
-    </span>
-  );
-}
-
-function NudgeSheet({ tripId, member }: { tripId: number; member: TripMember }) {
-  return (
-    <Sheet trigger="Nudge" triggerVariant="ghost" triggerClassName={menuItemClass} title={`Nudge ${member.name}`}>
-      <form action={sendNudge}>
-        <input type="hidden" name="tripId" value={tripId} />
-        <input type="hidden" name="toUserId" value={member.userId} />
-        <Stack gap={3}>
-          <Field label="What's it about">
-            <Select name="tab" defaultValue={NUDGE_TABS[0]}>
-              {NUDGE_TABS.map((t) => (
-                <option key={t} value={t}>
-                  {TAB_LABELS[t] ?? t}
-                </option>
-              ))}
-            </Select>
-          </Field>
-          <Field label="Message (optional)">
-            <Textarea name="message" placeholder={`e.g. "Can you put your dates in before the weekend?"`} />
-          </Field>
-          <SubmitButton pendingLabel="Sending…">Send nudge</SubmitButton>
-        </Stack>
-      </form>
+      <div className="divide-y divide-rule">
+        {members.map((m) => (
+          <MemberRow
+            key={m.userId}
+            tripId={tripId}
+            member={m}
+            you={m.userId === viewerId}
+            isAdmin={isAdmin}
+            friendState={friendStates.get(m.userId) ?? "none"}
+            needsDates={needDates.has(m.userId)}
+          />
+        ))}
+        {pendingInvitees.map((p) => (
+          <InviteeRow key={p.userId} person={p} word="Invited" />
+        ))}
+        {declinedInvitees.map((p) => (
+          <InviteeRow key={p.userId} person={p} word="Declined" />
+        ))}
+      </div>
+      <SheetFooter>
+        <CopyLink value={inviteUrl} label="Copy invite link" icon={<LinkIcon />} />
+      </SheetFooter>
     </Sheet>
   );
 }
@@ -171,12 +87,21 @@ function NudgeSheet({ tripId, member }: { tripId: number; member: TripMember }) 
 // Why: any member may invite, by name or by link (#312).
 function InviteSheet({ tripId, members, pendingInvitees, friends, inviteUrl }: Props) {
   return (
-    <Sheet trigger="Invite friends" title="Invite friends" triggerVariant="secondary">
+    <Sheet
+      trigger={
+        <>
+          <AddPersonIcon />
+          Invite
+        </>
+      }
+      title="Invite friends"
+      triggerVariant="secondary"
+    >
       {friends.length === 0 ? (
         <Stack gap={3}>
           <p className="text-sm text-ink-soft">You have no friends on Floc yet. Share the trip link instead.</p>
           <span>
-            <CopyLink value={inviteUrl} label="Share trip" variant="primary" icon={<ShareIcon />} />
+            <CopyLink value={inviteUrl} label="Copy invite link" variant="primary" icon={<LinkIcon />} />
           </span>
         </Stack>
       ) : (
@@ -188,7 +113,10 @@ function InviteSheet({ tripId, members, pendingInvitees, friends, inviteUrl }: P
               excludeIds={[...members.map((m) => m.userId), ...pendingInvitees.map((p) => p.userId)]}
               emptyNote="Everyone you're friends with is already on this trip, or has been asked."
             />
-            <SubmitButton pendingLabel="Inviting…">Send invites</SubmitButton>
+            <span className="flex flex-wrap justify-end gap-2">
+              <CopyLink value={inviteUrl} label="Copy link" icon={<LinkIcon />} />
+              <SubmitButton pendingLabel="Inviting…">Send invites</SubmitButton>
+            </span>
           </Stack>
         </form>
       )}
@@ -196,13 +124,31 @@ function InviteSheet({ tripId, members, pendingInvitees, friends, inviteUrl }: P
   );
 }
 
-function ShareIcon() {
+const iconProps = {
+  viewBox: "0 0 14 14",
+  width: 13,
+  height: 13,
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 1.2,
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+  "aria-hidden": true,
+} as const;
+
+function AddPersonIcon() {
   return (
-    <svg viewBox="0 0 14 14" width={13} height={13} fill="none" stroke="currentColor" strokeWidth={1.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="10.5" cy="3" r="1.6" />
-      <circle cx="3.5" cy="7" r="1.6" />
-      <circle cx="10.5" cy="11" r="1.6" />
-      <path d="M5 7.8l4 2.4M9 3.8 5 6.2" />
+    <svg {...iconProps}>
+      <circle cx="5.4" cy="4.8" r="2" />
+      <path d="M1.8 11.4c0-1.9 1.5-3 3.6-3s3.6 1.1 3.6 3M10.6 4.2v3.6M8.8 6h3.6" />
+    </svg>
+  );
+}
+
+function LinkIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M6 8a2.4 2.4 0 0 0 3.4 0l1.8-1.8a2.4 2.4 0 0 0-3.4-3.4l-.7.7M8 6a2.4 2.4 0 0 0-3.4 0L2.8 7.8a2.4 2.4 0 0 0 3.4 3.4l.7-.7" />
     </svg>
   );
 }

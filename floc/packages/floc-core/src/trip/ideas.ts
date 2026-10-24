@@ -44,3 +44,11 @@ export function voteLabel(votes: number, mine: boolean): string {
   const count = votes === 1 ? "1 vote" : `${votes} votes`;
   return mine ? `${count}, yours included` : count;
 }
+
+/**
+ * Ideas leave the Overview for a postcard row once the plan has a shape: a night
+ * with a place, or the trip under way. Read from the days, never stored (rule 4).
+ */
+export function ideasTucked({ days, today }: { days: readonly { overnightPlaceId: number | null }[]; today: boolean }): boolean {
+  return today || days.some((d) => d.overnightPlaceId !== null);
+}

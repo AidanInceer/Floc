@@ -123,6 +123,12 @@
   --tone-blue: var(--pastel-blue);
   --tone-blue-ink: var(--ink);
 
+  /* Dates: a day some of the group can do, stronger as more can (three steps, whatever the group size). */
+  --some-free-1: #fcebe6;
+  --some-free-2: var(--pastel-red);
+  --some-free-3: var(--pastel-red-edge);
+  --some-free-ink: #8c3b26;
+
   /* Quiet motion: a tiny lift on a soft shadow, nothing heavy. One easing curve
      for every interactive move — see the `.lift` utility, and the
      prefers-reduced-motion block that removes the movement but not the
@@ -252,6 +258,11 @@
   --tone-blue: var(--pastel-blue-edge);
   --tone-blue-ink: var(--pastel-blue-ink);
 
+  /* The dark red wash sits close to the sheet: the steps climb towards the edge instead of paling. */
+  --some-free-1: var(--pastel-red);
+  --some-free-2: #3e2b2f;
+  --some-free-ink: var(--pastel-red-ink);
+
   --highlight-2: #262219;
 
   /* Seats 6-8, the three with no domain pastel behind them. */
@@ -329,6 +340,10 @@
   --color-red: var(--red);
   --color-red-soft: var(--red-2);
   --color-red-edge: var(--red-edge);
+  --color-some-free-1: var(--some-free-1);
+  --color-some-free-2: var(--some-free-2);
+  --color-some-free-3: var(--some-free-3);
+  --color-some-free-ink: var(--some-free-ink);
   --color-green: var(--green);
   --color-green-soft: var(--green-2);
   --color-green-edge: var(--green-edge);

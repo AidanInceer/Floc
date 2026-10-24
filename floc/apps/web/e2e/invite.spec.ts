@@ -33,7 +33,8 @@ test("a member shares the trip, and a stranger sees the days but not the group",
   await expect(tour).toBeHidden();
 
   // The URL is never drawn on the page — the button copies it.
-  await memberPage.getByRole("button", { name: "Share trip" }).click();
+  await memberPage.getByRole("button", { name: "Invite", exact: true }).click();
+  await memberPage.getByRole("button", { name: /^Copy (invite )?link$/ }).click();
   const url: string = await memberPage.evaluate(() =>
     navigator.clipboard.readText(),
   );

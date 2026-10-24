@@ -190,4 +190,34 @@ export const emails = {
     ],
     cta: { label: "See the trip", url: absoluteUrl(`/invite/${args.token}`) },
   }),
+
+  /** Trigger: mail to a trip address from someone not on it, or to no trip at all — one answer for both (rule 5, #328). */
+  inboundRefused: (args: { to: string }): OutboundEmail => ({
+    to: args.to,
+    subject: "That address isn't on one of your trips",
+    lines: [
+      "Nothing was saved. A trip's address only takes mail from people on the trip, sent from the email they sign in to Floc with.",
+      "You'll find the address on the trip's Files page.",
+    ],
+  }),
+
+  /** Trigger: a forwarded booking with no file Floc could keep, or one it had to leave out (#328). */
+  inboundPartlySaved: (args: {
+    to: string;
+    tripName: string;
+    savedCount: number;
+    refused: string[];
+  }): OutboundEmail => ({
+    to: args.to,
+    subject:
+      args.savedCount === 0
+        ? `Nothing was saved to ${args.tripName}`
+        : `Some files weren't saved to ${args.tripName}`,
+    lines: [
+      args.refused.length === 0
+        ? "That email had no PDF or image attached. Floc keeps the attached files, not the email itself."
+        : `Saved ${args.savedCount} file${args.savedCount === 1 ? "" : "s"} to your files on the trip. These were left out:`,
+      ...args.refused,
+    ],
+  }),
 };

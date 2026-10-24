@@ -99,7 +99,7 @@ export type ExpenseFormProps = {
 };
 
 /** One pill in a row of choices. Used for the payer, the day and the split mode. */
-export function Choice({
+function Choice({
   label,
   on,
   small,

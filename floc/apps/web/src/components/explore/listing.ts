@@ -1,8 +1,6 @@
 import { stopsOf, type ListingMove } from "@floc/core/trip/explore/listing-stops";
 import type { PresetTrip, Region } from "@floc/core/trip/explore/preset-trips";
 
-import type { RouteMapStop } from "@/components/map/route-map";
-
 // Same families as the app's `region-tint.ts`, so a region is one colour on both.
 const REGION_SKIN: Record<Region, string> = {
   Europe: "bg-pastel-blue text-pastel-blue-ink",
@@ -58,10 +56,6 @@ export function routeParts(trip: PresetTrip): RoutePart[] {
     const text = stop.place.includes(stop.arrive.place) ? stop.arrive.detail : moveLine(stop.arrive);
     return [{ kind: "move", mode: stop.arrive.mode, text }, stay];
   });
-}
-
-export function routeStops(trip: PresetTrip): RouteMapStop[] {
-  return stopsOf(trip).map((stop, i) => ({ no: i + 1, name: stop.place, days: stop.nights, lat: stop.lat, lng: stop.lng }));
 }
 
 export function firstBase(trip: PresetTrip): { lat: number; lng: number } {

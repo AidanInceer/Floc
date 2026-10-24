@@ -26,6 +26,7 @@ import {
 } from "@/server/trips/roster";
 import { resetInviteToken, updateTrip } from "@/server/trips/trips";
 import { refresh } from "@/server/freshness";
+import { deleteMyRoute as deleteRouteOf } from "@/server/route/route-positions";
 
 export async function sendNudge(formData: FormData) {
   const tripId = Number(formData.get("tripId"));
@@ -234,4 +235,10 @@ export async function removeIdea(formData: FormData) {
   await softDeleteIdea(access.trip.id, target.id);
 
   refresh({ kind: "ideas", tripId: access.trip.id });
+}
+
+/** Your own route only, for good (#329, ADR-026). Bound to the trip id by the page. */
+export async function deleteMyRoute(tripId: number) {
+  const access = await requireTripAccess(tripId);
+  await deleteRouteOf(access);
 }

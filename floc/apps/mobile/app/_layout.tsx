@@ -28,6 +28,7 @@ import { useReducedMotion } from "@/components/system/use-reduced-motion";
 import { FlocWordmark } from "@/components/system/wordmark";
 import { queryClient } from "@/lib/api";
 import { useSession } from "@/lib/auth";
+import { useRouteUpload } from "@/lib/route/use-route-upload";
 
 /**
  * The six files behind the three faces (#no-ticket). Two weights each for
@@ -57,6 +58,7 @@ function Routes() {
   const finishLaunch = useCallback(() => setLaunched(true), []);
 
   const signedIn = !!session?.user;
+  useRouteUpload(signedIn);
   const inApp = segments[0] === "(app)";
   // A deep link is not a navigation, and these three arrive as one: a reset
   // link opens while signed out *and* while signed in, and throwing the

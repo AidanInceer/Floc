@@ -59,15 +59,18 @@
       "compression": "^1.8.2",
       "tinypool": "^2.1.2",
       "shell-quote": "^1.11.0",
-      "next": "^15.5.28"
+      "next": "^15.5.28",
+      "zod@^4.0.0": "^4.6.6",
+      "undici": "^7.30.1"
     },
     "auditConfig": {
-      "//": "image-size has NO patched version (advisories say '<0.0.0') and is reached only through Metro, Expo's bundler — a developer-machine build tool, not the shipped app or any server. Scoped to these GHSAs so every other finding still fails the gate. Revisit when image-size publishes a fix; see pnpm-workspace.yaml. node-forge (via @expo/cli) and braces (via Metro and eslint-config-next) are the same case: no patched version, not in the built web app.",
+      "//": "image-size has NO patched version (advisories say '<0.0.0') and is reached only through Metro, Expo's bundler — a developer-machine build tool, not the shipped app or any server. Scoped to these GHSAs so every other finding still fails the gate. Revisit when image-size publishes a fix; see pnpm-workspace.yaml. node-forge (via @expo/cli) and braces (via Metro and eslint-config-next) are the same case: no patched version, not in the built web app. zod 3 (via @expo/cli) too: the fix starts at 4.6.6, and every zod 4 copy is pinned there.",
       "ignoreGhsas": [
         "GHSA-w3rx-r6r6-pgpr",
         "GHSA-5p2g-fcmc-qvqq",
         "GHSA-86w9-cpqp-85rv",
-        "GHSA-vfj7-8cjw-p6xm"
+        "GHSA-vfj7-8cjw-p6xm",
+        "GHSA-mrhx-c7xc-m3w5"
       ]
     }
   }

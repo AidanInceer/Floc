@@ -90,6 +90,7 @@ Never break these. Code comments cite them by number (`rule 5`), so keep the num
 - **Light and dark use the same token names.** Dark restates values in `:root[data-theme="dark"]`. **No `dark:` variant** — needing one means the token is wrong. The choice lives in `localStorage`, never in a column.
 - **No emoji.** Icons are line art: 14×14 `viewBox`, drawn at ~13px, `fill="none"`, `strokeWidth` 1.15–1.25, `stroke="currentColor"`. See [iconography](docs/design/visual-language.html#iconography).
 - **If the drawing is clear, say nothing.** Text carries only what the layout cannot. No heading above a heading, no caption that explains the design, no words that repeat what a control shows. Exceptions: what is *missing*, and status.
+- **No placeholder text in fields.** An input starts empty: no example ("Lisbon, a week in September…"), no instruction ("Type your idea"), nothing pre-filled the person did not choose. A visible label, or an `aria-label` when the button beside it says what it is for (*Add*), names the field. See [behaviour rules](docs/design/visual-language.html#behaviour).
 - **Outside UI libraries** only where building it ourselves would take months, and only if the library accepts our tokens, type and no-emoji rules. Notes runs on the headless Tiptap core under our own UI, in `@floc/editor` ([ADR-014](docs/foundation/decisions.html#adr-014)).
 
 Differences between the surfaces are written once, in the docs — do not repeat them here:

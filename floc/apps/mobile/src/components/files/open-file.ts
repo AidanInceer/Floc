@@ -35,8 +35,3 @@ export async function openFileNatively(
   const file = await File.downloadFileAsync(url, landed);
   await Sharing.shareAsync(file.uri, { mimeType, dialogTitle: name });
 }
-
-/** Whether this phone can hand a file to another app at all. */
-export function canOpenFiles(): Promise<boolean> {
-  return Sharing.isAvailableAsync();
-}

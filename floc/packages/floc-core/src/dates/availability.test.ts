@@ -7,6 +7,7 @@ import {
   monthGrid,
   monthsFrom,
   tally,
+  tripCoverage,
   type AvailabilityRow,
 } from "./availability";
 
@@ -182,4 +183,19 @@ describe("the awkward halves of the availability helpers", () => {
     });
   });
 
+});
+
+describe("tripCoverage", () => {
+  it("counts the trip days you can do and names the ones you can't", () => {
+    const free = new Set(["2027-09-04", "2027-09-05", "2027-09-07"]);
+    expect(tripCoverage((d) => free.has(d), "2027-09-04", "2027-09-07")).toEqual({
+      free: 3,
+      total: 4,
+      missing: ["2027-09-06"],
+    });
+  });
+
+  it("has nothing to cover on an undated trip", () => {
+    expect(tripCoverage(() => true, null, null)).toBeNull();
+  });
 });

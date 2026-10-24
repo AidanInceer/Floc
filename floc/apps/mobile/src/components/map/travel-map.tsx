@@ -16,25 +16,16 @@
  * over a country a trip still claims is a rejection row, not a delete — the
  * host tells the two apart, so this only ever says what was tapped.
  */
-// Types only. Pinned to the version maplibre-react-native itself depends on
-// rather than reached through it — a phantom dependency breaks the day the
-// hoist changes, and this one is not re-exported from the RN package.
 import type { ExpressionSpecification } from "@maplibre/maplibre-gl-style-spec";
 
 import { COUNTRIES } from "@floc/core/people/countries";
-import {
-  Camera,
-  GeoJSONSource,
-  Layer,
-  Map,
-  type PressEventWithFeatures,
-} from "@maplibre/maplibre-react-native";
+import { Camera, Map, type PressEventWithFeatures } from "@maplibre/maplibre-react-native";
 import { useMemo, useState } from "react";
 import { StyleSheet, View, type NativeSyntheticEvent } from "react-native";
 
 import { useTheme } from "../system/theme";
 import { Body } from "../system/ui";
-import COUNTRY_SHAPES from "@/lib/countries-110m.json";
+import { LandLayer } from "./land-layer";
 import { paperStyle } from "@/lib/map";
 import { radius, space } from "@/lib/theme";
 import { nextMark } from "@floc/core/itinerary/travel-map";
@@ -50,21 +41,6 @@ const MIN_ZOOM = 0.6;
 const MAX_ZOOM = 6;
 /** Roughly centres the landmasses rather than the equator's empty ocean. */
 const OPENING: [number, number] = [8, 25];
-
-/**
- * The shapes, with the ISO code moved from the feature id into a property.
- *
- * Style expressions read properties; a feature id is only reliably an
- * expression input when it is a number, and these are "GB". Done once at
- * module load rather than per render — it is ~250 features and never changes.
- */
-const SHAPES = {
-  type: "FeatureCollection" as const,
-  features: (COUNTRY_SHAPES as GeoJSON.FeatureCollection).features.map((feature) => ({
-    ...feature,
-    properties: { code: String(feature.id ?? "") },
-  })),
-};
 
 /**
  * The fill, as one expression over the country code.
@@ -172,27 +148,7 @@ export function TravelMap({
             maxZoom={MAX_ZOOM}
           />
 
-          <GeoJSONSource id="countries" data={SHAPES} onPress={tap}>
-            <Layer
-              id="country-fill"
-              type="fill"
-              filter={["!=", ["geometry-type"], "Point"]}
-              paint={{ "fill-color": paint, "fill-outline-color": c["rule-2"] }}
-            />
-            {/* Singapore, Malta, Monaco and ~60 more are Points at 1:110m —
-                a fill layer draws nothing for them. */}
-            <Layer
-              id="country-dot"
-              type="circle"
-              filter={["==", ["geometry-type"], "Point"]}
-              paint={{
-                "circle-radius": 3.5,
-                "circle-color": paint,
-                "circle-stroke-width": 0.6,
-                "circle-stroke-color": c["rule-2"],
-              }}
-            />
-          </GeoJSONSource>
+          <LandLayer fill={paint} onPress={tap} />
         </Map>
       </View>
 
