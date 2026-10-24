@@ -15,7 +15,7 @@ export function TripShelfCard({ trip, past = false }: { trip: TripCardData; past
   const status = stage === "Planning" ? countdownLabel(trip.startDate) ?? stage : stage;
 
   return (
-    <li className="lift relative flex min-h-40 flex-col rounded-lg border border-rule bg-sheet p-4 hover:shadow-[var(--shadow-lifted)]">
+    <li className="lift relative flex min-h-40 flex-col rounded-lg border border-rule bg-sheet p-4 hover:shadow-none!">
       <div className="flex items-center gap-2 pr-14">
         <span aria-hidden="true" className={`size-2.5 shrink-0 rounded-[3px] border border-rule-strong ${swatch}`} />
         {trip.mark ? <TripMarkIcon mark={trip.mark} size={14} /> : null}

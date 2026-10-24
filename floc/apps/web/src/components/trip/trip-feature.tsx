@@ -21,7 +21,7 @@ export function TripFeature({ trip }: { trip: TripCardData }) {
   const href = `/trip/${trip.id}/overview`;
 
   return (
-    <article className="lift relative mt-6 grid grid-cols-[4.5rem_minmax(0,1fr)] gap-4 rounded-lg border border-rule-strong bg-sheet p-4 hover:shadow-[var(--shadow-lifted)] sm:grid-cols-[5.25rem_minmax(0,1fr)] sm:gap-5 sm:p-5">
+    <article className="lift relative mt-6 grid grid-cols-[4.5rem_minmax(0,1fr)] gap-4 rounded-lg border border-rule-strong bg-sheet p-4 hover:shadow-none! sm:grid-cols-[5.25rem_minmax(0,1fr)] sm:gap-5 sm:p-5">
       <div
         aria-hidden="true"
         className={`flex size-[4.5rem] flex-col items-center justify-center rounded-md border border-rule-strong sm:size-[5.25rem] ${dateSkin}`}
