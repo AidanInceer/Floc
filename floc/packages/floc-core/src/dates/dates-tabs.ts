@@ -24,7 +24,7 @@ export function spanLabel(start: IsoDate, end: IsoDate): string {
 export function yourDaysTab(saved: IsoDate[], unsaved: number): TabSummary {
   if (saved.length === 0 && unsaved === 0)
     return { value: "Not yet", short: "Not yet", note: "Mark the days you can do", open: true };
-  const sorted = [...saved].sort();
+  const sorted = [...saved].sort((a, b) => a.localeCompare(b));
   const value = saved.length ? count(saved.length, "day") : "Not yet";
   const note = unsaved
     ? `${count(unsaved, "change")} not saved`
