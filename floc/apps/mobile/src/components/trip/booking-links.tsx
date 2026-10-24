@@ -7,7 +7,7 @@ import { useTheme } from "../system/theme";
 import { Body, Button } from "../system/ui";
 import { fonts, size, space } from "@/lib/theme";
 
-export const OFFSITE_NOTE = "Opens another site. Floc isn't paid for these links.";
+const OFFSITE_NOTE = "Opens another site. Floc isn't paid for these links.";
 
 export function SiteLinks({ links }: { links: BookingLink[] }) {
   return (

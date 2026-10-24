@@ -326,12 +326,38 @@ export const tripMembership = sqliteTable(
     starredAt: integer("starred_at", { mode: "timestamp" }),
     /** Your own mute (#346): no push or email from this trip, the inbox still fills. */
     mutedAt: integer("muted_at", { mode: "timestamp" }),
+    /** Set while this member's phone records their route on this trip (#329, ADR-026). Null is off, the default. */
+    routeOnAt: integer("route_on_at", { mode: "timestamp" }),
     ...audit,
   },
   (t) => [
     primaryKey({ columns: [t.tripId, t.userId] }),
     index("trip_membership_user_idx").on(t.userId),
   ],
+);
+
+/**
+ * One position a member's phone took on a trip day (#329, ADR-026). `date` is the phone's own day, so
+ * "inside the trip" needs no timezone (rule 10). No `deleted_at`: deleting your route deletes it for
+ * good, the one exception ADR-026 makes to rule 8. Unique on the time, so a re-sent offline batch lands once.
+ */
+export const routePoint = sqliteTable(
+  "route_point",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    tripId: integer("trip_id")
+      .notNull()
+      .references(() => trip.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    lat: real("lat").notNull(),
+    lng: real("lng").notNull(),
+    date: text("date").notNull(),
+    recordedAt: integer("recorded_at", { mode: "timestamp_ms" }).notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(now),
+  },
+  (t) => [uniqueIndex("route_point_trip_user_time_idx").on(t.tripId, t.userId, t.recordedAt)],
 );
 
 /**

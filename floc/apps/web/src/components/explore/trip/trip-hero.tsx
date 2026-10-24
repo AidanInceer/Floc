@@ -1,14 +1,14 @@
 import { formatMoney } from "@floc/core/money/money";
 import type { PresetFigure } from "@floc/core/trip/explore/detail/preset-detail-types";
+import { stopsOf } from "@floc/core/trip/explore/listing-stops";
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 import Link from "next/link";
 
-import { routeStops } from "@/components/explore/listing";
 import { TripMap } from "@/components/explore/trip/trip-map";
 import { PageTitle } from "@/components/system/ui";
 
 export function TripHero({ trip, figures }: { trip: PresetTrip; figures: PresetFigure[] }) {
-  const stops = routeStops(trip);
+  const stops = stopsOf(trip);
   const facts = [
     ["Nights", String(trip.nights)],
     ["Stops", String(stops.length)],

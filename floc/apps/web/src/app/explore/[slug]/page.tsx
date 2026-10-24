@@ -34,10 +34,6 @@ export default async function ExploreTripPage({ params, searchParams }: Props) {
       <TripHero trip={trip} figures={plan.inPlan} />
       <TripPlan trip={trip} plan={plan} signedIn={!!session?.user?.id} startOpen={(await searchParams).start !== undefined} />
       <TripKnow advice={plan.advice} facts={plan.goodToKnow} />
-      <p className="mt-10 border-t border-rule pt-5 text-xs text-ink-faint">
-        This listing is illustrative and not bookable. The operator name is a placeholder — Floc has no partnership with it, and nothing on this page is
-        paid placement.
-      </p>
     </div>
   );
 }

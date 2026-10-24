@@ -71,6 +71,16 @@ describe("erasing an account", () => {
     expect(profile?.friendCode).toBeNull();
   });
 
+  it("deletes every route they recorded, for good (#329)", async () => {
+    await db.insert(schema.routePoint).values({
+      tripId: world.ours.id, userId: world.member, lat: 41.9, lng: 12.5, date: "2026-09-01", recordedAt: new Date(),
+    });
+    await eraseAccount(world.member);
+    expect(
+      await db.select().from(schema.routePoint).where(eq(schema.routePoint.userId, world.member)).all(),
+    ).toEqual([]);
+  });
+
   it("ends every way back in", async () => {
     await eraseAccount(world.member);
 

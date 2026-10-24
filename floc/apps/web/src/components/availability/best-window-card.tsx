@@ -1,10 +1,12 @@
 import type { Window } from "@floc/core/dates/availability";
-import { dateRange, formatDateRange } from "@floc/core/dates/dates";
+import { dateRange } from "@floc/core/dates/dates";
+import { spanLabel } from "@floc/core/dates/dates-tabs";
 import { ConfirmSubmit, SubmitButton } from "@/components/system/client-ui";
 
 /**
- * The overlap, said — so nobody counts it off the heatmap. One press commits
+ * The overlap, said — so nobody counts it off the calendar. One press commits
  * it; a window that drops planned days confirms first, as the grid does (#140).
+ * A block in the Dates panel, neutral: its days may be some-free, not all-free.
  */
 export function BestWindowCard({
   window,
@@ -26,17 +28,18 @@ export function BestWindowCard({
       : `${window.free} of ${memberCount} free`;
 
   return (
-    <section className="flex items-center gap-3 rounded-md border border-pastel-green-edge bg-pastel-green px-4 py-3 text-pastel-green-ink">
+    <section className="flex flex-wrap items-end gap-x-3 gap-y-2 p-4">
       <div className="min-w-0 flex-1">
-        <p className="font-display text-base font-semibold">
-          {formatDateRange(window.start, window.end)}
+        <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint">Best fit</p>
+        <p className="nums mt-1 font-mono text-base text-ink">
+          {spanLabel(window.start, window.end)}
         </p>
-        <p className="nums font-mono text-[11px]">
+        <p className="nums font-mono text-[11px] text-ink-soft">
           {days} {days === 1 ? "day" : "days"} · {who}
         </p>
       </div>
       {current ? (
-        <span className="font-mono text-[11px] uppercase tracking-[0.06em]">Set</span>
+        <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-green">Set</span>
       ) : (
         <form action={apply}>
           {cost ? (

@@ -8,13 +8,15 @@ import { today } from "@floc/core/dates/dates";
 import { BookingCard } from "@/components/booking/booking-card";
 import { getTripForecast } from "@/server/itinerary/weather";
 import { bestWindow, monthOf, thisMonth } from "@floc/core/dates/availability";
-import { formatDateRange, nightsBetween } from "@floc/core/dates/dates";
+import { dateRange, formatDateRange, nightsBetween } from "@floc/core/dates/dates";
+import { spanLabel } from "@floc/core/dates/dates-tabs";
 import {
   windowCost,
   windowCostLabel,
   windowCostNoun,
 } from "@floc/core/trip/trip-window";
 import {
+  AvatarRow,
   Field,
   Select,
   Stack,
@@ -28,7 +30,7 @@ import {
   Sheet,
   SubmitButton,
 } from "@/components/system/client-ui";
-import { AvailabilityCalendar } from "@/components/availability/availability-calendar";
+import { DatesBoard } from "@/components/availability/dates-board";
 import { BestWindowCard } from "@/components/availability/best-window-card";
 import { WhoAnswered } from "@/components/availability/who-answered";
 import { NUDGE_TABS } from "@/db/schema";
@@ -42,8 +44,6 @@ import {
   setTripDates,
   applyBestWindow,
 } from "./actions";
-
-const MONTHS_SHOWN = 1; // one month, arrows page the rest
 
 export const metadata = { title: "Dates" };
 
@@ -112,8 +112,23 @@ export default async function DatesPage({
     prefill: bookingPrefill,
   });
 
+  const answered = members.filter((m) => (marked[m.userId] ?? 0) > 0);
+  const waitingOn = members
+    .filter((m) => !marked[m.userId])
+    .map((m) => (m.userId === viewer.id ? "you" : m.name));
+
+  const bestCard = best ? (
+    <BestWindowCard
+      window={best}
+      memberCount={members.length}
+      current={best.start === trip.startDate && best.end === trip.endDate}
+      cost={bestNoun ? { noun: bestNoun, label: windowCostLabel(bestCost!)! } : null}
+      apply={applyBestWindow.bind(null, tripId, best.start, best.end)}
+    />
+  ) : null;
+
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 pb-20 pt-6 sm:px-6">
+    <div className="mx-auto w-full max-w-[70rem] px-4 pb-20 pt-6 sm:px-6">
       <header className="flex items-end justify-between gap-4">
         <div>
           <PageTitle>Dates</PageTitle>
@@ -170,60 +185,64 @@ export default async function DatesPage({
         </Menu>
       </header>
 
-      <div className="mt-6 grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
-        {/* Why: `contents` below lg flattens both columns into one, so `order` can put the set dates straight under the calendar. */}
-        <div className="contents min-w-0 lg:flex lg:flex-col lg:gap-4">
-          <div className="order-1 min-w-0">
-            <AvailabilityCalendar
-              firstMonth={firstMonth}
-              monthCount={MONTHS_SHOWN}
-              mine={mine}
-              tallies={tallies}
-              memberCount={members.length}
-              tripStart={trip.startDate}
-              tripEnd={trip.endDate}
-              dayLoads={dayLoads}
-              weather={forecast}
-              weatherLocked={!weatherPro}
-              save={saveAvailability.bind(null, tripId)}
-              saveDates={setTripDates.bind(null, tripId)}
-            />
-          </div>
-          {booking ? (
-            <div className="order-3">
-              <BookingCard tripId={tripId} plan={booking} />
-            </div>
-          ) : null}
-        </div>
-
-        <aside className="contents lg:flex lg:flex-col lg:gap-4">
-          {best ? (
-            <div className="order-2">
-              <BestWindowCard
-                window={best}
-                memberCount={members.length}
-                current={
-                  best.start === trip.startDate && best.end === trip.endDate
-                }
-                cost={
-                  bestNoun
-                    ? { noun: bestNoun, label: windowCostLabel(bestCost!)! }
-                    : null
-                }
-                apply={applyBestWindow.bind(null, tripId, best.start, best.end)}
+      <div className="mt-6">
+        <DatesBoard
+          firstMonth={firstMonth}
+          mine={mine}
+          tallies={tallies}
+          memberCount={members.length}
+          tripStart={trip.startDate}
+          tripEnd={trip.endDate}
+          dayLoads={dayLoads}
+          weather={forecast}
+          weatherLocked={!weatherPro}
+          waitingOn={waitingOn}
+          bestWindow={best}
+          slots={{
+            faces: <AvatarRow people={answered} size={20} max={4} />,
+            best: bestCard,
+            who: (
+              <WhoAnswered
+                members={members}
+                marked={marked}
+                viewerId={viewer.id}
+                nudgeFor={(m) => <NudgeSheet tripId={tripId} member={m} />}
               />
-            </div>
-          ) : null}
-          <div className="order-4">
-            <WhoAnswered
-              members={members}
-              marked={marked}
-              viewerId={viewer.id}
-              nudgeFor={(m) => <NudgeSheet tripId={tripId} member={m} />}
-            />
-          </div>
-        </aside>
+            ),
+            trip: <TripBlock start={trip.startDate} end={trip.endDate} />,
+            locked: (
+              <p className="p-4 text-sm text-ink-soft">
+                The weather on each of the trip&apos;s days comes with Floc Pro.
+              </p>
+            ),
+          }}
+          save={saveAvailability.bind(null, tripId)}
+          saveDates={setTripDates.bind(null, tripId)}
+        />
       </div>
+      {booking ? (
+        <div className="mt-4">
+          <BookingCard tripId={tripId} plan={booking} />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function TripBlock({ start, end }: { start: string | null; end: string | null }) {
+  return (
+    <div className="p-4">
+      <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint">The trip</p>
+      {start && end ? (
+        <>
+          <p className="nums mt-1 font-mono text-base text-ink">{spanLabel(start, end)}</p>
+          <p className="mt-0.5 text-[13px] text-ink-soft">
+            {nightsBetween(start, end)} {nightsBetween(start, end) === 1 ? "night" : "nights"} · {dateRange(start, end).length} days
+          </p>
+        </>
+      ) : (
+        <p className="mt-1 text-base text-highlight-ink">No dates yet</p>
+      )}
     </div>
   );
 }

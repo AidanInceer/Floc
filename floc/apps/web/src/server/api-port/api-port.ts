@@ -41,6 +41,7 @@ import { scoped } from "@/server/api-port/api-port-scope";
 import { billingPort } from "@/server/api-port/api-port-billing";
 import { commentsPort } from "@/server/api-port/api-port-comments";
 import { pagesPort } from "@/server/api-port/pages/api-port-pages";
+import { routePort } from "@/server/api-port/api-port-route";
 import { ideasPort } from "@/server/api-port/ideas/ideas";
 import { filesPort } from "@/server/api-port/api-port-files";
 import { explorePort } from "@/server/api-port/api-port-explore";
@@ -130,6 +131,7 @@ export const webPort: FlocPort = {
   ...filesPort,
   ...commentsPort,
   ...pagesPort,
+  ...routePort,
   ...ideasPort,
   ...socialPort,
   ...billingPort,

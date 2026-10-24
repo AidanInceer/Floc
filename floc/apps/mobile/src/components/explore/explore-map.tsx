@@ -4,11 +4,13 @@ import { mapPicks } from "@floc/core/trip/explore/map-picks";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { LandLayer } from "../map/land-layer";
 import { useTheme } from "../system/theme";
-import { TILE_STYLE } from "@/lib/map";
+import { paperStyle } from "@/lib/map";
 import { fonts, radius, size } from "@/lib/theme";
 
 const HEIGHT = 260;
+const MAX_ZOOM = 6;
 const PIN = 28;
 
 const PICKS = mapPicks(PRESET_TRIPS, 2);
@@ -49,18 +51,21 @@ export function ExploreMap({
     >
       <Map
         style={{ flex: 1 }}
-        mapStyle={TILE_STYLE}
+        mapStyle={paperStyle(c.sheet)}
         touchRotate={false}
         touchPitch={false}
         logo={false}
         compass={false}
+        attribution={false}
       >
         <Camera
           initialViewState={{
             bounds: BOUNDS,
             padding: { top: 30, right: 30, bottom: 30, left: 30 },
           }}
+          maxZoom={MAX_ZOOM}
         />
+        <LandLayer />
         {PICKS.map((trip, i) => {
           const on = trip.id === picked;
           return (

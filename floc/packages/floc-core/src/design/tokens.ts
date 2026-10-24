@@ -83,6 +83,12 @@ export const lightTokens = {
   "tone-blue": "var(--pastel-blue)",
   "tone-blue-ink": "var(--ink)",
 
+  /* Dates: a day some of the group can do, stronger as more can (three steps, whatever the group size). */
+  "some-free-1": "#fcebe6",
+  "some-free-2": "var(--pastel-red)",
+  "some-free-3": "var(--pastel-red-edge)",
+  "some-free-ink": "#8c3b26",
+
   ease: "cubic-bezier(0.2, 0.85, 0.3, 1)",
   "shadow-sm": "0 1px 2px rgb(20 20 26 / 0.05)",
   shadow:
@@ -174,6 +180,11 @@ export const darkTokens: Readonly<Partial<Record<TokenName, TokenValue>>> = {
   "tone-green-ink": "var(--pastel-green-ink)",
   "tone-blue": "var(--pastel-blue-edge)",
   "tone-blue-ink": "var(--pastel-blue-ink)",
+
+  /* The dark red wash sits close to the sheet: the steps climb towards the edge instead of paling. */
+  "some-free-1": "var(--pastel-red)",
+  "some-free-2": "#3e2b2f",
+  "some-free-ink": "var(--pastel-red-ink)",
 
   "highlight-2": "#262219",
 

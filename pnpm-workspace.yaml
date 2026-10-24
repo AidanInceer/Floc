@@ -54,6 +54,12 @@ overrides:
   # GHSA-2464-fhr4-w9xw (critical) and GHSA-p3m5-59mp-jv5r — the web app's own Next,
   # and the copy better-auth pulls in for the phone; patched in 15.5.28.
   next: ^15.5.28
+  # GHSA-mrhx-c7xc-m3w5 — oversized constrained collections exhaust memory. Every
+  # zod 4 copy (better-auth, @floc/api) to the patched floor, 4.6.6.
+  zod@^4.0.0: ^4.6.6
+  # GHSA-834v-8h66-3h79 — undici errors out on excessive content-encodings (DoS). Reached
+  # through happy-dom in the editor's tests; patched in 7.30.1.
+  undici: ^7.30.1
 
 # The one thing an override cannot answer: an advisory with NO patched version.
 #
@@ -75,3 +81,6 @@ auditConfig:
     # only through Metro's file map and eslint-config-next. Delete when either fixes.
     - GHSA-86w9-cpqp-85rv # node-forge, via @expo/cli
     - GHSA-vfj7-8cjw-p6xm # braces, via Metro and ESLint
+    # 2026-10-23: zod 3 has no patched release — the fix starts at 4.6.6. The one zod 3
+    # left is @expo/cli's own, a developer-machine tool; every zod 4 copy is pinned above.
+    - GHSA-mrhx-c7xc-m3w5 # zod 3, via @expo/cli

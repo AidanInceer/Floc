@@ -1,7 +1,7 @@
-import { RouteMap } from "@/components/map/route-map";
 import { Avatar, cx } from "@/components/system/ui";
+import { OverviewGlobe } from "@/components/trip/overview/globe/overview-globe";
 
-import { alex, jo, maya, priya, sam, sampleStops, you } from "../sample-trip";
+import { alex, jo, maya, priya, sam, sampleRoute, you } from "../sample-trip";
 import { FakeButton, ScreenFrame, muted, stayTone } from "./screen-frame";
 
 const DAYS = [
@@ -27,8 +27,8 @@ export function PlanScreen() {
             </div>
           ))}
         </div>
-        <div className="film-map max-[860px]:order-first max-[860px]:h-[340px]">
-          <RouteMap stops={sampleStops} missing={[]} fill />
+        <div className="relative overflow-hidden rounded-[14px] border border-rule max-[860px]:order-first max-[860px]:h-[340px]">
+          <OverviewGlobe route={sampleRoute} tone="peri" label="The route: Palermo, Cefalù, Taormina, Syracuse" />
         </div>
       </div>
     </ScreenFrame>

@@ -1,5 +1,6 @@
 "use client";
 
+import type { GroupRoute } from "@floc/api/port";
 import type { OverviewRoute } from "@floc/core/trip/overview/route";
 import type { TripColor } from "@floc/core/trip/trip-color";
 import { useEffect, useRef } from "react";
@@ -10,13 +11,26 @@ import { globePainter } from "@/components/globe/paint-globe";
 import { watchRedraw } from "@/components/globe/watch-redraw";
 
 import { clearArea } from "./clear-area";
+import { paintTracks, placeTracks } from "./paint-tracks";
 import { drawStillRoute, TONE } from "./still-route";
 
 /**
  * The trip's route on Explore's tile-free globe, still: no fly-in on a page the group opens again and again.
  * It is drawn from the days each time the page loads, so a change on Days is simply there.
  */
-export function OverviewGlobe({ route, tone, label }: { route: OverviewRoute; tone: TripColor; label: string }) {
+const NO_TRACKS: GroupRoute[] = [];
+
+export function OverviewGlobe({
+  route,
+  tone,
+  label,
+  tracks = NO_TRACKS,
+}: {
+  route: OverviewRoute;
+  tone: TripColor;
+  label: string;
+  tracks?: GroupRoute[];
+}) {
   const host = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const world = useLand("world");
@@ -32,12 +46,17 @@ export function OverviewGlobe({ route, tone, label }: { route: OverviewRoute; to
     const land = { world: world.map((p) => p.ring), fine: fine.map((p) => p.ring) };
     const draw = () => {
       const card = box.closest("[data-overview-band]")?.querySelector("[data-overview-card]");
-      drawStillRoute(node, paint, { route, land, tint, clear: clearArea(box.getBoundingClientRect(), card?.getBoundingClientRect() ?? null) });
+      const fit = drawStillRoute(node, paint, { route, land, tint, clear: clearArea(box.getBoundingClientRect(), card?.getBoundingClientRect() ?? null) });
+      const ctx = node.getContext("2d");
+      if (!fit || !ctx || tracks.length === 0) return;
+      const css = getComputedStyle(node);
+      const read = (name: string) => css.getPropertyValue(`--${name}`).trim();
+      paintTracks(ctx, placeTracks(tracks, fit.at), (who) => read(`${who}-ink`), read("sheet"));
     };
     draw();
     void document.fonts.ready.then(draw);
     return watchRedraw(box, draw);
-  }, [route, tone, world, fine]);
+  }, [route, tone, world, fine, tracks]);
 
   return (
     <div ref={host} className="absolute inset-0">

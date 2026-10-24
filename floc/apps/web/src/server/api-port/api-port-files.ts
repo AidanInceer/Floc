@@ -9,17 +9,23 @@ import {
   renameDocument, saveDocument,
 } from "@/server/documents/document-save";
 import { documentsEnabled } from "@/server/documents/document-store";
+import { tripInboxAddress } from "@/server/documents/inbound/inbound-address";
 import { mintViewToken } from "@/server/documents/view-link";
 import { storageUsage } from "@/server/documents/storage-quota";
 import { appUrl } from "@/lib/env";
 
 type FilesPort = Pick<FlocPort,
   | "uploadFile" | "deleteFile" | "setFileCategory" | "renameFile" | "fileUsage"
-  | "attachFileToEvent" | "detachFileFromEvent" | "fileViewUrl" | "filesWritable"
+  | "attachFileToEvent" | "detachFileFromEvent" | "fileViewUrl" | "filesWritable" | "fileInboxAddress"
 >;
 
 export const filesPort: FilesPort = {
   filesWritable: () => documentsEnabled(),
+
+  async fileInboxAddress(viewerId, tripId) {
+    await scoped(viewerId, tripId);
+    return tripInboxAddress(tripId);
+  },
 
   async uploadFile(viewerId, tripId, input) {
     const access = await scoped(viewerId, tripId);

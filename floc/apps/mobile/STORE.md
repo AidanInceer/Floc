@@ -71,14 +71,19 @@ answers, from the schema:
 | Email address | Yes | Account, and the invite mail | Yes |
 | Name | Yes | Shown on the roster | Yes |
 | Photos | Yes, if uploaded | Trip documents | Yes |
-| Location | **No** | The map takes a named place, not a fix | — |
+| Precise location, in the background | Yes, only if the member switches on "Record my route" for a trip (#329) | Shows the group each member's route and where they are now; every 5 minutes, only between the trip's dates; the member can delete it | Yes |
 | Contacts | **No** | Invites go by email typed in, never by import | — |
 | Advertising / analytics | **No** | There is none (out of scope, v1) | — |
 | Purchase history | Yes, via Stripe | Pro subscription | Yes |
 
 A declaration that does not match observed behaviour is the most common cause
-of a second-round rejection. If #227 (live location) or #167 (photos) ships,
-this table changes in the same slice.
+of a second-round rejection. If #167 (photos) ships, this table changes in the
+same slice.
+
+Background location (#329) needs more than the table. Google Play: the
+location-permissions declaration in Play Console, with a short video of the
+switch, the prompt and the notification. Apple: the "always" purpose string in
+`app.json` must match what the review sees.
 
 ## Payments — the one that gets apps rejected
 

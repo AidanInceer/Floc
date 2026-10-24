@@ -16,7 +16,7 @@ import { GroupActions } from "@/components/trip/group-actions";
 import { IdeasSection } from "@/components/trip/ideas/ideas-section";
 import { LegList } from "@/components/trip/leg-list";
 import { OverviewCard } from "@/components/trip/overview-card";
-import { RouteMap } from "@/components/map/route-map";
+import { TodaySection, TripMapSection } from "@/components/trip/route/trip-map-section";
 import { RosterStrip } from "@/components/trip/roster-strip";
 import { TripSheet, draftFor, type TripDraft } from "@/components/trip/trip-sheet";
 import { QuietAction } from "@/components/system/text-controls";
@@ -63,6 +63,8 @@ export default function Overview() {
 
   return (
     <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.xl }}>
+      <TodaySection trip={trip.data} days={days.data} files={files.data} onOpenDay={openDay} />
+
       <OverviewCard
         trip={trip.data}
         nights={days.data?.length ?? 0}
@@ -73,11 +75,7 @@ export default function Overview() {
         onMoney={() => go("money")}
       />
 
-      {pinned.length > 0 ? (
-        <Card>
-          <RouteMap places={pinned} />
-        </Card>
-      ) : null}
+      <TripMapSection trip={trip.data} pinned={pinned} />
 
       {/* Ideas first while undated: before the dates exist it is the only live question here. */}
       <IdeasSection tripId={tripId} datesUnset={!trip.data.startDate && !trip.data.endDate} />

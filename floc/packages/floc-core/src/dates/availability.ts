@@ -7,7 +7,7 @@
  * through. Dates are `YYYY-MM-DD` strings throughout — no `Date` crosses a
  * boundary, and there is no timezone anywhere (non-negotiable 9).
  */
-import { addDays, fromIsoDate, toIsoDate, type IsoDate } from "./dates";
+import { addDays, dateRange, fromIsoDate, toIsoDate, type IsoDate } from "./dates";
 
 export type AvailabilityRow = {
   userId: string;
@@ -160,4 +160,16 @@ function longestRun(
   }
 
   return best;
+}
+
+/** How much of the trip one person can do, and which days they can't. Null when undated (rule 9). */
+export function tripCoverage(
+  isFree: (date: IsoDate) => boolean,
+  start: IsoDate | null,
+  end: IsoDate | null,
+): { free: number; total: number; missing: IsoDate[] } | null {
+  if (!start || !end) return null;
+  const days = dateRange(start, end);
+  const missing = days.filter((d) => !isFree(d));
+  return { free: days.length - missing.length, total: days.length, missing };
 }

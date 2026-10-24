@@ -3,19 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { ONE_STOP, RAIL, VIA } from "@/test/route-listings";
 
-import { routeParts, routeStops, toneOf } from "./listing";
-
-describe("routeStops", () => {
-  it("pins each base in order, numbered from one, with its nights as days", () => {
-    expect(routeStops(ONE_STOP)).toEqual([{ no: 1, name: "Praiano", days: 7, lat: 40.611, lng: 14.529 }]);
-  });
-
-  it("leaves hops off the map", () => {
-    const trip = PRESET_TRIPS.find((t) => t.legs.some((l) => l.kind === "hop") && t.legs.length > 2)!;
-    const bases = trip.legs.filter((l) => l.kind === "base").length;
-    expect(routeStops(trip).map((s) => s.no)).toEqual(Array.from({ length: bases }, (_, i) => i + 1));
-  });
-});
+import { routeParts, toneOf } from "./listing";
 
 describe("routeParts", () => {
   it("is each stay in order, with the move between two stays", () => {

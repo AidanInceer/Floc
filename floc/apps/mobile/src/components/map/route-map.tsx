@@ -1,22 +1,5 @@
-/**
- * Where the trip goes, on a real map (#no-ticket — the app half of the web's
- * `route-map.tsx`).
- *
- * REPLACES THE DOT PLOT. `place-plot.tsx` drew the places against their own
- * bounding box because the app had no map library; it has one now, and a plot
- * that answers "roughly where" is strictly worse than a map that answers it
- * exactly. The plot's other job survives here: the names stay underneath, and
- * a place with no coordinates is still named even though it cannot be pinned
- * (rule 11).
- *
- * PINS ARE NUMBERED, NOT LABELLED. A name on every pin is unreadable at phone
- * width; the number ties a pin to its position in the list below, which is the
- * same device the web map uses.
- *
- * NO DAY BADGE. The web's pin carries how many days the trip spends there,
- * derived from stops; `places.list` is a flat set with no days in it, so the
- * phone does not invent one.
- */
+// Why: pins are numbered, not named — a name on every pin is unreadable at phone width; the number
+// ties a pin to the list below. Natural Earth outlines, no tiles, as the web's Overview globe.
 import {
   Camera,
   GeoJSONSource,
@@ -26,11 +9,14 @@ import {
   type InitialViewState,
   type LngLat,
 } from "@maplibre/maplibre-react-native";
+import type { GroupRoute } from "@floc/api/port";
+import type { WhoTone } from "@floc/core/people/who";
 import { StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "../system/theme";
 import { Body, Figure } from "../system/ui";
-import { TILE_STYLE } from "@/lib/map";
+import { LandLayer } from "./land-layer";
+import { paperStyle } from "@/lib/map";
 import { fonts, radius, size, space } from "@/lib/theme";
 
 export type MappablePlace = {
@@ -42,13 +28,9 @@ export type MappablePlace = {
 
 const HEIGHT = 240;
 const PIN = 26;
-/** Zoom used when there is no box to fit — a town, not a country. */
-const SINGLE_ZOOM = 9;
-/**
- * Degrees below which a bounding box is treated as a single point. Fitting a
- * two-hotel route honestly gives a street map, which tells you less about
- * where the trip is than the town does.
- */
+/** Why: past this the 1:110m outlines turn to blocks, and there are no streets under them. */
+const MAX_ZOOM = 6;
+/** Degrees below which a bounding box is treated as a single point, shown at the closest zoom. */
 const TIGHT_SPAN = 0.2;
 /** Keeps the outermost pins off the frame's edge. */
 const FIT_PADDING = { top: 44, right: 44, bottom: 44, left: 44 };
@@ -75,16 +57,17 @@ function pin(places: MappablePlace[]): Pinned[] {
  * Where the camera opens. Bounds when the places are far enough apart to make
  * a box, the middle of them at town zoom when they are not.
  */
-function view(pins: Pinned[]): InitialViewState {
-  const lngs = pins.map((p) => p.lngLat[0]);
-  const lats = pins.map((p) => p.lngLat[1]);
+function view(pins: Pinned[], extra: LngLat[]): InitialViewState {
+  const all = [...pins.map((p) => p.lngLat), ...extra];
+  const lngs = all.map((p) => p[0]);
+  const lats = all.map((p) => p[1]);
   const west = Math.min(...lngs);
   const east = Math.max(...lngs);
   const south = Math.min(...lats);
   const north = Math.max(...lats);
 
   if (Math.max(east - west, north - south) < TIGHT_SPAN) {
-    return { center: [(west + east) / 2, (south + north) / 2], zoom: SINGLE_ZOOM };
+    return { center: [(west + east) / 2, (south + north) / 2], zoom: MAX_ZOOM };
   }
   return { bounds: [west, south, east, north], padding: FIT_PADDING };
 }
@@ -93,10 +76,11 @@ function view(pins: Pinned[]): InitialViewState {
  * The map alone. Explore draws a listing's bases over its own written route,
  * so it wants the frame without a second list of the same names under it.
  */
-export function RouteMapFrame({ places }: { places: MappablePlace[] }) {
+export function RouteMapFrame({ places, tracks = [] }: { places: MappablePlace[]; tracks?: GroupRoute[] }) {
   const { c } = useTheme();
   const pins = pin(places);
   if (pins.length === 0) return null;
+  const ink = (t: GroupRoute) => c[`${t.tone as WhoTone}-ink`];
 
   return (
     <View
@@ -110,14 +94,16 @@ export function RouteMapFrame({ places }: { places: MappablePlace[] }) {
         >
           <Map
             style={{ flex: 1 }}
-            mapStyle={TILE_STYLE}
+            mapStyle={paperStyle(c.sheet)}
             // Rotating and tilting a route map only ever loses north.
             touchRotate={false}
             touchPitch={false}
             logo={false}
             compass={false}
+            attribution={false}
           >
-            <Camera initialViewState={view(pins)} />
+            <Camera initialViewState={view(pins, tracks.flatMap((t) => t.path))} maxZoom={MAX_ZOOM} />
+            <LandLayer />
 
             {pins.length > 1 ? (
               <GeoJSONSource
@@ -144,6 +130,35 @@ export function RouteMapFrame({ places }: { places: MappablePlace[] }) {
                 />
               </GeoJSONSource>
             ) : null}
+
+            {tracks.filter((t) => t.path.length > 1).map((t) => (
+              <GeoJSONSource
+                key={t.userId}
+                id={`track-${t.userId}`}
+                data={{ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: t.path } }}
+              >
+                <Layer
+                  id={`track-line-${t.userId}`}
+                  type="line"
+                  paint={{ "line-color": ink(t), "line-width": 2.5, "line-opacity": 0.9 }}
+                  layout={{ "line-cap": "round", "line-join": "round" }}
+                />
+              </GeoJSONSource>
+            ))}
+
+            {tracks.flatMap((t) =>
+              t.live
+                ? [
+                    <Marker key={`live-${t.userId}`} lngLat={[t.live.lng, t.live.lat]}>
+                      <View
+                        accessible
+                        accessibilityLabel={`${t.name} is here`}
+                        style={{ width: 14, height: 14, borderRadius: 7, borderWidth: 2.5, borderColor: c.sheet, backgroundColor: ink(t) }}
+                      />
+                    </Marker>,
+                  ]
+                : [],
+            )}
 
             {pins.map((p) => (
               <Marker key={p.id} lngLat={p.lngLat}>
@@ -178,12 +193,13 @@ export function RouteMapFrame({ places }: { places: MappablePlace[] }) {
   );
 }
 
-export function RouteMap({ places }: { places: MappablePlace[] }) {
+export function RouteMap({ places, tracks, legend }: { places: MappablePlace[]; tracks?: GroupRoute[]; legend?: React.ReactNode }) {
   const missing = places.filter((p) => p.lat === null || p.lng === null);
 
   return (
     <View style={{ gap: space.md }}>
-      <RouteMapFrame places={places} />
+      <RouteMapFrame places={places} tracks={tracks} />
+      {legend}
 
       <Body>{places.map((p) => p.name).join(" → ")}</Body>
       <Figure tone="ink-2">

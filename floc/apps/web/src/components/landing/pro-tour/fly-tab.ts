@@ -1,15 +1,19 @@
-/** A copy of the tab flies from the strip onto the dashed copy of itself on the ticket; the real tab closes under it. */
+/**
+ * A copy of the tab flies from the strip onto the dashed copy of itself on the ticket; the real tab closes under it.
+ * The copy lives inside the browser frame, not the body, so a scroll mid-flight carries it with the frame and the frame clips it.
+ */
 export function flyTab(root: HTMLElement, key: string) {
   const tab = root.querySelector(`[data-tab="${key}"]`);
   const chip = root.querySelector(`[data-slot="${key}"] [data-chip]`);
   if (!tab || !chip) return;
   const from = tab.getBoundingClientRect();
   const to = chip.getBoundingClientRect();
+  const frame = root.getBoundingClientRect();
   const ghost = tab.cloneNode(true) as HTMLElement;
   ghost.removeAttribute("data-tab");
   ghost.classList.add("pro-ghost");
-  Object.assign(ghost.style, { left: `${from.left}px`, top: `${from.top}px`, width: `${from.width}px` });
-  document.body.append(ghost);
+  Object.assign(ghost.style, { left: `${from.left - frame.left - root.clientLeft}px`, top: `${from.top - frame.top - root.clientTop}px`, width: `${from.width}px` });
+  root.append(ghost);
   const there = `translate(${to.left - from.left}px, ${to.top + to.height / 2 - (from.top + from.height / 2)}px)`;
   const done = () => ghost.remove();
   ghost

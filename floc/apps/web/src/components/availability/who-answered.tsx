@@ -18,7 +18,7 @@ export function WhoAnswered({
   const answered = members.filter((m) => (marked[m.userId] ?? 0) > 0).length;
 
   return (
-    <section className="rounded-md border border-rule bg-sheet p-4 shadow-card">
+    <section className="p-4">
       <div className="flex items-baseline justify-between gap-2">
         <h2 className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint">
           Who has answered

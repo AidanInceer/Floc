@@ -15,6 +15,7 @@ import {
   readOptionalIsoDate,
   today,
   toIsoDate,
+  dayParts,
 } from "./dates";
 
 describe("date-only arithmetic", () => {
@@ -162,5 +163,11 @@ describe("the awkward halves of the date helpers", () => {
 
   it("counts a trip ending today as still live", () => {
     expect(splitEnded([{ endDate: today() }]).ended).toEqual([]);
+  });
+});
+
+describe("dayParts", () => {
+  it("splits a date into the weekday and the day of the month", () => {
+    expect(dayParts("2026-10-23")).toEqual({ weekday: "Fri", day: 23 });
   });
 });

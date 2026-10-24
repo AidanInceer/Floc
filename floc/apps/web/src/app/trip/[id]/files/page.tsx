@@ -11,6 +11,8 @@ import { listDocuments } from "@/server/documents/documents";
 import { storageUsage } from "@/server/documents/storage-quota";
 import type { TripDocument } from "@/server/documents/documents";
 import { documentsEnabled } from "@/server/documents/document-store";
+import { tripInboxAddress } from "@/server/documents/inbound/inbound-address";
+import { InboxAddress } from "@/components/documents/inbox-address";
 import {
   DOC_CATEGORIES,
   DOC_CATEGORY_LABELS,
@@ -45,6 +47,7 @@ export default async function FilesPage({
     ? await Promise.all([listDocuments(tripId, viewerId), storageUsage(tripId)])
     : [[], null];
 
+  const inbox = tripInboxAddress(tripId);
   const keep = (d: TripDocument) => category === "all" || d.category === category;
   const shared = docs.filter((d) => d.ownerId === null && keep(d));
   const mine = docs.filter((d) => d.ownerId !== null && keep(d));
@@ -67,6 +70,8 @@ export default async function FilesPage({
         <>
           {/* The pills scroll rather than wrap: wrapping dropped Upload onto a
               second line at phone width, where it read as a stray button. */}
+          {inbox ? <InboxAddress address={inbox} /> : null}
+
           <div className="mt-5 flex items-center justify-between gap-3">
             <div className="scroll-x-bare flex min-w-0 flex-1 items-center gap-1">
               <FilterPill href={href("all")} on={category === "all"}>
