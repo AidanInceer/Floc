@@ -128,7 +128,6 @@ export function FindFriend() {
         <input
           type="search"
           aria-label="Find someone by name or code"
-          placeholder="Find someone by name or code"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           autoComplete="off"

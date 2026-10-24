@@ -2,8 +2,7 @@
 import { countdownLabel, formatDateRange } from "@floc/core/dates/dates";
 import { titleCase } from "@floc/core/text/title-case";
 import { pastelOf } from "@floc/core/design/pastels";
-import { formatMoney } from "@floc/core/money/money";
-import type { SpendHeadline } from "@floc/core/money/spend";
+import { positionLines, type Position } from "@floc/core/money/position";
 import { readTripMark } from "@floc/core/trip/mark/trip-mark";
 import { readTripColor, tripPastel } from "@floc/core/trip/trip-color";
 import { Pressable, Text, View } from "react-native";
@@ -32,7 +31,7 @@ type CardTrip = {
 export function OverviewCard({
   trip,
   nights,
-  spend,
+  position,
   onEdit,
   onDates,
   onGroup,
@@ -40,7 +39,8 @@ export function OverviewCard({
 }: {
   trip: CardTrip;
   nights: number;
-  spend: SpendHeadline | null;
+  /** Where the viewer stands with the group; null while nothing is logged. */
+  position: Position | null;
   onEdit: () => void;
   onDates: () => void;
   onGroup: () => void;
@@ -129,11 +129,11 @@ export function OverviewCard({
 
       <View style={{ marginTop: space.sm, borderTopWidth: 1, borderTopColor: c.rule }}>
         <Line label={`${trip.members.length} going`} onPress={onGroup} />
-        <Line
-          label={spend ? "spent" : "Nothing spent yet"}
-          figure={spend ? formatMoney(spend.total, spend.currency) : null}
-          onPress={onMoney}
-        />
+        {position ? (
+          positionLines(position).map((line) => <Line key={line.label} label={line.label} figure={line.figure} onPress={onMoney} />)
+        ) : (
+          <Line label="Nothing spent yet" onPress={onMoney} />
+        )}
       </View>
     </View>
   );

@@ -103,7 +103,6 @@ export function PlacePicker({
             setSelected(result);
             onSelect?.(result);
           }}
-          placeholder="Search a place…"
           autoComplete="off"
         />
         {results.length > 0 ? (

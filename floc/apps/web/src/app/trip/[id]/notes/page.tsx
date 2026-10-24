@@ -2,6 +2,7 @@
 import type { PageThread } from "@floc/editor/view/comments";
 import { commentTime, type NoteRow } from "@floc/core/notes/notes";
 import { whoTone } from "@floc/core/people/who";
+import { pageToOpen } from "@floc/core/notes/pages/page-open";
 
 import { NotesWorkspace } from "@/components/notes/pages/notes-workspace";
 import { requireTripAccess } from "@/server/access";
@@ -29,7 +30,8 @@ export default async function NotesPage({
   const access = await requireTripAccess(id, `/trip/${id}/notes`);
   const { trip, viewer } = access;
   const [{ pages, archived }, links] = await Promise.all([loadPages(trip.id, viewer.id), loadTripLinkItems(trip.id)]);
-  const open = pages.find((p) => p.id === Number(page)) ?? pages[0];
+  // ensureFirstPage guarantees one page, so there is always one to open.
+  const open = pageToOpen(pages, page ? Number(page) : null)!;
   const toneOf = new Map(access.members.map((member) => [member.userId, member.tone]));
   const [rows, epoch] = await Promise.all([
     loadPageComments({ tripId: trip.id, pageId: open.id, viewerId: viewer.id, toneOf }),

@@ -91,7 +91,12 @@ function focusFacts(days: CalendarDay[], index: number, events: CalendarEvent[])
     dayNumber: index + 1,
     tripLength: days.length,
     stay: day.overnightPlaceName
-      ? { placeName: day.overnightPlaceName, night: runDays.indexOf(day) + 1, nights: runDays.length }
+      ? {
+          placeName: day.overnightPlaceName,
+          // The trip's last day is the day home: no night, as on Dates (stops.ts).
+          night: index === days.length - 1 ? null : runDays.indexOf(day) + 1,
+          nights: runDays.length - (runDays.includes(days[days.length - 1]) ? 1 : 0),
+        }
       : null,
     eventCount: events.filter((e) => e.dayId === day.id).length,
   };

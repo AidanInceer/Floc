@@ -1,5 +1,6 @@
 // The web Overview's legs, cut back: one row per stop, where you sleep, and how you get to the next.
 import { formatDate } from "@floc/core/dates/dates";
+import { nightsLabel } from "@floc/core/itinerary/stops";
 import { hopLabel, type Leg, type LegFile } from "@floc/core/trip/overview/legs";
 import { Pressable, Text, View } from "react-native";
 
@@ -42,7 +43,7 @@ function LegRow({ leg, onOpen }: { leg: Leg<Named>; onOpen: (date: string) => vo
     <Pressable
       testID={`leg-${leg.no}`}
       accessibilityRole="link"
-      accessibilityLabel={`Stop ${leg.no}, ${leg.placeName}, ${leg.nights} ${leg.nights === 1 ? "night" : "nights"}`}
+      accessibilityLabel={`Stop ${leg.no}, ${leg.placeName}, ${nightsLabel(leg.nights)}`}
       onPress={() => onOpen(leg.arrive)}
       style={({ pressed }) => ({
         flexDirection: "row",
@@ -61,7 +62,7 @@ function LegRow({ leg, onOpen }: { leg: Leg<Named>; onOpen: (date: string) => vo
       <View style={{ flex: 1, gap: 2 }}>
         <Text style={{ color: c.ink, fontFamily: fonts.display, fontSize: size.heading }}>{leg.placeName}</Text>
         <Text style={{ color: c["ink-2"], fontFamily: fonts.type, fontSize: size.label }}>
-          {`${formatDate(leg.arrive)} – ${formatDate(leg.leave)} · ${leg.nights} ${leg.nights === 1 ? "night" : "nights"}`}
+          {`${formatDate(leg.arrive)} – ${formatDate(leg.leave)} · ${nightsLabel(leg.nights)}`}
         </Text>
         <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: space.sm, marginTop: space.xs }}>
           {leg.stay ? (

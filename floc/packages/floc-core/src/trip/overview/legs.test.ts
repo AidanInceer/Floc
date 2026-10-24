@@ -28,15 +28,15 @@ describe("tripLegs", () => {
 
     expect(legs.map((l) => [l.no, l.placeName, l.nights])).toEqual([
       [1, "Lisbon", 2],
-      [2, "Lagos", 1],
+      [2, "Lagos", 0],
     ]);
   });
 
-  it("leaves a leg on the morning after its last night", () => {
+  it("leaves a leg on the morning after its last night, and the last leg on the trip's last day", () => {
     const { legs } = tripLegs({ days: lisbonThenLagos, modes: new Map(), files: [] });
 
     expect(legs[0]).toMatchObject({ arrive: "2026-10-09", leave: "2026-10-11" });
-    expect(legs[1]).toMatchObject({ arrive: "2026-10-11", leave: "2026-10-12" });
+    expect(legs[1]).toMatchObject({ arrive: "2026-10-11", leave: "2026-10-11" });
   });
 
   it("skips runs with no overnight place, so numbering stays with the map", () => {

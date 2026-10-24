@@ -8,7 +8,7 @@
 import { cx } from "@/components/system/ui";
 import { BedIcon } from "@/components/days/days-glyphs";
 import type { CalendarDay } from "@/components/days/days-calendar-shared";
-import { deriveStops } from "@floc/core/itinerary/stops";
+import { deriveStops, nightsLabel } from "@floc/core/itinerary/stops";
 import type { BandSpan } from "@floc/core/itinerary/overnight-band";
 
 export const shortPlace = (name: string) => name.split(",")[0];
@@ -57,7 +57,7 @@ export function StopStrip({
             </b>
             {stop.placeName ? (
               <small className="nums text-[11px] text-ink-faint max-sm:hidden">
-                {stop.nights} {stop.nights === 1 ? "night" : "nights"}
+                {nightsLabel(stop.nights)}
               </small>
             ) : null}
           </button>

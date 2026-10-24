@@ -105,7 +105,6 @@ export function SelectionBar({ editor, onComment }: { editor: Editor; onComment:
             ref={input}
             value={value}
             onChange={(event) => { setValue(event.target.value); setError(null); }}
-            placeholder={mode === "link" ? "Paste a link" : "Write a comment"}
             aria-label={mode === "link" ? "Link" : "Comment"}
             aria-invalid={error ? true : undefined}
           />

@@ -28,7 +28,7 @@ export type Leg<F extends LegFile> = {
   placeId: number;
   placeName: string;
   arrive: IsoDate;
-  /** The morning after the last night. */
+  /** The morning after the last night; the trip's last day for the last leg. */
   leave: IsoDate;
   nights: number;
   days: { dayId: number; date: IsoDate }[];
@@ -60,7 +60,7 @@ export function tripLegs<F extends LegFile>({
       placeId: s.placeId,
       placeName: s.placeName ?? "Unnamed place",
       arrive: s.startDate,
-      leave: addDays(s.endDate, 1),
+      leave: addDays(s.startDate, s.nights),
       nights: s.nights,
       days: days.filter((d) => s.dayIds.includes(d.dayId)).map((d) => ({ dayId: d.dayId, date: d.date })),
       mode: legs.length === 0 ? null : (modes.get(s.dayIds[0]) ?? null),

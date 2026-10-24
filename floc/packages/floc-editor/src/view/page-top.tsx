@@ -90,7 +90,6 @@ export function PageTop({ title, icon, onRename, onIcon, onDown, touch = false }
         rows={1}
         value={value}
         maxLength={PAGE_LIMITS.titleChars}
-        placeholder="Untitled"
         aria-label="Page name"
         onChange={(event) => { typing.current = true; setValue(event.target.value.replace(/\n/g, "")); }}
         onBlur={() => { if (typing.current) { typing.current = false; if (value.trim() !== title) onRename(value); } }}

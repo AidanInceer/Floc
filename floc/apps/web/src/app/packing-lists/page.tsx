@@ -46,7 +46,6 @@ export default async function PackingListsPage() {
                 name="name"
                 required
                 maxLength={80}
-                placeholder="Photography"
                 className={boxClass}
               />
             </label>
@@ -82,7 +81,6 @@ export default async function PackingListsPage() {
                   name="label"
                   required
                   maxLength={200}
-                  placeholder="Something to pack…"
                   className={boxClass}
                 />
               </label>

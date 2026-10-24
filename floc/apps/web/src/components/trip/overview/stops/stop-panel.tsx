@@ -4,6 +4,7 @@ import type { TripDocument } from "@/server/documents/documents";
 import type { DayEventRow } from "@/server/itinerary/itinerary";
 import { TravelModeIcon } from "@/components/map/travel-mode-icon";
 import { StopDay } from "./stop-day";
+import { nightsLabel } from "@floc/core/itinerary/stops";
 import { StopNo, cityOf, stopDates } from "./stop-parts";
 
 export function Arrival({ leg }: { leg: Leg<TripDocument> }) {
@@ -30,7 +31,7 @@ export function StopPanel({
         <StopNo no={leg.no} />
         <h3 className="font-display text-xl tracking-[-0.02em]">{cityOf(leg.placeName)}</h3>
         <span className="typed">
-          {leg.nights} {leg.nights === 1 ? "night" : "nights"} · {stopDates(leg)}
+          {nightsLabel(leg.nights)} · {stopDates(leg)}
         </span>
       </header>
       <ol className="mt-3">

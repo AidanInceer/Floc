@@ -82,7 +82,6 @@ export function EventForm({
             required
             maxLength={120}
             defaultValue={defaults.title ?? ""}
-            placeholder="Mini golf"
           />
         </Field>
         <EventTypeFields

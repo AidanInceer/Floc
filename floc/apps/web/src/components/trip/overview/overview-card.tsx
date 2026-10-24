@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import type { TripColor } from "@floc/core/trip/trip-color";
 import type { TripMark } from "@floc/core/trip/mark/trip-mark";
 import { countdownLabel, formatDateRange } from "@floc/core/dates/dates";
+import { positionLines, type Position } from "@floc/core/money/position";
 import { Menu } from "@/components/system/client-ui";
 import { Badge, PASTEL_BY_KEY, cx } from "@/components/system/ui";
 import { TripColorPicker } from "@/components/trip/trip-color-picker";
@@ -44,12 +45,12 @@ export type OverviewTrip = {
 
 export function OverviewCard({
   trip,
-  spent,
+  position,
   ideas,
 }: {
   trip: OverviewTrip;
-  /** The top-line total, already formatted; null while nothing is logged. */
-  spent: string | null;
+  /** Where the viewer stands with the group; null while nothing is logged. */
+  position: Position | null;
   /** The ideas row, once the plan has a shape (ideasTucked). */
   ideas?: ReactNode;
 }) {
@@ -102,18 +103,27 @@ export function OverviewCard({
 
       <div className="mt-4 border-t border-rule">
         <Link href={`/trip/${trip.id}/money`} className="flex items-baseline gap-2.5 border-b border-rule py-3 text-sm text-ink-soft hover:text-ink">
-          {spent ? (
-            <>
-              <span className="nums text-lg text-pastel-green-ink">{spent}</span>
-              spent
-            </>
-          ) : (
-            "Nothing spent yet"
-          )}
+          <PositionLine position={position} />
         </Link>
         {ideas}
       </div>
     </aside>
+  );
+}
+
+function PositionLine({ position }: { position: Position | null }) {
+  if (!position) return "Nothing spent yet";
+  return (
+    <span className="flex flex-col gap-0.5">
+      {positionLines(position).map((line) => (
+        <span key={line.label} className="flex items-baseline gap-2.5">
+          {line.figure ? line.label : <span className="font-display text-lg text-pastel-green-ink">{line.label}</span>}
+          {line.figure ? (
+            <span className={cx("nums text-lg", line.label === "You owe" ? "text-ink" : "text-pastel-green-ink")}>{line.figure}</span>
+          ) : null}
+        </span>
+      ))}
+    </span>
   );
 }
 

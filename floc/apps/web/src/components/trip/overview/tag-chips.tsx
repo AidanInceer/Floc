@@ -59,7 +59,6 @@ export function TagChips({
             name="tag"
             autoFocus
             maxLength={MAX_TAG_LENGTH}
-            placeholder="beach"
             aria-label="New tag"
             onKeyDown={(e) => {
               if (e.key === "Escape") setAdding(false);
