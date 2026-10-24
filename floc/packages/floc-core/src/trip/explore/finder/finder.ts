@@ -21,7 +21,7 @@ export type Finder = {
   likes: TripTag[];
 };
 
-export const NIGHTS_SCALE = { min: 5, max: 21 } as const;
+export const NIGHTS_SCALE = { min: 3, max: 21 } as const;
 export const PRICE_SCALE = { trip: { max: 5000, step: 50 }, night: { max: 400, step: 5 } } as const;
 const PRICE_BINS = 20;
 

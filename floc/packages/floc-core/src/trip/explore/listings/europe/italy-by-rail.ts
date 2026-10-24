@@ -1,0 +1,36 @@
+import { defineTrip } from "../../define-trip";
+
+export const italyByRail = defineTrip({
+  id: "italy-by-rail",
+  title: "Venice to the Amalfi coast",
+  operator: "Floc editorial",
+  editorial: true,
+  region: "Europe",
+  country: "Italy",
+  groupSize: "4–8 people",
+  priceFromMinor: 168000,
+  currency: "EUR",
+  summary:
+    "Italy top to toe by train: Venice, Florence with a day in Siena, the Cinque Terre, Rome, then down past Pompeii to a terrace in Positano and a boat to Capri.",
+  legs: [
+    { kind: "base", place: "Venice", nights: 2, lat: 45.44, lng: 12.316 },
+    { kind: "hop", place: "Florence", mode: "train", detail: "2h 15" },
+    { kind: "base", place: "Florence", nights: 3, lat: 43.769, lng: 11.256 },
+    { kind: "hop", place: "Siena", mode: "car", detail: "day trip" },
+    { kind: "hop", place: "Cinque Terre", mode: "train", detail: "2h 30" },
+    { kind: "base", place: "Cinque Terre", nights: 2, lat: 44.135, lng: 9.684 },
+    { kind: "hop", place: "Rome", mode: "train", detail: "4h" },
+    { kind: "base", place: "Rome", nights: 3, lat: 41.903, lng: 12.496 },
+    { kind: "hop", place: "Naples", mode: "train", detail: "1h 10" },
+    { kind: "base", place: "Naples", nights: 1, lat: 40.852, lng: 14.268 },
+    { kind: "hop", place: "Pompeii", mode: "train", detail: "day trip" },
+    { kind: "hop", place: "Positano", mode: "ferry", detail: "1h 30" },
+    { kind: "base", place: "Positano", nights: 3, lat: 40.628, lng: 14.485 },
+    { kind: "hop", place: "Capri", mode: "ferry", detail: "day trip" },
+  ],
+  highlights: ["The Uffizi at opening time", "Path of the Gods, walked downhill", "A day on Capri"],
+  bestMonths: "April to June, September",
+  interests: ["Food", "History", "Cities"],
+  landscape: ["Coast", "Countryside"],
+  effort: "Easy",
+});

@@ -28,15 +28,34 @@ import {
   userProfile,
 } from "@/db/schema";
 import { auth } from "@/server/auth/auth";
+import { memberSession } from "@/server/auth/member-session";
 import { bounded, LIMITS } from "@/server/limits";
 import { requestMemo } from "@/server/request-scope";
 import { localPath } from "@floc/core/text/local-path";
 import { whoTone } from "@floc/core/people/who";
 import type { TripRole } from "@/db/schema";
 
-export const getSession = cache(async () => {
+const getRawSession = cache(async () => {
   return auth.api.getSession({ headers: await headers() });
 });
+
+export const getSession = cache(async () => memberSession(await getRawSession()));
+
+/**
+ * The guest on an invite link (#442), or null for a member or nobody. Only the invite page and its actions ask.
+ * Why the row, not the session's user: the cookie cache holds the name from before the guest gave one, and a
+ * removed or purged guest must stop counting at once.
+ */
+export async function getInviteGuest(): Promise<{ id: string; name: string } | null> {
+  const session = await getRawSession();
+  if (!session?.user?.isAnonymous) return null;
+  const row = await db
+    .select({ id: user.id, name: user.name })
+    .from(user)
+    .where(and(eq(user.id, session.user.id), eq(user.isAnonymous, true)))
+    .get();
+  return row ?? null;
+}
 
 export async function requireUser(redirectTo?: string) {
   const session = await getSession();
@@ -184,17 +203,17 @@ async function loadFoundAccess(tripId: number, viewerId: string): Promise<TripAc
   if (!membership || !row) return null;
 
   const viewer = await db
-    .select({ id: user.id, name: user.name, email: user.email, image: user.image })
+    .select({ id: user.id, name: user.name, email: user.email, image: user.image, isAnonymous: user.isAnonymous })
     .from(user)
     .where(eq(user.id, viewerId))
     .get();
-  if (!viewer) return null;
+  if (!viewer || viewer.isAnonymous) return null;
 
   return {
     trip: row,
     role: membership.role,
     isAdmin: membership.role === "admin",
-    viewer: { ...viewer, image: viewer.image ?? null },
+    viewer: { id: viewer.id, name: viewer.name, email: viewer.email, image: viewer.image ?? null },
     members,
     ...scopedTo(tripId, viewerId, refuseMissing),
   };

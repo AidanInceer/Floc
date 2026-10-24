@@ -40,7 +40,7 @@ export function tripLayer(canvas: HTMLCanvasElement, paint: Painter) {
     const fit = frameRoute(route, clear, FOOT);
     const { view, R, at } = fit;
     const back = (p: { x: number; y: number }) => unproject(view, (p.x - fit.cx) / R, (fit.cy - p.y) / R);
-    const shape = routeShape(route, at, { samples: 40, loop: 44, least: 60, tagWidth: width });
+    const shape = routeShape(route, at, { samples: 40, out: 44, least: 60 });
     return {
       shape,
       pieces: shape.pieces.map((p) => p.px.map(back)),

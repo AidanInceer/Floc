@@ -3,22 +3,24 @@
 import { useEffect, useState } from "react";
 
 import { addIdea, removeIdea, voteIdea } from "@/app/trip/[id]/overview/actions";
-import { Avatar, EmptyState, Input, cx } from "@/components/system/ui";
+import { Avatar, EmptyState, Input } from "@/components/system/ui";
 import { ActionForm, PillToggle, SubmitButton } from "@/components/system/client-ui";
 import { TEXT_CAPS } from "@floc/core/text/text";
 import {
   readIdeaSort,
   sortIdeas,
-  voteLabel,
   type IdeaRow,
   type IdeaSort,
 } from "@floc/core/trip/ideas";
-import { ArrowUpIcon, CrossIcon } from "@/components/system/icons";
+import { CrossIcon } from "@/components/system/icons";
+import { IdeaVoteButton } from "./idea-vote-button";
+import { useSteadyOrder } from "./use-steady-order";
 
 const SORT_KEY = "floc:ideas-sort";
 
 export function IdeasBoard({ tripId, ideas }: { tripId: number; ideas: IdeaRow[] }) {
   const [sort, setSort] = useState<IdeaSort>("votes");
+  const shown = useSteadyOrder(sortIdeas(ideas, sort), sort);
 
   // The order is a reading preference, not trip data — it rides in the browser.
   useEffect(() => {
@@ -50,7 +52,7 @@ export function IdeasBoard({ tripId, ideas }: { tripId: number; ideas: IdeaRow[]
             />
           ) : null}
           <ul className="divide-y divide-rule rounded-lg border border-rule bg-sheet">
-            {sortIdeas(ideas, sort).map((idea) => (
+            {shown.map((idea) => (
               <IdeaLine key={idea.id} tripId={tripId} idea={idea} />
             ))}
           </ul>
@@ -77,18 +79,7 @@ function IdeaLine({ tripId, idea }: { tripId: number; idea: IdeaRow }) {
       <form action={voteIdea}>
         <input type="hidden" name="tripId" value={tripId} />
         <input type="hidden" name="ideaId" value={idea.id} />
-        <button
-          type="submit"
-          aria-pressed={idea.mine}
-          aria-label={`${idea.mine ? "Take back your vote for" : "Vote for"} “${idea.title}” — ${voteLabel(idea.votes, idea.mine)}`}
-          className={cx(
-            "grid h-11 w-10 shrink-0 place-content-center justify-items-center gap-0.5 rounded-lg border text-ink-soft transition-colors",
-            idea.mine ? "border-green-edge bg-green-soft text-green" : "border-rule-strong bg-sheet hover:border-pen hover:text-ink",
-          )}
-        >
-          <ArrowUpIcon size={12} />
-          <span className="nums text-xs leading-none">{idea.votes}</span>
-        </button>
+        <IdeaVoteButton type="submit" title={idea.title} votes={idea.votes} mine={idea.mine} />
       </form>
       <span className="grid min-w-0 flex-1 gap-0.5 leading-snug">
         <span className="text-[15px] text-ink">{idea.title}</span>

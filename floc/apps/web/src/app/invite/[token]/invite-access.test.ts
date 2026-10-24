@@ -18,6 +18,7 @@ import {
 } from "@/test/db";
 import {
   inviteAuthHrefs,
+  inviteTokenIn,
   inviteTrip,
   inviteViewer,
 } from "@/app/invite/[token]/invite-access";
@@ -99,5 +100,26 @@ describe("where the link sends somebody", () => {
   it("escapes a token rather than letting it shape the URL", () => {
     const { signInHref } = inviteAuthHrefs("a/b?c=d");
     expect(signInHref).toBe(`/login?redirect=${encodeURIComponent("/invite/a/b?c=d")}`);
+  });
+});
+
+describe("a sign-up that came from a link (#442)", () => {
+  it("finds the token in the way back", () => {
+    expect(inviteTokenIn("/invite/abc")).toBe("abc");
+  });
+
+  it("finds nothing in any other way back", () => {
+    expect(inviteTokenIn(undefined)).toBeNull();
+    expect(inviteTokenIn("/trips")).toBeNull();
+    expect(inviteTokenIn("/invite/abc/files")).toBeNull();
+    expect(inviteTokenIn("https://evil.test/invite/abc")).toBeNull();
+  });
+});
+
+describe("a guest on the link (#442)", () => {
+  it("is answered as a guest with their name, not as somebody who can join", async () => {
+    await db.insert(schema.user).values({ id: "g-sam", name: "Sam", email: "g@guest.test", isAnonymous: true });
+    signIn("g-sam");
+    expect(await inviteViewer(world.ours.id)).toEqual({ kind: "guest", id: "g-sam", name: "Sam" });
   });
 });

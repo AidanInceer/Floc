@@ -30,6 +30,7 @@ const EVERY_FACT: { [K in FactKind]: Extract<Fact, { kind: K }> } = {
   notesPages: { kind: "notesPages", tripId: TRIP },
   tripList: { kind: "tripList" },
   invites: { kind: "invites" },
+  invitePage: { kind: "invitePage", token: "u1" },
   profile: { kind: "profile" },
   accountSettings: { kind: "accountSettings" },
   profileTrips: { kind: "profileTrips" },

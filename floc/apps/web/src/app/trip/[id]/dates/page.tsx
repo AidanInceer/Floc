@@ -1,6 +1,7 @@
 // Dates tab (#197, #233). Undated is the normal starting state, never an error (rule 9).
 import { requireTripAccess } from "@/server/access";
 import { listAvailability } from "@/server/itinerary/availability";
+import { listGuests, type Guest } from "@/server/guests/guests";
 import { canUseFeature } from "@/server/billing/entitlements";
 import { listDayLoads, listRouteDays } from "@/server/itinerary/itinerary";
 import { bookingPlan } from "@floc/core/trip/booking-links";
@@ -42,6 +43,7 @@ import type { TripMember } from "@/server/access";
 import {
   clearMyAvailability,
   clearTripDates,
+  removeTripGuest,
   saveAvailability,
   setTripDates,
   applyBestWindow,
@@ -62,7 +64,7 @@ export default async function DatesPage({
   const { trip, viewer, members } = access;
   const tripId = trip.id;
 
-  const [rows, dayLoads, routeDays, forecast, weatherPro, bookingPrefill] = await Promise.all([
+  const [rows, dayLoads, routeDays, forecast, weatherPro, bookingPrefill, guests] = await Promise.all([
     listAvailability(tripId),
     listDayLoads(tripId),
     listRouteDays(tripId),
@@ -71,6 +73,7 @@ export default async function DatesPage({
     getTripForecast(tripId),
     canUseFeature("dates.weather", tripId),
     canUseFeature("booking.prefill", tripId),
+    listGuests(tripId),
   ]);
 
   const free = rows.filter((r) => r.available);
@@ -123,7 +126,7 @@ export default async function DatesPage({
   const bestCard = best ? (
     <BestWindowCard
       window={best}
-      memberCount={members.length}
+      memberCount={members.length + guests.length}
       current={best.start === trip.startDate && best.end === trip.endDate}
       cost={bestNoun ? { noun: bestNoun, label: windowCostLabel(bestCost!)! } : null}
       apply={applyBestWindow.bind(null, tripId, best.start, best.end)}
@@ -135,7 +138,7 @@ export default async function DatesPage({
       firstMonth={firstMonth}
       mine={mine}
       tallies={tallies}
-      memberCount={members.length}
+      memberCount={members.length + guests.length}
       tripStart={trip.startDate}
       tripEnd={trip.endDate}
       dayLoads={dayLoads}
@@ -152,6 +155,8 @@ export default async function DatesPage({
             marked={marked}
             viewerId={viewer.id}
             nudgeFor={(m) => <NudgeSheet tripId={tripId} member={m} />}
+            guests={guests}
+            removeGuestFor={(g) => <RemoveGuest tripId={tripId} guest={g} />}
           />
         ),
         trip: <TripBlock start={trip.startDate} end={trip.endDate} />,
@@ -295,5 +300,24 @@ function NudgeSheet({
         </Stack>
       </form>
     </Sheet>
+  );
+}
+
+/** Any member may remove a guest: a guest is not a member, so this is not an admin power (rule 6, ADR-029). */
+function RemoveGuest({ tripId, guest }: { tripId: number; guest: Guest }) {
+  return (
+    <Menu label={`${guest.name} actions`}>
+      <form action={removeTripGuest.bind(null, tripId, guest.id)}>
+        <ConfirmSubmit
+          variant="ghost"
+          className={menuDangerItemClass}
+          message={`Remove ${guest.name}? Their votes and days go for good.`}
+          confirmLabel="Remove"
+          pendingLabel="Removing…"
+        >
+          Remove guest
+        </ConfirmSubmit>
+      </form>
+    </Menu>
   );
 }

@@ -1,0 +1,36 @@
+import { defineTrip } from "../../define-trip";
+
+export const hanoiToBangkok = defineTrip({
+  id: "hanoi-to-bangkok",
+  title: "Hanoi to Bangkok",
+  operator: "Intrepid Travel",
+  region: "Asia",
+  country: "Vietnam, Cambodia, Thailand",
+  groupSize: "6–12 people",
+  priceFromMinor: 215000,
+  currency: "GBP",
+  summary:
+    "Halong Bay by boat, the night train to Hue, lanterns in Hoi An, then over the border to Phnom Penh and Angkor, and out through Bangkok.",
+  legs: [
+    { kind: "base", place: "Hanoi", nights: 2, lat: 21.028, lng: 105.854, country: "VN" },
+    { kind: "hop", place: "Halong Bay", mode: "ferry", detail: "day cruise" },
+    { kind: "hop", place: "Hue", mode: "train", detail: "13h, overnight" },
+    { kind: "base", place: "Hue", nights: 2, lat: 16.463, lng: 107.59, country: "VN" },
+    { kind: "hop", place: "Hoi An", mode: "car", detail: "3h" },
+    { kind: "base", place: "Hoi An", nights: 3, lat: 15.88, lng: 108.338, country: "VN" },
+    { kind: "hop", place: "Ho Chi Minh City", mode: "flight", detail: "1h 25" },
+    { kind: "base", place: "Ho Chi Minh City", nights: 2, lat: 10.776, lng: 106.7, country: "VN" },
+    { kind: "hop", place: "Phnom Penh", mode: "car", detail: "6h by bus" },
+    { kind: "base", place: "Phnom Penh", nights: 2, lat: 11.556, lng: 104.928, country: "KH" },
+    { kind: "hop", place: "Siem Reap", mode: "car", detail: "6h by bus" },
+    { kind: "base", place: "Siem Reap", nights: 3, lat: 13.367, lng: 103.844, country: "KH" },
+    { kind: "hop", place: "Angkor Wat", mode: "car", detail: "day trip" },
+    { kind: "hop", place: "Bangkok", mode: "flight", detail: "1h 10" },
+    { kind: "base", place: "Bangkok", nights: 2, lat: 13.756, lng: 100.502, country: "TH" },
+  ],
+  highlights: ["A day on Halong Bay", "The night train to Hue", "Angkor Wat at sunrise"],
+  bestMonths: "November to March",
+  interests: ["Food", "History", "Cities"],
+  landscape: ["Coast"],
+  effort: "Moderate",
+});

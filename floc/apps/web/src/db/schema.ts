@@ -53,6 +53,8 @@ export const user = sqliteTable("user", {
     .notNull()
     .default(false),
   image: text("image"),
+  /** A guest on an invite link (#442, ADR-029): votes with a name, is never a member, and is deleted a week after they start unless they make an account. */
+  isAnonymous: integer("is_anonymous", { mode: "boolean" }).notNull().default(false),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(now),
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(now),
 });

@@ -1,21 +1,18 @@
 /**
- * What the viewer owes, or is owed (ticket 299).
+ * What the viewer owes, or is owed (ticket 299), for the trip header's chip.
  *
- * DERIVED, NEVER FETCHED. There is no balance column and no balance procedure,
- * because a stored balance is a second source of truth about the same money.
- * The arithmetic itself is `ledgerBalances` from `@floc/core/money` — the
- * same function the web app calls, so the two cannot disagree by a penny.
+ * DERIVED, NEVER STORED. It is the sum of the viewer's own payments as the
+ * server works them out for Money (#463), through `yourPosition` from
+ * `@floc/core/money` — the same function the web Overview calls, so the
+ * chip, Overview and Money cannot disagree by a penny.
  *
- * MONEY IS NEVER A FLOAT (rule 1). `minor` is integer minor units all the way
- * through; `figure` is a string for display and is never read back as a number.
- *
- * Three screens want this same answer — the trip header's chip, Overview's
- * outstanding list, and Money itself — which is the second call site YAGNI
- * asks for before a helper exists.
+ * MONEY IS NEVER A FLOAT (rule 1). `figure` is a string for display and is
+ * never read back as a number.
  */
-import { CURRENCIES, type Currency } from "@floc/core/money/currency";
-import { ledgerBalances } from "@floc/core/money/ledger";
+import type { Currency } from "@floc/core/money/currency";
+import type { SettleRow } from "@floc/core/money/group-settle";
 import { formatMoney } from "@floc/core/money/money";
+import { yourPosition } from "@floc/core/money/position";
 import type { Ledger } from "@floc/api/port";
 
 export type ViewerBalance = {
@@ -32,25 +29,14 @@ export function ledgerCurrency(ledger: Ledger | undefined): Currency {
   return ledger?.expenses[0]?.currency ?? "GBP";
 }
 
-export function viewerBalance(
-  ledger: Ledger | undefined,
-  viewerId: string | undefined,
-): ViewerBalance {
-  if (!ledger || !viewerId) return SETTLED;
-
-  const balances = ledgerBalances(ledger);
-
-  // Why: two currencies never add up, so each book says its own figure (#317).
-  const books = CURRENCIES.map((currency) => ({
-    currency,
-    minor: balances[currency]?.[viewerId] ?? 0,
-  }));
-  const owe = books
-    .filter((b) => b.minor < 0)
-    .map((b) => `owe ${formatMoney(-b.minor, b.currency)}`);
-  const owed = books
-    .filter((b) => b.minor > 0)
-    .map((b) => `owed ${formatMoney(b.minor, b.currency)}`);
-  if (owe.length + owed.length === 0) return SETTLED;
-  return { figure: [...owe, ...owed].join(" · "), owing: owe.length > 0, settled: false };
+export function viewerBalance(rows: readonly SettleRow[] | undefined, viewerId: string | undefined): ViewerBalance {
+  if (!rows || !viewerId) return SETTLED;
+  const position = yourPosition(rows, viewerId);
+  if (position.kind === "square") return SETTLED;
+  // Rule 11: without a rate each currency says its own figure.
+  const totals = position.kind === "net" ? [position] : position.rows;
+  const figure = totals
+    .map((t) => `${t.amountMinor < 0 ? "owe" : "owed"} ${formatMoney(Math.abs(t.amountMinor), t.currency)}`)
+    .join(" · ");
+  return { figure, owing: totals.some((t) => t.amountMinor < 0), settled: false };
 }

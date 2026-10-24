@@ -22,7 +22,7 @@ export const sampleStops = [
 ];
 
 export const sampleRoute: OverviewRoute = {
-  stops: sampleStops.map((s) => ({ place: s.name, lat: s.lat, lng: s.lng })),
+  stops: sampleStops.map((s) => ({ place: s.name, lat: s.lat, lng: s.lng, nights: s.days })),
   moves: [
     { mode: "train", time: "1h" },
     { mode: "train", time: "2h 40" },

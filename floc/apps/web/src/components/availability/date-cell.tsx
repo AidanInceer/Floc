@@ -2,7 +2,7 @@
 
 /**
  * One day on the Dates calendar. Its colour comes from `dayMark` and is the same on every
- * tab; your own day is a soft disc behind the number. Every mark sits on top of the cell,
+ * tab; your own day is a soft disc behind the number, solid on the trip so it reads on the green. Every mark sits on top of the cell,
  * never in its flow, so the number never moves.
  */
 import { cx } from "@/components/system/ui";
@@ -45,6 +45,18 @@ export type DateCellProps = {
   selected?: boolean;
 };
 
+function MineDisc({ onTrip }: { onTrip: boolean }) {
+  return (
+    <span
+      aria-hidden
+      className={cx(
+        "absolute left-1/2 top-1/2 size-8 -translate-x-1/2 -translate-y-1/2 rounded-full",
+        onTrip ? "bg-sheet" : "bg-current/15",
+      )}
+    />
+  );
+}
+
 export function DateCell(p: DateCellProps) {
   const key = markKey(p.mark);
   const live = p.press !== null || p.activate !== null;
@@ -60,16 +72,8 @@ export function DateCell(p: DateCellProps) {
           live && !key && "group-hover:bg-sheet-2",
         )}
       />
-      {p.mine ? (
-        <span
-          aria-hidden
-          className={cx(
-            "absolute left-1/2 top-1/2 size-8 -translate-x-1/2 -translate-y-1/2 rounded-full",
-            key === "trip" ? "bg-current/20" : "bg-current/15",
-          )}
-        />
-      ) : null}
-      <span className={cx("nums relative", p.cut && "line-through", p.today && "underline decoration-1 underline-offset-4")}>
+      {p.mine ? <MineDisc onTrip={key === "trip"} /> : null}
+      <span className={cx("nums relative", p.mine && key === "trip" && "text-green", p.cut && "line-through", p.today && "underline decoration-1 underline-offset-4")}>
         {Number(p.date.slice(8, 10))}
       </span>
       {p.hi !== undefined ? (

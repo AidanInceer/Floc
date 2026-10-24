@@ -23,6 +23,11 @@ describe("tripRoute", () => {
     expect(route.outs).toEqual([{ at: 0, place: "Positano, Amalfi, Capri", mode: "ferry" }]);
   });
 
+  it("carries each stop's nights, for the map to write on its name", () => {
+    expect(tripRoute(ONE_STOP).stops[0]!.nights).toBe(7);
+    expect(tripRoute(ROUND).stops.map((s) => s.nights)).toEqual([2, 4, 3]);
+  });
+
   it("leaves a move unknown when the listing goes from stop to stop with no hop", () => {
     const route = tripRoute(UNSAID);
     expect(route.moves[0]).toBeNull();

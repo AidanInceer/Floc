@@ -3,18 +3,13 @@
  * balances are derived at read time from expenses − settlements (rule 04,
  * `ledgerBalances`), the page shows only the *simplified* transfers that
  * square everyone up, and a merged activity feed of expenses and settlements
- * that any member can delete to revert. The top of the page is the viewer's
- * own two sides only — what they owe, what they are owed (#317) — and collapses
- * behind a "settled up" banner as soon as *they* are square, whether or not two
- * other people still owe each other.
+ * that any member can delete to revert. The top of the page is the group's
+ * fewest payments across currencies, in the viewer's home currency (#463): the
+ * viewer's own first and large, everyone else's small under them.
  */
 import type { Currency, ExpenseSplit } from "@/db/schema";
-import { CURRENCIES } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
 import { formatDate } from "@floc/core/dates/dates";
-import { ledgerBalances } from "@floc/core/money/ledger";
-import { suggestSettlements } from "@floc/core/money/money";
-import { yourSettleUp, type CurrencyTransfer } from "@floc/core/money/settle-up";
 import { listDays } from "@/server/itinerary/itinerary";
 import {
   listExpenses,
@@ -26,9 +21,8 @@ import { getProfile } from "@/server/auth/profile";
 import { getHomeRates } from "@/server/money/fx";
 import { Avatar, PageTitle, EmptyState, SectionHeading } from "@/components/system/ui";
 import { Sheet } from "@/components/system/client-ui";
-import { ConvertAmount } from "@/components/money/money-client";
-import { pairSettleUpFrom, type PairSettleUp } from "@/server/money/pair-settle-up";
-import type { PairRow } from "@floc/core/money/pair-settle";
+import { settleUpFrom, type SettleUp } from "@/server/money/settle-up";
+import { paidIn, type SettleRow } from "@floc/core/money/group-settle";
 import { formatMoney } from "@floc/core/money/money";
 import { PairSettleForm, SettleUpForm } from "@/components/money/settlement-form";
 import { ActivityFeed } from "@/components/money/money-activity";
@@ -96,9 +90,6 @@ export default async function MoneyPage({
 
   const dayById = new Map(days.map((d) => [d.id, d]));
 
-  const balances = ledgerBalances({ expenses, splits, settlements });
-  const active = CURRENCIES.filter((c) => Object.keys(balances[c]).length > 0);
-
   const formMembers: FormMember[] = access.members.map((m) => ({
     userId: m.userId,
     name: m.name,
@@ -122,13 +113,8 @@ export default async function MoneyPage({
 
   const hasActivity = expenses.length > 0 || settlements.length > 0;
 
-  // Every transfer that squares the group up, across currencies — then only the
-  // viewer's own, because the rest is other people's business (#317).
-  const transfers: CurrencyTransfer[] = active.flatMap((currency) =>
-    suggestSettlements(balances[currency]).map((s) => ({ ...s, currency })),
-  );
-  const mine = yourSettleUp({ transfers, viewerId });
-  const pairs = await pairSettleUpFrom({ ledger: { expenses, splits, settlements }, viewerId, base: homeCurrency, rates });
+  const settle = await settleUpFrom({ ledger: { expenses, splits, settlements }, viewerId });
+  const settled = settle.rows.length === 0;
 
   return (
     <div className="mx-auto w-full max-w-[64rem] px-4 pb-20 pt-6 sm:px-6">
@@ -140,22 +126,14 @@ export default async function MoneyPage({
         <EmptyMoney addForm={addForm} />
       ) : (
         <div className="mt-8 flex flex-col gap-4">
-          {mine.settled ? (
+          {settled ? (
             <SettledBanner addForm={addForm} />
           ) : (
-            <MySettleUp
-              tripId={tripId}
-              viewerId={viewerId}
-              pairs={pairs}
-              label={label}
-              tone={tone}
-              home={homeCurrency}
-              rateFor={rateFor}
-            />
+            <SettleUpPanel tripId={tripId} viewerId={viewerId} settle={settle} label={label} tone={tone} />
           )}
 
           <ActivityFeed
-            collapsed={mine.settled}
+            collapsed={settled}
             action={
               <Sheet trigger="Add expense" title="Expense" keepOpenOnSubmit>
                 {addForm}
@@ -235,71 +213,50 @@ function SettledBanner({ addForm }: { addForm: React.ReactNode }) {
 }
 
 /**
- * Your own side of settle-up, and only yours (#317): money out on the left,
- * money in on the right, each side holding its own total per currency. A
- * transfer between two other people is real but it is not yours to act on — it
- * shows in the feed when it happens, and a button on somebody else's debt was
- * what made this page read as a wall.
+ * The group's payments (#463): yours first and large, money out on the left and in on the right; then, small, the
+ * payments between other people. Only the two people in a payment can mark it paid, so theirs have no button.
  */
-function MySettleUp({
+function SettleUpPanel({
   tripId,
   viewerId,
-  pairs,
+  settle,
   label,
   tone,
-  home,
-  rateFor,
 }: {
   tripId: number;
   viewerId: string;
-  pairs: PairSettleUp;
+  settle: SettleUp;
   label: (userId: string) => string;
   tone: (userId: string) => string | undefined;
-  home: Currency;
-  rateFor: (currency: Currency) => number | null;
 }) {
-  const row = (pair: PairRow) => {
-    const paying = pair.payer === viewerId;
-    const other = pair.other;
-    const t = { from: pair.payer, to: pair.payee, currency: pair.currency, amountMinor: pair.amountMinor };
+  const row = (r: SettleRow) => {
+    const paying = r.payer === viewerId;
+    const other = paying ? r.payee : r.payer;
     return (
-      <li
-        key={`${t.from}-${t.to}-${t.currency}`}
-        className="flex flex-wrap items-center justify-between gap-3 border-b border-rule py-3 last:border-b-0"
-      >
+      <li key={`${r.payer}-${r.payee}`} className="flex flex-wrap items-center justify-between gap-3 border-b border-rule py-3 last:border-b-0">
         <span className="flex items-center gap-2.5">
-          <Avatar name={label(other)} tone={tone(other)} size={28} />
-          <span className="text-sm">{label(other)}</span>
+          <Avatar name={label(other)} tone={tone(other)} size={32} />
+          <span className="text-[15px]">{label(other)}</span>
         </span>
         <span className="flex items-center gap-3">
-          {pair.netted ? (
-            <span className="nums text-sm font-medium">{formatMoney(pair.amountMinor, pair.currency)}</span>
-          ) : (
-            <ConvertAmount
-              amountMinor={t.amountMinor}
-              currency={t.currency}
-              home={home}
-              rate={rateFor(t.currency)}
-              className="nums text-sm font-medium"
-            />
-          )}
+          <span className="nums font-display text-xl tracking-tight">{formatMoney(r.amountMinor, r.currency)}</span>
           <Sheet trigger="Settle up" title="Settle up" triggerVariant={paying ? "primary" : "secondary"} keepOpenOnSubmit>
-            {pair.netted ? (
+            {r.netted ? (
               <PairSettleForm
                 tripId={tripId}
                 otherUserId={other}
-                summary={<PairSummary pair={pair} viewerId={viewerId} rateDate={pairs.rateDate} label={label} />}
+                summary={<PairSummary row={r} viewerId={viewerId} rateDate={settle.rateDate} label={label} />}
                 action={settlePair}
               />
             ) : (
               <SettleUpForm
                 tripId={tripId}
-                fromUserId={t.from}
-                toUserId={t.to}
-                fromName={label(t.from)}
-                toName={label(t.to)}
-                currency={t.currency}
-                amountMinor={t.amountMinor}
+                fromUserId={r.payer}
+                toUserId={r.payee}
+                fromName={label(r.payer)}
+                toName={label(r.payee)}
+                currency={r.currency}
+                amountMinor={r.amountMinor}
                 action={recordSettlement}
               />
             )}
@@ -309,61 +266,66 @@ function MySettleUp({
     );
   };
 
-  const column = (
-    title: string,
-    empty: string,
-    rows: PairRow[],
-    paying: boolean,
-  ) => {
-    return (
-      <section className="rounded-lg bg-sheet p-6">
-        <SectionHeading className="border-b border-rule pb-3">{title}</SectionHeading>
-        {rows.length === 0 ? (
-          <p className="flex min-h-[8rem] flex-col items-center justify-center gap-1 text-center">
-            <span className="font-display text-xl text-pastel-green-ink">{empty}</span>
-            <span className="text-sm text-ink-soft">
-              {paying
-                ? "You have paid your share."
-                : "Everyone has paid you back."}
-            </span>
-          </p>
-        ) : (
-          <>
-            <ul className="mt-2 flex flex-col">
-              {rows.map(row)}
-            </ul>
-          </>
-        )}
-      </section>
-    );
-  };
+  const column = (title: string, empty: string, note: string, rows: SettleRow[]) => (
+    <section className="rounded-lg bg-sheet p-6">
+      <SectionHeading className="border-b border-rule pb-3">{title}</SectionHeading>
+      {rows.length === 0 ? (
+        <p className="flex min-h-[8rem] flex-col items-center justify-center gap-1 text-center">
+          <span className="font-display text-xl text-pastel-green-ink">{empty}</span>
+          <span className="text-sm text-ink-soft">{note}</span>
+        </p>
+      ) : (
+        <ul className="mt-2 flex flex-col">{rows.map(row)}</ul>
+      )}
+    </section>
+  );
 
+  const others = settle.rows.filter((r) => r.payer !== viewerId && r.payee !== viewerId);
   return (
-    <div className="grid gap-4 md:grid-cols-2">
-      {column("You owe", "All square", pairs.rows.filter((p) => p.payer === viewerId), true)}
-      {column("You are owed", "Nothing to chase", pairs.rows.filter((p) => p.payee === viewerId), false)}
+    <div className="flex flex-col gap-4">
+      <div className="grid gap-4 md:grid-cols-2">
+        {column("You owe", "All square", "You have paid your share.", settle.rows.filter((r) => r.payer === viewerId))}
+        {column("You are owed", "Nothing to chase", "Everyone has paid you back.", settle.rows.filter((r) => r.payee === viewerId))}
+      </div>
+      {others.length > 0 ? (
+        <section className="rounded-lg bg-sheet px-6 py-4">
+          <h3 className="text-xs font-medium text-ink-soft">Between the others</h3>
+          <ul className="mt-1 flex flex-col">
+            {others.map((r) => (
+              <li key={`${r.payer}-${r.payee}`} className="flex items-baseline justify-between gap-3 py-1.5 text-sm text-ink-soft">
+                <span>
+                  {label(r.payer)} owes {label(r.payee)}
+                </span>
+                <span className="nums">{formatMoney(r.amountMinor, r.currency)}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
     </div>
   );
 }
 
-/** One netted payment as a receipt (#461): the figure and who it goes to, each debt it clears, then the rate (#253 keeps it beside the number). */
-function PairSummary({ pair, viewerId, rateDate, label }: { pair: PairRow; viewerId: string; rateDate: string | null; label: (userId: string) => string }) {
-  const youPay = pair.payer === viewerId;
-  const other = label(pair.other);
-  const lines = [...pair.parts]
-    .sort((a, b) => Number(b.fromUserId === pair.payer) - Number(a.fromUserId === pair.payer))
-    .map((p) => {
-      const owedBy = p.fromUserId === viewerId ? `You owe ${other}` : `${other} owes you`;
-      const sign = p.fromUserId === pair.payer ? "" : "−";
-      const cleared = formatMoney(p.clearsAmountMinor ?? p.amountMinor, p.clearsCurrency ?? p.currency);
-      const inPay = p.clearsCurrency ? formatMoney(p.amountMinor, p.currency) : null;
-      return { key: `${p.fromUserId}-${p.clearsCurrency ?? p.currency}`, owedBy, figure: `${sign}${cleared}`, inPay: inPay && `${sign}${inPay}` };
-    });
-  const rated = pair.parts.find((p) => p.fxRate && p.clearsCurrency);
+/**
+ * One payment as a receipt (#461): the figure in your currency, each debt it clears, what the payer hands over in
+ * theirs, then the rate (#253 keeps it beside the number).
+ */
+function PairSummary({ row, viewerId, rateDate, label }: { row: SettleRow; viewerId: string; rateDate: string | null; label: (userId: string) => string }) {
+  const youPay = row.payer === viewerId;
+  const other = label(youPay ? row.payee : row.payer);
+  const paid = paidIn(row);
+  const lines = row.parts.map((p) => {
+    const owedBy = p.fromUserId === viewerId ? `You owe ${other}` : `${other} owes you`;
+    const sign = p.fromUserId === row.payer ? "" : "−";
+    const cleared = formatMoney(p.clearsAmountMinor ?? p.amountMinor, p.clearsCurrency ?? p.currency);
+    const inPay = p.clearsCurrency ? formatMoney(p.amountMinor, p.currency) : null;
+    return { key: `${p.fromUserId}-${p.clearsCurrency ?? p.currency}`, owedBy, figure: `${sign}${cleared}`, inPay: inPay && `${sign}${inPay}` };
+  });
+  const rated = row.parts.find((p) => p.fxRate && p.clearsCurrency);
   return (
     <div className="flex flex-col gap-5">
       <div className="text-center">
-        <p className="nums font-display text-4xl tracking-tight">{formatMoney(pair.amountMinor, pair.currency)}</p>
+        <p className="nums font-display text-4xl tracking-tight">{formatMoney(row.amountMinor, row.currency)}</p>
         <p className="mt-1 text-sm text-ink-soft">{youPay ? `from you to ${other}` : `from ${other} to you`}</p>
       </div>
       <dl className="rounded-lg bg-sheet-2 px-4 py-1 text-sm">
@@ -378,12 +340,12 @@ function PairSummary({ pair, viewerId, rateDate, label }: { pair: PairRow; viewe
         ))}
         <div className="flex items-baseline justify-between gap-4 py-2.5 font-medium">
           <dt>{youPay ? "You pay" : `${other} pays`}</dt>
-          <dd className="nums">{formatMoney(pair.amountMinor, pair.currency)}</dd>
+          <dd className="nums">{formatMoney(paid.amountMinor, paid.currency)}</dd>
         </div>
       </dl>
-      {rated ? (
+      {rated?.fxRate ? (
         <p className="text-center text-xs text-ink-faint">
-          {rateDate ? `Rate on ${formatDate(rateDate, { weekday: false })}: ` : "Rate: "}1 {pair.currency} = {rated.fxRate!.toFixed(4)} {rated.clearsCurrency}
+          {rateDate ? `Rate on ${formatDate(rateDate, { weekday: false })}: ` : "Rate: "}1 {paid.currency} = {rated.fxRate.toFixed(4)} {rated.clearsCurrency}
         </p>
       ) : null}
     </div>

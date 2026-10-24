@@ -30,9 +30,19 @@ describe("overviewRoute", () => {
     });
 
     expect(route.stops).toEqual([
-      { place: "Porto", lat: 41.15, lng: -8.63 },
-      { place: "Lisbon", lat: 38.72, lng: -9.14 },
+      { place: "Porto", lat: 41.15, lng: -8.63, nights: 1 },
+      { place: "Lisbon", lat: 38.72, lng: -9.14, nights: 1 },
     ]);
+  });
+
+  it("counts a stop's nights as the days the group sleeps there (rule 3)", () => {
+    const route = overviewRoute({
+      legs: [{ ...leg(1, 1, "Porto", 10), days: [{ dayId: 10 }, { dayId: 11 }, { dayId: 12 }] }],
+      days: [PORTO],
+      hops: new Map(),
+    });
+
+    expect(route.stops[0].nights).toBe(3);
   });
 
   it("names a leg with no pin instead of drawing it (rule 11)", () => {

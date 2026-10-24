@@ -1,29 +1,23 @@
 /**
- * What somebody holding a trip's share link sees (#330; replaces the teaser of
- * ticket 01 step 2, ticket 05, ticket 19, redesigned 199).
- *
- * WHAT CHANGED, AND WHY. This used to be a summary card — when, where, and a
- * blurred panel saying "join to see". It showed the trip without showing the
- * trip. Now the real itinerary is here, read-only, behind the ask: somebody
- * deciding whether to join should be able to see what they would be joining.
- *
- * NOT HERE, and not by omission — by rule. No roster, no money, no notes, no
- * member email, and no file bytes. Those belong to the people in the trip, and
- * a share link is forwardable, so everyone it reaches would otherwise get them
- * for free. The reads are the projections in `server/trips/guest-view.ts`,
- * which have no field to leak.
+ * What somebody holding a trip's share link sees (#330, #442): the ideas to vote
+ * on and a calendar for their own days, behind a name. Nothing else — no days,
+ * no files, no roster, no money. Those belong to the people in the trip, and a
+ * share link is forwardable. The reads are the projections in
+ * `server/trips/guest-view.ts`, which have no field to leak.
  */
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { GuestGate } from "@/components/guest/guest-gate";
-import { GuestItinerary } from "@/components/guest/guest-itinerary";
-import { guestItinerary } from "@/server/trips/guest-view";
+import { GuestStart } from "@/components/guest/guest-start";
+import { guestIdeas, guestOwnDates } from "@/server/trips/guest-view";
+import { GuestAnswers } from "@/components/guest/answers/guest-answers";
+import { monthOf, thisMonth } from "@floc/core/dates/availability";
 import { formatDateRange } from "@floc/core/dates/dates";
 import { PageTitle } from "@/components/system/ui";
 import { DeadLink } from "@/components/guest/dead-link";
 import { JoinControls } from "@/components/guest/join-controls";
-import { inviteTrip, inviteViewer } from "./invite-access";
+import { inviteAuthHrefs, inviteTrip, inviteViewer } from "./invite-access";
 
 /**
  * The link names the trip (ticket 147). The URL stays opaque — putting the name
@@ -69,28 +63,39 @@ export default async function InvitePage({
   // Already in: nothing here is worth showing them a read-only copy of.
   if (viewer.kind === "member") redirect(`/trip/${trip.id}/overview`);
 
-  const days = await guestItinerary(trip.id);
+  const guestId = viewer.kind === "guest" ? viewer.id : null;
+  const [ideas, mine] = await Promise.all([guestIdeas(trip.id, guestId), guestOwnDates(trip.id, guestId)]);
   const dated = trip.startDate || trip.endDate;
+  const firstMonth = trip.startDate ? monthOf(trip.startDate) : mine[0] ? monthOf(mine[0]) : thisMonth();
+  const controls = <JoinControls token={token} viewer={viewer} full={full === "1"} />;
 
   return (
     <GuestGate
       tripName={trip.name}
       hostName={trip.hostName}
-      controls={
-        <JoinControls token={token} viewer={viewer} full={full === "1"} />
-      }
+      open={viewer.kind !== "guest"}
+      blurb={viewer.kind === "canJoin" ? "Join to plan with the group." : "Vote on the ideas and mark the days you can make."}
+      actions={viewer.kind === "stranger" ? <GuestStart token={token}>{controls}</GuestStart> : controls}
     >
-      <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
+      <div className="mx-auto w-full max-w-[60rem] px-4 pb-20 pt-6 sm:px-6">
         <PageTitle>{trip.name}</PageTitle>
         <p className="mt-2 text-md text-ink-soft">
-          {dated
-            ? formatDateRange(trip.startDate, trip.endDate)
-            : "The dates are not settled yet."}
+          {dated ? formatDateRange(trip.startDate, trip.endDate) : "The dates are not settled yet."}
         </p>
 
-        <div className="mt-6">
-          <GuestItinerary days={days} />
-        </div>
+        {viewer.kind === "canJoin" ? null : (
+          <div className="mt-6">
+            <GuestAnswers
+              token={token}
+              ideas={ideas}
+              mine={mine}
+              firstMonth={firstMonth}
+              tripStart={trip.startDate}
+              tripEnd={trip.endDate}
+              signUpHref={inviteAuthHrefs(token).signUpHref}
+            />
+          </div>
+        )}
       </div>
     </GuestGate>
   );

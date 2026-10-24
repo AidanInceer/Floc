@@ -15,15 +15,15 @@ describe("preset trip shape", () => {
     }
   });
 
-  it("lists five trips in every region", () => {
+  it("lists at least five trips in every region", () => {
     for (const region of REGIONS) {
-      expect(PRESET_TRIPS.filter((t) => t.region === region).length, region).toBe(5);
+      expect(PRESET_TRIPS.filter((t) => t.region === region).length, region).toBeGreaterThanOrEqual(5);
     }
   });
 
-  it("runs every trip a week or more and no more than 25 nights", () => {
+  it("runs every trip three nights or more and no more than 25", () => {
     for (const preset of PRESET_TRIPS) {
-      expect(preset.nights, preset.id).toBeGreaterThanOrEqual(7);
+      expect(preset.nights, preset.id).toBeGreaterThanOrEqual(3);
       expect(preset.nights, preset.id).toBeLessThanOrEqual(25);
     }
   });
@@ -44,6 +44,26 @@ describe("preset trip shape", () => {
   it("gives every listing at least one base", () => {
     for (const preset of PRESET_TRIPS) {
       expect(preset.legs.some((l) => l.kind === "base"), preset.id).toBe(true);
+    }
+  });
+
+  // Why: `pnpm explore:new` writes a blank template; these catch one left half filled in.
+  it("fills in every field the template leaves blank", () => {
+    for (const preset of PRESET_TRIPS) {
+      expect([preset.title, preset.country, preset.summary, preset.bestMonths].every(Boolean), preset.id).toBe(true);
+      expect(preset.priceFromMinor, preset.id).toBeGreaterThan(0);
+      expect(preset.highlights.length, preset.id).toBeGreaterThan(0);
+      for (const leg of preset.legs) expect(leg.place, preset.id).not.toBe("");
+    }
+  });
+
+  it("puts every base somewhere on the map", () => {
+    for (const preset of PRESET_TRIPS) {
+      for (const leg of preset.legs) {
+        if (leg.kind !== "base") continue;
+        const placed = Math.abs(leg.lat) <= 90 && Math.abs(leg.lng) <= 180 && (leg.lat !== 0 || leg.lng !== 0);
+        expect(placed, `${preset.id}: ${leg.place}`).toBe(true);
+      }
     }
   });
 });

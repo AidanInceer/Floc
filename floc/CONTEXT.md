@@ -24,8 +24,9 @@ tips it below zero).
 than the (now-changed) bills say they owed. An honest state, not an error.
 
 **Simplified transfers** — the minimised set of payments that squares everyone
-up, netted across the group (you may be told to pay someone you never shared a
-bill with). The money tab's only view.
+up, netted across the group and across currencies (#463; you may be told to pay
+someone you never shared a bill with). Each payment clears debts in their own
+currencies, so every book still reaches zero. The money tab's only view.
 
 **Settle up** — the act of recording a settlement, pre-filled from a simplified
 transfer; either party to it may record it.
@@ -34,8 +35,8 @@ transfer; either party to it may record it.
 property, never a per-row flag.
 
 **Home / preferred currency** — a member's own currency (`userProfile`,
-defaults GBP). Used only as the target of the *convert* display toggle; never
-changes what the ledger stores.
+defaults GBP). Settle-up shows every amount in it, and a payer pays in it
+(#463); the *convert* toggle targets it. Never changes what the ledger stores.
 
 **Convert** — a UI-only toggle that shows an amount in the viewer's home
 currency using a free daily FX rate. Display only — the ledger is always in the
@@ -84,3 +85,10 @@ of the next such month still ahead and runs for the listing's nights.
 **Ideas page** — an optional notes page a copy adds. *At your stops*: other
 things to do at each stop, with pace and cost. *Other stops*: places to swap
 in, how many nights, and what to do there.
+
+## Roster
+
+**Guest** — a person on a trip's invite link who voted with a name and no
+account. Not a member: they can vote on ideas and mark dates, nothing more.
+They become a member when they sign up from the invite, and are deleted with
+their answers a week after they start if they do not.

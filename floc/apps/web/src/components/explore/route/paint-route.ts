@@ -5,7 +5,7 @@ import { cut, type Shape } from "@/lib/explore/route/route-shape";
 
 import { MODE_PATHS, UNSET_PATHS } from "./mode-paths";
 import { lineFor, ROUTE_SIZE, type RouteInk } from "./route-ink";
-import { fonts, PILL, TAG, tagBox, type Name } from "./route-names";
+import { fonts, TAG, tagBox, type Name } from "./route-names";
 
 /**
  * One frame of a route on a canvas. `pieces` and `stops` are where the shape's points are now; `drawn` is how far the pen
@@ -14,6 +14,8 @@ import { fonts, PILL, TAG, tagBox, type Name } from "./route-names";
 export type RouteFrame = { pieces: Point[][]; stops: Point[]; drawn: number; seen: (at: number) => number; alpha: number };
 
 const { line: LINE, edge: EDGE, mid: MID, end: END } = ROUTE_SIZE.map;
+/** A day out is a thin broken spur whatever the way there, so it never reads as a leg of the trip. */
+const OUT_LINE = { width: LINE * 0.8, dash: [LINE * 1.6, LINE * 1.9], cap: "round" as const };
 const PATHS = new Map<string, Path2D>();
 const path = (d: string) => PATHS.get(d) ?? PATHS.set(d, new Path2D(d)).get(d)!;
 
@@ -61,6 +63,17 @@ function pill(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h:
   ctx.stroke();
 }
 
+const TIP = MID.r * 0.85;
+
+/** A day out is one straight line there and back: draw the way out only, stopping at the rim of its open dot, not inside it. */
+function toRim(pts: Point[], tip: number): Point[] {
+  const out = pts.slice(0, tip + 1);
+  if (out.length <= tip) return out;
+  const [a, b] = [out[tip - 1]!, out[tip]!];
+  const d = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+  return [...out.slice(0, tip), { x: b.x - ((b.x - a.x) / d) * TIP, y: b.y - ((b.y - a.y) / d) * TIP }];
+}
+
 /** The lines: a white edge under every road, rail and boat so it reads over any land, then the line itself, patterned by mode. */
 function lines(ctx: CanvasRenderingContext2D, shape: Shape, drawn: Point[][], ink: RouteInk) {
   ctx.lineJoin = "round";
@@ -68,13 +81,14 @@ function lines(ctx: CanvasRenderingContext2D, shape: Shape, drawn: Point[][], in
   ctx.setLineDash([]);
   ctx.lineCap = "round";
   ctx.lineWidth = EDGE;
-  drawn.forEach((pts, k) => {
+  const run = drawn.map((pts, k) => (shape.pieces[k]!.kind === "out" ? toRim(pts, shape.pieces[k]!.mid) : pts));
+  run.forEach((pts, k) => {
     if (shape.pieces[k]!.mode !== "flight") stroke(ctx, pts);
   });
   ctx.strokeStyle = ink.ink;
-  drawn.forEach((pts, k) => {
+  run.forEach((pts, k) => {
     const p = shape.pieces[k]!;
-    const look = lineFor(p.mode, p.kind === "loop" ? LINE * 0.85 : LINE);
+    const look = p.kind === "out" ? OUT_LINE : lineFor(p.mode, LINE);
     ctx.lineWidth = look.width;
     ctx.setLineDash(look.dash);
     ctx.lineCap = look.cap;
@@ -83,16 +97,36 @@ function lines(ctx: CanvasRenderingContext2D, shape: Shape, drawn: Point[][], in
   ctx.setLineDash([]);
 }
 
+/** One arrow on the line, at the middle of a leg, for the way the trip goes. */
+function arrow(ctx: CanvasRenderingContext2D, pts: Point[], mid: number, ink: RouteInk) {
+  const [a, b, c] = [pts[mid - 1]!, pts[mid]!, pts[mid + 1]!];
+  ctx.save();
+  ctx.translate(b.x, b.y);
+  ctx.rotate(Math.atan2(c.y - a.y, c.x - a.x));
+  ctx.strokeStyle = ink.ink;
+  ctx.lineWidth = 2;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(-3.5, -4);
+  ctx.lineTo(1.5, 0);
+  ctx.lineTo(-3.5, 4);
+  ctx.stroke();
+  ctx.restore();
+}
+
 /** Each leg's tag: the mode, and the time when the leg is long enough to hold it. */
 function tags(ctx: CanvasRenderingContext2D, shape: Shape, f: RouteFrame, ink: RouteInk, width: (time: string) => number) {
   shape.pieces.forEach((p, k) => {
     const seen = f.seen((p.a + p.b) / 2);
     if (!p.mark || seen <= 0) return;
-    const w = p.mark === "full" ? width(p.time) : TAG.h + 6;
+    const w = p.mark === "full" ? width(p.time) : TAG.h + 2;
     const at = f.pieces[k]![p.mid]!;
     const box = tagBox(p, { x: Math.round(at.x), y: Math.round(at.y) }, w);
     ctx.globalAlpha = f.alpha * seen;
-    pill(ctx, box.left, box.top, w, TAG.h, ink.sheet, ink.rule);
+    if (p.kind === "leg") arrow(ctx, f.pieces[k]!, p.mid, ink);
+    pill(ctx, box.left, box.top, w, TAG.h, ink.sheet, p.mark === "icon" ? ink.ink : ink.rule);
     modeIcon(ctx, p.mode, { x: box.left + (p.mark === "full" ? 13 : w / 2), y: box.top + TAG.h / 2 }, 12, p.mode ? ink.ink : ink.ink2);
     if (p.mark === "full") {
       ctx.font = fonts(ink).time;
@@ -101,6 +135,31 @@ function tags(ctx: CanvasRenderingContext2D, shape: Shape, f: RouteFrame, ink: R
     }
   });
   ctx.globalAlpha = f.alpha;
+}
+
+/** The far end of each day out the pen has reached: an open dot, a place you visit but do not sleep at. */
+function tips(ctx: CanvasRenderingContext2D, shape: Shape, f: RouteFrame, ink: RouteInk) {
+  shape.pieces.forEach((p, k) => {
+    if (p.kind !== "out" || f.drawn < (p.a + p.b) / 2) return;
+    dot(ctx, f.pieces[k]![p.mid]!, MID.r * 0.85, ink.sheet, ink.ink, MID.ring * 0.85);
+  });
+}
+
+const END_R = 9;
+
+/** The start is an ink disc with a play mark; the end an ink disc with a square. A trip back to where it began starts and ends there, and shows the start. */
+function endDisc(ctx: CanvasRenderingContext2D, p: Point, r: number, end: boolean, ink: RouteInk) {
+  dot(ctx, p, r, ink.ink, ink.sheet, END.ring);
+  ctx.fillStyle = ink.sheet;
+  ctx.beginPath();
+  if (end) ctx.roundRect(p.x - r * 0.36, p.y - r * 0.36, r * 0.72, r * 0.72, 1);
+  else {
+    ctx.moveTo(p.x - r * 0.24 + 0.6, p.y - r * 0.42);
+    ctx.lineTo(p.x + r * 0.44 + 0.6, p.y);
+    ctx.lineTo(p.x - r * 0.24 + 0.6, p.y + r * 0.42);
+    ctx.closePath();
+  }
+  ctx.fill();
 }
 
 function stops(ctx: CanvasRenderingContext2D, shape: Shape, f: RouteFrame, ink: RouteInk) {
@@ -112,7 +171,7 @@ function stops(ctx: CanvasRenderingContext2D, shape: Shape, f: RouteFrame, ink: 
     ctx.globalAlpha = f.alpha * Math.min(1, seen * 2);
     const grow = 0.55 + 0.45 * seen;
     if (s.role === "mid") dot(ctx, f.stops[k]!, MID.r * grow, ink.sheet, ink.ink, MID.ring);
-    else dot(ctx, f.stops[k]!, END.r * grow, ink.ink, ink.sheet, END.ring);
+    else endDisc(ctx, f.stops[k]!, END_R * grow, s.role === "end", ink);
   }
   ctx.globalAlpha = f.alpha;
 }
@@ -136,24 +195,16 @@ function names(ctx: CanvasRenderingContext2D, shape: Shape, f: RouteFrame, ink: 
     // Why: canvas text between whole pixels renders soft; snapped, it is as sharp as the page's own text.
     const [x, y] = [Math.round(anchor.x + n.dx), Math.round(anchor.y + n.dy + (1 - seen) * 4)];
     ctx.globalAlpha = f.alpha * seen;
-    if (n.pill) {
-      const filled = n.pill === "filled";
-      const text = filled ? ink.sheet : ink.ink;
-      pill(ctx, x, y, n.w, n.h, filled ? ink.ink : ink.sheet, filled ? null : ink.ink);
-      ctx.font = look.caption;
-      ctx.fillStyle = text;
-      ctx.globalAlpha = f.alpha * seen * 0.72;
-      ctx.fillText(n.caption, x + PILL.pad, y + 14.5);
-      ctx.globalAlpha = f.alpha * seen;
-      ctx.font = look.pill;
-      ctx.fillText(n.text, x + PILL.pad + n.a + PILL.gap, y + 15.5);
-    } else if (n.of === "loop") write(ctx, n.text, x, y + 11, look.loop, ink.ink2, ink.sheet);
-    else write(ctx, n.text, x, y + 12, look.stop, ink.ink, ink.sheet);
+    if (n.of === "out") write(ctx, n.text, x, y + 11, look.out, ink.ink2, ink.sheet);
+    else {
+      write(ctx, n.text, x, y + 12, look.stop, ink.ink, ink.sheet);
+      if (n.sub) write(ctx, n.sub, x, y + 25, look.out, ink.ink2, ink.sheet);
+    }
   }
   ctx.globalAlpha = f.alpha;
 }
 
-/** A route in Explore's map style: ink line edged in white, a tag per leg, plain stops, the start and the end in ink pills. */
+/** A route in Explore's map style: ink line edged in white, a tag per leg, each stop named with its nights beneath, day outs as spurs. */
 export function paintRoute(ctx: CanvasRenderingContext2D, shape: Shape, f: RouteFrame, ink: RouteInk, list: Name[], width: (time: string) => number) {
   if (f.alpha <= 0) return;
   ctx.save();
@@ -166,6 +217,7 @@ export function paintRoute(ctx: CanvasRenderingContext2D, shape: Shape, f: Route
   tags(ctx, shape, f, ink, width);
   const at = shape.pieces.findIndex((p) => f.drawn > p.a && f.drawn < p.b);
   if (at >= 0) dot(ctx, live[at]!.at(-1)!, 3.4, ink.ink, ink.sheet, 1.5);
+  tips(ctx, shape, f, ink);
   stops(ctx, shape, f, ink);
   names(ctx, shape, f, ink, list);
   ctx.restore();

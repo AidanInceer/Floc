@@ -32,7 +32,7 @@ export function VotePill({
         gap: space.xs,
         paddingHorizontal: space.sm,
         height: 34,
-        borderRadius: radius.pill,
+        borderRadius: radius.sm,
         backgroundColor: mine ? c["green-2"] : "transparent",
         borderWidth: StyleSheet.hairlineWidth,
         borderColor: mine ? c["green-edge"] : c["rule-2"],

@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "Floc",
-    title: "Floc — plan a trip with the group",
+    title: "Floc — Trip planning, sorted.",
     description:
       "Floc keeps a group trip in one place: the notes, the route, the days, and who owes who.",
     images: [{

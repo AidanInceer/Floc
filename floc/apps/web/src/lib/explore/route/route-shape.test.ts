@@ -9,7 +9,7 @@ const LISTINGS = { RAIL, ONE_STOP, ROUND };
 const trip = (name: keyof typeof LISTINGS) => tripRoute(LISTINGS[name]);
 // A flat stand-in for a map: a degree is 20px.
 const at = ({ lat, lng }: { lat: number; lng: number }) => ({ x: lng * 20, y: -lat * 20 });
-const OPTS = { samples: 20, loop: 30, least: 50 };
+const OPTS = { samples: 20, out: 30, least: 50 };
 
 describe("routeShape", () => {
   it("cuts the route into legs that run end to end, 0 to 1", () => {
@@ -31,6 +31,10 @@ describe("routeShape", () => {
     expect(shape.stops.every((s) => s.named)).toBe(true);
   });
 
+  it("carries each stop's nights to its name", () => {
+    expect(routeShape(trip("ROUND"), at, OPTS).stops.map((s) => s.nights)).toEqual([2, 4, 3]);
+  });
+
   it("names a place the route comes back to once, and a round trip as start and end", () => {
     const shape = routeShape(trip("ROUND"), at, OPTS);
     expect(shape.stops[0]!.role).toBe("both");
@@ -42,24 +46,24 @@ describe("routeShape", () => {
     expect(routeShape({ stops, moves }, at, OPTS).pieces.map((p) => p.kind)).toEqual(["leg", "leg", "leg"]);
   });
 
-  it("draws a day out as a loop from its stop", () => {
+  it("draws a day out as a spur from its stop and back", () => {
     const shape = routeShape(trip("ONE_STOP"), at, OPTS);
     expect(shape.pieces).toHaveLength(1);
-    const [loop] = shape.pieces;
-    expect(loop!.kind).toBe("loop");
-    expect(loop!.name).toBe("Positano, Amalfi, Capri");
-    expect(loop!.px[0]).toEqual(shape.stops[0]!.px);
-    expect(loop!.mark).toBeNull();
+    const [out] = shape.pieces;
+    expect(out!.kind).toBe("out");
+    expect(out!.name).toBe("Positano, Amalfi, Capri");
+    expect(out!.px[0]).toEqual(shape.stops[0]!.px);
+    expect(out!.mark).toBeNull();
     expect(shape.stops[0]!.role).toBe("both");
   });
 
-  it("puts a loop after its stop and before the leg that leaves it", () => {
+  it("puts a day out after its stop and before the leg that leaves it", () => {
     const route: TripRoute = {
       stops: [{ place: "A", lat: 0, lng: 0 }, { place: "B", lat: 0, lng: 10 }],
       moves: [{ mode: "car", time: "2h" }],
       outs: [{ at: 0, place: "C", mode: "ferry" }],
     };
-    expect(routeShape(route, at, OPTS).pieces.map((p) => p.kind)).toEqual(["loop", "leg"]);
+    expect(routeShape(route, at, OPTS).pieces.map((p) => p.kind)).toEqual(["out", "leg"]);
   });
 
   it("gives a leg its mark only when it is long enough to hold it", () => {
@@ -68,10 +72,7 @@ describe("routeShape", () => {
       moves: [{ mode: "car", time: "1h" }, { mode: "train", time: "a long time" }, null],
       outs: [],
     };
-    const shape = routeShape(route, at, { ...OPTS, tagWidth: (time) => time.length * 8 });
-    expect(shape.pieces.map((p) => p.mark)).toEqual([null, "icon", null]);
-    expect(routeShape(route, at, { ...OPTS, tagWidth: () => 10 }).pieces[1]!.mark).toBe("full");
-    expect(routeShape(route, at, OPTS).pieces[1]!.mark).toBe("full");
+    expect(routeShape(route, at, OPTS).pieces.map((p) => p.mark)).toEqual([null, "icon", null]);
   });
 
   it("writes the words on a leg with no way to travel set, never a bare mark", () => {
@@ -80,7 +81,7 @@ describe("routeShape", () => {
       moves: [{ mode: null, time: "Not set" }, { mode: null, time: "Not set" }],
       outs: [],
     };
-    const shape = routeShape(route, at, { ...OPTS, tagWidth: () => 200 });
+    const shape = routeShape(route, at, OPTS);
     expect(shape.pieces.map((p) => p.mark)).toEqual(["full", null]);
   });
 
@@ -98,14 +99,14 @@ describe("routeShape", () => {
     for (const p of shape.pieces) expect(Math.hypot(p.bulge.x, p.bulge.y)).toBeCloseTo(1);
   });
 
-  it("sends a loop away from the rest of the trip", () => {
+  it("sends a day out away from the rest of the trip", () => {
     const route: TripRoute = {
       stops: [{ place: "A", lat: 0, lng: 0 }, { place: "B", lat: 0, lng: 10 }],
       moves: [{ mode: "car", time: "2h" }],
       outs: [{ at: 1, place: "C", mode: "car" }],
     };
-    const loop = routeShape(route, at, OPTS).pieces[1]!;
-    expect(loop.px[Math.floor(loop.px.length / 2)]!.x).toBeGreaterThan(200);
+    const out = routeShape(route, at, OPTS).pieces[1]!;
+    expect(out.px[Math.floor(out.px.length / 2)]!.x).toBeGreaterThan(200);
   });
 });
 

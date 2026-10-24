@@ -52,3 +52,10 @@ export function voteLabel(votes: number, mine: boolean): string {
 export function ideasTucked({ days, today }: { days: readonly { overnightPlaceId: number | null }[]; today: boolean }): boolean {
   return today || days.some((d) => d.overnightPlaceId !== null);
 }
+
+/** Why: a list that re-sorts on each vote moves the next idea under the pointer; the order holds until the page is opened again. */
+export function steadyOrder(seen: readonly number[], now: readonly number[]): number[] {
+  const live = new Set(now);
+  const fresh = now.filter((id) => !seen.includes(id));
+  return [...fresh, ...seen.filter((id) => live.has(id))];
+}

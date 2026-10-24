@@ -9,9 +9,10 @@ import { priya } from "./people";
  * This is a privacy boundary rather than a feature: what matters is not that
  * the page renders but that a stranger holding a forwardable URL reaches the
  * days and nothing else. The unit tests hold the reads; this holds the page,
- * where a component spreading the wrong props is what would leak.
+ * where a component spreading the wrong props is what would leak (#442: the
+ * guest page holds only the ideas and the guest's own days).
  */
-test("a member shares the trip, and a stranger sees the days but not the group", async ({
+test("a member shares the trip, and a stranger gives a name to answer, seeing nothing of the group", async ({
   browser,
 }) => {
   const members = await browser.newContext({
@@ -47,30 +48,27 @@ test("a member shares the trip, and a stranger sees the days but not the group",
   const page = await strangers.newPage();
   await page.goto(url);
 
-  // The ask comes first, over the trip rather than instead of it. Scoped to the
-  // dialog: the bar above the page carries the same control, deliberately.
+  // The ask comes first, over the trip: a name, or an account. It cannot be waved away.
   const gate = page.getByRole("dialog");
-  await expect(gate.getByRole("link", { name: "Sign up to join" })).toBeVisible();
-  await gate.getByRole("button", { name: "Just have a look first" }).click();
+  await expect(gate.getByRole("link", { name: "Sign up" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(gate).toBeVisible();
+  await gate.getByLabel("Your name").fill("Robin");
+  await gate.getByRole("button", { name: "Continue" }).click();
   await expect(gate).toBeHidden();
 
-  await expect(page.getByText("The trip, day by day")).toBeVisible();
-  await expect(page.getByText("Flight to Lisbon").first()).toBeVisible();
-  await expect(page.getByText("Lagos, Portugal").first()).toBeVisible();
+  // Ideas and their own days, and nothing else of the trip.
+  await expect(page.getByRole("heading", { name: "Your dates" })).toBeVisible();
+  await expect(page.getByText("Answering as Robin.")).toBeVisible();
+  await expect(page.getByText("Flight to Lisbon")).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Files" })).toHaveCount(0);
 
   // The group's own business. Each of these is on the member's version of this
   // trip; none may be on a stranger's.
   await expect(page.getByText("Airbnb, three nights in Lisbon")).toHaveCount(0);
   await expect(page.getByText("Spending")).toHaveCount(0);
   await expect(page.getByText("Tom Whitfield")).toHaveCount(0);
-  // An event's free-text note is the group talking to itself — dropped by the
-  // guest projection, so it is absent even though its event is shown above.
   await expect(page.getByText("Priya is on the same flight")).toHaveCount(0);
-
-  // Files renders as itself, and offers no way into one.
-  await page.goto(`${url}/files`);
-  await expect(page.getByRole("heading", { name: "Files" })).toBeVisible();
-  await expect(page.getByRole("link", { name: /\./ })).toHaveCount(0);
 
   // A token that was never real says so, and says nothing else.
   await page.goto("/invite/not-a-real-token");

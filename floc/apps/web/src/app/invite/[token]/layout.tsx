@@ -1,14 +1,14 @@
 /**
- * The chrome every page of a share link wears (#330): the way in, then the two
- * tabs a guest has.
+ * The chrome a share link wears (#330, #442): the bar with the way in. One
+ * page, so no tabs.
  *
  * ONE LINK, TWO AUDIENCES. This is the trip's own share link — the same token
  * Overview's Share trip copies — not a second kind beside it. What changes is who
  * is holding it: a member is sent to the real trip, and everybody else gets the
- * read-only copy under here.
+ * guest page under here.
  *
  * Nothing under this route imports a trip's `actions.ts`. The only writes
- * reachable from a share link are joining and resending a confirmation, both in
+ * reachable from a share link are joining and a guest's own answers, all in
  * this folder's own `actions.ts`, so there is no trip mutation to forget a
  * check on.
  */
@@ -16,8 +16,13 @@ import type { ReactNode } from "react";
 
 import { GuestCta } from "@/components/guest/guest-cta";
 import { JoinControls } from "@/components/guest/join-controls";
-import { GuestTabs } from "@/components/guest/guest-tabs";
-import { inviteTrip, inviteViewer } from "./invite-access";
+import { inviteTrip, inviteViewer, type InviteViewer } from "./invite-access";
+
+function barText(viewer: Exclude<InviteViewer, { kind: "member" }>): string {
+  if (viewer.kind === "guest") return `Answering as ${viewer.name}. Sign up to keep your answers and plan with the group.`;
+  if (viewer.kind === "canJoin") return "You are viewing this trip, not on it.";
+  return "Vote and mark your dates with just a name.";
+}
 
 export default async function InviteLayout({
   children,
@@ -34,16 +39,13 @@ export default async function InviteLayout({
 
   const viewer = await inviteViewer(trip.id);
 
-  // A member is on their way to the real trip; the bar and tabs would flash a
+  // A member is on their way to the real trip; the bar would flash a
   // read-only copy of a trip they can actually edit.
   if (viewer.kind === "member") return <>{children}</>;
 
   return (
     <>
-      <GuestCta
-        controls={<JoinControls token={token} viewer={viewer} compact />}
-      />
-      <GuestTabs token={token} />
+      <GuestCta text={barText(viewer)} controls={<JoinControls token={token} viewer={viewer} compact />} />
       {children}
     </>
   );

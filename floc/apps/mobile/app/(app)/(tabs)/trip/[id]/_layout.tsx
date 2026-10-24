@@ -71,7 +71,9 @@ export default function TripLayout() {
   const trip = useQuery(trpc.trips.get.queryOptions({ tripId }, { enabled: ready }));
   const ledger = useQuery(trpc.money.ledger.queryOptions({ tripId }, { enabled: ready }));
 
-  const balance = viewerBalance(ledger.data, session?.user.id);
+  const pairs = useQuery(trpc.money.pairs.queryOptions({ tripId }, { enabled: ready }));
+
+  const balance = viewerBalance(pairs.data?.rows, session?.user.id);
   // Only while the viewer is actually up or down. "settled" is the ordinary
   // state of a trip, and a chip that is present whenever nothing is wrong is a
   // chip nobody reads (#126). It appears when there is something to say.

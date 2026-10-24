@@ -19,7 +19,7 @@ describe("nightsWord", () => {
     expect(nightsWord(null)).toBe("Any length");
     expect(nightsWord({ min: 9, max: 14 })).toBe("9 to 14 nights");
     expect(nightsWord({ min: 12, max: 21 })).toBe("12+ nights");
-    expect(nightsWord({ min: 5, max: 10 })).toBe("Up to 10 nights");
+    expect(nightsWord({ min: 3, max: 10 })).toBe("Up to 10 nights");
     expect(nightsWord({ min: 7, max: 7 })).toBe("7 nights");
   });
 });

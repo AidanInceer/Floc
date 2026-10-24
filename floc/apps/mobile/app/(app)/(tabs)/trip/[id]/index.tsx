@@ -4,7 +4,6 @@
  * stop is derived from the days, never stored (rule 3).
  */
 import { nightsBetween } from "@floc/core/dates/dates";
-import { ledgerBalances } from "@floc/core/money/ledger";
 import { yourPosition } from "@floc/core/money/position";
 import { today } from "@floc/core/dates/dates";
 import { leftToSortFrom } from "@floc/core/trip/overview/left-to-sort-from";
@@ -54,8 +53,8 @@ export default function Overview() {
   const places = useQuery(trpc.places.list.queryOptions({ tripId }, { enabled: ready }));
   const files = useQuery(trpc.files.list.queryOptions({ tripId }, { enabled: ready }));
   const ledger = useQuery(trpc.money.ledger.queryOptions({ tripId }, { enabled: ready }));
+  const pairs = useQuery(trpc.money.pairs.queryOptions({ tripId }, { enabled: ready }));
   const days = useQuery(trpc.itinerary.days.queryOptions({ tripId }, { enabled: ready }));
-  const settings = useQuery(trpc.settings.get.queryOptions());
   const { data: session } = useSession();
   const invites = useQuery(trpc.invites.forTrip.queryOptions({ tripId }, { enabled: ready }));
   const availability = useQuery(trpc.availability.list.queryOptions({ tripId }, { enabled: ready }));
@@ -80,9 +79,9 @@ export default function Overview() {
         trip={trip.data}
         nights={trip.data.startDate && trip.data.endDate ? nightsBetween(trip.data.startDate, trip.data.endDate) : 0}
         position={
-          ledger.data && ledger.data.expenses.length > 0 && settings.data && session
-            ? // The phone has no exchange rates, so mixed currencies stay one line each (rule 11).
-              yourPosition({ balances: ledgerBalances(ledger.data), viewerId: session.user.id, home: settings.data.homeCurrency, rateFor: () => null })
+          ledger.data && ledger.data.expenses.length > 0 && pairs.data && session
+            ? // The server's payments, so this matches Money to the penny (#463).
+              yourPosition(pairs.data.rows, session.user.id)
             : null
         }
         onEdit={() => setDraft(draftFor(trip.data))}
@@ -237,11 +236,11 @@ function SortLine({
   onGo: (route: string) => void;
 }) {
   const { data: session } = useSession();
-  const ledger = useQuery(trpc.money.ledger.queryOptions({ tripId }));
+  const pairs = useQuery(trpc.money.pairs.queryOptions({ tripId }));
   const availability = useQuery(trpc.availability.list.queryOptions({ tripId }));
   const packing = useQuery(trpc.packing.list.queryOptions({ tripId }));
   const ideas = useQuery(trpc.ideas.list.queryOptions({ tripId }));
-  if (!ledger.data || !availability.data || !packing.data || !ideas.data || !session) return null;
+  if (!pairs.data || !availability.data || !packing.data || !ideas.data || !session) return null;
   const list = leftToSortFrom({
     trip,
     today: today(),
@@ -249,7 +248,7 @@ function SortLine({
     members: trip.members,
     markedUserIds: availability.data.filter((r) => r.available).map((r) => r.userId),
     ideas: ideas.data,
-    ledger: ledger.data,
+    settle: pairs.data.rows,
     shared: packing.data.shared.map((l) => ({ label: l.label, claimed: l.claims.length > 0 })),
     legs,
   });

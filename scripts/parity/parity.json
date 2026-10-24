@@ -1,5 +1,8 @@
 {
   "procedures": {
+    "availability.guests": {
+      "mobile": "yes"
+    },
     "availability.list": {
       "mobile": "yes"
     },
@@ -415,6 +418,12 @@
       "path": "floc/apps/web/src/app/explore/[slug]",
       "status": "planned",
       "why": "The page for one Explore listing (#335) is built on the web first, as the groundwork: the data shape in @floc/core is shared, but only one listing has its days written. The phone keeps its listing sheet until the pages are written and the copy carries the days across."
+    },
+    {
+      "id": "invite-guest-answers",
+      "path": "floc/apps/web/src/app/invite/[token]",
+      "status": "wontfix",
+      "why": "Answering on an invite link with a name and no account (#442, ADR-029) is for people without Floc, and the link opens in a browser. Anyone with the app already has an account, so there is nobody for a guest flow on the phone to serve. The phone shows guests read-only in Dates, through availability.guests; removing one stays on the web."
     }
   ]
 }

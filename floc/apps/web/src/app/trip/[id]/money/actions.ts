@@ -20,7 +20,7 @@ import {
   softDeleteSettlement,
   type Transfer,
 } from "@/server/money/money";
-import { settlePairFor } from "@/server/money/pair-settle-up";
+import { settleWithFor } from "@/server/money/settle-up";
 import { recordTransfers, removeExpense, saveExpense } from "@/server/money/money-save";
 import type { WritableSplitType } from "@floc/core/money/money";
 import {
@@ -281,10 +281,10 @@ export async function deleteSettlement(formData: FormData): Promise<void> {
   refresh({ kind: "money", tripId: access.trip.id });
 }
 
-// One payment clears everything between the viewer and one person (#461). The rows are recomputed here, never
-// read from the form, so the figure the payer confirmed is the one the ledger says now.
+// One payment clears everything between the viewer and one person (#461, #463). The rows are recomputed here,
+// never read from the form, so the figure the payer confirmed is the one the ledger says now.
 export async function settlePair(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const access = await requireTripAccess(Number(formData.get("tripId")));
-  const refusal = await settlePairFor(access, String(formData.get("otherUserId") ?? ""));
+  const refusal = await settleWithFor(access, String(formData.get("otherUserId") ?? ""));
   return refusal ? { error: refusal.message } : {};
 }

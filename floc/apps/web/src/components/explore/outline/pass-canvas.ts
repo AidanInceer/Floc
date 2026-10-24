@@ -22,7 +22,7 @@ export function passCanvas(canvas: HTMLCanvasElement, { route, land, frame, box,
   if (!ctx) return () => {};
   const ink = readInk(canvas);
   const width = tagWidth(ctx, ink);
-  const shape = routeShape(route, frame.point, { samples: 36, loop: 30, least: 54, tagWidth: width });
+  const shape = routeShape(route, frame.point, { samples: 36, out: 30, least: 54 });
   const names = nameRoute(ctx, shape, ink, { left: 6, top: 6, right: box.width - 6, bottom: box.height - 6 });
   const whole: Pose<Point> = { centre: { x: box.width / 2, y: box.height / 2 }, w: box.width, at: { x: box.width / 2, y: box.height / 2 } };
   const length = shape.pieces.reduce((sum, p) => sum + p.len, 0);

@@ -7,7 +7,6 @@ import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 
 import { tagClass } from "@/components/explore/all/explore-tile";
 import { CopySheet } from "@/components/explore/copy/copy-sheet";
-import { RouteRail } from "@/components/explore/all/route-rail";
 import { skinFor } from "@/components/explore/listing";
 import { PassMap } from "@/components/explore/outline/pass-map";
 import { CheckIcon } from "@/components/system/icons";
@@ -50,7 +49,6 @@ export function ExplorePass({
           ))}
         </p>
         <p className="text-sm text-ink-soft">{trip.summary}</p>
-        <RouteRail trip={trip} />
       </div>
       <div aria-hidden className="relative mx-4 border-t-[1.5px] border-dashed border-rule-strong">
         <span className={cx(notch, behind, "-left-[25px]")} />
