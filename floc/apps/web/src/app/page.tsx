@@ -47,6 +47,9 @@ export const metadata: Metadata = {
 };
 
 // The Explore listings the Borrow band opens on, in this order; every other listing waits behind them.
+// Hidden for now; set true to bring back the pocket agent band and its "while you wait" part.
+const SHOW_AGENT_BAND = false;
+
 const BORROW_IDS = [
   "japan-golden-route",
   "hanoi-to-bangkok",
@@ -132,9 +135,11 @@ export default async function LandingPage() {
         )}
 
         {/* ── pocket agent ───────────────────────────────────────────── */}
-        <section className="mt-24">
-          <AgentBand origin={appUrl()} />
-        </section>
+        {SHOW_AGENT_BAND && (
+          <section className="mt-24">
+            <AgentBand origin={appUrl()} />
+          </section>
+        )}
 
       </div>
 
