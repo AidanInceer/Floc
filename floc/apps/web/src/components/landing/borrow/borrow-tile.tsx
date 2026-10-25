@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { cx } from "@/components/system/ui";
-import { nightsWords, type BorrowCard as Card } from "@/lib/landing/borrow";
+import { nightsWords, placeWords, type BorrowCard as Card } from "@/lib/landing/borrow";
 
 import { Glyph } from "../landing-glyph";
 import { tone } from "./tones";
@@ -16,7 +16,7 @@ function FaceView({ shown, slot, onGone }: { shown: Shown; slot: number; onGone?
   const { card, face } = shown;
   return (
     <span className="borrow-face" data-kind={onGone ? "out" : face.kind} data-dim={onGone && face.kind === "tick" ? "" : undefined} onAnimationEnd={onGone}>
-      <span className={cx("typed rounded-md px-[7px] py-px text-[10px]", tone(slot))}>{card.place}</span>
+      <span className={cx("typed borrow-place rounded-md px-[7px] py-px text-[10px]", tone(slot))}>{placeWords(card.place)}</span>
       <b className="borrow-chip-title">{card.title}</b>
       <span className="nums text-ink-faint">
         {nightsWords(card.nights)} · from {card.price}

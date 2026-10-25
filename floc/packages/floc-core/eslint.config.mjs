@@ -27,6 +27,10 @@ const config = [
       // on. Without it `arr[arr.length - 1]` types as present, so the rule calls a
       // guard against the empty array "always truthy" — deleting it would crash.
       "@typescript-eslint/no-unnecessary-condition": "off",
+
+      // Why: a bare `.sort()` orders by string, which scrambles numbers and money.
+      // Sonar flagged one on the release PR (#464); catch it before the push.
+      "@typescript-eslint/require-array-sort-compare": "error",
     },
   },
 

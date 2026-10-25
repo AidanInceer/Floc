@@ -175,7 +175,7 @@ describe("findOverlaps", () => {
 
   it("flags both sides of a crossing pair", () => {
     const events = [span(1, "09:00", "11:00"), span(2, "10:00", "12:00")];
-    expect([...findOverlaps(events)].sort()).toEqual([1, 2]);
+    expect([...findOverlaps(events)].sort((a, b) => a - b)).toEqual([1, 2]);
   });
 
   it("leaves back-to-back events alone", () => {
@@ -185,12 +185,12 @@ describe("findOverlaps", () => {
 
   it("flags an event with no end that falls inside another's run", () => {
     const events = [span(1, "09:00", "11:00"), span(2, "10:00", null)];
-    expect([...findOverlaps(events)].sort()).toEqual([1, 2]);
+    expect([...findOverlaps(events)].sort((a, b) => a - b)).toEqual([1, 2]);
   });
 
   it("flags two events starting at the same time even with no ends", () => {
     const events = [span(1, "09:00", null), span(2, "09:00", null)];
-    expect([...findOverlaps(events)].sort()).toEqual([1, 2]);
+    expect([...findOverlaps(events)].sort((a, b) => a - b)).toEqual([1, 2]);
   });
 
   it("does not flag two endless events at different times", () => {
@@ -209,6 +209,6 @@ describe("findOverlaps", () => {
       span(2, "10:00", "11:00"),
       span(3, "11:30", "13:00"),
     ];
-    expect([...findOverlaps(events)].sort()).toEqual([1, 2, 3]);
+    expect([...findOverlaps(events)].sort((a, b) => a - b)).toEqual([1, 2, 3]);
   });
 });

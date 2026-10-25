@@ -85,11 +85,21 @@ function changedFiles() {
     .map((line) => line.slice(3).trim());
 }
 
-/** Checked before verify, so a moved `develop` does not cost a second verify. */
+/** A linked worktree has its own git dir; the main checkout's is the common one. */
+function inLinkedWorktree() {
+  return resolve(root, git("rev-parse", "--git-dir")) !== resolve(root, git("rev-parse", "--git-common-dir"));
+}
+
+/**
+ * Checked before verify, so a moved `develop` does not cost a second verify.
+ * Why: git will not check `develop` out in two worktrees, so a session in its own
+ * worktree sits on a throwaway branch and lands its commit on `develop` by refspec.
+ */
 function guardBranch() {
   const branch = git("branch", "--show-current");
-  if (branch !== BRANCH) die(`on "${branch}" — a feature only ever lands on ${BRANCH}`);
-  say("ok", `on ${BRANCH}`);
+  if (branch === BRANCH) say("ok", `on ${BRANCH}`);
+  else if (inLinkedWorktree()) say("ok", `worktree branch "${branch}" — lands on ${BRANCH}`);
+  else die(`on "${branch}" — a feature only ever lands on ${BRANCH}`);
 
   if (run("git", ["fetch", "--quiet", "origin", BRANCH]).status !== 0) {
     die(`could not fetch origin/${BRANCH}`);
@@ -236,7 +246,22 @@ function popPriority(issue) {
   say("ok", `#${issue} popped off Priority #${stack.number}`);
 }
 
-function land(messageFile) {
+/**
+ * Why: `git add -A` sweeps in another session's half-finished files when two
+ * pieces of work share a checkout. `--only` stages exactly the named paths.
+ */
+function stage(only) {
+  if (only.length === 0) {
+    if (run("git", ["add", "-A"]).status !== 0) die("git add failed");
+    return;
+  }
+  if (run("git", ["add", "-A", "--", ...only]).status !== 0) die("git add failed");
+  const left = changedFiles().filter((line) => !only.some((p) => line === p || line.startsWith(p.replace(/\/?$/, "/"))));
+  say("ok", `staged only: ${only.join(", ")}`);
+  if (left.length > 0) say("!!", `${left.length} changed file(s) left out`);
+}
+
+function land(messageFile, only) {
   const message = readMessage(messageFile);
   const subject = message.split("\n")[0].trim();
   checkSubject(subject);
@@ -252,7 +277,7 @@ function land(messageFile) {
   say("ok", subject);
 
   console.log("\n-- Push");
-  if (run("git", ["push", "origin", BRANCH]).status !== 0) {
+  if (run("git", ["push", "origin", `HEAD:${BRANCH}`]).status !== 0) {
     die(`push rejected — "git pull --rebase origin ${BRANCH}", then run verify again`);
   }
   const sha = git("rev-parse", "HEAD");
@@ -268,8 +293,12 @@ function land(messageFile) {
 
 const [command, ...rest] = process.argv.slice(2);
 if (command === "preflight") preflight(rest[0]);
-else if (command === "land") land(rest[rest.indexOf("--message-file") + 1]);
+else if (command === "land") {
+  const at = rest.indexOf("--only");
+  const only = at === -1 ? [] : rest.slice(at + 1).filter((a) => !a.startsWith("--"));
+  land(rest[rest.indexOf("--message-file") + 1], only);
+}
 else {
-  console.error("usage: push.mjs preflight <type> | push.mjs land --message-file <path>");
+  console.error("usage: push.mjs preflight <type> | push.mjs land --message-file <path> [--only <path>...]");
   process.exit(1);
 }

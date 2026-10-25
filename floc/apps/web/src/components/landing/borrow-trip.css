@@ -63,7 +63,7 @@
     align-items: flex-start;
     width: 250px;
     height: 104px;
-    padding: 12px 14px 13px;
+    padding: 8px 14px 9px;
     overflow: hidden;
     text-align: left;
     font-size: 11.5px;
@@ -77,7 +77,7 @@
   .borrow-chip[aria-current="true"] { border-color: var(--pen); box-shadow: var(--shadow-lift); scale: 1.05; }
   .borrow-chip:disabled { border-color: var(--rule); box-shadow: none; }
   .borrow-chip-title {
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 600;
     line-height: 1.15;
     letter-spacing: -0.02em;
@@ -89,14 +89,16 @@
     align-items: flex-start;
     gap: 4px;
     width: 100%;
+    padding-right: 38px;
   }
+  .borrow-place { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .borrow-face[data-kind="tick"] { opacity: 0.55; animation: borrow-reel 0.34s var(--ease) both; }
   .borrow-face[data-kind="land"] { animation: borrow-reel 0.6s var(--ease) both; }
   .borrow-face[data-kind="in"] { animation: borrow-reel 0.5s var(--ease) both; }
   .borrow-face[data-kind="out"] {
     position: absolute;
     left: 14px;
-    right: 14px;
+    right: 0;
     top: 50%;
     width: auto;
     translate: 0 -50%;
@@ -118,14 +120,14 @@
     place-items: center;
     width: 32px;
     height: 32px;
-    color: var(--ink-2);
-    background: var(--sheet);
-    border: 1px solid var(--rule-2);
+    color: var(--pen);
+    background: var(--pastel-blue);
+    border: 1px solid var(--pastel-blue-edge);
     border-radius: 999px;
     transition: border-color 0.18s var(--ease), color 0.18s var(--ease), background-color 0.18s var(--ease), translate 0.3s var(--ease), opacity 0.2s var(--ease);
   }
   /* The lit tile is drawn 5% larger, so its button steps out with the corner. */
-  .borrow-chip[aria-current="true"] + .borrow-deeper { translate: 5px 2px; color: var(--pen); border-color: var(--pen); }
+  .borrow-chip[aria-current="true"] + .borrow-deeper { translate: 5px 2px; border-color: var(--pen); }
   .borrow-tile .borrow-deeper:hover,
   .borrow-tile .borrow-deeper:focus-visible { color: var(--sheet); background: var(--pen); border-color: var(--pen); }
   .borrow-deeper:disabled { opacity: 0; }

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { ONE_STOP, RAIL, UNSAID } from "@/test/route-listings";
 
-import { borrowCards, hopWords, leadFirst, nightsWords } from "./borrow";
+import { borrowCards, hopWords, leadFirst, nightsWords, placeWords } from "./borrow";
 
 // Listings made for the test, so the cards do not move when the real listings change.
 const PRESET_TRIPS = [
@@ -90,5 +90,15 @@ describe("hopWords", () => {
 describe("nightsWords", () => {
   it("counts one night and many", () => {
     expect([nightsWords(1), nightsWords(4)]).toEqual(["1 night", "4 nights"]);
+  });
+});
+
+describe("placeWords", () => {
+  it("names the first country and counts the rest", () => {
+    expect(placeWords("South Africa, Namibia, Botswana, Zimbabwe")).toBe("South Africa +3");
+  });
+
+  it("leaves one country as it is", () => {
+    expect(placeWords("Japan")).toBe("Japan");
   });
 });
