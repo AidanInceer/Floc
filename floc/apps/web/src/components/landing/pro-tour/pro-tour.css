@@ -8,7 +8,7 @@
 
   .pro-browser {
     position: relative; overflow: hidden; border: 1px solid var(--rule-2); border-radius: 18px;
-    background: var(--sheet); box-shadow: var(--shadow-lift);
+    background: var(--sheet); box-shadow: var(--shadow-sm);
   }
   .pro-strip { display: flex; align-items: flex-end; gap: 10px; padding: 9px 12px 0; background: var(--sheet-3); }
   .pro-dots { display: flex; gap: 6px; align-self: center; padding-bottom: 4px; }
@@ -56,7 +56,7 @@
   .pro-page { padding: 14px; background: var(--paper); }
   .pro-ticket {
     position: relative; overflow: hidden; border: 1px solid var(--rule-2); border-radius: 20px;
-    background: var(--sheet); box-shadow: var(--shadow-lift);
+    background: var(--sheet); box-shadow: var(--shadow-sm);
   }
   .pro-ticket-top { position: relative; display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 2px dashed var(--rule-2); }
   .pro-ticket-top::before, .pro-ticket-top::after {
