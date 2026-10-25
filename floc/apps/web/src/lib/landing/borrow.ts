@@ -52,6 +52,11 @@ export function leadFirst(trips: PresetTrip[], lead: string[]): string[] {
 export const hopWords = ({ mode, detail }: Hop) =>
   mode === "other" ? detail : `${mode[0]!.toUpperCase()}${mode.slice(1)}, ${detail}`;
 
+export function placeWords(place: string) {
+  const [first = "", ...rest] = place.split(", ");
+  return rest.length ? `${first} +${rest.length}` : first;
+}
+
 export const nightsWords = (n: number) => `${n} ${n === 1 ? "night" : "nights"}`;
 
 function routeOf(trip: PresetTrip): Pick<BorrowCard, "stops" | "also"> {

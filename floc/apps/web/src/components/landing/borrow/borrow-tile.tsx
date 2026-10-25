@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { cx } from "@/components/system/ui";
-import { nightsWords, type BorrowCard as Card } from "@/lib/landing/borrow";
+import { nightsWords, placeWords, type BorrowCard as Card } from "@/lib/landing/borrow";
 
 import { Glyph } from "../landing-glyph";
 import { tone } from "./tones";
@@ -11,11 +11,6 @@ import type { Face } from "./use-borrow-hand";
 
 type Shown = { card: Card; face: Face };
 type Actions = { pick: () => void; deeper: (opener: HTMLElement) => void; hold: (on: boolean) => void };
-
-const placeWords = (place: string) => {
-  const [first = "", ...rest] = place.split(", ");
-  return rest.length ? `${first} +${rest.length}` : first;
-};
 
 function FaceView({ shown, slot, onGone }: { shown: Shown; slot: number; onGone?: () => void }) {
   const { card, face } = shown;
