@@ -40,11 +40,11 @@ const PAIRS = [
   // like any other surface rather than trusted for being deliberate.
   ["pro-ink", "pro", AA_TEXT, "text on the Pro ground"],
   ["pro-ink-2", "pro", AA_TEXT, "secondary text on the Pro ground"],
-  ["pro-gold", "pro", AA_TEXT, "gold text on the Pro ground"],
+  ["pro-mark", "pro", AA_TEXT, "the Pro mark on the Pro ground"],
   ["pro-ink", "pro-2", AA_TEXT, "text on a Pro card"],
   ["pro-ink-2", "pro-2", AA_TEXT, "secondary text on a Pro card"],
-  ["pro-gold", "pro-2", AA_TEXT, "gold text on a Pro card"],
-  ["pro", "pro-gold", AA_TEXT, "dark ink on the gold button"],
+  ["pro-mark", "pro-2", AA_TEXT, "the Pro mark on a Pro card"],
+  ["pro", "pro-mark", AA_TEXT, "text on the Pro button"],
   // Hairlines are decorative separation, not a control boundary, so AA's 3:1
   // does not apply — but a hairline nobody can see is still a bug.
   ["rule", "sheet", 1.05, "a hairline on a surface"],

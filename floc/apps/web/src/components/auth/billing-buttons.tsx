@@ -28,7 +28,7 @@ export function BillingAction({
   body?: Record<string, string>;
   children: ReactNode;
   variant?: "primary" | "secondary" | "ghost";
-  /** Given, it replaces the shared button skin — the Pro block is gold. */
+  /** Given, it replaces the shared button skin — the Pro block is ink. */
   className?: string;
 }) {
   const [busy, setBusy] = useState(false);
@@ -145,9 +145,9 @@ export function ProUpgrade({
 // not shrink the button it replaces.
 const proButtonBase =
   "lift flex h-[4.75rem] w-full items-center justify-center rounded-md px-6 text-center transition-colors";
-const proButtonLead = "bg-pro-gold text-pro";
+const proButtonLead = "bg-pro-mark text-pro";
 const proButtonQuiet =
-  "border border-pro-gold bg-transparent text-pro-ink hover:bg-pro-2";
+  "border border-pro-edge bg-transparent text-pro-ink hover:border-pro-mark hover:bg-pro-2";
 
 function ProButton({
   price,

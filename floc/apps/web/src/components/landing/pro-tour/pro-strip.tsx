@@ -50,7 +50,7 @@ export function ProStrip({ closed, piled }: { closed: number; piled: boolean }) 
         </span>
       </div>
       <div className="pro-bar">
-        <span className="pro-url">floc.app/trip/sicily</span>
+        <span className="pro-url">floc.live/trip/sicily</span>
       </div>
     </div>
   );

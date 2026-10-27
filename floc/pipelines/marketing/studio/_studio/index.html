@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Floc marketing studio</title>
+  <link rel="stylesheet" href="/_house/tokens.css">
+  <link rel="stylesheet" href="/_studio/studio.css">
+  <script src="/_studio/studio.js" defer></script>
+</head>
+<body>
+  <aside class="side">
+    <a class="brand" href="/">floc<span class="dot">.</span> <span>studio</span></a>
+    <nav id="posts" aria-label="Posts"></nav>
+    <button class="theme" id="theme" type="button">Dark</button>
+  </aside>
+  <main class="main">
+    <h1 id="title" class="head"></h1>
+    <div class="transport" role="group" aria-label="Playback">
+      <button id="play" type="button" class="btn">Play</button>
+      <input id="scrub" type="range" min="0" step="0.01" value="0" aria-label="Time">
+      <span id="clock" class="mono">0:00.0</span>
+      <span class="seg" role="group" aria-label="Speed">
+        <button type="button" data-speed="0.5">0.5×</button><button type="button" data-speed="1" aria-pressed="true">1×</button>
+      </span>
+      <span class="seg" role="group" aria-label="Size">
+        <button type="button" data-size="200">S</button><button type="button" data-size="280" aria-pressed="true">M</button><button type="button" data-size="400">L</button>
+      </span>
+    </div>
+    <section id="grid" class="grid"></section>
+  </main>
+</body>
+</html>

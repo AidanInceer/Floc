@@ -1,19 +1,17 @@
 import Link from "next/link";
 
-import { Glyph } from "../landing-glyph";
 import { ProTour } from "./pro-tour";
 import { ComingSoonTag } from "../coming-soon-tag";
 
 /** `monthly` is Stripe's formatted price; null when it cannot be read, so Pro sells without a figure. */
 function ProPitch({ monthly, href }: { monthly: string | null; href: string }) {
   return (
-    <div className="mt-9 grid items-center gap-4 rounded-3xl border border-rule bg-sheet p-4 shadow-raised md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-6 md:px-6 md:py-[18px]">
-      <span
-        aria-hidden
-        className="hidden size-[60px] place-items-center content-center gap-0.5 rounded-full border-[1.5px] border-rule-strong text-pro-gold outline-1 outline-offset-4 outline-rule-strong outline-dashed md:grid"
-      >
-        <Glyph name="star" className="size-[15px] fill-current" />
-        <b className="font-mono text-[11px] uppercase tracking-[0.12em]">Pro</b>
+    <div className="grid items-center gap-4 border-t border-rule bg-sheet p-4 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-6 md:px-6 md:py-[18px]">
+      <span aria-hidden className="hidden items-center gap-1.5 md:flex">
+        <span className="font-display text-[22px] font-semibold leading-none tracking-tight text-ink">
+          floc<span className="text-pen">.</span>
+        </span>
+        <b className="rounded-[5px] bg-pro-mark px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-pro">Pro</b>
       </span>
       <div>
         <h3 className="font-display text-xl font-semibold tracking-tight">One Pro covers the whole trip.</h3>
@@ -29,7 +27,7 @@ function ProPitch({ monthly, href }: { monthly: string | null; href: string }) {
             <span className="text-ink-faint">Cancel any time</span>
           </p>
         )}
-        <Link href={href} className="lift rounded-full bg-pro-gold px-6 py-3 text-sm font-semibold text-pro">
+        <Link href={href} className="lift rounded-full bg-pro-mark px-6 py-3 text-sm font-semibold text-pro">
           Get Pro
         </Link>
       </div>
@@ -45,8 +43,9 @@ export function ProBand({ monthly, signedIn }: { monthly: string | null; signedI
         <ComingSoonTag />
         <h2 className="band-title mt-3">How Pro helps at every stage.</h2>
       </div>
-      <ProTour />
-      <ProPitch monthly={monthly} href={signedIn ? "/settings?section=billing" : "/signup"} />
+      <ProTour>
+        <ProPitch monthly={monthly} href={signedIn ? "/settings?section=billing" : "/signup"} />
+      </ProTour>
     </div>
   );
 }

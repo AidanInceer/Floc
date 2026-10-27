@@ -96,13 +96,13 @@ export const lightTokens = {
   "shadow-lift":
     "0 2px 4px rgb(20 20 26 / 0.06), 0 14px 28px -16px rgb(20 20 26 / 0.35)",
 
-  /* Pro — the one block that leaves the blue-and-pastel language. */
-  pro: "#fbf3e2",
-  "pro-2": "#fffcf5",
-  "pro-edge": "#ecdcb5",
-  "pro-ink": "#3a2d0f",
-  "pro-ink-2": "#6b5726",
-  "pro-gold": "#8a6412",
+  /* Pro is ink: black on white, white on black. Weight, not a hue, marks a paid perk. */
+  pro: "var(--sheet-2)",
+  "pro-2": "var(--sheet)",
+  "pro-edge": "var(--rule-2)",
+  "pro-ink": "var(--ink)",
+  "pro-ink-2": "var(--ink-2)",
+  "pro-mark": "var(--ink)",
 
   vignette: "rgb(255 255 255 / 0.5)",
 
@@ -200,12 +200,6 @@ export const darkTokens: Readonly<Partial<Record<TokenName, TokenValue>>> = {
   "shadow-lift":
     "0 2px 4px rgb(0 0 0 / 0.5), 0 14px 28px -16px rgb(0 0 0 / 0.95)",
 
-  pro: "#17171d",
-  "pro-2": "#23232c",
-  "pro-edge": "#3b3b46",
-  "pro-ink": "#f6f2e8",
-  "pro-ink-2": "#b6b0a2",
-  "pro-gold": "#e7bd63",
 
   vignette: "rgb(255 255 255 / 0.05)",
 };

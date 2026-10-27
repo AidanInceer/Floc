@@ -138,18 +138,13 @@
   --shadow: 0 1px 2px rgb(20 20 26 / 0.05), 0 6px 14px -12px rgb(20 20 26 / 0.3);
   --shadow-lift: 0 2px 4px rgb(20 20 26 / 0.06), 0 14px 28px -16px rgb(20 20 26 / 0.35);
 
-  /*
-   * Pro. The one paid thing on the site, and the only block that
-   * leaves the blue-and-pastel language: warm parchment and gold here, cut to
-   * black and gold in dark. Gold is the constant, the ground is not — a
-   * near-black slab on a white page glared (it read as a hole, not a card).
-   */
-  --pro: #fbf3e2;
-  --pro-2: #fffcf5;
-  --pro-edge: #ecdcb5;
-  --pro-ink: #3a2d0f;
-  --pro-ink-2: #6b5726;
-  --pro-gold: #8a6412;
+  /* Pro is ink: black on white, white on black. Weight, not a hue, marks a paid perk. */
+  --pro: var(--sheet-2);
+  --pro-2: var(--sheet);
+  --pro-edge: var(--rule-2);
+  --pro-ink: var(--ink);
+  --pro-ink-2: var(--ink-2);
+  --pro-mark: var(--ink);
 
   /* The lift of white inside the map frame, so pins near the border still
      separate from the tiles. A token because dark cannot afford the glare. */
@@ -279,14 +274,6 @@
   --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 14px -12px rgb(0 0 0 / 0.9);
   --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.5), 0 14px 28px -16px rgb(0 0 0 / 0.95);
 
-  /* Pro inverts here: the same block, cut from black rather than parchment.
-     Gold rises to carry text on it. */
-  --pro: #17171d;
-  --pro-2: #23232c;
-  --pro-edge: #3b3b46;
-  --pro-ink: #f6f2e8;
-  --pro-ink-2: #b6b0a2;
-  --pro-gold: #e7bd63;
 
   /* The white lift at the map's edge would be a glare here. */
   --vignette: rgb(255 255 255 / 0.05);
@@ -325,13 +312,13 @@
   --color-pastel-red-ink: var(--pastel-red-ink);
   --color-pastel-red-edge: var(--pastel-red-edge);
 
-  /* Pro's own ground: bg-pro, text-pro-gold, …. */
+  /* Pro's own ground: bg-pro, text-pro-mark, …. */
   --color-pro: var(--pro);
   --color-pro-2: var(--pro-2);
   --color-pro-edge: var(--pro-edge);
   --color-pro-ink: var(--pro-ink);
   --color-pro-ink-soft: var(--pro-ink-2);
-  --color-pro-gold: var(--pro-gold);
+  --color-pro-mark: var(--pro-mark);
 
   --color-highlight: var(--highlight);
   --color-highlight-soft: var(--highlight-2);
@@ -516,6 +503,6 @@
   .who-7 { background: var(--who-7); color: var(--who-7-ink); }
   .who-8 { background: var(--who-8); color: var(--who-8-ink); }
 
-  .pro-star { color: var(--pro-gold); }
+  .pro-star { color: var(--pro-mark); }
 }
 

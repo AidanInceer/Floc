@@ -1,4 +1,4 @@
-/** The web's gold row in the account menu: what you are on, and the way to change it. */
+/** The web's Pro row in the account menu: what you are on, and the way to change it. */
 import type { BillingStatus } from "@floc/api/port";
 import { Pressable, StyleSheet, Text } from "react-native";
 
@@ -30,7 +30,7 @@ export function ProRow({ status, onPress }: { status: BillingStatus | undefined;
         opacity: pressed ? 0.8 : 1,
       })}
     >
-      <ProStarGlyph color={c["pro-gold"]} />
+      <ProStarGlyph color={c["pro-mark"]} />
       <Text style={{ flex: 1, color: c["pro-ink"], fontFamily: fonts.sansBold, fontSize: size.body }}>
         Floc Pro
       </Text>

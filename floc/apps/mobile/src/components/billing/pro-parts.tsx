@@ -1,4 +1,4 @@
-/** Text and buttons on the gold Pro ground, where the house ones would read as blue. */
+/** Text and buttons on the Pro ground, where the house ones would read as blue. */
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text } from "react-native";
 

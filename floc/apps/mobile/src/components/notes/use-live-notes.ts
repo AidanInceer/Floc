@@ -30,16 +30,25 @@ export function useNotesSocket(): HocuspocusProviderWebsocket | null {
   const [socket, setSocket] = useState<HocuspocusProviderWebsocket | null>(null);
   useEffect(() => {
     // Why a subclass: the server reads the session cookie, and the provider builds its own socket.
-    // The cookie is read per connection, so a reconnect after the session renews sends the new one.
+    // The keychain read is async and a constructor is not, so the cookie is read again on every
+    // close: the reconnect waits out its back-off, and by then it sends the renewed session.
+    let cookie = "";
+    let made: HocuspocusProviderWebsocket | null = null;
+    let gone = false;
+    const refresh = () => authClient.getCookie().then((fresh) => { cookie = fresh; });
     class CookieSocket extends NativeSocket {
       constructor(url: string, protocols?: string | string[]) {
-        super(url, protocols, { headers: { Cookie: authClient.getCookie() } });
+        super(url, protocols, { headers: { Cookie: cookie } });
       }
     }
-    const made = new HocuspocusProviderWebsocket({ url: liveNotesUrl(API_BASE_URL), WebSocketPolyfill: CookieSocket });
-    setSocket(made);
+    void refresh().then(() => {
+      if (gone) return;
+      made = new HocuspocusProviderWebsocket({ url: liveNotesUrl(API_BASE_URL), WebSocketPolyfill: CookieSocket, onClose: () => void refresh() });
+      setSocket(made);
+    });
     return () => {
-      made.destroy();
+      gone = true;
+      made?.destroy();
       setSocket(null);
     };
   }, []);
