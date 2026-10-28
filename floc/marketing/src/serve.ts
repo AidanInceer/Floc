@@ -37,7 +37,9 @@ export function studioFile({ repo, studio }: Roots, url: string): string | undef
   const from = url.startsWith("/floc/") ? repo
     : url.startsWith("/shared/") || url.startsWith("/_studio/") ? studio
     : join(studio, "scenes");
+  const base = from + sep;
   const file = resolve(from, `.${url}`);
-  if (!file.startsWith(from + sep) || !existsSync(file) || statSync(file).isDirectory()) return undefined;
+  if (!file.startsWith(base)) return undefined;
+  if (!existsSync(file) || statSync(file).isDirectory()) return undefined;
   return file;
 }

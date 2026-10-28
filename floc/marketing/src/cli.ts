@@ -35,7 +35,7 @@ function context(): Context {
   const cfg = readInstagramConfig(process.env);
   return {
     content,
-    log: (line) => { console.log(line); },
+    log: (line) => { console.log(line.replaceAll(/[\r\n]+/g, " ")); },
     confirm: async (question) => {
       if (!process.stdin.isTTY) return false;
       const rl = createInterface({ input: process.stdin, output: process.stdout });

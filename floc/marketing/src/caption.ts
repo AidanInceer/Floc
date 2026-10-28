@@ -22,7 +22,7 @@ export function checkCaption(caption: string): string[] {
   }
 
   const allowed: readonly string[] = QUOTED_PRICES;
-  for (const price of text.match(/£\d+(?:\.\d{2})?/g) ?? []) {
+  for (const price of text.match(/£\d+(?:\.\d\d)?/g) ?? []) {
     if (!allowed.includes(price)) {
       problems.push(`“${price}” is not a price Floc charges (${QUOTED_PRICES.join(", ")}). If Stripe changed, update facts.ts.`);
     }

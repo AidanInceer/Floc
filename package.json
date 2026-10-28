@@ -21,7 +21,7 @@
     "wireframe": "node scripts/wireframe-server.mjs",
     "comments": "node scripts/check-comments.mjs --working",
     "marketing": "node floc/marketing/src/cli.ts",
-    "explore:new":"node scripts/new-explore-trip.mjs",
+    "explore:new": "node scripts/new-explore-trip.mjs",
     "parity": "node --experimental-strip-types scripts/parity/run.mjs",
     "verify": "node scripts/verify.mjs",
     "sonar": "npx --yes sonar-scanner",
@@ -30,7 +30,9 @@
     "plugins:sync": "node scripts/sync-floc-plugin.mjs --refresh --force",
     "plugins:check": "node --test scripts/sync-floc-plugin.test.mjs && node scripts/sync-floc-plugin.mjs --check",
     "hooks:install": "simple-git-hooks",
-    "prepare": "node scripts/sync-floc-plugin.mjs --refresh && simple-git-hooks"
+    "prepare": "node scripts/sync-floc-plugin.mjs --refresh && simple-git-hooks",
+    "quality:check": "node scripts/quality/run.mjs",
+    "quality:test": "node --test scripts/quality/*.test.mjs"
   },
   "simple-git-hooks": {
     "pre-commit": "node scripts/sync-floc-plugin.mjs --check && pnpm exec lint-staged",
@@ -40,7 +42,11 @@
     "lint-staged": "^17.5.1",
     "simple-git-hooks": "^2.14.0",
     "turbo": "^2.0.0",
-    "typescript": "^5.5.0"
+    "typescript": "^5.5.0",
+    "eslint": "9.39.5",
+    "eslint-plugin-security": "4.2.0",
+    "eslint-plugin-sonarjs": "4.2.2",
+    "typescript-eslint": "8.70.0"
   },
   "pnpm": {
     "neverBuiltDependencies": [

@@ -10,5 +10,5 @@ export function openingPlace(land: Countries, beenThere: readonly string[]): Lat
   const places = beenThere.map((code) => middleOf(land, code)).filter((p): p is LatLng => p !== null);
   if (places.length === 0) return EUROPE;
   const groups = places.map((p) => places.filter((q) => arc(p, q) < GROUP));
-  return middle(groups.reduce((big, g) => (g.length > big.length ? g : big)));
+  return middle(groups.reduce((big, g) => (g.length > big.length ? g : big), groups[0]));
 }

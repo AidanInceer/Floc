@@ -1,7 +1,7 @@
 import { execFile } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
-import { join, relative, resolve } from "node:path";
+import { join } from "node:path";
 import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
 import { parseArgs, parseEnv, styleText } from "node:util";
@@ -40,7 +40,6 @@ STRIPE_WEBHOOK_SECRET=
 
 // Why: the file holds live secrets inside the checkout, so refuse it unless git ignores it.
 function assertIgnored(path) {
-  if (relative(checkout, path).startsWith("..")) return Promise.resolve();
   return new Promise((done, fail) => execFile("git", ["check-ignore", "-q", path], { cwd: checkout },
     (error) => error ? fail(new Error(`${path} is not ignored by git. Fix .gitignore before putting secrets in it.`)) : done()));
 }
@@ -105,8 +104,8 @@ async function updateLocalEnv(file) {
 }
 
 async function main() {
-  const { values } = parseArgs({ options: { apply: { type: "boolean" }, local: { type: "boolean" }, from: { type: "string" } } });
-  const path = resolve(values.from ?? join(checkout, "floc-rotation.env"));
+  const { values } = parseArgs({ options: { apply: { type: "boolean" }, local: { type: "boolean" } } });
+  const path = join(checkout, "floc-rotation.env");
   const file = await readValues(path);
   if (!file) {
     out(`\n  Made ${paint("bold", path)}\n  Fill it in, then run this again.\n`);

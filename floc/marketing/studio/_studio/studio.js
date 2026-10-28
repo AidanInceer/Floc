@@ -155,8 +155,8 @@ document.addEventListener("click", (e) => {
   } else if (b.dataset.speed) { state.speed = Number(b.dataset.speed); pick(b.closest(".seg"), "speed", b.dataset.speed); }
   else if (b.dataset.size) { state.size = Number(b.dataset.size); pick(b.closest(".seg"), "size", b.dataset.size); sizeFrames(); }
   else if (b.dataset.t) { setPlaying(false); setT(Number(b.dataset.t)); }
-  else if (b.dataset.status && card) call("POST", `/_studio/scenes/${card.dataset.scene}/status`, { status: b.dataset.status });
-  else if (b.dataset.note && card) call("DELETE", `/_studio/scenes/${card.dataset.scene}/notes/${b.dataset.note}`);
+  else if (b.dataset.status && card) act("POST", `/_studio/scenes/${card.dataset.scene}/status`, { status: b.dataset.status });
+  else if (b.dataset.note && card) act("DELETE", `/_studio/scenes/${card.dataset.scene}/notes/${b.dataset.note}`);
 });
 
 document.addEventListener("submit", (e) => {
@@ -164,7 +164,7 @@ document.addEventListener("submit", (e) => {
   const card = e.target.closest(".card");
   const text = e.target.querySelector("textarea").value;
   e.target.querySelector("textarea").value = "";
-  call("POST", `/_studio/scenes/${card.dataset.scene}/notes`, { t: state.t, text });
+  act("POST", `/_studio/scenes/${card.dataset.scene}/notes`, { t: state.t, text });
 });
 
 document.addEventListener("keydown", (e) => {
@@ -183,4 +183,4 @@ document.addEventListener("keydown", (e) => {
 $("scrub").addEventListener("input", (e) => { setPlaying(false); setT(Number(e.target.value)); });
 window.addEventListener("resize", sizeFrames);
 
-load().then(() => { drawSide(); buildGrid(); requestAnimationFrame(tick); });
+load().then(() => { drawSide(); buildGrid(); requestAnimationFrame(tick); }).catch((error) => alert(error.message));

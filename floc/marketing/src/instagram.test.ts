@@ -42,6 +42,13 @@ describe("readInstagramConfig", () => {
       missing: ["INSTAGRAM_USER_ID", "INSTAGRAM_ACCESS_TOKEN"],
     });
   });
+
+  it("refuses a user id or version that would change the Graph path", () => {
+    expect(readInstagramConfig({ INSTAGRAM_USER_ID: "1/../2", INSTAGRAM_ACCESS_TOKEN: "t", INSTAGRAM_GRAPH_VERSION: "latest" })).toEqual({
+      ok: false,
+      missing: ["INSTAGRAM_USER_ID", "INSTAGRAM_GRAPH_VERSION"],
+    });
+  });
 });
 
 describe("publishReel", () => {
@@ -78,6 +85,26 @@ describe("publishReel", () => {
   it("gives up after the polling limit", async () => {
     const { transport } = fakeTransport(Array.from({ length: 100 }, () => "IN_PROGRESS"));
     await expect(publishReel(config, new Uint8Array([1]), "x", transport, 3)).rejects.toThrow("still processing after 3 checks");
+  });
+
+  it("uploads only to rupload.facebook.com", async () => {
+    const { transport, calls } = fakeTransport([]);
+    transport.fetch = (input, init) => {
+      const url = input instanceof Request ? input.url : input.toString();
+      calls.push({ url, method: init?.method ?? "GET", headers: {}, body: init?.body });
+      return Promise.resolve(new Response(JSON.stringify({ id: "C1", uri: "https://evil.example/C1" })));
+    };
+    await expect(publishReel(config, new Uint8Array([1]), "x", transport)).rejects.toThrow("not on rupload.facebook.com");
+    expect(calls.some((c) => c.url.startsWith("https://evil.example"))).toBe(false);
+  });
+
+  it("refuses an id from Instagram that would change the Graph path", async () => {
+    const { transport } = fakeTransport([]);
+    const real = transport.fetch;
+    transport.fetch = (input, init) => (input instanceof Request ? input.url : input.toString()).endsWith("/17841/media")
+      ? Promise.resolve(new Response(JSON.stringify({ id: "../me", uri: "https://rupload.facebook.com/x" })))
+      : real(input, init);
+    await expect(publishReel(config, new Uint8Array([1]), "x", transport)).rejects.toThrow("unexpected id");
   });
 
   it("passes on the Graph API's own error message", async () => {

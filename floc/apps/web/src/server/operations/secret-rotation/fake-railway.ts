@@ -12,7 +12,9 @@ export function webVariables(overrides: Record<string, string> = {}) {
   };
 }
 
-export function fakeRailway(web = webVariables(), cron: Record<string, string> = { BETTER_AUTH_URL: "https://floc.live", CRON_SECRET: "old-cron" }) {
+const CRON: Record<string, string> = { BETTER_AUTH_URL: "https://floc.live", CRON_SECRET: "old-cron" };
+
+export function fakeRailway(web = webVariables(), cron: Record<string, string> = CRON) {
   const statuses: string[] = [];
   const railway = {
     findTarget: vi.fn(async () => ({ name: "app", project: "p", environment: "e", web: "w", cron: "c" })),

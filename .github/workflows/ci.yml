@@ -62,7 +62,13 @@ jobs:
         run: pnpm turbo run typecheck --filter='${{ steps.filter.outputs.value }}'
 
       - name: Test
-        run: pnpm turbo run test --filter='${{ steps.filter.outputs.value }}'
+        run: pnpm turbo run test --force
+
+      - name: Test local quality gates
+        run: pnpm quality:test
+
+      - name: Release diff quality
+        run: pnpm quality:check
 
       - name: Build
         run: pnpm turbo run build --filter='${{ steps.filter.outputs.value }}'
@@ -98,7 +104,7 @@ jobs:
 
       # Coverage must exist before SonarScanner reads sonar-project.properties.
       - name: Test with coverage
-        run: pnpm turbo run test --filter='...[HEAD^1]'
+        run: pnpm turbo run test --force
 
       - name: Version
         id: version

@@ -29,10 +29,8 @@
 # Run it by hand:   pnpm verify
 # Nothing runs it for you — the pre-push hook was removed deliberately. CI is
 # the gate that blocks; this is the way to hear about it before pushing.
-# SonarCloud is intentionally not run here: it needs the CI token and its
-# result is reported by the GitHub job after this local gate. CI skips direct
-# develop pushes because SonarQube Cloud Free supports main and pull requests,
-# not non-main branch analysis.
+# SonarCloud still needs CI. Local SonarJS/security rules and release-diff
+# coverage run here before develop; cloud-only analysis remains a release gate.
 #
 # Not `set -e`: every check runs even after one fails, so a single run tells
 # you everything that is wrong rather than only the first thing.
@@ -89,7 +87,7 @@ export FLOC_NEXT_DIST_DIR=.next-verify
 # One turbo call runs lint, typecheck and test side by side. Build is a second
 # call: typecheck reads `.next-verify/types`, which a parallel build rewrites.
 step "Lint · typecheck · test · build"
-if pnpm turbo run lint typecheck test --continue >/tmp/verify-checks.log 2>&1; then
+if pnpm turbo run lint typecheck test --continue --force >/tmp/verify-checks.log 2>&1; then
   for task in lint typecheck test; do ok "$task"; done
 else
   failed_line=$(grep -E '^\s*Failed:' /tmp/verify-checks.log || true)
@@ -104,6 +102,13 @@ if pnpm build >/tmp/verify-build.log 2>&1; then
 else
   bad "build"
   tail -30 /tmp/verify-build.log
+fi
+
+step "Local quality gates and release-diff coverage"
+if pnpm quality:test && pnpm quality:check; then
+  ok "local analysis and changed-code coverage"
+else
+  bad "local quality gate failed"
 fi
 
 # --------------------------------------------------- ci.yml :: e2e-web
@@ -249,7 +254,7 @@ fi
 
 echo
 if [ "$fail" -eq 0 ]; then
-  printf '%s✓ everything CI checks passes here.%s\n' "$GREEN" "$OFF"
+  printf '%s✓ local checks pass; SonarCloud remains a release gate.%s\n' "$GREEN" "$OFF"
 else
   printf '%s✗ %d check(s) failed:%s\n' "$RED" "${#FAILED[@]}" "$OFF"
   for f in "${FAILED[@]}"; do printf '    %s\n' "$f"; done

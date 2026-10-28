@@ -274,7 +274,7 @@ window.promoReady = document.fonts.ready.then(() => Promise.all([
 ]));
 
 const q = new URLSearchParams(location.search);
-if (q.has("t")) seek(parseFloat(q.get("t")));
+if (q.has("t")) seek(Number.parseFloat(q.get("t")));
 else {
   const t0 = performance.now();
   const tick = () => { seek(((performance.now() - t0) / 1000) % DURATION); requestAnimationFrame(tick); };

@@ -140,7 +140,7 @@ function frame(t) {
     const passed = t > 10.2 && t < 12.6 && flockLead > 112 + i * 122 + 40 ? 1 : 0;
     const done = t >= 11.7 ? 1 : passed;
     const hide = 1 - out3(p(t, 12.2, 12.6));
-    pose(pl, { o: appear * (done ? 1 : 1) * (t > 12.3 ? hide : 1), y: (1 - appear) * 40 + (done && t < 12.3 ? -8 : 0) });
+    pose(pl, { o: appear * (t > 12.3 ? hide : 1), y: (1 - appear) * 40 + (done && t < 12.3 ? -8 : 0) });
     pl.style.background = done ? "var(--green-2)" : "var(--sheet)";
     pl.style.borderColor = done ? "var(--green-edge)" : "var(--rule)";
   });

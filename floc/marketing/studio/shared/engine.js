@@ -57,7 +57,7 @@ function run(duration, frame) {
     document.fonts.load('500 40px "DM Mono"'),
   ]));
   const q = new URLSearchParams(location.search);
-  if (q.has("t")) frame(parseFloat(q.get("t")));
+  if (q.has("t")) frame(Number.parseFloat(q.get("t")));
   else {
     const t0 = performance.now();
     const tick = () => { frame(((performance.now() - t0) / 1000) % duration); requestAnimationFrame(tick); };

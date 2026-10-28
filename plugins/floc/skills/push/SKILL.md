@@ -39,7 +39,8 @@ The script, in order:
    did not.
 6. Flags a schema or `floc-api` change.
 7. Bumps `floc/apps/web/package.json`.
-8. Runs `pnpm verify`.
+8. Runs `pnpm verify`, including fresh coverage for every workspace, local SonarJS/security rules and 80% coverage on changed lines and branches across the full diff from origin/main. Missing LCOV source files fail.
+9. Records the verified Git tree and main/develop refs. Any subsequent edit or moved base invalidates it.
 
 **Read the file list.** A file the user did not ask you to touch → stop and
 say what it is.
@@ -108,6 +109,8 @@ the `Priority` issue, or is already `on-develop`. The `commit-msg` hook also
 refuses a `Closes` that does not match the subject. Do not work around either —
 the number is wrong.
 
+Before committing, land requires a successful preflight for the exact staged tree. It checks again after commit hooks, before pushing. If --only leaves a different tree from the one verified, use an isolated worktree and preflight that slice; never borrow another snapshot's result.
+
 After the push, `land` labels the issue `on-develop` and pops its line off the
 `Priority` stack, renumbering the rest. `Closes` fires only when `develop`
 reaches `main` (`/floc:release`), so the issue stays open until then. A `!!`
@@ -138,17 +141,11 @@ On red it fixes the cause on `develop`, pushes and watches again (at most three
 tries). Pass on its report: what failed, what it fixed, or why it stopped.
 Your local `develop` is now behind — the next preflight pulls it.
 
-**Sonar is silent here.** SonarQube Cloud Free analyses `main` and pull
-requests only, so a `develop` push never runs the gate — the bill arrives at
-`/floc:release`, measured over everything since the last release. Once a push
-lands, look at what is already waiting:
+**Local analysis gates develop.** pnpm quality:check runs SonarJS bug/security rules, promise checks and conservative filesystem/process checks on changed release lines, including scripts and studio JavaScript outside package lint. A dynamic file path is flagged only in a function (or module top level) that reads `process.argv`, `parseArgs`, stdin or a request URL. Contain the path first; a `// Why:` comment on the line above marks a reviewed one. `eslint-disable` comments are ignored. Rules that `sonar.issue.ignore.multicriteria` ignores for a path are ignored here too. Review security findings; they are potential risks, not proof of an exploit. Do not suppress a finding to get a push through.
 
-```bash
-node scripts/sonar-gate.mjs main
-```
+The coverage scope and exclusions come from sonar-project.properties. Add a new workspace's LCOV path there. All tests run fresh; a cached test exit code cannot stand in for coverage files. Package-wide 80% does not prove changed code reaches 80%.
 
-Exit `1` → report the issues in the files this commit touched, so they are
-fixed here rather than found at release time. Exit `0` or `2` → say nothing.
+SonarCloud still runs only on PRs and main. Local rules do not reproduce cloud taint analysis, duplication or hotspot review. A green local gate is never a claim that the release gate will pass. Keep direct develop pushes; do not create staging PRs.
 
 ## Report
 

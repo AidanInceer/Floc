@@ -8,8 +8,8 @@ In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
 # rotate-secrets
 
 One script does the work: `floc/apps/web/scripts/rotate-railway-secrets.mjs`.
-It reads new values from `floc-rotation.env` at the repo root (`--from <path>`
-for another file) and makes that file, empty, on first run. It refuses a file in
+It reads new values from `floc-rotation.env` at the repo root and makes that
+file, empty, on first run. It refuses a file in
 the repo that git does not ignore (`*.env` covers it).
 
 **Never open that file, ask for, print or log a secret value** — not in chat,

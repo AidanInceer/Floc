@@ -46,5 +46,5 @@ export function middleOf(land: Countries, code: string): LatLng | null {
   if (dot) return dot.at;
   const own = land.shapes.filter((s) => s.code === code);
   if (own.length === 0) return null;
-  return own.reduce((big, s) => (s.ring.length > big.ring.length ? s : big)).centre;
+  return own.reduce((big, s) => (s.ring.length > big.ring.length ? s : big), own[0]).centre;
 }

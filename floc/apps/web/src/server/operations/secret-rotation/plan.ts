@@ -22,7 +22,7 @@ export async function readPlan(railway: Pick<Railway, "findTarget" | "variables"
   for (const name of GENERATED) {
     if (!web[name]) throw new Error(`${name} is missing on floc-web.`);
   }
-  const names = [...new Set([...Object.keys(web), ...Object.keys(cron)])].filter(secretName).sort();
+  const names = [...new Set([...Object.keys(web), ...Object.keys(cron)])].filter(secretName).sort((a, b) => a.localeCompare(b));
   return {
     target: target.name, web, cron,
     cronFollowsWeb: reference(cron.CRON_SECRET),

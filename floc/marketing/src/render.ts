@@ -21,6 +21,7 @@ function serve(roots: Roots) {
     if (url === "/_house/tokens.css") return res.writeHead(200, { "Content-Type": "text/css" }).end(tokensCss);
     const file = studioFile(roots, url);
     if (!file) return res.writeHead(404).end();
+    // Why: studioFile keeps the request path inside the studio and repo roots.
     res.writeHead(200, { "Content-Type": mimeOf(file) }).end(readFileSync(file));
   });
 }
