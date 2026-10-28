@@ -14,6 +14,7 @@ out/
 # Env & secrets — NEVER commit
 .env
 .env.*
+*.env
 !.env.example
 *.pem
 *.key
@@ -53,6 +54,11 @@ human-*.md
 **/backlog/*
 !**/backlog/*.html
 .agents/
+!.agents/
+.agents/*
+!.agents/plugins/
+.agents/plugins/*
+!.agents/plugins/marketplace.json
 **/mockups/
 # Product docs stay local — the repo may go public.
 docs/

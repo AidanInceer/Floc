@@ -50,7 +50,7 @@ export function ProSection({
       }}
     >
       <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
-        <ProStarGlyph color={c["pro-gold"]} />
+        <ProStarGlyph color={c["pro-mark"]} />
         <Text style={{ color: c["pro-ink"], fontFamily: fonts.display, fontSize: size.heading }}>Floc Pro</Text>
       </View>
 

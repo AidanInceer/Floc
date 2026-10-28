@@ -3,6 +3,8 @@ name: feedback
 description: Turn what the user noticed in the built product — "that's not what I meant", something off, something missing — into tickets in AidanInceer/Floc, each traced to why it drifted, and fix the mission page or decision log so it does not happen again. Use when the user says /floc:feedback, reviews a build or release and lists what is wrong, or says a feature does not match what they asked for.
 ---
 
+In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
+
 # feedback
 
 The user reviews what was built and says what is off. This skill turns each

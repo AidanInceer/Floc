@@ -3,6 +3,8 @@ name: prototype
 description: Build a throwaway prototype to answer a design question. Use when the user says /floc:prototype, wants to sanity-check whether a state model or logic feels right, or explore what a UI should look like — often on a ticket labelled `wayfinder:prototype`, or when /floc:grill turns up a question only a prototype can answer.
 ---
 
+In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
+
 # Prototype
 
 A prototype is **throwaway code that answers a question**. The question decides the shape.

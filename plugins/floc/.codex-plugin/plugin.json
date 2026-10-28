@@ -1,0 +1,37 @@
+{
+  "name": "floc",
+  "version": "0.14.5",
+  "description": "Floc's own skills: grilling, prototypes, TDD, site audits, tickets, run, push, release, schema changes, mobile deps, docs, the dev database, architecture reviews, session retros, secret rotation and marketing posts.",
+  "author": {
+    "name": "Aidan Inceer"
+  },
+  "skills": [
+    "./skills/grill",
+    "./skills/tdd",
+    "./skills/prototype",
+    "./skills/feedback",
+    "./skills/audit",
+    "./skills/to-tickets",
+    "./skills/prioritise-tickets",
+    "./skills/pickup-ticket",
+    "./skills/run",
+    "./skills/implement-feature",
+    "./skills/schema-change",
+    "./skills/add-mobile-dep",
+    "./skills/sync-docs",
+    "./skills/push",
+    "./skills/release",
+    "./skills/seed-dev-db",
+    "./skills/reset-dev-db",
+    "./skills/review-docs",
+    "./skills/improve-codebase-architecture",
+    "./skills/retro",
+    "./skills/rotate-secrets",
+    "./skills/marketing"
+  ],
+  "interface": {
+    "displayName": "Floc",
+    "shortDescription": "Floc development workflows",
+    "developerName": "Aidan Inceer"
+  }
+}

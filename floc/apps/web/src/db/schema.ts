@@ -18,7 +18,7 @@ import {
 import { CURRENCIES } from "@floc/core/money/currency";
 import { DEFAULT_CATEGORY, EXPENSE_CATEGORIES } from "@floc/core/money/expense-category";
 import { DOC_CATEGORIES } from "@floc/core/documents/documents";
-import { PACK_CATEGORIES, PACK_TIERS } from "@floc/core/packing/packing";
+import { PACK_CATEGORIES, PACK_ORIGINS, PACK_TIERS } from "@floc/core/packing/packing";
 import { PLANS } from "@floc/core/billing/plans";
 import { AVATAR_ICONS } from "@floc/core/people/avatar-icon";
 import { PAGE_ICONS } from "@floc/core/notes/pages/page-icons";
@@ -539,6 +539,8 @@ export const packingLine = sqliteTable(
      * ordinary row, filed under its category.
      */
     kitName: text("kit_name"),
+    /** `suggested` = auto packing added it, so "Remove suggested" may take it back (#469). Null = typed or copied from a saved list. */
+    origin: text("origin", { enum: PACK_ORIGINS }),
     /** Personal lines only — see the note above. */
     packedAt: integer("packed_at", { mode: "timestamp" }),
     ...audit,

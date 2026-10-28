@@ -6,6 +6,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { assertPreflight, invalidatePreflight, recordPreflight, workingTree } from "./quality/preflight.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const WEB_PACKAGE = "floc/apps/web/package.json";
@@ -101,7 +102,7 @@ function guardBranch() {
   else if (inLinkedWorktree()) say("ok", `worktree branch "${branch}" — lands on ${BRANCH}`);
   else die(`on "${branch}" — a feature only ever lands on ${BRANCH}`);
 
-  if (run("git", ["fetch", "--quiet", "origin", BRANCH]).status !== 0) {
+  if (run("git", ["fetch", "--quiet", "origin", BRANCH, "main"]).status !== 0) {
     die(`could not fetch origin/${BRANCH}`);
   }
   const behind = Number(git("rev-list", "--count", `HEAD..origin/${BRANCH}`));
@@ -150,8 +151,12 @@ function applyBump(type) {
 function preflight(type) {
   if (!TYPES.includes(type)) die(`type must be one of: ${TYPES.join(" | ")}`);
 
+  invalidatePreflight(root);
   console.log("\n-- Guards");
   guardBranch();
+  if (run(process.execPath, [join(root, "scripts/sync-floc-plugin.mjs"), "--refresh"]).status !== 0) {
+    die("Floc plugin sync failed — fix it before pushing");
+  }
   const files = changedFiles();
   if (files.length === 0) die("nothing to push — the working tree is clean");
   say("ok", `${files.length} file(s) changed`);
@@ -164,11 +169,20 @@ function preflight(type) {
   console.log("\n-- Version");
   applyBump(type);
 
+  const tree = workingTree(root);
+  const releaseBase = git("rev-parse", "origin/main");
+  const developBase = git("rev-parse", "origin/develop");
   console.log("\n-- Verify\n");
   const verify = run(process.execPath, [join(root, "scripts", "verify.mjs")]);
   if (verify.status !== 0) {
     die("verify is red — fix it, then run preflight again (the bump is kept)");
   }
+
+  if (tree !== workingTree(root) || releaseBase !== git("rev-parse", "origin/main")
+    || developBase !== git("rev-parse", "origin/develop")) {
+    die("files or release refs changed during verify — run preflight again");
+  }
+  recordPreflight(root, tree);
 
   console.log(`\n  Ready. Commit subject starts: "${version()} #<issue>: ${type}: ..."`);
   console.log("  Write the message, then: pnpm push:land --message-file <path>\n");
@@ -255,6 +269,9 @@ function stage(only) {
     if (run("git", ["add", "-A"]).status !== 0) die("git add failed");
     return;
   }
+  const selected = (file) => only.some((path) => file === path || file.startsWith(path.replace(/\/?$/, "/")));
+  const staged = git("diff", "--cached", "--name-only", "-z").split("\0").filter(Boolean);
+  if (staged.some((file) => !selected(file))) die("index contains staged files outside --only — use an isolated worktree");
   if (run("git", ["add", "-A", "--", ...only]).status !== 0) die("git add failed");
   const left = changedFiles().filter((line) => !only.some((p) => line === p || line.startsWith(p.replace(/\/?$/, "/"))));
   say("ok", `staged only: ${only.join(", ")}`);
@@ -271,12 +288,17 @@ function land(messageFile, only) {
   if (issue) checkTicket(issue);
   else say("ok", "#no-ticket");
 
+  guardBranch();
   console.log("\n-- Commit");
-  if (run("git", ["add", "-A"]).status !== 0) die("git add failed");
+  stage(only);
+  try { assertPreflight(root, git("write-tree")); }
+  catch (error) { die(error.message); }
   if (run("git", ["commit", "-F", messageFile]).status !== 0) die("git commit failed");
   say("ok", subject);
 
   console.log("\n-- Push");
+  try { assertPreflight(root, git("rev-parse", "HEAD^{tree}")); }
+  catch (error) { die(error.message); }
   if (run("git", ["push", "origin", `HEAD:${BRANCH}`]).status !== 0) {
     die(`push rejected — "git pull --rebase origin ${BRANCH}", then run verify again`);
   }

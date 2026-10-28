@@ -29,7 +29,10 @@
       "Bash(git add *)",
       "Bash(git show *)",
       "Bash(gh pr create *)",
-      "Bash(curl -s -o /dev/null -w *)"
+      "Bash(curl -s -o /dev/null -w *)",
+      "Bash(rm floc-rotation.env)",
+      "PowerShell(Remove-Item floc-rotation.env)",
+      "PowerShell(Remove-Item \"C:\\dev\\Floc\\floc-rotation.env\")"
     ]
   },
   "hooks": {
@@ -40,6 +43,10 @@
           {
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/scripts/check-comments.mjs\" --hook"
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/sync-floc-plugin.mjs\" --hook"
           }
         ]
       }

@@ -3,6 +3,8 @@ name: to-tickets
 description: Break a plan, spec, or conversation into tracer-bullet GitHub issues in AidanInceer/Floc, each labelled and declaring its blocking edges. Use when slicing a feature into tickets.
 ---
 
+In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
+
 # to-tickets
 
 Break a plan into **tracer-bullet** GitHub issues in `AidanInceer/Floc`.

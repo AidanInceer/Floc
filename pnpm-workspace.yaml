@@ -10,6 +10,8 @@
 packages:
   - "floc/apps/*"
   - "floc/packages/*"
+  - "floc/marketing"
+  - "floc/pipelines/*"
   - "shared/packages/*"
   - "internal-tools/*"
   - "enablement/cli"

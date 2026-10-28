@@ -71,6 +71,10 @@ export function resolvePackTier(
   return perTrip ?? profileDefault;
 }
 
+/** Where a bag line came from (#469). Only auto packing is marked; a typed line is null, a saved-list line has its kit name. */
+export const PACK_ORIGINS = ["suggested"] as const;
+export type PackOrigin = (typeof PACK_ORIGINS)[number];
+
 /**
  * How many of a thing you're taking (ticket 220). One row carries its own
  * count rather than repeating itself five times: "5 — t-shirt" is what a

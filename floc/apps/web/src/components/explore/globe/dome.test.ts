@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { project } from "@/lib/landing/globe/sphere";
+import { project } from "@floc/globe/sphere";
 
 import { domeFit, fineAt, over } from "./dome";
 

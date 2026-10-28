@@ -84,9 +84,9 @@ const variants: Record<Variant, string> = {
     "border-rule-strong bg-sheet text-ink-2 hover:border-pen hover:bg-sheet-3 hover:text-ink",
   ghost: "border-transparent bg-transparent text-pen hover:bg-pen-soft hover:text-pen-deep",
   danger: "border-red/30 bg-red-soft text-red hover:border-red/60 hover:bg-red/15",
-  // The only button outside the pastel palette — Pro's parchment and gold, so
+  // The only button outside the pastel palette — Pro's ink, so
   // the one paid action reads as paid wherever it lands.
-  pro: "border-pro-edge bg-pro text-pro-gold hover:border-pro-gold hover:bg-pro-2",
+  pro: "border-pro-edge bg-pro text-pro-mark hover:border-pro-mark hover:bg-pro-2",
 };
 
 // Pill controls with the shared hover lift (ticket 190). `.lift` owns the

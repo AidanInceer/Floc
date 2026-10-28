@@ -1,0 +1,17 @@
+{
+  "name": "floc",
+  "plugins": [
+    {
+      "name": "floc",
+      "source": {
+        "source": "local",
+        "path": "./plugins/floc"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

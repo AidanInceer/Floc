@@ -105,7 +105,7 @@ export default function PersonProfile() {
         {p.map ? (
           <View style={{ gap: space.sm }}>
             <Label>Where they have been</Label>
-            <Card>
+            <Card style={{ padding: 0, paddingBottom: space.lg, overflow: "hidden" }}>
               <TravelMap marks={p.map} />
             </Card>
             <Figure tone="ink-3">

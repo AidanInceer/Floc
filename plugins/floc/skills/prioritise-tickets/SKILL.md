@@ -3,6 +3,8 @@ name: prioritise-tickets
 description: Order and tag every unprioritised open issue in AidanInceer/Floc, give each a phase, prefix each title with its feature category, and write the result to the phased Priority stack issue. Use when the user wants to prioritise the backlog, groom ticket order, or fix ticket labels and titles.
 ---
 
+In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
+
 # prioritise-tickets
 
 Put every open Floc issue into one ordered stack, split into phases, and make sure each one carries the right labels.

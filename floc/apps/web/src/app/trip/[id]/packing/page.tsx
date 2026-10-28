@@ -12,13 +12,8 @@ import {
 } from "@/server/packing/packing";
 import { listPackingKits } from "@/server/packing/packing-kits";
 import { ensureProfile } from "@/server/auth/profile";
-import {
-  PACK_TIERS,
-  PACK_TIER_LABELS,
-  packingStatus,
-  resolvePackTier,
-  viewPackingLines,
-} from "@floc/core/packing/packing";
+import { packingStatus, resolvePackTier } from "@floc/core/packing/packing";
+import { packingCubes, packingIdeas } from "@floc/core/packing/packing-ideas";
 import { arrangePackingLanes } from "@floc/core/packing/packing-lanes";
 import {
   CategorySelect,
@@ -29,8 +24,9 @@ import { PackingCount } from "@/components/packing/packing-card";
 import { PackingCube } from "@/components/packing/packing-cube";
 import { PackingLane } from "@/components/packing/packing-lane";
 import { PackingClaimCard } from "@/components/packing/packing-claim-card";
-import Link from "next/link";
-import { Avatar, PageTitle, Segmented, segmentClass } from "@/components/system/ui";
+import { Avatar, PageTitle } from "@/components/system/ui";
+import { PackingAutoLine, PackingUpgradeLine, RemoveSuggested } from "@/components/packing/packing-auto-line";
+import { PackingIdeaRow } from "@/components/packing/packing-idea-row";
 import { SubmitButton } from "@/components/system/client-ui";
 import { PersonalPackingRow } from "@/components/packing/packing-personal-row";
 import type { PackingClaimant } from "@/components/packing/packing-claim-card";
@@ -48,6 +44,8 @@ import {
   removePackingLines,
   resetPackingList,
   applyPackingKit,
+  takePackingIdea,
+  removeSuggestedPackingLines,
 } from "./actions";
 
 export const metadata = { title: "Packing" };
@@ -113,7 +111,16 @@ export default async function PackingPage({
     mine = await listPersonalPackingLines(tripId, access.viewer.id);
   }
 
-  const bagGroups = viewPackingLines(mine, { sort: "category", category: "all" });
+  const ideasHidden = query.ideas === "off";
+  const ideas = packingPro
+    ? packingIdeas({ nights: plan.nights, climate: plan.climate, tier }, mine.map((l) => l.label))
+    : [];
+  const bagCubes = packingCubes(mine, ideasHidden ? [] : ideas);
+  const suggestedCount = mine.filter((l) => l.origin === "suggested" && l.packedAt === null).length;
+  const takeIdea = takePackingIdea.bind(null, tripId);
+  const removeSuggested = (
+    <RemoveSuggested count={suggestedCount} action={removeSuggestedPackingLines.bind(null, tripId)} />
+  );
 
   // One person, one avatar colour across every tab.
   const toneOf = new Map(access.members.map((m) => [m.userId, m.tone]));
@@ -155,7 +162,7 @@ export default async function PackingPage({
         name="label"
         required
         maxLength={200}
-        className="w-full rounded-md border border-rule bg-sheet px-4 py-2.5 text-sm placeholder:text-ink-faint focus-visible:border-pen"
+        className="w-full rounded-sm border border-rule bg-sheet px-4 py-2.5 text-sm placeholder:text-ink-faint focus-visible:border-pen"
       />
     </label>
   );
@@ -164,93 +171,11 @@ export default async function PackingPage({
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
       <PageTitle>Packing</PageTitle>
 
-      {/* Above both lists because it governs one of them and explains the other
-          (ticket 229): the tier is how much you like to take, and the button is
-          the only thing that reads it. Side by side, that link is visible. */}
-      <section className="mt-6 rounded-xl border border-rule bg-sheet px-4 py-4">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-3 sm:gap-x-4">
-          <h2 className="typed !mb-0 w-full sm:w-auto">How you pack</h2>
-
-          {/* Each segment is its own submit — picking a tier is the whole
-              interaction, so there is nothing left for a Save button. */}
-          <form action={setTripPackTier.bind(null, tripId)}>
-            <Segmented>
-              {PACK_TIERS.map((t) => (
-                <button
-                  key={t}
-                  type="submit"
-                  name="packTier"
-                  value={t}
-                  aria-pressed={t === tier}
-                  className={segmentClass(t === tier)}
-                >
-                  {PACK_TIER_LABELS[t]}
-                </button>
-              ))}
-            </Segmented>
-          </form>
-
-          {/* Additive, so the label promises a top-up rather than a rebuild —
-              pressing it never costs you an edit. */}
-          {packingPro ? (
-            <form
-              action={fillMyPackingList.bind(null, tripId)}
-              className="ml-auto shrink-0"
-            >
-              <SubmitButton
-                pendingLabel="Working it out…"
-                className="!px-3 sm:!px-5"
-              >
-                Pack my bag
-              </SubmitButton>
-            </form>
-          ) : (
-            /* Present and inert, never hidden (ticket 248) — and whatever is
-               already in the bag stays fully editable below. */
-            <p className="ml-auto shrink-0 text-sm text-ink-soft">
-              Packing your bag for you is{" "}
-              <Link
-                href="/settings?section=billing"
-                className="text-pen underline underline-offset-2 hover:text-pen-deep"
-              >
-                a Floc Pro feature
-              </Link>
-              .
-            </p>
-          )}
-        </div>
-
-        <p className="mt-2 max-w-prose text-sm text-ink-soft">
-          {plan.gap === "no-dates" ? (
-            <>
-              <Link href={`/trip/${tripId}/dates`} className="underline">
-                Set your dates
-              </Link>{" "}
-              and the suggestions know how long you&rsquo;re away.
-            </>
-          ) : plan.gap === "no-place" ? (
-            <>
-              <Link href={`/trip/${tripId}/days`} className="underline">
-                Add where you&rsquo;re staying
-              </Link>{" "}
-              and they can pack for the weather too.
-            </>
-          ) : plan.gap === "no-forecast" ? (
-            <>No forecast this far out, so the weather is left out of it.</>
-          ) : (
-            <>
-              {plan.nights} night{plan.nights === 1 ? "" : "s"} of suggestions,
-              sized to this level. Nothing you already have is touched.
-            </>
-          )}
-        </p>
-      </section>
-
-      <section className="mt-9">
+      <section className="mt-6 grid gap-4">
         <header className="flex flex-wrap items-center gap-3">
           <h2 className="text-2xl">Your bag</h2>
           <PackingCount total={mine.length} packed={bagPacked} />
-          <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+          <div className="ml-auto flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
             <PackingKitMenu kits={kits} apply={applyPackingKit.bind(null, tripId)} />
             {mine.length > 0 ? (
               <PackingBulkBar
@@ -266,27 +191,40 @@ export default async function PackingPage({
           </div>
         </header>
 
-        <form
-          action={addPersonalPackingLine.bind(null, tripId)}
-          className="mt-4 flex flex-wrap items-center gap-2 rounded-lg border border-rule bg-sheet p-3"
-        >
+        {packingPro ? (
+          <PackingAutoLine
+            tripId={tripId}
+            plan={plan}
+            tier={tier}
+            ideaCount={ideas.length}
+            hidden={ideasHidden}
+            toggleHref={ideasHidden ? path : `${path}?ideas=off`}
+            actions={{ setTier: setTripPackTier.bind(null, tripId), addAll: fillMyPackingList.bind(null, tripId) }}
+            removeSuggested={removeSuggested}
+          />
+        ) : (
+          <PackingUpgradeLine removeSuggested={removeSuggested} />
+        )}
+
+        <form action={addPersonalPackingLine.bind(null, tripId)} className="flex flex-wrap items-center gap-2">
           {addBox("Add something to your bag")}
           <CategorySelect />
-          <SubmitButton pendingLabel="Adding…" className="shrink-0">Add to my bag</SubmitButton>
+          <SubmitButton variant="secondary" pendingLabel="Adding…" className="shrink-0">Add</SubmitButton>
         </form>
 
-        {bagGroups.length === 0 ? (
-          <p className="mt-4 text-sm text-ink-soft">
+        {bagCubes.length === 0 ? (
+          <p className="text-sm text-ink-soft">
             Start your bag above. Only you can see this list.
           </p>
         ) : (
-          <div className="mt-4 grid items-start gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {bagGroups.map((group) => (
+          <div className="gap-3 md:columns-2 xl:columns-3 [&>*]:mb-3 [&>*]:break-inside-avoid">
+            {bagCubes.map((group) => (
               <PackingCube
                 key={group.key}
-                heading={group.heading ?? "All items"}
+                heading={group.heading}
                 total={group.lines.length}
                 packed={group.lines.filter((line) => line.packedAt !== null).length}
+                ideaCount={group.ideas.length}
               >
                 {group.lines.map((line) => (
                   <PersonalPackingRow
@@ -302,7 +240,11 @@ export default async function PackingPage({
                     remove={removePackingLine}
                     rename={renamePackingLine}
                     compact
+                    suggested={line.origin === "suggested"}
                   />
+                ))}
+                {group.ideas.map((idea) => (
+                  <PackingIdeaRow key={idea.label} label={idea.label} quantity={idea.quantity} take={takeIdea} />
                 ))}
               </PackingCube>
             ))}

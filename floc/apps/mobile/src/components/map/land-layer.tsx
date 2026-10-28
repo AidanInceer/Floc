@@ -1,14 +1,4 @@
-// Types only. Pinned to the version maplibre-react-native itself depends on
-// rather than reached through it — a phantom dependency breaks the day the
-// hoist changes, and this one is not re-exported from the RN package.
-import type { ExpressionSpecification } from "@maplibre/maplibre-gl-style-spec";
-
-import {
-  GeoJSONSource,
-  Layer,
-  type PressEventWithFeatures,
-} from "@maplibre/maplibre-react-native";
-import type { NativeSyntheticEvent } from "react-native";
+import { GeoJSONSource, Layer } from "@maplibre/maplibre-react-native";
 
 import { useTheme } from "../system/theme";
 import COUNTRY_SHAPES from "@/lib/countries-110m.json";
@@ -25,17 +15,12 @@ const SHAPES = {
   })),
 };
 
-export function LandLayer({
-  fill,
-  onPress,
-}: {
-  fill?: string | ExpressionSpecification;
-  onPress?: (event: NativeSyntheticEvent<PressEventWithFeatures>) => void;
-}) {
+/** The countries as plain paper shapes under a map: the route map and Explore draw on them. */
+export function LandLayer() {
   const { c } = useTheme();
-  const colour = fill ?? c["sheet-3"];
+  const colour = c["sheet-3"];
   return (
-    <GeoJSONSource id="countries" data={SHAPES} onPress={onPress}>
+    <GeoJSONSource id="countries" data={SHAPES}>
       <Layer
         id="country-fill"
         type="fill"

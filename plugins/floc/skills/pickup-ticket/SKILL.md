@@ -3,6 +3,8 @@ name: pickup-ticket
 description: Take the top ticket off the Priority stack in AidanInceer/Floc and start work on it. Use when the user asks what's next, or wants to pick up the next ticket.
 ---
 
+In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
+
 # pickup-ticket
 
 Take the **top** ticket off the `Priority` stack issue and start it.

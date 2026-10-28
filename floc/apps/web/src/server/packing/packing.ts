@@ -14,7 +14,7 @@ import { and, asc, eq, inArray, isNull, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
 import { packingClaim, packingLine, tripMembership, user, userProfile } from "@/db/schema";
 import { MAX_PACK_QUANTITY, MIN_PACK_QUANTITY } from "@floc/core/packing/packing";
-import type { PackCategory, PackTier } from "@floc/core/packing/packing";
+import type { PackCategory, PackOrigin, PackTier } from "@floc/core/packing/packing";
 import { bounded, LIMITS } from "@/server/limits";
 import { tripHref } from "@floc/core/notifications/notification-href";
 import { touch } from "@/server/audit";
@@ -70,6 +70,8 @@ export type PersonalPackingLine = PackingLine & {
   quantity: number;
   /** The saved list it came from, if any (ticket 230) — it heads its own group. */
   kitName: string | null;
+  /** `suggested` when auto packing added it (#469). */
+  origin: PackOrigin | null;
 };
 
 /**
@@ -90,6 +92,7 @@ export async function listPersonalPackingLines(
       packedAt: packingLine.packedAt,
       quantity: packingLine.quantity,
       kitName: packingLine.kitName,
+      origin: packingLine.origin,
     })
     .from(packingLine)
     .where(
@@ -264,20 +267,34 @@ export async function softDeletePackingLines(lineIds: number[], by: string): Pro
   await dropLines(by, and(inArray(packingLine.id, lineIds), isNull(packingLine.deletedAt)));
 }
 
+/** "Remove suggested" (#469): what auto packing added and you have not packed. Owner-scoped in the SQL, so no other bag is reachable. */
+export async function softDeleteSuggestedLines(tripId: number, ownerId: string): Promise<number> {
+  return dropLines(
+    ownerId,
+    and(
+      eq(packingLine.tripId, tripId),
+      eq(packingLine.ownerId, ownerId),
+      eq(packingLine.origin, "suggested"),
+      isNull(packingLine.packedAt),
+      isNull(packingLine.deletedAt),
+    ),
+  );
+}
+
 export async function softDeletePackingLine(lineId: number, by: string): Promise<void> {
   await dropLines(by, and(eq(packingLine.id, lineId), isNull(packingLine.deletedAt)));
 }
 
 /** Removing a line someone else claimed changes what they are bringing, so they hear about it (#344). */
-async function dropLines(by: string, which: SQL | undefined): Promise<void> {
-  await db.transaction(async (tx) => {
+async function dropLines(by: string, which: SQL | undefined): Promise<number> {
+  return db.transaction(async (tx) => {
     const lines = await tx
       .update(packingLine)
       .set({ deletedAt: new Date(), ...touch() })
       .where(which)
       .returning({ id: packingLine.id, tripId: packingLine.tripId })
       .all();
-    if (lines.length === 0) return;
+    if (lines.length === 0) return 0;
 
     const claims = await tx
       .select({ userId: packingClaim.userId })
@@ -290,7 +307,7 @@ async function dropLines(by: string, which: SQL | undefined): Promise<void> {
       )
       .all();
     const affected = claims.map((c) => c.userId).filter((userId) => userId !== by);
-    if (affected.length === 0) return;
+    if (affected.length === 0) return lines.length;
 
     await recordActivity(tx, {
       kind: "packing_claim_changed",
@@ -300,6 +317,7 @@ async function dropLines(by: string, which: SQL | undefined): Promise<void> {
       href: tripHref(lines[0].tripId, "packing"),
       affected,
     });
+    return lines.length;
   });
 }
 

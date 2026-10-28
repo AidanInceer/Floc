@@ -3,6 +3,8 @@ name: reset-dev-db
 description: Put the Floc dev database back to the exact same seeded state every time — empty local.db and the uploads folder, then load scenarios A and B with fixed ids — and sign the web and phone back in. Use when the user says /floc:reset-dev-db, "reset the db", "start fresh", "back to the seed state", or wants a deterministic starting point before testing.
 ---
 
+In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
+
 # reset-dev-db
 
 Wipe everything local and reseed. After this, the database is the same as after

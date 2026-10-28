@@ -10,7 +10,7 @@ import { ringsIn } from "@/components/explore/outline/land";
 import { useLand } from "@/components/explore/outline/use-land";
 import { watchRedraw } from "@/components/globe/watch-redraw";
 import { tripRoute } from "@/lib/explore/route/trip-route";
-import type { LatLng } from "@/lib/landing/globe/sphere";
+import type { LatLng } from "@floc/globe/sphere";
 
 import { atlasGlobe } from "./atlas-globe";
 

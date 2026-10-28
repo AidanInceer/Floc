@@ -90,7 +90,7 @@ export function CategorySelect({ defaultValue }: { defaultValue?: PackCategory }
       <select
         name="category"
         defaultValue={defaultValue ?? "other"}
-        className="rounded-md border border-rule-strong bg-sheet px-2 py-2.5 text-sm sm:px-3"
+        className="rounded-sm border border-rule-strong bg-sheet px-2 py-2.5 text-sm sm:px-3"
       >
         {PACK_CATEGORIES.map((c) => (
           <option key={c} value={c}>

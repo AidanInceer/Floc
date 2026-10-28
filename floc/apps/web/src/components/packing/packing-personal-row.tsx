@@ -9,6 +9,7 @@ import { InlineRename } from "@/components/system/inline-rename";
 import { TEXT_CAPS } from "@floc/core/text/text";
 import {
   SelectLineBox,
+  SparkIcon,
   squareButton,
   tickBoxBase,
   tickBoxClass,
@@ -40,6 +41,7 @@ export function PersonalPackingRow({
   remove,
   rename,
   compact = false,
+  suggested = false,
 }: {
   tripId: number;
   lineId: number;
@@ -53,6 +55,8 @@ export function PersonalPackingRow({
   remove: (tripId: number, lineId: number) => Promise<void>;
   rename: (tripId: number, lineId: number, label: string) => Promise<{ error?: string }>;
   compact?: boolean;
+  /** Added by auto packing (#469): a faint mark, so "Remove suggested" is never a surprise. */
+  suggested?: boolean;
 }) {
   const [packed, showPacked] = useOptimistic(packedAt !== null);
   // A reducer, not a set value: two clicks before the first render commits both
@@ -80,7 +84,7 @@ export function PersonalPackingRow({
         <button
           type="submit"
           aria-label={packed ? `Unpack ${label}` : `Mark ${label} packed`}
-          className={cx(tickBoxBase, tickBoxClass(packed))}
+          className={cx(tickBoxBase, tickBoxClass(packed), "!rounded-[6px]")}
         >
           <CheckIcon />
         </button>
@@ -100,6 +104,13 @@ export function PersonalPackingRow({
           save={(next) => rename(tripId, lineId, next)}
         />
       </span>
+
+      {suggested ? (
+        <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-ink-faint">
+          <SparkIcon size={10} />
+          Suggested
+        </span>
+      ) : null}
 
       {!compact ? (
         <span className="hidden shrink-0 sm:block">

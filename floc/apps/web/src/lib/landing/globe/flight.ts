@@ -1,4 +1,4 @@
-import { apart, type LatLng } from "./sphere";
+import { apart, type LatLng } from "@floc/globe/sphere";
 
 const clamp = (v: number) => Math.min(1, Math.max(0, v));
 

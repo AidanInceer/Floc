@@ -1,0 +1,5 @@
+# Why: media re-renders from studio/ on demand; only captions and publish records are history.
+content/**/*.mp4
+content/**/*.png
+content/**/*.jpg
+.render/

@@ -2,18 +2,20 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { findTripAccess } from "@/server/access";
 import { getPackTier, listPackingClaims, listPackingLines, listPersonalPackingLines } from "@/server/packing/packing";
-import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
+import { givePro, migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 
 import {
   addLine,
   removeLine,
   removeLines,
+  removeSuggested,
   renameLine,
   resetList,
   setClaim,
   setPacked,
   setTier,
   stepQuantity,
+  takeIdea,
 } from "./packing-save";
 
 let world: Scenario;
@@ -142,5 +144,22 @@ describe("removing packing lines", () => {
     expect(await bag(world.admin)).toEqual([]);
     expect(await bag(world.member)).toHaveLength(1);
     expect(await shared()).toHaveLength(1);
+  });
+});
+
+describe("auto packing ideas (#469)", () => {
+  beforeEach(() => givePro(world.admin));
+
+  it("takes one idea into the viewer's bag, marked suggested", async () => {
+    await takeIdea(await as(world.admin), "Toothbrush");
+    expect((await bag(world.admin)).map((l) => [l.label, l.origin])).toEqual([["toothbrush", "suggested"]]);
+    expect(await bag(world.member)).toEqual([]);
+  });
+
+  it("removes the viewer's suggested lines and leaves what they typed", async () => {
+    await add(world.admin, "Linen shirt", true);
+    await takeIdea(await as(world.admin), "toothbrush");
+    await removeSuggested(await as(world.admin));
+    expect((await bag(world.admin)).map((l) => l.label)).toEqual(["Linen shirt"]);
   });
 });

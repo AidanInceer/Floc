@@ -82,12 +82,7 @@ export default async function PublicProfilePage({
       </Panel>
 
       {profile.travelMap ? (
-        <Panel
-          title="Where they've been"
-          hint="Countries only — from their trips, plus anything they've marked by hand."
-        >
-          <TravelMap states={profile.travelMap.states} />
-        </Panel>
+        <TravelMap title="Where they've been" states={profile.travelMap.states} />
       ) : null}
 
       {profile.pastTrips ? (

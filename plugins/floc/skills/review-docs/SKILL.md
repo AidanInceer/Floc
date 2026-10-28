@@ -3,6 +3,8 @@ name: review-docs
 description: Act on the marks a person left in the local docs editor — delete red highlights, tighten yellow ones, resolve comments, and repair markup the editor broke. Use when the user says /floc:review-docs, "review the docs", or "go through my doc comments".
 ---
 
+In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
+
 # review-docs
 
 Touch only what is marked or broken. Every other word stays.

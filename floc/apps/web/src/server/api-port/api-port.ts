@@ -77,6 +77,8 @@ import {
   addLine,
   applyKit,
   fillBag,
+  removeSuggested,
+  takeIdea,
   removeLine,
   removeLines,
   renameLine,
@@ -89,6 +91,8 @@ import {
 import { insertPackingKit, insertPackingKitItem, listPackingKits, softDeletePackingKit } from "@/server/packing/packing-kits";
 import { canUseFeature } from "@/server/billing/entitlements";
 import { resolvePackTier } from "@floc/core/packing/packing";
+import { packingIdeas } from "@floc/core/packing/packing-ideas";
+import { packingPlanFor } from "@/server/packing/packing-generator";
 import { readVibeTags } from "@floc/core/trip/vibe-tags";
 import { pastTripsFor } from "@/server/auth/visibility";
 import { travelMapFor } from "@/server/itinerary/travel-map";
@@ -143,8 +147,8 @@ export const webPort: FlocPort = {
   ...explorePort,
 
   async loadPacking(viewerId, tripId): Promise<PackingBoard> {
-    await scoped(viewerId, tripId);
-    const [shared, claims, mine, perTrip, profile, kits, canAutoFill] = await Promise.all([
+    const access = await scoped(viewerId, tripId);
+    const [shared, claims, mine, perTrip, profile, kits, canAutoFill, plan] = await Promise.all([
       listPackingLines(tripId),
       listPackingClaims(tripId),
       listPersonalPackingLines(tripId, viewerId),
@@ -152,7 +156,9 @@ export const webPort: FlocPort = {
       ensureProfile(viewerId),
       listPackingKits(viewerId),
       canUseFeature("packing.autoGenerate", tripId),
+      packingPlanFor(access.trip),
     ]);
+    const tier = resolvePackTier(perTrip, profile.packTier);
 
     // Claims come back flat for one query rather than one per line; grouping
     // here keeps the wire shape the screen actually draws.
@@ -176,13 +182,16 @@ export const webPort: FlocPort = {
         category: line.category,
         quantity: line.quantity,
         packed: line.packedAt !== null,
+        suggested: line.origin === "suggested",
       })),
       // Resolved here rather than on the wire: the per-trip choice wins and the
       // profile fills in, and a client that had to know that rule would be a
       // second place it could be got wrong (ticket 220).
-      tier: resolvePackTier(perTrip, profile.packTier),
+      tier,
       kits: kits.map((kit) => ({ id: kit.id, name: kit.name, itemCount: kit.itemCount })),
       canAutoFill,
+      ideas: canAutoFill ? packingIdeas({ nights: plan.nights, climate: plan.climate, tier }, mine.map((l) => l.label)) : [],
+      plan,
     };
   },
 
@@ -226,6 +235,14 @@ export const webPort: FlocPort = {
 
   async fillMyBag(viewerId, tripId) {
     await fillBag(await scoped(viewerId, tripId));
+  },
+
+  async takePackingIdea(viewerId, tripId, label) {
+    await takeIdea(await scoped(viewerId, tripId), label);
+  },
+
+  async removeSuggestedPacking(viewerId, tripId) {
+    await removeSuggested(await scoped(viewerId, tripId));
   },
 
   async applyPackingKit(viewerId, tripId, kitId) {

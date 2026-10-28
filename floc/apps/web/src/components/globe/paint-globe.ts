@@ -1,9 +1,9 @@
-import { arc, capOf, limbRing, project, shortest, sightOf, type LatLng } from "@/lib/landing/globe/sphere";
+import { traceRing } from "@floc/globe/canvas/paint";
+import { arc, capOf, project, sightOf, type LatLng } from "@floc/globe/sphere";
 import { PLANE_D } from "@/lib/landing/hero/flight-path";
 
 import { globeMarks } from "./paint-marks";
 
-const RAD = Math.PI / 180;
 const PLANE_SCALE = 0.92;
 
 type Box = { w: number; h: number };
@@ -91,20 +91,7 @@ export function globePainter(canvas: HTMLCanvasElement) {
   }
 
   function landRing(view: LatLng, ring: number[][]) {
-    const out = limbRing(view, ring);
-    if (!out) return;
-    ctx!.beginPath();
-    out.forEach((q, k) => {
-      const p = out[(k + out.length - 1) % out.length]!;
-      if ("x" in q) {
-        const [x, y] = [cx + R * q.x, cy - R * q.y];
-        return k ? ctx!.lineTo(x, y) : ctx!.moveTo(x, y);
-      }
-      if (k && "a" in p) return ctx!.arc(cx, cy, R, -p.a, -q.a, shortest((q.a - p.a) / RAD) > 0);
-      const [x, y] = [cx + R * Math.cos(q.a), cy - R * Math.sin(q.a)];
-      return k ? ctx!.lineTo(x, y) : ctx!.moveTo(x, y);
-    });
-    ctx!.closePath();
+    if (!traceRing(ctx!, { R, cx, cy }, view, ring)) return;
     ctx!.fill();
     ctx!.stroke();
   }

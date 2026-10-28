@@ -118,3 +118,11 @@ export function capOf(ring: number[][]): { centre: LatLng; reach: number } {
 
 /** How far from the view, in degrees, the globe shows within `far` px of its middle; 90 when the whole face is in. */
 export const sightOf = (radius: number, far: number) => (far >= radius ? 90 : Math.asin(far / radius) / RAD);
+
+/** The middle of some places on the globe: the direction of the sum of their unit vectors. */
+export function middle(places: LatLng[]): LatLng {
+  const sum = [0, 0, 0];
+  for (const v of places.map(unit)) [0, 1, 2].forEach((k) => (sum[k]! += v[k]!));
+  const length = Math.hypot(sum[0]!, sum[1]!, sum[2]!) || 1;
+  return { lat: Math.asin(sum[2]! / length) / RAD, lng: Math.atan2(sum[1]!, sum[0]!) / RAD };
+}

@@ -4,7 +4,7 @@ export function ProStar() {
     <svg
       viewBox="0 0 14 14"
       aria-hidden="true"
-      className="size-[13px] shrink-0 text-pro-gold"
+      className="size-[13px] shrink-0 text-pro-mark"
       fill="none"
       stroke="currentColor"
       strokeWidth={1.2}

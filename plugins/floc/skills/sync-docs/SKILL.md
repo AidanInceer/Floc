@@ -3,6 +3,8 @@ name: sync-docs
 description: Find every Floc doc page that the current diff makes untrue, update it in the same slice, and run pnpm docs:check. Use when the user says /floc:sync-docs, "update the docs", "which docs does this change", or before /floc:push when code that a doc describes has changed.
 ---
 
+In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
+
 # sync-docs
 
 Docs move with the code, in the same commit. This skill finds the pages a

@@ -20,8 +20,10 @@ Next.js App Router + Turso (libSQL) + Drizzle + Better Auth.
 | `.../server/api-port/` | The web app's `FlocPort`: the same `server/` modules the pages use. |
 | `floc/packages/floc-core/src/` | `@floc/core`: domain rules and words (money, dates, calendar, packing) and the design token values. Pure: no I/O, no imports from an app. |
 | `floc/packages/floc-editor/src/` | `@floc/editor`: the notes page editor ([ADR-014](docs/foundation/decisions.html#adr-014)) — Tiptap schema, commands and React UI. The web renders it; the phone runs it in an Expo DOM component. Takes a Yjs doc and callbacks; no I/O. |
+| `floc/packages/floc-globe/src/` | `@floc/globe`: the paper globe ([ADR-032](docs/foundation/decisions.html#adr-032)) — sphere maths, country outlines, and the profile's `TravelGlobe`. The web renders it; the phone runs it in an Expo DOM component. No app imports. |
 | `floc/packages/floc-api/src/` | `@floc/api`: the tRPC router every non-web client uses. Declares procedures and input rules; reaches data only through `FlocPort`. |
 | `floc/apps/mobile/` | `floc-mobile`: Expo app for iOS and Android. Own UI and version, same [visual language](docs/design/visual-language.html). Shipping: [`SHIPPING.md`](floc/apps/mobile/SHIPPING.md), [`STORE.md`](floc/apps/mobile/STORE.md). |
+| `floc/marketing/` | `floc-marketing`: marketing visuals rendered from the house tokens, moved raw → reviewed → live, posted to Instagram only by `pnpm marketing publish`. Variants are reviewed in the studio on :4200 (`/floc:marketing`). Not shipped. [README](floc/marketing/README.md). |
 | `floc/apps/web/src/lib/` | Browser- or Next-bound helpers only (env, theme, tabs, map, auth client). |
 | `floc/apps/web/src/components/` | Take data, never fetch. `system/ui.tsx` and `system/client-ui.tsx` are the house design system — use them first. |
 | `floc/apps/web/src/db/schema.ts` | Schema of record. The [ERD](docs/engineering/data-model.html) mirrors it — change both together. |
@@ -172,6 +174,8 @@ Issues and PRDs are GitHub issues, driven with `gh`. The skills are the `floc` p
 | `/floc:prioritise-tickets` | Puts unprioritised open issues into the phased `Priority` stack, fixes type and phase labels. |
 | `/floc:pickup-ticket` | Takes the top startable ticket in the current phase and works it to a pushed `develop` commit. |
 | `/floc:seed-dev-db` | Loads dev scenarios A and B next to existing data. |
+| `/floc:marketing` | Makes a marketing post's variants, acts on the timed notes left in the studio on :4200, renders the pick into the pipeline. Never publishes unasked. |
+| `/floc:rotate-secrets` | Rotates every production credential in Railway in one run, from a gitignored values file. |
 | `/floc:reset-dev-db` | Backs up, wipes `local.db` and uploads, reseeds with fixed ids, signs back in. |
 
 Agent `floc:ci-babysit` watches CI for one commit, and on red fixes it on `develop`, pushes and watches again (three tries, never weakening a check). `/floc:push` and `/floc:release` start it in the background, in its own worktree.

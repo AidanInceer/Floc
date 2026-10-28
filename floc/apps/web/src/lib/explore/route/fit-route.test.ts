@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { project } from "@/lib/landing/globe/sphere";
+import { project } from "@floc/globe/sphere";
 import { ONE_STOP, RAIL } from "@/test/route-listings";
 
 import { fitRoute, frameRoute } from "./fit-route";

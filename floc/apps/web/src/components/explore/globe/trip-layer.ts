@@ -8,7 +8,7 @@ import { frameRoute } from "@/lib/explore/route/fit-route";
 import { sphere, type Pose } from "@/lib/explore/route/glide";
 import { penPoints, routeShape, type Shape } from "@/lib/explore/route/route-shape";
 import type { TripRoute } from "@/lib/explore/route/trip-route";
-import { unproject, type LatLng } from "@/lib/landing/globe/sphere";
+import { unproject, type LatLng } from "@floc/globe/sphere";
 
 import type { Fit } from "./dome";
 

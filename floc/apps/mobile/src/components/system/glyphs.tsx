@@ -152,9 +152,9 @@ export function FlockChevronGlyph({ color, open }: { color: string; open?: boole
  * the header, which opens the trip's name, colour and tags. Without it the
  * title read as a heading and nobody tapped it.
  */
-export function PenGlyph({ color }: { color: string }) {
+export function PenGlyph({ color, size = 16 }: { color: string; size?: number }) {
   return (
-    <Svg width={16} height={16} viewBox="0 0 14 14" fill="none">
+    <Svg width={size} height={size} viewBox="0 0 14 14" fill="none">
       <Path d="M9.3 2.6l2.1 2.1-6 6-2.6.5.5-2.6 6-6z" stroke={color} strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );

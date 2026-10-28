@@ -112,7 +112,7 @@ function SlideCard({ slide, index, physical, count, active, duplicate }: { slide
         <p className="mt-3.5 text-md text-ink-soft">{slide.line}</p>
         {slide.proExtra ? (
           <p className="mt-3 flex items-center gap-2 text-sm text-ink-soft">
-            <Glyph name="star" className="size-[13px] shrink-0 text-pro-gold" />
+            <Glyph name="star" className="size-[13px] shrink-0 text-pro-mark" />
             {slide.proExtra}
           </p>
         ) : null}

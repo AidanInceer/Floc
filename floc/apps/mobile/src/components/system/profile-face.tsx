@@ -1,14 +1,13 @@
 /**
- * The card someone lands on when they open you (tickets 46, 201, 302).
+ * The card someone lands on when they open you (#46, #201, #302, #157).
  *
  * A PLAIN SHEET, NOT A PASTEL. The card carried the web's yellow fill, but on
  * the phone it is the first thing under the title with nothing to contrast
  * against — so the colour read as a warning, not a welcome. The picture, the
  * name and the tags are enough to make it the page's subject.
  *
- * TWO TARGETS, NOT ONE (#157). The face opens the picker and the pen opens the
- * name, because one Pressable cannot mean both once the picture became a
- * choice rather than a text field.
+ * ONE TARGET (C3b). The picture, name and counts open one sheet that holds
+ * both the name and the picture, saved together — the same as the web.
  *
  * INITIALS ARE NOT A FALLBACK, THEY ARE THE DEFAULT. Most people have no
  * picture set and never will; a broken-image slot for them would be a hole
@@ -68,16 +67,14 @@ export function ProfileFace({
   been,
   wantToGo,
   vibeTags,
-  onEditName,
-  onEditFace,
+  onEdit,
 }: {
   name: string;
   avatarIcon: AvatarIcon | null;
   been: number;
   wantToGo: number;
   vibeTags: string[];
-  onEditName: () => void;
-  onEditFace: () => void;
+  onEdit: () => void;
 }) {
   const { c } = useTheme();
 
@@ -92,22 +89,33 @@ export function ProfileFace({
         gap: space.md,
       }}
     >
-      <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Change your picture"
-          testID="edit-face"
-          onPress={onEditFace}
-        >
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Change your name and picture — ${name}`}
+        testID="edit-face"
+        onPress={onEdit}
+        style={{ flexDirection: "row", alignItems: "center", gap: space.md }}
+      >
+        <View>
           <Face name={name} icon={avatarIcon} />
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`Edit your name — ${name}`}
-          testID="edit-name"
-          onPress={onEditName}
-          style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: space.md }}
-        >
+          <View
+            style={{
+              position: "absolute",
+              right: -2,
+              bottom: -2,
+              width: 22,
+              height: 22,
+              borderRadius: radius.pill,
+              backgroundColor: c.sheet,
+              borderWidth: StyleSheet.hairlineWidth,
+              borderColor: c["rule-2"],
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <PenGlyph color={c["ink-2"]} size={11} />
+          </View>
+        </View>
         <View style={{ flex: 1, gap: space.xs }}>
           <Text
             numberOfLines={1}
@@ -130,9 +138,7 @@ export function ProfileFace({
             {been} been · {wantToGo} want to go
           </Text>
         </View>
-        <PenGlyph color={c["ink-3"]} />
-        </Pressable>
-      </View>
+      </Pressable>
 
       {vibeTags.length > 0 ? (
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.xs }}>

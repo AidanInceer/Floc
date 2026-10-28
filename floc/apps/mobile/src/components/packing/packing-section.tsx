@@ -3,6 +3,7 @@ import {
   type PackingLineGroup,
   type PackCategory,
 } from "@floc/core/packing/packing";
+import { packingCubes } from "@floc/core/packing/packing-ideas";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "../system/theme";
@@ -16,6 +17,7 @@ function countLabel(total: number, packed: number): string {
 
 export function PackingSection<
   T extends { id: number; label: string; category: PackCategory; quantity?: number },
+  I extends { category: PackCategory } = { category: PackCategory },
 >({
   heading,
   aside,
@@ -28,6 +30,7 @@ export function PackingSection<
   renderLine,
   cubes = false,
   groupsOverride,
+  ideas,
 }: {
   heading: string;
   aside?: string;
@@ -40,9 +43,13 @@ export function PackingSection<
   renderLine: (line: T) => React.ReactNode;
   cubes?: boolean;
   groupsOverride?: PackingLineGroup<T>[];
+  /** Auto packing's ideas, drawn faint at the foot of their category's cube (#469). */
+  ideas?: { list: I[]; render: (idea: I) => React.ReactNode };
 }) {
   const { c } = useTheme();
-  const groups = groupsOverride ?? viewPackingLines(lines, { sort: "category", category: "all" });
+  const groups: { key: string; heading: string | null; lines: T[]; ideas: I[] }[] = ideas
+    ? packingCubes(lines as (T & { kitName?: string | null })[], ideas.list)
+    : (groupsOverride ?? viewPackingLines(lines, { sort: "category", category: "all" })).map((g) => ({ ...g, ideas: [] }));
 
   return (
     <View style={{ gap: space.sm }}>
@@ -96,6 +103,7 @@ export function PackingSection<
         >
           {group.heading ? <Label>{group.heading}</Label> : null}
           {group.lines.map((line) => renderLine(line))}
+          {group.ideas.map((idea) => ideas?.render(idea))}
         </View>
       ))}
     </View>

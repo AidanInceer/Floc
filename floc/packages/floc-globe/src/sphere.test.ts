@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { apart, arc, capOf, sightOf, faced, facing, greatCircle, limbRing, nearest, project, shortest, turn, unproject } from "./sphere";
+import { apart, arc, capOf, sightOf, faced, facing, greatCircle, limbRing, middle, nearest, project, shortest, turn, unproject } from "./sphere";
 
 const LONDON = { lat: 51.507, lng: -0.128 };
 const TOKYO = { lat: 35.676, lng: 139.65 };
@@ -172,5 +172,19 @@ describe("unproject", () => {
 
   it("holds a point off the disc to its edge", () => {
     expect(arc(view, unproject(view, 3, 0))).toBeCloseTo(90);
+  });
+});
+
+describe("middle", () => {
+  it("is halfway between two places on the equator", () => {
+    const m = middle([{ lat: 0, lng: 10 }, { lat: 0, lng: 30 }]);
+    expect(m.lat).toBeCloseTo(0);
+    expect(m.lng).toBeCloseTo(20);
+  });
+
+  it("is the place itself for one place", () => {
+    const m = middle([LONDON]);
+    expect(m.lat).toBeCloseTo(LONDON.lat);
+    expect(m.lng).toBeCloseTo(LONDON.lng);
   });
 });

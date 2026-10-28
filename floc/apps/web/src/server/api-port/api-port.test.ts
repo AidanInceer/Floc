@@ -13,7 +13,7 @@ import { sql } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";
-import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
+import { givePro, migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { webPort } from "@/server/api-port/api-port";
 
 let world: Scenario;
@@ -567,6 +567,27 @@ describe("renaming a packing line through the port (#362)", () => {
 
     await expect(webPort.renamePackingLine(world.admin, world.ours.id, line.id, "Mine now")).rejects.toThrow();
     expect((await webPort.loadPacking(world.member, world.ours.id)).mine[0].label).toBe("Meds");
+  });
+});
+
+describe("auto packing ideas through the port (#469)", () => {
+  it("shows no ideas on a free trip", async () => {
+    expect((await webPort.loadPacking(world.admin, world.ours.id)).ideas).toEqual([]);
+  });
+
+  it("takes one idea as a suggested line, and removes it again", async () => {
+    await givePro(world.admin);
+    const before = await webPort.loadPacking(world.admin, world.ours.id);
+    expect(before.ideas.map((i) => i.label)).toContain("toothbrush");
+    expect(before.plan.gap).toBe("no-dates");
+
+    await webPort.takePackingIdea(world.admin, world.ours.id, "toothbrush");
+    const after = await webPort.loadPacking(world.admin, world.ours.id);
+    expect(after.mine.map((l) => [l.label, l.suggested])).toEqual([["toothbrush", true]]);
+    expect(after.ideas.map((i) => i.label)).not.toContain("toothbrush");
+
+    await webPort.removeSuggestedPacking(world.admin, world.ours.id);
+    expect((await webPort.loadPacking(world.admin, world.ours.id)).mine).toEqual([]);
   });
 });
 

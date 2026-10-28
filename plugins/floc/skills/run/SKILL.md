@@ -3,6 +3,8 @@ name: run
 description: Bring up the whole Floc development loop — Pixel 9 emulator, floc-web dev server, Metro, and the mobile app — then confirm each piece is actually answering. Use when the user says /floc:run, "start everything", "launch the emulator", or wants to test a feature on the phone.
 ---
 
+In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
+
 # run
 
 One command up, then **prove it works**. The script is the easy half; the

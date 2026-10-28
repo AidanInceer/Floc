@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type RefObject } from "react";
 
 import { loadLand } from "@/components/explore/outline/use-land";
 import { watchRedraw } from "@/components/globe/watch-redraw";
-import type { LatLng } from "@/lib/landing/globe/sphere";
+import type { LatLng } from "@floc/globe/sphere";
 import { watchFirstView } from "@/lib/landing/scene/scene-start";
 
 import { spinGlobe } from "./spin-globe";
