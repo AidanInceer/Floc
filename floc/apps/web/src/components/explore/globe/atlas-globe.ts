@@ -5,7 +5,7 @@ import { globeTurn } from "@/components/globe/globe-turn";
 import { globePainter } from "@/components/globe/paint-globe";
 import type { TripRoute } from "@/lib/explore/route/trip-route";
 import { flightAt, flightMs } from "@/lib/landing/globe/flight";
-import { greatCircle, type LatLng } from "@/lib/landing/globe/sphere";
+import { greatCircle, type LatLng } from "@floc/globe/sphere";
 
 import { drawFlight, moveFlags } from "./atlas-paint";
 import { domeFit, fineAt, over, type Fit } from "./dome";

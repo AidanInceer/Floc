@@ -1,4 +1,4 @@
-import { apart, type LatLng } from "./sphere";
+import { apart, type LatLng } from "@floc/globe/sphere";
 
 /** A whole number from 0 to `n - 1`. The caller brings the source, so a test can fix it. */
 type Pick = (n: number) => number;

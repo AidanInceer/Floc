@@ -1,4 +1,4 @@
-import type { LatLng } from "@/lib/landing/globe/sphere";
+import type { LatLng } from "@floc/globe/sphere";
 
 type Grip = {
   radius: () => number;

@@ -1,5 +1,5 @@
 import { easeInOut } from "./flight";
-import { apart, type LatLng } from "./sphere";
+import { apart, type LatLng } from "@floc/globe/sphere";
 
 type Box = { w: number; h: number };
 type Point = { x: number; y: number };

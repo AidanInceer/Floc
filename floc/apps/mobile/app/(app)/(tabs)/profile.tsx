@@ -153,7 +153,7 @@ export default function Profile() {
 
         <View style={{ gap: space.sm }}>
           <Label>Travel map</Label>
-          <Card>
+          <Card style={{ padding: 0, paddingBottom: space.lg, overflow: "hidden" }}>
             {face.isPending ? (
               <Loading />
             ) : face.isError ? (
@@ -161,7 +161,6 @@ export default function Profile() {
             ) : (
               <TravelMap
                 marks={face.data.map}
-                editable
                 onSet={(code, state) => setMark.mutate({ code, state })}
               />
             )}

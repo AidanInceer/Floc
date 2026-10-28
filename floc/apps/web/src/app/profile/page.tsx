@@ -110,9 +110,7 @@ export default async function ProfilePage() {
         </Panel>
       ))}
 
-      <Panel title="Travel map">
-        <TravelMap states={travelMap.states} editable setMark={setCountryMark} />
-      </Panel>
+      <TravelMap title="Travel map" states={travelMap.states} setMark={setCountryMark} />
 
       <Panel title="Trips you've been on">
         {pastTrips.length === 0 ? (

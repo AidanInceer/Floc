@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, type RefObject } from "react"
 
 import { arrange, around, HAND, spinPick, stopTimes } from "@/lib/landing/globe/hand";
 import { reelTick } from "@/lib/landing/globe/reel";
-import type { LatLng } from "@/lib/landing/globe/sphere";
+import type { LatLng } from "@floc/globe/sphere";
 
 import type { Globe } from "../globe/use-spin-globe";
 

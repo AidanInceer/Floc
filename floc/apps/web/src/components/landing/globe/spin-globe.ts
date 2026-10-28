@@ -1,5 +1,5 @@
 import { easeInOut, easeOut, flightAt, flightMs } from "@/lib/landing/globe/flight";
-import { faced, facing, greatCircle, nearest, type LatLng } from "@/lib/landing/globe/sphere";
+import { faced, facing, greatCircle, nearest, type LatLng } from "@floc/globe/sphere";
 
 import { frameLoop } from "@/components/globe/frame-loop";
 import { globeDrag } from "@/components/globe/globe-drag";

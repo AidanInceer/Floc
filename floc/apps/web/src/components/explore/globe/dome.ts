@@ -1,5 +1,5 @@
 import type { Box } from "@/components/explore/atlas/tag-place";
-import type { LatLng } from "@/lib/landing/globe/sphere";
+import type { LatLng } from "@floc/globe/sphere";
 
 /** Where the sphere sits on the canvas: its radius and its middle, in px. */
 export type Fit = { R: number; cx: number; cy: number };

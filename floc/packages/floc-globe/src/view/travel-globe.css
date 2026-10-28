@@ -1,0 +1,141 @@
+/*
+ * The travel globe on a profile (#468). Tokens only: the web reads them from globals.css, the phone's web view
+ * from the tokens its page writes. The dome is larger than its box and sinks into the panel at the foot.
+ */
+.travel-globe {
+  position: relative;
+  /* Why: in the phone's web view the root is a flex box, and with every child placed absolutely the globe would shrink to nothing. */
+  width: 100%;
+  height: 440px;
+  overflow: hidden;
+}
+@media (max-width: 640px) {
+  .travel-globe {
+    height: 330px;
+  }
+}
+.travel-globe::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 72px;
+  background: linear-gradient(to top, var(--sheet), transparent);
+  pointer-events: none;
+}
+
+.travel-globe-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  /* Why: pan-y leaves a vertical swipe to the page, so the globe never traps a phone's scroll. */
+  touch-action: pan-y;
+}
+.travel-globe-canvas.is-turning {
+  cursor: grabbing;
+}
+
+.travel-globe-title {
+  position: absolute;
+  z-index: 1;
+  left: 1.5rem;
+  top: 1.25rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.travel-globe-bubble {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--sheet);
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  transform: translate(-50%, calc(-100% - 12px));
+  box-shadow: var(--shadow-sm);
+  pointer-events: none;
+}
+.travel-globe-bubble:not([data-shown="true"]) {
+  display: none;
+}
+.travel-globe-state {
+  padding-left: 7px;
+  border-left: 1px solid color-mix(in srgb, var(--sheet) 30%, transparent);
+  color: color-mix(in srgb, var(--sheet) 72%, transparent);
+}
+
+.travel-globe-said {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.travel-globe-zoom {
+  position: absolute;
+  z-index: 2;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--rule-2);
+  border-radius: 12px;
+  background: var(--sheet);
+  box-shadow: var(--shadow-sm);
+}
+.travel-globe-zoom button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.travel-globe-zoom button + button {
+  border-top: 1px solid var(--rule);
+}
+.travel-globe-zoom button:hover:not(:disabled) {
+  color: var(--ink);
+  background: var(--sheet-2);
+}
+.travel-globe-zoom button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.travel-globe-icon {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+}
+
+/* The key's swatch, the bubble's and the search list's: one square, so "that colour means been there" is learnt once. */
+.travel-key {
+  display: inline-block;
+  flex: none;
+  width: 0.75rem;
+  height: 0.75rem;
+  border: 1px solid var(--rule-2);
+  border-radius: 2px;
+  background: var(--sheet-2);
+}
+.travel-key-green {
+  background: var(--green-2);
+  border-color: var(--green-edge);
+}
+.travel-key-yellow {
+  background: var(--highlight);
+  border-color: var(--highlight-edge);
+}

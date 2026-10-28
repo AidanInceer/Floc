@@ -1,4 +1,4 @@
-import { project, unproject, type LatLng } from "@/lib/landing/globe/sphere";
+import { project, unproject, type LatLng } from "@floc/globe/sphere";
 
 import { legCurves } from "./curves";
 import { sphere } from "./glide";

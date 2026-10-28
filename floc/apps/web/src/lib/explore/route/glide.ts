@@ -1,4 +1,4 @@
-import type { LatLng } from "@/lib/landing/globe/sphere";
+import type { LatLng } from "@floc/globe/sphere";
 
 export type Point = { x: number; y: number };
 /** Where a map can look: a flat drawing, or the globe. `apart` is in the same units as a pose's `w`. */

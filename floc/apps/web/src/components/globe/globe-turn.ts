@@ -1,5 +1,5 @@
 import { easeInOut } from "@/lib/landing/globe/flight";
-import { turn, type LatLng } from "@/lib/landing/globe/sphere";
+import { turn, type LatLng } from "@floc/globe/sphere";
 
 const clamp = (v: number) => Math.min(1, Math.max(0, v));
 
