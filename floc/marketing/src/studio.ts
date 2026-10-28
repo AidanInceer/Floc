@@ -7,7 +7,7 @@ import { mimeOf, studioFile, tokensCss } from "./serve.ts";
 import { listPieces } from "./stages.ts";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const roots = { repo: resolve(root, "..", "..", ".."), studio: join(root, "studio") };
+const roots = { repo: resolve(root, "..", ".."), studio: join(root, "studio") };
 const scenes = join(roots.studio, "scenes");
 const content = join(root, "content");
 const port = Number(process.env.MARKETING_STUDIO_PORT ?? process.env.PORT ?? 4200);

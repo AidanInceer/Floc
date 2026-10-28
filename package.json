@@ -20,7 +20,7 @@
     "docs:dev": "node scripts/docs-server.mjs",
     "wireframe": "node scripts/wireframe-server.mjs",
     "comments": "node scripts/check-comments.mjs --working",
-    "marketing": "node floc/pipelines/marketing/src/cli.ts",
+    "marketing": "node floc/marketing/src/cli.ts",
     "explore:new":"node scripts/new-explore-trip.mjs",
     "parity": "node --experimental-strip-types scripts/parity/run.mjs",
     "verify": "node scripts/verify.mjs",

@@ -23,7 +23,7 @@ Next.js App Router + Turso (libSQL) + Drizzle + Better Auth.
 | `floc/packages/floc-globe/src/` | `@floc/globe`: the paper globe ([ADR-032](docs/foundation/decisions.html#adr-032)) — sphere maths, country outlines, and the profile's `TravelGlobe`. The web renders it; the phone runs it in an Expo DOM component. No app imports. |
 | `floc/packages/floc-api/src/` | `@floc/api`: the tRPC router every non-web client uses. Declares procedures and input rules; reaches data only through `FlocPort`. |
 | `floc/apps/mobile/` | `floc-mobile`: Expo app for iOS and Android. Own UI and version, same [visual language](docs/design/visual-language.html). Shipping: [`SHIPPING.md`](floc/apps/mobile/SHIPPING.md), [`STORE.md`](floc/apps/mobile/STORE.md). |
-| `floc/pipelines/marketing/` | `floc-marketing`: marketing visuals rendered from the house tokens, moved raw → reviewed → live, posted to Instagram only by `pnpm marketing publish`. Variants are reviewed in the studio on :4200 (`/floc:marketing`). Not shipped. [README](floc/pipelines/marketing/README.md). |
+| `floc/marketing/` | `floc-marketing`: marketing visuals rendered from the house tokens, moved raw → reviewed → live, posted to Instagram only by `pnpm marketing publish`. Variants are reviewed in the studio on :4200 (`/floc:marketing`). Not shipped. [README](floc/marketing/README.md). |
 | `floc/apps/web/src/lib/` | Browser- or Next-bound helpers only (env, theme, tabs, map, auth client). |
 | `floc/apps/web/src/components/` | Take data, never fetch. `system/ui.tsx` and `system/client-ui.tsx` are the house design system — use them first. |
 | `floc/apps/web/src/db/schema.ts` | Schema of record. The [ERD](docs/engineering/data-model.html) mirrors it — change both together. |

@@ -66,7 +66,7 @@ export async function publish(ctx: Context, slug: string, opts: { yes?: boolean;
     return false;
   }
   if ("missing" in ctx.instagram) {
-    ctx.log(`Instagram is not set up. Add ${ctx.instagram.missing.join(", ")} to floc/pipelines/marketing/.env.local.`);
+    ctx.log(`Instagram is not set up. Add ${ctx.instagram.missing.join(", ")} to floc/marketing/.env.local.`);
     return false;
   }
 

@@ -123,7 +123,7 @@ describe("publish", () => {
   it("names the missing settings instead of posting (rule 11)", async () => {
     piece("reviewed", "a");
     expect(await publish(ctx({ instagram: { missing: ["INSTAGRAM_USER_ID"] } }), "a", {})).toBe(false);
-    expect(lines.at(-1)).toBe("Instagram is not set up. Add INSTAGRAM_USER_ID to floc/pipelines/marketing/.env.local.");
+    expect(lines.at(-1)).toBe("Instagram is not set up. Add INSTAGRAM_USER_ID to floc/marketing/.env.local.");
   });
 
   it("refuses stills until a public host exists", async () => {

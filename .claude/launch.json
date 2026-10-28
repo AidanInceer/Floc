@@ -49,7 +49,7 @@
       "name": "marketing-studio",
       "runtimeExecutable": "node",
       "runtimeArgs": [
-        "floc/pipelines/marketing/src/studio.ts"
+        "floc/marketing/src/studio.ts"
       ],
       "port": 4200,
       "autoPort": true

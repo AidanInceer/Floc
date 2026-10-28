@@ -7,7 +7,7 @@ import { publishReel, readInstagramConfig } from "./instagram.ts";
 import { findPiece, isSlug } from "./stages.ts";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const repo = resolve(root, "..", "..", "..");
+const repo = resolve(root, "..", "..");
 const content = join(root, "content");
 const env = join(root, ".env.local");
 if (existsSync(env)) process.loadEnvFile(env);
