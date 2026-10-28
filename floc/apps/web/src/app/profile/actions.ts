@@ -24,26 +24,21 @@ import {
 import { parseVibeTags } from "@floc/core/trip/vibe-tags";
 import { refresh } from "@/server/freshness";
 
-/** Its own action because the picker saves on tap — see face-picker.tsx. */
-export async function setAvatarIcon(formData: FormData): Promise<void> {
+// Name and picture save together: the face card's popover holds both and the card previews the draft.
+export async function updateFace(formData: FormData): Promise<{ error?: string }> {
   const viewer = await requireUser();
-  await ensureProfile(viewer.id);
-  await updateProfileFields(viewer.id, {
-    avatarIcon: parseAvatarIcon(formData.get("avatarIcon")),
-  });
-  refresh({ kind: "profile" });
-  refresh({ kind: "tripList" });
-}
-
-export async function updateIdentity(formData: FormData): Promise<{ error?: string }> {
-  const viewer = await requireUser();
-  await ensureProfile(viewer.id);
 
   const displayName = capText(formData.get("displayName"), "displayName");
+  if (!displayName) return { error: "Give yourself a name." };
 
-  await updateProfileFields(viewer.id, { displayName });
+  await ensureProfile(viewer.id);
+  await updateProfileFields(viewer.id, {
+    displayName,
+    avatarIcon: parseAvatarIcon(formData.get("avatarIcon")),
+  });
 
   refresh({ kind: "profile" });
+  refresh({ kind: "tripList" });
   return {};
 }
 

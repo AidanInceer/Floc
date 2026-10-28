@@ -6,16 +6,15 @@
  * email, notifications and deleting the account, moved to /settings.
  *
  * Face first: the card someone lands on, then what you've actually done (map,
- * trips). Only your name and picture are edited here — vibe tags, packing,
- * and your home currency all moved to /settings, so this page reads as
- * a profile rather than as a settings form (ticket 236).
+ * trips). Only your name and picture are edited here, from the card itself —
+ * vibe tags, packing and your home currency all moved to /settings, so this
+ * page reads as a profile rather than as a settings form (ticket 236).
  */
 
 import {
   dropPromptCountries,
   keepPromptCountries,
   setCountryMark,
-  updateIdentity,
 } from "./actions";
 import { requireUser } from "@/server/access";
 import { formatDateRange } from "@floc/core/dates/dates";
@@ -24,9 +23,9 @@ import { readVibeTags } from "@floc/core/trip/vibe-tags";
 import { countryName } from "@floc/core/people/countries";
 import { pendingMapPrompts, travelMapFor } from "@/server/itinerary/travel-map";
 import { pastTripsFor } from "@/server/auth/visibility";
-import { AccountPage, Panel, RowList, SettingRow } from "@/components/auth/account-ui";
-import { Badge, Field, Input, Stack } from "@/components/system/ui";
-import { FacePicker } from "@/components/profile/face-picker";
+import { AccountPage, Panel } from "@/components/auth/account-ui";
+import { Badge, Stack } from "@/components/system/ui";
+import { FaceEditor } from "@/components/profile/face-editor";
 import { ActionForm, SubmitButton } from "@/components/system/client-ui";
 import { TravelMap } from "@/components/map/travel-map";
 
@@ -50,15 +49,9 @@ export default async function ProfilePage() {
     <AccountPage title="Your profile">
       {/* The face someone lands on when they click you, shown as they'd see
           it — the page's one moment of the visitor's view. */}
-      <Panel className="bg-pastel-yellow text-pastel-yellow-ink">
+      <Panel>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
-          <FacePicker name={name} icon={profile.avatarIcon} />
-          <div className="min-w-0">
-            <p className="font-display text-2xl font-semibold text-ink">{name}</p>
-            <p className="nums mt-1 text-sm">
-              {beenCount} been · {wantCount} want to go
-            </p>
-          </div>
+          <FaceEditor name={name} icon={profile.avatarIcon} been={beenCount} wantToGo={wantCount} />
           {vibeTags.length ? (
             <div className="flex w-full min-w-0 flex-none flex-wrap gap-1.5 sm:w-auto sm:flex-1">
               {vibeTags.map((t) => (
@@ -131,28 +124,6 @@ export default async function ProfilePage() {
         )}
       </Panel>
 
-      {/* The only thing you edit from here — everything else about you moved
-          to /settings (ticket 236). */}
-      <RowList>
-        <SettingRow label="Name and picture" value={name}>
-          <ActionForm action={updateIdentity}>
-            <Stack gap={4}>
-              <Field label="Display name">
-                <Input
-                  name="displayName"
-                  defaultValue={profile.displayName ?? viewer.name}
-                />
-              </Field>
-              <div>
-                <SubmitButton variant="primary" pendingLabel="Saving…">
-                  Save
-                </SubmitButton>
-              </div>
-            </Stack>
-          </ActionForm>
-        </SettingRow>
-
-      </RowList>
     </AccountPage>
   );
 }

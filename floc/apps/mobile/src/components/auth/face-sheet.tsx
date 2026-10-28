@@ -1,14 +1,10 @@
 /**
- * Choose your icon (#157). The face on the profile card opens this; a tap on a
- * cell saves and closes.
+ * Your name and picture, in one sheet from the face card (#157, C3b).
  *
- * SAVES ON TAP, SO IT HOLDS NOTHING ELSE. The name stayed on the pen next to
- * it — a text field in here could not commit on tap without saving half a
- * name.
- *
- * NO COLOUR PICKER. The wash comes from the name hash, and choosing it would
- * break following one person across Money, Packing and the itinerary.
+ * Why: name and picture save together, so a picture tap no longer commits on its own; the web's
+ * popover holds the same two things. No colour picker — the wash comes from the name hash.
  */
+import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import {
@@ -16,81 +12,148 @@ import {
   AVATAR_ICON_LABELS,
   type AvatarIcon,
 } from "@floc/core/people/avatar-icon";
+import { initials } from "@floc/core/people/initials";
 
 import { Sheet } from "../system/sheet";
 import { AvatarIconMark } from "../system/avatar-icon";
 import { useTheme } from "../system/theme";
-import { Body } from "../system/ui";
+import { Body, Button, Field } from "../system/ui";
 import { fonts, radius, size, space } from "@/lib/theme";
 
-const CELL = 48;
+const CELL = 44;
+const PER_ROW = 6;
 
-export function FaceSheet({
-  open,
-  initials,
-  icon,
-  onClose,
+function FaceGrid({
+  name,
+  picked,
   onPick,
 }: {
-  open: boolean;
-  initials: string;
-  icon: AvatarIcon | null;
-  onClose: () => void;
+  name: string;
+  picked: AvatarIcon | null;
   onPick: (icon: AvatarIcon | null) => void;
 }) {
   const { c } = useTheme();
+  const options: (AvatarIcon | null)[] = [null, ...AVATAR_ICONS];
+  const rows = Array.from(
+    { length: Math.ceil(options.length / PER_ROW) },
+    (_, i) => options.slice(i * PER_ROW, i * PER_ROW + PER_ROW),
+  );
+  return (
+    <View style={{ gap: space.sm }}>
+      {rows.map((row, r) => (
+        <View
+          key={r}
+          style={{ flexDirection: "row", justifyContent: "space-between" }}
+        >
+          {row.map((option) => {
+            const chosen = option === picked;
+            return (
+              <Pressable
+                key={option ?? "initials"}
+                accessibilityRole="button"
+                accessibilityState={{ selected: chosen }}
+                accessibilityLabel={
+                  option ? AVATAR_ICON_LABELS[option] : "Your initials"
+                }
+                testID={`face-${option ?? "initials"}`}
+                onPress={() => onPick(option)}
+                style={{
+                  width: CELL,
+                  height: CELL,
+                  borderRadius: radius.pill,
+                  backgroundColor: chosen ? c.sheet : c["sheet-2"],
+                  borderWidth: chosen ? 1.5 : StyleSheet.hairlineWidth,
+                  borderColor: chosen ? c.ink : c.rule,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {option ? (
+                  <AvatarIconMark
+                    icon={option}
+                    color={chosen ? c.ink : c["ink-2"]}
+                    size={20}
+                  />
+                ) : (
+                  <Text
+                    style={{
+                      color: chosen ? c.ink : c["ink-2"],
+                      fontFamily: fonts.sansBold,
+                      fontSize: size.small,
+                    }}
+                  >
+                    {initials(name || "?")}
+                  </Text>
+                )}
+              </Pressable>
+            );
+          })}
+        </View>
+      ))}
+    </View>
+  );
+}
 
-  const cell = (option: AvatarIcon | null) => {
-    const chosen = option === icon;
-    return (
-      <Pressable
-        key={option ?? "initials"}
-        accessibilityRole="button"
-        accessibilityState={{ selected: chosen }}
-        accessibilityLabel={option ? AVATAR_ICON_LABELS[option] : "Your initials"}
-        testID={`face-${option ?? "initials"}`}
-        onPress={() => {
-          onPick(option);
-          onClose();
-        }}
-        style={{
-          width: CELL,
-          height: CELL,
-          borderRadius: radius.pill,
-          backgroundColor: c["sheet-2"],
-          borderWidth: chosen ? 2 : StyleSheet.hairlineWidth,
-          borderColor: chosen ? c.pen : c.rule,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        {option ? (
-          <AvatarIconMark icon={option} color={c["ink-2"]} size={22} />
-        ) : (
-          <Text
-            style={{ color: c["ink-2"], fontFamily: fonts.sansBold, fontSize: size.small }}
-          >
-            {initials}
-          </Text>
-        )}
-      </Pressable>
-    );
-  };
+export function FaceSheet({
+  name,
+  icon,
+  busy,
+  error,
+  onClose,
+  onSave,
+}: {
+  /** The starting values. Read once: the parent mounts this only while it is open. */
+  name: string;
+  icon: AvatarIcon | null;
+  busy: boolean;
+  error: string | null;
+  onClose: () => void;
+  onSave: (input: {
+    displayName: string;
+    avatarIcon: AvatarIcon | null;
+  }) => void;
+}) {
+  const [draftName, setDraftName] = useState(name);
+  const [draftIcon, setDraftIcon] = useState(icon);
 
   return (
-    <Sheet open={open} onClose={onClose}>
+    <Sheet open onClose={onClose}>
       <View style={{ padding: space.lg, gap: space.md }}>
-        <Body>Choose your icon</Body>
+        <Field
+          label="Name"
+          value={draftName}
+          onChangeText={setDraftName}
+          autoFocus
+          testID="face-name"
+        />
+        {error ? <Body tone="red">{error}</Body> : null}
+        <FaceGrid
+          name={draftName.trim() || name}
+          picked={draftIcon}
+          onPick={setDraftIcon}
+        />
         <View
           style={{
             flexDirection: "row",
-            flexWrap: "wrap",
+            justifyContent: "flex-end",
             gap: space.sm,
-            justifyContent: "center",
           }}
         >
-          {cell(null)}
-          {AVATAR_ICONS.map((option) => cell(option))}
+          <Button
+            label="Cancel"
+            variant="quiet"
+            fit="small"
+            onPress={onClose}
+          />
+          <Button
+            label="Save"
+            fit="small"
+            busy={busy}
+            disabled={!draftName.trim()}
+            onPress={() =>
+              onSave({ displayName: draftName.trim(), avatarIcon: draftIcon })
+            }
+          />
         </View>
       </View>
     </Sheet>

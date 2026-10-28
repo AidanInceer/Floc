@@ -8,7 +8,7 @@
  * own screen now, reached by one row at the foot, exactly as on the web.
  *
  * THE FACE IS THE CONTROL. Your name and picture are edited by tapping the
- * card, not by a button parked under it — the same move the trip header makes,
+ * card, in one sheet that saves both, not by a button parked under it — the same move the trip header makes,
  * for the same reason: a rename is rare, and a permanent form for a rare job
  * is furniture.
  *
@@ -34,7 +34,6 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 
-import { IdentitySheet } from "@/components/auth/identity-sheet";
 import { MapPromptCard } from "@/components/map/map-prompt";
 import { MarkEditor } from "@/components/notes/mark-editor";
 import { FaceSheet } from "@/components/auth/face-sheet";
@@ -59,7 +58,7 @@ import { trpc } from "@/lib/api";
 import { signOutHere } from "@/lib/sign-out";
 import { forgetThisPhone } from "@/lib/push/push";
 import { space } from "@/lib/theme";
-import { initials } from "@floc/core/people/initials";
+import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 
 export default function Profile() {
   const queryClient = useQueryClient();
@@ -71,7 +70,6 @@ export default function Profile() {
 
   const [editing, setEditing] = useState(false);
   const [painting, setPainting] = useState(false);
-  const [pickingFace, setPickingFace] = useState(false);
 
   /** Both reads move together: a mark changes the map and the two counts on the card. */
   const refetchFace = () => {
@@ -80,17 +78,17 @@ export default function Profile() {
     queryClient.invalidateQueries({ queryKey: trpc.me.mapPrompts.queryKey() });
   };
 
-  const saveIdentity = useMutation({
-    ...trpc.settings.identity.mutationOptions(),
+  const saveIdentity = useMutation(trpc.settings.identity.mutationOptions());
+  const saveFace = useMutation(trpc.settings.face.mutationOptions());
+  const saveAll = useMutation({
+    mutationFn: async (input: { displayName: string; avatarIcon: AvatarIcon | null }) => {
+      await saveIdentity.mutateAsync({ displayName: input.displayName });
+      await saveFace.mutateAsync({ avatarIcon: input.avatarIcon });
+    },
     onSuccess: () => {
       setEditing(false);
       refetchFace();
     },
-  });
-
-  const saveFace = useMutation({
-    ...trpc.settings.face.mutationOptions(),
-    onSuccess: refetchFace,
   });
 
   const setMark = useMutation({
@@ -115,8 +113,7 @@ export default function Profile() {
           been={me.data.been}
           wantToGo={me.data.wantToGo}
           vibeTags={face.data?.vibeTags ?? []}
-          onEditName={() => setEditing(true)}
-          onEditFace={() => setPickingFace(true)}
+          onEdit={() => setEditing(true)}
         />
 
         {/* Above the prompts and the map: it is the one thing on this screen
@@ -191,27 +188,17 @@ export default function Profile() {
         </DrawerGroup>
       </ScrollView>
 
-      {/* Keyed on the name it opened with, so re-opening after a save starts
-          from the saved values rather than a stale draft. */}
+      {/* Mounted only while open, so re-opening after a save starts from the saved values. */}
       {editing ? (
-        <IdentitySheet
-          open
-          key={me.data.name}
+        <FaceSheet
           name={me.data.name}
-          busy={saveIdentity.isPending}
-          error={saveIdentity.isError ? saveIdentity.error.message : null}
+          icon={me.data.avatarIcon}
+          busy={saveAll.isPending}
+          error={saveAll.isError ? saveAll.error.message : null}
           onClose={() => setEditing(false)}
-          onSave={(input) => saveIdentity.mutate(input)}
+          onSave={(input) => saveAll.mutate(input)}
         />
       ) : null}
-
-      <FaceSheet
-        open={pickingFace}
-        initials={initials(me.data.name)}
-        icon={me.data.avatarIcon}
-        onClose={() => setPickingFace(false)}
-        onPick={(avatarIcon) => saveFace.mutate({ avatarIcon })}
-      />
 
       <Sheet open={painting} onClose={() => setPainting(false)}>
         <MarkEditor

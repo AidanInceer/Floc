@@ -5,7 +5,6 @@
  */
 import type { ReactNode } from "react";
 
-import { FlockChevron } from "@/components/system/flock-chevron";
 import { cx, PageTitle } from "@/components/system/ui";
 import "./account-ui.css";
 
@@ -69,52 +68,6 @@ export function Panel({
       ) : null}
       <div className={title ? "mt-5" : undefined}>{children}</div>
     </section>
-  );
-}
-
-/**
- * A panel that is nothing but rows — one setting per line, its current value
- * on the right (ticket 236). The value *is* the description, so none of these
- * rows carries a hint.
- */
-export function RowList({ children }: { children: ReactNode }) {
-  return (
-    // `overflow-anchor` off: scroll anchoring holds the content *below* an
-    // opening row still, which reads as the page growing upwards (ticket 236).
-    <section className="overflow-hidden rounded-lg bg-sheet [overflow-anchor:none]">
-      <div className="divide-y divide-rule">{children}</div>
-    </section>
-  );
-}
-
-/**
- * One `RowList` line: the setting, its current value, and its editor folded
- * underneath. Native `<details>` — the fold needs no JavaScript and no state,
- * and the editor opens where the row is rather than over the page.
- */
-export function SettingRow({
-  label,
-  value,
-  children,
-}: {
-  label: string;
-  value: ReactNode;
-  children: ReactNode;
-}) {
-  return (
-    <details>
-      <summary className="flex w-full cursor-pointer list-none items-center justify-between gap-3 px-6 py-4 transition-colors hover:bg-sheet-2 [&::-webkit-details-marker]:hidden">
-        <span className="text-sm">{label}</span>
-        <span className="flex min-w-0 items-center gap-2 text-sm text-ink-soft">
-          <span className="setting-row-value truncate">{value}</span>
-          <FlockChevron
-            size={12}
-            className="setting-row-chevron shrink-0 text-ink-faint"
-          />
-        </span>
-      </summary>
-      <div className="border-t border-rule bg-sheet-2 px-6 py-5">{children}</div>
-    </details>
   );
 }
 
@@ -203,10 +156,8 @@ export function PillChoice<T extends string>({
 }
 
 /**
- * An on/off setting as a labelled row with a switch (ticket 235) — the same
- * shape as a `SettingRow`, so a pane of switches and a pane of folds read as
- * one page. A real checkbox underneath, so the form still posts without
- * JavaScript.
+ * An on/off setting as a labelled row with a switch (ticket 235).
+ * A real checkbox underneath, so the form still posts without JavaScript.
  */
 export function ToggleRow({
   name,

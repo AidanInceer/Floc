@@ -9,10 +9,9 @@ import { migrateTestDb, resetDb, seedScenario, signIn, type Scenario } from "@/t
 import {
   dropPromptCountries,
   keepPromptCountries,
-  setAvatarIcon,
   setCountryMark,
   updateCurrency,
-  updateIdentity,
+  updateFace,
   updatePacking,
   updateVibeTags,
 } from "./actions";
@@ -40,25 +39,28 @@ beforeEach(async () => {
 });
 
 describe("the profile", () => {
-  it("saves the name, making the profile if it is missing", async () => {
-    expect(await updateIdentity(form({ displayName: "Mo B" }))).toEqual({});
-    expect(await profile()).toMatchObject({ displayName: "Mo B" });
-  });
-
-  it("sets a face from the list", async () => {
-    await setAvatarIcon(form({ avatarIcon: "compass" }));
-    expect((await profile())?.avatarIcon).toBe("compass");
+  it("saves the name and the face together, making the profile if it is missing", async () => {
+    expect(await updateFace(form({ displayName: "Mo B", avatarIcon: "compass" }))).toEqual({});
+    expect(await profile()).toMatchObject({ displayName: "Mo B", avatarIcon: "compass" });
   });
 
   it("clears back to initials", async () => {
-    await setAvatarIcon(form({ avatarIcon: "compass" }));
-    await setAvatarIcon(form({ avatarIcon: "" }));
+    await updateFace(form({ displayName: "Mo B", avatarIcon: "compass" }));
+    await updateFace(form({ displayName: "Mo B", avatarIcon: "" }));
     expect((await profile())?.avatarIcon).toBeNull();
   });
 
   it("takes initials over an icon nobody drew, rather than throwing", async () => {
-    await setAvatarIcon(form({ avatarIcon: "tent" }));
+    await updateFace(form({ displayName: "Mo B", avatarIcon: "tent" }));
     expect((await profile())?.avatarIcon).toBeNull();
+  });
+
+  it("refuses an empty name and keeps the face it had", async () => {
+    await updateFace(form({ displayName: "Mo B", avatarIcon: "compass" }));
+    expect(await updateFace(form({ displayName: "   ", avatarIcon: "sun" }))).toEqual({
+      error: "Give yourself a name.",
+    });
+    expect(await profile()).toMatchObject({ displayName: "Mo B", avatarIcon: "compass" });
   });
 
   it("saves a supported currency and refuses any other", async () => {
@@ -83,7 +85,7 @@ describe("the profile", () => {
 
   it("sends a signed-out visitor to log in", async () => {
     signIn(null);
-    await expect(updateIdentity(form({ displayName: "x" }))).rejects.toThrow(`${REDIRECT}:/login`);
+    await expect(updateFace(form({ displayName: "x" }))).rejects.toThrow(`${REDIRECT}:/login`);
   });
 });
 
