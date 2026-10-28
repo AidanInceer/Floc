@@ -3,6 +3,8 @@ name: push
 description: Take finished local work to the develop branch — verify green, one commit with the right version and subject, pushed, ticket tagged and popped, CI watched. Use when the user says /floc:push, "push this", "ship it", or "get this on develop".
 ---
 
+In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
+
 # push
 
 Local work → `develop`, in one commit, with `verify` green. There is **no

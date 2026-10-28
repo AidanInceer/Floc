@@ -3,6 +3,8 @@ name: improve-codebase-architecture
 description: Find places in the Floc code where one idea is written in many files, or where a file does too many jobs, and write a plain-English report of what to change and why. Then grill the pick and hand it over to tickets or a build. Use when the user says /floc:improve-codebase-architecture, "architecture review", "what should we refactor", "where is the code duplicated", or wants the code easier to change and test.
 ---
 
+In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
+
 # improve-codebase-architecture
 
 Find the places where the code is harder to change than it needs to be, and

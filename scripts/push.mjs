@@ -152,6 +152,9 @@ function preflight(type) {
 
   console.log("\n-- Guards");
   guardBranch();
+  if (run(process.execPath, [join(root, "scripts/sync-floc-plugin.mjs"), "--refresh"]).status !== 0) {
+    die("Floc plugin sync failed — fix it before pushing");
+  }
   const files = changedFiles();
   if (files.length === 0) die("nothing to push — the working tree is clean");
   say("ok", `${files.length} file(s) changed`);

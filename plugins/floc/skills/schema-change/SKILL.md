@@ -3,6 +3,8 @@ name: schema-change
 description: Change the Floc database schema end to end — edit schema.ts, generate the migration, apply it to local.db, update the ERD, and keep the invariants. Use when the user says /floc:schema-change, "add a column", "new table", "change the schema", or any work that edits floc/apps/web/src/db/schema.ts.
 ---
 
+In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
+
 # schema-change
 
 A schema change is four things in one slice: `schema.ts`, a migration, the

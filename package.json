@@ -15,7 +15,7 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
-    "fitness": "node scripts/check-folder-size.mjs && node scripts/check-docs.mjs && turbo run fitness",
+    "fitness": "pnpm plugins:check && node scripts/check-folder-size.mjs && node scripts/check-docs.mjs && turbo run fitness",
     "docs:check": "node scripts/check-docs.mjs",
     "docs:dev": "node scripts/docs-server.mjs",
     "wireframe": "node scripts/wireframe-server.mjs",
@@ -27,11 +27,13 @@
     "sonar": "npx --yes sonar-scanner",
     "push:preflight": "node scripts/push.mjs preflight",
     "push:land": "node scripts/push.mjs land",
+    "plugins:sync": "node scripts/sync-floc-plugin.mjs --refresh --force",
+    "plugins:check": "node --test scripts/sync-floc-plugin.test.mjs && node scripts/sync-floc-plugin.mjs --check",
     "hooks:install": "simple-git-hooks",
-    "prepare": "simple-git-hooks"
+    "prepare": "node scripts/sync-floc-plugin.mjs --refresh && simple-git-hooks"
   },
   "simple-git-hooks": {
-    "pre-commit": "pnpm exec lint-staged",
+    "pre-commit": "node scripts/sync-floc-plugin.mjs --check && pnpm exec lint-staged",
     "commit-msg": "node scripts/check-commit-msg.mjs $1"
   },
   "devDependencies": {

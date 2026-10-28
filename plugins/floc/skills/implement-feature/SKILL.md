@@ -3,6 +3,8 @@ name: implement-feature
 description: Take a feature — from prior context, a prompt, or one or more tickets — and build it on Floc web and app test-first, checking parity, UI consistency and docs, then report a short summary. Use when the user says /floc:implement-feature, or after a grilling or prototyping session wants the agreed feature built end to end.
 ---
 
+In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
+
 # implement-feature
 
 Build one feature, both surfaces, the Floc way. Read the source of truth

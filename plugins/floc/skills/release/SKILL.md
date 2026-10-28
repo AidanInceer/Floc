@@ -3,6 +3,8 @@ name: release
 description: Batch develop into main for AidanInceer/Floc — first pushes any local work through /floc:push, then a PR with a merge commit, merged once checks are green (asks only on a ticket that will not close or a schema migration), then check tickets closed, develop synced and Railway deployed. Use when the user says /floc:release, "release", "ship to main", "deploy", or "get this live".
 ---
 
+In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
+
 # release
 
 Local work → `develop` → `main`, in one call. `develop` → `main` is one PR,

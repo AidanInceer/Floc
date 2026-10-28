@@ -4,6 +4,8 @@ description: Review a Floc coding session and suggest changes to the agent's set
 disable-model-invocation: true
 ---
 
+In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
+
 # retro
 
 Adapted from Matt Pocock's `retro` (`skills/engineering/retro`), for Floc's

@@ -3,6 +3,8 @@ name: rotate-secrets
 description: Rotate the Floc production credentials stored in Railway (BETTER_AUTH_SECRET, CRON_SECRET, TURSO_AUTH_TOKEN, GOOGLE_CLIENT_SECRET, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET) in one run with one redeploy. Use when the user says /floc:rotate-secrets, "rotate the secrets", "rotate keys", or after a provider or Railway revokes or leaks a credential.
 ---
 
+In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
+
 # rotate-secrets
 
 One script does the work: `floc/apps/web/scripts/rotate-railway-secrets.mjs`.

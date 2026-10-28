@@ -3,6 +3,8 @@ name: grill
 description: Grill the user in rounds of 2–4 questions about a Floc plan, idea or `grilling` ticket until every decision is settled, then write the decisions and acceptance criteria into the ticket and hand over to /floc:implement-feature. Use when the user says /floc:grill, "grill me", "stress-test this", or /floc:pickup-ticket reaches a ticket labelled `grilling`.
 ---
 
+In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
+
 # grill
 
 Interview the user about the plan until you both understand it the same way. Walk the decision tree one branch at a time: settle a decision before the decisions that depend on it. Do not build anything until the user confirms the plan is agreed.

@@ -3,6 +3,8 @@ name: add-mobile-dep
 description: Add or upgrade a package in the Floc Expo app (floc/apps/mobile) at the version the SDK pins, then rebuild what the change needs — Metro restart, prebuild, or native rebuild. Use when the user says /floc:add-mobile-dep, "install X in the app", "add a native module", "upgrade an Expo package", or when a mobile red screen names a module after a dependency change.
 ---
 
+In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
+
 # add-mobile-dep
 
 The install is the easy part. What bites is the version and the rebuild.

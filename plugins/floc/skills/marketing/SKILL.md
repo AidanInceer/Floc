@@ -1,7 +1,9 @@
 ---
 name: marketing
-description: Make and iterate on a Floc marketing post (Reel or stills) in the marketing studio — build variants, act on the timed notes Aidan leaves in the studio, refine the pick, then render it into the raw → reviewed → live pipeline. Use when the user says /floc:marketing, "new marketing post", "make variants of the promo", "go through my studio notes", or "iterate on <post>".
+description: Make and iterate on a Floc marketing post (Reel or stills) in the marketing studio — build variants, act on the timed notes Aidan leaves in the studio, refine the pick, then render it into the raw → reviewed → live pipeline. Use when the user says /floc:marketing, "new marketing post", "make variants of the promo", "go through my studio notes", or asks to iterate on a post.
 ---
+
+In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
 
 # marketing
 

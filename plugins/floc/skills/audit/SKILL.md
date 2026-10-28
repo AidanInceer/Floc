@@ -3,6 +3,8 @@ name: audit
 description: Walk the whole running Floc website as a signed-in member and report what is wrong or missing — bugs, pages that say something untrue, two pages that disagree, broken house rules, and product gaps measured against the mission, the decision log and the backlog. Reports only; files nothing unless asked. Use when the user says /floc:audit, "review the website", "audit the site", "find what's off", or wants a product review of the live build.
 ---
 
+In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
+
 # audit
 
 Find what makes the website less helpful than it should be. You look; the user
