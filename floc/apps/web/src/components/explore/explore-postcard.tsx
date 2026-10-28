@@ -12,7 +12,7 @@ const kicker = "font-mono text-[10.5px] uppercase tracking-[0.08em] text-ink-fai
 
 export function ExplorePostcard({ trip, signedIn }: { trip: PresetTrip; signedIn: boolean }) {
   return (
-    <article key={trip.id} className="explore-postcard flex flex-col gap-4 rounded-[22px] bg-sheet p-6 text-left text-ink shadow-lifted sm:px-7">
+    <article key={trip.id} className="explore-postcard flex flex-col gap-4 rounded-md bg-sheet p-6 text-left text-ink shadow-lifted sm:px-7">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <span className={kicker}>

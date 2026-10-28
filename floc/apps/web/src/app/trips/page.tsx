@@ -160,7 +160,7 @@ function NewTripTile({ friends, first }: { friends: Person[]; first?: boolean })
         }
         title="Start a trip"
         body="split"
-        triggerClassName="lift flex min-h-40 w-full flex-col justify-center rounded-lg bg-sheet p-4 text-left shadow-[inset_0_0_0_1px_var(--rule-2)] hover:shadow-[inset_0_0_0_1px_var(--pen)]"
+        triggerClassName="lift flex min-h-40 w-full flex-col justify-center rounded-md bg-sheet p-4 text-left shadow-[inset_0_0_0_1px_var(--rule-2)] hover:shadow-[inset_0_0_0_1px_var(--pen)]"
       >
         <NewTripForm action={createTrip} friends={friends} />
       </Sheet>
@@ -178,7 +178,7 @@ function InviteList({ invites }: { invites: PendingInvite[] }) {
         {invites.map((invite) => (
           <div
             key={invite.tripId}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-pastel-blue-edge bg-pastel-blue px-4 py-3 text-ink"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-pastel-blue-edge bg-pastel-blue px-4 py-3 text-ink"
           >
             <div className="flex min-w-0 items-center gap-2.5">
               <Avatar name={invite.fromName} icon={invite.fromAvatarIcon} />

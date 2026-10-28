@@ -25,7 +25,7 @@ export function AuthShell({
         <h1 className="mt-3 text-[clamp(1.8rem,4vw,2.5rem)]">{title}</h1>
         {blurb ? <p className="mt-3 text-sm text-ink-soft">{blurb}</p> : null}
       </header>
-      <div className="mt-8 rounded-lg bg-sheet p-6">{children}</div>
+      <div className="mt-8 rounded-md bg-sheet p-6">{children}</div>
       {footer ? (
         <div className="mt-6 text-center text-sm text-ink-soft">{footer}</div>
       ) : null}

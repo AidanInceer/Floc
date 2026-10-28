@@ -35,7 +35,7 @@ function DayRail({ day }: { day: PlanDay }) {
           key={`${item.time}-${item.text}`}
           className={cx(
             "grid grid-cols-[44px_26px_minmax(0,1fr)] items-center gap-3 py-1.5 text-sm",
-            item.highlight && "-mx-2.5 my-0.5 rounded-[10px] bg-highlight-soft px-2.5 py-2 shadow-[inset_0_0_0_1px_var(--color-highlight-edge)]",
+            item.highlight && "-mx-2.5 my-0.5 rounded-sm bg-highlight-soft px-2.5 py-2 shadow-[inset_0_0_0_1px_var(--color-highlight-edge)]",
           )}
         >
           <span className="nums text-right text-xs text-ink-faint">{item.time}</span>
@@ -74,7 +74,7 @@ export function DayRow({ day, open, onToggle }: { day: PlanDay; open: boolean; o
       >
         <span
           className={cx(
-            "nums grid size-9 place-content-center rounded-[10px] text-center text-sm leading-none",
+            "nums grid size-9 place-content-center rounded-sm text-center text-sm leading-none",
             open ? "bg-ink text-sheet" : "bg-sheet-2 text-ink-soft",
           )}
         >

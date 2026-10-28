@@ -54,7 +54,7 @@ export function Panel({
   className?: string;
 }) {
   return (
-    <section className={cx("rounded-lg bg-sheet p-6", className)}>
+    <section className={cx("rounded-md bg-sheet p-6", className)}>
       {title ? (
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
@@ -82,7 +82,7 @@ export function PersonRow({
   return (
     <li
       className={cx(
-        "flex flex-wrap items-center justify-between gap-3 rounded-md bg-sheet-2 px-3 py-2.5",
+        "flex flex-wrap items-center justify-between gap-3 rounded-sm bg-sheet-2 px-3 py-2.5",
         className,
       )}
     >
@@ -134,7 +134,7 @@ export function PillChoice<T extends string>({
         <div
           role="radiogroup"
           aria-labelledby={labelId}
-          className="flex w-full flex-col gap-1 rounded-xl bg-sheet-3 p-1 sm:w-auto sm:flex-row sm:items-center sm:rounded-full"
+          className="flex w-full flex-col gap-1 rounded-md bg-sheet-3 p-1 sm:w-auto sm:flex-row sm:items-center sm:rounded-full"
         >
           {options.map((o) => (
             <label key={o.value} className="block min-w-0">

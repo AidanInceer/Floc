@@ -111,7 +111,7 @@ export function PrivacyFields({
                       setValue((v) => ({ ...v, [p.name]: tickRing(v[p.name], c.ring, !ticks[c.ring]) }))
                     }
                     className={cx(
-                      "grid size-[1.375rem] place-items-center rounded-[7px] border-[1.5px] transition-colors",
+                      "grid size-[1.375rem] place-items-center rounded-sm border-[1.5px] transition-colors",
                       ticks[c.ring]
                         ? "border-pen bg-pen text-sheet"
                         : "border-rule-2 bg-sheet hover:border-pen",

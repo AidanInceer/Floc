@@ -183,7 +183,7 @@ export function Sheet({
       >
         <Card
           className={cx(
-            "rounded-b-none bg-sheet sm:rounded-sm",
+            "rounded-b-none bg-sheet sm:rounded-md",
             body !== "padded" && "flex max-h-[90dvh] flex-col overflow-hidden",
           )}
         >
@@ -273,7 +273,7 @@ export function ConfirmSubmit({
       >
         {/* The question is the panel's one heading (ticket 209) — a "Are you
             sure?" title over it would print the same fact twice. */}
-        <div className="rounded-xl border border-rule bg-sheet p-6 shadow-lifted">
+        <div className="rounded-md border border-rule bg-sheet p-6 shadow-lifted">
           <p
             id={labelId}
             className="font-display text-lg font-semibold leading-snug"

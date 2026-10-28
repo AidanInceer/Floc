@@ -45,7 +45,7 @@ export function OverviewMap({
   }
 
   return (
-    <div className="relative h-[24rem] overflow-hidden rounded-t-xl sm:h-[28rem] lg:absolute lg:inset-0 lg:h-auto lg:rounded-b-none">
+    <div className="relative h-[24rem] overflow-hidden rounded-t-md sm:h-[28rem] lg:absolute lg:inset-0 lg:h-auto lg:rounded-b-none">
       <OverviewGlobe route={route} tone={tone} tracks={tracks} label={`The route: ${route.stops.map((s) => s.place).join(", ")}`} />
       {legend ? <div className="absolute left-3 top-3 max-w-[calc(100%-1.5rem)]">{legend}</div> : null}
       {unpinned ? <div className="absolute bottom-3 left-3 max-w-[calc(100%-1.5rem)] lg:max-w-[calc(100%-26.5rem)]">{unpinned}</div> : null}
@@ -55,7 +55,7 @@ export function OverviewMap({
 
 function Unpinned({ names }: { names: string[] }) {
   return (
-    <p className="rounded-lg bg-sheet px-3 py-1.5 text-xs text-ink-soft shadow-sm ring-1 ring-rule">
+    <p className="rounded-md bg-sheet px-3 py-1.5 text-xs text-ink-soft shadow-sm ring-1 ring-rule">
       Not on the map, no coordinates: {names.join(", ")}.
     </p>
   );

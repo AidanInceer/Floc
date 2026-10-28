@@ -48,7 +48,7 @@ export function ActivityTile({ kind, highlight }: { kind: ActivityKind; highligh
   return (
     <span
       className={cx(
-        "relative z-[1] grid size-[26px] shrink-0 place-items-center rounded-[8px]",
+        "relative z-[1] grid size-[26px] shrink-0 place-items-center rounded-sm",
         highlight ? "border border-highlight-edge bg-highlight text-highlight-ink" : TONE[kind],
       )}
     >

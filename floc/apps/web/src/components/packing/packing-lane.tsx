@@ -19,11 +19,11 @@ export function PackingLane({
 }) {
   return (
     <section className={cx(
-      "min-w-0 rounded-[12px] border bg-sheet",
+      "min-w-0 rounded-md border bg-sheet",
       open ? "border-highlight-edge" : "border-rule",
     )}>
       <header className={cx(
-        "flex min-w-0 items-center gap-2 rounded-t-[12px] border-b border-dotted px-4 py-3",
+        "flex min-w-0 items-center gap-2 rounded-t-md border-b border-dotted px-4 py-3",
         open ? "border-highlight-edge bg-highlight-soft" : "border-rule-strong",
       )}>
         {avatar ?? (open ? <span aria-hidden="true" className="size-2 rounded-full bg-highlight-ink" /> : null)}

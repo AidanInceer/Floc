@@ -85,7 +85,7 @@ export function ActivityFeed(props: {
 
   if (props.collapsed) {
     return (
-      <details className="rounded-lg bg-sheet p-6">
+      <details className="rounded-md bg-sheet p-6">
         <summary className="flex cursor-pointer list-none items-center justify-center gap-2 text-sm font-semibold text-ink-soft [&::-webkit-details-marker]:hidden">
           Past activity
           <svg
@@ -108,7 +108,7 @@ export function ActivityFeed(props: {
   }
 
   return (
-    <section className="rounded-lg bg-sheet p-6">
+    <section className="rounded-md bg-sheet p-6">
       <div className="flex items-center justify-between gap-4 border-b border-rule pb-3">
         <h2 className="text-xl">Activity</h2>
         {props.action}
@@ -149,7 +149,7 @@ function ExpenseRow({
 
   return (
     <li className="flex items-center gap-3 border-b border-rule py-3 last:border-b-0">
-      <span className="flex h-9 w-9 flex-none items-center justify-center rounded-md border border-rule bg-sheet-2 text-ink-soft">
+      <span className="flex h-9 w-9 flex-none items-center justify-center rounded-sm border border-rule bg-sheet-2 text-ink-soft">
         <CategoryIcon category={e.category} />
       </span>
       <div className="min-w-0 flex-1">
@@ -236,7 +236,7 @@ function SettlementRow({
   const party = viewerId === s.fromUserId || viewerId === s.toUserId;
   return (
     <li className="flex items-center gap-3 border-b border-rule py-3 last:border-b-0">
-      <span className="flex h-9 w-9 flex-none items-center justify-center rounded-md border border-pastel-green-edge bg-pastel-green text-pastel-green-ink">
+      <span className="flex h-9 w-9 flex-none items-center justify-center rounded-sm border border-pastel-green-edge bg-pastel-green text-pastel-green-ink">
         <svg
           width={18}
           height={18}

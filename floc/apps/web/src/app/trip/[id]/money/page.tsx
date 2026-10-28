@@ -180,7 +180,7 @@ function EmptyMoney({ addForm }: { addForm: React.ReactNode }) {
 
 function SettledBanner({ addForm }: { addForm: React.ReactNode }) {
   return (
-    <section className="rounded-lg bg-pastel-green px-6 py-9 text-center text-pastel-green-ink">
+    <section className="rounded-md bg-pastel-green px-6 py-9 text-center text-pastel-green-ink">
       <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-sheet text-pastel-green-ink">
         <svg
           width={24}
@@ -267,7 +267,7 @@ function SettleUpPanel({
   };
 
   const column = (title: string, empty: string, note: string, rows: SettleRow[]) => (
-    <section className="rounded-lg bg-sheet p-6">
+    <section className="rounded-md bg-sheet p-6">
       <SectionHeading className="border-b border-rule pb-3">{title}</SectionHeading>
       {rows.length === 0 ? (
         <p className="flex min-h-[8rem] flex-col items-center justify-center gap-1 text-center">
@@ -288,7 +288,7 @@ function SettleUpPanel({
         {column("You are owed", "Nothing to chase", "Everyone has paid you back.", settle.rows.filter((r) => r.payee === viewerId))}
       </div>
       {others.length > 0 ? (
-        <section className="rounded-lg bg-sheet px-6 py-4">
+        <section className="rounded-md bg-sheet px-6 py-4">
           <h3 className="text-xs font-medium text-ink-soft">Between the others</h3>
           <ul className="mt-1 flex flex-col">
             {others.map((r) => (
@@ -328,7 +328,7 @@ function PairSummary({ row, viewerId, rateDate, label }: { row: SettleRow; viewe
         <p className="nums font-display text-4xl tracking-tight">{formatMoney(row.amountMinor, row.currency)}</p>
         <p className="mt-1 text-sm text-ink-soft">{youPay ? `from you to ${other}` : `from ${other} to you`}</p>
       </div>
-      <dl className="rounded-lg bg-sheet-2 px-4 py-1 text-sm">
+      <dl className="rounded-md bg-sheet-2 px-4 py-1 text-sm">
         {lines.map((l) => (
           <div key={l.key} className="flex items-baseline justify-between gap-4 border-b border-rule py-2.5">
             <dt className="text-ink-soft">{l.owedBy}</dt>

@@ -30,7 +30,7 @@ export function AccountInbox({ unread, items }: { unread: number; items: InboxPr
                 <button
                   type="submit"
                   role="menuitem"
-                  className="relative flex w-full items-start gap-2.5 rounded-[10px] py-1.5 pl-4 pr-2 text-left text-[12.5px] leading-snug text-ink hover:bg-sheet-2"
+                  className="relative flex w-full items-start gap-2.5 rounded-sm py-1.5 pl-4 pr-2 text-left text-[12.5px] leading-snug text-ink hover:bg-sheet-2"
                 >
                   <span aria-hidden className="absolute left-1.5 top-[0.78rem] size-[5px] rounded-full bg-pen" />
                   <span className="line-clamp-2 min-w-0 flex-1">{item.text}</span>

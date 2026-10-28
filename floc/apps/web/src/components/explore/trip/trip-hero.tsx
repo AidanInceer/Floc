@@ -18,7 +18,7 @@ export function TripHero({ trip, figures }: { trip: PresetTrip; figures: PresetF
     ["From, each", formatMoney(trip.priceFromMinor, trip.currency)],
   ];
   return (
-    <section className="explore-postcard grid items-center gap-6 rounded-[22px] bg-sheet p-4 shadow-lifted sm:p-6 lg:grid-cols-[1.08fr_1fr] lg:gap-10 lg:p-7">
+    <section className="explore-postcard grid items-center gap-6 rounded-md bg-sheet p-4 shadow-lifted sm:p-6 lg:grid-cols-[1.08fr_1fr] lg:gap-10 lg:p-7">
       <TripMap trip={trip} />
       <div className="relative">
         <div className="absolute right-0 top-0 max-sm:hidden">

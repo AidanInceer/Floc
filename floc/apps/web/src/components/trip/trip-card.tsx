@@ -67,7 +67,7 @@ export function TripCard({
     // interactives inside a link.
     <li
       className={cx(
-        "lift relative flex rounded-lg hover:shadow-none!",
+        "lift relative flex rounded-md hover:shadow-none!",
         list
           ? "flex-row flex-wrap items-center gap-x-6 gap-y-2 px-6 py-4"
           : "min-h-[15rem] flex-col gap-4 p-6",

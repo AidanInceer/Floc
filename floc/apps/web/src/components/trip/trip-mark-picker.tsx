@@ -38,7 +38,7 @@ export function TripMarkPicker({
                 label={TRIP_MARK_LABELS[mark]}
                 picked={picked}
                 className={cx(
-                  "grid size-8 place-items-center rounded-md ring-1 ring-inset",
+                  "grid size-8 place-items-center rounded-sm ring-1 ring-inset",
                   picked ? cx(PASTEL_BY_KEY[tone], "ring-transparent") : "text-ink-2 ring-rule hover:text-ink",
                 )}
               >

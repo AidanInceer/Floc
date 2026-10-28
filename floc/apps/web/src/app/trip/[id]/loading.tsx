@@ -26,12 +26,12 @@ export default function TripTabLoading() {
         <div className="h-9 w-[18ch] rounded-md bg-sheet-3 opacity-70" />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="h-28 rounded-lg bg-sheet opacity-80" />
+            <div key={i} className="h-28 rounded-md bg-sheet opacity-80" />
           ))}
         </div>
         <div className="grid gap-4 lg:grid-cols-[minmax(0,58fr)_minmax(0,42fr)]">
-          <div className="h-64 rounded-lg bg-sheet opacity-80" />
-          <div className="h-64 rounded-lg bg-sheet opacity-80" />
+          <div className="h-64 rounded-md bg-sheet opacity-80" />
+          <div className="h-64 rounded-md bg-sheet opacity-80" />
         </div>
       </div>
     </div>

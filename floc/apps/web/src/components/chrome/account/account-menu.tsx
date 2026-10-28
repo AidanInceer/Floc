@@ -14,7 +14,7 @@ import { ThemeSwitch } from "@/components/chrome/account/theme-switch";
 import "./account-menu.css";
 
 const tileClass =
-  "flex flex-col items-center gap-1.5 rounded-[10px] border border-rule px-1 pb-2 pt-2.5 text-xs text-ink hover:border-rule-strong hover:bg-sheet-2";
+  "flex flex-col items-center gap-1.5 rounded-sm border border-rule px-1 pb-2 pt-2.5 text-xs text-ink hover:border-rule-strong hover:bg-sheet-2";
 
 export function AccountMenu({
   user,

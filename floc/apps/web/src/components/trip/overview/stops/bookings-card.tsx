@@ -22,7 +22,7 @@ type Props = {
 export function BookingsCard({ tripId, legs, wholeTrip, files, stays }: Props) {
   return (
     <aside className="max-lg:order-first lg:sticky lg:top-4">
-      <div className="rounded-xl border border-rule-strong bg-sheet px-[18px] pb-1.5 pt-4">
+      <div className="rounded-md border border-rule-strong bg-sheet px-[18px] pb-1.5 pt-4">
         <h3 className="typed mb-2.5">Bookings</h3>
         {legs.map((leg) => (
           <div key={leg.no} className="grid gap-2 border-t border-rule py-3">

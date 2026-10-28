@@ -43,7 +43,7 @@ export function ForecastPanel({
           const w = byDate[d];
           const { weekday, day: n } = dayParts(d);
           const when = <span className="nums font-mono text-ink">{weekday} {n}</span>;
-          const row = cx("grid w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[13.5px]", i > 0 && "border-t border-rule");
+          const row = cx("grid w-full items-center gap-2.5 rounded-sm px-2 py-2 text-left text-[13.5px]", i > 0 && "border-t border-rule");
           return (
             <li key={d}>
               {w ? (
@@ -76,7 +76,7 @@ function DayHours({ date, day, points, back }: { date: IsoDate; day: DailyForeca
       <button
         type="button"
         onClick={back}
-        className="-ml-1 -mt-1 mb-3 inline-flex items-center gap-1 rounded-lg py-1 pl-1 pr-2 text-[13px] text-ink-soft hover:bg-sheet-2 hover:text-ink"
+        className="-ml-1 -mt-1 mb-3 inline-flex items-center gap-1 rounded-sm py-1 pl-1 pr-2 text-[13px] text-ink-soft hover:bg-sheet-2 hover:text-ink"
       >
         <ChevronIcon direction="left" />
         All days

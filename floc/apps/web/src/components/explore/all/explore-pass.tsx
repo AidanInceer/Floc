@@ -33,7 +33,7 @@ export function ExplorePass({
 }) {
   const behind = inSheet ? "bg-sheet-3" : "bg-paper";
   return (
-    <article className={cx("overflow-hidden bg-sheet", !inSheet && "rounded-[22px] shadow-lifted")}>
+    <article className={cx("overflow-hidden bg-sheet", !inSheet && "rounded-md shadow-lifted")}>
       <div className={cx("bg-sheet-2", inSheet ? "aspect-[343/190]" : "aspect-[2/1]")}>
         <PassMap trip={trip} />
       </div>

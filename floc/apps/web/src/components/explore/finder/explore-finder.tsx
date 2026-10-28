@@ -17,7 +17,7 @@ import { LineIcon } from "@/components/system/icons";
 import { Button } from "@/components/system/ui";
 
 const sheetClass =
-  "m-0 mt-auto max-h-[90dvh] w-full max-w-none overflow-y-auto rounded-t-[22px] bg-sheet p-0 text-ink backdrop:bg-black/40 sm:mx-auto sm:max-w-lg lg:hidden";
+  "m-0 mt-auto max-h-[90dvh] w-full max-w-none overflow-y-auto rounded-t-md bg-sheet p-0 text-ink backdrop:bg-black/40 sm:mx-auto sm:max-w-lg lg:hidden";
 
 /**
  * Every trip, with the finder beside it: what must fit filters, what you like ranks and never hides.

@@ -11,14 +11,14 @@
   }
 
   .account-pass-top {
-    border-radius: 14px 14px 0 0;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
     mask:
       radial-gradient(circle 8px at 0 100%, transparent 97%, black) left / 51% 100% no-repeat,
       radial-gradient(circle 8px at 100% 100%, transparent 97%, black) right / 51% 100% no-repeat;
   }
 
   .account-pass-stub {
-    border-radius: 0 0 14px 14px;
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
     overflow: hidden;
     mask:
       radial-gradient(circle 8px at 0 0, transparent 97%, black) left / 51% 100% no-repeat,

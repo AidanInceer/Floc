@@ -58,7 +58,7 @@ function Stub({ stub, selected, onOpen }: { stub: TabStub; selected: boolean; on
       <span
         aria-hidden
         className={cx(
-          "flex size-[26px] items-center justify-center rounded-lg",
+          "flex size-[26px] items-center justify-center rounded-sm",
           selected ? "bg-pen-soft text-pen-deep" : "bg-sheet-3 text-ink-soft",
         )}
       >

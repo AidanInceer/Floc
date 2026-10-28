@@ -67,7 +67,7 @@ export function OvernightDialog({
       open
       onClose={onClose}
       title={`Overnight — ${describeSpan(days, span)}`}
-      className="m-auto w-full max-w-md rounded-lg bg-sheet p-0 text-ink shadow-card backdrop:bg-black/40"
+      className="m-auto w-full max-w-md rounded-md bg-sheet p-0 text-ink shadow-card backdrop:bg-black/40"
     >
       <div className="flex items-center justify-between border-b border-rule px-4 py-3">
         <h2 className="font-display text-base font-semibold">

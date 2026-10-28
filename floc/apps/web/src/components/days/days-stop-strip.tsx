@@ -72,7 +72,7 @@ export function StopStrip({
                   aria-current={id === focusId ? "date" : undefined}
                   title={day.longLabel}
                   className={cx(
-                    "flex min-w-0 flex-1 flex-col items-center justify-center gap-px rounded-lg py-1 sm:flex-row sm:gap-1.5 sm:py-1.5",
+                    "flex min-w-0 flex-1 flex-col items-center justify-center gap-px rounded-sm py-1 sm:flex-row sm:gap-1.5 sm:py-1.5",
                     id === focusId ? "bg-pen-soft text-pen-deep" : "hover:bg-sheet-3",
                   )}
                 >

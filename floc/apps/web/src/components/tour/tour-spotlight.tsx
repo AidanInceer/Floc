@@ -189,7 +189,7 @@ export function TourSpotlight({ stops }: { stops: TourStop[] }) {
           aria-modal="true"
           aria-label="A quick tour"
           className={cx(
-            "pointer-events-auto absolute w-[min(22rem,calc(100vw-2rem))] rounded-lg bg-sheet p-5 ring-1 ring-rule transition-opacity duration-150 motion-reduce:transition-none",
+            "pointer-events-auto absolute w-[min(22rem,calc(100vw-2rem))] rounded-md bg-sheet p-5 ring-1 ring-rule transition-opacity duration-150 motion-reduce:transition-none",
             settled ? "opacity-100" : "pointer-events-none opacity-0",
           )}
           style={cardStyle(rect)}

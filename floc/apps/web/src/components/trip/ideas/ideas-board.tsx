@@ -51,7 +51,7 @@ export function IdeasBoard({ tripId, ideas }: { tripId: number; ideas: IdeaRow[]
               ]}
             />
           ) : null}
-          <ul className="divide-y divide-rule rounded-lg border border-rule bg-sheet">
+          <ul className="divide-y divide-rule rounded-md border border-rule bg-sheet">
             {shown.map((idea) => (
               <IdeaLine key={idea.id} tripId={tripId} idea={idea} />
             ))}

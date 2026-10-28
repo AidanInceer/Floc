@@ -65,7 +65,7 @@ export function DateCell(p: DateCellProps) {
       <span
         aria-hidden
         className={cx(
-          "absolute inset-y-[3px] rounded-[12px] transition-colors",
+          "absolute inset-y-[3px] rounded-md transition-colors",
           p.join.left ? "left-0 rounded-l-none" : "left-[3px]",
           p.join.right ? "right-0 rounded-r-none" : "right-[3px]",
           FILL[key],

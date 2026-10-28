@@ -23,7 +23,7 @@ import { ConfirmSubmit, SubmitButton } from "@/components/system/client-ui";
 export const metadata = { title: "Packing lists" };
 
 const boxClass =
-  "w-full rounded-md border border-rule bg-sheet px-4 py-2.5 text-sm placeholder:text-ink-faint focus-visible:border-pen";
+  "w-full rounded-sm border border-rule bg-sheet px-4 py-2.5 text-sm placeholder:text-ink-faint focus-visible:border-pen";
 
 export default async function PackingListsPage() {
   const viewer = await requireUser("/packing-lists");
@@ -33,7 +33,7 @@ export default async function PackingListsPage() {
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
       <PageTitle>Saved lists</PageTitle>
 
-      <section className="mt-6 rounded-xl border border-rule bg-sheet px-4 py-4">
+      <section className="mt-6 rounded-md border border-rule bg-sheet px-4 py-4">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
           <h2 className="typed !mb-0">Start a list</h2>
           <form
@@ -73,7 +73,7 @@ export default async function PackingListsPage() {
 
             <form
               action={addKitItem.bind(null, kit.id)}
-              className="mt-4 flex flex-wrap items-center gap-2 rounded-lg border border-rule bg-sheet p-3"
+              className="mt-4 flex flex-wrap items-center gap-2 rounded-md border border-rule bg-sheet p-3"
             >
               <label className="min-w-0 basis-full flex-1 sm:basis-auto">
                 <span className="sr-only">Add something to {kit.name}</span>
@@ -92,7 +92,7 @@ export default async function PackingListsPage() {
                   defaultValue={1}
                   min={MIN_PACK_QUANTITY}
                   max={MAX_PACK_QUANTITY}
-                  className="w-20 rounded-md border border-rule-strong bg-sheet px-3 py-2.5 text-center font-mono text-sm tabular-nums"
+                  className="w-20 rounded-sm border border-rule-strong bg-sheet px-3 py-2.5 text-center font-mono text-sm tabular-nums"
                 />
               </label>
               <CategorySelect />
@@ -133,7 +133,7 @@ export default async function PackingListsPage() {
                     required
                     maxLength={80}
                     defaultValue={kit.name}
-                    className="w-full rounded-md border border-rule bg-sheet px-3 py-1.5 text-sm focus-visible:border-pen"
+                    className="w-full rounded-sm border border-rule bg-sheet px-3 py-1.5 text-sm focus-visible:border-pen"
                   />
                 </label>
                 <SubmitButton variant="ghost" pendingLabel="Saving…">Rename</SubmitButton>

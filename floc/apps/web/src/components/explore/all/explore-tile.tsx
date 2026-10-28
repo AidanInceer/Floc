@@ -8,7 +8,7 @@ import { skinFor } from "@/components/explore/listing";
 import { OutlineMap } from "@/components/explore/outline/outline-map";
 import { cx } from "@/components/system/ui";
 
-export const tagClass = "typed w-fit max-w-full truncate rounded-md px-2 py-1";
+export const tagClass = "typed w-fit max-w-full truncate rounded-sm px-2 py-1";
 
 const nightsOf = (n: number) => `${n} ${n === 1 ? "night" : "nights"}`;
 
@@ -28,7 +28,7 @@ export function ExploreTile({
   footer?: ReactNode;
 }) {
   return (
-    <div className="lift flex h-full flex-col overflow-hidden rounded-[18px] bg-sheet shadow-[var(--shadow)]">
+    <div className="lift flex h-full flex-col overflow-hidden rounded-md bg-sheet shadow-[var(--shadow)]">
       <button type="button" onClick={() => onPick(trip.id)} className="flex w-full flex-col text-left">
         <span aria-hidden className="pointer-events-none block aspect-[24/17] w-full bg-sheet-2">
           <OutlineMap trip={trip} size="tile" />

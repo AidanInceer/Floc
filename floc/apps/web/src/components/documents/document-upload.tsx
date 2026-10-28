@@ -127,7 +127,7 @@ function FilePicker() {
           accept(e.dataTransfer.files);
         }}
         className={cx(
-          "flex min-h-[8.5rem] w-full flex-col items-center justify-center gap-1 rounded-xl border p-4 text-center",
+          "flex min-h-[8.5rem] w-full flex-col items-center justify-center gap-1 rounded-md border p-4 text-center",
           "transition-[background-color,border-color,transform] duration-[.22s] ease-[cubic-bezier(.2,.85,.3,1)]",
           // Pressing it opens the OS picker, which takes a moment — without a
           // pressed state the click reads as having missed.

@@ -42,7 +42,7 @@ export function TripTabs({ tripId, tabs }: { tripId: number; tabs: TabState[] })
             aria-current={hrefOf(tab) === current ? "page" : undefined}
             className="group flex shrink-0 items-center gap-1.5 py-1.5 text-sm font-medium text-ink-faint transition-colors hover:text-ink-soft aria-[current=page]:text-ink"
           >
-            <span className="inline-flex size-6 items-center justify-center rounded-[7px] transition-colors group-hover:bg-sheet-3 group-aria-[current=page]:bg-pen-soft group-aria-[current=page]:text-pen-deep">
+            <span className="inline-flex size-6 items-center justify-center rounded-sm transition-colors group-hover:bg-sheet-3 group-aria-[current=page]:bg-pen-soft group-aria-[current=page]:text-pen-deep">
               <NavGlyph name={tab.key} />
             </span>
             {tab.label}

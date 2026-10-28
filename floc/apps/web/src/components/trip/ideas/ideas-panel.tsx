@@ -18,7 +18,7 @@ export function IdeasPanel({
   return (
     <details
       open={datesUnset}
-      className="group/ideas mb-4 overflow-hidden rounded-xl border border-rule bg-sheet"
+      className="group/ideas mb-4 overflow-hidden rounded-md border border-rule bg-sheet"
     >
       <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
         <FlockChevron className="shrink-0 -rotate-90 text-ink-faint transition-transform group-open/ideas:rotate-0" />

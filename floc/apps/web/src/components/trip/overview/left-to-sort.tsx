@@ -20,7 +20,7 @@ export function LeftToSort({ tripId, open, sorted }: { tripId: number; open: Gap
   const total = sorted + open.length;
   const shown = open.slice(0, SHOWN);
   return (
-    <section aria-label="Left to sort" className="rounded-xl bg-sheet px-4 py-2.5 shadow-raised ring-1 ring-rule sm:pl-5">
+    <section aria-label="Left to sort" className="rounded-md bg-sheet px-4 py-2.5 shadow-raised ring-1 ring-rule sm:pl-5">
       <div className="flex min-h-10 flex-wrap items-center gap-x-3.5 gap-y-2">
         <span role="img" aria-label={`${sorted} of ${total} sorted`} className="h-1.5 w-[72px] flex-none overflow-hidden rounded-full bg-sheet-2">
           <i className="block h-full rounded-full bg-pastel-green-ink" style={{ width: `${Math.round((sorted / total) * 100)}%` }} />

@@ -34,7 +34,7 @@ export function OverviewFiles({ tripId, files }: { tripId: number; files: { cate
               href={`/trip/${tripId}/files?category=${category}`}
               className="inline-flex items-center gap-1.5 text-sm text-ink hover:underline"
             >
-              <span className={cx("grid h-[22px] w-[22px] place-items-center rounded-md", TINT[category])}>
+              <span className={cx("grid h-[22px] w-[22px] place-items-center rounded-sm", TINT[category])}>
                 <DocCategoryIcon category={category} size={11} />
               </span>
               {DOC_CATEGORY_LABELS[category]}

@@ -62,7 +62,7 @@ export function TravelMap({
   const listed = needle ? COUNTRIES.filter((c) => c.name.toLowerCase().includes(needle)) : [];
 
   return (
-    <section className="overflow-hidden rounded-lg bg-sheet">
+    <section className="overflow-hidden rounded-md bg-sheet">
       <TravelGlobe ref={globe} land={land} states={local} onPick={setMark ? paint : undefined} title={title} />
 
       <div className="flex flex-col gap-4 px-6 pb-6">
@@ -101,7 +101,7 @@ export function TravelMap({
                             globe.current?.show(c.code);
                           }}
                           aria-pressed={Boolean(state)}
-                          className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm hover:bg-sheet-3"
+                          className="flex w-full items-center gap-2 rounded-sm px-2.5 py-1.5 text-left text-sm hover:bg-sheet-3"
                         >
                           <span aria-hidden className={cx("travel-key", state && `travel-key-${state}`)} />
                           <span className="flex-1">{c.name}</span>

@@ -27,7 +27,7 @@ export function GuestGate({ tripName, hostName, open, blurb, actions, children }
       {open ? (
         <div className="fixed inset-0 z-50 flex items-end bg-black/40 sm:items-center sm:justify-center">
           <div role="dialog" aria-modal="true" aria-label={tripName} className="max-h-[90dvh] w-full max-w-md overflow-y-auto">
-            <Card className="rounded-b-none bg-sheet sm:rounded-sm">
+            <Card className="rounded-b-none bg-sheet sm:rounded-md">
               <div className="grid gap-6 p-6">
                 <div>
                   <p className="typed">{hostName ? `${hostName} shared this with you` : "Shared with you"}</p>

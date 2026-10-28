@@ -108,7 +108,7 @@ export function PackingAutoLine({
 /** Free (#469, Aidan): no ideas and no tier, one line and the way to Pro. */
 export function PackingUpgradeLine({ removeSuggested }: { removeSuggested: React.ReactNode }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-rule bg-sheet py-2.5 pl-3.5 pr-3">
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-md border border-rule bg-sheet py-2.5 pl-3.5 pr-3">
       <SparkIcon className="text-ink-faint" />
       <p className="min-w-0 flex-[1_1_16rem] text-[13.5px] text-ink-soft">
         Auto packing fills your bag from the trip’s nights and weather.

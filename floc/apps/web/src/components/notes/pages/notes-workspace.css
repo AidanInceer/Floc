@@ -2,7 +2,7 @@
  * Notes (#408): the card, its page list and the open page. The page itself is
  * @floc/editor's, styled by its own editor.css from the same tokens.
  */
-.notes-card { display: flex; min-height: 75vh; border: 1px solid var(--rule); border-radius: 16px; background: var(--sheet); overflow: hidden; }
+.notes-card { display: flex; min-height: 75vh; border: 1px solid var(--rule); border-radius: var(--radius-md); background: var(--sheet); overflow: hidden; }
 .notes-rail { width: 256px; flex-shrink: 0; display: flex; flex-direction: column; border-right: 1px solid var(--rule); background: var(--sheet-2); }
 .notes-rail.is-shut { width: 48px; align-items: center; padding-top: 12px; }
 .notes-rail-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 12px 4px; }
@@ -11,7 +11,7 @@
 .notes-foot { border-top: 1px solid var(--rule); padding: 8px; }
 .notes-row {
   position: relative; display: flex; align-items: center; gap: 6px; width: 100%;
-  min-height: 30px; padding: 3px 6px; border-radius: 6px; font-size: var(--text-sm); color: var(--ink-2);
+  min-height: 30px; padding: 3px 6px; border-radius: var(--radius-sm); font-size: var(--text-sm); color: var(--ink-2);
 }
 .notes-row:hover, .notes-row.is-open { background: var(--sheet-3); color: var(--ink); }
 .notes-row.is-open { font-weight: 500; }
@@ -30,7 +30,7 @@
 .notes-acts { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; opacity: 0; pointer-events: none; }
 .notes-row:hover .notes-acts, .notes-row:focus-within .notes-acts { opacity: 1; pointer-events: auto; }
 .notes-row:hover .notes-here, .notes-row:focus-within .notes-here { visibility: hidden; }
-.notes-tool { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 4px; border-radius: 6px; color: var(--ink-2); }
+.notes-tool { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 4px; border-radius: var(--radius-sm); color: var(--ink-2); }
 .notes-rail-head .notes-tool, .notes-rail.is-shut .notes-tool { min-width: 26px; height: 26px; }
 .notes-tool:hover { background: var(--sheet-3); color: var(--ink); }
 .notes-chev { width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; color: var(--ink-3); border-radius: 4px; }
@@ -39,10 +39,10 @@
 .notes-chev[aria-expanded="true"] svg { transform: rotate(90deg); }
 .notes-chev.is-none { visibility: hidden; }
 .notes-rename {
-  flex: 1; min-width: 0; height: 24px; padding: 0 6px; margin-left: 2px; border: 1px solid var(--pen); border-radius: 5px;
+  flex: 1; min-width: 0; height: 24px; padding: 0 6px; margin-left: 2px; border: 1px solid var(--pen); border-radius: var(--radius-sm);
   background: var(--sheet); color: var(--ink); font: inherit; font-size: var(--text-sm); outline: none;
 }
-.notes-new { display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px; border-radius: 6px; font-size: var(--text-sm); color: var(--ink-3); }
+.notes-new { display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px; border-radius: var(--radius-sm); font-size: var(--text-sm); color: var(--ink-3); }
 .notes-new:hover:not(:disabled) { background: var(--sheet-3); color: var(--ink); }
 .notes-new:disabled { opacity: 0.55; cursor: not-allowed; }
 .notes-error { padding: 4px 6px; font-size: var(--text-xs); color: var(--red); }

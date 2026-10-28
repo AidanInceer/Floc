@@ -40,7 +40,7 @@ export function StopPanel({
   tone: RegionTone;
 }) {
   return (
-    <section id={`stop-${stop.no}`} className="scroll-mt-4 rounded-lg border border-rule-strong bg-sheet px-3 pb-3 pt-4 sm:px-[18px] sm:pb-[18px]">
+    <section id={`stop-${stop.no}`} className="scroll-mt-4 rounded-md border border-rule-strong bg-sheet px-3 pb-3 pt-4 sm:px-[18px] sm:pb-[18px]">
       <header className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-1 sm:grid-cols-[auto_auto_minmax(0,1fr)]">
         <span className={cx("nums grid size-[26px] place-items-center rounded-full border text-xs", tone.mark)}>{stop.no}</span>
         <h3 className="text-xl tracking-[-0.02em] sm:text-[length:var(--text-2xl)]">{stop.place}</h3>

@@ -494,7 +494,7 @@ export function DaysCalendar({
   });
 
   return (
-    <div className={cx("overflow-hidden rounded-lg bg-sheet", FOCUS_COLUMNS)}>
+    <div className={cx("overflow-hidden rounded-md bg-sheet", FOCUS_COLUMNS)}>
       <StopStrip days={days} focusId={focus.id} onGoTo={goTo} onStop={openBandDialog} />
 
       <CalendarToolbar

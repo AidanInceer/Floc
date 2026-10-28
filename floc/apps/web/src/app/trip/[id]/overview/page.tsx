@@ -130,8 +130,8 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
       {underway(trip, now) ? <RefreshWhileLive /> : null}
       <LeftToSort tripId={tripId} open={sortList.open} sorted={sortList.sorted} />
       {/* Why: the card floats over the globe on a wide screen, as on Explore; the map keeps its route clear of it (clear-area.ts). */}
-      <section className="rounded-xl bg-sheet shadow-raised ring-1 ring-rule">
-        <div data-overview-band className="relative grid rounded-t-xl bg-sheet-2 lg:min-h-[34rem] lg:grid-cols-[minmax(0,1fr)_23.5rem]">
+      <section className="rounded-md bg-sheet shadow-raised ring-1 ring-rule">
+        <div data-overview-band className="relative grid rounded-t-md bg-sheet-2 lg:min-h-[34rem] lg:grid-cols-[minmax(0,1fr)_23.5rem]">
           <OverviewMap
             tripId={tripId}
             route={route}
@@ -140,7 +140,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
             tracks={tracks}
             legend={<RouteLegend routes={tracks} viewerId={viewer.id} now={Date.now()} deleteMine={deleteMyRoute.bind(null, tripId)} />}
           />
-          <div data-overview-card className="relative z-10 bg-sheet lg:col-start-2 lg:m-5 lg:self-start lg:rounded-xl lg:shadow-lift lg:ring-1 lg:ring-rule">
+          <div data-overview-card className="relative z-10 bg-sheet lg:col-start-2 lg:m-5 lg:self-start lg:rounded-md lg:shadow-lift lg:ring-1 lg:ring-rule">
             <OverviewCard
               trip={{
                 id: tripId,
@@ -159,7 +159,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
             />
           </div>
         </div>
-        <div className="flex items-center gap-x-7 gap-y-3 rounded-b-xl border-t border-rule px-3 py-2.5 max-md:flex-col max-md:items-stretch">
+        <div className="flex items-center gap-x-7 gap-y-3 rounded-b-md border-t border-rule px-3 py-2.5 max-md:flex-col max-md:items-stretch">
           <Suspense fallback={<PanelPlaceholder />}>
             <StreamedGroup
               tripId={tripId}

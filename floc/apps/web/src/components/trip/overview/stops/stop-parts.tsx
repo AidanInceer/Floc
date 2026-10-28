@@ -31,7 +31,7 @@ const KIND: Record<DayEventType, string> = {
 
 export function KindTile({ type, transportType }: { type: DayEventType; transportType: TransportType | null }) {
   return (
-    <span className={cx("relative z-[1] grid size-[26px] shrink-0 place-items-center rounded-lg", KIND[type])}>
+    <span className={cx("relative z-[1] grid size-[26px] shrink-0 place-items-center rounded-sm", KIND[type])}>
       <EventGlyph type={type} transportType={transportType} />
     </span>
   );

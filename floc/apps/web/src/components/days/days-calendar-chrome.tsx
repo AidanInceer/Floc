@@ -154,7 +154,7 @@ export function AllDayStrip({
                 aria-pressed={selected === event.id}
                 aria-label={`${event.title}, all day, ${day.longLabel}`}
                 className={cx(
-                  "min-h-5 truncate rounded-md border border-l-4 px-1.5 py-0.5 text-left text-xs",
+                  "min-h-5 truncate rounded-sm border border-l-4 px-1.5 py-0.5 text-left text-xs",
                   EVENT_CATEGORIES[event.type].block,
                   selected === event.id && "outline-2 outline-ink",
                 )}
@@ -244,7 +244,7 @@ export function CalendarGrid({
   );
 }
 
-const CALENDAR_DIALOG = "m-auto w-full max-w-lg rounded-lg bg-sheet p-0 text-ink shadow-card backdrop:bg-black/40";
+const CALENDAR_DIALOG = "m-auto w-full max-w-lg rounded-md bg-sheet p-0 text-ink shadow-card backdrop:bg-black/40";
 
 /**
  * The event modal (ticket 321) — one centred sheet holding the event's facts

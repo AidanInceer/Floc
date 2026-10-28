@@ -119,7 +119,7 @@ export function DatesBoard(props: DatesBoardProps) {
   };
 
   return (
-    <section className="overflow-hidden rounded-[18px] border border-rule bg-sheet shadow-card lg:grid lg:grid-cols-[15rem_minmax(0,1fr)_18rem]">
+    <section className="overflow-hidden rounded-md border border-rule bg-sheet shadow-card lg:grid lg:grid-cols-[15rem_minmax(0,1fr)_18rem]">
       <DatesTabs stubs={stubs} open={tab} onOpen={(t) => { setTab(t); setHourDay(null); }} />
       <div ref={surface} className="min-w-0 px-2.5 pb-1 pt-3 sm:px-5 lg:pt-4"
         onPointerMove={onMove} onPointerLeave={() => pick.hoverOn(null)} onPointerUp={release} onPointerCancel={release}>

@@ -229,7 +229,7 @@ export function EmptyState({
   // An invitation, not a report (ticket 202): the action is the point of the
   // block, so it gets room rather than sitting as a footnote under the copy.
   return (
-    <div className="rounded-lg bg-sheet-2 px-6 py-12 text-center">
+    <div className="rounded-md bg-sheet-2 px-6 py-12 text-center">
       <p className="font-display text-lg font-semibold">{title}</p>
       {children ? (
         <p className="mx-auto mt-2 max-w-[46ch] text-sm text-ink-soft">{children}</p>
@@ -308,7 +308,7 @@ export function AvatarRow({
 }
 
 const fieldBase =
-  "w-full rounded-md border border-rule-strong bg-sheet px-2.5 py-1.5 font-mono text-sm text-ink placeholder:text-ink-faint";
+  "w-full rounded-sm border border-rule-strong bg-sheet px-2.5 py-1.5 font-mono text-sm text-ink placeholder:text-ink-faint";
 
 export function Field({
   label,
