@@ -22,8 +22,9 @@ import {
   type PackTier,
 } from "@floc/core/packing/packing";
 import { arrangePackingLanes } from "@floc/core/packing/packing-lanes";
+import { ideasWhy } from "@floc/core/packing/packing-ideas";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Alert, ScrollView, View } from "react-native";
 
@@ -31,7 +32,8 @@ import { PackingBulkBar } from "@/components/packing/packing-bulk-bar";
 import { PackingKitSheet } from "@/components/packing/packing-kit-sheet";
 import { MineRow, SharedRow, type SharedLine } from "@/components/packing/packing-rows";
 import { PackingSection } from "@/components/packing/packing-section";
-import { PackingSetup } from "@/components/packing/packing-setup";
+import { IdeaRow } from "@/components/packing/packing-idea-row";
+import { PackingSetup, PackingUpgrade } from "@/components/packing/packing-setup";
 import { Sheet } from "@/components/system/sheet";
 import {
   Body,
@@ -56,6 +58,12 @@ const LISTS = [
   { value: "shared" as const, label: "The group's" },
   { value: "mine" as const, label: "My bag" },
 ];
+
+/** The phone has no inline link here, so a gap's link reads as plain words. */
+function whyLine(plan: Parameters<typeof ideasWhy>[0]): string {
+  const why = ideasWhy(plan);
+  return why.link ? `${why.text} ${why.link.label} ${why.link.after}` : why.text;
+}
 
 /** Which list is being picked in, or neither. One state, so a set cannot span both. */
 type Picking = { list: "shared" | "mine"; ids: Set<number> } | null;
@@ -117,6 +125,7 @@ export default function Packing() {
   const [category, setCategory] = useState<PackCategory>("essentials");
   const [picking, setPicking] = useState<Picking>(null);
   const [kitsOpen, setKitsOpen] = useState(false);
+  const [ideasHidden, setIdeasHidden] = useState(false);
 
   const again = () =>
     queryClient.invalidateQueries({ queryKey: trpc.packing.list.queryKey({ tripId }) });
@@ -135,6 +144,8 @@ export default function Packing() {
   const rename = useMutation({ ...trpc.packing.rename.mutationOptions(), onSuccess: again });
   const setTier = useMutation({ ...trpc.packing.setTier.mutationOptions(), onSuccess: again });
   const fill = useMutation({ ...trpc.packing.fillMyBag.mutationOptions(), onSuccess: again });
+  const takeIdea = useMutation({ ...trpc.packing.takeIdea.mutationOptions(), onSuccess: again });
+  const removeSuggested = useMutation({ ...trpc.packing.removeSuggested.mutationOptions(), onSuccess: again });
   const applyKit = useMutation({
     ...trpc.packing.applyKit.mutationOptions(),
     onSuccess: () => {
@@ -171,6 +182,10 @@ export default function Packing() {
   ).length;
   const minePacked = board.data.mine.filter((line) => line.packed).length;
   const sharedGroups = sharedClaimGroups(board.data.shared, viewerId);
+  const unsuggest = {
+    count: board.data.mine.filter((line) => line.suggested && !line.packed).length,
+    onPress: () => removeSuggested.mutate({ tripId }),
+  };
 
   /** Toggling one row inside whichever list is being picked in. */
   const toggle = (list: "shared" | "mine", lineId: number) =>
@@ -198,16 +213,26 @@ export default function Packing() {
   return (
     <View style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }}>
-        <PackingSetup
-          tier={board.data.tier}
-          onTier={(tier: PackTier) => setTier.mutate({ tripId, tier })}
-          kits={board.data.kits}
-          canAutoFill={board.data.canAutoFill}
-          filling={fill.isPending}
-          onFill={() => fill.mutate({ tripId })}
-          onPickKit={() => setKitsOpen(true)}
-          error={fill.isError ? fill.error.message : null}
-        />
+        {board.data.canAutoFill ? (
+          <PackingSetup
+            why={whyLine(board.data.plan)}
+            tier={board.data.tier}
+            onTier={(tier: PackTier) => setTier.mutate({ tripId, tier })}
+            ideas={{ count: board.data.ideas.length, hidden: ideasHidden, onToggle: () => setIdeasHidden((h) => !h) }}
+            fill={{ busy: fill.isPending, onPress: () => fill.mutate({ tripId }) }}
+            kits={board.data.kits}
+            onPickKit={() => setKitsOpen(true)}
+            removeSuggested={unsuggest}
+            error={fill.isError ? fill.error.message : takeIdea.isError ? takeIdea.error.message : null}
+          />
+        ) : (
+          <PackingUpgrade
+            kits={board.data.kits}
+            onPickKit={() => setKitsOpen(true)}
+            onUpgrade={() => router.push("/settings")}
+            removeSuggested={unsuggest}
+          />
+        )}
 
         <Card>
           <View style={{ gap: space.md }}>
@@ -237,6 +262,17 @@ export default function Packing() {
           onSelecting={(on) => startPicking("mine", on)}
           onClear={() => confirmClear(true)}
           emptyWord="Start your bag — add the first thing above."
+          ideas={{
+            list: ideasHidden ? [] : board.data.ideas,
+            render: (idea) => (
+              <IdeaRow
+                key={idea.label}
+                idea={idea}
+                busy={takeIdea.isPending}
+                onTake={() => takeIdea.mutate({ tripId, label: idea.label })}
+              />
+            ),
+          }}
           renderLine={(line) => (
             <MineRow
               key={line.id}

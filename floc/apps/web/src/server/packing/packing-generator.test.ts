@@ -10,8 +10,10 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import {
+  insertPersonalPackingLine,
   listPersonalPackingLines,
   setPersonalPacked,
+  softDeleteSuggestedLines,
   softDeletePackingLine,
   stepPersonalQuantity,
 } from "@/server/packing/packing";
@@ -20,6 +22,7 @@ import {
   autoFillPersonalBag,
   fillPersonalBag,
   packingPlanFor,
+  takePackingIdea,
 } from "@/server/packing/packing-generator";
 
 let world: Scenario;
@@ -61,7 +64,7 @@ async function myBag() {
 describe("what the trip tells us", () => {
   it("says so rather than throwing when the trip has no dates (rule 9)", async () => {
     const plan = await packingPlanFor((await tripRow())!);
-    expect(plan).toEqual({ nights: null, climate: null, gap: "no-dates" });
+    expect(plan).toEqual({ nights: null, climate: null, gap: "no-dates", places: [], hottest: null, firstRain: null });
   });
 
   it("counts the nights, and names the missing place rather than the missing forecast", async () => {
@@ -199,4 +202,59 @@ describe("the automatic fill happens once, ever", () => {
    * promises is in `fillInTransaction`: one transaction around the claim, the
    * read and the insert, and lock contention reported as "added nothing".
    */
+});
+
+describe("suggested lines (#469)", () => {
+  async function take(label: string) {
+    return takePackingIdea({
+      tripId: world.ours.id,
+      ownerId: world.admin,
+      tier: "balanced",
+      plan: await packingPlanFor((await tripRow())!),
+      label,
+    });
+  }
+
+  it("marks every line a fill writes as suggested", async () => {
+    await fill();
+    const bag = await myBag();
+    expect(bag.length).toBeGreaterThan(0);
+    expect(bag.every((l) => l.origin === "suggested")).toBe(true);
+  });
+
+  it("takes one idea as one suggested line", async () => {
+    expect(await take("toothbrush")).toBe(1);
+    const bag = await myBag();
+    expect(bag.map((l) => [l.label, l.origin])).toEqual([["toothbrush", "suggested"]]);
+  });
+
+  it("refuses a label that is not an idea, or one the bag already holds", async () => {
+    expect(await take("jetpack")).toBe(0);
+    await insertPersonalPackingLine(world.ours.id, world.admin, "Toothbrush", "toiletries");
+    expect(await take("toothbrush")).toBe(0);
+    expect((await myBag()).map((l) => l.origin)).toEqual([null]);
+  });
+
+  it("removes only the suggested lines not yet packed", async () => {
+    await insertPersonalPackingLine(world.ours.id, world.admin, "Linen shirt", "clothes");
+    await db.insert(schema.packingLine).values({
+      tripId: world.ours.id, createdBy: world.admin, ownerId: world.admin, label: "Camera", category: "accessories", kitName: "Photography",
+    });
+    await take("toothbrush");
+    await take("passport");
+    const passport = (await myBag()).find((l) => l.label === "passport")!;
+    await setPersonalPacked(passport.id, world.admin, true);
+
+    expect(await softDeleteSuggestedLines(world.ours.id, world.admin)).toBe(1);
+    expect((await myBag()).map((l) => l.label).sort()).toEqual(["Camera", "Linen shirt", "passport"]);
+  });
+
+  it("never reaches another member's bag", async () => {
+    await takePackingIdea({
+      tripId: world.ours.id, ownerId: world.member, tier: "balanced",
+      plan: await packingPlanFor((await tripRow())!), label: "toothbrush",
+    });
+    expect(await softDeleteSuggestedLines(world.ours.id, world.admin)).toBe(0);
+    expect(await listPersonalPackingLines(world.ours.id, world.member)).toHaveLength(1);
+  });
 });

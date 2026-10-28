@@ -24,6 +24,7 @@ import {
 } from "@floc/core/packing/packing-catalogue";
 import type { PackTier } from "@floc/core/packing/packing";
 import { LIMITS } from "@/server/limits";
+import { listOvernightPlaces } from "@/server/itinerary/itinerary";
 import { getTripForecast, tripForecastAnchor } from "@/server/itinerary/weather";
 
 export type PackingPlan = {
@@ -37,7 +38,13 @@ export type PackingPlan = {
    * coming.
    */
   gap: "no-dates" | "no-place" | "no-forecast" | null;
+  /** Where the nights are spent, for the line above the ideas (#469). */
+  places: string[];
+  hottest: number | null;
+  firstRain: IsoDate | null;
 };
+
+const NO_WEATHER = { hottest: null, firstRain: null };
 
 /**
  * What we know about this trip, as much or as little as that is. An undated
@@ -52,7 +59,7 @@ export async function packingPlanFor(trip: {
 }): Promise<PackingPlan> {
   const { startDate, endDate } = trip;
   if (!startDate || !endDate) {
-    return { nights: null, climate: null, gap: "no-dates" };
+    return { nights: null, climate: null, gap: "no-dates", places: [], ...NO_WEATHER };
   }
 
   const nights = nightsBetween(startDate, endDate);
@@ -61,22 +68,22 @@ export async function packingPlanFor(trip: {
   // "the weather isn't in yet". Costs one indexed lookup that `getTripForecast`
   // then repeats, which is cheaper than the wrong nudge.
   if (!(await tripForecastAnchor(trip.id))) {
-    return { nights, climate: null, gap: "no-place" };
+    return { nights, climate: null, gap: "no-place", places: [], ...NO_WEATHER };
   }
 
-  const forecast = await getTripForecast(trip.id);
-  const climate = forecast
-    ? summariseClimate(
-        forecast.days.filter(
-          (d: { date: IsoDate }) => d.date >= startDate && d.date <= endDate,
-        ),
-      )
-    : null;
+  const [forecast, overnight] = await Promise.all([getTripForecast(trip.id), listOvernightPlaces(trip.id)]);
+  // "Lisbon, Portugal" reads as two places in a comma list; the town is enough.
+  const places = [...new Set(overnight.map((p) => p.name.split(",")[0].trim()))];
+  const window = (forecast?.days ?? []).filter((d) => d.date >= startDate && d.date <= endDate);
+  const climate = forecast ? summariseClimate(window) : null;
+  const weather = climate
+    ? { hottest: Math.round(Math.max(...window.map((d) => d.hi))), firstRain: window.find((d) => d.condition === "rain")?.date ?? null }
+    : NO_WEATHER;
 
   // Beyond the fortnight horizon and provider-unreachable land here together:
   // to a packer they are the same fact, that we can't tell you the weather, so
   // here's a list that doesn't assume any.
-  return { nights, climate, gap: climate ? null : "no-forecast" };
+  return { nights, climate, gap: climate ? null : "no-forecast", places, ...weather };
 }
 
 type FillArgs = {
@@ -116,6 +123,16 @@ export async function autoFillPersonalBag(args: FillArgs): Promise<number> {
 }
 
 /**
+ * One idea, taken by its label (#469). The label must still be an idea for this
+ * bag — anything else, or a thing already packed, adds nothing — so the count,
+ * category and mark always come from the catalogue, never from the caller.
+ */
+export async function takePackingIdea(args: FillArgs & { label: string }): Promise<number> {
+  const label = args.label.trim().toLowerCase();
+  return fill(args, { onlyIfNever: false, only: label });
+}
+
+/**
  * A lock, not a fault. Two fills of the same bag are the only thing that
  * contends here, and the one holding the write lock is doing the identical
  * work — so the loser reports "added nothing", which is exactly true, rather
@@ -126,12 +143,11 @@ function isLockContention(err: unknown): boolean {
   return message.includes("SQLITE_BUSY") || message.includes("database is locked");
 }
 
-async function fill(
-  args: FillArgs,
-  { onlyIfNever }: { onlyIfNever: boolean },
-): Promise<number> {
+type FillMode = { onlyIfNever: boolean; only?: string };
+
+async function fill(args: FillArgs, mode: FillMode): Promise<number> {
   try {
-    return await fillInTransaction(args, { onlyIfNever });
+    return await fillInTransaction(args, mode);
   } catch (err) {
     if (isLockContention(err)) return 0;
     throw err;
@@ -140,7 +156,7 @@ async function fill(
 
 async function fillInTransaction(
   args: FillArgs,
-  { onlyIfNever }: { onlyIfNever: boolean },
+  { onlyIfNever, only }: FillMode,
 ): Promise<number> {
   const { tripId, ownerId, tier, plan } = args;
 
@@ -182,7 +198,7 @@ async function fillInTransaction(
     const fresh = newSuggestionsOnly(
       generatePackingList({ nights: plan.nights, climate: plan.climate, tier }),
       existing.map((l) => l.label),
-    );
+    ).filter((item) => only === undefined || item.label === only);
     if (fresh.length === 0) return 0;
 
     await tx.insert(packingLine).values(
@@ -193,6 +209,7 @@ async function fillInTransaction(
         label: item.label,
         category: item.category,
         quantity: item.quantity,
+        origin: "suggested" as const,
       })),
     );
 

@@ -12,12 +12,14 @@ import {
   fillBag,
   removeLine,
   removeLines,
+  removeSuggested,
   renameLine,
   resetList,
   setClaim,
   setPacked,
   setTier,
   stepQuantity,
+  takeIdea,
 } from "@/server/packing/packing-save";
 
 async function addFromForm(tripId: number, formData: FormData, mine: boolean) {
@@ -77,6 +79,14 @@ export async function setTripPackTier(tripId: number, formData: FormData) {
 
 export async function fillMyPackingList(tripId: number) {
   await fillBag(await requireTripAccess(tripId));
+}
+
+export async function takePackingIdea(tripId: number, label: string) {
+  await takeIdea(await requireTripAccess(tripId), label);
+}
+
+export async function removeSuggestedPackingLines(tripId: number) {
+  await removeSuggested(await requireTripAccess(tripId));
 }
 
 // Why the cap: the tick boxes can only offer what a list holds, so more came from a

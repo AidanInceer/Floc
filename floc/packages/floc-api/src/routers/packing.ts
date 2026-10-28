@@ -120,6 +120,18 @@ export const packingRouter = router({
     await ctx.port.fillMyBag(ctx.viewer.id, input.tripId);
   }),
 
+  /** One auto packing idea (#469). The host checks it is still an idea and sets the count. */
+  takeIdea: tripProcedure
+    .input(z.object({ label }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.port.takePackingIdea(ctx.viewer.id, input.tripId, input.label);
+    }),
+
+  /** Your unpacked suggested lines only; what you typed and saved lists stay (#469). */
+  removeSuggested: tripProcedure.mutation(async ({ ctx, input }) => {
+    await ctx.port.removeSuggestedPacking(ctx.viewer.id, input.tripId);
+  }),
+
   applyKit: tripProcedure
     .input(z.object({ kitId: z.number().int().positive() }))
     .mutation(async ({ ctx, input }) => {

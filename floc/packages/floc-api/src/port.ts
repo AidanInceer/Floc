@@ -447,6 +447,20 @@ export type PackingMine = {
   category: PackCategory;
   quantity: number;
   packed: boolean;
+  /** Added by auto packing (#469), so "Remove suggested" may take it back. */
+  suggested: boolean;
+};
+
+/** One auto packing idea the bag does not hold yet (#469). The host re-derives it on take. */
+export type PackingIdea = { label: string; category: PackCategory; quantity: number };
+
+/** What the ideas were sized from, so the screen can say why (#469). `firstRain` is YYYY-MM-DD (rule 10). */
+export type PackingPlanSummary = {
+  nights: number | null;
+  climate: { hot: boolean; cold: boolean; wet: boolean } | null;
+  gap: "no-dates" | "no-place" | "no-forecast" | null;
+  places: string[];
+  hottest: number | null; firstRain: string | null;
 };
 
 /** One of the viewer's saved kits, as the picker lists them (ticket 230). */
@@ -467,6 +481,9 @@ export type PackingBoard = {
    * (ticket 248), so a bag already filled stays readable when this is false.
    */
   canAutoFill: boolean;
+  /** Empty without the entitlement: a free member sees one line about Pro instead (#469). */
+  ideas: PackingIdea[];
+  plan: PackingPlanSummary;
 };
 
 /* ------------------------------------------------------------ the social half */
@@ -699,6 +716,12 @@ export type FlocPort = {
    * nothing already edited is at risk. Refused without the entitlement.
    */
   fillMyBag(viewerId: string, tripId: number): Promise<void>;
+
+  /** One idea by its label (#469). Adds nothing for a label that is no longer an idea. Refused without the entitlement. */
+  takePackingIdea(viewerId: string, tripId: number, label: string): Promise<void>;
+
+  /** Removes the viewer's unpacked suggested lines (#469). Not gated: Pro buys the action, never the undo. */
+  removeSuggestedPacking(viewerId: string, tripId: number): Promise<void>;
 
   /** Copies a saved kit into the bag (ticket 230). Additive and idempotent. */
   applyPackingKit(viewerId: string, tripId: number, kitId: number): Promise<void>;

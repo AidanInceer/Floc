@@ -1,6 +1,6 @@
 /**
- * What a trip's packing is set up with, once: how much it packs, and the two
- * presses that fill a bag (tickets 220, 221, 230).
+ * What a trip's packing is set up with: how much it packs, auto packing's
+ * presses, and the kit sheet (tickets 220, 221, 230, 469).
  *
  * TWO LINES, NOT FOUR. This began as a label, a row of tiers, and two
  * full-width buttons stacked — four lines of furniture above the thing you
@@ -10,9 +10,9 @@
  * IT IS NOT A GATE (rule 4). Every control here is optional; a trip packs fine
  * with none of them touched, and the lists below never wait on it.
  *
- * AUTO-FILL IS PAID, THE LIST IS NOT (#248). When the entitlement is off the
- * press goes, and what it already wrote stays — so this says the press is
- * unavailable rather than pretending the feature does not exist.
+ * AUTO PACKING IS PAID, THE LIST IS NOT (#248). Without the entitlement the
+ * ideas and the tier go and one line says what Pro adds; what auto packing
+ * already wrote stays, and Remove suggested still works (#469).
  */
 import { PACK_TIERS, PACK_TIER_LABELS, type PackTier } from "@floc/core/packing/packing";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -101,71 +101,92 @@ function HalfButton({
   );
 }
 
+/** A quiet text press, for the two undo-ish actions that should not shout. */
+function TextPress({ label, onPress }: { label: string; onPress: () => void }) {
+  const { c } = useTheme();
+  return (
+    <Pressable accessibilityRole="button" onPress={onPress} hitSlop={6}>
+      <Text style={{ color: c["ink-2"], fontFamily: fonts.sans, fontSize: size.small, textDecorationLine: "underline" }}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+type Ideas = { count: number; hidden: boolean; onToggle: () => void };
+type Press = { busy: boolean; onPress: () => void };
+
+/** Auto packing for a Pro member (#469): why, the tier, Add all, and the kit sheet. The ideas sit in the cubes. */
 export function PackingSetup({
+  why,
   tier,
   onTier,
+  ideas,
+  fill,
   kits,
-  canAutoFill,
-  filling,
-  onFill,
   onPickKit,
+  removeSuggested,
   error,
 }: {
+  why: string;
   tier: PackTier;
   onTier: (tier: PackTier) => void;
+  ideas: Ideas;
+  fill: Press;
   kits: PackingKit[];
-  canAutoFill: boolean;
-  filling: boolean;
-  onFill: () => void;
   onPickKit: () => void;
+  removeSuggested: { count: number; onPress: () => void };
   error: string | null;
 }) {
-  const { c } = useTheme();
-
   return (
     <Card style={{ paddingVertical: space.md, gap: space.sm }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
-        <Text
-          style={{
-            flex: 1,
-            color: c["ink-3"],
-            fontFamily: fonts.type,
-            fontSize: size.label,
-            textTransform: "uppercase",
-            letterSpacing: 0.6,
-          }}
-        >
-          This trip packs
-        </Text>
+      <Body tone="ink-2">{why}</Body>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: space.xs }}>
         {PACK_TIERS.map((option) => (
-          <Chip
-            key={option}
-            word={PACK_TIER_LABELS[option]}
-            on={option === tier}
-            onPress={() => onTier(option)}
-          />
+          <Chip key={option} word={PACK_TIER_LABELS[option]} on={option === tier} onPress={() => onTier(option)} />
         ))}
       </View>
-
       <View style={{ flexDirection: "row", gap: space.sm }}>
         <HalfButton
-          label="Fill my bag"
-          busy={filling}
-          disabled={!canAutoFill}
-          onPress={onFill}
+          label={ideas.count > 0 ? `Add all ${ideas.count}` : "Nothing to add"}
+          busy={fill.busy}
+          disabled={ideas.count === 0 || ideas.hidden}
+          onPress={fill.onPress}
         />
-        {/* Never dead. With no kits this is where the first one is made, so
-            disabling it hid the only way out of having none. */}
-        <HalfButton
-          label={kits.length === 0 ? "Kits" : `Kits (${kits.length})`}
-          onPress={onPickKit}
-        />
+        {/* Never dead. With no kits this is where the first one is made. */}
+        <HalfButton label={kits.length === 0 ? "Kits" : `Kits (${kits.length})`} onPress={onPickKit} />
       </View>
-
-      {/* What is missing is worth saying; what is drawn is not (#126). Both of
-          these are absences a press cannot explain on its own. */}
-      {!canAutoFill ? <Body tone="ink-3">Filling your bag is a Pro feature.</Body> : null}
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.md }}>
+        {ideas.count > 0 ? <TextPress label={ideas.hidden ? `Show ${ideas.count} ideas` : "Hide ideas"} onPress={ideas.onToggle} /> : null}
+        {removeSuggested.count > 0 ? <TextPress label={`Remove suggested (${removeSuggested.count})`} onPress={removeSuggested.onPress} /> : null}
+      </View>
       {error ? <Body tone="red">{error}</Body> : null}
+    </Card>
+  );
+}
+
+/** Free (#469, Aidan): no ideas and no tier. One line, the way to Pro, and the kits that stay free. */
+export function PackingUpgrade({
+  kits,
+  onPickKit,
+  onUpgrade,
+  removeSuggested,
+}: {
+  kits: PackingKit[];
+  onPickKit: () => void;
+  onUpgrade: () => void;
+  removeSuggested: { count: number; onPress: () => void };
+}) {
+  return (
+    <Card style={{ paddingVertical: space.md, gap: space.sm }}>
+      <Body tone="ink-2">Auto packing fills your bag from the trip’s nights and weather.</Body>
+      <View style={{ flexDirection: "row", gap: space.sm }}>
+        <HalfButton label="Upgrade to Pro" onPress={onUpgrade} />
+        <HalfButton label={kits.length === 0 ? "Kits" : `Kits (${kits.length})`} onPress={onPickKit} />
+      </View>
+      {removeSuggested.count > 0 ? (
+        <TextPress label={`Remove suggested (${removeSuggested.count})`} onPress={removeSuggested.onPress} />
+      ) : null}
     </Card>
   );
 }

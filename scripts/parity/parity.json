@@ -257,6 +257,9 @@
     "packing.removeMany": {
       "mobile": "yes"
     },
+    "packing.removeSuggested": {
+      "mobile": "yes"
+    },
     "packing.rename": {
       "mobile": "yes"
     },
@@ -273,6 +276,9 @@
       "mobile": "yes"
     },
     "packing.stepQuantity": {
+      "mobile": "yes"
+    },
+    "packing.takeIdea": {
       "mobile": "yes"
     },
     "pages.archive": {

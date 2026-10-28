@@ -26,6 +26,8 @@ import { getPackTier } from "@/server/packing/packing";
 import {
   addPackingLine,
   fillMyPackingList,
+  removeSuggestedPackingLines,
+  takePackingIdea,
   removePackingLines,
   resetPackingList,
   addPersonalPackingLine,
@@ -274,6 +276,25 @@ describe("suggesting what to pack", () => {
     await setPersonalPackingPacked(world.ours.id, after[0].id, true);
     const packed = await listPersonalPackingLines(world.ours.id, world.admin);
     expect(packed[0].packedAt).not.toBeNull();
+  });
+});
+
+describe("taking ideas and taking them back (#469)", () => {
+  it("adds one idea, marked, and removes it again after Pro lapses", async () => {
+    signIn(world.admin);
+    await givePro(world.admin);
+    await takePackingIdea(world.ours.id, "toothbrush");
+    expect((await listPersonalPackingLines(world.ours.id, world.admin)).map((l) => l.origin)).toEqual(["suggested"]);
+
+    await db.delete(schema.subscription);
+    await removeSuggestedPackingLines(world.ours.id);
+    expect(await listPersonalPackingLines(world.ours.id, world.admin)).toEqual([]);
+  });
+
+  it("refuses a trip you're not on (rule 5)", async () => {
+    signIn(world.outsider);
+    await expectNotFound(() => takePackingIdea(world.ours.id, "toothbrush"));
+    await expectNotFound(() => removeSuggestedPackingLines(world.ours.id));
   });
 });
 

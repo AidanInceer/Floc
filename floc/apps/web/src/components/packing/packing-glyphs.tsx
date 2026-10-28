@@ -1,5 +1,7 @@
 /** The button shapes both packing rows share (tickets 219, 220); their marks come from `system/icons`. */
 
+import { LineIcon } from "@/components/system/icons";
+
 // `!` throughout to beat buttonBase's pill padding — Tailwind v4 specificity is
 // stylesheet order, not class-list order (same trick as `menuItemClass`).
 // No lift, either: these re-render under the cursor the moment they're
@@ -43,5 +45,14 @@ export function SelectLineBox({
       aria-label={`Select ${label}`}
       className="size-4 shrink-0 accent-pen"
     />
+  );
+}
+
+/** Auto packing's mark (#469): ideas and the lines taken from them. Always beside a word, never alone. */
+export function SparkIcon({ size = 11, className }: { size?: number; className?: string }) {
+  return (
+    <LineIcon size={size} className={className}>
+      <path d="M7 1.8c.4 2.8 1.4 4 4.2 5.2-2.8 1.2-3.8 2.4-4.2 5.2-.4-2.8-1.4-4-4.2-5.2C5.6 5.8 6.6 4.6 7 1.8Z" />
+    </LineIcon>
   );
 }

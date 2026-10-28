@@ -25,11 +25,12 @@ import {
   setPersonalPacked,
   softDeletePackingLine,
   softDeletePackingLines,
+  softDeleteSuggestedLines,
   softDeleteWholeList,
   stepPersonalQuantity,
   unclaimPackingLine,
 } from "@/server/packing/packing";
-import { fillPersonalBag, packingPlanFor } from "@/server/packing/packing-generator";
+import { fillPersonalBag, packingPlanFor, takePackingIdea } from "@/server/packing/packing-generator";
 import { applyPackingKitToBag } from "@/server/packing/packing-kits";
 
 type Access = Pick<TripAccess, "trip" | "viewer" | "packingLine">;
@@ -107,18 +108,34 @@ export async function setTier(access: Access, tier: PackTier): Promise<void> {
  * since the screen that drew the button may be a stale tab. Always additive (#221).
  */
 export async function fillBag(access: Access): Promise<void> {
+  await fillPersonalBag(await fillArgs(access));
+  changed(access);
+}
+
+/** One idea by its label (#469). Same gate and same fresh tier as the whole fill. */
+export async function takeIdea(access: Access, label: string): Promise<void> {
+  await takePackingIdea({ ...(await fillArgs(access)), label });
+  changed(access);
+}
+
+/** Not gated: Pro buys the action, never the undo (#248, #469). */
+export async function removeSuggested(access: Access): Promise<void> {
+  await softDeleteSuggestedLines(access.trip.id, access.viewer.id);
+  changed(access);
+}
+
+async function fillArgs(access: Access) {
   await assertFeature("packing.autoGenerate", access.trip.id);
   const [perTrip, profile] = await Promise.all([
     getPackTier(access.trip.id, access.viewer.id),
     ensureProfile(access.viewer.id),
   ]);
-  await fillPersonalBag({
+  return {
     tripId: access.trip.id,
     ownerId: access.viewer.id,
     tier: resolvePackTier(perTrip, profile.packTier),
     plan: await packingPlanFor(access.trip),
-  });
-  changed(access);
+  };
 }
 
 // Additive and idempotent; the kit is resolved by owner, so another account's is not addressable (#230).

@@ -1,0 +1,1 @@
+ALTER TABLE `packing_line` ADD `origin` text;

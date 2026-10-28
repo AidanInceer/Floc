@@ -112,6 +112,8 @@ export type MineLine = {
   category: PackCategory;
   quantity: number;
   packed: boolean;
+  /** Added by auto packing (#469). Said in words beside the status. */
+  suggested?: boolean;
 };
 
 export function SharedRow({
@@ -253,7 +255,7 @@ export function MineRow({
 
       <View style={{ flex: 1, gap: space.xs }}>
         <InlineRename value={line.label} maxLength={TEXT_CAPS.packingLabel} onSave={onRename} />
-        <Label>{line.packed ? "Packed" : "Not packed"}</Label>
+        <Label>{`${line.packed ? "Packed" : "Not packed"}${line.suggested ? " · Suggested" : ""}`}</Label>
       </View>
 
       {/* The count between its two nudges, so the number reads as the thing
