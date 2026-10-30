@@ -23,7 +23,7 @@
     document.body.appendChild(bar);
     set(root.dataset.theme);
 
-    // Every prototype gets the wireframe sidebar as a drawer; the index draws its own.
+    // Every prototype gets a link back to the index.
     if (location.pathname !== "/") {
       var css = document.createElement("link");
       css.rel = "stylesheet";
@@ -31,7 +31,7 @@
       document.head.appendChild(css);
       var js = document.createElement("script");
       js.src = "/_house/nav.js";
-      js.onload = function () { WF.drawer(location.pathname.split("/")[1]); };
+      js.onload = function () { WF.home(); };
       document.head.appendChild(js);
     }
   });

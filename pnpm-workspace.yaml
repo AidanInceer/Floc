@@ -46,7 +46,7 @@ overrides:
   # Both reachable only through Expo's toolchain (#289) and both patchable, so
   # they are pinned forward like every other entry rather than ignored below.
   uuid: ^11.1.1
-  decode-uri-component: ^0.5.0
+  decode-uri-component: ^0.5.1
   # GHSA-68fv-2mgg-jv7q, GHSA-vc2v-76pw-4v95, GHSA-5gmw-xhrv-c9v3, GHSA-85c8-ppgw-ccpr and
   # GHSA-pqg4-j6r4-53mv — all transitive (Vitest, Expo's CLI, Metro); pinned to the patched floors.
   source-map-js: ^1.2.2

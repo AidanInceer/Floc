@@ -127,65 +127,14 @@ window.WF = (function () {
     return fetch("/_house/list.json").then(function (r) { return r.json(); }).then(shape);
   }
 
-  // Inside a prototype: bottom-left controls open the browser or return to its index.
-  function drawer(current) {
-    var btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "wf-open";
-    btn.setAttribute("aria-expanded", "false");
-    btn.innerHTML = '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 3.5h10M2 7h10M2 10.5h10"/></svg>Wireframes';
-    var controls = document.createElement("div");
-    controls.className = "wf-controls";
-    controls.appendChild(btn);
-    var home = document.createElement("a");
-    home.className = "wf-home-link";
-    home.href = "/";
-    home.innerHTML = '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M11.5 7H2.5m0 0 3.2-3.2M2.5 7l3.2 3.2"/></svg>Home';
-    controls.appendChild(home);
-    var shade = document.createElement("div");
-    shade.className = "wf-shade";
-    var panel = document.createElement("aside");
-    panel.className = "wf-side wf-drawer";
-    panel.setAttribute("aria-label", "Wireframes");
-    document.body.append(controls, shade, panel);
-    var ready = null;
-    var tone = "exploring";
-    function open() {
-      ready = ready || load().then(function (items) {
-        var foot = document.createElement("button");
-        foot.type = "button";
-        foot.className = "wf-more";
-        var hidden = items.filter(function (it) { return !matches(it, "", "exploring", current); }).length;
-        var s = sidebar(panel, items, {
-          current: current,
-          tone: function () { return tone; },
-          onRedraw: function () { foot.textContent = tone === "exploring" ? "Show chosen, experiments, shipped and parked (" + hidden + ")" : "Only exploring"; },
-        });
-        foot.addEventListener("click", function () { tone = tone === "exploring" ? "all" : "exploring"; s.redraw(); });
-        panel.appendChild(foot);
-        s.redraw();
-        return s;
-      });
-      document.body.classList.add("wf-drawer-open");
-      btn.setAttribute("aria-expanded", "true");
-      ready.then(function (s) { s.input.focus(); });
-    }
-    function close() {
-      document.body.classList.remove("wf-drawer-open");
-      btn.setAttribute("aria-expanded", "false");
-    }
-    btn.addEventListener("click", function () { document.body.classList.contains("wf-drawer-open") ? close() : open(); });
-    shade.addEventListener("click", close);
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape") close();
-      // Why: "\" is free on every prototype — none of them type into a field that needs it.
-      if (e.key === "\\" && !/INPUT|TEXTAREA/.test(document.activeElement.tagName) && !document.activeElement.isContentEditable) {
-        e.preventDefault();
-        document.body.classList.contains("wf-drawer-open") ? close() : open();
-      }
-    });
-    return { open: open, close: close };
+  // Inside a prototype: a bottom-left link back to the index.
+  function home() {
+    var link = document.createElement("a");
+    link.className = "wf-controls wf-home-link";
+    link.href = "/";
+    link.innerHTML = '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M11.5 7H2.5m0 0 3.2-3.2M2.5 7l3.2 3.2"/></svg>Home';
+    document.body.appendChild(link);
   }
 
-  return { load: load, sidebar: sidebar, drawer: drawer, group: group, matches: matches, slug: slug, esc: esc, TONES: TONES };
+  return { load: load, sidebar: sidebar, home: home, group: group, matches: matches, slug: slug, esc: esc, TONES: TONES };
 })();
