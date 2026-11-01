@@ -84,7 +84,8 @@
       label: 'Process', key: 'process',
       children: [
         { id: 'lifecycle', label: 'Development lifecycle', href: 'process/lifecycle.html', blurb: 'Idea to production: tickets, priority, build, push, release.', related: ['ci', 'editing-docs'], adr: [15] },
-        { id: 'editing-docs', label: 'Editing these docs', href: 'process/editing-docs.html', blurb: 'How the docs are laid out, linked and checked.' }
+        { id: 'editing-docs', label: 'Editing these docs', href: 'process/editing-docs.html', blurb: 'How the docs are laid out, linked and checked.' },
+        { id: 'site-audit', label: 'Site audit', href: 'process/site-audit.html', blurb: 'The latest /floc:audit: what the running site gets wrong, numbered. Replaced each run.', related: ['mission', 'decisions'] }
       ]
     },
     {
