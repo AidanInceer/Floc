@@ -1,5 +1,3 @@
-import { PROMPT_TEXT } from "./agent-prompt";
-
 export type AssistantKey = "chatgpt" | "claude" | "grok" | "lechat" | "perplexity";
 export type Assistant = { key: AssistantKey; name: string; by: string; ask: string };
 
@@ -13,16 +11,17 @@ export const ASSISTANTS: readonly Assistant[] = [
 ];
 
 export const BRIEF_MAX = 1200;
-export const BRIEF_SAMPLE = PROMPT_TEXT;
 
 /** The whole message an assistant gets: where Floc is, the group's own guidance, and a plan in Floc's day-first shape (rule 3). */
 export function briefFor(origin: string, guidance: string): string {
-  const own = guidance.trim().slice(0, BRIEF_MAX) || BRIEF_SAMPLE;
+  const own = guidance.trim().slice(0, BRIEF_MAX);
   return [
-    `Plan a trip with Floc (${origin}) based on the following guidance:`,
+    own ? `Plan a trip with Floc (${origin}) based on the following guidance:` : `Plan a trip with Floc (${origin}).`,
     own,
     "Lay it out day by day, with where we sleep each night, so we can add it to our Floc trip.",
-  ].join("\n\n");
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 }
 
 export function askHref(assistant: Assistant, brief: string): string {

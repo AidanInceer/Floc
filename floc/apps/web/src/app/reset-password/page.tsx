@@ -16,7 +16,6 @@ export default function ResetPasswordPage() {
 
   return (
     <AuthShell
-      eyebrow="Almost there"
       title="New password"
       blurb="Pick one you haven't used here before."
     >

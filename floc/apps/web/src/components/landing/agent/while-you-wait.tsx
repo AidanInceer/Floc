@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/system/ui";
-import { BRIEF_MAX, BRIEF_SAMPLE, briefFor } from "@/lib/landing/agent/assistant-brief";
+import { BRIEF_MAX, briefFor } from "@/lib/landing/agent/assistant-brief";
 
 import { Glyph } from "../landing-glyph";
 import { AssistantRail } from "./assistant-rail";
@@ -12,7 +12,7 @@ const COPIED_MS = 2000;
 
 /** Until the agent ships: the group writes a brief here and takes it to an assistant they already use. */
 export function WhileYouWait({ origin }: { origin: string }) {
-  const [guidance, setGuidance] = useState(BRIEF_SAMPLE);
+  const [guidance, setGuidance] = useState("");
   const [copied, setCopied] = useState(false);
   const brief = briefFor(origin, guidance);
 
@@ -40,10 +40,9 @@ export function WhileYouWait({ origin }: { origin: string }) {
           id="agent-brief"
           value={guidance}
           onChange={(e) => setGuidance(e.target.value)}
-          placeholder={BRIEF_SAMPLE}
           maxLength={BRIEF_MAX}
           rows={3}
-          className="mb-2.5 mt-1.5 block min-h-[4.8em] w-full resize-none border-0 bg-transparent p-0 text-[15px] leading-[1.6] text-ink [field-sizing:content] placeholder:text-ink-faint focus:outline-none"
+          className="mb-2.5 mt-1.5 block min-h-[4.8em] w-full resize-none border-0 bg-transparent p-0 text-[15px] leading-[1.6] text-ink [field-sizing:content] focus:outline-none"
         />
         <div className="flex justify-end border-t border-dashed border-rule-strong pt-2.5">
           <Button type="button" onClick={copy} className="shrink-0">

@@ -1,4 +1,5 @@
 import { arrangeTripsHome } from "@floc/core/trip/trips-home";
+import { titleCase } from "@floc/core/text/title-case";
 import Link from "next/link";
 
 import { requireUser } from "@/server/access";
@@ -185,7 +186,7 @@ function InviteList({ invites }: { invites: PendingInvite[] }) {
               <div className="min-w-0">
                 <p className="text-sm">
                   <strong>{invite.fromName}</strong> invited you to{" "}
-                  <strong>{invite.tripName}</strong>
+                  <strong>{titleCase(invite.tripName)}</strong>
                 </p>
                 {invite.startDate || invite.endDate ? (
                   <p className="nums text-xs opacity-75">

@@ -1,8 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { signOut } from "@/lib/auth-client";
+import { trySignOut } from "@/lib/sign-out";
 import { SignOutIcon } from "@/components/chrome/account/account-icons";
 
 export function SignOutButton({
@@ -13,12 +15,15 @@ export function SignOutButton({
   role?: string;
 }) {
   const router = useRouter();
+  const [problem, setProblem] = useState<string | null>(null);
   return (
     <button
       type="button"
       role={role}
       onClick={async () => {
-        await signOut();
+        const failed = await trySignOut(() => signOut());
+        setProblem(failed);
+        if (failed) return;
         router.push("/");
         router.refresh();
       }}
@@ -28,7 +33,9 @@ export function SignOutButton({
       }
     >
       <SignOutIcon />
-      Sign out
+      <span aria-live="polite" className={problem ? "text-red" : undefined}>
+        {problem ?? "Sign out"}
+      </span>
     </button>
   );
 }

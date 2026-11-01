@@ -16,6 +16,7 @@ import {
   keepPromptCountries,
   setCountryMark,
 } from "./actions";
+import { titleCase } from "@floc/core/text/title-case";
 import { requireUser } from "@/server/access";
 import { formatDateRange } from "@floc/core/dates/dates";
 import { ensureProfile } from "@/server/auth/profile";
@@ -71,7 +72,7 @@ export default async function ProfilePage() {
       {mapPrompts.map((prompt) => (
         <Panel
           key={prompt.tripId}
-          title={`Keep the countries from ${prompt.tripName}?`}
+          title={`Keep the countries from ${titleCase(prompt.tripName)}?`}
           className="bg-pen-soft text-pen-deep"
         >
           <Stack gap={3}>
@@ -112,7 +113,7 @@ export default async function ProfilePage() {
           <ul className="flex flex-col gap-2">
             {pastTrips.map((t) => (
               <li key={t.id} className="rounded-md bg-sheet-2 px-3 py-2 text-sm">
-                <span className="font-semibold">{t.name}</span>
+                <span className="font-semibold">{titleCase(t.name)}</span>
                 <span className="text-ink-soft">
                   {" · "}
                   {formatDateRange(t.startDate, t.endDate)}

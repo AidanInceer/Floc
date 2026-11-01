@@ -18,7 +18,6 @@ export default async function ForgotPasswordPage() {
 
   return (
     <AuthShell
-      eyebrow="Locked out"
       title="Forgotten password"
       blurb="We'll send a link to set a new one."
       footer={

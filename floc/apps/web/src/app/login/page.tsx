@@ -23,7 +23,6 @@ export default async function LoginPage({
 
   return (
     <AuthShell
-      eyebrow="Welcome back"
       title="Sign in"
       blurb="Back to the trip you're planning."
       footer={

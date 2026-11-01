@@ -204,7 +204,7 @@ function StarButton({
   tripName: string;
   starred: boolean;
 }) {
-  const label = starred ? `Unstar ${tripName}` : `Star ${tripName}`;
+  const label = starred ? `Unstar ${titleCase(tripName)}` : `Star ${titleCase(tripName)}`;
   return (
     <form action={starTrip}>
       <input type="hidden" name="tripId" value={tripId} />

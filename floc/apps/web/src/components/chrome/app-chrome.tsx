@@ -109,7 +109,7 @@ export function AppChrome({
         ) : (
           <div className={cx(BEAD, "shrink-0 gap-1")}>
             <ButtonLink href="/login" variant="ghost">
-              Log in
+              Sign in
             </ButtonLink>
             <ButtonLink href="/signup" variant="primary">
               Sign up

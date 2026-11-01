@@ -5,6 +5,8 @@
  */
 import type { ReactNode } from "react";
 
+import { cx } from "@/components/system/ui";
+
 export function AuthShell({
   eyebrow,
   title,
@@ -12,7 +14,7 @@ export function AuthShell({
   children,
   footer,
 }: {
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   blurb?: ReactNode;
   children: ReactNode;
@@ -21,8 +23,8 @@ export function AuthShell({
   return (
     <div className="mx-auto w-full max-w-[27rem] px-4 pb-20 pt-12 sm:px-6">
       <header className="text-center">
-        <p className="typed">{eyebrow}</p>
-        <h1 className="mt-3 text-[clamp(1.8rem,4vw,2.5rem)]">{title}</h1>
+        {eyebrow ? <p className="typed">{eyebrow}</p> : null}
+        <h1 className={cx(eyebrow && "mt-3", "text-[clamp(1.8rem,4vw,2.5rem)]")}>{title}</h1>
         {blurb ? <p className="mt-3 text-sm text-ink-soft">{blurb}</p> : null}
       </header>
       <div className="mt-8 rounded-md bg-sheet p-6">{children}</div>

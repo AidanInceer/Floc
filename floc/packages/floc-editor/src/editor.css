@@ -12,8 +12,6 @@
 .fe-page [data-indent="2"] { --indent: 2; }
 .fe-page [data-indent="3"] { --indent: 3; }
 .fe-page .is-hidden { display: none; }
-.fe-page p.is-empty::before { content: attr(data-placeholder); position: absolute; color: var(--ink-3); pointer-events: none; }
-.fe-page h1.is-empty::before, .fe-page h2.is-empty::before, .fe-page h3.is-empty::before, .fe-page blockquote.is-empty::before { content: attr(data-placeholder); position: absolute; color: var(--ink-3); pointer-events: none; }
 
 .fe-page h1.blk { font-family: var(--display); font-weight: 600; font-size: var(--text-2xl); line-height: 1.2; letter-spacing: -0.015em; margin: 24px 0 4px; }
 .fe-page h2.blk { font-family: var(--display); font-weight: 600; font-size: var(--text-xl); line-height: 1.2; letter-spacing: -0.015em; margin: 20px 0 4px; }

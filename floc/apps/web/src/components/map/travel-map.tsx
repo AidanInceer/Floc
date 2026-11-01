@@ -77,7 +77,7 @@ export function TravelMap({
             Want to go
           </span>
           <span>
-            {visited} visited · {wantToGo} want to go
+            {visited} been · {wantToGo} want to go
           </span>
         </div>
 

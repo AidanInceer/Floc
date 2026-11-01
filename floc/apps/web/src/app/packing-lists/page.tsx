@@ -20,7 +20,7 @@ import { PackingKitRow } from "@/components/packing/packing-kit-row";
 import { CategorySelect } from "@/components/packing/packing-controls";
 import { ConfirmSubmit, SubmitButton } from "@/components/system/client-ui";
 
-export const metadata = { title: "Packing lists" };
+export const metadata = { title: "Saved lists" };
 
 const boxClass =
   "w-full rounded-sm border border-rule bg-sheet px-4 py-2.5 text-sm placeholder:text-ink-faint focus-visible:border-pen";

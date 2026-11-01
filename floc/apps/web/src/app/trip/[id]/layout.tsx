@@ -24,7 +24,7 @@ export async function generateMetadata({
   const { id } = await params;
   const { trip } = await requireTripAccess(id, `/trip/${id}/overview`);
   const name = titleCase(trip.name);
-  return { title: { default: `${name} · Floc`, template: `%s · ${name} · Floc` } };
+  return { title: { default: name, template: `%s · ${name} · Floc` } };
 }
 
 export default async function TripLayout({

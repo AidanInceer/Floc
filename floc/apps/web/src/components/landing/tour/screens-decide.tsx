@@ -29,7 +29,7 @@ export function WhereScreen() {
               <span className="rounded-full bg-ink px-3 py-1 text-paper">Most votes</span>
               <span className="px-3 py-1 text-ink-soft">Newest</span>
             </span>
-            <span className="flex-1 rounded-[10px] border border-rule px-3 py-[7px] text-ink-faint">Lisbon, a week in September…</span>
+            <span className="h-[34px] flex-1 rounded-[10px] border border-rule" />
             <FakeButton>Add</FakeButton>
           </div>
           <ul className="mt-3 grid grid-cols-2 gap-2.5">
