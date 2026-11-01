@@ -9,11 +9,11 @@ export type RouteDayPin = { overnightPlaceId: number | null; lat: number | null;
 /** The start and end of a day's first transport event, `HH:MM`, each nullable. */
 export type HopTimes = { time: string | null; endTime: string | null };
 
-type RouteLeg = { placeId: number; placeName: string; days: { dayId: number }[]; mode: TransportType | null };
+type RouteLeg = { placeId: number; placeName: string; days: { dayId: number }[]; nights: number; mode: TransportType | null };
 type Spot = { lat: number; lng: number };
 
 export type OverviewRoute = {
-  /** `nights` is the days the group sleeps there (rule 3). */
+  /** `nights` as the leg counts them: the trip's last day is the day home, not a night (rule 3). */
   stops: (Spot & { place: string; nights: number })[];
   /** `moves[k]` goes from `stops[k]` to `stops[k + 1]`. A leg with no transport event has no mode and says so. */
   moves: { mode: TransportType | null; time: string }[];
@@ -59,7 +59,7 @@ export function overviewRoute({
       const hop = leg.days[0] ? hops.get(leg.days[0].dayId) : undefined;
       route.moves.push(leg.mode ? { mode: leg.mode, time: hop ? hopLength(hop.time, hop.endTime) : "" } : { mode: null, time: NOT_SET });
     }
-    route.stops.push({ place: leg.placeName, ...spot, nights: leg.days.length });
+    route.stops.push({ place: leg.placeName, ...spot, nights: leg.nights });
     if (!pin.countryCode) route.uncoded.push(spot);
     else if (!route.countries.includes(pin.countryCode)) route.countries.push(pin.countryCode);
   }

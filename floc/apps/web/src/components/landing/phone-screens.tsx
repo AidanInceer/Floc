@@ -77,13 +77,13 @@ export function TodayScreen() {
 
 // Figures match the feature film's money slide.
 const BALANCES = [
-  { who: priya, amount: "+£310.00", up: true },
-  { who: sam, amount: "+£40.00", up: true },
-  { who: jo, amount: "−£92.50" },
-  { who: alex, amount: "−£107.50" },
+  { who: priya, amount: "+£760.00", up: true },
+  { who: jo, amount: "−£62.00" },
+  { who: sam, amount: "−£98.00" },
+  { who: alex, amount: "−£200.00" },
 ];
 const SPENT = [
-  { what: "Thursday dinner", who: jo, cost: "£138.60" },
+  { what: "Dinner, Ortigia", who: jo, cost: "£138.00" },
   { what: "Car hire", who: sam, cost: "£102.00" },
 ];
 
@@ -95,7 +95,7 @@ export function MoneyScreen() {
         <p className="font-mono text-[10px] uppercase tracking-[0.1em]">You owe</p>
         <p className="mt-1.5 flex items-center gap-2 font-display text-[17px] font-semibold">
           <Avatar name={priya.name} tone={priya.tone} size={24} /> Priya
-          <span className="nums ml-auto text-[26px] tracking-[-0.02em]">£42.50</span>
+          <span className="nums ml-auto text-[26px] tracking-[-0.02em]">£200.00</span>
         </p>
         <span className="mt-2.5 inline-flex rounded-full bg-pen px-3 py-[5px] font-mono text-[10px] uppercase tracking-[0.06em] text-sheet">Mark as paid</span>
       </div>

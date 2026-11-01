@@ -35,19 +35,19 @@ export function PlanScreen() {
   );
 }
 
-// Balances sum to zero: what each person paid less their sixth of the bills.
+// Balances sum to zero: what each person paid less their sixth of the £1,200 below.
 const BALANCES = [
-  { who: priya, amount: "+£310.00", up: true },
-  { who: sam, amount: "+£40.00", up: true },
-  { who: you, amount: "−£42.50" },
-  { who: jo, amount: "−£92.50" },
-  { who: alex, amount: "−£107.50" },
-  { who: maya, amount: "−£107.50" },
+  { who: priya, amount: "+£760.00", up: true },
+  { who: jo, amount: "−£62.00" },
+  { who: sam, amount: "−£98.00" },
+  { who: you, amount: "−£200.00" },
+  { who: alex, amount: "−£200.00" },
+  { who: maya, amount: "−£200.00" },
 ];
 const EXPENSES = [
   { what: "Flat in Palermo", who: priya, cost: "£960.00" },
   { what: "Car hire", who: sam, cost: "£102.00" },
-  { what: "Thursday dinner", who: jo, cost: "£138.60" },
+  { what: "Dinner, Ortigia", who: jo, cost: "£138.00" },
 ];
 
 export function MoneyScreen() {
@@ -58,7 +58,7 @@ export function MoneyScreen() {
           <p className="text-xs">You owe</p>
           <p className="mb-3.5 mt-1.5 flex flex-wrap items-center gap-2.5 font-display text-2xl font-semibold">
             <Avatar name={priya.name} tone={priya.tone} size={30} /> Priya
-            <span className="nums ml-auto text-[26px]">£42.50</span>
+            <span className="nums ml-auto text-[26px]">£200.00</span>
           </p>
           <FakeButton>Mark as paid</FakeButton>
         </div>

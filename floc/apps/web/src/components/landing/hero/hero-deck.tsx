@@ -87,7 +87,7 @@ function TicketCard({ step }: { step: number }) {
           <AvatarRow people={sampleGroup} max={6} size={26} />
           6 going
         </span>
-        <Swap on={step >= SETTLED} className="nums" from="Jo is owed £42.50" to={<span className="text-green">Square</span>} />
+        <Swap on={step >= SETTLED} className="nums" from="Priya is owed £760.00" to={<span className="text-green">Square</span>} />
       </div>
     </div>
   );

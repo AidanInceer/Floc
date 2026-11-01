@@ -106,6 +106,11 @@ export function eventFlightUrl({
   return googleFlights(`Flights from ${origin} to ${destination} on ${date}`);
 }
 
+/** Check-out after a stay's last day: the morning after, unless that day is the trip's last, the day home (rule 3). */
+export function stayCheckOut(lastDay: string, tripLastDay: string | null): string {
+  return lastDay === tripLastDay ? lastDay : addDays(lastDay, 1);
+}
+
 /** What the group can book: only while the dates are set and the trip is still ahead. Days sorted by date. */
 export function bookingPlan({
   trip,
@@ -127,9 +132,9 @@ export function bookingPlan({
   const flights = flightLinks({ destination: firstPlace, start: startDate, end: endDate, prefill });
   if (!firstPlace) return { flights, stays: "unset" };
 
-  const stays = stops.map((s): StayRow => {
+  const stays = stops.filter((s) => s.nights > 0).map((s): StayRow => {
     const checkIn = s.startDate;
-    const checkOut = addDays(s.endDate, 1);
+    const checkOut = addDays(s.startDate, s.nights);
     return s.placeName
       ? { kind: "stop", placeName: s.placeName, checkIn, checkOut, links: stayLinks({ place: s.placeName, checkIn, checkOut, adults, prefill }) }
       : { kind: "gap", checkIn, checkOut };

@@ -17,8 +17,7 @@ import {
 } from "@/components/days/days-calendar-shared";
 import type { PlaceSearch } from "@/components/days/event-form";
 import type { BandSpan } from "@floc/core/itinerary/overnight-band";
-import { addDays } from "@floc/core/dates/dates";
-import { stayLinks } from "@floc/core/trip/booking-links";
+import { stayCheckOut, stayLinks } from "@floc/core/trip/booking-links";
 import { OFFSITE_NOTE, SiteLinks } from "@/components/booking/site-links";
 
 export function OvernightDialog({
@@ -125,7 +124,7 @@ export function OvernightDialog({
             links={stayLinks({
               place: span.placeName,
               checkIn: span.start,
-              checkOut: addDays(span.end, 1),
+              checkOut: stayCheckOut(span.end, days.at(-1)?.date ?? null),
               adults: groupSize,
               prefill: bookingPrefill,
             })}

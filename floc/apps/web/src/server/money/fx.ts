@@ -1,14 +1,15 @@
 /**
- * Display-only FX (money overhaul; cached by ticket 253). The ledger is always
- * stored in the currency an expense or settlement was recorded in — this backs
- * the totals toggle and pre-fills a cross-currency settle-up, which snapshots
- * its own rate onto the settlement row. No balance is ever derived from here.
+ * Exchange rates (money overhaul; cached by ticket 253). The ledger is always
+ * stored in the currency an expense or settlement was recorded in. These rates
+ * back the totals toggle, the settle-up payments (#463) and the pre-fill of a
+ * cross-currency settle-up, which snapshots its own rate onto the settlement row.
  *
- * Free daily rates from frankfurter.app (no key). Successful fetches are
- * written to `fx_rate`; when the provider is down the newest cached quote is
- * served instead, carrying its own date so the UI can say which day it is
- * from. Nothing cached and nothing fetched → null, and the toggle simply isn't
- * there (rule 11).
+ * Free daily rates from frankfurter.app (no key), always asked from the euro and
+ * held as one quote for an hour, so every page converts at the same rate.
+ * Successful fetches are written to `fx_rate`; when the provider is down the
+ * newest cached quote is served instead, carrying its own date so the UI can say
+ * which day it is from. Nothing cached and nothing fetched → null, and the
+ * toggle simply isn't there (rule 11).
  */
 import "server-only";
 
@@ -29,25 +30,44 @@ export type HomeRates = {
   stale: boolean;
 };
 
-const DAY_SECONDS = 86_400;
+type Quote = { date: string; perEur: Record<string, number>; stale: boolean };
+
+// Why: frankfurter quotes every rate from the euro, so one stored quote answers every home currency.
+const BASE: Currency = "EUR";
+const RECHECK_MS = 60 * 60 * 1000;
+
+// Why: one quote per hour for every page, so Overview and Money never convert at two days' rates.
+let memo: { at: number; quote: Promise<Quote | null> } | null = null;
 
 export async function getHomeRates(home: Currency): Promise<HomeRates | null> {
-  const fetched = await fetchRates(home);
-  if (fetched) {
-    await cacheRates(home, fetched.date, fetched.perHome);
-    return { ...toHomeRates(home, fetched.perHome), date: fetched.date, stale: false };
-  }
-  return readCachedRates(home);
+  const quote = await quoteOfRecord();
+  if (!quote) return null;
+  const toHome = crossRates(home, quote.perEur);
+  return toHome && { home, toHome, date: quote.date, stale: quote.stale };
 }
 
-/** Raw provider call — `perHome[c]` is units of `c` per 1 home. Never throws. */
-async function fetchRates(
-  home: Currency,
-): Promise<{ date: string; perHome: Record<string, number> } | null> {
-  const symbols = CURRENCIES.filter((c) => c !== home);
+export function clearRatesMemo(): void {
+  memo = null;
+}
+
+function quoteOfRecord(): Promise<Quote | null> {
+  if (!memo || Date.now() - memo.at >= RECHECK_MS) memo = { at: Date.now(), quote: freshQuote() };
+  return memo.quote;
+}
+
+async function freshQuote(): Promise<Quote | null> {
+  const fetched = await fetchRates();
+  if (!fetched) return readCachedRates();
+  await cacheRates(fetched.date, fetched.perEur);
+  return { ...fetched, stale: false };
+}
+
+/** Raw provider call — `perEur[c]` is units of `c` per 1 euro. Never throws. */
+async function fetchRates(): Promise<{ date: string; perEur: Record<string, number> } | null> {
+  const symbols = CURRENCIES.filter((c) => c !== BASE);
   try {
-    const url = `https://api.frankfurter.app/latest?base=${home}&symbols=${symbols.join(",")}`;
-    const res = await fetch(url, { next: { revalidate: DAY_SECONDS }, signal: AbortSignal.timeout(5_000) });
+    const url = `https://api.frankfurter.app/latest?base=${BASE}&symbols=${symbols.join(",")}`;
+    const res = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(5_000) });
     if (!res.ok) return null;
 
     const body = (await res.json()) as {
@@ -55,21 +75,17 @@ async function fetchRates(
       rates?: Record<string, number>;
     };
     if (!body.rates || !body.date) return null;
-    return { date: body.date, perHome: body.rates };
+    return { date: body.date, perEur: body.rates };
   } catch {
     return null; // offline / provider down — the cache gets its turn
   }
 }
 
 /** Append-only; re-running the same day is a no-op thanks to `fx_rate_quote_idx`. */
-async function cacheRates(
-  home: Currency,
-  date: string,
-  perHome: Record<string, number>,
-): Promise<void> {
+async function cacheRates(date: string, perEur: Record<string, number>): Promise<void> {
   const rows = CURRENCIES.filter(
-    (c) => c !== home && Number.isFinite(perHome[c]) && perHome[c] > 0,
-  ).map((c) => ({ date, base: home, currency: c, rate: perHome[c] }));
+    (c) => c !== BASE && Number.isFinite(perEur[c]) && perEur[c] > 0,
+  ).map((c) => ({ date, base: BASE, currency: c, rate: perEur[c] }));
   if (rows.length === 0) return;
 
   try {
@@ -77,7 +93,7 @@ async function cacheRates(
     const known = await db
       .select({ id: fxRate.id })
       .from(fxRate)
-      .where(and(eq(fxRate.base, home), eq(fxRate.date, date)))
+      .where(and(eq(fxRate.base, BASE), eq(fxRate.date, date)))
       .limit(1)
       .get();
     if (known) return;
@@ -87,13 +103,13 @@ async function cacheRates(
   }
 }
 
-/** Newest cached publication for this base, all of it from one day. */
-async function readCachedRates(home: Currency): Promise<HomeRates | null> {
+/** Newest cached euro publication, all of it from one day. */
+async function readCachedRates(): Promise<Quote | null> {
   try {
     const latest = await db
       .select({ date: fxRate.date })
       .from(fxRate)
-      .where(eq(fxRate.base, home))
+      .where(eq(fxRate.base, BASE))
       .orderBy(desc(fxRate.date))
       .limit(1)
       .get();
@@ -102,31 +118,31 @@ async function readCachedRates(home: Currency): Promise<HomeRates | null> {
     const rows = await db
       .select({ currency: fxRate.currency, rate: fxRate.rate })
       .from(fxRate)
-      .where(and(eq(fxRate.base, home), eq(fxRate.date, latest.date)))
+      .where(and(eq(fxRate.base, BASE), eq(fxRate.date, latest.date)))
       .all();
 
-    const perHome: Record<string, number> = {};
-    for (const r of rows) perHome[r.currency] = r.rate;
-    return { ...toHomeRates(home, perHome), date: latest.date, stale: true };
+    const perEur: Record<string, number> = {};
+    for (const r of rows) perEur[r.currency] = r.rate;
+    return { date: latest.date, perEur, stale: true };
   } catch {
     return null;
   }
 }
 
-/** Inverts units-of-c-per-home into home-per-unit-of-c. Unquoted currencies stay 0 — `rateFor` reads that as "no rate". */
-function toHomeRates(
-  home: Currency,
-  perHome: Record<string, number>,
-): { home: Currency; toHome: Record<Currency, number> } {
-  const toHome = Object.fromEntries(CURRENCIES.map((c) => [c, 0])) as Record<
-    Currency,
-    number
-  >;
-  toHome[home] = 1;
+/** Home per unit of each currency, through the euro. Unquoted currencies stay 0 — `rateFor` reads that as "no rate". */
+function crossRates(home: Currency, perEur: Record<string, number>): Record<Currency, number> | null {
+  const usable = (c: Currency): number | null => {
+    if (c === BASE) return 1;
+    const rate = perEur[c];
+    return Number.isFinite(rate) && rate > 0 ? rate : null;
+  };
+  const homePerEur = usable(home);
+  if (homePerEur === null) return null;
+  const toHome = Object.fromEntries(CURRENCIES.map((c) => [c, 0])) as Record<Currency, number>;
   for (const c of CURRENCIES) {
-    if (c === home) continue;
-    const rate = perHome[c];
-    if (Number.isFinite(rate) && rate > 0) toHome[c] = 1 / rate;
+    const rate = usable(c);
+    if (rate !== null) toHome[c] = homePerEur / rate;
   }
-  return { home, toHome };
+  toHome[home] = 1;
+  return toHome;
 }
