@@ -82,12 +82,6 @@ export function OvernightForm({
     trpc.places.search.queryOptions({ query }, { enabled: query.length > 2 }),
   );
 
-  const chosen = pick
-    ? "placeId" in pick
-      ? (known.find((p) => p.id === pick.placeId)?.name ?? "")
-      : pick.name
-    : (span.placeName ?? "");
-
   return (
     <Card>
       <View style={{ gap: space.md }}>
@@ -98,7 +92,6 @@ export function OvernightForm({
             setTyped(text);
             setPick(text.trim() ? { name: text.trim(), providerId: null, lat: null, lng: null, countryCode: null } : null);
           }}
-          placeholder={chosen || "Search a place"}
           autoFocus
         />
 

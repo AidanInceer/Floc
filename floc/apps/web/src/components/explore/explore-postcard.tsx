@@ -1,16 +1,18 @@
 "use client";
 
-import { formatMoney } from "@floc/core/money/money";
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 
 import { CopySheet } from "@/components/explore/copy/copy-sheet";
 import { PostcardStamp } from "@/components/explore/postcard-stamp";
 import { ButtonLink } from "@/components/system/ui";
 import "./explore-postcard.css";
+import { listingPrice } from "@floc/core/trip/explore/listing-price";
+import { useListingRates } from "@/components/explore/listing-rates";
 
 const kicker = "font-mono text-[10.5px] uppercase tracking-[0.08em] text-ink-faint";
 
 export function ExplorePostcard({ trip, signedIn }: { trip: PresetTrip; signedIn: boolean }) {
+  const rates = useListingRates();
   return (
     <article key={trip.id} className="explore-postcard flex flex-col gap-4 rounded-md bg-sheet p-6 text-left text-ink shadow-lifted sm:px-7">
       <div className="flex items-start justify-between gap-3">
@@ -26,7 +28,7 @@ export function ExplorePostcard({ trip, signedIn }: { trip: PresetTrip; signedIn
       <dl className="flex flex-col text-[13px]">
         {[
           ["Group", trip.groupSize],
-          ["From", `${formatMoney(trip.priceFromMinor, trip.currency)} each`],
+          ["From", `${listingPrice(trip, rates)} each`],
           ["Best in", trip.bestMonths],
         ].map(([label, value]) => (
           <div key={label} className="grid grid-cols-[5.5rem_1fr] border-b border-rule py-[7px]">

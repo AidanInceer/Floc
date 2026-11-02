@@ -1,4 +1,3 @@
-import { formatMoney } from "@floc/core/money/money";
 import type { PresetFigure } from "@floc/core/trip/explore/detail/preset-detail-types";
 import { stopsOf } from "@floc/core/trip/explore/listing-stops";
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
@@ -8,14 +7,15 @@ import { TripMap } from "@/components/explore/trip/trip-map";
 import { PostcardStamp } from "@/components/explore/postcard-stamp";
 import "@/components/explore/explore-postcard.css";
 import { PageTitle } from "@/components/system/ui";
+import { listingPrice, type ListingRates } from "@floc/core/trip/explore/listing-price";
 
-export function TripHero({ trip, figures }: { trip: PresetTrip; figures: PresetFigure[] }) {
+export function TripHero({ trip, figures, rates }: { trip: PresetTrip; figures: PresetFigure[]; rates: ListingRates | null }) {
   const stops = stopsOf(trip);
   const facts = [
     ["Nights", String(trip.nights)],
     ["Stops", String(stops.length)],
     ["Group", trip.groupSize.replace(" people", "")],
-    ["From, each", formatMoney(trip.priceFromMinor, trip.currency)],
+    ["From, each", listingPrice(trip, rates)],
   ];
   return (
     <section className="explore-postcard grid items-center gap-6 rounded-md bg-sheet p-4 shadow-lifted sm:p-6 lg:grid-cols-[1.08fr_1fr] lg:gap-10 lg:p-7">

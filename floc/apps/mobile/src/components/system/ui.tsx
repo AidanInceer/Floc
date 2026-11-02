@@ -263,19 +263,13 @@ export function Field({
   );
 }
 
-/**
- * A search box. No label above it: the placeholder is the whole question, and
- * a labelled row for it would spend a line saying twice what one line says.
- * `placeholder` is required because it doubles as the accessible name.
- */
 export function SearchField({
-  placeholder,
+  label,
   ...props
-}: TextInputProps & { placeholder: string }) {
+}: TextInputProps & { label: string }) {
   return (
     <TextInputBox
-      accessibilityLabel={placeholder}
-      placeholder={placeholder}
+      accessibilityLabel={label}
       autoCorrect={false}
       autoCapitalize="words"
       {...props}

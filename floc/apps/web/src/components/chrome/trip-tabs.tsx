@@ -32,7 +32,7 @@ export function TripTabs({ tripId, tabs }: { tripId: number; tabs: TabState[] })
         onScroll={fade.onScroll}
         style={fade.style}
         aria-label="Trip sections"
-        className="scroll-x-bare flex max-w-full items-center gap-4 sm:gap-5"
+        className="scroll-x-bare flex max-w-full items-center gap-2 sm:gap-5"
       >
         {tabs.map((tab) => (
           <Link
@@ -42,10 +42,10 @@ export function TripTabs({ tripId, tabs }: { tripId: number; tabs: TabState[] })
             aria-current={hrefOf(tab) === current ? "page" : undefined}
             className="group flex shrink-0 items-center gap-1.5 py-1.5 text-sm font-medium text-ink-faint transition-colors hover:text-ink-soft aria-[current=page]:text-ink"
           >
-            <span className="inline-flex size-6 items-center justify-center rounded-sm transition-colors group-hover:bg-sheet-3 group-aria-[current=page]:bg-pen-soft group-aria-[current=page]:text-pen-deep">
+            <span className="inline-flex size-8 items-center sm:size-6 justify-center rounded-sm transition-colors group-hover:bg-sheet-3 group-aria-[current=page]:bg-pen-soft group-aria-[current=page]:text-pen-deep">
               <NavGlyph name={tab.key} />
             </span>
-            {tab.label}
+            <span className="sr-only sm:not-sr-only">{tab.label}</span>
           </Link>
         ))}
       </nav>

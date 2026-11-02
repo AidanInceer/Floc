@@ -48,7 +48,6 @@ type FeedItem =
 export function ActivityFeed(props: {
   collapsed: boolean;
   /** Add expense, at the right of the heading. */
-  action?: React.ReactNode;
   tripId: number;
   viewerId: string;
   expenses: Expense[];
@@ -109,10 +108,7 @@ export function ActivityFeed(props: {
 
   return (
     <section className="rounded-md bg-sheet p-6">
-      <div className="flex items-center justify-between gap-4 border-b border-rule pb-3">
-        <h2 className="text-xl">Activity</h2>
-        {props.action}
-      </div>
+      <h2 className="border-b border-rule pb-3 text-xl">Activity</h2>
       {rows}
     </section>
   );

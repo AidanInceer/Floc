@@ -56,7 +56,7 @@ export function IdeasSection({ tripId, datesUnset }: { tripId: number; datesUnse
       <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
         <View style={{ flex: 1 }}>
           <SearchField
-            placeholder="Lisbon, a week in September…"
+            label="Idea"
             value={title}
             onChangeText={setTitle}
             maxLength={TEXT_CAPS.ideaTitle}

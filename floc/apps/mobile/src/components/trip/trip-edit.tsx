@@ -143,8 +143,6 @@ function TagRowInput({
       <TextInput
         accessibilityLabel="Tag"
         value={row.name}
-        placeholder="beach"
-        placeholderTextColor={c["ink-3"]}
         maxLength={MAX_TAG_LENGTH}
         autoCapitalize="none"
         onChangeText={onChange}

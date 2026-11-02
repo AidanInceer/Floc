@@ -24,20 +24,18 @@ import type { SettleRow } from "@floc/core/money/group-settle";
 import type { DocCategory } from "@floc/core/documents/documents";
 import type { ExpenseCategory } from "@floc/core/money/expense-category";
 import type { CopyChoice } from "@floc/core/trip/explore/copy/copy-choice";
-import type { Finder } from "@floc/core/trip/explore/finder/finder";
 import type { WeatherCondition } from "@floc/core/itinerary/weather";
 import type { PackCategory, PackTier } from "@floc/core/packing/packing";
 import type { DayEventType, ReactionKind, SplitType, TransportType } from "@floc/core/vocabulary";
 
 import type { Comment } from "./port-comment";
+import type { ExplorePort } from "./port-explore";
 import type { PagesPort } from "./port-pages";
 import type { RoutePort } from "./port-route";
 
 export type { Currency, DayEventType, DocCategory, ExpenseCategory, ReactionKind, SplitType, TransportType };
 
-export type { Finder };
-
-export type ExploreState = { finder: Finder | null };
+export type { ExploreState, Finder } from "./port-explore";
 
 export type TripRole = "admin" | "member";
 
@@ -932,10 +930,6 @@ export type FlocPort = {
    */
   startTripFromPreset(viewerId: string, choice: CopyChoice): Promise<{ id: number } | null>;
 
-  /** Your last Explore finder — null means never set. */
-  loadExplore(viewerId: string): Promise<ExploreState>;
-  setExploreFinder(viewerId: string, finder: Finder): Promise<void>;
-
   updateTrip(viewerId: string, tripId: number, patch: TripPatch): Promise<void>;
 
   /** Admin-only on the host side (rule 6). */
@@ -1189,7 +1183,8 @@ export type FlocPort = {
 
   /** Stop pushing to this phone. Only its owner can. */
   forgetPushToken(viewerId: string, token: string): Promise<void>;
-} & PagesPort &
+} & ExplorePort &
+  PagesPort &
   RoutePort;
 
 export type NotificationItem = {

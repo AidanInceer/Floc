@@ -1,10 +1,11 @@
-import { formatMoney } from "@floc/core/money/money";
 import { stopsOf } from "@floc/core/trip/explore/listing-stops";
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 import { View } from "react-native";
 
 import { Body, Button, Card, Figure, Heading, Pill } from "../system/ui";
 import { space } from "@/lib/theme";
+import { listingPrice } from "@floc/core/trip/explore/listing-price";
+import { useListingRates } from "./use-listing-rates";
 
 export function ExploreCard({
   trip,
@@ -18,6 +19,7 @@ export function ExploreCard({
   onOpen: () => void;
 }) {
   const bases = stopsOf(trip).map((stop) => stop.place);
+  const rates = useListingRates();
 
   return (
     <Card>
@@ -25,7 +27,7 @@ export function ExploreCard({
         <Pill word={trip.region} />
         <Heading>{trip.title}</Heading>
         <Figure tone="ink-2">
-          {trip.nights} nights · {trip.groupSize} · {formatMoney(trip.priceFromMinor, trip.currency)} each
+          {trip.nights} nights · {trip.groupSize} · {listingPrice(trip, rates)} each
         </Figure>
         <Body tone="ink-2">{bases.join(" → ")}</Body>
       </View>

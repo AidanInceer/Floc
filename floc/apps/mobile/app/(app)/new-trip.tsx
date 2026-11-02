@@ -44,14 +44,12 @@ export default function NewTrip() {
           label="Starts (YYYY-MM-DD, optional)"
           value={startDate}
           onChangeText={setStartDate}
-          placeholder="2026-05-01"
           autoCapitalize="none"
         />
         <Field
           label="Ends (YYYY-MM-DD, optional)"
           value={endDate}
           onChangeText={setEndDate}
-          placeholder="2026-05-08"
           autoCapitalize="none"
         />
 

@@ -1,6 +1,5 @@
 "use client";
 
-import { formatMoney } from "@floc/core/money/money";
 import type { TripTag } from "@floc/core/trip/explore/finder/tag-groups";
 import { tagsOf } from "@floc/core/trip/explore/finder/trip-tags";
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
@@ -11,6 +10,8 @@ import { skinFor } from "@/components/explore/listing";
 import { PassMap } from "@/components/explore/outline/pass-map";
 import { CheckIcon } from "@/components/system/icons";
 import { ButtonLink, cx } from "@/components/system/ui";
+import { listingPrice } from "@floc/core/trip/explore/listing-price";
+import { useListingRates } from "@/components/explore/listing-rates";
 
 const label = "font-mono text-[10.5px] uppercase tracking-[0.08em] text-ink-faint";
 const tagChip = "inline-flex items-center gap-1 rounded-full border border-rule-strong px-2 py-px text-[11.5px]";
@@ -31,6 +32,7 @@ export function ExplorePass({
   /** On a phone the pass is the body of a sheet: no card of its own, and the narrower drawing. */
   inSheet?: boolean;
 }) {
+  const rates = useListingRates();
   const behind = inSheet ? "bg-sheet-3" : "bg-paper";
   return (
     <article className={cx("overflow-hidden bg-sheet", !inSheet && "rounded-md shadow-lifted")}>
@@ -59,7 +61,7 @@ export function ExplorePass({
           {[
             ["Nights", String(trip.nights)],
             ["Group", trip.groupSize.replace(" people", "")],
-            ["Each, from", formatMoney(trip.priceFromMinor, trip.currency)],
+            ["Each, from", listingPrice(trip, rates)],
           ].map(([name, value]) => (
             <div key={name}>
               <dt className={label}>{name}</dt>

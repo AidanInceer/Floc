@@ -120,6 +120,11 @@ export default async function MoneyPage({
     <div className="mx-auto w-full max-w-[64rem] px-4 pb-20 pt-6 sm:px-6">
       <header className="flex flex-wrap items-end justify-between gap-6">
         <PageTitle>Money</PageTitle>
+        {hasActivity ? (
+          <Sheet trigger="Add expense" title="Expense" keepOpenOnSubmit>
+            {addForm}
+          </Sheet>
+        ) : null}
       </header>
 
       {!hasActivity ? (
@@ -127,18 +132,13 @@ export default async function MoneyPage({
       ) : (
         <div className="mt-8 flex flex-col gap-4">
           {settled ? (
-            <SettledBanner addForm={addForm} />
+            <SettledBanner />
           ) : (
             <SettleUpPanel tripId={tripId} viewerId={viewerId} settle={settle} label={label} tone={tone} />
           )}
 
           <ActivityFeed
             collapsed={settled}
-            action={
-              <Sheet trigger="Add expense" title="Expense" keepOpenOnSubmit>
-                {addForm}
-              </Sheet>
-            }
             tripId={tripId}
             viewerId={viewerId}
             expenses={expenses}
@@ -178,7 +178,7 @@ function EmptyMoney({ addForm }: { addForm: React.ReactNode }) {
   );
 }
 
-function SettledBanner({ addForm }: { addForm: React.ReactNode }) {
+function SettledBanner() {
   return (
     <section className="rounded-md bg-pastel-green px-6 py-9 text-center text-pastel-green-ink">
       <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-sheet text-pastel-green-ink">
@@ -198,16 +198,6 @@ function SettledBanner({ addForm }: { addForm: React.ReactNode }) {
       </span>
       <SectionHeading className="mt-3">Trip settled up</SectionHeading>
       <p className="mt-1 text-sm opacity-80">Everyone&rsquo;s square.</p>
-      <div className="mt-5 flex justify-center">
-        <Sheet
-          trigger="Add expense"
-          title="Expense"
-          triggerVariant="secondary"
-          keepOpenOnSubmit
-        >
-          {addForm}
-        </Sheet>
-      </div>
     </section>
   );
 }
@@ -270,7 +260,7 @@ function SettleUpPanel({
     <section className="rounded-md bg-sheet p-6">
       <SectionHeading className="border-b border-rule pb-3">{title}</SectionHeading>
       {rows.length === 0 ? (
-        <p className="flex min-h-[8rem] flex-col items-center justify-center gap-1 text-center">
+        <p className="flex min-h-[5rem] flex-col md:min-h-[8rem] items-center justify-center gap-1 text-center">
           <span className="font-display text-xl text-pastel-green-ink">{empty}</span>
           <span className="text-sm text-ink-soft">{note}</span>
         </p>

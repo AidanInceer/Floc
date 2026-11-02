@@ -25,7 +25,7 @@ export function OverviewMap({
   const unpinned = route.missing.length > 0 ? <Unpinned names={route.missing} /> : null;
   if (route.stops.length === 0) {
     return (
-      <div className="flex min-h-[22rem] flex-col items-center justify-center gap-4 p-8 text-center">
+      <div className="flex min-h-[12rem] flex-col sm:min-h-[22rem] items-center justify-center gap-4 p-8 text-center">
         {route.missing.length > 0 ? (
           unpinned
         ) : (
@@ -45,7 +45,7 @@ export function OverviewMap({
   }
 
   return (
-    <div className="relative h-[24rem] overflow-hidden rounded-t-md sm:h-[28rem] lg:absolute lg:inset-0 lg:h-auto lg:rounded-b-none">
+    <div className="relative h-[14rem] overflow-hidden rounded-t-md sm:h-[28rem] lg:absolute lg:inset-0 lg:h-auto lg:rounded-b-none">
       <OverviewGlobe route={route} tone={tone} tracks={tracks} label={`The route: ${route.stops.map((s) => s.place).join(", ")}`} />
       {legend ? <div className="absolute left-3 top-3 max-w-[calc(100%-1.5rem)]">{legend}</div> : null}
       {unpinned ? <div className="absolute bottom-3 left-3 max-w-[calc(100%-1.5rem)] lg:max-w-[calc(100%-26.5rem)]">{unpinned}</div> : null}

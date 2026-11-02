@@ -83,7 +83,7 @@ export default function Kits() {
       <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }}>
         <Card>
           <Label>Start a list</Label>
-          <Field label="Name" value={name} placeholder="Photography" onChangeText={setName} />
+          <Field label="Name" value={name} onChangeText={setName} />
           <Button
             label="Make the list"
             busy={create.isPending}

@@ -53,7 +53,7 @@ export function MarkEditor({
     <View style={{ padding: space.lg, gap: space.md }}>
       <Label>Paint the map</Label>
       <SearchField
-        placeholder="Search for a country…"
+        label="Country"
         value={query}
         onChangeText={setQuery}
       />

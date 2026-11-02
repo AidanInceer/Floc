@@ -17,6 +17,11 @@ describe("borrowCards", () => {
     expect(cards.map((c) => c.id)).toEqual(["unsaid", "rail"]);
   });
 
+  it("prices each card in the viewer's currency", () => {
+    const [japan] = borrowCards(PRESET_TRIPS, ["rail"], { home: "USD", toHome: { GBP: 1.25, EUR: 1.1, USD: 1 } });
+    expect(japan.price).toMatch(/^USD /);
+  });
+
   it("skips a listing that has been retired", () => {
     expect(borrowCards(PRESET_TRIPS, ["gone", "rail"]).map((c) => c.id)).toEqual(["rail"]);
   });

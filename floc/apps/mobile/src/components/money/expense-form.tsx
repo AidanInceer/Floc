@@ -91,14 +91,12 @@ function Asked({
 function Plain({
   value,
   onChangeText,
-  placeholder,
   accessibilityLabel,
   numeric,
   big,
 }: {
   value: string;
   onChangeText: (value: string) => void;
-  placeholder: string;
   accessibilityLabel: string;
   /** Numbers are tabular and right-aligned; words read from the left. */
   numeric?: boolean;
@@ -110,8 +108,6 @@ function Plain({
       accessibilityLabel={accessibilityLabel}
       value={value}
       onChangeText={onChangeText}
-      placeholder={placeholder}
-      placeholderTextColor={c["ink-3"]}
       keyboardType={numeric ? "decimal-pad" : "default"}
       inputMode={numeric ? "decimal" : "text"}
       style={{
@@ -382,9 +378,6 @@ export function ExpenseForm({
                 accessibilityLabel="Description"
                 value={f.description}
                 onChangeText={f.setDescription}
-                // No word here on purpose: a greyed "Lunch" inside an unboxed
-                // field read as an expense already described.
-                placeholder=""
               />
             </View>
           </Asked>
@@ -393,10 +386,6 @@ export function ExpenseForm({
               accessibilityLabel="Amount"
               value={f.amount}
               onChangeText={f.setAmount}
-              // This one stays: it is the *shape* of the answer, not a guess at
-              // it, and a decimal field that does not say "two places" invites
-              // pennies typed as pounds.
-              placeholder="0.00"
               numeric
               big
             />

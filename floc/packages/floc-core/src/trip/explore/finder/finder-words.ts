@@ -1,4 +1,5 @@
 import { NIGHTS_SCALE, PRICE_SCALE, type Finder } from "./finder";
+import { poundsIn, type ListingRates } from "../listing-price";
 
 export const MONTH_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -21,11 +22,11 @@ export function nightsWord(nights: Finder["nights"]): string {
   return min === max ? `${min} nights` : `${min} to ${max} nights`;
 }
 
-const pounds = (n: number) => `£${n.toLocaleString("en-GB")}`;
 const per = (price: Finder["price"]) => (price.unit === "night" ? " a night" : "");
 
-export function priceWord(price: Finder["price"]): string {
+export function priceWord(price: Finder["price"], rates: ListingRates | null = null): string {
   const { min, max } = price;
+  const pounds = (n: number) => poundsIn(n, rates);
   if (min === null && max === null) return "Any price";
   if (min === null) return `Up to ${pounds(max as number)}${per(price)}`;
   if (max === null) return `From ${pounds(min)}${per(price)}`;
@@ -33,7 +34,8 @@ export function priceWord(price: Finder["price"]): string {
 }
 
 /** The two ends of the price slider: "£0 – £5,000+". */
-export function scaleWord(price: Finder["price"]): string {
+export function scaleWord(price: Finder["price"], rates: ListingRates | null = null): string {
+  const pounds = (n: number) => poundsIn(n, rates);
   const top = price.max === null ? `${pounds(PRICE_SCALE[price.unit].max)}+` : pounds(price.max);
   return `${pounds(price.min ?? 0)} – ${top}${per(price)}`;
 }
@@ -41,14 +43,14 @@ export function scaleWord(price: Finder["price"]): string {
 export type FinderPill = { id: string; label: string; clear: Finder };
 
 /** Each must-have that is set, as a pill: what it says and the finder without it. */
-export function finderPills(f: Finder): FinderPill[] {
+export function finderPills(f: Finder, rates: ListingRates | null = null): FinderPill[] {
   const out: FinderPill[] = [];
   if (f.q.trim()) out.push({ id: "q", label: `“${f.q.trim()}”`, clear: { ...f, q: "" } });
   for (const r of f.regions) out.push({ id: `region-${r}`, label: r, clear: { ...f, regions: f.regions.filter((x) => x !== r) } });
   if (f.months.length) out.push({ id: "months", label: monthsWord(f.months), clear: { ...f, months: [] } });
   if (f.nights) out.push({ id: "nights", label: nightsWord(f.nights), clear: { ...f, nights: null } });
   if (f.price.min !== null || f.price.max !== null) {
-    out.push({ id: "price", label: priceWord(f.price), clear: { ...f, price: { unit: f.price.unit, min: null, max: null } } });
+    out.push({ id: "price", label: priceWord(f.price, rates), clear: { ...f, price: { unit: f.price.unit, min: null, max: null } } });
   }
   return out;
 }
