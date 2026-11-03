@@ -73,7 +73,7 @@ export default async function PackingListsPage() {
 
             <form
               action={addKitItem.bind(null, kit.id)}
-              className="mt-4 flex flex-wrap items-center gap-2 rounded-md border border-rule bg-sheet p-3"
+              className="mt-4 flex flex-wrap items-stretch gap-2 rounded-md border border-rule bg-sheet p-3"
             >
               <label className="min-w-0 basis-full flex-1 sm:basis-auto">
                 <span className="sr-only">Add something to {kit.name}</span>
