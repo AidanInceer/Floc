@@ -4,6 +4,7 @@ import {
   bookingPlan,
   eventFlightUrl,
   flightLinks,
+  stayCheckOut,
   stayLinks,
   type StayRow,
 } from "./booking-links";
@@ -101,7 +102,7 @@ describe("bookingPlan", () => {
   it("keeps every link but fills none in without prefill", () => {
     const plan = bookingPlan({
       trip,
-      days: [day(1, "2026-10-14", 7, "Lisbon")],
+      days: [day(1, "2026-10-14", 7, "Lisbon"), day(2, "2026-10-15", 7, "Lisbon")],
       today: "2026-09-01",
       adults: 2,
       prefill: false,
@@ -131,6 +132,7 @@ describe("bookingPlan", () => {
         day(1, "2026-10-14", 7, "Lisbon"),
         day(2, "2026-10-15", 7, "Lisbon"),
         day(3, "2026-10-16", null),
+        day(4, "2026-10-17", 8, "Porto"),
       ],
       today: "2026-09-01",
       adults: 3,
@@ -145,5 +147,40 @@ describe("bookingPlan", () => {
       checkOut: "2026-10-16",
     });
     expect(gap).toEqual({ kind: "gap", checkIn: "2026-10-16", checkOut: "2026-10-17" });
+  });
+
+  it("checks out of the last stop on the trip's last day, the day home", () => {
+    const plan = bookingPlan({
+      trip: { startDate: "2026-12-29", endDate: "2027-01-05" },
+      days: ["2026-12-29", "2026-12-30", "2026-12-31", "2027-01-01", "2027-01-02", "2027-01-03", "2027-01-04", "2027-01-05"].map((date, i) =>
+        day(i + 1, date, 7, "Cortina"),
+      ),
+      today: "2026-11-01",
+      adults: 6,
+      prefill: true,
+    });
+    const [stop] = plan!.stays as StayRow[];
+    expect(stop).toMatchObject({ checkIn: "2026-12-29", checkOut: "2027-01-05" });
+  });
+
+  it("books nothing for a last stop that is only the day home", () => {
+    const plan = bookingPlan({
+      trip: { startDate: "2026-10-14", endDate: "2026-10-16" },
+      days: [day(1, "2026-10-14", 7, "Lisbon"), day(2, "2026-10-15", 7, "Lisbon"), day(3, "2026-10-16", 8, "Porto")],
+      today: "2026-09-01",
+      adults: 2,
+      prefill: true,
+    });
+    expect((plan!.stays as StayRow[]).map((s) => s.checkOut)).toEqual(["2026-10-16"]);
+  });
+});
+
+describe("stayCheckOut", () => {
+  it("is the morning after the last night", () => {
+    expect(stayCheckOut("2026-10-15", "2026-10-20")).toBe("2026-10-16");
+  });
+
+  it("is the trip's last day when the stay runs to it, since that day is the day home", () => {
+    expect(stayCheckOut("2027-01-05", "2027-01-05")).toBe("2027-01-05");
   });
 });

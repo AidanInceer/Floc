@@ -56,7 +56,7 @@ export default function Explore() {
   const trip = PRESET_TRIPS.find((t) => t.id === picked) ?? PRESET_TRIPS[0];
   const rows = useMemo(() => rankTrips(PRESET_TRIPS, finder, sort, null), [finder, sort]);
   const counts = useMemo(() => finderCounts(PRESET_TRIPS, finder), [finder]);
-  const pills = finderPills(finder);
+  const pills = finderPills(finder, state.data?.rates ?? null);
 
   const change = (next: Finder) => {
     setFinder(next);
@@ -86,7 +86,7 @@ export default function Explore() {
       <View style={{ gap: space.md }}>
         <View style={{ paddingHorizontal: space.lg, gap: space.md }}>
           <Heading>All trips</Heading>
-          <SearchField placeholder="Search a place, country or tag" value={finder.q} onChangeText={(q) => change({ ...finder, q })} />
+          <SearchField label="Search a place, country or tag" value={finder.q} onChangeText={(q) => change({ ...finder, q })} />
         </View>
         <FinderBar
           shown={rows.length}

@@ -23,8 +23,7 @@ export default async function InboxPage({
 
   return (
     <AccountPage
-      eyebrow="What changed"
-      title="Notifications"
+      title="Inbox"
       actions={
         anyUnread ? (
           <form action={readEverything}>

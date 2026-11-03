@@ -53,7 +53,7 @@
   translate: 0 -50%;
   white-space: nowrap;
   padding: 2px 7px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: var(--sheet);
   color: var(--ink);
   font-size: 12px;

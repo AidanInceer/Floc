@@ -19,7 +19,7 @@ export function PackingCube({
   const full = packed !== undefined && total > 0 && packed === total;
   return (
     <section className={cx(
-      "overflow-hidden rounded-[12px] border bg-sheet",
+      "overflow-hidden rounded-md border bg-sheet",
       full ? "border-green-edge bg-green-soft" : "border-rule",
     )}>
       <header className="flex items-baseline justify-between gap-2 border-b border-dotted border-rule-strong px-4 py-3">

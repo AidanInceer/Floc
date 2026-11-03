@@ -11,6 +11,7 @@ import { Figure, Segmented } from "../../system/ui";
 import { TextLink } from "../../system/text-controls";
 import { useTheme } from "../../system/theme";
 import { fonts, radius, size, space } from "@/lib/theme";
+import { useListingRates } from "../use-listing-rates";
 
 export type Facet = { finder: Finder; counts: FinderCounts; shown: number; onChange: (next: Finder) => void };
 
@@ -92,6 +93,7 @@ export function LengthFacet({ finder, counts, shown, onChange }: Facet) {
 
 export function PriceFacet({ finder, counts, shown, onChange }: Facet) {
   const { unit, min, max } = finder.price;
+  const rates = useListingRates();
   const scale = PRICE_SCALE[unit];
   const band = scale.max / counts.price.length;
   return (
@@ -111,7 +113,7 @@ export function PriceFacet({ finder, counts, shown, onChange }: Facet) {
         value={[min ?? 0, max ?? scale.max]}
         onChange={([a, b]) => onChange(withPrice(finder, a, b))}
       >
-        <Read left={scaleWord(finder.price)} right={trips(shown)} />
+        <Read left={scaleWord(finder.price, rates)} right={trips(shown)} />
       </RangeBars>
     </View>
   );

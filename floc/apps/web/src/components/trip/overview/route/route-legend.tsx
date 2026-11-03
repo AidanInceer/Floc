@@ -17,7 +17,7 @@ export function RouteLegend({
   if (routes.length === 0) return null;
   const mine = routes.some((r) => r.userId === viewerId);
   return (
-    <div className="flex flex-col gap-1 rounded-lg bg-sheet px-3 py-2 text-xs shadow-sm ring-1 ring-rule">
+    <div className="flex flex-col gap-1 rounded-md bg-sheet px-3 py-2 text-xs shadow-sm ring-1 ring-rule">
       <ul className="flex flex-col gap-1">
         {routes.map((r) => (
           <li key={r.userId} className="flex items-center gap-2">

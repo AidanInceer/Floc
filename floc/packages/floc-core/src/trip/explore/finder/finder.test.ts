@@ -19,6 +19,15 @@ describe("priceFigure", () => {
     expect(priceFigure(NILE, "trip")).toBe(1700);
   });
 
+  it("brings dollars to pounds too, rather than reading them as pounds", () => {
+    expect(priceFigure(listing({ priceFromMinor: 200000, currency: "USD" }), "trip")).toBe(1500);
+  });
+
+  it("has a rate for every currency a listing is priced in", () => {
+    const foreign = [...new Set(PRESET_TRIPS.map((t) => t.currency))].filter((c) => c !== "GBP");
+    for (const currency of foreign) expect(priceFigure(listing({ priceFromMinor: 100000, currency }), "trip"), currency).not.toBe(1000);
+  });
+
   it("counts a night as the whole trip over its nights", () => {
     expect(priceFigure(LISBON, "night")).toBe(120);
   });

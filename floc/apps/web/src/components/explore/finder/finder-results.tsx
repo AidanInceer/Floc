@@ -48,7 +48,7 @@ function Tags({ on = [], off = [], plain = [] }: { on?: TripTag[]; off?: TripTag
 
 function OwnTile({ signedIn }: { signedIn: boolean }) {
   return (
-    <li className="col-span-full flex min-h-32 flex-col items-center justify-center text-center gap-1.5 rounded-[18px] border-[1.5px] border-dashed border-rule-strong p-4">
+    <li className="col-span-full flex min-h-32 flex-col items-center justify-center text-center gap-1.5 rounded-md border-[1.5px] border-dashed border-rule-strong p-4">
       <span className={cx(tagClass, "border border-dashed border-rule-strong text-ink-soft")}>Anywhere</span>
       <strong className="font-display text-base font-semibold tracking-[-0.02em]">Your own</strong>
       <p className="text-[13px] text-ink-soft">No dates, no destination. See who agrees.</p>
@@ -82,7 +82,7 @@ export function FinderResults({
 }) {
   const [all, setAll] = useState(false);
   if (!rows.length) {
-    return <p className="rounded-2xl border border-dashed border-rule-strong p-6 text-ink-soft">No trip fits all of that. Remove a filter.</p>;
+    return <p className="rounded-md border border-dashed border-rule-strong p-6 text-ink-soft">No trip fits all of that. Remove a filter.</p>;
   }
   const shown = all ? rows : rows.slice(0, TILE_LIMIT);
   const top = split ? shown.filter((r) => r.hits.length) : shown;

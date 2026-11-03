@@ -27,8 +27,8 @@ const PRICE_BINS = 20;
 
 export const EMPTY_FINDER: Finder = { q: "", regions: [], months: [], nights: null, price: { unit: "trip", min: null, max: null }, likes: [] };
 
-// Why: listings are illustrative and mix GBP and EUR; a fixed rate keeps the filter steady when the rates provider is down.
-const TO_GBP: Partial<Record<Currency, number>> = { GBP: 1, EUR: 0.85 };
+// Why: listings are illustrative and mix several currencies; a fixed rate keeps the filter steady when the rates provider is down.
+const TO_GBP: Partial<Record<Currency, number>> = { GBP: 1, EUR: 0.85, USD: 0.75, AUD: 0.49, CAD: 0.55, NZD: 0.45 };
 
 /** What a listing costs each, in whole pounds, as the finder counts it. A filter figure: never shown as money, never stored. */
 export function priceFigure(trip: PresetTrip, unit: PriceUnit): number {

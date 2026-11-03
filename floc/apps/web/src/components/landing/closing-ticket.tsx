@@ -31,10 +31,9 @@ export function ClosingTicket({ signedIn }: { signedIn: boolean }) {
               onKeyDown={(e) => {
                 if (e.key === "Enter") router.push(href);
               }}
-              placeholder="Somewhere"
               maxLength={24}
               aria-label="Where to"
-              className="mt-1 block w-full border-0 border-b-2 border-dashed border-rule-strong bg-transparent pb-1 font-display text-[clamp(2.4rem,6vw,3.5rem)] font-semibold leading-[1.1] tracking-[-0.04em] text-ink outline-none placeholder:text-ink-faint/50 focus:border-pen"
+              className="mt-1 block w-full border-0 border-b-2 border-dashed border-rule-strong bg-transparent pb-1 font-display text-[clamp(2.4rem,6vw,3.5rem)] font-semibold leading-[1.1] tracking-[-0.04em] text-ink outline-none focus:border-pen"
             />
             <div className="mt-5 grid grid-cols-3 gap-4 text-sm">
               <div className="flex flex-col gap-1.5">

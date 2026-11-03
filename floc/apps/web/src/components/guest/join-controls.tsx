@@ -37,7 +37,7 @@ export function JoinControls({
           Sign up
         </ButtonLink>
         <ButtonLink variant="secondary" href={signInHref}>
-          Log in
+          Sign in
         </ButtonLink>
       </div>
     );

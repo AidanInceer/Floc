@@ -35,6 +35,7 @@ import { FocusHeads, type FocusFacts } from "@/components/days/days-focus-heads"
 import { OvernightBandRow } from "@/components/days/days-overnight-band";
 import { OvernightDialog } from "@/components/days/days-overnight-dialog";
 import { StopStrip } from "@/components/days/days-stop-strip";
+import { useHeightFloor } from "@/components/days/use-height-floor";
 import { useOvernightBand } from "@/components/days/use-overnight-band";
 import {
   FOCUS_COLUMNS,
@@ -316,6 +317,7 @@ export function DaysCalendar({
   };
 
   const band = useOvernightBand({ days, slots, setOvernight, say, columnAt, scrollerRef, step });
+  const card = useHeightFloor<HTMLDivElement>();
 
   // The pane is the selection, not a switch of its own (ticket 138).
   // `keptSelection` is how the click that made the selection survives the
@@ -494,117 +496,119 @@ export function DaysCalendar({
   });
 
   return (
-    <div className={cx("overflow-hidden rounded-lg bg-sheet", FOCUS_COLUMNS)}>
-      <StopStrip days={days} focusId={focus.id} onGoTo={goTo} onStop={openBandDialog} />
+    <div style={{ minHeight: card.floor }}>
+      <div ref={card.ref} className={cx("overflow-hidden rounded-md bg-sheet", FOCUS_COLUMNS)}>
+        <StopStrip days={days} focusId={focus.id} onGoTo={goTo} onStop={openBandDialog} />
 
-      <CalendarToolbar
-        nav={{
-          hasToday,
-          onToday: () => setAnchor(todayIndex),
-          goPrev: () => step(-1),
-          goNext: () => step(1),
-          canPrev: focusIndex > 0,
-          canNext: focusIndex < days.length - 1,
-        }}
-        rangeLabel={focus.longLabel}
-        unfold={unfold}
-        onToggleFold={() => setUnfold((v) => !v)}
-        onAdd={() => openAdd(focus.id, 9 * 60)}
-      />
+        <CalendarToolbar
+          nav={{
+            hasToday,
+            onToday: () => setAnchor(todayIndex),
+            goPrev: () => step(-1),
+            goNext: () => step(1),
+            canPrev: focusIndex > 0,
+            canNext: focusIndex < days.length - 1,
+          }}
+          rangeLabel={focus.longLabel}
+          unfold={unfold}
+          onToggleFold={() => setUnfold((v) => !v)}
+          onAdd={() => openAdd(focus.id, 9 * 60)}
+        />
 
-      <div role="presentation" onClick={onCalendarClick} className="min-w-0">
-        <div ref={scrollerRef} className="max-h-[70vh] overflow-y-auto" style={{ scrollPaddingTop: headHeight }}>
-          <div ref={headRef} className="sticky top-0 z-30 shadow-raised">
-            <FocusHeads
-              slots={slots}
-              focus={focusFacts(days, focusIndex, events)}
+        <div role="presentation" onClick={onCalendarClick} className="min-w-0">
+          <div ref={scrollerRef} className="max-h-[70vh] overflow-y-auto" style={{ scrollPaddingTop: headHeight }}>
+            <div ref={headRef} className="sticky top-0 z-30 shadow-raised">
+              <FocusHeads
+                slots={slots}
+                focus={focusFacts(days, focusIndex, events)}
+                rowStyle={rowStyle}
+                onGoTo={goTo}
+                onAdd={() => openAdd(focus.id, 9 * 60)}
+                removeControl={removeDayControls[focus.id]}
+              />
+
+              <OvernightBandRow
+                bandRuns={band.runs}
+                days={days}
+                rowStyle={rowStyle}
+                rowRef={band.rowRef}
+                onPointerMove={band.onPointerMove}
+                onPointerUp={band.onPointerUp}
+                startBandDrag={band.startDrag}
+                openBandDialog={openBandDialog}
+                columnAt={columnAt}
+                dateOfDay={band.dateOfDay}
+              />
+
+              <AllDayStrip
+                slots={slots}
+                focusId={focus.id}
+                events={shown}
+                rowStyle={rowStyle}
+                selected={selected}
+                onSelect={select}
+                onMove={moveAllDay}
+              />
+            </div>
+
+            <CalendarGrid
+              gridRef={gridRef}
               rowStyle={rowStyle}
-              onGoTo={goTo}
-              onAdd={() => openAdd(focus.id, 9 * 60)}
-              removeControl={removeDayControls[focus.id]}
-            />
-
-            <OvernightBandRow
-              bandRuns={band.runs}
-              days={days}
-              rowStyle={rowStyle}
-              rowRef={band.rowRef}
-              onPointerMove={band.onPointerMove}
-              onPointerUp={band.onPointerUp}
-              startBandDrag={band.startDrag}
-              openBandDialog={openBandDialog}
-              columnAt={columnAt}
-              dateOfDay={band.dateOfDay}
-            />
-
-            <AllDayStrip
+              clock={clock}
               slots={slots}
               focusId={focus.id}
-              events={shown}
-              rowStyle={rowStyle}
-              selected={selected}
-              onSelect={select}
-              onMove={moveAllDay}
+              column={column}
+              onToggleFold={() => setUnfold((v) => !v)}
             />
           </div>
-
-          <CalendarGrid
-            gridRef={gridRef}
-            rowStyle={rowStyle}
-            clock={clock}
-            slots={slots}
-            focusId={focus.id}
-            column={column}
-            onToggleFold={() => setUnfold((v) => !v)}
-          />
         </div>
-      </div>
 
-      <EventModal
-        open={selectedEvent != null}
-        onClose={closeEvent}
-        panel={panel?.eventId === selected ? panel.content : <p role="status" className="p-4 text-sm text-ink-soft">Loading event…</p>}
-      />
-
-      {/* Every gesture says what it did: a drag that reports itself only
-          visually reports itself to some of the group. */}
-      <p role="status" aria-live="polite" className="sr-only">
-        {announcement}
-      </p>
-
-      <AddEventDialog
-        adding={adding}
-        days={days}
-        submitEvent={submitEvent}
-        searchPlaces={searchPlaces}
-        onClose={() => setAdding(null)}
-      />
-
-      {band.banding ? (
-        <OvernightDialog
-          span={band.banding}
-          days={days}
-          searchPlaces={searchPlaces}
-          groupSize={groupSize}
-          bookingPrefill={bookingPrefill}
-          onClose={() => band.setBanding(null)}
-          onSave={(end, place) => {
-            const span = { ...band.banding!, end };
-            band.setBanding(null);
-            band.commit(span, place, []);
-            say(
-              `${"name" in place ? place.name : (span.placeName ?? "Overnight place")} now ` +
-                `${describeSpan(days, span)}.`,
-            );
-          }}
-          onClear={() => {
-            const span = band.banding!;
-            band.setBanding(null);
-            band.commit({ ...span, placeId: null, placeName: null }, null, []);
-            say(`No overnight place for ${describeSpan(days, span)}.`);
-          }}
+        <EventModal
+          open={selectedEvent != null}
+          onClose={closeEvent}
+          panel={panel && panel.eventId === selected ? panel.content : <p role="status" className="p-4 text-sm text-ink-soft">Loading event…</p>}
         />
-      ) : null}
+
+        {/* Every gesture says what it did: a drag that reports itself only
+            visually reports itself to some of the group. */}
+        <p role="status" aria-live="polite" className="sr-only">
+          {announcement}
+        </p>
+
+        <AddEventDialog
+          adding={adding}
+          days={days}
+          submitEvent={submitEvent}
+          searchPlaces={searchPlaces}
+          onClose={() => setAdding(null)}
+        />
+
+        {band.banding ? (
+          <OvernightDialog
+            span={band.banding}
+            days={days}
+            searchPlaces={searchPlaces}
+            groupSize={groupSize}
+            bookingPrefill={bookingPrefill}
+            onClose={() => band.setBanding(null)}
+            onSave={(end, place) => {
+              const span = { ...band.banding!, end };
+              band.setBanding(null);
+              band.commit(span, place, []);
+              say(
+                `${"name" in place ? place.name : (span.placeName ?? "Overnight place")} now ` +
+                  `${describeSpan(days, span)}.`,
+              );
+            }}
+            onClear={() => {
+              const span = band.banding!;
+              band.setBanding(null);
+              band.commit({ ...span, placeId: null, placeName: null }, null, []);
+              say(`No overnight place for ${describeSpan(days, span)}.`);
+            }}
+          />
+        ) : null}
+      </div>
     </div>
   );
 }

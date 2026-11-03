@@ -208,7 +208,7 @@ export function ExpenseForm({
                 aria-label={`Category: ${CATEGORY_LABELS[category]}`}
                 aria-expanded={pickerOpen}
                 title={`Category: ${CATEGORY_LABELS[category]}`}
-                className="flex h-full w-10 items-center justify-center rounded-md border border-pen-edge bg-pen-soft text-pen transition-colors hover:text-pen-deep"
+                className="flex h-full w-10 items-center justify-center rounded-sm border border-pen-edge bg-pen-soft text-pen transition-colors hover:text-pen-deep"
               >
                 <CategoryIcon category={category} />
               </button>
@@ -238,7 +238,7 @@ export function ExpenseForm({
                           }}
                           autoFocus={on}
                           className={cx(
-                            "flex h-9 w-9 items-center justify-center rounded-md border",
+                            "flex h-9 w-9 items-center justify-center rounded-sm border",
                             on
                               ? "border-pen-edge bg-pen-soft text-pen-deep"
                               : "border-rule bg-sheet-2 text-ink-soft hover:text-ink",
@@ -266,7 +266,7 @@ export function ExpenseForm({
           <FieldGroup label="Amount" className="sm:col-span-2">
             {/* Currency rides inside the amount as a compact ticker, not a
                 second full-width control (mockup). */}
-            <div className="flex items-stretch overflow-hidden rounded-md border border-rule-strong bg-sheet focus-within:border-pen">
+            <div className="flex items-stretch overflow-hidden rounded-sm border border-rule-strong bg-sheet focus-within:border-pen">
               <div className="relative flex items-center border-r border-rule bg-sheet-2 pl-2.5 pr-1 font-mono text-sm text-ink-soft">
                 {currency}
                 <select
@@ -361,7 +361,7 @@ export function ExpenseForm({
                       <span
                         aria-hidden
                         className={cx(
-                          "flex h-[18px] w-[18px] flex-none items-center justify-center rounded-[5px] border transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-pen",
+                          "flex h-[18px] w-[18px] flex-none items-center justify-center rounded-sm border transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-pen",
                           isIn
                             ? "border-pen bg-pen text-white"
                             : "border-rule-strong bg-sheet",
@@ -395,7 +395,7 @@ export function ExpenseForm({
                     {isIn ? (
                       <>
                         {mode === "shares" ? (
-                          <span className="flex items-center overflow-hidden rounded-md border border-rule-strong">
+                          <span className="flex items-center overflow-hidden rounded-sm border border-rule-strong">
                             <button
                               type="button"
                               onClick={() =>

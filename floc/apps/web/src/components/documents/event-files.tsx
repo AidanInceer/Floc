@@ -53,7 +53,7 @@ export function EventFiles({
           Nothing attached yet &mdash; tickets and bookings for this go here.
         </p>
       ) : (
-        <ul className="mt-2 divide-y divide-rule rounded-lg border border-rule">
+        <ul className="mt-2 divide-y divide-rule rounded-md border border-rule">
           {files.map((doc) => (
             <DocumentRow
               key={doc.id}

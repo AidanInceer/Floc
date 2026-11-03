@@ -8,6 +8,7 @@ import { FinderChip, linkClass } from "@/components/explore/finder/finder-chip";
 import { RangeBars } from "@/components/explore/finder/range-bars";
 import { PillToggle } from "@/components/system/client-ui";
 import { cx } from "@/components/system/ui";
+import { useListingRates } from "@/components/explore/listing-rates";
 
 type Facet = { finder: Finder; counts: FinderCounts; shown: number; onChange: (next: Finder) => void };
 
@@ -43,7 +44,7 @@ export function WhenFacet({ finder, counts, onChange }: Facet) {
               aria-label={`${name}, ${trips(counts.months[i])}`}
               onClick={() => onChange({ ...finder, months: toggled(finder.months, i + 1) })}
               className={cx(
-                "grid justify-items-center gap-px rounded-[10px] border pb-[5px] pt-1.5 transition-colors",
+                "grid justify-items-center gap-px rounded-sm border pb-[5px] pt-1.5 transition-colors",
                 on ? "border-ink bg-ink text-paper" : "border-rule-strong bg-sheet hover:border-ink-faint",
                 !on && none && "border-dashed text-ink-faint",
               )}
@@ -84,6 +85,7 @@ export function LengthFacet({ finder, counts, shown, onChange }: Facet) {
 }
 
 export function PriceFacet({ finder, counts, shown, onChange }: Facet) {
+  const rates = useListingRates();
   const { unit, min, max } = finder.price;
   const scale = PRICE_SCALE[unit];
   const band = scale.max / counts.price.length;
@@ -103,10 +105,10 @@ export function PriceFacet({ finder, counts, shown, onChange }: Facet) {
         bars={counts.price.map((count, i) => ({ count, on: (min === null || (i + 1) * band > min) && (max === null || i * band <= max) }))}
         bounds={{ min: 0, max: scale.max, step: scale.step }}
         value={[min ?? 0, max ?? scale.max]}
-        valueText={scaleWord(finder.price)}
+        valueText={scaleWord(finder.price, rates)}
         onChange={([a, b]) => onChange(withPrice(finder, a, b))}
       >
-        <span>{scaleWord(finder.price)}</span>
+        <span>{scaleWord(finder.price, rates)}</span>
         <span>{trips(shown)}</span>
       </RangeBars>
     </div>

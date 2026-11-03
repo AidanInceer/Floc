@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 
 import { NavGlyph } from "@/components/chrome/nav-glyphs";
 import { useEdgeFade } from "@/components/chrome/use-edge-fade";
@@ -11,7 +11,7 @@ import { type TabState } from "@/lib/tabs";
 
 // Every tab is navigable from day one (ticket 126); no un-clickable stubs.
 // The current glyph takes the same blue tile as the place above it in the top bar.
-export function TripTabs({ tripId, tabs }: { tripId: number; tabs: TabState[] }) {
+export function TripTabs({ tripId, tabs, children }: { tripId: number; tabs: TabState[]; children?: ReactNode }) {
   const pathname = usePathname();
   const hrefOf = (tab: TabState) => `/trip/${tripId}/${tab.key}`;
   const current = activeHref(pathname, tabs.map(hrefOf));
@@ -26,13 +26,13 @@ export function TripTabs({ tripId, tabs }: { tripId: number; tabs: TabState[] })
   }, [nav, current]);
 
   return (
-    <div className="flex min-w-0 flex-1 justify-center">
+    <div className="flex min-w-0 flex-1 items-center justify-center gap-2 sm:gap-5">
       <nav
         ref={fade.ref}
         onScroll={fade.onScroll}
         style={fade.style}
         aria-label="Trip sections"
-        className="scroll-x-bare flex max-w-full items-center gap-4 sm:gap-5"
+        className="scroll-x-bare flex max-w-full items-center gap-2 sm:gap-5"
       >
         {tabs.map((tab) => (
           <Link
@@ -42,13 +42,15 @@ export function TripTabs({ tripId, tabs }: { tripId: number; tabs: TabState[] })
             aria-current={hrefOf(tab) === current ? "page" : undefined}
             className="group flex shrink-0 items-center gap-1.5 py-1.5 text-sm font-medium text-ink-faint transition-colors hover:text-ink-soft aria-[current=page]:text-ink"
           >
-            <span className="inline-flex size-6 items-center justify-center rounded-[7px] transition-colors group-hover:bg-sheet-3 group-aria-[current=page]:bg-pen-soft group-aria-[current=page]:text-pen-deep">
+            <span className="inline-flex size-8 items-center sm:size-6 justify-center rounded-sm transition-colors group-hover:bg-sheet-3 group-aria-[current=page]:bg-pen-soft group-aria-[current=page]:text-pen-deep">
               <NavGlyph name={tab.key} />
             </span>
-            {tab.label}
+            <span className="sr-only sm:not-sr-only">{tab.label}</span>
           </Link>
         ))}
       </nav>
+      {/* Why: outside the nav, which scrolls sideways and would clip the menu's panel. */}
+      {children}
     </div>
   );
 }

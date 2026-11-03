@@ -15,7 +15,7 @@ export function TripPassDialog({ id, likes, signedIn, onClose }: { id: string | 
       open={!!trip}
       onClose={onClose}
       title={trip?.title ?? "Trip"}
-      className="m-0 mt-auto max-h-[90dvh] w-full max-w-none overflow-y-auto rounded-t-[22px] bg-sheet p-0 text-ink backdrop:bg-black/40 sm:m-auto sm:max-w-lg sm:rounded-[22px]"
+      className="m-0 mt-auto max-h-[90dvh] w-full max-w-none overflow-y-auto rounded-t-md bg-sheet p-0 text-ink backdrop:bg-black/40 sm:m-auto sm:max-w-lg sm:rounded-md"
     >
       <div className="sticky top-0 z-10 flex justify-end bg-sheet px-2 py-1.5">
         <button type="button" onClick={onClose} aria-label="Close" className="grid size-9 place-items-center rounded-full text-ink-soft hover:text-ink">

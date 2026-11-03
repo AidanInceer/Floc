@@ -19,7 +19,6 @@ import { backspaceAtStart, indentLines, splitLine } from "../commands/lines";
 import { cellEnter, deleteLines, insertLine, selectionInfo } from "../commands/tables";
 import { cellEdges, headingIds, sizeGuard } from "../plugins/guards";
 import { outlineKey, outlinePlugin } from "../plugins/outline";
-import { placeholders } from "../plugins/placeholder";
 import { PAGE_MARKS, PAGE_NODES } from "../schema/page-schema";
 import { TripLink } from "../schema/inline";
 import { tripLinkView, type LinkNames } from "./trip-link-view";
@@ -94,7 +93,6 @@ function behaviour(options: KitOptions) {
         tableEditing({ allowTableNodeSelection: false }),
         cellEdges(),
         sizeGuard(options.onFull),
-        placeholders(() => this.editor.isFocused),
       ];
     },
   });

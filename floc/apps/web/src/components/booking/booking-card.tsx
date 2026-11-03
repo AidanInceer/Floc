@@ -3,8 +3,11 @@ import Link from "next/link";
 import { formatDateRange, nightsBetween } from "@floc/core/dates/dates";
 import type { BookingPlan, StayRow } from "@floc/core/trip/booking-links";
 import { OFFSITE_NOTE, SiteLinks } from "@/components/booking/site-links";
+import { BedIcon, EventGlyph } from "@/components/days/days-glyphs";
 
 const headClass = "font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint";
+const panelClass = "rounded-sm border border-rule bg-sheet-2 px-3 py-2.5";
+const panelHeadClass = "flex items-center gap-2 text-sm font-medium";
 
 function nightsLabel(row: StayRow) {
   const nights = nightsBetween(row.checkIn, row.checkOut);
@@ -17,13 +20,19 @@ export function BookingCard({ tripId, plan }: { tripId: number; plan: BookingPla
     <section id="booking" className="scroll-mt-24 rounded-md border border-rule bg-sheet p-4 shadow-card">
       <h2 className={headClass}>Get booking</h2>
 
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-b border-rule pb-3">
-        <h3 className="text-sm font-medium">Flights</h3>
+      <div className={`mt-3 flex flex-wrap items-center justify-between gap-2 ${panelClass}`}>
+        <h3 className={panelHeadClass}>
+          <EventGlyph type="transport" transportType="flight" className="text-ink-soft" />
+          Flights
+        </h3>
         <SiteLinks links={plan.flights} />
       </div>
 
-      <div className="pt-3">
-        <h3 className="text-sm font-medium">Stays</h3>
+      <div className={`mt-3 ${panelClass}`}>
+        <h3 className={panelHeadClass}>
+          <BedIcon className="text-ink-soft" />
+          Stays
+        </h3>
         {plan.stays === "unset" ? (
           <Link href={daysHref} className="mt-1 inline-block text-sm text-pen hover:text-pen-deep">
             Set where you sleep on Days to find a stay →

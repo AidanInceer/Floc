@@ -44,7 +44,7 @@ export function FriendPicker({
       {offered.map((f) => (
         <li key={f.id}>
           {/* The whole tile is the target; the checkbox itself is hidden and the mark says which state it is in. */}
-          <label className="group flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-rule bg-sheet px-2.5 py-1.5 text-sm transition-colors hover:border-pen has-[:checked]:border-pen has-[:checked]:bg-pen-soft has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-pen">
+          <label className="group flex min-h-11 cursor-pointer items-center gap-2 rounded-md border border-rule bg-sheet px-2.5 py-1.5 text-sm transition-colors hover:border-pen has-[:checked]:border-pen has-[:checked]:bg-pen-soft has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-pen">
             <input type="checkbox" name="friendIds" value={f.id} className="peer sr-only" />
             <Avatar name={f.name} icon={f.avatarIcon} size={26} />
             <span className="min-w-0 flex-1 truncate">{f.name}</span>

@@ -21,7 +21,7 @@ type TodayFile = { id: number; name: string; category: DocCategory };
 
 export function TodayBlock({ tripId, plan }: { tripId: number; plan: TodayPlan<TodayEvent, TodayFile> }) {
   return (
-    <section aria-labelledby="today-heading" className="flex flex-col gap-3 rounded-xl bg-sheet p-5 ring-1 ring-rule">
+    <section aria-labelledby="today-heading" className="flex flex-col gap-3 rounded-md bg-sheet p-5 ring-1 ring-rule">
       <h2 id="today-heading" className="flex items-baseline gap-2 font-display text-lg">
         Today
         <span className="text-sm font-normal text-ink-soft">{formatDate(plan.date)}</span>

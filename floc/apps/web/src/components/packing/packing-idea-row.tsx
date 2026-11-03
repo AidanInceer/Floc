@@ -21,7 +21,7 @@ export function PackingIdeaRow({
         <button
           type="submit"
           aria-label={`Add ${label} to my bag`}
-          className="inline-flex size-6 shrink-0 items-center justify-center rounded-[6px] border-[1.5px] border-dashed border-pen-edge text-pen transition-colors hover:border-solid hover:border-pen hover:bg-pen hover:text-sheet sm:size-7"
+          className="inline-flex size-6 shrink-0 items-center justify-center rounded-sm border-[1.5px] border-dashed border-pen-edge text-pen transition-colors hover:border-solid hover:border-pen hover:bg-pen hover:text-sheet sm:size-7"
         >
           <PlusIcon size={11} />
         </button>

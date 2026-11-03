@@ -233,7 +233,7 @@ export default async function DatesPage({
         <div className="mt-6">{board}</div>
       ) : (
         <div className="mt-4">
-          <DatesFold quiet={moment === "started"}>{board}</DatesFold>
+          <DatesFold>{board}</DatesFold>
         </div>
       )}
       {booking ? (

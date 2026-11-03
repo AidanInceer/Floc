@@ -82,6 +82,11 @@ describe("buildPresetPlan without detail", () => {
       { label: "Cost", text: "From €450.00 each. Nothing is booked for you." },
     ]);
   });
+
+  it("gives the cost in the viewer's currency when it has a rate", () => {
+    const cost = buildPresetPlan(trip, null, { home: "GBP", toHome: { EUR: 0.85 } }).goodToKnow.find((f) => f.label === "Cost");
+    expect(cost?.text).toBe("From £383.00 each. Nothing is booked for you.");
+  });
 });
 
 describe("buildPresetPlan with detail", () => {

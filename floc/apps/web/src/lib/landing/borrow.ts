@@ -1,7 +1,7 @@
-import { formatMoney } from "@floc/core/money/money";
 import { stopsOf } from "@floc/core/trip/explore/listing-stops";
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 import type { TransportType } from "@floc/core/vocabulary";
+import { listingPrice, type ListingRates } from "@floc/core/trip/explore/listing-price";
 
 type Hop = { mode: TransportType; detail: string };
 
@@ -26,7 +26,7 @@ export type BorrowCard = {
 };
 
 /** The listings the landing page rolls through, in the order given; a retired id is skipped. */
-export function borrowCards(trips: PresetTrip[], ids: string[]): BorrowCard[] {
+export function borrowCards(trips: PresetTrip[], ids: string[], rates: ListingRates | null = null): BorrowCard[] {
   return ids.flatMap((id) => {
     const trip = trips.find((t) => t.id === id);
     if (!trip) return [];
@@ -36,7 +36,7 @@ export function borrowCards(trips: PresetTrip[], ids: string[]): BorrowCard[] {
         place: trip.country,
         title: trip.title,
         nights: trip.nights,
-        price: formatMoney(trip.priceFromMinor, trip.currency),
+        price: listingPrice(trip, rates),
         ...routeOf(trip),
       },
     ];

@@ -13,11 +13,8 @@
 import { useEffect, useState, type ReactElement } from "react";
 
 import { cx } from "@/components/system/ui";
-import {
-  DeviceIcon,
-  MoonIcon,
-  SunIcon,
-} from "@/components/chrome/account/account-icons";
+import { DeviceIcon, SunIcon } from "@/components/chrome/account/account-icons";
+import { MoonIcon } from "@/components/system/icons";
 import {
   THEME_CHOICES,
   readStoredChoice,
@@ -33,7 +30,7 @@ const LABELS: Record<ThemeChoice, string> = {
   system: "Auto",
 };
 
-const ICONS: Record<ThemeChoice, () => ReactElement> = {
+const ICONS: Record<ThemeChoice, (props: { size?: number }) => ReactElement> = {
   light: SunIcon,
   dark: MoonIcon,
   system: DeviceIcon,

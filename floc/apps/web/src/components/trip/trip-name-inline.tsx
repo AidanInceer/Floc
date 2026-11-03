@@ -64,7 +64,7 @@ export function TripNameInline({
           type="button"
           title="Rename trip"
           onClick={() => setEditing(true)}
-          className="group/name max-w-full rounded-md text-left transition-colors hover:bg-sheet-2 hover:shadow-[0_0_0_4px_var(--sheet-2)]"
+          className="group/name max-w-full rounded-sm text-left transition-colors hover:bg-sheet-2 hover:shadow-[0_0_0_4px_var(--sheet-2)]"
         >
           {titleCase(name)}
           <span className="ml-2 inline-grid align-middle text-ink-faint opacity-50 transition-opacity group-hover/name:opacity-100">

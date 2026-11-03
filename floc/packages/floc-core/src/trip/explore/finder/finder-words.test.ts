@@ -38,6 +38,16 @@ describe("priceWord", () => {
   });
 });
 
+describe("price words in the viewer's currency", () => {
+  const usd = { home: "USD", toHome: { GBP: 1.25 } } as const;
+
+  it("says the slider and the pill in dollars, while the finder still counts pounds", () => {
+    expect(scaleWord({ unit: "trip", min: null, max: null }, usd)).toBe("USD 0 – USD 6,250+");
+    expect(priceWord({ unit: "night", min: 100, max: 200 }, usd)).toBe("USD 125–USD 250 a night");
+    expect(finderPills({ ...EMPTY_FINDER, price: { unit: "trip", min: null, max: 2000 } }, usd)[0].label).toBe("Up to USD 2,500");
+  });
+});
+
 describe("finderPills", () => {
   it("names each must-have that is set, each with the finder that clears it", () => {
     const f = find({ q: "rail", regions: ["Asia", "Europe"], months: [5], nights: { min: 9, max: 14 }, price: { unit: "trip", min: null, max: 2000 }, likes: ["Food"] });

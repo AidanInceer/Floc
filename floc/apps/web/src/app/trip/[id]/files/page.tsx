@@ -62,7 +62,7 @@ export default async function FilesPage({
       {!documentsEnabled() ? (
         // Rule 11: say what is missing rather than offering an upload that
         // cannot land anywhere.
-        <p className="mt-6 rounded-xl border border-rule bg-sheet px-4 py-8 text-center text-sm text-ink-soft">
+        <p className="mt-6 rounded-md border border-rule bg-sheet px-4 py-8 text-center text-sm text-ink-soft">
           File storage isn&rsquo;t set up yet, so there is nowhere to put a document. Nothing else
           on the trip is affected.
         </p>
@@ -150,7 +150,7 @@ function FileCard({
         <h2 className="font-display text-[1.05rem] font-semibold">{title}</h2>
         <span className="text-xs text-ink-soft">{note}</span>
       </header>
-      <div className="rounded-2xl border border-rule bg-sheet">
+      <div className="rounded-md border border-rule bg-sheet">
         {docs.length === 0 ? (
           <p className="px-4 py-6 text-center text-sm text-ink-soft">{empty}</p>
         ) : (

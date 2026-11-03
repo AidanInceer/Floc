@@ -14,7 +14,6 @@
  * NOTHING HERE IS BOOKABLE. Starting a trip copies the shape into a trip of
  * your own; no operator is a partner and no money moves.
  */
-import { formatMoney } from "@floc/core/money/money";
 import { stopsOf } from "@floc/core/trip/explore/listing-stops";
 import { PRESET_TRIPS, type PresetTrip } from "@floc/core/trip/explore/preset-trips";
 import { useMutation } from "@tanstack/react-query";
@@ -28,6 +27,8 @@ import { RouteMapFrame } from "@/components/map/route-map";
 import { Body, Button, Card, Empty, Figure, Label, Pill } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
+import { listingPrice } from "@floc/core/trip/explore/listing-price";
+import { useListingRates } from "@/components/explore/use-listing-rates";
 
 /** A listing's bases as map pins — pin number matches base order, as on the web. */
 function bases(trip: PresetTrip) {
@@ -39,6 +40,7 @@ export default function PresetDetail() {
   const router = useRouter();
   const trip = PRESET_TRIPS.find((candidate) => candidate.id === preset);
   const [sheet, setSheet] = useState(false);
+  const rates = useListingRates();
 
   const start = useMutation({
     ...trpc.trips.startFromPreset.mutationOptions(),
@@ -108,7 +110,7 @@ export default function PresetDetail() {
             </View>
             <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
               <Body tone="ink-2">From</Body>
-              <Figure>{formatMoney(trip.priceFromMinor, trip.currency)}</Figure>
+              <Figure>{listingPrice(trip, rates)}</Figure>
             </View>
             <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
               <Body tone="ink-2">Best months</Body>

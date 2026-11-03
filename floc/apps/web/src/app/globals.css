@@ -336,14 +336,17 @@
   --color-green-edge: var(--green-edge);
 
   /*
-   * Soft-toy geometry (ticket 190): generous radii on every surface, and a true
-   * pill (`--radius-pill`) for buttons, badges and segmented controls. `rounded-
-   * sm/md/lg/full` in the components read straight from these tokens, so the
-   * whole set reshapes here.
+   * Three radii, nothing between: `rounded-sm` (8px) for controls, tiles and
+   * rows inside a surface; `rounded-md` (12px) for every card, panel, popover
+   * and dialog; `rounded-full` for pills. A surface at 12px holding a 4px-padded
+   * row at 8px keeps the corners concentric. Do not use `rounded-lg`/`xl` or a
+   * bare px value.
    */
-  --radius-sm: 10px;
-  --radius-md: 16px;
-  --radius-lg: 22px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 12px;
+  --radius-xl: 12px;
+  --radius-2xl: 12px;
   --radius-pill: 999px;
 
   --shadow-card: var(--shadow-sm);

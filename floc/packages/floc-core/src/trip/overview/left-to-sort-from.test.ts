@@ -19,6 +19,6 @@ describe("leftToSortFrom", () => {
       legs: [{ no: 1, placeName: "Lisbon, Portugal", arrive: "2026-11-01", leave: "2026-11-05", nights: 4, stay: null, mode: null }],
     });
     expect(result.open.map((g) => g.text)).toEqual(["You owe Priya £120.00", "No stay booked in Lisbon"]);
-    expect(result.sorted).toBe(1);
+    expect(result.done.map((d) => d.text)).toEqual(["Towels"]);
   });
 });

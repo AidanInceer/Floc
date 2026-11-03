@@ -4,19 +4,36 @@ import Svg, { Circle, Path } from "react-native-svg";
 type Drawing = { paths: string[]; circles?: [number, number, number][] };
 
 const DRAWINGS: Record<string, Drawing> = {
-  "": { paths: ["M2 3h10v8H2zM2 9l3-2.6 2.4 2 2-1.5L12 9.4"] },
-  dates: { paths: ["M2.2 3.4h9.6v8.4H2.2zM2.2 6h9.6M4.8 2v2.4M9.2 2v2.4"] },
-  days: {
-    paths: ["M4.6 3.6h4.6a1.7 1.7 0 0 1 0 3.4H4.8a1.7 1.7 0 0 0 0 3.4h4.6"],
-    circles: [
-      [3.4, 3.6, 1.2],
-      [10.6, 10.4, 1.2],
+  "": {
+    paths: [
+      "M3.6 2h6.8A1.6 1.6 0 0 1 12 3.6v6.8a1.6 1.6 0 0 1-1.6 1.6H3.6A1.6 1.6 0 0 1 2 10.4V3.6A1.6 1.6 0 0 1 3.6 2ZM7 2v10M7 7h5",
     ],
   },
-  money: { paths: ["M8.6 4.6a1.8 1.8 0 0 0-3.1 1.2v3.6H4.6M4.6 7.4h3M5.5 9.4h4"], circles: [[7, 7, 5]] },
-  packing: { paths: ["M3.2 4.6h7.6l-.6 7.4H3.8zM5.2 4.6V3.4a1.8 1.8 0 0 1 3.6 0v1.2"] },
-  notes: { paths: ["M3 1.8h5.4L11 4.4v7.8H3zM8.2 1.8v2.8H11M5 7h4M5 9.4h3"] },
-  files: { paths: ["M1.8 3.2h3.6l1.2 1.4h5.6v7H1.8z"] },
+  dates: {
+    paths: [
+      "M3.4 3h7.2A1.4 1.4 0 0 1 12 4.4v6.4a1.4 1.4 0 0 1-1.4 1.4H3.4A1.4 1.4 0 0 1 2 10.8V4.4A1.4 1.4 0 0 1 3.4 3ZM4.8 1.8v2.4M9.2 1.8v2.4M2 6h10",
+    ],
+  },
+  days: {
+    paths: ["M6 3.6h6M6 7h6M6 10.4h4"],
+    circles: [
+      [2.8, 3.6, 0.9],
+      [2.8, 7, 0.9],
+      [2.8, 10.4, 0.9],
+    ],
+  },
+  money: { paths: ["M3 1.8h8v10.4l-1.3-.9-1.4.9-1.3-.9-1.3.9-1.4-.9-1.3.9ZM5 4.6h4M5 6.6h4"] },
+  packing: {
+    paths: [
+      "M3.8 4.4h6.4a1.4 1.4 0 0 1 1.4 1.4V10a1.4 1.4 0 0 1-1.4 1.4H3.8A1.4 1.4 0 0 1 2.4 10V5.8a1.4 1.4 0 0 1 1.4-1.4ZM5.2 4.4V3a.8.8 0 0 1 .8-.8h2a.8.8 0 0 1 .8.8v1.4M5 4.4v7M9 4.4v7",
+    ],
+  },
+  notes: { paths: ["M3 2h5.6L11 4.4V12H3ZM5 7h4M5 9.4h4"] },
+  files: {
+    paths: [
+      "M1.8 4v7a1 1 0 0 0 1 1h8.4a1 1 0 0 0 1-1V5.6a1 1 0 0 0-1-1H6.6L5.4 3H2.8a1 1 0 0 0-1 1ZM1.8 6.6h10.4",
+    ],
+  },
 };
 
 export function SectionGlyph({ route, color }: { route: string; color: string }) {

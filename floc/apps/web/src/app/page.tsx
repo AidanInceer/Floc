@@ -4,6 +4,7 @@
  * (ticket 187): each stop wears the pastel its trip tab owns, so the marketing
  * page and the product teach one colour language.
  */
+import { headers } from "next/headers";
 import type { Metadata } from "next";
 import { getSession } from "@/server/access";
 import { proPrices } from "@/server/billing/billing";
@@ -25,6 +26,7 @@ import { FeatureFilm } from "@/components/landing/tour/feature-film";
 import { shotFor } from "@/components/landing/tour/tour-shots";
 import { tourSlides } from "@/components/landing/tour/tour-slides";
 import { borrowCards, leadFirst } from "@/lib/landing/borrow";
+import { listingRates, viewerCurrency } from "@/server/money/viewer-currency";
 import { landingFaq } from "@/lib/landing/faq";
 import "@/components/landing/landing.css";
 
@@ -77,6 +79,7 @@ function monthlyPrice(prices: ProPrice[]): string | null {
 export default async function LandingPage() {
   const session = await getSession();
   const signedIn = Boolean(session?.user);
+  const rates = await listingRates(await viewerCurrency(session?.user?.id ?? null, await headers()));
   // Pro is sold after the proof (ADR-019), in its own band and the FAQ. With Pro
   // switched off neither shows, so Stripe's prices are not worth fetching.
   const sellingPro = !allFeaturesFree();
@@ -124,7 +127,7 @@ export default async function LandingPage() {
 
         {/* ── explore ────────────────────────────────────────────────── */}
         <section className="mt-24">
-          <BorrowTrip cards={borrowCards(PRESET_TRIPS, leadFirst(PRESET_TRIPS, BORROW_IDS))} signedIn={signedIn} explore={inspire} />
+          <BorrowTrip cards={borrowCards(PRESET_TRIPS, leadFirst(PRESET_TRIPS, BORROW_IDS), rates)} signedIn={signedIn} explore={inspire} />
         </section>
 
         {/* ── pro ──────────────────────────────────────────────────────── */}

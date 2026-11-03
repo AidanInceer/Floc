@@ -1,5 +1,5 @@
 /**
- * Everything you do *to a trip*, behind one triple-dot in the header.
+ * Everything you do *to a trip*, behind one settings cog at the end of the tab row.
  *
  * The same complaint as ticket 125's roster rows, one level up: leaving lived
  * at the foot of Overview inside a "Trip settings" fold, while archive and
@@ -11,6 +11,8 @@
  * hand out an invite, and a second copy would be two ways to do it.
  */
 import { ConfirmSubmit, Menu } from "@/components/system/client-ui";
+import { CogIcon } from "@/components/system/icons";
+import { titleCase } from "@floc/core/text/title-case";
 import { menuDangerItemClass, menuItemClass } from "@/components/system/ui";
 import { TripColorPicker } from "@/components/trip/trip-color-picker";
 import { TripMarkPicker } from "@/components/trip/trip-mark-picker";
@@ -37,7 +39,11 @@ export function TripMenu({
   mark: TripMark | null;
 }) {
   return (
-    <Menu label="Trip actions">
+    <Menu
+      label="Trip settings"
+      trigger={<CogIcon size={14} />}
+      triggerClassName="flex size-8 items-center justify-center rounded-sm text-ink-faint hover:bg-sheet-3 hover:text-ink-soft data-[open=true]:bg-pen-soft data-[open=true]:text-pen-deep sm:size-6"
+    >
       {/* The trip's colour and mark — any member, same as rename and tags
           (ticket 213, #318). */}
       <TripColorPicker tripId={tripId} current={color} />
@@ -84,7 +90,7 @@ export function TripMenu({
           <input type="hidden" name="redirectTo" value="/trips/archived" />
           <ConfirmSubmit
             variant="ghost"
-            message={`Archive "${tripName}"? It comes off everyone's list and stays readable — any admin can bring it back from Archived.`}
+            message={`Archive "${titleCase(tripName)}"? It comes off everyone's list and stays readable — any admin can bring it back from Archived.`}
             confirmLabel="Archive it"
             pendingLabel="…"
             className={menuItemClass}
@@ -100,7 +106,7 @@ export function TripMenu({
           <input type="hidden" name="redirectTo" value="/trips" />
           <ConfirmSubmit
             variant="ghost"
-            message={`Delete "${tripName}" for everyone? Nobody will be able to reopen it from the app — archive it instead if you might want it back.`}
+            message={`Delete "${titleCase(tripName)}" for everyone? Nobody will be able to reopen it from the app — archive it instead if you might want it back.`}
             confirmLabel="Delete it"
             pendingLabel="…"
             className={menuDangerItemClass}

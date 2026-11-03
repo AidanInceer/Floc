@@ -190,8 +190,6 @@ function MoneyInput({
       onChangeText={onChange}
       keyboardType="decimal-pad"
       inputMode="decimal"
-      placeholder="0.00"
-      placeholderTextColor={c["ink-3"]}
       style={{
         width: 96,
         borderRadius: radius.md,

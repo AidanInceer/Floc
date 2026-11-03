@@ -8,14 +8,13 @@ export const cityOf = (placeName: string) => placeName.split(",")[0];
 
 export const stopDates = (leg: { arrive: string; leave: string }) => `${formatDate(leg.arrive)} – ${formatDate(leg.leave)}`;
 
-/** Same ring and number as the map's pin — one stop drawn twice. */
 export function StopNo({ no, small }: { no: number; small?: boolean }) {
   return (
     <span
       aria-hidden="true"
       className={cx(
-        "nums grid shrink-0 place-items-center rounded-full border-2 border-pen font-mono font-bold text-pen",
-        small ? "size-[22px] text-[10px]" : "size-[26px] text-[11px]",
+        "shrink-0 font-display font-semibold tabular-nums leading-none text-pen",
+        small ? "w-[22px] text-center text-sm" : "border-r-[1.5px] border-rule-strong pr-3 text-xl",
       )}
     >
       {no}
@@ -31,7 +30,7 @@ const KIND: Record<DayEventType, string> = {
 
 export function KindTile({ type, transportType }: { type: DayEventType; transportType: TransportType | null }) {
   return (
-    <span className={cx("relative z-[1] grid size-[26px] shrink-0 place-items-center rounded-lg", KIND[type])}>
+    <span className={cx("relative z-[1] grid size-[26px] shrink-0 place-items-center rounded-sm", KIND[type])}>
       <EventGlyph type={type} transportType={transportType} />
     </span>
   );

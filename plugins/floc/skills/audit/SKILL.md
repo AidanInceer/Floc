@@ -1,6 +1,6 @@
 ---
 name: audit
-description: Walk the whole running Floc website as a signed-in member and report what is wrong or missing — bugs, pages that say something untrue, two pages that disagree, broken house rules, and product gaps measured against the mission, the decision log and the backlog. Reports only; files nothing unless asked. Use when the user says /floc:audit, "review the website", "audit the site", "find what's off", or wants a product review of the live build.
+description: Walk the whole running Floc website as a signed-in member and report what is wrong or missing — bugs, pages that say something untrue, two pages that disagree, broken house rules, and product gaps measured against the mission, the decision log and the backlog. Reports in chat and in docs/process/site-audit.html (replaced each run); files nothing unless asked. Use when the user says /floc:audit, "review the website", "audit the site", "find what's off", or wants a product review of the live build.
 ---
 
 In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
@@ -75,17 +75,29 @@ Every finding needs proof that you saw yourself: the page text, a screenshot,
 or the line of code that causes it (`path:line`). If you could not confirm it,
 leave it out. Do not report a guess as a fact.
 
-## Report
+## 5. Report
 
 Group the findings in this order, most important first. Each finding is one or
-two lines: what you saw, where it is, and the rule or ADR it breaks.
+two lines: what you saw, where it is, and the rule or ADR it breaks. Number
+them straight through (1, 2, 3 …) across the groups.
 
 1. **Untrue** — wrong numbers, pages that disagree, hidden facts.
 2. **Bugs** — errors, broken flows.
 3. **Rule breaks** — house rules and invariants, with a count.
-4. **Streamline or remove** — noise, text that repeats, controls that do nothing.
-5. **Phone** — what fails at 375.
-6. **Gaps** — what to add, each tied to the mission. Cite an open ticket where
+4. **Fit the moment** — a page that asks for the wrong thing for the trip's state.
+5. **Streamline or remove** — noise, text that repeats, controls that do nothing.
+6. **Phone** — what fails at 375.
+7. **Gaps** — what to add, each tied to the mission. Cite an open ticket where
    one exists.
+
+### Publish it
+
+Write the same findings to `docs/process/site-audit.html`, one table per group,
+from the scaffold in [REPORT.md](REPORT.md). **Overwrite the file every run** —
+it holds the latest audit only, never a history. It sits under Process in the
+docs sidebar (`site-audit` in `TREE`); keep the id and path. Run `pnpm docs:check`.
+
+Open it with PowerShell: `Start-Process "docs\process\site-audit.html"`. Give
+the path in chat, then the findings in the same order and numbers.
 
 End with one line that asks which findings to file as tickets or fix now.

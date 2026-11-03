@@ -18,6 +18,10 @@ prompt, and any named ticket(s) (`gh issue view <n>`). Multiple tickets is
 fine. State the scope back in one line and start — ask only if a missing
 detail blocks correct work.
 
+Built from a prototype? Make sure its `wf-status` reads `Chosen: <key>` before you
+start. Set it now if the user picked in chat
+([the tag follows the work](../prototype/SKILL.md#the-tag-follows-the-work)).
+
 ## 2. Both surfaces running
 
 Confirm web (`:3000`) and app (Metro `:8081` + emulator) answer. If either is

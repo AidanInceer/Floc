@@ -122,7 +122,7 @@ export function DayColumn({
           key={from}
           type="button"
           onClick={() => onAdd(day.id, from, to)}
-          className="absolute inset-x-1.5 z-[1] flex items-center justify-center gap-1.5 rounded-lg border-[1.5px] border-dashed border-rule-strong text-[12.5px] text-ink-faint transition-colors hover:border-pen hover:bg-pen-soft hover:text-pen-deep"
+          className="absolute inset-x-1.5 z-[1] flex items-center justify-center gap-1.5 rounded-sm border-[1.5px] border-dashed border-rule-strong text-[12.5px] text-ink-faint transition-colors hover:border-pen hover:bg-pen-soft hover:text-pen-deep"
           style={{ top: minutesToY(from) + 4, height: minutesToY(to) - minutesToY(from) - 8 }}
         >
           <PlusIcon size={12} />
@@ -265,7 +265,7 @@ function EventBlock({
       className={cx(
         // `scroll-mt-32` keeps the block clear of the sticky head when focusing
         // it scrolls it into view (see `scrollPaddingTop`).
-        "absolute z-[2] flex scroll-mt-32 overflow-hidden rounded-lg border text-left leading-tight",
+        "absolute z-[2] flex scroll-mt-32 overflow-hidden rounded-sm border text-left leading-tight",
         EVENT_CATEGORIES[event.type].block,
         tight ? "flex-row items-center gap-2 px-2" : "flex-col gap-0.5",
         !tight && (focus ? "px-3 py-2" : "px-2 py-1.5 max-sm:p-0"),

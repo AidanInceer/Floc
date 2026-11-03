@@ -14,7 +14,7 @@ export function GuestPanel({ title, aside, place, answer, signUpHref, children }
 }) {
   const outcome = answer.outcomeAt(place);
   return (
-    <section className="rounded-xl border border-rule bg-sheet px-4 pb-3 pt-3">
+    <section className="rounded-md border border-rule bg-sheet px-4 pb-3 pt-3">
       <div className="flex min-h-9 items-center justify-between gap-3">
         <h2 className="font-display text-lg">{title}</h2>
         {aside}

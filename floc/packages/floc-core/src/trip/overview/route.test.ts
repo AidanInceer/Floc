@@ -7,6 +7,7 @@ const leg = (no: number, placeId: number, placeName: string, firstDay: number, m
   placeId,
   placeName,
   days: [{ dayId: firstDay }],
+  nights: 1,
   mode,
 });
 
@@ -35,14 +36,14 @@ describe("overviewRoute", () => {
     ]);
   });
 
-  it("counts a stop's nights as the days the group sleeps there (rule 3)", () => {
+  it("counts a stop's nights as the leg does, so the trip's last day is no night (rule 3)", () => {
     const route = overviewRoute({
-      legs: [{ ...leg(1, 1, "Porto", 10), days: [{ dayId: 10 }, { dayId: 11 }, { dayId: 12 }] }],
+      legs: [{ ...leg(1, 1, "Porto", 10), days: [{ dayId: 10 }, { dayId: 11 }, { dayId: 12 }], nights: 2 }],
       days: [PORTO],
       hops: new Map(),
     });
 
-    expect(route.stops[0].nights).toBe(3);
+    expect(route.stops[0].nights).toBe(2);
   });
 
   it("names a leg with no pin instead of drawing it (rule 11)", () => {

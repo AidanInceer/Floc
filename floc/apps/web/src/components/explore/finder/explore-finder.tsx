@@ -15,9 +15,10 @@ import { TripPassDialog } from "@/components/explore/finder/trip-pass-dialog";
 import { Dialog } from "@/components/system/dialog";
 import { LineIcon } from "@/components/system/icons";
 import { Button } from "@/components/system/ui";
+import { useListingRates } from "@/components/explore/listing-rates";
 
 const sheetClass =
-  "m-0 mt-auto max-h-[90dvh] w-full max-w-none overflow-y-auto rounded-t-[22px] bg-sheet p-0 text-ink backdrop:bg-black/40 sm:mx-auto sm:max-w-lg lg:hidden";
+  "m-0 mt-auto max-h-[90dvh] w-full max-w-none overflow-y-auto rounded-t-md bg-sheet p-0 text-ink backdrop:bg-black/40 sm:mx-auto sm:max-w-lg lg:hidden";
 
 /**
  * Every trip, with the finder beside it: what must fit filters, what you like ranks and never hides.
@@ -25,6 +26,7 @@ const sheetClass =
  */
 export function ExploreFinder({ signedIn, initialFinder }: { signedIn: boolean; initialFinder: Finder }) {
   const [finder, setFinder] = useState(initialFinder);
+  const rates = useListingRates();
   const [sort, setSort] = useState<FinderSort>("match");
   const [like, setLike] = useState<string | null>(null);
   const [sheet, setSheet] = useState(false);
@@ -53,7 +55,7 @@ export function ExploreFinder({ signedIn, initialFinder }: { signedIn: boolean; 
 
   const pills = [
     ...(liked ? [{ id: "like", label: `Like ${liked.title}`, dark: true, onClear: () => setLike(null) }] : []),
-    ...finderPills(finder).map((p) => ({ id: p.id, label: p.label, onClear: () => change(p.clear) })),
+    ...finderPills(finder, rates).map((p) => ({ id: p.id, label: p.label, onClear: () => change(p.clear) })),
   ];
   const rail = { finder, counts, shown: rows.length, onChange: change, onClear: () => { change(EMPTY_FINDER); setLike(null); } };
 
@@ -83,7 +85,7 @@ export function ExploreFinder({ signedIn, initialFinder }: { signedIn: boolean; 
           <FinderRail {...rail} />
         </aside>
         <div ref={top} className="scroll-mt-20">
-          <FinderBar shown={rows.length} set={finderPills(finder).length + finder.likes.length} pills={pills} onOpen={() => setSheet(true)} />
+          <FinderBar shown={rows.length} set={finderPills(finder, rates).length + finder.likes.length} pills={pills} onOpen={() => setSheet(true)} />
           <FinderResults rows={rows} likes={finder.likes} split={sort === "match" && !like && finder.likes.length > 0} signedIn={signedIn} onPick={setOpen} onLike={moreLike} />
         </div>
       </div>

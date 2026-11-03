@@ -26,7 +26,7 @@ export function StopPanel({
   events: Map<number, DayEventRow[]>;
 }) {
   return (
-    <section id={`stop-${leg.no}`} className="scroll-mt-4 rounded-xl border border-rule-strong bg-sheet px-3 pb-2 pt-4 sm:px-[18px] sm:pb-3">
+    <section id={`stop-${leg.no}`} className="scroll-mt-4 rounded-md border border-rule-strong bg-sheet px-3 pb-2 pt-4 sm:px-[18px] sm:pb-3">
       <header className="flex flex-wrap items-center gap-x-3 gap-y-1">
         <StopNo no={leg.no} />
         <h3 className="font-display text-xl tracking-[-0.02em]">{cityOf(leg.placeName)}</h3>

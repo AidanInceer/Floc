@@ -95,3 +95,10 @@ What has worked, round by round, on the landing wireframes:
 | `/floc:release` deploys it | `Shipped <version>` (`Shipped <version> as G2` if it had variants) | `/floc:release` does this after the deploy reports `success`. |
 
 A `Chosen` prototype built but not pushed keeps plain `Chosen: G2`. Edit the tag in the prototype's `index.html` only; `floc/wireframe/` is gitignored, so this never enters a commit.
+
+**Move the tag in the same turn as the event, never later.** A missed step leaves a pick reading `Chosen` long after it shipped.
+
+- **The user names a variant** ("option D please", "go with G2") → set `Chosen: <key>` and `wf-picked` *before* you start building it, whatever skill you are in.
+- **A round closes** → the page ends in exactly one state: `Chosen`, `Parked`, `Experiment`, or `Exploring` while the user is still deciding. Never leave `Exploring` on a page the user has answered.
+- **A later prototype answers the same question** → set the older folder to `Parked: <key>, chosen in <folder>`. The same applies when the build took its answer from another folder.
+- **Check with `pnpm wireframe:tags`.** It lists every tag that is out of step: picks on develop, `Chosen` with no version, and `Exploring`. `--write` moves every `Chosen: <key>, on develop <v>` to `Shipped <v> as <key>` once main holds `<v>`.

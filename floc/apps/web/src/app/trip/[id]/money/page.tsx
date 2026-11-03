@@ -120,6 +120,11 @@ export default async function MoneyPage({
     <div className="mx-auto w-full max-w-[64rem] px-4 pb-20 pt-6 sm:px-6">
       <header className="flex flex-wrap items-end justify-between gap-6">
         <PageTitle>Money</PageTitle>
+        {hasActivity ? (
+          <Sheet trigger="Add expense" title="Expense" keepOpenOnSubmit>
+            {addForm}
+          </Sheet>
+        ) : null}
       </header>
 
       {!hasActivity ? (
@@ -127,18 +132,13 @@ export default async function MoneyPage({
       ) : (
         <div className="mt-8 flex flex-col gap-4">
           {settled ? (
-            <SettledBanner addForm={addForm} />
+            <SettledBanner />
           ) : (
             <SettleUpPanel tripId={tripId} viewerId={viewerId} settle={settle} label={label} tone={tone} />
           )}
 
           <ActivityFeed
             collapsed={settled}
-            action={
-              <Sheet trigger="Add expense" title="Expense" keepOpenOnSubmit>
-                {addForm}
-              </Sheet>
-            }
             tripId={tripId}
             viewerId={viewerId}
             expenses={expenses}
@@ -178,9 +178,9 @@ function EmptyMoney({ addForm }: { addForm: React.ReactNode }) {
   );
 }
 
-function SettledBanner({ addForm }: { addForm: React.ReactNode }) {
+function SettledBanner() {
   return (
-    <section className="rounded-lg bg-pastel-green px-6 py-9 text-center text-pastel-green-ink">
+    <section className="rounded-md bg-pastel-green px-6 py-9 text-center text-pastel-green-ink">
       <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-sheet text-pastel-green-ink">
         <svg
           width={24}
@@ -198,16 +198,6 @@ function SettledBanner({ addForm }: { addForm: React.ReactNode }) {
       </span>
       <SectionHeading className="mt-3">Trip settled up</SectionHeading>
       <p className="mt-1 text-sm opacity-80">Everyone&rsquo;s square.</p>
-      <div className="mt-5 flex justify-center">
-        <Sheet
-          trigger="Add expense"
-          title="Expense"
-          triggerVariant="secondary"
-          keepOpenOnSubmit
-        >
-          {addForm}
-        </Sheet>
-      </div>
     </section>
   );
 }
@@ -267,10 +257,10 @@ function SettleUpPanel({
   };
 
   const column = (title: string, empty: string, note: string, rows: SettleRow[]) => (
-    <section className="rounded-lg bg-sheet p-6">
+    <section className="rounded-md bg-sheet p-6">
       <SectionHeading className="border-b border-rule pb-3">{title}</SectionHeading>
       {rows.length === 0 ? (
-        <p className="flex min-h-[8rem] flex-col items-center justify-center gap-1 text-center">
+        <p className="flex min-h-[5rem] flex-col md:min-h-[8rem] items-center justify-center gap-1 text-center">
           <span className="font-display text-xl text-pastel-green-ink">{empty}</span>
           <span className="text-sm text-ink-soft">{note}</span>
         </p>
@@ -288,7 +278,7 @@ function SettleUpPanel({
         {column("You are owed", "Nothing to chase", "Everyone has paid you back.", settle.rows.filter((r) => r.payee === viewerId))}
       </div>
       {others.length > 0 ? (
-        <section className="rounded-lg bg-sheet px-6 py-4">
+        <section className="rounded-md bg-sheet px-6 py-4">
           <h3 className="text-xs font-medium text-ink-soft">Between the others</h3>
           <ul className="mt-1 flex flex-col">
             {others.map((r) => (
@@ -328,7 +318,7 @@ function PairSummary({ row, viewerId, rateDate, label }: { row: SettleRow; viewe
         <p className="nums font-display text-4xl tracking-tight">{formatMoney(row.amountMinor, row.currency)}</p>
         <p className="mt-1 text-sm text-ink-soft">{youPay ? `from you to ${other}` : `from ${other} to you`}</p>
       </div>
-      <dl className="rounded-lg bg-sheet-2 px-4 py-1 text-sm">
+      <dl className="rounded-md bg-sheet-2 px-4 py-1 text-sm">
         {lines.map((l) => (
           <div key={l.key} className="flex items-baseline justify-between gap-4 border-b border-rule py-2.5">
             <dt className="text-ink-soft">{l.owedBy}</dt>

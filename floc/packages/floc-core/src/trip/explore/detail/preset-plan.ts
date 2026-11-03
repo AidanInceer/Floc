@@ -1,8 +1,8 @@
-import { formatMoney } from "../../../money/money";
 import type { TransportType } from "../../../vocabulary";
 import { stopsOf } from "../listing-stops";
 import type { PresetTrip } from "../preset-trip-types";
 import type { PresetAdvice, PresetDay, PresetDetail, PresetFact, PresetFigure } from "./preset-detail-types";
+import { listingPrice, type ListingRates } from "../listing-price";
 
 export type PlanDay = PresetDay & { n: number };
 
@@ -54,16 +54,16 @@ function derivedFigures(trip: PresetTrip, stops: PlanStop[]): PresetFigure[] {
 
 export const DERIVED_FACT_LABELS: readonly string[] = ["Group", "Best in", "Cost"];
 
-function derivedFacts(trip: PresetTrip): PresetFact[] {
+function derivedFacts(trip: PresetTrip, rates: ListingRates | null): PresetFact[] {
   return [
     { label: "Group", text: trip.groupSize },
     { label: "Best in", text: trip.bestMonths },
-    { label: "Cost", text: `From ${formatMoney(trip.priceFromMinor, trip.currency)} each. Nothing is booked for you.` },
+    { label: "Cost", text: `From ${listingPrice(trip, rates)} each. Nothing is booked for you.` },
   ];
 }
 
 /** Everything the page for one listing draws. Never throws on thin or mismatched detail — it shows less. */
-export function buildPresetPlan(trip: PresetTrip, detail: PresetDetail | null): PresetPlan {
+export function buildPresetPlan(trip: PresetTrip, detail: PresetDetail | null, rates: ListingRates | null = null): PresetPlan {
   const stops = routeStops(trip);
   let n = 0;
   for (const [i, stop] of stops.entries()) {
@@ -78,7 +78,7 @@ export function buildPresetPlan(trip: PresetTrip, detail: PresetDetail | null): 
     dayCount: n,
     inPlan: detail?.inPlan.length ? detail.inPlan : derivedFigures(trip, stops),
     advice: detail?.advice ?? [],
-    goodToKnow: [...(detail?.goodToKnow ?? []), ...derivedFacts(trip)],
+    goodToKnow: [...(detail?.goodToKnow ?? []), ...derivedFacts(trip, rates)],
     detailed: n > 0,
   };
 }

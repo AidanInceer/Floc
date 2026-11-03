@@ -14,21 +14,24 @@ export function StopDay({ tripId, date, events }: { tripId: number; date: string
   const [first] = events;
   return (
     <li className="border-t border-rule">
-      <details className="group/day my-0.5 rounded-lg open:bg-paper">
-        <summary className="grid cursor-pointer list-none grid-cols-[32px_26px_minmax(0,1fr)_auto_14px] items-center gap-3 rounded-lg px-1.5 py-2 hover:bg-paper [&::-webkit-details-marker]:hidden">
-          <span className="nums grid size-8 place-content-center rounded-[9px] bg-sheet-2 text-center text-[13px] leading-none text-ink-soft group-open/day:bg-ink group-open/day:text-sheet">
+      <details className="group/day my-0.5 rounded-sm open:bg-paper">
+        <summary className="grid cursor-pointer list-none grid-cols-[32px_26px_minmax(0,1fr)_auto_14px] items-center gap-3 rounded-sm px-1.5 py-2 hover:bg-paper [&::-webkit-details-marker]:hidden">
+          <span className="nums grid size-8 place-content-center rounded-sm bg-sheet-2 text-center text-[13px] leading-none text-ink-soft group-open/day:bg-ink group-open/day:text-sheet">
             <span className="mb-0.5 text-[7px] uppercase tracking-[0.08em]">{weekday}</span>
             {day}
           </span>
           {first ? (
             <KindTile type={first.type} transportType={first.transportType} />
           ) : (
-            <span className="size-[26px] rounded-lg border-[1.5px] border-dashed border-rule-strong" />
+            <span className="size-[26px] rounded-sm border-[1.5px] border-dashed border-rule-strong" />
           )}
           {first ? (
             <span className="truncate text-sm text-ink">{label(first)}</span>
           ) : (
-            <span className="truncate text-sm italic text-ink-faint">Nothing planned</span>
+            <span className="text-sm text-ink-faint">
+              <span aria-hidden>…</span>
+              <span className="sr-only">Nothing planned</span>
+            </span>
           )}
           <span className="nums text-xs text-ink-faint">{events.length > 1 ? `+${events.length - 1}` : ""}</span>
           <ChevronIcon direction="down" size={14} className="text-ink-faint transition-transform group-open/day:rotate-180" />

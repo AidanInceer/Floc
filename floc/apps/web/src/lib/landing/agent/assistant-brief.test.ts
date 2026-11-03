@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-import { PROMPT_TEXT } from "./agent-prompt";
 import { ASSISTANTS, BRIEF_MAX, askHref, briefFor } from "./assistant-brief";
 
 const ORIGIN = "https://floc.example";
@@ -18,8 +17,11 @@ describe("briefFor", () => {
     expect(briefFor(ORIGIN, "  Lisbon.\n\n")).toContain("guidance:\n\nLisbon.\n\nLay it out");
   });
 
-  it("sends the Sicily sample when the guidance is left empty, as the box shows it", () => {
-    expect(briefFor(ORIGIN, "   ")).toContain(`guidance:\n\n${PROMPT_TEXT}\n\n`);
+  it("asks without guidance when the box is left empty, never sending words the group did not write", () => {
+    expect(briefFor(ORIGIN, "   ")).toBe(
+      "Plan a trip with Floc (https://floc.example).\n\n" +
+        "Lay it out day by day, with where we sleep each night, so we can add it to our Floc trip.",
+    );
   });
 
   it("caps the guidance so the link stays a length every assistant accepts", () => {

@@ -31,7 +31,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    border-radius: 28px 28px 0 0;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
     background: var(--sheet);
     box-shadow: var(--shadow-lift);
     transform: translateY(var(--rise, 100vh));
@@ -49,7 +49,7 @@
     margin: 24px auto 0;
     overflow: hidden;
     border: 1px solid var(--rule);
-    border-radius: 28px;
+    border-radius: var(--radius-md);
     background: var(--sheet);
     box-shadow: var(--shadow);
   }

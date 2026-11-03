@@ -1,14 +1,15 @@
 "use client";
 
-import { formatMoney } from "@floc/core/money/money";
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 import type { ReactNode } from "react";
 
 import { skinFor } from "@/components/explore/listing";
 import { OutlineMap } from "@/components/explore/outline/outline-map";
 import { cx } from "@/components/system/ui";
+import { listingPrice } from "@floc/core/trip/explore/listing-price";
+import { useListingRates } from "@/components/explore/listing-rates";
 
-export const tagClass = "typed w-fit max-w-full truncate rounded-md px-2 py-1";
+export const tagClass = "typed w-fit max-w-full truncate rounded-sm px-2 py-1";
 
 const nightsOf = (n: number) => `${n} ${n === 1 ? "night" : "nights"}`;
 
@@ -27,8 +28,9 @@ export function ExploreTile({
   children?: ReactNode;
   footer?: ReactNode;
 }) {
+  const rates = useListingRates();
   return (
-    <div className="lift flex h-full flex-col overflow-hidden rounded-[18px] bg-sheet shadow-[var(--shadow)]">
+    <div className="lift flex h-full flex-col overflow-hidden rounded-md bg-sheet shadow-[var(--shadow)]">
       <button type="button" onClick={() => onPick(trip.id)} className="flex w-full flex-col text-left">
         <span aria-hidden className="pointer-events-none block aspect-[24/17] w-full bg-sheet-2">
           <OutlineMap trip={trip} size="tile" />
@@ -37,7 +39,7 @@ export function ExploreTile({
           <span className={cx(tagClass, skinFor(trip), "mb-1")}>{trip.country}</span>
           <b className="font-display text-base font-semibold leading-tight tracking-[-0.02em]">{trip.title}</b>
           <span className="nums text-[11.5px] text-ink-faint">
-            {nightsOf(trip.nights)} · {formatMoney(trip.priceFromMinor, trip.currency)}
+            {nightsOf(trip.nights)} · {listingPrice(trip, rates)}
           </span>
           {children}
         </span>

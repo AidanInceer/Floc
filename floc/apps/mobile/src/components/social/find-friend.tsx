@@ -96,7 +96,7 @@ export function FindFriend({ code }: { code: string }) {
     <View style={{ gap: space.sm }}>
       <Label>Find someone</Label>
       <SearchField
-        placeholder="Name or friend code"
+        label="Name or friend code"
         value={query}
         onChangeText={setQuery}
         onSubmitEditing={search}

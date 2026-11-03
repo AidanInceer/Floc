@@ -118,7 +118,7 @@ export function FaceEditor({
         aria-expanded={open}
         aria-haspopup="dialog"
         aria-label={`Change your name and picture, ${name}`}
-        className="-m-1.5 flex min-w-0 items-center gap-4 rounded-lg p-1.5 text-left transition-colors hover:bg-sheet-2"
+        className="-m-1.5 flex min-w-0 items-center gap-4 rounded-sm p-1.5 text-left transition-colors hover:bg-sheet-2"
       >
         <span className="relative shrink-0">
           <Avatar name={shownName} icon={shownIcon} size={64} />
@@ -138,7 +138,7 @@ export function FaceEditor({
         <div
           role="dialog"
           aria-label="Your name and picture"
-          className="fixed inset-x-0 bottom-0 rounded-t-lg border border-rule bg-sheet p-4 shadow-lift sm:absolute sm:inset-x-auto sm:bottom-auto sm:left-0 sm:top-full sm:mt-3 sm:w-[356px] sm:rounded-lg"
+          className="fixed inset-x-0 bottom-0 rounded-t-md border border-rule bg-sheet p-4 shadow-lift sm:absolute sm:inset-x-auto sm:bottom-auto sm:left-0 sm:top-full sm:mt-3 sm:w-[356px] sm:rounded-md"
         >
           <form action={save} className="flex flex-col gap-3.5">
             <Field label="Name">

@@ -89,7 +89,7 @@ export function TripCopyCard({
   startOpen?: boolean;
 }) {
   return (
-    <aside className="rounded-lg border border-rule-strong bg-sheet p-5 shadow-raised lg:sticky lg:top-20">
+    <aside className="rounded-md border border-rule-strong bg-sheet p-5 shadow-raised lg:sticky lg:top-20">
       <p className="typed">Make it yours</p>
       <h2 className="mt-1.5 text-xl">Copy this trip</h2>
       {stops.some((s) => s.days.length > 0) ? <OpenDays stops={stops} open={open} onJump={onJump} /> : null}

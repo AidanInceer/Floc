@@ -85,6 +85,40 @@ export function ArrowUpIcon(props: IconProps) {
   );
 }
 
+export function MoonIcon(props: IconProps) {
+  return (
+    <LineIcon {...props}>
+      <path d="M10.9 9.4A4.6 4.6 0 0 1 6 2a5 5 0 1 0 4.9 7.4Z" />
+    </LineIcon>
+  );
+}
+
+export function UploadIcon(props: IconProps) {
+  return (
+    <LineIcon {...props}>
+      <path d="M7 9.4V2.6M4.4 5.2 7 2.6l2.6 2.6M2.4 9.4v1.4a1 1 0 0 0 1 1h7.2a1 1 0 0 0 1-1V9.4" />
+    </LineIcon>
+  );
+}
+
+/** Leaves Floc for another site. */
+export function OutIcon(props: IconProps) {
+  return (
+    <LineIcon {...props}>
+      <path d="M5 2.5h6.5V9M11.5 2.5 2.5 11.5" />
+    </LineIcon>
+  );
+}
+
+export function CogIcon(props: IconProps) {
+  return (
+    <LineIcon {...props}>
+      <circle cx="7" cy="7" r="1.9" />
+      <path d="M6.1 1.6h1.8l.3 1.5 1.1.6 1.4-.5.9 1.6-1.1 1v1.4l1.1 1-.9 1.6-1.4-.5-1.1.6-.3 1.5H6.1l-.3-1.5-1.1-.6-1.4.5-.9-1.6 1.1-1V6.3l-1.1-1 .9-1.6 1.4.5 1.1-.6Z" />
+    </LineIcon>
+  );
+}
+
 const CHEVRON = {
   down: "M3.4 5.4 7 9l3.6-3.6",
   up: "M3.4 8.6 7 5l3.6 3.6",

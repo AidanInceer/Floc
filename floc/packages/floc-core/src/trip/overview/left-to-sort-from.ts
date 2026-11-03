@@ -1,7 +1,7 @@
 import type { IsoDate } from "../../dates/dates";
 import { datesMoment } from "../../dates/dates-moment";
 import type { SettleRow } from "../../money/group-settle";
-import { leftToSort, type Gap } from "./left-to-sort";
+import { leftToSort, type LeftToSort } from "./left-to-sort";
 
 export type LeftToSortSource = {
   trip: { startDate: IsoDate | null; endDate: IsoDate | null };
@@ -18,7 +18,7 @@ export type LeftToSortSource = {
 };
 
 /** The facts both surfaces hold, turned into `leftToSort`'s input, so web and phone list the same gaps (#460). */
-export function leftToSortFrom(source: LeftToSortSource): { open: Gap[]; sorted: number } {
+export function leftToSortFrom(source: LeftToSortSource): LeftToSort {
   const nameOf = new Map(source.members.map((m) => [m.userId, m.name]));
   const owe = source.settle.filter((r) => r.payer === source.viewerId);
   return leftToSort({
