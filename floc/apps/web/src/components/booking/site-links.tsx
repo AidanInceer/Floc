@@ -1,13 +1,6 @@
 import type { BookingLink } from "@floc/core/trip/booking-links";
+import { OutIcon } from "@/components/system/icons";
 import { ExternalButtonLink } from "@/components/system/ui";
-
-function OutIcon() {
-  return (
-    <svg width={11} height={11} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.2} aria-hidden>
-      <path d="M5 2.5h6.5V9M11.5 2.5 2.5 11.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
 
 export function SiteLinks({ links }: { links: BookingLink[] }) {
   return (
@@ -15,7 +8,7 @@ export function SiteLinks({ links }: { links: BookingLink[] }) {
       {links.map((l) => (
         <ExternalButtonLink key={l.site} href={l.url}>
           {l.site}
-          <OutIcon />
+          <OutIcon size={11} />
           <span className="sr-only">(opens another site)</span>
         </ExternalButtonLink>
       ))}

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 
 import { NavGlyph } from "@/components/chrome/nav-glyphs";
 import { useEdgeFade } from "@/components/chrome/use-edge-fade";
@@ -11,7 +11,7 @@ import { type TabState } from "@/lib/tabs";
 
 // Every tab is navigable from day one (ticket 126); no un-clickable stubs.
 // The current glyph takes the same blue tile as the place above it in the top bar.
-export function TripTabs({ tripId, tabs }: { tripId: number; tabs: TabState[] }) {
+export function TripTabs({ tripId, tabs, children }: { tripId: number; tabs: TabState[]; children?: ReactNode }) {
   const pathname = usePathname();
   const hrefOf = (tab: TabState) => `/trip/${tripId}/${tab.key}`;
   const current = activeHref(pathname, tabs.map(hrefOf));
@@ -26,7 +26,7 @@ export function TripTabs({ tripId, tabs }: { tripId: number; tabs: TabState[] })
   }, [nav, current]);
 
   return (
-    <div className="flex min-w-0 flex-1 justify-center">
+    <div className="flex min-w-0 flex-1 items-center justify-center gap-2 sm:gap-5">
       <nav
         ref={fade.ref}
         onScroll={fade.onScroll}
@@ -49,6 +49,8 @@ export function TripTabs({ tripId, tabs }: { tripId: number; tabs: TabState[] })
           </Link>
         ))}
       </nav>
+      {/* Why: outside the nav, which scrolls sideways and would clip the menu's panel. */}
+      {children}
     </div>
   );
 }

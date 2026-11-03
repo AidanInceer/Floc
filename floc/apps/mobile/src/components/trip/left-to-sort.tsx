@@ -22,14 +22,14 @@ export function LeftToSort({ open, sorted, onGo }: { open: Gap[]; sorted: number
       <View style={{ gap: space.sm }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
           <View
-            accessibilityRole="image"
-            accessibilityLabel={`${sorted} of ${total} sorted`}
+            accessible={false}
+            importantForAccessibility="no-hide-descendants"
             style={{ width: 64, height: 6, borderRadius: radius.pill, backgroundColor: c["sheet-2"], overflow: "hidden" }}
           >
             <View style={{ width: `${Math.round((sorted / total) * 100)}%`, height: "100%", backgroundColor: c["pastel-green-ink"] }} />
           </View>
           <Text style={small}>
-            <Text style={{ color: c.ink, fontFamily: fonts.display, fontSize: size.body }}>{open.length}</Text> left to sort
+            <Text style={{ color: c.ink, fontFamily: fonts.display, fontSize: size.body }}>{sorted}</Text> of {total} sorted
           </Text>
           <Pressable
             accessibilityRole="button"
@@ -53,7 +53,7 @@ export function LeftToSort({ open, sorted, onGo }: { open: Gap[]; sorted: number
               <Pressable key={gap.key} accessibilityRole="link" onPress={() => onGo(gap)} style={{ gap: 2 }}>
                 <Text style={{ color: c.ink, fontFamily: fonts.sans, fontSize: size.small }}>{gap.text}</Text>
                 <Text style={small}>
-                  {gap.sub ? `${gap.sub} · ` : ""}
+                  {gap.sub ? `${gap.sub.join(" · ")} · ` : ""}
                   {gap.action}
                 </Text>
               </Pressable>

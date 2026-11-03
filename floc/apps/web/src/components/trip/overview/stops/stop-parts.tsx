@@ -14,7 +14,7 @@ export function StopNo({ no, small }: { no: number; small?: boolean }) {
     <span
       aria-hidden="true"
       className={cx(
-        "nums grid shrink-0 place-items-center rounded-full border-2 border-pen font-mono font-bold text-pen",
+        "nums grid shrink-0 place-items-center rounded-full border-2 border-pen font-mono font-bold leading-none text-pen [text-box:trim-both_cap_alphabetic]",
         small ? "size-[22px] text-[10px]" : "size-[26px] text-[11px]",
       )}
     >

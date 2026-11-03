@@ -45,14 +45,6 @@ export function SunIcon() {
   );
 }
 
-export function MoonIcon() {
-  return (
-    <Line>
-      <path d="M10.9 9.4A4.6 4.6 0 0 1 6 2a5 5 0 1 0 4.9 7.4Z" />
-    </Line>
-  );
-}
-
 /** Auto follows the device, so it is drawn as one. */
 export function DeviceIcon() {
   return (

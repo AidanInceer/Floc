@@ -6,6 +6,7 @@ import { filesByCategory } from "@floc/core/trip/overview/legs";
 import { cx } from "@/components/system/ui";
 import { DocCategoryIcon } from "@/components/documents/doc-category-icon";
 import { DocumentUpload } from "@/components/documents/document-upload";
+import { UploadIcon } from "@/components/system/icons";
 
 const TINT: Record<DocCategory, string> = {
   travel: "bg-pastel-blue text-pastel-blue-ink",
@@ -59,10 +60,3 @@ export function OverviewFiles({ tripId, files }: { tripId: number; files: { cate
   );
 }
 
-function UploadIcon() {
-  return (
-    <svg viewBox="0 0 14 14" width={13} height={13} fill="none" stroke="currentColor" strokeWidth={1.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M7 9.4V2.6M4.4 5.2 7 2.6l2.6 2.6M2.4 9.4v1.4a1 1 0 0 0 1 1h7.2a1 1 0 0 0 1-1V9.4" />
-    </svg>
-  );
-}

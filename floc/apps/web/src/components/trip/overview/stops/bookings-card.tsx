@@ -1,4 +1,4 @@
-// Every file on a stop, with + for another. What is missing gets the words (house rule): the stay, and where to find one.
+// Every file on a stop, an upload for another, and a way out to find a stay.
 import Link from "next/link";
 
 import type { BookingLink } from "@floc/core/trip/booking-links";
@@ -7,7 +7,7 @@ import type { TripDocument } from "@/server/documents/documents";
 import { DocCategoryIcon } from "@/components/documents/doc-category-icon";
 import { DocumentUpload } from "@/components/documents/document-upload";
 import { Menu } from "@/components/system/client-ui";
-import { PlusIcon } from "@/components/system/icons";
+import { OutIcon, UploadIcon } from "@/components/system/icons";
 import { menuItemClass } from "@/components/system/ui";
 import { StopNo, cityOf, stopDates } from "./stop-parts";
 
@@ -33,7 +33,6 @@ export function BookingsCard({ tripId, legs, wholeTrip, files, stays }: Props) {
             </a>
             <div className="flex flex-wrap items-center gap-1.5 pl-8">
               {files ? leg.files.map((f) => <FileChip key={f.id} tripId={tripId} file={f} />) : null}
-              {leg.stay ? null : <span className="text-sm text-ink-faint">No stay yet</span>}
               {files ? <AddFile tripId={tripId} dayId={leg.days[0].dayId} place={cityOf(leg.placeName)} /> : null}
               {leg.stay ? null : <FindStay place={cityOf(leg.placeName)} links={stays.get(leg.placeId) ?? []} />}
             </div>
@@ -78,7 +77,7 @@ function AddFile({ tripId, dayId, place }: { tripId: number; dayId?: number; pla
       bareTrigger
       trigger={
         <>
-          <PlusIcon size={12} />
+          <UploadIcon size={12} />
           <span className="sr-only">{title}</span>
         </>
       }
@@ -93,8 +92,8 @@ function FindStay({ place, links }: { place: string; links: BookingLink[] }) {
     <Menu
       label={`Find a stay in ${place}`}
       align="left"
-      trigger="Find"
-      triggerClassName="rounded-full border border-dashed border-rule-strong px-2.5 py-0.5 text-xs text-ink-soft hover:border-solid hover:text-ink data-[open=true]:bg-sheet-2"
+      trigger={<OutIcon size={11} />}
+      triggerClassName="grid size-6 place-items-center rounded-full border border-dashed border-rule-strong text-ink-soft hover:border-solid hover:border-pen hover:text-pen data-[open=true]:bg-sheet-2"
     >
       {links.map((l) => (
         <a key={l.site} href={l.url} target="_blank" rel="noopener noreferrer" className={menuItemClass}>

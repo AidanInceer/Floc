@@ -1,5 +1,5 @@
 /**
- * Everything you do *to a trip*, behind one triple-dot in the header.
+ * Everything you do *to a trip*, behind one settings cog at the end of the tab row.
  *
  * The same complaint as ticket 125's roster rows, one level up: leaving lived
  * at the foot of Overview inside a "Trip settings" fold, while archive and
@@ -11,6 +11,7 @@
  * hand out an invite, and a second copy would be two ways to do it.
  */
 import { ConfirmSubmit, Menu } from "@/components/system/client-ui";
+import { CogIcon } from "@/components/system/icons";
 import { titleCase } from "@floc/core/text/title-case";
 import { menuDangerItemClass, menuItemClass } from "@/components/system/ui";
 import { TripColorPicker } from "@/components/trip/trip-color-picker";
@@ -38,7 +39,11 @@ export function TripMenu({
   mark: TripMark | null;
 }) {
   return (
-    <Menu label="Trip actions">
+    <Menu
+      label="Trip settings"
+      trigger={<CogIcon size={14} />}
+      triggerClassName="flex size-8 items-center justify-center rounded-sm text-ink-faint hover:bg-sheet-3 hover:text-ink-soft data-[open=true]:bg-pen-soft data-[open=true]:text-pen-deep sm:size-6"
+    >
       {/* The trip's colour and mark — any member, same as rename and tags
           (ticket 213, #318). */}
       <TripColorPicker tripId={tripId} current={color} />

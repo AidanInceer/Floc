@@ -63,7 +63,7 @@ describe("leftToSort", () => {
     const one = leftToSort({ ...base, shared: [{ label: "First-aid kit", claimed: false }, { label: "Towels", claimed: true }] });
     expect(one.open.map((g) => g.text)).toEqual(["First-aid kit is up for grabs"]);
     const two = leftToSort({ ...base, shared: [{ label: "First-aid kit", claimed: false }, { label: "Speaker", claimed: false }] });
-    expect(two.open.map((g) => [g.text, g.sub])).toEqual([["2 things are up for grabs", "First-aid kit, Speaker"]]);
+    expect(two.open.map((g) => [g.text, g.sub])).toEqual([["2 things are up for grabs", ["First-aid kit, Speaker"]]]);
   });
 
   it("names a stay not booked and a leg with no travel, but only for stops still ahead", () => {
@@ -78,6 +78,11 @@ describe("leftToSort", () => {
     ]);
     const started = leftToSort({ ...base, moment: "started", today: "2026-10-24", legs }).open.map((g) => g.text);
     expect(started).toEqual(["Lisbon to Barcelona: no travel set"]);
+  });
+
+  it("gives a stay's dates and nights as separate parts, so a list can line them up", () => {
+    const legs = [leg(1, "Lisbon", "2026-10-24", "2026-10-26", { hasStay: false, nights: 2 })];
+    expect(leftToSort({ ...base, legs }).open[0].sub).toEqual(["Sat 24 Oct – 26 Oct 2026", "2 nights"]);
   });
 
   it("counts what is already sorted, for the meter", () => {

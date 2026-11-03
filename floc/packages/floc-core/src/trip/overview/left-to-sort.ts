@@ -15,7 +15,8 @@ export type Gap = {
   /** The viewer's own to do; these lead. */
   mine: boolean;
   text: string;
-  sub?: string;
+  /** Parts, not one string: a list lines each part up under the one above. */
+  sub?: string[];
   tab: GapTab;
   /** Where on the page, when the page is long. */
   anchor?: string;
@@ -70,7 +71,7 @@ function packingChecks(input: LeftToSortInput): Check[] {
   const claimed: Check[] = input.shared.filter((s) => s.claimed).map(() => ({ done: true }));
   if (free.length === 0) return claimed;
   const text = free.length === 1 ? `${free[0]} is up for grabs` : `${free.length} things are up for grabs`;
-  const gap: Gap = { key: "packing", mine: false, text, tab: "packing", action: "Bring something", ...(free.length > 1 ? { sub: free.join(", ") } : {}) };
+  const gap: Gap = { key: "packing", mine: false, text, tab: "packing", action: "Bring something", ...(free.length > 1 ? { sub: [free.join(", ")] } : {}) };
   return [...claimed, { done: false, gap }, ...free.slice(1).map(() => ({ done: false }))];
 }
 
@@ -79,13 +80,13 @@ function legChecks(input: LeftToSortInput): Check[] {
   const stays = input.moment === "set"
     ? ahead.map((l) => ({
         done: l.hasStay,
-        gap: { key: `stay-${l.no}`, mine: false, text: `No stay booked in ${city(l.placeName)}`, sub: `${formatDateRange(l.arrive, l.leave)} · ${nightsLabel(l.nights)}`, tab: "overview" as const, anchor: `stop-${l.no}`, action: "Find a stay" },
+        gap: { key: `stay-${l.no}`, mine: false, text: `No stay booked in ${city(l.placeName)}`, sub: [formatDateRange(l.arrive, l.leave), nightsLabel(l.nights)], tab: "overview" as const, anchor: `stop-${l.no}`, action: "Find a stay" },
       }))
     : [];
   const travel = ahead.flatMap((l) => {
     const from = input.legs.find((x) => x.no === l.no - 1);
     if (!from) return [];
-    return [{ done: l.hasTravel, gap: { key: `travel-${l.no}`, mine: false, text: `${city(from.placeName)} to ${city(l.placeName)}: no travel set`, sub: formatDate(l.arrive), tab: "days" as const, action: "Set travel" } }];
+    return [{ done: l.hasTravel, gap: { key: `travel-${l.no}`, mine: false, text: `${city(from.placeName)} to ${city(l.placeName)}: no travel set`, sub: [formatDate(l.arrive)], tab: "days" as const, action: "Set travel" } }];
   });
   return [...stays, ...travel];
 }

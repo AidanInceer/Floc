@@ -7,6 +7,7 @@
  */
 import { cx } from "@/components/system/ui";
 import { BedIcon } from "@/components/days/days-glyphs";
+import { MoonIcon } from "@/components/system/icons";
 import type { CalendarDay } from "@/components/days/days-calendar-shared";
 import { deriveStops, nightsLabel } from "@floc/core/itinerary/stops";
 import type { BandSpan } from "@floc/core/itinerary/overnight-band";
@@ -43,21 +44,23 @@ export function StopStrip({
             onClick={() =>
               onStop({ start: stop.startDate, end: stop.endDate, placeId: stop.placeId, placeName: stop.placeName })
             }
-            aria-label={`Overnight: ${stop.placeName ?? "not set"}`}
+            aria-label={`Overnight: ${stop.placeName ?? "not set"}${stop.placeName ? `, ${nightsLabel(stop.nights)}` : ""}`}
+            title={stop.placeName ? `${shortPlace(stop.placeName)} · ${nightsLabel(stop.nights)}` : undefined}
             className={cx(
-              "flex min-w-0 items-center justify-center gap-1 whitespace-nowrap rounded-full px-1.5 py-0.5 text-[11.5px] transition-shadow sm:justify-start sm:gap-1.5 sm:px-2.5 sm:text-[12.5px]",
+              "flex min-w-0 items-center justify-center gap-1 overflow-hidden whitespace-nowrap rounded-full px-1.5 py-0.5 text-[11.5px] transition-shadow sm:justify-start sm:gap-1.5 sm:px-2.5 sm:text-[12.5px]",
               stop.placeName
                 ? "bg-sheet-3 text-ink-soft hover:shadow-[inset_0_0_0_1px_var(--color-rule-strong)]"
                 : "border border-dashed border-highlight-edge bg-highlight-soft text-highlight-ink hover:border-highlight-ink",
             )}
           >
             <BedIcon size={12} />
-            <b className={cx("truncate font-medium", stop.placeName ? "text-ink" : "max-sm:hidden")}>
+            <b className={cx("min-w-0 truncate font-medium", stop.placeName ? "text-ink" : "max-sm:hidden")}>
               {stop.placeName ? shortPlace(stop.placeName) : "Not set"}
             </b>
             {stop.placeName ? (
-              <small className="nums text-[11px] text-ink-faint max-sm:hidden">
-                {nightsLabel(stop.nights)}
+              <small aria-hidden className="nums flex shrink-0 items-center gap-0.5 text-[11px] text-ink-faint max-sm:hidden">
+                {stop.nights}
+                <MoonIcon size={11} />
               </small>
             ) : null}
           </button>
