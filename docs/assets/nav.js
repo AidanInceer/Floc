@@ -89,6 +89,12 @@
       ]
     },
     {
+      label: 'Plans', key: 'plans',
+      children: [
+        { id: 'plan-experiments', label: 'Experiments and flags', href: 'temp/plans/experiments.html', blurb: 'Temporary build plan: in-house flags and A/B tests. Deleted once built and written up.', adr: [4, 11, 12, 13, 29] }
+      ]
+    },
+    {
       label: 'Business', key: 'business',
       children: [
         { id: 'pitch', label: 'Investor pitch', href: 'business/pitch.html', blurb: 'Ten slides: problem, product, market, model, ask.', related: ['roadmap', 'monetisation', 'competitors', 'mission'] },
@@ -161,6 +167,33 @@
     '<path d="M16 14 19.5 10.5 23 14"/></svg>' +
     '<span class="brand-text"><b>floc<i>.</i></b><span>Documentation</span></span>';
   host.appendChild(brand);
+
+  var docEl = document.documentElement;
+  var toggle = document.createElement('button');
+  toggle.type = 'button';
+  toggle.className = 'sidebar-toggle';
+  toggle.setAttribute('aria-controls', 'sidebar');
+  toggle.innerHTML =
+    '<svg viewBox="0 0 14 14" width="13" height="13" aria-hidden="true" fill="none" ' +
+    'stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">' +
+    '<rect x="1.5" y="2" width="11" height="10" rx="1.6"/><path d="M5 2v10"/>' +
+    '<path class="chev" d="M9.4 5.4 7.8 7l1.6 1.6"/></svg>';
+  function markSidebar() {
+    var collapsed = docEl.getAttribute('data-sidebar') === 'collapsed';
+    var label = collapsed ? 'Show sidebar' : 'Hide sidebar';
+    toggle.setAttribute('aria-expanded', String(!collapsed));
+    toggle.setAttribute('aria-label', label);
+    toggle.title = label;
+  }
+  toggle.addEventListener('click', function () {
+    var collapse = docEl.getAttribute('data-sidebar') !== 'collapsed';
+    if (collapse) docEl.setAttribute('data-sidebar', 'collapsed');
+    else docEl.removeAttribute('data-sidebar');
+    try { localStorage.setItem('floc-docs-sidebar', collapse ? 'collapsed' : 'open'); } catch (e) {}
+    markSidebar();
+  });
+  markSidebar();
+  host.appendChild(toggle);
 
   var filter = document.createElement('input');
   filter.className = 'filter';

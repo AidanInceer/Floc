@@ -22,6 +22,13 @@
 
   apply(saved() || system());
 
+  // Same pre-paint reason: a collapsed sidebar must not flash open. nav.js owns the button.
+  try {
+    if (localStorage.getItem('floc-docs-sidebar') === 'collapsed') {
+      document.documentElement.setAttribute('data-sidebar', 'collapsed');
+    }
+  } catch (e) {}
+
   // Follow the system until the reader picks a side.
   if (window.matchMedia) {
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {

@@ -77,11 +77,11 @@ type Variant = "primary" | "secondary" | "ghost" | "danger" | "pro";
 
 // Hover must read without the cursor visible (ticket 120): primary steps to
 // --pen-deep (brightness-110 was too subtle on dark ink); secondary jumps a
-// full stock down, not a neighbouring one, so it reads as clickable at all.
+// pen wash with an inner pen ring, no grey, so it reads as clickable at all.
 const variants: Record<Variant, string> = {
   primary: "border-pen bg-pen text-sheet hover:border-pen-deep hover:bg-pen-deep",
   secondary:
-    "border-rule-strong bg-sheet text-ink-2 hover:border-pen hover:bg-sheet-3 hover:text-ink",
+    "border-rule-strong bg-sheet text-ink-2 hover:border-pen hover:bg-pen-soft hover:text-pen-deep hover:shadow-[inset_0_0_0_1px_var(--pen)]",
   ghost: "border-transparent bg-transparent text-pen hover:bg-pen-soft hover:text-pen-deep",
   danger: "border-red/30 bg-red-soft text-red hover:border-red/60 hover:bg-red/15",
   // The only button outside the pastel palette — Pro's ink, so
