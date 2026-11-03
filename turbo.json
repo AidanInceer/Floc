@@ -1,21 +1,27 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalEnv": ["FLOC_NODE_VERSION"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "env": ["FLOC_NEXT_DIST_DIR"],
+      "env": ["FLOC_NEXT_DIST_DIR", "FLOC_VERIFY_BUILD"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**", ".next-verify/**", "!.next-verify/cache/**"]
     },
     "dev": {
       "cache": false,
       "persistent": true
     },
-    "lint": {},
+    "transit": {
+      "dependsOn": ["^transit"]
+    },
+    "lint": {
+      "dependsOn": ["^transit"]
+    },
     "typecheck": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build", "^transit"]
     },
     "test": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "^transit"],
       "outputs": ["coverage/**"]
     },
     "e2e": {
@@ -27,6 +33,9 @@
     "fitness": {
       "dependsOn": ["build"],
       "env": ["FLOC_NEXT_DIST_DIR"]
+    },
+    "fitness:source": {
+      "dependsOn": ["^transit"]
     }
   }
 }

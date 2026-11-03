@@ -84,10 +84,31 @@ fi
 # so the dev servers can stay up through verify. CI builds to `.next` as usual.
 export FLOC_NEXT_DIST_DIR=.next-verify
 
+# Why: turbo hashes this (globalEnv), so a Node upgrade re-runs every cached task.
+FLOC_NODE_VERSION=$(node -v)
+export FLOC_NODE_VERSION
+
+# Steps that read nothing the build chain writes run beside the build and report
+# in their usual place below. Each leaves its exit code in /tmp/verify-<name>.rc.
+background() {
+  local name=$1; shift
+  ( "$@" >"/tmp/verify-$name.log" 2>&1; echo $? >"/tmp/verify-$name.rc" ) &
+}
+await() {
+  while [ ! -s "/tmp/verify-$1.rc" ]; do sleep 0.2; done
+  return "$(cat "/tmp/verify-$1.rc")"
+}
+rm -f /tmp/verify-{quality,parity,mobile,audit,gitleaks,fitness-repo,fitness-source}.rc
+# Network-bound, so it starves nothing and starts first.
+background audit pnpm audit --audit-level=high
+
 # One turbo call runs lint, typecheck and test side by side. Build is a second
 # call: typecheck reads `.next-verify/types`, which a parallel build rewrites.
+# Cached: a package re-runs when its files, a workspace dependency's files, the
+# generated types it reads (floc/apps/*/turbo.json), the lockfile or Node change.
+# A failed task is never cached, so a failure always re-runs.
 step "Lint · typecheck · test · build"
-if pnpm turbo run lint typecheck test --continue --force >/tmp/verify-checks.log 2>&1; then
+if pnpm turbo run lint typecheck test --continue >/tmp/verify-checks.log 2>&1; then
   for task in lint typecheck test; do ok "$task"; done
 else
   failed_line=$(grep -E '^\s*Failed:' /tmp/verify-checks.log || true)
@@ -97,7 +118,24 @@ else
   [ -z "$failed_line" ] && bad "turbo (lint · typecheck · test)"
   tail -40 /tmp/verify-checks.log
 fi
-if pnpm build >/tmp/verify-build.log 2>&1; then
+# Why: beside the build, never the tests — vitest's 5 s timeouts fail under load.
+# Outside the repo: Metro watches the whole tree and dies when a folder it
+# watches is deleted, which is what cleaning up `dist` did.
+bundle_dir=$(mktemp -d)
+background mobile bash -c 'cd floc/apps/mobile && pnpm exec expo export --platform android --platform ios --output-dir "$1"' _ "$bundle_dir"
+background quality bash -c 'pnpm quality:test && pnpm quality:check'
+background parity pnpm parity
+# `pnpm fitness` minus the bundle budget, which needs the build.
+background fitness-repo pnpm fitness:repo
+background fitness-source pnpm turbo run fitness:source
+if command -v gitleaks >/dev/null 2>&1; then
+  background gitleaks gitleaks detect --no-banner --redact
+fi
+# Why: FLOC_VERIFY_BUILD skips Next's own lint and type pass — lint ran above
+# over a superset of its files, and typecheck re-runs here on the route types
+# this build just wrote (a cache hit when they did not change).
+if FLOC_VERIFY_BUILD=1 pnpm build >/tmp/verify-build.log 2>&1 \
+  && pnpm turbo run typecheck --filter floc-web >>/tmp/verify-build.log 2>&1; then
   ok "build"
 else
   bad "build"
@@ -105,7 +143,9 @@ else
 fi
 
 step "Local quality gates and release-diff coverage"
-if pnpm quality:test && pnpm quality:check; then
+if await quality; then quality_rc=0; else quality_rc=1; fi
+cat /tmp/verify-quality.log
+if [ "$quality_rc" -eq 0 ]; then
   ok "local analysis and changed-code coverage"
 else
   bad "local quality gate failed"
@@ -115,6 +155,8 @@ fi
 
 # Over the build above, on port 3100 and `.e2e/data`, so the dev server and
 # local.db are untouched.
+# Why: sign-in waits 5 s for /trips; any CPU-heavy job still running starves it.
+for job in mobile parity fitness-repo fitness-source; do await "$job"; done
 step "The web app works end to end"
 if pnpm --filter floc-web e2e >/tmp/verify-e2e.log 2>&1; then
   ok "$(grep -E '[0-9]+ passed' /tmp/verify-e2e.log | tail -1 | xargs)"
@@ -127,9 +169,14 @@ fi
 
 # The structural checks (#212): layering, dead code, the globals.css token
 # rules, WCAG contrast on every token pair, and the bundle budget. Needs the
-# build above, which the turbo task depends on.
+# build above. The rest of `pnpm fitness` ran beside the build.
 step "Architecture · dead code · tokens · css · icons · contrast · bundle"
-if pnpm fitness >/tmp/verify-fitness.log 2>&1; then
+fitness_rc=0
+await fitness-repo || fitness_rc=1
+await fitness-source || fitness_rc=1
+pnpm --filter floc-web check:bundle >/tmp/verify-fitness-bundle.log 2>&1 || fitness_rc=1
+cat /tmp/verify-fitness-{repo,source,bundle}.log >/tmp/verify-fitness.log
+if [ "$fitness_rc" -eq 0 ]; then
   ok "the codebase is not getting worse"
 else
   bad "a fitness check failed"
@@ -192,7 +239,7 @@ fi
 # its *dependents*, and a mobile-only change has none — which is the change
 # most likely to move parity.
 step "The web/app gap is declared, not forgotten"
-if pnpm parity >/tmp/verify-parity.log 2>&1; then
+if await parity; then
   ok "$(tail -1 /tmp/verify-parity.log)"
 else
   bad "parity.json disagrees with the code"
@@ -212,10 +259,7 @@ fi
 # the same question against the previous commit, which is a thing CI can see
 # and a pre-push script cannot.
 step "The phone app bundles"
-# Outside the repo: Metro watches the whole tree and dies when a folder it
-# watches is deleted, which is what cleaning up `dist` did.
-bundle_dir=$(mktemp -d)
-if (cd floc/apps/mobile && pnpm exec expo export --platform android --platform ios --output-dir "$bundle_dir" >/dev/null 2>&1); then
+if await mobile; then
   ok "android and ios bundles built"
 else
   bad "the phone app does not bundle"
@@ -225,7 +269,7 @@ rm -rf "$bundle_dir"
 # ------------------------------------------ security.yml :: audit
 
 step "Known vulnerabilities"
-if pnpm audit --audit-level=high >/tmp/verify-audit.log 2>&1; then
+if await audit; then
   ok "no high or critical advisories"
 else
   bad "pnpm audit found a high/critical advisory"
@@ -240,7 +284,7 @@ fi
 # where a secret you are about to push actually is. CI remains the backstop.
 step "Secret scan"
 if command -v gitleaks >/dev/null 2>&1; then
-  if gitleaks detect --no-banner --redact >/tmp/verify-gitleaks.log 2>&1; then
+  if await gitleaks; then
     ok "no secrets found"
   else
     bad "gitleaks found a secret"

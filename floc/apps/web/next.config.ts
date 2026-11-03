@@ -6,6 +6,10 @@ const config: NextConfig = {
   // `pnpm verify` builds into `.next-verify` so it never writes over the
   // `.next` a running `next dev` owns — the dev servers can stay up.
   distDir: process.env.FLOC_NEXT_DIST_DIR ?? ".next",
+  // Why: verify runs `eslint .` before the build and `tsc` on the fresh route
+  // types after it, so Next's own pass over the same configs is a repeat.
+  eslint: { ignoreDuringBuilds: process.env.FLOC_VERIFY_BUILD === "1" },
+  typescript: { ignoreBuildErrors: process.env.FLOC_VERIFY_BUILD === "1" },
   // The phone app reads this dev server over the LAN, so its requests arrive
   // from a different origin than localhost (ticket 289). The host is per
   // machine, so it comes from the environment rather than the repo.

@@ -9,6 +9,9 @@
  */
 const { getDefaultConfig } = require("expo/metro-config");
 const path = require("node:path");
+const os = require("node:os");
+const { createHash } = require("node:crypto");
+const { FileStore } = require("metro-cache");
 
 const projectRoot = __dirname;
 const workspaceRoot = path.resolve(projectRoot, "../../..");
@@ -44,6 +47,12 @@ config.resolver.blockList = [
   /[\\/]floc[\\/]apps[\\/](web[\\/](\.next(-verify)?|\.e2e|coverage)|mobile[\\/](dist|coverage))([\\/].*)?$/,
   /[\\/]floc[\\/]packages[\\/][^\\/]+[\\/]coverage([\\/].*)?$/,
 ];
+
+// Why: the default cache in %TEMP% is shared by every checkout, and an Expo DOM
+// entry cached by one worktree imports that worktree's path, so the others fail
+// to bundle. One cache per checkout.
+const checkout = createHash("sha1").update(workspaceRoot).digest("hex").slice(0, 12);
+config.cacheStores = [new FileStore({ root: path.join(os.tmpdir(), `metro-cache-${checkout}`) })];
 
 const lib0Crypto = path.resolve(projectRoot, "shims/lib0-webcrypto.js");
 const resolveRequest = config.resolver.resolveRequest;
