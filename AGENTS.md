@@ -10,7 +10,7 @@ Before you plan, grill, write a ticket or build, read [mission and values](docs/
 
 ## Structure
 
-Next.js App Router + Turso (libSQL) + Drizzle + Better Auth.
+Next.js App Router + Turso (libSQL) + Drizzle + Better Auth. **Feature → folder map: [`floc/FILES.md`](floc/FILES.md)** — look there before you search.
 
 | Path | Holds |
 |---|---|
@@ -28,12 +28,15 @@ Next.js App Router + Turso (libSQL) + Drizzle + Better Auth.
 | `floc/apps/web/src/components/` | Take data, never fetch. `system/ui.tsx` and `system/client-ui.tsx` are the house design system — use them first. |
 | `floc/apps/web/src/db/schema.ts` | Schema of record. The [ERD](docs/engineering/data-model.html) mirrors it — change both together. |
 | `docs/` | Local HTML site, no build, gitignored. Open `docs/index.html` from disk. One folder per feature under `docs/product/`; layout in [editing these docs](docs/process/editing-docs.html). |
+| `floc/wireframe/` · `scripts/wireframe/` | Mockups (gitignored) and their tracked kit, served as `/_house/` on :4100 by `pnpm wireframe` (`wireframes` in `.claude/launch.json`). How: `/floc:prototype`. |
 
 Docs: [mission and values](docs/foundation/mission.html) · [decision log](docs/foundation/decisions.html) · [approach](docs/design/index.html) · [visual language](docs/design/visual-language.html) · [architecture](docs/engineering/index.html) · [ERD](docs/engineering/data-model.html).
 
 ## Environment
 
 Windows 11, **Windows PowerShell 5.1** — not pwsh 7, not bash. No `&&`: chain with `;`. Use `Get-ChildItem`, `Remove-Item -Recurse -Force`, `New-Item`, `Get-Content` — never `ls`, `rm -rf`, `touch`, `cat`. Give the user PowerShell, never Unix commands.
+
+No `python` and no `sqlite3` on this machine: script in `node`, read the database with `db:query`. pnpm hoists packages to the root `node_modules`; an app folder has no `node_modules/.bin` of its own.
 
 ## Commands
 
@@ -136,7 +139,7 @@ Payments between members, POI data and reviews, flight *booking* (deep links onl
 
 ## Workflow
 
-- **Parallel sessions.** A second session while one is running starts in its own worktree. Its throwaway branch is local only; `/floc:push` lands the commit on `develop` (`HEAD:develop`). In a shared checkout, `push:land --only <paths>` stages one piece of work.
+- **Parallel sessions.** A second session while one is running starts in its own worktree. Its throwaway branch is local only; `/floc:push` lands the commit on `develop` (`HEAD:develop`). A worktree Claude Code makes starts from `origin/main` with no packages: before any work, `git reset --hard origin/develop`, then `pnpm install`. It has no doc pages (gitignored) — edit docs in the main checkout. In a shared checkout, `push:land --only <paths>` stages one piece of work.
 - **Branches.** Two long-lived branches, no feature branches. Work lands on `develop` through `/floc:push` and goes to `main` in batches through `/floc:release`. A hotfix commits straight to `main`; a feature never does.
 - **Commits, labels and the Priority stack** are owned by the skills: `/floc:push` (subject, version bump, `Closes`, `on-develop`), `/floc:prioritise-tickets` (labels, phases, stack), `/floc:to-tickets` (blocked-by edges). Never borrow an issue number.
 - **A plain commit** (asked to commit, not to push): subject `<version> #<issue>: <type>: <description>`, or `#no-ticket` with no `Closes`. Bump `version` in `floc/apps/web/package.json` first: `feat` minor, anything else patch. Types and the full rules: `/floc:push` step 2; the `commit-msg` hook runs `scripts/check-commit-msg.mjs`.
