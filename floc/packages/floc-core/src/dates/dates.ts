@@ -112,6 +112,14 @@ export function formatDateRange(
   return `${formatDate(start)} – ${formatDate(end, { year: true, weekday: false })}`;
 }
 
+export function formatShortRange(start: IsoDate, end: IsoDate): string {
+  const from = formatDate(start, { weekday: false });
+  const to = formatDate(end, { weekday: false });
+  if (start === end) return from;
+  if (start.slice(0, 7) === end.slice(0, 7)) return `${Number(start.slice(8, 10))}–${to}`;
+  return `${from} – ${to}`;
+}
+
 /**
  * A trip is "ended" once its end date has passed — a label, not a lock. It
  * stays fully editable (ticket 01 step 8).
