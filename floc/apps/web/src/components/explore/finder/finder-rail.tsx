@@ -50,7 +50,7 @@ export function FinderRail({
             Clear all
           </button>
           {onClose ? (
-            <button type="button" onClick={onClose} aria-label="Close" className="grid size-9 place-items-center rounded-full text-ink-soft hover:text-ink">
+            <button type="button" onClick={onClose} aria-label="Close" className="grid size-9 place-items-center rounded-sm text-ink-soft hover:text-ink">
               <CrossIcon />
             </button>
           ) : null}

@@ -212,7 +212,7 @@ function FilterPill({
     <Link
       href={href}
       className={cx(
-        "shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs transition-colors",
+        "shrink-0 whitespace-nowrap rounded-sm border px-3 py-1.5 text-xs transition-colors",
         on
           ? "border-ink bg-ink text-sheet"
           : "border-transparent text-ink-soft hover:border-rule-strong hover:text-ink",

@@ -10,7 +10,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { AvatarRow, PASTEL_BY_KEY, PASTEL_SKINS, cx } from "@/components/system/ui";
+import { AvatarRow, PASTEL_BY_KEY, PASTEL_SKINS, cx, iconButtonClass } from "@/components/system/ui";
 import { TripCardMenu } from "@/components/trip/trip-card-menu";
 import { starTrip } from "@/app/trips/actions";
 import { daysUntil, formatDateRange } from "@floc/core/dates/dates";
@@ -213,12 +213,7 @@ function StarButton({
         aria-label={label}
         aria-pressed={starred}
         title={label}
-        className={cx(
-          "flex h-[26px] w-[26px] items-center justify-center rounded-full border transition-colors",
-          starred
-            ? "border-rule-strong bg-sheet text-ink"
-            : "border-transparent text-ink-faint hover:border-rule-strong hover:bg-sheet-2 hover:text-ink",
-        )}
+        className={iconButtonClass(starred)}
       >
         <svg viewBox="0 0 14 14" width="13" height="13" aria-hidden>
           <path

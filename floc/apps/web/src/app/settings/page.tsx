@@ -44,7 +44,7 @@ import {
   PersonRow,
   ToggleRow,
 } from "@/components/auth/account-ui";
-import { Field, Input, Select, Stack, cx } from "@/components/system/ui";
+import { Field, Input, Select, Stack, cx, segmentTrack } from "@/components/system/ui";
 import {
   ActionForm,
   ConfirmSubmit,
@@ -355,15 +355,13 @@ export default async function SettingsPage({
 }
 
 /**
- * Plain links, so a section is bookmarkable and works without JavaScript. The
- * track's radius is the pill's own plus its 4px padding — `rounded-full` reads
- * as an oval once the rail stacks (ticket 235).
+ * Plain links, so a section is bookmarkable and works without JavaScript.
  */
 function SectionRail({ current }: { current: SectionId }) {
   return (
     <nav
       aria-label="Settings sections"
-      className="scroll-x-bare flex flex-row items-center gap-1 rounded-full bg-sheet-3 p-1 sm:flex-col sm:items-stretch sm:overflow-visible sm:rounded-[1.3125rem]"
+      className={cx(segmentTrack, "scroll-x-bare flex flex-row items-center gap-1 sm:flex-col sm:items-stretch sm:overflow-visible")}
     >
       {SECTIONS.filter((s) => s.id !== "billing" || !allFeaturesFree()).map(
         (s) => {
@@ -375,7 +373,7 @@ function SectionRail({ current }: { current: SectionId }) {
               href={`/settings?section=${s.id}`}
               aria-current={active ? "page" : undefined}
               className={cx(
-                "shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-colors sm:text-left",
+                "shrink-0 whitespace-nowrap rounded-sm px-4 py-1.5 text-sm font-medium transition-colors sm:text-left",
                 active && danger
                   ? "bg-red text-sheet"
                   : active

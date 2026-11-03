@@ -22,7 +22,7 @@ type Props = {
 };
 
 const RING =
-  "grid size-6 place-items-center rounded-full border border-rule-strong text-ink-soft hover:border-pen hover:text-pen data-[open=true]:border-pen data-[open=true]:text-pen";
+  "grid size-6 place-items-center rounded-sm border border-rule-strong text-ink-soft hover:border-pen hover:text-pen data-[open=true]:border-pen data-[open=true]:text-pen";
 
 export function BookingsCard({ tripId, legs, wholeTrip, files, stays }: Props) {
   return (

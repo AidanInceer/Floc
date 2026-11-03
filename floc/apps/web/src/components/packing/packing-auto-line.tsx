@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { SparkIcon } from "@/components/system/icons/packing";
 import { SubmitButton } from "@/components/system/client-ui";
-import { cx } from "@/components/system/ui";
+import { buttonClass, cx } from "@/components/system/ui";
 import { ideasWhy, type IdeasPlan } from "@floc/core/packing/packing-ideas";
 import { PACK_TIERS, PACK_TIER_LABELS, type PackTier } from "@floc/core/packing/packing";
 
@@ -35,7 +35,7 @@ export function RemoveSuggested({ count, action }: { count: number; action: () =
 /** The tier as a quiet track: plain words, the chosen one lifted onto the sheet. */
 function TierTrack({ tier, setTier }: { tier: PackTier; setTier: (formData: FormData) => Promise<void> }) {
   return (
-    <form action={setTier} className="inline-flex gap-0.5 rounded-full bg-sheet-3 p-[3px]" aria-label="How you pack">
+    <form action={setTier} className="inline-flex gap-0.5 rounded-md bg-sheet-3 p-[3px]" aria-label="How you pack">
       {PACK_TIERS.map((t) => (
         <button
           key={t}
@@ -44,7 +44,7 @@ function TierTrack({ tier, setTier }: { tier: PackTier; setTier: (formData: Form
           value={t}
           aria-pressed={t === tier}
           className={cx(
-            "rounded-full px-3 py-[3px] text-[12.5px] transition-colors",
+            "rounded-sm px-3 py-[3px] text-[12.5px] transition-colors",
             t === tier ? "bg-sheet text-ink shadow-sm" : "text-ink-soft hover:text-ink",
           )}
         >
@@ -116,7 +116,7 @@ export function PackingUpgradeLine({ removeSuggested }: { removeSuggested: React
       {removeSuggested}
       <Link
         href="/settings?section=billing"
-        className="rounded-full border border-rule-strong bg-sheet px-3 py-1 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-soft hover:border-pen hover:text-ink"
+        className={buttonClass()}
       >
         Upgrade to Pro
       </Link>

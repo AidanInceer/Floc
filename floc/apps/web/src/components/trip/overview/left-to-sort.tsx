@@ -45,7 +45,7 @@ export function LeftToSort({ tripId, list }: { tripId: number; list: SortList })
             onClick={() => setOpen(!open)}
             aria-expanded={open}
             aria-label={open ? "Hide what is left" : "Show what is left"}
-            className="ml-auto grid size-8 place-items-center rounded-full text-ink-soft hover:bg-sheet-2 hover:text-ink sm:ml-0"
+            className="ml-auto grid size-8 place-items-center rounded-sm text-ink-soft hover:bg-sheet-2 hover:text-ink sm:ml-0"
           >
             <Chevron up={open} />
           </button>

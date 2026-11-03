@@ -90,7 +90,7 @@ export function OverviewCard({
           href={`/trip/${trip.id}/dates`}
           aria-label={trip.startDate ? "Change dates" : "Pick dates"}
           title={trip.startDate ? "Change dates" : "Pick dates"}
-          className="grid size-6 place-items-center rounded-full text-ink-faint hover:bg-sheet-2 hover:text-ink"
+          className="grid size-6 place-items-center rounded-sm text-ink-faint hover:bg-sheet-2 hover:text-ink"
         >
           <PencilIcon size={12} />
         </Link>

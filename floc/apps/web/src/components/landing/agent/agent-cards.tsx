@@ -89,7 +89,7 @@ function RouteCard({ run }: { run: boolean }) {
           <Glyph name="flight" className="text-pen" />
           <b className="font-medium text-ink">LGW → PMO</b> · <b className="font-medium text-ink">CTA → LGW</b>
         </span>
-        <span className="agent-book rounded-full bg-pen px-2.5 py-1 font-mono text-[10.5px] uppercase tracking-[0.06em] whitespace-nowrap text-sheet">Book flights</span>
+        <span className="agent-book rounded-sm bg-pen px-2.5 py-1 font-mono text-[10.5px] uppercase tracking-[0.06em] whitespace-nowrap text-sheet">Book flights</span>
       </div>
     </>
   );

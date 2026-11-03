@@ -54,7 +54,7 @@ export function TripPlan({ trip, plan, signedIn, startOpen }: { trip: PresetTrip
         <button
           type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: calm() ? "auto" : "smooth" })}
-          className="typed mx-auto mt-4 flex items-center gap-1.5 rounded-full px-3 py-1.5 hover:text-ink"
+          className="typed mx-auto mt-4 flex items-center gap-1.5 rounded-sm px-3 py-1.5 hover:text-ink"
         >
           <ArrowUpIcon size={12} />
           Back to top

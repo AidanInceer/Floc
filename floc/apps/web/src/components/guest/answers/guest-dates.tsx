@@ -83,7 +83,7 @@ export function GuestDates({ token, mine, firstMonth, trip, answer, signUpHref }
 }
 
 function Pager({ month, page }: { month: IsoMonth; page: (delta: number) => void }) {
-  const round = "!size-8 !rounded-full !p-0";
+  const round = "!size-8 !p-0";
   return (
     <div className="flex items-center gap-1.5">
       <Button variant="secondary" className={round} aria-label="Earlier month" onClick={() => page(-1)}>

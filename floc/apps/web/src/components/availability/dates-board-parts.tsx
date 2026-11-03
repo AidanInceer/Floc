@@ -17,7 +17,7 @@ const typed = "font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint"
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
 export function MonthPager({ month, page, hint }: { month: IsoMonth; page: (delta: number) => void; hint: string }) {
-  const round = "!size-8 !rounded-full !p-0";
+  const round = "!size-8 !p-0";
   return (
     <div className="mb-3.5 flex items-center gap-2.5">
       <Button variant="secondary" className={round} aria-label="Earlier month" onClick={() => page(-1)}>

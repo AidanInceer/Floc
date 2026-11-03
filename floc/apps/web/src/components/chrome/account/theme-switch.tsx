@@ -72,7 +72,7 @@ export function ThemeSwitch({ className }: { className?: string }) {
       role="group"
       aria-label="Theme"
       className={cx(
-        "relative grid shrink-0 grid-cols-3 items-center rounded-full bg-sheet-3 p-[3px]",
+        "relative grid shrink-0 grid-cols-3 items-center rounded-md bg-sheet-3 p-[3px]",
         className,
       )}
     >
@@ -80,7 +80,7 @@ export function ThemeSwitch({ className }: { className?: string }) {
           off `<html>` so it is under the right segment in the first painted frame. */}
       <span
         aria-hidden
-        className="theme-indicator pointer-events-none absolute left-[3px] top-[3px] h-7 w-[calc((100%-6px)/3)] rounded-full bg-sheet shadow-card transition-transform duration-200 ease-[cubic-bezier(0.2,0.85,0.3,1)] motion-reduce:transition-none"
+        className="theme-indicator pointer-events-none absolute left-[3px] top-[3px] h-7 w-[calc((100%-6px)/3)] rounded-sm bg-sheet shadow-card transition-transform duration-200 ease-[cubic-bezier(0.2,0.85,0.3,1)] motion-reduce:transition-none"
       />
       {THEME_CHOICES.map((option) => {
         const Icon = ICONS[option];
@@ -95,7 +95,7 @@ export function ThemeSwitch({ className }: { className?: string }) {
             // utility here sits in a later layer and wins over the lit state.
             aria-label={LABELS[option]}
             title={LABELS[option]}
-            className="theme-choice relative z-10 flex h-7 w-8 items-center justify-center rounded-full"
+            className="theme-choice relative z-10 flex h-7 w-8 items-center justify-center rounded-sm"
           >
             <Icon />
           </button>

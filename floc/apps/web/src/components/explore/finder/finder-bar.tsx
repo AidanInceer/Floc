@@ -50,7 +50,7 @@ export function FinderBar({
         <b className="nums mr-1.5 text-[13px]">
           {shown} {shown === 1 ? "trip" : "trips"}
         </b>
-        <button type="button" onClick={onOpen} className="typed inline-flex min-h-8 items-center gap-1.5 rounded-full border border-rule-strong bg-sheet px-3 lg:hidden">
+        <button type="button" onClick={onOpen} className="typed inline-flex min-h-8 items-center gap-1.5 rounded-sm border border-rule-strong bg-sheet px-3 lg:hidden">
           <LineIcon>
             <path d="M2 4h10M4 7h6M6 10h2" />
           </LineIcon>
@@ -68,7 +68,7 @@ export function FinderBar({
 
 export function SortPicker({ sort, onSort }: { sort: FinderSort; onSort: (sort: FinderSort) => void }) {
   return (
-    <div role="radiogroup" aria-label="Sort" className="flex shrink-0 items-center gap-0.5 rounded-full border border-rule-strong bg-sheet p-0.5">
+    <div role="radiogroup" aria-label="Sort" className="flex shrink-0 items-center gap-0.5 rounded-md border border-rule-strong bg-sheet p-0.5">
       {(Object.keys(FINDER_SORTS) as FinderSort[]).map((key) => (
         <button
           key={key}
@@ -79,7 +79,7 @@ export function SortPicker({ sort, onSort }: { sort: FinderSort; onSort: (sort: 
           title={FINDER_SORTS[key]}
           onClick={() => onSort(key)}
           className={cx(
-            "grid size-8 place-items-center rounded-full transition-colors",
+            "grid size-8 place-items-center rounded-sm transition-colors",
             sort === key ? "bg-ink text-paper" : "text-ink-soft hover:bg-sheet-2 hover:text-ink",
           )}
         >

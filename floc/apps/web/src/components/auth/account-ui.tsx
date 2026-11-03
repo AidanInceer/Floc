@@ -5,7 +5,7 @@
  */
 import type { ReactNode } from "react";
 
-import { cx, PageTitle } from "@/components/system/ui";
+import { cx, PageTitle, segmentTrack } from "@/components/system/ui";
 import "./account-ui.css";
 
 export function AccountPage({
@@ -104,7 +104,7 @@ export function PersonRow({
  * colour alone.
  */
 const pillShape =
-  "block cursor-pointer rounded-full px-4 py-1.5 text-center text-sm font-medium transition-colors";
+  "block cursor-pointer rounded-sm px-4 py-1.5 text-center text-sm font-medium transition-colors";
 const pillOff = "text-ink-soft hover:bg-sheet hover:text-ink";
 const pillOn =
   "peer-checked:bg-ink peer-checked:text-sheet peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-pen";
@@ -136,7 +136,7 @@ export function PillChoice<T extends string>({
         <div
           role="radiogroup"
           aria-labelledby={labelId}
-          className="flex w-full flex-col gap-1 rounded-md bg-sheet-3 p-1 sm:w-auto sm:flex-row sm:items-center sm:rounded-full"
+          className={cx(segmentTrack, "flex w-full flex-col gap-1 sm:w-auto sm:flex-row sm:items-center")}
         >
           {options.map((o) => (
             <label key={o.value} className="block min-w-0">

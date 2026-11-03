@@ -25,8 +25,8 @@ export function WhereScreen() {
         </div>
         <div className="border-t border-rule px-4 pb-4 pt-3">
           <div className="flex items-center gap-3">
-            <span className="flex rounded-full border border-rule p-0.5 text-xs">
-              <span className="rounded-full bg-ink px-3 py-1 text-paper">Most votes</span>
+            <span className="flex rounded-md border border-rule p-0.5 text-xs">
+              <span className="rounded-sm bg-ink px-3 py-1 text-paper">Most votes</span>
               <span className="px-3 py-1 text-ink-soft">Newest</span>
             </span>
             <span className="h-[34px] flex-1 rounded-[10px] border border-rule" />

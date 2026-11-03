@@ -48,7 +48,7 @@ export function OverviewFiles({ tripId, files }: { tripId: number; files: { cate
         tripId={tripId}
         scope="shared"
         bareTrigger
-        className="grid h-[30px] w-[30px] place-items-center rounded-full border border-rule-strong bg-sheet text-ink-soft hover:bg-sheet-2 hover:text-ink max-md:ml-auto"
+        className="grid h-[30px] w-[30px] place-items-center rounded-sm border border-rule-strong bg-sheet text-ink-soft hover:bg-sheet-2 hover:text-ink max-md:ml-auto"
         trigger={
           <>
             <UploadIcon />

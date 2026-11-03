@@ -95,7 +95,7 @@ function IdeaLine({ tripId, idea }: { tripId: number; idea: IdeaRow }) {
           type="submit"
           aria-label={`Remove “${idea.title}”`}
           title="Remove"
-          className="grid size-7 shrink-0 place-items-center rounded-full text-ink-faint hover:bg-red-soft hover:text-red"
+          className="grid size-7 shrink-0 place-items-center rounded-sm text-ink-faint hover:bg-red-soft hover:text-red"
         >
           <CrossIcon size={12} />
         </button>

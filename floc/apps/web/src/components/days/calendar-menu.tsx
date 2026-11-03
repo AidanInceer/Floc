@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { Menu } from "@/components/system/client-ui";
-import { menuItemClass } from "@/components/system/ui";
+import { buttonClass, cx, menuItemClass } from "@/components/system/ui";
 
 export function CalendarMenu({
   downloadHref,
@@ -18,7 +18,7 @@ export function CalendarMenu({
     <Menu
       label="Add to calendar"
       trigger="Add to calendar"
-      triggerClassName="shrink-0 whitespace-nowrap rounded-full border border-rule-strong bg-sheet px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-2 hover:bg-sheet-2 data-[open=true]:bg-sheet-2"
+      triggerClassName={cx(buttonClass(), "shrink-0 whitespace-nowrap data-[open=true]:bg-pen-soft")}
     >
       <button
         type="button"
