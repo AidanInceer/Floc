@@ -1,7 +1,7 @@
 import { Avatar, cx } from "@/components/system/ui";
 import { heroPlaces, heroVotes, leader, tally, voteHeadline } from "@/lib/landing/hero/hero-votes";
 
-import { Glyph } from "../landing-glyph";
+import { Glyph } from "@/components/system/icons/landing";
 import { sampleGroup } from "../sample-trip";
 import { kicker, VOTED } from "./beats";
 import { Roll } from "./swap";

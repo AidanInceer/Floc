@@ -13,7 +13,6 @@
  * Still open to any member, not just an admin — see `renameTrip`.
  */
 import { TEXT_CAPS } from "@floc/core/text/text";
-import { titleCase } from "@floc/core/text/title-case";
 import { useActionState, useEffect, useRef, useState } from "react";
 
 import { Button, ErrorText, Input } from "@/components/system/ui";
@@ -66,7 +65,7 @@ export function TripNameInline({
           onClick={() => setEditing(true)}
           className="group/name max-w-full rounded-sm text-left transition-colors hover:bg-sheet-2 hover:shadow-[0_0_0_4px_var(--sheet-2)]"
         >
-          {titleCase(name)}
+          {name}
           <span className="ml-2 inline-grid align-middle text-ink-faint opacity-50 transition-opacity group-hover/name:opacity-100">
             <PencilIcon />
           </span>
@@ -80,7 +79,7 @@ export function TripNameInline({
     <form action={formAction} className="flex w-full flex-col gap-1.5">
       {/* The visible heading is the input while editing, so the page keeps an
           <h1> for anything reading the outline. */}
-      <h1 className="sr-only">{titleCase(name)}</h1>
+      <h1 className="sr-only">{name}</h1>
       <span className="flex flex-wrap items-center gap-1.5">
         <input type="hidden" name="tripId" value={tripId} />
         <Input

@@ -17,6 +17,8 @@ export const EVENT_CATEGORIES: Record<
     block: string;
     /** The filter chip's swatch — the category's pen at full strength. */
     dot: string;
+    /** The small glyph tile beside an event on Overview and Explore. */
+    tile: string;
   }
 > = {
   transport: {
@@ -27,6 +29,7 @@ export const EVENT_CATEGORIES: Record<
     row: "border-pastel-red bg-pastel-red/40",
     block: "border-pastel-red border-l-pastel-red-ink bg-pastel-red text-pastel-red-ink",
     dot: "bg-pastel-red-ink",
+    tile: "bg-pastel-red text-pastel-red-ink",
   },
   activity: {
     label: "Activity",
@@ -34,6 +37,7 @@ export const EVENT_CATEGORIES: Record<
     row: "border-pastel-blue bg-pastel-blue/40",
     block: "border-pastel-blue border-l-pastel-blue-ink bg-pastel-blue text-pastel-blue-ink",
     dot: "bg-pastel-blue-ink",
+    tile: "bg-pastel-blue text-pastel-blue-ink",
   },
   food: {
     label: "Food",
@@ -41,5 +45,6 @@ export const EVENT_CATEGORIES: Record<
     row: "border-pastel-yellow bg-pastel-yellow/50",
     block: "border-pastel-yellow border-l-pastel-yellow-ink bg-pastel-yellow text-pastel-yellow-ink",
     dot: "bg-pastel-yellow-ink",
+    tile: "bg-pastel-yellow text-pastel-yellow-ink",
   },
 };

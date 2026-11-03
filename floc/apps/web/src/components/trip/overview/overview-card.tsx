@@ -9,7 +9,7 @@ import { Menu } from "@/components/system/client-ui";
 import { Badge, PASTEL_BY_KEY, cx } from "@/components/system/ui";
 import { TripColorPicker } from "@/components/trip/trip-color-picker";
 import { TripMarkPicker } from "@/components/trip/trip-mark-picker";
-import { TripMarkIcon } from "@/components/trip/trip-mark";
+import { TripMarkIcon } from "@/components/system/icons/trip-mark";
 import { TripNameInline } from "@/components/trip/trip-name-inline";
 import { TagChips } from "@/components/trip/overview/tag-chips";
 import { renameTrip } from "@/app/trip/[id]/overview/actions";
@@ -90,7 +90,7 @@ export function OverviewCard({
           href={`/trip/${trip.id}/dates`}
           aria-label={trip.startDate ? "Change dates" : "Pick dates"}
           title={trip.startDate ? "Change dates" : "Pick dates"}
-          className="grid size-6 place-items-center rounded-full text-ink-faint hover:bg-sheet-2 hover:text-ink"
+          className="grid size-6 place-items-center rounded-sm text-ink-faint hover:bg-sheet-2 hover:text-ink"
         >
           <PencilIcon size={12} />
         </Link>

@@ -1,5 +1,5 @@
 import { cx } from "@/components/system/ui";
-import { SparkIcon } from "@/components/packing/packing-glyphs";
+import { SparkIcon } from "@/components/system/icons/packing";
 
 export function PackingCube({
   heading,

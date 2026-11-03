@@ -14,7 +14,7 @@ import { tone } from "./borrow/tones";
 import { useBorrowHand } from "./borrow/use-borrow-hand";
 import { useBorrowWay } from "./borrow/use-borrow-way";
 import { useSpinGlobe, type GlobeEvents } from "./globe/use-spin-globe";
-import { Glyph } from "./landing-glyph";
+import { Glyph } from "@/components/system/icons/landing";
 import "./borrow-trip.css";
 
 // Every route on the globe leaves from here.
@@ -36,15 +36,13 @@ export function BorrowTrip({ cards, signedIn, explore }: { cards: Card[]; signed
 
   const card = cards[lit];
   if (!card || places.length !== cards.length) return null;
-  const litSlot = faces.findIndex((f) => f.card === lit);
-  const litTone = tone(litSlot < 0 ? lit : litSlot);
+  const litTone = tone(card.region);
   const open = way ? cards[way.card] : undefined;
   const half = Math.ceil(HAND / 2);
   const tiles = (from: number, to: number) =>
     faces.slice(from, to).map((face, k) => (
       <BorrowTile
         key={from + k}
-        slot={from + k}
         face={face}
         card={cards[face.card]!}
         current={face.kind !== "tick" && face.card === lit}

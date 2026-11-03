@@ -9,7 +9,7 @@
 import { type CSSProperties, type PointerEvent as ReactPointerEvent, type RefObject } from "react";
 
 import { cx } from "@/components/system/ui";
-import { BedIcon } from "@/components/days/days-glyphs";
+import { BedIcon } from "@/components/system/icons/days";
 import {
   OUTSIDE_DAY_CLASS,
   describeSpan,

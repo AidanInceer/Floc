@@ -148,6 +148,27 @@ The coverage scope and exclusions come from sonar-project.properties. Add a new 
 
 SonarCloud still runs only on PRs and main. Local rules do not reproduce cloud taint analysis, duplication or hotspot review. A green local gate is never a claim that the release gate will pass. Keep direct develop pushes; do not create staging PRs.
 
+## 5. Remove spent worktrees
+
+After `land`, remove the linked worktrees that are finished. List them:
+
+```bash
+git worktree list --porcelain
+```
+
+A worktree is spent when all of these hold:
+
+- Its folder name starts with `floc-` (any case), as in `C:\dev\Floc-perf` or
+  `%TEMP%\floc-release-ci-<sha>`. Leave every other folder alone, `.claude/worktrees/*` included.
+- It is not the checkout you are in, and not the main checkout.
+- It has no uncommitted changes and no unpushed commits (its `HEAD` is in `origin/develop`).
+- No running agent uses it (the CI babysitter from step 4 keeps its own — skip that one).
+
+Remove each with `git worktree remove <path>`. Never add `--force`: git refuses a
+dirty worktree, and that refusal means keep it. Then `git worktree prune`. Never delete
+a worktree folder with `Remove-Item`, never delete a branch. Report the paths removed
+and the paths kept, with the reason.
+
 ## Report
 
 Version, subject line, `verify` result, pushed SHA, ticket state, and that CI

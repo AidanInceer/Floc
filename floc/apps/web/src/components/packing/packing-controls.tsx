@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { cx, menuItemClass } from "@/components/system/ui";
+import { buttonClass, cx, menuItemClass } from "@/components/system/ui";
 import { ConfirmSubmit, Menu, SubmitButton } from "@/components/system/client-ui";
 import {
   PACK_CATEGORIES,
@@ -80,7 +80,7 @@ export function PackingBulkBar({
 }
 
 const bulkVerb =
-  "rounded-full px-3 py-1.5 font-mono text-[10.5px] uppercase tracking-[0.06em] hover:bg-sheet";
+  "rounded-sm px-3 py-1.5 font-mono text-[10.5px] uppercase tracking-[0.06em] hover:bg-sheet";
 
 /** The category picker beside an add box — the one place a hand-typed row gets filed. */
 export function CategorySelect({ defaultValue }: { defaultValue?: PackCategory }) {
@@ -90,7 +90,7 @@ export function CategorySelect({ defaultValue }: { defaultValue?: PackCategory }
       <select
         name="category"
         defaultValue={defaultValue ?? "other"}
-        className="rounded-sm border border-rule-strong bg-sheet px-2 py-2.5 text-sm sm:px-3"
+        className="h-full rounded-sm border border-rule-strong bg-sheet px-2 py-2.5 text-sm sm:px-3"
       >
         {PACK_CATEGORIES.map((c) => (
           <option key={c} value={c}>
@@ -124,7 +124,7 @@ export function PackingKitMenu({
           <span className="hidden sm:inline">Saved lists</span>
         </>
       }
-      triggerClassName="shrink-0 whitespace-nowrap rounded-full border border-rule-strong bg-sheet px-3 py-1 font-mono text-[10.5px] uppercase tracking-[0.06em] hover:bg-sheet-2 data-[open=true]:bg-sheet-2"
+      triggerClassName={cx(buttonClass(), "shrink-0 whitespace-nowrap data-[open=true]:bg-pen-soft")}
     >
       {kits.map((kit) => (
         <form key={kit.id} action={apply.bind(null, kit.id)}>

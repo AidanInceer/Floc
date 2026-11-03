@@ -21,7 +21,7 @@ import { tripStateFor } from "@floc/core/trip/trip-state";
 import { readTripColor, tripPastel } from "@floc/core/trip/trip-color";
 import { readTripMark } from "@floc/core/trip/mark/trip-mark";
 import { readTags } from "@floc/core/trip/tags";
-import { nightsBetween, today } from "@floc/core/dates/dates";
+import { hasEnded, nightsBetween, today } from "@floc/core/dates/dates";
 import { stayLinks } from "@floc/core/trip/booking-links";
 import { tripLegs } from "@floc/core/trip/overview/legs";
 import { ideasTucked } from "@floc/core/trip/ideas";
@@ -32,6 +32,7 @@ import { IdeasPanel } from "@/components/trip/ideas/ideas-panel";
 import { IdeasRow } from "@/components/trip/ideas/ideas-row";
 import { OverviewCard } from "@/components/trip/overview/overview-card";
 import { OverviewFiles } from "@/components/trip/overview/overview-files";
+import { BookingsCard } from "@/components/trip/overview/stops/bookings-card";
 import { OverviewStops } from "@/components/trip/overview/stops/overview-stops";
 import { OverviewMap } from "@/components/trip/overview/overview-map";
 import { RefreshWhileLive } from "@/components/trip/overview/route/refresh-while-live";
@@ -39,7 +40,7 @@ import { RouteLegend } from "@/components/trip/overview/route/route-legend";
 import { TodayBlock } from "@/components/trip/overview/today/today-block";
 import { LeftToSort } from "@/components/trip/overview/left-to-sort";
 import { deleteMyRoute } from "./actions";
-import { leftToSortFor } from "./left-to-sort-for";
+import { leftToSortFor, readSharedPacking } from "./left-to-sort-for";
 import { PanelPlaceholder, StreamedGroup, TourWhenReady } from "./streamed";
 
 export const metadata = { title: "Overview" };
@@ -65,6 +66,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
   }));
 
   const now = today();
+  const sharedPacking = readSharedPacking(tripId);
   const [availabilityRows, expenseRows, dayRows, splitRows, settlementRows, routeDays, transport, tourSeen, prefill, ideas, docs, tracks] =
     await Promise.all([
       listAvailability(tripId),
@@ -113,7 +115,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
   const tone = tripPastel(color, tripId);
   const plan = todayPlan({ trip, days: dayRows, files: docs, today: now });
   const tucked = ideasTucked({ days: routeDays, today: plan !== null });
-  const sortList = await leftToSortFor(tripId, {
+  const sortList = leftToSortFor({
     trip,
     today: now,
     viewerId: viewer.id,
@@ -122,10 +124,10 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
     ideas,
     settle: settle.rows,
     legs,
-  });
+  }, await sharedPacking);
 
   return (
-    <div className="mx-auto flex w-full max-w-[72rem] flex-col gap-7 px-4 pb-20 pt-6 sm:px-6">
+    <div className="mx-auto flex w-full max-w-[84rem] flex-col gap-7 px-4 pb-20 pt-6 sm:px-6">
       {plan ? <TodayBlock tripId={tripId} plan={plan} /> : null}
       {underway(trip, now) ? <RefreshWhileLive /> : null}
       <LeftToSort tripId={tripId} list={sortList} />
@@ -177,7 +179,12 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
 
       {tucked ? null : <IdeasPanel tripId={tripId} ideas={ideas} datesUnset={datesUnset} />}
 
-      <OverviewStops tripId={tripId} legs={legs} wholeTrip={wholeTrip} files={files} stays={stays} events={new Map(dayRows.map((d) => [d.id, d.events]))} />
+      <OverviewStops
+        tripId={tripId}
+        legs={legs}
+        events={new Map(dayRows.map((d) => [d.id, d.events]))}
+        bookings={hasEnded(trip.endDate) ? null : <BookingsCard tripId={tripId} legs={legs} wholeTrip={wholeTrip} files={files} stays={stays} />}
+      />
 
       {shouldStartTour({ seen: tourSeen !== null }) ? (
         <Suspense fallback={null}>

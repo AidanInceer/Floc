@@ -1,6 +1,6 @@
 import { PRO_FEATURES, PRO_TABS, tabsOpen } from "@/lib/landing/pro-tour";
 
-import { Glyph } from "../landing-glyph";
+import { Glyph } from "@/components/system/icons/landing";
 
 function ClosedPile() {
   return (

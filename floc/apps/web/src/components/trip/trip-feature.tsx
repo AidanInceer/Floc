@@ -1,11 +1,10 @@
 import { countdownLabel, formatDateRange, fromIsoDate } from "@floc/core/dates/dates";
 import { tripListStage } from "@floc/core/trip/list-stage";
-import { titleCase } from "@floc/core/text/title-case";
 import Link from "next/link";
 
 import { AvatarRow, PASTEL_BY_KEY, PASTEL_SKINS } from "@/components/system/ui";
 import { TripCardActions, type TripCardData } from "@/components/trip/trip-card";
-import { TripMarkIcon } from "@/components/trip/trip-mark";
+import { TripMarkIcon } from "@/components/system/icons/trip-mark";
 
 export function TripFeature({ trip }: { trip: TripCardData }) {
   if (!trip.startDate) return null;
@@ -36,7 +35,7 @@ export function TripFeature({ trip }: { trip: TripCardData }) {
           {status}
         </p>
         <Link href={href} className="mt-1 inline-block text-ink after:absolute after:inset-0 after:content-['']">
-          <h2 className="text-2xl leading-tight sm:text-3xl">{titleCase(trip.name)}</h2>
+          <h2 className="text-2xl leading-tight sm:text-3xl">{trip.name}</h2>
         </Link>
         <p className="mt-1 flex flex-wrap gap-x-2 text-sm text-ink-soft">
           <span className="nums text-xs">{formatDateRange(trip.startDate, trip.endDate)}</span>

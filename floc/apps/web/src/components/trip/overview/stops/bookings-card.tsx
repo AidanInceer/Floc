@@ -6,7 +6,7 @@ import type { BookingLink } from "@floc/core/trip/booking-links";
 import type { Leg } from "@floc/core/trip/overview/legs";
 import { formatShortRange } from "@floc/core/dates/dates";
 import type { TripDocument } from "@/server/documents/documents";
-import { DocCategoryIcon } from "@/components/documents/doc-category-icon";
+import { DocCategoryIcon } from "@/components/system/icons/doc-category";
 import { DocumentUpload } from "@/components/documents/document-upload";
 import { Menu } from "@/components/system/client-ui";
 import { OutIcon, UploadIcon } from "@/components/system/icons";
@@ -22,7 +22,7 @@ type Props = {
 };
 
 const RING =
-  "grid size-6 place-items-center rounded-full border border-rule-strong text-ink-soft hover:border-pen hover:text-pen data-[open=true]:border-pen data-[open=true]:text-pen";
+  "grid size-6 place-items-center rounded-sm border border-rule-strong text-ink-soft hover:border-pen hover:text-pen data-[open=true]:border-pen data-[open=true]:text-pen";
 
 export function BookingsCard({ tripId, legs, wholeTrip, files, stays }: Props) {
   return (

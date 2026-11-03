@@ -9,7 +9,7 @@ import { formatDate, toIsoDate } from "@floc/core/dates/dates";
 import { formatMoney } from "@floc/core/money/money";
 import { menuDangerItemClass, menuItemClass } from "@/components/system/ui";
 import { ConfirmSubmit, Menu, Sheet } from "@/components/system/client-ui";
-import { CategoryIcon } from "@/components/system/category-icon";
+import { CategoryIcon } from "@/components/system/icons/category";
 import { ConvertAmount } from "@/components/money/money-client";
 import { ExpenseForm } from "@/components/money/expense-form";
 import { SettlementEditForm } from "@/components/money/settlement-form";

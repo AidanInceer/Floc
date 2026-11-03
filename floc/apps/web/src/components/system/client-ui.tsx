@@ -14,7 +14,7 @@ import type { ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import { usePathname, useSearchParams } from "next/navigation";
 
-import { Button, Card, ErrorText, cx } from "./ui";
+import { Button, Card, ErrorText, cx, iconButtonClass, segmentTrack } from "./ui";
 
 // Server-rendered children can't take a close callback as a prop — a form
 // that wants to close only on successful submit reads it from here instead.
@@ -414,12 +414,7 @@ export function Menu({
         className={
           triggerClassName
             ? cx("transition-colors", triggerClassName)
-            : cx(
-                "flex h-[26px] w-[26px] items-center justify-center rounded-full border transition-colors",
-                open
-                  ? "border-rule-strong bg-sheet-2 text-ink"
-                  : "border-transparent text-ink-faint hover:border-rule-strong hover:bg-sheet-2 hover:text-ink",
-              )
+            : iconButtonClass(open)
         }
       >
         {trigger ?? <MoreIcon />}
@@ -433,7 +428,7 @@ export function Menu({
           aria-label={label}
           onSubmit={() => setTimeout(() => setOpen(false), 0)}
           className={cx(
-            // z-[1200]: above Leaflet's panes. w-max: sized to its longest verb, not a fixed width.
+            // w-max: sized to its longest verb, not a fixed width.
             "absolute z-[1200]",
             panelClassName ??
               "w-max min-w-[5rem] max-w-[14rem] rounded-md border border-rule-strong bg-sheet p-1 shadow-raised",
@@ -516,14 +511,15 @@ export function PillToggle<T extends string>({
       role="tablist"
       aria-label={label}
       className={cx(
-        "relative flex w-full items-center gap-1 rounded-full bg-sheet-3 p-1",
+        "relative flex w-full items-center gap-1",
+        segmentTrack,
         className,
       )}
     >
       {indicator ? (
         <span
           aria-hidden
-          className="pointer-events-none absolute left-0 top-1 bottom-1 rounded-full bg-ink transition-[transform,width] duration-200 ease-[cubic-bezier(0.2,0.85,0.3,1)] motion-reduce:transition-none"
+          className="pointer-events-none absolute left-0 top-1 bottom-1 rounded-sm bg-ink transition-[transform,width] duration-200 ease-[cubic-bezier(0.2,0.85,0.3,1)] motion-reduce:transition-none"
           style={{ width: indicator.width, transform: `translateX(${indicator.left}px)` }}
         />
       ) : null}
@@ -540,7 +536,7 @@ export function PillToggle<T extends string>({
             }}
             onClick={() => onChange(opt.value)}
             className={cx(
-              "relative z-10 flex-1 whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
+              "relative z-10 flex-1 whitespace-nowrap rounded-sm px-4 py-1.5 text-sm font-medium transition-colors",
               active ? "text-sheet" : "text-ink-soft hover:text-ink",
             )}
           >

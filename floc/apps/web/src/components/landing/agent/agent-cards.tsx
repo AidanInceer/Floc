@@ -4,7 +4,7 @@ import { Avatar, cx } from "@/components/system/ui";
 import type { MarkBeat } from "@/lib/landing/agent/agent-timeline";
 
 import { Swap } from "../hero/swap";
-import { Glyph } from "../landing-glyph";
+import { Glyph } from "@/components/system/icons/landing";
 import { sam, sampleStops } from "../sample-trip";
 import "../hero/hero.css";
 
@@ -89,7 +89,7 @@ function RouteCard({ run }: { run: boolean }) {
           <Glyph name="flight" className="text-pen" />
           <b className="font-medium text-ink">LGW → PMO</b> · <b className="font-medium text-ink">CTA → LGW</b>
         </span>
-        <span className="agent-book rounded-full bg-pen px-2.5 py-1 font-mono text-[10.5px] uppercase tracking-[0.06em] whitespace-nowrap text-sheet">Book flights</span>
+        <span className="agent-book rounded-sm bg-pen px-2.5 py-1 font-mono text-[10.5px] uppercase tracking-[0.06em] whitespace-nowrap text-sheet">Book flights</span>
       </div>
     </>
   );

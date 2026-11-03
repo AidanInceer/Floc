@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 import { cx } from "@/components/system/ui";
 
-import { Glyph } from "./landing-glyph";
+import { Glyph } from "@/components/system/icons/landing";
 import { MoneyScreen, TodayScreen } from "./phone-screens";
 
 function Phone({ className, children }: { className?: string; children: ReactNode }) {

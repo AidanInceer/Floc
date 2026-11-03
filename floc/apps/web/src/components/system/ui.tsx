@@ -77,11 +77,11 @@ type Variant = "primary" | "secondary" | "ghost" | "danger" | "pro";
 
 // Hover must read without the cursor visible (ticket 120): primary steps to
 // --pen-deep (brightness-110 was too subtle on dark ink); secondary jumps a
-// full stock down, not a neighbouring one, so it reads as clickable at all.
+// pen wash with an inner pen ring, no grey, so it reads as clickable at all.
 const variants: Record<Variant, string> = {
   primary: "border-pen bg-pen text-sheet hover:border-pen-deep hover:bg-pen-deep",
   secondary:
-    "border-rule-strong bg-sheet text-ink-2 hover:border-pen hover:bg-sheet-3 hover:text-ink",
+    "border-rule-strong bg-sheet text-ink-2 hover:border-pen hover:bg-pen-soft hover:text-pen-deep hover:shadow-[inset_0_0_0_1px_var(--pen)]",
   ghost: "border-transparent bg-transparent text-pen hover:bg-pen-soft hover:text-pen-deep",
   danger: "border-red/30 bg-red-soft text-red hover:border-red/60 hover:bg-red/15",
   // The only button outside the pastel palette — Pro's ink, so
@@ -89,10 +89,25 @@ const variants: Record<Variant, string> = {
   pro: "border-pro-edge bg-pro text-pro-mark hover:border-pro-mark hover:bg-pro-2",
 };
 
-// Pill controls with the shared hover lift (ticket 190). `.lift` owns the
+// Controls with the shared hover lift (ticket 190). `.lift` owns the
 // transition, so no `transition-colors` here — the colour move rides it too.
 const buttonBase =
-  "lift inline-flex items-center justify-center gap-2 rounded-full border px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.06em] disabled:pointer-events-none disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none";
+  "lift inline-flex items-center justify-center gap-2 rounded-sm border px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.06em] disabled:pointer-events-none disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none";
+
+/** The house button look, for a control that cannot be a `Button` — a menu trigger, a bare `Link`. */
+export const buttonClass = (variant: Variant = "secondary"): string => cx(buttonBase, variants[variant]);
+
+/** The bare icon button: no frame until hovered, framed while `on` (a menu open, a star set). */
+export const iconButtonClass = (on: boolean): string =>
+  cx(
+    "flex h-[26px] w-[26px] items-center justify-center rounded-sm border transition-colors",
+    on
+      ? "border-rule-strong bg-sheet-2 text-ink"
+      : "border-transparent text-ink-faint hover:border-rule-strong hover:bg-sheet-2 hover:text-ink",
+  );
+
+/** The grey groove a row of segments sits in: 12px out from their 8px, 4px apart, so the corners stay concentric. */
+export const segmentTrack = "rounded-md bg-sheet-3 p-1";
 
 export function Button({
   variant = "secondary",
@@ -102,7 +117,7 @@ export function Button({
   return (
     <button
       {...props}
-      className={cx(buttonBase, variants[variant], className)}
+      className={cx(buttonClass(variant), className)}
     />
   );
 }
@@ -113,7 +128,7 @@ export function ButtonLink({
   ...props
 }: ComponentProps<typeof Link> & { variant?: Variant }) {
   return (
-    <Link {...props} className={cx(buttonBase, variants[variant], className)} />
+    <Link {...props} className={cx(buttonClass(variant), className)} />
   );
 }
 
@@ -128,7 +143,7 @@ export function ExternalButtonLink({
       {...props}
       target="_blank"
       rel="noopener noreferrer"
-      className={cx(buttonBase, variants[variant], className)}
+      className={cx(buttonClass(variant), className)}
     />
   );
 }
@@ -183,7 +198,7 @@ export function LegendKey({ swatch, label }: { swatch: string; label: string }) 
 /** The compact two- or three-way choice (ticket 239): mono words, the chosen one in pen. Each child is a button or a label round an `sr-only` radio, drawn with `segmentClass`. */
 export function Segmented({ children }: { children: ReactNode }) {
   return (
-    <div className="flex items-center rounded-full border border-rule-strong bg-sheet p-0.5">
+    <div className="flex items-center rounded-md border border-rule-strong bg-sheet p-0.5">
       {children}
     </div>
   );
@@ -193,7 +208,7 @@ export function Segmented({ children }: { children: ReactNode }) {
 // `sr-only` radio, and the ring has to land on the shape, not the hidden input.
 export const segmentClass = (on: boolean): string =>
   cx(
-    "rounded-full px-2 py-1 font-mono text-[10.5px] uppercase tracking-[0.06em] transition-colors sm:px-3 focus-within:outline focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-pen",
+    "rounded-sm px-2 py-1 font-mono text-[10.5px] uppercase tracking-[0.06em] transition-colors sm:px-3 focus-within:outline focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-pen",
     on ? "bg-pen text-sheet" : "text-ink-soft hover:bg-sheet-2 hover:text-ink",
   );
 

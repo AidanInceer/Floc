@@ -8,7 +8,7 @@ import { Menu } from "@/components/system/client-ui";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { AccountPass } from "@/components/chrome/account/account-pass";
 import { AccountInbox, type InboxPreviewItem } from "@/components/chrome/account/account-inbox";
-import { ListIcon, PersonIcon, SlidersIcon } from "@/components/chrome/account/account-icons";
+import { ListIcon, PersonIcon, SlidersIcon } from "@/components/system/icons/account";
 import { ChevronIcon } from "@/components/system/icons";
 import { ThemeSwitch } from "@/components/chrome/account/theme-switch";
 import "./account-menu.css";
@@ -37,7 +37,7 @@ export function AccountMenu({
   return (
     <Menu
       label={unread ? `Account, ${shown} new notifications` : "Account"}
-      triggerClassName="inline-flex h-11 items-center gap-2 rounded-full bg-sheet pl-1.5 pr-3 text-ink-faint shadow-[inset_0_0_0_1px_var(--rule),var(--shadow-sm)] hover:bg-sheet-2 data-[open=true]:bg-sheet-2"
+      triggerClassName="inline-flex h-11 items-center gap-2 rounded-md bg-sheet pl-1.5 pr-3 text-ink-faint shadow-[inset_0_0_0_1px_var(--rule),var(--shadow-sm)] hover:bg-sheet-2 data-[open=true]:bg-sheet-2"
       panelClassName="account-ticket right-0 mt-2 w-[19rem] max-w-[calc(100vw-1rem)]"
       trigger={
         <>

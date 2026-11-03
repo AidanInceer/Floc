@@ -19,10 +19,7 @@ const SRC = fileURLToPath(new URL("../src", import.meta.url));
  * Colours a mail client or a third party dictates, which `var()` cannot reach:
  * an email has no stylesheet, and Google prescribes its own button.
  */
-const HEX_ALLOWED = [/google/i, /leaflet/i];
-
-/** Classes a third-party library puts on the DOM — Leaflet's, not ours. */
-const CLASS_ALLOWED = [/^leaflet-/];
+const HEX_ALLOWED = [/google/i];
 
 const stylesheets = [];
 const scripts = [];
@@ -74,7 +71,6 @@ const source = scripts.map((f) => readFileSync(f, "utf8")).join("\n");
 // use of `day-pill-lg`.
 const mentioned = new Set(source.split(/[^\w-]+/));
 for (const [cls, file] of declared) {
-  if (CLASS_ALLOWED.some((r) => r.test(cls))) continue;
   if (!mentioned.has(cls)) failures.push(`${file} declares .${cls}, which nothing references`);
 }
 

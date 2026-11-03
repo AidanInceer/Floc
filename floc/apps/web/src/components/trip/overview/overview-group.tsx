@@ -44,7 +44,7 @@ function RosterSheet({ tripId, viewerId, members, isAdmin, inviteUrl, friendStat
       bareTrigger
       title={going}
       body="flush"
-      triggerClassName="lift flex min-w-0 items-center gap-3 rounded-full py-1 pl-1 pr-3 text-left hover:bg-sheet-2 max-md:flex-[1_1_100%]"
+      triggerClassName="lift flex min-w-0 items-center gap-3 rounded-md py-1 pl-1 pr-3 text-left hover:bg-sheet-2 max-md:flex-[1_1_100%]"
       trigger={
         <>
           <AvatarRow people={members.map((m) => ({ name: m.name, avatarIcon: m.avatarIcon, tone: m.tone }))} max={5} size={32} />

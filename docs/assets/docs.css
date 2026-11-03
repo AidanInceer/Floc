@@ -593,6 +593,35 @@ main a.card { color: var(--ink); text-decoration: none; }
 .doc-links ul { margin: 0; padding: 0; list-style: none; }
 .doc-links li { margin: 0 0 4px; font-size: 14px; }
 
+/* ---------- sidebar collapse (button drawn by nav.js) ---------- */
+
+#sidebar { transition: width .22s var(--ease), flex-basis .22s var(--ease); }
+
+.sidebar-toggle {
+  position: absolute;
+  top: 25px;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: background-color .22s var(--ease), color .22s var(--ease), border-color .22s var(--ease);
+}
+
+.sidebar-toggle:hover { color: var(--ink); background: var(--sheet-2); border-color: var(--rule); }
+.sidebar-toggle .chev { transform-box: fill-box; transform-origin: center; }
+
+:root[data-sidebar="collapsed"] { --sidebar-w: 52px; }
+:root[data-sidebar="collapsed"] #sidebar { overflow: hidden; }
+:root[data-sidebar="collapsed"] #sidebar > :not(.sidebar-toggle) { display: none; }
+:root[data-sidebar="collapsed"] .sidebar-toggle .chev { transform: scaleX(-1); }
+
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; scroll-behavior: auto !important; }
 }
@@ -608,6 +637,9 @@ main a.card { color: var(--ink); text-decoration: none; }
     border-right: 0;
     border-bottom: 1px solid var(--rule);
   }
+  #sidebar { position: relative; }
+  :root[data-sidebar="collapsed"] #sidebar { height: 52px; padding: 0; }
+  :root[data-sidebar="collapsed"] .sidebar-toggle { top: 12px; }
   main { padding: 32px 20px 90px; max-width: none; }
   main h1 { font-size: 31px; }
 }

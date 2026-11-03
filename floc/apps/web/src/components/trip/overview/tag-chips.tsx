@@ -76,7 +76,7 @@ export function TagChips({
           className="inline-flex items-center gap-1 rounded-full border border-dashed border-rule-strong px-2.5 py-0.5 text-xs text-ink-soft transition-colors hover:border-ink-faint hover:text-ink"
         >
           <PlusIcon size={11} />
-          {tags.length > 0 ? "Tag" : "Add a tag"}
+          Add a tag
         </button>
       ) : null}
     </div>

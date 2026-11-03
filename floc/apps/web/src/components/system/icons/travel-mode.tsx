@@ -2,7 +2,7 @@
  * The travel-mode glyph set — the icon shown on the leg between two stops on
  * Route (ticket 78). Drawn here rather than pulled from an icon package: the
  * app has no icon dependency and the rest of its glyphs are hand-rolled paths
- * (see components/reaction-glyph.tsx), so a second style would show.
+ * (see system/icons/reaction.tsx), so a second style would show.
  *
  * `other` has no drawing on purpose. It is the transport type someone picks
  * when none of the four fit, so any picture would be a guess — the leg falls

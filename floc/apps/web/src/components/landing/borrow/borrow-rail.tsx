@@ -5,7 +5,7 @@ import Link from "next/link";
 import { cx } from "@/components/system/ui";
 import { hopWords, nightsWords, type BorrowCard as Card } from "@/lib/landing/borrow";
 
-import { Glyph } from "../landing-glyph";
+import { Glyph } from "@/components/system/icons/landing";
 import { StartButton } from "./start-button";
 
 type Props = { card: Card; tone: string; step: number; onStep: (k: number) => void; signedIn: boolean };

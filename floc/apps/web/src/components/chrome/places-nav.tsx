@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { cx } from "@/components/system/ui";
-import { NavGlyph, type NavGlyphName } from "@/components/chrome/nav-glyphs";
+import { NavGlyph, type NavGlyphName } from "@/components/system/icons/nav";
 import { useEdgeFade } from "@/components/chrome/use-edge-fade";
 import { BEAD } from "@/components/chrome/bead";
 import { activeHref } from "@/lib/active-href";
@@ -38,9 +38,9 @@ export function PlacesNav({ label, items }: { label: string; items: PlaceItem[] 
           key={item.href}
           href={item.href}
           aria-current={item.href === current ? "page" : undefined}
-          className="group flex h-full shrink-0 items-center rounded-full px-1.5 text-sm font-medium text-ink-soft transition-colors hover:text-ink aria-[current=page]:text-ink sm:gap-1.5 sm:pr-3.5"
+          className="group flex h-full shrink-0 items-center rounded-sm px-1.5 text-sm font-medium text-ink-soft transition-colors hover:text-ink aria-[current=page]:text-ink sm:gap-1.5 sm:pr-3.5"
         >
-          <span className="inline-flex size-[26px] items-center justify-center rounded-full text-ink-faint transition-colors group-hover:bg-sheet-3 group-hover:text-ink group-aria-[current=page]:bg-pen-soft group-aria-[current=page]:text-pen-deep">
+          <span className="inline-flex size-[26px] items-center justify-center rounded-sm text-ink-faint transition-colors group-hover:bg-sheet-3 group-hover:text-ink group-aria-[current=page]:bg-pen-soft group-aria-[current=page]:text-pen-deep">
             <NavGlyph name={item.glyph} />
           </span>
           <span className="sr-only sm:not-sr-only">{item.label}</span>

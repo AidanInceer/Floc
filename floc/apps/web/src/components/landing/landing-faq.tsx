@@ -1,6 +1,6 @@
 import type { FaqItem, FaqKey } from "@/lib/landing/faq";
 
-import { Glyph, type GlyphName } from "./landing-glyph";
+import { Glyph, type GlyphName } from "@/components/system/icons/landing";
 import "./landing-faq.css";
 
 /** Each question's tile: the pastel of the part of Floc it is about. */

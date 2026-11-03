@@ -15,9 +15,9 @@ const read = (path) => readFileSync(join(ROOT, path), "utf8");
 // Why: Better Auth's own tables; the ERD draws only the `user` anchor.
 const AUTH_TABLES = new Set(["session", "account", "verification"]);
 
-// Why: docs/ is gitignored, so a fresh checkout (CI) has nothing to check.
-if (!existsSync(DOCS)) {
-  console.log("Docs: no docs/ folder here — skipped.");
+// Why: the pages are gitignored, so CI and a fresh worktree hold only docs/assets.
+if (!existsSync(join(DOCS, "index.html"))) {
+  console.log("Docs: no doc pages here (gitignored; edit them in the main checkout) — skipped.");
   process.exit(0);
 }
 

@@ -16,7 +16,6 @@ import {
   keepPromptCountries,
   setCountryMark,
 } from "./actions";
-import { titleCase } from "@floc/core/text/title-case";
 import { requireUser } from "@/server/access";
 import { formatDateRange } from "@floc/core/dates/dates";
 import { ensureProfile } from "@/server/auth/profile";
@@ -42,9 +41,6 @@ export default async function ProfilePage() {
   const travelMap = await travelMapFor(viewer.id);
   const mapPrompts = await pendingMapPrompts(viewer.id);
 
-  const marks = Object.values(travelMap.states);
-  const beenCount = marks.filter((s) => s === "green").length;
-  const wantCount = marks.filter((s) => s === "yellow").length;
 
   return (
     <AccountPage title="Your profile">
@@ -52,7 +48,7 @@ export default async function ProfilePage() {
           it — the page's one moment of the visitor's view. */}
       <Panel>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
-          <FaceEditor name={name} icon={profile.avatarIcon} been={beenCount} wantToGo={wantCount} />
+          <FaceEditor name={name} icon={profile.avatarIcon} />
           {vibeTags.length ? (
             <div className="flex w-full min-w-0 flex-none flex-wrap gap-1.5 sm:w-auto sm:flex-1">
               {vibeTags.map((t) => (
@@ -72,7 +68,7 @@ export default async function ProfilePage() {
       {mapPrompts.map((prompt) => (
         <Panel
           key={prompt.tripId}
-          title={`Keep the countries from ${titleCase(prompt.tripName)}?`}
+          title={`Keep the countries from ${prompt.tripName}?`}
           className="bg-pen-soft text-pen-deep"
         >
           <Stack gap={3}>
@@ -113,10 +109,10 @@ export default async function ProfilePage() {
           <ul className="flex flex-col gap-2">
             {pastTrips.map((t) => (
               <li key={t.id} className="rounded-md bg-sheet-2 px-3 py-2 text-sm">
-                <span className="font-semibold">{titleCase(t.name)}</span>
+                <span className="font-semibold">{t.name}</span>
                 <span className="text-ink-soft">
                   {" · "}
-                  {formatDateRange(t.startDate, t.endDate)}
+                  <span className="nums">{formatDateRange(t.startDate, t.endDate)}</span>
                   {t.place ? ` · ${t.place}` : ""}
                 </span>
               </li>

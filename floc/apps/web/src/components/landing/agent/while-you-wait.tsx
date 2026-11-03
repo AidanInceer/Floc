@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/system/ui";
 import { BRIEF_MAX, briefFor } from "@/lib/landing/agent/assistant-brief";
 
-import { Glyph } from "../landing-glyph";
+import { Glyph } from "@/components/system/icons/landing";
 import { AssistantRail } from "./assistant-rail";
 
 const COPIED_MS = 2000;

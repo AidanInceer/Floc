@@ -30,13 +30,7 @@ export default async function ArchivedTripsPage() {
   return (
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
       <header className="flex flex-wrap items-end justify-between gap-6">
-        <div>
-          <PageTitle>Archived trips</PageTitle>
-          <p className="mt-3 max-w-[58ch] text-md text-ink-soft">
-            Trips you&rsquo;re part of that an admin has archived. Only an admin
-            can restore one.
-          </p>
-        </div>
+        <PageTitle>Archived trips</PageTitle>
         <ButtonLink href="/trips" variant="ghost">
           Back to my trips
         </ButtonLink>

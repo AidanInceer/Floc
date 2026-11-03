@@ -1,7 +1,7 @@
-# Hub CI — runs for every PR and every push to `main` or `develop`.
+# CI — runs for every PR and every push to `main` or `develop`.
 #
 # Only workspace packages affected by the change are built, via Turborepo's
-# `--filter=...[<base>]`. A docs-only or wireframe-only change therefore costs
+# `--filter=...[<base>]`. A change outside the packages therefore costs
 # seconds, not minutes.
 name: CI
 
@@ -335,38 +335,3 @@ jobs:
 
       - name: Compare parity.json to the router and the app
         run: node --experimental-strip-types scripts/parity/run.mjs
-
-  # Wireframes are plain HTML with no build step, so CI just proves they stay
-  # self-contained — no external requests — which the Artifact CSP and our own
-  # offline-first convention both require.
-  wireframes:
-    name: Wireframes stay self-contained
-    # PAUSED (bill). `pnpm verify` still runs it locally. Delete to restore.
-    if: false
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Check for external assets and stray document wrappers
-        run: |
-          set -uo pipefail
-          shopt -s nullglob
-          files=(floc/wireframe/*.html)
-          if [ ${#files[@]} -eq 0 ]; then
-            echo "No wireframes found — nothing to check."
-            exit 0
-          fi
-          fail=0
-          for f in "${files[@]}"; do
-            echo "checking $f"
-            if grep -nEi '(src|href)=["'"'"']https?://' "$f"; then
-              echo "::error file=$f::references an external asset; inline it instead"
-              fail=1
-            fi
-            if grep -nEi '<!doctype|<html[ >]|<body[ >]' "$f"; then
-              echo "::error file=$f::should start at <title>, with no document wrapper"
-              fail=1
-            fi
-          done
-          exit $fail

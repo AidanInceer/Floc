@@ -172,10 +172,10 @@ export default async function PackingPage({
       <PageTitle>Packing</PageTitle>
 
       <section className="mt-6 grid gap-4">
-        <header className="flex flex-wrap items-center gap-3">
+        <header className="flex flex-wrap items-baseline gap-3">
           <h2 className="text-2xl">Your bag</h2>
           <PackingCount total={mine.length} packed={bagPacked} />
-          <div className="ml-auto flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
+          <div className="ml-auto flex self-center flex-wrap items-center justify-end gap-x-4 gap-y-2">
             <PackingKitMenu kits={kits} apply={applyPackingKit.bind(null, tripId)} />
             {mine.length > 0 ? (
               <PackingBulkBar
@@ -206,7 +206,7 @@ export default async function PackingPage({
           <PackingUpgradeLine removeSuggested={removeSuggested} />
         )}
 
-        <form action={addPersonalPackingLine.bind(null, tripId)} className="flex flex-wrap items-center gap-2">
+        <form action={addPersonalPackingLine.bind(null, tripId)} className="flex flex-wrap items-stretch gap-2">
           {addBox("Add something to your bag")}
           <CategorySelect />
           <SubmitButton variant="secondary" pendingLabel="Adding…" className="shrink-0">Add</SubmitButton>
@@ -254,11 +254,11 @@ export default async function PackingPage({
       </section>
 
       <section className="mt-10">
-        <header className="flex flex-wrap items-center gap-3">
+        <header className="flex flex-wrap items-baseline gap-3">
           <h2 className="text-2xl">Who’s bringing what</h2>
           <PackingCount total={lines.length} packed={sharedPacked} />
           {lines.length > 0 ? (
-            <div className="ml-auto">
+            <div className="ml-auto self-center">
               <PackingBulkBar
                 formId="shared-bulk"
                 selecting={sharedSelecting}
@@ -274,7 +274,7 @@ export default async function PackingPage({
 
         <div className="mt-4 grid items-start gap-3 md:grid-cols-2 xl:grid-cols-3">
           <PackingLane name="Up for grabs" count={lanes.open.length} open add={
-            <form action={addPackingLine.bind(null, tripId)} className="flex flex-wrap items-center gap-2">
+            <form action={addPackingLine.bind(null, tripId)} className="flex flex-wrap items-stretch gap-2">
               {addBox("Add something for everyone", true)}
               <CategorySelect />
               <SubmitButton pendingLabel="Adding…" className="shrink-0 !px-3">Add to group</SubmitButton>

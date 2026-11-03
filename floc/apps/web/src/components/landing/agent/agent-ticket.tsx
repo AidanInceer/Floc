@@ -4,7 +4,7 @@ import { AvatarRow, cx } from "@/components/system/ui";
 import type { LaneRow } from "@/lib/landing/agent/agent-lanes";
 
 import { Swap } from "../hero/swap";
-import { Glyph, type GlyphName } from "../landing-glyph";
+import { Glyph, type GlyphName } from "@/components/system/icons/landing";
 import { sampleGroup, sampleStops } from "../sample-trip";
 import "../hero/hero.css";
 

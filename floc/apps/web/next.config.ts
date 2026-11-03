@@ -6,6 +6,10 @@ const config: NextConfig = {
   // `pnpm verify` builds into `.next-verify` so it never writes over the
   // `.next` a running `next dev` owns — the dev servers can stay up.
   distDir: process.env.FLOC_NEXT_DIST_DIR ?? ".next",
+  // Why: verify runs `eslint .` before the build and `tsc` on the fresh route
+  // types after it, so Next's own pass over the same configs is a repeat.
+  eslint: { ignoreDuringBuilds: process.env.FLOC_VERIFY_BUILD === "1" },
+  typescript: { ignoreBuildErrors: process.env.FLOC_VERIFY_BUILD === "1" },
   // The phone app reads this dev server over the LAN, so its requests arrive
   // from a different origin than localhost (ticket 289). The host is per
   // machine, so it comes from the environment rather than the repo.
@@ -16,6 +20,9 @@ const config: NextConfig = {
   // Better Auth + the libSQL driver both want the Node runtime, not Edge.
   serverExternalPackages: ["@libsql/client", "better-auth"],
   experimental: {
+    // Why: a trip or tab opened in the last 30 s reopens from the client cache. Own edits still refresh at once
+    // (a Server Action's revalidatePath clears it); another member's edit can show up to 30 s late.
+    staleTimes: { dynamic: 30 },
     // Next caps Server Action bodies at 1 MB, so a 2 MB upload threw before
     // `rejectUpload` saw it (ticket 239). Headroom over the 8 MB cap keeps
     // the refusal ours.

@@ -1,9 +1,6 @@
-const TONES = [
-  "bg-pastel-red text-pastel-red-ink",
-  "bg-pastel-yellow text-pastel-yellow-ink",
-  "bg-pastel-blue text-pastel-blue-ink",
-  "bg-pastel-green text-pastel-green-ink",
-];
+import type { Region } from "@floc/core/trip/explore/preset-trips";
 
-/** A tile's pastel, by its position: the place in the headline and on the rail wears the same one. */
-export const tone = (index: number) => TONES[index % TONES.length]!;
+import { regionSkin } from "@/components/explore/listing";
+
+/** A tile's pastel is its listing's region, as the tag wears it on Explore; the headline word and the rail match. */
+export const tone = (region: Region) => regionSkin(region);

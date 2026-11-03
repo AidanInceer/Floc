@@ -1,8 +1,8 @@
 {
-  "name": "nexus-hub",
+  "name": "floc",
   "version": "0.0.0",
   "private": true,
-  "description": "Nexus â€” a centralised incubator hub for building multiple ventures on shared foundations.",
+  "description": "Floc: group trip planning. Web, phone, shared packages and marketing in one workspace.",
   "packageManager": "pnpm@9.15.9",
   "engines": {
     "node": ">=22"
@@ -15,11 +15,14 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
-    "fitness": "pnpm plugins:check && node scripts/check-folder-size.mjs && node scripts/check-docs.mjs && turbo run fitness",
+    "fitness": "pnpm fitness:repo && turbo run fitness",
+    "fitness:repo": "pnpm plugins:check && node scripts/check-folder-size.mjs && node scripts/check-docs.mjs && pnpm files:check",
+    "files:check": "node --test scripts/check-files-map.test.mjs && node scripts/check-files-map.mjs",
     "docs:check": "node scripts/check-docs.mjs",
     "docs:dev": "node scripts/docs-server.mjs",
     "wireframe": "node scripts/wireframe-server.mjs",
     "wireframe:tags": "node scripts/wireframe-tags.mjs",
+    "wireframe:shoot": "node scripts/wireframe/kit/shoot.mjs",
     "comments": "node scripts/check-comments.mjs --working",
     "marketing": "node floc/marketing/src/cli.ts",
     "explore:new": "node scripts/new-explore-trip.mjs",
@@ -53,7 +56,7 @@
     "neverBuiltDependencies": [
       "esbuild"
     ],
-    "//": "Security gates are fixed, never weakened (security-compliance/CLAUDE.md), so advisories reached through a transitive dep are pinned forward here rather than muted in the audit step. Each entry is a `pnpm audit --audit-level=high` finding on the patched floor the advisory names.",
+    "//": "Security gates are fixed, never weakened, so advisories reached through a transitive dep are pinned forward here rather than muted in the audit step. Each entry is a `pnpm audit --audit-level=high` finding on the patched floor the advisory names.",
     "overrides": {
       "vitest": "^3.2.6",
       "vite": "^6.4.4",

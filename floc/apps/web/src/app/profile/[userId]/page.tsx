@@ -13,7 +13,6 @@
  * to appear here.
  */
 import { redirect } from "next/navigation";
-import { titleCase } from "@floc/core/text/title-case";
 
 import { requireUser } from "@/server/access";
 import { formatDateRange } from "@floc/core/dates/dates";
@@ -102,10 +101,10 @@ export default async function PublicProfilePage({
                   key={t.id}
                   className="rounded-md bg-sheet-2 px-3 py-2 text-sm"
                 >
-                  <span className="font-semibold">{titleCase(t.name)}</span>
+                  <span className="font-semibold">{t.name}</span>
                   <span className="text-ink-soft">
                     {" · "}
-                    {formatDateRange(t.startDate, t.endDate)}
+                    <span className="nums">{formatDateRange(t.startDate, t.endDate)}</span>
                     {t.place ? ` · ${t.place}` : ""}
                   </span>
                 </li>

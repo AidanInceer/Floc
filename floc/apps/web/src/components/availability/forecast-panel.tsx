@@ -6,7 +6,7 @@
  */
 import { ChevronIcon } from "@/components/system/icons";
 import { cx } from "@/components/system/ui";
-import { WeatherGlyph } from "@/components/system/weather-glyph";
+import { WeatherGlyph } from "@/components/system/icons/weather";
 import { dayParts, formatDate, type IsoDate } from "@floc/core/dates/dates";
 import type { DailyForecast, HourlyPoint } from "@/server/itinerary/weather";
 
@@ -47,7 +47,7 @@ export function ForecastPanel({
           return (
             <li key={d}>
               {w ? (
-                <button type="button" onClick={() => onSelect(d)} className={cx(row, "grid-cols-[3.4rem_16px_minmax(0,1fr)_auto] hover:bg-sheet-2")}>
+                <button type="button" onClick={() => onSelect(d)} className={cx(row, "grid-cols-[3.4rem_16px_minmax(0,1fr)_auto] hover:bg-sheet-3")}>
                   {when}
                   <span className="text-ink-soft"><WeatherGlyph condition={w.condition} /></span>
                   <span className="truncate text-ink-soft">{w.label}</span>
@@ -76,7 +76,7 @@ function DayHours({ date, day, points, back }: { date: IsoDate; day: DailyForeca
       <button
         type="button"
         onClick={back}
-        className="-ml-1 -mt-1 mb-3 inline-flex items-center gap-1 rounded-sm py-1 pl-1 pr-2 text-[13px] text-ink-soft hover:bg-sheet-2 hover:text-ink"
+        className="-ml-1 -mt-1 mb-3 inline-flex items-center gap-1 rounded-sm py-1 pl-1 pr-2 text-[13px] text-ink-soft hover:bg-sheet-3 hover:text-ink"
       >
         <ChevronIcon direction="left" />
         All days

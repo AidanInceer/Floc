@@ -135,7 +135,7 @@ export function DatesBoard(props: DatesBoardProps) {
           forecast: null,
         }[tab]}
       </div>
-      <aside className="min-w-0 border-t border-rule lg:border-l lg:border-t-0 [&>*+*]:border-t [&>*+*]:border-rule">{panel[tab]}</aside>
+      <aside className="min-w-0 border-t border-rule bg-sheet-2 lg:border-l lg:border-t-0 [&>*+*]:border-t [&>*+*]:border-rule">{panel[tab]}</aside>
     </section>
   );
 }

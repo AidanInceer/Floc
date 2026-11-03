@@ -1,8 +1,9 @@
 import { activityKind } from "@floc/core/trip/explore/detail/activity-kind";
 import type { PlanDay } from "@floc/core/trip/explore/detail/preset-plan";
 
-import { ActivityGlyph, ActivityTile } from "@/components/explore/trip/activity-tile";
-import { StarIcon } from "@/components/explore/trip/trip-glyphs";
+import { ActivityTile } from "@/components/explore/trip/activity-tile";
+import { ActivityGlyph } from "@/components/system/icons/activity";
+import { StarIcon } from "@/components/system/icons/explore-trip";
 import { ChevronIcon } from "@/components/system/icons";
 import { cx } from "@/components/system/ui";
 

@@ -4,7 +4,7 @@
  */
 import type { ReactNode } from "react";
 
-import { cx } from "./ui";
+import { cx } from "@/components/system/ui";
 
 export function LineIcon({
   children,

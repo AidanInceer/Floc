@@ -1,0 +1,59 @@
+/* Shared frame for the trips-list and packing mockups: review board, app bar, glyphs. */
+
+.board-bar {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px;
+  padding: 10px 20px; background: #14141a; color: #fafafa;
+}
+.board-bar h1 { font-size: 15px; color: #fafafa; }
+.board-bar .pick { display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: rgb(255 255 255 / 0.08); }
+.board-bar .pick button {
+  padding: 5px 12px; border-radius: 999px; font-family: var(--type); font-size: 11px;
+  letter-spacing: 0.06em; text-transform: uppercase; color: #fafafa; opacity: 0.65;
+}
+.board-bar .pick button[aria-pressed="true"] { background: #fafafa; color: #14141a; opacity: 1; }
+.board-bar .idea { font-size: 13px; opacity: 0.75; max-width: 60ch; }
+:root[data-theme="dark"] .board-bar { background: #000; box-shadow: 0 1px 0 #34343a; }
+
+.design { display: none; }
+body[data-design="a"] .design-a,
+body[data-design="b"] .design-b,
+body[data-design="c"] .design-c,
+body[data-design="d"] .design-d,
+body[data-design="e"] .design-e { display: block; }
+
+/* The app's own bar, drawn loosely so each design sits in context. */
+.appbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; }
+.wordmark { font-family: var(--display); font-weight: 600; font-size: 22px; letter-spacing: -0.03em; color: var(--ink); }
+.wordmark i { color: var(--pen); font-style: normal; }
+.navpill { display: flex; gap: 2px; padding: 4px; border-radius: 999px; background: var(--sheet-3); }
+.navpill span { padding: 6px 14px; border-radius: 999px; font-size: 13px; color: var(--ink-2); }
+.navpill span[aria-current] { background: var(--ink); color: var(--paper); }
+.me { display: flex; align-items: center; gap: 8px; padding: 3px 12px 3px 3px; border: 1px solid var(--rule-2); border-radius: 999px; font-size: 13px; }
+
+.page { max-width: 76rem; margin: 0 auto; padding: 16px 24px 96px; }
+
+.g { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.g.fill { fill: currentColor; }
+
+.iconbtn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 999px; color: var(--ink-3);
+}
+.iconbtn:hover { background: var(--sheet-3); color: var(--ink); }
+
+.link { color: var(--pen); font-size: 13px; font-weight: 500; }
+.link:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+@media (max-width: 640px) {
+  .board-bar { gap: 6px; padding: 8px 14px; }
+  .board-bar .pick { order: 2; width: 100%; overflow-x: auto; scrollbar-width: none; }
+  .board-bar .pick::-webkit-scrollbar { display: none; }
+  .board-bar .pick button { flex-shrink: 0; white-space: nowrap; }
+  .navpill { display: none; }
+  .page { padding: 12px 16px 96px; }
+  .board-bar .idea { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}

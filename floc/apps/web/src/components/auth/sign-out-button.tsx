@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { signOut } from "@/lib/auth-client";
 import { trySignOut } from "@/lib/sign-out";
-import { SignOutIcon } from "@/components/chrome/account/account-icons";
+import { SignOutIcon } from "@/components/system/icons/account";
 
 export function SignOutButton({
   className,
@@ -29,7 +29,7 @@ export function SignOutButton({
       }}
       className={
         className ??
-        "inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[12.5px] text-ink-soft hover:bg-sheet-3 hover:text-ink"
+        "inline-flex h-7 items-center gap-1.5 rounded-sm px-2.5 text-[12.5px] text-ink-soft hover:bg-sheet-3 hover:text-ink"
       }
     >
       <SignOutIcon />

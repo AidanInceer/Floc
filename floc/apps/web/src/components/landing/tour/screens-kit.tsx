@@ -4,7 +4,7 @@ import { CategoryChip } from "@/components/documents/document-row";
 import { Avatar, cx } from "@/components/system/ui";
 import type { DocCategory } from "@floc/core/documents/documents";
 
-import { Glyph } from "../landing-glyph";
+import { Glyph } from "@/components/system/icons/landing";
 import { jo, maya, sam, you, type SamplePerson } from "../sample-trip";
 import { FakeButton, ScreenFrame } from "./screen-frame";
 

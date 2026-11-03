@@ -3,7 +3,7 @@ import { useId } from "react";
 import { Button } from "@/components/system/ui";
 import type { AgentPhase } from "@/lib/landing/agent/agent-playback";
 
-import { Glyph } from "../landing-glyph";
+import { Glyph } from "@/components/system/icons/landing";
 
 export function AgentStart({ phase, run }: { phase: AgentPhase; run: () => void }) {
   const hint = useId();

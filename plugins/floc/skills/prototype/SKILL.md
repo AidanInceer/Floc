@@ -14,7 +14,7 @@ A prototype is **throwaway code that answers a question**. The question decides 
 Identify which question is being answered — from the user's prompt, the surrounding code, or by asking if the user is around:
 
 - **"Does this logic / state model feel right?"** → [LOGIC.md](LOGIC.md). Build a tiny interactive terminal app that pushes the state machine through cases that are hard to reason about on paper.
-- **"What should this look like?"** → [UI.md](UI.md). Generate several radically different UI variations on one page, switchable via a URL search param and a floating bottom bar. In Floc that page is a static wireframe, not an app route.
+- **"What should this look like?"** → [UI.md](UI.md). Several structurally different variations on one static wireframe page, switched by `?variant=`.
 
 The two branches produce very different artifacts — getting this wrong wastes the whole prototype. If the question is genuinely ambiguous and the user isn't reachable, default to whichever branch better matches the surrounding code (a backend module → logic; a page or component → UI) and state the assumption at the top of the prototype.
 
@@ -50,11 +50,22 @@ These override the generic rules above where they differ. The biggest one: **a p
   <script src="/_house/house.js" defer></script>
   ```
 
-  `house.css` loads the real token values from `@floc/core/design/tokens` (light and dark), the three faces, `.typed`, `.nums`, `.who-1`…`.who-8`, `.avatar`, `.btn`. `house.js` adds the light/dark switch; the page opens in light.
+  `house.css` loads the real token values from `@floc/core/design/tokens` (light and dark), the three faces, `.typed`, `.nums`, `.who-1`…`.who-8`, `.avatar`, `.btn`. `house.js` adds the light/dark switch; the page opens in light. Token names: `curl -s localhost:4100/_house/tokens.css`.
+- **Use the kit before writing your own.** `/_house/` serves `scripts/wireframe/` (tracked, so a worktree has it too):
+
+  | File | Gives |
+  |---|---|
+  | `switcher.js` | `variants(list, render)`: the variant panel and `?variant=` |
+  | `kit/trip-frame.mjs` · `.css` | `tripFrame(tab, me)`: header, beads, trip tabs; `ico`, `avatar`, date helpers, `openSheet`, `toast`, `isNarrow` |
+  | `kit/chrome.js` · `.css` | The trips-list and packing frame (`window.Kit`) |
+  | `kit/nav-glyphs.js` | Header and tab glyphs (`window.NavGlyphs`) |
+  | `kit/shoot.mjs` | Screenshots: `pnpm wireframe:shoot` |
+
+  A helper two prototypes need goes in the kit, not in a copy.
 - **House look, still.** Colours only through `var(--token)`, never hex. Line icons (14×14 `viewBox`, stroke only), no emoji. Copy the shapes from `components/system/` by eye; do not import them. Otherwise the verdict judges the wrong thing.
 - **Realistic data, in the file.** A static page cannot reach the database. Write believable trips, people and plans in the prototype's own JS, shaped like scenario A (`/floc:seed-dev-db` shows what that holds). Real words, never lorem ipsum.
 - **Interactive beats pretty.** The user clicks and types in it to learn how it feels. State lives in memory; a reload starts over.
-- **Variants.** Several answers to one question → `?variant=` on the same page, cycled by a small bar at the bottom centre. One agreed direction that the grill keeps changing → one page, edited round by round. How the rounds run: [Rounds](#rounds).
+- **Variants.** Several answers to one question → `?variant=` on the same page, listed in the house panel on the right (`switcher.js`). One agreed direction that the grill keeps changing → one page, edited round by round. How the rounds run: [Rounds](#rounds).
 - **Web and mobile web, every variant.** Every variant must work and read clearly at desktop width (1280) and phone width (375), in the same page. Do not just let it shrink: plan the narrow layout on purpose.
   - Stack side-by-side parts, and put the thing that matters first.
   - A wide device (a browser window, a map) may become a phone on a narrow screen.
@@ -66,7 +77,7 @@ These override the generic rules above where they differ. The biggest one: **a p
   Shoot both widths, in light and dark. A variant that fails at 375 is not done.
 - **UI, phone app.** Draw the phone as a 390×844 frame on the same page, when the question is phone-specific. Otherwise the web answer carries over through the [visual language](../../../../docs/design/visual-language.html).
 - **Logic.** A TUI in `floc/wireframe/<issue>-<slug>/tui.ts`, run with `node <file>.ts`. It may import pure modules from `@floc/core` by relative path; it never writes them.
-- **Hand it over with proof.** Screenshot with Playwright, not the browser pane (the pane is too small, and its screenshots time out). Put a short script in `floc/wireframe/<folder>/_shots/`, run it from the prototype folder, and write the images to that same `_shots/`. `_landing/shoot.mjs` is the pattern: path, out, theme, wait, width, height, and `SCROLL`/`CLICK` env vars. Collect page errors in the script and report them. Send light and dark with `SendUserFile`, plus the moment that matters (mid-animation, a narrow width). Give the user the URL with `?variant=`.
+- **Hand it over with proof.** Screenshot with Playwright, not the browser pane (the pane is too small, and its screenshots time out). Do not write a shoot script. From the repo root: `pnpm wireframe:shoot "/<folder>/?variant=A" floc/wireframe/<folder>/_shots/A-1280.png [light|dark] [width] [height] [full]`. Set `STEPS="click:<sel>;;hover:<sel>;;wait:300"` for the moment that matters, and `CLEAN=1` to hide the wireframe's own panels. It prints page errors and sideways overflow; report both. Send light and dark with `SendUserFile`, plus the moment that matters (mid-animation, a narrow width). Give the user the URL with `?variant=`.
 - **Capture the verdict on the ticket.** Add `## Prototype verdict` to the issue body: the question, the answer, why, and the folder name. Remove the `wayfinder:prototype` label. The folder stays on the user's disk as the source; `/floc:implement-feature` rebuilds the answer properly, test-first. Open decisions left → `/floc:grill`.
 
 ## Rounds

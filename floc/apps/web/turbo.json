@@ -1,0 +1,15 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "lint": {
+      "inputs": ["$TURBO_DEFAULT$", ".next-verify/types/**", ".next/types/**", ".e2e/next-dev/types/**", "next-env.d.ts"]
+    },
+    "typecheck": {
+      "inputs": ["$TURBO_DEFAULT$", ".next-verify/types/**", ".next/types/**", ".e2e/next-dev/types/**", "next-env.d.ts"]
+    },
+    "fitness:source": {
+      "inputs": ["$TURBO_DEFAULT$", ".next-verify/types/**", ".next/types/**", ".e2e/next-dev/types/**", "next-env.d.ts"]
+    }
+  }
+}

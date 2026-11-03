@@ -27,7 +27,7 @@ function ProPitch({ monthly, href }: { monthly: string | null; href: string }) {
             <span className="text-ink-faint">Cancel any time</span>
           </p>
         )}
-        <Link href={href} className="lift rounded-full bg-pro-mark px-6 py-3 text-sm font-semibold text-pro">
+        <Link href={href} className="lift rounded-sm bg-pro-mark px-6 py-3 text-sm font-semibold text-pro">
           Get Pro
         </Link>
       </div>

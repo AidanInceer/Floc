@@ -7,11 +7,10 @@
  * wears a quiet pastel, and an archived trip drains to white so last year's
  * trip stays readable without asking for anything.
  */
-import { titleCase } from "@floc/core/text/title-case";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { AvatarRow, PASTEL_BY_KEY, PASTEL_SKINS, cx } from "@/components/system/ui";
+import { AvatarRow, PASTEL_BY_KEY, PASTEL_SKINS, cx, iconButtonClass } from "@/components/system/ui";
 import { TripCardMenu } from "@/components/trip/trip-card-menu";
 import { starTrip } from "@/app/trips/actions";
 import { daysUntil, formatDateRange } from "@floc/core/dates/dates";
@@ -20,7 +19,7 @@ import type { IsoDate } from "@floc/core/dates/dates";
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import type { TripColor } from "@floc/core/trip/trip-color";
 import type { TripMark } from "@floc/core/trip/mark/trip-mark";
-import { TripMarkIcon } from "@/components/trip/trip-mark";
+import { TripMarkIcon } from "@/components/system/icons/trip-mark";
 import type { TripRole } from "@/db/schema";
 
 export type TripCardData = {
@@ -149,7 +148,7 @@ function CardBody({
           {eyebrow}
         </span>
         <h3 className={cx("mt-1", list ? "text-xl" : "text-2xl", past && "text-ink-soft")}>
-          {titleCase(trip.name)}
+          {trip.name}
         </h3>
       </span>
       {/* `sm:contents` dissolves this wrapper once the row flows, so dates and
@@ -204,7 +203,7 @@ function StarButton({
   tripName: string;
   starred: boolean;
 }) {
-  const label = starred ? `Unstar ${titleCase(tripName)}` : `Star ${titleCase(tripName)}`;
+  const label = starred ? `Unstar ${tripName}` : `Star ${tripName}`;
   return (
     <form action={starTrip}>
       <input type="hidden" name="tripId" value={tripId} />
@@ -214,12 +213,7 @@ function StarButton({
         aria-label={label}
         aria-pressed={starred}
         title={label}
-        className={cx(
-          "flex h-[26px] w-[26px] items-center justify-center rounded-full border transition-colors",
-          starred
-            ? "border-rule-strong bg-sheet text-ink"
-            : "border-transparent text-ink-faint hover:border-rule-strong hover:bg-sheet-2 hover:text-ink",
-        )}
+        className={iconButtonClass(starred)}
       >
         <svg viewBox="0 0 14 14" width="13" height="13" aria-hidden>
           <path

@@ -2,22 +2,19 @@
 #
 # Everything CI will run, run here first.
 #
-# This mirrors the five jobs in .github/workflows/{ci,security}.yml. When a job
+# This mirrors the check jobs in .github/workflows/{ci,security}.yml. When a job
 # changes there, change it here in the same commit — a local gate that has
 # drifted from CI is worse than no local gate, because it buys false confidence.
 #
-#   ci.yml       verify      → lint · typecheck · test · build   (via turbo)
+#   ci.yml       verify      → lint · typecheck · test · quality · build · fitness
 #   ci.yml       sonarqube   → coverage + SonarCloud quality gate (PRs + main)
 #   ci.yml       e2e-web     → Playwright over the build, on its own database
-#   ci.yml       fitness     → layers · dead code · tokens · contrast · bundle
 #   ci.yml       migrations  → schema changes ship with a migration
-#   ci.yml       wireframes  → wireframes stay self-contained
 #   ci.yml       parity      → the web/app gap is declared, not forgotten
 #   ci.yml       mobile      → Expo bundles for Android and iOS
 #
-# Why: e2e-web, wireframes and the mobile jobs are paused in CI (`if: false`) to
-# keep the Actions bill down. They still run here, so verify is now the only gate
-# for them.
+# Why: e2e-web and the mobile jobs are paused in CI (`if: false`) to keep the
+# Actions bill down. They still run here, so verify is now the only gate for them.
 #
 # One CI job is deliberately NOT mirrored: `mobile-android`, the native gradle
 # compile. It takes twenty minutes and wants a JDK 17, which is too much to ask
@@ -37,6 +34,11 @@
 set -uo pipefail
 
 cd "$(dirname "$0")/.."
+
+# Why: one folder per run. Two runs at once (a worktree beside the main checkout)
+# shared /tmp/verify-* and read each other's results.
+LOGS=$(mktemp -d)
+trap 'rm -rf "$LOGS"' EXIT
 
 fail=0
 declare -a FAILED=()
@@ -71,12 +73,10 @@ fi
 
 # Turbo fans this out across the workspace exactly as CI does. CI additionally
 # filters to packages affected by the diff; locally we just run all of them,
-# because with one venture that is the same set and the filter is the part most
-# likely to drift.
+# because the filter is the part most likely to drift.
 #
-# Four packages now, not one (#287, #289): floc-web, floc-mobile, @floc/core
-# and @floc/api. Adding a package needs no edit here or in ci.yml — both go
-# through turbo, which reads pnpm-workspace.yaml. `floc-mobile` has no build
+# Adding a package needs no edit here or in ci.yml — both go through turbo,
+# which reads pnpm-workspace.yaml. `floc-mobile` has no build
 # task on purpose; a phone bundle is EAS's job, not CI's (see
 # floc/apps/mobile/SHIPPING.md).
 #
@@ -84,28 +84,67 @@ fi
 # so the dev servers can stay up through verify. CI builds to `.next` as usual.
 export FLOC_NEXT_DIST_DIR=.next-verify
 
+# Why: turbo hashes this (globalEnv), so a Node upgrade re-runs every cached task.
+FLOC_NODE_VERSION=$(node -v)
+export FLOC_NODE_VERSION
+
+# Steps that read nothing the build chain writes run beside the build and report
+# in their usual place below. Each leaves its exit code in $LOGS/verify-<name>.rc.
+background() {
+  local name=$1; shift
+  ( "$@" >"$LOGS/verify-$name.log" 2>&1; echo $? >"$LOGS/verify-$name.rc" ) &
+}
+await() {
+  while [ ! -s "$LOGS/verify-$1.rc" ]; do sleep 0.2; done
+  return "$(cat "$LOGS/verify-$1.rc")"
+}
+# Network-bound, so it starves nothing and starts first.
+background audit pnpm audit --audit-level=high
+
 # One turbo call runs lint, typecheck and test side by side. Build is a second
 # call: typecheck reads `.next-verify/types`, which a parallel build rewrites.
+# Cached: a package re-runs when its files, a workspace dependency's files, the
+# generated types it reads (floc/apps/*/turbo.json), the lockfile or Node change.
+# A failed task is never cached, so a failure always re-runs.
 step "Lint · typecheck · test · build"
-if pnpm turbo run lint typecheck test --continue --force >/tmp/verify-checks.log 2>&1; then
+if pnpm turbo run lint typecheck test --continue >$LOGS/verify-checks.log 2>&1; then
   for task in lint typecheck test; do ok "$task"; done
 else
-  failed_line=$(grep -E '^\s*Failed:' /tmp/verify-checks.log || true)
+  failed_line=$(grep -E '^\s*Failed:' $LOGS/verify-checks.log || true)
   for task in lint typecheck test; do
     if echo "$failed_line" | grep -qE "#$task\b"; then bad "$task"; else ok "$task"; fi
   done
   [ -z "$failed_line" ] && bad "turbo (lint · typecheck · test)"
-  tail -40 /tmp/verify-checks.log
+  tail -40 $LOGS/verify-checks.log
 fi
-if pnpm build >/tmp/verify-build.log 2>&1; then
+# Why: beside the build, never the tests — vitest's 5 s timeouts fail under load.
+# Outside the repo: Metro watches the whole tree and dies when a folder it
+# watches is deleted, which is what cleaning up `dist` did.
+bundle_dir=$(mktemp -d)
+background mobile bash -c 'cd floc/apps/mobile && pnpm exec expo export --platform android --platform ios --output-dir "$1"' _ "$bundle_dir"
+background quality bash -c 'pnpm quality:test && pnpm quality:check'
+background parity pnpm parity
+# `pnpm fitness` minus the bundle budget, which needs the build.
+background fitness-repo pnpm fitness:repo
+background fitness-source pnpm turbo run fitness:source
+if command -v gitleaks >/dev/null 2>&1; then
+  background gitleaks gitleaks detect --no-banner --redact
+fi
+# Why: FLOC_VERIFY_BUILD skips Next's own lint and type pass — lint ran above
+# over a superset of its files, and typecheck re-runs here on the route types
+# this build just wrote (a cache hit when they did not change).
+if FLOC_VERIFY_BUILD=1 pnpm build >$LOGS/verify-build.log 2>&1 \
+  && pnpm turbo run typecheck --filter floc-web >>$LOGS/verify-build.log 2>&1; then
   ok "build"
 else
   bad "build"
-  tail -30 /tmp/verify-build.log
+  tail -30 $LOGS/verify-build.log
 fi
 
 step "Local quality gates and release-diff coverage"
-if pnpm quality:test && pnpm quality:check; then
+if await quality; then quality_rc=0; else quality_rc=1; fi
+cat $LOGS/verify-quality.log
+if [ "$quality_rc" -eq 0 ]; then
   ok "local analysis and changed-code coverage"
 else
   bad "local quality gate failed"
@@ -115,25 +154,32 @@ fi
 
 # Over the build above, on port 3100 and `.e2e/data`, so the dev server and
 # local.db are untouched.
+# Why: sign-in waits 5 s for /trips; any CPU-heavy job still running starves it.
+for job in mobile parity fitness-repo fitness-source; do await "$job"; done
 step "The web app works end to end"
-if pnpm --filter floc-web e2e >/tmp/verify-e2e.log 2>&1; then
-  ok "$(grep -E '[0-9]+ passed' /tmp/verify-e2e.log | tail -1 | xargs)"
+if pnpm --filter floc-web e2e >$LOGS/verify-e2e.log 2>&1; then
+  ok "$(grep -E '[0-9]+ passed' $LOGS/verify-e2e.log | tail -1 | xargs)"
 else
   bad "a Playwright test failed"
-  grep -vE '^\[WebServer\]' /tmp/verify-e2e.log | tail -40
+  grep -vE '^\[WebServer\]' $LOGS/verify-e2e.log | tail -40
 fi
 
 # --------------------------------------------------- ci.yml :: fitness
 
 # The structural checks (#212): layering, dead code, the globals.css token
 # rules, WCAG contrast on every token pair, and the bundle budget. Needs the
-# build above, which the turbo task depends on.
-step "Architecture · dead code · tokens · contrast · bundle"
-if pnpm fitness >/tmp/verify-fitness.log 2>&1; then
+# build above. The rest of `pnpm fitness` ran beside the build.
+step "Architecture · dead code · tokens · css · icons · contrast · bundle"
+fitness_rc=0
+await fitness-repo || fitness_rc=1
+await fitness-source || fitness_rc=1
+pnpm --filter floc-web check:bundle >$LOGS/verify-fitness-bundle.log 2>&1 || fitness_rc=1
+cat $LOGS/verify-fitness-{repo,source,bundle}.log >$LOGS/verify-fitness.log
+if [ "$fitness_rc" -eq 0 ]; then
   ok "the codebase is not getting worse"
 else
   bad "a fitness check failed"
-  tail -40 /tmp/verify-fitness.log
+  tail -40 $LOGS/verify-fitness.log
 fi
 
 # ----------------------------------------------- ci.yml :: migrations
@@ -144,7 +190,7 @@ fi
 # slice but not yet committed is not mistaken for a missing one.
 step "Schema changes ship with a migration"
 before=$(git status --porcelain -- floc/apps/web/drizzle)
-if pnpm --filter floc-web db:generate >/tmp/verify-drizzle.log 2>&1; then
+if pnpm --filter floc-web db:generate >$LOGS/verify-drizzle.log 2>&1; then
   drift=$(git status --porcelain -- floc/apps/web/drizzle)
   if [ "$drift" != "$before" ]; then
     bad "a schema change has no migration"
@@ -155,33 +201,7 @@ if pnpm --filter floc-web db:generate >/tmp/verify-drizzle.log 2>&1; then
   fi
 else
   bad "db:generate failed"
-  tail -20 /tmp/verify-drizzle.log
-fi
-
-# ----------------------------------------------- ci.yml :: wireframes
-
-# Wireframes are plain HTML with no build step, so this just proves they stay
-# self-contained — no external requests — which the Artifact CSP and our own
-# offline-first convention both require. There are none right now (ticket 208
-# deleted them); the check stays so the next one is born correct.
-step "Wireframes stay self-contained"
-shopt -s nullglob
-files=(floc/wireframe/*.html)
-if [ ${#files[@]} -eq 0 ]; then
-  ok "no wireframes — nothing to check"
-else
-  wf=0
-  for f in "${files[@]}"; do
-    if grep -nEi '(src|href)=["'"'"']https?://' "$f"; then
-      echo "     $f references an external asset; inline it instead"
-      wf=1
-    fi
-    if grep -nEi '<!doctype|<html[ >]|<body[ >]' "$f"; then
-      echo "     $f should start at <title>, with no document wrapper"
-      wf=1
-    fi
-  done
-  [ "$wf" -eq 0 ] && ok "${#files[@]} wireframe(s) self-contained" || bad "wireframes reference external assets"
+  tail -20 $LOGS/verify-drizzle.log
 fi
 
 # -------------------------------------------------- ci.yml :: parity
@@ -192,11 +212,11 @@ fi
 # its *dependents*, and a mobile-only change has none — which is the change
 # most likely to move parity.
 step "The web/app gap is declared, not forgotten"
-if pnpm parity >/tmp/verify-parity.log 2>&1; then
-  ok "$(tail -1 /tmp/verify-parity.log)"
+if await parity; then
+  ok "$(tail -1 $LOGS/verify-parity.log)"
 else
   bad "parity.json disagrees with the code"
-  cat /tmp/verify-parity.log
+  cat $LOGS/verify-parity.log
 fi
 
 # --------------------------------------------------- ci.yml :: mobile
@@ -212,10 +232,7 @@ fi
 # the same question against the previous commit, which is a thing CI can see
 # and a pre-push script cannot.
 step "The phone app bundles"
-# Outside the repo: Metro watches the whole tree and dies when a folder it
-# watches is deleted, which is what cleaning up `dist` did.
-bundle_dir=$(mktemp -d)
-if (cd floc/apps/mobile && pnpm exec expo export --platform android --platform ios --output-dir "$bundle_dir" >/dev/null 2>&1); then
+if await mobile; then
   ok "android and ios bundles built"
 else
   bad "the phone app does not bundle"
@@ -225,11 +242,11 @@ rm -rf "$bundle_dir"
 # ------------------------------------------ security.yml :: audit
 
 step "Known vulnerabilities"
-if pnpm audit --audit-level=high >/tmp/verify-audit.log 2>&1; then
+if await audit; then
   ok "no high or critical advisories"
 else
   bad "pnpm audit found a high/critical advisory"
-  tail -30 /tmp/verify-audit.log
+  tail -30 $LOGS/verify-audit.log
 fi
 
 # ----------------------------------------- security.yml :: secrets
@@ -240,11 +257,11 @@ fi
 # where a secret you are about to push actually is. CI remains the backstop.
 step "Secret scan"
 if command -v gitleaks >/dev/null 2>&1; then
-  if gitleaks detect --no-banner --redact >/tmp/verify-gitleaks.log 2>&1; then
+  if await gitleaks; then
     ok "no secrets found"
   else
     bad "gitleaks found a secret"
-    tail -30 /tmp/verify-gitleaks.log
+    tail -30 $LOGS/verify-gitleaks.log
   fi
 else
   skip "gitleaks not installed — CI still scans. Install: winget install gitleaks"

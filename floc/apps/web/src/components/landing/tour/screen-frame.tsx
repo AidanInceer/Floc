@@ -25,7 +25,7 @@ export function ScreenFrame({ active, children }: { active: TabState["key"]; chi
       </div>
       <div className="flex gap-2 border-b border-rule px-3.5 pb-3">
         {TABS.map((t) => (
-          <span key={t.key} className={cx("rounded-full px-[11px] py-[5px] text-xs", t.key === active ? "bg-ink text-paper" : "text-ink-faint")}>
+          <span key={t.key} className={cx("rounded-sm px-[11px] py-[5px] text-xs", t.key === active ? "bg-ink text-paper" : "text-ink-faint")}>
             {t.label}
           </span>
         ))}
@@ -39,7 +39,7 @@ export function FakeButton({ children, small }: { children: ReactNode; small?: b
   return (
     <span
       className={cx(
-        "inline-flex items-center rounded-full bg-pen font-mono uppercase tracking-[0.06em] text-sheet",
+        "inline-flex items-center rounded-sm bg-pen font-mono uppercase tracking-[0.06em] text-sheet",
         small ? "px-2.5 py-[3px] text-[10px]" : "px-3.5 py-[7px] text-[11px]",
       )}
     >

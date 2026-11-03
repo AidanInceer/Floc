@@ -330,6 +330,13 @@
       "when": 1793211843179,
       "tag": "0046_dapper_lake",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "6",
+      "when": 1793746917135,
+      "tag": "0047_petite_ted_forrester",
+      "breakpoints": true
     }
   ]
 }

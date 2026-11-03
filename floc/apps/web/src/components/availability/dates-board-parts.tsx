@@ -3,11 +3,11 @@
 import type { ReactNode } from "react";
 
 import type { DatesTab, TabStub } from "@/components/availability/dates-tabs";
-import { NavGlyph } from "@/components/chrome/nav-glyphs";
+import { NavGlyph } from "@/components/system/icons/nav";
 import { CheckIcon, ChevronIcon } from "@/components/system/icons";
 import { ProStar } from "@/components/system/pro-star";
 import { Button, LegendKey, cx } from "@/components/system/ui";
-import { WeatherGlyph } from "@/components/system/weather-glyph";
+import { WeatherGlyph } from "@/components/system/icons/weather";
 import { formatMonth, tripCoverage, type IsoMonth } from "@floc/core/dates/availability";
 import { formatDate, type IsoDate } from "@floc/core/dates/dates";
 import { forecastTab, groupTab, tripTab, yourDaysTab } from "@floc/core/dates/dates-tabs";
@@ -17,7 +17,7 @@ const typed = "font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint"
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
 export function MonthPager({ month, page, hint }: { month: IsoMonth; page: (delta: number) => void; hint: string }) {
-  const round = "!size-8 !rounded-full !p-0";
+  const round = "!size-8 !p-0";
   return (
     <div className="mb-3.5 flex items-center gap-2.5">
       <Button variant="secondary" className={round} aria-label="Earlier month" onClick={() => page(-1)}>

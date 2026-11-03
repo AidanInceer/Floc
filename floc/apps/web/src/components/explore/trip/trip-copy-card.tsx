@@ -4,7 +4,7 @@ import type { PlanStop } from "@floc/core/trip/explore/detail/preset-plan";
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 
 import { CopySheet } from "@/components/explore/copy/copy-sheet";
-import { CopyIcon } from "@/components/explore/trip/trip-glyphs";
+import { CopyIcon } from "@/components/system/icons/explore-trip";
 import { CheckIcon, ChevronIcon } from "@/components/system/icons";
 import { ButtonLink, cx } from "@/components/system/ui";
 

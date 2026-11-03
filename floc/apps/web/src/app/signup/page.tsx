@@ -4,7 +4,6 @@
  * the client-side signUp() call succeeds and a session exists.
  */
 import Link from "next/link";
-import { titleCase } from "@floc/core/text/title-case";
 
 import { AuthForm } from "@/components/auth/auth-form";
 import { AuthShell, authLinkClass } from "@/components/auth/auth-shell";
@@ -25,7 +24,7 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
   return (
     <AuthShell
       eyebrow={trip?.hostName ? `${trip.hostName} shared a trip` : undefined}
-      title={trip ? `Join ${titleCase(trip.name)}` : "Create an account"}
+      title={trip ? `Join ${trip.name}` : "Create an account"}
       blurb={guest && trip ? "Your votes and dates come with you." : "Takes a minute. No credit card, no app to install."}
       footer={
         <>

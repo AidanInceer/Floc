@@ -1,9 +1,9 @@
 import Link from "next/link";
 
 import type { GapKind } from "@floc/core/trip/overview/left-to-sort";
-import { NavGlyph } from "@/components/chrome/nav-glyphs";
-import { BedIcon, EventGlyph } from "@/components/days/days-glyphs";
-import { StarIcon } from "@/components/explore/trip/trip-glyphs";
+import { NavGlyph } from "@/components/system/icons/nav";
+import { BedIcon, EventGlyph } from "@/components/system/icons/days";
+import { StarIcon } from "@/components/system/icons/explore-trip";
 import { CheckIcon } from "@/components/system/icons";
 import { cx } from "@/components/system/ui";
 

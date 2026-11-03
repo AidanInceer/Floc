@@ -2,7 +2,7 @@
  * The travel-mode glyph set, drawn from the web app's own paths (ticket 78).
  *
  * THE SAME DRAWINGS, NOT A SECOND SET. These `d` strings are copied from
- * `travel-mode-icon.tsx` rather than redrawn, because a ferry that is a
+ * `system/icons/travel-mode.tsx` rather than redrawn, because a ferry that is a
  * different ferry on the phone is two design systems wearing one name. The
  * paths are the only thing shared — the web renders them through `svg`, this
  * through `react-native-svg`, and neither imports the other.

@@ -56,6 +56,25 @@ describe("placeTags", () => {
     }
   });
 
+  it("never hangs a tag nearer another stop than its own", () => {
+    // Lisbon, Barcelona, Lagos on the Overview map at 375: Lisbon's name fell beside Lagos and Lagos's beside Lisbon.
+    const view = { left: 24, top: 24, right: 319, bottom: 200 };
+    const pins = [{ x: 69.805, y: 124.574 }, { x: 274.121, y: 61.503 }, { x: 76.274, y: 163.294 }];
+    const sizes = [{ width: 96.367, height: 28 }, { width: 60.929, height: 28 }, { width: 92.071, height: 28 }];
+    const legTags = [
+      { left: 139.157, top: 54.926, right: 211.314, bottom: 74.926 },
+      { left: 167.062, top: 130.253, right: 193.062, bottom: 150.253 },
+    ];
+    const spots = placeTags(pins, sizes, view, pins, legTags);
+    const gap = (p: { x: number; y: number }, b: { left: number; top: number; right: number; bottom: number }) =>
+      Math.hypot(Math.max(b.left - p.x, 0, p.x - b.right), Math.max(b.top - p.y, 0, p.y - b.bottom));
+    spots.forEach((at, i) => {
+      const own = pins[i]!;
+      const box = { left: own.x + at.x, top: own.y + at.y, right: own.x + at.x + sizes[i]!.width, bottom: own.y + at.y + sizes[i]!.height };
+      for (const other of pins.filter((_, j) => j !== i)) expect(gap(own, box)).toBeLessThan(gap(other, box));
+    });
+  });
+
   it("places only the tags it is given sizes for", () => {
     expect(placeTags([{ x: 0, y: 0 }, { x: 300, y: 0 }], [], WIDE)).toEqual([]);
   });

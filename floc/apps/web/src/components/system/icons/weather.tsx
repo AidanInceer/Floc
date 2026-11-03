@@ -1,6 +1,6 @@
 /**
  * Weather glyphs (ticket 148): one drawing per condition, drawn like
- * `travel-mode-icon.tsx` / `reaction-glyph.tsx` (14×14, currentColor, no emoji —
+ * `travel-mode.tsx` / `reaction.tsx` (14×14, currentColor, no emoji —
  * see visual-language "Iconography"). No `"use client"` — paths only, so it
  * composes into server or client rows.
  */

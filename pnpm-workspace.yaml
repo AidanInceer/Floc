@@ -1,5 +1,5 @@
-# Workspace globs for the Nexus hub. Anything not matched here is NOT part of the
-# pnpm/Turborepo workspace.
+# Workspace globs. Anything not matched here is NOT part of the pnpm/Turborepo
+# workspace.
 # The settings below are duplicated from the root package.json's `pnpm` field,
 # and both copies have to stay in step until `packageManager` moves off pnpm 9.
 # pnpm 9 — which is what CI installs, from `packageManager` — reads them from
@@ -11,16 +11,11 @@ packages:
   - "floc/apps/*"
   - "floc/packages/*"
   - "floc/marketing"
-  - "floc/pipelines/*"
-  - "shared/packages/*"
-  - "internal-tools/*"
-  - "enablement/cli"
 
 neverBuiltDependencies:
   - esbuild
 
-# Security gates are fixed, never weakened (security-compliance/CLAUDE.md), so
-# an advisory reached through a transitive dep is pinned forward here rather
+# Security gates are fixed, never weakened, so an advisory reached through a transitive dep is pinned forward here rather
 # than muted in the audit step. Each entry is a `pnpm audit` finding, set to the
 # patched floor the advisory itself names.
 overrides:

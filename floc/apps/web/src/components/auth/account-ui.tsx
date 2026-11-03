@@ -5,7 +5,7 @@
  */
 import type { ReactNode } from "react";
 
-import { cx, PageTitle } from "@/components/system/ui";
+import { cx, PageTitle, segmentTrack } from "@/components/system/ui";
 import "./account-ui.css";
 
 export function AccountPage({
@@ -22,18 +22,20 @@ export function AccountPage({
   children: ReactNode;
 }) {
   return (
-    <div className="mx-auto w-full max-w-[54rem] px-4 pb-20 pt-6 sm:px-6">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div className="min-w-0">
-          {eyebrow ? <p className="typed">{eyebrow}</p> : null}
-          <PageTitle className="mt-2">{title}</PageTitle>
-          {blurb ? (
-            <p className="mt-2 max-w-[60ch] text-sm text-ink-soft">{blurb}</p>
-          ) : null}
-        </div>
-        {actions}
-      </header>
-      <div className="mt-8 flex flex-col gap-4">{children}</div>
+    <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
+      <div className="max-w-[54rem]">
+        <header className="flex flex-wrap items-end justify-between gap-4">
+          <div className="min-w-0">
+            {eyebrow ? <p className="typed">{eyebrow}</p> : null}
+            <PageTitle className="mt-2">{title}</PageTitle>
+            {blurb ? (
+              <p className="mt-2 max-w-[60ch] text-sm text-ink-soft">{blurb}</p>
+            ) : null}
+          </div>
+          {actions}
+        </header>
+        <div className="mt-8 flex flex-col gap-4">{children}</div>
+      </div>
     </div>
   );
 }
@@ -102,7 +104,7 @@ export function PersonRow({
  * colour alone.
  */
 const pillShape =
-  "block cursor-pointer rounded-full px-4 py-1.5 text-center text-sm font-medium transition-colors";
+  "block cursor-pointer rounded-sm px-4 py-1.5 text-center text-sm font-medium transition-colors";
 const pillOff = "text-ink-soft hover:bg-sheet hover:text-ink";
 const pillOn =
   "peer-checked:bg-ink peer-checked:text-sheet peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-pen";
@@ -134,7 +136,7 @@ export function PillChoice<T extends string>({
         <div
           role="radiogroup"
           aria-labelledby={labelId}
-          className="flex w-full flex-col gap-1 rounded-md bg-sheet-3 p-1 sm:w-auto sm:flex-row sm:items-center sm:rounded-full"
+          className={cx(segmentTrack, "flex w-full flex-col gap-1 sm:w-auto sm:flex-row sm:items-center")}
         >
           {options.map((o) => (
             <label key={o.value} className="block min-w-0">

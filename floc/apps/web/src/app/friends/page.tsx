@@ -67,93 +67,95 @@ export default async function FriendsPage() {
   const requests = incomingPeople.length + outgoingPeople.length;
 
   return (
-    <div className="mx-auto w-full max-w-[41.25rem] px-4 pb-20 pt-6">
-      <PageTitle>Friends</PageTitle>
+    <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
+      <div className="max-w-[41.25rem]">
+        <PageTitle>Friends</PageTitle>
 
-      {/* Requests lead because they are the only thing here waiting on you; none, no strip. */}
-      {requests > 0 ? (
-        <section className="mt-6">
-          <h2 className="flex items-center gap-2 text-sm font-medium">
-            Requests
-            <span className="nums inline-grid size-5 place-items-center rounded-full bg-pen-soft font-mono text-xs text-pen-deep">
-              {requests}
-            </span>
-          </h2>
-          <ul className="mt-1.5">
-            {incomingPeople.map(({ requesterId, person }) => (
-              <FriendRow key={requesterId} person={person} note="Wants to be friends">
-                <form action={acceptFriend}>
-                  <input type="hidden" name="requesterId" value={requesterId} />
-                  <SubmitButton variant="primary" pendingLabel="Accepting…" className={SMALL}>
-                    Accept
-                  </SubmitButton>
-                </form>
-                <form action={declineFriend}>
-                  <input type="hidden" name="requesterId" value={requesterId} />
-                  <SubmitButton variant="secondary" pendingLabel="Declining…" className={SMALL}>
-                    Decline
-                  </SubmitButton>
-                </form>
-              </FriendRow>
-            ))}
-            {outgoingPeople.map(({ targetId, person }) => (
-              <FriendRow key={targetId} person={person} note="Requested · pending">
-                <form action={cancelRequest}>
-                  <input type="hidden" name="targetId" value={targetId} />
-                  <SubmitButton variant="secondary" pendingLabel="Cancelling…" className={SMALL}>
-                    Cancel
-                  </SubmitButton>
-                </form>
+        {/* Requests lead because they are the only thing here waiting on you; none, no strip. */}
+        {requests > 0 ? (
+          <section className="mt-6">
+            <h2 className="flex items-center gap-2 text-sm font-medium">
+              Requests
+              <span className="nums inline-grid size-5 place-items-center rounded-full bg-pen-soft font-mono text-xs text-pen-deep">
+                {requests}
+              </span>
+            </h2>
+            <ul className="mt-1.5">
+              {incomingPeople.map(({ requesterId, person }) => (
+                <FriendRow key={requesterId} person={person} note="Wants to be friends">
+                  <form action={acceptFriend}>
+                    <input type="hidden" name="requesterId" value={requesterId} />
+                    <SubmitButton variant="primary" pendingLabel="Accepting…" className={SMALL}>
+                      Accept
+                    </SubmitButton>
+                  </form>
+                  <form action={declineFriend}>
+                    <input type="hidden" name="requesterId" value={requesterId} />
+                    <SubmitButton variant="secondary" pendingLabel="Declining…" className={SMALL}>
+                      Decline
+                    </SubmitButton>
+                  </form>
+                </FriendRow>
+              ))}
+              {outgoingPeople.map(({ targetId, person }) => (
+                <FriendRow key={targetId} person={person} note="Requested · pending">
+                  <form action={cancelRequest}>
+                    <input type="hidden" name="targetId" value={targetId} />
+                    <SubmitButton variant="secondary" pendingLabel="Cancelling…" className={SMALL}>
+                      Cancel
+                    </SubmitButton>
+                  </form>
+                </FriendRow>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
+        <div className="my-6 flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
+          <div className="min-w-0 flex-1">
+            <FindFriend />
+          </div>
+          <span className="flex h-10 shrink-0 items-center justify-end gap-2 whitespace-nowrap text-xs">
+            <span className="text-ink-soft">Your code</span>
+            <span className="font-mono text-ink">{code}</span>
+            <CopyLink value={code} label="Copy" variant="secondary" />
+          </span>
+        </div>
+
+        <div className="mt-7 flex items-baseline justify-between gap-3">
+          <h2 className="text-[0.95rem] font-semibold">Your friends</h2>
+          <span className="nums font-mono text-xs text-ink-soft">{acceptedPeople.length}</span>
+        </div>
+        {acceptedPeople.length === 0 ? (
+          <EmptyState title="No friends yet" />
+        ) : (
+          <ul className="mt-2.5 border-t border-rule">
+            {acceptedPeople.map(({ person, metOn }) => (
+              // Accepted friends only link through — a pending request doesn't put you in anyone's ring yet (ticket 46).
+              <FriendRow
+                key={person.id}
+                person={person}
+                note={metOn ? `Met on ${metOn}` : null}
+                linked
+              >
+                <Menu label={`More for ${person.name}`}>
+                  <form action={removeFriend}>
+                    <input type="hidden" name="otherId" value={person.id} />
+                    <ConfirmSubmit
+                      variant="ghost"
+                      message={`Remove ${person.name} as a friend?`}
+                      confirmLabel="Remove friend"
+                      className={menuDangerItemClass}
+                    >
+                      Remove friend
+                    </ConfirmSubmit>
+                  </form>
+                </Menu>
               </FriendRow>
             ))}
           </ul>
-        </section>
-      ) : null}
-
-      <div className="my-6 flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
-        <div className="min-w-0 flex-1">
-          <FindFriend />
-        </div>
-        <span className="flex h-10 shrink-0 items-center justify-end gap-2 whitespace-nowrap text-xs">
-          <span className="text-ink-soft">Your code</span>
-          <span className="font-mono text-ink">{code}</span>
-          <CopyLink value={code} label="Copy" variant="secondary" />
-        </span>
+        )}
       </div>
-
-      <div className="mt-7 flex items-baseline justify-between gap-3">
-        <h2 className="text-[0.95rem] font-semibold">Your friends</h2>
-        <span className="nums font-mono text-xs text-ink-soft">{acceptedPeople.length}</span>
-      </div>
-      {acceptedPeople.length === 0 ? (
-        <EmptyState title="No friends yet" />
-      ) : (
-        <ul className="mt-2.5 border-t border-rule">
-          {acceptedPeople.map(({ person, metOn }) => (
-            // Accepted friends only link through — a pending request doesn't put you in anyone's ring yet (ticket 46).
-            <FriendRow
-              key={person.id}
-              person={person}
-              note={metOn ? `Met on ${metOn}` : null}
-              linked
-            >
-              <Menu label={`More for ${person.name}`}>
-                <form action={removeFriend}>
-                  <input type="hidden" name="otherId" value={person.id} />
-                  <ConfirmSubmit
-                    variant="ghost"
-                    message={`Remove ${person.name} as a friend?`}
-                    confirmLabel="Remove friend"
-                    className={menuDangerItemClass}
-                  >
-                    Remove friend
-                  </ConfirmSubmit>
-                </form>
-              </Menu>
-            </FriendRow>
-          ))}
-        </ul>
-      )}
     </div>
   );
 }

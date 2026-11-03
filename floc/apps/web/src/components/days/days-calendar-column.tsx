@@ -11,7 +11,7 @@ import { useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent a
 
 import { cx } from "@/components/system/ui";
 import { PlusIcon } from "@/components/system/icons";
-import { ChatIcon, EventGlyph, NoteIcon } from "@/components/days/days-glyphs";
+import { ChatIcon, EventGlyph, NoteIcon } from "@/components/system/icons/days";
 import { EventMarkers } from "@/components/days/event-markers";
 import {
   OUTSIDE_DAY_CLASS,

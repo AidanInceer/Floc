@@ -21,7 +21,7 @@ import {
   EXPENSE_CATEGORIES,
 } from "@floc/core/money/expense-category";
 import type { ExpenseCategory } from "@floc/core/money/expense-category";
-import { CategoryIcon } from "@/components/system/category-icon";
+import { CategoryIcon } from "@/components/system/icons/category";
 import {
   Badge,
   Button,
