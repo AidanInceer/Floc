@@ -35,7 +35,7 @@ export function TripFeature({ trip }: { trip: TripCardData }) {
           {trip.mark ? <TripMarkIcon mark={trip.mark} size={14} /> : null}
           {status}
         </p>
-        <Link href={href} className="mt-1 inline-block text-ink">
+        <Link href={href} className="mt-1 inline-block text-ink after:absolute after:inset-0 after:content-['']">
           <h2 className="text-2xl leading-tight sm:text-3xl">{titleCase(trip.name)}</h2>
         </Link>
         <p className="mt-1 flex flex-wrap gap-x-2 text-sm text-ink-soft">
@@ -44,9 +44,9 @@ export function TripFeature({ trip }: { trip: TripCardData }) {
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <AvatarRow people={trip.members} size={24} />
-          <Link href={href} className="text-sm font-semibold text-ink">
+          <span aria-hidden="true" className="text-sm font-semibold text-ink">
             Open trip <svg viewBox="0 0 14 14" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="inline-block align-[-2px]"><path d="m5.6 4.2 2.8 2.8-2.8 2.8" /></svg>
-          </Link>
+          </span>
         </div>
       </div>
 
