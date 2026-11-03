@@ -16,6 +16,9 @@ const config: NextConfig = {
   // Better Auth + the libSQL driver both want the Node runtime, not Edge.
   serverExternalPackages: ["@libsql/client", "better-auth"],
   experimental: {
+    // Why: a trip or tab opened in the last 30 s reopens from the client cache. Own edits still refresh at once
+    // (a Server Action's revalidatePath clears it); another member's edit can show up to 30 s late.
+    staleTimes: { dynamic: 30 },
     // Next caps Server Action bodies at 1 MB, so a 2 MB upload threw before
     // `rejectUpload` saw it (ticket 239). Headroom over the 8 MB cap keeps
     // the refusal ours.

@@ -72,6 +72,8 @@ docs/*.md
 docs/**/*.md
 # Private docs — stack accounts, credential inventories. Never committed.
 docs/private/
+# /floc:audit screenshots and the scripts that make them.
+docs/process/site-audit/
 
 # Firebase config for Android push (#345). On EAS it comes from the GOOGLE_SERVICES_JSON file variable.
 floc/apps/mobile/google-services.json

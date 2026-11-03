@@ -39,7 +39,7 @@ import { RouteLegend } from "@/components/trip/overview/route/route-legend";
 import { TodayBlock } from "@/components/trip/overview/today/today-block";
 import { LeftToSort } from "@/components/trip/overview/left-to-sort";
 import { deleteMyRoute } from "./actions";
-import { leftToSortFor } from "./left-to-sort-for";
+import { leftToSortFor, readSharedPacking } from "./left-to-sort-for";
 import { PanelPlaceholder, StreamedGroup, TourWhenReady } from "./streamed";
 
 export const metadata = { title: "Overview" };
@@ -65,6 +65,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
   }));
 
   const now = today();
+  const sharedPacking = readSharedPacking(tripId);
   const [availabilityRows, expenseRows, dayRows, splitRows, settlementRows, routeDays, transport, tourSeen, prefill, ideas, docs, tracks] =
     await Promise.all([
       listAvailability(tripId),
@@ -113,7 +114,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
   const tone = tripPastel(color, tripId);
   const plan = todayPlan({ trip, days: dayRows, files: docs, today: now });
   const tucked = ideasTucked({ days: routeDays, today: plan !== null });
-  const sortList = await leftToSortFor(tripId, {
+  const sortList = leftToSortFor({
     trip,
     today: now,
     viewerId: viewer.id,
@@ -122,7 +123,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
     ideas,
     settle: settle.rows,
     legs,
-  });
+  }, await sharedPacking);
 
   return (
     <div className="mx-auto flex w-full max-w-[72rem] flex-col gap-7 px-4 pb-20 pt-6 sm:px-6">
