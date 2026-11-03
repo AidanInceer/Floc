@@ -28,7 +28,10 @@ export function StopDay({ tripId, date, events }: { tripId: number; date: string
           {first ? (
             <span className="truncate text-sm text-ink">{label(first)}</span>
           ) : (
-            <span className="truncate text-sm italic text-ink-faint">Nothing planned</span>
+            <span className="text-sm text-ink-faint">
+              <span aria-hidden>…</span>
+              <span className="sr-only">Nothing planned</span>
+            </span>
           )}
           <span className="nums text-xs text-ink-faint">{events.length > 1 ? `+${events.length - 1}` : ""}</span>
           <ChevronIcon direction="down" size={14} className="text-ink-faint transition-transform group-open/day:rotate-180" />

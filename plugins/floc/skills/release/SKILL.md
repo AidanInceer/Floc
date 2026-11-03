@@ -174,10 +174,13 @@ Merge SHA: `gh pr view <n> --repo AidanInceer/Floc --json mergeCommit --jq .merg
    No deployment yet → check again in a minute, a few times. Want `success`.
    `failure` → tell the user to open Railway's deploy log; this skill cannot
    read it.
-4. **Wireframe tags.** After `success` only: every `floc/wireframe/*/index.html`
-   whose `wf-status` reads `Chosen: <key>, on develop <v>`, with `<v>` in this
-   release, becomes `Shipped <v> as <key>`. Rules:
-   [prototype](../prototype/SKILL.md#the-tag-follows-the-work).
+4. **Wireframe tags.** After `success` only: `git fetch origin main`, then
+   `pnpm wireframe:tags --write`. This moves every `Chosen: <key>, on develop <v>`
+   that main now holds to `Shipped <v> as <key>`, including picks from earlier
+   releases that were missed. Then read its `Chosen, not on develop` list. A pick
+   this release built that still has no version → set `Shipped <v> as <key>` by
+   hand, using the version of the commit that built it (`git log --format=%s -- <file>`).
+   Rules: [prototype](../prototype/SKILL.md#the-tag-follows-the-work).
 
 ## Report
 

@@ -19,6 +19,7 @@
     "docs:check": "node scripts/check-docs.mjs",
     "docs:dev": "node scripts/docs-server.mjs",
     "wireframe": "node scripts/wireframe-server.mjs",
+    "wireframe:tags": "node scripts/wireframe-tags.mjs",
     "comments": "node scripts/check-comments.mjs --working",
     "marketing": "node floc/marketing/src/cli.ts",
     "explore:new": "node scripts/new-explore-trip.mjs",
