@@ -1,67 +1,112 @@
-// #460, option C: how much is sorted, the next thing and its action; the rest folds out. Same list as the web.
-import type { Gap } from "@floc/core/trip/overview/left-to-sort";
+// #460, round 2 E2: soft cubes count what is sorted; Show all opens the stack, one card a thing. Same list as the web.
+import { cubeColumns, type Gap, type LeftToSort as SortList, type Sorted } from "@floc/core/trip/overview/left-to-sort";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
+import { TickGlyph } from "../system/glyphs";
 import { useTheme } from "../system/theme";
 import { Button, Card } from "../system/ui";
 import { fonts, radius, size, space } from "@/lib/theme";
 
-const SHOWN = 5;
+const CUBE = 11;
+const GAP = 3;
 
-export function LeftToSort({ open, sorted, onGo }: { open: Gap[]; sorted: number; onGo: (gap: Gap) => void }) {
+function Cubes({ total, filled }: { total: number; filled: number }) {
+  const { c } = useTheme();
+  const cols = cubeColumns(total);
+  return (
+    <View
+      accessible={false}
+      importantForAccessibility="no-hide-descendants"
+      style={{ width: cols * CUBE + (cols - 1) * GAP, flexDirection: "row", flexWrap: "wrap", gap: GAP }}
+    >
+      {Array.from({ length: total }, (_, i) => (
+        <View
+          key={i}
+          style={{
+            width: CUBE,
+            height: CUBE,
+            borderRadius: 3,
+            borderWidth: 1,
+            backgroundColor: i < filled ? c["pastel-blue-edge"] : c["sheet-2"],
+            borderColor: i < filled ? c["pen-edge"] : c["rule-2"],
+          }}
+        />
+      ))}
+    </View>
+  );
+}
+
+function StackCard({ item, onPress }: { item: Gap | Sorted; onPress?: () => void }) {
+  const { c } = useTheme();
+  const done = !("action" in item);
+  return (
+    <Pressable
+      accessibilityRole={done ? undefined : "link"}
+      onPress={onPress}
+      disabled={done}
+      style={{ backgroundColor: c.sheet, borderColor: c.rule, borderWidth: 1, borderRadius: radius.sm, paddingHorizontal: space.md, paddingVertical: space.sm, gap: 2 }}
+    >
+      <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
+        {done ? <TickGlyph color={c["pen-deep"]} /> : null}
+        <Text style={{ flex: 1, color: done ? c["ink-3"] : c.ink, fontFamily: fonts.sans, fontSize: size.small }}>{item.text}</Text>
+        <Text style={{ color: c["ink-2"], fontFamily: fonts.sans, fontSize: size.small }}>{done ? "Sorted" : item.action}</Text>
+      </View>
+      {item.sub ? <Text style={{ color: c["ink-3"], fontFamily: fonts.type, fontSize: size.small }}>{item.sub.join("  ")}</Text> : null}
+    </Pressable>
+  );
+}
+
+export function LeftToSort({ list, onGo }: { list: SortList; onGo: (gap: Gap) => void }) {
   const { c } = useTheme();
   const [expanded, setExpanded] = useState(false);
-  const next = open[0];
+  const [showDone, setShowDone] = useState(false);
+  const next = list.open[0];
   if (!next) return null;
-  const total = sorted + open.length;
+  const sorted = list.done.length;
+  const total = sorted + list.left;
   const small = { color: c["ink-2"], fontFamily: fonts.sans, fontSize: size.small };
 
   return (
-    <Card>
-      <View style={{ gap: space.sm }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
-          <View
-            accessible={false}
-            importantForAccessibility="no-hide-descendants"
-            style={{ width: 64, height: 6, borderRadius: radius.pill, backgroundColor: c["sheet-2"], overflow: "hidden" }}
-          >
-            <View style={{ width: `${Math.round((sorted / total) * 100)}%`, height: "100%", backgroundColor: c["pastel-green-ink"] }} />
+    <View style={{ gap: space.xs }}>
+      <Card>
+        <View style={{ gap: space.sm }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
+            <Cubes total={total} filled={sorted} />
+            <Text style={small}>
+              <Text style={{ color: c.ink, fontFamily: fonts.display, fontSize: size.body }}>{sorted}</Text> of {total} sorted
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={expanded ? "Hide what is left" : "Show what is left"}
+              accessibilityState={{ expanded }}
+              onPress={() => setExpanded(!expanded)}
+              hitSlop={8}
+              style={{ marginLeft: "auto" }}
+            >
+              <Text style={small}>{expanded ? "Hide" : "Show all"}</Text>
+            </Pressable>
           </View>
-          <Text style={small}>
-            <Text style={{ color: c.ink, fontFamily: fonts.display, fontSize: size.body }}>{sorted}</Text> of {total} sorted
+          <Text style={{ color: c["ink-3"], fontFamily: fonts.sans, fontSize: size.small }}>
+            {next.mine ? "Next for you: " : "Next: "}
+            <Text style={{ color: c.ink, fontFamily: fonts.sansBold }}>{next.text}</Text>
           </Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={expanded ? "Hide the list" : "Show all"}
-            accessibilityState={{ expanded }}
-            onPress={() => setExpanded(!expanded)}
-            hitSlop={8}
-            style={{ marginLeft: "auto" }}
-          >
-            <Text style={small}>{expanded ? "Hide" : "Show all"}</Text>
-          </Pressable>
+          <Button label={next.action} variant={next.mine ? "primary" : undefined} onPress={() => onGo(next)} />
         </View>
-        <Text style={{ color: c["ink-3"], fontFamily: fonts.sans, fontSize: size.small }}>
-          {next.mine ? "Next for you: " : "Next: "}
-          <Text style={{ color: c.ink, fontFamily: fonts.sansBold }}>{next.text}</Text>
-        </Text>
-        <Button label={next.action} variant={next.mine ? "primary" : undefined} onPress={() => onGo(next)} />
-        {expanded ? (
-          <View style={{ borderTopWidth: 1, borderTopColor: c.rule, paddingTop: space.sm, gap: space.sm }}>
-            {open.slice(0, SHOWN).map((gap) => (
-              <Pressable key={gap.key} accessibilityRole="link" onPress={() => onGo(gap)} style={{ gap: 2 }}>
-                <Text style={{ color: c.ink, fontFamily: fonts.sans, fontSize: size.small }}>{gap.text}</Text>
-                <Text style={small}>
-                  {gap.sub ? `${gap.sub.join(" · ")} · ` : ""}
-                  {gap.action}
-                </Text>
-              </Pressable>
-            ))}
-            {open.length > SHOWN ? <Text style={small}>and {open.length - SHOWN} more</Text> : null}
-          </View>
-        ) : null}
-      </View>
-    </Card>
+      </Card>
+      {expanded ? list.open.map((gap) => <StackCard key={gap.key} item={gap} onPress={() => onGo(gap)} />) : null}
+      {expanded && sorted > 0 ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ expanded: showDone }}
+          onPress={() => setShowDone(!showDone)}
+          style={{ flexDirection: "row", alignItems: "center", gap: space.md, backgroundColor: c["pen-2"], borderColor: c["pen-edge"], borderWidth: 1, borderStyle: "dashed", borderRadius: radius.sm, padding: space.md }}
+        >
+          <Cubes total={sorted} filled={sorted} />
+          <Text style={small}>{sorted} already sorted</Text>
+        </Pressable>
+      ) : null}
+      {expanded && showDone ? list.done.map((item) => <StackCard key={item.key} item={item} />) : null}
+    </View>
   );
 }

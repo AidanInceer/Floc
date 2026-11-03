@@ -566,7 +566,7 @@ export function DaysCalendar({
         <EventModal
           open={selectedEvent != null}
           onClose={closeEvent}
-          panel={panel?.eventId === selected ? panel.content : <p role="status" className="p-4 text-sm text-ink-soft">Loading event…</p>}
+          panel={panel && panel.eventId === selected ? panel.content : <p role="status" className="p-4 text-sm text-ink-soft">Loading event…</p>}
         />
 
         {/* Every gesture says what it did: a drag that reports itself only

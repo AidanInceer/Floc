@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { leftToSort, type LeftToSortInput } from "./left-to-sort";
+import { cubeColumns, leftToSort, type LeftToSortInput } from "./left-to-sort";
 
 const members = [
   { userId: "me", name: "Dev" },
@@ -85,8 +85,39 @@ describe("leftToSort", () => {
     expect(leftToSort({ ...base, legs }).open[0].sub).toEqual(["Sat 24 Oct – 26 Oct 2026", "2 nights"]);
   });
 
-  it("counts what is already sorted, for the meter", () => {
-    const result = leftToSort({ ...base, shared: [{ label: "Towels", claimed: true }, { label: "Kit", claimed: false }] });
-    expect([result.sorted, result.open.length]).toEqual([1, 1]);
+  it("counts every free packing thing towards the meter, though they share one line", () => {
+    const result = leftToSort({ ...base, shared: [{ label: "Kit", claimed: false }, { label: "Speaker", claimed: false }] });
+    expect([result.open.length, result.left]).toEqual([1, 2]);
+  });
+
+  it("lists what is already sorted, in words, so the sorted count can open", () => {
+    const legs = [
+      leg(1, "Lisbon", "2026-10-24", "2026-10-26", { nights: 2 }),
+      leg(2, "Barcelona", "2026-10-26", "2026-10-27"),
+    ];
+    const { done } = leftToSort({ ...base, legs, shared: [{ label: "Towels", claimed: true }] });
+    expect(done.map((d) => [d.text, d.sub])).toEqual([
+      ["Towels", ["Someone is bringing it"]],
+      ["Stay booked in Lisbon", ["Sat 24 Oct – 26 Oct 2026", "2 nights"]],
+      ["Stay booked in Barcelona", ["Mon 26 Oct – 27 Oct 2026", "1 night"]],
+      ["Lisbon to Barcelona: travel set", ["Mon 26 Oct"]],
+    ]);
+  });
+
+  it("says what each line is about, so a surface can draw its icon", () => {
+    const legs = [leg(1, "Lisbon", "2026-10-24", "2026-10-25", { hasStay: false }), leg(2, "Porto", "2026-10-25", "2026-10-26")];
+    const { open, done } = leftToSort({ ...base, legs, owe: [{ to: "Priya", amountMinor: 500, currency: "GBP" }] });
+    expect([...open, ...done].map((g) => g.kind)).toEqual(["money", "stay", "stay", "travel"]);
+  });
+
+  it("says when you and everyone else have marked your days, and when you have voted", () => {
+    const { done } = leftToSort({ ...base, moment: "finding", ideas: [{ mine: true }] });
+    expect(done.map((d) => d.text)).toEqual(["You marked your days", "Everyone has marked their days", "You voted on where"]);
+  });
+});
+
+describe("cubeColumns", () => {
+  it("keeps up to 12 cubes on one row and wraps more onto two", () => {
+    expect([cubeColumns(4), cubeColumns(12), cubeColumns(13), cubeColumns(24)]).toEqual([4, 12, 7, 12]);
   });
 });

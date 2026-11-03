@@ -128,7 +128,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
     <div className="mx-auto flex w-full max-w-[72rem] flex-col gap-7 px-4 pb-20 pt-6 sm:px-6">
       {plan ? <TodayBlock tripId={tripId} plan={plan} /> : null}
       {underway(trip, now) ? <RefreshWhileLive /> : null}
-      <LeftToSort tripId={tripId} open={sortList.open} sorted={sortList.sorted} />
+      <LeftToSort tripId={tripId} list={sortList} />
       {/* Why: the card floats over the globe on a wide screen, as on Explore; the map keeps its route clear of it (clear-area.ts). */}
       <section className="rounded-md bg-sheet shadow-raised ring-1 ring-rule">
         <div data-overview-band className="relative grid rounded-t-md bg-sheet-2 lg:min-h-[34rem] lg:grid-cols-[minmax(0,1fr)_23.5rem]">

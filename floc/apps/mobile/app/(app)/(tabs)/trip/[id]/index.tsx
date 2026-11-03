@@ -254,5 +254,5 @@ function SortLine({
   });
   // Overview and Ideas are this screen; their gaps are already in view below.
   const go = (gap: Gap) => (gap.tab === "overview" || gap.tab === "ideas" ? undefined : onGo(gap.tab));
-  return <LeftToSort open={list.open} sorted={list.sorted} onGo={go} />;
+  return <LeftToSort list={list} onGo={go} />;
 }
