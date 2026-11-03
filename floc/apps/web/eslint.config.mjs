@@ -85,10 +85,10 @@ const config = [
     rules: { complexity: "off" },
   },
 
-  // 2026-08-27: the schema of record crossed 600 lines adding `trip_note_doc`
-  // (#238). Not split, deliberately — one file mirroring one ERD is the
-  // property that keeps the two honest, and splitting it buys a line count at
-  // the cost of the thing the rule is protecting.
+  // 2026-08-27: the schema of record crossed 600 lines (#238). Not split,
+  // deliberately — one file mirroring one ERD is the property that keeps the
+  // two honest, and splitting it buys a line count at the cost of the thing
+  // the rule is protecting.
   {
     files: ["src/db/schema.ts"],
     rules: { "max-lines": "off" },

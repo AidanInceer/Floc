@@ -1,20 +1,18 @@
 /**
- * Every trip has at least one notes page (#408). A new trip gets a blank
- * "Notes"; a trip from before pages gets its old Notes doc as that page, the
- * first time anyone opens Notes. The old `trip_note_doc` row is only read.
+ * Every trip has at least one notes page (#408): a blank "Notes", made the first
+ * time anyone opens Notes on a trip with none.
  *
  * Why a write on read: the same as `ensureDays` — the page must exist before
- * the list can show it, and the move off BlockNote needs no downtime.
+ * the list can show it.
  */
 import "server-only";
 import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
-import { tripNoteDoc, tripPage } from "@/db/schema";
-import { fromBlockNote } from "@floc/core/notes/pages/from-blocknote";
+import { tripPage } from "@/db/schema";
 import { EMPTY_PAGE, serialisePage, type PageBlock } from "@floc/core/notes/pages/page-blocks";
 
-export const FIRST_PAGE_TITLE = "Notes";
+const FIRST_PAGE_TITLE = "Notes";
 
 export async function insertFirstPage(tx: Pick<typeof db, "insert">, tripId: number, userId: string, blocks: readonly PageBlock[] = EMPTY_PAGE) {
   await tx.insert(tripPage).values({ tripId, title: FIRST_PAGE_TITLE, body: serialisePage(blocks), updatedBy: userId });
@@ -29,13 +27,7 @@ const locks = ((globalThis as Record<symbol, Map<number, Promise<void>>>)[KEY] ?
 
 async function makeFirstPage(tripId: number, userId: string): Promise<void> {
   if (await db.select({ id: tripPage.id }).from(tripPage).where(livePages(tripId)).get()) return;
-  const hadPages = await db.select({ id: tripPage.id }).from(tripPage)
-    .where(and(eq(tripPage.tripId, tripId), isNull(tripPage.deletedAt))).get();
-  const old = hadPages
-    ? undefined
-    : await db.select({ body: tripNoteDoc.body }).from(tripNoteDoc)
-      .where(and(eq(tripNoteDoc.tripId, tripId), isNull(tripNoteDoc.deletedAt))).get();
-  await insertFirstPage(db, tripId, userId, old ? fromBlockNote(old.body) : EMPTY_PAGE);
+  await insertFirstPage(db, tripId, userId);
 }
 
 export async function ensureFirstPage(tripId: number, userId: string): Promise<void> {

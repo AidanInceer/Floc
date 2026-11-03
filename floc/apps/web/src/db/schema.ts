@@ -402,32 +402,6 @@ export const tripInvite = sqliteTable(
 /* -------------------------------------------------------------------------- */
 
 /**
- * The trip's Notes doc from before pages (ticket 238), as BlockNote JSON. Since
- * #408 it is only read: the first time a trip's Notes opens, it becomes that
- * trip's first page (`server/notes/pages/page-first`). Removed by a later
- * ticket once one release has run with pages.
- */
-export const tripNoteDoc = sqliteTable(
-  "trip_note_doc",
-  {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    tripId: integer("trip_id")
-      .notNull()
-      .references(() => trip.id, { onDelete: "cascade" }),
-    /** Whoever saved last — the doc is the group's, so there is no author. */
-    updatedBy: text("updated_by")
-      .notNull()
-      .references(() => user.id),
-    /** BlockNote's `Block[]`, `JSON.stringify`d. Read once, by the move to pages. */
-    body: text("body").notNull(),
-    /** The live Yjs doc. Null = seed it from `body` on next open. */
-    yjsState: blob("yjs_state", { mode: "buffer" }),
-    ...audit,
-  },
-  (t) => [uniqueIndex("trip_note_doc_trip_idx").on(t.tripId)],
-);
-
-/**
  * A notes page (#408, ADR-014): the trip's Notes is a list of these, one level
  * of sub-pages deep. `yjs_state` is the live doc; `body` is its copy in our own
  * block format (`@floc/core/notes/pages/page-blocks`) for every other reader.
