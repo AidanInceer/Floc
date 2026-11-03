@@ -1,5 +1,5 @@
 import { stopsOf } from "@floc/core/trip/explore/listing-stops";
-import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
+import type { PresetTrip, Region } from "@floc/core/trip/explore/preset-trips";
 import type { TransportType } from "@floc/core/vocabulary";
 import { listingPrice, type ListingRates } from "@floc/core/trip/explore/listing-price";
 
@@ -18,6 +18,7 @@ type BorrowStop = {
 export type BorrowCard = {
   id: string;
   place: string;
+  region: Region;
   title: string;
   nights: number;
   price: string;
@@ -34,6 +35,7 @@ export function borrowCards(trips: PresetTrip[], ids: string[], rates: ListingRa
       {
         id: trip.id,
         place: trip.country,
+        region: trip.region,
         title: trip.title,
         nights: trip.nights,
         price: listingPrice(trip, rates),

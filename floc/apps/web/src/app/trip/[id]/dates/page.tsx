@@ -172,7 +172,7 @@ export default async function DatesPage({
   );
 
   return (
-    <div className="mx-auto w-full max-w-[70rem] px-4 pb-20 pt-6 sm:px-6">
+    <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
       <header className="flex items-end justify-between gap-4">
         <div>
           <PageTitle>Dates</PageTitle>

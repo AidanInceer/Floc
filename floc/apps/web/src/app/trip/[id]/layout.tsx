@@ -7,7 +7,6 @@
  * hero's, and printing them twice a hand's width apart was ticket 89.
  */
 import type { Metadata } from "next";
-import { titleCase } from "@floc/core/text/title-case";
 import { TripTabs } from "@/components/chrome/trip-tabs";
 import { TripMenu } from "@/components/trip/trip-menu";
 import { requireTripAccess } from "@/server/access";
@@ -23,7 +22,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const { trip } = await requireTripAccess(id, `/trip/${id}/overview`);
-  const name = titleCase(trip.name);
+  const name = trip.name;
   return { title: { default: name, template: `%s · ${name} · Floc` } };
 }
 

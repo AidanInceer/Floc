@@ -7,7 +7,6 @@
  * wears a quiet pastel, and an archived trip drains to white so last year's
  * trip stays readable without asking for anything.
  */
-import { titleCase } from "@floc/core/text/title-case";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -149,7 +148,7 @@ function CardBody({
           {eyebrow}
         </span>
         <h3 className={cx("mt-1", list ? "text-xl" : "text-2xl", past && "text-ink-soft")}>
-          {titleCase(trip.name)}
+          {trip.name}
         </h3>
       </span>
       {/* `sm:contents` dissolves this wrapper once the row flows, so dates and
@@ -204,7 +203,7 @@ function StarButton({
   tripName: string;
   starred: boolean;
 }) {
-  const label = starred ? `Unstar ${titleCase(tripName)}` : `Star ${titleCase(tripName)}`;
+  const label = starred ? `Unstar ${tripName}` : `Star ${tripName}`;
   return (
     <form action={starTrip}>
       <input type="hidden" name="tripId" value={tripId} />

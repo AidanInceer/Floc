@@ -1,3 +1,4 @@
+import { EVENT_CATEGORIES } from "@floc/core/itinerary/event-categories";
 import type { ActivityKind } from "@floc/core/trip/explore/detail/activity-kind";
 
 import { StarIcon } from "@/components/system/icons/explore-trip";
@@ -5,12 +6,12 @@ import { ActivityGlyph } from "@/components/system/icons/activity";
 import { cx } from "@/components/system/ui";
 
 const TONE: Record<ActivityKind, string> = {
-  flight: "bg-pastel-blue text-pastel-blue-ink",
-  train: "bg-pastel-blue text-pastel-blue-ink",
-  ferry: "bg-pastel-blue text-pastel-blue-ink",
-  drive: "bg-pastel-blue text-pastel-blue-ink",
-  food: "bg-pastel-red text-pastel-red-ink",
-  walk: "bg-pastel-green text-pastel-green-ink",
+  flight: EVENT_CATEGORIES.transport.tile,
+  train: EVENT_CATEGORIES.transport.tile,
+  ferry: EVENT_CATEGORIES.transport.tile,
+  drive: EVENT_CATEGORIES.transport.tile,
+  food: EVENT_CATEGORIES.food.tile,
+  walk: EVENT_CATEGORIES.activity.tile,
   rest: "bg-sheet-2 text-ink-soft",
   stay: "bg-sheet-2 text-ink-soft",
   sight: "bg-sheet-2 text-ink-soft",

@@ -21,8 +21,8 @@
         {
           label: 'Getting in', key: 'getting-in', blurb: 'How a person finds a trip, or is let into one.',
           children: [
-            { id: 'explore', label: 'Explore', href: 'product/explore/index.html', blurb: 'Ready-made trips for a group with nowhere in mind.', related: ['partner-trips', 'trips-home', 'notes', 'map-embed'] },
-            { id: 'partner-trips', label: 'Partner trips', href: 'product/explore/partner-trips.html', blurb: 'Listings on Explore, and how one becomes a trip.', related: ['monetisation', 'listings-legal'] },
+            { id: 'explore', label: 'Explore', href: 'product/explore/index.html', blurb: 'Ready-made trips for a group with nowhere in mind.', related: ['partner-trips', 'trips-home', 'notes'] },
+            { id: 'partner-trips', label: 'Partner trips', href: 'product/explore/partner-trips.html', blurb: 'Listings on Explore, and how one becomes a trip.', related: ['monetisation'] },
             { id: 'trips-home', label: 'Trips home', href: 'product/trips-home/index.html', blurb: 'Your trips, and which ones wait on you.', related: ['overview', 'invite'] },
             { id: 'invite', label: 'Invite', href: 'product/invite/index.html', blurb: 'See the trip before you sign up.', related: ['access', 'security', 'overview'], adr: [5, 18] }
           ]
@@ -32,8 +32,8 @@
           children: [
             { id: 'overview', label: 'Trip overview', href: 'product/overview/index.html', blurb: 'Where the trip goes, who is going, what is open.', related: ['dates', 'itinerary', 'files', 'money', 'packing'], adr: [4, 6] },
             { id: 'dates', label: 'Dates', href: 'product/itinerary/dates.html', blurb: 'Find the days everyone can make.', related: ['itinerary', 'pro'], adr: [9, 10] },
-            { id: 'itinerary', label: 'Days', href: 'product/itinerary/index.html', blurb: 'The plan on a calendar, day by day.', related: ['dates', 'notes', 'files', 'map-embed'], adr: [3, 10] },
-            { id: 'money', label: 'Money', href: 'product/money/index.html', blurb: 'Record spend and settle who owes who.', related: ['splitwise', 'tricount'], adr: [1, 2] },
+            { id: 'itinerary', label: 'Days', href: 'product/itinerary/index.html', blurb: 'The plan on a calendar, day by day.', related: ['dates', 'notes', 'files'], adr: [3, 10] },
+            { id: 'money', label: 'Money', href: 'product/money/index.html', blurb: 'Record spend and settle who owes who.', related: ['competitors'], adr: [1, 2] },
             { id: 'packing', label: 'Packing', href: 'product/packing/index.html', blurb: 'Share group gear and pack your own bag.', related: ['pro'] },
             { id: 'notes', label: 'Notes', href: 'product/notes/index.html', blurb: 'Shared live pages for what fits nowhere else.', related: ['itinerary'], adr: [14, 17] },
             { id: 'files', label: 'Files', href: 'product/files/index.html', blurb: 'Tickets and bookings in one place.', related: ['security', 'pro'] }
@@ -105,28 +105,8 @@
     {
       label: 'Research', key: 'research',
       children: [
-        { id: 'research', label: 'Research', href: 'research/index.html', blurb: 'What we looked into before deciding.' },
-        {
-          label: 'Competitors', key: 'competitors', blurb: 'A summary, then one page per app.',
-          children: [
-            { id: 'competitors', label: 'Summary', href: 'research/competitors/index.html', blurb: 'Wanderlog, TripIt, Splitwise, Polarsteps and others.' },
-            { id: 'polarsteps', label: 'Polarsteps', href: 'research/competitors/polarsteps.html' },
-            { id: 'splitwise', label: 'Splitwise', href: 'research/competitors/splitwise.html' },
-            { id: 'tripit', label: 'TripIt', href: 'research/competitors/tripit.html', related: ['itinerary'] },
-            { id: 'wanderlog', label: 'Wanderlog', href: 'research/competitors/wanderlog.html', related: ['itinerary'] },
-            { id: 'wanderlust', label: 'Wanderlust', href: 'research/competitors/wanderlust.html' },
-            { id: 'tricount', label: 'Tricount', href: 'research/competitors/tricount.html' },
-            { id: 'troupe', label: 'Troupe', href: 'research/competitors/troupe.html', related: ['dates'] },
-            { id: 'lets-jetty', label: "Let's Jetty", href: 'research/competitors/lets-jetty.html' },
-            { id: 'squadtrip', label: 'SquadTrip', href: 'research/competitors/squadtrip.html', related: ['money'] },
-            { id: 'roadtrippers', label: 'Roadtrippers', href: 'research/competitors/roadtrippers.html' },
-            { id: 'stippl', label: 'Stippl', href: 'research/competitors/stippl.html' },
-            { id: 'lambus', label: 'Lambus', href: 'research/competitors/lambus.html' }
-          ]
-        },
-        { id: 'pricing-models', label: 'Pricing models', href: 'research/pricing-models.html', blurb: 'Pricing for bursty, trip-shaped use.' },
-        { id: 'map-embed', label: 'Map embed options', href: 'research/map-embed.html', blurb: 'Map providers, cost and limits.' },
-        { id: 'listings-legal', label: 'Listings and legal', href: 'research/listings-legal.html', blurb: 'What listing a trip means in law.' }
+        { id: 'competitors', label: 'Competitors', href: 'research/competitors/index.html', blurb: 'Feature matrix: Wanderlog, TripIt, Splitwise, Polarsteps and others.' },
+        { id: 'pricing-models', label: 'Pricing models', href: 'research/pricing-models.html', blurb: 'Open question: pricing for bursty, trip-shaped use.' }
       ]
     }
   ];

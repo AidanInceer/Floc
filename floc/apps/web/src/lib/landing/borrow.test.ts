@@ -33,6 +33,11 @@ describe("borrowCards", () => {
     expect(japan.stops.map((s) => s.nights)).toEqual([2, 2, 2, 2]);
   });
 
+  it("carries the listing's region, so its tag wears the region's colour as on Explore", () => {
+    const [japan] = borrowCards(PRESET_TRIPS, ["rail"]);
+    expect(japan.region).toBe(RAIL.region);
+  });
+
   it("prices through the money formatter", () => {
     const [japan] = borrowCards(PRESET_TRIPS, ["rail"]);
     expect(japan.price).toBe("£1,850.00");

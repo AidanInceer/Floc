@@ -1,6 +1,5 @@
 import { countdownLabel, formatDateRange } from "@floc/core/dates/dates";
 import { tripListStage } from "@floc/core/trip/list-stage";
-import { titleCase } from "@floc/core/text/title-case";
 import Link from "next/link";
 
 import { AvatarRow, PASTEL_BY_KEY, PASTEL_SKINS } from "@/components/system/ui";
@@ -25,7 +24,7 @@ export function TripShelfCard({ trip, past = false }: { trip: TripCardData; past
         href={`/trip/${trip.id}/overview`}
         className="mt-2 text-ink after:absolute after:inset-0"
       >
-        <h3 className="text-xl">{titleCase(trip.name)}</h3>
+        <h3 className="text-xl">{trip.name}</h3>
       </Link>
       <p className="nums mt-1 text-xs text-ink-soft">{formatDateRange(trip.startDate, trip.endDate)}</p>
       <p className="text-sm text-ink-soft">{trip.where ?? "Place not set"}</p>

@@ -61,13 +61,9 @@ function FaceGrid({
 export function FaceEditor({
   name,
   icon,
-  been,
-  wantToGo,
 }: {
   name: string;
   icon: AvatarIcon | null;
-  been: number;
-  wantToGo: number;
 }) {
   const [open, setOpen] = useState(false);
   const [draftName, setDraftName] = useState(name);
@@ -128,9 +124,6 @@ export function FaceEditor({
         </span>
         <span className="min-w-0">
           <span className="block font-display text-2xl font-semibold break-words text-ink">{shownName}</span>
-          <span className="nums mt-1 block text-sm text-ink-soft">
-            {been} been · {wantToGo} want to go
-          </span>
         </span>
       </button>
 

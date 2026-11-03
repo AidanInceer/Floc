@@ -14,6 +14,7 @@ const boxAt = (p: Point, s: Size): Box => ({ left: p.x, top: p.y, right: p.x + s
 const pinBox = (p: Point): Box => ({ left: p.x - PIN, top: p.y - PIN, right: p.x + PIN, bottom: p.y + PIN });
 const grow = (b: Box, by: number): Box => ({ left: b.left - by, top: b.top - by, right: b.right + by, bottom: b.bottom + by });
 const inside = (b: Box, p: Point) => p.x > b.left && p.x < b.right && p.y > b.top && p.y < b.bottom;
+const gap = (b: Box, p: Point) => Math.hypot(Math.max(b.left - p.x, 0, p.x - b.right), Math.max(b.top - p.y, 0, p.y - b.bottom));
 
 function overlap(a: Box, b: Box): number {
   const w = Math.min(a.right, b.right) - Math.max(a.left, b.left);
@@ -57,7 +58,10 @@ export function placeTags(pins: Point[], sizes: Size[], view: Box, route: Point[
       const box = grow(raw, MARGIN);
       const hard = others.reduce((sum, b) => sum + overlap(box, b), 0);
       const out = size.width * size.height - overlap(raw, view);
-      return { hard: hard + out, soft: line.filter((p) => inside(box, p)).length };
+      // Why: a reader gives a name to the nearest pin, so a tag nearer another stop names the wrong place.
+      const own = gap(raw, pin);
+      const misread = pins.some((p, j) => j !== i && gap(raw, p) < own) ? size.width * size.height : 0;
+      return { hard: hard + out + misread, soft: line.filter((p) => inside(box, p)).length };
     };
     const best = bestSpot(size, score);
     placed.push(boxAt({ x: pin.x + best.x, y: pin.y + best.y }, size));

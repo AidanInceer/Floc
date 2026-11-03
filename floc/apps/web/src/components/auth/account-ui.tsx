@@ -22,18 +22,20 @@ export function AccountPage({
   children: ReactNode;
 }) {
   return (
-    <div className="mx-auto w-full max-w-[54rem] px-4 pb-20 pt-6 sm:px-6">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div className="min-w-0">
-          {eyebrow ? <p className="typed">{eyebrow}</p> : null}
-          <PageTitle className="mt-2">{title}</PageTitle>
-          {blurb ? (
-            <p className="mt-2 max-w-[60ch] text-sm text-ink-soft">{blurb}</p>
-          ) : null}
-        </div>
-        {actions}
-      </header>
-      <div className="mt-8 flex flex-col gap-4">{children}</div>
+    <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
+      <div className="max-w-[54rem]">
+        <header className="flex flex-wrap items-end justify-between gap-4">
+          <div className="min-w-0">
+            {eyebrow ? <p className="typed">{eyebrow}</p> : null}
+            <PageTitle className="mt-2">{title}</PageTitle>
+            {blurb ? (
+              <p className="mt-2 max-w-[60ch] text-sm text-ink-soft">{blurb}</p>
+            ) : null}
+          </div>
+          {actions}
+        </header>
+        <div className="mt-8 flex flex-col gap-4">{children}</div>
+      </div>
     </div>
   );
 }

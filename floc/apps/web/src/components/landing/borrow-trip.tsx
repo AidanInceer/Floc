@@ -36,15 +36,13 @@ export function BorrowTrip({ cards, signedIn, explore }: { cards: Card[]; signed
 
   const card = cards[lit];
   if (!card || places.length !== cards.length) return null;
-  const litSlot = faces.findIndex((f) => f.card === lit);
-  const litTone = tone(litSlot < 0 ? lit : litSlot);
+  const litTone = tone(card.region);
   const open = way ? cards[way.card] : undefined;
   const half = Math.ceil(HAND / 2);
   const tiles = (from: number, to: number) =>
     faces.slice(from, to).map((face, k) => (
       <BorrowTile
         key={from + k}
-        slot={from + k}
         face={face}
         card={cards[face.card]!}
         current={face.kind !== "tick" && face.card === lit}

@@ -117,7 +117,7 @@ export default async function MoneyPage({
   const settled = settle.rows.length === 0;
 
   return (
-    <div className="mx-auto w-full max-w-[64rem] px-4 pb-20 pt-6 sm:px-6">
+    <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
       <header className="flex flex-wrap items-end justify-between gap-6">
         <PageTitle>Money</PageTitle>
         {hasActivity ? (

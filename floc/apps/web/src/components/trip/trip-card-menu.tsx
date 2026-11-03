@@ -5,7 +5,6 @@
  * header's menu, next to the roster.
  */
 import { ConfirmSubmit, Menu, Sheet, SubmitButton } from "@/components/system/client-ui";
-import { titleCase } from "@floc/core/text/title-case";
 import { Field, Input, Stack, menuDangerItemClass, menuItemClass } from "@/components/system/ui";
 import { TripColorPicker } from "@/components/trip/trip-color-picker";
 import { TripMarkPicker } from "@/components/trip/trip-mark-picker";
@@ -30,7 +29,7 @@ export function TripCardMenu({
   muted: boolean;
 }) {
   return (
-    <Menu label={`Actions for ${titleCase(tripName)}`}>
+    <Menu label={`Actions for ${tripName}`}>
       <Sheet
         bareTrigger
         trigger="Rename"
@@ -71,7 +70,7 @@ export function TripCardMenu({
           <input type="hidden" name="redirectTo" value="/trips" />
           <ConfirmSubmit
             variant="ghost"
-            message={`Archive "${titleCase(tripName)}"? It comes off everyone's list and stays readable — any admin can bring it back from Archived.`}
+            message={`Archive "${tripName}"? It comes off everyone's list and stays readable — any admin can bring it back from Archived.`}
             confirmLabel="Archive it"
             pendingLabel="…"
             className={menuItemClass}
@@ -87,7 +86,7 @@ export function TripCardMenu({
           <input type="hidden" name="redirectTo" value="/trips" />
           <ConfirmSubmit
             variant="ghost"
-            message={`Delete "${titleCase(tripName)}" for everyone? Nobody will be able to reopen it from the app — archive it instead if you might want it back.`}
+            message={`Delete "${tripName}" for everyone? Nobody will be able to reopen it from the app — archive it instead if you might want it back.`}
             confirmLabel="Delete it"
             pendingLabel="…"
             className={menuDangerItemClass}

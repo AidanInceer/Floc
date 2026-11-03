@@ -6,7 +6,6 @@
  * `server/trips/guest-view.ts`, which have no field to leak.
  */
 import type { Metadata } from "next";
-import { titleCase } from "@floc/core/text/title-case";
 import { redirect } from "next/navigation";
 
 import { GuestGate } from "@/components/guest/guest-gate";
@@ -72,14 +71,14 @@ export default async function InvitePage({
 
   return (
     <GuestGate
-      tripName={titleCase(trip.name)}
+      tripName={trip.name}
       hostName={trip.hostName}
       open={viewer.kind !== "guest"}
       blurb={viewer.kind === "canJoin" ? "Join to plan with the group." : "Vote on the ideas and mark the days you can make."}
       actions={viewer.kind === "stranger" ? <GuestStart token={token}>{controls}</GuestStart> : controls}
     >
       <div className="mx-auto w-full max-w-[60rem] px-4 pb-20 pt-6 sm:px-6">
-        <PageTitle>{titleCase(trip.name)}</PageTitle>
+        <PageTitle>{trip.name}</PageTitle>
         <p className="mt-2 text-md text-ink-soft">
           {dated ? formatDateRange(trip.startDate, trip.endDate) : "The dates are not settled yet."}
         </p>

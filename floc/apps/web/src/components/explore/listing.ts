@@ -11,8 +11,10 @@ const REGION_SKIN: Record<Region, string> = {
 };
 
 export function skinFor(trip: PresetTrip): string {
-  return REGION_SKIN[trip.region];
+  return regionSkin(trip.region);
 }
+
+export const regionSkin = (region: Region): string => REGION_SKIN[region];
 
 // The region's colour for the land on an outline map. `--tone-*` is the pastel in light and its edge in dark, so the shape shows on both.
 const REGION_LAND: Record<Region, string> = {
