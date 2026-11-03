@@ -7,6 +7,7 @@ import {
   daysUntil,
   formatDate,
   formatDateRange,
+  formatShortRange,
   hasEnded,
   isIsoDate,
   splitEnded,
@@ -128,6 +129,12 @@ describe("the awkward halves of the date helpers", () => {
     expect(formatDate("2026-09-01")).toMatch(/^Tue 1 Sept?$/);
     expect(formatDate("2026-09-01", { weekday: false })).toMatch(/^1 Sept?$/);
     expect(formatDate("2026-09-01", { year: true })).toMatch(/^Tue,? 1 Sept? 2026$/);
+  });
+
+  it("writes a short range with the month once when both ends share it", () => {
+    expect(formatShortRange("2026-04-22", "2026-04-26")).toBe("22–26 Apr");
+    expect(formatShortRange("2026-04-28", "2026-05-01")).toBe("28 Apr – 1 May");
+    expect(formatShortRange("2026-05-03", "2026-05-03")).toBe("3 May");
   });
 
   it("writes a full range with the year on the far end only", () => {
