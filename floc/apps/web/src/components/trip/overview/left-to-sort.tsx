@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, type MouseEvent } from "react";
+import { useId, useState, type MouseEvent } from "react";
 
 import type { Gap, LeftToSort as SortList, Sorted } from "@floc/core/trip/overview/left-to-sort";
 import { ButtonLink, cx } from "@/components/system/ui";
 import { ChevronIcon } from "@/components/system/icons";
 import { STACK_COLUMNS, SortCard } from "./sort/sort-card";
 import { SortCubes } from "./sort/sort-cubes";
+import { useDeal } from "./sort/use-deal";
 
 const hrefOf = (tripId: number, gap: Gap): string =>
   gap.tab === "overview" ? `#${gap.anchor ?? ""}` : `/trip/${tripId}/${gap.tab}${gap.anchor ? `#${gap.anchor}` : ""}`;
@@ -15,19 +16,20 @@ const Chevron = ({ up }: { up: boolean }) => (
   <ChevronIcon direction="down" size={13} className={cx("transition-transform motion-reduce:transition-none", up && "rotate-180")} />
 );
 
-/** Above the map (#460, round 2 E2): one soft cube per thing, sorted ones from the left; the strip opens into a stack of cards. */
+/** Above the map (#460, round 2 E2): one soft cube per thing, sorted ones from the left; the strip deals its stack of cards down. */
 export function LeftToSort({ tripId, list }: { tripId: number; list: SortList }) {
-  const [open, setOpen] = useState(false);
+  const { open, toggle, drawer, list: stack, chevron } = useDeal();
+  const id = useId();
   const next = list.open[0];
   if (!next) return null;
   const sorted = list.done.length;
   const total = sorted + list.left;
   // Why: the whole strip opens on a click, but its own link must still go where it says.
   const toggleFromStrip = (e: MouseEvent) => {
-    if (!(e.target as HTMLElement).closest("a, button")) setOpen(!open);
+    if (!(e.target as HTMLElement).closest("a, button")) toggle();
   };
   return (
-    <section aria-label="Left to sort" className={cx("relative", !open && "mb-2.5")}>
+    <section aria-label="Left to sort" className="group/sort relative mb-2.5">
       <div className="relative z-[2] rounded-md bg-sheet px-4 py-2.5 shadow-raised ring-1 ring-rule sm:pl-5">
         <div onClick={toggleFromStrip} className="flex min-h-10 cursor-pointer flex-wrap items-center gap-x-4 gap-y-2">
           <SortCubes total={total} filled={sorted} />
@@ -42,25 +44,27 @@ export function LeftToSort({ tripId, list }: { tripId: number; list: SortList })
           </ButtonLink>
           <button
             type="button"
-            onClick={() => setOpen(!open)}
+            onClick={toggle}
             aria-expanded={open}
+            aria-controls={id}
             aria-label={open ? "Hide what is left" : "Show what is left"}
             className="ml-auto grid size-8 place-items-center rounded-sm text-ink-soft hover:bg-sheet-2 hover:text-ink sm:ml-0"
           >
-            <Chevron up={open} />
+            <span ref={chevron} className="grid place-items-center">
+              <ChevronIcon direction="down" size={13} />
+            </span>
           </button>
         </div>
       </div>
-      {open ? (
-        <ul className={cx("mt-2", STACK_COLUMNS)}>
+      <div ref={drawer} id={id} inert className="invisible relative z-[1] h-0 overflow-hidden">
+        <ul ref={stack} className={cx("pt-2 [&>li]:relative [&>li>*]:[opacity:var(--ink-o,1)]", STACK_COLUMNS)}>
           {list.open.map((gap) => (
             <SortCard key={gap.key} item={gap} href={hrefOf(tripId, gap)} action={gap.action} />
           ))}
           {sorted > 0 ? <SortedDeck done={list.done} /> : null}
         </ul>
-      ) : (
-        <StackEdges />
-      )}
+      </div>
+      <StackEdges />
     </section>
   );
 }
@@ -90,12 +94,12 @@ function SortedDeck({ done }: { done: Sorted[] }) {
   );
 }
 
-/** Two paper edges under the closed strip: there is a stack behind it. */
+/** Two paper edges under the closed strip: there is a stack behind it. The first two cards start on them as it opens. */
 function StackEdges() {
   return (
     <>
-      <span aria-hidden className="absolute inset-x-2.5 -bottom-[5px] z-[1] h-3 rounded-b-md bg-sheet ring-1 ring-rule" />
-      <span aria-hidden className="absolute inset-x-[22px] -bottom-2.5 z-0 h-3 rounded-b-md bg-sheet ring-1 ring-rule" />
+      <span aria-hidden className="absolute inset-x-2.5 -bottom-[5px] z-[1] h-3 rounded-b-md bg-sheet ring-1 ring-rule group-data-[dealt]/sort:invisible" />
+      <span aria-hidden className="absolute inset-x-[22px] -bottom-2.5 z-0 h-3 rounded-b-md bg-sheet ring-1 ring-rule group-data-[dealt]/sort:invisible" />
     </>
   );
 }
