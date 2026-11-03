@@ -68,12 +68,10 @@ const config = [
     // 2026-08-23: all pre-date the ceiling (#212).
     files: [
       "src/components/auth/auth-form.tsx",
-      "src/components/availability/availability-calendar.tsx",
       "src/components/days/days-calendar.tsx",
       "src/components/money/expense-form.tsx",
       "src/components/notes/note-thread.tsx",
       "src/components/social/place-picker.tsx",
-      "src/components/map/travel-map.tsx",
       "src/server/itinerary/weather.ts",
     ],
     rules: { "max-lines-per-function": "off", complexity: "off" },
@@ -83,7 +81,6 @@ const config = [
     files: [
       "src/app/trip/[[]id]/dates/page.tsx",
       "src/app/trip/[[]id]/money/page.tsx",
-      "src/app/trip/[[]id]/packing/page.tsx",
     ],
     rules: { complexity: "off" },
   },

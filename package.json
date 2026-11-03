@@ -1,8 +1,8 @@
 {
-  "name": "nexus-hub",
+  "name": "floc",
   "version": "0.0.0",
   "private": true,
-  "description": "Nexus â€” a centralised incubator hub for building multiple ventures on shared foundations.",
+  "description": "Floc: group trip planning. Web, phone, shared packages and marketing in one workspace.",
   "packageManager": "pnpm@9.15.9",
   "engines": {
     "node": ">=22"
@@ -56,7 +56,7 @@
     "neverBuiltDependencies": [
       "esbuild"
     ],
-    "//": "Security gates are fixed, never weakened (security-compliance/CLAUDE.md), so advisories reached through a transitive dep are pinned forward here rather than muted in the audit step. Each entry is a `pnpm audit --audit-level=high` finding on the patched floor the advisory names.",
+    "//": "Security gates are fixed, never weakened, so advisories reached through a transitive dep are pinned forward here rather than muted in the audit step. Each entry is a `pnpm audit --audit-level=high` finding on the patched floor the advisory names.",
     "overrides": {
       "vitest": "^3.2.6",
       "vite": "^6.4.4",

@@ -433,7 +433,7 @@ export function Menu({
           aria-label={label}
           onSubmit={() => setTimeout(() => setOpen(false), 0)}
           className={cx(
-            // z-[1200]: above Leaflet's panes. w-max: sized to its longest verb, not a fixed width.
+            // w-max: sized to its longest verb, not a fixed width.
             "absolute z-[1200]",
             panelClassName ??
               "w-max min-w-[5rem] max-w-[14rem] rounded-md border border-rule-strong bg-sheet p-1 shadow-raised",
