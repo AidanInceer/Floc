@@ -372,7 +372,7 @@ const WEATHER_PATHS: Record<WeatherCondition, string[]> = {
   ],
 };
 
-/** The web's `weather-glyph.tsx`, same paths, so a sunny day is one picture on both. */
+/** The web's `system/icons/weather.tsx`, same paths, so a sunny day is one picture on both. */
 export function WeatherGlyph({
   condition,
   color,

@@ -3,11 +3,11 @@
 import type { ReactNode } from "react";
 
 import type { DatesTab, TabStub } from "@/components/availability/dates-tabs";
-import { NavGlyph } from "@/components/chrome/nav-glyphs";
+import { NavGlyph } from "@/components/system/icons/nav";
 import { CheckIcon, ChevronIcon } from "@/components/system/icons";
 import { ProStar } from "@/components/system/pro-star";
 import { Button, LegendKey, cx } from "@/components/system/ui";
-import { WeatherGlyph } from "@/components/system/weather-glyph";
+import { WeatherGlyph } from "@/components/system/icons/weather";
 import { formatMonth, tripCoverage, type IsoMonth } from "@floc/core/dates/availability";
 import { formatDate, type IsoDate } from "@floc/core/dates/dates";
 import { forecastTab, groupTab, tripTab, yourDaysTab } from "@floc/core/dates/dates-tabs";

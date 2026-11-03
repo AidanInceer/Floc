@@ -4,7 +4,7 @@ import { cx } from "@/components/system/ui";
 import { LANES, type LaneTone } from "@/lib/landing/agent/agent-lanes";
 import type { LaneBeat } from "@/lib/landing/agent/agent-timeline";
 
-import { Glyph } from "../landing-glyph";
+import { Glyph } from "@/components/system/icons/landing";
 
 const SKIN: Record<LaneTone, string> = {
   blue: "agent-lane-blue",

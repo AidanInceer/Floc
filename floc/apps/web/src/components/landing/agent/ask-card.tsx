@@ -3,7 +3,7 @@ import { Fragment, type ReactNode } from "react";
 import { Avatar, cx } from "@/components/system/ui";
 import type { MarkId, TypedPrompt } from "@/lib/landing/agent/agent-prompt";
 
-import { Glyph } from "../landing-glyph";
+import { Glyph } from "@/components/system/icons/landing";
 import { priya } from "../sample-trip";
 
 // Each ask wears the colour of what it becomes. The route is marked by the dashed route line itself.

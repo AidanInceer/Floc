@@ -13,7 +13,7 @@
 import { useEffect, useState, type ReactElement } from "react";
 
 import { cx } from "@/components/system/ui";
-import { DeviceIcon, SunIcon } from "@/components/chrome/account/account-icons";
+import { DeviceIcon, SunIcon } from "@/components/system/icons/account";
 import { MoonIcon } from "@/components/system/icons";
 import {
   THEME_CHOICES,

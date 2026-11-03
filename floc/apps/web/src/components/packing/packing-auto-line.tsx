@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { SparkIcon } from "@/components/packing/packing-glyphs";
+import { SparkIcon } from "@/components/system/icons/packing";
 import { SubmitButton } from "@/components/system/client-ui";
 import { cx } from "@/components/system/ui";
 import { ideasWhy, type IdeasPlan } from "@floc/core/packing/packing-ideas";

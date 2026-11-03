@@ -10,7 +10,7 @@
 import { useState, type ReactNode } from "react";
 
 import { Avatar, Textarea, cx } from "@/components/system/ui";
-import { ReactionGlyph } from "@/components/system/reaction-glyph";
+import { ReactionGlyph } from "@/components/system/icons/reaction";
 import { FlockChevron } from "@/components/system/flock-chevron";
 import {
   ActionForm,

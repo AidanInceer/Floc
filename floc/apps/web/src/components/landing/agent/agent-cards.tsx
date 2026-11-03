@@ -4,7 +4,7 @@ import { Avatar, cx } from "@/components/system/ui";
 import type { MarkBeat } from "@/lib/landing/agent/agent-timeline";
 
 import { Swap } from "../hero/swap";
-import { Glyph } from "../landing-glyph";
+import { Glyph } from "@/components/system/icons/landing";
 import { sam, sampleStops } from "../sample-trip";
 import "../hero/hero.css";
 

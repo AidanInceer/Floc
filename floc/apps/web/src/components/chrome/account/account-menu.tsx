@@ -8,7 +8,7 @@ import { Menu } from "@/components/system/client-ui";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { AccountPass } from "@/components/chrome/account/account-pass";
 import { AccountInbox, type InboxPreviewItem } from "@/components/chrome/account/account-inbox";
-import { ListIcon, PersonIcon, SlidersIcon } from "@/components/chrome/account/account-icons";
+import { ListIcon, PersonIcon, SlidersIcon } from "@/components/system/icons/account";
 import { ChevronIcon } from "@/components/system/icons";
 import { ThemeSwitch } from "@/components/chrome/account/theme-switch";
 import "./account-menu.css";

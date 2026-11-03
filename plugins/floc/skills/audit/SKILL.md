@@ -31,6 +31,9 @@ Before you open a page, read what the site is measured against:
 - Data: seeded scenarios A and B (`/floc:seed-dev-db`). Never reset without asking.
 - Sign in as a seeded person who is in a trip that is **happening now**, one
   **ahead**, and one **past**. Each state shows different pages.
+  `pnpm --filter floc-web db:trips` lists every trip, its state and its members;
+  do not search the seed files. For any other fact, `db:query "<select>"`
+  reads `local.db` and refuses writes.
 - If a page renders blank with `PageNotFoundError` or `Failed to read source`,
   reload once. A dev cache error is not a finding.
 

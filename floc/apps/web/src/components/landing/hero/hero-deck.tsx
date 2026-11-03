@@ -5,7 +5,7 @@ import type { CSSProperties } from "react";
 import { AvatarRow, cx } from "@/components/system/ui";
 import { leadingBlanks } from "@/lib/landing/month-grid";
 
-import { Glyph } from "../landing-glyph";
+import { Glyph } from "@/components/system/icons/landing";
 import { sampleGroup, sampleStops } from "../sample-trip";
 import { useScene } from "../use-scene";
 import { BEATS, DATED, kicker, ROUTED, SETTLED } from "./beats";

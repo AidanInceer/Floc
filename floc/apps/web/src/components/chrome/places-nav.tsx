@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { cx } from "@/components/system/ui";
-import { NavGlyph, type NavGlyphName } from "@/components/chrome/nav-glyphs";
+import { NavGlyph, type NavGlyphName } from "@/components/system/icons/nav";
 import { useEdgeFade } from "@/components/chrome/use-edge-fade";
 import { BEAD } from "@/components/chrome/bead";
 import { activeHref } from "@/lib/active-href";

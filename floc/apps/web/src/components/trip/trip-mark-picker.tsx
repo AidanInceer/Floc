@@ -10,7 +10,7 @@
 import { TRIP_MARKS, TRIP_MARK_LABELS, type TripMark } from "@floc/core/trip/mark/trip-mark";
 import type { TripColor } from "@floc/core/trip/trip-color";
 import { PASTEL_BY_KEY, PickOption, cx } from "@/components/system/ui";
-import { TripMarkIcon } from "@/components/trip/trip-mark";
+import { TripMarkIcon } from "@/components/system/icons/trip-mark";
 import { setTripMark } from "@/app/trips/actions";
 
 export function TripMarkPicker({

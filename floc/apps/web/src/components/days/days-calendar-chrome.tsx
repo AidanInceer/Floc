@@ -15,7 +15,7 @@ import {
 import { EventForm, type PlaceSearch } from "@/components/days/event-form";
 import { EventMarkers } from "@/components/days/event-markers";
 import { DayColumn, type ColumnVariant } from "@/components/days/days-calendar-column";
-import { FoldIcon } from "@/components/days/days-glyphs";
+import { FoldIcon } from "@/components/system/icons/days";
 import { Dialog } from "@/components/system/dialog";
 import { ChevronIcon, PlusIcon } from "@/components/system/icons";
 import { Button, cx } from "@/components/system/ui";

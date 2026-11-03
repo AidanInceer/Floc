@@ -9,7 +9,7 @@ import { Menu } from "@/components/system/client-ui";
 import { Badge, PASTEL_BY_KEY, cx } from "@/components/system/ui";
 import { TripColorPicker } from "@/components/trip/trip-color-picker";
 import { TripMarkPicker } from "@/components/trip/trip-mark-picker";
-import { TripMarkIcon } from "@/components/trip/trip-mark";
+import { TripMarkIcon } from "@/components/system/icons/trip-mark";
 import { TripNameInline } from "@/components/trip/trip-name-inline";
 import { TagChips } from "@/components/trip/overview/tag-chips";
 import { renameTrip } from "@/app/trip/[id]/overview/actions";

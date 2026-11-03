@@ -4,7 +4,7 @@ import { ButtonLink, cx } from "@/components/system/ui";
 import type { BorrowCard as Card } from "@/lib/landing/borrow";
 import { listingStartHref } from "@/lib/landing/start-trip";
 
-import { Glyph } from "../landing-glyph";
+import { Glyph } from "@/components/system/icons/landing";
 
 type Props = { card: Card; signedIn: boolean; variant: "ghost" | "primary"; className?: string };
 

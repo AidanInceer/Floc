@@ -5,7 +5,7 @@ import { useState } from "react";
 import { cx } from "@/components/system/ui";
 import { nightsWords, placeWords, type BorrowCard as Card } from "@/lib/landing/borrow";
 
-import { Glyph } from "../landing-glyph";
+import { Glyph } from "@/components/system/icons/landing";
 import { tone } from "./tones";
 import type { Face } from "./use-borrow-hand";
 

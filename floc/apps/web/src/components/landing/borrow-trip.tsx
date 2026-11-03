@@ -14,7 +14,7 @@ import { tone } from "./borrow/tones";
 import { useBorrowHand } from "./borrow/use-borrow-hand";
 import { useBorrowWay } from "./borrow/use-borrow-way";
 import { useSpinGlobe, type GlobeEvents } from "./globe/use-spin-globe";
-import { Glyph } from "./landing-glyph";
+import { Glyph } from "@/components/system/icons/landing";
 import "./borrow-trip.css";
 
 // Every route on the globe leaves from here.

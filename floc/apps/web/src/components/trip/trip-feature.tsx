@@ -5,7 +5,7 @@ import Link from "next/link";
 
 import { AvatarRow, PASTEL_BY_KEY, PASTEL_SKINS } from "@/components/system/ui";
 import { TripCardActions, type TripCardData } from "@/components/trip/trip-card";
-import { TripMarkIcon } from "@/components/trip/trip-mark";
+import { TripMarkIcon } from "@/components/system/icons/trip-mark";
 
 export function TripFeature({ trip }: { trip: TripCardData }) {
   if (!trip.startDate) return null;

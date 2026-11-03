@@ -1,6 +1,6 @@
 import { formatDate } from "@floc/core/dates/dates";
 import type { DayEventType, TransportType } from "@floc/core/vocabulary";
-import { EventGlyph } from "@/components/days/days-glyphs";
+import { EventGlyph } from "@/components/system/icons/days";
 import { cx } from "@/components/system/ui";
 
 /** "Lisbon, Portugal" is "Lisbon" here; the country is on the map. */

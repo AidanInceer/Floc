@@ -3,7 +3,7 @@ import Link from "next/link";
 import { formatDateRange, nightsBetween } from "@floc/core/dates/dates";
 import type { BookingPlan, StayRow } from "@floc/core/trip/booking-links";
 import { OFFSITE_NOTE, SiteLinks } from "@/components/booking/site-links";
-import { BedIcon, EventGlyph } from "@/components/days/days-glyphs";
+import { BedIcon, EventGlyph } from "@/components/system/icons/days";
 
 const headClass = "font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint";
 const panelClass = "rounded-sm border border-rule bg-sheet-2 px-3 py-2.5";

@@ -1,7 +1,7 @@
 import { AvatarRow } from "@/components/system/ui";
 import { PRO_FEATURES, PRO_STAGES, PRO_TABS, type ProFeatureKey } from "@/lib/landing/pro-tour";
 
-import { Glyph } from "../landing-glyph";
+import { Glyph } from "@/components/system/icons/landing";
 import { sampleGroup } from "../sample-trip";
 import { FEATURE_GLYPH } from "./pro-glyphs";
 

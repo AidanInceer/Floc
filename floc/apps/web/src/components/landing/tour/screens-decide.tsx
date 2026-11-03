@@ -1,6 +1,6 @@
 import { Avatar, cx } from "@/components/system/ui";
 
-import { Glyph } from "../landing-glyph";
+import { Glyph } from "@/components/system/icons/landing";
 import { alex, jo, kit, priya, sampleGroup } from "../sample-trip";
 import { FakeButton, ScreenFrame } from "./screen-frame";
 import { ArrowUpIcon } from "@/components/system/icons";

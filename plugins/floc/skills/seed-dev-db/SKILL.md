@@ -55,6 +55,8 @@ curl -s -o /dev/null -w 'priya=%{http_code}\n' -X POST "http://localhost:3000/ap
 Want `200` for both. A `404` means the two `.env` variables are missing, or the
 server is running as production.
 
+Then list what landed: `pnpm --filter floc-web db:trips` (trip ids, dates, state, members).
+
 ### 4. Report
 
 Say which scenarios are loaded, and who to sign in as for what the user wants to

@@ -42,11 +42,13 @@ pnpm install                      # at the root
 pnpm dev                          # turbo run dev (build, typecheck, lint, test work the same way)
 pnpm --filter floc-web <task>     # one app only
 pnpm run:all / pnpm run:stop      # user's own full loop in two windows (agents use /floc:run)
-pnpm fitness                      # layers, dead code, tokens, contrast, bundle, docs
+pnpm fitness                      # layers, dead code, tokens, css, icons, contrast, bundle, docs
 pnpm parity                       # every web/app gap is declared
 pnpm verify                       # everything CI runs, locally
 pnpm --filter floc-web db:seed    # dev scenarios A + B (`a` or `b` for one, `--reset` to remove)
 pnpm --filter floc-web db:reset   # empty local.db and uploads, then seed — same state every time
+pnpm --filter floc-web db:trips   # every local trip: id, dates, now/upcoming/past, members — who to sign in as
+pnpm --filter floc-web db:query "<select>"  # read local.db; SQLite refuses writes. Never a throwaway libsql script
 pnpm --filter floc-web e2e        # Playwright on the .next-verify build, own db on :3100
 pnpm --filter floc-mobile maestro # Maestro flows on the emulator, against the dev loop
 ```
@@ -91,7 +93,7 @@ Never break these. Code comments cite them by number (`rule 5`), so keep the num
 
 - **Colours from tokens only** — no hex literals. Token values live in `@floc/core/design/tokens`, not `globals.css`; `pnpm fitness` fails if the two disagree. Status always has a word, never colour or an icon alone.
 - **Light and dark use the same token names.** Dark restates values in `:root[data-theme="dark"]`. **No `dark:` variant** — needing one means the token is wrong. The choice lives in `localStorage`, never in a column.
-- **No emoji.** Icons are line art: 14×14 `viewBox`, drawn at ~13px, `fill="none"`, `strokeWidth` 1.15–1.25, `stroke="currentColor"`. See [iconography](docs/design/visual-language.html#iconography).
+- **No emoji.** Icons are line art: 14×14 `viewBox`, drawn at ~13px, `fill="none"`, `strokeWidth` 1.15–1.25, `stroke="currentColor"`. See [iconography](docs/design/visual-language.html#iconography). On the web every exported icon lives in `components/system/icons/`, one file per area — look there first; `check:icons` fails one anywhere else.
 - **If the drawing is clear, say nothing.** Text carries only what the layout cannot. No heading above a heading, no caption that explains the design, no words that repeat what a control shows. Exceptions: what is *missing*, and status.
 - **No placeholder text in fields.** An input starts empty: no example ("Lisbon, a week in September…"), no instruction ("Type your idea"), nothing pre-filled the person did not choose. A visible label, or an `aria-label` when the button beside it says what it is for (*Add*), names the field. See [behaviour rules](docs/design/visual-language.html#behaviour).
 - **Outside UI libraries** only where building it ourselves would take months, and only if the library accepts our tokens, type and no-emoji rules. Notes runs on the headless Tiptap core under our own UI, in `@floc/editor` ([ADR-014](docs/foundation/decisions.html#adr-014)).
@@ -137,6 +139,7 @@ Payments between members, POI data and reviews, flight *booking* (deep links onl
 - **Parallel sessions.** A second session while one is running starts in its own worktree. Its throwaway branch is local only; `/floc:push` lands the commit on `develop` (`HEAD:develop`). In a shared checkout, `push:land --only <paths>` stages one piece of work.
 - **Branches.** Two long-lived branches, no feature branches. Work lands on `develop` through `/floc:push` and goes to `main` in batches through `/floc:release`. A hotfix commits straight to `main`; a feature never does.
 - **Commits, labels and the Priority stack** are owned by the skills: `/floc:push` (subject, version bump, `Closes`, `on-develop`), `/floc:prioritise-tickets` (labels, phases, stack), `/floc:to-tickets` (blocked-by edges). Never borrow an issue number.
+- **A plain commit** (asked to commit, not to push): subject `<version> #<issue>: <type>: <description>`, or `#no-ticket` with no `Closes`. Bump `version` in `floc/apps/web/package.json` first: `feat` minor, anything else patch. Types and the full rules: `/floc:push` step 2; the `commit-msg` hook runs `scripts/check-commit-msg.mjs`.
 - **Docs are HTML, not markdown** — edit the page.
 - **Docs move with the code, in the same commit.** Before `/floc:push`, ask which page the diff makes untrue. `/floc:sync-docs` maps each kind of change to its page and runs `pnpm docs:check`.
 - **Deploy is Railway** via `railway.json` (runs the migration, starts `floc-web`). A push to `main` deploys. Env vars live in Railway's Variables tab, never in the repo.

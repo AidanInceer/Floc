@@ -6,7 +6,7 @@
  * to that day; a stop opens the overnight dialog on its whole run.
  */
 import { cx } from "@/components/system/ui";
-import { BedIcon } from "@/components/days/days-glyphs";
+import { BedIcon } from "@/components/system/icons/days";
 import { MoonIcon } from "@/components/system/icons";
 import type { CalendarDay } from "@/components/days/days-calendar-shared";
 import { deriveStops, nightsLabel } from "@floc/core/itinerary/stops";

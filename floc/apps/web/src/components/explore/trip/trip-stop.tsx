@@ -2,7 +2,7 @@ import type { PlanArrival, PlanDay, PlanStop } from "@floc/core/trip/explore/det
 
 import type { RegionTone } from "@/components/explore/trip/region-tone";
 import { DayRow } from "@/components/explore/trip/trip-day";
-import { TravelModeIcon } from "@/components/map/travel-mode-icon";
+import { TravelModeIcon } from "@/components/system/icons/travel-mode";
 import { cx } from "@/components/system/ui";
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;

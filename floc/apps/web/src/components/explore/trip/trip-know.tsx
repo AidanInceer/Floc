@@ -1,6 +1,6 @@
 import type { PresetAdvice, PresetFact } from "@floc/core/trip/explore/detail/preset-detail-types";
 
-import { AdviceIcon } from "@/components/explore/trip/trip-glyphs";
+import { AdviceIcon } from "@/components/system/icons/explore-trip";
 import { SectionHeading, cx } from "@/components/system/ui";
 
 function Facts({ facts }: { facts: PresetFact[] }) {

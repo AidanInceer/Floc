@@ -1,4 +1,4 @@
-import type { GlyphName } from "../landing-glyph";
+import type { GlyphName } from "@/components/system/icons/landing";
 
 export type SlideTone = "yellow" | "blue" | "red" | "green";
 

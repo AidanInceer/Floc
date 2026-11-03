@@ -1,6 +1,6 @@
 import { Avatar, cx } from "@/components/system/ui";
 
-import { Glyph } from "../landing-glyph";
+import { Glyph } from "@/components/system/icons/landing";
 import { jo, maya } from "../sample-trip";
 import { ScreenFrame } from "./screen-frame";
 

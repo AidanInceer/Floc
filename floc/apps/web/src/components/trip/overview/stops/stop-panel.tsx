@@ -2,7 +2,7 @@ import { formatDate } from "@floc/core/dates/dates";
 import { hopLabel, type Leg } from "@floc/core/trip/overview/legs";
 import type { TripDocument } from "@/server/documents/documents";
 import type { DayEventRow } from "@/server/itinerary/itinerary";
-import { TravelModeIcon } from "@/components/map/travel-mode-icon";
+import { TravelModeIcon } from "@/components/system/icons/travel-mode";
 import { StopDay } from "./stop-day";
 import { nightsLabel } from "@floc/core/itinerary/stops";
 import { StopNo, cityOf, stopDates } from "./stop-parts";

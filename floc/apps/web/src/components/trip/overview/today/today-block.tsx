@@ -4,8 +4,8 @@ import Link from "next/link";
 import { formatDate } from "@floc/core/dates/dates";
 import type { TodayPlan } from "@floc/core/trip/route/today-plan";
 import type { DayEventType, TransportType } from "@floc/core/vocabulary";
-import { DocCategoryIcon } from "@/components/documents/doc-category-icon";
-import { EventGlyph } from "@/components/days/days-glyphs";
+import { DocCategoryIcon } from "@/components/system/icons/doc-category";
+import { EventGlyph } from "@/components/system/icons/days";
 import type { DocCategory } from "@floc/core/documents/documents";
 
 type TodayEvent = {

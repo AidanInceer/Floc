@@ -63,6 +63,7 @@ async function main(): Promise<void> {
       "Sign in as any of them from the dev sign-in button on /login, or on the phone's sign-in screen.",
       `Every seeded account uses the password ${SEED_PASSWORD} — e.g. ${seedEmail("priya", "a")}.`,
       "Your own dev account is whatever FLOC_DEV_USER_EMAIL says, and is a member of both scenarios.",
+      "pnpm --filter floc-web db:trips lists every trip, when it runs and who is on it.",
       ...(fresh ? ["Every session went with the wipe — sign in again on the web and the phone."] : []),
     ].join("\n"),
   );

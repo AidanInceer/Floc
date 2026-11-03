@@ -9,7 +9,7 @@
 #   ci.yml       verify      → lint · typecheck · test · build   (via turbo)
 #   ci.yml       sonarqube   → coverage + SonarCloud quality gate (PRs + main)
 #   ci.yml       e2e-web     → Playwright over the build, on its own database
-#   ci.yml       fitness     → layers · dead code · tokens · contrast · bundle
+#   ci.yml       fitness     → layers · dead code · tokens · css · icons · contrast · bundle
 #   ci.yml       migrations  → schema changes ship with a migration
 #   ci.yml       wireframes  → wireframes stay self-contained
 #   ci.yml       parity      → the web/app gap is declared, not forgotten
@@ -128,7 +128,7 @@ fi
 # The structural checks (#212): layering, dead code, the globals.css token
 # rules, WCAG contrast on every token pair, and the bundle budget. Needs the
 # build above, which the turbo task depends on.
-step "Architecture · dead code · tokens · contrast · bundle"
+step "Architecture · dead code · tokens · css · icons · contrast · bundle"
 if pnpm fitness >/tmp/verify-fitness.log 2>&1; then
   ok "the codebase is not getting worse"
 else

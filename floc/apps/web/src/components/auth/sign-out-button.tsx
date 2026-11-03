@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { signOut } from "@/lib/auth-client";
 import { trySignOut } from "@/lib/sign-out";
-import { SignOutIcon } from "@/components/chrome/account/account-icons";
+import { SignOutIcon } from "@/components/system/icons/account";
 
 export function SignOutButton({
   className,

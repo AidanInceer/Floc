@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 
-import { NavGlyph } from "@/components/chrome/nav-glyphs";
+import { NavGlyph } from "@/components/system/icons/nav";
 import { useEdgeFade } from "@/components/chrome/use-edge-fade";
 import { activeHref } from "@/lib/active-href";
 import { type TabState } from "@/lib/tabs";

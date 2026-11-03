@@ -4,7 +4,7 @@ import Link from "next/link";
 import { DOC_CATEGORY_LABELS, type DocCategory } from "@floc/core/documents/documents";
 import { filesByCategory } from "@floc/core/trip/overview/legs";
 import { cx } from "@/components/system/ui";
-import { DocCategoryIcon } from "@/components/documents/doc-category-icon";
+import { DocCategoryIcon } from "@/components/system/icons/doc-category";
 import { DocumentUpload } from "@/components/documents/document-upload";
 import { UploadIcon } from "@/components/system/icons";
 

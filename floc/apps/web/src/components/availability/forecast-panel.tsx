@@ -6,7 +6,7 @@
  */
 import { ChevronIcon } from "@/components/system/icons";
 import { cx } from "@/components/system/ui";
-import { WeatherGlyph } from "@/components/system/weather-glyph";
+import { WeatherGlyph } from "@/components/system/icons/weather";
 import { dayParts, formatDate, type IsoDate } from "@floc/core/dates/dates";
 import type { DailyForecast, HourlyPoint } from "@/server/itinerary/weather";
 

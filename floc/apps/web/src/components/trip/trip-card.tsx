@@ -20,7 +20,7 @@ import type { IsoDate } from "@floc/core/dates/dates";
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import type { TripColor } from "@floc/core/trip/trip-color";
 import type { TripMark } from "@floc/core/trip/mark/trip-mark";
-import { TripMarkIcon } from "@/components/trip/trip-mark";
+import { TripMarkIcon } from "@/components/system/icons/trip-mark";
 import type { TripRole } from "@/db/schema";
 
 export type TripCardData = {

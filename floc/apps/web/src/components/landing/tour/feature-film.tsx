@@ -7,7 +7,7 @@ import { cx } from "@/components/system/ui";
 import { useTrackDrag } from "@/components/system/interaction/use-track-drag";
 import { FILM_COPIES, nearestCopy, nearestSlide, recentre } from "@/lib/landing/carousel";
 
-import { Glyph } from "../landing-glyph";
+import { Glyph } from "@/components/system/icons/landing";
 import type { SlideTone, TourSlide } from "./tour-slides";
 import "./feature-film.css";
 

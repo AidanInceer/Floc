@@ -1,6 +1,6 @@
 import { Avatar, AvatarRow, cx } from "@/components/system/ui";
 
-import { Glyph, type GlyphName } from "./landing-glyph";
+import { Glyph, type GlyphName } from "@/components/system/icons/landing";
 import { alex, jo, priya, sam, sampleGroup } from "./sample-trip";
 
 const kicker = "font-mono text-[10px] uppercase tracking-[0.1em] text-ink-soft";

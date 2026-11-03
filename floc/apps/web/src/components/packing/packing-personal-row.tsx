@@ -9,11 +9,11 @@ import { InlineRename } from "@/components/system/inline-rename";
 import { TEXT_CAPS } from "@floc/core/text/text";
 import {
   SelectLineBox,
-  SparkIcon,
   squareButton,
   tickBoxBase,
   tickBoxClass,
 } from "@/components/packing/packing-glyphs";
+import { SparkIcon } from "@/components/system/icons/packing";
 import { CheckIcon, CrossIcon } from "@/components/system/icons";
 import { PackingStepper } from "@/components/packing/packing-quantity";
 
