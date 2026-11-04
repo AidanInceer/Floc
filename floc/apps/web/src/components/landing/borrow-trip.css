@@ -120,16 +120,16 @@
     place-items: center;
     width: 32px;
     height: 32px;
-    color: var(--pen);
-    background: var(--pastel-blue);
-    border: 1px solid var(--pastel-blue-edge);
+    color: var(--ink-3);
+    background: var(--sheet-2);
+    border: 1px solid transparent;
     border-radius: 999px;
     transition: border-color 0.18s var(--ease), color 0.18s var(--ease), background-color 0.18s var(--ease), translate 0.3s var(--ease), opacity 0.2s var(--ease);
   }
   /* The lit tile is drawn 5% larger, so its button steps out with the corner. */
-  .borrow-chip[aria-current="true"] + .borrow-deeper { translate: 5px 2px; border-color: var(--pen); }
+  .borrow-chip[aria-current="true"] + .borrow-deeper { translate: 5px 2px; }
   .borrow-tile .borrow-deeper:hover,
-  .borrow-tile .borrow-deeper:focus-visible { color: var(--sheet); background: var(--pen); border-color: var(--pen); }
+  .borrow-tile .borrow-deeper:focus-visible { color: var(--ink); background: var(--sheet-3); border-color: var(--rule-2); }
   .borrow-deeper:disabled { opacity: 0; }
 
   /* The globe's box: a circle that opens into a wide rounded panel. The canvas fills it. */
@@ -350,6 +350,7 @@
     opacity: calc(1 - var(--deep) * 3);
   }
   .borrow-stage[data-deep] .borrow-bar { overflow: hidden; }
+  .borrow-bar > :is(button, a) { min-height: 44px; padding-block: 10px; font-size: 12px; }
   .borrow-go { justify-self: end; }
   .borrow-start { justify-self: start; white-space: nowrap; }
 

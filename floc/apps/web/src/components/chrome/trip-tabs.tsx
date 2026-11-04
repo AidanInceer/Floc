@@ -2,15 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, type CSSProperties, type ReactNode } from "react";
+
+import { SECTION_COLOURS } from "@floc/core/design/section-colours";
 
 import { NavGlyph } from "@/components/system/icons/nav";
 import { useEdgeFade } from "@/components/chrome/use-edge-fade";
 import { activeHref } from "@/lib/active-href";
 import { type TabState } from "@/lib/tabs";
+import "./trip-tabs.css";
 
 // Every tab is navigable from day one (ticket 126); no un-clickable stubs.
-// The current glyph takes the same blue tile as the place above it in the top bar.
 export function TripTabs({ tripId, tabs, children }: { tripId: number; tabs: TabState[]; children?: ReactNode }) {
   const pathname = usePathname();
   const hrefOf = (tab: TabState) => `/trip/${tripId}/${tab.key}`;
@@ -39,10 +41,14 @@ export function TripTabs({ tripId, tabs, children }: { tripId: number; tabs: Tab
             key={tab.key}
             href={hrefOf(tab)}
             data-tour={tab.key}
+            style={{
+              "--section-wash": `var(--pastel-${SECTION_COLOURS[tab.key]})`,
+              "--section-ink": `var(--pastel-${SECTION_COLOURS[tab.key]}-ink)`,
+            } as CSSProperties}
             aria-current={hrefOf(tab) === current ? "page" : undefined}
-            className="group flex shrink-0 items-center gap-1.5 py-1.5 text-sm font-medium text-ink-faint transition-colors hover:text-ink-soft aria-[current=page]:text-ink"
+            className="trip-tab flex shrink-0 items-center gap-1.5 py-1.5 text-sm font-medium text-ink-faint transition-colors hover:text-ink-soft aria-[current=page]:text-ink"
           >
-            <span className="inline-flex size-8 items-center sm:size-6 justify-center rounded-sm transition-colors group-hover:bg-sheet-3 group-aria-[current=page]:bg-pen-soft group-aria-[current=page]:text-pen-deep">
+            <span className="trip-tab-icon inline-flex size-8 items-center sm:size-6 justify-center rounded-sm transition-colors">
               <NavGlyph name={tab.key} />
             </span>
             <span className="sr-only sm:not-sr-only">{tab.label}</span>

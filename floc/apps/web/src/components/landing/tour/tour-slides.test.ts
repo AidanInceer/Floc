@@ -3,6 +3,18 @@ import { describe, expect, it } from "vitest";
 import { TOUR_SLIDES, tourSlides } from "./tour-slides";
 
 describe("tourSlides", () => {
+  it("uses the agreed feature colours in planning order", () => {
+    expect(tourSlides(false).map(({ key, tone }) => [key, tone])).toEqual([
+      ["where", "blue"],
+      ["when", "yellow"],
+      ["plan", "green"],
+      ["money", "red"],
+      ["packing", "blue"],
+      ["notes", "yellow"],
+      ["tickets", "green"],
+    ]);
+  });
+
   it("keeps the Pro asides while Pro is on sale", () => {
     expect(tourSlides(true).some((s) => s.proExtra)).toBe(true);
   });

@@ -63,8 +63,9 @@
     {
       label: 'Design', key: 'design',
       children: [
-        { id: 'design', label: 'Design approach', href: 'design/index.html', blurb: 'How a page earns clarity, hierarchy and trust.', related: ['visual-language'], adr: [19] },
-        { id: 'visual-language', label: 'Visual language', href: 'design/visual-language.html', blurb: 'Tokens, type, icons, contrast, components.', related: ['platforms'] }
+        { id: 'design', label: 'Design approach', href: 'design/index.html', blurb: 'How a page earns clarity, hierarchy and trust.', related: ['visual-language', 'app-design-learnings'], adr: [19, 33] },
+        { id: 'visual-language', label: 'Visual language', href: 'design/visual-language.html', blurb: 'Tokens, type, icons, contrast, components.', related: ['platforms'] },
+        { id: 'app-design-learnings', label: 'App design learnings', href: 'design/app-design-learnings.html', blurb: 'Lessons from six transcripts, adapted to Floc.', related: ['design', 'visual-language', 'mission'], adr: [4, 9, 19, 29, 33] }
       ]
     },
     {

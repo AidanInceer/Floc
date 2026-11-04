@@ -110,6 +110,8 @@ Differences between the surfaces are written once, in the docs — do not repeat
 
 Use a house component before writing markup. If neither surface has one, the [component inventory](docs/design/visual-language.html#components) says whether it should exist. A rule that fits both surfaces goes in the shared docs, not one app.
 
+**Review the whole journey.** Before calling UI work done, review complete tasks on web and app with realistic content, first use and failure recovery. Report any surface or state not verified. The [journey review](docs/design/index.html#journey-review) holds the checklist.
+
 ## Code standards
 
 - **Single responsibility.** A name that needs "and" is two files.

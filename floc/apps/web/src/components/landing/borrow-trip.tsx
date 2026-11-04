@@ -92,7 +92,7 @@ export function BorrowTrip({ cards, signedIn, explore }: { cards: Card[]; signed
           <Button onClick={() => spin(lit)} className="borrow-go">
             Spin for me
           </Button>
-          <ButtonLink href={explore} variant="primary" className="borrow-every px-6 py-3 text-[12px]">
+          <ButtonLink href={explore} variant="primary" className="borrow-every px-6">
             See every trip
           </ButtonLink>
           <StartButton card={card} signedIn={signedIn} variant="ghost" />
