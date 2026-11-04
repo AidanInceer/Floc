@@ -12,4 +12,9 @@ describe("regionTone", () => {
     expect(mark).toContain(fill);
     expect(mark).toContain(ink);
   });
+
+  it.each(REGIONS)("%s draws its dot in the ink its Explore tag writes in", (region) => {
+    const ink = skinFor({ region } as Parameters<typeof skinFor>[0]).split(" ")[1];
+    expect(regionTone(region).dot).toBe(ink.replace(/^text-/, "bg-"));
+  });
 });
