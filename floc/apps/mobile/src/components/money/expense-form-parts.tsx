@@ -192,7 +192,7 @@ function MoneyInput({
       inputMode="decimal"
       style={{
         width: 96,
-        borderRadius: radius.md,
+        borderRadius: radius.sm,
         borderWidth: 1,
         borderColor: c["ink-3"],
         backgroundColor: c.sheet,

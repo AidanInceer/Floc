@@ -39,7 +39,7 @@ export function MapPromptCard({
         backgroundColor: c["pastel-blue"],
         borderColor: c["pastel-blue-edge"],
         borderWidth: StyleSheet.hairlineWidth,
-        borderRadius: radius.lg,
+        borderRadius: radius.md,
         padding: space.lg,
         gap: space.md,
       }}

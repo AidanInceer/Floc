@@ -47,7 +47,7 @@ function useStopRect(stop: TourStop | null): Rect | null {
 
 /** A short control gets a pill, a panel gets the panel's own corner. */
 function cornerOf(rect: Rect): number {
-  return rect.height < 64 ? rect.height / 2 : radius.lg;
+  return rect.height < 64 ? rect.height / 2 : radius.md;
 }
 
 function holePath(rect: Rect): string {
@@ -127,7 +127,7 @@ export function TourOverlay({ onDone }: { onDone: () => void }) {
           left: space.lg,
           right: space.lg,
           backgroundColor: c.sheet,
-          borderRadius: radius.lg,
+          borderRadius: radius.md,
           padding: space.lg,
           gap: space.sm,
         }}

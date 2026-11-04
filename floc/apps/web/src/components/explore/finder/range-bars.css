@@ -18,7 +18,7 @@
     appearance: none;
     width: 18px;
     height: 18px;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background: var(--sheet);
     border: 1.5px solid var(--ink);
     cursor: pointer;
@@ -28,7 +28,7 @@
   .slider input[type="range"]::-moz-range-thumb {
     width: 15px;
     height: 15px;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background: var(--sheet);
     border: 1.5px solid var(--ink);
     cursor: pointer;

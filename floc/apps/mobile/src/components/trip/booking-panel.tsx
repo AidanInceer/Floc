@@ -28,7 +28,7 @@ function GapRow({ dates, onOpenDays }: { dates: string; onOpenDays: () => void }
       style={{
         gap: space.xs,
         padding: space.md,
-        borderRadius: radius.md,
+        borderRadius: radius.sm,
         borderWidth: 1,
         borderStyle: "dashed",
         borderColor: c.rule,

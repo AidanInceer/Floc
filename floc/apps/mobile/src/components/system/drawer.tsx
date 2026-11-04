@@ -42,7 +42,7 @@ export function DrawerGroup({
           backgroundColor: c.sheet,
           borderColor: danger ? c["red-edge"] : c.rule,
           borderWidth: StyleSheet.hairlineWidth,
-          borderRadius: radius.lg,
+          borderRadius: radius.md,
           overflow: "hidden",
         }}
       >

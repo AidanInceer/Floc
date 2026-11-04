@@ -4,7 +4,7 @@
  * the web stylesheet against, so the two UIs cannot disagree. Built once at module load — ~65
  * tokens per theme, and the map never changes (#288, #289).
  */
-import { resolveTokens, type Theme, type TokenName } from "@floc/core/design/tokens";
+import { radii, resolveTokens, type Theme, type TokenName } from "@floc/core/design/tokens";
 
 export type { Theme };
 
@@ -43,8 +43,7 @@ export const space = {
   xxl: 32,
 } as const;
 
-// Why: the web ramp to the pixel — the app's own tighter one read as blocky beside a browser.
-export const radius = { sm: 10, md: 16, lg: 22, pill: 999 } as const;
+export const radius = radii;
 
 // Why: matches the web ramp; `type` is tabular and carries every figure.
 export const size = {

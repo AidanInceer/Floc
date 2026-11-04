@@ -88,7 +88,7 @@ export function RouteMapFrame({ places, tracks = [] }: { places: MappablePlace[]
             height: HEIGHT,
             borderColor: c.rule,
             borderWidth: StyleSheet.hairlineWidth,
-            borderRadius: radius.md,
+            borderRadius: radius.sm,
             overflow: "hidden",
           }}
         >
@@ -153,7 +153,7 @@ export function RouteMapFrame({ places, tracks = [] }: { places: MappablePlace[]
                       <View
                         accessible
                         accessibilityLabel={`${t.name} is here`}
-                        style={{ width: 14, height: 14, borderRadius: 7, borderWidth: 2.5, borderColor: c.sheet, backgroundColor: ink(t) }}
+                        style={{ width: 14, height: 14, borderRadius: radius.pill, borderWidth: 2.5, borderColor: c.sheet, backgroundColor: ink(t) }}
                       />
                     </Marker>,
                   ]

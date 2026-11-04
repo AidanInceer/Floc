@@ -45,7 +45,7 @@ function TierTrack({ tier, setTier }: { tier: PackTier; setTier: (formData: Form
           aria-pressed={t === tier}
           className={cx(
             "rounded-sm px-3 py-[3px] text-[12.5px] transition-colors",
-            t === tier ? "bg-sheet text-ink shadow-sm" : "text-ink-soft hover:text-ink",
+            t === tier ? "bg-sheet text-ink shadow-card" : "text-ink-soft hover:text-ink",
           )}
         >
           {PACK_TIER_LABELS[t]}

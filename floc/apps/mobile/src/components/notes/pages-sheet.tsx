@@ -59,7 +59,7 @@ function PageActions({ page, kids, onlyPage, place, actions }: { page: NotesPage
   const { c } = useTheme();
   const [icons, setIcons] = useState(false);
   return (
-    <View style={{ gap: space.sm, padding: space.md, marginBottom: space.sm, borderRadius: radius.md, backgroundColor: c["sheet-2"] }}>
+    <View style={{ gap: space.sm, padding: space.md, marginBottom: space.sm, borderRadius: radius.sm, backgroundColor: c["sheet-2"] }}>
       <InlineRename value={nameOf(page)} maxLength={PAGE_LIMITS.titleChars} onSave={(title) => actions.rename(page.id, title)} />
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.sm }}>
         {page.depth === 0 ? <Button label="Add a sub-page" variant="quiet" fit="small" onPress={() => actions.add(page.id)} /> : null}

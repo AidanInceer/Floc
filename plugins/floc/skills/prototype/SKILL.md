@@ -84,7 +84,7 @@ These override the generic rules above where they differ. The biggest one: **a p
 
 What has worked, round by round, on the landing wireframes:
 
-1. **Round 1: the number asked for, else 3–6.** Keys `A`, `B`, `C`… Each is structurally different, not a recolour. Read what the user likes on neighbouring bands or pages first, and name it: a new band must sit beside them. Show the neighbours as ghost sections ("Above: … — unchanged") so it is never judged alone. For a visual brief, use the `frontend-design` skill.
+1. **Round 1: the number asked for, else 3–6.** Keys `A`, `B`, `C`… Each is structurally different, not a recolour. Read what the user likes on neighbouring bands or pages first, and name it: a new band must sit beside them. Show the neighbours as ghost sections ("Above: … — unchanged") so it is never judged alone. Read the [design card](../../../../.claude/rules/design.md) first; start close to the current design unless asked to be bold. For a visual brief, `frontend-design` may help with craft, but the card and the visual language win over its defaults.
 2. **Real content.** Copy real data into the file: listings from `@floc/core` (preset trips, prices, stops), tokens through `house.css`. Invent only what the product does not hold yet.
 3. **Feedback round.** The user ranks the options ("A for simple, D I really like, F no"). Keep every variant; add the new ones after them (`G`, `H`, `I`), including any merge asked for ("D with B's bar"). Update `description` to the new count.
 4. **Refine the pick in place.** A change to one variant → a suffixed variant beside it (`G2`), so the original stays to compare. Later rounds edit `G2` itself.

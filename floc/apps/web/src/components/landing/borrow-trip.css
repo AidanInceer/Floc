@@ -123,7 +123,7 @@
     color: var(--ink-3);
     background: var(--sheet-2);
     border: 1px solid transparent;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     transition: border-color 0.18s var(--ease), color 0.18s var(--ease), background-color 0.18s var(--ease), translate 0.3s var(--ease), opacity 0.2s var(--ease);
   }
   /* The lit tile is drawn 5% larger, so its button steps out with the corner. */
@@ -169,7 +169,7 @@
     color: var(--ink);
     background: var(--sheet);
     border: 1px solid var(--rule-2);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     box-shadow: var(--shadow-sm);
     opacity: 0;
     pointer-events: none;
@@ -206,7 +206,7 @@
     white-space: nowrap;
     color: var(--pen);
     background: var(--sheet);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     box-shadow: 0 0 0 1.5px var(--pen);
   }
   .borrow-pin[aria-current="true"] b { color: var(--sheet); background: var(--pen); box-shadow: 0 0 0 2.5px var(--sheet); }
@@ -221,7 +221,7 @@
     color: var(--ink);
     background: var(--sheet);
     border: 1px solid var(--rule-2);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     box-shadow: var(--shadow-sm);
     opacity: 0;
     transition: opacity 0.3s var(--ease);
@@ -283,7 +283,7 @@
     height: 38px;
     color: var(--ink);
     border: 1px solid var(--rule-2);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     transition: border-color 0.18s var(--ease), color 0.18s var(--ease), opacity 0.18s var(--ease);
   }
   .borrow-pager button:hover:not(:disabled) { color: var(--pen); border-color: var(--pen); }
@@ -307,7 +307,7 @@
     font-size: 13.5px;
     text-align: left;
     border: 1px solid transparent;
-    border-radius: 12px;
+    border-radius: var(--radius-md);
     transition: background-color 0.18s var(--ease), border-color 0.18s var(--ease);
   }
   .borrow-steps button:hover { border-color: var(--pastel-blue-edge); }
@@ -321,7 +321,7 @@
     font-weight: 500;
     color: var(--pen);
     background: var(--sheet);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     box-shadow: inset 0 0 0 1.5px var(--pen);
   }
   .borrow-steps button[aria-current="true"] b { color: var(--sheet); background: var(--pen); }

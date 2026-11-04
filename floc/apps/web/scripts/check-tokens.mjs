@@ -14,7 +14,7 @@
  */
 import { rootBlock, readCss, LIGHT, DARK } from "./tokens.mjs";
 
-import { lightTokens, darkTokens } from "@floc/core/design/tokens";
+import { lightTokens, darkTokens, radii } from "@floc/core/design/tokens";
 
 const css = readCss();
 const failures = [];
@@ -76,8 +76,19 @@ function compare(theme, selector, source) {
   }
 }
 
+function compareRadii() {
+  const theme = css.slice(css.indexOf("@theme inline {"));
+  const expected = { sm: radii.sm, md: radii.md, lg: radii.md, xl: radii.md, "2xl": radii.md, pill: radii.pill };
+  for (const [name, px] of Object.entries(expected)) {
+    const m = theme.match(new RegExp(`--radius-${name}:\\s*([^;]+);`));
+    if (!m) failures.push(`@theme: --radius-${name} is missing; @floc/core radii says ${px}px`);
+    else if (m[1].trim() !== `${px}px`) failures.push(`@theme: --radius-${name} is "${m[1].trim()}" but @floc/core radii says ${px}px`);
+  }
+}
+
 compare("light", LIGHT, lightTokens);
 compare("dark", DARK, darkTokens);
+compareRadii();
 
 if (failures.length) {
   console.error("Token drift between globals.css and @floc/core:");

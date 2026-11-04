@@ -2,41 +2,33 @@
 
 Floc is group trip planning, simplified — the travel agent partner for a group: where, when, in what order, and who owes who. Pre-MVP. One pnpm + Turborepo monorepo, one product — do not add another unasked. Work in narrow slices, one ticket at a time. Confirm scope before a big build. Known pitfalls: [`learnings.md`](learnings.md).
 
-**Name.** Write `Floc` in prose and `floc` where a machine reads it (`floc-web`, `floc/`, `FLOC_FILES_DIR`). The name is settled ([ADR-016](docs/foundation/decisions.html#adr-016)). The wordmark is `floc` with a pen-blue dot (**floc.**), drawn by `components/system/wordmark.tsx` and the invite OG card.
+**Name.** Write `Floc` in prose and `floc` where a machine reads it (`floc-web`, `floc/`, `FLOC_FILES_DIR`). Settled in [ADR-016](docs/foundation/decisions.html#adr-016). The wordmark (**floc.**, pen-blue dot) is drawn by `components/system/wordmark.tsx` and the invite OG card.
 
 ## Mission first
 
-Before you plan, grill, write a ticket or build, read [mission and values](docs/foundation/mission.html) — what Floc is for, who it serves and what it values — and the [decision log](docs/foundation/decisions.html). Every choice must fit both. Name the value or ADR a recommendation rests on. If they are silent or an option conflicts with them, ask Aidan; do not guess. A new product decision gets an ADR record; a new value or a change to what Floc is for goes on the mission page.
+Before you plan, grill, write a ticket or build, read [mission and values](docs/foundation/mission.html) and the [decision log](docs/foundation/decisions.html). Every choice must fit both; name the value or ADR a recommendation rests on. If they are silent or conflict, ask Aidan; do not guess. A new product decision gets an ADR; a new value or a change to what Floc is for goes on the mission page.
 
 ## Structure
 
-Next.js App Router + Turso (libSQL) + Drizzle + Better Auth. **Feature → folder map: [`floc/FILES.md`](floc/FILES.md)** — look there before you search.
+Next.js App Router + Turso (libSQL) + Drizzle + Better Auth. **Feature → folder map: [`floc/FILES.md`](floc/FILES.md)** — look there before you search. `pnpm deps:check` enforces the seams below.
 
-| Path | Holds |
-|---|---|
-| `floc/apps/web/src/app/` | Routes. Server Components read; Server Actions (`actions.ts` per folder) write. |
-| `floc/apps/web/src/server/` | All SQL. One file per concept — a name that needs "and" is two files. |
-| `.../server/freshness.ts` | Maps a changed fact to the pages it makes stale. The only importer of `next/cache`; everything else calls `refresh`. |
-| `.../server/api-port/` | The web app's `FlocPort`: the same `server/` modules the pages use. |
-| `floc/packages/floc-core/src/` | `@floc/core`: domain rules and words (money, dates, calendar, packing) and the design token values. Pure: no I/O, no imports from an app. |
-| `floc/packages/floc-editor/src/` | `@floc/editor`: the notes page editor ([ADR-014](docs/foundation/decisions.html#adr-014)) — Tiptap schema, commands and React UI. The web renders it; the phone runs it in an Expo DOM component. Takes a Yjs doc and callbacks; no I/O. |
-| `floc/packages/floc-globe/src/` | `@floc/globe`: the paper globe ([ADR-032](docs/foundation/decisions.html#adr-032)) — sphere maths, country outlines, and the profile's `TravelGlobe`. The web renders it; the phone runs it in an Expo DOM component. No app imports. |
-| `floc/packages/floc-api/src/` | `@floc/api`: the tRPC router every non-web client uses. Declares procedures and input rules; reaches data only through `FlocPort`. |
-| `floc/apps/mobile/` | `floc-mobile`: Expo app for iOS and Android. Own UI and version, same [visual language](docs/design/visual-language.html). Shipping: [`SHIPPING.md`](floc/apps/mobile/SHIPPING.md), [`STORE.md`](floc/apps/mobile/STORE.md). |
-| `floc/marketing/` | `floc-marketing`: marketing visuals rendered from the house tokens, moved raw → reviewed → live, posted to Instagram only by `pnpm marketing publish`. Variants are reviewed in the studio on :4200 (`/floc:marketing`). Not shipped. [README](floc/marketing/README.md). |
-| `floc/apps/web/src/lib/` | Browser- or Next-bound helpers only (env, theme, tabs, map, auth client). |
-| `floc/apps/web/src/components/` | Take data, never fetch. `system/ui.tsx` and `system/client-ui.tsx` are the house design system — use them first. |
-| `floc/apps/web/src/db/schema.ts` | Schema of record. The [ERD](docs/engineering/data-model.html) mirrors it — change both together. |
-| `docs/` | Local HTML site, no build, gitignored. Open `docs/index.html` from disk. One folder per feature under `docs/product/`; layout in [editing these docs](docs/process/editing-docs.html). |
-| `floc/wireframe/` · `scripts/wireframe/` | Mockups (gitignored) and their tracked kit, served as `/_house/` on :4100 by `pnpm wireframe` (`wireframes` in `.claude/launch.json`). How: `/floc:prototype`. |
+- `floc/apps/web/src/app/` — routes. Server Components read; Server Actions (`actions.ts` per folder) write.
+- `.../src/server/` — all SQL, one file per concept. `server/freshness.ts` maps a changed fact to the pages it makes stale and is the only importer of `next/cache`; everything else calls `refresh`. `server/api-port/` is the web app's `FlocPort`.
+- `.../src/db/schema.ts` — schema of record. The [ERD](docs/engineering/data-model.html) mirrors it; change both together.
+- `.../src/components/` take data, never fetch. `.../src/lib/` holds browser- or Next-bound helpers only.
+- `floc/packages/` — `floc-core` (domain rules, words, token values; pure, no I/O, no app imports), `floc-editor` (notes editor, [ADR-014](docs/foundation/decisions.html#adr-014)), `floc-globe` (paper globe, [ADR-032](docs/foundation/decisions.html#adr-032)), `floc-api` (tRPC router for non-web clients, data only through `FlocPort`). The phone runs editor and globe in an Expo DOM component.
+- `floc/apps/mobile/` — Expo app. `floc/marketing/` — marketing visuals, never shipped, posted only by `pnpm marketing publish` ([README](floc/marketing/README.md)).
+- `docs/` — local HTML site, no build, gitignored. Open `docs/index.html` from disk; layout in [editing these docs](docs/process/editing-docs.html). `floc/wireframe/` — gitignored mockups on :4100 (`/floc:prototype`).
 
-Docs: [mission and values](docs/foundation/mission.html) · [decision log](docs/foundation/decisions.html) · [approach](docs/design/index.html) · [visual language](docs/design/visual-language.html) · [architecture](docs/engineering/index.html) · [ERD](docs/engineering/data-model.html).
+**Area rules** in [`.claude/rules/`](.claude/rules/) load when Claude touches a matching file; other agents read the one for the folder they edit: [mobile](.claude/rules/mobile.md) · [web e2e](.claude/rules/e2e.md) · [API](.claude/rules/api.md) · [design](.claude/rules/design.md).
+
+Docs: [approach](docs/design/index.html) · [visual language](docs/design/visual-language.html) · [architecture](docs/engineering/index.html).
 
 ## Environment
 
 Windows 11, **Windows PowerShell 5.1** — not pwsh 7, not bash. No `&&`: chain with `;`. Use `Get-ChildItem`, `Remove-Item -Recurse -Force`, `New-Item`, `Get-Content` — never `ls`, `rm -rf`, `touch`, `cat`. Give the user PowerShell, never Unix commands.
 
-No `python` and no `sqlite3` on this machine: script in `node`, read the database with `db:query`. pnpm hoists packages to the root `node_modules`; an app folder has no `node_modules/.bin` of its own.
+No `python` and no `sqlite3`: script in `node`, read the database with `db:query`. pnpm hoists packages to the root `node_modules`; an app folder has no `node_modules/.bin`.
 
 ## Commands
 
@@ -58,13 +50,10 @@ pnpm --filter floc-mobile maestro # Maestro flows on the emulator, against the d
 
 - **`verify` builds into `.next-verify`**, so dev servers can stay up. A bare `build` or `fitness` writes `.next`, which `next dev` owns — stop the servers first (check with `preview_list`, not `ps`). A poisoned `.next` (or OneDrive `EINVAL: readlink`): `pnpm --filter floc-web run clean:next` — the one delete an agent may run.
 - **`verify` mirrors CI** ([`verify.sh`](scripts/verify.sh)). Change a check job in `.github/workflows/` → change `verify.sh` in the same commit.
-- **End to end.** Playwright ([`e2e/`](floc/apps/web/e2e/)) needs a build (`verify` makes one) and seeds its own database, never `local.db`. Each person signs in once, in `auth.setup.ts` — production allows 3 sign-ins per 10 s. Maestro ([`.maestro/`](floc/apps/mobile/.maestro/)) runs against `/floc:run` with scenario A seeded. There is one flow, `app.yaml`: wipe once, sign in once through the dev sign-in button, then walk the app. Extend it; do not add flows that relaunch. Target a control by `testID` (`id:` in the flow). Maestro is not in CI or `verify` — run it by hand.
-- **Git hooks.** `pre-commit` lints staged files and scans for secrets. `commit-msg` checks the subject. There is no pre-push hook: every push goes through `/floc:push`, which runs `verify`. `pnpm hooks:install` re-arms the hooks.
-- **New API procedure** → a line in [`parity.json`](scripts/parity/parity.json): does the phone have it, and if not, why. `pnpm parity --fix` writes the mechanical half; you write the `why`. Rules: [`parity.ts`](floc/packages/floc-api/src/parity.ts).
+- **Git hooks:** `pre-commit` lints staged files and scans for secrets; `commit-msg` checks the subject. No pre-push hook — every push goes through `/floc:push`, which runs `verify`. `pnpm hooks:install` re-arms them.
 - **Data model change → ask Aidan first, every time.** A table or column added, removed, renamed or retyped, or a constraint or index changed: stop, say what changes and why, and wait for a yes before you touch `schema.ts`. Name it again in the push and release reports.
-- **Schema change** → `/floc:schema-change`. It is not done until `local.db` has the migration; `db:generate` writes it but applies nothing, and dev fails on `no such column`.
-- **Mobile dependency** → `/floc:add-mobile-dep`. Always `npx expo install`, never `pnpm add`: Expo pins a version per SDK, and a mismatch fails at runtime as a red screen, not at install.
-- **New route on the phone** → typecheck *after* Metro starts. expo-router rewrites `.expo/types/router.d.ts` at start; before that, typecheck passes against the old routes.
+- **Schema change** → `/floc:schema-change`. Not done until `local.db` has the migration; `db:generate` writes it but applies nothing, and dev fails on `no such column`.
+- **Mobile dependency** → `/floc:add-mobile-dep`. Always `npx expo install`, never `pnpm add`.
 
 ## Invariants
 
@@ -88,66 +77,42 @@ Never break these. Code comments cite them by number (`rule 5`), so keep the num
 - **Nothing in `app/` imports `@/db`.** SQL lives only in `server/`.
 - Validate at the door: dates through `@floc/core/dates/dates`, free text through `@floc/core/text/text`. A rejection is a form error, never a throw.
 - British English, sentence case, real content — never lorem ipsum.
-- **Comments: none by default.** A good name beats a comment. Write one only for a *why* the code cannot show: a non-obvious constraint, an upstream bug, a choice that looks wrong until explained, a gotcha that has bitten. Never restate *what*, never head a function with a summary of itself, never justify code you could delete. Add a ticket number when it carries the why (`#212`). One line beats a block. [`check-comments`](scripts/check-comments.mjs) flags new noise on edit and at commit (`pnpm comments`); a longer comment passes with a ticket number or a leading `Why:`.
+- **Comments: none by default.** Write one only for a *why* the code cannot show — a non-obvious constraint, an upstream bug, a choice that looks wrong until explained. Never restate *what*. Add a ticket number when it carries the why (`#212`). [`check-comments`](scripts/check-comments.mjs) flags noise on edit and at commit; a longer comment passes with a ticket number or a leading `Why:`.
 
 ## UI and UX
 
-**Web and app share one visual language**, set by [approach](docs/design/index.html) and [visual language](docs/design/visual-language.html). Read both before UI work. This section lists only what code enforces; the docs own the look.
+**Before any UI work — web, phone, mockup or marketing — read the [design card](.claude/rules/design.md).** It is the checklist a screen must pass; Claude loads it automatically when it touches UI files or mockups. The reasons live in [approach](docs/design/index.html) and [visual language](docs/design/visual-language.html); the visual language wins.
 
-- **Colours from tokens only** — no hex literals. Token values live in `@floc/core/design/tokens`, not `globals.css`; `pnpm fitness` fails if the two disagree. Status always has a word, never colour or an icon alone.
-- **Light and dark use the same token names.** Dark restates values in `:root[data-theme="dark"]`. **No `dark:` variant** — needing one means the token is wrong. The choice lives in `localStorage`, never in a column.
-- **No emoji.** Icons are line art: 14×14 `viewBox`, drawn at ~13px, `fill="none"`, `strokeWidth` 1.15–1.25, `stroke="currentColor"`. See [iconography](docs/design/visual-language.html#iconography). On the web every exported icon lives in `components/system/icons/`, one file per area — look there first; `check:icons` fails one anywhere else.
-- **If the drawing is clear, say nothing.** Text carries only what the layout cannot. No heading above a heading, no caption that explains the design, no words that repeat what a control shows. Exceptions: what is *missing*, and status.
-- **No placeholder text in fields.** An input starts empty: no example ("Lisbon, a week in September…"), no instruction ("Type your idea"), nothing pre-filled the person did not choose. A visible label, or an `aria-label` when the button beside it says what it is for (*Add*), names the field. See [behaviour rules](docs/design/visual-language.html#behaviour).
-- **Outside UI libraries** only where building it ourselves would take months, and only if the library accepts our tokens, type and no-emoji rules. Notes runs on the headless Tiptap core under our own UI, in `@floc/editor` ([ADR-014](docs/foundation/decisions.html#adr-014)).
-
-Differences between the surfaces are written once, in the docs — do not repeat them here:
-
-| Surface | House components | Surface rules |
-|---|---|---|
-| Web | `floc/apps/web/src/components/system/ui.tsx` · `client-ui.tsx` | The baseline both docs describe. |
-| App | `floc/apps/mobile/src/components/system/ui.tsx` · `glyphs.tsx` | [On a phone, cut it back](docs/design/visual-language.html#on-a-phone); [drawn tighter](docs/design/index.html#the-app). |
-
-Use a house component before writing markup. If neither surface has one, the [component inventory](docs/design/visual-language.html#components) says whether it should exist. A rule that fits both surfaces goes in the shared docs, not one app.
-
-**Review the whole journey.** Before calling UI work done, review complete tasks on web and app with realistic content, first use and failure recovery. Report any surface or state not verified. The [journey review](docs/design/index.html#journey-review) holds the checklist.
+- **Tokens only.** Values live in `@floc/core/design/tokens` — no hex literal, no bare radius. Light and dark share token names; no `dark:` variant. The theme choice lives in `localStorage`, never in a column.
+- **`pnpm design:check`** (part of `fitness`) blocks a new bare radius, depth shadow, grey hover, approximate money, placeholder or emoji. Fix the finding; never raise `scripts/design/baseline.json`.
+- **Outside UI libraries** only where building it ourselves would take months, and only if the library accepts our tokens, type and no-emoji rules.
+- **Before calling UI work done,** walk the whole task ([journey review](docs/design/index.html#journey-review)) and ask the `floc:design-review` agent for a fresh look. Report any surface or state not verified.
 
 ## Code standards
 
 - **Single responsibility.** A name that needs "and" is two files.
-- **Group by feature, nest freely.** A folder past 20 flat `.ts`/`.tsx` files splits into feature subfolders (`components/trip/`, `server/money/`), which may nest further (`trip/card/`). Prefer many small files. `pnpm fitness` enforces the cap.
-- **Dependency inversion at seams.** `@floc/core` stays pure and app-free; `components/` take data and never fetch. Type-only imports across a seam are fine. `pnpm deps:check` enforces this.
-- **YAGNI, KISS, SOLID.** Build like a principal engineer and designer: fast, scalable, modular, maintainable.
-- **Composition over configuration.** Eight optional props for four cases → several components.
-- **Test first.** Red, green, refactor: write the failing test, watch it fail for the right reason, write the least code that passes, then tidy. A bug fix starts with a test that reproduces it. One behaviour per test, through the public interface. Screens and components that need a renderer are exempt; the logic behind them is not — move it somewhere testable. `/floc:tdd` drives the loop.
-- **Coverage floor 80%** (lines, functions, branches, statements) on every package; `vitest --coverage` fails below it. Never lower a threshold — add the test.
-
-| Rule | Limit |
-|---|---|
-| File length | 600 lines (blank and comment lines excluded) |
-| Function length | 120 lines (a page's JSX return is exempt) |
-| Cyclomatic complexity | 15 per function |
-| Component props | about 6 — past that, split |
-
-ESLint enforces all but props. Files over a limit before it existed sit on a dated allowlist in `eslint.config.mjs`. Split the file rather than add to the list.
-
-**Performance:** no client fetch where a server read works; no heavy import behind a rare branch; cap or page every unbounded list (`LIMITS` in `server/limits.ts`). `pnpm --filter floc-web check:bundle` keeps shared First Load JS under budget.
+- **Group by feature, nest freely.** A folder past 20 flat `.ts`/`.tsx` files splits into feature subfolders, which may nest further. Prefer many small files.
+- **Dependency inversion at seams.** `@floc/core` stays pure and app-free; `components/` never fetch. Type-only imports across a seam are fine.
+- **YAGNI, KISS, SOLID. Composition over configuration:** eight optional props for four cases → several components. About 6 props per component — past that, split.
+- **Test first** (`/floc:tdd`). Red, green, refactor. A bug fix starts with a test that reproduces it. One behaviour per test, through the public interface. Components that need a renderer are exempt; the logic behind them is not — move it somewhere testable.
+- **Coverage floor 80%** on every package. Never lower a threshold — add the test.
+- **Limits:** file 600 lines, function 120 (a page's JSX return is exempt), complexity 15. ESLint enforces them. Over a limit, split the file; never add to the dated allowlist in `eslint.config.mjs`.
+- **Performance:** no client fetch where a server read works; no heavy import behind a rare branch; cap or page every unbounded list (`LIMITS` in `server/limits.ts`). `check:bundle` keeps shared First Load JS under budget.
 
 ## Out of scope (v1)
 
 Payments between members, POI data and reviews, flight *booking* (deep links only), i18n, advertising, marketing email.
 
-**Analytics and cookie consent land before go-live** ([#368](https://github.com/AidanInceer/Floc/issues/368)). Until then, strictly necessary cookies only. Rules: three categories — strictly necessary, functional, analytics (no ads); nothing non-essential runs or stores before consent; no cookie or stored choice lasts past 12 months. A new or changed cookie or browser-stored value → update the list on `/privacy` in the same commit.
+**Analytics and cookie consent land before go-live** ([#368](https://github.com/AidanInceer/Floc/issues/368)). Until then, strictly necessary cookies only. Three categories — strictly necessary, functional, analytics (no ads); nothing non-essential runs or stores before consent; no cookie or stored choice lasts past 12 months. A new or changed cookie or browser-stored value → update the list on `/privacy` in the same commit.
 
 ## Workflow
 
-- **Parallel sessions.** A second session while one is running starts in its own worktree. Its throwaway branch is local only; `/floc:push` lands the commit on `develop` (`HEAD:develop`). A worktree Claude Code makes starts from `origin/main` with no packages: before any work, `git reset --hard origin/develop`, then `pnpm install`. It has no doc pages (gitignored) — edit docs in the main checkout. In a shared checkout, `push:land --only <paths>` stages one piece of work.
 - **Branches.** Two long-lived branches, no feature branches. Work lands on `develop` through `/floc:push` and goes to `main` in batches through `/floc:release`. A hotfix commits straight to `main`; a feature never does.
-- **Commits, labels and the Priority stack** are owned by the skills: `/floc:push` (subject, version bump, `Closes`, `on-develop`), `/floc:prioritise-tickets` (labels, phases, stack), `/floc:to-tickets` (blocked-by edges). Never borrow an issue number.
-- **A plain commit** (asked to commit, not to push): subject `<version> #<issue>: <type>: <description>`, or `#no-ticket` with no `Closes`. Bump `version` in `floc/apps/web/package.json` first: `feat` minor, anything else patch. Types and the full rules: `/floc:push` step 2; the `commit-msg` hook runs `scripts/check-commit-msg.mjs`.
-- **Docs are HTML, not markdown** — edit the page.
-- **Docs move with the code, in the same commit.** Before `/floc:push`, ask which page the diff makes untrue. `/floc:sync-docs` maps each kind of change to its page and runs `pnpm docs:check`.
-- **Deploy is Railway** via `railway.json` (runs the migration, starts `floc-web`). A push to `main` deploys. Env vars live in Railway's Variables tab, never in the repo.
+- **Parallel sessions.** A second session starts in its own worktree; `/floc:push` lands it on `develop` (`HEAD:develop`). A new worktree starts from `origin/main` with no packages: first `git reset --hard origin/develop`, then `pnpm install`. It has no doc pages — edit docs in the main checkout. In a shared checkout, `push:land --only <paths>` stages one piece of work.
+- **Commits, labels and the Priority stack** are owned by `/floc:push`, `/floc:prioritise-tickets` and `/floc:to-tickets`. Never borrow an issue number.
+- **A plain commit** (asked to commit, not to push): subject `<version> #<issue>: <type>: <description>`, or `#no-ticket` with no `Closes`. Bump `version` in `floc/apps/web/package.json` first: `feat` minor, anything else patch. Full rules: `/floc:push` step 2.
+- **Docs are HTML, not markdown**, and move with the code in the same commit. Before `/floc:push`, ask which page the diff makes untrue; `/floc:sync-docs` maps changes to pages and runs `pnpm docs:check`.
+- **Deploy is Railway** via `railway.json`. A push to `main` deploys. Env vars live in Railway's Variables tab, never in the repo.
 
 ## Real users — hard stop
 
@@ -159,35 +124,14 @@ No secrets, keys or tokens in the repo. Never log PII or tokens. Flag anything t
 
 ## Agent skills
 
-Issues and PRDs are GitHub issues, driven with `gh`. The skills are the `floc` plugin in [`plugins/floc/`](plugins/floc/), enabled by `.claude/settings.json`. **Claude reads a cached copy.** After editing a skill: bump `version` in `plugins/floc/.claude-plugin/plugin.json`, run `claude plugin update floc@floc --scope project`, then restart the session.
+Issues and PRDs are GitHub issues, driven with `gh`. Skills are the `floc` plugin in [`plugins/floc/`](plugins/floc/); each skill's description says when to use it. **Claude reads a cached copy:** after editing a skill, bump `version` in `plugins/floc/.claude-plugin/plugin.json`, run `claude plugin update floc@floc --scope project`, then restart the session.
 
-| Skill | Does |
-|---|---|
-| `/floc:run` | Starts web, Metro, the emulator and the app, then proves each one answers. |
-| `/floc:implement-feature` | Builds one feature test-first on web and app; checks parity, UI and docs. |
-| `/floc:schema-change` | Changes `schema.ts`, writes the migration, applies it to `local.db`, updates the ERD. |
-| `/floc:add-mobile-dep` | Adds a package to the Expo app with the pinned version, rebuilds if native. |
-| `/floc:sync-docs` | Finds the doc pages a diff makes untrue, updates them, runs `docs:check`. |
-| `/floc:review-docs` | Acts on the marks left in the local docs editor. |
-| `/floc:push` | Local work → one verified commit on `develop`, ticket tagged, CI watched. |
-| `/floc:release` | Pushes any local work through `/floc:push` first, then `develop` → `main` PR; merges on green checks (asks on a schema migration), then checks tickets, sync and deploy. |
-| `/floc:grill` | Grills you 2–4 questions a round, writes the decisions into the ticket, reports the shared understanding, then hands over to `implement-feature`. Never splits unless asked. |
-| `/floc:tdd` | Red → green loop: what a good test is, where it goes, the anti-patterns. |
-| `/floc:prototype` | Throwaway code that answers one question, in gitignored `floc/wireframe/`, served on :4100 by `pnpm wireframe`. Never in the app, never on a branch, never committed. |
-| `/floc:feedback` | Turns what you noticed in a build into tickets, names why it drifted, and fixes the mission page or the decision log. |
-| `/floc:audit` | Walks the running website at 1280 and 375 and reports what is untrue, broken, off-rule or missing against the mission. Files nothing unless asked. |
-| `/floc:improve-codebase-architecture` | Finds where one idea is written in many files, writes a plain-English review to `docs/private/`, then grills the pick. |
-| `/floc:retro` | Reviews a coding session and suggests changes to the agent's setup (checks, rules, pointers, tools), most severe first. Edits nothing until asked. |
-| `/floc:to-tickets` | Slices a plan into tracer-bullet issues with blocking edges. |
-| `/floc:prioritise-tickets` | Puts unprioritised open issues into the phased `Priority` stack, fixes type and phase labels. |
-| `/floc:pickup-ticket` | Takes the top startable ticket in the current phase and works it to a pushed `develop` commit. |
-| `/floc:seed-dev-db` | Loads dev scenarios A and B next to existing data. |
-| `/floc:marketing` | Makes a marketing post's variants, acts on the timed notes left in the studio on :4200, renders the pick into the pipeline. Never publishes unasked. |
-| `/floc:rotate-secrets` | Rotates every production credential in Railway in one run, from a gitignored values file. |
-| `/floc:reset-dev-db` | Backs up, wipes `local.db` and uploads, reseeds with fixed ids, signs back in. |
-
-Agent `floc:ci-babysit` watches CI for one commit, and on red fixes it on `develop`, pushes and watches again (three tries, never weakening a check). `/floc:push` and `/floc:release` start it in the background, in its own worktree.
+- **Loop:** idea → `/floc:grill` → `/floc:to-tickets` → `/floc:prioritise-tickets` → `/floc:pickup-ticket` → `/floc:push` → `/floc:release` → `/floc:feedback`.
+- **Build:** `/floc:implement-feature`, `/floc:tdd`.
+- **Dev loop and data:** `/floc:run`, `/floc:seed-dev-db`, `/floc:reset-dev-db`, `/floc:schema-change`, `/floc:add-mobile-dep`.
+- **Docs and design:** `/floc:sync-docs`, `/floc:review-docs`, `/floc:prototype`, `/floc:audit`, `/floc:marketing` (never publishes unasked).
+- **Other:** `/floc:improve-codebase-architecture`, `/floc:rotate-secrets`, `/floc:retro` (user-run only; edits nothing until asked).
+- Agent `floc:ci-babysit` watches CI for one commit and fixes red on `develop` (three tries, never weakening a check). `/floc:push` and `/floc:release` start it in the background, in its own worktree.
+- Agent `floc:design-review` gives a UI change a fresh-eyes check against the design card and screenshots; it edits nothing. `/floc:implement-feature` and `/floc:push` start it on any UI diff.
 
 **Phases.** The `Priority` stack runs in three phases, one `phase:N` label per ticket: 1 product complete, 2 go-live readiness, 3 after go-live. A phase finishes before the next starts. `grilling` is intentional — the alignment step with Aidan before a build.
-
-**Loop:** idea → `/floc:grill` → `/floc:to-tickets` → `/floc:prioritise-tickets` → `/floc:pickup-ticket` → `/floc:push` → `/floc:release` → `/floc:feedback`.

@@ -45,7 +45,7 @@ export function ExploreMap({
         height: HEIGHT,
         borderColor: c.rule,
         borderWidth: StyleSheet.hairlineWidth,
-        borderRadius: radius.md,
+        borderRadius: radius.sm,
         overflow: "hidden",
       }}
     >

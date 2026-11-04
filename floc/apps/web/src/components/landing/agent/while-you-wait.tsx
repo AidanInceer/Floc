@@ -32,7 +32,7 @@ export function WhileYouWait({ origin }: { origin: string }) {
           Plan it now with the assistant you already use.
         </h3>
       </div>
-      <div className="mt-4 rounded-2xl border border-rule bg-sheet px-4 pb-3 pt-3.5 transition-colors focus-within:border-pen">
+      <div className="mt-4 rounded-md border border-rule bg-sheet px-4 pb-3 pt-3.5 transition-colors focus-within:border-pen">
         <label htmlFor="agent-brief" className="block font-mono text-[11.5px] tracking-[0.02em] text-ink-faint">
           Plan a trip with Floc <span className="text-pen">({new URL(origin).host})</span> based on the following guidance:
         </label>

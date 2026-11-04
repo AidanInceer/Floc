@@ -58,6 +58,15 @@ function htmlFiles(dir) {
 
 const EXTERNAL = /^(https?:|mailto:|data:|javascript:|#)/;
 
+const AGENT_FILES = [
+  "AGENTS.md",
+  "learnings.md",
+  ".claude/rules/mobile.md",
+  ".claude/rules/e2e.md",
+  ".claude/rules/api.md",
+  ".claude/rules/design.md",
+];
+
 function checkTarget(from, href, label) {
   if (!href || EXTERNAL.test(href)) return;
   const target = resolve(dirname(from), decodeURI(href.split(/[?#]/)[0]));
@@ -82,9 +91,11 @@ function checkLinks() {
     if (!existsSync(join(DOCS, m[1]))) failures.push(`nav.js: TREE points at missing "${m[1]}"`);
   }
 
-  const claude = join(ROOT, "AGENTS.md");
-  for (const m of readFileSync(claude, "utf8").matchAll(/\]\(([^)\s]+)\)/g)) {
-    checkTarget(claude, m[1], "AGENTS.md");
+  for (const file of AGENT_FILES) {
+    const path = join(ROOT, file);
+    for (const m of readFileSync(path, "utf8").matchAll(/\]\(([^)\s]+)\)/g)) {
+      checkTarget(path, m[1], file);
+    }
   }
   return pages.length;
 }

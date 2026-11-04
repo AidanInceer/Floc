@@ -22,7 +22,7 @@
 /* Lists: the marker sits in the indent, drawn from the line's decoration. */
 .fe-page .bullet, .fe-page .numbered, .fe-page .check { padding-left: calc(var(--indent, 0) * 26px + 26px); }
 .fe-page .numbered::before { content: attr(data-marker); position: absolute; left: calc(var(--indent, 0) * 26px); width: 20px; text-align: right; color: var(--ink-3); font-family: var(--type); font-size: var(--text-sm); line-height: 1.95; }
-.fe-page .bullet::before { content: ""; position: absolute; left: calc(var(--indent, 0) * 26px + 9px); top: calc(0.8em + 1px); width: 5px; height: 5px; border-radius: 999px; background: var(--ink-2); }
+.fe-page .bullet::before { content: ""; position: absolute; left: calc(var(--indent, 0) * 26px + 9px); top: calc(0.8em + 1px); width: 5px; height: 5px; border-radius: var(--radius-pill); background: var(--ink-2); }
 .fe-page .bullet[data-shape="ring"]::before { background: transparent; box-shadow: inset 0 0 0 1.2px var(--ink-2); }
 .fe-page .bullet[data-shape="square"]::before { border-radius: 1px; }
 .fe-page .box {
@@ -61,7 +61,7 @@
 /* Trip links. */
 .fe-page .trip-link {
   display: inline-flex; align-items: center; gap: 4px; vertical-align: baseline; padding: 0 7px; margin: 0 1px;
-  border: 1px solid var(--pastel-blue-edge); border-radius: 999px; background: var(--pastel-blue); color: var(--pastel-blue-ink);
+  border: 1px solid var(--pastel-blue-edge); border-radius: var(--radius-pill); background: var(--pastel-blue); color: var(--pastel-blue-ink);
   font-size: var(--text-sm); line-height: 1.55; cursor: pointer; user-select: none; white-space: nowrap;
 }
 .fe-page .trip-link:hover { border-color: var(--pen); }
@@ -113,7 +113,7 @@
 .remote-caret-name, .fe-face { background: var(--who); color: var(--who-ink); }
 
 /* Faces. */
-.fe-face { display: inline-flex; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 999px; font-family: var(--type); letter-spacing: 0.02em; }
+.fe-face { display: inline-flex; flex-shrink: 0; align-items: center; justify-content: center; border-radius: var(--radius-pill); font-family: var(--type); letter-spacing: 0.02em; }
 
 /* Buttons the floating things share. */
 .fe-tool, .fe-quiet, .fe-grip, .fe-add, .fe-key, .fe-swatch, .fe-badge, .fe-menu button, .fe-slash button, .fe-page-icon, .fe-icon-choice { font: inherit; border: 0; background: none; cursor: pointer; }
@@ -124,7 +124,7 @@
 .fe-quiet:hover { color: var(--ink); background: var(--sheet-2); }
 
 .fe-swatches { display: inline-flex; align-items: center; gap: 2px; }
-.fe-swatch { width: 18px; height: 18px; padding: 0; margin: 0 2px; border-radius: 999px; border: 1px solid var(--rule-2); }
+.fe-swatch { width: 18px; height: 18px; padding: 0; margin: 0 2px; border-radius: var(--radius-pill); border: 1px solid var(--rule-2); }
 .fe-swatch:hover { outline: 2px solid var(--pen); outline-offset: 1px; }
 .fe-swatch[data-tone="butter"] { background: var(--tone-yellow); }
 .fe-swatch[data-tone="blush"] { background: var(--tone-red); }
@@ -135,7 +135,7 @@
 /* Menus. */
 .fe-menu {
   position: fixed; z-index: 60; min-width: 190px; padding: 4px;
-  border: 1px solid var(--rule-2); border-radius: 8px; background: var(--sheet); box-shadow: var(--shadow-lift);
+  border: 1px solid var(--rule-2); border-radius: var(--radius-sm); background: var(--sheet); box-shadow: var(--shadow-lift);
 }
 .fe-menu button { display: block; width: 100%; text-align: left; padding: 6px 10px; border-radius: 4px; font-size: var(--text-sm); color: var(--ink-2); }
 .fe-menu button:hover { background: var(--sheet-2); color: var(--ink); }
@@ -157,7 +157,7 @@
 /* The / menu. */
 .fe-slash {
   position: fixed; z-index: 70; width: 272px; max-height: 320px; overflow-y: auto; padding: 4px;
-  border: 1px solid var(--rule-2); border-radius: 8px; background: var(--sheet); box-shadow: var(--shadow-lift);
+  border: 1px solid var(--rule-2); border-radius: var(--radius-sm); background: var(--sheet); box-shadow: var(--shadow-lift);
 }
 .fe-slash .fe-group { padding: 6px 8px 2px; margin: 0; }
 .fe-slash button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 6px 8px; border-radius: 5px; font-size: var(--text-sm); color: var(--ink-2); text-align: left; }
@@ -172,7 +172,7 @@
 /* The bar over selected words, and over selected cells. */
 .fe-bar {
   position: fixed; z-index: 70; display: flex; align-items: center; gap: 2px; padding: 4px 6px; transform: translateX(-50%);
-  border: 1px solid var(--rule-2); border-radius: 999px; background: var(--sheet); box-shadow: var(--shadow-lift);
+  border: 1px solid var(--rule-2); border-radius: var(--radius-pill); background: var(--sheet); box-shadow: var(--shadow-lift);
 }
 .fe-sep { width: 1px; height: 16px; margin: 0 4px; background: var(--rule); }
 .fe-bar .fe-tool.is-comment { gap: 6px; padding: 0 9px; font-size: var(--text-sm); color: var(--ink); }
@@ -205,14 +205,14 @@
 .fe-badges { position: absolute; inset: 0 0 auto auto; width: 0; height: 0; }
 .fe-badge {
   position: absolute; right: -64px; display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 9px;
-  border: 1px solid var(--rule-2); border-radius: 999px; background: var(--sheet); color: var(--ink-2);
+  border: 1px solid var(--rule-2); border-radius: var(--radius-pill); background: var(--sheet); color: var(--ink-2);
   font-family: var(--type); font-size: var(--text-xs); line-height: 1;
 }
 .fe-badge svg { display: block; }
 .fe-n { font-weight: 400; text-box: trim-both cap alphabetic; }
 .fe-badge:hover, .fe-badge.is-open { border-color: var(--pen); color: var(--ink); }
 .fe-sheet.is-touch .fe-badge { right: -4px; }
-.fe-thread { position: fixed; z-index: 70; width: 340px; max-width: calc(100vw - 24px); border: 1px solid var(--rule-2); border-radius: 12px; overflow: hidden; background: var(--sheet); box-shadow: var(--shadow-lift); }
+.fe-thread { position: fixed; z-index: 70; width: 340px; max-width: calc(100vw - 24px); border: 1px solid var(--rule-2); border-radius: var(--radius-md); overflow: hidden; background: var(--sheet); box-shadow: var(--shadow-lift); }
 .fe-thread-head { display: flex; align-items: center; justify-content: flex-end; gap: 4px; padding: 6px 8px; border-bottom: 1px solid var(--rule); }
 .fe-thread ul { list-style: none; margin: 0; padding: 12px; display: flex; flex-direction: column; gap: 12px; max-height: 260px; overflow-y: auto; }
 .fe-thread li { display: flex; gap: 8px; }
@@ -226,7 +226,7 @@
 
 /* The top of a page. */
 .fe-top { margin-bottom: 8px; }
-.fe-page-icon { display: inline-flex; margin: 0 0 8px -6px; padding: 6px; border-radius: 8px; color: var(--ink-2); }
+.fe-page-icon { display: inline-flex; margin: 0 0 8px -6px; padding: 6px; border-radius: var(--radius-sm); color: var(--ink-2); }
 .fe-page-icon:hover { background: var(--sheet-2); color: var(--ink); }
 .fe-add-icon { margin-bottom: 6px; opacity: 0; transition: opacity 0.12s var(--ease); }
 .fe-top:hover .fe-add-icon, .fe-add-icon:focus-visible, .fe-top.is-touch .fe-add-icon { opacity: 1; }
@@ -241,10 +241,10 @@
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 80; display: flex; gap: 2px; overflow-x: auto; padding: 6px 8px;
   border-top: 1px solid var(--rule); background: var(--sheet);
 }
-.fe-key { flex: 0 0 auto; min-width: 40px; height: 36px; padding: 0 8px; border-radius: 8px; color: var(--ink-2); font-family: var(--type); font-size: var(--text-sm); display: inline-flex; align-items: center; justify-content: center; }
+.fe-key { flex: 0 0 auto; min-width: 40px; height: 36px; padding: 0 8px; border-radius: var(--radius-sm); color: var(--ink-2); font-family: var(--type); font-size: var(--text-sm); display: inline-flex; align-items: center; justify-content: center; }
 .fe-key[aria-pressed="true"] { background: var(--pen-2); color: var(--pen-deep); }
 
 .fe-toast {
   position: fixed; z-index: 80; left: 50%; bottom: 72px; transform: translateX(-50%); margin: 0; padding: 8px 16px;
-  border: 1px solid var(--rule-2); border-radius: 999px; background: var(--sheet); box-shadow: var(--shadow-lift); font-size: var(--text-sm); color: var(--ink-2);
+  border: 1px solid var(--rule-2); border-radius: var(--radius-pill); background: var(--sheet); box-shadow: var(--shadow-lift); font-size: var(--text-sm); color: var(--ink-2);
 }

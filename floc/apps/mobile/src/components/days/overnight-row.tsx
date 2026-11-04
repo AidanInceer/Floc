@@ -38,7 +38,7 @@ export function OvernightRow({
         gap: space.md,
         paddingHorizontal: space.md,
         paddingVertical: space.sm,
-        borderRadius: radius.md,
+        borderRadius: radius.sm,
         borderWidth: StyleSheet.hairlineWidth,
         borderColor: set ? c["pastel-green-edge"] : c.rule,
         backgroundColor: set ? c["pastel-green"] : "transparent",

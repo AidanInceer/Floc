@@ -55,7 +55,7 @@ export function OverviewMap({
 
 function Unpinned({ names }: { names: string[] }) {
   return (
-    <p className="rounded-md bg-sheet px-3 py-1.5 text-xs text-ink-soft shadow-sm ring-1 ring-rule">
+    <p className="rounded-md bg-sheet px-3 py-1.5 text-xs text-ink-soft shadow-card ring-1 ring-rule">
       Not on the map, no coordinates: {names.join(", ")}.
     </p>
   );

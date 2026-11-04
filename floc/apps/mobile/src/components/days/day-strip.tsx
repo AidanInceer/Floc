@@ -56,7 +56,7 @@ export function DayStrip({
               alignItems: "center",
               paddingVertical: space.sm,
               paddingHorizontal: space.md,
-              borderRadius: radius.md,
+              borderRadius: radius.sm,
               backgroundColor: on ? c.pen : c.sheet,
               borderWidth: 1,
               borderColor: isToday && !on ? c.pen : c.rule,

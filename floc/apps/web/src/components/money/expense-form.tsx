@@ -222,7 +222,7 @@ export function ExpenseForm({
                   <div
                     role="dialog"
                     aria-label="Choose a category"
-                    className="absolute left-0 top-full z-30 mt-1 grid w-max grid-cols-4 gap-1.5 rounded-md border border-rule bg-sheet p-2 shadow-lg"
+                    className="absolute left-0 top-full z-30 mt-1 grid w-max grid-cols-4 gap-1.5 rounded-md border border-rule-strong bg-sheet p-2 shadow-raised"
                   >
                     {EXPENSE_CATEGORIES.map((c) => {
                       const on = c === category;

@@ -53,7 +53,7 @@
   align-items: center;
   gap: 7px;
   padding: 6px 12px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--ink);
   color: var(--sheet);
   font-size: 0.8125rem;
@@ -89,7 +89,7 @@
   flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--rule-2);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   background: var(--sheet);
   box-shadow: var(--shadow-sm);
 }

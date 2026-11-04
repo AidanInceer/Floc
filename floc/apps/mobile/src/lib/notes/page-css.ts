@@ -3,7 +3,7 @@
  * variables the website declares; inside the phone there is no globals.css,
  * so the values are written here from @floc/core, flattened for one theme.
  */
-import { fontStacks, resolveTokens, type Theme } from "@floc/core/design/tokens";
+import { fontStacks, radii, resolveTokens, type Theme } from "@floc/core/design/tokens";
 
 // Why these three are rewritten: the web's stacks lead with next/font's family, which a web view never has.
 const FACES = { display: fontStacks.display, sans: fontStacks.sans, type: fontStacks.type };
@@ -32,6 +32,7 @@ export function pageCss(theme: Theme, files: FontFiles = {}): string {
     ...tokens.map(([name, value]) => `--${name}: ${value};`),
     ...Object.entries(FACES).map(([name, names]) => `--${name}: ${stack(names)};`),
     ...Object.entries(TEXT).map(([name, px]) => `--text-${name}: ${px}px;`),
+    ...Object.entries(radii).map(([name, px]) => `--radius-${name}: ${px}px;`),
   ];
   return `${faces(files)}
 :root { color-scheme: ${theme}; ${declarations.join(" ")} }

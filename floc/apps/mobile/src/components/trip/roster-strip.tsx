@@ -47,7 +47,7 @@ export function RosterStrip({
               // The web draws each person on its own `bg-sheet-2` row, so the
               // list reads as people and not as loose text on the card.
               backgroundColor: c["sheet-2"],
-              borderRadius: radius.md,
+              borderRadius: radius.sm,
               paddingHorizontal: space.sm,
               paddingVertical: space.xs,
             }}

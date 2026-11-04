@@ -120,7 +120,7 @@ function Plain({
         backgroundColor: c.sheet,
         borderWidth: StyleSheet.hairlineWidth,
         borderColor: c["rule-2"] ?? c.rule,
-        borderRadius: radius.md,
+        borderRadius: radius.sm,
         paddingVertical: space.sm,
         paddingHorizontal: space.md,
       }}

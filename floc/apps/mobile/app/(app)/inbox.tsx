@@ -85,7 +85,7 @@ export default function Inbox() {
             alignItems: "center",
             gap: space.md,
             padding: space.md,
-            borderRadius: radius.md,
+            borderRadius: radius.sm,
             borderWidth: 1,
             borderColor: c.rule,
             backgroundColor: item.read ? c.sheet : c["pen-2"],

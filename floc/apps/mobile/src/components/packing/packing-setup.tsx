@@ -83,7 +83,7 @@ function HalfButton({
       disabled={off}
       style={({ pressed }) => ({
         flex: 1,
-        borderRadius: radius.md,
+        borderRadius: radius.sm,
         paddingVertical: space.sm,
         alignItems: "center",
         backgroundColor: c["sheet-2"],
