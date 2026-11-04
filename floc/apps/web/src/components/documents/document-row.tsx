@@ -29,7 +29,7 @@ export type DocumentRowData = {
 };
 
 /** Red for a PDF, blue for an image — with the word, never the colour alone. */
-function KindChip({ mimeType }: { mimeType: string }) {
+export function KindChip({ mimeType }: { mimeType: string }) {
   const label = kindLabel(mimeType);
   return (
     <span

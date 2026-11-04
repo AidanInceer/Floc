@@ -1,45 +1,58 @@
 import type { ReactNode } from "react";
 
-import { AvatarRow, cx } from "@/components/system/ui";
+import { SECTION_COLOURS, type SectionColour } from "@floc/core/design/section-colours";
+import { NavGlyph } from "@/components/system/icons/nav";
+import { cx } from "@/components/system/ui";
 import { TABS, type TabState } from "@/lib/tabs";
 
-import { sampleGroup } from "../sample-trip";
-
-export const muted = "text-xs text-ink-faint";
-export const stayTone = {
+const WASH: Record<SectionColour, string> = {
   blue: "bg-pastel-blue text-pastel-blue-ink",
   yellow: "bg-pastel-yellow text-pastel-yellow-ink",
   red: "bg-pastel-red text-pastel-red-ink",
   green: "bg-pastel-green text-pastel-green-ink",
-} as const;
+};
 
-/** A drawn trip page: the real tab set, one tab open. Illustrative, not a live read. */
+/** A drawn trip page: the real tab bar, one tab open, on the paper ground. Illustrative, not a live read. */
 export function ScreenFrame({ active, children }: { active: TabState["key"]; children: ReactNode }) {
   return (
-    <div className="overflow-hidden rounded-[16px] border border-rule bg-sheet text-left text-[13px] text-ink shadow-lifted">
-      <div className="flex items-center justify-between px-[18px] py-3">
-        <span className="flex items-baseline gap-2.5 font-display text-lg font-semibold">
-          Sicily <span className="nums text-[11px] font-normal text-ink-faint">12–19 Sep</span>
-        </span>
-        <AvatarRow people={sampleGroup} max={6} size={22} />
+    <div className="overflow-hidden rounded-md border border-rule bg-paper text-left text-[13px] text-ink shadow-lifted">
+      <div className="flex items-center justify-center gap-3.5 border-b border-rule bg-sheet px-4 py-2.5">
+        {TABS.map((t) => {
+          const on = t.key === active;
+          return (
+            <span key={t.key} className={cx("flex items-center gap-1.5 text-xs font-medium", on ? "text-ink" : "text-ink-faint")}>
+              <span className={cx("inline-flex size-6 items-center justify-center rounded-sm", on && WASH[SECTION_COLOURS[t.key] ?? "blue"])}>
+                <NavGlyph name={t.key} />
+              </span>
+              <span className="max-[640px]:hidden">{t.label}</span>
+            </span>
+          );
+        })}
       </div>
-      <div className="flex gap-2 border-b border-rule px-3.5 pb-3">
-        {TABS.map((t) => (
-          <span key={t.key} className={cx("rounded-sm px-[11px] py-[5px] text-xs", t.key === active ? "bg-ink text-paper" : "text-ink-faint")}>
-            {t.label}
-          </span>
-        ))}
-      </div>
-      <div className="h-[420px] overflow-hidden px-[22px] pb-[60px] pt-5">{children}</div>
+      <div className="h-[500px] overflow-hidden px-[22px] pb-[60px] pt-5">{children}</div>
     </div>
   );
 }
 
-export function FakeButton({ children, small }: { children: ReactNode; small?: boolean }) {
+/** The page's own title, as each tab opens with one. */
+export function PageHead({ title, sub, children }: { title: string; sub?: string; children?: ReactNode }) {
+  return (
+    <div className="mb-4 flex items-end justify-between gap-4">
+      <div>
+        <h4 className="font-display text-[26px] font-semibold leading-none tracking-[-0.02em]">{title}</h4>
+        {sub ? <p className="nums mt-1.5 text-[11px] text-ink-soft">{sub}</p> : null}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+export function FakeButton({ children, small, quiet }: { children: ReactNode; small?: boolean; quiet?: boolean }) {
   return (
     <span
       className={cx(
-        "inline-flex items-center rounded-sm bg-pen font-mono uppercase tracking-[0.06em] text-sheet",
+        "inline-flex shrink-0 items-center whitespace-nowrap rounded-sm font-mono uppercase tracking-[0.06em]",
+        quiet ? "border border-rule-strong bg-sheet text-ink" : "bg-pen text-sheet",
         small ? "px-2.5 py-[3px] text-[10px]" : "px-3.5 py-[7px] text-[11px]",
       )}
     >
