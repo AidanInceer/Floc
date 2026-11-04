@@ -1,15 +1,36 @@
 // #460, round 2 E2: soft cubes count what is sorted; Show all opens the stack, one card a thing. Same list as the web.
-import { cubeColumns, type Gap, type LeftToSort as SortList, type Sorted } from "@floc/core/trip/overview/left-to-sort";
+import { cubeColumns, type Gap, type GapKind, type LeftToSort as SortList, type Sorted } from "@floc/core/trip/overview/left-to-sort";
+import { SORT_COLOURS } from "@floc/core/design/section-colours";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
-import { TickGlyph } from "../system/glyphs";
+import { BedGlyph, StarGlyph, TickGlyph } from "../system/glyphs";
+import { SectionGlyph } from "./section-glyph";
 import { useTheme } from "../system/theme";
 import { Button, Card } from "../system/ui";
 import { fonts, radius, size, space } from "@/lib/theme";
 
 const CUBE = 11;
 const GAP = 3;
+
+function SortMark({ kind, done }: { kind: GapKind; done: boolean }) {
+  const { c } = useTheme();
+  const colour = SORT_COLOURS[kind];
+  const ink = c[`pastel-${colour}-ink`];
+  const marks = {
+    days: <SectionGlyph route="dates" color={ink} />,
+    ideas: <StarGlyph color={ink} on={false} />,
+    money: <SectionGlyph route="money" color={ink} />,
+    packing: <SectionGlyph route="packing" color={ink} />,
+    stay: <BedGlyph color={ink} />,
+    travel: <SectionGlyph route="days" color={ink} />,
+  };
+  return (
+    <View style={{ width: 28, height: 28, alignItems: "center", justifyContent: "center", borderRadius: 7, backgroundColor: c[`pastel-${colour}`] }}>
+      {done ? <TickGlyph color={ink} /> : marks[kind]}
+    </View>
+  );
+}
 
 function Cubes({ total, filled }: { total: number; filled: number }) {
   const { c } = useTheme();
@@ -48,7 +69,7 @@ function StackCard({ item, onPress }: { item: Gap | Sorted; onPress?: () => void
       style={{ backgroundColor: c.sheet, borderColor: c.rule, borderWidth: 1, borderRadius: radius.sm, paddingHorizontal: space.md, paddingVertical: space.sm, gap: 2 }}
     >
       <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
-        {done ? <TickGlyph color={c["pen-deep"]} /> : null}
+        <SortMark kind={item.kind} done={done} />
         <Text style={{ flex: 1, color: done ? c["ink-3"] : c.ink, fontFamily: fonts.sans, fontSize: size.small }}>{item.text}</Text>
         <Text style={{ color: c["ink-2"], fontFamily: fonts.sans, fontSize: size.small }}>{done ? "Sorted" : item.action}</Text>
       </View>

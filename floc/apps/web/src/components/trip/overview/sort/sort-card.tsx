@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import type { GapKind } from "@floc/core/trip/overview/left-to-sort";
+import { SORT_COLOURS } from "@floc/core/design/section-colours";
 import { NavGlyph } from "@/components/system/icons/nav";
 import { BedIcon, EventGlyph } from "@/components/system/icons/days";
 import { StarIcon } from "@/components/system/icons/explore-trip";
@@ -19,18 +20,17 @@ const GLYPH: Record<GapKind, React.ReactNode> = {
 type Item = { kind: GapKind; text: string; sub?: string[] };
 
 /** Columns every card in the stack shares, so dates and nights start at the same x on every card. */
-export const STACK_COLUMNS = "grid gap-1.5 sm:grid-cols-[28px_max-content_max-content_max-content_1fr_auto] sm:gap-x-3.5";
+export const STACK_COLUMNS = "grid gap-1.5 sm:grid-cols-[42px_max-content_max-content_max-content_1fr_auto] sm:gap-x-3.5";
 
 /** One thing in the opened stack: what it is, its dates, and the way to sort it, or "Sorted". */
 export function SortCard({ item, href, action }: { item: Item; href?: string; action?: string }) {
   const done = !href;
+  const colour = SORT_COLOURS[item.kind];
   return (
     <li className="grid grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-x-3.5 gap-y-0.5 rounded-md bg-sheet px-3.5 py-2.5 text-sm ring-1 ring-rule sm:col-span-full sm:grid-cols-subgrid">
       <span
-        className={cx(
-          "grid size-7 place-items-center rounded-sm max-sm:row-span-2",
-          done ? "bg-pastel-blue text-pen-deep" : "bg-sheet-2 text-ink-soft",
-        )}
+        className="grid size-7 place-items-center rounded-sm max-sm:row-span-2"
+        style={{ backgroundColor: `var(--pastel-${colour})`, color: `var(--pastel-${colour}-ink)` }}
       >
         {done ? <CheckIcon size={12} /> : GLYPH[item.kind]}
       </span>

@@ -12,13 +12,14 @@
  * longer trip name or a larger type size can push a word off the edge.
  *
  * A RAIL, NOT A TAB BAR. Each section is its mark and its word, as on the
- * web; the current mark sits in the small blue tile the web uses, and its word
+ * web; the current mark sits in its section's pastel tile, and its word
  * goes ink and bold. No pills and no fill around the word — the bottom bar is
  * the app's navigation and this is one level below it.
  *
  * PLANNING ORDER (see the trip layout). Not alphabetical, not by traffic.
  */
 import { titleCase } from "@floc/core/text/title-case";
+import { SECTION_COLOURS } from "@floc/core/design/section-colours";
 import type { TourStopKey } from "@floc/core/trip/tour";
 import { useRouter } from "expo-router";
 import { useEffect, useRef } from "react";
@@ -168,6 +169,7 @@ function RailItem({
 }) {
   const { c } = useTheme();
   const target = useTourTarget(section.route === "" ? null : (section.route as TourStopKey));
+  const colour = SECTION_COLOURS[section.route];
   return (
     <Pressable
       accessibilityRole="tab"
@@ -185,10 +187,10 @@ function RailItem({
             borderRadius: 7,
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: on ? c["pen-2"] : "transparent",
+            backgroundColor: on ? c[`pastel-${colour}`] : "transparent",
           }}
         >
-          <SectionGlyph route={section.route} color={on ? c["pen-deep"] : c["ink-3"]} />
+          <SectionGlyph route={section.route} color={on ? c[`pastel-${colour}-ink`] : c["ink-3"]} />
         </View>
         <Text
           style={{
