@@ -190,8 +190,6 @@ export const darkTokens: Readonly<Partial<Record<TokenName, TokenValue>>> = {
   "some-free-2": "#3e2b2f",
   "some-free-ink": "var(--pastel-red-ink)",
 
-  "red-solid": "#8f3a26",
-
   "highlight-2": "#262219",
 
   "who-6": "#212b2b",
@@ -208,6 +206,7 @@ export const darkTokens: Readonly<Partial<Record<TokenName, TokenValue>>> = {
 
 
   vignette: "rgb(255 255 255 / 0.05)",
+  "red-solid": "#8f3a26",
 };
 
 // Why: three radii, nothing between — web declares them in globals.css @theme, the phone and the wireframe kit read them here.

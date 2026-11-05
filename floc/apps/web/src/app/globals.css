@@ -262,8 +262,6 @@
   --some-free-2: #3e2b2f;
   --some-free-ink: var(--pastel-red-ink);
 
-  --red-solid: #8f3a26;
-
   --highlight-2: #262219;
 
   /* Seats 6-8, the three with no domain pastel behind them. */
@@ -283,6 +281,7 @@
 
   /* The white lift at the map's edge would be a glare here. */
   --vignette: rgb(255 255 255 / 0.05);
+  --red-solid: #8f3a26;
 }
 
 /* Expose the tokens to Tailwind: bg-sheet, text-ink-soft, text-pen, … */
