@@ -3,7 +3,6 @@ import { Avatar, cx } from "@/components/system/ui";
 import { Glyph } from "@/components/system/icons/landing";
 import { NavGlyph } from "@/components/system/icons/nav";
 import { jo, maya } from "../sample-trip";
-import { ScreenFrame } from "./screen-frame";
 
 const PAGES = [
   { title: "Where we’re eating", open: true },
@@ -24,7 +23,7 @@ function TripLink({ label }: { label: string }) {
 
 export function NotesScreen() {
   return (
-    <ScreenFrame active="notes">
+    <>
       <div className="grid h-[480px] grid-cols-[160px_1fr] overflow-hidden rounded-md border border-rule bg-sheet">
         <div className="flex flex-col border-r border-rule bg-sheet-2 px-2 py-3">
           <span className="px-2 font-mono text-[9.5px] uppercase tracking-[0.08em] text-ink-faint">Pages</span>
@@ -71,6 +70,6 @@ export function NotesScreen() {
           </div>
         </div>
       </div>
-    </ScreenFrame>
+    </>
   );
 }

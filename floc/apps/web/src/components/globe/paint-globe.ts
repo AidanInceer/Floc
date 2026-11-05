@@ -3,6 +3,7 @@ import { arc, capOf, project, sightOf, type LatLng } from "@floc/globe/sphere";
 import { PLANE_D } from "@/lib/landing/hero/flight-path";
 
 import { globeMarks } from "./paint-marks";
+import { canvasZoom, pixelRatio } from "./pixel-ratio";
 
 const PLANE_SCALE = 0.92;
 
@@ -73,7 +74,7 @@ export function globePainter(canvas: HTMLCanvasElement) {
 
   function size(fit?: Fit) {
     const [w, h] = [canvas.clientWidth, canvas.clientHeight];
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const dpr = pixelRatio(window.devicePixelRatio || 1, canvasZoom(getComputedStyle(canvas).getPropertyValue("--canvas-zoom")));
     const [pw, ph] = [Math.round(w * dpr), Math.round(h * dpr)];
     if (canvas.width !== pw || canvas.height !== ph) [canvas.width, canvas.height] = [pw, ph];
     ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);

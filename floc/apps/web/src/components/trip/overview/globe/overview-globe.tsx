@@ -8,6 +8,7 @@ import { useEffect, useRef } from "react";
 import { codesAt, ringsIn } from "@/components/explore/outline/land";
 import { useLand } from "@/components/explore/outline/use-land";
 import { globePainter } from "@/components/globe/paint-globe";
+import { CANVAS_ZOOM_EVENT, canvasZoom, unzoomed } from "@/components/globe/pixel-ratio";
 import { watchRedraw } from "@/components/globe/watch-redraw";
 
 import { clearArea } from "./clear-area";
@@ -46,7 +47,9 @@ export function OverviewGlobe({
     const land = { world: world.map((p) => p.ring), fine: fine.map((p) => p.ring) };
     const draw = () => {
       const card = box.closest("[data-overview-band]")?.querySelector("[data-overview-card]");
-      const fit = drawStillRoute(node, paint, { route, land, tint, clear: clearArea(box.getBoundingClientRect(), card?.getBoundingClientRect() ?? null) });
+      const zoom = canvasZoom(getComputedStyle(node).getPropertyValue("--canvas-zoom"));
+      const cardBox = card ? unzoomed(card.getBoundingClientRect(), zoom) : null;
+      const fit = drawStillRoute(node, paint, { route, land, tint, clear: clearArea(unzoomed(box.getBoundingClientRect(), zoom), cardBox) });
       const ctx = node.getContext("2d");
       if (!fit || !ctx || tracks.length === 0) return;
       const css = getComputedStyle(node);
@@ -55,7 +58,13 @@ export function OverviewGlobe({
     };
     draw();
     void document.fonts.ready.then(draw);
-    return watchRedraw(box, draw);
+    // Why: a page that zooms the canvas (the landing tour) says so here, since the box itself does not change size.
+    window.addEventListener(CANVAS_ZOOM_EVENT, draw);
+    const stop = watchRedraw(box, draw);
+    return () => {
+      window.removeEventListener(CANVAS_ZOOM_EVENT, draw);
+      stop();
+    };
   }, [route, tone, world, fine, tracks]);
 
   return (

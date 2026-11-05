@@ -9,7 +9,7 @@ import { Avatar, LegendKey, cx } from "@/components/system/ui";
 import { SortCubes } from "@/components/trip/overview/sort/sort-cubes";
 
 import { alex, jo, kit, priya, sam, maya, you } from "../sample-trip";
-import { FakeButton, PageHead, ScreenFrame } from "./screen-frame";
+import { FakeButton, PageHead } from "./screen-frame";
 
 const IDEAS = [
   { title: "Sicily: food, beaches, one flight", by: priya, votes: 5, mine: true },
@@ -36,7 +36,7 @@ function SortStrip() {
 
 export function WhereScreen() {
   return (
-    <ScreenFrame active="overview">
+    <>
       <SortStrip />
       <div className="mt-3 overflow-hidden rounded-md border border-rule bg-sheet">
         <div className="flex items-center gap-3 px-4 py-3">
@@ -78,7 +78,7 @@ export function WhereScreen() {
           </ul>
         </div>
       </div>
-    </ScreenFrame>
+    </>
   );
 }
 
@@ -145,7 +145,7 @@ function DatesRail() {
 
 export function WhenScreen() {
   return (
-    <ScreenFrame active="dates">
+    <>
       <PageHead title="Dates" />
       <div className="grid grid-cols-[132px_minmax(0,1fr)_168px] rounded-md border border-rule bg-sheet">
         <DatesRail />
@@ -204,6 +204,6 @@ export function WhenScreen() {
           </ul>
         </div>
       </div>
-    </ScreenFrame>
+    </>
   );
 }

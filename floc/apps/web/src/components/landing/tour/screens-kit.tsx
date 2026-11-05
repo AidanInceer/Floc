@@ -6,7 +6,7 @@ import { Avatar, cx } from "@/components/system/ui";
 import type { DocCategory } from "@floc/core/documents/documents";
 
 import { jo, maya, sam, type SamplePerson } from "../sample-trip";
-import { FakeButton, PageHead, ScreenFrame } from "./screen-frame";
+import { FakeButton, PageHead } from "./screen-frame";
 
 const BAG = [
   { heading: "Essentials", items: [{ n: 1, item: "passport", done: true }, { n: 1, item: "phone charger", done: false }, { n: 1, item: "sun hat", done: false }] },
@@ -20,7 +20,7 @@ const CLAIMED: { item: string; who: SamplePerson }[] = [
 
 export function PackingScreen() {
   return (
-    <ScreenFrame active="packing">
+    <>
       <PageHead title="Packing" />
       <div className="flex items-center gap-3">
         <h5 className="font-display text-lg font-semibold">Your bag</h5>
@@ -68,7 +68,7 @@ export function PackingScreen() {
           ))}
         </PackingLane>
       </div>
-    </ScreenFrame>
+    </>
   );
 }
 
@@ -108,7 +108,7 @@ function FileList({ title, note, files }: { title: string; note: string; files: 
 
 export function TicketsScreen() {
   return (
-    <ScreenFrame active="files">
+    <>
       <PageHead title="Files" />
       <div className="flex items-center gap-3 rounded-md border border-rule bg-sheet px-4 py-2.5">
         <span className="min-w-0 flex-1">
@@ -137,7 +137,7 @@ export function TicketsScreen() {
         </span>
         <span className="nums font-mono text-[10.5px] text-ink-soft">3 MB of 1 GB used</span>
       </p>
-    </ScreenFrame>
+    </>
   );
 }
 

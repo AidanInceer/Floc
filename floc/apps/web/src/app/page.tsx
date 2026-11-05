@@ -22,7 +22,7 @@ import { TypedWord } from "@/components/landing/hero/typed-word";
 import { Shore } from "@/components/landing/shore";
 import { LandingFaq } from "@/components/landing/landing-faq";
 import { ProBand } from "@/components/landing/pro-tour/pro-band";
-import { FeatureFilm } from "@/components/landing/tour/feature-film";
+import { FeatureTour } from "@/components/landing/tour/feature-tour";
 import { shotFor } from "@/components/landing/tour/tour-shots";
 import { tourSlides } from "@/components/landing/tour/tour-slides";
 import { borrowCards, leadFirst } from "@/lib/landing/borrow";
@@ -123,7 +123,7 @@ export default async function LandingPage() {
       <div className="mx-auto w-full max-w-[84rem] px-4 sm:px-6">
         {/* ── feature summary ────────────────────────────────────────── */}
         <section className="mt-16">
-          <FeatureFilm slides={tourSlides(sellingPro).map((s) => ({ ...s, shot: shotFor(s.key) }))} />
+          <FeatureTour slides={tourSlides(sellingPro).map((s) => ({ ...s, shot: shotFor(s.key) }))} />
         </section>
 
         {/* ── explore ────────────────────────────────────────────────── */}

@@ -1,0 +1,73 @@
+@layer components {
+  /*
+   * The landing feature tour: one drawn trip page on a pastel stage. A press plays a colour wipe from the control,
+   * the copy and page slide out and back, and the tab pill follows. Nothing here moves by itself.
+   */
+  .tour-stage {
+    --cardh: 580px;
+    position: relative;
+    height: var(--cardh);
+    margin-top: 24px;
+    overflow: hidden;
+    border-radius: 28px;
+    outline: none;
+    touch-action: pan-y;
+  }
+  .tour-stage:focus-visible { outline: 2px solid var(--pen); outline-offset: 5px; }
+  .tour-wipe {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    clip-path: circle(0 at 50% 0);
+    pointer-events: none;
+  }
+  .tour-copy { position: absolute; inset: 0 auto 0 0; z-index: 1; width: 340px; }
+  .tour-ghost { display: none; }
+  .tour-text p { text-wrap: pretty; }
+  .tour-text { display: flex; flex-direction: column; height: 100%; padding: 44px 40px; }
+  .tour-was { margin-top: auto; }
+  .tour-shot { position: absolute; left: 372px; right: 44px; top: 56px; z-index: 1; }
+  .tour-shot > * { width: 700px; zoom: var(--z, 1); }
+
+  .tour-tile { transition: transform 0.65s var(--ease) 0.24s, background-color 0.45s var(--ease) 0.24s; }
+  .tour-glyph, .tour-tab { transition: color 0.35s var(--ease) 0.24s; }
+  .tour-pane { grid-area: 1 / 1; opacity: 0; visibility: hidden; transform: translateY(16px); transition: opacity 0.35s var(--ease), transform 0.6s var(--ease), visibility 0s 0.6s; }
+  .tour-pane[data-on="true"] { opacity: 1; visibility: visible; transform: none; transition-delay: 0.14s, 0.14s, 0s; }
+
+  @keyframes tour-rv { from { opacity: 0; transform: translateY(16px); } }
+  @keyframes tour-type { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+  @keyframes tour-rise { from { opacity: 0; transform: translateY(10px); } }
+  .tour-text > :nth-child(2) { --n: 1; }
+  .tour-text > :nth-child(3) { --n: 2; }
+  .tour-text > :nth-child(4) { --n: 3; }
+  .tour-text > :nth-child(5) { --n: 4; }
+  .tour-text[data-fresh] .tour-rv { animation: tour-rv 0.75s var(--ease) both; animation-delay: calc(var(--n, 0) * 80ms + 120ms); }
+  .tour-text[data-fresh] .tour-bub { animation: tour-type 0.9s var(--ease) 0.7s both; }
+  .tour-rise { animation: tour-rise 0.6s var(--ease) both; animation-delay: calc(var(--k, 0) * 55ms + 120ms); }
+
+  /*
+   * Below 1100px the tour flows: copy, then the drawn page, in one column, so nothing can sit on top of anything else at
+   * any width. The page is cropped at a fixed share of its height, so it bleeds off the foot at every size.
+   */
+  @media (max-width: 1100px) {
+    .tour-stage { height: auto; }
+    .tour-copy { position: relative; inset: auto; width: auto; display: grid; }
+    .tour-copy > .tour-text, .tour-ghost { grid-area: 1 / 1; }
+    .tour-ghost { display: block; visibility: hidden; pointer-events: none; }
+    .tour-text, .tour-shot { width: min(640px, calc(100% - 44px)); margin-inline: auto; }
+    .tour-text { height: auto; padding: 26px 0 0; }
+    .tour-was { margin-top: 16px; }
+    .tour-shot {
+      position: relative; inset: auto; margin-top: 28px;
+      max-height: calc(520px * var(--z, 0.5)); overflow: hidden;
+    }
+  }
+  @media (max-width: 560px) {
+    .tour-text, .tour-shot { width: calc(100% - 28px); }
+    .tour-tab { pointer-events: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tour-tile, .tour-glyph, .tour-tab, .tour-pane { transition-duration: 0.01ms; transition-delay: 0s; }
+    .tour-text[data-fresh] .tour-rv, .tour-text[data-fresh] .tour-bub, .tour-rise { animation: none; }
+  }
+}
