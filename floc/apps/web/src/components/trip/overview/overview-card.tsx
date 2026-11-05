@@ -13,7 +13,7 @@ import { TripMarkIcon } from "@/components/system/icons/trip-mark";
 import { TripNameInline } from "@/components/trip/trip-name-inline";
 import { TagChips } from "@/components/trip/overview/tag-chips";
 import { renameTrip } from "@/app/trip/[id]/overview/actions";
-import { PencilIcon } from "@/components/system/icons";
+import { MoonIcon, PencilIcon } from "@/components/system/icons";
 
 const BAND: Record<TripColor, string> = {
   peri: "border-t-pastel-blue",
@@ -81,10 +81,20 @@ export function OverviewCard({
         </span>
       ) : null}
 
-      <p className="nums flex items-center gap-1.5 text-sm text-ink-soft">
-        {trip.startDate
-          ? `${formatDateRange(trip.startDate, trip.endDate)} · ${trip.nights} ${trip.nights === 1 ? "night" : "nights"}`
-          : "Dates not set"}
+      <p className="nums flex flex-wrap items-center gap-x-1.5 text-sm text-ink-soft">
+        {trip.startDate ? (
+          <>
+            <span className="whitespace-nowrap">{formatDateRange(trip.startDate, trip.endDate)}</span>
+            <span aria-hidden>·</span>
+            <span className="flex items-center gap-1 whitespace-nowrap">
+              <span aria-hidden>{trip.nights}</span>
+              <MoonIcon size={12} />
+              <span className="sr-only">{trip.nights === 1 ? "1 night" : `${trip.nights} nights`}</span>
+            </span>
+          </>
+        ) : (
+          "Dates not set"
+        )}
         {/* Deciding dates is the Dates tab's job, where the group's availability is. */}
         <Link
           href={`/trip/${trip.id}/dates`}

@@ -14,13 +14,12 @@ import {
 } from "@floc/core/trip/ideas";
 import { CrossIcon } from "@/components/system/icons";
 import { IdeaVoteButton } from "./idea-vote-button";
-import { useSteadyOrder } from "./use-steady-order";
 
 const SORT_KEY = "floc:ideas-sort";
 
 export function IdeasBoard({ tripId, ideas }: { tripId: number; ideas: IdeaRow[] }) {
   const [sort, setSort] = useState<IdeaSort>("votes");
-  const shown = useSteadyOrder(sortIdeas(ideas, sort), sort);
+  const shown = sortIdeas(ideas, sort);
 
   // The order is a reading preference, not trip data — it rides in the browser.
   useEffect(() => {
@@ -44,7 +43,7 @@ export function IdeasBoard({ tripId, ideas }: { tripId: number; ideas: IdeaRow[]
               label="Order the ideas"
               value={sort}
               onChange={choose}
-              className="!w-auto self-start"
+              className="!w-auto self-start [&>button]:flex-none"
               options={[
                 { value: "votes", label: "Most votes" },
                 { value: "newest", label: "Newest" },
