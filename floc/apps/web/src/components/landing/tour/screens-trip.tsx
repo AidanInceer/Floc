@@ -5,7 +5,7 @@ import { OverviewGlobe } from "@/components/trip/overview/globe/overview-globe";
 import { KindTile, StopNo } from "@/components/trip/overview/stops/stop-parts";
 
 import { alex, jo, maya, priya, sam, sampleRoute } from "../sample-trip";
-import { FakeButton, PageHead, ScreenFrame } from "./screen-frame";
+import { FakeButton, PageHead } from "./screen-frame";
 
 type Day = { weekday: string; day: number; type: DayEventType; transport?: TransportType; what: string; more?: number };
 const STOPS: { no: number; place: string; meta: string; days: Day[]; next?: string }[] = [
@@ -54,7 +54,7 @@ function DayRow({ d }: { d: Day }) {
 
 export function PlanScreen() {
   return (
-    <ScreenFrame active="overview">
+    <>
       <div className="grid grid-cols-[minmax(0,1fr)_250px] gap-4">
         <div className="flex min-w-0 flex-col">
           <h4 className="mb-3 font-display text-xl">Stops</h4>
@@ -82,7 +82,7 @@ export function PlanScreen() {
           <OverviewGlobe route={sampleRoute} tone="peri" label="The route: Palermo, Cefalù, Taormina, Syracuse" />
         </div>
       </div>
-    </ScreenFrame>
+    </>
   );
 }
 
@@ -101,7 +101,7 @@ const EXPENSES = [
 
 export function MoneyScreen() {
   return (
-    <ScreenFrame active="money">
+    <>
       <PageHead title="Money">
         <FakeButton>Add expense</FakeButton>
       </PageHead>
@@ -111,7 +111,7 @@ export function MoneyScreen() {
           <div className="mt-3 flex items-center gap-2">
             <Avatar name={priya.name} tone={priya.tone} size={22} />
             <span className="flex-1">Priya</span>
-            <span className="nums font-display text-lg font-semibold">£200.00</span>
+            <span className="nums text-lg font-semibold">£200.00</span>
             <FakeButton small>Settle up</FakeButton>
           </div>
         </section>
@@ -144,6 +144,6 @@ export function MoneyScreen() {
           </div>
         ))}
       </section>
-    </ScreenFrame>
+    </>
   );
 }

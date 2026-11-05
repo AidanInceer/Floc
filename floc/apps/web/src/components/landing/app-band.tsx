@@ -26,7 +26,7 @@ function Store({ name }: { name: string }) {
 /** The phone apps are not out yet, so this band has no action — only what is coming and the link that works today. */
 export function AppBand() {
   return (
-    <section className="overflow-hidden px-4 py-24 sm:px-6">
+    <section className="overflow-hidden border-t border-rule px-4 py-24 sm:px-6">
       <div className="mx-auto grid max-w-[72rem] items-center gap-16 md:grid-cols-2 xl:grid-cols-[580px_minmax(0,1fr)]">
         <div className="relative h-[580px]" role="img" aria-label="Floc on a phone: today's plan in Cefalù, and what you owe">
           <Phone className="left-5 top-2.5 z-[2] md:left-0 -rotate-[4deg]">

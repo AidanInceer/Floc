@@ -107,6 +107,9 @@ export const lightTokens = {
   "pro-ink": "var(--ink)",
   "pro-ink-2": "var(--ink-2)",
   "pro-mark": "var(--ink)",
+  /* The Pro band's black ground and the text on it. Black in both themes, so it is not simply --ink. */
+  slab: "var(--ink)",
+  "slab-ink": "var(--paper)",
 
   vignette: "rgb(255 255 255 / 0.5)",
 
@@ -207,6 +210,8 @@ export const darkTokens: Readonly<Partial<Record<TokenName, TokenValue>>> = {
 
   vignette: "rgb(255 255 255 / 0.05)",
   "red-solid": "#8f3a26",
+  slab: "#0b0b0d",
+  "slab-ink": "var(--ink)",
 };
 
 // Why: three radii, nothing between — web declares them in globals.css @theme, the phone and the wireframe kit read them here.

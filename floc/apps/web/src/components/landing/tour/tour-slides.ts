@@ -1,5 +1,6 @@
 import { SECTION_COLOURS, type SectionColour } from "@floc/core/design/section-colours";
 import type { GlyphName } from "@/components/system/icons/landing";
+import type { TabState } from "@/lib/tabs";
 
 export type SlideTone = SectionColour;
 
@@ -8,6 +9,8 @@ export type TourSlide = {
   tab: string;
   icon: GlyphName;
   tone: SlideTone;
+  /** The trip tab the drawn page sits on. */
+  page: TabState["key"];
   title: string;
   line: string;
   /** The group-chat line this slide replaces. */
@@ -21,6 +24,7 @@ export const TOUR_SLIDES: TourSlide[] = [
     key: "where",
     tab: "Where",
     icon: "local",
+    page: "overview",
     tone: SECTION_COLOURS.overview,
     title: "Decide where, together",
     line: "Everyone puts up an idea. The group votes one to the top.",
@@ -30,6 +34,7 @@ export const TOUR_SLIDES: TourSlide[] = [
     key: "when",
     tab: "When",
     icon: "dates",
+    page: "dates",
     tone: SECTION_COLOURS.dates,
     title: "Find the week everyone can make",
     line: "Everyone shades their free days once. The weeks that work for all six show up.",
@@ -39,6 +44,7 @@ export const TOUR_SLIDES: TourSlide[] = [
     key: "plan",
     tab: "The plan",
     icon: "pin",
+    page: "days",
     tone: SECTION_COLOURS.days,
     title: "The plan is the route",
     line: "Where you sleep each night, drawn on the map as you go. The one thing each day, or every hour, if that’s you.",
@@ -48,6 +54,7 @@ export const TOUR_SLIDES: TourSlide[] = [
     key: "money",
     tab: "Money",
     icon: "money",
+    page: "money",
     tone: SECTION_COLOURS.money,
     title: "Split the bill, not the group",
     line: "Log what you paid. Everyone gets one number.",
@@ -57,6 +64,7 @@ export const TOUR_SLIDES: TourSlide[] = [
     key: "packing",
     tab: "Packing",
     icon: "packing",
+    page: "packing",
     tone: SECTION_COLOURS.packing,
     title: "Pack once, pack right",
     line: "Claim the shared things. Nothing doubles up, nothing gets left.",
@@ -67,6 +75,7 @@ export const TOUR_SLIDES: TourSlide[] = [
     key: "notes",
     tab: "Notes",
     icon: "notes",
+    page: "notes",
     tone: SECTION_COLOURS.notes,
     title: "Write it down together",
     line: "A page for the restaurants, the day trips, the house rules. Everyone writes at once.",
@@ -76,6 +85,7 @@ export const TOUR_SLIDES: TourSlide[] = [
     key: "tickets",
     tab: "Tickets",
     icon: "files",
+    page: "files",
     tone: SECTION_COLOURS.files,
     title: "Tickets, filed",
     line: "Passes and bookings live on the trip. Nobody forwards anything.",

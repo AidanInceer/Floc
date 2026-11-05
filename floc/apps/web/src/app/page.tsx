@@ -12,7 +12,7 @@ import type { ProPrice } from "@/server/billing/billing";
 import { allFeaturesFree, appUrl } from "@/lib/env";
 import { formatMoney } from "@floc/core/money/money";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
-import { ButtonLink } from "@/components/system/ui";
+import { ButtonLink, cx } from "@/components/system/ui";
 import { BorrowTrip } from "@/components/landing/borrow-trip";
 import { AgentBand } from "@/components/landing/agent/agent-band";
 import { AppBand } from "@/components/landing/app-band";
@@ -22,7 +22,7 @@ import { TypedWord } from "@/components/landing/hero/typed-word";
 import { Shore } from "@/components/landing/shore";
 import { LandingFaq } from "@/components/landing/landing-faq";
 import { ProBand } from "@/components/landing/pro-tour/pro-band";
-import { FeatureFilm } from "@/components/landing/tour/feature-film";
+import { FeatureTour } from "@/components/landing/tour/feature-tour";
 import { shotFor } from "@/components/landing/tour/tour-shots";
 import { tourSlides } from "@/components/landing/tour/tour-slides";
 import { borrowCards, leadFirst } from "@/lib/landing/borrow";
@@ -50,6 +50,7 @@ export const metadata: Metadata = {
 
 // The Explore listings the Borrow band opens on, in this order; every other listing waits behind them.
 // Hidden for now; set true to bring back the pocket agent band and its "while you wait" part.
+// Why: the Pro slab's lower slant is painted FAQ-white, so turning this on needs that strip repainted for what follows the slab.
 const SHOW_AGENT_BAND = false;
 
 const BORROW_IDS = [
@@ -122,7 +123,7 @@ export default async function LandingPage() {
       <div className="mx-auto w-full max-w-[84rem] px-4 sm:px-6">
         {/* ── feature summary ────────────────────────────────────────── */}
         <section className="mt-16">
-          <FeatureFilm slides={tourSlides(sellingPro).map((s) => ({ ...s, shot: shotFor(s.key) }))} />
+          <FeatureTour slides={tourSlides(sellingPro).map((s) => ({ ...s, shot: shotFor(s.key) }))} />
         </section>
 
         {/* ── explore ────────────────────────────────────────────────── */}
@@ -130,23 +131,22 @@ export default async function LandingPage() {
           <BorrowTrip cards={borrowCards(PRESET_TRIPS, leadFirst(PRESET_TRIPS, BORROW_IDS), rates)} signedIn={signedIn} explore={inspire} />
         </section>
 
-        {/* ── pro ──────────────────────────────────────────────────────── */}
-        {sellingPro && (
-          <section className="mt-24">
-            <ProBand monthly={monthly} signedIn={signedIn} />
-          </section>
-        )}
+      </div>
 
-        {/* ── pocket agent ───────────────────────────────────────────── */}
-        {SHOW_AGENT_BAND && (
+      {/* ── pro ────────────────────────────────────────────────────────── */}
+      {sellingPro && <ProBand monthly={monthly} signedIn={signedIn} />}
+
+      {/* ── pocket agent ───────────────────────────────────────────────── */}
+      {SHOW_AGENT_BAND && (
+        <div className="mx-auto w-full max-w-[84rem] px-4 sm:px-6">
           <section className="mt-24">
             <AgentBand origin={appUrl()} />
           </section>
-        )}
+        </div>
+      )}
 
-      </div>
-
-      <section className="mt-24">
+      {/* Why: the Pro slab's lower slant is painted in this white, so with Pro off the FAQ brings its own gap and hairline. */}
+      <section className={cx("bg-sheet", !sellingPro && "mt-24 border-t border-rule")}>
         <LandingFaq items={landingFaq({ sellingPro, monthly })} />
       </section>
       <AppBand />

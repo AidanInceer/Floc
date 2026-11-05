@@ -15,6 +15,18 @@ describe("tourSlides", () => {
     ]);
   });
 
+  it("draws each slide on the trip tab its screen belongs to", () => {
+    expect(tourSlides(false).map(({ key, page }) => [key, page])).toEqual([
+      ["where", "overview"],
+      ["when", "dates"],
+      ["plan", "days"],
+      ["money", "money"],
+      ["packing", "packing"],
+      ["notes", "notes"],
+      ["tickets", "files"],
+    ]);
+  });
+
   it("keeps the Pro asides while Pro is on sale", () => {
     expect(tourSlides(true).some((s) => s.proExtra)).toBe(true);
   });
