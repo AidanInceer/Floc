@@ -89,6 +89,10 @@ export const lightTokens = {
   "some-free-3": "var(--pastel-red-edge)",
   "some-free-ink": "#8c3b26",
 
+  /* A solid deep red that carries white text, for the one row that must stand out on a red wash. */
+  "red-solid": "var(--some-free-ink)",
+  "red-solid-ink": "#ffffff",
+
   ease: "cubic-bezier(0.2, 0.85, 0.3, 1)",
   "shadow-sm": "0 1px 2px rgb(20 20 26 / 0.05)",
   shadow:
@@ -202,6 +206,7 @@ export const darkTokens: Readonly<Partial<Record<TokenName, TokenValue>>> = {
 
 
   vignette: "rgb(255 255 255 / 0.05)",
+  "red-solid": "#8f3a26",
 };
 
 // Why: three radii, nothing between — web declares them in globals.css @theme, the phone and the wireframe kit read them here.

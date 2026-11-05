@@ -129,6 +129,10 @@
   --some-free-3: var(--pastel-red-edge);
   --some-free-ink: #8c3b26;
 
+  /* A solid deep red that carries white text, for the one row that must stand out on a red wash. */
+  --red-solid: var(--some-free-ink);
+  --red-solid-ink: #ffffff;
+
   /* Quiet motion: a tiny lift on a soft shadow, nothing heavy. One easing curve
      for every interactive move — see the `.lift` utility, and the
      prefers-reduced-motion block that removes the movement but not the
@@ -277,6 +281,7 @@
 
   /* The white lift at the map's edge would be a glare here. */
   --vignette: rgb(255 255 255 / 0.05);
+  --red-solid: #8f3a26;
 }
 
 /* Expose the tokens to Tailwind: bg-sheet, text-ink-soft, text-pen, … */

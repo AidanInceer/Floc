@@ -29,6 +29,27 @@ describe("sortIdeas", () => {
     expect(sortIdeas(rows, "newest").map((r) => r.id)).toEqual([4, 2, 1]);
   });
 
+  it("orders newest by the time of day, not the id, on the same day", () => {
+    const at = (id: number, iso: string): IdeaRow => ({ ...idea(id, 0), createdAt: new Date(iso) });
+    const rows = [
+      at(7, "2026-11-05T09:00:00Z"),
+      at(3, "2026-11-05T18:30:00Z"),
+      at(5, "2026-11-05T12:15:00Z"),
+    ];
+    expect(sortIdeas(rows, "newest").map((r) => r.id)).toEqual([3, 5, 7]);
+  });
+
+  it("breaks a tie on the same second with the higher id", () => {
+    const at = (id: number): IdeaRow => ({ ...idea(id, 0), createdAt: new Date("2026-11-05T09:00:00Z") });
+    expect(sortIdeas([at(1), at(2)], "newest").map((r) => r.id)).toEqual([2, 1]);
+  });
+
+  it("breaks a tie on votes with the later time first", () => {
+    const at = (id: number, iso: string): IdeaRow => ({ ...idea(id, 2), createdAt: new Date(iso) });
+    const rows = [at(9, "2026-11-05T08:00:00Z"), at(2, "2026-11-05T20:00:00Z")];
+    expect(sortIdeas(rows, "votes").map((r) => r.id)).toEqual([2, 9]);
+  });
+
   it("leaves the rows it was given untouched", () => {
     const rows = [idea(1, 1), idea(2, 9)];
     sortIdeas(rows, "votes");

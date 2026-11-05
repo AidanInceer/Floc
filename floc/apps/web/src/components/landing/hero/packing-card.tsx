@@ -45,13 +45,13 @@ export function PackingCard({ step }: { step: number }) {
           const spins = Array.from({ length: 9 + row * 3 }, (_, k) => k);
           const seconds = 1.875 + row * 0.5625;
           return (
-            <li key={item} className="flex justify-between gap-2.5" style={{ "--lock": `${seconds + 0.19}s` } as CSSProperties}>
+            <li key={item} className={cx("flex justify-between gap-2.5", who === "You" && "deck-row-you")} style={{ "--lock": `${seconds + 0.19}s` } as CSSProperties}>
               <Reel spins={spins.map((k) => POOL[(k * 5 + row * 3) % POOL.length]!)} end={item} seconds={seconds} />
               <Reel
                 spins={spins.map((k) => PEOPLE[(k + row * 2) % PEOPLE.length]!)}
                 end={who}
                 seconds={seconds + 0.19}
-                className={cx("text-right", who === "You" && "deck-reel-you")}
+                className="text-right"
               />
             </li>
           );

@@ -28,6 +28,7 @@ const PAIRS = [
   ["pastel-green-ink", "pastel-green", AA_TEXT, "ink on green"],
   ["pastel-yellow-ink", "pastel-yellow", AA_TEXT, "ink on yellow"],
   ["pastel-red-ink", "pastel-red", AA_TEXT, "ink on red"],
+  ["red-solid-ink", "red-solid", AA_TEXT, "white on the deep red claim row"],
   ["some-free-ink", "some-free-1", AA_TEXT, "a Dates day few can do"],
   ["some-free-ink", "some-free-2", AA_TEXT, "a Dates day some can do"],
   ["some-free-ink", "some-free-3", AA_TEXT, "a Dates day nearly all can do"],
