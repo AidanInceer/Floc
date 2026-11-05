@@ -9,6 +9,7 @@
  * TODAY IS MARKED, NOT CENTRED ON. A trip that has not started has no today in
  * range, which is ordinary; nothing here treats that as a state (rule 4).
  */
+import { useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, Text } from "react-native";
 
 import { useTheme } from "../system/theme";
@@ -36,8 +37,23 @@ export function DayStrip({
   onSelect: (date: string) => void;
 }) {
   const { c } = useTheme();
+  const scroller = useRef<ScrollView>(null);
+  const places = useRef(new Map<string, { x: number; width: number }>());
+  const [viewWidth, setViewWidth] = useState(0);
+  const settled = useRef(false);
+
+  // Why: a long trip runs off the right edge, so the chosen day can start out of sight.
+  useEffect(() => {
+    const at = places.current.get(selected);
+    if (!at || viewWidth === 0) return;
+    scroller.current?.scrollTo({ x: Math.max(0, at.x + at.width / 2 - viewWidth / 2), animated: settled.current });
+    settled.current = true;
+  }, [selected, viewWidth]);
+
   return (
     <ScrollView
+      ref={scroller}
+      onLayout={(e) => setViewWidth(e.nativeEvent.layout.width)}
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={{ gap: space.sm, paddingHorizontal: space.lg }}
@@ -51,6 +67,7 @@ export function DayStrip({
             accessibilityRole="tab"
             accessibilityState={{ selected: on }}
             accessibilityLabel={isToday ? `${date}, today` : date}
+            onLayout={(e) => places.current.set(date, e.nativeEvent.layout)}
             onPress={() => onSelect(date)}
             style={{
               alignItems: "center",

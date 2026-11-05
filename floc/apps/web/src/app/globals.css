@@ -129,6 +129,10 @@
   --some-free-3: var(--pastel-red-edge);
   --some-free-ink: #8c3b26;
 
+  /* A solid deep red that carries white text, for the one row that must stand out on a red wash. */
+  --red-solid: var(--some-free-ink);
+  --red-solid-ink: #ffffff;
+
   /* Quiet motion: a tiny lift on a soft shadow, nothing heavy. One easing curve
      for every interactive move — see the `.lift` utility, and the
      prefers-reduced-motion block that removes the movement but not the
@@ -257,6 +261,8 @@
   --some-free-1: var(--pastel-red);
   --some-free-2: #3e2b2f;
   --some-free-ink: var(--pastel-red-ink);
+
+  --red-solid: #8f3a26;
 
   --highlight-2: #262219;
 

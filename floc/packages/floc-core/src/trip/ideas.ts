@@ -33,7 +33,8 @@ export function readIdeaSort(value: unknown): IdeaSort {
  * between two renders of the same page.
  */
 export function sortIdeas(rows: readonly IdeaRow[], sort: IdeaSort): IdeaRow[] {
-  const newest = (a: IdeaRow, b: IdeaRow) => b.id - a.id;
+  const newest = (a: IdeaRow, b: IdeaRow) =>
+    b.createdAt.getTime() - a.createdAt.getTime() || b.id - a.id;
   return [...rows].sort(
     sort === "newest" ? newest : (a, b) => b.votes - a.votes || newest(a, b),
   );
