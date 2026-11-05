@@ -77,7 +77,9 @@
 
 .explore-atlas .atlas-world {
   position: absolute;
-  left: 12px;
+  /* Why: lines up with the page column below (max-w-[76rem], px-4 / sm:px-6), not the viewport edge. */
+  --edge: 1rem;
+  left: max(var(--edge), calc((100% - 76rem) / 2 + var(--edge)));
   bottom: 16px;
   z-index: 2;
   display: inline-flex;
@@ -92,6 +94,9 @@
   box-shadow: var(--shadow-sm);
 }
 .explore-atlas .atlas-world:hover { color: var(--ink); border-color: var(--pen); }
+@media (min-width: 640px) {
+  .explore-atlas .atlas-world { --edge: 1.5rem; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .explore-pin i,

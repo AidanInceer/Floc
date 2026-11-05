@@ -8,8 +8,8 @@ import { cx } from "@/components/system/ui";
 
 const SORT_ICONS: Record<FinderSort, ReactNode> = {
   match: <path d="M7 1.8 8.5 5l3.5.4-2.6 2.4.7 3.5L7 9.6l-3.1 1.7.7-3.5L2 5.4 5.5 5Z" />,
-  cheap: <path d="M3 3.5v8m-1.8-1.8L3 11.5l1.8-1.8M7 4h5M7 7h3.5M7 10h2" />,
-  dear: <path d="M3 10.5v-8M1.2 4.3 3 2.5l1.8 1.8M7 4h2M7 7h3.5M7 10h5" />,
+  cheap: <path d="M3 10.5v-8M1.2 4.3 3 2.5l1.8 1.8M7 4h2M7 7h3.5M7 10h5" />,
+  dear: <path d="M3 3.5v8m-1.8-1.8L3 11.5l1.8-1.8M7 4h5M7 7h3.5M7 10h2" />,
   short: <path d="M2 7h4M2 4.5v5M10 7h2" />,
   long: <path d="M2 7h10M2 4.5v5M12 4.5v5" />,
 };
