@@ -59,16 +59,20 @@ visual language. A new API procedure needs a line in `parity.json`
 Typecheck, lint, test. If the app or web crashed, rerun them (step 2) and
 carry on — this is a loop, not one pass. Do not move on with a red check.
 
-## 7. Screenshots, both surfaces
+## 7. Screenshots and design review
 
-Open the windows / tabs the feature lives in on each surface and capture them:
+Capture each screen the feature touches, into the scratchpad, never the repo:
 
-- Web — browser pane `computer {action: "screenshot"}`.
-- App — `"$ANDROID_HOME/platform-tools/adb.exe" exec-out screencap -p > shot.png`
-  (write to the scratchpad, not the repo).
+- Web at 1280 and 375, light and dark — browser pane `resize_window` then
+  `computer {action: "screenshot"}`.
+- App — `"$ANDROID_HOME/platform-tools/adb.exe" exec-out screencap -p > shot.png`.
+- The chosen mockup, if the work came from one, at the same widths.
 
-Compare the two for visual UI consistency — same tokens, spacing, type, states.
-Fix any drift.
+Check them yourself against the [design card](../../../../.claude/rules/design.md),
+run `pnpm design:check`, then start the `floc:design-review` agent with the
+changed screens and the screenshot paths. Fix every finding and review again
+until it comes back clean. A correction the card does not cover goes into the
+card (or `scripts/design/rules.mjs`) in this change.
 
 ## 8. Walk the flow
 

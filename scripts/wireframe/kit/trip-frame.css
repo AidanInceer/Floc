@@ -8,19 +8,19 @@
 .proto-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; padding: 9px 20px; background: var(--ink); color: var(--paper); font-size: 13px; }
 .proto-bar b { font-family: var(--display); font-weight: 600; font-size: 15px; }
 .proto-bar .idea { opacity: 0.8; flex: 1 1 320px; max-width: 78ch; }
-.proto-bar .knob { display: flex; align-items: center; gap: 2px; padding: 3px; border-radius: 999px; background: color-mix(in srgb, var(--paper) 14%, transparent); }
+.proto-bar .knob { display: flex; align-items: center; gap: 2px; padding: 3px; border-radius: var(--radius-pill); background: color-mix(in srgb, var(--paper) 14%, transparent); }
 .proto-bar .knob span { padding: 0 6px 0 9px; font-family: var(--type); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.7; }
-.proto-bar .knob button { padding: 4px 10px; border-radius: 999px; font-family: var(--type); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--paper); opacity: 0.65; }
+.proto-bar .knob button { padding: 4px 10px; border-radius: var(--radius-pill); font-family: var(--type); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--paper); opacity: 0.65; }
 .proto-bar .knob button[aria-pressed="true"] { background: var(--paper); color: var(--ink); opacity: 1; }
 
 .tf-bar { display: flex; justify-content: center; padding: 14px 16px 4px; }
 .tf-beads { display: flex; align-items: center; gap: 8px; }
-.tf-bead { display: flex; align-items: center; gap: 2px; height: 44px; padding: 0 6px; border-radius: 999px; background: var(--sheet); border: 1px solid var(--rule); box-shadow: var(--shadow-sm); }
+.tf-bead { display: flex; align-items: center; gap: 2px; height: 44px; padding: 0 6px; border-radius: var(--radius-pill); background: var(--sheet); border: 1px solid var(--rule); box-shadow: var(--shadow-sm); }
 .tf-word { display: flex; align-items: center; gap: 7px; padding: 0 12px 0 10px; font-family: var(--display); font-weight: 600; font-size: 20px; letter-spacing: -0.03em; }
 .tf-word i { color: var(--pen); font-style: normal; }
 .tf-word svg { width: 22px; height: 17px; fill: none; stroke: var(--pen); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
-.tf-places a { display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 14px 0 4px; border-radius: 999px; font-size: 13.5px; color: var(--ink-2); text-decoration: none; }
-.tf-gl { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 999px; color: var(--ink-3); }
+.tf-places a { display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 14px 0 4px; border-radius: var(--radius-pill); font-size: 13.5px; color: var(--ink-2); text-decoration: none; }
+.tf-gl { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: var(--radius-pill); color: var(--ink-3); }
 .tf-places a[aria-current] { color: var(--ink); font-weight: 500; }
 .tf-places a[aria-current] .tf-gl { background: var(--pen-2); color: var(--pen-deep); }
 .tf-count { font-family: var(--type); font-size: 11px; color: var(--ink-3); }
@@ -28,7 +28,7 @@
 .tf-you .avatar { width: 32px; height: 32px; font-size: 13px; }
 .tf-tabs { display: flex; justify-content: center; gap: 2px; padding: 8px 16px 0; border-bottom: 1px solid var(--rule); }
 .tf-tabs a { display: flex; align-items: center; gap: 7px; padding: 6px 12px 10px; font-size: 13.5px; color: var(--ink-2); text-decoration: none; }
-.tf-tabs .tf-gl { width: 24px; height: 24px; border-radius: 8px; }
+.tf-tabs .tf-gl { width: 24px; height: 24px; border-radius: var(--radius-sm); }
 .tf-tabs a[aria-current] { color: var(--ink); font-weight: 500; }
 .tf-tabs a[aria-current] .tf-gl { background: var(--pen-2); color: var(--pen-deep); }
 
@@ -39,15 +39,15 @@
 .btn-primary:hover { color: var(--sheet); border-color: var(--pen-deep); }
 .btn-ghost { border-color: transparent; background: none; }
 .btn-quiet { padding: 4px 12px; }
-.iconbtn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 999px; color: var(--ink-2); border: 1px solid transparent; }
+.iconbtn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: var(--radius-pill); color: var(--ink-2); border: 1px solid transparent; }
 .iconbtn:hover { background: var(--sheet-3); color: var(--ink); }
 .iconbtn.edge { border-color: var(--rule-2); background: var(--sheet); }
 .iconbtn[disabled] { opacity: 0.4; pointer-events: none; }
 
 .surface { background: var(--sheet); border: 1px solid var(--rule); border-radius: 16px; box-shadow: var(--shadow); }
 
-.seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--sheet-3); }
-.seg button { display: inline-flex; align-items: center; gap: 7px; padding: 5px 14px; border-radius: 999px; font-size: 13px; color: var(--ink-2); white-space: nowrap; }
+.seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: var(--radius-pill); background: var(--sheet-3); }
+.seg button { display: inline-flex; align-items: center; gap: 7px; padding: 5px 14px; border-radius: var(--radius-pill); font-size: 13px; color: var(--ink-2); white-space: nowrap; }
 .seg button[aria-pressed="true"] { background: var(--sheet); color: var(--ink); box-shadow: var(--shadow-sm); }
 
 .menu-wrap { position: relative; }
@@ -74,7 +74,7 @@ dialog.sheet.side { margin: 0 0 0 auto; height: 100dvh; max-height: 100dvh; widt
 .key { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--ink-2); white-space: nowrap; }
 .key i { width: 12px; height: 12px; border-radius: 4px; border: 1px solid var(--rule-2); }
 .links { display: flex; flex-wrap: wrap; gap: 6px; }
-.toast { position: fixed; left: 50%; bottom: 64px; z-index: 900; transform: translateX(-50%); padding: 8px 16px; border-radius: 999px; background: var(--ink); color: var(--paper); font-size: 13px; box-shadow: var(--shadow-lift); }
+.toast { position: fixed; left: 50%; bottom: 64px; z-index: 900; transform: translateX(-50%); padding: 8px 16px; border-radius: var(--radius-pill); background: var(--ink); color: var(--paper); font-size: 13px; box-shadow: var(--shadow-lift); }
 
 @media (max-width: 700px) {
   .proto-bar { padding: 8px 14px; }

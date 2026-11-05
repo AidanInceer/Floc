@@ -19,6 +19,10 @@ cannot judge: an unexpected diff, the commit message, and the issue number.
 
 ## 1. Preflight
 
+**UI in the diff** (components, routes, CSS, phone screens) and no
+`floc:design-review` run on it this session → run it now with screenshots of
+the changed screens, and fix its findings before you land.
+
 Dev servers **stay up** — verify builds into `.next-verify`, never the `.next`
 that `next dev` owns.
 

@@ -13,6 +13,13 @@ describe("pageCss", () => {
     expect(pageCss("dark")).toContain("--tone-yellow: #4a4230;");
   });
 
+  it("declares the house radii, which the editor and globe stylesheets read", () => {
+    const css = pageCss("light");
+    expect(css).toContain("--radius-sm: 8px;");
+    expect(css).toContain("--radius-md: 12px;");
+    expect(css).toContain("--radius-pill: 999px;");
+  });
+
   it("names the font files it is given, and none it is not", () => {
     expect(pageCss("light", { sans: "file:///s.ttf" })).toContain('@font-face { font-family: "Instrument Sans"; font-weight: 400; src: url("file:///s.ttf"); }');
     expect(pageCss("light")).not.toContain("@font-face");

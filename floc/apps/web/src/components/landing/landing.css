@@ -23,7 +23,7 @@
     top: -12px;
     width: 22px;
     height: 22px;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background: var(--paper);
   }
   .deck-perf::before,

@@ -96,7 +96,7 @@ export function PackingSection<
             padding: cubes ? space.md : 0,
             paddingTop: space.sm,
             backgroundColor: cubes ? c["sheet-2"] : "transparent",
-            borderRadius: cubes ? radius.md : 0,
+            borderRadius: cubes ? radius.sm : 0,
             borderWidth: cubes ? StyleSheet.hairlineWidth : 0,
             borderColor: c.rule,
           }}

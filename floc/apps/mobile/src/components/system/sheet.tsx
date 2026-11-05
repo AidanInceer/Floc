@@ -53,8 +53,8 @@ export function Sheet({
         <View
           style={{
             backgroundColor: c.sheet,
-            borderTopLeftRadius: radius.lg,
-            borderTopRightRadius: radius.lg,
+            borderTopLeftRadius: radius.md,
+            borderTopRightRadius: radius.md,
             paddingTop: space.md,
             // Why: the gesture bar sits over the last row of a sheet that ends at
             // the screen edge — the footer buttons were cut in half.

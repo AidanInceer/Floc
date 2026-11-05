@@ -46,7 +46,7 @@ export function AppBand() {
               <Store name="App Store" />
               <Store name="Google Play" />
             </div>
-            <div className="mx-auto mt-7 flex w-fit items-start gap-3 rounded-lg border border-rule bg-sheet px-[18px] py-4 text-sm text-ink-soft">
+            <div className="mx-auto mt-7 flex w-fit items-start gap-3 rounded-md border border-rule bg-sheet px-[18px] py-4 text-sm text-ink-soft">
               <Glyph name="link" className="mt-[3px] size-[14px] shrink-0" />
               <p>
                 <b className="text-ink">Got a trip link?</b> Preview it before signing up.

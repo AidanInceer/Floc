@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { darkTokens, fontStacks, lightTokens } from "../floc/packages/floc-core/src/design/tokens.ts";
+import { darkTokens, fontStacks, lightTokens, radii } from "../floc/packages/floc-core/src/design/tokens.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "..", "floc", "wireframe");
@@ -16,7 +16,9 @@ const declare = (tokens) => Object.entries(tokens).map(([name, value]) => `  --$
 // Why: the web's font tokens lead with next/font's generated family, which a static page never has.
 const faces = `  --font-display-face: "${fontStacks.display[0]}";\n  --font-body-face: "${fontStacks.sans[0]}";\n  --font-data-face: "${fontStacks.type[0]}";`;
 
-const tokensCss = () => `:root {\n${faces}\n${declare(lightTokens)}\n}\n:root[data-theme="dark"] {\n${declare(darkTokens)}\n}\n`;
+const radiusCss = Object.entries(radii).map(([name, px]) => `  --radius-${name}: ${px}px;`).join("\n");
+
+const tokensCss = () => `:root {\n${faces}\n${declare(lightTokens)}\n${radiusCss}\n}\n:root[data-theme="dark"] {\n${declare(darkTokens)}\n}\n`;
 
 function inside(base, relative) {
   const target = path.resolve(base, "." + relative);

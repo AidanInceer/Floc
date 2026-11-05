@@ -49,14 +49,14 @@ function LegRow({ leg, onOpen }: { leg: Leg<Named>; onOpen: (date: string) => vo
         flexDirection: "row",
         gap: space.md,
         padding: space.md,
-        borderRadius: radius.md,
+        borderRadius: radius.sm,
         backgroundColor: pressed ? c["sheet-2"] : c.sheet,
         borderWidth: 1,
         borderColor: c.rule,
       })}
     >
       {/* Same ring and number as the map's pin — one stop drawn twice. */}
-      <View style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: c.pen, alignItems: "center", justifyContent: "center", marginTop: 2 }}>
+      <View style={{ width: 24, height: 24, borderRadius: radius.pill, borderWidth: 2, borderColor: c.pen, alignItems: "center", justifyContent: "center", marginTop: 2 }}>
         <Text style={{ color: c.pen, fontFamily: fonts.typeBold, fontSize: 11 }}>{leg.no}</Text>
       </View>
       <View style={{ flex: 1, gap: 2 }}>

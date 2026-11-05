@@ -58,7 +58,7 @@ export function OverviewCard({
       style={{
         gap: space.xs,
         padding: space.lg,
-        borderRadius: radius.lg,
+        borderRadius: radius.md,
         backgroundColor: c.sheet,
         borderWidth: 1,
         borderColor: c.rule,

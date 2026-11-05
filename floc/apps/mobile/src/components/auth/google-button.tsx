@@ -38,7 +38,7 @@ export function GoogleButton({
         backgroundColor: "#ffffff",
         borderWidth: 1,
         borderColor: "#747775",
-        borderRadius: radius.md,
+        borderRadius: radius.sm,
         paddingVertical: space.md,
         paddingHorizontal: space.lg,
         flexDirection: "row",

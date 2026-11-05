@@ -6,7 +6,7 @@ import { View } from "react-native";
 
 import { useTheme } from "@/components/system/theme";
 import { Body } from "@/components/system/ui";
-import { space } from "@/lib/theme";
+import { radius, space } from "@/lib/theme";
 
 export function RouteLegend({ routes, viewerId, now }: { routes: GroupRoute[]; viewerId: string | undefined; now: number }) {
   const { c } = useTheme();
@@ -15,7 +15,7 @@ export function RouteLegend({ routes, viewerId, now }: { routes: GroupRoute[]; v
     <View style={{ gap: space.xs }}>
       {routes.map((r) => (
         <View key={r.userId} style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
-          <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: c[`${r.tone as WhoTone}-ink`] }} />
+          <View style={{ width: 10, height: 10, borderRadius: radius.pill, backgroundColor: c[`${r.tone as WhoTone}-ink`] }} />
           <Body>{r.userId === viewerId ? "You" : r.name}</Body>
           {r.live ? <Body tone="ink-3">{positionAge(r.live.recordedAt, now)}</Body> : null}
         </View>

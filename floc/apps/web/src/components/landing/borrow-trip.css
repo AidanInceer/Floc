@@ -68,20 +68,28 @@
     text-align: left;
     font-size: 11.5px;
     background: var(--sheet);
-    border: 1.5px solid transparent;
-    border-radius: 18px;
-    box-shadow: var(--shadow-sm);
-    transition: border-color 0.18s var(--ease), box-shadow 0.18s var(--ease), scale 0.3s var(--ease);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    transition: border-color 0.22s var(--ease), box-shadow 0.22s var(--ease), transform 0.22s var(--ease);
   }
-  .borrow-chip:hover { border-color: var(--pastel-blue-edge); }
-  .borrow-chip[aria-current="true"] { border-color: var(--pen); box-shadow: var(--shadow-lift); scale: 1.05; }
+  /* Why: hover only where a pointer can hover; on a phone a tap would leave the tile lifted. */
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .borrow-tile:hover :is(.borrow-chip, .borrow-deeper):not(:disabled) { transform: translateY(-1.5px); }
+  }
+  @media (hover: hover) {
+    .borrow-tile:hover .borrow-chip:not(:disabled) { box-shadow: var(--shadow-sm); }
+    .borrow-tile:hover .borrow-deeper { opacity: 1; }
+  }
+  .borrow-chip[aria-current="true"] { border-color: var(--ink); box-shadow: var(--shadow-sm); }
   .borrow-chip:disabled { border-color: var(--rule); box-shadow: none; }
   .borrow-chip-title {
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 600;
     line-height: 1.15;
     letter-spacing: -0.02em;
+    text-wrap: balance;
   }
+  .borrow-meta > span { white-space: nowrap; }
   /* A calm reel: the old words leave below as the new ones arrive from above, on the same slow curve. */
   .borrow-face {
     display: flex;
@@ -89,9 +97,19 @@
     align-items: flex-start;
     gap: 4px;
     width: 100%;
-    padding-right: 38px;
+    padding-right: 28px;
   }
-  .borrow-place { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .borrow-place {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    font-size: 10.5px;
+    letter-spacing: 0.02em;
+    color: var(--ink-3);
+  }
+  .borrow-place-word { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .borrow-dot { flex: none; width: 7px; height: 7px; border-radius: var(--radius-pill); }
   .borrow-face[data-kind="tick"] { opacity: 0.55; animation: borrow-reel 0.34s var(--ease) both; }
   .borrow-face[data-kind="land"] { animation: borrow-reel 0.6s var(--ease) both; }
   .borrow-face[data-kind="in"] { animation: borrow-reel 0.5s var(--ease) both; }
@@ -114,23 +132,24 @@
 
   .borrow-deeper {
     position: absolute;
-    right: 9px;
-    bottom: 9px;
+    top: 7px;
+    right: 7px;
     display: grid;
     place-items: center;
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     color: var(--ink-3);
-    background: var(--sheet-2);
     border: 1px solid transparent;
-    border-radius: 999px;
-    transition: border-color 0.18s var(--ease), color 0.18s var(--ease), background-color 0.18s var(--ease), translate 0.3s var(--ease), opacity 0.2s var(--ease);
+    border-radius: var(--radius-sm);
+    opacity: 0;
+    transition: border-color 0.22s var(--ease), color 0.22s var(--ease), background-color 0.22s var(--ease), transform 0.22s var(--ease), opacity 0.22s var(--ease);
   }
-  /* The lit tile is drawn 5% larger, so its button steps out with the corner. */
-  .borrow-chip[aria-current="true"] + .borrow-deeper { translate: 5px 2px; }
+  /* The corner button shows on the lit tile and the one under the pointer, so the other tiles are only words. */
+  .borrow-chip[aria-current="true"] + .borrow-deeper,
+  .borrow-deeper:focus-visible { opacity: 1; }
   .borrow-tile .borrow-deeper:hover,
-  .borrow-tile .borrow-deeper:focus-visible { color: var(--ink); background: var(--sheet-3); border-color: var(--rule-2); }
-  .borrow-deeper:disabled { opacity: 0; }
+  .borrow-tile .borrow-deeper:focus-visible { color: var(--pen); background: var(--pen-2); border-color: var(--pen-edge); }
+  .borrow-tile .borrow-deeper:disabled { opacity: 0; }
 
   /* The globe's box: a circle that opens into a wide rounded panel. The canvas fills it. */
   .borrow-globe-box {
@@ -169,7 +188,7 @@
     color: var(--ink);
     background: var(--sheet);
     border: 1px solid var(--rule-2);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     box-shadow: var(--shadow-sm);
     opacity: 0;
     pointer-events: none;
@@ -206,7 +225,7 @@
     white-space: nowrap;
     color: var(--pen);
     background: var(--sheet);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     box-shadow: 0 0 0 1.5px var(--pen);
   }
   .borrow-pin[aria-current="true"] b { color: var(--sheet); background: var(--pen); box-shadow: 0 0 0 2.5px var(--sheet); }
@@ -221,7 +240,7 @@
     color: var(--ink);
     background: var(--sheet);
     border: 1px solid var(--rule-2);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     box-shadow: var(--shadow-sm);
     opacity: 0;
     transition: opacity 0.3s var(--ease);
@@ -283,7 +302,7 @@
     height: 38px;
     color: var(--ink);
     border: 1px solid var(--rule-2);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     transition: border-color 0.18s var(--ease), color 0.18s var(--ease), opacity 0.18s var(--ease);
   }
   .borrow-pager button:hover:not(:disabled) { color: var(--pen); border-color: var(--pen); }
@@ -307,7 +326,7 @@
     font-size: 13.5px;
     text-align: left;
     border: 1px solid transparent;
-    border-radius: 12px;
+    border-radius: var(--radius-md);
     transition: background-color 0.18s var(--ease), border-color 0.18s var(--ease);
   }
   .borrow-steps button:hover { border-color: var(--pastel-blue-edge); }
@@ -321,7 +340,7 @@
     font-weight: 500;
     color: var(--pen);
     background: var(--sheet);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     box-shadow: inset 0 0 0 1.5px var(--pen);
   }
   .borrow-steps button[aria-current="true"] b { color: var(--sheet); background: var(--pen); }
@@ -370,12 +389,17 @@
     .borrow-tile { height: calc(116px * (1 - var(--deep))); opacity: calc(1 - var(--deep) * 3); }
     .borrow-stage[data-deep] .borrow-tile { overflow: hidden; }
     /* Why: on a phone the nights and price line wraps too, so the tile is taller. */
-    .borrow-chip { width: 100%; height: 116px; padding: 10px 12px 11px; border-radius: 16px; font-size: 10px; }
+    .borrow-chip { width: 100%; height: 116px; padding: 6px 12px 10px; justify-content: flex-start; font-size: 10px; }
+    /* Why: only the place line shares its row with the corner button, so only it stops short; the title and price use the full width. */
+    .borrow-face { padding-right: 0; }
+    .borrow-place { min-height: 28px; padding-right: 30px; }
+    .borrow-place-word { white-space: normal; }
     .borrow-chip-title { font-size: 14.5px; }
-    .borrow-chip[aria-current="true"] { scale: 1; }
-    .borrow-chip[aria-current="true"] + .borrow-deeper { translate: none; }
-    .borrow-face[data-kind="out"] { left: 12px; right: 12px; }
-    .borrow-deeper { right: 7px; bottom: 7px; width: 36px; height: 36px; }
+    .borrow-face[data-kind="out"] { left: 12px; right: 12px; top: 6px; translate: none; }
+    /* Why: a phone has no hover, so every tile shows its corner button. */
+    .borrow-deeper { top: 4px; right: 4px; width: 32px; height: 32px; opacity: 0.7; }
+    .borrow-chip[aria-current="true"] + .borrow-deeper:not(:disabled) { opacity: 1; }
+    .borrow-deeper::before { content: ""; position: absolute; inset: -6px; }
     .borrow-globe-box {
       position: relative;
       left: auto;
@@ -416,6 +440,7 @@
     .borrow-stage[data-on] .borrow-panel { animation: none; }
     /* Why: with no animation the old words never report that they have gone. */
     .borrow-face[data-kind="out"] { display: none; }
-    .borrow-chip { transition: none; }
+    .borrow-chip,
+    .borrow-deeper { transition: none; }
   }
 }

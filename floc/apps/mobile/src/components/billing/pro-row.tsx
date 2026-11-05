@@ -26,7 +26,7 @@ export function ProRow({ status, onPress }: { status: BillingStatus | undefined;
         backgroundColor: c.pro,
         borderColor: c["pro-edge"],
         borderWidth: StyleSheet.hairlineWidth,
-        borderRadius: radius.lg,
+        borderRadius: radius.md,
         opacity: pressed ? 0.8 : 1,
       })}
     >

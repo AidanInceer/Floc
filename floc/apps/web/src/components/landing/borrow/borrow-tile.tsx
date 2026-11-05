@@ -6,7 +6,7 @@ import { cx } from "@/components/system/ui";
 import { nightsWords, placeWords, type BorrowCard as Card } from "@/lib/landing/borrow";
 
 import { Glyph } from "@/components/system/icons/landing";
-import { tone } from "./tones";
+import { toneDot } from "./tones";
 import type { Face } from "./use-borrow-hand";
 
 type Shown = { card: Card; face: Face };
@@ -16,10 +16,13 @@ function FaceView({ shown, onGone }: { shown: Shown; onGone?: () => void }) {
   const { card, face } = shown;
   return (
     <span className="borrow-face" data-kind={onGone ? "out" : face.kind} data-dim={onGone && face.kind === "tick" ? "" : undefined} onAnimationEnd={onGone}>
-      <span className={cx("typed borrow-place rounded-md px-[7px] py-px text-[10px]", tone(card.region))}>{placeWords(card.place)}</span>
+      <span className="typed borrow-place">
+        <i className={cx("borrow-dot", toneDot(card.region))} aria-hidden="true" />
+        <span className="borrow-place-word">{placeWords(card.place)}</span>
+      </span>
       <b className="borrow-chip-title">{card.title}</b>
-      <span className="nums text-ink-faint">
-        {nightsWords(card.nights)} · from {card.price}
+      <span className="borrow-meta nums text-ink-faint">
+        <span>{nightsWords(card.nights)} ·</span> <span>from {card.price}</span>
       </span>
     </span>
   );
@@ -37,7 +40,7 @@ function Reel({ card, face }: { card: Card; face: Face }) {
   );
 }
 
-/** One of the six trips beside the globe. The round button opens the globe on the trip's route. */
+/** One of the six trips beside the globe. The corner button opens the globe on the trip's route. */
 export function BorrowTile({ card, face, current, on }: { card: Card; face: Face; current: boolean; on: Actions }) {
   const rolling = face.kind === "tick";
   return (

@@ -77,7 +77,7 @@ export function IdeasPanel({
                 style={{
                   gap: space.sm,
                   backgroundColor: c["sheet-2"],
-                  borderRadius: radius.md,
+                  borderRadius: radius.sm,
                   padding: space.md,
                   borderWidth: StyleSheet.hairlineWidth,
                   borderColor: c.rule,

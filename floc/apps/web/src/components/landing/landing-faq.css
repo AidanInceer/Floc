@@ -23,7 +23,7 @@
   .landing-faq-tile[data-tone="green"] { background: var(--pastel-green); color: var(--pastel-green-ink); border-color: var(--pastel-green-edge); }
   .landing-faq-tile[data-tone="pro"] { background: var(--pro); color: var(--pro-ink); border-color: var(--pro-edge); }
   .landing-faq-plus {
-    display: grid; place-items: center; flex-shrink: 0; width: 34px; height: 34px; border: 1px solid var(--rule-2); border-radius: 999px;
+    display: grid; place-items: center; flex-shrink: 0; width: 34px; height: 34px; border: 1px solid var(--rule-2); border-radius: var(--radius-pill);
     color: var(--pen); transition: transform 0.26s var(--ease), background-color 0.2s, border-color 0.2s;
   }
   .landing-faq-row[open] .landing-faq-plus { transform: rotate(45deg); background: var(--pen); border-color: var(--pen); color: var(--paper); }

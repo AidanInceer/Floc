@@ -37,6 +37,7 @@ Give each point one cause:
 | **Unsaid** | Nothing written covered it; the builder guessed. | Add a value to the mission page, or an ADR. |
 | **Wrong call** | A decision was made and followed, but it is wrong. | New ADR that replaces the old one. |
 | **Changed mind** | It was right then; the user wants something else now. | New ADR if it outlives the ticket. |
+| **Visual slip** | A look or layout correction: radius, shadow, hover, alignment, clipping, colour, wording. | A rule in `scripts/design/rules.mjs` or the layout check if a machine can see it; otherwise a line on the [design card](../../../../.claude/rules/design.md). Never only in memory. |
 
 Only ask when the cause or the wanted result is unclear. Use the
 `/floc:grill` question shape, 2–4 questions per round.
@@ -62,8 +63,9 @@ Then run `/floc:prioritise-tickets` so they enter the stack in the right phase.
 ## 5. Fix the source
 
 For every cause except **Bug**, edit
-[mission and values](../../../../docs/foundation/mission.html) or the
-[decision log](../../../../docs/foundation/decisions.html) now, as the table says.
+[mission and values](../../../../docs/foundation/mission.html), the
+[decision log](../../../../docs/foundation/decisions.html), the design card or
+the design check now, as the table says.
 Show the user the new rule or record in one line each.
 
 ## Report

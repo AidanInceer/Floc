@@ -43,7 +43,7 @@ export function ProButton({
         alignItems: "center",
         paddingVertical: space.md,
         paddingHorizontal: space.sm,
-        borderRadius: radius.md,
+        borderRadius: radius.sm,
         backgroundColor: lead ? c["pro-ink"] : c["pro-2"],
         borderWidth: StyleSheet.hairlineWidth,
         borderColor: lead ? c["pro-ink"] : c["pro-edge"],

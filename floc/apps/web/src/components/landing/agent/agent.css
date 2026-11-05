@@ -85,7 +85,7 @@
   }
   .agent-ask-text.is-empty::before { position: absolute; left: 0; top: 0.22em; margin: 0; }
   @keyframes agent-blink { 50% { opacity: 0; } }
-  .agent-working::before { content: ""; width: 7px; height: 7px; border-radius: 999px; background: var(--pen); animation: agent-pulse 1s var(--ease) infinite alternate; }
+  .agent-working::before { content: ""; width: 7px; height: 7px; border-radius: var(--radius-pill); background: var(--pen); animation: agent-pulse 1s var(--ease) infinite alternate; }
   @keyframes agent-pulse { to { opacity: 0.25; transform: scale(0.7); } }
 
   .agent-send { background: var(--sheet-2); color: var(--ink-3); transition: background-color 0.22s var(--ease), color 0.22s var(--ease), transform 0.22s var(--ease); }
@@ -159,7 +159,7 @@
   .agent-lane-line { clip-path: inset(0 100% 0 0); }
   .agent-lane.is-run .agent-lane-line { clip-path: inset(0); transition: clip-path var(--ms) var(--run); }
   .agent-lane-dot { transform: translateX(-100%); opacity: 0; }
-  .agent-lane-dot::after { content: ""; position: absolute; right: -4.5px; top: 15px; width: 9px; height: 9px; border-radius: 999px; background: var(--pen); }
+  .agent-lane-dot::after { content: ""; position: absolute; right: -4.5px; top: 15px; width: 9px; height: 9px; border-radius: var(--radius-pill); background: var(--pen); }
   .agent-lane.is-run .agent-lane-dot { opacity: 1; transform: none; transition: transform var(--ms) var(--run), opacity 0.2s; }
   .agent-lane.is-done .agent-lane-dot { opacity: 0; transition: transform var(--ms) var(--run), opacity 0.3s; }
   .agent-lane-via { opacity: 0; }

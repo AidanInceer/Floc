@@ -84,7 +84,7 @@ export function ProfileFace({
         backgroundColor: c.sheet,
         borderColor: c.rule,
         borderWidth: StyleSheet.hairlineWidth,
-        borderRadius: radius.lg,
+        borderRadius: radius.md,
         padding: space.lg,
         gap: space.md,
       }}

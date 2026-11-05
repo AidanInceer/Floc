@@ -204,6 +204,9 @@ export const darkTokens: Readonly<Partial<Record<TokenName, TokenValue>>> = {
   vignette: "rgb(255 255 255 / 0.05)",
 };
 
+// Why: three radii, nothing between — web declares them in globals.css @theme, the phone and the wireframe kit read them here.
+export const radii = { sm: 8, md: 12, pill: 999 } as const;
+
 /**
  * The face names alone, for a platform that loads fonts by name rather than by
  * a CSS stack. The web keeps its `var(--font-*-face)` stacks above, because

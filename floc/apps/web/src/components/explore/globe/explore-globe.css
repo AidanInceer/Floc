@@ -85,7 +85,7 @@
   gap: 7px;
   padding: 7px 12px 7px 10px;
   border: 1px solid var(--rule-2);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--sheet);
   color: var(--ink-2);
   font-size: 12.5px;

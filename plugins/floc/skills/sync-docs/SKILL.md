@@ -34,7 +34,7 @@ Include untracked files. If the user named a commit range, diff that instead.
 | A tRPC procedure | [API map](../../../../docs/engineering/api.html) |
 | An env var, `railway.json`, a production fix | [runbook](../../../../docs/engineering/operations.html) |
 | `.github/workflows/`, `scripts/verify.sh` | [CI](../../../../docs/engineering/ci.html) |
-| Workflow, a skill or agent | [lifecycle](../../../../docs/process/lifecycle.html) and the skill table in `AGENTS.md` |
+| Workflow, a skill or agent | [lifecycle](../../../../docs/process/lifecycle.html) and the Agent skills section in `AGENTS.md` |
 | The web/app split, `parity.json` | [multi-platform](../../../../docs/engineering/platforms.html) |
 | Notifications, reminders, the cron | [notifications](../../../../docs/product/notifications/index.html) |
 | A feature's behaviour or build (money maths, the notes socket, file storage, billing) | its folder, `docs/product/<feature>/` — the rules, *How it works*, and *Built on* |

@@ -68,9 +68,8 @@ export default async function FriendsPage() {
 
   return (
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
-      <div className="max-w-[41.25rem]">
-        <PageTitle>Friends</PageTitle>
-
+      <PageTitle>Friends</PageTitle>
+      <div className="mx-auto max-w-[41.25rem]">
         {/* Requests lead because they are the only thing here waiting on you; none, no strip. */}
         {requests > 0 ? (
           <section className="mt-6">

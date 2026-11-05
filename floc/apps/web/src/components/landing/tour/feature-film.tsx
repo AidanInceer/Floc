@@ -105,7 +105,7 @@ function SlideCard({ slide, index, physical, count, active, duplicate }: { slide
       className={cx("film-slide", TONE[slide.tone].slide, !active && "is-resting")}
     >
       <div className="film-text">
-        <span className="grid size-[38px] place-items-center rounded-[12px] bg-sheet/65">
+        <span className="grid size-[38px] place-items-center rounded-md bg-sheet/65">
           <Glyph name={slide.icon} className="size-[18px]" />
         </span>
         <h3 className="mt-[22px] text-[clamp(1.6rem,3vw,2.1rem)] leading-[1.05] tracking-[-0.03em] text-ink">{slide.title}</h3>
@@ -116,9 +116,9 @@ function SlideCard({ slide, index, physical, count, active, duplicate }: { slide
             {slide.proExtra}
           </p>
         ) : null}
-        <div className="film-was flex flex-col gap-1.5">
-          <span className="typed text-current opacity-85">Instead of</span>
-          <s className="text-md decoration-[1.5px]">&ldquo;{slide.before}&rdquo;</s>
+        <div className="film-was flex flex-col items-start gap-2">
+          <span className="typed text-current">Instead of</span>
+          <span className="max-w-full rounded-md rounded-bl-sm bg-sheet px-3.5 py-2 text-md text-balance text-ink">&ldquo;{slide.before}&rdquo;</span>
         </div>
       </div>
       <div className="film-shot" aria-hidden>
