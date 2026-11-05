@@ -34,7 +34,7 @@
   .landing-faq-row[open]::details-content { block-size: auto; }
 
   @media (max-width: 47.99rem) {
-    .landing-faq-wrap { grid-template-columns: minmax(0, 1fr); gap: 22px; padding: 44px 18px 52px; }
+    .landing-faq-wrap { grid-template-columns: minmax(0, 1fr); gap: 22px; padding: 44px 16px 52px; }
     .landing-faq-title { position: static; }
     .landing-faq-row > summary { gap: 12px; padding: 20px 0; font-size: 19px; }
     .landing-faq-tile { width: 30px; height: 30px; border-radius: 9px; }

@@ -1,6 +1,6 @@
 {
   "name": "floc-web",
-  "version": "0.203.5",
+  "version": "0.204.0",
   "private": true,
   "description": "Floc v1 — group travel planner. Next.js App Router + Turso (libSQL) + Drizzle + Better Auth.",
   "type": "module",

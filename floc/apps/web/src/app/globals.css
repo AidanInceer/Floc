@@ -149,6 +149,9 @@
   --pro-ink: var(--ink);
   --pro-ink-2: var(--ink-2);
   --pro-mark: var(--ink);
+  /* The Pro band's black ground and the text on it. Black in both themes, so it is not simply --ink. */
+  --slab: var(--ink);
+  --slab-ink: var(--paper);
 
   /* The lift of white inside the map frame, so pins near the border still
      separate from the tiles. A token because dark cannot afford the glare. */
@@ -282,6 +285,8 @@
   /* The white lift at the map's edge would be a glare here. */
   --vignette: rgb(255 255 255 / 0.05);
   --red-solid: #8f3a26;
+  --slab: #0b0b0d;
+  --slab-ink: var(--ink);
 }
 
 /* Expose the tokens to Tailwind: bg-sheet, text-ink-soft, text-pen, … */

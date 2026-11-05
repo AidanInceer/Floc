@@ -38,14 +38,16 @@ function ProPitch({ monthly, href }: { monthly: string | null; href: string }) {
 /** The sample trip planned in eleven tabs; each closes onto the job Pro does. Some of it is still coming, which the tag says once. */
 export function ProBand({ monthly, signedIn }: { monthly: string | null; signedIn: boolean }) {
   return (
-    <div>
-      <div className="grid justify-items-center text-center">
-        <ComingSoonTag />
-        <h2 className="band-title mt-3">How Pro helps at every stage.</h2>
+    <section className="pro-slab mt-24">
+      <div className="mx-auto w-full max-w-[84rem] px-4 sm:px-6">
+        <div className="grid justify-items-center text-center">
+          <ComingSoonTag />
+          <h2 className="band-title mt-3">How Pro helps at every stage.</h2>
+        </div>
+        <ProTour>
+          <ProPitch monthly={monthly} href={signedIn ? "/settings?section=billing" : "/signup"} />
+        </ProTour>
       </div>
-      <ProTour>
-        <ProPitch monthly={monthly} href={signedIn ? "/settings?section=billing" : "/signup"} />
-      </ProTour>
-    </div>
+    </section>
   );
 }
