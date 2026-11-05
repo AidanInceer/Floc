@@ -40,6 +40,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 
 - ✓ No emoji. Icons are line art: 14×14 `viewBox`, ~13px, `fill="none"`, stroke 1.15–1.25, `currentColor`. Web icons live in `components/system/icons/`.
 - A flight is an aeroplane, never a paper plane. Upload is the upload glyph, never a plus.
+- No small picture that needs a key to read (dots and hatched squares standing for days): it reads as noise. A glyph and words do the job.
 - If the drawing is clear, say nothing. No heading above a heading, no caption that decodes the design, no instruction, no text that repeats a control. Exceptions: what is missing, and status.
 - No tiny all-caps kicker above a heading. The mono label names a value; it never introduces a section.
 - Sentence case. British English. Real content, never lorem ipsum.
