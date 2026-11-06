@@ -22,7 +22,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - White surfaces (`--sheet`) on an off-white ground (`--paper`), split by hairlines (`--rule`). Depth comes from that, not elevation.
 - One blue, `--pen`, means "yours to do". Never spend it on decoration.
 - Four pastels mark feature areas: blue Where and Packing, yellow When and Notes, green Days and Tickets, red Money. A pastel is a wash, never a stripe down a card's edge.
-- Colour follows meaning and stays the same everywhere: an event's colour is its type (food, activity, transport); an Explore listing's colour is its region; a trip keeps one colour.
+- Colour follows meaning and stays the same everywhere: an event's colour is its type (food, activity, transport, and grey for other); an Explore listing's colour is its region; a trip keeps one colour.
 - Pro is ink — weight, not a hue. No gold, no Pro star on items or on the account pill.
 - Three faces: display (Bricolage Grotesque) for headings, sans (Instrument Sans) for prose and controls, mono (DM Mono) for every figure, date and label. Never money or dates in the display face.
 - Status always has a word. Never colour or an icon alone.

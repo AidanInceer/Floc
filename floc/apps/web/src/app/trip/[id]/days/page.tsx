@@ -36,7 +36,7 @@ import {
 import { EventFiles } from "@/components/documents/event-files";
 import type { FileChoice } from "@/components/documents/attach-existing";
 import { EventForm } from "@/components/days/event-form";
-import { Badge, ButtonLink, EmptyState, PageTitle, menuDangerItemClass } from "@/components/system/ui";
+import { ButtonLink, EmptyState, PageTitle, menuDangerItemClass } from "@/components/system/ui";
 import { appUrl } from "@/lib/env";
 import { mintCalendarToken } from "@/server/itinerary/calendar-link";
 import { EVENT_CATEGORIES } from "@floc/core/itinerary/event-categories";
@@ -255,7 +255,6 @@ function EventPanel({
   bookingPrefill: boolean;
 }) {
   const isTransport = event.type === "transport";
-  const category = EVENT_CATEGORIES[event.type];
   const flightLink =
     isTransport && event.transportType === "flight"
       ? eventFlightUrl({
@@ -267,26 +266,14 @@ function EventPanel({
       : null;
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        {/* Transport names its own kind — "ferry" says more than "transport"
-            and is still the category's word. */}
-        <Badge tone={category.tone}>
-          {isTransport ? (event.transportType ?? "transport") : category.label}
-        </Badge>
-        <form action={deleteEvent.bind(null, tripId, event.id)}>
-          <ConfirmSubmit message="Delete this event?" variant="ghost">
-            Delete event
-          </ConfirmSubmit>
-        </form>
-      </div>
-
-      {/* The facts edit in place and save on change (ticket 321) — no read
-          view, no Edit sheet. The title is the modal's heading. */}
+    <div>
+      {/* The facts edit in place and save on change (ticket 321). The form's head is
+          the block itself, so the type needs no badge of its own. */}
       <EventForm
         autosave
         action={submitEvent.bind(null, tripId)}
         searchPlaces={searchPlacesAction}
+        dateLabel={partOf(date, { weekday: "short", day: "numeric", month: "short" })}
         defaults={{
           dayId,
           eventId: event.id,
@@ -301,36 +288,44 @@ function EventPanel({
         }}
       />
 
-      {flightLink ? (
-        <a
-          href={flightLink}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-block text-sm font-medium text-pen underline underline-offset-2 transition-colors hover:bg-highlight-soft hover:text-pen-deep"
-        >
-          Search flights
-        </a>
-      ) : null}
+      <div className="space-y-4 px-5 pb-4 max-sm:px-4">
+        {flightLink ? (
+          <a
+            href={flightLink}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-block text-sm font-medium text-pen underline underline-offset-2 transition-colors hover:bg-highlight-soft hover:text-pen-deep"
+          >
+            Search flights
+          </a>
+        ) : null}
 
-      {filesEnabled ? (
-        <EventFiles
-          tripId={tripId}
-          dayEventId={event.id}
-          files={files}
-          loose={loose}
-          viewerId={viewerId}
-        />
-      ) : null}
+        {filesEnabled ? (
+          <EventFiles
+            tripId={tripId}
+            dayEventId={event.id}
+            files={files}
+            loose={loose}
+            viewerId={viewerId}
+          />
+        ) : null}
 
-      <div className="border-t border-rule pt-3">
-        <NoteThread
-          tripId={tripId}
-          scope="day_event"
-          scopeId={event.id}
-          notes={notes}
-          viewerId={viewerId}
-        />
+        <div className="border-t border-rule pt-3">
+          <NoteThread
+            tripId={tripId}
+            scope="day_event"
+            scopeId={event.id}
+            notes={notes}
+            viewerId={viewerId}
+          />
+        </div>
       </div>
+
+      <form action={deleteEvent.bind(null, tripId, event.id)} className="border-t border-rule px-2 py-1.5">
+        <ConfirmSubmit message="Delete this event?" variant="ghost" className={menuDangerItemClass}>
+          Delete event
+        </ConfirmSubmit>
+      </form>
     </div>
   );
 }
