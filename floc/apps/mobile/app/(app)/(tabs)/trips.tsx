@@ -21,7 +21,7 @@ import { Link, useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { FlatList, Pressable, RefreshControl, Text, View } from "react-native";
 
-import { FlockChevronGlyph, MoreGlyph, StarGlyph } from "@/components/system/glyphs";
+import { ChevronGlyph, MoreGlyph, StarGlyph } from "@/components/system/glyphs";
 import { InviteBanner } from "@/components/trip/invite-banner";
 import { TagPills } from "@/components/trip/tag-pills";
 import { useTheme } from "@/components/system/theme";
@@ -255,7 +255,7 @@ function TripListFooter({
               paddingVertical: space.sm,
             }}
           >
-            <FlockChevronGlyph color={c["ink-2"]} open={showPast} />
+            <ChevronGlyph color={c["ink-2"]} open={showPast} />
             <Figure tone="ink-2">{`Past trips · ${ended.length}`}</Figure>
           </Pressable>
           {showPast

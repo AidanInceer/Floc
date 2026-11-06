@@ -11,7 +11,7 @@ import { useState, type ReactNode } from "react";
 
 import { Avatar, Textarea, cx } from "@/components/system/ui";
 import { ReactionGlyph } from "@/components/system/icons/reaction";
-import { FlockChevron } from "@/components/system/flock-chevron";
+import { ChevronIcon } from "@/components/system/icons";
 import {
   ActionForm,
   ConfirmSubmit,
@@ -306,8 +306,8 @@ function Run({
             {collapsed
               ? `${count} ${count === 1 ? "reply" : "replies"}`
               : "Hide"}
-            <FlockChevron
-              size={9}
+            <ChevronIcon direction="down"
+              size={12}
               className={cx(
                 "transition-transform",
                 collapsed ? "rotate-0" : "rotate-180",
