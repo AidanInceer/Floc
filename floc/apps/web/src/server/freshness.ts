@@ -75,6 +75,7 @@ const PAGES: Pages = {
     { path: `/trip/${tripId}/files` },
     { path: `/trip/${tripId}/overview` },
     { path: `/trip/${tripId}/days` },
+    { path: `/trip/${tripId}/dates` },
   ],
   tripLinks: ({ tripId }) => [{ path: `/trip/${tripId}/days` }],
   thread: ({ tripId, scope }) => [{ path: threadPath(tripId, scope) }],

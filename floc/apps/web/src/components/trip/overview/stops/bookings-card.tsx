@@ -10,7 +10,8 @@ import { DocCategoryIcon } from "@/components/system/icons/doc-category";
 import { DocumentUpload } from "@/components/documents/document-upload";
 import { Menu } from "@/components/system/client-ui";
 import { OutIcon, UploadIcon } from "@/components/system/icons";
-import { menuItemClass } from "@/components/system/ui";
+import { cx, menuItemClass } from "@/components/system/ui";
+import { DOC_CATEGORY_CHIPS } from "@floc/core/documents/documents";
 import { StopNo, cityOf } from "./stop-parts";
 
 type Props = {
@@ -122,7 +123,7 @@ function Upload({ tripId, dayId, title, className, trigger, named }: { tripId: n
       tripId={tripId}
       scope="shared"
       dayId={dayId}
-      category={dayId ? "stay" : "other"}
+      category={dayId ? "hotel" : "other"}
       title={title}
       bareTrigger
       trigger={
@@ -141,7 +142,7 @@ function FileChip({ tripId, file }: { tripId: number; file: TripDocument }) {
     <Link
       href={`/trip/${tripId}/files`}
       title={file.name}
-      className="lift inline-flex max-w-[14rem] items-center gap-1.5 rounded-full border border-pastel-red-edge bg-pastel-red py-0.5 pl-2 pr-2.5 text-xs text-pastel-red-ink"
+      className={cx("lift inline-flex max-w-[14rem] items-center gap-1.5 rounded-full py-0.5 pl-2 pr-2.5 text-xs", DOC_CATEGORY_CHIPS[file.category])}
     >
       <DocCategoryIcon category={file.category} size={11} />
       <span className="truncate">{file.name}</span>

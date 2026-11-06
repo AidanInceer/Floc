@@ -13,13 +13,13 @@
  * are ordinary mistakes; `upload` answers with the sentence a form shows, and
  * null when the file landed.
  */
-import { DOC_CATEGORIES, MAX_DOCUMENT_BASE64_LENGTH } from "@floc/core/documents/documents";
+import { DOC_CATEGORY_INPUTS, MAX_DOCUMENT_BASE64_LENGTH, parseDocCategory } from "@floc/core/documents/documents";
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { z } from "zod";
 
 import { router, tripProcedure } from "../trpc";
 
-const category = z.enum(DOC_CATEGORIES);
+const category = z.enum(DOC_CATEGORY_INPUTS).transform(parseDocCategory);
 
 export const filesRouter = router({
   list: tripProcedure.query(({ ctx, input }) =>
@@ -44,6 +44,7 @@ export const filesRouter = router({
         shared: z.boolean(),
         /** Set when it was added from an event's modal (ticket 325). */
         dayEventId: z.number().int().positive().nullable().default(null),
+        dayId: z.number().int().positive().nullable().default(null),
       }),
     )
     .mutation(({ ctx, input }) => {

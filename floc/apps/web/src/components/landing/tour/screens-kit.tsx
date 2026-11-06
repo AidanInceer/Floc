@@ -74,7 +74,7 @@ export function PackingScreen() {
 
 const SHARED: { name: string; category: DocCategory; mime: string; meta: string }[] = [
   { name: "Flights LGW–PMO.pdf", category: "travel", mime: "application/pdf", meta: "Priya · 1.2 MB" },
-  { name: "Flat in Palermo.pdf", category: "stay", mime: "application/pdf", meta: "Sam · 840 KB" },
+  { name: "Flat in Palermo.pdf", category: "hotel", mime: "application/pdf", meta: "Sam · 840 KB" },
   { name: "Train to Taormina.pdf", category: "tickets", mime: "application/pdf", meta: "Jo · 320 KB" },
   { name: "Etna jeep tour.png", category: "tickets", mime: "image/png", meta: "Alex · 410 KB" },
 ];

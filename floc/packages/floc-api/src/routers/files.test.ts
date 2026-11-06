@@ -54,3 +54,13 @@ it("renames a file trimmed, and refuses a blank name before the port sees it (#3
   await expect(caller.rename({ tripId: 1, fileId: 4, name: "  " })).rejects.toMatchObject({ code: "BAD_REQUEST" });
   expect(renameFile).toHaveBeenCalledOnce();
 });
+
+it("reads the old stay category as hotel, for a phone build from before the rename", async () => {
+  const uploadFile = vi.fn().mockResolvedValue(null);
+  const caller = filesRouter.createCaller({
+    viewer: { id: "u1", name: "Ada", email: "ada@example.com", image: null },
+    port: { loadTrip: async () => ({ id: 1 }), uploadFile } as unknown as FlocPort,
+  });
+  await caller.upload({ tripId: 1, name: "flat.pdf", mimeType: "application/pdf", category: "stay", shared: true, contentBase64: "AAAA" });
+  expect(uploadFile).toHaveBeenCalledWith("u1", 1, expect.objectContaining({ category: "hotel" }));
+});

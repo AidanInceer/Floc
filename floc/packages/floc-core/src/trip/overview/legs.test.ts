@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { filesByCategory, hopLabel, transportModes, tripLegs, type LegFile } from "./legs";
+import { filesByCategory, hopLabel, hotelFile, transportModes, tripLegs, type LegFile } from "./legs";
 
 const day = (dayId: number, date: string, placeId: number | null, placeName: string | null = null) => ({
   dayId,
@@ -68,8 +68,8 @@ describe("tripLegs", () => {
     expect(legs[1].files).toEqual([tour]);
   });
 
-  it("names a stay file as the leg's stay, and none when there is none", () => {
-    const flat = file(1, "stay", 2);
+  it("names a hotel file as the leg's stay, and none when there is none", () => {
+    const flat = file(1, "hotel", 2);
     const { legs } = tripLegs({ days: lisbonThenLagos, modes: new Map(), files: [flat] });
 
     expect(legs[0].stay).toBe(flat);
@@ -93,6 +93,25 @@ describe("tripLegs", () => {
       legs: [],
       wholeTrip: [file(1, "admin")],
     });
+  });
+});
+
+describe("hotelFile", () => {
+  it("is the first hotel file on one of the days, by day or by event", () => {
+    const flat = file(1, "hotel", 2);
+    const byEvent = file(2, "hotel", null, 1);
+    const ids = new Set([1, 2]);
+    expect(hotelFile([file(3, "travel", 1), flat, byEvent], ids)).toBe(flat);
+    expect(hotelFile([byEvent], ids)).toBe(byEvent);
+  });
+
+  it("ignores a hotel file on another stop, and files of other kinds", () => {
+    expect(hotelFile([file(1, "hotel", 3), file(2, "tickets", 1)], new Set([1, 2]))).toBeNull();
+  });
+
+  it("takes every file when no days are given, for a list already cut to one stop", () => {
+    const flat = file(1, "hotel", 2);
+    expect(hotelFile([file(2, "other"), flat])).toBe(flat);
   });
 });
 

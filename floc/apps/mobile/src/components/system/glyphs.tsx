@@ -230,7 +230,17 @@ export function PlaneGlyph({ color }: { color: string }) {
   );
 }
 
+/** The bookmark that hangs from a stop with a hotel booking: 16 wide, 30 tall, notched at the foot. */
+export function RibbonGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={16} height={30} viewBox="0 0 16 30">
+      <Path d="M0 0h16v30l-8-6-8 6Z" fill={color} />
+    </Svg>
+  );
+}
+
 /** Stays — the web's Overview booking tile. */
+
 export function BedGlyph({ color }: { color: string }) {
   return (
     <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">

@@ -603,6 +603,8 @@ export type FileUpload = {
   // The event it lands on, when added from that event's modal (#325). Absent or null is the
   // ordinary upload: on the trip, nowhere in the itinerary.
   dayEventId?: number | null;
+  /** The day it lands on: a stop's first day, when a hotel booking is added from Dates. */
+  dayId?: number | null;
 };
 
 /**

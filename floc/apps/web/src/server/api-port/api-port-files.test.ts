@@ -67,6 +67,21 @@ describe("putting a file on a trip", () => {
     expect(files[0].uploaderName).toBe("Ada");
   });
 
+  it("files a hotel booking on a stop's day when the phone names one", async () => {
+    const refusal = await webPort.uploadFile(world.admin, world.ours.id, {
+      name: "flat.png",
+      mimeType: "image/png",
+      contentBase64: PNG_BASE64,
+      category: "hotel",
+      shared: true,
+      dayId: world.ours.dayId,
+    });
+    expect(refusal).toBeNull();
+
+    const [file] = await webPort.listFiles(world.admin, world.ours.id);
+    expect([file.category, file.dayId]).toEqual(["hotel", world.ours.dayId]);
+  });
+
   it("refuses a type that is not a PDF or a picture, in words", async () => {
     const refusal = await webPort.uploadFile(world.admin, world.ours.id, {
       name: "notes.txt",

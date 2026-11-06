@@ -28,19 +28,11 @@ export type DocumentRowData = {
   eventTitle?: string | null;
 };
 
-/** Red for a PDF, blue for an image — with the word, never the colour alone. */
+/** Grey, so it does not compete with the category colour beside it. */
 export function KindChip({ mimeType }: { mimeType: string }) {
-  const label = kindLabel(mimeType);
   return (
-    <span
-      className={cx(
-        "inline-flex w-10 shrink-0 justify-center rounded-full py-0.5 font-mono text-[10px]",
-        label === "PDF"
-          ? "bg-pastel-red text-pastel-red-ink"
-          : "bg-pastel-blue text-pastel-blue-ink",
-      )}
-    >
-      {label}
+    <span className="inline-flex w-10 shrink-0 justify-center rounded-full bg-sheet-3 py-0.5 font-mono text-[10px] text-ink-soft">
+      {kindLabel(mimeType)}
     </span>
   );
 }

@@ -11,6 +11,12 @@ import {
   PRO_TRIP_STORAGE_BYTES,
   tripStorageBytes,
   bytesMatchType,
+  DOC_CATEGORIES,
+  DOC_CATEGORY_CHIPS,
+  DOC_CATEGORY_LABELS,
+  DOC_CATEGORY_SKINS,
+  parseCategoryFilter,
+  parseDocCategory,
 } from "./documents";
 
 const bytes = (...parts: (number[] | string)[]) =>
@@ -145,5 +151,35 @@ describe("cleanFileName header safety", () => {
 
   it("strips the quote and backslash that would end the header value early", () => {
     expect(cleanFileName('in"voice\\x')).toBe("in voice x");
+  });
+});
+
+describe("file categories", () => {
+  it("files a hotel booking under Hotel", () => {
+    expect(DOC_CATEGORIES).toContain("hotel");
+    expect(DOC_CATEGORIES).not.toContain("stay");
+    expect(DOC_CATEGORY_LABELS.hotel).toBe("Hotel");
+  });
+
+  it("reads the old stay key as hotel, so a phone build from before the rename still files right", () => {
+    expect(parseDocCategory("stay")).toBe("hotel");
+    expect(parseDocCategory("hotel")).toBe("hotel");
+    expect(parseCategoryFilter("stay")).toBe("hotel");
+  });
+
+  it("still sends anything unknown to other, and a missing filter to all", () => {
+    expect(parseDocCategory("ferry")).toBe("other");
+    expect(parseCategoryFilter("ferry")).toBe("all");
+  });
+
+  it("gives each category one colour, the same on every surface: travel blue, hotel green, tickets yellow, admin red, other grey", () => {
+    expect(DOC_CATEGORY_SKINS).toEqual({
+      travel: "bg-pastel-blue text-pastel-blue-ink",
+      hotel: "bg-pastel-green text-pastel-green-ink",
+      tickets: "bg-pastel-yellow text-pastel-yellow-ink",
+      admin: "bg-pastel-red text-pastel-red-ink",
+      other: "bg-sheet-3 text-ink-soft",
+    });
+    for (const c of DOC_CATEGORIES) expect(DOC_CATEGORY_CHIPS[c]).toContain(DOC_CATEGORY_SKINS[c]);
   });
 });
