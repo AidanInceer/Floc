@@ -143,10 +143,10 @@
   brand.className = 'brand';
   brand.href = url('index.html');
   brand.innerHTML =
-    '<svg viewBox="0 0 26 20" width="25" height="20" aria-hidden="true" fill="none" ' +
-    'stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">' +
-    '<path d="M3 14 6.5 10.5 10 14"/><path d="M9.5 8.5 13 5 16.5 8.5"/>' +
-    '<path d="M16 14 19.5 10.5 23 14"/></svg>' +
+    '<svg viewBox="0 0 28 22" width="25" height="20" aria-hidden="true" fill="none" ' +
+    'stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M3.4 16.5 7 12.9 10.6 16.5"/><path d="M10.4 10 14 6.4 17.6 10"/>' +
+    '<path d="M17.4 16.5 21 12.9 24.6 16.5"/></svg>' +
     '<span class="brand-text"><b>floc<i>.</i></b><span>Documentation</span></span>';
   host.appendChild(brand);
 
@@ -157,7 +157,7 @@
   toggle.setAttribute('aria-controls', 'sidebar');
   toggle.innerHTML =
     '<svg viewBox="0 0 14 14" width="13" height="13" aria-hidden="true" fill="none" ' +
-    'stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">' +
+    'stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
     '<rect x="1.5" y="2" width="11" height="10" rx="1.6"/><path d="M5 2v10"/>' +
     '<path class="chev" d="M9.4 5.4 7.8 7l1.6 1.6"/></svg>';
   function markSidebar() {

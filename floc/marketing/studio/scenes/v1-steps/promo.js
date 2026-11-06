@@ -36,8 +36,8 @@ const caption = (parent, kicker, words) => {
 const s1 = scene(0, 3.5, 0.6);
 s1.node.append(el(`<div class="abs" style="left:0;right:0;top:700px;display:flex;justify-content:center">
   <span class="mark" style="font-size:210px">
-    <svg viewBox="0 0 26 20" width="260" height="200" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
-      <path pathLength="1" d="M3 14 6.5 10.5 10 14"/><path pathLength="1" d="M9.5 8.5 13 5 16.5 8.5"/><path pathLength="1" d="M16 14 19.5 10.5 23 14"/>
+    <svg viewBox="0 0 28 22" width="254" height="200" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path pathLength="1" d="M3.4 16.5 7 12.9 10.6 16.5"/><path pathLength="1" d="M10.4 10 14 6.4 17.6 10"/><path pathLength="1" d="M17.4 16.5 21 12.9 24.6 16.5"/>
     </svg>
     <span>${[..."floc"].map((c) => `<span class="l" style="display:inline-block">${c}</span>`).join("")}<span class="dot" style="transform-origin:50% 80%">.</span></span>
   </span></div>`));
@@ -232,7 +232,7 @@ s5.update = (lt) => {
 const s6 = scene(20.5, 23, 0.6);
 s6.node.append(el(`<div class="abs" style="left:0;right:0;top:700px;display:flex;justify-content:center">
   <span class="mark" style="font-size:190px">
-    <svg viewBox="0 0 26 20" width="236" height="182" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14 6.5 10.5 10 14"/><path d="M9.5 8.5 13 5 16.5 8.5"/><path d="M16 14 19.5 10.5 23 14"/></svg>
+    <svg viewBox="0 0 28 22" width="230" height="182" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 16.5 7 12.9 10.6 16.5"/><path d="M10.4 10 14 6.4 17.6 10"/><path d="M17.4 16.5 21 12.9 24.6 16.5"/></svg>
     <span>floc<span class="dot">.</span></span></span></div>`));
 const cta = el('<div class="cta">Start a trip — free</div>');
 const url = el(`<div class="url">${CTA_URL}</div>`);

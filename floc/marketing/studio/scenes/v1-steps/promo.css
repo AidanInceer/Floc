@@ -16,7 +16,7 @@ body { font-family: var(--sans); color: var(--ink); -webkit-font-smoothing: anti
 .caption em { font-style: normal; color: var(--pen); }
 .kicker { position: absolute; left: 80px; top: 232px; font-family: var(--type); font-size: 28px; letter-spacing: 0.04em; color: var(--ink-2); }
 
-.mark { display: inline-flex; align-items: center; gap: 22px; font-family: var(--display); font-weight: 600; letter-spacing: -0.04em; line-height: 1; color: var(--ink); }
+.mark { display: inline-flex; align-items: center; gap: 22px; font-family: var(--display); font-weight: 700; letter-spacing: -0.04em; line-height: 1; color: var(--ink); }
 .mark svg { color: var(--pen); overflow: visible; }
 .mark .dot { color: var(--pen); display: inline-block; }
 

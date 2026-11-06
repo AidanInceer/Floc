@@ -1,9 +1,9 @@
 /**
- * The wordmark, drawn natively (#no-ticket; the web's `wordmark.tsx`).
+ * Why: the wordmark, drawn natively (#no-ticket; the web's `wordmark.tsx`).
  *
  * THE SAME MARK, NOT A SIMILAR ONE. Three chevrons in a V — the flock, and the
  * "who's coming" of a trip — then the display face lowercase with the one pen
- * dot that carries through the product as "yours". Same 26×20 viewBox and the
+ * dot that carries through the product as "yours". Same 28×22 viewBox and the
  * same three paths as the browser draws, so the two surfaces cannot drift.
  *
  * IT IS THE BIGGEST THING ON THE SIGN-IN SCREEN, a third over the browser's
@@ -23,25 +23,25 @@ export function FlocWordmark() {
   const { c } = useTheme();
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
-      <Svg width={32} height={26} viewBox="0 0 26 20" fill="none">
+      <Svg width={33} height={26} viewBox="0 0 28 22" fill="none">
         <Path
-          d="M3 14 6.5 10.5 10 14"
+          d="M3.4 16.5 7 12.9 10.6 16.5"
           stroke={c.pen}
-          strokeWidth={1.2}
+          strokeWidth={2.5}
           strokeLinecap="round"
           strokeLinejoin="round"
         />
         <Path
-          d="M9.5 8.5 13 5 16.5 8.5"
+          d="M10.4 10 14 6.4 17.6 10"
           stroke={c.pen}
-          strokeWidth={1.2}
+          strokeWidth={2.5}
           strokeLinecap="round"
           strokeLinejoin="round"
         />
         <Path
-          d="M16 14 19.5 10.5 23 14"
+          d="M17.4 16.5 21 12.9 24.6 16.5"
           stroke={c.pen}
-          strokeWidth={1.2}
+          strokeWidth={2.5}
           strokeLinecap="round"
           strokeLinejoin="round"
         />

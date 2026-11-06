@@ -7,20 +7,20 @@
  */
 export function FlocWordmark() {
   return (
-    <span className="inline-flex items-center gap-1.5 font-display text-[15px] font-semibold leading-none tracking-tight text-ink sm:text-[22px]">
+    <span className="inline-flex items-center gap-1.5 font-display text-[15px] font-bold leading-none tracking-tight text-ink sm:text-[22px]">
       <svg
-        viewBox="0 0 26 20"
+        viewBox="0 0 28 22"
         aria-hidden="true"
         className="h-[14px] w-[18px] shrink-0 text-pen sm:h-5 sm:w-[25px]"
         fill="none"
         stroke="currentColor"
-        strokeWidth={1.2}
+        strokeWidth={2.5}
         strokeLinecap="round"
         strokeLinejoin="round"
       >
-        <path d="M3 14 6.5 10.5 10 14" />
-        <path d="M9.5 8.5 13 5 16.5 8.5" />
-        <path d="M16 14 19.5 10.5 23 14" />
+        <path d="M3.4 16.5 7 12.9 10.6 16.5" />
+        <path d="M10.4 10 14 6.4 17.6 10" />
+        <path d="M17.4 16.5 21 12.9 24.6 16.5" />
       </svg>
       <span data-fuse="word" className="-mb-1 -mr-px -mt-[3px] inline-flex pb-1 pr-px pt-[3px]">
         <span data-fuse-in>

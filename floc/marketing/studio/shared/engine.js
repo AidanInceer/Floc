@@ -17,8 +17,8 @@ const pose = (node, { o = 1, x = 0, y = 0, s = 1, r = 0 }) => { node.style.opaci
 const chip = (cls, letter) => `<div class="chip ${cls}">${letter}</div>`;
 const add = (parent, html) => { const n = el(html); parent.append(n); return n; };
 
-const CHEVRONS = '<path pathLength="1" d="M3 14 6.5 10.5 10 14"/><path pathLength="1" d="M9.5 8.5 13 5 16.5 8.5"/><path pathLength="1" d="M16 14 19.5 10.5 23 14"/>';
-const markHtml = (size, w, h) => `<span class="mark" style="font-size:${size}px"><svg viewBox="0 0 26 20" width="${w}" height="${h}" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">${CHEVRONS}</svg><span>floc<span class="dot">.</span></span></span>`;
+const CHEVRONS = '<path pathLength="1" d="M3.4 16.5 7 12.9 10.6 16.5"/><path pathLength="1" d="M10.4 10 14 6.4 17.6 10"/><path pathLength="1" d="M17.4 16.5 21 12.9 24.6 16.5"/>';
+const markHtml = (size, w, h) => `<span class="mark" style="font-size:${size}px"><svg viewBox="0 0 28 22" width="${w}" height="${h}" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${CHEVRONS}</svg><span>floc<span class="dot">.</span></span></span>`;
 
 function caption(text, a, b, top = 290, size) {
   const n = add(stage, `<div class="cap" style="top:${top}px${size ? `;font-size:${size}px` : ""}">${text}</div>`);

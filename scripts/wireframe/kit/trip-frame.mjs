@@ -50,7 +50,7 @@ export const avatar = (p, size = 26) =>
 
 const TABS = [["overview", "Overview"], ["dates", "Dates"], ["days", "Days"], ["money", "Money"], ["packing", "Packing"], ["notes", "Notes"], ["files", "Files"]];
 const PLACES = [["explore", "Explore"], ["trips", "Trips"], ["friends", "Friends"]];
-const FLOCK = '<svg viewBox="0 0 26 20" aria-hidden="true"><path d="M3 14 6.5 10.5 10 14"/><path d="M9.5 8.5 13 5 16.5 8.5"/><path d="M16 14 19.5 10.5 23 14"/></svg>';
+const FLOCK = '<svg viewBox="0 0 28 22" aria-hidden="true"><path d="M3.4 16.5 7 12.9 10.6 16.5"/><path d="M10.4 10 14 6.4 17.6 10"/><path d="M17.4 16.5 21 12.9 24.6 16.5"/></svg>';
 
 export function tripFrame(tab, me) {
   const places = PLACES.map(([key, label]) =>

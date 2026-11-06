@@ -18,7 +18,7 @@
 .tf-bead { display: flex; align-items: center; gap: 2px; height: 44px; padding: 0 6px; border-radius: var(--radius-pill); background: var(--sheet); border: 1px solid var(--rule); box-shadow: var(--shadow-sm); }
 .tf-word { display: flex; align-items: center; gap: 7px; padding: 0 12px 0 10px; font-family: var(--display); font-weight: 600; font-size: 20px; letter-spacing: -0.03em; }
 .tf-word i { color: var(--pen); font-style: normal; }
-.tf-word svg { width: 22px; height: 17px; fill: none; stroke: var(--pen); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.tf-word svg { width: 22px; height: 17px; fill: none; stroke: var(--pen); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 .tf-places a { display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 14px 0 4px; border-radius: var(--radius-pill); font-size: 13.5px; color: var(--ink-2); text-decoration: none; }
 .tf-gl { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: var(--radius-pill); color: var(--ink-3); }
 .tf-places a[aria-current] { color: var(--ink); font-weight: 500; }

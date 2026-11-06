@@ -12,7 +12,7 @@ body { font-family: var(--sans); color: var(--ink); -webkit-font-smoothing: anti
 .cap { position: absolute; left: 80px; right: 120px; top: 290px; font-family: var(--display); font-weight: 600; font-size: 96px; line-height: 1.02; letter-spacing: -0.035em; will-change: transform, opacity; }
 .mono { font-family: var(--type); }
 
-.mark { display: inline-flex; align-items: center; gap: 22px; font-family: var(--display); font-weight: 600; letter-spacing: -0.04em; line-height: 1; color: var(--ink); }
+.mark { display: inline-flex; align-items: center; gap: 22px; font-family: var(--display); font-weight: 700; letter-spacing: -0.04em; line-height: 1; color: var(--ink); }
 .mark svg { color: var(--pen); overflow: visible; }
 .mark .dot { color: var(--pen); display: inline-block; }
 
