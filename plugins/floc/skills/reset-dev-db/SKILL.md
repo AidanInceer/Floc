@@ -7,6 +7,8 @@ In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
 
 # reset-dev-db
 
+In a task worktree these commands act on that worktree's own database (`.floc/data/local.db`), never the main checkout's.
+
 Wipe everything local and reseed. After this, the database is the same as after
 every other reset:
 

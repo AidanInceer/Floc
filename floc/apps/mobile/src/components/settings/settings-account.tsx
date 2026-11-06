@@ -19,6 +19,7 @@
  */
 import { Alert, View } from "react-native";
 
+import { GoogleCalendarMark } from "@/components/auth/google-button";
 import { Body, Button, Label, Row } from "../system/ui";
 import { space } from "@/lib/theme";
 
@@ -35,11 +36,14 @@ export function SettingsAccount({
   methods,
   busy,
   onUnlink,
+  calendar = null,
 }: {
   email: string;
   methods: SignInMethod[];
   busy: boolean;
   onUnlink: (accountId: string) => void;
+  /** Set while Floc may read the person's Google Calendar (#444); null otherwise, and with no Google key. */
+  calendar?: { busy: boolean; problem: string | null; onRemove: () => void } | null;
 }) {
   const last = methods.length <= 1;
 
@@ -65,6 +69,19 @@ export function SettingsAccount({
             />
           </Row>
         ))}
+        {calendar ? (
+          <Row>
+            <View style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: space.sm }}>
+              <GoogleCalendarMark />
+              <View style={{ flex: 1 }}>
+                <Body>Google Calendar</Body>
+                <Body tone="ink-3">Reads when you&apos;re busy</Body>
+              </View>
+            </View>
+            <Button label="Remove" variant="quiet" disabled={calendar.busy} onPress={calendar.onRemove} />
+          </Row>
+        ) : null}
+        {calendar?.problem ? <Body tone="red">{calendar.problem}</Body> : null}
         {last ? (
           <Body tone="ink-3">
             This is your only way back in, so it can&apos;t be unlinked.

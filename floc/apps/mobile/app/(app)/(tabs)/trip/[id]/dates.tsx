@@ -39,6 +39,11 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState, type ReactNode } from "react";
 import { Alert, ScrollView, View } from "react-native";
 
+import {
+  CalendarBelow,
+  CalendarTop,
+  useCalendarFill,
+} from "@/components/days/calendar-fill";
 import { DatesWeather, forecastIndex } from "@/components/days/dates-weather";
 import { BookingPanel } from "@/components/trip/booking-panel";
 import { MonthGrid, type CellLook } from "@/components/days/month-grid";
@@ -152,6 +157,11 @@ function windowSet(range: Marks, startDate: string | null, endDate: string | nul
   if (range.start && range.end) return new Set(dateRange(range.start, range.end));
   if (startDate && endDate) return new Set(dateRange(startDate, endDate));
   return new Set();
+}
+
+/** No saved day of mine and nothing painted yet: the moment the calendar import leads. */
+function hasNoDays(marked: { userId: string }[], me: string | undefined, edits: Record<string, boolean>): boolean {
+  return !marked.some((row) => row.userId === me) && Object.keys(edits).length === 0;
 }
 
 /** Who still owes an answer — the one thing shading cannot say. */
@@ -276,6 +286,7 @@ export default function Dates() {
   const weather = useQuery(trpc.itinerary.forecast.queryOptions({ tripId }, { enabled: ready }));
   const days = useQuery(trpc.itinerary.days.queryOptions({ tripId }, { enabled: ready }));
   const files = useQuery(trpc.files.list.queryOptions({ tripId }, { enabled: ready }));
+  const cal = useCalendarFill(tripId);
 
   const [view, setView] = useState<CalendarView>("mine");
   const [openDay, setOpenDay] = useState<string | null>(null);
@@ -322,6 +333,7 @@ export default function Dates() {
   const windowDays = windowSet(range, trip.data.startDate, trip.data.endDate);
 
   const booking = bookingFor(trip.data, days.data, files.data);
+  const noMarks = hasNoDays(marked, me, edits);
 
   const forecast = forecastIndex(weather.data);
   const forecastByDate = forecast.byDate;
@@ -383,6 +395,8 @@ export default function Dates() {
       <DatesFold moment={datesMoment(trip.data, today())}>
         <Segmented options={forecast.offered ? WITH_WEATHER : VIEWS} value={view} onChange={setView} />
 
+        <CalendarTop cal={cal} show={view === "mine" && noMarks} month={shown} />
+
         <Card>
           <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
             <Button label="‹" onPress={() => setMonth(addMonths(shown, -1))} variant="quiet" />
@@ -402,6 +416,8 @@ export default function Dates() {
             onSave={saveEdits}
           />
         ) : null}
+
+        <CalendarBelow cal={cal} show={view === "mine"} empty={noMarks} month={shown} />
 
         {view === "everyone" ? (
           <View style={{ gap: space.sm }}>

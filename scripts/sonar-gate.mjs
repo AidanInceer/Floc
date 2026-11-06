@@ -1,49 +1,30 @@
-#!/usr/bin/env node
-// node scripts/sonar-gate.mjs [branch]
-// Why: the CI log only says "QUALITY GATE STATUS: FAILED". The failing
-// conditions and the issues behind them live in SonarCloud's API, which is
-// public for this project and needs no token (#403).
-// Exit 0 gate passed · 1 gate failed (conditions and issues printed) · 2 no
-// analysis for that branch yet.
-const PROJECT = "AidanInceer_Floc";
-const BASE = "https://sonarcloud.io/api";
-const branch = process.argv[2] ?? "main";
+import { command, git } from "./delivery/process.mjs";
+import { repository } from "./delivery/github.mjs";
+import { requiredStatus, sonarStatus } from "./delivery/status.mjs";
 
-async function get(path) {
-  const res = await fetch(`${BASE}/${path}`);
-  if (!res.ok) throw new Error(`SonarCloud ${path} → ${res.status}`);
-  return res.json();
-}
-
-const { projectStatus } = await get(
-  `qualitygates/project_status?projectKey=${PROJECT}&branch=${encodeURIComponent(branch)}`,
-);
-
-if (projectStatus.status === "NONE") {
-  console.log(`No SonarCloud analysis for ${branch} yet.`);
-  process.exit(2);
-}
-
-if (projectStatus.status === "OK") {
-  console.log(`Sonar quality gate passed on ${branch}.`);
-  process.exit(0);
-}
-
-console.log(`Sonar quality gate FAILED on ${branch}.\n`);
-console.log("Conditions that failed:");
-for (const c of projectStatus.conditions.filter((c) => c.status === "ERROR")) {
-  console.log(`  ${c.metricKey}: ${c.actualValue} (threshold ${c.comparator} ${c.errorThreshold})`);
-}
-
-const { issues } = await get(
-  `issues/search?componentKeys=${PROJECT}&branch=${encodeURIComponent(branch)}` +
-    `&resolved=false&inNewCodePeriod=true&ps=100`,
-);
-
-console.log(`\nOpen issues in the new-code window (${issues.length}):`);
-for (const i of issues) {
-  const file = i.component.split(":").pop();
-  console.log(`  [${i.severity}] ${i.rule}  ${file}:${i.line ?? "-"}\n      ${i.message}`);
-}
-console.log(`\nhttps://sonarcloud.io/dashboard?id=${PROJECT}&branch=${encodeURIComponent(branch)}`);
-process.exit(1);
+const args = process.argv.slice(2);
+const value = (flag) => args.includes(flag) ? args[args.indexOf(flag) + 1] : undefined;
+try {
+  const pr = value("--pr");
+  const branch = pr ? null : args.find((a) => !a.startsWith("--") && a !== value("--sha")) ?? "main";
+  const sha = value("--sha") ?? git(process.cwd(), "rev-parse", "origin/main");
+  const query = new URLSearchParams({ projectKey: "AidanInceer_Floc", ...(pr ? { pullRequest: pr } : { branch }) });
+  const get = async (path) => {
+    const res = await fetch("https://sonarcloud.io/api/" + path, { signal: AbortSignal.timeout(20000) });
+    if (!res.ok) throw new Error("Sonar analysis is unavailable (" + res.status + ").");
+    return res.json();
+  };
+  const { projectStatus } = await get("qualitygates/project_status?" + query);
+  let state;
+  if (pr) {
+    const view = JSON.parse(command("gh", ["pr", "view", pr, "--repo", repository, "--json", "headRefOid,statusCheckRollup"]));
+    state = view.headRefOid === sha ? requiredStatus(view.statusCheckRollup, ["SonarQube analysis"]).state : "pending";
+    if (state === "passed" && projectStatus.status !== "OK") state = "failed";
+  } else {
+    const analyses = await get("project_analyses/search?" + new URLSearchParams({ project: "AidanInceer_Floc", branch, ps: "1" }));
+    state = sonarStatus({ revision: analyses.analyses?.[0]?.revision, status: projectStatus.status }, sha).state;
+  }
+  console.log(JSON.stringify({ state, sha, ...(pr ? { pr } : { branch }),
+    conditions: projectStatus.conditions?.filter((c) => c.status === "ERROR") ?? [] }));
+  process.exitCode = state === "passed" ? 0 : state === "pending" ? 2 : 1;
+} catch (error) { console.error(error.message); process.exitCode = 2; }

@@ -10,20 +10,40 @@ import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
 
 import { client } from "../api";
+import { authClient } from "../auth";
 import { batches, enqueue, localDay, positionFrom, sent, stillOn, type Tracking } from "./route-queue";
 import { readRoute, writeRoute } from "./route-store";
 
 const TASK = "floc-route";
 
-export type StartRefusal = "foreground" | "background";
+export type StartRefusal = "foreground" | "background" | "session";
 
 let flushing: Promise<void> | null = null;
+let forgetting = false;
+let generation = 0;
+
+async function currentOwner(): Promise<string | null | undefined> {
+  try {
+    const session = await authClient.getSession();
+    return session.error ? undefined : session.data?.user.id ?? null;
+  } catch { return undefined; }
+}
 
 /** Sends what is queued; what fails stays for the next try. */
 export function flushRoute(): Promise<void> {
+  const started = generation;
   flushing ??= (async () => {
     try {
-      for (const batch of batches((await readRoute()).queue)) {
+      const stored = await readRoute();
+      const ownerId = await currentOwner();
+      if (!ownerId || forgetting || started !== generation) return;
+      if (stored.ownerId !== ownerId) {
+        await stopRoute();
+        await writeRoute({ tracking: null, queue: [] });
+        return;
+      }
+      for (const batch of batches(stored.queue)) {
+        if (forgetting || await currentOwner() !== ownerId || started !== generation) return;
         await client.route.record.mutate(batch);
         const now = await readRoute();
         await writeRoute({ ...now, queue: sent(now.queue, batch.tripId, batch.positions) });
@@ -39,8 +59,16 @@ export function flushRoute(): Promise<void> {
 
 TaskManager.defineTask<{ locations: Location.LocationObject[] }>(TASK, async ({ data, error }) => {
   if (error || !data) return;
+  const started = generation;
   const stored = await readRoute();
-  if (!stored.tracking) return;
+  if (!stored.tracking || forgetting) return;
+  const ownerId = await currentOwner();
+  if (started !== generation || forgetting) return;
+  if (!stored.ownerId || (ownerId !== undefined && ownerId !== stored.ownerId)) {
+    await stopRoute();
+    await writeRoute({ tracking: null, queue: [] });
+    return;
+  }
   if (!stillOn(stored.tracking, localDay(new Date()))) {
     await stopRoute();
     return;
@@ -52,9 +80,14 @@ TaskManager.defineTask<{ locations: Location.LocationObject[] }>(TASK, async ({ 
 
 /** Null when it started. Asks "while using" first, then "always": Android refuses the second without the first. */
 export async function startRoute(tracking: Tracking): Promise<StartRefusal | null> {
+  const started = generation;
+  const ownerId = await currentOwner();
+  if (!ownerId) return "session";
   if ((await Location.requestForegroundPermissionsAsync()).status !== "granted") return "foreground";
   if ((await Location.requestBackgroundPermissionsAsync()).status !== "granted") return "background";
-  await writeRoute({ ...(await readRoute()), tracking });
+  if (started !== generation || await currentOwner() !== ownerId) return "session";
+  const stored = await readRoute();
+  await writeRoute({ tracking, ownerId, queue: stored.ownerId === ownerId ? stored.queue : [] });
   await Location.startLocationUpdatesAsync(TASK, {
     accuracy: Location.Accuracy.Balanced,
     timeInterval: POSITION_EVERY_MS,
@@ -72,10 +105,20 @@ export async function startRoute(tracking: Tracking): Promise<StartRefusal | nul
 }
 
 export async function stopRoute(): Promise<void> {
+  generation++;
   await writeRoute({ ...(await readRoute()), tracking: null });
   if (await Location.hasStartedLocationUpdatesAsync(TASK).catch(() => false)) {
     await Location.stopLocationUpdatesAsync(TASK);
   }
+}
+
+export async function forgetRecordedRoute(): Promise<void> {
+  forgetting = true;
+  try {
+    await stopRoute();
+    await flushing;
+    await writeRoute({ tracking: null, queue: [] });
+  } finally { forgetting = false; }
 }
 
 /** Which trip this phone records, if any. */

@@ -31,12 +31,7 @@ either client; load `plugins/floc/skills/<name>/SKILL.md` when needed.
   state; never assume arbitrary page JavaScript or storage access is available.
 - Replace `SendUserFile` with local Markdown image/file links. Keep screenshots
   outside tracked product code. State any surface you could not verify.
-- `Agent({subagent_type: "floc:ci-babysit", ...})` means delegate using Codex's
-  available subagent tools, in an isolated managed worktree. Give it the SHA and
-  this checkout's `plugins/floc/agents/ci-babysit.md`. If delegation is unavailable,
-  run the same watcher with a background command session and retain its result.
-  Do not create a user-owned chat as a substitute. Never add a Claude co-author
-  line to a Codex-authored commit.
+- After `/floc:push` or `/floc:release`, end the turn. A plain watcher script follows the PR (no agent, no polling turns); it notifies on a conflict or a red check. Use `floc:ci-babysit` only for a red check.
 - Claude transcript paths in `retro` apply only to Claude. Use this Codex chat's
   context and available chat-reading tools for a Codex retrospective.
 - Claude's permissions and edit hooks do not grant Codex permissions. Keep repo
@@ -46,9 +41,8 @@ either client; load `plugins/floc/skills/<name>/SKILL.md` when needed.
 
 After editing any Floc skill, agent procedure or runtime guidance, bump
 `plugins/floc/.claude-plugin/plugin.json`'s version once for the change, then run
-`pnpm plugins:sync`. This updates generated metadata and refreshes both installed
-clients when their CLIs are available. Dependency preparation, push preflight and
-Claude's edit hook also synchronise automatically. `pnpm plugins:check` detects
+`pnpm plugins:sync`. This updates generated metadata. After reviewing the change,
+`pnpm plugins:refresh` refreshes both installed clients when their CLIs are available. Dependency preparation generates metadata; refresh installed clients only after an actual plugin change. `pnpm plugins:check` detects
 drift without changing files. A fresh session is needed to load changed skill
 instructions; syncing cannot replace instructions already loaded in a chat.
 

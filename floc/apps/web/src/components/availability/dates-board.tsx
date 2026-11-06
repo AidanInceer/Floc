@@ -11,7 +11,9 @@ import { DatesTabs, type DatesTab } from "@/components/availability/dates-tabs";
 import { CommitBar, Coverage, DatesKey, HINT, MonthPager, SaveBar, tabStubs } from "@/components/availability/dates-board-parts";
 import { dayLook } from "@/components/availability/day-look";
 import { ForecastPanel } from "@/components/availability/forecast-panel";
+import { useCalendarSlots } from "@/components/availability/calendar-fill";
 import { MonthGrid, type DayView } from "@/components/availability/month-grid";
+import type { CalendarFillResult, CalendarReturn } from "@/components/availability/use-calendar-fill";
 import { useAvailabilityPaint } from "@/components/availability/use-availability-paint";
 import { useWindowPick } from "@/components/availability/use-window-pick";
 import { addMonths, type IsoMonth } from "@floc/core/dates/availability";
@@ -20,6 +22,7 @@ import type { DayLoad } from "@floc/core/trip/trip-window";
 import type { DailyForecast, TripForecast } from "@/server/itinerary/weather";
 
 export type DatesBoardProps = {
+  tripId: number;
   firstMonth: IsoMonth;
   mine: string[];
   tallies: Record<string, number>;
@@ -35,6 +38,8 @@ export type DatesBoardProps = {
   slots: { faces: ReactNode; best: ReactNode; who: ReactNode; trip: ReactNode; locked: ReactNode };
   save: (add: string[], remove: string[]) => Promise<void>;
   saveDates: (start: string | null, end: string | null) => Promise<{ error?: string }>;
+  /** Null with no Google key: no button, no menu item (rule 11). */
+  calendar: { fill: (month: string) => Promise<CalendarFillResult>; returned: CalendarReturn } | null;
 };
 
 // Only the trip's own days carry weather (ticket 148).
@@ -58,6 +63,8 @@ export function DatesBoard(props: DatesBoardProps) {
   const surface = useRef<HTMLDivElement>(null);
   const paint = useAvailabilityPaint(props.mine);
   const pick = useWindowPick(tripStart, tripEnd, props.dayLoads);
+  const cal = useCalendarSlots({ tripId: props.tripId, month, calendar: props.calendar, show: tab === "mine", empty: props.mine.length === 0 && paint.changed === 0 });
+  const { choice, choose } = cal;
 
   const { tripDays, byDate } = tripWeather(weather, tripStart, tripEnd);
 
@@ -109,7 +116,7 @@ export function DatesBoard(props: DatesBoardProps) {
   // The hint goes once there is something to act on, and never offers hours that aren't there.
   const quiet = { mine: paint.changed > 0, group: true, trip: pick.editing, forecast: !weather }[tab];
   const panel: Record<DatesTab, ReactNode> = {
-    mine: <><Coverage isFree={paint.isFree} start={tripStart} end={tripEnd} />{slots.best}</>,
+    mine: choice ? <div className="hidden lg:block">{choice}</div> : <><Coverage isFree={paint.isFree} start={tripStart} end={tripEnd} />{slots.best}</>,
     group: <>{slots.best}{slots.who}</>,
     trip: <>{slots.trip}{slots.best}</>,
     forecast: weather ? (
@@ -123,11 +130,17 @@ export function DatesBoard(props: DatesBoardProps) {
       <DatesTabs stubs={stubs} open={tab} onOpen={(t) => { setTab(t); setHourDay(null); }} />
       <div ref={surface} className="min-w-0 px-2.5 pb-1 pt-3 sm:px-5 lg:pt-4"
         onPointerMove={onMove} onPointerLeave={() => pick.hoverOn(null)} onPointerUp={release} onPointerCancel={release}>
-        <MonthPager month={month} page={(n) => setMonth(addMonths(month, n))} hint={quiet ? "" : HINT[tab]} />
+        {choice ? <div className="-mx-2.5 mb-3 border-b border-rule sm:-mx-5 lg:hidden">{choice}</div> : null}
+        <MonthPager month={month} page={(n) => setMonth(addMonths(month, n))} hint={quiet ? "" : HINT[tab]} menu={cal.menu} />
         <MonthGrid month={month} view={view} />
         <DatesKey />
         {{
-          mine: paint.changed > 0 && <SaveBar changed={paint.changed} pending={pending} onSave={onSave} />,
+          mine: (
+            <>
+              {!choose ? cal.note : null}
+              {paint.changed > 0 && <SaveBar changed={paint.changed} pending={pending} onSave={onSave} />}
+            </>
+          ),
           trip: pick.editing && (
             <CommitBar pick={pick} dated={!!tripStart} problem={problem} pending={pending} onCommit={onCommit} onDiscard={pick.discard} />
           ),

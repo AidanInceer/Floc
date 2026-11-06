@@ -34,6 +34,7 @@ import {
   Sheet,
   SubmitButton,
 } from "@/components/system/client-ui";
+import { calendarEnabled } from "@/server/calendar/calendar-import";
 import { DatesBoard } from "@/components/availability/dates-board";
 import { DatesFold } from "@/components/availability/dates-fold";
 import { BestWindowCard } from "@/components/availability/best-window-card";
@@ -45,6 +46,7 @@ import type { TripMember } from "@/server/access";
 import {
   clearMyAvailability,
   clearTripDates,
+  fillFromGoogleCalendar,
   removeTripGuest,
   saveAvailability,
   setTripDates,
@@ -58,10 +60,10 @@ export default async function DatesPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ from?: string }>;
+  searchParams: Promise<{ from?: string; calendar?: string }>;
 }) {
   const { id } = await params;
-  const { from } = await searchParams;
+  const { from, calendar } = await searchParams;
   const access = await requireTripAccess(id, `/trip/${id}/dates`);
   const { trip, viewer, members } = access;
   const tripId = trip.id;
@@ -141,6 +143,12 @@ export default async function DatesPage({
 
   const board = (
     <DatesBoard
+      tripId={tripId}
+      calendar={
+        calendarEnabled()
+          ? { fill: fillFromGoogleCalendar.bind(null, tripId), returned: calendar === "fill" || calendar === "refused" ? calendar : null }
+          : null
+      }
       firstMonth={firstMonth}
       mine={mine}
       tallies={tallies}

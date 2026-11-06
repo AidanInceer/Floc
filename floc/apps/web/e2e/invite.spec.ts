@@ -21,17 +21,16 @@ test("a member shares the trip, and a stranger gives a name to answer, seeing no
   });
   const memberPage = await members.newPage();
 
+  // The first-trip walkthrough opens only while Priya is on one trip, and other specs start trips
+  // as her in parallel, so whether it shows depends on the order they ran in. Skip it if it does.
+  const welcome = memberPage.getByRole("dialog", { name: "Welcome to Floc" });
+  await memberPage.addLocatorHandler(welcome, async () => {
+    await welcome.getByRole("button", { name: "Skip" }).click();
+  });
+
   await memberPage.goto("/trips");
   await memberPage.getByText("Portugal, late summer").click();
   await expect(memberPage).toHaveURL(/\/trip\/\d+/);
-
-  // The first-trip tour covers the page with its own backdrop, and a fresh e2e
-  // database means this account has never seen it. It is shown once, ever, so
-  // it is waited for rather than guessed at.
-  const tour = memberPage.getByRole("dialog", { name: "A quick tour" });
-  await expect(tour).toBeVisible();
-  await tour.getByRole("button", { name: "Skip" }).click();
-  await expect(tour).toBeHidden();
 
   // The URL is never drawn on the page — the button copies it.
   await memberPage.getByRole("button", { name: "Invite", exact: true }).click();

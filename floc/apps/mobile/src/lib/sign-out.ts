@@ -5,9 +5,11 @@
 import { queryClient } from "./api";
 import { signOut } from "./auth";
 import { forgetCachedNotes } from "./notes/live-cache";
+import { forgetRecordedRoute } from "./route/route-task";
 
 export async function signOutHere(): Promise<void> {
   forgetCachedNotes();
   queryClient.clear();
+  await forgetRecordedRoute();
   await signOut();
 }

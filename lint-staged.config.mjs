@@ -12,8 +12,8 @@ export default {
   "*.{ts,tsx}": (files) =>
     batches(files).map(
       (batch) =>
-        `eslint --flag v10_config_lookup_from_file --max-warnings=0 ${batch.map((f) => JSON.stringify(f)).join(" ")}`,
+        `eslint --flag v10_config_lookup_from_file --max-warnings=0 --cache --cache-location .floc/eslintcache ${batch.map((f) => JSON.stringify(f)).join(" ")}`,
     ),
   "*.{ts,tsx,js,jsx,mjs,cjs}": "node scripts/check-comments.mjs --staged",
-  "*": "node scripts/check-staged-secrets.mjs",
+  "*": () => "node scripts/checks/secrets.mjs --staged",
 };

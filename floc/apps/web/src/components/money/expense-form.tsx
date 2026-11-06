@@ -14,6 +14,7 @@ import {
 } from "@floc/core/money/money";
 import { CURRENCIES, currencySymbol } from "@floc/core/money/currency";
 import { previewExpenseSplit } from "@floc/core/money/expense-preview";
+import { editStart } from "@floc/core/money/edit-start";
 import type { Currency, SplitType } from "@/db/schema";
 import {
   CATEGORY_LABELS,
@@ -108,28 +109,18 @@ export function ExpenseForm({
   );
   const [pickerOpen, setPickerOpen] = useState(false);
   const pickerTrigger = useRef<HTMLButtonElement>(null);
-  const [mode, setMode] = useState<SplitMode>(
-    expense?.splitType === "exact" || expense?.splitType === "percentage"
-      ? "exact"
-      : "equally",
-  );
+  const start = expense ? editStart(expense.splits, expense.currency) : null;
+  const [mode, setMode] = useState<SplitMode>(start?.mode ?? "equally");
   const [checked, setChecked] = useState<Set<string>>(
-    new Set(expense ? expense.splits.map((s) => s.userId) : members.map((m) => m.userId)),
+    new Set(start?.inOn ?? members.map((m) => m.userId)),
   );
 
-  // Pre-one-model expenses: even/shares comes back as shares, exact/percentage
-  // comes back pinned.
   const [rows, setRows] = useState<Record<string, Row>>(() => {
-    const pinned = expense?.splitType === "exact" || expense?.splitType === "percentage";
     const initial: Record<string, Row> = {};
     for (const m of members) {
-      const split = expense?.splits.find((s) => s.userId === m.userId);
       initial[m.userId] = {
         shares: 1,
-        pin:
-          pinned && split
-            ? toMajorInput(split.owedAmountMinor, expense.currency)
-            : "",
+        pin: start?.weights[m.userId] ?? "",
       };
     }
     return initial;

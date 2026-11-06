@@ -8,7 +8,7 @@ export function git(root, args, options = {}) {
   return result.stdout;
 }
 
-export function collectChanges(root, base = "origin/main") {
+export function collectChanges(root, base = process.env.FLOC_CHECK_BASE ?? "origin/main") {
   const sha = git(root, ["rev-parse", "--verify", base + "^{commit}"]).trim();
   const changes = new Map();
   const files = git(root, ["diff", "--no-ext-diff", "--no-renames", "--name-only", "--diff-filter=ACM", "-z", sha, "--"]).split("\0").filter(Boolean);

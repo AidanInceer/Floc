@@ -421,3 +421,32 @@ export function ReactionGlyph({
     </Svg>
   );
 }
+
+/**
+ * The first-trip walkthrough's marks (#315): the Ideas bulb, a pin for where, people for the
+ * invite, and the tabs' own calendar, days list and bed. The web's `icons/walkthrough.tsx`.
+ */
+const STEP_PATHS: Record<string, string[]> = {
+  ideas: ["M5.2 10.2h3.6M5.6 12h2.8M7 1.8a3.6 3.6 0 0 0-2.2 6.4c.4.3.5.7.5 1.1v.9h3.4v-.9c0-.4.1-.8.5-1.1A3.6 3.6 0 0 0 7 1.8Z"],
+  where: ["M7 12.4s3.8-3.6 3.8-6.6a3.8 3.8 0 0 0-7.6 0c0 3 3.8 6.6 3.8 6.6Z"],
+  invite: ["M1.8 11.4c0-1.9 1.5-3 3.4-3s3.4 1.1 3.4 3M9.4 3.3a2 2 0 0 1 0 3.9M9.8 8.6c1.5.2 2.6 1.2 2.6 2.8"],
+  dates: ["M3.4 3h7.2A1.4 1.4 0 0 1 12 4.4v6.4a1.4 1.4 0 0 1-1.4 1.4H3.4A1.4 1.4 0 0 1 2 10.8V4.4A1.4 1.4 0 0 1 3.4 3ZM4.8 1.8v2.4M9.2 1.8v2.4M2 6h10"],
+  days: ["M6 3.6h6M6 7h6M6 10.4h4"],
+  book: ["M1.8 11.6V3.2M1.8 8.8h10.4v2.8M1.8 6.6h3.6v2.2M5.4 6.6h5a1.8 1.8 0 0 1 1.8 1.8v.4"],
+};
+const STEP_CIRCLES: Record<string, [number, number, number][]> = {
+  where: [[7, 5.8, 1.3]],
+  invite: [[5.2, 5, 2]],
+  days: [[2.8, 3.6, 0.9], [2.8, 7, 0.9], [2.8, 10.4, 0.9]],
+};
+const STEP_ALIAS: Record<string, string> = { who: "invite", when: "dates" };
+
+export function StepGlyph({ step, color, size = 14 }: { step: string; color: string; size?: number }) {
+  const key = STEP_ALIAS[step] ?? step;
+  return (
+    <Svg width={size} height={size} viewBox="0 0 14 14" fill="none" stroke={color} strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round">
+      {(STEP_PATHS[key] ?? []).map((d) => <Path key={d} d={d} />)}
+      {(STEP_CIRCLES[key] ?? []).map(([cx, cy, r]) => <Circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={r} />)}
+    </Svg>
+  );
+}

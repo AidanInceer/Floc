@@ -138,6 +138,16 @@ function SettingsPanels({
     onSuccess,
   });
   const unlink = useMutation({ ...trpc.settings.unlinkSignIn.mutationOptions(), onError, onSuccess });
+  const calendar = useQuery(trpc.availability.calendar.queryOptions());
+  const [calendarProblem, setCalendarProblem] = useState<string | null>(null);
+  const removeCalendar = useMutation({
+    ...trpc.settings.removeCalendar.mutationOptions(),
+    onError,
+    onSuccess: (refusal) => {
+      setCalendarProblem(refusal);
+      if (!refusal) void calendar.refetch();
+    },
+  });
   const remove = useMutation({
     ...trpc.settings.deleteAccount.mutationOptions(),
     onError,
@@ -260,6 +270,11 @@ function SettingsPanels({
             methods={settings.signInMethods}
             busy={busy}
             onUnlink={(accountId) => unlink.mutate({ accountId })}
+            calendar={
+              calendar.data?.enabled && calendar.data.granted
+                ? { busy: removeCalendar.isPending, problem: calendarProblem, onRemove: () => removeCalendar.mutate() }
+                : null
+            }
           />
         </Drawer>
       </DrawerGroup>

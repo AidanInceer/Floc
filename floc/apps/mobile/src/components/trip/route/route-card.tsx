@@ -12,6 +12,7 @@ import { trpc } from "@/lib/api";
 import { recordingTrip, startRoute, stopRoute, type StartRefusal } from "@/lib/route/route-task";
 
 const REFUSED: Record<StartRefusal, string> = {
+  session: "Sign in again before recording your route.",
   foreground: "Floc can't see where you are. Allow location for Floc in your phone's settings.",
   background: "To record while the phone is in your pocket, set Floc's location to \"Allow all the time\".",
 };

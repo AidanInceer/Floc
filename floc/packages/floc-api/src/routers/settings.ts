@@ -103,6 +103,9 @@ export const settingsRouter = router({
     .input(z.object({ accountId: z.string().min(1) }))
     .mutation(({ ctx, input }) => ctx.port.unlinkSignIn(ctx.viewer.id, input.accountId)),
 
+  /** Revokes Floc's calendar access at Google (#444). Null when done; otherwise why not. */
+  removeCalendar: protectedProcedure.mutation(({ ctx }) => ctx.port.removeCalendarAccess(ctx.viewer.id)),
+
   /** The one irreversible thing on the account. Its own name, no input to get wrong. */
   deleteAccount: protectedProcedure.mutation(async ({ ctx }) => {
     await ctx.port.deleteMyAccount(ctx.viewer.id);

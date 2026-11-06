@@ -40,7 +40,6 @@ export function TripTabs({ tripId, tabs, children }: { tripId: number; tabs: Tab
           <Link
             key={tab.key}
             href={hrefOf(tab)}
-            data-tour={tab.key}
             style={{
               "--section-wash": `var(--pastel-${SECTION_COLOURS[tab.key]})`,
               "--section-ink": `var(--pastel-${SECTION_COLOURS[tab.key]}-ink)`,

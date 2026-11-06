@@ -47,6 +47,7 @@ import { filesPort } from "@/server/api-port/api-port-files";
 import { explorePort } from "@/server/api-port/api-port-explore";
 import { kitsPort } from "@/server/api-port/api-port-kits";
 import { mapPort } from "@/server/api-port/api-port-map";
+import { calendarImportPort } from "@/server/api-port/calendar-import/api-port-calendar-import";
 import { settingsPort } from "@/server/api-port/api-port-settings";
 import { socialPort } from "@/server/api-port/api-port-social";
 import { weatherPort } from "@/server/api-port/api-port-weather";
@@ -132,6 +133,7 @@ function toDetail(access: TripAccess, bookingPrefill: boolean): TripDetail {
 
 export const webPort: FlocPort = {
   ...settingsPort,
+  ...calendarImportPort,
   ...mapPort,
   ...kitsPort,
   ...filesPort,

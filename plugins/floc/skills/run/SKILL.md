@@ -10,6 +10,10 @@ In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
 One command up, then **prove it works**. The script is the easy half; the
 checks are the half that saves the session.
 
+## In a task worktree
+
+A worktree under `.claude/worktrees/` has its own ports, database and uploads (`pnpm workspace:status`). Start its servers with `pnpm workspace:start web` and `pnpm workspace:start metro` instead of the steps below. One emulator serves one Metro at a time: point the phone at the worktree you are testing with `adb reverse tcp:<metro> tcp:<metro>` and open the dev client on that port. The steps below are the main checkout on :3000 and :8081.
+
 ## Process
 
 ### 1. Servers in this window

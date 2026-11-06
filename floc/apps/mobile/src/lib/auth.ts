@@ -30,6 +30,7 @@ export const {
   requestPasswordReset,
   resetPassword,
   sendVerificationEmail,
+  linkSocial,
 } = authClient;
 
 // Why: `floc://` is a trusted origin on the server, so the redirect carrying the token lands in
