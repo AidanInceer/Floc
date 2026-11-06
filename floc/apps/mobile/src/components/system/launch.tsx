@@ -28,8 +28,8 @@ import { useReducedMotion } from "./use-reduced-motion";
 const EXIT_MS = 460;
 /** The chevron block, as a share of the screen width. See the note above. */
 const MARK_FRACTION = 361 / 1284;
-/** The block sits x 2.4–23.6 of the 26-unit viewBox — 21.2 units of 26. */
-const VIEWBOX_SLACK = 26 / 21.2;
+/** The block sits x 2.15–25.85 of the 28-unit viewBox — 23.7 units of 28. */
+const VIEWBOX_SLACK = 28 / 23.7;
 
 export function LaunchCurtain({ ready, onDone }: { ready: boolean; onDone: () => void }) {
   const { c } = useTheme();
@@ -85,25 +85,25 @@ export function LaunchCurtain({ ready, onDone }: { ready: boolean; onDone: () =>
           ],
         }}
       >
-        <Svg width={markWidth} height={markWidth * (20 / 26)} viewBox="0 0 26 20" fill="none">
+        <Svg width={markWidth} height={markWidth * (22 / 28)} viewBox="0 0 28 22" fill="none">
           <Path
-            d="M3 14 6.5 10.5 10 14"
+            d="M3.4 16.5 7 12.9 10.6 16.5"
             stroke={c.pen}
-            strokeWidth={1.2}
+            strokeWidth={2.5}
             strokeLinecap="round"
             strokeLinejoin="round"
           />
           <Path
-            d="M9.5 8.5 13 5 16.5 8.5"
+            d="M10.4 10 14 6.4 17.6 10"
             stroke={c.pen}
-            strokeWidth={1.2}
+            strokeWidth={2.5}
             strokeLinecap="round"
             strokeLinejoin="round"
           />
           <Path
-            d="M16 14 19.5 10.5 23 14"
+            d="M17.4 16.5 21 12.9 24.6 16.5"
             stroke={c.pen}
-            strokeWidth={1.2}
+            strokeWidth={2.5}
             strokeLinecap="round"
             strokeLinejoin="round"
           />

@@ -1,10 +1,10 @@
 /**
- * The link-preview card a shared invite unfurls to — WhatsApp, iMessage, Slack
+ * Why: the link-preview card a shared invite unfurls to — WhatsApp, iMessage, Slack
  * (ticket: rich invite embed). The page already carries the OG title and
  * description; Next wires this file in as `og:image`/`twitter:image`
  * automatically, so a bare link becomes an inviting card.
  *
- * On brand: the off-white ground, the ink wordmark with the one blue dot, the
+ * On brand: the off-white ground, the chevrons and ink wordmark with the one blue dot, the
  * trip's name large. No custom font is loaded — ImageResponse's default keeps
  * this robust (rule 11): a card that always renders beats a prettier one that
  * can fail on a font fetch. A dead or unknown token falls back to a plain
@@ -63,7 +63,12 @@ export default async function InviteOgImage({
           padding: "72px 80px",
         }}
       >
-        <div style={{ display: "flex", fontSize: 34, fontWeight: 600, color: INK }}>
+        <div style={{ display: "flex", alignItems: "center", fontSize: 38, fontWeight: 700, color: INK }}>
+            <svg width={62} height={49} viewBox="0 0 28 22" fill="none" stroke={PEN} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 12 }}>
+              <path d="M3.4 16.5 7 12.9 10.6 16.5" />
+              <path d="M10.4 10 14 6.4 17.6 10" />
+              <path d="M17.4 16.5 21 12.9 24.6 16.5" />
+            </svg>
           floc<span style={{ color: PEN }}>.</span>
         </div>
 

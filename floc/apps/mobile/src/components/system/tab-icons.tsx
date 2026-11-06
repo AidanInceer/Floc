@@ -46,7 +46,7 @@ export function ExploreIcon({ color }: IconProps) {
 }
 
 /**
- * Trips — the wordmark's three chevrons, on their own 26×20 box.
+ * Why: Trips — the wordmark's three chevrons, on their own 28×22 box.
  *
  * These are the paths from `wordmark.tsx`, not `flock-chevron.tsx`. The two
  * differ by a vertical flip and mean opposite things: the wordmark is a flock
@@ -55,25 +55,25 @@ export function ExploreIcon({ color }: IconProps) {
  */
 export function TripsIcon({ color }: IconProps) {
   return (
-    <Svg width={(SIZE * 26) / 20} height={SIZE} viewBox="0 0 26 20" fill="none">
+    <Svg width={(SIZE * 28) / 22} height={SIZE} viewBox="0 0 28 22" fill="none">
       <Path
-        d="M3 14 6.5 10.5 10 14"
+        d="M3.4 16.5 7 12.9 10.6 16.5"
         stroke={color}
-        strokeWidth={1.6}
+        strokeWidth={2.4}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <Path
-        d="M9.5 8.5 13 5 16.5 8.5"
+        d="M10.4 10 14 6.4 17.6 10"
         stroke={color}
-        strokeWidth={1.6}
+        strokeWidth={2.4}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <Path
-        d="M16 14 19.5 10.5 23 14"
+        d="M17.4 16.5 21 12.9 24.6 16.5"
         stroke={color}
-        strokeWidth={1.6}
+        strokeWidth={2.4}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
