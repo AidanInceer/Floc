@@ -10,11 +10,10 @@ import { listAvailability } from "@/server/itinerary/availability";
 import { listIdeas } from "@/server/ideas/ideas-read";
 import { listDeclinedInvitees, listPendingInvitees } from "@/server/trips/invites";
 import { listExpenses, listSettlements, listSplits } from "@/server/money/money";
-import { tourSeenAt } from "@/server/auth/tour";
+import { walkthroughDue } from "@/server/auth/tour";
 import { absoluteUrl } from "@/server/auth/email";
 import { canUseFeature } from "@/server/billing/entitlements";
 import { friendStatesFor, listFriendsFor } from "@/server/social/friends";
-import { shouldStartTour, tourStopsFor } from "@floc/core/trip/tour";
 import { yourPosition } from "@floc/core/money/position";
 import { settleUpFrom } from "@/server/money/settle-up";
 import { tripStateFor } from "@floc/core/trip/trip-state";
@@ -41,7 +40,9 @@ import { TodayBlock } from "@/components/trip/overview/today/today-block";
 import { LeftToSort } from "@/components/trip/overview/left-to-sort";
 import { deleteMyRoute } from "./actions";
 import { leftToSortFor, readSharedPacking } from "./left-to-sort-for";
-import { PanelPlaceholder, StreamedGroup, TourWhenReady } from "./streamed";
+import { PanelPlaceholder, StreamedGroup } from "./streamed";
+import { WalkthroughDialog } from "@/components/walkthrough/walkthrough-dialog";
+import { walkthroughFor } from "./walkthrough-for";
 
 export const metadata = { title: "Overview" };
 
@@ -67,7 +68,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
 
   const now = today();
   const sharedPacking = readSharedPacking(tripId);
-  const [availabilityRows, expenseRows, dayRows, splitRows, settlementRows, routeDays, transport, tourSeen, prefill, ideas, docs, tracks] =
+  const [availabilityRows, expenseRows, dayRows, splitRows, settlementRows, routeDays, transport, walkthrough, prefill, ideas, docs, tracks] =
     await Promise.all([
       listAvailability(tripId),
       listExpenses(tripId),
@@ -76,7 +77,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
       listSettlements(tripId),
       listRouteDays(tripId),
       transportByDay(tripId),
-      tourSeenAt(viewer.id),
+      walkthroughDue(viewer.id),
       canUseFeature("booking.prefill", tripId),
       listIdeas(tripId, viewer.id),
       // Rule 11: no storage volume, no files — and no query for them.
@@ -186,11 +187,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
         bookings={hasEnded(trip.endDate) ? null : <BookingsCard tripId={tripId} legs={legs} wholeTrip={wholeTrip} files={files} stays={stays} />}
       />
 
-      {shouldStartTour({ seen: tourSeen !== null }) ? (
-        <Suspense fallback={null}>
-          <TourWhenReady targets={[groupExtras]} stops={tourStopsFor({ hasFiles: files })} />
-        </Suspense>
-      ) : null}
+      {walkthrough ? <WalkthroughDialog {...walkthroughFor(access, ideas, legs.length > 0)} /> : null}
     </div>
   );
 }
