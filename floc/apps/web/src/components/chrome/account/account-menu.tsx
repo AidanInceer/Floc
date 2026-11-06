@@ -37,7 +37,7 @@ export function AccountMenu({
   return (
     <Menu
       label={unread ? `Account, ${shown} new notifications` : "Account"}
-      triggerClassName="inline-flex h-11 items-center gap-2 rounded-md bg-sheet pl-1.5 pr-3 text-ink-faint shadow-[inset_0_0_0_1px_var(--rule),var(--shadow-sm)] hover:bg-sheet-2 data-[open=true]:bg-sheet-2"
+      triggerClassName="fuse-bead inline-flex h-11 items-center gap-2 rounded-md bg-sheet pl-1.5 pr-3 text-ink-faint shadow-[inset_0_0_0_1px_var(--rule),var(--shadow-sm)] hover:bg-sheet-2 data-[open=true]:bg-sheet-2"
       panelClassName="account-ticket right-0 mt-2 w-[19rem] max-w-[calc(100vw-1rem)]"
       trigger={
         <>
@@ -52,7 +52,9 @@ export function AccountMenu({
               </span>
             ) : null}
           </span>
-          <span className="hidden text-sm text-ink-soft sm:inline">{firstName}</span>
+          <span data-fuse="label" className="hidden text-sm text-ink-soft sm:inline">
+            {firstName}
+          </span>
           <ChevronIcon direction="down" size={12} />
         </>
       }

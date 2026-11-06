@@ -22,8 +22,10 @@ export function FlocWordmark() {
         <path d="M9.5 8.5 13 5 16.5 8.5" />
         <path d="M16 14 19.5 10.5 23 14" />
       </svg>
-      <span>
-        floc<span className="text-pen">.</span>
+      <span data-fuse="word" className="-mb-1 -mr-px -mt-[3px] inline-flex pb-1 pr-px pt-[3px]">
+        <span data-fuse-in>
+          floc<span className="text-pen">.</span>
+        </span>
       </span>
     </span>
   );

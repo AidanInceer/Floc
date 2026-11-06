@@ -12,6 +12,7 @@ import { BEAD } from "@/components/chrome/bead";
 import { PlacesNav, type PlaceItem } from "@/components/chrome/places-nav";
 import { AccountMenu } from "@/components/chrome/account/account-menu";
 import type { InboxPreviewItem } from "@/components/chrome/account/account-inbox";
+import { FuseBar } from "@/components/chrome/fuse-bar";
 import { FlocWordmark } from "@/components/system/wordmark";
 
 /**
@@ -81,7 +82,7 @@ export function AppChrome({
   return (
     // The bar itself is see-through and lets clicks pass; only the beads catch them.
     <header className="pointer-events-none sticky top-0 z-20 flex justify-center px-2 pb-1 pt-3 sm:px-4">
-      <div className="pointer-events-auto flex min-w-0 max-w-full items-center gap-1.5">
+      <FuseBar className="pointer-events-auto flex min-w-0 max-w-full items-center gap-1.5">
         <Link
           href="/"
           aria-label="Floc home"
@@ -116,7 +117,7 @@ export function AppChrome({
             </ButtonLink>
           </div>
         )}
-      </div>
+      </FuseBar>
     </header>
   );
 }

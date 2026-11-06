@@ -43,7 +43,9 @@ export function PlacesNav({ label, items }: { label: string; items: PlaceItem[] 
           <span className="inline-flex size-[26px] items-center justify-center rounded-sm text-ink-faint transition-colors group-hover:bg-sheet-3 group-hover:text-ink group-aria-[current=page]:bg-pen-soft group-aria-[current=page]:text-pen-deep">
             <NavGlyph name={item.glyph} />
           </span>
-          <span className="sr-only sm:not-sr-only">{item.label}</span>
+          <span data-fuse="label" className="sr-only sm:not-sr-only">
+            {item.label}
+          </span>
           {item.badge}
         </Link>
       ))}
