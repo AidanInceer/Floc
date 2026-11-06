@@ -97,6 +97,16 @@ describe("composition", () => {
     );
   });
 
+  it("turns a stop's Booked pill on at once: a file also refreshes Dates", () => {
+    expect(pagesFor([{ kind: "documents", tripId: TRIP }])).toEqual(
+      expect.arrayContaining([
+        { path: `/trip/${TRIP}/files` },
+        { path: `/trip/${TRIP}/overview` },
+        { path: `/trip/${TRIP}/dates` },
+      ]),
+    );
+  });
+
   it("refreshes a shared page once when two facts both name it", () => {
     const pages = pagesFor([
       { kind: "itinerary", tripId: TRIP },

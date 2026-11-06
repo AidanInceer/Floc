@@ -5,7 +5,7 @@ import { hopLabel, type Leg, type LegFile } from "@floc/core/trip/overview/legs"
 import { Pressable, Text, View } from "react-native";
 
 import { useTheme } from "../system/theme";
-import { BedGlyph } from "../system/glyphs";
+import { BedGlyph, RibbonGlyph } from "../system/glyphs";
 import { TravelModeGlyph } from "../system/travel-mode-glyph";
 import { fonts, radius, size, space } from "@/lib/theme";
 
@@ -55,6 +55,11 @@ function LegRow({ leg, onOpen }: { leg: Leg<Named>; onOpen: (date: string) => vo
         borderColor: c.rule,
       })}
     >
+      {leg.stay ? (
+        <View accessible accessibilityLabel={`Booked: ${leg.stay.name}`} style={{ position: "absolute", top: -1, right: space.lg }}>
+          <RibbonGlyph color={c["pastel-green-ink"]} />
+        </View>
+      ) : null}
       {/* Same ring and number as the map's pin — one stop drawn twice. */}
       <View style={{ width: 24, height: 24, borderRadius: radius.pill, borderWidth: 2, borderColor: c.pen, alignItems: "center", justifyContent: "center", marginTop: 2 }}>
         <Text style={{ color: c.pen, fontFamily: fonts.typeBold, fontSize: 11 }}>{leg.no}</Text>
@@ -67,7 +72,7 @@ function LegRow({ leg, onOpen }: { leg: Leg<Named>; onOpen: (date: string) => vo
         <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: space.sm, marginTop: space.xs }}>
           {leg.stay ? (
             <View style={{ flexDirection: "row", alignItems: "center", gap: space.xs }}>
-              <BedGlyph color={c["pastel-red-ink"]} />
+              <BedGlyph color={c["pastel-green-ink"]} />
               <Text numberOfLines={1} style={{ color: c.ink, fontFamily: fonts.sans, fontSize: size.small }}>
                 {leg.stay.name}
               </Text>

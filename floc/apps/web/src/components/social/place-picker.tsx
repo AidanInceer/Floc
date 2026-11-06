@@ -2,9 +2,9 @@
 
 // Place search input (v1 ticket 09). Falls back to free-text when Nominatim
 // returns nothing (rule 11). Debounced 600ms — Nominatim caps at 1 req/s.
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 
-import { Field, Input, cx } from "../system/ui";
+import { Field, Input } from "../system/ui";
 
 type PlaceHit = {
   providerId: string;
@@ -23,18 +23,28 @@ export type PlacePickerResult = {
   countryCode: string | null; // null for a typed name (ticket 95)
 };
 
+type PickerLook = "box" | "line" | "display";
+
+const LOOK: Record<Exclude<PickerLook, "box">, string> = {
+  line: "block w-full border-0 border-b border-rule-strong bg-transparent py-1.5 text-[15px] text-ink transition-colors hover:border-ink-faint focus:border-pen focus:shadow-[0_1px_0_var(--pen)] focus:outline-none",
+  display: "block w-full border-0 border-b-[1.5px] border-current/30 bg-transparent pb-1.5 pt-0.5 font-display text-[24px] font-semibold leading-tight tracking-[-0.015em] text-inherit transition-colors hover:border-current/55 focus:border-current focus:outline-none max-sm:text-[21px]",
+};
+
 export function PlacePicker({
   label = "Place",
   name,
   defaultName = "",
   search,
   onSelect,
+  look = "box",
 }: {
   label?: string;
   name: string;
   defaultName?: string;
   search: (query: string) => Promise<PlaceHit[]>;
   onSelect?: (result: PlacePickerResult) => void;
+  /** `line` and `display` are the Days dialogs' quieter fields (wireframe/modal-forms B3). */
+  look?: PickerLook;
 }) {
   const [query, setQuery] = useState(defaultName);
   const [results, setResults] = useState<PlaceHit[]>([]);
@@ -84,37 +94,31 @@ export function PlacePicker({
     onSelect?.(result);
   }
 
-  return (
-    <Field label={label} hint={noMatch ? "No match — using the name as typed." : undefined}>
+  const hint = noMatch ? "No match — using the name as typed." : undefined;
+  const fieldProps = {
+    value: query,
+    autoComplete: "off",
+    onChange: (e: ChangeEvent<HTMLInputElement>) => {
+      untouched.current = false;
+      setQuery(e.target.value);
+      setNoMatch(false);
+      const result: PlacePickerResult = { providerId: null, name: e.target.value, lat: null, lng: null, countryCode: null };
+      setSelected(result);
+      onSelect?.(result);
+    },
+  };
+  const inner = (
+    <>
       <div className="relative">
-        <Input
-          value={query}
-          onChange={(e) => {
-            untouched.current = false;
-            setQuery(e.target.value);
-            setNoMatch(false);
-            const result: PlacePickerResult = {
-              providerId: null,
-              name: e.target.value,
-              lat: null,
-              lng: null,
-              countryCode: null,
-            };
-            setSelected(result);
-            onSelect?.(result);
-          }}
-          autoComplete="off"
-        />
+        {look === "box" ? <Input {...fieldProps} /> : <input {...fieldProps} autoFocus={look === "display"} className={LOOK[look]} />}
         {results.length > 0 ? (
-          <ul className="absolute z-10 mt-1 w-full rounded-sm border border-rule-strong bg-sheet shadow-raised">
+          <ul className="absolute z-10 mt-1 w-full rounded-sm border border-rule-strong bg-sheet text-ink shadow-raised">
             {results.map((r) => (
               <li key={r.providerId}>
                 <button
                   type="button"
                   onClick={() => choose(r)}
-                  className={cx(
-                    "block w-full px-2.5 py-1.5 text-left text-sm hover:bg-sheet-2",
-                  )}
+                  className="block w-full px-2.5 py-1.5 text-left font-sans text-sm font-normal tracking-normal hover:text-pen"
                 >
                   {r.label}
                 </button>
@@ -128,11 +132,16 @@ export function PlacePicker({
       <input type="hidden" name={`${name}ProviderId`} value={selected?.providerId ?? ""} />
       <input type="hidden" name={`${name}Lat`} value={selected?.lat ?? ""} />
       <input type="hidden" name={`${name}Lng`} value={selected?.lng ?? ""} />
-      <input
-        type="hidden"
-        name={`${name}CountryCode`}
-        value={selected?.countryCode ?? ""}
-      />
-    </Field>
+      <input type="hidden" name={`${name}CountryCode`} value={selected?.countryCode ?? ""} />
+    </>
+  );
+
+  if (look === "box") return <Field label={label} hint={hint}>{inner}</Field>;
+  return (
+    <label className="block">
+      <span className={look === "display" ? "mb-1 block font-mono text-xs opacity-75" : "mb-1 block font-mono text-xs text-ink-faint"}>{label}</span>
+      {inner}
+      {hint ? <span className="mt-1 block text-xs opacity-75">{hint}</span> : null}
+    </label>
   );
 }

@@ -244,13 +244,13 @@ export function CalendarGrid({
   );
 }
 
-const CALENDAR_DIALOG = "m-auto w-full max-w-lg rounded-md bg-sheet p-0 text-ink shadow-card backdrop:bg-black/40";
+// A centred sheet on a wide screen, a sheet from the bottom on a phone (wireframe/modal-forms B3).
+export const CALENDAR_DIALOG =
+  "m-auto w-full max-w-lg overflow-y-auto rounded-md border border-rule bg-sheet p-0 text-ink shadow-lifted backdrop:bg-black/40 max-h-[calc(100dvh-48px)] max-sm:mb-0 max-sm:max-h-[92dvh] max-sm:max-w-full max-sm:rounded-b-none";
 
 /**
- * The event modal (ticket 321) — one centred sheet holding the event's facts
- * and its comment thread. Replaced the side pane and its Event/Trip-notes
- * tabs; trip-wide talk lives on the Notes page now. Backdrop or ✕ closes,
- * matching `AddEventDialog`.
+ * The event modal (ticket 321) — one sheet holding the event's facts and its comment
+ * thread. The facts' own head carries the ✕; backdrop or Escape also close it.
  */
 export function EventModal({
   open,
@@ -263,22 +263,7 @@ export function EventModal({
 }) {
   return (
     <Dialog open={open} onClose={onClose} title="Event" className={CALENDAR_DIALOG}>
-      {open ? (
-        <>
-          <div className="flex items-center justify-end border-b border-rule bg-sheet-2 px-3 py-2">
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close"
-              title="Close"
-              className="rounded-sm px-2 text-lg leading-none text-ink-faint hover:text-ink"
-            >
-              ×
-            </button>
-          </div>
-          <div className="max-h-[75vh] overflow-y-auto p-4">{panel}</div>
-        </>
-      ) : null}
+      {open ? panel : null}
     </Dialog>
   );
 }
@@ -296,39 +281,26 @@ export function AddEventDialog({
   searchPlaces: PlaceSearch;
   onClose: () => void;
 }) {
+  const day = adding ? days.find((d) => d.id === adding.dayId) : undefined;
   return (
-    <Dialog open={adding !== null} onClose={onClose} title="Add an event" className={CALENDAR_DIALOG}>
+    <Dialog open={adding !== null} onClose={onClose} title={`Add an event, ${day?.longLabel ?? ""}`} className={CALENDAR_DIALOG}>
       {adding ? (
-        <>
-          <div className="flex items-center justify-between border-b border-rule px-4 py-3">
-            <h2 className="font-display text-base font-semibold">
-              Add an event — {days.find((d) => d.id === adding.dayId)?.longLabel}, {adding.time}
-            </h2>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close"
-              className="rounded-sm px-2 text-lg leading-none text-ink-faint hover:text-ink"
-            >
-              ×
-            </button>
-          </div>
-          {/* Submitting dismisses the dialog; the action revalidates the page
-              underneath it. Same contract as `Sheet`. */}
-          <div className="p-4" onSubmit={() => setTimeout(onClose, 0)}>
-            <EventForm
-              action={submitEvent}
-              searchPlaces={searchPlaces}
-              defaults={{
-                dayId: adding.dayId,
-                time: adding.time,
-                // An hour long by default — the commonest answer, and the bottom
-                // edge is right there if it's wrong.
-                endTime: adding.endTime ?? toHhmm(Math.min((toMinutes(adding.time) ?? 540) + 60, 24 * 60)),
-              }}
-            />
-          </div>
-        </>
+        // Submitting dismisses the dialog; the action revalidates the page
+        // underneath it. Same contract as `Sheet`.
+        <div onSubmit={() => setTimeout(onClose, 0)}>
+          <EventForm
+            action={submitEvent}
+            searchPlaces={searchPlaces}
+            dateLabel={day?.shortLabel ?? ""}
+            defaults={{
+              dayId: adding.dayId,
+              time: adding.time,
+              // An hour long by default — the commonest answer, and the bottom
+              // edge is right there if it's wrong.
+              endTime: adding.endTime ?? toHhmm(Math.min((toMinutes(adding.time) ?? 540) + 60, 24 * 60)),
+            }}
+          />
+        </div>
       ) : null}
     </Dialog>
   );

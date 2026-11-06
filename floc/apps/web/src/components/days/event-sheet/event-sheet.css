@@ -1,0 +1,33 @@
+/* The type row keeps one height (wireframe/modal-forms B3): picking Transport narrows the
+   other tiles and widens Transport to hold How, so nothing below it moves. A registered
+   property, because a grid track only eases between lengths. */
+@property --event-tile {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 25%;
+}
+
+.event-types {
+  --event-tile: calc((100% - 24px) / 4);
+  display: grid;
+  grid-template-columns: var(--event-tile) minmax(0, 1fr) var(--event-tile) var(--event-tile);
+  grid-template-rows: 84px;
+  gap: 8px;
+  transition: --event-tile 0.3s var(--ease);
+}
+
+.event-types[data-transport] {
+  --event-tile: 64px;
+}
+
+@media (max-width: 480px) {
+  .event-types[data-transport] {
+    --event-tile: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .event-types {
+    transition: none;
+  }
+}

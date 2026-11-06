@@ -4,9 +4,10 @@ import { useState } from "react";
 import { View } from "react-native";
 
 import { useTheme } from "../system/theme";
-import { Body, Card, Label, Segmented } from "../system/ui";
+import { Body, Card, Label, Pill, Segmented } from "../system/ui";
 import { TextLink } from "../system/text-controls";
 import { OffsiteNote, SiteLinks } from "./booking-links";
+import { HotelUpload } from "./hotel-upload";
 import { radius, space } from "@/lib/theme";
 
 type Kind = "flights" | "stays";
@@ -41,7 +42,7 @@ function GapRow({ dates, onOpenDays }: { dates: string; onOpenDays: () => void }
   );
 }
 
-export function BookingPanel({ plan, onOpenDays }: { plan: BookingPlan; onOpenDays: () => void }) {
+export function BookingPanel({ tripId, plan, onOpenDays }: { tripId: number; plan: BookingPlan; onOpenDays: () => void }) {
   const [kind, setKind] = useState<Kind>("flights");
 
   return (
@@ -64,7 +65,15 @@ export function BookingPanel({ plan, onOpenDays }: { plan: BookingPlan; onOpenDa
                     <Body tone="ink-3">
                       {formatDateRange(row.checkIn, row.checkOut)} · {nightsLabel(row.checkIn, row.checkOut)}
                     </Body>
-                    <SiteLinks links={row.links} />
+                    {row.hotel ? (
+                      <View style={{ gap: space.xs }}>
+                        <Pill word="Booked" tone="pastel-green" />
+                        <Body tone="ink-3">{row.hotel.name}</Body>
+                      </View>
+                    ) : (
+                      <SiteLinks links={row.links} />
+                    )}
+                    <HotelUpload tripId={tripId} dayId={row.dayId} place={row.placeName} />
                   </View>
                 ) : (
                   <GapRow

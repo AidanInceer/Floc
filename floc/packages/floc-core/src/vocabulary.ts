@@ -12,7 +12,7 @@ export const COUNTRY_MARK_STATES = ["green", "yellow", "none"] as const;
 export type CountryMarkState = (typeof COUNTRY_MARK_STATES)[number];
 
 /** The event's category — the one field the Days page colours by (ticket 68). Accommodation is the day's overnight place, not an event. */
-export const DAY_EVENT_TYPES = ["activity", "transport", "food"] as const;
+export const DAY_EVENT_TYPES = ["activity", "transport", "food", "other"] as const;
 export type DayEventType = (typeof DAY_EVENT_TYPES)[number];
 
 export const TRANSPORT_TYPES = [

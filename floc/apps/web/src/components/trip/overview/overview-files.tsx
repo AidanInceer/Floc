@@ -1,20 +1,12 @@
 // Why: the legs already show each file; this counts them by kind and points at the Files tab.
 import Link from "next/link";
 
-import { DOC_CATEGORY_LABELS, type DocCategory } from "@floc/core/documents/documents";
+import { DOC_CATEGORY_LABELS, DOC_CATEGORY_SKINS, type DocCategory } from "@floc/core/documents/documents";
 import { filesByCategory } from "@floc/core/trip/overview/legs";
 import { cx } from "@/components/system/ui";
 import { DocCategoryIcon } from "@/components/system/icons/doc-category";
 import { DocumentUpload } from "@/components/documents/document-upload";
 import { UploadIcon } from "@/components/system/icons";
-
-const TINT: Record<DocCategory, string> = {
-  travel: "bg-pastel-blue text-pastel-blue-ink",
-  stay: "bg-pastel-green text-pastel-green-ink",
-  tickets: "bg-pastel-yellow text-pastel-yellow-ink",
-  admin: "bg-pastel-red text-pastel-red-ink",
-  other: "bg-pastel-red text-pastel-red-ink",
-};
 
 export function OverviewFiles({ tripId, files }: { tripId: number; files: { category: DocCategory }[] }) {
   const counts = filesByCategory(files);
@@ -35,7 +27,7 @@ export function OverviewFiles({ tripId, files }: { tripId: number; files: { cate
               href={`/trip/${tripId}/files?category=${category}`}
               className="inline-flex items-center gap-1.5 text-sm text-ink hover:underline"
             >
-              <span className={cx("grid h-[22px] w-[22px] place-items-center rounded-sm", TINT[category])}>
+              <span className={cx("grid h-[22px] w-[22px] place-items-center rounded-sm", DOC_CATEGORY_SKINS[category])}>
                 <DocCategoryIcon category={category} size={11} />
               </span>
               {DOC_CATEGORY_LABELS[category]}

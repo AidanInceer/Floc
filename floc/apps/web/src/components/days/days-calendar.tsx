@@ -350,7 +350,8 @@ export function DaysCalendar({
   const openAdd = (dayId: number, minutes: number, endMinutes?: number) => {
     setAdding({
       dayId,
-      time: toHhmm(clamp(snap(minutes), 0, LAST_START_MINUTE)),
+      // Why: a click lands to the minute, and nobody plans for 09:33. A drag keeps its exact ends.
+      time: toHhmm(clamp(snap(minutes, endMinutes === undefined ? 15 : 1), 0, LAST_START_MINUTE)),
       endTime: endMinutes === undefined ? undefined : toHhmm(endMinutes),
     });
   };

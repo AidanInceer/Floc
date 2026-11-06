@@ -49,6 +49,7 @@ const EVENT_PATHS = {
   transport: "M2.4 7h9.2M8 3.4 11.6 7 8 10.6",
   food: "M4.2 1.8v4.2M2.8 1.8v2.6a1.4 1.4 0 0 0 2.8 0V1.8M4.2 6v6.2M10.2 12.2V1.8c-1.4.6-2.2 2-2.2 3.8v1.6h2.2",
   activity: "M1.9 4.2h10.2v1.7a1.1 1.1 0 0 0 0 2.2v1.7H1.9V8.1a1.1 1.1 0 0 0 0-2.2ZM8.6 4.2v5.6",
+  other: "M7 2.2a4.8 4.8 0 1 0 0 9.6 4.8 4.8 0 1 0 0-9.6ZM7 6.1a.9.9 0 1 0 0 1.8.9.9 0 1 0 0-1.8Z",
 } as const;
 
 function pathFor(type: DayEventType, transportType: TransportType | null) {

@@ -175,6 +175,42 @@ describe("bookingPlan", () => {
   });
 });
 
+describe("bookingPlan, hotels", () => {
+  const trip = { startDate: "2026-10-14", endDate: "2026-10-17" };
+  const days = [
+    day(1, "2026-10-14", 7, "Lisbon"),
+    day(2, "2026-10-15", 7, "Lisbon"),
+    day(3, "2026-10-16", 8, "Porto"),
+    day(4, "2026-10-17", 8, "Porto"),
+  ];
+  const hotel = (id: number, dayId: number | null, eventDayId: number | null = null, category: "hotel" | "travel" = "hotel") => ({
+    id,
+    name: `file-${id}.pdf`,
+    category,
+    dayId,
+    eventDayId,
+  });
+  const plan = (files: ReturnType<typeof hotel>[]) =>
+    bookingPlan({ trip, days, today: "2026-09-01", adults: 2, prefill: true, files })!.stays as StayRow[];
+
+  it("gives each stop the day an upload files under: its first", () => {
+    expect(plan([]).map((s) => (s.kind === "stop" ? s.dayId : null))).toEqual([1, 3]);
+  });
+
+  it("marks a stop booked by a hotel file on any of its days, or an event on one", () => {
+    const [lisbon, porto] = plan([hotel(1, 2), hotel(2, null, 4)]);
+    expect(lisbon).toMatchObject({ kind: "stop", hotel: { id: 1, name: "file-1.pdf" } });
+    expect(porto).toMatchObject({ kind: "stop", hotel: { id: 2 } });
+  });
+
+  it("leaves a stop unbooked with no files, a file of another kind, or a file on no day", () => {
+    const [a] = plan([]);
+    const [b] = plan([hotel(1, 1, null, "travel"), hotel(2, null)]);
+    expect(a).toMatchObject({ hotel: null });
+    expect(b).toMatchObject({ hotel: null });
+  });
+});
+
 describe("stayCheckOut", () => {
   it("is the morning after the last night", () => {
     expect(stayCheckOut("2026-10-15", "2026-10-20")).toBe("2026-10-16");

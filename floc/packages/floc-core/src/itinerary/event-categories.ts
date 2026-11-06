@@ -11,7 +11,7 @@ export const EVENT_CATEGORIES: Record<
   DayEventType,
   {
     label: string;
-    tone: "marine" | "agreed" | "open";
+    tone: "marine" | "agreed" | "open" | "neutral";
     row: string;
     /** A block on the calendar grid (ticket 103) — undiluted wash, thick left-edge stripe, legible even squeezed thin by an overlap. */
     block: string;
@@ -46,5 +46,15 @@ export const EVENT_CATEGORIES: Record<
     block: "border-pastel-yellow border-l-pastel-yellow-ink bg-pastel-yellow text-pastel-yellow-ink",
     dot: "bg-pastel-yellow-ink",
     tile: "bg-pastel-yellow text-pastel-yellow-ink",
+  },
+  // Grey on purpose (2026-11-06): what is none of the three — keys, laundry,
+  // a check-in — sits back so the coloured kinds still lead the eye.
+  other: {
+    label: "Other",
+    tone: "neutral",
+    row: "border-rule-strong bg-sheet-3/60",
+    block: "border-rule-strong border-l-ink-soft bg-sheet-3 text-ink",
+    dot: "bg-ink-faint",
+    tile: "bg-sheet-3 text-ink",
   },
 };

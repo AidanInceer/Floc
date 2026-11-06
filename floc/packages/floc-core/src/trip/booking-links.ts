@@ -5,13 +5,26 @@
  */
 import { addDays } from "../dates/dates";
 import { deriveStops, type StopDayInput } from "../itinerary/stops";
+import { hotelFile, type LegFile } from "./overview/legs";
 
 export type BookingSite = "Google Flights" | "Skyscanner" | "Booking.com" | "Trip.com";
 
 export type BookingLink = { site: BookingSite; url: string };
 
+/** The file that books a stay: what its Booked pill names. */
+export type BookedHotel = { id: number; name: string };
+
 export type StayRow =
-  | { kind: "stop"; placeName: string; checkIn: string; checkOut: string; links: BookingLink[] }
+  | {
+      kind: "stop";
+      placeName: string;
+      checkIn: string;
+      checkOut: string;
+      links: BookingLink[];
+      /** The stop's first day: where a booking uploaded from this row is filed. */
+      dayId: number;
+      hotel: BookedHotel | null;
+    }
   | { kind: "gap"; checkIn: string; checkOut: string };
 
 export type BookingPlan = {
@@ -118,11 +131,14 @@ export function bookingPlan({
   today,
   adults,
   prefill,
+  files = [],
 }: {
   trip: { startDate: string | null; endDate: string | null };
   days: StopDayInput[];
   today: string;
   adults: number;
+  /** The files this person can see; a hotel file on a stop books it. */
+  files?: (LegFile & { id: number; name: string })[];
 } & Prefill): BookingPlan | null {
   const { startDate, endDate } = trip;
   if (!startDate || !endDate || today >= startDate) return null;
@@ -135,9 +151,17 @@ export function bookingPlan({
   const stays = stops.filter((s) => s.nights > 0).map((s): StayRow => {
     const checkIn = s.startDate;
     const checkOut = addDays(s.startDate, s.nights);
-    return s.placeName
-      ? { kind: "stop", placeName: s.placeName, checkIn, checkOut, links: stayLinks({ place: s.placeName, checkIn, checkOut, adults, prefill }) }
-      : { kind: "gap", checkIn, checkOut };
+    if (!s.placeName) return { kind: "gap", checkIn, checkOut };
+    const booked = hotelFile(files, new Set(s.dayIds));
+    return {
+      kind: "stop",
+      placeName: s.placeName,
+      checkIn,
+      checkOut,
+      links: stayLinks({ place: s.placeName, checkIn, checkOut, adults, prefill }),
+      dayId: s.dayIds[0],
+      hotel: booked ? { id: booked.id, name: booked.name } : null,
+    };
   });
   return { flights, stays };
 }

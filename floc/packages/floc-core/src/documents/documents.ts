@@ -31,7 +31,7 @@ export type DocumentKind = "pdf" | "image";
  */
 export const DOC_CATEGORIES = [
   "travel",
-  "stay",
+  "hotel",
   "tickets",
   "admin",
   "other",
@@ -41,35 +41,59 @@ export type DocCategory = (typeof DOC_CATEGORIES)[number];
 
 export const DOC_CATEGORY_LABELS: Record<DocCategory, string> = {
   travel: "Travel",
-  stay: "Stay",
+  hotel: "Hotel",
   tickets: "Tickets",
   admin: "Admin",
   other: "Other",
 };
 
-/** One pastel per bucket, the same one-per-domain rule the rest of the app follows. */
+/** One colour per bucket on every surface. Literal class names, so Tailwind finds them. */
 export const DOC_CATEGORY_SKINS: Record<DocCategory, string> = {
-  travel: "bg-pastel-red text-pastel-red-ink",
-  stay: "bg-pastel-blue text-pastel-blue-ink",
+  travel: "bg-pastel-blue text-pastel-blue-ink",
+  hotel: "bg-pastel-green text-pastel-green-ink",
   tickets: "bg-pastel-yellow text-pastel-yellow-ink",
-  admin: "bg-pastel-green text-pastel-green-ink",
+  admin: "bg-pastel-red text-pastel-red-ink",
   other: "bg-sheet-3 text-ink-soft",
 };
 
+/** The same colours as a bordered chip, for a file named in a row. */
+export const DOC_CATEGORY_CHIPS: Record<DocCategory, string> = {
+  travel: "border border-pastel-blue-edge bg-pastel-blue text-pastel-blue-ink hover:border-pastel-blue-ink",
+  hotel: "border border-pastel-green-edge bg-pastel-green text-pastel-green-ink hover:border-pastel-green-ink",
+  tickets: "border border-pastel-yellow-edge bg-pastel-yellow text-pastel-yellow-ink hover:border-pastel-yellow-ink",
+  admin: "border border-pastel-red-edge bg-pastel-red text-pastel-red-ink hover:border-pastel-red-ink",
+  other: "border border-rule-strong bg-sheet-3 text-ink-soft hover:border-ink-faint",
+};
+
+/** The phone's token for each colour: the base of `pastel-<tone>` and `pastel-<tone>-ink`; other is grey, with no pastel. */
+export const DOC_CATEGORY_TONES: Record<DocCategory, "blue" | "green" | "yellow" | "red" | null> = {
+  travel: "blue",
+  hotel: "green",
+  tickets: "yellow",
+  admin: "red",
+  other: null,
+};
+
+/** Why: a phone build from before the rename to hotel still sends `stay`. */
+const LEGACY_CATEGORY: Record<string, DocCategory> = { stay: "hotel" };
+
+function knownCategory(value: unknown): DocCategory | null {
+  const s = asText(value);
+  if ((DOC_CATEGORIES as readonly string[]).includes(s)) return s as DocCategory;
+  return LEGACY_CATEGORY[s] ?? null;
+}
+
+/** What the phone's API accepts for a category: the current keys and the old ones. */
+export const DOC_CATEGORY_INPUTS = [...DOC_CATEGORIES, ...Object.keys(LEGACY_CATEGORY)] as [string, ...string[]];
+
 /** Anything off the list falls to `other` — filing is not data worth refusing a file over. */
 export function parseDocCategory(value: unknown): DocCategory {
-  const s = asText(value);
-  return (DOC_CATEGORIES as readonly string[]).includes(s)
-    ? (s as DocCategory)
-    : "other";
+  return knownCategory(value) ?? "other";
 }
 
 /** "all" is a real answer, not a missing one (rule 11). */
 export function parseCategoryFilter(value: unknown): DocCategory | "all" {
-  const s = asText(value);
-  return (DOC_CATEGORIES as readonly string[]).includes(s)
-    ? (s as DocCategory)
-    : "all";
+  return knownCategory(value) ?? "all";
 }
 
 export type AllowedType = { mimeType: string; ext: string; kind: DocumentKind };
@@ -91,14 +115,7 @@ export function kindLabel(mimeType: string): string {
   return documentKind(mimeType) === "image" ? "IMG" : "PDF";
 }
 
-/**
- * A file's own name, made safe to print and to store: no path separators, no
- * quotes, no control characters, capped, and never empty. It is only ever
- * a label — the bytes are addressed by `storageKey` — but a name that
- * looks like a path invites a reader to treat it as one, and the serve
- * route puts it in a quoted header, where a stray quote or backslash ends
- * the value early.
- */
+/** Why: a name that looks like a path invites a reader to treat it as one, and a stray quote ends the serve route's quoted header early. */
 export function cleanFileName(raw: unknown, fallback = "Document"): string {
   const name = asText(raw)
     .replace(/[\u0000-\u001f\u007f]/g, "")

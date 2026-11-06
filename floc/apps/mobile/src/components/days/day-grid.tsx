@@ -72,11 +72,18 @@ export type GridEvent = TimedLike & {
  * classes the browser resolves; there is no cascade here, so the token name is
  * read out of the class and looked up in the palette.
  */
-const GROUND: Record<DayEventType, Pastel> = {
+const GROUND: Record<Exclude<DayEventType, "other">, Pastel> = {
   transport: "pastel-red",
   activity: "pastel-blue",
   food: "pastel-yellow",
 };
+
+// Other is grey, not a pastel: the recess it sits in, its edge and the softer ink.
+function groundOf(type: DayEventType, c: ReturnType<typeof useTheme>["c"]) {
+  if (type === "other") return { fill: c["sheet-3"], edge: c["rule-2"], ink: c["ink-2"] };
+  const g = GROUND[type];
+  return { fill: c[g], edge: c[`${g}-edge`], ink: c[`${g}-ink`] };
+}
 
 /**
  * A block, or the all-day chip: same tap, same look, different place.
@@ -103,7 +110,7 @@ function EventBlock({
   style?: object;
 }) {
   const { c } = useTheme();
-  const ground = GROUND[type];
+  const ground = groundOf(type, c);
   const said = [when, title].filter(Boolean).join(" · ");
   // The category is a word here, so the colour is never carrying it alone (#204).
   const spoken = `${said} · ${EVENT_CATEGORIES[type].label}`;
@@ -114,8 +121,8 @@ function EventBlock({
       onPress={onPress}
       style={[
         {
-          backgroundColor: c[ground],
-          borderColor: c[`${ground}-edge`],
+          backgroundColor: ground.fill,
+          borderColor: ground.edge,
           borderWidth: 1,
           borderRadius: radius.sm,
           paddingHorizontal: space.sm,
@@ -131,7 +138,7 @@ function EventBlock({
           numberOfLines={2}
           style={{
             flexShrink: 1,
-            color: c[`${ground}-ink`],
+            color: ground.ink,
             fontFamily: fonts.sans,
             fontSize: size.small,
           }}
@@ -140,8 +147,8 @@ function EventBlock({
         </Text>
         {/* The marks say only "more inside" — the modal is the real answer, so
             the label above already carries everything a reader is told. */}
-        {hasNote ? <PenGlyph color={c[`${ground}-ink`]} /> : null}
-        {hasFiles ? <ClipGlyph color={c[`${ground}-ink`]} /> : null}
+        {hasNote ? <PenGlyph color={ground.ink} /> : null}
+        {hasFiles ? <ClipGlyph color={ground.ink} /> : null}
       </View>
     </Pressable>
   );

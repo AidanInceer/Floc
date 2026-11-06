@@ -2,6 +2,8 @@ import Link from "next/link";
 
 import { formatDateRange, nightsBetween } from "@floc/core/dates/dates";
 import type { BookingPlan, StayRow } from "@floc/core/trip/booking-links";
+import { BookedPill } from "@/components/booking/booked-pill";
+import { HotelUpload } from "@/components/booking/hotel-upload";
 import { OFFSITE_NOTE, SiteLinks } from "@/components/booking/site-links";
 import { BedIcon, EventGlyph } from "@/components/system/icons/days";
 
@@ -14,7 +16,7 @@ function nightsLabel(row: StayRow) {
   return `${formatDateRange(row.checkIn, row.checkOut)} · ${nights} ${nights === 1 ? "night" : "nights"}`;
 }
 
-export function BookingCard({ tripId, plan }: { tripId: number; plan: BookingPlan }) {
+export function BookingCard({ tripId, plan, files }: { tripId: number; plan: BookingPlan; files: boolean }) {
   const daysHref = `/trip/${tripId}/days`;
   return (
     <section id="booking" className="scroll-mt-24 rounded-md border border-rule bg-sheet p-4 shadow-card">
@@ -47,7 +49,14 @@ export function BookingCard({ tripId, plan }: { tripId: number; plan: BookingPla
                       <p className="text-sm">{row.placeName}</p>
                       <p className="nums font-mono text-[11px] text-ink-faint">{nightsLabel(row)}</p>
                     </div>
-                    <SiteLinks links={row.links} />
+                    <div className="min-w-0 max-sm:order-2 max-sm:basis-full sm:ml-auto">
+                      {row.hotel ? <BookedPill tripId={tripId} hotel={row.hotel} /> : <SiteLinks links={row.links} />}
+                    </div>
+                    {files ? (
+                      <div className="max-sm:order-1 max-sm:ml-auto">
+                        <HotelUpload tripId={tripId} dayId={row.dayId} place={row.placeName} />
+                      </div>
+                    ) : null}
                   </>
                 ) : (
                   <div className="w-full rounded-md border border-dashed border-rule bg-sheet-2 px-3 py-2">

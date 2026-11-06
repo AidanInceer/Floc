@@ -11,14 +11,14 @@ test("the feature tour steps with its arrows and keys, wraps, and never moves on
 
   await page.getByRole("button", { name: "Next feature" }).click();
   await expect(count).toHaveText("2 / 7");
-  await expect(tour.getByRole("heading", { name: "Find the week everyone can make" })).toBeVisible();
+  await expect(tour.getByRole("heading", { name: "Dates that work for everyone" })).toBeVisible();
 
   await tour.focus();
   await page.keyboard.press("ArrowLeft");
   await expect(count).toHaveText("1 / 7");
   await page.getByRole("button", { name: "Previous feature" }).click();
   await expect(count).toHaveText("7 / 7");
-  await expect(tour.getByRole("heading", { name: "Tickets, filed" })).toBeVisible();
+  await expect(tour.getByRole("heading", { name: "Find the booking in seconds" })).toBeVisible();
   await page.getByRole("button", { name: "Next feature" }).click();
   await expect(count).toHaveText("1 / 7");
 

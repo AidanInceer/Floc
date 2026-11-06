@@ -127,13 +127,13 @@ describe("uploadDocument", () => {
     await expectNotFound(() => uploadDocument(world.theirs.id, form("shared")));
   });
 
-  it("lands a file on a day, for a stop's stay", async () => {
-    const data = form("shared", "flat.pdf", "stay");
+  it("lands a file on a day, for a stop's hotel", async () => {
+    const data = form("shared", "flat.pdf", "hotel");
     data.set("dayId", String(world.ours.dayId));
     await uploadDocument(world.ours.id, data);
 
     const [doc] = await listDocuments(world.ours.id, world.member);
-    expect([doc.category, doc.dayId]).toEqual(["stay", world.ours.dayId]);
+    expect([doc.category, doc.dayId]).toEqual(["hotel", world.ours.dayId]);
   });
 
   it("refuses a day from another trip", async () => {
@@ -194,12 +194,23 @@ describe("setCategory", () => {
     // Somebody else on the trip moves it — filing is housekeeping, not authorship.
     signIn(world.admin);
     const move = new FormData();
-    move.set("category", "stay");
+    move.set("category", "hotel");
     await setCategory(world.ours.id, doc.id, move);
 
     expect((await listDocuments(world.ours.id, world.admin))[0].category).toBe(
-      "stay",
+      "hotel",
     );
+  });
+
+  it("files the old stay heading under hotel, for a phone build from before the rename", async () => {
+    await uploadDocument(world.ours.id, form("shared"));
+    const [doc] = await listDocuments(world.ours.id, world.member);
+
+    const move = new FormData();
+    move.set("category", "stay");
+    await setCategory(world.ours.id, doc.id, move);
+
+    expect((await listDocuments(world.ours.id, world.member))[0].category).toBe("hotel");
   });
 
   it("files an unknown heading under other rather than refusing", async () => {
@@ -221,7 +232,7 @@ describe("setCategory", () => {
 
     signIn(world.admin);
     const move = new FormData();
-    move.set("category", "stay");
+    move.set("category", "hotel");
     await expectNotFound(() => setCategory(world.ours.id, doc.id, move));
   });
 });

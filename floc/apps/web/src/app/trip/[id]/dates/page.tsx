@@ -2,6 +2,8 @@
 import { requireTripAccess } from "@/server/access";
 import { listAvailability } from "@/server/itinerary/availability";
 import { listGuests, type Guest } from "@/server/guests/guests";
+import { documentsEnabled } from "@/server/documents/document-store";
+import { listDocuments } from "@/server/documents/documents";
 import { canUseFeature } from "@/server/billing/entitlements";
 import { listDayLoads, listRouteDays } from "@/server/itinerary/itinerary";
 import { bookingPlan } from "@floc/core/trip/booking-links";
@@ -64,7 +66,8 @@ export default async function DatesPage({
   const { trip, viewer, members } = access;
   const tripId = trip.id;
 
-  const [rows, dayLoads, routeDays, forecast, weatherPro, bookingPrefill, guests] = await Promise.all([
+  const files = documentsEnabled();
+  const [rows, dayLoads, routeDays, forecast, weatherPro, bookingPrefill, guests, docs] = await Promise.all([
     listAvailability(tripId),
     listDayLoads(tripId),
     listRouteDays(tripId),
@@ -74,6 +77,8 @@ export default async function DatesPage({
     canUseFeature("dates.weather", tripId),
     canUseFeature("booking.prefill", tripId),
     listGuests(tripId),
+    // Rule 11: no storage volume, no files — and no query for them.
+    files ? listDocuments(tripId, viewer.id) : Promise.resolve([]),
   ]);
 
   const free = rows.filter((r) => r.available);
@@ -116,6 +121,7 @@ export default async function DatesPage({
     today: today(),
     adults: members.length,
     prefill: bookingPrefill,
+    files: docs,
   });
 
   const answered = members.filter((m) => (marked[m.userId] ?? 0) > 0);
@@ -238,7 +244,7 @@ export default async function DatesPage({
       )}
       {booking ? (
         <div className="mt-4">
-          <BookingCard tripId={tripId} plan={booking} />
+          <BookingCard tripId={tripId} plan={booking} files={files} />
         </div>
       ) : null}
     </div>

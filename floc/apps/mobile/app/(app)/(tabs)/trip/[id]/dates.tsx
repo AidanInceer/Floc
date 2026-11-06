@@ -58,6 +58,8 @@ import { trpc } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 import { space } from "@/lib/theme";
 import { windowWarning } from "@/lib/trip/window-change";
+import type { AppRouter } from "@floc/api/router";
+import type { inferRouterOutputs } from "@trpc/server";
 
 /** Which of the four readings of the same grid is on screen. */
 type CalendarView = "mine" | "everyone" | "window" | "weather";
@@ -241,6 +243,23 @@ function DatesFold({ moment, children }: { moment: DatesMoment; children: ReactN
   );
 }
 
+type Outputs = inferRouterOutputs<AppRouter>;
+
+function bookingFor(
+  trip: Outputs["trips"]["get"],
+  days: Outputs["itinerary"]["days"] | undefined,
+  files: Outputs["files"]["list"] | undefined,
+) {
+  return bookingPlan({
+    trip,
+    days: (days ?? []).map((d) => ({ ...d, dayId: d.id })),
+    today: today(),
+    adults: trip.members.length,
+    prefill: trip.bookingPrefill,
+    files: files ?? [],
+  });
+}
+
 export default function Dates() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const tripId = Number(id);
@@ -256,6 +275,7 @@ export default function Dates() {
   const guests = useQuery(trpc.availability.guests.queryOptions({ tripId }, { enabled: ready }));
   const weather = useQuery(trpc.itinerary.forecast.queryOptions({ tripId }, { enabled: ready }));
   const days = useQuery(trpc.itinerary.days.queryOptions({ tripId }, { enabled: ready }));
+  const files = useQuery(trpc.files.list.queryOptions({ tripId }, { enabled: ready }));
 
   const [view, setView] = useState<CalendarView>("mine");
   const [openDay, setOpenDay] = useState<string | null>(null);
@@ -301,13 +321,7 @@ export default function Dates() {
 
   const windowDays = windowSet(range, trip.data.startDate, trip.data.endDate);
 
-  const booking = bookingPlan({
-    trip: trip.data,
-    days: (days.data ?? []).map((d) => ({ ...d, dayId: d.id })),
-    today: today(),
-    adults: trip.data.members.length,
-    prefill: trip.data.bookingPrefill,
-  });
+  const booking = bookingFor(trip.data, days.data, files.data);
 
   const forecast = forecastIndex(weather.data);
   const forecastByDate = forecast.byDate;
@@ -420,7 +434,7 @@ export default function Dates() {
       </DatesFold>
 
       {booking ? (
-        <BookingPanel plan={booking} onOpenDays={() => router.push(`/trip/${tripId}/days`)} />
+        <BookingPanel tripId={tripId} plan={booking} onOpenDays={() => router.push(`/trip/${tripId}/days`)} />
       ) : null}
     </ScrollView>
   );

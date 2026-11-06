@@ -80,9 +80,21 @@ export function tripLegs<F extends LegFile>({
       continue;
     }
     leg.files.push(f);
-    if (f.category === "stay" && !leg.stay) leg.stay = f;
   }
+  for (const leg of legs) leg.stay = hotelFile(leg.files);
   return { legs, wholeTrip };
+}
+
+/** The file that books a stop: the first hotel file on one of its days or their events. No `dayIds` means the files are already cut to the stop. */
+export function hotelFile<F extends LegFile>(files: F[], dayIds?: ReadonlySet<number>): F | null {
+  return (
+    files.find((f) => {
+      if (f.category !== "hotel") return false;
+      if (!dayIds) return true;
+      const day = f.dayId ?? f.eventDayId;
+      return day !== null && dayIds.has(day);
+    }) ?? null
+  );
 }
 
 /** Each day's travel mode: its first transport event by order (ticket 78). */

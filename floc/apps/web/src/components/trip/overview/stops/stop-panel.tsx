@@ -6,6 +6,7 @@ import { TravelModeIcon } from "@/components/system/icons/travel-mode";
 import { StopDay } from "./stop-day";
 import { nightsLabel } from "@floc/core/itinerary/stops";
 import { StopNo, cityOf } from "./stop-parts";
+import { StopRibbon } from "./stop-ribbon";
 
 export function Arrival({ leg }: { leg: Leg<TripDocument> }) {
   return (
@@ -26,8 +27,9 @@ export function StopPanel({
   events: Map<number, DayEventRow[]>;
 }) {
   return (
-    <section id={`stop-${leg.no}`} className="scroll-mt-4 rounded-md border border-rule-strong bg-sheet px-3 pb-2 pt-4 sm:px-[18px] sm:pb-3">
-      <header className="flex flex-wrap items-center gap-x-3 gap-y-1">
+    <section id={`stop-${leg.no}`} className="relative scroll-mt-4 rounded-md border border-rule-strong bg-sheet px-3 pb-2 pt-4 sm:px-[18px] sm:pb-3">
+      {leg.stay ? <StopRibbon tripId={tripId} fileName={leg.stay.name} /> : null}
+      <header className={`flex flex-wrap items-center gap-x-3 gap-y-1${leg.stay ? " pr-8" : ""}`}>
         <StopNo no={leg.no} />
         <h3 className="font-display text-xl tracking-[-0.02em]">{cityOf(leg.placeName)}</h3>
         <span className="nums text-xs text-ink-faint">
