@@ -25,6 +25,9 @@ function fixture(t) {
   git(dir, "init", "-q", "--bare", "-b", "develop", "origin.git");
   git(dir, "clone", "-q", "origin.git", "a");
   const a = join(dir, "a");
+  // Why: mergeTarget runs plain git, and a CI runner has no user to sign a merge commit with.
+  git(a, "config", "user.name", "t");
+  git(a, "config", "user.email", "t@t");
   writeFileSync(join(a, "app.ts"), "one\n");
   git(a, "add", ".");
   git(a, "commit", "-qm", "start");

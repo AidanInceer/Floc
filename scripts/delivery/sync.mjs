@@ -13,8 +13,9 @@ export function mergeTarget(root, target) {
   try {
     git(root, "merge", "--no-edit", upstream);
     return { state: "merged" };
-  } catch {
+  } catch (error) {
     const files = git(root, "diff", "--name-only", "--diff-filter=U").split("\n").filter(Boolean);
+    if (!files.length) throw error;
     if (!mechanical(files)) {
       git(root, "merge", "--abort");
       return { state: "conflict", files };
