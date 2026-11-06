@@ -43,10 +43,16 @@ Show the user the ticket: number, title, phase, type label, what it delivers, ac
 
 ### 4. Build it
 
-Work on `develop`. No feature branch. Keep to the ticket's acceptance criteria.
+Make the ticket its own worktree, then build only there:
+
+```bash
+pnpm workspace:new <issue>-<short-name>
+```
+
+It branches `feature/<issue>-<short-name>` from `origin/develop` into `.claude/worktrees/`, installs, gives it its own ports, seeded database and uploads, and links the shared docs. Continue the session in that folder (or tell the user to open one there). Never edit the main checkout for a ticket. Keep to the ticket's acceptance criteria.
 
 1. **Test first.** Failing test for each criterion, watch it fail, then the code (`/floc:tdd`).
-2. **Schema change** → `db:generate`, then run the new `drizzle/*.sql` against `local.db` now, not at preflight.
+2. **Schema change** → ask Aidan first (AGENTS.md). Then `db:generate`, and run the new `drizzle/*.sql` against this worktree's database now.
 3. **New API procedure** → its `parity.json` line. Draft the `why` from the ticket; show it in the report rather than stopping to ask.
 4. **Look at it before the user does.** UI change → screenshot every surface it touches (web via the Browser pane; app via `adb exec-out screencap`), in light **and** dark. Check each against [visual language](../../../../docs/design/visual-language.html): tokens, spacing, alignment, no heading-above-heading, web and app agree. Fix what is off, then shoot again. Send the final shots with `SendUserFile`.
 5. **App flow changed** and the emulator is up → `pnpm --filter floc-mobile maestro`. Extend `app.yaml` if the ticket adds a screen.
@@ -57,14 +63,13 @@ One ticket → one `/floc:push` → the next ticket. Never batch several tickets
 
 ### 5. Land it with `/floc:push`
 
-Run `/floc:push` with this ticket's number. It owns the commit rules, the bump,
-verify, the `on-develop` label and popping the stack.
+Run `/floc:push` with this ticket's number. It owns the commit rules, the quick checks and the PR to `develop`.
 
-**A ticket leaves the stack when it is tagged `on-develop`, not when work starts.** If the work is abandoned, the ticket stays where it is.
+**A ticket leaves the stack when its PR lands on `develop`**: the watcher labels it `on-develop` and pops it. It closes when the release reaches `main`. If the work is abandoned, the ticket stays where it is.
 
 ### 6. Report back
 
-Ticket number and title, what was built, the `/floc:push` result, and what is now on top of the stack. If that pop emptied the current phase, say the next phase starts now.
+Ticket number and title, what was built, and the `/floc:push` result (PR link). The stack pops when the PR lands, so name the next ticket as 'next once this lands'.
 
 ## Constraints
 

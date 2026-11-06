@@ -1,195 +1,83 @@
 ---
 name: push
-description: Take finished local work to the develop branch — verify green, one commit with the right version and subject, pushed, ticket tagged and popped, CI watched. Use when the user says /floc:push, "push this", "ship it", or "get this on develop".
+description: Publish the current task worktree to develop — quick checks, one commit, its doc pages, a PR to develop that merges itself when green, and a watcher that removes the worktree once develop CI passes. Use when the user says /floc:push, "push this", "ship it", or "get this on develop".
 ---
 
 In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
 
 # push
 
-Local work → `develop`, in one commit, with `verify` green. There is **no
-pre-push hook**, so nothing else catches what this skill misses. The rules for
-commits and ticket state live **here**, not in `CLAUDE.md`.
+Task worktree → PR to `develop`. One script does the mechanics; this skill
+covers what a script cannot judge. Never publish when the user asked for local
+review only.
 
-`/floc:release` runs this skill as its step 0 when there is local work, and
-changes step 4 and the report — follow its rules when called from there.
+## 1. Check the work
 
-`scripts/push.mjs` does the mechanical half. This file covers what a script
-cannot judge: an unexpected diff, the commit message, and the issue number.
+- Run it from the task's worktree (`.claude/worktrees/<name>`, branch
+  `feature/…`, `fix/…`, `chore/…` or `hotfix/…`). In the main checkout or on
+  `develop` → stop: the work belongs in `pnpm workspace:new <name>`.
+- Read `git status` and `git diff --stat`. A file the user did not ask you to
+  touch → stop and say what it is.
+- **UI in the diff** (components, routes, CSS, phone screens) → the
+  `floc:design-review` agent reviews it with screenshots, its findings are
+  fixed, and the review is recorded:
+  `pnpm delivery review --evidence-file <json>`. Publish refuses a UI diff
+  without a record for that exact diff.
+- **Docs:** run `/floc:sync-docs`. Keep the list of pages it changed.
+- **Schema** → the new `drizzle/*.sql` is applied to this worktree's database.
+  **API procedure** → its `scripts/parity/parity.json` line (`pnpm parity --fix`
+  writes the boring half). **Plugin** → bump `version` in
+  `plugins/floc/.claude-plugin/plugin.json` and run `pnpm plugins:sync`.
 
-## 1. Preflight
+## 2. Write the message
 
-**UI in the diff** (components, routes, CSS, phone screens) and no
-`floc:design-review` run on it this session → run it now with screenshots of
-the changed screens, and fix its findings before you land.
-
-Dev servers **stay up** — verify builds into `.next-verify`, never the `.next`
-that `next dev` owns.
-
-```bash
-pnpm push:preflight <feat|fix|docs|refactor|chore|test>
-```
-
-The script, in order:
-
-1. Refuses unless on `develop` — or in a linked worktree, where the throwaway
-   branch lands on `develop` by `git push origin HEAD:develop`.
-2. Fetches, and refuses if `origin/develop` moved. Fix:
-   `git pull --rebase --autostash origin develop`, then preflight again.
-3. Warns `!!` on local commits not yet pushed. One commit per ticket — say so
-   and ask before squashing.
-4. Prints the changed files.
-5. Refuses if anything under `plugins/floc/` changed and the plugin `version`
-   did not.
-6. Flags a schema or `floc-api` change.
-7. Bumps `floc/apps/web/package.json`.
-8. Runs `pnpm verify`, including fresh coverage for every workspace, local SonarJS/security rules and 80% coverage on changed lines and branches across the full diff from origin/main. Missing LCOV source files fail.
-9. Records the verified Git tree and main/develop refs. Any subsequent edit or moved base invalidates it.
-
-**Read the file list.** A file the user did not ask you to touch → stop and
-say what it is.
-
-Act on the `!!` warnings yourself:
-
-- **Schema.** Run the new `drizzle/*.sql` against `local.db` in this slice, or
-  dev dies on `no such column`.
-- **API procedure.** Needs a line in `scripts/parity/parity.json`.
-  `pnpm parity --fix` writes the boring half. Draft the `why` from the ticket
-  and name it in the report — do not stop to ask.
-- **Plugin.** Preflight refuses a skill edit without a `version` bump in
-  `plugins/floc/.claude-plugin/plugin.json`. Bump it, run
-  `claude plugin update floc@floc --scope project`, and tell the user to
-  restart the session to load it.
-
-Red verify is a fix, never `--no-verify`. Fix, then preflight again — the bump
-is kept. Never skip hooks or signing.
-
-## 2. Pick the type and the issue
-
-| Type | When | Bump |
-|---|---|---|
-| `feat` | new behaviour a user can see | minor |
-| `fix` | something was broken | patch |
-| `refactor` | same behaviour, better shape | patch |
-| `docs` | `AGENTS.md`, skills text only (`docs/` is gitignored) | patch |
-| `chore` | tooling, deps, config, scripts | patch |
-| `test` | tests only | patch |
-
-A `type:refinement` ticket ships as `feat` if a user sees new behaviour,
-otherwise `refactor`.
-
-The issue number comes **only** from:
-
-- the ticket this session picked up (`/floc:pickup-ticket`), or
-- a number the user gave in chat.
-
-Not from a branch name, an old commit, or a guess. None → `#no-ticket`.
-
-## 3. Land
-
-Write the message to a file in the scratchpad, then:
-
-```bash
-pnpm push:land --message-file <path> [--only <path>...]
-```
-
-`--only` stages exactly those paths instead of `git add -A`. Use it whenever the
-checkout holds changes from another piece of work; `land` reports what it left out.
+Write it to a file in the scratchpad:
 
 ```
-<version> #<issue>: <type>: <description>
+#<issue>: <type>: <description>
 
 <why, in a few lines — not a list of files>
 
 Closes AidanInceer/Floc#<issue>
 ```
 
-- Description: lowercase start, present tense, says what a user or developer
-  now gets. `0.4.0 #93: feat: split the profile`.
-- `#no-ticket` → no `Closes` line at all.
+- Type: `feat` (new behaviour a user sees), `fix`, `refactor`, `docs`,
+  `chore`, `test`. A `type:refinement` ticket is `feat` if a user sees it,
+  else `refactor`.
+- The issue comes only from the ticket this session picked up or a number the
+  user gave. None → `#no-ticket` and no `Closes` line.
+- No version in the subject: the version is set once, at release.
 
-Before it commits, `land` refuses when the issue does not exist, is closed, is
-the `Priority` issue, or is already `on-develop`. The `commit-msg` hook also
-refuses a `Closes` that does not match the subject. Do not work around either —
-the number is wrong.
-
-Before committing, land requires a successful preflight for the exact staged tree. It checks again after commit hooks, before pushing. If --only leaves a different tree from the one verified, use an isolated worktree and preflight that slice; never borrow another snapshot's result.
-
-After the push, `land` labels the issue `on-develop` and pops its line off the
-`Priority` stack, renumbering the rest. `Closes` fires only when `develop`
-reaches `main` (`/floc:release`), so the issue stays open until then. A `!!`
-from this step means do that part by hand with the command it prints.
-
-**Wireframe tag.** Run `pnpm wireframe:tags`. For each prototype this commit builds, set
-`wf-status` to `Chosen: <key>, on develop <version>`. Match on `wf-route`, or on the
-prototype the work came from. This includes a plain `Chosen: <key>`, and an `Exploring`
-page whose pick the user named in conversation. Before you report, run `pnpm wireframe:tags`
-again. No row this commit built may still read `Chosen` with no version. `floc/wireframe/` is gitignored,
-so this is outside the commit. Rules: [prototype](../prototype/SKILL.md#the-tag-follows-the-work).
-
-## 4. Babysit CI
-
-`land` prints the pushed SHA. Spawn the babysitter **in the background, in its
-own worktree**, and carry on — do not wait for it:
-
-```
-Agent({
-  subagent_type: "floc:ci-babysit",
-  description: "Babysit CI for <short sha>",
-  prompt: "<full sha>",
-  isolation: "worktree",
-  run_in_background: true
-})
-```
-
-On red it fixes the cause on `develop`, pushes and watches again (at most three
-tries). Pass on its report: what failed, what it fixed, or why it stopped.
-Your local `develop` is now behind — the next preflight pulls it.
-
-**Local analysis gates develop.** pnpm quality:check runs SonarJS bug/security rules, promise checks and conservative filesystem/process checks on changed release lines, including scripts and studio JavaScript outside package lint. A dynamic file path is flagged only in a function (or module top level) that reads `process.argv`, `parseArgs`, stdin or a request URL. Contain the path first; a `// Why:` comment on the line above marks a reviewed one. `eslint-disable` comments are ignored. Rules that `sonar.issue.ignore.multicriteria` ignores for a path are ignored here too. Review security findings; they are potential risks, not proof of an exploit. Do not suppress a finding to get a push through.
-
-The coverage scope and exclusions come from sonar-project.properties. Add a new workspace's LCOV path there. All tests run fresh; a cached test exit code cannot stand in for coverage files. Package-wide 80% does not prove changed code reaches 80%.
-
-SonarCloud still runs only on PRs and main. Local rules do not reproduce cloud taint analysis, duplication or hotspot review. A green local gate is never a claim that the release gate will pass. Keep direct develop pushes; do not create staging PRs.
-
-## 5. Remove spent worktrees
-
-After `land`, remove the linked worktrees that are finished. List them:
+## 3. Publish
 
 ```bash
-git worktree list --porcelain
+pnpm delivery publish --message-file <path> --docs <page> <page>
 ```
 
-A worktree is spent when all of these hold:
+Leave out `--docs` when no page changed. The script, in order: removes
+worktrees that have already landed, commits, merges the latest `develop` in
+(lockfile conflicts settle themselves), runs the quick checks the diff needs,
+commits and pushes only your doc pages to `floc-docs`, pushes the branch, opens
+the PR to `develop` with auto-merge, and starts the watcher.
 
-- Its folder name starts with `floc-` (any case), as in `C:\dev\Floc-perf` or
-  `%TEMP%\floc-release-ci-<sha>`. Leave every other folder alone, `.claude/worktrees/*` included.
-- It is not the checkout you are in, and not the main checkout.
-- It has no uncommitted changes and no unpushed commits (its `HEAD` is in `origin/develop`).
-- No running agent uses it (the CI babysitter from step 4 keeps its own — skip that one).
+- **A code conflict** → it stops and names the files. Resolve them in this
+  worktree, keeping both intents. If you cannot tell which intent wins, ask.
+  Commit, then publish again.
+- **A red check** → it prints the check and its log path. Read that log only,
+  fix the cause, publish again. Never weaken a check.
+- Run it again after any fix; it reuses the PR and restarts the watcher.
 
-Remove each with `git worktree remove <path>`. Never add `--force`: git refuses a
-dirty worktree, and that refusal means keep it. Then `git worktree prune`. Never delete
-a worktree folder with `Remove-Item`, never delete a branch. Report the paths removed
-and the paths kept, with the reason.
+**Prototype tag.** For each prototype this work builds, set its `wf-status` to
+`Chosen: <key>, on develop <first 7 of the published sha>` in the main
+checkout's `floc/wireframe/`. Rules: [prototype](../prototype/SKILL.md#the-tag-follows-the-work).
 
-## Report
+## 4. Report and stop
 
-Version, subject line, `verify` result, pushed SHA, ticket state, and that CI
-is being watched. UI change → the light and dark screenshots of each surface,
-sent with `SendUserFile`. If you fixed something to get verify green that was not part
-of the work, say so. Nothing else.
+PR link, commit subject, quick-check result, doc pages pushed, and that the
+watcher has it. UI change → the light and dark screenshots of each surface. If
+you fixed something outside the task to get green, say so. Nothing else.
 
-## Gotchas
-
-- **Push rejected** after preflight passed: someone pushed in between.
-  `git pull --rebase origin develop`, then preflight again.
-- **A `.github/workflows/` check job changed** → `scripts/verify.sh` changes in
-  the same commit. `sync-develop.yml` has no check and moves alone.
-- **A red audit is still a red verify.** Pin the floor forward in **both**
-  `pnpm-workspace.yaml` and the root `package.json` (pnpm 9 reads one, pnpm 10
-  the other). Never weaken `--audit-level`. Say so in the report.
-- **`.next` poisoned** (`EINVAL: readlink`, bad chunks):
-  `pnpm --filter floc-web run clean:next`, then restart `floc-web`.
-- **`develop` → `main` is `/floc:release`.** This skill never touches `main`.
-  To push and deploy in one go, call `/floc:release` — it runs push first.
+Then end the turn. Do not wait on CI. The watcher is a plain script, not an
+agent: it merges when GitHub has not, waits for `develop` CI, then removes this
+worktree and its branch. A conflict or a red check stops it with a Windows
+notification; `pnpm delivery status` shows every watcher.

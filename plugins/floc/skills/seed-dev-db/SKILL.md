@@ -7,6 +7,8 @@ In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
 
 # seed-dev-db
 
+In a task worktree these commands act on that worktree's own database (`.floc/data/local.db`), never the main checkout's.
+
 Put the seed people and trips into `local.db`. It does **not** touch your own trips,
 friends or uploads. To go back to a clean, fixed state, use `/floc:reset-dev-db` instead.
 

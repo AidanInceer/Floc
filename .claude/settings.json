@@ -2,8 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(pnpm verify)",
-      "Bash(pnpm push:preflight *)",
-      "Bash(pnpm push:land *)",
+      "Bash(pnpm checks *)",
+      "Bash(pnpm delivery status)",
+      "Bash(pnpm workspace:*)",
       "Bash(pnpm parity*)",
       "Bash(pnpm --filter floc-web run clean:next)",
       "Bash(node scripts/ci-watch.mjs *)",
@@ -46,10 +47,16 @@
           {
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/scripts/check-comments.mjs\" --hook"
-          },
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/sync-floc-plugin.mjs\" --hook"
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/workspace.mjs\" prepare --no-install --quiet"
           }
         ]
       }

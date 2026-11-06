@@ -29,17 +29,17 @@ import { bounded, LIMITS } from "@/server/limits";
 import { tripHref } from "@floc/core/notifications/notification-href";
 import { touch } from "@/server/audit";
 import { recordActivity } from "@/server/notifications/activity";
+import { ledgerPages } from "./ledger-pages";
 
 /** The trip's live ledger, newest first (ticket 118). Whole rows — Money and Overview both read columns from it. */
 export async function listExpenses(tripId: number): Promise<Expense[]> {
-  const rows = await db
+  return ledgerPages((offset, size) => db
     .select()
     .from(expense)
     .where(and(eq(expense.tripId, tripId), isNull(expense.deletedAt)))
-    .orderBy(desc(expense.createdAt))
-    .limit(LIMITS.expenses)
-    .all();
-  return bounded(rows, "expenses", `trip ${tripId}`);
+    .orderBy(desc(expense.createdAt), desc(expense.id))
+    .limit(size).offset(offset)
+    .all(), LIMITS.expenses);
 }
 
 /**
@@ -49,7 +49,7 @@ export async function listExpenses(tripId: number): Promise<Expense[]> {
  * expense used to still count into the balances.
  */
 export async function listSplits(tripId: number): Promise<ExpenseSplit[]> {
-  const rows = await db
+  const rows = await ledgerPages((offset, size) => db
     .select()
     .from(expenseSplit)
     .innerJoin(expense, eq(expense.id, expenseSplit.expenseId))
@@ -60,13 +60,10 @@ export async function listSplits(tripId: number): Promise<ExpenseSplit[]> {
         isNull(expenseSplit.deletedAt),
       ),
     )
-    .limit(LIMITS.expenseSplits)
-    .all();
-  return bounded(
-    rows.map((r) => r.expense_split),
-    "expenseSplits",
-    `trip ${tripId}`,
-  );
+    .orderBy(expenseSplit.id)
+    .limit(size).offset(offset)
+    .all(), LIMITS.expenseSplits);
+  return rows.map((r) => r.expense_split);
 }
 
 export type ExpenseFields = {
@@ -171,14 +168,13 @@ export async function softDeleteExpense(
 
 /** The trip's live settlements, newest first (money overhaul). */
 export async function listSettlements(tripId: number): Promise<Settlement[]> {
-  const rows = await db
+  return ledgerPages((offset, size) => db
     .select()
     .from(settlement)
     .where(and(eq(settlement.tripId, tripId), isNull(settlement.deletedAt)))
-    .orderBy(desc(settlement.createdAt))
-    .limit(LIMITS.expenses)
-    .all();
-  return bounded(rows, "expenses", `trip ${tripId} settlements`);
+    .orderBy(desc(settlement.createdAt), desc(settlement.id))
+    .limit(size).offset(offset)
+    .all(), LIMITS.expenses);
 }
 
 export type Transfer = {

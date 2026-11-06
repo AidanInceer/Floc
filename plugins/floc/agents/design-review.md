@@ -18,8 +18,7 @@ it looks like.
 
 1. [The design card](../../../.claude/rules/design.md) — every rule a screen must pass.
 2. The sections of [visual language](../../../docs/design/visual-language.html)
-   and [approach](../../../docs/design/index.html) the change touches. The docs
-   are gitignored; if they are missing (a worktree), work from the card.
+   and [approach](../../../docs/design/index.html) the change touches. Canonical docs are tracked; missing pages are a checkout error.
 3. `git diff` (and `git diff --cached`) for the files that changed. Read the
    house components it uses or skips (`components/system/ui.tsx`,
    `client-ui.tsx`; phone `src/components/system/ui.tsx`, `glyphs.tsx`).
@@ -39,7 +38,7 @@ Open every screenshot. For each, check against the card, in this order:
 - **Dark** — a repaint only; nothing lost or lower in contrast.
 - **States** — empty, long content, failure. Name the ones you could not see.
 
-Run `pnpm design:check` once and include anything it reports.
+Use the runner’s current design-check result. Rerun only if relevant source changed. Record the review with `pnpm delivery review --evidence-file <json>`; include reviewer, findings, screenshots and unverified surfaces.
 
 ## Report
 
