@@ -16,7 +16,7 @@ import type { TripForecast } from "@/server/itinerary/weather";
 const typed = "font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint";
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
-export function MonthPager({ month, page, hint }: { month: IsoMonth; page: (delta: number) => void; hint: string }) {
+export function MonthPager({ month, page, hint, menu }: { month: IsoMonth; page: (delta: number) => void; hint: string; menu?: ReactNode }) {
   const round = "!size-8 !p-0";
   return (
     <div className="mb-3.5 flex items-center gap-2.5">
@@ -27,7 +27,10 @@ export function MonthPager({ month, page, hint }: { month: IsoMonth; page: (delt
       <Button variant="secondary" className={round} aria-label="Later month" onClick={() => page(1)}>
         <ChevronIcon direction="right" />
       </Button>
-      {hint ? <span className="ml-auto hidden text-[13px] text-ink-faint sm:block">{hint}</span> : null}
+      <span className="ml-auto flex items-center gap-2.5">
+        {hint ? <span className="hidden text-[13px] text-ink-faint sm:block">{hint}</span> : null}
+        {menu}
+      </span>
     </div>
   );
 }

@@ -36,6 +36,17 @@ export async function listAvailability(tripId: number): Promise<AvailabilityRow[
   return bounded(rows, "availability", `trip ${tripId}`);
 }
 
+/** Dates this person has a mark on, either way — "said no" and "said yes" are both answered (#444). */
+export async function listMarkedDates(tripId: number, userId: string): Promise<Set<string>> {
+  const rows = await db
+    .select({ date: availability.date })
+    .from(availability)
+    .where(and(eq(availability.tripId, tripId), eq(availability.userId, userId), isNull(availability.deletedAt)))
+    .limit(LIMITS.availability)
+    .all();
+  return new Set(rows.map((r) => r.date));
+}
+
 export async function setAvailability(
   tripId: number,
   userId: string,

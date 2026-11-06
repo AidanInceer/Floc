@@ -1187,6 +1187,7 @@ export type FlocPort = {
   forgetPushToken(viewerId: string, token: string): Promise<void>;
 } & ExplorePort &
   PagesPort &
+  import("./port-calendar").CalendarImportPort &
   RoutePort;
 
 export type NotificationItem = {

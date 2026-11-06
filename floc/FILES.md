@@ -16,7 +16,7 @@ Web routes are under `floc/apps/web/src/app/trip/[id]/`. Phone screens are under
 | Tab | Web components | Server | Core | Phone components |
 |---|---|---|---|---|
 | Overview | `floc/apps/web/src/components/trip/overview/` (stops, bookings card, left to sort, map, group, files) | `floc/apps/web/src/server/trips/` | `floc/packages/floc-core/src/trip/overview/` | `floc/apps/mobile/src/components/trip/` |
-| Dates | `floc/apps/web/src/components/availability/` | `floc/apps/web/src/server/itinerary/` | `floc/packages/floc-core/src/dates/` | `floc/apps/mobile/src/components/days/` |
+| Dates | `floc/apps/web/src/components/availability/` | `floc/apps/web/src/server/itinerary/`, `floc/apps/web/src/server/calendar/` | `floc/packages/floc-core/src/dates/` | `floc/apps/mobile/src/components/days/` |
 | Days | `floc/apps/web/src/components/days/` | `floc/apps/web/src/server/itinerary/` | `floc/packages/floc-core/src/itinerary/` | `floc/apps/mobile/src/components/days/` |
 | Ideas | `floc/apps/web/src/components/trip/ideas/` | `floc/apps/web/src/server/ideas/` | `floc/packages/floc-core/src/trip/` | `floc/apps/mobile/src/components/trip/ideas/` |
 | Money | `floc/apps/web/src/components/money/` | `floc/apps/web/src/server/money/` | `floc/packages/floc-core/src/money/` | `floc/apps/mobile/src/components/money/` |

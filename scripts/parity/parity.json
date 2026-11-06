@@ -1,5 +1,11 @@
 {
   "procedures": {
+    "availability.calendar": {
+      "mobile": "yes"
+    },
+    "availability.fillFromCalendar": {
+      "mobile": "yes"
+    },
     "availability.guests": {
       "mobile": "yes"
     },
@@ -370,6 +376,9 @@
       "mobile": "yes"
     },
     "settings.privacy": {
+      "mobile": "yes"
+    },
+    "settings.removeCalendar": {
       "mobile": "yes"
     },
     "settings.unlinkSignIn": {

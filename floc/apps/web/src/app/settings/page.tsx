@@ -16,6 +16,7 @@ import Link from "next/link";
 
 import {
   deleteAccount,
+  removeGoogleCalendar,
   unlinkAccount,
   updateNotifications,
   updatePrivacy,
@@ -33,6 +34,8 @@ import { proPrices, subscriptionOf } from "@/server/billing/billing";
 import type { ProPrice } from "@/server/billing/billing";
 import { allFeaturesFree } from "@/lib/env";
 import { ensureProfile } from "@/server/auth/profile";
+import { hasCalendarAccess } from "@/server/calendar/calendar-import";
+import { GoogleCalendarIcon } from "@/components/system/icons/google-calendar";
 import { listSignInMethods } from "@/server/auth/sign-in-methods";
 import { BillingAction, ProUpgrade } from "@/components/auth/billing-buttons";
 import { PrivacyFields } from "@/components/auth/privacy-fields";
@@ -113,9 +116,10 @@ export default async function SettingsPage({
   const asked = section ?? (billing ? "billing" : undefined);
   const current = sectionFor(asked);
 
-  const [profile, linkedAccounts, subscription, prices] = await Promise.all([
+  const [profile, linkedAccounts, calendarGranted, subscription, prices] = await Promise.all([
     ensureProfile(viewer.id),
     listSignInMethods(viewer.id),
+    hasCalendarAccess(viewer.id),
     subscriptionOf(viewer.id),
     // Someone sent here by a locked feature arrived to find out the cost
     // (ticket 279), so the panel quotes it rather than naming the plan.
@@ -299,6 +303,20 @@ export default async function SettingsPage({
                         </ActionForm>
                       </PersonRow>
                     ))}
+                    {calendarGranted ? (
+                      <PersonRow className="rounded-none bg-transparent px-0">
+                        <span className="inline-flex items-center gap-2 text-sm">
+                          <GoogleCalendarIcon />
+                          Google Calendar
+                          <span className="text-ink-faint">Reads when you&rsquo;re busy</span>
+                        </span>
+                        <ActionForm action={removeGoogleCalendar}>
+                          <SubmitButton variant="ghost" pendingLabel="Removing…">
+                            Remove
+                          </SubmitButton>
+                        </ActionForm>
+                      </PersonRow>
+                    ) : null}
                   </ul>
                   <p className="mt-2 text-xs text-ink-faint">
                     Unlinking your last remaining method is refused —

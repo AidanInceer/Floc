@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { VISIBILITIES } from "@/db/schema";
 import type { Visibility } from "@/db/schema";
 import { requireUser } from "@/server/access";
+import { removeCalendarAccess } from "@/server/calendar/calendar-import";
 import { unlinkSignIn } from "@/server/auth/sign-in-methods";
 import { eraseAccount } from "@/server/auth/erase-account";
 import {
@@ -75,4 +76,14 @@ export async function deleteAccount(): Promise<void> {
   }
 
   redirect("/login");
+}
+
+// Revokes Floc's calendar access at Google, then forgets it (#444, ADR-031). The account and its sign-in stay.
+export async function removeGoogleCalendar(): Promise<{ error?: string }> {
+  const viewer = await requireUser();
+  const refusal = await removeCalendarAccess(viewer.id);
+  if (refusal) return { error: refusal };
+
+  refresh({ kind: "accountSettings" });
+  return {};
 }

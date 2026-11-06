@@ -10,6 +10,7 @@ import { setTripWindow } from "@/server/itinerary/itinerary";
 import { clearAvailabilityFor, setAvailability } from "@/server/itinerary/availability";
 import { refresh } from "@/server/freshness";
 import { removeGuest } from "@/server/guests/guests";
+import { fillFromCalendar, type CalendarFill } from "@/server/calendar/calendar-import";
 
 // Client-provided, so checked not trusted; isIsoDate rejects impossible
 // well-shaped dates like 2026-02-31 (ticket 113).
@@ -89,4 +90,21 @@ export async function removeTripGuest(tripId: number, guestId: string) {
   await removeGuest(access.trip.id, String(guestId));
 
   refresh({ kind: "tripDates", tripId: access.trip.id }, { kind: "tripOverview", tripId: access.trip.id });
+}
+
+// One read of the viewer's own Google calendar (#444, ADR-031). Any member, for their own days only (rule 6).
+// A refusal or a Google failure comes back as a result for the form, never a throw (rule 11).
+export async function fillFromGoogleCalendar(tripId: number, month: string): Promise<CalendarFill> {
+  const access = await requireTripAccess(tripId);
+  const result = await fillFromCalendar({
+    tripId: access.trip.id,
+    userId: access.viewer.id,
+    startDate: access.trip.startDate,
+    endDate: access.trip.endDate,
+    month,
+  });
+  if (result.status === "filled") {
+    refresh({ kind: "tripDates", tripId: access.trip.id }, { kind: "tripOverview", tripId: access.trip.id });
+  }
+  return result;
 }
