@@ -8,6 +8,7 @@ export function IdeasRow({ tripId, ideas }: { tripId: number; ideas: IdeaRow[] }
   const [top] = sortIdeas(ideas, "votes");
   if (!top) return null;
   return (
+    <div id="ideas" className="scroll-mt-24">
     <Sheet
       bareTrigger
       title="Ideas"
@@ -27,6 +28,7 @@ export function IdeasRow({ tripId, ideas }: { tripId: number; ideas: IdeaRow[] }
     >
       <IdeasBoard tripId={tripId} ideas={ideas} />
     </Sheet>
+    </div>
   );
 }
 

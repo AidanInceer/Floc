@@ -25,7 +25,6 @@ import { TodaySection, TripMapSection } from "@/components/trip/route/trip-map-s
 import { RosterStrip } from "@/components/trip/roster-strip";
 import { TripSheet, draftFor, type TripDraft } from "@/components/trip/trip-sheet";
 import { QuietAction } from "@/components/system/text-controls";
-import { useTourTarget } from "@/components/tour/tour-context";
 import { Body, Card, Failed, Label, Loading } from "@/components/system/ui";
 import type { AppRouter } from "@floc/api/router";
 import type { inferRouterOutputs } from "@trpc/server";
@@ -58,7 +57,6 @@ export default function Overview() {
   const { data: session } = useSession();
   const invites = useQuery(trpc.invites.forTrip.queryOptions({ tripId }, { enabled: ready }));
   const availability = useQuery(trpc.availability.list.queryOptions({ tripId }, { enabled: ready }));
-  const rosterTarget = useTourTarget("roster");
   const [draft, setDraft] = useState<TripDraft | null>(null);
 
   if (trip.isPending) return <Loading />;
@@ -95,7 +93,7 @@ export default function Overview() {
       {/* Ideas first while undated: before the dates exist it is the only live question here. */}
       <IdeasSection tripId={tripId} datesUnset={!trip.data.startDate && !trip.data.endDate} />
 
-      <View ref={rosterTarget} style={{ gap: space.sm }}>
+      <View style={{ gap: space.sm }}>
         <Label>Who&apos;s going</Label>
         <Card>
           <GroupActions

@@ -27,15 +27,14 @@
  * NOTHING HERE IS GATED (rule 4). Every route is reachable on any trip. Money
  * opens with no expenses, Days opens with no dates, and each says so itself.
  */
-import { shouldStartTour } from "@floc/core/trip/tour";
+import { shouldStartWalkthrough } from "@floc/core/trip/walkthrough";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, usePathname, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 
 import { useTheme } from "@/components/system/theme";
-import { TourProvider } from "@/components/tour/tour-context";
-import { TourOverlay } from "@/components/tour/tour-overlay";
 import { TripHeader, type Section } from "@/components/trip/trip-header";
+import { WalkthroughSheet } from "@/components/walkthrough/walkthrough-sheet";
 import { trpc } from "@/lib/api";
 import { viewerBalance } from "@/lib/balance";
 import { useSession } from "@/lib/auth";
@@ -97,7 +96,7 @@ export default function TripLayout() {
   const onOverview = sectionOf(pathname, tripId) === "";
 
   return (
-    <TourProvider>
+    <>
     <Stack
       screenOptions={{
         contentStyle: { backgroundColor: c.paper },
@@ -117,27 +116,58 @@ export default function TripLayout() {
         ),
       }}
     />
-      {trip.data && onOverview ? <FirstTripTour /> : null}
-    </TourProvider>
+      {trip.data && onOverview ? (
+        <FirstTripWalkthrough
+          tripId={tripId}
+          tripName={name}
+          datesSet={trip.data.startDate !== null}
+          joined={trip.data.role === "member"}
+          firstName={session?.user.name.split(" ")[0] ?? ""}
+          onDates={() => go("dates")}
+        />
+      ) : null}
+    </>
   );
 }
 
-/** Once per person, ever (#314) — whichever trip they happen to open first. */
-function FirstTripTour() {
+/**
+ * A person's first trip only, once (#314). Archived trips count: one still means they have used
+ * Floc. Why "member" stands for joined: the phone has no creator id, and whoever made a trip is
+ * its admin.
+ */
+function FirstTripWalkthrough({ tripId, tripName, datesSet, joined, firstName, onDates }: {
+  tripId: number;
+  tripName: string;
+  datesSet: boolean;
+  joined: boolean;
+  firstName: string;
+  onDates: () => void;
+}) {
   const queryClient = useQueryClient();
   const seen = useQuery(trpc.me.tourSeen.queryOptions());
+  const live = useQuery(trpc.trips.list.queryOptions({ archived: false }));
+  const archived = useQuery(trpc.trips.list.queryOptions({ archived: true }));
+  const places = useQuery(trpc.places.list.queryOptions({ tripId }));
   const mark = useMutation({
     ...trpc.me.markTourSeen.mutationOptions(),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: trpc.me.tourSeen.queryKey() }),
   });
   const [closed, setClosed] = useState(false);
 
-  if (seen.data === undefined || closed || !shouldStartTour({ seen: seen.data })) return null;
+  if (seen.data === undefined || !live.data || !archived.data || !places.data || closed) return null;
+  if (!shouldStartWalkthrough({ seen: seen.data, tripCount: live.data.length + archived.data.length })) return null;
+  const close = () => {
+    setClosed(true);
+    mark.mutate();
+  };
   return (
-    <TourOverlay
-      onDone={() => {
-        setClosed(true);
-        mark.mutate();
+    <WalkthroughSheet
+      trip={{ name: tripName, joined, datesSet, placesSet: places.data.length > 0 }}
+      firstName={firstName}
+      onClose={close}
+      onGo={(step) => {
+        close();
+        if (step.key === "dates") onDates();
       }}
     />
   );

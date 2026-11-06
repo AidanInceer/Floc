@@ -25,7 +25,7 @@ type Props = {
 
 export function OverviewGroup(props: Props) {
   return (
-    <section id="the-group" data-tour="roster" className="flex min-w-0 scroll-mt-24 flex-wrap items-center gap-3">
+    <section id="the-group" className="flex min-w-0 scroll-mt-24 flex-wrap items-center gap-3">
       <h2 className="sr-only">Who&rsquo;s going</h2>
       <RosterSheet {...props} />
       <InviteSheet {...props} />
