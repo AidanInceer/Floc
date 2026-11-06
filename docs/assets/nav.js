@@ -99,7 +99,9 @@
       children: [
         { id: 'pitch', label: 'Investor pitch', href: 'business/pitch.html', blurb: 'Ten slides: problem, product, market, model, ask.', related: ['roadmap', 'monetisation', 'competitors', 'mission'] },
         { id: 'roadmap', label: 'Roadmap to full time', href: 'business/roadmap.html', blurb: 'Stages to a company, go-live checklist, funding.', related: ['monetisation'] },
-        { id: 'monetisation', label: 'Monetisation', href: 'business/monetisation.html', blurb: 'The commercial stance, the options, what is ruled out.', related: ['pricing-models', 'partner-trips'], adr: [13] }
+        { id: 'monetisation', label: 'Monetisation', href: 'business/monetisation.html', blurb: 'The commercial stance, the options, what is ruled out.', related: ['pricing-models', 'partner-trips'], adr: [13] },
+        { id: 'running-costs', label: 'Running costs', href: 'business/running-costs.html', blurb: 'What Floc costs at 1 to 100,000 users, and the £250 build budget.', related: ['monetisation', 'roadmap', 'scaling'] },
+        { id: 'scaling', label: 'Scaling', href: 'business/scaling.html', blurb: 'Cost and Pro revenue from 1,000 to 1,000,000 users, and what breaks first.', related: ['running-costs', 'monetisation'] }
       ]
     },
     {
