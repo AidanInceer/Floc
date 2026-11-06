@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState, type MouseEvent } from "react";
+import { useId, type MouseEvent } from "react";
 
 import type { Gap, LeftToSort as SortList, Sorted } from "@floc/core/trip/overview/left-to-sort";
 import { ButtonLink, cx } from "@/components/system/ui";
@@ -11,10 +11,6 @@ import { useDeal } from "./sort/use-deal";
 
 const hrefOf = (tripId: number, gap: Gap): string =>
   gap.tab === "overview" ? `#${gap.anchor ?? ""}` : `/trip/${tripId}/${gap.tab}${gap.anchor ? `#${gap.anchor}` : ""}`;
-
-const Chevron = ({ up }: { up: boolean }) => (
-  <ChevronIcon direction="down" size={13} className={cx("transition-transform motion-reduce:transition-none", up && "rotate-180")} />
-);
 
 /** Above the map (#460, round 2 E2): one soft cube per thing, sorted ones from the left; the strip deals its stack of cards down. */
 export function LeftToSort({ tripId, list }: { tripId: number; list: SortList }) {
@@ -69,27 +65,32 @@ export function LeftToSort({ tripId, list }: { tripId: number; list: SortList })
   );
 }
 
+/** The same deal as the strip above: the sorted cards start under this band and drop down from it. */
 function SortedDeck({ done }: { done: Sorted[] }) {
-  const [open, setOpen] = useState(false);
+  const { open, toggle, drawer, list, chevron } = useDeal();
+  const id = useId();
   return (
-    <li className="grid gap-1.5 sm:col-span-full sm:grid-cols-subgrid">
+    <li className="grid gap-y-0 sm:col-span-full sm:grid-cols-subgrid">
       <button
         type="button"
-        onClick={() => setOpen(!open)}
+        onClick={toggle}
         aria-expanded={open}
-        className="flex w-full items-center gap-3 rounded-md border sm:col-span-full border-dashed border-pen-edge bg-pen-soft px-3.5 py-2.5 text-left text-sm text-ink-soft"
+        aria-controls={id}
+        className="relative z-[2] flex w-full items-center gap-3 rounded-md border sm:col-span-full border-dashed border-pen-edge bg-pen-soft px-3.5 py-2.5 text-left text-sm text-ink-soft hover:border-pen"
       >
         <SortCubes total={done.length} filled={done.length} />
         <span className="flex-1">{done.length} already sorted</span>
-        <Chevron up={open} />
+        <span ref={chevron} className="grid place-items-center">
+          <ChevronIcon direction="down" size={13} />
+        </span>
       </button>
-      {open ? (
-        <ul className="grid gap-1.5 sm:col-span-full sm:grid-cols-subgrid">
+      <div ref={drawer} id={id} inert className="invisible relative z-[1] h-0 overflow-hidden sm:col-span-full sm:grid sm:grid-cols-subgrid">
+        <ul ref={list} className="grid gap-1.5 pt-1.5 sm:col-span-full sm:grid-cols-subgrid [&>li]:relative [&>li>*]:[opacity:var(--ink-o,1)]">
           {done.map((item) => (
             <SortCard key={item.key} item={item} />
           ))}
         </ul>
-      ) : null}
+      </div>
     </li>
   );
 }
