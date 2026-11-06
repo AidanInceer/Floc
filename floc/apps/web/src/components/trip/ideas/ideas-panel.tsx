@@ -2,7 +2,7 @@
  * Why: open while the dates are unset, shut once they are set — a decided trip
  * keeps its ideas, it just stops shouting about them.
  */
-import { FlockChevron } from "@/components/system/flock-chevron";
+import { ChevronIcon } from "@/components/system/icons";
 import { IdeasBoard } from "./ideas-board";
 import type { IdeaRow } from "@floc/core/trip/ideas";
 
@@ -21,7 +21,7 @@ export function IdeasPanel({
       className="group/ideas mb-4 overflow-hidden rounded-md border border-rule bg-sheet"
     >
       <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
-        <FlockChevron className="shrink-0 -rotate-90 text-ink-faint transition-transform group-open/ideas:rotate-0" />
+        <ChevronIcon direction="down" size={15} className="shrink-0 -rotate-90 text-ink-faint transition-transform group-open/ideas:rotate-0" />
         <h2 className="font-display text-lg">Ideas</h2>
         {ideas.length > 0 ? (
           <span className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-faint">

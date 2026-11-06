@@ -118,31 +118,10 @@ export function FilterGlyph({ color }: { color: string }) {
   );
 }
 
-export function ChevronGlyph({ color }: { color: string }) {
+export function ChevronGlyph({ color, open }: { color: string; open?: boolean }) {
   return (
-    <Svg width={16} height={16} viewBox="0 0 14 14" fill="none">
+    <Svg width={16} height={16} viewBox="0 0 14 14" fill="none" style={open ? { transform: [{ rotate: "180deg" }] } : undefined}>
       <Path d="M3.4 5.4 7 9l3.6-3.6" stroke={color} strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
-/**
- * The wordmark's three chevrons, the product's one disclosure mark — the same
- * paths as the web app's `flock-chevron.tsx`, on its native 26×20 box. Points
- * down closed; callers flip it for the open state.
- */
-export function FlockChevronGlyph({ color, open }: { color: string; open?: boolean }) {
-  return (
-    <Svg
-      width={16}
-      height={13}
-      viewBox="0 0 26 20"
-      fill="none"
-      style={open ? { transform: [{ rotate: "180deg" }] } : undefined}
-    >
-      <Path d="M3 6 6.5 9.5 10 6" stroke={color} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M9.5 11.5 13 15 16.5 11.5" stroke={color} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M16 6 19.5 9.5 23 6" stroke={color} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }

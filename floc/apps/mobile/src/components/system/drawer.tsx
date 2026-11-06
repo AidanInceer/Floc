@@ -2,7 +2,7 @@
 import { useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { FlockChevronGlyph } from "./glyphs";
+import { ChevronGlyph } from "./glyphs";
 import { useTheme } from "./theme";
 import { Label } from "./ui";
 import { fonts, radius, size, space } from "@/lib/theme";
@@ -14,7 +14,7 @@ export function DrawerChevron({ color, point }: { color: string; point: keyof ty
   return (
     <View style={{ width: 20, height: 20, alignItems: "center", justifyContent: "center" }}>
       <View style={{ transform: [{ rotate: TURN[point] }] }}>
-        <FlockChevronGlyph color={color} />
+        <ChevronGlyph color={color} />
       </View>
     </View>
   );

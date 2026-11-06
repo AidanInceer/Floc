@@ -8,7 +8,7 @@ import { useState } from "react";
 import { ExploreTile, tagClass } from "@/components/explore/all/explore-tile";
 import { linkClass } from "@/components/explore/finder/finder-chip";
 import { CheckIcon } from "@/components/system/icons";
-import { FlockChevron } from "@/components/system/flock-chevron";
+import { ChevronIcon } from "@/components/system/icons";
 import { ButtonLink, cx } from "@/components/system/ui";
 
 // Twelve tiles fill four rows of three, or six of two.
@@ -126,7 +126,7 @@ export function FinderResults({
       {rows.length > TILE_LIMIT ? (
         <button type="button" onClick={() => setAll(!all)} className="mx-auto mt-5 flex w-fit flex-col items-center gap-1 text-ink-soft hover:text-ink">
           <span className="typed">{all ? "Show fewer" : `Show ${rows.length - TILE_LIMIT} more`}</span>
-          <FlockChevron size={12} className={cx("transition-transform", all && "rotate-180")} />
+          <ChevronIcon direction="down" size={15} className={cx("transition-transform", all && "rotate-180")} />
         </button>
       ) : null}
     </>

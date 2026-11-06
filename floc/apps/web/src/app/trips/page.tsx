@@ -9,7 +9,7 @@ import { loadTripCards } from "./cards";
 import { formatDateRange, hasEnded, splitEnded } from "@floc/core/dates/dates";
 import { Avatar, ButtonLink, Stack, cx, PageTitle } from "@/components/system/ui";
 import { Sheet, SubmitButton } from "@/components/system/client-ui";
-import { FlockChevron } from "@/components/system/flock-chevron";
+import { ChevronIcon } from "@/components/system/icons";
 import type { TripCardData } from "@/components/trip/trip-card";
 import { TripFeature } from "@/components/trip/trip-feature";
 import { TripShelfCard } from "@/components/trip/trip-shelf-card";
@@ -127,13 +127,13 @@ function TripGrid({
 /**
  * Trips that have finished, folded shut. Native `<details>` — the fold needs
  * no state, so the page stays a server component; the flock chevron is the
- * product's one disclosure mark (see [[flock-chevron]]).
+ * product's one disclosure mark (see [[icons]]).
  */
 function PastTrips({ trips }: { trips: TripCardData[] }) {
   return (
     <details className="past-trips mt-10">
       <summary className="mx-auto flex w-fit cursor-pointer list-none items-center gap-2 text-ink-soft transition-colors hover:text-ink [&::-webkit-details-marker]:hidden">
-        <FlockChevron size={12} className="past-trips-chevron shrink-0" />
+        <ChevronIcon direction="down" size={15} className="past-trips-chevron shrink-0" />
         <span className="typed text-current">Past trips · {trips.length}</span>
       </summary>
       <TripGrid trips={trips} className="mt-5" past />

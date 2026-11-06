@@ -1,6 +1,6 @@
 /**
  * Why: cross, plus, minus and chevron share their paths with the phone's `glyphs.tsx`, so one mark
- * means one thing on both surfaces. A fold opens with `FlockChevron`; this chevron points somewhere.
+ * means one thing on both surfaces. A fold opens with this chevron, pointing down closed.
  */
 import type { ReactNode } from "react";
 

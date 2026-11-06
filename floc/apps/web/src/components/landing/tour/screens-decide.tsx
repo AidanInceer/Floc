@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 
 import { dayMark, markKey, weekJoins } from "@floc/core/dates/day-marks";
 import { groupTab, spanLabel, tripTab, yourDaysTab, type TabSummary } from "@floc/core/dates/dates-tabs";
-import { FlockChevron } from "@/components/system/flock-chevron";
 import { ArrowUpIcon, CheckIcon, ChevronIcon, CrossIcon } from "@/components/system/icons";
 import { NavGlyph } from "@/components/system/icons/nav";
 import { Avatar, LegendKey, cx } from "@/components/system/ui";
@@ -40,7 +39,7 @@ export function WhereScreen() {
       <SortStrip />
       <div className="mt-3 overflow-hidden rounded-md border border-rule bg-sheet">
         <div className="flex items-center gap-3 px-4 py-3">
-          <FlockChevron className="shrink-0 text-ink-faint" />
+          <ChevronIcon direction="down" size={15} className="shrink-0 text-ink-faint" />
           <h4 className="font-display text-lg">Ideas</h4>
           <span className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-faint">{IDEAS.length} ideas</span>
         </div>

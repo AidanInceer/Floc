@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 import { linkClass } from "@/components/explore/finder/finder-chip";
 import { LengthFacet, PriceFacet, WhenFacet, WhereFacet } from "@/components/explore/finder/finder-facets";
 import { LikeCloud } from "@/components/explore/finder/like-cloud";
-import { FlockChevron } from "@/components/system/flock-chevron";
+import { ChevronIcon } from "@/components/system/icons";
 import { CrossIcon } from "@/components/system/icons";
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
@@ -14,7 +14,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
     <details open className="group border-b border-rule py-1">
       <summary className="flex cursor-pointer list-none items-center justify-between py-2.5 text-sm font-medium [&::-webkit-details-marker]:hidden">
         {title}
-        <FlockChevron size={8} className="text-ink-faint transition-transform group-open:rotate-180" />
+        <ChevronIcon direction="down" size={11} className="text-ink-faint transition-transform group-open:rotate-180" />
       </summary>
       <div className="pb-3 pt-0.5">{children}</div>
     </details>
