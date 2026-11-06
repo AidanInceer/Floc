@@ -37,3 +37,12 @@ test("tickets come from Closes lines, leave the Priority stack renumbered, and s
 test("docs pages are committed relative to the docs clone", () => {
   assert.deepEqual(docsPaths(["docs/process/lifecycle.html", "docs\\engineering\\ci.html", "process/lifecycle.html"]), ["process/lifecycle.html", "engineering/ci.html"]);
 });
+
+test("auto-merge is used only when GitHub will wait for required checks", async () => {
+  const { waitsForChecks } = await import("./github.mjs");
+  const required = [{ type: "pull_request" }, { type: "required_status_checks" }];
+  assert.equal(waitsForChecks({ allowAutoMerge: true, rules: required }), true);
+  assert.equal(waitsForChecks({ allowAutoMerge: false, rules: required }), false);
+  assert.equal(waitsForChecks({ allowAutoMerge: true, rules: [{ type: "deletion" }] }), false);
+  assert.equal(waitsForChecks({ allowAutoMerge: true, rules: [] }), false);
+});
