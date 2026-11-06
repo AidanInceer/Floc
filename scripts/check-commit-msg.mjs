@@ -27,7 +27,7 @@ if (!suppliedPath || resolve(process.cwd(), suppliedPath) !== gitMessagePath) {
 }
 
 const raw = readFileSync(gitMessagePath, "utf8");
-const lines = raw.split("\n").filter((l) => !l.startsWith("#"));
+const lines = raw.split("\n").filter((l) => !/^#(?!\d+:|no-ticket:)/.test(l));
 const subject = (lines[0] ?? "").trim();
 
 // A merge commit is written by git, not by us, and `develop` → `main` goes in
@@ -35,7 +35,7 @@ const subject = (lines[0] ?? "").trim();
 if (/^(Merge|Revert) /.test(subject)) process.exit(0);
 
 const SUBJECT =
-  /^\d+\.\d+\.\d+ #(?:\d+|no-ticket): (?:feat|fix|docs|refactor|chore|test): \S.*$/;
+  /^(?:\d+\.\d+\.\d+ )?#(?:\d+|no-ticket): (?:feat|fix|docs|refactor|chore|test): \S.*$/;
 
 const problems = [];
 

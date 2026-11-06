@@ -1,195 +1,58 @@
 ---
 name: release
-description: Batch develop into main for AidanInceer/Floc — first pushes any local work through /floc:push, then a PR with a merge commit, merged once checks are green (asks only on a ticket that will not close or a schema migration), then check tickets closed, develop synced and Railway deployed. Use when the user says /floc:release, "release", "ship to main", "deploy", or "get this live".
+description: Release develop to main for AidanInceer/Floc — one version for the batch, a release PR that merges itself once the full checks and Sonar pass, then a watcher that confirms production serves it and closes the tickets. Use when the user says /floc:release, "release", "ship to main", "deploy", or "get this live".
 ---
 
 In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
 
 # release
 
-Local work → `develop` → `main`, in one call. `develop` → `main` is one PR,
-merged with a **merge commit**. A merge to `main` deploys production on
-Railway. The user's standing yes: merge as soon as the PR checks are green —
-do not stop to ask.
+`develop` → `main`. A merge to `main` deploys production on Railway. The user's
+standing yes: merge as soon as the checks are green. Run it from any checkout.
 
-## 0. Push local work first
+## 1. Local work first
 
-```bash
-git status --porcelain
-git fetch origin
-git log --oneline origin/develop..develop
-```
+If this session has unpublished work in a task worktree, run
+[`/floc:push`](../push/SKILL.md) for it first. A release takes only what is on
+`develop`; a feature still in a PR goes in the next one.
 
-Both empty → go to step 1.
-
-Otherwise the user wants this work live too. Run [`/floc:push`](../push/SKILL.md)
-in full, inline, with these changes — do not stop to ask between the two:
-
-- **Type and issue:** pick them as push says; do not ask. No ticket in this
-  session and none in chat → `#no-ticket`.
-- **Babysit:** do not spawn the background babysitter. Step 2 watches the
-  pushed SHA in the foreground.
-- **Sonar check:** skip it. Step 6 gates the PR.
-- **Report:** no separate push report. Its lines join the release report.
-
-Push stops (unexpected file, red verify it cannot fix, `land` refuses) → the
-release stops too. Say why.
-
-Not on `develop` → stop and say so; never release from another branch.
-
-## 1. Is there anything to release
+## 2. Release
 
 ```bash
-git fetch origin
-git log --oneline origin/main..origin/develop
+pnpm delivery release
 ```
 
-Empty → say so and stop. Local `develop` still ahead of `origin/develop` after
-step 0 → stop; say what did not push.
+The script sets one version (minor if any change is a `feat`, else patch),
+pushes `release/<version>` from `develop`, opens the PR to `main` with the
+tickets, other commits and migrations in its body, turns on auto-merge, and
+starts the watcher.
 
-## 2. `develop` is green
+- `nothing to release` → say so and stop.
+- `needs approval` → the release ships a schema migration. Name the files and
+  stop. After Aidan says yes for that exact commit:
+  `pnpm delivery release --approve-schema <sha>`.
+- An open release PR already → the script reuses it.
 
-```bash
-git rev-parse origin/develop
-node scripts/ci-watch.mjs <sha>
-```
+## 3. Report and stop
 
-After a push in step 0, this is the pushed SHA — CI has only just started, so
-expect a wait.
+Version, PR link, tickets, migrations, and that the watcher has it. End the
+turn; do not wait on CI.
 
-Exit `2` → run again. Exit `1` → run `floc:ci-babysit` on that SHA (in a worktree, not in the background) and carry on once it reports green; stop if it could not fix it. Never release red.
+The watcher merges once `Release checks`, Sonar and the security checks pass,
+then waits until `https://floc.live/api/health` reports the merge commit and the
+homepage loads. Then it closes split parents whose children all closed, moves
+shipped prototype tags, and sends a notification. A red check or a deploy that
+does not appear within 45 minutes stops it with a notification.
 
-Sonar does not run on `develop` — SonarQube Cloud Free analyses only `main` and
-pull requests — so the gate is first seen on the PR in step 6, and again on
-`main` in step 7. Its new-code window on `main` is *since the last release*,
-which is wider than the PR diff: a PR can pass while `main` fails on issues
-that piled up. Both are checked.
+## A hotfix
 
-## 3. What it closes
-
-```bash
-git log origin/main..origin/develop --format=%B | grep -oE "Closes AidanInceer/Floc#[0-9]+"
-gh issue list --repo AidanInceer/Floc --state open --label on-develop --json number,title
-```
-
-Compare the two lists and say plainly:
-
-- in a `Closes` line but not `on-develop` → label drifted; add it.
-- `on-develop` with a `## Split into` section in its body → a split parent. No commit closes it. Close it in step 7 once every child is closed.
-- `on-develop` but no `Closes` line and no `## Split into` → it will **not** close. Ask the user.
-
-## 4. The PR
-
-Reuse an open one if it exists:
-
-```bash
-gh pr list --repo AidanInceer/Floc --base main --head develop --state open --json number,url
-```
-
-Otherwise write the body to a scratchpad file and create it:
-
-```bash
-gh pr create --repo AidanInceer/Floc --base main --head develop --title "Release <version>" --body-file <path>
-```
-
-`<version>` is `version` in `floc/apps/web/package.json` on `origin/develop`.
-
-Body:
-
-```
-## Tickets
-- #<n> <title>
-
-## Other commits
-- <subject of each #no-ticket commit>
-
-## Checks
-- Schema migrations: <yes, list drizzle files | none>
-```
-
-Find migrations with
-`git diff --name-only origin/main origin/develop -- floc/apps/web/drizzle`.
-Railway runs them before it starts the app — call them out, they touch
-production data.
-
-## 5. PR checks
-
-```bash
-gh pr checks <n> --repo AidanInceer/Floc --watch --fail-fast
-```
-
-Red → stop and report. Do not merge.
-
-## 6. Merge
-
-Checks green → merge. No need to ask; the user has said a green PR may go to
-`main`. Stop and ask only if step 3 found an issue that will not close, or the
-release ships a schema migration.
-
-```bash
-gh pr merge <n> --repo AidanInceer/Floc --merge
-```
-
-**Only `--merge`.** Never `--squash`, `--rebase`, `--admin` or `--auto`.
-
-Before merging, the Sonar gate on the PR branch:
-
-```bash
-node scripts/sonar-gate.mjs <pr head branch>
-```
-
-Exit `1` → fix the issues it lists and push again; do not merge. Exit `2` →
-the analysis has not landed yet; wait and run it again.
-
-## 7. After the merge
-
-Merge SHA: `gh pr view <n> --repo AidanInceer/Floc --json mergeCommit --jq .mergeCommit.oid`.
-
-1. **CI and sync.** Spawn the babysitter in the background for the merge SHA —
-   `Agent({ subagent_type: "floc:ci-babysit", prompt: "<merge sha>", isolation: "worktree", run_in_background: true })`.
-   A red job gets fixed on `develop`; the fix reaches `main` on the next release.
-   It covers `Sync develop`, which merges `main` back into `develop`. A red
-   sync means a conflict to resolve by hand. It also covers
-   `SonarQube analysis`, whose gate on `main` measures a wider new-code window
-   than the PR did. Once CI reports, confirm it yourself:
-
-   ```bash
-   node scripts/sonar-gate.mjs main
-   ```
-
-   Exit `1` → the release is on `main` but the gate is red. Fix the listed
-   issues as the next commit on `develop`; do not leave it red.
-2. **Tickets.** Each number from step 3 → `gh issue view <n> --repo AidanInceer/Floc --json state`.
-   Still open → say which.
-   Split parents from step 3: if every `## Split into` child is closed →
-   `gh issue close <n> --repo AidanInceer/Floc --reason completed --comment "All split tickets shipped."`.
-   Any child still open → leave the parent open and say which child.
-3. **Deploy.** Railway reports to GitHub deployments:
-
-   ```bash
-   gh api "repos/AidanInceer/Floc/deployments?sha=<merge sha>" --jq ".[0].id"
-   gh api "repos/AidanInceer/Floc/deployments/<id>/statuses" --jq ".[0].state"
-   ```
-
-   No deployment yet → check again in a minute, a few times. Want `success`.
-   `failure` → tell the user to open Railway's deploy log; this skill cannot
-   read it.
-4. **Wireframe tags.** After `success` only: `git fetch origin main`, then
-   `pnpm wireframe:tags --write`. This moves every `Chosen: <key>, on develop <v>`
-   that main now holds to `Shipped <v> as <key>`, including picks from earlier
-   releases that were missed. Then read its `Chosen, not on develop` list. A pick
-   this release built that still has no version → set `Shipped <v> as <key>` by
-   hand, using the version of the commit that built it (`git log --format=%s -- <file>`).
-   Rules: [prototype](../prototype/SKILL.md#the-tag-follows-the-work).
-
-## Report
-
-Pushed in step 0 (subject line, `verify` result, SHA — or "nothing local"),
-version, PR URL, merge SHA, tickets closed (and any still open), migrations
-shipped, deploy state, wireframes tagged shipped, CI being watched.
+Production broken and `develop` not ready to ship: `pnpm workspace:new
+hotfix/<name>` (starts from `main`), fix it test-first, then `/floc:push`. Its
+PR targets `main`, takes the next patch version, and the watcher verifies the
+deploy. `Sync develop` merges `main` back into `develop`.
 
 ## Never
 
-- Merge while any check is red or pending.
-- Push to `main` directly — that is a hotfix, and a separate decision.
-- Close issues by hand; `Closes` does it. Only exception: split parents in step 7.
+- Merge with a red, cancelled or missing required check.
+- Push to `main` or `develop` directly.
+- Close issues by hand; `Closes` does it. The watcher closes only split parents.

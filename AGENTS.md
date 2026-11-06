@@ -18,7 +18,7 @@ Next.js App Router + Turso (libSQL) + Drizzle + Better Auth. **Feature → folde
 - `.../src/components/` take data, never fetch. `.../src/lib/` holds browser- or Next-bound helpers only.
 - `floc/packages/` — `floc-core` (domain rules, words, token values; pure, no I/O, no app imports), `floc-editor` (notes editor, [ADR-014](docs/foundation/decisions.html#adr-014)), `floc-globe` (paper globe, [ADR-032](docs/foundation/decisions.html#adr-032)), `floc-api` (tRPC router for non-web clients, data only through `FlocPort`). The phone runs editor and globe in an Expo DOM component.
 - `floc/apps/mobile/` — Expo app. `floc/marketing/` — marketing visuals, never shipped, posted only by `pnpm marketing publish` ([README](floc/marketing/README.md)).
-- `docs/` — local HTML site, no build, gitignored. Open `docs/index.html` from disk; layout in [editing these docs](docs/process/editing-docs.html). `floc/wireframe/` — gitignored mockups on :4100 (`/floc:prototype`).
+- `docs/` — HTML site, no build, in the private `AidanInceer/floc-docs` repo. The main checkout holds the clone; every worktree's `docs/` links to it. Open `docs/index.html` from disk; layout in [editing these docs](docs/process/editing-docs.html). `floc/wireframe/` — gitignored mockups on :4100 (`/floc:prototype`).
 
 **Area rules** in [`.claude/rules/`](.claude/rules/) load when Claude touches a matching file; other agents read the one for the folder they edit: [mobile](.claude/rules/mobile.md) · [web e2e](.claude/rules/e2e.md) · [API](.claude/rules/api.md) · [design](.claude/rules/design.md).
 
@@ -39,7 +39,11 @@ pnpm --filter floc-web <task>     # one app only
 pnpm run:all / pnpm run:stop      # user's own full loop in two windows (agents use /floc:run)
 pnpm fitness                      # layers, dead code, tokens, css, icons, contrast, bundle, docs
 pnpm parity                       # every web/app gap is declared
-pnpm verify                       # everything CI runs, locally
+pnpm verify                       # everything CI runs, locally (release profile)
+pnpm checks quick                 # only what the diff needs; /floc:push runs it
+pnpm workspace:new <name>         # new task worktree in .claude/worktrees, ready to build
+pnpm workspace:sweep              # remove worktrees whose work has landed
+pnpm delivery status              # every running watcher and its PR
 pnpm --filter floc-web db:seed    # dev scenarios A + B (`a` or `b` for one, `--reset` to remove)
 pnpm --filter floc-web db:reset   # empty local.db and uploads, then seed — same state every time
 pnpm --filter floc-web db:trips   # every local trip: id, dates, now/upcoming/past, members — who to sign in as
@@ -49,10 +53,10 @@ pnpm --filter floc-mobile maestro # Maestro flows on the emulator, against the d
 ```
 
 - **`verify` builds into `.next-verify`**, so dev servers can stay up. A bare `build` or `fitness` writes `.next`, which `next dev` owns — stop the servers first (check with `preview_list`, not `ps`). A poisoned `.next` (or OneDrive `EINVAL: readlink`): `pnpm --filter floc-web run clean:next` — the one delete an agent may run.
-- **`verify` mirrors CI** ([`verify.sh`](scripts/verify.sh)). Change a check job in `.github/workflows/` → change `verify.sh` in the same commit.
-- **Git hooks:** `pre-commit` lints staged files and scans for secrets; `commit-msg` checks the subject. No pre-push hook — every push goes through `/floc:push`, which runs `verify`. `pnpm hooks:install` re-arms them.
+- **Checks share one definition**, `scripts/checks/manifest.mjs`, used locally and by CI: `quick` before a push, `pr` on a PR to develop, `release` on develop and on PRs to main. A pass is reused only for the same code, base, runtime and settings. Change a check → change the manifest; `ci.yml` only picks the profile.
+- **Git hooks** are per worktree: `pre-commit` lints staged files, checks comments and scans for secrets; `commit-msg` checks the subject. `pnpm workspace:prepare` installs them.
 - **Data model change → ask Aidan first, every time.** A table or column added, removed, renamed or retyped, or a constraint or index changed: stop, say what changes and why, and wait for a yes before you touch `schema.ts`. Name it again in the push and release reports.
-- **Schema change** → `/floc:schema-change`. Not done until `local.db` has the migration; `db:generate` writes it but applies nothing, and dev fails on `no such column`.
+- **Schema change** → `/floc:schema-change`. Not done until this checkout's database has the migration; `db:generate` writes it but applies nothing, and dev fails on `no such column`.
 - **Mobile dependency** → `/floc:add-mobile-dep`. Always `npx expo install`, never `pnpm add`.
 
 ## Invariants
@@ -107,12 +111,16 @@ Payments between members, POI data and reviews, flight *booking* (deep links onl
 
 ## Workflow
 
-- **Branches.** Two long-lived branches, no feature branches. Work lands on `develop` through `/floc:push` and goes to `main` in batches through `/floc:release`. A hotfix commits straight to `main`; a feature never does.
-- **Parallel sessions.** A second session starts in its own worktree; `/floc:push` lands it on `develop` (`HEAD:develop`). A new worktree starts from `origin/main` with no packages: first `git reset --hard origin/develop`, then `pnpm install`. It has no doc pages — edit docs in the main checkout. In a shared checkout, `push:land --only <paths>` stages one piece of work.
-- **Commits, labels and the Priority stack** are owned by `/floc:push`, `/floc:prioritise-tickets` and `/floc:to-tickets`. Never borrow an issue number.
-- **A plain commit** (asked to commit, not to push): subject `<version> #<issue>: <type>: <description>`, or `#no-ticket` with no `Closes`. Bump `version` in `floc/apps/web/package.json` first: `feat` minor, anything else patch. Full rules: `/floc:push` step 2.
-- **Docs are HTML, not markdown**, and move with the code in the same commit. Before `/floc:push`, ask which page the diff makes untrue; `/floc:sync-docs` maps changes to pages and runs `pnpm docs:check`.
-- **Deploy is Railway** via `railway.json`. A push to `main` deploys. Env vars live in Railway's Variables tab, never in the repo.
+- **One task, one worktree.** Shaping (`/floc:grill`, tickets, `/floc:prototype` in `floc/wireframe`) happens in the main checkout. Building never does: `pnpm workspace:new <name>` (or `/floc:pickup-ticket`) makes `.claude/worktrees/<name>` on `feature/<name>` from `origin/develop`, with its own ports, seeded database, uploads, hooks and the docs link. All edits, checks and commits for that task stay there.
+- **Branches.** `feature/*`, `fix/*`, `chore/*` → PR to `develop`. `develop` → `main` only through `/floc:release`. `hotfix/*` starts from `main` and PRs to `main`. Nothing pushes to `develop` or `main` directly; GitHub rules require the checks on both.
+- **Push.** `/floc:push` runs `pnpm delivery publish`: commit, merge the latest develop in, quick checks, doc pages to floc-docs, PR to develop with auto-merge, and a watcher. Then the session ends its turn — no agent waits on CI. Never publish when the user asked for local review only.
+- **Watcher and clean-up.** The watcher is a plain script run by Task Scheduler, so it works whichever app started it. It merges when checks pass, settles lockfile conflicts, waits for develop CI, then removes the worktree and its branch. A code conflict or red check stops it with a Windows notification. `workspace:new` and `/floc:push` sweep any landed worktree it missed. A worktree with unsaved or unlanded work is never removed.
+- **Parallel work.** Each worktree lands on its own as soon as its checks pass; develop does not make a PR re-test after other merges. The full checks after each merge catch combined breaks. Conflicts are merged in, never rebased, so no force push.
+- **Release.** `/floc:release` sets one version (minor for any `feat`, else patch), opens `release/<version>` → main, and its watcher confirms `floc.live/api/health` reports the merge commit before calling it live. Schema migrations wait for Aidan's yes.
+- **Commit subject.** `#<issue|no-ticket>: <feat|fix|docs|refactor|chore|test>: <description>`, no version. Use only a ticket picked up in this session or given in chat; a ticket subject needs its matching `Closes AidanInceer/Floc#<issue>` line.
+- **Docs are HTML, not markdown**, and move with the code: `/floc:sync-docs` edits the pages the diff makes untrue, and `/floc:push --docs` commits and pushes those pages to floc-docs.
+- **Design review** once per UI diff: the `floc:design-review` agent, recorded with `pnpm delivery review`. Publish refuses a UI diff without it.
+- **Deploy is Railway** via `railway.json`. A merge to `main` deploys. Env vars live in Railway's Variables tab, never in the repo.
 
 ## Real users — hard stop
 
@@ -131,7 +139,7 @@ Issues and PRDs are GitHub issues, driven with `gh`. Skills are the `floc` plugi
 - **Dev loop and data:** `/floc:run`, `/floc:seed-dev-db`, `/floc:reset-dev-db`, `/floc:schema-change`, `/floc:add-mobile-dep`.
 - **Docs and design:** `/floc:sync-docs`, `/floc:review-docs`, `/floc:prototype`, `/floc:audit`, `/floc:marketing` (never publishes unasked).
 - **Other:** `/floc:improve-codebase-architecture`, `/floc:rotate-secrets`, `/floc:retro` (user-run only; edits nothing until asked).
-- Agent `floc:ci-babysit` watches CI for one commit and fixes red on `develop` (three tries, never weakening a check). `/floc:push` and `/floc:release` start it in the background, in its own worktree.
+- Agent `floc:ci-babysit` fixes a red check after a watcher reports it, through a PR; never started for green work.
 - Agent `floc:design-review` gives a UI change a fresh-eyes check against the design card and screenshots; it edits nothing. `/floc:implement-feature` and `/floc:push` start it on any UI diff.
 
 **Phases.** The `Priority` stack runs in three phases, one `phase:N` label per ticket: 1 product complete, 2 go-live readiness, 3 after go-live. A phase finishes before the next starts. `grilling` is intentional — the alignment step with Aidan before a build.

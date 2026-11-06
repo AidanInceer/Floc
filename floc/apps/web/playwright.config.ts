@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const PORT = 3100;
+const PORT = Number(process.env.FLOC_E2E_PORT ?? 3100);
 const CI = !!process.env.CI;
 
 export default defineConfig({

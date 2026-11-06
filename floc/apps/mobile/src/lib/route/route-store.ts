@@ -3,7 +3,7 @@ import { File, Paths } from "expo-file-system";
 
 import type { Queued, Tracking } from "./route-queue";
 
-type Stored = { tracking: Tracking | null; queue: Queued[] };
+type Stored = { tracking: Tracking | null; queue: Queued[]; ownerId?: string | null };
 
 const file = () => new File(Paths.document, "route.json");
 
@@ -12,7 +12,7 @@ export async function readRoute(): Promise<Stored> {
     const f = file();
     if (!f.exists) return { tracking: null, queue: [] };
     const parsed = JSON.parse(await f.text()) as Partial<Stored>;
-    return { tracking: parsed.tracking ?? null, queue: parsed.queue ?? [] };
+    return { tracking: parsed.tracking ?? null, queue: parsed.queue ?? [], ...(parsed.ownerId ? { ownerId: parsed.ownerId } : {}) };
   } catch {
     return { tracking: null, queue: [] };
   }

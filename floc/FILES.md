@@ -54,7 +54,7 @@ Bookings and site links: `floc/apps/web/src/components/booking/`,
 |---|---|
 | Mockups (gitignored, `/floc:prototype`) | `floc/wireframe/` pages; shared kit `scripts/wireframe/`, served as `/_house/` by `scripts/wireframe-server.mjs` on :4100 |
 | Dev servers for the preview tools | `.claude/launch.json` |
-| `pnpm verify`, push and quality gates | `scripts/verify.sh`, `scripts/push.mjs`, `scripts/quality/` |
+| `pnpm verify`, `pnpm checks`, publish, release and quality gates | `scripts/checks/`, `scripts/delivery/`, `scripts/workspace/`, `scripts/quality/` |
 | Web checks (tokens, css, icons, bundle) and db scripts | `floc/apps/web/scripts/` |
 | End to end | `floc/apps/web/e2e/`, `floc/apps/mobile/.maestro/` |
 | API parity | `scripts/parity/parity.json` |

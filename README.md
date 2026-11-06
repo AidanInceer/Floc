@@ -1,4 +1,4 @@
-<img src="docs/brand/floc-logo.svg" alt="floc" width="132" height="28">
+<img src=".github/floc-logo.svg" alt="floc" width="132" height="28">
 
 # floc — group-travel planning, sorted
 

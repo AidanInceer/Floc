@@ -30,12 +30,24 @@ const older = (a, b) => {
 };
 
 const STATUS = /(<meta name="wf-status" content=")([^"]*)(">)/;
-const ON_DEVELOP = /^Chosen: (.+), on develop (\d+\.\d+\.\d+)$/;
+// Why a commit as well as a version: versions are set once per release, so a push records the commit it landed.
+const ON_DEVELOP = /^Chosen: (.+), on develop (\d+\.\d+\.\d+|[0-9a-f]{7,40})$/;
+const VERSION = /^\d+\.\d+\.\d+$/;
 
 const live = mainVersion();
+
+function onMain(mark) {
+  if (VERSION.test(mark)) return Boolean(live) && older(mark, live);
+  try {
+    execFileSync("git", ["merge-base", "--is-ancestor", mark, "origin/main"], { cwd: repo, stdio: "ignore" });
+    return true;
+  } catch {
+    return false;
+  }
+}
 const groups = { moved: [], develop: [], chosen: [], exploring: [], none: [] };
 
-for (const folder of readdirSync(root).sort()) {
+for (const folder of (existsSync(root) ? readdirSync(root) : []).sort()) {
   const file = path.join(root, folder, "index.html");
   if (folder.startsWith("_") || !existsSync(file)) continue;
   const html = readFileSync(file, "utf8");
@@ -43,8 +55,8 @@ for (const folder of readdirSync(root).sort()) {
   const word = status.split(/[:\s]/)[0].toLowerCase();
   const onDevelop = status.match(ON_DEVELOP);
 
-  if (onDevelop && live && older(onDevelop[2], live)) {
-    const next = `Shipped ${onDevelop[2]} as ${onDevelop[1]}`;
+  if (onDevelop && live && onMain(onDevelop[2])) {
+    const next = `Shipped ${VERSION.test(onDevelop[2]) ? onDevelop[2] : live} as ${onDevelop[1]}`;
     groups.moved.push(`${folder}: ${status}  →  ${next}`);
     if (write) writeFileSync(file, html.replace(STATUS, `$1${next}$3`));
   } else if (onDevelop) groups.develop.push(`${folder}: ${status}`);
@@ -57,6 +69,6 @@ const section = (title, list) => list.length && console.log(`\n${title} (${list.
 console.log(`main is ${live ?? "unknown (no main branch found)"}`);
 section(write ? "Moved to Shipped" : "Would move to Shipped (run with --write)", groups.moved);
 section("On develop, not on main yet", groups.develop);
-section("Chosen, not on develop: built by a push yet? set 'on develop <version>' if so", groups.chosen);
+section("Chosen, not on develop: built by a push yet? set 'on develop <commit>' if so", groups.chosen);
 section("Exploring: picked yet? set Chosen, Parked or Experiment", groups.exploring);
 section("No wf-status", groups.none);

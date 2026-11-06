@@ -102,8 +102,8 @@ What has worked, round by round, on the landing wireframes:
 | The user picks one | `Chosen: G2` | Add `<meta name="wf-picked" content="YYYY-MM-DD">`. Set sibling folders that asked the same question to `Parked: <why>, chosen in <folder>`. |
 | A direction is dropped for now | `Parked: D, <why>` | |
 | Kept to try on real visitors later, as an A/B test | `Experiment: I1, I2, <what it would test>` | Not picked and not dropped. List only the kept variants in the page. |
-| `/floc:push` lands the build on `develop` | `Chosen: G2, on develop <version>` | `/floc:push` does this. |
-| `/floc:release` deploys it | `Shipped <version>` (`Shipped <version> as G2` if it had variants) | `/floc:release` does this after the deploy reports `success`. |
+| `/floc:push` publishes the build | `Chosen: G2, on develop <commit>` (first 7 of the published sha) | `/floc:push` does this. |
+| The release reaches production | `Shipped <version>` (`Shipped <version> as G2` if it had variants) | The release watcher runs `pnpm wireframe:tags --write` once production serves it. |
 
 A `Chosen` prototype built but not pushed keeps plain `Chosen: G2`. Edit the tag in the prototype's `index.html` only; `floc/wireframe/` is gitignored, so this never enters a commit.
 
@@ -112,4 +112,4 @@ A `Chosen` prototype built but not pushed keeps plain `Chosen: G2`. Edit the tag
 - **The user names a variant** ("option D please", "go with G2") → set `Chosen: <key>` and `wf-picked` *before* you start building it, whatever skill you are in.
 - **A round closes** → the page ends in exactly one state: `Chosen`, `Parked`, `Experiment`, or `Exploring` while the user is still deciding. Never leave `Exploring` on a page the user has answered.
 - **A later prototype answers the same question** → set the older folder to `Parked: <key>, chosen in <folder>`. The same applies when the build took its answer from another folder.
-- **Check with `pnpm wireframe:tags`.** It lists every tag that is out of step: picks on develop, `Chosen` with no version, and `Exploring`. `--write` moves every `Chosen: <key>, on develop <v>` to `Shipped <v> as <key>` once main holds `<v>`.
+- **Check with `pnpm wireframe:tags`.** It lists every tag that is out of step: picks on develop, `Chosen` with no version, and `Exploring`. `--write` moves every `Chosen: <key>, on develop <commit>` to `Shipped <main version> as <key>` once main holds that commit (older tags with a version still work).

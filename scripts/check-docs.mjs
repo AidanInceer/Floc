@@ -15,10 +15,14 @@ const read = (path) => readFileSync(join(ROOT, path), "utf8");
 // Why: Better Auth's own tables; the ERD draws only the `user` anchor.
 const AUTH_TABLES = new Set(["session", "account", "verification"]);
 
-// Why: the pages are gitignored, so CI and a fresh worktree hold only docs/assets.
+// Why: the docs live in the private floc-docs repo, so CI has none. Locally every checkout links to them.
 if (!existsSync(join(DOCS, "index.html"))) {
-  console.log("Docs: no doc pages here (gitignored; edit them in the main checkout) — skipped.");
-  process.exit(0);
+  if (process.env.CI) {
+    console.log("Docs: not in CI (they live in the private floc-docs repo); skipped.");
+    process.exit(0);
+  }
+  console.error("Docs are missing: run pnpm workspace:prepare to link this checkout to the floc-docs clone.");
+  process.exit(1);
 }
 
 const failures = [];
@@ -50,6 +54,7 @@ function checkApiMap() {
 
 function htmlFiles(dir) {
   return readdirSync(dir).flatMap((name) => {
+    if (["private", "input", "samples", "mockups", "prototypes", "site-audit"].includes(name)) return [];
     const path = join(dir, name);
     if (statSync(path).isDirectory()) return name === "vendor" ? [] : htmlFiles(path);
     return name.endsWith(".html") ? [path] : [];

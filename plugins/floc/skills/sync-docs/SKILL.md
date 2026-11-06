@@ -11,8 +11,7 @@ Docs move with the code, in the same commit. This skill finds the pages a
 change makes wrong and fixes them. It does not rewrite pages the change does
 not touch.
 
-`docs/` is gitignored — a doc edit shows in no diff and no commit. Say in the
-report which pages you changed.
+The docs live in the private `AidanInceer/floc-docs` repo. The main checkout holds the clone and every worktree's `docs/` links to it, so edit `docs/...` as usual. Doc edits never show in the Floc diff: list the pages you changed in your report, and hand that list to `/floc:push --docs`, which commits and pushes only those pages.
 
 ## 1. Read the change
 
@@ -33,7 +32,7 @@ Include untracked files. If the user named a commit range, diff that instead.
 | PII, tokens, signed links, webhooks, cookies, browser storage | [security](../../../../docs/engineering/security.html) (and `/privacy` in code) |
 | A tRPC procedure | [API map](../../../../docs/engineering/api.html) |
 | An env var, `railway.json`, a production fix | [runbook](../../../../docs/engineering/operations.html) |
-| `.github/workflows/`, `scripts/verify.sh` | [CI](../../../../docs/engineering/ci.html) |
+| `.github/workflows/`, `scripts/checks/` | [CI](../../../../docs/engineering/ci.html) |
 | Workflow, a skill or agent | [lifecycle](../../../../docs/process/lifecycle.html) and the Agent skills section in `AGENTS.md` |
 | The web/app split, `parity.json` | [multi-platform](../../../../docs/engineering/platforms.html) |
 | Notifications, reminders, the cron | [notifications](../../../../docs/product/notifications/index.html) |
