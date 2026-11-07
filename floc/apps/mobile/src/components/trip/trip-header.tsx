@@ -123,9 +123,11 @@ function SectionCell({ section, on, onGo }: { section: Section; on: boolean; onG
           width: 36,
           height: 28,
           borderRadius: radius.sm,
+          // Why: Android drops the corner radius when the fill starts transparent, so the tile always has a fill and clips.
+          overflow: "hidden",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: on ? c[`pastel-${colour}`] : "transparent",
+          backgroundColor: on ? c[`pastel-${colour}`] : c.sheet,
         }}
       >
         <SectionGlyph route={section.route} color={on ? c[`pastel-${colour}-ink`] : c["ink-2"]} />

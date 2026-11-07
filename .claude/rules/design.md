@@ -70,7 +70,8 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - Phone corrections from Aidan:
   - A colour key fits one line: small marks, the web's words.
   - A lone share button, or a card of link buttons, sits centred. No heading or sentence above it that says what the button does.
-  - The top of a screen stacks no bands. Stops sit on the day strip, not in a band above it. One boxed button per row; the rest are ghost.
+  - The top of a screen stacks no bands. Stops sit on the day strip, not in a band above it; pressing a stop there edits where you sleep, with no separate overnight band.
+  - The section tabs mark the open one with a soft rounded wash, as on the web — never a hard block.
 - House components first: web `components/system/ui.tsx` and `client-ui.tsx`; phone `src/components/system/ui.tsx` and `glyphs.tsx`.
 
 ## Mockups and builds

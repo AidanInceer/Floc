@@ -40,7 +40,7 @@ export function SiteLinks({ kind, links, label, centred }: { kind: SiteKind; lin
   );
 }
 
-function SiteList({ kind, links }: { kind: SiteKind; links: BookingLink[] }) {
+export function SiteList({ kind, links }: { kind: SiteKind; links: BookingLink[] }) {
   const { sites } = useBookingSites();
   const { mine, more } = splitBySites(links, sites[kind]);
   return (

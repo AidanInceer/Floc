@@ -6,7 +6,7 @@ import { positionLines, type Position } from "@floc/core/money/position";
 import { readTags } from "@floc/core/trip/tags";
 import { readTripMark } from "@floc/core/trip/mark/trip-mark";
 import { readTripColor, tripPastel } from "@floc/core/trip/trip-color";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { Face } from "../system/face-stack";
@@ -15,6 +15,7 @@ import { PenGlyph } from "../system/glyphs";
 import { Pill } from "../system/ui";
 import { LineRow } from "./overview/line-row";
 import { TagPills } from "./tag-pills";
+import { StampSheet } from "./stamp/stamp-sheet";
 import { TripMarkIcon } from "./trip-mark";
 import { fonts, radius, size, space } from "@/lib/theme";
 
@@ -54,6 +55,7 @@ export function OverviewCard({
   onMoney: () => void;
 }) {
   const { c } = useTheme();
+  const [picking, setPicking] = useState(false);
   const color = readTripColor(trip.colorKey);
   const tone = pastelOf(tripPastel(color, trip.id));
   const mark = readTripMark(trip.mark);
@@ -77,12 +79,14 @@ export function OverviewCard({
       <Pressable
         testID="overview-stamp"
         accessibilityRole="button"
-        accessibilityLabel="Colour, mark, name and tags"
-        onPress={onEdit}
+        accessibilityLabel="Colour and mark"
+        onPress={() => setPicking(true)}
+        hitSlop={space.sm}
         style={({ pressed }) => ({
           position: "absolute",
           top: space.md,
           right: space.md,
+          zIndex: 1,
           width: 54,
           height: 62,
           alignItems: "center",
@@ -103,7 +107,11 @@ export function OverviewCard({
             {`${Number(day)} ${MONTHS[Number(month) - 1]}`}
           </Text>
         ) : null}
+        <View style={{ position: "absolute", right: -7, bottom: -7, width: 20, height: 20, borderRadius: radius.pill, alignItems: "center", justifyContent: "center", backgroundColor: c.sheet, borderWidth: StyleSheet.hairlineWidth, borderColor: c.rule, transform: [{ rotate: "-4deg" }] }}>
+          <PenGlyph color={c["ink-3"]} size={11} />
+        </View>
       </Pressable>
+      <StampSheet open={picking} onClose={() => setPicking(false)} tripId={trip.id} color={tripPastel(color, trip.id)} mark={mark} />
 
       {trip.archived && soon ? <Pill word="Archived" tone="pastel-yellow" /> : null}
 

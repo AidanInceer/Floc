@@ -59,6 +59,7 @@ export default function Days() {
 
   const [editing, setEditing] = useState<Editing>({ kind: "none" });
   const [problem, setProblem] = useState<string | null>(null);
+  const [overnightAt, setOvernightAt] = useState<string | null>(null);
 
   const days = useQuery(trpc.itinerary.days.queryOptions({ tripId }, { enabled: ready }));
   // One read for every block's clip (#324), not one per event. A trip with no
@@ -136,10 +137,11 @@ export default function Days() {
             router.setParams({ date: picked });
             setEditing({ kind: "none" });
           }}
+          onStop={setOvernightAt}
         />
       </View>
 
-      {/* The head of the day stays put and the grid scrolls under it, so the date and the night stay in view. */}
+      {/* The head of the day stays put and the grid scrolls under it, so the date stays in view. */}
       <View style={{ paddingHorizontal: space.lg, paddingTop: space.sm, gap: space.xs, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.rule }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
           <View style={{ flex: 1, gap: 2 }}>
@@ -159,7 +161,7 @@ export default function Days() {
             }}
           />
         </View>
-        <OvernightLine tripId={tripId} days={days.data} date={day.date} />
+        <OvernightLine tripId={tripId} days={days.data} openAt={overnightAt} onClose={() => setOvernightAt(null)} />
       </View>
 
       <View style={{ flex: 1, paddingHorizontal: space.lg, paddingTop: space.md }}>

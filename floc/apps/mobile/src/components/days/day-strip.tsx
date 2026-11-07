@@ -10,14 +10,14 @@
 import { dayParts } from "@floc/core/dates/dates";
 import { deriveStops } from "@floc/core/itinerary/stops";
 import { useEffect, useRef, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
-import { BedGlyph } from "../system/glyphs";
+import { BedGlyph, ChevronGlyph } from "../system/glyphs";
 import { useTheme } from "../system/theme";
+import { stopLabel } from "@/lib/days/stop-label";
 import { fonts, radius, size, space } from "@/lib/theme";
 
 const CHIP = 42;
-const cityOf = (placeName: string) => placeName.split(",")[0];
 const GAP = space.xs;
 
 type StripDay = { id: number; date: string; overnightPlaceId: number | null; overnightPlaceName: string | null };
@@ -49,17 +49,34 @@ function DayChip({ date, on, isToday, onPress }: { date: string; on: boolean; is
   );
 }
 
-function StayBand({ name, width, current }: { name: string | null; width: number; current: boolean }) {
+function StayBand({ name, width, current, onPress }: { name: string | null; width: number; current: boolean; onPress: () => void }) {
   const { c } = useTheme();
   const tone = current ? c.ink : c["ink-3"];
+  const label = stopLabel(name, width);
   return (
-    <View accessibilityLabel={name ? `Sleeping in ${name}` : undefined} style={{ width, gap: space.xs }}>
-      <View style={{ height: 16, flexDirection: "row", alignItems: "center", gap: space.xs }}>
-        {name ? <BedGlyph color={tone} /> : null}
-        {/* Why: a one-night stay is one chip wide; there the bed alone says it, and the overnight line says where. */}
-        {name && width >= 80 ? <Text numberOfLines={1} style={{ flexShrink: 1, color: tone, fontFamily: fonts.sansBold, fontSize: size.label }}>{cityOf(name)}</Text> : null}
-      </View>
-      <View style={{ height: 2, borderRadius: radius.pill, backgroundColor: name ? (current ? c["ink-3"] : c.rule) : "transparent" }} />
+    <View style={{ width, gap: space.xs }}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={name ? `Sleeping in ${name} — change it` : "Overnight: not set — say where you are sleeping"}
+        onPress={onPress}
+        hitSlop={{ top: 8, bottom: 8, left: 2, right: 2 }}
+        style={({ pressed }) => ({ height: 28, flexDirection: "row", alignItems: "center", gap: space.xs, opacity: pressed ? 0.6 : 1 })}
+      >
+        <BedGlyph color={tone} />
+        {label.kind === "bed" ? null : (
+          <Text numberOfLines={1} style={{ flexShrink: 1, color: tone, fontFamily: label.kind === "place" ? fonts.sansBold : fonts.sans, fontSize: size.label }}>
+            {label.text}
+          </Text>
+        )}
+        {label.kind === "bed" || label.text === "—" ? null : <ChevronGlyph color={c["ink-3"]} />}
+      </Pressable>
+      <View
+        style={{
+          height: name ? 2 : StyleSheet.hairlineWidth,
+          borderRadius: radius.pill,
+          backgroundColor: name ? (current ? c["ink-3"] : c.rule) : c["rule-2"],
+        }}
+      />
     </View>
   );
 }
@@ -69,12 +86,15 @@ export function DayStrip({
   selected,
   todayDate,
   onSelect,
+  onStop,
 }: {
   days: StripDay[];
   selected: string;
   /** The real today, passed in so the component itself reads no clock. */
   todayDate: string;
   onSelect: (date: string) => void;
+  /** The first date of the pressed stop, so the overnight editor opens on that run. */
+  onStop: (startDate: string) => void;
 }) {
   const scroller = useRef<ScrollView>(null);
   const [viewWidth, setViewWidth] = useState(0);
@@ -103,7 +123,7 @@ export function DayStrip({
         const width = dates.length * CHIP + (dates.length - 1) * GAP;
         return (
           <View key={stay.startDate} style={{ gap: space.xs }}>
-            <StayBand name={stay.placeName} width={width} current={dates.includes(selected)} />
+            <StayBand name={stay.placeName} width={width} current={dates.includes(selected)} onPress={() => onStop(stay.startDate)} />
             <View style={{ flexDirection: "row", gap: GAP }}>
               {dates.map((date) => (
                 <DayChip key={date} date={date} on={date === selected} isToday={date === todayDate} onPress={() => onSelect(date)} />

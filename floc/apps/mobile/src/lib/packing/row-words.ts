@@ -23,7 +23,7 @@ export function needsRemoveConfirm(claims: { userId: string }[], viewerId: strin
 
 export function splitFigures(text: string): { text: string; figure: boolean }[] {
   return text
-    .split(/(\d+(?:\/\d+)?)/)
+    .split(/(\d[\d/]*)/)
     .filter((part) => part !== "")
     .map((part) => ({ text: part, figure: /^\d/.test(part) }));
 }
