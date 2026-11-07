@@ -15,7 +15,7 @@ export function OverviewStops({
   tripId: number;
   legs: Leg<TripDocument>[];
   events: Map<number, DayEventRow[]>;
-  /** The bookings beside the stops; none once the trip has ended. */
+  /** The bookings beside the stops; none once the trip has ended or with no file storage. */
   bookings: ReactNode;
 }) {
   if (legs.length === 0) return null;

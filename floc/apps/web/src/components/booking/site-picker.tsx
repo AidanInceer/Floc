@@ -9,7 +9,7 @@ import { ExternalButtonLink, cx } from "@/components/system/ui";
 
 const CHEVRON =
   "grid h-[30px] w-[30px] place-items-center rounded-sm border border-rule-strong bg-sheet text-ink-2 hover:border-pen hover:bg-pen-soft hover:text-pen-deep data-[open=true]:border-pen data-[open=true]:bg-pen-soft data-[open=true]:text-pen-deep";
-export const SITE_MENU_PANEL =
+const SITE_MENU_PANEL =
   "w-max min-w-[15rem] max-w-[min(20rem,calc(100vw-2rem))] rounded-md border border-rule-strong bg-sheet p-1 text-left shadow-raised";
 
 /** Your sites as buttons, and every other site behind the chevron (wireframe/booking-sites J). */
@@ -52,7 +52,7 @@ export function SitePicker({
 }
 
 /** Your sites, then More sites; the tick on each line keeps or drops it, in place. */
-export function SiteMenuList({ kind, links, head }: { kind: SiteKind; links: BookingLink[]; head?: string }) {
+function SiteMenuList({ kind, links, head }: { kind: SiteKind; links: BookingLink[]; head?: string }) {
   const { sites } = useBookingSites();
   const { mine, more } = splitBySites(links, sites[kind]);
   return (
