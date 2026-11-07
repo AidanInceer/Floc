@@ -465,7 +465,7 @@ async function liveDayDates(tripId: number): Promise<string[]> {
   return rows.map((r) => r.date);
 }
 
-async function eventCount(dayId: number): Promise<number> {
+export async function eventCount(dayId: number): Promise<number> {
   const [{ count } = { count: 0 }] = await db
     .select({ count: sql<number>`count(*)` })
     .from(dayEvent)
@@ -512,8 +512,8 @@ function eventValues(input: EventFields) {
   };
 }
 
-export async function insertEvent(dayId: number, input: EventFields): Promise<void> {
-  const count = await eventCount(dayId);
+export async function insertEvent(dayId: number, input: EventFields, countSoFar?: number): Promise<void> {
+  const count = countSoFar ?? (await eventCount(dayId));
   assertRoom("eventsPerDay", count);
   await db
     .insert(dayEvent)

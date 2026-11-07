@@ -17,14 +17,15 @@ import { loadThreads } from "@/server/notes/notes-read";
 import type { Refusal } from "./pages";
 import { findPage } from "./pages-read";
 
-export async function loadPageComments(args: {
-  tripId: number;
-  pageId: number;
-  viewerId: string;
-  toneOf: Map<string, string | undefined>;
-}): Promise<NoteRow[]> {
-  const threads = await loadThreads({ tripId: args.tripId, scope: "page", viewerId: args.viewerId, toneOf: args.toneOf });
-  return threads.get(args.pageId) ?? [];
+type ThreadsArgs = { tripId: number; viewerId: string; toneOf: Map<string, string | undefined> };
+
+/** Every page's threads at once, by page id — a caller that does not know the page yet can still start the read. */
+export async function pageThreads(args: ThreadsArgs): Promise<Map<number, NoteRow[]>> {
+  return loadThreads({ tripId: args.tripId, scope: "page", viewerId: args.viewerId, toneOf: args.toneOf });
+}
+
+export async function loadPageComments(args: ThreadsArgs & { pageId: number }): Promise<NoteRow[]> {
+  return (await pageThreads(args)).get(args.pageId) ?? [];
 }
 
 /** A new thread when `replyTo` is null, else a reply to it. Answers the new comment's id. */

@@ -274,12 +274,12 @@ async function friendsOnProfile(
     .sort((a, b) => a.name.localeCompare(b.name, "en-GB", { sensitivity: "base" }));
 }
 
-/** Ended trips only, no link in, no roster — third parties never consented to appear here (ticket 46). */
+/** Ended trips only, no link in, no roster — third parties never consented to appear here (ticket 46). `show` may still be loading; the trips read does not wait for it. */
 export async function pastTripsFor(
   ownerId: string,
-  show: PastTripsShow,
+  show: PastTripsShow | PromiseLike<PastTripsShow>,
 ): Promise<PastTrip[]> {
-  const rows = await db
+  const [rows, which] = await Promise.all([db
     .select({
       id: trip.id,
       name: trip.name,
@@ -296,13 +296,13 @@ export async function pastTripsFor(
       ),
     )
     .limit(LIMITS.tripsPerUser)
-    .all();
+    .all(), show]);
 
   const ended = bounded(rows, "tripsPerUser", `profile of ${ownerId}`)
     .filter((t) => hasEnded(t.endDate))
     .sort((a, b) => (b.endDate ?? "").localeCompare(a.endDate ?? ""));
 
-  const shown = show === "latest" ? ended.slice(0, 1) : ended;
+  const shown = which === "latest" ? ended.slice(0, 1) : ended;
   if (shown.length === 0) return [];
 
   const places = await db

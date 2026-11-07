@@ -17,8 +17,11 @@ export const metadata = { title: "Explore" };
 export default async function ExplorePage() {
   const session = await getSession();
   const userId = session?.user?.id ?? null;
-  const finder = userId ? await loadFinder(userId) : null;
-  const rates = await listingRates(await viewerCurrency(userId, await headers()));
+  const asked = await headers();
+  const [finder, rates] = await Promise.all([
+    userId ? loadFinder(userId) : null,
+    viewerCurrency(userId, asked).then(listingRates),
+  ]);
 
   return (
     <div className="pb-20">
