@@ -28,12 +28,14 @@ import { Alert, ScrollView, View } from "react-native";
 import { PackingBulkBar } from "@/components/packing/packing-bulk-bar";
 import { PackingKitSheet } from "@/components/packing/packing-kit-sheet";
 import { MineRow, SharedRow, type SharedLine } from "@/components/packing/packing-rows";
+import { ListsButton } from "@/components/packing/lists-button";
 import { PackingSection } from "@/components/packing/packing-section";
 import { IdeaRow } from "@/components/packing/packing-idea-row";
 import { PackingSetup, PackingUpgrade } from "@/components/packing/packing-setup";
 import { Sheet } from "@/components/system/sheet";
 import { Failed, Loading } from "@/components/system/ui";
 import { AddItem } from "@/components/packing/add-item";
+import { needsRemoveConfirm } from "@/lib/packing/row-words";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 
@@ -49,6 +51,11 @@ function whyLine(plan: Parameters<typeof ideasWhy>[0]): string {
 type Picking = { list: "shared" | "mine"; ids: Set<number> } | null;
 
 type LaneLine = SharedLine & { laneUserId?: string | null };
+
+function lanePacked(line: LaneLine): boolean | null {
+  if (!line.laneUserId) return null;
+  return line.claims.find((claim) => claim.userId === line.laneUserId)?.packed ?? false;
+}
 
 function sharedClaimGroups(
   lines: SharedLine[],
@@ -186,6 +193,15 @@ export default function Packing() {
       ],
     );
 
+  const confirmRemoveShared = (line: SharedLine) => {
+    const remove = () => drop.mutate({ tripId, lineId: line.id });
+    if (!needsRemoveConfirm(line.claims, viewerId)) return remove();
+    Alert.alert(`Remove ${line.label} for everyone?`, "Other people are bringing it.", [
+      { text: "Keep it", style: "cancel" },
+      { text: "Remove", style: "destructive", onPress: remove },
+    ]);
+  };
+
   return (
     <View style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }}>
@@ -196,15 +212,11 @@ export default function Packing() {
             onTier={(tier: PackTier) => setTier.mutate({ tripId, tier })}
             ideas={{ count: board.data.ideas.length, hidden: ideasHidden, onToggle: () => setIdeasHidden((h) => !h) }}
             fill={{ busy: fill.isPending, onPress: () => fill.mutate({ tripId }) }}
-            kits={board.data.kits}
-            onPickKit={() => setKitsOpen(true)}
             removeSuggested={unsuggest}
             error={fill.isError ? fill.error.message : takeIdea.isError ? takeIdea.error.message : null}
           />
         ) : (
           <PackingUpgrade
-            kits={board.data.kits}
-            onPickKit={() => setKitsOpen(true)}
             onUpgrade={() => router.push("/settings")}
             removeSuggested={unsuggest}
           />
@@ -218,14 +230,17 @@ export default function Packing() {
 
         <PackingSection
           heading="Your bag"
-          cubes
+          headerAction={
+            <ListsButton count={board.data.kits.length} onPress={() => setKitsOpen(true)} />
+          }
+          isPacked={(line) => line.packed}
           aside="Only you can see this list."
           lines={board.data.mine}
           packed={minePacked}
           selecting={picking?.list === "mine"}
           onSelecting={(on) => startPicking("mine", on)}
           onClear={() => confirmClear(true)}
-          emptyWord="Nothing in your bag yet."
+          emptyWord="Your bag is empty."
           ideas={{
             list: ideasHidden ? [] : board.data.ideas,
             render: (idea) => (
@@ -254,13 +269,13 @@ export default function Packing() {
 
         <PackingSection<LaneLine>
           heading="Who’s bringing what"
-          cubes
+          isPacked={lanePacked}
           lines={board.data.shared}
           packed={sharedPacked}
           selecting={picking?.list === "shared"}
           onSelecting={(on) => startPicking("shared", on)}
           onClear={() => confirmClear(false)}
-          emptyWord="Nothing on the group's list yet."
+          emptyWord="Nothing on the group’s list yet."
           groupsOverride={sharedGroups}
           renderLine={(line) => (
             <SharedRow
@@ -273,7 +288,7 @@ export default function Packing() {
               onToggleSelected={() => toggle("shared", line.id)}
               onClaim={(claimed) => claim.mutate({ tripId, lineId: line.id, claimed })}
               onPacked={(packed) => tick.mutate({ tripId, lineId: line.id, packed })}
-              onRemove={() => drop.mutate({ tripId, lineId: line.id })}
+              onRemove={() => confirmRemoveShared(line)}
               onRename={(label) => rename.mutateAsync({ tripId, lineId: line.id, label })}
             />
           )}

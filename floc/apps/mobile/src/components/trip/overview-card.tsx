@@ -3,15 +3,19 @@ import { countdownLabel, formatDateRange } from "@floc/core/dates/dates";
 import { tripListStage } from "@floc/core/trip/list-stage";
 import { pastelOf } from "@floc/core/design/pastels";
 import { positionLines, type Position } from "@floc/core/money/position";
+import { readTags } from "@floc/core/trip/tags";
 import { readTripMark } from "@floc/core/trip/mark/trip-mark";
 import { readTripColor, tripPastel } from "@floc/core/trip/trip-color";
-import { Pressable, Text, View } from "react-native";
+import { useState, type ReactNode } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { FaceStack, type Face } from "../system/face-stack";
+import type { Face } from "../system/face-stack";
 import { useTheme } from "../system/theme";
 import { PenGlyph } from "../system/glyphs";
 import { Pill } from "../system/ui";
+import { LineRow } from "./overview/line-row";
 import { TagPills } from "./tag-pills";
+import { StampSheet } from "./stamp/stamp-sheet";
 import { TripMarkIcon } from "./trip-mark";
 import { fonts, radius, size, space } from "@/lib/theme";
 
@@ -35,7 +39,8 @@ export function OverviewCard({
   position,
   onEdit,
   onDates,
-  onGroup,
+  children,
+  files,
   onMoney,
 }: {
   trip: CardTrip;
@@ -44,10 +49,13 @@ export function OverviewCard({
   position: Position | null;
   onEdit: () => void;
   onDates: () => void;
-  onGroup: () => void;
+  /** The group and Files lines, drawn by the screen so each loads on its own. */
+  children?: ReactNode;
+  files?: ReactNode;
   onMoney: () => void;
 }) {
   const { c } = useTheme();
+  const [picking, setPicking] = useState(false);
   const color = readTripColor(trip.colorKey);
   const tone = pastelOf(tripPastel(color, trip.id));
   const mark = readTripMark(trip.mark);
@@ -59,9 +67,10 @@ export function OverviewCard({
       style={{
         gap: space.xs,
         padding: space.lg,
+        paddingBottom: space.xs,
         borderRadius: radius.md,
         backgroundColor: c.sheet,
-        borderWidth: 1,
+        borderWidth: StyleSheet.hairlineWidth,
         borderColor: c.rule,
         borderTopWidth: 6,
         borderTopColor: c[tone],
@@ -70,12 +79,14 @@ export function OverviewCard({
       <Pressable
         testID="overview-stamp"
         accessibilityRole="button"
-        accessibilityLabel="Colour, mark, name and tags"
-        onPress={onEdit}
+        accessibilityLabel="Colour and mark"
+        onPress={() => setPicking(true)}
+        hitSlop={space.sm}
         style={({ pressed }) => ({
           position: "absolute",
           top: space.md,
           right: space.md,
+          zIndex: 1,
           width: 54,
           height: 62,
           alignItems: "center",
@@ -96,20 +107,15 @@ export function OverviewCard({
             {`${Number(day)} ${MONTHS[Number(month) - 1]}`}
           </Text>
         ) : null}
+        <View style={{ position: "absolute", right: -7, bottom: -7, width: 20, height: 20, borderRadius: radius.pill, alignItems: "center", justifyContent: "center", backgroundColor: c.sheet, borderWidth: StyleSheet.hairlineWidth, borderColor: c.rule, transform: [{ rotate: "-4deg" }] }}>
+          <PenGlyph color={c["ink-3"]} size={11} />
+        </View>
       </Pressable>
+      <StampSheet open={picking} onClose={() => setPicking(false)} tripId={trip.id} color={tripPastel(color, trip.id)} mark={mark} />
 
       {trip.archived && soon ? <Pill word="Archived" tone="pastel-yellow" /> : null}
 
-      {soon ? (
-        <Text style={{ color: c["pastel-blue-ink"], fontFamily: fonts.displayBold, fontSize: size.display - 4, paddingRight: 72, minHeight: 62 }}>
-          {soon.charAt(0).toUpperCase() + soon.slice(1)}
-        </Text>
-      ) : null}
-      {soon ? null : (
-        <Text style={{ color: c.ink, fontFamily: fonts.displayBold, fontSize: size.display - 4, paddingRight: 72, minHeight: 62 }}>
-          {trip.archived ? "Archived" : trip.startDate ? tripListStage(trip) : "When?"}
-        </Text>
-      )}
+      <Headline soon={soon} archived={trip.archived} trip={trip} />
       <Pressable
         accessibilityRole="link"
         accessibilityLabel={trip.startDate ? "Change dates" : "Pick dates"}
@@ -125,50 +131,57 @@ export function OverviewCard({
       </Pressable>
 
       <View style={{ marginTop: space.xs }}>
-        <TagPills tags={trip.tags} color={color} tripId={trip.id} />
+        <TagsLine trip={trip} color={color} onEdit={onEdit} />
       </View>
 
-      <View style={{ marginTop: space.sm, borderTopWidth: 1, borderTopColor: c.rule }}>
-        <Pressable
-          accessibilityRole="link"
-          onPress={onGroup}
-          style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: space.sm, paddingVertical: space.sm, borderBottomWidth: 1, borderBottomColor: c.rule, opacity: pressed ? 0.6 : 1 })}
-        >
-          <FaceStack faces={trip.members} />
-          <Text style={{ color: c["ink-2"], fontFamily: fonts.sans, fontSize: size.small }}>{`${trip.members.length} going`}</Text>
-        </Pressable>
+      <View style={{ marginTop: space.sm }}>
         {position ? (
           positionLines(position).map((line) => <Line key={line.label} label={line.label} figure={line.figure} onPress={onMoney} />)
         ) : (
           <Line label="Nothing spent yet" onPress={onMoney} />
         )}
+        {children}
+        {files}
       </View>
     </View>
+  );
+}
+
+function Headline({ soon, archived, trip }: { soon: string | null; archived: boolean; trip: CardTrip }) {
+  const { c } = useTheme();
+  const style = { fontFamily: fonts.displayBold, fontSize: size.display - 4, paddingRight: 72, minHeight: 62 } as const;
+  if (soon) return <Text style={{ ...style, color: c["pastel-blue-ink"] }}>{soon.charAt(0).toUpperCase() + soon.slice(1)}</Text>;
+  return <Text style={{ ...style, color: c.ink }}>{archived ? "Archived" : trip.startDate ? tripListStage(trip) : "When?"}</Text>;
+}
+
+function TagsLine({ trip, color, onEdit }: { trip: CardTrip; color: ReturnType<typeof readTripColor>; onEdit: () => void }) {
+  const { c } = useTheme();
+  if (readTags(trip.tags).length > 0) return <TagPills tags={trip.tags} color={color} tripId={trip.id} />;
+  return (
+    <Pressable accessibilityRole="button" onPress={onEdit} hitSlop={8} style={{ alignSelf: "flex-start", paddingVertical: space.xs }}>
+      <Text style={{ color: c["ink-3"], fontFamily: fonts.sans, fontSize: size.small }}>+ Add a tag</Text>
+    </Pressable>
   );
 }
 
 function Line({ label, figure, onPress }: { label: string; figure?: string | null; onPress: () => void }) {
   const { c } = useTheme();
   return (
-    <Pressable
-      accessibilityRole="link"
-      onPress={onPress}
-      style={({ pressed }) => ({
-        flexDirection: "row",
-        alignItems: "baseline",
-        gap: space.sm,
-        paddingVertical: space.sm,
-        borderBottomWidth: 1,
-        borderBottomColor: c.rule,
-        opacity: pressed ? 0.6 : 1,
-      })}
-    >
+    <LineRow label={figure ? `${label} ${figure}` : label} onPress={onPress} baseline={Boolean(figure)}>
+      <Text
+        style={{
+          color: figure ? c["ink-3"] : label === "All square" ? c["pastel-green-ink"] : c["ink-3"],
+          fontFamily: label === "All square" ? fonts.displayBold : fonts.sans,
+          fontSize: label === "All square" ? size.body : size.small,
+        }}
+      >
+        {label}
+      </Text>
       {figure ? (
-        <Text style={{ color: label === "You owe" ? c.ink : c["pastel-green-ink"], fontFamily: fonts.type, fontSize: size.heading, fontVariant: ["tabular-nums"] }}>
+        <Text style={{ color: label === "You owe" ? c.ink : c["pastel-green-ink"], fontFamily: fonts.type, fontSize: size.body, fontVariant: ["tabular-nums"] }}>
           {figure}
         </Text>
       ) : null}
-      <Text style={{ color: c["ink-2"], fontFamily: fonts.sans, fontSize: size.small }}>{label}</Text>
-    </Pressable>
+    </LineRow>
   );
 }

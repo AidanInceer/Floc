@@ -15,7 +15,6 @@
  * private file is never handed to anybody but its owner, so it is not
  * addressable by the rest.
  */
-import { DOC_CATEGORIES, type DocCategory } from "@floc/core/documents/documents";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
@@ -24,14 +23,18 @@ import { ScrollView, View } from "react-native";
 import { AddFile } from "@/components/files/add-file";
 import { FileActions } from "@/components/files/file-actions";
 import { FileFilters, type FileFilter } from "@/components/files/file-filter";
+import { FileCard } from "@/components/files/file-card";
+import { UploadGlyph } from "@/components/system/glyphs";
 import { FileRow } from "@/components/files/file-row";
 import { InboxAddress } from "@/components/files/inbox-address";
 import { StorageMeter } from "@/components/files/storage-meter";
 import { openFileNatively } from "@/components/files/open-file";
 import { Sheet } from "@/components/system/sheet";
 import { useTheme } from "@/components/system/theme";
-import { Body, Button, Empty, Failed, Loading } from "@/components/system/ui";
+import { Body, Button, Failed, Loading } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
+import { useSession } from "@/lib/auth";
+import { countByCategory, emptyWords, filterVisible, inFilter, metaLine, splitByVisibility } from "@/lib/files/file-lines";
 import { space } from "@/lib/theme";
 
 export default function Files() {
@@ -39,6 +42,7 @@ export default function Files() {
   const tripId = Number(id);
   const ready = Number.isFinite(tripId);
   const { c } = useTheme();
+  const { data: session } = useSession();
   const queryClient = useQueryClient();
 
   const [problem, setProblem] = useState<string | null>(null);
@@ -88,61 +92,71 @@ export default function Files() {
   if (files.isPending) return <Loading />;
   if (files.isError) return <Failed onRetry={() => files.refetch()} />;
 
-  const counts = Object.fromEntries(
-    DOC_CATEGORIES.map((category) => [
-      category,
-      files.data.filter((file) => file.category === category).length,
-    ]),
-  ) as Record<DocCategory, number>;
+  const counts = countByCategory(files.data);
 
-  const shown = files.data.filter((file) => filter === "all" || file.category === filter);
+  const shown = inFilter(files.data, filter);
   const open = files.data.find((file) => file.id === openFileId) ?? null;
+
+  const { shared, yours } = splitByVisibility(shown);
+  const rows = (list: typeof shown) =>
+    list.map((file, i) => (
+      <FileRow
+        key={file.id}
+        name={file.name}
+        meta={metaLine(file, session?.user.id)}
+        category={file.category}
+        first={i === 0}
+        onOpen={() => {
+          void view(file);
+        }}
+        onActions={() => setOpenFileId(file.id)}
+      />
+    ));
+  const words = emptyWords(filter);
+  const canAdd = writable.data !== false;
 
   return (
     <ScrollView
       style={{ backgroundColor: c.paper }}
       contentContainerStyle={{ padding: space.lg, gap: space.lg }}
     >
-      <InboxAddress tripId={tripId} />
+      {filterVisible(counts, filter) ? (
+        <FileFilters counts={counts} value={filter} onChange={setFilter} />
+      ) : null}
 
-      <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <FileFilters counts={counts} value={filter} onChange={setFilter} />
-        </View>
-        {writable.data !== false ? (
-          <Button label="Upload" fit="small" onPress={() => setAdding(true)} />
-        ) : null}
-      </View>
-
-      {writable.data === false ? (
+      {!canAdd ? (
         <Body tone="ink-3">Files cannot be added yet — this Floc has nowhere to keep them.</Body>
       ) : null}
 
       {problem ? <Body tone="red">{problem}</Body> : null}
 
-      <View>
-        {shown.length === 0 ? (
-          <Empty>
-            {filter === "all" ? "No files yet." : "Nothing is filed here."}
-          </Empty>
-        ) : (
-          shown.map((file) => (
-            <FileRow
-              key={file.id}
-              name={file.name}
-              uploaderName={file.uploaderName}
-              category={file.category}
-              own={file.ownerId !== null}
-              onOpen={() => {
-                void view(file);
-              }}
-              onActions={() => setOpenFileId(file.id)}
-            />
-          ))
-        )}
+      <View style={{ gap: space.xl }}>
+        <FileCard
+          title="Shared"
+          note="Everyone on the trip"
+          empty={words.shared}
+          count={shared.length}
+          action={
+            canAdd ? (
+              <Button label="Upload" fit="small" icon={(ink) => <UploadGlyph color={ink} />} onPress={() => setAdding(true)} />
+            ) : null
+          }
+        >
+          {rows(shared)}
+        </FileCard>
+        <FileCard
+          title="Yours"
+          note="Only you can see these"
+          empty={words.yours}
+          count={yours.length}
+        >
+          {rows(yours)}
+        </FileCard>
       </View>
 
-      {usage.data && writable.data !== false ? <StorageMeter {...usage.data} /> : null}
+      <InboxAddress tripId={tripId} />
+
+      {usage.data && canAdd ? <StorageMeter {...usage.data} /> : null}
 
       <Sheet open={adding} onClose={() => setAdding(false)}>
         {/* No heading over it: the dropdown, the switch and "Choose a file"

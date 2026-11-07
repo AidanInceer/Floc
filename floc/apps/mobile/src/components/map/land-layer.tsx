@@ -15,8 +15,8 @@ const SHAPES = {
   })),
 };
 
-/** The countries as plain paper shapes under a map: the route map and Explore draw on them. */
-export function LandLayer() {
+/** The countries as plain paper shapes under a map: the route map and Explore draw on them. `tint` fills a trip's own countries in its colour, as the web's Overview globe does. */
+export function LandLayer({ tint }: { tint?: { codes: string[]; fill: string } }) {
   const { c } = useTheme();
   const colour = c["sheet-3"];
   return (
@@ -25,7 +25,11 @@ export function LandLayer() {
         id="country-fill"
         type="fill"
         filter={["!=", ["geometry-type"], "Point"]}
-        paint={{ "fill-color": colour, "fill-outline-color": c["rule-2"] }}
+        paint={{
+          // Why one layer: adding a second when the codes arrive moves the layers under MapLibre, which throws.
+          "fill-color": tint ? ["case", ["in", ["get", "code"], ["literal", tint.codes]], tint.fill, colour] : colour,
+          "fill-outline-color": c["rule-2"],
+        }}
       />
       {/* Singapore, Malta, Monaco and ~60 more are Points at 1:110m —
           a fill layer draws nothing for them. */}

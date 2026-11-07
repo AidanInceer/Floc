@@ -12,16 +12,15 @@
  * state — the typed name is saved as it stands, and the map simply has no pin.
  */
 import { formatDate } from "@floc/core/dates/dates";
-import { FindAStay } from "../trip/booking-links";
 import { useEffect, useState } from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { useQuery } from "@tanstack/react-query";
 
 import { useTheme } from "../system/theme";
 import { Body, Button, Card, Dropdown, Field } from "../system/ui";
 import { trpc } from "@/lib/api";
-import { space } from "@/lib/theme";
+import { fonts, radius, size, space } from "@/lib/theme";
 
 /** What the API takes: an id the trip already uses, a fresh pick, or null to clear. */
 export type OvernightChoice =
@@ -50,16 +49,12 @@ export function OvernightForm({
   known,
   busy,
   problem,
-  groupSize,
-  bookingPrefill,
   onSave,
   onCancel,
 }: {
   span: OvernightSpan;
   /** Places this trip's days already point at — an extend keeps the pin. */
   known: { id: number; name: string }[];
-  groupSize: number;
-  bookingPrefill: boolean;
   busy: boolean;
   problem: string | null;
   /** Null clears the span. */
@@ -103,6 +98,7 @@ export function OvernightForm({
               key={`known-${place.id}`}
               label={place.name}
               note="already on this trip"
+              current={place.id === span.placeId}
               onPress={() => {
                 setPick({ placeId: place.id });
                 setTyped(place.name);
@@ -153,12 +149,9 @@ export function OvernightForm({
         </View>
 
         {span.placeId !== null ? (
-          <Button label="No overnight here" variant="danger" onPress={() => onSave(end, null)} />
+          <NoOvernight onPress={() => onSave(end, null)} />
         ) : null}
 
-        {span.placeName ? (
-          <FindAStay place={span.placeName} start={span.start} end={span.end} adults={groupSize} prefill={bookingPrefill} />
-        ) : null}
       </View>
       {/* Silence is the answer when the provider is down (rule 11) — the typed
           name still saves, so there is nothing to explain. */}
@@ -174,10 +167,12 @@ export function OvernightForm({
 function Choice({
   label,
   note,
+  current,
   onPress,
 }: {
   label: string;
   note: string;
+  current?: boolean;
   onPress: () => void;
 }) {
   const { c } = useTheme();
@@ -187,12 +182,31 @@ function Choice({
       accessibilityLabel={label}
       onPress={onPress}
       style={({ pressed }) => ({
+        flexDirection: "row",
+        alignItems: "center",
+        gap: space.sm,
+        minHeight: 48,
         paddingVertical: space.sm,
-        backgroundColor: pressed ? c["sheet-2"] : "transparent",
+        paddingHorizontal: space.sm,
+        borderRadius: radius.sm,
+        backgroundColor: current ? c["pen-2"] : pressed ? c["sheet-2"] : "transparent",
       })}
     >
-      <Body>{label}</Body>
-      <Body tone="ink-3">{note}</Body>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text numberOfLines={1} style={{ color: current ? c["pen-deep"] : c.ink, fontFamily: current ? fonts.sansBold : fonts.sans, fontSize: size.body }}>{label}</Text>
+        <Body tone="ink-3">{note}</Body>
+      </View>
+      {current ? <Text style={{ color: c["pen-deep"], fontFamily: fonts.sansBold, fontSize: size.small }}>Now</Text> : null}
+    </Pressable>
+  );
+}
+
+/** Clearing the stop is a quiet red word, not a second big button under Save. */
+function NoOvernight({ onPress }: { onPress: () => void }) {
+  const { c } = useTheme();
+  return (
+    <Pressable accessibilityRole="button" onPress={onPress} hitSlop={8} style={({ pressed }) => ({ alignSelf: "center", minHeight: 44, justifyContent: "center", opacity: pressed ? 0.6 : 1 })}>
+      <Text style={{ color: c.red, fontFamily: fonts.sans, fontSize: size.small }}>No overnight here</Text>
     </Pressable>
   );
 }

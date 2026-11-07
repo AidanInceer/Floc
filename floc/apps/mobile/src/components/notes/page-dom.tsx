@@ -107,7 +107,7 @@ export default function PageDom(props: Props) {
   return (
     <>
       <style>{pageCss(props.theme, FONTS)}</style>
-      <div style={{ padding: "16px 20px 72px" }}>
+      <div style={{ padding: "4px 16px 72px 28px" }}>
         <PageTop touch title={props.title} icon={props.icon} onRename={(title) => { void props.onRename(title); }} onIcon={(icon) => { void props.onIcon(icon); }} onDown={() => handle.current?.focusStart()} />
         <PageEditor
           touch

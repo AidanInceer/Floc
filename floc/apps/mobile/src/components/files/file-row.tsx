@@ -1,70 +1,79 @@
-/**
- * One file, on one line (#325 feedback) — the shape the web's list already has.
- *
- * A CARD PER FILE WAS TOO MUCH. Each one carried a name, a filing dropdown and
- * a Remove button, so three files filled the screen and the pile could not be
- * read at a glance. The line says what the file is; everything you can do to it
- * waits behind the dots, the way the web keeps it behind a row menu.
- *
- * THE NAME OPENS THE FILE, the dots open what you can do to it — the same two
- * targets the browser's row has, so a tap means the same thing on both.
- *
- * "PRIVATE" MEANS ONLY YOU. The API never sends somebody else's private file,
- * so a row that arrives here is the viewer's to see.
- */
-import { DOC_CATEGORY_LABELS, type DocCategory } from "@floc/core/documents/documents";
-import { Pressable, StyleSheet, View } from "react-native";
+/** One file: a category-coloured tile, name, meta line and the dots. The row opens the file; the dots open its actions. */
+import { DOC_CATEGORY_LABELS, DOC_CATEGORY_TONES, type DocCategory } from "@floc/core/documents/documents";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { FileGlyph } from "@/components/system/glyphs";
 import { MoreGlyph } from "../system/glyphs";
 import { useTheme } from "../system/theme";
-import { Body, Figure, IconButton, Pill } from "../system/ui";
-import { space } from "@/lib/theme";
+import { IconButton } from "../system/ui";
+import { fonts, radius, size, space } from "@/lib/theme";
 
 export function FileRow({
   name,
-  uploaderName,
+  meta,
   category,
-  own,
+  first,
   onOpen,
   onActions,
 }: {
   name: string;
-  uploaderName: string;
+  meta: string;
   category: DocCategory;
-  own: boolean;
+  first: boolean;
   onOpen: () => void;
   onActions: () => void;
 }) {
   const { c } = useTheme();
+  const tone = DOC_CATEGORY_TONES[category];
+  const ground = tone ? c[`pastel-${tone}`] : c["sheet-3"];
+  const ink = tone ? c[`pastel-${tone}-ink`] : c["ink-2"];
   return (
     <View
       style={{
         flexDirection: "row",
         alignItems: "center",
-        gap: space.sm,
-        borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: c.rule,
+        paddingLeft: space.md,
+        paddingRight: space.xs,
+        borderTopWidth: first ? 0 : StyleSheet.hairlineWidth,
+        borderTopColor: c.rule,
       }}
     >
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Open ${name}`}
+        accessibilityLabel={`Open ${name}, ${DOC_CATEGORY_LABELS[category]}`}
         onPress={onOpen}
         style={({ pressed }) => ({
           flex: 1,
-          gap: 2,
-          paddingVertical: space.sm,
-          opacity: pressed ? 0.7 : 1,
+          minWidth: 0,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: space.md,
+          minHeight: 60,
+          paddingVertical: space.md,
+          opacity: pressed ? 0.6 : 1,
         })}
       >
-        <Body bold tone="pen">
-          {name}
-        </Body>
-        <Figure tone="ink-2">
-          {uploaderName} · {DOC_CATEGORY_LABELS[category]}
-        </Figure>
+        <View
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: radius.sm,
+            backgroundColor: ground,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <FileGlyph color={ink} />
+        </View>
+        <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+          <Text numberOfLines={2} style={{ color: c.ink, fontFamily: fonts.sansBold, fontSize: size.body }}>
+            {name}
+          </Text>
+          <Text numberOfLines={1} style={{ color: c["ink-3"], fontFamily: fonts.type, fontSize: size.small }}>
+            {meta}
+          </Text>
+        </View>
       </Pressable>
-      {own ? <Pill word="Private" tone="pastel-blue" /> : null}
       <IconButton label={`What to do with ${name}`} onPress={onActions}>
         {(color) => <MoreGlyph color={color} />}
       </IconButton>

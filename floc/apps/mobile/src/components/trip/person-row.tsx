@@ -15,21 +15,23 @@ import { Image, StyleSheet, Text, View } from "react-native";
 import { useTheme } from "../system/theme";
 import { Body } from "../system/ui";
 import { fonts, radius, size, space } from "@/lib/theme";
+import { whoTone, type WhoTone } from "@floc/core/people/who";
 import { initials } from "@floc/core/people/initials";
 import { parseAvatarIcon } from "@floc/core/people/avatar-icon";
 import { AvatarIconMark } from "../system/avatar-icon";
 
-export function Face({ name, avatarIcon, size: box = 36 }: {
+export function Face({ name, avatarIcon, tone = whoTone(name), size: box = 36 }: {
   name: string;
   avatarIcon: string | null;
+  tone?: WhoTone;
   size?: number;
 }) {
   const { c } = useTheme();
   const icon = parseAvatarIcon(avatarIcon);
   if (icon) {
     return (
-      <View style={{ width: box, height: box, borderRadius: radius.pill, backgroundColor: c["pastel-blue"], alignItems: "center", justifyContent: "center" }}>
-        <AvatarIconMark icon={icon} color={c["pastel-blue-ink"]} size={box * 0.55} />
+      <View style={{ width: box, height: box, borderRadius: radius.pill, backgroundColor: c[tone], alignItems: "center", justifyContent: "center" }}>
+        <AvatarIconMark icon={icon} color={c[`${tone}-ink`]} size={box * 0.55} />
       </View>
     );
   }
@@ -45,8 +47,8 @@ export function Face({ name, avatarIcon, size: box = 36 }: {
         width: box,
         height: box,
         borderRadius: radius.pill,
-        backgroundColor: c["pastel-blue"],
-        borderColor: c["pastel-blue-edge"],
+        backgroundColor: c[tone],
+        borderColor: c[tone],
         borderWidth: StyleSheet.hairlineWidth,
         alignItems: "center",
         justifyContent: "center",
@@ -54,7 +56,7 @@ export function Face({ name, avatarIcon, size: box = 36 }: {
     >
       <Text
         style={{
-          color: c["pastel-blue-ink"],
+          color: c[`${tone}-ink`],
           fontFamily: fonts.display,
           fontSize: size.small,
         }}

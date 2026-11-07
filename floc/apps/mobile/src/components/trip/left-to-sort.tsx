@@ -4,7 +4,7 @@ import { SORT_COLOURS } from "@floc/core/design/section-colours";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
-import { BedGlyph, StarGlyph, TickGlyph } from "../system/glyphs";
+import { BedGlyph, ChevronGlyph, StarGlyph, TickGlyph } from "../system/glyphs";
 import { SectionGlyph } from "./section-glyph";
 import { useTheme } from "../system/theme";
 import { Button, Card } from "../system/ui";
@@ -12,6 +12,8 @@ import { fonts, radius, size, space } from "@/lib/theme";
 
 const CUBE = 11;
 const GAP = 3;
+/** Two lines of text and the card's padding: a card with dates and one without stand the same height. */
+const CARD = 56;
 
 function SortMark({ kind, done }: { kind: GapKind; done: boolean }) {
   const { c } = useTheme();
@@ -66,14 +68,32 @@ function StackCard({ item, onPress }: { item: Gap | Sorted; onPress?: () => void
       accessibilityRole={done ? undefined : "link"}
       onPress={onPress}
       disabled={done}
-      style={{ backgroundColor: c.sheet, borderColor: c.rule, borderWidth: 1, borderRadius: radius.sm, paddingHorizontal: space.md, paddingVertical: space.sm, gap: 2 }}
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: space.sm,
+        minHeight: CARD,
+        backgroundColor: c.sheet,
+        borderColor: c.rule,
+        borderWidth: 1,
+        borderRadius: radius.sm,
+        paddingHorizontal: space.md,
+        paddingVertical: space.sm,
+      }}
     >
-      <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
-        <SortMark kind={item.kind} done={done} />
-        <Text style={{ flex: 1, color: done ? c["ink-3"] : c.ink, fontFamily: fonts.sans, fontSize: size.small }}>{item.text}</Text>
-        <Text style={{ color: c["ink-2"], fontFamily: fonts.sans, fontSize: size.small }}>{done ? "Sorted" : item.action}</Text>
+      <SortMark kind={item.kind} done={done} />
+      {/* The dates sit under the words they belong to; a card is never shorter than two lines, so short ones match. */}
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text style={{ color: done ? c["ink-3"] : c.ink, fontFamily: fonts.sans, fontSize: size.small }}>
+          {item.text}
+        </Text>
+        {item.sub ? (
+          <Text style={{ color: c["ink-3"], fontFamily: fonts.type, fontSize: size.label, fontVariant: ["tabular-nums"] }}>
+            {item.sub.join(" · ")}
+          </Text>
+        ) : null}
       </View>
-      {item.sub ? <Text style={{ color: c["ink-3"], fontFamily: fonts.type, fontSize: size.small }}>{item.sub.join("  ")}</Text> : null}
+      <Text style={{ color: c["ink-2"], fontFamily: fonts.sans, fontSize: size.small }}>{done ? "Sorted" : item.action}</Text>
     </Pressable>
   );
 }
@@ -102,10 +122,10 @@ export function LeftToSort({ list, onGo }: { list: SortList; onGo: (gap: Gap) =>
               accessibilityLabel={expanded ? "Hide what is left" : "Show what is left"}
               accessibilityState={{ expanded }}
               onPress={() => setExpanded(!expanded)}
-              hitSlop={8}
-              style={{ marginLeft: "auto" }}
+              hitSlop={14}
+              style={{ marginLeft: "auto", padding: space.xs }}
             >
-              <Text style={small}>{expanded ? "Hide" : "Show all"}</Text>
+              <ChevronGlyph color={c["ink-2"]} open={expanded} />
             </Pressable>
           </View>
           <Text style={{ color: c["ink-3"], fontFamily: fonts.sans, fontSize: size.small }}>
@@ -119,12 +139,16 @@ export function LeftToSort({ list, onGo }: { list: SortList; onGo: (gap: Gap) =>
       {expanded && sorted > 0 ? (
         <Pressable
           accessibilityRole="button"
+          accessibilityLabel={`${sorted} already sorted`}
           accessibilityState={{ expanded: showDone }}
           onPress={() => setShowDone(!showDone)}
-          style={{ flexDirection: "row", alignItems: "center", gap: space.md, backgroundColor: c["pen-2"], borderColor: c["pen-edge"], borderWidth: 1, borderStyle: "dashed", borderRadius: radius.sm, padding: space.md }}
+          style={{ flexDirection: "row", alignItems: "center", gap: space.md, minHeight: CARD, backgroundColor: c["pen-2"], borderColor: c["pen-edge"], borderWidth: 1, borderStyle: "dashed", borderRadius: radius.sm, padding: space.md }}
         >
           <Cubes total={sorted} filled={sorted} />
           <Text style={small}>{sorted} already sorted</Text>
+          <View style={{ marginLeft: "auto" }}>
+            <ChevronGlyph color={c["ink-2"]} open={showDone} />
+          </View>
         </Pressable>
       ) : null}
       {expanded && showDone ? list.done.map((item) => <StackCard key={item.key} item={item} />) : null}

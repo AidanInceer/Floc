@@ -2,7 +2,7 @@
  * What is left to sort on a trip, for the person reading (#460). Read from the data (rule 4): nothing is
  * stored, and a gap closes the moment the data that fills it lands.
  */
-import { formatDate, formatDateRange, type IsoDate } from "../../dates/dates";
+import { formatDate, formatShortRange, type IsoDate } from "../../dates/dates";
 import type { DatesMoment } from "../../dates/dates-moment";
 import { nightsLabel } from "../../itinerary/stops";
 import type { Currency } from "../../money/currency";
@@ -92,7 +92,7 @@ function legChecks(input: LeftToSortInput): Check[] {
   const ahead = input.legs.filter((l) => l.arrive >= input.today);
   const stays = input.moment === "set"
     ? ahead.map((l) => {
-        const sub = [formatDateRange(l.arrive, l.leave), nightsLabel(l.nights)];
+        const sub = [nightsLabel(l.nights), formatShortRange(l.arrive, l.leave)];
         return check(l.hasStay, { key: `stay-${l.no}`, kind: "stay", text: `Stay booked in ${city(l.placeName)}`, sub },
           { key: `stay-${l.no}`, kind: "stay", mine: false, text: `No stay booked in ${city(l.placeName)}`, sub, tab: "overview", anchor: `stop-${l.no}`, action: "Find a stay" });
       })

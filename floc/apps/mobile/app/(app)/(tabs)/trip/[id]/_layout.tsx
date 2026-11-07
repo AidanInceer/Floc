@@ -56,6 +56,11 @@ function sectionOf(pathname: string, tripId: number): string {
   return tail.replace(/^\//, "");
 }
 
+/** Group and Invite hang off the Overview, so the rail keeps it selected there. */
+function railOf(section: string): string {
+  return section === "roster" || section === "invite" ? "" : section;
+}
+
 export default function TripLayout() {
   const { c } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -108,7 +113,7 @@ export default function TripLayout() {
           <TripHeader
             title={name}
             sections={SECTIONS}
-            current={sectionOf(pathname, tripId)}
+            current={railOf(sectionOf(pathname, tripId))}
             balance={spent && !balance.settled && !onOverview ? balance.figure : null}
             owing={balance.owing}
             onGo={go}

@@ -1,27 +1,26 @@
-/** The web's `StorageMeter`, drawn natively (#285). The words carry it; the bar only shows the share. */
+/** The web's `StorageMeter`: a quiet footer line over a full-width bar (#285). The words carry it; the bar only shows the share. */
 import { formatBytes } from "@floc/core/documents/documents";
-import { View } from "react-native";
+import { Text, View } from "react-native";
 
 import { useTheme } from "../system/theme";
-import { Figure } from "../system/ui";
-import { radius, space } from "@/lib/theme";
+import { fonts, radius, size, space } from "@/lib/theme";
 
 export function StorageMeter({ usedBytes, quotaBytes }: { usedBytes: number; quotaBytes: number }) {
   const { c } = useTheme();
   const share = Math.min(100, (usedBytes / quotaBytes) * 100);
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: space.sm }}>
+    <View style={{ gap: space.xs }}>
       <View
         accessibilityRole="progressbar"
         accessibilityLabel="Space used"
         accessibilityValue={{ min: 0, max: quotaBytes, now: usedBytes }}
-        style={{ width: 96, height: 4, borderRadius: radius.pill, backgroundColor: c.rule, overflow: "hidden" }}
+        style={{ height: 4, borderRadius: radius.pill, backgroundColor: c.rule, overflow: "hidden" }}
       >
         <View style={{ width: `${share}%`, height: "100%", backgroundColor: c.pen }} />
       </View>
-      <Figure tone="ink-2">
+      <Text style={{ color: c["ink-3"], fontFamily: fonts.type, fontSize: size.small }}>
         {formatBytes(usedBytes)} of {formatBytes(quotaBytes)} used
-      </Figure>
+      </Text>
     </View>
   );
 }

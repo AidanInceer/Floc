@@ -14,34 +14,34 @@ describe("legCurves", () => {
   it("runs each leg from its stop to the next", () => {
     const legs = legCurves(stops, ["car", "car"], 20);
     expect(legs).toHaveLength(2);
-    expect(legs[0]![0]).toEqual(stops[0]);
-    expect(legs[0]!.at(-1)!.x).toBeCloseTo(100);
-    expect(legs[1]!.at(-1)!.x).toBeCloseTo(200);
+    expect(legs[0][0]).toEqual(stops[0]);
+    expect(legs[0].at(-1)!.x).toBeCloseTo(100);
+    expect(legs[1].at(-1)!.x).toBeCloseTo(200);
   });
 
   it("never draws a straight line between two stops", () => {
     const [leg] = legCurves([{ x: 0, y: 0 }, { x: 100, y: 0 }], ["car"], 20);
-    expect(Math.max(...leg!.map((p) => Math.abs(p.y)))).toBeGreaterThan(4);
+    expect(Math.max(...leg.map((p) => Math.abs(p.y)))).toBeGreaterThan(4);
   });
 
   it("flows through a stop between two drives with no sharp corner", () => {
     const [a, b] = legCurves(stops, ["train", "car"], 40);
-    const into = heading(a!.at(-2)!, a!.at(-1)!);
-    const out = heading(b![0]!, b![1]!);
+    const into = heading(a.at(-2)!, a.at(-1)!);
+    const out = heading(b[0], b[1]);
     expect(Math.abs(into - out)).toBeLessThan((22 * Math.PI) / 180);
   });
 
   it("bows a flight well off the straight line, away from the middle of the trip", () => {
     const route = [{ x: 0, y: 0 }, { x: 0, y: 100 }, { x: 200, y: 100 }];
     const [, flight] = legCurves(route, ["car", "flight"], 40);
-    const most = Math.max(...flight!.map((p) => Math.abs(off(p, route[1]!, route[2]!))));
+    const most = Math.max(...flight.map((p) => Math.abs(off(p, route[1], route[2]))));
     expect(most).toBeGreaterThan(50);
-    expect(flight![20]!.y).toBeGreaterThan(100);
+    expect(flight[20].y).toBeGreaterThan(100);
   });
 
   it("bows a boat less than a flight", () => {
     const route = [{ x: 0, y: 0 }, { x: 200, y: 0 }];
-    const peak = (mode: "ferry" | "flight") => Math.max(...legCurves(route, [mode], 40)[0]!.map((p) => Math.abs(p.y)));
+    const peak = (mode: "ferry" | "flight") => Math.max(...legCurves(route, [mode], 40)[0].map((p) => Math.abs(p.y)));
     expect(peak("ferry")).toBeLessThan(peak("flight"));
   });
 
@@ -66,6 +66,6 @@ describe("spurCurve", () => {
   it("goes out and back on one straight line, as far as asked, its tip halfway", () => {
     const spur = spurCurve({ x: 0, y: 0 }, { x: 0, y: -1 }, 40, 24);
     for (const p of spur) expect(Math.abs(p.x)).toBeLessThan(1e-9);
-    expect(spur[12]!.y).toBeCloseTo(-40);
+    expect(spur[12].y).toBeCloseTo(-40);
   });
 });

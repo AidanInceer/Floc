@@ -10,23 +10,25 @@
  * keyboard handling and its way out.
  */
 import type { ReactNode } from "react";
-import { KeyboardAvoidingView, Modal, Platform, ScrollView, View } from "react-native";
+import { KeyboardAvoidingView, Modal, Platform, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CrossGlyph } from "../system/glyphs";
 import { useTheme } from "../system/theme";
 import { useReducedMotion } from "../system/use-reduced-motion";
 import { Heading, IconButton } from "../system/ui";
-import { space } from "@/lib/theme";
+import { fonts, size, space } from "@/lib/theme";
 
 export function EventSheet({
   open,
   title,
+  subtitle,
   onClose,
   children,
 }: {
   open: boolean;
   title: string;
+  subtitle?: string;
   onClose: () => void;
   children: ReactNode;
 }) {
@@ -53,7 +55,12 @@ export function EventSheet({
             paddingTop: insets.top + space.md,
           }}
         >
-          <Heading>{title}</Heading>
+          <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+            <Heading>{title}</Heading>
+            {subtitle ? (
+              <Text style={{ color: c["ink-3"], fontFamily: fonts.type, fontSize: size.label, fontVariant: ["tabular-nums"] }}>{subtitle}</Text>
+            ) : null}
+          </View>
           <IconButton label="Close" onPress={onClose}>
             {(color) => <CrossGlyph color={color} />}
           </IconButton>

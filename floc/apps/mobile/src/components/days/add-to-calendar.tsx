@@ -1,15 +1,18 @@
 import { subscribeUrl } from "@floc/core/itinerary/calendar-subscribe";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Linking, Platform, View } from "react-native";
+import { Linking, Platform, Pressable, Text, View } from "react-native";
 
+import { CalendarGlyph } from "@/components/system/glyphs";
 import { Sheet } from "@/components/system/sheet";
+import { useTheme } from "@/components/system/theme";
 import { Body, Button } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
-import { space } from "@/lib/theme";
+import { fonts, size, space } from "@/lib/theme";
 
 export function AddToCalendar({ tripId }: { tripId: number }) {
   const queryClient = useQueryClient();
+  const { c } = useTheme();
   const [open, setOpen] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
 
@@ -25,15 +28,19 @@ export function AddToCalendar({ tripId }: { tripId: number }) {
 
   return (
     <>
-      <Button
-        label="Add to calendar"
-        variant="quiet"
-        fit="small"
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Add to calendar"
+        hitSlop={space.sm}
         onPress={() => {
           setProblem(null);
           setOpen(true);
         }}
-      />
+        style={({ pressed }) => ({ minHeight: 44, flexDirection: "row", alignItems: "center", gap: space.xs, paddingHorizontal: space.sm, opacity: pressed ? 0.6 : 1 })}
+      >
+        <CalendarGlyph color={c["ink-2"]} />
+        <Text style={{ color: c["ink-2"], fontFamily: fonts.sansBold, fontSize: size.small }}>Calendar</Text>
+      </Pressable>
       <Sheet open={open} onClose={() => setOpen(false)}>
         <View style={{ padding: space.lg, gap: space.md }}>
           <Button

@@ -10,8 +10,13 @@ import type { PageHandle } from "@/components/notes/page-dom";
 import { FROM_PAGE, othersUpdate, sendChanges, takeChange, wholeDoc } from "@/lib/notes/relay";
 import type { LivePage } from "./use-live-notes";
 
-export function usePageRelay(page: LivePage | null, view: RefObject<PageHandle | null>) {
+export function usePageRelay(page: LivePage | null, view: RefObject<PageHandle | null>, active: boolean) {
   const ready = useRef(false);
+  // Why: a stack keeps a left screen mounted but detaches its native web view; a call into it is rejected.
+  const open = useRef(active);
+  open.current = active;
+  if (!active) ready.current = false;
+  const loaded = useRef(false);
   // Why the doc and provider, not `page`: the page object is new each render, and a new one would reset `ready`.
   const doc = page?.doc;
   const provider = page?.provider;
@@ -19,14 +24,15 @@ export function usePageRelay(page: LivePage | null, view: RefObject<PageHandle |
 
   useEffect(() => {
     ready.current = false;
+    loaded.current = false;
     if (!live) return;
     const stop = sendChanges(live.doc, FROM_PAGE, (update) => {
-      if (ready.current) view.current?.change(update);
+      if (ready.current && open.current) view.current?.change(update);
     });
     const awareness = live.provider.awareness;
     const moved = ({ added, updated, removed }: { added: number[]; updated: number[]; removed: number[] }) => {
       const update = awareness ? othersUpdate(awareness, [...added, ...updated, ...removed]) : null;
-      if (ready.current && update) view.current?.others(update);
+      if (ready.current && open.current && update) view.current?.others(update);
     };
     awareness?.on("change", moved);
     return () => {
@@ -35,10 +41,21 @@ export function usePageRelay(page: LivePage | null, view: RefObject<PageHandle |
     };
   }, [live, view]);
 
+  // Why: the held web view missed what changed while the screen was away; a whole-page update is a no-op for what it has.
+  useEffect(() => {
+    if (!active || !live || !loaded.current || ready.current) return;
+    ready.current = true;
+    view.current?.change(wholeDoc(live.doc));
+    const awareness = live.provider.awareness;
+    const update = awareness ? othersUpdate(awareness, [...awareness.getStates().keys()]) : null;
+    if (update) view.current?.others(update);
+  }, [active, live, view]);
+
   // Why an answer and not a push: the web view's handle may not be registered yet when it says it is ready.
   const onReady = useCallback(async (): Promise<{ page: string; others: string | null } | null> => {
     if (!live) return null;
     ready.current = true;
+    loaded.current = true;
     const awareness = live.provider.awareness;
     return { page: wholeDoc(live.doc), others: awareness ? othersUpdate(awareness, [...awareness.getStates().keys()]) : null };
   }, [live]);

@@ -1,4 +1,4 @@
-import type { TransportType } from "@floc/core/vocabulary";
+import type { TransportType } from "../../vocabulary";
 
 export type Point = { x: number; y: number };
 type Mode = TransportType | null;
@@ -49,7 +49,7 @@ function sidesOf(stops: readonly Point[], legs: number): number[] {
   const mid = middle(stops);
   let side = 1;
   return Array.from({ length: legs }, (_, i) => {
-    const [a, b] = [stops[i]!, stops[i + 1]!];
+    const [a, b] = [stops[i], stops[i + 1]];
     const d = sub(b, a);
     const s = (-d.y * ((a.x + b.x) / 2 - mid.x) + d.x * ((a.y + b.y) / 2 - mid.y)) / (len(d) || 1);
     if (Math.abs(s) > THROUGH * len(d)) side = Math.sign(s);
@@ -64,18 +64,19 @@ function sidesOf(stops: readonly Point[], legs: number): number[] {
 export function legCurves(stops: readonly Point[], modes: readonly Mode[], n: number): Point[][] {
   const sides = sidesOf(stops, modes.length);
   return modes.map((mode, i) => {
-    const [a, b] = [stops[i]!, stops[i + 1]!];
+    const [a, b] = [stops[i], stops[i + 1]];
     const d = sub(b, a);
     const L = len(d);
     const dh = unit(d);
-    const side = sides[i]!;
+    const side = sides[i];
     const out = mul({ x: -dh.y, y: dh.x }, side);
-    if (!onGround(mode)) {
-      const h = (4 / 3) * ARC[mode!]! * L;
+    const arc = mode ? ARC[mode] : undefined;
+    if (arc !== undefined) {
+      const h = (4 / 3) * arc * L;
       return cubic(a, add(add(a, mul(d, 1 / 3)), mul(out, h)), add(sub(b, mul(d, 1 / 3)), mul(out, h)), b, n);
     }
-    const before = i > 0 && onGround(modes[i - 1]!) ? stops[i - 1]! : null;
-    const after = i < modes.length - 1 && onGround(modes[i + 1]!) ? stops[i + 2]! : null;
+    const before = i > 0 && onGround(modes[i - 1]) ? stops[i - 1] : null;
+    const after = i < modes.length - 1 && onGround(modes[i + 1]) ? stops[i + 2] : null;
     const c1 = before ? add(a, turn(sub(handle(before, a, b), a), LEAN * side)) : add(a, mul(turn(dh, TURN * side), L * HUG));
     const c2 = after ? add(b, turn(sub(handle(after, b, a), b), -LEAN * side)) : sub(b, mul(turn(dh, -TURN * side), L * HUG));
     return cubic(a, c1, c2, b, n);

@@ -203,6 +203,45 @@ export function ShareGlyph({ color }: { color: string }) {
   );
 }
 
+/** Invite: the web's add-person mark (`overview-group.tsx`). */
+export function AddPersonGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+      <Circle cx={5.4} cy={4.8} r={2} stroke={color} strokeWidth={STROKE} />
+      <Path d="M1.8 11.4c0-1.9 1.5-3 3.6-3s3.6 1.1 3.6 3M10.6 4.2v3.6M8.8 6h3.6" stroke={color} strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+/** An event carries a note: lines of writing, never the pencil, which means edit. */
+export function NoteGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+      <Path d="M3 4h8M3 7h8M3 10h5" stroke={color} strokeWidth={STROKE} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+/** The group: the web's Friends nav mark. */
+export function GroupGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+      <Circle cx={5} cy={5} r={1.9} stroke={color} strokeWidth={STROKE} />
+      <Circle cx={10} cy={5.6} r={1.5} stroke={color} strokeWidth={STROKE} />
+      <Path d="M1.6 11.4c.4-1.8 1.7-2.8 3.4-2.8s3 1 3.4 2.8M9.4 8.7c1.5 0 2.6.9 3 2.5" stroke={color} strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+/** A calendar page: the web's Dates nav mark. */
+export function CalendarGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+      <Path d="M3.4 3h7.2A1.4 1.4 0 0 1 12 4.4v6.4a1.4 1.4 0 0 1-1.4 1.4H3.4A1.4 1.4 0 0 1 2 10.8V4.4A1.4 1.4 0 0 1 3.4 3ZM4.8 1.8v2.4M9.2 1.8v2.4M2 6h10" stroke={color} strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
 /** Flights — the web's Overview booking tile. */
 export function PlaneGlyph({ color }: { color: string }) {
   return (
@@ -456,6 +495,49 @@ export function StepGlyph({ step, color, size = 14 }: { step: string; color: str
     <Svg width={size} height={size} viewBox="0 0 14 14" fill="none" stroke={color} strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round">
       {(STEP_PATHS[key] ?? []).map((d) => <Path key={d} d={d} />)}
       {(STEP_CIRCLES[key] ?? []).map(([cx, cy, r]) => <Circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={r} />)}
+    </Svg>
+  );
+}
+
+export function UploadGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+      <Path
+        d="M7 9.5V2M4 4.7 7 1.7l3 3M2 9.5v1.7c0 .4.3.8.8.8h8.4c.5 0 .8-.4.8-.8V9.5"
+        stroke={color}
+        strokeWidth={STROKE}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+export function FileGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 14 14" fill="none">
+      <Path
+        d="M3.5 1.5h4l3 3v7.5a.5.5 0 0 1-.5.5h-6.5a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5ZM7.5 1.5v3h3"
+        stroke={color}
+        strokeWidth={STROKE}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+/** The Ideas bulb. */
+export function BulbGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+      <Path
+        d="M5.2 10.2h3.6M5.6 12h2.8M7 1.8a3.6 3.6 0 0 0-2.2 6.4c.4.3.5.7.5 1.1v.9h3.4v-.9c0-.4.1-.8.5-1.1A3.6 3.6 0 0 0 7 1.8Z"
+        stroke={color}
+        strokeWidth={STROKE}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </Svg>
   );
 }

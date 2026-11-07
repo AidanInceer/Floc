@@ -1,5 +1,5 @@
 /**
- * The page list on the phone (#408), as a sheet from the Pages button: the
+ * The page list on the phone (#408), as a sheet from the bar's page name: the
  * same pages and sub-pages as the website's list, with who is on each. Press a
  * page to open it; its ⋯ opens what the web's menu holds — add a sub-page,
  * rename, icon, archive. Archived pages wait at the foot with Restore.
@@ -9,7 +9,7 @@ import { PAGE_ICON_ART, PAGE_ICONS, PAGE_ICON_LABELS, type PageIcon } from "@flo
 import { PAGE_LIMITS, archiveDaysLeft, pagesRefusal } from "@floc/core/notes/pages/page-rules";
 import type { ArchivedNotesPage, NotesPage } from "@floc/api/port-pages";
 import { useState } from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { PresenceRow } from "@/components/notes/live-presence";
 import { IconArtMark } from "@/components/system/icon-art";
@@ -18,7 +18,7 @@ import { MoreGlyph, PlusGlyph } from "@/components/system/glyphs";
 import { Sheet } from "@/components/system/sheet";
 import { useTheme } from "@/components/system/theme";
 import { Body, Button, IconButton, SectionTitle } from "@/components/system/ui";
-import { radius, space } from "@/lib/theme";
+import { fonts, radius, size, space } from "@/lib/theme";
 
 export type SheetActions = {
   open: (id: number) => void;
@@ -55,27 +55,46 @@ function places(pages: NotesPage[], page: NotesPage): { up: number | null | unde
   return { up, down };
 }
 
+function ActionRow({ label, tone = "ink-2", disabled, onPress }: { label: string; tone?: "ink-2" | "red"; disabled?: boolean; onPress: () => void }) {
+  const { c } = useTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: !!disabled }}
+      disabled={disabled}
+      onPress={onPress}
+      style={({ pressed }) => ({ minHeight: 40, justifyContent: "center", paddingHorizontal: space.sm, opacity: disabled ? 0.4 : pressed ? 0.6 : 1, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.rule })}
+    >
+      <Body tone={tone}>{label}</Body>
+    </Pressable>
+  );
+}
+
 function PageActions({ page, kids, onlyPage, place, actions }: { page: NotesPage; kids: number; onlyPage: boolean; place: ReturnType<typeof places>; actions: SheetActions }) {
   const { c } = useTheme();
   const [icons, setIcons] = useState(false);
   return (
-    <View style={{ gap: space.sm, padding: space.md, marginBottom: space.sm, borderRadius: radius.sm, backgroundColor: c["sheet-2"] }}>
-      <InlineRename value={nameOf(page)} maxLength={PAGE_LIMITS.titleChars} onSave={(title) => actions.rename(page.id, title)} />
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.sm }}>
-        {page.depth === 0 ? <Button label="Add a sub-page" variant="quiet" fit="small" onPress={() => actions.add(page.id)} /> : null}
-        <Button label={page.icon ? "Change icon" : "Add icon"} variant="quiet" fit="small" onPress={() => setIcons(!icons)} />
-        <Button label="Move up" variant="quiet" fit="small" disabled={place.up === undefined} onPress={() => { if (place.up !== undefined) actions.move(page.id, place.up); }} />
-        <Button label="Move down" variant="quiet" fit="small" disabled={place.down === undefined} onPress={() => { if (place.down !== undefined) actions.move(page.id, place.down); }} />
-        <Button
-          label={kids ? `Archive with ${kids} sub-page${kids > 1 ? "s" : ""}` : "Archive"}
-          variant="danger"
-          fit="small"
-          disabled={onlyPage}
-          onPress={() => actions.archive(page.id)}
-        />
+    <View style={{ marginLeft: page.depth ? space.xl : 0, marginBottom: space.sm, paddingTop: space.sm, borderRadius: radius.sm, backgroundColor: c["sheet-2"] }}>
+      <View style={{ paddingHorizontal: space.sm, paddingBottom: space.sm }}>
+        <InlineRename value={nameOf(page)} maxLength={PAGE_LIMITS.titleChars} onSave={(title) => actions.rename(page.id, title)} />
       </View>
-      {onlyPage ? <Body tone="ink-3">The last page stays.</Body> : null}
-      {icons ? <IconGrid current={page.icon} onPick={(icon) => { actions.icon(page.id, icon); setIcons(false); }} /> : null}
+      {page.depth === 0 ? <ActionRow label="Add a sub-page" onPress={() => actions.add(page.id)} /> : null}
+      <ActionRow label={page.icon ? "Change icon" : "Add icon"} onPress={() => setIcons(!icons)} />
+      {icons ? (
+        <View style={{ padding: space.sm }}>
+          <IconGrid current={page.icon} onPick={(icon) => { actions.icon(page.id, icon); setIcons(false); }} />
+        </View>
+      ) : null}
+      <ActionRow label="Move up" disabled={place.up === undefined} onPress={() => { if (place.up !== undefined) actions.move(page.id, place.up); }} />
+      <ActionRow label="Move down" disabled={place.down === undefined} onPress={() => { if (place.down !== undefined) actions.move(page.id, place.down); }} />
+      <ActionRow
+        label={kids ? `Archive with ${kids} sub-page${kids > 1 ? "s" : ""}` : "Archive"}
+        tone="red"
+        disabled={onlyPage}
+        onPress={() => actions.archive(page.id)}
+      />
+      {onlyPage ? <View style={{ padding: space.sm }}><Body tone="ink-3">The last page stays.</Body></View> : null}
     </View>
   );
 }
@@ -93,23 +112,32 @@ function PageItem({ page, open, here, acting, onMore, onOpen }: {
         onPress={onOpen}
         style={({ pressed }) => ({
           flex: 1,
+          minHeight: 44,
           flexDirection: "row",
           alignItems: "center",
           gap: space.sm,
-          paddingVertical: space.sm,
           paddingHorizontal: space.sm,
           borderRadius: radius.sm,
-          backgroundColor: open ? c["sheet-3"] : "transparent",
+          backgroundColor: open ? c["pen-2"] : "transparent",
           opacity: pressed ? 0.7 : 1,
         })}
       >
-        {page.icon ? <IconArtMark art={PAGE_ICON_ART[page.icon]} color={c["ink-2"]} size={15} /> : null}
-        <Body tone={open || page.depth === 0 ? "ink" : "ink-2"}>{nameOf(page)}</Body>
+        {page.icon ? <IconArtMark art={PAGE_ICON_ART[page.icon]} color={open ? c["pen-deep"] : c["ink-2"]} size={15} /> : null}
+        <Text numberOfLines={1} style={{ flexShrink: 1, color: open ? c["pen-deep"] : page.depth === 0 ? c.ink : c["ink-2"], fontFamily: open ? fonts.sansBold : fonts.sans, fontSize: size.body }}>
+          {nameOf(page)}
+        </Text>
       </Pressable>
       {here.length ? <PresenceRow people={here} /> : null}
-      <IconButton label={`${nameOf(page)} options`} on={acting} onColor="pastel-blue" onPress={onMore}>
-        {(ink) => <MoreGlyph color={ink} />}
-      </IconButton>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${nameOf(page)} options`}
+        accessibilityState={{ expanded: acting }}
+        onPress={onMore}
+        hitSlop={4}
+        style={({ pressed }) => ({ width: 40, height: 44, alignItems: "center", justifyContent: "center", opacity: pressed ? 0.6 : 1 })}
+      >
+        <MoreGlyph color={acting ? c["pen-deep"] : c["ink-3"]} />
+      </Pressable>
     </View>
   );
 }

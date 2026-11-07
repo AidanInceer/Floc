@@ -14,10 +14,9 @@ import type { WhoTone } from "@floc/core/people/who";
 import { StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "../system/theme";
-import { Body, Figure } from "../system/ui";
 import { LandLayer } from "./land-layer";
 import { paperStyle } from "@/lib/map";
-import { fonts, radius, size, space } from "@/lib/theme";
+import { fonts, radius, size } from "@/lib/theme";
 
 export type MappablePlace = {
   id: number;
@@ -189,28 +188,6 @@ export function RouteMapFrame({ places, tracks = [] }: { places: MappablePlace[]
               </Marker>
             ))}
           </Map>
-    </View>
-  );
-}
-
-export function RouteMap({ places, tracks, legend }: { places: MappablePlace[]; tracks?: GroupRoute[]; legend?: React.ReactNode }) {
-  const missing = places.filter((p) => p.lat === null || p.lng === null);
-
-  return (
-    <View style={{ gap: space.md }}>
-      <RouteMapFrame places={places} tracks={tracks} />
-      {legend}
-
-      <Body>{places.map((p) => p.name).join(" → ")}</Body>
-      <Figure tone="ink-2">
-        {places.length} {places.length === 1 ? "place" : "places"}
-      </Figure>
-      {/* The one thing the map cannot show: what is not on it (rule 11). */}
-      {missing.length > 0 ? (
-        <Body tone="ink-2">
-          Not on the map — no coordinates: {missing.map((p) => p.name).join(", ")}.
-        </Body>
-      ) : null}
     </View>
   );
 }
