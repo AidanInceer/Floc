@@ -1,29 +1,29 @@
 /**
- * Explore — the web's map and finder, cut back to one scroll: the filters open
- * in a sheet, and the trips are rows. The listings are static `@floc/core`
- * data; only the finder and starting a trip reach the server.
+ * Explore — the map and a deck of its listings, then every trip as rows on one sheet. Filters and
+ * the order open in sheets. The listings are static `@floc/core` data; only the finder and starting
+ * a trip reach the server.
  */
 import { EMPTY_FINDER, finderCounts, type Finder } from "@floc/core/trip/explore/finder/finder";
 import { rankTrips, type FinderSort } from "@floc/core/trip/explore/finder/finder-rank";
 import { finderPills } from "@floc/core/trip/explore/finder/finder-words";
+import { listingPrice } from "@floc/core/trip/explore/listing-price";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ScrollView, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { CopySheet } from "@/components/explore/copy-sheet";
-import { ExploreCard } from "@/components/explore/explore-card";
-import { ExploreMap } from "@/components/explore/explore-map";
+import { ExploreDeck } from "@/components/explore/explore-deck";
+import { ExploreMap, MAP_PICKS } from "@/components/explore/explore-map";
 import { FinderBar } from "@/components/explore/finder/finder-bar";
 import { FinderSheet } from "@/components/explore/finder/finder-sheet";
-import { PresetRow } from "@/components/packing/preset-row";
-import { listingPrice } from "@floc/core/trip/explore/listing-price";
+import { ListingRow } from "@/components/explore/listing-row";
 import { useTheme } from "@/components/system/theme";
 import { Body, Empty, Heading, SearchField } from "@/components/system/ui";
 import { TextLink } from "@/components/system/text-controls";
 import { trpc } from "@/lib/api";
-import { space } from "@/lib/theme";
+import { fonts, radius, size, space } from "@/lib/theme";
 
 const ROW_LIMIT = 10;
 
@@ -33,7 +33,7 @@ export default function Explore() {
   const pendingSave = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const state = useQuery(trpc.explore.get.queryOptions());
-  const [picked, setPicked] = useState(PRESET_TRIPS[0].id);
+  const [picked, setPicked] = useState(MAP_PICKS[0].id);
   const [finder, setFinder] = useState<Finder>(EMPTY_FINDER);
   const [sort, setSort] = useState<FinderSort>("match");
   const [sheet, setSheet] = useState(false);
@@ -58,6 +58,7 @@ export default function Explore() {
   const rows = useMemo(() => rankTrips(PRESET_TRIPS, finder, sort, null), [finder, sort]);
   const counts = useMemo(() => finderCounts(PRESET_TRIPS, finder), [finder]);
   const pills = finderPills(finder, state.data?.rates ?? null);
+  const shown = showAll ? rows : rows.slice(0, ROW_LIMIT);
 
   const change = (next: Finder) => {
     setFinder(next);
@@ -74,45 +75,55 @@ export default function Explore() {
       contentContainerStyle={{ paddingVertical: space.lg, gap: space.xl }}
       keyboardShouldPersistTaps="handled"
     >
-      <View style={{ paddingHorizontal: space.lg, gap: space.md }}>
-        <ExploreMap picked={trip.id} onPick={setPicked} />
-        <ExploreCard
-          trip={trip}
+      <View style={{ gap: space.md }}>
+        <View style={{ paddingHorizontal: space.lg }}>
+          <ExploreMap picked={trip.id} onPick={setPicked} />
+        </View>
+        <ExploreDeck
+          trips={MAP_PICKS}
+          picked={trip.id}
+          onPick={setPicked}
           starting={start.isPending}
-          onStart={() => setCopying(true)}
-          onOpen={() => open(trip.id)}
+          onStart={(id) => {
+            setPicked(id);
+            setCopying(true);
+          }}
+          onOpen={open}
         />
       </View>
 
-      <View style={{ gap: space.md }}>
-        <View style={{ paddingHorizontal: space.lg, gap: space.md }}>
+      <View style={{ paddingHorizontal: space.lg, gap: space.md }}>
+        <View style={{ flexDirection: "row", alignItems: "baseline", gap: space.sm }}>
           <Heading>All trips</Heading>
-          <SearchField label="Search a place, country or tag" value={finder.q} onChangeText={(q) => change({ ...finder, q })} />
+          <Text style={{ color: c["ink-3"], fontFamily: fonts.type, fontSize: size.body }}>{rows.length}</Text>
         </View>
+        <SearchField label="Search a place, country or tag" value={finder.q} onChangeText={(q) => change({ ...finder, q })} />
         <FinderBar
-          shown={rows.length}
           set={pills.length + finder.likes.length}
           pills={pills.map((p) => ({ id: p.id, label: p.label, onClear: () => change(p.clear) }))}
           sort={sort}
           onSort={setSort}
           onOpen={() => setSheet(true)}
         />
-        <View style={{ paddingHorizontal: space.lg, gap: space.sm }}>
-          {rows.length === 0 ? <Empty>No trip fits all of that. Remove a filter.</Empty> : null}
-          {(showAll ? rows : rows.slice(0, ROW_LIMIT)).map((row) => (
-            <PresetRow
-              key={row.trip.id}
-              trip={row.trip}
-              // Why: the match reason repeated on every row, so it said nothing; nights and price tell rows apart.
-              note={`${row.trip.nights} nights · from ${listingPrice(row.trip, state.data?.rates ?? null)}`}
-              onOpen={() => open(row.trip.id)}
-            />
-          ))}
-          {rows.length > ROW_LIMIT ? (
-            <TextLink label={showAll ? "Show fewer" : `Show ${rows.length - ROW_LIMIT} more`} onPress={() => setShowAll(!showAll)} />
-          ) : null}
-          <Body tone="ink-3">Ideas to start a trip from. Nothing is booked or paid for.</Body>
-        </View>
+        {rows.length === 0 ? (
+          <Empty>No trip fits all of that. Remove a filter.</Empty>
+        ) : (
+          <View style={{ backgroundColor: c.sheet, borderColor: c.rule, borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.md }}>
+            {shown.map((row, i) => (
+              <ListingRow
+                key={row.trip.id}
+                trip={row.trip}
+                figures={`${row.trip.nights} nights · from ${listingPrice(row.trip, state.data?.rates ?? null)}`}
+                last={i === shown.length - 1}
+                onOpen={() => open(row.trip.id)}
+              />
+            ))}
+          </View>
+        )}
+        {rows.length > ROW_LIMIT ? (
+          <TextLink label={showAll ? "Show fewer" : `Show ${rows.length - ROW_LIMIT} more`} onPress={() => setShowAll(!showAll)} />
+        ) : null}
+        <Body tone="ink-3">Ideas to start a trip from. Nothing is booked or paid for.</Body>
       </View>
 
       <CopySheet
