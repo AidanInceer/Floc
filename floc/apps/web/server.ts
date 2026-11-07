@@ -7,6 +7,7 @@ import { createServer } from "node:http";
 import { createNotesLive } from "./src/server/notes/live/notes-live.ts";
 import { attachNotesLive } from "./src/server/notes/live/live-socket.ts";
 import { sessionResolver } from "./src/server/notes/live/live-session.ts";
+import { clientKey, isLimitedWrite, writeLimiter } from "./src/server/http/write-limiter.ts";
 
 const dev = process.argv.includes("--dev");
 // Why before importing next: it reads NODE_ENV at load, and `next start` used to set it.
@@ -14,11 +15,23 @@ const dev = process.argv.includes("--dev");
 const { default: next } = await import("next");
 
 const port = Number(process.env.PORT ?? 3000);
+// Why: after an action's redirect Next fetches the target from itself, over https when Railway says the caller used
+// https, and this server speaks plain http. Next falls back without the fetch, so this only saves a round trip.
+(process.env as Record<string, string>).__NEXT_PRIVATE_ORIGIN ??= `http://127.0.0.1:${port}`;
 const app = next({ dev, port });
 await app.prepare();
 
 const handle = app.getRequestHandler();
-const server = createServer((req, res) => handle(req, res));
+const writes = writeLimiter();
+const server = createServer((req, res) => {
+  const caller = isLimitedWrite(req.method, req.url) ? clientKey(req.headers["x-real-ip"], req.socket.remoteAddress) : null;
+  if (caller && !writes.allow(caller)) {
+    res.writeHead(429, { "Retry-After": "30", "Content-Type": "text/plain; charset=utf-8" });
+    res.end("Too many changes at once. Wait a moment and try again.");
+    return;
+  }
+  return handle(req, res);
+});
 const live = createNotesLive({ resolveUser: sessionResolver(`http://127.0.0.1:${port}`) });
 attachNotesLive(server, live, app.getUpgradeHandler());
 

@@ -12,11 +12,12 @@
  */
 import "server-only";
 
-import { and, eq, isNull, or } from "drizzle-orm";
+import { and, count, eq, isNull, or } from "drizzle-orm";
 
 import { db } from "@/db";
 import { note, noteReaction } from "@/db/schema";
 import type { NoteScope, ReactionKind } from "@/db/schema";
+import { assertRoom } from "@/server/limits";
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { tripHref, threadTab } from "@floc/core/notifications/notification-href";
 import { touch } from "@/server/audit";
@@ -72,6 +73,11 @@ export async function insertNote(args: {
   parentId: number | null;
   body: string;
 }): Promise<number> {
+  const [{ n }] = await db
+    .select({ n: count() })
+    .from(note)
+    .where(and(eq(note.tripId, args.tripId), eq(note.scope, args.scope), eq(note.scopeId, args.scopeId), isNull(note.deletedAt)));
+  assertRoom("commentsPerThread", n);
   return db.transaction(async (tx) => {
     const row = await tx
       .insert(note)

@@ -10,17 +10,19 @@
  * as if nothing happened. The zone below is the control, and it says what you
  * actually chose.
  */
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { uploadDocument } from "@/app/trip/[id]/files/actions";
-import { ActionForm, Sheet, SubmitButton } from "@/components/system/client-ui";
-import { Segmented, Select, SheetFooter, cx, segmentClass } from "@/components/system/ui";
+import { ActionForm, Sheet, SubmitButton, useSheetClose } from "@/components/system/client-ui";
+import { UploadIcon } from "@/components/system/icons";
+import { ErrorText, Segmented, Select, SheetFooter, cx, segmentClass } from "@/components/system/ui";
 import {
   DOCUMENT_ACCEPT,
   DOC_CATEGORIES,
   DOC_CATEGORY_LABELS,
   formatBytes,
   kindLabel,
+  rejectUpload,
   type DocCategory,
 } from "@floc/core/documents/documents";
 
@@ -54,22 +56,44 @@ export function DocumentUpload({
       triggerClassName={className}
       bareTrigger={bareTrigger}
       body="flush"
+      keepOpenOnSubmit
     >
-      <ActionForm action={uploadDocument.bind(null, tripId)}>
-        {dayEventId ? <input type="hidden" name="dayEventId" value={dayEventId} /> : null}
-        {dayId ? <input type="hidden" name="dayId" value={dayId} /> : null}
-        <div className="p-5">
-          <FilePicker />
-          <div className="mt-5 grid gap-4 min-[480px]:grid-cols-2 min-[480px]:items-end">
-            <ScopeChoice initial={scope} />
-            <CategoryChoice initial={category} />
-          </div>
+      <UploadForm tripId={tripId} dayEventId={dayEventId} dayId={dayId}>
+        <div className="mt-5 grid gap-4 min-[480px]:grid-cols-2 min-[480px]:items-end">
+          <ScopeChoice initial={scope} />
+          <CategoryChoice initial={category} />
         </div>
+      </UploadForm>
+    </Sheet>
+  );
+}
+
+/** Why open until the server answers: closing on submit hid every refusal, so a failed upload looked like nothing. */
+function UploadForm({ tripId, dayEventId, dayId, children }: { tripId: number; dayEventId?: number; dayId?: number; children: ReactNode }) {
+  const close = useSheetClose();
+  const upload = async (formData: FormData) => {
+    const answer = await uploadDocument(tripId, formData);
+    if (!answer?.error) close?.();
+    return answer;
+  };
+  return (
+    <ActionForm
+      action={upload}
+      keepAnswers
+      errorClassName="px-5 pb-4"
+      footer={
         <SheetFooter>
           <SubmitButton pendingLabel="Uploading…">Upload</SubmitButton>
         </SheetFooter>
-      </ActionForm>
-    </Sheet>
+      }
+    >
+      {dayEventId ? <input type="hidden" name="dayEventId" value={dayEventId} /> : null}
+      {dayId ? <input type="hidden" name="dayId" value={dayId} /> : null}
+      <div className="p-5">
+        <FilePicker />
+        {children}
+      </div>
+    </ActionForm>
   );
 }
 
@@ -79,6 +103,25 @@ function FilePicker() {
   const input = useRef<HTMLInputElement>(null);
   const [picked, setPicked] = useState<File | null>(null);
   const [over, setOver] = useState(false);
+  const [refusal, setRefusal] = useState<string | null>(null);
+
+  // Why: a submit brings the server's answer, which replaces this one; two refusals for one problem read as two.
+  useEffect(() => {
+    const form = input.current?.form;
+    const clear = () => setRefusal(null);
+    form?.addEventListener("submit", clear);
+    return () => form?.removeEventListener("submit", clear);
+  }, []);
+
+  // Why: checked on pick, not only on the server. "All files" in the OS dialog skips `accept`, and a file past
+  // Next's body limit never reaches `uploadDocument`, so its refusal could not be shown.
+  const take = (file: File | null) => {
+    const problem = file ? rejectUpload(file.type, file.size) : null;
+    setRefusal(problem);
+    if (problem && input.current) input.current.value = "";
+    setPicked(problem ? null : file);
+    return !problem;
+  };
 
   // Dropping has to hand the file back to the input: the form posts the input's
   // own FileList, not our state. A drag carrying no file — text, a link — is a
@@ -88,11 +131,10 @@ function FilePicker() {
   // without ever being uploaded.
   const accept = (files: FileList | null) => {
     const file = files?.[0];
-    if (!file || !input.current) return;
+    if (!file || !input.current || !take(file)) return;
     const one = new DataTransfer();
     one.items.add(file);
     input.current.files = one.files;
-    setPicked(file);
   };
 
   return (
@@ -111,7 +153,7 @@ function FilePicker() {
         tabIndex={-1}
         aria-hidden
         className="sr-only"
-        onChange={(e) => setPicked(e.target.files?.[0] ?? null)}
+        onChange={(e) => take(e.target.files?.[0] ?? null)}
       />
       <button
         type="button"
@@ -127,7 +169,7 @@ function FilePicker() {
           accept(e.dataTransfer.files);
         }}
         className={cx(
-          "flex min-h-[8.5rem] w-full flex-col items-center justify-center gap-1 rounded-md border p-4 text-center",
+          "flex min-h-[8.5rem] w-full flex-col items-center justify-center gap-1 rounded-sm border p-4 text-center",
           "transition-[background-color,border-color,transform] duration-[.22s] ease-[cubic-bezier(.2,.85,.3,1)]",
           // Pressing it opens the OS picker, which takes a moment — without a
           // pressed state the click reads as having missed.
@@ -140,22 +182,10 @@ function FilePicker() {
           // that says so at a glance.
           over || picked
             ? "border-solid border-pen bg-pen-soft"
-            : "border-dashed border-rule-strong hover:border-pen hover:bg-sheet-2",
+            : "border-dashed border-rule-strong hover:border-pen hover:bg-pen-soft",
         )}
       >
-        <svg
-          viewBox="0 0 14 14"
-          width={18}
-          height={18}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={1.2}
-          strokeLinecap="round"
-          aria-hidden
-          className="mb-1 text-pen"
-        >
-          <path d="M7 3v8M3 7h8" />
-        </svg>
+        <UploadIcon size={18} className="mb-1 text-pen" />
         <span className="max-w-full break-words text-sm font-medium text-pen">
           {picked ? picked.name : over ? "Drop it here" : "Choose a file"}
         </span>
@@ -165,6 +195,11 @@ function FilePicker() {
             : "PDF or image · up to 8 MB"}
         </span>
       </button>
+      {refusal ? (
+        <div className="mt-2">
+          <ErrorText>{refusal}</ErrorText>
+        </div>
+      ) : null}
     </div>
   );
 }

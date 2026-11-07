@@ -5,7 +5,7 @@
  */
 import type { Node } from "@tiptap/pm/model";
 import type { NodeView } from "@tiptap/pm/view";
-import { showLink, type LinkKind, type TripLinkItem } from "@floc/core/notes/pages/trip-links";
+import { isLinkKind, showLink, type LinkKind, type TripLinkItem } from "@floc/core/notes/pages/trip-links";
 
 import { glyphMarkup } from "./icons";
 
@@ -40,13 +40,15 @@ export function tripLinkView(start: Node, names: LinkNames, onOpen: (kind: LinkK
   gone.textContent = "Removed";
   dom.append(icon, label);
 
+  // Why: attrs can arrive over the live socket from any member's editor, unchecked, so a kind we do not know draws as gone.
   const draw = () => {
     const link = node.attrs as Link;
-    const shown = showLink(link, names.items);
-    dom.dataset.kind = link.kind;
+    const known = isLinkKind(link.kind);
+    const shown = known ? showLink(link, names.items) : { label: String(link.label ?? ""), removed: true };
+    dom.dataset.kind = known ? link.kind : "";
     dom.classList.toggle("is-removed", shown.removed);
     dom.setAttribute("role", shown.removed ? "note" : "link");
-    icon.innerHTML = glyphMarkup(link.kind, 12);
+    icon.innerHTML = known ? glyphMarkup(link.kind, 12) : "";
     label.textContent = shown.label;
     if (shown.removed) dom.append(gone);
     else gone.remove();
@@ -56,7 +58,7 @@ export function tripLinkView(start: Node, names: LinkNames, onOpen: (kind: LinkK
 
   dom.addEventListener("click", (event) => {
     const link = node.attrs as Link;
-    if (showLink(link, names.items).removed) return;
+    if (!isLinkKind(link.kind) || showLink(link, names.items).removed) return;
     event.preventDefault();
     onOpen(link.kind, link.id);
   });

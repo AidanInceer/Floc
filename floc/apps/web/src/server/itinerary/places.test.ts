@@ -1,7 +1,9 @@
 /** Place search: cached, never caching a failure, and one person cannot hold the queue. */
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { searchPlaces } from "@/server/itinerary/places";
+import { db, schema } from "@/db";
+import { searchPlaces, upsertPlace } from "@/server/itinerary/places";
+import { migrateTestDb, resetDb } from "@/test/db";
 
 const porto = [{ osm_type: "relation", osm_id: 1, name: "Porto", display_name: "Porto, Portugal", lat: "41.1", lon: "-8.6" }];
 
@@ -11,6 +13,8 @@ function answer(body: unknown, ok = true) {
   return fetchMock;
 }
 
+beforeAll(migrateTestDb);
+beforeEach(resetDb);
 afterEach(() => vi.unstubAllGlobals());
 
 describe("searching for a place", () => {
@@ -35,5 +39,33 @@ describe("searching for a place", () => {
     const second = searchPlaces("Faro", "ada");
     expect(await searchPlaces("Evora", "ada")).toEqual([]);
     await Promise.all([first, second]);
+  });
+});
+
+describe("a long search", () => {
+  it("sends the provider no more than a place name's length", async () => {
+    const fetchMock = answer(porto);
+    await searchPlaces("Porto ".repeat(2000));
+    const sent = new URL(String((fetchMock.mock.calls[0] as unknown[])[0])).searchParams.get("q") ?? "";
+    expect(sent.length).toBeLessThanOrEqual(200);
+  });
+});
+
+describe("a typed place name", () => {
+  const typed = (name: string) => upsertPlace({ providerId: null, name });
+  const placeRows = async () => (await db.select({ id: schema.place.id }).from(schema.place).all()).length;
+
+  it("reuses one row when the same name is saved again, so an autosave does not pile up places", async () => {
+    expect(await typed("Nan's flat")).toBe(await typed("Nan's flat"));
+    expect(await placeRows()).toBe(1);
+  });
+
+  it("gets its own row for a different name", async () => {
+    expect(await typed("Nan's flat")).not.toBe(await typed("The cabin"));
+  });
+
+  it("never borrows a picked place that happens to share its name", async () => {
+    const picked = await upsertPlace({ providerId: "osm:relation:1", name: "Porto", lat: 41.1, lng: -8.6 });
+    expect(await typed("Porto")).not.toBe(picked);
   });
 });

@@ -16,7 +16,7 @@ import { and, count, eq, isNotNull, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { trip, tripMembership } from "@/db/schema";
 import type { TripRole } from "@/db/schema";
-import { bounded, LIMITS } from "@/server/limits";
+import { assertRoom, bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
 import { kickFromTripNotes } from "@/server/notes/live/live-kick";
 import { insertFirstPage } from "@/server/notes/pages/page-first";
@@ -133,6 +133,7 @@ export async function insertTripWithAdmin(tx: Tx, input: NewTripRow): Promise<nu
   // A start alone is a real answer at creation; a full window must be a valid one.
   const problem = input.startDate && input.endDate ? windowProblem(input.startDate, input.endDate) : null;
   if (problem) throw new Refusal(problem);
+  assertRoom("tripsPerUser", await countMembershipsOf(tx, input.createdBy));
   const [created] = await tx
     .insert(trip)
     .values({
@@ -151,6 +152,16 @@ export async function insertTripWithAdmin(tx: Tx, input: NewTripRow): Promise<nu
   });
   await insertFirstPage(tx, created.id, input.createdBy, input.firstPage);
   return created.id;
+}
+
+/** Every trip someone is on, archived included: an archived trip still walks with the account when it is deleted. */
+export async function countMembershipsOf(q: Pick<Tx, "select">, userId: string): Promise<number> {
+  const [{ n }] = await q
+    .select({ n: count() })
+    .from(tripMembership)
+    .innerJoin(trip, eq(trip.id, tripMembership.tripId))
+    .where(and(eq(tripMembership.userId, userId), isNull(tripMembership.deletedAt), isNull(trip.deletedAt)));
+  return n;
 }
 
 export async function createTripWithAdmin(input: NewTripRow): Promise<number> {
