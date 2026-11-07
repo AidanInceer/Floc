@@ -1,5 +1,5 @@
 import { addDays } from "@floc/core/dates/dates";
-import { stayLinks } from "@floc/core/trip/booking-links";
+import { stayLinks } from "@floc/core/trip/booking/booking-links";
 import { Text, View } from "react-native";
 
 import { useTheme } from "../system/theme";

@@ -19,7 +19,7 @@
  */
 
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
-import type { BookingSite, BookingSites, SiteKind } from "@floc/core/trip/booking-sites";
+import type { BookingSite, BookingSites, SiteKind } from "@floc/core/trip/booking/booking-sites";
 import type { Currency } from "@floc/core/money/currency";
 import type { SettleRow } from "@floc/core/money/group-settle";
 import type { DocCategory } from "@floc/core/documents/documents";

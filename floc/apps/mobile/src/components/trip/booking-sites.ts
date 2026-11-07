@@ -1,4 +1,4 @@
-import { DEFAULT_BOOKING_SITES, toggleSite, type BookingSite, type BookingSites, type SiteKind } from "@floc/core/trip/booking-sites";
+import { DEFAULT_BOOKING_SITES, toggleSite, type BookingSite, type BookingSites, type SiteKind } from "@floc/core/trip/booking/booking-sites";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { trpc } from "@/lib/api";

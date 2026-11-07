@@ -3,10 +3,10 @@
  * (CLAUDE.md) — Floc only prefills a search on another site. Only places,
  * dates and a head count go into a URL: never a name or an email.
  */
-import { addDays } from "../dates/dates";
-import { deriveStops, type StopDayInput } from "../itinerary/stops";
+import { addDays } from "../../dates/dates";
+import { deriveStops, type StopDayInput } from "../../itinerary/stops";
 import type { BookingSite } from "./booking-sites";
-import { hotelFile, type LegFile } from "./overview/legs";
+import { hotelFile, type LegFile } from "../overview/legs";
 
 export type { BookingSite } from "./booking-sites";
 

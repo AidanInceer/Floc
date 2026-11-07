@@ -31,7 +31,7 @@ import {
 import { paintRange, pickedRange } from "@floc/core/dates/calendar-gestures";
 import { dateRange, formatDateRange, today } from "@floc/core/dates/dates";
 import { datesMoment, type DatesMoment } from "@floc/core/dates/dates-moment";
-import { bookingPlan } from "@floc/core/trip/booking-links";
+import { bookingPlan } from "@floc/core/trip/booking/booking-links";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState, type ReactNode } from "react";

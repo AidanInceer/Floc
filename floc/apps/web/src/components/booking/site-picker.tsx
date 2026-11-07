@@ -1,7 +1,7 @@
 "use client";
 
-import { MAX_SITES, SITE_USE, canToggleSite, splitBySites, type SiteKind } from "@floc/core/trip/booking-sites";
-import type { BookingLink } from "@floc/core/trip/booking-links";
+import { MAX_SITES, SITE_USE, canToggleSite, splitBySites, type SiteKind } from "@floc/core/trip/booking/booking-sites";
+import type { BookingLink } from "@floc/core/trip/booking/booking-links";
 import { useBookingSites } from "@/components/booking/booking-sites";
 import { Menu } from "@/components/system/client-ui";
 import { CheckIcon, ChevronIcon, OutIcon } from "@/components/system/icons";

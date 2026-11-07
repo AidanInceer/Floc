@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useRef, useState, useTransition, type ReactNode } from "react";
 
-import { toggleSite, type BookingSite, type BookingSites, type SiteKind } from "@floc/core/trip/booking-sites";
+import { toggleSite, type BookingSite, type BookingSites, type SiteKind } from "@floc/core/trip/booking/booking-sites";
 import { toggleBookingSiteAction } from "@/app/settings/actions";
 
 type Shared = {

@@ -17,7 +17,7 @@ import type { CalendarDay, OvernightPlace } from "@/components/days/days-calenda
 import type { PlaceSearch } from "@/components/days/event-form";
 import type { BandSpan } from "@floc/core/itinerary/overnight-band";
 import { stayNights } from "@floc/core/itinerary/overnight-pick";
-import { stayCheckOut, stayLinks } from "@floc/core/trip/booking-links";
+import { stayCheckOut, stayLinks } from "@floc/core/trip/booking/booking-links";
 import { formatShortRange } from "@floc/core/dates/dates";
 import { OFFSITE_NOTE } from "@/components/booking/site-links";
 import { SitePicker } from "@/components/booking/site-picker";

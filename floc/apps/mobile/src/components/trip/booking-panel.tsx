@@ -1,5 +1,5 @@
 import { formatDateRange, nightsBetween } from "@floc/core/dates/dates";
-import type { BookingPlan } from "@floc/core/trip/booking-links";
+import type { BookingPlan } from "@floc/core/trip/booking/booking-links";
 import { useState } from "react";
 import { View } from "react-native";
 

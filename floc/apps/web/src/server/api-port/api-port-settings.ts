@@ -21,7 +21,7 @@ import { ensureProfile, loadIdentity, updateProfileFields } from "@/server/auth/
 import { eraseAccount } from "@/server/auth/erase-account";
 import { markTourSeen, tourSeenAt } from "@/server/auth/tour";
 import { toggleBookingSite } from "@/server/auth/booking-sites";
-import { readBookingSites } from "@floc/core/trip/booking-sites";
+import { readBookingSites } from "@floc/core/trip/booking/booking-sites";
 
 type SettingsPort = Pick<
   FlocPort,

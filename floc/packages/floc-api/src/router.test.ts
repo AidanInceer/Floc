@@ -636,7 +636,7 @@ describe("your booking sites (wireframe/booking-sites J)", () => {
     const toggleBookingSite = vi.fn();
     const { caller: ana } = caller("u1", fakePort({ toggleBookingSite }));
     await expect(ana.settings.bookingSite({ kind: "stays", site: "Ryanair" as never })).rejects.toMatchObject({ code: "BAD_REQUEST" });
-    await expect(ana.settings.bookingSite({ kind: "flights", site: "Airbnb" })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(ana.settings.bookingSite({ kind: "flights", site: "Airbnb" as never })).rejects.toMatchObject({ code: "BAD_REQUEST" });
     expect(toggleBookingSite).not.toHaveBeenCalled();
   });
 });

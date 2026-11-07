@@ -6,7 +6,7 @@ import {
   type BookingSite,
   type BookingSites,
   type SiteKind,
-} from "@floc/core/trip/booking-sites";
+} from "@floc/core/trip/booking/booking-sites";
 import { ensureProfile, getProfile, updateProfileFields } from "@/server/auth/profile";
 
 export async function bookingSitesOf(userId: string): Promise<BookingSites> {

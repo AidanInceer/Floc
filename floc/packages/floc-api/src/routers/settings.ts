@@ -22,7 +22,7 @@ import { CURRENCIES } from "@floc/core/money/currency";
 import { PACK_TIERS } from "@floc/core/packing/packing";
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { VIBE_TAGS } from "@floc/core/trip/vibe-tags";
-import { FLIGHT_SITES, STAY_SITES } from "@floc/core/trip/booking-sites";
+import { FLIGHT_SITES, STAY_SITES } from "@floc/core/trip/booking/booking-sites";
 import { z } from "zod";
 
 import { protectedProcedure, router } from "../trpc";

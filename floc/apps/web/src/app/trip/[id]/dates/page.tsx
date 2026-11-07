@@ -6,7 +6,7 @@ import { documentsEnabled } from "@/server/documents/document-store";
 import { listDocuments } from "@/server/documents/documents";
 import { canUseFeature } from "@/server/billing/entitlements";
 import { listDayLoads, listRouteDays } from "@/server/itinerary/itinerary";
-import { bookingPlan } from "@floc/core/trip/booking-links";
+import { bookingPlan } from "@floc/core/trip/booking/booking-links";
 import { today } from "@floc/core/dates/dates";
 import { datesMoment } from "@floc/core/dates/dates-moment";
 import { BookingCard } from "@/components/booking/booking-card";

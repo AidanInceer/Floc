@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import type { BookingSite, BookingSites, SiteKind } from "@floc/core/trip/booking-sites";
+import type { BookingSite, BookingSites, SiteKind } from "@floc/core/trip/booking/booking-sites";
 import { VISIBILITIES } from "@/db/schema";
 import type { Visibility } from "@/db/schema";
 import { requireUser } from "@/server/access";

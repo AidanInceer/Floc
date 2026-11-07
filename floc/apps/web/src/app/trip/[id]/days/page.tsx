@@ -48,7 +48,7 @@ import { loadCalendar } from "@/server/itinerary/calendar-read";
 import type { TripDocument } from "@/server/documents/documents";
 import { documentsEnabled } from "@/server/documents/document-store";
 import { addDays as addDaysToDate, fromIsoDate, today } from "@floc/core/dates/dates";
-import { eventFlightLinks } from "@floc/core/trip/booking-links";
+import { eventFlightLinks } from "@floc/core/trip/booking/booking-links";
 import { BookingSitesProvider } from "@/components/booking/booking-sites";
 import { SitePicker } from "@/components/booking/site-picker";
 import { bookingSitesOf } from "@/server/auth/booking-sites";

@@ -2,8 +2,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import type { BookingLink } from "@floc/core/trip/booking-links";
-import type { BookingSites } from "@floc/core/trip/booking-sites";
+import type { BookingLink } from "@floc/core/trip/booking/booking-links";
+import type { BookingSites } from "@floc/core/trip/booking/booking-sites";
 import type { Leg } from "@floc/core/trip/overview/legs";
 import { formatShortRange } from "@floc/core/dates/dates";
 import type { TripDocument } from "@/server/documents/documents";

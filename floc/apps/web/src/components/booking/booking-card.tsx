@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 import { formatDateRange, formatShortRange, nightsBetween } from "@floc/core/dates/dates";
-import type { BookingPlan, StayRow } from "@floc/core/trip/booking-links";
-import type { BookingSites } from "@floc/core/trip/booking-sites";
+import type { BookingPlan, StayRow } from "@floc/core/trip/booking/booking-links";
+import type { BookingSites } from "@floc/core/trip/booking/booking-sites";
 import { BookedPill } from "@/components/booking/booked-pill";
 import { HotelUpload } from "@/components/booking/hotel-upload";
 import { BookingSitesProvider } from "@/components/booking/booking-sites";

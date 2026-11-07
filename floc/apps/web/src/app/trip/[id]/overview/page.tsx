@@ -21,7 +21,7 @@ import { readTripColor, tripPastel } from "@floc/core/trip/trip-color";
 import { readTripMark } from "@floc/core/trip/mark/trip-mark";
 import { readTags } from "@floc/core/trip/tags";
 import { hasEnded, nightsBetween, today } from "@floc/core/dates/dates";
-import { stayLinks } from "@floc/core/trip/booking-links";
+import { stayLinks } from "@floc/core/trip/booking/booking-links";
 import { tripLegs } from "@floc/core/trip/overview/legs";
 import { ideasTucked } from "@floc/core/trip/ideas";
 import { overviewRoute } from "@floc/core/trip/overview/route";

@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { DEFAULT_BOOKING_SITES } from "@floc/core/trip/booking-sites";
+import { DEFAULT_BOOKING_SITES } from "@floc/core/trip/booking/booking-sites";
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { bookingSitesOf, toggleBookingSite } from "@/server/auth/booking-sites";
