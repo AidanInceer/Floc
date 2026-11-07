@@ -61,3 +61,19 @@ test("the main checkout keeps its usual ports, database and env file", async () 
     rmSync(common, { recursive: true, force: true });
   }
 });
+
+test("a worktree takes only the dev account from the main checkout's env file", async () => {
+  const { copyDevAccount } = await import("./config.mjs");
+  const dir = mkdtempSync(join(tmpdir(), "floc-dev-account-"));
+  try {
+    const main = join(dir, "main"), root = join(dir, "wt");
+    for (const at of [main, root]) mkdirSync(join(at, "floc/apps/web"), { recursive: true });
+    writeFileSync(join(main, "floc/apps/web/.env"), "FLOC_DEV_USER_EMAIL=me@example.com\nFLOC_DEV_USER_PASSWORD=local-only\nGOOGLE_CLIENT_SECRET=never-copied\n");
+    writeFileSync(join(root, "floc/apps/web/.env"), "TURSO_DATABASE_URL=file:x\n");
+    assert.deepEqual(copyDevAccount(root, main), ["FLOC_DEV_USER_EMAIL", "FLOC_DEV_USER_PASSWORD"]);
+    const env = readFileSync(join(root, "floc/apps/web/.env"), "utf8");
+    assert.match(env, /FLOC_DEV_USER_EMAIL=me@example.com/);
+    assert.doesNotMatch(env, /GOOGLE_CLIENT_SECRET/);
+    assert.deepEqual(copyDevAccount(root, main), []);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});

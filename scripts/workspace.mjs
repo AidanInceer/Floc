@@ -1,8 +1,8 @@
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { command, git } from "./delivery/process.mjs";
-import { prepareConfig, configFile } from "./workspace/config.mjs";
+import { copyDevAccount, prepareConfig, configFile } from "./workspace/config.mjs";
 import { installHooks } from "./workspace/hooks.mjs";
 import { ensureDocs } from "./workspace/docs-link.mjs";
 import { sweep } from "./workspace/sweep.mjs";
@@ -12,15 +12,19 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const [action = "status", ...args] = process.argv.slice(2);
 const quiet = args.includes("--quiet");
 
-function localEnv(config) {
-  if (config.primary) return {};
-  return { TURSO_DATABASE_URL: config.database, TURSO_AUTH_TOKEN: "", FLOC_FILES_DIR: config.files, BETTER_AUTH_URL: `http://${config.host}:${config.ports.web}` };
+// Why: a worktree database is a local file, so no Turso token may reach it; drizzle-kit rejects an empty one.
+function withLocalDatabase(config, extra = {}) {
+  const env = { ...process.env, ...localEnv(config), ...extra };
+  if (!config.primary) delete env.TURSO_AUTH_TOKEN;
+  return env;
 }
 
-const emptyDatabase = (config) => {
-  const file = join(config.root, ".floc/data/local.db");
-  return !existsSync(file) || statSync(file).size === 0;
-};
+function localEnv(config) {
+  if (config.primary) return {};
+  return { TURSO_DATABASE_URL: config.database, FLOC_FILES_DIR: config.files, BETTER_AUTH_URL: `http://${config.host}:${config.ports.web}` };
+}
+
+const seededMark = (config) => join(config.root, ".floc/data/seeded");
 
 async function prepare() {
   if (process.env.CI) return { state: "skipped in CI" };
@@ -30,11 +34,13 @@ async function prepare() {
   const docs = ensureDocs(root, main, { primary });
   const install = !args.includes("--no-install");
   if (install) command("pnpm", ["install", "--frozen-lockfile", "--config.confirmModulesPurge=false"], { cwd: root, stdio: "inherit" });
-  // Why: only this worktree's own empty database is seeded, never one that holds local work.
-  if (install && !primary && emptyDatabase(config)) {
-    const env = { ...process.env, ...localEnv(config) };
+  if (!primary) copyDevAccount(root, main);
+  // Why: only this worktree's own database, and only once; a second seed would wipe what you tested with.
+  if (install && !primary && !existsSync(seededMark(config))) {
+    const env = withLocalDatabase(config);
     command("pnpm", ["--filter", "floc-web", "db:migrate"], { cwd: root, env, stdio: "inherit" });
     command("pnpm", ["--filter", "floc-web", "db:seed"], { cwd: root, env, stdio: "inherit" });
+    writeFileSync(seededMark(config), new Date().toISOString());
   }
   installHooks(root);
   return { state: "prepared", root, primary, ports: config.ports, docs: docs.state, ...(docs.next && { next: docs.next }) };
@@ -68,8 +74,8 @@ function start() {
     wireframes: [process.execPath, ["--experimental-strip-types", "scripts/wireframe-server.mjs"]],
   };
   if (!definitions[service]) throw new Error("Expected web, metro, docs or wireframes.");
-  const env = { ...process.env, ...localEnv(config), PORT: String(config.ports[service]), FLOC_DOCS_PORT: String(config.ports.docs),
-    FLOC_WIREFRAME_PORT: String(config.ports.wireframes), EXPO_PUBLIC_API_URL: `http://localhost:${config.ports.web}` };
+  const env = withLocalDatabase(config, { PORT: String(config.ports[service]), FLOC_DOCS_PORT: String(config.ports.docs),
+    FLOC_WIREFRAME_PORT: String(config.ports.wireframes), EXPO_PUBLIC_API_URL: `http://localhost:${config.ports.web}` });
   command(...definitions[service], { cwd: root, env, stdio: "inherit" });
 }
 
