@@ -21,7 +21,7 @@ Before you open a page, read what the site is measured against:
   "What we still have to prove".
 - [Decision log](docs/foundation/decisions.html) — ADR titles, and the
   body of any ADR a finding touches.
-- `AGENTS.md` — the Invariants and the UI and UX rules.
+- `AGENTS.md`, the invariants (ADR-001 to ADR-011) and the [design card](.claude/rules/design.md).
 - The open backlog: `gh issue list --state open --limit 150 --json number,title,labels`.
   A gap that already has a ticket is not a new finding; cite the ticket instead.
 
