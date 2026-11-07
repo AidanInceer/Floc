@@ -122,6 +122,10 @@ Payments between members, POI data and reviews, flight *booking* (deep links onl
 - **Design review** once per UI diff: the `floc:design-review` agent, recorded with `pnpm delivery review`. Publish refuses a UI diff without it.
 - **Deploy is Railway** via `railway.json`. A merge to `main` deploys. Env vars live in Railway's Variables tab, never in the repo.
 
+## End of a session
+
+**Close every session that changed, committed, pushed or released anything with `/floc:session-summary`** — a few bullets, one per piece of work, each with its state (local · PR open · on develop · release PR open · live), then one `Next:` line. No recap, no narration, no file lists. Say "live" only after the health or watcher check. A subagent reports to its parent the same way. An audit, review, retro or research report is the deliverable itself, so write it in full. The `/floc:push`, `/floc:release` and `/floc:implement-feature` reports end in this format too.
+
 ## Real users — hard stop
 
 Production has a few real test users. **Never delete, wipe or overwrite trip or user data** (people, trips, money, files) in production or any shared database: no hard deletes, no destructive migrations, no resets, no scripts that remove rows. Ask first, every time. Resetting and seeding local `local.db` is fine. The one exception: a notes page a member archives is deleted for good after 7 days ([ADR-017](docs/foundation/decisions.html#adr-017)).
@@ -138,7 +142,7 @@ Issues and PRDs are GitHub issues, driven with `gh`. Skills are the `floc` plugi
 - **Build:** `/floc:implement-feature`, `/floc:tdd`.
 - **Dev loop and data:** `/floc:run`, `/floc:seed-dev-db`, `/floc:reset-dev-db`, `/floc:schema-change`, `/floc:add-mobile-dep`.
 - **Docs and design:** `/floc:sync-docs`, `/floc:review-docs`, `/floc:prototype`, `/floc:audit`, `/floc:marketing` (never publishes unasked).
-- **Other:** `/floc:improve-codebase-architecture`, `/floc:rotate-secrets`, `/floc:retro` (user-run only; edits nothing until asked).
+- **Other:** `/floc:session-summary` (closes every session), `/floc:improve-codebase-architecture`, `/floc:rotate-secrets`, `/floc:retro` (user-run only; edits nothing until asked).
 - Agent `floc:ci-babysit` fixes a red check after a watcher reports it, through a PR; never started for green work.
 - Agent `floc:design-review` gives a UI change a fresh-eyes check against the design card and screenshots; it edits nothing. `/floc:implement-feature` and `/floc:push` start it on any UI diff.
 
