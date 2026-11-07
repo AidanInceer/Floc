@@ -1,7 +1,7 @@
 /** The trip list's row (#289): what a card on either client draws, never more. */
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 
-import type { TripRole } from "./port";
+export type TripRole = "admin" | "member";
 
 export type TripSummary = {
   id: number;

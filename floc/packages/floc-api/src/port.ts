@@ -32,13 +32,13 @@ import type { Comment } from "./port-comment";
 import type { ExplorePort } from "./port-explore";
 import type { PagesPort } from "./port-pages";
 import type { RoutePort } from "./port-route";
-import type { TripSummary } from "./port-trips";
+import type { TripRole, TripSummary } from "./port-trips";
 
 export type { Currency, DayEventType, DocCategory, ExpenseCategory, ReactionKind, SplitType, TransportType };
 
 export type { ExploreState, Finder } from "./port-explore";
 
-export type TripRole = "admin" | "member";
+export type { TripRole } from "./port-trips";
 
 /** Who is calling. Built by the host from a session cookie or a bearer token — the API does not care which. */
 export type Viewer = {
