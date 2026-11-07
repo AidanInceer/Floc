@@ -16,8 +16,8 @@ agent's **environment** so future runs go better. You change no code.
 
 ## Steps
 
-1. Read [AGENTS.md](AGENTS.md) first: Commands, Invariants, Code
-   standards and Agent skills. Every finding must respect them.
+1. Read [AGENTS.md](AGENTS.md) first: Commands, Code standards and
+   Agent skills, and the invariants (ADR-001 to ADR-011). Every finding must respect them.
 
 2. Read the session the user names. If they name none, use the current one.
    Session logs for this project are the `.jsonl` files in

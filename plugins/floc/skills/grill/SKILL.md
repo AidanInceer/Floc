@@ -15,7 +15,7 @@ Before the first question, find the facts yourself:
 
 - [Mission and values](docs/foundation/mission.html) and the [decision log](docs/foundation/decisions.html). What Floc is for, and what is already decided. Do not ask again what a record already settles.
 - The ticket, if there is one: `gh issue view <n> --repo AidanInceer/Floc`.
-- `AGENTS.md` (Invariants, Conventions, UI and UX), `floc/CONTEXT.md`, `learnings.md`.
+- `AGENTS.md`, the invariants (ADR-001 to ADR-011), `floc/CONTEXT.md`, `learnings.md`.
 - The `docs/` pages and the code the plan touches.
 
 Never ask something the code, docs or tools can answer — look it up. The *decisions* are the user's. If an option breaks an invariant, say which one by number (`rule 8`). In each **Recommended** line, name the value or ADR the recommendation rests on, if one does.

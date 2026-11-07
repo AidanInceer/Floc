@@ -70,6 +70,7 @@ const AGENT_FILES = [
   ".claude/rules/e2e.md",
   ".claude/rules/api.md",
   ".claude/rules/design.md",
+  ".claude/rules/checks.md",
 ];
 
 function checkTarget(from, href, label) {
