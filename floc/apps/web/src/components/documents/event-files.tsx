@@ -14,6 +14,7 @@ import {
 import { DocumentRow } from "@/components/documents/document-row";
 import { DocumentUpload } from "@/components/documents/document-upload";
 import { SubmitButton } from "@/components/system/client-ui";
+import { panelBandClass, panelTitleClass } from "@/components/system/ui";
 import type { TripDocument } from "@/server/documents/documents";
 
 export function EventFiles({
@@ -31,11 +32,9 @@ export function EventFiles({
   viewerId: string;
 }) {
   return (
-    <section className="border-t border-rule pt-3">
+    <section className={panelBandClass}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-soft">
-          Files
-        </h3>
+        <h3 className={panelTitleClass}>Files</h3>
         <div className="flex items-center gap-1">
           {loose.length > 0 ? (
             <AttachExistingFile
@@ -44,16 +43,13 @@ export function EventFiles({
               choices={loose}
             />
           ) : null}
-          <DocumentUpload tripId={tripId} scope="shared" dayEventId={dayEventId} />
+          <DocumentUpload tripId={tripId} scope="shared" dayEventId={dayEventId} triggerVariant="secondary" />
         </div>
       </div>
 
-      {files.length === 0 ? (
-        <p className="py-3 text-sm text-ink-soft">
-          Nothing attached yet &mdash; tickets and bookings for this go here.
-        </p>
-      ) : (
-        <ul className="mt-2 divide-y divide-rule rounded-md border border-rule">
+      {files.length === 0 ? null : (
+        // Why: *:px-0 drops the Files page row inset, so chips and rules sit on the panel's content edge.
+        <ul className="mt-1 divide-y divide-rule *:px-0">
           {files.map((doc) => (
             <DocumentRow
               key={doc.id}

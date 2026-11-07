@@ -3,9 +3,9 @@ import { describe, expect, it } from "vitest";
 import {
   commentTime,
   emptyReactions,
-  likeScore,
-  sortRuns,
-  type NoteRow,
+  likes,
+  repliesLabel,
+  threadCount,
 } from "./notes";
 
 /**
@@ -42,57 +42,31 @@ describe("commentTime", () => {
   });
 });
 
-/** Ticket 35: a thread can be read oldest-first or by what landed best. */
-describe("likeScore / sortRuns", () => {
-  let nextId = 1;
-  const run = (
-    day: number,
-    counts: Partial<Record<"heart" | "up" | "down", number>> = {},
-    replies: NoteRow[] = [],
-  ): NoteRow => {
+/** One heart is the only reaction a comment shows (event comments D). */
+describe("likes", () => {
+  it("is the heart count and whether it is yours", () => {
     const reactions = emptyReactions();
-    for (const [kind, count] of Object.entries(counts)) {
-      reactions[kind as keyof typeof reactions].count = count;
-    }
-    return {
-      id: nextId++,
-      body: `comment ${day}`,
-      createdAt: new Date(`2026-07-${String(day).padStart(2, "0")}T12:00:00`),
-      editedAt: null,
-      createdBy: "a",
-      authorName: "Aidan",
-      authorAvatarIcon: null,
-      reactions,
-      replies,
-    };
-  };
+    reactions.heart = { count: 3, mine: true };
+    reactions.up = { count: 2, mine: false };
+    expect(likes({ reactions })).toEqual({ count: 3, mine: true });
+  });
+});
 
-  it("counts hearts and agreement for, disagreement against", () => {
-    expect(likeScore(run(1))).toBe(0);
-    expect(likeScore(run(1, { heart: 2, up: 1 }))).toBe(3);
-    expect(likeScore(run(1, { up: 1, down: 3 }))).toBe(-2);
+describe("threadCount", () => {
+  it("counts every comment and every reply", () => {
+    expect(threadCount([])).toBe(0);
+    expect(threadCount([{ replies: [] }, { replies: [{}, {}] }])).toBe(4);
+  });
+});
+
+describe("repliesLabel", () => {
+  it("offers the folded replies by number", () => {
+    expect(repliesLabel(1, false)).toBe("View 1 reply");
+    expect(repliesLabel(2, false)).toBe("View 2 replies");
   });
 
-  it("scores a run on its own comment, never on its replies", () => {
-    const loved = run(1, { heart: 5 });
-    expect(likeScore(run(1, { up: 1 }, [loved]))).toBe(1);
-  });
-
-  it("leaves the oldest-first order exactly as it came", () => {
-    const runs = [run(1, { down: 2 }), run(2, { heart: 9 }), run(3)];
-    expect(sortRuns(runs, "oldest")).toBe(runs);
-  });
-
-  it("ranks by score, oldest first on a tie, without mutating the input", () => {
-    const runs = [run(1), run(2, { heart: 3 }), run(3, { down: 1 }), run(4)];
-    const ids = runs.map((r) => r.id);
-    expect(sortRuns(runs, "liked").map((r) => r.body)).toEqual([
-      "comment 2",
-      "comment 1",
-      "comment 4",
-      "comment 3",
-    ]);
-    expect(runs.map((r) => r.id)).toEqual(ids);
+  it("offers to fold them once open", () => {
+    expect(repliesLabel(2, true)).toBe("Hide replies");
   });
 });
 

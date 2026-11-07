@@ -322,8 +322,11 @@ export function AvatarRow({
   );
 }
 
-const fieldBase =
-  "w-full rounded-sm border border-rule-strong bg-sheet px-2.5 py-1.5 font-mono text-sm text-ink placeholder:text-ink-faint";
+/** Every text field's frame. Why: no face here, so the mono and sans fields never set two font classes Tailwind would settle by stylesheet order. */
+const fieldFrame =
+  "w-full rounded-sm border border-rule-strong bg-sheet px-2.5 text-sm text-ink placeholder:text-ink-faint transition-colors hover:border-ink-faint focus-visible:outline-offset-[-1px]";
+
+const fieldBase = `${fieldFrame} py-1.5 font-mono`;
 
 export function Field({
   label,
@@ -425,6 +428,15 @@ export function ErrorText({ children }: { children?: ReactNode }) {
  * function into `class`. `!` throughout to beat buttonBase — Tailwind v4
  * specificity is stylesheet order, not class-list order.
  */
+/** One title style for every part of a panel — a field's name and a section's alike, so they read as one list. */
+export const panelTitleClass = "block text-sm font-medium text-ink";
+
+/** One part of a panel, ruled off edge to edge from the part above. */
+export const panelBandClass = "border-t border-rule px-5 py-4 max-sm:px-4";
+
+/** The house field in the sans face, for prose inside a panel: a place name, a note, a comment. Why 7px: a comment's Post button sits inside it. */
+export const panelFieldClass = `block ${fieldFrame} py-[7px] font-sans leading-[1.45]`;
+
 export const menuItemClass =
   "!block !w-full !rounded-sm !border-none !px-2.5 !py-1.5 !text-left !font-sans !text-sm !normal-case !tracking-normal !text-ink-soft hover:!bg-pen-soft hover:!text-pen-deep";
 

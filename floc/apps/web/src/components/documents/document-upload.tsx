@@ -36,6 +36,7 @@ export function DocumentUpload({
   trigger = "Upload",
   title,
   bareTrigger,
+  triggerVariant,
 }: {
   tripId: number;
   scope: "shared" | "private";
@@ -48,12 +49,15 @@ export function DocumentUpload({
   trigger?: ReactNode;
   title?: string;
   bareTrigger?: boolean;
+  /** The trigger's weight where Upload is not the panel's main action. */
+  triggerVariant?: "primary" | "secondary" | "ghost";
 }) {
   return (
     <Sheet
       trigger={trigger}
       title={title ?? (dayEventId ? "Add a file to this event" : "Add a file")}
       triggerClassName={className}
+      triggerVariant={triggerVariant}
       bareTrigger={bareTrigger}
       body="flush"
       keepOpenOnSubmit

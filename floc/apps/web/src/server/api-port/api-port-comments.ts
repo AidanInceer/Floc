@@ -54,6 +54,7 @@ export function toComment(row: NoteRow): Comment {
     createdBy: row.createdBy,
     authorName: row.authorName,
     authorAvatarIcon: row.authorAvatarIcon,
+    authorTone: row.authorTone,
     reactions: row.reactions,
     replies: row.replies.map(toComment),
   };
@@ -71,8 +72,7 @@ export const commentsPort: CommentsPort = {
       tripId: access.trip.id,
       scope: "day_event",
       viewerId: access.viewer.id,
-      // No tones: the phone already has the roster and colours its own faces.
-      toneOf: new Map(),
+      toneOf: new Map(access.members.map((member) => [member.userId, member.tone])),
     });
 
     return (byEvent.get(event.id) ?? []).map(toComment);

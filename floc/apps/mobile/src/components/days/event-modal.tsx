@@ -15,13 +15,10 @@
  * whereas files and comments are nothing the Days screen otherwise knows.
  */
 import type { ReactNode } from "react";
-import { View } from "react-native";
 
 import { EventSheet } from "./event-sheet";
 import { EventTalk } from "../comments/event-talk";
 import { EventFiles } from "../files/event-files";
-import { SectionTitle } from "../system/ui";
-import { space } from "@/lib/theme";
 
 export function EventModal({
   open,
@@ -47,10 +44,7 @@ export function EventModal({
 
       <EventFiles tripId={tripId} dayEventId={dayEventId} />
 
-      <View style={{ gap: space.sm }}>
-        <SectionTitle>Talk about this</SectionTitle>
-        <EventTalk tripId={tripId} dayEventId={dayEventId} viewerId={viewerId} />
-      </View>
+      <EventTalk tripId={tripId} dayEventId={dayEventId} viewerId={viewerId} />
     </EventSheet>
   );
 }

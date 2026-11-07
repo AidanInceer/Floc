@@ -26,32 +26,23 @@ export type NoteRow = {
   replies: NoteRow[];
 };
 
-/** Thread order. Oldest-first is the default — see `sortRuns` (ticket 35). */
-export type NoteSort = "oldest" | "liked";
-
 /**
- * Hearts and agreements count for it, disagreements against — one number so
- * the sort has an order. Scored on the top-level comment alone: counting
- * reply reactions would let a disagreed-with comment ride up on the strength
- * of the people disagreeing with it.
+ * The one reaction a thread shows: a heart. The other kinds stay in the table and are
+ * neither drawn nor counted (event comments D, 2026-11-07).
  */
-export function likeScore(note: NoteRow): number {
-  const { heart, up, down } = note.reactions;
-  return heart.count + up.count - down.count;
+export function likes(note: { reactions: Reactions }): { count: number; mine: boolean } {
+  return note.reactions.heart;
 }
 
-/**
- * Order the runs of a thread. Replies are never reordered. `runs` arrives
- * oldest-first from `loadThreads`, so "liked" falls back to that order on a
- * tie — two unreacted comments don't swap about between renders.
- */
-export function sortRuns(runs: NoteRow[], sort: NoteSort): NoteRow[] {
-  if (sort === "oldest") return runs;
-  return [...runs].sort(
-    (a, b) =>
-      likeScore(b) - likeScore(a) ||
-      a.createdAt.getTime() - b.createdAt.getTime(),
-  );
+/** Every comment in a thread, replies included. */
+export function threadCount(runs: { replies: unknown[] }[]): number {
+  return runs.reduce((sum, run) => sum + 1 + run.replies.length, 0);
+}
+
+/** The fold under a comment with replies. */
+export function repliesLabel(count: number, open: boolean): string {
+  if (open) return "Hide replies";
+  return `View ${count} ${count === 1 ? "reply" : "replies"}`;
 }
 
 export function emptyReactions(): Reactions {

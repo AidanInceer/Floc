@@ -23,7 +23,7 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text-summary", "html", "lcov"],
-      include: ["server.ts", "src/lib/**/*.ts", "src/server/**/*.ts", "src/app/**/actions.ts", "src/app/**/*-for.ts", "src/app/api/health/route.ts", "src/app/**/streamed.tsx"],
+      include: ["server.ts", "src/lib/**/*.ts", "src/server/**/*.ts", "src/app/**/actions.ts", "src/app/**/*-for.ts", "src/app/api/health/route.ts", "src/app/**/streamed.tsx", "src/app/trips/cards.ts"],
       exclude: ["src/**/*.test.ts", "src/lib/auth-client.ts"],
       // At least 80% on every package; never lower one to make a run pass.
       thresholds: {

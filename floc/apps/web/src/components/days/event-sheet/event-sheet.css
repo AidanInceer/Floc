@@ -22,7 +22,8 @@
 
 @media (max-width: 480px) {
   .event-types[data-transport] {
-    --event-tile: 44px;
+    --event-tile: 40px;
+    gap: 6px;
   }
 }
 

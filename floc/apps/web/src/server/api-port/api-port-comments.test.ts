@@ -45,6 +45,12 @@ describe("talking about an event", () => {
     expect(typeof thread[0].createdAt).toBe("string");
   });
 
+  it("carries the author's trip colour, so a face matches the web's", async () => {
+    await webPort.addEventComment(world.admin, ours().trip, ours().event, null, "Ferry or bus?");
+    const [comment] = await webPort.listEventComments(world.member, ours().trip, ours().event);
+    expect(comment.authorTone).toMatch(/^who-[1-8]$/);
+  });
+
   it("keeps a reply under its parent, one level deep", async () => {
     await webPort.addEventComment(world.admin, ours().trip, ours().event, null, "Ferry or bus?");
     const [run] = await webPort.listEventComments(world.admin, ours().trip, ours().event);

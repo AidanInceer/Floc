@@ -88,7 +88,7 @@ function TransportCell({ how, onHow }: { how: TransportType | null; onHow: (how:
       <span className="text-xs font-medium leading-tight">
         Transport
       </span>
-      <div role="radiogroup" aria-label="How, by transport" className="flex justify-center gap-[3px]">
+      <div role="radiogroup" aria-label="How, by transport" className="flex w-full justify-center gap-[3px]">
         {TRANSPORT_TYPES.map((k) => (
           <button
             key={k}
@@ -97,7 +97,7 @@ function TransportCell({ how, onHow }: { how: TransportType | null; onHow: (how:
             aria-checked={how === k}
             onClick={() => onHow(k)}
             className={cx(
-              "flex w-[38px] shrink-0 flex-col items-center gap-0.5 rounded-sm border pb-1 pt-[5px] text-[10.5px] transition-colors max-[480px]:w-8 max-[480px]:text-[10px]",
+              "flex min-w-0 max-w-[38px] flex-1 flex-col items-center gap-0.5 rounded-sm border pb-1 pt-[5px] text-[10.5px] transition-colors max-[480px]:text-[10px]",
               how === k ? "border-current bg-sheet font-medium" : "border-transparent bg-sheet/55 hover:border-current",
             )}
           >
