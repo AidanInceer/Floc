@@ -28,6 +28,7 @@ export const fonts = {
   display: "BricolageGrotesque_600SemiBold",
   displayBold: "BricolageGrotesque_700Bold",
   sans: "InstrumentSans_400Regular",
+  sansItalic: "InstrumentSans_400Regular_Italic",
   sansBold: "InstrumentSans_600SemiBold",
   type: "DMMono_400Regular",
   typeBold: "DMMono_500Medium",

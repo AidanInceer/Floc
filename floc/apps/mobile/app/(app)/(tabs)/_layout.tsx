@@ -38,6 +38,8 @@ export default function TabsLayout() {
         headerRight: () => <Bell />,
         headerStyle: { backgroundColor: c.sheet },
         headerTintColor: c.ink,
+        // Why: in the system face Android measured "Trips" too narrow for its weight and cut it to "Tri…".
+        headerTitleStyle: { fontFamily: fonts.display, fontSize: size.heading },
         headerShadowVisible: false,
         sceneStyle: { backgroundColor: c.paper },
         tabBarStyle: { backgroundColor: c.sheet, borderTopColor: c.rule },

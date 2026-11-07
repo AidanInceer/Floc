@@ -9,6 +9,8 @@ import { today } from "@floc/core/dates/dates";
 import { leftToSortFrom } from "@floc/core/trip/overview/left-to-sort-from";
 import type { Gap } from "@floc/core/trip/overview/left-to-sort";
 import { groupStatuses } from "@floc/core/trip/group/group-status";
+import { pastelOf } from "@floc/core/design/pastels";
+import { readTripColor, tripPastel } from "@floc/core/trip/trip-color";
 import { transportModes, tripLegs } from "@floc/core/trip/overview/legs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -16,13 +18,12 @@ import { useEffect, useState } from "react";
 import { Alert, ScrollView, View } from "react-native";
 
 import { FileList } from "@/components/files/file-list";
-import { GroupActions } from "@/components/trip/group-actions";
+import { GoingSection } from "@/components/trip/going-section";
 import { IdeasSection } from "@/components/trip/ideas/ideas-section";
-import { LegList } from "@/components/trip/leg-list";
 import { LeftToSort } from "@/components/trip/left-to-sort";
 import { OverviewCard } from "@/components/trip/overview-card";
 import { TodaySection, TripMapSection } from "@/components/trip/route/trip-map-section";
-import { RosterStrip } from "@/components/trip/roster-strip";
+import { StopList } from "@/components/trip/stops/stop-list";
 import { TripSheet, draftFor, type TripDraft } from "@/components/trip/trip-sheet";
 import { QuietAction } from "@/components/system/text-controls";
 import { Body, Card, Failed, Loading, SectionTitle } from "@/components/system/ui";
@@ -32,7 +33,7 @@ import type { inferRouterOutputs } from "@trpc/server";
 
 import { trpc } from "@/lib/api";
 import { useSession } from "@/lib/auth";
-import { inviteUrl } from "@/lib/config";
+import { routeOf } from "@/lib/trip/overview-route";
 import { useTripWrite } from "@/lib/trip/trip-write";
 import { space } from "@/lib/theme";
 
@@ -56,7 +57,6 @@ export default function Overview() {
   const pairs = useQuery(trpc.money.pairs.queryOptions({ tripId }, { enabled: ready }));
   const days = useQuery(trpc.itinerary.days.queryOptions({ tripId }, { enabled: ready }));
   const { data: session } = useSession();
-  const invites = useQuery(trpc.invites.forTrip.queryOptions({ tripId }, { enabled: ready }));
   const availability = useQuery(trpc.availability.list.queryOptions({ tripId }, { enabled: ready }));
   const [draft, setDraft] = useState<TripDraft | null>(null);
 
@@ -66,7 +66,8 @@ export default function Overview() {
   const go = (route: string) => router.push(`/trip/${tripId}/${route}` as never);
   const openDay = (date: string) => router.push({ pathname: "/trip/[id]/days", params: { id: tripId, date } });
   const legs = legsFrom(days.data, files.data);
-  const pinned = pinsFor(legs, places.data);
+  const route = routeOf(legs, days.data ?? [], places.data ?? []);
+  const events = new Map((days.data ?? []).map((d) => [d.id, d.events]));
 
   return (
     <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.xl }}>
@@ -89,28 +90,23 @@ export default function Overview() {
         onMoney={() => go("money")}
       />
 
-      <TripMapSection trip={trip.data} pinned={pinned} />
+      <TripMapSection trip={trip.data} route={route} tone={pastelOf(tripPastel(readTripColor(trip.data.colorKey), tripId))} />
 
       {/* Ideas first while undated: before the dates exist it is the only live question here. */}
       <IdeasSection tripId={tripId} datesUnset={!trip.data.startDate && !trip.data.endDate} />
 
-      <View style={{ gap: space.sm }}>
-        <SectionTitle>Who&apos;s going</SectionTitle>
-        <Card>
-          <GroupActions
-            link={invites.data ? inviteUrl(invites.data.token) : null}
-            onInvite={() => router.push(`/trip/${tripId}/invite`)}
-          />
-          <RosterStrip people={trip.data.members} statuses={statusesFor(trip.data, availability.data)} />
-        </Card>
-      </View>
+      <GoingSection
+        people={trip.data.members}
+        statuses={statusesFor(trip.data, availability.data)}
+        onInvite={() => router.push(`/trip/${tripId}/invite`)}
+      />
 
       <FilesSection files={files} onAdd={() => go("files")} />
 
       {legs.length > 0 ? (
         <View style={{ gap: space.sm }}>
-          <SectionTitle>The route</SectionTitle>
-          <LegList legs={legs} onOpen={openDay} />
+          <SectionTitle>Stops</SectionTitle>
+          <StopList legs={legs} events={events} onOpen={openDay} />
         </View>
       ) : null}
 
@@ -133,12 +129,6 @@ function legsFrom(days: Outputs["itinerary"]["days"] | undefined, files: Outputs
     modes: transportModes(days ?? []),
     files: files ?? [],
   }).legs;
-}
-
-// Pins in leg order, so pin 2 is leg 2 — the web's map does the same.
-function pinsFor(legs: { placeId: number }[], places: Outputs["places"]["list"] | undefined) {
-  if (!places) return [];
-  return legs.length > 0 ? legs.flatMap((l) => places.filter((p) => p.id === l.placeId)) : places;
 }
 
 function FilesSection({

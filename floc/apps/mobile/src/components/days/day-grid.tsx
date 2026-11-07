@@ -46,10 +46,10 @@ import { EVENT_CATEGORIES } from "@floc/core/itinerary/event-categories";
 import type { DayEventType } from "@floc/core/vocabulary";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
+import { groundOf } from "../system/event-glyph";
 import { ClipGlyph, PenGlyph } from "../system/glyphs";
 import { useTheme } from "../system/theme";
 import { fonts, radius, size, space } from "@/lib/theme";
-import type { Pastel } from "@floc/core/design/pastels";
 
 /** One hour's height. Tall enough that a half-hour block is still a tappable target. */
 const HOUR = 52;
@@ -67,31 +67,7 @@ export type GridEvent = TimedLike & {
   note: string | null;
 };
 
-/**
- * The ground each category sits on. `EVENT_CATEGORIES` names it in Tailwind
- * classes the browser resolves; there is no cascade here, so the token name is
- * read out of the class and looked up in the palette.
- */
-const GROUND: Record<Exclude<DayEventType, "other">, Pastel> = {
-  transport: "pastel-red",
-  activity: "pastel-blue",
-  food: "pastel-yellow",
-};
-
-// Other is grey, not a pastel: the recess it sits in, its edge and the softer ink.
-function groundOf(type: DayEventType, c: ReturnType<typeof useTheme>["c"]) {
-  if (type === "other") return { fill: c["sheet-3"], edge: c["rule-2"], ink: c["ink-2"] };
-  const g = GROUND[type];
-  return { fill: c[g], edge: c[`${g}-edge`], ink: c[`${g}-ink`] };
-}
-
-/**
- * A block, or the all-day chip: same tap, same look, different place.
- *
- * ONE LINE, NOT TWO. A half-hour block is 26 points tall, which fits one line
- * of type — stacking the time above the title clipped every short event down
- * to its clock face and hid the thing you were looking for.
- */
+// Why one line: a half-hour block is 26 points tall; a time stacked above the title clipped short events to their clock.
 function EventBlock({
   type,
   title,

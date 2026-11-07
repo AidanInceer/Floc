@@ -13,6 +13,7 @@ import {
 import { DMMono_400Regular, DMMono_500Medium } from "@expo-google-fonts/dm-mono";
 import {
   InstrumentSans_400Regular,
+  InstrumentSans_400Regular_Italic,
   InstrumentSans_600SemiBold,
 } from "@expo-google-fonts/instrument-sans";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -33,14 +34,15 @@ import { onSessionEnded, sessionResumed } from "@/lib/session/session-ended";
 import { useRouteUpload } from "@/lib/route/use-route-upload";
 
 /**
- * The six files behind the three faces (#no-ticket). Two weights each for
- * display and sans, two for the mono — the weights the app actually draws.
+ * The seven files behind the three faces (#no-ticket). Two weights each for
+ * display and sans, two for the mono, and the sans italic the route map's nights wear.
  * Every one is its own family; see the note in `lib/theme.ts` for why.
  */
 const FACES = {
   BricolageGrotesque_600SemiBold,
   BricolageGrotesque_700Bold,
   InstrumentSans_400Regular,
+  InstrumentSans_400Regular_Italic,
   InstrumentSans_600SemiBold,
   DMMono_400Regular,
   DMMono_500Medium,

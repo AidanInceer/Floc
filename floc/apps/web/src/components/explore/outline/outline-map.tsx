@@ -5,7 +5,7 @@ import { useMemo } from "react";
 
 import { landFor } from "@/components/explore/listing";
 import { lineFor, ROUTE_SIZE } from "@/components/explore/route/route-ink";
-import type { Point } from "@/lib/explore/route/curves";
+import type { Point } from "@floc/core/trip/route/curves";
 import { routeShape } from "@/lib/explore/route/route-shape";
 import { tripRoute } from "@/lib/explore/route/trip-route";
 

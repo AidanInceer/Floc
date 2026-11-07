@@ -203,6 +203,16 @@ export function ShareGlyph({ color }: { color: string }) {
   );
 }
 
+/** Invite: the web's add-person mark (`overview-group.tsx`). */
+export function AddPersonGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+      <Circle cx={5.4} cy={4.8} r={2} stroke={color} strokeWidth={STROKE} />
+      <Path d="M1.8 11.4c0-1.9 1.5-3 3.6-3s3.6 1.1 3.6 3M10.6 4.2v3.6M8.8 6h3.6" stroke={color} strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
 /** Flights — the web's Overview booking tile. */
 export function PlaneGlyph({ color }: { color: string }) {
   return (

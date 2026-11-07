@@ -10,7 +10,7 @@
  * without seeing a colour at all (rule 6, #204).
  */
 import { whoTone } from "@floc/core/people/who";
-import { View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { Seat } from "../system/glyphs";
 import { useTheme } from "../system/theme";
@@ -34,8 +34,8 @@ export function RosterStrip({
   const { c } = useTheme();
 
   return (
-    <View style={{ gap: space.xs }}>
-      {people.map((person) => {
+    <View>
+      {people.map((person, i) => {
         const tone = whoTone(person.name);
         return (
           <View
@@ -44,7 +44,9 @@ export function RosterStrip({
               flexDirection: "row",
               alignItems: "center",
               gap: space.sm,
-              paddingVertical: space.xs,
+              paddingVertical: space.sm,
+              borderTopWidth: i === 0 ? 0 : StyleSheet.hairlineWidth,
+              borderTopColor: c.rule,
             }}
           >
             <Seat
