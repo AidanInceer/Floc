@@ -134,7 +134,7 @@ describe("the card menu", () => {
   it("clears an unknown mark back to the pastel alone", async () => {
     signIn(world.member);
     await db.update(schema.trip).set({ mark: "wave" }).where(eq(schema.trip.id, world.ours.id));
-    await setTripMark(form({ tripId: String(world.ours.id), mark: "lighthouse" }));
+    await setTripMark(form({ tripId: String(world.ours.id), mark: "rocket" }));
     expect((await tripRow(world.ours.id))?.mark).toBeNull();
   });
 

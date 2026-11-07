@@ -12,7 +12,8 @@ import type { ReactNode } from "react";
 
 import { AvatarRow, PASTEL_BY_KEY, PASTEL_SKINS, cx, iconButtonClass } from "@/components/system/ui";
 import { TripCardMenu } from "@/components/trip/trip-card-menu";
-import { starTrip } from "@/app/trips/actions";
+import { muteTrip, starTrip } from "@/app/trips/actions";
+import { BellIcon } from "@/components/system/icons";
 import { daysUntil, formatDateRange } from "@floc/core/dates/dates";
 import { tripListStage } from "@floc/core/trip/list-stage";
 import type { IsoDate } from "@floc/core/dates/dates";
@@ -185,15 +186,28 @@ export function TripCardActions({ trip }: { trip: TripCardData }) {
   return (
     <div className="pointer-events-auto ml-auto flex items-center gap-1.5">
       <StarButton tripId={trip.id} tripName={trip.name} starred={Boolean(trip.starred)} />
+      <MuteButton tripId={trip.id} tripName={trip.name} muted={Boolean(trip.muted)} />
       <TripCardMenu
         tripId={trip.id}
         tripName={trip.name}
         isAdmin={isAdmin}
         color={trip.color ?? null}
         mark={trip.mark ?? null}
-        muted={Boolean(trip.muted)}
       />
     </div>
+  );
+}
+
+function MuteButton({ tripId, tripName, muted }: { tripId: number; tripName: string; muted: boolean }) {
+  const label = muted ? `Unmute ${tripName}` : `Mute ${tripName}`;
+  return (
+    <form action={muteTrip}>
+      <input type="hidden" name="tripId" value={tripId} />
+      <input type="hidden" name="muted" value={String(!muted)} />
+      <button type="submit" aria-label={label} aria-pressed={muted} title={label} className={iconButtonClass(muted)}>
+        <BellIcon muted={muted} />
+      </button>
+    </form>
   );
 }
 
