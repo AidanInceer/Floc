@@ -10,12 +10,14 @@ import "server-only";
 
 import { listMembersFor, type TripMember } from "@/server/access";
 import { firstOvernightPlaceByTrip } from "@/server/itinerary/itinerary";
+import { routesForTrips } from "@/server/itinerary/routes-for-trips";
 import { listTripsFor } from "@/server/trips/trips";
 import { hasEnded } from "@floc/core/dates/dates";
 import { readTags } from "@floc/core/trip/tags";
 import { readTripColor } from "@floc/core/trip/trip-color";
 import { readTripMark } from "@floc/core/trip/mark/trip-mark";
 import type { TripCardData } from "@/components/trip/trip-card";
+import type { OverviewRoute } from "@floc/core/trip/overview/route";
 
 // Card plus the roster it was built from — Archived names the admins to ask
 // for a restore. `TripCardData.members` is deliberately narrower (avatar row
@@ -30,9 +32,10 @@ export async function loadTripCards(
   const tripIds = rows.map((r) => r.id);
 
   // One query for the whole list each, not one per card.
-  const [membersByTrip, whereByTrip] = await Promise.all([
+  const [membersByTrip, whereByTrip, routes] = await Promise.all([
     listMembersFor(tripIds),
     archived ? new Map<number, string>() : firstOvernightPlaceByTrip(tripIds),
+    archived ? new Map<number, OverviewRoute>() : routesForTrips(tripIds),
   ]);
 
   return rows.map((r) => {
@@ -60,6 +63,7 @@ export async function loadTripCards(
         tags: readTags(r.tags),
         color: readTripColor(r.colorKey),
         mark: readTripMark(r.mark),
+        route: routes.get(r.id) ?? null,
       },
     };
   });

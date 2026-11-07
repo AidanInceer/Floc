@@ -1,0 +1,24 @@
+/* Opening a trip from My trips (trip-open.ts). The liquid layer sits under the page and under the top bar (z-20),
+   so the trip's own card fades in over the curtain that drew it. Reduced motion never sets data-trip-open. */
+html[data-trip-open] main,
+html[data-trip-open] main ~ footer {
+  position: relative;
+  z-index: 1;
+}
+html[data-trip-open="leaving"] :is(main, main ~ footer) {
+  opacity: 0;
+  scale: 0.985;
+  transition: opacity 0.3s var(--ease), scale 0.3s var(--ease);
+}
+html[data-trip-open="waiting"] :is(main, main ~ footer) {
+  opacity: 0;
+}
+html[data-trip-open="pouring"] :is(main, main ~ footer) {
+  opacity: var(--trip-open-page, 0);
+}
+.trip-open-goo {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
