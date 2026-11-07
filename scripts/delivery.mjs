@@ -1,11 +1,12 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { git } from "./delivery/process.mjs";
 import { publish } from "./delivery/publish.mjs";
+import { finish } from "./delivery/finish.mjs";
 import { release } from "./delivery/release.mjs";
 import { recordReview } from "./delivery/review.mjs";
-import { watchDir } from "./delivery/schedule.mjs";
+import { pullRequest } from "./delivery/github.mjs";
 import { targetFor } from "./workspace/worktrees.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -19,9 +20,9 @@ const list = (flag) => {
 };
 
 function status() {
-  const dir = watchDir(root);
-  const watchers = existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith(".json")).map((f) => JSON.parse(readFileSync(join(dir, f), "utf8"))) : [];
-  return { branch: git(root, "branch", "--show-current"), watchers: watchers.map(({ pr, branch, state, detail, at }) => ({ pr, branch, state, detail, at })) };
+  const branch = git(root, "branch", "--show-current");
+  const pr = branch ? pullRequest(root, branch, "all") : null;
+  return { branch, pr: pr && { number: pr.number, url: pr.url, state: pr.state }, worktrees: "pnpm workspace:list" };
 }
 
 try {
@@ -29,14 +30,18 @@ try {
   if (action === "status") result = status();
   else if (action === "publish") {
     const messageFile = option("--message-file");
-    if (!messageFile) throw new Error("publish needs --message-file <path> [--docs <page>...]");
-    result = publish(root, { messageFile, docs: list("--docs") });
+    if (!messageFile) throw new Error("publish needs --message-file <path>");
+    result = publish(root, { messageFile });
+  } else if (action === "finish") {
+    const pr = option("--pr");
+    if (!pr) throw new Error("finish needs --pr <number> [--docs <page>...]");
+    result = await finish(root, { pr, docs: list("--docs") });
   } else if (action === "release") result = release(root, { approveSchema: option("--approve-schema") });
   else if (action === "review") {
     const branch = git(root, "branch", "--show-current");
     recordReview(root, `origin/${targetFor(branch)}`, JSON.parse(readFileSync(option("--evidence-file"), "utf8")));
     result = { state: "reviewed" };
-  } else throw new Error("Expected status, publish, release or review.");
+  } else throw new Error("Expected status, publish, finish, release or review.");
   console.log(JSON.stringify(result));
 } catch (error) {
   console.error(error.message);

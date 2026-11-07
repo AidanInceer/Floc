@@ -18,6 +18,11 @@ prompt, and any named ticket(s) (`gh issue view <n>`). Multiple tickets is
 fine. State the scope back in one line and start — ask only if a missing
 detail blocks correct work.
 
+**Own worktree first.** Not already in a task worktree → `pnpm workspace:new <name>`
+(`<issue>-<short-name>` for a ticket, `fix/<name>` for a bug), then work only there, with
+`pnpm workspace:start web` in the background and `preview_start` on the URL from
+`pnpm workspace:status`. Parallel changes never share one.
+
 Built from a prototype? Make sure its `wf-status` reads `Chosen: <key>` before you
 start. Set it now if the user picked in chat
 ([the tag follows the work](../prototype/SKILL.md#the-tag-follows-the-work)).

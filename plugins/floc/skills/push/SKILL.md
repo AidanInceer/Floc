@@ -1,15 +1,15 @@
 ---
 name: push
-description: Publish the current task worktree to develop — quick checks, one commit, its doc pages, a PR to develop that merges itself when green, a ci-babysit agent that watches the PR checks and fixes anything red, and a watcher that removes the worktree once develop CI passes. Use when the user says /floc:push, "push this", "ship it", or "get this on develop".
+description: Ship the current task worktree to develop — one commit through the pre-commit gate, a PR to develop that merges itself when CI is green, a ci-watch agent that reports red or merged, then docs, worktree close and a summary after the merge. Use when the user says /floc:push, "push this", "ship it", or "get this on develop".
 ---
 
 In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
 
 # push
 
-Task worktree → PR to `develop`. One script does the mechanics; this skill
-covers what a script cannot judge. Never publish when the user asked for local
-review only.
+Task worktree → PR to `develop` → merged → docs and clean-up. The flow is fixed
+([AGENTS.md, Guardrail gates](../../../../AGENTS.md#guardrail-gates)); do not add steps to it.
+Never push when the user asked for local review only.
 
 ## 1. Check the work
 
@@ -22,12 +22,15 @@ review only.
   `floc:design-review` agent reviews it with screenshots, its findings are
   fixed, and the review is recorded:
   `pnpm delivery review --evidence-file <json>`. Publish refuses a UI diff
-  without a record for that exact diff.
-- **Docs:** run `/floc:sync-docs`. Keep the list of pages it changed.
+  without a record for that change.
+- **Docs:** run `/floc:sync-docs` now and keep the list of pages it changed.
+  They are pushed after the merge, in step 5.
 - **Schema** → the new `drizzle/*.sql` is applied to this worktree's database.
   **API procedure** → its `scripts/parity/parity.json` line (`pnpm parity --fix`
   writes the boring half). **Plugin** → bump `version` in
   `plugins/floc/.claude-plugin/plugin.json` and run `pnpm plugins:sync`.
+
+Do not run `pnpm checks` here. The pre-commit hook is the local gate; CI is the real one.
 
 ## 2. Write the message
 
@@ -51,45 +54,47 @@ Closes AidanInceer/Floc#<issue>
 ## 3. Publish
 
 ```bash
-pnpm delivery publish --message-file <path> --docs <page> <page>
+pnpm delivery publish --message-file <path>
 ```
 
-Leave out `--docs` when no page changed. The script, in order: removes
-worktrees that have already landed, commits, merges the latest `develop` in
-(lockfile conflicts settle themselves), runs the quick checks the diff needs,
-commits and pushes only your doc pages to `floc-docs`, pushes the branch, opens
-the PR to `develop` with auto-merge, and starts the watcher.
+In order: removes worktrees that already landed, commits (the pre-commit hook runs: staged lint,
+related tests, comments, secrets, repository rules), merges the latest `develop` in, pushes,
+opens the PR to `develop` and turns on auto-merge. It takes seconds, not minutes.
 
-- **A code conflict** → it stops and names the files. Resolve them in this
-  worktree, keeping both intents. If you cannot tell which intent wins, ask.
-  Commit, then publish again.
-- **A red check** → it prints the check and its log path. Read that log only,
-  fix the cause, publish again. Never weaken a check.
-- Run it again after any fix; it reuses the PR and restarts the watcher.
+- **Pre-commit fails** → fix the cause, publish again. Never `--no-verify`.
+- **A code conflict** → it names the files. Resolve them here, keeping both
+  intents. If you cannot tell which intent wins, ask. Commit, publish again.
 
 ## 4. Watch CI
 
-Right after publish, start the `floc:ci-babysit` agent **in the background** with the PR number and
-this worktree's path. It waits for the PR checks, and if one goes red it reproduces the failure,
-fixes it in this worktree and publishes again, up to three times. It never weakens a check, never
-touches the schema without Aidan's yes, and never merges. Do not wait on it in the foreground.
+Start the `floc:ci-watch` agent **in the background** with the PR number, then end the turn.
+It reports one of:
 
-The quick checks are not all of CI: `PR checks` also runs the changed-code coverage gate. Every
-changed source file needs a test that reaches its changed lines.
+- **red** → fix the cause in this worktree, test-first. Never weaken a check. Publish again
+  with a `fix` message, start ci-watch again. At most three rounds, then stop and report.
+- **conflict** → publish again (it merges develop in), start ci-watch again.
+- **merged** → step 5.
 
-**Prototype tag.** For each prototype this work builds, set its `wf-status` to
-`Chosen: <key>, on develop <first 7 of the published sha>` in the main
+## 5. Finish
+
+From the main checkout, so the worktree folder is free:
+
+```bash
+cd C:/dev/Floc; pnpm delivery finish --pr <n> --docs <page> <page>
+```
+
+Leave out `--docs` when no page changed. It labels the tickets `on-develop` and pops them off
+the Priority stack, pushes only your doc pages to `floc-docs`, and removes this worktree and its
+branch.
+
+**Prototype tag.** For each prototype this work built, set its `wf-status` to
+`Chosen: <key>, on develop <first 7 of the merge sha>` in the main
 checkout's `floc/wireframe/`. Rules: [prototype](../prototype/SKILL.md#the-tag-follows-the-work).
 
-## 5. Report
+## 6. Report
 
-PR link, commit subject, quick-check result, doc pages pushed, and that the
-ci-babysit agent and the watcher have it. UI change → the light and dark screenshots of each surface. If
-you fixed something outside the task to get green, say so. Nothing else.
+PR link, commit subject, how many CI rounds it took, doc pages pushed, worktree closed or kept
+(and why). UI change → the light and dark screenshots of each surface. If you fixed something
+outside the task to get green, say so.
 
 End with the report format in [AGENTS.md](../../../../AGENTS.md#working-and-reporting).
-
-Then end the turn. When the agent reports, pass on one line: green, fixed (what), or not fixed
-(the check and its error). The watcher is a plain script: it merges when GitHub has not, waits for
-`develop` CI, then removes this worktree and its branch. A conflict or a red check stops it with a
-Windows notification; `pnpm delivery status` shows every watcher.

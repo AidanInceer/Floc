@@ -1,13 +1,10 @@
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 import { command, git } from "./process.mjs";
 import { autoMerge, closedBy, gh, json, pullRequest } from "./github.mjs";
-import { startWatcher } from "./schedule.mjs";
 import { mainCheckout } from "../workspace/worktrees.mjs";
 
-const scripts = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PACKAGE = "floc/apps/web/package.json";
 const FEAT = /^(?:\d+\.\d+\.\d+ )?#(?:\d+|no-ticket): feat:/;
 
@@ -69,6 +66,8 @@ export function release(root, { approveSchema } = {}) {
     pr = pullRequest(main, branch, "open");
   }
   const merging = autoMerge(main, pr.number, "main");
-  const watcher = startWatcher({ scripts, pr: pr.number, branch, target: "main", main });
-  return { state: "release opened", version, pr: pr.url, migrations, autoMerge: merging, watcher: watcher.log };
+  return {
+    state: "release opened", version, pr: pr.url, number: pr.number, migrations, autoMerge: merging,
+    next: `Start the floc:ci-watch agent in the background for PR #${pr.number}; once it reports merged, pnpm delivery finish --pr ${pr.number}.`,
+  };
 }

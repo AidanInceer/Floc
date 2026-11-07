@@ -1,8 +1,8 @@
 # CI. One check runner (scripts/checks/run.mjs) serves this file and local runs.
 #
-#   PR to develop      PR checks: quick checks plus build, fitness, quality, migrations
+#   PR to develop      PR checks: lint, types, affected tests, build, fitness, quality, migrations (the fast gate)
 #   push to develop    Release checks: everything, including web e2e and phone bundles
-#   PR to main         Release checks on the release or hotfix commit
+#   PR to main         Release checks on the release or hotfix commit (the full gate)
 #   push to main       Main coverage, for Sonar's main-branch gate
 #
 # Sonar analyses every PR and main. SonarQube Cloud Free cannot analyse develop itself.

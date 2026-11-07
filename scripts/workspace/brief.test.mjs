@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { briefLines } from "./brief.mjs";
 
-const current = { primary: true, branch: "develop", dirty: 0, behind: 0, installed: "0.17.0", repo: "0.17.0", tasks: 0, watchers: 0 };
+const current = { primary: true, branch: "develop", dirty: 0, behind: 0, installed: "0.17.0", repo: "0.17.0", tasks: 0 };
 
 test("a current main checkout with nothing in flight says nothing", () => {
   assert.deepEqual(briefLines(current), []);
@@ -20,7 +20,7 @@ test("stale cached skills say how to refresh them", () => {
 });
 
 test("a worktree session hears where it is, and every session hears what is in flight", () => {
-  const lines = briefLines({ ...current, primary: false, folder: "trip-notes", branch: "feature/trip-notes", behind: 3, tasks: 2, watchers: 1 });
+  const lines = briefLines({ ...current, primary: false, folder: "trip-notes", branch: "feature/trip-notes", behind: 3, tasks: 2 });
   assert.match(lines[0], /worktree trip-notes on feature\/trip-notes, 3 commits behind develop/);
-  assert.match(lines[1], /2 task worktrees, 1 watchers running/);
+  assert.match(lines[1], /2 task worktrees. pnpm workspace:list/);
 });

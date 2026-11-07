@@ -1,13 +1,13 @@
 ---
 name: pickup-ticket
-description: Take the top ticket off the Priority stack in AidanInceer/Floc and start work on it. Use when the user asks what's next, or wants to pick up the next ticket.
+description: Show the top five startable tickets on the Priority stack in AidanInceer/Floc, let the user choose one, then start work on it. Use when the user asks what's next, or wants to pick up the next ticket.
 ---
 
 In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
 
 # pickup-ticket
 
-Take the **top** ticket off the `Priority` stack issue and start it.
+Show the top five startable tickets on the `Priority` stack, wait for the user to choose, then start the one they chose.
 
 ## Process
 
@@ -21,25 +21,25 @@ If the stack is missing or empty, say so and point at `/floc:prioritise-tickets`
 
 The stack is split into phases (`### Phase N — …` headings, one `phase:N` label per ticket). Numbering runs through every phase. The **current phase** is the lowest phase that still has a ticket in the stack.
 
-### 2. Walk down to the first startable ticket
+### 2. Walk down to the first five startable tickets
 
-Walk the current phase only, from the top. Skip a ticket if any of these hold — and say which and why:
+Walk the current phase only, from the top, until you have five. Skip a ticket if any of these hold — and say which and why:
 
 - It is labelled `on-develop` or `future-work` → it should not be in the stack. Remove that line from the stack body and carry on down.
 - It is closed → remove the line, carry on.
-- Its `## Blocked by` names an issue that is still open and not `on-develop` → report the blocker and move to the next ticket.
+- Its `## Blocked by` names an issue that is still open and not `on-develop` → note the blocker and move to the next ticket.
 
 A ticket labelled `grilling` is **startable**. The label is intentional: it is the alignment step with Aidan before the build, not a defect. Start it with `/floc:grill`. The grill writes decisions and acceptance criteria into the ticket and keeps it one ticket; then build it here. Never offer to skip it for being `grilling`, and never flag the label as a problem. Only if the user asks for a split, run `/floc:to-tickets` with this ticket's number — it tags this parent `on-develop` and pops it off the stack.
 
-**Phase gate.** If nothing in the current phase is startable, say so, name what blocks each ticket, and ask before taking a ticket from the next phase. Never cross a phase silently.
+**Phase gate.** Fewer than five startable in the current phase → show those, and say how many more the next phase has. Nothing startable → name what blocks each ticket and ask before listing the next phase. Never cross a phase silently.
 
 A ticket in the stack with no `phase:N` label, or whose label does not match its heading → report it and point at `/floc:prioritise-tickets`. Do not guess its phase.
 
-### 3. Confirm
+### 3. Show five, then wait
 
-Show the user the ticket: number, title, phase, type label, what it delivers, acceptance criteria, blocked-by.
+Before anything else — no worktree, no grill, no reading code — show the list in stack order, one line each: number, title, phase, type label, `grilling` if it has it, and what it delivers in a few words. Name any ticket you skipped and why.
 
-**Auto** — start without asking when the ticket has acceptance criteria and the user said `auto`, "just do it", or asked for several tickets. Otherwise ask to confirm.
+Then stop and let the user choose. Start only the ticket they name.
 
 ### 4. Build it
 
@@ -63,9 +63,9 @@ One ticket → one `/floc:push` → the next ticket. Never batch several tickets
 
 ### 5. Land it with `/floc:push`
 
-Run `/floc:push` with this ticket's number. It owns the commit rules, the quick checks and the PR to `develop`.
+Run `/floc:push` with this ticket's number. It owns the commit rules, the PR to `develop` and the finish after the merge.
 
-**A ticket leaves the stack when its PR lands on `develop`**: the watcher labels it `on-develop` and pops it. It closes when the release reaches `main`. If the work is abandoned, the ticket stays where it is.
+**A ticket leaves the stack when its PR lands on `develop`**: `pnpm delivery finish` labels it `on-develop` and pops it. It closes when the release reaches `main`. If the work is abandoned, the ticket stays where it is.
 
 ### 6. Report back
 
@@ -73,6 +73,6 @@ Ticket number and title, what was built, and the `/floc:push` result (PR link). 
 
 ## Constraints
 
-- Only ever take from the top of the current phase. Never reorder or re-phase here — that is `/floc:prioritise-tickets`.
+- Only take the ticket the user chose from the list. Never reorder or re-phase here — that is `/floc:prioritise-tickets`.
 - Never close the issue by hand. `Closes` fires when `develop` reaches `main`.
 - Never pick up the `Priority` issue itself.

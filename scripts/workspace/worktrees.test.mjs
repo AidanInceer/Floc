@@ -27,9 +27,9 @@ test("git's worktree list is read into path, branch and lock", () => {
   assert.equal(list[0].locked, false);
 });
 
-const landed = { managed: true, pr: 7, contained: true, landed: "passed" };
+const landed = { managed: true, pr: 7, contained: true };
 
-test("only a managed, clean worktree whose PR landed with green CI is removed", () => {
+test("only a managed, clean worktree whose PR merged is removed", () => {
   assert.equal(sweepVerdict(landed).remove, true);
   for (const [change, reason] of [
     [{ isMain: true }, "main checkout"],
@@ -39,8 +39,6 @@ test("only a managed, clean worktree whose PR landed with green CI is removed", 
     [{ pr: undefined }, "no merged pull request"],
     [{ dirty: true }, "uncommitted changes"],
     [{ contained: false }, "commits not on the target branch"],
-    [{ landed: "failed" }, "develop CI is red after the merge"],
-    [{ landed: "pending" }, "develop CI still running"],
   ]) {
     const verdict = sweepVerdict({ ...landed, ...change });
     assert.equal(verdict.remove, false);
@@ -77,7 +75,6 @@ test("a subagent or detached worktree with nothing of its own is removed once id
     [{ dirty: true }, "uncommitted changes"],
     [{ contained: false }, "commits not on develop or main"],
     [{ idleHours: 2 }, "used in the last 24 hours"],
-    [{ watched: true }, "a watcher runs from it"],
   ]) {
     const verdict = sweepVerdict({ ...scratch, ...change });
     assert.equal(verdict.remove, false);

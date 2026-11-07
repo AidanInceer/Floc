@@ -1,4 +1,4 @@
-# Keeps `develop` in step with `main` (see CLAUDE.md → Branching).
+# Keeps `develop` in step with `main` (see AGENTS.md → Workflow, Branches).
 #
 # Work lands on `develop`, then reaches `main` as a merge commit via PR. That
 # merge commit — and any hotfix committed straight to `main` — exists only on
@@ -6,8 +6,9 @@
 # This merges `main` back into `develop` on every push to `main`, so the resync
 # is never a step anyone has to remember.
 #
-# Not a check job: it runs nothing `pnpm verify` runs, so verify.sh is untouched
-# by changes here. That exception is the reason this file may move alone.
+# Not a check job: it runs nothing `pnpm verify` runs, which is why this file
+# may move alone.
+
 name: Sync develop
 
 on:

@@ -16,8 +16,8 @@ Windows 11, **Windows PowerShell 5.1** — not pwsh 7, not bash. No `&&`: chain 
 
 ```bash
 pnpm workspace:new <name>                    # task worktree, ready to build
-pnpm checks quick                            # what the diff needs
-pnpm verify                                  # everything CI runs
+pnpm checks pr                               # reproduce PR CI locally
+pnpm verify                                  # everything the main gate runs
 pnpm --filter floc-web db:query "<select>"   # read local.db
 ```
 
@@ -44,14 +44,22 @@ Before any UI work — web, phone, mockup or marketing — read the [design card
 
 - **One task, one worktree.** Shape (`/floc:grill`, tickets, `/floc:prototype`) in the main checkout; build only in `pnpm workspace:new <name>`. Preview it: `pnpm workspace:start web` in the background, then `preview_start` with the `url` from `pnpm workspace:status`. Never edit the main checkout's `.claude/launch.json`.
 - **Branches:** `feature/*`, `fix/*`, `chore/*` → PR to `develop`; `develop` → `main` only through `/floc:release`; `hotfix/*` from and to `main`. Never push to either directly; merge conflicts in, never rebase.
-- **Ship** with `/floc:push`. It starts `floc:ci-babysit` in the background to watch the PR checks and fix anything red; then end the turn. Never publish when asked for local review only. Docs move with the code (`/floc:sync-docs`).
+- **Ship** with `/floc:push`: commit, PR to `develop`, then the `floc:ci-watch` agent in the background. It reports red (you fix and push again) or merged (then `pnpm delivery finish`: docs, worktree closed, summary). Never push when asked for local review only. Docs are written with the code (`/floc:sync-docs`) and pushed after the merge.
 - **Commit subject:** `#<issue|no-ticket>: <feat|fix|docs|refactor|chore|test>: <description>`. Only a ticket picked up this session or given in chat; it needs a `Closes AidanInceer/Floc#<issue>` line.
+
+## Guardrail gates
+
+The flow is fixed: start (ticket, analysis, or small fix) → worktree → `/floc:implement-feature` → `/floc:push` → merged → finish. Analysis work (`/floc:audit`, `/floc:feedback`, `/floc:retro`) needs no worktree. Never add a step, watcher or stage; change the flow only when Aidan says part of it is not working. A new guardrail goes at the cheapest gate that catches it:
+
+1. **Pre-commit**, under a minute: staged lint, related tests, comments, secrets, repository rules (`lint-staged.config.mjs`, `scripts/workspace/hooks.mjs`).
+2. **CI on the PR to develop**, fast: `pnpm checks pr` — types, affected tests, changed-code coverage, build, fitness, migrations.
+3. **CI on the PR to main**, everything: `pnpm checks release --full` — plus e2e journeys, mobile bundles, audit, Sonar.
 
 ## Working and reporting
 
 - **Work silently.** No progress updates or narration. Message only when finished, blocked, or a decision is needed.
 - **Final report:** a few bullets, one per piece of work, each with its checked state — `local, uncommitted` · `local` · `PR open` · `PR needs you` · `on develop` · `release PR open` · `live` · `not checked` — then one `Next:` line if Aidan must act. Screenshots for visual work.
-- **Say only what is checked.** "Live" only after the health or watcher check. Failed checks keep their full error. Always name a data model change and any surface not verified.
+- **Say only what is checked.** "Live" only after `pnpm delivery finish` sees production serve it. Failed checks keep their full error. Always name a data model change and any surface not verified.
 - Audits, reviews, retros and research reports are the deliverable — write them in full.
 
 ## Real users — hard stop
