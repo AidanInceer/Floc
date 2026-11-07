@@ -14,15 +14,16 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const suppliedPath = process.argv[2];
-const gitMessagePath = resolve(
+const gitPath = (name) => resolve(
   process.cwd(),
-  execFileSync("git", ["rev-parse", "--git-path", "COMMIT_EDITMSG"], {
-    encoding: "utf8",
-  }).trim(),
+  execFileSync("git", ["rev-parse", "--git-path", name], { encoding: "utf8" }).trim(),
 );
+// Why: git hands a merge that commits on its own MERGE_MSG, and publish merges develop in that way.
+const gitMessagePath = [gitPath("COMMIT_EDITMSG"), gitPath("MERGE_MSG")]
+  .find((path) => suppliedPath && resolve(process.cwd(), suppliedPath) === path);
 
-if (!suppliedPath || resolve(process.cwd(), suppliedPath) !== gitMessagePath) {
-  console.error("commit message path must be Git's COMMIT_EDITMSG file");
+if (!gitMessagePath) {
+  console.error("commit message path must be Git's COMMIT_EDITMSG or MERGE_MSG file");
   process.exit(1);
 }
 

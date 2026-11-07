@@ -4,7 +4,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { baseFor, branchFor, folderFor, parseWorktrees, removeWorktree, sweepVerdict, targetFor } from "./worktrees.mjs";
+import { baseFor, branchFor, branchVerdict, folderFor, isScratch, parseWorktrees, removeWorktree, sweepVerdict, targetFor } from "./worktrees.mjs";
 
 test("a plain name becomes a feature branch from develop; hotfixes start from main and go back to it", () => {
   assert.equal(branchFor("Trip notes!"), "feature/trip-notes");
@@ -66,4 +66,35 @@ test("removing a worktree takes the docs link away without touching the shared d
     assert.equal(existsSync(worktree), false);
     assert.equal(readFileSync(join(main, "docs", "page.html"), "utf8"), "keep");
   } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+const scratch = { managed: true, scratch: true, contained: true, idleHours: 48 };
+
+test("a subagent or detached worktree with nothing of its own is removed once idle for a day", () => {
+  assert.equal(sweepVerdict(scratch).remove, true);
+  assert.equal(sweepVerdict({ ...scratch, release: true, idleHours: 1 }).remove, true);
+  for (const [change, reason] of [
+    [{ dirty: true }, "uncommitted changes"],
+    [{ contained: false }, "commits not on develop or main"],
+    [{ idleHours: 2 }, "used in the last 24 hours"],
+    [{ watched: true }, "a watcher runs from it"],
+  ]) {
+    const verdict = sweepVerdict({ ...scratch, ...change });
+    assert.equal(verdict.remove, false);
+    assert.equal(verdict.reason, reason);
+  }
+});
+
+test("only task branches wait for a pull request; any other branch is scratch", () => {
+  assert.equal(isScratch("feature/a"), false);
+  assert.equal(isScratch("release/0.214.0"), false);
+  assert.equal(isScratch("worktree-agent-a03ff"), true);
+  assert.equal(isScratch(null), true);
+});
+
+test("a branch with no worktree goes only when every commit is on develop or main", () => {
+  assert.equal(branchVerdict({ name: "ci-fix", contained: true }).remove, true);
+  assert.equal(branchVerdict({ name: "ci-fix", contained: false }).remove, false);
+  assert.equal(branchVerdict({ name: "develop", contained: true }).remove, false);
+  assert.equal(branchVerdict({ name: "feature/a", checkedOut: true, contained: true }).remove, false);
 });
