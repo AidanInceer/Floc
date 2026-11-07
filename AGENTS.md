@@ -124,9 +124,15 @@ Payments between members, POI data and reviews, flight *booking* (deep links onl
 - **Design review** once per UI diff: the `floc:design-review` agent, recorded with `pnpm delivery review`. Publish refuses a UI diff without it.
 - **Deploy is Railway** via `railway.json`. A merge to `main` deploys. Env vars live in Railway's Variables tab, never in the repo.
 
-## End of a session
+## Working and reporting
 
-**Close every session that changed, committed, pushed or released anything with `/floc:session-summary`** — a few bullets, one per piece of work, each with its state (local · PR open · on develop · release PR open · live), then one `Next:` line. No recap, no narration, no file lists. Say "live" only after the health or watcher check. A subagent reports to its parent the same way. An audit, review, retro or research report is the deliverable itself, so write it in full. The `/floc:push`, `/floc:release` and `/floc:implement-feature` reports end in this format too.
+Aidan asks, the agent builds, then reports once. Session noise makes it hard to see what happened.
+
+- **Work silently.** No progress updates, no narration between tool calls, no plan restated in chat. Message only when finished, blocked, or a decision is needed.
+- **Final report: super concise.** A few bullets, one per piece of work, each with its checked state — `local, uncommitted` · `local` · `PR open` · `PR needs you` · `on develop` · `release PR open` · `live` · `not checked` — then one `Next:` line if Aidan must act. No recap, no steps taken, no file lists. Add screenshots when the work is visual.
+- **Say only what is checked.** "Live" only after the health or watcher check. A blocker or failed check keeps its full error. Always name a data model change and any surface not verified.
+- **Long reports are the deliverable.** An audit, security or vulnerability review, retro or research report is written in full.
+- A subagent reports to its parent the same way. The `/floc:push`, `/floc:release` and `/floc:implement-feature` reports end in this format.
 
 ## Real users — hard stop
 
@@ -144,7 +150,7 @@ Issues and PRDs are GitHub issues, driven with `gh`. Skills are the `floc` plugi
 - **Build:** `/floc:implement-feature`, `/floc:tdd`.
 - **Dev loop and data:** `/floc:run`, `/floc:seed-dev-db`, `/floc:reset-dev-db`, `/floc:schema-change`, `/floc:add-mobile-dep`.
 - **Docs and design:** `/floc:sync-docs`, `/floc:review-docs`, `/floc:prototype`, `/floc:audit`, `/floc:marketing` (never publishes unasked).
-- **Other:** `/floc:session-summary` (closes every session), `/floc:improve-codebase-architecture`, `/floc:rotate-secrets`, `/floc:retro` (user-run only; edits nothing until asked).
+- **Other:** `/floc:improve-codebase-architecture`, `/floc:rotate-secrets`, `/floc:retro` (user-run only; edits nothing until asked).
 - Agent `floc:ci-babysit` fixes a red check after a watcher reports it, through a PR; never started for green work.
 - Agent `floc:design-review` gives a UI change a fresh-eyes check against the design card and screenshots; it edits nothing. `/floc:implement-feature` and `/floc:push` start it on any UI diff.
 
