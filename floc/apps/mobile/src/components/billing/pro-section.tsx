@@ -7,7 +7,6 @@ import Constants from "expo-constants";
 import { deepLinkToSubscriptions } from "expo-iap";
 import { StyleSheet, Text, View } from "react-native";
 
-import { ProStarGlyph } from "../system/glyphs";
 import { useTheme } from "../system/theme";
 import { ProOffer } from "./pro-offer";
 import { ProButton, ProText } from "./pro-parts";
@@ -49,10 +48,7 @@ export function ProSection({
         gap: space.md,
       }}
     >
-      <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
-        <ProStarGlyph color={c["pro-mark"]} />
-        <Text style={{ color: c["pro-ink"], fontFamily: fonts.display, fontSize: size.heading }}>Floc Pro</Text>
-      </View>
+      <Text style={{ color: c["pro-ink"], fontFamily: fonts.display, fontSize: size.heading }}>Floc Pro</Text>
 
       {view.kind === "pro" ? (
         <>

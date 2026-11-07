@@ -1,32 +1,7 @@
 /**
- * Days (ticket 298) — the trip's timeline, one day at a time.
- *
- * DAY-FIRST (rule 3). The data is `day` rows with events hanging off them.
- * The "Overnight · Tokyo" heading is not a stop record: it comes from
- * `deriveStops`, which reads consecutive days sharing an overnight place. No
- * `stop` table exists and none ever will.
- *
- * ONE DAY ON SCREEN, THE REST IN THE STRIP. The web app draws hours down and
- * days across. A phone has one column, so the day strip is the "days across"
- * axis — spread over time instead of over the screen — and `DayGrid` draws the
- * hours below it. The day itself is now the same drawing in both apps: the
- * card list this replaced showed the events but never the gaps between them.
- *
- * TIMES ARE LOCAL TO THE ITINERARY (rule 10). `HH:MM` is displayed exactly as
- * stored; nothing here consults the device's timezone.
- *
- * ADDING IS A PRESS ON THE HOUR YOU MEAN. There is no "add to this day"
- * button: pressing an empty slot starts an event at that time, which is both
- * the answer to "when" and the place the thumb already is. The time is only a
- * start — the form that opens can move it.
- *
- * TAPPING AN EVENT OPENS IT (#325). Editing used to happen in place of the
- * grid, which lost sight of the day and left nowhere to put the event's files
- * or the talk about it. Adding still happens in place: there is no event yet
- * to open, and nothing to attach to one.
- *
- * UNDATED IS NOT BROKEN (rule 9). A trip with no days says so and points at
- * Dates. It is not gated, refused, or treated as an error state (rule 4).
+ * Days (#298), one day at a time; a stop is derived from the days, never stored (rule 3), and times
+ * stay local to the trip (rule 10). Why an Add event button as well as a press on an hour: nobody
+ * found the hour, so an empty day looked read-only.
  */
 import { today } from "@floc/core/dates/dates";
 import { formatDate } from "@floc/core/dates/dates";
@@ -35,7 +10,7 @@ import type { DayEventType } from "@floc/core/vocabulary";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { View } from "react-native";
+import { Text, View } from "react-native";
 
 import { AddToCalendar } from "@/components/days/add-to-calendar";
 import { DayGrid } from "@/components/days/day-grid";
@@ -44,11 +19,13 @@ import { EventSheet } from "@/components/days/event-sheet";
 import { DayStrip } from "@/components/days/day-strip";
 import { EventForm, type EventDraft } from "@/components/days/event-form";
 import { OvernightLine } from "@/components/days/overnight-line";
-import { Button, Empty, Failed, Label, Loading } from "@/components/system/ui";
+import { Button, Empty, Failed, Loading } from "@/components/system/ui";
+import { PlusGlyph } from "@/components/system/glyphs";
+import { useTheme } from "@/components/system/theme";
 import { useSession } from "@/lib/auth";
 import { openingDay } from "@/lib/days/opening-day";
 import { trpc } from "@/lib/api";
-import { space } from "@/lib/theme";
+import { fonts, size, space } from "@/lib/theme";
 
 /** What the API wants, from what the form produced. The two differ only in the fields a phone never sets. */
 function toInput(draft: EventDraft) {
@@ -78,6 +55,7 @@ export default function Days() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data: session } = useSession();
+  const { c } = useTheme();
 
   const [editing, setEditing] = useState<Editing>({ kind: "none" });
   const [problem, setProblem] = useState<string | null>(null);
@@ -165,9 +143,22 @@ export default function Days() {
           whole clock drawn, a page that scrolls as one puts the date and where
           you are sleeping off the top the moment you reach lunch. */}
       <View style={{ paddingHorizontal: space.lg, gap: space.md }}>
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-          <Label>{formatDate(day.date)}</Label>
-          <AddToCalendar tripId={tripId} />
+        <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={{ color: c.ink, fontFamily: fonts.sansBold, fontSize: size.body }}>{formatDate(day.date)}</Text>
+            <Text style={{ color: c["ink-2"], fontFamily: fonts.type, fontSize: size.small }}>
+              {`Day ${dates.indexOf(day.date) + 1} of ${dates.length} · ${day.events.length === 1 ? "1 event" : `${day.events.length} events`}`}
+            </Text>
+          </View>
+          <Button
+            label="Add event"
+            fit="small"
+            icon={(ink) => <PlusGlyph color={ink} />}
+            onPress={() => {
+              setEditing({ kind: "add", time: "" });
+              setProblem(null);
+            }}
+          />
         </View>
         <OvernightLine tripId={tripId} days={days.data} date={day.date} />
       </View>
@@ -187,6 +178,10 @@ export default function Days() {
         />
       </View>
 
+      <View style={{ paddingHorizontal: space.lg, paddingVertical: space.sm, alignItems: "flex-end" }}>
+        <AddToCalendar tripId={tripId} />
+      </View>
+
       <EventSheet
         open={editing.kind === "add"}
         title="Add to this day"
@@ -196,7 +191,7 @@ export default function Days() {
           initial={{
             type: "activity",
             title: "",
-            time: editing.kind === "add" ? editing.time : null,
+            time: editing.kind === "add" && editing.time !== "" ? editing.time : null,
             allDay: false,
             note: null,
           }}

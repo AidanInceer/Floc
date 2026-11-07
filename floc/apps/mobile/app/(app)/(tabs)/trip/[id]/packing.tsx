@@ -15,10 +15,7 @@
  * is furniture on every visit for a job done once (#126).
  */
 import {
-  PACK_CATEGORIES,
-  PACK_CATEGORY_LABELS,
   type PackingLineGroup,
-  type PackCategory,
   type PackTier,
 } from "@floc/core/packing/packing";
 import { arrangePackingLanes } from "@floc/core/packing/packing-lanes";
@@ -35,29 +32,12 @@ import { PackingSection } from "@/components/packing/packing-section";
 import { IdeaRow } from "@/components/packing/packing-idea-row";
 import { PackingSetup, PackingUpgrade } from "@/components/packing/packing-setup";
 import { Sheet } from "@/components/system/sheet";
-import {
-  Body,
-  Button,
-  Card,
-  Dropdown,
-  Failed,
-  Field,
-  Label,
-  Loading,
-  Segmented,
-} from "@/components/system/ui";
+import { Failed, Loading } from "@/components/system/ui";
+import { AddItem } from "@/components/packing/add-item";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 
-const CATEGORIES = PACK_CATEGORIES.map((value) => ({
-  value,
-  label: PACK_CATEGORY_LABELS[value],
-}));
 
-const LISTS = [
-  { value: "shared" as const, label: "The group's" },
-  { value: "mine" as const, label: "My bag" },
-];
 
 /** The phone has no inline link here, so a gap's link reads as plain words. */
 function whyLine(plan: Parameters<typeof ideasWhy>[0]): string {
@@ -120,9 +100,6 @@ export default function Packing() {
   const board = useQuery(trpc.packing.list.queryOptions({ tripId }, { enabled: ready }));
   const me = useQuery(trpc.me.get.queryOptions());
 
-  const [addingTo, setAddingTo] = useState<"shared" | "mine">("mine");
-  const [label, setLabel] = useState("");
-  const [category, setCategory] = useState<PackCategory>("essentials");
   const [picking, setPicking] = useState<Picking>(null);
   const [kitsOpen, setKitsOpen] = useState(false);
   const [ideasHidden, setIdeasHidden] = useState(false);
@@ -133,7 +110,6 @@ export default function Packing() {
   const add = useMutation({
     ...trpc.packing.add.mutationOptions(),
     onSuccess: () => {
-      setLabel("");
       again();
     },
   });
@@ -234,23 +210,11 @@ export default function Packing() {
           />
         )}
 
-        <Card>
-          <View style={{ gap: space.md }}>
-            <Label>Add something</Label>
-            <Segmented options={LISTS} value={addingTo} onChange={setAddingTo} />
-            <Field label="What is it" value={label} onChangeText={setLabel} />
-            <Dropdown label="Category" options={CATEGORIES} value={category} onChange={setCategory} />
-            <Button
-              label="Add it"
-              busy={add.isPending}
-              disabled={label.trim() === ""}
-              onPress={() =>
-                add.mutate({ tripId, label: label.trim(), category, mine: addingTo === "mine" })
-              }
-            />
-            {add.isError ? <Body tone="red">{add.error.message}</Body> : null}
-          </View>
-        </Card>
+        <AddItem
+          busy={add.isPending}
+          error={add.isError ? add.error.message : null}
+          onAdd={(item, done) => add.mutate({ tripId, ...item }, { onSuccess: done })}
+        />
 
         <PackingSection
           heading="Your bag"
@@ -261,7 +225,7 @@ export default function Packing() {
           selecting={picking?.list === "mine"}
           onSelecting={(on) => startPicking("mine", on)}
           onClear={() => confirmClear(true)}
-          emptyWord="Start your bag — add the first thing above."
+          emptyWord="Nothing in your bag yet."
           ideas={{
             list: ideasHidden ? [] : board.data.ideas,
             render: (idea) => (

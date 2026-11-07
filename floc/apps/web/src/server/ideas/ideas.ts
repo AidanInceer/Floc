@@ -6,10 +6,11 @@
  */
 import "server-only";
 
-import { and, eq, isNull } from "drizzle-orm";
+import { and, count, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { idea, ideaVote } from "@/db/schema";
+import { assertRoom } from "@/server/limits";
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { touch } from "@/server/audit";
 
@@ -29,6 +30,8 @@ export async function insertIdea(args: {
   createdBy: string;
   title: string;
 }): Promise<number> {
+  const [{ n }] = await db.select({ n: count() }).from(idea).where(and(eq(idea.tripId, args.tripId), isNull(idea.deletedAt)));
+  assertRoom("ideas", n);
   const row = await db
     .insert(idea)
     .values({ ...args, title: args.title.slice(0, IDEA_TITLE_MAX) })

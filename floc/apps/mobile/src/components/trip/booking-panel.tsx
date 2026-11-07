@@ -1,12 +1,13 @@
 import { formatDateRange, nightsBetween } from "@floc/core/dates/dates";
-import type { BookingPlan } from "@floc/core/trip/booking-links";
+import type { BookingPlan } from "@floc/core/trip/booking/booking-links";
 import { useState } from "react";
 import { View } from "react-native";
 
 import { useTheme } from "../system/theme";
-import { Body, Card, Label, Pill, Segmented } from "../system/ui";
+import { Body, Card, Pill, Segmented, SectionTitle } from "../system/ui";
 import { TextLink } from "../system/text-controls";
-import { OffsiteNote, SiteLinks } from "./booking-links";
+import { OffsiteNote } from "./booking-links";
+import { SiteLinks } from "./site-links";
 import { HotelUpload } from "./hotel-upload";
 import { radius, space } from "@/lib/theme";
 
@@ -47,11 +48,11 @@ export function BookingPanel({ tripId, plan, onOpenDays }: { tripId: number; pla
 
   return (
     <View style={{ gap: space.sm }}>
-      <Label>Get booking</Label>
+      <SectionTitle>Get booking</SectionTitle>
       <Segmented options={KINDS} value={kind} onChange={setKind} />
       <Card>
         <View style={{ gap: space.md }}>
-          {kind === "flights" ? <SiteLinks links={plan.flights} /> : null}
+          {kind === "flights" ? <SiteLinks kind="flights" label="Search flights" links={plan.flights} /> : null}
 
           {kind === "stays" && plan.stays === "unset" ? (
             <TextLink label="Set where you sleep on Days to find a stay" onPress={onOpenDays} />
@@ -71,7 +72,7 @@ export function BookingPanel({ tripId, plan, onOpenDays }: { tripId: number; pla
                         <Body tone="ink-3">{row.hotel.name}</Body>
                       </View>
                     ) : (
-                      <SiteLinks links={row.links} />
+                      <SiteLinks kind="stays" label={`Find a stay in ${row.placeName}`} links={row.links} />
                     )}
                     <HotelUpload tripId={tripId} dayId={row.dayId} place={row.placeName} />
                   </View>

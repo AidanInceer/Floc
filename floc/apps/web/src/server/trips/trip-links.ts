@@ -11,10 +11,11 @@
  */
 import "server-only";
 
-import { and, eq, isNull } from "drizzle-orm";
+import { and, count, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { tripLink } from "@/db/schema";
+import { assertRoom } from "@/server/limits";
 import { capText } from "@floc/core/text/text";
 import { touch } from "@/server/audit";
 
@@ -54,6 +55,8 @@ export async function insertTripLink(args: {
   url: string;
   label: string | null;
 }): Promise<void> {
+  const [{ n }] = await db.select({ n: count() }).from(tripLink).where(and(eq(tripLink.tripId, args.tripId), isNull(tripLink.deletedAt)));
+  assertRoom("tripLinks", n);
   await db.insert(tripLink).values({
     tripId: args.tripId,
     createdBy: args.createdBy,

@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { command, git } from "./process.mjs";
-import { gh, pullRequest, taskBranch, validateMessage } from "./github.mjs";
+import { autoMerge, gh, pullRequest, taskBranch, validateMessage } from "./github.mjs";
 import { mergeTarget } from "./sync.mjs";
 import { requireReview } from "./review.mjs";
 import { startWatcher } from "./schedule.mjs";
@@ -55,9 +55,7 @@ export function publish(root, { messageFile, docs = [] }) {
     gh(root, "pr", "create", "--base", target, "--head", branch, "--title", subject, "--body-file", resolve(messageFile));
     pr = pullRequest(root, branch, "open");
   }
-  let autoMerge = "on";
-  try { gh(root, "pr", "merge", String(pr.number), "--auto", "--merge"); }
-  catch { autoMerge = "off; the watcher merges once checks pass"; }
+  const merging = autoMerge(root, pr.number, target);
   const watcher = startWatcher({ scripts, pr: pr.number, branch, target, main, worktree: root });
-  return { state: "published", pr: pr.url, target, sha: git(root, "rev-parse", "HEAD"), ...(version && { version }), docs: pages, autoMerge, watcher: watcher.log, swept };
+  return { state: "published", pr: pr.url, target, sha: git(root, "rev-parse", "HEAD"), ...(version && { version }), docs: pages, autoMerge: merging, watcher: watcher.log, swept };
 }

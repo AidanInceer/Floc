@@ -1,27 +1,10 @@
 /**
- * A trip's own header: the name, the balance, and a rail of its sections.
- *
- * WHAT THIS REPLACES. #299 put the sections behind a hamburger and a sheet,
- * and wrote down its own weak point: a drawer gets ignored. It was. This is
- * the fix — every section is a word on screen, one tap away, and the rail
- * costs one line of height instead of a modal.
- *
- * SIX WORDS FIT. That is why a rail works here and would not have at #299's
- * seven-with-Who: they sit on one line on a phone, so nothing is hidden and
- * there is no "More" reinventing the drawer. It scrolls anyway, because a
- * longer trip name or a larger type size can push a word off the edge.
- *
- * A RAIL, NOT A TAB BAR. Each section is its mark and its word, as on the
- * web; the current mark sits in its section's pastel tile, and its word
- * goes ink and bold. No pills and no fill around the word — the bottom bar is
- * the app's navigation and this is one level below it.
- *
- * PLANNING ORDER (see the trip layout). Not alphabetical, not by traffic.
+ * Why a fixed row, not a scrolling rail: seven words scrolled sideways and snapped back after a
+ * pick, so the open section sat off-screen. Equal cells — mark over word — fit all seven at once.
  */
-import { titleCase } from "@floc/core/text/title-case";
 import { SECTION_COLOURS } from "@floc/core/design/section-colours";
 import { useRouter } from "expo-router";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useTheme } from "../system/theme";
@@ -35,7 +18,6 @@ export type Section = {
   label: string;
 };
 
-/** The back arrow, drawn rather than imported — one line and one corner. */
 function BackArrow({ color }: { color: string }) {
   return (
     <View style={{ width: 20, height: 20, justifyContent: "center" }}>
@@ -56,18 +38,10 @@ function BackArrow({ color }: { color: string }) {
   );
 }
 
-function BalanceChip({
-  text,
-  tone,
-  onPress,
-}: {
-  text: string;
-  tone: Pastel;
-  onPress: () => void;
-}) {
+function BalanceChip({ text, tone, onPress }: { text: string; tone: Pastel; onPress: () => void }) {
   const { c } = useTheme();
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={`Money, ${text}`} onPress={onPress}>
+    <Pressable accessibilityRole="button" accessibilityLabel={`Money, ${text}`} onPress={onPress} hitSlop={8}>
       <View
         style={{
           backgroundColor: c[tone],
@@ -91,7 +65,6 @@ function BalanceChip({
   );
 }
 
-/** The name, the share, the balance — one line, lifted out to keep the header under its ceiling. */
 function TitleBar({
   title,
   balance,
@@ -106,93 +79,71 @@ function TitleBar({
   const { c } = useTheme();
   const router = useRouter();
   return (
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: space.md,
-          paddingHorizontal: space.lg,
-          paddingVertical: space.md,
-        }}
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: space.md,
+        paddingHorizontal: space.lg,
+        paddingTop: space.sm,
+        paddingBottom: space.md,
+      }}
+    >
+      {/* Why: out of a trip is the list of trips, not wherever the history happened to be (#302). */}
+      <Pressable accessibilityRole="button" accessibilityLabel="All trips" hitSlop={12} onPress={() => router.navigate("/trips")}>
+        <BackArrow color={c.ink} />
+      </Pressable>
+      {/* Why: the name as the person typed it — sentence case is theirs to choose, not ours to change. */}
+      <Text
+        numberOfLines={2}
+        style={{ flex: 1, color: c.ink, fontFamily: fonts.display, fontSize: size.heading }}
       >
-        {/* To the trip list, not to wherever you happened to be. `router.back`
-            popped the navigation history, so opening a trip from Explore and
-            leaving it put you back on Explore — the arrow above a trip means
-            "out of this trip", and out of a trip is the list of them (#302). */}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="All trips"
-          onPress={() => router.navigate("/trips")}
-        >
-          <BackArrow color={c.ink} />
-        </Pressable>
-        {/* Just the name. It used to open the trip's name, colour and tags,
-            but the card on the trips list carries that menu now and one job
-            does not need two doors — the pen on a heading was the weaker of
-            the two, and it cost every section a control nobody wanted (#302). */}
-        <Text
-          numberOfLines={1}
-          style={{
-            flex: 1,
-            color: c.ink,
-            fontFamily: fonts.display,
-            fontSize: size.heading,
-          }}
-        >
-          {titleCase(title)}
-        </Text>
-        {balance !== null ? (
-          <BalanceChip
-            text={balance}
-            tone={owing ? "pastel-red" : "pastel-green"}
-            onPress={() => onGo("money")}
-          />
-        ) : null}
-      </View>
+        {title}
+      </Text>
+      {balance !== null ? (
+        <BalanceChip text={balance} tone={owing ? "pastel-red" : "pastel-green"} onPress={() => onGo("money")} />
+      ) : null}
+    </View>
   );
 }
 
-function RailItem({
-  section,
-  on,
-  onGo,
-}: {
-  section: Section;
-  on: boolean;
-  onGo: (route: string) => void;
-}) {
+function SectionCell({ section, on, onGo }: { section: Section; on: boolean; onGo: (route: string) => void }) {
   const { c } = useTheme();
   const colour = SECTION_COLOURS[section.route];
   return (
     <Pressable
       accessibilityRole="tab"
+      accessibilityLabel={section.label}
       accessibilityState={{ selected: on }}
       onPress={() => onGo(section.route)}
-      style={{ paddingBottom: space.md }}
+      style={{ flex: 1, alignItems: "center", gap: 2, paddingBottom: space.sm }}
     >
-      <View style={{ flexDirection: "row", alignItems: "center", gap: space.xs }}>
-        <View
-          style={{
-            width: 24,
-            height: 24,
-            borderRadius: 7,
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: on ? c[`pastel-${colour}`] : "transparent",
-          }}
-        >
-          <SectionGlyph route={section.route} color={on ? c[`pastel-${colour}-ink`] : c["ink-3"]} />
-        </View>
-        <Text
-          style={{
-            color: on ? c.ink : c["ink-2"],
-            fontFamily: on ? fonts.sansBold : fonts.sans,
-            fontSize: size.body,
-          }}
-        >
-          {section.label}
-        </Text>
+      <View
+        style={{
+          width: 36,
+          height: 28,
+          borderRadius: radius.sm,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: on ? c[`pastel-${colour}`] : "transparent",
+        }}
+      >
+        <SectionGlyph route={section.route} color={on ? c[`pastel-${colour}-ink`] : c["ink-2"]} />
       </View>
+      {/* Why: seven cells on a 360dp phone with larger text cut "Overview"; the word shrinks rather than clips. */}
+      <Text
+        numberOfLines={1}
+        maxFontSizeMultiplier={1.15}
+        adjustsFontSizeToFit
+        minimumFontScale={0.85}
+        style={{
+          color: on ? c.ink : c["ink-3"],
+          fontFamily: on ? fonts.sansBold : fonts.sans,
+          fontSize: size.label,
+        }}
+      >
+        {section.label}
+      </Text>
     </Pressable>
   );
 }
@@ -216,7 +167,6 @@ export function TripHeader({
 }) {
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
-
   return (
     <View
       style={{
@@ -227,21 +177,11 @@ export function TripHeader({
       }}
     >
       <TitleBar title={title} balance={balance} owing={owing} onGo={onGo} />
-
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: space.lg, gap: space.lg }}
-      >
+      <View accessibilityRole="tablist" style={{ flexDirection: "row", paddingHorizontal: space.xs }}>
         {sections.map((section) => (
-          <RailItem
-            key={section.route}
-            section={section}
-            on={section.route === current}
-            onGo={onGo}
-          />
+          <SectionCell key={section.route} section={section} on={section.route === current} onGo={onGo} />
         ))}
-      </ScrollView>
+      </View>
     </View>
   );
 }

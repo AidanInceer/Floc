@@ -18,6 +18,7 @@
  * TIMES ARE LOCAL TO THE ITINERARY (rule 10). `HH:MM` in, `HH:MM` out, and the
  * device clock is never asked what it thinks.
  */
+import { TEXT_CAPS } from "@floc/core/text/text";
 import { EVENT_CATEGORIES } from "@floc/core/itinerary/event-categories";
 import { DAY_EVENT_TYPES, type DayEventType } from "@floc/core/vocabulary";
 import { useState } from "react";
@@ -65,12 +66,13 @@ export function EventForm({
     <Card>
       <View style={{ gap: space.md }}>
         <Segmented options={TYPES} value={type} onChange={setType} />
-        <Field label="What" value={title} onChangeText={setTitle} autoFocus />
+        <Field label="What" value={title} onChangeText={setTitle} maxLength={TEXT_CAPS.eventTitle} autoFocus />
         <TimeField value={time} onChange={setTime} />
         <Field
           label="Notes"
           value={note}
           onChangeText={setNote}
+          maxLength={TEXT_CAPS.eventNote}
           multiline
         />
         {problem ? <Body tone="red">{problem}</Body> : null}

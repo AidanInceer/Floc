@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 
 import { EVENT_CATEGORIES } from "@floc/core/itinerary/event-categories";
+import { TEXT_CAPS } from "@floc/core/text/text";
 import type { DayEventType, TransportType } from "@floc/core/vocabulary";
 import { DialogClose } from "@/components/system/dialog";
 import { EventGlyph } from "@/components/system/icons/days";
@@ -55,7 +56,7 @@ export function EventHead({
           <span className="block font-mono text-xs opacity-75">Event name</span>
           <input
             name="title"
-            maxLength={120}
+            maxLength={TEXT_CAPS.eventTitle}
             autoComplete="off"
             autoFocus={autoFocus}
             value={title}

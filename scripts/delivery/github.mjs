@@ -83,3 +83,24 @@ export function landedState(root, sha) {
   const runs = JSON.parse(command("gh", ["api", `repos/${repository}/commits/${sha}/check-runs?per_page=100`], { cwd: root })).check_runs;
   return requiredStatus(runs, [LANDED_CHECK]);
 }
+
+export function waitsForChecks({ allowAutoMerge, rules }) {
+  return Boolean(allowAutoMerge) && rules.some((rule) => rule.type === "required_status_checks");
+}
+
+/**
+ * Why: without auto-merge allowed and required checks on the branch, GitHub
+ * treats `gh pr merge --auto` as "merge now", before any check has run. The
+ * watcher merges instead, once the checks pass.
+ */
+export function autoMerge(root, number, branch) {
+  try {
+    const allowAutoMerge = JSON.parse(command("gh", ["api", `repos/${repository}`], { cwd: root })).allow_auto_merge;
+    const rules = JSON.parse(command("gh", ["api", `repos/${repository}/rules/branches/${branch}`], { cwd: root }));
+    if (!waitsForChecks({ allowAutoMerge, rules })) return "off; the watcher merges once checks pass";
+    gh(root, "pr", "merge", String(number), "--auto", "--merge");
+    return "on";
+  } catch {
+    return "off; the watcher merges once checks pass";
+  }
+}

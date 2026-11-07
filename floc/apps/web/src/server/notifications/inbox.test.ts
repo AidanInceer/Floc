@@ -106,7 +106,12 @@ describe("the inbox", () => {
   });
 
   it("pages 50 at a time", async () => {
-    for (let i = 0; i < 51; i++) await nudge();
+    // Why the backdating: one person may send only so many nudges a day, and this needs 51 items.
+    const yesterday = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+    for (let i = 0; i < 51; i++) {
+      await nudge();
+      await db.update(schema.nudge).set({ createdAt: yesterday });
+    }
     const first = await listInbox(world.member, null);
     const second = await listInbox(world.member, first.next);
 

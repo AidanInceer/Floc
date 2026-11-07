@@ -39,7 +39,10 @@ export async function receiveBookingMail(mail: InboundMail, deps: Deps): Promise
   const sender = addressIn(mail.from);
   if (!sender) return;
 
-  const access = await accessFor(mail, sender);
+  // Why only an account holder hears back: the From is forgeable, so answering anyone lets a stranger make Floc mail a third party.
+  const userId = await userIdForEmail(sender);
+  if (!userId) return;
+  const access = await accessFor(mail, userId);
   if (!access) {
     await deps.send([emails.inboundRefused({ to: sender })]);
     return;
@@ -70,11 +73,9 @@ export async function receiveBookingMail(mail: InboundMail, deps: Deps): Promise
   }
 }
 
-async function accessFor(mail: InboundMail, sender: string) {
+async function accessFor(mail: InboundMail, userId: string) {
   const tripId = mail.to.map(tripForInboundAddress).find((id) => id !== null);
-  if (tripId == null) return null;
-  const userId = await userIdForEmail(sender);
-  return userId ? findTripAccess(tripId, userId) : null;
+  return tripId == null ? null : findTripAccess(tripId, userId);
 }
 
 function addressIn(raw: string): string | null {

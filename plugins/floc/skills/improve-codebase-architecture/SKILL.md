@@ -29,7 +29,7 @@ the user reads. Think in the left column; write the right column.
 | Leverage | "one function, used by N screens" |
 | Leak | "X has to know how Y works inside" |
 
-Domain words come from [`floc/CONTEXT.md`](../../../../floc/CONTEXT.md):
+Domain words come from [`floc/CONTEXT.md`](floc/CONTEXT.md):
 **stop**, **day**, **overnight place**, **expense**, **split**,
 **settlement**, **notes page**, **Explore trip** (a preset trip), **member**.
 Write "the Days page", not "the itinerary feature module". Name a screen as the
@@ -55,10 +55,10 @@ changing.
     `floc/apps/mobile/src`) — it belongs in `@floc/core`.
 
 Read first: AGENTS.md (Invariants, Structure, Code standards),
-[`floc/CONTEXT.md`](../../../../floc/CONTEXT.md),
-[`learnings.md`](../../../../learnings.md), the
-[decision log](../../../../docs/foundation/decisions.html) and the
-[architecture page](../../../../docs/engineering/index.html).
+[`floc/CONTEXT.md`](floc/CONTEXT.md),
+[`learnings.md`](learnings.md), the
+[decision log](docs/foundation/decisions.html) and the
+[architecture page](docs/engineering/index.html).
 
 ## 2. Walk the code
 

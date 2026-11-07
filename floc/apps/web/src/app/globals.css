@@ -452,6 +452,19 @@
     z-index: 10;
   }
 
+  /* A booking site you just added: its new buttons wash pen once, colour only (wireframe/booking-sites J). */
+  .site-fresh {
+    animation: site-fresh 1.2s var(--ease);
+  }
+  @keyframes site-fresh {
+    18%,
+    80% {
+      border-color: var(--pen);
+      background-color: var(--pen-2);
+      color: var(--pen-deep);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

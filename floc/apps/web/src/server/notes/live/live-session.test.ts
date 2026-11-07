@@ -28,6 +28,12 @@ describe("session over the socket", () => {
     expect(calls[0].headers).toEqual({ cookie: "s=1" });
   });
 
+  it("forwards the caller's address too, so Better Auth rate-limits them and not one shared bucket", async () => {
+    const { fetchFn, calls } = answering(200, { user: { id: "u-1" } });
+    await sessionResolver("http://x", fetchFn)(new Headers({ cookie: "s=1", "x-real-ip": "203.0.113.7" }));
+    expect(calls[0].headers).toEqual({ cookie: "s=1", "x-real-ip": "203.0.113.7" });
+  });
+
   it("answers null with no cookie, a failed call, or no session", async () => {
     expect(await sessionResolver("http://x", answering(200, {}).fetchFn)(new Headers())).toBeNull();
     const failed = sessionResolver("http://x", answering(500, {}).fetchFn);

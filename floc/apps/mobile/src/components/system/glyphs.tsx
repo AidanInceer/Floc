@@ -72,6 +72,15 @@ export function CrossGlyph({ color }: { color: string }) {
   );
 }
 
+export function SearchGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 14 14" fill="none">
+      <Circle cx={6.2} cy={6.2} r={3.8} stroke={color} strokeWidth={STROKE} />
+      <Path d="M9 9 11.6 11.6" stroke={color} strokeWidth={STROKE} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
 /** A hand raised: I'll bring it. A circle with a line up out of it. */
 export function ClaimGlyph({ color }: { color: string }) {
   return (

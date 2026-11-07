@@ -15,7 +15,7 @@ import { db } from "@/db";
 import { packingClaim, packingLine, tripMembership, user, userProfile } from "@/db/schema";
 import { MAX_PACK_QUANTITY, MIN_PACK_QUANTITY } from "@floc/core/packing/packing";
 import type { PackCategory, PackOrigin, PackTier } from "@floc/core/packing/packing";
-import { bounded, LIMITS } from "@/server/limits";
+import { assertRoom, bounded, LIMITS } from "@/server/limits";
 import { tripHref } from "@floc/core/notifications/notification-href";
 import { touch } from "@/server/audit";
 import { recordActivity } from "@/server/notifications/activity";
@@ -161,12 +161,23 @@ export async function viewerHasPacking(tripId: number, userId: string): Promise<
   return claimed !== undefined;
 }
 
+/** The shared list when `ownerId` is null, else that person's own bag. */
+async function countLines(tripId: number, ownerId: string | null): Promise<number> {
+  const owner = ownerId === null ? isNull(packingLine.ownerId) : eq(packingLine.ownerId, ownerId);
+  const [{ n }] = await db
+    .select({ n: sql<number>`count(*)` })
+    .from(packingLine)
+    .where(and(eq(packingLine.tripId, tripId), owner, isNull(packingLine.deletedAt)));
+  return n;
+}
+
 export async function insertPackingLine(
   tripId: number,
   createdBy: string,
   label: string,
   category: PackCategory,
 ): Promise<void> {
+  assertRoom("packingLines", await countLines(tripId, null));
   await db.insert(packingLine).values({ tripId, createdBy, label, category });
 }
 
@@ -185,6 +196,7 @@ export async function insertPersonalPackingLine(
   label: string,
   category: PackCategory,
 ): Promise<void> {
+  assertRoom("packingLines", await countLines(tripId, ownerId));
   await db
     .insert(packingLine)
     .values({ tripId, createdBy: ownerId, ownerId, label, category });

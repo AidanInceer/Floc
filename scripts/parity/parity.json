@@ -354,6 +354,9 @@
     "route.setOn": {
       "mobile": "yes"
     },
+    "settings.bookingSite": {
+      "mobile": "yes"
+    },
     "settings.currency": {
       "mobile": "yes"
     },

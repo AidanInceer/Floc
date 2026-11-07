@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { command, git } from "./process.mjs";
-import { closedBy, gh, json, pullRequest } from "./github.mjs";
+import { autoMerge, closedBy, gh, json, pullRequest } from "./github.mjs";
 import { startWatcher } from "./schedule.mjs";
 import { mainCheckout } from "../workspace/worktrees.mjs";
 
@@ -68,9 +68,7 @@ export function release(root, { approveSchema } = {}) {
     gh(main, "pr", "create", "--base", "main", "--head", branch, "--title", `Release ${version}`, "--body-file", body);
     pr = pullRequest(main, branch, "open");
   }
-  let autoMerge = "on";
-  try { gh(main, "pr", "merge", String(pr.number), "--auto", "--merge"); }
-  catch { autoMerge = "off; the watcher merges once checks pass"; }
+  const merging = autoMerge(main, pr.number, "main");
   const watcher = startWatcher({ scripts, pr: pr.number, branch, target: "main", main });
-  return { state: "release opened", version, pr: pr.url, migrations, autoMerge, watcher: watcher.log };
+  return { state: "release opened", version, pr: pr.url, migrations, autoMerge: merging, watcher: watcher.log };
 }

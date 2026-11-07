@@ -82,3 +82,17 @@ function repointEnv(env, managed) {
   const next = text.replace(/^(TURSO_DATABASE_URL|FLOC_FILES_DIR|BETTER_AUTH_URL)=.*$/gm, (_, key) => `${key}=${managed[key]}`);
   if (next !== text) writeFileSync(env, next);
 }
+
+const DEV_ACCOUNT = ["FLOC_DEV_USER_EMAIL", "FLOC_DEV_USER_PASSWORD"];
+
+// Why: the seed hangs its trips off your local dev account, so a worktree reuses the main checkout's. Nothing else is copied.
+export function copyDevAccount(root, main) {
+  const from = join(main, "floc/apps/web/.env");
+  const to = join(root, "floc/apps/web/.env");
+  if (!existsSync(from) || !existsSync(to)) return [];
+  const have = readFileSync(to, "utf8");
+  const lines = readFileSync(from, "utf8").split(/\r?\n/)
+    .filter((line) => DEV_ACCOUNT.some((key) => line.startsWith(`${key}=`)) && !have.includes(`${line.split("=")[0]}=`));
+  if (lines.length) writeFileSync(to, `${have.replace(/\n?$/, "\n")}${lines.join("\n")}\n`);
+  return lines.map((line) => line.split("=")[0]);
+}

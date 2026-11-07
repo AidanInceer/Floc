@@ -19,7 +19,7 @@ import { softDeleteTrip } from "@/server/trips/trips";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { createNotesLive } from "./notes-live";
 import { loadPageEpoch } from "./live-epoch-store";
-import { loadPageState, storePageState } from "./page-live-store";
+import { LIVE_STATE_MAX_BYTES, loadPageState, storePageState } from "./page-live-store";
 
 let world: Scenario;
 let pageId: number;
@@ -54,6 +54,17 @@ describe("who may connect", () => {
   it("lets a trip member into a page and the trip's page list", async () => {
     expect((await authenticate(liveAs(world.member), pageDocumentName(world.ours.id, pageId))).userId).toBe(world.member);
     expect((await authenticate(liveAs(world.member), pagesDocumentName(world.ours.id))).userId).toBe(world.member);
+  });
+
+  it("keeps the trip's page list read-only: it carries who is where, never content", async () => {
+    const config = (documentName: string) => ({ readOnly: false, isAuthenticated: false, documentName });
+    const list = config(pagesDocumentName(world.ours.id));
+    const page = config(pageDocumentName(world.ours.id, pageId));
+    for (const c of [list, page]) {
+      await liveAs(world.member).hooks("onAuthenticate", { context: {}, documentName: c.documentName, requestHeaders: new Headers(), connectionConfig: c } as never);
+    }
+    expect(list.readOnly).toBe(true);
+    expect(page.readOnly).toBe(false);
   });
 
   it("refuses a signed-out person", async () => {
@@ -163,6 +174,23 @@ describe("loading and storing a page", () => {
   it("does not store a page over 1 MB", async () => {
     await storePageState(world.ours.id, pageId, world.member, new Uint8Array([0, 0]), serialisePage(lines("x".repeat(1_000_001))));
     expect((await loadPageState(pageId)).state).toBeNull();
+  });
+
+  it("does not store a page whose live history is past the limit, however short its text", async () => {
+    await storePageState(world.ours.id, pageId, world.member, new Uint8Array(LIVE_STATE_MAX_BYTES + 1), serialisePage(lines("short")));
+    expect((await loadPageState(pageId)).state).toBeNull();
+  });
+
+  it("closes every editor of a doc that grows past the live limit, so it leaves memory", async () => {
+    const live = liveAs(world.admin);
+    const name = pageDocumentName(world.ours.id, pageId);
+    await live.openDirectConnection(name, { userId: world.admin, checkedAt: Date.now() });
+    const document = live.documents.get(name)!;
+    const closed: string[] = [];
+    document.addConnection({ context: { userId: world.member }, messageAddress: "m", send: () => {}, close: () => closed.push("m") } as never);
+    document.getText("flood").insert(0, "x".repeat(LIVE_STATE_MAX_BYTES + 1));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(closed).toEqual(["m"]);
   });
 
   it("answers no epoch for a page never opened", async () => {

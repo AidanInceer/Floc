@@ -17,7 +17,7 @@ import { Face } from "./person-row";
 import { useTheme } from "../system/theme";
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 
-import { Body, Button, Card, Label } from "../system/ui";
+import { Body, Button, Card, SectionTitle } from "../system/ui";
 import { space } from "@/lib/theme";
 
 export type Invitation = {
@@ -43,7 +43,7 @@ export function InviteBanner({
 
   return (
     <View style={{ gap: space.sm }}>
-      <Label>You have been asked</Label>
+      <SectionTitle>You have been asked</SectionTitle>
       {invites.map((invite) => (
         <Card
           key={invite.tripId}

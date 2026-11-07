@@ -4,7 +4,7 @@ import { View } from "react-native";
 
 import { AddFile } from "../files/add-file";
 import { Sheet } from "../system/sheet";
-import { Body, Button, Label } from "../system/ui";
+import { Body, Button, SectionTitle } from "../system/ui";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 
@@ -31,7 +31,7 @@ export function HotelUpload({ tripId, dayId, place }: { tripId: number; dayId: n
       <Button label="Add a booking" variant="quiet" onPress={() => setOpen(true)} />
       <Sheet open={open} onClose={() => setOpen(false)}>
         <View style={{ paddingHorizontal: space.lg, gap: space.sm }}>
-          <Label>{`Add a booking for ${place}`}</Label>
+          <SectionTitle>{`Add a booking for ${place}`}</SectionTitle>
           <AddFile
             filedUnder="hotel"
             busy={upload.isPending}

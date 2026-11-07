@@ -141,14 +141,16 @@ export const auth = betterAuth({
       },
     },
   },
+  advanced: {
+    // Why: Railway's edge sets `X-Real-IP` to the caller and a client can pad `X-Forwarded-For`, so Better Auth
+    // read no address at all and rate-limited every sign-in in one shared bucket. Dev has no edge and falls back to localhost.
+    ipAddress: { ipAddressHeaders: ["x-real-ip"] },
+  },
   session: {
     expiresIn: 60 * 60 * 24 * 60, // 60 days
     updateAge: 60 * 60 * 24, // rolling: refreshed at most once a day
-    // Caches the session in a signed cookie so the lookup happens once a
-    // minute instead of once a request. Costs revocation lag up to `maxAge`;
-    // 60s keeps that short, and trip membership is still read fresh from the
-    // database on every request (see `requireTripAccess`), so a kicked member
-    // loses access instantly regardless.
+    // Why: a signed-cookie cache makes the lookup once a minute, not once a request. Revocation lags up to `maxAge`,
+    // but membership is read fresh on every request (`requireTripAccess`), so a removed member loses access at once.
     cookieCache: {
       enabled: true,
       maxAge: 60,

@@ -15,7 +15,7 @@ export function InboxAddress({ tripId }: { tripId: number }) {
 
   return (
     <Card>
-      <Body tone="ink-3">Forward a booking email here. Its attachments land in Yours.</Body>
+      <Body tone="ink-2">Forward a booking email to this trip&apos;s address and its attachments are saved to your files.</Body>
       <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
         <Text
           selectable

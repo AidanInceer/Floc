@@ -23,8 +23,6 @@
  * for the group would make the answer worthless (rule 6).
  */
 import {
-  addMonths,
-  formatMonth,
   monthOf,
   tally,
   thisMonth,
@@ -33,7 +31,7 @@ import {
 import { paintRange, pickedRange } from "@floc/core/dates/calendar-gestures";
 import { dateRange, formatDateRange, today } from "@floc/core/dates/dates";
 import { datesMoment, type DatesMoment } from "@floc/core/dates/dates-moment";
-import { bookingPlan } from "@floc/core/trip/booking-links";
+import { bookingPlan } from "@floc/core/trip/booking/booking-links";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState, type ReactNode } from "react";
@@ -47,18 +45,9 @@ import {
 import { DatesWeather, forecastIndex } from "@/components/days/dates-weather";
 import { BookingPanel } from "@/components/trip/booking-panel";
 import { MonthGrid, type CellLook } from "@/components/days/month-grid";
+import { MonthNav } from "@/components/days/month-nav";
 import { WEATHER_LOOK, type ForecastDay } from "@/components/days/weather-panel";
-import {
-  Body,
-  Button,
-  Card,
-  Failed,
-  Figure,
-  Heading,
-  Label,
-  Loading,
-  Segmented,
-} from "@/components/system/ui";
+import { Body, Button, Card, Failed, Figure, Heading, Loading, Segmented, SectionTitle } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 import { space } from "@/lib/theme";
@@ -196,8 +185,7 @@ function MinePanel({
 }) {
   return (
     <View style={{ gap: space.sm }}>
-      <Label>Your days</Label>
-      <Body tone="ink-2">Drag across the days you could go. Nothing is sent until you save.</Body>
+      {unsaved ? <Body tone="ink-2">Not saved yet.</Body> : null}
       <Button
         label={unsaved ? "Save your days" : "Nothing to save"}
         disabled={!unsaved}
@@ -225,7 +213,7 @@ function WindowPanel({
 }) {
   return (
     <View style={{ gap: space.sm }}>
-      <Label>The trip&apos;s dates</Label>
+      <SectionTitle>The trip&apos;s dates</SectionTitle>
       <Body tone="ink-2">
         {halfMade ? "Now drag to the last day." : "Drag across the days the trip runs."}
       </Body>
@@ -238,15 +226,30 @@ function WindowPanel({
 }
 
 /** #459: once the trip has dates, finding them folds away until someone wants to change them. */
-function DatesFold({ moment, children }: { moment: DatesMoment; children: ReactNode }) {
+function DatesFold({
+  moment,
+  preview,
+  onOpen,
+  children,
+}: {
+  moment: DatesMoment;
+  preview: ReactNode;
+  onOpen: () => void;
+  children: ReactNode;
+}) {
   const [changing, setChanging] = useState(false);
   if (moment === "finding") return children;
   return (
     <>
+      {changing ? null : preview}
       <Button
         label={changing ? "Done" : "Change the dates"}
         variant={moment === "started" || changing ? "quiet" : undefined}
-        onPress={() => setChanging(!changing)}
+        onPress={() => {
+          // Why: "Change the dates" opened your own availability; it now opens the trip's dates.
+          if (!changing) onOpen();
+          setChanging(!changing);
+        }}
       />
       {changing ? children : null}
     </>
@@ -338,15 +341,16 @@ export default function Dates() {
   const forecast = forecastIndex(weather.data);
   const forecastByDate = forecast.byDate;
 
-  const look = (date: string) =>
-    cellLook(view, date, {
-      mineOn,
-      counts: tally(rows.data),
-      // Guests' marks are in the counts (#442), so they are in the headcount too.
-      memberCount: headcount(trip.data.members, guests.data),
-      windowDays,
-      forecast: forecastByDate,
-    });
+  const lookState = {
+    mineOn,
+    counts: tally(rows.data),
+    // Guests' marks are in the counts (#442), so they are in the headcount too.
+    memberCount: headcount(trip.data.members, guests.data),
+    windowDays,
+    forecast: forecastByDate,
+  };
+  const look = (date: string) => cellLook(view, date, lookState);
+  const savedState = { ...lookState, windowDays: windowSet({ start: null, end: null }, trip.data.startDate, trip.data.endDate) };
 
   function paint(anchor: string, target: string) {
     if (view === "everyone") return;
@@ -392,19 +396,25 @@ export default function Dates() {
         </Figure>
       </View>
 
-      <DatesFold moment={datesMoment(trip.data, today())}>
+      <DatesFold
+        moment={datesMoment(trip.data, today())}
+        onOpen={() => setView("window")}
+        preview={
+          <Card>
+            <MonthNav month={shown} onChange={setMonth} />
+            {/* Why: the grid claims every touch to paint; read-only here, it must let the page scroll. */}
+            <View pointerEvents="none">
+              <MonthGrid month={shown} look={(date) => cellLook("window", date, savedState)} onPaint={() => {}} onRelease={() => {}} />
+            </View>
+          </Card>
+        }
+      >
         <Segmented options={forecast.offered ? WITH_WEATHER : VIEWS} value={view} onChange={setView} />
 
         <CalendarTop cal={cal} show={view === "mine" && noMarks} month={shown} />
 
         <Card>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
-            <Button label="‹" onPress={() => setMonth(addMonths(shown, -1))} variant="quiet" />
-            <View style={{ flex: 1, alignItems: "center" }}>
-              <Body bold>{formatMonth(shown)}</Body>
-            </View>
-            <Button label="›" onPress={() => setMonth(addMonths(shown, 1))} variant="quiet" />
-          </View>
+          <MonthNav month={shown} onChange={setMonth} />
 
           <MonthGrid month={shown} look={look} onPaint={paint} onRelease={() => {}} />
         </Card>
@@ -421,7 +431,7 @@ export default function Dates() {
 
         {view === "everyone" ? (
           <View style={{ gap: space.sm }}>
-            <Label>Who has answered</Label>
+            <SectionTitle>Who has answered</SectionTitle>
             <Body tone="ink-2">{answeredLine(trip.data.members, rows.data)}</Body>
             <GuestsLine guests={guests.data} />
           </View>

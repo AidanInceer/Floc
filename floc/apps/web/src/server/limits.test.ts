@@ -5,7 +5,9 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { bounded, LIMITS, reportCeiling } from "@/server/limits";
+import { isRefusal } from "@floc/core/errors/refusal";
+
+import { assertRoom, bounded, LIMITS, reportCeiling } from "@/server/limits";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -39,5 +41,28 @@ describe("reportCeiling", () => {
     expect(message).toContain("members");
     expect(message).toContain("trip 42");
     expect(message).toContain(String(LIMITS.members));
+  });
+});
+
+describe("assertRoom", () => {
+  const refusalOf = (fn: () => void) => {
+    try {
+      fn();
+    } catch (error) {
+      return error;
+    }
+    return null;
+  };
+
+  it("lets a write in up to the ceiling", () => {
+    expect(refusalOf(() => assertRoom("ideas", LIMITS.ideas - 1))).toBeNull();
+    expect(refusalOf(() => assertRoom("days", LIMITS.days - 3, 3))).toBeNull();
+  });
+
+  it("refuses, with a sentence for the person, the write that would pass it", () => {
+    const refusal = refusalOf(() => assertRoom("eventsPerDay", LIMITS.eventsPerDay));
+    expect(isRefusal(refusal)).toBe(true);
+    expect((refusal as Error).message).toMatch(/day/);
+    expect(isRefusal(refusalOf(() => assertRoom("days", LIMITS.days - 2, 3)))).toBe(true);
   });
 });

@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  startTransition,
   useActionState,
   useContext,
   useEffect,
@@ -20,6 +21,9 @@ import { Button, Card, ErrorText, cx, iconButtonClass, segmentTrack } from "./ui
 // that wants to close only on successful submit reads it from here instead.
 const SheetCloseContext = createContext<(() => void) | null>(null);
 
+/** In flight for a form that posts without React's form action (`keepAnswers`), where `useFormStatus` cannot see it. */
+const FormPendingContext = createContext(false);
+
 export function useSheetClose() {
   return useContext(SheetCloseContext);
 }
@@ -29,25 +33,49 @@ export function ActionForm({
   action,
   children,
   className,
+  footer,
+  errorClassName = "mt-2",
+  keepAnswers = false,
 }: {
   action: (formData: FormData) => Promise<{ error?: string } | void>;
   children: ReactNode;
   className?: string;
+  /** Drawn below the error, so a refusal sits above the submit bar where it is seen. */
+  footer?: ReactNode;
+  errorClassName?: string;
+  /** Why: React resets a form after its action, so a form that stays open after a refusal would lose its answers. */
+  keepAnswers?: boolean;
 }) {
-  const [state, formAction] = useActionState(
-    async (_previous: { error?: string }, formData: FormData) =>
-      (await action(formData)) ?? {},
+  // Why: an old refusal next to a field just changed reads as being about the new answer.
+  const [edited, setEdited] = useState(false);
+  const [state, formAction, pending] = useActionState(
+    async (_previous: { error?: string }, formData: FormData) => {
+      setEdited(false);
+      return (await action(formData)) ?? {};
+    },
     {},
   );
 
   return (
-    <form action={formAction} className={className}>
-      {children}
-      {state.error ? (
-        <div className="mt-2">
-          <ErrorText>{state.error}</ErrorText>
-        </div>
-      ) : null}
+    <form
+      action={keepAnswers ? undefined : formAction}
+      onSubmit={keepAnswers ? (event) => {
+        event.preventDefault();
+        const formData = new FormData(event.currentTarget);
+        startTransition(() => formAction(formData));
+      } : undefined}
+      className={className}
+      onChange={() => setEdited(true)}
+    >
+      <FormPendingContext.Provider value={pending}>
+        {children}
+        {state.error && !edited ? (
+          <div className={errorClassName}>
+            <ErrorText>{state.error}</ErrorText>
+          </div>
+        ) : null}
+        {footer}
+      </FormPendingContext.Provider>
     </form>
   );
 }
@@ -67,7 +95,9 @@ export function SubmitButton({
   /** Verb stays shown but not always available (ticket 133). */
   disabled?: boolean;
 }) {
-  const { pending } = useFormStatus();
+  const status = useFormStatus();
+  const posting = useContext(FormPendingContext);
+  const pending = status.pending || posting;
   return (
     <Button
       type="submit"
@@ -200,12 +230,10 @@ export function Sheet({
               ×
             </button>
           </div>
-          {/* Submit dismisses the sheet unless keepOpenOnSubmit. */}
+          {/* Why stopped here: a submit in this sheet is its own, and must not close a dialog around it. */}
           <div
-            className={
-              body === "padded" ? "p-4" : "scroll-thin flex min-h-0 flex-1 flex-col overflow-y-auto"
-            }
-            onSubmit={keepOpenOnSubmit ? undefined : () => setTimeout(close, 0)}
+            className={body === "padded" ? "p-4" : "scroll-thin flex min-h-0 flex-1 flex-col overflow-y-auto"}
+            onSubmit={(event) => { event.stopPropagation(); if (!keepOpenOnSubmit) setTimeout(close, 0); }}
           >
             <SheetCloseContext.Provider value={close}>
               {open ? children : null}
@@ -379,6 +407,31 @@ export function Menu({
   const query = useSearchParams().toString();
 
   useEffect(() => setOpen(false), [pathname, query]);
+
+  // Why: a sheet opened from here stops its own submit, so its closing is what closes the menu. Capture, since close does not bubble.
+  useEffect(() => {
+    const panel = panelRef.current;
+    if (!open || !panel) return;
+    const onClose = (event: Event) => { if (event.target instanceof HTMLDialogElement) setOpen(false); };
+    panel.addEventListener("close", onClose, true);
+    return () => panel.removeEventListener("close", onClose, true);
+  }, [open]);
+
+  // Why: a menu by a button near the screen edge on a phone would spill off it; slide it back in, and again when it changes width.
+  useIsoLayoutEffect(() => {
+    const panel = panelRef.current;
+    if (!open || !panel) return;
+    const fit = () => {
+      panel.style.translate = "";
+      const r = panel.getBoundingClientRect();
+      const shift = r.left < 8 ? 8 - r.left : r.right > window.innerWidth - 8 ? window.innerWidth - 8 - r.right : 0;
+      if (shift) panel.style.translate = `${Math.round(shift)}px 0`;
+    };
+    fit();
+    const watch = new ResizeObserver(fit);
+    watch.observe(panel);
+    return () => watch.disconnect();
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;

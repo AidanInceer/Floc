@@ -22,7 +22,7 @@ import { Pressable, View } from "react-native";
 
 import { CrossGlyph } from "../system/glyphs";
 import { useTheme } from "../system/theme";
-import { Body, Button, Empty, Field, Label, Row } from "../system/ui";
+import { Body, Button, Empty, Field, Label, Row, SectionTitle } from "../system/ui";
 import { space } from "@/lib/theme";
 
 export type PackingKit = { id: number; name: string; itemCount: number };
@@ -51,7 +51,7 @@ export function PackingKitSheet({
   return (
     <View style={{ padding: space.lg, gap: space.md }}>
       <View style={{ gap: space.sm }}>
-        <Label>Save this bag as a kit</Label>
+        <SectionTitle>Save this bag as a kit</SectionTitle>
         <Field label="Kit name" value={name} onChangeText={setName} />
         <Button
           label={bagSize === 1 ? "Save 1 thing" : `Save ${bagSize} things`}
@@ -68,7 +68,7 @@ export function PackingKitSheet({
       </View>
 
       <View style={{ gap: space.sm }}>
-        <Label>Your kits</Label>
+        <SectionTitle>Your kits</SectionTitle>
         {kits.length === 0 ? <Empty>No kits yet.</Empty> : null}
         {kits.map((kit) => (
           <Row key={kit.id}>

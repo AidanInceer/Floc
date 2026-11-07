@@ -2,7 +2,7 @@
 import { formatDate } from "@floc/core/dates/dates";
 import { nightsLabel } from "@floc/core/itinerary/stops";
 import { hopLabel, type Leg, type LegFile } from "@floc/core/trip/overview/legs";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "../system/theme";
 import { BedGlyph, RibbonGlyph } from "../system/glyphs";
@@ -12,8 +12,9 @@ import { fonts, radius, size, space } from "@/lib/theme";
 type Named = LegFile & { name: string };
 
 export function LegList({ legs, onOpen }: { legs: Leg<Named>[]; onOpen: (date: string) => void }) {
+  const { c } = useTheme();
   return (
-    <View>
+    <View style={{ backgroundColor: c.sheet, borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth, borderColor: c.rule, paddingVertical: space.xs }}>
       {legs.map((leg) => (
         <View key={leg.days[0].dayId}>
           {leg.no > 1 ? <Hop leg={leg} /> : null}
@@ -47,12 +48,11 @@ function LegRow({ leg, onOpen }: { leg: Leg<Named>; onOpen: (date: string) => vo
       onPress={() => onOpen(leg.arrive)}
       style={({ pressed }) => ({
         flexDirection: "row",
+        alignItems: "center",
         gap: space.md,
-        padding: space.md,
-        borderRadius: radius.sm,
-        backgroundColor: pressed ? c["sheet-2"] : c.sheet,
-        borderWidth: 1,
-        borderColor: c.rule,
+        paddingVertical: space.sm,
+        paddingHorizontal: space.lg,
+        opacity: pressed ? 0.6 : 1,
       })}
     >
       {leg.stay ? (
@@ -61,15 +61,15 @@ function LegRow({ leg, onOpen }: { leg: Leg<Named>; onOpen: (date: string) => vo
         </View>
       ) : null}
       {/* Same ring and number as the map's pin — one stop drawn twice. */}
-      <View style={{ width: 24, height: 24, borderRadius: radius.pill, borderWidth: 2, borderColor: c.pen, alignItems: "center", justifyContent: "center", marginTop: 2 }}>
+      <View style={{ width: 24, height: 24, borderRadius: radius.pill, borderWidth: 2, borderColor: c.pen, alignItems: "center", justifyContent: "center" }}>
         <Text style={{ color: c.pen, fontFamily: fonts.typeBold, fontSize: 11 }}>{leg.no}</Text>
       </View>
       <View style={{ flex: 1, gap: 2 }}>
-        <Text style={{ color: c.ink, fontFamily: fonts.display, fontSize: size.heading }}>{leg.placeName}</Text>
+        <Text style={{ color: c.ink, fontFamily: fonts.sansBold, fontSize: size.body }}>{leg.placeName}</Text>
         <Text style={{ color: c["ink-2"], fontFamily: fonts.type, fontSize: size.label }}>
           {`${formatDate(leg.arrive)} – ${formatDate(leg.leave)} · ${nightsLabel(leg.nights)}`}
         </Text>
-        <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: space.sm, marginTop: space.xs }}>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: space.sm }}>
           {leg.stay ? (
             <View style={{ flexDirection: "row", alignItems: "center", gap: space.xs }}>
               <BedGlyph color={c["pastel-green-ink"]} />

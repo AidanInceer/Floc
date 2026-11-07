@@ -86,9 +86,9 @@ function HalfButton({
         borderRadius: radius.sm,
         paddingVertical: space.sm,
         alignItems: "center",
-        backgroundColor: c["sheet-2"],
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: c.rule,
+        backgroundColor: c.sheet,
+        borderWidth: 1,
+        borderColor: c["rule-2"],
         opacity: off ? 0.45 : pressed ? 0.75 : 1,
       })}
     >

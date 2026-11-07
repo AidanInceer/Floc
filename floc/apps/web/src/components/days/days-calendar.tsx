@@ -332,12 +332,12 @@ export function DaysCalendar({
     router.replace(`${pathname}?${query}`, { scroll: false });
   };
 
-  const closeEvent = () => {
+  const closeEvent = useCallback(() => {
     setSelected(null);
     const query = new URLSearchParams(searchParams.toString());
     query.delete("event");
     router.replace(query.size ? `${pathname}?${query}` : pathname, { scroll: false });
-  };
+  }, [searchParams, router, pathname]);
 
   const onCalendarClick = () => {
     if (keptSelection.current) {
@@ -475,6 +475,10 @@ export function DaysCalendar({
   };
 
   const selectedEvent = selected === null ? null : events.find((e) => e.id === selected);
+  // Why: a deleted event leaves the modal from under it, and the address must stop pointing at it too.
+  useEffect(() => {
+    if (selected !== null && selectedEvent === undefined) closeEvent();
+  }, [selected, selectedEvent, closeEvent]);
   const rowStyle: CSSProperties = { display: "grid", gridTemplateColumns: FOCUS_TEMPLATE };
   const gestures = {
     onPointerDown: onBlockPointerDown,

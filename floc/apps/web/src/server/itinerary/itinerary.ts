@@ -21,7 +21,7 @@ import { Refusal } from "@floc/core/errors/refusal";
 import { orderEvents } from "@floc/core/itinerary/event-order";
 import { MAX_TRIP_DAYS, windowProblem, type DayLoad } from "@floc/core/trip/trip-window";
 import { capRequiredText, capText } from "@floc/core/text/text";
-import { bounded, LIMITS } from "@/server/limits";
+import { assertRoom, bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
 import { refresh } from "@/server/freshness";
 import { recordActivity, type Tx } from "@/server/notifications/activity";
@@ -460,6 +460,11 @@ export async function listEventSlots(tripId: number, dayId: number) {
 }
 
 /** The next `order_index` for this day. */
+async function liveDayDates(tripId: number): Promise<string[]> {
+  const rows = await db.select({ date: day.date }).from(day).where(and(eq(day.tripId, tripId), isNull(day.deletedAt)));
+  return rows.map((r) => r.date);
+}
+
 async function eventCount(dayId: number): Promise<number> {
   const [{ count } = { count: 0 }] = await db
     .select({ count: sql<number>`count(*)` })
@@ -508,9 +513,11 @@ function eventValues(input: EventFields) {
 }
 
 export async function insertEvent(dayId: number, input: EventFields): Promise<void> {
+  const count = await eventCount(dayId);
+  assertRoom("eventsPerDay", count);
   await db
     .insert(dayEvent)
-    .values({ dayId, orderIndex: await eventCount(dayId), ...eventValues(input) });
+    .values({ dayId, orderIndex: count, ...eventValues(input) });
 }
 
 // Filters deletedAt so a stale id cannot edit a deleted event (ticket 115).
@@ -642,6 +649,8 @@ export async function extendTripDays(
     dates.push(cursor);
   }
   if (dates.length === 0) return;
+  const held = new Set(await liveDayDates(target.id));
+  assertRoom("days", held.size, dates.filter((d) => !held.has(d)).length);
 
   const last = dates[dates.length - 1];
   const movesTheWindow = Boolean(target.startDate && target.endDate && last > target.endDate);

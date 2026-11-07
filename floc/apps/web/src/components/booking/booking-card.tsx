@@ -1,14 +1,17 @@
 import Link from "next/link";
 
-import { formatDateRange, nightsBetween } from "@floc/core/dates/dates";
-import type { BookingPlan, StayRow } from "@floc/core/trip/booking-links";
+import { formatDateRange, formatShortRange, nightsBetween } from "@floc/core/dates/dates";
+import type { BookingPlan, StayRow } from "@floc/core/trip/booking/booking-links";
+import type { BookingSites } from "@floc/core/trip/booking/booking-sites";
 import { BookedPill } from "@/components/booking/booked-pill";
 import { HotelUpload } from "@/components/booking/hotel-upload";
-import { OFFSITE_NOTE, SiteLinks } from "@/components/booking/site-links";
+import { BookingSitesProvider } from "@/components/booking/booking-sites";
+import { OFFSITE_NOTE } from "@/components/booking/site-links";
+import { SitePicker } from "@/components/booking/site-picker";
 import { BedIcon, EventGlyph } from "@/components/system/icons/days";
 
 const headClass = "font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint";
-const panelClass = "rounded-sm border border-rule bg-sheet-2 px-3 py-2.5";
+const panelClass = "rounded-sm border border-rule bg-sheet-2 px-3 py-2.5 max-sm:px-2.5";
 const panelHeadClass = "flex items-center gap-2 text-sm font-medium";
 
 function nightsLabel(row: StayRow) {
@@ -16,10 +19,11 @@ function nightsLabel(row: StayRow) {
   return `${formatDateRange(row.checkIn, row.checkOut)} · ${nights} ${nights === 1 ? "night" : "nights"}`;
 }
 
-export function BookingCard({ tripId, plan, files }: { tripId: number; plan: BookingPlan; files: boolean }) {
+export function BookingCard({ tripId, plan, files, sites }: { tripId: number; plan: BookingPlan; files: boolean; sites: BookingSites }) {
   const daysHref = `/trip/${tripId}/days`;
   return (
-    <section id="booking" className="scroll-mt-24 rounded-md border border-rule bg-sheet p-4 shadow-card">
+    <BookingSitesProvider initial={sites}>
+    <section id="booking" className="scroll-mt-24 rounded-md border border-rule bg-sheet p-4 shadow-card max-sm:p-3">
       <h2 className={headClass}>Get booking</h2>
 
       <div className={`mt-3 flex flex-wrap items-center justify-between gap-2 ${panelClass}`}>
@@ -27,7 +31,7 @@ export function BookingCard({ tripId, plan, files }: { tripId: number; plan: Boo
           <EventGlyph type="transport" transportType="flight" className="text-ink-soft" />
           Flights
         </h3>
-        <SiteLinks links={plan.flights} />
+        <SitePicker kind="flights" links={plan.flights} label="Search flights" className="sm:justify-end" />
       </div>
 
       <div className={`mt-3 ${panelClass}`}>
@@ -50,7 +54,7 @@ export function BookingCard({ tripId, plan, files }: { tripId: number; plan: Boo
                       <p className="nums font-mono text-[11px] text-ink-faint">{nightsLabel(row)}</p>
                     </div>
                     <div className="min-w-0 max-sm:order-2 max-sm:basis-full sm:ml-auto">
-                      {row.hotel ? <BookedPill tripId={tripId} hotel={row.hotel} /> : <SiteLinks links={row.links} />}
+                      {row.hotel ? <BookedPill tripId={tripId} hotel={row.hotel} /> : <SitePicker kind="stays" links={row.links} label={`Find a stay in ${row.placeName}`} head={`${row.placeName} · ${formatShortRange(row.checkIn, row.checkOut)}`} className="sm:justify-end" />}
                     </div>
                     {files ? (
                       <div className="max-sm:order-1 max-sm:ml-auto">
@@ -76,5 +80,6 @@ export function BookingCard({ tripId, plan, files }: { tripId: number; plan: Boo
 
       <p className="mt-3 text-[11px] text-ink-faint">{OFFSITE_NOTE}</p>
     </section>
+    </BookingSitesProvider>
   );
 }

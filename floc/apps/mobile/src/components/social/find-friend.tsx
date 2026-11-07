@@ -10,7 +10,7 @@ import { Share, View } from "react-native";
 
 import { PersonRow } from "../trip/person-row";
 import { ShareGlyph } from "../system/glyphs";
-import { Body, Button, Label, Pill, SearchField } from "../system/ui";
+import { Body, Button, Pill, SearchField, SectionTitle } from "../system/ui";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 
@@ -94,7 +94,7 @@ export function FindFriend({ code }: { code: string }) {
 
   return (
     <View style={{ gap: space.sm }}>
-      <Label>Find someone</Label>
+      <SectionTitle>Find someone</SectionTitle>
       <SearchField
         label="Name or friend code"
         value={query}

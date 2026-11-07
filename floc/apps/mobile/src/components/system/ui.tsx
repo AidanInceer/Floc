@@ -32,11 +32,9 @@ import {
 
 import { fonts, radius, size, space } from "@/lib/theme";
 
-import { ChevronGlyph } from "./glyphs";
+import { ChevronGlyph, SearchGlyph } from "./glyphs";
 import { Sheet } from "./sheet";
 import { useTheme } from "./theme";
-
-/* ------------------------------------------------------------------ text */
 
 /** Every tone is a token name. `pastel-yellow-ink` is here so text on a yellow ground keeps its contrast (#204). */
 type TextTone = "ink" | "ink-2" | "ink-3" | "pen" | "red" | "green" | "pastel-yellow-ink" | "pastel-blue-ink";
@@ -97,6 +95,19 @@ export function Label({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * The name of a section, in sentence case. The design card bars a tiny all-caps kicker above a
+ * section; `Label` stays for the mono word that names a value — a field, a count, a date.
+ */
+export function SectionTitle({ children }: { children: ReactNode }) {
+  const { c } = useTheme();
+  return (
+    <Text accessibilityRole="header" style={{ color: c.ink, fontFamily: fonts.sansBold, fontSize: size.body }}>
+      {children}
+    </Text>
+  );
+}
+
 /** Every figure, date, time and amount. Tabular, so columns of money line up. */
 export function Figure({ children, tone = "ink" }: { children: ReactNode; tone?: TextTone }) {
   const { c } = useTheme();
@@ -113,8 +124,6 @@ export function Figure({ children, tone = "ink" }: { children: ReactNode; tone?:
     </Text>
   );
 }
-
-/* --------------------------------------------------------------- surfaces */
 
 export function Card({ children, style }: { children: ReactNode; style?: ViewStyle }) {
   const { c } = useTheme();
@@ -169,8 +178,6 @@ export function OrRule({ label }: { label: string }) {
   );
 }
 
-/* --------------------------------------------------------------- controls */
-
 export function Button({
   label,
   onPress,
@@ -185,12 +192,7 @@ export function Button({
   /** Drawn before the label, in the label's own colour. Line-art only, no emoji. */
   icon?: (ink: string) => ReactNode;
   variant?: "primary" | "quiet" | "danger";
-  /**
-   * `full` fills its parent, which is what a phone wants for the one thing you
-   * came to do. `small` shrinks to its words, for the two or three controls
-   * that share a line — a rare job at full width is the loudest thing on the
-   * card, which is how the group panel ended up shouting "Share trip".
-   */
+  /** Why: `small` shrinks to its words for controls that share a line — a rare job at full width is the loudest thing on the card. */
   fit?: "full" | "small";
   busy?: boolean;
   disabled?: boolean;
@@ -216,7 +218,7 @@ export function Button({
         backgroundColor: ground,
         borderWidth: 1,
         borderColor: edge,
-        borderRadius: radius.pill,
+        borderRadius: radius.sm,
         paddingVertical: small ? space.sm : space.md,
         paddingHorizontal: small ? space.md : space.lg,
         flexDirection: "row",
@@ -230,6 +232,8 @@ export function Button({
       {busy ? <ActivityIndicator color={ink} accessible={false} /> : icon?.(ink)}
       <Text
         numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.8}
         style={{
           color: ink,
           fontFamily: fonts.sansBold,
@@ -243,14 +247,6 @@ export function Button({
   );
 }
 
-/**
- * A press that is a sentence, not a control (#no-ticket).
- *
- * WHY IT IS NOT A BUTTON. "Forgotten your password?" drawn as a bordered box
- * carries the same weight as "Sign in" — five boxes down a screen and nothing
- * says which one you came for. A rare afterthought is a line of text you can
- * tap, centred under the thing it follows.
- */
 export function Field({
   label,
   ...props
@@ -267,14 +263,36 @@ export function SearchField({
   label,
   ...props
 }: TextInputProps & { label: string }) {
+  const { c } = useTheme();
   return (
-    <TextInputBox
-      accessibilityLabel={label}
-      autoCorrect={false}
-      autoCapitalize="words"
-      {...props}
-    />
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: space.sm,
+        backgroundColor: c.sheet,
+        borderColor: c.rule,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderRadius: radius.sm,
+        paddingHorizontal: space.md,
+      }}
+    >
+      <SearchGlyph color={c["ink-3"]} />
+      <TextInput
+        accessibilityLabel={label}
+        autoCorrect={false}
+        autoCapitalize="words"
+        placeholderTextColor={c["ink-3"]}
+        {...props}
+        style={{ flex: 1, paddingVertical: space.md, color: c.ink, fontFamily: fonts.sans, fontSize: size.body }}
+      />
+    </View>
   );
+}
+
+/** A text field named for the screen reader only, where the row around it already says what it is for. */
+export function TextBox({ label, ...props }: TextInputProps & { label: string }) {
+  return <TextInputBox accessibilityLabel={label} {...props} />;
 }
 
 function TextInputBox(props: TextInputProps) {
@@ -358,7 +376,7 @@ export function Segmented<T extends string>({
       style={{
         flexDirection: "row",
         backgroundColor: c["sheet-2"],
-        borderRadius: radius.pill,
+        borderRadius: radius.sm,
         padding: space.xs,
         gap: space.xs,
       }}
@@ -378,7 +396,7 @@ export function Segmented<T extends string>({
               justifyContent: "center",
               gap: space.xs,
               paddingVertical: space.sm,
-              borderRadius: radius.pill,
+              borderRadius: radius.sm,
               backgroundColor: on ? c.sheet : "transparent",
               borderWidth: on ? StyleSheet.hairlineWidth : 0,
               borderColor: c.rule,
@@ -509,17 +527,7 @@ export function IconButton({
   );
 }
 
-/**
- * A setting that is on or off, saved the moment it moves.
- *
- * NO SAVE BUTTON. The web draws these in a form with one Save at the foot,
- * because a browser form is how a page posts. A phone has no such excuse: the
- * switch is the answer, so the switch is the write. That removes eight
- * buttons from the settings screen and the question of what is unsaved.
- *
- * THE HINT IS ONLY EVER WHAT THE DRAWING CANNOT SAY — a consequence, not a
- * restatement of the label. Most rows have none.
- */
+/** Why: the switch is the write — no Save button; `hint` is only ever a consequence the drawing cannot say. */
 export function Toggle({
   label,
   hint,
@@ -629,30 +637,57 @@ export function Dropdown<T extends string>({
         <ChevronGlyph color={c["ink-3"]} />
       </Pressable>
 
-      <Sheet open={open} onClose={() => setOpen(false)}>
-        {options.map((option) => (
-          <Pressable
-            key={option.value}
-            accessibilityRole="radio"
-            accessibilityState={{ selected: option.value === value }}
-            accessibilityLabel={option.label}
-            onPress={() => {
-              onChange(option.value);
-              setOpen(false);
-            }}
-            style={({ pressed }) => ({
-              paddingVertical: space.md,
-              paddingHorizontal: space.lg,
-              backgroundColor: pressed ? c["sheet-2"] : "transparent",
-            })}
-          >
-            {/* The chosen one says so in words — a tint alone is not a state (#204). */}
-            <Body tone={option.value === value ? "ink" : "ink-2"}>
-              {option.value === value ? `${option.label} · chosen` : option.label}
-            </Body>
-          </Pressable>
-        ))}
-      </Sheet>
+      <ChoiceSheet open={open} onClose={() => setOpen(false)} options={options} value={value} onChange={onChange} />
     </View>
+  );
+}
+
+/** One choice from a short list, in a sheet; picking closes it. */
+export function ChoiceSheet<T extends string>({
+  title,
+  open,
+  onClose,
+  options,
+  value,
+  onChange,
+}: {
+  title?: string;
+  open: boolean;
+  onClose: () => void;
+  options: { value: T; label: string }[];
+  value: T;
+  onChange: (value: T) => void;
+}) {
+  const { c } = useTheme();
+  return (
+    <Sheet open={open} onClose={onClose}>
+      {title ? (
+        <View style={{ paddingHorizontal: space.lg, paddingBottom: space.sm }}>
+          <Heading>{title}</Heading>
+        </View>
+      ) : null}
+      {options.map((option) => (
+        <Pressable
+          key={option.value}
+          accessibilityRole="radio"
+          accessibilityState={{ selected: option.value === value }}
+          accessibilityLabel={option.label}
+          onPress={() => {
+            onChange(option.value);
+            onClose();
+          }}
+          style={({ pressed }) => ({
+            paddingVertical: space.md,
+            paddingHorizontal: space.lg,
+            backgroundColor: pressed ? c["sheet-2"] : "transparent",
+          })}
+        >
+          {/* The chosen one says so in words — a tint alone is not a state (#204). */}
+          <Body tone={option.value === value ? "ink" : "ink-2"}>
+            {option.value === value ? `${option.label} · chosen` : option.label}
+          </Body>
+        </Pressable>
+      ))}
+    </Sheet>
   );
 }

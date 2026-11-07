@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { ChevronGlyph } from "./glyphs";
 import { useTheme } from "./theme";
-import { Label } from "./ui";
+import { SectionTitle } from "./ui";
 import { fonts, radius, size, space } from "@/lib/theme";
 
 const TURN = { down: "0deg", up: "180deg" } as const;
@@ -34,7 +34,7 @@ export function DrawerGroup({
     <View style={{ gap: space.sm }}>
       {label ? (
         <View style={{ paddingHorizontal: space.xs }}>
-          <Label>{label}</Label>
+          <SectionTitle>{label}</SectionTitle>
         </View>
       ) : null}
       <View

@@ -7,7 +7,10 @@ import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { trip, tripPage } from "@/db/schema";
-import { sizeRefusal } from "@floc/core/notes/pages/page-rules";
+import { PAGE_LIMITS, sizeRefusal } from "@floc/core/notes/pages/page-rules";
+
+/** Why: the body cap alone misses a doc bloated by edits undone, which a modified client can send. */
+export const LIVE_STATE_MAX_BYTES = 4 * PAGE_LIMITS.pageBytes;
 
 export async function loadPageState(pageId: number): Promise<{ state: Uint8Array | null; body: string | null }> {
   const row = await db
@@ -20,7 +23,7 @@ export async function loadPageState(pageId: number): Promise<{ state: Uint8Array
 
 /** Stores a page still open on a live trip. A page over 1 MB is not stored; the editor stops it growing first. */
 export async function storePageState(tripId: number, pageId: number, updatedBy: string, state: Uint8Array, body: string): Promise<void> {
-  if (sizeRefusal(body)) {
+  if (sizeRefusal(body) || state.byteLength > LIVE_STATE_MAX_BYTES) {
     console.warn(`[notes] page ${pageId} is over the size limit and was not stored`);
     return;
   }

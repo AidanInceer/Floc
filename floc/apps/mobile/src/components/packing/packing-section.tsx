@@ -7,7 +7,7 @@ import { packingCubes } from "@floc/core/packing/packing-ideas";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "../system/theme";
-import { Empty, Heading, Label } from "../system/ui";
+import { Empty, Heading, Label, Body } from "../system/ui";
 import { fonts, radius, size, space } from "@/lib/theme";
 
 function countLabel(total: number, packed: number): string {
@@ -84,7 +84,7 @@ export function PackingSection<
           </View>
         ) : null}
       </View>
-      {aside ? <Label>{aside}</Label> : null}
+      {aside ? <Body tone="ink-3">{aside}</Body> : null}
 
       {groups.length === 0 ? <Empty>{emptyWord}</Empty> : null}
 
