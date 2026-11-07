@@ -1,6 +1,15 @@
 import type { NextConfig } from "next";
 
-// Redeploy touchpoint — see chore commit.
+// Why: scripts only from Floc itself, so an injected <script src> or a form posting elsewhere cannot run.
+// 'unsafe-inline' stays because Next's own boot scripts and the theme script are inline; dev also needs eval.
+const CSP = [
+  "frame-ancestors 'none'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "form-action 'self'",
+  `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'"}`,
+].join("; ");
+
 const config: NextConfig = {
   reactStrictMode: true,
   // `pnpm verify` builds into `.next-verify` so it never writes over the
@@ -34,7 +43,7 @@ const config: NextConfig = {
         source: "/:path*",
         headers: [
           { key: "X-Frame-Options", value: "DENY" },
-          { key: "Content-Security-Policy", value: "frame-ancestors 'none'; base-uri 'self'; object-src 'none'" },
+          { key: "Content-Security-Policy", value: CSP },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },

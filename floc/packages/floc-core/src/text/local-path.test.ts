@@ -15,6 +15,10 @@ describe("localPath", () => {
     "javascript:alert(1)",
     "trips",
     "",
+    "/\t/evil.example",
+    "/\n/evil.example",
+    "/\r\\evil.example",
+    "/ /evil.example",
   ])("falls back for %j", (raw) => {
     expect(localPath(raw, "/trips")).toBe("/trips");
   });

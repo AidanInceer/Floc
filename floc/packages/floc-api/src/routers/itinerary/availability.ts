@@ -26,7 +26,7 @@ export const availabilityRouter = router({
    * back as a result for the form, not an error. `needs-access` sends the phone to Google's consent.
    */
   fillFromCalendar: tripProcedure
-    .input(z.object({ month: z.string().regex(/^d{4}-(0[1-9]|1[0-2])$/, "Use a month like 2027-09.") }))
+    .input(z.object({ month: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Use a month like 2027-09.") }))
     .mutation(({ ctx, input }) => ctx.port.fillFromCalendar(ctx.viewer.id, input.tripId, input.month)),
 
   list: tripProcedure.query(({ ctx, input }) =>

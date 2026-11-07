@@ -4,6 +4,8 @@
 // returns nothing (rule 11). Debounced 600ms — Nominatim caps at 1 req/s.
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 
+import { TEXT_CAPS } from "@floc/core/text/text";
+
 import { Field, Input } from "../system/ui";
 
 type PlaceHit = {
@@ -98,6 +100,7 @@ export function PlacePicker({
   const fieldProps = {
     value: query,
     autoComplete: "off",
+    maxLength: TEXT_CAPS.placeName,
     onChange: (e: ChangeEvent<HTMLInputElement>) => {
       untouched.current = false;
       setQuery(e.target.value);

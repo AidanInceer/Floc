@@ -1,10 +1,6 @@
 /**
- * Nominatim geocoding + `place` table (tickets 15/12/110, single module since
- * two duplicate entry points were folded together). Replaces Mapbox, whose
- * permanent geocoding has no free tier; Nominatim's policy permits storing
- * results. Policy requires a real User-Agent and ≤1 req/s — enforced here.
- * Server-only: the rate limiter only holds if every request funnels through
- * one queue.
+ * Why: Nominatim geocoding and the `place` table in one server-only module (#110). Nominatim permits storing
+ * results but requires a real User-Agent and ≤1 req/s, which only holds if every request funnels through this queue.
  */
 import "server-only";
 
@@ -100,8 +96,10 @@ type NominatimHit = {
  * Unreachable/rate-limited/malformed → [] + warning, so the picker degrades to
  * a typed name (rule 11) instead of throwing. A full queue answers [] at once.
  */
-export async function searchPlaces(query: string, who = "anyone"): Promise<PlaceSearchResult[]> {
-  const key = query.trim().toLowerCase();
+export async function searchPlaces(raw: unknown, who = "anyone"): Promise<PlaceSearchResult[]> {
+  // Why the cap: a page of pasted text is no place name, and every search waits its turn in Nominatim's 1 req/s queue.
+  const query = capRequiredText(raw, "placeName");
+  const key = query.toLowerCase();
   if (!key) return [];
   const known = cached(key);
   if (known) return known;
@@ -183,6 +181,17 @@ export async function upsertPlace(input: {
   countryCode?: string | null;
 }): Promise<number> {
   const countryCode = readCountryCode(input.countryCode);
+  const name = capRequiredText(input.name, "placeName"); // capped here: name may be Nominatim's or hand-typed (ticket 113)
+
+  // Why: the event sheet saves the place with every autosave, so a typed name made a new row each time.
+  if (!input.providerId && input.lat == null && input.lng == null) {
+    const same = await db
+      .select({ id: place.id })
+      .from(place)
+      .where(and(eq(place.name, name), isNull(place.providerId), isNull(place.lat), isNull(place.lng), isNull(place.deletedAt)))
+      .get();
+    if (same) return same.id;
+  }
 
   if (input.providerId) {
     const existing = await db
@@ -206,7 +215,7 @@ export async function upsertPlace(input: {
     .insert(place)
     .values({
       providerId: input.providerId,
-      name: capRequiredText(input.name, "placeName"), // capped here: name may be Nominatim's or hand-typed (ticket 113)
+      name,
       lat: input.lat ?? null,
       lng: input.lng ?? null,
       countryCode,

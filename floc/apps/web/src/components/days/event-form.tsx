@@ -14,6 +14,7 @@ import { SubmitButton } from "@/components/system/client-ui";
 import { DialogClose } from "@/components/system/dialog";
 import { buttonClass } from "@/components/system/ui";
 import type { DayEventType, TransportType } from "@/db/schema";
+import { TEXT_CAPS } from "@floc/core/text/text";
 
 export type PlaceSearch = ComponentProps<typeof PlacePicker>["search"];
 
@@ -111,11 +112,11 @@ export function EventForm({
           look="line"
           defaultName={defaults.placeName ?? ""}
           search={searchPlaces}
-          onSelect={autosave ? () => { dirty.current = true; save(); } : undefined}
+          onSelect={autosave ? (picked) => { if (picked.providerId) saveSoon(); } : undefined}
         />
         <label className="block">
           <span className="mb-1 block font-mono text-xs text-ink-faint">Notes</span>
-          <textarea name="note" rows={2} defaultValue={defaults.note ?? ""} className={NOTE} />
+          <textarea name="note" rows={2} maxLength={TEXT_CAPS.eventNote} defaultValue={defaults.note ?? ""} className={NOTE} />
         </label>
       </div>
       {autosave ? null : (

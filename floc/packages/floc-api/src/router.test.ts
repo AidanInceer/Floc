@@ -608,3 +608,17 @@ describe("friends.find (#360)", () => {
     expect(findFriends).toHaveBeenCalledWith("u1", "sam");
   });
 });
+
+describe("filling dates from Google Calendar (#444)", () => {
+  it("takes a month written the way the phone sends it", async () => {
+    const fillFromCalendar = vi.fn().mockResolvedValue({ status: "filled", free: 3, busy: 1 });
+    const { caller: ana } = caller("u1", fakePort({ fillFromCalendar }));
+    await ana.availability.fillFromCalendar({ tripId: 1, month: "2027-09" });
+    expect(fillFromCalendar).toHaveBeenCalledWith("u1", 1, "2027-09");
+  });
+
+  it("refuses anything that is not a month", async () => {
+    const { caller: ana } = caller("u1");
+    await expect(ana.availability.fillFromCalendar({ tripId: 1, month: "dddd-09" })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+});

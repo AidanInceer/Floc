@@ -9,16 +9,17 @@
  */
 import "server-only";
 
-import { and, count, eq, inArray, isNotNull, isNull, ne, sql } from "drizzle-orm";
+import { and, count, eq, gt, inArray, isNotNull, isNull, ne, sql } from "drizzle-orm";
 
 import { db } from "@/db";
 import { nudge, trip, tripMembership } from "@/db/schema";
 import type { NudgeTab } from "@/db/schema";
-import { bounded, LIMITS } from "@/server/limits";
+import { assertRoom, bounded, LIMITS } from "@/server/limits";
 import { tripHref } from "@floc/core/notifications/notification-href";
 import { touch } from "@/server/audit";
 import { kickFromTripNotes } from "@/server/notes/live/live-kick";
 import { recordActivity, type Tx } from "@/server/notifications/activity";
+import { countMembershipsOf } from "@/server/trips/trips";
 
 /** Matches one live membership row. Every roster read and write goes through this. */
 export function liveMembership(tripId: number, userId: string) {
@@ -56,6 +57,7 @@ export async function isLiveMember(tripId: number, userId: string): Promise<bool
  * `deletedAt`. Both doors into a trip land here; `invites.ts` owns which door.
  */
 export async function addMember(tripId: number, userId: string): Promise<void> {
+  if (!(await isLiveMember(tripId, userId))) assertRoom("tripsPerUser", await countMembershipsOf(db, userId));
   await db.transaction(async (tx) => {
     await tx
       .insert(tripMembership)
@@ -270,6 +272,12 @@ export async function insertNudge(args: {
   tab: NudgeTab;
   message: string | null;
 }): Promise<void> {
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const [{ n }] = await db
+    .select({ n: count() })
+    .from(nudge)
+    .where(and(eq(nudge.tripId, args.tripId), eq(nudge.fromUserId, args.fromUserId), gt(nudge.createdAt, since)));
+  assertRoom("nudgesPerDay", n);
   await db.transaction(async (tx) => {
     const row = await tx.insert(nudge).values(args).returning({ id: nudge.id }).get();
     await recordActivity(tx, {
