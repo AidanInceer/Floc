@@ -20,6 +20,8 @@ import { refresh } from "@/server/freshness";
 import { ensureProfile, loadIdentity, updateProfileFields } from "@/server/auth/profile";
 import { eraseAccount } from "@/server/auth/erase-account";
 import { markTourSeen, tourSeenAt } from "@/server/auth/tour";
+import { toggleBookingSite } from "@/server/auth/booking-sites";
+import { readBookingSites } from "@floc/core/trip/booking-sites";
 
 type SettingsPort = Pick<
   FlocPort,
@@ -30,6 +32,7 @@ type SettingsPort = Pick<
   | "updateVibeTags"
   | "updatePackingDefaults"
   | "updateHomeCurrency"
+  | "toggleBookingSite"
   | "updateNotifications"
   | "unlinkSignIn"
   | "deleteMyAccount"
@@ -73,8 +76,11 @@ export const settingsPort: SettingsPort = {
       notifyEmail: profile.notifyEmail,
       notifyReminders: profile.notifyReminders,
       signInMethods: linked.map((a) => ({ id: a.id, provider: a.providerId })),
+      bookingSites: readBookingSites(profile.bookingSites),
     };
   },
+
+  toggleBookingSite: (viewerId, kind, site) => toggleBookingSite(viewerId, kind, site),
 
   async updateIdentity(viewerId, input) {
     await ensureProfile(viewerId);

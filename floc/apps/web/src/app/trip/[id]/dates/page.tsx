@@ -10,6 +10,7 @@ import { bookingPlan } from "@floc/core/trip/booking-links";
 import { today } from "@floc/core/dates/dates";
 import { datesMoment } from "@floc/core/dates/dates-moment";
 import { BookingCard } from "@/components/booking/booking-card";
+import { bookingSitesOf } from "@/server/auth/booking-sites";
 import { getTripForecast } from "@/server/itinerary/weather";
 import { bestWindow, monthOf, thisMonth } from "@floc/core/dates/availability";
 import { dateRange, formatDateRange, nightsBetween } from "@floc/core/dates/dates";
@@ -69,7 +70,7 @@ export default async function DatesPage({
   const tripId = trip.id;
 
   const files = documentsEnabled();
-  const [rows, dayLoads, routeDays, forecast, weatherPro, bookingPrefill, guests, docs] = await Promise.all([
+  const [rows, dayLoads, routeDays, forecast, weatherPro, bookingPrefill, guests, docs, sites] = await Promise.all([
     listAvailability(tripId),
     listDayLoads(tripId),
     listRouteDays(tripId),
@@ -81,6 +82,7 @@ export default async function DatesPage({
     listGuests(tripId),
     // Rule 11: no storage volume, no files — and no query for them.
     files ? listDocuments(tripId, viewer.id) : Promise.resolve([]),
+    bookingSitesOf(viewer.id),
   ]);
 
   const free = rows.filter((r) => r.available);
@@ -252,7 +254,7 @@ export default async function DatesPage({
       )}
       {booking ? (
         <div className="mt-4">
-          <BookingCard tripId={tripId} plan={booking} files={files} />
+          <BookingCard tripId={tripId} plan={booking} files={files} sites={sites} />
         </div>
       ) : null}
     </div>

@@ -197,6 +197,8 @@ export const userProfile = sqliteTable("user_profile", {
   notifyReminders: integer("notify_reminders", { mode: "boolean" }).notNull().default(true),
   /** Explore's last quiz answers, read through `readAnswers` — a bad shape reads as none. */
   exploreAnswers: text("explore_answers", { mode: "json" }).$type<unknown>(),
+  /** Your flight and stay sites, read through `readBookingSites`; null or a bad shape reads as the default (wireframe/booking-sites J). */
+  bookingSites: text("booking_sites", { mode: "json" }).$type<unknown>(),
   /** Handed out by its owner so a stranger can find them (#360); made on first look, never reissued. */
   friendCode: text("friend_code").unique(),
   ...audit,

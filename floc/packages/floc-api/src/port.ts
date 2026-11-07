@@ -19,6 +19,7 @@
  */
 
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
+import type { BookingSite, BookingSites, SiteKind } from "@floc/core/trip/booking-sites";
 import type { Currency } from "@floc/core/money/currency";
 import type { SettleRow } from "@floc/core/money/group-settle";
 import type { DocCategory } from "@floc/core/documents/documents";
@@ -342,6 +343,8 @@ export type MySettings = {
   notifyReminders: boolean;
   /** `provider` is the raw id (`google`, `credential`); a client names it. */
   signInMethods: { id: string; provider: string }[];
+  /** The sites shown as buttons wherever Floc links out to book. */
+  bookingSites: BookingSites;
 };
 
 /** The Dates screen's Weather view (#148). `locked` says why a free trip has no forecast. */
@@ -756,6 +759,9 @@ export type FlocPort = {
     viewerId: string,
     input: { tier: PackTier; autoGenerate: boolean },
   ): Promise<void>;
+
+  /** Adds or drops one site; a move the rules refuse changes nothing. Returns what stands. */
+  toggleBookingSite(viewerId: string, kind: SiteKind, site: BookingSite): Promise<BookingSites>;
 
   /** Defaults the currency picker in Money. Never shown on a profile. */
   updateHomeCurrency(viewerId: string, currency: Currency): Promise<void>;

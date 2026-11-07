@@ -32,6 +32,7 @@ import { IdeasRow } from "@/components/trip/ideas/ideas-row";
 import { OverviewCard } from "@/components/trip/overview/overview-card";
 import { OverviewFiles } from "@/components/trip/overview/overview-files";
 import { BookingsCard } from "@/components/trip/overview/stops/bookings-card";
+import { bookingSitesOf } from "@/server/auth/booking-sites";
 import { OverviewStops } from "@/components/trip/overview/stops/overview-stops";
 import { OverviewMap } from "@/components/trip/overview/overview-map";
 import { RefreshWhileLive } from "@/components/trip/overview/route/refresh-while-live";
@@ -68,7 +69,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
 
   const now = today();
   const sharedPacking = readSharedPacking(tripId);
-  const [availabilityRows, expenseRows, dayRows, splitRows, settlementRows, routeDays, transport, walkthrough, prefill, ideas, docs, tracks] =
+  const [availabilityRows, expenseRows, dayRows, splitRows, settlementRows, routeDays, transport, walkthrough, prefill, ideas, docs, tracks, sites] =
     await Promise.all([
       listAvailability(tripId),
       listExpenses(tripId),
@@ -83,6 +84,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
       // Rule 11: no storage volume, no files — and no query for them.
       files ? listDocuments(tripId, viewer.id) : Promise.resolve([]),
       groupRoutes(access, now),
+      bookingSitesOf(viewer.id),
     ]);
 
   const { datesUnset, unresolved } = tripStateFor({
@@ -184,7 +186,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
         tripId={tripId}
         legs={legs}
         events={new Map(dayRows.map((d) => [d.id, d.events]))}
-        bookings={hasEnded(trip.endDate) ? null : <BookingsCard tripId={tripId} legs={legs} wholeTrip={wholeTrip} files={files} stays={stays} />}
+        bookings={hasEnded(trip.endDate) ? null : <BookingsCard tripId={tripId} legs={legs} wholeTrip={wholeTrip} files={files} stays={stays} sites={sites} />}
       />
 
       {walkthrough ? <WalkthroughDialog {...walkthroughFor(access, ideas, legs.length > 0)} /> : null}

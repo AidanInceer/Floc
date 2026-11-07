@@ -22,6 +22,7 @@ import { CURRENCIES } from "@floc/core/money/currency";
 import { PACK_TIERS } from "@floc/core/packing/packing";
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { VIBE_TAGS } from "@floc/core/trip/vibe-tags";
+import { FLIGHT_SITES, STAY_SITES } from "@floc/core/trip/booking-sites";
 import { z } from "zod";
 
 import { protectedProcedure, router } from "../trpc";
@@ -85,6 +86,16 @@ export const settingsRouter = router({
     .mutation(async ({ ctx, input }) => {
       await ctx.port.updatePackingDefaults(ctx.viewer.id, input);
     }),
+
+  /** One tick in a booking-site list. Kind and site are checked as a pair, so a stay site cannot join your flights. */
+  bookingSite: protectedProcedure
+    .input(
+      z.discriminatedUnion("kind", [
+        z.object({ kind: z.literal("flights"), site: z.enum(FLIGHT_SITES) }),
+        z.object({ kind: z.literal("stays"), site: z.enum(STAY_SITES) }),
+      ]),
+    )
+    .mutation(({ ctx, input }) => ctx.port.toggleBookingSite(ctx.viewer.id, input.kind, input.site)),
 
   currency: protectedProcedure
     .input(z.object({ currency: z.enum(CURRENCIES) }))
