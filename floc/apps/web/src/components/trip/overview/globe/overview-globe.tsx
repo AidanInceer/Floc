@@ -26,11 +26,14 @@ export function OverviewGlobe({
   tone,
   label,
   tracks = NO_TRACKS,
+  quiet = false,
 }: {
   route: OverviewRoute;
   tone: TripColor;
   label: string;
   tracks?: GroupRoute[];
+  /** No names or leg tags: the small map on a My trips bar. */
+  quiet?: boolean;
 }) {
   const host = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -49,7 +52,7 @@ export function OverviewGlobe({
       const card = box.closest("[data-overview-band]")?.querySelector("[data-overview-card]");
       const zoom = canvasZoom(getComputedStyle(node).getPropertyValue("--canvas-zoom"));
       const cardBox = card ? unzoomed(card.getBoundingClientRect(), zoom) : null;
-      const fit = drawStillRoute(node, paint, { route, land, tint, clear: clearArea(unzoomed(box.getBoundingClientRect(), zoom), cardBox) });
+      const fit = drawStillRoute(node, paint, { route, land, tint, quiet, clear: clearArea(unzoomed(box.getBoundingClientRect(), zoom), cardBox) });
       const ctx = node.getContext("2d");
       if (!fit || !ctx || tracks.length === 0) return;
       const css = getComputedStyle(node);
@@ -65,7 +68,7 @@ export function OverviewGlobe({
       window.removeEventListener(CANVAS_ZOOM_EVENT, draw);
       stop();
     };
-  }, [route, tone, world, fine, tracks]);
+  }, [route, tone, world, fine, tracks, quiet]);
 
   return (
     <div ref={host} className="absolute inset-0">

@@ -9,10 +9,9 @@ import { loadTripCards } from "./cards";
 import { formatDateRange, hasEnded, splitEnded } from "@floc/core/dates/dates";
 import { Avatar, ButtonLink, Stack, cx, PageTitle } from "@/components/system/ui";
 import { Sheet, SubmitButton } from "@/components/system/client-ui";
-import { ChevronIcon } from "@/components/system/icons";
+import { ChevronIcon, PlusIcon } from "@/components/system/icons";
 import type { TripCardData } from "@/components/trip/trip-card";
-import { TripFeature } from "@/components/trip/trip-feature";
-import { TripShelfCard } from "@/components/trip/trip-shelf-card";
+import { TripBar } from "@/components/trip/trips/trip-bar";
 import { NewTripForm } from "@/components/trip/new-trip-form";
 import { acceptTripInvite, createTrip, declineTripInvite } from "./actions";
 import "./past-trips.css";
@@ -76,24 +75,28 @@ export default async function TripsPage({
           </Link>
         </p>
       ) : null}
-      {featured ? <TripFeature trip={featured} /> : null}
+      {featured ? (
+        <ul className="mt-6">
+          <TripBar trip={featured} next />
+        </ul>
+      ) : null}
 
       {later.length > 0 ? (
         <section className="mt-9">
           <h2 className="typed">Later</h2>
-          <TripGrid trips={later} className="mt-3" />
+          <TripList trips={later} className="mt-3" />
         </section>
       ) : null}
 
       {undated.length > 0 ? (
         <section className="mt-9">
           <h2 className="typed">No dates yet</h2>
-          <TripGrid trips={undated} className="mt-3" newTrip={friends} />
+          <TripList trips={undated} className="mt-3" newTrip={friends} />
         </section>
       ) : null}
 
       {live.length > 0 && undated.length === 0 ? (
-        <ul className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="mt-9 grid gap-3">
           <NewTripTile friends={friends} />
         </ul>
       ) : null}
@@ -103,7 +106,7 @@ export default async function TripsPage({
   );
 }
 
-function TripGrid({
+function TripList({
   trips,
   className,
   newTrip,
@@ -115,9 +118,9 @@ function TripGrid({
   past?: boolean;
 }) {
   return (
-    <ul className={cx(className, "grid gap-3 sm:grid-cols-2 lg:grid-cols-3")}>
+    <ul className={cx(className, "grid gap-3")}>
       {trips.map((t) => (
-        <TripShelfCard key={t.id} trip={t} past={past} />
+        <TripBar key={t.id} trip={t} past={past} />
       ))}
       {newTrip ? <NewTripTile friends={newTrip} /> : null}
     </ul>
@@ -136,31 +139,41 @@ function PastTrips({ trips }: { trips: TripCardData[] }) {
         <ChevronIcon direction="down" size={15} className="past-trips-chevron shrink-0" />
         <span className="typed text-current">Past trips · {trips.length}</span>
       </summary>
-      <TripGrid trips={trips} className="mt-5" past />
+      <TripList trips={trips} className="mt-5" past />
     </details>
   );
 }
 
-/** The last tile in the grid is the way to add another one. */
+/** The last row of the list is the way to add another one; with no trips yet it is the whole page's invitation. */
 function NewTripTile({ friends, first }: { friends: Person[]; first?: boolean }) {
   return (
     <li className="contents">
       <Sheet
         bareTrigger
         trigger={
-          <span className="block text-left">
-            <span className="typed text-current">{first ? "No trips yet" : "One more"}</span>
-            <span className="mt-1 block font-display text-2xl font-semibold tracking-tight text-ink">
-              Start a trip
-            </span>
-            <span className="mt-2 block max-w-[32ch] text-sm text-ink-soft">
-              Name it, then ask your friends along. Dates can wait.
+          <span className="flex items-center gap-4 text-left">
+            {first ? null : (
+              <span aria-hidden="true" className="grid size-9 shrink-0 place-items-center rounded-sm bg-pen-soft text-pen-deep">
+                <PlusIcon />
+              </span>
+            )}
+            <span className="block">
+              {first ? <span className="typed text-current">No trips yet</span> : null}
+              <span className={cx("block font-display font-semibold tracking-tight text-ink", first ? "mt-1 text-2xl" : "text-lg")}>
+                Start a trip
+              </span>
+              <span className={cx("block text-balance text-sm text-ink-soft", first ? "mt-2" : "")}>
+                Name it, then ask your friends along. Dates can wait.
+              </span>
             </span>
           </span>
         }
         title="Start a trip"
         body="split"
-        triggerClassName="lift flex min-h-40 w-full flex-col justify-center rounded-md bg-sheet p-4 text-left shadow-[inset_0_0_0_1px_var(--rule-2)] hover:shadow-[inset_0_0_0_1px_var(--pen)]"
+        triggerClassName={cx(
+          "lift flex w-full flex-col justify-center rounded-md bg-sheet p-4 text-left shadow-[inset_0_0_0_1px_var(--rule-2)] hover:shadow-[inset_0_0_0_1px_var(--pen)]",
+          first ? "min-h-40" : "",
+        )}
       >
         <NewTripForm action={createTrip} friends={friends} />
       </Sheet>
