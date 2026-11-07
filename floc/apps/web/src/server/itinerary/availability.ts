@@ -8,11 +8,11 @@
  */
 import "server-only";
 
-import { and, eq, isNull } from "drizzle-orm";
+import { and, count, eq, isNull, notInArray } from "drizzle-orm";
 
 import { db } from "@/db";
 import { availability } from "@/db/schema";
-import { bounded, LIMITS } from "@/server/limits";
+import { assertRoom, bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
 
 export type AvailabilityRow = {
@@ -53,10 +53,18 @@ export async function setAvailability(
   dates: string[],
   isAvailable: boolean,
 ): Promise<void> {
-  if (dates.length === 0) return;
+  const wanted = [...new Set(dates)];
+  if (wanted.length === 0) return;
+  assertRoom("availabilityPerPerson", 0, wanted.length);
+  // Why every row, deleted or not: the upsert below revives a deleted mark, so it still holds its place.
+  const [{ n }] = await db
+    .select({ n: count() })
+    .from(availability)
+    .where(and(eq(availability.tripId, tripId), eq(availability.userId, userId), notInArray(availability.date, wanted)));
+  assertRoom("availabilityPerPerson", n, wanted.length);
   await db
     .insert(availability)
-    .values(dates.map((date) => ({ tripId, userId, date, available: isAvailable })))
+    .values(wanted.map((date) => ({ tripId, userId, date, available: isAvailable })))
     .onConflictDoUpdate({
       target: [availability.tripId, availability.userId, availability.date],
       set: { available: isAvailable, deletedAt: null, ...touch() },

@@ -154,8 +154,11 @@ describe("a refusal", () => {
     expect(reply.subject).toBe("That address isn't on one of your trips");
   });
 
-  it("answers a sender with no Floc account, in the same words", async () => {
-    const reply = await refusedWith({ from: "stranger@example.test" });
-    expect(reply.subject).toBe("That address isn't on one of your trips");
+  it("says nothing to a sender with no Floc account: a forged From would have Floc mail a stranger", async () => {
+    const { run, send, loadAttachments } = mail({ from: "stranger@example.test" });
+    await run();
+    expect(await files()).toHaveLength(0);
+    expect(loadAttachments).not.toHaveBeenCalled();
+    expect(send).not.toHaveBeenCalled();
   });
 });

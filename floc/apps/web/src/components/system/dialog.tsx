@@ -35,8 +35,10 @@ export function Dialog({ open, onClose, title, className, children }: {
       ref={ref}
       aria-label={title}
       className={className}
-      onCancel={(event) => { event.preventDefault(); onClose(); }}
-      onClose={() => {
+      // Why the target check: React bubbles a nested sheet's close and cancel up to here, which shut this one too.
+      onCancel={(event) => { if (event.target !== event.currentTarget) return; event.preventDefault(); onClose(); }}
+      onClose={(event) => {
+        if (event.target !== event.currentTarget) return;
         if (closingQuietly.current) closingQuietly.current = false;
         else onClose();
       }}

@@ -13,7 +13,7 @@ import { readPageYjs, seedPageYjs } from "@floc/core/notes/pages/page-yjs";
 import { isLiveMember, isOpenPage } from "./live-access";
 import { onNotesKick } from "./live-kick";
 import { onPagesChanged } from "./live-ping";
-import { loadPageState, storePageState } from "./page-live-store";
+import { LIVE_STATE_MAX_BYTES, loadPageState, storePageState } from "./page-live-store";
 
 type LiveContext = { userId: string; checkedAt: number };
 
@@ -24,6 +24,9 @@ type LiveContext = { userId: string; checkedAt: number };
 const RECHECK_MS = 60_000;
 
 const PAGES_CHANGED = "pages";
+
+/** Why: measuring a whole doc on every keystroke is costly, so it is measured each time this much has arrived. */
+const MEASURE_EVERY_BYTES = 256 * 1024;
 
 async function mayOpen(target: LiveDocument | null, userId: string): Promise<boolean> {
   if (!target || !(await isLiveMember(target.tripId, userId))) return false;
@@ -36,15 +39,19 @@ export function createNotesLive(options: {
   recheckMs?: number;
 }): Hocuspocus<LiveContext> {
   const recheckMs = options.recheckMs ?? RECHECK_MS;
+  const arrived = new Map<string, number>();
   const live: Hocuspocus<LiveContext> = new Hocuspocus<LiveContext>({
     quiet: true,
     debounce: options.debounce ?? 2_000,
     maxDebounce: 10_000,
 
-    async onAuthenticate({ documentName, requestHeaders, context }) {
+    async onAuthenticate({ documentName, requestHeaders, context, connectionConfig }) {
       const userId = await options.resolveUser(requestHeaders);
       if (!userId) throw new Error("Not signed in");
-      if (!(await mayOpen(readDocumentName(documentName), userId))) throw new Error("Not found");
+      const target = readDocumentName(documentName);
+      if (!(await mayOpen(target, userId))) throw new Error("Not found");
+      // Why: the page list only carries who is where (awareness), so no client may write content into it.
+      if (connectionConfig && target?.kind === "pages") connectionConfig.readOnly = true;
       context.userId = userId;
       context.checkedAt = Date.now();
     },
@@ -56,6 +63,18 @@ export function createNotesLive(options: {
         throw new Error("Not found");
       }
       context.checkedAt = Date.now();
+    },
+
+    async onChange({ documentName, document, update }) {
+      const since = (arrived.get(documentName) ?? 0) + update.byteLength;
+      arrived.set(documentName, since < MEASURE_EVERY_BYTES ? since : 0);
+      if (since < MEASURE_EVERY_BYTES || Y.encodeStateAsUpdate(document).byteLength <= LIVE_STATE_MAX_BYTES) return;
+      console.warn(`[notes] ${documentName} grew past the live limit; its editors were closed`);
+      for (const connection of document.getConnections()) connection.close();
+    },
+
+    async onDisconnect({ documentName, clientsCount }) {
+      if (clientsCount === 0) arrived.delete(documentName);
     },
 
     async onLoadDocument({ documentName, document }) {

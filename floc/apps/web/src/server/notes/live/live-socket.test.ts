@@ -197,3 +197,25 @@ describe("the live socket", () => {
     expect(read(ada.document)).not.toContain("after removal");
   });
 });
+
+describe("where a socket may come from", () => {
+  const knock = (origin?: string) =>
+    new Promise<number>((done) => {
+      const socket = new WebSocket(url, { headers: origin ? { origin } : {} });
+      socket.on("open", () => {
+        socket.close();
+        done(101);
+      });
+      socket.on("unexpected-response", (_req, res) => done(res.statusCode ?? 0));
+      socket.on("error", () => {});
+    });
+
+  it("refuses a page on another site", async () => {
+    expect(await knock("https://evil.example")).toBe(403);
+  });
+
+  it("lets in this site's own pages, and a native app that sends no origin", async () => {
+    expect(await knock(new URL(url).origin.replace("ws:", "http:"))).toBe(101);
+    expect(await knock()).toBe(101);
+  });
+});

@@ -13,7 +13,7 @@
  */
 import "server-only";
 
-import { and, desc, eq, inArray, isNull } from "drizzle-orm";
+import { and, count, desc, eq, inArray, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { expense, expenseSplit, settlement, user, userProfile } from "@/db/schema";
@@ -25,7 +25,7 @@ import type {
   SplitType,
 } from "@/db/schema";
 import type { ExpenseCategory } from "@floc/core/money/expense-category";
-import { bounded, LIMITS } from "@/server/limits";
+import { assertRoom, bounded, LIMITS } from "@/server/limits";
 import { tripHref } from "@floc/core/notifications/notification-href";
 import { touch } from "@/server/audit";
 import { recordActivity } from "@/server/notifications/activity";
@@ -91,6 +91,10 @@ export async function writeExpense(args: {
   splits: SplitRow[];
 }): Promise<void> {
   const { tripId, expenseId, createdBy, fields, splits } = args;
+  if (expenseId === undefined) {
+    const [{ n }] = await db.select({ n: count() }).from(expense).where(and(eq(expense.tripId, tripId), isNull(expense.deletedAt)));
+    assertRoom("expenses", n);
+  }
 
   await db.transaction(async (tx) => {
     let id = expenseId;
