@@ -77,6 +77,8 @@ PR link, commit subject, quick-check result, doc pages pushed, and that the
 watcher has it. UI change → the light and dark screenshots of each surface. If
 you fixed something outside the task to get green, say so. Nothing else.
 
+End with the status bullets from [session-summary](../session-summary/SKILL.md).
+
 Then end the turn. Do not wait on CI. The watcher is a plain script, not an
 agent: it merges when GitHub has not, waits for `develop` CI, then removes this
 worktree and its branch. A conflict or a red check stops it with a Windows

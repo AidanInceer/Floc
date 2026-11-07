@@ -38,6 +38,8 @@ starts the watcher.
 Version, PR link, tickets, migrations, and that the watcher has it. End the
 turn; do not wait on CI.
 
+End with the status bullets from [session-summary](../session-summary/SKILL.md).
+
 The watcher merges once `Release checks`, Sonar and the security checks pass,
 then waits until `https://floc.live/api/health` reports the merge commit and the
 homepage loads. Then it closes split parents whose children all closed, moves
