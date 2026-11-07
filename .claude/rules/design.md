@@ -57,6 +57,8 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 
 - One main action per screen. One visible action per row; more verbs go behind a `…` menu.
 - Rows on one surface beat cards for everything. No borders around borders, no boxes inside boxes.
+- Below a panel's coloured head, every part — a field or a section — takes one title style and is ruled off edge to edge from the part above (`panelTitleClass`, `panelBandClass` in `ui.tsx`). A part whose controls name themselves (the event type tiles) needs no title. An empty part shows its button, not a sentence about being empty.
+- A field draws one focus ring: the outline sits on the border, never a blue border plus an outline outside it.
 - Text never overlaps or clips. Test long names (South Africa, Bosnia and Herzegovina), many items and empty states. A chip fits its slot unless the name is long, then it wraps cleanly.
 - The page holds still. Switching a tab, day or filter never jumps the scroll or shifts the content above.
 - A card that opens something opens from anywhere on it, not only its title.

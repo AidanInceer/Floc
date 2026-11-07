@@ -11,7 +11,8 @@ export type Face = { name: string; icon: AvatarIcon | null; tone?: string };
 
 function grow(el: HTMLTextAreaElement) {
   el.style.height = "auto";
-  el.style.height = `${el.scrollHeight}px`;
+  // Why: scrollHeight leaves out the border, so without it the box is 2px short and shows a scrollbar.
+  el.style.height = `${el.scrollHeight + el.offsetHeight - el.clientHeight}px`;
 }
 
 function PostButton({ empty }: { empty: boolean }) {
@@ -20,9 +21,10 @@ function PostButton({ empty }: { empty: boolean }) {
     <button
       type="submit"
       disabled={empty || pending}
-      className="absolute right-1 bottom-1 h-7 rounded-sm max-sm:h-9 bg-pen px-2.5 text-xs font-semibold text-sheet transition-colors hover:bg-pen-deep disabled:bg-sheet-2 disabled:text-ink-faint"
+      aria-busy={pending}
+      className="absolute right-1 bottom-1 h-7 rounded-sm px-2 text-sm font-semibold text-pen transition-colors hover:bg-pen-soft hover:text-pen-deep disabled:bg-transparent disabled:text-ink-faint max-sm:h-9"
     >
-      {pending ? "Posting…" : "Post"}
+      Post
     </button>
   );
 }
@@ -89,7 +91,7 @@ export function NoteComposer({
               grow(e.currentTarget);
               setEmpty(!e.currentTarget.value.trim());
             }}
-            className="block max-h-40 w-full resize-none overflow-auto rounded-sm border border-rule-strong bg-sheet py-[7px] pr-[72px] pl-2.5 text-sm leading-[1.45] text-ink transition-colors focus:border-pen max-sm:py-[11px]"
+            className="block max-h-40 w-full resize-none overflow-auto rounded-sm border border-rule-strong bg-sheet py-[7px] pr-16 pl-2.5 text-sm leading-[1.45] text-ink transition-colors hover:border-ink-faint focus-visible:outline-offset-[-1px] max-sm:py-[11px]"
           />
           <PostButton empty={empty} />
         </div>

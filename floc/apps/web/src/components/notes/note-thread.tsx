@@ -96,7 +96,7 @@ export function NoteThread({
 
   return (
     <section aria-label="Comments">
-      <h3 className="mb-3 flex items-baseline gap-2 text-sm font-medium">
+      <h3 className="mb-2 flex items-baseline gap-2 text-sm font-medium text-ink">
         Comments
         {count ? <span className="font-mono text-xs font-normal text-ink-faint">{count}</span> : null}
       </h3>

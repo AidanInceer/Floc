@@ -13,7 +13,6 @@ export function CommentComposer({
   busy,
   initial,
   sendLabel = "Post",
-  pendingLabel = "Posting…",
   autoFocus,
   onSend,
   onCancel,
@@ -23,8 +22,6 @@ export function CommentComposer({
   busy: boolean;
   initial?: string;
   sendLabel?: string;
-  /** What the button says while this box's words are on their way. */
-  pendingLabel?: string;
   autoFocus?: boolean;
   /** Sends the trimmed words. The caller clears the box by remounting it once they land. */
   onSend: (body: string) => void;
@@ -32,8 +29,6 @@ export function CommentComposer({
 }) {
   const { c } = useTheme();
   const [body, setBody] = useState(initial ?? "");
-  // Why: `busy` covers the whole thread; only the box that sent says Posting.
-  const [sentHere, setSentHere] = useState(false);
   const said = body.trim();
   const off = !said || busy;
 
@@ -43,10 +38,7 @@ export function CommentComposer({
         <TextInput
           accessibilityLabel={label}
           value={body}
-          onChangeText={(next) => {
-            setBody(next);
-            setSentHere(false);
-          }}
+          onChangeText={setBody}
           multiline
           autoFocus={autoFocus}
           maxLength={2000}
@@ -59,7 +51,7 @@ export function CommentComposer({
             borderRadius: radius.sm,
             paddingVertical: space.sm + 2,
             paddingLeft: space.md,
-            paddingRight: 72,
+            paddingRight: 64,
             color: c.ink,
             fontFamily: fonts.sans,
             fontSize: size.body,
@@ -70,30 +62,27 @@ export function CommentComposer({
           accessibilityLabel={sendLabel}
           accessibilityState={{ disabled: off, busy }}
           disabled={off}
-          onPress={() => {
-            setSentHere(true);
-            onSend(said);
-          }}
-          hitSlop={4}
-          style={{
+          onPress={() => onSend(said)}
+          hitSlop={6}
+          style={({ pressed }) => ({
             position: "absolute",
             right: 5,
             bottom: 5,
             height: 34,
-            paddingHorizontal: space.md,
+            paddingHorizontal: space.sm + 2,
             justifyContent: "center",
             borderRadius: radius.sm,
-            backgroundColor: off ? c["sheet-2"] : c.pen,
-          }}
+            backgroundColor: pressed ? c["pen-2"] : "transparent",
+          })}
         >
           <Text
             style={{
-              color: off ? c["ink-3"] : c.sheet,
+              color: off ? c["ink-3"] : c.pen,
               fontFamily: fonts.sansBold,
-              fontSize: size.small,
+              fontSize: size.body,
             }}
           >
-            {busy && sentHere ? pendingLabel : sendLabel}
+            {sendLabel}
           </Text>
         </Pressable>
       </View>
