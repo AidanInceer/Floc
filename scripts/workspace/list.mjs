@@ -1,6 +1,5 @@
 import { basename, dirname, resolve } from "node:path";
 import { command, git } from "../delivery/process.mjs";
-import { readWatchers } from "../delivery/watchers.mjs";
 import { isScratch, listWorktrees, worktreesDir } from "./worktrees.mjs";
 
 export function kindOf({ path, branch }, main) {
@@ -13,7 +12,6 @@ export function kindOf({ path, branch }, main) {
 /** The one-line state a person needs: where the work is and what it waits on. */
 export function stateOf(row) {
   if (row.kind === "main") return [row.dirty && `${row.dirty} changed files`, row.behind && `${row.behind} commits behind develop`].filter(Boolean).join("; ") || "current with develop";
-  if (row.watcher) return `watcher: ${row.watcher.state}${row.watcher.detail ? ` (${row.watcher.detail})` : ""}`;
   if (row.pr?.state === "OPEN") return `PR #${row.pr.number} open`;
   if (row.pr?.state === "MERGED" && !row.ahead) return `PR #${row.pr.number} landed; sweep removes it`;
   if (row.dirty) return `${row.dirty} unsaved changes`;
@@ -41,7 +39,6 @@ function pullRequests(main) {
 export function rows(main) {
   try { git(main, "fetch", "--quiet", "origin", "develop"); } catch { /* Why: offline still lists what is local. */ }
   const prs = pullRequests(main);
-  const watchers = readWatchers(main);
   return listWorktrees(main).map((w) => {
     const safe = (...args) => { try { return git(w.path, ...args); } catch { return ""; } };
     const kind = kindOf(w, main);
@@ -54,7 +51,6 @@ export function rows(main) {
       ahead: Number(safe("rev-list", "--count", "origin/develop..HEAD") || 0),
       behind: Number(safe("rev-list", "--count", "HEAD..origin/develop") || 0),
       pr: w.branch && kind !== "main" ? prs.get(w.branch) : undefined,
-      watcher: watchers.find((job) => job.state !== "done" && (job.branch === w.branch || (job.worktree && resolve(job.worktree) === w.path) || job.runsFrom === w.path)),
     };
   });
 }

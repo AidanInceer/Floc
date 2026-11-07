@@ -31,7 +31,7 @@ either client; load `plugins/floc/skills/<name>/SKILL.md` when needed.
   state; never assume arbitrary page JavaScript or storage access is available.
 - Replace `SendUserFile` with local Markdown image/file links. Keep screenshots
   outside tracked product code. State any surface you could not verify.
-- After `/floc:push`, follow `floc:ci-babysit` yourself: watch the PR checks and fix anything red, as that agent describes. After `/floc:release`, end the turn. A plain watcher script merges and cleans up; it notifies on a conflict or a red check.
+- After `/floc:push` or `/floc:release`, do what the `floc:ci-watch` agent describes yourself: run `node scripts/ci-watch.mjs --pr <n> --for 540` until it reports merged, red or conflict. Red → fix and publish again. Merged → `pnpm delivery finish --pr <n>`.
 - Claude transcript paths in `retro` apply only to Claude. Use this Codex chat's
   context and available chat-reading tools for a Codex retrospective.
 - Claude's permissions and edit hooks do not grant Codex permissions. Keep repo

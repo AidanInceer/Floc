@@ -29,6 +29,7 @@ if (process.argv[1]?.endsWith("hooks.mjs")) {
   if (action === "install") installHooks(root);
   else if (action === "pre-commit") {
     command(process.execPath, ["scripts/sync-floc-plugin.mjs", "--check"], { cwd: root });
+    command(process.execPath, ["scripts/checks/repo.mjs"], { cwd: root, stdio: "inherit" });
     command("pnpm", ["exec", "lint-staged"], { cwd: root, stdio: "inherit" });
   } else if (action === "post-checkout") {
     const warning = process.argv[5] === "1" ? switchWarning({ root, branch: git(root, "branch", "--show-current") }) : null;

@@ -12,9 +12,14 @@ export function reviewIdentity(root, base) {
     .concat(git(root, "ls-files", "--others", "--exclude-standard").split("\n"))
     .filter((p) => UI.test(p));
   if (!changed.length) return { required: false };
-  const diff = git(root, "diff", base, "--", ...new Set(changed));
+  const diff = git(root, "diff", "--unified=0", base, "--", ...new Set(changed));
   const untracked = changed.filter((p) => existsSync(join(root, p)) && !diff.includes(`b/${p}`)).map((p) => p + readFileSync(join(root, p), "utf8"));
-  return { required: true, fingerprint: digest([diff, ...untracked, readFileSync(join(root, RULES), "utf8")].join("\n")) };
+  return { required: true, fingerprint: digest([changedLines(diff), ...untracked, readFileSync(join(root, RULES), "utf8")].join("\n")) };
+}
+
+/** Why: merging develop moves line numbers and context, not the change reviewed, so only the +/- lines count. */
+export function changedLines(diff) {
+  return diff.split("\n").filter((line) => /^(diff --git|[+-])/.test(line) && !/^(\+\+\+|---) /.test(line)).join("\n");
 }
 
 const recordFile = (root) => join(root, ".floc/design-review.json");

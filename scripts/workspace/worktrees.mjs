@@ -61,13 +61,10 @@ export function sweepVerdict(w) {
   if (!w.managed) return { remove: false, reason: "not under .claude/worktrees" };
   if (w.isCurrent) return { remove: false, reason: "this session is in it" };
   if (w.locked) return { remove: false, reason: "locked" };
-  if (w.watched) return { remove: false, reason: "a watcher runs from it" };
   if (w.scratch) return scratchVerdict(w);
   if (!w.pr) return { remove: false, reason: "no merged pull request" };
   if (w.dirty) return { remove: false, reason: "uncommitted changes" };
   if (!w.contained) return { remove: false, reason: "commits not on the target branch" };
-  if (w.landed === "failed") return { remove: false, reason: "develop CI is red after the merge" };
-  if (w.landed !== "passed") return { remove: false, reason: "develop CI still running" };
   return { remove: true, reason: `PR #${w.pr} landed` };
 }
 
@@ -78,8 +75,8 @@ export const isScratch = (branch) => !branch || !TASK_BRANCH.test(branch);
 
 /**
  * Why the idle time: a subagent's fresh worktree is clean and holds nothing
- * beyond develop yet, exactly like an abandoned one. A release worktree is
- * done once its watcher is.
+ * beyond develop yet, exactly like an abandoned one. A release worktree holds
+ * no work of its own.
  */
 function scratchVerdict(w) {
   if (w.dirty) return { remove: false, reason: "uncommitted changes" };
