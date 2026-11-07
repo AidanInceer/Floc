@@ -127,7 +127,7 @@ export default function Days() {
 
   return (
     <View style={{ flex: 1 }}>
-      <View style={{ paddingTop: space.md, paddingBottom: space.sm }}>
+      <View style={{ paddingTop: space.sm }}>
         <DayStrip
           days={days.data}
           selected={selected}
@@ -140,11 +140,11 @@ export default function Days() {
       </View>
 
       {/* The head of the day stays put and the grid scrolls under it, so the date and the night stay in view. */}
-      <View style={{ paddingHorizontal: space.lg, paddingTop: space.sm, gap: space.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.rule }}>
+      <View style={{ paddingHorizontal: space.lg, paddingTop: space.sm, gap: space.xs, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.rule }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
           <View style={{ flex: 1, gap: 2 }}>
-            <Text style={{ color: c.ink, fontFamily: fonts.typeBold, fontSize: size.body, fontVariant: ["tabular-nums"] }}>{formatDate(day.date)}</Text>
-            <Text numberOfLines={1} style={{ color: c["ink-3"], fontFamily: fonts.type, fontSize: size.label + 1, fontVariant: ["tabular-nums"] }}>
+            <Text style={{ color: c.ink, fontFamily: fonts.sansBold, fontSize: size.body }}>{formatDate(day.date)}</Text>
+            <Text numberOfLines={1} style={{ color: c["ink-3"], fontFamily: fonts.type, fontSize: size.small, fontVariant: ["tabular-nums"] }}>
               {`Day ${dates.indexOf(day.date) + 1} of ${dates.length} · ${day.events.length === 1 ? "1 event" : `${day.events.length} events`}`}
             </Text>
           </View>

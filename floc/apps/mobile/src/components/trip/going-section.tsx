@@ -1,34 +1,47 @@
-// Why one door: "Share trip" and "Invite friends" were the same job twice; the invite screen holds the friends and the link, as the web's Invite does (#312).
-import { Text, View } from "react-native";
+// Why one line: the web's "B One line" — faces, count and names; the line opens the roster, and Invite is the one verb (#312).
+import { goingNames, goingNotes } from "@floc/core/trip/overview/going";
+import { Pressable, Text, View } from "react-native";
 
+import { FaceStack, type Face } from "../system/face-stack";
 import { AddPersonGlyph } from "../system/glyphs";
 import { useTheme } from "../system/theme";
-import { Button, Card, SectionTitle } from "../system/ui";
-import { RosterStrip, type RosterPerson } from "./roster-strip";
+import { LineRow } from "./overview/line-row";
 import { fonts, size, space } from "@/lib/theme";
 
-export function GoingSection({
+export function GoingLine({
   people,
   statuses,
+  onOpen,
   onInvite,
 }: {
-  people: RosterPerson[];
+  people: Face[];
+  /** userId → what they still owe the group, in words (`groupStatuses`). */
   statuses: Map<string, string[]>;
+  onOpen: () => void;
   onInvite: () => void;
 }) {
   const { c } = useTheme();
+  const notes = goingNotes({ toAddDates: people.filter((p) => (statuses.get(p.userId) ?? []).length > 0).length, invited: 0 });
   return (
-    <View style={{ gap: space.sm }}>
-      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.md }}>
-        <View style={{ flexDirection: "row", alignItems: "baseline", gap: space.sm }}>
-          <SectionTitle>Who&apos;s going</SectionTitle>
-          <Text style={{ color: c["ink-3"], fontFamily: fonts.type, fontSize: size.small, fontVariant: ["tabular-nums"] }}>{people.length}</Text>
-        </View>
-        <Button label="Invite" variant="quiet" fit="small" icon={(ink) => <AddPersonGlyph color={ink} />} onPress={onInvite} />
+    <LineRow label={`${people.length} going. Open the group`} onPress={onOpen}>
+      <FaceStack faces={people} />
+      <View style={{ flex: 1 }}>
+        <Text style={{ color: c.ink, fontFamily: fonts.sansBold, fontSize: size.body }}>{`${people.length} going`}</Text>
+        <Text numberOfLines={2} style={{ color: c["ink-2"], fontFamily: fonts.sans, fontSize: size.small }}>
+          {goingNames(people.map((p) => p.name.split(" ")[0]))}
+          {notes.length > 0 ? ` · ${notes.join(" · ")}` : ""}
+        </Text>
       </View>
-      <Card style={{ paddingVertical: space.xs }}>
-        <RosterStrip people={people} statuses={statuses} />
-      </Card>
-    </View>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Invite"
+        hitSlop={{ top: 16, bottom: 16, left: 12, right: 0 }}
+        onPress={onInvite}
+        style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: space.xs, opacity: pressed ? 0.6 : 1 })}
+      >
+        <AddPersonGlyph color={c.pen} />
+        <Text style={{ color: c.pen, fontFamily: fonts.sansBold, fontSize: size.small }}>Invite</Text>
+      </Pressable>
+    </LineRow>
   );
 }

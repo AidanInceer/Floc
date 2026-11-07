@@ -1,28 +1,27 @@
 /**
- * Who is on the trip (ticket 291).
+ * Who is on the trip (ticket 291), the web's "Who's going" list.
  *
- * EXACTLY THREE ADMIN POWERS (rule 6). Two are reachable here — remove and
- * promote — and both are hidden from a member, then refused again by the API
- * if the screen is wrong. Hiding a control is a courtesy; the gate is the
- * server's.
+ * Two admin powers live here — remove and promote — hidden from a member and
+ * refused again by the API if the screen is wrong (rule 6). Leaving and
+ * inviting are open to every member (#312).
  *
- * Leaving and inviting are NOT admin powers. Any member may do both (#312).
- *
- * A NAME OPENS A PROFILE. Which is how you meet somebody well enough to ask
- * them to be a friend — a co-traveller is already inside one of your rings, so
- * that profile is one you may see (ticket 46).
+ * A name opens a menu; View profile is how you meet somebody well enough to
+ * ask them to be a friend (ticket 46).
  */
-import { whoTone } from "@floc/core/people/who";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Alert, Pressable, ScrollView, View } from "react-native";
+import { useState } from "react";
+import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 
-import { Seat } from "@/components/system/glyphs";
+import { MemberMenu, confirmRemove } from "@/components/roster/member-menu";
+import { MemberRow } from "@/components/roster/member-row";
+import { AddPersonGlyph } from "@/components/system/glyphs";
 import { useTheme } from "@/components/system/theme";
-import { Body, Button, Card, Failed, Loading, Pill, SectionTitle } from "@/components/system/ui";
+import { Button, Card, Failed, Heading, Loading } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { useSession } from "@/lib/auth";
-import { space } from "@/lib/theme";
+import { memberActions, type MemberAction } from "@/lib/roster/member-actions";
+import { fonts, size, space } from "@/lib/theme";
 
 export default function Roster() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -34,8 +33,10 @@ export default function Roster() {
   const { c } = useTheme();
   const queryClient = useQueryClient();
   const { data: session } = useSession();
+  const [menu, setMenu] = useState<string | null>(null);
 
   const trip = useQuery(trpc.trips.get.queryOptions({ tripId }, { enabled: ready }));
+  const invites = useQuery(trpc.invites.forTrip.queryOptions({ tripId }, { enabled: ready }));
 
   const invalidate = () =>
     queryClient.invalidateQueries({ queryKey: trpc.trips.get.queryKey({ tripId }) });
@@ -55,90 +56,72 @@ export default function Roster() {
 
   const isAdmin = trip.data.role === "admin";
   const me = session?.user.id;
+  const members = trip.data.members;
+  const picked = members.find((m) => m.userId === menu) ?? null;
+  const pending = invites.data?.pending ?? [];
+
+  const pick = (action: MemberAction) => {
+    if (!picked) return;
+    setMenu(null);
+    if (action === "profile") router.push({ pathname: "/person/[userId]", params: { userId: picked.userId } });
+    if (action === "promote") promote.mutate({ tripId, userId: picked.userId });
+    if (action === "remove") confirmRemove(picked.name, () => remove.mutate({ tripId, userId: picked.userId }));
+  };
 
   return (
     <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }}>
-      <View style={{ gap: space.sm }}>
-        <SectionTitle>On this trip</SectionTitle>
-        {trip.data.members.map((m) => {
-          const tone = whoTone(m.name);
-          return (
-            <Card key={m.userId}>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={
-                  m.userId === me ? m.name : `Open ${m.name}'s profile`
-                }
-                disabled={m.userId === me}
-                onPress={() =>
-                  router.push({
-                    pathname: "/person/[userId]",
-                    params: { userId: m.userId },
-                  })
-                }
-              >
-                <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
-                  <Seat
-                    initial={m.name.slice(0, 1).toUpperCase()}
-                    ground={c[tone] ?? c["sheet-2"]}
-                    ink={c[`${tone}-ink`] ?? c.ink}
-                  />
-                  <View style={{ flex: 1, gap: space.xs }}>
-                    <Body bold>{m.name}</Body>
-                  </View>
-                  {m.role === "admin" ? <Pill word="Admin" tone="pastel-blue" /> : null}
-                </View>
-              </Pressable>
-
-              {isAdmin && m.userId !== me ? (
-                <View style={{ flexDirection: "row", gap: space.sm }}>
-                  {m.role !== "admin" ? (
-                    <Button
-                      label="Make admin"
-                      variant="quiet"
-                      onPress={() => promote.mutate({ tripId, userId: m.userId })}
-                    />
-                  ) : null}
-                  <Button
-                    label="Remove"
-                    variant="danger"
-                    onPress={() =>
-                      Alert.alert(`Remove ${m.name}?`, "They lose access to this trip.", [
-                        { text: "Cancel", style: "cancel" },
-                        {
-                          text: "Remove",
-                          style: "destructive",
-                          onPress: () => remove.mutate({ tripId, userId: m.userId }),
-                        },
-                      ])
-                    }
-                  />
-                </View>
-              ) : null}
-            </Card>
-          );
-        })}
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.md }}>
+        <Heading>{`${members.length} going`}</Heading>
+        <Button
+          label="Invite"
+          fit="small"
+          icon={(ink) => <AddPersonGlyph color={ink} />}
+          onPress={() => router.push(`/trip/${tripId}/invite` as never)}
+        />
       </View>
 
-      <Button
-        label="Invite people"
-        onPress={() => router.push(`/trip/${tripId}/invite` as never)}
-      />
+      <Card style={{ padding: 0, gap: 0, overflow: "hidden" }}>
+        {members.map((m, i) => {
+          const you = m.userId === me;
+          const actions = memberActions({ viewerIsAdmin: isAdmin, you, role: m.role });
+          return (
+            <MemberRow
+              key={m.userId}
+              name={m.name}
+              avatarIcon={m.avatarIcon}
+              you={you}
+              admin={m.role === "admin"}
+              first={i === 0}
+              onMore={actions.length ? () => setMenu(m.userId) : undefined}
+            />
+          );
+        })}
+        {pending.map((p) => (
+          <MemberRow key={p.id} name={p.name} avatarIcon={p.avatarIcon} you={false} admin={false} word="Invited" first={false} />
+        ))}
+      </Card>
 
-      <Button
-        label="Leave this trip"
-        variant="danger"
-        busy={leave.isPending}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Leave this trip"
+        disabled={leave.isPending}
+        hitSlop={8}
         onPress={() =>
           Alert.alert("Leave this trip?", "You'll need a new invite to come back.", [
             { text: "Cancel", style: "cancel" },
-            {
-              text: "Leave",
-              style: "destructive",
-              onPress: () => leave.mutate({ tripId }),
-            },
+            { text: "Leave", style: "destructive", onPress: () => leave.mutate({ tripId }) },
           ])
         }
+        style={({ pressed }) => ({ minHeight: 44, alignSelf: "center", justifyContent: "center", opacity: pressed || leave.isPending ? 0.6 : 1 })}
+      >
+        <Text style={{ color: c.red, fontFamily: fonts.sansBold, fontSize: size.body }}>Leave trip</Text>
+      </Pressable>
+
+      <MemberMenu
+        name={picked?.name ?? null}
+        actions={picked ? memberActions({ viewerIsAdmin: isAdmin, you: picked.userId === me, role: picked.role }) : []}
+        onClose={() => setMenu(null)}
+        onPick={pick}
       />
     </ScrollView>
   );

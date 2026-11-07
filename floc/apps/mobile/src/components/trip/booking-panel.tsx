@@ -52,7 +52,7 @@ export function BookingPanel({ tripId, plan, onOpenDays }: { tripId: number; pla
       <Segmented options={KINDS} value={kind} onChange={setKind} />
       <Card>
         <View style={{ gap: space.md }}>
-          {kind === "flights" ? <SiteLinks kind="flights" label="Search flights" links={plan.flights} /> : null}
+          {kind === "flights" ? <SiteLinks kind="flights" label="Search flights" links={plan.flights} centred /> : null}
 
           {kind === "stays" && plan.stays === "unset" ? (
             <TextLink label="Set where you sleep on Days to find a stay" onPress={onOpenDays} />
@@ -86,7 +86,7 @@ export function BookingPanel({ tripId, plan, onOpenDays }: { tripId: number; pla
               )
             : null}
 
-          <OffsiteNote />
+          <OffsiteNote centred={kind === "flights"} />
         </View>
       </Card>
     </View>

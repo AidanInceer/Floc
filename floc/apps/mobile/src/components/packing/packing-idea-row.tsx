@@ -2,12 +2,12 @@
  * One auto packing idea at the foot of a cube (#469). Faint, so it never reads
  * as packed or owned; the + takes it into your bag, marked suggested.
  */
-import { View } from "react-native";
+import { Text } from "react-native";
 
 import { PlusGlyph } from "../system/glyphs";
 import { useTheme } from "../system/theme";
-import { Body, IconButton, Row } from "../system/ui";
-import { space } from "@/lib/theme";
+import { GhostIcon, LineFrame } from "./line-frame";
+import { fonts, size } from "@/lib/theme";
 
 export function IdeaRow({
   idea,
@@ -20,15 +20,16 @@ export function IdeaRow({
 }) {
   const { c } = useTheme();
   return (
-    <Row>
-      <View style={{ width: 34 }}>
-        <IconButton label={`Add ${idea.label} to my bag`} disabled={busy} onPress={onTake}>
-          {() => <PlusGlyph color={c.pen} />}
-        </IconButton>
-      </View>
-      <View style={{ flex: 1, flexDirection: "row", gap: space.xs }}>
-        <Body tone="ink-3">{`${idea.quantity} — ${idea.label}`}</Body>
-      </View>
-    </Row>
+    <LineFrame
+      lead={
+        <GhostIcon label={`Add ${idea.label} to my bag`} disabled={busy} tone="pen" onPress={onTake}>
+          {(color) => <PlusGlyph color={color} />}
+        </GhostIcon>
+      }
+    >
+      <Text style={{ color: c["ink-3"], fontFamily: fonts.sans, fontSize: size.body }}>
+        {`${idea.quantity} — ${idea.label}`}
+      </Text>
+    </LineFrame>
   );
 }

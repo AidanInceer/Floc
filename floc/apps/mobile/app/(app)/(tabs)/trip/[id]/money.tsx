@@ -252,7 +252,7 @@ export default function Money() {
           <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
             <SectionTitle>Expenses</SectionTitle>
             <Text style={{ flex: 1, color: c["ink-3"], fontFamily: fonts.type, fontSize: size.small }}>{shown.length}</Text>
-            <Button label="Add" fit="small" icon={(ink) => <PlusGlyph color={ink} />} onPress={startAdd} />
+            <Button label="Add" variant="quiet" fit="small" icon={(ink) => <PlusGlyph color={ink} />} onPress={startAdd} />
           </View>
           <ExpenseRows
             expenses={shown}

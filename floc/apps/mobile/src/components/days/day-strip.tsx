@@ -33,7 +33,7 @@ function DayChip({ date, on, isToday, onPress }: { date: string; on: boolean; is
       onPress={onPress}
       style={{ width: CHIP, alignItems: "center", paddingVertical: space.sm, borderRadius: radius.sm, backgroundColor: on ? c["pen-2"] : "transparent" }}
     >
-      <Text style={{ color: on ? c["pen-deep"] : c["ink-3"], fontFamily: fonts.type, fontSize: size.label, textTransform: "uppercase", letterSpacing: 0.6 }}>{weekday}</Text>
+      <Text style={{ color: on ? c["pen-deep"] : c["ink-3"], fontFamily: fonts.type, fontSize: size.label }}>{weekday}</Text>
       <Text
         style={{
           color: on ? c["pen-deep"] : c.ink,
@@ -49,16 +49,17 @@ function DayChip({ date, on, isToday, onPress }: { date: string; on: boolean; is
   );
 }
 
-function StayBand({ name, width }: { name: string | null; width: number }) {
+function StayBand({ name, width, current }: { name: string | null; width: number; current: boolean }) {
   const { c } = useTheme();
-  if (!name) return <View style={{ width, height: 24 }} />;
+  const tone = current ? c.ink : c["ink-3"];
   return (
-    <View accessibilityLabel={`Sleeping in ${name}`} style={{ width, height: 24, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: space.xs, paddingHorizontal: space.sm, borderRadius: radius.sm, backgroundColor: c["sheet-2"] }}>
-      <BedGlyph color={c["ink-2"]} />
-      {/* Why: a one-night stay is one chip wide; there the bed alone says it, and the label says where. */}
-      {width < 80 ? null : <Text numberOfLines={1} style={{ flexShrink: 1, color: c["ink-2"], fontFamily: fonts.sansBold, fontSize: size.label + 1 }}>
-        {cityOf(name)}
-      </Text>}
+    <View accessibilityLabel={name ? `Sleeping in ${name}` : undefined} style={{ width, gap: space.xs }}>
+      <View style={{ height: 16, flexDirection: "row", alignItems: "center", gap: space.xs }}>
+        {name ? <BedGlyph color={tone} /> : null}
+        {/* Why: a one-night stay is one chip wide; there the bed alone says it, and the overnight line says where. */}
+        {name && width >= 80 ? <Text numberOfLines={1} style={{ flexShrink: 1, color: tone, fontFamily: fonts.sansBold, fontSize: size.label }}>{cityOf(name)}</Text> : null}
+      </View>
+      <View style={{ height: 2, borderRadius: radius.pill, backgroundColor: name ? (current ? c["ink-3"] : c.rule) : "transparent" }} />
     </View>
   );
 }
@@ -102,7 +103,7 @@ export function DayStrip({
         const width = dates.length * CHIP + (dates.length - 1) * GAP;
         return (
           <View key={stay.startDate} style={{ gap: space.xs }}>
-            <StayBand name={stay.placeName} width={width} />
+            <StayBand name={stay.placeName} width={width} current={dates.includes(selected)} />
             <View style={{ flexDirection: "row", gap: GAP }}>
               {dates.map((date) => (
                 <DayChip key={date} date={date} on={date === selected} isToday={date === todayDate} onPress={() => onSelect(date)} />

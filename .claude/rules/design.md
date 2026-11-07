@@ -67,6 +67,10 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 
 - Every screen reads at 1280 and 375, in light and dark, with no sideways scroll. Plan the narrow layout; do not just shrink.
 - Phone: same tokens, glyphs and words, drawn tighter. A row per question is a budget. Two short controls share a line. Cut furniture, never information. Press targets stay full size.
+- Phone corrections from Aidan:
+  - A colour key fits one line: small marks, the web's words.
+  - A lone share button, or a card of link buttons, sits centred. No heading or sentence above it that says what the button does.
+  - The top of a screen stacks no bands. Stops sit on the day strip, not in a band above it. One boxed button per row; the rest are ghost.
 - House components first: web `components/system/ui.tsx` and `client-ui.tsx`; phone `src/components/system/ui.tsx` and `glyphs.tsx`.
 
 ## Mockups and builds

@@ -9,10 +9,10 @@ import { fonts, size, space } from "@/lib/theme";
 
 const OFFSITE_NOTE = "Opens another site. Floc isn't paid for these links.";
 
-export function OffsiteNote() {
+export function OffsiteNote({ centred }: { centred?: boolean }) {
   const { c } = useTheme();
   return (
-    <Text style={{ color: c["ink-3"], fontFamily: fonts.sans, fontSize: size.label }}>
+    <Text style={{ color: c["ink-3"], fontFamily: fonts.sans, fontSize: size.label, textAlign: centred ? "center" : "left" }}>
       {OFFSITE_NOTE}
     </Text>
   );

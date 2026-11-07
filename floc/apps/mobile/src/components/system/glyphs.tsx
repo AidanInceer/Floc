@@ -498,3 +498,46 @@ export function StepGlyph({ step, color, size = 14 }: { step: string; color: str
     </Svg>
   );
 }
+
+export function UploadGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+      <Path
+        d="M7 9.5V2M4 4.7 7 1.7l3 3M2 9.5v1.7c0 .4.3.8.8.8h8.4c.5 0 .8-.4.8-.8V9.5"
+        stroke={color}
+        strokeWidth={STROKE}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+export function FileGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 14 14" fill="none">
+      <Path
+        d="M3.5 1.5h4l3 3v7.5a.5.5 0 0 1-.5.5h-6.5a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5ZM7.5 1.5v3h3"
+        stroke={color}
+        strokeWidth={STROKE}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+/** The Ideas bulb. */
+export function BulbGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+      <Path
+        d="M5.2 10.2h3.6M5.6 12h2.8M7 1.8a3.6 3.6 0 0 0-2.2 6.4c.4.3.5.7.5 1.1v.9h3.4v-.9c0-.4.1-.8.5-1.1A3.6 3.6 0 0 0 7 1.8Z"
+        stroke={color}
+        strokeWidth={STROKE}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}

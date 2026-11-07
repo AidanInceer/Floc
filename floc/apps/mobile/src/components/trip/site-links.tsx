@@ -11,12 +11,12 @@ import { useBookingSites } from "./booking-sites";
 import { fonts, radius, size, space } from "@/lib/theme";
 
 /** Your sites as buttons, and every other site in a sheet behind the chevron (wireframe/booking-sites J). */
-export function SiteLinks({ kind, links, label }: { kind: SiteKind; links: BookingLink[]; label: string }) {
+export function SiteLinks({ kind, links, label, centred }: { kind: SiteKind; links: BookingLink[]; label: string; centred?: boolean }) {
   const { sites } = useBookingSites();
   const [open, setOpen] = useState(false);
   const { mine } = splitBySites(links, sites[kind]);
   return (
-    <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: space.sm }}>
+    <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: centred ? "center" : "flex-start", gap: space.sm }}>
       {mine.map((l) => (
         <Button
           key={l.site}
