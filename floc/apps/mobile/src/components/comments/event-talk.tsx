@@ -26,7 +26,9 @@ export function EventTalk({
   const queryClient = useQueryClient();
   const [problem, setProblem] = useState<string | null>(null);
 
-  const comments = useQuery(trpc.comments.onEvent.queryOptions({ tripId, dayEventId }));
+  const comments = useQuery(
+    trpc.comments.onEvent.queryOptions({ tripId, dayEventId }),
+  );
 
   const settled = {
     onSuccess: () => {
@@ -49,9 +51,18 @@ export function EventTalk({
   };
 
   const add = useMutation({ ...trpc.comments.add.mutationOptions(), ...said });
-  const edit = useMutation({ ...trpc.comments.edit.mutationOptions(), ...said });
-  const remove = useMutation({ ...trpc.comments.remove.mutationOptions(), ...settled });
-  const react = useMutation({ ...trpc.comments.react.mutationOptions(), ...settled });
+  const edit = useMutation({
+    ...trpc.comments.edit.mutationOptions(),
+    ...said,
+  });
+  const remove = useMutation({
+    ...trpc.comments.remove.mutationOptions(),
+    ...settled,
+  });
+  const react = useMutation({
+    ...trpc.comments.react.mutationOptions(),
+    ...settled,
+  });
 
   if (comments.isPending) return <Loading />;
   if (comments.isError) return <Failed onRetry={() => comments.refetch()} />;
@@ -63,10 +74,19 @@ export function EventTalk({
       busy={add.isPending || edit.isPending || remove.isPending}
       problem={problem}
       actions={{
-        onAdd: (replyTo, body) => add.mutate({ tripId, dayEventId, replyTo, body }),
-        onEdit: (commentId, body) => edit.mutate({ tripId, commentId, body }),
+        onAdd: (replyTo, body, landed) =>
+          add.mutate(
+            { tripId, dayEventId, replyTo, body },
+            { onSuccess: (refusal) => refusal || landed() },
+          ),
+        onEdit: (commentId, body, landed) =>
+          edit.mutate(
+            { tripId, commentId, body },
+            { onSuccess: (refusal) => refusal || landed() },
+          ),
         onDelete: (commentId) => remove.mutate({ tripId, commentId }),
         onReact: (commentId, kind) => react.mutate({ tripId, commentId, kind }),
+        onClearProblem: () => setProblem(null),
       }}
     />
   );
