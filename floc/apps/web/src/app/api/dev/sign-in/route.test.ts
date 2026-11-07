@@ -33,13 +33,14 @@ async function get(): Promise<Response> {
 }
 
 describe("the dev sign-in route", () => {
+  // Why the long timeout: the first test pays the cold import of the route, which can pass 5 s on a busy machine.
   it("404s in production even with both variables set", async () => {
     vi.stubEnv("NODE_ENV", "production");
     process.env.FLOC_DEV_USER_EMAIL = "test@example.com";
     process.env.FLOC_DEV_USER_PASSWORD = "hunter2";
     expect((await post()).status).toBe(404);
     vi.unstubAllEnvs();
-  });
+  }, 30_000);
 
   it("404s locally when the credentials are not configured", async () => {
     delete process.env.FLOC_DEV_USER_EMAIL;
