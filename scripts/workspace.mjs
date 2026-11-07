@@ -6,6 +6,7 @@ import { copyDevAccount, prepareConfig, configFile } from "./workspace/config.mj
 import { installHooks } from "./workspace/hooks.mjs";
 import { ensureDocs } from "./workspace/docs-link.mjs";
 import { sweep } from "./workspace/sweep.mjs";
+import { rows, table } from "./workspace/list.mjs";
 import { baseFor, branchFor, folderFor, isPrimary, mainCheckout, worktreesDir } from "./workspace/worktrees.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -23,6 +24,9 @@ function localEnv(config) {
   if (config.primary) return {};
   return { TURSO_DATABASE_URL: config.database, FLOC_FILES_DIR: config.files, BETTER_AUTH_URL: `http://${config.host}:${config.ports.web}` };
 }
+
+// Why: the preview pane reads only the main checkout's launch.json; a worktree opens its own server by URL instead.
+const withUrl = (config) => ({ ...config, url: `http://${config.host}:${config.ports.web}` });
 
 const seededMark = (config) => join(config.root, ".floc/data/seeded");
 
@@ -51,7 +55,7 @@ function create() {
   if (!name) throw new Error("Usage: pnpm workspace:new <name>   (feature/<name> from develop; hotfix/<name> from main)");
   const main = mainCheckout(root);
   let swept = [];
-  try { swept = sweep(main, null).filter((r) => r.removed).map((r) => r.path); } catch { swept = []; }
+  try { swept = sweep(main, null).filter((r) => r.removed && r.path).map((r) => r.path); } catch { swept = []; }
   const branch = branchFor(name);
   const base = baseFor(branch);
   const path = join(worktreesDir(main), folderFor(branch));
@@ -87,11 +91,16 @@ try {
   else if (action === "finish") {
     const main = mainCheckout(root);
     if (resolve(main) === resolve(root)) throw new Error("Run finish from the task's worktree.");
-    const mine = sweep(main, null).find((r) => resolve(r.path) === resolve(root));
+    const mine = sweep(main, null).find((r) => r.path && resolve(r.path) === resolve(root));
     result = mine ?? { kept: "not a managed worktree" };
-  } else if (action === "status") result = existsSync(configFile(root)) ? JSON.parse(readFileSync(configFile(root), "utf8")) : { state: "unprepared", next: "pnpm workspace:prepare" };
+  } else if (action === "status") result = existsSync(configFile(root)) ? withUrl(JSON.parse(readFileSync(configFile(root), "utf8"))) : { state: "unprepared", next: "pnpm workspace:prepare" };
+  else if (action === "list") {
+    const found = rows(mainCheckout(root));
+    if (args.includes("--json")) result = found;
+    else console.log(table(found));
+  }
   else if (action === "start") start();
-  else throw new Error("Expected new, prepare, sweep, finish, status or start.");
+  else throw new Error("Expected new, prepare, sweep, finish, status, list or start.");
   if (result && !(quiet && action === "prepare" && !result.next)) console.log(JSON.stringify(result));
 } catch (error) {
   console.error(error.message);
