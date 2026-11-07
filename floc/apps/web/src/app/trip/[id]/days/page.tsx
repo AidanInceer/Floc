@@ -40,8 +40,8 @@ import { ButtonLink, EmptyState, PageTitle, menuDangerItemClass } from "@/compon
 import { appUrl } from "@/lib/env";
 import { mintCalendarToken } from "@/server/itinerary/calendar-link";
 import { EVENT_CATEGORIES } from "@floc/core/itinerary/event-categories";
-import { NoteThread, type NoteRow } from "@/components/notes/note-thread";
-import { requireTripAccess } from "@/server/access";
+import { NoteThread, type NoteRow, type Viewer } from "@/components/notes/note-thread";
+import { requireTripAccess, type TripMember } from "@/server/access";
 import { canUseFeature } from "@/server/billing/entitlements";
 import type { DayEventRow } from "@/server/itinerary/itinerary";
 import { loadCalendar } from "@/server/itinerary/calendar-read";
@@ -74,6 +74,7 @@ export default async function DaysPage({
     bookingSitesOf(viewer.id),
   ]);
   const { days, commentCounts, fileEventIds, selected } = calendar;
+  const commenter = commenterOf(viewer, members);
 
   if (days.length === 0) {
     // Two empty states (ticket 126): an undated trip is sent to Dates rather
@@ -200,7 +201,7 @@ export default async function DaysPage({
             files={selected.files}
             loose={selected.loose}
             filesEnabled={documentsEnabled()}
-            viewerId={viewer.id}
+            viewer={commenter}
             bookingPrefill={bookingPrefill}
           />,
         } : null}
@@ -219,6 +220,12 @@ export default async function DaysPage({
       </div>
     </div>
   );
+}
+
+/** You, as the comment composer draws you: your trip colour and face, as on every other tab. */
+function commenterOf(viewer: { id: string; name: string }, members: TripMember[]): Viewer {
+  const me = members.find((m) => m.userId === viewer.id);
+  return { id: viewer.id, name: me?.name ?? viewer.name, icon: me?.avatarIcon ?? null, tone: me?.tone };
 }
 
 /** One date, formatted for a column head. UTC throughout (rule 10) — read in
@@ -244,7 +251,7 @@ function EventPanel({
   files,
   loose,
   filesEnabled,
-  viewerId,
+  viewer,
   bookingPrefill,
 }: {
   tripId: number;
@@ -257,7 +264,7 @@ function EventPanel({
   files: TripDocument[];
   loose: FileChoice[];
   filesEnabled: boolean;
-  viewerId: string;
+  viewer: Viewer;
   bookingPrefill: boolean;
 }) {
   const isTransport = event.type === "transport";
@@ -312,7 +319,7 @@ function EventPanel({
             dayEventId={event.id}
             files={files}
             loose={loose}
-            viewerId={viewerId}
+            viewerId={viewer.id}
           />
         ) : null}
 
@@ -322,7 +329,7 @@ function EventPanel({
             scope="day_event"
             scopeId={event.id}
             notes={notes}
-            viewerId={viewerId}
+            viewer={viewer}
           />
         </div>
       </div>
