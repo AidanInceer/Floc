@@ -129,11 +129,11 @@ export type NewTripRow = {
 };
 
 /** Smallest thing that exists at creation (ticket 01), inside the caller's transaction. */
-export async function insertTripWithAdmin(tx: Tx, input: NewTripRow): Promise<number> {
+export async function insertTripWithAdmin(tx: Tx, input: NewTripRow, held?: number): Promise<number> {
   // A start alone is a real answer at creation; a full window must be a valid one.
   const problem = input.startDate && input.endDate ? windowProblem(input.startDate, input.endDate) : null;
   if (problem) throw new Refusal(problem);
-  assertRoom("tripsPerUser", await countMembershipsOf(tx, input.createdBy));
+  assertRoom("tripsPerUser", held ?? (await countMembershipsOf(tx, input.createdBy)));
   const [created] = await tx
     .insert(trip)
     .values({
@@ -164,8 +164,13 @@ export async function countMembershipsOf(q: Pick<Tx, "select">, userId: string):
   return n;
 }
 
-export async function createTripWithAdmin(input: NewTripRow): Promise<number> {
-  return db.transaction((tx) => insertTripWithAdmin(tx, input));
+/** `held`: the creator's trip count, read beforehand beside other work so the transaction does one less round trip. */
+export async function createTripWithAdmin(input: NewTripRow, held?: number): Promise<number> {
+  return db.transaction((tx) => insertTripWithAdmin(tx, input, held));
+}
+
+export async function tripsHeldBy(userId: string): Promise<number> {
+  return countMembershipsOf(db, userId);
 }
 
 /**

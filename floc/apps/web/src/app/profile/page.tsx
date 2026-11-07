@@ -33,14 +33,16 @@ export const metadata = { title: "Your profile" };
 
 export default async function ProfilePage() {
   const viewer = await requireUser("/profile");
-  const profile = await ensureProfile(viewer.id);
+  const own = ensureProfile(viewer.id);
+  const [profile, travelMap, mapPrompts, pastTrips] = await Promise.all([
+    own,
+    travelMapFor(viewer.id),
+    pendingMapPrompts(viewer.id),
+    pastTripsFor(viewer.id, own.then((p) => p.pastTripsShow)),
+  ]);
 
   const name = profile.displayName ?? viewer.name;
   const vibeTags = readVibeTags(profile.vibeTags);
-  const pastTrips = await pastTripsFor(viewer.id, profile.pastTripsShow);
-  const travelMap = await travelMapFor(viewer.id);
-  const mapPrompts = await pendingMapPrompts(viewer.id);
-
 
   return (
     <AccountPage title="Your profile">

@@ -17,7 +17,7 @@ import {
   listSplits,
   namesForUsers,
 } from "@/server/money/money";
-import { getProfile } from "@/server/auth/profile";
+import { homeCurrenciesFor } from "@/server/auth/profile";
 import { getHomeRates } from "@/server/money/fx";
 import { Avatar, PageTitle, EmptyState, SectionHeading } from "@/components/system/ui";
 import { Sheet } from "@/components/system/client-ui";
@@ -42,17 +42,19 @@ export default async function MoneyPage({
   const tripId = access.trip.id;
   const viewerId = access.viewer.id;
 
-  const homeRates = getProfile(viewerId).then(async (profile) => {
-    const home: Currency = profile?.homeCurrency ?? "GBP";
+  const homes = homeCurrenciesFor([...new Set([viewerId, ...access.members.map((m) => m.userId)])]);
+  const homeRates = homes.then(async (found) => {
+    const home: Currency = found.get(viewerId) ?? "GBP";
     return { home, rates: await getHomeRates(home) };
   });
-  const [expenses, days, { home: homeCurrency, rates }, splits, settlements] =
+  const [expenses, days, { home: homeCurrency, rates }, splits, settlements, homeOf] =
     await Promise.all([
       listExpenses(tripId),
       listDays(tripId),
       homeRates,
       listSplits(tripId),
       listSettlements(tripId),
+      homes,
     ]);
 
   const rateFor = (currency: Currency): number | null =>
@@ -68,7 +70,10 @@ export default async function MoneyPage({
     if (!knownIds.has(s.fromUserId)) extraIds.add(s.fromUserId);
     if (!knownIds.has(s.toUserId)) extraIds.add(s.toUserId);
   }
-  const extraUsers = await namesForUsers([...extraIds]);
+  const [extraUsers, settle] = await Promise.all([
+    namesForUsers([...extraIds]),
+    settleUpFrom({ ledger: { expenses, splits, settlements }, viewerId, homes: homeOf }),
+  ]);
 
   const userNames: Record<string, string> = {};
   for (const m of access.members) userNames[m.userId] = m.name;
@@ -113,7 +118,6 @@ export default async function MoneyPage({
 
   const hasActivity = expenses.length > 0 || settlements.length > 0;
 
-  const settle = await settleUpFrom({ ledger: { expenses, splits, settlements }, viewerId });
   const settled = settle.rows.length === 0;
 
   return (

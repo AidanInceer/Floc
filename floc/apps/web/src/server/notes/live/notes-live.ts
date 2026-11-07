@@ -29,8 +29,12 @@ const PAGES_CHANGED = "pages";
 const MEASURE_EVERY_BYTES = 256 * 1024;
 
 async function mayOpen(target: LiveDocument | null, userId: string): Promise<boolean> {
-  if (!target || !(await isLiveMember(target.tripId, userId))) return false;
-  return target.kind === "pages" || (await isOpenPage(target.tripId, target.pageId));
+  if (!target) return false;
+  const [member, open] = await Promise.all([
+    isLiveMember(target.tripId, userId),
+    target.kind === "pages" || isOpenPage(target.tripId, target.pageId),
+  ]);
+  return member && open;
 }
 
 export function createNotesLive(options: {

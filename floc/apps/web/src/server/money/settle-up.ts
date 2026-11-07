@@ -23,11 +23,18 @@ export async function settleUpFor(tripId: number, viewerId: string): Promise<Set
   return settleUpFrom({ ledger: { expenses, splits, settlements }, viewerId });
 }
 
-/** The same, from a ledger the caller already holds. */
-export async function settleUpFrom({ ledger, viewerId }: { ledger: Ledger; viewerId: string }): Promise<SettleUp> {
+/** Home currencies the caller has, plus a read for anyone they leave out (a former member, say). */
+async function homesOf(people: string[], given?: Map<string, Currency>): Promise<Map<string, Currency>> {
+  const missing = people.filter((id) => !given?.has(id));
+  if (missing.length === 0 && given) return given;
+  return new Map([...(given ?? []), ...(await homeCurrenciesFor(missing))]);
+}
+
+/** The same, from a ledger the caller already holds; `homes` read beside the ledger saves a round trip. */
+export async function settleUpFrom({ ledger, viewerId, homes: given }: { ledger: Ledger; viewerId: string; homes?: Map<string, Currency> }): Promise<SettleUp> {
   const balances = ledgerBalances(ledger);
   const people = [...new Set([viewerId, ...CURRENCIES.flatMap((c) => Object.keys(balances[c]))])];
-  const homes = await homeCurrenciesFor(people);
+  const homes = await homesOf(people, given);
   const homeOf = (id: string): Currency => homes.get(id) ?? "GBP";
   const used = new Set([...people.map(homeOf), ...CURRENCIES.filter((c) => Object.values(balances[c]).some((v) => v !== 0))]);
   // Why: the rates call can take seconds; one currency for everyone needs none.

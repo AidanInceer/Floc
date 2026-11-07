@@ -7,7 +7,7 @@
 
 import { HocuspocusProvider, HocuspocusProviderWebsocket } from "@hocuspocus/provider";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
 
@@ -16,6 +16,9 @@ import { LIVE_NOTES_PATH, pageDocumentName, pagesDocumentName } from "@floc/core
 import { type PresentPerson } from "@floc/core/notes/live/live-presence";
 import { openLivePage, openPageList, type LivePageState, type PageCache, type PageListSession } from "@floc/core/notes/live/live-session";
 import { type LiveStatus } from "@floc/core/notes/live/live-status";
+import { ownEchoes } from "@floc/core/notes/live/own-echo";
+
+export type OwnEchoes = ReturnType<typeof ownEchoes>;
 
 type Viewer = { id: string; name: string };
 
@@ -41,29 +44,35 @@ export function useNotesSocket(): HocuspocusProviderWebsocket | null {
   return socket;
 }
 
-/** Who has which page open, and a fresh read of the list whenever anyone changes it. */
-export function usePageList(socket: HocuspocusProviderWebsocket | null, tripId: number, openPage: number, viewer: Viewer): Map<number, PresentPerson[]> {
+/** Who has which page open, and a fresh read of the list whenever anyone else changes it. */
+export function usePageList(
+  socket: HocuspocusProviderWebsocket | null,
+  tripId: number,
+  openPage: number,
+  viewer: Viewer,
+): { byPage: Map<number, PresentPerson[]>; echoes: OwnEchoes } {
   const router = useRouter();
   const [session, setSession] = useState<PageListSession | null>(null);
   const [byPage, setByPage] = useState(new Map<number, PresentPerson[]>());
+  const echoes = useMemo(() => ownEchoes(() => router.refresh(), (run, ms) => window.setTimeout(run, ms)), [router]);
 
   useEffect(() => {
     if (!socket) return;
     const made = openPageList({
       connect: () => attach(new HocuspocusProvider({ websocketProvider: socket, name: pagesDocumentName(tripId), token: TOKEN })),
       onPeople: setByPage,
-      onChanged: () => router.refresh(),
+      onChanged: echoes.heard,
     });
     setSession(made);
     return () => {
       made.close();
       setSession(null);
     };
-  }, [socket, tripId, router]);
+  }, [socket, tripId, echoes]);
 
   useEffect(() => session?.announce(viewer, openPage), [session, openPage, viewer]);
 
-  return byPage;
+  return { byPage, echoes };
 }
 
 export type LivePage = { doc: Y.Doc; provider: HocuspocusProvider; status: LiveStatus; people: PresentPerson[] };
