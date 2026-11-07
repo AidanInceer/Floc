@@ -43,13 +43,13 @@
  */
 import { packLanes, spanOf, type TimedLike } from "@floc/core/dates/calendar";
 import { EVENT_CATEGORIES } from "@floc/core/itinerary/event-categories";
-import type { DayEventType } from "@floc/core/vocabulary";
+import type { DayEventType, TransportType } from "@floc/core/vocabulary";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
-import { ClipGlyph, PenGlyph } from "../system/glyphs";
+import { EventMark, groundOf } from "../system/event-glyph";
+import { ClipGlyph, NoteGlyph } from "../system/glyphs";
 import { useTheme } from "../system/theme";
 import { fonts, radius, size, space } from "@/lib/theme";
-import type { Pastel } from "@floc/core/design/pastels";
 
 /** One hour's height. Tall enough that a half-hour block is still a tappable target. */
 const HOUR = 52;
@@ -58,62 +58,44 @@ const HOUR = 52;
 const START_HOUR = 0;
 const END_HOUR = 24;
 
-/** Room for "09", left of the rules. */
-const GUTTER = 34;
+/** Room for "09:00", left of the rules. */
+const GUTTER = 44;
 
 export type GridEvent = TimedLike & {
   type: DayEventType;
+  transportType: TransportType | null;
   title: string | null;
   note: string | null;
+  placeName: string | null;
 };
 
-/**
- * The ground each category sits on. `EVENT_CATEGORIES` names it in Tailwind
- * classes the browser resolves; there is no cascade here, so the token name is
- * read out of the class and looked up in the palette.
- */
-const GROUND: Record<Exclude<DayEventType, "other">, Pastel> = {
-  transport: "pastel-red",
-  activity: "pastel-blue",
-  food: "pastel-yellow",
-};
+const hh = (h: number) => `${String(h).padStart(2, "0")}:00`;
 
-// Other is grey, not a pastel: the recess it sits in, its edge and the softer ink.
-function groundOf(type: DayEventType, c: ReturnType<typeof useTheme>["c"]) {
-  if (type === "other") return { fill: c["sheet-3"], edge: c["rule-2"], ink: c["ink-2"] };
-  const g = GROUND[type];
-  return { fill: c[g], edge: c[`${g}-edge`], ink: c[`${g}-ink`] };
-}
-
-/**
- * A block, or the all-day chip: same tap, same look, different place.
- *
- * ONE LINE, NOT TWO. A half-hour block is 26 points tall, which fits one line
- * of type — stacking the time above the title clipped every short event down
- * to its clock face and hid the thing you were looking for.
- */
+// Why lines by height: as on the web, a block says its time, then its title, then its place, as far as its height allows; a half-hour block keeps one line.
 function EventBlock({
-  type,
-  title,
+  event,
   when,
-  hasNote,
+  height,
   hasFiles,
   onPress,
   style,
 }: {
-  type: DayEventType;
-  title: string;
-  when: string | null;
-  hasNote: boolean;
+  event: GridEvent;
+  when: string;
+  /** Null for a chip above the grid, which keeps to one line. */
+  height: number | null;
   hasFiles: boolean;
   onPress: () => void;
   style?: object;
 }) {
   const { c } = useTheme();
-  const ground = groundOf(type, c);
-  const said = [when, title].filter(Boolean).join(" · ");
+  const ground = groundOf(event.type, c);
+  const title = event.title ?? "Untitled";
   // The category is a word here, so the colour is never carrying it alone (#204).
-  const spoken = `${said} · ${EVENT_CATEGORIES[type].label}`;
+  const spoken = [when, title, event.placeName, EVENT_CATEGORIES[event.type].label].filter(Boolean).join(" · ");
+  const stacked = height !== null && height >= 44;
+  const placed = height !== null && height >= 78 && event.placeName;
+  const small = { color: ground.ink, fontFamily: fonts.type, fontSize: size.label, fontVariant: ["tabular-nums" as const] };
   return (
     <Pressable
       accessibilityRole="button"
@@ -126,34 +108,34 @@ function EventBlock({
           borderWidth: 1,
           borderRadius: radius.sm,
           paddingHorizontal: space.sm,
-          paddingVertical: 2,
-          justifyContent: "center",
+          paddingVertical: stacked ? space.xs + 2 : 2,
+          justifyContent: stacked ? "flex-start" : "center",
           overflow: "hidden",
+          gap: 2,
         },
         style,
       ]}
     >
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
-        <Text
-          numberOfLines={2}
-          style={{
-            flexShrink: 1,
-            color: ground.ink,
-            fontFamily: fonts.sans,
-            fontSize: size.small,
-          }}
-        >
-          {said}
+      {stacked ? <Text style={small}>{when}</Text> : null}
+      <View style={{ flexDirection: "row", alignItems: "center", gap: space.xs }}>
+        <Text numberOfLines={stacked && height >= 64 ? 2 : 1} style={{ flexShrink: 1, color: ground.ink, fontFamily: fonts.sansBold, fontSize: size.small }}>
+          {stacked ? title : `${when} · ${title}`}
         </Text>
-        {/* The marks say only "more inside" — the modal is the real answer, so
-            the label above already carries everything a reader is told. */}
-        {hasNote ? <PenGlyph color={ground.ink} /> : null}
+        {/* The marks say only "more inside"; the modal is the real answer. */}
+        {event.note ? <NoteGlyph color={ground.ink} /> : null}
         {hasFiles ? <ClipGlyph color={ground.ink} /> : null}
       </View>
+      {placed ? (
+        <View style={{ flexDirection: "row", alignItems: "center", gap: space.xs }}>
+          <EventMark type={event.type} transportType={event.transportType} color={ground.ink} />
+          <Text numberOfLines={1} style={{ flexShrink: 1, color: ground.ink, fontFamily: fonts.sans, fontSize: size.label + 1 }}>
+            {event.placeName}
+          </Text>
+        </View>
+      ) : null}
     </Pressable>
   );
 }
-
 export function DayGrid({
   events,
   withFiles,
@@ -169,21 +151,15 @@ export function DayGrid({
   onAddAt: (time: string) => void;
 }) {
   const { c } = useTheme();
-  const startHour = START_HOUR;
-  const endHour = END_HOUR;
-  const top = startHour * 60;
+  const top = START_HOUR * 60;
+  const hours = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR + i);
 
-  // An hour above the first thing planned, so the block is not flush with the
-  // top edge and the hour before it reads as free.
-  const firstSpan = Math.min(
-    ...events.flatMap((event) => spanOf(event)?.start ?? []),
-    END_HOUR * 60,
-  );
-  const opensAt = Math.max(0, Math.floor(firstSpan / 60) - 1 - startHour) * HOUR;
+  // An hour above the first thing planned, so the block is not flush with the top edge.
+  const firstSpan = Math.min(...events.flatMap((event) => spanOf(event)?.start ?? []), END_HOUR * 60);
+  const opensAt = Math.max(0, Math.floor(firstSpan / 60) - 1 - START_HOUR) * HOUR;
 
   const allDay = events.filter((event) => event.allDay);
-  // Anything with no start time at all sits with the all-day chips rather than
-  // being dropped: the grid has nowhere to put it, and losing it is worse.
+  // Anything with no start time sits with the all-day chips: the grid has nowhere to put it, and losing it is worse.
   const loose = events.filter((event) => !event.allDay && spanOf(event) === null);
 
   const timed = events.flatMap((event) => {
@@ -193,16 +169,15 @@ export function DayGrid({
   const packed = packLanes(timed.map((t) => ({ id: t.event.id, start: t.span.start, end: t.span.end })));
 
   return (
-    <View style={{ flex: 1, gap: space.md }}>
+    <View style={{ flex: 1, gap: space.sm }}>
       {allDay.length + loose.length > 0 ? (
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.sm }}>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.sm, paddingLeft: GUTTER }}>
           {[...allDay, ...loose].map((event) => (
             <EventBlock
               key={event.id}
-              type={event.type}
-              title={event.title ?? "Untitled"}
+              event={event}
               when={event.allDay ? "All day" : "No time"}
-              hasNote={Boolean(event.note)}
+              height={null}
               hasFiles={withFiles.has(event.id)}
               onPress={() => onPick(event.id)}
             />
@@ -210,73 +185,53 @@ export function DayGrid({
         </View>
       ) : null}
 
-      <ScrollView
-        style={{ flex: 1 }}
-        contentOffset={{ x: 0, y: opensAt }}
-        contentContainerStyle={{ flexDirection: "row", paddingBottom: space.lg }}
-      >
-        <View style={{ width: GUTTER }}>
-          {Array.from({ length: endHour - startHour }, (_, i) => (
-            <View key={i} style={{ height: HOUR }}>
-              <Text
-                style={{
-                  color: c["ink-3"],
-                  fontFamily: fonts.type,
-                  fontSize: size.label,
-                  fontVariant: ["tabular-nums"],
-                }}
-              >
-                {String(startHour + i).padStart(2, "0")}
-              </Text>
-            </View>
-          ))}
-        </View>
-
-        <View style={{ flex: 1 }}>
-          {/* The rules are the hours, and each one is where an event at that
-              hour is started. Drawn first so blocks sit over them — a press
-              that lands on a block opens the block instead. */}
-          {Array.from({ length: endHour - startHour }, (_, i) => (
-            <Pressable
-              key={i}
-              accessibilityRole="button"
-              accessibilityLabel={`Add something at ${String(startHour + i).padStart(2, "0")}:00`}
-              onPress={() => onAddAt(`${String(startHour + i).padStart(2, "0")}:00`)}
-              style={{ height: HOUR, borderTopWidth: 1, borderTopColor: c.rule }}
-            />
-          ))}
-
-          {packed.map((block) => {
-            const found = timed.find((t) => t.event.id === block.id);
-            if (!found) return null;
-            const width = `${100 / block.lanes}%` as const;
-            // Why: a %-width plus a margin ran the last lane off the right edge; the gap now sits inside the lane.
-            return (
-              <View
-                key={block.id}
-                style={{
-                  position: "absolute",
-                  top: ((block.start - top) / 60) * HOUR,
-                  height: Math.max(((block.end - block.start) / 60) * HOUR - 2, 24),
-                  left: `${(100 / block.lanes) * block.lane}%`,
-                  width,
-                  paddingLeft: space.xs,
-                }}
-              >
-              <EventBlock
-                type={found.event.type}
-                title={found.event.title ?? "Untitled"}
-                // Open-ended events say their start and nothing else — the box's
-                // height is a drawing, not a claim about when it finishes.
-                when={found.event.time}
-                hasNote={Boolean(found.event.note)}
-                hasFiles={withFiles.has(found.event.id)}
-                onPress={() => onPick(block.id)}
-                style={{ flex: 1 }}
-              />
+      <ScrollView style={{ flex: 1 }} contentOffset={{ x: 0, y: opensAt }} contentContainerStyle={{ paddingTop: space.sm, paddingBottom: space.lg }}>
+        <View style={{ flexDirection: "row" }}>
+          <View style={{ width: GUTTER }}>
+            {hours.map((h) => (
+              <View key={h} style={{ height: HOUR }}>
+                <Text style={{ marginTop: -7, color: c["ink-3"], fontFamily: fonts.type, fontSize: size.label, fontVariant: ["tabular-nums"] }}>{hh(h)}</Text>
               </View>
-            );
-          })}
+            ))}
+          </View>
+
+          <View style={{ flex: 1 }}>
+            {/* The rules are the hours, and each one starts an event at that hour. Drawn first so a press on a block opens the block. */}
+            {hours.map((h) => (
+              <Pressable
+                key={h}
+                accessibilityRole="button"
+                accessibilityLabel={`Add something at ${hh(h)}`}
+                onPress={() => onAddAt(hh(h))}
+                style={{ height: HOUR, borderTopWidth: 1, borderTopColor: c.rule }}
+              />
+            ))}
+
+            {packed.map((block) => {
+              const found = timed.find((t) => t.event.id === block.id);
+              if (!found) return null;
+              const height = Math.max(((block.end - block.start) / 60) * HOUR - 2, 24);
+              const { time, endTime } = found.event;
+              // Open-ended events say their start only: the box's height is a drawing, not a claim (#126).
+              const when = !found.span.open && endTime ? `${time}–${endTime}` : (time ?? "");
+              // Why: a %-width plus a margin ran the last lane off the right edge; the gap now sits inside the lane.
+              return (
+                <View
+                  key={block.id}
+                  style={{
+                    position: "absolute",
+                    top: ((block.start - top) / 60) * HOUR + 1,
+                    height,
+                    left: `${(100 / block.lanes) * block.lane}%`,
+                    width: `${100 / block.lanes}%`,
+                    paddingLeft: space.xs,
+                  }}
+                >
+                  <EventBlock event={found.event} when={when} height={height} hasFiles={withFiles.has(found.event.id)} onPress={() => onPick(block.id)} style={{ flex: 1 }} />
+                </View>
+              );
+            })}
+          </View>
         </View>
       </ScrollView>
     </View>

@@ -11,6 +11,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { ChevronGlyph, CrossGlyph, Seat } from "../../system/glyphs";
 import { useTheme } from "../../system/theme";
 import { Body, Card, IconButton, Label, Segmented, SectionTitle } from "../../system/ui";
+import { IdeasClosedRow } from "./ideas-row";
 import { VotePill } from "./vote-pill";
 import { radius, space } from "@/lib/theme";
 
@@ -38,6 +39,8 @@ export function IdeasPanel({
 }) {
   const { c } = useTheme();
 
+  if (!open) return <IdeasClosedRow ideas={ideas} onOpen={onToggle} />;
+
   return (
     <View style={{ gap: space.sm }}>
       <Pressable
@@ -50,13 +53,10 @@ export function IdeasPanel({
         <SectionTitle>Ideas</SectionTitle>
         {ideas.length > 0 ? <Label>{ideas.length}</Label> : null}
         <View style={{ flex: 1 }} />
-        <View style={open ? undefined : { transform: [{ rotate: "-90deg" }] }}>
-          <ChevronGlyph color={c["ink-2"]} />
-        </View>
+        <ChevronGlyph color={c["ink-2"]} />
       </Pressable>
 
-      {open ? (
-        <Card>
+      <Card>
           {children}
           {ideas.length > 1 ? (
             <Segmented
@@ -110,8 +110,7 @@ export function IdeasPanel({
               </View>
             ))
           )}
-        </Card>
-      ) : null}
+      </Card>
     </View>
   );
 }

@@ -1,6 +1,6 @@
 import { project, unproject, type LatLng } from "@floc/globe/sphere";
 
-import { legCurves } from "./curves";
+import { legCurves } from "@floc/core/trip/route/curves";
 import { sphere } from "./glide";
 import type { TripRoute } from "./trip-route";
 

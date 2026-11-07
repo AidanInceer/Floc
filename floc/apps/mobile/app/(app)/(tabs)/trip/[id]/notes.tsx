@@ -2,29 +2,28 @@
  * Notes (#408) — the trip's pages, the same editor as the website. The page is
  * drawn in a web view (an Expo DOM component) so the phone gets every block,
  * table and comment; the app holds the live doc, the socket and the copy kept
- * offline. The Pages button opens the list as a sheet, and the tab reopens the
+ * offline. The bar names the open page and opens the list as a sheet; the tab reopens the
  * last page you had open.
  */
-import { LIVE_STATUS_WORDS } from "@floc/core/notes/live/live-status";
 import { LINK_TABS, type LinkKind } from "@floc/core/notes/pages/trip-links";
 import { useQuery } from "@tanstack/react-query";
 import * as SecureStore from "expo-secure-store";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useIsFocused, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
 
-import { PresenceRow } from "@/components/notes/live-presence";
-import PageDom, { type PageHandle } from "@/components/notes/page-dom";
+import { NotesBar } from "@/components/notes/notes-bar";
+import { HeldPage } from "@/components/notes/held-page";
+import { type PageHandle } from "@/components/notes/page-dom";
 import { PagesSheet, type SheetActions } from "@/components/notes/pages-sheet";
 import { useLivePage, useNotesSocket, usePageList } from "@/components/notes/use-live-notes";
 import { useNotesData } from "@/components/notes/use-notes-data";
 import { usePageRelay } from "@/components/notes/use-page-relay";
 import { useTheme } from "@/components/system/theme";
-import { Body, Button, Failed, Loading } from "@/components/system/ui";
+import { Failed, Loading } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 import { wholeDoc } from "@/lib/notes/relay";
-import { space } from "@/lib/theme";
 
 const lastKey = (tripId: number) => `floc.notes.last.${tripId}`;
 
@@ -48,7 +47,7 @@ export default function Notes() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const tripId = Number(id);
   const router = useRouter();
-  const { theme } = useTheme();
+  const { theme, c } = useTheme();
   const { data: session } = useSession();
   const viewer = useMemo(() => (session?.user ? { id: session.user.id, name: session.user.name } : null), [session?.user.id, session?.user.name]);
   const [sheet, setSheet] = useState(false);
@@ -60,7 +59,8 @@ export default function Notes() {
   const byPage = usePageList(socket, tripId, open, viewer, data.refresh);
   const live = useLivePage(socket, tripId, open);
   const view = useRef<PageHandle | null>(null);
-  const relay = usePageRelay(live, view);
+  const focused = useIsFocused();
+  const relay = usePageRelay(live, view, focused);
   const liveDoc = live?.doc;
   const start = useMemo(() => (liveDoc ? wholeDoc(liveDoc) : ""), [liveDoc]);
   const page = data.list.data?.pages.find((p) => p.id === open);
@@ -86,16 +86,11 @@ export default function Notes() {
   if (!data.list.data || !page || !viewer) return <Loading />;
 
   return (
-    <View style={{ flex: 1 }}>
-      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: space.lg, paddingVertical: space.sm }}>
-        <Button label="Pages" variant="quiet" fit="small" onPress={() => setSheet(true)} />
-        <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
-          <PresenceRow people={live?.people ?? []} />
-          <Body tone="ink-3">{LIVE_STATUS_WORDS[live?.status ?? "saving"]}</Body>
-        </View>
-      </View>
+    <View style={{ flex: 1, backgroundColor: c.sheet }}>
+      <NotesBar pageCount={data.list.data.pages.length} status={live?.status ?? "saving"} people={live?.people ?? []} onPages={() => setSheet(true)} />
       {live ? (
-        <PageDom
+        <HeldPage
+          held={!focused}
           key={live.name}
           ref={view}
           dom={{ style: { flex: 1 }, scrollEnabled: true, keyboardDisplayRequiresUserAction: false }}

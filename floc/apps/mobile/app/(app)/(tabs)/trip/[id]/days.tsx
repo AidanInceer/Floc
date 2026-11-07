@@ -10,7 +10,7 @@ import type { DayEventType } from "@floc/core/vocabulary";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 import { AddToCalendar } from "@/components/days/add-to-calendar";
 import { DayGrid } from "@/components/days/day-grid";
@@ -59,6 +59,7 @@ export default function Days() {
 
   const [editing, setEditing] = useState<Editing>({ kind: "none" });
   const [problem, setProblem] = useState<string | null>(null);
+  const [overnightAt, setOvernightAt] = useState<string | null>(null);
 
   const days = useQuery(trpc.itinerary.days.queryOptions({ tripId }, { enabled: ready }));
   // One read for every block's clip (#324), not one per event. A trip with no
@@ -127,31 +128,31 @@ export default function Days() {
 
   return (
     <View style={{ flex: 1 }}>
-      <View style={{ paddingVertical: space.md }}>
+      <View style={{ paddingTop: space.sm }}>
         <DayStrip
-          dates={dates}
+          days={days.data}
           selected={selected}
           todayDate={now}
           onSelect={(picked) => {
             router.setParams({ date: picked });
             setEditing({ kind: "none" });
           }}
+          onStop={setOvernightAt}
         />
       </View>
 
-      {/* The head of the day stays put and the grid scrolls under it: with the
-          whole clock drawn, a page that scrolls as one puts the date and where
-          you are sleeping off the top the moment you reach lunch. */}
-      <View style={{ paddingHorizontal: space.lg, gap: space.md }}>
+      {/* The head of the day stays put and the grid scrolls under it, so the date stays in view. */}
+      <View style={{ paddingHorizontal: space.lg, paddingTop: space.sm, gap: space.xs, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.rule }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
           <View style={{ flex: 1, gap: 2 }}>
             <Text style={{ color: c.ink, fontFamily: fonts.sansBold, fontSize: size.body }}>{formatDate(day.date)}</Text>
-            <Text style={{ color: c["ink-2"], fontFamily: fonts.type, fontSize: size.small }}>
+            <Text numberOfLines={1} style={{ color: c["ink-3"], fontFamily: fonts.type, fontSize: size.small, fontVariant: ["tabular-nums"] }}>
               {`Day ${dates.indexOf(day.date) + 1} of ${dates.length} · ${day.events.length === 1 ? "1 event" : `${day.events.length} events`}`}
             </Text>
           </View>
+          <AddToCalendar tripId={tripId} />
           <Button
-            label="Add event"
+            label="Add"
             fit="small"
             icon={(ink) => <PlusGlyph color={ink} />}
             onPress={() => {
@@ -160,7 +161,7 @@ export default function Days() {
             }}
           />
         </View>
-        <OvernightLine tripId={tripId} days={days.data} date={day.date} />
+        <OvernightLine tripId={tripId} days={days.data} openAt={overnightAt} onClose={() => setOvernightAt(null)} />
       </View>
 
       <View style={{ flex: 1, paddingHorizontal: space.lg, paddingTop: space.md }}>
@@ -175,13 +176,9 @@ export default function Days() {
             setEditing({ kind: "add", time });
             setProblem(null);
           }}
+
         />
       </View>
-
-      <View style={{ paddingHorizontal: space.lg, paddingVertical: space.sm, alignItems: "flex-end" }}>
-        <AddToCalendar tripId={tripId} />
-      </View>
-
       <EventSheet
         open={editing.kind === "add"}
         title="Add to this day"

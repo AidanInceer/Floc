@@ -82,7 +82,7 @@ describe("leftToSort", () => {
 
   it("gives a stay's dates and nights as separate parts, so a list can line them up", () => {
     const legs = [leg(1, "Lisbon", "2026-10-24", "2026-10-26", { hasStay: false, nights: 2 })];
-    expect(leftToSort({ ...base, legs }).open[0].sub).toEqual(["Sat 24 Oct – 26 Oct 2026", "2 nights"]);
+    expect(leftToSort({ ...base, legs }).open[0].sub).toEqual(["2 nights", "24–26 Oct"]);
   });
 
   it("counts every free packing thing towards the meter, though they share one line", () => {
@@ -98,8 +98,8 @@ describe("leftToSort", () => {
     const { done } = leftToSort({ ...base, legs, shared: [{ label: "Towels", claimed: true }] });
     expect(done.map((d) => [d.text, d.sub])).toEqual([
       ["Towels", ["Someone is bringing it"]],
-      ["Stay booked in Lisbon", ["Sat 24 Oct – 26 Oct 2026", "2 nights"]],
-      ["Stay booked in Barcelona", ["Mon 26 Oct – 27 Oct 2026", "1 night"]],
+      ["Stay booked in Lisbon", ["2 nights", "24–26 Oct"]],
+      ["Stay booked in Barcelona", ["1 night", "26–27 Oct"]],
       ["Lisbon to Barcelona: travel set", ["Mon 26 Oct"]],
     ]);
   });

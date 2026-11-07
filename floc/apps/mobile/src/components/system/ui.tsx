@@ -214,6 +214,8 @@ export function Button({
       accessibilityState={{ disabled: !!off, busy: !!busy }}
       onPress={onPress}
       disabled={off}
+      // Why: a small button draws about 36 tall; the press area still reaches the full 44.
+      hitSlop={small ? 4 : undefined}
       style={({ pressed }) => ({
         backgroundColor: ground,
         borderWidth: 1,

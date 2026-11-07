@@ -24,114 +24,32 @@
  * either direction — the four powers are remove, promote, delete or archive, and reset the link.
  */
 import { formatDate } from "@floc/core/dates/dates";
-import {
-  DEFAULT_CATEGORY,
-  isExpenseCategory,
-} from "@floc/core/money/expense-category";
+import { DEFAULT_CATEGORY, isExpenseCategory } from "@floc/core/money/expense-category";
 import { formatMoney, toMajorInput } from "@floc/core/money/money";
 import type { SettleRow } from "@floc/core/money/group-settle";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { whoTone } from "@floc/core/people/who";
-import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, ScrollView, Text, View } from "react-native";
 
-import { Seat } from "@/components/system/glyphs";
-
-import { CategoryIcon } from "@/components/system/category-icon";
-import {
-  ExpenseForm,
-  type DayOption,
-  type ExpenseDraft,
-} from "@/components/money/expense-form";
+import { EventSheet } from "@/components/days/event-sheet";
+import { BalanceCard } from "@/components/money/balance-card";
+import { ExpenseForm, type DayOption, type ExpenseDraft } from "@/components/money/expense-form";
+import { ExpenseRows } from "@/components/money/expense-rows";
+import { PlusGlyph } from "@/components/system/glyphs";
 import { useTheme } from "@/components/system/theme";
-import { Body, Button, Card, Divider, Empty, Failed, Figure, Heading, Label, Loading, SectionTitle } from "@/components/system/ui";
+import { Body, Button, Empty, Failed, Loading, SectionTitle } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 import { ledgerCurrency } from "@/lib/balance";
 import { editStart, peopleOnExpense } from "@/lib/money/edit-start";
-import { groupByDay } from "@/lib/money/group-by-day";
+import { shareLine } from "@/lib/money/share-line";
 import { fonts, size, space } from "@/lib/theme";
 import type { Ledger } from "@floc/api/port";
 
 /** Nothing open, adding, or editing this expense. One state, so two cannot both be true. */
 type Editing =
   { kind: "none" } | { kind: "add" } | { kind: "edit"; expenseId: number };
-
-/**
- * The top of the screen: the group's fewest payments, in your currency (#463). Yours first, large, each settled in
- * one payment; then, small, the payments between other people, which only those two can mark paid.
- */
-function MoneyTop({
-  rows = [],
-  viewerId,
-  nameOf,
-  busy,
-  onSettle,
-}: {
-  rows: SettleRow[] | undefined;
-  viewerId: string | undefined;
-  nameOf: (userId: string) => string;
-  busy: boolean;
-  onSettle: (row: SettleRow) => void;
-}) {
-  const { c } = useTheme();
-  const owe = rows.filter((r) => r.payer === viewerId);
-  const owed = rows.filter((r) => r.payee === viewerId);
-  const others = rows.filter((r) => r.payer !== viewerId && r.payee !== viewerId);
-
-  if (rows.length === 0) {
-    return (
-      <Card>
-        <View style={{ gap: space.xs, alignItems: "center" }}>
-          <Heading>All settled up</Heading>
-          <Body tone="ink-2">Everyone on this trip is square.</Body>
-        </View>
-      </Card>
-    );
-  }
-
-  const line = (row: SettleRow, paying: boolean) => {
-    const who = nameOf(paying ? row.payee : row.payer);
-    const tone = whoTone(who);
-    return (
-      <View key={`${row.payer}-${row.payee}`} style={{ flexDirection: "row", alignItems: "center", gap: space.md, paddingVertical: space.xs }}>
-        <Seat initial={who.slice(0, 1).toUpperCase()} ground={c[tone]} ink={c[`${tone}-ink`]} />
-        <View style={{ flex: 1, gap: 2 }}>
-          <Text style={{ color: paying ? c.red : c["pastel-green-ink"], fontFamily: fonts.type, fontSize: size.heading, fontVariant: ["tabular-nums"] }}>
-            {formatMoney(row.amountMinor, row.currency)}
-          </Text>
-          <Body tone="ink-2">{paying ? `to ${who}` : `from ${who}`}</Body>
-        </View>
-        <Button label="Settle up" variant={paying ? "primary" : "quiet"} fit="small" busy={busy} onPress={() => onSettle(row)} />
-      </View>
-    );
-  };
-
-  return (
-    <View style={{ gap: space.md }}>
-      <Card style={{ gap: space.sm }}>
-        <SectionTitle>You owe</SectionTitle>
-        {owe.length === 0 ? <Body tone="ink-2">All square.</Body> : owe.map((r) => line(r, true))}
-      </Card>
-      <Card style={{ gap: space.sm }}>
-        <SectionTitle>You are owed</SectionTitle>
-        {owed.length === 0 ? <Body tone="ink-2">Nothing to chase.</Body> : owed.map((r) => line(r, false))}
-      </Card>
-      {others.length > 0 ? (
-        <Card style={{ gap: space.sm }}>
-          <SectionTitle>Between the others</SectionTitle>
-          {others.map((r) => (
-            <View key={`${r.payer}-${r.payee}`} style={{ flexDirection: "row", justifyContent: "space-between", gap: space.sm }}>
-              <Body tone="ink-2">{`${nameOf(r.payer)} owes ${nameOf(r.payee)}`}</Body>
-              <Figure tone="ink-2">{formatMoney(r.amountMinor, r.currency)}</Figure>
-            </View>
-          ))}
-        </Card>
-      ) : null}
-    </View>
-  );
-}
 
 /** What one payment clears, for the confirm before it is recorded. */
 function clearsLine(row: SettleRow, viewerId: string, nameOf: (userId: string) => string): string {
@@ -143,75 +61,9 @@ function clearsLine(row: SettleRow, viewerId: string, nameOf: (userId: string) =
     .join("\n");
 }
 
-/**
- * Every cost, as one card of hairline rows (#317). A card per cost put a gap
- * and a border around every line, so a short list read as a stack of floating
- * tiles rather than a ledger. A row is tapped to edit it.
- */
-function ExpenseList({
-  expenses,
-  lineFor,
-  dayLabel,
-  onEdit,
-}: {
-  expenses: Ledger["expenses"];
-  lineFor: (expense: Ledger["expenses"][number]) => string;
-  /** The day a cost belongs to, as words — costs with no day group last. */
-  dayLabel: (dayId: number | null) => string;
-  onEdit: (expenseId: number) => void;
-}) {
-  const { c } = useTheme();
-  if (expenses.length === 0) return <Empty>No costs logged yet.</Empty>;
-  return (
-    <Card style={{ padding: 0, gap: 0, overflow: "hidden" }}>
-      {groupByDay(expenses, dayLabel).map((group, _, groups) => (
-        <View key={group.day}>
-          {/* Why: one undated group needs no heading — "No day yet" over every cost said nothing. */}
-          {groups.length > 1 ? (
-            <View style={{ paddingHorizontal: space.md, paddingTop: space.md }}>
-              <Label>{group.day}</Label>
-            </View>
-          ) : null}
-          {group.expenses.map((expense, index) => (
-            <View key={expense.id}>
-              {index > 0 ? <Divider /> : null}
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={`Edit ${expense.description}`}
-                onPress={() => onEdit(expense.id)}
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: space.sm,
-                  padding: space.md,
-                }}
-              >
-                {/* The glyph makes a long list scannable; the description is still
-                the thing that says what it was. A mark, not a label (#204) —
-                its own `accessibilityLabel` carries the word. */}
-                <CategoryIcon
-                  category={
-                    isExpenseCategory(expense.category)
-                      ? expense.category
-                      : DEFAULT_CATEGORY
-                  }
-                  color={c["ink-3"]}
-                  size={16}
-                />
-                <View style={{ flex: 1, gap: 2 }}>
-                  <Body bold>{expense.description}</Body>
-                  <Body tone="ink-3">{lineFor(expense)}</Body>
-                </View>
-                <Figure>
-                  {formatMoney(expense.amountMinor, expense.currency)}
-                </Figure>
-              </Pressable>
-            </View>
-          ))}
-        </View>
-      ))}
-    </Card>
-  );
+/** Why the last write failed, in words; nothing when it did not. */
+function Problem({ text }: { text: string | null }) {
+  return text ? <Body tone="red">{text}</Body> : null;
 }
 
 /** The cost being edited, or nothing when the screen is not editing one. */
@@ -258,20 +110,6 @@ function sharesOf(ledger: Ledger, viewerId: string | undefined): Map<number, num
   );
 }
 
-/** Who paid, and what it cost you — one line under the description. */
-function shareLine(
-  shares: Map<number, number>,
-  expense: Ledger["expenses"][number],
-  me: string | undefined,
-  nameOf: (userId: string) => string,
-): string {
-  const share = shares.get(expense.id);
-  const who =
-    expense.paidBy === me ? "You paid" : `${nameOf(expense.paidBy)} paid`;
-  if (share === undefined) return `${who} · not yours`;
-  return `${who} · your share ${formatMoney(share, expense.currency)}`;
-}
-
 export default function Money() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const tripId = Number(id);
@@ -280,6 +118,7 @@ export default function Money() {
   const ready = Number.isFinite(tripId);
   const queryClient = useQueryClient();
   const { data: session } = useSession();
+  const { c } = useTheme();
 
   const [editing, setEditing] = useState<Editing>({ kind: "none" });
   const [problem, setProblem] = useState<string | null>(null);
@@ -342,11 +181,13 @@ export default function Money() {
 
   const currency = ledgerCurrency(ledger.data);
 
-  // Every expense, always. There was a two-way switch here; it earned its
-  // removal — a trip splits money between *people*, not between "mine" and
-  // "everyone", and every line on this list is already labelled with the
-  // viewer's own share. The filter hid rows to say what the rows already said.
-  const shown = ledger.data.expenses;
+  // Why every expense, no mine/everyone filter: each row already says your share.
+  // Why sorted: costs arrive in logged order; sorted by day so the day headings run in trip order, undated last.
+  const rank = (dayId: number | null | undefined) => {
+    const at = dayOptions.findIndex((day) => day.id === dayId);
+    return at < 0 ? dayOptions.length : at;
+  };
+  const shown = [...ledger.data.expenses].sort((a, b) => rank(a.dayId) - rank(b.dayId));
 
   // Everything the API is told now comes from the form. It used to guess the
   // payer, the day, the note and the split type, which is how the phone could
@@ -384,84 +225,71 @@ export default function Money() {
 
   const editingExpense = expenseBeingEdited(shown, editing);
   const myShares = sharesOf(snapshot, me);
+  const startAdd = () => {
+    setEditing({ kind: "add" });
+    setProblem(null);
+  };
+
+  const paidByOf = (expense: Ledger["expenses"][number]) => (expense.paidBy === me ? "You paid" : `${nameOf(expense.paidBy)} paid`);
+  const close = () => setEditing({ kind: "none" });
+  const viewer = me ?? "";
 
   return (
     <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }}>
       {snapshot.expenses.length > 0 ? (
-        <MoneyTop
-          rows={pairs.data?.rows}
-          viewerId={me}
-          nameOf={nameOf}
-          busy={settle.isPending}
-          onSettle={settleRow}
-        />
+        <BalanceCard rows={pairs.data?.rows ?? []} viewerId={me} nameOf={nameOf} busy={settle.isPending} onSettle={settleRow} />
       ) : null}
 
-      {/* Adding a cost sits with the money it changes, not at the end of the
-          list you have to scroll past (#317). */}
-      {editing.kind === "add" ? (
-        <View style={{ gap: space.sm }}>
-          <SectionTitle>Add an expense</SectionTitle>
-          <ExpenseForm
-            people={members}
-            days={dayOptions}
-            viewerId={me ?? ""}
-            currency={currency}
-            busy={write.isPending}
-            onSave={save}
-            onCancel={() => setEditing({ kind: "none" })}
-          />
+      <Problem text={editing.kind === "none" ? problem : null} />
+
+      {shown.length === 0 ? (
+        <View style={{ gap: space.md }}>
+          <Empty>No costs logged yet.</Empty>
+          <Button label={addLabel(0)} onPress={startAdd} />
         </View>
       ) : (
-        <Button
-          label={addLabel(shown.length)}
-          onPress={() => {
-            setEditing({ kind: "add" });
-            setProblem(null);
-          }}
-        />
+        <View style={{ gap: space.md }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
+            <SectionTitle>Expenses</SectionTitle>
+            <Text style={{ flex: 1, color: c["ink-3"], fontFamily: fonts.type, fontSize: size.small }}>{shown.length}</Text>
+            <Button label="Add" variant="quiet" fit="small" icon={(ink) => <PlusGlyph color={ink} />} onPress={startAdd} />
+          </View>
+          <ExpenseRows
+            expenses={shown}
+            paidByOf={paidByOf}
+            shareOf={(expense) => shareLine(expense, me, myShares.get(expense.id))}
+            dayLabel={(dayId) => dayOptions.find((day) => day.id === dayId)?.label ?? "No day yet"}
+            onEdit={(expenseId) => {
+              setEditing({ kind: "edit", expenseId });
+              setProblem(null);
+            }}
+          />
+        </View>
       )}
 
-      {problem ? <Body tone="red">{problem}</Body> : null}
+      <EventSheet open={editing.kind === "add"} title="Add an expense" onClose={close}>
+        <Problem text={problem} />
+        <ExpenseForm people={members} days={dayOptions} viewerId={viewer} currency={currency} busy={write.isPending} onSave={save} onCancel={close} />
+      </EventSheet>
 
-      {editingExpense ? (
-        <ExpenseForm
-          // Why: a new row must start a new form, or its fields keep the last row's values.
-          key={editingExpense.id}
-          people={peopleOnExpense(
-            members,
-            {
-              paidBy: editingExpense.paidBy,
-              splits: snapshot.splits.filter(
-                (split) => split.expenseId === editingExpense.id,
-              ),
-            },
-            nameOf,
-          )}
-          days={dayOptions}
-          viewerId={me ?? ""}
-          currency={editingExpense.currency}
-          initial={formValues(ledger.data, editingExpense)}
-          busy={write.isPending || remove.isPending}
-          onSave={save}
-          onCancel={() => setEditing({ kind: "none" })}
-          onDelete={() =>
-            remove.mutate({ tripId, expenseId: editingExpense.id })
-          }
-        />
-      ) : null}
-
-      <ExpenseList
-        expenses={shown}
-        lineFor={(expense) => shareLine(myShares, expense, me, nameOf)}
-        dayLabel={(dayId) =>
-          dayOptions.find((day) => day.id === dayId)?.label ?? "No day yet"
-        }
-        onEdit={(expenseId) => {
-          setEditing({ kind: "edit", expenseId });
-          setProblem(null);
-        }}
-      />
+      <EventSheet open={editingExpense !== undefined} title="Edit expense" onClose={close}>
+        <Problem text={problem} />
+        {editingExpense ? (
+          <ExpenseForm
+            // Why: a new row must start a new form, or its fields keep the last row's values.
+            key={editingExpense.id}
+            people={peopleOnExpense(members, { paidBy: editingExpense.paidBy, splits: snapshot.splits.filter((split) => split.expenseId === editingExpense.id) }, nameOf)}
+            days={dayOptions}
+            viewerId={viewer}
+            currency={editingExpense.currency}
+            initial={formValues(ledger.data, editingExpense)}
+            busy={write.isPending || remove.isPending}
+            onSave={save}
+            onCancel={close}
+            onDelete={() => remove.mutate({ tripId, expenseId: editingExpense.id })}
+          />
+        ) : null}
+      </EventSheet>
     </ScrollView>
   );
 }

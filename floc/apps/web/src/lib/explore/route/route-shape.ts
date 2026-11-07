@@ -1,6 +1,6 @@
 import type { TransportType } from "@floc/core/vocabulary";
 
-import { legCurves, spurCurve, type Point } from "./curves";
+import { legCurves, spurCurve, type Point } from "@floc/core/trip/route/curves";
 import type { RouteStop, TripRoute } from "./trip-route";
 
 type Role = "start" | "end" | "both" | "mid";

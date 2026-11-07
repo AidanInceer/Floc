@@ -1,12 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
-import { Share, Text, View } from "react-native";
+import { Pressable, Share, Text, View } from "react-native";
 
+import { ShareGlyph } from "@/components/system/glyphs";
 import { useTheme } from "@/components/system/theme";
-import { Body, Button, Card } from "@/components/system/ui";
+import { Card } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { fonts, size, space } from "@/lib/theme";
 
-// The share sheet, like the invite link: it holds Copy and every mail app, with no native clipboard module.
+// Why: the share sheet holds Copy and every mail app, with no native clipboard module (as the invite link).
 export function InboxAddress({ tripId }: { tripId: number }) {
   const { c } = useTheme();
   const inbox = useQuery(trpc.files.inboxAddress.queryOptions({ tripId }, { enabled: Number.isFinite(tripId) }));
@@ -14,23 +15,37 @@ export function InboxAddress({ tripId }: { tripId: number }) {
   if (!address) return null;
 
   return (
-    <Card>
-      <Body tone="ink-2">Forward a booking email to this trip&apos;s address and its attachments are saved to your files.</Body>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
+    <Card style={{ flexDirection: "row", alignItems: "center", gap: space.md, paddingRight: space.sm }}>
+      <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+        <Text style={{ color: c["ink-3"], fontFamily: fonts.sans, fontSize: size.small }}>
+          Forward a booking email here. Its attachments land in Yours.
+        </Text>
         <Text
-          selectable
+          numberOfLines={2}
+          accessibilityLabel={address}
           testID="files-inbox-address"
-          style={{ flex: 1, color: c.ink, fontFamily: fonts.type, fontSize: size.small }}
+          style={{ color: c.ink, fontFamily: fonts.type, fontSize: size.small }}
         >
           {address}
         </Text>
-        <Button
-          label="Share"
-          variant="quiet"
-          fit="small"
-          onPress={() => void Share.share({ message: address })}
-        />
       </View>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Share the address"
+        onPress={() => void Share.share({ message: address })}
+        hitSlop={4}
+        style={({ pressed }) => ({
+          minHeight: 44,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: space.xs,
+          paddingHorizontal: space.sm,
+          opacity: pressed ? 0.6 : 1,
+        })}
+      >
+        <ShareGlyph color={c.pen} />
+        <Text style={{ color: c.pen, fontFamily: fonts.sansBold, fontSize: size.small }}>Share</Text>
+      </Pressable>
     </Card>
   );
 }
