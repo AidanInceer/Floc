@@ -33,7 +33,10 @@ import type { SettleRow } from "@floc/core/money/group-settle";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { Alert, Pressable, ScrollView, View } from "react-native";
+import { whoTone } from "@floc/core/people/who";
+import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+
+import { Seat } from "@/components/system/glyphs";
 
 import { CategoryIcon } from "@/components/system/category-icon";
 import {
@@ -42,23 +45,13 @@ import {
   type ExpenseDraft,
 } from "@/components/money/expense-form";
 import { useTheme } from "@/components/system/theme";
-import {
-  Body,
-  Button,
-  Card,
-  Divider,
-  Empty,
-  Failed,
-  Figure,
-  Heading,
-  Label,
-  Loading,
-} from "@/components/system/ui";
+import { Body, Button, Card, Divider, Empty, Failed, Figure, Heading, Label, Loading, SectionTitle } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 import { ledgerCurrency } from "@/lib/balance";
 import { editStart, peopleOnExpense } from "@/lib/money/edit-start";
-import { space } from "@/lib/theme";
+import { groupByDay } from "@/lib/money/group-by-day";
+import { fonts, size, space } from "@/lib/theme";
 import type { Ledger } from "@floc/api/port";
 
 /** Nothing open, adding, or editing this expense. One state, so two cannot both be true. */
@@ -82,7 +75,7 @@ function MoneyTop({
   busy: boolean;
   onSettle: (row: SettleRow) => void;
 }) {
-  const [showOwed, setShowOwed] = useState(false);
+  const { c } = useTheme();
   const owe = rows.filter((r) => r.payer === viewerId);
   const owed = rows.filter((r) => r.payee === viewerId);
   const others = rows.filter((r) => r.payer !== viewerId && r.payee !== viewerId);
@@ -98,47 +91,45 @@ function MoneyTop({
     );
   }
 
-  const line = (row: SettleRow, paying: boolean) => (
-    <View key={`${row.payer}-${row.payee}`} style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
-      <View style={{ flex: 1, gap: 2 }}>
-        <Figure tone={paying ? "red" : "green"}>{formatMoney(row.amountMinor, row.currency)}</Figure>
-        <Body tone="ink-2">{paying ? `to ${nameOf(row.payee)}` : `from ${nameOf(row.payer)}`}</Body>
+  const line = (row: SettleRow, paying: boolean) => {
+    const who = nameOf(paying ? row.payee : row.payer);
+    const tone = whoTone(who);
+    return (
+      <View key={`${row.payer}-${row.payee}`} style={{ flexDirection: "row", alignItems: "center", gap: space.md, paddingVertical: space.xs }}>
+        <Seat initial={who.slice(0, 1).toUpperCase()} ground={c[tone]} ink={c[`${tone}-ink`]} />
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text style={{ color: paying ? c.red : c["pastel-green-ink"], fontFamily: fonts.type, fontSize: size.heading, fontVariant: ["tabular-nums"] }}>
+            {formatMoney(row.amountMinor, row.currency)}
+          </Text>
+          <Body tone="ink-2">{paying ? `to ${who}` : `from ${who}`}</Body>
+        </View>
+        <Button label="Settle up" variant={paying ? "primary" : "quiet"} fit="small" busy={busy} onPress={() => onSettle(row)} />
       </View>
-      <Button label="Settle up" variant={paying ? "primary" : "quiet"} fit="small" busy={busy} onPress={() => onSettle(row)} />
-    </View>
-  );
+    );
+  };
 
   return (
-    <Card style={{ gap: space.sm }}>
-      <Label>You owe</Label>
-      {owe.length === 0 ? <Body tone="ink-2">Nothing to pay — you have paid your share.</Body> : owe.map((r) => line(r, true))}
-
-      <Divider />
-
-      {/* Money owed to you is news, not a job: one line, opened when you ask. */}
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => setShowOwed((open) => !open)}
-        style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.sm }}
-      >
-        <Body tone="ink-2">You are owed</Body>
-        <Body tone="ink-2">{owed.length === 0 ? "nothing" : `${owed.length} ${owed.length === 1 ? "person" : "people"}`}</Body>
-      </Pressable>
-      {showOwed ? owed.map((r) => line(r, false)) : null}
-
+    <View style={{ gap: space.md }}>
+      <Card style={{ gap: space.sm }}>
+        <SectionTitle>You owe</SectionTitle>
+        {owe.length === 0 ? <Body tone="ink-2">All square.</Body> : owe.map((r) => line(r, true))}
+      </Card>
+      <Card style={{ gap: space.sm }}>
+        <SectionTitle>You are owed</SectionTitle>
+        {owed.length === 0 ? <Body tone="ink-2">Nothing to chase.</Body> : owed.map((r) => line(r, false))}
+      </Card>
       {others.length > 0 ? (
-        <>
-          <Divider />
-          <Label>Between the others</Label>
+        <Card style={{ gap: space.sm }}>
+          <SectionTitle>Between the others</SectionTitle>
           {others.map((r) => (
             <View key={`${r.payer}-${r.payee}`} style={{ flexDirection: "row", justifyContent: "space-between", gap: space.sm }}>
-              <Body tone="ink-3">{`${nameOf(r.payer)} owes ${nameOf(r.payee)}`}</Body>
-              <Body tone="ink-3">{formatMoney(r.amountMinor, r.currency)}</Body>
+              <Body tone="ink-2">{`${nameOf(r.payer)} owes ${nameOf(r.payee)}`}</Body>
+              <Figure tone="ink-2">{formatMoney(r.amountMinor, r.currency)}</Figure>
             </View>
           ))}
-        </>
+        </Card>
       ) : null}
-    </Card>
+    </View>
   );
 }
 
@@ -173,11 +164,14 @@ function ExpenseList({
   if (expenses.length === 0) return <Empty>No costs logged yet.</Empty>;
   return (
     <Card style={{ padding: 0, gap: 0, overflow: "hidden" }}>
-      {groupByDay(expenses, dayLabel).map((group) => (
+      {groupByDay(expenses, dayLabel).map((group, _, groups) => (
         <View key={group.day}>
-          <View style={{ paddingHorizontal: space.md, paddingTop: space.md }}>
-            <Label>{group.day}</Label>
-          </View>
+          {/* Why: one undated group needs no heading — "No day yet" over every cost said nothing. */}
+          {groups.length > 1 ? (
+            <View style={{ paddingHorizontal: space.md, paddingTop: space.md }}>
+              <Label>{group.day}</Label>
+            </View>
+          ) : null}
           {group.expenses.map((expense, index) => (
             <View key={expense.id}>
               {index > 0 ? <Divider /> : null}
@@ -253,21 +247,6 @@ function formValues(ledger: Ledger, expense: Ledger["expenses"][number]) {
 /** The first cost of a trip is asked for differently from the tenth. */
 function addLabel(count: number): string {
   return count === 0 ? "Log the first cost" : "Add an expense";
-}
-
-/** Costs in the order they came, cut into the days they belong to. */
-function groupByDay(
-  expenses: Ledger["expenses"],
-  dayLabel: (dayId: number | null) => string,
-): { day: string; expenses: Ledger["expenses"] }[] {
-  const groups: { day: string; expenses: Ledger["expenses"] }[] = [];
-  for (const expense of expenses) {
-    const day = dayLabel(expense.dayId ?? null);
-    const last = groups.at(-1);
-    if (last && last.day === day) last.expenses.push(expense);
-    else groups.push({ day, expenses: [expense] });
-  }
-  return groups;
 }
 
 /** The viewer's own share of each expense, read once rather than once per row. */
@@ -422,7 +401,7 @@ export default function Money() {
           list you have to scroll past (#317). */}
       {editing.kind === "add" ? (
         <View style={{ gap: space.sm }}>
-          <Label>Add an expense</Label>
+          <SectionTitle>Add an expense</SectionTitle>
           <ExpenseForm
             people={members}
             days={dayOptions}

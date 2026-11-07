@@ -1,21 +1,23 @@
-/** The web's Pro row in the account menu: what you are on, and the way to change it. */
+/** Why for everyone: the row showed only to Pro members, so a Free member had no way to find the offer from You. */
 import type { BillingStatus } from "@floc/api/port";
-import { Pressable, StyleSheet, Text } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { DrawerChevron } from "../system/drawer";
-import { ProStarGlyph } from "../system/glyphs";
 import { useTheme } from "../system/theme";
 import { proView } from "@/lib/billing/pro";
 import { fonts, radius, size, space } from "@/lib/theme";
 
 export function ProRow({ status, onPress }: { status: BillingStatus | undefined; onPress: () => void }) {
   const { c } = useTheme();
-  if (!status || proView(status).kind !== "pro") return null;
+  if (!status) return null;
+  const view = proView(status);
+  if (view.kind === "hidden") return null;
+  const pro = view.kind === "pro";
 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel="Floc Pro"
+      accessibilityLabel={pro ? "Floc Pro, you're on Pro" : "Floc Pro, see what it adds"}
       onPress={onPress}
       style={({ pressed }) => ({
         flexDirection: "row",
@@ -30,11 +32,15 @@ export function ProRow({ status, onPress }: { status: BillingStatus | undefined;
         opacity: pressed ? 0.8 : 1,
       })}
     >
-      <ProStarGlyph color={c["pro-mark"]} />
-      <Text style={{ flex: 1, color: c["pro-ink"], fontFamily: fonts.sansBold, fontSize: size.body }}>
-        Floc Pro
-      </Text>
-      <DrawerChevron color={c["pro-ink"]} point="down" />
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text style={{ color: c["pro-ink"], fontFamily: fonts.sansBold, fontSize: size.body }}>Floc Pro</Text>
+        <Text style={{ color: c["pro-ink"], fontFamily: fonts.sans, fontSize: size.small }}>
+          {pro ? "You're on Pro" : "Weather, auto packing and filled-in searches"}
+        </Text>
+      </View>
+      <View style={{ transform: [{ rotate: "-90deg" }] }}>
+        <DrawerChevron color={c["pro-ink"]} point="down" />
+      </View>
     </Pressable>
   );
 }

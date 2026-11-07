@@ -29,7 +29,7 @@ import { SettingsVibeTags } from "@/components/settings/settings-about";
 import { Drawer, DrawerGroup } from "@/components/system/drawer";
 import { SettingsPrivacy, type Privacy } from "@/components/settings/settings-privacy";
 import { useTheme, type ThemeChoice } from "@/components/system/theme";
-import { Body, Dropdown, Failed, Label, Loading, Segmented, Toggle } from "@/components/system/ui";
+import { Body, Dropdown, Failed, Loading, Segmented, Toggle } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { signOutHere } from "@/lib/sign-out";
 import { proView } from "@/lib/billing/pro";
@@ -192,7 +192,6 @@ function SettingsPanels({
       <DrawerGroup label="Trips">
         <Drawer first title="Packing and money" summary={tripsSummary(PACK_TIER_LABELS[tier], currency)}>
           <View style={{ gap: space.sm }}>
-            <Label>Packing</Label>
             {/* Where a new trip starts. Choosing Light on one weekend must not
                 become the default everywhere (#220) — worth the line, because a
                 defaults screen cannot show that it is defaults. */}

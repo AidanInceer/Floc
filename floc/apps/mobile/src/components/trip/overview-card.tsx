@@ -1,12 +1,13 @@
-// The web Overview's postcard, cut back: the stamp and the name open the trip's sheet, where every edit lives.
+// The web Overview's postcard, cut back. Why no name: the header above already says it; the stamp opens every edit.
 import { countdownLabel, formatDateRange } from "@floc/core/dates/dates";
-import { titleCase } from "@floc/core/text/title-case";
+import { tripListStage } from "@floc/core/trip/list-stage";
 import { pastelOf } from "@floc/core/design/pastels";
 import { positionLines, type Position } from "@floc/core/money/position";
 import { readTripMark } from "@floc/core/trip/mark/trip-mark";
 import { readTripColor, tripPastel } from "@floc/core/trip/trip-color";
 import { Pressable, Text, View } from "react-native";
 
+import { FaceStack, type Face } from "../system/face-stack";
 import { useTheme } from "../system/theme";
 import { PenGlyph } from "../system/glyphs";
 import { Pill } from "../system/ui";
@@ -25,7 +26,7 @@ type CardTrip = {
   mark: string | null;
   tags: string[] | null;
   archived: boolean;
-  members: unknown[];
+  members: Face[];
 };
 
 export function OverviewCard({
@@ -97,13 +98,18 @@ export function OverviewCard({
         ) : null}
       </Pressable>
 
-      <Pressable accessibilityRole="button" accessibilityLabel={`Rename ${trip.name}`} onPress={onEdit} style={{ paddingRight: 72 }}>
-        <Text style={{ color: c.ink, fontFamily: fonts.displayBold, fontSize: size.display, lineHeight: 32 }}>
-          {titleCase(trip.name)}
-        </Text>
-      </Pressable>
-      {trip.archived ? <Pill word="Archived" tone="pastel-yellow" /> : null}
+      {trip.archived && soon ? <Pill word="Archived" tone="pastel-yellow" /> : null}
 
+      {soon ? (
+        <Text style={{ color: c["pastel-blue-ink"], fontFamily: fonts.displayBold, fontSize: size.display - 4, paddingRight: 72, minHeight: 62 }}>
+          {soon.charAt(0).toUpperCase() + soon.slice(1)}
+        </Text>
+      ) : null}
+      {soon ? null : (
+        <Text style={{ color: c.ink, fontFamily: fonts.displayBold, fontSize: size.display - 4, paddingRight: 72, minHeight: 62 }}>
+          {trip.archived ? "Archived" : trip.startDate ? tripListStage(trip) : "When?"}
+        </Text>
+      )}
       <Pressable
         accessibilityRole="link"
         accessibilityLabel={trip.startDate ? "Change dates" : "Pick dates"}
@@ -117,18 +123,20 @@ export function OverviewCard({
         </Text>
         <PenGlyph color={c["ink-3"]} />
       </Pressable>
-      {soon ? (
-        <Text style={{ color: c["pastel-blue-ink"], fontFamily: fonts.display, fontSize: size.body }}>
-          {soon.charAt(0).toUpperCase() + soon.slice(1)}
-        </Text>
-      ) : null}
 
       <View style={{ marginTop: space.xs }}>
         <TagPills tags={trip.tags} color={color} tripId={trip.id} />
       </View>
 
       <View style={{ marginTop: space.sm, borderTopWidth: 1, borderTopColor: c.rule }}>
-        <Line label={`${trip.members.length} going`} onPress={onGroup} />
+        <Pressable
+          accessibilityRole="link"
+          onPress={onGroup}
+          style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: space.sm, paddingVertical: space.sm, borderBottomWidth: 1, borderBottomColor: c.rule, opacity: pressed ? 0.6 : 1 })}
+        >
+          <FaceStack faces={trip.members} />
+          <Text style={{ color: c["ink-2"], fontFamily: fonts.sans, fontSize: size.small }}>{`${trip.members.length} going`}</Text>
+        </Pressable>
         {position ? (
           positionLines(position).map((line) => <Line key={line.label} label={line.label} figure={line.figure} onPress={onMoney} />)
         ) : (
@@ -156,7 +164,7 @@ function Line({ label, figure, onPress }: { label: string; figure?: string | nul
       })}
     >
       {figure ? (
-        <Text style={{ color: c["pastel-green-ink"], fontFamily: fonts.type, fontSize: size.heading, fontVariant: ["tabular-nums"] }}>
+        <Text style={{ color: label === "You owe" ? c.ink : c["pastel-green-ink"], fontFamily: fonts.type, fontSize: size.heading, fontVariant: ["tabular-nums"] }}>
           {figure}
         </Text>
       ) : null}

@@ -20,7 +20,7 @@ import { View } from "react-native";
 import { EventSheet } from "./event-sheet";
 import { EventTalk } from "../comments/event-talk";
 import { EventFiles } from "../files/event-files";
-import { Label } from "../system/ui";
+import { SectionTitle } from "../system/ui";
 import { space } from "@/lib/theme";
 
 export function EventModal({
@@ -48,7 +48,7 @@ export function EventModal({
       <EventFiles tripId={tripId} dayEventId={dayEventId} />
 
       <View style={{ gap: space.sm }}>
-        <Label>Talk about this</Label>
+        <SectionTitle>Talk about this</SectionTitle>
         <EventTalk tripId={tripId} dayEventId={dayEventId} viewerId={viewerId} />
       </View>
     </EventSheet>

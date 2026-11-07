@@ -20,16 +20,19 @@
 import { isValidEmail, passwordWeakness } from "@floc/core/text/credentials";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
+import { KeyboardAvoidingView, Linking, Platform, ScrollView, Text, View } from "react-native";
 
 import { GoogleButton } from "@/components/auth/google-button";
-import { Body, Button, Field, Heading, OrRule, Screen } from "@/components/system/ui";
+import { Body, Button, Field, OrRule, Screen } from "@/components/system/ui";
+import { API_BASE_URL } from "@/lib/config";
 import { TextLink } from "@/components/system/text-controls";
 import { signIn, signUp } from "@/lib/auth";
 import { explainGoogle, explainSignUp } from "@/lib/auth-errors";
-import { space } from "@/lib/theme";
+import { fonts, size, space } from "@/lib/theme";
+import { useTheme } from "@/components/system/theme";
 
 export default function SignUp() {
+  const { c } = useTheme();
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -77,10 +80,11 @@ export default function SignUp() {
     >
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
         <Screen>
-          <View style={{ gap: space.xs }}>
-            <Heading>Create an account</Heading>
-            <Body tone="ink-2">Takes a minute. No card, nothing else to install.</Body>
-          </View>
+          <Body tone="ink-2">Takes a minute. No card needed.</Body>
+
+          <GoogleButton label="Sign up with Google" onPress={withGoogle} disabled={busy} />
+
+          <OrRule label="or with email" />
 
           <View style={{ gap: space.md }}>
             <Field
@@ -106,18 +110,24 @@ export default function SignUp() {
               secureTextEntry
               autoComplete="new-password"
             />
-            {/* The rule is invisible until it is broken, so it is said once
-                here rather than only as a rejection. */}
+            {/* Why: the rule is invisible until it is broken, so it is said once rather than only as a rejection. */}
             <Body tone="ink-3">At least 8 characters, with a letter and a number.</Body>
 
             {problem ? <Body tone="red">{problem}</Body> : null}
 
+            <Text style={{ color: c["ink-3"], fontFamily: fonts.sans, fontSize: size.small }}>
+              {"By creating an account you agree to the "}
+              <Text accessibilityRole="link" style={{ textDecorationLine: "underline" }} onPress={() => void Linking.openURL(`${API_BASE_URL}/terms`)}>
+                Terms
+              </Text>
+              {" and the "}
+              <Text accessibilityRole="link" style={{ textDecorationLine: "underline" }} onPress={() => void Linking.openURL(`${API_BASE_URL}/privacy`)}>
+                Privacy policy
+              </Text>
+              .
+            </Text>
             <Button label="Create account" onPress={withPassword} busy={busy} />
           </View>
-
-          <OrRule label="or" />
-
-          <GoogleButton label="Sign up with Google" onPress={withGoogle} disabled={busy} />
 
           <TextLink
             label="I already have an account"

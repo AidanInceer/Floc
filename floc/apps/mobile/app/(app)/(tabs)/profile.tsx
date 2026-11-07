@@ -43,17 +43,7 @@ import { TravelMap } from "@/components/map/travel-map";
 import { VerifyEmailCard } from "@/components/auth/verify-email";
 import { ProRow } from "@/components/billing/pro-row";
 import { Drawer, DrawerGroup, DrawerLink } from "@/components/system/drawer";
-import {
-  Body,
-  Button,
-  Card,
-  Empty,
-  Failed,
-  Figure,
-  Label,
-  Loading,
-  Row,
-} from "@/components/system/ui";
+import { Body, Button, Card, Empty, Failed, Figure, Loading, Row, SectionTitle } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { signOutHere } from "@/lib/sign-out";
 import { forgetThisPhone } from "@/lib/push/push";
@@ -149,7 +139,7 @@ export default function Profile() {
         </Pressable>
 
         <View style={{ gap: space.sm }}>
-          <Label>Travel map</Label>
+          <SectionTitle>Travel map</SectionTitle>
           <Card style={{ padding: 0, paddingBottom: space.lg, overflow: "hidden" }}>
             {face.isPending ? (
               <Loading />
@@ -169,7 +159,7 @@ export default function Profile() {
 
         <View style={{ gap: space.sm }}>
           <View style={{ paddingHorizontal: space.xs }}>
-            <Label>Account</Label>
+            <SectionTitle>Account</SectionTitle>
           </View>
           <ProRow status={billing.data} onPress={() => router.push("/settings")} />
           <DrawerGroup>
@@ -183,7 +173,7 @@ export default function Profile() {
             first
             quiet
             title="Sign out of this phone"
-            onPress={() => void forgetThisPhone().then(signOutHere).then(() => router.replace("/"))}
+            onPress={() => void forgetThisPhone().then(() => signOutHere()).then(() => router.replace("/"))}
           />
         </DrawerGroup>
       </ScrollView>

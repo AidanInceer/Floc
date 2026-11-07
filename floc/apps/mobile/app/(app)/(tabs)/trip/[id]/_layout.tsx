@@ -109,7 +109,7 @@ export default function TripLayout() {
             title={name}
             sections={SECTIONS}
             current={sectionOf(pathname, tripId)}
-            balance={spent && !balance.settled ? balance.figure : null}
+            balance={spent && !balance.settled && !onOverview ? balance.figure : null}
             owing={balance.owing}
             onGo={go}
           />

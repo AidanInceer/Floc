@@ -48,7 +48,7 @@ export function TagPills({
           <Text
             style={{
               color: c[`${tone}-ink`],
-              fontFamily: fonts.type,
+              fontFamily: fonts.sans,
               fontSize: size.small,
             }}
           >

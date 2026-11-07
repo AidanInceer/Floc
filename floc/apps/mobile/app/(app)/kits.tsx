@@ -19,17 +19,7 @@ import { ScrollView, View } from "react-native";
 
 import { KitCard } from "@/components/packing/kit-card";
 import { Sheet } from "@/components/system/sheet";
-import {
-  Body,
-  Button,
-  Card,
-  Dropdown,
-  Empty,
-  Failed,
-  Field,
-  Label,
-  Loading,
-} from "@/components/system/ui";
+import { Body, Button, Card, Dropdown, Empty, Failed, Field, Loading, SectionTitle } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 
@@ -82,7 +72,7 @@ export default function Kits() {
     <>
       <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }}>
         <Card>
-          <Label>Start a list</Label>
+          <SectionTitle>Start a list</SectionTitle>
           <Field label="Name" value={name} onChangeText={setName} />
           <Button
             label="Make the list"

@@ -94,10 +94,12 @@ function Plain({
   accessibilityLabel,
   numeric,
   big,
+  autoFocus,
 }: {
   value: string;
   onChangeText: (value: string) => void;
   accessibilityLabel: string;
+  autoFocus?: boolean;
   /** Numbers are tabular and right-aligned; words read from the left. */
   numeric?: boolean;
   big?: boolean;
@@ -108,6 +110,7 @@ function Plain({
       accessibilityLabel={accessibilityLabel}
       value={value}
       onChangeText={onChangeText}
+      autoFocus={autoFocus}
       keyboardType={numeric ? "decimal-pad" : "default"}
       inputMode={numeric ? "decimal" : "text"}
       style={{
@@ -115,7 +118,7 @@ function Plain({
         minWidth: 0,
         color: c.ink,
         fontFamily: numeric ? fonts.type : fonts.sans,
-        fontSize: big ? size.heading : size.body,
+        fontSize: big ? size.display : size.body,
         textAlign: numeric ? "right" : "left",
         backgroundColor: c.sheet,
         borderWidth: StyleSheet.hairlineWidth,
@@ -356,12 +359,19 @@ export function ExpenseForm({
     <Card>
       <View style={{ gap: space.md }}>
         <View>
-          {/* "Description" is what the web asks, and what the thing is. "What
-              for" was a different question in a second vocabulary. */}
-          {/* The category rides this line rather than owning one. It has a
-              correct default, so a labelled row of its own was the form's
-              least-changed question taking a third of its height. */}
-          <Asked label="Description" first>
+          {/* Why amount first, keypad open: the figure is the one answer every cost needs. */}
+          <Asked label={`Amount (${f.currency})`} first>
+            <Plain
+              accessibilityLabel="Amount"
+              value={f.amount}
+              onChangeText={f.setAmount}
+              numeric
+              big
+              autoFocus={!initial}
+            />
+          </Asked>
+          {/* Why: the category rides the description line — it has a right default, so it gets no row of its own. */}
+          <Asked label="Description">
             <View
               style={{
                 flexDirection: "row",
@@ -380,15 +390,6 @@ export function ExpenseForm({
                 onChangeText={f.setDescription}
               />
             </View>
-          </Asked>
-          <Asked label={`Amount (${f.currency})`}>
-            <Plain
-              accessibilityLabel="Amount"
-              value={f.amount}
-              onChangeText={f.setAmount}
-              numeric
-              big
-            />
           </Asked>
         </View>
 

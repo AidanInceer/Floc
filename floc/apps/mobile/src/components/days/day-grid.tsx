@@ -250,9 +250,20 @@ export function DayGrid({
             const found = timed.find((t) => t.event.id === block.id);
             if (!found) return null;
             const width = `${100 / block.lanes}%` as const;
+            // Why: a %-width plus a margin ran the last lane off the right edge; the gap now sits inside the lane.
             return (
-              <EventBlock
+              <View
                 key={block.id}
+                style={{
+                  position: "absolute",
+                  top: ((block.start - top) / 60) * HOUR,
+                  height: Math.max(((block.end - block.start) / 60) * HOUR - 2, 24),
+                  left: `${(100 / block.lanes) * block.lane}%`,
+                  width,
+                  paddingLeft: space.xs,
+                }}
+              >
+              <EventBlock
                 type={found.event.type}
                 title={found.event.title ?? "Untitled"}
                 // Open-ended events say their start and nothing else — the box's
@@ -261,15 +272,9 @@ export function DayGrid({
                 hasNote={Boolean(found.event.note)}
                 hasFiles={withFiles.has(found.event.id)}
                 onPress={() => onPick(block.id)}
-                style={{
-                  position: "absolute",
-                  top: ((block.start - top) / 60) * HOUR,
-                  height: Math.max(((block.end - block.start) / 60) * HOUR - 2, 24),
-                  left: `${(100 / block.lanes) * block.lane}%`,
-                  width,
-                  marginLeft: space.xs,
-                }}
+                style={{ flex: 1 }}
               />
+              </View>
             );
           })}
         </View>

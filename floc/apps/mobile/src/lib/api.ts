@@ -6,15 +6,22 @@
  * site; not persisted yet, because a plan cached with no way to invalidate it is worse than none.
  */
 import type { AppRouter } from "@floc/api/router";
-import { QueryClient, focusManager } from "@tanstack/react-query";
+import { MutationCache, QueryCache, QueryClient, focusManager } from "@tanstack/react-query";
 import { AppState } from "react-native";
 import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
 
 import { authHeaders } from "./auth";
 import { TRPC_URL } from "./config";
+import { isUnauthorized, reportSessionEnded } from "./session/session-ended";
+
+const endIfRefused = (error: unknown) => {
+  if (isUnauthorized(error)) reportSessionEnded();
+};
 
 export const queryClient = new QueryClient({
+  queryCache: new QueryCache({ onError: endIfRefused }),
+  mutationCache: new MutationCache({ onError: endIfRefused }),
   defaultOptions: {
     queries: {
       // Why: last-write-wins (rule 7) makes a screen only as fresh as its last read, so it
@@ -23,7 +30,7 @@ export const queryClient = new QueryClient({
       staleTime: 30_000,
       refetchInterval: 30_000,
       refetchOnWindowFocus: true,
-      retry: 2,
+      retry: (count, error) => !isUnauthorized(error) && count < 2,
     },
   },
 });
@@ -34,6 +41,9 @@ export const client = createTRPCClient<AppRouter>({
       url: TRPC_URL,
       // Read per request, not captured — see `authHeaders`.
       headers: () => authHeaders(),
+      // Why: Android's cookie store kept a refreshed session_data cookie from a response and swapped it in for
+      // the Cookie header above, dropping the token — every read was refused a minute after sign-in.
+      fetch: (url, init) => fetch(url, { ...init, credentials: "omit" }),
     }),
   ],
 });

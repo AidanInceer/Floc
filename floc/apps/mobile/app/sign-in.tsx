@@ -1,39 +1,6 @@
 /**
- * Signing in (ticket 289; the other three doors added #no-ticket).
- *
- * Email and password, plus Google through the native flow — not the web
- * redirect. The distinction matters: `signIn.social` with the Expo plugin
- * opens the system browser sheet and comes back through the `floc://` scheme,
- * so the person never leaves the app and never sees a browser chrome they
- * cannot dismiss.
- *
- * Google is offered unconditionally. If the server has no Google credentials
- * it answers with an error and the person falls back to a password — a
- * reduced feature, never a crash (rule 11).
- *
- * FIVE BOXES OF EQUAL WEIGHT IS NOT A HIERARCHY. This screen used to draw
- * "Sign in", Google, the dev door, "Create an account" and "Forgotten your
- * password?" as one stack of identical pills, so nothing on it said which one
- * you came for. Now there are three tiers and they are drawn as three:
- *
- *   - Sign in is the primary and the only filled control.
- *   - Google is Google's own button, below an "or" rule that says the two are
- *     alternatives rather than a sequence.
- *   - Creating an account is the quiet outline; forgetting a password is a
- *     centred line of text, because it is a rare afterthought and not a job.
- *
- * THE DEV DOOR IS AT THE FOOT, IN BLUSH. It is the one control here that is
- * not for a real person, so it sits under everything with the screen's empty
- * space above it, wearing the one colour nothing else on the screen wears.
- * A store build never contains the branch at all.
- *
- * NO PITCH ABOVE THE FORM. A heading and a sentence sold the product to
- * somebody who has already installed it and come back to sign in. What is left
- * is the mark and four words centred under it — who, then what.
- *
- * SIGNING UP NO LONGER OPENS THE WEBSITE. It used to, and the sentence under
- * the button explaining that was the tell: a control that leaves the app is
- * not a way in, it is an apology. `/sign-up` is a screen now.
+ * Signing in (#289). Why Google first, then email: the provider is one tap and the web leads with it.
+ * Why the notice: a session the server refused ends here, and the person is told rather than stranded.
  */
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -42,12 +9,15 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { GoogleButton } from "@/components/auth/google-button";
 import { Body, Button, Dropdown, Field, OrRule, Screen } from "@/components/system/ui";
+import { useTheme } from "@/components/system/theme";
+import { takeEndedNotice } from "@/lib/session/session-ended";
 import { TextLink } from "@/components/system/text-controls";
 import { signIn } from "@/lib/auth";
 import { explainGoogle, explainSignIn } from "@/lib/auth-errors";
 import type { DevAccount } from "@/lib/dev-sign-in";
 import { devAccounts, devSignIn } from "@/lib/dev-sign-in";
-import { space } from "@/lib/theme";
+import { fonts, radius, size, space } from "@/lib/theme";
+import { Text } from "react-native";
 
 export default function SignIn() {
   const router = useRouter();
@@ -60,6 +30,8 @@ export default function SignIn() {
   const [problem, setProblem] = useState<string | null>(null);
   const [cast, setCast] = useState<DevAccount[]>([]);
   const [asWho, setAsWho] = useState("");
+  const [ended] = useState(takeEndedNotice);
+  const { c } = useTheme();
 
   // Asked once, on a dev build only. A store build never runs this branch, and
   // a phone with no dev server on the LAN gets null and simply shows no picker.
@@ -105,11 +77,22 @@ export default function SignIn() {
     >
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
         <Screen>
-          {/* Four words under the mark, centred on it — the mark says who,
-              this says what, and together they are the whole introduction. */}
-          <View style={{ alignItems: "center" }}>
-            <Body tone="ink-2">Trip planning, sorted</Body>
+          <View style={{ alignItems: "center", gap: space.xs, paddingTop: space.sm }}>
+            <Text style={{ color: c.ink, fontFamily: fonts.displayBold, fontSize: size.display, textAlign: "center" }}>
+              Group trip planning, simplified.
+            </Text>
+            <Body tone="ink-2">Where, when, the plan, and who owes who.</Body>
           </View>
+
+          {ended ? (
+            <View style={{ backgroundColor: c["pastel-yellow"], borderRadius: radius.sm, padding: space.md }}>
+              <Body tone="pastel-yellow-ink">You were signed out. Sign in again to carry on.</Body>
+            </View>
+          ) : null}
+
+          <GoogleButton label="Continue with Google" onPress={withGoogle} disabled={busy} />
+
+          <OrRule label="or with email" />
 
           <View style={{ gap: space.md }}>
             <Field
@@ -141,25 +124,13 @@ export default function SignIn() {
             />
           </View>
 
-          <OrRule label="or" />
-
-          <View style={{ gap: space.md }}>
-            <GoogleButton label="Continue with Google" onPress={withGoogle} disabled={busy} />
-            <Button
-              label="Create an account"
-              variant="quiet"
-              disabled={busy}
-              onPress={() => router.push("/sign-up")}
-            />
+          <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", gap: space.xs }}>
+            <Body tone="ink-2">New to Floc?</Body>
+            <TextLink label="Create an account" disabled={busy} onPress={() => router.push("/sign-up")} />
           </View>
 
-          {/* Everything above keeps its own height; this takes the slack, so
-              the dev door sits on the bottom edge on a tall screen and simply
-              follows the stack on a short one. */}
           <View style={{ flex: 1, minHeight: space.xl }} />
 
-          {/* Only on a dev build, and only when the dev server is offering an
-              account — a store build never contains this branch. */}
           {__DEV__ ? (
             <View style={{ paddingBottom: insets.bottom, gap: space.sm }}>
               {cast.length > 1 ? (
