@@ -1,4 +1,4 @@
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { canUseFeature } from "@/server/billing/entitlements";
@@ -28,6 +28,7 @@ const facts = (over: Partial<StoreFacts> = {}): StoreFacts => ({
   currentPeriodEnd: new Date(Date.now() + 30 * 86_400_000),
   cancelAtPeriodEnd: false,
   accountToken: null,
+  test: false,
   ...over,
 });
 
@@ -97,5 +98,28 @@ describe("what a claim never trusts", () => {
     await claimStorePurchase(world.admin, ios);
 
     expect(await claimStorePurchase(world.outsider, ios)).toBe("refused");
+  });
+});
+
+describe("a test purchase", () => {
+  afterEach(() => {
+    delete process.env.STORE_TEST_USER_IDS;
+  });
+
+  it("is refused for anyone not named as a store tester, on either store", async () => {
+    vi.mocked(verifyAppStoreTransaction).mockResolvedValue(facts({ test: true }));
+    vi.mocked(readPlaySubscription).mockResolvedValue({ facts: facts({ test: true }), replaces: null });
+
+    expect(await claimStorePurchase(world.admin, ios)).toBe("refused");
+    expect(await claimStorePurchase(world.admin, android)).toBe("refused");
+    expect(await pro()).toBe(false);
+  });
+
+  it("is recorded for an account named in STORE_TEST_USER_IDS, such as App Review's", async () => {
+    process.env.STORE_TEST_USER_IDS = ` someone-else , ${world.admin}`;
+    vi.mocked(verifyAppStoreTransaction).mockResolvedValue(facts({ test: true }));
+
+    expect(await claimStorePurchase(world.admin, ios)).toBe("recorded");
+    expect(await pro()).toBe(true);
   });
 });

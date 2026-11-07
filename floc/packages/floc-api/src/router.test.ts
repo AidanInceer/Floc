@@ -551,6 +551,18 @@ describe("the trip calendar link (#334)", () => {
     const { caller: mal } = caller("intruder");
     await expect(mal.itinerary.calendarUrl({ tripId: 1 })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
+
+  it("resets the member's own link and hands back the new one", async () => {
+    const url = "https://floc.example/calendar/new.sig.ics";
+    const { caller: ana, port } = caller("u1", fakePort({ resetCalendarFeed: vi.fn().mockResolvedValue(url) }));
+    await expect(ana.itinerary.resetCalendarUrl({ tripId: 1 })).resolves.toBe(url);
+    expect(port.resetCalendarFeed).toHaveBeenCalledWith("u1", 1);
+  });
+
+  it("lets no non-member reset a link (rule 5)", async () => {
+    const { caller: mal } = caller("intruder");
+    await expect(mal.itinerary.resetCalendarUrl({ tripId: 1 })).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
 });
 
 describe("buying Pro in the app", () => {

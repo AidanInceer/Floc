@@ -4,8 +4,8 @@
  * whose files.
  *
  * Why the attachments are fetched last: they are only downloaded once the
- * sender is known to be on the trip, so a stranger cannot make Floc pull
- * their files.
+ * sender is known to be on the trip and the From is proven, so a stranger
+ * cannot make Floc pull their files.
  */
 import "server-only";
 
@@ -33,6 +33,8 @@ export type InboundAttachment = {
 type Deps = {
   loadAttachments: () => Promise<InboundAttachment[]>;
   send: (batch: OutboundEmail[]) => Promise<void>;
+  /** Whether the receiving server proved the From (DKIM or DMARC), which anyone can otherwise type. */
+  fromProven: () => Promise<boolean>;
 };
 
 export async function receiveBookingMail(mail: InboundMail, deps: Deps): Promise<void> {
@@ -45,6 +47,11 @@ export async function receiveBookingMail(mail: InboundMail, deps: Deps): Promise
   const access = await accessFor(mail, userId);
   if (!access) {
     await deps.send([emails.inboundRefused({ to: sender })]);
+    return;
+  }
+  // Why: a forged From names a real member, so without proof a stranger could put files in their private Files.
+  if (!(await deps.fromProven())) {
+    await deps.send([emails.inboundUnproven({ to: sender, tripName: access.trip.name })]);
     return;
   }
 

@@ -37,8 +37,7 @@ import { EventFiles } from "@/components/documents/event-files";
 import type { FileChoice } from "@/components/documents/attach-existing";
 import { EventForm } from "@/components/days/event-form";
 import { ButtonLink, EmptyState, PageTitle, cx, menuDangerItemClass, panelBandClass, panelTitleClass } from "@/components/system/ui";
-import { appUrl } from "@/lib/env";
-import { mintCalendarToken } from "@/server/itinerary/calendar-link";
+import { calendarFeedUrlFor } from "@/server/itinerary/feed/calendar-feed-link";
 import { EVENT_CATEGORIES } from "@floc/core/itinerary/event-categories";
 import { NoteThread, type NoteRow, type Viewer } from "@/components/notes/note-thread";
 import { requireTripAccess, type TripMember } from "@/server/access";
@@ -68,10 +67,11 @@ export default async function DaysPage({
 
   const query = await searchParams;
   const openEventId = Number(query.event) || null;
-  const [calendar, bookingPrefill, sites] = await Promise.all([
+  const [calendar, bookingPrefill, sites, feedUrl] = await Promise.all([
     loadCalendar(access, openEventId),
     canUseFeature("booking.prefill", trip.id),
     bookingSitesOf(viewer.id),
+    calendarFeedUrlFor(trip.id, viewer.id),
   ]);
   const { days, commentCounts, fileEventIds, selected } = calendar;
   const commenter = commenterOf(viewer, members);
@@ -175,7 +175,8 @@ export default async function DaysPage({
         <PageTitle className="sr-only">Days</PageTitle>
         <CalendarMenu
           downloadHref={`/trip/${trip.id}/calendar.ics`}
-          feedUrl={`${appUrl()}/calendar/${mintCalendarToken(trip.id, viewer.id)}.ics`}
+          tripId={trip.id}
+          feedUrl={feedUrl ?? ""}
         />
       </header>
 

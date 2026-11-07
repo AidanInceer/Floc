@@ -1,6 +1,6 @@
 ---
 name: push
-description: Publish the current task worktree to develop — quick checks, one commit, its doc pages, a PR to develop that merges itself when green, and a watcher that removes the worktree once develop CI passes. Use when the user says /floc:push, "push this", "ship it", or "get this on develop".
+description: Publish the current task worktree to develop — quick checks, one commit, its doc pages, a PR to develop that merges itself when green, a ci-babysit agent that watches the PR checks and fixes anything red, and a watcher that removes the worktree once develop CI passes. Use when the user says /floc:push, "push this", "ship it", or "get this on develop".
 ---
 
 In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
@@ -67,19 +67,29 @@ the PR to `develop` with auto-merge, and starts the watcher.
   fix the cause, publish again. Never weaken a check.
 - Run it again after any fix; it reuses the PR and restarts the watcher.
 
+## 4. Watch CI
+
+Right after publish, start the `floc:ci-babysit` agent **in the background** with the PR number and
+this worktree's path. It waits for the PR checks, and if one goes red it reproduces the failure,
+fixes it in this worktree and publishes again, up to three times. It never weakens a check, never
+touches the schema without Aidan's yes, and never merges. Do not wait on it in the foreground.
+
+The quick checks are not all of CI: `PR checks` also runs the changed-code coverage gate. Every
+changed source file needs a test that reaches its changed lines.
+
 **Prototype tag.** For each prototype this work builds, set its `wf-status` to
 `Chosen: <key>, on develop <first 7 of the published sha>` in the main
 checkout's `floc/wireframe/`. Rules: [prototype](../prototype/SKILL.md#the-tag-follows-the-work).
 
-## 4. Report and stop
+## 5. Report
 
 PR link, commit subject, quick-check result, doc pages pushed, and that the
-watcher has it. UI change → the light and dark screenshots of each surface. If
+ci-babysit agent and the watcher have it. UI change → the light and dark screenshots of each surface. If
 you fixed something outside the task to get green, say so. Nothing else.
 
 End with the report format in [AGENTS.md](../../../../AGENTS.md#working-and-reporting).
 
-Then end the turn. Do not wait on CI. The watcher is a plain script, not an
-agent: it merges when GitHub has not, waits for `develop` CI, then removes this
-worktree and its branch. A conflict or a red check stops it with a Windows
-notification; `pnpm delivery status` shows every watcher.
+Then end the turn. When the agent reports, pass on one line: green, fixed (what), or not fixed
+(the check and its error). The watcher is a plain script: it merges when GitHub has not, waits for
+`develop` CI, then removes this worktree and its branch. A conflict or a red check stops it with a
+Windows notification; `pnpm delivery status` shows every watcher.
