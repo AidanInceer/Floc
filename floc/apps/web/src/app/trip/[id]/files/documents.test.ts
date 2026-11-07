@@ -8,7 +8,8 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { sql } from "drizzle-orm";
-import { db } from "@/db";
+import { db, schema } from "@/db";
+import { LIMITS } from "@/server/limits";
 import { webPort } from "@/server/api-port/api-port";
 
 import {
@@ -287,6 +288,15 @@ describe("the trip's storage quota (#285)", () => {
     await bigFile(FREE_TRIP_STORAGE_BYTES - 1024);
     expect(await uploadDocument(world.ours.id, form("shared"))).toBeUndefined();
     expect(await usedBytes(world.ours.id)).toBe(FREE_TRIP_STORAGE_BYTES - 1024 + "%PDF-1.7".length);
+  });
+
+  it("refuses a file once the trip holds as many as Floc keeps, and writes nothing", async () => {
+    await db.insert(schema.document).values(Array.from({ length: LIMITS.documents }, (_, i) => ({
+      tripId: world.ours.id, uploadedBy: world.admin, ownerId: null, name: `f${i}.pdf`,
+      storageKey: `seeded-${i}`, mimeType: "application/pdf", sizeBytes: 1, category: "other" as const,
+    })));
+    expect(await uploadDocument(world.ours.id, form("shared"))).toEqual({ error: "This trip is holding as many files as it can" });
+    expect(await usedBytes(world.ours.id)).toBe(LIMITS.documents);
   });
 
   it("refuses one past the quota as a form error naming the space left, and writes nothing", async () => {
