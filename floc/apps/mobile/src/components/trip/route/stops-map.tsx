@@ -11,7 +11,7 @@ import { View } from "react-native";
 import { LandLayer } from "../../map/land-layer";
 import { useTheme } from "../../system/theme";
 import { LegArrow, LegTag, StopDot, StopName } from "./route-marks";
-import { countriesAt } from "@/lib/country-at";
+import { countriesAt } from "@/lib/geo/country-at";
 import { paperStyle } from "@/lib/map";
 import { radius } from "@/lib/theme";
 

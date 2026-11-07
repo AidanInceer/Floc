@@ -1,5 +1,5 @@
 // Why: a place saved before ticket 95 has no country stored, so the outline says where it stands — as the web's `codesAt` does.
-import COUNTRY_SHAPES from "./countries-110m.json";
+import COUNTRY_SHAPES from "../countries-110m.json";
 
 type Ring = number[][];
 type Shape = { id?: string | number; geometry: { type: string; coordinates: unknown } };
