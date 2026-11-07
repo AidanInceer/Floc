@@ -7,7 +7,7 @@ import { createServer } from "node:http";
 import { createNotesLive } from "./src/server/notes/live/notes-live.ts";
 import { attachNotesLive } from "./src/server/notes/live/live-socket.ts";
 import { sessionResolver } from "./src/server/notes/live/live-session.ts";
-import { clientKey, isLimitedWrite, writeLimiter } from "./src/server/http/write-limiter.ts";
+import { limitWrites } from "./src/server/http/write-gate.ts";
 
 const dev = process.argv.includes("--dev");
 // Why before importing next: it reads NODE_ENV at load, and `next start` used to set it.
@@ -22,16 +22,7 @@ const app = next({ dev, port });
 await app.prepare();
 
 const handle = app.getRequestHandler();
-const writes = writeLimiter();
-const server = createServer((req, res) => {
-  const caller = isLimitedWrite(req.method, req.url) ? clientKey(req.headers["x-real-ip"], req.socket.remoteAddress) : null;
-  if (caller && !writes.allow(caller)) {
-    res.writeHead(429, { "Retry-After": "30", "Content-Type": "text/plain; charset=utf-8" });
-    res.end("Too many changes at once. Wait a moment and try again.");
-    return;
-  }
-  return handle(req, res);
-});
+const server = createServer(limitWrites(handle));
 const live = createNotesLive({ resolveUser: sessionResolver(`http://127.0.0.1:${port}`) });
 attachNotesLive(server, live, app.getUpgradeHandler());
 
