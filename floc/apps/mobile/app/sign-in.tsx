@@ -79,9 +79,9 @@ export default function SignIn() {
         <Screen>
           <View style={{ alignItems: "center", gap: space.xs, paddingTop: space.sm }}>
             <Text style={{ color: c.ink, fontFamily: fonts.displayBold, fontSize: size.display, textAlign: "center" }}>
-              Group trip planning, simplified.
+              Trip planning, sorted.
             </Text>
-            <Body tone="ink-2">Where, when, the plan, and who owes who.</Body>
+            <Body tone="ink-2">Destination, dates, route and costs, in one place.</Body>
           </View>
 
           {ended ? (

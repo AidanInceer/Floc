@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { View } from "react-native";
 
-import { Button, Failed, Loading, SearchField } from "../../system/ui";
+import { Button, Failed, Loading, TextBox } from "../../system/ui";
 import { IdeasPanel } from "./ideas-panel";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
@@ -55,7 +55,7 @@ export function IdeasSection({ tripId, datesUnset }: { tripId: number; datesUnse
     >
       <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
         <View style={{ flex: 1 }}>
-          <SearchField
+          <TextBox
             label="Idea"
             value={title}
             onChangeText={setTitle}

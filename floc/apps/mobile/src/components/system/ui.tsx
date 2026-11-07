@@ -32,7 +32,7 @@ import {
 
 import { fonts, radius, size, space } from "@/lib/theme";
 
-import { ChevronGlyph } from "./glyphs";
+import { ChevronGlyph, SearchGlyph } from "./glyphs";
 import { Sheet } from "./sheet";
 import { useTheme } from "./theme";
 
@@ -263,14 +263,36 @@ export function SearchField({
   label,
   ...props
 }: TextInputProps & { label: string }) {
+  const { c } = useTheme();
   return (
-    <TextInputBox
-      accessibilityLabel={label}
-      autoCorrect={false}
-      autoCapitalize="words"
-      {...props}
-    />
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: space.sm,
+        backgroundColor: c.sheet,
+        borderColor: c.rule,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderRadius: radius.sm,
+        paddingHorizontal: space.md,
+      }}
+    >
+      <SearchGlyph color={c["ink-3"]} />
+      <TextInput
+        accessibilityLabel={label}
+        autoCorrect={false}
+        autoCapitalize="words"
+        placeholderTextColor={c["ink-3"]}
+        {...props}
+        style={{ flex: 1, paddingVertical: space.md, color: c.ink, fontFamily: fonts.sans, fontSize: size.body }}
+      />
+    </View>
   );
+}
+
+/** A text field named for the screen reader only, where the row around it already says what it is for. */
+export function TextBox({ label, ...props }: TextInputProps & { label: string }) {
+  return <TextInputBox accessibilityLabel={label} {...props} />;
 }
 
 function TextInputBox(props: TextInputProps) {
@@ -615,30 +637,57 @@ export function Dropdown<T extends string>({
         <ChevronGlyph color={c["ink-3"]} />
       </Pressable>
 
-      <Sheet open={open} onClose={() => setOpen(false)}>
-        {options.map((option) => (
-          <Pressable
-            key={option.value}
-            accessibilityRole="radio"
-            accessibilityState={{ selected: option.value === value }}
-            accessibilityLabel={option.label}
-            onPress={() => {
-              onChange(option.value);
-              setOpen(false);
-            }}
-            style={({ pressed }) => ({
-              paddingVertical: space.md,
-              paddingHorizontal: space.lg,
-              backgroundColor: pressed ? c["sheet-2"] : "transparent",
-            })}
-          >
-            {/* The chosen one says so in words — a tint alone is not a state (#204). */}
-            <Body tone={option.value === value ? "ink" : "ink-2"}>
-              {option.value === value ? `${option.label} · chosen` : option.label}
-            </Body>
-          </Pressable>
-        ))}
-      </Sheet>
+      <ChoiceSheet open={open} onClose={() => setOpen(false)} options={options} value={value} onChange={onChange} />
     </View>
+  );
+}
+
+/** One choice from a short list, in a sheet; picking closes it. */
+export function ChoiceSheet<T extends string>({
+  title,
+  open,
+  onClose,
+  options,
+  value,
+  onChange,
+}: {
+  title?: string;
+  open: boolean;
+  onClose: () => void;
+  options: { value: T; label: string }[];
+  value: T;
+  onChange: (value: T) => void;
+}) {
+  const { c } = useTheme();
+  return (
+    <Sheet open={open} onClose={onClose}>
+      {title ? (
+        <View style={{ paddingHorizontal: space.lg, paddingBottom: space.sm }}>
+          <Heading>{title}</Heading>
+        </View>
+      ) : null}
+      {options.map((option) => (
+        <Pressable
+          key={option.value}
+          accessibilityRole="radio"
+          accessibilityState={{ selected: option.value === value }}
+          accessibilityLabel={option.label}
+          onPress={() => {
+            onChange(option.value);
+            onClose();
+          }}
+          style={({ pressed }) => ({
+            paddingVertical: space.md,
+            paddingHorizontal: space.lg,
+            backgroundColor: pressed ? c["sheet-2"] : "transparent",
+          })}
+        >
+          {/* The chosen one says so in words — a tint alone is not a state (#204). */}
+          <Body tone={option.value === value ? "ink" : "ink-2"}>
+            {option.value === value ? `${option.label} · chosen` : option.label}
+          </Body>
+        </Pressable>
+      ))}
+    </Sheet>
   );
 }
