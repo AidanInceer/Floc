@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { requireUser } from "@/server/access";
-import { memberCalendar } from "@/server/itinerary/calendar-feed";
+import { memberCalendar } from "@/server/itinerary/feed/calendar-feed";
 
 export async function GET(
   _request: Request,

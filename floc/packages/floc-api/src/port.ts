@@ -846,6 +846,9 @@ export type FlocPort = {
    */
   calendarFeedUrl(viewerId: string, tripId: number): Promise<string>;
 
+  /** A new feed address for the viewer only; every older one stops answering (#334). Returns the new one. */
+  resetCalendarFeed(viewerId: string, tripId: number): Promise<string>;
+
   loadLedger(viewerId: string, tripId: number): Promise<Ledger>;
 
   /** The group's fewest payments across currencies, each in the viewer's home currency (#463). */

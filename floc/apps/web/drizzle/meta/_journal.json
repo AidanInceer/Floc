@@ -351,6 +351,13 @@
       "when": 1794050564521,
       "tag": "0049_profile_booking_sites",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "6",
+      "when": 1794081191889,
+      "tag": "0050_slow_makkari",
+      "breakpoints": true
     }
   ]
 }

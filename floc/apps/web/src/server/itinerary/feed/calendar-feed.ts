@@ -8,8 +8,11 @@ import { EVENT_CATEGORIES } from "@floc/core/itinerary/event-categories";
 import { tripCalendar } from "@floc/core/itinerary/ics";
 import { listDaysWithEvents } from "@/server/itinerary/itinerary";
 
-/** The trip's itinerary as `.ics`, or `null` for a non-member and a missing trip alike (rule 5). */
-export async function memberCalendar(tripId: number, userId: string): Promise<string | null> {
+/**
+ * The trip's itinerary as `.ics`, or `null` for a non-member and a missing trip alike (rule 5). A feed link passes
+ * its `epoch`, and a link older than the member's last reset answers `null` too.
+ */
+export async function memberCalendar(tripId: number, userId: string, epoch?: number): Promise<string | null> {
   const row = await db
     .select({ id: trip.id, name: trip.name })
     .from(trip)
@@ -18,6 +21,7 @@ export async function memberCalendar(tripId: number, userId: string): Promise<st
       and(
         eq(trip.id, tripId),
         eq(tripMembership.userId, userId),
+        epoch === undefined ? undefined : eq(tripMembership.calendarFeedEpoch, epoch),
         isNull(trip.deletedAt),
         isNull(tripMembership.deletedAt),
       ),
