@@ -213,6 +213,35 @@ export function AddPersonGlyph({ color }: { color: string }) {
   );
 }
 
+/** An event carries a note: lines of writing, never the pencil, which means edit. */
+export function NoteGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+      <Path d="M3 4h8M3 7h8M3 10h5" stroke={color} strokeWidth={STROKE} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+/** The group: the web's Friends nav mark. */
+export function GroupGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+      <Circle cx={5} cy={5} r={1.9} stroke={color} strokeWidth={STROKE} />
+      <Circle cx={10} cy={5.6} r={1.5} stroke={color} strokeWidth={STROKE} />
+      <Path d="M1.6 11.4c.4-1.8 1.7-2.8 3.4-2.8s3 1 3.4 2.8M9.4 8.7c1.5 0 2.6.9 3 2.5" stroke={color} strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+/** A calendar page: the web's Dates nav mark. */
+export function CalendarGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+      <Path d="M3.4 3h7.2A1.4 1.4 0 0 1 12 4.4v6.4a1.4 1.4 0 0 1-1.4 1.4H3.4A1.4 1.4 0 0 1 2 10.8V4.4A1.4 1.4 0 0 1 3.4 3ZM4.8 1.8v2.4M9.2 1.8v2.4M2 6h10" stroke={color} strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
 /** Flights — the web's Overview booking tile. */
 export function PlaneGlyph({ color }: { color: string }) {
   return (

@@ -45,7 +45,7 @@ function view(points: LngLat[]): InitialViewState {
 
 /** A name goes on the side away from the stop's neighbours, so the line does not run through it. */
 function sideOf(stops: OverviewRoute["stops"], k: number): "left" | "right" {
-  const near = [stops[k - 1], stops[k + 1]].filter((s) => s !== undefined);
+  const near = [k - 1, k + 1].filter((i) => i >= 0 && i < stops.length).map((i) => stops[i]!);
   const east = near.reduce((sum, s) => sum + (s.lng - stops[k]!.lng), 0);
   return east > 0 ? "left" : "right";
 }

@@ -57,3 +57,12 @@ export function KindTile({ type, transportType }: { type: DayEventType; transpor
     </View>
   );
 }
+
+/** The category's line mark alone, for a block that already wears the category's ground. */
+export function EventMark({ type, transportType, color }: { type: DayEventType; transportType: TransportType | null; color: string }) {
+  return (
+    <Svg width={12} height={12} viewBox="0 0 14 14" fill="none">
+      <Path d={pathFor(type, transportType)} stroke={color} strokeWidth={1.25} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}

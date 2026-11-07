@@ -12,18 +12,18 @@
  * a trip is open — leaving a trip should not require finding the back arrow.
  * The trip's own sections carry their own navigation, one level below.
  *
- * THE MARKS ARE PEN, THE WORDS ARE INK. Every glyph is full `pen`, on or off
- * — a dimmed inactive mark was tried and read as three disabled buttons. Which
- * tab you are on is said by the word underneath going from `ink-3` to `ink`,
- * which is the signal that works without colour anyway (#204), and by the
- * small blue tile the current mark sits in — the web's top bar says it the same way.
+ * THE OPEN TAB IS SAID IN COLOUR AND WEIGHT. Its mark is `pen` and its word
+ * turns `ink` and semibold; the others sit back in `ink-3`. The weight is the
+ * signal that works without colour (#204). The blue tile behind the open mark
+ * read as a heavy block and was dropped.
  */
 import { Tabs, usePathname } from "expo-router";
+import { StyleSheet } from "react-native";
 
 import { Bell } from "@/components/notifications/bell";
 import { ExploreIcon, TripsIcon, YouIcon } from "@/components/system/tab-icons";
 import { useTheme } from "@/components/system/theme";
-import { TabTile } from "@/components/system/tab-tile";
+import { TabLabel, TabMark } from "@/components/system/tab-mark";
 import { fonts, size } from "@/lib/theme";
 
 export default function TabsLayout() {
@@ -42,17 +42,15 @@ export default function TabsLayout() {
         headerTitleStyle: { fontFamily: fonts.display, fontSize: size.heading },
         headerShadowVisible: false,
         sceneStyle: { backgroundColor: c.paper },
-        tabBarStyle: { backgroundColor: c.sheet, borderTopColor: c.rule },
-        tabBarActiveTintColor: c.ink,
-        tabBarInactiveTintColor: c["ink-3"],
-        tabBarLabelStyle: { fontFamily: fonts.type, fontSize: size.label },
+        tabBarStyle: { backgroundColor: c.sheet, borderTopColor: c.rule, borderTopWidth: StyleSheet.hairlineWidth, elevation: 0 },
       }}
     >
       <Tabs.Screen
         name="explore"
         options={{
           title: "Explore",
-          tabBarIcon: ({ focused }) => <TabTile on={focused} mark={(color) => <ExploreIcon color={color} />} />,
+          tabBarIcon: ({ focused }) => <TabMark on={focused} mark={(color) => <ExploreIcon color={color} />} />,
+          tabBarLabel: ({ focused }) => <TabLabel on={focused}>Explore</TabLabel>,
           // Explore has its own stack now (list, then one listing), and that
           // stack draws the header — without this there are two.
           headerShown: false,
@@ -62,7 +60,8 @@ export default function TabsLayout() {
         name="trips"
         options={{
           title: "Trips",
-          tabBarIcon: ({ focused }) => <TabTile on={focused || inTrip} mark={(color) => <TripsIcon color={color} />} />,
+          tabBarIcon: ({ focused }) => <TabMark on={focused || inTrip} mark={(color) => <TripsIcon color={color} />} />,
+          tabBarLabel: ({ focused }) => <TabLabel on={focused || inTrip}>Trips</TabLabel>,
         }}
       />
       {/* Settings and Saved lists are NOT hidden tabs. A hidden tab is still a
@@ -73,7 +72,8 @@ export default function TabsLayout() {
         name="profile"
         options={{
           title: "You",
-          tabBarIcon: ({ focused }) => <TabTile on={focused} mark={(color) => <YouIcon color={color} />} />,
+          tabBarIcon: ({ focused }) => <TabMark on={focused} mark={(color) => <YouIcon color={color} />} />,
+          tabBarLabel: ({ focused }) => <TabLabel on={focused}>You</TabLabel>,
         }}
       />
       {/* A trip lives under the Trips tab so the bar survives opening one; it

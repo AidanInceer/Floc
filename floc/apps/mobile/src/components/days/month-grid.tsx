@@ -13,78 +13,105 @@
  * solved the same problem the same way (#127); this is that fix in a place
  * that has no pointer events.
  *
- * Cells are drawn but never *only* drawn: a day carries its number, and a
- * shaded day carries the count of who is free (#204).
+ * A DAY HAS ONE COLOUR ON EVERY VIEW, from dayMark in core, as on the web:
+ * the trip solid green, everyone free pastel green, some free pastel red in
+ * three steps. A run of the same mark joins into one shape across a week.
+ * Your own day is a disc behind the number. Every day also says all of it in
+ * words to a screen reader (#204).
  */
 import { WEEKDAY_LABELS, monthGrid, type IsoMonth } from "@floc/core/dates/availability";
+import { markKey, weekJoins } from "@floc/core/dates/day-marks";
 import { useRef, useState } from "react";
-import { PanResponder, StyleSheet, Text, View } from "react-native";
+import { PanResponder, Text, View } from "react-native";
 
 import { useTheme } from "../system/theme";
-import { fonts, radius, size, space } from "@/lib/theme";
+import type { DayLook } from "@/lib/dates/day-look";
+import { fonts, radius, size } from "@/lib/theme";
 import type { TokenName } from "@floc/core/design/tokens";
 
-/** How a single cell should read. The screen decides; this only draws. */
-export type CellLook = {
-  /** Filled ground, or none. A token name, never a hex. */
-  ground: TokenName | null;
-  /** Ink for the day number, when the ground needs a different one. */
-  ink: TokenName | null;
-  /** A number under the day — how many people are free. Null draws nothing. */
-  count: number | null;
-  /** What the number means to a screen reader, when it is not a count of who is free. */
-  countLabel?: string;
-  /** A ring, for the trip window's own days. */
-  ringed: boolean;
+export type { DayLook };
+
+const FILL: Record<string, { ground: TokenName; ink: TokenName; fade?: number }> = {
+  all: { ground: "pastel-green", ink: "pastel-green-ink" },
+  "some-1": { ground: "some-free-1", ink: "some-free-ink" },
+  "some-2": { ground: "some-free-2", ink: "some-free-ink" },
+  "some-3": { ground: "some-free-3", ink: "some-free-ink" },
+  trip: { ground: "green", ink: "sheet" },
+  pend: { ground: "green", ink: "sheet", fade: 0.55 },
 };
 
-/** One day. Drawn only — the gesture belongs to the grid, for the reason above. */
-function DayCell({ date, cell }: { date: string; cell: CellLook }) {
+const INSET = 3;
+const DISC = 30;
+
+type Join = { left: boolean; right: boolean };
+
+/** The day's colour, as one shape that runs into its neighbours of the same mark. */
+function Shape({ fill, join }: { fill: (typeof FILL)[string]; join: Join }) {
   const { c } = useTheme();
-  const ink = cell.ink ? c[cell.ink] : c.ink;
+  const left = join.left ? 0 : radius.md;
+  const right = join.right ? 0 : radius.md;
   return (
     <View
-      accessibilityLabel={
-        cell.count === null ? date : `${date}, ${cell.countLabel ?? `${cell.count} free`}`
-      }
       style={{
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-        margin: 2,
-        borderRadius: radius.sm,
-        backgroundColor: cell.ground ? c[cell.ground] : "transparent",
-        borderWidth: cell.ringed ? 1.5 : StyleSheet.hairlineWidth,
-        borderColor: cell.ringed ? c.pen : "transparent",
+        position: "absolute",
+        top: INSET,
+        bottom: INSET,
+        left: join.left ? 0 : INSET,
+        right: join.right ? 0 : INSET,
+        backgroundColor: c[fill.ground],
+        opacity: fill.fade ?? 1,
+        borderTopLeftRadius: left,
+        borderBottomLeftRadius: left,
+        borderTopRightRadius: right,
+        borderBottomRightRadius: right,
       }}
-    >
+    />
+  );
+}
+
+/** You can do it: solid on the trip so it reads on the green, a soft wash elsewhere. */
+function Disc({ onTrip, ink }: { onTrip: boolean; ink: string }) {
+  const { c } = useTheme();
+  return <View style={{ position: "absolute", width: DISC, height: DISC, borderRadius: radius.pill, backgroundColor: onTrip ? c.sheet : ink, opacity: onTrip ? 1 : 0.14 }} />;
+}
+
+function decoration(look: DayLook): "line-through" | "underline" | "none" {
+  if (look.cut) return "line-through";
+  return look.today ? "underline" : "none";
+}
+
+/** One day. Drawn only — the gesture belongs to the grid, for the reason above. */
+function DayCell({ date, look, join }: { date: string; look: DayLook; join: Join }) {
+  const { c } = useTheme();
+  const key = markKey(look.mark);
+  const fill = FILL[key];
+  const onTrip = key === "trip";
+  const base = fill ? c[fill.ink] : c.ink;
+  const ink = look.mine && onTrip ? c.green : base;
+  return (
+    <View accessibilityLabel={look.label} style={{ flex: 1, alignItems: "center", justifyContent: "center", opacity: look.past ? 0.7 : 1 }}>
+      {fill ? <Shape fill={fill} join={join} /> : null}
+      {look.mine ? <Disc onTrip={onTrip} ink={base} /> : null}
       <Text
         style={{
           color: ink,
-          fontFamily: fonts.type,
-          fontSize: size.body,
+          fontFamily: onTrip || look.mine ? fonts.typeBold : fonts.type,
+          fontSize: size.small,
           fontVariant: ["tabular-nums"],
+          textDecorationLine: decoration(look),
         }}
       >
         {Number(date.slice(8))}
       </Text>
-      {cell.count !== null ? (
-        <Text
-          style={{
-            color: cell.ink ? c[cell.ink] : c["ink-2"],
-            fontFamily: fonts.type,
-            fontSize: size.label,
-            marginTop: space.xs / 2,
-          }}
-        >
-          {cell.count}
+      {look.hi === undefined ? null : (
+        <Text style={{ position: "absolute", top: 4, right: 5, color: ink, opacity: 0.85, fontFamily: fonts.type, fontSize: size.label, fontVariant: ["tabular-nums"] }}>
+          {`${look.hi}°`}
         </Text>
-      ) : null}
+      )}
     </View>
   );
 }
-
-const ROW_HEIGHT = 52;
+const ROW_HEIGHT = 46;
 
 export function MonthGrid({
   month,
@@ -93,7 +120,7 @@ export function MonthGrid({
   onRelease,
 }: {
   month: IsoMonth;
-  look: (date: string) => CellLook;
+  look: (date: string) => DayLook;
   /** Called with every date the finger has reached, including the first. */
   onPaint: (anchor: string, target: string) => void;
   onRelease: () => void;
@@ -189,18 +216,19 @@ export function MonthGrid({
         onLayout={(event) => setWidth(event.nativeEvent.layout.width)}
         {...responder.panHandlers}
       >
-        {weeks.map((week, row) => (
-          <View
-            key={row}
-            pointerEvents="none"
-            style={{ flexDirection: "row", height: ROW_HEIGHT }}
-          >
-            {week.map((date, column) => {
-              if (!date) return <View key={column} style={{ flex: 1, margin: 2 }} />;
-              return <DayCell key={column} date={date} cell={look(date)} />;
-            })}
-          </View>
-        ))}
+        {weeks.map((week, row) => {
+          const looks = week.map((date) => (date ? look(date) : null));
+          const joins = weekJoins(looks.map((l) => (l ? markKey(l.mark) : null)));
+          return (
+            <View key={row} pointerEvents="none" style={{ flexDirection: "row", height: ROW_HEIGHT }}>
+              {week.map((date, column) => {
+                const l = looks[column];
+                if (!date || !l) return <View key={column} style={{ flex: 1 }} />;
+                return <DayCell key={column} date={date} look={l} join={joins[column]} />;
+              })}
+            </View>
+          );
+        })}
       </View>
     </View>
   );

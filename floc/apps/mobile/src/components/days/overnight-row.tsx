@@ -1,20 +1,19 @@
 /**
  * Where you are sleeping, as a row you can press (#325 feedback).
  *
- * IT HAS TO LOOK LIKE A CONTROL. This was a bare grey sentence; it read as a
- * caption and nobody pressed it. The frame, the label and the pen are the same
- * three marks every other tappable row on the phone wears.
+ * IT HAS TO LOOK LIKE A CONTROL. A bare grey sentence read as a caption and
+ * nobody pressed it. One slim row now, as the web's night bar: the bed, the
+ * place, and the pen that every tappable row on the phone wears.
  *
  * SPLIT FROM `overnight-line` because that file is the read, the write and the
  * run `deriveStops` gives back — the drawing is a separate job, and leaving it
  * inline took one function past what it is allowed to branch on.
  */
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, Text } from "react-native";
 
-import { PenGlyph } from "../system/glyphs";
+import { BedGlyph, PenGlyph } from "../system/glyphs";
 import { useTheme } from "../system/theme";
-import { Body, Figure } from "../system/ui";
-import { radius, space } from "@/lib/theme";
+import { fonts, radius, size, space } from "@/lib/theme";
 
 export function OvernightRow({
   place,
@@ -26,33 +25,30 @@ export function OvernightRow({
 }) {
   const { c } = useTheme();
   const set = place !== null;
-
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={set ? `Sleeping in ${place} — change it` : "Say where you are sleeping"}
       onPress={onPress}
-      style={{
+      style={({ pressed }) => ({
         flexDirection: "row",
         alignItems: "center",
-        gap: space.md,
+        gap: space.sm,
+        minHeight: 40,
         paddingHorizontal: space.md,
-        paddingVertical: space.sm,
         borderRadius: radius.sm,
         borderWidth: StyleSheet.hairlineWidth,
-        borderColor: set ? c["pastel-green-edge"] : c.rule,
+        borderStyle: set ? "solid" : "dashed",
+        borderColor: set ? c["pastel-green-edge"] : c["rule-2"],
         backgroundColor: set ? c["pastel-green"] : "transparent",
-      }}
+        opacity: pressed ? 0.7 : 1,
+      })}
     >
-      <View style={{ flex: 1, gap: 2 }}>
-        <Figure tone="ink-2">Sleeping</Figure>
-        <Body bold={set} tone={set ? "ink" : "ink-3"}>
-          {place ?? "Nowhere yet"}
-        </Body>
-      </View>
-      {/* The pen says "this is a control, not a caption" — the same mark the
-          trip header wears for the same reason. */}
-      <PenGlyph color={c["ink-2"]} />
+      <BedGlyph color={set ? c["pastel-green-ink"] : c["ink-3"]} />
+      <Text numberOfLines={1} style={{ flex: 1, color: set ? c["pastel-green-ink"] : c["ink-3"], fontFamily: set ? fonts.sansBold : fonts.sans, fontSize: size.small }}>
+        {set ? place : "Where are you sleeping?"}
+      </Text>
+      <PenGlyph color={set ? c["pastel-green-ink"] : c["ink-3"]} />
     </Pressable>
   );
 }

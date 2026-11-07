@@ -1,268 +1,65 @@
 /**
- * Dates (ticket 297) — the screen that settles when a trip happens.
+ * Dates (ticket 297) — the screen that settles when a trip happens, drawn as the web's narrow Dates card.
  *
- * ONE GRID, FOUR VIEWS, exactly as the web page does it:
- *   Mine     — paint the days you could go.
- *   Everyone — read-only, shaded and numbered by how many can.
- *   Window   — commit the trip's dates, dragged out of the same grid.
- *   Weather  — the forecast on the trip's own days. Pro, and says so when locked.
+ * ONE MONTH, FOUR VIEWS. A row of four stubs says where each view stands; the month under them never
+ * changes colour between views (`dayLookOf`), only what a press does and the panel below it.
+ *   Your days  — paint the days you could go.
+ *   The group  — read-only, and who still owes an answer.
+ *   The trip   — press the first day, then the last, to set the trip's dates.
+ *   Forecast   — the high on the trip's own days. Pro, and says so when locked.
  *
- * UNDATED IS THE NORMAL STARTING STATE (rule 9). Nothing here treats a trip
- * with no dates as broken, and clearing the window is an ordinary thing to do,
- * not a destructive one.
+ * UNDATED IS THE NORMAL STARTING STATE (rule 9). Nothing here treats a trip with no dates as broken,
+ * and clearing the dates is an ordinary thing to do.
  *
- * NOTHING WRITES UNTIL SAVE. A drag builds up local edits and one action sends
- * them — a round trip per day would be slower and a worse story on a patchy
- * phone connection.
+ * NOTHING WRITES UNTIL SAVE. A drag builds up local edits and one action sends them.
  *
- * NO TIMEZONES ANYWHERE (rule 10). Every date on this screen is a
- * `YYYY-MM-DD` string, from first touch to the wire.
+ * NO TIMEZONES ANYWHERE (rule 10). Every date on this screen is a `YYYY-MM-DD` string.
  *
- * YOU ANSWER ONLY FOR YOURSELF. There is no control here to mark somebody
- * else's days and the API has no parameter for it — an admin who could answer
- * for the group would make the answer worthless (rule 6).
+ * YOU ANSWER ONLY FOR YOURSELF. There is no control to mark somebody else's days (rule 6).
  */
-import {
-  monthOf,
-  tally,
-  thisMonth,
-  type Tally,
-} from "@floc/core/dates/availability";
-import { paintRange, pickedRange } from "@floc/core/dates/calendar-gestures";
-import { dateRange, formatDateRange, today } from "@floc/core/dates/dates";
-import { datesMoment, type DatesMoment } from "@floc/core/dates/dates-moment";
+import { bestWindow, monthOf, thisMonth } from "@floc/core/dates/availability";
+import { paintRange } from "@floc/core/dates/calendar-gestures";
+import { dateRange, formatDateRange, nightsBetween, today } from "@floc/core/dates/dates";
+import { datesMoment } from "@floc/core/dates/dates-moment";
+import { forecastTab, groupTab, spanLabel, tripTab, yourDaysTab } from "@floc/core/dates/dates-tabs";
 import { bookingPlan } from "@floc/core/trip/booking-links";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState, type ReactNode } from "react";
-import { Alert, ScrollView, View } from "react-native";
+import { useState } from "react";
+import { Alert, ScrollView, Text, View } from "react-native";
 
-import {
-  CalendarBelow,
-  CalendarTop,
-  useCalendarFill,
-} from "@/components/days/calendar-fill";
-import { DatesWeather, forecastIndex } from "@/components/days/dates-weather";
-import { BookingPanel } from "@/components/trip/booking-panel";
-import { MonthGrid, type CellLook } from "@/components/days/month-grid";
-import { MonthNav } from "@/components/days/month-nav";
+import { DatesBars } from "@/components/dates/dates-bars";
+import { DatesCard } from "@/components/dates/dates-card";
+import { DatesPanel } from "@/components/dates/dates-panels";
+import { DatesStubs, type DatesStub } from "@/components/dates/dates-stubs";
+import { CalendarBelow, CalendarTop, useCalendarFill } from "@/components/days/calendar-fill";
+import { forecastIndex, type ForecastIndex } from "@/components/days/dates-weather";
 import { WEATHER_LOOK, type ForecastDay } from "@/components/days/weather-panel";
-import { Body, Button, Card, Failed, Figure, Heading, Loading, Segmented, SectionTitle } from "@/components/system/ui";
+import { CalendarGlyph, GroupGlyph, TickGlyph, WeatherGlyph } from "@/components/system/glyphs";
+import { useTheme } from "@/components/system/theme";
+import { Button, Failed, Loading } from "@/components/system/ui";
+import { BookingPanel } from "@/components/trip/booking-panel";
 import { trpc } from "@/lib/api";
 import { useSession } from "@/lib/auth";
-import { space } from "@/lib/theme";
+import { dayLookOf, freeCounts, type DatesView } from "@/lib/dates/day-look";
+import { nextRange, type DateRange } from "@/lib/dates/range";
+import { fonts, size, space } from "@/lib/theme";
 import { windowWarning } from "@/lib/trip/window-change";
+import type { TripForecastView } from "@floc/api/port";
 import type { AppRouter } from "@floc/api/router";
 import type { inferRouterOutputs } from "@trpc/server";
 
-/** Which of the four readings of the same grid is on screen. */
-type CalendarView = "mine" | "everyone" | "window" | "weather";
+type Outputs = inferRouterOutputs<AppRouter>;
 
-const VIEWS: { value: CalendarView; label: string }[] = [
-  { value: "mine", label: "Mine" },
-  { value: "everyone", label: "Everyone" },
-  { value: "window", label: "The dates" },
-];
-
-const WITH_WEATHER: { value: CalendarView; label: string }[] = [
-  ...VIEWS,
-  { value: "weather", label: "Weather" },
-];
-
-const NOTHING: CellLook = { ground: null, ink: null, count: null, ringed: false };
-
-type Marks = { start: string | null; end: string | null };
-
-/**
- * How one day should read, in whichever view is on. Pure, and outside the
- * component so the three answers can be seen side by side.
- *
- * Every shaded day also carries a number or a ring, so the shading is never
- * the only thing saying it (#204).
- */
-function cellLook(
-  view: CalendarView,
-  date: string,
-  state: {
-    mineOn: (date: string) => boolean;
-    counts: Map<string, Tally>;
-    memberCount: number;
-    windowDays: Set<string>;
-    forecast: Record<string, ForecastDay>;
-  },
-): CellLook {
-  if (view === "weather") {
-    // Only the trip's own days carry weather, as on the web (#148).
-    const inTrip = state.windowDays.has(date);
-    const day = inTrip ? state.forecast[date] : undefined;
-    if (!day) return { ...NOTHING, ringed: inTrip };
-    const look = WEATHER_LOOK[day.condition];
-    return {
-      ground: look.ground,
-      ink: look.ink,
-      count: day.hi,
-      countLabel: `${look.word}, high of ${day.hi} degrees`,
-      ringed: true,
-    };
-  }
-
-  if (view === "mine") {
-    return state.mineOn(date)
-      ? { ground: "pastel-green", ink: "pastel-green-ink", count: null, ringed: false }
-      : NOTHING;
-  }
-
-  if (view === "everyone") {
-    const free = state.counts.get(date)?.free ?? 0;
-    if (free === 0) return NOTHING;
-    return free === state.memberCount
-      ? { ground: "pastel-green", ink: "pastel-green-ink", count: free, ringed: false }
-      : { ground: "pastel-yellow", ink: "pastel-yellow-ink", count: free, ringed: false };
-  }
-
-  return state.windowDays.has(date)
-    ? { ground: "pastel-blue", ink: "pastel-blue-ink", count: null, ringed: true }
-    : NOTHING;
-}
-
-/**
- * The month to open on: the trip's own, else the earliest month anybody has
- * marked, else this one. A trip with none of those is not a problem to report
- * — it is simply new (rule 9).
- */
-function openingMonth(
-  chosen: string | null,
-  startDate: string | null,
-  markedDates: string[],
-): string {
+/** The month to open on: the trip's own, else the earliest anybody marked, else this one (rule 9). */
+function openingMonth(chosen: string | null, startDate: string | null, marked: string[]): string {
   if (chosen) return chosen;
   if (startDate) return monthOf(startDate);
-  if (markedDates.length > 0) return monthOf([...markedDates].sort((a, b) => a.localeCompare(b))[0]);
+  if (marked.length > 0) return monthOf([...marked].sort((a, b) => a.localeCompare(b))[0]);
   return thisMonth();
 }
 
-/** The days to ring: the range being dragged out, else the trip's own, else none. */
-function windowSet(range: Marks, startDate: string | null, endDate: string | null): Set<string> {
-  if (range.start && range.end) return new Set(dateRange(range.start, range.end));
-  if (startDate && endDate) return new Set(dateRange(startDate, endDate));
-  return new Set();
-}
-
-/** No saved day of mine and nothing painted yet: the moment the calendar import leads. */
-function hasNoDays(marked: { userId: string }[], me: string | undefined, edits: Record<string, boolean>): boolean {
-  return !marked.some((row) => row.userId === me) && Object.keys(edits).length === 0;
-}
-
-/** Who still owes an answer — the one thing shading cannot say. */
-function answeredLine(
-  members: { userId: string; name: string }[],
-  rows: { userId: string; available: boolean }[],
-): string {
-  const answered = new Set(rows.filter((row) => row.available).map((row) => row.userId));
-  const waiting = members.filter((member) => !answered.has(member.userId));
-  if (waiting.length === 0) return "Everyone has said when they are free.";
-  return `Still to answer: ${waiting.map((member) => member.name).join(", ")}.`;
-}
-
-function headcount(members: unknown[], guests: unknown[] | undefined): number {
-  return members.length + (guests?.length ?? 0);
-}
-
-/** Guests answered on the invite link (#442): named, marked as guests, and managed on the web. */
-function GuestsLine({ guests }: { guests: { name: string }[] | undefined }) {
-  if (!guests || guests.length === 0) return null;
-  return <Body tone="ink-2">{`Guests: ${guests.map((g) => g.name).join(", ")}.`}</Body>;
-}
-
-function MinePanel({
-  unsaved,
-  busy,
-  onSave,
-}: {
-  unsaved: boolean;
-  busy: boolean;
-  onSave: () => void;
-}) {
-  return (
-    <View style={{ gap: space.sm }}>
-      {unsaved ? <Body tone="ink-2">Not saved yet.</Body> : null}
-      <Button
-        label={unsaved ? "Save your days" : "Nothing to save"}
-        disabled={!unsaved}
-        busy={busy}
-        onPress={onSave}
-      />
-    </View>
-  );
-}
-
-function WindowPanel({
-  halfMade,
-  ready,
-  busy,
-  dated,
-  onSet,
-  onClear,
-}: {
-  halfMade: boolean;
-  ready: boolean;
-  busy: boolean;
-  dated: boolean;
-  onSet: () => void;
-  onClear: () => void;
-}) {
-  return (
-    <View style={{ gap: space.sm }}>
-      <SectionTitle>The trip&apos;s dates</SectionTitle>
-      <Body tone="ink-2">
-        {halfMade ? "Now drag to the last day." : "Drag across the days the trip runs."}
-      </Body>
-      <Button label="Set these dates" disabled={!ready} busy={busy} onPress={onSet} />
-      {dated ? (
-        <Button label="Clear the dates" variant="quiet" busy={busy} onPress={onClear} />
-      ) : null}
-    </View>
-  );
-}
-
-/** #459: once the trip has dates, finding them folds away until someone wants to change them. */
-function DatesFold({
-  moment,
-  preview,
-  onOpen,
-  children,
-}: {
-  moment: DatesMoment;
-  preview: ReactNode;
-  onOpen: () => void;
-  children: ReactNode;
-}) {
-  const [changing, setChanging] = useState(false);
-  if (moment === "finding") return children;
-  return (
-    <>
-      {changing ? null : preview}
-      <Button
-        label={changing ? "Done" : "Change the dates"}
-        variant={moment === "started" || changing ? "quiet" : undefined}
-        onPress={() => {
-          // Why: "Change the dates" opened your own availability; it now opens the trip's dates.
-          if (!changing) onOpen();
-          setChanging(!changing);
-        }}
-      />
-      {changing ? children : null}
-    </>
-  );
-}
-
-type Outputs = inferRouterOutputs<AppRouter>;
-
-function bookingFor(
-  trip: Outputs["trips"]["get"],
-  days: Outputs["itinerary"]["days"] | undefined,
-  files: Outputs["files"]["list"] | undefined,
-) {
+function bookingFor(trip: Outputs["trips"]["get"], days: Outputs["itinerary"]["days"] | undefined, files: Outputs["files"]["list"] | undefined) {
   return bookingPlan({
     trip,
     days: (days ?? []).map((d) => ({ ...d, dayId: d.id })),
@@ -273,11 +70,88 @@ function bookingFor(
   });
 }
 
+type Member = { userId: string; name: string };
+
+/** Members and the invite link's guests (#442), each with how many days they can do. */
+function peopleOf(members: Member[], guests: { id: string; name: string }[] | undefined, marked: { userId: string }[]) {
+  return [
+    ...members.map((m) => ({ id: m.userId, name: m.name, guest: false })),
+    ...(guests ?? []).map((g) => ({ id: g.id, name: g.name, guest: true })),
+  ].map((p) => ({ ...p, days: marked.filter((row) => row.userId === p.id).length }));
+}
+
+function tripDaysOf(start: string | null, end: string | null): string[] {
+  return start && end ? dateRange(start, end) : [];
+}
+
+/** Only the trip's own days carry weather, as on the web (#148). */
+function hiFor(tripDays: string[], byDate: Record<string, ForecastDay>) {
+  return (date: string) => {
+    const day = tripDays.includes(date) ? byDate[date] : undefined;
+    return day ? { hi: day.hi, label: WEATHER_LOOK[day.condition].word } : undefined;
+  };
+}
+
+function forecastFacts(view: TripForecastView | undefined, index: ForecastIndex, tripDays: string[]) {
+  return {
+    shown: index.offered,
+    locked: view?.locked ?? false,
+    tripDays: tripDays.length,
+    days: tripDays.filter((d) => index.byDate[d]).length,
+    horizonEnd: view?.forecast?.horizonEnd ?? null,
+  };
+}
+
+function stubsFor(p: {
+  mine: string[];
+  unsaved: number;
+  memberCount: number;
+  waitingOn: string[];
+  start: string | null;
+  end: string | null;
+  best: { start: string; end: string } | null;
+  forecast: { shown: boolean; locked: boolean; tripDays: number; days: number; horizonEnd: string | null };
+}): DatesStub[] {
+  const stubs: DatesStub[] = [
+    { key: "mine", name: "Your days", glyph: (c) => <TickGlyph color={c} />, summary: yourDaysTab(p.mine, p.unsaved) },
+    { key: "group", name: "The group", glyph: (c) => <GroupGlyph color={c} />, summary: groupTab(p.memberCount, p.waitingOn) },
+    { key: "trip", name: "The trip", glyph: (c) => <CalendarGlyph color={c} />, summary: tripTab(p.start, p.end, p.best) },
+  ];
+  const f = p.forecast;
+  if (f.shown)
+    stubs.push({
+      key: "forecast",
+      name: "Forecast, a Floc Pro feature",
+      glyph: (c) => <WeatherGlyph condition="part" color={c} size={14} />,
+      summary: f.locked
+        ? { value: "Floc Pro", short: "Pro", note: "The weather on the trip's days", open: false }
+        : forecastTab(f.tripDays, f.days, f.horizonEnd),
+    });
+  return stubs;
+}
+
+function DatesHead({ start, end, changing, folded, onToggle }: { start: string | null; end: string | null; changing: boolean; folded: boolean; onToggle: () => void }) {
+  const { c } = useTheme();
+  const nights = start && end ? nightsBetween(start, end) : null;
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text style={{ color: c.ink, fontFamily: fonts.type, fontSize: size.body, fontVariant: ["tabular-nums"] }}>
+          {start && end ? spanLabel(start, end) : formatDateRange(start, end)}
+        </Text>
+        {nights !== null ? (
+          <Text style={{ color: c["ink-3"], fontFamily: fonts.type, fontSize: size.small, fontVariant: ["tabular-nums"] }}>{`${nights} ${nights === 1 ? "night" : "nights"}`}</Text>
+        ) : null}
+      </View>
+      {folded ? <Button label={changing ? "Done" : "Change the dates"} variant="quiet" fit="small" onPress={onToggle} /> : null}
+    </View>
+  );
+}
+
 export default function Dates() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const tripId = Number(id);
-  // A screen keeps rendering for a frame while it leaves, and `id` is gone by
-  // then: NaN goes down the wire as null and the server rightly refuses it.
+  // A screen keeps rendering for a frame while it leaves, and `id` is gone by then.
   const ready = Number.isFinite(tripId);
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -291,28 +165,26 @@ export default function Dates() {
   const files = useQuery(trpc.files.list.queryOptions({ tripId }, { enabled: ready }));
   const cal = useCalendarFill(tripId);
 
-  const [view, setView] = useState<CalendarView>("mine");
+  const [view, setView] = useState<DatesView>("mine");
+  const [changing, setChanging] = useState(false);
   const [openDay, setOpenDay] = useState<string | null>(null);
   const [month, setMonth] = useState<string | null>(null);
   /** Local paint, over what the server said. Empty means nothing unsaved. */
   const [edits, setEdits] = useState<Record<string, boolean>>({});
-  const [range, setRange] = useState<Marks>({ start: null, end: null });
+  const [range, setRange] = useState<DateRange | null>(null);
 
   const saveMarks = useMutation({
     ...trpc.availability.set.mutationOptions(),
     onSuccess: () => {
       setEdits({});
-      queryClient.invalidateQueries({
-        queryKey: trpc.availability.list.queryKey({ tripId }),
-      });
+      void queryClient.invalidateQueries({ queryKey: trpc.availability.list.queryKey({ tripId }) });
     },
   });
-
   const saveWindow = useMutation({
     ...trpc.trips.update.mutationOptions(),
     onSuccess: () => {
-      setRange({ start: null, end: null });
-      queryClient.invalidateQueries({ queryKey: trpc.trips.get.queryKey({ tripId }) });
+      setRange(null);
+      void queryClient.invalidateQueries({ queryKey: trpc.trips.get.queryKey({ tripId }) });
     },
   });
 
@@ -321,55 +193,59 @@ export default function Dates() {
   if (rows.isError) return <Failed onRetry={() => rows.refetch()} />;
 
   const me = session?.user.id;
+  const { startDate, endDate } = trip.data;
   const marked = rows.data.filter((row) => row.available);
+  const shown = openingMonth(month, startDate, marked.map((row) => row.date));
+  const mineSaved = marked.filter((row) => row.userId === me).map((row) => row.date);
+  const mineOn = (date: string): boolean => edits[date] ?? mineSaved.includes(date);
+  const unsaved = Object.keys(edits).length;
 
-  const shown = openingMonth(
-    month,
-    trip.data.startDate,
-    marked.map((row) => row.date),
-  );
-
-  /** What the server says about my own day, unless I have painted over it. */
-  const mineOn = (date: string): boolean =>
-    edits[date] ?? marked.some((row) => row.userId === me && row.date === date);
-
-  const windowDays = windowSet(range, trip.data.startDate, trip.data.endDate);
-
-  const booking = bookingFor(trip.data, days.data, files.data);
-  const noMarks = hasNoDays(marked, me, edits);
+  const people = peopleOf(trip.data.members, guests.data, marked);
+  const memberCount = people.length;
+  const waitingOn = people.filter((p) => p.days === 0).map((p) => p.name);
+  const best = bestWindow(rows.data);
 
   const forecast = forecastIndex(weather.data);
-  const forecastByDate = forecast.byDate;
-
-  const lookState = {
-    mineOn,
-    counts: tally(rows.data),
-    // Guests' marks are in the counts (#442), so they are in the headcount too.
-    memberCount: headcount(trip.data.members, guests.data),
-    windowDays,
-    forecast: forecastByDate,
+  const tripDays = tripDaysOf(startDate, endDate);
+  const ctx = {
+    view,
+    counts: freeCounts(rows.data, me, edits),
+    memberCount,
+    tripStart: startDate,
+    tripEnd: endDate,
+    now: today(),
+    isFree: mineOn,
+    range: view === "trip" ? range : null,
+    hiOf: hiFor(tripDays, forecast.byDate),
   };
-  const look = (date: string) => cellLook(view, date, lookState);
-  const savedState = { ...lookState, windowDays: windowSet({ start: null, end: null }, trip.data.startDate, trip.data.endDate) };
+
+  const stubs = stubsFor({
+    mine: mineSaved,
+    unsaved,
+    memberCount,
+    waitingOn,
+    start: startDate,
+    end: endDate,
+    best,
+    forecast: forecastFacts(weather.data, forecast, tripDays),
+  });
 
   function paint(anchor: string, target: string) {
-    if (view === "everyone") return;
-    if (view === "weather") {
-      if (windowDays.has(target) && forecastByDate[target]) setOpenDay(target);
+    if (view === "group") return;
+    if (view === "forecast") {
+      if (tripDays.includes(target) && forecast.byDate[target]) setOpenDay(target);
       return;
     }
-    if (view === "window") {
-      setRange(pickedRange(anchor, target));
+    if (view === "trip") {
+      setRange((current) => nextRange(current, anchor, target));
       return;
     }
-    // The whole span takes the value the anchor is *becoming*, recomputed from
-    // the start of the drag each move, so a fast drag leaves no holes.
+    // The whole span takes the value the anchor is becoming, recomputed from the start of the drag.
     setEdits((current) => paintRange(current, anchor, target, !mineOn(anchor), dateRange));
   }
 
   function saveEdits() {
-    // Two calls, because yes and no are two writes. A day dragged on and off
-    // again is still sent, and lands as the "no" it now is.
+    // Two calls, because yes and no are two writes.
     const dates = Object.keys(edits);
     const on = dates.filter((date) => edits[date]);
     const off = dates.filter((date) => !edits[date]);
@@ -377,9 +253,9 @@ export default function Dates() {
     if (off.length > 0) saveMarks.mutate({ tripId, dates: off, available: false });
   }
 
-  function setWindow(startDate: string | null, endDate: string | null) {
-    const write = () => saveWindow.mutate({ tripId, startDate, endDate });
-    const warning = windowWarning(days.data, startDate, endDate);
+  function setWindow(start: string | null, end: string | null) {
+    const write = () => saveWindow.mutate({ tripId, startDate: start, endDate: end });
+    const warning = windowWarning(days.data, start, end);
     if (!warning) return write();
     Alert.alert(warning.title, "This can't be undone.", [
       { text: "Cancel", style: "cancel" },
@@ -387,81 +263,67 @@ export default function Dates() {
     ]);
   }
 
+  const open = (next: DatesView) => {
+    setView(next);
+    setOpenDay(null);
+  };
+  const useBest = () => {
+    if (!best) return;
+    setRange({ start: best.start, end: best.end });
+    setMonth(monthOf(best.start));
+    open("trip");
+  };
+
+  const board = datesMoment(trip.data, today()) === "finding" || changing;
+  const booking = bookingFor(trip.data, days.data, files.data);
+  const fresh = mineSaved.length === 0 && unsaved === 0;
+
+  const parts = {
+    stubs: <DatesStubs stubs={stubs} open={view} onOpen={open} />,
+    bar: (
+      <DatesBars
+        view={view}
+        unsaved={unsaved}
+        range={range}
+        dated={startDate !== null}
+        busy={{ marks: saveMarks.isPending, window: saveWindow.isPending }}
+        onSave={saveEdits}
+        onCommit={() => range && setWindow(range.start, range.end)}
+        onDiscard={() => setRange(null)}
+      />
+    ),
+    panel: (
+      <DatesPanel
+        view={view}
+        trip={{ start: startDate, end: endDate }}
+        isFree={mineOn}
+        best={best}
+        people={people}
+        weather={{ view: weather.data, byDate: forecast.byDate, openDay }}
+        onUseBest={useBest}
+        onClear={() => setWindow(null, null)}
+        onSeePro={() => router.push("/settings")}
+      />
+    ),
+  };
+
   return (
     <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }}>
-      <View style={{ gap: space.xs }}>
-        <Heading>When</Heading>
-        <Figure tone="ink-2">
-          {formatDateRange(trip.data.startDate, trip.data.endDate)}
-        </Figure>
-      </View>
-
-      <DatesFold
-        moment={datesMoment(trip.data, today())}
-        onOpen={() => setView("window")}
-        preview={
-          <Card>
-            <MonthNav month={shown} onChange={setMonth} />
-            {/* Why: the grid claims every touch to paint; read-only here, it must let the page scroll. */}
-            <View pointerEvents="none">
-              <MonthGrid month={shown} look={(date) => cellLook("window", date, savedState)} onPaint={() => {}} onRelease={() => {}} />
-            </View>
-          </Card>
-        }
-      >
-        <Segmented options={forecast.offered ? WITH_WEATHER : VIEWS} value={view} onChange={setView} />
-
-        <CalendarTop cal={cal} show={view === "mine" && noMarks} month={shown} />
-
-        <Card>
-          <MonthNav month={shown} onChange={setMonth} />
-
-          <MonthGrid month={shown} look={look} onPaint={paint} onRelease={() => {}} />
-        </Card>
-
-        {view === "mine" ? (
-          <MinePanel
-            unsaved={Object.keys(edits).length > 0}
-            busy={saveMarks.isPending}
-            onSave={saveEdits}
-          />
-        ) : null}
-
-        <CalendarBelow cal={cal} show={view === "mine"} empty={noMarks} month={shown} />
-
-        {view === "everyone" ? (
-          <View style={{ gap: space.sm }}>
-            <SectionTitle>Who has answered</SectionTitle>
-            <Body tone="ink-2">{answeredLine(trip.data.members, rows.data)}</Body>
-            <GuestsLine guests={guests.data} />
-          </View>
-        ) : null}
-
-        {view === "window" ? (
-          <WindowPanel
-            halfMade={range.start !== null && range.end === null}
-            ready={range.start !== null && range.end !== null}
-            busy={saveWindow.isPending}
-            dated={trip.data.startDate !== null}
-            onSet={() => setWindow(range.start, range.end)}
-            onClear={() => setWindow(null, null)}
-          />
-        ) : null}
-
-        {view === "weather" ? (
-          <DatesWeather
-            view={weather.data}
-            byDate={forecastByDate}
-            openDay={openDay}
-            onSeePro={() => router.push("/settings")}
-          />
-        ) : null}
-
-      </DatesFold>
-
-      {booking ? (
-        <BookingPanel tripId={tripId} plan={booking} onOpenDays={() => router.push(`/trip/${tripId}/days`)} />
-      ) : null}
+      <DatesHead start={startDate} end={endDate} changing={changing} folded={datesMoment(trip.data, today()) !== "finding"} onToggle={() => {
+        // Why: "Change the dates" opens the trip's dates, not your own days.
+        if (!changing) open("trip");
+        setChanging(!changing);
+      }} />
+      {board ? <CalendarTop cal={cal} show={view === "mine" && fresh} month={shown} /> : null}
+      <DatesCard
+        month={shown}
+        onMonth={setMonth}
+        look={(date) => dayLookOf(board ? ctx : { ...ctx, view: "group" }, date)}
+        onPaint={paint}
+        open={board ? parts : null}
+      />
+      {board ? <CalendarBelow cal={cal} show={view === "mine"} empty={fresh} month={shown} /> : null}
+      {booking ? <BookingPanel tripId={tripId} plan={booking} onOpenDays={() => router.push(`/trip/${tripId}/days`)} /> : null}
     </ScrollView>
   );
 }

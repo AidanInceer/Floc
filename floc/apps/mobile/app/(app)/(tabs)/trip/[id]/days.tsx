@@ -10,7 +10,7 @@ import type { DayEventType } from "@floc/core/vocabulary";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 import { AddToCalendar } from "@/components/days/add-to-calendar";
 import { DayGrid } from "@/components/days/day-grid";
@@ -127,9 +127,9 @@ export default function Days() {
 
   return (
     <View style={{ flex: 1 }}>
-      <View style={{ paddingVertical: space.md }}>
+      <View style={{ paddingTop: space.md, paddingBottom: space.sm }}>
         <DayStrip
-          dates={dates}
+          days={days.data}
           selected={selected}
           todayDate={now}
           onSelect={(picked) => {
@@ -139,19 +139,18 @@ export default function Days() {
         />
       </View>
 
-      {/* The head of the day stays put and the grid scrolls under it: with the
-          whole clock drawn, a page that scrolls as one puts the date and where
-          you are sleeping off the top the moment you reach lunch. */}
-      <View style={{ paddingHorizontal: space.lg, gap: space.md }}>
+      {/* The head of the day stays put and the grid scrolls under it, so the date and the night stay in view. */}
+      <View style={{ paddingHorizontal: space.lg, paddingTop: space.sm, gap: space.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.rule }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
           <View style={{ flex: 1, gap: 2 }}>
-            <Text style={{ color: c.ink, fontFamily: fonts.sansBold, fontSize: size.body }}>{formatDate(day.date)}</Text>
-            <Text style={{ color: c["ink-2"], fontFamily: fonts.type, fontSize: size.small }}>
+            <Text style={{ color: c.ink, fontFamily: fonts.typeBold, fontSize: size.body, fontVariant: ["tabular-nums"] }}>{formatDate(day.date)}</Text>
+            <Text numberOfLines={1} style={{ color: c["ink-3"], fontFamily: fonts.type, fontSize: size.label + 1, fontVariant: ["tabular-nums"] }}>
               {`Day ${dates.indexOf(day.date) + 1} of ${dates.length} · ${day.events.length === 1 ? "1 event" : `${day.events.length} events`}`}
             </Text>
           </View>
+          <AddToCalendar tripId={tripId} />
           <Button
-            label="Add event"
+            label="Add"
             fit="small"
             icon={(ink) => <PlusGlyph color={ink} />}
             onPress={() => {
@@ -175,13 +174,9 @@ export default function Days() {
             setEditing({ kind: "add", time });
             setProblem(null);
           }}
+
         />
       </View>
-
-      <View style={{ paddingHorizontal: space.lg, paddingVertical: space.sm, alignItems: "flex-end" }}>
-        <AddToCalendar tripId={tripId} />
-      </View>
-
       <EventSheet
         open={editing.kind === "add"}
         title="Add to this day"

@@ -20,7 +20,7 @@ const polygons = (g: Shape["geometry"]): Ring[][] =>
   g.type === "Polygon" ? [g.coordinates as Ring[]] : g.type === "MultiPolygon" ? (g.coordinates as Ring[][]) : [];
 
 function countryAt(point: [number, number]): string | null {
-  const hit = SHAPES.find((f) => polygons(f.geometry).some(([outer, ...holes]) => outer !== undefined && inRing(point, outer) && !holes.some((h) => inRing(point, h))));
+  const hit = SHAPES.find((f) => polygons(f.geometry).some((rings) => rings.length > 0 && inRing(point, rings[0]!) && !rings.slice(1).some((h) => inRing(point, h))));
   return hit?.id === undefined ? null : String(hit.id);
 }
 
