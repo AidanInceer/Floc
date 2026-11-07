@@ -41,6 +41,7 @@
     "delivery": "node scripts/delivery.mjs",
     "workspace:prepare": "node scripts/workspace.mjs prepare",
     "workspace:status": "node scripts/workspace.mjs status",
+    "workspace:list": "node scripts/workspace.mjs list",
     "workspace:start": "node scripts/workspace.mjs start",
     "delivery:policy": "node scripts/delivery/policy.mjs",
     "plugins:refresh": "node scripts/sync-floc-plugin.mjs --refresh --force",

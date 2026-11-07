@@ -29,7 +29,7 @@ function bumpHotfix(root) {
 }
 
 function safeSweep(main, current) {
-  try { return sweep(main, current).filter((r) => r.removed).map((r) => r.path); } catch { return []; }
+  try { return sweep(main, current).filter((r) => r.removed && r.path).map((r) => r.path); } catch { return []; }
 }
 
 export function publish(root, { messageFile, docs = [] }) {
