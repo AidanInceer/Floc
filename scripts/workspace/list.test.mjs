@@ -1,15 +1,17 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { join, resolve } from "node:path";
 import { kindOf, stateOf, table } from "./list.mjs";
 
-const main = "C:\\dev\\Floc";
+const main = resolve("/dev/Floc");
+const worktree = (name) => join(main, ".claude", "worktrees", name);
 
 test("each worktree is sorted into main, task, release, scratch or another tool's", () => {
   assert.equal(kindOf({ path: main, branch: "develop" }, main), "main");
-  assert.equal(kindOf({ path: `${main}\\.claude\\worktrees\\a`, branch: "feature/a" }, main), "task");
-  assert.equal(kindOf({ path: `${main}\\.claude\\worktrees\\release-0.2.0`, branch: null }, main), "release");
-  assert.equal(kindOf({ path: `${main}\\.claude\\worktrees\\agent-1`, branch: "worktree-agent-1" }, main), "scratch");
-  assert.equal(kindOf({ path: "C:\\Users\\a\\.t3\\worktrees\\Floc\\t3-1", branch: "t3/x" }, main), "other tool");
+  assert.equal(kindOf({ path: worktree("a"), branch: "feature/a" }, main), "task");
+  assert.equal(kindOf({ path: worktree("release-0.2.0"), branch: null }, main), "release");
+  assert.equal(kindOf({ path: worktree("agent-1"), branch: "worktree-agent-1" }, main), "scratch");
+  assert.equal(kindOf({ path: resolve("/home/a/.t3/worktrees/Floc/t3-1"), branch: "t3/x" }, main), "other tool");
 });
 
 test("a row says what the work waits on, watcher first", () => {
