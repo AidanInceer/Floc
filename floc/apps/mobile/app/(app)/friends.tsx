@@ -18,7 +18,7 @@ import { Alert, Pressable, ScrollView, View } from "react-native";
 
 import { FindFriend } from "@/components/social/find-friend";
 import { PersonRow } from "@/components/trip/person-row";
-import { Body, Button, Empty, Failed, Label, Loading } from "@/components/system/ui";
+import { Body, Button, Empty, Failed, Loading, SectionTitle } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 
@@ -47,7 +47,7 @@ export default function Friends() {
   return (
     <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }}>
       <View style={{ gap: space.sm }}>
-        <Label>Waiting on you</Label>
+        <SectionTitle>Waiting on you</SectionTitle>
         {incoming.length === 0 ? (
           <Empty>No requests.</Empty>
         ) : (
@@ -71,7 +71,7 @@ export default function Friends() {
 
       {outgoing.length > 0 ? (
         <View style={{ gap: space.sm }}>
-          <Label>Asked, not answered</Label>
+          <SectionTitle>Asked, not answered</SectionTitle>
           {outgoing.map((person) => (
             <PersonRow key={person.id} name={person.name} avatarIcon={person.avatarIcon}>
               <Button
@@ -88,7 +88,7 @@ export default function Friends() {
       <FindFriend code={code} />
 
       <View style={{ gap: space.sm }}>
-        <Label>Friends</Label>
+        <SectionTitle>Friends</SectionTitle>
         {friends.length === 0 ? (
           <Empty>Share a trip with somebody and they will turn up here.</Empty>
         ) : (

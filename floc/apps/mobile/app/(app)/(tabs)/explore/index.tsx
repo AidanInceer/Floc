@@ -18,6 +18,7 @@ import { ExploreMap } from "@/components/explore/explore-map";
 import { FinderBar } from "@/components/explore/finder/finder-bar";
 import { FinderSheet } from "@/components/explore/finder/finder-sheet";
 import { PresetRow } from "@/components/packing/preset-row";
+import { listingPrice } from "@floc/core/trip/explore/listing-price";
 import { useTheme } from "@/components/system/theme";
 import { Body, Empty, Heading, SearchField } from "@/components/system/ui";
 import { TextLink } from "@/components/system/text-controls";
@@ -99,7 +100,13 @@ export default function Explore() {
         <View style={{ paddingHorizontal: space.lg, gap: space.sm }}>
           {rows.length === 0 ? <Empty>No trip fits all of that. Remove a filter.</Empty> : null}
           {(showAll ? rows : rows.slice(0, ROW_LIMIT)).map((row) => (
-            <PresetRow key={row.trip.id} trip={row.trip} note={row.hits.join(" · ")} onOpen={() => open(row.trip.id)} />
+            <PresetRow
+              key={row.trip.id}
+              trip={row.trip}
+              // Why: the match reason repeated on every row, so it said nothing; nights and price tell rows apart.
+              note={`${row.trip.nights} nights · from ${listingPrice(row.trip, state.data?.rates ?? null)}`}
+              onOpen={() => open(row.trip.id)}
+            />
           ))}
           {rows.length > ROW_LIMIT ? (
             <TextLink label={showAll ? "Show fewer" : `Show ${rows.length - ROW_LIMIT} more`} onPress={() => setShowAll(!showAll)} />

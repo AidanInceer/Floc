@@ -28,6 +28,8 @@ import { useReducedMotion } from "@/components/system/use-reduced-motion";
 import { FlocWordmark } from "@/components/system/wordmark";
 import { queryClient } from "@/lib/api";
 import { useSession } from "@/lib/auth";
+import { signOutHere } from "@/lib/sign-out";
+import { onSessionEnded, sessionResumed } from "@/lib/session/session-ended";
 import { useRouteUpload } from "@/lib/route/use-route-upload";
 
 /**
@@ -66,19 +68,27 @@ function Routes() {
   // them; the signed-out one does not need to, they already sit outside (app).
   const deepLinked = DEEP_LINKED.includes(segments[0] as string);
 
+  useEffect(() => onSessionEnded(() => void signOutHere({ expired: true }).catch(() => undefined)), []);
   useEffect(() => {
-    if (isPending) return;
+    if (signedIn) sessionResumed();
+  }, [signedIn]);
+
+  const ready = !isPending && facesLoaded;
+
+  // Why wait for a route: on a cold start the redirect ran before the router had one, was lost, and
+  // never ran again once the index settled on sign-in — a signed-in person landed on sign-in.
+  const landed = segments[0] as string | undefined;
+  useEffect(() => {
+    if (!ready || landed === undefined) return;
     if (!signedIn && inApp) router.replace("/sign-in");
     if (signedIn && !inApp && !deepLinked) router.replace("/trips");
-  }, [isPending, signedIn, inApp, deepLinked, router]);
+  }, [ready, landed, signedIn, inApp, deepLinked, router]);
 
   // Rendering a screen before the session is known would flash sign-in at
   // somebody who is already signed in, every cold start. The faces wait with
   // it: text drawn in Roboto and then reflowed into Bricolage is a worse first
   // impression than a beat of nothing. The curtain is that beat, and it holds
   // until both are known.
-  const ready = !isPending && facesLoaded;
-
   return (
     <>
       <StatusBar style={theme === "dark" ? "light" : "dark"} />

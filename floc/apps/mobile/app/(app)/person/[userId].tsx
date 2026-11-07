@@ -20,18 +20,7 @@ import { ScrollView, View } from "react-native";
 
 import { Face } from "@/components/trip/person-row";
 import { TravelMap } from "@/components/map/travel-map";
-import {
-  Body,
-  Button,
-  Card,
-  Empty,
-  Failed,
-  Figure,
-  Label,
-  Loading,
-  Pill,
-  Row,
-} from "@/components/system/ui";
+import { Body, Button, Card, Empty, Failed, Figure, Loading, Pill, Row, SectionTitle } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 
@@ -104,7 +93,7 @@ export default function PersonProfile() {
 
         {p.map ? (
           <View style={{ gap: space.sm }}>
-            <Label>Where they have been</Label>
+            <SectionTitle>Where they have been</SectionTitle>
             <Card style={{ padding: 0, paddingBottom: space.lg, overflow: "hidden" }}>
               <TravelMap marks={p.map} />
             </Card>
@@ -116,7 +105,7 @@ export default function PersonProfile() {
 
         {p.pastTrips ? (
           <View style={{ gap: space.sm }}>
-            <Label>Trips they have been on</Label>
+            <SectionTitle>Trips they have been on</SectionTitle>
             {p.pastTrips.length === 0 ? (
               <Empty>Nothing to show yet.</Empty>
             ) : (

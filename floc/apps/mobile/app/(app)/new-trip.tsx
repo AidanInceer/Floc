@@ -1,72 +1,87 @@
 /**
- * Creating a trip (ticket 291).
- *
- * The smallest thing that can exist is a name (#01). Dates are optional and
- * never guessed — a trip with no dates is a normal trip (rule 9), so the
- * fields are simply left empty and the API is told `null`.
+ * Creating a trip (#291). Why "When?" is three answers, not two date boxes: typing YYYY-MM-DD was
+ * the screen's whole problem, and "ask the group" is a real answer — it opens Dates after (rule 9).
  */
+import { formatDateRange } from "@floc/core/dates/dates";
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { View } from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 
-import { Body, Button, Field, Screen } from "@/components/system/ui";
+import { RangePicker } from "@/components/days/range-picker";
+import { Body, Button, Field, Figure, SectionTitle, Segmented } from "@/components/system/ui";
+import { useTheme } from "@/components/system/theme";
 import { trpc } from "@/lib/api";
+import type { DateRange } from "@/lib/dates/range";
 import { askForPushOnce } from "@/lib/push/push";
 import { space } from "@/lib/theme";
 
-/** The API refuses anything that is not `YYYY-MM-DD`; an empty box means "not set", not "invalid". */
-const asDate = (value: string) => (value.trim() === "" ? null : value.trim());
+type When = "pick" | "group" | "later";
+
+const WHEN_OPTIONS = [
+  { value: "pick", label: "Pick dates" },
+  { value: "group", label: "Ask the group" },
+  { value: "later", label: "Not sure yet" },
+] as const;
 
 export default function NewTrip() {
   const router = useRouter();
+  const { c } = useTheme();
   const queryClient = useQueryClient();
-
   const [name, setName] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [when, setWhen] = useState<When>("pick");
+  const [range, setRange] = useState<DateRange | null>(null);
 
   const create = useMutation({
     ...trpc.trips.create.mutationOptions(),
     onSuccess: (trip) => {
       queryClient.invalidateQueries({ queryKey: trpc.trips.list.queryKey() });
-      router.replace({ pathname: "/trip/[id]", params: { id: trip.id } });
+      const section = when === "group" ? "/dates" : "";
+      router.replace(`/trip/${trip.id}${section}` as never);
       void askForPushOnce();
     },
   });
 
+  const dated = when === "pick" && range !== null;
+  const ready = name.trim() !== "";
+
   return (
-    <Screen>
-      <View style={{ gap: space.md }}>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <ScrollView
+        style={{ backgroundColor: c.paper }}
+        contentContainerStyle={{ padding: space.lg, gap: space.lg, paddingBottom: space.xxl }}
+        keyboardShouldPersistTaps="handled"
+      >
         <Field label="Name" value={name} onChangeText={setName} maxLength={TEXT_CAPS.tripName} autoFocus />
-        <Field
-          label="Starts (YYYY-MM-DD, optional)"
-          value={startDate}
-          onChangeText={setStartDate}
-          autoCapitalize="none"
-        />
-        <Field
-          label="Ends (YYYY-MM-DD, optional)"
-          value={endDate}
-          onChangeText={setEndDate}
-          autoCapitalize="none"
-        />
+
+        <View style={{ gap: space.sm }}>
+          <SectionTitle>When?</SectionTitle>
+          <Segmented options={WHEN_OPTIONS} value={when} onChange={setWhen} />
+        </View>
+
+        {when === "pick" ? (
+          <View style={{ gap: space.sm }}>
+            <RangePicker value={range} onChange={setRange} />
+            {range ? <Figure>{formatDateRange(range.start, range.end)}</Figure> : null}
+          </View>
+        ) : null}
 
         {create.isError ? <Body tone="red">{create.error.message}</Body> : null}
 
         <Button
-          label="Create"
+          label="Create trip"
           busy={create.isPending}
+          disabled={!ready}
           onPress={() =>
             create.mutate({
               name: name.trim(),
-              startDate: asDate(startDate),
-              endDate: asDate(endDate),
+              startDate: dated ? range.start : null,
+              endDate: dated ? range.end : null,
             })
           }
         />
-      </View>
-    </Screen>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

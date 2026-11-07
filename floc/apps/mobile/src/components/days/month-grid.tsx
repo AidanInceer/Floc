@@ -196,7 +196,7 @@ export function MonthGrid({
             style={{ flexDirection: "row", height: ROW_HEIGHT }}
           >
             {week.map((date, column) => {
-              if (!date) return <View key={column} style={{ flex: 1 }} />;
+              if (!date) return <View key={column} style={{ flex: 1, margin: 2 }} />;
               return <DayCell key={column} date={date} cell={look(date)} />;
             })}
           </View>

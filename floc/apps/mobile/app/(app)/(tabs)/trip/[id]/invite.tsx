@@ -16,7 +16,7 @@ import { Pressable, ScrollView, View } from "react-native";
 
 import { PersonRow } from "@/components/trip/person-row";
 import { useTheme } from "@/components/system/theme";
-import { Body, Button, Empty, Failed, Label, Loading } from "@/components/system/ui";
+import { Body, Button, Empty, Failed, Loading, SectionTitle } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 import { useLocalSearchParams } from "expo-router";
@@ -56,7 +56,7 @@ export default function Invite() {
       contentContainerStyle={{ padding: space.lg, gap: space.lg }}
     >
       <View style={{ gap: space.sm }}>
-        <Label>Your friends</Label>
+        <SectionTitle>Your friends</SectionTitle>
         {panel.data.candidates.length === 0 ? (
           <Empty>No friends to ask — everyone you know is already on this trip, or asked.</Empty>
         ) : (
@@ -90,7 +90,7 @@ export default function Invite() {
 
       {panel.data.pending.length > 0 ? (
         <View style={{ gap: space.sm }}>
-          <Label>Asked, not answered</Label>
+          <SectionTitle>Asked, not answered</SectionTitle>
           {panel.data.pending.map((person) => (
             <PersonRow key={person.id} name={person.name} avatarIcon={person.avatarIcon} />
           ))}

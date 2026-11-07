@@ -4,7 +4,7 @@ import { useState } from "react";
 import { View } from "react-native";
 
 import { useTheme } from "../system/theme";
-import { Body, Card, Label, Pill, Segmented } from "../system/ui";
+import { Body, Card, Pill, Segmented, SectionTitle } from "../system/ui";
 import { TextLink } from "../system/text-controls";
 import { OffsiteNote, SiteLinks } from "./booking-links";
 import { HotelUpload } from "./hotel-upload";
@@ -47,7 +47,7 @@ export function BookingPanel({ tripId, plan, onOpenDays }: { tripId: number; pla
 
   return (
     <View style={{ gap: space.sm }}>
-      <Label>Get booking</Label>
+      <SectionTitle>Get booking</SectionTitle>
       <Segmented options={KINDS} value={kind} onChange={setKind} />
       <Card>
         <View style={{ gap: space.md }}>

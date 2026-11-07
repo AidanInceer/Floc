@@ -25,7 +25,8 @@ import { TodaySection, TripMapSection } from "@/components/trip/route/trip-map-s
 import { RosterStrip } from "@/components/trip/roster-strip";
 import { TripSheet, draftFor, type TripDraft } from "@/components/trip/trip-sheet";
 import { QuietAction } from "@/components/system/text-controls";
-import { Body, Card, Failed, Label, Loading } from "@/components/system/ui";
+import { Body, Card, Failed, Loading, SectionTitle } from "@/components/system/ui";
+import { TextLink } from "@/components/system/text-controls";
 import type { AppRouter } from "@floc/api/router";
 import type { inferRouterOutputs } from "@trpc/server";
 
@@ -94,7 +95,7 @@ export default function Overview() {
       <IdeasSection tripId={tripId} datesUnset={!trip.data.startDate && !trip.data.endDate} />
 
       <View style={{ gap: space.sm }}>
-        <Label>Who&apos;s going</Label>
+        <SectionTitle>Who&apos;s going</SectionTitle>
         <Card>
           <GroupActions
             link={invites.data ? inviteUrl(invites.data.token) : null}
@@ -104,11 +105,11 @@ export default function Overview() {
         </Card>
       </View>
 
-      <FilesSection files={files} />
+      <FilesSection files={files} onAdd={() => go("files")} />
 
       {legs.length > 0 ? (
         <View style={{ gap: space.sm }}>
-          <Label>Legs</Label>
+          <SectionTitle>The route</SectionTitle>
           <LegList legs={legs} onOpen={openDay} />
         </View>
       ) : null}
@@ -142,19 +143,24 @@ function pinsFor(legs: { placeId: number }[], places: Outputs["places"]["list"] 
 
 function FilesSection({
   files,
+  onAdd,
 }: {
   files: { isPending: boolean; isError: boolean; data: Outputs["files"]["list"] | undefined; refetch: () => unknown };
+  onAdd: () => void;
 }) {
   return (
     <View style={{ gap: space.sm }}>
-      <Label>Files</Label>
+      <SectionTitle>Files</SectionTitle>
       <Card>
         {files.isPending ? (
           <Loading />
         ) : files.isError ? (
           <Failed onRetry={() => files.refetch()} />
         ) : !files.data || files.data.length === 0 ? (
-          <Body tone="ink-2">No tickets or bookings yet.</Body>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+            <Body tone="ink-2">No tickets or bookings yet.</Body>
+            <TextLink label="Add one" onPress={onAdd} />
+          </View>
         ) : (
           <FileList files={files.data} showing={FILES_SHOWN} />
         )}

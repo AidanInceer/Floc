@@ -18,7 +18,7 @@ import { COUNTRIES } from "@floc/core/people/countries";
 import { useState } from "react";
 import { View } from "react-native";
 
-import { Body, Empty, IconButton, Label, Row, SearchField } from "../system/ui";
+import { Body, Empty, IconButton, Row, SearchField, SectionTitle } from "../system/ui";
 import { FlagGlyph, TickGlyph } from "../system/glyphs";
 import { space } from "@/lib/theme";
 
@@ -51,7 +51,7 @@ export function MarkEditor({
 
   return (
     <View style={{ padding: space.lg, gap: space.md }}>
-      <Label>Paint the map</Label>
+      <SectionTitle>Paint the map</SectionTitle>
       <SearchField
         label="Country"
         value={query}

@@ -16,6 +16,8 @@ import { useTheme } from "../system/theme";
 import { Body } from "../system/ui";
 import { fonts, radius, size, space } from "@/lib/theme";
 import { initials } from "@floc/core/people/initials";
+import { parseAvatarIcon } from "@floc/core/people/avatar-icon";
+import { AvatarIconMark } from "../system/avatar-icon";
 
 export function Face({ name, avatarIcon, size: box = 36 }: {
   name: string;
@@ -23,7 +25,15 @@ export function Face({ name, avatarIcon, size: box = 36 }: {
   size?: number;
 }) {
   const { c } = useTheme();
-  return avatarIcon ? (
+  const icon = parseAvatarIcon(avatarIcon);
+  if (icon) {
+    return (
+      <View style={{ width: box, height: box, borderRadius: radius.pill, backgroundColor: c["pastel-blue"], alignItems: "center", justifyContent: "center" }}>
+        <AvatarIconMark icon={icon} color={c["pastel-blue-ink"]} size={box * 0.55} />
+      </View>
+    );
+  }
+  return avatarIcon && /^https?:/.test(avatarIcon) ? (
     <Image
       accessibilityIgnoresInvertColors
       source={{ uri: avatarIcon }}
