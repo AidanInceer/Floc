@@ -22,8 +22,11 @@ function singular(word: string): string {
 
 /** "T-shirt" and "after-sun" are one word to a packer, so a hyphen joins as well as splits. */
 function wordsOf(label: string): string[] {
-  const chunks = label.toLowerCase().match(/[a-z]+(?:-[a-z]+)*/g) ?? [];
-  return chunks.flatMap((chunk) => [chunk.replaceAll("-", ""), ...chunk.split("-")]);
+  const chunks = label.toLowerCase().match(/[a-z-]+/g) ?? [];
+  return chunks.flatMap((chunk) => {
+    const parts = chunk.split("-").filter(Boolean);
+    return parts.length > 1 ? [parts.join(""), ...parts] : parts;
+  });
 }
 
 export function guessPackCategory(label: string): PackCategory {
