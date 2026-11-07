@@ -18,6 +18,17 @@ test.describe("as a member", () => {
     await expect(page.getByText("Beach towels").first()).toBeVisible();
   });
 
+  test("the Overview's bookings card only uploads a booking", async ({ page }) => {
+    await page.goto("/trips");
+    await page.getByText("Portugal, late summer").click();
+    await expect(page).toHaveURL(/\/trip\/\d+/);
+
+    const card = page.getByRole("complementary").filter({ has: page.getByRole("heading", { name: "Bookings" }) });
+    await card.getByRole("button", { name: "Add a booking for Lisbon" }).click();
+    await expect(page.getByRole("heading", { name: "Add a booking for Lisbon" })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Booking\.com|Trip\.com/ })).toHaveCount(0);
+  });
+
   test("a new trip can be started", async ({ page }) => {
     const name = `E2E trip ${Date.now()}`;
     await page.goto("/trips");
