@@ -48,7 +48,8 @@ export function EventFiles({
       </div>
 
       {files.length === 0 ? null : (
-        <ul className="mt-2 divide-y divide-rule rounded-md border border-rule">
+        // Why: *:px-0 drops the Files page row inset, so chips and rules sit on the panel's content edge.
+        <ul className="mt-1 divide-y divide-rule *:px-0">
           {files.map((doc) => (
             <DocumentRow
               key={doc.id}

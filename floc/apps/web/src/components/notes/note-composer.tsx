@@ -4,7 +4,7 @@ import { useRef, useState, type KeyboardEvent } from "react";
 
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 
-import { Avatar } from "@/components/system/ui";
+import { Avatar, cx, panelFieldClass } from "@/components/system/ui";
 import { ActionForm, useFormPending } from "@/components/system/client-ui";
 
 export type Face = { name: string; icon: AvatarIcon | null; tone?: string };
@@ -91,7 +91,7 @@ export function NoteComposer({
               grow(e.currentTarget);
               setEmpty(!e.currentTarget.value.trim());
             }}
-            className="block max-h-40 w-full resize-none overflow-auto rounded-sm border border-rule-strong bg-sheet py-[7px] pr-16 pl-2.5 text-sm leading-[1.45] text-ink transition-colors hover:border-ink-faint focus-visible:outline-offset-[-1px] max-sm:py-[11px]"
+            className={cx(panelFieldClass, "max-h-40 resize-none overflow-auto pr-16 max-sm:py-[11px]")}
           />
           <PostButton empty={empty} />
         </div>
