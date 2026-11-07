@@ -29,7 +29,7 @@ function facts(main, current, worktree, watched) {
     watched: watched.has(worktree.path.toLowerCase()),
   };
   if (base.isMain || !base.managed || base.isCurrent || base.locked || base.watched) return base;
-  const dirty = Boolean(git(worktree.path, "status", "--porcelain"));
+  const dirty = Boolean(git(worktree.path, "--no-optional-locks", "status", "--porcelain"));
   if (isScratch(worktree.branch)) {
     return { ...base, scratch: true, release: !worktree.branch && basename(worktree.path).startsWith("release-"), dirty, contained: onDevelopOrMain(worktree.path, "HEAD"), idleHours: idleHours(worktree.path) };
   }

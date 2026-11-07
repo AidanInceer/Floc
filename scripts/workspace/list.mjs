@@ -50,7 +50,7 @@ export function rows(main) {
       kind,
       branch: w.branch,
       age: safe("log", "-1", "--format=%cr") || "?",
-      dirty: safe("status", "--porcelain", ...(kind === "main" ? ["--untracked-files=no"] : [])).split(/\r?\n/).filter(Boolean).length,
+      dirty: safe("--no-optional-locks", "status", "--porcelain", ...(kind === "main" ? ["--untracked-files=no"] : [])).split(/\r?\n/).filter(Boolean).length,
       ahead: Number(safe("rev-list", "--count", "origin/develop..HEAD") || 0),
       behind: Number(safe("rev-list", "--count", "HEAD..origin/develop") || 0),
       pr: w.branch && kind !== "main" ? prs.get(w.branch) : undefined,

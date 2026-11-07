@@ -58,7 +58,7 @@ export function gather(root) {
     primary,
     folder: basename(root),
     branch: gitIn(root, "branch", "--show-current") || null,
-    dirty: count(gitIn(root, "status", "--porcelain", "--untracked-files=no")),
+    dirty: count(gitIn(root, "--no-optional-locks", "status", "--porcelain", "--untracked-files=no")),
     behind: Number(gitIn(root, "rev-list", "--count", "HEAD..origin/develop") ?? 0),
   };
   if (primary) Object.assign(facts, updateMain(main, facts));
