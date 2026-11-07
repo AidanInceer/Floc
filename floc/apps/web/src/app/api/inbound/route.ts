@@ -6,6 +6,7 @@
 import { documentsEnabled } from "@/server/documents/document-store";
 import { receiveBookingMail } from "@/server/documents/inbound/booking-mail";
 import { resendAttachments } from "@/server/documents/inbound/resend-attachments";
+import { resendFromProven } from "@/server/documents/inbound/resend-authentication";
 import { webhookSigned } from "@/server/documents/inbound/webhook-signature";
 import { sendEmails } from "@/server/auth/email";
 
@@ -38,7 +39,11 @@ export async function POST(request: Request): Promise<Response> {
       to: [...(data.to ?? []), ...(data.received_for ?? [])],
       subject: data.subject ?? "",
     },
-    { loadAttachments: () => resendAttachments(data.email_id, apiKey), send: sendEmails },
+    {
+      loadAttachments: () => resendAttachments(data.email_id, apiKey),
+      fromProven: () => resendFromProven(data.email_id, apiKey),
+      send: sendEmails,
+    },
   );
   return new Response("ok");
 }

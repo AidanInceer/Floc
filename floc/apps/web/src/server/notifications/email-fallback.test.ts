@@ -18,6 +18,7 @@ beforeAll(migrateTestDb);
 beforeEach(async () => {
   await resetDb();
   world = await seedScenario();
+  await db.update(schema.user).set({ emailVerified: true });
 });
 
 const minutes = (n: number) => new Date(Date.now() + n * 60_000);
@@ -54,6 +55,14 @@ describe("the email fallback", () => {
 
     await sendDueEmails(send, minutes(90));
     expect(sent).toHaveLength(1);
+  });
+
+  it("never emails an address its account has not confirmed: anyone can sign up with someone else's", async () => {
+    await db.update(schema.user).set({ emailVerified: false }).where(eq(schema.user.id, world.member));
+    await nudge();
+    const { sent, send } = mailer();
+    await sendDueEmails(send, minutes(11));
+    expect(sent).toEqual([]);
   });
 
   it("never emails what a phone will get", async () => {

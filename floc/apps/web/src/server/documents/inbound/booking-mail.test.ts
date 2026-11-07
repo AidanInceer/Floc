@@ -7,10 +7,11 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
+import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { db } from "@/db";
-import { document } from "@/db/schema";
+import { document, user } from "@/db/schema";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 
 import { receiveBookingMail, type InboundAttachment } from "./booking-mail";
@@ -43,12 +44,16 @@ afterAll(async () => {
 beforeEach(async () => {
   await resetDb();
   world = await seedScenario();
+  await db.update(user).set({ emailVerified: true });
 });
 
-function mail(over: { from?: string; to?: string[]; attachments?: InboundAttachment[] } = {}) {
+function mail(
+  over: { from?: string; to?: string[]; attachments?: InboundAttachment[]; proven?: boolean } = {},
+) {
   const attachments = over.attachments ?? [pdf()];
   const send = vi.fn().mockResolvedValue(undefined);
   const loadAttachments = vi.fn().mockResolvedValue(attachments);
+  const fromProven = vi.fn().mockResolvedValue(over.proven ?? true);
   const run = () =>
     receiveBookingMail(
       {
@@ -56,9 +61,9 @@ function mail(over: { from?: string; to?: string[]; attachments?: InboundAttachm
         to: over.to ?? [inboundAddress(world.ours.id)!],
         subject: "Your booking",
       },
-      { loadAttachments, send },
+      { loadAttachments, send, fromProven },
     );
-  return { run, send, loadAttachments };
+  return { run, send, loadAttachments, fromProven };
 }
 
 const files = () => db.select().from(document).all();
@@ -159,6 +164,22 @@ describe("a refusal", () => {
     await run();
     expect(await files()).toHaveLength(0);
     expect(loadAttachments).not.toHaveBeenCalled();
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it("files nothing from a From the sending server did not prove, and tells the real owner", async () => {
+    const reply = await refusedWith({ proven: false });
+    expect(reply.to).toBe(`${world.member}@example.test`);
+    expect(reply.subject).toBe("We couldn't confirm that email came from you");
+  });
+
+  it("treats an account that never confirmed its address as no account: anyone can type an address", async () => {
+    await db.update(user).set({ emailVerified: false }).where(eq(user.id, world.member));
+    const { run, send, loadAttachments, fromProven } = mail();
+    await run();
+    expect(await files()).toHaveLength(0);
+    expect(loadAttachments).not.toHaveBeenCalled();
+    expect(fromProven).not.toHaveBeenCalled();
     expect(send).not.toHaveBeenCalled();
   });
 });

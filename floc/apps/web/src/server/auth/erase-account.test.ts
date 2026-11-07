@@ -3,11 +3,14 @@
  * points at it stays valid (rule 2); what made it a person goes.
  */
 import { and, eq, isNull } from "drizzle-orm";
-import { beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { ERASED_NAME, eraseAccount } from "@/server/auth/erase-account";
+import { revokeGoogleGrant } from "@/server/calendar/calendar-import";
+
+vi.mock("@/server/calendar/calendar-import", () => ({ revokeGoogleGrant: vi.fn() }));
 
 let world: Scenario;
 
@@ -79,6 +82,11 @@ describe("erasing an account", () => {
     expect(
       await db.select().from(schema.routePoint).where(eq(schema.routePoint.userId, world.member)).all(),
     ).toEqual([]);
+  });
+
+  it("revokes Floc's Google grant first, so Floc leaves their Google account too (#444)", async () => {
+    await eraseAccount(world.member);
+    expect(revokeGoogleGrant).toHaveBeenCalledWith(world.member);
   });
 
   it("ends every way back in", async () => {
