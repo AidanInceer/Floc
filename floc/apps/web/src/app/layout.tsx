@@ -7,18 +7,25 @@ import localFont from "next/font/local";
 
 import { AppChrome } from "@/components/chrome/app-chrome";
 import { SiteFooter } from "@/components/chrome/site-footer";
+import { SessionRenewal } from "@/components/chrome/session-renewal";
 import { themeBootstrap } from "@/lib/theme";
 import { getSession } from "@/server/access";
-import { subscriptionOf } from "@/server/billing/billing";
 import { allFeaturesFree } from "@/lib/env";
 import { isLive } from "@floc/core/billing/subscription-copy";
-import { countFriendsFor, countIncomingFriendRequests } from "@/server/social/friends";
-import { countPendingInvitesFor } from "@/server/trips/invites";
-import { countTripsFor } from "@/server/trips/trips";
-import { countUnread, listUnseen } from "@/server/notifications/inbox";
-import { getProfile } from "@/server/auth/profile";
+import { topBarFor } from "@/server/chrome/top-bar";
 
 const ACCOUNT_MENU_PREVIEW = 3;
+
+const SIGNED_OUT: Awaited<ReturnType<typeof topBarFor>> = {
+  inviteCount: 0,
+  friendRequestCount: 0,
+  profile: undefined,
+  proRow: null,
+  notificationCount: 0,
+  latest: [],
+  tripCount: 0,
+  friendCount: 0,
+};
 
 // The three faces of the white-and-pastel direction (ticket 189): a characterful
 // display face for headings and figures, a plain body face for running text and
@@ -68,19 +75,8 @@ export default async function RootLayout({
   // friend request are the two things that arrive while you're elsewhere in the
   // app, so both have to be visible from anywhere. Counts, not the things
   // themselves — the answering happens on the page behind each link.
-  const [inviteCount, friendRequestCount, profile, proRow, notificationCount, latest, tripCount, friendCount] =
-    session?.user
-      ? await Promise.all([
-          countPendingInvitesFor(session.user.id),
-          countIncomingFriendRequests(session.user.id),
-          getProfile(session.user.id),
-          subscriptionOf(session.user.id),
-          countUnread(session.user.id),
-          listUnseen(session.user.id, ACCOUNT_MENU_PREVIEW),
-          countTripsFor(session.user.id),
-          countFriendsFor(session.user.id),
-        ])
-      : [0, 0, undefined, null, 0, [], 0, 0];
+  const { inviteCount, friendRequestCount, profile, proRow, notificationCount, latest, tripCount, friendCount } =
+    session?.user ? await topBarFor(session.user.id, ACCOUNT_MENU_PREVIEW) : SIGNED_OUT;
 
   // The header must key the avatar off the same identity a roster does
   // (`displayName ?? name`), so the viewer is the same initials and colour
@@ -120,6 +116,7 @@ export default async function RootLayout({
         <main>{children}</main>
         <SiteFooter />
         {modal}
+        {session?.user ? <SessionRenewal /> : null}
       </body>
     </html>
   );

@@ -17,6 +17,7 @@ import type { TripAccess } from "@/server/access";
 import { refresh } from "@/server/freshness";
 import { expenseRefusal } from "@/server/money/expense-check";
 import {
+  readExpenseRoom,
   softDeleteExpense,
   writeExpense,
   writeSettlements,
@@ -43,18 +44,22 @@ export type ExpenseSave = {
 /** Add or edit: an edit rewrites the expense and its whole split set in one transaction (rule 2). */
 export async function saveExpense(access: Access, input: ExpenseSave): Promise<Refusal | null> {
   const { expenseId, splits, ...fields } = input;
-  const problem =
-    expenseFieldsProblem(fields) ??
-    (await expenseRefusal({
+  const shape = expenseFieldsProblem(fields);
+  if (shape) return new Refusal(shape);
+  // Why together: the write's own reads don't depend on the check, so both cost one round trip, not two.
+  const [problem, room] = await Promise.all([
+    expenseRefusal({
       tripId: access.trip.id,
       memberIds: access.members.map((m) => m.userId),
       expenseId,
       dayId: fields.dayId,
       draft: { paidBy: fields.paidBy, amountMinor: fields.amountMinor, currency: fields.currency, splits },
-    }));
+    }),
+    readExpenseRoom(access.trip.id, expenseId),
+  ]);
   if (problem) return new Refusal(problem);
 
-  await writeExpense({ tripId: access.trip.id, expenseId, createdBy: access.viewer.id, fields, splits });
+  await writeExpense({ tripId: access.trip.id, expenseId, createdBy: access.viewer.id, fields, splits }, room);
   refresh({ kind: "money", tripId: access.trip.id });
   return null;
 }

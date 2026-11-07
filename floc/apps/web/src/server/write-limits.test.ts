@@ -12,7 +12,7 @@ import { insertNote } from "@/server/notes/notes";
 import { insertPackingLine, insertPersonalPackingLine } from "@/server/packing/packing";
 import { insertNudge } from "@/server/trips/roster";
 import { insertTripLink } from "@/server/trips/trip-links";
-import { createTripWithAdmin } from "@/server/trips/trips";
+import { createTripWithAdmin, tripsHeldBy } from "@/server/trips/trips";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 
 let world: Scenario;
@@ -113,5 +113,10 @@ describe("people", () => {
       await db.insert(schema.tripMembership).values(rows.map((r) => ({ tripId: r.id, userId: world.member, role: "admin" as const })));
     }
     expect(await refused(() => createTripWithAdmin({ name: "One more", startDate: null, endDate: null, createdBy: world.member }))).toBe(true);
+  });
+
+  it("refuses a new trip when the count read beforehand is at the ceiling", async () => {
+    const held = await tripsHeldBy(world.member);
+    expect(await refused(() => createTripWithAdmin({ name: "One more", startDate: null, endDate: null, createdBy: world.member }, held + LIMITS.tripsPerUser))).toBe(true);
   });
 });

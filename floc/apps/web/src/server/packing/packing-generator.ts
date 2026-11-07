@@ -64,14 +64,17 @@ export async function packingPlanFor(trip: {
 
   const nights = nightsBetween(startDate, endDate);
 
-  // Asked before the forecast so "nowhere to get weather for" doesn't read as
-  // "the weather isn't in yet". Costs one indexed lookup that `getTripForecast`
-  // then repeats, which is cheaper than the wrong nudge.
-  if (!(await tripForecastAnchor(trip.id))) {
+  // The anchor wins over the forecast so "nowhere to get weather for" doesn't read as
+  // "the weather isn't in yet". Read beside it: with no anchor the forecast asks no provider.
+  const [anchor, forecast, overnight] = await Promise.all([
+    tripForecastAnchor(trip.id),
+    getTripForecast(trip.id),
+    listOvernightPlaces(trip.id),
+  ]);
+  if (!anchor) {
     return { nights, climate: null, gap: "no-place", places: [], ...NO_WEATHER };
   }
 
-  const [forecast, overnight] = await Promise.all([getTripForecast(trip.id), listOvernightPlaces(trip.id)]);
   // "Lisbon, Portugal" reads as two places in a comma list; the town is enough.
   const places = [...new Set(overnight.map((p) => p.name.split(",")[0].trim()))];
   const window = (forecast?.days ?? []).filter((d) => d.date >= startDate && d.date <= endDate);

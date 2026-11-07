@@ -17,8 +17,7 @@ export default async function InboxPage({
 }) {
   const viewer = await requireUser("/inbox");
   const { after } = await searchParams;
-  const page = await listInbox(viewer.id, after ?? null);
-  const unseen = await countUnread(viewer.id);
+  const [page, unseen] = await Promise.all([listInbox(viewer.id, after ?? null), countUnread(viewer.id)]);
   const anyUnread = page.items.some((item) => !item.read);
 
   return (

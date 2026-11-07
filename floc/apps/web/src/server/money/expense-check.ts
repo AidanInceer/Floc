@@ -12,17 +12,19 @@ import { day, expense, expenseSplit } from "@/db/schema";
 import { expenseProblem, type ExpenseDraft } from "@floc/core/money/expense-rules";
 
 async function peopleOnExpense(tripId: number, expenseId: number): Promise<string[] | null> {
-  const live = await db
-    .select({ paidBy: expense.paidBy })
-    .from(expense)
-    .where(and(eq(expense.id, expenseId), eq(expense.tripId, tripId), isNull(expense.deletedAt)))
-    .get();
+  const [live, splits] = await Promise.all([
+    db
+      .select({ paidBy: expense.paidBy })
+      .from(expense)
+      .where(and(eq(expense.id, expenseId), eq(expense.tripId, tripId), isNull(expense.deletedAt)))
+      .get(),
+    db
+      .select({ userId: expenseSplit.userId })
+      .from(expenseSplit)
+      .where(and(eq(expenseSplit.expenseId, expenseId), isNull(expenseSplit.deletedAt)))
+      .all(),
+  ]);
   if (!live) return null;
-  const splits = await db
-    .select({ userId: expenseSplit.userId })
-    .from(expenseSplit)
-    .where(and(eq(expenseSplit.expenseId, expenseId), isNull(expenseSplit.deletedAt)))
-    .all();
   return [live.paidBy, ...splits.map((s) => s.userId)];
 }
 
@@ -42,16 +44,12 @@ export async function expenseRefusal(args: {
   dayId: number | null;
   draft: ExpenseDraft;
 }): Promise<string | null> {
-  const people = new Set(args.memberIds);
-  if (args.expenseId !== undefined) {
-    const already = await peopleOnExpense(args.tripId, args.expenseId);
-    if (!already) return "That expense no longer exists.";
-    for (const id of already) people.add(id);
-  }
-  if (args.dayId !== null) {
-    if (!Number.isInteger(args.dayId) || !(await isTripDay(args.tripId, args.dayId))) {
-      return "That day is not on this trip.";
-    }
-  }
-  return expenseProblem(args.draft, people);
+  const { tripId, expenseId, dayId } = args;
+  const [already, onTrip] = await Promise.all([
+    expenseId === undefined ? undefined : peopleOnExpense(tripId, expenseId),
+    dayId === null ? true : Number.isInteger(dayId) && isTripDay(tripId, dayId),
+  ]);
+  if (already === null) return "That expense no longer exists.";
+  if (!onTrip) return "That day is not on this trip.";
+  return expenseProblem(args.draft, new Set([...args.memberIds, ...(already ?? [])]));
 }

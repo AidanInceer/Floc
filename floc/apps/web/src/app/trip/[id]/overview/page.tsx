@@ -11,6 +11,7 @@ import { listIdeas } from "@/server/ideas/ideas-read";
 import { listDeclinedInvitees, listPendingInvitees } from "@/server/trips/invites";
 import { listExpenses, listSettlements, listSplits } from "@/server/money/money";
 import { walkthroughDue } from "@/server/auth/tour";
+import { homeCurrenciesFor } from "@/server/auth/profile";
 import { absoluteUrl } from "@/server/auth/email";
 import { canUseFeature } from "@/server/billing/entitlements";
 import { friendStatesFor, listFriendsFor } from "@/server/social/friends";
@@ -69,7 +70,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
 
   const now = today();
   const sharedPacking = readSharedPacking(tripId);
-  const [availabilityRows, expenseRows, dayRows, splitRows, settlementRows, routeDays, transport, walkthrough, prefill, ideas, docs, tracks, sites] =
+  const [availabilityRows, expenseRows, dayRows, splitRows, settlementRows, routeDays, transport, walkthrough, prefill, ideas, docs, tracks, sites, homes] =
     await Promise.all([
       listAvailability(tripId),
       listExpenses(tripId),
@@ -85,6 +86,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
       files ? listDocuments(tripId, viewer.id) : Promise.resolve([]),
       groupRoutes(access, now),
       bookingSitesOf(viewer.id),
+      homeCurrenciesFor([...new Set([viewer.id, ...members.map((m) => m.userId)])]),
     ]);
 
   const { datesUnset, unresolved } = tripStateFor({
@@ -112,7 +114,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
         ])
       : [],
   );
-  const settle = await settleUpFrom({ ledger: { expenses: expenseRows, splits: splitRows, settlements: settlementRows }, viewerId: viewer.id });
+  const settle = await settleUpFrom({ ledger: { expenses: expenseRows, splits: splitRows, settlements: settlementRows }, viewerId: viewer.id, homes });
   const position = expenseRows.length === 0 ? null : yourPosition(settle.rows, viewer.id);
   const color = readTripColor(trip.colorKey);
   const tone = tripPastel(color, tripId);

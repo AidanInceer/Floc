@@ -40,7 +40,7 @@ export function NotesWorkspace({ tripId, pages, archived, openId, epoch, viewer,
 }) {
   const router = useRouter();
   const socket = useNotesSocket();
-  const byPage = usePageList(socket, tripId, openId, viewer);
+  const { byPage, echoes } = usePageList(socket, tripId, openId, viewer);
   const [shut, setShut] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [, start] = useTransition();
@@ -50,11 +50,17 @@ export function NotesWorkspace({ tripId, pages, archived, openId, epoch, viewer,
   const open = useCallback((id: number) => router.push(`/trip/${tripId}/notes?page=${id}`, { scroll: false }), [router, tripId]);
   const act = useCallback((work: () => Promise<string | null | void>) => {
     setError(null);
+    const mine = echoes.begin();
     start(async () => {
-      const refused = await work();
+      let refused: string | null | void = "failed";
+      try {
+        refused = await work();
+      } finally {
+        mine.done(typeof refused !== "string");
+      }
       if (typeof refused === "string") setError(refused);
     });
-  }, []);
+  }, [echoes]);
 
   const actions: RailActions = useMemo(() => ({
     open,
