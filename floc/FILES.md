@@ -32,7 +32,7 @@ Bookings and site links: `floc/apps/web/src/components/booking/`,
 | Area | Web | Phone |
 |---|---|---|
 | Top bar, trip tabs, account menu, footer | `floc/apps/web/src/components/chrome/`, `floc/apps/web/src/server/chrome/` | `floc/apps/mobile/app/(app)/(tabs)/_layout.tsx` |
-| My trips | `floc/apps/web/src/app/trips/`, `floc/apps/web/src/components/trip/` | `floc/apps/mobile/app/(app)/(tabs)/trips.tsx` |
+| My trips | `floc/apps/web/src/app/trips/`, `floc/apps/web/src/components/trip/` (bars: `components/trip/trips/`; opening a trip: `lib/trip-open/`) | `floc/apps/mobile/app/(app)/(tabs)/trips.tsx` |
 | Explore | `floc/apps/web/src/app/explore/`, `floc/apps/web/src/components/explore/`, `floc/apps/web/src/server/explore/` | `floc/apps/mobile/src/components/explore/` |
 | Profile and globe | `floc/apps/web/src/app/profile/`, `floc/apps/web/src/components/profile/`, `floc/packages/floc-globe/src/` | `floc/apps/mobile/app/(app)/(tabs)/profile.tsx` |
 | Friends, inbox | `floc/apps/web/src/components/social/`, `floc/apps/web/src/components/notifications/` | `floc/apps/mobile/src/components/social/` |

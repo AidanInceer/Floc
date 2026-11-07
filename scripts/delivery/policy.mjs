@@ -3,25 +3,25 @@ import { join } from "node:path";
 import { command } from "./process.mjs";
 import { repository, requiredChecks } from "./github.mjs";
 
-// Why: the Sync develop workflow pushes main back into develop with the Actions token, so only GitHub Actions may bypass.
-const GITHUB_ACTIONS_APP = 15368;
+const guard = [{ type: "deletion" }, { type: "non_fast_forward" }];
 
+const prOnly = [
+  { type: "pull_request", parameters: { required_approving_review_count: 0, dismiss_stale_reviews_on_push: false,
+    require_code_owner_review: false, require_last_push_approval: false, required_review_thread_resolution: false, allowed_merge_methods: ["merge"] } },
+  { type: "required_status_checks", parameters: { strict_required_status_checks_policy: true,
+    required_status_checks: requiredChecks.main.map((context) => ({ context })) } },
+];
+
+// Why: a personal-account repo cannot let GitHub Actions bypass a ruleset, and Sync develop pushes main into develop
+// with the Actions token. So develop is guarded only against deletion and force-push; PR-only and checks stay on main.
 export function ruleset(branch) {
   return {
     name: `Floc ${branch}`,
     target: "branch",
     enforcement: "active",
     conditions: { ref_name: { include: [`refs/heads/${branch}`], exclude: [] } },
-    bypass_actors: [{ actor_id: GITHUB_ACTIONS_APP, actor_type: "Integration", bypass_mode: "always" }],
-    rules: [
-      { type: "deletion" },
-      { type: "non_fast_forward" },
-      { type: "pull_request", parameters: { required_approving_review_count: 0, dismiss_stale_reviews_on_push: false,
-        require_code_owner_review: false, require_last_push_approval: false, required_review_thread_resolution: false, allowed_merge_methods: ["merge"] } },
-      // Why not strict on develop: every merge would make each open PR run CI again. The full run after each merge catches combined breaks.
-      { type: "required_status_checks", parameters: { strict_required_status_checks_policy: branch === "main",
-        required_status_checks: requiredChecks[branch].map((context) => ({ context })) } },
-    ],
+    bypass_actors: [],
+    rules: branch === "main" ? [...guard, ...prOnly] : guard,
   };
 }
 

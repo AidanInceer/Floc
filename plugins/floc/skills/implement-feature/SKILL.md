@@ -90,7 +90,7 @@ updates it. Same slice, not a follow-up.
 Short. What you built, both surfaces done or the gap and why, checks green,
 one next action (usually `/floc:push`). Nothing else.
 
-End with the status bullets from [session-summary](../session-summary/SKILL.md).
+End with the report format in [AGENTS.md](../../../../AGENTS.md#working-and-reporting).
 
 ## Gotchas
 

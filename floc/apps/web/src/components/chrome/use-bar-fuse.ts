@@ -6,6 +6,8 @@ import {
   foldAmount,
   joinStep,
   nextJoined,
+  wantJoined,
+  BAR_HOLD_EVENT,
   restGap,
   scrollProgress,
   skinPath,
@@ -97,6 +99,11 @@ function drawSkin(row: HTMLElement, svg: SVGSVGElement, path: Element, radius: n
   path.setAttribute("d", skinPath(boxes, height - 2, radius - 1, boxes.slice(1).map(() => neck)));
 }
 
+/** Eases the words' fold from `from` back to where the scroll has it, once a hold lets go. */
+function easeFold(from: number, to: () => number, set: (t: number) => void, done: () => void) {
+  return tween(SPLIT_MS, (k) => set(from + (to() - from) * k), done);
+}
+
 // Why: scroll sets how far the words have folded; the join plays once on crossing the mark, so the scroll is never hijacked.
 export function useBarFuse(rowRef: RefObject<HTMLElement | null>, svgRef: RefObject<SVGSVGElement | null>) {
   useIsoLayoutEffect(() => {
@@ -110,6 +117,11 @@ export function useBarFuse(rowRef: RefObject<HTMLElement | null>, svgRef: RefObj
     let p = 0;
     let t = 0;
     let joined = false;
+    let held = false;
+    // Why: a trip opening resets the scroll mid-hold; the words keep their fold until the hold lets go, then ease back.
+    let heldFold: number | null = null;
+    let easing = false;
+    let unfold = () => {};
     let busy = false;
     let pull: Pull = { gap: 0, neck: 0 };
     let stop = () => {};
@@ -152,14 +164,14 @@ export function useBarFuse(rowRef: RefObject<HTMLElement | null>, svgRef: RefObj
     const update = () => {
       frame = 0;
       p = scrollProgress(window.scrollY);
-      t = foldAmount(p);
+      t = heldFold ?? (easing ? t : foldAmount(p));
       if (reduce.matches) {
         stop();
         busy = false;
-        joined = nextJoined(joined, p);
+        joined = wantJoined(joined, p, held);
         t = joined ? 1 : 0;
         pull = settled();
-      } else if (nextJoined(joined, p) !== joined) {
+      } else if (wantJoined(joined, p, held) !== joined) {
         run(!joined);
       } else if (!busy) {
         pull = settled();
@@ -186,6 +198,18 @@ export function useBarFuse(rowRef: RefObject<HTMLElement | null>, svgRef: RefObj
     const watch = new MutationObserver(relayout);
     watch.observe(row, { childList: true, subtree: true, characterData: true });
     window.addEventListener("scroll", schedule, { passive: true });
+    const hold = (e: Event) => {
+      const on = (e as CustomEvent<boolean>).detail === true;
+      if (on && !held) heldFold = t;
+      if (!on && heldFold !== null) {
+        unfold();
+        unfold = easeFold(heldFold, () => foldAmount(p), (v) => ((t = v), paint()), () => (easing = false));
+        [heldFold, easing] = [null, true];
+      }
+      held = on;
+      update();
+    };
+    window.addEventListener(BAR_HOLD_EVENT, hold);
     window.addEventListener("resize", relayout);
     reduce.addEventListener("change", update);
     void document.fonts?.ready.then(relayout);
@@ -194,6 +218,8 @@ export function useBarFuse(rowRef: RefObject<HTMLElement | null>, svgRef: RefObj
       cancelAnimationFrame(frame);
       watch.disconnect();
       window.removeEventListener("scroll", schedule);
+      window.removeEventListener(BAR_HOLD_EVENT, hold);
+      unfold();
       window.removeEventListener("resize", relayout);
       reduce.removeEventListener("change", update);
       clearLayout(row, layout);

@@ -114,7 +114,7 @@ Payments between members, POI data and reviews, flight *booking* (deep links onl
 
 - **One task, one worktree.** Shaping (`/floc:grill`, tickets, `/floc:prototype` in `floc/wireframe`) happens in the main checkout. Building never does: `pnpm workspace:new <name>` (or `/floc:pickup-ticket`) makes `.claude/worktrees/<name>` on `feature/<name>` from `origin/develop`, with its own ports, seeded database, uploads, hooks and the docs link. All edits, checks and commits for that task stay there, in one session; the next task gets its own worktree and session. A hook blocks Edit and Write on repo files in the main checkout, and a session-start brief says if the main checkout or the cached skills are stale.
 - **Preview a worktree** with `pnpm workspace:start web` in the background, then `preview_start` with the `url` from `pnpm workspace:status`. Never edit the main checkout's `.claude/launch.json`; every session reads it.
-- **Branches.** `feature/*`, `fix/*`, `chore/*` → PR to `develop`. `develop` → `main` only through `/floc:release`. `hotfix/*` starts from `main` and PRs to `main`. Nothing pushes to `develop` or `main` directly; GitHub rules require the checks on both.
+- **Branches.** `feature/*`, `fix/*`, `chore/*` → PR to `develop`. `develop` → `main` only through `/floc:release`. `hotfix/*` starts from `main` and PRs to `main`. Nothing pushes to `develop` or `main` directly. GitHub rules require the checks on `main`; on `develop` the watcher merges only on green checks. GitHub deletes a PR's branch when it merges.
 - **Push.** `/floc:push` runs `pnpm delivery publish`: commit, merge the latest develop in, quick checks, doc pages to floc-docs, PR to develop with auto-merge, and a watcher. Then the session ends its turn — no agent waits on CI. Never publish when the user asked for local review only.
 - **Watcher and clean-up.** The watcher is a plain script run by Task Scheduler, so it works whichever app started it. It merges when checks pass, settles lockfile conflicts, waits for develop CI, then removes the worktree and its branch. A code conflict or red check stops it with a Windows notification. `workspace:new` and `/floc:push` sweep any landed worktree it missed, and subagent or release worktrees with nothing of their own. A worktree with unsaved or unlanded work, or a running watcher, is never removed.
 - **Parallel work.** Each worktree lands on its own as soon as its checks pass; develop does not make a PR re-test after other merges. The full checks after each merge catch combined breaks. Conflicts are merged in, never rebased, so no force push.
@@ -124,9 +124,15 @@ Payments between members, POI data and reviews, flight *booking* (deep links onl
 - **Design review** once per UI diff: the `floc:design-review` agent, recorded with `pnpm delivery review`. Publish refuses a UI diff without it.
 - **Deploy is Railway** via `railway.json`. A merge to `main` deploys. Env vars live in Railway's Variables tab, never in the repo.
 
-## End of a session
+## Working and reporting
 
-**Close every session that changed, committed, pushed or released anything with `/floc:session-summary`** — a few bullets, one per piece of work, each with its state (local · PR open · on develop · release PR open · live), then one `Next:` line. No recap, no narration, no file lists. Say "live" only after the health or watcher check. A subagent reports to its parent the same way. An audit, review, retro or research report is the deliverable itself, so write it in full. The `/floc:push`, `/floc:release` and `/floc:implement-feature` reports end in this format too.
+Aidan asks, the agent builds, then reports once. Session noise makes it hard to see what happened.
+
+- **Work silently.** No progress updates, no narration between tool calls, no plan restated in chat. Message only when finished, blocked, or a decision is needed.
+- **Final report: super concise.** A few bullets, one per piece of work, each with its checked state — `local, uncommitted` · `local` · `PR open` · `PR needs you` · `on develop` · `release PR open` · `live` · `not checked` — then one `Next:` line if Aidan must act. No recap, no steps taken, no file lists. Add screenshots when the work is visual.
+- **Say only what is checked.** "Live" only after the health or watcher check. A blocker or failed check keeps its full error. Always name a data model change and any surface not verified.
+- **Long reports are the deliverable.** An audit, security or vulnerability review, retro or research report is written in full.
+- A subagent reports to its parent the same way. The `/floc:push`, `/floc:release` and `/floc:implement-feature` reports end in this format.
 
 ## Real users — hard stop
 
@@ -144,7 +150,7 @@ Issues and PRDs are GitHub issues, driven with `gh`. Skills are the `floc` plugi
 - **Build:** `/floc:implement-feature`, `/floc:tdd`.
 - **Dev loop and data:** `/floc:run`, `/floc:seed-dev-db`, `/floc:reset-dev-db`, `/floc:schema-change`, `/floc:add-mobile-dep`.
 - **Docs and design:** `/floc:sync-docs`, `/floc:review-docs`, `/floc:prototype`, `/floc:audit`, `/floc:marketing` (never publishes unasked).
-- **Other:** `/floc:session-summary` (closes every session), `/floc:improve-codebase-architecture`, `/floc:rotate-secrets`, `/floc:retro` (user-run only; edits nothing until asked).
+- **Other:** `/floc:improve-codebase-architecture`, `/floc:rotate-secrets`, `/floc:retro` (user-run only; edits nothing until asked).
 - Agent `floc:ci-babysit` fixes a red check after a watcher reports it, through a PR; never started for green work.
 - Agent `floc:design-review` gives a UI change a fresh-eyes check against the design card and screenshots; it edits nothing. `/floc:implement-feature` and `/floc:push` start it on any UI diff.
 

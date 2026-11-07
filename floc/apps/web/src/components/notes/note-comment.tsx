@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { commentTime, likes, type NoteRow } from "@floc/core/notes/notes";
 
-import { Avatar, cx, menuDangerItemClass, menuItemClass } from "@/components/system/ui";
+import { Avatar, cx, menuDangerItemClass, menuItemClass, panelFieldClass } from "@/components/system/ui";
 import { ReactionGlyph } from "@/components/system/icons/reaction";
 import { ActionForm, ConfirmSubmit, Menu, SubmitButton } from "@/components/system/client-ui";
 import { deleteNote, editNote, react } from "@/app/trip/[id]/notes-actions";
@@ -51,7 +51,7 @@ function EditForm({ tripId, note, onDone }: { tripId: number; note: NoteRow; onD
         defaultValue={note.body}
         aria-label="Edit comment"
         autoFocus
-        className="block w-full resize-y rounded-sm border border-rule-strong bg-sheet px-2.5 py-[7px] text-sm leading-[1.45] text-ink transition-colors focus:border-pen max-sm:py-[11px]"
+        className={cx(panelFieldClass, "resize-y max-sm:py-[11px]")}
       />
       <div className="mt-2 flex items-center justify-end gap-3">
         <button type="button" onClick={onDone} className="px-0.5 py-1 text-xs font-medium text-ink-soft transition-colors hover:text-pen max-sm:h-9">
