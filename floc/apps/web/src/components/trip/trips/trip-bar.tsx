@@ -23,6 +23,18 @@ function status(trip: TripCardData, next: boolean, past: boolean): string {
   return stage === "Planning" ? (countdownLabel(trip.startDate) ?? stage) : stage;
 }
 
+// Why: on a narrow card the line breaks after the dot ("Next up ·" / "in 38 days"), never leaving one word alone.
+function StatusLine({ trip, next, past }: { trip: TripCardData; next: boolean; past: boolean }) {
+  const [lead, rest] = status(trip, next, past).split(" · ");
+  return (
+    <p className="typed flex flex-wrap items-center gap-x-1.5 pr-24">
+      {trip.mark ? <TripMarkIcon mark={trip.mark} size={14} /> : null}
+      <span className="whitespace-nowrap">{rest ? `${lead} ·` : lead}</span>
+      {rest ? <span className="whitespace-nowrap">{rest}</span> : null}
+    </p>
+  );
+}
+
 function DateTile({ trip, tone }: { trip: TripCardData; tone: string }) {
   const size = "size-14 sm:size-[4.5rem]";
   if (!trip.startDate) {
@@ -58,10 +70,7 @@ export function TripBar({ trip, next = false, past = false }: { trip: TripCardDa
       <div className="grid grid-cols-[3.5rem_minmax(0,1fr)] content-start gap-3 p-4 sm:grid-cols-[4.5rem_minmax(0,1fr)] sm:gap-4 sm:p-5">
         <DateTile trip={trip} tone={PASTEL_BY_KEY[colour]} />
         <div className="min-w-0">
-          <p className="typed flex items-center gap-1.5 pr-16">
-            {trip.mark ? <TripMarkIcon mark={trip.mark} size={14} /> : null}
-            {status(trip, next, past)}
-          </p>
+          <StatusLine trip={trip} next={next} past={past} />
           <TripOpenLink href={href} className="mt-1 inline-block text-ink after:absolute after:inset-0 after:content-['']">
             <Title className={next ? "text-xl leading-tight sm:text-3xl" : "text-lg leading-tight sm:text-xl"}>{trip.name}</Title>
           </TripOpenLink>
