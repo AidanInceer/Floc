@@ -54,14 +54,14 @@ Want `Wiped N tables` and then `trip 1` … `trip 4` in the output. To prove the
 ids, check them:
 
 ```bash
-cd floc/apps/web; node -e "const {createClient}=require('@libsql/client');const c=createClient({url:'file:./local.db'});c.execute('select id from user order by id').then(u=>c.execute('select id,name from trip order by id').then(t=>console.log(u.rows.map(r=>r.id).join(','),'|',t.rows.map(r=>r.id+':'+r.name).join(','))))"
+pnpm --filter floc-web db:query "select id from user order by id"
+pnpm --filter floc-web db:query "select id, name from trip order by id"
 ```
 
-Want exactly:
-
-```
-dev-user,seed-a-priya,seed-a-sofia,seed-a-tom,seed-b-callum,seed-b-elliot,seed-b-jonas,seed-b-mei,seed-b-nadia,seed-b-ruth | 1:Portugal, late summer,2:The Dolomites, February,3:Tokyo, cherry blossom,4:Krakow, last winter
-```
+Want users `dev-user`, `seed-a-priya`, `seed-a-sofia`, `seed-a-tom`,
+`seed-b-callum`, `seed-b-elliot`, `seed-b-jonas`, `seed-b-mei`, `seed-b-nadia`,
+`seed-b-ruth`, and trips `1` Portugal, late summer · `2` The Dolomites,
+February · `3` Tokyo, cherry blossom · `4` Krakow, last winter.
 
 If this does not match, something outside the seed is writing rows. Find it
 before you report success.

@@ -16,7 +16,7 @@ agent's **environment** so future runs go better. You change no code.
 
 ## Steps
 
-1. Read [AGENTS.md](../../../../AGENTS.md) first: Commands, Invariants, Code
+1. Read [AGENTS.md](AGENTS.md) first: Commands, Invariants, Code
    standards and Agent skills. Every finding must respect them.
 
 2. Read the session the user names. If they name none, use the current one.
@@ -28,11 +28,11 @@ agent's **environment** so future runs go better. You change no code.
 
 - **Navigation**: how easy was it for the agent to find the right files? Are
   there hidden dependencies? Would a pointer in AGENTS.md or
-  [`floc/CONTEXT.md`](../../../../floc/CONTEXT.md) help? _Use when_ the session
+  [`floc/CONTEXT.md`](floc/CONTEXT.md) help? _Use when_ the session
   took a long time to find something.
 - **Automated checks**: could a check have caught the agent's mistake? Read the
   repo's own checks first: `pnpm verify` (mirrors CI), `pnpm fitness`,
-  `pnpm parity`, `pnpm deps:check`, `pnpm comments`, the ESLint config, the git
+  `pnpm parity`, `pnpm --filter floc-web deps:check`, `pnpm comments`, the ESLint config, the git
   hooks and `.github/workflows/`. A check that exists but is unwired or broken
   is the finding. A repo with no guardrail for a rule is itself a finding.
   _Use when_ the agent made a mistake a check could have caught.
@@ -43,7 +43,7 @@ agent's **environment** so future runs go better. You change no code.
   Code standards. Default to building the check over writing the rule. _Use when_
   the review missed a mistake.
 - **Global AGENTS.md**: should steering in AGENTS.md move to a check or a doc?
-  Note its length. [`CLAUDE.md`](../../../../CLAUDE.md) only imports it. _Use
+  Note its length. [`CLAUDE.md`](CLAUDE.md) only imports it. _Use
   when_ AGENTS.md is large or the agent ignored a line in it.
 - **Tool economy**: did the agent make an expensive call that a filter or a
   narrower command would avoid (`pnpm --filter floc-web …`, a targeted Grep)?

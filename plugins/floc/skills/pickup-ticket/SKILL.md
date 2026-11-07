@@ -54,7 +54,7 @@ It branches `feature/<issue>-<short-name>` from `origin/develop` into `.claude/w
 1. **Test first.** Failing test for each criterion, watch it fail, then the code (`/floc:tdd`).
 2. **Schema change** → ask Aidan first (AGENTS.md). Then `db:generate`, and run the new `drizzle/*.sql` against this worktree's database now.
 3. **New API procedure** → its `parity.json` line. Draft the `why` from the ticket; show it in the report rather than stopping to ask.
-4. **Look at it before the user does.** UI change → screenshot every surface it touches (web via the Browser pane; app via `adb exec-out screencap`), in light **and** dark. Check each against [visual language](../../../../docs/design/visual-language.html): tokens, spacing, alignment, no heading-above-heading, web and app agree. Fix what is off, then shoot again. Send the final shots with `SendUserFile`.
+4. **Look at it before the user does.** UI change → screenshot every surface it touches (web via the Browser pane; app via `adb exec-out screencap`), in light **and** dark. Check each against [visual language](docs/design/visual-language.html): tokens, spacing, alignment, no heading-above-heading, web and app agree. Fix what is off, then shoot again. Send the final shots with `SendUserFile`.
 5. **App flow changed** and the emulator is up → `pnpm --filter floc-mobile maestro`. Extend `app.yaml` if the ticket adds a screen.
 
 ### Several tickets in one go
