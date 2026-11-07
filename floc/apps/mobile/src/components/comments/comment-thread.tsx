@@ -115,7 +115,6 @@ function Run({
         <CommentComposer
           label="Edit comment"
           sendLabel="Save"
-          pendingLabel="Saving…"
           busy={busy}
           initial={one.body}
           autoFocus

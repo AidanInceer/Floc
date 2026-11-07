@@ -12,7 +12,7 @@ import { EventTypeTiles } from "@/components/days/event-sheet/event-type-tiles";
 import { PlacePicker } from "@/components/social/place-picker";
 import { SubmitButton } from "@/components/system/client-ui";
 import { DialogClose } from "@/components/system/dialog";
-import { buttonClass } from "@/components/system/ui";
+import { buttonClass, cx, panelBandClass, panelFieldClass, panelTitleClass } from "@/components/system/ui";
 import type { DayEventType, TransportType } from "@/db/schema";
 import { TEXT_CAPS } from "@floc/core/text/text";
 
@@ -31,8 +31,6 @@ export type EventFormDefaults = {
   placeName?: string | null;
 };
 
-const NOTE =
-  "block min-h-14 w-full resize-y border-0 border-b border-rule-strong bg-transparent py-1.5 text-[15px] leading-snug text-ink transition-colors hover:border-ink-faint focus:border-pen focus:shadow-[0_1px_0_var(--pen)] focus:outline-none";
 
 export function EventForm({
   action,
@@ -105,20 +103,22 @@ export function EventForm({
           />
         }
       />
-      <div className="space-y-[18px] px-5 pb-5 pt-[18px] max-sm:px-4">
+      <div className="px-5 py-4 max-sm:px-4">
         <EventTypeTiles type={type} how={how} onType={pickType} onHow={(next) => { setHow(next); saveSoon(); }} />
+      </div>
+      <div className={panelBandClass}>
         <PlacePicker
           name="place"
-          look="line"
+          look="panel"
           defaultName={defaults.placeName ?? ""}
           search={searchPlaces}
           onSelect={autosave ? (picked) => { if (picked.providerId) saveSoon(); } : undefined}
         />
-        <label className="block">
-          <span className="mb-1 block font-mono text-xs text-ink-faint">Notes</span>
-          <textarea name="note" rows={2} maxLength={TEXT_CAPS.eventNote} defaultValue={defaults.note ?? ""} className={NOTE} />
-        </label>
       </div>
+      <label className={cx("block", panelBandClass)}>
+        <span className={cx(panelTitleClass, "mb-2")}>Notes</span>
+        <textarea name="note" rows={2} maxLength={TEXT_CAPS.eventNote} defaultValue={defaults.note ?? ""} className={cx(panelFieldClass, "min-h-16 resize-y")} />
+      </label>
       {autosave ? null : (
         <footer className="flex items-center justify-end gap-2 border-t border-rule px-5 py-3 max-sm:px-4">
           <DialogClose className={buttonClass("secondary")}>Cancel</DialogClose>

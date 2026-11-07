@@ -6,7 +6,7 @@ import { useEffect, useRef, useState, type ChangeEvent } from "react";
 
 import { TEXT_CAPS } from "@floc/core/text/text";
 
-import { Field, Input } from "../system/ui";
+import { Field, Input, cx, panelFieldClass, panelTitleClass } from "../system/ui";
 
 type PlaceHit = {
   providerId: string;
@@ -25,10 +25,10 @@ export type PlacePickerResult = {
   countryCode: string | null; // null for a typed name (ticket 95)
 };
 
-type PickerLook = "box" | "line" | "display";
+type PickerLook = "box" | "panel" | "display";
 
 const LOOK: Record<Exclude<PickerLook, "box">, string> = {
-  line: "block w-full border-0 border-b border-rule-strong bg-transparent py-1.5 text-[15px] text-ink transition-colors hover:border-ink-faint focus:border-pen focus:shadow-[0_1px_0_var(--pen)] focus:outline-none",
+  panel: panelFieldClass,
   display: "block w-full border-0 border-b-[1.5px] border-current/30 bg-transparent pb-1.5 pt-0.5 font-display text-[24px] font-semibold leading-tight tracking-[-0.015em] text-inherit transition-colors hover:border-current/55 focus:border-current focus:outline-none max-sm:text-[21px]",
 };
 
@@ -142,7 +142,7 @@ export function PlacePicker({
   if (look === "box") return <Field label={label} hint={hint}>{inner}</Field>;
   return (
     <label className="block">
-      <span className={look === "display" ? "mb-1 block font-mono text-xs opacity-75" : "mb-1 block font-mono text-xs text-ink-faint"}>{label}</span>
+      <span className={look === "display" ? "mb-1 block font-mono text-xs opacity-75" : cx(panelTitleClass, "mb-2")}>{label}</span>
       {inner}
       {hint ? <span className="mt-1 block text-xs opacity-75">{hint}</span> : null}
     </label>

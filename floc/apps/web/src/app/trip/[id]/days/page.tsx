@@ -36,7 +36,7 @@ import {
 import { EventFiles } from "@/components/documents/event-files";
 import type { FileChoice } from "@/components/documents/attach-existing";
 import { EventForm } from "@/components/days/event-form";
-import { ButtonLink, EmptyState, PageTitle, menuDangerItemClass } from "@/components/system/ui";
+import { ButtonLink, EmptyState, PageTitle, cx, menuDangerItemClass, panelBandClass, panelTitleClass } from "@/components/system/ui";
 import { appUrl } from "@/lib/env";
 import { mintCalendarToken } from "@/server/itinerary/calendar-link";
 import { EVENT_CATEGORIES } from "@floc/core/itinerary/event-categories";
@@ -305,10 +305,10 @@ function EventPanel({
         }}
       />
 
-      <div className="space-y-4 px-5 pb-4 max-sm:px-4">
+      <div>
         {flightLinks ? (
-          <section aria-label={flightTitle}>
-            <p className="mb-2 text-sm font-medium">{flightTitle}</p>
+          <section aria-label={flightTitle} className={panelBandClass}>
+            <p className={cx(panelTitleClass, "mb-2")}>{flightTitle}</p>
             <SitePicker kind="flights" links={flightLinks} label={flightTitle} head={partOf(date, { weekday: "short", day: "numeric", month: "short" })} />
           </section>
         ) : null}
@@ -323,7 +323,7 @@ function EventPanel({
           />
         ) : null}
 
-        <div className="border-t border-rule pt-3">
+        <div className={panelBandClass}>
           <NoteThread
             tripId={tripId}
             scope="day_event"
