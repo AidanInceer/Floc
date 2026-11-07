@@ -88,7 +88,6 @@ export default function Roster() {
             <MemberRow
               key={m.userId}
               name={m.name}
-              avatarIcon={m.avatarIcon}
               you={you}
               admin={m.role === "admin"}
               first={i === 0}
@@ -97,7 +96,7 @@ export default function Roster() {
           );
         })}
         {pending.map((p) => (
-          <MemberRow key={p.id} name={p.name} avatarIcon={p.avatarIcon} you={false} admin={false} word="Invited" first={false} />
+          <MemberRow key={p.id} name={p.name} you={false} admin={false} word="Invited" first={false} />
         ))}
       </Card>
 

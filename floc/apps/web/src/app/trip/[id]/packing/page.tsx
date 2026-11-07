@@ -169,9 +169,9 @@ export default async function PackingPage({
 
   return (
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
-      <PageTitle>Packing</PageTitle>
+      <PageTitle className="sr-only">Packing</PageTitle>
 
-      <section className="mt-6 grid gap-4">
+      <section className="grid gap-4">
         <header className="flex flex-wrap items-baseline gap-3">
           <h2 className="text-2xl">Your bag</h2>
           <PackingCount total={mine.length} packed={bagPacked} />
@@ -302,7 +302,7 @@ export default async function PackingPage({
               packed={memberLines.filter((line) =>
                 Boolean(line.claims.find((claim) => claim.userId === member.userId)?.packedAt),
               ).length}
-              avatar={<Avatar name={member.name} icon={member.avatarIcon} tone={member.tone} size={24} />}
+              avatar={<Avatar name={member.name} tone={member.tone} size={24} />}
             >
               {memberLines.map((line) => (
                 <PackingClaimCard

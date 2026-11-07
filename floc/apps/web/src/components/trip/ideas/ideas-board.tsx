@@ -83,7 +83,7 @@ function IdeaLine({ tripId, idea }: { tripId: number; idea: IdeaRow }) {
       <span className="grid min-w-0 flex-1 gap-0.5 leading-snug">
         <span className="text-[15px] text-ink">{idea.title}</span>
         <span className="flex min-w-0 items-center gap-1.5 text-xs text-ink-faint">
-          <Avatar name={idea.authorName} icon={idea.authorAvatarIcon} size={16} />
+          <Avatar name={idea.authorName} size={16} />
           <span className="truncate">{idea.authorName}</span>
         </span>
       </span>

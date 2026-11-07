@@ -11,10 +11,8 @@
 import Link from "next/link";
 import { cloneElement, isValidElement, useId, type ComponentProps, type ReactElement, type ReactNode } from "react";
 
-import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import { whoTone } from "@floc/core/people/who";
 
-import { AvatarIconMark } from "./avatar-icon";
 import type { TripColor } from "@floc/core/trip/trip-color";
 import { initials } from "@floc/core/people/initials";
 
@@ -256,14 +254,11 @@ export function EmptyState({
 
 export function Avatar({
   name,
-  icon,
   size = 28,
   title,
   tone,
 }: {
   name: string;
-  /** Null is initials — the default, not a fallback (ticket 157). */
-  icon?: AvatarIcon | null;
   size?: number;
   title?: string;
   /** A `who-*` class — pass a member's own tone to keep it consistent trip-wide; omit to fall back to the name hash. */
@@ -276,15 +271,11 @@ export function Avatar({
       title={title ?? name}
       aria-label={name}
       className={cx(
-        "inline-flex shrink-0 items-center justify-center rounded-full border border-rule-strong font-mono font-semibold",
+        "inline-flex shrink-0 items-center justify-center rounded-sm border border-rule-strong font-mono font-semibold",
         tone ?? whoTone(name),
       )}
     >
-      {icon ? (
-        <AvatarIconMark icon={icon} size={Math.round(size * 0.56)} />
-      ) : (
-        initials(name)
-      )}
+      {initials(name)}
     </span>
   );
 }
@@ -294,7 +285,7 @@ export function AvatarRow({
   max = 5,
   size = 28,
 }: {
-  people: { name: string; avatarIcon?: AvatarIcon | null; tone?: string }[];
+  people: { name: string; tone?: string }[];
   max?: number;
   size?: number;
 }) {
@@ -306,13 +297,13 @@ export function AvatarRow({
       {shown.map((p, i) => (
         <span
           key={`${p.name}-${i}`}
-          className={cx("inline-flex", i > 0 && "-ml-2")}
+          className={cx("inline-flex rounded-sm ring-[1.5px] ring-sheet", i > 0 && "-ml-2")}
         >
-          <Avatar name={p.name} icon={p.avatarIcon} size={size} tone={p.tone} />
+          <Avatar name={p.name} size={size} tone={p.tone} />
         </span>
       ))}
       {extra > 0 ? (
-        <span className="-ml-2 inline-flex items-center justify-center rounded-full border border-rule-strong bg-sheet-2 px-1.5 font-mono text-xs font-semibold text-ink-soft"
+        <span className="-ml-2 inline-flex items-center justify-center rounded-sm border border-rule-strong bg-sheet-2 px-1.5 font-mono text-xs font-semibold text-ink-soft"
           style={{ height: size, minWidth: size }}
         >
           +{extra}

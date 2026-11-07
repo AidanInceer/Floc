@@ -1,12 +1,11 @@
-import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import type { WhoTone } from "@floc/core/people/who";
 import { StyleSheet, Text, View } from "react-native";
 
-import { AvatarIconMark } from "./avatar-icon";
+import { initials } from "@floc/core/people/initials";
 import { useTheme } from "./theme";
 import { fonts, radius, size } from "@/lib/theme";
 
-export type Face = { userId: string; name: string; avatarIcon: AvatarIcon | null; tone: string };
+export type Face = { userId: string; name: string; tone: string };
 
 const SHOWN = 5;
 
@@ -16,7 +15,7 @@ export function FaceStack({ faces, diameter = 26 }: { faces: Face[]; diameter?: 
   if (faces.length === 0) return null;
   const shown = faces.slice(0, SHOWN);
   const more = faces.length - shown.length;
-  const ring = { width: diameter, height: diameter, borderRadius: radius.pill, borderWidth: 1.5, borderColor: c.sheet };
+  const ring = { width: diameter, height: diameter, borderRadius: radius.sm, borderWidth: 1.5, borderColor: c.sheet };
   return (
     <View
       accessible
@@ -30,13 +29,9 @@ export function FaceStack({ faces, diameter = 26 }: { faces: Face[]; diameter?: 
             key={face.userId}
             style={[ring, { marginLeft: i === 0 ? 0 : -diameter / 3, backgroundColor: c[tone], alignItems: "center", justifyContent: "center" }]}
           >
-            {face.avatarIcon ? (
-              <AvatarIconMark icon={face.avatarIcon} color={c[`${tone}-ink`]} size={diameter * 0.55} />
-            ) : (
-              <Text style={{ color: c[`${tone}-ink`], fontFamily: fonts.sansBold, fontSize: diameter * 0.42 }}>
-                {face.name.slice(0, 1).toUpperCase()}
-              </Text>
-            )}
+            <Text style={{ color: c[`${tone}-ink`], fontFamily: fonts.sansBold, fontSize: diameter * 0.38 }}>
+              {initials(face.name)}
+            </Text>
           </View>
         );
       })}

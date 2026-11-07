@@ -27,7 +27,7 @@ function PayRow({ row, paying, nameOf, busy, onSettle }: { row: SettleRow; payin
   const tone = whoTone(who);
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: space.md, paddingVertical: space.sm }}>
-      <Seat initial={who.slice(0, 1).toUpperCase()} ground={c[tone]} ink={c[`${tone}-ink`]} />
+      <Seat name={who} ground={c[tone]} ink={c[`${tone}-ink`]} />
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text numberOfLines={1} style={{ color: c.ink, fontFamily: fonts.sansBold, fontSize: size.small }}>{who}</Text>
         <Text style={{ color: paying ? c.red : c["pastel-green-ink"], fontFamily: fonts.type, fontSize: size.body + 2, fontVariant: ["tabular-nums"] }}>

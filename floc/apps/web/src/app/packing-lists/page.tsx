@@ -19,6 +19,7 @@ import { PackingCube } from "@/components/packing/packing-cube";
 import { PackingKitRow } from "@/components/packing/packing-kit-row";
 import { CategorySelect } from "@/components/packing/packing-controls";
 import { ConfirmSubmit, SubmitButton } from "@/components/system/client-ui";
+import { AccountTabs } from "@/components/chrome/account-tabs";
 
 export const metadata = { title: "Saved lists" };
 
@@ -30,17 +31,20 @@ export default async function PackingListsPage() {
   const kits = await listPackingKitsWithItems(viewer.id);
 
   return (
+    <>
+    <AccountTabs current="lists" />
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
-      <PageTitle>Saved lists</PageTitle>
+      <div className="mx-auto max-w-[54rem]">
+      <PageTitle className="sr-only">Saved lists</PageTitle>
 
-      <section className="mt-6 rounded-md border border-rule bg-sheet px-4 py-4">
+      <section className="rounded-md border border-rule bg-sheet px-4 py-4">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
-          <h2 className="typed !mb-0">Start a list</h2>
+          <h2 className="typed !mb-0 basis-full sm:basis-auto">Start a list</h2>
           <form
             action={createPackingKit}
             className="flex min-w-0 flex-1 flex-wrap items-center gap-3"
           >
-            <label className="min-w-[14rem] flex-1">
+            <label className="min-w-0 flex-1 basis-full sm:min-w-[14rem] sm:basis-auto">
               <span className="sr-only">Name</span>
               <input
                 name="name"
@@ -154,6 +158,8 @@ export default async function PackingListsPage() {
           </section>
         );
       })}
+      </div>
     </div>
+    </>
   );
 }

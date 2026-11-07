@@ -48,7 +48,6 @@ import { trpc } from "@/lib/api";
 import { signOutHere } from "@/lib/sign-out";
 import { forgetThisPhone } from "@/lib/push/push";
 import { space } from "@/lib/theme";
-import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 
 export default function Profile() {
   const queryClient = useQueryClient();
@@ -69,12 +68,8 @@ export default function Profile() {
   };
 
   const saveIdentity = useMutation(trpc.settings.identity.mutationOptions());
-  const saveFace = useMutation(trpc.settings.face.mutationOptions());
   const saveAll = useMutation({
-    mutationFn: async (input: { displayName: string; avatarIcon: AvatarIcon | null }) => {
-      await saveIdentity.mutateAsync({ displayName: input.displayName });
-      await saveFace.mutateAsync({ avatarIcon: input.avatarIcon });
-    },
+    mutationFn: (input: { displayName: string }) => saveIdentity.mutateAsync(input),
     onSuccess: () => {
       setEditing(false);
       refetchFace();
@@ -99,7 +94,6 @@ export default function Profile() {
       <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }}>
         <ProfileFace
           name={me.data.name}
-          avatarIcon={me.data.avatarIcon}
           been={me.data.been}
           wantToGo={me.data.wantToGo}
           vibeTags={face.data?.vibeTags ?? []}
@@ -182,7 +176,6 @@ export default function Profile() {
       {editing ? (
         <FaceSheet
           name={me.data.name}
-          icon={me.data.avatarIcon}
           busy={saveAll.isPending}
           error={saveAll.isError ? saveAll.error.message : null}
           onClose={() => setEditing(false)}

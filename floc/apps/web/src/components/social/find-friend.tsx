@@ -24,7 +24,7 @@ function FoundRow({
   return (
     <PersonRow>
       <div className="flex min-w-0 items-center gap-2">
-        <Avatar name={person.name} icon={person.avatarIcon} />
+        <Avatar name={person.name} />
         <span className="min-w-0 truncate text-sm text-ink">{person.name}</span>
       </div>
       {person.state === "none" ? (

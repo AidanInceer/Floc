@@ -122,7 +122,7 @@ export function NoteComment({
 
   return (
     <article className={cx("flex items-start gap-[11px]", reply && "mt-2.5")}>
-      <Avatar name={note.authorName} icon={note.authorAvatarIcon} tone={note.authorTone} size={reply ? 24 : 30} />
+      <Avatar name={note.authorName} tone={note.authorTone} size={reply ? 24 : 30} />
       <div className="min-w-0 flex-1">
         <p className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm leading-[1.3]">
           <b className="font-semibold">{note.authorName}</b>

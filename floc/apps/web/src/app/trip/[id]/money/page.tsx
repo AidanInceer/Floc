@@ -122,8 +122,8 @@ export default async function MoneyPage({
 
   return (
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
-      <header className="flex flex-wrap items-end justify-between gap-6">
-        <PageTitle>Money</PageTitle>
+      <header className="flex flex-wrap items-end justify-end gap-6">
+        <PageTitle className="sr-only">Money</PageTitle>
         {hasActivity ? (
           <Sheet trigger="Add expense" title="Expense" keepOpenOnSubmit>
             {addForm}

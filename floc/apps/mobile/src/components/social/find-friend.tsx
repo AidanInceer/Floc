@@ -22,7 +22,7 @@ const STATE_PILL = {
 
 function Found({ person, onAsk, busy }: { person: FoundFriend; onAsk: () => void; busy: boolean }) {
   return (
-    <PersonRow name={person.name} avatarIcon={person.avatarIcon}>
+    <PersonRow name={person.name}>
       {person.state === "none" ? (
         <Button label="Add" fit="small" variant="quiet" busy={busy} onPress={onAsk} />
       ) : (

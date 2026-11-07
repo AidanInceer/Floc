@@ -16,7 +16,7 @@ export type GapKind = "days" | "ideas" | "money" | "packing" | "stay" | "travel"
 export type Gap = {
   key: string;
   kind: GapKind;
-  /** The viewer's own to do; these lead. */
+  /** The viewer's own to do; these lead within a step. */
   mine: boolean;
   text: string;
   /** Parts, not one string: a list lines each part up under the one above. */
@@ -115,11 +115,16 @@ export type LeftToSort = {
   done: Sorted[];
 };
 
+/** The order a trip gets planned in: dates, then booking, packing, money, and anything else. */
+const STEP: Record<GapKind, number> = { days: 0, stay: 1, travel: 1, packing: 2, money: 3, ideas: 4 };
+
+const byStep = (a: Gap, b: Gap) => STEP[a.kind] - STEP[b.kind] || Number(b.mine) - Number(a.mine);
+
 export function leftToSort(input: LeftToSortInput): LeftToSort {
-  const checks = [...dateChecks(input), ...moneyChecks(input), ...packingChecks(input), ...legChecks(input)];
+  const checks = [...dateChecks(input), ...legChecks(input), ...packingChecks(input), ...moneyChecks(input)];
   const open = checks.flatMap((c) => (!c.done && c.gap ? [c.gap] : []));
   return {
-    open: [...open.filter((g) => g.mine), ...open.filter((g) => !g.mine)],
+    open: [...open].sort(byStep),
     left: checks.filter((c) => !c.done).length,
     done: checks.flatMap((c) => (c.done ? [c.item] : [])),
   };

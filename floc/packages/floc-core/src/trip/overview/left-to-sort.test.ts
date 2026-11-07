@@ -49,14 +49,18 @@ describe("leftToSort", () => {
     expect(open[0]).toMatchObject({ mine: true, text: "Vote on where: 2 ideas", tab: "ideas" });
   });
 
-  it("puts what you owe first", () => {
-    const { open } = leftToSort({
-      ...base,
-      owe: [{ to: "Priya", amountMinor: 12000, currency: "GBP" }],
-      legs: [leg(1, "Lisbon", "2026-10-24", "2026-10-25", { hasStay: false })],
-    });
-    expect(open.map((g) => g.text)).toEqual(["You owe Priya £120.00", "No stay booked in Lisbon"]);
-    expect(open[0]).toMatchObject({ mine: true, tab: "money", action: "Settle up" });
+  it("orders the list as the trip is planned: dates, booking, packing, money, then the rest", () => {
+    const owe = [{ to: "Priya", amountMinor: 12000, currency: "GBP" as const }];
+    const shared = [{ label: "Towels", claimed: false }];
+    const finding = leftToSort({ ...base, moment: "finding", markedUserIds: ["sofia", "tom"], ideas: [{ mine: false }], owe, shared });
+    expect(finding.open.map((g) => g.kind)).toEqual(["days", "packing", "money", "ideas"]);
+    const set = leftToSort({ ...base, owe, shared, legs: [leg(1, "Lisbon", "2026-10-24", "2026-10-25", { hasStay: false, hasTravel: false }), leg(2, "Porto", "2026-10-25", "2026-10-26", { hasTravel: false })] });
+    expect(set.open.map((g) => g.kind)).toEqual(["stay", "travel", "packing", "money"]);
+  });
+
+  it("puts your own to do first within a step", () => {
+    const { open } = leftToSort({ ...base, moment: "finding", markedUserIds: ["tom"] });
+    expect(open.map((g) => g.mine)).toEqual([true, false]);
   });
 
   it("gathers what nobody is bringing into one line", () => {
@@ -97,17 +101,17 @@ describe("leftToSort", () => {
     ];
     const { done } = leftToSort({ ...base, legs, shared: [{ label: "Towels", claimed: true }] });
     expect(done.map((d) => [d.text, d.sub])).toEqual([
-      ["Towels", ["Someone is bringing it"]],
       ["Stay booked in Lisbon", ["2 nights", "24–26 Oct"]],
       ["Stay booked in Barcelona", ["1 night", "26–27 Oct"]],
       ["Lisbon to Barcelona: travel set", ["Mon 26 Oct"]],
+      ["Towels", ["Someone is bringing it"]],
     ]);
   });
 
   it("says what each line is about, so a surface can draw its icon", () => {
     const legs = [leg(1, "Lisbon", "2026-10-24", "2026-10-25", { hasStay: false }), leg(2, "Porto", "2026-10-25", "2026-10-26")];
     const { open, done } = leftToSort({ ...base, legs, owe: [{ to: "Priya", amountMinor: 500, currency: "GBP" }] });
-    expect([...open, ...done].map((g) => g.kind)).toEqual(["money", "stay", "stay", "travel"]);
+    expect([...open, ...done].map((g) => g.kind)).toEqual(["stay", "money", "stay", "travel"]);
   });
 
   it("says when you and everyone else have marked your days, and when you have voted", () => {

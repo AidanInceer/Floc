@@ -23,8 +23,6 @@ const SIGNED_OUT: Awaited<ReturnType<typeof topBarFor>> = {
   proRow: null,
   notificationCount: 0,
   latest: [],
-  tripCount: 0,
-  friendCount: 0,
 };
 
 // The three faces of the white-and-pastel direction (ticket 189): a characterful
@@ -75,7 +73,7 @@ export default async function RootLayout({
   // friend request are the two things that arrive while you're elsewhere in the
   // app, so both have to be visible from anywhere. Counts, not the things
   // themselves — the answering happens on the page behind each link.
-  const { inviteCount, friendRequestCount, profile, proRow, notificationCount, latest, tripCount, friendCount } =
+  const { inviteCount, friendRequestCount, profile, proRow, notificationCount, latest } =
     session?.user ? await topBarFor(session.user.id, ACCOUNT_MENU_PREVIEW) : SIGNED_OUT;
 
   // The header must key the avatar off the same identity a roster does
@@ -86,7 +84,6 @@ export default async function RootLayout({
         id: session.user.id,
         name: profile?.displayName ?? session.user.name,
         email: session.user.email,
-        avatarIcon: profile?.avatarIcon ?? null,
       }
     : null;
 
@@ -109,8 +106,6 @@ export default async function RootLayout({
           friendRequestCount={friendRequestCount}
           notificationCount={notificationCount}
           latest={latest}
-          tripCount={tripCount}
-          friendCount={friendCount}
           isPro={!allFeaturesFree() && proRow !== null && isLive(proRow)}
         />
         <main>{children}</main>

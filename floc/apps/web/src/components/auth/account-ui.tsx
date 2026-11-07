@@ -13,17 +13,30 @@ export function AccountPage({
   title,
   blurb,
   actions,
+  titleInBar,
   children,
 }: {
   eyebrow?: string;
   title: string;
   blurb?: ReactNode;
   actions?: ReactNode;
+  /** The account bar under the header already names the page, so the title is for screen readers only. */
+  titleInBar?: boolean;
   children: ReactNode;
 }) {
+  if (titleInBar) {
+    return (
+      <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
+        <div className="mx-auto flex max-w-[54rem] flex-col gap-4">
+          <PageTitle className="sr-only">{title}</PageTitle>
+          {children}
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
-      <div className="max-w-[54rem]">
+      <div className="mx-auto max-w-[54rem]">
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0">
             {eyebrow ? <p className="typed">{eyebrow}</p> : null}

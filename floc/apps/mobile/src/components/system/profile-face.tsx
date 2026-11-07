@@ -6,19 +6,13 @@
  * against — so the colour read as a warning, not a welcome. The picture, the
  * name and the tags are enough to make it the page's subject.
  *
- * ONE TARGET (C3b). The picture, name and counts open one sheet that holds
- * both the name and the picture, saved together — the same as the web.
- *
- * INITIALS ARE NOT A FALLBACK, THEY ARE THE DEFAULT. Most people have no
- * picture set and never will; a broken-image slot for them would be a hole
- * where a face should be.
+ * ONE TARGET (C3b). The face, name and counts open one sheet for the name —
+ * the same as the web. The face is always initials, in a rounded square.
  */
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import { whoTone } from "@floc/core/people/who";
 
-import { AvatarIconMark } from "./avatar-icon";
 import { PenGlyph } from "./glyphs";
 import { useTheme } from "./theme";
 import { fonts, radius, size, space } from "@/lib/theme";
@@ -26,7 +20,7 @@ import { initials } from "@floc/core/people/initials";
 
 const AVATAR = 60;
 
-function Face({ name, icon }: { name: string; icon: AvatarIcon | null }) {
+function Face({ name }: { name: string }) {
   const { c } = useTheme();
   // Hardcoded blue until #157: the card was the one place a person was not
   // their own colour, so you were a different person here than on the roster.
@@ -36,7 +30,7 @@ function Face({ name, icon }: { name: string; icon: AvatarIcon | null }) {
       style={{
         width: AVATAR,
         height: AVATAR,
-        borderRadius: radius.pill,
+        borderRadius: radius.sm,
         backgroundColor: c[tone],
         borderWidth: StyleSheet.hairlineWidth,
         borderColor: c[`${tone}-ink`],
@@ -44,33 +38,27 @@ function Face({ name, icon }: { name: string; icon: AvatarIcon | null }) {
         justifyContent: "center",
       }}
     >
-      {icon ? (
-        <AvatarIconMark icon={icon} color={c[`${tone}-ink`]} size={30} />
-      ) : (
-        <Text
-          style={{
-            color: c[`${tone}-ink`],
-            fontFamily: fonts.display,
-            fontSize: size.heading,
-          }}
-        >
-          {initials(name)}
-        </Text>
-      )}
+      <Text
+        style={{
+          color: c[`${tone}-ink`],
+          fontFamily: fonts.display,
+          fontSize: size.heading,
+        }}
+      >
+        {initials(name)}
+      </Text>
     </View>
   );
 }
 
 export function ProfileFace({
   name,
-  avatarIcon,
   been,
   wantToGo,
   vibeTags,
   onEdit,
 }: {
   name: string;
-  avatarIcon: AvatarIcon | null;
   been: number;
   wantToGo: number;
   vibeTags: string[];
@@ -91,13 +79,13 @@ export function ProfileFace({
     >
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Change your name and picture — ${name}`}
+        accessibilityLabel={`Change your name — ${name}`}
         testID="edit-face"
         onPress={onEdit}
         style={{ flexDirection: "row", alignItems: "center", gap: space.md }}
       >
         <View>
-          <Face name={name} icon={avatarIcon} />
+          <Face name={name} />
           <View
             style={{
               position: "absolute",
@@ -105,7 +93,7 @@ export function ProfileFace({
               bottom: -2,
               width: 22,
               height: 22,
-              borderRadius: radius.pill,
+              borderRadius: radius.sm,
               backgroundColor: c.sheet,
               borderWidth: StyleSheet.hairlineWidth,
               borderColor: c["rule-2"],

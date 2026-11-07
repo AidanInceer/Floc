@@ -1,6 +1,5 @@
 // Why: the bell folded into the pill so the right of the bar is one control, and
 // Pro shows only inside, on the pass — the pill must not change shape when you pay.
-import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import Link from "next/link";
 
 import { Avatar } from "@/components/system/ui";
@@ -21,15 +20,11 @@ export function AccountMenu({
   isPro,
   unread,
   latest,
-  tripCount,
-  friendCount,
 }: {
-  user: { name: string; email: string; avatarIcon: AvatarIcon | null };
+  user: { name: string; email: string };
   isPro: boolean;
   unread: number;
   latest: InboxPreviewItem[];
-  tripCount: number;
-  friendCount: number;
 }) {
   const firstName = user.name.trim().split(/\s+/)[0] ?? user.name;
   const shown = unread > 99 ? "99+" : String(unread);
@@ -42,7 +37,7 @@ export function AccountMenu({
       trigger={
         <>
           <span className="relative inline-flex">
-            <Avatar name={user.name} icon={user.avatarIcon} size={32} />
+            <Avatar name={user.name} size={32} />
             {unread ? (
               <span
                 aria-hidden
@@ -59,7 +54,7 @@ export function AccountMenu({
         </>
       }
     >
-      <AccountPass user={user} isPro={isPro} tripCount={tripCount} friendCount={friendCount} />
+      <AccountPass user={user} isPro={isPro} />
       <div className="account-pass-stub bg-sheet">
         <div aria-hidden className="mx-3.5 border-t-[1.5px] border-dashed border-rule-strong" />
         <AccountInbox unread={unread} items={latest} />

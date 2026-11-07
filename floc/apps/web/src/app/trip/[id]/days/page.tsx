@@ -83,10 +83,8 @@ export default async function DaysPage({
     // (rule 9: undated is normal, never an error).
     return (
       <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
-        <header>
-          <PageTitle>Days</PageTitle>
-        </header>
-        <div className="mt-8">
+        <PageTitle className="sr-only">Days</PageTitle>
+        <div>
         {trip.startDate ? (
           <EmptyState
             title="No days yet"
@@ -173,10 +171,8 @@ export default async function DaysPage({
 
   return (
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
-      <header className="flex flex-wrap items-end justify-between gap-6">
-        <div>
-          <PageTitle>Days</PageTitle>
-        </div>
+      <header className="flex flex-wrap items-end justify-end gap-6">
+        <PageTitle className="sr-only">Days</PageTitle>
         <CalendarMenu
           downloadHref={`/trip/${trip.id}/calendar.ics`}
           tripId={trip.id}

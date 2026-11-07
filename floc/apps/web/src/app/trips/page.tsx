@@ -194,7 +194,7 @@ function InviteList({ invites }: { invites: PendingInvite[] }) {
             className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-pastel-blue-edge bg-pastel-blue px-4 py-3 text-ink"
           >
             <div className="flex min-w-0 items-center gap-2.5">
-              <Avatar name={invite.fromName} icon={invite.fromAvatarIcon} />
+              <Avatar name={invite.fromName} />
               <div className="min-w-0">
                 <p className="text-sm">
                   <strong>{invite.fromName}</strong> invited you to{" "}

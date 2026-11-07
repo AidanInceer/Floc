@@ -33,7 +33,7 @@ export function MemberRow({
     // Why: a <details> row, not a Menu — the sheet scrolls, and a dropdown inside it is clipped at the edge.
     <details className="group open:bg-sheet-2">
       <summary className={cx(row, "cursor-pointer list-none hover:bg-sheet-2 [&::-webkit-details-marker]:hidden")}>
-        <Avatar name={m.name} icon={m.avatarIcon} size={30} tone={m.tone} />
+        <Avatar name={m.name} size={30} tone={m.tone} />
         <span className="min-w-0 flex-1 truncate text-sm text-ink">
           {m.name}
           {you ? <span className="text-ink-faint"> (you)</span> : null}
@@ -92,7 +92,7 @@ export function InviteeRow({ person, word: status }: { person: PendingInvitee; w
   return (
     <div className={cx(row, "text-ink-faint")}>
       <span className="opacity-60">
-        <Avatar name={person.name} icon={person.avatarIcon} size={30} />
+        <Avatar name={person.name} size={30} />
       </span>
       <span className="min-w-0 flex-1 truncate text-sm">{person.name}</span>
       <span className={word}>{status}</span>
