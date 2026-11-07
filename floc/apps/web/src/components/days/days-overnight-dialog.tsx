@@ -17,8 +17,10 @@ import type { CalendarDay, OvernightPlace } from "@/components/days/days-calenda
 import type { PlaceSearch } from "@/components/days/event-form";
 import type { BandSpan } from "@floc/core/itinerary/overnight-band";
 import { stayNights } from "@floc/core/itinerary/overnight-pick";
-import { stayCheckOut, stayLinks } from "@floc/core/trip/booking-links";
-import { OFFSITE_NOTE, SiteLinks } from "@/components/booking/site-links";
+import { stayCheckOut, stayLinks } from "@floc/core/trip/booking/booking-links";
+import { formatShortRange } from "@floc/core/dates/dates";
+import { OFFSITE_NOTE } from "@/components/booking/site-links";
+import { SitePicker } from "@/components/booking/site-picker";
 
 export function OvernightDialog({
   span,
@@ -44,7 +46,8 @@ export function OvernightDialog({
   const [end, setEnd] = useState(span.end);
   const endCell = useRef<HTMLButtonElement>(null);
   // A long trip scrolls the row; open with the stay's last night in view.
-  useEffect(() => endCell.current?.scrollIntoView({ block: "nearest", inline: "nearest" }), []);
+  // Why: newer Chromium returns a Promise from scrollIntoView, and an effect that returns one crashes the page.
+  useEffect(() => void endCell.current?.scrollIntoView({ block: "nearest", inline: "nearest" }), []);
   const ahead = days.filter((d) => !d.outside && d.date >= span.start);
   const startLabel = ahead[0]?.shortLabel ?? span.start;
   const name = pick ? pick.name : (span.placeName ?? "");
@@ -150,14 +153,12 @@ export function OvernightDialog({
   );
 }
 
-/** Booking links for the stay, centred under the picker (wireframe/modal-forms B3). */
+/** Booking links for the stay, centred under the picker (wireframe/modal-forms B3, booking-sites J). */
 function FindStay(props: { place: string; checkIn: string; checkOut: string; adults: number; prefill: boolean }) {
   return (
     <section className="border-t border-rule bg-sheet-2 px-5 py-3.5 text-center max-sm:px-4">
       <p className="text-sm font-medium">Find a stay in {props.place}</p>
-      <div className="my-2.5 flex justify-center">
-        <SiteLinks links={stayLinks(props)} />
-      </div>
+      <SitePicker kind="stays" links={stayLinks(props)} label={`Find a stay in ${props.place}`} head={`${props.place} · ${formatShortRange(props.checkIn, props.checkOut)}`} drop="up" className="my-2.5 justify-center" />
       <p className="text-[11px] text-ink-faint">{OFFSITE_NOTE}</p>
     </section>
   );

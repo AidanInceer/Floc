@@ -1,30 +1,13 @@
 import { addDays } from "@floc/core/dates/dates";
-import { stayLinks, type BookingLink } from "@floc/core/trip/booking-links";
-import { Linking, Text, View } from "react-native";
+import { stayLinks } from "@floc/core/trip/booking/booking-links";
+import { Text, View } from "react-native";
 
-import { OutGlyph } from "../system/glyphs";
 import { useTheme } from "../system/theme";
-import { Body, Button } from "../system/ui";
+import { Body } from "../system/ui";
+import { SiteLinks } from "./site-links";
 import { fonts, size, space } from "@/lib/theme";
 
 const OFFSITE_NOTE = "Opens another site. Floc isn't paid for these links.";
-
-export function SiteLinks({ links }: { links: BookingLink[] }) {
-  return (
-    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.sm }}>
-      {links.map((l) => (
-        <Button
-          key={l.site}
-          label={l.site}
-          variant="quiet"
-          fit="small"
-          icon={(ink) => <OutGlyph color={ink} />}
-          onPress={() => void Linking.openURL(l.url)}
-        />
-      ))}
-    </View>
-  );
-}
 
 export function OffsiteNote() {
   const { c } = useTheme();
@@ -52,7 +35,7 @@ export function FindAStay({
   return (
     <View style={{ gap: space.sm }}>
       <Body bold>Find a stay</Body>
-      <SiteLinks links={stayLinks({ place, checkIn: start, checkOut: addDays(end, 1), adults, prefill })} />
+      <SiteLinks kind="stays" label={`Find a stay in ${place}`} links={stayLinks({ place, checkIn: start, checkOut: addDays(end, 1), adults, prefill })} />
       <OffsiteNote />
     </View>
   );

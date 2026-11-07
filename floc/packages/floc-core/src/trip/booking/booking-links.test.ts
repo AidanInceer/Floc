@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   bookingPlan,
-  eventFlightUrl,
+  eventFlightLinks,
   flightLinks,
   stayCheckOut,
   stayLinks,
@@ -25,16 +25,16 @@ describe("flightLinks", () => {
     );
   });
 
-  it("still gives both sites with dates only", () => {
+  it("still gives every site with dates only", () => {
     const links = flightLinks({ destination: null, start: "2026-10-14", end: "2026-10-20", prefill: true });
-    expect(links.map((l) => l.site)).toEqual(["Google Flights", "Skyscanner"]);
+    expect(links.map((l) => l.site)).toEqual(["Google Flights", "Skyscanner", "Kayak", "Kiwi.com"]);
     expect(decodeURIComponent(links[0].url)).toContain("Flights on 2026-10-14 returning 2026-10-20");
     expect(links[1].url).toContain("outboundDate=2026-10-14");
   });
 
   it("opens each site's own search, with nothing filled in, without prefill", () => {
     const links = flightLinks({ destination: "Lisbon", start: "2026-10-14", end: "2026-10-20", prefill: false });
-    expect(links.map((l) => l.site)).toEqual(["Google Flights", "Skyscanner"]);
+    expect(links.map((l) => l.site)).toEqual(["Google Flights", "Skyscanner", "Kayak", "Kiwi.com"]);
     for (const { url } of links) {
       expect(new URL(url).search).toBe("");
       expect(url).not.toContain("Lisbon");
@@ -45,8 +45,17 @@ describe("flightLinks", () => {
 describe("stayLinks", () => {
   it("opens each site's own search, with nothing filled in, without prefill", () => {
     const links = stayLinks({ place: "Porto", checkIn: "2026-10-14", checkOut: "2026-10-17", adults: 4, prefill: false });
-    expect(links.map((l) => l.site)).toEqual(["Booking.com", "Trip.com"]);
+    expect(links.map((l) => l.site)).toEqual(["Booking.com", "Trip.com", "Airbnb", "Hotels.com", "Hostelworld"]);
     for (const { url } of links) expect(new URL(url).search).toBe("");
+  });
+
+  it("sends place, dates and head count to Airbnb and Hotels.com", () => {
+    const links = stayLinks({ place: "Porto", checkIn: "2026-10-14", checkOut: "2026-10-17", adults: 4, prefill: true });
+    const airbnb = new URL(links.find((l) => l.site === "Airbnb")!.url);
+    expect(decodeURIComponent(airbnb.pathname)).toContain("/s/Porto/homes");
+    expect([airbnb.searchParams.get("checkin"), airbnb.searchParams.get("checkout"), airbnb.searchParams.get("adults")]).toEqual(["2026-10-14", "2026-10-17", "4"]);
+    const hotels = new URL(links.find((l) => l.site === "Hotels.com")!.url).searchParams;
+    expect([hotels.get("destination"), hotels.get("startDate"), hotels.get("endDate"), hotels.get("adults")]).toEqual(["Porto", "2026-10-14", "2026-10-17", "4"]);
   });
 
   it("sends place, check-in, check-out and head count to both sites", () => {
@@ -70,19 +79,21 @@ describe("stayLinks", () => {
   });
 });
 
-describe("eventFlightUrl", () => {
+describe("eventFlightLinks", () => {
   it("needs both ends", () => {
-    expect(eventFlightUrl({ origin: "", destination: "Rome", date: "2026-10-14", prefill: true })).toBeNull();
+    expect(eventFlightLinks({ origin: "", destination: "Rome", date: "2026-10-14", prefill: true })).toBeNull();
   });
 
-  it("asks Google Flights for the one leg", () => {
-    const url = eventFlightUrl({ origin: "London", destination: "Rome", date: "2026-10-14", prefill: true });
-    expect(decodeURIComponent(url!)).toContain("Flights from London to Rome on 2026-10-14");
+  it("gives every flight site, and asks Google Flights for the one leg", () => {
+    const links = eventFlightLinks({ origin: "London", destination: "Rome", date: "2026-10-14", prefill: true })!;
+    expect(links.map((l) => l.site)).toEqual(["Google Flights", "Skyscanner", "Kayak", "Kiwi.com"]);
+    expect(decodeURIComponent(links[0].url)).toContain("Flights from London to Rome on 2026-10-14");
+    expect(links[1].url).toContain("outboundDate=2026-10-14");
   });
 
-  it("opens Google Flights empty without prefill", () => {
-    const url = eventFlightUrl({ origin: "London", destination: "Rome", date: "2026-10-14", prefill: false });
-    expect(new URL(url!).search).toBe("");
+  it("opens every site empty without prefill", () => {
+    const links = eventFlightLinks({ origin: "London", destination: "Rome", date: "2026-10-14", prefill: false })!;
+    for (const { url } of links) expect(new URL(url).search).toBe("");
   });
 });
 
@@ -109,7 +120,7 @@ describe("bookingPlan", () => {
     });
     const [stop] = plan!.stays as StayRow[];
     const links = [...plan!.flights, ...(stop.kind === "stop" ? stop.links : [])];
-    expect(links).toHaveLength(4);
+    expect(links).toHaveLength(9);
     for (const { url } of links) expect(new URL(url).search).toBe("");
   });
 
@@ -122,7 +133,7 @@ describe("bookingPlan", () => {
       prefill: true,
     });
     expect(plan!.stays).toBe("unset");
-    expect(plan!.flights).toHaveLength(2);
+    expect(plan!.flights).toHaveLength(4);
   });
 
   it("gives one row per stop, checking out the morning after, with gaps named", () => {

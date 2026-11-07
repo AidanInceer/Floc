@@ -22,7 +22,7 @@ import { paintRange } from "@floc/core/dates/calendar-gestures";
 import { dateRange, formatDateRange, nightsBetween, today } from "@floc/core/dates/dates";
 import { datesMoment } from "@floc/core/dates/dates-moment";
 import { forecastTab, groupTab, spanLabel, tripTab, yourDaysTab } from "@floc/core/dates/dates-tabs";
-import { bookingPlan } from "@floc/core/trip/booking-links";
+import { bookingPlan } from "@floc/core/trip/booking/booking-links";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";

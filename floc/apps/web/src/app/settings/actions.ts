@@ -3,12 +3,14 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+import type { BookingSite, BookingSites, SiteKind } from "@floc/core/trip/booking/booking-sites";
 import { VISIBILITIES } from "@/db/schema";
 import type { Visibility } from "@/db/schema";
 import { requireUser } from "@/server/access";
 import { removeCalendarAccess } from "@/server/calendar/calendar-import";
 import { unlinkSignIn } from "@/server/auth/sign-in-methods";
 import { eraseAccount } from "@/server/auth/erase-account";
+import { bookingSitesOf, toggleBookingSite } from "@/server/auth/booking-sites";
 import {
   ensureProfile,
   updateProfileFields,
@@ -86,4 +88,11 @@ export async function removeGoogleCalendar(): Promise<{ error?: string }> {
 
   refresh({ kind: "accountSettings" });
   return {};
+}
+
+/** A tick in a booking-site menu: the rules sit in @floc/core, so an unknown site or kind changes nothing. */
+export async function toggleBookingSiteAction(kind: SiteKind, site: BookingSite): Promise<BookingSites> {
+  const viewer = await requireUser();
+  if (kind !== "flights" && kind !== "stays") return bookingSitesOf(viewer.id);
+  return toggleBookingSite(viewer.id, kind, site);
 }

@@ -3,11 +3,12 @@
  * (CLAUDE.md) — Floc only prefills a search on another site. Only places,
  * dates and a head count go into a URL: never a name or an email.
  */
-import { addDays } from "../dates/dates";
-import { deriveStops, type StopDayInput } from "../itinerary/stops";
-import { hotelFile, type LegFile } from "./overview/legs";
+import { addDays } from "../../dates/dates";
+import { deriveStops, type StopDayInput } from "../../itinerary/stops";
+import type { BookingSite } from "./booking-sites";
+import { hotelFile, type LegFile } from "../overview/legs";
 
-export type BookingSite = "Google Flights" | "Skyscanner" | "Booking.com" | "Trip.com";
+export type { BookingSite } from "./booking-sites";
 
 export type BookingLink = { site: BookingSite; url: string };
 
@@ -36,6 +37,21 @@ const GOOGLE_FLIGHTS = "https://www.google.com/travel/flights";
 
 const googleFlights = (q: string) => `${GOOGLE_FLIGHTS}?q=${encodeURIComponent(q)}`;
 
+// Why: Kayak and Kiwi.com search by airport or their own place ids, which a place has none of, so they open their own search.
+const FLIGHT_HOMES: BookingLink[] = [
+  { site: "Kayak", url: "https://www.kayak.co.uk/flights" },
+  { site: "Kiwi.com", url: "https://www.kiwi.com/en/" },
+];
+const SKYSCANNER_HOME = "https://www.skyscanner.net/flights";
+
+function skyscannerDays(outbound: string, inbound?: string): string {
+  // Why: Skyscanner's prefill wants airport codes, which a place has none of; dates are what it can take.
+  const url = new URL("https://www.skyscanner.net/g/referrals/v1/flights/day-view");
+  url.searchParams.set("outboundDate", outbound);
+  if (inbound) url.searchParams.set("inboundDate", inbound);
+  return url.toString();
+}
+
 /** Filling in the place, dates and head count is Pro (`booking.prefill`); free opens each site's own search. */
 type Prefill = { prefill: boolean };
 
@@ -50,19 +66,13 @@ export function flightLinks({
   end: string;
 } & Prefill): BookingLink[] {
   if (!prefill) {
-    return [
-      { site: "Google Flights", url: GOOGLE_FLIGHTS },
-      { site: "Skyscanner", url: "https://www.skyscanner.net/flights" },
-    ];
+    return [{ site: "Google Flights", url: GOOGLE_FLIGHTS }, { site: "Skyscanner", url: SKYSCANNER_HOME }, ...FLIGHT_HOMES];
   }
   const to = destination ? ` to ${destination}` : "";
-  // Why: Skyscanner's prefill wants airport codes, which a place has none of; dates are what it can take.
-  const skyscanner = new URL("https://www.skyscanner.net/g/referrals/v1/flights/day-view");
-  skyscanner.searchParams.set("outboundDate", start);
-  skyscanner.searchParams.set("inboundDate", end);
   return [
     { site: "Google Flights", url: googleFlights(`Flights${to} on ${start} returning ${end}`) },
-    { site: "Skyscanner", url: skyscanner.toString() },
+    { site: "Skyscanner", url: skyscannerDays(start, end) },
+    ...FLIGHT_HOMES,
   ];
 }
 
@@ -82,6 +92,9 @@ export function stayLinks({
     return [
       { site: "Booking.com", url: "https://www.booking.com/" },
       { site: "Trip.com", url: "https://www.trip.com/hotels/" },
+      { site: "Airbnb", url: "https://www.airbnb.co.uk/" },
+      { site: "Hotels.com", url: "https://uk.hotels.com/" },
+      HOSTELWORLD,
     ];
   }
   const booking = new URL("https://www.booking.com/searchresults.html");
@@ -97,14 +110,31 @@ export function stayLinks({
   trip.searchParams.set("checkout", checkOut.replaceAll("-", "/"));
   trip.searchParams.set("adult", String(adults));
 
+  const airbnb = new URL(`https://www.airbnb.co.uk/s/${encodeURIComponent(place)}/homes`);
+  airbnb.searchParams.set("checkin", checkIn);
+  airbnb.searchParams.set("checkout", checkOut);
+  airbnb.searchParams.set("adults", String(adults));
+
+  const hotels = new URL("https://uk.hotels.com/Hotel-Search");
+  hotels.searchParams.set("destination", place);
+  hotels.searchParams.set("startDate", checkIn);
+  hotels.searchParams.set("endDate", checkOut);
+  hotels.searchParams.set("adults", String(adults));
+
   return [
     { site: "Booking.com", url: booking.toString() },
     { site: "Trip.com", url: trip.toString() },
+    { site: "Airbnb", url: airbnb.toString() },
+    { site: "Hotels.com", url: hotels.toString() },
+    HOSTELWORLD,
   ];
 }
 
-/** One flight leg on a transport event (ticket 10). */
-export function eventFlightUrl({
+// Why: Hostelworld searches by its own city ids, which a place has none of, so it opens its own search.
+const HOSTELWORLD: BookingLink = { site: "Hostelworld", url: "https://www.hostelworld.com/" };
+
+/** One flight leg on a transport event (ticket 10), on every flight site. */
+export function eventFlightLinks({
   origin,
   destination,
   date,
@@ -113,10 +143,14 @@ export function eventFlightUrl({
   origin: string;
   destination: string;
   date: string;
-} & Prefill): string | null {
+} & Prefill): BookingLink[] | null {
   if (!origin || !destination) return null;
-  if (!prefill) return GOOGLE_FLIGHTS;
-  return googleFlights(`Flights from ${origin} to ${destination} on ${date}`);
+  if (!prefill) return [{ site: "Google Flights", url: GOOGLE_FLIGHTS }, { site: "Skyscanner", url: SKYSCANNER_HOME }, ...FLIGHT_HOMES];
+  return [
+    { site: "Google Flights", url: googleFlights(`Flights from ${origin} to ${destination} on ${date}`) },
+    { site: "Skyscanner", url: skyscannerDays(date) },
+    ...FLIGHT_HOMES,
+  ];
 }
 
 /** Check-out after a stay's last day: the morning after, unless that day is the trip's last, the day home (rule 3). */

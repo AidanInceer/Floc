@@ -417,6 +417,22 @@ export function Menu({
     return () => panel.removeEventListener("close", onClose, true);
   }, [open]);
 
+  // Why: a menu by a button near the screen edge on a phone would spill off it; slide it back in, and again when it changes width.
+  useIsoLayoutEffect(() => {
+    const panel = panelRef.current;
+    if (!open || !panel) return;
+    const fit = () => {
+      panel.style.translate = "";
+      const r = panel.getBoundingClientRect();
+      const shift = r.left < 8 ? 8 - r.left : r.right > window.innerWidth - 8 ? window.innerWidth - 8 - r.right : 0;
+      if (shift) panel.style.translate = `${Math.round(shift)}px 0`;
+    };
+    fit();
+    const watch = new ResizeObserver(fit);
+    watch.observe(panel);
+    return () => watch.disconnect();
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
     // Otherwise the keyboard stays on the trigger and the first Tab leaves the panel.
