@@ -1,24 +1,6 @@
 /**
- * The two ways onto a trip, on the group itself (#no-ticket).
- *
- * SAME TWO THE WEB HAS, SAME PLACE. `overview-group.tsx` puts "Invite friends"
- * and "Share trip" under "The group" heading, and says why sharing is not in
- * the trip menu: one job, one door. The phone had them behind a glyph in the
- * header, which was a second door and the less findable one — so the glyph
- * went and these arrived where the people are listed.
- *
- * SHARE IS THE SYSTEM SHEET, NOT A COPY BUTTON. A browser has nowhere to send
- * a link, so the web copies it. A phone has WhatsApp, Messages and everything
- * else one tap away, and asking someone to copy and then go and find the app
- * is a browser's habit on a device that does not need it.
- *
- * ANY MEMBER (#312). Inviting is not an admin power. Resetting the link is
- * (#358), so it lives in the trip's sheet beside archive and delete.
- *
- * SHAPED LIKE THE WEB'S. Two controls sized to their words, secondary then
- * primary, with a rule under them and the people below it — the panel reads
- * the same on both. Half-width halves made two rare controls the heaviest
- * thing on the card.
+ * Why two named doors: "Share trip" and "Invite friends" read as one job. The link goes anywhere
+ * through the system sheet; the friends list adds people already on Floc. Any member may do both (#312).
  */
 import { Share, View } from "react-native";
 
@@ -40,13 +22,13 @@ export function GroupActions({
         style={{
           flexDirection: "row",
           flexWrap: "wrap",
-          justifyContent: "center",
+          justifyContent: "flex-start",
           gap: space.sm,
         }}
       >
-        <Button label="Invite friends" variant="quiet" fit="small" onPress={onInvite} />
         <Button
           label="Share trip"
+          variant="quiet"
           fit="small"
           icon={(ink) => <ShareGlyph color={ink} />}
           disabled={link === null}
@@ -54,6 +36,7 @@ export function GroupActions({
             if (link) void Share.share({ message: link });
           }}
         />
+        <Button label="Invite friends" variant="quiet" fit="small" onPress={onInvite} />
       </View>
       <Divider />
     </View>

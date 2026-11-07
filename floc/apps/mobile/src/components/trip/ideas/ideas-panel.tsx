@@ -10,7 +10,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 
 import { ChevronGlyph, CrossGlyph, Seat } from "../../system/glyphs";
 import { useTheme } from "../../system/theme";
-import { Body, Card, IconButton, Label, Segmented } from "../../system/ui";
+import { Body, Card, IconButton, Label, Segmented, SectionTitle } from "../../system/ui";
 import { VotePill } from "./vote-pill";
 import { radius, space } from "@/lib/theme";
 
@@ -47,7 +47,7 @@ export function IdeasPanel({
         onPress={onToggle}
         style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}
       >
-        <Label>Ideas</Label>
+        <SectionTitle>Ideas</SectionTitle>
         {ideas.length > 0 ? <Label>{ideas.length}</Label> : null}
         <View style={{ flex: 1 }} />
         <View style={open ? undefined : { transform: [{ rotate: "-90deg" }] }}>

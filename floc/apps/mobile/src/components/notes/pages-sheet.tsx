@@ -17,7 +17,7 @@ import { InlineRename } from "@/components/system/inline-rename";
 import { MoreGlyph, PlusGlyph } from "@/components/system/glyphs";
 import { Sheet } from "@/components/system/sheet";
 import { useTheme } from "@/components/system/theme";
-import { Body, Button, IconButton, Label } from "@/components/system/ui";
+import { Body, Button, IconButton, SectionTitle } from "@/components/system/ui";
 import { radius, space } from "@/lib/theme";
 
 export type SheetActions = {
@@ -119,7 +119,7 @@ function Archived({ pages, onRestore }: { pages: ArchivedNotesPage[]; onRestore:
   const now = new Date();
   return (
     <View style={{ gap: space.sm, paddingTop: space.md }}>
-      <Label>Archived</Label>
+      <SectionTitle>Archived</SectionTitle>
       {pages.map((page) => {
         const left = archiveDaysLeft(new Date(page.archivedAt), now);
         return (
@@ -151,7 +151,7 @@ export function PagesSheet({ open, onClose, pages, archived, openId, byPage, err
   return (
     <Sheet open={open} onClose={onClose}>
       <View style={{ paddingHorizontal: space.lg, gap: space.xs }}>
-        <Label>Pages</Label>
+        <SectionTitle>Pages</SectionTitle>
         {pages.map((page) => {
           const kids = pages.filter((p) => p.parentId === page.id).length;
           return (

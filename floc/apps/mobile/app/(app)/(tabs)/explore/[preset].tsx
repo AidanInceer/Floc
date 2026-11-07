@@ -19,14 +19,15 @@ import { PRESET_TRIPS, type PresetTrip } from "@floc/core/trip/explore/preset-tr
 import { useMutation } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { ScrollView, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { CopySheet } from "@/components/explore/copy-sheet";
 import { PresetRoute } from "@/components/packing/preset-route";
 import { RouteMapFrame } from "@/components/map/route-map";
-import { Body, Button, Card, Empty, Figure, Label, Pill } from "@/components/system/ui";
+import { Body, Button, Card, Empty, Figure, Pill, SectionTitle } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
-import { space } from "@/lib/theme";
+import { fonts, size, space } from "@/lib/theme";
+import { useTheme } from "@/components/system/theme";
 import { listingPrice } from "@floc/core/trip/explore/listing-price";
 import { useListingRates } from "@/components/explore/use-listing-rates";
 
@@ -36,6 +37,7 @@ function bases(trip: PresetTrip) {
 }
 
 export default function PresetDetail() {
+  const { c } = useTheme();
   const { preset } = useLocalSearchParams<{ preset: string }>();
   const router = useRouter();
   const trip = PRESET_TRIPS.find((candidate) => candidate.id === preset);
@@ -75,7 +77,7 @@ export default function PresetDetail() {
         </View>
 
         <View style={{ gap: space.sm }}>
-          <Label>The shape of it</Label>
+          <SectionTitle>The shape of it</SectionTitle>
           <Card>
             {/* The map above the written route, not instead of it: the shape
                 says how long you sleep where, which no pin can carry. */}
@@ -87,7 +89,7 @@ export default function PresetDetail() {
         </View>
 
         <View style={{ gap: space.sm }}>
-          <Label>What you would do</Label>
+          <SectionTitle>What you would do</SectionTitle>
           <Card>
             {trip.highlights.map((highlight) => (
               <Body key={highlight}>{highlight}</Body>
@@ -98,7 +100,7 @@ export default function PresetDetail() {
         {/* The three numbers that decide it, together rather than scattered
             through a paragraph. */}
         <View style={{ gap: space.sm }}>
-          <Label>The numbers</Label>
+          <SectionTitle>The numbers</SectionTitle>
           <Card>
             <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
               <Body tone="ink-2">Nights</Body>
@@ -112,22 +114,27 @@ export default function PresetDetail() {
               <Body tone="ink-2">From</Body>
               <Figure>{listingPrice(trip, rates)}</Figure>
             </View>
-            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+            {/* Why: a long list of months ran off the screen as one unwrapped figure. */}
+            <View style={{ flexDirection: "row", justifyContent: "space-between", gap: space.md }}>
               <Body tone="ink-2">Best months</Body>
-              <Figure>{trip.bestMonths}</Figure>
+              <Text style={{ flexShrink: 1, textAlign: "right", color: c.ink, fontFamily: fonts.sans, fontSize: size.body }}>
+                {trip.bestMonths}
+              </Text>
             </View>
           </Card>
         </View>
 
         <View style={{ gap: space.sm }}>
-          <Button label="Start this trip" onPress={() => setSheet(true)} />
-          {/* What starting actually does is the one thing the button cannot say. */}
+          {/* Why: what starting does is the one thing the pinned button cannot say. */}
           <Body tone="ink-3">
             This copies the shape into a trip of your own. Nothing is booked and no operator here is
             a partner — the price is what a group of this size tends to spend.
           </Body>
         </View>
       </ScrollView>
+      <View style={{ padding: space.lg, paddingTop: space.sm, backgroundColor: c.paper, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.rule }}>
+        <Button label="Start this trip" onPress={() => setSheet(true)} />
+      </View>
       <CopySheet
         trip={trip}
         open={sheet}

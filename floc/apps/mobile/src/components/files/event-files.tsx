@@ -28,7 +28,7 @@ import { AddFile } from "./add-file";
 import { useTheme } from "../system/theme";
 import { Sheet } from "../system/sheet";
 import { CrossGlyph } from "../system/glyphs";
-import { Body, Button, Failed, Figure, IconButton, Label, Loading, Pill } from "../system/ui";
+import { Body, Button, Failed, Figure, IconButton, Loading, Pill, SectionTitle } from "../system/ui";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 
@@ -73,7 +73,7 @@ export function EventFiles({ tripId, dayEventId }: { tripId: number; dayEventId:
 
   return (
     <View style={{ gap: space.sm }}>
-      <Label>Files</Label>
+      <SectionTitle>Files</SectionTitle>
 
       {here.length === 0 ? (
         <Body tone="ink-3">Nothing attached yet — tickets and bookings for this go here.</Body>
@@ -145,7 +145,7 @@ export function EventFiles({ tripId, dayEventId }: { tripId: number; dayEventId:
 
       <Sheet open={linking} onClose={() => setLinking(false)}>
         <View style={{ paddingHorizontal: space.lg, gap: space.sm }}>
-          <Label>Already on this trip</Label>
+          <SectionTitle>Already on this trip</SectionTitle>
           {loose.map((file) => (
             <Button
               key={file.id}

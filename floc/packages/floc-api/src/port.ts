@@ -32,6 +32,7 @@ import type { Comment } from "./port-comment";
 import type { ExplorePort } from "./port-explore";
 import type { PagesPort } from "./port-pages";
 import type { RoutePort } from "./port-route";
+import type { TripSummary } from "./port-trips";
 
 export type { Currency, DayEventType, DocCategory, ExpenseCategory, ReactionKind, SplitType, TransportType };
 
@@ -47,21 +48,7 @@ export type Viewer = {
   image: string | null;
 };
 
-export type TripSummary = {
-  id: number;
-  name: string;
-  startDate: string | null;
-  endDate: string | null;
-  tags: string[] | null;
-  colorKey: string | null;
-  /** The chosen mark, or null for the pastel alone (#318). Never a URL. */
-  mark: string | null;
-  role: TripRole;
-  /** The viewer's own star — never another member's. */
-  starred: boolean;
-  /** The viewer's own mute: no push or email from this trip (#346). */
-  muted: boolean;
-};
+export type { TripFace, TripSummary } from "./port-trips";
 
 export type TripMember = {
   userId: string;
@@ -484,7 +471,6 @@ export type PackingBoard = {
   plan: PackingPlanSummary;
 };
 
-/* ------------------------------------------------------------ the social half */
 
 /**
  * Where a friendship stands, from the viewer's end (ticket 96).
@@ -670,15 +656,7 @@ export type FlocPort = {
     packed: boolean,
   ): Promise<void>;
 
-  /**
-   * Nudges a personal line's count by one. Only your own bag has counts — a
-   * shared line is one thing the group brings, and "three tents" is three
-   * lines somebody has to claim separately.
-   *
-   * A delta, not a number, on purpose: the host clamps and adds in SQL, so two
-   * quick taps are two additions rather than the slower one overwriting the
-   * faster with a stale total.
-   */
+  /** Why: a delta, not a number — the host adds in SQL, so two quick taps are two additions, not a stale overwrite. */
   stepPackingQuantity(
     viewerId: string,
     tripId: number,
@@ -998,7 +976,6 @@ export type FlocPort = {
     input: EventInput,
   ): Promise<void>;
 
-  /* ---------------------------------------------------------- files (#239) */
 
   /**
    * Puts a file on the trip. Returns the refusal in the words a form shows, or
@@ -1103,7 +1080,6 @@ export type FlocPort = {
   /** Any member may remove any idea: it is the group's, and this is not a fourth admin power (rule 6). */
   removeIdea(viewerId: string, tripId: number, ideaId: number): Promise<void>;
 
-  /* --------------------------------------------------------- friends (#18) */
 
   /** All three lists in one read; the screen draws all three, and asking thrice is three round trips. */
   loadFriends(viewerId: string): Promise<FriendsBoard>;
@@ -1129,7 +1105,6 @@ export type FlocPort = {
 
   removeFriend(viewerId: string, otherId: string): Promise<void>;
 
-  /* -------------------------------------------------- other profiles (#46) */
 
   /**
    * Somebody else's profile. Null for a stranger AND for an id that does not
@@ -1138,7 +1113,6 @@ export type FlocPort = {
    */
   loadProfileOf(viewerId: string, userId: string): Promise<PublicProfileView | null>;
 
-  /* ------------------------------------------------------- invites (#146) */
 
   /** The link, who has been asked, and who is left to ask. Admin-only on the host (rule 6). */
   loadTripInvites(viewerId: string, tripId: number): Promise<TripInvites>;

@@ -19,7 +19,7 @@ import { Alert, Pressable, ScrollView, View } from "react-native";
 
 import { Seat } from "@/components/system/glyphs";
 import { useTheme } from "@/components/system/theme";
-import { Body, Button, Card, Failed, Label, Loading, Pill } from "@/components/system/ui";
+import { Body, Button, Card, Failed, Loading, Pill, SectionTitle } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 import { space } from "@/lib/theme";
@@ -59,7 +59,7 @@ export default function Roster() {
   return (
     <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }}>
       <View style={{ gap: space.sm }}>
-        <Label>On this trip</Label>
+        <SectionTitle>On this trip</SectionTitle>
         {trip.data.members.map((m) => {
           const tone = whoTone(m.name);
           return (

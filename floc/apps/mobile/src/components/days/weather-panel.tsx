@@ -8,7 +8,7 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { WeatherGlyph } from "../system/glyphs";
 import { useTheme } from "../system/theme";
-import { Body, Button, Figure, Label } from "../system/ui";
+import { Body, Button, Figure, Label, SectionTitle } from "../system/ui";
 import { HourlyCurve, type HourlyPoint } from "./hourly-curve";
 import { fonts, radius, size, space } from "@/lib/theme";
 import type { TokenName } from "@floc/core/design/tokens";
@@ -85,7 +85,7 @@ export function WeatherPanel({
 export function WeatherLocked({ onSeePro }: { onSeePro: () => void }) {
   return (
     <View style={{ gap: space.sm }}>
-      <Label>Weather</Label>
+      <SectionTitle>Weather</SectionTitle>
       <Body tone="ink-2">
         The forecast on your dates is part of Floc Pro. One person on the trip with Pro is enough.
       </Body>

@@ -32,6 +32,8 @@ export default function TabsLayout() {
   const inTrip = usePathname().startsWith("/trip/");
   return (
     <Tabs
+      // Why: the default sends Android Back to the first tab, so Back out of a trip landed on Explore.
+      backBehavior="history"
       screenOptions={{
         headerRight: () => <Bell />,
         headerStyle: { backgroundColor: c.sheet },

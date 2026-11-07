@@ -64,6 +64,20 @@ describe("who can see a trip (rule 5)", () => {
   });
 });
 
+describe("the trip list card", () => {
+  it("carries the faces on each trip, so the phone card can show the group", async () => {
+    const [ours] = await webPort.listTrips(world.member, { archived: false });
+    expect(ours.members.map((m) => m.name).sort()).toEqual(["Ada", "Mo"]);
+    expect(ours.members[0]).toEqual(expect.objectContaining({ tone: expect.any(String) }));
+  });
+
+  it("says a trip with no dates and nowhere to stay needs you, as the web card does", async () => {
+    const [ours] = await webPort.listTrips(world.member, { archived: false });
+    expect(ours.needsYou).toBe(true);
+    expect(ours.where).toBeNull();
+  });
+});
+
 describe("starring a trip", () => {
   it("stars it for the viewer alone", async () => {
     await webPort.setTripStarred(world.member, world.ours.id, true);
