@@ -80,6 +80,13 @@ export function ActionForm({
   );
 }
 
+/** In flight for the form around it, whether it posts as a form action or through `keepAnswers`. */
+export function useFormPending(): boolean {
+  const status = useFormStatus();
+  const posting = useContext(FormPendingContext);
+  return status.pending || posting;
+}
+
 /** Disables itself while its parent server action is in flight. */
 export function SubmitButton({
   children,
@@ -95,9 +102,7 @@ export function SubmitButton({
   /** Verb stays shown but not always available (ticket 133). */
   disabled?: boolean;
 }) {
-  const status = useFormStatus();
-  const posting = useContext(FormPendingContext);
-  const pending = status.pending || posting;
+  const pending = useFormPending();
   return (
     <Button
       type="submit"

@@ -15,6 +15,8 @@ export type Comment = {
   createdBy: string;
   authorName: string;
   authorAvatarIcon: AvatarIcon | null;
+  /** The author's trip colour (`who-1`…`who-8`), so a face is one colour on web and phone. */
+  authorTone?: string;
   reactions: Record<ReactionKind, { count: number; mine: boolean }>;
   replies: Comment[];
 };
