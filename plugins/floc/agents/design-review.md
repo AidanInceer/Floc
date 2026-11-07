@@ -16,9 +16,9 @@ it looks like.
 
 ## Read first
 
-1. [The design card](../../../.claude/rules/design.md) — every rule a screen must pass.
-2. The sections of [visual language](../../../docs/design/visual-language.html)
-   and [approach](../../../docs/design/index.html) the change touches. Canonical docs are tracked; missing pages are a checkout error.
+1. [The design card](.claude/rules/design.md) — every rule a screen must pass.
+2. The sections of [visual language](docs/design/visual-language.html)
+   and [approach](docs/design/index.html) the change touches. Canonical docs are tracked; missing pages are a checkout error.
 3. `git diff` (and `git diff --cached`) for the files that changed. Read the
    house components it uses or skips (`components/system/ui.tsx`,
    `client-ui.tsx`; phone `src/components/system/ui.tsx`, `glyphs.tsx`).

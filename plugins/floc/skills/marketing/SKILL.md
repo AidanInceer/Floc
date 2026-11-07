@@ -7,7 +7,7 @@ In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
 
 # marketing
 
-A post is iterated in `floc/marketing/studio/` like a wireframe, then rendered into `content/` and posted by the marketing commands. The studio is for choosing; the commands are for shipping. Marketing rules: [README](../../../../floc/marketing/README.md).
+A post is iterated in `floc/marketing/studio/` like a wireframe, then rendered into `content/` and posted by the marketing commands. The studio is for choosing; the commands are for shipping. Marketing rules: [README](floc/marketing/README.md).
 
 ## Where things are
 
@@ -22,7 +22,7 @@ The studio runs with `preview_start` name `marketing-studio` (http://localhost:4
 
 ## 1. Read first
 
-- [Mission and values](../../../../docs/foundation/mission.html) and [visual language](../../../../docs/design/visual-language.html). A post says what Floc is; it never claims what Floc does not do.
+- [Mission and values](docs/foundation/mission.html) and [visual language](docs/design/visual-language.html). A post says what Floc is; it never claims what Floc does not do.
 - `src/facts.ts`: the only prices a post may quote. Check `server/billing/billing.ts` if a price is in doubt.
 - Each existing variant of the post, and its `review.json`.
 

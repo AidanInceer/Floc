@@ -17,9 +17,9 @@ Not this skill: the user lists what *they* saw → `/floc:feedback`. Code struct
 
 Before you open a page, read what the site is measured against:
 
-- [Mission and values](../../../../docs/foundation/mission.html) — the values, and
+- [Mission and values](docs/foundation/mission.html) — the values, and
   "What we still have to prove".
-- [Decision log](../../../../docs/foundation/decisions.html) — ADR titles, and the
+- [Decision log](docs/foundation/decisions.html) — ADR titles, and the
   body of any ADR a finding touches.
 - `AGENTS.md` — the Invariants and the UI and UX rules.
 - The open backlog: `gh issue list --state open --limit 150 --json number,title,labels`.

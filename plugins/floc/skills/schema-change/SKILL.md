@@ -14,8 +14,12 @@ docs lie.
 
 ## 1. Check it against the invariants
 
+Ask Aidan first, every time: say what changes in the data model and why, and
+wait for a yes before you touch `schema.ts`. Name the change again in the push
+and release reports.
+
 Read "Data model shape" in
-[architecture](../../../../docs/engineering/index.html). Refuse, or
+[architecture](docs/engineering/index.html). Refuse, or
 ask, before you add:
 
 - a `stop` table or a lifecycle/status column — both are derived from data;
@@ -74,12 +78,12 @@ step 3 usually means the migration and `schema.ts` disagree.
 
 ## 6. Update the docs
 
-- [ERD](../../../../docs/engineering/data-model.html): the table's block,
+- [ERD](docs/engineering/data-model.html): the table's block,
   its relationships, a line in the cardinality table, and a row in
   "Tables by feature" (`id="table-<name>"`, linked to its feature) for a new table.
 - The feature page's *Built on* (`docs/product/<feature>/index.html`).
 - "Data model shape" in
-  [architecture](../../../../docs/engineering/index.html) if the new
+  [architecture](docs/engineering/index.html) if the new
   table is one a reader needs to see.
 - `pnpm docs:check` — it fails on a table missing from the ERD or from "Tables by feature".
 
