@@ -27,7 +27,9 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - Three faces: display (Bricolage Grotesque) for headings, sans (Instrument Sans) for prose and controls, mono (DM Mono) for every figure, date and label. Never money or dates in the display face.
 - A file's colour is its category — travel blue, hotel green, tickets yellow, admin red, other grey — the same on Files, the Overview and Dates. `DOC_CATEGORY_SKINS` and `DOC_CATEGORY_CHIPS` in `@floc/core` are the only source.
 - Status always has a word. Never colour or an icon alone. One exception: a stop's hotel ribbon on the Overview has no visible word; the file chip beside it names the booking, and its title and label say Booked.
-- Light and dark use the same token names. No `dark:` variant, no hex literal ✓.
+- Light and dark use the same token names. No `dark:` variant, no hex literal ✓. Values live in `@floc/core/design/tokens`. The theme choice lives in `localStorage`, never in a column.
+- The wordmark is **floc.** with a pen-blue dot, drawn only by `components/system/wordmark.tsx` and the invite OG card.
+- An outside UI library only where building it would take months, and only if it takes our tokens, type and no-emoji rules.
 
 ## Shape, depth and motion
 

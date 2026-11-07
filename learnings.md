@@ -1,10 +1,12 @@
 # learnings.md — pitfalls that have bitten
 
-Read before editing. Only traps not already a rule in [`AGENTS.md`](AGENTS.md) live here; rule numbers refer to its Invariants. Mobile pitfalls live in [`.claude/rules/mobile.md`](.claude/rules/mobile.md).
+Read before editing. Only traps not already a rule in [`AGENTS.md`](AGENTS.md) live here; `rule n` is ADR-00n in the [decision log](docs/foundation/decisions.html). Mobile pitfalls live in [`.claude/rules/mobile.md`](.claude/rules/mobile.md).
 
 ## Repo and tooling
 
 - **Skipping `AGENTS.md`.** It holds the real rules. `CLAUDE.md` only imports it. Folder rules sit in `.claude/rules/`, which it links.
+- **A bare `build` or `fitness` with `next dev` up.** Both write `.next`, which dev owns. Stop the servers first (`preview_list`, not `ps`), or use `pnpm verify`, which builds into `.next-verify`. Poisoned `.next` or OneDrive `EINVAL: readlink`: `pnpm --filter floc-web run clean:next`, the one delete an agent may run.
+- **Running a bin from an app folder.** pnpm hoists to the root `node_modules`; an app folder has no `node_modules/.bin`. Use `pnpm --filter <app> exec`.
 - **Looking for a `.md` source of a doc page.** The HTML *is* the doc — edit it.
 - **A `docs/` page with no `TREE` entry in `assets/nav.js`.** It is unreachable.
 - **`fetch` or ES modules in a docs page.** Both break on `file://`. Use `<script src>`.
