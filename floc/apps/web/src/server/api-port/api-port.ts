@@ -35,7 +35,7 @@ import { copyListing } from "@/server/explore/listing-copy";
 import { saveTrip } from "@/server/trips/trip-save";
 
 import { assertAdmin, findTripAccess, type TripAccess } from "@/server/access";
-import { listTripCards } from "./trip-list";
+import { listTripCards } from "@/server/trips/trip-cards";
 import { scoped } from "@/server/api-port/api-port-scope";
 // The account, map and saved-list halves live in their own files — this one is
 // the trip half, and a file whose name needs "and" is two files.
