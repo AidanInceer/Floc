@@ -70,11 +70,11 @@ against the old routes.
 
 - A native module or config change means the next phone release is an EAS
   Build and store review, not an EAS Update — see
-  [`SHIPPING.md`](../../../../floc/apps/mobile/SHIPPING.md). Say so in the
+  [`SHIPPING.md`](floc/apps/mobile/SHIPPING.md). Say so in the
   report.
 - A new outside service or permission → the
-  [multi-platform](../../../../docs/engineering/platforms.html) page and,
-  if it touches personal data, [security](../../../../docs/engineering/security.html).
+  [multi-platform](docs/engineering/platforms.html) page and,
+  if it touches personal data, [security](docs/engineering/security.html).
 
 ## Failures that look worse than they are
 

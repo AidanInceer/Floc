@@ -20,12 +20,10 @@ The two branches produce very different artifacts — getting this wrong wastes 
 
 ## Rules that apply to both
 
-1. **Throwaway from day one, and clearly marked as such.** Locate the prototype code close to where it will actually be used (next to the module or page it's prototyping for) so context is obvious — but name it so a casual reader can see it's a prototype, not production. For throwaway UI routes, obey whatever routing convention the project already uses; don't invent a new top-level structure.
-2. **One command to run.** Whatever the project's existing task runner supports — `pnpm <name>`, `python <path>`, `bun <path>`, etc. The user must be able to start it without thinking.
-3. **No persistence by default.** State lives in memory. Persistence is the thing the prototype is _checking_, not something it should depend on. If the question explicitly involves a database, hit a scratch DB or a local file with a clear "PROTOTYPE — wipe me" name.
-4. **Skip the polish.** No tests, no error handling beyond what makes the prototype _runnable_, no abstractions. The point is to learn something fast.
-5. **Surface the state.** After every action (logic) or on every variant switch (UI), print or render the full relevant state so the user can see what changed.
-6. **Capture it when done.** Fold any validated decision into the real code. Capture the answer — the verdict and the question it settled — on the issue. The prototype itself stays out of git (see In Floc).
+1. **No persistence by default.** State lives in memory. Persistence is the thing the prototype is _checking_, not something it should depend on. If the question explicitly involves a database, hit a scratch DB or a local file with a clear "PROTOTYPE — wipe me" name.
+2. **Skip the polish.** No tests, no error handling beyond what makes the prototype _runnable_, no abstractions. The point is to learn something fast.
+3. **Surface the state.** After every action (logic) or on every variant switch (UI), print or render the full relevant state so the user can see what changed.
+4. **Capture it when done.** Fold any validated decision into the real code. Capture the answer — the verdict and the question it settled — on the issue. The prototype itself stays out of git (see In Floc).
 
 ## In Floc
 
@@ -75,7 +73,7 @@ These override the generic rules above where they differ. The biggest one: **a p
   - Controls stay in reach, for example a sticky stepper.
 
   Shoot both widths, in light and dark. A variant that fails at 375 is not done.
-- **UI, phone app.** Draw the phone as a 390×844 frame on the same page, when the question is phone-specific. Otherwise the web answer carries over through the [visual language](../../../../docs/design/visual-language.html).
+- **UI, phone app.** Draw the phone as a 390×844 frame on the same page, when the question is phone-specific. Otherwise the web answer carries over through the [visual language](docs/design/visual-language.html).
 - **Logic.** A TUI in `floc/wireframe/<issue>-<slug>/tui.ts`, run with `node <file>.ts`. It may import pure modules from `@floc/core` by relative path; it never writes them.
 - **Hand it over with proof.** Screenshot with Playwright, not the browser pane (the pane is too small, and its screenshots time out). Do not write a shoot script. From the repo root: `pnpm wireframe:shoot "/<folder>/?variant=A" floc/wireframe/<folder>/_shots/A-1280.png [light|dark] [width] [height] [full]`. Set `STEPS="click:<sel>;;hover:<sel>;;wait:300"` for the moment that matters, and `CLEAN=1` to hide the wireframe's own panels. It prints page errors and sideways overflow; report both. Send light and dark with `SendUserFile`, plus the moment that matters (mid-animation, a narrow width). Give the user the URL with `?variant=`.
 - **Capture the verdict on the ticket.** Add `## Prototype verdict` to the issue body: the question, the answer, why, and the folder name. Remove the `wayfinder:prototype` label. The folder stays on the user's disk as the source; `/floc:implement-feature` rebuilds the answer properly, test-first. Open decisions left → `/floc:grill`.
@@ -84,7 +82,7 @@ These override the generic rules above where they differ. The biggest one: **a p
 
 What has worked, round by round, on the landing wireframes:
 
-1. **Round 1: the number asked for, else 3–6.** Keys `A`, `B`, `C`… Each is structurally different, not a recolour. Read what the user likes on neighbouring bands or pages first, and name it: a new band must sit beside them. Show the neighbours as ghost sections ("Above: … — unchanged") so it is never judged alone. Read the [design card](../../../../.claude/rules/design.md) first; start close to the current design unless asked to be bold. For a visual brief, `frontend-design` may help with craft, but the card and the visual language win over its defaults.
+1. **Round 1: the number asked for, else 3–6.** Keys `A`, `B`, `C`… Each is structurally different, not a recolour. Read what the user likes on neighbouring bands or pages first, and name it: a new band must sit beside them. Show the neighbours as ghost sections ("Above: … — unchanged") so it is never judged alone. Read the [design card](.claude/rules/design.md) first; start close to the current design unless asked to be bold. For a visual brief, `frontend-design` may help with craft, but the card and the visual language win over its defaults.
 2. **Real content.** Copy real data into the file: listings from `@floc/core` (preset trips, prices, stops), tokens through `house.css`. Invent only what the product does not hold yet.
 3. **Feedback round.** The user ranks the options ("A for simple, D I really like, F no"). Keep every variant; add the new ones after them (`G`, `H`, `I`), including any merge asked for ("D with B's bar"). Update `description` to the new count.
 4. **Refine the pick in place.** A change to one variant → a suffixed variant beside it (`G2`), so the original stays to compare. Later rounds edit `G2` itself.

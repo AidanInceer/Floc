@@ -32,8 +32,8 @@ the emulator; if it cannot be started, say so on the first line of the report.
 
 ## 3. Read before you build
 
-Read [mission and values](../../../../docs/foundation/mission.html) and the
-[decision log](../../../../docs/foundation/decisions.html) first: what Floc is for and
+Read [mission and values](docs/foundation/mission.html) and the
+[decision log](docs/foundation/decisions.html) first: what Floc is for and
 what is already decided. Then the parts of `AGENTS.md`, the relevant `docs/` pages (architecture,
 access, the feature's domain page, visual language) and existing code that the
 feature touches. Respect the **Invariants** — integer money, soft-delete,
@@ -68,7 +68,7 @@ Capture each screen the feature touches, into the scratchpad, never the repo:
 - App — `"$ANDROID_HOME/platform-tools/adb.exe" exec-out screencap -p > shot.png`.
 - The chosen mockup, if the work came from one, at the same widths.
 
-Check them yourself against the [design card](../../../../.claude/rules/design.md),
+Check them yourself against the [design card](.claude/rules/design.md),
 run `pnpm design:check`, then start the `floc:design-review` agent with the
 changed screens and the screenshot paths. Fix every finding and review again
 until it comes back clean. A correction the card does not cover goes into the
