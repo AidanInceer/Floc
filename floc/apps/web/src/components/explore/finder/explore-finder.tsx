@@ -11,7 +11,6 @@ import { rememberFinder } from "@/app/explore/actions";
 import { FinderBar, SortPicker } from "@/components/explore/finder/finder-bar";
 import { FinderRail } from "@/components/explore/finder/finder-rail";
 import { FinderResults } from "@/components/explore/finder/finder-results";
-import { TripPassDialog } from "@/components/explore/finder/trip-pass-dialog";
 import { Dialog } from "@/components/system/dialog";
 import { LineIcon } from "@/components/system/icons";
 import { Button } from "@/components/system/ui";
@@ -30,7 +29,6 @@ export function ExploreFinder({ signedIn, initialFinder }: { signedIn: boolean; 
   const [sort, setSort] = useState<FinderSort>("match");
   const [like, setLike] = useState<string | null>(null);
   const [sheet, setSheet] = useState(false);
-  const [open, setOpen] = useState<string | null>(null);
   const top = useRef<HTMLDivElement>(null);
   const pendingSave = useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -86,7 +84,7 @@ export function ExploreFinder({ signedIn, initialFinder }: { signedIn: boolean; 
         </aside>
         <div ref={top} className="scroll-mt-20">
           <FinderBar shown={rows.length} set={finderPills(finder, rates).length + finder.likes.length} pills={pills} onOpen={() => setSheet(true)} />
-          <FinderResults rows={rows} likes={finder.likes} split={sort === "match" && !like && finder.likes.length > 0} signedIn={signedIn} onPick={setOpen} onLike={moreLike} />
+          <FinderResults rows={rows} likes={finder.likes} split={sort === "match" && !like && finder.likes.length > 0} signedIn={signedIn} onLike={moreLike} />
         </div>
       </div>
 
@@ -100,7 +98,6 @@ export function ExploreFinder({ signedIn, initialFinder }: { signedIn: boolean; 
           </Button>
         </div>
       </Dialog>
-      <TripPassDialog id={open} likes={finder.likes} signedIn={signedIn} onClose={() => setOpen(null)} />
     </section>
   );
 }

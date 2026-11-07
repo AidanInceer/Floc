@@ -4,7 +4,6 @@
  * blue tile the trip tabs use below it, so the two bars say "here" one way.
  */
 
-import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import Link from "next/link";
 
 import { ButtonLink, cx } from "@/components/system/ui";
@@ -37,11 +36,9 @@ export function AppChrome({
   friendRequestCount = 0,
   notificationCount = 0,
   latest = [],
-  tripCount = 0,
-  friendCount = 0,
   isPro = false,
 }: {
-  user: { id: string; name: string; email: string; avatarIcon: AvatarIcon | null } | null;
+  user: { id: string; name: string; email: string } | null;
   isPro?: boolean;
   /** Open trip invites for this account — badges the Trips link. */
   inviteCount?: number;
@@ -50,8 +47,6 @@ export function AppChrome({
   /** Unseen notifications (#344) — badges the avatar. */
   notificationCount?: number;
   latest?: InboxPreviewItem[];
-  tripCount?: number;
-  friendCount?: number;
 }) {
   const navItems: PlaceItem[] = [
     { href: "/explore", label: "Explore", glyph: "explore" },
@@ -104,8 +99,6 @@ export function AppChrome({
             isPro={isPro}
             unread={notificationCount}
             latest={latest}
-            tripCount={tripCount}
-            friendCount={friendCount}
           />
         ) : (
           <div className={cx(BEAD, "shrink-0 gap-1")}>

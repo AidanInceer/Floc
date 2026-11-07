@@ -73,24 +73,6 @@ export async function listTripsFor(
   }));
 }
 
-/** The Trips figure on the account menu: what /trips lists, counted. */
-export async function countTripsFor(userId: string): Promise<number> {
-  const row = await db
-    .select({ n: count() })
-    .from(tripMembership)
-    .innerJoin(trip, eq(trip.id, tripMembership.tripId))
-    .where(
-      and(
-        eq(tripMembership.userId, userId),
-        isNull(tripMembership.deletedAt),
-        isNull(trip.deletedAt),
-        isNull(trip.archivedAt),
-      ),
-    )
-    .get();
-  return row?.n ?? 0;
-}
-
 /** Only the viewer's own membership row: muting a trip quiets it for you, nobody else (#346). */
 export async function setTripMuted(tripId: number, userId: string, muted: boolean) {
   await db

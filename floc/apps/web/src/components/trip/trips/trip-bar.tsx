@@ -47,10 +47,11 @@ export function TripBar({ trip, next = false, past = false }: { trip: TripCardDa
   const href = `/trip/${trip.id}/overview`;
   const Title = next ? "h2" : "h3";
 
+  // Why: the card must not clip, or its … menu is cut off at the edge; the map pane clips and rounds itself.
   return (
     <li
       className={cx(
-        "lift relative grid overflow-hidden rounded-md border bg-sheet hover:shadow-none! sm:grid-cols-[minmax(0,1fr)_44%]",
+        "lift relative grid rounded-md border bg-sheet hover:shadow-none! has-[[data-open=true]]:z-20 sm:grid-cols-[minmax(0,1fr)_44%]",
         next ? "border-rule-strong sm:min-h-[11.5rem]" : "border-rule sm:min-h-[8.5rem]",
       )}
     >
@@ -79,7 +80,7 @@ export function TripBar({ trip, next = false, past = false }: { trip: TripCardDa
         </div>
       </div>
 
-      <div className={cx("pointer-events-none relative order-first border-b border-rule bg-sheet-2 sm:order-none sm:border-b-0 sm:border-l", next ? "h-36 sm:h-auto" : "h-28 sm:h-auto")}>
+      <div className={cx("pointer-events-none relative order-first overflow-hidden rounded-t-md border-b border-rule bg-sheet-2 sm:order-none sm:rounded-tl-none sm:rounded-r-md sm:border-b-0 sm:border-l", next ? "h-36 sm:h-auto" : "h-28 sm:h-auto")}>
         <BarMap route={trip.route ?? null} tone={colour} />
       </div>
 

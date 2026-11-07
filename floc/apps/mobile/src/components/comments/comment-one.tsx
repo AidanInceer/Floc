@@ -176,7 +176,6 @@ export function CommentOne({
     <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 11 }}>
       <Face
         name={comment.authorName}
-        avatarIcon={comment.authorAvatarIcon}
         tone={toneOf(comment)}
         size={reply ? 24 : 30}
       />

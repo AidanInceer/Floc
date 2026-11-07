@@ -191,7 +191,7 @@
     },
     "me.rename": {
       "mobile": "wontfix",
-      "why": "The app renames you through settings.identity, which writes the name and the picture together — the same sheet, one write. A second procedure that writes half of that would be a second way to do one job."
+      "why": "The app renames you through settings.identity, from the face sheet. A second procedure for the same write would be a second way to do one job."
     },
     "me.setMark": {
       "mobile": "yes"
@@ -364,7 +364,8 @@
       "mobile": "yes"
     },
     "settings.face": {
-      "mobile": "yes"
+      "mobile": "wontfix",
+      "why": "A face is always initials now, so neither client sends a picture. This stays for phone builds already installed, which still save one beside the name; nothing draws it."
     },
     "settings.get": {
       "mobile": "yes"

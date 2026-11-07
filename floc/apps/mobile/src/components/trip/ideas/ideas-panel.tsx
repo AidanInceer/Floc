@@ -86,7 +86,7 @@ export function IdeasPanel({
                 <Body>{idea.title}</Body>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
                   <Seat
-                    initial={idea.authorName.slice(0, 1).toUpperCase()}
+                    name={idea.authorName}
                     ground={c[whoTone(idea.authorName)]}
                     ink={c[`${whoTone(idea.authorName)}-ink`]}
                   />

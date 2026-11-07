@@ -13,15 +13,17 @@ import type { WeatherCondition } from "@floc/core/itinerary/weather";
 import { StyleSheet, Text, View } from "react-native";
 import Svg, { Circle, G, Path } from "react-native-svg";
 
-import { fonts } from "@/lib/theme";
+import { initials } from "@floc/core/people/initials";
 
-/** A member's seat colour as a filled disc with their initial — the roster's `whoTone` made visible. */
+import { fonts, radius } from "@/lib/theme";
+
+/** A member's seat colour as a rounded square with their initials — the roster's `whoTone` made visible. */
 export function Seat({
-  initial,
+  name,
   ground,
   ink,
 }: {
-  initial: string;
+  name: string;
   ground: string;
   ink: string;
 }) {
@@ -30,7 +32,7 @@ export function Seat({
       style={{
         width: 28,
         height: 28,
-        borderRadius: 14,
+        borderRadius: radius.sm,
         backgroundColor: ground,
         alignItems: "center",
         justifyContent: "center",
@@ -38,7 +40,7 @@ export function Seat({
         borderColor: ink,
       }}
     >
-      <Text style={{ color: ink, fontFamily: fonts.sansBold, fontSize: 12 }}>{initial}</Text>
+      <Text style={{ color: ink, fontFamily: fonts.sansBold, fontSize: 11 }}>{initials(name)}</Text>
     </View>
   );
 }

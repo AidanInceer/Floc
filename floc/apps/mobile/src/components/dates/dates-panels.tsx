@@ -95,7 +95,7 @@ export function WhoAnswered({ people }: { people: { id: string; name: string; da
         const tone = whoTone(p.name);
         return (
           <View key={p.id} style={{ flexDirection: "row", alignItems: "center", gap: space.md, minHeight: 32 }}>
-            <Seat initial={p.name.slice(0, 1).toUpperCase()} ground={c[tone]} ink={c[`${tone}-ink`]} />
+            <Seat name={p.name} ground={c[tone]} ink={c[`${tone}-ink`]} />
             <Text numberOfLines={1} style={{ flex: 1, color: c.ink, fontFamily: fonts.sans, fontSize: size.small }}>
               {p.guest ? `${p.name} · guest` : p.name}
             </Text>

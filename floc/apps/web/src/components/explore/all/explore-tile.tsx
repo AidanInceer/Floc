@@ -1,6 +1,7 @@
 "use client";
 
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { skinFor } from "@/components/explore/listing";
@@ -15,23 +16,21 @@ const nightsOf = (n: number) => `${n} ${n === 1 ? "night" : "nights"}`;
 
 /**
  * One listing as a tile: its outline map, then what it is. The children say how it fits what you asked for.
- * The footer sits under the tile's own button, so it can hold a second action.
+ * The tile opens the listing's own page; the footer sits under that link, so it can hold a second action.
  */
 export function ExploreTile({
   trip,
-  onPick,
   children,
   footer,
 }: {
   trip: PresetTrip;
-  onPick: (presetId: string) => void;
   children?: ReactNode;
   footer?: ReactNode;
 }) {
   const rates = useListingRates();
   return (
     <div className="lift flex h-full flex-col overflow-hidden rounded-md bg-sheet shadow-[var(--shadow)]">
-      <button type="button" onClick={() => onPick(trip.id)} className="flex w-full flex-col text-left">
+      <Link href={`/explore/${trip.id}`} className="flex w-full flex-col text-left text-ink">
         <span aria-hidden className="pointer-events-none block aspect-[24/17] w-full bg-sheet-2">
           <OutlineMap trip={trip} size="tile" />
         </span>
@@ -43,7 +42,7 @@ export function ExploreTile({
           </span>
           {children}
         </span>
-      </button>
+      </Link>
       {footer ? <div className="mt-auto px-3.5 pb-3.5">{footer}</div> : null}
     </div>
   );

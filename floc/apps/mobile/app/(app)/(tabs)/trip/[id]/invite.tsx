@@ -67,7 +67,6 @@ export default function Invite() {
               <FriendPickRow
                 key={person.id}
                 name={person.name}
-                avatarIcon={person.avatarIcon}
                 on={picked.includes(person.id)}
                 first={i === 0}
                 onPress={() => toggle(person.id)}
@@ -124,7 +123,7 @@ export default function Invite() {
           <SectionTitle>Invited</SectionTitle>
           <Card style={{ padding: 0, gap: 0, overflow: "hidden" }}>
             {panel.data.pending.map((person, i) => (
-              <MemberRow key={person.id} name={person.name} avatarIcon={person.avatarIcon} you={false} admin={false} word="Invited" first={i === 0} />
+              <MemberRow key={person.id} name={person.name} you={false} admin={false} word="Invited" first={i === 0} />
             ))}
           </Card>
         </View>

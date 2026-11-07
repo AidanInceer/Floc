@@ -8,6 +8,8 @@
 import type { Editor } from "@tiptap/react";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
+import { initials } from "@floc/core/people/initials";
+
 import { commentAnchors, removeComment } from "../commands/marks";
 import { Icon } from "./icons";
 import { useDismiss, useOnScreen } from "./floating";
@@ -15,8 +17,6 @@ import { useDismiss, useOnScreen } from "./floating";
 export type PagePost = { id: number; name: string; tone: string; body: string; when: string };
 export type PageThread = { id: number; posts: PagePost[] };
 export type Person = { name: string; tone: string };
-
-const initials = (name: string) => name.split(" ").slice(0, 2).map((word) => word[0] ?? "").join("").toUpperCase();
 
 export function Face({ person, size = 24 }: { person: Person; size?: number }) {
   return (

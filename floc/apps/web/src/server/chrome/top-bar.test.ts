@@ -18,7 +18,6 @@ describe("the top bar's reads", () => {
 
     const bar = await topBarFor(world.member, 3);
 
-    expect(bar.tripCount).toBe(1);
     expect(bar.notificationCount).toBe(1);
     expect(bar.latest).toHaveLength(1);
     expect(bar.inviteCount).toBe(0);

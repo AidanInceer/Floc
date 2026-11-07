@@ -57,7 +57,7 @@ export default async function FilesPage({
 
   return (
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
-      <PageTitle>Files</PageTitle>
+      <PageTitle className="sr-only">Files</PageTitle>
 
       {!documentsEnabled() ? (
         // Rule 11: say what is missing rather than offering an upload that

@@ -39,7 +39,7 @@ export function WhoAnswered({
           const you = m.userId === viewerId;
           return (
             <li key={m.userId} className="flex items-center gap-2 py-2">
-              <Avatar name={m.name} icon={m.avatarIcon} size={26} tone={m.tone} />
+              <Avatar name={m.name} size={26} tone={m.tone} />
               <span className="min-w-0 flex-1 truncate text-sm">{you ? "You" : m.name}</span>
               {days > 0 ? (
                 <span className="nums font-mono text-[11px] text-ink-faint">

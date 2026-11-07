@@ -5,9 +5,8 @@ import { useTheme } from "@/components/system/theme";
 import { Face } from "@/components/trip/person-row";
 import { fonts, radius, size, space } from "@/lib/theme";
 
-export function FriendPickRow({ name, avatarIcon, on, first, onPress }: {
+export function FriendPickRow({ name, on, first, onPress }: {
   name: string;
-  avatarIcon: string | null;
   on: boolean;
   first: boolean;
   onPress: () => void;
@@ -31,7 +30,7 @@ export function FriendPickRow({ name, avatarIcon, on, first, onPress }: {
         opacity: pressed ? 0.6 : 1,
       })}
     >
-      <Face name={name} avatarIcon={avatarIcon} size={34} />
+      <Face name={name} size={34} />
       <Text numberOfLines={1} style={{ flex: 1, color: on ? c["pen-deep"] : c.ink, fontFamily: fonts.sansBold, fontSize: size.body }}>{name}</Text>
       <View
         style={{
