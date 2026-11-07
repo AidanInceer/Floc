@@ -151,6 +151,19 @@ for (const size of WIDTHS) {
         }
       });
 
+      test("a trip's menu on My trips opens whole, not cut off by its card", async ({ page }) => {
+        await page.goto("/trips");
+        await page.getByRole("button", { name: /^Actions for / }).first().click();
+        const last = page.getByRole("menu").getByRole("button").last();
+        await expect(last).toBeVisible();
+        const onTop = await last.evaluate((el) => {
+          const box = el.getBoundingClientRect();
+          const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+          return hit !== null && el.contains(hit);
+        });
+        expect(onTop).toBe(true);
+      });
+
       test("a long trip name still fits", async ({ page }) => {
         const name = `Bosnia and Herzegovina, Montenegro and the long way round ${size.width}`;
         await page.goto("/trips");

@@ -1,8 +1,8 @@
 /**
  * The trip card's own actions, behind one triple-dot where the role label used
- * to sit (ticket 213). Rename and colour are open to any member; archive and
- * delete stay admin-only (rule 6). Leaving is not here — that lives on the trip
- * header's menu, next to the roster.
+ * to sit (ticket 213). Colour, mark and rename are open to any member; archive and
+ * delete stay admin-only (rule 6). Mute is the bell beside the star; leaving lives
+ * on the trip header's menu, next to the roster.
  */
 import { ConfirmSubmit, Menu, Sheet, SubmitButton } from "@/components/system/client-ui";
 import { Field, Input, Stack, menuDangerItemClass, menuItemClass } from "@/components/system/ui";
@@ -11,7 +11,7 @@ import { TripMarkPicker } from "@/components/trip/trip-mark-picker";
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { tripPastel, type TripColor } from "@floc/core/trip/trip-color";
 import type { TripMark } from "@floc/core/trip/mark/trip-mark";
-import { archiveTrip, deleteTrip, muteTrip, renameTripFromMenu } from "@/app/trips/actions";
+import { archiveTrip, deleteTrip, renameTripFromMenu } from "@/app/trips/actions";
 
 export function TripCardMenu({
   tripId,
@@ -19,17 +19,19 @@ export function TripCardMenu({
   isAdmin,
   color,
   mark,
-  muted,
 }: {
   tripId: number;
   tripName: string;
   isAdmin: boolean;
   color: TripColor | null;
   mark: TripMark | null;
-  muted: boolean;
 }) {
   return (
     <Menu label={`Actions for ${tripName}`}>
+      <TripColorPicker tripId={tripId} current={color} />
+
+      <TripMarkPicker tripId={tripId} current={mark} tone={tripPastel(color, tripId)} />
+
       <Sheet
         bareTrigger
         trigger="Rename"
@@ -51,18 +53,6 @@ export function TripCardMenu({
           </Stack>
         </form>
       </Sheet>
-
-      <TripColorPicker tripId={tripId} current={color} />
-
-      <TripMarkPicker tripId={tripId} current={mark} tone={tripPastel(color, tripId)} />
-
-      <form action={muteTrip}>
-        <input type="hidden" name="tripId" value={tripId} />
-        <input type="hidden" name="muted" value={String(!muted)} />
-        <SubmitButton variant="ghost" pendingLabel="…" className={menuItemClass}>
-          {muted ? "Unmute trip" : "Mute trip"}
-        </SubmitButton>
-      </form>
 
       {isAdmin ? (
         <form action={archiveTrip}>

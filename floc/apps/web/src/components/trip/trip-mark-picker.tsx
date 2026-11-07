@@ -3,8 +3,8 @@
  * per mark so it works without JavaScript and posts exactly one value, the same
  * way the colour swatches beside it do.
  *
- * Two rows of five, because that is the set — see `trip-mark.ts` before adding
- * an eleventh. Picking the mark already on the trip clears it, so "no mark" is
+ * Three rows of five, because that is the set — see `trip-mark.ts` before adding
+ * a sixteenth. Picking the mark already on the trip clears it, so "no mark" is
  * reachable without a second control saying None.
  */
 import { TRIP_MARKS, TRIP_MARK_LABELS, type TripMark } from "@floc/core/trip/mark/trip-mark";

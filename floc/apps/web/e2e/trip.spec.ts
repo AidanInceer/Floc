@@ -29,6 +29,15 @@ test.describe("as a member", () => {
     await expect(page.getByRole("link", { name: /Booking\.com|Trip\.com/ })).toHaveCount(0);
   });
 
+  test("the bell on My trips mutes a trip and unmutes it again", async ({ page }) => {
+    await page.goto("/trips");
+    await page.getByRole("button", { name: "Mute Portugal, late summer" }).click();
+    const unmute = page.getByRole("button", { name: "Unmute Portugal, late summer" });
+    await expect(unmute).toHaveAttribute("aria-pressed", "true");
+    await unmute.click();
+    await expect(page.getByRole("button", { name: "Mute Portugal, late summer" })).toHaveAttribute("aria-pressed", "false");
+  });
+
   test("a new trip can be started", async ({ page }) => {
     const name = `E2E trip ${Date.now()}`;
     await page.goto("/trips");

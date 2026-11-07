@@ -1,14 +1,7 @@
 /**
- * What a member may change about a trip itself: its name, its colour, its tags
- * (tickets 71, 213). The web keeps all three behind the trip's own menu, so the
- * phone keeps them in one sheet rather than inventing a second place.
- *
- * The body only — the trip's layout owns the sheet and the write, because only
- * a route may reach the API.
- *
- * TAGS ARE ROWS, NOT A COMMA FIELD. A comma field asks the reader to know the
- * separator; a row per tag shows the shape it is saved in. `parseTagNames`
- * still normalises, so the phone never decides what a tag is.
+ * Why: one sheet for name, colour and tags, as the web keeps them behind one menu (#71, #213).
+ * The trip's layout owns the sheet and the write, because only a route may reach the API.
+ * Tags are rows, not a comma field (#213): a row shows the shape a tag is saved in.
  */
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { MAX_TAGS, MAX_TAG_LENGTH } from "@floc/core/trip/tags";
@@ -57,8 +50,8 @@ function Swatch({
         height: 34,
         borderRadius: radius.pill,
         backgroundColor: c[pastelOf(color)],
-        // The ring is the second signal; the swatch carries its colour's name
-        // for anyone who cannot see it (#204).
+        // Why: the ring is the second signal, and the swatch carries its colour's
+        // name for anyone who cannot see it (#204).
         borderWidth: picked ? 2.5 : StyleSheet.hairlineWidth,
         borderColor: picked ? c.ink : c[`${pastelOf(color)}-edge`],
       }}
@@ -67,7 +60,7 @@ function Swatch({
 }
 
 /**
- * Why: the whole set is ten — see `trip-mark.ts` before adding an eleventh.
+ * Why: the whole set is fifteen — see `trip-mark.ts` before adding a sixteenth.
  * Tapping the mark already on the trip clears it, so "no mark" needs no second
  * control saying None. Width is pinned to five cells because a wide phone
  * otherwise fits six on the first row and one on the second.
