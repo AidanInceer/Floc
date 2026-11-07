@@ -1,5 +1,5 @@
 import { spawn, spawnSync } from "node:child_process";
-import { mkdirSync, openSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, openSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { git } from "./process.mjs";
 
@@ -8,6 +8,19 @@ export const taskName = (slug) => `Floc\\watch-${slug}`;
 
 export function watcherArgs({ script, pr, branch, target, worktree, main }) {
   return [script, "--pr", String(pr), "--branch", branch, "--target", target, "--main", main, ...(worktree ? ["--worktree", worktree] : [])];
+}
+
+/**
+ * Why a copy: the watcher removes the worktree it lands, so it must not run
+ * from that worktree's scripts, and a sweep must not pull them from under it.
+ */
+export function freezeScripts(scripts, dir, slug) {
+  const to = join(dir, `${slug}.scripts`);
+  rmSync(to, { recursive: true, force: true });
+  for (const part of ["delivery", "workspace"]) {
+    cpSync(join(scripts, part), join(to, part), { recursive: true, filter: (from) => !from.endsWith(".test.mjs") });
+  }
+  return to;
 }
 
 const quote = (value) => `"${String(value).replaceAll('"', '""')}"`;
@@ -22,7 +35,7 @@ export function startWatcher(options) {
   mkdirSync(dir, { recursive: true });
   const slug = options.branch.replaceAll("/", "-");
   const log = join(dir, `${slug}.log`);
-  const args = watcherArgs({ ...options, script: join(options.scripts, "delivery", "watch.mjs") });
+  const args = watcherArgs({ ...options, script: join(freezeScripts(options.scripts, dir, slug), "delivery", "watch.mjs") });
   if (process.platform !== "win32") {
     const child = spawn(process.execPath, args, { cwd: options.main, detached: true, stdio: ["ignore", openSync(log, "a"), openSync(log, "a")] });
     child.unref();

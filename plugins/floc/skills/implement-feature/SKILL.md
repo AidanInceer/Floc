@@ -90,6 +90,8 @@ updates it. Same slice, not a follow-up.
 Short. What you built, both surfaces done or the gap and why, checks green,
 one next action (usually `/floc:push`). Nothing else.
 
+End with the status bullets from [session-summary](../session-summary/SKILL.md).
+
 ## Gotchas
 
 - **Don't push.** This skill stops at a working, verified local build. Landing
