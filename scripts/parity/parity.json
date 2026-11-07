@@ -147,6 +147,9 @@
     "itinerary.forecast": {
       "mobile": "yes"
     },
+    "itinerary.resetCalendarUrl": {
+      "mobile": "yes"
+    },
     "itinerary.setOvernight": {
       "mobile": "yes"
     },

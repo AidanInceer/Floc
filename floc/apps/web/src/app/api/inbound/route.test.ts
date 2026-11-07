@@ -47,6 +47,17 @@ describe("the inbound mail webhook (#328)", () => {
     );
   });
 
+  it("asks Resend whether the From was proven, for this email", async () => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ authentication: { dkim: "pass" } })));
+    vi.stubGlobal("fetch", fetchMock);
+    await POST(signed(received));
+    const [, deps] = receiveBookingMail.mock.calls[0] as [unknown, { fromProven: () => Promise<boolean> }];
+
+    expect(await deps.fromProven()).toBe(true);
+    expect(fetchMock).toHaveBeenCalledWith("https://api.resend.com/emails/receiving/e1", expect.anything());
+    vi.unstubAllGlobals();
+  });
+
   it("refuses an unsigned body without reading it", async () => {
     const response = await POST(new Request("http://localhost/api/inbound", { method: "POST", body: "{}" }));
     expect(response.status).toBe(400);

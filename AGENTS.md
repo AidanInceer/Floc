@@ -44,7 +44,7 @@ Before any UI work — web, phone, mockup or marketing — read the [design card
 
 - **One task, one worktree.** Shape (`/floc:grill`, tickets, `/floc:prototype`) in the main checkout; build only in `pnpm workspace:new <name>`. Preview it: `pnpm workspace:start web` in the background, then `preview_start` with the `url` from `pnpm workspace:status`. Never edit the main checkout's `.claude/launch.json`.
 - **Branches:** `feature/*`, `fix/*`, `chore/*` → PR to `develop`; `develop` → `main` only through `/floc:release`; `hotfix/*` from and to `main`. Never push to either directly; merge conflicts in, never rebase.
-- **Ship** with `/floc:push`, then end the turn — a watcher owns CI. Never publish when asked for local review only. Docs move with the code (`/floc:sync-docs`).
+- **Ship** with `/floc:push`. It starts `floc:ci-babysit` in the background to watch the PR checks and fix anything red; then end the turn. Never publish when asked for local review only. Docs move with the code (`/floc:sync-docs`).
 - **Commit subject:** `#<issue|no-ticket>: <feat|fix|docs|refactor|chore|test>: <description>`. Only a ticket picked up this session or given in chat; it needs a `Closes AidanInceer/Floc#<issue>` line.
 
 ## Working and reporting

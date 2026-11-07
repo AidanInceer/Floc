@@ -25,6 +25,7 @@ const facts = (over: Partial<StoreFacts> = {}): StoreFacts => ({
   currentPeriodEnd: new Date(Date.now() + 30 * 86_400_000),
   cancelAtPeriodEnd: false,
   accountToken: null,
+  test: false,
   ...over,
 });
 

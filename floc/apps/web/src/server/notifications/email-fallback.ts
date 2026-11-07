@@ -1,7 +1,7 @@
 /**
  * Email for whoever push cannot reach (#346): no phone, or push switched off.
  * The reach rule is the exact opposite of push's, so one notification is never
- * both pushed and emailed.
+ * both pushed and emailed — and only to an address its owner has confirmed.
  */
 import "server-only";
 
@@ -12,7 +12,7 @@ import { user } from "@/db/schema";
 import { notificationText } from "@floc/core/notifications/notification-text";
 import { EMAIL_LIMITS, EMAIL_WAIT_MS, type PlannedPush } from "@floc/core/notifications/push-plan";
 import { absoluteUrl, type OutboundEmail } from "@/server/auth/email";
-import { claim, hasPhone, markSent, planDue, release, switchedOff, type Channel } from "@/server/notifications/outbox";
+import { addressConfirmed, claim, hasPhone, markSent, planDue, release, switchedOff, type Channel } from "@/server/notifications/outbox";
 
 export type EmailSender = (emails: OutboundEmail[]) => Promise<void>;
 
@@ -21,7 +21,8 @@ const EMAIL: Channel = {
   sentKey: "emailedAt",
   waitMs: EMAIL_WAIT_MS,
   limits: EMAIL_LIMITS,
-  reaches: () => and(not(switchedOff("notifyEmail")), or(switchedOff("notifyPush"), not(hasPhone()))),
+  reaches: () =>
+    and(addressConfirmed(), not(switchedOff("notifyEmail")), or(switchedOff("notifyPush"), not(hasPhone()))),
   words: (kind, parts) => notificationText(kind, parts),
 };
 

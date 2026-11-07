@@ -4,8 +4,8 @@
  * against live membership on every poll. Outside the middleware matcher on
  * purpose — a redirect to /login would break every subscription.
  */
-import { memberCalendar } from "@/server/itinerary/calendar-feed";
-import { readCalendarToken } from "@/server/itinerary/calendar-link";
+import { memberCalendar } from "@/server/itinerary/feed/calendar-feed";
+import { readCalendarToken } from "@/server/itinerary/feed/calendar-link";
 
 export async function GET(
   _request: Request,
@@ -13,7 +13,7 @@ export async function GET(
 ) {
   const { token } = await params;
   const holder = readCalendarToken(token.replace(/\.ics$/, ""));
-  const ics = holder ? await memberCalendar(holder.tripId, holder.userId) : null;
+  const ics = holder ? await memberCalendar(holder.tripId, holder.userId, holder.epoch) : null;
   if (!ics) return new Response("Not found", { status: 404 });
 
   return new Response(ics, {

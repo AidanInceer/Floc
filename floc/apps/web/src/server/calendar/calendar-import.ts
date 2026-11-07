@@ -76,3 +76,13 @@ export async function removeCalendarAccess(userId: string): Promise<string | nul
   await forgetCalendarScope(userId, accountId);
   return null;
 }
+
+/**
+ * On account deletion: revoke at Google, so Floc leaves the person's Google third-party access list rather than
+ * only dropping its copy of the token. Why it never throws: deleting an account must not wait on Google.
+ */
+export async function revokeGoogleGrant(userId: string): Promise<void> {
+  const accountId = await calendarAccountOf(userId);
+  const token = accountId ? await accessTokenFor(userId, accountId) : null;
+  if (token) await revokeGoogleToken(token);
+}

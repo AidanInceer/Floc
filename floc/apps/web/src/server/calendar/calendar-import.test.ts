@@ -22,7 +22,12 @@ vi.mock("@/server/auth/auth", () => ({
   },
 }));
 
-import { fillFromCalendar, hasCalendarAccess, removeCalendarAccess } from "@/server/calendar/calendar-import";
+import {
+  fillFromCalendar,
+  hasCalendarAccess,
+  removeCalendarAccess,
+  revokeGoogleGrant,
+} from "@/server/calendar/calendar-import";
 import { setAvailability } from "@/server/itinerary/availability";
 
 let world: Scenario;
@@ -211,6 +216,32 @@ describe("removeCalendarAccess", () => {
 
   it("is a no-op when nothing was granted", async () => {
     expect(await removeCalendarAccess(world.member)).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("revokeGoogleGrant, when an account is deleted", () => {
+  it("revokes the calendar grant at Google", async () => {
+    await link(`openid,${GOOGLE_CALENDAR_SCOPE}`);
+    fetchMock.mockReturnValueOnce(Promise.resolve(new Response("{}", { status: 200 })));
+
+    await revokeGoogleGrant(world.member);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("https://oauth2.googleapis.com/revoke");
+    expect(String(init.body)).toBe("token=tok");
+  });
+
+  it("never stops the deletion: Google being unreachable or no token is not an error", async () => {
+    await link(GOOGLE_CALENDAR_SCOPE);
+    fetchMock.mockRejectedValueOnce(new Error("offline"));
+    await expect(revokeGoogleGrant(world.member)).resolves.toBeUndefined();
+
+    google.token.mockRejectedValueOnce(new Error("nope"));
+    await expect(revokeGoogleGrant(world.member)).resolves.toBeUndefined();
+  });
+
+  it("asks nothing of Google when no calendar was granted", async () => {
+    await revokeGoogleGrant(world.member);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });
