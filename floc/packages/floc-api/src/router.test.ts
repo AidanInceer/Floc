@@ -622,3 +622,21 @@ describe("filling dates from Google Calendar (#444)", () => {
     await expect(ana.availability.fillFromCalendar({ tripId: 1, month: "dddd-09" })).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 });
+
+describe("your booking sites (wireframe/booking-sites J)", () => {
+  it("passes one tick to the host and hands back what stands", async () => {
+    const after = { flights: ["Google Flights", "Skyscanner"], stays: ["Booking.com", "Trip.com", "Airbnb"] };
+    const toggleBookingSite = vi.fn().mockResolvedValue(after);
+    const { caller: ana } = caller("u1", fakePort({ toggleBookingSite }));
+    await expect(ana.settings.bookingSite({ kind: "stays", site: "Airbnb" })).resolves.toEqual(after);
+    expect(toggleBookingSite).toHaveBeenCalledWith("u1", "stays", "Airbnb");
+  });
+
+  it("refuses a site Floc does not link to, and a site of the other kind", async () => {
+    const toggleBookingSite = vi.fn();
+    const { caller: ana } = caller("u1", fakePort({ toggleBookingSite }));
+    await expect(ana.settings.bookingSite({ kind: "stays", site: "Ryanair" as never })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(ana.settings.bookingSite({ kind: "flights", site: "Airbnb" as never })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    expect(toggleBookingSite).not.toHaveBeenCalled();
+  });
+});

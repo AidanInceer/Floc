@@ -426,7 +426,7 @@ export function ErrorText({ children }: { children?: ReactNode }) {
  * specificity is stylesheet order, not class-list order.
  */
 export const menuItemClass =
-  "!block !w-full !rounded-sm !border-none !px-2.5 !py-1.5 !text-left !font-sans !text-sm !normal-case !tracking-normal !text-ink-soft hover:!bg-sheet-2 hover:!text-ink";
+  "!block !w-full !rounded-sm !border-none !px-2.5 !py-1.5 !text-left !font-sans !text-sm !normal-case !tracking-normal !text-ink-soft hover:!bg-pen-soft hover:!text-pen-deep";
 
 /** The same row, for the one verb you can't take back. */
 export const menuDangerItemClass =

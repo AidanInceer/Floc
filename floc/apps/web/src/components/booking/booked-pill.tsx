@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { DOC_CATEGORY_CHIPS } from "@floc/core/documents/documents";
-import type { BookedHotel } from "@floc/core/trip/booking-links";
+import type { BookedHotel } from "@floc/core/trip/booking/booking-links";
 import { BedIcon } from "@/components/system/icons/days";
 import { cx } from "@/components/system/ui";
 

@@ -48,7 +48,10 @@ import { loadCalendar } from "@/server/itinerary/calendar-read";
 import type { TripDocument } from "@/server/documents/documents";
 import { documentsEnabled } from "@/server/documents/document-store";
 import { addDays as addDaysToDate, fromIsoDate, today } from "@floc/core/dates/dates";
-import { eventFlightUrl } from "@floc/core/trip/booking-links";
+import { eventFlightLinks } from "@floc/core/trip/booking/booking-links";
+import { BookingSitesProvider } from "@/components/booking/booking-sites";
+import { SitePicker } from "@/components/booking/site-picker";
+import { bookingSitesOf } from "@/server/auth/booking-sites";
 
 export const metadata = { title: "Days" };
 
@@ -65,9 +68,10 @@ export default async function DaysPage({
 
   const query = await searchParams;
   const openEventId = Number(query.event) || null;
-  const [calendar, bookingPrefill] = await Promise.all([
+  const [calendar, bookingPrefill, sites] = await Promise.all([
     loadCalendar(access, openEventId),
     canUseFeature("booking.prefill", trip.id),
+    bookingSitesOf(viewer.id),
   ]);
   const { days, commentCounts, fileEventIds, selected } = calendar;
 
@@ -179,6 +183,7 @@ export default async function DaysPage({
       </header>
 
       <div className="mt-8">
+      <BookingSitesProvider initial={sites}>
       <DaysCalendar
         days={calendarDays}
         events={calendarEvents}
@@ -210,6 +215,7 @@ export default async function DaysPage({
         groupSize={members.length}
         bookingPrefill={bookingPrefill}
       />
+      </BookingSitesProvider>
       </div>
     </div>
   );
@@ -255,11 +261,15 @@ function EventPanel({
   bookingPrefill: boolean;
 }) {
   const isTransport = event.type === "transport";
-  const flightLink =
+  const from = originPlaceName ?? event.placeName ?? "";
+  const to = destinationPlaceName ?? event.placeName ?? "";
+  // Why: on a trip's first day both ends fall back to the event's own place, and "Lisbon to Lisbon" says nothing.
+  const flightTitle = from && to && from !== to ? `Search flights, ${from} to ${to}` : "Search flights";
+  const flightLinks =
     isTransport && event.transportType === "flight"
-      ? eventFlightUrl({
-          origin: originPlaceName ?? event.placeName ?? "",
-          destination: destinationPlaceName ?? event.placeName ?? "",
+      ? eventFlightLinks({
+          origin: from,
+          destination: to,
           date,
           prefill: bookingPrefill,
         })
@@ -289,15 +299,11 @@ function EventPanel({
       />
 
       <div className="space-y-4 px-5 pb-4 max-sm:px-4">
-        {flightLink ? (
-          <a
-            href={flightLink}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-block text-sm font-medium text-pen underline underline-offset-2 transition-colors hover:bg-highlight-soft hover:text-pen-deep"
-          >
-            Search flights
-          </a>
+        {flightLinks ? (
+          <section aria-label={flightTitle}>
+            <p className="mb-2 text-sm font-medium">{flightTitle}</p>
+            <SitePicker kind="flights" links={flightLinks} label={flightTitle} head={partOf(date, { weekday: "short", day: "numeric", month: "short" })} />
+          </section>
         ) : null}
 
         {filesEnabled ? (

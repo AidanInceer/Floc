@@ -2,12 +2,15 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import type { BookingLink } from "@floc/core/trip/booking-links";
+import type { BookingLink } from "@floc/core/trip/booking/booking-links";
+import type { BookingSites } from "@floc/core/trip/booking/booking-sites";
 import type { Leg } from "@floc/core/trip/overview/legs";
 import { formatShortRange } from "@floc/core/dates/dates";
 import type { TripDocument } from "@/server/documents/documents";
 import { DocCategoryIcon } from "@/components/system/icons/doc-category";
 import { DocumentUpload } from "@/components/documents/document-upload";
+import { BookingSitesProvider } from "@/components/booking/booking-sites";
+import { SITE_MENU_PANEL, SiteMenuList } from "@/components/booking/site-picker";
 import { Menu } from "@/components/system/client-ui";
 import { OutIcon, UploadIcon } from "@/components/system/icons";
 import { cx, menuItemClass } from "@/components/system/ui";
@@ -20,13 +23,15 @@ type Props = {
   wholeTrip: TripDocument[];
   files: boolean;
   stays: Map<number, BookingLink[]>;
+  sites: BookingSites;
 };
 
 const RING =
   "grid size-6 place-items-center rounded-sm border border-rule-strong text-ink-soft hover:border-pen hover:text-pen data-[open=true]:border-pen data-[open=true]:text-pen";
 
-export function BookingsCard({ tripId, legs, wholeTrip, files, stays }: Props) {
+export function BookingsCard({ tripId, legs, wholeTrip, files, stays, sites }: Props) {
   return (
+    <BookingSitesProvider initial={sites}>
     <aside className="max-lg:order-first lg:sticky lg:top-4">
       <div className="overflow-visible rounded-md border border-rule-strong bg-sheet px-[18px] pt-4">
         <h3 className="typed mb-2.5">Bookings</h3>
@@ -38,6 +43,7 @@ export function BookingsCard({ tripId, legs, wholeTrip, files, stays }: Props) {
         {files ? <WholeTrip tripId={tripId} files={wholeTrip} /> : null}
       </div>
     </aside>
+    </BookingSitesProvider>
   );
 }
 
@@ -50,7 +56,7 @@ function StopRow({ tripId, leg, files, links }: { tripId: number; leg: Leg<TripD
         <span className="truncate font-medium group-hover:underline">{place}</span>
         <span className="nums whitespace-nowrap text-xs text-ink-faint">{formatShortRange(leg.arrive, leg.leave)}</span>
       </a>
-      <StopAction tripId={tripId} dayId={leg.days[0].dayId} place={place} files={files} links={links} />
+      <StopAction tripId={tripId} dayId={leg.days[0].dayId} place={place} head={`${place} · ${formatShortRange(leg.arrive, leg.leave)}`} files={files} links={links} />
       {files && leg.files.length > 0 ? (
         <div className="col-start-2 col-end-[-1] flex flex-wrap gap-1.5">
           {leg.files.map((f) => (
@@ -63,13 +69,13 @@ function StopRow({ tripId, leg, files, links }: { tripId: number; leg: Leg<TripD
 }
 
 // One control a stop: straight to the upload when that is all there is to do, a menu when there is a stay to find too.
-function StopAction({ tripId, dayId, place, files, links }: { tripId: number; dayId: number; place: string; files: boolean; links: BookingLink[] }) {
+function StopAction({ tripId, dayId, place, head, files, links }: { tripId: number; dayId: number; place: string; head: string; files: boolean; links: BookingLink[] }) {
   const title = `Add a booking for ${place}`;
   if (links.length === 0) {
     return files ? <Upload tripId={tripId} dayId={dayId} title={title} className={RING} trigger={<UploadIcon size={12} />} /> : <span />;
   }
   return (
-    <Menu label={files ? title : `Find a stay in ${place}`} trigger={files ? <UploadIcon size={12} /> : <OutIcon size={11} />} triggerClassName={RING}>
+    <Menu label={files ? title : `Find a stay in ${place}`} trigger={files ? <UploadIcon size={12} /> : <OutIcon size={11} />} triggerClassName={RING} panelClassName={SITE_MENU_PANEL}>
       {files ? (
         <Upload
           tripId={tripId}
@@ -85,16 +91,8 @@ function StopAction({ tripId, dayId, place, files, links }: { tripId: number; da
           }
         />
       ) : null}
-      <p className={files ? "mt-1 border-t border-rule px-2.5 pb-0.5 pt-2 text-xs text-ink-faint" : "px-2.5 pb-0.5 pt-1 text-xs text-ink-faint"}>Find a stay</p>
-      {links.map((l) => (
-        <a key={l.site} href={l.url} target="_blank" rel="noopener noreferrer" className={menuItemClass}>
-          <span className="inline-flex items-center gap-2.5">
-            <OutIcon size={11} />
-            {l.site}
-          </span>
-          <span className="sr-only"> (opens another site)</span>
-        </a>
-      ))}
+      {files ? <div className="my-1 border-t border-rule" /> : null}
+      <SiteMenuList kind="stays" links={links} head={head} />
     </Menu>
   );
 }

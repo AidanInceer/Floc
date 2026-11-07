@@ -25,7 +25,7 @@ Web routes are under `floc/apps/web/src/app/trip/[id]/`. Phone screens are under
 | Notes | `floc/apps/web/src/components/notes/` | `floc/apps/web/src/server/notes/` | `floc/packages/floc-editor/src/` | `floc/apps/mobile/src/components/notes/` |
 
 Bookings and site links: `floc/apps/web/src/components/booking/`,
-`floc/packages/floc-core/src/trip/booking-links.ts`.
+`floc/packages/floc-core/src/trip/booking/` (links, and your own sites).
 
 ## Around the trip
 
