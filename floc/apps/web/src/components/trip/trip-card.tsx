@@ -16,6 +16,7 @@ import { starTrip } from "@/app/trips/actions";
 import { daysUntil, formatDateRange } from "@floc/core/dates/dates";
 import { tripListStage } from "@floc/core/trip/list-stage";
 import type { IsoDate } from "@floc/core/dates/dates";
+import type { OverviewRoute } from "@floc/core/trip/overview/route";
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import type { TripColor } from "@floc/core/trip/trip-color";
 import type { TripMark } from "@floc/core/trip/mark/trip-mark";
@@ -38,6 +39,8 @@ export type TripCardData = {
   tags?: string[];
   color?: TripColor | null; // chosen pastel (ticket 213); null = id-rotation
   mark?: TripMark | null; // chosen mark (#318); null = the pastel alone
+  /** The route for the bar's map on My trips; absent on Archived, which draws no map. */
+  route?: OverviewRoute | null;
 };
 
 // No pastel carries meaning here — a trip isn't a domain — so the rotation is

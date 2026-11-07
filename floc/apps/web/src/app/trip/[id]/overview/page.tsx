@@ -35,6 +35,7 @@ import { BookingsCard } from "@/components/trip/overview/stops/bookings-card";
 import { bookingSitesOf } from "@/server/auth/booking-sites";
 import { OverviewStops } from "@/components/trip/overview/stops/overview-stops";
 import { OverviewMap } from "@/components/trip/overview/overview-map";
+import { TripArrival } from "@/components/trip/overview/trip-arrival";
 import { RefreshWhileLive } from "@/components/trip/overview/route/refresh-while-live";
 import { RouteLegend } from "@/components/trip/overview/route/route-legend";
 import { TodayBlock } from "@/components/trip/overview/today/today-block";
@@ -136,6 +137,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
       <LeftToSort tripId={tripId} list={sortList} />
       {/* Why: the card floats over the globe on a wide screen, as on Explore; the map keeps its route clear of it (clear-area.ts). */}
       <section className="rounded-md bg-sheet shadow-raised ring-1 ring-rule">
+        <TripArrival href={`/trip/${tripId}/overview`} />
         <div data-overview-band className="relative grid rounded-t-md bg-sheet-2 lg:min-h-[34rem] lg:grid-cols-[minmax(0,1fr)_23.5rem]">
           <OverviewMap
             tripId={tripId}

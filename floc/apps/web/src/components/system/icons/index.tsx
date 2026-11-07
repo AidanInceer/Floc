@@ -126,6 +126,16 @@ const CHEVRON = {
   right: "M5.4 3.4 9 7l-3.6 3.6",
 } as const;
 
+/** A dashed ring round a dot: a place not chosen yet (an empty map's pill). */
+export function TargetIcon(props: IconProps) {
+  return (
+    <LineIcon {...props}>
+      <circle cx="7" cy="7" r="4.8" strokeDasharray="1.9 2.1" />
+      <circle cx="7" cy="7" r="1.3" fill="currentColor" stroke="none" />
+    </LineIcon>
+  );
+}
+
 export function ChevronIcon({
   direction,
   ...props

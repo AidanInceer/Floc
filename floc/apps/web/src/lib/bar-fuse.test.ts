@@ -9,6 +9,7 @@ import {
   scrollProgress,
   skinPath,
   splitStep,
+  wantJoined,
 } from "./bar-fuse";
 
 describe("scrollProgress", () => {
@@ -115,5 +116,15 @@ describe("skinPath", () => {
   it("spans the neck between the two beads' inner edges", () => {
     const d = skinPath(boxes.slice(0, 2), 44, 12, [1]);
     expect(d).toContain("M88 0Q102 0 116 0");
+  });
+});
+
+describe("wantJoined", () => {
+  it("holds the beads joined while a trip opens, whatever the scroll", () => {
+    expect(wantJoined(false, 0, true)).toBe(true);
+  });
+  it("follows the scroll again once the hold lets go", () => {
+    expect(wantJoined(true, 0, false)).toBe(false);
+    expect(wantJoined(false, 1, false)).toBe(true);
   });
 });
