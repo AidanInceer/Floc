@@ -94,7 +94,6 @@ import {
 import { insertPackingKit, insertPackingKitItem, softDeletePackingKit } from "@/server/packing/packing-kits";
 import { canUseFeature } from "@/server/billing/entitlements";
 import { readVibeTags } from "@floc/core/trip/vibe-tags";
-import { pastTripsFor } from "@/server/auth/visibility";
 import { travelMapFor } from "@/server/itinerary/travel-map";
 import { leaveTripAs, removeMembership, setMemberRoleAdmin } from "@/server/trips/roster";
 import {
@@ -263,10 +262,7 @@ export const webPort: FlocPort = {
 
   async loadMyProfile(viewerId): Promise<MyProfile> {
     const profile = await ensureProfile(viewerId);
-    const [map, pastTrips] = await Promise.all([
-      travelMapFor(viewerId),
-      pastTripsFor(viewerId, profile.pastTripsShow),
-    ]);
+    const map = await travelMapFor(viewerId);
 
     return {
       vibeTags: readVibeTags(profile.vibeTags),
@@ -275,14 +271,6 @@ export const webPort: FlocPort = {
       map: Object.entries(map.states).map(([code, state]) => ({ code, state })),
       been: map.visited,
       wantToGo: map.wantToGo,
-      // `place` is dropped: the phone's list is a name and a date range, and a
-      // field nothing draws is a field that goes stale unnoticed.
-      pastTrips: pastTrips.map((trip) => ({
-        id: trip.id,
-        name: trip.name,
-        startDate: trip.startDate,
-        endDate: trip.endDate,
-      })),
     };
   },
 
