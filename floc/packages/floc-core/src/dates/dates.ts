@@ -128,6 +128,11 @@ export function hasEnded(endDate: IsoDate | null): boolean {
   return !!endDate && endDate < today();
 }
 
+/** From its first day to its last, both included. A trip without both dates is never under way (rule 9). */
+export function underway(trip: { startDate: IsoDate | null; endDate: IsoDate | null }, day: IsoDate): boolean {
+  return trip.startDate !== null && trip.endDate !== null && trip.startDate <= day && day <= trip.endDate;
+}
+
 /**
  * Live trips first, finished ones apart — the trip lists fold the ended half
  * away rather than scrolling past it. Relative order is kept, so the caller

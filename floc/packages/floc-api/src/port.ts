@@ -32,7 +32,6 @@ import type { DayEventType, ReactionKind, SplitType, TransportType } from "@floc
 import type { Comment } from "./port-comment";
 import type { ExplorePort } from "./port-explore";
 import type { PagesPort } from "./port-pages";
-import type { RoutePort } from "./port-route";
 import type { TripRole, TripSummary } from "./port-trips";
 
 export type { Currency, DayEventType, DocCategory, ExpenseCategory, ReactionKind, SplitType, TransportType };
@@ -169,7 +168,6 @@ export type TripFile = {
 };
 
 export type { Comment } from "./port-comment";
-export type { GroupRoute, Position } from "./port-route";
 
 // One idea for the trip, with its tally. `createdAt` is an instant, as a string — a `Date` does
 // not survive JSON.
@@ -1170,8 +1168,7 @@ export type FlocPort = {
   forgetPushToken(viewerId: string, token: string): Promise<void>;
 } & ExplorePort &
   PagesPort &
-  import("./port-calendar").CalendarImportPort &
-  RoutePort;
+  import("./port-calendar").CalendarImportPort;
 
 export type NotificationItem = {
   id: number;
