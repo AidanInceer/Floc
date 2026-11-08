@@ -52,16 +52,6 @@ export const PORTO_TO_SEVILLE: PresetDetail = {
     { value: "5", label: "stops" },
     { value: "2", label: "day trips" },
   ],
-  advice: [
-    { topic: "before", title: "Before you go", lines: ["Book Pena palace and the Alcázar online. Both have timed entry.", "A one-way hire car from Portugal to Spain costs extra. Ask when you book."] },
-    { topic: "transport", title: "Driving", lines: ["Portuguese motorways have electronic tolls. Get the hire car's toll device."] },
-    { topic: "money", title: "Money", lines: ["Cards work almost everywhere.", "Tipping is small: round up, or a coin or two."] },
-    { topic: "weather", title: "Weather", lines: ["Seville is very hot in July and August. Spring and autumn are best."] },
-  ],
-  goodToKnow: [
-    { label: "Pace", text: "Steady. Two cities, then the car for the south." },
-    { label: "Late nights", text: "Spain eats at 21:00 or later." },
-  ],
   ideas: {
     atStops: [
       at("Porto", [

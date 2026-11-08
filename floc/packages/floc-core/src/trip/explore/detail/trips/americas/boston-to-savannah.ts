@@ -79,15 +79,6 @@ export const BOSTON_TO_SAVANNAH: PresetDetail = {
     { value: "2", label: "train rides" },
     { value: "1", label: "long drive south" },
   ],
-  advice: [
-    { topic: "before", title: "Before you go", lines: ["Most passports need an ESTA before you fly. Apply online.", "One-way car hire has a drop fee. Two hires, either side of the cities, is cheaper."] },
-    { topic: "money", title: "Money", lines: ["Tip 18 to 20 percent in restaurants.", "Prices are shown before tax."] },
-    { topic: "transport", title: "Getting about", lines: ["No car in New York, Philadelphia or Washington. The train is quicker."] },
-  ],
-  goodToKnow: [
-    { label: "Pace", text: "On the move. Nine stops, one long driving day." },
-    { label: "Driving", text: "Most drives are two or three hours." },
-  ],
   ideas: {
     atStops: [
       at("Boston", [

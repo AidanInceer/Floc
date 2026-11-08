@@ -2,7 +2,6 @@ import { stopsOf } from "../listing-stops";
 import type { PresetTrip } from "../preset-trip-types";
 import { checkIdeas } from "./check-ideas";
 import type { PresetDay, PresetDetail } from "./preset-detail-types";
-import { DERIVED_FACT_LABELS } from "./preset-plan";
 
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
 
@@ -45,9 +44,5 @@ export function checkPresetDetail(trip: PresetTrip, detail: PresetDetail): strin
     for (const day of stop.days) problems.push(...dayProblems(day, ++n));
   }
   if (detail.inPlan.length < 1 || detail.inPlan.length > 4) problems.push(`${detail.inPlan.length} plan figures, wants 1 to 4`);
-  for (const advice of detail.advice) if (advice.lines.length === 0) problems.push(`advice "${advice.title}" has no lines`);
-  for (const fact of detail.goodToKnow) {
-    if (DERIVED_FACT_LABELS.includes(fact.label)) problems.push(`"${fact.label}" comes from the listing, do not repeat it`);
-  }
   return [...problems, ...checkIdeas(bases, detail.ideas)];
 }

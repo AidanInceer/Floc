@@ -46,16 +46,6 @@ export const MEXICO_YUCATAN_LOOP: PresetDetail = {
     { value: "3", label: "Maya sites" },
     { value: "5", label: "cenotes" },
   ],
-  advice: [
-    { topic: "before", title: "Before you go", lines: ["Check the entry rules for your passport.", "Bring biodegradable sun cream. Cenotes ask for it."] },
-    { topic: "money", title: "Money", lines: ["Carry pesos for cenotes and small places.", "Tip 10 to 15 percent in restaurants."] },
-    { topic: "transport", title: "Driving", lines: ["Toll roads are quick and quiet. Slow down for the speed bumps in villages."] },
-    { topic: "weather", title: "Weather", lines: ["December to April is dry. Hurricane season runs June to November."] },
-  ],
-  goodToKnow: [
-    { label: "Pace", text: "Steady. One car, short drives except the last." },
-    { label: "Early starts", text: "Ruins at opening, before the heat and the coaches." },
-  ],
   ideas: {
     atStops: [
       at("Tulum", [

@@ -53,16 +53,6 @@ export const JAPAN_GOLDEN_ROUTE: PresetDetail = {
     { value: "2", label: "day trips" },
     { value: "2", label: "empty afternoons" },
   ],
-  advice: [
-    { topic: "before", title: "Before you go", lines: ["Check the entry rules for your passport.", "Book the ryokan and teamLab early. Both sell out."] },
-    { topic: "money", title: "Money", lines: ["Carry some cash. Small restaurants and shrines often take no cards.", "No tipping."] },
-    { topic: "transport", title: "Trains", lines: ["A seven-day rail pass covers Hakone to Osaka. Use an IC card in the cities.", "A large suitcase needs a reserved space on the bullet train."] },
-    { topic: "customs", title: "Hot springs and manners", lines: ["Many baths do not allow tattoos. Ask the ryokan first.", "Shoes off in the ryokan and in some restaurants."] },
-  ],
-  goodToKnow: [
-    { label: "Pace", text: "On the move. Five stops in thirteen nights." },
-    { label: "Walking", text: "A lot, mostly flat. One 06:00 start." },
-  ],
   ideas: {
     atStops: [
       at("Tokyo", [

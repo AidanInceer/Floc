@@ -52,15 +52,6 @@ export const SCOTTISH_HIGHLANDS_AND_SKYE: PresetDetail = {
     { value: "4", label: "walks" },
     { value: "1", label: "distillery" },
   ],
-  advice: [
-    { topic: "before", title: "Before you go", lines: ["Skye fills up in summer. Book beds early.", "Single-track roads: use the passing places, and let cars by."] },
-    { topic: "weather", title: "Weather", lines: ["Rain on any day. Pack waterproofs and good boots.", "Midges in summer. Bring repellent."] },
-    { topic: "health", title: "On the hills", lines: ["Tell someone your route, and turn back if the cloud comes in."] },
-  ],
-  goodToKnow: [
-    { label: "Pace", text: "Steady. One car, drives of two to three hours." },
-    { label: "Walking", text: "Most days have a walk. None needs a summit." },
-  ],
   ideas: {
     atStops: [
       at("Edinburgh", [

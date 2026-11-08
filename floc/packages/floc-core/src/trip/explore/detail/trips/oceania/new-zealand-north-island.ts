@@ -60,16 +60,6 @@ export const NEW_ZEALAND_NORTH_ISLAND: PresetDetail = {
     { value: "1", label: "alpine crossing" },
     { value: "2", label: "boat days" },
   ],
-  advice: [
-    { topic: "before", title: "Before you go", lines: ["Most passports need an NZeTA before you fly.", "Book the Tongariro shuttle. Check the weather the night before."] },
-    { topic: "transport", title: "Driving", lines: ["Drive on the left. Roads are slower than the map says."] },
-    { topic: "health", title: "The crossing", lines: ["Nineteen kilometres with a steep climb. Bring water, food and layers."] },
-    { topic: "customs", title: "Biosecurity", lines: ["Declare food and clean your boots before you land."] },
-  ],
-  goodToKnow: [
-    { label: "Pace", text: "Steady. Six stops, one long walk." },
-    { label: "Tides", text: "Hot Water Beach works only at low tide. The plan follows it." },
-  ],
   ideas: {
     atStops: [
       at("Auckland", [

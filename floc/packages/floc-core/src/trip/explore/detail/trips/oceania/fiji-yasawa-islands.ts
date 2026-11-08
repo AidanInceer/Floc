@@ -51,16 +51,6 @@ export const FIJI_YASAWA_ISLANDS: PresetDetail = {
     { value: "3", label: "boat rides" },
     { value: "4", label: "nights on the outer islands" },
   ],
-  advice: [
-    { topic: "before", title: "Before you go", lines: ["Check the entry rules for your passport.", "Bring cash for the outer islands. Few take cards."] },
-    { topic: "customs", title: "Village visits", lines: ["Cover shoulders and knees, and take hats off in a village.", "Bring a gift of kava root for the chief. The guide will help."] },
-    { topic: "weather", title: "Weather", lines: ["May to October is dry and cooler. Manta season is May to October."] },
-    { topic: "health", title: "Sun and water", lines: ["Reef-safe sun cream. Drink bottled water on the islands."] },
-  ],
-  goodToKnow: [
-    { label: "Pace", text: "Slow. Island time." },
-    { label: "Boats", text: "The Yasawa Flyer runs once a day. Moves follow its timetable." },
-  ],
   ideas: {
     atStops: [
       at("Nadi", [

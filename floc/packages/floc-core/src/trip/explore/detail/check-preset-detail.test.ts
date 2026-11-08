@@ -36,8 +36,6 @@ const good: PresetDetail = {
     { place: "Córdoba", summary: "One mosque.", days: [day(), day()] },
   ],
   inPlan: [{ value: "8", label: "places, with times" }],
-  advice: [{ topic: "money", title: "Money", lines: ["Carry some cash."] }],
-  goodToKnow: [{ label: "Pace", text: "Slow." }],
   ideas: {
     atStops: [
       at("Seville", [["Flamenco in Triana", "Relaxed", "Mid"], ["Kayak the Guadalquivir", "Active", "Low"]]),
@@ -103,15 +101,6 @@ describe("checkPresetDetail", () => {
     const figure = good.inPlan[0];
     expect(checkPresetDetail(trip, { ...good, inPlan: [] })).toEqual(["0 plan figures, wants 1 to 4"]);
     expect(checkPresetDetail(trip, { ...good, inPlan: [figure, figure, figure, figure, figure] })).toEqual(["5 plan figures, wants 1 to 4"]);
-  });
-
-  it("rejects advice with no lines and facts the listing already gives", () => {
-    const problems = checkPresetDetail(trip, {
-      ...good,
-      advice: [{ topic: "money", title: "Money", lines: [] }],
-      goodToKnow: [{ label: "Cost", text: "Cheap." }],
-    });
-    expect(problems).toEqual(['advice "Money" has no lines', '"Cost" comes from the listing, do not repeat it']);
   });
 
   it("names a stop with too few ideas, a list for no stop, and a swap for no stop", () => {

@@ -1,10 +1,11 @@
 /**
  * /explore/[slug] — one listing, laid out so a group can read it and copy it
  * (#335). Public and static in content, like /explore. A listing whose days
- * nobody has written yet still gets its route, figures and facts.
+ * nobody has written yet still gets its route and figures.
  */
 import { buildPresetPlan } from "@floc/core/trip/explore/detail/preset-plan";
 import { presetDetail } from "@floc/core/trip/explore/detail/preset-details";
+import { tripKnow } from "@floc/core/trip/explore/know/trip-knows";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
@@ -30,13 +31,13 @@ export default async function ExploreTripPage({ params, searchParams }: Props) {
   if (!trip) notFound();
   const session = await getSession();
   const rates = await listingRates(await viewerCurrency(session?.user?.id ?? null, await headers()));
-  const plan = buildPresetPlan(trip, presetDetail(trip.id), rates);
+  const plan = buildPresetPlan(trip, presetDetail(trip.id));
 
   return (
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-32 pt-6 sm:px-6 lg:pb-24">
       <TripHero trip={trip} figures={plan.inPlan} rates={rates} />
       <TripPlan trip={trip} plan={plan} signedIn={!!session?.user?.id} startOpen={(await searchParams).start !== undefined} />
-      <TripKnow advice={plan.advice} facts={plan.goodToKnow} />
+      <TripKnow know={tripKnow(trip.id)} />
     </div>
   );
 }

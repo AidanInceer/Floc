@@ -60,16 +60,6 @@ export const MASAI_MARA_TO_ZANZIBAR: PresetDetail = {
     { value: "8", label: "game drives" },
     { value: "3", label: "beach days" },
   ],
-  advice: [
-    { topic: "before", title: "Before you go", lines: ["Kenya and Tanzania both need an e-visa or travel authorisation before you fly.", "Light aircraft allow 15kg in a soft bag."] },
-    { topic: "health", title: "Health", lines: ["Talk to a travel clinic about malaria tablets and yellow fever.", "Drink bottled water."] },
-    { topic: "money", title: "Money", lines: ["US dollars are used for park fees and tips.", "Tip guides and camp staff at the end of each stay."] },
-    { topic: "customs", title: "Zanzibar", lines: ["Zanzibar is mostly Muslim. Cover shoulders and knees in Stone Town."] },
-  ],
-  goodToKnow: [
-    { label: "Pace", text: "Early starts on safari, then slow on the beach." },
-    { label: "Driving", text: "One long drive to the crater. Roads are rough." },
-  ],
   ideas: {
     atStops: [
       at("Nairobi", [

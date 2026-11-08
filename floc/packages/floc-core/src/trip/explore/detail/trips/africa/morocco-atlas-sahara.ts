@@ -52,16 +52,6 @@ export const MOROCCO_ATLAS_SAHARA: PresetDetail = {
     { value: "1", label: "night in the desert" },
     { value: "1", label: "guided trek" },
   ],
-  advice: [
-    { topic: "before", title: "Before you go", lines: ["Check the entry rules for your passport.", "Bring a warm layer. Desert nights are cold."] },
-    { topic: "money", title: "Money", lines: ["Carry dirhams. The mountains and the camp take cash only.", "Haggle in the souks, kindly."] },
-    { topic: "customs", title: "Customs", lines: ["Cover shoulders and knees in villages.", "Ask before you take a photo of someone."] },
-    { topic: "transport", title: "Drives", lines: ["A driver for the whole loop. The Fes day is the long one."] },
-  ],
-  goodToKnow: [
-    { label: "Pace", text: "On the move after Imlil. Four one-night stops in a row." },
-    { label: "Walking", text: "One full day on foot in the valley. Paths are rocky." },
-  ],
   ideas: {
     atStops: [
       at("Marrakech", [
