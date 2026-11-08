@@ -51,16 +51,6 @@ export const COSTA_RICA_VOLCANO_AND_COAST: PresetDetail = {
     { value: "2", label: "boat rides" },
     { value: "4", label: "guided walks" },
   ],
-  advice: [
-    { topic: "before", title: "Before you go", lines: ["Check the entry rules for your passport.", "Turtle nesting runs July to October. Other months, the canals are the draw."] },
-    { topic: "money", title: "Money", lines: ["US dollars work almost everywhere. Change comes in colones.", "Tips are often in the bill already."] },
-    { topic: "health", title: "Sun and bugs", lines: ["Repellent at dusk, sun cream at all times."] },
-    { topic: "weather", title: "Weather", lines: ["December to April is dry. The cloud forest is cool, bring a layer."] },
-  ],
-  goodToKnow: [
-    { label: "Pace", text: "Steady. Five stops, one long travel day to Tortuguero." },
-    { label: "Wildlife", text: "Guides find far more than you will. Book them." },
-  ],
   ideas: {
     atStops: [
       at("San José", [

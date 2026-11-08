@@ -56,16 +56,6 @@ export const GREAT_OCEAN_ROAD_AND_ULURU: PresetDetail = {
     { value: "1", label: "flight" },
     { value: "3", label: "sunsets planned" },
   ],
-  advice: [
-    { topic: "before", title: "Before you go", lines: ["Most passports need an ETA or eVisitor visa before you fly.", "Uluru's lodges are the only beds there. Book early."] },
-    { topic: "health", title: "Heat and flies", lines: ["The centre is hot. Walk early and carry water.", "Bring a fly net for Uluru. You will use it."] },
-    { topic: "transport", title: "Driving", lines: ["Drive on the left. Watch for kangaroos at dusk."] },
-    { topic: "customs", title: "Uluru", lines: ["The rock is sacred to the Anangu. Climbing is closed, and some places ask for no photos."] },
-  ],
-  goodToKnow: [
-    { label: "Pace", text: "Steady. A road trip, then a flight to the centre." },
-    { label: "Early starts", text: "Sunrise at Uluru means 05:30." },
-  ],
   ideas: {
     atStops: [
       at("Melbourne", [

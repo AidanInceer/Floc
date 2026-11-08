@@ -53,15 +53,6 @@ export const CROATIA_AND_MONTENEGRO: PresetDetail = {
     { value: "3", label: "ferries" },
     { value: "2", label: "island days" },
   ],
-  advice: [
-    { topic: "before", title: "Before you go", lines: ["Book the summer ferries a few weeks ahead.", "Montenegro is outside the EU. Carry your passport at the border."] },
-    { topic: "money", title: "Money", lines: ["Croatia and Montenegro both use the euro.", "Cards work in towns. Keep some cash for island konobas."] },
-    { topic: "weather", title: "Sea and weather", lines: ["The sea is warm from June to September.", "Bring sandals for the stony beaches."] },
-  ],
-  goodToKnow: [
-    { label: "Pace", text: "Steady. A boat every second day." },
-    { label: "Walking", text: "Old towns are steep stone streets and steps." },
-  ],
   ideas: {
     atStops: [
       at("Split", [

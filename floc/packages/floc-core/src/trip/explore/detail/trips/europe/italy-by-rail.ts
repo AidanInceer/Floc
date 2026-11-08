@@ -60,16 +60,6 @@ export const ITALY_BY_RAIL: PresetDetail = {
     { value: "5", label: "train rides" },
     { value: "3", label: "day trips" },
   ],
-  advice: [
-    { topic: "before", title: "Before you go", lines: ["Book the Uffizi, the Vatican and the Colosseum online. Timed tickets sell out.", "Book the fast trains early for the best fares."] },
-    { topic: "transport", title: "Trains", lines: ["Regional tickets must be validated before you board.", "Ferries on the Amalfi coast run April to October."] },
-    { topic: "money", title: "Money", lines: ["Cards work almost everywhere. Keep coins for coffee at the bar.", "A cover charge on the bill is normal."] },
-    { topic: "customs", title: "Churches", lines: ["Cover shoulders and knees in churches and at the Vatican."] },
-  ],
-  goodToKnow: [
-    { label: "Pace", text: "On the move. Six stops, every move by train or boat." },
-    { label: "Walking", text: "A lot, and the coast is all steps." },
-  ],
   ideas: {
     atStops: [
       at("Venice", [

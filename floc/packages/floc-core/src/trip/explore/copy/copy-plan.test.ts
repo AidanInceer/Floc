@@ -36,8 +36,6 @@ const detail: PresetDetail = {
     { place: "Córdoba", summary: "", days: [day("To Córdoba", ["09:00 Train to Córdoba", "11:00 * The Mezquita"], "The Mezquita"), day("Home", ["12:00 Fly home"])] },
   ],
   inPlan: [],
-  advice: [],
-  goodToKnow: [],
   ideas: { atStops: [], otherStops: [] },
 };
 

@@ -55,16 +55,6 @@ export const THAILAND_ANDAMAN_ISLANDS: PresetDetail = {
     { value: "3", label: "boat rides" },
     { value: "1", label: "night train" },
   ],
-  advice: [
-    { topic: "before", title: "Before you go", lines: ["Check the entry rules for your passport.", "Book the sleeper early. Lower berths go first."] },
-    { topic: "customs", title: "Temples", lines: ["Cover shoulders and knees in the Grand Palace and Wat Pho.", "Shoes off before you enter a temple hall."] },
-    { topic: "weather", title: "Sea and weather", lines: ["November to April is the dry season. Seas are calm.", "Boats can stop in rough weather. Keep a spare day."] },
-    { topic: "health", title: "Sun and water", lines: ["Use reef-safe sun cream and drink bottled water.", "Check your travel insurance covers boats and climbing."] },
-  ],
-  goodToKnow: [
-    { label: "Pace", text: "Busy in Bangkok and Chiang Mai, then slow on the islands." },
-    { label: "Boats", text: "Railay has no road. Long-tails run in daylight." },
-  ],
   ideas: {
     atStops: [
       at("Bangkok", [

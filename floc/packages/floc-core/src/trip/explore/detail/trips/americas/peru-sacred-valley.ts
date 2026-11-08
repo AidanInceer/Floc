@@ -57,16 +57,6 @@ export const PERU_SACRED_VALLEY: PresetDetail = {
     { value: "2", label: "train rides" },
     { value: "3", label: "Inca sites" },
   ],
-  advice: [
-    { topic: "before", title: "Before you go", lines: ["Machu Picchu tickets and trains sell out. They are booked with the trip.", "Carry your passport. Machu Picchu checks it."] },
-    { topic: "health", title: "Altitude", lines: ["Cusco and Puno are high. Take the first days slowly and drink water.", "Talk to a doctor if you have heart or lung trouble."] },
-    { topic: "money", title: "Money", lines: ["Carry soles for markets.", "Tip guides and drivers at the end."] },
-    { topic: "weather", title: "Weather", lines: ["April to October is dry. Nights in the Andes are cold."] },
-  ],
-  goodToKnow: [
-    { label: "Pace", text: "Slow at first for the height, then steady." },
-    { label: "Early starts", text: "05:30 for Machu Picchu, worth it." },
-  ],
   ideas: {
     atStops: [
       at("Lima", [

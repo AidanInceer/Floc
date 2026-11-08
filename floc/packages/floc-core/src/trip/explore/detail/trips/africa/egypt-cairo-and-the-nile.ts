@@ -46,17 +46,6 @@ export const EGYPT_CAIRO_AND_THE_NILE: PresetDetail = {
     { value: "7", label: "temples and tombs" },
     { value: "1", label: "flight" },
   ],
-  advice: [
-    { topic: "before", title: "Before you go", lines: ["Most passports need a visa. Buy the e-visa before you fly.", "Book Abu Simbel's early convoy with the boat."] },
-    { topic: "money", title: "Money", lines: ["Carry small notes for tips. Tipping is expected almost everywhere.", "Cards work in hotels and big shops."] },
-    { topic: "customs", title: "Customs", lines: ["Cover shoulders and knees at mosques and in the old city.", "Ask before you photograph people."] },
-    { topic: "health", title: "Heat and water", lines: ["Drink bottled water and wear a hat at the sites.", "Midday is hot even in winter."] },
-  ],
-  goodToKnow: [
-    { label: "Pace", text: "Full. A temple most mornings, then a 04:00 start for Abu Simbel." },
-    { label: "Heat", text: "Midday is hot even in winter. The big sites are early for that reason." },
-    { label: "Walking", text: "A lot, on uneven stone." },
-  ],
   ideas: {
     atStops: [
       at("Cairo", [

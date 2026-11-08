@@ -62,16 +62,6 @@ export const UGANDA_AND_RWANDA: PresetDetail = {
     { value: "1", label: "gorilla permit" },
     { value: "4", label: "national parks" },
   ],
-  advice: [
-    { topic: "before", title: "Before you go", lines: ["Gorilla permits sell out months ahead. The price is in the trip.", "An East Africa tourist visa covers both countries."] },
-    { topic: "health", title: "Health", lines: ["You need a yellow fever certificate. Talk to a travel clinic.", "You cannot track gorillas with a cold. Rangers turn back anyone ill."] },
-    { topic: "transport", title: "Roads", lines: ["Long drives on rough roads. The guide sets the pace."] },
-    { topic: "customs", title: "Rwanda", lines: ["Plastic bags are banned in Rwanda. Leave them at home."] },
-  ],
-  goodToKnow: [
-    { label: "Pace", text: "Long drives between the parks." },
-    { label: "Walking", text: "Gorilla tracking can mean hours on steep, muddy slopes." },
-  ],
   ideas: {
     atStops: [
       at("Entebbe", [
