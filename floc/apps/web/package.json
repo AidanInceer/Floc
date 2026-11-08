@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --coverage",
     "e2e": "playwright test",
-    "perf:clicks": "node perf/clicks.mjs",
+    "perf:clicks": "node scripts/perf/clicks.mjs",
     "fitness": "pnpm fitness:source && pnpm check:bundle",
     "fitness:source": "node ../../../scripts/checks/parallel.mjs deps:check dead-code check:tokens check:css check:icons check:contrast",
     "deps:check": "depcruise src --config .dependency-cruiser.cjs --output-type err",

@@ -7,7 +7,7 @@ import { resolve } from "node:path";
 
 import { chromium } from "@playwright/test";
 
-import { e2eEnv, WEB_DIR } from "../e2e/env.mjs";
+import { e2eEnv, WEB_DIR } from "../../e2e/env.mjs";
 import { SCENARIOS } from "./scenarios.mjs";
 
 const args = parseArgs(process.argv.slice(2));
@@ -102,13 +102,14 @@ function timerScript() {
 }
 
 async function timeClick(page, target, done, arg = null) {
+  const check = await page.evaluateHandle(`(${done.toString()})`);
   const already = await page.evaluate(
-    ([src, a]) => {
-      const pred = new Function("arg", `return (${src})(arg);`).bind(null, a);
+    ([fn, a]) => {
+      const pred = () => fn(a);
       window.__click = { ...window.__click, t0: 0, t1: 0, pred };
       return pred();
     },
-    [done.toString(), arg],
+    [check, arg],
   );
   if (already) throw new Error("done before the click — the scenario measures nothing");
   await target.click();
