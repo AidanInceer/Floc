@@ -25,24 +25,14 @@ export type GlyphName =
   | "receipt"
   | "offline"
   | "keep"
-  | "agent"
   | "live"
   | "local"
   | "extension"
-  | "stay"
   | "eat"
-  | "send"
-  | "copy"
   | "close"
   | "people";
 
 const PATHS: Record<GlyphName, ReactNode> = {
-  copy: (
-    <>
-      <rect x="4.4" y="4.4" width="7.8" height="7.8" rx="1.4" />
-      <path d="M9.6 4.4V3a1.2 1.2 0 0 0-1.2-1.2H3A1.2 1.2 0 0 0 1.8 3v5.4A1.2 1.2 0 0 0 3 9.6h1.4" />
-    </>
-  ),
   dates: (
     <>
       <rect x="1.8" y="2.8" width="10.4" height="9.4" rx="1.6" />
@@ -137,12 +127,6 @@ const PATHS: Record<GlyphName, ReactNode> = {
     </>
   ),
   keep: <path d="M3.4 1.8h7.2v10.4L7 9.8l-3.6 2.4Z" />,
-  agent: (
-    <>
-      <path d="M2 3.4a1.4 1.4 0 0 1 1.4-1.4h7.2A1.4 1.4 0 0 1 12 3.4v5a1.4 1.4 0 0 1-1.4 1.4H6.2L3.4 12V9.8A1.4 1.4 0 0 1 2 8.4Z" />
-      <path d="M7 4.2l.5 1.2 1.2.5-1.2.5L7 7.6l-.5-1.2-1.2-.5 1.2-.5Z" />
-    </>
-  ),
   live: (
     <>
       <circle cx="7" cy="7" r="1.6" />
@@ -161,9 +145,7 @@ const PATHS: Record<GlyphName, ReactNode> = {
       <path d="M1.8 5h10.4M3.6 3.7h.1M5 3.7h.1M5.2 8.2 6.6 9.4 9 7" />
     </>
   ),
-  stay: <path d="M1.8 11.6V3.4M1.8 8.4h10.4v3.2M1.8 6.4h3.4a1.6 1.6 0 0 1 1.6 1.6v.4M8.2 6.2h2.4a1.6 1.6 0 0 1 1.6 1.6v.6" />,
   eat: <path d="M3.6 1.8v4.4a1.4 1.4 0 0 0 2.8 0V1.8M5 6.6v5.6M10.2 12.2V1.8c-1.4.6-2.2 2.2-2.2 4.2 0 1.2.6 1.8 2.2 1.8" />,
-  send: <path d="M7 11.6V2.6M3.2 6.2 7 2.4l3.8 3.8" />,
   close: <path d="M4 4l6 6M10 4l-6 6" />,
   people: (
     <>
