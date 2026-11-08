@@ -14,6 +14,7 @@ export function AccountPage({
   blurb,
   actions,
   titleInBar,
+  wide,
   children,
 }: {
   eyebrow?: string;
@@ -22,12 +23,14 @@ export function AccountPage({
   actions?: ReactNode;
   /** The account bar under the header already names the page, so the title is for screen readers only. */
   titleInBar?: boolean;
+  /** Your own profile: on a wide screen the column opens to the page's width so the globe can fill it. */
+  wide?: boolean;
   children: ReactNode;
 }) {
   if (titleInBar) {
     return (
       <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
-        <div className="mx-auto flex max-w-[54rem] flex-col gap-4">
+        <div className={cx("mx-auto flex max-w-[54rem] flex-col gap-4", wide && "lg:max-w-none")}>
           <PageTitle className="sr-only">{title}</PageTitle>
           {children}
         </div>
