@@ -50,6 +50,7 @@ import { EventMark, groundOf } from "../system/event-glyph";
 import { ClipGlyph, NoteGlyph } from "../system/glyphs";
 import { useTheme } from "../system/theme";
 import { fonts, radius, size, space } from "@/lib/theme";
+import { eventName } from "@floc/core/itinerary/names/event-name";
 
 /** One hour's height. Tall enough that a half-hour block is still a tappable target. */
 const HOUR = 52;
@@ -90,11 +91,13 @@ function EventBlock({
 }) {
   const { c } = useTheme();
   const ground = groundOf(event.type, c);
-  const title = event.title ?? "Untitled";
+  const title = eventName(event);
+  // Why: an untitled event already wears its place as its name, so the place is not said twice.
+  const place = event.title !== null ? event.placeName : null;
   // The category is a word here, so the colour is never carrying it alone (#204).
-  const spoken = [when, title, event.placeName, EVENT_CATEGORIES[event.type].label].filter(Boolean).join(" · ");
+  const spoken = [when, title, place, EVENT_CATEGORIES[event.type].label].filter(Boolean).join(" · ");
   const stacked = height !== null && height >= 44;
-  const placed = height !== null && height >= 78 && event.placeName;
+  const placed = height !== null && height >= 78 && place;
   const small = { color: ground.ink, fontFamily: fonts.type, fontSize: size.label, fontVariant: ["tabular-nums" as const] };
   return (
     <Pressable

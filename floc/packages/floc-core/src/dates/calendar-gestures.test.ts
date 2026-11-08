@@ -9,9 +9,7 @@ import {
   paintRange,
   pickedRange,
   rangeFromAnchor,
-  resolveBandRelease,
 } from "./calendar-gestures";
-import type { BandSpan } from "../itinerary/overnight-band";
 
 const span = (start: number, end: number, open = false) => ({ start, end, open });
 
@@ -165,50 +163,5 @@ describe("paintRange", () => {
     const out = paintRange(base, "2026-05-10", "2026-05-11", false, dateRange);
     expect(out).toEqual({ "2026-05-10": false, "2026-05-11": false });
     expect(base).toEqual({}); // base untouched — a fresh map each move
-  });
-});
-
-describe("resolveBandRelease", () => {
-  const span: BandSpan = {
-    start: "2026-05-10",
-    end: "2026-05-12",
-    placeId: 7,
-    placeName: "Rome",
-    uncovered: [["2026-05-13", "2026-05-13"]],
-  };
-
-  it("opens the dialog on the pressed day when the press never moved", () => {
-    expect(
-      resolveBandRelease(
-        { mode: "extend", pressedDate: "2026-05-11", placeId: 7, placeName: "Rome", moved: false },
-        span,
-      ),
-    ).toEqual({
-      kind: "dialog",
-      span: { start: "2026-05-11", end: "2026-05-11", placeId: 7, placeName: "Rome" },
-    });
-  });
-
-  it("opens the dialog for a paint drag — undecided days have no place yet", () => {
-    expect(
-      resolveBandRelease(
-        { mode: "paint", pressedDate: "2026-05-10", placeId: null, placeName: null, moved: true },
-        span,
-      ),
-    ).toEqual({ kind: "dialog", span });
-  });
-
-  it("commits an extend of a run that already has a place", () => {
-    expect(
-      resolveBandRelease(
-        { mode: "extend", pressedDate: "2026-05-10", placeId: 7, placeName: "Rome", moved: true },
-        span,
-      ),
-    ).toEqual({
-      kind: "commit",
-      span,
-      placeId: 7,
-      uncovered: [["2026-05-13", "2026-05-13"]],
-    });
   });
 });

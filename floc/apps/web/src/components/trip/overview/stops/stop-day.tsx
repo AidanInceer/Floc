@@ -5,8 +5,8 @@ import type { DayEventRow } from "@/server/itinerary/itinerary";
 import { ChevronIcon } from "@/components/system/icons";
 import { dayHref } from "@/lib/trip-links";
 import { KindTile } from "./stop-parts";
+import { eventName } from "@floc/core/itinerary/names/event-name";
 
-const label = (e: DayEventRow) => e.title ?? e.placeName ?? "Untitled";
 
 // Why: a <details> row — a day opens without client JS, and several can stay open at once.
 export function StopDay({ tripId, date, events }: { tripId: number; date: string; events: DayEventRow[] }) {
@@ -26,7 +26,7 @@ export function StopDay({ tripId, date, events }: { tripId: number; date: string
             <span className="size-[26px] rounded-sm border-[1.5px] border-dashed border-rule-strong" />
           )}
           {first ? (
-            <span className="truncate text-sm text-ink">{label(first)}</span>
+            <span className="truncate text-sm text-ink">{eventName(first)}</span>
           ) : (
             <span className="text-sm text-ink-faint">
               <span aria-hidden>…</span>
@@ -42,7 +42,7 @@ export function StopDay({ tripId, date, events }: { tripId: number; date: string
               <li key={e.id} className="grid grid-cols-[44px_26px_minmax(0,1fr)] items-center gap-3 py-1.5 text-sm">
                 <span className="nums text-right text-xs text-ink-faint">{e.time ?? "All day"}</span>
                 <KindTile type={e.type} transportType={e.transportType} />
-                <span className="min-w-0">{label(e)}</span>
+                <span className="min-w-0">{eventName(e)}</span>
               </li>
             ))}
           </ol>

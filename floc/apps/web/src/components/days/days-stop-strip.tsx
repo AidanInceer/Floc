@@ -13,8 +13,7 @@ import { MoonIcon } from "@/components/system/icons";
 import type { CalendarDay } from "@/components/days/days-calendar-shared";
 import { deriveStops, nightsLabel } from "@floc/core/itinerary/stops";
 import type { BandSpan } from "@floc/core/itinerary/overnight-band";
-
-export const shortPlace = (name: string) => name.split(",")[0];
+import { shortPlace } from "@floc/core/itinerary/names/place-name";
 
 export function StopStrip({
   days,
@@ -68,7 +67,7 @@ export function StopStrip({
               aria-label={`Overnight: ${stop.placeName ?? "not set"}${stop.placeName ? `, ${nightsLabel(stop.nights)}` : ""}`}
               title={stop.placeName ? `${shortPlace(stop.placeName)} · ${nightsLabel(stop.nights)}` : undefined}
               className={cx(
-                "flex min-w-0 items-center justify-center gap-1 overflow-hidden whitespace-nowrap rounded-full px-1.5 py-0.5 text-[11.5px] transition-shadow sm:justify-start sm:gap-1.5 sm:px-2.5 sm:text-[12.5px]",
+                "flex min-w-0 items-center justify-center gap-1 overflow-hidden max-sm:min-h-7 whitespace-nowrap rounded-full px-1.5 py-0.5 text-[11.5px] transition-shadow sm:justify-start sm:gap-1.5 sm:px-2.5 sm:text-[12.5px]",
                 stop.placeName
                   ? "bg-sheet-3 text-ink-soft hover:shadow-[inset_0_0_0_1px_var(--color-rule-strong)]"
                   : "border border-dashed border-highlight-edge bg-highlight-soft text-highlight-ink hover:border-highlight-ink",

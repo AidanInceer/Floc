@@ -9,7 +9,8 @@ import { DocumentUpload } from "@/components/documents/document-upload";
 import { UploadIcon } from "@/components/system/icons";
 import { cx } from "@/components/system/ui";
 import { DOC_CATEGORY_CHIPS } from "@floc/core/documents/documents";
-import { StopNo, cityOf } from "./stop-parts";
+import { StopNo } from "./stop-parts";
+import { shortPlace } from "@floc/core/itinerary/names/place-name";
 
 type Props = {
   tripId: number;
@@ -38,7 +39,7 @@ export function BookingsCard({ tripId, legs, wholeTrip }: Props) {
 }
 
 function StopRow({ tripId, leg }: { tripId: number; leg: Leg<TripDocument> }) {
-  const place = cityOf(leg.placeName);
+  const place = shortPlace(leg.placeName);
   return (
     <li className="grid grid-cols-[auto_minmax(0,1fr)_auto_1.5rem] items-center gap-x-2.5 gap-y-1.5 border-t border-rule py-2.5">
       <a href={`#stop-${leg.no}`} className="group col-span-3 grid grid-cols-subgrid items-center text-ink">

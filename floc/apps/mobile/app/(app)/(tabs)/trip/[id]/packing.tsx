@@ -15,6 +15,7 @@
  * is furniture on every visit for a job done once (#126).
  */
 import {
+  packedLineCount,
   type PackingLineGroup,
   type PackTier,
 } from "@floc/core/packing/packing";
@@ -160,9 +161,7 @@ export default function Packing() {
   if (board.isError) return <Failed onRetry={() => board.refetch()} />;
 
   const viewerId = me.data?.id;
-  const sharedPacked = board.data.shared.filter((line) =>
-    line.claims.some((c) => c.packed),
-  ).length;
+  const sharedPacked = packedLineCount(board.data.shared);
   const minePacked = board.data.mine.filter((line) => line.packed).length;
   const sharedGroups = sharedClaimGroups(board.data.shared, viewerId);
   const unsuggest = {

@@ -225,11 +225,12 @@ export function CalendarGrid({
               type="button"
               onClick={onToggleFold}
               aria-label={`${toHhmm(s.from)} to ${toHhmm(s.to)}, nothing planned. Show every hour`}
-              className="pointer-events-auto absolute inset-x-0 z-[3] flex items-center justify-center gap-2 border-y border-dashed border-rule-strong bg-sheet-2 text-xs text-ink-soft transition-colors hover:text-pen"
+              className="pointer-events-auto absolute inset-x-0 z-[3] flex items-center justify-center gap-2 border-y border-dashed border-rule-strong text-xs text-ink-soft transition-colors hover:text-pen"
               style={{ top: s.y, height: s.height }}
             >
-              <FoldIcon size={12} />
-              <span>
+              <FoldGround slots={slots} focusId={focusId} />
+              <FoldIcon size={12} className="relative" />
+              <span className="relative">
                 <span className="nums">
                   {toHhmm(s.from)} – {toHhmm(s.to)}
                 </span>{" "}
@@ -239,6 +240,20 @@ export function CalendarGrid({
           ))}
       </div>
     </div>
+  );
+}
+
+/**
+ * Each column keeps its own ground under a fold, so the open day stays white.
+ * Why: a slot past the trip stays unpainted — restarting its stripes here would break them at the fold's edges.
+ */
+function FoldGround({ slots, focusId }: { slots: CalendarDay[]; focusId: number }) {
+  return (
+    <span aria-hidden className="absolute inset-0 grid grid-cols-[var(--days-side)_minmax(0,1fr)_var(--days-side)]">
+      {slots.map((day) => (
+        <span key={day.id} className={cx("border-l border-rule", !day.outside && (day.id === focusId ? "bg-sheet" : "bg-sheet-2"))} />
+      ))}
+    </span>
   );
 }
 
