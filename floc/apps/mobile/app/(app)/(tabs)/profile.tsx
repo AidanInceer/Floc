@@ -195,7 +195,7 @@ export default function Profile() {
 
 function YourTravel({ onKits }: { onKits: () => void }) {
   return (
-    <DrawerGroup label="Your travel">
+    <DrawerGroup>
       {/* Saved lists are yours rather than any trip's, so they hang off you, not off a trip. */}
       <DrawerLink first title="Saved packing lists" onPress={onKits} />
     </DrawerGroup>
