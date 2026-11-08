@@ -9,7 +9,7 @@ import { and, eq, exists, gte, inArray, isNotNull, isNull, lt, lte, notInArray, 
 import { alias } from "drizzle-orm/sqlite-core";
 
 import { db } from "@/db";
-import { activity, notification, pushToken, tripMembership, userProfile } from "@/db/schema";
+import { activity, notification, pushToken, tripMembership, user, userProfile } from "@/db/schema";
 import { planPushes, type Limits, type PendingPush, type PlannedPush } from "@floc/core/notifications/push-plan";
 import { REMINDER_KINDS, isReminder, type ActivityKind } from "@floc/core/notifications/rules";
 import { touch } from "@/server/audit";
@@ -36,6 +36,17 @@ export const switchedOff = (key: "notifyPush" | "notifyEmail") =>
       .select({ userId: recipientProfile.userId })
       .from(recipientProfile)
       .where(and(eq(recipientProfile.userId, notification.userId), eq(recipientProfile[key], false))),
+  );
+
+const recipient = alias(user, "recipient");
+
+/** Why: sign-up does not wait for confirmation (#149), so an unconfirmed address may belong to someone who never signed up. */
+export const addressConfirmed = () =>
+  exists(
+    db
+      .select({ id: recipient.id })
+      .from(recipient)
+      .where(and(eq(recipient.id, notification.userId), eq(recipient.emailVerified, true))),
   );
 
 /** Why: only notifications from after the phone registered reach it, so a new install is not handed the backlog (#345). */

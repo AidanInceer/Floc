@@ -10,7 +10,6 @@
  * page — that's the one you can edit.
  */
 
-import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import Link from "next/link";
 
 import { Avatar, cx } from "@/components/system/ui";
@@ -18,7 +17,6 @@ import { Avatar, cx } from "@/components/system/ui";
 export function PersonLink({
   userId,
   name,
-  avatarIcon,
   size = 28,
   tone,
   isYou,
@@ -26,7 +24,6 @@ export function PersonLink({
 }: {
   userId: string;
   name: string;
-  avatarIcon?: AvatarIcon | null;
   size?: number;
   /** A trip member's seat colour — pass it through so it survives the link. */
   tone?: string;
@@ -38,11 +35,11 @@ export function PersonLink({
       href={isYou ? "/profile" : `/profile/${userId}`}
       title={isYou ? "Your profile" : `${name}'s profile`}
       className={cx(
-        "inline-flex shrink-0 rounded-full ring-offset-1 ring-offset-sheet transition-shadow hover:ring-2 hover:ring-pen",
+        "inline-flex shrink-0 rounded-sm ring-offset-1 ring-offset-sheet transition-shadow hover:ring-2 hover:ring-pen",
         className,
       )}
     >
-      <Avatar name={name} icon={avatarIcon} size={size} tone={tone} />
+      <Avatar name={name} size={size} tone={tone} />
     </Link>
   );
 }

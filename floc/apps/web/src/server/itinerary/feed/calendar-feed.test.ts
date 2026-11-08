@@ -3,7 +3,7 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
-import { memberCalendar } from "@/server/itinerary/calendar-feed";
+import { memberCalendar } from "@/server/itinerary/feed/calendar-feed";
 
 let world: Scenario;
 
@@ -34,6 +34,11 @@ describe("a member's trip calendar", () => {
   it("answers nothing to someone not on the trip, same as a trip that does not exist", async () => {
     expect(await memberCalendar(world.ours.id, world.outsider)).toBeNull();
     expect(await memberCalendar(999_999, world.member)).toBeNull();
+  });
+
+  it("answers a feed link only while its number is the member's current one", async () => {
+    expect(await memberCalendar(world.ours.id, world.member, 0)).toContain("X-WR-CALNAME:Ours");
+    expect(await memberCalendar(world.ours.id, world.member, 1)).toBeNull();
   });
 
   it("stops answering once the member has left", async () => {

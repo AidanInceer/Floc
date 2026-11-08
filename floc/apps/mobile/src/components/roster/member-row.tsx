@@ -5,9 +5,8 @@ import { useTheme } from "@/components/system/theme";
 import { Face } from "@/components/trip/person-row";
 import { fonts, size, space } from "@/lib/theme";
 
-export function MemberRow({ name, avatarIcon, you, admin, word, first, onMore }: {
+export function MemberRow({ name, you, admin, word, first, onMore }: {
   name: string;
-  avatarIcon: string | null;
   you: boolean;
   admin: boolean;
   /** Quiet status for somebody not on the roster yet — Invited, Declined. */
@@ -19,7 +18,7 @@ export function MemberRow({ name, avatarIcon, you, admin, word, first, onMore }:
   const note = word ?? (admin ? "Admin" : null);
   const body = (
     <>
-      <Face name={name} avatarIcon={avatarIcon} size={34} />
+      <Face name={name} size={34} />
       <Text numberOfLines={1} style={{ flex: 1, color: word ? c["ink-3"] : c.ink, fontFamily: fonts.sansBold, fontSize: size.body }}>
         {name}
         {you ? <Text style={{ color: c["ink-3"], fontFamily: fonts.sans }}> (you)</Text> : null}

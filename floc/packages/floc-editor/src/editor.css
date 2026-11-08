@@ -113,7 +113,7 @@
 .remote-caret-name, .fe-face { background: var(--who); color: var(--who-ink); }
 
 /* Faces. */
-.fe-face { display: inline-flex; flex-shrink: 0; align-items: center; justify-content: center; border-radius: var(--radius-pill); font-family: var(--type); letter-spacing: 0.02em; }
+.fe-face { display: inline-flex; flex-shrink: 0; align-items: center; justify-content: center; border-radius: var(--radius-sm); font-family: var(--type); letter-spacing: 0.02em; }
 
 /* Buttons the floating things share. */
 .fe-tool, .fe-quiet, .fe-grip, .fe-add, .fe-key, .fe-swatch, .fe-badge, .fe-menu button, .fe-slash button, .fe-page-icon, .fe-icon-choice { font: inherit; border: 0; background: none; cursor: pointer; }

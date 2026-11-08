@@ -22,9 +22,14 @@ const columns = {
 };
 
 export async function loadPages(tripId: number, viewerId: string): Promise<{ pages: ListedPage[]; archived: ArchivedPage[] }> {
-  await ensureFirstPage(tripId, viewerId);
-  const rows = await db.select(columns).from(tripPage)
+  const read = () => db.select(columns).from(tripPage)
     .where(and(eq(tripPage.tripId, tripId), isNull(tripPage.deletedAt))).all();
+  let rows = await read();
+  // Why read first: a trip almost always has an open page, so the first-page check costs no round trip of its own.
+  if (!rows.some((row) => row.archivedAt === null)) {
+    await ensureFirstPage(tripId, viewerId);
+    rows = await read();
+  }
   const archived = rows
     .filter((row): row is ArchivedPage => row.archivedAt !== null)
     .sort((a, b) => b.archivedAt.getTime() - a.archivedAt.getTime());

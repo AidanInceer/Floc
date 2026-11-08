@@ -1,7 +1,8 @@
 import Link from "next/link";
 
-import { buttonClass, cx, menuItemClass } from "@/components/system/ui";
-import { ConfirmSubmit, Menu, SubmitButton } from "@/components/system/client-ui";
+import { cx, menuDangerItemClass, menuItemClass } from "@/components/system/ui";
+import { ConfirmSubmit, Menu } from "@/components/system/client-ui";
+import { CrossIcon } from "@/components/system/icons";
 import {
   PACK_CATEGORIES,
   PACK_CATEGORY_LABELS,
@@ -57,9 +58,6 @@ export function PackingBulkBar({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-sm text-ink-soft">
-        Tick the rows you want gone.
-      </span>
       <form id={formId} action={removeSelected}>
         <ConfirmSubmit
           variant="ghost"
@@ -69,6 +67,7 @@ export function PackingBulkBar({
           confirmLabel="Remove them"
           className="!px-3 !text-red hover:!bg-red-soft hover:!text-red"
         >
+          <CrossIcon size={11} />
           Remove ticked
         </ConfirmSubmit>
       </form>
@@ -103,49 +102,40 @@ export function CategorySelect({ defaultValue }: { defaultValue?: PackCategory }
 }
 
 /**
- * Copy one of your saved lists into this bag (ticket 230). A menu rather than
- * a row of buttons: it is one press you make at the start of a trip and then
- * never again, so it sits closed until asked. The last item is the way to make
- * one, which is also the whole empty state.
+ * Your bag's other verbs behind one … beside Fill your bag (E2,
+ * wireframe/packing-bag-top): one visible action in the head. "Remove
+ * suggested" (#469) is free, so a member whose Pro lapsed can still undo it.
  */
-export function PackingKitMenu({
-  kits,
-  apply,
+export function PackingBagMore({
+  reset,
+  suggested,
 }: {
-  kits: { id: number; name: string; itemCount: number }[];
-  apply: (kitId: number) => Promise<void>;
+  reset: (() => Promise<void>) | null;
+  suggested: { count: number; remove: () => Promise<void> };
 }) {
+  if (!reset && suggested.count === 0) return null;
   return (
-    <Menu
-      label="Add a saved list"
-      trigger={
-        <>
-          <span className="sm:hidden">Lists</span>
-          <span className="hidden sm:inline">Saved lists</span>
-        </>
-      }
-      triggerClassName={cx(buttonClass(), "shrink-0 whitespace-nowrap data-[open=true]:bg-pen-soft")}
-    >
-      {kits.map((kit) => (
-        <form key={kit.id} action={apply.bind(null, kit.id)}>
-          <SubmitButton
-            variant="ghost"
-            pendingLabel="Adding…"
-            className={cx(menuItemClass, "w-full !justify-start")}
-          >
-            {kit.name}
-            <span className="ml-2 font-mono text-[10.5px] tabular-nums text-ink-faint">
-              {kit.itemCount}
-            </span>
-          </SubmitButton>
+    <Menu label="More for your bag">
+      {suggested.count > 0 ? (
+        <form action={suggested.remove}>
+          <button type="submit" role="menuitem" className={menuItemClass}>
+            Remove suggested <span className="font-mono text-[11px] tabular-nums text-ink-faint">{suggested.count}</span>
+          </button>
         </form>
-      ))}
-      {kits.length > 0 ? (
-        <div className="my-1 border-t border-dotted border-rule-strong" />
       ) : null}
-      <Link role="menuitem" href="/packing-lists" className={menuItemClass}>
-        {kits.length > 0 ? "Manage your lists" : "Make your first list"}
-      </Link>
+      {reset ? (
+        <form action={reset}>
+          <ConfirmSubmit
+            variant="ghost"
+            confirmVariant="danger"
+            message="Clear your whole bag? The shared list stays."
+            confirmLabel="Clear it"
+            className={menuDangerItemClass}
+          >
+            Clear your bag
+          </ConfirmSubmit>
+        </form>
+      ) : null}
     </Menu>
   );
 }

@@ -25,7 +25,8 @@ import {
 async function addFromForm(tripId: number, formData: FormData, mine: boolean) {
   const refusal = await addLine(await requireTripAccess(tripId), {
     label: formData.get("label"),
-    category: parsePackCategory(formData.get("category")),
+    // Your bag's field has no cube picker (E2, wireframe/packing-bag-top): the server files it.
+    category: formData.has("category") ? parsePackCategory(formData.get("category")) : null,
     mine,
   });
   if (refusal) throw refusal;

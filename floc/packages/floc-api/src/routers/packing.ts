@@ -49,7 +49,8 @@ export const packingRouter = router({
     .input(
       z.object({
         label,
-        category: z.enum(PACK_CATEGORIES),
+        /** Null or missing: the host files it by its name. */
+        category: z.enum(PACK_CATEGORIES).nullish().transform((c) => c ?? null),
         /** True puts it in your own bag, false on the group's list. */
         mine: z.boolean(),
       }),

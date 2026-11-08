@@ -52,7 +52,7 @@ export function InviteBanner({
           <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
             {/* Who asked leads — an invite from somebody you do not recognise
                 is the one you want to decline. */}
-            <Face name={invite.fromName} avatarIcon={invite.fromAvatarIcon} />
+            <Face name={invite.fromName} />
             <View style={{ flex: 1 }}>
               <Body bold>{invite.tripName}</Body>
               <Body tone="pastel-blue-ink">{invite.fromName} asked you</Body>

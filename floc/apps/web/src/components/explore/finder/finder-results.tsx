@@ -70,14 +70,12 @@ export function FinderResults({
   likes,
   split,
   signedIn,
-  onPick,
   onLike,
 }: {
   rows: Ranked[];
   likes: TripTag[];
   split: boolean;
   signedIn: boolean;
-  onPick: (presetId: string) => void;
   onLike: (presetId: string) => void;
 }) {
   const [all, setAll] = useState(false);
@@ -91,7 +89,6 @@ export function FinderResults({
     <li key={r.trip.id} className={dim ? "opacity-75" : undefined}>
       <ExploreTile
         trip={r.trip}
-        onPick={onPick}
         footer={
           <button type="button" className={linkClass} onClick={() => onLike(r.trip.id)}>
             More like this

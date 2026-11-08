@@ -9,6 +9,7 @@ const tx = {
   productId: "floc_pro_yearly",
   expiresDate: END,
   appAccountToken: "token-1",
+  environment: "Production",
 };
 
 describe("an App Store transaction", () => {
@@ -20,6 +21,7 @@ describe("an App Store transaction", () => {
       currentPeriodEnd: new Date(END),
       cancelAtPeriodEnd: false,
       accountToken: "token-1",
+      test: false,
     });
   });
 
@@ -60,6 +62,10 @@ describe("an App Store transaction", () => {
   it("does not guess at a status it has never seen", () => {
     expect(appleFacts(tx, null, 99)?.status).toBe("incomplete");
   });
+
+  it.each(["Sandbox", "Xcode", undefined])("is a test purchase when bought in %s", (environment) => {
+    expect(appleFacts({ ...tx, environment })?.test).toBe(true);
+  });
 });
 
 const play = {
@@ -83,6 +89,7 @@ describe("a Google Play subscription", () => {
       currentPeriodEnd: new Date("2026-10-01T00:00:00Z"),
       cancelAtPeriodEnd: false,
       accountToken: "token-2",
+      test: false,
     });
   });
 
@@ -124,5 +131,9 @@ describe("a Google Play subscription", () => {
     const facts = playFacts("t", { lineItems: [{ productId: "p", expiryTime: "2026-10-01T00:00:00Z" }] });
     expect(facts?.accountToken).toBeNull();
     expect(facts?.status).toBe("incomplete");
+  });
+
+  it("is a test purchase when a licence tester bought it", () => {
+    expect(playFacts("t", { ...play, testPurchase: {} })?.test).toBe(true);
   });
 });

@@ -1,0 +1,1 @@
+ALTER TABLE `trip_membership` ADD `calendar_feed_epoch` integer DEFAULT 0 NOT NULL;

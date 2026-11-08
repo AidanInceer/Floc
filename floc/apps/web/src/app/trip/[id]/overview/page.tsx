@@ -11,8 +11,8 @@ import { listIdeas } from "@/server/ideas/ideas-read";
 import { listDeclinedInvitees, listPendingInvitees } from "@/server/trips/invites";
 import { listExpenses, listSettlements, listSplits } from "@/server/money/money";
 import { walkthroughDue } from "@/server/auth/tour";
+import { homeCurrenciesFor } from "@/server/auth/profile";
 import { absoluteUrl } from "@/server/auth/email";
-import { canUseFeature } from "@/server/billing/entitlements";
 import { friendStatesFor, listFriendsFor } from "@/server/social/friends";
 import { yourPosition } from "@floc/core/money/position";
 import { settleUpFrom } from "@/server/money/settle-up";
@@ -21,7 +21,6 @@ import { readTripColor, tripPastel } from "@floc/core/trip/trip-color";
 import { readTripMark } from "@floc/core/trip/mark/trip-mark";
 import { readTags } from "@floc/core/trip/tags";
 import { hasEnded, nightsBetween, today } from "@floc/core/dates/dates";
-import { stayLinks } from "@floc/core/trip/booking/booking-links";
 import { tripLegs } from "@floc/core/trip/overview/legs";
 import { ideasTucked } from "@floc/core/trip/ideas";
 import { overviewRoute } from "@floc/core/trip/overview/route";
@@ -32,7 +31,6 @@ import { IdeasRow } from "@/components/trip/ideas/ideas-row";
 import { OverviewCard } from "@/components/trip/overview/overview-card";
 import { OverviewFiles } from "@/components/trip/overview/overview-files";
 import { BookingsCard } from "@/components/trip/overview/stops/bookings-card";
-import { bookingSitesOf } from "@/server/auth/booking-sites";
 import { OverviewStops } from "@/components/trip/overview/stops/overview-stops";
 import { OverviewMap } from "@/components/trip/overview/overview-map";
 import { TripArrival } from "@/components/trip/overview/trip-arrival";
@@ -70,7 +68,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
 
   const now = today();
   const sharedPacking = readSharedPacking(tripId);
-  const [availabilityRows, expenseRows, dayRows, splitRows, settlementRows, routeDays, transport, walkthrough, prefill, ideas, docs, tracks, sites] =
+  const [availabilityRows, expenseRows, dayRows, splitRows, settlementRows, routeDays, transport, walkthrough, ideas, docs, tracks, homes] =
     await Promise.all([
       listAvailability(tripId),
       listExpenses(tripId),
@@ -80,12 +78,11 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
       listRouteDays(tripId),
       transportByDay(tripId),
       walkthroughDue(viewer.id),
-      canUseFeature("booking.prefill", tripId),
       listIdeas(tripId, viewer.id),
       // Rule 11: no storage volume, no files — and no query for them.
       files ? listDocuments(tripId, viewer.id) : Promise.resolve([]),
       groupRoutes(access, now),
-      bookingSitesOf(viewer.id),
+      homeCurrenciesFor([...new Set([viewer.id, ...members.map((m) => m.userId)])]),
     ]);
 
   const { datesUnset, unresolved } = tripStateFor({
@@ -103,17 +100,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
   const modes = new Map([...transport].map(([dayId, t]) => [dayId, t.mode]));
   const { legs, wholeTrip } = tripLegs({ days: routeDays, modes, files: docs });
   const route = overviewRoute({ legs, days: routeDays, hops: transport });
-  // Stay searches only while the trip is still ahead — nobody books last night's hotel.
-  const ahead = trip.startDate !== null && now < trip.startDate;
-  const stays = new Map(
-    ahead
-      ? legs.map((l) => [
-          l.placeId,
-          stayLinks({ place: l.placeName, checkIn: l.arrive, checkOut: l.leave, adults: members.length, prefill }),
-        ])
-      : [],
-  );
-  const settle = await settleUpFrom({ ledger: { expenses: expenseRows, splits: splitRows, settlements: settlementRows }, viewerId: viewer.id });
+  const settle = await settleUpFrom({ ledger: { expenses: expenseRows, splits: splitRows, settlements: settlementRows }, viewerId: viewer.id, homes });
   const position = expenseRows.length === 0 ? null : yourPosition(settle.rows, viewer.id);
   const color = readTripColor(trip.colorKey);
   const tone = tripPastel(color, tripId);
@@ -188,7 +175,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
         tripId={tripId}
         legs={legs}
         events={new Map(dayRows.map((d) => [d.id, d.events]))}
-        bookings={hasEnded(trip.endDate) ? null : <BookingsCard tripId={tripId} legs={legs} wholeTrip={wholeTrip} files={files} stays={stays} sites={sites} />}
+        bookings={files && !hasEnded(trip.endDate) ? <BookingsCard tripId={tripId} legs={legs} wholeTrip={wholeTrip} /> : null}
       />
 
       {walkthrough ? <WalkthroughDialog {...walkthroughFor(access, ideas, legs.length > 0)} /> : null}

@@ -2,12 +2,10 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { command, git } from "./process.mjs";
 import { TASK_BRANCH } from "../workspace/worktrees.mjs";
-import { requiredStatus } from "./status.mjs";
 
 export const repository = "AidanInceer/Floc";
 const SHARED = ["SonarQube analysis", "Secret scan", "Known vulnerabilities"];
 export const requiredChecks = { develop: ["PR checks", ...SHARED], main: ["Release checks", ...SHARED] };
-export const LANDED_CHECK = "Release checks";
 
 export const gh = (root, ...args) => command("gh", [...args, "--repo", repository], { cwd: root });
 export const json = (root, ...args) => JSON.parse(gh(root, ...args) || "null");
@@ -19,7 +17,7 @@ export function taskBranch(root) {
   return branch;
 }
 
-const PR_FIELDS = "number,url,state,isDraft,baseRefName,headRefOid,mergeCommit,mergeable,autoMergeRequest,statusCheckRollup,title";
+const PR_FIELDS = "number,url,state,isDraft,baseRefName,headRefName,headRefOid,mergeCommit,mergeable,autoMergeRequest,statusCheckRollup,title";
 
 export function pullRequest(root, branch, state = "all") {
   return json(root, "pr", "list", "--head", branch, "--state", state, "--json", PR_FIELDS)
@@ -49,7 +47,7 @@ export function withoutTickets(body, issues) {
     .map((line) => (/^\d+\.\s/.test(line) ? line.replace(/^\d+\./, `${++n}.`) : line)).join("\n");
 }
 
-/** A ticket leaves the Priority stack when its work lands on develop; it closes when that reaches main. */
+/** A ticket leaves the Priority stack when its work lands on develop (delivery finish); it closes when that reaches main. */
 export function markLanded(root, issues, scratch) {
   if (!issues.length) return;
   for (const issue of issues) gh(root, "issue", "edit", issue, "--add-label", "on-develop");
@@ -79,28 +77,23 @@ export function afterRelease(root, released) {
   return stillOpen;
 }
 
-export function landedState(root, sha) {
-  const runs = JSON.parse(command("gh", ["api", `repos/${repository}/commits/${sha}/check-runs?per_page=100`], { cwd: root })).check_runs;
-  return requiredStatus(runs, [LANDED_CHECK]);
-}
-
 export function waitsForChecks({ allowAutoMerge, rules }) {
   return Boolean(allowAutoMerge) && rules.some((rule) => rule.type === "required_status_checks");
 }
 
 /**
  * Why: without auto-merge allowed and required checks on the branch, GitHub
- * treats `gh pr merge --auto` as "merge now", before any check has run. The
- * watcher merges instead, once the checks pass.
+ * treats `gh pr merge --auto` as "merge now", before any check has run.
+ * scripts/ci-watch.mjs merges instead, once the checks pass.
  */
 export function autoMerge(root, number, branch) {
   try {
     const allowAutoMerge = JSON.parse(command("gh", ["api", `repos/${repository}`], { cwd: root })).allow_auto_merge;
     const rules = JSON.parse(command("gh", ["api", `repos/${repository}/rules/branches/${branch}`], { cwd: root }));
-    if (!waitsForChecks({ allowAutoMerge, rules })) return "off; the watcher merges once checks pass";
+    if (!waitsForChecks({ allowAutoMerge, rules })) return "off; ci-watch merges once checks pass";
     gh(root, "pr", "merge", String(number), "--auto", "--merge");
     return "on";
   } catch {
-    return "off; the watcher merges once checks pass";
+    return "off; ci-watch merges once checks pass";
   }
 }

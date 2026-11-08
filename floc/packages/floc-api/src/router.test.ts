@@ -370,6 +370,18 @@ describe("what the input rules refuse", () => {
     expect(renamePackingLine).toHaveBeenCalledTimes(1);
   });
 
+  it("adds a packing line with no cube as null, for the host to file", async () => {
+    const addPackingLine = vi.fn().mockResolvedValue(undefined);
+    const { caller: ana } = caller("u1", fakePort({ addPackingLine }));
+
+    await ana.packing.add({ tripId: 1, label: "Flip-flops", mine: true });
+    await ana.packing.add({ tripId: 1, label: "Snorkel", category: "accessories", mine: true });
+    expect(addPackingLine.mock.calls).toEqual([
+      ["u1", 1, { label: "Flip-flops", category: null, mine: true }],
+      ["u1", 1, { label: "Snorkel", category: "accessories", mine: true }],
+    ]);
+  });
+
   it("refuses a time carrying an offset (rule 10)", async () => {
     const { caller: ana } = caller("u1");
     await expect(
@@ -550,6 +562,18 @@ describe("the trip calendar link (#334)", () => {
   it("refuses a non-member exactly as it refuses a trip that is not there (rule 5)", async () => {
     const { caller: mal } = caller("intruder");
     await expect(mal.itinerary.calendarUrl({ tripId: 1 })).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+
+  it("resets the member's own link and hands back the new one", async () => {
+    const url = "https://floc.example/calendar/new.sig.ics";
+    const { caller: ana, port } = caller("u1", fakePort({ resetCalendarFeed: vi.fn().mockResolvedValue(url) }));
+    await expect(ana.itinerary.resetCalendarUrl({ tripId: 1 })).resolves.toBe(url);
+    expect(port.resetCalendarFeed).toHaveBeenCalledWith("u1", 1);
+  });
+
+  it("lets no non-member reset a link (rule 5)", async () => {
+    const { caller: mal } = caller("intruder");
+    await expect(mal.itinerary.resetCalendarUrl({ tripId: 1 })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 });
 

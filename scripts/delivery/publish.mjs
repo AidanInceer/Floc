@@ -1,16 +1,12 @@
 import { readFileSync, writeFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-import { command, git } from "./process.mjs";
+import { join, resolve } from "node:path";
+import { git } from "./process.mjs";
 import { autoMerge, gh, pullRequest, taskBranch, validateMessage } from "./github.mjs";
 import { mergeTarget } from "./sync.mjs";
 import { requireReview } from "./review.mjs";
-import { startWatcher } from "./schedule.mjs";
-import { commitDocs } from "./docs.mjs";
 import { mainCheckout, targetFor } from "../workspace/worktrees.mjs";
 import { sweep } from "../workspace/sweep.mjs";
 
-const scripts = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PACKAGE = "floc/apps/web/package.json";
 
 const versionAt = (root, ref) => JSON.parse(git(root, "show", `${ref}:${PACKAGE}`)).version;
@@ -32,7 +28,12 @@ function safeSweep(main, current) {
   try { return sweep(main, current).filter((r) => r.removed && r.path).map((r) => r.path); } catch { return []; }
 }
 
-export function publish(root, { messageFile, docs = [] }) {
+/**
+ * Commit, merge the target in, push, open the PR. No checks run here: the
+ * pre-commit hook is the local gate and CI on the PR is the real one
+ * (AGENTS.md, Guardrail gates). Docs go out after the merge, in finish.
+ */
+export function publish(root, { messageFile }) {
   const branch = taskBranch(root);
   const target = targetFor(branch);
   const main = mainCheckout(root);
@@ -47,8 +48,6 @@ export function publish(root, { messageFile, docs = [] }) {
   if (!git(root, "rev-list", `origin/${target}..HEAD`)) throw new Error(`Nothing to publish: no commits beyond ${target}.`);
   const version = target === "main" ? bumpHotfix(root) : null;
   requireReview(root, `origin/${target}`);
-  command(process.execPath, ["scripts/checks/run.mjs", "quick", "--base", `origin/${target}`], { cwd: root, stdio: "inherit" });
-  const pages = docs.length ? commitDocs(main, docs, subject) : [];
   git(root, "push", "--quiet", "--set-upstream", "origin", `HEAD:refs/heads/${branch}`);
   let pr = pullRequest(root, branch, "open");
   if (!pr) {
@@ -56,6 +55,8 @@ export function publish(root, { messageFile, docs = [] }) {
     pr = pullRequest(root, branch, "open");
   }
   const merging = autoMerge(root, pr.number, target);
-  const watcher = startWatcher({ scripts, pr: pr.number, branch, target, main, worktree: root });
-  return { state: "published", pr: pr.url, target, sha: git(root, "rev-parse", "HEAD"), ...(version && { version }), docs: pages, autoMerge: merging, watcher: watcher.log, swept };
+  return {
+    state: "published", pr: pr.url, number: pr.number, target, sha: git(root, "rev-parse", "HEAD"), ...(version && { version }), autoMerge: merging, swept,
+    next: `Start the floc:ci-watch agent in the background for PR #${pr.number}.`,
+  };
 }

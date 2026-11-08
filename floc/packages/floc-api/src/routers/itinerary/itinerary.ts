@@ -55,6 +55,10 @@ export const itineraryRouter = router({
     ctx.port.calendarFeedUrl(ctx.viewer.id, input.tripId),
   ),
 
+  resetCalendarUrl: tripProcedure.mutation(({ ctx, input }) =>
+    ctx.port.resetCalendarFeed(ctx.viewer.id, input.tripId),
+  ),
+
   forecast: tripProcedure.query(({ ctx, input }) =>
     ctx.port.loadTripForecast(ctx.viewer.id, input.tripId),
   ),

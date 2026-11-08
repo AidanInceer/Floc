@@ -20,6 +20,11 @@ async function verify(claim: StoreClaim): Promise<Verified | "refused" | "unavai
   return typeof read === "string" ? read : { source: "play", ...read };
 }
 
+// Why: a test purchase is free, so it unlocks Pro only for accounts named here, such as App Review's demo account.
+function isStoreTester(userId: string): boolean {
+  return (process.env.STORE_TEST_USER_IDS ?? "").split(",").some((id) => id.trim() === userId);
+}
+
 /** The phone's word is a question to the store, never an answer. */
 export async function claimStorePurchase(
   userId: string,
@@ -32,6 +37,7 @@ export async function claimStorePurchase(
 
   const { facts } = verified;
   if (facts.productId !== claim.productId) return "refused";
+  if (facts.test && !isStoreTester(userId)) return "refused";
   // Why: a receipt names the account it was bought for; one lifted from another phone must not move.
   if (facts.accountToken && facts.accountToken !== accountTokenFor(userId)) return "refused";
 

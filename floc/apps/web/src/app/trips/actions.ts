@@ -14,6 +14,7 @@ import { assertAdmin, requireTripAccess, requireUser } from "@/server/access";
 import { acceptInvite, declineInvite, inviteToTrip } from "@/server/trips/invites";
 import {
   createTripWithAdmin,
+  tripsHeldBy,
   setTripArchived,
   setTripMuted,
   setTripStarred,
@@ -39,14 +40,14 @@ export async function createTrip(formData: FormData): Promise<void> {
     throw new Error("Those dates aren't days");
   }
 
-  await ensureProfile(viewer.id);
+  const [, held] = await Promise.all([ensureProfile(viewer.id), tripsHeldBy(viewer.id)]);
 
   const tripId = await createTripWithAdmin({
     name,
     startDate,
     endDate,
     createdBy: viewer.id,
-  });
+  }, held);
 
   // Optional; `inviteToTrip` decides who's really invitable — this only
   // passes on what was ticked.

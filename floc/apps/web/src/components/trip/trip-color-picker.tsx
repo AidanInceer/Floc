@@ -2,7 +2,8 @@
  * The row of pastel swatches that sets a trip's colour (ticket 213). One tiny
  * form per swatch so it works without JavaScript and posts exactly one value;
  * the picked one carries the pen ring. Lives inside the trip menus, on the card and
- * in the header, so both change the colour the same way.
+ * in the header, so both change the colour the same way. Square and centred, the
+ * size of the mark tiles below, with no heading: the swatches say what they are.
  */
 import { TRIP_COLORS, type TripColor } from "@floc/core/trip/trip-color";
 import { PASTEL_BY_KEY, PickOption, cx } from "@/components/system/ui";
@@ -17,8 +18,7 @@ export function TripColorPicker({
 }) {
   return (
     <div className="px-2.5 py-1.5">
-      <span className="typed mb-1.5 block">Colour</span>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-center gap-1.5">
         {TRIP_COLORS.map((color) => {
           const picked = current === color;
           return (
@@ -29,7 +29,7 @@ export function TripColorPicker({
                 type="submit"
                 label={color}
                 picked={picked}
-                className={cx("size-6 rounded-full ring-1 ring-inset ring-ink/10", PASTEL_BY_KEY[color])}
+                className={cx("size-8 rounded-sm ring-1 ring-inset ring-ink/10", PASTEL_BY_KEY[color])}
               />
             </form>
           );

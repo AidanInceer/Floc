@@ -632,7 +632,7 @@ export type FlocPort = {
   addPackingLine(
     viewerId: string,
     tripId: number,
-    input: { label: string; category: PackCategory; mine: boolean },
+    input: { label: string; category: PackCategory | null; mine: boolean },
   ): Promise<void>;
 
   /**
@@ -845,6 +845,9 @@ export type FlocPort = {
    * trip check passed.
    */
   calendarFeedUrl(viewerId: string, tripId: number): Promise<string>;
+
+  /** A new feed address for the viewer only; every older one stops answering (#334). Returns the new one. */
+  resetCalendarFeed(viewerId: string, tripId: number): Promise<string>;
 
   loadLedger(viewerId: string, tripId: number): Promise<Ledger>;
 

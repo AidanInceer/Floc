@@ -1,9 +1,8 @@
 import { existsSync, statSync } from "node:fs";
 import { basename, isAbsolute, join, relative, resolve } from "node:path";
 import { git } from "../delivery/process.mjs";
-import { landedState, pullRequest } from "../delivery/github.mjs";
+import { pullRequest } from "../delivery/github.mjs";
 import { isAncestor } from "../delivery/sync.mjs";
-import { readWatchers, watchedPaths } from "../delivery/watchers.mjs";
 import { branchVerdict, isScratch, listWorktrees, removeWorktree, sweepVerdict, worktreesDir } from "./worktrees.mjs";
 
 const inside = (dir, path) => {
@@ -20,15 +19,14 @@ export function idleHours(path, now = Date.now()) {
   return times.length ? (now - Math.max(...times)) / 3_600_000 : Infinity;
 }
 
-function facts(main, current, worktree, watched) {
+function facts(main, current, worktree) {
   const base = {
     isMain: resolve(main) === worktree.path,
     managed: inside(worktreesDir(main), worktree.path),
     isCurrent: Boolean(current) && resolve(current) === worktree.path,
     locked: worktree.locked,
-    watched: watched.has(worktree.path.toLowerCase()),
   };
-  if (base.isMain || !base.managed || base.isCurrent || base.locked || base.watched) return base;
+  if (base.isMain || !base.managed || base.isCurrent || base.locked) return base;
   const dirty = Boolean(git(worktree.path, "--no-optional-locks", "status", "--porcelain"));
   if (isScratch(worktree.branch)) {
     return { ...base, scratch: true, release: !worktree.branch && basename(worktree.path).startsWith("release-"), dirty, contained: onDevelopOrMain(worktree.path, "HEAD"), idleHours: idleHours(worktree.path) };
@@ -39,7 +37,6 @@ function facts(main, current, worktree, watched) {
   return {
     ...base, dirty, pr: pr.number, target,
     contained: isAncestor(worktree.path, "HEAD", `origin/${target}`),
-    landed: target === "develop" ? landedState(main, pr.mergeCommit.oid).state : "passed",
   };
 }
 
@@ -60,10 +57,9 @@ function sweepBranches(main) {
 /** Removes every managed worktree whose work has landed or that never held any, then branches with nothing to lose. Reports the rest. */
 export function sweep(main, current) {
   git(main, "fetch", "--quiet", "origin", "develop", "main");
-  const watched = watchedPaths(readWatchers(main));
   const report = [];
   for (const worktree of listWorktrees(main)) {
-    const known = facts(main, current, worktree, watched);
+    const known = facts(main, current, worktree);
     if (known.isMain || !known.managed) continue;
     const verdict = sweepVerdict(known);
     if (verdict.remove) {

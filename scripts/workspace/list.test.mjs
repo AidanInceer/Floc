@@ -14,10 +14,9 @@ test("each worktree is sorted into main, task, release, scratch or another tool'
   assert.equal(kindOf({ path: resolve("/home/a/.t3/worktrees/Floc/t3-1"), branch: "t3/x" }, main), "other tool");
 });
 
-test("a row says what the work waits on, watcher first", () => {
+test("a row says what the work waits on", () => {
   assert.equal(stateOf({ kind: "main", dirty: 3, behind: 2 }), "3 changed files; 2 commits behind develop");
   assert.equal(stateOf({ kind: "main" }), "current with develop");
-  assert.equal(stateOf({ kind: "task", watcher: { state: "needs you", detail: "checks failed" } }), "watcher: needs you (checks failed)");
   assert.equal(stateOf({ kind: "task", pr: { number: 9, state: "OPEN" } }), "PR #9 open");
   assert.equal(stateOf({ kind: "task", pr: { number: 9, state: "MERGED" }, ahead: 0 }), "PR #9 landed; sweep removes it");
   assert.equal(stateOf({ kind: "task", dirty: 4 }), "4 unsaved changes");

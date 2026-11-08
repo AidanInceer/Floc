@@ -24,12 +24,14 @@ import {
   userCountryMark,
   userProfile,
 } from "@/db/schema";
+import { revokeGoogleGrant } from "@/server/calendar/calendar-import";
 import { dropDocument } from "@/server/documents/document-store";
 import { handOverAndLeaveAllTrips } from "@/server/trips/roster";
 
 export const ERASED_NAME = "Deleted user";
 
 export async function eraseAccount(userId: string): Promise<void> {
+  await revokeGoogleGrant(userId);
   await handOverAndLeaveAllTrips(userId);
 
   const now = new Date();

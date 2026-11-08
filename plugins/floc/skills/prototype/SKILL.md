@@ -101,7 +101,7 @@ What has worked, round by round, on the landing wireframes:
 | A direction is dropped for now | `Parked: D, <why>` | |
 | Kept to try on real visitors later, as an A/B test | `Experiment: I1, I2, <what it would test>` | Not picked and not dropped. List only the kept variants in the page. |
 | `/floc:push` publishes the build | `Chosen: G2, on develop <commit>` (first 7 of the published sha) | `/floc:push` does this. |
-| The release reaches production | `Shipped <version>` (`Shipped <version> as G2` if it had variants) | The release watcher runs `pnpm wireframe:tags --write` once production serves it. |
+| The release reaches production | `Shipped <version>` (`Shipped <version> as G2` if it had variants) | `pnpm delivery finish` for the release runs `pnpm wireframe:tags --write` once production serves it. |
 
 A `Chosen` prototype built but not pushed keeps plain `Chosen: G2`. Edit the tag in the prototype's `index.html` only; `floc/wireframe/` is gitignored, so this never enters a commit.
 

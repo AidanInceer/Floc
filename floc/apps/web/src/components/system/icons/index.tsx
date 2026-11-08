@@ -45,6 +45,15 @@ export function CrossIcon(props: IconProps) {
   );
 }
 
+export function BellIcon({ muted = false, ...props }: IconProps & { muted?: boolean }) {
+  return (
+    <LineIcon {...props}>
+      <path d="M3.6 9.8V6.6a3.4 3.4 0 0 1 6.8 0v3.2l1 1.2H2.6zM5.8 11.8a1.3 1.3 0 0 0 2.4 0" />
+      {muted ? <path d="M2 2l10 10" /> : null}
+    </LineIcon>
+  );
+}
+
 export function PlusIcon(props: IconProps) {
   return (
     <LineIcon {...props}>

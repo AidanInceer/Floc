@@ -21,6 +21,7 @@ import {
   type EventFields,
 } from "@/server/itinerary/itinerary";
 import { refresh } from "@/server/freshness";
+import { resetCalendarFeed } from "@/server/itinerary/feed/calendar-feed-link";
 
 export async function addDays(tripId: number, afterDate: string, count: number) {
   const access = await requireTripAccess(tripId);
@@ -248,4 +249,10 @@ function placeFrom(formData: FormData) {
     lng: lng ? Number(lng) : null,
     countryCode: String(formData.get("placeCountryCode") ?? "") || null,
   };
+}
+
+/** A new calendar feed link for the viewer; their older links stop (#334). Null if they are not on the trip. */
+export async function resetCalendarLink(tripId: number): Promise<string | null> {
+  const access = await requireTripAccess(tripId);
+  return resetCalendarFeed(access.trip.id, access.viewer.id);
 }

@@ -7,7 +7,7 @@ import { pageToOpen } from "@floc/core/notes/pages/page-open";
 import { NotesWorkspace } from "@/components/notes/pages/notes-workspace";
 import { requireTripAccess } from "@/server/access";
 import { loadPageEpoch } from "@/server/notes/live/live-epoch-store";
-import { loadPageComments } from "@/server/notes/pages/page-comments";
+import { pageThreads } from "@/server/notes/pages/page-comments";
 import { loadPages } from "@/server/notes/pages/pages-read";
 import { loadTripLinkItems } from "@/server/notes/pages/trip-link-items";
 
@@ -29,14 +29,19 @@ export default async function NotesPage({
   const { page } = await searchParams;
   const access = await requireTripAccess(id, `/trip/${id}/notes`);
   const { trip, viewer } = access;
-  const [{ pages, archived }, links] = await Promise.all([loadPages(trip.id, viewer.id), loadTripLinkItems(trip.id)]);
-  // ensureFirstPage guarantees one page, so there is always one to open.
-  const open = pageToOpen(pages, page ? Number(page) : null)!;
+  const asked = page ? Number(page) : null;
   const toneOf = new Map(access.members.map((member) => [member.userId, member.tone]));
-  const [rows, epoch] = await Promise.all([
-    loadPageComments({ tripId: trip.id, pageId: open.id, viewerId: viewer.id, toneOf }),
-    loadPageEpoch(open.id),
+  // Why: the asked page is nearly always the one that opens, so its epoch is read beside the list; a wrong guess is dropped unread.
+  const [{ pages, archived }, links, threads, guessed] = await Promise.all([
+    loadPages(trip.id, viewer.id),
+    loadTripLinkItems(trip.id),
+    pageThreads({ tripId: trip.id, viewerId: viewer.id, toneOf }),
+    asked !== null && Number.isSafeInteger(asked) ? loadPageEpoch(asked) : null,
   ]);
+  // ensureFirstPage guarantees one page, so there is always one to open.
+  const open = pageToOpen(pages, asked)!;
+  const rows = threads.get(open.id) ?? [];
+  const epoch = open.id === asked ? guessed : await loadPageEpoch(open.id);
   const now = new Date();
 
   return (

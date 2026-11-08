@@ -77,7 +77,7 @@ export function NoteComposer({
   return (
     <ActionForm action={send} keepAnswers errorClassName={reply ? "mt-1 ml-[30px]" : "mt-1.5 ml-[36px]"}>
       <div className="flex items-center gap-2.5">
-        <Avatar name={me.name} icon={me.icon} tone={me.tone} size={reply ? 20 : 26} />
+        <Avatar name={me.name} tone={me.tone} size={reply ? 20 : 26} />
         <div className="relative min-w-0 flex-1">
           <textarea
             ref={field}

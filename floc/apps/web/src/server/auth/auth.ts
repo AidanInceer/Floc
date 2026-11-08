@@ -149,11 +149,12 @@ export const auth = betterAuth({
   session: {
     expiresIn: 60 * 60 * 24 * 60, // 60 days
     updateAge: 60 * 60 * 24, // rolling: refreshed at most once a day
-    // Why: a signed-cookie cache makes the lookup once a minute, not once a request. Revocation lags up to `maxAge`,
-    // but membership is read fresh on every request (`requireTripAccess`), so a removed member loses access at once.
+    // Why: a signed-cookie cache skips the session lookup. Revocation lags up to `maxAge`, but membership is read
+    // fresh on every request (`requireTripAccess`), so a removed member loses access at once. Pages cannot set
+    // cookies, so an open tab renews the cache before it lapses (`components/chrome/session-renewal.tsx`).
     cookieCache: {
       enabled: true,
-      maxAge: 60,
+      maxAge: 5 * 60,
     },
   },
 });

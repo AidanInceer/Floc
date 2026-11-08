@@ -332,6 +332,11 @@ export const tripMembership = sqliteTable(
     mutedAt: integer("muted_at", { mode: "timestamp" }),
     /** Set while this member's phone records their route on this trip (#329, ADR-026). Null is off, the default. */
     routeOnAt: integer("route_on_at", { mode: "timestamp" }),
+    /**
+     * Signed into this member's calendar feed link (#334). Raised by "Reset link", so a link that leaked stops
+     * working while the member stays on the trip; the feed answers only the current number.
+     */
+    calendarFeedEpoch: integer("calendar_feed_epoch").notNull().default(0),
     ...audit,
   },
   (t) => [

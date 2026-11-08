@@ -28,27 +28,32 @@ import { Badge, Stack } from "@/components/system/ui";
 import { FaceEditor } from "@/components/profile/face-editor";
 import { ActionForm, SubmitButton } from "@/components/system/client-ui";
 import { TravelMap } from "@/components/map/travel-map";
+import { AccountTabs } from "@/components/chrome/account-tabs";
 
 export const metadata = { title: "Your profile" };
 
 export default async function ProfilePage() {
   const viewer = await requireUser("/profile");
-  const profile = await ensureProfile(viewer.id);
+  const own = ensureProfile(viewer.id);
+  const [profile, travelMap, mapPrompts, pastTrips] = await Promise.all([
+    own,
+    travelMapFor(viewer.id),
+    pendingMapPrompts(viewer.id),
+    pastTripsFor(viewer.id, own.then((p) => p.pastTripsShow)),
+  ]);
 
   const name = profile.displayName ?? viewer.name;
   const vibeTags = readVibeTags(profile.vibeTags);
-  const pastTrips = await pastTripsFor(viewer.id, profile.pastTripsShow);
-  const travelMap = await travelMapFor(viewer.id);
-  const mapPrompts = await pendingMapPrompts(viewer.id);
-
 
   return (
-    <AccountPage title="Your profile">
+    <>
+    <AccountTabs current="profile" />
+    <AccountPage title="Your profile" titleInBar>
       {/* The face someone lands on when they click you, shown as they'd see
           it — the page's one moment of the visitor's view. */}
       <Panel>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
-          <FaceEditor name={name} icon={profile.avatarIcon} />
+          <FaceEditor name={name} />
           {vibeTags.length ? (
             <div className="flex w-full min-w-0 flex-none flex-wrap gap-1.5 sm:w-auto sm:flex-1">
               {vibeTags.map((t) => (
@@ -122,5 +127,6 @@ export default async function ProfilePage() {
       </Panel>
 
     </AccountPage>
+    </>
   );
 }

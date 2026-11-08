@@ -12,6 +12,8 @@ export type StoreFacts = {
   currentPeriodEnd: Date;
   cancelAtPeriodEnd: boolean;
   accountToken: string | null;
+  /** Bought for free in a store test environment: Pro only for an account named as a store tester. */
+  test: boolean;
 };
 
 type AppleTransaction = {
@@ -20,6 +22,7 @@ type AppleTransaction = {
   expiresDate?: number;
   revocationDate?: number;
   appAccountToken?: string;
+  environment?: string;
 };
 
 // Apple's `Status`: 1 active, 2 expired, 3 billing retry, 4 grace period, 5 revoked.
@@ -47,6 +50,8 @@ export function appleFacts(
     currentPeriodEnd: new Date(tx.expiresDate),
     cancelAtPeriodEnd: renewal?.autoRenewStatus === 0,
     accountToken: tx.appAccountToken ?? null,
+    // Why strict: Apple names the environment on every signed transaction, so only "Production" was paid for.
+    test: tx.environment !== "Production",
   };
 }
 
@@ -59,6 +64,8 @@ export type PlaySubscription = {
     autoRenewingPlan?: { autoRenewEnabled?: boolean };
   }[];
   externalAccountIdentifiers?: { obfuscatedExternalAccountId?: string };
+  /** Present only on a licence tester's purchase, which Google does not charge for. */
+  testPurchase?: object;
 };
 
 const PLAY_STATE: Record<string, SubscriptionStatus> = {
@@ -86,5 +93,6 @@ export function playFacts(token: string, sub: PlaySubscription): StoreFacts | nu
     cancelAtPeriodEnd:
       state === "SUBSCRIPTION_STATE_CANCELED" || item.autoRenewingPlan?.autoRenewEnabled === false,
     accountToken: sub.externalAccountIdentifiers?.obfuscatedExternalAccountId ?? null,
+    test: sub.testPurchase !== undefined,
   };
 }

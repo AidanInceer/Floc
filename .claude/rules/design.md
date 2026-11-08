@@ -26,12 +26,15 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - Pro is ink — weight, not a hue. No gold, no Pro star on items or on the account pill.
 - Three faces: display (Bricolage Grotesque) for headings, sans (Instrument Sans) for prose and controls, mono (DM Mono) for every figure, date and label. Never money or dates in the display face.
 - A file's colour is its category — travel blue, hotel green, tickets yellow, admin red, other grey — the same on Files, the Overview and Dates. `DOC_CATEGORY_SKINS` and `DOC_CATEGORY_CHIPS` in `@floc/core` are the only source.
+- A person's face is their initials in their seat colour, in a rounded square — never a picture or icon. Two or more names give the first letter of the first two (AI); one name gives its first two letters (Ai).
 - Status always has a word. Never colour or an icon alone. One exception: a stop's hotel ribbon on the Overview has no visible word; the file chip beside it names the booking, and its title and label say Booked.
-- Light and dark use the same token names. No `dark:` variant, no hex literal ✓.
+- Light and dark use the same token names. No `dark:` variant, no hex literal ✓. Values live in `@floc/core/design/tokens`. The theme choice lives in `localStorage`, never in a column.
+- The wordmark is **floc.** with a pen-blue dot, drawn only by `components/system/wordmark.tsx` and the invite OG card.
+- An outside UI library only where building it would take months, and only if it takes our tokens, type and no-emoji rules.
 
 ## Shape, depth and motion
 
-- ✓ Three radii, nothing between: `rounded-sm` / `radius.sm` / `var(--radius-sm)` (8px) for controls, tiles and rows inside a surface; `rounded-md` (12px) for cards, panels, popovers and dialogs; `rounded-full` / `radius.pill` for chips, badges, avatars and dots. A 12px surface holding an 8px row 4px in keeps corners concentric.
+- ✓ Three radii, nothing between: `rounded-sm` / `radius.sm` / `var(--radius-sm)` (8px) for controls, tiles, avatars and rows inside a surface; `rounded-md` (12px) for cards, panels, popovers and dialogs; `rounded-full` / `radius.pill` for chips, badges and dots. A 12px surface holding an 8px row 4px in keeps corners concentric.
 - Buttons, switches, segments and vote controls are rounded squares (`rounded-sm`), never circles.
 - A selected thing is never a solid block. The phone's bottom tab bar says the open tab in colour and weight only, with no tile behind it; a selected day or stub is a `pen-2` wash with `pen-deep` ink. Inactive marks stay `ink-2`, not dimmed further, or they read as disabled.
 - ✓ Depth comes only from `--shadow-sm`, `--shadow`, `--shadow-lift`. An inset or unblurred shadow may draw a line. If you notice the shadow first, it is wrong.
@@ -48,6 +51,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - No small picture that needs a key to read (dots and hatched squares standing for days): it reads as noise. A glyph and words do the job.
 - Never ask what the data already answers. A question about a trip starts from what the trip holds (dates set, places on the route), and a preview of a page shows that trip's own content, or says what is missing.
 - If the drawing is clear, say nothing. No heading above a heading, no caption that decodes the design, no instruction, no text that repeats a control. Exceptions: what is missing, and status.
+- A page its tab bar already names (a trip tab, Profile, Settings, Saved lists) shows no visible page title; the `h1` stays for screen readers (`sr-only`).
 - No tiny all-caps kicker above a heading. The mono label names a value; it never introduces a section.
 - Sentence case. British English. Real content, never lorem ipsum.
 - ✓ A field starts empty: no placeholder, no example, nothing pre-filled the person did not choose. A visible label or an `aria-label` names it.
@@ -56,6 +60,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 ## Layout
 
 - One main action per screen. One visible action per row; more verbs go behind a `…` menu.
+  - One exception: a My trips card shows two toggles beside its `…`, star and mute (a bell, slashed when muted). Each says its state in its label (`aria-pressed`, Mute/Unmute). Every other verb stays in the menu.
 - Rows on one surface beat cards for everything. No borders around borders, no boxes inside boxes.
 - Below a panel's coloured head, every part — a field or a section — takes one title style and is ruled off edge to edge from the part above (`panelTitleClass`, `panelBandClass` in `ui.tsx`). A part whose controls name themselves (the event type tiles) needs no title. An empty part shows its button, not a sentence about being empty.
 - A field draws one focus ring: the outline sits on the border, never a blue border plus an outline outside it.

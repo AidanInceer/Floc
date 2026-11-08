@@ -28,7 +28,7 @@ import type { ExpenseCategory } from "@floc/core/money/expense-category";
 import { assertRoom, bounded, LIMITS } from "@/server/limits";
 import { tripHref } from "@floc/core/notifications/notification-href";
 import { touch } from "@/server/audit";
-import { recordActivity } from "@/server/notifications/activity";
+import { liveMemberIds, recordActivity } from "@/server/notifications/activity";
 import { ledgerPages } from "./ledger-pages";
 
 /** The trip's live ledger, newest first (ticket 118). Whole rows — Money and Overview both read columns from it. */
@@ -83,18 +83,32 @@ export type SplitRow = { userId: string; owedAmountMinor: number };
  * Why one transaction: an edit soft-deletes the old splits (rule 8) and writes
  * the new ones together — last write wins (rule 7) across parent and children.
  */
-export async function writeExpense(args: {
-  tripId: number;
-  expenseId?: number;
-  createdBy: string;
-  fields: ExpenseFields;
-  splits: SplitRow[];
-}): Promise<void> {
+export type ExpenseRoom = { held: number | null; members: string[] };
+
+/** What a write reads before its transaction: the trip's expense count (adds only) and who hears about it. */
+export async function readExpenseRoom(tripId: number, expenseId?: number): Promise<ExpenseRoom> {
+  const [held, members] = await Promise.all([
+    expenseId === undefined
+      ? db.select({ n: count() }).from(expense).where(and(eq(expense.tripId, tripId), isNull(expense.deletedAt)))
+      : null,
+    liveMemberIds(db, tripId),
+  ]);
+  return { held: held ? held[0].n : null, members };
+}
+
+export async function writeExpense(
+  args: {
+    tripId: number;
+    expenseId?: number;
+    createdBy: string;
+    fields: ExpenseFields;
+    splits: SplitRow[];
+  },
+  room?: ExpenseRoom,
+): Promise<void> {
   const { tripId, expenseId, createdBy, fields, splits } = args;
-  if (expenseId === undefined) {
-    const [{ n }] = await db.select({ n: count() }).from(expense).where(and(eq(expense.tripId, tripId), isNull(expense.deletedAt)));
-    assertRoom("expenses", n);
-  }
+  const { held, members } = room ?? (await readExpenseRoom(tripId, expenseId));
+  if (held !== null) assertRoom("expenses", held);
 
   await db.transaction(async (tx) => {
     let id = expenseId;
@@ -131,7 +145,7 @@ export async function writeExpense(args: {
       subjectId: id,
       href: tripHref(tripId, "money"),
       affected: splits.map((s) => s.userId),
-    });
+    }, { members, fresh: expenseId === undefined });
   });
 }
 

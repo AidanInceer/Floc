@@ -22,10 +22,10 @@ import type { CountryMarkState } from "@/db/schema";
  * one trip. Archived trips count (filing, not forgetting); soft-deleted ones don't (rule 8).
  */
 async function countriesForTrips(
-  tripIds: number[],
+  trips: TripEnd[],
 ): Promise<Record<string, MapState>> {
   const out: Record<string, MapState> = {};
-  for (const perTrip of (await countriesByTrip(tripIds)).values()) {
+  for (const perTrip of (await countriesByTrip(trips)).values()) {
     for (const [code, state] of Object.entries(perTrip)) {
       out[code] = strongest(out[code], state);
     }
@@ -39,19 +39,10 @@ async function countriesForTrips(
  * trips is cheap and belongs to the caller that wants it merged.
  */
 async function countriesByTrip(
-  tripIds: number[],
+  trips: TripEnd[],
 ): Promise<Map<number, Record<string, MapState>>> {
   const byTrip = new Map<number, Record<string, MapState>>();
-  if (tripIds.length === 0) return byTrip;
-
-  const trips = await db
-    .select({ id: trip.id, endDate: trip.endDate })
-    .from(trip)
-    .where(and(inArray(trip.id, tripIds), isNull(trip.deletedAt)))
-    .limit(LIMITS.tripsPerUser)
-    .all();
   if (trips.length === 0) return byTrip;
-  bounded(trips, "tripsPerUser", "travel map");
 
   const ids = trips.map((t) => t.id);
   // Undated is yellow, never green: hasEnded(null) is false (rule 9 — no dates isn't finished).
@@ -96,14 +87,18 @@ async function countriesByTrip(
   return byTrip;
 }
 
+type TripEnd = { id: number; endDate: string | null };
+
 /** The trips whose itineraries currently speak for someone. */
-async function currentTripIds(userId: string): Promise<number[]> {
+async function currentTrips(userId: string): Promise<TripEnd[]> {
   const rows = await db
-    .select({ tripId: tripMembership.tripId })
+    .select({ id: trip.id, endDate: trip.endDate })
     .from(tripMembership)
-    .where(and(eq(tripMembership.userId, userId), isNull(tripMembership.deletedAt)))
+    .innerJoin(trip, eq(trip.id, tripMembership.tripId))
+    .where(and(eq(tripMembership.userId, userId), isNull(tripMembership.deletedAt), isNull(trip.deletedAt)))
+    .limit(LIMITS.tripsPerUser)
     .all();
-  return rows.map((r) => r.tripId);
+  return bounded(rows, "tripsPerUser", "travel map");
 }
 
 async function manualMarksFor(
@@ -137,7 +132,7 @@ export type MapPrompt = {
  */
 export async function pendingMapPrompts(userId: string): Promise<MapPrompt[]> {
   const rows = await db
-    .select({ tripId: trip.id, name: trip.name, promptAt: tripMembership.mapPromptAt })
+    .select({ tripId: trip.id, name: trip.name, endDate: trip.endDate, promptAt: tripMembership.mapPromptAt })
     .from(tripMembership)
     .innerJoin(trip, eq(trip.id, tripMembership.tripId))
     .where(
@@ -147,10 +142,12 @@ export async function pendingMapPrompts(userId: string): Promise<MapPrompt[]> {
         isNull(trip.deletedAt),
       ),
     )
+    .limit(LIMITS.tripsPerUser)
     .all();
   if (rows.length === 0) return [];
 
-  const byTrip = await countriesByTrip(rows.map((r) => r.tripId)); // one read, not one per trip (ticket 114)
+  // One read, not one per trip (ticket 114).
+  const byTrip = await countriesByTrip(bounded(rows, "tripsPerUser", "travel map").map((r) => ({ id: r.tripId, endDate: r.endDate })));
 
   const out: MapPrompt[] = [];
   for (const row of rows) {
@@ -165,11 +162,11 @@ export async function pendingMapPrompts(userId: string): Promise<MapPrompt[]> {
 
 /** One person's whole map. The only thing a page should call. */
 export async function travelMapFor(userId: string): Promise<TravelMap> {
-  const [tripIds, manual] = await Promise.all([
-    currentTripIds(userId),
+  const [trips, manual] = await Promise.all([
+    currentTrips(userId),
     manualMarksFor(userId),
   ]);
-  const derived = await countriesForTrips(tripIds);
+  const derived = await countriesForTrips(trips);
   return mergeMarks(derived, manual);
 }
 
@@ -212,7 +209,7 @@ export async function derivedStateFor(
   userId: string,
   countryCode: string,
 ): Promise<MapState | undefined> {
-  const derived = await countriesForTrips(await currentTripIds(userId));
+  const derived = await countriesForTrips(await currentTrips(userId));
   return derived[countryCode];
 }
 
@@ -221,7 +218,12 @@ export async function keepMarksFromTrip(
   userId: string,
   tripId: number,
 ): Promise<void> {
-  const countries = await countriesForTrips([tripId]);
+  const live = await db
+    .select({ id: trip.id, endDate: trip.endDate })
+    .from(trip)
+    .where(and(eq(trip.id, tripId), isNull(trip.deletedAt)))
+    .all();
+  const countries = await countriesForTrips(live);
   for (const [countryCode, state] of Object.entries(countries)) {
     await db
       .insert(userCountryMark)

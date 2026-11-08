@@ -8,6 +8,7 @@ import "server-only";
 
 import { Refusal } from "@floc/core/errors/refusal";
 import { NO_PACK_LABEL, resolvePackTier, type PackCategory, type PackTier } from "@floc/core/packing/packing";
+import { guessPackCategory } from "@floc/core/packing/packing-guess";
 import { capRequiredText } from "@floc/core/text/text";
 
 import type { TripAccess } from "@/server/access";
@@ -38,11 +39,12 @@ type Access = Pick<TripAccess, "trip" | "viewer" | "packingLine">;
 const changed = (access: Access) => refresh({ kind: "packing", tripId: access.trip.id });
 
 /** `mine` puts it in the viewer's own bag; author and owner are the same person by construction. */
-export async function addLine(access: Access, input: { label: unknown; category: PackCategory; mine: boolean }): Promise<Refusal | null> {
+export async function addLine(access: Access, input: { label: unknown; category: PackCategory | null; mine: boolean }): Promise<Refusal | null> {
   const label = capRequiredText(input.label, "packingLabel");
   if (!label) return new Refusal(NO_PACK_LABEL);
   const insert = input.mine ? insertPersonalPackingLine : insertPackingLine;
-  await insert(access.trip.id, access.viewer.id, label, input.category);
+  // Null is "you file it": the bag's add field has no cube picker.
+  await insert(access.trip.id, access.viewer.id, label, input.category ?? guessPackCategory(label));
   changed(access);
   return null;
 }

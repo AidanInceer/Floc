@@ -24,16 +24,18 @@ async function days(tripId: number): Promise<TripLinkItem[]> {
 }
 
 async function eventsAndPlaces(tripId: number): Promise<TripLinkItem[]> {
-  const rows = await db
-    .select({ id: dayEvent.id, title: dayEvent.title, type: dayEvent.type, time: dayEvent.time, date: day.date, placeId: place.id, place: place.name })
-    .from(dayEvent)
-    .innerJoin(day, eq(day.id, dayEvent.dayId))
-    .leftJoin(place, eq(place.id, dayEvent.placeId))
-    .where(and(eq(day.tripId, tripId), isNull(day.deletedAt), isNull(dayEvent.deletedAt)))
-    .orderBy(asc(day.date), asc(dayEvent.orderIndex)).all();
-  const stays = await db.select({ id: place.id, name: place.name, date: day.date }).from(day)
-    .innerJoin(place, eq(place.id, day.overnightPlaceId))
-    .where(and(eq(day.tripId, tripId), isNull(day.deletedAt))).orderBy(asc(day.date)).all();
+  const [rows, stays] = await Promise.all([
+    db
+      .select({ id: dayEvent.id, title: dayEvent.title, type: dayEvent.type, time: dayEvent.time, date: day.date, placeId: place.id, place: place.name })
+      .from(dayEvent)
+      .innerJoin(day, eq(day.id, dayEvent.dayId))
+      .leftJoin(place, eq(place.id, dayEvent.placeId))
+      .where(and(eq(day.tripId, tripId), isNull(day.deletedAt), isNull(dayEvent.deletedAt)))
+      .orderBy(asc(day.date), asc(dayEvent.orderIndex)).all(),
+    db.select({ id: place.id, name: place.name, date: day.date }).from(day)
+      .innerJoin(place, eq(place.id, day.overnightPlaceId))
+      .where(and(eq(day.tripId, tripId), isNull(day.deletedAt))).orderBy(asc(day.date)).all(),
+  ]);
   const events: TripLinkItem[] = rows.map((row) => ({
     kind: "event",
     id: row.id,

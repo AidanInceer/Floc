@@ -201,6 +201,16 @@ export const emails = {
     ],
   }),
 
+  /** Trigger: mail from a member's address that their mail provider did not sign, so it may be forged (#328). */
+  inboundUnproven: (args: { to: string; tripName: string }): OutboundEmail => ({
+    to: args.to,
+    subject: "We couldn't confirm that email came from you",
+    lines: [
+      `Nothing was saved to ${args.tripName}. Anyone can put your address on an email, so Floc only keeps files from mail your provider has signed as yours.`,
+      "If you sent it, upload the files on the trip's Files page instead. If you didn't, you can ignore this.",
+    ],
+  }),
+
   /** Trigger: a forwarded booking with no file Floc could keep, or one it had to leave out (#328). */
   inboundPartlySaved: (args: {
     to: string;

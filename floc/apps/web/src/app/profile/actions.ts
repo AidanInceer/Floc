@@ -24,7 +24,7 @@ import {
 import { parseVibeTags } from "@floc/core/trip/vibe-tags";
 import { refresh } from "@/server/freshness";
 
-// Name and picture save together: the face card's popover holds both and the card previews the draft.
+// Why: avatarIcon stays in the contract for older phone builds; the web no longer sends it, so a save returns the face to initials.
 export async function updateFace(formData: FormData): Promise<{ error?: string }> {
   const viewer = await requireUser();
 

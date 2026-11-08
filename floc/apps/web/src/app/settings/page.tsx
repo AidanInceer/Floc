@@ -54,6 +54,7 @@ import {
   SubmitButton,
 } from "@/components/system/client-ui";
 import { VibePicker } from "@/components/trip/vibe-picker";
+import { AccountTabs } from "@/components/chrome/account-tabs";
 import { PACK_TIERS, PACK_TIER_LABELS } from "@floc/core/packing/packing";
 import { readVibeTags } from "@floc/core/trip/vibe-tags";
 
@@ -129,7 +130,9 @@ export default async function SettingsPage({
   const vibeTags = readVibeTags(profile.vibeTags);
 
   return (
-    <AccountPage title="Settings">
+    <>
+    <AccountTabs current="settings" />
+    <AccountPage title="Settings" titleInBar>
       <div className="grid gap-4 sm:grid-cols-[max-content_minmax(0,1fr)] sm:items-start">
         <SectionRail current={current} />
 
@@ -369,6 +372,7 @@ export default async function SettingsPage({
         </div>
       </div>
     </AccountPage>
+    </>
   );
 }
 

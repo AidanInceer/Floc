@@ -178,11 +178,10 @@ function FriendRow({
         <PersonLink
           userId={person.id}
           name={person.name}
-          avatarIcon={person.avatarIcon}
           size={34}
         />
       ) : (
-        <Avatar name={person.name} icon={person.avatarIcon} size={34} />
+        <Avatar name={person.name} size={34} />
       )}
       <div className="flex min-w-0 flex-1 flex-col leading-snug">
         <span className="truncate text-sm font-medium">{person.name}</span>

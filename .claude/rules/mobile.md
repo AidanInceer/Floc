@@ -9,6 +9,7 @@ Expo app for iOS and Android. Own UI and version, same [visual language](../../d
 ## UI
 
 - House components: `src/components/system/ui.tsx` and `glyphs.tsx`. Use them before you write markup.
+- The notes editor (`@floc/editor`) and globe (`@floc/globe`) run in an Expo DOM component, not native views.
 - Surface rules: [on a phone, cut it back](../../docs/design/visual-language.html#on-a-phone); [drawn tighter](../../docs/design/index.html#the-app).
 
 ## Dependencies

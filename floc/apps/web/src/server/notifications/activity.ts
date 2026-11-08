@@ -28,7 +28,14 @@ export type Change = {
   affected: string[];
 };
 
-async function liveMemberIds(tx: Tx, tripId: number | null): Promise<string[]> {
+/** What a writer may read before its transaction opens, so it is not a round trip inside it. */
+export type KnownBefore = {
+  members?: string[];
+  /** The subject was made in this transaction, so no earlier row can fold into it. */
+  fresh?: boolean;
+};
+
+export async function liveMemberIds(tx: Tx | typeof db, tripId: number | null): Promise<string[]> {
   if (tripId === null) return [];
   const rows = await tx
     .select({ userId: tripMembership.userId })
@@ -56,15 +63,15 @@ async function recentSameChange(tx: Tx, change: Change): Promise<number | undefi
   return row?.id;
 }
 
-export async function recordActivity(tx: Tx, change: Change): Promise<void> {
+export async function recordActivity(tx: Tx, change: Change, known: KnownBefore = {}): Promise<void> {
   const recipients = recipientsFor({
     kind: change.kind,
     actorId: change.actorId,
     affected: change.affected,
-    members: await liveMemberIds(tx, change.tripId),
+    members: known.members ?? (await liveMemberIds(tx, change.tripId)),
   });
 
-  let activityId = await recentSameChange(tx, change);
+  let activityId = known.fresh ? undefined : await recentSameChange(tx, change);
   if (activityId === undefined) {
     const row = await tx
       .insert(activity)

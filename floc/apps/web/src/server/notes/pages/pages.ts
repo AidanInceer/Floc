@@ -47,15 +47,19 @@ async function openPage(tripId: number, pageId: number) {
 }
 
 export async function createPage(tripId: number, userId: string, parentId: number | null): Promise<{ id: number } | Refusal> {
+  const [parent, held, position] = await Promise.all([
+    parentId === null ? null : openPage(tripId, parentId),
+    liveCount(tripId),
+    nextPosition(tripId, parentId),
+  ]);
   if (parentId !== null) {
-    const parent = await openPage(tripId, parentId);
     if (!parent) return GONE;
     if (!canHoldSubPages(parent)) return { error: "A sub-page cannot hold pages." };
   }
-  const refused = pagesRefusal(await liveCount(tripId));
+  const refused = pagesRefusal(held);
   if (refused) return { error: refused };
   const row = await db.insert(tripPage)
-    .values({ tripId, parentId, body: serialisePage(EMPTY_PAGE), updatedBy: userId, position: await nextPosition(tripId, parentId) })
+    .values({ tripId, parentId, body: serialisePage(EMPTY_PAGE), updatedBy: userId, position })
     .returning({ id: tripPage.id })
     .get();
   changed(tripId);

@@ -24,37 +24,24 @@ import { recordActivity } from "@/server/notifications/activity";
 
 /** Canonical direction is lower userId first, matching the unique index — never a duplicate reversed row. */
 export async function syncCompletedCoTripFriendships(userId: string): Promise<void> {
-  const completedTrips = await db
-    .select({ tripId: trip.id })
-    .from(trip)
-    .innerJoin(tripMembership, eq(tripMembership.tripId, trip.id))
+  // One self-join, not trips then their members (ticket 114 scoped the second read to the trips in hand).
+  const mine = alias(tripMembership, "mine");
+  const coMembers = await db
+    .selectDistinct({ userId: tripMembership.userId })
+    .from(mine)
+    .innerJoin(trip, eq(trip.id, mine.tripId))
+    .innerJoin(tripMembership, eq(tripMembership.tripId, mine.tripId))
     .where(
       and(
-        eq(tripMembership.userId, userId),
-        isNull(tripMembership.deletedAt),
+        eq(mine.userId, userId),
+        isNull(mine.deletedAt),
         isNull(trip.deletedAt),
         lt(trip.endDate, today()),
-      ),
-    )
-    .all();
-
-  if (completedTrips.length === 0) return;
-
-  const tripIds = completedTrips.map((t) => t.tripId);
-
-  // Scoped to the trips in hand — used to select every trip_membership row and
-  // filter in JS, degrading with total user count on every /friends load (ticket 114).
-  const coMembers = await db
-    .select({ userId: tripMembership.userId })
-    .from(tripMembership)
-    .where(
-      and(
-        inArray(tripMembership.tripId, tripIds),
         isNull(tripMembership.deletedAt),
         ne(tripMembership.userId, userId),
       ),
     )
-    .limit(LIMITS.members * tripIds.length)
+    .limit(LIMITS.members * LIMITS.tripsPerUser)
     .all();
 
   const otherUserIds = new Set(
@@ -195,11 +182,6 @@ export async function acceptedFriendIdsOf(ownerId: string): Promise<string[]> {
   return rows
     .filter((r) => r.status === "accepted")
     .map((r) => (r.userId === ownerId ? r.friendId : r.userId));
-}
-
-/** A pair may hold a row in each direction, so count people, not rows. */
-export async function countFriendsFor(viewerId: string): Promise<number> {
-  return new Set(await acceptedFriendIdsOf(viewerId)).size;
 }
 
 /**

@@ -16,8 +16,8 @@ agent's **environment** so future runs go better. You change no code.
 
 ## Steps
 
-1. Read [AGENTS.md](AGENTS.md) first: Commands, Invariants, Code
-   standards and Agent skills. Every finding must respect them.
+1. Read [AGENTS.md](AGENTS.md) first: Commands, Code standards and
+   Agent skills, and the invariants (ADR-001 to ADR-011). Every finding must respect them.
 
 2. Read the session the user names. If they name none, use the current one.
    Session logs for this project are the `.jsonl` files in
@@ -54,6 +54,12 @@ agent's **environment** so future runs go better. You change no code.
 - **Information access**: was a crucial piece of information out of the agent's
   reach? Dev server logs, Railway logs, a read-only view of data. _Use when_ the
   agent had to guess something it could have read.
+
+   **The dev flow is fixed** ([AGENTS.md, Guardrail gates](AGENTS.md#guardrail-gates)).
+   Never propose a new step, watcher or stage. A gap gets a check or a script at one of the
+   three gates: pre-commit (under a minute), CI on the PR to develop (fast), CI on the PR to
+   main (everything). Pick the cheapest gate that catches it. Change the flow itself only when
+   Aidan says part of it is not working.
 
 4. Present the candidates to the user, most severe first. For each: what
    happened (one line), the category, the proposed change and the file it

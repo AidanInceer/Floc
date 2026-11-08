@@ -36,7 +36,7 @@ Write "the Days page", not "the itinerary feature module". Name a screen as the
 user sees it, then the file.
 
 British English, sentence case, short sentences, no filler. Use the
-words in AGENTS.md: *rule 3*, *ADR-014*, *`@floc/core`*, *web and phone*,
+house words: *rule 3*, *ADR-014*, *`@floc/core`*, *web and phone*,
 *parity*. Never "service", "layer", "component boundary", "API surface".
 
 ## 1. Choose where to look
@@ -54,7 +54,7 @@ changing.
   - Logic that exists on web *and* phone (`floc/apps/web/src` vs
     `floc/apps/mobile/src`) — it belongs in `@floc/core`.
 
-Read first: AGENTS.md (Invariants, Structure, Code standards),
+Read first: AGENTS.md (Structure, Code standards), the invariants (ADR-001 to ADR-011),
 [`floc/CONTEXT.md`](floc/CONTEXT.md),
 [`learnings.md`](learnings.md), the
 [decision log](docs/foundation/decisions.html) and the
