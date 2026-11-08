@@ -43,7 +43,7 @@ export function ProBand({ monthly, signedIn }: { monthly: string | null; signedI
         <div className="grid justify-items-center text-center">
           <h2 className="band-title">How Pro helps at every stage.</h2>
           <div className="mt-4">
-            <ComingSoonTag onSlab />
+            <ComingSoonTag />
           </div>
         </div>
         <ProTour>

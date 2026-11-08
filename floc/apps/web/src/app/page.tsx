@@ -14,7 +14,6 @@ import { formatMoney } from "@floc/core/money/money";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import { ButtonLink, cx } from "@/components/system/ui";
 import { BorrowTrip } from "@/components/landing/borrow-trip";
-import { AgentBand } from "@/components/landing/agent/agent-band";
 import { AppBand } from "@/components/landing/app-band";
 import { ClosingTicket } from "@/components/landing/closing-ticket";
 import { HeroDeck } from "@/components/landing/hero/hero-deck";
@@ -49,10 +48,6 @@ export const metadata: Metadata = {
 };
 
 // The Explore listings the Borrow band opens on, in this order; every other listing waits behind them.
-// Hidden for now; set true to bring back the pocket agent band and its "while you wait" part.
-// Why: the Pro slab's lower slant is painted FAQ-white, so turning this on needs that strip repainted for what follows the slab.
-const SHOW_AGENT_BAND = false;
-
 const BORROW_IDS = [
   "japan-golden-route",
   "hanoi-to-bangkok",
@@ -135,15 +130,6 @@ export default async function LandingPage() {
 
       {/* ── pro ────────────────────────────────────────────────────────── */}
       {sellingPro && <ProBand monthly={monthly} signedIn={signedIn} />}
-
-      {/* ── pocket agent ───────────────────────────────────────────────── */}
-      {SHOW_AGENT_BAND && (
-        <div className="mx-auto w-full max-w-[84rem] px-4 sm:px-6">
-          <section className="mt-24">
-            <AgentBand origin={appUrl()} />
-          </section>
-        </div>
-      )}
 
       {/* Why: the Pro slab's lower slant is painted in this white, so with Pro off the FAQ brings its own gap and hairline. */}
       <section className={cx("bg-sheet", !sellingPro && "mt-24 border-t border-rule")}>
