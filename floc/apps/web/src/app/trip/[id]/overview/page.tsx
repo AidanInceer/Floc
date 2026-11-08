@@ -98,7 +98,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
   });
 
   const modes = new Map([...transport].map(([dayId, t]) => [dayId, t.mode]));
-  const { legs, wholeTrip } = tripLegs({ days: routeDays, modes, files: docs });
+  const { legs, wholeTrip } = tripLegs({ days: routeDays, modes, files: docs, tripEnd: trip.endDate });
   const route = overviewRoute({ legs, days: routeDays, hops: transport });
   const settle = await settleUpFrom({ ledger: { expenses: expenseRows, splits: splitRows, settlements: settlementRows }, viewerId: viewer.id, homes });
   const position = expenseRows.length === 0 ? null : yourPosition(settle.rows, viewer.id);

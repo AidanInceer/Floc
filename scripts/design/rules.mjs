@@ -73,6 +73,10 @@ function scriptLine(line, report) {
   for (const [, colour] of line.matchAll(/hover:bg-([\w-]+)/g)) {
     if (GREY_FILL.test(colour)) report("hover-grey", `hover:bg-${colour} → hover:bg-pen-soft, a border or a lift`);
   }
+  // Why: --pen-2 is a CSS variable; its Tailwind colour is pen-soft, so a pen-2 class renders nothing (#527).
+  for (const [token] of line.matchAll(/(?<![\w-])(?:[\w-]+:)*(?:bg|text|border|ring|outline|fill|stroke)-pen-2(?![\w-])/g)) {
+    report("pen-2-class", `${token} → the pen-soft class (token --pen-2)`);
+  }
   if (/≈|~\s?[£$€]/.test(line)) report("approx-money", "show the exact amount");
   if (/\bplaceholder\s*=\s*[{"']/.test(line)) report("placeholder", "fields start empty; name them with a label");
 }

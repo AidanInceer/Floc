@@ -2,8 +2,7 @@
  * A trip on My trips as one bar: the date, the name and who is going on the left, the route on its right as the
  * Overview draws it (smaller, no names). The next trip's bar is taller. Opens from anywhere on it (trip-open.ts).
  */
-import { countdownLabel, formatDateRange, fromIsoDate } from "@floc/core/dates/dates";
-import { tripListStage } from "@floc/core/trip/list-stage";
+import { formatDateRange, fromIsoDate } from "@floc/core/dates/dates";
 import { tripPastel } from "@floc/core/trip/trip-color";
 
 import { AvatarRow, PASTEL_BY_KEY, cx } from "@/components/system/ui";
@@ -11,21 +10,13 @@ import { TripMarkIcon } from "@/components/system/icons/trip-mark";
 import { NavGlyph } from "@/components/system/icons/nav";
 import { ChevronIcon } from "@/components/system/icons";
 import { TripCardActions, type TripCardData } from "@/components/trip/trip-card";
+import { tripBarStatus } from "@/lib/trips/trip-bar-status";
 import { BarMap } from "./bar-map";
 import { TripOpenLink } from "./trip-open-link";
 
-function status(trip: TripCardData, next: boolean, past: boolean): string {
-  const stage = tripListStage({ ...trip, archived: past });
-  if (next && stage !== "Happening now") {
-    const when = trip.startDate ? countdownLabel(trip.startDate) : null;
-    return when ? `Next up · ${when}` : "Next up";
-  }
-  return stage === "Planning" ? (countdownLabel(trip.startDate) ?? stage) : stage;
-}
-
 // Why: on a narrow card the line breaks after the dot ("Next up ·" / "in 38 days"), never leaving one word alone.
-function StatusLine({ trip, next, past }: { trip: TripCardData; next: boolean; past: boolean }) {
-  const [lead, rest] = status(trip, next, past).split(" · ");
+function StatusLine({ trip, next }: { trip: TripCardData; next: boolean }) {
+  const [lead, rest] = tripBarStatus(trip, next).split(" · ");
   return (
     <p className="typed flex flex-wrap items-center gap-x-1.5 pr-24">
       {trip.mark ? <TripMarkIcon mark={trip.mark} size={14} /> : null}
@@ -54,7 +45,7 @@ function DateTile({ trip, tone }: { trip: TripCardData; tone: string }) {
   );
 }
 
-export function TripBar({ trip, next = false, past = false }: { trip: TripCardData; next?: boolean; past?: boolean }) {
+export function TripBar({ trip, next = false }: { trip: TripCardData; next?: boolean }) {
   const colour = tripPastel(trip.color ?? null, trip.id);
   const href = `/trip/${trip.id}/overview`;
   const Title = next ? "h2" : "h3";
@@ -70,7 +61,7 @@ export function TripBar({ trip, next = false, past = false }: { trip: TripCardDa
       <div className="grid grid-cols-[3.5rem_minmax(0,1fr)] content-start gap-3 p-4 sm:grid-cols-[4.5rem_minmax(0,1fr)] sm:gap-4 sm:p-5">
         <DateTile trip={trip} tone={PASTEL_BY_KEY[colour]} />
         <div className="min-w-0">
-          <StatusLine trip={trip} next={next} past={past} />
+          <StatusLine trip={trip} next={next} />
           <TripOpenLink href={href} className="mt-1 inline-block text-ink after:absolute after:inset-0 after:content-['']">
             <Title className={next ? "text-xl leading-tight sm:text-3xl" : "text-lg leading-tight sm:text-xl"}>{trip.name}</Title>
           </TripOpenLink>

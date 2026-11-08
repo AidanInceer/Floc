@@ -110,17 +110,15 @@ function TripList({
   trips,
   className,
   newTrip,
-  past,
 }: {
   trips: TripCardData[];
   className?: string;
   newTrip?: Person[];
-  past?: boolean;
 }) {
   return (
     <ul className={cx(className, "grid gap-3")}>
       {trips.map((t) => (
-        <TripBar key={t.id} trip={t} past={past} />
+        <TripBar key={t.id} trip={t} />
       ))}
       {newTrip ? <NewTripTile friends={newTrip} /> : null}
     </ul>
@@ -139,7 +137,7 @@ function PastTrips({ trips }: { trips: TripCardData[] }) {
         <ChevronIcon direction="down" size={15} className="past-trips-chevron shrink-0" />
         <span className="typed text-current">Past trips · {trips.length}</span>
       </summary>
-      <TripList trips={trips} className="mt-5" past />
+      <TripList trips={trips} className="mt-5" />
     </details>
   );
 }

@@ -76,7 +76,7 @@ export function DayRow({ day, open, onToggle }: { day: PlanDay; open: boolean; o
         <span
           className={cx(
             "nums grid size-9 place-content-center rounded-sm text-center text-sm leading-none",
-            open ? "bg-ink text-sheet" : "bg-sheet-2 text-ink-soft",
+            open ? "bg-pen-soft text-pen-deep" : "bg-sheet-2 text-ink-soft",
           )}
         >
           <span className="mb-0.5 text-[8px] uppercase tracking-[0.08em]">Day</span>

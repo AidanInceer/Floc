@@ -106,6 +106,21 @@ describe("bookingPlan", () => {
     ).toBeNull();
   });
 
+  it("books the last stop's night when the trip's end date has no day row", () => {
+    const plan = bookingPlan({
+      trip,
+      days: [day(1, "2026-10-14", 7, "Lisbon"), day(2, "2026-10-15", 8, "Osaka")],
+      today: "2026-09-01",
+      adults: 2,
+      prefill: false,
+    });
+    const stays = plan!.stays as StayRow[];
+    expect(stays.map((s) => [s.checkIn, s.checkOut])).toEqual([
+      ["2026-10-14", "2026-10-15"],
+      ["2026-10-15", "2026-10-16"],
+    ]);
+  });
+
   it("is nothing once the trip has started", () => {
     expect(bookingPlan({ trip, days: [], today: "2026-10-14", adults: 2, prefill: true })).toBeNull();
   });

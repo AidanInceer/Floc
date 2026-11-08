@@ -18,11 +18,13 @@ export const shortPlace = (name: string) => name.split(",")[0];
 
 export function StopStrip({
   days,
+  tripEnd,
   focusId,
   onGoTo,
   onStop,
 }: {
   days: CalendarDay[];
+  tripEnd: string | null;
   focusId: number;
   onGoTo: (dayId: number) => void;
   onStop: (span: BandSpan) => void;
@@ -47,6 +49,7 @@ export function StopStrip({
       overnightPlaceId: d.overnightPlaceId,
       overnightPlaceName: d.overnightPlaceName,
     })),
+    tripEnd,
   );
 
   return (

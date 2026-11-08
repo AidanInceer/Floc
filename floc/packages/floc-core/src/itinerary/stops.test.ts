@@ -44,6 +44,20 @@ describe("deriveStops", () => {
     expect(stops.map((s) => s.nights)).toEqual([1, 2]);
   });
 
+  it("keeps the last stop's night when the trip's end date has no day row", () => {
+    const days = [
+      day(1, "2027-05-01", 10, "Hiroshima"),
+      day(2, "2027-05-02", 10, "Hiroshima"),
+      day(3, "2027-05-03", 20, "Osaka"),
+    ];
+    expect(deriveStops(days, "2027-05-04").map((s) => s.nights)).toEqual([2, 1]);
+  });
+
+  it("takes the day home off the last stop when that day has its row", () => {
+    const days = [day(1, "2027-05-03", 20, "Osaka"), day(2, "2027-05-04", 20, "Osaka")];
+    expect(deriveStops(days, "2027-05-04").map((s) => s.nights)).toEqual([1]);
+  });
+
   it("splits into two stops when the overnight place changes", () => {
     const days = [
       day(1, "2026-06-01", 10, "Rome"),

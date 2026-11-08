@@ -58,7 +58,7 @@ export function FaceEditor({ name }: { name: string }) {
         aria-expanded={open}
         aria-haspopup="dialog"
         aria-label={`Change your name, ${name}`}
-        className="-m-1.5 flex min-w-0 items-center gap-4 rounded-sm p-1.5 text-left transition-colors hover:bg-pen-2"
+        className="-m-1.5 flex min-w-0 items-center gap-4 rounded-sm p-1.5 text-left transition-colors hover:bg-pen-soft"
       >
         <span className="relative shrink-0">
           <Avatar name={shownName} size={64} />

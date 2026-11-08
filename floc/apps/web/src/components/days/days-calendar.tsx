@@ -35,6 +35,7 @@ import { FocusHeads, type FocusFacts } from "@/components/days/days-focus-heads"
 import { OvernightBandRow } from "@/components/days/days-overnight-band";
 import { OvernightDialog } from "@/components/days/days-overnight-dialog";
 import { StopStrip } from "@/components/days/days-stop-strip";
+import { dayStay } from "@/lib/days/day-stay";
 import { useHeightFloor } from "@/components/days/use-height-floor";
 import { useOvernightBand } from "@/components/days/use-overnight-band";
 import {
@@ -52,7 +53,6 @@ import { LAST_START_MINUTE, clamp, formatSpan, snap, spanOf, toHhmm } from "@flo
 import { draggedPast, eventKeyGesture, eventLanding } from "@floc/core/dates/calendar-gestures";
 import { foldedClock, minuteAt, yAt } from "@floc/core/dates/clock-fold";
 import { addDays } from "@floc/core/dates/dates";
-import { runBoundsAt } from "@floc/core/itinerary/overnight-band";
 
 export type { CalendarDay, CalendarEvent, OvernightPlace } from "@/components/days/days-calendar-shared";
 
@@ -83,21 +83,14 @@ const cap = (id: number, date: string): CalendarDay => ({
   isToday: false,
 });
 
-function focusFacts(days: CalendarDay[], index: number, events: CalendarEvent[]): FocusFacts {
+function focusFacts(days: CalendarDay[], index: number, events: CalendarEvent[], tripEnd: string | null): FocusFacts {
   const day = days[index];
-  const run = runBoundsAt(days, day.date, day.overnightPlaceId);
-  const runDays = days.filter((d) => d.date >= run.start && d.date <= run.end);
   return {
     day,
     dayNumber: index + 1,
     tripLength: days.length,
     stay: day.overnightPlaceName
-      ? {
-          placeName: day.overnightPlaceName,
-          // The trip's last day is the day home: no night, as on Dates (stops.ts).
-          night: index === days.length - 1 ? null : runDays.indexOf(day) + 1,
-          nights: runDays.length - (runDays.includes(days[days.length - 1]) ? 1 : 0),
-        }
+      ? { placeName: day.overnightPlaceName, ...dayStay(days, index, tripEnd) }
       : null,
     eventCount: events.filter((e) => e.dayId === day.id).length,
   };
@@ -117,6 +110,7 @@ export function DaysCalendar({
   initialDate,
   groupSize,
   bookingPrefill,
+  tripEnd,
 }: {
   days: CalendarDay[];
   events: CalendarEvent[];
@@ -143,6 +137,8 @@ export function DaysCalendar({
   initialDate?: string;
   groupSize: number;
   bookingPrefill: boolean;
+  /** The trip's end date, so the stop strip counts nights as the Overview does. */
+  tripEnd: string | null;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -503,7 +499,7 @@ export function DaysCalendar({
   return (
     <div style={{ minHeight: card.floor }}>
       <div ref={card.ref} className={cx("overflow-hidden rounded-md bg-sheet", FOCUS_COLUMNS)}>
-        <StopStrip days={days} focusId={focus.id} onGoTo={goTo} onStop={openBandDialog} />
+        <StopStrip days={days} tripEnd={tripEnd} focusId={focus.id} onGoTo={goTo} onStop={openBandDialog} />
 
         <CalendarToolbar
           nav={{
@@ -525,7 +521,7 @@ export function DaysCalendar({
             <div ref={headRef} className="sticky top-0 z-30 shadow-raised">
               <FocusHeads
                 slots={slots}
-                focus={focusFacts(days, focusIndex, events)}
+                focus={focusFacts(days, focusIndex, events, tripEnd)}
                 rowStyle={rowStyle}
                 onGoTo={goTo}
                 onAdd={() => openAdd(focus.id, 9 * 60)}
