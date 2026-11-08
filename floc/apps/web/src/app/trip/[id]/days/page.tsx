@@ -35,7 +35,6 @@ import {
 } from "@/components/days/days-calendar";
 import { EventFiles } from "@/components/documents/event-files";
 import type { FileChoice } from "@/components/documents/attach-existing";
-import { EventForm } from "@/components/days/event-form";
 import { ButtonLink, EmptyState, PageTitle, cx, menuDangerItemClass, panelBandClass, panelTitleClass } from "@/components/system/ui";
 import { calendarFeedUrlFor } from "@/server/itinerary/feed/calendar-feed-link";
 import { NoteThread, type NoteRow, type Viewer } from "@/components/notes/note-thread";
@@ -138,6 +137,7 @@ export default async function DaysPage({
         type: event.type,
         transportType: event.transportType,
         title: eventName(event),
+        writtenTitle: event.title,
         placeName: event.placeName,
         time: event.time,
         endTime: event.endTime,
@@ -186,7 +186,6 @@ export default async function DaysPage({
           eventId: selected.event.id,
           content: <EventPanel
             tripId={trip.id}
-            dayId={selected.day.id}
             date={selected.day.date}
             event={selected.event}
             originPlaceName={days[days.indexOf(selected.day) - 1]?.overnightPlaceName ?? null}
@@ -229,14 +228,11 @@ function partOf(date: string, opts: Intl.DateTimeFormatOptions) {
 }
 
 /**
- * The selected event's detail panel — every fact, the controls, and the thread.
- * Rendered here rather than in the calendar since all four actions are Server
- * Actions. A field with no answer still shows its row, saying so: "no time
- * set" is a thing the group needs to see, not an absence to hide.
+ * Why: the panel below the event's form — flight search, files, the thread and delete —
+ * needs the server's rows. The calendar draws the form itself, so it opens on the click.
  */
 function EventPanel({
   tripId,
-  dayId,
   date,
   event,
   originPlaceName,
@@ -249,7 +245,6 @@ function EventPanel({
   bookingPrefill,
 }: {
   tripId: number;
-  dayId: number;
   date: string;
   event: DayEventRow;
   originPlaceName: string | null;
@@ -278,26 +273,6 @@ function EventPanel({
 
   return (
     <div>
-      {/* The facts edit in place and save on change (ticket 321). The form's head is
-          the block itself, so the type needs no badge of its own. */}
-      <EventForm
-        autosave
-        action={submitEvent.bind(null, tripId)}
-        searchPlaces={searchPlacesAction}
-        dateLabel={partOf(date, { weekday: "short", day: "numeric", month: "short" })}
-        defaults={{
-          dayId,
-          eventId: event.id,
-          type: event.type,
-          transportType: event.transportType,
-          time: event.time,
-          endTime: event.endTime,
-          allDay: event.allDay || !event.time,
-          title: event.title,
-          note: event.note,
-          placeName: event.placeName,
-        }}
-      />
 
       <div>
         {flightLinks ? (

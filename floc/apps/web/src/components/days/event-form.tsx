@@ -4,11 +4,12 @@
 // is the modal's edit mode: no submit button, saves on change. dayId/eventId ride as
 // hidden fields since the client picked them; submitEvent re-checks (rule 5).
 
-import { useCallback, useEffect, useRef, useState, type ComponentProps } from "react";
+import { useState, type ComponentProps } from "react";
 import { useFormStatus } from "react-dom";
 
 import { EventHead, EventWhen } from "@/components/days/event-sheet/event-head";
 import { EventTypeTiles } from "@/components/days/event-sheet/event-type-tiles";
+import { useEventAutosave } from "@/components/days/use-event-autosave";
 import { PlacePicker } from "@/components/social/place-picker";
 import { SubmitButton } from "@/components/system/client-ui";
 import { DialogClose } from "@/components/system/dialog";
@@ -47,43 +48,20 @@ export function EventForm({
   /** In the event modal: no submit button, saves on change (ticket 321). */
   autosave?: boolean;
 }) {
-  const formRef = useRef<HTMLFormElement>(null);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const dirty = useRef(false);
   const [type, setType] = useState<DayEventType>(defaults.type ?? "activity");
   const [how, setHow] = useState<TransportType | null>(defaults.transportType ?? null);
   const [allDay, setAllDay] = useState(defaults.allDay ?? false);
   const [title, setTitle] = useState(defaults.title ?? "");
-
-  useEffect(() => () => {
-    if (timer.current) clearTimeout(timer.current);
-  }, []);
-
-  // A nameless event is never sent: the add button waits for a name, and the
-  // edit form simply holds its save until there is one again.
-  const save = useCallback(() => {
-    if (timer.current) clearTimeout(timer.current);
-    const form = formRef.current;
-    const name = form?.elements.namedItem("title") as HTMLInputElement | null;
-    if (!form || !dirty.current || !name?.value.trim()) return;
-    dirty.current = false;
-    form.requestSubmit();
-  }, []);
-  const saveSoon = useCallback(() => {
-    if (!autosave) return;
-    dirty.current = true;
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(save, 700);
-  }, [autosave, save]);
+  const { formRef, changed, formProps } = useEventAutosave({ autosave, eventId: defaults.eventId, action });
 
   const pickType = (next: DayEventType) => {
     setType(next);
     if (next !== "transport") setHow(null);
-    saveSoon();
+    changed({ type: next, transportType: next === "transport" ? how : null });
   };
 
   return (
-    <form ref={formRef} action={action} onChange={autosave ? saveSoon : undefined} onBlur={autosave ? save : undefined}>
+    <form ref={formRef} {...formProps}>
       <input type="hidden" name="dayId" value={defaults.dayId} />
       {defaults.eventId ? <input type="hidden" name="eventId" value={defaults.eventId} /> : null}
       <EventHead
@@ -99,12 +77,12 @@ export function EventForm({
             time={defaults.time}
             endTime={defaults.endTime}
             allDay={allDay}
-            onAllDay={() => { setAllDay(!allDay); saveSoon(); }}
+            onAllDay={() => { setAllDay(!allDay); changed({ allDay: !allDay }); }}
           />
         }
       />
       <div className="px-5 py-4 max-sm:px-4">
-        <EventTypeTiles type={type} how={how} onType={pickType} onHow={(next) => { setHow(next); saveSoon(); }} />
+        <EventTypeTiles type={type} how={how} onType={pickType} onHow={(next) => { setHow(next); changed({ transportType: next }); }} />
       </div>
       <div className={panelBandClass}>
         <PlacePicker
@@ -112,7 +90,7 @@ export function EventForm({
           look="panel"
           defaultName={defaults.placeName ?? ""}
           search={searchPlaces}
-          onSelect={autosave ? (picked) => { if (picked.providerId) saveSoon(); } : undefined}
+          onSelect={autosave ? (picked) => { if (picked.providerId) changed({}); } : undefined}
         />
       </div>
       <label className={cx("block", panelBandClass)}>
