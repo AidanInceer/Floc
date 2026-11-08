@@ -632,7 +632,7 @@ export type FlocPort = {
   addPackingLine(
     viewerId: string,
     tripId: number,
-    input: { label: string; category: PackCategory; mine: boolean },
+    input: { label: string; category: PackCategory | null; mine: boolean },
   ): Promise<void>;
 
   /**

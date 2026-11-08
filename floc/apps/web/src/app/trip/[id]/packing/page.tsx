@@ -18,14 +18,16 @@ import { arrangePackingLanes } from "@floc/core/packing/packing-lanes";
 import {
   CategorySelect,
   PackingBulkBar,
-  PackingKitMenu,
+  PackingBagMore,
 } from "@/components/packing/packing-controls";
+import { PackingAddField } from "@/components/packing/packing-add-field";
+import { PackingFillMenu } from "@/components/packing/packing-fill-menu";
 import { PackingCount } from "@/components/packing/packing-card";
 import { PackingCube } from "@/components/packing/packing-cube";
 import { PackingLane } from "@/components/packing/packing-lane";
 import { PackingClaimCard } from "@/components/packing/packing-claim-card";
 import { Avatar, PageTitle } from "@/components/system/ui";
-import { PackingAutoLine, PackingUpgradeLine, RemoveSuggested } from "@/components/packing/packing-auto-line";
+import { LockIcon } from "@/components/system/icons/packing";
 import { PackingIdeaRow } from "@/components/packing/packing-idea-row";
 import { SubmitButton } from "@/components/system/client-ui";
 import { PersonalPackingRow } from "@/components/packing/packing-personal-row";
@@ -77,14 +79,7 @@ export default async function PackingPage({
 
   const path = `/trip/${tripId}/packing`;
   const sharedSelecting = query.sharedPick === "1";
-  const bagSelecting = query.bagPick === "1";
-  const selectHref = (bag: boolean, select: boolean) => {
-    const next = new URLSearchParams();
-    if (bag ? select : bagSelecting) next.set("bagPick", "1");
-    if (bag ? sharedSelecting : select) next.set("sharedPick", "1");
-    const suffix = next.toString();
-    return suffix ? `${path}?${suffix}` : path;
-  };
+  const selectHref = (select: boolean) => (select ? `${path}?sharedPick=1` : path);
 
   // Seeded here rather than behind a button because that's what the profile
   // setting asks for (ticket 221). The flag is the fill's own one-shot mark,
@@ -111,16 +106,12 @@ export default async function PackingPage({
     mine = await listPersonalPackingLines(tripId, access.viewer.id);
   }
 
-  const ideasHidden = query.ideas === "off";
   const ideas = packingPro
     ? packingIdeas({ nights: plan.nights, climate: plan.climate, tier }, mine.map((l) => l.label))
     : [];
-  const bagCubes = packingCubes(mine, ideasHidden ? [] : ideas);
+  const bagCubes = packingCubes(mine, ideas);
   const suggestedCount = mine.filter((l) => l.origin === "suggested" && l.packedAt === null).length;
   const takeIdea = takePackingIdea.bind(null, tripId);
-  const removeSuggested = (
-    <RemoveSuggested count={suggestedCount} action={removeSuggestedPackingLines.bind(null, tripId)} />
-  );
 
   // One person, one avatar colour across every tab.
   const toneOf = new Map(access.members.map((m) => [m.userId, m.tone]));
@@ -175,48 +166,31 @@ export default async function PackingPage({
         <header className="flex flex-wrap items-baseline gap-3">
           <h2 className="text-2xl">Your bag</h2>
           <PackingCount total={mine.length} packed={bagPacked} />
-          <div className="ml-auto flex self-center flex-wrap items-center justify-end gap-x-4 gap-y-2">
-            <PackingKitMenu kits={kits} apply={applyPackingKit.bind(null, tripId)} />
-            {mine.length > 0 ? (
-              <PackingBulkBar
-                formId="bag-bulk"
-                selecting={bagSelecting}
-                selectHref={selectHref(true, true)}
-                doneHref={selectHref(true, false)}
-                removeSelected={removePackingLines.bind(null, tripId)}
-                reset={resetPackingList.bind(null, tripId, true)}
-                resetMessage="Clear your whole bag? The shared list stays."
-              />
-            ) : null}
+          <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-ink-faint max-sm:self-center">
+            <LockIcon />
+            Only you
+          </span>
+          <div className="ml-auto flex self-center flex-wrap items-center justify-end gap-x-2 gap-y-2">
+            <PackingFillMenu
+              kits={kits}
+              apply={applyPackingKit.bind(null, tripId)}
+              auto={packingPro ? {
+                tier,
+                ideaCount: ideas.length,
+                setTier: setTripPackTier.bind(null, tripId),
+                addAll: fillMyPackingList.bind(null, tripId),
+              } : null}
+            />
+            <PackingBagMore
+              reset={mine.length > 0 ? resetPackingList.bind(null, tripId, true) : null}
+              suggested={{ count: suggestedCount, remove: removeSuggestedPackingLines.bind(null, tripId) }}
+            />
           </div>
         </header>
 
-        {packingPro ? (
-          <PackingAutoLine
-            tripId={tripId}
-            plan={plan}
-            tier={tier}
-            ideaCount={ideas.length}
-            hidden={ideasHidden}
-            toggleHref={ideasHidden ? path : `${path}?ideas=off`}
-            actions={{ setTier: setTripPackTier.bind(null, tripId), addAll: fillMyPackingList.bind(null, tripId) }}
-            removeSuggested={removeSuggested}
-          />
-        ) : (
-          <PackingUpgradeLine removeSuggested={removeSuggested} />
-        )}
+        <PackingAddField add={addPersonalPackingLine.bind(null, tripId)} />
 
-        <form action={addPersonalPackingLine.bind(null, tripId)} className="flex flex-wrap items-stretch gap-2">
-          {addBox("Add something to your bag")}
-          <CategorySelect />
-          <SubmitButton variant="secondary" pendingLabel="Adding…" className="shrink-0">Add</SubmitButton>
-        </form>
-
-        {bagCubes.length === 0 ? (
-          <p className="text-sm text-ink-soft">
-            Start your bag above. Only you can see this list.
-          </p>
-        ) : (
+        {bagCubes.length === 0 ? null : (
           <div className="gap-3 md:columns-2 xl:columns-3 [&>*]:mb-3 [&>*]:break-inside-avoid">
             {bagCubes.map((group) => (
               <PackingCube
@@ -232,7 +206,6 @@ export default async function PackingPage({
                     tripId={tripId}
                     lineId={line.id}
                     label={line.label}
-                    selectFormId={bagSelecting ? "bag-bulk" : null}
                     quantity={line.quantity}
                     packedAt={line.packedAt}
                     setPacked={setPersonalPackingPacked}
@@ -255,15 +228,15 @@ export default async function PackingPage({
 
       <section className="mt-10">
         <header className="flex flex-wrap items-baseline gap-3">
-          <h2 className="text-2xl">Who’s bringing what</h2>
+          <h2 className="text-2xl">Shared packing</h2>
           <PackingCount total={lines.length} packed={sharedPacked} />
           {lines.length > 0 ? (
             <div className="ml-auto self-center">
               <PackingBulkBar
                 formId="shared-bulk"
                 selecting={sharedSelecting}
-                selectHref={selectHref(false, true)}
-                doneHref={selectHref(false, false)}
+                selectHref={selectHref(true)}
+                doneHref={selectHref(false)}
                 removeSelected={removePackingLines.bind(null, tripId)}
                 reset={resetPackingList.bind(null, tripId, false)}
                 resetMessage="Clear the whole shared list for everyone?"

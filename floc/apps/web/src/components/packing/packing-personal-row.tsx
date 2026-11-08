@@ -4,11 +4,9 @@ import { useOptimistic } from "react";
 
 import { Badge, cx } from "@/components/system/ui";
 import { clampPackQuantity } from "@floc/core/packing/packing";
-import { ConfirmSubmit } from "@/components/system/client-ui";
 import { InlineRename } from "@/components/system/inline-rename";
 import { TEXT_CAPS } from "@floc/core/text/text";
 import {
-  SelectLineBox,
   squareButton,
   tickBoxBase,
   tickBoxClass,
@@ -33,7 +31,6 @@ export function PersonalPackingRow({
   tripId,
   lineId,
   label,
-  selectFormId,
   quantity,
   packedAt,
   setPacked,
@@ -46,8 +43,6 @@ export function PersonalPackingRow({
   tripId: number;
   lineId: number;
   label: string;
-  /** The bulk-remove form this row's select box belongs to, or null when not selecting (ticket 229). */
-  selectFormId: string | null;
   quantity: number;
   packedAt: Date | null;
   setPacked: (tripId: number, lineId: number, packed: boolean) => Promise<void>;
@@ -67,14 +62,11 @@ export function PersonalPackingRow({
   );
   const [gone, showGone] = useOptimistic<boolean, void>(false, () => true);
 
-  // The row goes before the delete lands, and the re-render that lands drops it
-  // for real. Nothing to fade: a confirmed removal is already deliberate.
+  // Why: the row hides before the delete lands; a press on the cross is already deliberate, so no fade.
   if (gone) return null;
 
   return (
     <li className="flex min-h-12 items-center gap-1.5 px-3 py-2 sm:gap-3 sm:px-4">
-      <SelectLineBox formId={selectFormId} lineId={lineId} label={label} />
-
       <form
         action={async () => {
           showPacked(!packed);
@@ -133,19 +125,15 @@ export function PersonalPackingRow({
           await remove(tripId, lineId);
         }}
       >
-        <ConfirmSubmit
-          variant="ghost"
-          confirmVariant="danger"
-          label={`Remove ${label}`}
-          message={`Remove "${label}" from your bag?`}
-          confirmLabel="Remove it"
-          className={cx(
-            squareButton,
-            "!text-ink-faint hover:!bg-red-soft hover:!text-red",
-          )}
+        {/* Why: your own bag, one press, no dialog (Aidan, E2): a wrong press costs one retype. */}
+        <button
+          type="submit"
+          aria-label={`Remove ${label}`}
+          title={`Remove ${label}`}
+          className={cx(squareButton, "inline-flex items-center justify-center rounded-sm text-ink-faint hover:bg-red-soft hover:text-red")}
         >
           <CrossIcon />
-        </ConfirmSubmit>
+        </button>
       </form>
     </li>
   );
