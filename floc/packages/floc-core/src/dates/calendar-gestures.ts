@@ -13,7 +13,6 @@ import {
   resizeSpan,
   toHhmm,
 } from "./calendar";
-import type { BandSpan } from "../itinerary/overnight-band";
 
 /** A minute span on the clock, the shape `spanOf` returns. */
 type Span = { start: number; end: number; open: boolean };
@@ -80,8 +79,7 @@ export function eventKeyGesture(
 
 /**
  * A drag over dates, recomputed from its anchor each move so dragging back
- * shrinks rather than leaving a hole (tickets 127/135/141). The one shape the
- * overnight band and both availability drags had each copied — ISO dates order
+ * shrinks rather than leaving a hole (tickets 127/135). ISO dates order
  * lexically, so the smaller string is the start.
  */
 export function rangeFromAnchor(
@@ -137,47 +135,4 @@ export function paintRange(
   const next = { ...base };
   for (const date of datesBetween(start, end)) next[date] = value;
   return next;
-}
-
-/** The end of a band drag, minus the DOM: the pressed day and whether it moved. */
-type BandRelease = {
-  mode: "paint" | "extend";
-  pressedDate: string;
-  placeId: number | null;
-  placeName: string | null;
-  moved: boolean;
-};
-
-/**
- * What letting go of a band drag does (ticket 141). A press that never moved is
- * about its one day, so it opens the dialog there; painting undecided days has
- * no place to write yet, so it asks for one; only an extend of a run that
- * already has a place commits straight away.
- */
-export function resolveBandRelease(
-  drag: BandRelease,
-  span: BandSpan | null,
-):
-  | { kind: "dialog"; span: BandSpan }
-  | { kind: "commit"; span: BandSpan; placeId: number; uncovered: [string, string][] } {
-  if (!drag.moved || !span) {
-    return {
-      kind: "dialog",
-      span: {
-        start: drag.pressedDate,
-        end: drag.pressedDate,
-        placeId: drag.placeId,
-        placeName: drag.placeName,
-      },
-    };
-  }
-  if (drag.mode === "paint" || drag.placeId === null) {
-    return { kind: "dialog", span };
-  }
-  return {
-    kind: "commit",
-    span,
-    placeId: drag.placeId,
-    uncovered: span.uncovered ?? [],
-  };
 }
