@@ -268,7 +268,7 @@ export default function Packing() {
         />
 
         <PackingSection<LaneLine>
-          heading="Who’s bringing what"
+          heading="Shared packing"
           isPacked={lanePacked}
           lines={board.data.shared}
           packed={sharedPacked}

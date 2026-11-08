@@ -49,7 +49,7 @@ export function PackingScreen() {
         ))}
       </div>
       <div className="mt-5 flex items-center gap-3">
-        <h5 className="font-display text-lg font-semibold">Who&rsquo;s bringing what</h5>
+        <h5 className="font-display text-lg font-semibold">Shared packing</h5>
         <span className="nums font-mono text-[10px] uppercase tracking-[0.06em] text-ink-faint">3 of 4 claimed</span>
       </div>
       <div className="mt-3 grid grid-cols-2 items-start gap-3">

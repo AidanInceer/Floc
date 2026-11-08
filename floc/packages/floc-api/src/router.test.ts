@@ -370,6 +370,18 @@ describe("what the input rules refuse", () => {
     expect(renamePackingLine).toHaveBeenCalledTimes(1);
   });
 
+  it("adds a packing line with no cube as null, for the host to file", async () => {
+    const addPackingLine = vi.fn().mockResolvedValue(undefined);
+    const { caller: ana } = caller("u1", fakePort({ addPackingLine }));
+
+    await ana.packing.add({ tripId: 1, label: "Flip-flops", mine: true });
+    await ana.packing.add({ tripId: 1, label: "Snorkel", category: "accessories", mine: true });
+    expect(addPackingLine.mock.calls).toEqual([
+      ["u1", 1, { label: "Flip-flops", category: null, mine: true }],
+      ["u1", 1, { label: "Snorkel", category: "accessories", mine: true }],
+    ]);
+  });
+
   it("refuses a time carrying an offset (rule 10)", async () => {
     const { caller: ana } = caller("u1");
     await expect(

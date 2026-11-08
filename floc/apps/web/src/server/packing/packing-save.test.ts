@@ -50,6 +50,14 @@ describe("adding a packing line", () => {
     expect(await shared()).toEqual([]);
   });
 
+  it("files a line with no cube by its name, and keeps a cube the person chose", async () => {
+    await addLine(await as(world.admin), { label: "Flip-flops", category: null, mine: true });
+    await addLine(await as(world.admin), { label: "Board game", category: null, mine: true });
+    await addLine(await as(world.admin), { label: "Sun hat", category: "accessories", mine: true });
+    const filed = Object.fromEntries((await bag(world.admin)).map((line) => [line.label, line.category]));
+    expect(filed).toEqual({ "Flip-flops": "clothes", "Board game": "other", "Sun hat": "accessories" });
+  });
+
   it("refuses a blank name in the same words from either door, and writes nothing", async () => {
     expect(await add(world.admin, "   ", false)).toMatchObject({ message: "A thing to pack needs a name.", kind: "invalid" });
     expect(await shared()).toEqual([]);
