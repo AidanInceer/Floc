@@ -44,6 +44,8 @@ export type CalendarEvent = {
   transportType: TransportType | null;
   /** Falls back to place name, then category word — never blank. */
   title: string;
+  /** The name as written, which the event form edits; null on rows from before names. */
+  writtenTitle: string | null;
   placeName: string | null;
   time: string | null;
   endTime: string | null;

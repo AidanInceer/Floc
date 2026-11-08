@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type CSSProperties, type ReactNode } from "react";
 
@@ -58,12 +58,13 @@ export function TripTabs({ tripId, tabs, children }: { tripId: number; tabs: Tab
             onMouseEnter={warm(tab)}
             onFocus={warm(tab)}
             onTouchStart={warm(tab)}
-            className="trip-tab flex shrink-0 items-center gap-1.5 py-1.5 text-sm font-medium text-ink-faint transition-colors hover:text-ink-soft aria-[current=page]:text-ink"
+            className="trip-tab flex shrink-0 items-center gap-1.5 py-1.5 text-sm font-medium text-ink-faint transition-colors hover:text-ink-soft aria-[current=page]:text-ink has-[[data-tab-pending]]:text-ink"
           >
             <span className="trip-tab-icon inline-flex size-8 items-center sm:size-6 justify-center rounded-sm transition-colors">
               <NavGlyph name={tab.key} />
             </span>
             <span className="sr-only sm:not-sr-only">{tab.label}</span>
+            <PendingMark />
           </Link>
         ))}
       </nav>
@@ -71,4 +72,10 @@ export function TripTabs({ tripId, tabs, children }: { tripId: number; tabs: Tab
       {children}
     </div>
   );
+}
+
+/** Why: the pressed tab takes its open look at once (trip-tabs.css), not when its page arrives. */
+function PendingMark() {
+  const { pending } = useLinkStatus();
+  return pending ? <span data-tab-pending hidden /> : null;
 }

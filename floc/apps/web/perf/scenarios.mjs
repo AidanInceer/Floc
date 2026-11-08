@@ -70,7 +70,7 @@ function tabHighlight(from, to) {
       ctx.timeClick(
         tabLink(ctx, to),
         (label) =>
-          [...document.querySelectorAll('nav[aria-label="Trip sections"] a[aria-current="page"]')].some((a) =>
+          [...document.querySelectorAll('nav[aria-label="Trip sections"] a')].filter((a) => a.getAttribute("aria-current") === "page" || a.querySelector("[data-tab-pending]")).some((a) =>
             a.textContent.includes(label),
           ),
         TAB_LABEL[to],
