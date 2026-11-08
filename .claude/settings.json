@@ -1,5 +1,4 @@
 {
-  "autoCompactWindow": 150000,
   "permissions": {
     "allow": [
       "Bash(pnpm verify)",

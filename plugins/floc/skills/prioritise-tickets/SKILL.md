@@ -121,6 +121,7 @@ Every prioritised ticket must end up with exactly one **type** label, exactly on
 | `phase:1` · `phase:2` · `phase:3` | which phase the ticket belongs to — see [Phases](#phases) |
 | `grilling` | intentional: the alignment step with Aidan (`/floc:grill`) before the build — **does not affect priority or phase**, never a problem to flag |
 | `future-work` | parked on purpose — **not** in the stack |
+| `in-progress` | a session has claimed it (`/floc:pickup-ticket`) — stays in the stack; `pnpm delivery finish` removes it when it lands |
 | `on-develop` | its PR landed on `develop`, waiting for a release — **not** in the stack. Also set on a parent split into child tickets (`## Split into` in its body); `/floc:release` closes it when all children close |
 
 Blocked-by edges live in the issue **body** under `## Blocked by`, written as `#<n>` — not as a label. Read them from there.

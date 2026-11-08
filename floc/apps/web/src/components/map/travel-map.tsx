@@ -23,8 +23,11 @@ export function TravelMap({
   title,
   states,
   setMark,
+  tall,
 }: {
   title: string;
+  /** Your own profile: on a wide screen the globe fills most of the window, the key and search share one line. */
+  tall?: boolean;
   /** Country code → colour, trips and hand already merged by @floc/core/itinerary/travel-map. */
   states: Record<string, MapState>;
   /** Server action. Given, the map is yours to mark; left out, it is someone else's and only names what you tap. */
@@ -63,11 +66,11 @@ export function TravelMap({
 
   return (
     <section className="overflow-hidden rounded-md bg-sheet">
-      <TravelGlobe ref={globe} land={land} states={local} onPick={setMark ? paint : undefined} title={title} />
+      <TravelGlobe ref={globe} land={land} states={local} onPick={setMark ? paint : undefined} title={title} tall={tall} />
 
-      <div className="flex flex-col gap-4 px-6 pb-6">
+      <div className={cx("flex flex-col gap-4 px-6 pb-6", tall && "lg:flex-row lg:items-start lg:justify-between")}>
         {/* Status is never colour alone — the key names both fills, and the count says the same in words. */}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-soft">
+        <div className={cx("flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-soft", tall && "lg:h-9")}>
           <span className="flex items-center gap-1.5">
             <span aria-hidden className="travel-key travel-key-green" />
             Been there
@@ -76,13 +79,13 @@ export function TravelMap({
             <span aria-hidden className="travel-key travel-key-yellow" />
             Want to go
           </span>
-          <span>
+          <span className="nums">
             {visited} been · {wantToGo} want to go
           </span>
         </div>
 
         {setMark ? (
-          <div>
+          <div className={cx(tall && "lg:w-80 lg:flex-none")}>
             {/* The keyboard path, and the way to a country too small to tap. */}
             <Input value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="Find a country" autoComplete="off" />
             {needle ? (
