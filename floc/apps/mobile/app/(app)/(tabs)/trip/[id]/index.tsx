@@ -62,7 +62,7 @@ export default function Overview() {
 
   const go = (route: string) => router.push(`/trip/${tripId}/${route}` as never);
   const openDay = (date: string) => router.push({ pathname: "/trip/[id]/days", params: { id: tripId, date } });
-  const { legs, wholeTrip } = tripLegsFrom(days.data, files.data);
+  const { legs, wholeTrip } = tripLegsFrom(days.data, files.data, trip.data.endDate);
   const route = routeOf(legs, days.data ?? [], places.data ?? []);
   const events = new Map((days.data ?? []).map((d) => [d.id, d.events]));
 
@@ -125,8 +125,13 @@ function positionOf(ledger: Outputs["money"]["ledger"] | undefined, pairs: Outpu
   return ledger && ledger.expenses.length > 0 && pairs && viewerId ? yourPosition(pairs.rows, viewerId) : null;
 }
 
-function tripLegsFrom(days: Outputs["itinerary"]["days"] | undefined, files: Outputs["files"]["list"] | undefined) {
+function tripLegsFrom(
+  days: Outputs["itinerary"]["days"] | undefined,
+  files: Outputs["files"]["list"] | undefined,
+  tripEnd: string | null,
+) {
   return tripLegs({
+    tripEnd,
     days: (days ?? []).map((d) => ({ dayId: d.id, date: d.date, overnightPlaceId: d.overnightPlaceId, placeName: d.overnightPlaceName })),
     modes: transportModes(days ?? []),
     files: files ?? [],

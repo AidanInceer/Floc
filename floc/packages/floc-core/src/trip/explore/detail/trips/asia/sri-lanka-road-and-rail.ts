@@ -58,16 +58,6 @@ export const SRI_LANKA_ROAD_AND_RAIL: PresetDetail = {
     { value: "1", label: "train ride" },
     { value: "3", label: "game drives" },
   ],
-  advice: [
-    { topic: "before", title: "Before you go", lines: ["Most passports need an online travel authorisation before you fly.", "Reserve the Kandy to Ella train seats as soon as they open."] },
-    { topic: "customs", title: "Temples", lines: ["Cover shoulders and knees, and take shoes and hats off.", "Never pose with your back to a Buddha."] },
-    { topic: "health", title: "Health", lines: ["Drink bottled water. Use repellent at dusk.", "Talk to a travel clinic about vaccines well before you go."] },
-    { topic: "weather", title: "Weather", lines: ["December to April is dry in the south and the hills.", "The hill country is cool at night. Bring a layer."] },
-  ],
-  goodToKnow: [
-    { label: "Pace", text: "Steady. Six stops, one day on the train." },
-    { label: "Early starts", text: "Sigiriya, Yala and the whales all start before 07:00." },
-  ],
   ideas: {
     atStops: [
       at("Colombo", [

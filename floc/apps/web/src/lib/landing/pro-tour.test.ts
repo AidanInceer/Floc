@@ -13,10 +13,6 @@ describe("the Pro tour", () => {
     expect([...shown].sort()).toEqual(Object.keys(PRO_FEATURES).sort());
   });
 
-  it("leaves the travel agent to its own band", () => {
-    expect(Object.keys(PRO_FEATURES)).not.toContain("agent");
-  });
-
   it("opens one planning tab per feature, in trip order", () => {
     expect(PRO_TABS).toEqual(PRO_STAGES.flatMap((s) => s.keys));
   });

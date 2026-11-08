@@ -32,11 +32,10 @@ import {
 } from "@/components/days/days-calendar-chrome";
 import type { ColumnVariant } from "@/components/days/days-calendar-column";
 import { FocusHeads, type FocusFacts } from "@/components/days/days-focus-heads";
-import { OvernightBandRow } from "@/components/days/days-overnight-band";
 import { OvernightDialog } from "@/components/days/days-overnight-dialog";
 import { StopStrip } from "@/components/days/days-stop-strip";
+import { dayStay } from "@/lib/days/day-stay";
 import { useHeightFloor } from "@/components/days/use-height-floor";
-import { useOvernightBand } from "@/components/days/use-overnight-band";
 import {
   FOCUS_COLUMNS,
   FOCUS_TEMPLATE,
@@ -52,7 +51,7 @@ import { LAST_START_MINUTE, clamp, formatSpan, snap, spanOf, toHhmm } from "@flo
 import { draggedPast, eventKeyGesture, eventLanding } from "@floc/core/dates/calendar-gestures";
 import { foldedClock, minuteAt, yAt } from "@floc/core/dates/clock-fold";
 import { addDays } from "@floc/core/dates/dates";
-import { runBoundsAt } from "@floc/core/itinerary/overnight-band";
+import type { BandSpan } from "@floc/core/itinerary/overnight-band";
 
 export type { CalendarDay, CalendarEvent, OvernightPlace } from "@/components/days/days-calendar-shared";
 
@@ -83,21 +82,14 @@ const cap = (id: number, date: string): CalendarDay => ({
   isToday: false,
 });
 
-function focusFacts(days: CalendarDay[], index: number, events: CalendarEvent[]): FocusFacts {
+function focusFacts(days: CalendarDay[], index: number, events: CalendarEvent[], tripEnd: string | null): FocusFacts {
   const day = days[index];
-  const run = runBoundsAt(days, day.date, day.overnightPlaceId);
-  const runDays = days.filter((d) => d.date >= run.start && d.date <= run.end);
   return {
     day,
     dayNumber: index + 1,
     tripLength: days.length,
     stay: day.overnightPlaceName
-      ? {
-          placeName: day.overnightPlaceName,
-          // The trip's last day is the day home: no night, as on Dates (stops.ts).
-          night: index === days.length - 1 ? null : runDays.indexOf(day) + 1,
-          nights: runDays.length - (runDays.includes(days[days.length - 1]) ? 1 : 0),
-        }
+      ? { placeName: day.overnightPlaceName, ...dayStay(days, index, tripEnd) }
       : null,
     eventCount: events.filter((e) => e.dayId === day.id).length,
   };
@@ -117,6 +109,7 @@ export function DaysCalendar({
   initialDate,
   groupSize,
   bookingPrefill,
+  tripEnd,
 }: {
   days: CalendarDay[];
   events: CalendarEvent[];
@@ -143,6 +136,8 @@ export function DaysCalendar({
   initialDate?: string;
   groupSize: number;
   bookingPrefill: boolean;
+  /** The trip's end date, so the stop strip counts nights as the Overview does. */
+  tripEnd: string | null;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -316,7 +311,13 @@ export function DaysCalendar({
     if (index >= 0) setAnchor(index);
   };
 
-  const band = useOvernightBand({ days, slots, setOvernight, say, columnAt, scrollerRef, step });
+  /** The stay the overnight dialog is open on; the stop strip opens it. */
+  const [banding, setBanding] = useState<BandSpan | null>(null);
+  const saveOvernight = (span: BandSpan, place: OvernightPlace | null) => {
+    startTransition(async () => {
+      await setOvernight(span.start, span.end, place);
+    });
+  };
   const card = useHeightFloor<HTMLDivElement>();
 
   // The pane is the selection, not a switch of its own (ticket 138).
@@ -356,9 +357,9 @@ export function DaysCalendar({
     });
   };
 
-  const openBandDialog = (span: Parameters<typeof band.setBanding>[0]) => {
+  const openBandDialog = (span: BandSpan) => {
     keptSelection.current = true;
-    band.setBanding(span);
+    setBanding(span);
   };
 
   const onBlockPointerDown = (
@@ -503,7 +504,7 @@ export function DaysCalendar({
   return (
     <div style={{ minHeight: card.floor }}>
       <div ref={card.ref} className={cx("overflow-hidden rounded-md bg-sheet", FOCUS_COLUMNS)}>
-        <StopStrip days={days} focusId={focus.id} onGoTo={goTo} onStop={openBandDialog} />
+        <StopStrip days={days} tripEnd={tripEnd} focusId={focus.id} onGoTo={goTo} onStop={openBandDialog} />
 
         <CalendarToolbar
           nav={{
@@ -525,24 +526,11 @@ export function DaysCalendar({
             <div ref={headRef} className="sticky top-0 z-30 shadow-raised">
               <FocusHeads
                 slots={slots}
-                focus={focusFacts(days, focusIndex, events)}
+                focus={focusFacts(days, focusIndex, events, tripEnd)}
                 rowStyle={rowStyle}
                 onGoTo={goTo}
                 onAdd={() => openAdd(focus.id, 9 * 60)}
                 removeControl={removeDayControls[focus.id]}
-              />
-
-              <OvernightBandRow
-                bandRuns={band.runs}
-                days={days}
-                rowStyle={rowStyle}
-                rowRef={band.rowRef}
-                onPointerMove={band.onPointerMove}
-                onPointerUp={band.onPointerUp}
-                startBandDrag={band.startDrag}
-                openBandDialog={openBandDialog}
-                columnAt={columnAt}
-                dateOfDay={band.dateOfDay}
               />
 
               <AllDayStrip
@@ -588,27 +576,27 @@ export function DaysCalendar({
           onClose={() => setAdding(null)}
         />
 
-        {band.banding ? (
+        {banding ? (
           <OvernightDialog
-            span={band.banding}
+            span={banding}
             days={days}
             searchPlaces={searchPlaces}
             groupSize={groupSize}
             bookingPrefill={bookingPrefill}
-            onClose={() => band.setBanding(null)}
+            onClose={() => setBanding(null)}
             onSave={(end, place) => {
-              const span = { ...band.banding!, end };
-              band.setBanding(null);
-              band.commit(span, place, []);
+              const span = { ...banding, end };
+              setBanding(null);
+              saveOvernight(span, place);
               say(
                 `${"name" in place ? place.name : (span.placeName ?? "Overnight place")} now ` +
                   `${describeSpan(days, span)}.`,
               );
             }}
             onClear={() => {
-              const span = band.banding!;
-              band.setBanding(null);
-              band.commit({ ...span, placeId: null, placeName: null }, null, []);
+              const span = banding;
+              setBanding(null);
+              saveOvernight(span, null);
               say(`No overnight place for ${describeSpan(days, span)}.`);
             }}
           />

@@ -1,52 +1,38 @@
-import type { PresetAdvice, PresetFact } from "@floc/core/trip/explore/detail/preset-detail-types";
+import { formatDate } from "@floc/core/dates/dates";
+import type { TripKnow as TripKnowData } from "@floc/core/trip/explore/know/know-types";
 
-import { AdviceIcon } from "@/components/system/icons/explore-trip";
-import { SectionHeading, cx } from "@/components/system/ui";
+import { KnowGlyphIcon } from "@/components/system/icons/know";
+import { SectionHeading } from "@/components/system/ui";
+import { KnowStageCard } from "./know-stage-card";
 
-function Facts({ facts }: { facts: PresetFact[] }) {
+export function TripKnow({ know }: { know: TripKnowData | null }) {
+  if (!know) return null;
   return (
-    <div>
-      <SectionHeading>Good to know</SectionHeading>
-      <dl className="mt-3.5">
-        {facts.map((f) => (
-          <div key={f.label} className="grid grid-cols-[4.75rem_1fr] items-baseline gap-3 border-t border-rule py-2.5 sm:grid-cols-[6rem_1fr]">
-            <dt className="typed">{f.label}</dt>
-            <dd className="text-sm text-ink-soft">{f.text}</dd>
-          </div>
-        ))}
-      </dl>
-    </div>
-  );
-}
-
-function Advice({ advice }: { advice: PresetAdvice[] }) {
-  return (
-    <div>
-      <SectionHeading>Travel advice</SectionHeading>
-      <div className="mt-3.5 grid gap-2.5 sm:grid-cols-2">
-        {advice.map((a) => (
-          <div key={a.title} className="rounded-md border border-rule bg-sheet px-4 py-3.5">
-            <p className="flex items-center gap-2 text-ink-faint">
-              <AdviceIcon topic={a.topic} />
-              <b className="font-display text-md font-semibold text-ink">{a.title}</b>
-            </p>
-            <ul className="mt-1.5 grid gap-1 text-sm text-ink-soft">
-              {a.lines.map((line) => (
-                <li key={line}>{line}</li>
-              ))}
-            </ul>
-          </div>
+    <section className="mt-12 border-t border-rule pt-8 lg:mt-[4.5rem] lg:pt-9">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-5 gap-y-1.5">
+        <SectionHeading>Good to know</SectionHeading>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-1 text-sm">
+          <span className="typed">Checked {formatDate(know.checked, { year: true, weekday: false })}</span>
+          {know.advice.map((a) => (
+            <a
+              key={a.slug}
+              href={`https://www.gov.uk/foreign-travel-advice/${a.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-pen hover:underline hover:underline-offset-2"
+            >
+              UK travel advice for {a.country}
+              <span className="sr-only"> (opens in a new tab)</span>
+              <KnowGlyphIcon name="external" />
+            </a>
+          ))}
+        </div>
+      </div>
+      <div className="mt-[18px] grid gap-2">
+        {know.stages.map((stage) => (
+          <KnowStageCard key={stage.stage} stage={stage} />
         ))}
       </div>
-    </div>
-  );
-}
-
-export function TripKnow({ advice, facts }: { advice: PresetAdvice[]; facts: PresetFact[] }) {
-  return (
-    <section className={cx("mt-12 grid gap-9 border-t border-rule pt-8 lg:mt-[4.5rem] lg:gap-14 lg:pt-9", advice.length > 0 && "lg:grid-cols-[1.5fr_1fr]")}>
-      {advice.length > 0 ? <Advice advice={advice} /> : null}
-      <Facts facts={facts} />
     </section>
   );
 }

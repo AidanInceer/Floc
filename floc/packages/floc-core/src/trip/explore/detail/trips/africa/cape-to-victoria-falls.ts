@@ -76,16 +76,6 @@ export const CAPE_TO_VICTORIA_FALLS: PresetDetail = {
     { value: "8", label: "stops" },
     { value: "3", label: "flights" },
   ],
-  advice: [
-    { topic: "before", title: "Before you go", lines: ["Check the entry rules for all four countries for your passport.", "Light aircraft to the delta allow 20kg in a soft bag."] },
-    { topic: "health", title: "Health", lines: ["Talk to a travel clinic about malaria tablets for the north.", "Drink bottled water in Namibia's desert. Carry plenty."] },
-    { topic: "money", title: "Money", lines: ["Rand works in Namibia too. Zimbabwe takes US dollars.", "Tipping guides and trackers is expected."] },
-    { topic: "weather", title: "Weather", lines: ["Dry season, May to October, is best for game.", "Desert mornings are cold. Bring a fleece."] },
-  ],
-  goodToKnow: [
-    { label: "Pace", text: "Long. Eight stops, early starts for the game drives." },
-    { label: "Driving", text: "Four drives of four to five hours in Namibia." },
-  ],
   ideas: {
     atStops: [
       at("Cape Town", [

@@ -1,6 +1,6 @@
 /**
  * What the page for one Explore listing shows beyond the listing itself (#335):
- * the days, the highlights, and what to know before you go. Written by hand,
+ * the days, the highlights and the ideas. Written by hand,
  * one file per listing in `trips/`. A listing with no file still gets a page —
  * `buildPresetPlan` fills what it can from the legs.
  */
@@ -25,14 +25,6 @@ export type PresetStopDetail = { place: string; summary: string; days: PresetDay
 /** A number tile in the hero: "31" over "places, with times". */
 export type PresetFigure = { value: string; label: string };
 
-export const ADVICE_TOPICS = ["before", "money", "transport", "customs", "health", "weather"] as const;
-export type AdviceTopic = (typeof ADVICE_TOPICS)[number];
-
-export type PresetAdvice = { topic: AdviceTopic; title: string; lines: string[] };
-
-/** A row under "Good to know". Group, season and cost are added from the listing — do not repeat them. */
-export type PresetFact = { label: string; text: string };
-
 export const IDEA_PACES = ["Relaxed", "Steady", "Active"] as const;
 export type IdeaPace = (typeof IDEA_PACES)[number];
 export const IDEA_COSTS = ["Free", "Low", "Mid", "High"] as const;
@@ -50,7 +42,5 @@ export type PresetIdeas = { atStops: PresetStopIdeas[]; otherStops: PresetSwap[]
 export type PresetDetail = {
   stops: PresetStopDetail[];
   inPlan: PresetFigure[];
-  advice: PresetAdvice[];
-  goodToKnow: PresetFact[];
   ideas: PresetIdeas;
 };

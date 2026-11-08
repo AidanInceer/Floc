@@ -62,6 +62,7 @@ export default function Days() {
   const [overnightAt, setOvernightAt] = useState<string | null>(null);
 
   const days = useQuery(trpc.itinerary.days.queryOptions({ tripId }, { enabled: ready }));
+  const tripEnd = useQuery(trpc.trips.get.queryOptions({ tripId }, { enabled: ready, select: (t) => t.endDate }));
   // One read for every block's clip (#324), not one per event. A trip with no
   // file store answers with an error the marker simply does without.
   const files = useQuery(trpc.files.list.queryOptions({ tripId }, { enabled: ready }));
@@ -133,6 +134,7 @@ export default function Days() {
           days={days.data}
           selected={selected}
           todayDate={now}
+          tripEnd={tripEnd.data}
           onSelect={(picked) => {
             router.setParams({ date: picked });
             setEditing({ kind: "none" });

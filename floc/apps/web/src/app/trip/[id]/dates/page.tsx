@@ -40,6 +40,7 @@ import { DatesBoard } from "@/components/availability/dates-board";
 import { DatesFold } from "@/components/availability/dates-fold";
 import { BestWindowCard } from "@/components/availability/best-window-card";
 import { WhoAnswered } from "@/components/availability/who-answered";
+import type { GroupAnswer } from "@floc/core/dates/dates-tabs";
 import { NUDGE_TABS } from "@/db/schema";
 import { TAB_LABELS } from "@/lib/tabs";
 import { sendNudge } from "@/app/trip/[id]/overview/actions";
@@ -129,9 +130,10 @@ export default async function DatesPage({
   });
 
   const answered = members.filter((m) => (marked[m.userId] ?? 0) > 0);
-  const waitingOn = members
-    .filter((m) => !marked[m.userId])
-    .map((m) => (m.userId === viewer.id ? "you" : m.name));
+  const group: GroupAnswer[] = [
+    ...members.map((m) => ({ id: m.userId, name: m.name, answered: !!marked[m.userId] })),
+    ...guests.map((g) => ({ id: g.id, name: g.name, answered: !!marked[g.id] })),
+  ];
 
   const bestCard = best ? (
     <BestWindowCard
@@ -160,7 +162,8 @@ export default async function DatesPage({
       dayLoads={dayLoads}
       weather={forecast}
       weatherLocked={!weatherPro}
-      waitingOn={waitingOn}
+      group={group}
+      viewerId={viewer.id}
       bestWindow={best}
       slots={{
         faces: <AvatarRow people={answered} size={20} max={4} />,

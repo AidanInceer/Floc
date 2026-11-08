@@ -60,17 +60,6 @@ export const RAJASTHAN_FORTS_AND_PALACES: PresetDetail = {
     { value: "1", label: "train ride" },
     { value: "5", label: "forts and palaces" },
   ],
-  advice: [
-    { topic: "before", title: "Before you go", lines: ["Most passports need an e-visa. Apply a few weeks ahead.", "Book the Agra train early. Morning trains fill up."] },
-    { topic: "transport", title: "Drives", lines: ["A car with a driver covers Agra to Udaipur. Allow extra time on the roads.", "Start early to beat the traffic."] },
-    { topic: "health", title: "Food and water", lines: ["Drink bottled or filtered water only.", "Talk to a travel clinic about vaccines well before you go."] },
-    { topic: "weather", title: "Weather", lines: ["October to March is the cooler season.", "Mornings can be cold in December and January."] },
-  ],
-  goodToKnow: [
-    { label: "Pace", text: "Steady. Six stops in fourteen nights." },
-    { label: "Driving", text: "Four drives of three to five hours." },
-    { label: "Walking", text: "Forts mean ramps and steps. Wear good shoes." },
-  ],
   ideas: {
     atStops: [
       at("Delhi", [

@@ -41,8 +41,10 @@ export function ProBand({ monthly, signedIn }: { monthly: string | null; signedI
     <section className="pro-slab mt-24">
       <div className="mx-auto w-full max-w-[84rem] px-4 sm:px-6">
         <div className="grid justify-items-center text-center">
-          <ComingSoonTag onSlab />
-          <h2 className="band-title mt-3">How Pro helps at every stage.</h2>
+          <h2 className="band-title">How Pro helps at every stage.</h2>
+          <div className="mt-4">
+            <ComingSoonTag />
+          </div>
         </div>
         <ProTour>
           <ProPitch monthly={monthly} href={signedIn ? "/settings?section=billing" : "/signup"} />

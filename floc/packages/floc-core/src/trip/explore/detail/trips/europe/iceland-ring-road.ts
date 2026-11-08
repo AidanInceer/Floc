@@ -55,16 +55,6 @@ export const ICELAND_RING_ROAD: PresetDetail = {
     { value: "1", label: "whole loop of Route 1" },
     { value: "2", label: "hot baths" },
   ],
-  advice: [
-    { topic: "before", title: "Before you go", lines: ["Book guesthouses early. The east has very few beds.", "Check road.is each morning for closures."] },
-    { topic: "transport", title: "Driving", lines: ["Fill up when you can. Fuel stations are far apart in the east.", "Never stop on the road for a photo. Use the lay-bys."] },
-    { topic: "weather", title: "Weather", lines: ["It changes by the hour. Pack a waterproof and layers.", "Midnight sun in June and July. Bring an eye mask."] },
-    { topic: "money", title: "Money", lines: ["Cards work almost everywhere. You may never need cash.", "Food is dear. Supermarket picnics save a lot."] },
-  ],
-  goodToKnow: [
-    { label: "Pace", text: "On the move. Most days are a drive of three to five hours." },
-    { label: "Driving", text: "One car for the group. Share the wheel." },
-  ],
   ideas: {
     atStops: [
       at("Reykjavík", [

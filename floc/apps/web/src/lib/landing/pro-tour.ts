@@ -1,5 +1,4 @@
 // Illustrative sample, not a live query: one Sicily trip, planned in eleven browser tabs, then in Floc with Pro.
-// The travel agent has its own band, so it is not here.
 
 export type ProFeatureKey =
   | "weather"

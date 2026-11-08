@@ -52,16 +52,6 @@ export const PATAGONIA_W_TREK: PresetDetail = {
     { value: "4", label: "nights on the trail" },
     { value: "6", label: "walking days" },
   ],
-  advice: [
-    { topic: "before", title: "Before you go", lines: ["Refugios on the W are booked months ahead. They come with the trip.", "Bring broken-in boots and walking poles."] },
-    { topic: "weather", title: "Weather", lines: ["Wind, sun and rain in one hour. Pack layers and a waterproof.", "November to March is the walking season."] },
-    { topic: "money", title: "Money", lines: ["Argentina and Chile have their own pesos. Cards work in towns.", "Carry some cash for the refugios' bars."] },
-    { topic: "health", title: "On the trail", lines: ["Long days. Train for eight to ten hours of walking before you go."] },
-  ],
-  goodToKnow: [
-    { label: "Pace", text: "Hard. Six walking days, the longest about ten hours." },
-    { label: "Sleep", text: "Refugios are shared rooms with bunks." },
-  ],
   ideas: {
     atStops: [
       at("El Calafate", [

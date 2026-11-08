@@ -36,7 +36,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 
 - ✓ Three radii, nothing between: `rounded-sm` / `radius.sm` / `var(--radius-sm)` (8px) for controls, tiles, avatars and rows inside a surface; `rounded-md` (12px) for cards, panels, popovers and dialogs; `rounded-full` / `radius.pill` for chips, badges and dots. A 12px surface holding an 8px row 4px in keeps corners concentric.
 - Buttons, switches, segments and vote controls are rounded squares (`rounded-sm`), never circles.
-- A selected thing is never a solid block. The phone's bottom tab bar says the open tab in colour and weight only, with no tile behind it; a selected day or stub is a `pen-2` wash with `pen-deep` ink. Inactive marks stay `ink-2`, not dimmed further, or they read as disabled.
+- A selected thing is never a solid block. The phone's bottom tab bar says the open tab in colour and weight only, with no tile behind it; a selected day or stub is a `pen-2` wash with `pen-deep` ink. ✓ On the web that is `bg-pen-soft text-pen-deep`: `--pen-2` is the variable, and a `bg-pen-2` class draws nothing. Inactive marks stay `ink-2`, not dimmed further, or they read as disabled.
 - ✓ Depth comes only from `--shadow-sm`, `--shadow`, `--shadow-lift`. An inset or unblurred shadow may draw a line. If you notice the shadow first, it is wrong.
 - Every interactive surface shows a hover: a card lifts 1.5px (never more than 2px), a chip takes a border, a link turns blue. ✓ Never a grey fill; a button hovers to a pen wash.
 - Motion: 0.22s on `--ease`, colour and lift only in the workspace. Nothing under reduced motion. Never hijack the scroll.
@@ -71,6 +71,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - Alignment is exact: rows, counts and controls in a group share edges and heights.
 - Pictures: one consistent treatment. Image controls sit in one bar under the image, never arrows on top. Map pins stay plain numbers. Your own trip shows no stock photos — photos there are the person's choice.
 - Explore filters sit in a left rail, never along the top.
+- Say a thing once. On Days, web and phone, stops sit on the day strip and pressing one edits where you sleep — no separate overnight band, and the top of a screen stacks no bands.
 
 ## Surfaces
 
@@ -79,7 +80,6 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - Phone corrections from Aidan:
   - A colour key fits one line: small marks, the web's words.
   - A lone share button, or a card of link buttons, sits centred. No heading or sentence above it that says what the button does.
-  - The top of a screen stacks no bands. Stops sit on the day strip, not in a band above it; pressing a stop there edits where you sleep, with no separate overnight band.
   - The section tabs mark the open one with a soft rounded wash, as on the web — never a hard block.
 - House components first: web `components/system/ui.tsx` and `client-ui.tsx`; phone `src/components/system/ui.tsx` and `glyphs.tsx`.
 

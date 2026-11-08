@@ -63,16 +63,6 @@ export const NEW_ZEALAND_SOUTH_ISLAND: PresetDetail = {
     { value: "1", label: "train ride" },
     { value: "4", label: "walks" },
   ],
-  advice: [
-    { topic: "before", title: "Before you go", lines: ["Most passports need an NZeTA before you fly.", "Book the TranzAlpine and the Milford cruise ahead in summer."] },
-    { topic: "transport", title: "Driving", lines: ["Drive on the left. Many bridges are one lane.", "Fill up before the Haast pass. Fuel is far apart."] },
-    { topic: "weather", title: "Weather", lines: ["Four seasons in a day. Pack a waterproof and a warm layer.", "The west coast is wet. That is why it is green."] },
-    { topic: "customs", title: "Biosecurity", lines: ["Declare food and clean your boots before you land."] },
-  ],
-  goodToKnow: [
-    { label: "Pace", text: "On the move. Seven stops, some long drives." },
-    { label: "Walking", text: "One steep climb, Roys Peak, and it is optional." },
-  ],
   ideas: {
     atStops: [
       at("Christchurch", [

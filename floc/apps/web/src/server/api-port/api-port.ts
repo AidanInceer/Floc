@@ -74,7 +74,8 @@ import {
   loadIdentity,
   updateProfileFields,
 } from "@/server/auth/profile";
-import { getPackTier, listPackingClaims, listPackingLines, listPersonalPackingLines } from "@/server/packing/packing";
+import { listPersonalPackingLines } from "@/server/packing/packing";
+import { readPackingBoard } from "@/server/packing/packing-board";
 import {
   addLine,
   applyKit,
@@ -90,11 +91,8 @@ import {
   setTier,
   stepQuantity,
 } from "@/server/packing/packing-save";
-import { insertPackingKit, insertPackingKitItem, listPackingKits, softDeletePackingKit } from "@/server/packing/packing-kits";
+import { insertPackingKit, insertPackingKitItem, softDeletePackingKit } from "@/server/packing/packing-kits";
 import { canUseFeature } from "@/server/billing/entitlements";
-import { resolvePackTier } from "@floc/core/packing/packing";
-import { packingIdeas } from "@floc/core/packing/packing-ideas";
-import { packingPlanFor } from "@/server/packing/packing-generator";
 import { readVibeTags } from "@floc/core/trip/vibe-tags";
 import { pastTripsFor } from "@/server/auth/visibility";
 import { travelMapFor } from "@/server/itinerary/travel-map";
@@ -151,17 +149,8 @@ export const webPort: FlocPort = {
 
   async loadPacking(viewerId, tripId): Promise<PackingBoard> {
     const access = await scoped(viewerId, tripId);
-    const [shared, claims, mine, perTrip, profile, kits, canAutoFill, plan] = await Promise.all([
-      listPackingLines(tripId),
-      listPackingClaims(tripId),
-      listPersonalPackingLines(tripId, viewerId),
-      getPackTier(tripId, viewerId),
-      ensureProfile(viewerId),
-      listPackingKits(viewerId),
-      canUseFeature("packing.autoGenerate", tripId),
-      packingPlanFor(access.trip),
-    ]);
-    const tier = resolvePackTier(perTrip, profile.packTier);
+    const { lines: shared, claims, mine, kits, tier, plan, packingPro: canAutoFill, ideas } =
+      await readPackingBoard(access.trip, viewerId);
 
     // Claims come back flat for one query rather than one per line; grouping
     // here keeps the wire shape the screen actually draws.
@@ -193,7 +182,7 @@ export const webPort: FlocPort = {
       tier,
       kits: kits.map((kit) => ({ id: kit.id, name: kit.name, itemCount: kit.itemCount })),
       canAutoFill,
-      ideas: canAutoFill ? packingIdeas({ nights: plan.nights, climate: plan.climate, tier }, mine.map((l) => l.label)) : [],
+      ideas,
       plan,
     };
   },

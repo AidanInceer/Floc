@@ -57,15 +57,6 @@ export const SYDNEY_TO_CAIRNS: PresetDetail = {
     { value: "3", label: "flights" },
     { value: "2", label: "days on the reef and the sea" },
   ],
-  advice: [
-    { topic: "before", title: "Before you go", lines: ["Most passports need an ETA or eVisitor visa before you fly.", "Book the reef boat and the Whitehaven sail ahead."] },
-    { topic: "health", title: "Sun and sea", lines: ["The sun is strong. Hat, shirt, sun cream.", "Stinger season is November to May. Wear the stinger suit."] },
-    { topic: "weather", title: "Weather", lines: ["The north is wet from December to March. Spring and autumn are best."] },
-  ],
-  goodToKnow: [
-    { label: "Pace", text: "Steady. Five stops, three short flights." },
-    { label: "Driving", text: "One car from Byron to Noosa. Flights do the long hops." },
-  ],
   ideas: {
     atStops: [
       at("Sydney", [

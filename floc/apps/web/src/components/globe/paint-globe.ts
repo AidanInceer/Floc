@@ -2,12 +2,11 @@ import { traceRing } from "@floc/globe/canvas/paint";
 import { arc, capOf, project, sightOf, type LatLng } from "@floc/globe/sphere";
 import { PLANE_D } from "@/lib/landing/hero/flight-path";
 
+import { globeFrame, type Box, type Fit } from "./globe-frame";
 import { globeMarks } from "./paint-marks";
 import { canvasZoom, pixelRatio } from "./pixel-ratio";
 
 const PLANE_SCALE = 0.92;
-
-type Box = { w: number; h: number };
 
 // Why: zoomed in, most land is off the canvas; skipping it keeps a 1:50m coast cheap on every frame of a zoom.
 const caps = new WeakMap<number[][], ReturnType<typeof capOf>>();
@@ -22,8 +21,6 @@ function landInSight(view: LatLng, land: number[][][], R: number, [cx, cy]: numb
   const sight = sightOf(R, Math.hypot(Math.max(Math.abs(cx!), Math.abs(w - cx!)), Math.max(Math.abs(cy!), Math.abs(h - cy!))));
   return land.filter((ring) => inSight(view, ring, sight));
 }
-/** Where the sphere sits in the canvas. Left out, it fills the canvas; the way in to a trip makes it far larger. */
-type Fit = (box: Box) => { R: number; cx: number; cy: number } | undefined;
 /** Countries to fill in a region's colour (`tone`, as in `--tone-red`), faded in by `alpha`. */
 export type Tint = { rings: ReadonlySet<number[][]>; tone: string; alpha: number };
 
@@ -79,7 +76,7 @@ export function globePainter(canvas: HTMLCanvasElement) {
     if (canvas.width !== pw || canvas.height !== ph) [canvas.width, canvas.height] = [pw, ph];
     ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx!.clearRect(0, 0, w, h);
-    const frame = fit?.({ w, h }) ?? { R: Math.min(w, h) / 2 - 2, cx: w / 2, cy: h / 2 };
+    const frame = globeFrame({ w, h }, fit);
     [R, cx, cy] = [frame.R, frame.cx, frame.cy];
     readInk(canvas, ink);
   }

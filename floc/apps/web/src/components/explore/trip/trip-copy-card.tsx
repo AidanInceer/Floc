@@ -57,7 +57,7 @@ function OpenDays({ stops, open, onJump }: { stops: PlanStop[]; open: number[]; 
                     aria-pressed={open.includes(d.n)}
                     className={cx(
                       "nums relative h-7 min-w-7 rounded-sm border px-1.5 text-xs",
-                      open.includes(d.n) ? "border-ink bg-ink text-sheet" : "border-rule-strong bg-sheet text-ink-soft hover:border-ink-faint hover:text-ink",
+                      open.includes(d.n) ? "border-pen-edge bg-pen-soft text-pen-deep" : "border-rule-strong bg-sheet text-ink-soft hover:border-ink-faint hover:text-ink",
                       d.highlight && "after:absolute after:-right-[3px] after:-top-[3px] after:size-[7px] after:rounded-full after:border-[1.5px] after:border-sheet after:bg-highlight-ink",
                     )}
                   >

@@ -42,14 +42,17 @@ export function tripLegs<F extends LegFile>({
   days,
   modes,
   files,
+  tripEnd,
 }: {
   /** Sorted by date, as `deriveStops` needs. */
   days: LegDay[];
   modes: ReadonlyMap<number, TransportType>;
   files: F[];
+  /** The trip's end date, so a missing last row does not cost the last stop a night. */
+  tripEnd?: IsoDate | null;
 }): { legs: Leg<F>[]; wholeTrip: F[] } {
   const stops = placedStops(
-    deriveStops(days.map((d) => ({ ...d, overnightPlaceName: d.placeName }))),
+    deriveStops(days.map((d) => ({ ...d, overnightPlaceName: d.placeName })), tripEnd),
   );
   const legs: Leg<F>[] = [];
   const legOfDay = new Map<number, Leg<F>>();

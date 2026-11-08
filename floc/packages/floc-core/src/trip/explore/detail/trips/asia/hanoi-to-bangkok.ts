@@ -70,16 +70,6 @@ export const HANOI_TO_BANGKOK: PresetDetail = {
     { value: "7", label: "stops" },
     { value: "2", label: "flights" },
   ],
-  advice: [
-    { topic: "before", title: "Before you go", lines: ["Vietnam and Cambodia both need a visa for most passports. Apply online before you go.", "Bring a spare passport photo for the Cambodian border."] },
-    { topic: "money", title: "Money", lines: ["Cambodia runs on US dollars as much as riel. Carry small notes.", "Vietnamese dong for markets and street food."] },
-    { topic: "customs", title: "Temples", lines: ["Cover shoulders and knees at the temples and the palaces.", "Tuol Sleng and the killing fields ask for quiet."] },
-    { topic: "health", title: "Health", lines: ["Talk to a travel clinic about vaccines well before you go.", "Drink bottled water. Use repellent at dusk."] },
-  ],
-  goodToKnow: [
-    { label: "Pace", text: "On the move. Seven stops, two long bus days." },
-    { label: "Early starts", text: "One 04:45 start for Angkor Wat, worth it." },
-  ],
   ideas: {
     atStops: [
       at("Hanoi", [

@@ -36,8 +36,6 @@ const detail: PresetDetail = {
     { place: "Córdoba", summary: "One mosque, one patio.", days: [day("The Mezquita", "The Mezquita"), day("Home")] },
   ],
   inPlan: [{ value: "9", label: "places, with times" }],
-  advice: [{ topic: "money", title: "Money", lines: ["Carry some cash."] }],
-  goodToKnow: [{ label: "Pace", text: "Slow." }],
   ideas: { atStops: [], otherStops: [] },
 };
 
@@ -60,11 +58,10 @@ describe("buildPresetPlan without detail", () => {
     expect(plan.stops[1].sideTrips).toEqual(["Medina Azahara · day trip"]);
   });
 
-  it("has no days, summaries or advice, and says so", () => {
+  it("has no days or summaries, and says so", () => {
     expect(plan.detailed).toBe(false);
     expect(plan.dayCount).toBe(0);
     expect(plan.stops.every((s) => s.days.length === 0 && s.summary === null)).toBe(true);
-    expect(plan.advice).toEqual([]);
   });
 
   it("derives the plan figures from the legs", () => {
@@ -73,19 +70,6 @@ describe("buildPresetPlan without detail", () => {
       { value: "2", label: "stops" },
       { value: "1", label: "ride between stops" },
     ]);
-  });
-
-  it("derives group, season and cost for good to know", () => {
-    expect(plan.goodToKnow).toEqual([
-      { label: "Group", text: "2–4 people" },
-      { label: "Best in", text: "April, May" },
-      { label: "Cost", text: "From €450.00 each. Nothing is booked for you." },
-    ]);
-  });
-
-  it("gives the cost in the viewer's currency when it has a rate", () => {
-    const cost = buildPresetPlan(trip, null, { home: "GBP", toHome: { EUR: 0.85 } }).goodToKnow.find((f) => f.label === "Cost");
-    expect(cost?.text).toBe("From £383.00 each. Nothing is booked for you.");
   });
 });
 
@@ -102,11 +86,9 @@ describe("buildPresetPlan with detail", () => {
     expect(plan.stops[1].highlights).toEqual(["The Mezquita"]);
   });
 
-  it("uses the written figures, and puts written facts before the derived ones", () => {
+  it("uses the written figures", () => {
     expect(plan.detailed).toBe(true);
     expect(plan.inPlan).toEqual(detail.inPlan);
-    expect(plan.goodToKnow.map((f) => f.label)).toEqual(["Pace", "Group", "Best in", "Cost"]);
-    expect(plan.advice).toEqual(detail.advice);
   });
 
   it("names a place the ride passes when it is not the next base", () => {
