@@ -14,7 +14,7 @@ export function AccountPass({
 }) {
   return (
     <div className={cx("account-pass-top flex items-center gap-1.5 px-2 pb-2.5 pt-2.5", isPro ? "bg-pro-2" : "bg-sheet")}>
-      <Link role="menuitem" href="/profile" className="flex min-w-0 flex-1 items-center gap-3 rounded-sm px-2 py-1.5 hover:bg-pen-2">
+      <Link role="menuitem" href="/profile" className="flex min-w-0 flex-1 items-center gap-3 rounded-sm px-2 py-1.5 hover:bg-pen-soft">
         <Avatar name={user.name} size={34} />
         <span className="min-w-0">
           <span className="block truncate font-display text-[15px] font-semibold leading-tight text-ink">
@@ -26,7 +26,7 @@ export function AccountPass({
       <Link
         role="menuitem"
         href="/settings?section=billing"
-        className="flex shrink-0 flex-col items-end gap-px rounded-sm px-2 py-1.5 hover:bg-pen-2"
+        className="flex shrink-0 flex-col items-end gap-px rounded-sm px-2 py-1.5 hover:bg-pen-soft"
       >
         <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-faint">Plan</span>
         <span className="inline-flex items-center gap-1 font-display text-[15px] font-semibold text-ink">

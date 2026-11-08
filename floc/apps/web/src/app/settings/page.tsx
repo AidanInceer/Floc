@@ -397,11 +397,11 @@ function SectionRail({ current }: { current: SectionId }) {
               className={cx(
                 "shrink-0 whitespace-nowrap rounded-sm px-4 py-1.5 text-sm font-medium transition-colors sm:text-left",
                 active && danger
-                  ? "bg-red text-sheet"
+                  ? "bg-red-soft text-red"
                   : active
-                    ? "bg-ink text-sheet"
+                    ? "bg-pen-soft text-pen-deep"
                     : danger
-                      ? "text-red hover:bg-red-soft hover:text-red"
+                      ? "text-red hover:shadow-[inset_0_0_0_1px_var(--red-edge)]"
                       : "text-ink-soft hover:bg-sheet hover:text-ink",
               )}
             >

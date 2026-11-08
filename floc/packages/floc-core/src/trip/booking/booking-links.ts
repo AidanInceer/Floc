@@ -177,7 +177,7 @@ export function bookingPlan({
   const { startDate, endDate } = trip;
   if (!startDate || !endDate || today >= startDate) return null;
 
-  const stops = deriveStops(days);
+  const stops = deriveStops(days, endDate);
   const firstPlace = stops.find((s) => s.placeName)?.placeName ?? null;
   const flights = flightLinks({ destination: firstPlace, start: startDate, end: endDate, prefill });
   if (!firstPlace) return { flights, stays: "unset" };

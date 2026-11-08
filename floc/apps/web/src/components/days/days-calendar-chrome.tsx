@@ -53,9 +53,7 @@ export function CalendarToolbar({
   const step = "!size-8 !p-0";
   return (
     <div className="flex flex-wrap items-center gap-2 border-b border-rule px-3 py-2.5">
-      <Button onClick={nav.onToday} disabled={!nav.hasToday} title={nav.hasToday ? undefined : "The trip isn't running today"}>
-        Today
-      </Button>
+      {nav.hasToday ? <Button onClick={nav.onToday}>Today</Button> : null}
       <Button onClick={nav.goPrev} disabled={!nav.canPrev} aria-label="Day before" title={nav.canPrev ? "Day before" : "The trip starts here"} className={step}>
         <ChevronIcon direction="left" />
       </Button>

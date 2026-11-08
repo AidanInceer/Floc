@@ -57,6 +57,13 @@ test("hover never fills grey", () => {
   assert.deepEqual(rules("a.css", ".b:hover { background: var(--sheet-3); }"), ["hover-grey"]);
 });
 
+test("a pen-2 utility names the variable, not a class, and draws nothing", () => {
+  assert.deepEqual(rules("a.tsx", '<b className="bg-pen-2" />'), ["pen-2-class"]);
+  assert.deepEqual(rules("a.tsx", '<b className="hover:bg-pen-2 text-pen-deep" />'), ["pen-2-class"]);
+  assert.deepEqual(rules("a.tsx", '<b className="bg-pen-soft" />'), []);
+  assert.deepEqual(rules("a.tsx", "const wash = 'var(--pen-2)';"), []);
+});
+
 test("money is never approximate", () => {
   assert.deepEqual(rules("a.tsx", "<span>≈ {amount}</span>"), ["approx-money"]);
   assert.deepEqual(rules("a.tsx", "<span>~£40</span>"), ["approx-money"]);

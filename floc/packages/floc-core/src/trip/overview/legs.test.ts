@@ -39,6 +39,12 @@ describe("tripLegs", () => {
     expect(legs[1]).toMatchObject({ arrive: "2026-10-11", leave: "2026-10-11" });
   });
 
+  it("keeps the last leg's night when the trip ends the day after its last row", () => {
+    const { legs } = tripLegs({ days: lisbonThenLagos, modes: new Map(), files: [], tripEnd: "2026-10-12" });
+
+    expect(legs[1]).toMatchObject({ nights: 1, arrive: "2026-10-11", leave: "2026-10-12" });
+  });
+
   it("skips runs with no overnight place, so numbering stays with the map", () => {
     const { legs } = tripLegs({
       days: [day(1, "2026-10-09", null), day(2, "2026-10-10", 10)],

@@ -184,6 +184,7 @@ export default async function DaysPage({
       <BookingSitesProvider initial={sites}>
       <DaysCalendar
         days={calendarDays}
+        tripEnd={trip.endDate}
         events={calendarEvents}
         panel={selected ? {
           eventId: selected.event.id,

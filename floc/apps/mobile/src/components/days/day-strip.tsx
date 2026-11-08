@@ -85,10 +85,13 @@ export function DayStrip({
   days,
   selected,
   todayDate,
+  tripEnd,
   onSelect,
   onStop,
 }: {
   days: StripDay[];
+  /** The trip's end date, so the strip counts nights as the Overview does. */
+  tripEnd?: string | null;
   selected: string;
   /** The real today, passed in so the component itself reads no clock. */
   todayDate: string;
@@ -99,7 +102,7 @@ export function DayStrip({
   const scroller = useRef<ScrollView>(null);
   const [viewWidth, setViewWidth] = useState(0);
   const settled = useRef(false);
-  const stays = deriveStops(days.map((d) => ({ dayId: d.id, date: d.date, overnightPlaceId: d.overnightPlaceId, overnightPlaceName: d.overnightPlaceName })));
+  const stays = deriveStops(days.map((d) => ({ dayId: d.id, date: d.date, overnightPlaceId: d.overnightPlaceId, overnightPlaceName: d.overnightPlaceName })), tripEnd);
   const index = days.findIndex((d) => d.date === selected);
 
   // Why: a long trip runs off the right edge, so the chosen day can start out of sight.

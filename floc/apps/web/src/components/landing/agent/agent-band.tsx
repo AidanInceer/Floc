@@ -8,8 +8,10 @@ export function AgentBand({ origin }: { origin: string }) {
   return (
     <div>
       <div className="grid justify-items-center text-center">
-        <ComingSoonTag />
-        <h2 className="band-title mt-3">A travel agent in your pocket.</h2>
+        <h2 className="band-title">A travel agent in your pocket.</h2>
+        <div className="mt-4">
+          <ComingSoonTag />
+        </div>
       </div>
       <div className="mt-12">
         <AgentScene />
