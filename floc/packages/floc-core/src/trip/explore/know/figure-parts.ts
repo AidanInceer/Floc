@@ -1,7 +1,7 @@
 export type FigurePart = { text: string; figure: boolean };
 
 const MARK = /\*\*(.+?)\*\*/g;
-const NUMBER = /(?:[A-Z]*\$|[€£¥])?\d[\d,.:]*/g;
+const NUMBER = /[A-Z]{0,3}\$\d[\d,.:]*|[€£¥]?\d[\d,.:]*/g;
 
 function markParts(marked: string): FigurePart[] {
   const parts: FigurePart[] = [];

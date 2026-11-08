@@ -29,7 +29,7 @@ const BANNED: Record<string, string> = {
 /** Phrases whose short form is fine when written whole. */
 const PHRASES = /\b(?:QR codes?|SIM cards?|digital SIMs?)\b/g;
 
-const TOKEN = /[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*/g;
+const TOKEN = /[A-Za-z0-9][A-Za-z0-9-]*/g;
 const ROMAN = /^(?:X{0,3})(?:IX|IV|V?I{0,3})$/;
 
 function isShort(token: string): boolean {
@@ -61,7 +61,7 @@ function tokenProblem(token: string, all: string): string | null {
 export function shortFormProblems(all: string): string[] {
   const bare = all.replace(PHRASES, " ");
   const problems: string[] = [];
-  for (const token of new Set(bare.match(TOKEN) ?? [])) {
+  for (const token of new Set((bare.match(TOKEN) ?? []).map((t) => t.replace(/-+$/, "")))) {
     const found = tokenProblem(token, all);
     if (found) problems.push(found);
   }

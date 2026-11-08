@@ -4,7 +4,7 @@ import { KNOW_STAGES, type KnowTip, type TripKnow } from "./know-types";
 import { shortFormProblems } from "./short-forms";
 
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
-const SLUG = /^[a-z]+(-[a-z]+)*$/;
+const isSlug = (slug: string) => slug.split("-").every((part) => /^[a-z]+$/.test(part));
 
 function marksProblems(name: string, field: string): string[] {
   const problems: string[] = [];
@@ -86,7 +86,7 @@ export function checkTripKnow(trip: PresetTrip, know: TripKnow): string[] {
   const problems = stageOrderProblems(know);
   if (!ISO_DAY.test(know.checked)) problems.push(`checked "${know.checked}" is not YYYY-MM-DD`);
   else if (!isRealDay(know.checked)) problems.push(`checked "${know.checked}" is not a real day`);
-  for (const a of know.advice) if (!SLUG.test(a.slug)) problems.push(`advice slug "${a.slug}" is not lowercase-hyphen`);
+  for (const a of know.advice) if (!isSlug(a.slug)) problems.push(`advice slug "${a.slug}" is not lowercase-hyphen`);
   for (const s of know.stages) {
     if (s.stage === "At the stops") {
       if (s.stops.length === 0) problems.push("At the stops has no stops");
