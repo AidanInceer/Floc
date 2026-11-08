@@ -2,7 +2,7 @@
  * Saved packing lists (ticket 230) — yours, not a trip's.
  *
  * ONE LEVEL UNDER YOU, NOT A TAB. A kit belongs to a person, so it hangs off
- * the profile; the bottom bar is still the three places that are not a trip.
+ * the profile, on the Lists screen beside your saved trips (#467).
  *
  * THE SAME OBJECT AS A BAG, DRAWN THE SAME WAY. A photography kit and the bag
  * on a trip are one idea at two moments — so the rows here are the packing
@@ -31,7 +31,7 @@ const CATEGORY_OPTIONS = PACK_CATEGORIES.map((category) => ({
 /** The thing being added, and which list it is going into. Null when the sheet is shut. */
 type NewItem = { kitId: number; label: string; category: PackCategory };
 
-export default function Kits() {
+export function PackingPane() {
   const queryClient = useQueryClient();
   const kits = useQuery(trpc.kits.list.queryOptions());
 
@@ -88,7 +88,7 @@ export default function Kits() {
           </Body>
         </Card>
 
-        {kits.data.length === 0 ? <Empty>No saved lists yet.</Empty> : null}
+        {kits.data.length === 0 ? <Empty>No packing lists yet.</Empty> : null}
 
         {kits.data.map((kit) => (
           <KitCard

@@ -39,7 +39,13 @@
     "explore.get": {
       "mobile": "yes"
     },
+    "explore.saves": {
+      "mobile": "yes"
+    },
     "explore.setFinder": {
+      "mobile": "yes"
+    },
+    "explore.setSaved": {
       "mobile": "yes"
     },
     "files.attach": {

@@ -14,6 +14,7 @@ import { ensureProfile } from "@/server/auth/profile";
 import { refresh } from "@/server/freshness";
 import { readFinder } from "@floc/core/trip/explore/finder/finder-read";
 import { saveFinder } from "@/server/explore/explore-finder";
+import { setTripSaved } from "@/server/explore/explore-saves";
 
 // No refresh: the page already holds the finder it just sent.
 export async function rememberFinder(value: unknown): Promise<void> {
@@ -31,4 +32,11 @@ export async function startTripFromPreset(formData: FormData): Promise<void> {
 
   refresh({ kind: "tripList" });
   redirect(`/trip/${tripId}/overview`);
+}
+
+// Why: the heart a signed-out visitor sees is a sign-in link, so this redirect is only a fallback; it lands where the link would.
+export async function saveTrip(presetId: string, saved: boolean): Promise<void> {
+  const viewer = await requireUser(`/explore/${presetId}?save=${presetId}`);
+  await setTripSaved(viewer.id, presetId, saved);
+  refresh({ kind: "savedTrips" });
 }

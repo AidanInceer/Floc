@@ -23,7 +23,7 @@ const sheetClass =
  * Every trip, with the finder beside it: what must fit filters, what you like ranks and never hides.
  * The finder is remembered for someone signed in; the search box is for this visit only.
  */
-export function ExploreFinder({ signedIn, initialFinder }: { signedIn: boolean; initialFinder: Finder }) {
+export function ExploreFinder({ signedIn, initialFinder, blankName }: { signedIn: boolean; initialFinder: Finder; blankName: string | null }) {
   const [finder, setFinder] = useState(initialFinder);
   const rates = useListingRates();
   const [sort, setSort] = useState<FinderSort>("match");
@@ -84,7 +84,7 @@ export function ExploreFinder({ signedIn, initialFinder }: { signedIn: boolean; 
         </aside>
         <div ref={top} className="scroll-mt-20">
           <FinderBar shown={rows.length} set={finderPills(finder, rates).length + finder.likes.length} pills={pills} onOpen={() => setSheet(true)} />
-          <FinderResults rows={rows} likes={finder.likes} split={sort === "match" && !like && finder.likes.length > 0} signedIn={signedIn} onLike={moreLike} />
+          <FinderResults rows={rows} likes={finder.likes} split={sort === "match" && !like && finder.likes.length > 0} signedIn={signedIn} blankName={blankName} onLike={moreLike} />
         </div>
       </div>
 

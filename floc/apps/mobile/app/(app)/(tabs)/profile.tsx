@@ -149,7 +149,7 @@ export default function Profile() {
           <Button label="Paint the map" variant="quiet" onPress={() => setPainting(true)} />
         </View>
 
-        <YourTravel trips={face.data?.pastTrips} onKits={() => router.push("/kits")} />
+        <YourTravel trips={face.data?.pastTrips} onLists={() => router.push("/lists")} />
 
         <View style={{ gap: space.sm }}>
           <View style={{ paddingHorizontal: space.xs }}>
@@ -196,7 +196,7 @@ export default function Profile() {
 
 type PastTrip = { id: number; name: string; startDate: string | null; endDate: string | null };
 
-function YourTravel({ trips, onKits }: { trips: PastTrip[] | undefined; onKits: () => void }) {
+function YourTravel({ trips, onLists }: { trips: PastTrip[] | undefined; onLists: () => void }) {
   return (
     <DrawerGroup label="Your travel">
       <Drawer first title="Past trips" summary={trips ? String(trips.length) : undefined}>
@@ -208,8 +208,8 @@ function YourTravel({ trips, onKits }: { trips: PastTrip[] | undefined; onKits: 
           </View>
         ))}
       </Drawer>
-      {/* Saved lists are yours rather than any trip's, so they hang off you, not off a trip. */}
-      <DrawerLink title="Saved packing lists" onPress={onKits} />
+      {/* Lists are yours rather than any trip's, so they hang off you, not off a trip (#467). */}
+      <DrawerLink title="Lists" onPress={onLists} />
     </DrawerGroup>
   );
 }

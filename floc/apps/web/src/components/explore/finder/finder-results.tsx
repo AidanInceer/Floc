@@ -46,13 +46,15 @@ function Tags({ on = [], off = [], plain = [] }: { on?: TripTag[]; off?: TripTag
   );
 }
 
-function OwnTile({ signedIn }: { signedIn: boolean }) {
+/** A blank trip; from a want-to-go country on Lists it starts named after that country (#467). */
+function OwnTile({ signedIn, name }: { signedIn: boolean; name: string | null }) {
+  const start = name ? `/trips?new=${encodeURIComponent(name)}` : "/trips";
   return (
     <li className="col-span-full flex min-h-32 flex-col items-center justify-center text-center gap-1.5 rounded-md border-[1.5px] border-dashed border-rule-strong p-4">
-      <span className={cx(tagClass, "border border-dashed border-rule-strong text-ink-soft")}>Anywhere</span>
+      <span className={cx(tagClass, "border border-dashed border-rule-strong text-ink-soft")}>{name ?? "Anywhere"}</span>
       <strong className="font-display text-base font-semibold tracking-[-0.02em]">Your own</strong>
-      <p className="text-[13px] text-ink-soft">No dates, no destination. See who agrees.</p>
-      <ButtonLink href={signedIn ? "/trips" : "/signup"} className="mt-2">
+      <p className="text-[13px] text-ink-soft">{name ? "No dates yet. See who agrees." : "No dates, no destination. See who agrees."}</p>
+      <ButtonLink href={signedIn ? start : "/signup"} className="mt-2">
         Start blank
       </ButtonLink>
     </li>
@@ -70,15 +72,24 @@ export function FinderResults({
   likes,
   split,
   signedIn,
+  blankName,
   onLike,
 }: {
   rows: Ranked[];
   likes: TripTag[];
   split: boolean;
   signedIn: boolean;
+  blankName: string | null;
   onLike: (presetId: string) => void;
 }) {
   const [all, setAll] = useState(false);
+  if (!rows.length && blankName) {
+    return (
+      <ul className={grid}>
+        <OwnTile signedIn={signedIn} name={blankName} />
+      </ul>
+    );
+  }
   if (!rows.length) {
     return <p className="rounded-md border border-dashed border-rule-strong p-6 text-ink-soft">No trip fits all of that. Remove a filter.</p>;
   }
@@ -99,7 +110,7 @@ export function FinderResults({
       </ExploreTile>
     </li>
   );
-  const own = <OwnTile key="own" signedIn={signedIn} />;
+  const own = <OwnTile key="own" signedIn={signedIn} name={blankName} />;
   return (
     <>
       {top.length ? (

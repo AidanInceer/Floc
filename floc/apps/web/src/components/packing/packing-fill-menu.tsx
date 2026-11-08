@@ -23,7 +23,7 @@ const rule = "my-1 border-t border-rule";
 function SavedLists({ kits, apply }: { kits: Kit[]; apply: (kitId: number) => Promise<void> }) {
   return (
     <div>
-      <p className="px-2.5 pb-0.5 pt-1.5 text-[11.5px] text-ink-faint">Saved lists</p>
+      <p className="px-2.5 pb-0.5 pt-1.5 text-[11.5px] text-ink-faint">Packing lists</p>
       {kits.map((kit) => (
         <form key={kit.id} action={apply.bind(null, kit.id)}>
           <SubmitButton variant="ghost" pendingLabel="Adding…" className={cx(menuItemClass, "!flex w-full items-center gap-2.5 !text-ink")}>
@@ -33,7 +33,7 @@ function SavedLists({ kits, apply }: { kits: Kit[]; apply: (kitId: number) => Pr
           </SubmitButton>
         </form>
       ))}
-      <Link role="menuitem" href="/packing-lists" className={menuItemClass}>
+      <Link role="menuitem" href="/lists/packing" className={menuItemClass}>
         {kits.length > 0 ? "Manage your lists" : "Make your first list"}
       </Link>
     </div>

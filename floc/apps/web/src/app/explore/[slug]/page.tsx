@@ -14,7 +14,9 @@ import { notFound } from "next/navigation";
 import { TripHero } from "@/components/explore/trip/trip-hero";
 import { TripKnow } from "@/components/explore/trip/trip-know";
 import { TripPlan } from "@/components/explore/trip/trip-plan";
+import { SavedTripsProvider } from "@/components/explore/save/saved-trips";
 import { getSession } from "@/server/access";
+import { savedTripIds } from "@/server/explore/explore-saves";
 import { listingRates, viewerCurrency } from "@/server/money/viewer-currency";
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ start?: string | string[] }> };
@@ -30,14 +32,20 @@ export default async function ExploreTripPage({ params, searchParams }: Props) {
   const trip = findTrip((await params).slug);
   if (!trip) notFound();
   const session = await getSession();
-  const rates = await listingRates(await viewerCurrency(session?.user?.id ?? null, await headers()));
+  const userId = session?.user?.id ?? null;
+  const [rates, saved] = await Promise.all([
+    viewerCurrency(userId, await headers()).then(listingRates),
+    userId ? savedTripIds(userId) : [],
+  ]);
   const plan = buildPresetPlan(trip, presetDetail(trip.id));
 
   return (
-    <div className="mx-auto w-full max-w-[84rem] px-4 pb-32 pt-6 sm:px-6 lg:pb-24">
-      <TripHero trip={trip} figures={plan.inPlan} rates={rates} />
-      <TripPlan trip={trip} plan={plan} signedIn={!!session?.user?.id} startOpen={(await searchParams).start !== undefined} />
-      <TripKnow know={tripKnow(trip.id)} />
-    </div>
+    <SavedTripsProvider ids={saved} signedIn={!!userId}>
+      <div className="mx-auto w-full max-w-[84rem] px-4 pb-32 pt-6 sm:px-6 lg:pb-24">
+        <TripHero trip={trip} figures={plan.inPlan} rates={rates} />
+        <TripPlan trip={trip} plan={plan} signedIn={!!userId} startOpen={(await searchParams).start !== undefined} />
+        <TripKnow know={tripKnow(trip.id)} />
+      </div>
+    </SavedTripsProvider>
   );
 }
