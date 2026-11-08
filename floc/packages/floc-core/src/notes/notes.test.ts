@@ -6,6 +6,9 @@ import {
   likes,
   repliesLabel,
   threadCount,
+  toggleLike,
+  withPendingNote,
+  type NoteRow,
 } from "./notes";
 
 /**
@@ -83,5 +86,41 @@ describe("emptyReactions", () => {
     const a = emptyReactions();
     a.heart.count = 5;
     expect(emptyReactions().heart.count).toBe(0);
+  });
+});
+
+describe("toggleLike", () => {
+  it("adds your heart", () => {
+    expect(toggleLike({ count: 2, mine: false })).toEqual({ count: 3, mine: true });
+  });
+
+  it("takes your heart back", () => {
+    expect(toggleLike({ count: 3, mine: true })).toEqual({ count: 2, mine: false });
+  });
+});
+
+describe("withPendingNote", () => {
+  const row = (id: number, replies: NoteRow[] = []): NoteRow => ({
+    id,
+    body: `Comment ${id}`,
+    createdAt: new Date("2026-05-01T10:00:00Z"),
+    editedAt: null,
+    createdBy: "u1",
+    authorName: "Priya",
+    authorAvatarIcon: null,
+    reactions: emptyReactions(),
+    replies,
+  });
+
+  it("puts a new comment last", () => {
+    const runs = [row(1)];
+    expect(withPendingNote(runs, row(-1), null).map((r) => r.id)).toEqual([1, -1]);
+  });
+
+  it("puts a reply under its comment", () => {
+    const runs = [row(1), row(2, [row(3)])];
+    const next = withPendingNote(runs, row(-1), 2);
+    expect(next[1].replies.map((r) => r.id)).toEqual([3, -1]);
+    expect(next[0]).toBe(runs[0]);
   });
 });

@@ -1,7 +1,8 @@
 @layer components {
   .trip-tab:hover .trip-tab-icon,
   .trip-tab:focus-visible .trip-tab-icon,
-  .trip-tab[aria-current="page"] .trip-tab-icon {
+  .trip-tab[aria-current="page"] .trip-tab-icon,
+  .trip-tab:has([data-tab-pending]) .trip-tab-icon {
     color: var(--section-ink);
     background: var(--section-wash);
   }

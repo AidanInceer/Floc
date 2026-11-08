@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useOptimistic, useState } from "react";
 
-import { commentTime, likes, type NoteRow } from "@floc/core/notes/notes";
+import { commentTime, likes, toggleLike, type NoteRow } from "@floc/core/notes/notes";
 
 import { Avatar, cx, menuDangerItemClass, menuItemClass, panelFieldClass } from "@/components/system/ui";
 import { ReactionGlyph } from "@/components/system/icons/reaction";
@@ -13,9 +13,15 @@ const metaFigure = "font-mono text-[10.5px] tracking-[0.02em] text-ink-faint";
 
 /** One heart, inline after Reply (event comments D): yours fills in pen, the count says how many. */
 function HeartButton({ tripId, note }: { tripId: number; note: NoteRow }) {
-  const { count, mine } = likes(note);
+  // Why: the heart answers under the finger; the server's count replaces it when the toggle lands.
+  const [{ count, mine }, flip] = useOptimistic(likes(note), (shown) => toggleLike(shown));
   return (
-    <form action={react.bind(null, tripId, note.id, "heart")}>
+    <form
+      action={async () => {
+        flip(undefined);
+        await react(tripId, note.id, "heart");
+      }}
+    >
       <button
         type="submit"
         aria-pressed={mine}
