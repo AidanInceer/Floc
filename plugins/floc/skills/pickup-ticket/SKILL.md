@@ -27,6 +27,7 @@ Walk the current phase only, from the top, until you have five. Skip a ticket if
 
 - It is labelled `on-develop` or `future-work` → it should not be in the stack. Remove that line from the stack body and carry on down.
 - It is closed → remove the line, carry on.
+- It is labelled `in-progress` → another session is working on it. Leave the line in the stack, name it as taken, carry on down.
 - Its `## Blocked by` names an issue that is still open and not `on-develop` → note the blocker and move to the next ticket.
 
 A ticket labelled `grilling` is **startable**. The label is intentional: it is the alignment step with Aidan before the build, not a defect. Start it with `/floc:grill`. The grill writes decisions and acceptance criteria into the ticket and keeps it one ticket; then build it here. Never offer to skip it for being `grilling`, and never flag the label as a problem. Only if the user asks for a split, run `/floc:to-tickets` with this ticket's number — it tags this parent `on-develop` and pops it off the stack.
@@ -42,6 +43,14 @@ Before anything else — no worktree, no grill, no reading code — show the lis
 Then stop and let the user choose. Start only the ticket they name.
 
 ### 4. Build it
+
+First claim the ticket, so a parallel `/floc:pickup-ticket` skips it. Do this before the worktree or the grill:
+
+```bash
+gh issue edit <n> --repo AidanInceer/Floc --add-label in-progress
+```
+
+If the label is already on it, another session took it since you listed it — say so and ask which ticket to take instead.
 
 Make the ticket its own worktree, then build only there:
 
@@ -65,7 +74,11 @@ One ticket → one `/floc:push` → the next ticket. Never batch several tickets
 
 Run `/floc:push` with this ticket's number. It owns the commit rules, the PR to `develop` and the finish after the merge.
 
-**A ticket leaves the stack when its PR lands on `develop`**: `pnpm delivery finish` labels it `on-develop` and pops it. It closes when the release reaches `main`. If the work is abandoned, the ticket stays where it is.
+**A ticket leaves the stack when its PR lands on `develop`**: `pnpm delivery finish` labels it `on-develop`, removes `in-progress` and pops it. It closes when the release reaches `main`. If the work is abandoned, the ticket stays where it is — remove its claim so the next pickup can take it:
+
+```bash
+gh issue edit <n> --repo AidanInceer/Floc --remove-label in-progress
+```
 
 ### 6. Report back
 
@@ -76,3 +89,4 @@ Ticket number and title, what was built, and the `/floc:push` result (PR link). 
 - Only take the ticket the user chose from the list. Never reorder or re-phase here — that is `/floc:prioritise-tickets`.
 - Never close the issue by hand. `Closes` fires when `develop` reaches `main`.
 - Never pick up the `Priority` issue itself.
+- Never take a ticket labelled `in-progress` unless the user names it and says its claim is stale — then keep the label and take it.
