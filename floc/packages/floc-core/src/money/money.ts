@@ -206,40 +206,43 @@ export function resolveWeightedSplit(
     };
   }
 
-  const pinnedTotal = pinned.reduce((sum, r) => sum + (r.pinnedMinor ?? 0), 0);
-  const remainder = amountMinor - pinnedTotal;
+  const { amounts, remainder, shareTotal } = allocateWeighted(amountMinor, rows);
   if (remainder < 0) {
     throw new Error(
-      `The pinned amounts already come to ${formatMoney(pinnedTotal, currency)}, which is more than the total.`,
+      `The pinned amounts already come to ${formatMoney(amountMinor - remainder, currency)}, which is more than the total.`,
     );
   }
-
-  const unpinned = rows.filter((r) => r.pinnedMinor === null);
-  const shareTotal = unpinned.reduce((sum, r) => sum + r.shares, 0);
   if (remainder > 0 && shareTotal === 0) {
     throw new Error(
       `${formatMoney(remainder, currency)} is left over and nobody's on shares to absorb it.`,
     );
   }
 
-  const rest =
-    remainder > 0
-      ? new Map(
-          computeSplits(
-            remainder,
-            "shares",
-            unpinned.map((r) => ({ userId: r.userId, value: r.shares })),
-          ).map((s) => [s.userId, s.owedAmountMinor]),
-        )
-      : new Map<string, number>();
-
   return {
     splitType: "exact",
-    participants: rows.map((r) => ({
-      userId: r.userId,
-      value: r.pinnedMinor ?? rest.get(r.userId) ?? 0,
-    })),
+    participants: rows.map((r) => ({ userId: r.userId, value: amounts.get(r.userId) ?? 0 })),
   };
+}
+
+/**
+ * Pins first, then what is left by shares among the unpinned. Never refuses:
+ * the form's live preview shows a shortfall or an overrun as it is typed, and
+ * `resolveWeightedSplit` refuses the same numbers at save.
+ */
+export function allocateWeighted(
+  amountMinor: number,
+  rows: WeightedInput[],
+): { amounts: Map<string, number>; remainder: number; shareTotal: number } {
+  const pinnedTotal = rows.reduce((sum, r) => sum + (r.pinnedMinor ?? 0), 0);
+  const remainder = amountMinor - pinnedTotal;
+  const unpinned = rows.filter((r) => r.pinnedMinor === null);
+  const shareTotal = unpinned.reduce((sum, r) => sum + r.shares, 0);
+  const amounts = new Map(rows.map((r) => [r.userId, r.pinnedMinor ?? 0]));
+  if (remainder > 0 && shareTotal > 0) {
+    const rest = computeSplits(remainder, "shares", unpinned.map((r) => ({ userId: r.userId, value: r.shares })));
+    for (const s of rest) amounts.set(s.userId, s.owedAmountMinor);
+  }
+  return { amounts, remainder, shareTotal };
 }
 
 // Balances — derived at read time, never stored (ticket 04). An expense is

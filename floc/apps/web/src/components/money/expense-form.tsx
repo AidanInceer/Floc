@@ -13,8 +13,9 @@ import {
   toMajorInput,
 } from "@floc/core/money/money";
 import { CURRENCIES, currencySymbol } from "@floc/core/money/currency";
-import { previewExpenseSplit } from "@floc/core/money/expense-preview";
+import { previewExpenseSplit } from "@floc/core/money/expense/expense-preview";
 import { editStart } from "@floc/core/money/edit-start";
+import { SPLIT_MODES, splitBox, type SplitMode } from "@floc/core/money/expense/expense-form";
 import type { Currency, SplitType } from "@/db/schema";
 import {
   CATEGORY_LABELS,
@@ -55,12 +56,6 @@ export type ExistingExpense = {
 };
 
 type Row = { shares: number; pin: string };
-type SplitMode = "equally" | "exact" | "shares";
-const SPLIT_MODES: { key: SplitMode; label: string }[] = [
-  { key: "equally", label: "Equally" },
-  { key: "exact", label: "Exact" },
-  { key: "shares", label: "Shares" },
-];
 
 export function ExpenseForm({
   tripId,
@@ -142,14 +137,7 @@ export function ExpenseForm({
     setRows((prev) => ({ ...prev, [userId]: { ...row(userId), ...patch } }));
   }
 
-  // What each row contributes depends on the mode: exact uses the pin, shares
-  // uses the stepper, equally is one share each with no pins.
-  const rowFor = (userId: string): { userId: string; shares: number; pin: string } => {
-    const r = row(userId);
-    if (mode === "exact") return { userId, shares: 1, pin: r.pin };
-    if (mode === "shares") return { userId, shares: r.shares, pin: "" };
-    return { userId, shares: 1, pin: "" };
-  };
+  const rowFor = (userId: string) => splitBox(mode, userId, row(userId));
 
   const preview = useMemo(
     () =>

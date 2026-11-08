@@ -4,7 +4,6 @@ import { EventGlyph } from "@/components/system/icons/days";
 import { cx } from "@/components/system/ui";
 
 /** "Lisbon, Portugal" is "Lisbon" here; the country is on the map. */
-export const cityOf = (placeName: string) => placeName.split(",")[0];
 
 export function StopNo({ no, small }: { no: number; small?: boolean }) {
   return (

@@ -10,6 +10,8 @@ import { SortCubes } from "@/components/trip/overview/sort/sort-cubes";
 import { alex, jo, kit, priya, sam, maya, you } from "../sample-trip";
 import { FakeButton, PageHead } from "./screen-frame";
 
+const TOUR_GROUP = [alex, jo, kit, priya, sam, maya].map((p, i) => ({ id: String(i), name: p.name, answered: true }));
+
 const IDEAS = [
   { title: "Sicily: food, beaches, one flight", by: priya, votes: 5, mine: true },
   { title: "Sardinia, for the quieter sea", by: kit, votes: 2, mine: false },
@@ -121,7 +123,7 @@ const iso = (day: number) => `2027-09-${String(day).padStart(2, "0")}`;
 const BEST = { start: iso(12), end: iso(19) };
 const RAIL: { key: string; label: string; glyph: ReactNode; summary: TabSummary; on?: boolean }[] = [
   { key: "mine", label: "Your days", glyph: <CheckIcon />, summary: yourDaysTab([...MINE].map(iso), 0) },
-  { key: "group", label: "The group", glyph: <NavGlyph name="friends" />, summary: groupTab(6, []), on: true },
+  { key: "group", label: "The group", glyph: <NavGlyph name="friends" />, summary: groupTab(TOUR_GROUP), on: true },
   { key: "trip", label: "The trip", glyph: <NavGlyph name="dates" />, summary: tripTab(null, null, BEST) },
 ];
 

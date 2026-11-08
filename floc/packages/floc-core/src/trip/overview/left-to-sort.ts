@@ -7,6 +7,7 @@ import type { DatesMoment } from "../../dates/dates-moment";
 import { nightsLabel } from "../../itinerary/stops";
 import type { Currency } from "../../money/currency";
 import { formatMoney } from "../../money/money";
+import { shortPlace } from "../../itinerary/names/place-name";
 
 export type GapTab = "dates" | "ideas" | "money" | "packing" | "overview" | "days";
 
@@ -50,7 +51,6 @@ const check = (done: boolean, item: Sorted, gap: Gap): Check => (done ? { done, 
 
 const names = (list: string[]): string =>
   list.length === 1 ? list[0] : `${list.slice(0, -1).join(", ")} and ${list[list.length - 1]}`;
-const city = (place: string): string => place.split(",")[0];
 
 function dateChecks(input: LeftToSortInput): Check[] {
   if (input.moment !== "finding") return [];
@@ -93,14 +93,14 @@ function legChecks(input: LeftToSortInput): Check[] {
   const stays = input.moment === "set"
     ? ahead.map((l) => {
         const sub = [nightsLabel(l.nights), formatShortRange(l.arrive, l.leave)];
-        return check(l.hasStay, { key: `stay-${l.no}`, kind: "stay", text: `Stay booked in ${city(l.placeName)}`, sub },
-          { key: `stay-${l.no}`, kind: "stay", mine: false, text: `No stay booked in ${city(l.placeName)}`, sub, tab: "overview", anchor: `stop-${l.no}`, action: "Find a stay" });
+        return check(l.hasStay, { key: `stay-${l.no}`, kind: "stay", text: `Stay booked in ${shortPlace(l.placeName)}`, sub },
+          { key: `stay-${l.no}`, kind: "stay", mine: false, text: `No stay booked in ${shortPlace(l.placeName)}`, sub, tab: "overview", anchor: `stop-${l.no}`, action: "Find a stay" });
       })
     : [];
   const travel = ahead.flatMap((l) => {
     const from = input.legs.find((x) => x.no === l.no - 1);
     if (!from) return [];
-    const hop = `${city(from.placeName)} to ${city(l.placeName)}`;
+    const hop = `${shortPlace(from.placeName)} to ${shortPlace(l.placeName)}`;
     return [check(l.hasTravel, { key: `travel-${l.no}`, kind: "travel", text: `${hop}: travel set`, sub: [formatDate(l.arrive)] },
       { key: `travel-${l.no}`, kind: "travel", mine: false, text: `${hop}: no travel set`, sub: [formatDate(l.arrive)], tab: "days", action: "Set travel" })];
   });

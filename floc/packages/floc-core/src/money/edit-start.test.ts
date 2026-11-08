@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { editStart, peopleOnExpense } from "./edit-start";
-import { previewExpenseSplit } from "./expense-preview";
+import { previewExpenseSplit } from "./expense/expense-preview";
 
 it("an unchanged edit preserves unequal debts and a former participant", () => {
   const expense = { paidBy: "gone", splits: [{ userId: "a", owedAmountMinor: 6000 }, { userId: "gone", owedAmountMinor: 3000 }] };

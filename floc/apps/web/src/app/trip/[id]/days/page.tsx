@@ -38,7 +38,6 @@ import type { FileChoice } from "@/components/documents/attach-existing";
 import { EventForm } from "@/components/days/event-form";
 import { ButtonLink, EmptyState, PageTitle, cx, menuDangerItemClass, panelBandClass, panelTitleClass } from "@/components/system/ui";
 import { calendarFeedUrlFor } from "@/server/itinerary/feed/calendar-feed-link";
-import { EVENT_CATEGORIES } from "@floc/core/itinerary/event-categories";
 import { NoteThread, type NoteRow, type Viewer } from "@/components/notes/note-thread";
 import { requireTripAccess, type TripMember } from "@/server/access";
 import { canUseFeature } from "@/server/billing/entitlements";
@@ -51,6 +50,7 @@ import { eventFlightLinks } from "@floc/core/trip/booking/booking-links";
 import { BookingSitesProvider } from "@/components/booking/booking-sites";
 import { SitePicker } from "@/components/booking/site-picker";
 import { bookingSitesOf } from "@/server/auth/booking-sites";
+import { eventName } from "@floc/core/itinerary/names/event-name";
 
 export const metadata = { title: "Days" };
 
@@ -132,16 +132,12 @@ export default async function DaysPage({
   const calendarEvents: CalendarEvent[] = [];
   for (const d of days) {
     for (const event of d.events) {
-      const category = EVENT_CATEGORIES[event.type];
       calendarEvents.push({
         id: event.id,
         dayId: d.id,
         type: event.type,
         transportType: event.transportType,
-        // The title leads (ticket 74). Rows written before the column existed
-        // have none, so the place name stands in — and failing that, the
-        // category's word, since a block must never be blank.
-        title: event.title ?? event.placeName ?? category.label,
+        title: eventName(event),
         placeName: event.placeName,
         time: event.time,
         endTime: event.endTime,

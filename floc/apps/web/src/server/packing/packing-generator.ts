@@ -26,6 +26,7 @@ import type { PackTier } from "@floc/core/packing/packing";
 import { LIMITS } from "@/server/limits";
 import { listOvernightPlaces } from "@/server/itinerary/itinerary";
 import { getTripForecast, tripForecastAnchor } from "@/server/itinerary/weather";
+import { shortPlace } from "@floc/core/itinerary/names/place-name";
 
 export type PackingPlan = {
   nights: number | null;
@@ -76,7 +77,7 @@ export async function packingPlanFor(trip: {
   }
 
   // "Lisbon, Portugal" reads as two places in a comma list; the town is enough.
-  const places = [...new Set(overnight.map((p) => p.name.split(",")[0].trim()))];
+  const places = [...new Set(overnight.map((p) => shortPlace(p.name)))];
   const window = (forecast?.days ?? []).filter((d) => d.date >= startDate && d.date <= endDate);
   const climate = forecast ? summariseClimate(window) : null;
   const weather = climate

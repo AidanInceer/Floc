@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  packedLineCount,
   packingStatus,
   packingStatusLabel,
   clampPackQuantity,
@@ -24,6 +25,21 @@ describe("packingStatus", () => {
 
   it("is packed only once every claimer has ticked", () => {
     expect(packingStatus([packed, packed])).toBe("packed");
+  });
+});
+
+describe("packedLineCount", () => {
+  it("counts a shared line only once everyone holding it has packed, from the phone's claims too", () => {
+    const lines = [
+      { claims: [{ packed: true }, { packed: false }] },
+      { claims: [{ packed: true }, { packed: true }] },
+      { claims: [] },
+    ];
+    expect(packedLineCount(lines)).toBe(1);
+  });
+
+  it("reads the web's dated claims the same way", () => {
+    expect(packedLineCount([{ claims: [packed, open] }, { claims: [packed] }])).toBe(1);
   });
 });
 

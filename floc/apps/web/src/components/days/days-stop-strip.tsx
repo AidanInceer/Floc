@@ -13,8 +13,7 @@ import { MoonIcon } from "@/components/system/icons";
 import type { CalendarDay } from "@/components/days/days-calendar-shared";
 import { deriveStops, nightsLabel } from "@floc/core/itinerary/stops";
 import type { BandSpan } from "@floc/core/itinerary/overnight-band";
-
-export const shortPlace = (name: string) => name.split(",")[0];
+import { shortPlace } from "@floc/core/itinerary/names/place-name";
 
 export function StopStrip({
   days,

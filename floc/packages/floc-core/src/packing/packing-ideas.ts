@@ -4,7 +4,6 @@
  * screen is always one the host will accept.
  */
 import { dayParts, type IsoDate } from "../dates/dates";
-import { PACK_CATEGORIES, PACK_CATEGORY_LABELS, type PackCategory } from "./packing";
 import {
   generatePackingList,
   newSuggestionsOnly,
@@ -58,32 +57,4 @@ export function ideasWhy(plan: IdeasPlan): IdeasWhy {
   }
   const where = plan.places.length > 0 ? plan.places.join(", ") : null;
   return { text: [nightsWord(plan.nights), where, weatherWords(plan)].filter(Boolean).join(" · "), link: null };
-}
-
-export type PackingCube<L, I> = { key: string; heading: string; lines: L[]; ideas: I[] };
-
-/**
- * The bag as cubes, each category's ideas at its foot. A saved list keeps its
- * own cube (ticket 230) and never gets ideas: it is a lump you chose.
- */
-export function packingCubes<
-  L extends { category: PackCategory; kitName?: string | null },
-  I extends { category: PackCategory },
->(lines: L[], ideas: I[]): PackingCube<L, I>[] {
-  const byCategory = PACK_CATEGORIES.map((category) => ({
-    key: category,
-    heading: PACK_CATEGORY_LABELS[category],
-    lines: lines.filter((l) => !l.kitName && l.category === category),
-    ideas: ideas.filter((i) => i.category === category),
-  }));
-
-  const kits = new Map<string, L[]>();
-  for (const l of lines) {
-    if (l.kitName) kits.set(l.kitName, [...(kits.get(l.kitName) ?? []), l]);
-  }
-
-  return [
-    ...byCategory,
-    ...[...kits].map(([name, group]) => ({ key: `kit:${name}`, heading: name, lines: group, ideas: [] as I[] })),
-  ].filter((cube) => cube.lines.length > 0 || cube.ideas.length > 0);
 }

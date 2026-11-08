@@ -21,7 +21,7 @@ import { bestWindow, monthOf, thisMonth } from "@floc/core/dates/availability";
 import { paintRange } from "@floc/core/dates/calendar-gestures";
 import { dateRange, formatDateRange, nightsBetween, today } from "@floc/core/dates/dates";
 import { datesMoment } from "@floc/core/dates/dates-moment";
-import { forecastTab, groupTab, spanLabel, tripTab, yourDaysTab } from "@floc/core/dates/dates-tabs";
+import { forecastTab, groupTab, spanLabel, tripTab, yourDaysTab, type GroupAnswer } from "@floc/core/dates/dates-tabs";
 import { bookingPlan } from "@floc/core/trip/booking/booking-links";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -105,8 +105,8 @@ function forecastFacts(view: TripForecastView | undefined, index: ForecastIndex,
 function stubsFor(p: {
   mine: string[];
   unsaved: number;
-  memberCount: number;
-  waitingOn: string[];
+  group: GroupAnswer[];
+  viewerId: string | undefined;
   start: string | null;
   end: string | null;
   best: { start: string; end: string } | null;
@@ -114,7 +114,7 @@ function stubsFor(p: {
 }): DatesStub[] {
   const stubs: DatesStub[] = [
     { key: "mine", name: "Your days", glyph: (c) => <TickGlyph color={c} />, summary: yourDaysTab(p.mine, p.unsaved) },
-    { key: "group", name: "The group", glyph: (c) => <GroupGlyph color={c} />, summary: groupTab(p.memberCount, p.waitingOn) },
+    { key: "group", name: "The group", glyph: (c) => <GroupGlyph color={c} />, summary: groupTab(p.group, p.viewerId) },
     { key: "trip", name: "The trip", glyph: (c) => <CalendarGlyph color={c} />, summary: tripTab(p.start, p.end, p.best) },
   ];
   const f = p.forecast;
@@ -202,7 +202,7 @@ export default function Dates() {
 
   const people = peopleOf(trip.data.members, guests.data, marked);
   const memberCount = people.length;
-  const waitingOn = people.filter((p) => p.days === 0).map((p) => p.name);
+  const group = people.map((p) => ({ id: p.id, name: p.name, answered: p.days > 0 }));
   const best = bestWindow(rows.data);
 
   const forecast = forecastIndex(weather.data);
@@ -222,8 +222,8 @@ export default function Dates() {
   const stubs = stubsFor({
     mine: mineSaved,
     unsaved,
-    memberCount,
-    waitingOn,
+    group,
+    viewerId: me,
     start: startDate,
     end: endDate,
     best,
