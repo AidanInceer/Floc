@@ -9,13 +9,8 @@ import { headers } from "next/headers";
 import { appUrl } from "@/lib/env";
 import { auth } from "@/server/auth/auth";
 import { memberSession } from "@/server/auth/member-session";
-import {
-  BILLING_INTERVALS,
-  customerFor,
-  priceFor,
-  stripe,
-  type BillingInterval,
-} from "@/server/billing/billing";
+import { customerFor, priceFor, stripe } from "@/server/billing/billing";
+import { readCheckoutRequest } from "@/server/billing/checkout-request";
 
 export const runtime = "nodejs";
 
@@ -26,10 +21,10 @@ export async function POST(request: Request): Promise<Response> {
   const session = memberSession(await auth.api.getSession({ headers: await headers() }));
   if (!session?.user) return refuse(401, "Sign in first");
 
-  const interval = await readInterval(request);
-  if (!interval) return refuse(400, "Pick monthly or yearly");
+  const asked = readCheckoutRequest(await request.json().catch(() => null));
+  if ("refusal" in asked) return refuse(400, asked.refusal);
 
-  const price = priceFor(interval);
+  const price = priceFor(asked.interval);
   if (!price) return refuse(503, "That price is not configured");
 
   const customer = await customerFor({
@@ -44,9 +39,12 @@ export async function POST(request: Request): Promise<Response> {
     line_items: [{ price, quantity: 1 }],
     // The thread back to the account, read by `checkout.session.completed`.
     client_reference_id: session.user.id,
-    subscription_data: { metadata: { userId: session.user.id } },
+    // Why: the 14-day consent's record (CCR 2013 reg 37, #523), read back by the confirmation email.
+    subscription_data: {
+      metadata: { userId: session.user.id, startNowConsentAt: asked.consentAt.toISOString() },
+    },
     /**
-     * Floc sells in GBP only, and both Prices are GBP, so Stripe already
+     * Floc sells in GBP only, and every Price is GBP, so Stripe already
      * refuses any other currency. Collecting the billing address is what makes
      * a non-GB customer visible; Checkout has no country allow-list of its own.
      */
@@ -57,18 +55,6 @@ export async function POST(request: Request): Promise<Response> {
   });
 
   return Response.json({ url: checkout.url });
-}
-
-async function readInterval(
-  request: Request,
-): Promise<BillingInterval | null> {
-  const body: unknown = await request.json().catch(() => null);
-  const value =
-    typeof body === "object" && body && "interval" in body
-      ? (body as { interval: unknown }).interval
-      : null;
-
-  return BILLING_INTERVALS.find((i) => i === value) ?? null;
 }
 
 // Never echoes the reason into a page — the caller is our own fetch.

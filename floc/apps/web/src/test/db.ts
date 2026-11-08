@@ -144,9 +144,9 @@ export async function seedScenario() {
 }
 
 /**
- * Make an account Pro for the rest of the test (ticket 248). A trip is Pro if
- * any member holds a live subscription, so this is how a test says "this trip
- * has paid" without going near Stripe.
+ * Make an account Pro for the rest of the test (ticket 248). Pro is the
+ * person's own (#523), so this is how a test says "this member has paid"
+ * without going near Stripe.
  */
 export async function givePro(userId: string): Promise<void> {
   await db.insert(schema.subscription).values({

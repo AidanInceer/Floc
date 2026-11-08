@@ -37,7 +37,8 @@ import { ensureProfile } from "@/server/auth/profile";
 import { hasCalendarAccess } from "@/server/calendar/calendar-import";
 import { GoogleCalendarIcon } from "@/components/system/icons/google-calendar";
 import { listSignInMethods } from "@/server/auth/sign-in-methods";
-import { BillingAction, ProUpgrade } from "@/components/auth/billing-buttons";
+import { BillingAction } from "@/components/auth/billing-buttons";
+import { ProUpgrade } from "@/components/auth/pro-upgrade";
 import { PrivacyFields } from "@/components/auth/privacy-fields";
 import { isLive, renewalLabel } from "@floc/core/billing/subscription-copy";
 import {
@@ -430,7 +431,7 @@ function BillingPanel({
   return (
     <Panel
       title="Floc Pro"
-      hint="Pro covers everyone on a trip you're in — one of you paying is enough."
+      hint="Pro is yours alone. Everyone else on your trips keeps what they have."
     >
       <Stack gap={4}>
         {billing === "cancelled" ? (

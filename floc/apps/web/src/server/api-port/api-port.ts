@@ -332,7 +332,7 @@ export const webPort: FlocPort = {
 
   async loadTrip(viewerId, tripId): Promise<TripDetail | null> {
     const access = await findTripAccess(tripId, viewerId);
-    return access ? toDetail(access, await canUseFeature("booking.prefill", tripId)) : null;
+    return access ? toDetail(access, await canUseFeature("booking.prefill", viewerId)) : null;
   },
 
   async listDays(viewerId, tripId): Promise<ItineraryDay[]> {

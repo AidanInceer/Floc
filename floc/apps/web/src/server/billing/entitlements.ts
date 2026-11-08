@@ -10,9 +10,8 @@
  * rather than one lock. Entitlements get their own `cache()`, so only pages
  * with a Pro surface pay for the query.
  *
- * A trip is Pro if **any** of its live members holds a live subscription —
- * uncapped, no seat ratio. That policy lives here and nowhere else, so a seat
- * cap later is an edit to this file rather than a refactor.
+ * Pro is personal (ADR-012, #523): the answer is always about one person,
+ * never their trip. A Pro member changes nothing for anyone else on it.
  */
 import "server-only";
 
@@ -22,11 +21,11 @@ import { and, eq, gt, inArray, isNull, or } from "drizzle-orm";
 import { cache } from "react";
 
 import { db } from "@/db";
-import { subscription, tripMembership } from "@/db/schema";
+import { subscription } from "@/db/schema";
 import { allFeaturesFree } from "@/lib/env";
 import { requestMemo } from "@/server/request-scope";
 import { FEATURE_PLAN, planMeets } from "@floc/core/billing/plans";
-import type { FeatureKey, Plan, TargetOf } from "@floc/core/billing/plans";
+import type { FeatureKey, Plan } from "@floc/core/billing/plans";
 
 /**
  * Stripe keeps a cancelled subscription `active` until the period ends, so
@@ -36,7 +35,7 @@ import type { FeatureKey, Plan, TargetOf } from "@floc/core/billing/plans";
 const LIVE_STATUSES = ["active", "trialing"] as const;
 
 /**
- * A row that is live *now*. The period-end check is belt and braces: the
+ * Why: a row that is live *now*. The period-end check is belt and braces: the
  * webhook should have moved a lapsed row to `canceled`, but a webhook that
  * never arrived must not leave someone Pro forever. A null end means no end —
  * a comp, which never lapses.
@@ -62,25 +61,6 @@ function best(rows: { plan: Plan }[]): Plan {
   );
 }
 
-const tripPlanRow = cache(async function tripPlanRow(
-  tripId: number,
-): Promise<Plan> {
-  const rows = await db
-    .select({ plan: subscription.plan })
-    .from(subscription)
-    .innerJoin(tripMembership, eq(tripMembership.userId, subscription.userId))
-    .where(
-      and(
-        eq(tripMembership.tripId, tripId),
-        isNull(tripMembership.deletedAt),
-        live(),
-      ),
-    )
-    .all();
-
-  return best(rows);
-});
-
 const userPlanRow = cache(async function userPlanRow(
   userId: string,
 ): Promise<Plan> {
@@ -93,37 +73,41 @@ const userPlanRow = cache(async function userPlanRow(
   return best(rows);
 });
 
-const planOfTrip = (tripId: number) => requestMemo(`plan-trip:${tripId}`, () => tripPlanRow(tripId));
 const planOfUser = (userId: string) => requestMemo(`plan-user:${userId}`, () => userPlanRow(userId));
 
-/**
- * `target` is a trip id or a user id, decided by the feature's declared
- * scope — so a trip-scoped feature will not compile with a user id, and vice
- * versa.
- */
-export async function canUseFeature<K extends FeatureKey>(
-  feature: K,
-  target: TargetOf<K>,
+/** May this person use this feature — the viewer, never their trip. */
+export async function canUseFeature(
+  feature: FeatureKey,
+  userId: string,
 ): Promise<boolean> {
   // The kill switch is read here, above the query, so a build with Pro turned
   // off never asks the database who is paying.
   if (allFeaturesFree()) return true;
 
-  const { plan, scope } = FEATURE_PLAN[feature];
-  const held =
-    scope === "trip"
-      ? await planOfTrip(target as number)
-      : await planOfUser(target as string);
+  return planMeets(await planOfUser(userId), FEATURE_PLAN[feature]);
+}
 
-  return planMeets(held, plan);
+/** The same question for several people in one read: which of them may use the feature. */
+export async function whoCanUse(feature: FeatureKey, userIds: string[]): Promise<Set<string>> {
+  if (allFeaturesFree()) return new Set(userIds);
+  if (userIds.length === 0) return new Set();
+
+  const rows = await db
+    .select({ userId: subscription.userId, plan: subscription.plan })
+    .from(subscription)
+    .where(and(inArray(subscription.userId, userIds), live()))
+    .all();
+
+  const needed = FEATURE_PLAN[feature];
+  return new Set(rows.filter((row) => planMeets(row.plan, needed)).map((row) => row.userId));
 }
 
 /** The write-path form. Same question, refusal instead of a boolean. */
-export async function assertFeature<K extends FeatureKey>(
-  feature: K,
-  target: TargetOf<K>,
+export async function assertFeature(
+  feature: FeatureKey,
+  userId: string,
 ): Promise<void> {
-  if (!(await canUseFeature(feature, target))) {
+  if (!(await canUseFeature(feature, userId))) {
     throw new Refusal("That's a Floc Pro feature.", "forbidden");
   }
 }

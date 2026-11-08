@@ -34,16 +34,3 @@ export function renewalLabel(s: SubscriptionFacts, now = new Date()): string {
 
   return s.cancelAtPeriodEnd ? `Ends ${when}` : `Renews ${when}`;
 }
-
-// Why: null when there is nothing to boast about, so the page never advertises a 0% saving —
-// or a negative one (#250).
-export function yearlySaving(
-  monthlyMinor: number,
-  yearlyMinor: number,
-): number | null {
-  const twelve = monthlyMinor * 12;
-  if (twelve <= 0) return null;
-
-  const saved = Math.round(((twelve - yearlyMinor) / twelve) * 100);
-  return saved > 0 ? saved : null;
-}

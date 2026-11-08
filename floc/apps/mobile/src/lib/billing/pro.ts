@@ -5,7 +5,9 @@
 import type { BillingStatus, StoreClaim } from "@floc/api/port";
 import { billingHome } from "@floc/core/billing/billing-home";
 import { intervalOfProduct } from "@floc/core/billing/store-products";
-import { isLive, renewalLabel, yearlySaving } from "@floc/core/billing/subscription-copy";
+import { isLive, renewalLabel } from "@floc/core/billing/subscription-copy";
+import { planOffer, type PlanOffer } from "@floc/core/billing/plan-offer";
+import { CURRENCIES, minorPerMajor } from "@floc/core/money/currency";
 
 export type ProView =
   | { kind: "hidden" }
@@ -45,9 +47,23 @@ export function offerTokenOf(
   return product?.subscriptionOffers?.find((offer) => offer.offerTokenAndroid)?.offerTokenAndroid ?? null;
 }
 
-type Priced = { price?: number | null } | undefined;
+type StoreProduct = { id: string; displayPrice: string; price?: number | null; currency?: string | null };
 
-export function yearlySavingOf(monthly: Priced, yearly: Priced): number | null {
-  if (!monthly?.price || !yearly?.price) return null;
-  return yearlySaving(Math.round(monthly.price * 100), Math.round(yearly.price * 100));
+/**
+ * A store plan's words (#523): the store's own charge, which it localises, then Floc's per-month
+ * figure and saving when the currency is one Floc can write exactly; otherwise the charge alone.
+ */
+export function storeOffer(product: StoreProduct, monthly: StoreProduct | undefined): PlanOffer | null {
+  const interval = intervalOfProduct(product.id);
+  if (!interval) return null;
+
+  const currency = CURRENCIES.find((c) => c === product.currency?.toUpperCase());
+  const minor = (p: StoreProduct | undefined) =>
+    currency && p?.price && p.currency?.toUpperCase() === currency ? Math.round(p.price * minorPerMajor(currency)) : null;
+  const amountMinor = minor(product);
+
+  const offer = planOffer({ interval, amountMinor: amountMinor ?? 0, currency: currency ?? "GBP" }, minor(monthly));
+  return amountMinor === null
+    ? { ...offer, charge: product.displayPrice, perMonth: null, saving: null }
+    : { ...offer, charge: product.displayPrice };
 }

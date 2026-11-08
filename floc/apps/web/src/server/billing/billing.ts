@@ -38,14 +38,22 @@ export function stripe(): Stripe | null {
 }
 
 /**
- * Price *ids*, never amounts. Stripe owns the £3.99/£29.99, so a price change
+ * Price *ids*, never amounts. Stripe owns the £3.99/£8.99/£29.99, so a price change
  * is a dashboard edit rather than a deploy — and no money figure ever lands
  * in this repo.
  */
 export function priceFor(interval: BillingInterval): string | undefined {
-  return interval === "monthly"
-    ? process.env.STRIPE_PRICE_MONTHLY
-    : process.env.STRIPE_PRICE_YEARLY;
+  const env = {
+    monthly: process.env.STRIPE_PRICE_MONTHLY,
+    quarterly: process.env.STRIPE_PRICE_QUARTERLY,
+    yearly: process.env.STRIPE_PRICE_YEARLY,
+  };
+  return env[interval];
+}
+
+/** Which plan a Stripe Price is, or null for one Floc does not sell. */
+export function intervalOfPrice(priceId: string): BillingInterval | null {
+  return BILLING_INTERVALS.find((interval) => priceFor(interval) === priceId) ?? null;
 }
 
 /**
@@ -79,7 +87,7 @@ export async function customerFor(user: {
 }
 
 /**
- * Writes what Stripe just told us. Keyed on the Stripe subscription id, which
+ * Why: writes what Stripe just told us. Keyed on the Stripe subscription id, which
  * is unique in the schema, so a redelivered event overwrites rather than
  * inserting a second row — Stripe retries any non-2xx, so duplicate delivery
  * is ordinary traffic.

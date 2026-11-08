@@ -44,7 +44,9 @@ describe("who can see a trip (rule 5)", () => {
       stripeSubscriptionId: `sub_${world.admin}`,
     });
 
-    expect((await webPort.loadTrip(world.member, world.ours.id))?.bookingPrefill).toBe(true);
+    // Why: Pro is the viewer's own (#523) — the admin's Pro fills their links, never the member's.
+    expect((await webPort.loadTrip(world.admin, world.ours.id))?.bookingPrefill).toBe(true);
+    expect((await webPort.loadTrip(world.member, world.ours.id))?.bookingPrefill).toBe(false);
   });
 
   it("answers a non-member and a nonexistent trip identically", async () => {

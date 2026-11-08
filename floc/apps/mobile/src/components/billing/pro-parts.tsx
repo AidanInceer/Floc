@@ -56,3 +56,44 @@ export function ProButton({
     </Pressable>
   );
 }
+
+/** One Pro plan (#523): the store's charge and its period, with the per-month figure and saving on a small line under it. All plans wear one skin — none is pre-selected. */
+export function PlanButton({
+  offer,
+  disabled,
+  onPress,
+}: {
+  offer: { label: string; charge: string; per: string; perMonth: string | null; saving: string | null };
+  disabled?: boolean;
+  onPress: () => void;
+}) {
+  const { c } = useTheme();
+  const extra = [offer.perMonth, offer.saving].filter(Boolean).join(" · ");
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${offer.label}, ${offer.charge} ${offer.per}${extra ? `, ${extra}` : ""}`}
+      accessibilityState={{ disabled: !!disabled }}
+      disabled={disabled}
+      onPress={onPress}
+      style={({ pressed }) => ({
+        gap: space.xs,
+        paddingVertical: space.md,
+        paddingHorizontal: space.md,
+        borderRadius: radius.sm,
+        backgroundColor: c["pro-2"],
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: c["pro-edge"],
+        opacity: disabled ? 0.5 : pressed ? 0.85 : 1,
+      })}
+    >
+      <Text style={{ color: c["pro-ink"], fontSize: size.small }}>
+        <Text style={{ fontFamily: fonts.typeBold }}>{offer.charge}</Text>
+        <Text style={{ fontFamily: fonts.sans }}>{` ${offer.per}`}</Text>
+      </Text>
+      {extra ? (
+        <Text style={{ color: c["pro-ink-2"], fontFamily: fonts.type, fontSize: size.label }}>{extra}</Text>
+      ) : null}
+    </Pressable>
+  );
+}

@@ -119,7 +119,7 @@ export async function placeDocument(
 }
 
 /**
- * How many live files this trip holds, shared and private together. The read
+ * Why: how many live files this trip holds, shared and private together. The read
  * truncates at `LIMITS.documents`, so without a matching check on the write a
  * trip past the ceiling would lose older bookings off the page while the serve
  * route still handed them out — the one place a `LIMITS` ceiling is not
@@ -134,14 +134,16 @@ export async function countDocuments(tripId: number): Promise<number> {
   return row?.n ?? 0;
 }
 
-/** Bytes the trip holds against its quota (#285): every member's live files, private ones too. */
-export async function usedBytes(tripId: number): Promise<number> {
-  const row = await db
-    .select({ bytes: sum(document.sizeBytes).mapWith(Number) })
+/** Bytes the trip holds, per uploader (#285, #523): every member's live files, private ones too. */
+export async function bytesByUploader(tripId: number): Promise<Map<string, number>> {
+  const rows = await db
+    .select({ uploadedBy: document.uploadedBy, bytes: sum(document.sizeBytes).mapWith(Number) })
     .from(document)
     .where(and(eq(document.tripId, tripId), isNull(document.deletedAt)))
-    .get();
-  return row?.bytes ?? 0;
+    .groupBy(document.uploadedBy)
+    .limit(LIMITS.documents)
+    .all();
+  return new Map(rows.map((row) => [row.uploadedBy, row.bytes ?? 0]));
 }
 
 export async function insertDocument(input: {

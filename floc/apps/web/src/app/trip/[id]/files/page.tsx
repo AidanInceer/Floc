@@ -44,7 +44,7 @@ export default async function FilesPage({
 
   const category = parseCategoryFilter((await searchParams).category);
   const [docs, space] = documentsEnabled()
-    ? await Promise.all([listDocuments(tripId, viewerId), storageUsage(tripId)])
+    ? await Promise.all([listDocuments(tripId, viewerId), storageUsage(tripId, viewerId)])
     : [[], null];
 
   const inbox = tripInboxAddress(tripId);

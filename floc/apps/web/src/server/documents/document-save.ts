@@ -13,7 +13,7 @@ import {
   countDocuments, insertDocument, placeDocument, setDocumentCategory,
   setDocumentName, softDeleteDocument,
 } from "./documents";
-import { storageUsage } from "./storage-quota";
+import { storageRoom } from "./storage-quota";
 
 type Access = Pick<TripAccess, "trip" | "viewer" | "day" | "event" | "document">;
 type Upload = {
@@ -34,9 +34,9 @@ export async function saveDocument(access: Access, input: Upload): Promise<strin
   if (refusal) return refusal;
   const type = allowedType(input.mimeType);
   if (!type || !bytesMatchType(type.mimeType, input.bytes)) return "Only PDFs and images can go here";
-  const [held, space] = await Promise.all([countDocuments(access.trip.id), storageUsage(access.trip.id)]);
+  const [held, space] = await Promise.all([countDocuments(access.trip.id), storageRoom(access.trip.id, access.viewer.id)]);
   if (held >= LIMITS.documents) return "This trip is holding as many files as it can";
-  const noSpace = rejectForSpace(space.usedBytes, input.bytes.byteLength, space.quotaBytes);
+  const noSpace = rejectForSpace(space.usedBytes, input.bytes.byteLength, space.quotaBytes, space.own);
   if (noSpace) return noSpace;
 
   const dayEventId = input.dayEventId != null ? (await access.event(input.dayEventId)).id : null;

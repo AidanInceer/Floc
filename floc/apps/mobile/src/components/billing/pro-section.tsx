@@ -63,7 +63,7 @@ export function ProSection({
         <>
           <ProText>
             {view.line ? `${view.line} ` : ""}Pro adds the weather forecast on your dates, a packing list filled
-            in for you, and flight and stay searches with your place and dates filled in. One of you paying covers everyone on a trip.
+            in for you, and flight and stay searches with your place and dates filled in. Pro is yours alone. Everyone else on your trips keeps what they have.
           </ProText>
           <ProOffer accountToken={status.accountToken} claim={claim} onClaimed={onClaimed} />
         </>

@@ -34,7 +34,7 @@ const facts = (over: Partial<StoreFacts> = {}): StoreFacts => ({
 
 const ios = { platform: "ios" as const, productId: "floc_pro_yearly", token: "jws" };
 const android = { platform: "android" as const, productId: "floc_pro_yearly", token: "purchase" };
-const pro = () => canUseFeature("dates.weather", world.ours.id);
+const pro = () => canUseFeature("dates.weather", world.admin);
 
 describe("claiming an App Store purchase", () => {
   it("records a receipt Apple vouches for", async () => {

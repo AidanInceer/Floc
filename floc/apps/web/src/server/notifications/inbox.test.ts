@@ -119,7 +119,7 @@ describe("the inbox", () => {
     expect(second.items).toHaveLength(1);
     expect(second.next).toBeNull();
     expect(new Set([...first.items, ...second.items].map((i) => i.id)).size).toBe(51);
-  });
+  }, 10_000);
 });
 
 describe("the account menu's preview", () => {

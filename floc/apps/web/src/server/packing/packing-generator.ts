@@ -32,7 +32,7 @@ export type PackingPlan = {
   nights: number | null;
   climate: PackClimate | null;
   /**
-   * Why the list came out generic, when it did. Three separate answers because
+   * Why: the list came out generic, when it did. Three separate answers because
    * they need three separate things from the reader: dates, a place on the
    * itinerary, or simply patience. One "no forecast" for all three sends
    * someone with no places on their trip off to wait for weather that is never
@@ -48,16 +48,15 @@ export type PackingPlan = {
 const NO_WEATHER = { hottest: null, firstRain: null };
 
 /**
- * What we know about this trip, as much or as little as that is. An undated
+ * Why: what we know about this trip, as much or as little as that is. An undated
  * trip skips the forecast entirely: with no window there is nothing to
  * intersect a forecast against, and a place's next fortnight is not this trip's
  * weather.
  */
-export async function packingPlanFor(trip: {
-  id: number;
-  startDate: string | null;
-  endDate: string | null;
-}): Promise<PackingPlan> {
+export async function packingPlanFor(
+  trip: { id: number; startDate: string | null; endDate: string | null },
+  viewerId: string,
+): Promise<PackingPlan> {
   const { startDate, endDate } = trip;
   if (!startDate || !endDate) {
     return { nights: null, climate: null, gap: "no-dates", places: [], ...NO_WEATHER };
@@ -69,7 +68,7 @@ export async function packingPlanFor(trip: {
   // "the weather isn't in yet". Read beside it: with no anchor the forecast asks no provider.
   const [anchor, forecast, overnight] = await Promise.all([
     tripForecastAnchor(trip.id),
-    getTripForecast(trip.id),
+    getTripForecast(trip.id, viewerId),
     listOvernightPlaces(trip.id),
   ]);
   if (!anchor) {
@@ -98,7 +97,7 @@ type FillArgs = {
 };
 
 /**
- * Fill the bag with whatever isn't in it yet, and return how many that was.
+ * Why: fill the bag with whatever isn't in it yet, and return how many that was.
  *
  * Additive by construction, which is what makes this safe to press twice: a
  * label already on the list is skipped whole, so its count, its tick and any
@@ -115,7 +114,7 @@ export async function fillPersonalBag(args: FillArgs): Promise<number> {
 }
 
 /**
- * The first-open fill, when the profile asks for one. The claim is a
+ * Why: the first-open fill, when the profile asks for one. The claim is a
  * conditional UPDATE inside the same transaction as the insert, so it is both
  * a race guard and all-or-nothing: an insert that fails rolls the mark back
  * rather than burning the single auto-fill this bag ever gets.
@@ -137,7 +136,7 @@ export async function takePackingIdea(args: FillArgs & { label: string }): Promi
 }
 
 /**
- * A lock, not a fault. Two fills of the same bag are the only thing that
+ * Why: a lock, not a fault. Two fills of the same bag are the only thing that
  * contends here, and the one holding the write lock is doing the identical
  * work — so the loser reports "added nothing", which is exactly true, rather
  * than throwing a 500 at somebody who pressed a button twice (rule 11).

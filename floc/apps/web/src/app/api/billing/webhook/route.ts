@@ -14,6 +14,7 @@ import {
   stripe,
   userIdForCustomer,
 } from "@/server/billing/billing";
+import { confirmProStarted } from "@/server/billing/pro-confirmation";
 
 export const runtime = "nodejs";
 
@@ -49,6 +50,7 @@ async function handle(api: Stripe, event: Stripe.Event): Promise<void> {
 
       const sub = await api.subscriptions.retrieve(session.subscription);
       await recordSubscription({ userId, sub });
+      await confirmProStarted(api, userId, sub);
       return;
     }
 

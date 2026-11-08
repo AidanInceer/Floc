@@ -26,10 +26,10 @@ export async function readPackingBoard(
     listPackingClaims(trip.id),
     getPackSettings(trip.id, viewerId),
     ensureProfile(viewerId),
-    packingPlanFor(trip),
+    packingPlanFor(trip, viewerId),
     listPackingKits(viewerId),
     listPersonalPackingLines(trip.id, viewerId),
-    canUseFeature("packing.autoGenerate", trip.id),
+    canUseFeature("packing.autoGenerate", viewerId),
   ]);
   const tier = resolvePackTier(settings.tier, profile.packTier);
 

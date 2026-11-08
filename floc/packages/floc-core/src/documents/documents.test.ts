@@ -110,7 +110,7 @@ describe("formatBytes", () => {
 });
 
 describe("tripStorageBytes (#285)", () => {
-  it("gives a free trip 200 MB and a Pro trip more", () => {
+  it("gives a free trip 200 MB and a Pro member more of their own", () => {
     expect(formatBytes(tripStorageBytes(false))).toBe("200 MB");
     expect(tripStorageBytes(true)).toBeGreaterThan(tripStorageBytes(false));
   });
@@ -134,6 +134,16 @@ describe("rejectForSpace (#285)", () => {
     const full = "This trip has used all of its 200 MB. Remove a file to make room.";
     expect(rejectForSpace(quota, 1, quota)).toBe(full);
     expect(rejectForSpace(quota + MB, 1, quota)).toBe(full);
+  });
+
+  it("speaks to a Pro member about their own room on the trip (#523)", () => {
+    const own = PRO_TRIP_STORAGE_BYTES;
+    expect(rejectForSpace(own - 3 * MB, 5 * MB, own, true)).toBe(
+      "You have 3 MB of your 1 GB left on this trip, and that file is 5 MB.",
+    );
+    expect(rejectForSpace(own, 1, own, true)).toBe(
+      "Your files on this trip have used all of your 1 GB. Remove a file to make room.",
+    );
   });
 });
 

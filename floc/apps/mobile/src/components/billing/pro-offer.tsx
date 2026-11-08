@@ -4,6 +4,7 @@
  * claim finishes the transaction — an unfinished one replays on the next launch.
  */
 import type { StoreClaim, StoreClaimResult } from "@floc/api/port";
+import { BILLING_INTERVALS } from "@floc/core/billing/plans";
 import { STORE_PRODUCT_IDS } from "@floc/core/billing/store-products";
 import {
   finishTransaction,
@@ -16,9 +17,9 @@ import { useEffect, useRef, useState } from "react";
 import { Platform, View } from "react-native";
 
 import { TextLink } from "../system/text-controls";
-import { ProButton, ProText } from "./pro-parts";
+import { PlanButton, ProText } from "./pro-parts";
 import { space } from "@/lib/theme";
-import { claimOf, offerTokenOf, yearlySavingOf } from "@/lib/billing/pro";
+import { claimOf, offerTokenOf, storeOffer } from "@/lib/billing/pro";
 
 const PLATFORM: StoreClaim["platform"] = Platform.OS === "ios" ? "ios" : "android";
 const STORE = Platform.OS === "ios" ? "App Store" : "Google Play";
@@ -75,11 +76,12 @@ export function ProOffer({
     void fetchProducts({ skus: SKUS, type: "subs" });
   }, [connected, fetchProducts]);
 
-  const monthly = store.subscriptions.find((p) => p.id === STORE_PRODUCT_IDS.monthly);
-  const yearly = store.subscriptions.find((p) => p.id === STORE_PRODUCT_IDS.yearly);
-  const saving = yearlySavingOf(monthly, yearly);
+  const products = BILLING_INTERVALS.flatMap((interval) =>
+    store.subscriptions.filter((p) => p.id === STORE_PRODUCT_IDS[interval]),
+  );
+  const monthly = products.find((p) => p.id === STORE_PRODUCT_IDS.monthly);
 
-  function buy(product: typeof monthly) {
+  function buy(product: (typeof products)[number]) {
     if (!product) return;
     setBusy(true);
     setMessage(null);
@@ -118,19 +120,14 @@ export function ProOffer({
 
   return (
     <View style={{ gap: space.sm }}>
-      {yearly || monthly ? (
-        <View style={{ flexDirection: "row", gap: space.sm }}>
-          {yearly ? (
-            <ProButton
-              lead
-              label={`${yearly.displayPrice} a year${saving ? ` · save ${saving}%` : ""}`}
-              disabled={busy}
-              onPress={() => buy(yearly)}
-            />
-          ) : null}
-          {monthly ? (
-            <ProButton label={`${monthly.displayPrice} a month`} disabled={busy} onPress={() => buy(monthly)} />
-          ) : null}
+      {products.length > 0 ? (
+        <View style={{ gap: space.sm }}>
+          {products.map((product) => {
+            const offer = storeOffer(product, monthly);
+            return offer ? (
+              <PlanButton key={product.id} offer={offer} disabled={busy} onPress={() => buy(product)} />
+            ) : null;
+          })}
         </View>
       ) : (
         <ProText quiet>{connected ? `Pro is not on sale in ${IN_STORE} yet.` : `Waiting for ${IN_STORE}…`}</ProText>

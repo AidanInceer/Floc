@@ -69,7 +69,7 @@ export default async function DaysPage({
   const openEventId = Number(query.event) || null;
   const [calendar, bookingPrefill, sites, feedUrl] = await Promise.all([
     loadCalendar(access, openEventId),
-    canUseFeature("booking.prefill", trip.id),
+    canUseFeature("booking.prefill", viewer.id),
     bookingSitesOf(viewer.id),
     calendarFeedUrlFor(trip.id, viewer.id),
   ]);

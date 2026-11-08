@@ -53,7 +53,7 @@ async function fill() {
     tripId: world.ours.id,
     ownerId: world.admin,
     tier: "balanced",
-    plan: await packingPlanFor((await tripRow())!),
+    plan: await packingPlanFor((await tripRow())!, world.admin),
   });
 }
 
@@ -63,13 +63,13 @@ async function myBag() {
 
 describe("what the trip tells us", () => {
   it("says so rather than throwing when the trip has no dates (rule 9)", async () => {
-    const plan = await packingPlanFor((await tripRow())!);
+    const plan = await packingPlanFor((await tripRow())!, world.admin);
     expect(plan).toEqual({ nights: null, climate: null, gap: "no-dates", places: [], hottest: null, firstRain: null });
   });
 
   it("counts the nights, and names the missing place rather than the missing forecast", async () => {
     await setDates("2026-09-01", "2026-09-06");
-    const plan = await packingPlanFor((await tripRow())!);
+    const plan = await packingPlanFor((await tripRow())!, world.admin);
     expect(plan.nights).toBe(5);
     expect(plan.climate).toBeNull();
     expect(plan.gap).toBe("no-place");
@@ -159,7 +159,7 @@ describe("the automatic fill happens once, ever", () => {
       tripId: world.ours.id,
       ownerId: world.admin,
       tier: "balanced",
-      plan: await packingPlanFor((await tripRow())!),
+      plan: await packingPlanFor((await tripRow())!, world.admin),
     });
 
   // The page skips the call entirely once this is set, so the flag has to be
@@ -210,7 +210,7 @@ describe("suggested lines (#469)", () => {
       tripId: world.ours.id,
       ownerId: world.admin,
       tier: "balanced",
-      plan: await packingPlanFor((await tripRow())!),
+      plan: await packingPlanFor((await tripRow())!, world.admin),
       label,
     });
   }
@@ -252,7 +252,7 @@ describe("suggested lines (#469)", () => {
   it("never reaches another member's bag", async () => {
     await takePackingIdea({
       tripId: world.ours.id, ownerId: world.member, tier: "balanced",
-      plan: await packingPlanFor((await tripRow())!), label: "toothbrush",
+      plan: await packingPlanFor((await tripRow())!, world.admin), label: "toothbrush",
     });
     expect(await softDeleteSuggestedLines(world.ours.id, world.admin)).toBe(0);
     expect(await listPersonalPackingLines(world.ours.id, world.member)).toHaveLength(1);

@@ -56,6 +56,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - Sentence case. British English. Real content, never lorem ipsum.
 - ✓ A field starts empty: no placeholder, no example, nothing pre-filled the person did not choose. A visible label or an `aria-label` names it.
 - ✓ Money is exact. No `≈` or `~`. A money figure anywhere matches the Money tab, which is the source of truth.
+- A per-month figure worked out from a longer Pro plan rounds to the penny and says "a month" in words (£8.99 every 3 months shows £3.00 a month). The charge itself is always exact (#523).
 
 ## Layout
 

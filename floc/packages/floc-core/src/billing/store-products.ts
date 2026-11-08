@@ -6,6 +6,7 @@ import type { BillingInterval } from "./plans";
 
 export const STORE_PRODUCT_IDS: Record<BillingInterval, string> = {
   monthly: "floc_pro_monthly",
+  quarterly: "floc_pro_3_months",
   yearly: "floc_pro_yearly",
 };
 

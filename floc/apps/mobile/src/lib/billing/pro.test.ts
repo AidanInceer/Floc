@@ -1,7 +1,7 @@
 import type { BillingStatus } from "@floc/api/port";
 import { describe, expect, it } from "vitest";
 
-import { claimOf, offerTokenOf, proView, yearlySavingOf } from "./pro";
+import { claimOf, offerTokenOf, proView, storeOffer } from "./pro";
 
 const NOW = new Date("2026-09-12T12:00:00Z");
 
@@ -83,13 +83,30 @@ describe("buying on Play", () => {
   });
 });
 
-describe("the yearly saving", () => {
-  it("compares twelve months with a year, in whole percent", () => {
-    expect(yearlySavingOf({ price: 3.99 }, { price: 29.99 })).toBe(37);
+describe("a store plan's words (#523)", () => {
+  const monthly = { id: "floc_pro_monthly", displayPrice: "£3.99", price: 3.99, currency: "GBP" };
+
+  it("keeps the store's own charge first, then the per-month figure and the saving", () => {
+    expect(storeOffer({ id: "floc_pro_3_months", displayPrice: "£8.99", price: 8.99, currency: "GBP" }, monthly)).toEqual({
+      label: "Every 3 months",
+      charge: "£8.99",
+      per: "every 3 months",
+      perMonth: "£3.00 a month",
+      saving: "Save £11.92 a year",
+    });
   });
 
-  it("boasts of nothing when a price is missing", () => {
-    expect(yearlySavingOf(undefined, { price: 29.99 })).toBeNull();
-    expect(yearlySavingOf({ price: null }, { price: 29.99 })).toBeNull();
+  it("shows only the store's charge in a currency Floc cannot format", () => {
+    expect(storeOffer({ id: "floc_pro_yearly", displayPrice: "29,99 XYZ", price: 29.99, currency: "XYZ" }, monthly)).toEqual({
+      label: "Yearly",
+      charge: "29,99 XYZ",
+      per: "a year",
+      perMonth: null,
+      saving: null,
+    });
+  });
+
+  it("knows nothing of a product Floc does not sell", () => {
+    expect(storeOffer({ id: "coins", displayPrice: "£1", price: 1, currency: "GBP" }, monthly)).toBeNull();
   });
 });

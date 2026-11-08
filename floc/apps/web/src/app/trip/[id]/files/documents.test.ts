@@ -27,7 +27,6 @@ import {
   listDocuments,
   liveDocument,
   softDeleteDocument,
-  usedBytes,
 } from "@/server/documents/documents";
 import { FREE_TRIP_STORAGE_BYTES, PRO_TRIP_STORAGE_BYTES } from "@floc/core/documents/documents";
 import { storageUsage } from "@/server/documents/storage-quota";
@@ -271,23 +270,25 @@ describe("renameDocument (#364)", () => {
   });
 });
 
-describe("the trip's storage quota (#285)", () => {
-  const bigFile = (sizeBytes: number) =>
+describe("the trip's storage quota (#285, #523)", () => {
+  const bigFile = (sizeBytes: number, uploadedBy = world.admin) =>
     insertDocument({
       tripId: world.ours.id,
-      uploadedBy: world.admin,
+      uploadedBy,
       ownerId: null,
       name: "scans.pdf",
-      storageKey: `seeded-${sizeBytes}`,
+      storageKey: `seeded-${sizeBytes}-${uploadedBy}`,
       mimeType: "application/pdf",
       sizeBytes,
       category: "other",
     });
+  const used = async (viewer = world.member) => (await storageUsage(world.ours.id, viewer)).usedBytes;
+  const PDF = "%PDF-1.7".length;
 
   it("takes a file that fits in what is left", async () => {
     await bigFile(FREE_TRIP_STORAGE_BYTES - 1024);
     expect(await uploadDocument(world.ours.id, form("shared"))).toBeUndefined();
-    expect(await usedBytes(world.ours.id)).toBe(FREE_TRIP_STORAGE_BYTES - 1024 + "%PDF-1.7".length);
+    expect(await used()).toBe(FREE_TRIP_STORAGE_BYTES - 1024 + PDF);
   });
 
   it("refuses a file once the trip holds as many as Floc keeps, and writes nothing", async () => {
@@ -296,7 +297,7 @@ describe("the trip's storage quota (#285)", () => {
       storageKey: `seeded-${i}`, mimeType: "application/pdf", sizeBytes: 1, category: "other" as const,
     })));
     expect(await uploadDocument(world.ours.id, form("shared"))).toEqual({ error: "This trip is holding as many files as it can" });
-    expect(await usedBytes(world.ours.id)).toBe(LIMITS.documents);
+    expect(await used()).toBe(LIMITS.documents);
   });
 
   it("refuses one past the quota as a form error naming the space left, and writes nothing", async () => {
@@ -315,24 +316,45 @@ describe("the trip's storage quota (#285)", () => {
 
     await softDeleteDocument(full.id);
 
-    expect(await usedBytes(world.ours.id)).toBe(0);
+    expect(await used()).toBe(0);
     expect(await uploadDocument(world.ours.id, form("shared"))).toBeUndefined();
   });
 
   it("counts every member's private files, not only the viewer's", async () => {
     await uploadDocument(world.ours.id, form("private"));
-    signIn(world.admin);
-    expect(await usedBytes(world.ours.id)).toBe("%PDF-1.7".length);
+    expect(await used(world.admin)).toBe(PDF);
   });
 
-  it("lifts the quota for a trip with a Pro member on it", async () => {
+  it("lets a Pro member's own files pass the trip's 200 MB", async () => {
+    await givePro(world.member);
+    await bigFile(FREE_TRIP_STORAGE_BYTES);
+
+    expect(await uploadDocument(world.ours.id, form("shared"))).toBeUndefined();
+    expect(await storageUsage(world.ours.id, world.member)).toEqual({ usedBytes: PDF, quotaBytes: PRO_TRIP_STORAGE_BYTES });
+  });
+
+  it("stops a Pro member at 1 GB of their own files on the trip", async () => {
+    await givePro(world.member);
+    await bigFile(PRO_TRIP_STORAGE_BYTES - 4, world.member);
+
+    expect(await uploadDocument(world.ours.id, form("shared"))).toEqual({
+      error: "You have 4 B of your 1 GB left on this trip, and that file is 8 B.",
+    });
+  });
+
+  it("keeps a free member on the trip's 200 MB when a trip-mate is Pro", async () => {
+    await givePro(world.admin);
+    await bigFile(FREE_TRIP_STORAGE_BYTES - 4, world.member);
+
+    expect((await uploadDocument(world.ours.id, form("shared")))?.error).toMatch(/4 B of its 200 MB left/);
+    expect((await storageUsage(world.ours.id, world.member)).quotaBytes).toBe(FREE_TRIP_STORAGE_BYTES);
+  });
+
+  it("leaves a Pro member's files out of the trip's shared room", async () => {
     await givePro(world.admin);
     await bigFile(FREE_TRIP_STORAGE_BYTES);
 
     expect(await uploadDocument(world.ours.id, form("shared"))).toBeUndefined();
-    expect(await storageUsage(world.ours.id)).toEqual({
-      usedBytes: FREE_TRIP_STORAGE_BYTES + "%PDF-1.7".length,
-      quotaBytes: PRO_TRIP_STORAGE_BYTES,
-    });
+    expect(await storageUsage(world.ours.id, world.member)).toEqual({ usedBytes: PDF, quotaBytes: FREE_TRIP_STORAGE_BYTES });
   });
 });

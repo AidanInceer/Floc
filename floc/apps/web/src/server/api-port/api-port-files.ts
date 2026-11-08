@@ -57,7 +57,7 @@ export const filesPort: FilesPort = {
 
   async fileUsage(viewerId, tripId) {
     await scoped(viewerId, tripId);
-    return storageUsage(tripId);
+    return storageUsage(tripId, viewerId);
   },
 
   async renameFile(viewerId, tripId, fileId, raw) {

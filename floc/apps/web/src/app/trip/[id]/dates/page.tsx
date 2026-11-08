@@ -77,9 +77,9 @@ export default async function DatesPage({
     listRouteDays(tripId),
     // Null → the calendar offers no Weather mode (ticket 148), and always null
     // on a free trip — the gate is inside the read (ticket 248).
-    getTripForecast(tripId),
-    canUseFeature("dates.weather", tripId),
-    canUseFeature("booking.prefill", tripId),
+    getTripForecast(tripId, viewer.id),
+    canUseFeature("dates.weather", viewer.id),
+    canUseFeature("booking.prefill", viewer.id),
     listGuests(tripId),
     // Rule 11: no storage volume, no files — and no query for them.
     files ? listDocuments(tripId, viewer.id) : Promise.resolve([]),

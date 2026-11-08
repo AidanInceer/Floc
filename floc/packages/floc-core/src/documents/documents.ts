@@ -150,9 +150,9 @@ export function formatBytes(bytes: number): string {
 }
 
 /**
- * What one trip may hold, shared and private together (#285). Deleted files
- * give their bytes back. Pro's number is not printed on the landing page — it
- * sells "extra storage", so this can move without the copy going wrong.
+ * Free: what one trip may hold, shared and private together (#285). Pro: a member's own files on
+ * one trip (#523). Deleted files give their bytes back. Pro's number is not printed on the landing
+ * page — it sells "extra storage", so this can move without the copy going wrong.
  */
 export const FREE_TRIP_STORAGE_BYTES = 200 * 1024 ** 2;
 export const PRO_TRIP_STORAGE_BYTES = 1024 ** 3;
@@ -161,13 +161,20 @@ export function tripStorageBytes(pro: boolean): number {
   return pro ? PRO_TRIP_STORAGE_BYTES : FREE_TRIP_STORAGE_BYTES;
 }
 
-/** Refuses an upload that would take the trip past its quota, naming what is left. */
-export function rejectForSpace(usedBytes: number, incomingBytes: number, quotaBytes: number): string | null {
+/** Refuses an upload that would pass its room, naming what is left: the trip's, or a Pro member's own (#523). */
+export function rejectForSpace(usedBytes: number, incomingBytes: number, quotaBytes: number, own = false): string | null {
   const left = quotaBytes - usedBytes;
   const quota = formatBytes(quotaBytes);
-  if (left <= 0) return `This trip has used all of its ${quota}. Remove a file to make room.`;
+  const size = formatBytes(incomingBytes);
+  if (left <= 0) {
+    return own
+      ? `Your files on this trip have used all of your ${quota}. Remove a file to make room.`
+      : `This trip has used all of its ${quota}. Remove a file to make room.`;
+  }
   if (incomingBytes <= left) return null;
-  return `This trip has ${formatBytes(left)} of its ${quota} left, and that file is ${formatBytes(incomingBytes)}.`;
+  return own
+    ? `You have ${formatBytes(left)} of your ${quota} left on this trip, and that file is ${size}.`
+    : `This trip has ${formatBytes(left)} of its ${quota} left, and that file is ${size}.`;
 }
 
 const HEIC_BRANDS = ["heic", "heix", "hevc", "heim", "heis", "mif1", "msf1"];

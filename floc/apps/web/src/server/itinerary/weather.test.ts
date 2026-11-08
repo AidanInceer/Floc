@@ -104,16 +104,16 @@ describe("tripForecastAnchor", () => {
 });
 
 describe("getTripForecast", () => {
-  // Every case below is a Pro trip: the forecast is gated on the read itself
-  // (ticket 248), so an ungated trip never reaches the mapping at all.
+  // Every case below is asked by a Pro member: the forecast is gated on the read itself
+  // (ticket 248), so a free member never reaches the mapping at all.
   beforeEach(() => givePro(world.admin));
 
-  it("refuses a free trip however it asks, without calling out", async () => {
+  it("refuses a free member however they ask, without calling out", async () => {
     await anchorTrip(world.ours.dayId);
     const fetchMock = stubFetch(meteoBody(today()));
     await db.delete(schema.subscription);
 
-    expect(await getTripForecast(world.ours.id)).toBeNull();
+    expect(await getTripForecast(world.ours.id, world.admin)).toBeNull();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
@@ -122,7 +122,7 @@ describe("getTripForecast", () => {
     const from = today();
     const fetchMock = stubFetch(meteoBody(from));
 
-    const forecast = await getTripForecast(world.ours.id);
+    const forecast = await getTripForecast(world.ours.id, world.admin);
 
     expect(forecast).not.toBeNull();
     // The request itself carries the 14-day bound and the place.
@@ -149,7 +149,7 @@ describe("getTripForecast", () => {
   it("does not treat an undated, unplaced trip as an error — returns null, no fetch", async () => {
     const fetchMock = stubFetch(meteoBody(today()));
     // world.ours has no dates and no placed location.
-    expect(await getTripForecast(world.ours.id)).toBeNull();
+    expect(await getTripForecast(world.ours.id, world.admin)).toBeNull();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
@@ -161,7 +161,7 @@ describe("getTripForecast", () => {
         throw new Error("network down");
       }),
     );
-    await expect(getTripForecast(world.ours.id)).resolves.toBeNull();
+    await expect(getTripForecast(world.ours.id, world.admin)).resolves.toBeNull();
   });
 
   it("degrades to null on a non-OK response", async () => {
@@ -170,6 +170,6 @@ describe("getTripForecast", () => {
       "fetch",
       vi.fn(async () => ({ ok: false, status: 503, json: async () => ({}) })),
     );
-    await expect(getTripForecast(world.ours.id)).resolves.toBeNull();
+    await expect(getTripForecast(world.ours.id, world.admin)).resolves.toBeNull();
   });
 });

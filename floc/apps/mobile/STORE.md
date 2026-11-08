@@ -93,9 +93,12 @@ website still sells through Stripe. The app must never link to the website's
 checkout or portal, and must never steer anyone there to pay — Apple's rule
 3.1.1 and Google's Play Billing policy forbid both.
 
-- **Products.** `floc_pro_monthly` and `floc_pro_yearly`
-  (`@floc/core/billing/store-products`), auto-renewing, in one App Store
-  subscription group. On Play, one subscription per id with one base plan.
+- **Products.** `floc_pro_monthly` (£3.99), `floc_pro_3_months` (£8.99, every
+  3 months) and `floc_pro_yearly` (£29.99) (`@floc/core/billing/store-products`),
+  auto-renewing, in one App Store subscription group. On Play, one subscription
+  per id with one base plan. Same price points as the web (#523).
+- **Pro is personal.** It covers the buyer only, never the rest of their trips.
+  Store text must not say one Pro covers the trip.
 - **The server decides.** The app sends each purchase to `billing.claim`. The
   server checks it with Apple or Google, writes the `subscription` row, and only
   then does the app finish the transaction.

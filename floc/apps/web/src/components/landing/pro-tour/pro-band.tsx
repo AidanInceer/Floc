@@ -14,9 +14,9 @@ function ProPitch({ monthly, href }: { monthly: string | null; href: string }) {
         <b className="rounded-[5px] bg-pro-mark px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-pro">Pro</b>
       </span>
       <div>
-        <h3 className="font-display text-xl font-semibold tracking-tight">One Pro covers the whole trip.</h3>
+        <h3 className="font-display text-xl font-semibold tracking-tight">Pro is yours alone.</h3>
         <p className="mt-1 max-w-[60ch] text-ink-soft">
-          Whoever gets it, everyone on that trip gets the extras. The vote, dates, route, money and packing stay free.
+          Your extras, on every trip you are on. The vote, dates, route, money and packing stay free for everyone.
         </p>
       </div>
       <div className="flex items-center justify-between gap-[18px] border-t border-rule pt-3.5 md:border-0 md:pt-0">
