@@ -4,9 +4,9 @@ import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { trip, tripMembership } from "@/db/schema";
-import { EVENT_CATEGORIES } from "@floc/core/itinerary/event-categories";
 import { tripCalendar } from "@floc/core/itinerary/ics";
 import { listDaysWithEvents } from "@/server/itinerary/itinerary";
+import { eventName } from "@floc/core/itinerary/names/event-name";
 
 /**
  * The trip's itinerary as `.ics`, or `null` for a non-member and a missing trip alike (rule 5). A feed link passes
@@ -34,7 +34,7 @@ export async function memberCalendar(tripId: number, userId: string, epoch?: num
     d.events.map((e) => ({
       id: e.id,
       date: d.date,
-      title: e.title ?? e.placeName ?? EVENT_CATEGORIES[e.type].label,
+      title: eventName(e),
       time: e.time,
       endTime: e.endTime,
       allDay: e.allDay,

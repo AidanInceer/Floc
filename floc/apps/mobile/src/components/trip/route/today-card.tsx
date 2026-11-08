@@ -6,8 +6,10 @@ import { Pressable, Text, View } from "react-native";
 import { useTheme } from "@/components/system/theme";
 import { Body, Card, Label } from "@/components/system/ui";
 import { fonts, size, space } from "@/lib/theme";
+import { eventName } from "@floc/core/itinerary/names/event-name";
+import type { DayEventType } from "@floc/core/vocabulary";
 
-type TodayEvent = { id: number; title: string | null; time: string | null; endTime: string | null; placeName: string | null };
+type TodayEvent = { id: number; type: DayEventType; title: string | null; time: string | null; endTime: string | null; placeName: string | null };
 type TodayFile = { id: number; name: string };
 
 export function TodayCard({
@@ -34,7 +36,7 @@ export function TodayCard({
               {e.time ? (e.endTime ? `${e.time}–${e.endTime}` : e.time) : "All day"}
             </Text>
             <View style={{ flex: 1 }}>
-              <Body>{e.title ?? "Untitled"}</Body>
+              <Body>{eventName(e)}</Body>
               {e.placeName ? <Body tone="ink-3">{e.placeName}</Body> : null}
             </View>
           </Pressable>

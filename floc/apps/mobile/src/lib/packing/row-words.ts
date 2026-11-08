@@ -1,14 +1,14 @@
+import { cubeCount, thingCount } from "@floc/core/packing/packing-words";
+
 export function groupCount(packed: (boolean | null)[]): { text: string; full: boolean } {
   if (packed.length === 0) return { text: "", full: false };
   if (packed.some((p) => p === null)) return { text: `${packed.length} to claim`, full: false };
-  const done = packed.filter(Boolean).length;
-  if (done === packed.length) return { text: "All packed", full: true };
-  return { text: `${done}/${packed.length}`, full: false };
+  return cubeCount(packed.filter(Boolean).length, packed.length);
 }
 
 export function sectionCount(total: number, packed: number): string {
   if (packed > 0) return `${packed} of ${total} packed`;
-  return total === 1 ? "1 thing" : `${total} things`;
+  return thingCount(total);
 }
 
 /** The quiet second line of a shared row. The tick already says packed, so it is never repeated here. */

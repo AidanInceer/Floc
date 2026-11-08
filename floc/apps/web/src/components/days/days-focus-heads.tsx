@@ -11,7 +11,7 @@ import { Menu } from "@/components/system/client-ui";
 import { Button, cx } from "@/components/system/ui";
 import { ChevronIcon, PlusIcon } from "@/components/system/icons";
 import { OUTSIDE_DAY_CLASS, type CalendarDay } from "@/components/days/days-calendar-shared";
-import { shortPlace } from "@/components/days/days-stop-strip";
+import { shortPlace } from "@floc/core/itinerary/names/place-name";
 
 export type FocusFacts = {
   day: CalendarDay;

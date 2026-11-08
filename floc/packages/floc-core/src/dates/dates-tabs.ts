@@ -32,11 +32,16 @@ export function yourDaysTab(saved: IsoDate[], unsaved: number): TabSummary {
   return { value, short: value, note, open: unsaved > 0 };
 }
 
-export function groupTab(memberCount: number, waitingOn: string[]): TabSummary {
-  const answered = memberCount - waitingOn.length;
+/** One person the group is asked: a member or an invite-link guest (#442). */
+export type GroupAnswer = { id: string; name: string; answered: boolean };
+
+/** Counts and names come from the same list, so a guest who has not answered is never counted as answered. */
+export function groupTab(people: GroupAnswer[], viewerId?: string | null): TabSummary {
+  const waitingOn = people.filter((p) => !p.answered).map((p) => (p.id === viewerId ? "you" : p.name));
+  const answered = people.length - waitingOn.length;
   return {
-    value: `${answered} of ${memberCount} answered`,
-    short: `${answered} of ${memberCount}`,
+    value: `${answered} of ${people.length} answered`,
+    short: `${answered} of ${people.length}`,
     note: waitingOn.length ? `Waiting on ${waitingOn.join(", ")}` : "Everyone has answered",
     open: waitingOn.length > 0,
   };

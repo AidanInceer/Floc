@@ -15,6 +15,7 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { db, schema } from "@/db";
 import { givePro, migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { webPort } from "@/server/api-port/api-port";
+import { ensureProfile } from "@/server/auth/profile";
 
 let world: Scenario;
 
@@ -585,12 +586,27 @@ describe("renaming a packing line through the port (#362)", () => {
 });
 
 describe("auto packing ideas through the port (#469)", () => {
+  it("fills a Pro member's bag on first open, once, as the web page does (#221)", async () => {
+    await givePro(world.admin);
+    await ensureProfile(world.admin);
+    await db.update(schema.userProfile).set({ packAutoGenerate: true }).where(sql`user_id = ${world.admin}`);
+
+    const first = await webPort.loadPacking(world.admin, world.ours.id);
+    expect(first.mine.length).toBeGreaterThan(0);
+    expect(first.mine.every((l) => l.suggested)).toBe(true);
+
+    await webPort.removePackingLines(world.admin, world.ours.id, first.mine.map((l) => l.id));
+    expect((await webPort.loadPacking(world.admin, world.ours.id)).mine).toEqual([]);
+  });
+
   it("shows no ideas on a free trip", async () => {
     expect((await webPort.loadPacking(world.admin, world.ours.id)).ideas).toEqual([]);
   });
 
   it("takes one idea as a suggested line, and removes it again", async () => {
     await givePro(world.admin);
+    await ensureProfile(world.admin);
+    await db.update(schema.userProfile).set({ packAutoGenerate: false }).where(sql`user_id = ${world.admin}`);
     const before = await webPort.loadPacking(world.admin, world.ours.id);
     expect(before.ideas.map((i) => i.label)).toContain("toothbrush");
     expect(before.plan.gap).toBe("no-dates");

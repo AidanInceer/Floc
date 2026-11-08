@@ -11,6 +11,7 @@ import { capRequiredText } from "@floc/core/text/text";
 import { day, dayEvent, place } from "@/db/schema";
 import { readCountryCode } from "@floc/core/people/countries";
 import { bounded, LIMITS } from "@/server/limits";
+import { shortPlace } from "@floc/core/itinerary/names/place-name";
 
 /** Nominatim requires an identifying UA with a contact address — not a secret, no key to leak. */
 const USER_AGENT = "Floc (aidaninceer0@gmail.com)";
@@ -158,7 +159,7 @@ async function geocode(query: string): Promise<PlaceSearchResult[] | null> {
       const lat = Number(h.lat);
       const lng = Number(h.lon);
       const label = h.display_name ?? h.name ?? "";
-      const name = h.name || label.split(",")[0]?.trim() || ""; // display_name is a full address chain
+      const name = h.name || shortPlace(label) || ""; // display_name is a full address chain
       const providerId =
         h.osm_type && h.osm_id !== undefined
           ? `osm:${h.osm_type}:${h.osm_id}`

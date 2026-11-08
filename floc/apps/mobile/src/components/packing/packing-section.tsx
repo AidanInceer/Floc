@@ -1,9 +1,9 @@
 import {
+  packingCubes,
   viewPackingLines,
   type PackingLineGroup,
   type PackCategory,
 } from "@floc/core/packing/packing";
-import { packingCubes } from "@floc/core/packing/packing-ideas";
 import { useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 

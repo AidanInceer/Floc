@@ -22,12 +22,24 @@ describe("yourDaysTab", () => {
 });
 
 describe("groupTab", () => {
+  const person = (id: string, name: string, answered: boolean) => ({ id, name, answered });
+
   it("names who the group is waiting on", () => {
-    expect(groupTab(4, ["Sofia"])).toEqual({ value: "3 of 4 answered", short: "3 of 4", note: "Waiting on Sofia", open: true });
+    const people = [person("a", "Ana", true), person("b", "Ben", true), person("c", "Cal", true), person("s", "Sofia", false)];
+    expect(groupTab(people)).toEqual({ value: "3 of 4 answered", short: "3 of 4", note: "Waiting on Sofia", open: true });
   });
 
   it("says when everyone has answered", () => {
-    expect(groupTab(2, [])).toMatchObject({ note: "Everyone has answered", open: false });
+    expect(groupTab([person("a", "Ana", true), person("b", "Ben", true)])).toMatchObject({ note: "Everyone has answered", open: false });
+  });
+
+  it("waits on a guest who has not answered, and never counts them as answered", () => {
+    const people = [person("a", "Ana", true), person("b", "Ben", true), person("g", "Sam", false)];
+    expect(groupTab(people)).toMatchObject({ value: "2 of 3 answered", note: "Waiting on Sam", open: true });
+  });
+
+  it("calls the viewer you", () => {
+    expect(groupTab([person("a", "Ana", false), person("b", "Ben", true)], "a")).toMatchObject({ note: "Waiting on you" });
   });
 });
 
