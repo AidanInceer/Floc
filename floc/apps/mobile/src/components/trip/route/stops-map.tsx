@@ -14,6 +14,7 @@ import { LegArrow, LegTag, StopDot, StopName } from "./route-marks";
 import { countriesAt } from "@/lib/geo/country-at";
 import { paperStyle } from "@/lib/map";
 import { radius } from "@/lib/theme";
+import { shortPlace } from "@floc/core/itinerary/names/place-name";
 
 const HEIGHT = 260;
 /** Why: past this the 1:110m outlines turn to blocks, and there are no streets under them. */
@@ -34,7 +35,6 @@ const LOOKS = {
 type Look = keyof typeof LOOKS;
 
 const lookOf = (mode: RouteLine["mode"]): Look => (!mode ? "unset" : mode === "train" || mode === "flight" || mode === "ferry" ? mode : "road");
-const cityOf = (place: string) => place.split(",")[0];
 
 function view(points: LngLat[]): InitialViewState {
   const [lngs, lats] = [points.map((p) => p[0]), points.map((p) => p[1])];
@@ -125,7 +125,7 @@ export function StopsMap({ route, tone, tracks }: { route: OverviewRoute; tone: 
           const side = sideOf(route.stops, k);
           return (
             <Marker key={`name-${k}`} lngLat={[s.lng, s.lat]} anchor={side === "left" ? "right" : "left"} offset={[side === "left" ? -12 : 12, 0]}>
-              <StopName name={cityOf(s.place)} nights={s.nights > 0 ? nightsLabel(s.nights) : null} side={side} />
+              <StopName name={shortPlace(s.place)} nights={s.nights > 0 ? nightsLabel(s.nights) : null} side={side} />
             </Marker>
           );
         })}

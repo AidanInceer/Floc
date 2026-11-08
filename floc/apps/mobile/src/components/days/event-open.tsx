@@ -10,15 +10,17 @@
  * AN EVENT THAT HAS GONE DRAWS NOTHING. Deleting one leaves its id selected
  * for the frame before the day is refetched.
  */
-import type { DayEventType } from "@floc/core/vocabulary";
 
 import { EventForm, type EventDraft } from "./event-form";
 import { EventModal } from "./event-modal";
+import { eventName } from "@floc/core/itinerary/names/event-name";
+import type { DayEventType } from "@floc/core/vocabulary";
 
 export type OpenableEvent = {
   id: number;
   type: DayEventType;
   title: string | null;
+  placeName: string | null;
   time: string | null;
   allDay: boolean;
   note: string | null;
@@ -48,7 +50,7 @@ export function EventOpen({
   const event = events.find((row) => row.id === eventId);
   if (!event) return null;
 
-  const named = event.title ?? "Untitled";
+  const named = eventName(event);
 
   return (
     <EventModal

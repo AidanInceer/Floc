@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { climateWords, ideasWhy, packingCubes, packingIdeas } from "./packing-ideas";
+import { packingCubes } from "./packing";
+import { climateWords, ideasWhy, packingIdeas } from "./packing-ideas";
 import type { PackCategory } from "./packing";
 
 const line = (label: string, category: PackCategory, kitName: string | null = null) => ({ label, category, kitName });

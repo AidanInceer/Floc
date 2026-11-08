@@ -8,6 +8,7 @@ import type { Currency, Expense, ExpenseSplit, Settlement } from "@/db/schema";
 import { formatDate, toIsoDate } from "@floc/core/dates/dates";
 import { formatMoney } from "@floc/core/money/money";
 import { peopleOnExpense } from "@floc/core/money/edit-start";
+import { splitLabel } from "@floc/core/money/expense/split-label";
 import { menuDangerItemClass, menuItemClass } from "@/components/system/ui";
 import { ConfirmSubmit, Menu, Sheet } from "@/components/system/client-ui";
 import { CategoryIcon } from "@/components/system/icons/category";
@@ -22,25 +23,6 @@ import {
   updateExpense,
 } from "@/app/trip/[id]/money/actions";
 
-
-// Even split is stored as one share each; read it back from the numbers
-// (within a penny, for remainder handling) rather than trusting splitType.
-const SPLIT_LABELS: Record<Expense["splitType"], string> = {
-  even: "split evenly",
-  exact: "set amounts",
-  percentage: "by percentage",
-  shares: "by shares",
-};
-
-function splitLabel(e: Expense, splits: { owedAmountMinor: number }[]): string {
-  if (splits.length === 1) return "all on one person";
-  if (splits.length > 1 && (e.splitType === "shares" || e.splitType === "even")) {
-    const min = Math.min(...splits.map((s) => s.owedAmountMinor));
-    const max = Math.max(...splits.map((s) => s.owedAmountMinor));
-    if (max - min <= 1) return SPLIT_LABELS.even;
-  }
-  return SPLIT_LABELS[e.splitType];
-}
 
 type FeedItem =
   | { kind: "expense"; at: Date; expense: Expense }
@@ -152,7 +134,7 @@ function ExpenseRow({
       <div className="min-w-0 flex-1">
         <p className="truncate font-medium">{e.description}</p>
         <p className="mt-0.5 truncate text-xs text-ink-soft">
-          {payer} paid · {splitLabel(e, rowSplits)}
+          {payer} paid · {splitLabel(e.splitType, rowSplits)}
           {d ? ` · ${formatDate(d.date)}` : ""}
         </p>
       </div>

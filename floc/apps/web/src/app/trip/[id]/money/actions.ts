@@ -13,7 +13,7 @@ import {
 } from "@floc/core/money/expense-category";
 import type { ExpenseCategory } from "@floc/core/money/expense-category";
 import { requireTripAccess } from "@/server/access";
-import { expenseFieldsProblem, transferPartiesProblem } from "@floc/core/money/expense-rules";
+import { expenseFieldsProblem, NO_AMOUNT, transferPartiesProblem } from "@floc/core/money/expense-rules";
 import {
   findLiveSettlement,
   rewriteSettlement,
@@ -22,49 +22,23 @@ import {
 } from "@/server/money/money";
 import { settleWithFor } from "@/server/money/settle-up";
 import { recordTransfers, removeExpense, saveExpense } from "@/server/money/money-save";
-import type { WritableSplitType } from "@floc/core/money/money";
-import {
-  computeSplits,
-  parseMoney,
-  convertMinor,
-  resolveWeightedSplit,
-} from "@floc/core/money/money";
-import type { SplitInput, WeightedInput } from "@floc/core/money/money";
+import { parseMoney, convertMinor } from "@floc/core/money/money";
+import { splitFromForm, type SplitBox } from "@floc/core/money/expense/expense-form";
 import { refresh } from "@/server/freshness";
 
 export type ActionState = { error?: string };
 
-// Form posts shares + optional pin per participant (ticket 85);
-// resolveWeightedSplit maps that to the stored split_type. Excluded people
-// simply aren't in `participant` — no row, not a zero row.
-function parseSplit(
-  formData: FormData,
-  amountMinor: number,
-  currency: Currency,
-): { splitType: WritableSplitType; participants: SplitInput[] } {
-  const ids = formData.getAll("participant").map(String).filter(Boolean);
-  const rows: WeightedInput[] = ids.map((userId) => {
-    const rawPin = String(formData.get(`pin_${userId}`) ?? "").trim();
+// Form posts shares + optional pin per participant (ticket 85), already
+// resolved for the mode. Excluded people simply aren't in `participant`.
+function readSplitBoxes(formData: FormData): SplitBox[] {
+  return formData.getAll("participant").map(String).filter(Boolean).map((userId) => {
     const rawShares = String(formData.get(`shares_${userId}`) ?? "1").trim();
     return {
       userId,
       shares: rawShares === "" ? 0 : Number(rawShares),
-      // Empty box = not pinned; a typed 0.00 is a real pin of nothing.
-      pinnedMinor: rawPin === "" ? null : parseMoney(rawPin, currency),
+      pin: String(formData.get(`pin_${userId}`) ?? ""),
     };
   });
-  return resolveWeightedSplit(amountMinor, rows, currency);
-}
-
-function readAmount(
-  formData: FormData,
-  currency: Currency,
-): { amountMinor: number } | { error: string } {
-  try {
-    return { amountMinor: parseMoney(String(formData.get("amount") ?? ""), currency) };
-  } catch (err) {
-    return { error: (err as Error).message };
-  }
 }
 
 function readExpenseFields(formData: FormData) {
@@ -90,20 +64,9 @@ async function submitExpense(formData: FormData, expenseId?: number): Promise<Ac
   const fieldsProblem = expenseFieldsProblem({ description, paidBy, currency });
   if (fieldsProblem) return { error: fieldsProblem };
 
-  const parsed = readAmount(formData, currency);
-  if ("error" in parsed) return parsed;
-  const { amountMinor } = parsed;
-  if (amountMinor <= 0) return { error: "Enter an amount above zero." };
-
-  let splits;
-  let splitType: WritableSplitType;
-  try {
-    const resolved = parseSplit(formData, amountMinor, currency);
-    splitType = resolved.splitType;
-    splits = computeSplits(amountMinor, splitType, resolved.participants);
-  } catch (err) {
-    return { error: (err as Error).message };
-  }
+  const split = splitFromForm(String(formData.get("amount") ?? ""), readSplitBoxes(formData), currency);
+  if (!split.ok) return { error: split.problem };
+  const { amountMinor, splitType, splits } = split;
 
   const refusal = await saveExpense(access, {
     expenseId,
@@ -170,7 +133,7 @@ async function readCrossPayment(
   } catch {
     return { error: `No rate available — type what you paid in ${payCurrency}.` };
   }
-  if (paidMinor <= 0) return { error: "Enter an amount above zero." };
+  if (paidMinor <= 0) return { error: NO_AMOUNT };
   return {
     paidMinor,
     rate:
@@ -203,7 +166,7 @@ async function readTransfer(access: Access, formData: FormData): Promise<Transfe
   } catch (err) {
     return { error: (err as Error).message };
   }
-  if (amountMinor <= 0) return { error: "Enter an amount above zero." };
+  if (amountMinor <= 0) return { error: NO_AMOUNT };
 
   // Paying in a different currency from the debt (ticket 253). The debt side
   // is what moves the balance; the paid side and the rate are a snapshot of

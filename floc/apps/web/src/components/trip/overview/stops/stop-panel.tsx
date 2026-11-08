@@ -5,14 +5,15 @@ import type { DayEventRow } from "@/server/itinerary/itinerary";
 import { TravelModeIcon } from "@/components/system/icons/travel-mode";
 import { StopDay } from "./stop-day";
 import { nightsLabel } from "@floc/core/itinerary/stops";
-import { StopNo, cityOf } from "./stop-parts";
+import { StopNo } from "./stop-parts";
 import { StopRibbon } from "./stop-ribbon";
+import { shortPlace } from "@floc/core/itinerary/names/place-name";
 
 export function Arrival({ leg }: { leg: Leg<TripDocument> }) {
   return (
     <p className="ml-7 flex min-h-[34px] items-center gap-2 border-l-[1.5px] border-dashed border-rule-strong pl-3.5 font-mono text-xs text-ink-faint">
       {leg.mode ? <TravelModeIcon mode={leg.mode} /> : null}
-      {hopLabel(leg.mode, cityOf(leg.placeName))} · {formatDate(leg.arrive)}
+      {hopLabel(leg.mode, shortPlace(leg.placeName))} · {formatDate(leg.arrive)}
     </p>
   );
 }
@@ -31,7 +32,7 @@ export function StopPanel({
       {leg.stay ? <StopRibbon tripId={tripId} fileName={leg.stay.name} /> : null}
       <header className={`flex flex-wrap items-center gap-x-3 gap-y-1${leg.stay ? " pr-8" : ""}`}>
         <StopNo no={leg.no} />
-        <h3 className="font-display text-xl tracking-[-0.02em]">{cityOf(leg.placeName)}</h3>
+        <h3 className="font-display text-xl tracking-[-0.02em]">{shortPlace(leg.placeName)}</h3>
         <span className="nums text-xs text-ink-faint">
           {nightsLabel(leg.nights)} · {formatShortRange(leg.arrive, leg.leave)}
         </span>

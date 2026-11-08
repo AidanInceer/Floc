@@ -10,7 +10,7 @@ import { Button, LegendKey, cx } from "@/components/system/ui";
 import { WeatherGlyph } from "@/components/system/icons/weather";
 import { formatMonth, tripCoverage, type IsoMonth } from "@floc/core/dates/availability";
 import { formatDate, type IsoDate } from "@floc/core/dates/dates";
-import { forecastTab, groupTab, tripTab, yourDaysTab } from "@floc/core/dates/dates-tabs";
+import { forecastTab, groupTab, tripTab, yourDaysTab, type GroupAnswer } from "@floc/core/dates/dates-tabs";
 import type { TripForecast } from "@/server/itinerary/weather";
 
 const typed = "font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint";
@@ -139,8 +139,8 @@ export const HINT: Record<DatesTab, string> = {
 export function tabStubs(p: {
   mine: string[];
   unsaved: number;
-  memberCount: number;
-  waitingOn: string[];
+  group: GroupAnswer[];
+  viewerId: string;
   faces: ReactNode;
   tripStart: string | null;
   tripEnd: string | null;
@@ -155,7 +155,7 @@ export function tabStubs(p: {
       summary: yourDaysTab(p.mine, p.unsaved),
       corner: p.unsaved ? <span className="whitespace-nowrap rounded-full bg-highlight px-2 text-[11px] font-medium text-highlight-ink">Not saved</span> : null,
     },
-    { key: "group", label: "The group", glyph: <NavGlyph name="friends" />, summary: groupTab(p.memberCount, p.waitingOn), corner: p.faces },
+    { key: "group", label: "The group", glyph: <NavGlyph name="friends" />, summary: groupTab(p.group, p.viewerId), corner: p.faces },
     { key: "trip", label: "The trip", glyph: <NavGlyph name="dates" />, summary: tripTab(p.tripStart, p.tripEnd, p.bestWindow) },
   ];
   const f = p.forecast;
