@@ -4,9 +4,9 @@
 // Replies are exactly one level deep (v0.2 ticket 06): a reply to a reply attaches to the
 // same parent, since a thread renders in a narrow panel. Replies start folded.
 // Client component because fold and composer state is local per thread.
-import { useState } from "react";
+import { useOptimistic, useState } from "react";
 
-import { repliesLabel, threadCount, type NoteRow } from "@floc/core/notes/notes";
+import { emptyReactions, repliesLabel, threadCount, withPendingNote, type NoteRow } from "@floc/core/notes/notes";
 
 import type { NoteScope } from "@/db/schema";
 import { addNote } from "@/app/trip/[id]/notes-actions";
@@ -19,7 +19,9 @@ export type Viewer = Face & { id: string };
 
 type Where = { tripId: number; scope: NoteScope; scopeId: number };
 
-function Run({ where, note, viewer }: { where: Where; note: NoteRow; viewer: Viewer }) {
+type Post = (formData: FormData) => Promise<{ error?: string } | void>;
+
+function Run({ where, note, viewer, reply: postReply }: { where: Where; note: NoteRow; viewer: Viewer; reply: Post }) {
   const [replying, setReplying] = useState(false);
   const [open, setOpen] = useState(false);
   const count = note.replies.length;
@@ -67,7 +69,7 @@ function Run({ where, note, viewer }: { where: Where; note: NoteRow; viewer: Vie
             <NoteComposer
               me={viewer}
               label={`Reply to ${note.authorName}`}
-              post={addNote.bind(null, where.tripId, where.scope, where.scopeId, note.id)}
+              post={postReply}
               reply
               onDone={() => setReplying(false)}
             />
@@ -92,7 +94,16 @@ export function NoteThread({
   viewer: Viewer;
 }) {
   const where = { tripId, scope, scopeId };
-  const count = threadCount(notes);
+  // Why: a posted comment shows at once; the saved one replaces it when the post lands, or it goes if refused.
+  const [shown, addPending] = useOptimistic(notes, (runs, pending: { row: NoteRow; parentId: number | null }) =>
+    withPendingNote(runs, pending.row, pending.parentId),
+  );
+  const posting = (replyTo: number | null): Post => async (formData) => {
+    const body = String(formData.get("body") ?? "").trim();
+    if (body) addPending({ row: pendingRow(body, viewer), parentId: replyTo });
+    return addNote(tripId, scope, scopeId, replyTo, formData);
+  };
+  const count = threadCount(shown);
 
   return (
     <section aria-label="Comments">
@@ -100,20 +111,35 @@ export function NoteThread({
         Comments
         {count ? <span className="font-mono text-xs font-normal text-ink-faint">{count}</span> : null}
       </h3>
-      {notes.length ? (
+      {shown.length ? (
         <ul className="space-y-3.5">
-          {notes.map((n) => (
-            <Run key={n.id} where={where} note={n} viewer={viewer} />
+          {shown.map((n) => (
+            <Run key={n.id} where={where} note={n} viewer={viewer} reply={posting(n.id)} />
           ))}
         </ul>
       ) : null}
-      <div className={notes.length ? "mt-[18px] border-t border-rule pt-3.5" : undefined}>
+      <div className={shown.length ? "mt-[18px] border-t border-rule pt-3.5" : undefined}>
         <NoteComposer
           me={viewer}
           label="Comment"
-          post={addNote.bind(null, tripId, scope, scopeId, null)}
+          post={posting(null)}
         />
       </div>
     </section>
   );
+}
+
+function pendingRow(body: string, viewer: Viewer): NoteRow {
+  return {
+    id: -Date.now(),
+    body,
+    createdAt: new Date(),
+    editedAt: null,
+    createdBy: viewer.id,
+    authorName: viewer.name,
+    authorAvatarIcon: viewer.icon,
+    authorTone: viewer.tone,
+    reactions: emptyReactions(),
+    replies: [],
+  };
 }

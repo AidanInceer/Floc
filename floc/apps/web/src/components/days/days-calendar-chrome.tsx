@@ -264,19 +264,50 @@ export const CALENDAR_DIALOG =
 /**
  * The event modal (ticket 321) — one sheet holding the event's facts and its comment
  * thread. The facts' own head carries the ✕; backdrop or Escape also close it.
+ * Why the form is drawn here from the calendar's row: it opens on the click, not after
+ * the server's round trip. `rest` (files, the thread, delete) follows from the server.
  */
 export function EventModal({
-  open,
+  event,
+  dateLabel,
   onClose,
-  panel,
+  submitEvent,
+  searchPlaces,
+  rest,
 }: {
-  open: boolean;
+  event: CalendarEvent | null;
+  dateLabel: string;
   onClose: () => void;
-  panel: ReactNode;
+  submitEvent: (formData: FormData) => Promise<void>;
+  searchPlaces: PlaceSearch;
+  rest: ReactNode | null;
 }) {
   return (
-    <Dialog open={open} onClose={onClose} title="Event" className={CALENDAR_DIALOG}>
-      {open ? panel : null}
+    <Dialog open={event !== null} onClose={onClose} title="Event" className={CALENDAR_DIALOG}>
+      {event ? (
+        <div>
+          <EventForm
+            key={event.id}
+            autosave
+            action={submitEvent}
+            searchPlaces={searchPlaces}
+            dateLabel={dateLabel}
+            defaults={{
+              dayId: event.dayId,
+              eventId: event.id,
+              type: event.type,
+              transportType: event.transportType,
+              time: event.time,
+              endTime: event.endTime,
+              allDay: event.allDay || !event.time,
+              title: event.writtenTitle,
+              note: event.note,
+              placeName: event.placeName,
+            }}
+          />
+          {rest ?? <p role="status" className="sr-only">Loading event…</p>}
+        </div>
+      ) : null}
     </Dialog>
   );
 }
