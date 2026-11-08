@@ -1,6 +1,6 @@
 {
   "name": "floc-web",
-  "version": "0.218.0",
+  "version": "0.219.0",
   "private": true,
   "description": "Floc v1 — group travel planner. Next.js App Router + Turso (libSQL) + Drizzle + Better Auth.",
   "type": "module",
@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --coverage",
     "e2e": "playwright test",
+    "perf:clicks": "node scripts/perf/clicks.mjs",
     "fitness": "pnpm fitness:source && pnpm check:bundle",
     "fitness:source": "node ../../../scripts/checks/parallel.mjs deps:check dead-code check:tokens check:css check:icons check:contrast",
     "deps:check": "depcruise src --config .dependency-cruiser.cjs --output-type err",
