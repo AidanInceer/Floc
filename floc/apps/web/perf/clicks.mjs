@@ -173,7 +173,7 @@ async function runProfile(browser, profile, only) {
     // Why: one stuck click must not cost the whole scenario; it is counted, and the next sample starts clean.
     for (let i = 0; i <= RUNS && failures < 3; i++) {
       try {
-        await scenario.setup?.(ctx, fresh ? 0 : i);
+        await scenario.setup?.(ctx, fresh ? 0 : i, i);
         fresh = false;
         const ms = await scenario.run(ctx, i);
         if (i > 0) samples.push(ms);

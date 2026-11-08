@@ -34,6 +34,17 @@ export function likes(note: { reactions: Reactions }): { count: number; mine: bo
   return note.reactions.heart;
 }
 
+/** Your heart, flipped: what the button shows the moment it is pressed. */
+export function toggleLike(like: { count: number; mine: boolean }): { count: number; mine: boolean } {
+  return { count: Math.max(0, like.count + (like.mine ? -1 : 1)), mine: !like.mine };
+}
+
+/** A comment drawn as it is posted, before the server has given it an id. Replies are one level deep. */
+export function withPendingNote(runs: NoteRow[], pending: NoteRow, parentId: number | null): NoteRow[] {
+  if (parentId === null) return [...runs, pending];
+  return runs.map((run) => (run.id === parentId ? { ...run, replies: [...run.replies, pending] } : run));
+}
+
 /** Every comment in a thread, replies included. */
 export function threadCount(runs: { replies: unknown[] }[]): number {
   return runs.reduce((sum, run) => sum + 1 + run.replies.length, 0);

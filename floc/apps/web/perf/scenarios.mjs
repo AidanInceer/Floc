@@ -45,6 +45,21 @@ function tabSwitch(from, to) {
   };
 }
 
+/** A person's pointer rests on a tab a moment before pressing; Playwright's own click does not. */
+function tabAfterHover(from, to) {
+  return {
+    id: `tab.hover-${from}-${to}`,
+    area: "Navigation",
+    label: `${TAB_LABEL[from]} tab → ${TAB_LABEL[to]} page drawn, pointer on the tab 200 ms first`,
+    setup: async (ctx) => {
+      await openTab(ctx, from);
+      await tabLink(ctx, to).hover();
+      await ctx.page.waitForTimeout(200);
+    },
+    run: (ctx) => ctx.timeClick(tabLink(ctx, to), tabIn, TAB_MARK[to]),
+  };
+}
+
 function tabHighlight(from, to) {
   return {
     id: `tab.mark-${to}`,
@@ -65,7 +80,8 @@ function tabHighlight(from, to) {
 
 const EVENT = "Dinner in Alfama";
 
-const socks = (ctx) => `Perf socks ${ctx.tag}`;
+let socksRun = 0;
+const socks = (ctx) => `Perf socks ${ctx.tag} ${socksRun}`;
 const tickName = (ctx) => new RegExp(`^(Mark ${socks(ctx)} packed|Unpack ${socks(ctx)})$`);
 
 /** The calendar block, not the dialog: its aria-label starts with the title. */
@@ -124,6 +140,9 @@ export const SCENARIOS = [
   tabSwitch("dates", "notes"),
   tabSwitch("notes", "files"),
   tabSwitch("files", "overview"),
+  tabAfterHover("overview", "days"),
+  tabAfterHover("days", "money"),
+  tabAfterHover("money", "dates"),
   tabHighlight("overview", "days"),
 
   {
@@ -216,9 +235,11 @@ export const SCENARIOS = [
     id: "days.post-comment",
     area: "Days",
     label: "Post a comment → comment shown",
-    setup: async (ctx, i) => {
-      if (i === 0) await openEvent(ctx);
-      await ctx.page.getByRole("dialog").getByRole("textbox", { name: "Comment" }).fill(`Perf comment ${ctx.tag} ${i}`);
+    setup: async (ctx, step, i) => {
+      if (step === 0) await openEvent(ctx);
+      const field = ctx.page.getByRole("dialog").getByRole("textbox", { name: "Comment" });
+      await ctx.page.waitForFunction(() => document.querySelector("dialog[open] textarea[name=body]")?.value === "");
+      await field.fill(`Perf comment ${ctx.tag} ${i}`);
     },
     run: (ctx, i) =>
       ctx.timeClick(
@@ -265,8 +286,8 @@ export const SCENARIOS = [
     id: "packing.add",
     area: "Packing",
     label: "Add to your bag → row shown",
-    setup: async (ctx, i) => {
-      if (i === 0) await openTab(ctx, "packing");
+    setup: async (ctx, step, i) => {
+      if (step === 0) await openTab(ctx, "packing");
       // Why: the field clears itself when the last add settles; typing before that loses the words.
       await ctx.page.getByRole("button", { name: "Add", exact: true }).waitFor();
       await ctx.page.waitForFunction(() => document.querySelector('input[name="label"]')?.value === "");
@@ -286,6 +307,7 @@ export const SCENARIOS = [
     label: "Tick a line in your bag → box ticked",
     setup: async (ctx, i) => {
       if (i > 0) return;
+      socksRun += 1;
       await openTab(ctx, "packing");
       await ctx.page.getByRole("textbox", { name: "Add to your bag" }).fill(socks(ctx));
       await ctx.page.getByRole("button", { name: "Add", exact: true }).click();
