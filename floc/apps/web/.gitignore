@@ -16,3 +16,6 @@ next-env.d.ts
 
 # Local uploads volume (ticket 239) — never in the repo.
 .uploads/
+
+# Click benchmark results (perf/clicks.mjs).
+.perf/

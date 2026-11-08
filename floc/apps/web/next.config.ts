@@ -30,8 +30,9 @@ const config: NextConfig = {
   serverExternalPackages: ["@libsql/client", "better-auth"],
   experimental: {
     // Why: a trip or tab opened in the last 30 s reopens from the client cache. Own edits still refresh at once
-    // (a Server Action's revalidatePath clears it); another member's edit can show up to 30 s late.
-    staleTimes: { dynamic: 30 },
+    // (a Server Action's revalidatePath clears it); another member's edit can show up to 30 s late. A tab loaded
+    // in full on hover counts as static, so `static` holds it the same 30 s rather than the default 5 minutes.
+    staleTimes: { dynamic: 30, static: 30 },
     // Next caps Server Action bodies at 1 MB, so a 2 MB upload threw before
     // `rejectUpload` saw it (ticket 239). Headroom over the 8 MB cap keeps
     // the refusal ours.

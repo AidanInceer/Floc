@@ -23,6 +23,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import type { PlaceSearch } from "@/components/days/event-form";
 import { cx } from "@/components/system/ui";
+import { EventDraftProvider, useEventDrafts } from "@/components/days/event-draft";
 import {
   AddEventDialog,
   AllDayStrip,
@@ -162,6 +163,7 @@ export function DaysCalendar({
   // snap back to stale props while the action is in flight (rule 7).
   const [optimistic, setOptimistic] = useState<Map<number, Landing>>(new Map());
   const [landing, setLanding] = useState<Landing | null>(null);
+  const drafts = useEventDrafts();
   const [, startTransition] = useTransition();
 
   const gridRef = useRef<HTMLDivElement>(null);
@@ -222,11 +224,11 @@ export function DaysCalendar({
 
   const committed = useMemo(
     () =>
-      events.map((event) => {
+      drafts.apply(events).map((event) => {
         const pending = optimistic.get(event.id);
         return pending ? { ...event, dayId: pending.dayId, time: pending.time, endTime: pending.endTime } : event;
       }),
-    [events, optimistic],
+    [events, optimistic, drafts],
   );
 
   // A same-column drag previews live on the block itself. Cross-column isn't:
@@ -497,6 +499,7 @@ export function DaysCalendar({
   });
 
   return (
+    <EventDraftProvider value={drafts.api}>
     <div style={{ minHeight: card.floor }}>
       <div ref={card.ref} className={cx("overflow-hidden rounded-md bg-sheet", FOCUS_COLUMNS)}>
         <StopStrip days={days} tripEnd={tripEnd} focusId={focus.id} onGoTo={goTo} onStop={openBandDialog} />
@@ -611,5 +614,6 @@ export function DaysCalendar({
         ) : null}
       </div>
     </div>
+    </EventDraftProvider>
   );
 }
