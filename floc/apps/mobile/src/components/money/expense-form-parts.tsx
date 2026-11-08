@@ -7,24 +7,15 @@
  * rejections are read here without markup around them, and the screen is read
  * without the rules in the way (single responsibility).
  *
- * MONEY IS NEVER A FLOAT (rule 1). What a person types is a string. It becomes
- * integer minor units through `parseMoney` and nothing else, and if `parseMoney`
- * refuses it the person is told — a rejection is a message, never a throw.
- *
- * SPLITS ARE SNAPSHOTS (rule 2). `buildDraft` hands back the whole split set,
- * computed by `computeSplits`, and the API rewrites expense and splits in one
- * transaction. Nothing here edits one split alone.
- *
- * THREE WAYS, TWO WRITABLE TYPES. Equally and Shares are both `shares` — the
- * first is every weight 1, the second lets a weight be typed. Exact is
- * `exact`. `even` and `percentage` stay readable history and nothing writes
- * them (#117), so the wire never sees them from here.
+ * MONEY AND SPLITS (rule 1, rule 2). The amount and the split come from
+ * `splitFromForm` in `@floc/core`, the same rule the web's save runs, so a
+ * bill saved here and one saved on the web hold the same rows.
  *
  * NO TIMEZONES (rule 10). The day is a `dayId`; its label is the itinerary's
  * own date string, shown exactly as stored.
  */
 import type { Currency } from "@floc/core/money/currency";
-import { computeSplits, formatMoney, parseMoney } from "@floc/core/money/money";
+import { SPLIT_MODES, splitBox, splitFromForm, type SplitMode } from "@floc/core/money/expense/expense-form";
 import { useState, type ReactNode } from "react";
 import {
   Pressable,
@@ -60,14 +51,10 @@ export type ExpenseDraft = {
 export type Person = { userId: string; name: string };
 export type DayOption = { id: number; label: string };
 
-/** How the amount is divided. The words are the web page's; two of them write `shares`. */
-export type Mode = "equally" | "exact" | "shares";
+/** How the amount is divided. Two of the three write `shares`. */
+export type Mode = SplitMode;
 
-export const MODES = [
-  { value: "equally" as const, label: "Equally" },
-  { value: "exact" as const, label: "Exact" },
-  { value: "shares" as const, label: "Shares" },
-];
+export const MODES = SPLIT_MODES.map((mode) => ({ value: mode.key, label: mode.label }));
 
 /** What an edit starts from. Absent means a new expense. */
 export type Initial = {
@@ -465,34 +452,12 @@ export function buildDraft(
   weights: Record<string, string>,
   currency: Currency,
 ): Attempt {
-  if (inOn.size === 0)
-    return { ok: false, problem: "Somebody has to be in on it." };
-
-  let amountMinor: number;
-  try {
-    amountMinor = parseMoney(fields.amount, currency);
-  } catch {
-    return { ok: false, problem: "That isn't an amount." };
-  }
-  if (amountMinor <= 0) return { ok: false, problem: "That isn't an amount." };
-
-  const splitType = fields.mode === "exact" ? "exact" : "shares";
-  let splits: { userId: string; owedAmountMinor: number }[];
-  try {
-    splits = computeSplits(
-      amountMinor,
-      splitType,
-      participantValues(people, inOn, weights, fields.mode, currency),
-    );
-  } catch {
-    return {
-      ok: false,
-      problem:
-        fields.mode === "exact"
-          ? `The amounts have to add up to ${formatMoney(amountMinor, currency)}.`
-          : "Those shares do not work.",
-    };
-  }
+  const boxes = people
+    .filter((person) => inOn.has(person.userId))
+    .map((person) => splitBox(fields.mode, person.userId, typedRow(weights[person.userId] ?? "")));
+  const split = splitFromForm(fields.amount, boxes, currency);
+  if (!split.ok) return split;
+  const { amountMinor, splitType, splits } = split;
 
   return {
     ok: true,
@@ -510,35 +475,9 @@ export function buildDraft(
   };
 }
 
-/**
- * What each person is down for, as `computeSplits` wants it.
- *
- * Everyone gets a row: the snapshot records who was considered, not only who
- * owes, so somebody left out is a nought rather than an absence.
- */
-function participantValues(
-  people: Person[],
-  inOn: Set<string>,
-  weights: Record<string, string>,
-  mode: Mode,
-  currency: Currency,
-): { userId: string; value: number }[] {
-  return people.map((person) => {
-    if (!inOn.has(person.userId)) return { userId: person.userId, value: 0 };
-    const typed = weights[person.userId] ?? "";
-    if (mode === "equally") return { userId: person.userId, value: 1 };
-    if (mode === "shares") {
-      const value = typed === "" ? 1 : Number(typed);
-      if (!Number.isFinite(value) || value < 0) throw new Error("share");
-      return { userId: person.userId, value };
-    }
-    // Exact is money, so it goes through `parseMoney` like every other amount
-    // — a share typed "3.5" must round the way the total does.
-    return {
-      userId: person.userId,
-      value: typed === "" ? 0 : parseMoney(typed, currency),
-    };
-  });
+/** Why: the phone keeps one box a person, read as a share count in Shares and an amount in Exact. */
+function typedRow(typed: string): { shares: number; pin: string } {
+  return { shares: typed.trim() === "" ? 1 : Number(typed), pin: typed };
 }
 
 /**

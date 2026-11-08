@@ -1,5 +1,6 @@
 import { cx } from "@/components/system/ui";
 import { SparkIcon } from "@/components/system/icons/packing";
+import { cubeCount, thingCount } from "@floc/core/packing/packing-words";
 
 export function PackingCube({
   heading,
@@ -16,7 +17,8 @@ export function PackingCube({
   add?: React.ReactNode;
   ideaCount?: number;
 }) {
-  const full = packed !== undefined && total > 0 && packed === total;
+  const count = packed === undefined ? { text: thingCount(total), full: false } : cubeCount(packed, total);
+  const full = count.full;
   return (
     <section className={cx(
       "overflow-hidden rounded-md border bg-sheet",
@@ -32,9 +34,7 @@ export function PackingCube({
         ) : null}
         {total > 0 ? (
           <span className={cx("nums text-[11px]", full ? "text-green" : "text-ink-faint")}>
-            {packed === undefined
-              ? `${total} ${total === 1 ? "thing" : "things"}`
-              : full ? "All packed" : `${packed}/${total}`}
+            {count.text}
           </span>
         ) : null}
       </header>

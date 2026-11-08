@@ -13,11 +13,11 @@ import { collapseQuiet } from "@/lib/overview/collapse-days";
 import { QuietRun } from "./quiet-run";
 import { StopDayRow } from "./stop-day-row";
 import { fonts, radius, size, space } from "@/lib/theme";
+import { shortPlace } from "@floc/core/itinerary/names/place-name";
 
 type Named = LegFile & { name: string };
 
 /** "Lisbon, Portugal" is "Lisbon" here; the country is on the map. */
-const cityOf = (placeName: string) => placeName.split(",")[0];
 
 export function StopList({ legs, events, onOpen }: { legs: Leg<Named>[]; events: Map<number, DayEvent[]>; onOpen: (date: string) => void }) {
   return (
@@ -50,7 +50,7 @@ function Arrival({ leg }: { leg: Leg<Named> }) {
     >
       {leg.mode ? <TravelModeGlyph mode={leg.mode} color={c["ink-3"]} size={14} /> : null}
       <Text style={{ flexShrink: 1, color: c["ink-3"], fontFamily: fonts.type, fontSize: size.label }}>
-        {`${hopLabel(leg.mode, cityOf(leg.placeName))} · ${formatDate(leg.arrive)}`}
+        {`${hopLabel(leg.mode, shortPlace(leg.placeName))} · ${formatDate(leg.arrive)}`}
       </Text>
     </View>
   );
@@ -77,7 +77,7 @@ function StopCard({ leg, events, onOpen }: { leg: Leg<Named>; events: Map<number
         <View style={{ paddingRight: space.md, borderRightWidth: 1.5, borderRightColor: c["rule-2"] }}>
           <Text style={{ color: c.pen, fontFamily: fonts.display, fontSize: size.heading, fontVariant: ["tabular-nums"] }}>{leg.no}</Text>
         </View>
-        <Text style={{ flexShrink: 1, color: c.ink, fontFamily: fonts.display, fontSize: size.heading, letterSpacing: -0.4 }}>{cityOf(leg.placeName)}</Text>
+        <Text style={{ flexShrink: 1, color: c.ink, fontFamily: fonts.display, fontSize: size.heading, letterSpacing: -0.4 }}>{shortPlace(leg.placeName)}</Text>
         <Text style={{ color: c["ink-3"], fontFamily: fonts.type, fontSize: size.label, fontVariant: ["tabular-nums"] }}>
           {`${nightsLabel(leg.nights)} · ${formatShortRange(leg.arrive, leg.leave)}`}
         </Text>

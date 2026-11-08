@@ -11,6 +11,7 @@ import { useState } from "react";
 import { EventSheet } from "./event-sheet";
 import { OvernightForm } from "./overnight-form";
 import { trpc } from "@/lib/api";
+import { shortPlace } from "@floc/core/itinerary/names/place-name";
 
 export type OvernightDay = {
   id: number;
@@ -75,7 +76,7 @@ export function OvernightLine({
   return (
     <EventSheet
       open
-      title={stop?.placeName?.split(",")[0] ?? "Not set"}
+      title={stop?.placeName ? shortPlace(stop.placeName) : "Not set"}
       subtitle={`${formatShortRange(start, checkOut)} · ${nights} ${nights === 1 ? "night" : "nights"}`}
       onClose={onClose}
     >

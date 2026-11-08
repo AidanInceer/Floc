@@ -1,4 +1,5 @@
 import { viewPackingLines, type PackCategory } from "@floc/core/packing/packing";
+import { thingCount } from "@floc/core/packing/packing-words";
 import { useState } from "react";
 import { Alert, Pressable, View } from "react-native";
 
@@ -46,7 +47,7 @@ export function KitCard({
             style={{ flex: 1 }}
           >
             <Body bold>{kit.name}</Body>
-            <Label>{kit.items.length === 1 ? "1 thing" : `${kit.items.length} things`}</Label>
+            <Label>{thingCount(kit.items.length)}</Label>
           </Pressable>
         ) : (
           <View style={{ flex: 1 }}>
@@ -89,7 +90,7 @@ export function KitCard({
         <Card key={group.key}>
           <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
             <Label>{group.heading ?? "All items"}</Label>
-            <Label>{group.lines.length === 1 ? "1 thing" : `${group.lines.length} things`}</Label>
+            <Label>{thingCount(group.lines.length)}</Label>
           </View>
           {group.lines.map((item) => (
             <View

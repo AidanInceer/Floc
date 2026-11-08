@@ -13,12 +13,21 @@ const PACKING_STATUS_LABELS: Record<PackingStatus, string> = {
   unclaimed: "Unclaimed",
 };
 
+/** A claim as the web reads it (when it was packed) or as the phone's API sends it (whether it is). */
+export type PackingClaimTick = { packedAt: Date | null } | { packed: boolean };
+
+const ticked = (claim: PackingClaimTick): boolean =>
+  "packed" in claim ? claim.packed : claim.packedAt !== null;
+
 /** Packed only when *every* claimer has ticked — one outstanding claim keeps the line open. */
-export function packingStatus(
-  claims: { packedAt: Date | null }[],
-): PackingStatus {
+export function packingStatus(claims: PackingClaimTick[]): PackingStatus {
   if (claims.length === 0) return "unclaimed";
-  return claims.every((c) => c.packedAt !== null) ? "packed" : "claimed";
+  return claims.every(ticked) ? "packed" : "claimed";
+}
+
+/** How many shared lines are packed, by the same rule as each line's badge. */
+export function packedLineCount(lines: { claims: PackingClaimTick[] }[]): number {
+  return lines.filter((line) => packingStatus(line.claims) === "packed").length;
 }
 
 /**
@@ -232,26 +241,33 @@ export function viewPackingLines<
     return sorted.length > 0 ? [{ key: "flat", heading: null, lines: sorted }] : [];
   }
 
-  const byCategory: PackingLineGroup<T>[] = PACK_CATEGORIES.map((category) => ({
+  return packingCubes(kept, []).map(({ key, heading, lines: grouped }) => ({ key, heading, lines: grouped }));
+}
+
+export type PackingCube<L, I> = { key: string; heading: string; lines: L[]; ideas: I[] };
+
+/**
+ * The bag as cubes, each category's ideas at its foot. A saved list keeps its
+ * own cube (ticket 230) and never gets ideas: it is a lump you chose.
+ */
+export function packingCubes<
+  L extends { category: PackCategory; kitName?: string | null },
+  I extends { category: PackCategory },
+>(lines: L[], ideas: I[]): PackingCube<L, I>[] {
+  const byCategory = PACK_CATEGORIES.map((category) => ({
     key: category,
     heading: PACK_CATEGORY_LABELS[category],
-    lines: kept.filter((l) => !l.kitName && l.category === category),
+    lines: lines.filter((l) => !l.kitName && l.category === category),
+    ideas: ideas.filter((i) => i.category === category),
   }));
 
-  const kits = new Map<string, T[]>();
-  for (const l of kept) {
-    if (!l.kitName) continue;
-    const group = kits.get(l.kitName) ?? [];
-    group.push(l);
-    kits.set(l.kitName, group);
+  const kits = new Map<string, L[]>();
+  for (const l of lines) {
+    if (l.kitName) kits.set(l.kitName, [...(kits.get(l.kitName) ?? []), l]);
   }
 
   return [
     ...byCategory,
-    ...[...kits].map(([name, group]) => ({
-      key: `kit:${name}`,
-      heading: name,
-      lines: group,
-    })),
-  ].filter((g) => g.lines.length > 0);
+    ...[...kits].map(([name, group]) => ({ key: `kit:${name}`, heading: name, lines: group, ideas: [] as I[] })),
+  ].filter((cube) => cube.lines.length > 0 || cube.ideas.length > 0);
 }

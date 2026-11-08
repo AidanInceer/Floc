@@ -1,19 +1,6 @@
 import { requireTripAccess } from "@/server/access";
-import { canUseFeature } from "@/server/billing/entitlements";
-import { getPackSettings } from "@/server/packing/packing";
-import {
-  autoFillPersonalBag,
-  packingPlanFor,
-} from "@/server/packing/packing-generator";
-import {
-  listPackingClaims,
-  listPackingLines,
-  listPersonalPackingLines,
-} from "@/server/packing/packing";
-import { listPackingKits } from "@/server/packing/packing-kits";
-import { ensureProfile } from "@/server/auth/profile";
-import { packingStatus, resolvePackTier } from "@floc/core/packing/packing";
-import { packingCubes, packingIdeas } from "@floc/core/packing/packing-ideas";
+import { readPackingBoard } from "@/server/packing/packing-board";
+import { packedLineCount, packingCubes } from "@floc/core/packing/packing";
 import { arrangePackingLanes } from "@floc/core/packing/packing-lanes";
 import {
   CategorySelect,
@@ -63,52 +50,15 @@ export default async function PackingPage({
   const access = await requireTripAccess(id, `/trip/${id}/packing`);
   const tripId = access.trip.id;
 
-  const [lines, claims, packSettings, profile, plan, kits, bag, packingPro] =
-    await Promise.all([
-      listPackingLines(tripId),
-      listPackingClaims(tripId),
-      getPackSettings(tripId, access.viewer.id),
-      ensureProfile(access.viewer.id),
-      packingPlanFor(access.trip),
-      listPackingKits(access.viewer.id),
-      listPersonalPackingLines(tripId, access.viewer.id),
-      canUseFeature("packing.autoGenerate", tripId),
-    ]);
-
-  const tier = resolvePackTier(packSettings.tier, profile.packTier);
+  const { lines, claims, mine, kits, tier, packingPro, ideas } =
+    await readPackingBoard(access.trip, access.viewer.id);
 
   const path = `/trip/${tripId}/packing`;
   const sharedSelecting = query.sharedPick === "1";
   const selectHref = (select: boolean) => (select ? `${path}?sharedPick=1` : path);
 
-  // Seeded here rather than behind a button because that's what the profile
-  // setting asks for (ticket 221). The flag is the fill's own one-shot mark,
-  // claimed in the same transaction as the insert, so emptying your bag does not
-  // invite it back; reading it here rather than letting the fill no-op keeps a
-  // write transaction off the critical path of every press (ticket 231). A
-  // prefetch can't trigger it either: the tab renders behind `loading.tsx`,
-  // which is as far as Next prefetches a dynamic segment.
-  let mine = bag;
-  if (
-    packingPro &&
-    profile.packAutoGenerate &&
-    packSettings.generatedAt === null
-  ) {
-    await autoFillPersonalBag({
-      tripId,
-      ownerId: access.viewer.id,
-      tier,
-      plan,
-    });
-    // Re-read whether or not this call added anything: losing the write lock to
-    // the request that filled the bag also reports zero, and rendering `bag`
-    // then shows an empty bag next to a full one.
-    mine = await listPersonalPackingLines(tripId, access.viewer.id);
-  }
-
-  const ideas = packingPro
-    ? packingIdeas({ nights: plan.nights, climate: plan.climate, tier }, mine.map((l) => l.label))
-    : [];
+  // A prefetch can't trigger the first-open fill: the tab renders behind
+  // `loading.tsx`, which is as far as Next prefetches a dynamic segment.
   const bagCubes = packingCubes(mine, ideas);
   const suggestedCount = mine.filter((l) => l.origin === "suggested" && l.packedAt === null).length;
   const takeIdea = takePackingIdea.bind(null, tripId);
@@ -129,14 +79,12 @@ export default async function PackingPage({
     claimsByLine.set(c.packingLineId, list);
   }
 
-  const sharedPacked = lines.filter(
-    (l) => packingStatus(claimsByLine.get(l.id) ?? []) === "packed",
-  ).length;
   const bagPacked = mine.filter((l) => l.packedAt !== null).length;
   const sharedItems = lines.map((line) => ({
     ...line,
     claims: claimsByLine.get(line.id) ?? [],
   }));
+  const sharedPacked = packedLineCount(sharedItems);
   const lanes = arrangePackingLanes(sharedItems, access.members);
   const memberIds = new Set(access.members.map((member) => member.userId));
   const cardActions = {

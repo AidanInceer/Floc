@@ -19,6 +19,7 @@ import { useWindowPick } from "@/components/availability/use-window-pick";
 import { addMonths, type IsoMonth } from "@floc/core/dates/availability";
 import { dateRange, today, type IsoDate } from "@floc/core/dates/dates";
 import type { DayLoad } from "@floc/core/trip/trip-window";
+import type { GroupAnswer } from "@floc/core/dates/dates-tabs";
 import type { DailyForecast, TripForecast } from "@/server/itinerary/weather";
 
 export type DatesBoardProps = {
@@ -32,7 +33,9 @@ export type DatesBoardProps = {
   dayLoads: DayLoad[];
   weather: TripForecast | null;
   weatherLocked: boolean;
-  waitingOn: string[];
+  /** Members and guests, each answered or not — the group tab counts and names from this one list. */
+  group: GroupAnswer[];
+  viewerId: string;
   bestWindow: { start: IsoDate; end: IsoDate } | null;
   /** Server-drawn pieces: the group's faces, and the panels' blocks. */
   slots: { faces: ReactNode; best: ReactNode; who: ReactNode; trip: ReactNode; locked: ReactNode };
