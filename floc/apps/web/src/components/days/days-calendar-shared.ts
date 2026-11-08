@@ -1,10 +1,9 @@
 /**
  * Shared vocabulary for the Days calendar (ticket 243, split from
  * `days-calendar.tsx`): the row shapes and grid constants the calendar and its
- * pieces — the day column, the overnight band, the dialog — all read.
+ * pieces — the day column, the stop strip, the dialogs — all read.
  */
 import type { DayEventType, TransportType } from "@/db/schema";
-import type { BandSpan } from "@floc/core/itinerary/overnight-band";
 
 /** Pixels per hour. Tall enough that a 15-minute block is still a target. */
 export const HOUR_PX = 56;
@@ -20,9 +19,6 @@ export const FOCUS_TEMPLATE = "var(--days-gutter) var(--days-side) minmax(0, 1fr
 /** A slot with no trip day in it: before the first day or after the last. */
 export const OUTSIDE_DAY_CLASS =
   "bg-[repeating-linear-gradient(135deg,var(--color-sheet-2)_0_6px,var(--color-sheet)_6px_12px)]";
-
-/** How close to the calendar's edge a drag has to get before the page turns. */
-export const EDGE_PX = 44;
 
 export type CalendarDay = {
   id: number;
@@ -78,25 +74,6 @@ export type OvernightPlace =
       lng?: number | null;
       countryCode?: string | null;
     };
-
-/** A band gesture in progress. Dates, not day ids: the page can turn under it. */
-export type BandDrag = {
-  /** "paint" starts on undecided days; "extend" starts on a run's end handle. */
-  mode: "paint" | "extend";
-  /** The end that stays put. */
-  anchorDate: string;
-  /** What a press-without-a-drag opens. */
-  pressedDate: string;
-  placeId: number | null;
-  placeName: string | null;
-  /** The run before the drag — what a shrink has to clear. */
-  runStart: string;
-  runEnd: string;
-  startX: number;
-  moved: boolean;
-  /** On the ref, not state: a fast drag can land its last move and release in one task. */
-  span: BandSpan | null;
-};
 
 /** "Monday 12 May", or both ends of a run. */
 export function describeSpan(
