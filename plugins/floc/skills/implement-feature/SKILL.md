@@ -88,7 +88,8 @@ what the ticket asked, not just that it renders.
 ## 9. Docs move with the code
 
 Run `/floc:sync-docs`: it finds every doc page the change makes untrue and
-updates it. Same slice, not a follow-up.
+fixes it with the smallest edit. Same slice, not a follow-up. Usually a line or
+two on an existing page, often nothing; never a new page without asking.
 
 ## 10. Report
 

@@ -1,6 +1,6 @@
 ---
 name: sync-docs
-description: Find every Floc doc page that the current diff makes untrue, update it in the same slice, and run pnpm docs:check. Use when the user says /floc:sync-docs, "update the docs", "which docs does this change", or before /floc:push when code that a doc describes has changed.
+description: Find every Floc doc page that the current diff makes untrue, fix it with the smallest edit in the same slice, and run pnpm docs:check. Restrained by default — most changes need a line or two on an existing page, or nothing; never a new page without asking. Use when the user says /floc:sync-docs, "update the docs", "which docs does this change", or before /floc:push when code that a doc describes has changed.
 ---
 
 In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
@@ -10,6 +10,11 @@ In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
 Docs move with the code, in the same commit. This skill finds the pages a
 change makes wrong and fixes them. It does not rewrite pages the change does
 not touch.
+
+**Restraint first.** Aidan wants the docs clean, crisp and short, and his to
+shape. Most changes need nothing, or a sentence or two changed on a page that
+already exists. A new page is rare: ask him first. Leaving a doc alone is a
+good outcome; adding words is the cost.
 
 The docs live in the private `AidanInceer/floc-docs` repo. The main checkout holds the clone and every worktree's `docs/` links to it, so edit `docs/...` as usual. Doc edits never show in the Floc diff: list the pages you changed in your report, and hand that list to `/floc:push --docs`, which commits and pushes only those pages.
 
@@ -49,6 +54,15 @@ Nothing matches → say "no doc change needed" and stop.
 
 Read the page before you edit it. Change only what the diff makes untrue.
 
+- **Smallest edit.** Replace a sentence before you add one. Add a line before
+  a paragraph, a paragraph before a section. One change never earns a new
+  section.
+- **Net length rarely grows.** Delete what the change made obsolete instead of
+  adding a note beside it. No changelog, no history, no "previously", no
+  restating what the code or another page already says — link it.
+- **No new page by default.** If the fact has no home, put one line on the
+  nearest page. Only when that cannot work, ask Aidan before creating a page.
+
 - **HTML is the source.** No markdown copy exists to regenerate from.
 - **Plain words.** Short sentences, active voice, present tense — the
   [vocabulary](docs/foundation/vocab.html) voice. Say what is true now, not
@@ -59,7 +73,7 @@ Read the page before you edit it. Change only what the diff makes untrue.
 - **Strip editor leftovers** on lines you touch: `data-doc-block="auto-…"`,
   empty `class=""`, `contenteditable`.
 
-**New page** → copy the shell of a sibling (`data-root` is the path back to
+**New page** (only after Aidan says yes) → copy the shell of a sibling (`data-root` is the path back to
 `docs/`, `data-page` is its id). Add a `TREE` entry in `docs/assets/nav.js`
 with a `blurb`, and `related` ids and `adr` numbers where they fit — the
 breadcrumb, hub cards and footer links come from it. A new feature is a folder
@@ -85,5 +99,6 @@ It cannot see stale prose — that part is yours.
 
 ## Report
 
-Each page changed, one line on what changed. Pages you judged and left alone,
-if the user would expect a change. Nothing else.
+Each page changed, one line on what changed and the net lines added or
+removed. Pages you judged and left alone, if the user would expect a change.
+Nothing else.
