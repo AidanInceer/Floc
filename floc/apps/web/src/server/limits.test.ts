@@ -12,7 +12,7 @@ import { assertRoom, bounded, LIMITS, reportCeiling } from "@/server/limits";
 afterEach(() => vi.restoreAllMocks());
 
 describe("bounded", () => {
-  it("passes the rows through untouched", () => {
+  it("hands the rows back untouched", () => {
     const rows = [1, 2, 3];
     expect(bounded(rows, "days", "trip 1")).toBe(rows);
   });
