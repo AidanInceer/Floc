@@ -1,9 +1,9 @@
 # CI. One check runner (scripts/checks/run.mjs) serves this file and local runs.
 #
-#   PR to develop      PR checks: lint, types, affected tests, build, fitness, quality, migrations (the fast gate)
-#   push to develop    Release checks: everything, including web e2e and phone bundles
+#   PR to develop      PR checks = PR fast + PR tests + PR build, side by side (the fast gate)
+#   push to develop    Release checks = fast + tests + build + e2e + mobile, side by side: everything
 #   PR to main         Release checks on the release or hotfix commit (the full gate)
-#   push to main       Main coverage, for Sonar's main-branch gate
+#   push to main       Main coverage, reused from the release PR's run, for Sonar's main-branch gate
 #
 # Sonar analyses every PR and main. SonarQube Cloud Free cannot analyse develop itself.
 name: CI
@@ -28,8 +28,32 @@ env:
   FLOC_NEXT_DIST_DIR: .next-verify
 
 jobs:
-  pr:
-    name: PR checks
+  # Why: three jobs side by side beat one job in a row (each pays about 40 s of setup). PR fast holds the cheap checks
+  # that fail most often; PR tests makes the coverage Sonar needs; PR build builds and checks the build.
+  pr-fast:
+    name: PR fast
+    if: github.event_name == 'pull_request' && github.base_ref != 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm checks pr --base "${{ github.event.pull_request.base.sha }}" --fresh --only tool-tests,repository,secrets,lint,types,quality-lint,fitness-source,migrations
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: failed-checks-pr-fast-${{ github.sha }}
+          path: .floc/checks/
+          retention-days: 7
+  pr-tests:
+    name: PR tests
     if: github.event_name == 'pull_request' && github.base_ref != 'main'
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -45,7 +69,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm checks pr --base "${{ github.event.pull_request.base.sha }}" --fresh
+      - run: pnpm checks pr --base "${{ github.event.pull_request.base.sha }}" --fresh --only tests,quality-coverage
       - id: coverage
         if: always()
         run: echo "present=$(node scripts/checks/coverage-present.mjs)" >> "$GITHUB_OUTPUT"
@@ -58,13 +82,79 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: failed-checks-${{ github.sha }}
+          name: failed-checks-pr-tests-${{ github.sha }}
+          path: .floc/checks/
+          retention-days: 7
+  pr-build:
+    name: PR build
+    if: github.event_name == 'pull_request' && github.base_ref != 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm checks pr --base "${{ github.event.pull_request.base.sha }}" --fresh --only build,generated-types,fitness-bundle
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: failed-checks-pr-build-${{ github.sha }}
           path: .floc/checks/
           retention-days: 7
 
-  release:
-    name: Release checks
-    if: (github.event_name == 'pull_request' && github.base_ref == 'main') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') || github.event_name == 'workflow_dispatch'
+  # Why: the name "PR checks" is what docs, ci-watch and any ruleset know; it is green only when the three jobs are.
+  pr:
+    name: PR checks
+    if: always() && github.event_name == 'pull_request' && github.base_ref != 'main'
+    needs: [pr-fast, pr-tests, pr-build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "$RESULTS"
+          for result in $RESULTS; do [ "$result" = "success" ] || exit 1; done
+
+  # Why: five jobs side by side, like the PR gate: the fast checks, the tests that make Sonar's coverage, the build checks,
+  # the web journeys (they need their own build) and the phone bundles. "Release checks" is the name the main ruleset knows.
+  release-fast:
+    name: Release fast
+    if: ${{ (github.event_name == 'pull_request' && github.base_ref == 'main') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Check the candidate
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          base="$BASE_SHA"
+          if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ]; then base=HEAD^1; fi
+          pnpm checks release --base "$base" --fresh --full --only tool-tests,repository,secrets,lint,types,quality-lint,fitness-source,migrations,audit
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: failed-checks-release-fast-${{ github.sha }}
+          path: .floc/checks/
+          retention-days: 7
+  release-tests:
+    name: Release tests
+    if: ${{ (github.event_name == 'pull_request' && github.base_ref == 'main') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     timeout-minutes: 40
     outputs:
@@ -79,14 +169,13 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter floc-web exec playwright install --with-deps chromium
-      - name: Check the whole candidate
+      - name: Check the candidate
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: |
           base="$BASE_SHA"
           if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ]; then base=HEAD^1; fi
-          pnpm checks release --base "$base" --fresh --full
+          pnpm checks release --base "$base" --fresh --full --only tests,quality-coverage
       - id: coverage
         if: always()
         run: echo "present=$(node scripts/checks/coverage-present.mjs)" >> "$GITHUB_OUTPUT"
@@ -99,19 +188,14 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: failed-checks-${{ github.sha }}
-          path: |
-            .floc/checks/
-            floc/apps/web/.e2e/report/
+          name: failed-checks-release-tests-${{ github.sha }}
+          path: .floc/checks/
           retention-days: 7
-
-  coverage:
-    name: Main coverage
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  release-build:
+    name: Release build
+    if: ${{ (github.event_name == 'pull_request' && github.base_ref == 'main') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    outputs:
-      coverage: ${{ steps.coverage.outputs.present }}
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
         with:
@@ -122,7 +206,133 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Check the candidate
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          base="$BASE_SHA"
+          if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ]; then base=HEAD^1; fi
+          pnpm checks release --base "$base" --fresh --full --only build,generated-types,fitness-bundle
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: failed-checks-release-build-${{ github.sha }}
+          path: .floc/checks/
+          retention-days: 7
+  release-e2e:
+    name: Release e2e
+    if: ${{ (github.event_name == 'pull_request' && github.base_ref == 'main') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm --filter floc-web exec playwright install --with-deps chromium
+      - name: Check the candidate
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          base="$BASE_SHA"
+          if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ]; then base=HEAD^1; fi
+          pnpm checks release --base "$base" --fresh --full --only build,web-journeys
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: failed-checks-release-e2e-${{ github.sha }}
+          path: |
+            .floc/checks/
+            floc/apps/web/.e2e/report/
+          retention-days: 7
+  release-mobile:
+    name: Release mobile
+    if: ${{ (github.event_name == 'pull_request' && github.base_ref == 'main') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Check the candidate
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          base="$BASE_SHA"
+          if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ]; then base=HEAD^1; fi
+          pnpm checks release --base "$base" --fresh --full --only mobile-bundles
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: failed-checks-release-mobile-${{ github.sha }}
+          path: .floc/checks/
+          retention-days: 7
+
+  release:
+    name: Release checks
+    if: always() && ((github.event_name == 'pull_request' && github.base_ref == 'main') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') || github.event_name == 'workflow_dispatch')
+    needs: [release-fast, release-tests, release-build, release-e2e, release-mobile]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "$RESULTS"
+          for result in $RESULTS; do [ "$result" = "success" ] || exit 1; done
+
+  coverage:
+    name: Main coverage
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      coverage: ${{ steps.coverage.outputs.present }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # Why: the release PR passed these tests on this same tree; reuse its coverage, and test again only if it is gone.
+      - id: reuse
+        run: node scripts/checks/reuse-coverage.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        if: steps.reuse.outputs.reuse == 'true'
+        with:
+          name: ${{ steps.reuse.outputs.name }}
+          run-id: ${{ steps.reuse.outputs.run-id }}
+          github-token: ${{ github.token }}
+          path: floc
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
+        if: steps.reuse.outputs.reuse != 'true'
+      - uses: actions/setup-node@v4
+        if: steps.reuse.outputs.reuse != 'true'
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+        if: steps.reuse.outputs.reuse != 'true'
       - run: pnpm checks coverage --base HEAD^1 --fresh
+        if: steps.reuse.outputs.reuse != 'true'
       - id: coverage
         run: echo "present=$(node scripts/checks/coverage-present.mjs)" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4
@@ -133,7 +343,7 @@ jobs:
 
   sonarqube:
     name: SonarQube analysis
-    needs: [pr, release, coverage]
+    needs: [pr-tests, release-tests, coverage]
     if: >-
       always() && (github.event_name == 'pull_request' || github.ref == 'refs/heads/main')
       && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
@@ -144,10 +354,14 @@ jobs:
         with:
           fetch-depth: 0
       - uses: actions/download-artifact@v4
-        if: needs.pr.outputs.coverage == 'true' || needs.release.outputs.coverage == 'true' || needs.coverage.outputs.coverage == 'true'
+        if: needs.pr-tests.outputs.coverage == 'true' || needs.release-tests.outputs.coverage == 'true' || needs.coverage.outputs.coverage == 'true'
         with:
           name: coverage-${{ github.sha }}
           path: floc
+      - uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: sonar-${{ runner.os }}-v8
       - name: Version
         id: version
         run: echo "version=$(node -p "require('./floc/apps/web/package.json').version")" >> "$GITHUB_OUTPUT"

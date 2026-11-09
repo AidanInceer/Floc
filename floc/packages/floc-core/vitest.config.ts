@@ -4,6 +4,9 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
+    // Why: pure rules and no test touches global state, so files can share one loaded copy of each module.
+    pool: "threads",
+    isolate: false,
     include: ["src/**/*.test.ts"],
     /**
      * The `lib/` half of the app's coverage ratchet (#116), carried over with

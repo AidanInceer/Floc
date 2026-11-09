@@ -10,13 +10,16 @@ The main thread fixes what you report.
 ## 1. Watch
 
 - A PR number → `node scripts/ci-watch.mjs --pr <n> --for 540`. It looks every 20 seconds and
-  stops on merged, failed, conflict or closed. Exit 2 means still pending: run it again. Stop after
+  stops on merged, failed, broken, conflict or closed. Exit 2 means still pending: run it again. Stop after
   60 minutes of pending and report that.
 - When every required check passes, GitHub auto-merge merges the PR. If auto-merge is off, the
   script merges it. Either way, wait until it reports `merged`.
 - A SHA (a red develop or main commit) → `node scripts/ci-watch.mjs <sha>` the same way.
 
 ## 2. On red, find why
+
+- `broken` means the CI run ended red without its checks ever reporting (the output has the run URL).
+  Report it with the URL; the main thread re-runs it with `gh run rerun <id> --repo AidanInceer/Floc`.
 
 - `gh pr checks <n> --repo AidanInceer/Floc`, then
   `gh run view <run> --repo AidanInceer/Floc --log-failed`.

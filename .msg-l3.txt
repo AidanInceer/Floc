@@ -1,0 +1,3 @@
+#no-ticket: test: keep the web test helpers out of changed-code coverage
+
+Why: src/test/db.ts is test harness code, never in the vitest coverage include, so the changed-code gate reported it as missing from LCOV. Same treatment as the editor and globe testing.ts helpers.
