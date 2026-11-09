@@ -5,7 +5,9 @@ import { TASK_BRANCH } from "../workspace/worktrees.mjs";
 
 export const repository = "AidanInceer/Floc";
 const SHARED = ["SonarQube analysis", "Secret scan", "Known vulnerabilities"];
-export const requiredChecks = { develop: ["PR checks", ...SHARED], main: ["Release checks", ...SHARED] };
+// Why: the three PR jobs are listed too, so a red one is reported when it fails, not when "PR checks" finally reports.
+const PR_JOBS = ["PR fast", "PR tests", "PR build"];
+export const requiredChecks = { develop: ["PR checks", ...PR_JOBS, ...SHARED], main: ["Release checks", ...SHARED] };
 
 export const gh = (root, ...args) => command("gh", [...args, "--repo", repository], { cwd: root });
 export const json = (root, ...args) => JSON.parse(gh(root, ...args) || "null");
