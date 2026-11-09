@@ -3,7 +3,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { command, git } from "../delivery/process.mjs";
 import { workingTree } from "../quality/preflight.mjs";
-import { commandFor, selectedChecks } from "./manifest.mjs";
+import { commandFor, onlyChecks, selectedChecks } from "./manifest.mjs";
 import { digest, reusable } from "./receipts.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -37,7 +37,9 @@ try {
     ...git(root, "diff", "--name-only", base, "--").split("\n"),
     ...git(root, "ls-files", "--others", "--exclude-standard").split("\n"),
   ].filter(Boolean))];
-  const selected = selectedChecks(profile, paths, args.includes("--full"));
+  const wanted = option("--only", "").split(",").filter(Boolean);
+  const all = selectedChecks(profile, paths, args.includes("--full"));
+  const selected = wanted.length ? onlyChecks(all, wanted) : all;
   if (args.includes("--plan")) {
     console.log(JSON.stringify({ profile, base, paths, checks: selected.map((c) => c.id) }, null, 2));
   } else {
