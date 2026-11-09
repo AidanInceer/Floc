@@ -89,6 +89,7 @@ export function SavedPane() {
               first={i === 0}
               tags={<RegionTags region={trip.region} countries={trip.country} />}
               title={trip.title}
+              name={trip.title}
               figures={`${trip.nights} ${trip.nights === 1 ? "night" : "nights"} · ${listingPrice(trip, rates)}`}
               heart={<HeartButton saved label={trip.title} onPress={() => toggle(trip.id, false)} />}
               onOpen={() => router.push({ pathname: "/explore/[preset]", params: { preset: trip.id } })}
@@ -123,6 +124,7 @@ function CountryRow({ country, first, onDrop, onOpen, onStart }: { country: Coun
       heart={<HeartButton saved label={country.name} onPress={onDrop} />}
       onOpen={onOpen}
       onStart={onStart}
+      name={country.name}
     />
   );
 }
@@ -135,6 +137,7 @@ function SavedRow({
   heart,
   onOpen,
   onStart,
+  name,
 }: {
   first: boolean;
   tags: React.ReactNode;
@@ -143,6 +146,8 @@ function SavedRow({
   heart: React.ReactNode;
   onOpen: () => void;
   onStart: () => void;
+  /** What the row is, for its Start trip's name. */
+  name: string;
 }) {
   const { c } = useTheme();
   return (
@@ -161,9 +166,9 @@ function SavedRow({
         <Text style={{ color: c.ink, fontFamily: fonts.sansBold, fontSize: size.body }}>{title}</Text>
         <Text style={{ color: c["ink-2"], fontFamily: fonts.type, fontSize: size.small, fontVariant: ["tabular-nums"] }}>{figures}</Text>
       </Pressable>
-      <View style={{ alignItems: "flex-end", gap: space.sm, paddingVertical: space.md }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
         {heart}
-        <Button label="Start trip" variant="quiet" fit="small" onPress={onStart} />
+        <Button label="Start trip" accessibilityLabel={`Start trip from ${name}`} variant="quiet" fit="small" onPress={onStart} />
       </View>
     </View>
   );

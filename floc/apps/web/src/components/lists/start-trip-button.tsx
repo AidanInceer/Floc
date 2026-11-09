@@ -6,7 +6,7 @@ import { savedStartHref, type SavedThing } from "@/lib/landing/start-trip";
 export function StartTripButton({ saved, name }: { saved: SavedThing; name: string }) {
   return (
     <div className="flex justify-end">
-      <ButtonLink href={savedStartHref(saved)} aria-label={`Start a trip from ${name}`} className="px-3">
+      <ButtonLink href={savedStartHref(saved)} aria-label={`Start trip from ${name}`}>
         Start trip <Glyph name="arrow" />
       </ButtonLink>
     </div>

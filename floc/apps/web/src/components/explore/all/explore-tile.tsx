@@ -18,7 +18,7 @@ const nightsOf = (n: number) => `${n} ${n === 1 ? "night" : "nights"}`;
 /**
  * One listing as a tile: its outline map, then what it is. The children say how it fits what you asked for.
  * The tile opens the listing's own page, or `href`; the footer sits under that link, so it can hold a second action.
- * The heart sits over the map but outside the link, so a tap on it never opens the page.
+ * The link stretches over the whole card (#467); the heart and the footer's controls sit above it, so a tap on them never opens the page.
  */
 export function ExploreTile({
   trip,
@@ -34,7 +34,7 @@ export function ExploreTile({
   const rates = useListingRates();
   return (
     <div className="lift relative flex h-full flex-col overflow-hidden rounded-md bg-sheet shadow-[var(--shadow)]">
-      <Link href={href ?? `/explore/${trip.id}`} className="flex w-full flex-col text-left text-ink">
+      <Link href={href ?? `/explore/${trip.id}`} className="flex w-full flex-col text-left text-ink after:absolute after:inset-0 after:content-['']">
         <span aria-hidden className="pointer-events-none block aspect-[24/17] w-full bg-sheet-2">
           <OutlineMap trip={trip} size="tile" />
         </span>
@@ -47,8 +47,8 @@ export function ExploreTile({
           {children}
         </span>
       </Link>
-      <SaveHeart presetId={trip.id} title={trip.title} className="absolute right-2.5 top-2.5" />
-      {footer ? <div className="mt-auto px-3.5 pb-3.5">{footer}</div> : null}
+      <SaveHeart presetId={trip.id} title={trip.title} className="absolute right-2.5 top-2.5 z-10" />
+      {footer ? <div className="pointer-events-none relative z-10 mt-auto px-3.5 pb-3.5 [&_a]:pointer-events-auto [&_button]:pointer-events-auto">{footer}</div> : null}
     </div>
   );
 }

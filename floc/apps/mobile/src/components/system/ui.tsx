@@ -186,9 +186,12 @@ export function Button({
   icon,
   busy,
   disabled,
+  accessibilityLabel,
 }: {
   label: string;
   onPress: () => void;
+  /** When the words alone do not say which one, e.g. a Start trip on every row; it starts with `label`. */
+  accessibilityLabel?: string;
   /** Drawn before the label, in the label's own colour. Line-art only, no emoji. */
   icon?: (ink: string) => ReactNode;
   variant?: "primary" | "quiet" | "danger";
@@ -210,7 +213,7 @@ export function Button({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={accessibilityLabel ?? label}
       accessibilityState={{ disabled: !!off, busy: !!busy }}
       onPress={onPress}
       disabled={off}

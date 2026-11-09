@@ -24,14 +24,14 @@ export function CountryTile({ code, name, onDrop }: { code: string; name: string
   const count = listingsIn(code).length;
   return (
     <div className="lift relative flex h-full flex-col overflow-hidden rounded-md bg-sheet shadow-[var(--shadow)]">
-      <Link href={`/explore?country=${code}`} className="flex w-full flex-col text-left text-ink">
+      <Link href={`/explore?country=${code}`} className="flex w-full flex-col text-left text-ink after:absolute after:inset-0 after:content-['']">
         <span aria-hidden className="pointer-events-none block aspect-[24/17] w-full bg-sheet-2">
           <CountryOutline code={code} name={name} fill={region ? regionLand(region) : PLAIN_LAND} />
         </span>
         <span className="flex flex-col gap-1 px-3.5 pb-2 pt-3">
           <span className={cx(tagClass, region ? regionSkin(region) : PLAIN_TAG, "mb-1 !whitespace-normal")}>{name}</span>
           <b className="font-display text-base font-semibold leading-tight tracking-[-0.02em]">Want to go</b>
-          <span className="nums text-[11.5px] text-ink-faint">
+          <span className="nums text-balance text-[11.5px] text-ink-faint">
             {count === 0 ? "No trips on Explore yet" : `${count} ${count === 1 ? "trip" : "trips"} on Explore`}
           </span>
         </span>
@@ -42,11 +42,11 @@ export function CountryTile({ code, name, onDrop }: { code: string; name: string
         aria-label={`Saved ${name}`}
         title="Saved"
         onClick={onDrop}
-        className={cx(heartClass, "absolute right-2.5 top-2.5 text-red")}
+        className={cx(heartClass, "absolute right-2.5 top-2.5 z-10 text-red")}
       >
         <ReactionGlyph kind="heart" mine size={16} />
       </button>
-      <div className="mt-auto px-3.5 pb-3.5">
+      <div className="pointer-events-none relative z-10 mt-auto px-3.5 pb-3.5 [&_a]:pointer-events-auto [&_button]:pointer-events-auto">
         <StartTripButton saved={{ kind: "country", name }} name={name} />
       </div>
     </div>

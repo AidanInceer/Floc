@@ -137,6 +137,26 @@ describe("countryFrame", () => {
     expect(bottom.y - top.y).toBeGreaterThan(size.height * 0.1);
   });
 
+  it("keeps a country's other big islands in the frame: Hokkaido, the Malay peninsula, the North Island", () => {
+    const sees = (code: string, spot: { lat: number; lng: number }) => {
+      const { view } = countryFrame(fine, code, size)!;
+      return spot.lat > view.south && spot.lat < view.north && spot.lng > view.west && spot.lng < view.east;
+    };
+    expect(sees("JP", { lat: 43.06, lng: 141.35 })).toBe(true);
+    expect(sees("MY", { lat: 3.14, lng: 101.69 })).toBe(true);
+    expect(sees("NZ", { lat: -36.85, lng: 174.76 })).toBe(true);
+  });
+
+  it("leaves out a far territory, so France is framed on France and not on French Guiana too", () => {
+    const { view } = countryFrame(fine, "FR", size)!;
+    expect(view.west).toBeGreaterThan(-20);
+  });
+
+  it("frames a country across the 180th meridian on its main land, not the whole world", () => {
+    const { view } = countryFrame(fine, "RU", size)!;
+    expect(view.east - view.west).toBeLessThan(180);
+  });
+
   it("is nothing for a country with no outline", () => {
     expect(countryFrame(fine, "ZZ", size)).toBeNull();
   });

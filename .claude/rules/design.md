@@ -61,6 +61,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 
 - One main action per screen. One visible action per row; more verbs go behind a `…` menu.
   - One exception: on Lists the account tab opens sideways into a hairline capsule of its pages (Saved, Packing); below sm the other account tabs show only their glyphs while it is open (#467).
+  - One exception: a Saved tile on Lists shows Start trip at its bottom right beside its heart, so a saved trip or country starts a trip at once (#467).
   - One exception: a My trips card shows two toggles beside its `…`, star and mute (a bell, slashed when muted). Each says its state in its label (`aria-pressed`, Mute/Unmute). Every other verb stays in the menu.
 - Rows on one surface beat cards for everything. No borders around borders, no boxes inside boxes.
 - Below a panel's coloured head, every part — a field or a section — takes one title style and is ruled off edge to edge from the part above (`panelTitleClass`, `panelBandClass` in `ui.tsx`). A part whose controls name themselves (the event type tiles) needs no title. An empty part shows its button, not a sentence about being empty.
