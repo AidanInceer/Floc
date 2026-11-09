@@ -23,7 +23,7 @@ import { isLive } from "@floc/core/billing/subscription-copy";
 
 import { endsWithoutRenewing } from "./cancellation";
 
-export { BILLING_INTERVALS, type BillingInterval };
+export type { BillingInterval };
 
 
 let client: Stripe | null | undefined;
