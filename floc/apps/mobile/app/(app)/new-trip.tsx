@@ -5,7 +5,7 @@
 import { formatDateRange } from "@floc/core/dates/dates";
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 
@@ -29,7 +29,9 @@ export default function NewTrip() {
   const router = useRouter();
   const { c } = useTheme();
   const queryClient = useQueryClient();
-  const [name, setName] = useState("");
+  // Why: a want-to-go country on Lists starts a trip named after it (#467), as `/trips?new=` does on the web.
+  const asked = useLocalSearchParams<{ name?: string }>().name;
+  const [name, setName] = useState((asked ?? "").trim().slice(0, TEXT_CAPS.tripName));
   const [when, setWhen] = useState<When>("pick");
   const [range, setRange] = useState<DateRange | null>(null);
 

@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 
 import { tripCodes } from "./country";
-import { frameFor, homePiece } from "./frame";
+import { countryFrame, frameFor, homePiece } from "./frame";
 import { landFrom, landFromPacked } from "./land";
 
 const square = (x: number, y: number, side: number) => [[x, y], [x + side, y], [x + side, y + side], [x, y + side], [x, y]];
@@ -115,5 +115,29 @@ describe("every listing", () => {
       }
     }
     expect(tight).toEqual([]);
+  });
+});
+
+describe("countryFrame", () => {
+  const fine = landFromPacked(JSON.parse(readFileSync("public/land-50m.json", "utf8")));
+  const inside = (outer: { west: number; south: number; east: number; north: number }, inner: typeof outer) =>
+    inner.west >= outer.west && inner.east <= outer.east && inner.south >= outer.south && inner.north <= outer.north;
+
+  it("fits a big country's whole mainland, so the tile shows its shape and not only its land", () => {
+    const frame = countryFrame(fine, "AU", size)!;
+    const mainland = fine.filter((p) => p.code === "AU").sort((a, b) => b.ring.length - a.ring.length)[0]!;
+    expect(inside(frame.view, mainland.box)).toBe(true);
+  });
+
+  it("draws a small island big enough to see", () => {
+    const frame = countryFrame(fine, "AW", size)!;
+    const island = fine.find((p) => p.code === "AW")!;
+    const top = frame.point({ lng: island.box.west, lat: island.box.north });
+    const bottom = frame.point({ lng: island.box.east, lat: island.box.south });
+    expect(bottom.y - top.y).toBeGreaterThan(size.height * 0.1);
+  });
+
+  it("is nothing for a country with no outline", () => {
+    expect(countryFrame(fine, "ZZ", size)).toBeNull();
   });
 });

@@ -8,9 +8,9 @@ import { setCountryMark } from "@/app/profile/actions";
 import { ExploreTile } from "@/components/explore/all/explore-tile";
 import { PlusIcon } from "@/components/system/icons";
 import { ButtonLink, Input } from "@/components/system/ui";
-import { listingStartHref } from "@/lib/landing/start-trip";
 
 import { CountryTile } from "./country-tile";
+import { StartTripButton } from "./start-trip-button";
 
 type Country = { code: string; name: string };
 
@@ -18,7 +18,7 @@ const byName = (a: Country, b: Country) => a.name.localeCompare(b.name);
 
 /**
  * Where you want to go (#467, ADR-042): the Explore trips you saved, then the countries, both as tiles.
- * A trip opens with the copy choice open (ADR-025); a country is the globe's yellow, so adding or removing one paints it.
+ * A tile opens the trip or Explore searched for the country; its Start trip button starts one from it. A country is the globe's yellow, so adding or removing one paints it.
  */
 export function WantToGo({ trips, countries }: { trips: PresetTrip[]; countries: Country[] }) {
   const [shown, change] = useOptimistic(countries, (list, next: { add?: Country; drop?: string }) =>
@@ -78,7 +78,7 @@ export function WantToGo({ trips, countries }: { trips: PresetTrip[]; countries:
         <ul className="grid grid-cols-2 gap-2.5 sm:gap-4 md:grid-cols-3">
           {trips.map((trip) => (
             <li key={trip.id}>
-              <ExploreTile trip={trip} href={listingStartHref(true, trip.id)} />
+              <ExploreTile trip={trip} footer={<StartTripButton saved={{ kind: "trip", id: trip.id }} name={trip.title} />} />
             </li>
           ))}
           {shown.map((c) => (

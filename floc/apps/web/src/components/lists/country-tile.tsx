@@ -10,6 +10,7 @@ import { ReactionGlyph } from "@/components/system/icons/reaction";
 import { cx } from "@/components/system/ui";
 
 import { CountryOutline } from "./country-outline";
+import { StartTripButton } from "./start-trip-button";
 
 const PLAIN_LAND = "fill-sheet-2 stroke-rule-strong";
 const PLAIN_TAG = "border border-rule-strong text-ink-soft";
@@ -27,7 +28,7 @@ export function CountryTile({ code, name, onDrop }: { code: string; name: string
         <span aria-hidden className="pointer-events-none block aspect-[24/17] w-full bg-sheet-2">
           <CountryOutline code={code} name={name} fill={region ? regionLand(region) : PLAIN_LAND} />
         </span>
-        <span className="flex flex-col gap-1 px-3.5 pb-3.5 pt-3">
+        <span className="flex flex-col gap-1 px-3.5 pb-2 pt-3">
           <span className={cx(tagClass, region ? regionSkin(region) : PLAIN_TAG, "mb-1 !whitespace-normal")}>{name}</span>
           <b className="font-display text-base font-semibold leading-tight tracking-[-0.02em]">Want to go</b>
           <span className="nums text-[11.5px] text-ink-faint">
@@ -45,6 +46,9 @@ export function CountryTile({ code, name, onDrop }: { code: string; name: string
       >
         <ReactionGlyph kind="heart" mine size={16} />
       </button>
+      <div className="mt-auto px-3.5 pb-3.5">
+        <StartTripButton saved={{ kind: "country", name }} name={name} />
+      </div>
     </div>
   );
 }

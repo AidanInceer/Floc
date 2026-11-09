@@ -1,5 +1,6 @@
 /**
  * Saved (#467, ADR-042): the Explore trips you saved, then the countries you want to go to, as rows.
+ * A row opens the trip or Explore searched for the country; its Start trip button starts one from it.
  * A country is the globe's yellow, so adding or removing one here paints the globe too.
  */
 import { wantToGoCountries } from "@floc/core/itinerary/travel-map";
@@ -90,7 +91,8 @@ export function SavedPane() {
               title={trip.title}
               figures={`${trip.nights} ${trip.nights === 1 ? "night" : "nights"} · ${listingPrice(trip, rates)}`}
               heart={<HeartButton saved label={trip.title} onPress={() => toggle(trip.id, false)} />}
-              onOpen={() => router.push({ pathname: "/explore/[preset]", params: { preset: trip.id, start: "1" } })}
+              onOpen={() => router.push({ pathname: "/explore/[preset]", params: { preset: trip.id } })}
+              onStart={() => router.push({ pathname: "/explore/[preset]", params: { preset: trip.id, start: "1" } })}
             />
           ))}
           {countries.map((c, i) => (
@@ -100,6 +102,7 @@ export function SavedPane() {
               first={trips.length === 0 && i === 0}
               onDrop={() => mark.mutate({ code: c.code, state: "blank" })}
               onOpen={() => router.push({ pathname: "/explore", params: { country: c.code } })}
+              onStart={() => router.push({ pathname: "/(app)/new-trip", params: { name: c.name } })}
             />
           ))}
         </Card>
@@ -108,7 +111,7 @@ export function SavedPane() {
   );
 }
 
-function CountryRow({ country, first, onDrop, onOpen }: { country: Country; first: boolean; onDrop: () => void; onOpen: () => void }) {
+function CountryRow({ country, first, onDrop, onOpen, onStart }: { country: Country; first: boolean; onDrop: () => void; onOpen: () => void; onStart: () => void }) {
   const region = regionOf(country.code);
   const count = listingsIn(country.code).length;
   return (
@@ -119,6 +122,7 @@ function CountryRow({ country, first, onDrop, onOpen }: { country: Country; firs
       figures={count === 0 ? "No trips on Explore yet" : `${count} ${count === 1 ? "trip" : "trips"} on Explore`}
       heart={<HeartButton saved label={country.name} onPress={onDrop} />}
       onOpen={onOpen}
+      onStart={onStart}
     />
   );
 }
@@ -130,6 +134,7 @@ function SavedRow({
   figures,
   heart,
   onOpen,
+  onStart,
 }: {
   first: boolean;
   tags: React.ReactNode;
@@ -137,6 +142,7 @@ function SavedRow({
   figures: string;
   heart: React.ReactNode;
   onOpen: () => void;
+  onStart: () => void;
 }) {
   const { c } = useTheme();
   return (
@@ -155,7 +161,10 @@ function SavedRow({
         <Text style={{ color: c.ink, fontFamily: fonts.sansBold, fontSize: size.body }}>{title}</Text>
         <Text style={{ color: c["ink-2"], fontFamily: fonts.type, fontSize: size.small, fontVariant: ["tabular-nums"] }}>{figures}</Text>
       </Pressable>
-      {heart}
+      <View style={{ alignItems: "flex-end", gap: space.sm, paddingVertical: space.md }}>
+        {heart}
+        <Button label="Start trip" variant="quiet" fit="small" onPress={onStart} />
+      </View>
     </View>
   );
 }

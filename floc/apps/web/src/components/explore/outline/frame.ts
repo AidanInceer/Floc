@@ -22,6 +22,8 @@ const REACH = 0.34;
 const APART = 0.2;
 /** The most a route is zoomed in on to hold its closest stops apart: a town and its neighbour. */
 const TIGHTEST = 0.3;
+/** The least a lone country is framed at, so Aruba shows as an island and not a speck. */
+const ISLAND = 1.2;
 
 const area = (b: Box) => (b.east - b.west) * (b.north - b.south);
 const clamp = (value: number, low: number, high: number) => Math.min(Math.max(value, low), high);
@@ -80,10 +82,26 @@ export function frameFor(stops: readonly Spot[], home: Piece | undefined, size: 
     lng: clamp(centre.lng, route.east - wide * REACH, route.west + wide * REACH),
     lat: clamp(centre.lat, route.north - high * REACH, route.south + high * REACH),
   };
+  return frameOn(centre, high, squeeze, size);
+}
+
+function frameOn(centre: Spot, high: number, squeeze: number, size: Size): Frame {
+  const wide = (high * (size.width / size.height)) / squeeze;
   const scale = size.height / high;
   return {
     scale,
     view: { west: centre.lng - wide / 2, south: centre.lat - high / 2, east: centre.lng + wide / 2, north: centre.lat + high / 2 },
     point: ({ lat, lng }) => ({ x: size.width / 2 + (lng - centre.lng) * squeeze * scale, y: size.height / 2 - (lat - centre.lat) * scale }),
   };
+}
+
+/** A country on its own, with no route (#467): its main landmass whole, however big, and an island never smaller than a town and its neighbour. */
+export function countryFrame(land: readonly Piece[], code: string, size: Size): Frame | null {
+  const home = land.filter((p) => p.code === code).sort((a, b) => area(b.box) - area(a.box))[0];
+  if (!home) return null;
+  const { box } = home;
+  const centre = { lng: (box.west + box.east) / 2, lat: (box.south + box.north) / 2 };
+  const squeeze = Math.cos((centre.lat * Math.PI) / 180);
+  const needs = Math.max(box.north - box.south, ((box.east - box.west) * squeeze) / (size.width / size.height));
+  return frameOn(centre, Math.max(needs * LAND_MARGIN, ISLAND), squeeze, size);
 }

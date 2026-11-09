@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { listingStartHref, newTripName, startTripHref } from "./start-trip";
+import { listingStartHref, newTripName, savedStartHref, startTripHref } from "./start-trip";
 
 describe("startTripHref", () => {
   it("opens the new-trip sheet on My trips, named, when signed in", () => {
@@ -40,5 +40,15 @@ describe("newTripName", () => {
 
   it("takes the first value when the parameter repeats", () => {
     expect(newTripName(["Porto", "Faro"])).toBe("Porto");
+  });
+});
+
+describe("savedStartHref", () => {
+  it("starts from a saved trip with its copy choice open, so its plan comes across (ADR-025)", () => {
+    expect(savedStartHref({ kind: "trip", id: "japan-golden-route" })).toBe("/explore/japan-golden-route?start=1");
+  });
+
+  it("starts from a want-to-go country as a new trip named after it", () => {
+    expect(savedStartHref({ kind: "country", name: "Bosnia and Herzegovina" })).toBe("/trips?new=Bosnia%20and%20Herzegovina");
   });
 });
