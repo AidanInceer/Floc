@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 test.use({ reducedMotion: "reduce", viewport: { width: 1280, height: 900 } });
 
 test("the feature tour steps with its arrows and keys, wraps, and never moves on its own", async ({ page }) => {
+  await page.clock.install();
   await page.goto("/");
   const tour = page.getByLabel("Features", { exact: true });
   const count = page.getByText(/^\d+ \/ 7$/);
@@ -22,7 +23,7 @@ test("the feature tour steps with its arrows and keys, wraps, and never moves on
   await page.getByRole("button", { name: "Next feature" }).click();
   await expect(count).toHaveText("1 / 7");
 
-  await page.waitForTimeout(1500);
+  await page.clock.fastForward(60_000);
   await expect(count).toHaveText("1 / 7");
 });
 
