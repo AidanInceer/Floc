@@ -19,6 +19,12 @@ describe("landingFaq", () => {
     expect(pro?.answer).not.toMatch(/a month/);
   });
 
+  it("sells Pro as your own, never as covering the whole group", () => {
+    const pro = landingFaq({ sellingPro: true, monthly: "£3.99" }).find((q) => q.key === "pro");
+    expect(pro?.answer).not.toMatch(/covers the whole trip/);
+    expect(pro?.answer).toMatch(/your own screen/);
+  });
+
   it("leaves Pro out when every feature is free", () => {
     const keys = landingFaq({ sellingPro: false, monthly: null }).map((q) => q.key);
     expect(keys).not.toContain("pro");
