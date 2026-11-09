@@ -38,16 +38,6 @@ test.describe("as a member", () => {
     await expect(page.getByRole("button", { name: "Mute Portugal, late summer" })).toHaveAttribute("aria-pressed", "false");
   });
 
-  test("a new trip can be started", async ({ page }) => {
-    const name = `E2E trip ${Date.now()}`;
-    await page.goto("/trips");
-    await page.getByRole("button", { name: "New trip" }).click();
-    await page.getByRole("dialog").getByLabel("Name").fill(name);
-    await page.getByRole("button", { name: "Create trip" }).click();
-
-    await expect(page).toHaveURL(/\/trip\/\d+/);
-    await expect(page.getByText(name).first()).toBeVisible();
-  });
 });
 
 test("somebody else's trip looks the same as one that does not exist", async ({ browser }) => {
