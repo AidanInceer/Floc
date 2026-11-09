@@ -1,0 +1,9 @@
+#no-ticket: test: drop the duplicate new-trip journey, replace fixed waits in e2e
+
+The long-name layout journey already starts a trip through the same dialog at
+two widths, so it now also checks the heading, and the separate trip-start
+test goes. The tour no-autoplay check and the days-calendar check wait on a
+fake clock, a visible state and animation frames instead of timeouts. The
+first-trip walkthrough is skipped with a locator handler, not a 3 s probe.
+
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>

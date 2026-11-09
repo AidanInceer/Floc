@@ -403,6 +403,7 @@ async function buildPastTrip(you: string, crew: string[]): Promise<number> {
     .values({
       providerId: "osm:relation:449696",
       name: "Krakow, Poland",
+      countryCode: "PL",
       lat: 50.0647,
       lng: 19.945,
     })

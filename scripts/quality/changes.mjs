@@ -31,3 +31,24 @@ export function collectChanges(root, base = process.env.FLOC_CHECK_BASE ?? "orig
   }
   return changes;
 }
+
+/** Lines added or changed in the index, from one diff — the hook lints what the commit will hold. */
+export function collectStaged(root) {
+  const diff = git(root, ["-c", "core.quotepath=false", "diff", "--cached", "--no-ext-diff", "--no-textconv", "--no-renames", "--diff-filter=ACM", "-U0"]);
+  const changes = new Map();
+  let lines = null;
+  for (const line of diff.split("\n")) {
+    const file = /^\+\+\+ b\/(.+?)\r?$/.exec(line);
+    if (file) {
+      lines = new Set();
+      changes.set(file[1], lines);
+      continue;
+    }
+    const hunk = /^@@ -\S+ \+(\d+)(?:,(\d+))? @@/.exec(line);
+    if (!hunk || !lines) continue;
+    const start = Number(hunk[1]);
+    for (let i = 0; i < Number(hunk[2] ?? 1); i++) lines.add(start + i);
+  }
+  for (const [file, set] of changes) if (!set.size) changes.delete(file);
+  return changes;
+}
