@@ -19,12 +19,12 @@ function run([name, ...args], cwd) {
 }
 
 /** Runs independent checks side by side. One line each; a failure prints the end of its output. */
-export async function runAll(tasks, cwd = process.cwd()) {
+export async function runAll(tasks, cwd = process.cwd(), tail = 25) {
   const started = Date.now();
-  const results = await Promise.all(tasks.map(async ([label, cmd]) => ({ label, ...(await run(cmd, cwd)) })));
-  for (const { label, ok, output } of results) {
-    console.log(`${ok ? "ok  " : "FAIL"} ${label}`);
-    if (!ok) console.log(output.trim().split(/\r?\n/).slice(-25).map((line) => `     ${line}`).join("\n"));
+  const results = await Promise.all(tasks.map(async ([label, cmd]) => { const at = Date.now(); return { label, ...(await run(cmd, cwd)), seconds: (Date.now() - at) / 1000 }; }));
+  for (const { label, ok, output, seconds } of results) {
+    console.log(`${ok ? "ok  " : "FAIL"} ${label} (${seconds.toFixed(1)} s)`);
+    if (!ok) console.log(output.trim().split(/\r?\n/).slice(-tail).map((line) => `     ${line}`).join("\n"));
   }
   console.log(`${results.filter((r) => r.ok).length}/${results.length} passed in ${((Date.now() - started) / 1000).toFixed(1)} s`);
   return results.every((r) => r.ok);
