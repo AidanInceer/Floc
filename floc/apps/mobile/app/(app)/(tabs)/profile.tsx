@@ -28,7 +28,6 @@
  * TWO READS, NOT ONE. `me` is the identity every screen wants; `me.profile` is
  * the heavier face. Packing reads the first and has no use for a travel map.
  */
-import { formatDateRange } from "@floc/core/dates/dates";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -42,8 +41,8 @@ import { Sheet } from "@/components/system/sheet";
 import { TravelMap } from "@/components/map/travel-map";
 import { VerifyEmailCard } from "@/components/auth/verify-email";
 import { ProRow } from "@/components/billing/pro-row";
-import { Drawer, DrawerGroup, DrawerLink } from "@/components/system/drawer";
-import { Body, Button, Card, Empty, Failed, Figure, Loading, Row, SectionTitle } from "@/components/system/ui";
+import { DrawerGroup, DrawerLink } from "@/components/system/drawer";
+import { Body, Button, Card, Failed, Loading, Row, SectionTitle } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { signOutHere } from "@/lib/sign-out";
 import { forgetThisPhone } from "@/lib/push/push";
@@ -149,7 +148,7 @@ export default function Profile() {
           <Button label="Paint the map" variant="quiet" onPress={() => setPainting(true)} />
         </View>
 
-        <YourTravel trips={face.data?.pastTrips} onLists={() => router.push("/lists")} />
+        <YourTravel onLists={() => router.push("/lists")} />
 
         <View style={{ gap: space.sm }}>
           <View style={{ paddingHorizontal: space.xs }}>
@@ -194,22 +193,11 @@ export default function Profile() {
   );
 }
 
-type PastTrip = { id: number; name: string; startDate: string | null; endDate: string | null };
-
-function YourTravel({ trips, onLists }: { trips: PastTrip[] | undefined; onLists: () => void }) {
+function YourTravel({ onLists }: { onLists: () => void }) {
   return (
-    <DrawerGroup label="Your travel">
-      <Drawer first title="Past trips" summary={trips ? String(trips.length) : undefined}>
-        {trips && trips.length === 0 ? <Empty>Nothing here yet.</Empty> : null}
-        {trips?.map((trip) => (
-          <View key={trip.id} style={{ gap: space.xs }}>
-            <Body bold>{trip.name}</Body>
-            <Figure tone="ink-3">{formatDateRange(trip.startDate, trip.endDate)}</Figure>
-          </View>
-        ))}
-      </Drawer>
+    <DrawerGroup>
       {/* Lists are yours rather than any trip's, so they hang off you, not off a trip (#467). */}
-      <DrawerLink title="Lists" onPress={onLists} />
+      <DrawerLink first title="Lists" onPress={onLists} />
     </DrawerGroup>
   );
 }

@@ -19,6 +19,7 @@ export function useSavedTrips() {
       queryClient.setQueryData<string[]>(key, (ids = []) =>
         saved ? [presetId, ...ids.filter((id) => id !== presetId)] : ids.filter((id) => id !== presetId),
       );
+      return undefined;
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: key }),
   });

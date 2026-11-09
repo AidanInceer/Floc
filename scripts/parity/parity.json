@@ -348,21 +348,6 @@
     "roster.remove": {
       "mobile": "yes"
     },
-    "route.deleteMine": {
-      "mobile": "yes"
-    },
-    "route.group": {
-      "mobile": "yes"
-    },
-    "route.on": {
-      "mobile": "yes"
-    },
-    "route.record": {
-      "mobile": "yes"
-    },
-    "route.setOn": {
-      "mobile": "yes"
-    },
     "settings.bookingSite": {
       "mobile": "yes"
     },

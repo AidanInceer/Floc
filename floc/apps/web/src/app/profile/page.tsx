@@ -5,9 +5,10 @@
  * vibe tags, home currency. Everything about who can see it, plus
  * email, notifications and deleting the account, moved to /settings.
  *
- * Face first: the card someone lands on, then what you've actually done (map,
- * trips). Only your name and picture are edited here, from the card itself —
- * vibe tags, packing and your home currency all moved to /settings, so this
+ * Face first: the card someone lands on, then the travel map, which on a wide
+ * screen fills most of the window. Past trips left this page; visitors still
+ * see them on /profile/[userId]. Only your name and picture are edited here,
+ * from the card itself — vibe tags, packing and your home currency all moved to /settings, so this
  * page reads as a profile rather than as a settings form (ticket 236).
  */
 
@@ -17,12 +18,10 @@ import {
   setCountryMark,
 } from "./actions";
 import { requireUser } from "@/server/access";
-import { formatDateRange } from "@floc/core/dates/dates";
 import { ensureProfile } from "@/server/auth/profile";
 import { readVibeTags } from "@floc/core/trip/vibe-tags";
 import { countryName } from "@floc/core/people/countries";
 import { pendingMapPrompts, travelMapFor } from "@/server/itinerary/travel-map";
-import { pastTripsFor } from "@/server/auth/visibility";
 import { AccountPage, Panel } from "@/components/auth/account-ui";
 import { Badge, Stack } from "@/components/system/ui";
 import { FaceEditor } from "@/components/profile/face-editor";
@@ -34,12 +33,10 @@ export const metadata = { title: "Your profile" };
 
 export default async function ProfilePage() {
   const viewer = await requireUser("/profile");
-  const own = ensureProfile(viewer.id);
-  const [profile, travelMap, mapPrompts, pastTrips] = await Promise.all([
-    own,
+  const [profile, travelMap, mapPrompts] = await Promise.all([
+    ensureProfile(viewer.id),
     travelMapFor(viewer.id),
     pendingMapPrompts(viewer.id),
-    pastTripsFor(viewer.id, own.then((p) => p.pastTripsShow)),
   ]);
 
   const name = profile.displayName ?? viewer.name;
@@ -48,7 +45,7 @@ export default async function ProfilePage() {
   return (
     <>
     <AccountTabs current="profile" />
-    <AccountPage title="Your profile" titleInBar>
+    <AccountPage title="Your profile" titleInBar wide>
       {/* The face someone lands on when they click you, shown as they'd see
           it — the page's one moment of the visitor's view. */}
       <Panel>
@@ -105,27 +102,7 @@ export default async function ProfilePage() {
         </Panel>
       ))}
 
-      <TravelMap title="Travel map" states={travelMap.states} setMark={setCountryMark} />
-
-      <Panel title="Trips you've been on">
-        {pastTrips.length === 0 ? (
-          <p className="text-sm text-ink-soft">Nothing here yet.</p>
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {pastTrips.map((t) => (
-              <li key={t.id} className="rounded-md bg-sheet-2 px-3 py-2 text-sm">
-                <span className="font-semibold">{t.name}</span>
-                <span className="text-ink-soft">
-                  {" · "}
-                  <span className="nums">{formatDateRange(t.startDate, t.endDate)}</span>
-                  {t.place ? ` · ${t.place}` : ""}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Panel>
-
+      <TravelMap title="Travel map" states={travelMap.states} setMark={setCountryMark} tall />
     </AccountPage>
     </>
   );

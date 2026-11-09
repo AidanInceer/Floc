@@ -41,6 +41,7 @@ export function SavedPane() {
       queryClient.setQueryData(profileKey, (face) =>
         face ? { ...face, map: [...face.map.filter((m) => m.code !== code), ...(state === "blank" ? [] : [{ code, state }])] } : face,
       );
+      return undefined;
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: profileKey }),
   });

@@ -14,6 +14,14 @@
     height: 330px;
   }
 }
+@media (min-width: 1024px) {
+  .travel-globe-tall {
+    height: clamp(520px, calc(100vh - 380px), 900px);
+  }
+  .travel-globe-tall .travel-globe-zoom {
+    right: 1.5rem;
+  }
+}
 .travel-globe::after {
   content: "";
   position: absolute;

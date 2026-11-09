@@ -27,6 +27,8 @@ type Props = {
   onPick?: (code: string) => void;
   /** Drawn in the clear corner of the dome. */
   title?: string;
+  /** Your own profile on a wide screen: the globe takes most of the window. */
+  tall?: boolean;
   ref?: Ref<TravelGlobeHandle>;
 };
 
@@ -41,7 +43,7 @@ const Minus = () => (
   </svg>
 );
 
-export function TravelGlobe({ land, states, onPick, title, ref }: Props) {
+export function TravelGlobe({ land, states, onPick, title, tall, ref }: Props) {
   const frame = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const bubble = useRef<HTMLDivElement>(null);
@@ -133,7 +135,7 @@ export function TravelGlobe({ land, states, onPick, title, ref }: Props) {
   const said = picked ? `${countryName(picked)} · ${stateWord(states[picked])}` : "";
 
   return (
-    <div ref={frame} className="travel-globe">
+    <div ref={frame} className={tall ? "travel-globe travel-globe-tall" : "travel-globe"}>
       <canvas
         ref={canvas}
         className="travel-globe-canvas"

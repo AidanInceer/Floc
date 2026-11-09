@@ -23,7 +23,7 @@ import { LeftToSort } from "@/components/trip/left-to-sort";
 import { BookingsCard } from "@/components/trip/overview/bookings-card";
 import { FilesLine } from "@/components/trip/overview/files-line";
 import { OverviewCard } from "@/components/trip/overview-card";
-import { TodaySection, TripMapSection } from "@/components/trip/route/trip-map-section";
+import { TripMapSection } from "@/components/trip/route/trip-map-section";
 import { StopList } from "@/components/trip/stops/stop-list";
 import { TripSheet, draftFor, type TripDraft } from "@/components/trip/trip-sheet";
 import { QuietAction } from "@/components/system/text-controls";
@@ -68,8 +68,6 @@ export default function Overview() {
 
   return (
     <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.xl }}>
-      <TodaySection trip={trip.data} days={days.data} files={files.data} onOpenDay={openDay} />
-
       <SortLine tripId={tripId} trip={trip.data} legs={legs} onGo={go} />
 
       <OverviewCard
@@ -89,7 +87,7 @@ export default function Overview() {
         />
       </OverviewCard>
 
-      <TripMapSection trip={trip.data} route={route} tone={pastelOf(tripPastel(readTripColor(trip.data.colorKey), tripId))} />
+      <TripMapSection route={route} tone={pastelOf(tripPastel(readTripColor(trip.data.colorKey), tripId))} />
 
       {/* Ideas first while undated: before the dates exist it is the only live question here. */}
       <IdeasSection tripId={tripId} datesUnset={!trip.data.startDate && !trip.data.endDate} />

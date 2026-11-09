@@ -6,13 +6,11 @@ import { queryClient } from "./api";
 import { signOut } from "./auth";
 import { forgetCachedNotes } from "./notes/live-cache";
 import { sessionClosed } from "./session/session-ended";
-import { forgetRecordedRoute } from "./route/route-task";
 
 /** `expired`: the server refused the session, so the sign-in screen keeps its notice. */
 export async function signOutHere({ expired = false }: { expired?: boolean } = {}): Promise<void> {
   if (!expired) sessionClosed();
   forgetCachedNotes();
   queryClient.clear();
-  await forgetRecordedRoute();
   await signOut();
 }
