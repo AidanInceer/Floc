@@ -66,6 +66,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - Below a panel's coloured head, every part — a field or a section — takes one title style and is ruled off edge to edge from the part above (`panelTitleClass`, `panelBandClass` in `ui.tsx`). A part whose controls name themselves (the event type tiles) needs no title. An empty part shows its button, not a sentence about being empty.
 - A field draws one focus ring: the outline sits on the border, never a blue border plus an outline outside it.
 - A text field is the house field (`Input`, `Textarea`): mono, hover to a darker border. Inside a panel, a field that holds prose — a place name, a note — is the same field in sans (`panelFieldClass`). No third field style.
+  - One exception: the top of My trips joins a house field, its mono label inside in `ink-2`, to New trip. The pair is one control: the button turns pen once a name is typed and shows hover in colour only, never a lift (`new-trip-field.tsx`).
 - Text never overlaps or clips. Test long names (South Africa, Bosnia and Herzegovina), many items and empty states. A chip fits its slot unless the name is long, then it wraps cleanly.
 - The page holds still. Switching a tab, day or filter never jumps the scroll or shifts the content above.
 - A card that opens something opens from anywhere on it, not only its title.
