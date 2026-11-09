@@ -1,6 +1,6 @@
 # CI. One check runner (scripts/checks/run.mjs) serves this file and local runs.
 #
-#   PR to develop      PR checks: lint, types, affected tests, build, fitness, quality, migrations (the fast gate)
+#   PR to develop      PR checks = PR fast + PR tests + PR build, side by side (the fast gate)
 #   push to develop    Release checks: everything, including web e2e and phone bundles
 #   PR to main         Release checks on the release or hotfix commit (the full gate)
 #   push to main       Main coverage, for Sonar's main-branch gate
@@ -28,8 +28,32 @@ env:
   FLOC_NEXT_DIST_DIR: .next-verify
 
 jobs:
-  pr:
-    name: PR checks
+  # Why: three jobs side by side beat one job in a row (each pays about 40 s of setup). PR fast holds the cheap checks
+  # that fail most often; PR tests makes the coverage Sonar needs; PR build builds and checks the build.
+  pr-fast:
+    name: PR fast
+    if: github.event_name == 'pull_request' && github.base_ref != 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm checks pr --base "${{ github.event.pull_request.base.sha }}" --fresh --only tool-tests,repository,secrets,lint,types,quality-lint,fitness-source,migrations
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: failed-checks-pr-fast-${{ github.sha }}
+          path: .floc/checks/
+          retention-days: 7
+  pr-tests:
+    name: PR tests
     if: github.event_name == 'pull_request' && github.base_ref != 'main'
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -45,7 +69,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm checks pr --base "${{ github.event.pull_request.base.sha }}" --fresh
+      - run: pnpm checks pr --base "${{ github.event.pull_request.base.sha }}" --fresh --only tests,quality-coverage
       - id: coverage
         if: always()
         run: echo "present=$(node scripts/checks/coverage-present.mjs)" >> "$GITHUB_OUTPUT"
@@ -58,9 +82,45 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: failed-checks-${{ github.sha }}
+          name: failed-checks-pr-tests-${{ github.sha }}
           path: .floc/checks/
           retention-days: 7
+  pr-build:
+    name: PR build
+    if: github.event_name == 'pull_request' && github.base_ref != 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm checks pr --base "${{ github.event.pull_request.base.sha }}" --fresh --only build,generated-types,fitness-bundle
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: failed-checks-pr-build-${{ github.sha }}
+          path: .floc/checks/
+          retention-days: 7
+
+  # Why: the name "PR checks" is what docs, ci-watch and any ruleset know; it is green only when the three jobs are.
+  pr:
+    name: PR checks
+    if: always() && github.event_name == 'pull_request' && github.base_ref != 'main'
+    needs: [pr-fast, pr-tests, pr-build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "$RESULTS"
+          for result in $RESULTS; do [ "$result" = "success" ] || exit 1; done
 
   release:
     name: Release checks
@@ -133,7 +193,7 @@ jobs:
 
   sonarqube:
     name: SonarQube analysis
-    needs: [pr, release, coverage]
+    needs: [pr-tests, release, coverage]
     if: >-
       always() && (github.event_name == 'pull_request' || github.ref == 'refs/heads/main')
       && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
@@ -144,7 +204,7 @@ jobs:
         with:
           fetch-depth: 0
       - uses: actions/download-artifact@v4
-        if: needs.pr.outputs.coverage == 'true' || needs.release.outputs.coverage == 'true' || needs.coverage.outputs.coverage == 'true'
+        if: needs.pr-tests.outputs.coverage == 'true' || needs.release.outputs.coverage == 'true' || needs.coverage.outputs.coverage == 'true'
         with:
           name: coverage-${{ github.sha }}
           path: floc
