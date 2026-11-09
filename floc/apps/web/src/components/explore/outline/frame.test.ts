@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 
 import { tripCodes } from "./country";
-import { frameFor, homePiece } from "./frame";
+import { countryFrame, frameFor, homePiece } from "./frame";
 import { landFrom, landFromPacked } from "./land";
 
 const square = (x: number, y: number, side: number) => [[x, y], [x + side, y], [x + side, y + side], [x, y + side], [x, y]];
@@ -115,5 +115,49 @@ describe("every listing", () => {
       }
     }
     expect(tight).toEqual([]);
+  });
+});
+
+describe("countryFrame", () => {
+  const fine = landFromPacked(JSON.parse(readFileSync("public/land-50m.json", "utf8")));
+  const inside = (outer: { west: number; south: number; east: number; north: number }, inner: typeof outer) =>
+    inner.west >= outer.west && inner.east <= outer.east && inner.south >= outer.south && inner.north <= outer.north;
+
+  it("fits a big country's whole mainland, so the tile shows its shape and not only its land", () => {
+    const frame = countryFrame(fine, "AU", size)!;
+    const mainland = fine.filter((p) => p.code === "AU").sort((a, b) => b.ring.length - a.ring.length)[0]!;
+    expect(inside(frame.view, mainland.box)).toBe(true);
+  });
+
+  it("draws a small island big enough to see", () => {
+    const frame = countryFrame(fine, "AW", size)!;
+    const island = fine.find((p) => p.code === "AW")!;
+    const top = frame.point({ lng: island.box.west, lat: island.box.north });
+    const bottom = frame.point({ lng: island.box.east, lat: island.box.south });
+    expect(bottom.y - top.y).toBeGreaterThan(size.height * 0.1);
+  });
+
+  it("keeps a country's other big islands in the frame: Hokkaido, the Malay peninsula, the North Island", () => {
+    const sees = (code: string, spot: { lat: number; lng: number }) => {
+      const { view } = countryFrame(fine, code, size)!;
+      return spot.lat > view.south && spot.lat < view.north && spot.lng > view.west && spot.lng < view.east;
+    };
+    expect(sees("JP", { lat: 43.06, lng: 141.35 })).toBe(true);
+    expect(sees("MY", { lat: 3.14, lng: 101.69 })).toBe(true);
+    expect(sees("NZ", { lat: -36.85, lng: 174.76 })).toBe(true);
+  });
+
+  it("leaves out a far territory, so France is framed on France and not on French Guiana too", () => {
+    const { view } = countryFrame(fine, "FR", size)!;
+    expect(view.west).toBeGreaterThan(-20);
+  });
+
+  it("frames a country across the 180th meridian on its main land, not the whole world", () => {
+    const { view } = countryFrame(fine, "RU", size)!;
+    expect(view.east - view.west).toBeLessThan(180);
+  });
+
+  it("is nothing for a country with no outline", () => {
+    expect(countryFrame(fine, "ZZ", size)).toBeNull();
   });
 });

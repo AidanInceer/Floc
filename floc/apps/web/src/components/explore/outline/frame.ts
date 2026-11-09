@@ -22,6 +22,10 @@ const REACH = 0.34;
 const APART = 0.2;
 /** The most a route is zoomed in on to hold its closest stops apart: a town and its neighbour. */
 const TIGHTEST = 0.3;
+/** The least a lone country is framed at, so Aruba shows as an island and not a speck. */
+const ISLAND = 1.2;
+/** A piece this share of a country's largest is one of its big landmasses, framed with it. */
+const BIG_ISLAND = 0.1;
 
 const area = (b: Box) => (b.east - b.west) * (b.north - b.south);
 const clamp = (value: number, low: number, high: number) => Math.min(Math.max(value, low), high);
@@ -80,10 +84,47 @@ export function frameFor(stops: readonly Spot[], home: Piece | undefined, size: 
     lng: clamp(centre.lng, route.east - wide * REACH, route.west + wide * REACH),
     lat: clamp(centre.lat, route.north - high * REACH, route.south + high * REACH),
   };
+  return frameOn(centre, high, squeeze, size);
+}
+
+function frameOn(centre: Spot, high: number, squeeze: number, size: Size): Frame {
+  const wide = (high * (size.width / size.height)) / squeeze;
   const scale = size.height / high;
   return {
     scale,
     view: { west: centre.lng - wide / 2, south: centre.lat - high / 2, east: centre.lng + wide / 2, north: centre.lat + high / 2 },
     point: ({ lat, lng }) => ({ x: size.width / 2 + (lng - centre.lng) * squeeze * scale, y: size.height / 2 - (lat - centre.lat) * scale }),
   };
+}
+
+/** Land in square degrees, by the ring's own outline: a long thin island's box overstates it. */
+function landArea(ring: readonly number[][]): number {
+  let twice = 0;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) twice += (ring[j]![0]! + ring[i]![0]!) * (ring[j]![1]! - ring[i]![1]!);
+  return Math.abs(twice) / 2;
+}
+
+/**
+ * A country on its own, with no route (#467): its big landmasses whole, however big (Hokkaido with Honshu, the Malay peninsula
+ * with Borneo), and an island never smaller than a town and its neighbour. Land past the 180th meridian falls back to the largest piece.
+ */
+export function countryFrame(land: readonly Piece[], code: string, size: Size): Frame | null {
+  const pieces = land.filter((p) => p.code === code).map((p) => ({ box: p.box, area: landArea(p.ring) })).sort((a, b) => b.area - a.area);
+  const largest = pieces[0];
+  if (!largest) return null;
+  const reach = Math.max(largest.box.east - largest.box.west, largest.box.north - largest.box.south);
+  const gap = (b: Box) => Math.max(b.west - largest.box.east, largest.box.west - b.east, b.south - largest.box.north, largest.box.south - b.north, 0);
+  // Why: a far territory (French Guiana for France) is not the country a reader pictures; a near island (Hokkaido) is.
+  const big = pieces.filter((p) => p.area >= largest.area * BIG_ISLAND && gap(p.box) <= reach);
+  const all = {
+    west: Math.min(...big.map((p) => p.box.west)),
+    east: Math.max(...big.map((p) => p.box.east)),
+    south: Math.min(...big.map((p) => p.box.south)),
+    north: Math.max(...big.map((p) => p.box.north)),
+  };
+  const box = all.east - all.west > 180 ? largest.box : all;
+  const centre = { lng: (box.west + box.east) / 2, lat: (box.south + box.north) / 2 };
+  const squeeze = Math.cos((centre.lat * Math.PI) / 180);
+  const needs = Math.max(box.north - box.south, ((box.east - box.west) * squeeze) / (size.width / size.height));
+  return frameOn(centre, Math.max(needs * LAND_MARGIN, ISLAND), squeeze, size);
 }

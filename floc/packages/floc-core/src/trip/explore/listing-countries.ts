@@ -1,4 +1,5 @@
 import { COUNTRIES } from "../../people/countries";
+import { countryRegion } from "./country-region";
 import { PRESET_TRIPS, type PresetTrip, type Region } from "./preset-trips";
 
 // A listing names the place a traveller would; the country list holds states, under their full names.
@@ -17,7 +18,7 @@ export function listingsIn(code: string, trips: readonly PresetTrip[] = PRESET_T
   return trips.filter((trip) => countryNames(trip.country).some((name) => listingCountryCode(name) === code));
 }
 
-/** A country's region, from the trips that go there; null when none does, so its tile stays plain. */
-export function regionOf(code: string, trips: readonly PresetTrip[] = PRESET_TRIPS): Region | null {
-  return listingsIn(code, trips)[0]?.region ?? null;
+/** A country's region: its continent's colour on Explore, whether or not a trip goes there (#467). */
+export function regionOf(code: string): Region | null {
+  return countryRegion(code);
 }

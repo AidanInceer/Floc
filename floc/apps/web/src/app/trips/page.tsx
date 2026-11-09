@@ -166,10 +166,7 @@ function NewTripTile({ friends, first }: { friends: Person[]; first?: boolean })
 function InviteList({ invites }: { invites: PendingInvite[] }) {
   return (
     <section className="mt-8">
-      <p className="typed">
-        {invites.length === 1 ? "An invitation" : "Invitations"} · waiting on you
-      </p>
-      <Stack gap={3} className="mt-3">
+      <Stack gap={3}>
         {invites.map((invite) => (
           <div
             key={invite.tripId}

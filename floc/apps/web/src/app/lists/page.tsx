@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 
 import { ListingRatesProvider } from "@/components/explore/listing-rates";
 import { SavedTripsProvider } from "@/components/explore/save/saved-trips";
+import { ListsPage } from "@/components/lists/lists-page";
 import { WantToGo } from "@/components/lists/want-to-go";
 import { PageTitle } from "@/components/system/ui";
 import { requireUser } from "@/server/access";
@@ -26,13 +27,13 @@ export default async function SavedPage() {
   const trips = saved.map((id) => byId.get(id)).filter((t): t is PresetTrip => Boolean(t));
 
   return (
-    <>
+    <ListsPage current="saved">
       <PageTitle className="sr-only">Saved</PageTitle>
       <ListingRatesProvider rates={rates}>
         <SavedTripsProvider ids={saved} signedIn>
           <WantToGo trips={trips} countries={wantToGoCountries(map)} />
         </SavedTripsProvider>
       </ListingRatesProvider>
-    </>
+    </ListsPage>
   );
 }
