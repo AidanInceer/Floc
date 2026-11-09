@@ -17,7 +17,7 @@ describe("bounded", () => {
     expect(bounded(rows, "days", "trip 1")).toBe(rows);
   });
 
-  it("says nothing below the ceiling", () => {
+  it("stays quiet below the ceiling", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     bounded(new Array(LIMITS.days - 1).fill(0), "days", "trip 1");
     expect(warn).not.toHaveBeenCalled();
