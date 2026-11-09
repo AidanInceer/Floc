@@ -148,7 +148,7 @@ export default function Profile() {
           <Button label="Paint the map" variant="quiet" onPress={() => setPainting(true)} />
         </View>
 
-        <YourTravel onKits={() => router.push("/kits")} />
+        <YourTravel onLists={() => router.push("/lists")} />
 
         <View style={{ gap: space.sm }}>
           <View style={{ paddingHorizontal: space.xs }}>
@@ -193,11 +193,11 @@ export default function Profile() {
   );
 }
 
-function YourTravel({ onKits }: { onKits: () => void }) {
+function YourTravel({ onLists }: { onLists: () => void }) {
   return (
     <DrawerGroup>
-      {/* Saved lists are yours rather than any trip's, so they hang off you, not off a trip. */}
-      <DrawerLink first title="Saved packing lists" onPress={onKits} />
+      {/* Lists are yours rather than any trip's, so they hang off you, not off a trip (#467). */}
+      <DrawerLink first title="Lists" onPress={onLists} />
     </DrawerGroup>
   );
 }

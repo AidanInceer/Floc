@@ -9,7 +9,8 @@ import { finderPills } from "@floc/core/trip/explore/finder/finder-words";
 import { listingPrice } from "@floc/core/trip/explore/listing-price";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { countryName, readCountryCode } from "@floc/core/people/countries";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
@@ -34,15 +35,18 @@ export default function Explore() {
 
   const state = useQuery(trpc.explore.get.queryOptions());
   const [picked, setPicked] = useState(MAP_PICKS[0].id);
-  const [finder, setFinder] = useState<Finder>(EMPTY_FINDER);
+  // Why: a want-to-go country on Lists opens Explore searched for it (#467), over the remembered finder.
+  const asked = readCountryCode(useLocalSearchParams<{ country?: string }>().country);
+  const [finder, setFinder] = useState<Finder>(asked ? { ...EMPTY_FINDER, q: countryName(asked) } : EMPTY_FINDER);
   const [sort, setSort] = useState<FinderSort>("match");
   const [sheet, setSheet] = useState(false);
   const [showAll, setShowAll] = useState(false);
   const [copying, setCopying] = useState(false);
 
   useEffect(() => {
-    if (state.data?.finder) setFinder(state.data.finder);
-  }, [state.data?.finder]);
+    if (asked) setFinder({ ...EMPTY_FINDER, q: countryName(asked) });
+    else if (state.data?.finder) setFinder(state.data.finder);
+  }, [asked, state.data?.finder]);
 
   const remember = useMutation(trpc.explore.setFinder.mutationOptions());
   const start = useMutation({

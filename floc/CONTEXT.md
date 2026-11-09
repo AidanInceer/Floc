@@ -82,6 +82,16 @@ undated trip with the highlights page only.
 **Start month** — a best month picked when copying. The trip starts on the 1st
 of the next such month still ahead and runs for the listing's nights.
 
+**Saved trip** — an Explore listing a person saved with its heart. Private: nobody
+else sees it, and Explore shows no count. It opens the listing with the copy
+choice open.
+
+**Want to go** — a country a person wants to visit. The same fact as the yellow
+on their profile globe: changing one changes the other.
+
+**Lists** — the account tab that holds what a person keeps: *Saved* (saved trips
+and want-to-go countries) and *Packing* (saved packing lists).
+
 **Ideas page** — an optional notes page a copy adds. *At your stops*: other
 things to do at each stop, with pace and cost. *Other stops*: places to swap
 in, how many nights, and what to do there.
