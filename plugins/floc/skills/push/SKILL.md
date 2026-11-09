@@ -58,7 +58,7 @@ pnpm delivery publish --message-file <path>
 ```
 
 In order: removes worktrees that already landed, commits (the pre-commit hook runs: staged lint,
-related tests, comments, secrets, repository rules), merges the latest `develop` in, pushes,
+comments, secrets, repository rules; no tests), merges the latest `develop` in, pushes,
 opens the PR to `develop` and turns on auto-merge. It takes seconds, not minutes.
 
 - **Pre-commit fails** → fix the cause, publish again. Never `--no-verify`.
