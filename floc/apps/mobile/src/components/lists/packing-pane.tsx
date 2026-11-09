@@ -47,7 +47,7 @@ export function PackingPane() {
       // Null is the ceiling, not a failure — say so rather than doing nothing.
       setCapped(made === null);
       if (made !== null) setName("");
-      reload();
+      void reload();
     },
   });
   const rename = useMutation({ ...trpc.kits.rename.mutationOptions(), onSuccess: reload });
@@ -56,7 +56,7 @@ export function PackingPane() {
     ...trpc.kits.addItem.mutationOptions(),
     onSuccess: () => {
       setItem(null);
-      reload();
+      void reload();
     },
   });
   const removeItem = useMutation({ ...trpc.kits.removeItem.mutationOptions(), onSuccess: reload });
