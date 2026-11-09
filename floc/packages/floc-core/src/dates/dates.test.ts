@@ -17,6 +17,7 @@ import {
   today,
   toIsoDate,
   dayParts,
+  underway,
 } from "./dates";
 
 describe("date-only arithmetic", () => {
@@ -176,5 +177,24 @@ describe("the awkward halves of the date helpers", () => {
 describe("dayParts", () => {
   it("splits a date into the weekday and the day of the month", () => {
     expect(dayParts("2026-10-23")).toEqual({ weekday: "Fri", day: 23 });
+  });
+});
+
+describe("underway", () => {
+  const trip = { startDate: "2026-09-01", endDate: "2026-09-07" };
+
+  it("from its first day to its last, both included", () => {
+    expect(underway(trip, "2026-09-01")).toBe(true);
+    expect(underway(trip, "2026-09-07")).toBe(true);
+  });
+
+  it("not before it starts, nor after it ends", () => {
+    expect(underway(trip, "2026-08-31")).toBe(false);
+    expect(underway(trip, "2026-09-08")).toBe(false);
+  });
+
+  it("never when it has no dates (rule 9)", () => {
+    expect(underway({ startDate: null, endDate: null }, "2026-09-03")).toBe(false);
+    expect(underway({ startDate: "2026-09-01", endDate: null }, "2026-09-03")).toBe(false);
   });
 });

@@ -38,8 +38,6 @@ export const LIMITS = {
   ideas: 200,
   /** Availability marks read for the Dates grid: members × days, capped. */
   availability: 20_000,
-  /** Route positions read for one trip's map: eight people for three weeks at one every 5 minutes. */
-  routePoints: 50_000,
   /** One person's date marks on one trip: every day of two years, free or not. */
   availabilityPerPerson: 732,
   /** Comments in one thread, replies included. */

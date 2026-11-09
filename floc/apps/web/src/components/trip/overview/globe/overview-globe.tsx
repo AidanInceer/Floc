@@ -1,6 +1,5 @@
 "use client";
 
-import type { GroupRoute } from "@floc/api/port";
 import type { OverviewRoute } from "@floc/core/trip/overview/route";
 import type { TripColor } from "@floc/core/trip/trip-color";
 import { useEffect, useRef } from "react";
@@ -12,26 +11,21 @@ import { CANVAS_ZOOM_EVENT, canvasZoom, unzoomed } from "@/components/globe/pixe
 import { watchRedraw } from "@/components/globe/watch-redraw";
 
 import { clearArea } from "./clear-area";
-import { paintTracks, placeTracks } from "./paint-tracks";
 import { drawStillRoute, TONE } from "./still-route";
 
 /**
  * The trip's route on Explore's tile-free globe, still: no fly-in on a page the group opens again and again.
  * It is drawn from the days each time the page loads, so a change on Days is simply there.
  */
-const NO_TRACKS: GroupRoute[] = [];
-
 export function OverviewGlobe({
   route,
   tone,
   label,
-  tracks = NO_TRACKS,
   quiet = false,
 }: {
   route: OverviewRoute;
   tone: TripColor;
   label: string;
-  tracks?: GroupRoute[];
   /** No names or leg tags: the small map on a My trips bar. */
   quiet?: boolean;
 }) {
@@ -52,12 +46,7 @@ export function OverviewGlobe({
       const card = box.closest("[data-overview-band]")?.querySelector("[data-overview-card]");
       const zoom = canvasZoom(getComputedStyle(node).getPropertyValue("--canvas-zoom"));
       const cardBox = card ? unzoomed(card.getBoundingClientRect(), zoom) : null;
-      const fit = drawStillRoute(node, paint, { route, land, tint, quiet, clear: clearArea(unzoomed(box.getBoundingClientRect(), zoom), cardBox) });
-      const ctx = node.getContext("2d");
-      if (!fit || !ctx || tracks.length === 0) return;
-      const css = getComputedStyle(node);
-      const read = (name: string) => css.getPropertyValue(`--${name}`).trim();
-      paintTracks(ctx, placeTracks(tracks, fit.at), (who) => read(`${who}-ink`), read("sheet"));
+      drawStillRoute(node, paint, { route, land, tint, quiet, clear: clearArea(unzoomed(box.getBoundingClientRect(), zoom), cardBox) });
     };
     draw();
     void document.fonts.ready.then(draw);
@@ -68,7 +57,7 @@ export function OverviewGlobe({
       window.removeEventListener(CANVAS_ZOOM_EVENT, draw);
       stop();
     };
-  }, [route, tone, world, fine, tracks, quiet]);
+  }, [route, tone, world, fine, quiet]);
 
   return (
     <div ref={host} className="absolute inset-0">

@@ -17,7 +17,6 @@ import {
   packingKit,
   packingLine,
   pushToken,
-  routePoint,
   session,
   tripInvite,
   user,
@@ -67,7 +66,6 @@ export async function eraseAccount(userId: string): Promise<void> {
     await tx.delete(session).where(eq(session.userId, userId));
     await tx.delete(account).where(eq(account.userId, userId));
     await tx.delete(pushToken).where(eq(pushToken.userId, userId));
-    await tx.delete(routePoint).where(eq(routePoint.userId, userId));
     await tx.delete(userCountryMark).where(eq(userCountryMark.userId, userId));
 
     const gone = { deletedAt: now, lastModifiedAt: now };

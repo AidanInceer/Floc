@@ -1,7 +1,4 @@
 // The hero's map: the route on Explore's globe, behind the card. A leg with no coordinates is named, not dropped (rule 11).
-import type { ReactNode } from "react";
-
-import type { GroupRoute } from "@floc/api/port";
 import type { OverviewRoute } from "@floc/core/trip/overview/route";
 import type { TripColor } from "@floc/core/trip/trip-color";
 import { ButtonLink } from "@/components/system/ui";
@@ -12,15 +9,11 @@ export function OverviewMap({
   route,
   tone,
   datesUnset,
-  tracks,
-  legend,
 }: {
   tripId: number;
   route: OverviewRoute;
   tone: TripColor;
   datesUnset: boolean;
-  tracks: GroupRoute[];
-  legend: ReactNode;
 }) {
   const unpinned = route.missing.length > 0 ? <Unpinned names={route.missing} /> : null;
   if (route.stops.length === 0) {
@@ -46,8 +39,7 @@ export function OverviewMap({
 
   return (
     <div className="relative h-[14rem] overflow-hidden rounded-t-md sm:h-[28rem] lg:absolute lg:inset-0 lg:h-auto lg:rounded-b-none">
-      <OverviewGlobe route={route} tone={tone} tracks={tracks} label={`The route: ${route.stops.map((s) => s.place).join(", ")}`} />
-      {legend ? <div className="absolute left-3 top-3 max-w-[calc(100%-1.5rem)]">{legend}</div> : null}
+      <OverviewGlobe route={route} tone={tone} label={`The route: ${route.stops.map((s) => s.place).join(", ")}`} />
       {unpinned ? <div className="absolute bottom-3 left-3 max-w-[calc(100%-1.5rem)] lg:max-w-[calc(100%-26.5rem)]">{unpinned}</div> : null}
     </div>
   );
