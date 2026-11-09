@@ -31,6 +31,7 @@
     "db:trips": "node scripts/db-trips.mjs",
     "db:seed": "node --experimental-strip-types --import ./scripts/alias-loader-register.mjs --env-file=.env src/db/seed/index.ts",
     "db:reset": "node --experimental-strip-types --import ./scripts/alias-loader-register.mjs --env-file=.env src/db/seed/index.ts --fresh",
+    "db:scenario": "node --experimental-strip-types --import ./scripts/alias-loader-register.mjs --env-file=.env src/db/seed/starts/index.ts",
     "auth:generate": "better-auth generate"
   },
   "dependencies": {
